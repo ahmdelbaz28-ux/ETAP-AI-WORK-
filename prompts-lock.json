@@ -1,0 +1,55 @@
+{
+  "lockfileVersion": 1,
+  "prompts": {
+    "etap_engineer_agent": {
+      "version": 0,
+      "versionId": "local",
+      "materialized": "prompts/etap_engineer_agent.yaml"
+    },
+    "goal_planner_agent": {
+      "version": 0,
+      "versionId": "local",
+      "materialized": "prompts/goal_planner_agent.yaml"
+    },
+    "sample_prompt": {
+      "version": 0,
+      "versionId": "local",
+      "materialized": "prompts/sample_prompt.yaml"
+    },
+    "arcflash_agent_prompt": {
+      "version": 0,
+      "versionId": "local",
+      "materialized": "prompts/arcflash_agent_prompt.prompt.yaml"
+    },
+    "load_flow_agent": {
+      "version": 0,
+      "versionId": "local",
+      "materialized": "prompts/load_flow_agent.prompt.yaml"
+    },
+    "short_circuit_agent": {
+      "version": 0,
+      "versionId": "local",
+      "materialized": "prompts/short_circuit_agent.prompt.yaml"
+    },
+    "protection_agent": {
+      "version": 0,
+      "versionId": "local",
+      "materialized": "prompts/protection_agent.prompt.yaml"
+    },
+    "motor_starting_agent": {
+      "version": 0,
+      "versionId": "local",
+      "materialized": "prompts/motor_starting_agent.prompt.yaml"
+    },
+    "weather_agent": {
+      "version": 0,
+      "versionId": "local",
+      "materialized": "prompts/weather_agent.prompt.yaml"
+    },
+    "power_system_coordinator_agent": {
+      "version": 0,
+      "versionId": "local",
+      "materialized": "prompts/power_system_coordinator_agent.prompt.yaml"
+    }
+  }
+}

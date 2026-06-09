@@ -1,0 +1,15 @@
+{
+  "name": "ahmed-etap",
+  "compatibility_date": "2026-06-08",
+  "main": "./src/index.ts",
+  "workers_dev": true,
+  "compatibility_flags": ["nodejs_compat"],
+  "kv_namespaces": [
+    {
+      // Create a real KV namespace with: wrangler kv namespace create "rate-limit-kv"
+      // Then replace the id below with the returned namespace ID.
+      "binding": "RATE_LIMIT_KV",
+      "id": "rate-limit-kv"
+    }
+  ]
+}
