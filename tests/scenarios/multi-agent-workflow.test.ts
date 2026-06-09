@@ -13,9 +13,9 @@ class MastraCoordinatorAdapter extends AgentAdapter {
   async call(input: AgentInput): Promise<AgentReturnTypes> {
     const agent = mastra.getAgent('powerSystemCoordinatorAgent');
     const response = await agent.generate(input.messages, {
-      threadId: input.threadId,
+      threadId: (input as any).threadId,
       resourceId: 'scenario-multi-agent-workflow',
-    });
+    } as any);
 
     this.lastToolCalls = response.toolCalls ?? [];
     this.lastTraceId = response.traceId;

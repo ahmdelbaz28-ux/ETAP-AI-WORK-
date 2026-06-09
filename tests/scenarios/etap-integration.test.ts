@@ -13,9 +13,9 @@ class MastraEtapAdapter extends AgentAdapter {
   async call(input: AgentInput): Promise<AgentReturnTypes> {
     const agent = mastra.getAgent('etapEngineerAgent');
     const response = await agent.generate(input.messages, {
-      threadId: input.threadId,
+      threadId: (input as any).threadId,
       resourceId: 'scenario-etap-integration',
-    });
+    } as any);
 
     this.lastToolCalls = response.toolCalls ?? [];
     this.lastTraceId = response.traceId;

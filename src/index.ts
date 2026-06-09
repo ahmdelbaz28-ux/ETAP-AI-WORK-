@@ -21,6 +21,11 @@ import { createOpenAI } from "@ai-sdk/openai";
 import { generateText } from "ai";
 
 // ---------------------------------------------------------------------------
+// Cloudflare Workers globals
+// ---------------------------------------------------------------------------
+declare const caches: { default: { match(request: Request): Promise<Response | undefined>; put(request: Request, response: Response): Promise<void> } } | undefined;
+
+// ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
 
@@ -240,7 +245,6 @@ function getAIProvider(env: Env) {
   const openai = createOpenAI({
     apiKey,
     baseURL,
-    compatibility: "compatible",
   });
 
   return { openai, modelId };
@@ -438,7 +442,7 @@ export default {
             body: JSON.stringify({ messages, threadId: body.threadId, resourceId: body.resourceId }),
           });
           if (proxyRes.ok) {
-            const proxyJson = await proxyRes.json();
+            const proxyJson = (await proxyRes.json()) as Record<string, unknown>;
             return jsonResponse(200, { ...proxyJson, traceId }, cors);
           }
         } catch {
@@ -483,7 +487,7 @@ Respond with professional engineering analysis. Be concise, accurate, and cite r
             provider: provider.modelId,
             traceId,
             finishReason: result.finishReason,
-          },
+          } as Record<string, unknown>,
           cors
         );
       } catch (aiError) {
@@ -620,7 +624,17 @@ Respond with professional engineering analysis. Be concise, accurate, and cite r
       if (!task) {
         return errorResponse(404, `Task "${taskId}" not found`, traceId, cors);
       }
-      return jsonResponse(200, { ...task, taskId, traceId }, cors);
+      return jsonResponse(200, {
+        studyType: task!.studyType,
+        parameters: task!.parameters,
+        status: task!.status,
+        createdAt: task!.createdAt,
+        startedAt: task!.startedAt,
+        completedAt: task!.completedAt,
+        result: task!.result,
+        taskId,
+        traceId,
+      }, cors);
     }
 
     // List providers

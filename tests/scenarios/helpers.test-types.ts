@@ -28,7 +28,7 @@ export interface StudyRequest {
 }
 
 export function hasToolCall(adapter: AgentAdapter, toolName: string): boolean {
-  const calls = (adapter as Record<string, unknown>).lastToolCalls;
+  const calls = (adapter as unknown as Record<string, unknown>).lastToolCalls;
   if (!Array.isArray(calls)) return false;
   return calls.some((call: unknown) => {
     if (call && typeof call === 'object' && 'toolName' in call) {
@@ -39,7 +39,7 @@ export function hasToolCall(adapter: AgentAdapter, toolName: string): boolean {
 }
 
 export function countToolCalls(adapter: AgentAdapter): number {
-  const calls = (adapter as Record<string, unknown>).lastToolCalls;
+  const calls = (adapter as unknown as Record<string, unknown>).lastToolCalls;
   return Array.isArray(calls) ? calls.length : 0;
 }
 

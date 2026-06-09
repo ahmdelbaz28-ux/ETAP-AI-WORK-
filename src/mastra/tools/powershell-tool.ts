@@ -11,8 +11,8 @@ export const run_powershell = createTool({
   inputSchema: z.object({
     command: z.string().describe('The PowerShell command to execute (read-only commands only)'),
   }),
-  execute: async ({ command }) => {
-    return new Promise((resolve, reject) => {
+  execute: async ({ command }: { command: string }) => {
+    return new Promise<string>((resolve, reject) => {
       const secureExecutorPath = 'security/secure_powershell_executor.py';
 
       // Use spawn to pass command via stdin (prevents shell injection)
