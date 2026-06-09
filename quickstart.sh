@@ -1,0 +1,79 @@
+#!/bin/bash
+# ETAP AI Platform - Quick Start Script
+# This script sets up and starts the platform in one command
+
+set -e  # Exit on error
+
+echo "=========================================="
+echo "ETAP AI Engineering Platform - Quick Start"
+echo "=========================================="
+echo ""
+
+# Colors
+GREEN='\033[0;32m'
+BLUE='\033[0;34m'
+RED='\033[0;31m'
+NC='\033[0m' # No Color
+
+print_success() {
+    echo -e "${GREEN}✓ $1${NC}"
+}
+
+print_info() {
+    echo -e "${BLUE}ℹ $1${NC}"
+}
+
+print_error() {
+    echo -e "${RED}✗ $1${NC}"
+}
+
+# Check if Docker is installed
+if ! command -v docker &> /dev/null; then
+    print_error "Docker is not installed. Please install Docker first."
+    exit 1
+fi
+
+if ! command -v docker-compose &> /dev/null; then
+    print_error "Docker Compose is not installed. Please install Docker Compose first."
+    exit 1
+fi
+
+print_success "Docker and Docker Compose found"
+
+# Check if .env file exists
+if [ ! -f .env ]; then
+    print_info "Creating .env file from template..."
+    cp .env.example .env
+    print_success ".env file created. Please edit it with your configuration."
+fi
+
+# Build and start services
+print_info "Building Docker images..."
+docker-compose build
+
+print_info "Starting services..."
+docker-compose up -d
+
+# Wait for services to be ready
+print_info "Waiting for services to start..."
+sleep 10
+
+# Check health
+print_info "Checking service health..."
+if curl -f http://localhost:3000/health &> /dev/null; then
+    print_success "Platform is running and healthy!"
+    echo ""
+    echo "Access the platform at: http://localhost:3000"
+    echo "API documentation: http://localhost:3000/docs"
+    echo ""
+    echo "Useful commands:"
+    echo "  View logs:     docker-compose logs -f"
+    echo "  Stop services: docker-compose down"
+    echo "  Restart:       docker-compose restart"
+else
+    print_error "Platform may not be ready yet. Check logs:"
+    echo "  docker-compose logs -f"
+fi
+
+echo ""
+print_success "Setup complete!"

@@ -1,0 +1,14 @@
+{
+  "prompts": {
+    "etap_engineer_agent": "file:prompts/etap_engineer_agent.yaml",
+    "goal_planner_agent": "file:prompts/goal_planner_agent.yaml",
+    "sample_prompt": "file:prompts/sample_prompt.yaml",
+    "arcflash_agent_prompt": "file:prompts/arcflash_agent_prompt.prompt.yaml",
+    "load_flow_agent": "file:prompts/load_flow_agent.prompt.yaml",
+    "short_circuit_agent": "file:prompts/short_circuit_agent.prompt.yaml",
+    "protection_agent": "file:prompts/protection_agent.prompt.yaml",
+    "motor_starting_agent": "file:prompts/motor_starting_agent.prompt.yaml",
+    "weather_agent": "file:prompts/weather_agent.prompt.yaml",
+    "power_system_coordinator_agent": "file:prompts/power_system_coordinator_agent.prompt.yaml"
+  }
+}

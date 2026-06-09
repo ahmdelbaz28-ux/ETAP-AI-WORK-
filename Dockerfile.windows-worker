@@ -1,0 +1,72 @@
+# =============================================================================
+# ETAP Windows Worker - Windows Container for ETAP COM Automation
+# =============================================================================
+# This container MUST run on Windows with ETAP installed on the host.
+# The worker exposes a REST API that the main Linux container calls.
+#
+# Build: docker build -f Dockerfile.windows-worker -t etap-windows-worker .
+# Run:   docker run -d --isolation=process -p 8081:8081 etap-windows-worker
+
+FROM mcr.microsoft.com/windows/servercore:ltsc2022
+
+LABEL maintainer="ETAP AI Platform Team"
+LABEL description="ETAP Windows Worker - COM Automation Service"
+LABEL version="2.0.0"
+
+SHELL ["powershell", "-Command", "$ErrorActionPreference = 'Stop'; $ProgressPreference = 'SilentlyContinue';"]
+
+# Install Python 3.11
+RUN Invoke-WebRequest -Uri "https://www.python.org/ftp/python/3.11.7/python-3.11.7-amd64.exe" -OutFile "C:\python-installer.exe"; \
+    Start-Process C:\python-installer.exe -ArgumentList '/quiet InstallAllUsers=1 PrependPath=1 Include_test=0' -Wait; \
+    Remove-Item C:\python-installer.exe -Force
+
+# Install Visual C++ Redistributable (required for some packages)
+RUN Invoke-WebRequest -Uri "https://aka.ms/vs/17/release/vc_redist.x64.exe" -OutFile "C:\vc_redist.exe"; \
+    Start-Process C:\vc_redist.exe -ArgumentList '/quiet /install' -Wait; \
+    Remove-Item C:\vc_redist.exe -Force
+
+# Refresh PATH
+RUN $env:Path = [System.Environment]::GetEnvironmentVariable('Path','Machine'); \
+    [System.Environment]::SetEnvironmentVariable('Path', $env:Path, 'User')
+
+# Create app directory
+RUN New-Item -ItemType Directory -Force -Path C:\app
+
+WORKDIR C:\app
+
+# Copy requirements and install dependencies
+COPY requirements.txt .
+RUN pip install --no-cache-dir --upgrade pip && \
+    pip install --no-cache-dir -r requirements.txt
+
+# Copy application code
+COPY etap_integration/ ./etap_integration/
+COPY security/ ./security/
+
+# Create data directories
+RUN New-Item -ItemType Directory -Force -Path C:\app\data | Out-Null; \
+    New-Item -ItemType Directory -Force -Path C:\app\logs | Out-Null; \
+    New-Item -ItemType Directory -Force -Path C:\app\reports | Out-Null
+
+# ETAP Worker Configuration
+ENV ETAP_WORKER_HOST=0.0.0.0 \
+    ETAP_WORKER_PORT=8081 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    ETAP_INSTALL_PATH="C:\Program Files\ETAP" \
+    ETAP_VERSION="19.0" \
+    LOG_LEVEL=INFO
+
+EXPOSE 8081
+
+HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
+    CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:8081/health')" || exit 1
+
+# Graceful shutdown handler via PowerShell
+CMD ["powershell", "-Command", \
+    "$ctr = Register-ObjectEvent -SystemEvent ConsoleCancelEvent -Action { exit 0 }; \
+     try { \
+         python -m etap_integration.etap_worker_service --host 0.0.0.0 --port 8081; \
+     } finally { \
+         $ctr | Remove-Event; \
+     }"]

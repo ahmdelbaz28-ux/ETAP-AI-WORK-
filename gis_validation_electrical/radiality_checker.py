@@ -1,0 +1,133 @@
+from __future__ import annotations
+
+from dataclasses import dataclass
+from typing import Dict, List, Optional, Set, Tuple
+
+from gis_validation_electrical.electrical_model import ElectricalEdge, ElectricalModel
+
+
+@dataclass(frozen=True)
+class RadialityIssue:
+    issue_type: str  # e.g. "loop_detected", "island_detected"
+    affected_nodes: List[str]
+    affected_edges: List[str]
+    details: Dict[str, object]
+
+
+def _undirected_adjacency(model: ElectricalModel) -> Dict[str, Set[str]]:
+    adj: Dict[str, Set[str]] = {nid: set() for nid in model.nodes.keys()}
+    for e in model.edges.values():
+        if e.from_node in adj and e.to_node in adj:
+            adj[e.from_node].add(e.to_node)
+            adj[e.to_node].add(e.from_node)
+    return adj
+
+
+def _find_components(adj: Dict[str, Set[str]]) -> List[Set[str]]:
+    visited: Set[str] = set()
+    comps: List[Set[str]] = []
+    for start in adj.keys():
+        if start in visited:
+            continue
+        stack = [start]
+        comp: Set[str] = set()
+        while stack:
+            n = stack.pop()
+            if n in visited:
+                continue
+            visited.add(n)
+            comp.add(n)
+            for nb in adj.get(n, set()):
+                if nb not in visited:
+                    stack.append(nb)
+        comps.append(comp)
+    return comps
+
+
+def _has_undirected_loop(adj: Dict[str, Set[str]]) -> Tuple[bool, List[str]]:
+    """
+    Detect cycles in an undirected graph.
+    Returns (has_loop, one_cycle_nodes_best_effort).
+
+    Deterministic and bounded: uses DFS with parent tracking.
+    """
+    visited: Set[str] = set()
+    parent: Dict[str, Optional[str]] = {}
+    stack: List[Tuple[str, Optional[str]]] = []
+
+    for root in adj.keys():
+        if root in visited:
+            continue
+        parent[root] = None
+        stack = [(root, None)]
+        while stack:
+            node, par = stack.pop()
+            if node in visited:
+                continue
+            visited.add(node)
+            parent[node] = par
+            for nb in adj.get(node, set()):
+                if nb == par:
+                    continue
+                if nb in visited:
+                    # Cycle detected: collect node + nb + current chain best-effort.
+                    cycle_nodes = [node, nb]
+                    return True, cycle_nodes
+                stack.append((nb, node))
+
+    return False, []
+
+
+def validate_radiality(model: ElectricalModel) -> Tuple[bool, List[RadialityIssue]]:
+    """
+    Radiality validation:
+    - No loops in the electrical graph (undirected cycle check)
+    - Electrical islands are detected (disconnected substations)
+
+    Note: This is electrical-graph radiality only (not GIS topology validation).
+    """
+    issues: List[RadialityIssue] = []
+
+    if not model.nodes:
+        return True, issues
+
+    adj = _undirected_adjacency(model)
+    comps = _find_components(adj)
+
+    # Island detection: more than one component means electrical isolation exists.
+    if len(comps) > 1:
+        # Best-effort: treat the smallest component as isolated.
+        smallest = sorted(comps, key=lambda c: len(c))[0]
+        affected_edges = [
+            e.edge_id
+            for e in model.edges.values()
+            if e.from_node in smallest and e.to_node in smallest
+        ]
+        issues.append(
+            RadialityIssue(
+                issue_type="island_detected",
+                affected_nodes=sorted(list(smallest)),
+                affected_edges=sorted(affected_edges),
+                details={"component_count": len(comps)},
+            )
+        )
+
+    # Loop detection.
+    has_loop, cycle_nodes = _has_undirected_loop(adj)
+    if has_loop:
+        affected_edges = [
+            e.edge_id
+            for e in model.edges.values()
+            if e.from_node in cycle_nodes or e.to_node in cycle_nodes
+        ]
+        issues.append(
+            RadialityIssue(
+                issue_type="loop_detected",
+                affected_nodes=sorted(set(cycle_nodes)),
+                affected_edges=sorted(affected_edges),
+                details={},
+            )
+        )
+
+    ok = len(issues) == 0
+    return ok, issues

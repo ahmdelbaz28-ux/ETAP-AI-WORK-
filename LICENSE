@@ -1,0 +1,100 @@
+MIT License
+
+Copyright (c) 2026 ETAP AI Engineering Platform
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+---
+
+## Third-Party Licenses
+
+This project includes several third-party open-source components:
+
+### Python Dependencies
+- numpy: BSD License
+- scipy: BSD License  
+- pandas: BSD License
+- matplotlib: PSF License
+- pytest: MIT License
+- cryptography: Apache License 2.0 / BSD License
+- pydantic: MIT License
+- fastapi: MIT License
+- chromadb: Apache License 2.0
+- And others (see requirements.txt for full list)
+
+### Node.js Dependencies
+- @mastra/core: MIT License
+- TypeScript: Apache License 2.0
+- And others (see package.json for full list)
+
+### Standards References
+- IEEE Standards: Copyright © IEEE (used under fair use for educational purposes)
+- IEC Standards: Copyright © IEC (referenced for compliance)
+- NFPA Standards: Copyright © NFPA (referenced for safety guidelines)
+
+All third-party licenses are included in their respective packages.
+
+---
+
+## Trademark Notice
+
+"ETAP" is a registered trademark of ETAP Corporation. This platform is an independent 
+engineering tool and is not affiliated with, endorsed by, or connected to ETAP Corporation.
+
+---
+
+## Patent Notice
+
+This software may implement methods that are covered by patents. Users are responsible 
+for ensuring they have appropriate licenses for any patented methods used.
+
+---
+
+## Export Control
+
+This software may be subject to export control regulations. Users are responsible for 
+complying with all applicable export laws and regulations.
+
+---
+
+## Disclaimer
+
+THIS SOFTWARE IS FOR ENGINEERING ANALYSIS AND EDUCATIONAL PURPOSES ONLY. 
+
+WHILE EVERY EFFORT HAS BEEN MADE TO ENSURE ACCURACY, USERS MUST:
+1. Verify all results with independent calculations
+2. Consult qualified professional engineers
+3. Follow local codes and standards
+4. Not rely solely on this software for critical decisions
+
+The authors and contributors assume no liability for any damages, injuries, or losses 
+resulting from the use or misuse of this software.
+
+---
+
+## Warranty
+
+EXCEPT AS REQUIRED BY APPLICABLE LAW, THIS SOFTWARE IS PROVIDED "AS IS" WITHOUT 
+WARRANTY OF ANY KIND, EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO 
+THE IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, 
+AND NON-INFRINGEMENT.
+
+---
+
+For questions about licensing, please contact: legal@etap-platform.com

@@ -1,0 +1,22 @@
+{
+  "mcpServers": {
+    "langwatch": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@langwatch/mcp-server"
+      ],
+      "env": {
+        "LANGWATCH_API_KEY": "${LANGWATCH_API_KEY}"
+      }
+    },
+    "mastra": {
+      "type": "stdio",
+      "command": "npx",
+      "args": [
+        "-y",
+        "@mastra/mcp-docs-server"
+      ]
+    }
+  }
+}

@@ -1,0 +1,45 @@
+# Prometheus configuration for ETAP AI Engineering Platform
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  scrape_timeout: 10s
+
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets: []
+
+rule_files:
+  # - "alerts.yml"
+
+scrape_configs:
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+
+  - job_name: 'etap-platform'
+    scrape_interval: 15s
+    metrics_path: /metrics
+    static_configs:
+      - targets:
+          - 'etap-platform:3000'
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: instance
+        replacement: 'etap-platform'
+
+  - job_name: 'etap-worker'
+    scrape_interval: 15s
+    metrics_path: /metrics
+    static_configs:
+      - targets:
+          - 'etap-worker:8081'
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: instance
+        replacement: 'etap-worker'
+
+  - job_name: 'redis'
+    static_configs:
+      - targets:
+          - 'redis:6379'
