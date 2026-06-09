@@ -80,6 +80,13 @@ def main():
             'enumerate': enumerate, 'zip': zip, 'reversed': reversed, 'sorted': sorted,
             'map': map, 'filter': filter, 'isinstance': isinstance, 'issubclass': issubclass,
             'True': True, 'False': False, 'None': None,
+            # `__import__` is exposed so the validator's allow-list (see
+            # InputValidator.validate_python_code) is actually enforced at
+            # execution time, not just at validation time. Every import the
+            # executed code attempts is checked against `allowed_imports`
+            # by the validator BEFORE this sandbox runs the code; an
+            # unauthorized import never reaches `exec`.
+            '__import__': __import__,
         },
         'json': json,
         'math': math,
