@@ -361,7 +361,7 @@ class TestArcFlashRunPythonSecurityBoundary:
         if not SECURE_EXECUTOR.exists():
             pytest.skip(f"secure_executor.py not found at {SECURE_EXECUTOR}")
 
-        # `socket` is NOT in InputValidator.allowed_imports.
+        # `socket` is NOT in the validator's allow-list.
         bad_code = (
             "import socket\n"  # disallowed import
             "import json\n"
@@ -386,7 +386,36 @@ class TestArcFlashRunPythonSecurityBoundary:
         # And the wrapper should report the violation clearly.
         wrapper = json.loads(proc.stdout.strip())
         assert wrapper.get("success") is False
-        assert "Forbidden" in wrapper.get("error", "") or "Unauthorized" in wrapper.get("error", "")
+        assert "Forbidden" in wrapper.get("error", "") or "Unauthorized" in wrapper.get(
+            "error", ""
+        )
+
+    def test_whitelisted_engine_imports_pass_validation(self) -> None:
+        """All whitelisted engine imports must pass AST-level validation —
+        confirming the __import__ fix in secure_executor.py enables the
+        allow-list to work end-to-end.
+
+        Without __import__ in safe_globals, importing 'engine' or
+        'fault_analysis' at exec() time would fail even though the AST
+        validator approved them. This test is the positive canary.
+        """
+        from security.security_framework import InputValidator
+
+        # validate_python_code is a static method on InputValidator.
+        # Passing allowed_imports=None uses the method's internal default set.
+        # These are the modules that the validator approves at AST-parse time;
+        # secure_executor.py adds __import__ to safe_globals so they also work
+        # at exec() time (where Python would otherwise refuse them).
+        for module in (
+            "engine",
+            "fault_analysis",
+            "relays",
+            "coordination",
+            "load_flow",
+        ):
+            code = f"import {module}"
+            result = InputValidator.validate_python_code(code, None)
+            assert result is True, f"Validator should allow '{module}' (whitelisted)"
 
     def test_forbidden_builtin_call_is_rejected(self) -> None:
         """Direct calls to ``__import__`` (or eval/exec) must be rejected."""
