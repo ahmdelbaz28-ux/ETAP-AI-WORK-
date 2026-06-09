@@ -2,6 +2,15 @@ import { describe, expect, it } from 'vitest';
 import worker from '../src/index';
 import type { Env, ExecutionContext } from '../src/index';
 
+// Minimal KVNamespace type for local testing (Cloudflare Workers global)
+declare global {
+  interface KVNamespace {
+    get(key: string, opts?: { type?: string }): Promise<unknown | null>;
+    put(key: string, value: string, opts?: { expirationTtl?: number }): Promise<void>;
+    delete(key: string): Promise<void>;
+  }
+}
+
 /**
  * Cloudflare Worker Integration Tests
  * Tests the src/index.ts API gateway without deploying.
@@ -34,7 +43,7 @@ describe('Cloudflare Worker API Gateway', () => {
   it('returns 200 on health check', async () => {
     const res = await makeRequest('/health');
     expect(res.status).toBe(200);
-    const body = await res.json();
+    const body = (await res.json()) as Record<string, unknown>;
     expect(body.ok).toBe(true);
     expect(body.service).toBe('etap-ai-platform');
     expect(body.version).toBe('1.0.0');
@@ -44,7 +53,7 @@ describe('Cloudflare Worker API Gateway', () => {
   it('returns 200 on root with service info', async () => {
     const res = await makeRequest('/');
     expect(res.status).toBe(200);
-    const body = await res.json();
+    const body = (await res.json()) as Record<string, unknown>;
     expect(body.service).toBe('ETAP AI Platform');
     expect(body.health).toBe('/health');
   });
@@ -52,7 +61,7 @@ describe('Cloudflare Worker API Gateway', () => {
   it('returns 404 on unknown routes', async () => {
     const res = await makeRequest('/unknown-route');
     expect(res.status).toBe(404);
-    const body = await res.json();
+    const body = (await res.json()) as Record<string, unknown>;
     expect(body.error).toBe(true);
     expect(body.status).toBe(404);
   });
@@ -60,7 +69,7 @@ describe('Cloudflare Worker API Gateway', () => {
   it('returns 401 without API key on protected routes', async () => {
     const res = await makeRequest('/api/v1/agents');
     expect(res.status).toBe(401);
-    const body = await res.json();
+    const body = (await res.json()) as Record<string, unknown>;
     expect(body.message).toMatch(/Missing x-api-key header/i);
   });
 
@@ -69,14 +78,14 @@ describe('Cloudflare Worker API Gateway', () => {
       headers: { 'x-api-key': 'bad-key' },
     });
     expect(res.status).toBe(401);
-    const body = await res.json();
+    const body = (await res.json()) as Record<string, unknown>;
     expect(body.message).toMatch(/Invalid API key/i);
   });
 
   it('returns 401 when API_KEY_SECRET is not configured', async () => {
     const res = await makeRequest('/api/v1/agents', {}, {});
     expect(res.status).toBe(401);
-    const body = await res.json();
+    const body = (await res.json()) as Record<string, unknown>;
     expect(body.message).toMatch(/API_KEY_SECRET is not configured/i);
   });
 
@@ -110,7 +119,7 @@ describe('Cloudflare Worker API Gateway', () => {
       body: 'not-json',
     });
     expect(res.status).toBe(400);
-    const body = await res.json();
+    const body = (await res.json()) as Record<string, unknown>;
     expect(body.message).toMatch(/Invalid JSON body/i);
   });
 
@@ -124,7 +133,7 @@ describe('Cloudflare Worker API Gateway', () => {
       body: JSON.stringify({}),
     });
     expect(res.status).toBe(400);
-    const body = await res.json();
+    const body = (await res.json()) as Record<string, unknown>;
     expect(body.message).toMatch(/messages array is required/i);
   });
 
@@ -138,7 +147,7 @@ describe('Cloudflare Worker API Gateway', () => {
       body: JSON.stringify({ messages: [{ role: 'user', content: 'hi' }] }),
     });
     expect(res.status).toBe(404);
-    const body = await res.json();
+    const body = (await res.json()) as Record<string, unknown>;
     expect(body.message).toMatch(/unknown-agent/i);
   });
 
@@ -152,7 +161,7 @@ describe('Cloudflare Worker API Gateway', () => {
       body: JSON.stringify({ studyType: 'invalid_study' }),
     });
     expect(res.status).toBe(400);
-    const body = await res.json();
+    const body = (await res.json()) as Record<string, unknown>;
     expect(body.message).toMatch(/Invalid studyType/i);
   });
 
@@ -166,7 +175,7 @@ describe('Cloudflare Worker API Gateway', () => {
       body: JSON.stringify({ studyType: 'load_flow', parameters: {} }),
     });
     expect(res.status).toBe(200);
-    const body = await res.json();
+    const body = (await res.json()) as Record<string, unknown>;
     expect(body.status).toBe('queued');
     expect(body.taskId).toBeTruthy();
   });
@@ -186,7 +195,7 @@ describe('Cloudflare Worker API Gateway', () => {
       headers: { 'x-api-key': 'test-secret' },
     }, env);
     expect(blocked.status).toBe(429);
-    const body = await blocked.json();
+    const body = (await blocked.json()) as Record<string, unknown>;
     expect(body.message).toMatch(/Rate limit exceeded/i);
     expect(body.status).toBe(429);
   });

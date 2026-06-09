@@ -257,7 +257,15 @@ class ETAPProject:
             elif study_type == ETAPStudyType.PROTECTION_COORDINATION:
                 result = self._run_protection_coordination(**kwargs)
             else:
-                raise NotImplementedError(f"Study type {study_type} not yet implemented")
+                # Graceful fallback for future enum members without handlers
+                return ETAPResult(
+                    study_type=study_type.value,
+                    success=False,
+                    data={},
+                    warnings=[],
+                    errors=[f"Study type {study_type.value} not yet implemented via COM"],
+                    timestamp=start_time
+                )
 
             return ETAPResult(
                 study_type=study_type.value,

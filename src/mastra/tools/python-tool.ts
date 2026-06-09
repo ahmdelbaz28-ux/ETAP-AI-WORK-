@@ -11,8 +11,8 @@ export const run_python = createTool({
   inputSchema: z.object({
     code: z.string().describe('The Python code to execute'),
   }),
-  execute: async ({ code }) => {
-    return new Promise((resolve, reject) => {
+  execute: async ({ code }: { code: string }) => {
+    return new Promise<string>((resolve, reject) => {
       const secureExecutorPath = 'security/secure_executor.py';
 
       // Use spawn instead of execFile to pass code via stdin (prevents shell injection)

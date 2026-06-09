@@ -29,4 +29,4 @@ export const goalPlannerAgent = new Agent({
   instructions: promptContent,
   model: getActiveModelConfig(),
   outputSchema: goalPlannerOutputSchema,
-});
+} as any);

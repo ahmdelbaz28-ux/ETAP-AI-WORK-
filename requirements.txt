@@ -57,16 +57,14 @@ uvicorn>=0.24.0
 PyPDF2>=3.0.0
 pdfplumber>=0.7.0
 
-# Text processing and NLP
+# Text processing and NLP (optional - required for advanced RAG features)
 nltk>=3.6.0
-spacy>=3.0.0
+# spacy>=3.0.0  # Disabled: requires numpy>=2.0 which is incompatible with Python 3.8
 
-# Sentence embeddings for RAG
-sentence-transformers>=2.2.0
-
-# Vector database for RAG
-chromadb>=0.4.0
-faiss-cpu>=1.7.0
+# Sentence embeddings for RAG (optional - requires Python 3.9+)
+# sentence-transformers>=2.2.0  # Requires Python 3.9+
+# chromadb>=0.4.0  # Optional - requires Python 3.9+
+# faiss-cpu>=1.7.0  # Optional - requires Python 3.9+
 
 # Document processing
 python-docx>=0.8.11
