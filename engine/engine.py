@@ -3,22 +3,29 @@ import matplotlib.pyplot as plt
 from core_model.system import System
 from load_flow.load_flow_solver_fixed import LoadFlowSolver
 from fault_analysis.fault import FaultAnalyzer
+from fault_analysis.arc_flash_engine import ArcFlashEngine, ElectrodeConfig, EnclosureType
 from coordination.coordination import CoordinationEngine
 from visualization.visualization import Visualizer
 from relays.relay import OvercurrentRelay
 
 class PowerSystemEngine:
-    def __init__(self, system):
+    def __init__(self, system=None):
         """
         Initialize the power system engine.
 
         Parameters:
-        system (System): The power system object.
+        system (System, optional): The power system object. May be None for
+            studies that do not require a network model (e.g. arc flash from
+            bolted-fault current alone).
         """
         self.system = system
-        self.load_flow_solver = LoadFlowSolver(system)
+        # Load-flow solver requires a system; only build it when available.
+        self.load_flow_solver = LoadFlowSolver(system) if system is not None else None
         self.coordination_engine = CoordinationEngine()
         self.visualizer = Visualizer()
+        # Arc-flash engine is stateless (IEEE 1584-2018 coefficients live in
+        # the module). It is always available.
+        self.arc_flash_engine = ArcFlashEngine()
         # Fault analyzer will be created when needed with sequence networks
 
     def run_load_flow(self):
@@ -71,6 +78,86 @@ class PowerSystemEngine:
         else:
             raise ValueError(f"Unsupported fault type: {fault_type}")
         return result
+
+    def run_arc_flash(
+        self,
+        voltage_kv,
+        bolted_fault_current_ka,
+        arc_duration_sec,
+        working_distance_mm,
+        electrode_config="VCB",
+        enclosure_type="box",
+        enclosure_width_mm=508.0,
+        enclosure_height_mm=508.0,
+        enclosure_depth_mm=508.0,
+    ):
+        """
+        Run arc flash analysis per IEEE 1584-2018.
+
+        Parameters
+        ----------
+        voltage_kv : float
+            System voltage in kV (0.208–15 kV; outside this range the
+            ``ArcFlashEngine`` falls back to Ralph Lee).
+        bolted_fault_current_ka : float
+            Bolted fault current in kA (0.7–106 kA per IEEE 1584-2018).
+        arc_duration_sec : float
+            Arc duration in seconds.
+        working_distance_mm : float
+            Working distance in mm.
+        electrode_config : str
+            One of "VCB", "VCBB", "HCB", "VOA", "HOA".
+        enclosure_type : str
+            "open" or "box".
+        enclosure_width_mm, enclosure_height_mm, enclosure_depth_mm : float
+            Enclosure dimensions (default 508 mm ≈ 20 in cube).
+
+        Returns
+        -------
+        dict
+            Arc flash result with keys matching the legacy ``arc_flash_calculator``
+            tool output (incident_energy_cal_per_cm2, arc_flash_boundary_mm,
+            ppe_level, …) so callers can migrate transparently.
+        """
+        try:
+            electrode_enum = ElectrodeConfig(electrode_config)
+        except ValueError:
+            electrode_enum = ElectrodeConfig.VCB
+        try:
+            enclosure_enum = EnclosureType(enclosure_type)
+        except ValueError:
+            enclosure_enum = EnclosureType.BOX
+
+        result = self.arc_flash_engine.calculate(
+            voltage_kv=voltage_kv,
+            bolted_fault_current_ka=bolted_fault_current_ka,
+            arc_duration_sec=arc_duration_sec,
+            working_distance_mm=working_distance_mm,
+            electrode_config=electrode_enum,
+            enclosure_type=enclosure_enum,
+            enclosure_width_mm=enclosure_width_mm,
+            enclosure_height_mm=enclosure_height_mm,
+            enclosure_depth_mm=enclosure_depth_mm,
+        )
+
+        return {
+            "incident_energy_cal_per_cm2": result.incident_energy_cal_cm2,
+            "incident_energy_at_full_arc_current": result.incident_energy_at_full_arc_current,
+            "incident_energy_at_reduced_arc_current": result.incident_energy_at_reduced_arc_current,
+            "arc_flash_boundary_mm": result.arc_flash_boundary_mm,
+            "arc_flash_boundary_in": result.arc_flash_boundary_in,
+            "arc_current_ka": result.arc_current_ka,
+            "reduced_arc_current_ka": result.reduced_arc_current_ka,
+            "method": result.method,
+            "electrode_configuration": result.electrode_configuration,
+            "enclosure_type": result.enclosure_type,
+            "ppe_level": result.ppe_level,
+            "ppe_description": result.ppe_description,
+            "voltage_kv": result.voltage_kv,
+            "bolted_fault_current_ka": result.bolted_fault_current_ka,
+            "arc_duration_sec": result.arc_duration_sec,
+            "working_distance_mm": result.working_distance_mm,
+        }
 
     def run_protection_coordination(self, upstream_relay_id, downstream_relay_id, fault_currents):
         """
@@ -130,6 +217,24 @@ class PowerSystemEngine:
             if upstream_relay_id is None or downstream_relay_id is None or fault_currents is None:
                 raise ValueError("upstream_relay_id, downstream_relay_id, and fault_currents must be provided")
             return self.run_protection_coordination(upstream_relay_id, downstream_relay_id, fault_currents)
+        elif study_type == 'arc_flash':
+            required = ('voltage_kv', 'bolted_fault_current_ka', 'arc_duration_sec', 'working_distance_mm')
+            missing = [k for k in required if k not in kwargs]
+            if missing:
+                raise ValueError(
+                    f"arc_flash requires: {', '.join(required)} (missing: {', '.join(missing)})"
+                )
+            return self.run_arc_flash(
+                voltage_kv=kwargs['voltage_kv'],
+                bolted_fault_current_ka=kwargs['bolted_fault_current_ka'],
+                arc_duration_sec=kwargs['arc_duration_sec'],
+                working_distance_mm=kwargs['working_distance_mm'],
+                electrode_config=kwargs.get('electrode_config', 'VCB'),
+                enclosure_type=kwargs.get('enclosure_type', 'box'),
+                enclosure_width_mm=kwargs.get('enclosure_width_mm', 508.0),
+                enclosure_height_mm=kwargs.get('enclosure_height_mm', 508.0),
+                enclosure_depth_mm=kwargs.get('enclosure_depth_mm', 508.0),
+            )
         else:
             raise ValueError(f"Unsupported study type: {study_type}")
 
