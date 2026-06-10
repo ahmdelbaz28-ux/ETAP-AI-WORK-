@@ -9,7 +9,7 @@
       // Create a real KV namespace with: wrangler kv namespace create "rate-limit-kv"
       // Then replace the id below with the returned namespace ID.
       "binding": "RATE_LIMIT_KV",
-      "id": "rate-limit-kv"
+      "id": "205574effbc2491f904b768b9f6db7cc"
     }
   ]
 }
