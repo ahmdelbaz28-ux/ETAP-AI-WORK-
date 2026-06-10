@@ -16,13 +16,13 @@ import { protectionAgent } from './agents/protection-agent';
 import { powerSystemCoordinatorAgent } from './agents/power-system-coordinator-agent';
 
 // Initialize observability store - handle DuckDB import issues gracefully
-let observabilityStore: Awaited<ReturnType<DuckDBStore['getStore']>>;
+let observabilityStore: any;
 try {
   const store = await new DuckDBStore().getStore('observability');
   observabilityStore = store;
 } catch (e) {
   console.warn('[Mastra] DuckDB unavailable, using fallback');
-  observabilityStore = {} as any;
+  observabilityStore = {};
 }
 
 export const mastra = new Mastra({
