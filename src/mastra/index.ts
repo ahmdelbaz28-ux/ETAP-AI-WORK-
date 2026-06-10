@@ -15,8 +15,15 @@ import { etapEngineerAgent } from './agents/etap-engineer-agent';
 import { protectionAgent } from './agents/protection-agent';
 import { powerSystemCoordinatorAgent } from './agents/power-system-coordinator-agent';
 
-// Initialize observability store outside to avoid top-level await in constructor
-const observabilityStore = await new DuckDBStore().getStore('observability');
+// Initialize observability store - handle DuckDB import issues gracefully
+let observabilityStore: Awaited<ReturnType<DuckDBStore['getStore']>>;
+try {
+  const store = await new DuckDBStore().getStore('observability');
+  observabilityStore = store;
+} catch (e) {
+  console.warn('[Mastra] DuckDB unavailable, using fallback');
+  observabilityStore = {} as any;
+}
 
 export const mastra = new Mastra({
   workflows: { weatherWorkflow },
