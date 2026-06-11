@@ -1,0 +1,92 @@
+# =============================================================================
+# ETAP AI Engineering Service - Linux Container (Python 3.11+)
+# =============================================================================
+# Standalone FastAPI service that the Cloudflare Worker calls to run
+# real engineering studies (load flow, short circuit, arc flash, etc.).
+#
+# Build:
+#   docker build -f Dockerfile.engineering-service -t etap-engineering-service:latest .
+#
+# Run:
+#   docker run -d --name etap-eng-svc -p 8000:8000 \
+#     -e ENGINEERING_SERVICE_API_KEY=changeme \
+#     etap-engineering-service:latest
+# =============================================================================
+
+# ---------- Stage 1: builder ----------
+FROM python:3.11-slim AS builder
+
+LABEL stage="engineering-service-builder"
+
+# Build deps for numpy/scipy wheels
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    gcc \
+    g++ \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /build
+
+# Install Python deps into a prefix we can copy across stages
+# (Windows-only pywin32 is filtered out for the Linux target)
+COPY requirements.txt .
+RUN grep -v "^#" requirements.txt | grep -v "^$" | grep -v "pywin32" > /tmp/req.txt \
+    && pip install --no-cache-dir --upgrade pip \
+    && pip install --no-cache-dir --prefix=/install -r /tmp/req.txt
+
+# ---------- Stage 2: runtime ----------
+FROM python:3.11-slim
+
+LABEL maintainer="ETAP AI Platform Team" \
+      description="ETAP AI Engineering Service (FastAPI) - Linux container" \
+      version="1.0.0"
+
+# Runtime libs only (no compilers)
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    curl \
+    tini \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy Python deps from builder
+COPY --from=builder /install /usr/local
+
+# Create non-root user
+RUN groupadd -r engsvc && \
+    useradd -r -g engsvc -d /app -s /sbin/nologin engsvc && \
+    mkdir -p /app /app/logs /app/reports && \
+    chown -R engsvc:engsvc /app
+
+WORKDIR /app
+
+# Copy the service code + its Python dependencies
+COPY --chown=engsvc:engsvc engineering_service.py ./
+COPY --chown=engsvc:engsvc engine/ ./engine/
+COPY --chown=engsvc:engsvc core_model/ ./core_model/
+COPY --chown=engsvc:engsvc etap_integration/ ./etap_integration/
+COPY --chown=engsvc:engsvc fault_analysis/ ./fault_analysis/
+COPY --chown=engsvc:engsvc load_flow/ ./load_flow/
+COPY --chown=engsvc:engsvc network_solver/ ./network_solver/
+COPY --chown=engsvc:engsvc coordination/ ./coordination/
+COPY --chown=engsvc:engsvc relays/ ./relays/
+COPY --chown=engsvc:engsvc curves/ ./curves/
+COPY --chown=engsvc:engsvc visualization/ ./visualization/
+COPY --chown=engsvc:engsvc security/ ./security/
+COPY --chown=engsvc:engsvc knowledge/ ./knowledge/
+
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    ENGINEERING_SERVICE_HOST=0.0.0.0 \
+    ENGINEERING_SERVICE_PORT=8000 \
+    ENGINEERING_SERVICE_CORS_ORIGINS=*
+
+EXPOSE 8000
+
+VOLUME ["/app/logs", "/app/reports"]
+
+HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \
+    CMD curl -fsS http://localhost:8000/health || exit 1
+
+USER engsvc
+
+ENTRYPOINT ["/usr/bin/tini", "--"]
+
+CMD ["python", "engineering_service.py"]

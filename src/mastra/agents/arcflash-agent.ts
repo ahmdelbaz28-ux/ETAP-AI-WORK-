@@ -7,7 +7,7 @@ import { getActiveModelConfig } from "../lib/model-config";
 const promptContent = await getSystemPrompt("arcflash_agent_prompt");
 
 export const arcFlashAgent = new Agent({
-  id: 'arc-flash-agent',
+  id: 'arcflash-agent',
   name: 'Arc Flash Analysis Agent',
   instructions: promptContent,
   model: getActiveModelConfig(),

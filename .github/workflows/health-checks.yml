@@ -1,0 +1,325 @@
+# GitHub Actions — Operational Health Checks
+# Validates daily, weekly, and monthly checklist items from the
+# Enterprise Operations Handbook against the live deployed Worker.
+
+name: Operational Health Checks
+
+on:
+  # Manual trigger
+  workflow_dispatch:
+    inputs:
+      check_type:
+        description: 'Check type to run'
+        required: true
+        default: 'all'
+        type: choice
+        options:
+          - daily
+          - weekly
+          - monthly
+          - all
+
+  # Scheduled triggers
+  schedule:
+    # Daily at 08:00 UTC (morning check)
+    - cron: '0 8 * * *'
+    # Weekly on Sunday at 06:00 UTC (comprehensive weekly review)
+    - cron: '0 6 * * 0'
+    # Monthly on the 1st at 05:00 UTC (full monthly certification)
+    - cron: '0 5 1 * *'
+
+env:
+  HEALTH_CHECK_API_URL: ${{ vars.HEALTH_CHECK_API_URL || 'https://ahmed-etap.ahmdelbaz28.workers.dev' }}
+  HEALTH_CHECK_API_KEY: ${{ secrets.HEALTH_CHECK_API_KEY }}
+  HEALTH_CHECK_TIMEOUT_MS: ${{ vars.HEALTH_CHECK_TIMEOUT_MS || '10000' }}
+
+jobs:
+  # -------------------------------------------------------------------------
+  # Determine which checks to run based on schedule or manual input
+  # -------------------------------------------------------------------------
+  determine-checks:
+    name: Determine Check Type
+    runs-on: ubuntu-latest
+    outputs:
+      run-daily: ${{ steps.decide.outputs.run-daily }}
+      run-weekly: ${{ steps.decide.outputs.run-weekly }}
+      run-monthly: ${{ steps.decide.outputs.run-monthly }}
+    steps:
+      - id: decide
+        run: |
+          # Manual input takes precedence
+          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+            INPUT="${{ github.event.inputs.check_type }}"
+            if [ "$INPUT" == "daily" ] || [ "$INPUT" == "all" ]; then
+              echo "run-daily=true" >> $GITHUB_OUTPUT
+            else
+              echo "run-daily=false" >> $GITHUB_OUTPUT
+            fi
+            if [ "$INPUT" == "weekly" ] || [ "$INPUT" == "all" ]; then
+              echo "run-weekly=true" >> $GITHUB_OUTPUT
+            else
+              echo "run-weekly=false" >> $GITHUB_OUTPUT
+            fi
+            if [ "$INPUT" == "monthly" ] || [ "$INPUT" == "all" ]; then
+              echo "run-monthly=true" >> $GITHUB_OUTPUT
+            else
+              echo "run-monthly=false" >> $GITHUB_OUTPUT
+            fi
+            exit 0
+          fi
+
+          # Determine from cron schedule
+          # Daily: 0 8 * * * (hour=8, minute=0, dayOfWeek=any)
+          # Weekly: 0 6 * * 0 (hour=6, minute=0, dayOfWeek=0)
+          # Monthly: 0 5 1 * * (hour=5, minute=0, dayOfMonth=1)
+          HOUR=$(date -u +%H)
+          MINUTE=$(date -u +%M)
+          DOW=$(date -u +%w)
+          DOM=$(date -u +%d)
+
+          echo "Current UTC: $HOUR:$MINUTE, DOW=$DOW, DOM=$DOM"
+
+          # Monthly check (1st of month at 05:00)
+          if [ "$DOM" == "01" ] && [ "$HOUR" == "05" ] && [ "$MINUTE" == "00" ]; then
+            echo "run-daily=true" >> $GITHUB_OUTPUT
+            echo "run-weekly=true" >> $GITHUB_OUTPUT
+            echo "run-monthly=true" >> $GITHUB_OUTPUT
+            echo "Check type: monthly (full certification)"
+            exit 0
+          fi
+
+          # Weekly check (Sunday at 06:00)
+          if [ "$DOW" == "0" ] && [ "$HOUR" == "06" ] && [ "$MINUTE" == "00" ]; then
+            echo "run-daily=true" >> $GITHUB_OUTPUT
+            echo "run-weekly=true" >> $GITHUB_OUTPUT
+            echo "run-monthly=false" >> $GITHUB_OUTPUT
+            echo "Check type: weekly"
+            exit 0
+          fi
+
+          # Daily check (every day at 08:00)
+          if [ "$HOUR" == "08" ] && [ "$MINUTE" == "00" ]; then
+            echo "run-daily=true" >> $GITHUB_OUTPUT
+            echo "run-weekly=false" >> $GITHUB_OUTPUT
+            echo "run-monthly=false" >> $GITHUB_OUTPUT
+            echo "Check type: daily"
+            exit 0
+          fi
+
+          # Fallback (should not happen with proper cron, but safe for manual)
+          echo "run-daily=true" >> $GITHUB_OUTPUT
+          echo "run-weekly=false" >> $GITHUB_OUTPUT
+          echo "run-monthly=false" >> $GITHUB_OUTPUT
+          echo "Check type: daily (fallback)"
+
+  # -------------------------------------------------------------------------
+  # Daily Health Checks
+  # -------------------------------------------------------------------------
+  daily-checks:
+    name: Daily Health Checks
+    runs-on: ubuntu-latest
+    needs: determine-checks
+    if: needs.determine-checks.outputs.run-daily == 'true'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 9
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Run daily health checks
+        run: pnpm exec tsx scripts/health-check.ts --daily --ci --json
+        env:
+          HEALTH_CHECK_API_URL: ${{ env.HEALTH_CHECK_API_URL }}
+          HEALTH_CHECK_API_KEY: ${{ env.HEALTH_CHECK_API_KEY }}
+          HEALTH_CHECK_TIMEOUT_MS: ${{ env.HEALTH_CHECK_TIMEOUT_MS }}
+
+      - name: Upload health check report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: daily-health-check-report
+          path: health-check-report.json
+
+      - name: Notify on failure
+        if: failure()
+        continue-on-error: true
+        uses: slackapi/slack-github-action@v1
+        with:
+          payload: |
+            {
+              "text": "🚨 ETAP AI Platform — Daily Health Check FAILED\n${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+
+  # -------------------------------------------------------------------------
+  # Weekly Health Checks
+  # -------------------------------------------------------------------------
+  weekly-checks:
+    name: Weekly Health Checks
+    runs-on: ubuntu-latest
+    needs: determine-checks
+    if: needs.determine-checks.outputs.run-weekly == 'true'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 9
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Run weekly health checks
+        run: pnpm exec tsx scripts/health-check.ts --weekly --ci --json
+        env:
+          HEALTH_CHECK_API_URL: ${{ env.HEALTH_CHECK_API_URL }}
+          HEALTH_CHECK_API_KEY: ${{ env.HEALTH_CHECK_API_KEY }}
+          HEALTH_CHECK_TIMEOUT_MS: ${{ env.HEALTH_CHECK_TIMEOUT_MS }}
+
+      - name: Upload health check report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: weekly-health-check-report
+          path: health-check-report.json
+
+      - name: Notify on failure
+        if: failure()
+        uses: slackapi/slack-github-action@v1
+        with:
+          payload: |
+            {
+              "text": "🚨 ETAP AI Platform — Weekly Health Check FAILED\n${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+
+  # -------------------------------------------------------------------------
+  # Monthly Health Checks
+  # -------------------------------------------------------------------------
+  monthly-checks:
+    name: Monthly Health Checks
+    runs-on: ubuntu-latest
+    needs: determine-checks
+    if: needs.determine-checks.outputs.run-monthly == 'true'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 9
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Run monthly health checks
+        run: pnpm exec tsx scripts/health-check.ts --monthly --ci --json
+        env:
+          HEALTH_CHECK_API_URL: ${{ env.HEALTH_CHECK_API_URL }}
+          HEALTH_CHECK_API_KEY: ${{ env.HEALTH_CHECK_API_KEY }}
+          HEALTH_CHECK_TIMEOUT_MS: ${{ env.HEALTH_CHECK_TIMEOUT_MS }}
+
+      - name: Upload health check report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: monthly-health-check-report
+          path: health-check-report.json
+
+      - name: Notify on failure
+        if: failure()
+        uses: slackapi/slack-github-action@v1
+        with:
+          payload: |
+            {
+              "text": "🚨 ETAP AI Platform — Monthly Health Check FAILED\n${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+
+  # -------------------------------------------------------------------------
+  # Summary — combines all reports into a single notification
+  # -------------------------------------------------------------------------
+  summary:
+    name: Health Check Summary
+    runs-on: ubuntu-latest
+    needs: [daily-checks, weekly-checks, monthly-checks]
+    if: always()
+    steps:
+      - name: Download all reports
+        uses: actions/download-artifact@v4
+        with:
+          path: reports
+          pattern: '*-health-check-report'
+
+      - name: Generate summary
+        run: |
+          echo "## ETAP AI Platform — Health Check Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Check Type | Status | Report |" >> $GITHUB_STEP_SUMMARY
+          echo "|------------|--------|--------|" >> $GITHUB_STEP_SUMMARY
+
+          for report in reports/*/health-check-report.json; do
+            if [ -f "$report" ]; then
+              type=$(basename $(dirname $report) | sed 's/-health-check-report//')
+              pass=$(jq -r '.summary.pass' "$report")
+              warn=$(jq -r '.summary.warn' "$report")
+              fail=$(jq -r '.summary.fail' "$report")
+              total=$(jq -r '.summary.total' "$report")
+
+              if [ "$fail" -gt 0 ]; then
+                status="❌ FAIL"
+              elif [ "$warn" -gt 0 ]; then
+                status="⚠️ WARN"
+              else
+                status="✅ PASS"
+              fi
+
+              echo "| $type | $status | $pass/$total passed |" >> $GITHUB_STEP_SUMMARY
+            fi
+          done
+
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "[View Run Details](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})" >> $GITHUB_STEP_SUMMARY
+
+      - name: Notify summary
+        if: always()
+        continue-on-error: true
+        uses: slackapi/slack-github-action@v1
+        with:
+          payload: |
+            {
+              "text": "📊 ETAP AI Platform — Health Checks Complete\n${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}

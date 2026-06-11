@@ -7,7 +7,7 @@ import { getActiveModelConfig } from '../lib/model-config';
 const promptContent = await getSystemPrompt('motor_starting_agent');
 
 export const motorStartingAgent = new Agent({
-  id: 'motor-starting-agent',
+  id: 'motorstarting-agent',
   name: 'Motor Starting Analysis Agent',
   instructions: promptContent,
   model: getActiveModelConfig(),

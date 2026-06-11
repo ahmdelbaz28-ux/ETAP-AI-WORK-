@@ -1,0 +1,38 @@
+# =============================================================================
+# Render Blueprint for the ETAP Engineering Service
+# =============================================================================
+# One-click deploy (the simplest path for non-CLI users):
+#   https://render.com/deploy?repo=https://github.com/ahmdelbaz28/my-awesome-agent
+#
+# Or with the Render CLI:
+#   render blueprint launch
+#
+# Forks: change `image:` below to your own GHCR path, or push your own image
+# to GHCR and point the Worker at the resulting public URL.
+# =============================================================================
+
+services:
+  - type: web
+    name: etap-engineering-service
+    runtime: docker
+    # __GHCR_IMAGE__ is templated by scripts/deploy-engineering-service.sh at deploy time.
+    # For one-click button deploys, this resolves to the original owner's image; forks
+    # should run ./scripts/deploy-engineering-service.sh render to use their own.
+    image: __GHCR_IMAGE__
+    plan: starter
+    region: oregon
+    healthCheckPath: /health
+    autoDeploy: false
+    envVars:
+      - key: ENGINEERING_SERVICE_HOST
+        value: 0.0.0.0
+      - key: ENGINEERING_SERVICE_PORT
+        value: 8000
+      - key: ENGINEERING_SERVICE_CORS_ORIGINS
+        value: "*"
+      # Set the API key in the Render dashboard, or via:
+      #   render env set ENGINEERING_SERVICE_API_KEY=... --service etap-engineering-service
+      - key: ENGINEERING_SERVICE_API_KEY
+        sync: false
+      - key: PORT
+        value: 8000

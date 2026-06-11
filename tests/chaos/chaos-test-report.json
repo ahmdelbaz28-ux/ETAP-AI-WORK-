@@ -1,0 +1,58 @@
+{
+  "timestamp": "2026-06-10T06:38:33.487Z",
+  "target": "https://ahmed-etap.ahmdelbaz28.workers.dev",
+  "results": [
+    {
+      "scenario": "API Key Rotation (50 req)",
+      "iterations": 50,
+      "successCount": 30,
+      "errorCount": 20,
+      "rateLimitedCount": 0,
+      "recoveryTimeMs": 11502,
+      "survived": false,
+      "errors": []
+    },
+    {
+      "scenario": "Endpoint Jitter (100 req)",
+      "iterations": 100,
+      "successCount": 34,
+      "errorCount": 29,
+      "rateLimitedCount": 37,
+      "recoveryTimeMs": 16303,
+      "survived": false,
+      "errors": []
+    },
+    {
+      "scenario": "Bursty Traffic (5 waves × 50)",
+      "iterations": 250,
+      "successCount": 250,
+      "errorCount": 0,
+      "rateLimitedCount": 0,
+      "recoveryTimeMs": 3192,
+      "survived": true,
+      "errors": []
+    },
+    {
+      "scenario": "Short Timeout (20 req, 500ms)",
+      "iterations": 20,
+      "successCount": 10,
+      "errorCount": 10,
+      "rateLimitedCount": 0,
+      "recoveryTimeMs": 3846,
+      "survived": false,
+      "errors": []
+    },
+    {
+      "scenario": "Mixed Payload Sizes (30 req)",
+      "iterations": 30,
+      "successCount": 16,
+      "errorCount": 0,
+      "rateLimitedCount": 14,
+      "recoveryTimeMs": 4753,
+      "survived": true,
+      "errors": []
+    }
+  ],
+  "overallSurvived": 2,
+  "totalScenarios": 5
+}

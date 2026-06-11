@@ -1,0 +1,35 @@
+# =============================================================================
+# Railway configuration for the ETAP Engineering Service
+# =============================================================================
+# Railway "Deploy from Docker Image" — set the image in the dashboard, or use:
+#   railway up --image ghcr.io/OWNER/REPO/etap-engineering-service:latest \
+#              --service etap-engineering-service
+#
+# One-click deploy button:
+#   https://railway.com/new/template/github
+# (in the dashboard, choose "Deploy from Docker Image" and paste the GHCR URL)
+#
+# For source build instead of pre-built image, change `[build]` to:
+#   [build]
+#   builder = "DOCKERFILE"
+#   dockerfilePath = "Dockerfile.engineering-service"
+# =============================================================================
+
+[build]
+  builder = "DOCKERFILE"
+  dockerfilePath = "Dockerfile.engineering-service"
+
+[deploy]
+  startCommand = "python engineering_service.py"
+  healthcheckPath = "/health"
+  healthcheckTimeout = 30
+  restartPolicyType = "ON_FAILURE"
+  restartPolicyMaxRetries = 3
+
+# --------------------------------------------------------------------
+# The deploy wrapper (scripts/deploy-engineering-service.sh railway)
+# runs `railway up --image <ghcr-image>` which overrides the Dockerfile
+# builder above with the pre-built multi-arch image from GHCR. Forks
+# should set GHCR_REPOSITORY or pass --repo OWNER/REPO so the wrapper
+# points at their own image.
+# --------------------------------------------------------------------

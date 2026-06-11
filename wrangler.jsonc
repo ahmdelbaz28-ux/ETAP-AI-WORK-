@@ -6,10 +6,61 @@
   "compatibility_flags": ["nodejs_compat"],
   "kv_namespaces": [
     {
-      // Create a real KV namespace with: wrangler kv namespace create "rate-limit-kv"
-      // Then replace the id below with the returned namespace ID.
       "binding": "RATE_LIMIT_KV",
       "id": "205574effbc2491f904b768b9f6db7cc"
+    },
+    {
+      "binding": "TASK_STORE_KV",
+      "id": "205574effbc2491f904b768b9f6db7cc"
+    },
+    {
+      "binding": "METRICS_KV",
+      "id": "205574effbc2491f904b768b9f6db7cc"
+    },
+    {
+      "binding": "API_KEYS_KV",
+      "id": "205574effbc2491f904b768b9f6db7cc"
+    },
+    {
+      "binding": "PROVIDERS_KV",
+      "id": "205574effbc2491f904b768b9f6db7cc"
     }
-  ]
+  ],
+  "queues": {
+    "producers": [
+      {
+        "binding": "STUDY_QUEUE",
+        "queue": "etap-study-queue"
+      }
+    ]
+  },
+  "env": {
+    "staging": {
+      "name": "ahmed-etap-staging",
+      "workers_dev": true,
+      "kv_namespaces": [
+        { "binding": "RATE_LIMIT_KV", "id": "205574effbc2491f904b768b9f6db7cc", "preview_id": "205574effbc2491f904b768b9f6db7cc" },
+        { "binding": "TASK_STORE_KV", "id": "205574effbc2491f904b768b9f6db7cc", "preview_id": "205574effbc2491f904b768b9f6db7cc" },
+        { "binding": "METRICS_KV", "id": "205574effbc2491f904b768b9f6db7cc", "preview_id": "205574effbc2491f904b768b9f6db7cc" },
+        { "binding": "API_KEYS_KV", "id": "205574effbc2491f904b768b9f6db7cc", "preview_id": "205574effbc2491f904b768b9f6db7cc" },
+        { "binding": "PROVIDERS_KV", "id": "205574effbc2491f904b768b9f6db7cc", "preview_id": "205574effbc2491f904b768b9f6db7cc" }
+      ],
+      "queues": {
+        "producers": [
+          {
+            "binding": "STUDY_QUEUE",
+            "queue": "etap-study-queue-staging"
+          }
+        ],
+        "consumers": [
+          {
+            "queue": "etap-study-queue-staging",
+            "max_batch_size": 10,
+            "max_batch_timeout": 5,
+            "max_retries": 3
+          }
+        ]
+      }
+    }
+  }
 }

@@ -8,7 +8,9 @@
     "build": "mastra build",
     "start": "mastra start",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "lint": "tsc --noEmit",
+    "lint:ci": "tsc --noEmit && vitest run"
   },
   "keywords": [
     "power-systems",

@@ -1,0 +1,757 @@
+"""
+Engineering Service API
+=======================
+Production-grade FastAPI service wrapping the Python PowerSystemEngine.
+
+Architecture:
+  Worker → Engineering Service → PowerSystemEngine / ETAPProvider
+
+Features:
+- Typed Pydantic v2 request/response schemas
+- Health / readiness / metrics endpoints
+- Structured logging with trace IDs
+- Request validation and input sanitization
+- Timeout handling
+- ETAP integration via provider abstraction
+- CORS for Worker origin
+
+Run:
+    uvicorn engineering_service:app --host 0.0.0.0 --port 8000
+"""
+
+from __future__ import annotations
+
+import json
+import logging
+import os
+import sys
+import time
+import uuid
+from contextlib import asynccontextmanager
+from typing import Any, Dict, List, Optional
+
+
+# ---------------------------------------------------------------------------
+# numpy-aware JSON sanitizer
+# ---------------------------------------------------------------------------
+# The native PowerSystemEngine returns dicts containing numpy scalars / arrays.
+# Pydantic v2's default encoder cannot serialize them, so we recursively
+# convert any numpy types to native Python equivalents before returning.
+try:
+    import numpy as np  # type: ignore
+
+    _HAS_NUMPY = True
+except Exception:  # numpy is normally present, but be defensive
+    np = None  # type: ignore
+    _HAS_NUMPY = False
+
+
+def _to_jsonable(obj: Any) -> Any:
+    """Recursively convert numpy types (and other engine outputs) to native
+    Python primitives that FastAPI / Pydantic can serialize as JSON."""
+    if obj is None or isinstance(obj, (str, bool)):
+        return obj
+    if isinstance(obj, (int, float)):
+        # Reject nan/inf which are not valid JSON
+        if isinstance(obj, float) and (obj != obj or obj in (float("inf"), float("-inf"))):
+            return None
+        return obj
+    if isinstance(obj, complex):
+        re, im = obj.real, obj.imag
+        if not _HAS_NUMPY:
+            import math as _math
+            if not _math.isfinite(re):
+                re = 0.0
+            if not _math.isfinite(im):
+                im = 0.0
+        return {"re": _to_jsonable(re), "im": _to_jsonable(im)}
+    if _HAS_NUMPY:
+        if isinstance(obj, np.ndarray):
+            return [_to_jsonable(x) for x in obj.tolist()]
+        if isinstance(obj, (np.integer,)):
+            return int(obj.item())
+        if isinstance(obj, (np.floating,)):
+            v = float(obj.item())
+            if v != v or v in (float("inf"), float("-inf")):
+                return None
+            return v
+        if isinstance(obj, (np.bool_,)):
+            return bool(obj.item())
+        if isinstance(obj, np.complexfloating):
+            return {"real": _to_jsonable(obj.real), "imag": _to_jsonable(obj.imag)}
+    if isinstance(obj, dict):
+        return {str(k): _to_jsonable(v) for k, v in obj.items()}
+    if isinstance(obj, (list, tuple, set)):
+        return [_to_jsonable(x) for x in obj]
+    # Fallback: best-effort string coercion
+    try:
+        return json.loads(json.dumps(obj, default=str))
+    except Exception:
+        return str(obj)
+
+# Ensure project root is on path
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+
+from fastapi import FastAPI, Request, Response, HTTPException, status
+from fastapi.responses import JSONResponse
+from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel, Field, field_validator
+from starlette.middleware.base import BaseHTTPMiddleware
+
+# ---------------------------------------------------------------------------
+# Logging setup
+# ---------------------------------------------------------------------------
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s %(levelname)s %(name)s trace_id=%(trace_id)s %(message)s",
+    stream=sys.stdout,
+)
+
+
+class _TraceFilter(logging.Filter):
+    """Injects trace_id into log records."""
+
+    def filter(self, record: logging.LogRecord) -> bool:
+        if not hasattr(record, "trace_id"):
+            record.trace_id = "-"
+        return True
+
+
+logger = logging.getLogger("engineering_service")
+logger.addFilter(_TraceFilter())
+
+
+# ---------------------------------------------------------------------------
+# Lazy imports (heavy numerical libs only loaded on first request)
+# ---------------------------------------------------------------------------
+
+_POWER_SYSTEM_ENGINE: Any = None
+_ETAP_PROVIDER: Any = None
+
+
+def _get_power_system_engine():
+    global _POWER_SYSTEM_ENGINE
+    if _POWER_SYSTEM_ENGINE is None:
+        from engine.engine import PowerSystemEngine
+
+        _POWER_SYSTEM_ENGINE = PowerSystemEngine
+    return _POWER_SYSTEM_ENGINE
+
+
+def _get_etap_provider():
+    global _ETAP_PROVIDER
+    if _ETAP_PROVIDER is None:
+        from etap_integration.etap_provider import get_etap_provider
+
+        _ETAP_PROVIDER = get_etap_provider
+    return _ETAP_PROVIDER
+
+
+# ---------------------------------------------------------------------------
+# Pydantic schemas
+# ---------------------------------------------------------------------------
+
+class BusSpec(BaseModel):
+    bus_id: int
+    voltage_magnitude: float = 1.0
+    voltage_angle: float = 0.0
+    load_power_real: float = 0.0
+    load_power_imag: float = 0.0
+    generation_power_real: float = 0.0
+    generation_power_imag: float = 0.0
+    bus_type: str = "pq"
+    base_kv: Optional[float] = None
+    q_min: float = -999.0
+    q_max: float = 999.0
+
+    @field_validator("bus_type")
+    @classmethod
+    def validate_bus_type(cls, v: str) -> str:
+        v = v.lower().strip()
+        if v not in ("slack", "pv", "pq"):
+            raise ValueError("bus_type must be slack, pv, or pq")
+        return v
+
+
+class LineSpec(BaseModel):
+    line_id: int
+    from_bus_id: int
+    to_bus_id: int
+    r1: float = 0.01
+    x1: float = 0.05
+    r0: Optional[float] = None
+    x0: Optional[float] = None
+    bshunt1: float = 0.02
+    bshunt0: Optional[float] = None
+
+
+class TransformerSpec(BaseModel):
+    transformer_id: int
+    from_bus_id: int
+    to_bus_id: int
+    r1: float = 0.0
+    x1: float = 0.05
+    tap_ratio: float = 1.0
+    phase_shift_deg: float = 0.0
+
+
+class GeneratorSpec(BaseModel):
+    generator_id: int
+    bus_id: int
+    r1: float = 0.0
+    x1: float = 0.2
+    r2: Optional[float] = None
+    x2: Optional[float] = None
+    r0: Optional[float] = None
+    x0: Optional[float] = None
+    internal_voltage_mag: float = 1.05
+    internal_voltage_ang_deg: float = 0.0
+
+
+class LoadSpec(BaseModel):
+    load_id: int
+    bus_id: int
+    p_mw: float = 0.0
+    q_mvar: float = 0.0
+    constant_impedance: bool = False
+
+
+class SystemSpec(BaseModel):
+    base_mva: float = 100.0
+    buses: List[BusSpec] = Field(default_factory=list)
+    lines: List[LineSpec] = Field(default_factory=list)
+    transformers: List[TransformerSpec] = Field(default_factory=list)
+    generators: List[GeneratorSpec] = Field(default_factory=list)
+    loads: List[LoadSpec] = Field(default_factory=list)
+
+
+class StudyRequest(BaseModel):
+    study_type: str = Field(..., description="Type of study to run")
+    system: Optional[SystemSpec] = None
+    parameters: Dict[str, Any] = Field(default_factory=dict)
+    task_id: Optional[str] = None
+    use_etap: bool = Field(default=False, description="If True, route to ETAP provider instead of native engine")
+    etap_project_path: Optional[str] = None
+
+    @field_validator("study_type")
+    @classmethod
+    def validate_study_type(cls, v: str) -> str:
+        allowed = {
+            "load_flow",
+            "short_circuit",
+            "fault",
+            "arc_flash",
+            "protection_coordination",
+            "coordination",
+            "motor_starting",
+            "harmonic_analysis",
+            "optimal_power_flow",
+            "etap_load_flow",
+            "etap_short_circuit",
+            "etap_arc_flash",
+            "etap_harmonic_analysis",
+            "etap_optimal_power_flow",
+            "etap_motor_starting",
+            "etap_protection_coordination",
+        }
+        v = v.lower().strip()
+        if v not in allowed:
+            raise ValueError(f"study_type must be one of {sorted(allowed)}")
+        return v
+
+
+class StudyResult(BaseModel):
+    success: bool
+    data: Dict[str, Any] = Field(default_factory=dict)
+    warnings: List[str] = Field(default_factory=list)
+    errors: List[str] = Field(default_factory=list)
+    execution_time_sec: float = 0.0
+    trace_id: str = ""
+    task_id: Optional[str] = None
+    study_type: str = ""
+    provider: str = "native"
+
+
+class HealthResponse(BaseModel):
+    status: str
+    version: str
+    timestamp: str
+    trace_id: str
+
+
+class ReadyResponse(BaseModel):
+    ready: bool
+    native_engine_available: bool
+    etap_available: bool
+    timestamp: str
+    trace_id: str
+
+
+class MetricsResponse(BaseModel):
+    requests_total: int
+    requests_success: int
+    requests_failed: int
+    avg_execution_time_ms: float
+    trace_id: str
+
+
+# ---------------------------------------------------------------------------
+# In-memory metrics (production: push to Prometheus / StatsD)
+# ---------------------------------------------------------------------------
+
+_request_count = 0
+_success_count = 0
+_failed_count = 0
+_total_execution_time_sec = 0.0
+
+
+# ---------------------------------------------------------------------------
+# System builder helper
+# ---------------------------------------------------------------------------
+
+def _build_system_from_spec(spec: SystemSpec) -> Any:
+    """Build a Python System object from a SystemSpec."""
+    from core_model.system import System
+    from core_model.bus import Bus
+    from core_model.line import Line
+    from core_model.transformer import Transformer
+    from core_model.generator import Generator
+    from core_model.load import Load
+
+    system = System(base_mva=spec.base_mva)
+    bus_map: Dict[int, Any] = {}
+
+    for b in spec.buses:
+        bus = Bus(
+            bus_id=b.bus_id,
+            voltage_magnitude=b.voltage_magnitude,
+            voltage_angle=b.voltage_angle,
+            load_power=complex(0, 0),  # load_power will be added by Load objects
+            generation_power=complex(b.generation_power_real, b.generation_power_imag),
+            base_kv=b.base_kv,
+            bus_type=b.bus_type,
+            q_min=b.q_min,
+            q_max=b.q_max,
+        )
+        system.add_bus(bus)
+        bus_map[b.bus_id] = bus
+
+    for l in spec.lines:
+        if l.from_bus_id not in bus_map or l.to_bus_id not in bus_map:
+            raise ValueError(f"Line {l.line_id} references unknown bus")
+        line = Line(
+            line_id=l.line_id,
+            from_bus=bus_map[l.from_bus_id],
+            to_bus=bus_map[l.to_bus_id],
+            z1=complex(l.r1, l.x1),
+            z0=complex(l.r0 if l.r0 is not None else l.r1, l.x0 if l.x0 is not None else l.x1),
+            yshunt1=complex(0, l.bshunt1),
+            yshunt0=complex(0, l.bshunt0 if l.bshunt0 is not None else l.bshunt1),
+        )
+        system.add_line(line)
+
+    for t in spec.transformers:
+        if t.from_bus_id not in bus_map or t.to_bus_id not in bus_map:
+            raise ValueError(f"Transformer {t.transformer_id} references unknown bus")
+        xf = Transformer(
+            transformer_id=t.transformer_id,
+            from_bus=bus_map[t.from_bus_id],
+            to_bus=bus_map[t.to_bus_id],
+            z1=complex(t.r1, t.x1),
+            tap_ratio=t.tap_ratio,
+            phase_shift=t.phase_shift_deg * 3.141592653589793 / 180.0,
+        )
+        system.add_transformer(xf)
+
+    for g in spec.generators:
+        if g.bus_id not in bus_map:
+            raise ValueError(f"Generator {g.generator_id} references unknown bus")
+        gen = Generator(
+            generator_id=g.generator_id,
+            bus=bus_map[g.bus_id],
+            internal_voltage={
+                "1": complex(g.internal_voltage_mag, 0),
+                "2": complex(0, 0),
+                "0": complex(0, 0),
+            },
+            impedance={
+                "1": complex(g.r1, g.x1),
+                "2": complex(g.r2 if g.r2 is not None else g.r1, g.x2 if g.x2 is not None else g.x1),
+                "0": complex(g.r0 if g.r0 is not None else g.r1, g.x0 if g.x0 is not None else g.x1),
+            },
+        )
+        system.add_generator(gen)
+
+    for ld in spec.loads:
+        if ld.bus_id not in bus_map:
+            raise ValueError(f"Load {ld.load_id} references unknown bus")
+        load = Load(
+            load_id=ld.load_id,
+            bus=bus_map[ld.bus_id],
+            load_power=complex(ld.p_mw / spec.base_mva, ld.q_mvar / spec.base_mva),
+            constant_impedance=ld.constant_impedance,
+        )
+        system.add_load(load)
+
+    return system
+
+
+# ---------------------------------------------------------------------------
+# Study execution
+# ---------------------------------------------------------------------------
+
+_STUDIES_REQUIRING_SYSTEM = {"load_flow", "short_circuit", "fault", "protection_coordination", "coordination", "motor_starting"}
+
+
+def _run_native_study(study_type: str, system: Optional[Any], parameters: Dict[str, Any]) -> Dict[str, Any]:
+    """Execute a study using the native PowerSystemEngine."""
+    if study_type in _STUDIES_REQUIRING_SYSTEM and system is None:
+        raise ValueError(f"study_type '{study_type}' requires a 'system' to be provided")
+
+    Engine = _get_power_system_engine()
+    engine = Engine(system)
+
+    if study_type in ("load_flow",):
+        return engine.run_load_flow()
+    elif study_type in ("short_circuit", "fault"):
+        fault_type = parameters.get("fault_type", "three_phase")
+        bus_id = parameters.get("bus_id")
+        if bus_id is None:
+            raise ValueError("bus_id is required for fault analysis")
+        return engine.run_fault_analysis(fault_type, bus_id)
+    elif study_type == "arc_flash":
+        required = ("voltage_kv", "bolted_fault_current_ka", "arc_duration_sec", "working_distance_mm")
+        missing = [k for k in required if k not in parameters]
+        if missing:
+            raise ValueError(f"arc_flash requires: {', '.join(required)} (missing: {', '.join(missing)})")
+        return engine.run_arc_flash(
+            voltage_kv=float(parameters["voltage_kv"]),
+            bolted_fault_current_ka=float(parameters["bolted_fault_current_ka"]),
+            arc_duration_sec=float(parameters["arc_duration_sec"]),
+            working_distance_mm=float(parameters["working_distance_mm"]),
+            electrode_config=str(parameters.get("electrode_config", "VCB")),
+            enclosure_type=str(parameters.get("enclosure_type", "box")),
+            enclosure_width_mm=float(parameters.get("enclosure_width_mm", 508.0)),
+            enclosure_height_mm=float(parameters.get("enclosure_height_mm", 508.0)),
+            enclosure_depth_mm=float(parameters.get("enclosure_depth_mm", 508.0)),
+        )
+    elif study_type in ("protection_coordination", "coordination"):
+        upstream = parameters.get("upstream_relay_id", 1)
+        downstream = parameters.get("downstream_relay_id", 2)
+        fault_currents = parameters.get("fault_currents", [2.0, 5.0, 10.0, 20.0])
+        return engine.run_protection_coordination(upstream, downstream, fault_currents)
+    else:
+        raise ValueError(f"Unsupported native study type: {study_type}")
+
+
+def _run_etap_study(study_type: str, project_path: str, parameters: Dict[str, Any]) -> Dict[str, Any]:
+    """Execute a study via the ETAP provider."""
+    provider_factory = _get_etap_provider()
+    provider = provider_factory()
+
+    if not provider.is_available():
+        raise RuntimeError("ETAP provider is not available")
+
+    from etap_integration.etap_provider import ETAPStudyType
+
+    # Map generic study type to ETAP study type
+    mapping = {
+        "etap_load_flow": ETAPStudyType.LOAD_FLOW,
+        "etap_short_circuit": ETAPStudyType.SHORT_CIRCUIT,
+        "etap_arc_flash": ETAPStudyType.ARC_FLASH,
+        "etap_harmonic_analysis": ETAPStudyType.HARMONIC_ANALYSIS,
+        "etap_optimal_power_flow": ETAPStudyType.OPTIMAL_POWER_FLOW,
+        "etap_motor_starting": ETAPStudyType.MOTOR_STARTING,
+        "etap_protection_coordination": ETAPStudyType.PROTECTION_COORDINATION,
+    }
+    etap_study = mapping.get(study_type)
+    if etap_study is None:
+        raise ValueError(f"No ETAP mapping for study type: {study_type}")
+
+    # NOTE: ETAP provider currently only accepts project_path, study_type, and visible.
+    # Parameters are ignored by the local provider; the remote worker accepts parameters
+    # but the provider interface does not pass them through. Log this limitation.
+    if parameters:
+        logger.warning(
+            "ETAP study parameters are not yet passed through the provider interface for %s",
+            study_type,
+        )
+
+    result = provider.execute_study(project_path, etap_study)
+    return {
+        "success": result.success,
+        "data": result.data,
+        "warnings": result.warnings,
+        "errors": result.errors,
+        "execution_time": result.execution_time,
+    }
+
+
+# ---------------------------------------------------------------------------
+# API Key validation
+# ---------------------------------------------------------------------------
+
+_EXPECTED_API_KEY = os.environ.get("ENGINEERING_SERVICE_API_KEY", "")
+
+
+def _require_api_key(request: Request) -> None:
+    if not _EXPECTED_API_KEY:
+        return
+    provided = request.headers.get("x-api-key") or ""
+    if not hmac.compare_digest(provided, _EXPECTED_API_KEY):
+        raise HTTPException(status_code=401, detail="Invalid or missing API key")
+
+
+# ---------------------------------------------------------------------------
+# Body size limit middleware
+# ---------------------------------------------------------------------------
+
+_MAX_BODY_SIZE = int(os.environ.get("ENGINEERING_SERVICE_MAX_BODY_SIZE", "1_048_576"))
+
+
+class _BodySizeLimitMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request: Request, call_next):
+        if request.method in ("POST", "PUT", "PATCH"):
+            content_length = request.headers.get("content-length")
+            if content_length and int(content_length) > _MAX_BODY_SIZE:
+                raise HTTPException(status_code=413, detail="Request body too large")
+        return await call_next(request)
+
+
+# ---------------------------------------------------------------------------
+# FastAPI app
+# ---------------------------------------------------------------------------
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    logger.info("engineering_service_startup", extra={"trace_id": "startup"})
+    yield
+    logger.info("engineering_service_shutdown", extra={"trace_id": "shutdown"})
+
+
+app = FastAPI(
+    title="ETAP AI Engineering Service",
+    description="Production-grade power systems engineering computation API",
+    version="1.0.0",
+    lifespan=lifespan,
+)
+
+# CORS — allow the Worker origin (or any origin if not configured)
+_CORS_ORIGINS = os.environ.get("ENGINEERING_SERVICE_CORS_ORIGINS", "*").split(",")
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[o.strip() for o in _CORS_ORIGINS],
+    allow_methods=["*"],
+    allow_headers=["*"],
+    expose_headers=["x-trace-id"],
+)
+app.add_middleware(_BodySizeLimitMiddleware)
+
+
+@app.middleware("http")
+async def trace_middleware(request: Request, call_next):
+    trace_id = request.headers.get("x-trace-id") or str(uuid.uuid4())
+    request.state.trace_id = trace_id
+    start = time.perf_counter()
+
+    try:
+        response = await call_next(request)
+        response.headers["x-trace-id"] = trace_id
+        return response
+    except Exception as e:
+        logger.error("Unhandled exception: %s", e, extra={"trace_id": trace_id})
+        raise
+    finally:
+        elapsed_ms = (time.perf_counter() - start) * 1000
+        logger.info("request=%s %s latency_ms=%.2f", request.method, request.url.path, elapsed_ms, extra={"trace_id": trace_id})
+
+
+# ---------------------------------------------------------------------------
+# Health endpoints
+# ---------------------------------------------------------------------------
+
+@app.get("/health", response_model=HealthResponse)
+async def health_check(request: Request):
+    return HealthResponse(
+        status="healthy",
+        version="1.0.0",
+        timestamp=time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+        trace_id=request.state.trace_id,
+    )
+
+
+@app.get("/ready", response_model=ReadyResponse)
+async def readiness_check(request: Request):
+    native_ok = False
+    etap_ok = False
+    try:
+        _get_power_system_engine()
+        native_ok = True
+    except Exception:
+        pass
+    try:
+        provider_factory = _get_etap_provider()
+        provider = provider_factory()
+        etap_ok = provider.is_available()
+    except Exception:
+        pass
+    return ReadyResponse(
+        ready=native_ok,
+        native_engine_available=native_ok,
+        etap_available=etap_ok,
+        timestamp=time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+        trace_id=request.state.trace_id,
+    )
+
+
+@app.get("/metrics", response_model=MetricsResponse)
+async def metrics(request: Request):
+    global _request_count, _success_count, _failed_count, _total_execution_time_sec
+    avg_ms = (_total_execution_time_sec / max(_request_count, 1)) * 1000.0
+    return MetricsResponse(
+        requests_total=_request_count,
+        requests_success=_success_count,
+        requests_failed=_failed_count,
+        avg_execution_time_ms=round(avg_ms, 2),
+        trace_id=request.state.trace_id,
+    )
+
+
+# ---------------------------------------------------------------------------
+# Study execution endpoint
+# ---------------------------------------------------------------------------
+
+@app.post("/api/v1/studies/run", response_model=StudyResult)
+async def run_study(request: Request, payload: StudyRequest):
+    trace_id = request.state.trace_id
+    task_id = payload.task_id or str(uuid.uuid4())
+    start = time.perf_counter()
+
+    global _request_count, _success_count, _failed_count, _total_execution_time_sec
+    _request_count += 1
+
+    logger.info(
+        "study_run_start study_type=%s use_etap=%s task_id=%s",
+        payload.study_type,
+        payload.use_etap,
+        task_id,
+        extra={"trace_id": trace_id},
+    )
+
+    warnings: List[str] = []
+    errors: List[str] = []
+    data: Dict[str, Any] = {}
+    provider_name = "native"
+
+    try:
+        if payload.use_etap:
+            if not payload.etap_project_path:
+                raise ValueError("etap_project_path is required when use_etap=True")
+            provider_name = "etap"
+            data = _run_etap_study(payload.study_type, payload.etap_project_path, payload.parameters)
+            warnings = data.pop("warnings", [])
+            errors = data.pop("errors", [])
+            if not data.pop("success", True):
+                errors.append("ETAP study reported failure")
+        else:
+            system = None
+            if payload.system:
+                try:
+                    system = _build_system_from_spec(payload.system)
+                except ValueError as ve:
+                    raise HTTPException(status_code=400, detail=f"System spec error: {ve}")
+            data = _run_native_study(payload.study_type, system, payload.parameters)
+            provider_name = "native"
+
+        _success_count += 1
+        status = "success"
+    except HTTPException:
+        raise
+    except Exception as e:
+        _failed_count += 1
+        logger.error("study_run_failed study_type=%s error=%s", payload.study_type, str(e), extra={"trace_id": trace_id})
+        errors.append(str(e))
+        status = "failed"
+        data = {}
+
+    # Strip numpy types so FastAPI / Pydantic can serialize the response
+    data = _to_jsonable(data)
+
+    elapsed_sec = time.perf_counter() - start
+    _total_execution_time_sec += elapsed_sec
+
+    logger.info(
+        "study_run_end study_type=%s status=%s elapsed_sec=%.3f task_id=%s",
+        payload.study_type,
+        status,
+        elapsed_sec,
+        task_id,
+        extra={"trace_id": trace_id},
+    )
+
+    return StudyResult(
+        success=status == "success",
+        data=data,
+        warnings=warnings,
+        errors=errors,
+        execution_time_sec=round(elapsed_sec, 3),
+        trace_id=trace_id,
+        task_id=task_id,
+        study_type=payload.study_type,
+        provider=provider_name,
+    )
+
+
+# ---------------------------------------------------------------------------
+# System validation endpoint
+# ---------------------------------------------------------------------------
+
+@app.post("/api/v1/system/validate")
+async def validate_system(request: Request, spec: SystemSpec):
+    trace_id = request.state.trace_id
+    try:
+        _build_system_from_spec(spec)
+        return {"valid": True, "trace_id": trace_id}
+    except ValueError as ve:
+        raise HTTPException(status_code=400, detail=str(ve))
+    except Exception as e:
+        logger.error("system_validation_failed error=%s", str(e), extra={"trace_id": trace_id})
+        raise HTTPException(status_code=500, detail="Internal validation error")
+
+
+# ---------------------------------------------------------------------------
+# Error handlers
+# ---------------------------------------------------------------------------
+
+@app.exception_handler(ValueError)
+async def value_error_handler(request: Request, exc: ValueError):
+    trace_id = getattr(request.state, "trace_id", "unknown")
+    logger.warning("ValueError: %s", str(exc), extra={"trace_id": trace_id})
+    return JSONResponse(
+        status_code=400,
+        content={"success": False, "errors": [str(exc)], "trace_id": trace_id},
+    )
+
+
+@app.exception_handler(Exception)
+async def generic_exception_handler(request: Request, exc: Exception):
+    trace_id = getattr(request.state, "trace_id", "unknown")
+    logger.error("Unhandled exception: %s", str(exc), extra={"trace_id": trace_id})
+    return JSONResponse(
+        status_code=500,
+        content={"success": False, "errors": ["Internal server error"], "trace_id": trace_id},
+    )
+
+
+# ---------------------------------------------------------------------------
+# CLI entrypoint
+# ---------------------------------------------------------------------------
+
+if __name__ == "__main__":
+    import uvicorn
+
+    port = int(os.environ.get("ENGINEERING_SERVICE_PORT", "8000"))
+    host = os.environ.get("ENGINEERING_SERVICE_HOST", "0.0.0.0")
+    logger.info("Starting Engineering Service on %s:%d", host, port)
+    uvicorn.run(app, host=host, port=port)
