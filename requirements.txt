@@ -54,7 +54,7 @@ uvicorn>=0.24.0
 # ETAP User Guide Integration - PDF Processing
 # ==========================================
 # PDF text extraction
-PyPDF2>=3.0.0
+PyPDF2>=3.0.1
 pdfplumber>=0.7.0
 
 # Text processing and NLP (optional - required for advanced RAG features)
