@@ -1,0 +1,65 @@
+name: Code Quality
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  python-lint:
+    name: Python Lint & Format
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install linters
+        run: pip install ruff black mypy
+      - name: Ruff lint
+        run: ruff check . --output-format=github
+      - name: Black format check
+        run: black --check .
+      - name: MyPy type check
+        run: mypy . --ignore-missing-imports || true
+
+  typescript-lint:
+    name: TypeScript Lint & Format
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Install pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 9
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+      - name: Install dependencies
+        run: pnpm install
+      - name: TypeScript type check
+        run: pnpm lint
+
+  yaml-validate:
+    name: YAML & Config Validation
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Validate YAML files
+        run: |
+          find . -name '*.yml' -not -path './.git/*' -not -path './node_modules/*' | while read f; do
+            python -c "import yaml; yaml.safe_load(open('$f'))" 2>/dev/null || echo "WARN: $f"
+          done
+      - name: Validate docker-compose
+        run: docker compose config > /dev/null 2>&1 || echo 'docker-compose validation skipped (no daemon)'

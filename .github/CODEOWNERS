@@ -1,0 +1,23 @@
+# Default owners for everything
+* @ahmdelbaz28-ux
+
+# Engineering Service
+/engineering_service.py @ahmdelbaz28-ux
+/engine/ @ahmdelbaz28-ux
+/load_flow/ @ahmdelbaz28-ux
+/fault_analysis/ @ahmdelbaz28-ux
+/Dockerfile.engineering-service @ahmdelbaz28-ux
+
+# Mastra Agents (TypeScript)
+/src/ @ahmdelbaz28-ux
+
+# UI
+/ui/ @ahmdelbaz28-ux
+
+# CI/CD
+/.github/ @ahmdelbaz28-ux
+
+# Docker & Deployment
+docker-compose.yml @ahmdelbaz28-ux
+Dockerfile* @ahmdelbaz28-ux
+/scripts/ @ahmdelbaz28-ux
