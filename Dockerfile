@@ -2,7 +2,7 @@
 # ETAP AI Engineering Platform - Multi-Stage Docker Build
 # =============================================================================
 # Stage 1: Python Builder
-FROM python:3.11-slim AS python-builder
+FROM python:3.14-slim AS python-builder
 
 LABEL stage="python-builder"
 

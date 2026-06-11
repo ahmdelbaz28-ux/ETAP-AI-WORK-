@@ -749,9 +749,20 @@ async def generic_exception_handler(request: Request, exc: Exception):
 # ---------------------------------------------------------------------------
 
 if __name__ == "__main__":
+    import argparse
     import uvicorn
 
-    port = int(os.environ.get("ENGINEERING_SERVICE_PORT", "8000"))
-    host = os.environ.get("ENGINEERING_SERVICE_HOST", "0.0.0.0")
-    logger.info("Starting Engineering Service on %s:%d", host, port)
-    uvicorn.run(app, host=host, port=port)
+    parser = argparse.ArgumentParser(
+        prog="engineering_service",
+        description="ETAP AI Engineering Service - FastAPI server for power systems analysis"
+    )
+    parser.add_argument("--host", type=str, default=os.environ.get("ENGINEERING_SERVICE_HOST", "0.0.0.0"),
+                        help="Host to bind (default: 0.0.0.0)")
+    parser.add_argument("--port", type=int, default=int(os.environ.get("ENGINEERING_SERVICE_PORT", "8000")),
+                        help="Port to bind (default: 8000)")
+    parser.add_argument("--workers", type=int, default=1,
+                        help="Number of worker processes (default: 1)")
+    args = parser.parse_args()
+
+    logger.info("Starting Engineering Service on %s:%d", args.host, args.port)
+    uvicorn.run(app, host=args.host, port=args.port, workers=args.workers)
