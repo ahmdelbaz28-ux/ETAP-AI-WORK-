@@ -1,0 +1,64 @@
+name: Create Release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+permissions:
+  contents: write
+  packages: read
+
+groups:
+  release-${{ github.ref }}:
+    cancel-in-progress: false
+
+jobs:
+  create-release:
+    name: Create GitHub Release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Generate changelog from commits
+        id: changelog
+        run: |
+          TAG=${GITHUB_REF#refs/tags/}
+          PREV_TAG=$(git tag --sort=-v:refname | grep -A1 "^${TAG}$" | tail -1)
+          
+          if [ -n "$PREV_TAG" ] && [ "$PREV_TAG" != "$TAG" ]; then
+            echo "## Changes since $PREV_TAG" > CHANGELOG_BODY.md
+            echo "" >> CHANGELOG_BODY.md
+            git log ${PREV_TAG}..${TAG} --pretty=format:'- %s (%h)' --no-merges >> CHANGELOG_BODY.md
+          else
+            echo "## Initial Release" > CHANGELOG_BODY.md
+            echo "" >> CHANGELOG_BODY.md
+            echo "First public release of the ETAP AI Engineering Platform." >> CHANGELOG_BODY.md
+          fi
+          
+          echo "" >> CHANGELOG_BODY.md
+          echo "" >> CHANGELOG_BODY.md
+          echo "### Docker Image" >> CHANGELOG_BODY.md
+          echo "" >> CHANGELOG_BODY.md
+          echo "\`\`\`bash" >> CHANGELOG_BODY.md
+          echo "docker pull ghcr.io/ahmdelbaz28-ux/etap-engineering-service:${TAG}" >> CHANGELOG_BODY.md
+          echo "\`\`\`" >> CHANGELOG_BODY.md
+          echo "" >> CHANGELOG_BODY.md
+          echo "### Deploy" >> CHANGELOG_BODY.md
+          echo "" >> CHANGELOG_BODY.md
+          echo "\`\`\`bash" >> CHANGELOG_BODY.md
+          echo "./scripts/deploy-engineering-service.sh fly etap-eng-prod --region iad --tag ${TAG}" >> CHANGELOG_BODY.md
+          echo "\`\`\`"
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          body_path: CHANGELOG_BODY.md
+          generate_release_notes: false
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
