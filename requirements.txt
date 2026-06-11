@@ -28,7 +28,7 @@ pytest>=7.0.0
 pytest-cov>=3.0.0
 
 # Type checking
-typing-extensions>=4.0.0
+typing-extensions>=4.15.0
 
 # Logging and monitoring
 structlog>=21.0.0
