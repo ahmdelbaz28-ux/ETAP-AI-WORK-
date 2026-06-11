@@ -58,7 +58,7 @@ PyPDF2>=3.0.0
 pdfplumber>=0.7.0
 
 # Text processing and NLP (optional - required for advanced RAG features)
-nltk>=3.6.0
+nltk>=3.9.4
 # spacy>=3.0.0  # Disabled: requires numpy>=2.0 which is incompatible with Python 3.8
 
 # Sentence embeddings for RAG (optional - requires Python 3.9+)
