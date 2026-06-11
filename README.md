@@ -592,14 +592,14 @@ All third-party licenses are included in their respective packages.
 
 - **GitHub Issues**: [Report bugs or request features](https://github.com/ahmdelbaz28-ux/ETAP-AI-WORK-/issues)
 - **GitHub Discussions**: [Ask questions and share ideas](https://github.com/ahmdelbaz28-ux/ETAP-AI-WORK-/discussions)
-- **Email**: support@ETAP-AI-WORK-.com
+- **Email**: support@etap-platform.com
 - **Discord**: [Join our community](https://discord.gg/ETAP-AI-WORK-)
 
 ### Professional Support
 
 For enterprise support, consulting, or custom development:
-- Email: enterprise@ETAP-AI-WORK-.com
-- Website: https://ETAP-AI-WORK-.com/support
+- Email: enterprise@etap-platform.com
+- Website: https://etap-platform.com/support
 
 ---
 
