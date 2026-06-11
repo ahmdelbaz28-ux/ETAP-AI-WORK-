@@ -1,0 +1,52 @@
+# =============================================================================
+# ETAP Windows Worker - Docker Compose Override
+# =============================================================================
+# This file adds the Windows-only ETAP COM Automation worker.
+# Use it on Windows Docker hosts or with Docker Desktop's Windows container
+# support:
+#   docker compose -f docker-compose.yml -f docker-compose.windows.yml up -d
+# =============================================================================
+
+services:
+  etap-worker:
+    build:
+      context: .
+      dockerfile: Dockerfile.windows-worker
+    image: etap-windows-worker:latest
+    container_name: etap-windows-worker
+    platform: windows
+    ports:
+      - "${ETAP_WORKER_PORT:-8081}:8081"
+    environment:
+      - ETAP_WORKER_HOST=0.0.0.0
+      - ETAP_WORKER_PORT=8081
+      - PYTHONDONTWRITEBYTECODE=1
+      - PYTHONUNBUFFERED=1
+      - ETAP_INSTALL_PATH=${ETAP_INSTALL_PATH:-C:\Program Files\ETAP}
+      - ETAP_VERSION=${ETAP_VERSION:-19.0}
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+    volumes:
+      - etap_worker_data:C:\app\data
+      - etap_worker_reports:C:\app\reports
+      - etap_worker_logs:C:\app\logs
+    restart: unless-stopped
+    stop_grace_period: 60s
+    healthcheck:
+      test: ["CMD", "powershell", "-Command", "try { (Invoke-WebRequest -Uri http://localhost:8081/health -UseBasicParsing).StatusCode -eq 200 } catch { exit 1 }"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    deploy:
+      resources:
+        limits:
+          cpus: '${WORKER_CPU_LIMIT:-2.0}'
+          memory: ${WORKER_MEMORY_LIMIT:-4G}
+        reservations:
+          cpus: '${WORKER_CPU_RESERVATION:-1.0}'
+          memory: ${WORKER_MEMORY_RESERVATION:-2G}
+    networks:
+      - etap-network
+    profiles:
+      - full
+      - windows

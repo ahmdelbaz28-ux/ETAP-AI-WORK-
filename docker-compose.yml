@@ -13,14 +13,14 @@ services:
     ports:
       - "${APP_PORT:-3000}:3000"
     environment:
-      - OPENAI_API_KEY=${OPENAI_API_KEY:?OPENAI_API_KEY must be set}
-      - JWT_SECRET_KEY=${JWT_SECRET_KEY:?JWT_SECRET_KEY must be set}
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+      - JWT_SECRET_KEY=${JWT_SECRET_KEY:-changeme}
       - DATABASE_URL=${DATABASE_URL:-file:/data/mastra.db}
       - LOG_LEVEL=${LOG_LEVEL:-INFO}
       - NODE_ENV=${NODE_ENV:-production}
       - VECTOR_DB_TYPE=${VECTOR_DB_TYPE:-chroma}
       - VECTOR_DB_PATH=/app/knowledge_db
-      - REDIS_URL=redis://:${REDIS_PASSWORD:?REDIS_PASSWORD must be set}@redis:6379/0
+      - REDIS_URL=redis://:${REDIS_PASSWORD:-changeme}@redis:6379/0
       - ETAP_WORKER_URL=http://etap-worker:8081
       - ETAP_ENABLED=${ETAP_ENABLED:-false}
       - ENABLE_AUTHENTICATION=${ENABLE_AUTHENTICATION:-true}
@@ -109,52 +109,6 @@ services:
       - full
 
   # ===========================================================================
-  # ETAP Windows Worker (Windows Container - ETAP COM Automation)
-  # ===========================================================================
-  etap-worker:
-    build:
-      context: .
-      dockerfile: Dockerfile.windows-worker
-    image: etap-windows-worker:latest
-    container_name: etap-windows-worker
-    platform: windows
-    ports:
-      - "${ETAP_WORKER_PORT:-8081}:8081"
-    environment:
-      - ETAP_WORKER_HOST=0.0.0.0
-      - ETAP_WORKER_PORT=8081
-      - PYTHONDONTWRITEBYTECODE=1
-      - PYTHONUNBUFFERED=1
-      - ETAP_INSTALL_PATH=${ETAP_INSTALL_PATH:-C:\Program Files\ETAP}
-      - ETAP_VERSION=${ETAP_VERSION:-19.0}
-      - LOG_LEVEL=${LOG_LEVEL:-INFO}
-    volumes:
-      - etap_worker_data:C:\app\data
-      - etap_worker_reports:C:\app\reports
-      - etap_worker_logs:C:\app\logs
-    restart: unless-stopped
-    stop_grace_period: 60s
-    healthcheck:
-      test: ["CMD", "powershell", "-Command", "try { (Invoke-WebRequest -Uri http://localhost:8081/health -UseBasicParsing).StatusCode -eq 200 } catch { exit 1 }"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 30s
-    deploy:
-      resources:
-        limits:
-          cpus: '${WORKER_CPU_LIMIT:-2.0}'
-          memory: ${WORKER_MEMORY_LIMIT:-4G}
-        reservations:
-          cpus: '${WORKER_CPU_RESERVATION:-1.0}'
-          memory: ${WORKER_MEMORY_RESERVATION:-2G}
-    networks:
-      - etap-network
-    profiles:
-      - full
-      - windows
-
-  # ===========================================================================
   # Redis (Caching and Session Management)
   # ===========================================================================
   redis:
@@ -163,11 +117,12 @@ services:
     ports:
       - "${REDIS_PORT:-6379}:6379"
     environment:
-      - REDIS_PASSWORD=${REDIS_PASSWORD:?REDIS_PASSWORD must be set}
+      - REDIS_PASSWORD=${REDIS_PASSWORD:-changeme}
     volumes:
       - redis_data:/data
     restart: unless-stopped
-    command: sh -c "exec redis-server --appendonly yes --requirepass $$REDIS_PASSWORD"
+    command: >
+      sh -c 'exec redis-server --appendonly yes --requirepass "$${REDIS_PASSWORD}"'
     healthcheck:
       test: ["CMD", "redis-cli", "-a", "$$REDIS_PASSWORD", "ping"]
       interval: 10s
@@ -233,7 +188,7 @@ services:
       - "${RABBITMQ_MGMT_PORT:-15672}:15672"
     environment:
       - RABBITMQ_DEFAULT_USER=${RABBITMQ_USER:-admin}
-      - RABBITMQ_DEFAULT_PASS=${RABBITMQ_PASS:?RABBITMQ_PASS must be set}
+      - RABBITMQ_DEFAULT_PASS=${RABBITMQ_PASS:-changeme}
     volumes:
       - rabbitmq_data:/var/lib/rabbitmq
     restart: unless-stopped
@@ -261,8 +216,8 @@ services:
     ports:
       - "${POSTGRES_PORT:-5432}:5432"
     environment:
-      - POSTGRES_USER=${DB_USER:?DB_USER must be set}
-      - POSTGRES_PASSWORD=${DB_PASS:?DB_PASS must be set}
+      - POSTGRES_USER=${DB_USER:-etap}
+      - POSTGRES_PASSWORD=${DB_PASS:-changeme}
       - POSTGRES_DB=${DB_NAME:-etap_platform}
     volumes:
       - postgres_data:/var/lib/postgresql/data
@@ -296,7 +251,8 @@ services:
       - "${NGINX_HTTPS_PORT:-443}:443"
     volumes:
       - ./nginx.conf:/etc/nginx/nginx.conf:ro
-      - ./ssl:/etc/nginx/ssl:ro
+      # SSL is optional. Uncomment the line below after generating certificates.
+      # - ./ssl:/etc/nginx/ssl:ro
     depends_on:
       etap-platform:
         condition: service_healthy
@@ -321,7 +277,7 @@ services:
       - "${GRAFANA_PORT:-3001}:3000"
     environment:
       - GF_SECURITY_ADMIN_USER=${GRAFANA_USER:-admin}
-      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASS:?GRAFANA_PASS must be set}
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASS:-changeme}
       - GF_INSTALL_PLUGINS=grafana-piechart-panel
     volumes:
       - grafana_data:/var/lib/grafana
