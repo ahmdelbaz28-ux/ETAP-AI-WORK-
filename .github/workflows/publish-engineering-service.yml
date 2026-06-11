@@ -47,6 +47,17 @@ on:
       - "Dockerfile.engineering-service"
       - "engineering_service.py"
       - "engine/**"
+      - "core_model/**"
+      - "etap_integration/**"
+      - "fault_analysis/**"
+      - "load_flow/**"
+      - "network_solver/**"
+      - "coordination/**"
+      - "relays/**"
+      - "curves/**"
+      - "visualization/**"
+      - "security/**"
+      - "knowledge/**"
       - "requirements.txt"
 
 # Cancel in-progress runs for the same branch/tag
@@ -133,7 +144,6 @@ jobs:
           file: Dockerfile.engineering-service
           platforms: linux/amd64,linux/arm64
           push: ${{ github.event_name != 'pull_request' }}
-          load: ${{ github.event_name == 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
