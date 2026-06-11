@@ -55,7 +55,7 @@ uvicorn>=0.24.0
 # ==========================================
 # PDF text extraction
 PyPDF2>=3.0.0
-pdfplumber>=0.7.0
+pdfplumber>=0.11.9
 
 # Text processing and NLP (optional - required for advanced RAG features)
 nltk>=3.6.0
