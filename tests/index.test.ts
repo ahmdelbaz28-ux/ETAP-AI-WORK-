@@ -8,6 +8,7 @@ declare global {
     get(key: string, opts?: { type?: string }): Promise<unknown | null>;
     put(key: string, value: string, opts?: { expirationTtl?: number }): Promise<void>;
     delete(key: string): Promise<void>;
+    list(opts?: { prefix?: string; limit?: number; cursor?: string }): Promise<{ keys: { name: string }[]; list_complete: boolean; cursor?: string }>;
   }
 }
 
@@ -30,12 +31,28 @@ describe('Cloudflare Worker API Gateway', () => {
         store.set(key, { value, ttl: opts?.expirationTtl });
       },
       delete: async (key: string) => { store.delete(key); },
+      list: async (opts?: { prefix?: string; limit?: number; cursor?: string }) => {
+        const keys: { name: string }[] = [];
+        for (const key of store.keys()) {
+          if (!opts?.prefix || key.startsWith(opts.prefix)) {
+            keys.push({ name: key });
+          }
+        }
+        return { keys: keys.slice(0, opts?.limit || 1000), list_complete: true };
+      },
     } as unknown as KVNamespace;
   };
 
   const makeRequest = (path: string, init?: RequestInit, env?: Partial<Env>): Promise<Response> => {
     const url = new URL(path, 'http://localhost');
-    const testEnv: Partial<Env> = env ?? { API_KEY_SECRET: 'test-secret', RATE_LIMIT_KV: mockKV() };
+    const kv = mockKV();
+    const testEnv: Partial<Env> = env ?? {
+      API_KEY_SECRET: 'test-secret',
+      RATE_LIMIT_KV: kv,
+      TASK_STORE_KV: kv,
+      METRICS_KV: kv,
+      API_KEYS_KV: kv,
+    };
     const testCtx: ExecutionContext = { waitUntil: () => {}, passThroughOnException: () => {} };
     return worker.fetch(new Request(url.toString(), init), testEnv as any, testCtx);
   };
@@ -83,20 +100,57 @@ describe('Cloudflare Worker API Gateway', () => {
   });
 
   it('returns 401 when API_KEY_SECRET is not configured', async () => {
-    const res = await makeRequest('/api/v1/agents', {}, {});
+    const res = await makeRequest('/api/v1/agents', {
+      headers: { 'x-api-key': 'some-key' },
+    }, {});
     expect(res.status).toBe(401);
     const body = (await res.json()) as Record<string, unknown>;
     expect(body.message).toMatch(/API_KEY_SECRET is not configured/i);
   });
 
-  it('returns 200 and agent list with valid API key', async () => {
+  it('returns 200 and agent list with valid API key (legacy secret)', async () => {
     const res = await makeRequest('/api/v1/agents', {
       headers: { 'x-api-key': 'test-secret' },
     });
-    // When API_KEY_SECRET is not in env, auth returns 401. If env had it, it would return 200.
-    // This test verifies the shape when auth is disabled (dev mode) or when env is set.
-    // In the current test environment, no env vars are set, so we expect 401.
-    expect([200, 401]).toContain(res.status);
+    expect(res.status).toBe(200);
+    const body = (await res.json()) as Record<string, unknown>;
+    expect(Array.isArray(body.agents)).toBe(true);
+  });
+
+  it('returns 200 and agent list with valid API key (KV-backed)', async () => {
+    const kv = mockKV();
+    await kv.put('api-key:kv-test-key', JSON.stringify({ createdAt: Date.now(), name: 'test-key' }));
+    const env = {
+      API_KEY_SECRET: 'test-secret',
+      RATE_LIMIT_KV: kv,
+      TASK_STORE_KV: kv,
+      METRICS_KV: kv,
+      API_KEYS_KV: kv,
+    };
+    const res = await makeRequest('/api/v1/agents', {
+      headers: { 'x-api-key': 'kv-test-key' },
+    }, env);
+    expect(res.status).toBe(200);
+    const body = (await res.json()) as Record<string, unknown>;
+    expect(Array.isArray(body.agents)).toBe(true);
+  });
+
+  it('returns 401 with revoked KV-backed API key', async () => {
+    const kv = mockKV();
+    await kv.put('api-key:revoked-key', JSON.stringify({ createdAt: Date.now(), revoked: true, name: 'revoked' }));
+    const env = {
+      API_KEY_SECRET: 'test-secret',
+      RATE_LIMIT_KV: kv,
+      TASK_STORE_KV: kv,
+      METRICS_KV: kv,
+      API_KEYS_KV: kv,
+    };
+    const res = await makeRequest('/api/v1/agents', {
+      headers: { 'x-api-key': 'revoked-key' },
+    }, env);
+    expect(res.status).toBe(401);
+    const body = (await res.json()) as Record<string, unknown>;
+    expect(body.message).toMatch(/revoked/i);
   });
 
   it('returns CORS headers on preflight', async () => {
@@ -165,19 +219,37 @@ describe('Cloudflare Worker API Gateway', () => {
     expect(body.message).toMatch(/Invalid studyType/i);
   });
 
-  it('returns 200 for valid study type', async () => {
+  it('returns 200 for valid study type (dry-run) and persists to KV', async () => {
+    const kv = mockKV();
+    const env = {
+      API_KEY_SECRET: 'test-secret',
+      RATE_LIMIT_KV: kv,
+      TASK_STORE_KV: kv,
+      METRICS_KV: kv,
+      API_KEYS_KV: kv,
+    };
     const res = await makeRequest('/api/v1/studies/run', {
       method: 'POST',
       headers: {
         'content-type': 'application/json',
         'x-api-key': 'test-secret',
       },
-      body: JSON.stringify({ studyType: 'load_flow', parameters: {} }),
-    });
+      body: JSON.stringify({ studyType: 'load_flow', parameters: {}, dryRun: true }),
+    }, env);
     expect(res.status).toBe(200);
     const body = (await res.json()) as Record<string, unknown>;
-    expect(body.status).toBe('queued');
+    expect(body.status).toBe('dry_run');
     expect(body.taskId).toBeTruthy();
+    const taskId = body.taskId as string;
+
+    // Verify task is persisted in KV
+    const statusRes = await makeRequest(`/api/v1/studies/status/${taskId}`, {
+      headers: { 'x-api-key': 'test-secret' },
+    }, env);
+    expect(statusRes.status).toBe(200);
+    const statusBody = (await statusRes.json()) as Record<string, unknown>;
+    expect(statusBody.status).toBe('dry_run');
+    expect(statusBody.studyType).toBe('load_flow');
   });
 
   it('enforces rate limiting via mock KV', async () => {

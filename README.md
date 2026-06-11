@@ -13,6 +13,9 @@
 
 **AI-Powered Multi-Agent Autonomous Engineering System for Power Systems Analysis**
 
+> **One-command public deploy of the Engineering Service:**
+> [**Fly.io**](https://fly.io) · [**Render**](https://render.com) · [**Railway**](https://railway.com) — see [Quick Start → One-Click Deploy](#one-click-public-deployment)
+
 [Documentation](docs/) • [API Reference](API_DOCUMENTATION.md) • [Quick Start](#quick-start) • [Contributing](CONTRIBUTING.md)
 
 </div>
@@ -444,6 +447,33 @@ kubectl scale deployment etap-platform --replicas=5
 - [ ] Test disaster recovery
 
 See [DEPLOYMENT_GUIDE.md](DEPLOYMENT_GUIDE.md) for complete instructions.
+
+### One-Click Public Deployment
+
+The Engineering Service is pre-built as a multi-arch (linux/amd64 + linux/arm64) image and pushed to GHCR. Deploy it to a public HTTPS URL with one command:
+
+```bash
+# 1. Push the multi-arch image (needs GITHUB_TOKEN + GITHUB_ACTOR in env)
+./scripts/docker_build.sh --service engineering-service --multiarch --push
+
+# 2. Pick a platform and deploy in one command
+./scripts/deploy-engineering-service.sh fly      etap-eng-prod --region iad   # Fly.io
+./scripts/deploy-engineering-service.sh render                              # Render (one-click)
+./scripts/deploy-engineering-service.sh railway                             # Railway
+./scripts/deploy-engineering-service.sh all --tag v1.2.3                    # all three
+```
+
+| Platform | One-click | What you get |
+|---|---|---|
+| **Fly.io**   | [`fly.toml`](fly.toml) + `fly deploy` | `https://<app>.fly.dev` |
+| **Render**   | [Deploy button](https://render.com/deploy?repo=https://github.com/ahmdelbaz28/my-awesome-agent) | `https://<service>.onrender.com` |
+| **Railway**  | [`railway.toml`](railway.toml) + `railway up --image …` | `https://<service>.up.railway.app` |
+
+After the public URL is live, wire the Worker to it:
+
+```bash
+./scripts/set-engineering-service-url.sh https://<your-public-url>
+```
 
 ---
 

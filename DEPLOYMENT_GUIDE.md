@@ -244,42 +244,181 @@ CMD ["pnpm", "start"]
 
 ### Docker Compose
 
-Create `docker-compose.yml`:
+The repo ships a `docker-compose.yml` with the following services:
 
-```yaml
-version: '3.8'
+| Service                | Image / Build                        | Port  | Profile(s)              | Purpose                                  |
+|------------------------|--------------------------------------|-------|-------------------------|------------------------------------------|
+| `etap-platform`        | `Dockerfile`                         | 3000  | always on               | Main Mastra/Worker platform              |
+| `engineering-service`  | `Dockerfile.engineering-service`     | 8000  | `engineering`, `full`   | Python FastAPI for real engineering studies |
+| `etap-worker`          | `Dockerfile.windows-worker`          | 8081  | `full`, `windows`       | Windows ETAP COM automation              |
+| `redis`                | `redis:7-alpine`                     | 6379  | always on               | Cache + sessions                         |
+| `nginx`                | `nginx:alpine`                       | 80/443| `production`            | Reverse proxy + TLS                      |
+| `prometheus`           | `prom/prometheus:v2.51.0`            | 9090  | `full`, `monitoring`    | Metrics collection                       |
+| `grafana`              | `grafana/grafana:latest`             | 3001  | `monitoring`            | Dashboards                               |
+| `rabbitmq`             | `rabbitmq:3-management`              | 5672/15672 | `full`             | Optional async queue                     |
+| `postgres`             | `postgres:15-alpine`                 | 5432  | `full`                  | Optional persistent storage              |
 
-services:
-  etap-platform:
-    build: .
-    ports:
-      - "3000:3000"
-    environment:
-      - OPENAI_API_KEY=${OPENAI_API_KEY}
-      - JWT_SECRET_KEY=${JWT_SECRET_KEY}
-      - DATABASE_URL=file:/data/mastra.db
-    volumes:
-      - ./data:/data
-      - ./projects:/app/projects
-    restart: unless-stopped
+#### Engineering Service
 
-  redis:
-    image: redis:7-alpine
-    ports:
-      - "6379:6379"
-    volumes:
-      - redis_data:/data
-    restart: unless-stopped
+The Engineering Service is a **Linux Python 3.11+ container** built from
+`Dockerfile.engineering-service` and serving FastAPI on port 8000. The Worker
+(or any HTTP client) calls it to run real engineering studies — load flow,
+short circuit, arc flash, harmonic analysis, OPF, protection coordination,
+and motor starting — via the `/api/v1/studies/run` endpoint.
 
-volumes:
-  redis_data:
-```
-
-Deploy with Docker:
+**Start it explicitly** (it's off by default):
 
 ```bash
-docker-compose up -d
+docker compose --profile engineering up -d
 ```
+
+**Or start the entire stack including it:**
+
+```bash
+docker compose --profile full up -d
+```
+
+**Configuration** (`.env.engineering-service` or environment):
+
+| Variable                              | Default         | Notes                                       |
+|---------------------------------------|-----------------|---------------------------------------------|
+| `ENGINEERING_SERVICE_PORT`            | `8000`          | Host port mapped to container 8000         |
+| `ENGINEERING_SERVICE_CORS_ORIGINS`    | `*`             | Comma-separated; tighten in production      |
+| `ENGINEERING_SERVICE_MAX_BODY_SIZE`   | `1048576`       | 1 MiB body cap                              |
+| `ENGINEERING_SERVICE_API_KEY`         | *(empty)*       | If set, clients must send `x-api-key`      |
+| `ENGINEERING_CPU_LIMIT`               | `2.0`           | Compose CPU limit                           |
+| `ENGINEERING_MEMORY_LIMIT`            | `4G`            | Compose memory limit                        |
+
+**Health check:** `curl http://localhost:8000/health` → 200.
+
+**Wiring the Worker to it:** after starting the service, set
+`ENGINEERING_SERVICE_URL` as a wrangler secret:
+
+```bash
+./scripts/set-engineering-service-url.sh http://etap-engineering-service:8000
+```
+
+(The service is reachable from the Worker at the compose-internal hostname
+`http://etap-engineering-service:8000` when both containers are on the same
+`etap-network`. For external / production traffic, use the public URL of the
+host or a tunnel.)
+
+#### Standard profiles
+
+Deploy with Docker Compose:
+
+```bash
+# Minimal (just the platform + redis)
+docker compose up -d
+
+# Include the engineering service
+docker compose --profile engineering up -d
+
+# Everything (engineering + ETAP Windows worker + prometheus + rabbitmq + postgres)
+docker compose --profile full up -d
+
+# Stop everything
+docker compose --profile full down
+```
+
+## One-Click Public Deployment
+
+The Engineering Service can be deployed to a public URL on **Fly.io**, **Render**,
+or **Railway** without a local tunnel. The repo ships a pre-built, multi-arch
+image on GHCR and a one-command wrapper script.
+
+### 0. Push the multi-arch image to GHCR
+
+```bash
+export GITHUB_TOKEN=<token-with-write:packages>
+export GITHUB_ACTOR=<github-username>
+
+# linux/amd64,linux/arm64, tagged :latest and :sha-<short>
+./scripts/docker_build.sh \
+    --service engineering-service \
+    --multiarch \
+    --push
+```
+
+Image name format: `ghcr.io/<owner>/<repo>/etap-engineering-service:<tag>`,
+auto-derived from `GHCR_REPOSITORY` / `GITHUB_REPOSITORY` / `git remote`.
+
+For QEMU-backed multi-arch builds, set up a `docker-container` buildx builder
+once (the script will warn if it's not the active builder):
+
+```bash
+docker buildx create --name etap-multiarch --driver docker-container --use
+```
+
+### 1. Fly.io (one command, real CLI)
+
+```bash
+# Install flyctl: https://fly.io/docs/hands-on/install-flyctl/
+./scripts/deploy-engineering-service.sh fly etap-eng-prod --region iad
+```
+
+The script creates the app in your org, sets `ENGINEERING_SERVICE_API_KEY`
+as a Fly secret if `$ENGINEERING_SERVICE_API_KEY` is set, patches
+[`fly.toml`](fly.toml) to point at your GHCR image, and runs `fly deploy`.
+You'll get a public URL like `https://etap-eng-prod.fly.dev`.
+
+### 2. Render (one-click button)
+
+The repo ships a [Render Blueprint](render.yaml). Click:
+
+```
+https://render.com/deploy?repo=https://github.com/ahmdelbaz28/my-awesome-agent
+```
+
+…or run:
+
+```bash
+./scripts/deploy-engineering-service.sh render
+```
+
+…and follow the prompt. The first build hits GHCR for the pre-built image;
+`autoDeploy: false` keeps Render from rebuilding on every push.
+
+### 3. Railway (one command)
+
+```bash
+# Install: https://docs.railway.com/guides/cli
+./scripts/deploy-engineering-service.sh railway
+```
+
+The wrapper initializes the project (if needed), sets
+`ENGINEERING_SERVICE_API_KEY` as a variable, deploys from the GHCR image,
+and generates a public domain.
+
+### 4. All three at once
+
+```bash
+./scripts/deploy-engineering-service.sh all --tag v1.2.3
+```
+
+…deploys (or attempts) Fly, Render, and Railway in sequence and prints the
+public URL of each.
+
+### 5. Wire the Worker to the new public URL
+
+Whichever platform you used, set the resulting URL on the Worker:
+
+```bash
+# Example for Fly
+./scripts/set-engineering-service-url.sh https://etap-eng-prod.fly.dev
+
+# Then verify the Worker sees it as healthy
+curl -s https://ahmed-etap.ahmdelbaz28.workers.dev/health | jq .engineeringService
+# → { "healthy": true, "url": "https://etap-eng-prod.fly.dev", ... }
+```
+
+### Cost / sizing
+
+| Platform | Cheapest tier that fits | RAM   | Notes |
+|----------|--------------------------|-------|-------|
+| Fly.io   | `shared-cpu-1x`, 1 GB    | 1 GB  | Auto-rollback on failed deploys; health checks on `/health` |
+| Render   | `starter`                | 512 MB| Cold starts on free/starter; autoDeploy off so you control releases |
+| Railway  | default                  | 512 MB| Pay-per-second; perfect for dev / occasional compute |
 
 ## Kubernetes Deployment
 

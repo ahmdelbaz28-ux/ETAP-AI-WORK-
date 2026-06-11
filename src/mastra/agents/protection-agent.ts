@@ -7,7 +7,7 @@ import { getActiveModelConfig } from '../lib/model-config';
 const promptContent = await getSystemPrompt('protection_agent');
 
 export const protectionAgent = new Agent({
-  id: 'protection-coordination-agent',
+  id: 'protection-agent',
   name: 'Protection Coordination Agent',
   instructions: promptContent,
   model: getActiveModelConfig(),

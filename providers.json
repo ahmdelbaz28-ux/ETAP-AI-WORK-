@@ -1,23 +1,5 @@
 {
-  "providers": [
-    {
-      "id": "qwen-aliyun",
-      "name": "Qwen 3.7 Plus (Aliyun MaaS)",
-      "modelId": "qwen-plus",
-      "baseUrl": "https://ws-3u674uz3r7mph00n.ap-southeast-1.maas.aliyuncs.com/compatible-mode/v1",
-      "apiKey": "sk-ws-H.IIMXLP.5AXL.MEQCIGkHnN4eeXta1wKlderuajqskRV6x9_X9yemMBeLNhdOAiAgnfKI8iBnNgpxfM996fSgigOZ88eDFZO-gejbCwlrTA",
-      "active": true,
-      "priority": 1
-    },
-    {
-      "id": "modal-glm5",
-      "name": "GLM-5.1-FP8 (Modal Research)",
-      "modelId": "zai-org/GLM-5.1-FP8",
-      "baseUrl": "https://api.us-west-2.modal.direct/v1",
-      "apiKey": "modalresearch_UAIVFIGWVqTgp7zMDHDfRSldEElOydyRrxOIrTIbLOM",
-      "active": true,
-      "priority": 2
-    }
-  ],
-  "updatedAt": "2026-06-07T14:00:00.000Z"
+  "_comment": "Hardening: all hardcoded API keys have been REMOVED. Configure providers via `wrangler secret put` only. Qwen and GLM are excluded from the failover chain (see src/core/config.ts).",
+  "providers": [],
+  "updatedAt": "2026-06-10T00:00:00.000Z"
 }

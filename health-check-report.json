@@ -1,0 +1,377 @@
+{
+  "timestamp": "2026-06-10T07:03:44.721Z",
+  "durationMs": 4026,
+  "summary": {
+    "total": 22,
+    "pass": 21,
+    "warn": 1,
+    "fail": 0
+  },
+  "daily": [
+    {
+      "name": "Health endpoint responsive",
+      "category": "daily",
+      "status": "pass",
+      "message": "Health OK (362ms)",
+      "latencyMs": 362,
+      "details": {
+        "statusCode": 200,
+        "body": {
+          "ok": true,
+          "service": "etap-ai-platform",
+          "version": "1.0.0",
+          "traceId": "6ffb57d6-142b-4476-b99c-eb31ad58c201",
+          "timestamp": "2026-06-10T07:03:40.712Z",
+          "providers": [
+            {
+              "name": "openai",
+              "healthy": true
+            },
+            {
+              "name": "qwen",
+              "healthy": true
+            },
+            {
+              "name": "glm",
+              "healthy": true
+            }
+          ],
+          "anyProviderHealthy": true
+        }
+      }
+    },
+    {
+      "name": "Metrics endpoint accessible",
+      "category": "daily",
+      "status": "pass",
+      "message": "Metrics accessible (86ms)",
+      "latencyMs": 86,
+      "details": {
+        "statusCode": 200,
+        "hasApiMetrics": true
+      }
+    },
+    {
+      "name": "Authenticated API (agents list)",
+      "category": "daily",
+      "status": "pass",
+      "message": "Agents list OK — 9 agents (203ms)",
+      "latencyMs": 203,
+      "details": {
+        "statusCode": 200,
+        "agentCount": 9
+      }
+    },
+    {
+      "name": "Rate limiting / auth rejection active",
+      "category": "daily",
+      "status": "pass",
+      "message": "Auth rejection active (170ms)",
+      "latencyMs": 170,
+      "details": {
+        "statusCode": 401
+      }
+    },
+    {
+      "name": "LLM provider health",
+      "category": "daily",
+      "status": "pass",
+      "message": "3/4 providers healthy (351ms)",
+      "latencyMs": 351,
+      "details": {
+        "statusCode": 200,
+        "providers": [
+          {
+            "id": "openai",
+            "healthy": true
+          },
+          {
+            "id": "qwen",
+            "healthy": true
+          },
+          {
+            "id": "glm",
+            "healthy": true
+          },
+          {
+            "id": "mastra",
+            "healthy": false
+          }
+        ]
+      }
+    },
+    {
+      "name": "Audit logging operational",
+      "category": "daily",
+      "status": "pass",
+      "message": "Audit logs accessible — 10 entries (482ms)",
+      "latencyMs": 482,
+      "details": {
+        "statusCode": 200,
+        "logCount": 10
+      }
+    },
+    {
+      "name": "Error count check",
+      "category": "daily",
+      "status": "pass",
+      "message": "No errors in metrics",
+      "latencyMs": 68,
+      "details": {
+        "errorCount": 0
+      }
+    }
+  ],
+  "weekly": [
+    {
+      "name": "API latency trend (providers avg)",
+      "category": "weekly",
+      "status": "pass",
+      "message": "Average provider latency: 0ms",
+      "latencyMs": 75,
+      "details": {
+        "avgLatencyMs": 0,
+        "providerLatencies": [
+          {
+            "name": "openai",
+            "avgLatencyMs": 0
+          },
+          {
+            "name": "qwen",
+            "avgLatencyMs": 0
+          },
+          {
+            "name": "glm",
+            "avgLatencyMs": 0
+          }
+        ]
+      }
+    },
+    {
+      "name": "Error rate trend",
+      "category": "weekly",
+      "status": "pass",
+      "message": "Error rate: 0.00% (0/4)",
+      "latencyMs": 73,
+      "details": {
+        "errorRate": 0,
+        "totalRequests": 4,
+        "errors": 0
+      }
+    },
+    {
+      "name": "Provider circuit breaker status",
+      "category": "weekly",
+      "status": "pass",
+      "message": "All provider circuits closed",
+      "latencyMs": 76,
+      "details": {
+        "openCircuits": 0,
+        "providers": [
+          {
+            "name": "openai",
+            "calls": 0,
+            "successes": 0,
+            "failures": 0,
+            "avgLatencyMs": 0,
+            "circuitOpen": false,
+            "consecutiveFailures": 0,
+            "healthy": true
+          },
+          {
+            "name": "qwen",
+            "calls": 0,
+            "successes": 0,
+            "failures": 0,
+            "avgLatencyMs": 0,
+            "circuitOpen": false,
+            "consecutiveFailures": 0,
+            "healthy": true
+          },
+          {
+            "name": "glm",
+            "calls": 0,
+            "successes": 0,
+            "failures": 0,
+            "avgLatencyMs": 0,
+            "circuitOpen": false,
+            "consecutiveFailures": 0,
+            "healthy": true
+          }
+        ]
+      }
+    },
+    {
+      "name": "Audit log anomaly detection",
+      "category": "weekly",
+      "status": "pass",
+      "message": "Auth failures: 2, Rate limited: 0",
+      "latencyMs": 207,
+      "details": {
+        "authFailures": 2,
+        "rateLimited": 0,
+        "totalLogs": 10
+      }
+    },
+    {
+      "name": "Task store capacity",
+      "category": "weekly",
+      "status": "pass",
+      "message": "Task store: 0/1000 (0.0%)",
+      "latencyMs": 86,
+      "details": {
+        "taskStoreSize": 0,
+        "maxSize": 1000,
+        "utilization": 0
+      }
+    },
+    {
+      "name": "Security event (404 scan) review",
+      "category": "weekly",
+      "status": "pass",
+      "message": "404 events: 0",
+      "latencyMs": 201,
+      "details": {
+        "notFoundCount": 0
+      }
+    },
+    {
+      "name": "Mastra backend connectivity",
+      "category": "weekly",
+      "status": "warn",
+      "message": "Mastra backend not configured",
+      "latencyMs": 162,
+      "details": {
+        "mastraConfigured": false
+      }
+    }
+  ],
+  "monthly": [
+    {
+      "name": "Study execution capacity test",
+      "category": "monthly",
+      "status": "pass",
+      "message": "Study queued successfully (179ms)",
+      "latencyMs": 179,
+      "details": {
+        "statusCode": 200,
+        "taskId": "691622c8-8d69-4baf-a680-fc59d3adba1d"
+      }
+    },
+    {
+      "name": "SLA/SLO latency compliance (p95)",
+      "category": "monthly",
+      "status": "pass",
+      "message": "p95 latency across 4 endpoints: 170ms",
+      "latencyMs": 170,
+      "details": {
+        "p95": 170,
+        "latencies": [
+          {
+            "path": "/health",
+            "latencyMs": 85
+          },
+          {
+            "path": "/metrics",
+            "latencyMs": 90
+          },
+          {
+            "path": "/api/v1/agents",
+            "latencyMs": 158
+          },
+          {
+            "path": "/api/v1/providers",
+            "latencyMs": 170
+          }
+        ]
+      }
+    },
+    {
+      "name": "Cost optimization (unused providers)",
+      "category": "monthly",
+      "status": "pass",
+      "message": "All configured providers have been used",
+      "latencyMs": 74,
+      "details": {
+        "unusedProviders": []
+      }
+    },
+    {
+      "name": "Audit log retention (24h recency)",
+      "category": "monthly",
+      "status": "pass",
+      "message": "Recent audit logs found within 24h",
+      "latencyMs": 212,
+      "details": {
+        "hasRecentLogs": true,
+        "totalLogs": 10
+      }
+    },
+    {
+      "name": "Disaster recovery endpoint documentation",
+      "category": "monthly",
+      "status": "pass",
+      "message": "8 critical endpoints documented",
+      "latencyMs": 0,
+      "details": {
+        "documentedPaths": [
+          "/health",
+          "/metrics",
+          "/api/v1/agents",
+          "/api/v1/agents/:agentId/chat",
+          "/api/v1/studies/run",
+          "/api/v1/studies/status/:taskId",
+          "/api/v1/providers",
+          "/api/v1/audit/logs"
+        ]
+      }
+    },
+    {
+      "name": "Backup verification (script availability)",
+      "category": "monthly",
+      "status": "pass",
+      "message": "Backup scripts exist: scripts/backup-mastra-db.sh, scripts/backup-mastra-db.ps1",
+      "latencyMs": 0,
+      "details": {
+        "scripts": [
+          "scripts/backup-mastra-db.sh",
+          "scripts/backup-mastra-db.ps1"
+        ]
+      }
+    },
+    {
+      "name": "Incident response runbook availability",
+      "category": "monthly",
+      "status": "pass",
+      "message": "INCIDENT_RESPONSE_RUNBOOK.md exists",
+      "latencyMs": 0,
+      "details": {
+        "runbook": "INCIDENT_RESPONSE_RUNBOOK.md"
+      }
+    },
+    {
+      "name": "Operational documentation completeness",
+      "category": "monthly",
+      "status": "pass",
+      "message": "10 operational documents required",
+      "latencyMs": 0,
+      "details": {
+        "requiredDocs": [
+          "OPERATIONS_RISK_REGISTER.md",
+          "DISASTER_RECOVERY_PLAN.md",
+          "BACKUP_RESTORE_REPORT.md",
+          "INCIDENT_RESPONSE_RUNBOOK.md",
+          "AUDIT_LOGGING_REPORT.md",
+          "CAPACITY_PLAN.md",
+          "SLA_SLO_DOCUMENT.md",
+          "COST_OPTIMIZATION_REPORT.md",
+          "SECURITY_OPERATIONS_MANUAL.md",
+          "ENTERPRISE_OPERATIONS_HANDBOOK.md"
+        ]
+      }
+    }
+  ],
+  "recommendations": [
+    "1 warning(s) detected — review weekly check results"
+  ]
+}

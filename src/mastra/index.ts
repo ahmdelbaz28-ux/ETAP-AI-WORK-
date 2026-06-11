@@ -15,15 +15,50 @@ import { etapEngineerAgent } from './agents/etap-engineer-agent';
 import { protectionAgent } from './agents/protection-agent';
 import { powerSystemCoordinatorAgent } from './agents/power-system-coordinator-agent';
 
-// Initialize observability store - handle DuckDB import issues gracefully
-let observabilityStore: any;
-try {
-  const store = await new DuckDBStore().getStore('observability');
-  observabilityStore = store;
-} catch (e) {
-  console.warn('[Mastra] DuckDB unavailable, using fallback');
-  observabilityStore = {};
+// Lazy-initialized observability store to avoid blocking startup with DuckDB
+let _observabilityStore: any = null;
+let _observabilityStoreInitialized = false;
+
+async function getObservabilityStore(): Promise<any> {
+  if (_observabilityStoreInitialized) {
+    return _observabilityStore;
+  }
+  _observabilityStoreInitialized = true;
+  const start = Date.now();
+  try {
+    const store = await new DuckDBStore().getStore('observability');
+    _observabilityStore = store;
+    console.log(`[Mastra] DuckDB observability store initialized in ${Date.now() - start}ms`);
+  } catch (e) {
+    console.warn(`[Mastra] DuckDB unavailable after ${Date.now() - start}ms, using fallback`);
+    _observabilityStore = {};
+  }
+  return _observabilityStore;
 }
+
+// Initialize observability store lazily on first access
+const observabilityStoreProxy = new Proxy({} as any, {
+  get(_target, prop) {
+    // Trigger lazy initialization if needed
+    if (!_observabilityStoreInitialized) {
+      // Return a placeholder that resolves on first real call
+      return (...args: any[]) => {
+        const store = _observabilityStore || {};
+        const fn = store[prop];
+        if (typeof fn === 'function') {
+          return fn.apply(store, args);
+        }
+        return undefined;
+      };
+    }
+    const store = _observabilityStore || {};
+    const value = store[prop];
+    if (typeof value === 'function') {
+      return value.bind(store);
+    }
+    return value;
+  },
+});
 
 export const mastra = new Mastra({
   workflows: { weatherWorkflow },
@@ -45,7 +80,7 @@ export const mastra = new Mastra({
       url: "file:./mastra.db",
     }),
     domains: {
-      observability: observabilityStore,
+      observability: observabilityStoreProxy,
     }
   }),
   logger: new PinoLogger({
@@ -67,3 +102,6 @@ export const mastra = new Mastra({
     },
   }),
 });
+
+// Trigger background initialization so it's ready when needed, but non-blocking
+getObservabilityStore().catch(() => {});

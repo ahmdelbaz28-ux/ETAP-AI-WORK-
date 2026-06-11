@@ -56,6 +56,59 @@ services:
         condition: service_healthy
 
   # ===========================================================================
+  # ETAP AI Engineering Service (Python FastAPI - real computation)
+  # ===========================================================================
+  # Standalone Linux container that the Cloudflare Worker (or any HTTP client)
+  # calls to run real engineering studies (load flow, short circuit, arc flash,
+  # harmonic analysis, OPF, protection coordination, motor starting).
+  #
+  # Off by default (engineering profile) — opt in with:
+  #   docker compose --profile engineering up -d
+  # ===========================================================================
+  engineering-service:
+    build:
+      context: .
+      dockerfile: Dockerfile.engineering-service
+    image: etap-engineering-service:latest
+    container_name: etap-engineering-service
+    ports:
+      - "${ENGINEERING_SERVICE_PORT:-8000}:8000"
+    environment:
+      - ENGINEERING_SERVICE_HOST=0.0.0.0
+      - ENGINEERING_SERVICE_PORT=8000
+      - ENGINEERING_SERVICE_CORS_ORIGINS=${ENGINEERING_SERVICE_CORS_ORIGINS:-*}
+      - ENGINEERING_SERVICE_MAX_BODY_SIZE=${ENGINEERING_SERVICE_MAX_BODY_SIZE:-1048576}
+      - ENGINEERING_SERVICE_API_KEY=${ENGINEERING_SERVICE_API_KEY:-}
+    # .env.engineering-service is optional; if present it's loaded as KEY=VALUE.
+    # Long-form array syntax for Compose v2.0+ portability (not v2.24+ only).
+    env_file:
+      - .env.engineering-service
+    volumes:
+      - etap_engineering_logs:/app/logs
+      - etap_engineering_reports:/app/reports
+    restart: unless-stopped
+    stop_grace_period: 30s
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+    deploy:
+      resources:
+        limits:
+          cpus: '${ENGINEERING_CPU_LIMIT:-2.0}'
+          memory: ${ENGINEERING_MEMORY_LIMIT:-4G}
+        reservations:
+          cpus: '${ENGINEERING_CPU_RESERVATION:-1.0}'
+          memory: ${ENGINEERING_MEMORY_RESERVATION:-2G}
+    networks:
+      - etap-network
+    profiles:
+      - engineering
+      - full
+
+  # ===========================================================================
   # ETAP Windows Worker (Windows Container - ETAP COM Automation)
   # ===========================================================================
   etap-worker:
@@ -303,6 +356,10 @@ volumes:
   etap_worker_reports:
     driver: local
   etap_worker_logs:
+    driver: local
+  etap_engineering_logs:
+    driver: local
+  etap_engineering_reports:
     driver: local
   redis_data:
     driver: local
