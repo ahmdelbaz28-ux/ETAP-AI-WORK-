@@ -38,7 +38,7 @@ cryptography>=36.0.0
 hvac>=2.0.0
 
 # Password hashing (required - bcrypt replaces SHA-256 for security)
-bcrypt>=4.0.0
+bcrypt>=5.0.0
 
 # JWT token signing (required - no insecure fallback)
 PyJWT>=2.6.0
