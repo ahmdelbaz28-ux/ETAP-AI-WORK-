@@ -54,8 +54,8 @@ ETAP AI Engineering Platform is a comprehensive, production-ready system for aut
 
 ```bash
 # Clone repository
-git clone https://github.com/your-org/etap-platform.git
-cd etap-platform
+git clone https://github.com/ahmdelbaz28-ux/ETAP-AI-WORK-.git
+cd ETAP-AI-WORK-
 
 # Install dependencies
 make install
@@ -90,7 +90,7 @@ docker-compose up -d
 
 ```bash
 kubectl apply -f k8s-deployment.yaml
-kubectl rollout status deployment/etap-platform -n etap-platform
+kubectl rollout status deployment/ETAP-AI-WORK- -n ETAP-AI-WORK-
 ```
 
 ### Verify Installation
@@ -358,8 +358,8 @@ print(result.json())
 
 ```bash
 # Clone and install
-git clone https://github.com/your-org/etap-platform.git
-cd etap-platform
+git clone https://github.com/ahmdelbaz28-ux/ETAP-AI-WORK-.git
+cd ETAP-AI-WORK-
 make install
 
 # Run tests
@@ -375,7 +375,7 @@ make format
 ### Project Structure
 
 ```
-etap-platform/
+ETAP-AI-WORK-/
 ├── agents/                 # Multi-agent system
 ├── core_model/            # System models
 ├── load_flow/             # Load flow analysis
@@ -413,7 +413,7 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for detailed guidelines.
 
 ```bash
 # Build image
-docker build -t etap-platform:latest .
+docker build -t ETAP-AI-WORK-:latest .
 
 # Run with Docker Compose
 docker-compose up -d
@@ -429,10 +429,10 @@ docker-compose logs -f
 kubectl apply -f k8s-deployment.yaml
 
 # Check status
-kubectl get pods -n etap-platform
+kubectl get pods -n ETAP-AI-WORK-
 
 # Scale horizontally
-kubectl scale deployment etap-platform --replicas=5
+kubectl scale deployment ETAP-AI-WORK- --replicas=5
 ```
 
 ### Production Checklist
@@ -590,16 +590,16 @@ All third-party licenses are included in their respective packages.
 
 ### Community
 
-- **GitHub Issues**: [Report bugs or request features](https://github.com/your-org/etap-platform/issues)
-- **GitHub Discussions**: [Ask questions and share ideas](https://github.com/your-org/etap-platform/discussions)
-- **Email**: support@etap-platform.com
-- **Discord**: [Join our community](https://discord.gg/etap-platform)
+- **GitHub Issues**: [Report bugs or request features](https://github.com/ahmdelbaz28-ux/ETAP-AI-WORK-/issues)
+- **GitHub Discussions**: [Ask questions and share ideas](https://github.com/ahmdelbaz28-ux/ETAP-AI-WORK-/discussions)
+- **Email**: support@ETAP-AI-WORK-.com
+- **Discord**: [Join our community](https://discord.gg/ETAP-AI-WORK-)
 
 ### Professional Support
 
 For enterprise support, consulting, or custom development:
-- Email: enterprise@etap-platform.com
-- Website: https://etap-platform.com/support
+- Email: enterprise@ETAP-AI-WORK-.com
+- Website: https://ETAP-AI-WORK-.com/support
 
 ---
 
@@ -664,6 +664,6 @@ Special thanks to all contributors who have made this project possible.
 
 **Made with ❤️ by the ETAP AI Platform Team**
 
-[⭐ Star this repo](https://github.com/your-org/etap-platform) • [🐛 Report Bug](https://github.com/your-org/etap-platform/issues) • [💡 Request Feature](https://github.com/your-org/etap-platform/issues)
+[⭐ Star this repo](https://github.com/ahmdelbaz28-ux/ETAP-AI-WORK-) • [🐛 Report Bug](https://github.com/ahmdelbaz28-ux/ETAP-AI-WORK-/issues) • [💡 Request Feature](https://github.com/ahmdelbaz28-ux/ETAP-AI-WORK-/issues)
 
 </div>
