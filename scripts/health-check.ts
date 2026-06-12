@@ -53,8 +53,8 @@ interface HealthReport {
 
 function getConfig(): HealthCheckConfig {
   return {
-    apiUrl: process.env.HEALTH_CHECK_API_URL?.replace(/\/$/, '') || 'https://ahmed-etap.ahmdelbaz28.workers.dev',
-    apiKey: process.env.HEALTH_CHECK_API_KEY || 'etap-ai-secure-key-2026',
+    apiUrl: process.env.HEALTH_CHECK_API_URL?.replace(/\/$/, ''),
+    apiKey: process.env.HEALTH_CHECK_API_KEY,
     timeoutMs: parseInt(process.env.HEALTH_CHECK_TIMEOUT_MS || '10000', 10),
   };
 }
@@ -355,14 +355,20 @@ async function runWeeklyChecks(config: HealthCheckConfig): Promise<CheckResult[]
     const res = await httpGet('/api/v1/providers', config, { 'x-api-key': config.apiKey });
     const providers = res.body?.providers || [];
     const mastra = providers.find((p: Record<string, unknown>) => p.id === 'mastra');
-    const status: CheckResult['status'] = mastra?.configured === true ? 'pass' : 'warn';
+    const status: CheckResult['status'] = mastra?.configured === true ? 'pass' : 'info';
     results.push({
       name: 'Mastra backend connectivity',
       category: 'weekly',
       status,
-      message: mastra?.configured === true ? 'Mastra backend configured' : 'Mastra backend not configured',
+      message: mastra?.configured === true
+        ? 'Mastra backend configured'
+        : 'Mastra not running — start with `pnpm dev` (optional for core engineering)',
       latencyMs: res.latencyMs,
-      details: { mastraConfigured: mastra?.configured || false },
+      details: {
+        mastraConfigured: mastra?.configured || false,
+        mastraRequired: false,
+        mastraSetupGuide: 'Run `pnpm dev` in project root to start the Mastra backend',
+      },
     });
   }
 
