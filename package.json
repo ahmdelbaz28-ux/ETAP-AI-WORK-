@@ -1,7 +1,7 @@
 {
-  "name": "my-awesome-agent",
+  "name": "etap-ai-engineering-platform",
   "version": "1.0.0",
-  "description": "Power System Engineering Agent - AI-powered electrical power system analysis with Mastra framework",
+  "description": "Enterprise-grade AI engineering platform for validated power-system studies, ETAP automation, GIS enrichment, and autonomous technical workflows.",
   "main": "index.js",
   "scripts": {
     "dev": "mastra dev",

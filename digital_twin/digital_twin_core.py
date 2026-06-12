@@ -742,32 +742,33 @@ class ChangePropagationEngine:
             for bus_id in bus_ids:
                 bus_idx = list(self.dt_state.system.buses.keys()).index(bus_id)
                 fault = analyzer.three_phase_fault(bus_idx)
-                fault_ka = fault.get('fault_current_ka', 0.0)                    # Simplified IEEE 1584-2018 incident energy estimate
-                    # E = 10^(k1 + k2*log10(Ibf)) * t / D^x (VCB default)
-                    arc_duration = 0.2  # default 200ms clearing time
-                    working_distance_mm = 610.0  # 24 inches
-                    k1, k2, x_ie = -0.153, -0.276, 1.0
-                    log_Iarc = k1 + k2 * math.log10(fault_ka)
-                    Iarc = 10 ** log_Iarc
-                    log_E = 0.434 + (-0.262) * math.log10(Iarc)
-                    E_base = 10 ** log_E
-                    E = E_base * arc_duration / (working_distance_mm ** x_ie)
-                    boundary_mm = (E_base * arc_duration / 1.2) ** (1.0 / x_ie)
+                fault_ka = fault.get('fault_current_ka', 0.0)
+                # Simplified IEEE 1584-2018 incident energy estimate
+                # E = 10^(k1 + k2*log10(Ibf)) * t / D^x (VCB default)
+                arc_duration = 0.2  # default 200ms clearing time
+                working_distance_mm = 610.0  # 24 inches
+                k1, k2, x_ie = -0.153, -0.276, 1.0
+                log_Iarc = k1 + k2 * math.log10(fault_ka)
+                Iarc = 10 ** log_Iarc
+                log_E = 0.434 + (-0.262) * math.log10(Iarc)
+                E_base = 10 ** log_E
+                E = E_base * arc_duration / (working_distance_mm ** x_ie)
+                boundary_mm = (E_base * arc_duration / 1.2) ** (1.0 / x_ie)
 
-                    if E <= 1.2:
-                        ppe = "0"
-                    elif E <= 4.0:
-                        ppe = "1"
-                    elif E <= 8.0:
-                        ppe = "2"
-                    elif E <= 25.0:
-                        ppe = "3"
-                    elif E <= 40.0:
-                        ppe = "4"
-                    else:
-                        ppe = "DANGER"
+                if E <= 1.2:
+                    ppe = "0"
+                elif E <= 4.0:
+                    ppe = "1"
+                elif E <= 8.0:
+                    ppe = "2"
+                elif E <= 25.0:
+                    ppe = "3"
+                elif E <= 40.0:
+                    ppe = "4"
+                else:
+                    ppe = "DANGER"
 
-                    results[str(bus_id)] = {
+                results[str(bus_id)] = {
                         'incident_energy_cal_cm2': round(E, 4),
                         'arc_flash_boundary_mm': round(boundary_mm, 1),
                         'ppe_level': ppe,

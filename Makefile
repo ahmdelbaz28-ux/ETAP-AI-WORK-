@@ -20,7 +20,7 @@ install: ## Install all dependencies
 
 test: ## Run all tests
 	@echo "Running validation suite..."
-	python validation_suite.py
+	python3 validation_suite.py
 	@echo ""
 	@echo "Running unit tests..."
 	pytest tests/unit_tests.py -v --cov=. --cov-report=html
@@ -30,11 +30,11 @@ test: ## Run all tests
 run: ## Start the platform in development mode
 	@echo "Starting ETAP AI Platform..."
 	@echo "Open two terminals:"
-	@echo "  Terminal 1: python main.py"
+	@echo "  Terminal 1: python3 main.py"
 	@echo "  Terminal 2: pnpm dev"
 
 run-backend: ## Start Python backend only
-	python main.py
+	python3 main.py
 
 run-frontend: ## Start Mastra frontend only
 	pnpm dev
@@ -70,7 +70,7 @@ format: ## Format code
 	pnpm format
 
 validate: ## Run validation suite
-	python validation_suite.py
+	python3 validation_suite.py
 
 clean: ## Clean build artifacts and cache
 	@echo "Cleaning Python artifacts..."
