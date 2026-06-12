@@ -24,6 +24,9 @@
   <a href="validation_suite.py">
     <img src="https://img.shields.io/badge/Validation-31%2F31-success?style=for-the-badge" alt="Validation">
   </a>
+  <a href="https://huggingface.co/spaces/ahmdelbaz28/etap-ai-platform">
+    <img src="https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-Live%20Demo-yellow?style=for-the-badge" alt="Hugging Face">
+  </a>
 </p>
 
 <p align="center">
@@ -51,6 +54,16 @@
 - [Documentation](#documentation)
 - [Contributing](#contributing)
 - [License](#license)
+
+---
+
+## Live Demo
+
+Try ETAP AI online without any installation:
+
+👉 **[Launch on Hugging Face Spaces](https://huggingface.co/spaces/ahmdelbaz28/etap-ai-platform)**
+
+The API is live at `https://ahmdelbaz28-etap-ai-platform.hf.space` with full Swagger docs at `/docs`.
 
 ---
 
