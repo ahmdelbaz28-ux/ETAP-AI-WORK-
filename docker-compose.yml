@@ -14,13 +14,13 @@ services:
       - "${APP_PORT:-3000}:3000"
     environment:
       - OPENAI_API_KEY=${OPENAI_API_KEY:-}
-      - JWT_SECRET_KEY=${JWT_SECRET_KEY:-changeme}
+      - JWT_SECRET_KEY=${JWT_SECRET_KEY:?JWT_SECRET_KEY is required}
       - DATABASE_URL=${DATABASE_URL:-file:/data/mastra.db}
       - LOG_LEVEL=${LOG_LEVEL:-INFO}
       - NODE_ENV=${NODE_ENV:-production}
       - VECTOR_DB_TYPE=${VECTOR_DB_TYPE:-chroma}
       - VECTOR_DB_PATH=/app/knowledge_db
-      - REDIS_URL=redis://:${REDIS_PASSWORD:-changeme}@redis:6379/0
+      - REDIS_URL=redis://:${REDIS_PASSWORD:?REDIS_PASSWORD is required}@redis:6379/0
       - ETAP_WORKER_URL=http://etap-worker:8081
       - ETAP_ENABLED=${ETAP_ENABLED:-false}
       - ENABLE_AUTHENTICATION=${ENABLE_AUTHENTICATION:-true}
@@ -117,7 +117,7 @@ services:
     ports:
       - "${REDIS_PORT:-6379}:6379"
     environment:
-      - REDIS_PASSWORD=${REDIS_PASSWORD:-changeme}
+      - REDIS_PASSWORD=${REDIS_PASSWORD:?REDIS_PASSWORD is required}
     volumes:
       - redis_data:/data
     restart: unless-stopped
@@ -188,7 +188,7 @@ services:
       - "${RABBITMQ_MGMT_PORT:-15672}:15672"
     environment:
       - RABBITMQ_DEFAULT_USER=${RABBITMQ_USER:-admin}
-      - RABBITMQ_DEFAULT_PASS=${RABBITMQ_PASS:-changeme}
+      - RABBITMQ_DEFAULT_PASS=${RABBITMQ_PASS:?RABBITMQ_PASS is required}
     volumes:
       - rabbitmq_data:/var/lib/rabbitmq
     restart: unless-stopped
@@ -217,7 +217,7 @@ services:
       - "${POSTGRES_PORT:-5432}:5432"
     environment:
       - POSTGRES_USER=${DB_USER:-etap}
-      - POSTGRES_PASSWORD=${DB_PASS:-changeme}
+      - POSTGRES_PASSWORD=${DB_PASS:?DB_PASS is required}
       - POSTGRES_DB=${DB_NAME:-etap_platform}
     volumes:
       - postgres_data:/var/lib/postgresql/data
@@ -277,7 +277,7 @@ services:
       - "${GRAFANA_PORT:-3001}:3000"
     environment:
       - GF_SECURITY_ADMIN_USER=${GRAFANA_USER:-admin}
-      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASS:-changeme}
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASS:?GRAFANA_PASS is required}
       - GF_INSTALL_PLUGINS=grafana-piechart-panel
     volumes:
       - grafana_data:/var/lib/grafana

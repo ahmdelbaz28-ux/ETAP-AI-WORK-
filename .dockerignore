@@ -68,7 +68,7 @@ docs/
 
 # Tests
 tests/
-pytest_cache/
+.pytest_cache/
 htmlcov/
 .coverage
 

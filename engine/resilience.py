@@ -267,7 +267,7 @@ def with_retry(
     Examples
     --------
     >>> @with_retry(max_retries=5)
-    ... def fetch_data(url):
+    >>> def fetch_data(url):
     ...     return requests.get(url)
     """
     handler = RetryHandler(
