@@ -98,7 +98,7 @@ class SemanticProperties:
 
     def to_dict(self) -> Dict[str, Any]:
         return {
-            "element_type": self.element_type.value if isinstance(self.element_type, Enum) else str(self.element_type),
+            "element_type": self.element_type.value,
             "name": self.name,
             "description": self.description,
             "material": self.material,
@@ -190,10 +190,10 @@ class Conflict:
         return {
             "conflict_id": self.conflict_id,
             "element_id": self.element_id,
-            "conflict_type": self.conflict_type.value if isinstance(self.conflict_type, Enum) else str(self.conflict_type),
+            "conflict_type": self.conflict_type.value,
             "timestamp": self.timestamp.isoformat() if self.timestamp else None,
-            "source_a": self.source_a.value if isinstance(self.source_a, Enum) else str(self.source_a),
-            "source_b": self.source_b.value if isinstance(self.source_b, Enum) else str(self.source_b),
+            "source_a": self.source_a.value,
+            "source_b": self.source_b.value,
             "change_a": self.change_a,
             "change_b": self.change_b,
             "resolution": self.resolution,
