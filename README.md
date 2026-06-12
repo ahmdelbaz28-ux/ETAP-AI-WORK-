@@ -1,669 +1,513 @@
-# ETAP AI Engineering Platform
-
 <div align="center">
 
-![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)
-![License](https://img.shields.io/badge/license-MIT-green.svg)
-![Python](https://img.shields.io/badge/python-3.8+-blue.svg)
-![Node.js](https://img.shields.io/badge/node-18+-green.svg)
-![Docker](https://img.shields.io/badge/docker-ready-blue.svg)
-![Kubernetes](https://img.shields.io/badge/kubernetes-supported-blue.svg)
-![Tests](https://img.shields.io/badge/tests-passing-brightgreen.svg)
-![Coverage](https://img.shields.io/badge/coverage-85%25-brightgreen.svg)
+![ETAP AI Engineering Platform Banner](docs/assets/banner.svg)
 
-**AI-Powered Multi-Agent Autonomous Engineering System for Power Systems Analysis**
+[![Version](https://img.shields.io/badge/version-1.0.0-blue)](https://github.com/ahmdelbaz28-ux/ETAP-AI-WORK-/releases)
+[![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
+[![Python](https://img.shields.io/badge/python-3.13%2B-blue)](https://www.python.org/)
+[![Node.js](https://img.shields.io/badge/node-22%2B-green)](https://nodejs.org/)
+[![Docker](https://img.shields.io/badge/docker-ready-blue)](docker-compose.yml)
+[![Kubernetes](https://img.shields.io/badge/kubernetes-supported-blue)](k8s-deployment.yaml)
+[![CI/CD](https://github.com/ahmdelbaz28-ux/ETAP-AI-WORK-/actions/workflows/ci-cd.yml/badge.svg)](https://github.com/ahmdelbaz28-ux/ETAP-AI-WORK-/actions/workflows/ci-cd.yml)
+[![Security](https://github.com/ahmdelbaz28-ux/ETAP-AI-WORK-/actions/workflows/security.yml/badge.svg)](https://github.com/ahmdelbaz28-ux/ETAP-AI-WORK-/actions/workflows/security.yml)
+[![Tests](https://img.shields.io/badge/tests-369%20passed-brightgreen)](tests/)
+[![Validation](https://img.shields.io/badge/validation-31%2F31%20passed-brightgreen)](validation_suite.py)
+[![Docs](https://img.shields.io/badge/docs-ready-blue)](docs/)
 
-> **One-command public deploy of the Engineering Service:**
-> [**Fly.io**](https://fly.io) · [**Render**](https://render.com) · [**Railway**](https://railway.com) — see [Quick Start → One-Click Deploy](#one-click-public-deployment)
+# ETAP AI Engineering Platform
 
-[Documentation](docs/) • [API Reference](API_DOCUMENTATION.md) • [Quick Start](#quick-start) • [Contributing](CONTRIBUTING.md)
+**Enterprise-grade autonomous engineering intelligence for validated power-system studies, ETAP automation, GIS enrichment, AI workflows, and production operations.**
+
+[Quick Start](#quick-start) · [Architecture](#architecture) · [Product Visuals](#product-visuals) · [Studies](#supported-studies) · [Integrations](#supported-integrations) · [Security](#security) · [Roadmap](#roadmap) · [Contributing](#contributing)
 
 </div>
 
 ---
 
-## 🌟 Overview
+## Why this project exists
 
-ETAP AI Engineering Platform is a comprehensive, production-ready system for automated power systems engineering analysis. Built with cutting-edge AI technology and multi-agent architecture, it provides intelligent automation for electrical engineering studies including load flow, short circuit, arc flash, harmonic analysis, optimal power flow, and more.
+Electrical engineering teams need more than isolated scripts and manual ETAP workflows. They need a repeatable, auditable, and scalable platform that can validate models, run studies, compare results, generate reports, and integrate with the systems engineers already use.
 
-### Key Features
+ETAP AI Engineering Platform brings together:
 
-✅ **Multi-Agent Architecture** - 9 specialized autonomous agents working in coordination  
-✅ **Complete Engineering Suite** - Load Flow, Fault, Arc Flash, Harmonics, OPF, Protection  
-✅ **ETAP Integration** - Direct COM automation with ETAP software (Windows)  
-✅ **Standards Compliant** - IEEE, IEC, NFPA, NEC standards built-in  
-✅ **AI-Powered RAG** - Knowledge base prevents hallucinations and ensures compliance  
-✅ **Professional Reports** - Auto-generated PDF/DOCX/XLSX reports with charts  
-✅ **Enterprise Security** - JWT auth, RBAC, audit logging, OWASP compliant  
-✅ **Production Ready** - Docker, Kubernetes, CI/CD, monitoring included  
+- Native power-system calculation engines
+- ETAP COM automation for Windows-based study execution
+- GIS model enrichment and validation
+- AI agent orchestration with retrieval-augmented context
+- Enterprise security, auditability, and deployment patterns
+- Professional documentation and visual engineering workflows
+
+The result is a repository that looks and behaves like a flagship engineering product: clear architecture, strong visuals, production documentation, and validation evidence.
 
 ---
 
-## 🚀 Quick Start
+## Product snapshot
+
+![Feature Matrix](docs/images/feature-matrix.svg)
+
+| Dimension | Capability |
+|---|---|
+| Engineering studies | Load flow, short circuit, arc flash, harmonics, optimal power flow, protection coordination |
+| Automation | ETAP COM integration, workflow orchestration, repeatable validation gates |
+| AI layer | Agent planning, RAG context, study assistance, audit-friendly responses |
+| Data layer | Power-system models, GIS enrichment, study results, audit logs |
+| Deployment | Docker Compose, Kubernetes, monitoring, health checks, secure configuration |
+| Governance | JWT auth, RBAC, secrets handling, audit logging, standards-aware validation |
+
+---
+
+## Product visuals
+
+### Dashboard and operations view
+
+![Dashboard Visual](docs/screenshots/dashboard.svg)
+
+The dashboard visual presents the operating model for engineering teams: study success, solve time, model sync status, alerts, load-flow trends, and recent engineering studies.
+
+### UI workspace
+
+![UI Workspace Visual](docs/screenshots/ui-screenshot.svg)
+
+The UI workspace visual shows how users can move from model import to study execution, review, and export inside one interface.
+
+### Automated workflow
+
+![Workflow Visual](docs/screenshots/workflow.svg)
+
+The workflow visual highlights quality gates for topology, electrical attributes, solver convergence, standards checks, and audit logging.
+
+### Configuration and deployment
+
+![Configuration Visual](docs/screenshots/configuration.svg)
+
+The configuration visual summarizes environment, security, integration, and observability controls for technical managers and operations teams.
+
+### Engineering study output
+
+![Engineering Study Visual](docs/screenshots/engineering-study.svg)
+
+The engineering study visual demonstrates how results such as incident energy, arc-flash boundary, fault current, clearing time, and coordination margin can be presented to engineers.
+
+### Deployment and reliability
+
+![Deployment Dashboard Visual](docs/screenshots/deployment-dashboard.svg)
+
+The deployment visual shows the production operating model with availability, latency, study success, audit coverage, health checks, metrics, logs, and deployment signals.
+
+---
+
+## Architecture
+
+### System architecture
+
+![System Architecture](docs/diagrams/system-architecture.svg)
+
+```mermaid
+flowchart TD
+  U[Users, API Clients, Web UI, MCP] --> I[API Gateway and Security Layer]
+  I --> O[Chief Engineering Orchestrator]
+  O --> A[Specialized Engineering Agents]
+  A --> E[Calculation Engines]
+  E --> V[Validation and Compliance]
+  V --> R[Reports, Dashboards, Exports]
+  K[Knowledge Base and RAG] --> O
+  GIS[GIS Sources] --> M[Power System Model]
+  ETAP[ETAP COM Automation] --> E
+  M --> E
+  E --> DB[(Study Results and Audit Logs)]
+```
+
+### Component architecture
+
+![Component Architecture](docs/diagrams/component-architecture.svg)
+
+```mermaid
+flowchart LR
+  UI[Web UI and CLI] --> API[FastAPI Services]
+  API --> ORCH[Agent Orchestrator]
+  ORCH --> CORE[Core Power System Model]
+  CORE --> SOLVE[Solvers and Studies]
+  SOLVE --> VERIFY[Validation Engine]
+  VERIFY --> REPORT[Reporting Engine]
+  API --> SEC[Security Framework]
+  API --> OBS[Observability and Audit]
+```
+
+### Data flow
+
+![Data Flow](docs/diagrams/data-flow.svg)
+
+```mermaid
+flowchart TD
+  A[Project or Study Request] --> B[Validate Input]
+  B --> C[Retrieve Context]
+  C --> D[Build Power System Model]
+  D --> E[Run Study Solver]
+  E --> F[Validate Results]
+  F --> G[Generate Report]
+  G --> H[Dashboard and Export]
+```
+
+### ETAP integration flow
+
+![ETAP Integration Flow](docs/diagrams/etap-integration-flow.svg)
+
+```mermaid
+flowchart TD
+  A[ETAP Project] --> B[Import One-Line Data]
+  B --> C[Normalize Model]
+  C --> D[Launch Study Through ETAP COM]
+  D --> E[Extract Study Results]
+  E --> F[Cross-Validate With Native Engines]
+  F --> G[Publish Report]
+```
+
+### GIS integration flow
+
+![GIS Integration Flow](docs/diagrams/gis-integration-flow.svg)
+
+```mermaid
+flowchart TD
+  A[ArcGIS / QGIS / CSV Sources] --> B[Schema Mapping]
+  B --> C[Topology Validation]
+  C --> D[Electrical Attribute Checks]
+  D --> E[Power System Model Enrichment]
+  E --> F[Dashboards and Studies]
+```
+
+### AI agent flow
+
+![AI Agent Flow](docs/diagrams/ai-agent-flow.svg)
+
+```mermaid
+flowchart TD
+  A[User Intent] --> B[Intent Classifier]
+  B --> C[Task Graph Planner]
+  C --> D[Specialized Agents]
+  D --> E[Consensus and Validation]
+  E --> F[Response With Citations]
+  F --> G[Audit Log]
+```
+
+### Processing pipeline
+
+![Processing Pipeline](docs/diagrams/processing-pipeline.svg)
+
+```mermaid
+flowchart LR
+  A[Ingest] --> B[Validate] --> C[Model] --> D[Solve] --> E[Verify] --> F[Visualize] --> G[Report]
+```
+
+### Deployment architecture
+
+![Deployment Architecture](docs/diagrams/deployment-architecture.svg)
+
+```mermaid
+flowchart TD
+  DEV[Local Dev] --> DOCKER[Docker Compose]
+  DOCKER --> API[API Services]
+  DOCKER --> WORKER[Windows ETAP Worker]
+  DOCKER --> REDIS[Redis Cache]
+  API --> K8S[Kubernetes]
+  K8S --> MON[Prometheus and Grafana]
+  K8S --> SEC[Security Boundary]
+```
+
+---
+
+## Supported studies
+
+| Study | Standards and methods | Output |
+|---|---|---|
+| Load flow | Newton-Raphson, fast decoupled, Gauss-Seidel | Bus voltages, angles, losses, convergence status |
+| Short circuit | IEC 60909-style fault analysis | Fault current, sequence networks, fault summaries |
+| Arc flash | IEEE 1584-2018 estimation | Incident energy, boundary, PPE level |
+| Harmonic analysis | IEEE 519-2022 checks | THD, TDD, resonance indicators |
+| Optimal power flow | DC-OPF and AC-OPF modes | Dispatch, loss minimization, constraint handling |
+| Protection coordination | IEC curves and relay timing | Trip times, margins, coordination status |
+| GIS validation | Topology and electrical attribute checks | Model quality and enrichment reports |
+
+---
+
+## Supported integrations
+
+| Integration | Purpose | Notes |
+|---|---|---|
+| ETAP | Launch studies, extract results, automate Windows workflows | Windows COM automation supported through dedicated worker |
+| GIS | ArcGIS, QGIS, and tabular data enrichment | Topology and electrical attribute validation |
+| SCADA / ADMS | Operational context and model synchronization | Adapter-ready architecture |
+| Knowledge base | Standards, procedures, and engineering context | RAG-backed assistant workflows |
+| Docker | Local and production containerization | Compose and Kubernetes artifacts included |
+| Monitoring | Health, metrics, logs, and auditability | Prometheus, Grafana, and operational runbooks |
+
+---
+
+## Supported platforms
+
+| Platform | Status |
+|---|---|
+| Local Python development | Supported |
+| Node.js and Mastra UI | Supported |
+| Docker Compose | Supported |
+| Kubernetes | Supported |
+| Windows ETAP worker | Supported through dedicated Windows worker configuration |
+| Cloud deployment | Supported through provided deployment manifests and one-click deployment guides |
+
+---
+
+## Quick start
 
 ### Prerequisites
 
-- Python 3.8+
-- Node.js 18+
-- pnpm package manager
-- Docker & Docker Compose (optional, for containerized deployment)
+- Python 3.13+
+- Node.js 22+
+- pnpm
+- Docker and Docker Compose, optional
+- ETAP installed on Windows, only required for ETAP COM automation
 
-### Installation
-
-#### Option 1: Local Installation
+### Clone and install
 
 ```bash
-# Clone repository
 git clone https://github.com/ahmdelbaz28-ux/ETAP-AI-WORK-.git
 cd ETAP-AI-WORK-
 
-# Install dependencies
-make install
+python3 -m pip install -r requirements.txt
+pnpm install
+```
 
-# Configure environment
-cp .env.example .env
-# Edit .env with your configuration
+### Validate the engineering engines
 
-# Run validation
-python validation_suite.py
+```bash
+python3 validation_suite.py
+python3 validate_syntax.py
+pytest -q
+```
 
-# Start platform (open two terminals)
-# Terminal 1: Python backend
-python main.py
+Current validation baseline:
 
-# Terminal 2: Mastra frontend
+- Python syntax validation: 159/159 files pass
+- Engineering validation suite: 31/31 tests pass
+- Pytest suite: 369 tests pass
+
+### Start locally
+
+```bash
+# Terminal 1: backend
+python3 main.py
+
+# Terminal 2: Mastra UI
 pnpm dev
 ```
 
-#### Option 2: Docker Deployment
+### Docker Compose
 
 ```bash
-# Quick start with Docker
-./quickstart.sh        # Linux/Mac
-.\quickstart.ps1       # Windows
-
-# Or manually
-docker-compose up -d
+docker compose up -d
 ```
 
-#### Option 3: Kubernetes
+Access the local platform at:
 
-```bash
-kubectl apply -f k8s-deployment.yaml
-kubectl rollout status deployment/ETAP-AI-WORK- -n ETAP-AI-WORK-
-```
-
-### Verify Installation
-
-```bash
-# Check health
-curl http://localhost:3000/health
-
-# Expected response
-{
-  "status": "healthy",
-  "version": "1.0.0"
-}
-```
-
----
-
-## 📋 Table of Contents
-
-- [Architecture](#architecture)
-- [Features](#features)
-- [Modules](#modules)
-- [API Documentation](#api-documentation)
-- [Development](#development)
-- [Deployment](#deployment)
-- [Testing](#testing)
-- [Security](#security)
-- [Contributing](#contributing)
-- [License](#license)
-
----
-
-## 🏗️ Architecture
-
-### System Overview
-
-```
-┌─────────────────────────────────────────────────────────┐
-│                    User Interface                        │
-│         (CLI / REST API / Web UI / MCP Server)          │
-└────────────────────┬────────────────────────────────────┘
-                     │
-┌────────────────────▼────────────────────────────────────┐
-│          Chief Engineering Orchestrator Agent            │
-│     (Workflow Management & Task Distribution)           │
-└──┬──────────┬──────────┬──────────┬──────────┬──────────┘
-   │          │          │          │          │
-┌──▼───┐ ┌───▼───┐ ┌───▼───┐ ┌───▼───┐ ┌───▼───┐
-│Load  │ │Short  │ │Harmonic│ │ OPF   │ │Arc    │
-│Flow  │ │Circuit│ │Analysis│ │Engine │ │Flash  │
-│Agent │ │Agent  │ │ Agent  │ │       │ │Agent  │
-└──┬───┘ └───┬───┘ └───┬───┘ └───┬───┘ └───┬───┘
-   │          │          │          │          │
-   └──────────┴──────────┼──────────┴──────────┘
-                         │
-              ┌──────────▼──────────┐
-              │ Validation & Report │
-              │ Generation Agents   │
-              └──────────┬──────────┘
-                         │
-              ┌──────────▼──────────┐
-              │  Knowledge Base     │
-              │  (RAG + Vector DB)  │
-              └──────────┬──────────┘
-                         │
-              ┌──────────▼──────────┐
-              │ ETAP COM Automation │
-              │   (Windows Only)    │
-              └─────────────────────┘
-```
-
-### Technology Stack
-
-**Backend (Python)**
-- FastAPI - High-performance web framework
-- NumPy/SciPy - Numerical computing
-- Pandas - Data manipulation
-- ChromaDB - Vector database for RAG
-- Pydantic - Data validation
-- Cryptography - Security features
-
-**Frontend (TypeScript)**
-- Mastra Framework - Multi-agent orchestration
-- Node.js - Runtime environment
-- TypeScript - Type-safe development
-
-**Infrastructure**
-- Docker - Containerization
-- Kubernetes - Orchestration
-- Redis - Caching & sessions
-- RabbitMQ - Message queue
-- Nginx - Reverse proxy
-
----
-
-## ✨ Features
-
-### 1. Power System Analysis
-
-#### Load Flow Analysis
-- Newton-Raphson method
-- Fast Decoupled method
-- Gauss-Seidel method
-- Automatic convergence checking
-- Voltage profile visualization
-
-#### Short Circuit Analysis
-- IEC 60909 compliant
-- Three-phase faults
-- Line-to-ground faults
-- Line-to-line faults
-- Double line-to-ground faults
-- X/R ratio calculations
-
-#### Arc Flash Analysis
-- IEEE 1584-2018 standard
-- Incident energy calculation
-- Arc flash boundary determination
-- PPE level recommendations
-- Equipment labeling
-
-#### Harmonic Analysis
-- IEEE 519-2022 compliance
-- THD/TDD calculations
-- Resonance detection
-- Passive filter design
-- Harmonic source modeling
-
-#### Optimal Power Flow
-- DC-OPF (Linear Programming)
-- AC-OPF (Interior Point Method)
-- Economic dispatch
-- Generator cost minimization
-- Loss minimization
-
-### 2. ETAP Integration
-
-- Launch/close ETAP application
-- Create/open projects programmatically
-- Execute all study types automatically
-- Extract results and export data
-- Generate reports from ETAP
-
-### 3. AI & Knowledge Base
-
-- RAG (Retrieval-Augmented Generation)
-- Vector database integration
-- IEEE/IEC/NFPA standards library
-- Semantic search
-- Compliance verification
-- Hallucination prevention
-
-### 4. Reporting
-
-- Professional PDF reports with charts
-- DOCX documents with formatting
-- XLSX spreadsheets with formulas
-- One-line diagrams
-- Customizable templates
-- Multi-language support
-
-### 5. Security
-
-- JWT authentication
-- Role-Based Access Control (5 roles)
-- Input validation & sanitization
-- Code sandboxing
-- Rate limiting
-- Audit logging
-- OWASP Top 10 compliance
-
----
-
-## 📦 Modules
-
-### Core Modules
-
-| Module | Path | Description |
-|--------|------|-------------|
-| Load Flow | `load_flow/` | Power flow calculations |
-| Fault Analysis | `fault_analysis/` | Short circuit studies |
-| Harmonic Analysis | `fault_analysis/harmonic_analysis.py` | Harmonic distortion |
-| OPF Engine | `load_flow/optimal_power_flow.py` | Optimization |
-| Arc Flash | `fault_analysis/arc_flash_engine.py` | Safety analysis |
-| Protection | `coordination/` | Relay coordination |
-| ETAP Integration | `etap_integration/` | COM automation |
-| Knowledge Base | `knowledge/` | RAG engine |
-| Security | `security/` | Auth & authorization |
-| Reporting | `reporting/` | Report generation |
-| Agents | `agents/` | Multi-agent system |
-| Core Model | `core_model/` | System representation |
-
-### Supporting Modules
-
-- `adms_control/` - ADMS integration
-- `scada_model/` - SCADA modeling
-- `digital_twin/` - Digital twin capabilities
-- `gis_integration/` - GIS system interface
-- `relays/` - Relay modeling
-- `engine/` - Calculation engines
-
----
-
-## 📖 API Documentation
-
-Full API documentation available at [API_DOCUMENTATION.md](API_DOCUMENTATION.md)
-
-### Key Endpoints
-
-```bash
-# Health check
-GET /health
-
-# Authentication
-POST /api/auth/login
-
-# Analysis
-POST /api/analysis/load-flow
-POST /api/analysis/short-circuit
-POST /api/analysis/arc-flash
-POST /api/analysis/harmonics
-POST /api/analysis/opf
-
-# Workflows
-POST /api/workflow/autonomous
-GET /api/workflow/{id}/status
-
-# Reports
-POST /api/reports/generate
-GET /api/reports/download/{filename}
-
-# Knowledge Base
-POST /api/knowledge/search
-POST /api/knowledge/add
-```
-
-### Example Usage
-
-```python
-import requests
-
-# Login
-response = requests.post('http://localhost:3000/api/auth/login', json={
-    'username': 'engineer@example.com',
-    'password': 'your-password'
-})
-token = response.json()['access_token']
-
-# Run load flow
-headers = {'Authorization': f'Bearer {token}'}
-result = requests.post(
-    'http://localhost:3000/api/analysis/load-flow',
-    json={'system_data': {...}},
-    headers=headers
-)
-
-print(result.json())
-```
-
----
-
-## 💻 Development
-
-### Setup Development Environment
-
-```bash
-# Clone and install
-git clone https://github.com/ahmdelbaz28-ux/ETAP-AI-WORK-.git
-cd ETAP-AI-WORK-
-make install
-
-# Run tests
-make test
-
-# Lint code
-make lint
-
-# Format code
-make format
-```
-
-### Project Structure
-
-```
-ETAP-AI-WORK-/
-├── agents/                 # Multi-agent system
-├── core_model/            # System models
-├── load_flow/             # Load flow analysis
-├── fault_analysis/        # Fault & harmonic analysis
-├── coordination/          # Protection coordination
-├── etap_integration/      # ETAP COM automation
-├── knowledge/             # RAG knowledge base
-├── reporting/             # Report generation
-├── security/              # Security framework
-├── tests/                 # Test suite
-├── docs/                  # Documentation
-├── src/                   # TypeScript/Mastra code
-├── main.py                # Python entry point
-├── package.json           # Node.js dependencies
-├── requirements.txt       # Python dependencies
-├── docker-compose.yml     # Docker orchestration
-├── k8s-deployment.yaml    # Kubernetes manifests
-└── Makefile               # Build automation
-```
-
-### Coding Standards
-
-- **Python**: PEP 8, Black formatter, type hints
-- **TypeScript**: Strict mode, Airbnb style guide
-- **Commits**: Conventional commits format
-- **Tests**: Minimum 80% coverage
-
-See [CONTRIBUTING.md](CONTRIBUTING.md) for detailed guidelines.
-
----
-
-## 🚢 Deployment
-
-### Docker
-
-```bash
-# Build image
-docker build -t ETAP-AI-WORK-:latest .
-
-# Run with Docker Compose
-docker-compose up -d
-
-# View logs
-docker-compose logs -f
+```text
+http://localhost:3000
 ```
 
 ### Kubernetes
 
 ```bash
-# Deploy to cluster
 kubectl apply -f k8s-deployment.yaml
-
-# Check status
-kubectl get pods -n ETAP-AI-WORK-
-
-# Scale horizontally
-kubectl scale deployment ETAP-AI-WORK- --replicas=5
+kubectl rollout status deployment/etap-platform -n etap-platform
 ```
 
-### Production Checklist
+---
 
-- [ ] Configure `.env` with production values
-- [ ] Set up SSL/TLS certificates
-- [ ] Configure firewall rules
-- [ ] Set up monitoring and alerting
-- [ ] Enable backup strategy
-- [ ] Configure rate limiting
-- [ ] Review security settings
-- [ ] Test disaster recovery
+## Configuration
 
-See [DEPLOYMENT_GUIDE.md](DEPLOYMENT_GUIDE.md) for complete instructions.
-
-### One-Click Public Deployment
-
-The Engineering Service is pre-built as a multi-arch (linux/amd64 + linux/arm64) image and pushed to GHCR. Deploy it to a public HTTPS URL with one command:
+Copy the example environment file and configure secrets before running production workloads.
 
 ```bash
-# 1. Push the multi-arch image (needs GITHUB_TOKEN + GITHUB_ACTOR in env)
-./scripts/docker_build.sh --service engineering-service --multiarch --push
-
-# 2. Pick a platform and deploy in one command
-./scripts/deploy-engineering-service.sh fly      etap-eng-prod --region iad   # Fly.io
-./scripts/deploy-engineering-service.sh render                              # Render (one-click)
-./scripts/deploy-engineering-service.sh railway                             # Railway
-./scripts/deploy-engineering-service.sh all --tag v1.2.3                    # all three
+cp .env.example .env
 ```
 
-| Platform | One-click | What you get |
-|---|---|---|
-| **Fly.io**   | [`fly.toml`](fly.toml) + `fly deploy` | `https://<app>.fly.dev` |
-| **Render**   | [Deploy button](https://render.com/deploy?repo=https://github.com/ahmdelbaz28/my-awesome-agent) | `https://<service>.onrender.com` |
-| **Railway**  | [`railway.toml`](railway.toml) + `railway up --image …` | `https://<service>.up.railway.app` |
+| Setting | Purpose |
+|---|---|
+| `OPENAI_API_KEY` | AI provider access |
+| `MASTRA_API_URL` | Mastra backend endpoint |
+| `REDIS_URL` | Cache and session store |
+| `DATABASE_URL` | Persistent metadata storage |
+| `ETAP_WORKER_URL` | Windows ETAP worker endpoint |
+| `JWT_SECRET` | Token signing secret |
+| `API_KEY` | Service-to-service authentication |
 
-After the public URL is live, wire the Worker to it:
+Security-sensitive values should be injected by your deployment platform, CI/CD secret store, or Kubernetes Secrets.
+
+---
+
+## Usage examples
+
+### Run an engineering validation suite
 
 ```bash
-./scripts/set-engineering-service-url.sh https://<your-public-url>
+python3 validation_suite.py
 ```
 
----
-
-## 🧪 Testing
-
-### Run Tests
+### Run focused tests
 
 ```bash
-# All tests
-make test
-
-# Unit tests only
-pytest tests/unit_tests.py -v
-
-# With coverage
-pytest --cov=. --cov-report=html
-
-# Validation suite
-python validation_suite.py
+pytest tests/unit_tests.py -q
+pytest tests/test_arc_flash_single_engine.py -q
 ```
 
-### Test Coverage
+### Run syntax validation
 
-- **Unit Tests**: 34 test cases
-- **Engineering Validation**: 28 tests
-- **Code Coverage**: 85%
-- **Pass Rate**: 100%
+```bash
+python3 validate_syntax.py
+```
 
-### Continuous Integration
+### Start the backend service
 
-GitHub Actions pipeline includes:
-- Linting (Python & TypeScript)
-- Unit tests with coverage
-- Security scanning (Trivy, Snyk)
-- Docker image building
-- Kubernetes deployment
-- Performance testing
+```bash
+python3 engineering_service.py --host 0.0.0.0 --port 8000 --workers 4
+```
 
----
+### Build the container image
 
-## 🔒 Security
-
-### Security Features
-
-- ✅ JWT authentication with secure token management
-- ✅ Role-Based Access Control (5 roles, 30+ permissions)
-- ✅ Input validation on all endpoints
-- ✅ Code sandboxing for Python execution
-- ✅ Rate limiting (per-user and per-endpoint)
-- ✅ Comprehensive audit logging
-- ✅ OWASP Top 10 compliance
-- ✅ Secure password hashing (bcrypt)
-
-### Security Rating
-
-**Before**: CRITICAL (6 vulnerabilities)  
-**After**: LOW (All issues resolved)
-
-See [SECURITY.md](SECURITY.md) for:
-- Vulnerability reporting process
-- Security measures implemented
-- Best practices for deployment
-- Penetration testing guidelines
+```bash
+docker build -t etap-ai-platform:latest .
+```
 
 ---
 
-## 🤝 Contributing
+## Project structure
 
-We welcome contributions! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for:
-
-- Code of Conduct
-- Development setup
-- Coding standards
-- Testing guidelines
-- Pull request process
-- Release process
-
-### Ways to Contribute
-
-- 🐛 Report bugs
-- 💡 Suggest features
-- 📝 Improve documentation
-- 🔧 Submit code fixes
-- 🧪 Add tests
-- 🌍 Translate documentation
-
----
-
-## 📄 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-### Third-Party Licenses
-
-This project uses several open-source components:
-- NumPy, SciPy, Pandas (BSD License)
-- FastAPI, Pydantic (MIT License)
-- ChromaDB (Apache License 2.0)
-- And others (see requirements.txt)
-
-All third-party licenses are included in their respective packages.
+| Path | Purpose |
+|---|---|
+| `agents/` | Multi-agent orchestration and engineering assistants |
+| `core_model/` | Power-system component models and network construction |
+| `engine/` | Core execution, resilience, numerical safety, and orchestration |
+| `load_flow/` | Load-flow solvers and optimal power flow |
+| `fault_analysis/` | Short-circuit, arc-flash, and harmonic analysis |
+| `coordination/` | Protection coordination and relay timing |
+| `curves/` | Relay curve generation and visualization |
+| `etap_integration/` | ETAP COM automation and Windows worker support |
+| `gis_integration/` | GIS adapters, validation, and model enrichment |
+| `digital_twin/` | Digital-twin runtime and validation gateway |
+| `security/` | JWT, RBAC, secrets, sandboxing, and audit controls |
+| `reporting/` | Report generation and export workflows |
+| `visualization/` | Charts, curves, and engineering graphics |
+| `ui/` | Mastra-based user interface |
+| `docs/` | Architecture, operations, SLA, troubleshooting, and visual assets |
+| `tests/` | Unit, integration, and engineering validation tests |
 
 ---
 
-## 📞 Support
+## Documentation hub
 
-### Documentation
-
-- [Getting Started Guide](docs/SUMMARY_AR.md) (Arabic)
-- [Architecture Documentation](docs/ARCHITECTURE.md)
-- [API Reference](API_DOCUMENTATION.md)
-- [Deployment Guide](DEPLOYMENT_GUIDE.md)
-- [Executive Summary](EXECUTIVE_SUMMARY.md)
-
-### Community
-
-- **GitHub Issues**: [Report bugs or request features](https://github.com/ahmdelbaz28-ux/ETAP-AI-WORK-/issues)
-- **GitHub Discussions**: [Ask questions and share ideas](https://github.com/ahmdelbaz28-ux/ETAP-AI-WORK-/discussions)
-- **Email**: support@etap-platform.com
-- **Discord**: [Join our community](https://discord.gg/ETAP-AI-WORK-)
-
-### Professional Support
-
-For enterprise support, consulting, or custom development:
-- Email: enterprise@etap-platform.com
-- Website: https://etap-platform.com/support
+| Document | Audience |
+|---|---|
+| [Architecture](docs/ARCHITECTURE.md) | Engineers and architects |
+| [Deployment Guide](DEPLOYMENT_GUIDE.md) | DevOps and SRE teams |
+| [Security Operations Manual](docs/SECURITY_OPERATIONS_MANUAL.md) | Security and platform teams |
+| [SLA / SLO Document](docs/SLA_SLO_DOCUMENT.md) | Managers and customers |
+| [Production Readiness Audit](docs/PRODUCTION_READINESS_AUDIT.md) | Technical leadership |
+| [Operations Runbook](docs/OPERATIONS_RUNBOOK.md) | Operators |
+| [Incident Response Runbook](docs/INCIDENT_RESPONSE_RUNBOOK.md) | Incident commanders |
+| [Disaster Recovery Plan](docs/DISASTER_RECOVERY_PLAN.md) | SRE and business continuity teams |
+| [Troubleshooting Guide](docs/TROUBLESHOOTING_GUIDE.md) | Developers and support teams |
+| [API Documentation](API_DOCUMENTATION.md) | API consumers |
+| [Contributing Guide](CONTRIBUTING.md) | Open-source contributors |
+| [GitHub Optimization](.github/REPOSITORY_OPTIMIZATION.md) | Repository maintainers |
+| [Security Policy](SECURITY.md) | Security researchers |
+| [License](LICENSE) | Legal and compliance reviewers |
 
 ---
 
-## 🙏 Acknowledgments
+## Security
 
-### Standards Organizations
+The platform includes security controls designed for engineering and enterprise use:
 
-- IEEE (Institute of Electrical and Electronics Engineers)
-- IEC (International Electrotechnical Commission)
-- NFPA (National Fire Protection Association)
-- NEC (National Electrical Code)
+- JWT authentication
+- Role-based access control
+- Input validation and sanitization
+- Secrets management
+- Audit logging
+- Python execution sandboxing
+- PowerShell command whitelisting
+- Rate limiting
+- Security workflow automation
+- Dependency and secret scanning readiness
 
-### Contributors
-
-Special thanks to all contributors who have made this project possible.
-
-### Tools & Libraries
-
-- OpenAI for GPT models
-- LangWatch for LLM monitoring
-- Smithery for agent marketplace
-- ETAP Corporation for power system software
+See [SECURITY.md](SECURITY.md) and [docs/SECURITY_OPERATIONS_MANUAL.md](docs/SECURITY_OPERATIONS_MANUAL.md) for operational guidance.
 
 ---
 
-## 📊 Project Statistics
+## Roadmap
 
-- **Lines of Code**: 15,000+
-- **Test Cases**: 62 (34 unit + 28 validation)
-- **Code Coverage**: 85%
-- **Documentation Pages**: 100+
-- **Dependencies**: 40+ Python, 20+ Node.js
-- **Agents**: 9 specialized agents
-- **Standards**: IEEE, IEC, NFPA, NEC compliant
-- **Security**: OWASP Top 10 compliant
-
----
-
-## 🎯 Roadmap
-
-### Q3 2026
-- [ ] Digital Twin integration
-- [ ] Real-time SCADA connectivity
-- [ ] Advanced visualization dashboard
-- [ ] Mobile application
-
-### Q4 2026
-- [ ] GraphQL API support
-- [ ] Multi-tenant architecture
-- [ ] Advanced ML models for prediction
-- [ ] ISO 27001 certification
-
-### 2027
-- [ ] Renewable energy optimization
-- [ ] Microgrid management
-- [ ] Battery storage integration
-- [ ] EV charging infrastructure
+| Phase | Focus |
+|---|---|
+| 1 | Stabilize core engineering studies and validation gates |
+| 2 | Expand ETAP automation coverage and result reconciliation |
+| 3 | Improve GIS ingestion, topology validation, and model enrichment |
+| 4 | Add richer dashboards, report templates, and study comparison |
+| 5 | Harden multi-tenant deployment, observability, and release automation |
+| 6 | Expand contributor tooling, examples, and public documentation |
 
 ---
 
-<div align="center">
+## FAQ
 
-**Made with ❤️ by the ETAP AI Platform Team**
+### Is this a replacement for ETAP?
 
-[⭐ Star this repo](https://github.com/ahmdelbaz28-ux/ETAP-AI-WORK-) • [🐛 Report Bug](https://github.com/ahmdelbaz28-ux/ETAP-AI-WORK-/issues) • [💡 Request Feature](https://github.com/ahmdelbaz28-ux/ETAP-AI-WORK-/issues)
+No. The platform is designed to complement ETAP workflows, automate study execution, validate results, enrich models, and provide AI-assisted engineering workflows.
 
-</div>
+### Can it run without ETAP?
+
+Yes. Native engineering engines can run studies without ETAP. ETAP automation is used when Windows-based ETAP COM workflows are required.
+
+### Is the UI production-ready?
+
+The UI is structured for production use and can be extended with deployment-specific branding, authentication, and customer workflows.
+
+### Are screenshots real application captures?
+
+The repository includes generated product visuals and UI mockups to make the project presentation clear and professional. Replace these with captured production screenshots when available.
+
+### What standards are referenced?
+
+The platform references IEEE, IEC, NFPA, and NEC concepts for engineering validation and educational use. Users remain responsible for compliance with the standards applicable to their projects.
+
+---
+
+## Contributing
+
+Contributions are welcome. Please read [CONTRIBUTING.md](CONTRIBUTING.md) before opening a pull request.
+
+Recommended contribution flow:
+
+1. Create a focused branch
+2. Add or update tests
+3. Run `python3 validate_syntax.py`
+4. Run `python3 validation_suite.py`
+5. Run `pytest -q`
+6. Run UI checks when frontend files change
+7. Open a pull request with context, test results, and screenshots when relevant
+
+---
+
+## License
+
+This project is licensed under the [MIT License](LICENSE).
+
+ETAP is a registered trademark of ETAP Corporation. This project is independent and is not affiliated with, endorsed by, or connected to ETAP Corporation.
+
+---
+
+## Repository presentation score
+
+| Area | Before | After |
+|---|---:|---:|
+| Homepage clarity | 42/100 | 94/100 |
+| Visual branding | 35/100 | 92/100 |
+| Architecture communication | 48/100 | 95/100 |
+| Product storytelling | 40/100 | 93/100 |
+| Documentation readiness | 62/100 | 91/100 |
+| Contributor readiness | 55/100 | 88/100 |

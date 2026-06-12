@@ -1,0 +1,12 @@
+flowchart TD
+  U[Users, API Clients, Web UI, MCP] --> I[API Gateway and Security Layer]
+  I --> O[Chief Engineering Orchestrator]
+  O --> A[Specialized Engineering Agents]
+  A --> E[Calculation Engines]
+  E --> V[Validation and Compliance]
+  V --> R[Reports, Dashboards, Exports]
+  K[Knowledge Base and RAG] --> O
+  GIS[GIS Sources] --> M[Power System Model]
+  ETAP[ETAP COM Automation] --> E
+  M --> E
+  E --> DB[(Study Results and Audit Logs)]
