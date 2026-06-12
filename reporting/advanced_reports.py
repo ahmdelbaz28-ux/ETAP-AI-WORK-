@@ -33,7 +33,7 @@ import os
 import logging
 from typing import Dict, List, Optional, Any
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timezone
 import json
 
 logger = logging.getLogger(__name__)
@@ -336,7 +336,7 @@ class PDFReportGenerator:
         # Create output directory
         os.makedirs(output_path, exist_ok=True)
 
-        filename = f"report_{metadata.report_id}_{datetime.utcnow().strftime('%Y%m%d')}.pdf"
+        filename = f"report_{metadata.report_id}_{datetime.now(timezone.utc).strftime('%Y%m%d')}.pdf"
         filepath = os.path.join(output_path, filename)
 
         # Create document template
@@ -410,7 +410,7 @@ class PDFReportGenerator:
         """Fallback PDF generation using text-to-PDF conversion."""
         os.makedirs(output_path, exist_ok=True)
 
-        filename = f"report_{metadata.report_id}_{datetime.utcnow().strftime('%Y%m%d')}.txt"
+        filename = f"report_{metadata.report_id}_{datetime.now(timezone.utc).strftime('%Y%m%d')}.txt"
         filepath = os.path.join(output_path, filename)
 
         with open(filepath, 'w', encoding='utf-8') as f:
@@ -454,7 +454,7 @@ class DOCXReportGenerator:
 
             os.makedirs(output_path, exist_ok=True)
 
-            filename = f"report_{metadata.report_id}_{datetime.utcnow().strftime('%Y%m%d')}.docx"
+            filename = f"report_{metadata.report_id}_{datetime.now(timezone.utc).strftime('%Y%m%d')}.docx"
             filepath = os.path.join(output_path, filename)
 
             # Create document
@@ -513,7 +513,7 @@ class XLSXReportGenerator:
 
             os.makedirs(output_path, exist_ok=True)
 
-            filename = f"report_{metadata.report_id}_{datetime.utcnow().strftime('%Y%m%d')}.xlsx"
+            filename = f"report_{metadata.report_id}_{datetime.now(timezone.utc).strftime('%Y%m%d')}.xlsx"
             filepath = os.path.join(output_path, filename)
 
             # Create workbook
@@ -599,7 +599,7 @@ class ReportGenerationAgent:
         # Create default metadata if not provided
         if metadata is None:
             metadata = ReportMetadata(
-                report_id=f"RPT_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}",
+                report_id=f"RPT_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}",
                 title="Power System Engineering Analysis Report",
                 prepared_by="ETAP AI Engineering Platform",
                 project_name="Industrial Power System",

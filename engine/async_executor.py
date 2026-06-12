@@ -13,7 +13,7 @@ from concurrent.futures import (
 )
 from contextlib import contextmanager
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any, Callable, Coroutine, List, Optional, Sequence
 
 logger = logging.getLogger(__name__)
@@ -178,7 +178,7 @@ class AsyncExecutor:
             if task.status == TaskStatus.CANCELLED:
                 return
             task.status = TaskStatus.RUNNING
-            task.started_at = datetime.utcnow()
+            task.started_at = datetime.now(timezone.utc)
 
         try:
             if task.coroutine is not None:
@@ -199,13 +199,13 @@ class AsyncExecutor:
             with self._lock:
                 task.result = result
                 task.status = TaskStatus.COMPLETED
-                task.completed_at = datetime.utcnow()
+                task.completed_at = datetime.now(timezone.utc)
                 self._stats["total_completed"] += 1
         except asyncio.TimeoutError:
             with self._lock:
                 task.status = TaskStatus.TIMEOUT
                 task.error = "Task timed out"
-                task.completed_at = datetime.utcnow()
+                task.completed_at = datetime.now(timezone.utc)
                 self._stats["total_timed_out"] += 1
             if _error_handler_available:
                 get_error_handler().handle_error(
@@ -217,7 +217,7 @@ class AsyncExecutor:
             with self._lock:
                 task.status = TaskStatus.FAILED
                 task.error = str(e)
-                task.completed_at = datetime.utcnow()
+                task.completed_at = datetime.now(timezone.utc)
                 self._stats["total_failed"] += 1
             if _error_handler_available:
                 get_error_handler().handle_error(
@@ -314,7 +314,7 @@ class AsyncExecutor:
             if task.status in (TaskStatus.COMPLETED, TaskStatus.FAILED, TaskStatus.CANCELLED, TaskStatus.TIMEOUT):
                 return False
             task.status = TaskStatus.CANCELLED
-            task.completed_at = datetime.utcnow()
+            task.completed_at = datetime.now(timezone.utc)
             self._stats["total_cancelled"] += 1
         removed = self._queue.remove(task_id)
         return removed is not None or task.status == TaskStatus.CANCELLED
@@ -333,7 +333,7 @@ class AsyncExecutor:
                 for task in self._tasks.values():
                     if task.status == TaskStatus.PENDING:
                         task.status = TaskStatus.CANCELLED
-                        task.completed_at = datetime.utcnow()
+                        task.completed_at = datetime.now(timezone.utc)
                         self._stats["total_cancelled"] += 1
         if wait:
             for w in self._workers:
@@ -591,7 +591,7 @@ class WorkflowOrchestrator:
                 "status": "defined",
                 "results": {},
                 "errors": {},
-                "created_at": datetime.utcnow(),
+                "created_at": datetime.now(timezone.utc),
             }
         return workflow_id
 
@@ -654,7 +654,7 @@ class WorkflowOrchestrator:
             wf["status"] = "completed" if not errors else "failed"
             wf["results"] = completed
             wf["errors"] = errors
-            wf["completed_at"] = datetime.utcnow()
+            wf["completed_at"] = datetime.now(timezone.utc)
 
         return {
             "workflow_id": workflow_id,
