@@ -1,0 +1,280 @@
+name: Quality Gates
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  schedule:
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  pre-commit:
+    name: PRE_COMMIT — Lint, Unit Tests, Syntax, Validation, Type Check
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+          cache: 'pip'
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'pnpm'
+
+      - name: Install pnpm
+        run: npm install -g pnpm
+
+      - name: Install Python dependencies
+        run: python3 -m pip install -r requirements.txt
+
+      - name: Install Node dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Python syntax validation
+        run: python3 validate_syntax.py
+
+      - name: Engineering validation suite
+        run: python3 validation_suite.py
+
+      - name: Pytest
+        run: pytest -q
+
+      - name: TypeScript lint
+        run: pnpm lint
+
+      - name: TypeScript tests
+        run: pnpm test
+
+      - name: Upload pytest report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pre-commit-pytest-report
+          path: |
+            .pytest_cache/v/cache/lastfailed
+            junit*.xml
+            test-results/
+          retention-days: 30
+          compression-level: 1
+
+      - name: Upload validation report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pre-commit-validation-report
+          path: |
+            validation_suite_report.txt
+            validation_suite_output.log
+          retention-days: 30
+          compression-level: 1
+
+  pre-build:
+    name: PRE_BUILD — Integration and Build Verification
+    runs-on: ubuntu-latest
+    needs: pre-commit
+    timeout-minutes: 25
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Validate docker compose config
+        run: docker compose config > /tmp/docker-compose-rendered.yml
+
+      - name: Upload docker compose config
+        uses: actions/upload-artifact@v4
+        with:
+          name: pre-build-docker-compose-config
+          path: /tmp/docker-compose-rendered.yml
+          retention-days: 30
+          compression-level: 1
+
+      - name: Build python-builder target
+        run: docker build --target python-builder -t etap-python-builder:ci .
+
+      - name: Build ts-builder target
+        run: docker build --target ts-builder -t etap-ts-builder:ci .
+
+      - name: Build engineering-service image
+        run: docker build -f Dockerfile.engineering-service -t etap-engineering-service:ci .
+
+  post-build:
+    name: POST_BUILD — E2E Smoke, Security Scan
+    runs-on: ubuntu-latest
+    needs: pre-build
+    timeout-minutes: 30
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+          cache: 'pip'
+
+      - name: Install Python dependencies
+        run: python3 -m pip install -r requirements.txt
+
+      - name: Run E2E smoke tests
+        run: pytest -q tests/e2e_smoke_test.py
+
+      - name: Run validation suite
+        run: python3 validation_suite.py
+
+      - name: Set up Trivy
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          version: '0.56.0'
+          cache-dir: /tmp/trivy-cache
+
+      - name: Trivy filesystem scan
+        run: |
+          trivy filesystem \
+            --exit-code 1 \
+            --severity CRITICAL,HIGH \
+            --format sarif \
+            --output trivy-results.sarif .
+
+      - name: Upload Trivy SARIF
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: trivy-results.sarif
+        if: always()
+
+      - name: Upload smoke test report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: post-build-smoke-report
+          path: |
+            .pytest_cache/v/cache/lastfailed
+            junit*.xml
+            test-results/
+          retention-days: 30
+          compression-level: 1
+
+      - name: Upload validation report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: post-build-validation-report
+          path: |
+            validation_suite_report.txt
+            validation_suite_output.log
+          retention-days: 30
+          compression-level: 1
+
+  scheduled-regression:
+    name: SCHEDULED — Nightly Regression and Performance Baseline
+    runs-on: ubuntu-latest
+    if: ${{ github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' }}
+    timeout-minutes: 60
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+          cache: 'pip'
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'pnpm'
+
+      - name: Install pnpm
+        run: npm install -g pnpm
+
+      - name: Install Python dependencies
+        run: python3 -m pip install -r requirements.txt
+
+      - name: Install Node dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Python syntax validation
+        run: python3 validate_syntax.py
+
+      - name: Engineering validation suite
+        run: python3 validation_suite.py
+
+      - name: Pytest
+        run: pytest -q
+
+      - name: Validate docker compose config
+        run: docker compose config > /tmp/scheduled-docker-compose.yml
+
+      - name: Generate regression report
+        run: |
+          python3 -c "
+import json, subprocess, datetime
+results = {
+  'timestamp': datetime.datetime.utcnow().isoformat() + 'Z',
+  'syntax': subprocess.run(['python3', 'validate_syntax.py'], capture_output=True).returncode == 0,
+  'validation': subprocess.run(['python3', 'validation_suite.py'], capture_output=True).returncode == 0,
+  'pytest': subprocess.run(['pytest', '-q'], capture_output=True).returncode == 0,
+  'compose': subprocess.run(['docker', 'compose', 'config'], capture_output=True).returncode == 0,
+}
+print(json.dumps(results, indent=2))
+with open('regression-report.json', 'w') as f:
+    json.dump(results, f, indent=2)
+"
+        continue-on-error: true
+
+      - name: Upload regression report
+        uses: actions/upload-artifact@v4
+        with:
+          name: scheduled-regression-report
+          path: regression-report.json
+          retention-days: 90
+          compression-level: 1
+
+      - name: Upload pytest report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: scheduled-pytest-report
+          path: |
+            .pytest_cache/v/cache/lastfailed
+            junit*.xml
+            test-results/
+          retention-days: 30
+          compression-level: 1
+
+      - name: Upload validation report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: scheduled-validation-report
+          path: |
+            validation_suite_report.txt
+            validation_suite_output.log
+          retention-days: 30
+          compression-level: 1
+
+      - name: Upload docker compose config
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: scheduled-docker-compose-config
+          path: /tmp/scheduled-docker-compose.yml
+          retention-days: 30
+          compression-level: 1
