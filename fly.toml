@@ -1,61 +1,32 @@
-# =============================================================================
-# Fly.io configuration for the ETAP Engineering Service
-# =============================================================================
-# One-command deploy:
-#   fly launch --copy-config     # first time, picks region interactively
-#   fly deploy                   # subsequent deploys
-#
-# Or use the wrapper:  ./scripts/deploy-engineering-service.sh fly <app-name>
-#
-# Override the GHCR image (for forks / mirrors):
-#   fly deploy --image ghcr.io/OTHER_OWNER/OTHER_REPO/etap-engineering-service:v1.2.3
-# =============================================================================
-
-app = "etap-engineering-service"
+app = "etap-ai-engineering"
 primary_region = "iad"
-kill_signal = "SIGINT"
-kill_timeout = "5s"
 
 [build]
-  # Default GHCR image. The deploy script overrides this with `fly deploy --image ...`.
-  image = "ghcr.io/ahmdelbaz28/my-awesome-agent/etap-engineering-service:latest"
+  builder = "dockerfile"
+  dockerfile = "Dockerfile"
 
-[env]
-  ENGINEERING_SERVICE_HOST = "0.0.0.0"
-  ENGINEERING_SERVICE_PORT = "8000"
-  ENGINEERING_SERVICE_CORS_ORIGINS = "*"
-  # ENGINEERING_SERVICE_API_KEY is set with:  fly secrets set ENGINEERING_SERVICE_API_KEY=...
-
-[experimental]
-  auto_rollback = true
+[http_service]
+  internal_port = 8000
+  force_https = true
+  auto_stop_machines = "stop"
+  auto_start_machines = true
+  min_machines_running = 1
+  processes = ["app"]
 
 [[services]]
   protocol = "tcp"
   internal_port = 8000
-  processes = ["app"]
-
   [[services.ports]]
     port = 80
     handlers = ["http"]
     force_https = true
-
   [[services.ports]]
     port = 443
-    handlers = ["tls", "http"]
+    handlers = ["tls"]
 
-  [services.concurrency]
-    type = "connections"
-    hard_limit = 1000
-    soft_limit = 800
-
-  [[services.http_checks]]
-    interval = "15s"
-    timeout = "2s"
-    grace_period = "30s"
-    method = "get"
-    path = "/health"
-
-[[vm]]
-  cpu_kind = "shared"
-  cpus = 1
-  memory = "1gb"
+[env]
+  PYTHON_VERSION = "3.13"
+  ENGINEERING_SERVICE_HOST = "0.0.0.0"
+  ENGINEERING_SERVICE_PORT = "8000"
+  LOG_LEVEL = "INFO"
+  ENVIRONMENT = "production"

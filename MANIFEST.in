@@ -1,0 +1,12 @@
+include README.md
+include LICENSE
+include pyproject.toml
+include requirements.txt
+include *.py
+recursive-include agents *.py
+recursive-include backend *.py
+recursive-include core *.py
+recursive-include engine *.py
+recursive-include docs/screenshots *.png
+recursive-include docs/assets *.svg
+recursive-include tests *.py
