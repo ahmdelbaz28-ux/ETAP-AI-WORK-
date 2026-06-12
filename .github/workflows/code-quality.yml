@@ -27,8 +27,12 @@ jobs:
         run: ruff check . --output-format=github
       - name: Black format check
         run: black --check .
+      - name: Python syntax validation
+        run: python3 validate_syntax.py
+      - name: Engineering validation suite
+        run: python3 validation_suite.py
       - name: MyPy type check
-        run: mypy . --ignore-missing-imports || true
+        run: timeout 120 mypy . --ignore-missing-imports --explicit-package-bases 2>&1 || { echo "mypy found errors (or timed out)"; exit 1; }
 
   typescript-lint:
     name: TypeScript Lint & Format

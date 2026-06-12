@@ -7,9 +7,9 @@
  * Usage:
  *   npx tsx tests/chaos/chaos-test.ts
  */
+const DEPLOYED_URL = process.env.DEPLOYED_URL;
 
-const DEPLOYED_URL = process.env.DEPLOYED_URL || 'https://ahmed-etap.ahmdelbaz28.workers.dev';
-const API_KEY = process.env.API_KEY_SECRET || 'etap-ai-secure-key-2026';
+const API_KEY = process.env.API_KEY_SECRET;
 
 interface ChaosResult {
   scenario: string;
