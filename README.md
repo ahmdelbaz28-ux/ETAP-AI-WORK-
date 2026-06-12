@@ -477,6 +477,27 @@ The platform references IEEE, IEC, NFPA, and NEC concepts for engineering valida
 
 ---
 
+## CI/CD Quality Gates
+
+The platform enforces four automated quality gates to protect engineering correctness, build integrity, and security posture.
+
+| Gate | Trigger | Checks |
+|---|---|---|
+| **PRE_COMMIT** | Every push / PR | Lint, unit tests, syntax validation, validation suite, type checking |
+| **PRE_BUILD** | Push to main / PR merge | Integration tests, Docker build verification, compose config validation |
+| **POST_BUILD** | Successful build on main | E2E smoke tests, security scan (Trivy), UI build readiness |
+| **SCHEDULED** | Nightly at 02:00 UTC + dispatch | Full regression, validation suite, pytest, performance baseline |
+
+For detailed gate definitions, required secrets, artifacts, and workflow mappings, see:
+
+- [Test Plan](docs/TEST_PLAN.md)
+- [CI/CD Integration](docs/CI_CD_INTEGRATION.md)
+
+[![Quality Gates](https://github.com/ahmdelbaz28-ux/ETAP-AI-WORK-/actions/workflows/quality-gates.yml/badge.svg)](https://github.com/ahmdelbaz28-ux/ETAP-AI-WORK-/actions/workflows/quality-gates.yml)
+
+---
+
+
 ## Contributing
 
 Contributions are welcome. Please read [CONTRIBUTING.md](CONTRIBUTING.md) before opening a pull request.
