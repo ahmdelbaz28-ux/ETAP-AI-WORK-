@@ -53,6 +53,7 @@ dependencies = [
     "typing-extensions>=4.0.0",
     "pyautogui>=0.9.53",
     "opencv-python>=4.5.0",
+    "starlette>=0.38.0",
 ]
 
 [project.optional-dependencies]
@@ -99,6 +100,8 @@ include = [
     "scada_model*",
     "adms_control*",
     "acp_runtime*",
+    "backend*",
+    "core*",
 ]
 
 [tool.pytest.ini_options]
@@ -122,6 +125,8 @@ source = [
     "security",
     "reporting",
     "visualization",
+    "backend",
+    "core",
 ]
 
 [tool.coverage.report]

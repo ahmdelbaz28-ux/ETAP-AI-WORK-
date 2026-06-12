@@ -2,7 +2,7 @@
 # ETAP AI Engineering Platform - Multi-Stage Docker Build
 # =============================================================================
 # Stage 1: Python Builder
-FROM python:3.14-slim AS python-builder
+FROM python:3.13-slim AS python-builder
 
 LABEL stage="python-builder"
 
@@ -39,20 +39,20 @@ RUN pnpm prune --prod
 
 # =============================================================================
 # Stage 3: Runtime
-FROM node:20-slim
+FROM python:3.13-slim
 
 LABEL maintainer="ETAP AI Platform Team"
 LABEL description="AI-powered ETAP Engineering Platform - Multi-Arch"
 LABEL version="1.1.0"
 
-# Install Python runtime only (no build tools)
-RUN apt-get update && apt-get install -y     python3     python3-pip     python3-venv     curl     tini     --no-install-recommends     && rm -rf /var/lib/apt/lists/*
+# Runtime libs only
+RUN apt-get update && apt-get install -y --no-install-recommends     curl     tini     && rm -rf /var/lib/apt/lists/*
 
 # Copy Python dependencies from builder
 COPY --from=python-builder /install /usr/local
 
-# Copy Node.js application from builder
-COPY --from=ts-builder /build /app
+# Copy application source
+COPY . /app
 
 WORKDIR /app
 
@@ -62,18 +62,18 @@ RUN mkdir -p /data reports knowledge_db logs /app/static
 # Create non-root user
 RUN groupadd -r appuser &&     useradd -r -g appuser -d /app -s /sbin/nologin appuser &&     chown -R appuser:appuser /app /data
 
-ENV PYTHONUNBUFFERED=1     PYTHONDONTWRITEBYTECODE=1     APP_HOST=0.0.0.0     APP_PORT=3000     LOG_LEVEL=INFO     NODE_ENV=production
+ENV PYTHONUNBUFFERED=1     PYTHONDONTWRITEBYTECODE=1     ENGINEERING_SERVICE_HOST=0.0.0.0     ENGINEERING_SERVICE_PORT=8000     LOG_LEVEL=INFO
 
-EXPOSE 3000
+EXPOSE 8000
 
 VOLUME ["/data", "/app/reports", "/app/knowledge_db", "/app/logs"]
 
 # Health check
-HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3     CMD curl -f http://localhost:3000/health || curl -f http://localhost:3000/api/health || exit 1
+HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3     CMD curl -fsS http://localhost:8000/health || exit 1
 
 # Use tini as init for proper signal handling
 ENTRYPOINT ["/usr/bin/tini", "--"]
 
 USER appuser
 
-CMD ["node", "/app/dist/index.js"]
+CMD ["python3", "engineering_service.py"]

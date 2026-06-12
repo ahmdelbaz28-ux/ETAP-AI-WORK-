@@ -35,6 +35,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `.github/workflows/code-quality.yml`: Hardened mypy type check (removed soft-fail `|| true`, added `--explicit-package-bases` and timeout), added syntax validation and validation suite steps
 - `ui/package.json`: Added `test` and `test:watch` scripts for vitest
 
+- `backend/__init__.py` and `core/__init__.py`: Populated with proper exports
+- `pyproject.toml`: Added `starlette` dep, added `backend*` and `core*` to package discovery
+- `Dockerfile` & `Dockerfile.engineering-service`: Python 3.14 → 3.13 for stability
+- `Dockerfile`: Runtime stage now uses Python base image, CMD runs engineering service
+- `core/models.py`: Fixed `isinstance(x, Enum)` bug → direct `.value` access
+- `engineering_service.py`: Added missing `import hmac`
+
+### Added
+- `core/models.py`, `core/database.py`: BIM Universal Data Model with dataclasses and SQLite store
+- `backend/request_context.py`: Correlation ID middleware for request tracing
+- `tests/test_core_models.py`: 24 tests for UDM dataclasses
+- `tests/test_core_database.py`: 30 tests for SQLite store (thread-safe, conflict detection)
+- `tests/test_backend_request_context.py`: 6 tests for correlation ID middleware
+- Total test count: **532** (was 472)
+
 ### Fixed
 - Broken Dashboard.test.tsx (installed jsdom)
 - Security.yml missing setup-python step

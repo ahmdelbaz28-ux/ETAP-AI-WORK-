@@ -14,7 +14,7 @@
 # =============================================================================
 
 # ---------- Stage 1: builder ----------
-FROM python:3.14-slim AS builder
+FROM python:3.13-slim AS builder
 
 LABEL stage="engineering-service-builder"
 
@@ -34,7 +34,7 @@ RUN grep -v "^#" requirements.txt | grep -v "^$" | grep -v "pywin32" > /tmp/req.
     && pip install --no-cache-dir --prefix=/install -r /tmp/req.txt
 
 # ---------- Stage 2: runtime ----------
-FROM python:3.14-slim
+FROM python:3.13-slim
 
 LABEL maintainer="ETAP AI Platform Team" \
       description="ETAP AI Engineering Service (FastAPI) - Linux container" \
