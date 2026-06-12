@@ -1,0 +1,69 @@
+name: Docker Build Verification
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+  schedule:
+    - cron: '0 6 * * 1'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-engineering-service:
+    name: Engineering Service
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      - name: Build engineering service image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: Dockerfile.engineering-service
+          push: false
+          load: true
+          tags: etap-engineering-service:ci
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+      - name: Test image
+        run: |
+          docker run --rm -d -p 8000:8000 --name eng-test \
+            -e ENGINEERING_SERVICE_API_KEY=ci-test-key \
+            etap-engineering-service:ci
+          sleep 5
+          curl -fsS http://localhost:8000/health || (echo "Health check failed"; exit 1)
+          curl -fsS http://localhost:8000/ready || (echo "Ready check failed"; exit 1)
+          docker stop eng-test
+
+  build-platform:
+    name: Full Platform
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      - name: Build platform image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: Dockerfile
+          push: false
+          load: true
+          tags: etap-platform:ci
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+      - name: Test image
+        run: |
+          docker run --rm -d -p 8000:8000 --name platform-test \
+            -e ENGINEERING_SERVICE_API_KEY=ci-test-key \
+            etap-platform:ci
+          sleep 5
+          curl -fsS http://localhost:8000/health || (echo "Health check failed"; exit 1)
+          docker stop platform-test

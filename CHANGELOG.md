@@ -41,6 +41,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `Dockerfile`: Runtime stage now uses Python base image, CMD runs engineering service
 - `core/models.py`: Fixed `isinstance(x, Enum)` bug → direct `.value` access
 - `engineering_service.py`: Added missing `import hmac`
+- `engineering_service.py`: Fixed logging `trace_id` KeyError (root logger filter)
+- `etap_user_guide/__init__.py`: Populated with `ETAPGuideRAG` export
 
 ### Added
 - `core/models.py`, `core/database.py`: BIM Universal Data Model with dataclasses and SQLite store
@@ -48,7 +50,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `tests/test_core_models.py`: 24 tests for UDM dataclasses
 - `tests/test_core_database.py`: 30 tests for SQLite store (thread-safe, conflict detection)
 - `tests/test_backend_request_context.py`: 6 tests for correlation ID middleware
-- Total test count: **532** (was 472)
+- `tests/test_engineering_service.py`: 16 tests for FastAPI endpoints
+- `.github/workflows/ui-tests.yml`: UI test CI workflow
+- `.github/workflows/docker-build.yml`: Docker build verification workflow
+- `.pre-commit-config.yaml`: Pre-commit hooks for linting and type checking
+- Total test count: **548** (was 472)
 
 ### Fixed
 - Broken Dashboard.test.tsx (installed jsdom)
