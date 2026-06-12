@@ -120,7 +120,7 @@ class _TraceFilter(logging.Filter):
 
 
 logger = logging.getLogger("engineering_service")
-logger.addFilter(_TraceFilter())
+logging.getLogger().addFilter(_TraceFilter())
 
 
 # ---------------------------------------------------------------------------
