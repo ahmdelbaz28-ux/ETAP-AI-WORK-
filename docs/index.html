@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ETAP AI Engineering Platform</title>
+  <meta name="description" content="Enterprise-grade autonomous engineering intelligence for validated power-system studies.">
+  <style>
+    :root {
+      --bg: #030712;
+      --surface: #0f172a;
+      --border: #1e293b;
+      --primary: #38bdf8;
+      --accent: #7c3aed;
+      --green: #34d399;
+      --text: #cbd5e1;
+      --heading: #f1f5f9;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+    }
+    .container { max-width: 960px; margin: 0 auto; padding: 2rem; }
+    header {
+      text-align: center;
+      padding: 4rem 0 2rem;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 2rem;
+    }
+    header h1 {
+      font-size: 2.5rem;
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    header p { font-size: 1.1rem; color: var(--text); margin-top: 0.5rem; }
+    .badges { text-align: center; margin: 1.5rem 0; }
+    .badges img { margin: 0.25rem; }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 1rem;
+      margin: 2rem 0;
+    }
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.5rem;
+      transition: border-color 0.2s;
+    }
+    .card:hover { border-color: var(--primary); }
+    .card h3 { color: var(--heading); margin-bottom: 0.5rem; font-size: 1.1rem; }
+    .card h3 a { color: var(--primary); text-decoration: none; }
+    .card p { font-size: 0.9rem; color: var(--text); }
+    .card .meta { font-size: 0.8rem; color: #64748b; margin-top: 0.75rem; }
+    h2 { color: var(--heading); margin: 2rem 0 1rem; font-size: 1.5rem; }
+    footer {
+      text-align: center;
+      padding: 3rem 0;
+      border-top: 1px solid var(--border);
+      margin-top: 3rem;
+      color: #64748b;
+      font-size: 0.9rem;
+    }
+    footer a { color: var(--primary); text-decoration: none; }
+    @media (max-width: 600px) {
+      header h1 { font-size: 1.8rem; }
+      .container { padding: 1rem; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>ETAP AI Engineering Platform</h1>
+      <p>Autonomous power-system studies · ETAP automation · GIS enrichment · AI workflows</p>
+      <div class="badges">
+        <img src="https://img.shields.io/badge/version-1.0.0-blue?style=flat-square" alt="Version">
+        <img src="https://img.shields.io/badge/python-3.13%2B-blue?style=flat-square" alt="Python">
+        <img src="https://img.shields.io/badge/tests-548%20passed-brightgreen?style=flat-square" alt="Tests">
+        <img src="https://img.shields.io/badge/license-MIT-green?style=flat-square" alt="License">
+      </div>
+    </header>
+
+    <h2>Quick Links</h2>
+    <div class="grid">
+      <div class="card">
+        <h3><a href="https://github.com/ahmdelbaz28-ux/ETAP-AI-WORK-">GitHub Repository</a></h3>
+        <p>Source code, issues, discussions, and contribution guide.</p>
+        <div class="meta">github.com/ahmdelbaz28-ux/ETAP-AI-WORK-</div>
+      </div>
+      <div class="card">
+        <h3><a href="https://github.com/ahmdelbaz28-ux/ETAP-AI-WORK-/blob/main/README.md">README</a></h3>
+        <p>Full documentation — quick start, features, architecture, and quality metrics.</p>
+        <div class="meta">548 tests · 31/31 validations</div>
+      </div>
+      <div class="card">
+        <h3><a href="ARCHITECTURE.md">Architecture</a></h3>
+        <p>System design, component diagrams, data flows, and integration patterns.</p>
+        <div class="meta">docs/ARCHITECTURE.md</div>
+      </div>
+      <div class="card">
+        <h3><a href="SECURITY_OPERATIONS_MANUAL.md">Security</a></h3>
+        <p>Security controls, JWT auth, RBAC, sandboxing, audit logging, and incident response.</p>
+        <div class="meta">docs/SECURITY_OPERATIONS_MANUAL.md</div>
+      </div>
+      <div class="card">
+        <h3><a href="https://github.com/ahmdelbaz28-ux/ETAP-AI-WORK-/blob/main/API_DOCUMENTATION.md">API Docs</a></h3>
+        <p>Complete API reference with request/response schemas and example usage.</p>
+        <div class="meta">REST · JSON · OpenAPI 3.1</div>
+      </div>
+      <div class="card">
+        <h3><a href="TROUBLESHOOTING_GUIDE.md">Troubleshooting</a></h3>
+        <p>Common issues, diagnostic steps, and resolution procedures.</p>
+        <div class="meta">docs/TROUBLESHOOTING_GUIDE.md</div>
+      </div>
+    </div>
+
+    <h2>Project Status</h2>
+    <div class="grid">
+      <div class="card">
+        <h3>✅ Validation Suite</h3>
+        <p>All 31 engineering validation checks pass — load flow, short circuit, arc flash, harmonics.</p>
+      </div>
+      <div class="card">
+        <h3>✅ Test Suite</h3>
+        <p>548 automated tests across core engine, API, models, and security layers.</p>
+      </div>
+      <div class="card">
+        <h3>✅ CI/CD</h3>
+        <p>10 GitHub Actions workflows — lint, test, validate, build, deploy, security scan.</p>
+      </div>
+    </div>
+
+    <footer>
+      <p>Built by <a href="https://github.com/ahmdelbaz28-ux">Eng. Ahmed Elbaz</a></p>
+      <p>MIT License &copy; 2026</p>
+    </footer>
+  </div>
+</body>
+</html>

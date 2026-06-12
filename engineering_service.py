@@ -103,15 +103,8 @@ from starlette.middleware.base import BaseHTTPMiddleware
 # Logging setup
 # ---------------------------------------------------------------------------
 
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s %(levelname)s %(name)s trace_id=%(trace_id)s %(message)s",
-    stream=sys.stdout,
-)
-
-
 class _TraceFilter(logging.Filter):
-    """Injects trace_id into log records."""
+    """Injects trace_id into log records when missing."""
 
     def filter(self, record: logging.LogRecord) -> bool:
         if not hasattr(record, "trace_id"):
@@ -119,8 +112,17 @@ class _TraceFilter(logging.Filter):
         return True
 
 
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s %(levelname)s %(name)s trace_id=%(trace_id)s %(message)s",
+    stream=sys.stdout,
+)
+
+for handler in logging.getLogger().handlers:
+    handler.addFilter(_TraceFilter())
+
 logger = logging.getLogger("engineering_service")
-logging.getLogger().addFilter(_TraceFilter())
+logger.addFilter(_TraceFilter())
 
 
 # ---------------------------------------------------------------------------
@@ -749,7 +751,8 @@ async def generic_exception_handler(request: Request, exc: Exception):
 # CLI entrypoint
 # ---------------------------------------------------------------------------
 
-if __name__ == "__main__":
+def main() -> None:
+    """Entry point for the engineering service."""
     import argparse
     import uvicorn
 
@@ -767,3 +770,7 @@ if __name__ == "__main__":
 
     logger.info("Starting Engineering Service on %s:%d", args.host, args.port)
     uvicorn.run(app, host=args.host, port=args.port, workers=args.workers)
+
+
+if __name__ == "__main__":
+    main()

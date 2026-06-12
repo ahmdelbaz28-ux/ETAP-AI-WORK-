@@ -12,7 +12,7 @@ license = { text = "MIT" }
 keywords = ["power-system", "etap", "gis", "engineering", "ai", "load-flow", "short-circuit", "arc-flash"]
 
 authors = [
-    { name = "Ahmed Elbaz", email = "ahmdelbaz28@example.com" },
+    { name = "Eng. Ahmed Elbaz", email = "ahmdelbaz28@gmail.com" },
 ]
 
 classifiers = [
@@ -73,6 +73,7 @@ dev = [
 
 [project.scripts]
 etap-platform = "engineering_service:main"
+etap-api = "uvicorn:main"
 
 [tool.setuptools.packages.find]
 where = ["."]
