@@ -162,7 +162,7 @@ def main():
                 report_lines.append(f"  {fault_type.replace('_', ' ').title()}: {abs(If):.4f} angle {np.angle(If, deg=True):.2f}° pu")
             else:
                 report_lines.append(f"  {fault_type.replace('_', ' ').title()}: See details above")
-        except:
+        except Exception:
             report_lines.append(f"  {fault_type.replace('_', ' ').title()}: Error")
     report_lines.append("")
     report_lines.append("Protection Coordination:")

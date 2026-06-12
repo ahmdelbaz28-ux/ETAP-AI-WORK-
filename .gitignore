@@ -186,6 +186,8 @@ exports/
 output/
 results/
 power_system_report.txt
+health-check-report.json
+security_audit.log
 coordination_margin.png
 # Generated PNGs at project root (charts/plots)
 /*.png
@@ -208,6 +210,16 @@ temp/
 docker-compose.override.yml
 
 # ==========================================
+# Deployment Configs (per-environment)
+# ==========================================
+fly.toml
+railway.json
+railway.toml
+render.yaml
+k8s-deployment.yaml
+wrangler.jsonc
+
+# ==========================================
 # Documentation Build
 # ==========================================
 docs/_build/
@@ -222,6 +234,7 @@ site/
 .kilo/
 .mastra/
 .agent/
+.mcp.json
 # AI tool local configs (do NOT commit personal/workspace settings)
 .blackboxrules
 blackbox_mcp_settings.json

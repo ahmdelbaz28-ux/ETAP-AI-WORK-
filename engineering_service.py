@@ -591,14 +591,14 @@ async def readiness_check(request: Request):
     try:
         _get_power_system_engine()
         native_ok = True
-    except Exception:
-        pass
+    except Exception as exc:
+        logger.warning("native_engine_unavailable", error=str(exc))
     try:
         provider_factory = _get_etap_provider()
         provider = provider_factory()
         etap_ok = provider.is_available()
-    except Exception:
-        pass
+    except Exception as exc:
+        logger.warning("etap_provider_unavailable", error=str(exc))
     return ReadyResponse(
         ready=native_ok,
         native_engine_available=native_ok,
