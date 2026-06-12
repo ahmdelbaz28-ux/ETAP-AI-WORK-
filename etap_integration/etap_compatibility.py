@@ -6,20 +6,20 @@ including ETAP version, Windows version, .NET Framework, and availability
 of required COM modules and Python dependencies.
 """
 
-import sys, platform, logging, winreg
+import sys, platform, logging
 from typing import Dict, List, Optional, Tuple
 from dataclasses import dataclass, field
 
 logger = logging.getLogger(__name__)
 
+WIN32_AVAILABLE = False
 if sys.platform == 'win32':
     try:
+        import winreg  # noqa: F401
         import win32com.client, pythoncom
         WIN32_AVAILABLE = True
     except ImportError:
         WIN32_AVAILABLE = False
-else:
-    WIN32_AVAILABLE = False
 
 SUPPORTED_ETAP_VERSIONS: List[str] = [
     "12.0.0", "12.5.0", "12.6.0", "14.0.0", "14.1.0",

@@ -17,7 +17,7 @@ import numpy as np
 import sys
 import os
 import time
-from datetime import datetime
+from datetime import datetime, timezone
 
 # Add project root to path
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -1132,7 +1132,7 @@ class TestErrorHandler:
         error = SystemError(
             error_id="alert-test-id", message="console alert",
             component="test", severity=ErrorSeverity.ERROR,
-            timestamp=datetime.utcnow(),
+            timestamp=datetime.now(timezone.utc),
         )
         alert_mgr.trigger_alert(error, channels=["console"])
         alert_mgr.add_alert_rule("*", ErrorSeverity.WARNING, channels=["console"])

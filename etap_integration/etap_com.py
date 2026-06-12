@@ -1223,7 +1223,8 @@ class ETAPAutomation:
             logger.warning(f"Invalid path format: {file_path}")
             return False
 
-        if str(resolved).startswith('\\\\'):
+        # Detect UNC paths cross-platform (Windows \\server\share or //server/share)
+        if file_path.startswith('\\\\') or file_path.startswith('//'):
             logger.warning(f"UNC path not allowed (SMB relay risk): {file_path}")
             return False
 

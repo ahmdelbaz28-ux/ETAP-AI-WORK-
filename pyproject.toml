@@ -1,0 +1,134 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "etap-ai-platform"
+version = "1.0.0"
+description = "Enterprise-grade autonomous engineering intelligence for validated power-system studies, ETAP automation, GIS enrichment, AI workflows, and production operations."
+readme = "README.md"
+requires-python = ">=3.12"
+license = { text = "MIT" }
+keywords = ["power-system", "etap", "gis", "engineering", "ai", "load-flow", "short-circuit", "arc-flash"]
+
+authors = [
+    { name = "Ahmed Elbaz", email = "ahmdelbaz28@example.com" },
+]
+
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Scientific/Engineering",
+]
+
+dependencies = [
+    "numpy>=1.21.0",
+    "scipy>=1.7.0",
+    "pandas>=1.3.0",
+    "matplotlib>=3.4.0",
+    "psutil>=5.8.0",
+    "requests>=2.26.0",
+    "pyyaml>=6.0",
+    "structlog>=21.0.0",
+    "cryptography>=36.0.0",
+    "hvac>=2.0.0",
+    "bcrypt>=4.0.0",
+    "PyJWT>=2.6.0",
+    "pydantic>=2.0.0",
+    "fastapi>=0.104.0",
+    "uvicorn>=0.24.0",
+    "PyPDF2>=3.0.0",
+    "pdfplumber>=0.7.0",
+    "nltk>=3.6.0",
+    "python-docx>=0.8.11",
+    "openpyxl>=3.0.0",
+    "reportlab>=3.6.0",
+    "tqdm>=4.62.0",
+    "beautifulsoup4>=4.10.0",
+    "lxml>=4.6.0",
+    "typing-extensions>=4.0.0",
+    "pyautogui>=0.9.53",
+    "opencv-python>=4.5.0",
+]
+
+[project.optional-dependencies]
+test = [
+    "pytest>=7.0.0",
+    "pytest-cov>=3.0.0",
+]
+win32 = [
+    "pywin32>=303",
+]
+dev = [
+    "pytest>=7.0.0",
+    "pytest-cov>=3.0.0",
+    "black>=24.0",
+    "ruff>=0.3.0",
+]
+
+[project.scripts]
+etap-platform = "engineering_service:main"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = [
+    "agents*",
+    "core_model*",
+    "engine*",
+    "load_flow*",
+    "fault_analysis*",
+    "coordination*",
+    "curves*",
+    "relays*",
+    "etap_integration*",
+    "gis_integration*",
+    "gis_model*",
+    "gis_validation*",
+    "gis_validation_electrical*",
+    "gis_validation_real*",
+    "digital_twin*",
+    "security*",
+    "reporting*",
+    "visualization*",
+    "network_solver*",
+    "knowledge*",
+    "scada_model*",
+    "adms_control*",
+    "acp_runtime*",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests", "acp_runtime/tests"]
+asyncio_mode = "auto"
+python_files = ["test_*.py", "*_test.py", "unit_tests.py"]
+
+[tool.coverage.run]
+source = [
+    "agents",
+    "core_model",
+    "engine",
+    "load_flow",
+    "fault_analysis",
+    "coordination",
+    "curves",
+    "relays",
+    "etap_integration",
+    "gis_integration",
+    "digital_twin",
+    "security",
+    "reporting",
+    "visualization",
+]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "if __name__ == .__main__.:",
+    "raise NotImplementedError",
+    "def __repr__",
+    "def __str__",
+]
