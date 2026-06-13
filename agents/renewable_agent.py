@@ -44,6 +44,8 @@ class RenewableAgent(BaseAgent):
       grid constraints (voltage, thermal, protection)
     """
 
+    prompt_handle = "renewable_agent"
+
     def __init__(self) -> None:
         super().__init__("RenewableAgent")
         self.standards = ["IEEE 1547-2018", "IEEE 1547.1-2020"]

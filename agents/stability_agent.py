@@ -50,6 +50,8 @@ class StabilityAgent(BaseAgent):
     the rotor angle.
     """
 
+    prompt_handle = "stability_agent"
+
     def __init__(self) -> None:
         super().__init__("StabilityAgent")
         self.standards = ["IEEE 399-1997", "IEEE 1584-2018"]

@@ -49,6 +49,8 @@ class BatteryStorageAgent(BaseAgent):
     depth-of-discharge profiles.
     """
 
+    prompt_handle = "battery_storage_agent"
+
     def __init__(self) -> None:
         super().__init__("BatteryStorageAgent")
         self.standards = [

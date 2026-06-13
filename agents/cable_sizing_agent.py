@@ -77,6 +77,8 @@ class CableSizingAgent(BaseAgent):
     - Optimal cable recommendation from standard cross-sections
     """
 
+    prompt_handle = "cable_sizing_agent"
+
     def __init__(self) -> None:
         super().__init__("CableSizingAgent")
         self.standards = [
