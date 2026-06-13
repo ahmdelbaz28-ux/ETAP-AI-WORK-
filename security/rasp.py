@@ -22,6 +22,7 @@ variables to tune sensitivity.
 
 from __future__ import annotations
 
+import json
 import logging
 import re
 from dataclasses import dataclass, field
@@ -135,9 +136,9 @@ _DEFAULT_RULES: List[RASPRule] = [
         pattern=re.compile(
             r"(?i)(\$where|\$ne|\$gt|\$lt|\$gte|\$lte|\$in|\$nin|\$or|\$and|\$not|\$regex|\$expr)",
         ),
-        action=RASPAction.LOG,
-        severity=RASPSeverity.MEDIUM,
-        description="NoSQL Injection pattern detected (logging only — may be legitimate)",
+        action=RASPAction.BLOCK,
+        severity=RASPSeverity.HIGH,
+        description="NoSQL Injection attempt detected — blocked",
     ),
     RASPRule(
         name="ssrf_basic",
@@ -147,9 +148,9 @@ _DEFAULT_RULES: List[RASPRule] = [
             r"100\.100\.100\.200)|file://|gopher://|dict://)",
             re.IGNORECASE,
         ),
-        action=RASPAction.LOG,
-        severity=RASPSeverity.HIGH,
-        description="SSRF attempt detected (logging — may be internal API call)",
+        action=RASPAction.BLOCK,
+        severity=RASPSeverity.CRITICAL,
+        description="SSRF attempt detected — blocked",
     ),
 ]
 
@@ -213,8 +214,14 @@ class RASPEngine:
         for rule in self._rules:
             for field_name in rule.check_fields:
                 value = data.get(field_name, "")
-                if not value or not isinstance(value, str):
+                if not value:
                     continue
+                # Convert non-string values to string for pattern matching
+                if not isinstance(value, str):
+                    try:
+                        value = json.dumps(value) if isinstance(value, (dict, list)) else str(value)
+                    except Exception:
+                        value = str(value)
                 match = rule.pattern.search(value)
                 if match:
                     result = RASPResult(

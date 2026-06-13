@@ -176,7 +176,18 @@ class AuthenticationManager:
         self.username_to_id: Dict[str, str] = {}
         self.token_to_session: Dict[str, Session] = {}
 
-        self.cipher = Fernet(Fernet.generate_key())
+        # Fernet key: derive from JWT secret for persistence across restarts
+        # If JWT_SECRET_KEY is not set, generate ephemeral key (tokens won't survive restarts)
+        _fernet_key_env = os.environ.get("FERNET_ENCRYPTION_KEY")
+        if _fernet_key_env:
+            self.cipher = Fernet(_fernet_key_env.encode())
+        else:
+            # Derive a stable key from the JWT secret (same secret = same Fernet key)
+            import hashlib
+            import base64
+            derived = hashlib.sha256((self.secret_key + "_fernet_derivation").encode()).digest()
+            fernet_key = base64.urlsafe_b64encode(derived)
+            self.cipher = Fernet(fernet_key)
 
     def _hash_password(self, password: str) -> str:
         """Hash password using bcrypt."""
@@ -189,13 +200,23 @@ class AuthenticationManager:
         """
         try:
             return bcrypt.checkpw(password.encode(), password_hash.encode())
-        except Exception:
+        except Exception as exc:
+            logger.debug("Password verification failed: %s", type(exc).__name__)
             return False
 
     def create_user(self, username: str, email: str, password: str,
                     role: UserRole = UserRole.VIEWER) -> Optional[User]:
         if username in self.username_to_id:
             logger.warning(f"Username '{username}' already exists")
+            return None
+
+        # Password strength validation
+        if len(password) < 8:
+            logger.warning("Password too short (minimum 8 characters)")
+            return None
+        _common_passwords = ('password', '12345678', 'qwerty123')
+        if password.lower() in _common_passwords or password.lower() == username.lower():
+            logger.warning("Password is too common or matches username")
             return None
 
         user_id = secrets.token_hex(16)
@@ -314,6 +335,25 @@ class AuthenticationManager:
     def decrypt_secret(self, encrypted: str) -> str:
         """Decrypt a secret value using Fernet."""
         return self.cipher.decrypt(encrypted.encode()).decode()
+
+    def cleanup_expired_sessions(self) -> int:
+        """Remove expired sessions to prevent memory leak.
+
+        Returns the number of sessions removed.
+        Should be called periodically (e.g., via background task).
+        """
+        now = datetime.now(timezone.utc)
+        expired_tokens = [
+            token for token, session in self.token_to_session.items()
+            if not session.is_valid or now >= session.expires_at
+        ]
+        for token in expired_tokens:
+            session = self.token_to_session.pop(token, None)
+            if session:
+                self.sessions.pop(session.session_id, None)
+        if expired_tokens:
+            logger.info("Cleaned up %d expired sessions", len(expired_tokens))
+        return len(expired_tokens)
 
 
 class AuthorizationManager:
