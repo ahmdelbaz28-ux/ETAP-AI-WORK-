@@ -115,7 +115,7 @@ print('PowerSystemEngine import OK')
   deploy-production:
     name: Deploy to Production
     runs-on: ubuntu-latest
-    needs: lint
+    needs: [lint, python-service]
     if: github.ref == 'refs/heads/main'
     environment: production
     steps:

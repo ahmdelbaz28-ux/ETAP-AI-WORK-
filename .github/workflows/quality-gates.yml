@@ -94,7 +94,7 @@ jobs:
         uses: docker/setup-buildx-action@v3
 
       - name: Validate docker compose config
-        run: docker compose config > /tmp/docker-compose-rendered.yml
+        run: docker compose config --quiet
 
       - name: Upload docker compose config
         uses: actions/upload-artifact@v4
@@ -220,7 +220,7 @@ jobs:
         run: pytest -q
 
       - name: Validate docker compose config
-        run: docker compose config > /tmp/scheduled-docker-compose.yml
+        run: docker compose config --quiet
 
       - name: Generate regression report
         run: |

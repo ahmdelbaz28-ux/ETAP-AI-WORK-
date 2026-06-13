@@ -15,6 +15,7 @@ The state store holds the unified digital twin state across all layers:
 import time
 import copy
 import json
+import threading
 import numpy as np
 from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional, Tuple
@@ -232,6 +233,7 @@ class StateStore:
         self._snapshots: List[StateSnapshot] = []
         self._max_versions = max_versions
         self._current_version = 0
+        self._lock = threading.Lock()
 
     def commit(self, snapshot: StateSnapshot) -> int:
         """
@@ -239,33 +241,37 @@ class StateStore:
 
         Returns the version number of the committed snapshot.
         """
-        self._current_version += 1
-        snapshot_copy = copy.deepcopy(snapshot)
-        snapshot_copy.version = self._current_version
-        self._snapshots.append(snapshot_copy)
+        with self._lock:
+            self._current_version += 1
+            snapshot_copy = copy.deepcopy(snapshot)
+            snapshot_copy.version = self._current_version
+            self._snapshots.append(snapshot_copy)
 
-        # Prune if exceeding max
-        if len(self._snapshots) > self._max_versions:
-            self._snapshots = self._snapshots[-self._max_versions:]
+            # Prune if exceeding max
+            if len(self._snapshots) > self._max_versions:
+                self._snapshots = self._snapshots[-self._max_versions:]
 
-        return self._current_version
+            return self._current_version
 
     def get_current(self) -> Optional[StateSnapshot]:
         """Get the current (latest) state snapshot."""
-        if not self._snapshots:
-            return None
-        return self._snapshots[-1]
+        with self._lock:
+            if not self._snapshots:
+                return None
+            return self._snapshots[-1]
 
     def get_version(self, version: int) -> Optional[StateSnapshot]:
         """Get a specific version of the state."""
-        for s in self._snapshots:
-            if s.version == version:
-                return s
-        return None
+        with self._lock:
+            for s in self._snapshots:
+                if s.version == version:
+                    return s
+            return None
 
     def get_current_version(self) -> int:
         """Get the current version number."""
-        return self._current_version
+        with self._lock:
+            return self._current_version
 
     def rollback(self, version: int) -> Optional[StateSnapshot]:
         """
@@ -273,19 +279,20 @@ class StateStore:
         Removes all snapshots after the target version.
         Returns the target snapshot or None if not found.
         """
-        target_idx = None
-        for i, s in enumerate(self._snapshots):
-            if s.version == version:
-                target_idx = i
-                break
+        with self._lock:
+            target_idx = None
+            for i, s in enumerate(self._snapshots):
+                if s.version == version:
+                    target_idx = i
+                    break
 
-        if target_idx is None:
-            return None
+            if target_idx is None:
+                return None
 
-        # Remove all snapshots after target
-        self._snapshots = self._snapshots[:target_idx + 1]
-        self._current_version = version
-        return self._snapshots[-1]
+            # Remove all snapshots after target
+            self._snapshots = self._snapshots[:target_idx + 1]
+            self._current_version = version
+            return self._snapshots[-1]
 
     def diff(self, version_a: int, version_b: int) -> Optional[Dict[str, Any]]:
         """
@@ -293,8 +300,9 @@ class StateStore:
 
         Returns a dict describing the changes, or None if either version not found.
         """
-        snap_a = self.get_version(version_a)
-        snap_b = self.get_version(version_b)
+        with self._lock:
+            snap_a = self._get_version_unlocked(version_a)
+            snap_b = self._get_version_unlocked(version_b)
         if not snap_a or not snap_b:
             return None
 
@@ -366,7 +374,8 @@ class StateStore:
 
     def get_history(self, limit: int = 100) -> List[Dict[str, Any]]:
         """Get summary of recent state versions."""
-        recent = self._snapshots[-limit:]
+        with self._lock:
+            recent = self._snapshots[-limit:]
         return [{
             "version": s.version,
             "timestamp": s.timestamp,
@@ -379,18 +388,27 @@ class StateStore:
 
     def get_statistics(self) -> dict:
         """Get state store statistics."""
-        current = self.get_current()
-        return {
-            "current_version": self._current_version,
-            "total_snapshots": len(self._snapshots),
-            "max_versions": self._max_versions,
-            "current_bus_count": len(current.bus_states) if current else 0,
-            "current_switch_count": len(current.switch_states) if current else 0,
-            "current_gis_asset_count": len(current.gis_assets) if current else 0,
-            "current_validation_passed": current.validation_passed if current else None
-        }
+        with self._lock:
+            current = self._snapshots[-1] if self._snapshots else None
+            return {
+                "current_version": self._current_version,
+                "total_snapshots": len(self._snapshots),
+                "max_versions": self._max_versions,
+                "current_bus_count": len(current.bus_states) if current else 0,
+                "current_switch_count": len(current.switch_states) if current else 0,
+                "current_gis_asset_count": len(current.gis_assets) if current else 0,
+                "current_validation_passed": current.validation_passed if current else None
+            }
 
     def clear(self) -> None:
         """Clear all state snapshots."""
-        self._snapshots.clear()
-        self._current_version = 0
+        with self._lock:
+            self._snapshots.clear()
+            self._current_version = 0
+
+    def _get_version_unlocked(self, version: int) -> Optional[StateSnapshot]:
+        """Get a specific version without acquiring lock (caller must hold lock)."""
+        for s in self._snapshots:
+            if s.version == version:
+                return s
+        return None

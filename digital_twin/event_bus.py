@@ -14,6 +14,7 @@ Reference: IEC 61970 CIM Event Model, EPRI ADMS Architecture Guide
 
 import time
 import uuid
+import threading
 from dataclasses import dataclass, field
 from typing import Any, Callable, Dict, List, Optional, Set
 from enum import Enum
@@ -312,6 +313,7 @@ class EventBus:
         self._handler_errors: List[Dict[str, Any]] = []
         self._publishing = False
         self._event_queue: List[DomainEvent] = []
+        self._lock = threading.Lock()
 
     def subscribe(self, event_type: EventType,
                   handler: Callable[[DomainEvent], None],
@@ -365,44 +367,52 @@ class EventBus:
         Returns:
         List of exceptions raised by handlers.
         """
-        self._add_to_history(event)
+        with self._lock:
+            self._add_to_history(event)
+            # Take a snapshot of subscribers under the lock
+            wildcard_subs = list(self._wildcard_subscribers)
+            type_subs = list(self._subscribers.get(event.event_type, []))
+
         errors = []
 
         # Call wildcard subscribers first
-        for _, _, handler in self._wildcard_subscribers:
+        for _, _, handler in wildcard_subs:
             try:
                 handler(event)
             except Exception as e:
                 errors.append(e)
-                self._handler_errors.append({
-                    "event_id": event.event_id,
-                    "event_type": event.event_type.value,
-                    "handler": str(handler),
-                    "error": str(e),
-                    "timestamp": time.time()
-                })
+                with self._lock:
+                    self._handler_errors.append({
+                        "event_id": event.event_id,
+                        "event_type": event.event_type.value,
+                        "handler": str(handler),
+                        "error": str(e),
+                        "timestamp": time.time()
+                    })
 
         # Call type-specific subscribers
-        for _, _, handler in self._subscribers.get(event.event_type, []):
+        for _, _, handler in type_subs:
             try:
                 handler(event)
             except Exception as e:
                 errors.append(e)
-                self._handler_errors.append({
-                    "event_id": event.event_id,
-                    "event_type": event.event_type.value,
-                    "handler": str(handler),
-                    "error": str(e),
-                    "timestamp": time.time()
-                })
+                with self._lock:
+                    self._handler_errors.append({
+                        "event_id": event.event_id,
+                        "event_type": event.event_type.value,
+                        "handler": str(handler),
+                        "error": str(e),
+                        "timestamp": time.time()
+                    })
 
         return errors
 
     def _add_to_history(self, event: DomainEvent) -> None:
-        """Add event to history with size limit."""
+        """Add event to history with size limit. Caller must hold self._lock."""
         self._history.append(event)
         if len(self._history) > self._max_history:
-            self._history = self._history[-self._max_history:]
+            # Use slice assignment instead of list replacement for efficiency
+            del self._history[:len(self._history) - self._max_history]
 
     def get_history(self, event_type: EventType = None,
                     limit: int = 100) -> List[DomainEvent]:

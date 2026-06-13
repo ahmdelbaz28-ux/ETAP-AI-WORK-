@@ -244,6 +244,13 @@ class LocalSecretsManager:
         return self._generate_and_save_key()
 
     def _generate_and_save_key(self) -> bytes:
+        """Generate a new Fernet key and persist it.
+
+        Security: The key file is stored with owner-only permissions (0600 on Unix).
+        In a production environment, consider using HashiCorp Vault or a KMS
+        (Key Management Service) instead of local file-based key storage, so
+        that the encryption key is never co-located with the encrypted data.
+        """
         key = Fernet.generate_key()
         ENCRYPTION_KEY_FILE.write_bytes(key)
 

@@ -86,10 +86,17 @@ def main():
             # executed code attempts is checked against `allowed_imports`
             # by the validator BEFORE this sandbox runs the code; an
             # unauthorized import never reaches `exec`.
-            '__import__': __import__,
+            # __import__ is deliberately EXCLUDED from the sandbox.
+            # All allowed modules must be pre-imported and injected into
+            # safe_globals explicitly. This closes the sandbox-escape vector
+            # where code could call __import__('os') to break out.
         },
         'json': json,
         'math': math,
+        # Pre-imported safe modules (the only modules executable code can
+        # access).  Adding a new module requires an explicit entry here.
+        'numpy': __import__('numpy') if 'numpy' in sys.modules else None,
+        'scipy': __import__('scipy') if 'scipy' in sys.modules else None,
     }
 
     try:

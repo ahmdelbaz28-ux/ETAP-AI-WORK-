@@ -157,11 +157,22 @@ class AuthenticationManager:
                  token_expiry_hours: int = 8,
                  max_failed_attempts: int = 5,
                  lockout_duration_minutes: int = 30):
-        self.secret_key = secret_key or secrets.token_hex(32)
+        if secret_key is None:
+            secret_key = os.environ.get("JWT_SECRET_KEY")
+        if not secret_key:
+            secret_key = secrets.token_hex(32)
+            logger.warning(
+                "JWT_SECRET_KEY not set; generated a random key. "
+                "Tokens will NOT survive restarts. Set JWT_SECRET_KEY "
+                "in production for stable sessions."
+            )
+        self.secret_key = secret_key
         self.token_expiry_hours = token_expiry_hours
         self.max_failed_attempts = max_failed_attempts
         self.lockout_duration_minutes = lockout_duration_minutes
 
+        # In-memory stores — suitable for single-process deployment.
+        # For multi-process / multi-node, replace with Redis or a database.
         self.users: Dict[str, User] = {}
         self.sessions: Dict[str, Session] = {}
         self.username_to_id: Dict[str, str] = {}

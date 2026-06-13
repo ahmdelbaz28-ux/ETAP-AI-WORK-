@@ -52,7 +52,40 @@ RUN apt-get update && apt-get install -y --no-install-recommends     curl     ti
 COPY --from=python-builder /install /usr/local
 
 # Copy application source
-COPY . /app
+COPY --from=ts-builder /build/.next /app/.next
+COPY --from=ts-builder /build/node_modules /app/node_modules
+COPY --from=ts-builder /build/package.json /app/package.json
+COPY --from=ts-builder /build/public /app/public
+COPY --from=ts-builder /build/src /app/src
+
+# Copy Python source files
+COPY engineering_service.py /app/
+COPY main.py /app/
+COPY engine/ /app/engine/
+COPY core_model/ /app/core_model/
+COPY core/ /app/core/
+COPY security/ /app/security/
+COPY load_flow/ /app/load_flow/
+COPY fault_analysis/ /app/fault_analysis/
+COPY digital_twin/ /app/digital_twin/
+COPY knowledge/ /app/knowledge/
+COPY coordination/ /app/coordination/
+COPY relays/ /app/relays/
+COPY adms_control/ /app/adms_control/
+COPY gis_integration/ /app/gis_integration/
+COPY gis_model/ /app/gis_model/
+COPY scada_model/ /app/scada_model/
+COPY visualization/ /app/visualization/
+COPY reporting/ /app/reporting/
+COPY etap_integration/ /app/etap_integration/
+COPY curves/ /app/curves/
+COPY agents/ /app/agents/
+COPY network_solver/ /app/network_solver/
+COPY gis_validation/ /app/gis_validation/
+COPY gis_validation_electrical/ /app/gis_validation_electrical/
+COPY gis_validation_real/ /app/gis_validation_real/
+COPY etap_user_guide/ /app/etap_user_guide/
+COPY backend/ /app/backend/
 
 WORKDIR /app
 

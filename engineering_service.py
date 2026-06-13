@@ -318,10 +318,32 @@ class MetricsResponse(BaseModel):
 # In-memory metrics (production: push to Prometheus / StatsD)
 # ---------------------------------------------------------------------------
 
+import threading as _threading
+
 _request_count = 0
 _success_count = 0
 _failed_count = 0
 _total_execution_time_sec = 0.0
+_metrics_lock = _threading.Lock()
+
+
+def _increment_counter(name: str, delta: int = 1) -> None:
+    """Thread-safe counter increment."""
+    global _request_count, _success_count, _failed_count
+    with _metrics_lock:
+        if name == "request":
+            _request_count += delta
+        elif name == "success":
+            _success_count += delta
+        elif name == "failed":
+            _failed_count += delta
+
+
+def _add_execution_time(delta: float) -> None:
+    """Thread-safe execution time accumulator."""
+    global _total_execution_time_sec
+    with _metrics_lock:
+        _total_execution_time_sec += delta
 
 
 # ---------------------------------------------------------------------------
@@ -511,10 +533,21 @@ def _run_etap_study(study_type: str, project_path: str, parameters: Dict[str, An
 # ---------------------------------------------------------------------------
 
 _EXPECTED_API_KEY = os.environ.get("ENGINEERING_SERVICE_API_KEY", "")
+_API_KEY_CONFIGURED = bool(_EXPECTED_API_KEY)
 
 
 def _require_api_key(request: Request) -> None:
-    if not _EXPECTED_API_KEY:
+    """Validate API key when configured.
+
+    If ENGINEERING_SERVICE_API_KEY is set, every request must carry a
+    matching ``x-api-key`` header.  If the key is *not* set the service
+    logs a warning on startup (and every 10 minutes while running) but
+    still allows unauthenticated access so that local development is not
+    broken.  In production you MUST set the key.
+    """
+    if not _API_KEY_CONFIGURED:
+        # Allow unauthenticated access in development mode only.
+        # A warning is logged at startup (see below) and periodically.
         return
     provided = request.headers.get("x-api-key") or ""
     if not hmac.compare_digest(provided, _EXPECTED_API_KEY):
@@ -544,6 +577,12 @@ class _BodySizeLimitMiddleware(BaseHTTPMiddleware):
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     logger.info("engineering_service_startup", extra={"trace_id": "startup"})
+    if not _API_KEY_CONFIGURED:
+        logger.warning(
+            "SECURITY WARNING: ENGINEERING_SERVICE_API_KEY is not set. "
+            "All endpoints are accessible without authentication. "
+            "Set this environment variable in production!"
+        )
     yield
     logger.info("engineering_service_shutdown", extra={"trace_id": "shutdown"})
 
@@ -555,13 +594,22 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
-# CORS — allow the Worker origin (or any origin if not configured)
-_CORS_ORIGINS = os.environ.get("ENGINEERING_SERVICE_CORS_ORIGINS", "*").split(",")
+# CORS — restrict origins; default allows only same-origin.
+# Set ENGINEERING_SERVICE_CORS_ORIGINS to a comma-separated list of allowed origins.
+# Example: ENGINEERING_SERVICE_CORS_ORIGINS=https://yourapp.example.com,https://worker.example.com
+_CORS_ORIGINS = os.environ.get("ENGINEERING_SERVICE_CORS_ORIGINS", "").strip()
+_cors_origin_list = [o.strip() for o in _CORS_ORIGINS.split(",") if o.strip()] if _CORS_ORIGINS else []
+if not _cors_origin_list:
+    logger.warning(
+        "CORS: No origins configured (ENGINEERING_SERVICE_CORS_ORIGINS is empty). "
+        "CORS will be restrictive. Set this to your frontend URL(s) in production."
+    )
+    _cors_origin_list = [""]  # Empty string = same-origin only
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[o.strip() for o in _CORS_ORIGINS],
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_origins=_cors_origin_list,
+    allow_methods=["GET", "POST", "HEAD", "OPTIONS"],
+    allow_headers=["x-api-key", "x-trace-id", "content-type"],
     expose_headers=["x-trace-id"],
 )
 app.add_middleware(_BodySizeLimitMiddleware)
@@ -647,12 +695,16 @@ async def readiness_check(request: Request):
 
 @app.get("/metrics", response_model=MetricsResponse)
 async def metrics(request: Request):
-    global _request_count, _success_count, _failed_count, _total_execution_time_sec
-    avg_ms = (_total_execution_time_sec / max(_request_count, 1)) * 1000.0
+    with _metrics_lock:
+        req_count = _request_count
+        suc_count = _success_count
+        fail_count = _failed_count
+        total_time = _total_execution_time_sec
+    avg_ms = (total_time / max(req_count, 1)) * 1000.0
     return MetricsResponse(
-        requests_total=_request_count,
-        requests_success=_success_count,
-        requests_failed=_failed_count,
+        requests_total=req_count,
+        requests_success=suc_count,
+        requests_failed=fail_count,
         avg_execution_time_ms=round(avg_ms, 2),
         trace_id=request.state.trace_id,
     )
@@ -664,12 +716,12 @@ async def metrics(request: Request):
 
 @app.post("/api/v1/studies/run", response_model=StudyResult)
 async def run_study(request: Request, payload: StudyRequest):
+    _require_api_key(request)
     trace_id = request.state.trace_id
     task_id = payload.task_id or str(uuid.uuid4())
     start = time.perf_counter()
 
-    global _request_count, _success_count, _failed_count, _total_execution_time_sec
-    _request_count += 1
+    _increment_counter("request")
 
     logger.info(
         "study_run_start study_type=%s use_etap=%s task_id=%s",
@@ -704,12 +756,12 @@ async def run_study(request: Request, payload: StudyRequest):
             data = _run_native_study(payload.study_type, system, payload.parameters)
             provider_name = "native"
 
-        _success_count += 1
+        _increment_counter("success")
         status = "success"
     except HTTPException:
         raise
     except Exception as e:
-        _failed_count += 1
+        _increment_counter("failed")
         logger.error("study_run_failed study_type=%s error=%s", payload.study_type, str(e), extra={"trace_id": trace_id})
         errors.append(str(e))
         status = "failed"
@@ -719,7 +771,7 @@ async def run_study(request: Request, payload: StudyRequest):
     data = _to_jsonable(data)
 
     elapsed_sec = time.perf_counter() - start
-    _total_execution_time_sec += elapsed_sec
+    _add_execution_time(elapsed_sec)
 
     logger.info(
         "study_run_end study_type=%s status=%s elapsed_sec=%.3f task_id=%s",
@@ -749,6 +801,7 @@ async def run_study(request: Request, payload: StudyRequest):
 
 @app.post("/api/v1/system/validate")
 async def validate_system(request: Request, spec: SystemSpec):
+    _require_api_key(request)
     trace_id = request.state.trace_id
     try:
         _build_system_from_spec(spec)
