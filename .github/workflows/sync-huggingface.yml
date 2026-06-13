@@ -1,0 +1,199 @@
+# =============================================================================
+# Auto-Sync: GitHub → HuggingFace Space
+# =============================================================================
+# Automatically syncs ALL files from the GitHub repository to the HuggingFace
+# Space whenever code is pushed to the main branch. This triggers a full
+# rebuild of the HF Space, ensuring the live demo is always up-to-date.
+#
+# Required GitHub Secrets:
+#   HF_TOKEN - HuggingFace API token with write access to the Space
+#
+# The sync uses git push which is the most efficient method for large repos
+# and automatically triggers a Space rebuild on HuggingFace.
+# =============================================================================
+
+name: Sync to HuggingFace Space
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:  # Allow manual trigger from GitHub UI
+
+concurrency:
+  group: hf-sync-${{ github.ref }}
+  cancel-in-progress: false  # Never cancel a sync in progress
+
+jobs:
+  sync-to-huggingface:
+    name: GitHub → HuggingFace Sync & Rebuild
+    runs-on: ubuntu-latest
+
+    steps:
+      # -----------------------------------------------------------------------
+      # Step 1: Checkout the GitHub repository (full history for git push)
+      # -----------------------------------------------------------------------
+      - name: Checkout GitHub repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Full history for accurate sync
+
+      # -----------------------------------------------------------------------
+      # Step 2: Configure git for HuggingFace push
+      # -----------------------------------------------------------------------
+      - name: Configure git for HuggingFace
+        run: |
+          git config --global user.email "ahmdelbaz28@gmail.com"
+          git config --global user.name "GitHub Actions Sync"
+          git config --global credential.helper store
+
+      # -----------------------------------------------------------------------
+      # Step 3: Clone the HuggingFace Space repository
+      # -----------------------------------------------------------------------
+      - name: Clone HuggingFace Space
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+        run: |
+          echo "Cloning HuggingFace Space repository..."
+          git clone "https://ahmdelbaz28:${HF_TOKEN}@huggingface.co/spaces/ahmdelbaz28/etap-ai-platform" /tmp/hf-space
+          echo "HF Space cloned successfully"
+
+      # -----------------------------------------------------------------------
+      # Step 4: Sync all files from GitHub to HF Space
+      # -----------------------------------------------------------------------
+      - name: Sync files from GitHub to HuggingFace
+        run: |
+          echo "Starting full file sync: GitHub → HuggingFace"
+
+          # Save HF Space's .git directory
+          HF_GIT_DIR="/tmp/hf-space/.git"
+
+          # Remove all tracked files from HF Space (keep .git)
+          cd /tmp/hf-space
+          # Find all tracked files and remove them (but not .git)
+          git ls-files | while read -r file; do
+            rm -f "$file"
+          done
+          # Remove empty directories
+          find /tmp/hf-space -type d -empty -not -path "*/.git/*" -not -path "*/.git" -delete
+
+          # Copy all files from GitHub repo to HF Space
+          # Exclude .git, __pycache__, and other non-essential files
+          rsync -av --delete \
+            --exclude='.git' \
+            --exclude='.github' \
+            --exclude='__pycache__' \
+            --exclude='*.pyc' \
+            --exclude='.pytest_cache' \
+            --exclude='node_modules' \
+            --exclude='.env' \
+            --exclude='mastra.duckdb' \
+            --exclude='mastra.duckdb.wal' \
+            --exclude='*.egg-info' \
+            --exclude='.mypy_cache' \
+            --exclude='.ruff_cache' \
+            "${GITHUB_WORKSPACE}/" /tmp/hf-space/
+
+          echo "File sync completed"
+
+      # -----------------------------------------------------------------------
+      # Step 5: Commit and push to HuggingFace Space
+      # -----------------------------------------------------------------------
+      - name: Commit and push to HuggingFace
+        run: |
+          cd /tmp/hf-space
+
+          # Stage all changes (additions, modifications, deletions)
+          git add -A
+
+          # Check if there are any changes to commit
+          if git diff --cached --quiet; then
+            echo "No changes detected - HuggingFace Space is already up-to-date"
+            exit 0
+          fi
+
+          # Show summary of changes
+          echo "=============================================="
+          echo "Changes to be synced:"
+          echo "=============================================="
+          git diff --cached --stat
+          echo "=============================================="
+          git diff --cached --numstat | awk '{added+=$1; deleted+=$2} END {printf "Total: +%d additions, -%d deletions\n", added, deleted}'
+          echo "=============================================="
+
+          # Commit with descriptive message including the GitHub commit info
+          GITHUB_SHA_SHORT=$(echo "${GITHUB_SHA}" | cut -c1-7)
+          COMMIT_MSG="Auto-sync from GitHub (commit ${GITHUB_SHA_SHORT})
+
+          Triggered by push to main branch.
+          GitHub commit: ${GITHUB_SHA}
+          GitHub ref: ${GITHUB_REF}
+          Workflow run: ${GITHUB_RUN_ID}
+          Timestamp: $(date -u '+%Y-%m-%d %H:%M:%S UTC')"
+
+          git commit -m "$COMMIT_MSG"
+
+          # Push to HuggingFace (this triggers an automatic Space rebuild)
+          echo "Pushing to HuggingFace Space (this triggers rebuild)..."
+          git push origin main
+
+          echo "✅ Successfully synced to HuggingFace Space!"
+          echo "🚀 Space rebuild has been triggered automatically"
+
+      # -----------------------------------------------------------------------
+      # Step 6: Wait and verify Space rebuild
+      # -----------------------------------------------------------------------
+      - name: Verify HuggingFace Space rebuild
+        run: |
+          echo "Waiting 60 seconds for Space rebuild to start..."
+          sleep 60
+
+          echo "Checking Space status..."
+          HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" \
+            -H "Authorization: Bearer ${{ secrets.HF_TOKEN }}" \
+            "https://huggingface.co/api/spaces/ahmdelbaz28/etap-ai-platform" 2>/dev/null || echo "000")
+
+          if [ "$HTTP_CODE" -eq 200 ]; then
+            echo "✅ HuggingFace Space API is responding (HTTP $HTTP_CODE)"
+          else
+            echo "⚠️ HuggingFace Space API returned HTTP $HTTP_CODE (may still be building)"
+          fi
+
+          # Wait for Space to be fully running
+          echo "Waiting for Space to become operational..."
+          MAX_WAIT=300  # 5 minutes max
+          ELAPSED=0
+          INTERVAL=30
+
+          while [ $ELAPSED -lt $MAX_WAIT ]; do
+            HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" \
+              "https://ahmdelbaz28-etap-ai-platform.hf.space/health" 2>/dev/null || echo "000")
+
+            if [ "$HTTP_CODE" -eq 200 ]; then
+              echo "✅ HuggingFace Space is LIVE and healthy! (after ${ELAPSED}s)"
+              exit 0
+            fi
+
+            echo "  Space not ready yet (HTTP $HTTP_CODE), waiting ${INTERVAL}s..."
+            sleep $INTERVAL
+            ELAPSED=$((ELAPSED + INTERVAL))
+          done
+
+          echo "⚠️ Space did not become healthy within ${MAX_WAIT}s, but sync was successful."
+          echo "   The Space may still be building. Check: https://huggingface.co/spaces/ahmdelbaz28/etap-ai-platform"
+
+      # -----------------------------------------------------------------------
+      # Step 7: Summary
+      # -----------------------------------------------------------------------
+      - name: Sync Summary
+        if: always()
+        run: |
+          echo "=============================================="
+          echo "  GITHUB → HUGGINGFACE SYNC SUMMARY"
+          echo "=============================================="
+          echo "  GitHub Commit: ${GITHUB_SHA}"
+          echo "  GitHub Branch: ${GITHUB_REF}"
+          echo "  HF Space: ahmdelbaz28/etap-ai-platform"
+          echo "  HF URL: https://huggingface.co/spaces/ahmdelbaz28/etap-ai-platform"
+          echo "  Live Demo: https://ahmdelbaz28-etap-ai-platform.hf.space"
+          echo "  Workflow Run: ${GITHUB_RUN_ID}"
+          echo "=============================================="
