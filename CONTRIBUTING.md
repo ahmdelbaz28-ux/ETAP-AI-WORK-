@@ -32,8 +32,8 @@ This project adheres to the [Code of Conduct](CODE_OF_CONDUCT.md). By participat
 
 ### Prerequisites
 
-- Python 3.11+
-- Node.js 18+
+- Python 3.13+
+- Node.js 22+
 - pnpm
 - Docker (optional)
 
@@ -64,7 +64,7 @@ python validation_suite.py
 
 ```bash
 # Terminal 1: Python backend
-python main.py
+python3 engineering_service.py --host 0.0.0.0 --port 8000
 
 # Terminal 2: Mastra frontend
 pnpm dev
@@ -138,12 +138,12 @@ cd ui && npx vitest run
 1. **Create a descriptive PR** with:
    - Clear title following conventional commits
    - Description of changes
-n   - Link to related issues
+   - Link to related issues
    - Screenshots (if applicable)
 
 2. **Ensure CI passes**:
    - TypeScript type check
-n   - Python validation
+   - Python validation
    - Dashboard tests
    - Shell script syntax
 

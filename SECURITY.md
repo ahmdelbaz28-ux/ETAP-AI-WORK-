@@ -14,10 +14,10 @@ If you discover a security vulnerability, please report it responsibly.
 ### How to Report
 
 1. **Do NOT open a public GitHub issue** for security vulnerabilities
-2. Email security reports to: security@etap-platform.com
+2. Email security reports to: ahmdelbaz28@gmail.com
 3. Include:
    - Description of the vulnerability
-n   - Steps to reproduce
+   - Steps to reproduce
    - Potential impact
    - Suggested fix (if any)
 
@@ -31,14 +31,17 @@ n   - Steps to reproduce
 
 This project implements the following security measures:
 
-- **Authentication**: JWT tokens with secure rotation
-- **Authorization**: Role-Based Access Control (RBAC) with 5 roles
-- **Input Validation**: All endpoints validated with Pydantic/Zod
-- **Code Sandboxing**: Python execution sandboxed
-- **Rate Limiting**: Per-user and per-endpoint limits
-- **Audit Logging**: Comprehensive audit trail
-- **Dependency Scanning**: Automated via Dependabot + CodeQL
-- **Container Scanning**: Trivy scans for CRITICAL/HIGH vulnerabilities
+| Layer | Controls |
+|-------|----------|
+| **Authentication** | JWT with bcrypt (cost 14), account lockout (5 attempts), Fernet encryption |
+| **Authorization** | RBAC with 5 roles (ADMIN, ENGINEER, ANALYST, VIEWER, GUEST), 25+ permissions |
+| **Input Validation** | All endpoints validated with Pydantic v2 / Zod schemas |
+| **Code Sandboxing** | Python AST validation, restricted globals, SIGALRM timeout (30s), output truncation (10KB) |
+| **Secrets Management** | HashiCorp Vault with encrypted local fallback (Fernet), key rotation, env validation |
+| **Rate Limiting** | Token-bucket algorithm with per-client tracking, LRU eviction, TTL cleanup |
+| **Audit Logging** | JSON-structured audit trail to `security_audit.log` and `key_access.log` |
+| **Dependency Scanning** | Automated via Dependabot + CodeQL |
+| **Container Scanning** | Trivy scans for CRITICAL/HIGH vulnerabilities |
 
 ### Security Best Practices
 

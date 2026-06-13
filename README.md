@@ -51,7 +51,7 @@
 
 ---
 
-## Table of Contents
+## 📋 Table of Contents
 
 - [What is ETAP AI?](#what-is-etap-ai)
 - [See it in Action](#see-it-in-action)
@@ -60,42 +60,46 @@
 - [Quick Start](#quick-start)
 - [Validation & Quality](#validation--quality)
 - [Security](#security)
+- [Tech Stack](#tech-stack)
 - [Documentation](#documentation)
 - [Contributing](#contributing)
 - [License](#license)
 
 ---
 
-## Live Demo
+## 🚀 Live Demo
 
-Try ETAP AI online without any installation:
-
-👉 **[Launch on Hugging Face Spaces](https://huggingface.co/spaces/ahmdelbaz28/etap-ai-platform)**
+<p align="center">
+  <a href="https://huggingface.co/spaces/ahmdelbaz28/etap-ai-platform">
+    <img src="https://img.shields.io/badge/%F0%9F%A4%97%20Launch%20on%20Hugging%20Face%20Spaces-FF9D00?style=for-the-badge&logo=huggingface&logoColor=white" alt="Launch">
+  </a>
+</p>
 
 The API is live at `https://ahmdelbaz28-etap-ai-platform.hf.space` with full Swagger docs at `/docs`.
 
 ---
 
-## What is ETAP AI?
+## ⚡ What is ETAP AI?
 
 **ETAP AI Engineering Platform** is an enterprise-grade autonomous engineering intelligence system for power-system studies. It combines native Python solvers with AI agent orchestration, ETAP COM automation, GIS enrichment, and enterprise-grade security.
 
-> From load flow to arc flash analysis -- all in one platform.
+> From load flow to arc flash analysis — all in one platform.
 
 ### Why ETAP AI?
 
 | Feature | ETAP AI | Traditional ETAP | Other Tools |
-|---------|---------|------------------|-------------|
-| AI Agents | 9 specialized agents | Manual only | Limited |
-| Open Source | Full source code | Proprietary | Partial |
-| Web API | REST + WebSocket | Desktop only | Limited |
-| Docker Ready | Yes | Windows only | Complex |
-| Automated Tests | 548 passing | Unknown | Varies |
-| Standards | IEEE/IEC/NFPA | IEEE/IEC | Varies |
+|---------|:-------:|:----------------:|:-----------:|
+| 🤖 AI Agents | 9 specialized agents | Manual only | Limited |
+| 📖 Open Source | Full source code | Proprietary | Partial |
+| 🌐 Web API | REST + WebSocket | Desktop only | Limited |
+| 🐳 Docker Ready | Yes | Windows only | Complex |
+| ✅ Automated Tests | 548 passing | Unknown | Varies |
+| 📏 Standards | IEEE/IEC/NFPA | IEEE/IEC | Varies |
+| 🔒 Security | JWT + RBAC + Vault | License only | Basic |
 
 ---
 
-## See it in Action
+## 👁️ See it in Action
 
 ### Health & Readiness
 <p align="center">
@@ -123,39 +127,41 @@ The API is live at `https://ahmdelbaz28-etap-ai-platform.hf.space` with full Swa
 
 ---
 
-## Key Features
+## 🎯 Key Features
 
-### Engineering Studies
-- Load Flow: Newton-Raphson, Fast Decoupled, DC-OPF
-- Short Circuit: IEC 60909 compliant fault analysis
-- Arc Flash: IEEE 1584-2018 incident energy & PPE
-- Harmonic Analysis: IEEE 519-2022 THD/TDD compliance
-- Optimal Power Flow: AC/DC with economic dispatch
-- Protection Coordination: IEC 60255 relay curves
+### ⚙️ Engineering Studies
+| Study | Engine | Standard |
+|-------|--------|----------|
+| **Load Flow** | Newton-Raphson, Fast Decoupled, DC-OPF | IEEE |
+| **Short Circuit** | IEC 60909 compliant fault analysis | IEC 60909 |
+| **Arc Flash** | Incident energy & PPE calculator | IEEE 1584-2018 |
+| **Harmonics** | THD/TDD compliance analysis | IEEE 519-2022 |
+| **Optimal Power Flow** | AC/DC with economic dispatch | — |
+| **Protection** | IEC 60255 relay curve coordination | IEC 60255 |
 
-### AI Agent Orchestration
+### 🧠 AI Agent Orchestration
 - 9 specialized agents with task planning and RAG context
 - Knowledge base integration for standards and procedures
 - Audit-friendly responses with full traceability
 - Multi-agent workflow orchestration
 
-### ETAP Automation
+### 🔌 ETAP Automation
 - Windows COM automation for ETAP study execution
 - Cross-validation between native and ETAP results
 - Dedicated Windows worker support
 
-### GIS Integration
+### 🗺️ GIS Integration
 - ArcGIS, QGIS, and tabular data enrichment
 - Topology validation and electrical attribute checks
 - Model quality reports
 
-### Enterprise Security
+### 🛡️ Enterprise Security
 - JWT authentication with RBAC (5 roles)
 - Python sandboxing with allow-list
 - Secrets Manager (HashiCorp Vault + Fernet)
 - Audit logging and rate limiting
 
-### Validation & Quality
+### ✅ Validation & Quality
 - 548 automated tests across all layers
 - 31 engineering validation gates
 - 173 syntax-verified files
@@ -163,25 +169,75 @@ The API is live at `https://ahmdelbaz28-etap-ai-platform.hf.space` with full Swa
 
 ---
 
-## Architecture
+## 🏗️ Architecture
 
 ```
-                    ETAP AI Platform
-
-  UI Layer        Mastra + React + TypeScript
-  API Layer       FastAPI + JWT + Rate Limiting
-  Agent Layer     9 Specialized AI Agents
-  Engine Layer    Load Flow | Short Circuit | Arc Flash
-                  Harmonics | OPF | Coordination
-  Integration     ETAP COM | GIS | Digital Twin | BIM UDM
-  Infrastructure  Docker | K8s | Redis | Cloudflare
+┌─────────────────────────────────────────────────────────────────────┐
+│                     🌐 ETAP AI ENGINEERING PLATFORM                 │
+│                     Enterprise-Grade Power System Intelligence      │
+├─────────────────────────────────────────────────────────────────────┤
+│                                                                     │
+│  ┌─────────────────────────┐    ┌────────────────────────────────┐  │
+│  │  🌍 CLIENT LAYER        │    │  🤖 AI AGENT LAYER             │  │
+│  │  ┌───────────────────┐  │    │  ┌──────────────────────────┐  │  │
+│  │  │ Mastra UI (React) │  │    │  │ Study Advisor Agent      │  │  │
+│  │  │ REST API Clients  │  │    │  │ Analysis Agent           │  │  │
+│  │  │ WebSocket Clients │  │    │  │ Report Generation Agent  │  │  │
+│  │  │ Swagger / OpenAPI │  │    │  │ Natural Language Query   │  │  │
+│  │  │ CI/CD Integrations│  │    │  │ Quality Assurance Agent  │  │  │
+│  │  └────────┬──────────┘  │    │  │ Knowledge Base Agent     │  │  │
+│  └───────────┼─────────────┘    │  │ Integration Agent        │  │  │
+│              │                  │  │ Monitoring Agent         │  │  │
+│              │                  │  │ Orchestration Agent      │  │  │
+│              │                  │  └──────────────────────────┘  │  │
+│              │                  └───────────────┬────────────────┘  │
+│              ▼                                  ▼                   │
+│  ┌────────────────────────────────────────────────────────────────┐  │
+│  │  ⚙️ ENGINEERING COMPUTATION ENGINE (FastAPI)                   │  │
+│  │                                                                  │
+│  │  ┌──────────────┐  ┌──────────────┐  ┌──────────────────────┐  │  │
+│  │  │  Load Flow   │  │    Short     │  │      Arc Flash       │  │  │
+│  │  │  NR/FD/OPF   │  │   Circuit    │  │    IEEE 1584-2018    │  │  │
+│  │  └──────────────┘  └──────────────┘  └──────────────────────┘  │  │
+│  │  ┌──────────────┐  ┌──────────────┐  ┌──────────────────────┐  │  │
+│  │  │  Harmonics   │  │      OPF     │  │    Protection        │  │  │
+│  │  │  IEEE 519    │  │  AC/DC Econ  │  │    IEC 60255         │  │  │
+│  │  └──────────────┘  └──────────────┘  └──────────────────────┘  │  │
+│  └────────────────────────────┬───────────────────────────────────┘  │
+│                               │                                      │
+│  ┌────────────────────────────────────────────────────────────────┐  │
+│  │  🔌 INTEGRATION LAYER                                         │  │
+│  │  ┌───────────┐  ┌──────────┐  ┌────────────┐  ┌───────────┐  │  │
+│  │  │ ETAP COM  │  │  ArcGIS  │  │   QGIS     │  │Digital    │  │  │
+│  │  │ Automation│  │ Spatial  │  │ Open Source│  │Twin       │  │  │
+│  │  └───────────┘  └──────────┘  └────────────┘  └───────────┘  │  │
+│  │  ┌───────────┐  ┌──────────┐                                  │  │
+│  │  │ BIM UDM   │  │  SCADA   │                                  │  │
+│  │  │ Data Model│  │ Gateway  │                                  │  │
+│  │  └───────────┘  └──────────┘                                  │  │
+│  └────────────────────────────┬───────────────────────────────────┘  │
+│                               │                                      │
+│  ┌────────────────────────────────────────────────────────────────┐  │
+│  │  🛡️ SECURITY & INFRASTRUCTURE                                 │  │
+│  │                                                                  │
+│  │  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌───────────────┐  │  │
+│  │  │ JWT Auth │  │   RBAC   │  │  Vault   │  │  Rate Limit   │  │  │
+│  │  │  + bcrypt│  │  5 Roles │  │ Secrets  │  │  Token Bucket │  │  │
+│  │  └──────────┘  └──────────┘  └──────────┘  └───────────────┘  │  │
+│  │  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌───────────────┐  │  │
+│  │  │ Sandbox  │  │  Audit   │  │  Docker  │  │  Cloudflare   │  │  │
+│  │  │  Python  │  │   Log    │  │  + K8s   │  │  + CDN        │  │  │
+│  │  └──────────┘  └──────────┘  └──────────┘  └───────────────┘  │  │
+│  └────────────────────────────────────────────────────────────────┘  │
+│                                                                     │
+└─────────────────────────────────────────────────────────────────────┘
 ```
 
 Full architecture: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
 
 ---
 
-## Quick Start
+## 🚀 Quick Start
 
 ### Prerequisites
 
@@ -224,7 +280,7 @@ Access: **http://localhost:3000** (UI) | **http://localhost:8000/docs** (API)
 
 ---
 
-## Validation & Quality
+## ✅ Validation & Quality
 
 | Metric | Count | Status |
 |--------|------:|--------|
@@ -235,34 +291,50 @@ Access: **http://localhost:3000** (UI) | **http://localhost:8000/docs** (API)
 | Docker images | 2 Dockerfiles | ✅ |
 | CI/CD workflows | 10 workflows | ✅ |
 | Pre-commit hooks | 7 checks | ✅ |
+| Stress test (30s) | 685 reqs, 0 failures | ✅ |
 
 ### Quality Gates
 
 | Gate | Trigger | Checks |
 |------|---------|--------|
-| PRE_COMMIT | Every push/PR | Lint, tests, syntax, validation, type checking |
-| PRE_BUILD | Push to main | Docker build, compose validation |
-| POST_BUILD | After build | E2E smoke tests, Trivy security scan |
-| SCHEDULED | Nightly + manual | Full regression, performance baseline |
+| 🚦 PRE_COMMIT | Every push/PR | Lint, tests, syntax, validation, type checking |
+| 🏗️ PRE_BUILD | Push to main | Docker build, compose validation |
+| 🧪 POST_BUILD | After build | E2E smoke tests, Trivy security scan |
+| 🌙 SCHEDULED | Nightly + manual | Full regression, performance baseline |
 
 ---
 
-## Security
+## 🔒 Security
 
 | Layer | Controls |
 |-------|----------|
-| Authentication | JWT with bcrypt (cost 14), account lockout (5 attempts), Fernet encryption |
-| Authorization | RBAC with 5 roles (ADMIN, ENGINEER, ANALYST, VIEWER, GUEST), 25+ permissions |
-| Sandboxing | Python AST validation, restricted globals, SIGALRM timeout (30s), output truncation (10KB) |
-| Secrets | HashiCorp Vault with encrypted local fallback (Fernet), key rotation, env validation |
-| Audit | JSON-structured audit trail to security_audit.log and key_access.log |
-| Rate Limiting | Token-bucket algorithm with per-client tracking, LRU eviction, TTL cleanup |
+| **Authentication** | JWT with bcrypt (cost 14), account lockout (5 attempts), Fernet encryption |
+| **Authorization** | RBAC with 5 roles (ADMIN, ENGINEER, ANALYST, VIEWER, GUEST), 25+ permissions |
+| **Sandboxing** | Python AST validation, restricted globals, SIGALRM timeout (30s), output truncation (10KB) |
+| **Secrets** | HashiCorp Vault with encrypted local fallback (Fernet), key rotation, env validation |
+| **Audit** | JSON-structured audit trail to `security_audit.log` and `key_access.log` |
+| **Rate Limiting** | Token-bucket algorithm with per-client tracking, LRU eviction, TTL cleanup |
 
 See [SECURITY.md](SECURITY.md) and [docs/SECURITY_OPERATIONS_MANUAL.md](docs/SECURITY_OPERATIONS_MANUAL.md).
 
 ---
 
-## Documentation
+## 🛠️ Tech Stack
+
+| Layer | Technology |
+|-------|-----------|
+| **Backend** | Python 3.13+, FastAPI, Pydantic v2 |
+| **Frontend** | React 19+, TypeScript 5.7+, Mastra, Tailwind CSS 4 |
+| **AI/ML** | LangChain, RAG, 9 specialized agents |
+| **Database** | PostgreSQL, Redis (caching), Redis Queue |
+| **DevOps** | Docker, Docker Compose, GitHub Actions (10 workflows) |
+| **Security** | JWT, bcrypt, HashiCorp Vault, Trivy, CodeQL |
+| **GIS** | ArcGIS API, QGIS, GDAL |
+| **Integration** | ETAP COM (Windows), BIM UDM, SCADA |
+
+---
+
+## 📚 Documentation
 
 | Document | Audience |
 |----------|----------|
@@ -277,17 +349,7 @@ See [SECURITY.md](SECURITY.md) and [docs/SECURITY_OPERATIONS_MANUAL.md](docs/SEC
 
 ---
 
-## Support
-
-Need help? Check [SUPPORT.md](SUPPORT.md) for:
-- Bug reports via GitHub Issues
-- Feature requests and discussions
-- Live demo on Hugging Face Spaces
-- Full documentation
-
----
-
-## Contributing
+## 🤝 Contributing
 
 1. Fork the repository
 2. Create a focused branch (`feat/my-feature`)
@@ -298,9 +360,9 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for detailed guidelines.
 
 ---
 
-## License
+## 📄 License
 
-MIT License -- Copyright (c) 2026 Eng. Ahmed Elbaz
+MIT License — Copyright (c) 2026 Eng. Ahmed Elbaz
 
 ETAP is a registered trademark of ETAP Corporation. This project is independent and not affiliated with, endorsed by, or connected to ETAP Corporation.
 
