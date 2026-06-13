@@ -80,7 +80,7 @@ class VaultSecretsManager:
         use_mock_if_unavailable: bool = True,
     ):
         self.vault_addr = vault_addr.rstrip("/")
-        self.vault_token = vault_token
+        self._vault_token = vault_token  # Private to avoid accidental logging
         self.mount_path = mount_path
         self.use_mock = use_mock_if_unavailable
         self._client = None
@@ -91,6 +91,15 @@ class VaultSecretsManager:
         self._fallback_store: Optional[LocalSecretsManager] = None
 
         self._init_vault_client()
+
+    @property
+    def vault_token(self) -> str:
+        """Access vault token (masked in repr for security)."""
+        return self._vault_token
+
+    def __repr__(self) -> str:
+        masked = self._vault_token[:4] + "****" if len(self._vault_token) > 4 else "****"
+        return f"VaultSecretsManager(addr={self.vault_addr!r}, token={masked!r})"
 
     def _init_vault_client(self):
         try:

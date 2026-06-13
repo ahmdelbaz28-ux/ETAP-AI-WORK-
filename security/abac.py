@@ -209,13 +209,26 @@ class ABACPolicyEngine:
         if actual is None:
             return False
 
+        # Resolve template values like ${subject.clearance_level}
+        resolved_value = rule.value
+        if isinstance(resolved_value, str) and resolved_value.startswith("${") and resolved_value.endswith("}"):
+            template_path = resolved_value[2:-1]  # Strip ${ and }
+            if template_path.startswith("subject."):
+                resolved_value = _resolve_path(subject, template_path[len("subject."):])
+            elif template_path.startswith("resource."):
+                resolved_value = _resolve_path(resource, template_path[len("resource."):])
+            elif template_path.startswith("environment."):
+                resolved_value = _resolve_path(environment, template_path[len("environment."):])
+            if resolved_value is None:
+                return False
+
         op_fn = _OPS.get(rule.operator)
         if op_fn is None:
             logger.warning("Unknown ABAC operator: %s", rule.operator)
             return False
 
         try:
-            return op_fn(actual, rule.value)
+            return op_fn(actual, resolved_value)
         except (TypeError, ValueError) as exc:
             logger.debug("ABAC rule evaluation error: %s", exc)
             return False

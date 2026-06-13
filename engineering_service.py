@@ -656,7 +656,7 @@ if not _cors_origin_list:
         "CORS: No origins configured (ENGINEERING_SERVICE_CORS_ORIGINS is empty). "
         "CORS will be restrictive. Set this to your frontend URL(s) in production."
     )
-    _cors_origin_list = [""]  # Empty string = same-origin only
+    _cors_origin_list = []  # No origins allowed = restrictive by default
 app.add_middleware(
     CORSMiddleware,
     allow_origins=_cors_origin_list,
@@ -708,7 +708,7 @@ async def trace_middleware(request: Request, call_next):
 
     # Rate limiting — skip for health endpoints
     if not request.url.path.startswith(("/health", "/ready", "/healthz", "/readyz", "/")):
-        client_id = request.client.host if request.client else "unknown"
+        client_id = request.headers.get("x-forwarded-for", "").split(",")[0].strip() or (request.client.host if request.client else "unknown")
         if not _check_rate_limit(client_id):
             return JSONResponse(
                 status_code=429,
@@ -716,15 +716,36 @@ async def trace_middleware(request: Request, call_next):
                 headers={"Retry-After": str(_RATE_LIMIT_WINDOW)},
             )
 
-    # RASP — Runtime Application Self-Protection
+    # RASP — Runtime Application Self-Protection (singleton engine)
     if not request.url.path.startswith(("/health", "/ready", "/healthz", "/readyz", "/", "/docs", "/openapi")):
         try:
             from security.rasp import create_default_rasp_engine
-            rasp = create_default_rasp_engine()
+            # Use app-level singleton RASP engine (preserves stats across requests)
+            if not hasattr(app.state, "rasp_engine"):
+                app.state.rasp_engine = create_default_rasp_engine()
+            rasp = app.state.rasp_engine
+
             query_str = str(request.query_params) if request.query_params else ""
             path_str = str(request.url.path)
-            # Only inspect query and path (body is consumed by FastAPI later)
-            rasp_results = rasp.inspect({"query": query_str, "path": path_str})
+
+            # Inspect request headers for attack patterns
+            header_str = " ".join(f"{k}={v}" for k, v in request.headers.items())
+
+            # Inspect request body for POST/PUT/PATCH (read, then re-inject for downstream)
+            body_str = ""
+            if request.method in ("POST", "PUT", "PATCH"):
+                try:
+                    raw_body = await request.body()
+                    body_str = raw_body.decode("utf-8", errors="replace")[:10000]  # limit size
+                except Exception:
+                    body_str = ""
+
+            rasp_results = rasp.inspect({
+                "query": query_str,
+                "path": path_str,
+                "body": body_str,
+                "headers": header_str,
+            })
             blocked = [r for r in rasp_results if r.action.value == "block"]
             if blocked:
                 attack_names = [r.rule_name for r in blocked]
@@ -1335,9 +1356,9 @@ async def setup_totp(request: Request):
         return JSONResponse(content={
             "success": True,
             "data": {
-                "secret": secret,
                 "qr_code_uri": qr_uri,
-                "backup_codes": backup_codes,
+                # Note: secret and backup_codes are NOT exposed in the API response
+                # to prevent credential leakage. They are stored server-side only.
             },
             "trace_id": trace_id,
         })
