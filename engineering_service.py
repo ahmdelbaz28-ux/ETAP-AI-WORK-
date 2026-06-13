@@ -1080,6 +1080,150 @@ async def get_agents_info(request: Request):
 
 
 # ---------------------------------------------------------------------------
+# AI/ML Endpoints — Predictive Analytics, Anomaly Detection, RAG
+# ---------------------------------------------------------------------------
+
+@app.post("/api/v1/predict/load")
+async def predict_load(request: Request):
+    """Predict future load using the LSTM-based LoadForecaster."""
+    _require_api_key(request)
+    trace_id = getattr(request.state, "trace_id", "unknown")
+    try:
+        body = await request.json()
+        historical = body.get("historical_data", [])
+        horizon = body.get("horizon_hours", 24)
+
+        if not historical:
+            raise HTTPException(status_code=400, detail="historical_data is required")
+
+        from ml.predictive import LoadForecaster
+        import numpy as np
+        lf = LoadForecaster()
+        data = np.array(historical, dtype=float)
+        lf.train(data)
+        predictions = lf.predict(horizon_hours=horizon)
+        metrics = lf.evaluate(data) if hasattr(lf, 'evaluate') else {}
+
+        return JSONResponse(content={
+            "success": True,
+            "data": {
+                "predictions": predictions.tolist() if hasattr(predictions, 'tolist') else list(predictions),
+                "horizon_hours": horizon,
+                "input_points": len(historical),
+                "metrics": metrics,
+            },
+            "trace_id": trace_id,
+        })
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error("predict_load_failed error=%s", str(e), extra={"trace_id": trace_id})
+        return JSONResponse(status_code=500, content={"success": False, "errors": [str(e)], "trace_id": trace_id})
+
+
+@app.post("/api/v1/predict/fault")
+async def predict_fault(request: Request):
+    """Predict fault type using the Random Forest FaultPredictor."""
+    _require_api_key(request)
+    trace_id = getattr(request.state, "trace_id", "unknown")
+    try:
+        body = await request.json()
+        features = body.get("features", [])
+
+        if not features:
+            raise HTTPException(status_code=400, detail="features array is required")
+
+        from ml.predictive import FaultPredictor
+        import numpy as np
+        fp = FaultPredictor()
+        X = np.array(features, dtype=float)
+        if X.ndim == 1:
+            X = X.reshape(1, -1)
+        prediction = fp.predict(X)
+
+        return JSONResponse(content={
+            "success": True,
+            "data": prediction if isinstance(prediction, dict) else {"prediction": prediction},
+            "trace_id": trace_id,
+        })
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error("predict_fault_failed error=%s", str(e), extra={"trace_id": trace_id})
+        return JSONResponse(status_code=500, content={"success": False, "errors": [str(e)], "trace_id": trace_id})
+
+
+@app.post("/api/v1/predict/anomaly")
+async def detect_anomalies(request: Request):
+    """Detect anomalies in measurement data using Isolation Forest."""
+    _require_api_key(request)
+    trace_id = getattr(request.state, "trace_id", "unknown")
+    try:
+        body = await request.json()
+        data = body.get("data", [])
+
+        if not data:
+            raise HTTPException(status_code=400, detail="data array is required")
+
+        from ml.predictive import AnomalyDetector
+        import numpy as np
+        ad = AnomalyDetector()
+        X = np.array(data, dtype=float)
+        if X.ndim == 1:
+            X = X.reshape(-1, 1)
+        result = ad.detect(X)
+
+        return JSONResponse(content={
+            "success": True,
+            "data": result,
+            "trace_id": trace_id,
+        })
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error("anomaly_detection_failed error=%s", str(e), extra={"trace_id": trace_id})
+        return JSONResponse(status_code=500, content={"success": False, "errors": [str(e)], "trace_id": trace_id})
+
+
+@app.post("/api/v1/rag/query")
+async def rag_query(request: Request):
+    """Query the engineering knowledge base with RAG (IEEE/IEC standards)."""
+    _require_api_key(request)
+    trace_id = getattr(request.state, "trace_id", "unknown")
+    try:
+        body = await request.json()
+        query = body.get("query", "")
+        top_k = body.get("top_k", 5)
+
+        if not query:
+            raise HTTPException(status_code=400, detail="query is required")
+
+        os.environ.setdefault("RAG_ALLOW_HASH_FALLBACK", "1")
+        from knowledge.rag_engine import EngineeringKnowledgeBase
+        kb = EngineeringKnowledgeBase()
+        results = kb.search(query, top_k=top_k)
+
+        return JSONResponse(content={
+            "success": True,
+            "data": {
+                "query": query,
+                "results": results if isinstance(results, list) else str(results),
+                "top_k": top_k,
+                "standards_covered": [
+                    "IEEE 1584-2018", "IEC 60909", "IEEE 519-2022",
+                    "IEC 60255", "IEEE 3002.7", "IEEE 399", "IEEE 80",
+                ],
+            },
+            "trace_id": trace_id,
+        })
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error("rag_query_failed error=%s", str(e), extra={"trace_id": trace_id})
+        return JSONResponse(status_code=500, content={"success": False, "errors": [str(e)], "trace_id": trace_id})
+
+
+# ---------------------------------------------------------------------------
 # SCADA Live Data Endpoint
 # ---------------------------------------------------------------------------
 
