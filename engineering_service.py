@@ -1751,6 +1751,173 @@ async def get_rasp_stats(request: Request):
 
 
 # ---------------------------------------------------------------------------
+# Guard Skills Endpoints (guard-skills integration)
+# ---------------------------------------------------------------------------
+
+class GuardReviewRequest(BaseModel):
+    """Request schema for guard review endpoints."""
+    source: str = Field(..., description="Source code or documentation to review", min_length=1, max_length=500_000)
+    guard_type: str = Field(default="all", description="Guard type: code, test, docs, ai_failure_modes, or all")
+    language: str = Field(default="python", description="Language hint for the scanner")
+    context: Optional[Dict[str, Any]] = Field(default=None, description="Additional context (known symbols, etc.)")
+
+
+class GuardReviewResponse(BaseModel):
+    """Response schema for guard review endpoints."""
+    success: bool
+    guard_results: Dict[str, Any] = {}
+    all_passed: bool = True
+    must_fix_total: int = 0
+    should_fix_total: int = 0
+    worth_noting_total: int = 0
+    trace_id: str = "unknown"
+
+
+@app.post("/api/v1/guards/review", response_model=GuardReviewResponse)
+async def guard_review(request: Request, body: GuardReviewRequest):
+    """Review source code against guard-skills quality gates.
+
+    Runs the specified guard(s) against the provided source code and
+    returns a structured report of violations with severity levels.
+    MUST_FIX violations indicate code that should not be shipped.
+    """
+    _require_api_key(request)
+    trace_id = getattr(request.state, "trace_id", "unknown")
+
+    try:
+        from guards import CodeGuard, TestGuard, DocsGuard, AIFailureModeDetector
+        from guards.base import GuardMode
+
+        results: Dict[str, Any] = {}
+        must_fix_total = 0
+        should_fix_total = 0
+        worth_noting_total = 0
+
+        if body.guard_type in ("all", "code"):
+            guard = CodeGuard(mode=GuardMode.GUARD_PASS)
+            result = guard.scan(body.source, body.language, body.context)
+            results["code_guard"] = result.to_dict()
+            must_fix_total += result.must_fix_count
+            should_fix_total += result.should_fix_count
+            worth_noting_total += result.worth_noting_count
+
+        if body.guard_type in ("all", "test"):
+            guard = TestGuard(mode=GuardMode.GUARD_PASS)
+            result = guard.scan(body.source, body.language, body.context)
+            results["test_guard"] = result.to_dict()
+            must_fix_total += result.must_fix_count
+            should_fix_total += result.should_fix_count
+            worth_noting_total += result.worth_noting_count
+
+        if body.guard_type in ("all", "docs"):
+            guard = DocsGuard(mode=GuardMode.GUARD_PASS)
+            result = guard.scan(body.source, "markdown", body.context)
+            results["docs_guard"] = result.to_dict()
+            must_fix_total += result.must_fix_count
+            should_fix_total += result.should_fix_count
+            worth_noting_total += result.worth_noting_count
+
+        if body.guard_type in ("all", "ai_failure_modes"):
+            detector = AIFailureModeDetector(mode=GuardMode.GUARD_PASS)
+            result = detector.detect(body.source, body.context)
+            results["ai_failure_modes"] = result.to_dict()
+            must_fix_total += result.must_fix_count
+            should_fix_total += result.should_fix_count
+            worth_noting_total += result.worth_noting_count
+
+        all_passed = must_fix_total == 0
+
+        return GuardReviewResponse(
+            success=True,
+            guard_results=results,
+            all_passed=all_passed,
+            must_fix_total=must_fix_total,
+            should_fix_total=should_fix_total,
+            worth_noting_total=worth_noting_total,
+            trace_id=trace_id,
+        )
+
+    except ImportError as e:
+        return JSONResponse(
+            status_code=503,
+            content={
+                "success": False,
+                "errors": [f"Guards module not available: {e}"],
+                "trace_id": trace_id,
+            },
+        )
+    except Exception as e:
+        return JSONResponse(
+            status_code=500,
+            content={"success": False, "errors": [str(e)], "trace_id": trace_id},
+        )
+
+
+@app.get("/api/v1/guards/info")
+async def guard_info(request: Request):
+    """Return information about available guard skills and their rules."""
+    _require_api_key(request)
+    trace_id = getattr(request.state, "trace_id", "unknown")
+
+    try:
+        from guards import AI_FAILURE_MODES
+        from guards.base import GuardSeverity
+
+        return JSONResponse(content={
+            "success": True,
+            "data": {
+                "guards": {
+                    "code_guard": {
+                        "name": "Code Guard",
+                        "description": "Production code quality gate: 23 clean-code rules + 14 AI failure modes",
+                        "rules_checked": 23,
+                    },
+                    "test_guard": {
+                        "name": "Test Guard",
+                        "description": "Test code quality gate: 9 universal rules + 3 LLM-specific rules",
+                        "rules_checked": 12,
+                    },
+                    "docs_guard": {
+                        "name": "Docs Guard",
+                        "description": "Documentation accuracy gate: 10 rules for claim verification",
+                        "rules_checked": 10,
+                    },
+                    "ai_failure_modes": {
+                        "name": "AI Failure Mode Detector",
+                        "description": "Detects 14 systematic LLM code-generation failure patterns",
+                        "failure_modes": [
+                            {
+                                "id": fm.id,
+                                "name": fm.name,
+                                "severity": fm.severity.value,
+                                "description": fm.description,
+                                "research_source": fm.research_source,
+                            }
+                            for fm in AI_FAILURE_MODES
+                        ],
+                    },
+                },
+                "severity_levels": {
+                    "must_fix": "Blocks execution/merge — security or correctness issue",
+                    "should_fix": "Should fix before shipping — design defect or maintenance drag",
+                    "worth_noting": "Informational — polish or architecture suggestion",
+                },
+                "source": "Adapted from guard-skills (github.com/amElnagdy/guard-skills)",
+            },
+            "trace_id": trace_id,
+        })
+    except ImportError:
+        return JSONResponse(content={
+            "success": True,
+            "data": {
+                "guards": {},
+                "note": "Guards module not available in this deployment",
+            },
+            "trace_id": trace_id,
+        })
+
+
+# ---------------------------------------------------------------------------
 # CLI entrypoint
 # ---------------------------------------------------------------------------
 

@@ -65,6 +65,12 @@ export const AGENT_REGISTRY: Readonly<Record<string, AgentMeta>> = Object.freeze
     description: 'Retrieves weather data for engineering planning.',
     capabilities: ['weather_forecast', 'temperature', 'wind_speed'],
   },
+  'code-guard-agent': {
+    id: 'code-guard-agent',
+    name: 'Code Guard Agent',
+    description: 'Reviews AI-generated code against 14 AI failure modes, 23 clean-code rules, 9 testing rules, and 10 documentation accuracy rules. Adapted from guard-skills (github.com/amElnagdy/guard-skills).',
+    capabilities: ['code_review', 'ai_failure_mode_detection', 'test_quality', 'docs_accuracy', 'clean_code'],
+  },
 });
 
 export function getAgent(id: string): AgentMeta | undefined {

@@ -14,6 +14,7 @@ import { arcFlashAgent } from './agents/arcflash-agent';
 import { etapEngineerAgent } from './agents/etap-engineer-agent';
 import { protectionAgent } from './agents/protection-agent';
 import { powerSystemCoordinatorAgent } from './agents/power-system-coordinator-agent';
+import { codeGuardAgent } from './agents/code-guard-agent';
 
 // Lazy-initialized observability store to avoid blocking startup with DuckDB
 let _observabilityStore: any = null;
@@ -71,7 +72,8 @@ export const mastra = new Mastra({
     arcFlashAgent,
     etapEngineerAgent,
     protectionAgent,
-    powerSystemCoordinatorAgent
+    powerSystemCoordinatorAgent,
+    codeGuardAgent
   },
   storage: new MastraCompositeStore({
     id: 'composite-storage',

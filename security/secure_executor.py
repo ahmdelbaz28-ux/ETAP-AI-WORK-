@@ -2,11 +2,14 @@
 Secure Python Executor
 ======================
 P0 Security Control: Validates and executes Python code in a restricted environment.
-Integrates with security_framework.py for AST-based validation.
+Integrates with security_framework.py for AST-based validation and the guard-skills
+AI failure-mode detector for quality pre-scan of AI-generated code.
 
 Security Measures:
 - Code passed via stdin (not CLI args) to prevent shell injection
 - AST validation before execution
+- **AI failure-mode pre-scan** (guard-skills integration): detects the 14
+  systematic LLM code-generation failure patterns before code reaches exec()
 - Restricted builtins (no os, sys, getattr, setattr in sandbox)
 - Timeout protection
 - Output truncation
@@ -73,6 +76,46 @@ def main():
             'success': False
         }))
         sys.exit(1)
+
+    # --- AI Failure-Mode Pre-Scan (guard-skills integration) ---
+    # Run the AI failure-mode detector on the submitted code.  MUST_FIX
+    # violations (e.g., catch-all error swallowing, hardcoded success
+    # returns) block execution.  SHOULD_FIX violations are logged but
+    # do not block — they serve as quality feedback to the calling agent.
+    try:
+        from guards.ai_failure_modes import AIFailureModeDetector, GuardSeverity
+        _ai_detector = AIFailureModeDetector()
+        _ai_result = _ai_detector.detect(code)
+        if not _ai_result.passed:
+            _must_fix = [v for v in _ai_result.violations if v.severity == GuardSeverity.MUST_FIX]
+            if _must_fix:
+                audit.log_security_violation(
+                    'agent_tool',
+                    'AI failure-mode guard blocked execution',
+                    {'must_fix_count': len(_must_fix),
+                     'violations': [v.rule_id for v in _must_fix]}
+                )
+                _details = '; '.join(f'{v.rule_id}: {v.description}' for v in _must_fix[:5])
+                print(json.dumps({
+                    'error': f'AI Quality Guard: Code blocked due to critical failure modes. '
+                             f'{_details}',
+                    'success': False,
+                    'guard_violations': _ai_result.to_dict()
+                }))
+                sys.exit(1)
+            else:
+                # SHOULD_FIX / WORTH_NOTING — log but proceed
+                audit.log_action('agent_tool', 'ai_guard_warning', 'quality_warning', True)
+                logger.info(
+                    'AI guard: %d should-fix / worth-noting violations detected (proceeding)',
+                    _ai_result.should_fix_count + _ai_result.worth_noting_count,
+                )
+    except ImportError:
+        # guards module not available — skip guard scan gracefully
+        logger.debug('guards module not available, skipping AI failure-mode scan')
+    except Exception as guard_err:
+        # Guard scan itself must never block execution on error
+        logger.warning('AI guard scan failed: %s', guard_err)
 
     audit.log_action('agent_tool', 'execute_python', 'restricted_sandbox', True)
 
