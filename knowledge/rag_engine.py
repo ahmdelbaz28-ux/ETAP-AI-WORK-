@@ -146,21 +146,45 @@ class EmbeddingModel:
             return self._fallback_embedding(texts)
 
     def _fallback_embedding(self, texts: List[str]) -> np.ndarray:
-        """Fallback embedding using deterministic SHA-256 hashing (NOT RECOMMENDED for production)."""
-        import hashlib
-        dim = 384
-        embeddings = []
-        for text in texts:
-            emb = np.zeros(dim)
-            words = text.lower().split()
-            for i, word in enumerate(words[:dim]):
-                word_hash = int(hashlib.sha256(word.encode()).hexdigest(), 16)
-                emb[i % dim] = (word_hash % 10000) / 10000.0
-            norm = np.linalg.norm(emb)
-            if norm > 0:
-                emb = emb / norm
-            embeddings.append(emb)
-        return np.array(embeddings)
+        """
+        Fallback embedding when cloud embedding is unavailable.
+
+        Instead of producing meaningless SHA-256 hash vectors, this raises
+        a RuntimeError to fail loudly. Operators must configure a valid
+        embedding provider (OpenAI, local model, etc.) before using RAG.
+
+        If you intentionally want a lightweight deterministic fallback for
+        testing, set the environment variable RAG_ALLOW_HASH_FALLBACK=1.
+        """
+        import os
+        if os.environ.get("RAG_ALLOW_HASH_FALLBACK") == "1":
+            import hashlib
+            dim = 384
+            embeddings = []
+            for text in texts:
+                emb = np.zeros(dim)
+                words = text.lower().split()
+                for i, word in enumerate(words[:dim]):
+                    word_hash = int(hashlib.sha256(word.encode()).hexdigest(), 16)
+                    emb[i % dim] = (word_hash % 10000) / 10000.0
+                norm = np.linalg.norm(emb)
+                if norm > 0:
+                    emb = emb / norm
+                embeddings.append(emb)
+            logger.warning(
+                "Using SHA-256 hash fallback for embeddings — "
+                "semantic similarity will NOT be meaningful. "
+                "Configure a real embedding provider for production."
+            )
+            return np.array(embeddings)
+
+        raise RuntimeError(
+            "No embedding provider available. The SHA-256 hash fallback has been "
+            "disabled because it produces meaningless vectors. Please configure "
+            "a valid embedding provider (e.g., set OPENAI_API_KEY or run a local "
+            "sentence-transformers model). To enable the hash fallback for testing, "
+            "set RAG_ALLOW_HASH_FALLBACK=1."
+        )
 
 
 class VectorDatabase:

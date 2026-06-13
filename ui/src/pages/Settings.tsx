@@ -2,6 +2,44 @@ import { useState, useEffect } from 'react'
 import { MdSave, MdRefresh, MdFileDownload, MdFileUpload, MdDelete } from 'react-icons/md'
 import { useNotify } from '../context/NotificationContext'
 
+// Simple XOR-based obfuscation for localStorage storage.
+// NOT a substitute for server-side encryption — but prevents
+// plaintext secrets from being readable via DevTools at a glance.
+const OBFUSCATION_KEY = 'ETAP-SEC-2024-OBFUSCATION'
+function obfuscate(value: string): string {
+  let result = ''
+  for (let i = 0; i < value.length; i++) {
+    result += String.fromCharCode(value.charCodeAt(i) ^ OBFUSCATION_KEY.charCodeAt(i % OBFUSCATION_KEY.length))
+  }
+  return btoa(result)
+}
+function deobfuscate(value: string): string {
+  try {
+    const decoded = atob(value)
+    let result = ''
+    for (let i = 0; i < decoded.length; i++) {
+      result += String.fromCharCode(decoded.charCodeAt(i) ^ OBFUSCATION_KEY.charCodeAt(i % OBFUSCATION_KEY.length))
+    }
+    return result
+  } catch {
+    return value
+  }
+}
+
+const SECRET_FIELDS = new Set([
+  'API_KEY_SECRET', 'JWT_SECRET_KEY', 'OPENAI_API_KEY', 'NVIDIA_API_KEY',
+  'QWEN_API_KEY', 'GLM_API_KEY', 'ENGINEERING_SERVICE_API_KEY',
+  'LANGWATCH_API_KEY', 'REDIS_URL', 'DATABASE_URL', 'VAULT_TOKEN',
+  'SMTP_USERNAME', 'ETAP_LICENSE_PATH',
+])
+
+const SETTINGS_SCHEMA = {
+  requiredKeys: ['OPENAI_MODEL', 'OPENAI_BASE_URL', 'ENGINEERING_SERVICE_URL'],
+  maxFields: 60,
+  maxKeyLength: 50,
+  maxValueLength: 500,
+}
+
 function getDefaults(): Record<string, string> {
   return {
     API_KEY_SECRET: '',
@@ -46,6 +84,30 @@ function getDefaults(): Record<string, string> {
   }
 }
 
+function validateImportedSettings(data: unknown): { valid: boolean; errors: string[] } {
+  const errors: string[] = []
+  if (!data || typeof data !== 'object' || Array.isArray(data)) {
+    return { valid: false, errors: ['Invalid settings format: expected an object'] }
+  }
+  const obj = data as Record<string, unknown>
+  const keys = Object.keys(obj)
+  if (keys.length > SETTINGS_SCHEMA.maxFields) {
+    errors.push(`Too many fields: ${keys.length} (max ${SETTINGS_SCHEMA.maxFields})`)
+  }
+  for (const key of keys) {
+    if (typeof key !== 'string' || key.length > SETTINGS_SCHEMA.maxKeyLength) {
+      errors.push(`Invalid key: ${key.substring(0, 20)}`)
+    }
+    if (typeof obj[key] !== 'string') {
+      errors.push(`Non-string value for key: ${key}`)
+    }
+    if (typeof obj[key] === 'string' && obj[key].length > SETTINGS_SCHEMA.maxValueLength) {
+      errors.push(`Value too long for key: ${key}`)
+    }
+  }
+  return { valid: errors.length === 0, errors }
+}
+
 export function Settings() {
   const [settings, setSettings] = useState<Record<string, string>>({})
   const [saving, setSaving] = useState(false)
@@ -55,8 +117,17 @@ export function Settings() {
     const stored = localStorage.getItem('etap-settings')
     const defaults = getDefaults()
     if (stored) {
-      try { setSettings({ ...defaults, ...JSON.parse(stored) }) }
-      catch { setSettings(defaults) }
+      try {
+        const parsed = JSON.parse(stored)
+        // Deobfuscate secret fields
+        const deobfuscated: Record<string, string> = {}
+        for (const [k, v] of Object.entries(parsed)) {
+          deobfuscated[k] = SECRET_FIELDS.has(k) ? deobfuscate(v as string) : (v as string)
+        }
+        setSettings({ ...defaults, ...deobfuscated })
+      } catch {
+        setSettings(defaults)
+      }
     } else {
       setSettings(defaults)
     }
@@ -64,8 +135,15 @@ export function Settings() {
 
   const handleSave = () => {
     setSaving(true)
-    localStorage.setItem('etap-settings', JSON.stringify(settings))
-    if (settings.API_KEY_SECRET) localStorage.setItem('etap-api-key', settings.API_KEY_SECRET)
+    // Obfuscate secret fields before storing
+    const toStore: Record<string, string> = {}
+    for (const [k, v] of Object.entries(settings)) {
+      toStore[k] = SECRET_FIELDS.has(k) ? obfuscate(v) : v
+    }
+    localStorage.setItem('etap-settings', JSON.stringify(toStore))
+    if (settings.API_KEY_SECRET) {
+      localStorage.setItem('etap-api-key', obfuscate(settings.API_KEY_SECRET))
+    }
     setTimeout(() => { setSaving(false); notify('success', 'Settings saved successfully') }, 400)
   }
 
@@ -77,12 +155,21 @@ export function Settings() {
   }
 
   const handleExport = () => {
-    const blob = new Blob([JSON.stringify(settings, null, 2)], { type: 'application/json' })
+    // Export without secret values — user must re-enter secrets after import
+    const exportData: Record<string, string> = {}
+    for (const [k, v] of Object.entries(settings)) {
+      if (SECRET_FIELDS.has(k)) {
+        exportData[k] = '' // Clear secrets on export
+      } else {
+        exportData[k] = v
+      }
+    }
+    const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' })
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
     a.href = url; a.download = 'etap-settings.json'; a.click()
     URL.revokeObjectURL(url)
-    notify('success', 'Settings exported')
+    notify('success', 'Settings exported (secrets excluded for security)')
   }
 
   const handleImport = () => {
@@ -93,8 +180,18 @@ export function Settings() {
       const file = input.files?.[0]
       if (!file) return
       const text = await file.text()
-      try { setSettings(prev => ({ ...prev, ...JSON.parse(text) })); notify('success', 'Settings imported') }
-      catch { notify('error', 'Invalid settings file') }
+      try {
+        const parsed = JSON.parse(text)
+        const validation = validateImportedSettings(parsed)
+        if (!validation.valid) {
+          notify('error', `Invalid settings: ${validation.errors.join(', ')}`)
+          return
+        }
+        setSettings(prev => ({ ...prev, ...parsed }))
+        notify('success', 'Settings imported (secrets must be re-entered)')
+      } catch {
+        notify('error', 'Invalid settings file format')
+      }
     }
     input.click()
   }

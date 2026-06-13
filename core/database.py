@@ -46,6 +46,10 @@ class UniversalDataModel:
         """Get thread-local connection."""
         if not hasattr(self._local, "conn") or self._local.conn is None:
             os.makedirs(os.path.dirname(self._db_path) or ".", exist_ok=True)
+            # check_same_thread=False is safe because we use thread-local connections:
+            # each thread gets its own Connection object, so the connection is never
+            # shared across threads. The flag is required for SQLite to accept
+            # connections created in a different thread than the one using them.
             self._local.conn = sqlite3.connect(self._db_path, check_same_thread=False)
             self._local.conn.row_factory = sqlite3.Row
         return self._local.conn

@@ -114,8 +114,12 @@ services:
   redis:
     image: redis:7-alpine
     container_name: etap-redis
-    ports:
-      - "${REDIS_PORT:-6379}:6379"
+    # Do NOT expose Redis port to the host in production.
+    # Only expose if absolutely needed for development.
+    # ports:
+    #   - "${REDIS_PORT:-6379}:6379"
+    expose:
+      - "6379"
     environment:
       - REDIS_PASSWORD=${REDIS_PASSWORD:?REDIS_PASSWORD is required}
     volumes:
@@ -124,7 +128,7 @@ services:
     command: >
       sh -c 'exec redis-server --appendonly yes --requirepass "$${REDIS_PASSWORD}"'
     healthcheck:
-      test: ["CMD", "redis-cli", "-a", "$$REDIS_PASSWORD", "ping"]
+      test: ["CMD", "redis-cli", "--no-auth-warning", "-a", "$$REDIS_PASSWORD", "ping"]
       interval: 10s
       timeout: 5s
       retries: 3
@@ -183,9 +187,10 @@ services:
   rabbitmq:
     image: rabbitmq:3-management
     container_name: etap-rabbitmq
-    ports:
-      - "${RABBITMQ_AMQP_PORT:-5672}:5672"
-      - "${RABBITMQ_MGMT_PORT:-15672}:15672"
+    # Do NOT expose RabbitMQ ports to the host in production.
+    expose:
+      - "5672"
+      - "15672"
     environment:
       - RABBITMQ_DEFAULT_USER=${RABBITMQ_USER:-admin}
       - RABBITMQ_DEFAULT_PASS=${RABBITMQ_PASS:?RABBITMQ_PASS is required}
@@ -213,8 +218,9 @@ services:
   postgres:
     image: postgres:15-alpine
     container_name: etap-postgres
-    ports:
-      - "${POSTGRES_PORT:-5432}:5432"
+    # Do NOT expose Postgres port to the host in production.
+    expose:
+      - "5432"
     environment:
       - POSTGRES_USER=${DB_USER:-etap}
       - POSTGRES_PASSWORD=${DB_PASS:?DB_PASS is required}

@@ -12,6 +12,7 @@ import time
 from dataclasses import dataclass, field
 from typing import Dict, List, Optional, Set, Tuple, Any
 from enum import Enum
+from collections import deque
 import numpy as np
 
 
@@ -160,15 +161,15 @@ class TopologyProcessor:
             self.add_connection(bus1, bus2, switch_id)
 
     def find_connected_components(self) -> List[Set[str]]:
-        """Find all connected components using BFS."""
+        """Find all connected components using BFS with O(1) deque.popleft()."""
         visited = set()
         components = []
         for bus in self.bus_connections:
             if bus not in visited:
                 component = set()
-                queue = [bus]
+                queue = deque([bus])
                 while queue:
-                    current = queue.pop(0)
+                    current = queue.popleft()
                     if current in visited:
                         continue
                     visited.add(current)
@@ -180,13 +181,13 @@ class TopologyProcessor:
         return components
 
     def find_path(self, start: str, end: str) -> Optional[List[str]]:
-        """Find shortest path between two buses using BFS."""
+        """Find shortest path between two buses using BFS with O(1) deque.popleft()."""
         if start not in self.bus_connections or end not in self.bus_connections:
             return None
         visited = {start}
-        queue = [(start, [start])]
+        queue = deque([(start, [start])])
         while queue:
-            current, path = queue.pop(0)
+            current, path = queue.popleft()
             if current == end:
                 return path
             for neighbor in self.bus_connections.get(current, set()):

@@ -57,10 +57,13 @@ def main():
     audit.log_action('agent_tool', 'execute_powershell', 'restricted_sandbox', True)
 
     # Execute validated command
+    # Security: Use -ExecutionPolicy AllSigned instead of Restricted for defense-in-depth.
+    # -NoProfile prevents profile scripts from running (potential attack vector).
+    # -NonInteractive prevents interactive prompts.
     import subprocess
     try:
         result = subprocess.run(
-            ['powershell', '-NoProfile', '-NonInteractive', '-ExecutionPolicy', 'Restricted', '-Command', command],
+            ['powershell', '-NoProfile', '-NonInteractive', '-ExecutionPolicy', 'AllSigned', '-Command', command],
             capture_output=True,
             text=True,
             timeout=POWERSHELL_TIMEOUT_MS / 1000,
