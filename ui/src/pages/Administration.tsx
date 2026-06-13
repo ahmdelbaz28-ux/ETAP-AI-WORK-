@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { MdAdminPanelSettings, MdKey, MdPeople, MdShield, MdRefresh } from 'react-icons/md'
-import { fetchHealth, fetchMetrics, fetchAgents, type MetricsResponse, type AgentMeta } from '../lib/api'
+import { fetchMetrics, fetchAgents, type MetricsResponse, type AgentMeta } from '../lib/api'
 import { useNotify } from '../context/NotificationContext'
 
 export function Administration() {
@@ -27,9 +27,9 @@ export function Administration() {
 
   useEffect(() => { load() }, [])
 
-  const totalCalls = metrics ? Object.values(metrics.api).reduce((a, b) => a + b, 0) : 0
+  const totalCalls = metrics ? Object.values(metrics.api as Record<string, number>).reduce((a: number, b: number) => a + b, 0) : 0
   const activeKeys = metrics ? Object.keys(metrics.perKey).length : 0
-  const errors = metrics?.api.errors ?? 0
+  const errors = (metrics?.api as Record<string, number>)?.errors ?? 0
 
   return (
     <div className="space-y-6">
@@ -66,7 +66,7 @@ export function Administration() {
         <div className="bg-surface-800 rounded-xl p-5 border border-surface-700">
           <h3 className="text-lg font-semibold text-white mb-3">API Metrics</h3>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
-            {Object.entries(metrics.api).map(([k, v]) => (
+            {Object.entries(metrics.api as Record<string, number>).map(([k, v]) => (
               <div key={k} className="bg-surface-700 rounded-lg p-3">
                 <p className="text-surface-400 capitalize">{k.replace(/([A-Z])/g, ' $1').trim()}</p>
                 <p className="text-lg font-bold text-white">{v}</p>
@@ -79,7 +79,7 @@ export function Administration() {
       <div className="bg-surface-800 rounded-xl p-5 border border-surface-700">
         <h3 className="text-lg font-semibold text-white mb-3">Provider Latency</h3>
         <div className="space-y-2">
-          {metrics ? Object.entries(metrics.providers).map(([name, p]) => (
+          {metrics ? Object.entries(metrics.providers as Record<string, { count: number; avgMs: number; failureRate: number }>).map(([name, p]) => (
             <div key={name} className="flex items-center justify-between px-3 py-2 bg-surface-700 rounded-lg">
               <span className="text-sm text-white capitalize">{name}</span>
               <span className="text-sm text-surface-300">{p.count} calls, {p.avgMs}ms avg, {(p.failureRate * 100).toFixed(1)}% fail</span>

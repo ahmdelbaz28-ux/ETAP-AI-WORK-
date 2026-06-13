@@ -35,10 +35,11 @@ export function Diagnostics() {
         results.push({ name: 'Engineering Service', status: 'warn', message: 'Not configured' })
       }
 
+      const providerCount = health.providers ? Object.keys(health.providers).length : 0
       results.push({
         name: 'AI Providers',
-        status: health.providers.length > 0 ? 'pass' : 'warn',
-        message: `${health.providers.length} providers configured`,
+        status: providerCount > 0 ? 'pass' : 'warn',
+        message: `${providerCount} provider${providerCount !== 1 ? 's' : ''} configured`,
       })
     } catch {
       results.push({ name: 'API Gateway', status: 'fail', message: 'Unreachable' })
