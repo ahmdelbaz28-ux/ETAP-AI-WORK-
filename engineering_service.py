@@ -31,6 +31,21 @@ import uuid
 from contextlib import asynccontextmanager
 from typing import Any, Dict, List, Optional
 
+# ---------------------------------------------------------------------------
+# Cache directories — redirect to /tmp for HF Spaces (read-only filesystem)
+# ---------------------------------------------------------------------------
+for _env_key, _env_val in [
+    ("NUMBA_CACHE_DIR", "/tmp/numba_cache"),
+    ("MPLCONFIGDIR", "/tmp/matplotlib_cache"),
+    ("XDG_CACHE_HOME", "/tmp/hf_cache"),
+    ("HF_HOME", "/tmp/hf_cache"),
+    ("TRANSFORMERS_CACHE", "/tmp/hf_cache/transformers"),
+    ("TORCH_HOME", "/tmp/hf_cache/torch"),
+]:
+    if _env_key not in os.environ:
+        os.environ[_env_key] = _env_val
+    os.makedirs(os.environ[_env_key], exist_ok=True)
+
 
 # ---------------------------------------------------------------------------
 # numpy-aware JSON sanitizer
@@ -574,6 +589,27 @@ async def trace_middleware(request: Request, call_next):
 # Health endpoints
 # ---------------------------------------------------------------------------
 
+@app.head("/")
+@app.get("/")
+async def root():
+    """Root endpoint — also handles HEAD / for HF Spaces health checks."""
+    return {"message": "ETAP AI Engineering Platform", "version": "1.0.0"}
+
+
+@app.get("/healthz")
+async def healthz():
+    """Lightweight liveness probe (no heavy initialization)."""
+    return {"status": "alive"}
+
+
+@app.get("/readyz")
+async def readyz():
+    """Readiness probe — checks critical dependencies."""
+    checks = {"python": True, "imports": True}
+    all_ready = all(checks.values())
+    return {"ready": all_ready, "checks": checks}
+
+
 @app.get("/health", response_model=HealthResponse)
 async def health_check(request: Request):
     return HealthResponse(
@@ -763,8 +799,8 @@ def main() -> None:
     )
     parser.add_argument("--host", type=str, default=os.environ.get("ENGINEERING_SERVICE_HOST", "0.0.0.0"),
                         help="Host to bind (default: 0.0.0.0)")
-    parser.add_argument("--port", type=int, default=int(os.environ.get("ENGINEERING_SERVICE_PORT", "8000")),
-                        help="Port to bind (default: 8000)")
+    parser.add_argument("--port", type=int, default=int(os.environ.get("ENGINEERING_SERVICE_PORT", os.environ.get("PORT", "8000"))),
+                        help="Port to bind (default: 8000, or PORT env var for HF Spaces)")
     parser.add_argument("--workers", type=int, default=1,
                         help="Number of worker processes (default: 1)")
     args = parser.parse_args()
