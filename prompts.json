@@ -11,6 +11,7 @@
     "protection_agent": "prompts/protection_agent.prompt.yaml",
     "motor_starting_agent": "prompts/motor_starting_agent.prompt.yaml",
     "weather_agent": "prompts/weather_agent.prompt.yaml",
+    "weather_activity_planner": "prompts/weather_activity_planner.prompt.yaml",
     "power_system_coordinator_agent": "prompts/power_system_coordinator_agent.prompt.yaml",
     "harmonic_agent": "prompts/harmonic_agent.prompt.yaml",
     "opf_agent": "prompts/opf_agent.prompt.yaml",
@@ -25,6 +26,8 @@
     "digital_twin_agent": "prompts/digital_twin_agent.prompt.yaml",
     "predictive_agent": "prompts/predictive_agent.prompt.yaml",
     "anomaly_agent": "prompts/anomaly_agent.prompt.yaml",
-    "coordination_agent": "prompts/coordination_agent.prompt.yaml"
+    "coordination_agent": "prompts/coordination_agent.prompt.yaml",
+    "fallback_agent": "prompts/fallback_agent.prompt.yaml",
+    "generic_agent_chat": "prompts/generic_agent_chat.prompt.yaml"
   }
 }
