@@ -22,6 +22,7 @@
     "dataImport": "Data Import",
     "dataExport": "Data Export",
     "logs": "Logs",
+    "codeGuard": "Code Guard",
     "darkMode": "Dark Mode",
     "lightMode": "Light Mode",
     "logout": "Logout",

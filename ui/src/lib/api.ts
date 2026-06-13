@@ -166,3 +166,66 @@ export async function fetchAuditLogs(): Promise<AuditEntry[]> {
     return []
   }
 }
+
+// ---------- Guard Skills API ----------
+
+export interface GuardViolation {
+  rule_id: string
+  rule_name: string
+  severity: 'must_fix' | 'should_fix' | 'worth_noting'
+  description: string
+  location: string
+  suggestion: string
+  evidence: string
+}
+
+export interface GuardReviewResult {
+  success: boolean
+  guard_results: Record<string, {
+    guard_name: string
+    mode: string
+    passed: boolean
+    must_fix: number
+    should_fix: number
+    worth_noting: number
+    violations: GuardViolation[]
+  }>
+  all_passed: boolean
+  must_fix_total: number
+  should_fix_total: number
+  worth_noting_total: number
+  trace_id: string
+}
+
+export interface GuardInfo {
+  guards: Record<string, {
+    name: string
+    description: string
+    rules_checked: number
+    failure_modes?: Array<{
+      id: string
+      name: string
+      severity: string
+      description: string
+      research_source: string
+    }>
+  }>
+  severity_levels: Record<string, string>
+  source: string
+}
+
+export async function guardReview(
+  source: string,
+  guardType: string = 'all',
+  language: string = 'python'
+): Promise<GuardReviewResult> {
+  return request<GuardReviewResult>('/api/v1/guards/review', {
+    method: 'POST',
+    body: JSON.stringify({ source, guard_type: guardType, language }),
+  })
+}
+
+export async function fetchGuardInfo(): Promise<GuardInfo> {
+  const data = await request<{ success: boolean; data: GuardInfo }>('/api/v1/guards/info')
+  return data.data
+}

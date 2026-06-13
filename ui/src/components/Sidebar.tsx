@@ -8,7 +8,7 @@ import {
   LayoutDashboard, FlaskConical, Bot, FolderKanban, Settings,
   ShieldCheck, Bug, Map, FileText, Upload, Download, ScrollText,
   ChevronLeft, ChevronRight, Sun, Moon, Zap, Plug, Layers, Network,
-  Cpu, Wrench
+  Cpu, Wrench, Shield
 } from 'lucide-react'
 import { cn } from '../utils/helpers'
 
@@ -35,6 +35,7 @@ const navItems: NavItem[] = [
   { to: '/settings', icon: Settings, labelKey: 'sidebar.settings', section: 'system' },
   { to: '/admin', icon: ShieldCheck, labelKey: 'sidebar.administration', section: 'system' },
   { to: '/diagnostics', icon: Bug, labelKey: 'sidebar.diagnostics', section: 'system' },
+  { to: '/code-guard', icon: Shield, labelKey: 'sidebar.codeGuard', section: 'system' },
   { to: '/logs', icon: ScrollText, labelKey: 'sidebar.logs', section: 'system' },
 ]
 

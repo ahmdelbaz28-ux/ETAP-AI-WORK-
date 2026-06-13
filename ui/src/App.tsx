@@ -20,6 +20,7 @@ import { DigitalTwin } from './pages/DigitalTwin'
 import { DataImport } from './pages/DataImport'
 import { DataExport } from './pages/DataExport'
 import { Logs } from './pages/Logs'
+import CodeGuard from './pages/CodeGuard'
 import './i18n'
 
 export default function App() {
@@ -54,6 +55,7 @@ export default function App() {
               <Route path="/data-import" element={<DataImport />} />
               <Route path="/data-export" element={<DataExport />} />
               <Route path="/logs" element={<Logs />} />
+              <Route path="/code-guard" element={<CodeGuard />} />
             </Route>
           </Routes>
         </BrowserRouter>
