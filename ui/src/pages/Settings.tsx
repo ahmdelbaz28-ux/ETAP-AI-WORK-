@@ -1,6 +1,9 @@
 import { useState, useEffect } from 'react'
-import { MdSave, MdFileDownload, MdFileUpload, MdDelete } from 'react-icons/md'
+import { motion } from 'framer-motion'
+import { Save, Download, Upload, Trash2, Bot, Wrench, Database, Shield, Link2, Gauge } from 'lucide-react'
 import { useNotify } from '../context/NotificationContext'
+import { Card, CardHeader, CardSection, Button, Tabs, TabPanels, useTabState, Toggle } from '../components/ui'
+import { cn } from '../utils/helpers'
 
 // Simple XOR-based obfuscation for localStorage storage.
 // NOT a substitute for server-side encryption — but prevents
@@ -108,10 +111,99 @@ function validateImportedSettings(data: unknown): { valid: boolean; errors: stri
   return { valid: errors.length === 0, errors }
 }
 
+interface SettingsSection {
+  title: string
+  fields: string[]
+}
+
+const TAB_SECTIONS: Record<string, { label: string; icon: React.ReactNode; sections: SettingsSection[] }> = {
+  ai: {
+    label: 'AI Providers',
+    icon: <Bot className="w-4 h-4" />,
+    sections: [
+      { title: 'OpenAI Provider', fields: ['OPENAI_API_KEY', 'OPENAI_MODEL', 'OPENAI_BASE_URL'] },
+      { title: 'NVIDIA Provider', fields: ['NVIDIA_API_KEY', 'NVIDIA_MODEL', 'NVIDIA_BASE_URL'] },
+      { title: 'QWEN Provider', fields: ['QWEN_API_KEY', 'QWEN_BASE_URL'] },
+      { title: 'GLM Provider', fields: ['GLM_API_KEY', 'GLM_BASE_URL'] },
+    ],
+  },
+  engineering: {
+    label: 'Engineering Service',
+    icon: <Wrench className="w-4 h-4" />,
+    sections: [
+      { title: 'Engineering Service', fields: ['ENGINEERING_SERVICE_URL', 'ENGINEERING_SERVICE_API_KEY', 'ENGINEERING_SERVICE_TIMEOUT_MS'] },
+    ],
+  },
+  database: {
+    label: 'Database & Cache',
+    icon: <Database className="w-4 h-4" />,
+    sections: [
+      { title: 'Database', fields: ['MASTRA_DB_URL', 'DATABASE_URL', 'REDIS_URL'] },
+      { title: 'Cache & Performance', fields: ['CACHE_SIZE_MB', 'CACHE_DEFAULT_TTL', 'MAX_WORKERS'] },
+    ],
+  },
+  security: {
+    label: 'Security',
+    icon: <Shield className="w-4 h-4" />,
+    sections: [
+      { title: 'Authentication', fields: ['API_KEY_SECRET', 'JWT_SECRET_KEY'] },
+      { title: 'Vault & Secrets', fields: ['VAULT_ADDR', 'VAULT_TOKEN'] },
+    ],
+  },
+  integration: {
+    label: 'Integration',
+    icon: <Link2 className="w-4 h-4" />,
+    sections: [
+      { title: 'ETAP Integration', fields: ['ETAP_LICENSE_PATH', 'ETAP_WORKER_URL'] },
+      { title: 'Email Alerts', fields: ['SMTP_SERVER', 'SMTP_PORT', 'SMTP_USERNAME', 'ALERT_EMAIL_TO'] },
+    ],
+  },
+  performance: {
+    label: 'Performance',
+    icon: <Gauge className="w-4 h-4" />,
+    sections: [
+      { title: 'Observability', fields: ['LANGWATCH_API_KEY', 'HEALTH_CHECK_API_URL', 'PROMETHEUS_ENABLED', 'PROMETHEUS_PORT'] },
+      { title: 'Rate Limiting & Circuit Breaker', fields: ['RATE_LIMIT_REQUESTS_PER_MINUTE', 'CIRCUIT_BREAKER_FAILURE_THRESHOLD', 'MAX_BODY_SIZE'] },
+      { title: 'Feature Flags', fields: ['ENABLE_ASYNC_EXECUTION', 'ENABLE_CACHING', 'ENABLE_OBSERVABILITY'] },
+    ],
+  },
+}
+
+function SettingsField({ field, value, onChange }: { field: string; value: string; onChange: (v: string) => void }) {
+  const isSecret = field.includes('KEY') || field.includes('SECRET')
+  const isFeatureFlag = field.startsWith('ENABLE_')
+  const isNumber = field.includes('_MS') || field.includes('PORT') || field.includes('SIZE') || field.includes('TTL') || field.includes('RATE') || field.includes('THRESHOLD') || field.includes('MAX_')
+
+  if (isFeatureFlag) {
+    return (
+      <Toggle
+        checked={value === 'true'}
+        onChange={(checked) => onChange(checked ? 'true' : 'false')}
+        label={field.replace(/_/g, ' ').replace(/ENABLE /, '')}
+        description={`Toggle ${field.replace(/_/g, ' ').toLowerCase()}`}
+        size="sm"
+      />
+    )
+  }
+
+  return (
+    <div>
+      <label className="block text-xs font-medium text-[var(--text-tertiary)] mb-1.5">{field}</label>
+      <input
+        type={isSecret ? 'password' : isNumber ? 'number' : 'text'}
+        value={value || ''}
+        onChange={e => onChange(e.target.value)}
+        className="w-full px-3 py-2 bg-[var(--bg-input)] border border-[var(--border-primary)] rounded-lg text-[var(--text-primary)] text-sm focus:border-[var(--color-brand-500)] focus:ring-1 focus:ring-[var(--color-brand-500)]/30 outline-none font-mono transition-colors"
+      />
+    </div>
+  )
+}
+
 export function Settings() {
   const [settings, setSettings] = useState<Record<string, string>>({})
   const [saving, setSaving] = useState(false)
   const { notify } = useNotify()
+  const { activeTab, setActiveTab } = useTabState('ai')
 
   useEffect(() => {
     const stored = localStorage.getItem('etap-settings')
@@ -119,7 +211,6 @@ export function Settings() {
     if (stored) {
       try {
         const parsed = JSON.parse(stored)
-        // Deobfuscate secret fields
         const deobfuscated: Record<string, string> = {}
         for (const [k, v] of Object.entries(parsed)) {
           deobfuscated[k] = SECRET_FIELDS.has(k) ? deobfuscate(v as string) : (v as string)
@@ -135,7 +226,6 @@ export function Settings() {
 
   const handleSave = () => {
     setSaving(true)
-    // Obfuscate secret fields before storing
     const toStore: Record<string, string> = {}
     for (const [k, v] of Object.entries(settings)) {
       toStore[k] = SECRET_FIELDS.has(k) ? obfuscate(v) : v
@@ -155,14 +245,9 @@ export function Settings() {
   }
 
   const handleExport = () => {
-    // Export without secret values — user must re-enter secrets after import
     const exportData: Record<string, string> = {}
     for (const [k, v] of Object.entries(settings)) {
-      if (SECRET_FIELDS.has(k)) {
-        exportData[k] = '' // Clear secrets on export
-      } else {
-        exportData[k] = v
-      }
+      exportData[k] = SECRET_FIELDS.has(k) ? '' : v
     }
     const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' })
     const url = URL.createObjectURL(blob)
@@ -196,55 +281,63 @@ export function Settings() {
     input.click()
   }
 
+  const tabs = Object.entries(TAB_SECTIONS).map(([id, tab]) => ({
+    id,
+    label: tab.label,
+    icon: tab.icon,
+  }))
+
+  const currentSections = TAB_SECTIONS[activeTab]?.sections ?? []
+
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold text-white">Settings</h2>
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="flex items-center justify-between">
+        <h2 className="text-2xl font-bold text-[var(--text-primary)]">Settings</h2>
         <div className="flex items-center gap-2">
-          <button onClick={handleImport} className="flex items-center gap-1 px-3 py-1.5 text-sm text-surface-300 hover:text-white transition-colors"><MdFileUpload /> Import</button>
-          <button onClick={handleExport} className="flex items-center gap-1 px-3 py-1.5 text-sm text-surface-300 hover:text-white transition-colors"><MdFileDownload /> Export</button>
-          <button onClick={handleReset} className="flex items-center gap-1 px-3 py-1.5 text-sm text-red-400 hover:text-red-300 transition-colors"><MdDelete /> Reset</button>
-          <button onClick={handleSave} disabled={saving}
-            className="flex items-center gap-2 px-4 py-2 bg-brand-600 hover:bg-brand-500 disabled:opacity-50 text-white rounded-lg text-sm font-medium transition-colors">
-            <MdSave /> {saving ? 'Saving...' : 'Save'}
-          </button>
+          <Button variant="ghost" size="sm" icon={Upload} onClick={handleImport}>Import</Button>
+          <Button variant="ghost" size="sm" icon={Download} onClick={handleExport}>Export</Button>
+          <Button variant="ghost" size="sm" icon={Trash2} onClick={handleReset} className="text-red-400 hover:text-red-300">
+            Reset
+          </Button>
+          <Button variant="primary" size="sm" icon={Save} loading={saving} onClick={handleSave}>
+            {saving ? 'Saving...' : 'Save'}
+          </Button>
         </div>
-      </div>
+      </motion.div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {([
-          { title: 'Authentication', fields: ['API_KEY_SECRET', 'JWT_SECRET_KEY'] },
-          { title: 'OpenAI Provider', fields: ['OPENAI_API_KEY', 'OPENAI_MODEL', 'OPENAI_BASE_URL'] },
-          { title: 'NVIDIA Provider', fields: ['NVIDIA_API_KEY', 'NVIDIA_MODEL', 'NVIDIA_BASE_URL'] },
-          { title: 'Fallback Providers', fields: ['QWEN_API_KEY', 'QWEN_BASE_URL', 'GLM_API_KEY', 'GLM_BASE_URL'] },
-          { title: 'Engineering Service', fields: ['ENGINEERING_SERVICE_URL', 'ENGINEERING_SERVICE_API_KEY', 'ENGINEERING_SERVICE_TIMEOUT_MS'] },
-          { title: 'Database', fields: ['MASTRA_DB_URL', 'DATABASE_URL', 'REDIS_URL'] },
-          { title: 'Observability', fields: ['LANGWATCH_API_KEY', 'HEALTH_CHECK_API_URL', 'PROMETHEUS_ENABLED', 'PROMETHEUS_PORT'] },
-          { title: 'Rate Limiting & Circuit Breaker', fields: ['RATE_LIMIT_REQUESTS_PER_MINUTE', 'CIRCUIT_BREAKER_FAILURE_THRESHOLD', 'MAX_BODY_SIZE'] },
-          { title: 'ETAP Integration', fields: ['ETAP_LICENSE_PATH', 'ETAP_WORKER_URL'] },
-          { title: 'Vault & Secrets', fields: ['VAULT_ADDR', 'VAULT_TOKEN'] },
-          { title: 'Email Alerts', fields: ['SMTP_SERVER', 'SMTP_PORT', 'SMTP_USERNAME', 'ALERT_EMAIL_TO'] },
-          { title: 'Feature Flags', fields: ['ENABLE_ASYNC_EXECUTION', 'ENABLE_CACHING', 'ENABLE_OBSERVABILITY'] },
-          { title: 'Performance', fields: ['MAX_WORKERS', 'CACHE_SIZE_MB', 'CACHE_DEFAULT_TTL'] },
-        ] as { title: string; fields: string[] }[]).map(section => (
-          <div key={section.title} className="bg-surface-800 rounded-xl p-5 border border-surface-700">
-            <h3 className="text-lg font-semibold text-white mb-4">{section.title}</h3>
-            <div className="space-y-3">
-              {section.fields.map(field => (
-                <div key={field}>
-                  <label className="block text-xs font-medium text-surface-400 mb-1">{field}</label>
-                  <input
-                    type={field.includes('KEY') || field.includes('SECRET') ? 'password' : 'text'}
+      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
+        <Tabs tabs={tabs} activeTab={activeTab} onChange={setActiveTab} />
+      </motion.div>
+
+      <TabPanels>
+        <motion.div
+          key={activeTab}
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.2 }}
+          className="grid grid-cols-1 lg:grid-cols-2 gap-6"
+        >
+          {currentSections.map(section => (
+            <Card key={section.title} padding="md">
+              <CardHeader
+                title={section.title}
+                subtitle={`${section.fields.length} field${section.fields.length !== 1 ? 's' : ''}`}
+                icon={TAB_SECTIONS[activeTab]?.icon}
+              />
+              <div className="space-y-4">
+                {section.fields.map(field => (
+                  <SettingsField
+                    key={field}
+                    field={field}
                     value={settings[field] || ''}
-                    onChange={e => setSettings(p => ({ ...p, [field]: e.target.value }))}
-                    className="w-full px-3 py-2 bg-surface-900 border border-surface-600 rounded-lg text-white text-sm focus:border-brand-500 outline-none font-mono"
+                    onChange={(v) => setSettings(p => ({ ...p, [field]: v }))}
                   />
-                </div>
-              ))}
-            </div>
-          </div>
-        ))}
-      </div>
+                ))}
+              </div>
+            </Card>
+          ))}
+        </motion.div>
+      </TabPanels>
     </div>
   )
 }

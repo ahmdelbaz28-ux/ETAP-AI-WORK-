@@ -1,7 +1,10 @@
 import { useState, useEffect } from 'react'
-import { MdFilterList, MdRefresh } from 'react-icons/md'
+import { motion } from 'framer-motion'
+import { RefreshCw, Filter, Terminal, AlertTriangle, Info, XCircle, Clock } from 'lucide-react'
 import { fetchMetrics, fetchAuditLogs, type MetricsResponse, type AuditEntry } from '../lib/api'
 import { useNotify } from '../context/NotificationContext'
+import { Card, CardHeader, Badge, Button, EmptyState } from '../components/ui'
+import { cn } from '../utils/helpers'
 
 interface LogEntry {
   timestamp: string
@@ -36,6 +39,27 @@ function auditToLogs(metrics: MetricsResponse | null, audit: AuditEntry[]): LogE
   return logs.length ? logs : [{ timestamp: '--', level: 'info' as const, source: 'system', message: 'No log data available. Run a study or chat to generate activity.' }]
 }
 
+const levelConfig = {
+  info: {
+    color: 'text-blue-400',
+    bgColor: 'bg-blue-500/5',
+    borderColor: 'border-blue-500/20',
+    icon: <Info className="w-3 h-3" />,
+  },
+  warn: {
+    color: 'text-amber-400',
+    bgColor: 'bg-amber-500/5',
+    borderColor: 'border-amber-500/20',
+    icon: <AlertTriangle className="w-3 h-3" />,
+  },
+  error: {
+    color: 'text-red-400',
+    bgColor: 'bg-red-500/5',
+    borderColor: 'border-red-500/20',
+    icon: <XCircle className="w-3 h-3" />,
+  },
+}
+
 export function Logs() {
   const [filter, setFilter] = useState<string>('all')
   const [logs, setLogs] = useState<LogEntry[]>([])
@@ -58,43 +82,101 @@ export function Logs() {
 
   const filtered = filter === 'all' ? logs : logs.filter(l => l.level === filter)
 
-  const levelColors: Record<string, string> = {
-    info: 'text-blue-400',
-    warn: 'text-amber-400',
-    error: 'text-red-400',
-  }
+  const infoCount = logs.filter(l => l.level === 'info').length
+  const warnCount = logs.filter(l => l.level === 'warn').length
+  const errorCount = logs.filter(l => l.level === 'error').length
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold text-white">Logs</h2>
-        <div className="flex items-center gap-2">
-          <button onClick={loadLogs} disabled={loading}
-            className="p-1.5 text-surface-400 hover:text-white transition-colors">
-            <MdRefresh className={loading ? 'animate-spin' : ''} />
-          </button>
-          <MdFilterList className="text-surface-400" />
-          {['all', 'info', 'warn', 'error'].map(l => (
-            <button key={l} onClick={() => setFilter(l)}
-              className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
-                filter === l ? 'bg-brand-600 text-white' : 'bg-surface-700 text-surface-300 hover:text-white'
-              }`}>{l.toUpperCase()}</button>
-          ))}
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div className="p-2.5 rounded-xl bg-brand-500/10 border border-brand-500/20">
+            <Terminal className="w-5 h-5 text-brand-400" />
+          </div>
+          <div>
+            <h2 className="text-2xl font-bold text-[var(--text-primary)]">Logs</h2>
+            <p className="text-sm text-[var(--text-tertiary)]">{logs.length} entries · Real-time activity</p>
+          </div>
         </div>
-      </div>
+        <div className="flex items-center gap-3">
+          <Button variant="ghost" size="icon" icon={RefreshCw} loading={loading} onClick={loadLogs} />
+          <div className="flex items-center gap-1.5">
+            <Filter className="w-4 h-4 text-[var(--text-muted)]" />
+            {[
+              { key: 'all', label: 'ALL', count: logs.length },
+              { key: 'info', label: 'INFO', count: infoCount },
+              { key: 'warn', label: 'WARN', count: warnCount },
+              { key: 'error', label: 'ERROR', count: errorCount },
+            ].map(level => (
+              <button
+                key={level.key}
+                onClick={() => setFilter(level.key)}
+                className={cn(
+                  'px-3 py-1.5 rounded-md text-xs font-medium transition-colors',
+                  filter === level.key
+                    ? 'bg-[var(--color-brand-500)] text-white'
+                    : 'text-[var(--text-tertiary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-elevated)]'
+                )}
+              >
+                {level.label}
+                {level.count > 0 && level.key !== 'all' && (
+                  <span className="ml-1 opacity-60">({level.count})</span>
+                )}
+              </button>
+            ))}
+          </div>
+        </div>
+      </motion.div>
 
-      <div className="bg-surface-800 rounded-xl border border-surface-700 overflow-hidden font-mono text-xs">
-        <div className="max-h-[600px] overflow-y-auto">
-          {filtered.map((log, i) => (
-            <div key={i} className="flex items-start gap-3 px-4 py-2 border-b border-surface-700/50 hover:bg-surface-700/30 transition-colors">
-              <span className="text-surface-500 shrink-0 w-16">{log.timestamp}</span>
-              <span className={`shrink-0 w-12 uppercase font-bold ${levelColors[log.level]}`}>{log.level}</span>
-              <span className="text-surface-500 shrink-0 w-16">{log.source}</span>
-              <span className="text-surface-200 flex-1">{log.message}</span>
-            </div>
-          ))}
-        </div>
-      </div>
+      {/* Log Output */}
+      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
+        <Card padding="none">
+          {/* Log Header */}
+          <div className="flex items-center gap-6 px-5 py-3 border-b border-[var(--border-primary)] bg-[var(--bg-elevated)]">
+            <span className="text-xs font-medium text-[var(--text-muted)] uppercase tracking-wider w-16">Time</span>
+            <span className="text-xs font-medium text-[var(--text-muted)] uppercase tracking-wider w-14">Level</span>
+            <span className="text-xs font-medium text-[var(--text-muted)] uppercase tracking-wider w-16">Source</span>
+            <span className="text-xs font-medium text-[var(--text-muted)] uppercase tracking-wider flex-1">Message</span>
+          </div>
+
+          {/* Log Entries */}
+          <div className="max-h-[600px] overflow-y-auto font-mono text-xs">
+            {filtered.length > 0 ? filtered.map((log, i) => {
+              const config = levelConfig[log.level]
+              return (
+                <motion.div
+                  key={i}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.01 * i }}
+                  className="flex items-start gap-6 px-5 py-2.5 border-b border-[var(--border-primary)]/50 hover:bg-[var(--bg-elevated)]/30 transition-colors"
+                >
+                  <span className="text-[var(--text-muted)] shrink-0 w-16">{log.timestamp}</span>
+                  <div className="flex items-center gap-1.5 shrink-0 w-14">
+                    {config.icon}
+                    <span className={cn('uppercase font-bold', config.color)}>{log.level}</span>
+                  </div>
+                  <span className="text-[var(--text-muted)] shrink-0 w-16">{log.source}</span>
+                  <span className="text-[var(--text-secondary)] flex-1 break-all">{log.message}</span>
+                </motion.div>
+              )
+            }) : (
+              <div className="py-12 text-center">
+                <EmptyState
+                  icon={<Terminal className="w-10 h-10" />}
+                  title="No logs found"
+                  description={filter !== 'all' ? `No ${filter} level log entries` : 'No log data available'}
+                  action={
+                    filter !== 'all' ? (
+                      <Button variant="ghost" size="sm" onClick={() => setFilter('all')}>Clear filter</Button>
+                    ) : undefined
+                  }
+                />
+              </div>
+            )}
+          </div>
+        </Card>
+      </motion.div>
     </div>
   )
 }
