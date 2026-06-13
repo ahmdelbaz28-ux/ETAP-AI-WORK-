@@ -96,6 +96,41 @@ jobs:
           echo "File sync completed"
 
       # -----------------------------------------------------------------------
+      # Step 4b: Replace README.md with HF-specific README
+      # -----------------------------------------------------------------------
+      - name: Apply HuggingFace README configuration
+        run: |
+          # HuggingFace Spaces requires YAML front matter in README.md to
+          # identify the SDK type and configuration. The GitHub README.md
+          # doesn't have this, so we replace it with README.hf.md which
+          # contains the required HF Space metadata.
+          if [ -f /tmp/hf-space/README.hf.md ]; then
+            echo "Replacing README.md with HuggingFace-specific README.hf.md"
+            cp /tmp/hf-space/README.hf.md /tmp/hf-space/README.md
+            echo "✅ README.md now contains HF Space configuration (sdk: docker, app_port: 7860)"
+          else
+            echo "⚠️ README.hf.md not found — ensuring README.md has HF metadata"
+            # Prepend HF Space YAML front matter if README.md lacks it
+            if ! head -1 /tmp/hf-space/README.md | grep -q "^---"; then
+              cat > /tmp/hf-space/README.md << 'READMEEOF'
+          ---
+          title: ETAP AI Engineering Platform
+          emoji: "\u26A1"
+          colorFrom: blue
+          colorTo: yellow
+          sdk: docker
+          pinned: false
+          license: mit
+          app_port: 7860
+          ---
+
+          READMEEOF
+              cat "${GITHUB_WORKSPACE}/README.md" >> /tmp/hf-space/README.md
+              echo "✅ Prepended HF Space metadata to README.md"
+            fi
+          fi
+
+      # -----------------------------------------------------------------------
       # Step 5: Commit and push to HuggingFace Space
       # -----------------------------------------------------------------------
       - name: Commit and push to HuggingFace
