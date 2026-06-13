@@ -716,6 +716,35 @@ async def trace_middleware(request: Request, call_next):
                 headers={"Retry-After": str(_RATE_LIMIT_WINDOW)},
             )
 
+    # RASP — Runtime Application Self-Protection
+    if not request.url.path.startswith(("/health", "/ready", "/healthz", "/readyz", "/", "/docs", "/openapi")):
+        try:
+            from security.rasp import create_default_rasp_engine
+            rasp = create_default_rasp_engine()
+            query_str = str(request.query_params) if request.query_params else ""
+            path_str = str(request.url.path)
+            # Only inspect query and path (body is consumed by FastAPI later)
+            rasp_results = rasp.inspect({"query": query_str, "path": path_str})
+            blocked = [r for r in rasp_results if r.action.value == "block"]
+            if blocked:
+                attack_names = [r.rule_name for r in blocked]
+                logger.warning(
+                    "rasp_blocked attacks=%s path=%s trace_id=%s",
+                    attack_names, path_str, trace_id,
+                )
+                return JSONResponse(
+                    status_code=403,
+                    content={
+                        "detail": "Request blocked by security policy",
+                        "attacks": attack_names,
+                        "trace_id": trace_id,
+                    },
+                )
+        except ImportError:
+            pass  # RASP module not available
+        except Exception as rasp_err:
+            logger.debug("RASP check failed (non-fatal): %s", rasp_err)
+
     start = time.perf_counter()
 
     try:
@@ -1048,6 +1077,171 @@ async def get_agents_info(request: Request):
             status_code=500,
             content={"success": False, "errors": [str(e)], "trace_id": trace_id},
         )
+
+
+# ---------------------------------------------------------------------------
+# MFA Endpoints
+# ---------------------------------------------------------------------------
+
+@app.post("/api/v1/auth/mfa/totp/setup")
+async def setup_totp(request: Request):
+    """Set up TOTP-based MFA for a user."""
+    _require_api_key(request)
+    trace_id = getattr(request.state, "trace_id", "unknown")
+    try:
+        body = await request.json()
+        user_id = body.get("user_id")
+        if not user_id:
+            raise HTTPException(status_code=400, detail="user_id is required")
+
+        from security.mfa import TOTPProvider
+        totp = TOTPProvider()
+        secret = totp.generate_secret(user_id)
+        qr_uri = totp.generate_qr_code(user_id, secret)
+        backup_codes = totp.generate_backup_codes(user_id)
+
+        return JSONResponse(content={
+            "success": True,
+            "data": {
+                "secret": secret,
+                "qr_code_uri": qr_uri,
+                "backup_codes": backup_codes,
+            },
+            "trace_id": trace_id,
+        })
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error("totp_setup_failed error=%s", str(e), extra={"trace_id": trace_id})
+        return JSONResponse(status_code=500, content={"success": False, "errors": [str(e)], "trace_id": trace_id})
+
+
+@app.post("/api/v1/auth/mfa/totp/verify")
+async def verify_totp(request: Request):
+    """Verify a TOTP code for MFA."""
+    _require_api_key(request)
+    trace_id = getattr(request.state, "trace_id", "unknown")
+    try:
+        body = await request.json()
+        user_id = body.get("user_id")
+        code = body.get("code")
+        if not user_id or not code:
+            raise HTTPException(status_code=400, detail="user_id and code are required")
+
+        from security.mfa import MFAOrchestrator
+        mfa = MFAOrchestrator()
+        verified = mfa.verify_totp(user_id, code)
+
+        return JSONResponse(content={
+            "success": True,
+            "data": {"verified": verified, "user_id": user_id},
+            "trace_id": trace_id,
+        })
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error("totp_verify_failed error=%s", str(e), extra={"trace_id": trace_id})
+        return JSONResponse(status_code=500, content={"success": False, "errors": [str(e)], "trace_id": trace_id})
+
+
+# ---------------------------------------------------------------------------
+# ABAC Endpoint
+# ---------------------------------------------------------------------------
+
+@app.post("/api/v1/auth/abac/check")
+async def check_abac(request: Request):
+    """Check ABAC policy for a user action."""
+    _require_api_key(request)
+    trace_id = getattr(request.state, "trace_id", "unknown")
+    try:
+        body = await request.json()
+        user_attrs = body.get("user", {})
+        resource = body.get("resource")
+        action = body.get("action")
+        environment = body.get("environment", {"time": "business_hours"})
+
+        if not user_attrs or not resource or not action:
+            raise HTTPException(status_code=400, detail="user, resource, and action are required")
+
+        from security.abac import create_default_etap_abac_engine
+        engine = create_default_etap_abac_engine()
+        allowed = engine.evaluate(user_attrs, resource, action, environment)
+
+        return JSONResponse(content={
+            "success": True,
+            "data": {
+                "allowed": allowed,
+                "user": user_attrs,
+                "resource": resource,
+                "action": action,
+            },
+            "trace_id": trace_id,
+        })
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error("abac_check_failed error=%s", str(e), extra={"trace_id": trace_id})
+        return JSONResponse(status_code=500, content={"success": False, "errors": [str(e)], "trace_id": trace_id})
+
+
+# ---------------------------------------------------------------------------
+# RASP Stats Endpoint
+# ---------------------------------------------------------------------------
+
+@app.get("/api/v1/security/rasp/stats")
+async def get_rasp_stats(request: Request):
+    """Return RASP inspection statistics."""
+    _require_api_key(request)
+    trace_id = getattr(request.state, "trace_id", "unknown")
+    try:
+        from security.rasp import create_default_rasp_engine
+        rasp = create_default_rasp_engine()
+        stats = rasp.get_stats()
+        return JSONResponse(content={
+            "success": True,
+            "data": stats,
+            "trace_id": trace_id,
+        })
+    except Exception as e:
+        return JSONResponse(status_code=500, content={"success": False, "errors": [str(e)], "trace_id": trace_id})
+
+
+# ---------------------------------------------------------------------------
+# SIEM Events Endpoint
+# ---------------------------------------------------------------------------
+
+@app.post("/api/v1/security/siem/event")
+async def submit_siem_event(request: Request):
+    """Submit a security event to the SIEM forwarder."""
+    _require_api_key(request)
+    trace_id = getattr(request.state, "trace_id", "unknown")
+    try:
+        body = await request.json()
+        from security.siem import SecurityEvent, get_siem_forwarder
+        from datetime import datetime, timezone
+        import uuid as uuid_mod
+
+        event = SecurityEvent(
+            event_id=body.get("event_id", str(uuid_mod.uuid4())),
+            timestamp=body.get("timestamp", datetime.now(timezone.utc).isoformat()),
+            event_type=body.get("event_type", "custom"),
+            severity=body.get("severity", "info"),
+            source=body.get("source", "engineering_service"),
+            details=body.get("details", {}),
+        )
+
+        forwarder = get_siem_forwarder()
+        if forwarder and hasattr(forwarder, "forward_event"):
+            await forwarder.forward_event(event)
+
+        return JSONResponse(content={
+            "success": True,
+            "data": {"event_id": event.event_id, "forwarded": forwarder is not None},
+            "trace_id": trace_id,
+        })
+    except Exception as e:
+        logger.error("siem_event_failed error=%s", str(e), extra={"trace_id": trace_id})
+        return JSONResponse(status_code=500, content={"success": False, "errors": [str(e)], "trace_id": trace_id})
 
 
 # ---------------------------------------------------------------------------
