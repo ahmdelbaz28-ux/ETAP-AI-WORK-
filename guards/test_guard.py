@@ -28,12 +28,16 @@ import re
 from typing import Any, Dict, List, Optional
 
 from guards.base import BaseGuard, GuardMode, GuardResult, GuardSeverity, GuardViolation
+from guards.ai_failure_modes import AIFailureModeDetector
 
 logger = logging.getLogger(__name__)
 
 
 class TestGuard(BaseGuard):
     """Scans test code for quality violations against the 9+3 testing rules.
+
+    Also delegates to AIFailureModeDetector for FM-14 (mock assert)
+    which is a test-specific AI failure mode.
 
     Usage
     -----
@@ -42,6 +46,10 @@ class TestGuard(BaseGuard):
     """
 
     name: str = "test_guard"
+
+    def __init__(self, mode: GuardMode = GuardMode.GUARD_PASS) -> None:
+        super().__init__(mode)
+        self._ai_detector = AIFailureModeDetector(mode)
 
     def scan(self, source: str, language: str = "python", context: Optional[Dict[str, Any]] = None) -> GuardResult:
         violations: List[GuardViolation] = []
@@ -74,6 +82,12 @@ class TestGuard(BaseGuard):
 
         # T-L1: LLM app testing — test prompt contracts not content
         violations.extend(self._check_llm_test_patterns(source))
+
+        # FM-14: Test asserts on mock behavior (delegated from AI failure modes)
+        if self._ai_detector:
+            ai_result = self._ai_detector.detect(source)
+            fm14_violations = [v for v in ai_result.violations if v.rule_id == "FM-14"]
+            violations.extend(fm14_violations)
 
         return GuardResult(
             guard_name=self.name,

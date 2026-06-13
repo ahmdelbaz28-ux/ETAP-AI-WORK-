@@ -495,24 +495,35 @@ class AIFailureModeDetector:
             if not param_names:
                 continue
 
-            # Check if a parameter is immediately assigned before being read
-            assigned_before_read: set = set()
+            # Check if a parameter is overwritten WITHOUT being read on the
+            # right-hand side of the same assignment.  The pattern
+            #   data = transform(data)
+            # is valid (param IS read on RHS).  The pattern
+            #   data = new_value()
+            # with no prior read of 'data' is the real FM-08 violation.
+            assigned_without_read: set = set()
             seen_reads: set = set()
             for stmt in node.body:
-                # Check reads first (Name nodes in expressions)
+                # Collect reads from this statement BEFORE checking assignments
                 for child in ast.walk(stmt):
                     if isinstance(child, ast.Name) and child.id in param_names:
                         if not isinstance(child.ctx, ast.Store):
                             seen_reads.add(child.id)
 
-                # Then check assignments
-                if isinstance(stmt, ast.Assign):
-                    for target in stmt.targets:
-                        if isinstance(target, ast.Name) and target.id in param_names:
-                            if target.id not in seen_reads:
-                                assigned_before_read.add(target.id)
+                # Check assignments where the parameter is NOT read on RHS
+                if isinstance(stmt, ast.Assign) and len(stmt.targets) == 1:
+                    target = stmt.targets[0]
+                    if isinstance(target, ast.Name) and target.id in param_names:
+                        # Is the parameter read on the right-hand side?
+                        rhs_names: set = set()
+                        for child in ast.walk(stmt.value):
+                            if isinstance(child, ast.Name) and child.id == target.id:
+                                rhs_names.add(child.id)
+                        # If not read on RHS and not read before, it's a true overwrite
+                        if target.id not in rhs_names and target.id not in seen_reads:
+                            assigned_without_read.add(target.id)
 
-            for param in assigned_before_read:
+            for param in assigned_without_read:
                 violations.append(GuardViolation(
                     rule_id="FM-08",
                     rule_name="Write before read — overwrites input",
@@ -664,20 +675,26 @@ class AIFailureModeDetector:
     # FM-14: Test asserts on mock behavior, not system behavior
     # ------------------------------------------------------------------
     def _detect_mock_assert(self, tree: Optional[ast.AST], source: str) -> List[GuardViolation]:
-        """Heuristic: assert_called_with / assert_any_call in test functions."""
+        """Heuristic: assert_called_with / assert_any_call / assert_called_once in test functions."""
         violations: List[GuardViolation] = []
-        pattern = r'(\w+)\.assert_called_with\('
-        for match in re.finditer(pattern, source):
-            line_num = source[:match.start()].count('\n') + 1
-            violations.append(GuardViolation(
-                rule_id="FM-14",
-                rule_name="Test asserts on mock behavior",
-                severity=GuardSeverity.MUST_FIX,
-                description="Test asserts that a mock was called with specific arguments "
-                            "rather than verifying the system's observable behavior.",
-                location=f"line {line_num}",
-                suggestion="Assert on the observable outcome (return value, state change, "
-                           "side effect) rather than on the mock's call history.",
-                evidence=match.group(0)[:80],
-            ))
+        # Match both direct and chained attribute access: mock.assert_called_with, mock.method.assert_called
+        patterns = [
+            r'(\w+(?:\.\w+)*)\.assert_called_with\s*\(',
+            r'(\w+(?:\.\w+)*)\.assert_called_once_with\s*\(',
+            r'(\w+(?:\.\w+)*)\.assert_any_call\s*\(',
+        ]
+        for pat in patterns:
+            for match in re.finditer(pat, source):
+                line_num = source[:match.start()].count('\n') + 1
+                violations.append(GuardViolation(
+                    rule_id="FM-14",
+                    rule_name="Test asserts on mock behavior",
+                    severity=GuardSeverity.MUST_FIX,
+                    description="Test asserts that a mock was called with specific arguments "
+                                "rather than verifying the system's observable behavior.",
+                    location=f"line {line_num}",
+                    suggestion="Assert on the observable outcome (return value, state change, "
+                               "side effect) rather than on the mock's call history.",
+                    evidence=match.group(0)[:80],
+                ))
         return violations

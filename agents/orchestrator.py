@@ -1314,6 +1314,16 @@ class ChiefEngineeringOrchestrator:
             'report': ReportGenerationAgent()
         }
 
+        # Guard-skills agent for automatic code quality review
+        self._code_guard_agent = None
+        try:
+            from agents.code_guard_agent import CodeGuardAgent
+            self._code_guard_agent = CodeGuardAgent()
+            self.agents['code_guard'] = self._code_guard_agent
+        except ImportError:
+            self.logger = logging.getLogger("orchestrator")
+            self.logger.info("CodeGuardAgent not available — guard-skills review disabled")
+
         self.task_queue: List[EngineeringTask] = []
         self.completed_tasks: Dict[str, EngineeringTask] = {}
         self.logger = logging.getLogger("orchestrator")
@@ -1492,6 +1502,32 @@ class ChiefEngineeringOrchestrator:
 
         validation_result = await self.agents['validation'].execute(validation_task)
         results.append(validation_result)
+
+        # Phase 3.5: Guard-skills code quality review (if enabled)
+        # Automatically review any AI-generated code in the task parameters
+        if self._code_guard_agent:
+            try:
+                code_to_review = task.parameters.get('source', '')
+                if code_to_review:
+                    guard_task = EngineeringTask(
+                        task_id=f"guard_{task.task_id}",
+                        description="AI code quality guard review",
+                        study_types=[],
+                        parameters={
+                            'source': code_to_review,
+                            'guard_type': 'all',
+                            'language': 'python',
+                        }
+                    )
+                    guard_result = await self._code_guard_agent.execute(guard_task)
+                    results.append(guard_result)
+                    if not guard_result.validation_status:
+                        self.logger.warning(
+                            "Guard-skills review found MUST_FIX violations: %s",
+                            guard_result.data.get('must_fix_total', 0)
+                        )
+            except Exception as guard_err:
+                self.logger.warning("Guard review failed (non-blocking): %s", guard_err)
 
         # Phase 4: Generate report if all validations pass
         if validation_result.validation_status:
