@@ -58,7 +58,7 @@ import api.projects  # noqa: F401
 # In-memory async SQLite engine
 # ---------------------------------------------------------------------------
 
-_TEST_DB_URL = "sqlite+aiosqlite://"
+_TEST_DB_URL = "sqlite+aiosqlite:///:memory:"
 
 _test_engine: AsyncEngine = create_async_engine(
     _TEST_DB_URL,
