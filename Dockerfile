@@ -86,6 +86,7 @@ COPY gis_validation_electrical/ /app/gis_validation_electrical/
 COPY gis_validation_real/ /app/gis_validation_real/
 COPY etap_user_guide/ /app/etap_user_guide/
 COPY backend/ /app/backend/
+COPY ml/ /app/ml/
 
 WORKDIR /app
 
@@ -95,7 +96,10 @@ RUN mkdir -p /data reports knowledge_db logs /app/static
 # Create non-root user
 RUN groupadd -r appuser &&     useradd -r -g appuser -d /app -s /sbin/nologin appuser &&     chown -R appuser:appuser /app /data
 
-ENV PYTHONUNBUFFERED=1     PYTHONDONTWRITEBYTECODE=1     ENGINEERING_SERVICE_HOST=0.0.0.0     ENGINEERING_SERVICE_PORT=8000     LOG_LEVEL=INFO
+ENV PYTHONUNBUFFERED=1     PYTHONDONTWRITEBYTECODE=1     ENGINEERING_SERVICE_HOST=0.0.0.0     ENGINEERING_SERVICE_PORT=8000     LOG_LEVEL=INFO     ENVIRONMENT=production
+
+# Security: JWT and Fernet keys MUST be provided via environment at runtime
+# Do NOT hardcode secrets in the Dockerfile
 
 EXPOSE 8000
 

@@ -562,27 +562,51 @@ _EXPECTED_API_KEY = os.environ.get("ENGINEERING_SERVICE_API_KEY", "")
 # If SMITHERY_API_KEY is set, it can be used as an alternative to
 # ENGINEERING_SERVICE_API_KEY, enabling centralized key management via
 # the Smithery platform (https://smithery.ai).
+# NOTE: Smithery key is NOT used as the service auth key anymore for security.
+# It is stored separately for Smithery-specific integrations only.
 # ---------------------------------------------------------------------------
 _SMITHERY_API_KEY = os.environ.get("SMITHERY_API_KEY", "")
-if _SMITHERY_API_KEY and not _EXPECTED_API_KEY:
-    _EXPECTED_API_KEY = _SMITHERY_API_KEY
-    logger.info("smithery_api_key_loaded", extra={"trace_id": "startup"})
+if _SMITHERY_API_KEY:
+    logger.info("smithery_api_key_available", extra={"trace_id": "startup"})
 
 _API_KEY_CONFIGURED = bool(_EXPECTED_API_KEY)
+
+# Fail-fast in production: if no API key is configured and AUTH_DISABLED is
+# not explicitly set, refuse to start. This prevents running an unauthenticated
+# service in production accidentally.
+_AUTH_DISABLED = os.environ.get("ENGINEERING_SERVICE_AUTH_DISABLED", "").lower() in ("1", "true", "yes")
+if not _API_KEY_CONFIGURED and not _AUTH_DISABLED:
+    _ENV = os.environ.get("ENVIRONMENT", os.environ.get("ENV", "development")).lower()
+    if _ENV in ("production", "prod", "staging"):
+        logger.critical(
+            "FATAL: ENGINEERING_SERVICE_API_KEY is not set in %s environment. "
+            "Set the API key or explicitly set ENGINEERING_SERVICE_AUTH_DISABLED=true "
+            "to allow unauthenticated access (NOT recommended for production).",
+            _ENV,
+        )
+        sys.exit(1)
 
 
 def _require_api_key(request: Request) -> None:
     """Validate API key when configured.
 
     If ENGINEERING_SERVICE_API_KEY is set, every request must carry a
-    matching ``x-api-key`` header.  If the key is *not* set the service
-    logs a warning on startup (and every 10 minutes while running) but
-    still allows unauthenticated access so that local development is not
-    broken.  In production you MUST set the key.
+    matching ``x-api-key`` header.  If the key is *not* set:
+    - In development: unauthenticated access is allowed (with warning).
+    - In production: requests are REJECTED (fail-closed) unless
+      ENGINEERING_SERVICE_AUTH_DISABLED=true is explicitly set.
     """
     if not _API_KEY_CONFIGURED:
-        # Allow unauthenticated access in development mode only.
-        # A warning is logged at startup (see below) and periodically.
+        if _AUTH_DISABLED:
+            return  # Explicitly opted-in to unauthenticated mode
+        _ENV = os.environ.get("ENVIRONMENT", os.environ.get("ENV", "development")).lower()
+        if _ENV in ("production", "prod", "staging"):
+            raise HTTPException(
+                status_code=401,
+                detail="Authentication required but no API key configured. "
+                       "Set ENGINEERING_SERVICE_API_KEY or ENGINEERING_SERVICE_AUTH_DISABLED=true",
+            )
+        # Development mode: allow unauthenticated access with warning
         return
     provided = request.headers.get("x-api-key") or ""
     if not hmac.compare_digest(provided, _EXPECTED_API_KEY):
@@ -613,11 +637,37 @@ class _BodySizeLimitMiddleware(BaseHTTPMiddleware):
 async def lifespan(app: FastAPI):
     logger.info("engineering_service_startup", extra={"trace_id": "startup"})
     if not _API_KEY_CONFIGURED:
-        logger.warning(
-            "SECURITY WARNING: ENGINEERING_SERVICE_API_KEY is not set. "
-            "All endpoints are accessible without authentication. "
-            "Set this environment variable in production!"
+        if _AUTH_DISABLED:
+            logger.warning(
+                "SECURITY: Authentication is EXPLICITLY DISABLED via "
+                "ENGINEERING_SERVICE_AUTH_DISABLED=true. All endpoints are "
+                "accessible without authentication. Only use this in development!"
+            )
+        else:
+            _ENV = os.environ.get("ENVIRONMENT", os.environ.get("ENV", "development")).lower()
+            if _ENV in ("production", "prod", "staging"):
+                logger.critical(
+                    "FATAL: No API key configured in production. Service should have exited."
+                )
+            else:
+                logger.warning(
+                    "SECURITY WARNING: ENGINEERING_SERVICE_API_KEY is not set. "
+                    "All endpoints are accessible without authentication in "
+                    "development mode. Set this environment variable in production!"
+                )
+
+    # Initialize singleton StudyCache to avoid per-request connection creation
+    global _study_cache
+    try:
+        from engine.caching import StudyCache
+        _study_cache = StudyCache(
+            redis_url=os.environ.get("REDIS_URL", "redis://localhost:6379"),
+            ttl=int(os.environ.get("STUDY_CACHE_TTL", "3600")),
         )
+        logger.info("study_cache_initialized", extra={"trace_id": "startup"})
+    except Exception as e:
+        logger.debug("StudyCache init failed (non-fatal, Redis may be unavailable): %s", e, extra={"trace_id": "startup"})
+
     yield
     logger.info("engineering_service_shutdown", extra={"trace_id": "shutdown"})
 
@@ -675,12 +725,27 @@ _RATE_LIMIT_WINDOW = int(os.environ.get("ENGINEERING_SERVICE_RATE_LIMIT_WINDOW",
 _RATE_LIMIT_MAX_REQUESTS = int(os.environ.get("ENGINEERING_SERVICE_RATE_LIMIT_MAX", "100"))  # requests per window
 _rate_limit_store: Dict[str, List[float]] = {}
 _rate_limit_lock = _threading.Lock()
+_RATE_LIMIT_MAX_ENTRIES = int(os.environ.get("ENGINEERING_SERVICE_RATE_LIMIT_MAX_ENTRIES", "10000"))
+
+# Singleton StudyCache instance (initialized in lifespan)
+_study_cache = None
+_RATE_LIMIT_MAX_ENTRIES = int(os.environ.get("ENGINEERING_SERVICE_RATE_LIMIT_MAX_ENTRIES", "10000"))
 
 
 def _check_rate_limit(client_id: str) -> bool:
-    """Check if the client has exceeded the rate limit. Returns True if allowed."""
+    """Check if the client has exceeded the rate limit. Returns True if allowed.
+
+    Includes proactive cleanup to prevent unbounded memory growth.
+    """
     now = time.time()
     with _rate_limit_lock:
+        # Proactive cleanup: prune stale entries when store grows too large
+        if len(_rate_limit_store) > _RATE_LIMIT_MAX_ENTRIES:
+            stale = [cid for cid, timestamps in _rate_limit_store.items()
+                     if not timestamps or now - timestamps[-1] > _RATE_LIMIT_WINDOW]
+            for cid in stale:
+                del _rate_limit_store[cid]
+
         if client_id not in _rate_limit_store:
             _rate_limit_store[client_id] = [now]
             return True
@@ -708,7 +773,15 @@ async def trace_middleware(request: Request, call_next):
 
     # Rate limiting — skip for health endpoints
     if not request.url.path.startswith(("/health", "/ready", "/healthz", "/readyz", "/")):
-        client_id = request.headers.get("x-forwarded-for", "").split(",")[0].strip() or (request.client.host if request.client else "unknown")
+        # Use direct client IP; ignore X-Forwarded-For unless behind a trusted proxy
+        _TRUSTED_PROXIES = os.environ.get("ENGINEERING_SERVICE_TRUSTED_PROXIES", "")
+        if _TRUSTED_PROXIES:
+            _trusted_list = [p.strip() for p in _TRUSTED_PROXIES.split(",")]
+            xff = request.headers.get("x-forwarded-for", "").split(",")[0].strip()
+            proxy_ip = request.client.host if request.client else ""
+            client_id = xff if proxy_ip in _trusted_list and xff else (request.client.host if request.client else "unknown")
+        else:
+            client_id = request.client.host if request.client else "unknown"
         if not _check_rate_limit(client_id):
             return JSONResponse(
                 status_code=429,
@@ -736,7 +809,9 @@ async def trace_middleware(request: Request, call_next):
             if request.method in ("POST", "PUT", "PATCH"):
                 try:
                     raw_body = await request.body()
-                    body_str = raw_body.decode("utf-8", errors="replace")[:10000]  # limit size
+                    # Scan full body for attacks (truncation could allow bypass)
+                    # but limit to 1MB to prevent excessive memory usage
+                    body_str = raw_body.decode("utf-8", errors="replace")[:1_048_576]
                 except Exception:
                     body_str = ""
 
@@ -898,21 +973,18 @@ async def run_study(request: Request, payload: StudyRequest):
         # --- Cache lookup for native studies (non-ETAP) ---
         if not payload.use_etap:
             try:
-                from engine.caching import StudyCache
-                _cache = StudyCache(
-                    redis_url=os.environ.get("REDIS_URL", "redis://localhost:6379"),
-                    ttl=int(os.environ.get("STUDY_CACHE_TTL", "3600")),
-                )
                 cache_params = {"study_type": payload.study_type, "parameters": payload.parameters}
                 if payload.system:
-                    cache_params["system_hash"] = str(hash(tuple(sorted(
-                        (k, str(v)) for k, v in payload.system.model_dump().items()
-                    ))))
-                cached_result = await _cache.get(payload.study_type, cache_params)
-                if cached_result:
-                    data = json.loads(cached_result)
-                    cache_hit = True
-                    logger.info("study_cache_hit study_type=%s task_id=%s", payload.study_type, task_id, extra={"trace_id": trace_id})
+                    # Use deterministic hashing (SHA-256) instead of Python hash()
+                    import hashlib as _hashlib
+                    system_json = json.dumps(payload.system.model_dump(), sort_keys=True, default=str)
+                    cache_params["system_hash"] = _hashlib.sha256(system_json.encode()).hexdigest()
+                if _study_cache:
+                    cached_result = await _study_cache.get(payload.study_type, cache_params)
+                    if cached_result:
+                        data = json.loads(cached_result)
+                        cache_hit = True
+                        logger.info("study_cache_hit study_type=%s task_id=%s", payload.study_type, task_id, extra={"trace_id": trace_id})
             except Exception as cache_err:
                 logger.debug("Cache lookup failed (non-fatal): %s", cache_err, extra={"trace_id": trace_id})
 
@@ -940,17 +1012,13 @@ async def run_study(request: Request, payload: StudyRequest):
 
             # --- Store result in cache ---
             try:
-                from engine.caching import StudyCache
-                _cache = StudyCache(
-                    redis_url=os.environ.get("REDIS_URL", "redis://localhost:6379"),
-                    ttl=int(os.environ.get("STUDY_CACHE_TTL", "3600")),
-                )
                 cache_params = {"study_type": payload.study_type, "parameters": payload.parameters}
                 if payload.system:
-                    cache_params["system_hash"] = str(hash(tuple(sorted(
-                        (k, str(v)) for k, v in payload.system.model_dump().items()
-                    ))))
-                await _cache.set(payload.study_type, cache_params, json.dumps(data, default=str))
+                    import hashlib as _hashlib
+                    system_json = json.dumps(payload.system.model_dump(), sort_keys=True, default=str)
+                    cache_params["system_hash"] = _hashlib.sha256(system_json.encode()).hexdigest()
+                if _study_cache:
+                    await _study_cache.set(payload.study_type, cache_params, json.dumps(data, default=str))
             except Exception as cache_err:
                 logger.debug("Cache store failed (non-fatal): %s", cache_err, extra={"trace_id": trace_id})
 
@@ -1116,6 +1184,12 @@ async def predict_load(request: Request):
 
         if not historical:
             raise HTTPException(status_code=400, detail="historical_data is required")
+        if not isinstance(historical, list):
+            raise HTTPException(status_code=400, detail="historical_data must be an array")
+        if len(historical) > 10000:
+            raise HTTPException(status_code=400, detail="historical_data array too large (max 10000 points)")
+        if not isinstance(horizon, int) or horizon < 1 or horizon > 168:
+            raise HTTPException(status_code=400, detail="horizon_hours must be between 1 and 168")
 
         from ml.predictive import LoadForecaster
         import numpy as np
@@ -1153,6 +1227,10 @@ async def predict_fault(request: Request):
 
         if not features:
             raise HTTPException(status_code=400, detail="features array is required")
+        if not isinstance(features, list):
+            raise HTTPException(status_code=400, detail="features must be an array")
+        if len(features) > 1000:
+            raise HTTPException(status_code=400, detail="features array too large (max 1000 elements)")
 
         from ml.predictive import FaultPredictor
         import numpy as np
@@ -1185,6 +1263,10 @@ async def detect_anomalies(request: Request):
 
         if not data:
             raise HTTPException(status_code=400, detail="data array is required")
+        if not isinstance(data, list):
+            raise HTTPException(status_code=400, detail="data must be an array")
+        if len(data) > 10000:
+            raise HTTPException(status_code=400, detail="data array too large (max 10000 points)")
 
         from ml.predictive import AnomalyDetector
         import numpy as np
@@ -1448,7 +1530,11 @@ async def get_rasp_stats(request: Request):
     trace_id = getattr(request.state, "trace_id", "unknown")
     try:
         from security.rasp import create_default_rasp_engine
-        rasp = create_default_rasp_engine()
+        # Use the app-level singleton RASP engine to get accurate stats
+        if hasattr(app.state, "rasp_engine"):
+            rasp = app.state.rasp_engine
+        else:
+            rasp = create_default_rasp_engine()
         stats = rasp.get_stats()
         return JSONResponse(content={
             "success": True,
@@ -1474,11 +1560,24 @@ async def submit_siem_event(request: Request):
         from datetime import datetime, timezone
         import uuid as uuid_mod
 
+        _VALID_SEVERITIES = {"info", "low", "medium", "high", "critical"}
+        severity = body.get("severity", "info")
+        if severity not in _VALID_SEVERITIES:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Invalid severity '{severity}'. Must be one of: {', '.join(sorted(_VALID_SEVERITIES))}"
+            )
+        event_type = body.get("event_type", "custom")
+        if not event_type or len(event_type) > 100:
+            raise HTTPException(
+                status_code=400,
+                detail="event_type must be a non-empty string (max 100 chars)"
+            )
         event = SecurityEvent(
             event_id=body.get("event_id", str(uuid_mod.uuid4())),
             timestamp=body.get("timestamp", datetime.now(timezone.utc).isoformat()),
-            event_type=body.get("event_type", "custom"),
-            severity=body.get("severity", "info"),
+            event_type=event_type,
+            severity=severity,
             source=body.get("source", "engineering_service"),
             details=body.get("details", {}),
         )
@@ -1629,27 +1728,26 @@ class ConnectionManager:
 _ws_manager = ConnectionManager()
 
 
-@app.websocket("/ws/study/{study_id}")
-async def websocket_study_updates(websocket: WebSocket, study_id: str) -> None:
-    """WebSocket endpoint for real-time study progress updates.
-
-    Streams progress updates for long-running studies:
-    - Study start/complete notifications
-    - Iteration progress (e.g., "Load Flow: iteration 3/10")
-    - Intermediate results
-    - Error notifications
-    """
-    await _ws_manager.connect(websocket, study_id)
+@app.get("/api/v1/security/rasp/stats")
+async def get_rasp_stats(request: Request):
+    """Return RASP inspection statistics."""
+    _require_api_key(request)
+    trace_id = getattr(request.state, "trace_id", "unknown")
     try:
-        while True:
-            data = await websocket.receive_json()
-            # Client can send commands
-            if data.get("command") == "subscribe":
-                await websocket.send_json({"type": "subscribed", "study_id": study_id})
-            elif data.get("command") == "ping":
-                await websocket.send_json({"type": "pong"})
-    except WebSocketDisconnect:
-        _ws_manager.disconnect(websocket, study_id)
+        from security.rasp import create_default_rasp_engine
+        # Use the app-level singleton RASP engine to get accurate stats
+        if hasattr(app.state, "rasp_engine"):
+            rasp = app.state.rasp_engine
+        else:
+            rasp = create_default_rasp_engine()
+        stats = rasp.get_stats()
+        return JSONResponse(content={
+            "success": True,
+            "data": stats,
+            "trace_id": trace_id,
+        })
+    except Exception as e:
+        return JSONResponse(status_code=500, content={"success": False, "errors": [str(e)], "trace_id": trace_id})
 
 
 # ---------------------------------------------------------------------------
