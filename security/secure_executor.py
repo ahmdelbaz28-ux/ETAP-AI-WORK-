@@ -54,6 +54,15 @@ def main():
         print(json.dumps({'error': 'No code provided via stdin', 'success': False}))
         sys.exit(1)
 
+    # Limit code length to prevent resource exhaustion
+    MAX_CODE_LENGTH = 50000
+    if len(code) > MAX_CODE_LENGTH:
+        print(json.dumps({
+            'error': f'Code exceeds maximum length of {MAX_CODE_LENGTH} characters',
+            'success': False
+        }))
+        sys.exit(1)
+
     audit = get_audit_logger()
     validator = get_validator()
 
@@ -98,6 +107,18 @@ def main():
         'numpy': __import__('numpy') if 'numpy' in sys.modules else None,
         'scipy': __import__('scipy') if 'scipy' in sys.modules else None,
     }
+    # Remove potentially dangerous attributes from numpy/scipy to prevent sandbox escape
+    for mod_name in ('numpy', 'scipy'):
+        mod = safe_globals.get(mod_name)
+        if mod is not None:
+            # Block access to os/system/popen via module attributes
+            for attr in ('os', 'system', 'popen', 'spawn', 'exec', 'eval',
+                        'load', 'loads', '__builtins__', '__import__'):
+                if hasattr(mod, attr):
+                    try:
+                        delattr(mod, attr)
+                    except (AttributeError, TypeError):
+                        pass
 
     try:
         import signal

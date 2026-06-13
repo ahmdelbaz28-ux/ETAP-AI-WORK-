@@ -97,32 +97,33 @@ class CoordinationEngine:
         # We will try to find a TMS such that for all fault currents,
         # t_up - t_down >= target_margin
         # We'll do a simple search over TMS values.
+        # Save original TMS to restore later (defensive: use try/finally)
+        original_TMS = upstream_relay.TMS
         best_TMS = None
         min_violation = float('inf')
-        for TMS_candidate in np.linspace(0.1, 10.0, 100):
-            # Temporarily set TMS
-            original_TMS = upstream_relay.TMS
-            upstream_relay.TMS = TMS_candidate
-            violations = []
-            for If in fault_currents:
-                result = self.check_coordination(upstream_relay, downstream_relay, If)
-                if not result['coordinated']:
-                    # How much we are missing the margin
-                    violation = target_margin - result['margin']
-                    if violation > 0:
-                        violations.append(violation)
-            # If no violations, this TMS works
-            if not violations:
-                best_TMS = TMS_candidate
-                # Restore original TMS before returning
-                upstream_relay.TMS = original_TMS
-                break
-            else:
-                # Average violation
-                avg_violation = np.mean(violations)
-                if avg_violation < min_violation:
-                    min_violation = avg_violation
+        try:
+            for TMS_candidate in np.linspace(0.1, 10.0, 100):
+                # Temporarily set TMS (will be restored in finally block)
+                upstream_relay.TMS = TMS_candidate
+                violations = []
+                for If in fault_currents:
+                    result = self.check_coordination(upstream_relay, downstream_relay, If)
+                    if not result['coordinated']:
+                        # How much we are missing the margin
+                        violation = target_margin - result['margin']
+                        if violation > 0:
+                            violations.append(violation)
+                # If no violations, this TMS works
+                if not violations:
                     best_TMS = TMS_candidate
-                # Restore original TMS
-                upstream_relay.TMS = original_TMS
+                    break
+                else:
+                    # Average violation
+                    avg_violation = np.mean(violations)
+                    if avg_violation < min_violation:
+                        min_violation = avg_violation
+                        best_TMS = TMS_candidate
+        finally:
+            # Always restore original TMS to prevent leaving relay in mutated state
+            upstream_relay.TMS = original_TMS
         return best_TMS

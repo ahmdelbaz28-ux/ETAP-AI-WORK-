@@ -158,6 +158,13 @@ class AuthenticationManager:
         if secret_key is None:
             secret_key = os.environ.get("JWT_SECRET_KEY")
         if not secret_key:
+            _env = os.environ.get("ENVIRONMENT", os.environ.get("ENV", "development")).lower()
+            if _env in ("production", "prod", "staging"):
+                raise ValueError(
+                    "JWT_SECRET_KEY must be set in production/staging environments. "
+                    "Set the JWT_SECRET_KEY environment variable or explicitly set "
+                    "ENV=development for local use."
+                )
             secret_key = secrets.token_hex(32)
             logger.warning(
                 "JWT_SECRET_KEY not set; generated a random key. "
@@ -176,12 +183,18 @@ class AuthenticationManager:
         self.username_to_id: Dict[str, str] = {}
         self.token_to_session: Dict[str, Session] = {}
 
-        # Fernet key: derive from JWT secret for persistence across restarts
-        # If JWT_SECRET_KEY is not set, generate ephemeral key (tokens won't survive restarts)
+        # Fernet key: prefer dedicated FERNET_ENCRYPTION_KEY env var
+        # Derive from JWT secret only as a fallback (not recommended for production)
         _fernet_key_env = os.environ.get("FERNET_ENCRYPTION_KEY")
         if _fernet_key_env:
             self.cipher = Fernet(_fernet_key_env.encode())
         else:
+            _env = os.environ.get("ENVIRONMENT", os.environ.get("ENV", "development")).lower()
+            if _env in ("production", "prod", "staging"):
+                logger.warning(
+                    "FERNET_ENCRYPTION_KEY not set in production. Deriving from JWT secret "
+                    "(less secure). Set FERNET_ENCRYPTION_KEY for independent key management."
+                )
             # Derive a stable key from the JWT secret (same secret = same Fernet key)
             import hashlib
             import base64

@@ -42,6 +42,15 @@ def main():
         print(json.dumps({'error': 'No command provided via stdin', 'success': False}))
         sys.exit(1)
 
+    # Limit command length to prevent resource exhaustion
+    MAX_COMMAND_LENGTH = 10000
+    if len(command) > MAX_COMMAND_LENGTH:
+        print(json.dumps({
+            'error': f'Command exceeds maximum length of {MAX_COMMAND_LENGTH} characters',
+            'success': False
+        }))
+        sys.exit(1)
+
     audit = get_audit_logger()
     validator = get_validator()
 
@@ -60,6 +69,9 @@ def main():
     # Security: Use -ExecutionPolicy AllSigned instead of Restricted for defense-in-depth.
     # -NoProfile prevents profile scripts from running (potential attack vector).
     # -NonInteractive prevents interactive prompts.
+    # WARNING: -Command mode still allows obfuscated commands. The AST validator
+    # above is the primary defense. For maximum security, consider using a
+    # constrained runspace or whitelisted cmdlet approach instead.
     import subprocess
     try:
         result = subprocess.run(
