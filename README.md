@@ -41,17 +41,17 @@
 <p align="center">
   <img src="docs/assets/logo.png" width="64" height="64" alt="Logo">
   <br>
-  <strong>Built by <a href="https://github.com/ahmdelbaz28-ux">Eng. Ahmed Elbaz</a></strong>
+  <strong>Developed by <a href="https://github.com/ahmdelbaz28-ux">Eng Ahmed Elbaz</a></strong>
   <br>
   <em>Electrical Power Engineer & AI Systems Architect</em>
   <br>
-  <a href="mailto:ahmdelbaz28@gmail.com">📧 Email</a> ·
-  <a href="https://github.com/ahmdelbaz28-ux">💻 GitHub</a>
+  <a href="mailto:ahmdelbaz28@gmail.com">Email</a> &middot;
+  <a href="https://github.com/ahmdelbaz28-ux">GitHub</a>
 </p>
 
 ---
 
-## 📋 Table of Contents
+## Table of Contents
 
 - [What is ETAP AI?](#what-is-etap-ai)
 - [See it in Action](#see-it-in-action)
@@ -67,7 +67,7 @@
 
 ---
 
-## 🚀 Live Demo
+## Live Demo
 
 <p align="center">
   <a href="https://huggingface.co/spaces/ahmdelbaz28/etap-ai-platform">
@@ -79,29 +79,61 @@ The API is live at `https://ahmdelbaz28-etap-ai-platform.hf.space` with full Swa
 
 ---
 
-## ⚡ What is ETAP AI?
+## What is ETAP AI?
 
-**ETAP AI Engineering Platform** is an enterprise-grade autonomous engineering intelligence system for power-system studies. It combines native Python solvers with AI agent orchestration, ETAP COM automation, GIS enrichment, and enterprise-grade security.
+**ETAP AI Engineering Platform** is an enterprise-grade autonomous engineering intelligence system for power-system studies. It combines native Python solvers with AI agent orchestration, ETAP COM automation, GIS enrichment, and enterprise-grade security. Designed and developed from the ground up by **Eng Ahmed Elbaz**, this platform represents a paradigm shift in how power system engineering can leverage artificial intelligence for faster, more accurate, and fully auditable studies.
 
-> From load flow to arc flash analysis — all in one platform.
+> From load flow to arc flash analysis &mdash; all in one platform, powered by AI.
 
 ### Why ETAP AI?
 
 | Feature | ETAP AI | Traditional ETAP | Other Tools |
 |---------|:-------:|:----------------:|:-----------:|
-| 🤖 AI Agents | 9 specialized agents | Manual only | Limited |
-| 📖 Open Source | Full source code | Proprietary | Partial |
-| 🌐 Web API | REST + WebSocket | Desktop only | Limited |
-| 🐳 Docker Ready | Yes | Windows only | Complex |
-| ✅ Automated Tests | 548 passing | Unknown | Varies |
-| 📏 Standards | IEEE/IEC/NFPA | IEEE/IEC | Varies |
-| 🔒 Security | JWT + RBAC + Vault | License only | Basic |
+| AI Agents | 9 specialized agents | Manual only | Limited |
+| Open Source | Full source code | Proprietary | Partial |
+| Web API | REST + WebSocket | Desktop only | Limited |
+| Docker Ready | Yes | Windows only | Complex |
+| Automated Tests | 548 passing | Unknown | Varies |
+| Standards | IEEE/IEC/NFPA | IEEE/IEC | Varies |
+| Security | JWT + RBAC + Vault | License only | Basic |
+| Modern UI | React 19 + Dark/Light | Legacy Desktop | Basic |
+| Electron Desktop | Win + Linux | Windows only | Varies |
 
 ---
 
-## 👁️ See it in Action
+## See it in Action
 
-### Health & Readiness
+### Dashboard & AI Assistant
+<p align="center">
+  <img src="docs/screenshots/ui/dashboard-dark.png" alt="Dashboard - Dark Theme" width="45%">
+  <img src="docs/screenshots/ui/ai-assistant.png" alt="AI Assistant" width="45%">
+</p>
+
+### Engineering Studies & Load Flow
+<p align="center">
+  <img src="docs/screenshots/ui/studies.png" alt="Engineering Studies" width="45%">
+  <img src="docs/screenshots/ui/load-flow.png" alt="Load Flow Analysis" width="45%">
+</p>
+
+### Digital Twin & Asset Management
+<p align="center">
+  <img src="docs/screenshots/ui/digital-twin.png" alt="Digital Twin" width="45%">
+  <img src="docs/screenshots/ui/asset-management.png" alt="Asset Management" width="45%">
+</p>
+
+### Reports & Projects
+<p align="center">
+  <img src="docs/screenshots/ui/reports.png" alt="Reports" width="45%">
+  <img src="docs/screenshots/ui/projects.png" alt="Projects" width="45%">
+</p>
+
+### Diagnostics & Dashboard Light Theme
+<p align="center">
+  <img src="docs/screenshots/ui/diagnostics.png" alt="Diagnostics" width="45%">
+  <img src="docs/screenshots/ui/dashboard-light.png" alt="Dashboard - Light Theme" width="45%">
+</p>
+
+### API Health & Readiness
 <p align="center">
   <img src="docs/screenshots/01-hero.png" alt="System Health" width="45%">
   <img src="docs/screenshots/02-ready.png" alt="Server Readiness" width="45%">
@@ -127,41 +159,48 @@ The API is live at `https://ahmdelbaz28-etap-ai-platform.hf.space` with full Swa
 
 ---
 
-## 🎯 Key Features
+## Key Features
 
-### ⚙️ Engineering Studies
+### Engineering Studies
 | Study | Engine | Standard |
 |-------|--------|----------|
 | **Load Flow** | Newton-Raphson, Fast Decoupled, DC-OPF | IEEE |
 | **Short Circuit** | IEC 60909 compliant fault analysis | IEC 60909 |
 | **Arc Flash** | Incident energy & PPE calculator | IEEE 1584-2018 |
 | **Harmonics** | THD/TDD compliance analysis | IEEE 519-2022 |
-| **Optimal Power Flow** | AC/DC with economic dispatch | — |
+| **Optimal Power Flow** | AC/DC with economic dispatch | &mdash; |
 | **Protection** | IEC 60255 relay curve coordination | IEC 60255 |
 
-### 🧠 AI Agent Orchestration
+### AI Agent Orchestration
 - 9 specialized agents with task planning and RAG context
 - Knowledge base integration for standards and procedures
 - Audit-friendly responses with full traceability
 - Multi-agent workflow orchestration
 
-### 🔌 ETAP Automation
+### ETAP Automation
 - Windows COM automation for ETAP study execution
 - Cross-validation between native and ETAP results
 - Dedicated Windows worker support
 
-### 🗺️ GIS Integration
+### GIS Integration
 - ArcGIS, QGIS, and tabular data enrichment
 - Topology validation and electrical attribute checks
 - Model quality reports
 
-### 🛡️ Enterprise Security
+### Enterprise Security
 - JWT authentication with RBAC (5 roles)
 - Python sandboxing with allow-list
 - Secrets Manager (HashiCorp Vault + Fernet)
 - Audit logging and rate limiting
 
-### ✅ Validation & Quality
+### Modern UI
+- React 19 with TypeScript and Tailwind CSS 4
+- Dark and Light theme support
+- Arabic and English internationalization (i18n)
+- Electron desktop app for Windows and Linux
+- Responsive design with Framer Motion animations
+
+### Validation & Quality
 - 548 automated tests across all layers
 - 31 engineering validation gates
 - 173 syntax-verified files
@@ -169,75 +208,75 @@ The API is live at `https://ahmdelbaz28-etap-ai-platform.hf.space` with full Swa
 
 ---
 
-## 🏗️ Architecture
+## Architecture
 
 ```
-┌─────────────────────────────────────────────────────────────────────┐
-│                     🌐 ETAP AI ENGINEERING PLATFORM                 │
-│                     Enterprise-Grade Power System Intelligence      │
-├─────────────────────────────────────────────────────────────────────┤
-│                                                                     │
-│  ┌─────────────────────────┐    ┌────────────────────────────────┐  │
-│  │  🌍 CLIENT LAYER        │    │  🤖 AI AGENT LAYER             │  │
-│  │  ┌───────────────────┐  │    │  ┌──────────────────────────┐  │  │
-│  │  │ Mastra UI (React) │  │    │  │ Study Advisor Agent      │  │  │
-│  │  │ REST API Clients  │  │    │  │ Analysis Agent           │  │  │
-│  │  │ WebSocket Clients │  │    │  │ Report Generation Agent  │  │  │
-│  │  │ Swagger / OpenAPI │  │    │  │ Natural Language Query   │  │  │
-│  │  │ CI/CD Integrations│  │    │  │ Quality Assurance Agent  │  │  │
-│  │  └────────┬──────────┘  │    │  │ Knowledge Base Agent     │  │  │
-│  └───────────┼─────────────┘    │  │ Integration Agent        │  │  │
-│              │                  │  │ Monitoring Agent         │  │  │
-│              │                  │  │ Orchestration Agent      │  │  │
-│              │                  │  └──────────────────────────┘  │  │
-│              │                  └───────────────┬────────────────┘  │
-│              ▼                                  ▼                   │
-│  ┌────────────────────────────────────────────────────────────────┐  │
-│  │  ⚙️ ENGINEERING COMPUTATION ENGINE (FastAPI)                   │  │
-│  │                                                                  │
-│  │  ┌──────────────┐  ┌──────────────┐  ┌──────────────────────┐  │  │
-│  │  │  Load Flow   │  │    Short     │  │      Arc Flash       │  │  │
-│  │  │  NR/FD/OPF   │  │   Circuit    │  │    IEEE 1584-2018    │  │  │
-│  │  └──────────────┘  └──────────────┘  └──────────────────────┘  │  │
-│  │  ┌──────────────┐  ┌──────────────┐  ┌──────────────────────┐  │  │
-│  │  │  Harmonics   │  │      OPF     │  │    Protection        │  │  │
-│  │  │  IEEE 519    │  │  AC/DC Econ  │  │    IEC 60255         │  │  │
-│  │  └──────────────┘  └──────────────┘  └──────────────────────┘  │  │
-│  └────────────────────────────┬───────────────────────────────────┘  │
-│                               │                                      │
-│  ┌────────────────────────────────────────────────────────────────┐  │
-│  │  🔌 INTEGRATION LAYER                                         │  │
-│  │  ┌───────────┐  ┌──────────┐  ┌────────────┐  ┌───────────┐  │  │
-│  │  │ ETAP COM  │  │  ArcGIS  │  │   QGIS     │  │Digital    │  │  │
-│  │  │ Automation│  │ Spatial  │  │ Open Source│  │Twin       │  │  │
-│  │  └───────────┘  └──────────┘  └────────────┘  └───────────┘  │  │
-│  │  ┌───────────┐  ┌──────────┐                                  │  │
-│  │  │ BIM UDM   │  │  SCADA   │                                  │  │
-│  │  │ Data Model│  │ Gateway  │                                  │  │
-│  │  └───────────┘  └──────────┘                                  │  │
-│  └────────────────────────────┬───────────────────────────────────┘  │
-│                               │                                      │
-│  ┌────────────────────────────────────────────────────────────────┐  │
-│  │  🛡️ SECURITY & INFRASTRUCTURE                                 │  │
-│  │                                                                  │
-│  │  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌───────────────┐  │  │
-│  │  │ JWT Auth │  │   RBAC   │  │  Vault   │  │  Rate Limit   │  │  │
-│  │  │  + bcrypt│  │  5 Roles │  │ Secrets  │  │  Token Bucket │  │  │
-│  │  └──────────┘  └──────────┘  └──────────┘  └───────────────┘  │  │
-│  │  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌───────────────┐  │  │
-│  │  │ Sandbox  │  │  Audit   │  │  Docker  │  │  Cloudflare   │  │  │
-│  │  │  Python  │  │   Log    │  │  + K8s   │  │  + CDN        │  │  │
-│  │  └──────────┘  └──────────┘  └──────────┘  └───────────────┘  │  │
-│  └────────────────────────────────────────────────────────────────┘  │
-│                                                                     │
-└─────────────────────────────────────────────────────────────────────┘
++---------------------------------------------------------------------+
+|                     ETAP AI ENGINEERING PLATFORM                     |
+|                     Enterprise-Grade Power System Intelligence       |
++---------------------------------------------------------------------+
+|                                                                      |
+|  +--------------------------+    +-------------------------------+   |
+|  |  CLIENT LAYER            |    |  AI AGENT LAYER               |   |
+|  |  +--------------------+  |    |  +-------------------------+  |   |
+|  |  | React 19 UI        |  |    |  | Study Advisor Agent     |  |   |
+|  |  | REST API Clients   |  |    |  | Analysis Agent          |  |   |
+|  |  | WebSocket Clients  |  |    |  | Report Generation Agent |  |   |
+|  |  | Swagger / OpenAPI   |  |    |  | Natural Language Query  |  |   |
+|  |  | Electron Desktop   |  |    |  | Quality Assurance Agent |  |   |
+|  |  +---------+----------+  |    |  | Knowledge Base Agent    |  |   |
+|  +------------+-------------+    |  | Integration Agent       |  |   |
+|               |                  |  | Monitoring Agent        |  |   |
+|               |                  |  | Orchestration Agent     |  |   |
+|               |                  |  +-------------------------+  |   |
+|               |                  +---------------+---------------+   |
+|               v                                  v                   |
+|  +---------------------------------------------------------------+  |
+|  |  ENGINEERING COMPUTATION ENGINE (FastAPI)                      |  |
+|  |                                                                |  |
+|  |  +------------+  +------------+  +------------------------+    |  |
+|  |  |  Load Flow |  |    Short   |  |      Arc Flash         |    |  |
+|  |  |  NR/FD/OPF |  |   Circuit  |  |    IEEE 1584-2018      |    |  |
+|  |  +------------+  +------------+  +------------------------+    |  |
+|  |  +------------+  +------------+  +------------------------+    |  |
+|  |  |  Harmonics |  |     OPF    |  |    Protection          |    |  |
+|  |  |  IEEE 519  |  |  AC/DC Econ|  |    IEC 60255           |    |  |
+|  |  +------------+  +------------+  +------------------------+    |  |
+|  +----------------------------+----------------------------------+  |
+|                                |                                     |
+|  +----------------------------v----------------------------------+  |
+|  |  INTEGRATION LAYER                                            |  |
+|  |  +----------+  +----------+  +----------+  +-----------+      |  |
+|  |  | ETAP COM |  |  ArcGIS  |  |   QGIS   |  | Digital   |      |  |
+|  |  |Automation|  | Spatial  |  | Open Src |  | Twin      |      |  |
+|  |  +----------+  +----------+  +----------+  +-----------+      |  |
+|  |  +----------+  +----------+                                    |  |
+|  |  | BIM UDM  |  |  SCADA   |                                    |  |
+|  |  |Data Model|  | Gateway  |                                    |  |
+|  |  +----------+  +----------+                                    |  |
+|  +----------------------------+----------------------------------+  |
+|                                |                                     |
+|  +----------------------------v----------------------------------+  |
+|  |  SECURITY & INFRASTRUCTURE                                    |  |
+|  |                                                                |  |
+|  |  +--------+  +--------+  +--------+  +-------------+          |  |
+|  |  |JWT Auth|  |  RBAC  |  | Vault  |  | Rate Limit  |          |  |
+|  |  |+ bcrypt|  | 5 Roles|  |Secrets |  |Token Bucket |          |  |
+|  |  +--------+  +--------+  +--------+  +-------------+          |  |
+|  |  +--------+  +--------+  +--------+  +-------------+          |  |
+|  |  |Sandbox |  | Audit  |  | Docker |  | Cloudflare  |          |  |
+|  |  | Python |  |  Log   |  | + K8s  |  | + CDN       |          |  |
+|  |  +--------+  +--------+  +--------+  +-------------+          |  |
+|  +---------------------------------------------------------------+  |
+|                                                                      |
++---------------------------------------------------------------------+
 ```
 
 Full architecture: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
 
 ---
 
-## 🚀 Quick Start
+## Quick Start
 
 ### Prerequisites
 
@@ -280,31 +319,31 @@ Access: **http://localhost:3000** (UI) | **http://localhost:8000/docs** (API)
 
 ---
 
-## ✅ Validation & Quality
+## Validation & Quality
 
 | Metric | Count | Status |
 |--------|------:|--------|
-| Python syntax validation | 173/173 files | ✅ |
-| Engineering validation suite | 31/31 tests | ✅ |
-| Pytest suite | 548 tests | ✅ |
-| UI component tests | 3 tests | ✅ |
-| Docker images | 2 Dockerfiles | ✅ |
-| CI/CD workflows | 10 workflows | ✅ |
-| Pre-commit hooks | 7 checks | ✅ |
-| Stress test (30s) | 685 reqs, 0 failures | ✅ |
+| Python syntax validation | 173/173 files | Pass |
+| Engineering validation suite | 31/31 tests | Pass |
+| Pytest suite | 548 tests | Pass |
+| UI component tests | 3 tests | Pass |
+| Docker images | 2 Dockerfiles | Pass |
+| CI/CD workflows | 10 workflows | Pass |
+| Pre-commit hooks | 7 checks | Pass |
+| Stress test (30s) | 685 reqs, 0 failures | Pass |
 
 ### Quality Gates
 
 | Gate | Trigger | Checks |
 |------|---------|--------|
-| 🚦 PRE_COMMIT | Every push/PR | Lint, tests, syntax, validation, type checking |
-| 🏗️ PRE_BUILD | Push to main | Docker build, compose validation |
-| 🧪 POST_BUILD | After build | E2E smoke tests, Trivy security scan |
-| 🌙 SCHEDULED | Nightly + manual | Full regression, performance baseline |
+| PRE_COMMIT | Every push/PR | Lint, tests, syntax, validation, type checking |
+| PRE_BUILD | Push to main | Docker build, compose validation |
+| POST_BUILD | After build | E2E smoke tests, Trivy security scan |
+| SCHEDULED | Nightly + manual | Full regression, performance baseline |
 
 ---
 
-## 🔒 Security
+## Security
 
 | Layer | Controls |
 |-------|----------|
@@ -319,7 +358,7 @@ See [SECURITY.md](SECURITY.md) and [docs/SECURITY_OPERATIONS_MANUAL.md](docs/SEC
 
 ---
 
-## 🛠️ Tech Stack
+## Tech Stack
 
 | Layer | Technology |
 |-------|-----------|
@@ -331,10 +370,11 @@ See [SECURITY.md](SECURITY.md) and [docs/SECURITY_OPERATIONS_MANUAL.md](docs/SEC
 | **Security** | JWT, bcrypt, HashiCorp Vault, Trivy, CodeQL |
 | **GIS** | ArcGIS API, QGIS, GDAL |
 | **Integration** | ETAP COM (Windows), BIM UDM, SCADA |
+| **Desktop** | Electron (Windows + Linux) |
 
 ---
 
-## 📚 Documentation
+## Documentation
 
 | Document | Audience |
 |----------|----------|
@@ -349,7 +389,7 @@ See [SECURITY.md](SECURITY.md) and [docs/SECURITY_OPERATIONS_MANUAL.md](docs/SEC
 
 ---
 
-## 🤝 Contributing
+## Contributing
 
 1. Fork the repository
 2. Create a focused branch (`feat/my-feature`)
@@ -360,9 +400,9 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for detailed guidelines.
 
 ---
 
-## 📄 License
+## License
 
-MIT License — Copyright (c) 2026 Eng. Ahmed Elbaz
+MIT License &mdash; Copyright (c) 2026 Eng Ahmed Elbaz
 
 ETAP is a registered trademark of ETAP Corporation. This project is independent and not affiliated with, endorsed by, or connected to ETAP Corporation.
 
@@ -371,13 +411,13 @@ ETAP is a registered trademark of ETAP Corporation. This project is independent 
 <p align="center">
   <img src="docs/assets/logo.png" width="48" height="48" alt="Logo">
   <br>
-  <strong>Built by <a href="https://github.com/ahmdelbaz28-ux">Eng. Ahmed Elbaz</a></strong>
+  <strong>Developed by <a href="https://github.com/ahmdelbaz28-ux">Eng Ahmed Elbaz</a></strong>
   <br>
   <em>Electrical Power Engineer & AI Systems Architect</em>
   <br>
-  <a href="mailto:ahmdelbaz28@gmail.com">📧 ahmdelbaz28@gmail.com</a>
+  <a href="mailto:ahmdelbaz28@gmail.com">ahmdelbaz28@gmail.com</a>
   <br><br>
-  <a href="https://github.com/ahmdelbaz28-ux/ETAP-AI-WORK-/issues">Report Bug</a> ·
-  <a href="https://github.com/ahmdelbaz28-ux/ETAP-AI-WORK-/issues">Request Feature</a> ·
+  <a href="https://github.com/ahmdelbaz28-ux/ETAP-AI-WORK-/issues">Report Bug</a> &middot;
+  <a href="https://github.com/ahmdelbaz28-ux/ETAP-AI-WORK-/issues">Request Feature</a> &middot;
   <a href="https://github.com/ahmdelbaz28-ux">Follow @ahmdelbaz28-ux</a>
 </p>
