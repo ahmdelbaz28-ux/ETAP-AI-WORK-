@@ -27,6 +27,15 @@
   <a href="https://huggingface.co/spaces/ahmdelbaz28/etap-ai-platform">
     <img src="https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-Live%20Demo-yellow?style=for-the-badge" alt="Hugging Face">
   </a>
+  <a href="https://github.com/ahmdelbaz28-ux/ETAP-AI-WORK-/actions/workflows/code-quality.yml">
+    <img src="https://img.shields.io/github/actions/workflow/status/ahmdelbaz28-ux/ETAP-AI-WORK-/code-quality.yml?style=for-the-badge&label=Code%20Quality&color=purple" alt="Code Quality">
+  </a>
+  <a href="https://github.com/ahmdelbaz28-ux/ETAP-AI-WORK-/actions/workflows/docker-build.yml">
+    <img src="https://img.shields.io/github/actions/workflow/status/ahmdelbaz28-ux/ETAP-AI-WORK-/docker-build.yml?style=for-the-badge&label=Docker&color=blue" alt="Docker Build">
+  </a>
+  <a href="https://github.com/ahmdelbaz28-ux/ETAP-AI-WORK-/actions/workflows/security.yml">
+    <img src="https://img.shields.io/github/actions/workflow/status/ahmdelbaz28-ux/ETAP-AI-WORK-/security.yml?style=for-the-badge&label=Security&color=red" alt="Security">
+  </a>
 </p>
 
 <p align="center">
@@ -264,6 +273,16 @@ See [SECURITY.md](SECURITY.md) and [docs/SECURITY_OPERATIONS_MANUAL.md](docs/SEC
 | [Incident Response](docs/INCIDENT_RESPONSE_RUNBOOK.md) | Incident commanders |
 | [Disaster Recovery](docs/DISASTER_RECOVERY_PLAN.md) | SRE and business continuity |
 | [Troubleshooting Guide](docs/TROUBLESHOOTING_GUIDE.md) | Developers and support |
+
+---
+
+## Support
+
+Need help? Check [SUPPORT.md](SUPPORT.md) for:
+- Bug reports via GitHub Issues
+- Feature requests and discussions
+- Live demo on Hugging Face Spaces
+- Full documentation
 
 ---
 
