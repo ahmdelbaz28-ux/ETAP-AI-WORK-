@@ -125,9 +125,11 @@ def validate_prompt_file(filepath: Path) -> list:
                     # Check for engineering standards references in system messages
                     if msg["role"] == "system" and filename != "sample_prompt.yaml":
                         agent_name = filepath.stem.replace(".prompt", "").replace("_agent", "").replace("_", "")
+                        # Skip non-engineering prompts
+                        non_engineering = {"weatheractivityplanner", "weather", "goalplanner", "sample", "fallback", "genericagentchat"}
                         # Check if any standard is mentioned
                         has_standard = any(std.split()[0] in content for std in ENGINEERING_STANDARDS)
-                        if not has_standard and agent_name != "weather" and agent_name != "goalplanner":
+                        if not has_standard and agent_name not in non_engineering:
                             issues.append("INFO: No engineering standard reference found in system prompt")
             if not has_system and filename != "sample_prompt.yaml":
                 issues.append("WARNING: No system message found — agents should have system instructions")
