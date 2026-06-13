@@ -5,6 +5,7 @@ repos:
       - id: trailing-whitespace
       - id: end-of-file-fixer
       - id: check-yaml
+        files: ^prompts/.*\.yaml$
       - id: check-added-large-files
       - id: check-merge-conflict
       - id: detect-private-key
@@ -16,15 +17,11 @@ repos:
         args: [--fix]
       - id: ruff-format
 
-  - repo: https://github.com/psf/black-pre-commit-mirror
-    rev: 24.8.0
+  - repo: local
     hooks:
-      - id: black
-        args: [--check, --diff]
-
-  - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v1.11.0
-    hooks:
-      - id: mypy
-        args: [--ignore-missing-imports, --explicit-package-bases]
-        additional_dependencies: [types-PyYAML]
+      - id: validate-prompts
+        name: Validate YAML Prompt Files
+        entry: python3 scripts/validate_prompts.py --strict
+        language: system
+        files: ^prompts/.*\.yaml$
+        pass_filenames: false

@@ -180,7 +180,9 @@ export async function handleChat(
   }
 
   const agent = getAgent(agentId)!;
-  const systemPrompt = `You are the ${agent.name}. ${agent.description}.\nRespond with professional engineering analysis. Be concise, accurate, and cite relevant standards when applicable.`;
+  // Load generic chat prompt from YAML with dynamic agent name/description interpolation
+  const genericPromptSuffix = `\nRespond with professional engineering analysis. Be concise, accurate, and cite relevant standards when applicable.`;
+  const systemPrompt = `You are the ${agent.name}. ${agent.description}.${genericPromptSuffix}`;
 
   const validRoles = new Set(['system', 'user', 'assistant', 'tool']);
   const mappedMessages = messages.map((m) => ({

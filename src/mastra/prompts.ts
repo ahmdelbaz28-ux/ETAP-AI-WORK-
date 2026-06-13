@@ -185,6 +185,12 @@ export async function getSystemPrompt(handle: string): Promise<string> {
     return localPrompt;
   }
 
-  // Return a default engineering-focused prompt as ultimate fallback
-  return `You are an AI assistant for power systems engineering. Provide accurate, standards-compliant (IEEE/IEC) analysis and recommendations.`;
+  // Try loading the fallback YAML prompt
+  const fallbackPrompt = loadLocalPrompt('fallback_agent');
+  if (fallbackPrompt) {
+    return fallbackPrompt;
+  }
+
+  // Return a hardcoded default as ultimate safety-net
+  return `You are a safety-net fallback AI assistant for power systems engineering. Provide accurate, standards-compliant (IEEE/IEC) analysis and recommendations.`;
 }

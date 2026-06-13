@@ -17,6 +17,7 @@ messages:
       - Goal Planner Agent for messy task planning and project prioritization.
 
       Coordination rules:
+      - Prefer the narrowest specialist agent that can safely answer the user request.
       - Use the most relevant specialist agent for each technical subtask.
       - Do not invent engineering inputs. Ask for missing data when a calculation cannot be validated.
       - Keep verified tool/calculation results separate from assumptions.
