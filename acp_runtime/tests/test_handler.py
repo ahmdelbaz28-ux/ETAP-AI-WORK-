@@ -33,7 +33,7 @@ class MixedHandler:
 
 def test_decorator_attaches_metadata():
     MathHandler()
-    meta = getattr(MathHandler.sum, "_acp_capability")
+    meta = MathHandler.sum._acp_capability
     assert isinstance(meta, CapabilityMeta)
     assert meta.name == "math.sum"
     assert meta.scopes == ("math.read",)
@@ -99,7 +99,7 @@ def test_empty_scopes_is_allowed():
     def noop() -> None:
         return None
 
-    meta = getattr(noop, "_acp_capability")
+    meta = noop._acp_capability
     assert meta.scopes == ()
 
 
@@ -114,5 +114,5 @@ def test_scopes_can_be_list_or_tuple():
     def a() -> None:
         return None
 
-    meta = getattr(a, "_acp_capability")
+    meta = a._acp_capability
     assert meta.scopes == ("s.read",)  # normalized to tuple

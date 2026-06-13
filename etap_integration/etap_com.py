@@ -1174,7 +1174,7 @@ class ETAPAutomation:
         if not isinstance(result_dict, dict):
             raise TypeError(f"Expected dict, got {type(result_dict).__name__}")
         total = 0
-        for key, value in result_dict.items():
+        for _key, value in result_dict.items():
             if isinstance(value, dict):
                 total += len(value)
             elif isinstance(value, (list, tuple)):
@@ -1352,7 +1352,7 @@ class ETAPAutomation:
         try:
             com_project = self._com_app.ActiveProject
             if com_project:
-                for path, proj in self._projects.items():
+                for _path, proj in self._projects.items():
                     if proj._com_project == com_project:
                         return proj
 

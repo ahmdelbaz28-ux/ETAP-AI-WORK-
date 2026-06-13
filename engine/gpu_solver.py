@@ -28,10 +28,8 @@ is solved via ``cupy.sparse.linalg.spsolve`` on GPU or
 from __future__ import annotations
 
 import logging
-import sys
 import time
-from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any, Dict, List, Optional, Union
 
 import numpy as np
 from scipy.sparse import csr_matrix, lil_matrix
@@ -77,7 +75,7 @@ except Exception as exc:
 # Data containers (reuse from sparse_solver for consistency)
 # ---------------------------------------------------------------------------
 
-from engine.sparse_solver import BranchData, BusData, SparseConvergenceResult
+from engine.sparse_solver import BusData, SparseConvergenceResult
 
 # ---------------------------------------------------------------------------
 # GPUSolver

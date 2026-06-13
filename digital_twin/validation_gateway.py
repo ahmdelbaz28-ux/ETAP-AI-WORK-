@@ -344,7 +344,7 @@ class ValidationGateway:
 
         # Check voltages in range (0.9 - 1.1 pu)
         out_of_range = 0
-        for bid, bus in system.buses.items():
+        for _bid, bus in system.buses.items():
             if bus.voltage_magnitude < 0.9 or bus.voltage_magnitude > 1.1:
                 out_of_range += 1
         results.append(ValidationResult(

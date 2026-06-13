@@ -15,7 +15,7 @@ concurrency:
 
 jobs:
   pre-commit:
-    name: PRE_COMMIT - Lint, Syntax, Validation
+    name: Lint, Syntax, Validation
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
@@ -25,7 +25,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.11'
+          python-version: '3.12'
           cache: 'pip'
 
       - name: Install Python dependencies
@@ -38,13 +38,15 @@ jobs:
         run: python3 validate_syntax.py
 
       - name: Engineering validation suite
-        run: python3 validation_suite.py || echo "Validation suite had warnings"
+        run: python3 validation_suite.py
+        continue-on-error: true
 
       - name: Pytest
-        run: pytest -q || echo "Some tests failed"
+        run: pytest -q
+        continue-on-error: true
 
   pre-build:
-    name: PRE_BUILD - Build Verification
+    name: Build Verification
     runs-on: ubuntu-latest
     needs: pre-commit
     timeout-minutes: 25
@@ -56,13 +58,15 @@ jobs:
         uses: docker/setup-buildx-action@v3
 
       - name: Validate docker compose config
-        run: docker compose config --quiet || echo "Docker compose validation skipped"
+        run: docker compose config --quiet
+        continue-on-error: true
 
       - name: Build engineering-service image
-        run: docker build -f Dockerfile.engineering-service -t etap-engineering-service:ci . || echo "Docker build skipped"
+        run: docker build -f Dockerfile.engineering-service -t etap-engineering-service:ci .
+        continue-on-error: true
 
   post-build:
-    name: POST_BUILD - Security Scan
+    name: Security Scan
     runs-on: ubuntu-latest
     needs: pre-build
     timeout-minutes: 30
@@ -73,14 +77,15 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.11'
+          python-version: '3.12'
           cache: 'pip'
 
       - name: Install Python dependencies
         run: python3 -m pip install -r requirements.txt
 
       - name: Run E2E smoke tests
-        run: pytest -q tests/e2e_smoke_test.py || echo "E2E tests had failures"
+        run: pytest -q tests/e2e_smoke_test.py
+        continue-on-error: true
 
       - name: Set up Trivy
         uses: aquasecurity/trivy-action@0.28.0
@@ -89,7 +94,7 @@ jobs:
           cache-dir: /tmp/trivy-cache
 
       - name: Trivy filesystem scan
-        run: trivy filesystem --exit-code 0 --severity CRITICAL,HIGH --format sarif --output trivy-results.sarif . || echo "Trivy scan completed with findings"
+        run: trivy filesystem --exit-code 0 --severity CRITICAL,HIGH --format sarif --output trivy-results.sarif .
 
       - name: Upload Trivy SARIF
         uses: github/codeql-action/upload-sarif@v3
@@ -98,7 +103,7 @@ jobs:
         if: always()
 
   scheduled-regression:
-    name: SCHEDULED - Nightly Regression
+    name: Nightly Regression
     runs-on: ubuntu-latest
     if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
     timeout-minutes: 60
@@ -109,7 +114,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.11'
+          python-version: '3.12'
           cache: 'pip'
 
       - name: Install Python dependencies
@@ -122,15 +127,16 @@ jobs:
         run: python3 validate_syntax.py
 
       - name: Engineering validation suite
-        run: python3 validation_suite.py || echo "Validation suite had warnings"
+        run: python3 validation_suite.py
+        continue-on-error: true
 
-      - name: Pytest
-        run: pytest -q || echo "Some tests failed"
+      - name: Pytest with coverage
+        run: pytest -q --cov --cov-report=term-missing
+        continue-on-error: true
 
       - name: Generate regression report
         run: |
-          python3 -c 'import json, datetime; results = {"timestamp": datetime.datetime.utcnow().isoformat() + "Z"}; open("regression-report.json", "w").write(json.dumps(results, indent=2))'
-        continue-on-error: true
+          python3 -c 'import json, datetime; results = {"timestamp": datetime.datetime.utcnow().isoformat() + "Z", "status": "completed"}; open("regression-report.json", "w").write(json.dumps(results, indent=2))'
 
       - name: Upload regression report
         uses: actions/upload-artifact@v4

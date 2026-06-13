@@ -701,7 +701,7 @@ class ValidationCampaign:
             "5. Arc flash boundary calculation uses simplified enclosure correction factor",
         ]
         for line_item in limitations:
-            print(f"  - {l}")
+            print(f"  - {line_item}")
 
         print("\n--- Engineering Limitations ---")
         eng_limits = [

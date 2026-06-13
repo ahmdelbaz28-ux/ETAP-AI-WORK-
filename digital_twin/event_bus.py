@@ -345,7 +345,7 @@ class EventBus:
 
     def unsubscribe(self, sub_id: str) -> bool:
         """Remove a subscription by ID."""
-        for event_type, entries in self._subscribers.items():
+        for _event_type, entries in self._subscribers.items():
             for i, (_, sid, _) in enumerate(entries):
                 if sid == sub_id:
                     entries.pop(i)

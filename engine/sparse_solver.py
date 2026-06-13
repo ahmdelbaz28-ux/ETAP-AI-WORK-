@@ -31,10 +31,9 @@ Linear system
 from __future__ import annotations
 
 import logging
-import sys
 import time
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any, Dict, List, Optional, Tuple
 
 import numpy as np
 from scipy.sparse import csr_matrix, issparse, lil_matrix
@@ -272,7 +271,7 @@ class SparseYBus:
                 Y[j, i] -= y
 
         # Add shunt admittances at buses (capacitor banks, etc.)
-        for idx, bus in enumerate(self._buses):
+        for _idx, _bus in enumerate(self._buses):
             # Any bus-level shunt can be added here in future extensions
             pass
 

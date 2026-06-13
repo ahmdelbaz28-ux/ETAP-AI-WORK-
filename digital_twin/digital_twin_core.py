@@ -323,7 +323,7 @@ class SynchronizationEngine:
         if self.dt_state.gis is None or self.dt_state.scada is None:
             return ["GIS or SCADA not bound"]
 
-        for did, dev in self.dt_state.scada.switch_devices.items():
+        for did, _dev in self.dt_state.scada.switch_devices.items():
             gis_asset = self.dt_state.gis.find_asset_by_electrical_id(did)
             if gis_asset is None:
                 errors.append(
@@ -559,7 +559,7 @@ class ChangePropagationEngine:
 
             # Update simulation results in snapshot
             if success and self._load_flow_solver is not None:
-                for bid_str, bs in snapshot.bus_states.items():
+                for bid_str, _bs in snapshot.bus_states.items():
                     bus = (self.dt_state.system.buses.get(int(bid_str), None)
                            if self.dt_state.system else None)
                     if bus:
