@@ -1,25 +1,21 @@
 # Ruff configuration for ETAP AI Platform
 # https://docs.astral.sh/ruff/configuration/
 
-# Same as Black.
 line-length = 120
-target-version = "py311"
+target-version = "py312"
 
 [lint]
-# Enable pycodestyle (E), Pyflakes (F), isort (I)
-select = ["E", "F", "I"]
+# Enable comprehensive rule set
+select = ["E", "F", "I", "B", "W"]
 
-# Ignore specific rules that are not critical
+# Only ignore rules that are genuinely acceptable for this codebase
 ignore = [
-    "E741",   # Ambiguous variable name (I, l, O are common in electrical engineering)
-    "E402",   # Module level import not at top of file
-    "E701",   # Multiple statements on one line (def)
-    "E702",   # Multiple statements on one line (;)
-    "E501",   # Line too long (existing codebase has long lines)
-    "F401",   # Unused import (many are used for type hints or re-exports)
-    "F821",   # Undefined name (many are dynamically defined)
-    "F841",   # Unused variable
-    "B905",   # zip() without strict= (Python 3.10+ feature)
+    "E741",   # Ambiguous variable name (I, l, O are standard in electrical engineering — per-unit, current, etc.)
+    "E501",   # Line too long (handled by formatter, not linter)
+    "E402",   # Module level import not at top (some modules need env setup before imports)
+    "E701",   # Multiple statements on one line (def) — legacy patterns
+    "E702",   # Multiple statements on one line (;) — legacy patterns
+    "B905",   # zip() without strict= (Python 3.10+ feature, not always appropriate)
 ]
 
 # Allow autofix for all enabled rules
@@ -28,8 +24,9 @@ unfixable = []
 
 [lint.per-file-ignores]
 "__init__.py" = ["F401", "E402"]
-"tests/**" = ["F401", "F841", "E741"]
+"tests/**" = ["F401", "F841", "E741", "S101"]
 "validation_*.py" = ["F401", "F841"]
+"docs/demos/**" = ["E501", "F821"]
 
 [format]
 quote-style = "double"

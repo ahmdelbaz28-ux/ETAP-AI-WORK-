@@ -38,11 +38,11 @@ except ImportError:
 class ETAPGuideRAG:
     """
     RAG Engine specialized for ETAP User Guide.
-    
+
     This is the AUTHORITATIVE source for all ETAP operations.
     All agents MUST consult this engine before any ETAP operation.
     """
-    
+
     # MANDATORY INSTRUCTIONS FOR ALL AGENTS
     MANDATORY_INSTRUCTIONS = """
     ╔════════════════════════════════════════════════════════════════════════════╗
@@ -81,38 +81,38 @@ class ETAPGuideRAG:
     ║                                                                            ║
     ╚════════════════════════════════════════════════════════════════════════════╝
     """
-    
+
     def __init__(self, guide_path: str = "etap_user_guide"):
         """
         Initialize the ETAP Guide RAG engine.
-        
+
         Args:
             guide_path: Path to the extracted ETAP guide
         """
         self.guide_path = Path(guide_path)
         self.chunks_dir = self.guide_path / "chunks"
         self.index_dir = self.guide_path / "index"
-        
+
         # Storage for loaded content
         self.documents: List[Dict] = []
         self.chunks: List[str] = []
         self.chunk_metadata: List[Dict] = []
         self.embeddings = None
         self.vector_db = None
-        
+
         # Load the guide
         self._load_guide()
-    
+
     def _load_guide(self):
         """Load the ETAP guide from extracted files."""
         print("Loading ETAP User Guide into RAG engine...")
-        
+
         # Load master index if exists
         master_index_file = self.index_dir / "master_index.json"
         if master_index_file.exists():
             with open(master_index_file, 'r', encoding='utf-8') as f:
                 master_index = json.load(f)
-                
+
                 for doc in master_index["documents"]:
                     self.documents.append({
                         "filename": doc["filename"],
@@ -120,7 +120,7 @@ class ETAPGuideRAG:
                         "pages": doc["pages"],
                         "characters": doc["characters"]
                     })
-                    
+
                     for idx, chunk in enumerate(doc["chunks"]):
                         self.chunks.append(chunk)
                         self.chunk_metadata.append({
@@ -128,93 +128,93 @@ class ETAPGuideRAG:
                             "chunk_index": idx,
                             "source": doc["source"]
                         })
-                
+
                 print(f"✓ Loaded {len(self.documents)} documents")
                 print(f"✓ Loaded {len(self.chunks)} text chunks")
         else:
             print("Warning: Master index not found. Run extract_guide.py first.")
-    
+
     def _create_embeddings(self):
         """Create embeddings for all chunks using sentence transformers."""
         if not SENTENCE_TRANSFORMERS_AVAILABLE:
             print("Warning: sentence-transformers not available. Using simple search.")
             return
-        
+
         print("Creating embeddings for semantic search...")
-        
+
         try:
             # Load model
             model = SentenceTransformer('all-MiniLM-L6-v2')
-            
+
             # Create embeddings in batches
             batch_size = 100
             all_embeddings = []
-            
+
             for i in range(0, len(self.chunks), batch_size):
                 batch = self.chunks[i:i + batch_size]
                 batch_embeddings = model.encode(batch, show_progress_bar=True)
                 all_embeddings.extend(batch_embeddings)
-            
+
             self.embeddings = all_embeddings
             print(f"✓ Created {len(self.embeddings)} embeddings")
-            
+
         except Exception as e:
             print(f"Error creating embeddings: {e}")
-    
+
     def search(self, query: str, top_k: int = 5) -> List[Dict]:
         """
         Search the ETAP guide for relevant information.
-        
+
         Args:
             query: Search query
             top_k: Number of results to return
-            
+
         Returns:
             List of search results with relevance scores
         """
         if not self.chunks:
             return []
-        
+
         results = []
-        
+
         # Simple keyword-based search (fallback)
         query_terms = query.lower().split()
-        
+
         for idx, chunk in enumerate(self.chunks):
             chunk_lower = chunk.lower()
-            
+
             # Calculate relevance score
             score = 0
             for term in query_terms:
                 if term in chunk_lower:
                     score += chunk_lower.count(term)
-            
+
             if score > 0:
                 results.append({
                     "chunk": chunk,
                     "score": score,
                     "metadata": self.chunk_metadata[idx]
                 })
-        
+
         # Sort by score and return top_k
         results.sort(key=lambda x: x["score"], reverse=True)
         return results[:top_k]
-    
+
     def get_etap_procedure(self, operation: str) -> Dict:
         """
         Get the official ETAP procedure for a specific operation.
-        
+
         This is the AUTHORITATIVE source for ETAP operations.
-        
+
         Args:
             operation: The ETAP operation to look up
-            
+
         Returns:
             Dictionary with procedure details
         """
         # Search for the procedure
         results = self.search(operation, top_k=10)
-        
+
         if not results:
             return {
                 "found": False,
@@ -222,7 +222,7 @@ class ETAPGuideRAG:
                 "message": f"Procedure for '{operation}' not found in ETAP User Guide",
                 "recommendation": "Consult ETAP support or additional documentation"
             }
-        
+
         # Compile procedure from results
         procedure = {
             "found": True,
@@ -232,54 +232,54 @@ class ETAPGuideRAG:
             "notes": [],
             "warnings": []
         }
-        
+
         for result in results:
             chunk = result["chunk"]
             metadata = result["metadata"]
-            
+
             procedure["sources"].append({
                 "document": metadata["document"],
                 "relevance": result["score"]
             })
-            
+
             # Extract steps (lines starting with numbers or bullets)
             lines = chunk.split('\n')
             for line in lines:
                 line = line.strip()
                 if line and (line[0].isdigit() or line.startswith('-') or line.startswith('•')):
                     procedure["steps"].append(line)
-                
+
                 # Extract warnings
                 if 'warning' in line.lower() or 'caution' in line.lower():
                     procedure["warnings"].append(line)
-                
+
                 # Extract notes
                 if 'note' in line.lower() or 'important' in line.lower():
                     procedure["notes"].append(line)
-        
+
         return procedure
-    
+
     def validate_etap_operation(self, operation: str, proposed_steps: List[str]) -> Dict:
         """
         Validate proposed ETAP operation steps against the official guide.
-        
+
         Args:
             operation: The ETAP operation being performed
             proposed_steps: Steps proposed to be executed
-            
+
         Returns:
             Validation result with compliance status
         """
         # Get official procedure
         official = self.get_etap_procedure(operation)
-        
+
         if not official["found"]:
             return {
                 "valid": False,
                 "reason": "Operation not documented in ETAP User Guide",
                 "recommendation": "Cannot validate - consult ETAP support"
             }
-        
+
         # Compare proposed steps with official
         validation = {
             "valid": True,
@@ -290,16 +290,16 @@ class ETAPGuideRAG:
             "issues": [],
             "warnings": official["warnings"]
         }
-        
+
         # Simple validation: check if key terms match
         official_text = " ".join(official["steps"]).lower()
-        
+
         for step in proposed_steps:
             step_terms = set(step.lower().split())
             official_terms = set(official_text.split())
-            
+
             overlap = len(step_terms & official_terms)
-            
+
             if overlap > 0:
                 validation["compliance"].append({
                     "step": step,
@@ -313,29 +313,29 @@ class ETAPGuideRAG:
                     "status": "not_found_in_guide"
                 })
                 validation["issues"].append(f"Step not found in guide: {step}")
-        
+
         if validation["issues"]:
             validation["valid"] = False
-        
+
         return validation
-    
+
     def get_mandatory_instructions(self) -> str:
         """Get the mandatory instructions that must be followed by all agents."""
         return self.MANDATORY_INSTRUCTIONS
-    
+
     def query(self, question: str) -> Dict:
         """
         Answer a question about ETAP using the official guide.
-        
+
         Args:
             question: Question to answer
-            
+
         Returns:
             Answer with sources
         """
         # Search for relevant information
         results = self.search(question, top_k=5)
-        
+
         if not results:
             return {
                 "answered": False,
@@ -344,24 +344,24 @@ class ETAPGuideRAG:
                 "sources": [],
                 "confidence": 0
             }
-        
+
         # Compile answer from results
         answer_parts = []
         sources = []
-        
+
         for result in results:
             chunk = result["chunk"]
             metadata = result["metadata"]
-            
+
             answer_parts.append(chunk)
             sources.append({
                 "document": metadata["document"],
                 "relevance": result["score"]
             })
-        
+
         # Combine into coherent answer
         answer = "\n\n".join(answer_parts)
-        
+
         return {
             "answered": True,
             "question": question,
@@ -377,14 +377,14 @@ def main():
     print("ETAP User Guide RAG Engine - Test")
     print("=" * 70)
     print()
-    
+
     # Initialize RAG engine
     rag = ETAPGuideRAG()
-    
+
     # Display mandatory instructions
     print(rag.get_mandatory_instructions())
     print()
-    
+
     # Test queries
     test_queries = [
         "How to create a new project in ETAP?",
@@ -392,21 +392,21 @@ def main():
         "How to add a bus to the one-line diagram?",
         "How to set up short circuit analysis?"
     ]
-    
+
     print("Testing queries:")
     print("-" * 70)
-    
+
     for query in test_queries:
         print(f"\nQuery: {query}")
         result = rag.query(query)
-        
+
         if result["answered"]:
             print(f"✓ Answered (confidence: {result['confidence']:.2f})")
             print(f"  Sources: {len(result['sources'])} documents")
             print(f"  Answer preview: {result['answer'][:200]}...")
         else:
             print("✗ Not answered")
-    
+
     print()
     print("=" * 70)
     print("RAG Engine Test Complete!")

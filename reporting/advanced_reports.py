@@ -330,6 +330,13 @@ class PDFReportGenerator:
                                  sections: List[ReportSection],
                                  output_path: str) -> str:
         """Generate PDF using ReportLab library."""
+        # Import ReportLab components at method level to ensure availability
+        from reportlab.lib import colors
+        from reportlab.lib.pagesizes import A4
+        from reportlab.lib.styles import getSampleStyleSheet
+        from reportlab.lib.units import inch
+        from reportlab.platypus import Image, PageBreak, Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
+
         # Create output directory
         os.makedirs(output_path, exist_ok=True)
 

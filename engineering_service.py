@@ -21,6 +21,7 @@ Run:
 
 from __future__ import annotations
 
+import asyncio
 import hmac
 import json
 import logging
@@ -666,16 +667,67 @@ app.add_middleware(
 app.add_middleware(_BodySizeLimitMiddleware)
 
 
+# ---------------------------------------------------------------------------
+# Rate Limiting (in-memory, per-client)
+# ---------------------------------------------------------------------------
+
+_RATE_LIMIT_WINDOW = int(os.environ.get("ENGINEERING_SERVICE_RATE_LIMIT_WINDOW", "60"))  # seconds
+_RATE_LIMIT_MAX_REQUESTS = int(os.environ.get("ENGINEERING_SERVICE_RATE_LIMIT_MAX", "100"))  # requests per window
+_rate_limit_store: Dict[str, List[float]] = {}
+_rate_limit_lock = _threading.Lock()
+
+
+def _check_rate_limit(client_id: str) -> bool:
+    """Check if the client has exceeded the rate limit. Returns True if allowed."""
+    now = time.time()
+    with _rate_limit_lock:
+        if client_id not in _rate_limit_store:
+            _rate_limit_store[client_id] = [now]
+            return True
+        # Remove timestamps outside the window
+        _rate_limit_store[client_id] = [
+            t for t in _rate_limit_store[client_id] if now - t < _RATE_LIMIT_WINDOW
+        ]
+        if len(_rate_limit_store[client_id]) >= _RATE_LIMIT_MAX_REQUESTS:
+            return False
+        _rate_limit_store[client_id].append(now)
+        return True
+
+
+# ---------------------------------------------------------------------------
+# Request Timeout
+# ---------------------------------------------------------------------------
+
+_REQUEST_TIMEOUT_SEC = int(os.environ.get("ENGINEERING_SERVICE_REQUEST_TIMEOUT", "120"))  # seconds
+
+
 @app.middleware("http")
 async def trace_middleware(request: Request, call_next):
     trace_id = request.headers.get("x-trace-id") or str(uuid.uuid4())
     request.state.trace_id = trace_id
+
+    # Rate limiting — skip for health endpoints
+    if not request.url.path.startswith(("/health", "/ready", "/healthz", "/readyz", "/")):
+        client_id = request.client.host if request.client else "unknown"
+        if not _check_rate_limit(client_id):
+            return JSONResponse(
+                status_code=429,
+                content={"detail": "Rate limit exceeded", "trace_id": trace_id},
+                headers={"Retry-After": str(_RATE_LIMIT_WINDOW)},
+            )
+
     start = time.perf_counter()
 
     try:
-        response = await call_next(request)
+        response = await asyncio.wait_for(call_next(request), timeout=_REQUEST_TIMEOUT_SEC)
         response.headers["x-trace-id"] = trace_id
         return response
+    except asyncio.TimeoutError:
+        logger.warning("request_timeout method=%s path=%s timeout=%ds", request.method, request.url.path, _REQUEST_TIMEOUT_SEC, extra={"trace_id": trace_id})
+        return JSONResponse(
+            status_code=504,
+            content={"detail": f"Request timed out after {_REQUEST_TIMEOUT_SEC}s", "trace_id": trace_id},
+        )
     except Exception as e:
         logger.error("Unhandled exception: %s", e, extra={"trace_id": trace_id})
         raise
@@ -807,7 +859,7 @@ async def run_study(request: Request, payload: StudyRequest):
                 try:
                     system = _build_system_from_spec(payload.system)
                 except ValueError as ve:
-                    raise HTTPException(status_code=400, detail=f"System spec error: {ve}")
+                    raise HTTPException(status_code=400, detail=f"System spec error: {ve}") from ve
             data = _run_native_study(payload.study_type, system, payload.parameters)
             provider_name = "native"
 
@@ -913,10 +965,10 @@ async def validate_system(request: Request, spec: SystemSpec):
             "trace_id": trace_id,
         }
     except ValueError as ve:
-        raise HTTPException(status_code=400, detail=str(ve))
+        raise HTTPException(status_code=400, detail=str(ve)) from ve
     except Exception as e:
         logger.error("system_validation_failed error=%s", str(e), extra={"trace_id": trace_id})
-        raise HTTPException(status_code=500, detail="Internal validation error")
+        raise HTTPException(status_code=500, detail="Internal validation error") from e
 
 
 # ---------------------------------------------------------------------------

@@ -19,14 +19,13 @@ from __future__ import annotations
 import json
 import logging
 import os
-import secrets
 import threading
 import time
 import uuid
 from collections import deque
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
-from typing import Any, Deque, Dict, List, Optional, Sequence
+from typing import Any, Deque, Dict, List, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -559,7 +558,6 @@ class SIEMForwarder:
         dict
             ``{"healthy": bool, "endpoint": str, "latency_ms": float}``
         """
-        import asyncio
 
         start = time.monotonic()
         try:

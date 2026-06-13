@@ -20,7 +20,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.11'
+          python-version: '3.12'
       - name: Install linters
         run: pip install ruff
       - name: Ruff lint
@@ -45,9 +45,11 @@ jobs:
       - name: Install dependencies
         run: pnpm install --no-frozen-lockfile
       - name: TypeScript type check
-        run: pnpm lint || echo "Lint warnings found (non-blocking)"
+        run: pnpm lint
+        continue-on-error: true
       - name: TypeScript tests
-        run: pnpm test || echo "Some tests failed (non-blocking)"
+        run: pnpm test
+        continue-on-error: true
 
   yaml-validate:
     name: YAML & Config Validation
@@ -57,8 +59,19 @@ jobs:
         uses: actions/checkout@v4
       - name: Validate YAML files
         run: |
-          find . -name '*.yml' -not -path './.git/*' -not -path './node_modules/*' | while read f; do
-            python -c "import yaml; yaml.safe_load(open('$f'))" 2>/dev/null || echo "WARN: $f"
-          done
-      - name: Validate docker-compose
-        run: docker compose config > /dev/null 2>&1 || echo 'docker-compose validation skipped (no daemon)'
+          python3 -c "
+          import yaml, sys, glob
+          errors = []
+          for f in glob.glob('**/*.yml', recursive=True):
+              if '.git/' in f or 'node_modules/' in f:
+                  continue
+              try:
+                  yaml.safe_load(open(f))
+              except Exception as e:
+                  errors.append(f'{f}: {e}')
+          if errors:
+              for e in errors:
+                  print(f'ERROR: {e}')
+              sys.exit(1)
+          print(f'All YAML files validated successfully')
+          "

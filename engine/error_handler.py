@@ -317,7 +317,7 @@ class ErrorHandler:
         try:
             self._audit_logger = logging.getLogger("audit.error")
         except Exception:
-            logger.debug("Audit logger initialization skipped (logger 'audit.error' unavailable)")
+            self._logger.debug("Audit logger initialization skipped (logger 'audit.error' unavailable)")
 
     # ------------------------------------------------------------------
     # Public API

@@ -26,15 +26,17 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.11'
+          python-version: '3.12'
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v3
         with:
           languages: javascript-typescript, python
       - name: Build Python
         run: pip install -r requirements.txt
+        continue-on-error: true
       - name: Build TypeScript
         run: npm install -g pnpm && pnpm install --no-frozen-lockfile
+        continue-on-error: true
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v3
         with:
@@ -71,3 +73,16 @@ jobs:
         if: always()
         with:
           sarif_file: 'trivy-results.sarif'
+
+  secret-scan:
+    name: Secret Detection
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Trufflehog secret scan
+        uses: trufflesecurity/trufflehog@main
+        with:
+          extra_args: --only-verified

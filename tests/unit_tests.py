@@ -981,7 +981,7 @@ class TestSecretsManager:
         assert val == "key-to-rotate"
 
     def test_key_access_audit_logging(self, tmp_path, monkeypatch):
-        
+
         monkeypatch.setattr("security.secrets_manager.AUDIT_DIR", tmp_path / "audit")
         auditor = KeyAccessAuditor()
         auditor.log_access("user_a", "api-key-1", KeyAccessAuditor.ACTION_GET, True)
