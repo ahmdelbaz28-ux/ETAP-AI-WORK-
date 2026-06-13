@@ -46,25 +46,11 @@ jobs:
           python -m pip install --upgrade pip
           pip install fastapi uvicorn pydantic ruff
       - name: Validate Engineering Service syntax
-        run: |
-          python -c "import ast; ast.parse(open('engineering_service.py').read()); print('Engineering Service syntax OK')"
+        run: python -c "import ast; ast.parse(open('engineering_service.py').read()); print('Engineering Service syntax OK')"
       - name: Ruff lint check
         run: ruff check .
       - name: Validate Python engine syntax
-        run: |
-          python -c "
-import ast, sys, os
-errors = 0
-for root, dirs, files in os.walk('engine'):
-    for f in files:
-        if f.endswith('.py'):
-            try:
-                ast.parse(open(os.path.join(root, f)).read())
-            except SyntaxError as e:
-                print(f'Syntax error in {os.path.join(root, f)}: {e}')
-                errors += 1
-sys.exit(1 if errors else 0)
-          "
+        run: python3 validate_syntax.py
 
   # Health Check against deployed HF Space
   health-check:
