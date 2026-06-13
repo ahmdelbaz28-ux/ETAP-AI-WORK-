@@ -184,9 +184,9 @@ def production_readiness_gate(
     # 1) Real GIS validations (highest priority)
     if qgis_project_path or arcgis_project_path:
         # Lazy import real subsystem.
-        from gis_validation_real.real_gis_loader import load_real_gis_project
-        from gis_validation_real.project_adapters import extract_layers_as_features
         from gis_validation_real.ground_truth_validator import validate_real_gis_to_adms
+        from gis_validation_real.project_adapters import extract_layers_as_features
+        from gis_validation_real.real_gis_loader import load_real_gis_project
 
         try:
             projects = load_real_gis_project(

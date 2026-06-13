@@ -19,7 +19,7 @@ from typing import Any, Callable, Coroutine, List, Optional, Sequence
 logger = logging.getLogger(__name__)
 
 try:
-    from engine.error_handler import get_error_handler, ErrorSeverity
+    from engine.error_handler import ErrorSeverity, get_error_handler
     _error_handler_available = True
 except ImportError:
     _error_handler_available = False

@@ -9,14 +9,13 @@ Covers:
     * Port binding and concurrent requests
 """
 from __future__ import annotations
+
 import json
 
 import anyio
 import pytest
-
 from acp.health import HealthHandler
 from acp.http_server import start_http_server
-
 
 # ------------------------------------------------------------------ helpers
 

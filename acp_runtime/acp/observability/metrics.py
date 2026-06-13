@@ -11,10 +11,11 @@ All metric operations are atomic and thread-safe. The registry uses
 ``anyio.Lock`` for async-safe reads/writes.
 """
 from __future__ import annotations
-from typing import Any
+
 import bisect
-import threading
 import re
+import threading
+from typing import Any
 
 __all__ = [
     "Counter",

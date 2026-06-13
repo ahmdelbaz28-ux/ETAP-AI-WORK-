@@ -10,24 +10,24 @@ Covers:
     * Auth, audit, observability wiring from CLI flags
 """
 from __future__ import annotations
+
 import io
 from unittest.mock import patch
 
 import anyio
 import pytest
-
 from acp.cli import (
-    _build_parser,
-    _build_runtime,
-    _build_router,
     _build_observability,
+    _build_parser,
+    _build_router,
+    _build_runtime,
     _load_handlers,
     _split_scopes,
     main,
 )
-from acp.config import env_int as _env_int, env_bool as _env_bool
+from acp.config import env_bool as _env_bool
+from acp.config import env_int as _env_int
 from acp.runtime import capability
-
 
 # ------------------------------------------------------- test handlers module
 
@@ -244,7 +244,7 @@ async def test_stdio_transport_start():
     tracer, metrics, logger = _build_observability(args)
     runtime, _ = _build_runtime(args, tracer, metrics, logger)
     router = _build_router(args, runtime, tracer, metrics, logger)
-    from acp.transport import StdioTransport, Server
+    from acp.transport import Server, StdioTransport
     transport = StdioTransport(stdin, stdout)
     Server(router, transport)
     # Don't run forever — just process one message

@@ -1,5 +1,6 @@
 import numpy as np
 
+
 def zbus_from_ybus(Ybus, reference_bus=0):
     """
     Compute Zbus matrix from Ybus by inverting the reduced Ybus matrix.

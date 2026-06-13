@@ -1,5 +1,6 @@
 import numpy as np
 
+
 class Bus:
     def __init__(self, bus_id, voltage_magnitude=1.0, voltage_angle=0.0, load_power=0+0j, generation_power=0+0j, base_kv=None, bus_type='pq',
                  q_min=-999.0, q_max=999.0):

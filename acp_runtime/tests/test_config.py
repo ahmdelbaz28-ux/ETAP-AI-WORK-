@@ -10,12 +10,11 @@ Covers:
     * Config integration with CLI main()
 """
 from __future__ import annotations
+
 import json
 
 import pytest
-
 from acp.config import load_config, merge_config
-
 
 # ------------------------------------------------------- helpers
 
@@ -277,7 +276,7 @@ class TestConfigCliIntegration:
         monkeypatch.setenv("ACP_HANDLERS", "")  # clear env
         monkeypatch.delenv("ACP_HANDLERS", raising=False)
 
-        from acp.cli import _build_parser, _build_observability, _build_runtime
+        from acp.cli import _build_observability, _build_parser, _build_runtime
         from acp.config import load_config, merge_config
 
         parser = _build_parser()
@@ -297,7 +296,7 @@ class TestConfigCliIntegration:
         monkeypatch.delenv("ACP_HANDLERS", raising=False)
         monkeypatch.delenv("ACP_SCOPES", raising=False)
 
-        from acp.cli import _build_parser, _build_router, _build_runtime, _build_observability
+        from acp.cli import _build_observability, _build_parser, _build_router, _build_runtime
         from acp.config import load_config, merge_config
 
         parser = _build_parser()
@@ -319,8 +318,9 @@ class TestConfigCliIntegration:
         monkeypatch.delenv("ACP_HANDLERS", raising=False)
         monkeypatch.delenv("ACP_SCOPES", raising=False)
 
-        from acp.cli import main
         from unittest.mock import patch
+
+        from acp.cli import main
 
         async def _noop_run_stdio(args, tracer, metrics, logger):
             assert args.handlers == "tests.test_cli"

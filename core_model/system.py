@@ -1,5 +1,6 @@
 import numpy as np
 
+
 class System:
     def __init__(self, base_mva=100.0):
         """

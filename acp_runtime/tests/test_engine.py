@@ -9,9 +9,9 @@ Covers:
     * stats tracking
 """
 from __future__ import annotations
+
 import anyio
 import pytest
-
 from acp.errors import (
     CapabilityNotFound,
     DeadlineExceeded,

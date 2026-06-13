@@ -12,40 +12,47 @@ Coverage targets:
 - OPF: 80%+
 """
 
-import pytest
-import numpy as np
-import sys
 import os
+import sys
 import time
 from datetime import datetime, timezone
+
+import numpy as np
+import pytest
 
 # Add project root to path
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
+from cryptography.fernet import Fernet
+
+from agents.orchestrator import AgentResult, AgentStatus, EngineeringTask, StudyType
+from coordination.coordination import CoordinationEngine
 from core_model.bus import Bus
-from core_model.line import Line
-from core_model.transformer import Transformer
 from core_model.generator import Generator
+from core_model.line import Line
 from core_model.load import Load
 from core_model.system import System
-from load_flow.load_flow import LoadFlowSolver
-from fault_analysis.fault import FaultAnalyzer
-from fault_analysis.iec60909_engine import IEC60909Engine
-from fault_analysis.arc_flash_engine import ArcFlashEngine, ElectrodeConfig
-from fault_analysis.harmonic_analysis import HarmonicAnalysisEngine
-from relays.relay import OvercurrentRelay
-from coordination.coordination import CoordinationEngine
-
-from cryptography.fernet import Fernet
-from security.secrets_manager import VaultSecretsManager, LocalSecretsManager, KeyAccessAuditor, EnvironmentValidator
-from engine.resilience import RetryHandler, CircuitBreaker, CircuitBreakerState, MultiLevelRecovery, StabilityEnforcer
-from engine.error_handler import ErrorHandler, ErrorSeverity, SystemError, AlertManager, AutoRecoveryManager, component_guard
-from engine.numerical_safety import NumericalGuard, ConvergenceMonitor, ConsistencyCheck
-from engine.cache_manager import CalculationCache, CacheStrategy, CacheKeyBuilder
+from core_model.transformer import Transformer
 from engine.async_executor import AsyncExecutor, TaskStatus, ThreadPoolManager, WorkflowOrchestrator
-from agents.orchestrator import AgentResult, StudyType, AgentStatus, EngineeringTask
-from etap_integration.etap_com import ETAPAutomation, ETAPStudyType, STUDY_TYPE_PARAMETER_SCHEMAS
-
+from engine.cache_manager import CacheKeyBuilder, CacheStrategy, CalculationCache
+from engine.error_handler import (
+    AlertManager,
+    AutoRecoveryManager,
+    ErrorHandler,
+    ErrorSeverity,
+    SystemError,
+    component_guard,
+)
+from engine.numerical_safety import ConsistencyCheck, ConvergenceMonitor, NumericalGuard
+from engine.resilience import CircuitBreaker, CircuitBreakerState, MultiLevelRecovery, RetryHandler, StabilityEnforcer
+from etap_integration.etap_com import STUDY_TYPE_PARAMETER_SCHEMAS, ETAPAutomation, ETAPStudyType
+from fault_analysis.arc_flash_engine import ArcFlashEngine, ElectrodeConfig
+from fault_analysis.fault import FaultAnalyzer
+from fault_analysis.harmonic_analysis import HarmonicAnalysisEngine
+from fault_analysis.iec60909_engine import IEC60909Engine
+from load_flow.load_flow import LoadFlowSolver
+from relays.relay import OvercurrentRelay
+from security.secrets_manager import EnvironmentValidator, KeyAccessAuditor, LocalSecretsManager, VaultSecretsManager
 
 # ============================================================================
 # ETAP SCHEMA VALIDATION TESTS
@@ -202,10 +209,8 @@ class TestWorkerRBAC:
 
     def test_engineer_has_all_calc_permissions(self):
         """Test that engineer role has all required calc permissions."""
-        from security.security_framework import (
-            AuthenticationManager, AuthorizationManager, UserRole
-        )
         from etap_integration.etap_worker_service import STUDY_TYPE_TO_PERMISSION
+        from security.security_framework import AuthenticationManager, AuthorizationManager, UserRole
 
         auth = AuthenticationManager(secret_key="test-rbac-secret")
         authz = AuthorizationManager(auth)
@@ -220,10 +225,8 @@ class TestWorkerRBAC:
 
     def test_viewer_cannot_execute_studies(self):
         """Test that viewer role lacks calc permissions."""
-        from security.security_framework import (
-            AuthenticationManager, AuthorizationManager, UserRole
-        )
         from etap_integration.etap_worker_service import STUDY_TYPE_TO_PERMISSION
+        from security.security_framework import AuthenticationManager, AuthorizationManager, UserRole
 
         auth = AuthenticationManager(secret_key="test-viewer-secret")
         authz = AuthorizationManager(auth)
@@ -238,9 +241,7 @@ class TestWorkerRBAC:
 
     def test_guest_has_no_permissions(self):
         """Test that guest role has zero permissions."""
-        from security.security_framework import (
-            AuthenticationManager, AuthorizationManager, UserRole, Permission
-        )
+        from security.security_framework import AuthenticationManager, AuthorizationManager, Permission, UserRole
 
         auth = AuthenticationManager(secret_key="test-guest-secret")
         authz = AuthorizationManager(auth)
@@ -255,10 +256,8 @@ class TestWorkerRBAC:
 
     def test_invalid_token_rejected(self):
         """Test that an invalid/fake token is rejected by authz."""
-        from security.security_framework import (
-            AuthenticationManager, AuthorizationManager
-        )
         from etap_integration.etap_worker_service import STUDY_TYPE_TO_PERMISSION
+        from security.security_framework import AuthenticationManager, AuthorizationManager
 
         auth = AuthenticationManager(secret_key="test-invalid-secret")
         authz = AuthorizationManager(auth)
@@ -270,10 +269,8 @@ class TestWorkerRBAC:
 
     def test_permission_after_logout_rejected(self):
         """Test that token is rejected after logout."""
-        from security.security_framework import (
-            AuthenticationManager, AuthorizationManager, UserRole
-        )
         from etap_integration.etap_worker_service import STUDY_TYPE_TO_PERMISSION
+        from security.security_framework import AuthenticationManager, AuthorizationManager, UserRole
 
         auth = AuthenticationManager(secret_key="test-logout-secret")
         authz = AuthorizationManager(auth)
@@ -699,7 +696,7 @@ class TestOptimalPowerFlow:
 
     def test_dc_opf_convergence(self):
         """Test DC-OPF convergence."""
-        from load_flow.optimal_power_flow import OptimalPowerFlowEngine, GeneratorCost
+        from load_flow.optimal_power_flow import GeneratorCost, OptimalPowerFlowEngine
 
         # Simple 2-bus system
         Ybus = np.array([
@@ -727,7 +724,7 @@ class TestOptimalPowerFlow:
 
     def test_opf_cost_minimization(self):
         """Test that OPF minimizes cost."""
-        from load_flow.optimal_power_flow import OptimalPowerFlowEngine, GeneratorCost
+        from load_flow.optimal_power_flow import GeneratorCost, OptimalPowerFlowEngine
 
         Ybus = np.array([
             [complex(10, -50), complex(-10, 50)],
@@ -810,9 +807,7 @@ class TestSecurityFramework:
 
     def test_permission_check(self):
         """Test permission checking."""
-        from security.security_framework import (
-            AuthenticationManager, AuthorizationManager, Permission, UserRole
-        )
+        from security.security_framework import AuthenticationManager, AuthorizationManager, Permission, UserRole
 
         auth = AuthenticationManager(secret_key="test_secret")
         authz = AuthorizationManager(auth)

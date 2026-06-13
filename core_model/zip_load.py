@@ -17,9 +17,10 @@ Reference: IEEE Task Force on Load Representation, "Load Representation for
 Dynamic Performance Analysis", IEEE Trans. Power Systems, 1993.
 """
 
-import numpy as np
 from dataclasses import dataclass
 from typing import Tuple
+
+import numpy as np
 
 
 @dataclass

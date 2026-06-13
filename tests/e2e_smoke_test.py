@@ -5,8 +5,8 @@ These tests validate core CLI entry points and file presence without
 touching production data or external services.
 """
 
-import subprocess
 import os
+import subprocess
 
 
 def run_command(cmd, timeout=90):

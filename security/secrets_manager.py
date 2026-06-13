@@ -501,9 +501,9 @@ class EnvironmentValidator:
                 return True
             else:
                 try:
-                    import win32security
                     import win32api
                     import win32con
+                    import win32security
                     sd = win32security.GetFileSecurity(
                         str(env_path),
                         win32security.OWNER_SECURITY_INFORMATION

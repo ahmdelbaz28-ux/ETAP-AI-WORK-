@@ -7,7 +7,9 @@ provide the common fields (capability, trace_id, deadline_ms) that
 the Router layer validates before dispatching to the Runtime layer.
 """
 from __future__ import annotations
+
 from typing import Any
+
 from pydantic import BaseModel, ConfigDict, Field
 
 __all__ = ["AcpParams", "AcpResult"]

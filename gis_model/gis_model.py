@@ -16,9 +16,8 @@ Reference: IEC 61970 CIM Geographic Location model
 import json
 import math
 from dataclasses import dataclass, field
-from typing import Dict, List, Optional, Tuple, Any
 from enum import Enum
-
+from typing import Any, Dict, List, Optional, Tuple
 
 # ============================================================
 # GEO-REFERENCING MODEL

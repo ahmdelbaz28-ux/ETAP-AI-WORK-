@@ -9,7 +9,9 @@ The ``RequestId`` type accepts both ``str`` and ``int``; the null case
 is handled by making the field ``Optional[RequestId]``.
 """
 from __future__ import annotations
+
 from typing import Annotated
+
 from pydantic import StringConstraints
 
 ID_PATTERN = r"^[A-Za-z0-9_\-]{1,128}$"

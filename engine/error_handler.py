@@ -5,22 +5,21 @@ and a component guard context manager for standardized exception handling.
 """
 
 import enum
-import uuid
+import json
 import logging
-import traceback
+import smtplib
 import threading
 import time
-import smtplib
-import json
-from email.message import EmailMessage
-from dataclasses import dataclass, field
-from datetime import datetime, timedelta, timezone
-from typing import Any, Callable, Optional, List, Dict, Set
+import traceback
+import uuid
 from collections import defaultdict, deque
 from contextlib import contextmanager
-from urllib.request import Request, urlopen
+from dataclasses import dataclass, field
+from datetime import datetime, timedelta, timezone
+from email.message import EmailMessage
+from typing import Any, Callable, Dict, List, Optional, Set
 from urllib.error import URLError
-
+from urllib.request import Request, urlopen
 
 # ---------------------------------------------------------------------------
 # Severity

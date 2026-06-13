@@ -17,24 +17,24 @@ Usage:
     etap.close()
 """
 
-import sys
-import os
-import time
 import logging
+import os
 import pathlib
-import tempfile
 import re
-from typing import Optional, Dict, Any, List, Union
+import sys
+import tempfile
+import time
 from dataclasses import dataclass
 from enum import Enum
+from typing import Any, Dict, List, Optional, Union
 
 logger = logging.getLogger(__name__)
 
 # Only import on Windows
 if sys.platform == 'win32':
     try:
-        import win32com.client
         import pythoncom
+        import win32com.client
         WIN32_AVAILABLE = True
     except ImportError:
         WIN32_AVAILABLE = False

@@ -9,11 +9,10 @@ Reference: IEEE C37.118, IEC 61850, EPRI ADMS Guide
 """
 
 import time
-from dataclasses import dataclass, field
-from typing import Dict, List, Optional, Set, Tuple
-from enum import Enum
 from collections import deque
-
+from dataclasses import dataclass, field
+from enum import Enum
+from typing import Dict, List, Optional, Set, Tuple
 
 # ============================================================
 # ADMS CONTROL TYPES

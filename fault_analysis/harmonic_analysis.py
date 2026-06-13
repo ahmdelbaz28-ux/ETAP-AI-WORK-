@@ -15,11 +15,12 @@ Supports:
 Reference: IEEE 519-2022 "IEEE Standard for Harmonic Control in Electric Power Systems"
 """
 
-import numpy as np
-from dataclasses import dataclass
-from typing import Dict, List, Tuple
-from enum import Enum
 import logging
+from dataclasses import dataclass
+from enum import Enum
+from typing import Dict, List, Tuple
+
+import numpy as np
 
 logger = logging.getLogger(__name__)
 

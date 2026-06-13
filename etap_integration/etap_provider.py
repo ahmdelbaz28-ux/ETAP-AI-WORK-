@@ -5,14 +5,15 @@ Abstracts the ETAP execution layer to support both local COM (Windows)
 and remote API-based (Linux) execution.
 """
 
-from abc import ABC
-from typing import Dict, List, Any
-from enum import Enum
-import sys
-import os
-import time
-import requests
 import logging
+import os
+import sys
+import time
+from abc import ABC
+from enum import Enum
+from typing import Any, Dict, List
+
+import requests
 
 logger = logging.getLogger(__name__)
 
@@ -81,8 +82,10 @@ class LocalEtapProvider(IEtapProvider):
         if not self._available:
             return ETAPResult(False, {}, [], ["Local ETAP automation not available on this platform"], 0.0)
 
-        from etap_integration.etap_com import ETAPAutomation, ETAPStudyType as ComStudyType
         import time
+
+        from etap_integration.etap_com import ETAPAutomation
+        from etap_integration.etap_com import ETAPStudyType as ComStudyType
 
         # Map provider enum to COM enum
         com_study_type = ComStudyType[study_type.name]

@@ -4,20 +4,23 @@ Main demonstration script for the power_protection_system.
 Creates a 3-bus power system, runs load flow, short circuit, and protection coordination.
 """
 
-import sys
 import os
+import sys
+
 # Add the current directory to the path to import our modules
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
+import matplotlib.pyplot as plt
 import numpy as np
+
 from core_model.bus import Bus
-from core_model.line import Line
 from core_model.generator import Generator
+from core_model.line import Line
 from core_model.load import Load
 from core_model.system import System
 from engine.engine import PowerSystemEngine
 from relays.relay import OvercurrentRelay
-import matplotlib.pyplot as plt
+
 
 def create_3bus_system():
     """

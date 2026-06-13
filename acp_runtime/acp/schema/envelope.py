@@ -10,7 +10,9 @@ ACP extensions on top of vanilla JSON-RPC 2.0:
     * ``deadline_ms``  — hard timeout for the request
 """
 from __future__ import annotations
+
 from typing import Any
+
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from acp.schema.ids import RequestId

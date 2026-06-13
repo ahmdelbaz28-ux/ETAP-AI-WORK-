@@ -8,6 +8,7 @@ For testing, pass ``io.StringIO`` instances as ``stdin`` and
 ``stdout``.
 """
 from __future__ import annotations
+
 import logging
 import sys
 from typing import TextIO

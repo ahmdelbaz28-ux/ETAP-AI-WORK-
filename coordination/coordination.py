@@ -1,5 +1,6 @@
 import numpy as np
 
+
 class CoordinationEngine:
     def __init__(self, default_margin_sec: float = 0.2,
                  tms_search_min: float = 0.1, tms_search_max: float = 10.0,

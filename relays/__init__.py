@@ -5,7 +5,7 @@ overcurrent, distance, differential, and directional relays for
 protection coordination studies.
 """
 
-from relays.relay import Relay, OvercurrentRelay, DistanceRelay, DifferentialRelay, DirectionalRelay
+from relays.relay import DifferentialRelay, DirectionalRelay, DistanceRelay, OvercurrentRelay, Relay
 
 __all__ = [
     "Relay",

@@ -1,8 +1,9 @@
 
 """Syntax and dependency validation script for the entire codebase."""
 import ast
-import sys
 import os
+import sys
+
 
 def validate_python_syntax():
     results = []

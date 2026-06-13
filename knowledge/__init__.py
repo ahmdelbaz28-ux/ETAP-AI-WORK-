@@ -6,10 +6,10 @@ database and embedding models.
 """
 
 from knowledge.rag_engine import (
-    EngineeringKnowledgeBase,
-    EngineeringDocument,
-    RetrievalResult,
     EmbeddingModel,
+    EngineeringDocument,
+    EngineeringKnowledgeBase,
+    RetrievalResult,
     VectorDatabase,
     get_knowledge_base,
 )

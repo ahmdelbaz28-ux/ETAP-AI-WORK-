@@ -12,9 +12,10 @@ Reference: IEEE Std 399 "IEEE Recommended Practice for Industrial and
 Commercial Power Systems Analysis" (Brown Book)
 """
 
-import numpy as np
 from dataclasses import dataclass
 from typing import Tuple
+
+import numpy as np
 
 
 @dataclass

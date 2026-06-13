@@ -15,13 +15,12 @@ Covers:
     * Error response JSON-RPC code correctness
 """
 from __future__ import annotations
+
 import anyio
 import pytest
-
 from acp.router import Router, RouterConfig, ScopeValidator, check_scope
 from acp.runtime import AcpRuntime, capability
-from acp.schema import JsonRpcResponse, JsonRpcError
-
+from acp.schema import JsonRpcError, JsonRpcResponse
 
 # ------------------------------------------------------- test handlers
 

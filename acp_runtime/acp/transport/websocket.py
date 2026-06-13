@@ -17,6 +17,7 @@ For production use, wrap a ``websockets`` connection::
 ``websockets`` library (optional dependency).
 """
 from __future__ import annotations
+
 import logging
 from typing import Any, Callable, Coroutine
 

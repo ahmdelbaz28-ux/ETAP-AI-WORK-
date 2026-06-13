@@ -1,17 +1,20 @@
 """Memory-efficient data structures and optimization for large power system models."""
-import numpy as np
-import time
-import sys
 import gc
 import logging
+import sys
+import time
 from contextlib import contextmanager
 
+import numpy as np
+
 logger = logging.getLogger(__name__)
-from typing import Callable, Dict, List, Optional, Any, Union
-from scipy.sparse import csr_matrix, csc_matrix, coo_matrix, issparse
+from typing import Any, Callable, Dict, List, Optional, Union
+
+from scipy.sparse import coo_matrix, csc_matrix, csr_matrix, issparse
 from scipy.sparse.linalg import splu
-from core_model.system import System
+
 from core_model.bus import Bus
+from core_model.system import System
 
 
 class SparseMatrixManager:
@@ -364,9 +367,9 @@ class DataCompressor:
                           voltage_magnitude=float(compressed['bus_vmag'][i]),
                           voltage_angle=float(compressed['bus_vang'][i]),
                           bus_type=str(compressed['bus_types'][i])))
+        from core_model.generator import Generator
         from core_model.line import Line
         from core_model.transformer import Transformer
-        from core_model.generator import Generator
         for ld in compressed.get('lines', []):
             s.add_line(Line(ld['id'], s.buses[ld['fr']], s.buses[ld['to']],
                             z1=complex(ld['z1r'], ld['z1i'])))

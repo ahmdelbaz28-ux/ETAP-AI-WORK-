@@ -6,6 +6,7 @@ to call from inside an awaited coroutine; emissions are not awaited on
 the caller's hot path beyond the (very fast) ``send`` callback.
 """
 from __future__ import annotations
+
 import time
 from dataclasses import dataclass, field
 from typing import Awaitable, Callable, Optional

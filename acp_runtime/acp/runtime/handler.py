@@ -10,6 +10,7 @@ The decorated function is mutated in place to carry an attribute
 with an underscore to discourage external use.
 """
 from __future__ import annotations
+
 from dataclasses import dataclass
 from typing import Any, Callable, Protocol, runtime_checkable
 

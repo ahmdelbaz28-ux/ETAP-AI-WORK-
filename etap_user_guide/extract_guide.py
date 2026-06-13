@@ -10,11 +10,11 @@ This module:
 4. Builds a knowledge base for the RAG engine
 """
 
+import json
 import sys
+from datetime import datetime
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
-import json
-from datetime import datetime
 
 # PDF processing libraries
 try:

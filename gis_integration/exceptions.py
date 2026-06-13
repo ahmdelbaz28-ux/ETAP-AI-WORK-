@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+
 class GISIntegrationError(Exception):
     """Base exception for gis_integration subsystem."""
 

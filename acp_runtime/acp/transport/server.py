@@ -16,6 +16,7 @@ Cancellation (e.g. from the parent ``anyio.TaskGroup``) is propagated
 so the server shuts down cleanly.
 """
 from __future__ import annotations
+
 import json
 import logging
 from typing import Any

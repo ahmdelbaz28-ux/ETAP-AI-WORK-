@@ -11,6 +11,7 @@ The transport layer does NOT handle JSON-RPC validation — that is the
 router's job.
 """
 from __future__ import annotations
+
 from abc import ABC, abstractmethod
 
 __all__ = ["Transport"]

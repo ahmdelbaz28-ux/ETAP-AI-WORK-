@@ -24,29 +24,36 @@ Hard Constraints:
   - ADMS = Operational Truth
 """
 
-import time
 import hashlib
 import logging
+import time
 from typing import Any, Callable, Dict, List, Optional
 
 import numpy as np
 
 from .event_bus import (
-    EventBus, EventType, DomainEvent,
-    SwitchOpened, SwitchClosed, FaultDetected,
-    LoadChanged, PVChanged, BatteryDispatch, SCADAUpdateReceived,
-    TopologyChanged, YbusRebuilt, LoadFlowCompleted,
-    StateEstimationCompleted, FaultAnalysisCompleted,
-    ArcFlashRefreshed, ProtectionRefreshed,
-    DigitalTwinStateUpdated, ValidationErrorEvent
+    ArcFlashRefreshed,
+    BatteryDispatch,
+    DigitalTwinStateUpdated,
+    DomainEvent,
+    EventBus,
+    EventType,
+    FaultAnalysisCompleted,
+    FaultDetected,
+    LoadChanged,
+    LoadFlowCompleted,
+    ProtectionRefreshed,
+    PVChanged,
+    SCADAUpdateReceived,
+    StateEstimationCompleted,
+    SwitchClosed,
+    SwitchOpened,
+    TopologyChanged,
+    ValidationErrorEvent,
+    YbusRebuilt,
 )
-from .state_store import (
-    StateStore, StateSnapshot, BusState, SwitchState, TopologyState, GISAssetState
-)
-from .validation_gateway import (
-    ValidationGateway, ValidationResult,
-    ValidationSeverity
-)
+from .state_store import BusState, GISAssetState, StateSnapshot, StateStore, SwitchState, TopologyState
+from .validation_gateway import ValidationGateway, ValidationResult, ValidationSeverity
 
 logger = logging.getLogger(__name__)
 
@@ -722,8 +729,9 @@ class ChangePropagationEngine:
             return {"status": "skipped", "reason": "No electrical model bound"}
 
         try:
-            from fault_analysis.fault import FaultAnalyzer
             import math
+
+            from fault_analysis.fault import FaultAnalyzer
 
             self.dt_state.system.build_sequence_networks(for_fault=True)
             Ybus_pos = self.dt_state.system.get_ybus(seq='1')
@@ -788,9 +796,9 @@ class ChangePropagationEngine:
             return {"status": "skipped", "reason": "No electrical model bound"}
 
         try:
+            from coordination.coordination import CoordinationEngine
             from fault_analysis.fault import FaultAnalyzer
             from relays.relay import OvercurrentRelay
-            from coordination.coordination import CoordinationEngine
 
             self.dt_state.system.build_sequence_networks(for_fault=True)
             Ybus_pos = self.dt_state.system.get_ybus(seq='1')

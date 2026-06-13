@@ -3,7 +3,7 @@ from __future__ import annotations
 from abc import ABC
 from typing import Dict, Iterator, List, Optional
 
-from gis_integration.models import GISFeature, GeoCRSInfo
+from gis_integration.models import GeoCRSInfo, GISFeature
 
 
 class GISProviderInterface(ABC):

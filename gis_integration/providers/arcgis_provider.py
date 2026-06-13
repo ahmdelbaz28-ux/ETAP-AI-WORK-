@@ -4,7 +4,7 @@ from typing import Dict, Iterator, List, Optional
 
 from gis_integration.base import GISProviderInterface
 from gis_integration.exceptions import GISDataExtractionError, GISProviderUnavailableError
-from gis_integration.models import GISFeature, GeoCRSInfo
+from gis_integration.models import GeoCRSInfo, GISFeature
 from gis_integration.utils import safe_parse_geojson, validate_geometry_dict
 
 

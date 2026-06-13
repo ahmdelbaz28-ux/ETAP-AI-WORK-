@@ -9,10 +9,10 @@ Automated script to:
 5. Test the system
 """
 
-import sys
 import subprocess
-from pathlib import Path
+import sys
 from datetime import datetime
+from pathlib import Path
 
 
 class Colors:

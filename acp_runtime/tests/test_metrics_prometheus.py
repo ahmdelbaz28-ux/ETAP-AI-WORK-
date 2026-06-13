@@ -10,8 +10,16 @@ Covers:
 from __future__ import annotations
 
 import pytest
-
-from acp.observability.metrics import to_prometheus, to_openmetrics, _sanitize_metric_name, _labels_key, _format_labels, _validate_label_name, _validate_labels, InMemoryMetricsRegistry
+from acp.observability.metrics import (
+    InMemoryMetricsRegistry,
+    _format_labels,
+    _labels_key,
+    _sanitize_metric_name,
+    _validate_label_name,
+    _validate_labels,
+    to_openmetrics,
+    to_prometheus,
+)
 
 
 class TestValidateLabelName:

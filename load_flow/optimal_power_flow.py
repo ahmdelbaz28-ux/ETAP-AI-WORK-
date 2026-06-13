@@ -19,12 +19,13 @@ Methods:
 Reference: IEEE PES Test Cases, MATPOWER methodology
 """
 
-import numpy as np
-from dataclasses import dataclass
-from typing import Dict, List, Optional, Tuple
-from enum import Enum
 import logging
-from scipy.optimize import minimize, linprog
+from dataclasses import dataclass
+from enum import Enum
+from typing import Dict, List, Optional, Tuple
+
+import numpy as np
+from scipy.optimize import linprog, minimize
 
 logger = logging.getLogger(__name__)
 

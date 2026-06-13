@@ -21,6 +21,7 @@ Endpoints:
 Any other path or method returns 404/405.
 """
 from __future__ import annotations
+
 import json
 import logging
 from typing import Any

@@ -29,11 +29,11 @@ Features:
 - Digital signatures
 """
 
-import os
 import logging
-from typing import Dict, List, Optional
+import os
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
+from typing import Dict, List, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -313,11 +313,11 @@ class PDFReportGenerator:
         try:
             # Try to use reportlab for professional PDF
             from reportlab.lib import colors
-            from reportlab.lib.pagesizes import letter, A4
-            from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, Image, PageBreak
-            from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+            from reportlab.lib.enums import TA_CENTER, TA_LEFT, TA_RIGHT
+            from reportlab.lib.pagesizes import A4, letter
+            from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
             from reportlab.lib.units import inch, mm
-            from reportlab.lib.enums import TA_LEFT, TA_CENTER, TA_RIGHT
+            from reportlab.platypus import Image, PageBreak, Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
 
             self.logger.info("Generating PDF report using ReportLab")
             return self._generate_with_reportlab(metadata, sections, output_path)
@@ -446,8 +446,8 @@ class DOCXReportGenerator:
         """Generate DOCX report."""
         try:
             from docx import Document
-            from docx.shared import Pt, Inches
             from docx.enum.text import WD_ALIGN_PARAGRAPH
+            from docx.shared import Inches, Pt
 
             os.makedirs(output_path, exist_ok=True)
 
@@ -506,7 +506,7 @@ class XLSXReportGenerator:
         """Generate XLSX report."""
         try:
             from openpyxl import Workbook
-            from openpyxl.styles import Font, Alignment, PatternFill
+            from openpyxl.styles import Alignment, Font, PatternFill
 
             os.makedirs(output_path, exist_ok=True)
 

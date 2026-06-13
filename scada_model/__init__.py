@@ -5,18 +5,17 @@ database management, and state estimation using weighted least squares.
 """
 
 from scada_model.scada_model import (
-    SCADADatabase,
     Measurement,
     MeasurementType,
     QualityFlag,
+    SCADADatabase,
     SwitchDevice,
     SwitchStatus,
 )
-
 from scada_model.state_estimation import (
-    WLSEstimator,
     StateEstimationResult,
     StateEstimationStatus,
+    WLSEstimator,
 )
 
 __all__ = [

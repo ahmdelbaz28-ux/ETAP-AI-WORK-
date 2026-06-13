@@ -25,19 +25,19 @@ Typical usage::
 """
 from __future__ import annotations
 
-from acp.security.auth import (
-    CallerIdentity,
-    AuthConfig,
-    AuthValidator,
-    HmacTokenValidator,
-    validate_bearer_token,
-    extract_token_from_header,
-)
 from acp.security.audit import (
     AuditEntry,
     AuditLogger,
     InMemoryAuditLogger,
     NDJSONAuditLogger,
+)
+from acp.security.auth import (
+    AuthConfig,
+    AuthValidator,
+    CallerIdentity,
+    HmacTokenValidator,
+    extract_token_from_header,
+    validate_bearer_token,
 )
 
 __all__ = [

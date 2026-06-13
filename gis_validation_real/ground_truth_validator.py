@@ -5,8 +5,8 @@ from typing import Any, Dict, List, Tuple
 
 from gis_integration.models import GISFeature
 from gis_integration.transformer import GIS_TO_ADMS_Transformer
-from gis_validation.topology_validator import validate_adms_topology as topo_validate
 from gis_validation.crs_validator import validate_crs_consistency, validate_normalization_applied
+from gis_validation.topology_validator import validate_adms_topology as topo_validate
 
 
 @dataclass(frozen=True)

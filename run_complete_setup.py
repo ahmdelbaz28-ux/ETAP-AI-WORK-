@@ -10,11 +10,12 @@ Automated script to:
 6. Verify system health
 """
 
-import sys
 import os
-import subprocess
 import shlex
+import subprocess
+import sys
 from datetime import datetime
+
 
 # Colors for output
 class Colors:

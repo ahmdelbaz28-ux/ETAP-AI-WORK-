@@ -10,8 +10,7 @@ Provides capabilities covering:
 from __future__ import annotations
 
 import anyio
-
-from acp.runtime import capability, ProgressEmitter
+from acp.runtime import ProgressEmitter, capability
 
 
 class IntegrationHandler:

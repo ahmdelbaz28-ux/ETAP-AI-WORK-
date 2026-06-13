@@ -7,12 +7,13 @@ Covers:
     * deadline_ms > 10 minutes → ValueError (sanity)
 """
 from __future__ import annotations
+
 import time
+
 import anyio
 import pytest
-
 from acp.errors import DeadlineExceeded
-from acp.runtime.deadline import enforce_deadline_ms, deadline_scope
+from acp.runtime.deadline import deadline_scope, enforce_deadline_ms
 
 
 @pytest.mark.anyio

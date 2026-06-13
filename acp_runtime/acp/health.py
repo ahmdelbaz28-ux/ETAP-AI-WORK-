@@ -15,6 +15,7 @@ All capabilities are public (no scopes required) so they can be used
 by monitoring tools and load balancers without authentication.
 """
 from __future__ import annotations
+
 import time
 from typing import Any
 
