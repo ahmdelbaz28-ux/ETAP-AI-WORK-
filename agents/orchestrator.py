@@ -76,13 +76,113 @@ class EngineeringTask:
 
 
 class BaseAgent:
-    """Base class for all engineering agents."""
+    """Base class for all engineering agents.
+
+    Integrates with the prompt management system so every agent can
+    access its prompt-driven description, standards references, and
+    execution guidance from ``prompts/`` YAML files (or LangWatch).
+
+    Subclasses must set ``prompt_handle`` to the handle that matches
+    their YAML prompt file (e.g. ``"load_flow_agent"``).  If not set,
+    a handle is derived from the class name by converting CamelCase
+    to snake_case and stripping the "Agent" suffix.
+    """
+
+    # Subclasses should override this to match their prompt YAML handle.
+    prompt_handle: str = ""
 
     def __init__(self, agent_name: str):
         self.agent_name = agent_name
         self.status = AgentStatus.IDLE
         self.logger = logging.getLogger(f"agent.{agent_name}")
         self.execution_log: List[Dict] = []
+
+        # Derive prompt handle from class name if not explicitly set
+        if not self.prompt_handle:
+            self.prompt_handle = self._derive_prompt_handle()
+
+        # Load prompt-driven metadata (description, standards, guidance)
+        self._system_prompt: Optional[str] = None
+        self._prompt_metadata: Dict[str, Any] = {}
+        self._load_prompt()
+
+    def _derive_prompt_handle(self) -> str:
+        """Derive a prompt handle from the class name.
+
+        Examples:
+            LoadFlowAgent       → load_flow_agent
+            ShortCircuitAgent   → short_circuit_agent
+            StabilityAgent      → stability_agent
+        """
+        name = self.__class__.__name__
+        # Remove 'Agent' suffix if present
+        if name.endswith("Agent"):
+            name = name[:-5]
+        # Convert CamelCase to snake_case
+        import re
+        name = re.sub(r'(?<=[a-z0-9])([A-Z])', r'_\1', name).lower()
+        return name
+
+    def _load_prompt(self) -> None:
+        """Load the prompt for this agent from the prompt management system.
+
+        Uses the 3-tier fallback:
+        1. LangWatch API (if configured)
+        2. Local YAML file in prompts/
+        3. Hardcoded default
+
+        Failures are non-fatal — the agent can still operate without
+        a prompt, using its hardcoded computational logic.
+        """
+        try:
+            from agents.prompt_loader import get_system_prompt, get_prompt_metadata
+            self._system_prompt = get_system_prompt(self.prompt_handle)
+            self._prompt_metadata = get_prompt_metadata(self.prompt_handle)
+            self.logger.info(
+                "Prompt loaded for handle '%s' (%d chars)",
+                self.prompt_handle,
+                len(self._system_prompt) if self._system_prompt else 0,
+            )
+        except Exception as exc:
+            self.logger.warning(
+                "Failed to load prompt for handle '%s': %s. "
+                "Agent will use hardcoded logic.",
+                self.prompt_handle,
+                exc,
+            )
+            self._system_prompt = None
+            self._prompt_metadata = {}
+
+    @property
+    def system_prompt(self) -> str:
+        """Return the loaded system prompt, or a default if unavailable."""
+        if self._system_prompt:
+            return self._system_prompt
+        return f"{self.agent_name}: Computational agent for power system analysis."
+
+    @property
+    def prompt_model(self) -> str:
+        """Return the model name from the prompt metadata, if available."""
+        return self._prompt_metadata.get("model", "unknown")
+
+    @property
+    def prompt_temperature(self) -> float:
+        """Return the temperature from the prompt metadata, if available."""
+        return float(self._prompt_metadata.get("temperature", 0.2))
+
+    def get_agent_info(self) -> Dict[str, Any]:
+        """Return agent metadata including prompt-derived information.
+
+        This is useful for API responses, logging, and debugging.
+        """
+        return {
+            "agent_name": self.agent_name,
+            "prompt_handle": self.prompt_handle,
+            "model": self.prompt_model,
+            "temperature": self.prompt_temperature,
+            "prompt_loaded": self._system_prompt is not None,
+            "status": self.status.value,
+        }
 
     async def execute(self, task: EngineeringTask) -> AgentResult:
         """
@@ -145,8 +245,9 @@ class BaseAgent:
 
 
 class LoadFlowAgent(BaseAgent):
-    """
-    Load Flow Analysis Agent.
+    """Load Flow Analysis Agent.
+
+    Prompt Handle: load_flow_agent
 
     Methods:
     - Newton-Raphson (full AC)
@@ -158,6 +259,8 @@ class LoadFlowAgent(BaseAgent):
     - Convergence criteria
     - Power balance
     """
+
+    prompt_handle = "load_flow_agent"
 
     def __init__(self):
         super().__init__("LoadFlowAgent")
@@ -255,8 +358,9 @@ class LoadFlowAgent(BaseAgent):
 
 
 class ShortCircuitAgent(BaseAgent):
-    """
-    Short Circuit / Fault Analysis Agent.
+    """Short Circuit / Fault Analysis Agent.
+
+    Prompt Handle: short_circuit_agent
 
     Standards: IEC 60909-0:2016
 
@@ -272,6 +376,8 @@ class ShortCircuitAgent(BaseAgent):
     - Breaking current (Ib)
     - DC component
     """
+
+    prompt_handle = "short_circuit_agent"
 
     def __init__(self):
         super().__init__("ShortCircuitAgent")
@@ -372,8 +478,9 @@ class ShortCircuitAgent(BaseAgent):
 
 
 class HarmonicAnalysisAgent(BaseAgent):
-    """
-    Harmonic Analysis Agent.
+    """Harmonic Analysis Agent.
+
+    Prompt Handle: harmonic_agent
 
     Standard: IEEE 519-2022
 
@@ -384,6 +491,8 @@ class HarmonicAnalysisAgent(BaseAgent):
     - Filter design
     - Compliance checking
     """
+
+    prompt_handle = "harmonic_agent"
 
     def __init__(self):
         super().__init__("HarmonicAnalysisAgent")
@@ -471,8 +580,9 @@ class HarmonicAnalysisAgent(BaseAgent):
 
 
 class OptimalPowerFlowAgent(BaseAgent):
-    """
-    Optimal Power Flow Agent.
+    """Optimal Power Flow Agent.
+
+    Prompt Handle: opf_agent
 
     Methods:
     - DC-OPF (Linear Programming)
@@ -483,6 +593,8 @@ class OptimalPowerFlowAgent(BaseAgent):
     - Loss minimization
     - Voltage profile optimization
     """
+
+    prompt_handle = "opf_agent"
 
     def __init__(self):
         super().__init__("OptimalPowerFlowAgent")
@@ -584,8 +696,9 @@ class OptimalPowerFlowAgent(BaseAgent):
 
 
 class ProtectionCoordinationAgent(BaseAgent):
-    """
-    Protection Coordination Agent.
+    """Protection Coordination Agent.
+
+    Prompt Handle: protection_agent
 
     Standard: IEC 60255
 
@@ -595,6 +708,8 @@ class ProtectionCoordinationAgent(BaseAgent):
     - Coordination margin verification
     - Fuse-relay coordination
     """
+
+    prompt_handle = "protection_agent"
 
     def __init__(self):
         super().__init__("ProtectionCoordinationAgent")
@@ -674,8 +789,9 @@ class ProtectionCoordinationAgent(BaseAgent):
 
 
 class ETAPExecutionAgent(BaseAgent):
-    """
-    ETAP Execution Agent - Unified Provider Interface.
+    """ETAP Execution Agent - Unified Provider Interface.
+
+    Prompt Handle: etap_engineer_agent
 
     Capabilities:
     - Execute studies via Local (Windows) or Remote (API) providers
@@ -685,6 +801,8 @@ class ETAPExecutionAgent(BaseAgent):
 
     Cross-platform compatible via RemoteEtapProvider.
     """
+
+    prompt_handle = "etap_engineer_agent"
 
     def __init__(self):
         super().__init__("ETAPExecutionAgent")
@@ -772,8 +890,9 @@ class ETAPExecutionAgent(BaseAgent):
 
 
 class ValidationAgent(BaseAgent):
-    """
-    Validation & Verification Agent.
+    """Validation & Verification Agent.
+
+    Prompt Handle: validation_agent
 
     Performs comprehensive validation of all engineering results:
     - Voltage limits check
@@ -782,6 +901,8 @@ class ValidationAgent(BaseAgent):
     - IEEE/IEC standards compliance
     - Equipment rating verification
     """
+
+    prompt_handle = "validation_agent"
 
     def __init__(self):
         super().__init__("ValidationAgent")
@@ -919,8 +1040,9 @@ class ValidationAgent(BaseAgent):
 
 
 class ReportGenerationAgent(BaseAgent):
-    """
-    Report Generation Agent.
+    """Report Generation Agent.
+
+    Prompt Handle: report_agent
 
     Generates professional engineering reports in multiple formats:
     - PDF (with charts and tables)
@@ -934,6 +1056,8 @@ class ReportGenerationAgent(BaseAgent):
     - Compliance Analysis
     - Recommendations
     """
+
+    prompt_handle = "report_agent"
 
     def __init__(self):
         super().__init__("ReportGenerationAgent")
@@ -1156,6 +1280,8 @@ class ChiefEngineeringOrchestrator:
     """
     Chief Engineering Orchestrator Agent.
 
+    Prompt Handle: power_system_coordinator_agent
+
     Coordinates all specialized agents to execute complete engineering workflows.
 
     Workflow Example:
@@ -1173,6 +1299,8 @@ class ChiefEngineeringOrchestrator:
     All without additional user intervention.
     """
 
+    prompt_handle = "power_system_coordinator_agent"
+
     def __init__(self):
         self.agents = {
             'load_flow': LoadFlowAgent(),
@@ -1188,6 +1316,38 @@ class ChiefEngineeringOrchestrator:
         self.task_queue: List[EngineeringTask] = []
         self.completed_tasks: Dict[str, EngineeringTask] = {}
         self.logger = logging.getLogger("orchestrator")
+
+        # Load orchestrator's own prompt for coordination guidance
+        self._system_prompt: Optional[str] = None
+        self._load_prompt()
+
+    def _load_prompt(self) -> None:
+        """Load the orchestrator's prompt for coordination guidance."""
+        try:
+            from agents.prompt_loader import get_system_prompt
+            self._system_prompt = get_system_prompt(self.prompt_handle)
+            self.logger.info(
+                "Orchestrator prompt loaded from handle '%s' (%d chars)",
+                self.prompt_handle,
+                len(self._system_prompt) if self._system_prompt else 0,
+            )
+        except Exception as exc:
+            self.logger.warning(
+                "Failed to load orchestrator prompt: %s. Using default coordination logic.",
+                exc,
+            )
+
+    def get_agents_info(self) -> Dict[str, Any]:
+        """Return metadata for all registered agents including prompt info."""
+        return {
+            "orchestrator": {
+                "prompt_handle": self.prompt_handle,
+                "prompt_loaded": self._system_prompt is not None,
+            },
+            "agents": {
+                key: agent.get_agent_info() for key, agent in self.agents.items()
+            },
+        }
 
     async def submit_task(self, task: EngineeringTask):
         """Submit engineering task for execution."""

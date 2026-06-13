@@ -51,6 +51,8 @@ class EarthGridAgent(BaseAgent):
     derating factor, and t_s is the shock duration in seconds.
     """
 
+    prompt_handle = "earth_grid_agent"
+
     def __init__(self) -> None:
         super().__init__("EarthGridAgent")
         self.standards = ["IEEE 80-2013", "IEEE 81-2012"]

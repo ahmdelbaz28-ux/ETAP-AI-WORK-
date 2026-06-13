@@ -151,6 +151,8 @@ class SCADAAgent(BaseAgent):
     - XCBR/XSWI → Topology status (breaker/switch positions)
     """
 
+    prompt_handle = "scada_agent"
+
     def __init__(self) -> None:
         super().__init__("SCADAAgent")
         self.standards = ["IEC 61850", "IEC 60870-5-104"]

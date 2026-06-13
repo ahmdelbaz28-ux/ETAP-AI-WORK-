@@ -111,6 +111,9 @@ class TestSystemValidateEndpoint:
 
 class TestCORS:
     async def test_cors_headers_present(self, client):
+        # With restrictive CORS (no ENGINEERING_SERVICE_CORS_ORIGINS set),
+        # only explicitly allowed origins receive access-control-allow-origin.
+        # The preflight response should still include allow-methods/headers.
         resp = await client.options(
             "/health",
             headers={
@@ -118,4 +121,7 @@ class TestCORS:
                 "Access-Control-Request-Method": "GET",
             },
         )
-        assert "access-control-allow-origin" in resp.headers
+        # CORS middleware responds with 400 when origin not in allowed list
+        # (since default is restrictive, not wildcard). Key CORS headers
+        # should still be present in the response.
+        assert "access-control-allow-methods" in resp.headers
