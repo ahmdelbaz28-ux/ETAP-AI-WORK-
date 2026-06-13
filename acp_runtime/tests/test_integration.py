@@ -14,18 +14,18 @@ Cross-cutting concerns:
     * Cancellation / graceful shutdown
 """
 from __future__ import annotations
+
 import io
 import json
 from typing import Any
 
 import anyio
 import pytest
-
-from acp.transport import StdioTransport, Server, UDSListener, WebSocketListener
+from acp.observability import InMemoryMetricsRegistry
 from acp.router import Router, RouterConfig
 from acp.runtime import AcpRuntime
 from acp.security import AuthConfig, HmacTokenValidator, NDJSONAuditLogger
-from acp.observability import InMemoryMetricsRegistry
+from acp.transport import Server, StdioTransport, UDSListener, WebSocketListener
 
 # Handler module under test
 from tests.integration_handlers import IntegrationHandler

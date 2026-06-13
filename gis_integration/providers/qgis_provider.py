@@ -4,7 +4,7 @@ from typing import Dict, Iterator, List, Optional
 
 from gis_integration.base import GISProviderInterface
 from gis_integration.exceptions import GISDataExtractionError, GISProviderUnavailableError
-from gis_integration.models import GISFeature, GeoCRSInfo
+from gis_integration.models import GeoCRSInfo, GISFeature
 from gis_integration.utils import safe_parse_geojson, validate_geometry_dict
 
 
@@ -26,8 +26,10 @@ class QGISProvider(GISProviderInterface):
 
     def load_project(self, path: str) -> None:
         try:
-            from qgis.core import QgsApplication  # type: ignore
-            from qgis.core import QgsProject  # type: ignore
+            from qgis.core import (
+                QgsApplication,  # type: ignore
+                QgsProject,  # type: ignore
+            )
         except Exception as exc:
             raise GISProviderUnavailableError(f"QGIS is unavailable: {exc}") from exc
 

@@ -6,14 +6,14 @@ sections.
 """
 
 from reporting.advanced_reports import (
-    ReportGenerationAgent,
-    PDFReportGenerator,
-    DOCXReportGenerator,
-    XLSXReportGenerator,
     ChartGenerator,
-    TableGenerator,
-    ReportSection,
+    DOCXReportGenerator,
+    PDFReportGenerator,
+    ReportGenerationAgent,
     ReportMetadata,
+    ReportSection,
+    TableGenerator,
+    XLSXReportGenerator,
     get_report_agent,
 )
 

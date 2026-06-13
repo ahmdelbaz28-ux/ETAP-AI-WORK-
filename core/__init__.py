@@ -1,3 +1,4 @@
+from core.database import UniversalDataModel
 from core.models import (
     ChangeSource,
     Conflict,
@@ -9,7 +10,6 @@ from core.models import (
     SemanticProperties,
     UniversalElement,
 )
-from core.database import UniversalDataModel
 
 __all__ = [
     "ChangeSource",

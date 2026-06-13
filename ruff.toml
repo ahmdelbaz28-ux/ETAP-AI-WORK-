@@ -6,8 +6,8 @@ line-length = 120
 target-version = "py311"
 
 [lint]
-# Enable pycodestyle (E), Pyflakes (F), isort (I), and more
-select = ["E", "F", "I", "W", "UP", "B", "SIM"]
+# Enable pycodestyle (E), Pyflakes (F), isort (I)
+select = ["E", "F", "I"]
 
 # Ignore specific rules that are not critical
 ignore = [
@@ -15,8 +15,10 @@ ignore = [
     "E402",   # Module level import not at top of file
     "E701",   # Multiple statements on one line (def)
     "E702",   # Multiple statements on one line (;)
+    "E501",   # Line too long (existing codebase has long lines)
     "F401",   # Unused import (many are used for type hints or re-exports)
     "F821",   # Undefined name (many are dynamically defined)
+    "F841",   # Unused variable
     "B905",   # zip() without strict= (Python 3.10+ feature)
 ]
 

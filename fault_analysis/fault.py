@@ -1,5 +1,6 @@
 import numpy as np
 
+
 class FaultAnalyzer:
     def __init__(self, ybus_pos, ybus_neg=None, ybus_zero=None, base_mva=100.0, base_kv=115.0):
         """

@@ -4,8 +4,9 @@ IEEE 1584-2018 Arc Flash Calculation Utility
 Provides standalone functions for arc flash analysis to be used by agents.
 """
 
-import math
 import json
+import math
+
 
 def calculate_arc_flash(
     voltage_kv: float,

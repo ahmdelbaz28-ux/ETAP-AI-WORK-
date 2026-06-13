@@ -5,8 +5,8 @@ from typing import List
 
 from gis_integration.base import GISProviderInterface
 from gis_integration.exceptions import (
-    GISProviderUnavailableError,
     GISDataExtractionError,
+    GISProviderUnavailableError,
 )
 
 

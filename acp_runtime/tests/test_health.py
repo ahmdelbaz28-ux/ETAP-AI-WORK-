@@ -8,12 +8,12 @@ Covers:
     * End-to-end stdio request for system.health
 """
 from __future__ import annotations
+
 import io
 import json
 import time
 
 import pytest
-
 from acp.health import HealthHandler
 from acp.observability import InMemoryMetricsRegistry
 
@@ -81,8 +81,7 @@ class TestHealthHandler:
 
     @pytest.mark.anyio
     async def test_ready_with_runtime(self):
-        from acp.runtime import AcpRuntime
-        from acp.runtime import capability
+        from acp.runtime import AcpRuntime, capability
 
         class DummyHandler:
             @capability("dummy.test")
@@ -105,7 +104,7 @@ class TestHealthHandler:
 class TestHealthCliIntegration:
     def test_health_capability_auto_registered(self, monkeypatch):
         monkeypatch.setenv("ACP_HANDLERS", "tests.test_cli")
-        from acp.cli import _build_parser, _build_runtime, _build_observability
+        from acp.cli import _build_observability, _build_parser, _build_runtime
         parser = _build_parser()
         args = parser.parse_args(["stdio", "--handlers", "tests.test_cli"])
         tracer, metrics, logger = _build_observability(args)
@@ -116,7 +115,7 @@ class TestHealthCliIntegration:
 
     def test_no_health_flag(self, monkeypatch):
         monkeypatch.setenv("ACP_HANDLERS", "tests.test_cli")
-        from acp.cli import _build_parser, _build_runtime, _build_observability
+        from acp.cli import _build_observability, _build_parser, _build_runtime
         parser = _build_parser()
         args = parser.parse_args(["stdio", "--handlers", "tests.test_cli", "--no-health"])
         tracer, metrics, logger = _build_observability(args)
@@ -138,7 +137,7 @@ async def test_stdio_health_request():
     stdin = io.StringIO(request)
     stdout = io.StringIO()
 
-    from acp.cli import _build_parser, _build_runtime, _build_router, _build_observability
+    from acp.cli import _build_observability, _build_parser, _build_router, _build_runtime
     from acp.transport import StdioTransport
 
     parser = _build_parser()
@@ -171,7 +170,7 @@ async def test_stdio_metrics_request():
     stdin = io.StringIO(request)
     stdout = io.StringIO()
 
-    from acp.cli import _build_parser, _build_runtime, _build_router, _build_observability
+    from acp.cli import _build_observability, _build_parser, _build_router, _build_runtime
     from acp.transport import StdioTransport
 
     parser = _build_parser()
@@ -201,7 +200,7 @@ async def test_stdio_ready_request():
     stdin = io.StringIO(request)
     stdout = io.StringIO()
 
-    from acp.cli import _build_parser, _build_runtime, _build_router, _build_observability
+    from acp.cli import _build_observability, _build_parser, _build_router, _build_runtime
     from acp.transport import StdioTransport
 
     parser = _build_parser()

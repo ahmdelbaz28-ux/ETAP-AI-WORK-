@@ -7,7 +7,7 @@ from enum import Enum
 from typing import Any, Callable, Optional, Sequence, Tuple, Union
 
 import numpy as np
-from numpy.linalg import LinAlgError, cond, cholesky, inv, lstsq, matrix_rank, norm, solve
+from numpy.linalg import LinAlgError, cholesky, cond, inv, lstsq, matrix_rank, norm, solve
 
 logger = logging.getLogger(__name__)
 

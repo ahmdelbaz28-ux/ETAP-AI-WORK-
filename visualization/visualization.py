@@ -1,6 +1,8 @@
-import numpy as np
 import matplotlib.pyplot as plt
+import numpy as np
+
 from relays.relay import OvercurrentRelay  # noqa: F401 - used by plot methods
+
 
 class Visualizer:
     def __init__(self):

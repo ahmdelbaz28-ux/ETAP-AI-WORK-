@@ -12,12 +12,13 @@ Context fields are merged at log time so every entry carries the full
 context (e.g. capability name, caller_id, request_id).
 """
 from __future__ import annotations
-from typing import Any
-from dataclasses import dataclass, field
-from enum import Enum
-import time
+
 import json
 import sys
+import time
+from dataclasses import dataclass, field
+from enum import Enum
+from typing import Any
 
 import anyio
 

@@ -12,8 +12,8 @@ Public surface:
 from __future__ import annotations
 
 from acp.schema.capability import CapabilityDescriptor, is_valid_capability_name, is_valid_scope
+from acp.schema.envelope import JsonRpcError, JsonRpcNotification, JsonRpcRequest, JsonRpcResponse
 from acp.schema.ids import RequestId, TraceId
-from acp.schema.envelope import JsonRpcRequest, JsonRpcResponse, JsonRpcNotification, JsonRpcError
 from acp.schema.params import AcpParams, AcpResult
 
 __all__ = [

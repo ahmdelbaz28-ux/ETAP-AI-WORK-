@@ -6,8 +6,10 @@ ignores the cancellation, the function still returns ``DeadlineExceeded``
 to the caller (best-effort cancel).
 """
 from __future__ import annotations
+
 from contextlib import asynccontextmanager
 from typing import Any, AsyncIterator
+
 import anyio
 
 from acp.errors import DeadlineExceeded

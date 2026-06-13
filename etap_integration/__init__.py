@@ -55,9 +55,9 @@ def __getattr__(name):
         if _IEtapProvider is None:
             from etap_integration.etap_provider import IEtapProvider as _IEtapProvider
             from etap_integration.etap_provider import LocalEtapProvider as _LocalEtapProvider
-            from etap_integration.etap_provider import RemoteEtapProvider as _RemoteEtapProvider
             from etap_integration.etap_provider import MockEtapProvider as _MockEtapProvider
             from etap_integration.etap_provider import NullEtapProvider as _NullEtapProvider
+            from etap_integration.etap_provider import RemoteEtapProvider as _RemoteEtapProvider
             from etap_integration.etap_provider import get_etap_provider as _get_etap_provider
         mapping = {
             "IEtapProvider": _IEtapProvider,
@@ -73,9 +73,9 @@ def __getattr__(name):
     if name in ("ETAPErrorRecovery", "ErrorCategory", "ErrorDiagnosis", "RecoveryAttempt"):
         global _ETAPErrorRecovery, _ErrorCategory, _ErrorDiagnosis, _RecoveryAttempt
         if _ETAPErrorRecovery is None:
-            from etap_integration.etap_error_recovery import ETAPErrorRecovery as _ETAPErrorRecovery
             from etap_integration.etap_error_recovery import ErrorCategory as _ErrorCategory
             from etap_integration.etap_error_recovery import ErrorDiagnosis as _ErrorDiagnosis
+            from etap_integration.etap_error_recovery import ETAPErrorRecovery as _ETAPErrorRecovery
             from etap_integration.etap_error_recovery import RecoveryAttempt as _RecoveryAttempt
         mapping = {
             "ETAPErrorRecovery": _ETAPErrorRecovery,
@@ -87,9 +87,9 @@ def __getattr__(name):
     if name in ("ETAPCompatibilityChecker", "CompatibilityReport", "CheckResult"):
         global _ETAPCompatibilityChecker, _CompatibilityReport, _CheckResult
         if _ETAPCompatibilityChecker is None:
-            from etap_integration.etap_compatibility import ETAPCompatibilityChecker as _ETAPCompatibilityChecker
-            from etap_integration.etap_compatibility import CompatibilityReport as _CompatibilityReport
             from etap_integration.etap_compatibility import CheckResult as _CheckResult
+            from etap_integration.etap_compatibility import CompatibilityReport as _CompatibilityReport
+            from etap_integration.etap_compatibility import ETAPCompatibilityChecker as _ETAPCompatibilityChecker
         mapping = {
             "ETAPCompatibilityChecker": _ETAPCompatibilityChecker,
             "CompatibilityReport": _CompatibilityReport,

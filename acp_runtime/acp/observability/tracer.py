@@ -11,13 +11,13 @@ Trace context is propagated via the ``trace_id`` field in ACP envelopes. The
 router extracts the trace_id and passes it to the runtime, which creates a span.
 """
 from __future__ import annotations
-from typing import Any
-from dataclasses import dataclass, field
-import time
-import json
-from pathlib import Path
 
+import json
 import threading
+import time
+from dataclasses import dataclass, field
+from pathlib import Path
+from typing import Any
 
 __all__ = [
     "TraceContext",

@@ -26,6 +26,7 @@ Environment variables (all optional)::
 """
 
 from __future__ import annotations
+
 import argparse
 import importlib
 import os
@@ -35,29 +36,29 @@ from typing import Any
 import anyio
 
 from acp import __version__
+from acp.config import env_bool, env_int, load_config, merge_config
+from acp.health import HealthHandler
+from acp.http_server import start_http_server
+from acp.observability import (
+    ConsoleStructuredLogger,
+    InMemoryMetricsRegistry,
+    JsonTracer,
+    LogLevel,
+)
+from acp.router import Router, RouterConfig
 from acp.runtime import AcpRuntime
 from acp.runtime.handler import discover_capabilities
-from acp.router import Router, RouterConfig
-from acp.transport import (
-    StdioTransport,
-    UDSListener,
-    WebSocketListener,
-    Server,
-)
 from acp.security import (
     AuthConfig,
     HmacTokenValidator,
     NDJSONAuditLogger,
 )
-from acp.observability import (
-    JsonTracer,
-    InMemoryMetricsRegistry,
-    ConsoleStructuredLogger,
-    LogLevel,
+from acp.transport import (
+    Server,
+    StdioTransport,
+    UDSListener,
+    WebSocketListener,
 )
-from acp.config import load_config, merge_config, env_int, env_bool
-from acp.health import HealthHandler
-from acp.http_server import start_http_server
 
 __all__ = ["main"]
 

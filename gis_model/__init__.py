@@ -5,12 +5,12 @@ and database integration used in electrical network modeling.
 """
 
 from gis_model.gis_model import (
+    GeoCoordinate,
+    GISAsset,
+    GISAssetType,
     GISDatabase,
     GISZone,
     GISZoneType,
-    GISAsset,
-    GISAssetType,
-    GeoCoordinate,
     PolylineGeometry,
 )
 

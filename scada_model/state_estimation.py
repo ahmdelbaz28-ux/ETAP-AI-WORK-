@@ -9,10 +9,11 @@ Reference: A. Abur and A.G. Exposito, "Power System State Estimation",
 CRC Press, 2004.
 """
 
-import numpy as np
 from dataclasses import dataclass, field
-from typing import List, Optional, Tuple
 from enum import Enum
+from typing import List, Optional, Tuple
+
+import numpy as np
 
 
 class StateEstimationStatus(Enum):

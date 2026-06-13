@@ -10,22 +10,21 @@ Covers:
     * Graceful shutdown on EOF
 """
 from __future__ import annotations
+
 import io
 import json
 
 import anyio
 import pytest
-
+from acp.router import Router, RouterConfig
+from acp.runtime import AcpRuntime, capability
 from acp.transport import (
+    Server,
     StdioTransport,
     UDSTransport,
     WebSocketTransport,
-    Server,
 )
 from acp.transport.uds import _LineBuffer
-from acp.router import Router, RouterConfig
-from acp.runtime import AcpRuntime, capability
-
 
 # ------------------------------------------------------- test handlers
 

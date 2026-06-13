@@ -18,10 +18,11 @@ Architecture:
 
 import asyncio
 import logging
-from typing import Dict, List, Optional, Any
 from dataclasses import dataclass, field
-from enum import Enum
 from datetime import datetime, timezone
+from enum import Enum
+from typing import Any, Dict, List, Optional
+
 import numpy as np
 
 logger = logging.getLogger(__name__)
@@ -494,7 +495,7 @@ class OptimalPowerFlowAgent(BaseAgent):
         try:
             self.log_execution(f"Starting OPF analysis for task {task.task_id}")
 
-            from load_flow.optimal_power_flow import OptimalPowerFlowEngine, GeneratorCost
+            from load_flow.optimal_power_flow import GeneratorCost, OptimalPowerFlowEngine
 
             system_data = task.parameters.get('system')
             generator_costs = task.parameters.get('generator_costs', [])
@@ -1129,7 +1130,7 @@ class ReportGenerationAgent(BaseAgent):
     def _export_xlsx(self, content: Dict, output_path: str) -> str:
         """Export report as XLSX using the reporting module."""
         try:
-            from reporting.advanced_reports import XLSXReportGenerator, ReportMetadata
+            from reporting.advanced_reports import ReportMetadata, XLSXReportGenerator
             metadata = ReportMetadata(
                 title=content.get('title', 'Engineering Report'),
                 author='ETAP AI Platform',

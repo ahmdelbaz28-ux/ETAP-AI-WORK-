@@ -18,34 +18,33 @@ Covers:
     * Server integration: message/byte counters
 """
 from __future__ import annotations
+
 import json
-import time
 import tempfile
+import time
 from pathlib import Path
 
 import anyio
 import pytest
-
 from acp.observability import (
-    TraceContext,
-    Span,
+    ConsoleStructuredLogger,
+    Counter,
+    Gauge,
+    Histogram,
+    InMemoryMetricsRegistry,
+    InMemoryStructuredLogger,
     InMemoryTracer,
     JsonTracer,
-    NullTracer,
-    Counter,
-    Histogram,
-    Gauge,
-    InMemoryMetricsRegistry,
-    LogLevel,
     LogEntry,
-    InMemoryStructuredLogger,
+    LogLevel,
     NullStructuredLogger,
-    ConsoleStructuredLogger,
+    NullTracer,
+    Span,
+    TraceContext,
 )
-from acp.runtime import AcpRuntime, capability
 from acp.router import Router, RouterConfig
+from acp.runtime import AcpRuntime, capability
 from acp.transport import Server, StdioTransport
-
 
 # ------------------------------------------------------- test handlers
 

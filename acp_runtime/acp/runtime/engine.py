@@ -14,12 +14,13 @@ Out of scope (handled by other layers):
     * Transport I/O     — Transport layer
 """
 from __future__ import annotations
-from typing import Any, Iterable
-from collections import defaultdict
+
 import inspect
 import logging
 import time
+from collections import defaultdict
 from functools import partial
+from typing import Any, Iterable
 
 import anyio
 
@@ -29,13 +30,14 @@ from acp.errors import (
     HandlerError,
     ScopeNotPermitted,
 )
-from acp.runtime.handler import CapabilityMeta, discover_capabilities
 from acp.runtime.deadline import enforce_deadline_ms
+from acp.runtime.handler import CapabilityMeta, discover_capabilities
 
 __all__ = ["AcpRuntime"]
 
 # Observability imports (optional, lazy to avoid circular deps)
 from typing import TYPE_CHECKING
+
 if TYPE_CHECKING:
     pass
 

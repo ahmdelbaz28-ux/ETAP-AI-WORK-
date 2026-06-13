@@ -6,8 +6,8 @@ and a ChiefEngineeringOrchestrator to coordinate them.
 """
 
 from agents.orchestrator import (
-    AgentStatus,
     AgentResult,
+    AgentStatus,
     BaseAgent,
     ChiefEngineeringOrchestrator,
     EngineeringTask,

@@ -108,10 +108,10 @@ def _to_jsonable(obj: Any) -> Any:
 # Ensure project root is on path
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from fastapi import FastAPI, Request, HTTPException
-from fastapi.responses import JSONResponse
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel, ConfigDict, Field, AliasChoices, field_validator
+from fastapi.responses import JSONResponse
+from pydantic import AliasChoices, BaseModel, ConfigDict, Field, field_validator
 from starlette.middleware.base import BaseHTTPMiddleware
 
 # ---------------------------------------------------------------------------
@@ -374,12 +374,12 @@ def _add_execution_time(delta: float) -> None:
 
 def _build_system_from_spec(spec: SystemSpec) -> Any:
     """Build a Python System object from a SystemSpec."""
-    from core_model.system import System
     from core_model.bus import Bus
-    from core_model.line import Line
-    from core_model.transformer import Transformer
     from core_model.generator import Generator
+    from core_model.line import Line
     from core_model.load import Load
+    from core_model.system import System
+    from core_model.transformer import Transformer
 
     system = System(base_mva=spec.base_mva)
     bus_map: Dict[int, Any] = {}
@@ -950,6 +950,7 @@ async def generic_exception_handler(request: Request, exc: Exception):
 def main() -> None:
     """Entry point for the engineering service."""
     import argparse
+
     import uvicorn
 
     parser = argparse.ArgumentParser(

@@ -13,28 +13,27 @@ Covers:
     * Audit entries for success, error, denied, notification
 """
 from __future__ import annotations
+
 import json
-import time
 import tempfile
+import time
 from pathlib import Path
 
 import anyio
 import pytest
-
-from acp.security import (
-    CallerIdentity,
-    AuthConfig,
-    HmacTokenValidator,
-    validate_bearer_token,
-    extract_token_from_header,
-    AuditEntry,
-    InMemoryAuditLogger,
-    NDJSONAuditLogger,
-)
-from acp.security.auth import AuthenticationRequired
 from acp.router import Router, RouterConfig
 from acp.runtime import AcpRuntime, capability
-
+from acp.security import (
+    AuditEntry,
+    AuthConfig,
+    CallerIdentity,
+    HmacTokenValidator,
+    InMemoryAuditLogger,
+    NDJSONAuditLogger,
+    extract_token_from_header,
+    validate_bearer_token,
+)
+from acp.security.auth import AuthenticationRequired
 
 # ------------------------------------------------------- test handlers
 

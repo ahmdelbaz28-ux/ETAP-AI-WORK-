@@ -1,7 +1,7 @@
 """Tests for the @capability decorator and discovery helpers."""
 from __future__ import annotations
-import pytest
 
+import pytest
 from acp.runtime.handler import (
     CapabilityMeta,
     capability,

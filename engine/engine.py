@@ -1,10 +1,12 @@
 import matplotlib.pyplot as plt
-from load_flow.load_flow_solver_fixed import LoadFlowSolver
-from fault_analysis.fault import FaultAnalyzer
-from fault_analysis.arc_flash_engine import ArcFlashEngine, ElectrodeConfig, EnclosureType
+
 from coordination.coordination import CoordinationEngine
-from visualization.visualization import Visualizer
+from fault_analysis.arc_flash_engine import ArcFlashEngine, ElectrodeConfig, EnclosureType
+from fault_analysis.fault import FaultAnalyzer
+from load_flow.load_flow_solver_fixed import LoadFlowSolver
 from relays.relay import OvercurrentRelay
+from visualization.visualization import Visualizer
+
 
 class PowerSystemEngine:
     def __init__(self, system=None):

@@ -15,21 +15,21 @@ Covers:
     * Validation errors (invalid fields, extra fields, missing required fields)
 """
 from __future__ import annotations
-import json
-import pytest
-from pydantic import ValidationError
 
+import json
+
+import pytest
+from acp.runtime import ProgressEvent
 from acp.schema import (
-    JsonRpcRequest,
-    JsonRpcResponse,
-    JsonRpcNotification,
-    JsonRpcError,
     AcpParams,
     AcpResult,
     CapabilityDescriptor,
+    JsonRpcError,
+    JsonRpcNotification,
+    JsonRpcRequest,
+    JsonRpcResponse,
 )
-from acp.runtime import ProgressEvent
-
+from pydantic import ValidationError
 
 # ------------------------------------------------------- helpers
 

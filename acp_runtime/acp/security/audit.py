@@ -12,11 +12,12 @@ Features:
     * Optional in-memory buffer for testing.
 """
 from __future__ import annotations
-from typing import Any
+
 import json
 import time
+from dataclasses import asdict, dataclass, field
 from pathlib import Path
-from dataclasses import dataclass, field, asdict
+from typing import Any
 
 import anyio
 

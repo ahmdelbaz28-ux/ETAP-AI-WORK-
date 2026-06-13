@@ -1,5 +1,7 @@
 import numpy as np
+
 from curves.curves import IEC60255Curves
+
 
 class Relay:
     def __init__(self, relay_id, name='Relay'):

@@ -8,21 +8,22 @@ The router is thin and stateless: all capability state lives in the
 ``AcpRuntime`` instance passed to the constructor.
 """
 from __future__ import annotations
-from typing import Any, Callable, Coroutine
+
 import logging
 import time
+from typing import Any, Callable, Coroutine
 
 from pydantic import ValidationError
 
 from acp.errors import (
     AcpError,
-    ScopeNotPermitted,
-    CapabilityNotFound,
     AuthenticationRequired,
+    CapabilityNotFound,
+    ScopeNotPermitted,
 )
-from acp.runtime import AcpRuntime
-from acp.schema import JsonRpcRequest, JsonRpcResponse, JsonRpcNotification, JsonRpcError
 from acp.router.scope import ScopeValidator
+from acp.runtime import AcpRuntime
+from acp.schema import JsonRpcError, JsonRpcNotification, JsonRpcRequest, JsonRpcResponse
 
 __all__ = ["Router", "RouterConfig"]
 
@@ -47,10 +48,9 @@ JSONRPC_INTERNAL_ERROR = -32603
 NotificationHandler = Callable[[dict], Coroutine[Any, Any, None]] | None
 
 # Type alias for auth validator (re-exported from security for convenience)
-from acp.security.auth import AuthValidator
-
 # Type alias for audit logger (re-exported from security for convenience)
 from acp.security.audit import AuditLogger
+from acp.security.auth import AuthValidator
 
 
 class RouterConfig:

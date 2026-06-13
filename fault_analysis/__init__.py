@@ -5,37 +5,36 @@ calculations, IEEE 1584 arc-flash hazard analysis, and harmonic analysis
 for electrical power systems.
 """
 
-from fault_analysis.fault import FaultAnalyzer
-
-from fault_analysis.iec60909_engine import (
-    IEC60909Engine,
-    FaultType,
-    ShortCircuitResult,
-    VoltageFactorC,
-)
-
+from fault_analysis.arc_flash_calc import calculate_arc_flash
 from fault_analysis.arc_flash_engine import (
     ArcFlashEngine,
     ArcFlashResult,
     ElectrodeConfig,
     EnclosureType,
 )
-
-from fault_analysis.arc_flash_calc import calculate_arc_flash
-
+from fault_analysis.fault import FaultAnalyzer
+from fault_analysis.harmonic_analysis import (
+    HarmonicAnalysisEngine,
+    HarmonicAnalysisResult,
+    HarmonicResult,
+    HarmonicSource,
+    HarmonicStandard,
+)
+from fault_analysis.iec60909_engine import (
+    FaultType,
+    IEC60909Engine,
+    ShortCircuitResult,
+    VoltageFactorC,
+)
+from fault_analysis.ieee1584_database import (
+    ElectrodeConfig as IEEE1584ElectrodeConfig,
+)
+from fault_analysis.ieee1584_database import (
+    EnclosureType as IEEE1584EnclosureType,
+)
 from fault_analysis.ieee1584_database import (
     IEEE1584Database,
     IEEE1584Result,
-    ElectrodeConfig as IEEE1584ElectrodeConfig,
-    EnclosureType as IEEE1584EnclosureType,
-)
-
-from fault_analysis.harmonic_analysis import (
-    HarmonicAnalysisEngine,
-    HarmonicStandard,
-    HarmonicSource,
-    HarmonicResult,
-    HarmonicAnalysisResult,
 )
 
 __all__ = [

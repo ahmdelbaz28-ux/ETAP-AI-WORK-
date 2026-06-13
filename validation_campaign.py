@@ -1,25 +1,24 @@
 #!/usr/bin/env python3
 """Full Verification and Validation Campaign for Power Protection System"""
 
-import numpy as np
-import sys
 import os
+import sys
+
+import numpy as np
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
+from coordination.coordination import CoordinationEngine
 from core_model.bus import Bus
-from core_model.line import Line
-
 from core_model.generator import Generator
+from core_model.line import Line
 from core_model.load import Load
 from core_model.system import System
-
-from load_flow.load_flow import LoadFlowSolver
-from fault_analysis.fault import FaultAnalyzer
-from relays.relay import OvercurrentRelay
-from coordination.coordination import CoordinationEngine
-from fault_analysis.arc_flash_engine import ArcFlashEngine, ElectrodeConfig, EnclosureType
 from curves.curves import IEC60255Curves
+from fault_analysis.arc_flash_engine import ArcFlashEngine, ElectrodeConfig, EnclosureType
+from fault_analysis.fault import FaultAnalyzer
+from load_flow.load_flow import LoadFlowSolver
+from relays.relay import OvercurrentRelay
 
 
 class ValidationCampaign:

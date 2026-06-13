@@ -12,14 +12,13 @@ Events follow the automatic workflow:
 Reference: IEC 61970 CIM Event Model, EPRI ADMS Architecture Guide
 """
 
+import threading
 import time
 import uuid
-import threading
-from dataclasses import dataclass, field
-from typing import Any, Callable, Dict, List, Optional
-from enum import Enum
 from collections import defaultdict
-
+from dataclasses import dataclass, field
+from enum import Enum
+from typing import Any, Callable, Dict, List, Optional
 
 # ============================================================
 # EVENT TYPES

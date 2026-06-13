@@ -13,8 +13,8 @@ Reference: IEC 61970 CIM, EPRI ADMS Integration Guide
 
 import time
 from dataclasses import dataclass, field
-from typing import Any, Callable, Dict, List, Optional
 from enum import Enum
+from typing import Any, Callable, Dict, List, Optional
 
 
 class ValidationSeverity(Enum):

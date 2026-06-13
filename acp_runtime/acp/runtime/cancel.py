@@ -6,8 +6,10 @@ this module provides a slightly higher-level surface for callers that
 need an explicit, externally-cancellable scope.
 """
 from __future__ import annotations
+
 from contextlib import asynccontextmanager
 from typing import AsyncIterator, Optional
+
 import anyio
 
 __all__ = ["cancellable", "is_cancelled_exception"]

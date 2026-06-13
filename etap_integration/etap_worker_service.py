@@ -5,20 +5,20 @@ A FastAPI service to be run on Windows hosts with ETAP installed.
 Provides a REST API for the Linux-based AI platform to execute ETAP studies.
 """
 
-from fastapi import FastAPI, HTTPException, Security, Depends
+import os
+import sys
+from typing import Any, Dict, List, Optional
+
+import uvicorn
+from fastapi import Depends, FastAPI, HTTPException, Security
 from fastapi.security import APIKeyHeader, HTTPAuthorizationCredentials, HTTPBearer
 from pydantic import BaseModel
-from typing import Dict, List, Optional, Any
-import uvicorn
-import sys
-import os
 
 # Add parent directory to path to import etap_integration
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from etap_integration.etap_com import ETAPAutomation, ETAPStudyType
-from security.security_framework import get_authz_manager, Permission
-
+from security.security_framework import Permission, get_authz_manager
 
 app = FastAPI(title="ETAP AI Windows Worker", version="1.0.0")
 

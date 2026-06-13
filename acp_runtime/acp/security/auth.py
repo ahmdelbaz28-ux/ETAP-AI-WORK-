@@ -13,9 +13,10 @@ Design decisions:
     * The validated token yields a ``CallerIdentity`` with caller_id and scopes.
 """
 from __future__ import annotations
+
 import base64
-import hmac
 import hashlib
+import hmac
 import json
 import time
 from typing import Any, Callable, Coroutine

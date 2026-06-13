@@ -12,9 +12,10 @@ Contains full coefficient tables from IEEE 1584-2018 for:
 Reference: IEEE Std 1584-2018 "IEEE Guide for Performing Arc-Flash Hazard Calculations"
 """
 
-import numpy as np
 from dataclasses import dataclass
 from enum import Enum
+
+import numpy as np
 
 
 class ElectrodeConfig(Enum):
