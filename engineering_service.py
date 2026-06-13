@@ -666,12 +666,14 @@ async def root():
     return {"message": "ETAP AI Engineering Platform", "version": "1.0.0"}
 
 
+@app.head("/healthz")
 @app.get("/healthz")
 async def healthz():
     """Lightweight liveness probe (no heavy initialization)."""
     return {"status": "alive"}
 
 
+@app.head("/readyz")
 @app.get("/readyz")
 async def readyz():
     """Readiness probe — checks critical dependencies."""
@@ -680,6 +682,7 @@ async def readyz():
     return {"ready": all_ready, "checks": checks}
 
 
+@app.head("/health")
 @app.get("/health", response_model=HealthResponse)
 async def health_check(request: Request):
     return HealthResponse(
@@ -690,6 +693,7 @@ async def health_check(request: Request):
     )
 
 
+@app.head("/ready")
 @app.get("/ready", response_model=ReadyResponse)
 async def readiness_check(request: Request):
     native_ok = False
