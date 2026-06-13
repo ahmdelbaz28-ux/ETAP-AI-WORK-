@@ -6,6 +6,11 @@
       "versionId": "local",
       "materialized": "prompts/etap_engineer_agent.yaml"
     },
+    "etap_engineer_agent_v2": {
+      "version": 0,
+      "versionId": "local",
+      "materialized": "prompts/etap_engineer_agent_v2.yaml"
+    },
     "goal_planner_agent": {
       "version": 0,
       "versionId": "local",
@@ -50,6 +55,76 @@
       "version": 0,
       "versionId": "local",
       "materialized": "prompts/power_system_coordinator_agent.prompt.yaml"
+    },
+    "harmonic_agent": {
+      "version": 0,
+      "versionId": "local",
+      "materialized": "prompts/harmonic_agent.prompt.yaml"
+    },
+    "opf_agent": {
+      "version": 0,
+      "versionId": "local",
+      "materialized": "prompts/opf_agent.prompt.yaml"
+    },
+    "validation_agent": {
+      "version": 0,
+      "versionId": "local",
+      "materialized": "prompts/validation_agent.prompt.yaml"
+    },
+    "report_agent": {
+      "version": 0,
+      "versionId": "local",
+      "materialized": "prompts/report_agent.prompt.yaml"
+    },
+    "stability_agent": {
+      "version": 0,
+      "versionId": "local",
+      "materialized": "prompts/stability_agent.prompt.yaml"
+    },
+    "cable_sizing_agent": {
+      "version": 0,
+      "versionId": "local",
+      "materialized": "prompts/cable_sizing_agent.prompt.yaml"
+    },
+    "earth_grid_agent": {
+      "version": 0,
+      "versionId": "local",
+      "materialized": "prompts/earth_grid_agent.prompt.yaml"
+    },
+    "renewable_agent": {
+      "version": 0,
+      "versionId": "local",
+      "materialized": "prompts/renewable_agent.prompt.yaml"
+    },
+    "battery_storage_agent": {
+      "version": 0,
+      "versionId": "local",
+      "materialized": "prompts/battery_storage_agent.prompt.yaml"
+    },
+    "scada_agent": {
+      "version": 0,
+      "versionId": "local",
+      "materialized": "prompts/scada_agent.prompt.yaml"
+    },
+    "digital_twin_agent": {
+      "version": 0,
+      "versionId": "local",
+      "materialized": "prompts/digital_twin_agent.prompt.yaml"
+    },
+    "predictive_agent": {
+      "version": 0,
+      "versionId": "local",
+      "materialized": "prompts/predictive_agent.prompt.yaml"
+    },
+    "anomaly_agent": {
+      "version": 0,
+      "versionId": "local",
+      "materialized": "prompts/anomaly_agent.prompt.yaml"
+    },
+    "coordination_agent": {
+      "version": 0,
+      "versionId": "local",
+      "materialized": "prompts/coordination_agent.prompt.yaml"
     }
   }
 }

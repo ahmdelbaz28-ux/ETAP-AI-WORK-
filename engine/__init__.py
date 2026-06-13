@@ -30,6 +30,10 @@ from engine.cache_manager import (
     get_memory_manager,
     get_smart_cache_strategy,
 )
+from engine.caching import (
+    StudyCache,
+    get_study_cache,
+)
 from engine.data_optimizer import (
     BatchProcessor,
     DataCompressor,
@@ -49,6 +53,9 @@ from engine.error_handler import (
     get_alert_manager,
     get_auto_recovery_manager,
     get_error_handler,
+)
+from engine.gpu_solver import (
+    GPUSolver,
 )
 from engine.numerical_safety import (
     ConsistencyCheck,
@@ -89,6 +96,13 @@ from engine.scalability import (
 from engine.scalability import (
     TaskPriority as ScalabilityTaskPriority,
 )
+from engine.sparse_solver import (
+    BranchData,
+    BusData,
+    SparseConvergenceResult,
+    SparseYBus,
+    create_ieee_test_system,
+)
 
 __all__ = [
     "PowerSystemEngine",
@@ -115,6 +129,9 @@ __all__ = [
     "get_calculation_cache",
     "get_smart_cache_strategy",
     "get_memory_manager",
+    # caching (Redis-backed)
+    "StudyCache",
+    "get_study_cache",
     # data_optimizer
     "SparseMatrixManager",
     "MemoryOptimizedSystem",
@@ -166,4 +183,12 @@ __all__ = [
     "Partition",
     "DistributedOrchestrator",
     "ScalabilityTaskPriority",
+    # sparse_solver
+    "SparseYBus",
+    "BusData",
+    "BranchData",
+    "SparseConvergenceResult",
+    "create_ieee_test_system",
+    # gpu_solver
+    "GPUSolver",
 ]
