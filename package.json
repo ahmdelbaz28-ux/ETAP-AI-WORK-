@@ -27,6 +27,7 @@
   "devEngines": {},
   "type": "module",
   "dependencies": {
+    "@ai-sdk/anthropic": "^3.0.84",
     "@langwatch/scenario": "^0.4.11",
     "@mastra/core": "^1.37.1",
     "@mastra/duckdb": "^1.4.0",
@@ -34,7 +35,10 @@
     "@mastra/loggers": "^1.1.1",
     "@mastra/memory": "^1.20.0",
     "@mastra/observability": "^1.14.0",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.2",
     "ai": "^6.0.197",
+    "jsdom": "^29.1.1",
     "langwatch": "^0.30.0",
     "mastra": "^1.10.2",
     "pino": "^10.3.1",
