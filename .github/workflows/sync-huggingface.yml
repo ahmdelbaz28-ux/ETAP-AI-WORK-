@@ -96,10 +96,11 @@ jobs:
           echo "File sync completed"
 
       # -----------------------------------------------------------------------
-      # Step 4b: Replace README.md with HF-specific README
+      # Step 4b: Apply HuggingFace-specific configuration
       # -----------------------------------------------------------------------
-      - name: Apply HuggingFace README configuration
+      - name: Apply HuggingFace configuration
         run: |
+          # === Fix 1: Replace README.md with HF-specific README ===
           # HuggingFace Spaces requires YAML front matter in README.md to
           # identify the SDK type and configuration. The GitHub README.md
           # doesn't have this, so we replace it with README.hf.md which
@@ -128,6 +129,18 @@ jobs:
               cat "${GITHUB_WORKSPACE}/README.md" >> /tmp/hf-space/README.md
               echo "✅ Prepended HF Space metadata to README.md"
             fi
+          fi
+
+          # === Fix 2: Replace Dockerfile with HF-specific Dockerfile ===
+          # The main Dockerfile includes TypeScript/Node.js builds which are
+          # not needed on HF Spaces and cause build failures. Dockerfile.hf
+          # is optimized for HF Spaces (Python-only, nginx proxy, supervisor).
+          if [ -f /tmp/hf-space/Dockerfile.hf ]; then
+            echo "Replacing Dockerfile with HuggingFace-specific Dockerfile.hf"
+            cp /tmp/hf-space/Dockerfile.hf /tmp/hf-space/Dockerfile
+            echo "✅ Dockerfile now uses HF-optimized build (Python + nginx + supervisor)"
+          else
+            echo "⚠️ Dockerfile.hf not found — using default Dockerfile"
           fi
 
       # -----------------------------------------------------------------------
