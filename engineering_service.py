@@ -589,10 +589,11 @@ async def readiness_check(request: Request):
     native_ok = False
     etap_ok = False
     try:
-        _get_power_system_engine()
+        import numpy  # noqa: F401
+        import scipy  # noqa: F401
         native_ok = True
-    except Exception as exc:
-        logger.warning("native_engine_unavailable", error=str(exc))
+    except ImportError:
+        pass
     try:
         provider_factory = _get_etap_provider()
         provider = provider_factory()
