@@ -97,27 +97,28 @@ The API is live at `https://ahmdelbaz28-etap-ai-platform.hf.space` with full Swa
 
 ## See it in Action
 
-### Dashboard
+### Health & Readiness
 <p align="center">
-  <img src="docs/screenshots/01-hero.png" alt="Dashboard" width="90%">
+  <img src="docs/screenshots/01-hero.png" alt="System Health" width="45%">
+  <img src="docs/screenshots/02-ready.png" alt="Server Readiness" width="45%">
 </p>
 
-### Load Flow Analysis
+### System Metrics & Validation
 <p align="center">
-  <img src="docs/screenshots/02-load-flow-form.png" alt="Load Flow Form" width="45%">
-  <img src="docs/screenshots/03-load-flow-results.png" alt="Load Flow Results" width="45%">
+  <img src="docs/screenshots/03-metrics.png" alt="System Metrics" width="45%">
+  <img src="docs/screenshots/05-validate.png" alt="System Validation" width="45%">
 </p>
 
-### Arc Flash & Protection
+### Load Flow Study & API Documentation
 <p align="center">
-  <img src="docs/screenshots/04-arc-flash.png" alt="Arc Flash" width="45%">
-  <img src="docs/screenshots/05-coordination-curves.png" alt="Coordination Curves" width="45%">
+  <img src="docs/screenshots/04-study.png" alt="Load Flow Results" width="45%">
+  <img src="docs/screenshots/06-api-docs.png" alt="API Documentation" width="45%">
 </p>
 
-### API & Testing
+### Quality Assurance
 <p align="center">
-  <img src="docs/screenshots/06-api-docs.png" alt="API Docs" width="45%">
-  <img src="docs/screenshots/07-tests-passing.png" alt="Tests Passing" width="45%">
+  <img src="docs/screenshots/07-tests.png" alt="548 Tests Passing" width="45%">
+  <img src="docs/screenshots/08-validation.png" alt="31/31 Validation" width="45%">
 </p>
 
 ---
