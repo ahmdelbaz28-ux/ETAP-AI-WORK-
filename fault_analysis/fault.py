@@ -140,7 +140,7 @@ class FaultAnalyzer:
         If2 = -If1 - If0
         a = complex(-0.5, np.sqrt(3)/2)
         a2 = complex(-0.5, -np.sqrt(3)/2)
-        Ia = If1 + If2 + If0
+        If1 + If2 + If0
         Ib = a2*If1 + a*If2 + If0
         Ic = a*If1 + a2*If2 + If0
         return {

@@ -1,6 +1,9 @@
 """Memory-efficient data structures and optimization for large power system models."""
 import numpy as np
-import time, sys, gc, logging
+import time
+import sys
+import gc
+import logging
 from contextlib import contextmanager
 
 logger = logging.getLogger(__name__)

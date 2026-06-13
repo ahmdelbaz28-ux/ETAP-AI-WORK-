@@ -1,4 +1,3 @@
-import numpy as np
 
 def to_per_unit(value, base_value):
     """

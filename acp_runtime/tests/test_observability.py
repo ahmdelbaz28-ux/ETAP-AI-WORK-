@@ -29,7 +29,6 @@ import pytest
 from acp.observability import (
     TraceContext,
     Span,
-    SpanStatus,
     InMemoryTracer,
     JsonTracer,
     NullTracer,
@@ -46,7 +45,6 @@ from acp.observability import (
 from acp.runtime import AcpRuntime, capability
 from acp.router import Router, RouterConfig
 from acp.transport import Server, StdioTransport
-from acp.schema import JsonRpcRequest, JsonRpcResponse
 
 
 # ------------------------------------------------------- test handlers

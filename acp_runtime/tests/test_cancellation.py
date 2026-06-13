@@ -12,8 +12,8 @@ from __future__ import annotations
 import anyio
 import pytest
 
-from acp.errors import AcpError, DeadlineExceeded, HandlerError
-from acp.runtime.deadline import enforce_deadline_ms, deadline_scope
+from acp.errors import DeadlineExceeded, HandlerError
+from acp.runtime.deadline import enforce_deadline_ms
 from acp.runtime import AcpRuntime, capability
 from acp.runtime.cancel import cancellable, is_cancelled_exception
 

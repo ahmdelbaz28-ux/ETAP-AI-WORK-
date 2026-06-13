@@ -24,7 +24,6 @@ from functools import partial
 import anyio
 
 from acp.errors import (
-    AcpError,
     CapabilityNotFound,
     DeadlineExceeded,
     HandlerError,
@@ -38,9 +37,7 @@ __all__ = ["AcpRuntime"]
 # Observability imports (optional, lazy to avoid circular deps)
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
-    from acp.observability.tracer import Tracer, TraceContext
-    from acp.observability.metrics import MetricsRegistry
-    from acp.observability.structured_logger import StructuredLogger
+    pass
 
 
 class AcpRuntime:
@@ -83,7 +80,7 @@ class AcpRuntime:
                         f"registered on {self._registry[cap_name][0]!r}, "
                         f"also exposed by {class_name!r}"
                     )
-                method = getattr(handler, meta.method_name)
+                getattr(handler, meta.method_name)
                 self._registry[cap_name] = (handler, meta)
         self._log.debug("acp runtime registry built: %d capabilities", len(self._registry))
 

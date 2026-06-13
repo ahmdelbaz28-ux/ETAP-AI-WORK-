@@ -25,9 +25,8 @@ Architecture:
 """
 
 import os
-import json
 import logging
-from typing import List, Dict, Optional, Tuple
+from typing import List, Dict, Optional
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 import numpy as np

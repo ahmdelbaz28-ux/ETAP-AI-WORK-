@@ -28,7 +28,6 @@ from acp.security import (
     validate_bearer_token,
     extract_token_from_header,
     AuditEntry,
-    AuditLogger,
     InMemoryAuditLogger,
     NDJSONAuditLogger,
 )

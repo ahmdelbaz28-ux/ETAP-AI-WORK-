@@ -3,7 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Dict, List, Tuple
 
-from gis_validation_electrical.electrical_model import ElectricalEdge, ElectricalModel
+from gis_validation_electrical.electrical_model import ElectricalModel
 
 
 @dataclass(frozen=True)

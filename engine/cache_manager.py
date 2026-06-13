@@ -5,7 +5,7 @@ import threading
 import time
 from enum import Enum
 from functools import wraps
-from typing import Any, Callable, Dict, List, Optional, Pattern, Set, Tuple, Union
+from typing import Any, Callable, Dict, List, Optional, Set, Tuple
 
 try:
     from cachetools import LRUCache, TLRUCache
@@ -320,7 +320,6 @@ class SmartCacheStrategy:
         return True
 
     def get_cache_ttl(self, component: str, result_type: Optional[str] = None) -> int:
-        key = component if result_type is None else f"{component}_{result_type}"
         mapped = component
         if "load_flow" in component or "loadflow" in component:
             mapped = "load_flow"

@@ -74,7 +74,6 @@ class ArcGISProvider(GISProviderInterface):
             # Best-effort: use arcpy cursor to iterate features.
             # GeoJSON conversion is provider-specific; we attempt geometry JSON if possible.
             # If conversion fails, raise explicit extraction error (no silent failures).
-            fields = []
             try:
                 lyr = layer_id
                 _ = lyr
@@ -135,7 +134,6 @@ class ArcGISProvider(GISProviderInterface):
 
     def health_check(self) -> bool:
         try:
-            import arcpy  # type: ignore
             return True
         except Exception:
             return False

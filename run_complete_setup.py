@@ -14,7 +14,6 @@ import sys
 import os
 import subprocess
 import shlex
-import time
 from datetime import datetime
 
 # Colors for output

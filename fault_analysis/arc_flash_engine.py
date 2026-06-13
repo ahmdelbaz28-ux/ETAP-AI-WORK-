@@ -17,7 +17,6 @@ Supports:
 import math
 import numpy as np
 from dataclasses import dataclass
-from typing import Optional
 from enum import Enum
 
 
@@ -272,7 +271,6 @@ class ArcFlashEngine:
 
         # IEEE 1584-2018: in this project’s coefficient table x_factor is 1.0.
         # Hard-disable any possibility of Enum/non-numeric leaking into exponentiation.
-        x_factor_num = 1.0
 
         # Calculate enclosure correction factor for box configurations
         if enclosure_type == EnclosureType.BOX:

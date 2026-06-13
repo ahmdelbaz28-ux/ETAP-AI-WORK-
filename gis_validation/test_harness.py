@@ -1,10 +1,9 @@
 from __future__ import annotations
 
 import importlib
-import platform
 import time
 from dataclasses import dataclass
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List
 
 from gis_integration.models import ADMSAsset
 from gis_validation.crs_validator import validate_crs_consistency, validate_normalization_applied
@@ -14,7 +13,7 @@ from gis_validation.failure_injection import (
     inject_corrupted_geometries,
 )
 from gis_validation.stress_tests import run_large_scale_simulation
-from gis_validation.topology_validator import validate_adms_topology, TopologyIssue
+from gis_validation.topology_validator import validate_adms_topology
 
 
 @dataclass(frozen=True)
@@ -185,7 +184,7 @@ def production_readiness_gate(
     # 1) Real GIS validations (highest priority)
     if qgis_project_path or arcgis_project_path:
         # Lazy import real subsystem.
-        from gis_validation_real.real_gis_loader import load_real_gis_project, GISRuntimeError
+        from gis_validation_real.real_gis_loader import load_real_gis_project
         from gis_validation_real.project_adapters import extract_layers_as_features
         from gis_validation_real.ground_truth_validator import validate_real_gis_to_adms
 

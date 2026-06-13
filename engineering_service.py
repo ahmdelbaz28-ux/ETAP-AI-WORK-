@@ -108,7 +108,7 @@ def _to_jsonable(obj: Any) -> Any:
 # Ensure project root is on path
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from fastapi import FastAPI, Request, Response, HTTPException, status
+from fastapi import FastAPI, Request, HTTPException
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, ConfigDict, Field, AliasChoices, field_validator
@@ -555,6 +555,18 @@ def _run_etap_study(study_type: str, project_path: str, parameters: Dict[str, An
 # ---------------------------------------------------------------------------
 
 _EXPECTED_API_KEY = os.environ.get("ENGINEERING_SERVICE_API_KEY", "")
+
+# ---------------------------------------------------------------------------
+# Smithery Integration — External API Key Management
+# If SMITHERY_API_KEY is set, it can be used as an alternative to
+# ENGINEERING_SERVICE_API_KEY, enabling centralized key management via
+# the Smithery platform (https://smithery.ai).
+# ---------------------------------------------------------------------------
+_SMITHERY_API_KEY = os.environ.get("SMITHERY_API_KEY", "")
+if _SMITHERY_API_KEY and not _EXPECTED_API_KEY:
+    _EXPECTED_API_KEY = _SMITHERY_API_KEY
+    logger.info("smithery_api_key_loaded", extra={"trace_id": "startup"})
+
 _API_KEY_CONFIGURED = bool(_EXPECTED_API_KEY)
 
 
@@ -615,6 +627,23 @@ app = FastAPI(
     version="1.0.0",
     lifespan=lifespan,
 )
+
+# ---------------------------------------------------------------------------
+# LangWatch Observability Integration
+# ---------------------------------------------------------------------------
+_LANGWATCH_API_KEY = os.environ.get("LANGWATCH_API_KEY", "")
+if _LANGWATCH_API_KEY:
+    try:
+        import langwatch  # type: ignore
+        langwatch.api_key = _LANGWATCH_API_KEY
+        langwatch.setup(
+            endpoint=os.environ.get("LANGWATCH_ENDPOINT", "https://app.langwatch.ai"),
+        )
+        logger.info("langwatch_initialized", extra={"trace_id": "startup"})
+    except ImportError:
+        logger.warning("langwatch_not_installed", extra={"trace_id": "startup"})
+    except Exception as lw_exc:
+        logger.warning("langwatch_init_failed", extra={"trace_id": "startup", "error": str(lw_exc)})
 
 # CORS — restrict origins; default allows only same-origin.
 # Set ENGINEERING_SERVICE_CORS_ORIGINS to a comma-separated list of allowed origins.

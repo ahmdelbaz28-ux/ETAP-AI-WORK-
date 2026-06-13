@@ -18,7 +18,6 @@ from enum import Enum
 import time
 import json
 import sys
-from pathlib import Path
 
 import anyio
 

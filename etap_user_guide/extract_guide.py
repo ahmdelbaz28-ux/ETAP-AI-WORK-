@@ -10,12 +10,10 @@ This module:
 4. Builds a knowledge base for the RAG engine
 """
 
-import os
 import sys
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 import json
-import hashlib
 from datetime import datetime
 
 # PDF processing libraries
@@ -271,7 +269,7 @@ class ETAPGuideExtractor:
                     "status": "failed",
                     "error": "No text extracted or too short"
                 })
-                print(f"  ✗ Failed to extract meaningful text")
+                print("  ✗ Failed to extract meaningful text")
         
         # Save extraction summary
         summary_file = self.output_path / "extraction_summary.json"
@@ -355,10 +353,10 @@ def main():
     extractor = ETAPGuideExtractor(GUIDE_PATH, OUTPUT_PATH)
     
     # Extract all PDFs
-    results = extractor.extract_all_pdfs()
+    extractor.extract_all_pdfs()
     
     # Create master index
-    master_index = extractor.create_master_index()
+    extractor.create_master_index()
     
     print()
     print("=" * 70)

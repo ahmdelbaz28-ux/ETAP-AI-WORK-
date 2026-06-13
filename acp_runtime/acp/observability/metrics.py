@@ -12,7 +12,6 @@ All metric operations are atomic and thread-safe. The registry uses
 """
 from __future__ import annotations
 from typing import Any
-from collections import defaultdict
 import bisect
 import threading
 import re

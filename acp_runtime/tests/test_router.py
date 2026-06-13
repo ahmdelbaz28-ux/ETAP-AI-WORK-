@@ -17,11 +17,10 @@ Covers:
 from __future__ import annotations
 import anyio
 import pytest
-from pydantic import ValidationError
 
 from acp.router import Router, RouterConfig, ScopeValidator, check_scope
 from acp.runtime import AcpRuntime, capability
-from acp.schema import JsonRpcRequest, JsonRpcResponse, JsonRpcNotification, JsonRpcError
+from acp.schema import JsonRpcResponse, JsonRpcError
 
 
 # ------------------------------------------------------- test handlers

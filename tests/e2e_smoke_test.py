@@ -7,7 +7,6 @@ touching production data or external services.
 
 import subprocess
 import os
-import pytest
 
 
 def run_command(cmd, timeout=90):

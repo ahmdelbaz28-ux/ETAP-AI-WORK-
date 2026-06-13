@@ -31,10 +31,9 @@ Features:
 
 import os
 import logging
-from typing import Dict, List, Optional, Any
+from typing import Dict, List, Optional
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
-import json
 
 logger = logging.getLogger(__name__)
 
@@ -87,7 +86,6 @@ class ChartGenerator:
         """
         try:
             import matplotlib.pyplot as plt
-            import numpy as np
 
             bus_ids = list(bus_data.keys())
             voltages = [bus_data[bid]['voltage_magnitude_pu'] for bid in bus_ids]
@@ -172,7 +170,6 @@ class ChartGenerator:
         """Generate harmonic spectrum chart."""
         try:
             import matplotlib.pyplot as plt
-            import numpy as np
 
             harmonic_orders = list(harmonic_data.keys())
             magnitudes = [harmonic_data[h]['magnitude'] for h in harmonic_orders]

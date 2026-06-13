@@ -22,7 +22,6 @@ def calculate_arc_flash(
     Ibf = bolted_fault_current_ka
     t = arc_duration_sec
     D = working_distance_mm
-    enc_type = enclosure_type
     elec_config = electrode_config
 
     # Step 1: Intermediate arc current (kA) for voltages 0.6-15 kV

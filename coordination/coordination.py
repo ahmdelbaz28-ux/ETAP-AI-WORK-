@@ -1,5 +1,4 @@
 import numpy as np
-from relays.relay import OvercurrentRelay
 
 class CoordinationEngine:
     def __init__(self, default_margin_sec: float = 0.2,

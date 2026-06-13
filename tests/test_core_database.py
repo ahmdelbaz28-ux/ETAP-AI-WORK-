@@ -9,7 +9,6 @@ import pytest
 
 from core.database import UniversalDataModel
 from core.models import (
-    ChangeSource,
     ConflictType,
     ElementType,
     Geometry,

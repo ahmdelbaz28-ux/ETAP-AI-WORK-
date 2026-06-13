@@ -1,4 +1,3 @@
-import numpy as np
 
 class Transformer:
     def __init__(self, transformer_id, from_bus, to_bus,

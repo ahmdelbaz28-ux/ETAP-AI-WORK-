@@ -16,13 +16,9 @@ MANDATORY RULE:
 - If information is not found, explicitly state it
 """
 
-import os
-import sys
 import json
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple
-from datetime import datetime
-import hashlib
+from typing import Dict, List
 
 # Try to import vector database libraries
 try:
@@ -409,7 +405,7 @@ def main():
             print(f"  Sources: {len(result['sources'])} documents")
             print(f"  Answer preview: {result['answer'][:200]}...")
         else:
-            print(f"✗ Not answered")
+            print("✗ Not answered")
     
     print()
     print("=" * 70)

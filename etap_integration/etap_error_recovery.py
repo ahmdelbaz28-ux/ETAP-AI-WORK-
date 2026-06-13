@@ -7,16 +7,21 @@ Integrates with engine.resilience for RetryHandler and CircuitBreaker
 when available, with standalone fallback implementations.
 """
 
-import sys, os, time, logging, subprocess
+import sys
+import os
+import time
+import logging
+import subprocess
 from enum import Enum
-from typing import Optional, List
+from typing import Optional
 from dataclasses import dataclass
 
 logger = logging.getLogger(__name__)
 
 if sys.platform == 'win32':
     try:
-        import win32com.client, pythoncom
+        import win32com.client
+        import pythoncom
         WIN32_AVAILABLE = True
     except ImportError:
         WIN32_AVAILABLE = False

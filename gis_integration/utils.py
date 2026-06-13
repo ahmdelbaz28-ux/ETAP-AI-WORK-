@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import json
-from typing import Any, Dict, Optional, Tuple
+from typing import Any, Dict, Tuple
 
 from gis_integration.exceptions import GISDataExtractionError
 

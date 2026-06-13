@@ -246,7 +246,7 @@ async def test_stdio_transport_start():
     router = _build_router(args, runtime, tracer, metrics, logger)
     from acp.transport import StdioTransport, Server
     transport = StdioTransport(stdin, stdout)
-    server = Server(router, transport)
+    Server(router, transport)
     # Don't run forever — just process one message
     raw = await transport.read_message()
     assert raw is not None
@@ -387,7 +387,7 @@ class TestTransportErrorPaths:
         args = parser.parse_args(["uds", "--handlers", "tests.test_cli", "--path", "/tmp/test.sock"])
         tracer, metrics, logger = _build_observability(args)
         runtime, _ = _build_runtime(args, tracer, metrics, logger)
-        router = _build_router(args, runtime, tracer, metrics, logger)
+        _build_router(args, runtime, tracer, metrics, logger)
         from acp.transport import UDSListener
         async def _broken_serve(self, router):
             raise OSError("Address already in use")
@@ -403,7 +403,7 @@ class TestTransportErrorPaths:
         args = parser.parse_args(["websocket", "--handlers", "tests.test_cli", "--host", "localhost", "--port", "8765"])
         tracer, metrics, logger = _build_observability(args)
         runtime, _ = _build_runtime(args, tracer, metrics, logger)
-        router = _build_router(args, runtime, tracer, metrics, logger)
+        _build_router(args, runtime, tracer, metrics, logger)
         from acp.transport import WebSocketListener
         async def _broken_serve(self, router):
             raise ImportError("No module named 'websockets'")

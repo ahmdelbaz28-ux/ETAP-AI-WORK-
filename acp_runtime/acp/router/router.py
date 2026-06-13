@@ -21,7 +21,6 @@ from acp.errors import (
     AuthenticationRequired,
 )
 from acp.runtime import AcpRuntime
-from acp.runtime.handler import CapabilityMeta
 from acp.schema import JsonRpcRequest, JsonRpcResponse, JsonRpcNotification, JsonRpcError
 from acp.router.scope import ScopeValidator
 

@@ -1,6 +1,4 @@
-import numpy as np
 import matplotlib.pyplot as plt
-from core_model.system import System
 from load_flow.load_flow_solver_fixed import LoadFlowSolver
 from fault_analysis.fault import FaultAnalyzer
 from fault_analysis.arc_flash_engine import ArcFlashEngine, ElectrodeConfig, EnclosureType
