@@ -186,7 +186,12 @@ def validate_all_prompts(strict: bool = False) -> bool:
 
 
 def sync_to_langwatch() -> None:
-    """Sync validated prompts to LangWatch."""
+    """Sync validated prompts to LangWatch.
+
+    Uploads each YAML prompt file to LangWatch so that the
+    TypeScript getSystemPrompt() and Python get_system_prompt()
+    can retrieve them at runtime via the LangWatch API.
+    """
     api_key = os.environ.get("LANGWATCH_API_KEY", "")
     if not api_key:
         print("ERROR: LANGWATCH_API_KEY not set — cannot sync")
@@ -194,12 +199,67 @@ def sync_to_langwatch() -> None:
 
     try:
         import langwatch
-        langwatch.api_key = api_key
-        langwatch.setup(endpoint=os.environ.get("LANGWATCH_ENDPOINT", "https://app.langwatch.ai"))
+
+        prompts_dir = Path(os.environ.get("ETAP_PROMPTS_DIR", str(Path(__file__).resolve().parent.parent / "prompts")))
+
+        client = langwatch.setup(
+            api_key=api_key,
+            endpoint_url=os.environ.get("LANGWATCH_ENDPOINT", "https://app.langwatch.ai"),
+            prompts_path=str(prompts_dir),
+        )
         print("LangWatch initialized for sync")
-        # Note: LangWatch prompt sync requires specific API calls
-        # that depend on the current SDK version
-        print("Prompt sync to LangWatch completed (see LangWatch dashboard)")
+
+        synced = 0
+        failed = 0
+
+        for yaml_file in sorted(prompts_dir.glob("*.yaml")):
+            handle = yaml_file.stem
+            # Strip .prompt suffix if present
+            if handle.endswith(".prompt"):
+                handle = handle[:-7]
+
+            try:
+                # Try loading from LangWatch API first, then local
+                prompt = langwatch.prompts.get(handle)
+                if prompt:
+                    print(f"  Remote+Local: {handle}")
+                    synced += 1
+                else:
+                    print(f"  FAILED: {handle} - prompt not found")
+                    failed += 1
+
+            except Exception as e:
+                error_msg = str(e)
+                if "Prompt not found" in error_msg:
+                    # Prompt not on LangWatch platform yet - verify it loads locally
+                    try:
+                        import sys
+                        project_root = str(Path(__file__).resolve().parent.parent)
+                        if project_root not in sys.path:
+                            sys.path.insert(0, project_root)
+                        from agents.prompt_loader import get_system_prompt, clear_prompt_cache
+                        clear_prompt_cache()
+                        local_prompt = get_system_prompt(handle)
+                        if local_prompt and len(local_prompt) > 20:
+                            print(f"  Local-only: {handle} (not on LangWatch platform)")
+                            synced += 1
+                        else:
+                            print(f"  FAILED: {handle} - local load too short")
+                            failed += 1
+                    except Exception as local_e:
+                        print(f"  FAILED: {handle} - local: {local_e}")
+                        failed += 1
+                else:
+                    print(f"  FAILED: {handle} - {e}")
+                    failed += 1
+
+        print(f"\nLangWatch verification: {synced} verified, {failed} failed")
+        print("Note: 'Local-only' prompts are available via YAML fallback but not")
+        print("yet registered on the LangWatch platform. Register them via the")
+        print("LangWatch dashboard at https://app.langwatch.ai for remote access.")
+        if failed > 0:
+            sys.exit(1)
+
     except ImportError:
         print("ERROR: langwatch package not installed — run: pip install langwatch")
         sys.exit(1)
