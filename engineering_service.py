@@ -842,9 +842,34 @@ async def run_study(request: Request, payload: StudyRequest):
     errors: List[str] = []
     data: Dict[str, Any] = {}
     provider_name = "native"
+    cache_hit = False
 
     try:
-        if payload.use_etap:
+        # --- Cache lookup for native studies (non-ETAP) ---
+        if not payload.use_etap:
+            try:
+                from engine.caching import StudyCache
+                _cache = StudyCache(
+                    redis_url=os.environ.get("REDIS_URL", "redis://localhost:6379"),
+                    ttl=int(os.environ.get("STUDY_CACHE_TTL", "3600")),
+                )
+                cache_params = {"study_type": payload.study_type, "parameters": payload.parameters}
+                if payload.system:
+                    cache_params["system_hash"] = str(hash(tuple(sorted(
+                        (k, str(v)) for k, v in payload.system.model_dump().items()
+                    ))))
+                cached_result = await _cache.get(payload.study_type, cache_params)
+                if cached_result:
+                    data = json.loads(cached_result)
+                    cache_hit = True
+                    logger.info("study_cache_hit study_type=%s task_id=%s", payload.study_type, task_id, extra={"trace_id": trace_id})
+            except Exception as cache_err:
+                logger.debug("Cache lookup failed (non-fatal): %s", cache_err, extra={"trace_id": trace_id})
+
+        if cache_hit:
+            # Use cached data
+            pass
+        elif payload.use_etap:
             if not payload.etap_project_path:
                 raise ValueError("etap_project_path is required when use_etap=True")
             provider_name = "etap"
@@ -862,6 +887,22 @@ async def run_study(request: Request, payload: StudyRequest):
                     raise HTTPException(status_code=400, detail=f"System spec error: {ve}") from ve
             data = _run_native_study(payload.study_type, system, payload.parameters)
             provider_name = "native"
+
+            # --- Store result in cache ---
+            try:
+                from engine.caching import StudyCache
+                _cache = StudyCache(
+                    redis_url=os.environ.get("REDIS_URL", "redis://localhost:6379"),
+                    ttl=int(os.environ.get("STUDY_CACHE_TTL", "3600")),
+                )
+                cache_params = {"study_type": payload.study_type, "parameters": payload.parameters}
+                if payload.system:
+                    cache_params["system_hash"] = str(hash(tuple(sorted(
+                        (k, str(v)) for k, v in payload.system.model_dump().items()
+                    ))))
+                await _cache.set(payload.study_type, cache_params, json.dumps(data, default=str))
+            except Exception as cache_err:
+                logger.debug("Cache store failed (non-fatal): %s", cache_err, extra={"trace_id": trace_id})
 
         _increment_counter("success")
         status = "success"
@@ -1010,6 +1051,77 @@ async def get_agents_info(request: Request):
 
 
 # ---------------------------------------------------------------------------
+# Benchmark endpoint — CPU vs GPU, Sparse vs Dense, Sequential vs Parallel
+# ---------------------------------------------------------------------------
+
+@app.get("/api/v1/benchmark")
+async def benchmark_solvers(request: Request):
+    """Run solver benchmarks comparing CPU/GPU, sparse/dense, and sequential/parallel.
+
+    Returns timing data for various system sizes (14, 30, 118 bus).
+    """
+    trace_id = getattr(request.state, "trace_id", "unknown")
+    try:
+        results: Dict[str, Any] = {}
+
+        # GPU solver benchmark
+        try:
+            from engine.gpu_solver import GPUSolver
+            gpu_solver = GPUSolver()
+            results["gpu_solver"] = {
+                "device": gpu_solver.device_name,
+                "gpu_available": gpu_solver.is_gpu_available(),
+                "benchmarks": gpu_solver.benchmark_cpu_vs_gpu(sizes=[14, 30, 118]),
+            }
+        except Exception as e:
+            results["gpu_solver"] = {"error": str(e)}
+
+        # Sparse matrix memory comparison
+        try:
+            from engine.sparse_solver import SparseYBus
+            builder = SparseYBus()
+            sparse_results = []
+            for n in [14, 30, 118]:
+                buses, branches = builder._generate_synthetic_system(n)
+                ybus = builder.build_sparse_ybus(buses, branches)
+                dense_bytes = n * n * 16
+                sparse_bytes = ybus.data.nbytes + ybus.indices.nbytes + ybus.indptr.nbytes
+                sparse_results.append({
+                    "n_buses": n,
+                    "nnz": int(ybus.nnz),
+                    "density": round(float(ybus.nnz) / (n * n), 4),
+                    "dense_bytes": dense_bytes,
+                    "sparse_bytes": sparse_bytes,
+                    "savings_pct": round((1 - sparse_bytes / dense_bytes) * 100, 1),
+                })
+            results["sparse_matrix"] = sparse_results
+        except Exception as e:
+            results["sparse_matrix"] = {"error": str(e)}
+
+        # Redis cache stats
+        try:
+            from engine.caching import StudyCache
+            cache = StudyCache(
+                redis_url=os.environ.get("REDIS_URL", "redis://localhost:6379"),
+            )
+            stats = await cache.get_stats()
+            results["cache"] = stats
+        except Exception as e:
+            results["cache"] = {"error": str(e), "available": False}
+
+        return JSONResponse(content={
+            "success": True,
+            "data": results,
+            "trace_id": trace_id,
+        })
+    except Exception as e:
+        logger.error("benchmark_failed error=%s", str(e), extra={"trace_id": trace_id})
+        return JSONResponse(
+            status_code=500,
+            content={"success": False, "errors": [str(e)], "trace_id": trace_id},
+        )
+
+
 # Error handlers
 # ---------------------------------------------------------------------------
 

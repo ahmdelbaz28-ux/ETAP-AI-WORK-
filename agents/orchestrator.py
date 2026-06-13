@@ -18,6 +18,7 @@ Architecture:
 
 import asyncio
 import logging
+import time
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from enum import Enum
@@ -1537,6 +1538,270 @@ class ChiefEngineeringOrchestrator:
 
         agent_key = agent_mapping.get(study_type)
         return self.agents.get(agent_key)
+
+    def get_study_type_mapping(self) -> Dict[str, str]:
+        """Return mapping of study type strings to agent keys.
+
+        Provides a convenience lookup for external callers that identify
+        studies by human-readable names (e.g. ``"load_flow"``) and need
+        to resolve them to the corresponding agent key registered in
+        ``self.agents``.
+
+        Returns:
+            Dict mapping study type strings to agent key strings.
+        """
+        return {
+            'load_flow': 'load_flow',
+            'short_circuit': 'short_circuit',
+            'harmonic': 'harmonic',
+            'harmonic_analysis': 'harmonic',
+            'opf': 'opf',
+            'optimal_power_flow': 'opf',
+            'protection': 'protection',
+            'protection_coordination': 'protection',
+            'etap_execution': 'etap_execution',
+            'validation': 'validation',
+            'report': 'report',
+        }
+
+    async def execute_parallel_studies(
+        self,
+        study_types: List[str],
+        system_data: Any,
+        parameters: Optional[Dict[str, Any]] = None,
+        max_workers: int = 4,
+        benchmark: bool = False,
+    ) -> Dict[str, Any]:
+        """Execute multiple independent studies in parallel.
+
+        Accepts a list of study type strings, resolves each to the
+        appropriate agent, creates ``EngineeringTask`` objects, and runs
+        them concurrently using ``asyncio.gather``.  An optional
+        *benchmark* mode also executes the same studies sequentially
+        and includes a timing comparison in the result dict.
+
+        Args:
+            study_types: List of study type strings (e.g.
+                ``["load_flow", "short_circuit"]``).  Each string is
+                resolved via :meth:`get_study_type_mapping`.
+            system_data: Power system model data passed to every study.
+            parameters: Optional dict of extra parameters merged into
+                each task's ``parameters`` field.
+            max_workers: Upper bound on concurrent coroutines (used to
+                size the asyncio Semaphore that gates execution).
+            benchmark: If ``True``, also run all studies sequentially
+                and include a timing comparison in the result.
+
+        Returns:
+            Dict with keys:
+
+                - ``task_id`` – unique workflow identifier
+                - ``study_types`` – the resolved study type list
+                - ``parallel_results`` – dict mapping study type to
+                  ``AgentResult``
+                - ``parallel_time_seconds`` – wall-clock time for the
+                  parallel run
+                - ``sequential_results`` – (only when *benchmark* is
+                  True) dict mapping study type to ``AgentResult``
+                - ``sequential_time_seconds`` – (only when *benchmark*
+                  is True) wall-clock time for the sequential run
+                - ``speedup_factor`` – (only when *benchmark* is True)
+                  ``sequential_time / parallel_time``
+                - ``benchmark`` – whether benchmark mode was active
+        """
+        parameters = parameters or {}
+        study_type_map = self.get_study_type_mapping()
+
+        # -----------------------------------------------------------
+        # Resolve study type strings → (agent_key, agent) pairs
+        # -----------------------------------------------------------
+        resolved: List[tuple] = []  # [(study_str, agent_key, agent)]
+        for study_str in study_types:
+            agent_key = study_type_map.get(study_str)
+            if agent_key is None:
+                self.logger.warning(
+                    "Unknown study type '%s' – skipping", study_str
+                )
+                continue
+            agent = self.agents.get(agent_key)
+            if agent is None:
+                self.logger.warning(
+                    "No agent registered for key '%s' (study '%s') – skipping",
+                    agent_key,
+                    study_str,
+                )
+                continue
+            resolved.append((study_str, agent_key, agent))
+
+        if not resolved:
+            self.logger.error("No valid study types resolved – nothing to execute")
+            return {
+                'task_id': None,
+                'study_types': [],
+                'parallel_results': {},
+                'parallel_time_seconds': 0.0,
+                'benchmark': benchmark,
+            }
+
+        task_id = (
+            f"parallel_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}"
+        )
+
+        # -----------------------------------------------------------
+        # Helper: create an EngineeringTask for a single study
+        # -----------------------------------------------------------
+        def _make_task(study_str: str, agent_key: str) -> EngineeringTask:
+            return EngineeringTask(
+                task_id=f"{task_id}_{study_str}",
+                description=f"Parallel study: {study_str}",
+                study_types=[
+                    s
+                    for s in StudyType
+                    if s.value == study_str or s.value == agent_key
+                ][:1],  # best-effort StudyType match
+                parameters={'system': system_data, **parameters},
+            )
+
+        # -----------------------------------------------------------
+        # Semaphore to cap concurrency at max_workers
+        # -----------------------------------------------------------
+        semaphore = asyncio.Semaphore(max_workers)
+
+        async def _run_with_semaphore(
+            study_str: str, agent: BaseAgent, task: EngineeringTask
+        ) -> tuple:
+            """Run a single agent.execute, bounded by the semaphore."""
+            async with semaphore:
+                self.logger.info(
+                    "[parallel] Starting %s via %s",
+                    study_str,
+                    agent.agent_name,
+                )
+                try:
+                    result = await agent.execute(task)
+                    self.logger.info(
+                        "[parallel] Completed %s (status=%s)",
+                        study_str,
+                        result.status.value,
+                    )
+                    return (study_str, result)
+                except Exception as exc:
+                    self.logger.error(
+                        "[parallel] Failed %s: %s", study_str, exc
+                    )
+                    # Return a failure AgentResult instead of propagating
+                    return (
+                        study_str,
+                        AgentResult(
+                            agent_name=agent.agent_name,
+                            study_type=task.study_types[0]
+                            if task.study_types
+                            else StudyType.LOAD_FLOW,
+                            status=AgentStatus.FAILED,
+                            data={},
+                            validation_status=False,
+                            validation_errors=[str(exc)],
+                        ),
+                    )
+
+        # -----------------------------------------------------------
+        # Parallel execution
+        # -----------------------------------------------------------
+        self.logger.info(
+            "Starting parallel execution of %d studies (max_workers=%d)",
+            len(resolved),
+            max_workers,
+        )
+        parallel_start = time.perf_counter()
+
+        parallel_coros = [
+            _run_with_semaphore(study_str, agent, _make_task(study_str, agent_key))
+            for study_str, agent_key, agent in resolved
+        ]
+        parallel_raw = await asyncio.gather(*parallel_coros, return_exceptions=True)
+
+        parallel_time = time.perf_counter() - parallel_start
+
+        parallel_results: Dict[str, AgentResult] = {}
+        for item in parallel_raw:
+            if isinstance(item, Exception):
+                self.logger.error(
+                    "[parallel] Unexpected exception: %s", item
+                )
+                continue
+            study_str, result = item
+            parallel_results[study_str] = result
+
+        result: Dict[str, Any] = {
+            'task_id': task_id,
+            'study_types': [s for s, _, _ in resolved],
+            'parallel_results': parallel_results,
+            'parallel_time_seconds': round(parallel_time, 4),
+            'benchmark': benchmark,
+        }
+
+        # -----------------------------------------------------------
+        # Optional benchmark: sequential execution for comparison
+        # -----------------------------------------------------------
+        if benchmark:
+            self.logger.info("Benchmark: running studies sequentially for comparison")
+            sequential_start = time.perf_counter()
+
+            sequential_results: Dict[str, AgentResult] = {}
+            for study_str, agent_key, agent in resolved:
+                task = _make_task(study_str, agent_key)
+                self.logger.info(
+                    "[sequential] Starting %s via %s",
+                    study_str,
+                    agent.agent_name,
+                )
+                try:
+                    seq_result = await agent.execute(task)
+                    sequential_results[study_str] = seq_result
+                except Exception as exc:
+                    self.logger.error(
+                        "[sequential] Failed %s: %s", study_str, exc
+                    )
+                    sequential_results[study_str] = AgentResult(
+                        agent_name=agent.agent_name,
+                        study_type=task.study_types[0]
+                        if task.study_types
+                        else StudyType.LOAD_FLOW,
+                        status=AgentStatus.FAILED,
+                        data={},
+                        validation_status=False,
+                        validation_errors=[str(exc)],
+                    )
+
+            sequential_time = time.perf_counter() - sequential_start
+
+            speedup = (
+                sequential_time / parallel_time
+                if parallel_time > 0
+                else float('inf')
+            )
+
+            result['sequential_results'] = sequential_results
+            result['sequential_time_seconds'] = round(sequential_time, 4)
+            result['speedup_factor'] = round(speedup, 2)
+
+            self.logger.info(
+                "Benchmark complete – parallel: %.4fs, sequential: %.4fs, "
+                "speedup: %.2fx",
+                parallel_time,
+                sequential_time,
+                speedup,
+            )
+
+        self.logger.info(
+            "Parallel studies completed: task_id=%s, studies=%d, "
+            "parallel_time=%.4fs",
+            task_id,
+            len(parallel_results),
+            parallel_time,
+        )
+
+        return result
 
     async def get_task_status(self, task_id: str) -> Optional[EngineeringTask]:
         """Get status of a task."""
