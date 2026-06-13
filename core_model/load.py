@@ -1,7 +1,7 @@
 import numpy as np
 
 class Load:
-    def __init__(self, load_id, bus, 
+    def __init__(self, load_id, bus,
                  load_power=None,
                  impedance=None,
                  power_factor=None, constant_impedance=False):

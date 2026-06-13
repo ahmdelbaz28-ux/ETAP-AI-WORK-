@@ -1,7 +1,7 @@
 import numpy as np
 
 class Transformer:
-    def __init__(self, transformer_id, from_bus, to_bus, 
+    def __init__(self, transformer_id, from_bus, to_bus,
                  z1=complex(0,0), z2=None, z0=None,
                  yshunt1=complex(0,0), yshunt2=None, yshunt0=None,
                  rating=None, tap_ratio=1.0, phase_shift=0.0):

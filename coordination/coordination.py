@@ -94,7 +94,7 @@ class CoordinationEngine:
         Returns:
         float: Suggested TMS for upstream relay, or None if not possible.
         """
-        # We will try to find a TMS such that for all fault currents, 
+        # We will try to find a TMS such that for all fault currents,
         # t_up - t_down >= target_margin
         # We'll do a simple search over TMS values.
         best_TMS = None

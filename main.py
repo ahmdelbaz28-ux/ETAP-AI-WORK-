@@ -39,10 +39,10 @@ def create_3bus_system():
     system.add_bus(bus3)
 
     # Create generators
-    gen1 = Generator(generator_id=1, bus=bus1, 
+    gen1 = Generator(generator_id=1, bus=bus1,
                      internal_voltage={'1': complex(1.05, 0), '2': complex(0,0), '0': complex(0,0)},
                      impedance={'1': complex(0.0, 0.2), '2': complex(0,0.2), '0': complex(0,0.1)})
-    gen2 = Generator(generator_id=2, bus=bus2, 
+    gen2 = Generator(generator_id=2, bus=bus2,
                      internal_voltage={'1': complex(1.0, 0), '2': complex(0,0), '0': complex(0,0)},
                      impedance={'1': complex(0.0, 0.15), '2': complex(0,0.15), '0': complex(0,0.05)})
     system.add_generator(gen1)

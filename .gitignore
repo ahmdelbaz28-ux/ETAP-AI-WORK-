@@ -60,8 +60,6 @@ pnpm-debug.log*
 .pnpm-store/
 
 # Build outputs
-dist/
-build/
 .next/
 out/
 
@@ -127,7 +125,6 @@ System Volume Information/
 /lpt9
 
 # Linux
-*~
 .fuse_hidden*
 .directory
 .Trash-*
@@ -158,10 +155,6 @@ jwt_key.txt
 # ==========================================
 logs/
 *.log
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-pnpm-debug.log*
 
 # ==========================================
 # Database & Data
@@ -202,7 +195,6 @@ temp/
 *.tmp
 *.bak
 *.backup
-*.swp
 
 # ==========================================
 # Docker
@@ -269,7 +261,6 @@ certs/
 # ==========================================
 # Backup Files
 # ==========================================
-*.backup
 *.orig
 *.save
 
@@ -326,8 +317,6 @@ etap_user_guide/index/*.json
 !etap_user_guide/etap_guide_rag.py
 !etap_user_guide/setup_etap_guide.py
 .env.engineering-service
-.env.engineering-service
 ui/release/
 ui/release
-dist/
 *.asar

@@ -83,23 +83,23 @@ class LocalEtapProvider(IEtapProvider):
 
         from etap_integration.etap_com import ETAPAutomation, ETAPStudyType as ComStudyType
         import time
-        
+
         # Map provider enum to COM enum
         com_study_type = ComStudyType[study_type.name]
-        
+
         start_time = time.time()
         try:
             with ETAPAutomation(visible=visible) as etap:
                 project = etap.open_project(project_path)
                 if not project:
                     return ETAPResult(False, {}, [], [f"Failed to open project: {project_path}"], time.time() - start_time)
-                
+
                 result = project.run_study(com_study_type)
                 return ETAPResult(
-                    result.success, 
-                    result.data, 
-                    result.warnings, 
-                    result.errors, 
+                    result.success,
+                    result.data,
+                    result.warnings,
+                    result.errors,
                     time.time() - start_time
                 )
         except Exception as e:
@@ -107,7 +107,7 @@ class LocalEtapProvider(IEtapProvider):
 
 class RemoteEtapProvider(IEtapProvider):
     """Cross-platform provider that calls a remote Windows ETAP Worker.
-    
+
     Features:
     - Retry with exponential backoff
     - Circuit breaker pattern
@@ -299,7 +299,7 @@ class NullEtapProvider(IEtapProvider):
 
 def get_etap_provider() -> IEtapProvider:
     """Factory method to get the appropriate provider based on environment.
-    
+
     Priority:
     1. ETAP_PROVIDER=mock -> MockEtapProvider (for development/testing)
     2. ETAP_WORKER_URL + ETAP_WORKER_API_KEY -> RemoteEtapProvider
@@ -307,20 +307,20 @@ def get_etap_provider() -> IEtapProvider:
     4. Fallback -> NullEtapProvider
     """
     provider_type = os.environ.get("ETAP_PROVIDER", "").lower()
-    
+
     if provider_type == "mock":
         logger.info("Using MockEtapProvider (development mode)")
         return MockEtapProvider()
 
     worker_url = os.environ.get("ETAP_WORKER_URL")
     api_key = os.environ.get("ETAP_WORKER_API_KEY")
-    
+
     if worker_url and api_key:
         return RemoteEtapProvider(worker_url, api_key)
-    
+
     if sys.platform == "win32":
         provider = LocalEtapProvider()
         if provider.is_available():
             return provider
-            
+
     return NullEtapProvider()

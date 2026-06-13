@@ -207,7 +207,7 @@ class StateSnapshot:
         elif layer == StateLayer.ADMS:
             return len(self.switch_states) > 0
         elif layer == StateLayer.SIMULATION:
-            return (self.simulation_results.load_flow_converged or 
+            return (self.simulation_results.load_flow_converged or
                     self.simulation_results.state_estimation_converged)
         return False
 
