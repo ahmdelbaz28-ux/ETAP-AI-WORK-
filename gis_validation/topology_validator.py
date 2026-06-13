@@ -1,9 +1,9 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any, Dict, Iterable, List, Optional, Set, Tuple
+from typing import Any, Dict, List, Optional, Set, Tuple
 
-from gis_integration.models import ADMSAsset, ADMSAssetType, GISFeature
+from gis_integration.models import ADMSAsset, ADMSAssetType
 
 
 @dataclass(frozen=True)

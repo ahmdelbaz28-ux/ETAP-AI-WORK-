@@ -8,7 +8,7 @@ Provides a REST API for the Linux-based AI platform to execute ETAP studies.
 from fastapi import FastAPI, HTTPException, Security, Depends
 from fastapi.security import APIKeyHeader, HTTPAuthorizationCredentials, HTTPBearer
 from pydantic import BaseModel
-from typing import Dict, List, Optional, Any, Callable
+from typing import Dict, List, Optional, Any
 import uvicorn
 import sys
 import os

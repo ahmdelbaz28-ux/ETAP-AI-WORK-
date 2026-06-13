@@ -20,11 +20,11 @@ Reference: IEEE PES Test Cases, MATPOWER methodology
 """
 
 import numpy as np
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Dict, List, Optional, Tuple
 from enum import Enum
 import logging
-from scipy.optimize import minimize, linprog, minimize_scalar
+from scipy.optimize import minimize, linprog
 
 logger = logging.getLogger(__name__)
 

@@ -16,20 +16,16 @@ Cross-cutting concerns:
 from __future__ import annotations
 import io
 import json
-import os
-import tempfile
 from typing import Any
 
 import anyio
 import pytest
 
 from acp.transport import StdioTransport, Server, UDSListener, WebSocketListener
-from acp.transport.uds import UDSTransport
-from acp.transport.websocket import WebSocketTransport
 from acp.router import Router, RouterConfig
 from acp.runtime import AcpRuntime
 from acp.security import AuthConfig, HmacTokenValidator, NDJSONAuditLogger
-from acp.observability import InMemoryMetricsRegistry, ConsoleStructuredLogger, LogLevel
+from acp.observability import InMemoryMetricsRegistry
 
 # Handler module under test
 from tests.integration_handlers import IntegrationHandler

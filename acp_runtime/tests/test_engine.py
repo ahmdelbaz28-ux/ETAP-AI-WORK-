@@ -13,7 +13,6 @@ import anyio
 import pytest
 
 from acp.errors import (
-    AcpError,
     CapabilityNotFound,
     DeadlineExceeded,
     HandlerError,

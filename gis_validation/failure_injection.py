@@ -3,9 +3,9 @@ from __future__ import annotations
 import copy
 import random
 from dataclasses import dataclass
-from typing import Any, Callable, Dict, List, Optional, Tuple
+from typing import Any, Callable, Dict, List, Tuple
 
-from gis_integration.models import ADMSAsset, ADMSAssetType
+from gis_integration.models import ADMSAsset
 
 
 @dataclass(frozen=True)

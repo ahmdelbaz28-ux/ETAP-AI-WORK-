@@ -1,9 +1,9 @@
 from __future__ import annotations
 
 import random
-from typing import Any, Dict, Iterable, Iterator, List, Optional, Tuple
+from typing import Any, Dict, List, Tuple
 
-from gis_integration.models import ADMSAsset, ADMSAssetType, GISFeature
+from gis_integration.models import ADMSAsset, ADMSAssetType
 
 
 def _point(lon: float, lat: float) -> Dict[str, Any]:

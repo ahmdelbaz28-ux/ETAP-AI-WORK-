@@ -25,12 +25,9 @@ Hard Constraints:
 """
 
 import time
-import copy
 import hashlib
 import logging
-from dataclasses import dataclass, field
-from typing import Any, Callable, Dict, List, Optional, Set, Tuple
-from enum import Enum
+from typing import Any, Callable, Dict, List, Optional
 
 import numpy as np
 
@@ -44,12 +41,11 @@ from .event_bus import (
     DigitalTwinStateUpdated, ValidationErrorEvent
 )
 from .state_store import (
-    StateStore, StateSnapshot, StateLayer,
-    BusState, SwitchState, TopologyState, GISAssetState, SimulationResults
+    StateStore, StateSnapshot, BusState, SwitchState, TopologyState, GISAssetState
 )
 from .validation_gateway import (
-    ValidationGateway, ValidationRule, ValidationResult,
-    ValidationSeverity, DigitalTwinValidationError
+    ValidationGateway, ValidationResult,
+    ValidationSeverity
 )
 
 logger = logging.getLogger(__name__)
@@ -609,7 +605,7 @@ class ChangePropagationEngine:
         if self.dt_state.system is not None:
             bid = int(bus_id) if bus_id.isdigit() else bus_id
             if bid in self.dt_state.system.buses:
-                old_power = self.dt_state.system.buses[bid].load_power
+                self.dt_state.system.buses[bid].load_power
                 self.dt_state.system.buses[bid].load_power = new_power
 
                 # Rebuild Ybus and run load flow
@@ -1322,7 +1318,7 @@ class LivePowerSystemEngine:
         """
         Run fault analysis with current live topology.
         """
-        start_time = time.time()
+        time.time()
 
         # Ensure sequence networks are current
         if self.dt_state.system is not None:

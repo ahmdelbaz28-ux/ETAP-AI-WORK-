@@ -1,0 +1,34 @@
+# Ruff configuration for ETAP AI Platform
+# https://docs.astral.sh/ruff/configuration/
+
+# Same as Black.
+line-length = 120
+target-version = "py311"
+
+[lint]
+# Enable pycodestyle (E), Pyflakes (F), isort (I), and more
+select = ["E", "F", "I", "W", "UP", "B", "SIM"]
+
+# Ignore specific rules that are not critical
+ignore = [
+    "E741",   # Ambiguous variable name (I, l, O are common in electrical engineering)
+    "E402",   # Module level import not at top of file
+    "E701",   # Multiple statements on one line (def)
+    "E702",   # Multiple statements on one line (;)
+    "F401",   # Unused import (many are used for type hints or re-exports)
+    "F821",   # Undefined name (many are dynamically defined)
+    "B905",   # zip() without strict= (Python 3.10+ feature)
+]
+
+# Allow autofix for all enabled rules
+fixable = ["ALL"]
+unfixable = []
+
+[lint.per-file-ignores]
+"__init__.py" = ["F401", "E402"]
+"tests/**" = ["F401", "F841", "E741"]
+"validation_*.py" = ["F401", "F841"]
+
+[format]
+quote-style = "double"
+indent-style = "space"

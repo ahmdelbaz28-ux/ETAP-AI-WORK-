@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from abc import ABC, abstractmethod
-from typing import Dict, Iterable, Iterator, List, Optional
+from abc import ABC
+from typing import Dict, Iterator, List, Optional
 
 from gis_integration.models import GISFeature, GeoCRSInfo
 

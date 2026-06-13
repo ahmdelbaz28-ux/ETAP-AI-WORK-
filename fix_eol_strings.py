@@ -84,7 +84,7 @@ def fix_file(path: Path) -> bool:
 
 
 def main() -> int:
-    changed = fix_file(TARGET_FILE)
+    fix_file(TARGET_FILE)
     return 0  # Always exit 0; this is a maintenance helper, not a CI gate.
 
 

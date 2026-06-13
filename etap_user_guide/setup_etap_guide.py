@@ -9,7 +9,6 @@ Automated script to:
 5. Test the system
 """
 
-import os
 import sys
 import subprocess
 from pathlib import Path
@@ -135,7 +134,7 @@ def extract_text_from_pdfs():
     print()
     
     try:
-        result = subprocess.run(
+        subprocess.run(
             [sys.executable, str(extract_script)],
             check=True,
             capture_output=False

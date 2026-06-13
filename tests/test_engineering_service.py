@@ -1,6 +1,6 @@
 """Tests for engineering_service.py — FastAPI endpoints."""
 
-import os
+
 import uuid
 
 import pytest

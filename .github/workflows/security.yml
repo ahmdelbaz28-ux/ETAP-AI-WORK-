@@ -34,7 +34,7 @@ jobs:
       - name: Build Python
         run: pip install -r requirements.txt
       - name: Build TypeScript
-        run: npm install -g pnpm && pnpm install
+        run: npm install -g pnpm && pnpm install --no-frozen-lockfile
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v3
         with:

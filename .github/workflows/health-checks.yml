@@ -29,7 +29,7 @@ on:
     - cron: '0 5 1 * *'
 
 env:
-  HEALTH_CHECK_API_URL: ${{ vars.HEALTH_CHECK_API_URL || 'https://ahmed-etap.ahmdelbaz28.workers.dev' }}
+  HEALTH_CHECK_API_URL: ${{ vars.HEALTH_CHECK_API_URL || 'https://ahmdelbaz28-etap-ai-platform.hf.space' }}
   HEALTH_CHECK_API_KEY: ${{ secrets.HEALTH_CHECK_API_KEY }}
   HEALTH_CHECK_TIMEOUT_MS: ${{ vars.HEALTH_CHECK_TIMEOUT_MS || '10000' }}
 
@@ -133,10 +133,10 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-          cache: 'pnpm'
+          
 
       - name: Install dependencies
-        run: pnpm install
+        run: pnpm install --no-frozen-lockfile
 
       - name: Run daily health checks
         run: pnpm exec tsx scripts/health-check.ts --daily --ci --json
@@ -185,10 +185,10 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-          cache: 'pnpm'
+          
 
       - name: Install dependencies
-        run: pnpm install
+        run: pnpm install --no-frozen-lockfile
 
       - name: Run weekly health checks
         run: pnpm exec tsx scripts/health-check.ts --weekly --ci --json
@@ -236,10 +236,10 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-          cache: 'pnpm'
+          
 
       - name: Install dependencies
-        run: pnpm install
+        run: pnpm install --no-frozen-lockfile
 
       - name: Run monthly health checks
         run: pnpm exec tsx scripts/health-check.ts --monthly --ci --json

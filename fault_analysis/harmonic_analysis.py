@@ -16,8 +16,8 @@ Reference: IEEE 519-2022 "IEEE Standard for Harmonic Control in Electric Power S
 """
 
 import numpy as np
-from dataclasses import dataclass, field
-from typing import Dict, List, Optional, Tuple
+from dataclasses import dataclass
+from typing import Dict, List, Tuple
 from enum import Enum
 import logging
 

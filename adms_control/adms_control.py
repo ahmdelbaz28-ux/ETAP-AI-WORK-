@@ -10,10 +10,9 @@ Reference: IEEE C37.118, IEC 61850, EPRI ADMS Guide
 
 import time
 from dataclasses import dataclass, field
-from typing import Dict, List, Optional, Set, Tuple, Any
+from typing import Dict, List, Optional, Set, Tuple
 from enum import Enum
 from collections import deque
-import numpy as np
 
 
 # ============================================================
@@ -376,7 +375,7 @@ class ADMSControlEngine:
             return None
 
         actions = [
-            (sid, SwitchingActionType.CLOSE, f"Load transfer: close tie switch")
+            (sid, SwitchingActionType.CLOSE, "Load transfer: close tie switch")
             for sid in self.topology.get_switches_on_path(path)
         ]
 

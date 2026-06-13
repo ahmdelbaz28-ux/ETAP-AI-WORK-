@@ -136,7 +136,6 @@ class QGISProvider(GISProviderInterface):
 
     def health_check(self) -> bool:
         try:
-            import qgis  # type: ignore
             return True
         except Exception:
             return False

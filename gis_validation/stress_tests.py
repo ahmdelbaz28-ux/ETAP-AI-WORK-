@@ -3,7 +3,7 @@ from __future__ import annotations
 import time
 import tracemalloc
 from dataclasses import dataclass
-from typing import Any, Callable, Dict, Iterable, List, Optional, Tuple
+from typing import Any, Callable, Dict, Iterable, List, Optional
 
 from gis_integration.models import ADMSAsset
 from gis_validation.dataset_generator import generate_synthetic_grid

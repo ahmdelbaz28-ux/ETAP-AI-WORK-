@@ -31,8 +31,8 @@ from core_model.system import System
 from load_flow.load_flow import LoadFlowSolver
 from fault_analysis.fault import FaultAnalyzer
 from fault_analysis.iec60909_engine import IEC60909Engine
-from fault_analysis.arc_flash_engine import ArcFlashEngine, ElectrodeConfig, EnclosureType
-from fault_analysis.harmonic_analysis import HarmonicAnalysisEngine, HarmonicSource
+from fault_analysis.arc_flash_engine import ArcFlashEngine, ElectrodeConfig
+from fault_analysis.harmonic_analysis import HarmonicAnalysisEngine
 from relays.relay import OvercurrentRelay
 from coordination.coordination import CoordinationEngine
 
@@ -40,7 +40,7 @@ from cryptography.fernet import Fernet
 from security.secrets_manager import VaultSecretsManager, LocalSecretsManager, KeyAccessAuditor, EnvironmentValidator
 from engine.resilience import RetryHandler, CircuitBreaker, CircuitBreakerState, MultiLevelRecovery, StabilityEnforcer
 from engine.error_handler import ErrorHandler, ErrorSeverity, SystemError, AlertManager, AutoRecoveryManager, component_guard
-from engine.numerical_safety import NumericalGuard, ConvergenceMonitor, ConsistencyCheck, NumericalBounds
+from engine.numerical_safety import NumericalGuard, ConvergenceMonitor, ConsistencyCheck
 from engine.cache_manager import CalculationCache, CacheStrategy, CacheKeyBuilder
 from engine.async_executor import AsyncExecutor, TaskStatus, ThreadPoolManager, WorkflowOrchestrator
 from agents.orchestrator import AgentResult, StudyType, AgentStatus, EngineeringTask
@@ -424,7 +424,7 @@ class TestShortCircuit:
     def test_iec60909_three_phase(self):
         """Test IEC 60909 three-phase fault calculation."""
         # Simple system
-        n = 2
+        _n = 2
         Ybus = np.array([
             [complex(10, -50), complex(-10, 50)],
             [complex(-10, 50), complex(10, -50)]
@@ -963,7 +963,6 @@ class TestSecretsManager:
         assert val is None
 
     def test_local_secrets_store_retrieve(self, tmp_path, monkeypatch):
-        from security.secrets_manager import SECRETS_DIR, ENCRYPTION_KEY_FILE
         monkeypatch.setattr("security.secrets_manager.SECRETS_DIR", tmp_path / "secrets")
         monkeypatch.setattr("security.secrets_manager.ENCRYPTION_KEY_FILE", tmp_path / "secrets" / ".encryption_key")
         key = Fernet.generate_key()
@@ -976,7 +975,6 @@ class TestSecretsManager:
         assert mgr.get_api_key("svc_test") is None
 
     def test_key_rotation(self, tmp_path, monkeypatch):
-        from security.secrets_manager import SECRETS_DIR, ENCRYPTION_KEY_FILE
         monkeypatch.setattr("security.secrets_manager.SECRETS_DIR", tmp_path / "secrets")
         monkeypatch.setattr("security.secrets_manager.ENCRYPTION_KEY_FILE", tmp_path / "secrets" / ".encryption_key")
         key = Fernet.generate_key()
@@ -988,7 +986,7 @@ class TestSecretsManager:
         assert val == "key-to-rotate"
 
     def test_key_access_audit_logging(self, tmp_path, monkeypatch):
-        from security.secrets_manager import AUDIT_DIR
+        
         monkeypatch.setattr("security.secrets_manager.AUDIT_DIR", tmp_path / "audit")
         auditor = KeyAccessAuditor()
         auditor.log_access("user_a", "api-key-1", KeyAccessAuditor.ACTION_GET, True)
@@ -1470,7 +1468,7 @@ class TestShortCircuitExpansion:
             assert abs(result["fault_current"]) > 0, f"Non-zero fault current at bus {bus_idx}"
 
     def test_iec60909_fault_types_all(self):
-        n = 2
+        _n = 2
         Ybus = np.array([
             [complex(10, -50), complex(-10, 50)],
             [complex(-10, 50), complex(10, -50)]
@@ -1489,7 +1487,7 @@ class TestShortCircuitExpansion:
             assert result.fault_type == fault_type
 
     def test_fault_current_symmetry(self):
-        n = 2
+        _n = 2
         Ybus = np.array([
             [complex(10, -50), complex(-10, 50)],
             [complex(-10, 50), complex(10, -50)]

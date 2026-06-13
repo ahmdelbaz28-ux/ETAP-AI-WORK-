@@ -9,11 +9,11 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from core_model.bus import Bus
 from core_model.line import Line
-from core_model.transformer import Transformer
+
 from core_model.generator import Generator
 from core_model.load import Load
 from core_model.system import System
-from engine.engine import PowerSystemEngine
+
 from load_flow.load_flow import LoadFlowSolver
 from fault_analysis.fault import FaultAnalyzer
 from relays.relay import OvercurrentRelay
@@ -701,7 +701,7 @@ class ValidationCampaign:
             "4. Single-precision floating point may cause issues for very large systems (>1000 buses)",
             "5. Arc flash boundary calculation uses simplified enclosure correction factor",
         ]
-        for l in limitations:
+        for line_item in limitations:
             print(f"  - {l}")
 
         print("\n--- Engineering Limitations ---")

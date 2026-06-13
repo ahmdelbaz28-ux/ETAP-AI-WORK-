@@ -1,4 +1,3 @@
-import numpy as np
 
 class Line:
     def __init__(self, line_id, from_bus, to_bus,

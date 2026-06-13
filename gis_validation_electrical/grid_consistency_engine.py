@@ -1,15 +1,14 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any, Dict, List, Tuple
+from typing import Any, Dict, List
 
 from gis_integration.models import ADMSAsset
 from gis_validation_electrical.electrical_model import ElectricalModel, build_electrical_model
 from gis_validation_electrical.load_flow_validator import validate_load_flow
-from gis_validation_electrical.radiality_checker import validate_radiality, RadialityIssue
-from gis_validation_electrical.impedance_validator import validate_impedance_consistency, ImpedanceIssue
+from gis_validation_electrical.radiality_checker import validate_radiality
+from gis_validation_electrical.impedance_validator import validate_impedance_consistency
 from gis_validation_electrical.cim_mapper import map_adms_to_cim, CIMModel
-from gis_validation_electrical.electrical_model import ElectricalEdge
 
 
 @dataclass(frozen=True)

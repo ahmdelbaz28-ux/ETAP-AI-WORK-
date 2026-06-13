@@ -5,8 +5,8 @@ Abstracts the ETAP execution layer to support both local COM (Windows)
 and remote API-based (Linux) execution.
 """
 
-from abc import ABC, abstractmethod
-from typing import Dict, List, Optional, Any
+from abc import ABC
+from typing import Dict, List, Any
 from enum import Enum
 import sys
 import os

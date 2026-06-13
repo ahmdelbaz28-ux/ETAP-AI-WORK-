@@ -10,7 +10,7 @@ import random
 import threading
 import time
 from functools import wraps
-from typing import Any, Callable, Dict, List, Optional, Sequence, Tuple, Type, Union
+from typing import Any, Callable, Dict, List, Optional, Sequence, Tuple, Type
 
 import numpy as np
 

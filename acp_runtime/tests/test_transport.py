@@ -12,13 +12,11 @@ Covers:
 from __future__ import annotations
 import io
 import json
-from typing import Any
 
 import anyio
 import pytest
 
 from acp.transport import (
-    Transport,
     StdioTransport,
     UDSTransport,
     WebSocketTransport,

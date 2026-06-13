@@ -1,15 +1,13 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any, Dict, List, Optional, Tuple
+from typing import List
 
 from gis_integration.base import GISProviderInterface
 from gis_integration.exceptions import (
-    GISIntegrationError,
     GISProviderUnavailableError,
     GISDataExtractionError,
 )
-from gis_integration.models import GISFeature
 
 
 class GISRuntimeError(Exception):

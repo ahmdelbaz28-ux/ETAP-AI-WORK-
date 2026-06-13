@@ -12,7 +12,6 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import numpy as np
 from core_model.bus import Bus
 from core_model.line import Line
-from core_model.transformer import Transformer
 from core_model.generator import Generator
 from core_model.load import Load
 from core_model.system import System

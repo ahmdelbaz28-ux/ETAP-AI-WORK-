@@ -14,7 +14,7 @@ Commercial Power Systems Analysis" (Brown Book)
 
 import numpy as np
 from dataclasses import dataclass
-from typing import Optional, Tuple
+from typing import Tuple
 
 
 @dataclass

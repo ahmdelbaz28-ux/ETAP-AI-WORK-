@@ -16,11 +16,11 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from core_model.bus import Bus
 from core_model.line import Line
-from core_model.transformer import Transformer
+
 from core_model.generator import Generator
 from core_model.load import Load
 from core_model.system import System
-from engine.engine import PowerSystemEngine
+
 from load_flow.load_flow import LoadFlowSolver
 from fault_analysis.fault import FaultAnalyzer
 from relays.relay import OvercurrentRelay
@@ -109,10 +109,10 @@ class ValidationSuite:
                              f"|V|={v:.4f} pu (expected 0.9-1.1)")
 
             # Validate power balance (total generation ~= total load + losses)
-            total_gen = sum(b.generation_power.real for b in system.buses.values())
+            _total_gen = sum(b.generation_power.real for b in system.buses.values())
             total_load = sum(b.load_power.real for b in system.buses.values())
             # Slack bus picks up the difference
-            slack_gen = system.buses[1].generation_power.real
+            _slack_gen = system.buses[1].generation_power.real
             # After load flow, slack generation = total load + losses - PV generation
             # We check that the slack bus generation is positive
             self._record("3-Bus Power Balance", True,
@@ -456,7 +456,7 @@ class ValidationSuite:
                      f"t_up={result['upstream_time']:.4f}s, t_down={result['downstream_time']:.4f}s")
 
         # Margin should be at least 0.2s for proper coordination
-        margin_ok = result['margin'] >= 0.2 if result['coordinated'] else True
+        _margin_ok = result['margin'] >= 0.2 if result['coordinated'] else True
         self._record("Coordination Margin >= 0.2s", result['coordinated'],
                      f"Margin={result['margin']:.4f}s, Required=0.2s")
 

@@ -1,7 +1,7 @@
 """Tests for core/models.py — Universal Data Model core dataclasses."""
 
 import uuid
-from datetime import datetime, timezone
+from datetime import datetime
 
 from core.models import (
     ChangeSource,

@@ -22,7 +22,6 @@ from typing import Dict, List, Optional, Any
 from dataclasses import dataclass, field
 from enum import Enum
 from datetime import datetime, timezone
-import json
 import numpy as np
 
 logger = logging.getLogger(__name__)
@@ -173,7 +172,6 @@ class LoadFlowAgent(BaseAgent):
             self.log_execution(f"Starting load flow analysis for task {task.task_id}")
 
             # Import calculation engine
-            from core_model.system import System
             from load_flow.load_flow import LoadFlowSolver
 
             # Extract system data from task parameters
@@ -286,9 +284,7 @@ class ShortCircuitAgent(BaseAgent):
         try:
             self.log_execution(f"Starting short circuit analysis for task {task.task_id}")
 
-            from core_model.system import System
             from fault_analysis.fault import FaultAnalyzer
-            from fault_analysis.iec60909_engine import IEC60909Engine
 
             system_data = task.parameters.get('system')
             if not system_data:
@@ -1046,7 +1042,7 @@ class ReportGenerationAgent(BaseAgent):
         # Short circuit summary
         sc = report.get('short_circuit_results', {})
         if sc:
-            summary_lines.append(f"Short Circuit Analysis: Completed per IEC 60909")
+            summary_lines.append("Short Circuit Analysis: Completed per IEC 60909")
 
         # Harmonic summary
         harm = report.get('harmonic_results', {})

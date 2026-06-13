@@ -1,4 +1,3 @@
-import numpy as np
 
 class Load:
     def __init__(self, load_id, bus,

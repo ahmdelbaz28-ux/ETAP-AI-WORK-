@@ -10,7 +10,7 @@ Reference: IEC 61850 Communication Standard, IEC 61970 CIM
 
 import time
 from dataclasses import dataclass, field
-from typing import Dict, List, Optional, Tuple, Any
+from typing import Dict, List, Optional, Tuple
 from enum import Enum
 import numpy as np
 

@@ -22,7 +22,6 @@ from cryptography.fernet import Fernet
 import os
 import ast
 import time
-import hmac
 import secrets
 import logging
 import threading
@@ -236,7 +235,7 @@ class AuthenticationManager:
                 user.locked_until = datetime.now(timezone.utc) + timedelta(
                     minutes=self.lockout_duration_minutes
                 )
-                logger.warning(f"Account locked: too many failed attempts")
+                logger.warning("Account locked: too many failed attempts")
 
             return None
 

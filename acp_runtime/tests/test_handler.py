@@ -32,7 +32,7 @@ class MixedHandler:
 
 
 def test_decorator_attaches_metadata():
-    h = MathHandler()
+    MathHandler()
     meta = getattr(MathHandler.sum, "_acp_capability")
     assert isinstance(meta, CapabilityMeta)
     assert meta.name == "math.sum"

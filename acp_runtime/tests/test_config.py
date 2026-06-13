@@ -11,7 +11,6 @@ Covers:
 """
 from __future__ import annotations
 import json
-from pathlib import Path
 
 import pytest
 
@@ -278,7 +277,7 @@ class TestConfigCliIntegration:
         monkeypatch.setenv("ACP_HANDLERS", "")  # clear env
         monkeypatch.delenv("ACP_HANDLERS", raising=False)
 
-        from acp.cli import _build_parser, _build_observability, _build_runtime, _build_router
+        from acp.cli import _build_parser, _build_observability, _build_runtime
         from acp.config import load_config, merge_config
 
         parser = _build_parser()

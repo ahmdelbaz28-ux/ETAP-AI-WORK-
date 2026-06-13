@@ -14,7 +14,6 @@ Reference: IEEE Std 1584-2018 "IEEE Guide for Performing Arc-Flash Hazard Calcul
 
 import numpy as np
 from dataclasses import dataclass
-from typing import Optional, Tuple
 from enum import Enum
 
 
