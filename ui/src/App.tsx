@@ -1,4 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import { useEffect } from 'react'
+import { useTranslation } from 'react-i18next'
 import { ThemeProvider } from './context/ThemeContext'
 import { NotificationProvider } from './context/NotificationContext'
 import { Layout } from './components/Layout'
@@ -18,8 +20,17 @@ import { DigitalTwin } from './pages/DigitalTwin'
 import { DataImport } from './pages/DataImport'
 import { DataExport } from './pages/DataExport'
 import { Logs } from './pages/Logs'
+import './i18n'
 
 export default function App() {
+  const { i18n } = useTranslation()
+
+  // Set initial direction based on language
+  useEffect(() => {
+    document.documentElement.dir = i18n.language === 'ar' ? 'rtl' : 'ltr'
+    document.documentElement.lang = i18n.language
+  }, [i18n.language])
+
   return (
     <ThemeProvider>
       <NotificationProvider>

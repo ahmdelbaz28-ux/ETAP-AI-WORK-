@@ -14,8 +14,8 @@ interface Project {
 function loadProjects(): Project[] {
   try {
     const stored = localStorage.getItem('etap-projects')
-    if (stored) return JSON.parse(stored)
-  } catch {}
+    if (stored) return JSON.parse(stored) as Project[]
+  } catch { /* ignore */ }
   return [
     { id: '1', name: 'Industrial Plant - 13.8kV', description: 'Main industrial facility power system', status: 'active', studyCount: 4, lastModified: '2026-06-09' },
     { id: '2', name: 'Substation B - 115kV/13.8kV', description: 'Substation with two transformers', status: 'active', studyCount: 2, lastModified: '2026-06-07' },
@@ -28,7 +28,7 @@ function saveProjects(projects: Project[]) {
 }
 
 export function Projects() {
-  const [projects, setProjects] = useState<Project[]>(loadProjects)
+  const [projects] = useState<Project[]>(loadProjects)
   const { notify } = useNotify()
 
   useEffect(() => { saveProjects(projects) }, [projects])

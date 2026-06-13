@@ -34,9 +34,11 @@ export function AIAssistant() {
     setLoading(true)
 
     try {
-      const reply = await chatWithAgent(selectedAgent,
-        [...messages, userMsg].map(m => ({ role: m.role, content: m.content })))
-      setMessages(prev => [...prev, { role: 'assistant', content: reply, timestamp: Date.now() }])
+      const reply = await chatWithAgent(
+        selectedAgent,
+        [...messages, userMsg].map(m => m.content).join('\n')
+      )
+      setMessages(prev => [...prev, { role: 'assistant', content: reply.response, timestamp: Date.now() }])
     } catch (err) {
       notify('error', `Chat failed: ${err instanceof Error ? err.message : 'Unknown error'}`)
     } finally {

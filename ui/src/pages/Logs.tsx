@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { MdArticle, MdFilterList, MdRefresh } from 'react-icons/md'
+import { MdFilterList, MdRefresh } from 'react-icons/md'
 import { fetchMetrics, fetchAuditLogs, type MetricsResponse, type AuditEntry } from '../lib/api'
 import { useNotify } from '../context/NotificationContext'
 
@@ -13,11 +13,14 @@ interface LogEntry {
 function auditToLogs(metrics: MetricsResponse | null, audit: AuditEntry[]): LogEntry[] {
   const logs: LogEntry[] = []
   if (metrics) {
-    logs.push({ timestamp: new Date().toLocaleTimeString(), level: 'info', source: 'metrics', message: `API requests: ${Object.values(metrics.api).reduce((a, b) => a + b, 0)} total` })
-    for (const [name, p] of Object.entries(metrics.providers)) {
+    const apiEntries = metrics.api as Record<string, number>
+    logs.push({ timestamp: new Date().toLocaleTimeString(), level: 'info', source: 'metrics', message: `API requests: ${Object.values(apiEntries).reduce((a: number, b: number) => a + b, 0)} total` })
+    const providerEntries = metrics.providers as Record<string, { count: number; avgMs: number; failureRate: number }>
+    for (const [name, p] of Object.entries(providerEntries)) {
       logs.push({ timestamp: new Date().toLocaleTimeString(), level: 'info', source: 'provider', message: `${name}: ${p.count} calls, avg ${p.avgMs}ms, ${(p.failureRate * 100).toFixed(1)}% failures` })
     }
-    for (const [name, c] of Object.entries(metrics.circuits)) {
+    const circuitEntries = metrics.circuits as Record<string, { state: string; consecutiveFailures: number }>
+    for (const [name, c] of Object.entries(circuitEntries)) {
       if (c.state !== 'closed') logs.push({ timestamp: new Date().toLocaleTimeString(), level: 'warn', source: 'circuit', message: `Breaker ${name}: ${c.state} (${c.consecutiveFailures} failures)` })
     }
   }
@@ -30,7 +33,7 @@ function auditToLogs(metrics: MetricsResponse | null, audit: AuditEntry[]): LogE
       message: `${entry.method} ${entry.path} ${entry.statusCode} — ${entry.action}${entry.latencyMs ? ` (${entry.latencyMs}ms)` : ''}`,
     })
   }
-  return logs.length ? logs : [{ timestamp: '--', level: 'info', source: 'system', message: 'No log data available. Run a study or chat to generate activity.' }]
+  return logs.length ? logs : [{ timestamp: '--', level: 'info' as const, source: 'system', message: 'No log data available. Run a study or chat to generate activity.' }]
 }
 
 export function Logs() {

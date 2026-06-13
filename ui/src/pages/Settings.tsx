@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { MdSave, MdRefresh, MdFileDownload, MdFileUpload, MdDelete } from 'react-icons/md'
+import { MdSave, MdFileDownload, MdFileUpload, MdDelete } from 'react-icons/md'
 import { useNotify } from '../context/NotificationContext'
 
 // Simple XOR-based obfuscation for localStorage storage.
