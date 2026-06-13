@@ -228,6 +228,12 @@ class AIFailureModeDetector:
         # FM-05: Re-derive instead of reuse (simplified heuristic)
         violations.extend(self._detect_rederive(tree, source))
 
+        # FM-03: Hallucinated API or package
+        violations.extend(self._detect_hallucinated_api(tree, source, context))
+
+        # FM-06: Enum boundary not enumerated first
+        violations.extend(self._detect_enum_boundary(tree, source))
+
         # FM-07: Dead code — unused imports
         violations.extend(self._detect_unused_imports(tree, source))
 
@@ -242,6 +248,9 @@ class AIFailureModeDetector:
 
         # FM-11: Over-engineered abstraction
         violations.extend(self._detect_over_engineering(tree, source))
+
+        # FM-12: Unverified import side effects
+        violations.extend(self._detect_unverified_import_side_effects(tree, source))
 
         # FM-13: Magic numbers without named constants
         violations.extend(self._detect_magic_numbers(tree, source))
@@ -668,6 +677,234 @@ class AIFailureModeDetector:
                     location=f"line {node.lineno}",
                     suggestion=f"Extract {node.value} into a named constant that explains its meaning.",
                     evidence=str(node.value),
+                ))
+        return violations
+
+    # ------------------------------------------------------------------
+    # FM-03: Hallucinated API or package
+    # ------------------------------------------------------------------
+    def _detect_hallucinated_api(
+        self, tree: Optional[ast.AST], source: str, context: Optional[Dict[str, Any]]
+    ) -> List[GuardViolation]:
+        """Detect imports of packages that are not in the known-packages set.
+
+        Uses a curated list of standard-library and common third-party packages.
+        Any import not in this list and not in the context-provided
+        ``known_packages`` set is flagged as a potential hallucination.
+
+        This is a heuristic — false positives are possible for legitimate
+        private packages.  Consumers should provide ``known_packages`` in
+        context to suppress known-good imports.
+        """
+        violations: List[GuardViolation] = []
+        if tree is None:
+            return violations
+
+        # Standard library packages (Python 3.10+)
+        STDLIB = {
+            'abc', 'argparse', 'ast', 'asyncio', 'base64', 'bisect', 'collections',
+            'concurrent', 'configparser', 'contextlib', 'copy', 'csv', 'dataclasses',
+            'datetime', 'decimal', 'difflib', 'dis', 'email', 'enum', 'fileinput',
+            'fnmatch', 'fractions', 'functools', 'glob', 'gzip', 'hashlib', 'heapq',
+            'hmac', 'html', 'http', 'importlib', 'inspect', 'io', 'itertools',
+            'json', 'keyword', 'linecache', 'logging', 'math', 'mmap', 'multiprocessing',
+            'numbers', 'operator', 'os', 'pathlib', 'pickle', 'platform', 'pprint',
+            'profile', 'pstats', 'queue', 're', 'secrets', 'shelve', 'signal',
+            'smtpd', 'smtplib', 'socket', 'sqlite3', 'statistics', 'string',
+            'struct', 'subprocess', 'sys', 'tarfile', 'tempfile', 'textwrap',
+            'threading', 'time', 'timeit', 'traceback', 'types', 'typing',
+            'unittest', 'urllib', 'uuid', 'warnings', 'weakref', 'xml', 'zipfile',
+            'zlib', '__future__',
+        }
+
+        # Common third-party packages in ETAP platform
+        COMMON_THIRD_PARTY = {
+            'fastapi', 'uvicorn', 'pydantic', 'sqlalchemy', 'numpy', 'scipy',
+            'pandas', 'matplotlib', 'requests', 'httpx', 'aiohttp', 'redis',
+            'celery', 'pytest', 'hypothesis', 'flask', 'django', 'starlette',
+            'python', 'dotenv', 'jwt', 'bcrypt', 'cryptography', 'psutil',
+        }
+
+        # Allow context to extend known packages
+        known = STDLIB | COMMON_THIRD_PARTY
+        if context and 'known_packages' in context:
+            known |= set(context['known_packages'])
+
+        for node in ast.walk(tree):
+            if isinstance(node, ast.Import):
+                for alias in node.names:
+                    top_level = alias.name.split('.')[0]
+                    if top_level not in known:
+                        violations.append(GuardViolation(
+                            rule_id="FM-03",
+                            rule_name="Hallucinated API or package",
+                            severity=GuardSeverity.MUST_FIX,
+                            description=f"Import '{alias.name}' is not in the known-packages list. "
+                                        "This may be a hallucinated package (19.6% hallucination rate "
+                                        "per Spracklen et al. USENIX '25).",
+                            location=f"line {node.lineno}",
+                            suggestion="Verify the package exists and is in your requirements.txt. "
+                                       "If this is a private package, add it to the 'known_packages' "
+                                       "context parameter.",
+                            evidence=f"import {alias.name}",
+                        ))
+            elif isinstance(node, ast.ImportFrom):
+                if node.module:
+                    top_level = node.module.split('.')[0]
+                    if top_level not in known:
+                        violations.append(GuardViolation(
+                            rule_id="FM-03",
+                            rule_name="Hallucinated API or package",
+                            severity=GuardSeverity.MUST_FIX,
+                            description=f"From-import from '{node.module}' is not in the known-packages list. "
+                                        "This may be a hallucinated package.",
+                            location=f"line {node.lineno}",
+                            suggestion="Verify the package exists. If legitimate, add to 'known_packages'.",
+                            evidence=f"from {node.module} import ...",
+                        ))
+        return violations
+
+    # ------------------------------------------------------------------
+    # FM-06: Enum boundary not enumerated first
+    # ------------------------------------------------------------------
+    def _detect_enum_boundary(self, tree: Optional[ast.AST], source: str) -> List[GuardViolation]:
+        """Detect if/elif chains over a closed set that lack an else clause.
+
+        When code branches over a known, closed set of values (e.g., enum
+        members, status codes) but does not include a final else or
+        explicit exhaustiveness check, a missing case silently falls
+        through — a common AI failure mode.
+        """
+        violations: List[GuardViolation] = []
+        if tree is None:
+            return violations
+
+        # Collect only top-level If nodes (not elif children of other Ifs)
+        elif_parents: set = set()
+        for node in ast.walk(tree):
+            if isinstance(node, ast.If) and len(node.orelse) == 1 and isinstance(node.orelse[0], ast.If):
+                elif_parents.add(id(node.orelse[0]))
+
+        for node in ast.walk(tree):
+            if not isinstance(node, ast.If):
+                continue
+            # Skip nodes that are elif children of another If
+            if id(node) in elif_parents:
+                continue
+
+            # Count elif branches and check for else
+            branch_count = 1  # the initial if
+            has_else = False
+            current = node
+
+            while True:
+                if not current.orelse:
+                    has_else = False
+                    break
+                if len(current.orelse) == 1 and isinstance(current.orelse[0], ast.If):
+                    branch_count += 1
+                    current = current.orelse[0]
+                else:
+                    has_else = True
+                    break
+
+            if branch_count >= 3 and not has_else:
+                violations.append(GuardViolation(
+                    rule_id="FM-06",
+                    rule_name="Enum boundary not enumerated first",
+                    severity=GuardSeverity.SHOULD_FIX,
+                    description=f"if/elif chain with {branch_count} branches has no else clause. "
+                                "When branching over a closed set, every member should be "
+                                "explicitly handled and a final else should catch omissions.",
+                    location=f"line {node.lineno}",
+                    suggestion="Add an else clause that raises AssertionError or NotImplementedError "
+                               "for unhandled cases, or use a match/case statement with explicit "
+                               "exhaustiveness.",
+                    evidence=f"{branch_count} branches, no else",
+                ))
+        return violations
+
+    # ------------------------------------------------------------------
+    # FM-12: Unverified import side effects
+    # ------------------------------------------------------------------
+    def _detect_unverified_import_side_effects(
+        self, tree: Optional[ast.AST], source: str
+    ) -> List[GuardViolation]:
+        """Detect bare imports used only for side effects without verification.
+
+        Pattern: ``import foo`` where ``foo`` is never referenced by name in
+        the module body — the import exists purely for its side effect
+        (e.g., registration, monkey-patching), but nothing verifies the side
+        effect actually occurred.
+        """
+        violations: List[GuardViolation] = []
+        if tree is None:
+            return violations
+
+        # Collect all imports
+        imported_names: Dict[str, int] = {}  # name -> line
+        for node in ast.walk(tree):
+            if isinstance(node, ast.Import):
+                for alias in node.names:
+                    name = alias.asname or alias.name.split('.')[0]
+                    imported_names[name] = node.lineno
+            elif isinstance(node, ast.ImportFrom):
+                for alias in node.names:
+                    name = alias.asname or alias.name
+                    if name != '*':
+                        imported_names[name] = node.lineno
+
+        # Collect all Name usages (not in import statements)
+        # Include names used in annotations (ast.Name in ast.Subscript, etc.)
+        used_names: set = set()
+        for node in ast.walk(tree):
+            if isinstance(node, ast.Name) and not isinstance(node.ctx, ast.Store):
+                used_names.add(node.id)
+            elif isinstance(node, ast.Attribute) and isinstance(node.value, ast.Name):
+                used_names.add(node.value.id)
+            # Also capture names used in type annotations
+            elif isinstance(node, ast.Subscript) and isinstance(node.value, ast.Name):
+                used_names.add(node.value.id)
+
+        # Find imports that are never used by name (side-effect-only)
+        for name, line in imported_names.items():
+            if name not in used_names:
+                # Exclude common side-effect imports that are idiomatic
+                idiomatic_side_effects = {
+                    '__future__', 'annotations',
+                }
+                # Also exclude typing-module names used in annotations
+                typing_names = {
+                    'Optional', 'Dict', 'List', 'Tuple', 'Set', 'Any',
+                    'Union', 'Callable', 'Sequence', 'Iterable', 'Generator',
+                    'Type', 'TypeVar', 'Generic', 'Protocol', 'Final',
+                    'Literal', 'ClassVar', 'Awaitable', 'AsyncIterator',
+                }
+                if name in idiomatic_side_effects or name in typing_names:
+                    continue
+
+                # Check if the import has a comment mentioning side effect
+                source_lines = source.split('\n')
+                if line <= len(source_lines):
+                    import_line = source_lines[line - 1]
+                    has_side_effect_comment = bool(
+                        re.search(r'#\s*(side.effect|register|patch|monkey|inject|auto|init)', import_line, re.IGNORECASE)
+                    )
+                    if has_side_effect_comment:
+                        continue  # Documented side-effect import
+
+                violations.append(GuardViolation(
+                    rule_id="FM-12",
+                    rule_name="Unverified import side effect",
+                    severity=GuardSeverity.MUST_FIX,
+                    description=f"Import '{name}' (line {line}) is never referenced by name, suggesting "
+                                "it is imported solely for a side effect (registration, monkey-patching). "
+                                "The side effect is not verified after import.",
+                    location=f"line {line}",
+                    suggestion="After the import, add an assertion or check that verifies the side "
+                               "effect occurred (e.g., assert 'PluginName' in registry). "
+                               "Or add a comment: # side-effect: registers X",
+                    evidence=f"import {name} (never used by name)",
                 ))
         return violations
 
