@@ -111,7 +111,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from fastapi import FastAPI, Request, Response, HTTPException, status
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, AliasChoices, field_validator
 from starlette.middleware.base import BaseHTTPMiddleware
 
 # ---------------------------------------------------------------------------
@@ -171,17 +171,22 @@ def _get_etap_provider():
 # ---------------------------------------------------------------------------
 
 class BusSpec(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+
     bus_id: int
-    voltage_magnitude: float = 1.0
-    voltage_angle: float = 0.0
-    load_power_real: float = 0.0
-    load_power_imag: float = 0.0
-    generation_power_real: float = 0.0
-    generation_power_imag: float = 0.0
+    voltage_magnitude: float = Field(default=1.0, validation_alias=AliasChoices("voltage_magnitude", "vm"))
+    voltage_angle: float = Field(default=0.0, validation_alias=AliasChoices("voltage_angle", "va"))
+    load_power_real: float = Field(default=0.0, validation_alias=AliasChoices("load_power_real", "p_load", "pd"))
+    load_power_imag: float = Field(default=0.0, validation_alias=AliasChoices("load_power_imag", "load_power_reactive", "q_load", "qd"))
+    generation_power_real: float = Field(default=0.0, validation_alias=AliasChoices("generation_power_real", "power_real", "pg"))
+    generation_power_imag: float = Field(default=0.0, validation_alias=AliasChoices("generation_power_imag", "power_reactive", "qg"))
     bus_type: str = "pq"
     base_kv: Optional[float] = None
-    q_min: float = -999.0
-    q_max: float = 999.0
+    q_min: float = Field(default=-999.0, validation_alias=AliasChoices("q_min", "min_power_reactive", "min_q"))
+    q_max: float = Field(default=999.0, validation_alias=AliasChoices("q_max", "max_power_reactive", "max_q"))
+    area: Optional[int] = None
+    zone: Optional[int] = None
+    voltage_setpoint: Optional[float] = Field(default=None, validation_alias=AliasChoices("voltage_setpoint", "voltage_magnitude_setpoint"))
 
     @field_validator("bus_type")
     @classmethod
@@ -193,58 +198,75 @@ class BusSpec(BaseModel):
 
 
 class LineSpec(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+
     line_id: int
-    from_bus_id: int
-    to_bus_id: int
-    r1: float = 0.01
-    x1: float = 0.05
+    from_bus_id: int = Field(validation_alias=AliasChoices("from_bus_id", "from"))
+    to_bus_id: int = Field(validation_alias=AliasChoices("to_bus_id", "to"))
+    r1: float = Field(default=0.01, validation_alias=AliasChoices("r1", "resistance"))
+    x1: float = Field(default=0.05, validation_alias=AliasChoices("x1", "reactance"))
     r0: Optional[float] = None
     x0: Optional[float] = None
-    bshunt1: float = 0.02
-    bshunt0: Optional[float] = None
+    bshunt1: float = Field(default=0.02, validation_alias=AliasChoices("bshunt1", "b1", "bshunt", "susceptance"))
+    bshunt0: Optional[float] = Field(default=None, validation_alias=AliasChoices("bshunt0", "b0"))
+    rating_mva: Optional[float] = None
 
 
 class TransformerSpec(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+
     transformer_id: int
     from_bus_id: int
     to_bus_id: int
     r1: float = 0.0
     x1: float = 0.05
-    tap_ratio: float = 1.0
-    phase_shift_deg: float = 0.0
+    tap_ratio: float = Field(default=1.0, validation_alias=AliasChoices("tap_ratio", "tap"))
+    phase_shift_deg: float = Field(default=0.0, validation_alias=AliasChoices("phase_shift_deg", "phase_shift"))
 
 
 class GeneratorSpec(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+
     generator_id: int
     bus_id: int
     r1: float = 0.0
-    x1: float = 0.2
+    x1: float = Field(default=0.2, validation_alias=AliasChoices("x1", "xd_pu", "xdash"))
     r2: Optional[float] = None
     x2: Optional[float] = None
     r0: Optional[float] = None
     x0: Optional[float] = None
-    internal_voltage_mag: float = 1.05
-    internal_voltage_ang_deg: float = 0.0
+    internal_voltage_mag: float = Field(default=1.05, validation_alias=AliasChoices("internal_voltage_mag", "voltage_setpoint", "v_setpoint"))
+    internal_voltage_ang_deg: float = Field(default=0.0, validation_alias=AliasChoices("internal_voltage_ang_deg", "voltage_angle"))
+    power_real: Optional[float] = Field(default=None, validation_alias=AliasChoices("power_real", "pg"))
+    power_reactive: Optional[float] = Field(default=None, validation_alias=AliasChoices("power_reactive", "qg"))
+    max_power_reactive: Optional[float] = Field(default=None, validation_alias=AliasChoices("max_power_reactive", "q_max"))
+    min_power_reactive: Optional[float] = Field(default=None, validation_alias=AliasChoices("min_power_reactive", "q_min"))
 
 
 class LoadSpec(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+
     load_id: int
     bus_id: int
-    p_mw: float = 0.0
-    q_mvar: float = 0.0
+    p_mw: float = Field(default=0.0, validation_alias=AliasChoices("p_mw", "power_real", "load_power_real"))
+    q_mvar: float = Field(default=0.0, validation_alias=AliasChoices("q_mvar", "power_reactive", "load_power_reactive"))
     constant_impedance: bool = False
 
 
 class SystemSpec(BaseModel):
-    base_mva: float = 100.0
+    model_config = ConfigDict(extra="ignore")
+
+    base_mva: float = Field(default=100.0, validation_alias=AliasChoices("base_mva", "sbase", "base_mva"))
     buses: List[BusSpec] = Field(default_factory=list)
-    lines: List[LineSpec] = Field(default_factory=list)
+    lines: List[LineSpec] = Field(default_factory=list, validation_alias=AliasChoices("lines", "branches"))
     transformers: List[TransformerSpec] = Field(default_factory=list)
     generators: List[GeneratorSpec] = Field(default_factory=list)
     loads: List[LoadSpec] = Field(default_factory=list)
 
 
 class StudyRequest(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+
     study_type: str = Field(..., description="Type of study to run")
     system: Optional[SystemSpec] = None
     parameters: Dict[str, Any] = Field(default_factory=dict)
@@ -801,11 +823,62 @@ async def run_study(request: Request, payload: StudyRequest):
 
 @app.post("/api/v1/system/validate")
 async def validate_system(request: Request, spec: SystemSpec):
+    """Validate a power system model specification.
+
+    Checks structural integrity: all bus references exist, impedance
+    values are non-negative, slack bus is present, etc.
+
+    Accepts the same flexible field names as /api/v1/studies/run
+    (e.g. ``b1`` for ``bshunt1``, ``load_power_reactive`` for
+    ``load_power_imag``).  Extra fields are silently ignored.
+    """
     _require_api_key(request)
     trace_id = request.state.trace_id
+    warnings: List[str] = []
+    errors: List[str] = []
+
     try:
-        _build_system_from_spec(spec)
-        return {"valid": True, "trace_id": trace_id}
+        # Structural validation
+        if not spec.buses:
+            errors.append("System must have at least one bus")
+        if not spec.lines and not spec.transformers:
+            warnings.append("System has no lines or transformers — it may be degenerate")
+        slack_buses = [b for b in spec.buses if b.bus_type == "slack"]
+        if len(slack_buses) == 0:
+            errors.append("System must have at least one slack bus")
+        if len(slack_buses) > 1:
+            warnings.append(f"System has {len(slack_buses)} slack buses; typically only one is expected")
+
+        bus_ids = {b.bus_id for b in spec.buses}
+        for line in spec.lines:
+            if line.from_bus_id not in bus_ids:
+                errors.append(f"Line {line.line_id} references unknown from_bus_id {line.from_bus_id}")
+            if line.to_bus_id not in bus_ids:
+                errors.append(f"Line {line.line_id} references unknown to_bus_id {line.to_bus_id}")
+
+        for gen in spec.generators:
+            if gen.bus_id not in bus_ids:
+                errors.append(f"Generator {gen.generator_id} references unknown bus_id {gen.bus_id}")
+
+        for ld in spec.loads:
+            if ld.bus_id not in bus_ids:
+                errors.append(f"Load {ld.load_id} references unknown bus_id {ld.bus_id}")
+
+        # Build system to catch remaining issues
+        if not errors:
+            _build_system_from_spec(spec)
+
+        return {
+            "valid": len(errors) == 0,
+            "warnings": warnings,
+            "errors": errors,
+            "bus_count": len(spec.buses),
+            "line_count": len(spec.lines),
+            "generator_count": len(spec.generators),
+            "load_count": len(spec.loads),
+            "transformer_count": len(spec.transformers),
+            "trace_id": trace_id,
+        }
     except ValueError as ve:
         raise HTTPException(status_code=400, detail=str(ve))
     except Exception as e:
