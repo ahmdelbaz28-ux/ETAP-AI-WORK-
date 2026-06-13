@@ -190,6 +190,87 @@ def test_fm14_mock_assert():
     print("PASS: test_fm14_mock_assert")
 
 
+def test_fm03_hallucinated_package():
+    detector = AIFailureModeDetector()
+    bad_code = 'import nonexistent_super_lib\n\ndef compute():\n    return 42'
+    result = detector.detect(bad_code)
+    fm03 = [v for v in result.violations if v.rule_id == "FM-03"]
+    assert len(fm03) > 0, "FM-03 not detected for hallucinated package"
+    print("PASS: test_fm03_hallucinated_package")
+
+
+def test_fm03_known_package_passes():
+    detector = AIFailureModeDetector()
+    good_code = 'import os\nimport json\n\ndef compute():\n    return 42'
+    result = detector.detect(good_code)
+    fm03 = [v for v in result.violations if v.rule_id == "FM-03"]
+    assert len(fm03) == 0, f"FM-03 false positive on known packages: {fm03}"
+    print("PASS: test_fm03_known_package_passes")
+
+
+def test_fm03_context_known_packages():
+    detector = AIFailureModeDetector()
+    bad_code = 'import my_private_lib\n\ndef compute():\n    return 42'
+    result_no_ctx = detector.detect(bad_code)
+    fm03_no_ctx = [v for v in result_no_ctx.violations if v.rule_id == "FM-03"]
+    assert len(fm03_no_ctx) > 0, "FM-03 should flag unknown package without context"
+
+    result_with_ctx = detector.detect(bad_code, context={'known_packages': ['my_private_lib']})
+    fm03_with_ctx = [v for v in result_with_ctx.violations if v.rule_id == "FM-03"]
+    assert len(fm03_with_ctx) == 0, f"FM-03 should not flag when in known_packages: {fm03_with_ctx}"
+    print("PASS: test_fm03_context_known_packages")
+
+
+def test_fm06_enum_missing_else():
+    detector = AIFailureModeDetector()
+    bad_code = '''def handle_status(status):
+    if status == 'active':
+        return 1
+    elif status == 'pending':
+        return 2
+    elif status == 'closed':
+        return 3
+'''
+    result = detector.detect(bad_code)
+    fm06 = [v for v in result.violations if v.rule_id == "FM-06"]
+    assert len(fm06) > 0, "FM-06 not detected for missing else in enum-like if/elif"
+    print("PASS: test_fm06_enum_missing_else")
+
+
+def test_fm06_with_else_passes():
+    detector = AIFailureModeDetector()
+    good_code = '''def handle_status(status):
+    if status == 'active':
+        return 1
+    elif status == 'pending':
+        return 2
+    else:
+        raise ValueError(f"Unknown status: {status}")
+'''
+    result = detector.detect(good_code)
+    fm06 = [v for v in result.violations if v.rule_id == "FM-06"]
+    assert len(fm06) == 0, f"FM-06 false positive when else is present: {fm06}"
+    print("PASS: test_fm06_with_else_passes")
+
+
+def test_fm12_unverified_import_side_effect():
+    detector = AIFailureModeDetector()
+    bad_code = 'import some_plugin\n\ndef compute():\n    return 42'
+    result = detector.detect(bad_code)
+    fm12 = [v for v in result.violations if v.rule_id == "FM-12"]
+    assert len(fm12) > 0, f"FM-12 not detected for unused import (side effect): {result.violations}"
+    print("PASS: test_fm12_unverified_import_side_effect")
+
+
+def test_fm12_documented_side_effect_passes():
+    detector = AIFailureModeDetector()
+    good_code = 'import some_plugin  # side-effect: registers plugin\n\ndef compute():\n    return 42'
+    result = detector.detect(good_code)
+    fm12 = [v for v in result.violations if v.rule_id == "FM-12" and 'some_plugin' in v.evidence]
+    assert len(fm12) == 0, f"FM-12 false positive on documented side-effect: {fm12}"
+    print("PASS: test_fm12_documented_side_effect_passes")
+
+
 def test_clean_code_passes_all():
     detector = AIFailureModeDetector()
     clean_code = '''
@@ -236,6 +317,33 @@ def test_code_guard_high_complexity():
     print("PASS: test_code_guard_high_complexity")
 
 
+def test_code_guard_boolean_flag():
+    guard = CodeGuard()
+    bad_code = 'def process(data, verbose=False):\n    return data'
+    result = guard.scan(bad_code)
+    cc04 = [v for v in result.violations if v.rule_id == "CC-04"]
+    assert len(cc04) > 0, "CC-04 not detected for boolean flag parameter"
+    print("PASS: test_code_guard_boolean_flag")
+
+
+def test_code_guard_cqs_violation():
+    guard = CodeGuard()
+    bad_code = 'class Service:\n    def process(self, data):\n        self.items.append(data)\n        return len(self.items)'
+    result = guard.scan(bad_code)
+    cc06 = [v for v in result.violations if v.rule_id == "CC-06"]
+    assert len(cc06) > 0, "CC-06 not detected for CQS violation"
+    print("PASS: test_code_guard_cqs_violation")
+
+
+def test_code_guard_commented_out_code():
+    guard = CodeGuard()
+    bad_code = 'def compute(x):\n    # if x > 0:\n    #     return x * 2\n    return x'
+    result = guard.scan(bad_code)
+    cc15 = [v for v in result.violations if v.rule_id == "CC-15"]
+    assert len(cc15) > 0, "CC-15 not detected for commented-out code"
+    print("PASS: test_code_guard_commented_out_code")
+
+
 # ============================================================================
 # Test 4: Test Guard (9 + 3 rules)
 # ============================================================================
@@ -267,6 +375,33 @@ def test_test_guard_llm_exact_assertion():
     print("PASS: test_test_guard_llm_exact_assertion")
 
 
+def test_test_guard_trivial_test():
+    guard = TestGuard()
+    bad_test = 'def test_placeholder():\n    pass'
+    result = guard.scan(bad_test)
+    t04 = [v for v in result.violations if v.rule_id == "T-04"]
+    assert len(t04) > 0, "T-04 not detected for test with only pass"
+    print("PASS: test_test_guard_trivial_test")
+
+
+def test_test_guard_llm_observability():
+    guard = TestGuard()
+    bad_test = 'def test_llm_call():\n    agent = create_agent()\n    result = agent(prompt)\n    assert result is not None'
+    result = guard.scan(bad_test)
+    tl2 = [v for v in result.violations if v.rule_id == "T-L2"]
+    assert len(tl2) > 0, "T-L2 not detected for LLM test without observability"
+    print("PASS: test_test_guard_llm_observability")
+
+
+def test_test_guard_agent_flow_transitions():
+    guard = TestGuard()
+    bad_test = 'def test_workflow():\n    result = run_agent_workflow(data)\n    assert result.status == "complete"'
+    result = guard.scan(bad_test)
+    tl3 = [v for v in result.violations if v.rule_id == "T-L3"]
+    assert len(tl3) > 0, "T-L3 not detected for agent flow without transition checks"
+    print("PASS: test_test_guard_agent_flow_transitions")
+
+
 # ============================================================================
 # Test 5: Docs Guard (10 rules)
 # ============================================================================
@@ -296,6 +431,42 @@ def test_docs_guard_vague_version():
     d05 = [v for v in result.violations if v.rule_id == "D-05"]
     assert len(d05) > 0, "D-05 not detected for vague version"
     print("PASS: test_docs_guard_vague_version")
+
+
+def test_docs_guard_code_sample_syntax_error():
+    guard = DocsGuard()
+    bad_docs = '```python\ndef foo(\n    return 1\n```\nThis should fail.'
+    result = guard.scan(bad_docs)
+    d02 = [v for v in result.violations if v.rule_id == "D-02"]
+    assert len(d02) > 0, "D-02 not detected for code sample with syntax error"
+    print("PASS: test_docs_guard_code_sample_syntax_error")
+
+
+def test_docs_guard_actual_vs_intended():
+    guard = DocsGuard()
+    bad_docs = 'This function should return the computed result.'
+    result = guard.scan(bad_docs)
+    d03 = [v for v in result.violations if v.rule_id == "D-03"]
+    assert len(d03) > 0, "D-03 not detected for intended behavior language"
+    print("PASS: test_docs_guard_actual_vs_intended")
+
+
+def test_docs_guard_docs_owed():
+    guard = DocsGuard()
+    docs = 'This module provides power system analysis.'
+    result = guard.scan(docs, context={'changed_symbols': ['calculate_fault_current']})
+    d06 = [v for v in result.violations if v.rule_id == "D-06"]
+    assert len(d06) > 0, "D-06 not detected for missing docs for changed symbol"
+    print("PASS: test_docs_guard_docs_owed")
+
+
+def test_docs_guard_navigation_broken_anchor():
+    guard = DocsGuard()
+    bad_docs = 'See [Installation Guide](#installation) for details.\n\n## Getting Started\n'
+    result = guard.scan(bad_docs)
+    d10 = [v for v in result.violations if v.rule_id == "D-10"]
+    assert len(d10) > 0, "D-10 not detected for broken anchor link"
+    print("PASS: test_docs_guard_navigation_broken_anchor")
 
 
 # ============================================================================
@@ -515,16 +686,33 @@ if __name__ == "__main__":
         test_fm08_transform_pattern_passes,
         test_fm13_magic_numbers,
         test_fm14_mock_assert,
+        test_fm03_hallucinated_package,
+        test_fm03_known_package_passes,
+        test_fm03_context_known_packages,
+        test_fm06_enum_missing_else,
+        test_fm06_with_else_passes,
+        test_fm12_unverified_import_side_effect,
+        test_fm12_documented_side_effect_passes,
         test_clean_code_passes_all,
         test_code_guard_long_function,
         test_code_guard_too_many_params,
         test_code_guard_high_complexity,
+        test_code_guard_boolean_flag,
+        test_code_guard_cqs_violation,
+        test_code_guard_commented_out_code,
         test_test_guard_mock_assert,
         test_test_guard_poor_naming,
         test_test_guard_llm_exact_assertion,
+        test_test_guard_trivial_test,
+        test_test_guard_llm_observability,
+        test_test_guard_agent_flow_transitions,
         test_docs_guard_unverifiable_claims,
         test_docs_guard_filler,
         test_docs_guard_vague_version,
+        test_docs_guard_code_sample_syntax_error,
+        test_docs_guard_actual_vs_intended,
+        test_docs_guard_docs_owed,
+        test_docs_guard_navigation_broken_anchor,
         test_etap_engineering_code_quality,
         test_bad_engineering_code_detected,
         test_code_guard_agent_initializes,

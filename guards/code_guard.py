@@ -4,12 +4,11 @@ Code Guard — Production Code Quality Gate
 Adapted from the clean-code-guard skill (github.com/amElnagdy/guard-skills).
 
 Implements 23 imperatives organized into:
-  - Functions & Names (4 rules)
-  - Comments & Structure (2 rules)
-  - SOLID (4 rules)
-  - DRY / KISS / YAGNI (4 rules)
-  - AI-specific guardrails (8 rules) — delegates to AIFailureModeDetector
-  - Refactoring discipline (1 rule)
+  - Functions & Names (5 rules: CC-01, CC-02, CC-03, CC-04, CC-09)
+  - Comments & Structure (3 rules: CC-05, CC-14, CC-15)
+  - SOLID (4 rules: CC-09, CC-10, CC-11, CC-12)
+  - DRY / KISS / YAGNI (4 rules: CC-06, CC-07, CC-13, CC-17)
+  - AI-specific guardrails (14 failure modes) — delegates to AIFailureModeDetector
 
 Also integrates the 14 AI failure modes from ``ai_failure_modes.py``,
 making this the single entry-point for production-code quality scanning.
@@ -64,14 +63,17 @@ class CodeGuard(BaseGuard):
             violations.extend(self._check_function_length(tree, source))
             violations.extend(self._check_parameter_count(tree, source))
             violations.extend(self._check_intent_revealing_names(tree, source))
+            violations.extend(self._check_boolean_flags(tree, source))
 
             # --- Comments & Structure ---
             violations.extend(self._check_why_not_what_comments(source))
+            violations.extend(self._check_commented_out_code(source))
 
             # --- SOLID ---
             violations.extend(self._check_srp_violations(tree, source))
 
             # --- DRY / KISS / YAGNI ---
+            violations.extend(self._check_cqs_violations(tree, source))
             violations.extend(self._check_complexity(tree, source))
 
         return GuardResult(
@@ -247,4 +249,136 @@ class CodeGuard(BaseGuard):
                                "or replacing conditionals with polymorphism.",
                     evidence=f"complexity = {complexity}",
                 ))
+        return violations
+
+    # ------------------------------------------------------------------
+    # CC-04: Boolean flag arguments
+    # ------------------------------------------------------------------
+    def _check_boolean_flags(self, tree: ast.AST, source: str) -> List[GuardViolation]:
+        """Flag boolean positional parameters — they usually indicate the
+        function does two different things and should be split."""
+        violations: List[GuardViolation] = []
+        for node in ast.walk(tree):
+            if not isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
+                continue
+            for arg in node.args.args:
+                if arg.arg in ('self', 'cls'):
+                    continue
+                # Check if the annotation is bool or the default is True/False
+                has_bool_default = False
+                defaults_start = len(node.args.args) - len(node.args.defaults)
+                arg_index = node.args.args.index(arg)
+                if arg_index >= defaults_start:
+                    default = node.args.defaults[arg_index - defaults_start]
+                    if isinstance(default, ast.Constant) and isinstance(default.value, bool):
+                        has_bool_default = True
+
+                has_bool_annotation = False
+                if arg.annotation:
+                    if isinstance(arg.annotation, ast.Name) and arg.annotation.id == 'bool':
+                        has_bool_annotation = True
+
+                if has_bool_default or has_bool_annotation:
+                    violations.append(GuardViolation(
+                        rule_id="CC-04",
+                        rule_name="Boolean flag argument",
+                        severity=GuardSeverity.SHOULD_FIX,
+                        description=f"Function '{node.name}' has boolean parameter '{arg.arg}'. "
+                                    "Boolean flags typically indicate a function does two things "
+                                    "and should be split into two functions.",
+                        location=f"function '{node.name}' (line {node.lineno})",
+                        suggestion=f"Split '{node.name}' into two functions, one for each "
+                                   f"boolean state of '{arg.arg}'.",
+                        evidence=f"param '{arg.arg}: bool'",
+                    ))
+        return violations
+
+    # ------------------------------------------------------------------
+    # CC-06: CQS violation — function returns value AND mutates state
+    # ------------------------------------------------------------------
+    def _check_cqs_violations(self, tree: ast.AST, source: str) -> List[GuardViolation]:
+        """Heuristic: functions that both return a value and call mutating
+        methods (append, extend, update, remove, pop, clear, sort) on
+        non-local objects."""
+        violations: List[GuardViolation] = []
+        MUTATING_METHODS = {'append', 'extend', 'insert', 'remove', 'pop', 'clear',
+                            'sort', 'reverse', 'update', 'add', 'discard'}
+        for node in ast.walk(tree):
+            if not isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
+                continue
+            has_return_value = False
+            has_mutation = False
+            mutation_evidence = ""
+            for child in ast.walk(node):
+                if isinstance(child, ast.Return) and child.value is not None:
+                    has_return_value = True
+                if (isinstance(child, ast.Call) and
+                        isinstance(child.func, ast.Attribute) and
+                        child.func.attr in MUTATING_METHODS):
+                    # Check if this is a mutation on a non-local object
+                    # self.x.method() or param.method() or external.method()
+                    obj = child.func.value
+                    is_nonlocal = False
+                    if isinstance(obj, ast.Name):
+                        param_names = {a.arg for a in node.args.args if a.arg not in ('self', 'cls')}
+                        if obj.id in param_names or obj.id == 'self':
+                            is_nonlocal = True
+                    elif isinstance(obj, ast.Attribute) and isinstance(obj.value, ast.Name):
+                        if obj.value.id == 'self':
+                            is_nonlocal = True
+                    if is_nonlocal:
+                        has_mutation = True
+                        if isinstance(obj, ast.Attribute):
+                            mutation_evidence = f"self.{obj.attr}.{child.func.attr}()"
+                        else:
+                            mutation_evidence = f"{obj.id}.{child.func.attr}()"
+
+            if has_return_value and has_mutation:
+                violations.append(GuardViolation(
+                    rule_id="CC-06",
+                    rule_name="CQS violation — reads and mutates",
+                    severity=GuardSeverity.SHOULD_FIX,
+                    description=f"Function '{node.name}' both returns a value and mutates "
+                                "state. Command-Query Separation says a function should "
+                                "either compute a value (query) or perform a side effect "
+                                "(command), not both.",
+                    location=f"function '{node.name}' (line {node.lineno})",
+                    suggestion="Split into a command that mutates and a query that returns. "
+                               "Or make the mutation explicit by returning the new state.",
+                    evidence=f"mutation: {mutation_evidence}",
+                ))
+        return violations
+
+    # ------------------------------------------------------------------
+    # CC-15: Commented-out code blocks
+    # ------------------------------------------------------------------
+    def _check_commented_out_code(self, source: str) -> List[GuardViolation]:
+        """Detect commented-out code — a sign of speculative or abandoned
+        code that should be removed or properly versioned."""
+        violations: List[GuardViolation] = []
+        # Patterns that suggest commented-out code rather than comments
+        code_patterns = [
+            r'#\s*(if|for|while|try|def|class|return|import|from|with|assert|raise)\s',
+            r'#\s*\w+\s*=\s*',       # assignment
+            r'#\s*\w+\.\w+\(',       # method call
+            r'#\s*print\s*\(',       # print statement
+        ]
+        for i, line in enumerate(source.split('\n'), 1):
+            stripped = line.strip()
+            if not stripped.startswith('#'):
+                continue
+            for pat in code_patterns:
+                if re.search(pat, stripped):
+                    violations.append(GuardViolation(
+                        rule_id="CC-15",
+                        rule_name="Commented-out code",
+                        severity=GuardSeverity.WORTH_NOTING,
+                        description="Commented-out code detected. Dead code should be removed — "
+                                    "version control tracks history, not comments.",
+                        location=f"line {i}",
+                        suggestion="Remove the commented-out code. Use version control (git) "
+                                   "to recover it if needed.",
+                        evidence=stripped[:80],
+                    ))
+                    break
         return violations

@@ -71,8 +71,14 @@ class TestGuard(BaseGuard):
             # T-03: One scenario per test
             violations.extend(self._check_multi_scenario(tree, source))
 
+            # T-04: Every test must justify its existence
+            violations.extend(self._check_test_justification(tree, source))
+
             # T-05: Name tests for the scenario
             violations.extend(self._check_test_naming(tree, source))
+
+            # T-06: Production regression tests are sacred
+            violations.extend(self._check_regression_tests(tree, source))
 
             # T-07: No tests for framework guarantees
             violations.extend(self._check_framework_guarantees(tree, source))
@@ -80,8 +86,15 @@ class TestGuard(BaseGuard):
             # T-08: State/value objects are real, never mocked
             violations.extend(self._check_mocked_value_objects(tree, source))
 
+            # T-09: Infrastructure under test gets real infrastructure
+            violations.extend(self._check_infrastructure_mocking(tree, source))
+
         # T-L1: LLM app testing — test prompt contracts not content
         violations.extend(self._check_llm_test_patterns(source))
+
+        # T-L2 & T-L3: LLM app testing — observability and agent-flow
+        violations.extend(self._check_llm_observability_patterns(source))
+        violations.extend(self._check_llm_agent_flow_patterns(source))
 
         # FM-14: Test asserts on mock behavior (delegated from AI failure modes)
         if self._ai_detector:
@@ -273,6 +286,109 @@ class TestGuard(BaseGuard):
         return violations
 
     # ------------------------------------------------------------------
+    # T-04: Every test must justify its existence
+    # ------------------------------------------------------------------
+    def _check_test_justification(self, tree: ast.AST, source: str) -> List[GuardViolation]:
+        """Heuristic: test functions with only 'pass' or trivial asserts."""
+        violations: List[GuardViolation] = []
+        for node in ast.walk(tree):
+            if not isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
+                continue
+            if not node.name.startswith('test_'):
+                continue
+            # Check if the test body is trivial (just pass, or only assert True)
+            body_strs = [ast.dump(n) for n in node.body]
+            if len(body_strs) == 1:
+                if 'Pass' in body_strs[0]:
+                    violations.append(GuardViolation(
+                        rule_id="T-04",
+                        rule_name="Test does not justify its existence",
+                        severity=GuardSeverity.SHOULD_FIX,
+                        description=f"Test '{node.name}' contains only 'pass'. "
+                                    "Every test must verify meaningful behavior.",
+                        location=f"function '{node.name}' (line {node.lineno})",
+                        suggestion="Either implement the test or remove it. Empty tests "
+                                   "give a false sense of coverage.",
+                        evidence="test body is 'pass'",
+                    ))
+                elif 'Constant(value=True)' in body_strs[0]:
+                    violations.append(GuardViolation(
+                        rule_id="T-04",
+                        rule_name="Test does not justify its existence",
+                        severity=GuardSeverity.SHOULD_FIX,
+                        description=f"Test '{node.name}' only asserts True. "
+                                    "This test can never fail and provides no coverage.",
+                        location=f"function '{node.name}' (line {node.lineno})",
+                        suggestion="Assert on actual system behavior, or remove the test.",
+                        evidence="assert True",
+                    ))
+        return violations
+
+    # ------------------------------------------------------------------
+    # T-06: Production regression tests are sacred
+    # ------------------------------------------------------------------
+    def _check_regression_tests(self, tree: ast.AST, source: str) -> List[GuardViolation]:
+        """Detect tests that skip or modify a regression test's core assertion."""
+        violations: List[GuardViolation] = []
+        # Heuristic: @skip or @xfail decorators on tests that reference
+        # bug/issue/regression in their name
+        skip_pattern = r'@(skip|xfail)\b'
+        regression_name_pattern = r'test_.*(regression|bug|issue|fix|crash|error)_'
+        for match in re.finditer(skip_pattern, source):
+            line_num = source[:match.start()].count('\n') + 1
+            # Check if nearby test name mentions regression
+            surrounding = source[max(0, match.start() - 200):match.end() + 200]
+            if re.search(regression_name_pattern, surrounding, re.IGNORECASE):
+                violations.append(GuardViolation(
+                    rule_id="T-06",
+                    rule_name="Regression test skipped or xfailed",
+                    severity=GuardSeverity.MUST_FIX,
+                    description="A regression test is marked with @skip or @xfail. "
+                                "Regression tests must never be disabled — they are the "
+                                "canonical record that a bug was fixed.",
+                    location=f"line {line_num}",
+                    suggestion="Fix the test so it passes. If the underlying bug is not "
+                               "fixed, fix the bug. Never skip a regression test.",
+                    evidence=match.group(0),
+                ))
+        return violations
+
+    # ------------------------------------------------------------------
+    # T-09: Infrastructure under test gets real infrastructure
+    # ------------------------------------------------------------------
+    def _check_infrastructure_mocking(self, tree: ast.AST, source: str) -> List[GuardViolation]:
+        """Heuristic: mocking database or message-queue interactions in
+        integration-like tests (test files containing 'integration' or 'e2e')."""
+        violations: List[GuardViolation] = []
+        # Only flag if the test file looks like an integration test
+        is_integration = bool(re.search(
+            r'(integration|e2e|end.to.end|system)', source, re.IGNORECASE
+        ))
+        if not is_integration:
+            return violations
+
+        # Flag mocking of databases and message queues in integration tests
+        infra_mock_patterns = [
+            (r'patch\(["\'].*(?:database|db|redis|kafka|rabbitmq|celery)', "database/messaging mock in integration test"),
+            (r'MagicMock.*(?:Database|Repository|Queue|Broker)', "infrastructure mock in integration test"),
+        ]
+        for pat, desc in infra_mock_patterns:
+            for match in re.finditer(pat, source, re.IGNORECASE):
+                line_num = source[:match.start()].count('\n') + 1
+                violations.append(GuardViolation(
+                    rule_id="T-09",
+                    rule_name="Infrastructure mocked in integration test",
+                    severity=GuardSeverity.SHOULD_FIX,
+                    description=f"Detected {desc}. Integration tests should use real "
+                                "infrastructure (test databases, containers) not mocks.",
+                    location=f"line {line_num}",
+                    suggestion="Use a real test database (SQLite in-memory, test container) "
+                               "instead of mocking infrastructure in integration tests.",
+                    evidence=match.group(0)[:80],
+                ))
+        return violations
+
+    # ------------------------------------------------------------------
     # T-L1: LLM app testing patterns
     # ------------------------------------------------------------------
     def _check_llm_test_patterns(self, source: str) -> List[GuardViolation]:
@@ -297,4 +413,84 @@ class TestGuard(BaseGuard):
                 evidence=match.group(0)[:80],
             ))
 
+        return violations
+
+    # ------------------------------------------------------------------
+    # T-L2: LLM app testing — observability is infrastructure
+    # ------------------------------------------------------------------
+    def _check_llm_observability_patterns(self, source: str) -> List[GuardViolation]:
+        """Check that LLM tests verify observability (logging, tracing, metrics)
+        rather than just input/output.
+
+        Heuristic: tests that call LLM agents but have no assertions on
+        logs, traces, or token counts — the test only checks output.
+        """
+        violations: List[GuardViolation] = []
+        # Pattern: test creates an LLM agent/call but doesn't check observability
+        llm_call_pattern = r'(?:agent|llm|completion|chat|prompt|openai|claude)\s*\('
+        has_llm_call = bool(re.search(llm_call_pattern, source, re.IGNORECASE))
+
+        if has_llm_call:
+            # Check if there are any observability-related assertions
+            observability_patterns = [
+                r'log', r'trace', r'span', r'metric', r'token', r'latency',
+                r'cost', r'duration', r'telemetry',
+            ]
+            has_observability = any(
+                re.search(pat, source, re.IGNORECASE) for pat in observability_patterns
+            )
+            if not has_observability:
+                violations.append(GuardViolation(
+                    rule_id="T-L2",
+                    rule_name="LLM test lacks observability assertions",
+                    severity=GuardSeverity.SHOULD_FIX,
+                    description="Test invokes LLM functionality but does not assert on "
+                                "observability data (logs, traces, token counts, latency). "
+                                "Observability is infrastructure for LLM apps.",
+                    location="entire test file",
+                    suggestion="Add assertions for token usage, latency bounds, or trace "
+                               "span existence. LLM tests should verify the system is "
+                               "observable, not just that it produces output.",
+                    evidence="LLM call without observability checks",
+                ))
+        return violations
+
+    # ------------------------------------------------------------------
+    # T-L3: LLM app testing — agent-flow tests test transitions
+    # ------------------------------------------------------------------
+    def _check_llm_agent_flow_patterns(self, source: str) -> List[GuardViolation]:
+        """Check that agent-flow tests verify state transitions, not just
+        final output.
+
+        Heuristic: tests that assert only on the final result of an agent
+        chain without checking intermediate steps or state transitions.
+        """
+        violations: List[GuardViolation] = []
+        # Pattern: test that uses agent workflow but only checks final result
+        agent_flow_pattern = r'(?:workflow|pipeline|chain|agent_run|run_agent|execute_agent)'
+        has_agent_flow = bool(re.search(agent_flow_pattern, source, re.IGNORECASE))
+
+        if has_agent_flow:
+            # Check for transition/step assertions
+            transition_patterns = [
+                r'step', r'transition', r'state', r'stage', r'phase',
+                r'intermediate', r'before', r'after',
+            ]
+            has_transition_assertions = any(
+                re.search(pat, source, re.IGNORECASE) for pat in transition_patterns
+            )
+            if not has_transition_assertions:
+                violations.append(GuardViolation(
+                    rule_id="T-L3",
+                    rule_name="Agent-flow test lacks transition assertions",
+                    severity=GuardSeverity.SHOULD_FIX,
+                    description="Test exercises an agent workflow/pipeline but only "
+                                "asserts on the final result. Agent-flow tests should "
+                                "verify state transitions between steps.",
+                    location="entire test file",
+                    suggestion="Add assertions that verify intermediate states: "
+                               "what changed between step N and step N+1? Did the agent "
+                               "transition to the expected state?",
+                    evidence="agent flow without transition checks",
+                ))
         return violations
