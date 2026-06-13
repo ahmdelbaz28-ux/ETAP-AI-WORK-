@@ -95,7 +95,7 @@ if __name__ == "__main__":
     try:
         args = sys.argv[1:]
         res = calculate_arc_flash(
-            float(args[0]), float(args[1]), float(args[2]), 
+            float(args[0]), float(args[1]), float(args[2]),
             float(args[3]), args[4], args[5]
         )
         print(json.dumps(res))

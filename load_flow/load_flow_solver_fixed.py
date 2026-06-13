@@ -150,7 +150,7 @@ class LoadFlowSolver:
 
     def _apply_step_limiting(self, correction):
         """Apply step limits using uniform scaling to preserve Newton direction.
-        
+
         Individual clipping distorts the correction direction, causing oscillation
         on radial networks. Uniform scaling keeps the direction intact.
         """

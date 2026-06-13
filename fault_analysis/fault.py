@@ -4,7 +4,7 @@ class FaultAnalyzer:
     def __init__(self, ybus_pos, ybus_neg=None, ybus_zero=None, base_mva=100.0, base_kv=115.0):
         """
         Initialize the FaultAnalyzer with sequence admittance matrices.
-        
+
         Parameters:
         ybus_pos (numpy.ndarray): Positive sequence Ybus matrix.
         ybus_neg (numpy.ndarray): Negative sequence Ybus matrix (optional, defaults to ybus_pos).

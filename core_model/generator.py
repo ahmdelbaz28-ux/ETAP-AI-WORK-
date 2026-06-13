@@ -1,8 +1,8 @@
 import numpy as np
 
 class Generator:
-    def __init__(self, generator_id, bus, 
-                 internal_voltage=None, 
+    def __init__(self, generator_id, bus,
+                 internal_voltage=None,
                  impedance=None,
                  max_power=None, min_power=None):
         """

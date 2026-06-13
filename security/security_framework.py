@@ -175,7 +175,7 @@ class AuthenticationManager:
 
     def _verify_password(self, password: str, password_hash: str) -> bool:
         """Verify password against bcrypt hash.
-        
+
         bcrypt.checkpw performs constant-time comparison internally.
         """
         try:

@@ -73,15 +73,15 @@ class ChartGenerator:
     def __init__(self):
         self.logger = logging.getLogger("chart_generator")
 
-    def generate_voltage_profile_chart(self, bus_data: Dict, 
+    def generate_voltage_profile_chart(self, bus_data: Dict,
                                        output_path: str) -> str:
         """
         Generate voltage profile chart.
-        
+
         Parameters:
         bus_data: Dictionary of bus_id -> voltage magnitude
         output_path: Path to save chart
-        
+
         Returns:
         Path to generated chart file
         """
@@ -304,12 +304,12 @@ class PDFReportGenerator:
                        output_path: str) -> str:
         """
         Generate complete PDF report.
-        
+
         Parameters:
         metadata: Report metadata
         sections: Report sections
         output_path: Directory to save report
-        
+
         Returns:
         Path to generated PDF file
         """
@@ -566,7 +566,7 @@ class XLSXReportGenerator:
 class ReportGenerationAgent:
     """
     Complete report generation system.
-    
+
     Coordinates all report generators to produce comprehensive engineering reports.
     """
 
@@ -584,13 +584,13 @@ class ReportGenerationAgent:
                                       output_path: str = './reports') -> Dict[str, str]:
         """
         Generate complete engineering report in multiple formats.
-        
+
         Parameters:
         analysis_results: Results from all engineering analyses
         metadata: Report metadata (optional)
         formats: Output formats to generate
         output_path: Directory to save reports
-        
+
         Returns:
         Dictionary mapping format to file path
         """
@@ -631,7 +631,7 @@ class ReportGenerationAgent:
 
         return generated_files
 
-    def _compile_sections(self, analysis_results: Dict, 
+    def _compile_sections(self, analysis_results: Dict,
                          output_path: str) -> List[ReportSection]:
         """Compile all analysis results into report sections."""
         sections = []
