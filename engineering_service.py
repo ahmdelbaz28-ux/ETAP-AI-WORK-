@@ -108,7 +108,7 @@ def _to_jsonable(obj: Any) -> Any:
 # Ensure project root is on path
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from fastapi import FastAPI, HTTPException, Request
+from fastapi import FastAPI, HTTPException, Request, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from pydantic import AliasChoices, BaseModel, ConfigDict, Field, field_validator
@@ -941,6 +941,66 @@ async def generic_exception_handler(request: Request, exc: Exception):
         status_code=500,
         content={"success": False, "errors": ["Internal server error"], "trace_id": trace_id},
     )
+
+
+# ---------------------------------------------------------------------------
+# WebSocket API for Real-Time Study Updates
+# ---------------------------------------------------------------------------
+
+class ConnectionManager:
+    """Manage WebSocket connections for real-time study updates."""
+
+    def __init__(self) -> None:
+        self.active_connections: Dict[str, List[WebSocket]] = {}
+
+    async def connect(self, websocket: WebSocket, study_id: str) -> None:
+        """Accept and register a WebSocket connection for a given study."""
+        await websocket.accept()
+        if study_id not in self.active_connections:
+            self.active_connections[study_id] = []
+        self.active_connections[study_id].append(websocket)
+
+    def disconnect(self, websocket: WebSocket, study_id: str) -> None:
+        """Remove a WebSocket connection from the active set."""
+        if study_id in self.active_connections:
+            self.active_connections[study_id].remove(websocket)
+            if not self.active_connections[study_id]:
+                del self.active_connections[study_id]
+
+    async def broadcast(self, study_id: str, message: dict) -> None:
+        """Broadcast a JSON message to all connections subscribed to a study."""
+        if study_id in self.active_connections:
+            for connection in self.active_connections[study_id]:
+                try:
+                    await connection.send_json(message)
+                except Exception:
+                    pass
+
+
+_ws_manager = ConnectionManager()
+
+
+@app.websocket("/ws/study/{study_id}")
+async def websocket_study_updates(websocket: WebSocket, study_id: str) -> None:
+    """WebSocket endpoint for real-time study progress updates.
+
+    Streams progress updates for long-running studies:
+    - Study start/complete notifications
+    - Iteration progress (e.g., "Load Flow: iteration 3/10")
+    - Intermediate results
+    - Error notifications
+    """
+    await _ws_manager.connect(websocket, study_id)
+    try:
+        while True:
+            data = await websocket.receive_json()
+            # Client can send commands
+            if data.get("command") == "subscribe":
+                await websocket.send_json({"type": "subscribed", "study_id": study_id})
+            elif data.get("command") == "ping":
+                await websocket.send_json({"type": "pong"})
+    except WebSocketDisconnect:
+        _ws_manager.disconnect(websocket, study_id)
 
 
 # ---------------------------------------------------------------------------
