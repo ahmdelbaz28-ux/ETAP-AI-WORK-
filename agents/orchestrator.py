@@ -522,7 +522,7 @@ class HarmonicAnalysisAgent(BaseAgent):
 
             # Set system data
             Ybus = system_data.get_ybus(seq='1')
-            bus_ids = list(system_data.buses.keys())
+            bus_ids = sorted(system_data.buses.keys())
             engine.set_system_data(Ybus, bus_ids)
 
             # Add harmonic sources
@@ -617,9 +617,7 @@ class OptimalPowerFlowAgent(BaseAgent):
 
             # Create OPF engine
             Ybus = system_data.get_ybus(seq='1')
-            bus_ids = list(system_data.buses.keys())
-
-            # Convert generator costs
+            bus_ids = sorted(system_data.buses.keys())
             costs = [GeneratorCost(**gc) for gc in generator_costs]
 
             opf = OptimalPowerFlowEngine(Ybus, bus_ids, costs)

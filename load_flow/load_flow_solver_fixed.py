@@ -391,7 +391,12 @@ class LoadFlowSolver:
             })
 
             if max_mismatch < tol:
-                self._check_q_limits(self.V)
+                switched = self._check_q_limits(self.V)
+                if switched:
+                    # A PV bus hit its Q limit and was switched to PQ.
+                    # The solution with the old bus types is no longer valid
+                    # — continue iterating with the updated type indices.
+                    continue
                 # Write back results to system buses
                 P, Q = self._calculate_power(self.V)
                 for i, bid in enumerate(self.bus_ids):

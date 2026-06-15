@@ -708,8 +708,9 @@ async def forgot_password(
         db.add(user)
         await db.flush()
 
-        # In production, send the token via email. For now we return it
-        # directly so the flow is testable without an SMTP server.
+        # In production, send the token via email. The raw token is NOT
+        # included in the response — only its SHA-256 hash is stored in
+        # the DB.  For testing, use the /reset-password endpoint directly.
         return {
             "message": "If the email exists, a reset token has been sent",
         }

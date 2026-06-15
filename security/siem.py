@@ -552,7 +552,7 @@ class SIEMForwarder:
                 "buffered": len(self._buffer),
                 "total_buffered": self._stats["total_buffered"],
                 "dropped": self._stats["dropped"],
-                "buffer_size": len(self._buffer),
+                "buffer_size": self.buffer_size,
                 "siem_type": self.siem_type,
                 "endpoint": self.endpoint,
             }

@@ -41,11 +41,12 @@ class HarmonicSource:
     magnitude_pu: float  # Per-unit magnitude
     angle_deg: float     # Phase angle in degrees
     source_type: str = "current"  # "current" or "voltage"
+    fundamental_freq: float = 60.0  # System fundamental frequency (Hz)
 
     @property
     def frequency_hz(self) -> float:
         """Calculate frequency for this harmonic."""
-        return self.harmonic_order * 60.0
+        return self.harmonic_order * self.fundamental_freq
 
 
 @dataclass
