@@ -1,0 +1,29 @@
+{
+  "project_path": "C:/Users/EWS-01/Desktop/my-awesome-agent",
+  "project_name": "etap-ai-engineering-platform",
+  "type": "fullstack",
+  "local_port": 5173,
+  "test_scope": "codebase",
+  "version": "1.0.0",
+  "timestamp": "2026-06-15T10:00:00Z",
+  "languages": ["python", "typescript", "javascript"],
+  "frameworks": {
+    "backend": "fastapi",
+    "frontend": "react",
+    "ai_agents": "mastra",
+    "testing": "vitest"
+  },
+  "features": {
+    "load_flow": true,
+    "short_circuit": true,
+    "arc_flash": true,
+    "harmonic_analysis": true,
+    "protection_coordination": true,
+    "motor_starting": true,
+    "optimal_power_flow": true,
+    "etap_integration": true,
+    "gis_integration": true,
+    "digital_twin": true,
+    "scada": true
+  }
+}
