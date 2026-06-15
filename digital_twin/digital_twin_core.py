@@ -1331,8 +1331,6 @@ class LivePowerSystemEngine:
         """
         Run fault analysis with current live topology.
         """
-        time.time()
-
         # Ensure sequence networks are current
         if self.dt_state.system is not None:
             self.dt_state.system.Ybus_seq.clear()

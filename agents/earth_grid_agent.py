@@ -291,17 +291,20 @@ class EarthGridAgent(BaseAgent):
         n_parallel = max(2, int(grid_width_m / 3.0) + 1)
         n_cross = max(2, int(grid_length_m / 3.0) + 1)
         D = grid_width_m / (n_parallel - 1) if n_parallel > 1 else grid_width_m
-        d = conductor_diameter_m
         h = depth_m
 
         L_total = n_parallel * grid_length_m + n_cross * grid_width_m
         L_rods = n_rods * rod_length_m
         L_S = 0.75 * L_total + L_rods  # Effective length for step voltage
 
-        # Step voltage factor K_s (IEEE 80 Eq. 71)
-        K_s = (1.0 / (2.0 * np.pi)) * (
-            np.log(D ** 2 / (16.0 * h * d))
-            + np.log((3.0 * h) / d)
+        # Step voltage geometric factor K_s (IEEE 80-2013 Eq. 71)
+        # K_s = (1/π) * [0.5*ln(1 + (D/(2h))^2) + h/D - sqrt(1 + (2h/D)^2) + 1]
+        two_h_over_D = 2.0 * h / D if D > 0 else 0.0
+        K_s = (1.0 / np.pi) * (
+            0.5 * np.log(1.0 + (D / (2.0 * h)) ** 2)
+            + h / D
+            - np.sqrt(1.0 + two_h_over_D ** 2)
+            + 1.0
         )
 
         # Irregularity factor (same as mesh voltage)

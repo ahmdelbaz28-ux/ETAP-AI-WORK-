@@ -293,7 +293,8 @@ class StateStore:
             # Remove all snapshots after target
             self._snapshots = self._snapshots[:target_idx + 1]
             self._current_version = version
-            return self._snapshots[-1]
+            # Return a deep copy to prevent external mutation of internal state
+            return copy.deepcopy(self._snapshots[-1])
 
     def diff(self, version_a: int, version_b: int) -> Optional[Dict[str, Any]]:
         """

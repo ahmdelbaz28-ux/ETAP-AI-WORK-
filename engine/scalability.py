@@ -144,7 +144,10 @@ class TaskItem:
 class DistributedTaskQueue:
     def __init__(self, queue_type: str = "memory") -> None:
         self.queue_type = queue_type
-        self._lock = threading.Lock()
+        # Use RLock (reentrant lock) to prevent deadlock when methods that
+        # hold the lock call other methods that also acquire it (e.g.
+        # get_queue_statistics → get_queue_depth).
+        self._lock = threading.RLock()
         self._queue: List[TaskItem] = []
         self._tasks: Dict[str, TaskItem] = {}
         self._completed: Dict[str, TaskItem] = {}

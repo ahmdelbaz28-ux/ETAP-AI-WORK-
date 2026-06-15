@@ -78,7 +78,9 @@ class System:
             j = bus_index[xf.to_bus.bus_id]
             z = xf.get_impedance(seq)
             y = 1.0 / z if abs(z) > 1e-12 else 0
-            y_shunt = xf.get_shunt_admittance(seq)
+            # Transformer shunt admittance is split equally between the two
+            # buses, consistent with the π-model (half on each side).
+            y_shunt_half = xf.get_shunt_admittance(seq) / 2.0
 
             # Handle tap ratio and phase shift for transformers
             tap = xf.tap_ratio
@@ -90,14 +92,14 @@ class System:
                 a = tap * np.exp(1j * phase_shift)
 
                 # Ybus entries for tap-changing transformer (standard formulation)
-                Ybus[i, i] += (y / (abs(a)**2)) + y_shunt
-                Ybus[j, j] += y + y_shunt
+                Ybus[i, i] += (y / (abs(a)**2)) + y_shunt_half
+                Ybus[j, j] += y + y_shunt_half
                 Ybus[i, j] -= y / np.conj(a)
                 Ybus[j, i] -= y / a
             else:
                 # Standard transformer (tap = 1.0, no phase shift)
-                Ybus[i, i] += y + y_shunt
-                Ybus[j, j] += y + y_shunt
+                Ybus[i, i] += y + y_shunt_half
+                Ybus[j, j] += y + y_shunt_half
                 Ybus[i, j] -= y
                 Ybus[j, i] -= y
 

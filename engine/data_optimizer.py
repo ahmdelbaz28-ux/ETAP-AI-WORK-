@@ -321,7 +321,10 @@ class DataCompressor:
                 c64.real, c64.imag = r.real.astype(np.float32), r.imag.astype(np.float32)
                 comp[key] = c64
             else:
-                comp[key] = v
+                # Copy the array to avoid sharing the reference with the
+                # caller's data (np.asarray returns the same object when the
+                # input is already a numpy array).
+                comp[key] = v.copy() if isinstance(value, np.ndarray) else v
             self._comp += comp[key].nbytes if hasattr(comp[key], 'nbytes') else v.nbytes
         comp['_precision'] = precision
         return comp
@@ -338,7 +341,9 @@ class DataCompressor:
             elif v.dtype == np.float32:
                 restored[k] = v.astype(np.float64)
             else:
-                restored[k] = v
+                # Copy to avoid leaking the internal reference from the
+                # compressed dict back to the caller.
+                restored[k] = v.copy() if isinstance(v, np.ndarray) else v
         return restored
 
     def compress_system_state(self, system: Union[System, MemoryOptimizedSystem]) -> Dict[str, Any]:
