@@ -96,7 +96,43 @@ jobs:
           echo "File sync completed"
 
       # -----------------------------------------------------------------------
-      # Step 4b: Apply HuggingFace-specific configuration
+      # Step 4b: Set up Git LFS for binary files
+      # -----------------------------------------------------------------------
+      - name: Set up Git LFS for binary assets
+        run: |
+          cd /tmp/hf-space
+
+          # Install git-lfs if not present
+          if ! command -v git-lfs &> /dev/null; then
+            echo "Installing git-lfs..."
+            sudo apt-get update -qq && sudo apt-get install -y -qq git-lfs
+          fi
+
+          git lfs install
+
+          # Track binary image files with LFS (HF Spaces rejects large binaries)
+          git lfs track "*.png"
+          git lfs track "*.jpg"
+          git lfs track "*.jpeg"
+          git lfs track "*.gif"
+          git lfs track "*.ico"
+          git lfs track "*.svg"
+          git lfs track "*.woff"
+          git lfs track "*.woff2"
+          git lfs track "*.eot"
+          git lfs track "*.ttf"
+          git lfs track "*.mp4"
+          git lfs track "*.webp"
+
+          # Ensure .gitattributes is tracked
+          if [ -f .gitattributes ]; then
+            git add .gitattributes
+          fi
+
+          echo "✅ Git LFS configured for binary files"
+
+      # -----------------------------------------------------------------------
+      # Step 4c: Apply HuggingFace-specific configuration
       # -----------------------------------------------------------------------
       - name: Apply HuggingFace configuration
         run: |
