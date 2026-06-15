@@ -322,10 +322,10 @@ class IEC60909Engine:
         Z2 = self.Zbus_neg[bus_index, bus_index]
         Z0 = self.Zbus_zero[bus_index, bus_index]
 
-        # Sequence currents
+        # Sequence currents for SLG fault: I0 = I1 = I2 (series connection)
         I1 = V_pre / (Z1 + Z2 + Z0)
-        I2 = -I1
-        I0 = -I1
+        I2 = I1
+        I0 = I1
 
         # Phase A current = 3 * I1 (for SLG fault)
         Ia = 3 * I1
@@ -401,9 +401,12 @@ class IEC60909Engine:
         I0 = complex(0, 0)
 
         # Phase currents for LL fault (B-C fault)
+        # I2 = -I1, I0 = 0 for line-to-line fault
         Ia = complex(0, 0)
-        Ib_phase = -I1 * (1 + np.exp(-1j * 2 * np.pi / 3))
-        Ic_phase = -I1 * (1 + np.exp(1j * 2 * np.pi / 3))
+        a_op = np.exp(1j * 2 * np.pi / 3)
+        a2_op = np.exp(-1j * 2 * np.pi / 3)
+        Ib_phase = a2_op * I1 + a_op * I2 + I0
+        Ic_phase = a_op * I1 + a2_op * I2 + I0
 
         # Magnitude of fault current
         Ik_pu = abs(Ib_phase)

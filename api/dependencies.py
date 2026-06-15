@@ -50,6 +50,14 @@ JWT_ALGORITHM: str = "HS256"
 # ---------------------------------------------------------------------------
 
 API_KEY: str = os.getenv("ENGINEERING_SERVICE_API_KEY", "")
+if not API_KEY:
+    _env = os.getenv("ENVIRONMENT", os.getenv("ENV", "development")).lower()
+    if _env in ("production", "prod", "staging"):
+        raise RuntimeError(
+            "ENGINEERING_SERVICE_API_KEY must be set in production/staging. "
+            "Refusing to start with no API key."
+        )
+    logger.warning("ENGINEERING_SERVICE_API_KEY not set — API key auth disabled in development")
 
 
 # ---------------------------------------------------------------------------

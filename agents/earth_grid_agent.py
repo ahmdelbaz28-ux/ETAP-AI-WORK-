@@ -299,13 +299,17 @@ class EarthGridAgent(BaseAgent):
 
         # Step voltage geometric factor K_s (IEEE 80-2013 Eq. 71)
         # K_s = (1/π) * [0.5*ln(1 + (D/(2h))^2) + h/D - sqrt(1 + (2h/D)^2) + 1]
-        two_h_over_D = 2.0 * h / D if D > 0 else 0.0
-        K_s = (1.0 / np.pi) * (
-            0.5 * np.log(1.0 + (D / (2.0 * h)) ** 2)
-            + h / D
-            - np.sqrt(1.0 + two_h_over_D ** 2)
-            + 1.0
-        )
+        # Guard against division by zero when h=0 or D=0
+        if h <= 0 or D <= 0:
+            K_s = 0.0
+        else:
+            two_h_over_D = 2.0 * h / D
+            K_s = (1.0 / np.pi) * (
+                0.5 * np.log(1.0 + (D / (2.0 * h)) ** 2)
+                + h / D
+                - np.sqrt(1.0 + two_h_over_D ** 2)
+                + 1.0
+            )
 
         # Irregularity factor (same as mesh voltage)
         K_i = 0.656 + 0.172 * n_parallel

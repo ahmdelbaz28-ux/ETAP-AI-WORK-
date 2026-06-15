@@ -259,15 +259,19 @@ class StateStore:
         with self._lock:
             if not self._snapshots:
                 return None
-            return copy.deepcopy(self._snapshots[-1])
+            ref = self._snapshots[-1]
+        return copy.deepcopy(ref)
 
     def get_version(self, version: int) -> Optional[StateSnapshot]:
         """Get a specific version of the state."""
         with self._lock:
             for s in self._snapshots:
                 if s.version == version:
-                    return copy.deepcopy(s)
-            return None
+                    ref = s
+                    break
+            else:
+                return None
+        return copy.deepcopy(ref)
 
     def get_current_version(self) -> int:
         """Get the current version number."""
@@ -293,8 +297,11 @@ class StateStore:
             # Remove all snapshots after target
             self._snapshots = self._snapshots[:target_idx + 1]
             self._current_version = version
-            # Return a deep copy to prevent external mutation of internal state
-            return copy.deepcopy(self._snapshots[-1])
+            # Return a deep copy to prevent external mutation of internal state.
+            # Copy the reference under the lock, then deepcopy outside to
+            # reduce lock contention on read-heavy paths.
+            ref = self._snapshots[-1]
+        return copy.deepcopy(ref)
 
     def diff(self, version_a: int, version_b: int) -> Optional[Dict[str, Any]]:
         """
