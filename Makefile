@@ -136,6 +136,30 @@ db-restore: ## Restore database from backup
 	@echo "Restore complete!"
 
 # CI/CD
+# Security
+security-audit: ## Run all security scans locally
+	@echo "=== Security Audit ==="
+	@echo ""
+	@echo "— npm audit —"
+	pnpm audit --audit-level=high 2>&1 || echo "⚠  npm audit warnings above"
+	@echo ""
+	@echo "— pip-audit —"
+	@command -v pip-audit >/dev/null 2>&1 || pip install pip-audit -q
+	python -m pip_audit 2>&1 || echo "⚠  pip-audit warnings above"
+	@echo ""
+	@echo "— Trivy (filesystem) —"
+	@command -v trivy >/dev/null 2>&1 && trivy fs --severity CRITICAL,HIGH . || echo "trivy not installed — install from https://trivy.dev"
+	@echo ""
+	@echo "— TruffleHog (secrets) —"
+	@command -v trufflehog >/dev/null 2>&1 && trufflehog filesystem --no-verification . || echo "trufflehog not installed — install from https://github.com/trufflesecurity/trufflehog"
+	@echo ""
+	@echo "Security audit done!"
+
+security-ci: ## Install CI security tools locally (for testing GitHub Actions locally)
+	@echo "Installing CI security tools..."
+	pip install pip-audit
+	@echo "Done. Run 'make security-audit' to execute scans."
+
 ci-test: ## Run CI tests
 	@echo "Running CI pipeline..."
 	make lint
