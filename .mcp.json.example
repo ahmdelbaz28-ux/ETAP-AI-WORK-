@@ -21,6 +21,7 @@
     "TestSprite": {
       "command": "npx",
       "args": [
+        "-y",
         "@testsprite/testsprite-mcp@latest"
       ],
       "env": {
