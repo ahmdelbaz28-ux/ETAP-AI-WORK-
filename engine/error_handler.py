@@ -95,6 +95,10 @@ class AlertManager:
         self._rules: list[dict] = []
         self._lock = threading.Lock()
 
+    def __repr__(self) -> str:
+        email_status = "configured" if self._email_config else "not configured"
+        return f"AlertManager(email={email_status}, rules={len(self._rules)})"
+
     # ------------------------------------------------------------------
     # Configuration
     # ------------------------------------------------------------------

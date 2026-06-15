@@ -120,6 +120,47 @@ def main():
     audit.log_action('agent_tool', 'execute_python', 'restricted_sandbox', True)
 
     import math
+
+    def _deep_freeze_module(mod):
+        """Deep-freeze a module by nullifying dangerous attributes at all levels.
+
+        This prevents sandbox escape via paths like:
+          numpy.sys.modules['os'].system('cmd')
+          scipy.__builtins__['__import__']('os')
+        """
+        if mod is None:
+            return
+        DANGEROUS_NAMES = {
+            'os', 'system', 'popen', 'spawn', 'exec', 'eval', 'execfile',
+            'load', 'loads', '__builtins__', '__import__', 'subprocess',
+            'ctypes', 'signal', 'socket', 'sys',
+        }
+        _processed = set()
+
+        def _nullify(obj, depth=0):
+            if depth > 5 or id(obj) in _processed:
+                return
+            _processed.add(id(obj))
+            if not hasattr(obj, '__dict__') and not (hasattr(obj, '__path__') or hasattr(obj, '__name__')):
+                return
+            for attr_name in dir(obj):
+                if attr_name.startswith('_') and attr_name not in ('__builtins__', '__import__'):
+                    continue
+                if attr_name in DANGEROUS_NAMES:
+                    try:
+                        object.__setattr__(obj, attr_name, None)
+                    except (AttributeError, TypeError):
+                        pass
+                elif depth < 3:
+                    try:
+                        child = getattr(obj, attr_name, None)
+                        if child is not None and hasattr(child, '__name__'):
+                            _nullify(child, depth + 1)
+                    except Exception:
+                        pass
+
+        _nullify(mod)
+
     safe_globals = {
         '__builtins__': {
             'abs': abs, 'all': all, 'any': any, 'bool': bool, 'dict': dict,
@@ -132,12 +173,6 @@ def main():
             'enumerate': enumerate, 'zip': zip, 'reversed': reversed, 'sorted': sorted,
             'map': map, 'filter': filter, 'isinstance': isinstance, 'issubclass': issubclass,
             'True': True, 'False': False, 'None': None,
-            # `__import__` is exposed so the validator's allow-list (see
-            # InputValidator.validate_python_code) is actually enforced at
-            # execution time, not just at validation time. Every import the
-            # executed code attempts is checked against `allowed_imports`
-            # by the validator BEFORE this sandbox runs the code; an
-            # unauthorized import never reaches `exec`.
             # __import__ is deliberately EXCLUDED from the sandbox.
             # All allowed modules must be pre-imported and injected into
             # safe_globals explicitly. This closes the sandbox-escape vector
@@ -150,18 +185,11 @@ def main():
         'numpy': __import__('numpy') if 'numpy' in sys.modules else None,
         'scipy': __import__('scipy') if 'scipy' in sys.modules else None,
     }
-    # Remove potentially dangerous attributes from numpy/scipy to prevent sandbox escape
+    # Deep-freeze numpy/scipy to prevent sandbox escape via their submodules
     for mod_name in ('numpy', 'scipy'):
         mod = safe_globals.get(mod_name)
         if mod is not None:
-            # Block access to os/system/popen via module attributes
-            for attr in ('os', 'system', 'popen', 'spawn', 'exec', 'eval',
-                        'load', 'loads', '__builtins__', '__import__'):
-                if hasattr(mod, attr):
-                    try:
-                        delattr(mod, attr)
-                    except (AttributeError, TypeError):
-                        pass
+            _deep_freeze_module(mod)
 
     try:
         import signal

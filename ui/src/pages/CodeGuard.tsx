@@ -3,10 +3,10 @@ import { useTranslation } from 'react-i18next'
 import { motion } from 'framer-motion'
 import {
   Shield, AlertTriangle, AlertCircle, Info,
-  Play, Code, FileText, TestTube, Bug, Send
+  Code, FileText, TestTube, Bug, Send
 } from 'lucide-react'
 import { useNotify } from '../context/NotificationContext'
-import { guardReview, fetchGuardInfo, type GuardReviewResult, type GuardViolation } from '../lib/api'
+import { guardReview, type GuardReviewResult, type GuardViolation } from '../lib/api'
 import { Card, CardHeader, Badge } from '../components/ui'
 
 const fadeIn = {

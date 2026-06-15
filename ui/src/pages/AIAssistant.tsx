@@ -1,10 +1,9 @@
 import { useState, useRef, useEffect } from 'react'
-import { useTranslation } from 'react-i18next'
 import { motion } from 'framer-motion'
-import { Bot, Send, User, Sparkles, Cpu, Copy, RotateCcw, Code, MessageSquare } from 'lucide-react'
+import { Bot, Send, User, Sparkles, Cpu, Copy, RotateCcw, MessageSquare } from 'lucide-react'
 import { useNotify } from '../context/NotificationContext'
 import { chatWithAgent, fetchAgents, type AgentMeta } from '../lib/api'
-import { Card, Badge, Button } from '../components/ui'
+import { Badge, Button } from '../components/ui'
 import { cn } from '../utils/helpers'
 
 interface Message {
@@ -14,7 +13,6 @@ interface Message {
 }
 
 export function AIAssistant() {
-  const { t } = useTranslation()
   const [agents, setAgents] = useState<AgentMeta[]>([])
   const [selectedAgent, setSelectedAgent] = useState<string>('power-system-coordinator-agent')
   const [messages, setMessages] = useState<Message[]>([])
@@ -25,6 +23,7 @@ export function AIAssistant() {
 
   useEffect(() => {
     fetchAgents().then(setAgents).catch(() => notify('error', 'Failed to load agents'))
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   useEffect(() => {

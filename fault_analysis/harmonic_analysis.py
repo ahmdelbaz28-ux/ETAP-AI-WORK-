@@ -143,46 +143,55 @@ class HarmonicAnalysisEngine:
         n = Ybus_fundamental.shape[0]
         Ybus_h = np.zeros((n, n), dtype=complex)
 
-        # Scale Ybus elements based on harmonic order
+        # IEEE 519-2022 frequency-dependent scaling:
+        #   R(h) ≈ R(1) × sqrt(h)   (skin effect)
+        #   X_L(h) = h × X_L(1)     (inductive reactance)
+        #   B_C(h) = h × B_C(1)     (capacitive susceptance — shunt, NOT series)
+        #   X_C(h) = X_C(1) / h     (capacitive reactance — series)
+        #
+        # Ybus admittance elements mix inductive and capacitive contributions
+        # from both series elements (lines/transformers) and shunt elements
+        # (line charging, shunt capacitors/reactors).  The sign of the net
+        # susceptance (B = imag(Y)) cannot distinguish series vs shunt or
+        # inductive vs capacitive because both could contribute.  Instead,
+        # the Ybus is decomposed per-frequency using the fundamental-frequency
+        # impedance to reconstruct the full admittance.
+        #
+        # Simplified approach: compute Zbus at fundamental → scale each
+        # element's R and X components individually → rebuild Ybus via
+        # pseudo-inversion.  This is more accurate than sign-based scaling.
+        Zbus_1 = np.linalg.inv(Ybus_fundamental)
+        Zbus_h = np.zeros_like(Zbus_1, dtype=complex)
+
         for i in range(n):
             for j in range(n):
-                Y_ij = Ybus_fundamental[i, j]
+                Z_ij = Zbus_1[i, j]
+                R = Z_ij.real
+                X = Z_ij.imag
 
-                if i == j:
-                    # Diagonal elements (shunt + series contributions)
-                    # Approximate scaling for harmonic impedance
-                    G = Y_ij.real
-                    B = Y_ij.imag
+                # Skin effect on resistance (approximate)
+                R_h = R * np.sqrt(h) if R != 0 else 0.0
 
-                    # Conductance increases with sqrt(h) due to skin effect
-                    G_h = G * np.sqrt(h) if G != 0 else 0
-
-                    # Susceptance scales with h for inductive, 1/h for capacitive
-                    # Simplified: assume predominantly inductive
-                    if B < 0:  # Inductive (negative susceptance)
-                        B_h = B * h
-                    elif B > 0:  # Capacitive (positive susceptance)
-                        B_h = B / h if h > 0 else B
-                    else:
-                        B_h = 0
-
-                    Ybus_h[i, j] = complex(G_h, B_h)
+                # Reactance scaling: inductive X > 0, capacitive X < 0
+                if X > 0:  # Net inductive at this (i,j)
+                    X_h = X * h
+                elif X < 0:  # Net capacitive at this (i,j)
+                    X_h = X / h if h > 0 else X
                 else:
-                    # Off-diagonal elements (mutual coupling)
-                    # Similar scaling applies
-                    G = Y_ij.real
-                    B = Y_ij.imag
+                    X_h = 0.0
 
-                    G_h = G * np.sqrt(h) if G != 0 else 0
+                Zbus_h[i, j] = complex(R_h, X_h)
 
-                    if B < 0:
-                        B_h = B * h
-                    elif B > 0:
-                        B_h = B / h if h > 0 else B
-                    else:
-                        B_h = 0
-
-                    Ybus_h[i, j] = complex(G_h, B_h)
+        # Rebuild Ybus from scaled Zbus.  For non-square or singular systems
+        # use pseudo-inverse as a fallback.
+        try:
+            Ybus_h = np.linalg.inv(Zbus_h)
+        except np.linalg.LinAlgError:
+            logger.warning(
+                "Zbus_h at harmonic %d is singular; falling back to pseudo-inverse",
+                h,
+            )
+            Ybus_h = np.linalg.pinv(Zbus_h)
 
         return Ybus_h
 

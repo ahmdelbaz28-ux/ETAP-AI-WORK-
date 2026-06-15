@@ -1,9 +1,8 @@
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
-import { FolderOpen, Plus, FlaskConical, Calendar, MoreVertical } from 'lucide-react'
+import { FolderOpen, Plus, FlaskConical, Calendar } from 'lucide-react'
 import { useNotify } from '../context/NotificationContext'
-import { Card, CardHeader, CardSection, Badge, Button, EmptyState } from '../components/ui'
-import { cn } from '../utils/helpers'
+import { Card, CardSection, Badge, Button, EmptyState } from '../components/ui'
 
 interface Project {
   id: string

@@ -1,8 +1,7 @@
 import { motion } from 'framer-motion'
-import { FileText, FileDown, Table, Download, Calendar, Clock, Filter } from 'lucide-react'
+import { FileText, Table, Download, Calendar } from 'lucide-react'
 import { useNotify } from '../context/NotificationContext'
-import { Card, CardHeader, CardSection, Badge, Button } from '../components/ui'
-import { cn } from '../utils/helpers'
+import { Card, Badge, Button } from '../components/ui'
 
 interface Report {
   name: string

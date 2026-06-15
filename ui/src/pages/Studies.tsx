@@ -1,7 +1,7 @@
 import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { motion } from 'framer-motion'
-import { Play, BookOpen, Beaker, ArrowRight, Star } from 'lucide-react'
+import { Play, BookOpen, Beaker } from 'lucide-react'
 import { studyCategories } from '../lib/studyCategories'
 import { Card, Badge } from '../components/ui'
 import { cn } from '../utils/helpers'

@@ -1,4 +1,4 @@
-import { useState, useEffect, type ReactNode } from 'react'
+import { useEffect, type ReactNode, useRef } from 'react'
 import { cn } from '../../utils/helpers'
 import { X } from 'lucide-react'
 
@@ -22,11 +22,11 @@ const sizeStyles = {
 }
 
 export function Modal({ open, onClose, title, subtitle, size = 'md', children, footer, closeOnOverlay = true }: ModalProps) {
-  const [visible, setVisible] = useState(false)
+  const previouslyOpen = useRef(open)
 
   useEffect(() => {
+    previouslyOpen.current = open
     if (open) {
-      setVisible(true)
       document.body.style.overflow = 'hidden'
     } else {
       document.body.style.overflow = ''
@@ -42,7 +42,7 @@ export function Modal({ open, onClose, title, subtitle, size = 'md', children, f
     return () => window.removeEventListener('keydown', handleEsc)
   }, [open, onClose])
 
-  if (!visible && !open) return null
+  if (!open) return null
 
   return (
     <div

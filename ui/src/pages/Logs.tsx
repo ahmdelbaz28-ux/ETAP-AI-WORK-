@@ -1,9 +1,9 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { motion } from 'framer-motion'
-import { RefreshCw, Filter, Terminal, AlertTriangle, Info, XCircle, Clock } from 'lucide-react'
+import { RefreshCw, Filter, Terminal, AlertTriangle, Info, XCircle } from 'lucide-react'
 import { fetchMetrics, fetchAuditLogs, type MetricsResponse, type AuditEntry } from '../lib/api'
 import { useNotify } from '../context/NotificationContext'
-import { Card, CardHeader, Badge, Button, EmptyState } from '../components/ui'
+import { Card, Button, EmptyState } from '../components/ui'
 import { cn } from '../utils/helpers'
 
 interface LogEntry {
@@ -66,7 +66,7 @@ export function Logs() {
   const [loading, setLoading] = useState(false)
   const { notify } = useNotify()
 
-  const loadLogs = async () => {
+  const loadLogs = useCallback(async () => {
     setLoading(true)
     try {
       const [metrics, audit] = await Promise.all([fetchMetrics().catch(() => null), fetchAuditLogs().catch(() => [])])
@@ -76,9 +76,12 @@ export function Logs() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [notify])
 
-  useEffect(() => { loadLogs() }, [])
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    loadLogs()
+  }, [loadLogs])
 
   const filtered = filter === 'all' ? logs : logs.filter(l => l.level === filter)
 

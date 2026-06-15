@@ -122,7 +122,13 @@ export async function callEngineeringService(
 
       if (!res.ok) {
         const text = await res.text().catch(() => '');
-        throw new Error(`Engineering Service returned ${res.status}: ${text.slice(0, 200)}`);
+        const msg = `Engineering Service returned ${res.status}: ${text.slice(0, 200)}`;
+        // Client errors (4xx) are non-retryable — throw immediately
+        if (res.status >= 400 && res.status < 500) {
+          recordProviderFailure('engineering-service', env);
+          throw new Error(msg);
+        }
+        throw new Error(msg);
       }
 
       const payload = (await res.json()) as EngineeringServiceResult;
