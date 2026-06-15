@@ -199,7 +199,7 @@ class DigitalTwinState:
         """Compute a checksum of the Ybus matrix for change detection."""
         try:
             data = Y.tobytes()
-            return int(hashlib.md5(data).hexdigest()[:8], 16)
+            return int(hashlib.sha256(data).hexdigest()[:8], 16)
         except Exception:
             return 0
 

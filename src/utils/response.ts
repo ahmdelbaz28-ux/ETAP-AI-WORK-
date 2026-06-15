@@ -24,7 +24,7 @@ export function jsonResponse(status: number, body: Json, extraHeaders?: Record<s
 export function corsHeaders(origin: string): Record<string, string> {
   return {
     'Access-Control-Allow-Origin': origin || '*',
-    'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+    'Access-Control-Allow-Methods': 'GET, POST, PUT, PATCH, DELETE, OPTIONS',
     'Access-Control-Allow-Headers': 'Content-Type, Authorization, x-api-key, Idempotency-Key',
     'Access-Control-Max-Age': '86400',
   };
