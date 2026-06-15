@@ -35,7 +35,10 @@ class Load:
         self.power_factor = power_factor
         self.constant_impedance = constant_impedance
 
-        # Automatically update the bus load_power when a load is connected
+        # WARNING: Side effect — this constructor mutates bus.load_power.
+        # Ideally, this should be moved to System.add_load() instead,
+        # but changing it now could break existing code that relies on
+        # the auto-accumulation behavior.
         self.bus.load_power += self.load_power
 
     def get_impedance(self, seq='1'):

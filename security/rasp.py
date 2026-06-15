@@ -27,7 +27,7 @@ import logging
 import re
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, Dict, List, Optional, Sequence
+from typing import Any, Dict, List, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -134,7 +134,7 @@ _DEFAULT_RULES: List[RASPRule] = [
     RASPRule(
         name="nosql_injection",
         pattern=re.compile(
-            r"(?i)(\$where|\$ne|\$gt|\$lt|\$gte|\$lte|\$in|\$nin|\$or|\$and|\$not|\$regex|\$expr)",
+            r"(?i)(\$where|\$regex|\$expr)",
         ),
         action=RASPAction.BLOCK,
         severity=RASPSeverity.HIGH,

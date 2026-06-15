@@ -27,8 +27,8 @@ import logging
 import re
 from typing import Any, Dict, List, Optional
 
-from guards.base import BaseGuard, GuardMode, GuardResult, GuardSeverity, GuardViolation
 from guards.ai_failure_modes import AIFailureModeDetector
+from guards.base import BaseGuard, GuardMode, GuardResult, GuardSeverity, GuardViolation
 
 logger = logging.getLogger(__name__)
 
@@ -243,7 +243,7 @@ class TestGuard(BaseGuard):
         framework_assert_patterns = [
             (r'assert\s+(type|isinstance|len|str|int|float|dict|list)\s*\(', "type/builtin check"),
         ]
-        for pat, desc in framework_assert_patterns:
+        for pat, _desc in framework_assert_patterns:
             for match in re.finditer(pat, source):
                 line_num = source[:match.start()].count('\n') + 1
                 # Only flag if the surrounding function is a test

@@ -10,12 +10,9 @@ Adapted from: github.com/amElnagdy/guard-skills
 Integration point: agents/orchestrator.py → ChiefEngineeringOrchestrator
 """
 
-import asyncio
 import logging
 import time
-from dataclasses import dataclass, field
-from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict
 
 from agents.orchestrator import AgentResult, AgentStatus, BaseAgent, EngineeringTask, StudyType
 
@@ -49,7 +46,7 @@ class CodeGuardAgent(BaseAgent):
     def _initialize_guards(self) -> None:
         """Lazily initialize guard instances."""
         try:
-            from guards import CodeGuard, TestGuard, DocsGuard, AIFailureModeDetector
+            from guards import AIFailureModeDetector, CodeGuard, DocsGuard, TestGuard
             from guards.base import GuardMode
             self._code_guard = CodeGuard(mode=GuardMode.GUARD_PASS)
             self._test_guard = TestGuard(mode=GuardMode.GUARD_PASS)

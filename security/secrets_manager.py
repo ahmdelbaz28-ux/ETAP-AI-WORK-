@@ -178,10 +178,26 @@ class VaultSecretsManager:
     def delete_secret(self, path: str, key: str) -> bool:
         if self._connected and self._client:
             try:
-                self._client.secrets.kv.v2.delete_metadata_and_all_versions(
+                response = self._client.secrets.kv.v2.read_secret_version(
                     path=path,
                     mount_point=self.mount_path,
                 )
+                data = response.get("data", {}).get("data", {})
+                if key not in data:
+                    logger.warning("Key %s not found at path %s", key, path)
+                    return False
+                data.pop(key, None)
+                if data:
+                    self._client.secrets.kv.v2.create_or_update_secret(
+                        path=path,
+                        secret=data,
+                        mount_point=self.mount_path,
+                    )
+                else:
+                    self._client.secrets.kv.v2.delete_metadata_and_all_versions(
+                        path=path,
+                        mount_point=self.mount_path,
+                    )
                 return True
             except Exception as exc:
                 logger.error("Vault delete_secret failed for %s/%s: %s", path, key, exc)

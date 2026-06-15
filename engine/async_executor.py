@@ -185,7 +185,7 @@ class AsyncExecutor:
                 if self._loop is None or not self._loop.is_running():
                     raise RuntimeError("Event loop not available")
                 future = asyncio.run_coroutine_threadsafe(task.coroutine, self._loop)
-                result = future.result(timeout=task.timeout)
+                result = future.result() if task.timeout is None else future.result(timeout=task.timeout)
             else:
                 fn = task.callable
                 if fn is None:
@@ -680,21 +680,21 @@ class WorkflowOrchestrator:
 
 @contextmanager
 def _timeout(seconds: float):
-    import signal
-
-    def _handler(signum, frame):
-        raise TimeoutError(f"Operation timed out after {seconds}s")
-
-    if hasattr(signal, "SIGALRM"):
-        old = signal.signal(signal.SIGALRM, _handler)
-        signal.alarm(int(seconds))
-        try:
-            yield
-        finally:
-            signal.alarm(0)
-            signal.signal(signal.SIGALRM, old)
-    else:
+    import threading
+    timed_out = threading.Event()
+    exc_bucket = [None]
+    def _watchdog():
+        if not timed_out.wait(timeout=seconds):
+            exc_bucket[0] = TimeoutError(f"Operation timed out after {seconds}s")
+    watcher = threading.Thread(target=_watchdog, daemon=True)
+    watcher.start()
+    try:
         yield
+    finally:
+        timed_out.set()
+        watcher.join()
+        if exc_bucket[0] is not None:
+            raise exc_bucket[0]
 
 
 _async_executor: Optional[AsyncExecutor] = None

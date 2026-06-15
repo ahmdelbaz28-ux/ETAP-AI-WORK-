@@ -142,7 +142,7 @@ class ZIPLoadModel:
         Q_z = self.Q0 * c.bZ
         if V < 0.01:
             return complex(0, 0)
-        return complex(P_z, -Q_z) / (V**2) * V**2  # simplifies to P_z - jQ_z
+        return complex(P_z, -Q_z)  # V² cancels: (P_z - jQ_z) / V² * V² = P_z - jQ_z
 
     def voltage_sensitivity(self, V: float) -> Tuple[float, float]:
         """

@@ -12,9 +12,10 @@ Verifies:
 
 import logging
 import os
-import pytest
 from pathlib import Path
 from unittest.mock import patch
+
+import pytest
 
 # Suppress noisy logs during tests
 logging.basicConfig(level=logging.WARNING)
@@ -35,7 +36,7 @@ class TestPromptLoader:
 
     def test_load_existing_prompt(self):
         """Loading a known prompt handle should return non-empty content."""
-        from agents.prompt_loader import get_system_prompt, clear_prompt_cache
+        from agents.prompt_loader import clear_prompt_cache, get_system_prompt
 
         clear_prompt_cache()
         prompt = get_system_prompt("load_flow_agent")
@@ -44,7 +45,7 @@ class TestPromptLoader:
 
     def test_load_all_agent_prompts(self):
         """Every agent-specific prompt should load successfully."""
-        from agents.prompt_loader import get_system_prompt, clear_prompt_cache
+        from agents.prompt_loader import clear_prompt_cache, get_system_prompt
 
         agent_handles = [
             "load_flow_agent",
@@ -71,7 +72,7 @@ class TestPromptLoader:
 
     def test_fallback_for_missing_prompt(self):
         """A non-existent prompt handle should return a fallback string, not crash."""
-        from agents.prompt_loader import get_system_prompt, clear_prompt_cache
+        from agents.prompt_loader import clear_prompt_cache, get_system_prompt
 
         clear_prompt_cache()
         prompt = get_system_prompt("nonexistent_agent_xyz_12345")
@@ -80,7 +81,7 @@ class TestPromptLoader:
 
     def test_missing_prompts_dir_graceful(self):
         """When prompts directory doesn't exist, should still return fallback."""
-        from agents.prompt_loader import get_system_prompt, clear_prompt_cache
+        from agents.prompt_loader import clear_prompt_cache, get_system_prompt
 
         original_dir = os.environ.get("ETAP_PROMPTS_DIR", "")
         try:
@@ -98,7 +99,7 @@ class TestPromptLoader:
 
     def test_prompt_caching(self):
         """Second call to same handle should return cached result."""
-        from agents.prompt_loader import get_system_prompt, clear_prompt_cache, _prompt_cache
+        from agents.prompt_loader import _prompt_cache, clear_prompt_cache, get_system_prompt
 
         clear_prompt_cache()
         prompt1 = get_system_prompt("load_flow_agent")
@@ -108,7 +109,7 @@ class TestPromptLoader:
 
     def test_clear_prompt_cache(self):
         """Cache clear should reset stored prompts."""
-        from agents.prompt_loader import get_system_prompt, clear_prompt_cache, _prompt_cache
+        from agents.prompt_loader import _prompt_cache, clear_prompt_cache, get_system_prompt
 
         clear_prompt_cache()
         get_system_prompt("load_flow_agent")
@@ -129,7 +130,7 @@ class TestPromptLoader:
 
     def test_fallback_agent_prompt_exists(self):
         """The fallback_agent prompt should be loadable."""
-        from agents.prompt_loader import get_system_prompt, clear_prompt_cache
+        from agents.prompt_loader import clear_prompt_cache, get_system_prompt
 
         clear_prompt_cache()
         prompt = get_system_prompt("fallback_agent")
@@ -200,12 +201,12 @@ class TestAgentPromptIntegration:
 
     def test_extended_agents_have_prompts(self):
         """Extended agent classes should also load their prompts."""
-        from agents.stability_agent import StabilityAgent
+        from agents.battery_storage_agent import BatteryStorageAgent
         from agents.cable_sizing_agent import CableSizingAgent
         from agents.earth_grid_agent import EarthGridAgent
         from agents.renewable_agent import RenewableAgent
-        from agents.battery_storage_agent import BatteryStorageAgent
         from agents.scada_agent import SCADAAgent
+        from agents.stability_agent import StabilityAgent
 
         for cls in [StabilityAgent, CableSizingAgent, EarthGridAgent,
                      RenewableAgent, BatteryStorageAgent, SCADAAgent]:

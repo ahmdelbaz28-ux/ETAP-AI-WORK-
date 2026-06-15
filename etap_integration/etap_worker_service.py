@@ -40,7 +40,7 @@ def _reject_legacy_api_key(api_key: Optional[str]) -> None:
 
 async def _require_auth(
     legacy_api_key: Optional[str] = Security(api_key_header),
-    creds: HTTPAuthorizationCredentials = Security(bearer_scheme),
+    creds: HTTPAuthorizationCredentials = Security(bearer_scheme),  # noqa: B008
 ) -> str:
     """
     Validate JWT Bearer token and reject legacy API key auth.
@@ -60,6 +60,12 @@ STUDY_TYPE_TO_PERMISSION: Dict[ETAPStudyType, Permission] = {
     ETAPStudyType.OPTIMAL_POWER_FLOW: Permission.CALC_OPF,
     ETAPStudyType.PROTECTION_COORDINATION: Permission.CALC_PROTECTION,
     ETAPStudyType.HARMONIC_ANALYSIS: Permission.CALC_HARMONIC,
+    ETAPStudyType.MOTOR_STARTING: Permission.CALC_MOTOR_STARTING,
+    ETAPStudyType.MOTOR_ACCELERATION: Permission.CALC_MOTOR_ACCELERATION,
+    ETAPStudyType.TRANSIENT_STABILITY: Permission.CALC_TRANSIENT_STABILITY,
+    ETAPStudyType.CABLE_AMACITY: Permission.CALC_CABLE_AMACITY,
+    ETAPStudyType.GROUND_GRID: Permission.CALC_GROUND_GRID,
+    ETAPStudyType.RELIABILITY: Permission.CALC_RELIABILITY,
 }
 
 
@@ -106,8 +112,8 @@ async def execute_study(
     # Map string to ETAPStudyType
     try:
         study_type = ETAPStudyType[request.study_type.upper()]
-    except KeyError:
-        raise HTTPException(status_code=400, detail=f"Invalid study type: {request.study_type}")
+    except KeyError as err:
+        raise HTTPException(status_code=400, detail=f"Invalid study type: {request.study_type}") from err
 
     # RBAC: check that the authenticated user has permission for this study type
     required_perm = STUDY_TYPE_TO_PERMISSION.get(study_type)

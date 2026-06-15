@@ -21,8 +21,8 @@ import logging
 import re
 from typing import Any, Dict, List, Optional
 
-from guards.base import BaseGuard, GuardMode, GuardResult, GuardSeverity, GuardViolation
 from guards.ai_failure_modes import AIFailureModeDetector
+from guards.base import BaseGuard, GuardMode, GuardResult, GuardSeverity, GuardViolation
 
 logger = logging.getLogger(__name__)
 

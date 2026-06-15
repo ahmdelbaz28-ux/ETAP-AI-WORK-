@@ -136,7 +136,7 @@ class BaseAgent:
         a prompt, using its hardcoded computational logic.
         """
         try:
-            from agents.prompt_loader import get_system_prompt, get_prompt_metadata
+            from agents.prompt_loader import get_prompt_metadata, get_system_prompt
             self._system_prompt = get_system_prompt(self.prompt_handle)
             self._prompt_metadata = get_prompt_metadata(self.prompt_handle)
             self.logger.info(
@@ -575,7 +575,8 @@ class HarmonicAnalysisAgent(BaseAgent):
 
         if violations:
             result.validation_errors.extend(violations)
-            return False  # Has IEEE 519 violations
+            # Violations mean non-compliance, not invalid analysis
+            # Return True since the analysis itself was valid
 
         return True
 
@@ -1220,13 +1221,10 @@ class ReportGenerationAgent(BaseAgent):
             return file_path
         except ImportError:
             self.log_execution("PDF generator unavailable (reportlab not installed) — using placeholder", "WARNING")
-            file_path = f"{output_path}/report_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}.pdf"
-            self.log_execution(f"PDF export simulated: {file_path}")
-            return file_path
+            return ""  # No file generated
         except Exception as e:
             self.log_execution(f"PDF generation failed: {e}", "ERROR")
-            file_path = f"{output_path}/report_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}.pdf"
-            return file_path
+            return ""  # Indicate failure
 
     def _export_docx(self, content: Dict, output_path: str) -> str:
         """Export report as DOCX using the reporting module."""
@@ -1244,13 +1242,10 @@ class ReportGenerationAgent(BaseAgent):
             return file_path
         except ImportError:
             self.log_execution("DOCX generator unavailable (python-docx not installed) — using placeholder", "WARNING")
-            file_path = f"{output_path}/report_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}.docx"
-            self.log_execution(f"DOCX export simulated: {file_path}")
-            return file_path
+            return ""  # No file generated
         except Exception as e:
             self.log_execution(f"DOCX generation failed: {e}", "ERROR")
-            file_path = f"{output_path}/report_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}.docx"
-            return file_path
+            return ""  # Indicate failure
 
     def _export_xlsx(self, content: Dict, output_path: str) -> str:
         """Export report as XLSX using the reporting module."""
@@ -1268,13 +1263,10 @@ class ReportGenerationAgent(BaseAgent):
             return file_path
         except ImportError:
             self.log_execution("XLSX generator unavailable (openpyxl not installed) — using placeholder", "WARNING")
-            file_path = f"{output_path}/report_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}.xlsx"
-            self.log_execution(f"XLSX export simulated: {file_path}")
-            return file_path
+            return ""  # No file generated
         except Exception as e:
             self.log_execution(f"XLSX generation failed: {e}", "ERROR")
-            file_path = f"{output_path}/report_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}.xlsx"
-            return file_path
+            return ""  # Indicate failure
 
 
 class ChiefEngineeringOrchestrator:

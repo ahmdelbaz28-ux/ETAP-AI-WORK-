@@ -18,7 +18,7 @@ from typing import Dict, List, Optional, Tuple
 
 # PDF processing libraries
 try:
-    import PyPDF2
+    import PyPDF2  # noqa: F401
     from PyPDF2 import PdfReader
     PDF_AVAILABLE = True
 except ImportError:

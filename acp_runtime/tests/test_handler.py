@@ -71,7 +71,7 @@ def test_list_capabilities_returns_descriptors():
     assert d.name == "string.upper"
     assert d.scopes == ("text.write", "text.read")
     # Frozen model — must reject mutation
-    with pytest.raises(Exception):
+    with pytest.raises(AttributeError):
         d.name = "string.lower"  # type: ignore[misc]
 
 
@@ -105,7 +105,7 @@ def test_empty_scopes_is_allowed():
 
 def test_capability_meta_is_frozen():
     meta = CapabilityMeta(name="x.y", scopes=(), method_name="y")
-    with pytest.raises(Exception):
+    with pytest.raises(AttributeError):
         meta.name = "x.z"  # type: ignore[misc]
 
 

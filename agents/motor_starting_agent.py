@@ -141,17 +141,24 @@ class MotorStartingAgent(BaseAgent):
         else:
             lr_kva_per_hp = 5.6  # Default to code F
 
-        # DOL locked-rotor current
+        # DOL locked-rotor current (from NEMA code)
         lr_kva = lr_kva_per_hp * motor_hp
         lra_dol = lr_kva * 1000.0 / (np.sqrt(3) * voltage_v)
 
         # Apply starting method reduction factor
-        lr_multiplier = _LR_MULTIPLIERS.get(starting_method, 6.0)
-        if starting_method == "DOL":
-            lra_actual = lra_dol
-        else:
-            # Scale relative to DOL
-            lra_actual = fla_a * lr_multiplier
+        # All methods scale from the DOL LRA computed above
+        method_current_ratios: Dict[str, float] = {
+            "DOL": 1.0,
+            "star_delta": 1.0 / 3.0,   # Current = 1/3 of DOL line current
+            "autotransformer_80": 0.64,  # 0.8² × DOL (tap ratio squared)
+            "autotransformer_65": 0.42,  # 0.65² × DOL
+            "autotransformer_50": 0.25,  # 0.5² × DOL
+            "soft_starter": 0.50,        # Typical 50% of DOL
+            "VFD": 0.25,                # VFD limits starting current to ~25% of DOL
+        }
+
+        current_ratio = method_current_ratios.get(starting_method, 1.0)
+        lra_actual = lra_dol * current_ratio
 
         lra_per_fla = lra_actual / fla_a if fla_a > 0 else 0.0
 
@@ -249,7 +256,7 @@ class MotorStartingAgent(BaseAgent):
         Calculate starting torque considering voltage dip and method.
 
         Starting torque is proportional to the square of the applied
-        voltage and the ratio of LRA/FLA.
+        voltage and the ratio of locked-rotor torque to rated torque.
 
         Parameters
         ----------
@@ -268,10 +275,7 @@ class MotorStartingAgent(BaseAgent):
             Dictionary with 'starting_torque_nm', 'torque_per_rated',
             'starting_method', 'voltage_factor'.
         """
-        # Starting torque ratio (approximate): T_start/T_rated ≈ (I_LR/I_FL) × (V/V_rated)²
-        voltage_factor = motor_bus_voltage_pu ** 2
-
-        # For star-delta and autotransformer, current reduces proportionally
+        # For star-delta and autotransformer, voltage reduces proportionally
         # but torque reduces as voltage squared
         method_voltage_ratios: Dict[str, float] = {
             "DOL": 1.0,
@@ -286,9 +290,12 @@ class MotorStartingAgent(BaseAgent):
         v_ratio = method_voltage_ratios.get(starting_method, 1.0)
         combined_voltage_factor = (v_ratio * motor_bus_voltage_pu) ** 2
 
-        # Approximate starting torque: T_start ≈ T_rated × (LRA/FLA) × V²
-        # This is a simplification; actual torque depends on motor design
-        torque_ratio = lra_per_fla * combined_voltage_factor / (lra_per_fla if starting_method == "DOL" else 6.0)
+        # Starting torque ratio: T_start/T_rated ≈ (V/V_rated)²
+        # Typical LRT/FLT ratio is ~1.5-2.8 for standard motors
+        # Using lra_per_fla as a proxy for the motor's starting characteristics
+        # but torque scales with V² regardless of current ratio
+        lrt_per_flt = lra_per_fla * 0.4  # Approximate LRT/FLT from LRA/FLA
+        torque_ratio = lrt_per_flt * combined_voltage_factor
         starting_torque = rated_torque_nm * torque_ratio
 
         return {
@@ -368,6 +375,10 @@ class MotorStartingAgent(BaseAgent):
             starting_method = task.parameters.get("starting_method", "DOL")
             fla_a = task.parameters.get("fla_a")
             fla_val = float(fla_a) if fla_a is not None else None
+            rated_rpm = float(task.parameters.get("rated_speed_rpm", 1800.0))
+
+            # Always compute rated_torque so it is available for any analysis type
+            rated_torque = (motor_hp * 746) / (rated_rpm * 2 * np.pi / 60) if rated_rpm > 0 else 0
 
             # --- Starting current ---
             if analysis_type in ("starting_current", "full"):
@@ -404,7 +415,7 @@ class MotorStartingAgent(BaseAgent):
 
             # --- Starting torque ---
             if analysis_type in ("torque", "full"):
-                rated_torque = float(task.parameters.get("rated_torque_nm", motor_hp * 746.0 / (2 * np.pi * 1800 / 60)))
+                rated_torque = float(task.parameters.get("rated_torque_nm", rated_torque))
                 lra_per_fla = results.get("starting_current", {}).get("lra_per_fla", 6.0)
                 motor_v_pu = results.get("voltage_dip", {}).get("motor_bus_voltage_pu", 0.85)
 
@@ -418,8 +429,8 @@ class MotorStartingAgent(BaseAgent):
 
             # --- Acceleration time ---
             if analysis_type in ("acceleration_time", "full"):
+                rated_torque = float(task.parameters.get("rated_torque_nm", rated_torque))
                 j_total = float(task.parameters.get("j_total_kgm2", 10.0))
-                rated_rpm = float(task.parameters.get("rated_speed_rpm", 1800.0))
                 avg_torque = results.get("starting_torque", {}).get(
                     "starting_torque_nm", rated_torque * 0.5
                 )

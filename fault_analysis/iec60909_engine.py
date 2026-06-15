@@ -474,12 +474,12 @@ class IEC60909Engine:
         I2 = -I1 * Z0 / (Z2 + Z0) if (Z2 + Z0) != 0 else complex(0, 0)
         I0 = -I1 * Z2 / (Z2 + Z0) if (Z2 + Z0) != 0 else complex(0, 0)
 
-        # Phase currents
-        Ia = complex(0, 0)  # No current in phase A
-        Ib_phase = I1 * (1 + Z0 / (Z2 + Z0) * np.exp(-1j * 2 * np.pi / 3)
-                         + np.exp(1j * 2 * np.pi / 3))
-        Ic_phase = I1 * (1 + Z0 / (Z2 + Z0) * np.exp(1j * 2 * np.pi / 3)
-                         + np.exp(-1j * 2 * np.pi / 3))
+        # Phase currents using symmetrical component transformation
+        a = np.exp(1j * 2 * np.pi / 3)
+        a2 = np.exp(-1j * 2 * np.pi / 3)
+        Ia = I1 + I2 + I0
+        Ib_phase = a2 * I1 + a * I2 + I0
+        Ic_phase = a * I1 + a2 * I2 + I0
 
         # Use the larger of Ib and Ic for magnitude
         Ik_kA = max(abs(Ib_phase), abs(Ic_phase)) * self.base_i / 1000.0

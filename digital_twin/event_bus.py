@@ -416,15 +416,17 @@ class EventBus:
     def get_history(self, event_type: EventType = None,
                     limit: int = 100) -> List[DomainEvent]:
         """Get event history, optionally filtered by type."""
-        if event_type:
-            filtered = [e for e in self._history if e.event_type == event_type]
-        else:
-            filtered = list(self._history)
+        with self._lock:
+            if event_type:
+                filtered = [e for e in self._history if e.event_type == event_type]
+            else:
+                filtered = list(self._history)
         return filtered[-limit:]
 
     def get_handler_errors(self, limit: int = 100) -> List[Dict[str, Any]]:
         """Get handler error history."""
-        return self._handler_errors[-limit:]
+        with self._lock:
+            return list(self._handler_errors[-limit:])
 
     def clear_history(self) -> None:
         """Clear event history."""
@@ -433,16 +435,17 @@ class EventBus:
 
     def get_statistics(self) -> dict:
         """Get event bus statistics."""
-        type_counts = defaultdict(int)
-        for event in self._history:
-            type_counts[event.event_type.value] += 1
-        return {
-            "total_events_published": len(self._history),
-            "subscriber_count": sum(len(v) for v in self._subscribers.values()) + len(self._wildcard_subscribers),
-            "event_type_counts": dict(type_counts),
-            "handler_error_count": len(self._handler_errors),
-            "event_types_with_subscribers": list(self._subscribers.keys())
-        }
+        with self._lock:
+            type_counts = defaultdict(int)
+            for event in self._history:
+                type_counts[event.event_type.value] += 1
+            return {
+                "total_events_published": len(self._history),
+                "subscriber_count": sum(len(v) for v in self._subscribers.values()) + len(self._wildcard_subscribers),
+                "event_type_counts": dict(type_counts),
+                "handler_error_count": len(self._handler_errors),
+                "event_types_with_subscribers": list(self._subscribers.keys())
+            }
 
     def reset(self) -> None:
         """Reset the event bus."""

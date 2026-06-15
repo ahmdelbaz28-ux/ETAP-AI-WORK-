@@ -272,18 +272,27 @@ class SCADAAgent(BaseAgent):
             filtered = cached
 
         # Update values with slight random variation (simulate real-time)
+        # Copy cached objects to avoid mutating the cache
         np.random.seed(int(now.timestamp()) % 2**31)
+        result_measurements = []
         for m in filtered:
             noise = np.random.normal(0, 0.005)  # 0.5% noise
-            m.value = m.value * (1.0 + noise)
-            m.timestamp = now
+            new_value = m.value * (1.0 + noise)
+            result_measurements.append(SCADAMeasurement(
+                tag=m.tag,
+                value=new_value,
+                timestamp=now,
+                quality=m.quality,
+                iec61850_ref=m.iec61850_ref,
+                unit=m.unit,
+            ))
             conn.last_poll_time = now
 
         return {
             "connection_id": connection_id,
             "timestamp": now.isoformat(),
-            "measurement_count": len(filtered),
-            "measurements": [m.to_dict() for m in filtered],
+            "measurement_count": len(result_measurements),
+            "measurements": [m.to_dict() for m in result_measurements],
             "protocol": conn.protocol,
         }
 
@@ -493,7 +502,7 @@ class SCADAAgent(BaseAgent):
             rules = validation_rules.get(tag, {})
             v_min = rules.get("min", -1e9)
             v_max = rules.get("max", 1e9)
-            rate_limit = rules.get("rate_limit", None)
+            _rate_limit = rules.get("rate_limit", None)
 
             # Range check
             if value < v_min or value > v_max:
@@ -531,13 +540,13 @@ class SCADAAgent(BaseAgent):
             for m in validated:
                 m["filtered_value"] = m["value"]
 
-        # 3. Anomaly detection
+        # 3. Anomaly detection (use ddof=1 for sample std)
         values_arr = np.array([m["value"] for m in validated], dtype=float)
         mean_val = np.mean(values_arr)
-        std_val = np.std(values_arr)
+        std_val = np.std(values_arr, ddof=1) if len(values_arr) > 1 else 0.0
 
         anomalies: List[Dict[str, Any]] = []
-        for i, m in enumerate(validated):
+        for _i, m in enumerate(validated):
             if std_val > 0:
                 z_score = abs(m["value"] - mean_val) / std_val
                 if z_score > anomaly_threshold_sigma:

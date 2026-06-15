@@ -35,6 +35,8 @@ class PowerSystemEngine:
         Returns:
         dict: Results including bus voltages, power flows, and convergence status.
         """
+        if self.load_flow_solver is None:
+            raise RuntimeError("No system model loaded — cannot run load flow")
         converged = self.load_flow_solver.solve(max_iter=100, tol=1e-6)
         # Extract results
         bus_voltages = {}
@@ -57,6 +59,8 @@ class PowerSystemEngine:
         Returns:
         dict: Fault analysis results.
         """
+        if self.load_flow_solver is None:
+            raise RuntimeError("No system model loaded — cannot run fault analysis")
         # Build sequence networks with generator impedances for fault analysis
         self.system.build_sequence_networks(for_fault=True)
         Ybus_pos = self.system.get_ybus(seq='1')

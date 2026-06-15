@@ -23,7 +23,7 @@ import logging
 import re
 from typing import Any, Dict, List, Optional
 
-from guards.base import BaseGuard, GuardMode, GuardResult, GuardSeverity, GuardViolation
+from guards.base import BaseGuard, GuardResult, GuardSeverity, GuardViolation
 
 logger = logging.getLogger(__name__)
 

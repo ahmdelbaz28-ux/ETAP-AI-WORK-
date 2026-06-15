@@ -247,6 +247,20 @@ class CalculationCache:
                 victim = key
         return victim
 
+    def evict_one_lru(self) -> bool:
+        """Evict the least-recently-used entry under the cache's own lock.
+
+        Returns ``True`` if an entry was evicted, ``False`` otherwise.
+        """
+        with self._lock:
+            if not self._entries:
+                return False
+            if self._access_order:
+                victim = self._access_order.pop(0)
+                self._remove_entry(victim)
+                return True
+        return False
+
 
 class CacheKeyBuilder:
     @staticmethod
@@ -407,8 +421,7 @@ class MemoryManager:
                     break
                 if self._cache._strategy in (CacheStrategy.LRU, CacheStrategy.FIFO):
                     if self._cache._access_order:
-                        victim = self._cache._access_order.pop(0)
-                        self._cache._remove_entry(victim)
+                        self._cache.evict_one_lru()
                         evicted += 1
                 elif self._cache._strategy == CacheStrategy.LFU:
                     victim = self._cache._get_lfu_victim()

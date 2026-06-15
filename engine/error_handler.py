@@ -68,10 +68,8 @@ class EngineSystemError:
     resolution: Optional[str] = None
 
 
-# Backward-compatible alias to avoid breaking existing imports/usages.
-# NOTE: This name intentionally shadows the Python built-in SystemError,
-# but the class implementation is now EngineSystemError to reduce confusion.
-SystemError = EngineSystemError
+# Backward-compatible alias removed to avoid shadowing the Python built-in SystemError.
+# All code should use EngineSystemError directly.
 
 
 # ---------------------------------------------------------------------------
@@ -171,7 +169,7 @@ class AlertManager:
 
     def trigger_alert(
         self,
-        error: SystemError,
+        error: EngineSystemError,
         channels: Optional[List[str]] = None,
     ) -> None:
         """Dispatch an alert for *error* through matching channels.
@@ -195,7 +193,7 @@ class AlertManager:
                 elif ch == "webhook":
                     self._alert_webhook(error)
 
-    def get_active_alerts(self) -> List[SystemError]:
+    def get_active_alerts(self) -> List[EngineSystemError]:
         """Return errors that are currently active (unacknowledged CRITICAL/ERROR).
 
         This method is a **read-only** query — it relies on the caller having
@@ -208,7 +206,7 @@ class AlertManager:
     # Internals
     # ------------------------------------------------------------------
 
-    def _resolve_channels(self, error: SystemError) -> List[str]:
+    def _resolve_channels(self, error: EngineSystemError) -> List[str]:
         """Collect channels whose rules match *error*."""
         matched: Set[str] = set()
         severity_order = {
@@ -228,7 +226,7 @@ class AlertManager:
                 matched.update(rule["channels"])
         return list(matched) if matched else ["console"]
 
-    def _alert_console(self, error: SystemError) -> None:
+    def _alert_console(self, error: EngineSystemError) -> None:
         msg = (
             f"[{error.severity.value}] {error.component} | {error.error_id} | "
             f"{error.message}"
@@ -236,7 +234,7 @@ class AlertManager:
         level = getattr(logging, error.severity.value, logging.ERROR)
         self._logger.log(level, msg)
 
-    def _alert_email(self, error: SystemError) -> None:
+    def _alert_email(self, error: EngineSystemError) -> None:
         cfg = self._email_config
         if cfg is None:
             return
@@ -262,7 +260,7 @@ class AlertManager:
         except Exception:
             self._logger.exception("Failed to send email alert")
 
-    def _alert_webhook(self, error: SystemError) -> None:
+    def _alert_webhook(self, error: EngineSystemError) -> None:
         cfg = self._webhook_config
         if cfg is None:
             return
@@ -299,7 +297,7 @@ class ErrorHandler:
     """Central error handling service for the platform.
 
     Responsibilities
-        * Create and register :class:`SystemError` instances.
+        * Create and register :class:`EngineSystemError` instances.
         * Persist errors in an in-memory history (bounded by *max_history*).
         * Forward CRITICAL / ERROR events to the :class:`AlertManager`.
         * Provide query, acknowledge, resolve, and statistics APIs.
@@ -308,7 +306,7 @@ class ErrorHandler:
     def __init__(self, max_history: int = 1000) -> None:
         self._max_history = max_history
         self._history: deque = deque(maxlen=max_history)
-        self._history_map: Dict[str, SystemError] = {}
+        self._history_map: Dict[str, EngineSystemError] = {}
         self._alert_manager: Optional[AlertManager] = None
         self._audit_logger: Optional[logging.Logger] = None
         self._lock = threading.Lock()
@@ -335,10 +333,10 @@ class ErrorHandler:
         details: Optional[dict] = None,
         exception: Optional[BaseException] = None,
         user_id: Optional[str] = None,
-    ) -> SystemError:
+    ) -> EngineSystemError:
         """Record and process an error.
 
-        Creates a :class:`SystemError`, logs it to the audit trail, stores
+        Creates a :class:`EngineSystemError`, logs it to the audit trail, stores
         it in the error history, and triggers alerts for ERROR / CRITICAL
         severity.
 
@@ -351,9 +349,9 @@ class ErrorHandler:
             user_id: Optional associated user identifier.
 
         Returns:
-            The newly created :class:`SystemError`.
+            The newly created :class:`EngineSystemError`.
         """
-        error = SystemError(
+        error = EngineSystemError(
             error_id=str(uuid.uuid4()),
             message=message,
             component=component,
@@ -379,7 +377,7 @@ class ErrorHandler:
         component: Optional[str] = None,
         severity: Optional[ErrorSeverity] = None,
         limit: int = 100,
-    ) -> List[SystemError]:
+    ) -> List[EngineSystemError]:
         """Query error history with optional filters.
 
         Args:
@@ -399,14 +397,14 @@ class ErrorHandler:
         result.sort(key=lambda e: e.timestamp, reverse=True)
         return result[:limit]
 
-    def get_error_by_id(self, error_id: str) -> Optional[SystemError]:
+    def get_error_by_id(self, error_id: str) -> Optional[EngineSystemError]:
         """Retrieve a single error by its UUID.
 
         Args:
             error_id: The error identifier.
 
         Returns:
-            The :class:`SystemError` or *None* if not found.
+            The :class:`EngineSystemError` or *None* if not found.
         """
         with self._lock:
             return self._history_map.get(error_id)
@@ -490,7 +488,7 @@ class ErrorHandler:
     # Internals
     # ------------------------------------------------------------------
 
-    def _store(self, error: SystemError) -> None:
+    def _store(self, error: EngineSystemError) -> None:
         with self._lock:
             if len(self._history) >= self._max_history:
                 old = self._history.popleft()
@@ -498,7 +496,7 @@ class ErrorHandler:
             self._history.append(error)
             self._history_map[error.error_id] = error
 
-    def _log_audit(self, error: SystemError) -> None:
+    def _log_audit(self, error: EngineSystemError) -> None:
         logger = self._audit_logger
         if logger is None:
             return
@@ -515,7 +513,7 @@ class ErrorHandler:
         except Exception:
             logging.getLogger(__name__).debug("Audit log write skipped for error %s", error.error_id)
 
-    def _dispatch_alert(self, error: SystemError) -> None:
+    def _dispatch_alert(self, error: EngineSystemError) -> None:
         mgr = self._alert_manager
         if mgr is None:
             return
@@ -553,7 +551,7 @@ class AutoRecoveryManager:
         self,
         component: str,
         error_pattern: str,
-        action_fn: Callable[[SystemError], bool],
+        action_fn: Callable[[EngineSystemError], bool],
         cooldown_seconds: int = 300,
         action_name: Optional[str] = None,
     ) -> None:
@@ -587,7 +585,7 @@ class AutoRecoveryManager:
                 "last_success": True,
             })
 
-    def attempt_recovery(self, error: SystemError) -> bool:
+    def attempt_recovery(self, error: EngineSystemError) -> bool:
         """Attempt automatic recovery for *error*.
 
         Iterates registered actions and runs the first matching one
@@ -680,7 +678,7 @@ def component_guard(
             result = run_solver()
 
     If the inner block raises, the exception is captured as a
-    :class:`SystemError` via :meth:`ErrorHandler.handle_error`.  When the
+    :class:`EngineSystemError` via :meth:`ErrorHandler.handle_error`.  When the
     guard's severity is ``CRITICAL`` the exception is re-raised after
     handling; otherwise it is swallowed.
 
@@ -697,7 +695,7 @@ def component_guard(
     try:
         yield
     except Exception as exc:
-        error = error_handler.handle_error(
+        error_handler.handle_error(
             component=component_name,
             message=str(exc),
             severity=severity,
@@ -707,7 +705,6 @@ def component_guard(
         )
         if severity == ErrorSeverity.CRITICAL:
             raise
-        return error
 
 
 # ---------------------------------------------------------------------------

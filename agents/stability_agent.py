@@ -122,7 +122,6 @@ class StabilityAgent(BaseAgent):
             'max_angle_spread', 'angles_final'.
         """
         n_gen = len(H)
-        M = 2.0 * H / self.omega_synchronous  # Inertia coefficient M in pu
 
         # State: delta (n_gen), omega (n_gen) relative to synchronous frame
         delta = delta0.copy()
@@ -157,8 +156,8 @@ class StabilityAgent(BaseAgent):
                 Y = post_fault_Ybus
 
             # RK4 integration
-            def derivatives(d: np.ndarray, w: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
-                Pe = electrical_power(d, Y)
+            def derivatives(d: np.ndarray, w: np.ndarray, _Y: np.ndarray = Y) -> Tuple[np.ndarray, np.ndarray]:
+                Pe = electrical_power(d, _Y)
                 ddelta = w - self.omega_synchronous
                 domega = (self.omega_synchronous / (2.0 * H)) * (Pm - Pe - D * ddelta)
                 return ddelta, domega
@@ -310,14 +309,27 @@ class StabilityAgent(BaseAgent):
                 )
 
         # Participation factor analysis
-        _, right_eigvecs = np.linalg.eig(A)
-        left_eigvecs = np.linalg.inv(right_eigvecs)
+        eigenvalues_full, right_vecs = np.linalg.eig(A)
+
+        # Sort both values and vectors consistently
+        idx = np.argsort(np.real(eigenvalues_full))
+        eigenvalues_full = eigenvalues_full[idx]
+        right_vecs = right_vecs[:, idx]  # columns are right eigenvectors
+        left_vecs = np.linalg.inv(right_vecs)  # rows are left eigenvectors
+
+        n_modes = 2 * n_gen
+        pf = np.zeros((n_modes, n_modes))
+        for i in range(n_modes):
+            pf[i, i] = abs(np.dot(left_vecs[i, :], right_vecs[:, i]))
 
         participation_factors = []
-        for i in range(2 * n_gen):
-            pf = np.abs(left_eigvecs[:, i].reshape(-1, 1) * right_eigvecs[i, :].reshape(1, -1))
-            pf = pf / np.max(pf) if np.max(pf) > 0 else pf
-            participation_factors.append(pf.tolist())
+        for i in range(n_modes):
+            # Participation factor for mode i: P_ki = |left_i[k] * right_k[i]|
+            # left_vecs[i, :] is the i-th left eigenvector (row)
+            # right_vecs[:, i] is the i-th right eigenvector (column)
+            p = np.abs(left_vecs[i, :] * right_vecs[:, i])
+            p = p / np.max(p) if np.max(p) > 0 else p
+            participation_factors.append(p.tolist())
 
         stable = all(np.real(ev) < 0 for ev in eigenvalues)
 
@@ -379,7 +391,6 @@ class StabilityAgent(BaseAgent):
             'critical_clearing_time_s', 'equal_area_method', 'stable'.
         """
         omega_s = self.omega_synchronous
-        M = 2.0 * H / omega_s
 
         # Maximum power transfer pre-fault and during fault
         Pmax_pre = E_gen * V_inf / X_total
@@ -623,8 +634,9 @@ class StabilityAgent(BaseAgent):
             if not ss_data.get("stable", True):
                 for mode in ss_data.get("critical_modes", []):
                     if mode["type"] == "unstable":
+                        ev = mode['eigenvalue']
                         errors.append(
-                            f"Unstable mode: eigenvalue={mode['eigenvalue']:.4f}, "
+                            f"Unstable mode: eigenvalue={ev.real:.4f}{ev.imag:+.4f}j, "
                             f"ζ={mode['damping_ratio']:.4f}"
                         )
             min_zeta = ss_data.get("min_damping_ratio", 0.0)

@@ -61,7 +61,7 @@ class System:
             i = bus_index[line.from_bus.bus_id]
             j = bus_index[line.to_bus.bus_id]
             z = line.get_impedance(seq)
-            y = 1.0 / z if z != 0 else 0
+            y = 1.0 / z if abs(z) > 1e-12 else 0
             # Shunt susceptance/2 at each end
             y_shunt = line.get_shunt_admittance(seq) / 2.0
 
@@ -77,8 +77,8 @@ class System:
             i = bus_index[xf.from_bus.bus_id]
             j = bus_index[xf.to_bus.bus_id]
             z = xf.get_impedance(seq)
-            y = 1.0 / z if z != 0 else 0
-            y_shunt = xf.get_shunt_admittance(seq) / 2.0
+            y = 1.0 / z if abs(z) > 1e-12 else 0
+            y_shunt = xf.get_shunt_admittance(seq)
 
             # Handle tap ratio and phase shift for transformers
             tap = xf.tap_ratio
@@ -90,8 +90,8 @@ class System:
                 a = tap * np.exp(1j * phase_shift)
 
                 # Ybus entries for tap-changing transformer (standard formulation)
-                Ybus[i, i] += (y / (abs(a)**2)) + y_shunt / 2.0
-                Ybus[j, j] += y + y_shunt / 2.0
+                Ybus[i, i] += (y / (abs(a)**2)) + y_shunt
+                Ybus[j, j] += y + y_shunt
                 Ybus[i, j] -= y / np.conj(a)
                 Ybus[j, i] -= y / a
             else:
@@ -110,7 +110,7 @@ class System:
             for gen in self.generators:
                 i = bus_index[gen.bus.bus_id]
                 zg = gen.get_impedance(seq)
-                if zg != 0 and zg != complex(0, 0):
+                if abs(zg) > 1e-12:
                     yg = 1.0 / zg
                     Ybus[i, i] += yg
 
@@ -122,7 +122,7 @@ class System:
             i = bus_index[load.bus.bus_id]
             if load.constant_impedance:
                 z_load = load.get_impedance(seq)
-                if z_load != 0 and z_load != complex(0, 0) and abs(z_load) < 1e8:
+                if abs(z_load) > 1e-12 and abs(z_load) < 1e8:
                     y_load = 1.0 / z_load
                     Ybus[i, i] += y_load
 

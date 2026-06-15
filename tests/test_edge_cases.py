@@ -36,7 +36,6 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from api.dependencies import JWT_ALGORITHM, JWT_SECRET_KEY
 
-
 # ===========================================================================
 # 1. Load flow with degenerate 1-bus system
 # ===========================================================================

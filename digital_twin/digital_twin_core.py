@@ -560,7 +560,11 @@ class ChangePropagationEngine:
             # Update simulation results in snapshot
             if success and self._load_flow_solver is not None:
                 for bid_str, _bs in snapshot.bus_states.items():
-                    bus = (self.dt_state.system.buses.get(int(bid_str), None)
+                    try:
+                        bid_int = int(bid_str)
+                    except (ValueError, TypeError):
+                        continue
+                    bus = (self.dt_state.system.buses.get(bid_int, None)
                            if self.dt_state.system else None)
                     if bus:
                         snapshot.simulation_results.load_flow_bus_voltages[bid_str] = bus.voltage
@@ -612,7 +616,6 @@ class ChangePropagationEngine:
         if self.dt_state.system is not None:
             bid = int(bus_id) if bus_id.isdigit() else bus_id
             if bid in self.dt_state.system.buses:
-                self.dt_state.system.buses[bid].load_power
                 self.dt_state.system.buses[bid].load_power = new_power
 
                 # Rebuild Ybus and run load flow
@@ -743,8 +746,9 @@ class ChangePropagationEngine:
 
             results: Dict[str, Any] = {}
             bus_ids = sorted(self.dt_state.system.buses.keys())
+            bus_index = {bid: idx for idx, bid in enumerate(self.dt_state.system.buses.keys())}
             for bus_id in bus_ids:
-                bus_idx = list(self.dt_state.system.buses.keys()).index(bus_id)
+                bus_idx = bus_index[bus_id]
                 fault = analyzer.three_phase_fault(bus_idx)
                 fault_ka = fault.get('fault_current_ka', 0.0)
                 # Simplified IEEE 1584-2018 incident energy estimate
@@ -811,8 +815,9 @@ class ChangePropagationEngine:
             # Calculate fault currents at all buses
             fault_currents: List[float] = []
             bus_ids = sorted(self.dt_state.system.buses.keys())
+            bus_index = {bid: idx for idx, bid in enumerate(self.dt_state.system.buses.keys())}
             for bus_id in bus_ids:
-                bus_idx = list(self.dt_state.system.buses.keys()).index(bus_id)
+                bus_idx = bus_index[bus_id]
                 fault = analyzer.three_phase_fault(bus_idx)
                 fc_pu = abs(fault.get('fault_current', complex(0, 0)))
                 if fc_pu > 0:

@@ -60,7 +60,7 @@ class ReportMetadata:
     company_name: str = "Engineering Consulting Firm"
     project_name: str = ""
     client_name: str = ""
-    report_date: datetime = field(default_factory=datetime.utcnow)
+    report_date: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
     confidentiality: str = "Confidential"
     revision: str = "1.0"
     language: str = "en"
@@ -103,7 +103,7 @@ class ChartGenerator:
             plt.legend()
             plt.tight_layout()
 
-            chart_path = f"{output_path}/voltage_profile.png"
+            chart_path = os.path.join(output_path, "voltage_profile.png")
             plt.savefig(chart_path, dpi=300, bbox_inches='tight')
             plt.close()
 
@@ -154,7 +154,7 @@ class ChartGenerator:
                        ha='center', va='bottom', fontsize=9)
 
             plt.tight_layout()
-            chart_path = f"{output_path}/fault_currents.png"
+            chart_path = os.path.join(output_path, "fault_currents.png")
             plt.savefig(chart_path, dpi=300, bbox_inches='tight')
             plt.close()
 
@@ -183,7 +183,7 @@ class ChartGenerator:
             plt.xticks(harmonic_orders)
             plt.tight_layout()
 
-            chart_path = f"{output_path}/harmonic_spectrum.png"
+            chart_path = os.path.join(output_path, "harmonic_spectrum.png")
             plt.savefig(chart_path, dpi=300, bbox_inches='tight')
             plt.close()
 
@@ -312,12 +312,20 @@ class PDFReportGenerator:
         """
         try:
             # Try to use reportlab for professional PDF
-            from reportlab.lib import colors
-            from reportlab.lib.enums import TA_CENTER, TA_LEFT, TA_RIGHT
-            from reportlab.lib.pagesizes import A4, letter
-            from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
-            from reportlab.lib.units import inch, mm
-            from reportlab.platypus import Image, PageBreak, Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
+            from reportlab.lib import colors  # noqa: F401
+            from reportlab.lib.enums import TA_CENTER, TA_LEFT, TA_RIGHT  # noqa: F401
+            from reportlab.lib.pagesizes import A4, letter  # noqa: F401
+            from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet  # noqa: F401
+            from reportlab.lib.units import inch, mm  # noqa: F401
+            from reportlab.platypus import (  # noqa: F401
+                Image,
+                PageBreak,
+                Paragraph,
+                SimpleDocTemplate,
+                Spacer,
+                Table,
+                TableStyle,
+            )
 
             self.logger.info("Generating PDF report using ReportLab")
             return self._generate_with_reportlab(metadata, sections, output_path)
@@ -454,7 +462,7 @@ class DOCXReportGenerator:
         try:
             from docx import Document
             from docx.enum.text import WD_ALIGN_PARAGRAPH
-            from docx.shared import Inches, Pt
+            from docx.shared import Inches, Pt  # noqa: F401
 
             os.makedirs(output_path, exist_ok=True)
 
@@ -513,7 +521,7 @@ class XLSXReportGenerator:
         """Generate XLSX report."""
         try:
             from openpyxl import Workbook
-            from openpyxl.styles import Alignment, Font, PatternFill
+            from openpyxl.styles import Alignment, Font, PatternFill  # noqa: F401
 
             os.makedirs(output_path, exist_ok=True)
 
@@ -584,7 +592,7 @@ class ReportGenerationAgent:
 
     async def generate_complete_report(self, analysis_results: Dict,
                                       metadata: Optional[ReportMetadata] = None,
-                                      formats: List[str] = ['pdf', 'docx', 'xlsx'],
+                                      formats: List[str] = None,
                                       output_path: str = './reports') -> Dict[str, str]:
         """
         Generate complete engineering report in multiple formats.
@@ -598,6 +606,8 @@ class ReportGenerationAgent:
         Returns:
         Dictionary mapping format to file path
         """
+        if formats is None:
+            formats = ['pdf', 'docx', 'xlsx']
         self.logger.info("Starting complete report generation")
 
         # Create default metadata if not provided

@@ -570,13 +570,13 @@ def make_business_hours_policy(
     start_hour: int = 8,
     end_hour: int = 18,
     priority: int = 5,
-) -> ABACPolicy:
-    """Create a deny policy that blocks access outside business hours.
+) -> List["ABACPolicy"]:
+    """Create deny policies that block access outside business hours.
 
     Parameters
     ----------
     name : str
-        Policy name.
+        Policy name prefix.
     start_hour : int
         Start of allowed window (24-h, inclusive).
     end_hour : int
@@ -586,24 +586,41 @@ def make_business_hours_policy(
 
     Returns
     -------
-    ABACPolicy
-        A **deny** policy that fires when the request is outside the window.
+    list[ABACPolicy]
+        Two **deny** policies: one for before start_hour, one for after end_hour.
     """
-    return ABACPolicy(
-        name=name,
-        rules=[
-            ABACRule(
-                rule_type=RuleType.TIME,
-                field_path="hour",
-                operator="<",
-                value=start_hour,
-                description=f"Before business hours (hour < {start_hour})",
-            ),
-        ],
-        priority=priority,
-        effect="deny",
-        description=f"Deny access before {start_hour}:00",
-    )
+    return [
+        ABACPolicy(
+            name=f"{name}_before",
+            rules=[
+                ABACRule(
+                    rule_type=RuleType.TIME,
+                    field_path="hour",
+                    operator="<",
+                    value=start_hour,
+                    description=f"Before business hours (hour < {start_hour})",
+                ),
+            ],
+            priority=priority,
+            effect="deny",
+            description=f"Deny access before {start_hour}:00",
+        ),
+        ABACPolicy(
+            name=f"{name}_after",
+            rules=[
+                ABACRule(
+                    rule_type=RuleType.TIME,
+                    field_path="hour",
+                    operator=">",
+                    value=end_hour,
+                    description=f"After business hours (hour > {end_hour})",
+                ),
+            ],
+            priority=priority,
+            effect="deny",
+            description=f"Deny access after {end_hour}:00",
+        ),
+    ]
 
 
 def make_ip_allowlist_policy(

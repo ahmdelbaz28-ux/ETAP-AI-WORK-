@@ -6,20 +6,19 @@ Validates: AI failure modes, code guard, test guard, docs guard,
 secure executor integration, and orchestrator integration.
 """
 
-import sys
-import os
 import json
+import os
 import subprocess
+import sys
 import tempfile
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from guards.base import GuardSeverity, GuardMode, GuardViolation, GuardResult, BaseGuard
-from guards.ai_failure_modes import AIFailureModeDetector, AI_FAILURE_MODES
+from guards.ai_failure_modes import AI_FAILURE_MODES, AIFailureModeDetector
+from guards.base import BaseGuard, GuardMode, GuardResult, GuardSeverity, GuardViolation
 from guards.code_guard import CodeGuard
-from guards.test_guard import TestGuard
 from guards.docs_guard import DocsGuard
-
+from guards.test_guard import TestGuard
 
 # ============================================================================
 # Test 1: Base Guard Framework
@@ -583,8 +582,9 @@ def test_guard_review_request_model():
     """Validate the Pydantic model for guard review endpoint."""
     # This tests that the model can be instantiated
     try:
+        from typing import Any, Dict, Optional
+
         from pydantic import BaseModel, Field
-        from typing import Optional, Dict, Any
 
         class GuardReviewRequest(BaseModel):
             source: str = Field(..., description="Source code", min_length=1, max_length=500_000)

@@ -43,9 +43,9 @@ class MotorParameters:
         self.rated_kw = self.rated_hp * 0.746
         self.rated_mva = self.rated_kw / (self.efficiency * self.power_factor * 1000)
         self.rated_current_a = (self.rated_mva * 1000) / (self.rated_kv * np.sqrt(3))
-        self.sync_speed_rpm = 120 * 60 / max(1, round(self.rated_rpm / 3600) * 2) * 60
-        if self.sync_speed_rpm == 0:
-            self.sync_speed_rpm = 3600.0
+        f = 60.0  # Assume 60 Hz system frequency
+        P = max(2, round(120 * f / self.rated_rpm / 2) * 2)  # Round to nearest even poles
+        self.sync_speed_rpm = 120 * f / P
 
 
 class MotorModel:
@@ -198,9 +198,8 @@ class MotorModel:
         # Motor starting impedance
         p = self.params
         pf_angle = np.arccos(p.starting_pf)
-        Z_motor_start = self.x_d_double_prime_sys / self.mva_ratio
-        Z_motor = Z_motor_start * (np.cos(pf_angle) + 1j * np.sin(pf_angle))
-        Z_motor = Z_motor / self.mva_ratio  # on system base
+        # x_d_double_prime_sys is already on system base; no further conversion needed
+        Z_motor = self.x_d_double_prime_sys * (np.cos(pf_angle) + 1j * np.sin(pf_angle))
 
         # Voltage divider
         V_source = 1.0  # per-unit
@@ -251,8 +250,9 @@ class MotorModel:
         else:
             I_ac = (I_double_prime - I_prime) * np.exp(-t / T_double_prime) + \
                    I_prime * np.exp(-t / T_prime)
-            I_dc = np.sqrt(2) * I_double_prime * np.exp(-t / T_dc)
-            I_motor = (I_ac + I_dc) * self.mva_ratio
+            I_dc = np.sqrt(2) * abs(I_double_prime) * np.exp(-t / T_dc)
+            # Asymmetrical current magnitude = sqrt(I_ac_rms^2 + I_dc^2)
+            I_motor = np.sqrt(abs(I_ac)**2 + I_dc**2) * self.mva_ratio
 
         return I_motor
 

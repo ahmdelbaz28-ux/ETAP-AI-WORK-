@@ -30,7 +30,7 @@ _HAS_TENSORFLOW = False
 
 try:
     from sklearn.ensemble import IsolationForest, RandomForestClassifier
-    from sklearn.metrics import mean_absolute_error, mean_squared_error
+    from sklearn.metrics import mean_absolute_error, mean_squared_error  # noqa: F401
     from sklearn.preprocessing import MinMaxScaler
 
     _HAS_SKLEARN = True

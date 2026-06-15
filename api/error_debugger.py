@@ -28,11 +28,10 @@ import platform
 import sys
 import traceback
 import uuid
-from dataclasses import asdict, dataclass, field
+from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from enum import Enum
 from typing import Any, Dict, List, Optional
-
 
 # ---------------------------------------------------------------------------
 # Error-code registry
@@ -614,7 +613,7 @@ class ErrorContextBuilder:
     @staticmethod
     def _extract_stack_trace() -> str:
         """Extract the current stack trace as a string."""
-        return traceback.format_exc()
+        return "".join(traceback.format_stack())
 
     @staticmethod
     def _extract_environment() -> Dict[str, Any]:

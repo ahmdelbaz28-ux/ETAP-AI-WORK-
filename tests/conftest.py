@@ -19,8 +19,8 @@ import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 from sqlalchemy.ext.asyncio import (
-    AsyncSession,
     AsyncEngine,
+    AsyncSession,
     async_sessionmaker,
     create_async_engine,
 )
@@ -37,22 +37,20 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 # models that register themselves on Base.metadata.
 # ---------------------------------------------------------------------------
 
+# Also import the ORM models so create_all knows about them
+import api.auth  # noqa: F401
+import api.projects  # noqa: F401
+
+# Import routers *after* Base is available so ORM models register their
+# tables on Base.metadata.
+from api.auth import router as auth_router  # noqa: E402
 from api.database import Base  # noqa: E402
 from api.dependencies import (  # noqa: E402
     JWT_ALGORITHM,
     JWT_SECRET_KEY,
     CurrentUser,
 )
-
-# Import routers *after* Base is available so ORM models register their
-# tables on Base.metadata.
-from api.auth import router as auth_router  # noqa: E402
 from api.projects import router as projects_router  # noqa: E402
-
-# Also import the ORM models so create_all knows about them
-import api.auth  # noqa: F401
-import api.projects  # noqa: F401
-
 
 # ---------------------------------------------------------------------------
 # In-memory async SQLite engine

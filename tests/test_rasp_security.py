@@ -9,20 +9,21 @@ Run:
     pytest tests/test_rasp_security.py -v
 """
 
-import pytest
-import sys
 import os
+import sys
+
+import pytest
 
 # Add project root to path
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from security.rasp import (
-    RASPEngine,
-    RASPAction,
-    RASPSeverity,
-    RASPRule,
-    create_default_rasp_engine,
     _DEFAULT_RULES,
+    RASPAction,
+    RASPEngine,
+    RASPRule,
+    RASPSeverity,
+    create_default_rasp_engine,
     re,
 )
 

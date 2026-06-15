@@ -299,13 +299,10 @@ class EarthGridAgent(BaseAgent):
         L_S = 0.75 * L_total + L_rods  # Effective length for step voltage
 
         # Step voltage factor K_s (IEEE 80 Eq. 71)
-        K_s = (1.0 / np.pi) * (
-            0.5 * np.log((h ** 2 + h ** 2) / ((h ** 2 + h ** 2) ** 0.5 * d))
-            + np.log(D / (2.0 * h + d))
-            + 0.5 * np.log(2.0 * np.pi)
+        K_s = (1.0 / (2.0 * np.pi)) * (
+            np.log(D ** 2 / (16.0 * h * d))
+            + np.log((3.0 * h) / d)
         )
-        # Simplified form for typical grids:
-        K_s = (1.0 / np.pi) * (1.0 / (2.0)) * np.log(D ** 2 / (16.0 * h * d))
 
         # Irregularity factor (same as mesh voltage)
         K_i = 0.656 + 0.172 * n_parallel
@@ -356,7 +353,7 @@ class EarthGridAgent(BaseAgent):
         """
         # Grid resistance (Schwarz formula, simplified)
         A_grid = grid_length_m * grid_width_m
-        perimeter = 2.0 * (grid_length_m + grid_width_m)
+        _perimeter = 2.0 * (grid_length_m + grid_width_m)
         L_total_buried = (2.0 * grid_length_m + 2.0 * grid_width_m) + n_rods * rod_length_m
 
         # Simplified grid resistance (Laurent formula)

@@ -38,7 +38,7 @@ class TestLoadConfig:
 
     def test_load_yaml(self, tmp_path):
         try:
-            import yaml
+            import yaml  # noqa: F401
         except ImportError:
             pytest.skip("PyYAML not installed")
         text = """handlers: myapp.handlers
@@ -52,7 +52,7 @@ metrics: true
 
     def test_load_yml_suffix(self, tmp_path):
         try:
-            import yaml
+            import yaml  # noqa: F401
         except ImportError:
             pytest.skip("PyYAML not installed")
         path = tmp_path / "config.yml"
@@ -82,7 +82,7 @@ metrics: true
 
     def test_invalid_yaml(self, tmp_path):
         try:
-            import yaml
+            import yaml  # noqa: F401
         except ImportError:
             pytest.skip("PyYAML not installed")
         path = tmp_path / "config.yaml"
@@ -94,7 +94,7 @@ metrics: true
 
     def test_yaml_not_installed(self, tmp_path, monkeypatch):
         try:
-            import yaml
+            import yaml  # noqa: F401
         except ImportError:
             pytest.skip("PyYAML not installed — can't test without it")
         # Make import yaml fail

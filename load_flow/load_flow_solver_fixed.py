@@ -226,7 +226,7 @@ class LoadFlowSolver:
 
             if bus.bus_type == 'pv' and Q_gen > qmax:
                 bus.bus_type = 'pq'
-                bus.generation_power = complex(bus.generation_power.real, qmax + bus.load_power.imag)
+                bus.generation_power = complex(bus.generation_power.real, qmax)
                 event = f"PV->PQ (Q>Qmax): Bus {bid} Q={Q_gen:.4f} > Qmax={qmax:.4f}"
                 self.switching_log.append(event)
                 logger.info(event)
@@ -234,7 +234,7 @@ class LoadFlowSolver:
 
             elif bus.bus_type == 'pv' and Q_gen < qmin:
                 bus.bus_type = 'pq'
-                bus.generation_power = complex(bus.generation_power.real, qmin + bus.load_power.imag)
+                bus.generation_power = complex(bus.generation_power.real, qmin)
                 event = f"PV->PQ (Q<Qmin): Bus {bid} Q={Q_gen:.4f} < Qmin={qmin:.4f}"
                 self.switching_log.append(event)
                 logger.info(event)

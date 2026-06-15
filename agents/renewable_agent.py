@@ -190,7 +190,7 @@ class RenewableAgent(BaseAgent):
             "peak_output_kw": float(np.max(P_ac_final)),
             "hours_at_peak": int(np.sum(P_ac_final >= 0.99 * np.max(P_ac_final))),
             "losses": {
-                "temperature_loss_kwh": float(total_dc_energy * abs(gamma) * 10.0),
+                "temperature_loss_kwh": float(total_dc_energy - np.sum(dc_capacity_kw * (irradiance_kw_m2 / G_stc))),
                 "inverter_loss_kwh": float(inverter_loss),
                 "clipping_loss_kwh": float(clipping_energy),
                 "system_losses_kwh": float(system_losses),
@@ -201,7 +201,7 @@ class RenewableAgent(BaseAgent):
                 "availability_pct": availability_pct,
             },
             "monthly_energy_kwh": [
-                float(np.sum(P_ac_final[m * 730:(m + 1) * 730])) for m in range(12)
+                float(np.sum(P_ac_final[(m * 730):min((m + 1) * 730, hours)])) for m in range(12)
             ],
         }
 
@@ -326,7 +326,13 @@ class RenewableAgent(BaseAgent):
         P[mask_rated] = rated_power_kw
 
         # Weibull probability distribution
-        from scipy.special import gamma as gamma_func  # type: ignore
+        try:
+            from scipy.special import gamma as gamma_func  # type: ignore
+        except ImportError:
+            # Fallback: Stirling's approximation for gamma function
+            import math
+            def gamma_func(x):
+                return math.gamma(x)
         weibull_pdf = (weibull_k / weibull_c) * (v / weibull_c) ** (weibull_k - 1) * \
                       np.exp(-(v / weibull_c) ** weibull_k)
         weibull_pdf[0] = 0.0  # Avoid issues at v=0
@@ -523,7 +529,7 @@ class RenewableAgent(BaseAgent):
         })
 
         # 7. PCC voltage level
-        nominal_voltages = {120: 120, 208: 208, 240: 240, 480: 480, 2400: 2400,
+        _nominal_voltages = {120: 120, 208: 208, 240: 240, 480: 480, 2400: 2400,
                             4160: 4160, 12470: 12470, 13800: 13800, 24940: 24940}
         pcc_ok = point_of_interconnection_voltage_V > 0
         checks.append({
