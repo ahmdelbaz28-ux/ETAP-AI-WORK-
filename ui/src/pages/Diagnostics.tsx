@@ -1,9 +1,9 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { motion } from 'framer-motion'
-import { CheckCircle, XCircle, AlertTriangle, RefreshCw, Activity, Cpu, Gauge } from 'lucide-react'
+import { CheckCircle, XCircle, AlertTriangle, RefreshCw, Activity } from 'lucide-react'
 import { fetchHealth, type HealthResponse } from '../lib/api'
 import { useNotify } from '../context/NotificationContext'
-import { Card, CardHeader, CardSection, Badge, Button, EmptyState } from '../components/ui'
+import { Card, Badge, Button, EmptyState } from '../components/ui'
 import { cn } from '../utils/helpers'
 
 interface DiagnosticCheck {
@@ -43,7 +43,7 @@ export function Diagnostics() {
   const [progress, setProgress] = useState(0)
   const { notify } = useNotify()
 
-  const runDiagnostics = async () => {
+  const runDiagnostics = useCallback(async () => {
     setRunning(true)
     setProgress(0)
     setChecks([])
@@ -93,9 +93,12 @@ export function Diagnostics() {
     setRunning(false)
     setProgress(0)
     notify(results.every(c => c.status === 'pass') ? 'success' : 'warning', 'Diagnostics complete')
-  }
+  }, [notify])
 
-  useEffect(() => { runDiagnostics() }, [])
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    runDiagnostics()
+  }, [runDiagnostics])
 
   const passCount = checks.filter(c => c.status === 'pass').length
   const failCount = checks.filter(c => c.status === 'fail').length

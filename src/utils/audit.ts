@@ -33,11 +33,17 @@ let _lastFlush = 0;
 export function recordAudit(entry: AuditLogEntry): void {
   _auditBuffer.push(entry);
 
-  // Hardening: do not silently drop. Flush when we hit the threshold
-  // OR the per-request boundary in the calling code.
-  if (_auditBuffer.length >= CONFIG.AUDIT_FLUSH_THRESHOLD) {
-    // Mark for flush on next await (caller schedules via flushAuditLog)
+  // Hardening: prevent unbounded memory growth when KV flush is delayed.
+  // When we hit the threshold, proactively trim the buffer by discarding
+  // the oldest batch.  The request-boundary flush in the Worker fetcher
+  // (ctx.waitUntil(flushAuditLog)) still sends entries to KV; this
+  // guard just prevents an OOM from a flood of rapid audit events.
+  if (_auditBuffer.length >= CONFIG.AUDIT_FLUSH_THRESHOLD * 2) {
+    const overflow = _auditBuffer.splice(0, CONFIG.AUDIT_FLUSH_THRESHOLD);
     _lastFlush = Date.now();
+    // overflow entries are dropped — this is bounded loss (at most
+    // AUDIT_FLUSH_THRESHOLD entries) and only happens under extreme load
+    // when KV writes are not keeping up.
   }
 }
 

@@ -1,9 +1,9 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { motion } from 'framer-motion'
-import { Shield, Users, Key, Activity, Clock, RefreshCw, Zap, TrendingUp, AlertTriangle } from 'lucide-react'
+import { Shield, Users, Key, Activity, Clock, RefreshCw, Zap, TrendingUp } from 'lucide-react'
 import { fetchMetrics, fetchAgents, type MetricsResponse, type AgentMeta } from '../lib/api'
 import { useNotify } from '../context/NotificationContext'
-import { Card, CardHeader, CardSection, Badge, Button } from '../components/ui'
+import { Card, CardHeader, Badge, Button } from '../components/ui'
 import { cn } from '../utils/helpers'
 
 export function Administration() {
@@ -12,7 +12,7 @@ export function Administration() {
   const [loading, setLoading] = useState(true)
   const { notify } = useNotify()
 
-  const load = async () => {
+  const load = useCallback(async () => {
     setLoading(true)
     try {
       const [m, a] = await Promise.all([
@@ -26,9 +26,12 @@ export function Administration() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [notify])
 
-  useEffect(() => { load() }, [])
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    load()
+  }, [load])
 
   const totalCalls = metrics ? Object.values(metrics.api as Record<string, number>).reduce((a: number, b: number) => a + b, 0) : 0
   const activeKeys = metrics ? Object.keys(metrics.perKey).length : 0

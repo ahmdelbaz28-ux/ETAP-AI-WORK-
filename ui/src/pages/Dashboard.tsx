@@ -2,12 +2,8 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { motion } from 'framer-motion'
-import {
-  Zap, Bot, FlaskConical, CheckCircle, XCircle,
-  TrendingUp, Activity, Server, Clock, Cpu,
-  BarChart3, ArrowRight, Radio, Shield, Gauge
-} from 'lucide-react'
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, PieChart, Pie, Cell } from 'recharts'
+import { Zap, Bot, FlaskConical, CheckCircle, XCircle, Activity, Server, Clock, BarChart3, ArrowRight, Gauge } from 'lucide-react'
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, Cell } from 'recharts'
 import { useNotify } from '../context/NotificationContext'
 import { fetchHealth, fetchAgents, type HealthResponse, type AgentMeta } from '../lib/api'
 import { studyCategories } from '../lib/studyCategories'
@@ -139,7 +135,7 @@ export function Dashboard() {
     Promise.all([fetchHealth().catch(() => null), fetchAgents().catch(() => [])])
       .then(([h, a]) => { setHealth(h); setAgents(a); setLoading(false) })
       .catch(() => { notify('error', 'Failed to load dashboard data'); setLoading(false) })
-  }, [])
+  }, [notify])
 
   if (loading) {
     return (

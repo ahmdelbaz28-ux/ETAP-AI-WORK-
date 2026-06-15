@@ -1,9 +1,8 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { Save, Download, Upload, Trash2, Bot, Wrench, Database, Shield, Link2, Gauge } from 'lucide-react'
 import { useNotify } from '../context/NotificationContext'
-import { Card, CardHeader, CardSection, Button, Tabs, TabPanels, useTabState, Toggle } from '../components/ui'
-import { cn } from '../utils/helpers'
+import { Card, CardHeader, Button, Tabs, TabPanels, useTabState, Toggle } from '../components/ui'
 
 // Simple XOR-based obfuscation for localStorage storage.
 // NOT a substitute for server-side encryption — but prevents
@@ -199,30 +198,29 @@ function SettingsField({ field, value, onChange }: { field: string; value: strin
   )
 }
 
+function loadInitialSettings(): Record<string, string> {
+  const stored = localStorage.getItem('etap-settings')
+  const defaults = getDefaults()
+  if (stored) {
+    try {
+      const parsed = JSON.parse(stored)
+      const deobfuscated: Record<string, string> = {}
+      for (const [k, v] of Object.entries(parsed)) {
+        deobfuscated[k] = SECRET_FIELDS.has(k) ? deobfuscate(v as string) : (v as string)
+      }
+      return { ...defaults, ...deobfuscated }
+    } catch {
+      return defaults
+    }
+  }
+  return defaults
+}
+
 export function Settings() {
-  const [settings, setSettings] = useState<Record<string, string>>({})
+  const [settings, setSettings] = useState<Record<string, string>>(loadInitialSettings)
   const [saving, setSaving] = useState(false)
   const { notify } = useNotify()
   const { activeTab, setActiveTab } = useTabState('ai')
-
-  useEffect(() => {
-    const stored = localStorage.getItem('etap-settings')
-    const defaults = getDefaults()
-    if (stored) {
-      try {
-        const parsed = JSON.parse(stored)
-        const deobfuscated: Record<string, string> = {}
-        for (const [k, v] of Object.entries(parsed)) {
-          deobfuscated[k] = SECRET_FIELDS.has(k) ? deobfuscate(v as string) : (v as string)
-        }
-        setSettings({ ...defaults, ...deobfuscated })
-      } catch {
-        setSettings(defaults)
-      }
-    } else {
-      setSettings(defaults)
-    }
-  }, [])
 
   const handleSave = () => {
     setSaving(true)

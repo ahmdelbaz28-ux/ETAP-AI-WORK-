@@ -35,8 +35,10 @@ class System:
         self.generators.append(generator)
 
     def add_load(self, load):
-        """Add a load to the system."""
+        """Add a load to the system and accumulate its power at the connected bus."""
         self.loads.append(load)
+        # Accumulate load power at the connected bus (was previously in Load.__init__)
+        load.bus.load_power += load.load_power
 
     def build_ybus(self, seq='1'):
         """

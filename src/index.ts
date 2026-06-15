@@ -78,8 +78,8 @@ export default {
       return errorResponse(404, `Not Found: ${method} ${path}`, traceId, cors);
     }
 
-    // 3a) Body size guard
-    if (method === 'POST') {
+    // 3a) Body size guard — all methods that can carry a body
+    if (['POST', 'PUT', 'PATCH', 'DELETE'].includes(method)) {
       const sizeErr = await checkBodySize(request);
       if (sizeErr) {
         bumpApiMetric('bodySizeRejections');

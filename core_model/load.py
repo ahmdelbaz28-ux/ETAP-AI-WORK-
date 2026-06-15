@@ -35,11 +35,11 @@ class Load:
         self.power_factor = power_factor
         self.constant_impedance = constant_impedance
 
-        # WARNING: Side effect — this constructor mutates bus.load_power.
-        # Ideally, this should be moved to System.add_load() instead,
-        # but changing it now could break existing code that relies on
-        # the auto-accumulation behavior.
-        self.bus.load_power += self.load_power
+        # NOTE: load power is NOT accumulated into bus.load_power here.
+        # The side-effect was removed from the constructor because it
+        # caused silent data corruption on deserialization or system rebuild
+        # (double-counting load power when loads are re-created).
+        # Accumulation now happens in System.add_load().
 
     def get_impedance(self, seq='1'):
         """Get impedance for a given sequence."""

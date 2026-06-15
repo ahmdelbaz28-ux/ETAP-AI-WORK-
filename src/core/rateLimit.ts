@@ -15,6 +15,27 @@ interface RateLimitState {
 }
 
 const _rateLimitMap: Map<string, RateLimitState> = new Map();
+const _RATE_LIMIT_MAP_MAX_SIZE = 10_000;
+let _lastMapCleanup = 0;
+const _MAP_CLEANUP_INTERVAL_MS = 60_000;
+
+function _evictStaleRateLimitEntries(): void {
+  const now = Date.now();
+  for (const [key, state] of _rateLimitMap) {
+    if (now > state.resetAt) {
+      _rateLimitMap.delete(key);
+    }
+  }
+  // If still over the cap after evicting expired entries, remove oldest
+  if (_rateLimitMap.size > _RATE_LIMIT_MAP_MAX_SIZE) {
+    const entries = [..._rateLimitMap.entries()];
+    entries.sort((a, b) => a[1].resetAt - b[1].resetAt);
+    const toDelete = entries.slice(0, entries.length - _RATE_LIMIT_MAP_MAX_SIZE);
+    for (const [key] of toDelete) {
+      _rateLimitMap.delete(key);
+    }
+  }
+}
 
 function isRateLimitEntry(value: unknown): value is RateLimitState {
   return (
@@ -62,6 +83,11 @@ function checkRateLimitMap(
   limit: number
 ): { allowed: boolean; retryAfter?: number } {
   const now = Date.now();
+  // Periodic cleanup of stale entries to prevent unbounded memory growth
+  if (now - _lastMapCleanup > _MAP_CLEANUP_INTERVAL_MS) {
+    _lastMapCleanup = now;
+    _evictStaleRateLimitEntries();
+  }
   const state = _rateLimitMap.get(key) ?? null;
   const result = evaluateLimit(state, now, limit);
   if (result.newState) {

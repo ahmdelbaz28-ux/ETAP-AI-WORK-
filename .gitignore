@@ -163,6 +163,7 @@ logs/
 *.db
 *.db-shm
 *.db-wal
+*.duckdb
 *.sqlite
 *.sqlite3
 *.sqlite-shm
@@ -196,6 +197,11 @@ temp/
 *.tmp
 *.bak
 *.backup
+
+# ==========================================
+# Lint / Audit Outputs
+# ==========================================
+ui/eslint-*.json
 
 # ==========================================
 # Docker

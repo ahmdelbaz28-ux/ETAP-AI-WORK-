@@ -94,36 +94,60 @@ class CoordinationEngine:
         Returns:
         float: Suggested TMS for upstream relay, or None if not possible.
         """
-        # We will try to find a TMS such that for all fault currents,
-        # t_up - t_down >= target_margin
-        # We'll do a simple search over TMS values.
-        # Save original TMS to restore later (defensive: use try/finally)
-        original_TMS = upstream_relay.TMS
+        # Compute the upstream trip time for a given TMS WITHOUT mutating the relay.
+        # This avoids the original bug where the relay's TMS was temporarily changed
+        # during the search loop, which could affect concurrent reads of the relay.
+        def _trip_time_for_tms(tms, relay, I):
+            # Use the relay's curve type and Ip, but override TMS locally
+            I_mag = abs(I)
+            if I_mag < relay.Ip:
+                return float('inf')
+            if relay.curve_type == 'standard_inverse':
+                return relay.curves.standard_inverse(tms, I_mag, relay.Ip)
+            elif relay.curve_type == 'very_inverse':
+                return relay.curves.very_inverse(tms, I_mag, relay.Ip)
+            elif relay.curve_type == 'extremely_inverse':
+                return relay.curves.extremely_inverse(tms, I_mag, relay.Ip)
+            elif relay.curve_type == 'long_inverse':
+                return relay.curves.long_inverse(tms, I_mag, relay.Ip)
+            else:
+                raise ValueError(f"Unknown curve type: {relay.curve_type}")
+
         best_TMS = None
         min_violation = float('inf')
-        try:
-            for TMS_candidate in np.linspace(0.1, 10.0, 100):
-                # Temporarily set TMS (will be restored in finally block)
-                upstream_relay.TMS = TMS_candidate
-                violations = []
-                for If in fault_currents:
-                    result = self.check_coordination(upstream_relay, downstream_relay, If)
-                    if not result['coordinated']:
-                        # How much we are missing the margin
-                        violation = target_margin - result['margin']
-                        if violation > 0:
-                            violations.append(violation)
-                # If no violations, this TMS works
-                if not violations:
-                    best_TMS = TMS_candidate
-                    break
+        # When upstream trips before downstream the margin is negative (or zero).
+        # We penalise those cases heavily so the search will never prefer a TMS
+        # that lets the upstream device trip first.
+        UNCOORDINATED_PENALTY = 100.0
+
+        for TMS_candidate in np.linspace(
+            self.tms_search_min, self.tms_search_max, self.tms_search_steps
+        ):
+            violations = []
+            for If in fault_currents:
+                t_up = _trip_time_for_tms(TMS_candidate, upstream_relay, If)
+                t_down = downstream_relay.trip_time(If)
+
+                if t_down < t_up:
+                    # Downstream trips first — proper coordination is possible.
+                    margin = t_up - t_down
+                    if margin < target_margin:
+                        violations.append(target_margin - margin)
                 else:
-                    # Average violation
-                    avg_violation = np.mean(violations)
-                    if avg_violation < min_violation:
-                        min_violation = avg_violation
-                        best_TMS = TMS_candidate
-        finally:
-            # Always restore original TMS to prevent leaving relay in mutated state
-            upstream_relay.TMS = original_TMS
+                    # Upstream trips first (or same time) — fundamentally
+                    # uncoordinated.  Apply a heavy penalty so this TMS never
+                    # beats a genuinely coordinated solution.
+                    violations.append(
+                        UNCOORDINATED_PENALTY + (t_down - t_up)
+                    )
+
+            if not violations:
+                best_TMS = TMS_candidate
+                break
+
+            avg_violation = float(np.mean(violations))
+            if avg_violation < min_violation:
+                min_violation = avg_violation
+                best_TMS = TMS_candidate
+
         return best_TMS

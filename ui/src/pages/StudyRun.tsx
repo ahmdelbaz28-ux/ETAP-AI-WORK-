@@ -3,8 +3,8 @@ import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { motion } from 'framer-motion'
 import {
-  Play, CheckCircle, XCircle, ArrowLeft, FileCheck,
-  Clock, Download, Copy, ChevronDown, ChevronUp,
+  Play, CheckCircle, XCircle, ArrowLeft,
+  Clock, ChevronDown, ChevronUp,
   Zap, AlertTriangle, BarChart3
 } from 'lucide-react'
 import { useNotify } from '../context/NotificationContext'
@@ -14,7 +14,7 @@ import { Card, CardHeader, Badge, Button, Toggle, Tabs, TabPanels, useTabState }
 import { cn } from '../utils/helpers'
 
 // One-line diagram SVG component for study results visualization
-function OneLineDiagram({ data }: { data?: Record<string, unknown> }) {
+function OneLineDiagram() {
   return (
     <div className="bg-[var(--bg-primary)] rounded-lg p-4 border border-[var(--border-primary)]">
       <div className="flex items-center justify-between mb-3">
@@ -85,8 +85,6 @@ function OneLineDiagram({ data }: { data?: Record<string, unknown> }) {
 
 // Result summary component
 function ResultSummary({ result }: { result: Record<string, unknown> }) {
-  const isSuccess = result.status === 'completed' || result.status === 'dry_run'
-
   return (
     <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
       <div className="bg-[var(--bg-primary)] rounded-lg p-3 text-center border border-[var(--border-primary)]">
@@ -164,8 +162,6 @@ export function StudyRun() {
       setRunning(false)
     }
   }
-
-  const isSuccess = result && (result.status === 'completed' || result.status === 'dry_run')
 
   return (
     <div className="space-y-6">
@@ -251,13 +247,13 @@ export function StudyRun() {
               <Card
                 padding="md"
                 className={cn(
-                  isSuccess ? 'border-green-500/30 bg-green-500/5' : 'border-red-500/30 bg-red-500/5'
+                  result.status === 'completed' || result.status === 'dry_run' ? 'border-green-500/30 bg-green-500/5' : 'border-red-500/30 bg-red-500/5'
                 )}
               >
                 <div className="flex items-center gap-2 mb-3">
-                  {isSuccess ? <CheckCircle className="text-green-400 w-5 h-5" /> : <XCircle className="text-red-400 w-5 h-5" />}
+                  {result.status === 'completed' || result.status === 'dry_run' ? <CheckCircle className="text-green-400 w-5 h-5" /> : <XCircle className="text-red-400 w-5 h-5" />}
                   <h3 className="text-base font-semibold text-[var(--text-primary)]">{t('studyRun.studyResult')}</h3>
-                  <Badge variant={isSuccess ? 'success' : 'danger'} className="ml-auto">
+                  <Badge variant={result.status === 'completed' || result.status === 'dry_run' ? 'success' : 'danger'} className="ml-auto">
                     {String(result.status)}
                   </Badge>
                 </div>
