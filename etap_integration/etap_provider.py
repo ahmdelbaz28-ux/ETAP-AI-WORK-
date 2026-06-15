@@ -9,7 +9,7 @@ import logging
 import os
 import sys
 import time
-from abc import ABC
+from abc import ABC, abstractmethod
 from enum import Enum
 from typing import Any, Dict, List
 
@@ -34,25 +34,14 @@ class ETAPResult:
         self.execution_time = execution_time
 
 class IEtapProvider(ABC):
+    @abstractmethod
     def execute_study(self, project_path: str, study_type: ETAPStudyType, visible: bool = False) -> ETAPResult:
         """
         Execute a study on the configured ETAP backend.
 
-        Default implementation returns a FAILED ETAPResult so any concrete
-        provider that forgets to override this method is caught early by
-        the caller's status checks rather than silently returning an empty
-        success.  Concrete providers (Local, Remote, Mock, Null) override.
+        Concrete providers (Local, Remote, Mock, Null) must override.
         """
-        return ETAPResult(
-            success=False,
-            data={},
-            warnings=[],
-            errors=[
-                f"Provider {type(self).__name__} does not implement execute_study(); "
-                "override IEtapProvider.execute_study in the concrete subclass."
-            ],
-            execution_time=0.0,
-        )
+        ...
 
     def is_available(self) -> bool:
         """
@@ -70,7 +59,7 @@ class LocalEtapProvider(IEtapProvider):
         self._available = sys.platform == "win32"
         if self._available:
             try:
-                from etap_integration.etap_com import ETAPAutomation
+                from etap_integration.etap_com import ETAPAutomation  # noqa: F401
             except ImportError:
                 self._available = False
                 logger.warning("etap_com module not found or pywin32 missing")

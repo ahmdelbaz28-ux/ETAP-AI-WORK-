@@ -93,7 +93,17 @@ class LoadBalancer:
 
     def get_all_workers_status(self) -> List[Dict[str, Any]]:
         with self._lock:
-            return [self.get_worker_status(wid) for wid in self._workers]
+            results = []
+            for _wid, w in self._workers.items():
+                results.append({
+                    "worker_id": w.worker_id, "capacity": w.capacity,
+                    "current_load": w.current_load,
+                    "utilization": w.current_load / max(w.capacity, 1e-9),
+                    "healthy": w.healthy,
+                    "tasks_completed": w.tasks_completed,
+                    "tasks_failed": w.tasks_failed, "weight": w.weight,
+                })
+            return results
 
     def set_strategy(self, strategy: str) -> None:
         with self._lock:

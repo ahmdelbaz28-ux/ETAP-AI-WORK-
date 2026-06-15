@@ -259,14 +259,14 @@ class StateStore:
         with self._lock:
             if not self._snapshots:
                 return None
-            return self._snapshots[-1]
+            return copy.deepcopy(self._snapshots[-1])
 
     def get_version(self, version: int) -> Optional[StateSnapshot]:
         """Get a specific version of the state."""
         with self._lock:
             for s in self._snapshots:
                 if s.version == version:
-                    return s
+                    return copy.deepcopy(s)
             return None
 
     def get_current_version(self) -> int:
@@ -304,8 +304,10 @@ class StateStore:
         with self._lock:
             snap_a = self._get_version_unlocked(version_a)
             snap_b = self._get_version_unlocked(version_b)
-        if not snap_a or not snap_b:
-            return None
+            if not snap_a or not snap_b:
+                return None
+            snap_a_copy = copy.deepcopy(snap_a)
+            snap_b_copy = copy.deepcopy(snap_b)
 
         changes = {
             "version_a": version_a,
@@ -318,10 +320,10 @@ class StateStore:
         }
 
         # Bus state changes
-        all_bus_ids = set(snap_a.bus_states.keys()) | set(snap_b.bus_states.keys())
+        all_bus_ids = set(snap_a_copy.bus_states.keys()) | set(snap_b_copy.bus_states.keys())
         for bid in all_bus_ids:
-            ba = snap_a.bus_states.get(bid)
-            bb = snap_b.bus_states.get(bid)
+            ba = snap_a_copy.bus_states.get(bid)
+            bb = snap_b_copy.bus_states.get(bid)
             if ba is None:
                 changes["bus_changes"][bid] = {"action": "added"}
             elif bb is None:
@@ -338,10 +340,10 @@ class StateStore:
                 }
 
         # Switch state changes
-        all_sw_ids = set(snap_a.switch_states.keys()) | set(snap_b.switch_states.keys())
+        all_sw_ids = set(snap_a_copy.switch_states.keys()) | set(snap_b_copy.switch_states.keys())
         for sid in all_sw_ids:
-            sa = snap_a.switch_states.get(sid)
-            sb = snap_b.switch_states.get(sid)
+            sa = snap_a_copy.switch_states.get(sid)
+            sb = snap_b_copy.switch_states.get(sid)
             if sa is None:
                 changes["switch_changes"][sid] = {"action": "added"}
             elif sb is None:
@@ -355,20 +357,20 @@ class StateStore:
 
         # Topology changed
         changes["topology_changed"] = (
-            snap_a.topology.energized_buses != snap_b.topology.energized_buses or
-            snap_a.topology.de_energized_buses != snap_b.topology.de_energized_buses
+            snap_a_copy.topology.energized_buses != snap_b_copy.topology.energized_buses or
+            snap_a_copy.topology.de_energized_buses != snap_b_copy.topology.de_energized_buses
         )
 
         # Simulation changed
         changes["simulation_changed"] = (
-            snap_a.simulation_results.load_flow_converged != snap_b.simulation_results.load_flow_converged or
-            snap_a.simulation_results.state_estimation_converged != snap_b.simulation_results.state_estimation_converged
+            snap_a_copy.simulation_results.load_flow_converged != snap_b_copy.simulation_results.load_flow_converged or
+            snap_a_copy.simulation_results.state_estimation_converged != snap_b_copy.simulation_results.state_estimation_converged
         )
 
         # Validation changed
         changes["validation_changed"] = (
-            snap_a.validation_passed != snap_b.validation_passed or
-            len(snap_a.validation_errors) != len(snap_b.validation_errors)
+            snap_a_copy.validation_passed != snap_b_copy.validation_passed or
+            len(snap_a_copy.validation_errors) != len(snap_b_copy.validation_errors)
         )
 
         return changes

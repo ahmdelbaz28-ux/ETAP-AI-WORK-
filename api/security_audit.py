@@ -25,17 +25,14 @@ Usage (programmatic)::
 
 from __future__ import annotations
 
-import ast
 import asyncio
 import json
 import os
 import re
 import sys
-from dataclasses import asdict, dataclass, field
+from dataclasses import dataclass, field
 from enum import Enum
-from pathlib import Path
-from typing import Any, Dict, List, Optional, Set, Tuple
-
+from typing import Any, Dict, List, Optional, Tuple
 
 # ---------------------------------------------------------------------------
 # Data structures
@@ -887,7 +884,7 @@ class SecurityAuditor:
                     (i + 1, line) for i, line in enumerate(content.split("\n"))
                     if "==" in line and "api_key" in line.lower() and "hmac" not in line.lower()
                 ]
-                for line_num, line in lines_with_compare:
+                for _line_num, line in lines_with_compare:
                     # Skip if it's in a comparison that's clearly not timing-sensitive
                     if "if" in line and "provided" not in line.lower():
                         continue
@@ -1046,7 +1043,7 @@ class SecurityAuditor:
         """Count the number of Python files in the project."""
         count = 0
         skip_dirs = {".git", "__pycache__", "node_modules", ".venv", "venv", "acp_runtime"}
-        for dirpath, dirnames, filenames in os.walk(self.project_root):
+        for _dirpath, dirnames, filenames in os.walk(self.project_root):
             dirnames[:] = [d for d in dirnames if d not in skip_dirs]
             count += sum(1 for f in filenames if f.endswith(".py"))
         return count

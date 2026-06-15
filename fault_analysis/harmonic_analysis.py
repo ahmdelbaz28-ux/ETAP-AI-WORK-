@@ -43,9 +43,9 @@ class HarmonicSource:
     source_type: str = "current"  # "current" or "voltage"
 
     @property
-    def frequency_hz(self, fundamental_freq: float = 60.0) -> float:
+    def frequency_hz(self) -> float:
         """Calculate frequency for this harmonic."""
-        return self.harmonic_order * fundamental_freq
+        return self.harmonic_order * 60.0
 
 
 @dataclass

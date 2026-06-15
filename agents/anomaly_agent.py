@@ -20,7 +20,7 @@ Standards:
 
 import logging
 from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional
 
 import numpy as np
 
@@ -459,13 +459,17 @@ class AnomalyAgent(BaseAgent):
 
             # --- Threshold violation detection ---
             if method in ("threshold", "full"):
-                upper_limit = float(task.parameters.get("upper_limit", np.max(data) * 1.1))
-                lower_limit = float(task.parameters.get("lower_limit", np.min(data) * 0.9))
-                results["threshold"] = self.detect_threshold_violations(
-                    data=data,
-                    upper_limit=upper_limit,
-                    lower_limit=lower_limit,
-                )
+                upper_limit = float(task.parameters.get("upper_limit", np.max(data) * 1.1)) if "upper_limit" in task.parameters else None
+                lower_limit = float(task.parameters.get("lower_limit", np.min(data) * 0.9)) if "lower_limit" in task.parameters else None
+                if upper_limit is None or lower_limit is None:
+                    # Skip threshold detection if limits not explicitly provided
+                    self.log_execution("Threshold detection skipped: upper_limit and lower_limit must be explicitly provided", "WARNING")
+                else:
+                    results["threshold"] = self.detect_threshold_violations(
+                        data=data,
+                        upper_limit=upper_limit,
+                        lower_limit=lower_limit,
+                    )
 
             # --- Cross-correlation analysis ---
             if method == "cross_correlation":
@@ -485,7 +489,7 @@ class AnomalyAgent(BaseAgent):
             # Determine overall severity (worst case)
             severity_order = {"CRITICAL": 4, "HIGH": 3, "MEDIUM": 2, "LOW": 1}
             overall_severity = "LOW"
-            for key, val in results.items():
+            for _key, val in results.items():
                 sev = val.get("severity", "LOW")
                 if severity_order.get(sev, 0) > severity_order.get(overall_severity, 0):
                     overall_severity = sev

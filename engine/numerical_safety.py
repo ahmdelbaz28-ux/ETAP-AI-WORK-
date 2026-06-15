@@ -62,8 +62,8 @@ class NumericalBounds(Enum):
         """
         try:
             return cls[name].value
-        except KeyError:
-            raise ValueError(f"Unknown parameter '{name}'. Available: {[e.name for e in cls]}")
+        except KeyError as err:
+            raise ValueError(f"Unknown parameter '{name}'. Available: {[e.name for e in cls]}") from err
 
 
 class NumericalGuard:
@@ -246,7 +246,8 @@ class ConvergenceMonitor:
         if len(recent) < 2:
             return 0.0
         ratios = np.abs(recent[1:] / np.maximum(np.abs(recent[:-1]), 1e-300))
-        return float(np.mean(ratios[ratios < 1e6]))
+        filtered = ratios[ratios < 1e6]
+        return float(np.mean(filtered)) if len(filtered) > 0 else float('inf')
 
     def reset(self) -> None:
         """Clear iteration history and reset counter."""

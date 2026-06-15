@@ -174,7 +174,7 @@ class GPUSolver:
             return SparseConvergenceResult(solver_type="gpu-cpu")
 
         # Classify buses
-        slack_idx = [i for i, b in enumerate(bus_data) if b.bus_type == "slack"]
+        [i for i, b in enumerate(bus_data) if b.bus_type == "slack"]
         pv_idx = [i for i, b in enumerate(bus_data) if b.bus_type == "pv"]
         pq_idx = [i for i, b in enumerate(bus_data) if b.bus_type == "pq"]
         n_pv = len(pv_idx)
@@ -233,7 +233,7 @@ class GPUSolver:
             for k, i in enumerate(pq_idx):
                 mismatch[n_pv + n_pq + k] = deltaQ[i]
 
-            max_mismatch = float(xp.max(xp.abs(mismatch)))
+            max_mismatch = float(xp.max(xp.abs(mismatch))) if n_unknowns > 0 else 0.0
 
             iteration_log.append({
                 "iteration": iteration,
@@ -334,7 +334,7 @@ class GPUSolver:
         Sparse matrix on the active device (CuPy CSR or SciPy CSR).
         """
         xp = self._xp
-        n = len(V)
+        len(V)
 
         Vmag = xp.abs(V)
         Vang = xp.angle(V)
@@ -501,7 +501,6 @@ class GPUSolver:
         array
             Solution vector on the active device.
         """
-        xp = self._xp
 
         if self._gpu_available:
             try:
@@ -601,7 +600,7 @@ class GPUSolver:
             speedup = None
             if self._gpu_available:
                 t0 = time.perf_counter()
-                result_gpu = self.newton_raphson_gpu(
+                self.newton_raphson_gpu(
                     Ybus_dense, buses, max_iter=20, tol=1e-6,
                 )
                 t_gpu_ms = (time.perf_counter() - t0) * 1000

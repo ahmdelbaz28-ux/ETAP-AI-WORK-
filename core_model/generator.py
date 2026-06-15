@@ -58,4 +58,4 @@ class Generator:
         return self.impedance.get(seq, complex(0,0))
 
     def __repr__(self):
-        return f"Generator({self.generator_id}) at Bus {self.bus.bus_id}: Vint={self.internal_voltage['1']:.3f} pu"
+        return f"Generator({self.generator_id}) at Bus {self.bus.bus_id}: Vint={self.internal_voltage['1'].real:.3f}+{self.internal_voltage['1'].imag:.3f}j pu"

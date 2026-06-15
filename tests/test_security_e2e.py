@@ -33,10 +33,9 @@ import pytest
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from api.dependencies import JWT_ALGORITHM, JWT_SECRET_KEY
-from security.rasp import RASPEngine, RASPAction, create_default_rasp_engine
 from security.mfa import TOTPProvider
+from security.rasp import RASPAction, RASPEngine, create_default_rasp_engine
 from security.siem import SecurityEvent, SIEMForwarder
-
 
 # ===========================================================================
 # 1. API key bypass attempt

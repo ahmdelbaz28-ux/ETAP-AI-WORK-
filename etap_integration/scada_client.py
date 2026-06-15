@@ -87,7 +87,7 @@ try:
     logger.info("IEC 61850 datamodel library loaded — real SCADA available")
 except ImportError:
     try:
-        from py61850 import Client as Py61850Client  # type: ignore
+        from py61850 import Client as Py61850Client  # type: ignore  # noqa: F401
         _HAS_IEC61850 = True
         logger.info("py61850 library loaded — real SCADA available via py61850")
     except ImportError:
@@ -198,8 +198,8 @@ class SCADAClient:
         poll_interval_sec: int = 5,
     ) -> None:
         self._host = host or _SCADA_HOST
-        self._port = port or _SCADA_PORT
-        self._poll_interval = poll_interval_sec or _SCADA_POLL_SEC
+        self._port = port if port is not None else _SCADA_PORT
+        self._poll_interval = poll_interval_sec if poll_interval_sec is not None else _SCADA_POLL_SEC
         self._connected = False
         self._last_telemetry: Optional[SCADATelemetry] = None
         self._simulated = SimulatedSCADA()

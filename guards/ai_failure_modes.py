@@ -405,7 +405,7 @@ class AIFailureModeDetector:
                     location=f"line {success_line}",
                     suggestion="Derive the return value from actual computation. "
                                "If the function can't fail, return None or remove the success flag.",
-                    evidence=f"return True / return {{'success': True}}",
+                    evidence="return True / return {'success': True}",
                 ))
         return violations
 
@@ -653,7 +653,7 @@ class AIFailureModeDetector:
         if tree is None:
             return violations
 
-        EXEMPT = {0, 0.0, 1, 1.0, -1, -1.0, 2, 2.0, 10, 100, 1000, 0.5, 0.25, 1e6, 1e9}
+        EXEMPT = {0, 1, -1, -1.0, 2, 2.0, 10, 100, 1000, 0.5, 0.25, 1e6, 1e9}
         seen: set = set()  # avoid duplicate reports for same number
 
         for node in ast.walk(tree):

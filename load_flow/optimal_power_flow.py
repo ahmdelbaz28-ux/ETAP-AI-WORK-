@@ -215,22 +215,25 @@ class OptimalPowerFlowEngine:
         # Sum(P_g) = Sum(P_load) + Losses (approximated as 0 in DC)
         total_load = sum(load.real for load in self.load_data.values())
 
-        # Create equality constraint matrix
-        # Each generator contributes to its connected bus
-        A_eq = np.zeros((self.n_buses, n_gen))
-        b_eq = np.zeros(self.n_buses)
-
+        # NOTE: Original code created one equality constraint per bus, which
+        # overconstrains the LP when there are more buses than generators.
+        # Fix: use a single system-wide power balance: sum(gen) = sum(load).
+        # Build a mapping from generator index to LP decision variable column.
+        gen_col_map = {}
         for i, gid in enumerate(gen_ids):
-            bus_id = self.gen_buses.get(gid)
-            if bus_id is not None and bus_id in self.bus_index:
-                bus_idx = self.bus_index[bus_id]
-                A_eq[bus_idx, i] = 1
+            gen_col_map[gid] = i
 
-        # Set RHS to load at each bus
-        for bus_id, load in self.load_data.items():
-            if bus_id in self.bus_index:
-                bus_idx = self.bus_index[bus_id]
-                b_eq[bus_idx] = load.real
+        # Single system-wide power balance constraint: sum(gen) = sum(load)
+        A_eq_row = np.zeros(len(gen_ids))
+        b_eq_val = 0.0
+        for _bus_idx, bid in enumerate(self.bus_ids):
+            load_val = self.load_data.get(bid, complex(0, 0)).real
+            b_eq_val += load_val
+        for gid, _bus_id in self.gen_buses.items():
+            gen_col = gen_col_map[gid]
+            A_eq_row[gen_col] = 1.0
+        A_eq = A_eq_row.reshape(1, -1)
+        b_eq = np.array([b_eq_val])
 
         # Solve LP
         try:
@@ -251,7 +254,7 @@ class OptimalPowerFlowEngine:
                 # Build result
                 generator_dispatch = {}
                 for i, gid in enumerate(gen_ids):
-                    bus_id = self.gen_buses[gid]
+                    self.gen_buses[gid]
                     Q_gen = 0  # DC OPF doesn't optimize Q
                     generator_dispatch[gid] = complex(P_gen[i], Q_gen)
 

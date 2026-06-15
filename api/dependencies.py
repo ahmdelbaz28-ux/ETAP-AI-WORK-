@@ -11,8 +11,8 @@ Provides reusable dependency callables for:
 
 from __future__ import annotations
 
+import hmac
 import os
-from datetime import datetime, timezone
 from typing import Optional
 
 import jwt
@@ -27,10 +27,22 @@ from api.database import get_db
 # JWT configuration
 # ---------------------------------------------------------------------------
 
-JWT_SECRET_KEY: str = os.getenv(
-    "JWT_SECRET_KEY",
-    "etap-platform-default-secret-change-in-production",
-)
+_jwt_key = os.getenv("JWT_SECRET_KEY", "")
+if not _jwt_key:
+    _env = os.getenv("ENVIRONMENT", os.getenv("ENV", "development")).lower()
+    if _env in ("production", "prod", "staging"):
+        raise RuntimeError(
+            "JWT_SECRET_KEY must be set in production/staging. "
+            "Refusing to start with a default secret."
+        )
+    import logging as _logging
+    import secrets as _secrets
+    _jwt_key = _secrets.token_hex(32)
+    _logging.getLogger(__name__).warning(
+        "JWT_SECRET_KEY not set; using random key. "
+        "Tokens will NOT survive restarts. Set JWT_SECRET_KEY in production."
+    )
+JWT_SECRET_KEY: str = _jwt_key
 JWT_ALGORITHM: str = "HS256"
 
 # ---------------------------------------------------------------------------
@@ -91,7 +103,7 @@ class CurrentUser(BaseModel):
 
 
 async def get_current_user(
-    db: AsyncSession = Depends(get_db),
+    db: AsyncSession = Depends(get_db),  # noqa: B008
     authorization: Optional[str] = None,  # injected by FastAPI header param
 ) -> CurrentUser:
     """Validate the JWT from the ``Authorization: Bearer <token>`` header.
@@ -122,16 +134,16 @@ async def get_current_user(
 
     try:
         payload = jwt.decode(token, JWT_SECRET_KEY, algorithms=[JWT_ALGORITHM])
-    except jwt.ExpiredSignatureError:
+    except jwt.ExpiredSignatureError as err:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Token has expired",
-        )
-    except jwt.InvalidTokenError:
+        ) from err
+    except jwt.InvalidTokenError as err:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid token",
-        )
+        ) from err
 
     user_id: Optional[str] = payload.get("sub")
     token_type: Optional[str] = payload.get("type")
@@ -168,7 +180,7 @@ async def get_current_user(
 
 
 async def get_current_user_from_header(
-    db: AsyncSession = Depends(get_db),
+    db: AsyncSession = Depends(get_db),  # noqa: B008
     authorization: str = Header(default="", alias="Authorization"),
 ) -> CurrentUser:
     """Convenience dependency that reads the ``Authorization`` header automatically."""
@@ -200,7 +212,7 @@ def require_role(*roles: str):
     """
 
     async def _check_role(
-        user: CurrentUser = Depends(get_current_user_from_header),
+        user: CurrentUser = Depends(get_current_user_from_header),  # noqa: B008
     ) -> CurrentUser:
         if user.role not in roles:
             raise HTTPException(
@@ -235,7 +247,7 @@ async def get_api_key(
             detail="Missing X-API-Key header",
         )
 
-    if x_api_key != API_KEY:
+    if not hmac.compare_digest(x_api_key, API_KEY):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid API key",

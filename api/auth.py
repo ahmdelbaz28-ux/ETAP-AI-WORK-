@@ -26,6 +26,7 @@ Security features
 
 from __future__ import annotations
 
+import hashlib
 import os
 import time
 import uuid
@@ -36,7 +37,7 @@ import bcrypt
 import jwt
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
-from sqlalchemy import Boolean, DateTime, String, func, select, update
+from sqlalchemy import Boolean, DateTime, String, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -358,7 +359,7 @@ def _record_failed_attempt(username: str) -> None:
 )
 async def register(
     body: RegisterRequest,
-    db: AsyncSession = Depends(get_db),
+    db: AsyncSession = Depends(get_db),  # noqa: B008
 ) -> Any:
     """Create a new user account.
 
@@ -416,7 +417,7 @@ async def register(
 )
 async def login(
     body: LoginRequest,
-    db: AsyncSession = Depends(get_db),
+    db: AsyncSession = Depends(get_db),  # noqa: B008
 ) -> Any:
     """Authenticate with username + password.
 
@@ -465,23 +466,23 @@ async def login(
 )
 async def refresh(
     body: RefreshRequest,
-    db: AsyncSession = Depends(get_db),
+    db: AsyncSession = Depends(get_db),  # noqa: B008
 ) -> Any:
     """Exchange a valid refresh token for a new access + refresh pair."""
     try:
         payload = jwt.decode(
             body.refresh_token, JWT_SECRET_KEY, algorithms=[JWT_ALGORITHM]
         )
-    except jwt.ExpiredSignatureError:
+    except jwt.ExpiredSignatureError as err:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Refresh token has expired",
-        )
-    except jwt.InvalidTokenError:
+        ) from err
+    except jwt.InvalidTokenError as err:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid refresh token",
-        )
+        ) from err
 
     if payload.get("type") != "refresh":
         raise HTTPException(
@@ -521,7 +522,7 @@ async def refresh(
     summary="Revoke session",
 )
 async def logout(
-    user: CurrentUser = Depends(get_current_user_from_header),
+    user: CurrentUser = Depends(get_current_user_from_header),  # noqa: B008
 ) -> None:
     """Log the current user out.
 
@@ -537,8 +538,8 @@ async def logout(
     summary="Get current user profile",
 )
 async def get_me(
-    user: CurrentUser = Depends(get_current_user_from_header),
-    db: AsyncSession = Depends(get_db),
+    user: CurrentUser = Depends(get_current_user_from_header),  # noqa: B008
+    db: AsyncSession = Depends(get_db),  # noqa: B008
 ) -> Any:
     """Return the authenticated user's full profile."""
     result = await db.execute(select(User).where(User.id == user.user_id))
@@ -570,8 +571,8 @@ async def get_me(
 )
 async def update_me(
     body: UpdateProfileRequest,
-    user: CurrentUser = Depends(get_current_user_from_header),
-    db: AsyncSession = Depends(get_db),
+    user: CurrentUser = Depends(get_current_user_from_header),  # noqa: B008
+    db: AsyncSession = Depends(get_db),  # noqa: B008
 ) -> Any:
     """Update the authenticated user's email and/or MFA preference."""
     result = await db.execute(select(User).where(User.id == user.user_id))
@@ -623,8 +624,8 @@ async def update_me(
 )
 async def change_password(
     body: ChangePasswordRequest,
-    user: CurrentUser = Depends(get_current_user_from_header),
-    db: AsyncSession = Depends(get_db),
+    user: CurrentUser = Depends(get_current_user_from_header),  # noqa: B008
+    db: AsyncSession = Depends(get_db),  # noqa: B008
 ) -> Any:
     """Change the authenticated user's password.
 
@@ -686,7 +687,7 @@ async def change_password(
 )
 async def forgot_password(
     body: ForgotPasswordRequest,
-    db: AsyncSession = Depends(get_db),
+    db: AsyncSession = Depends(get_db),  # noqa: B008
 ) -> Dict[str, str]:
     """Generate a password-reset token for the given email.
 
@@ -698,7 +699,8 @@ async def forgot_password(
 
     if user is not None and user.is_active:
         reset_token = str(uuid.uuid4())
-        user.reset_token = reset_token
+        token_hash = hashlib.sha256(reset_token.encode()).hexdigest()
+        user.reset_token = token_hash
         user.reset_token_expires = datetime.now(timezone.utc) + timedelta(
             minutes=RESET_TOKEN_EXPIRE_MINUTES
         )
@@ -709,8 +711,7 @@ async def forgot_password(
         # In production, send the token via email. For now we return it
         # directly so the flow is testable without an SMTP server.
         return {
-            "message": "If the email exists, a reset token has been generated",
-            "reset_token": reset_token,
+            "message": "If the email exists, a reset token has been sent",
         }
 
     # Deliberately return the same message to avoid enumeration
@@ -724,11 +725,12 @@ async def forgot_password(
 )
 async def reset_password(
     body: ResetPasswordRequest,
-    db: AsyncSession = Depends(get_db),
+    db: AsyncSession = Depends(get_db),  # noqa: B008
 ) -> Dict[str, str]:
     """Set a new password using a valid reset token."""
+    token_hash = hashlib.sha256(body.token.encode()).hexdigest()
     result = await db.execute(
-        select(User).where(User.reset_token == body.token)
+        select(User).where(User.reset_token == token_hash)
     )
     user = result.scalar_one_or_none()
 
@@ -769,9 +771,9 @@ async def reset_password(
     summary="List all users (admin only)",
 )
 async def list_users(
-    user: CurrentUser = Depends(require_role("admin")),
-    db: AsyncSession = Depends(get_db),
-    pagination=Depends(pagination_params),
+    user: CurrentUser = Depends(require_role("admin")),  # noqa: B008
+    db: AsyncSession = Depends(get_db),  # noqa: B008
+    pagination=Depends(pagination_params),  # noqa: B008
 ) -> Any:
     """Return a paginated list of all users. Requires the ``admin`` role."""
     # Total count
@@ -815,8 +817,8 @@ async def list_users(
 )
 async def delete_user(
     user_id: str,
-    user: CurrentUser = Depends(require_role("admin")),
-    db: AsyncSession = Depends(get_db),
+    user: CurrentUser = Depends(require_role("admin")),  # noqa: B008
+    db: AsyncSession = Depends(get_db),  # noqa: B008
 ) -> Dict[str, str]:
     """Soft-delete a user by setting ``is_active = False``.
 

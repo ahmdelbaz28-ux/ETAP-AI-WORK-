@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from abc import ABC
+from abc import ABC, abstractmethod
 from typing import Dict, Iterator, List, Optional
 
 from gis_integration.models import GeoCRSInfo, GISFeature
@@ -17,6 +17,7 @@ class GISProviderInterface(ABC):
       (see gis_integration.exceptions)
     """
 
+    @abstractmethod
     def load_project(self, path: str) -> None:
         """
         Load a GIS project from a local filesystem path.

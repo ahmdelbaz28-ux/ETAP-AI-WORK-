@@ -26,8 +26,8 @@ def env_int(key: str, default: int) -> int:
         return default
     try:
         return int(val)
-    except ValueError:
-        raise SystemExit(f"{key} must be an integer, got: {val!r}")
+    except ValueError as err:
+        raise SystemExit(f"{key} must be an integer, got: {val!r}") from err
 
 
 def env_bool(key: str, default: bool) -> bool:

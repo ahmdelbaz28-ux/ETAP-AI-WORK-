@@ -53,8 +53,8 @@ class FaultAnalyzer:
         """
         Vpre = complex(1.0, 0.0)
         Zth = self.Zbus_pos[bus_index, bus_index]
-        if Zth == 0:
-            If = complex('inf')
+        if abs(Zth) < 1e-12:
+            If = complex(float('inf'), 0)
         else:
             If = Vpre / Zth
         return {
@@ -81,8 +81,8 @@ class FaultAnalyzer:
         Z2 = self.Zbus_neg[bus_index, bus_index]
         Z0 = self.Zbus_zero[bus_index, bus_index]
         denominator = Z1 + Z2 + Z0
-        if denominator == 0:
-            If = complex('inf')
+        if abs(denominator) < 1e-12:
+            If = complex(float('inf'), 0)
         else:
             If = 3 * Vpre / denominator
         return {
@@ -108,8 +108,8 @@ class FaultAnalyzer:
         Z1 = self.Zbus_pos[bus_index, bus_index]
         Z2 = self.Zbus_neg[bus_index, bus_index]
         denominator = Z1 + Z2
-        if denominator == 0:
-            If = complex('inf')
+        if abs(denominator) < 1e-12:
+            If = complex(float('inf'), 0)
         else:
             If = Vpre * np.sqrt(3) / denominator
         return {
@@ -135,9 +135,15 @@ class FaultAnalyzer:
         Z1 = self.Zbus_pos[bus_index, bus_index]
         Z2 = self.Zbus_neg[bus_index, bus_index]
         Z0 = self.Zbus_zero[bus_index, bus_index]
-        Z20 = (Z2 * Z0) / (Z2 + Z0) if (Z2 + Z0) != 0 else 0
+        if abs(Z2 + Z0) > 1e-12:
+            Z20 = (Z2 * Z0) / (Z2 + Z0)
+        else:
+            Z20 = complex(1e9, 0)  # Approximate open circuit
         If1 = Vpre / (Z1 + Z20)
-        If0 = -If1 * (Z2 / (Z2 + Z0)) if (Z2 + Z0) != 0 else 0
+        if abs(Z2 + Z0) > 1e-12:
+            If0 = -If1 * (Z2 / (Z2 + Z0))
+        else:
+            If0 = complex(0, 0)
         If2 = -If1 - If0
         a = complex(-0.5, np.sqrt(3)/2)
         a2 = complex(-0.5, -np.sqrt(3)/2)

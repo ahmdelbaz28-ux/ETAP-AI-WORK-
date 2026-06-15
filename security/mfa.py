@@ -632,14 +632,11 @@ class WebAuthnProvider:
                 logger.warning("WebAuthn authentication verification failed: %s", exc)
                 return False
 
-        # Fallback: accept any response with the correct challenge
-        response_challenge = response.get("response", {}).get("clientDataJSON", "")
-        if challenge in response_challenge:
-            stored_cred.sign_count += 1
-            logger.info("WebAuthn authentication succeeded (fallback) for user %s", owner_id)
-            return True
-
-        logger.warning("WebAuthn authentication failed (fallback) for credential %s", credential_id)
+        # Fallback: reject without webauthn library
+        logger.warning(
+            "WebAuthn authentication REJECTED: cannot verify without webauthn library. "
+            "Install the 'webauthn' package for production use."
+        )
         return False
 
     # -- credential management -----------------------------------------------

@@ -323,7 +323,7 @@ class SparseYBus:
             return SparseConvergenceResult(solver_type="sparse")
 
         # Classify buses
-        slack_idx = [i for i, b in enumerate(self._buses) if b.bus_type == "slack"]
+        [i for i, b in enumerate(self._buses) if b.bus_type == "slack"]
         pv_idx = [i for i, b in enumerate(self._buses) if b.bus_type == "pv"]
         pq_idx = [i for i, b in enumerate(self._buses) if b.bus_type == "pq"]
 
@@ -477,22 +477,20 @@ class SparseYBus:
         -------
         lil_matrix  (float, n_unknowns × n_unknowns)
         """
-        n = len(V)
+        len(V)
         n_pv = len(pv_idx)
         n_pq = len(pq_idx)
 
         J = lil_matrix((n_unknowns, n_unknowns), dtype=float)
 
         # Pre-compute helpers
-        Vmag = np.abs(V)
-        Vang = np.angle(V)
+        np.abs(V)
+        np.angle(V)
 
         # Conductance / susceptance matrices
-        G = Ybus.real
-        B = Ybus.imag
 
         # Pre-compute I_inj = Y * V  for all buses
-        I_inj = Ybus @ V
+        Ybus @ V
 
         # The analytical Jacobian is complex to hand-code correctly; use
         # the well-known sparse finite-difference approach that is both
@@ -680,8 +678,8 @@ class SparseYBus:
         tol: float = 1e-8,
     ) -> SparseConvergenceResult:
         """Dense Newton-Raphson for benchmarking purposes only."""
-        n = len(bus_data)
-        slack_idx = [i for i, b in enumerate(bus_data) if b.bus_type == "slack"]
+        len(bus_data)
+        [i for i, b in enumerate(bus_data) if b.bus_type == "slack"]
         pv_idx = [i for i, b in enumerate(bus_data) if b.bus_type == "pv"]
         pq_idx = [i for i, b in enumerate(bus_data) if b.bus_type == "pq"]
         n_pv = len(pv_idx)
@@ -696,7 +694,7 @@ class SparseYBus:
         Q_sch = np.array([b.q_generation - b.q_load for b in bus_data], dtype=float)
 
         converged = False
-        for iteration in range(max_iter):
+        for _iteration in range(max_iter):
             I = Ybus @ V
             S = V * np.conj(I)
             P = S.real
@@ -738,7 +736,7 @@ class SparseYBus:
         S_final = V * np.conj(I_final)
         return SparseConvergenceResult(
             converged=converged,
-            iterations=iteration + 1,
+            iterations=_iteration + 1,
             max_mismatch=float(max_mismatch),
             voltages=V,
             angles=np.angle(V),
@@ -852,7 +850,7 @@ def _build_dense_jacobian(
         L_ii = Q_i - B_ii |V_i|^2
         L_ij = H_ij
     """
-    n = len(V)
+    len(V)
     n_pv = len(pv_idx)
     n_pq = len(pq_idx)
     J = np.zeros((n_unknowns, n_unknowns), dtype=float)

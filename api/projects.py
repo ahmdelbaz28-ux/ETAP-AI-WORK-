@@ -23,20 +23,46 @@ from datetime import datetime, timezone
 from enum import Enum
 from typing import Any, Dict, List, Optional
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, Header, HTTPException, status
 from pydantic import BaseModel, ConfigDict, Field, field_validator
-from sqlalchemy import DateTime, JSON, String, func, select
+from sqlalchemy import JSON, DateTime, String, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
 
 from api.database import Base, get_db
 from api.dependencies import (
+    API_KEY,
     CurrentUser,
     PaginationParams,
-    get_api_key,
+    get_current_user,
     get_current_user_from_header,
     pagination_params,
 )
+
+# ---------------------------------------------------------------------------
+# Combined auth dependency (API key OR JWT)
+# ---------------------------------------------------------------------------
+
+async def _require_api_key_or_jwt(
+    x_api_key: str = Header(default="", alias="X-API-Key"),
+    authorization: str = Header(default="", alias="Authorization"),
+    db: AsyncSession = Depends(get_db),  # noqa: B008
+) -> str:
+    import hmac
+    # Try API key first
+    if API_KEY and x_api_key and hmac.compare_digest(x_api_key, API_KEY):
+        return "api_key"
+    # Then try JWT
+    if authorization:
+        try:
+            await get_current_user(db=db, authorization=authorization)
+            return "jwt"
+        except HTTPException:
+            pass
+    if not API_KEY:
+        return "dev"
+    raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Authentication required")
+
 
 # ---------------------------------------------------------------------------
 # Enums
@@ -251,8 +277,8 @@ router = APIRouter(prefix="/api/v1/projects", tags=["Projects"])
 )
 async def create_project(
     body: ProjectCreateRequest,
-    user: CurrentUser = Depends(get_current_user_from_header),
-    db: AsyncSession = Depends(get_db),
+    user: CurrentUser = Depends(get_current_user_from_header),  # noqa: B008
+    db: AsyncSession = Depends(get_db),  # noqa: B008
 ) -> Any:
     """Create a new power-system project.
 
@@ -289,10 +315,9 @@ async def create_project(
 )
 async def list_projects(
     status_filter: Optional[ProjectStatus] = None,
-    pagination: PaginationParams = Depends(pagination_params),
-    db: AsyncSession = Depends(get_db),
-    _api_key: str = Depends(get_api_key),
-    user: Optional[CurrentUser] = Depends(get_current_user_from_header),
+    pagination: PaginationParams = Depends(pagination_params),  # noqa: B008
+    db: AsyncSession = Depends(get_db),  # noqa: B008
+    auth: str = Depends(_require_api_key_or_jwt),
 ) -> Any:
     """Return a paginated list of projects.
 
@@ -347,9 +372,8 @@ async def list_projects(
 )
 async def get_project(
     project_id: str,
-    db: AsyncSession = Depends(get_db),
-    _api_key: str = Depends(get_api_key),
-    user: Optional[CurrentUser] = Depends(get_current_user_from_header),
+    db: AsyncSession = Depends(get_db),  # noqa: B008
+    auth: str = Depends(_require_api_key_or_jwt),
 ) -> Any:
     """Retrieve a single project by its UUID."""
     result = await db.execute(
@@ -389,8 +413,8 @@ async def get_project(
 async def update_project(
     project_id: str,
     body: ProjectUpdateRequest,
-    user: CurrentUser = Depends(get_current_user_from_header),
-    db: AsyncSession = Depends(get_db),
+    user: CurrentUser = Depends(get_current_user_from_header),  # noqa: B008
+    db: AsyncSession = Depends(get_db),  # noqa: B008
 ) -> Any:
     """Update one or more fields of an existing project."""
     result = await db.execute(
@@ -444,8 +468,8 @@ async def update_project(
 )
 async def delete_project(
     project_id: str,
-    user: CurrentUser = Depends(get_current_user_from_header),
-    db: AsyncSession = Depends(get_db),
+    user: CurrentUser = Depends(get_current_user_from_header),  # noqa: B008
+    db: AsyncSession = Depends(get_db),  # noqa: B008
 ) -> Dict[str, str]:
     """Soft-delete a project by setting its status to ``deleted``."""
     result = await db.execute(
@@ -486,8 +510,8 @@ async def delete_project(
 async def run_study(
     project_id: str,
     body: StudyRunRequest,
-    user: CurrentUser = Depends(get_current_user_from_header),
-    db: AsyncSession = Depends(get_db),
+    user: CurrentUser = Depends(get_current_user_from_header),  # noqa: B008
+    db: AsyncSession = Depends(get_db),  # noqa: B008
 ) -> Any:
     """Queue a study run against the project's saved configuration.
 
@@ -575,8 +599,8 @@ async def run_study(
 )
 async def list_studies(
     project_id: str,
-    db: AsyncSession = Depends(get_db),
-    user: CurrentUser = Depends(get_current_user_from_header),
+    db: AsyncSession = Depends(get_db),  # noqa: B008
+    user: CurrentUser = Depends(get_current_user_from_header),  # noqa: B008
 ) -> Any:
     """Return all study results associated with the given project."""
     # Verify project exists
@@ -640,8 +664,8 @@ async def _execute_study(
         A dictionary of study results suitable for JSON storage.
     """
     try:
-        from engine.engine import PowerSystemEngine  # type: ignore
         from core_model.system import System  # type: ignore
+        from engine.engine import PowerSystemEngine  # type: ignore
 
         # Build a system from config if available
         system = System(base_mva=config.get("base_mva", 100.0))

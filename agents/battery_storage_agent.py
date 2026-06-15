@@ -139,7 +139,7 @@ class BatteryStorageAgent(BaseAgent):
         # Peak shaving result simulation
         shaved_profile = np.maximum(load_profile_kw - P_bess, target_peak_kw)
         # Where load is below target, BESS may charge
-        charge_available = np.maximum(target_peak_kw - load_profile_kw, 0.0)
+        _charge_available = np.maximum(target_peak_kw - load_profile_kw, 0.0)
         original_peak = float(np.max(load_profile_kw))
         new_peak = float(np.max(shaved_profile))
         peak_reduction = original_peak - new_peak
@@ -236,12 +236,12 @@ class BatteryStorageAgent(BaseAgent):
 
         sqrt_efficiency = np.sqrt(round_trip_efficiency)
         dt = 1.0  # Assume 1-hour periods
-        max_energy_throughput = max_daily_cycles * bess_energy_kwh * (n_periods / 24.0)
+        _max_energy_throughput = max_daily_cycles * bess_energy_kwh * (n_periods / 24.0)
         cumulative_throughput = 0.0
 
         if strategy == "arbitrage":
             # Sort periods by price: charge at lowest, discharge at highest
-            price_ranks = np.argsort(np.argsort(energy_prices))
+            _price_ranks = np.argsort(np.argsort(energy_prices))
             n_charge = int(n_periods * 0.3)
             n_discharge = int(n_periods * 0.3)
             charge_periods = set(np.argsort(energy_prices)[:n_charge])
@@ -293,6 +293,13 @@ class BatteryStorageAgent(BaseAgent):
                     cumulative_throughput += P * dt
                 else:
                     soc[t + 1] = current_soc
+
+                # Enforce daily cycle limit
+                if cumulative_throughput >= _max_energy_throughput:
+                    # Stop further dispatch once cycle limit reached
+                    soc[t + 1:] = soc[t + 1]
+                    soc_history[t:] = soc[t + 1]
+                    break
 
                 soc[t + 1] = np.clip(soc[t + 1], min_soc, max_soc)
                 soc_history[t] = soc[t]
@@ -597,7 +604,7 @@ class BatteryStorageAgent(BaseAgent):
         cycle_histogram: Dict[str, int] = {}
 
         for dod, count in cycles.items():
-            dod_ratio = dod / nominal_dod if nominal_dod > 0 else 1.0
+            _dod_ratio = dod / nominal_dod if nominal_dod > 0 else 1.0
             equivalent = count * (dod ** 1.8) / (nominal_dod ** 1.8)
             total_equivalent_cycles += equivalent
             dod_range = f"{int(dod * 100)}%"
@@ -698,9 +705,9 @@ class BatteryStorageAgent(BaseAgent):
             dod_key = round(dod_bins[bin_idx], 2)
             cycles[dod_key] = cycles.get(dod_key, 0) + 1
 
-        # Convert half-cycles to full cycles
+        # Convert half-cycles to full cycles (use float to avoid truncation)
         for key in cycles:
-            cycles[key] = cycles[key] // 2
+            cycles[key] = cycles[key] / 2
 
         return cycles
 

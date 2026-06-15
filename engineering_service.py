@@ -109,7 +109,7 @@ def _to_jsonable(obj: Any) -> Any:
 # Ensure project root is on path
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from fastapi import FastAPI, HTTPException, Request, WebSocket, WebSocketDisconnect
+from fastapi import FastAPI, HTTPException, Request, WebSocket
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from pydantic import AliasChoices, BaseModel, ConfigDict, Field, field_validator
@@ -729,7 +729,11 @@ _RATE_LIMIT_MAX_ENTRIES = int(os.environ.get("ENGINEERING_SERVICE_RATE_LIMIT_MAX
 
 # Singleton StudyCache instance (initialized in lifespan)
 _study_cache = None
-_RATE_LIMIT_MAX_ENTRIES = int(os.environ.get("ENGINEERING_SERVICE_RATE_LIMIT_MAX_ENTRIES", "10000"))
+
+# Module-level shared instances for digital twin endpoint
+_shared_state_store = None
+_shared_event_bus = None
+_shared_validation_gateway = None
 
 
 def _check_rate_limit(client_id: str) -> bool:
@@ -1191,8 +1195,9 @@ async def predict_load(request: Request):
         if not isinstance(horizon, int) or horizon < 1 or horizon > 168:
             raise HTTPException(status_code=400, detail="horizon_hours must be between 1 and 168")
 
-        from ml.predictive import LoadForecaster
         import numpy as np
+
+        from ml.predictive import LoadForecaster
         lf = LoadForecaster()
         data = np.array(historical, dtype=float)
         lf.train(data)
@@ -1232,8 +1237,9 @@ async def predict_fault(request: Request):
         if len(features) > 1000:
             raise HTTPException(status_code=400, detail="features array too large (max 1000 elements)")
 
-        from ml.predictive import FaultPredictor
         import numpy as np
+
+        from ml.predictive import FaultPredictor
         fp = FaultPredictor()
         X = np.array(features, dtype=float)
         if X.ndim == 1:
@@ -1268,8 +1274,9 @@ async def detect_anomalies(request: Request):
         if len(data) > 10000:
             raise HTTPException(status_code=400, detail="data array too large (max 10000 points)")
 
-        from ml.predictive import AnomalyDetector
         import numpy as np
+
+        from ml.predictive import AnomalyDetector
         ad = AnomalyDetector()
         X = np.array(data, dtype=float)
         if X.ndim == 1:
@@ -1341,7 +1348,7 @@ async def get_scada_live_data(request: Request):
     _require_api_key(request)
     trace_id = getattr(request.state, "trace_id", "unknown")
     try:
-        from scada_model.scada_model import SCADADatabase, MeasurementType, QualityFlag
+        from scada_model.scada_model import MeasurementType, QualityFlag, SCADADatabase
         db = SCADADatabase()
 
         # Return a summary of the SCADA model
@@ -1380,13 +1387,16 @@ async def get_digital_twin_status(request: Request):
     _require_api_key(request)
     trace_id = getattr(request.state, "trace_id", "unknown")
     try:
-        from digital_twin.state_store import StateStore
         from digital_twin.event_bus import EventBus
+        from digital_twin.state_store import StateStore
         from digital_twin.validation_gateway import ValidationGateway
 
-        store = StateStore()
-        bus = EventBus()
-        gateway = ValidationGateway()
+        global _shared_state_store, _shared_event_bus, _shared_validation_gateway
+        if _shared_state_store is None:
+            _shared_state_store = StateStore()
+            _shared_event_bus = EventBus()
+            _shared_validation_gateway = ValidationGateway()
+        store = _shared_state_store
 
         # Get state store info
         state_info = {}
@@ -1433,7 +1443,7 @@ async def setup_totp(request: Request):
         totp = TOTPProvider()
         secret = totp.generate_secret(user_id)
         qr_uri = totp.generate_qr_code(user_id, secret)
-        backup_codes = totp.generate_backup_codes(user_id)
+        totp.generate_backup_codes(user_id)
 
         return JSONResponse(content={
             "success": True,
@@ -1556,9 +1566,10 @@ async def submit_siem_event(request: Request):
     trace_id = getattr(request.state, "trace_id", "unknown")
     try:
         body = await request.json()
-        from security.siem import SecurityEvent, get_siem_forwarder
-        from datetime import datetime, timezone
         import uuid as uuid_mod
+        from datetime import datetime, timezone
+
+        from security.siem import SecurityEvent, get_siem_forwarder
 
         _VALID_SEVERITIES = {"info", "low", "medium", "high", "critical"}
         severity = body.get("severity", "info")
@@ -1728,28 +1739,6 @@ class ConnectionManager:
 _ws_manager = ConnectionManager()
 
 
-@app.get("/api/v1/security/rasp/stats")
-async def get_rasp_stats(request: Request):
-    """Return RASP inspection statistics."""
-    _require_api_key(request)
-    trace_id = getattr(request.state, "trace_id", "unknown")
-    try:
-        from security.rasp import create_default_rasp_engine
-        # Use the app-level singleton RASP engine to get accurate stats
-        if hasattr(app.state, "rasp_engine"):
-            rasp = app.state.rasp_engine
-        else:
-            rasp = create_default_rasp_engine()
-        stats = rasp.get_stats()
-        return JSONResponse(content={
-            "success": True,
-            "data": stats,
-            "trace_id": trace_id,
-        })
-    except Exception as e:
-        return JSONResponse(status_code=500, content={"success": False, "errors": [str(e)], "trace_id": trace_id})
-
-
 # ---------------------------------------------------------------------------
 # Guard Skills Endpoints (guard-skills integration)
 # ---------------------------------------------------------------------------
@@ -1785,7 +1774,7 @@ async def guard_review(request: Request, body: GuardReviewRequest):
     trace_id = getattr(request.state, "trace_id", "unknown")
 
     try:
-        from guards import CodeGuard, TestGuard, DocsGuard, AIFailureModeDetector
+        from guards import AIFailureModeDetector, CodeGuard, DocsGuard, TestGuard
         from guards.base import GuardMode
 
         results: Dict[str, Any] = {}
@@ -1861,7 +1850,7 @@ async def guard_info(request: Request):
 
     try:
         from guards import AI_FAILURE_MODES
-        from guards.base import GuardSeverity
+        from guards.base import GuardSeverity  # noqa: F401
 
         return JSONResponse(content={
             "success": True,

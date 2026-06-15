@@ -59,6 +59,11 @@ class Permission(Enum):
     CALC_HARMONIC = "calc:harmonic"
     CALC_OPF = "calc:opf"
     CALC_MOTOR_STARTING = "calc:motor_starting"
+    CALC_MOTOR_ACCELERATION = "calc:motor_acceleration"
+    CALC_TRANSIENT_STABILITY = "calc:transient_stability"
+    CALC_CABLE_AMACITY = "calc:cable_ampacity"
+    CALC_GROUND_GRID = "calc:ground_grid"
+    CALC_RELIABILITY = "calc:reliability"
 
     EXEC_PYTHON = "exec:python"
     EXEC_POWERSHELL = "exec:powershell"
@@ -196,8 +201,8 @@ class AuthenticationManager:
                     "(less secure). Set FERNET_ENCRYPTION_KEY for independent key management."
                 )
             # Derive a stable key from the JWT secret (same secret = same Fernet key)
-            import hashlib
             import base64
+            import hashlib
             derived = hashlib.sha256((self.secret_key + "_fernet_derivation").encode()).digest()
             fernet_key = base64.urlsafe_b64encode(derived)
             self.cipher = Fernet(fernet_key)

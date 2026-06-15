@@ -107,7 +107,7 @@ def _to_jsonable(obj: Any) -> Any:
 # Ensure project root is on path
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from fastapi import Depends, FastAPI, HTTPException, Request, WebSocket, WebSocketDisconnect
+from fastapi import FastAPI, HTTPException, Request, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from pydantic import AliasChoices, BaseModel, ConfigDict, Field, field_validator
@@ -115,14 +115,13 @@ from starlette.middleware.base import BaseHTTPMiddleware
 
 # Import existing modular routers
 from api.auth import router as auth_router
-from api.projects import router as projects_router
 from api.database import init_db
-from api.dependencies import get_api_key
 from api.error_debugger import (
     ErrorReportGenerator,
-    StudyExecutionError,
     StructuredFormatter,
+    StudyExecutionError,
 )
+from api.projects import router as projects_router
 
 # ---------------------------------------------------------------------------
 # Structured logging with trace IDs
@@ -548,7 +547,7 @@ def _run_native_study(
         if not hasattr(engine, "run_motor_starting"):
             # Fallback: use the motor starting module directly
             try:
-                from core_model.motor_model import Motor  # type: ignore
+                from core_model.motor_model import Motor  # type: ignore  # noqa: F401
                 motor_data = {
                     "motor_id": motor_id,
                     "starting_method": starting_method,
@@ -566,12 +565,12 @@ def _run_native_study(
                     "note": "Computed via fallback motor model (engine dispatch not yet implemented)",
                     "motor_data": motor_data,
                 }
-            except ImportError:
+            except ImportError as err:
                 raise StudyExecutionError(
                     message="Motor starting analysis is not implemented in the engine",
                     study_type="motor_starting",
                     error_code=__import__("api.error_debugger", fromlist=["ERR_STUDY_006"]).ERR_STUDY_006,
-                )
+                ) from err
         return engine.run_motor_starting(motor_id, starting_method, **parameters)
 
     elif study_type == "harmonic_analysis":
@@ -581,7 +580,7 @@ def _run_native_study(
             # Fallback: use the harmonic analysis module directly
             try:
                 from fault_analysis.harmonic_analysis import HarmonicAnalyzer  # type: ignore
-                analyzer = HarmonicAnalyzer()
+                HarmonicAnalyzer()
                 return {
                     "study_type": "harmonic_analysis",
                     "max_harmonic_order": max_harmonic_order,
@@ -590,12 +589,12 @@ def _run_native_study(
                     "thd_percent": 0.0,
                     "harmonic_spectrum": {},
                 }
-            except ImportError:
+            except ImportError as err:
                 raise StudyExecutionError(
                     message="Harmonic analysis is not implemented in the engine",
                     study_type="harmonic_analysis",
                     error_code=__import__("api.error_debugger", fromlist=["ERR_STUDY_007"]).ERR_STUDY_007,
-                )
+                ) from err
         return engine.run_harmonic_analysis(max_harmonic_order=max_harmonic_order, **parameters)
 
     elif study_type == "optimal_power_flow":
@@ -605,7 +604,7 @@ def _run_native_study(
             # Fallback: use the OPF module directly
             try:
                 from load_flow.optimal_power_flow import OptimalPowerFlow  # type: ignore
-                opf = OptimalPowerFlow()
+                OptimalPowerFlow()
                 return {
                     "study_type": "optimal_power_flow",
                     "objective": objective,
@@ -614,12 +613,12 @@ def _run_native_study(
                     "objective_value": 0.0,
                     "generator_dispatch": {},
                 }
-            except ImportError:
+            except ImportError as err:
                 raise StudyExecutionError(
                     message="Optimal power flow is not implemented in the engine",
                     study_type="optimal_power_flow",
                     error_code=__import__("api.error_debugger", fromlist=["ERR_STUDY_008"]).ERR_STUDY_008,
-                )
+                ) from err
         return engine.run_optimal_power_flow(objective=objective, **parameters)
 
     else:
@@ -1377,8 +1376,9 @@ async def predict_load(request: Request):
         if not isinstance(horizon, int) or horizon < 1 or horizon > 168:
             raise HTTPException(status_code=400, detail="horizon_hours must be between 1 and 168")
 
-        from ml.predictive import LoadForecaster
         import numpy as np_inner
+
+        from ml.predictive import LoadForecaster
         lf = LoadForecaster()
         data = np_inner.array(historical, dtype=float)
         lf.train(data)
@@ -1418,8 +1418,9 @@ async def predict_fault(request: Request):
         if len(features) > 1000:
             raise HTTPException(status_code=400, detail="features array too large (max 1000 elements)")
 
-        from ml.predictive import FaultPredictor
         import numpy as np_inner
+
+        from ml.predictive import FaultPredictor
         fp = FaultPredictor()
         X = np_inner.array(features, dtype=float)
         if X.ndim == 1:
@@ -1454,8 +1455,9 @@ async def detect_anomalies(request: Request):
         if len(data) > 10000:
             raise HTTPException(status_code=400, detail="data array too large (max 10000 points)")
 
-        from ml.predictive import AnomalyDetector
         import numpy as np_inner
+
+        from ml.predictive import AnomalyDetector
         ad = AnomalyDetector()
         X = np_inner.array(data, dtype=float)
         if X.ndim == 1:
@@ -1522,7 +1524,7 @@ async def get_scada_live_data(request: Request):
     await _require_api_key(request)
     trace_id = getattr(request.state, "trace_id", "unknown")
     try:
-        from scada_model.scada_model import SCADADatabase, MeasurementType, QualityFlag
+        from scada_model.scada_model import MeasurementType, QualityFlag, SCADADatabase
         db = SCADADatabase()
         measurements = db.get_all_measurements() if hasattr(db, "get_all_measurements") else []
         switches = db.get_all_switches() if hasattr(db, "get_all_switches") else []
@@ -1559,13 +1561,13 @@ async def get_digital_twin_status(request: Request):
     await _require_api_key(request)
     trace_id = getattr(request.state, "trace_id", "unknown")
     try:
-        from digital_twin.state_store import StateStore
         from digital_twin.event_bus import EventBus
+        from digital_twin.state_store import StateStore
         from digital_twin.validation_gateway import ValidationGateway
 
         store = StateStore()
-        bus = EventBus()
-        gateway = ValidationGateway()
+        EventBus()
+        ValidationGateway()
 
         state_info: Dict[str, Any] = {}
         if hasattr(store, "get_state"):
@@ -1718,9 +1720,11 @@ async def submit_siem_event(request: Request):
     trace_id = getattr(request.state, "trace_id", "unknown")
     try:
         body = await request.json()
-        from security.siem import SecurityEvent, get_siem_forwarder
-        from datetime import datetime as dt, timezone as tz
         import uuid as uuid_mod
+        from datetime import datetime as dt
+        from datetime import timezone as tz
+
+        from security.siem import SecurityEvent, get_siem_forwarder
 
         _VALID_SEVERITIES = {"info", "low", "medium", "high", "critical"}
         severity = body.get("severity", "info")
@@ -1744,7 +1748,7 @@ async def submit_siem_event(request: Request):
 
         forwarder = get_siem_forwarder()
         if forwarder and hasattr(forwarder, "forward_event"):
-            await forwarder.forward_event(event)
+            await forwarder.forward_event(event_type=event.event_type, details=event.to_dict())
 
         return JSONResponse(content={
             "success": True,
@@ -1914,6 +1918,7 @@ async def generic_exception_handler(request: Request, exc: Exception):
 def main() -> None:
     """Entry point for the refactored engineering service."""
     import argparse
+
     import uvicorn
 
     parser = argparse.ArgumentParser(

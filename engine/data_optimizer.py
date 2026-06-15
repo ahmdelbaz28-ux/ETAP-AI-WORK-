@@ -327,9 +327,11 @@ class DataCompressor:
         return comp
 
     def decompress_results(self, compressed: Dict[str, Any]) -> Dict[str, Any]:
-        compressed.pop('_precision', 6)
+        compressed.get('_precision', 6)
         restored = {}
         for k, v in compressed.items():
+            if k == '_precision':
+                continue
             v = np.asarray(v)
             if v.dtype == np.complex64:
                 restored[k] = v.astype(np.complex128)

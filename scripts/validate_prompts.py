@@ -202,7 +202,7 @@ def sync_to_langwatch() -> None:
 
         prompts_dir = Path(os.environ.get("ETAP_PROMPTS_DIR", str(Path(__file__).resolve().parent.parent / "prompts")))
 
-        client = langwatch.setup(
+        langwatch.setup(
             api_key=api_key,
             endpoint_url=os.environ.get("LANGWATCH_ENDPOINT", "https://app.langwatch.ai"),
             prompts_path=str(prompts_dir),
@@ -233,11 +233,10 @@ def sync_to_langwatch() -> None:
                 if "Prompt not found" in error_msg:
                     # Prompt not on LangWatch platform yet - verify it loads locally
                     try:
-                        import sys
                         project_root = str(Path(__file__).resolve().parent.parent)
                         if project_root not in sys.path:
                             sys.path.insert(0, project_root)
-                        from agents.prompt_loader import get_system_prompt, clear_prompt_cache
+                        from agents.prompt_loader import clear_prompt_cache, get_system_prompt
                         clear_prompt_cache()
                         local_prompt = get_system_prompt(handle)
                         if local_prompt and len(local_prompt) > 20:

@@ -27,17 +27,17 @@ Integration points:
   - src/mastra/agents/           →  code-guard-agent.ts
 """
 
+from guards.ai_failure_modes import AI_FAILURE_MODES, AIFailureModeDetector
 from guards.base import (
-    GuardSeverity,
-    GuardViolation,
-    GuardResult,
     BaseGuard,
     GuardMode,
+    GuardResult,
+    GuardSeverity,
+    GuardViolation,
 )
-from guards.ai_failure_modes import AIFailureModeDetector, AI_FAILURE_MODES
 from guards.code_guard import CodeGuard
-from guards.test_guard import TestGuard
 from guards.docs_guard import DocsGuard
+from guards.test_guard import TestGuard
 
 __all__ = [
     "GuardSeverity",

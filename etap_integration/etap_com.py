@@ -77,7 +77,7 @@ VALID_FAULT_TYPES = {'ThreePhase', 'LineToGround', 'LineToLine', 'DoubleLineToGr
 
 # Attempt to import the security-framework InputValidator for reuse
 try:
-    from security.security_framework import InputValidator as _BaseValidator
+    from security.security_framework import InputValidator as _BaseValidator  # noqa: F401
     HAS_INPUT_VALIDATOR = True
 except ImportError:
     HAS_INPUT_VALIDATOR = False
@@ -329,9 +329,9 @@ class ETAPProject:
                 raise RuntimeError("Load Flow module not available")
 
         except pythoncom.com_error as e:
-            raise RuntimeError(f"COM error during load flow execution (timeout={self._com_timeout}s): {e}")
+            raise RuntimeError(f"COM error during load flow execution (timeout={self._com_timeout}s): {e}") from e
         except Exception as e:
-            raise RuntimeError(f"Load flow execution failed: {e}")
+            raise RuntimeError(f"Load flow execution failed: {e}") from e
 
     def _run_short_circuit(self, **kwargs) -> Dict[str, Any]:
         """Run short circuit study (params already validated by run_study)."""
@@ -367,9 +367,9 @@ class ETAPProject:
                 raise RuntimeError("Short Circuit module not available")
 
         except pythoncom.com_error as e:
-            raise RuntimeError(f"COM error during short circuit execution (timeout={self._com_timeout}s): {e}")
+            raise RuntimeError(f"COM error during short circuit execution (timeout={self._com_timeout}s): {e}") from e
         except Exception as e:
-            raise RuntimeError(f"Short circuit execution failed: {e}")
+            raise RuntimeError(f"Short circuit execution failed: {e}") from e
 
     def _run_arc_flash(self, **kwargs) -> Dict[str, Any]:
         """Run arc flash study (params already validated by run_study)."""
@@ -405,9 +405,9 @@ class ETAPProject:
                 raise RuntimeError("Arc Flash module not available")
 
         except pythoncom.com_error as e:
-            raise RuntimeError(f"COM error during arc flash execution (timeout={self._com_timeout}s): {e}")
+            raise RuntimeError(f"COM error during arc flash execution (timeout={self._com_timeout}s): {e}") from e
         except Exception as e:
-            raise RuntimeError(f"Arc flash execution failed: {e}")
+            raise RuntimeError(f"Arc flash execution failed: {e}") from e
 
     def _run_harmonic_analysis(self, **kwargs) -> Dict[str, Any]:
         """Run harmonic analysis study via ETAP COM.
@@ -431,11 +431,11 @@ class ETAPProject:
                         'dominant_harmonic_order': int(getattr(bus, 'DominantHarmonic', 5))
                     }
         except (pythoncom.com_error, AttributeError) as e:
-            raise RuntimeError(f"COM error during harmonic analysis: {e}")
+            raise RuntimeError(f"COM error during harmonic analysis: {e}") from e
         except RuntimeError:
             raise
         except Exception as e:
-            raise RuntimeError(f"Harmonic analysis execution failed: {e}")
+            raise RuntimeError(f"Harmonic analysis execution failed: {e}") from e
 
         if not buses:
             raise RuntimeError("Harmonic analysis returned no bus results from ETAP")
@@ -469,11 +469,11 @@ class ETAPProject:
                         'cost_per_hour': float(getattr(gen, 'Cost', 0.0))
                     }
         except (pythoncom.com_error, AttributeError) as e:
-            raise RuntimeError(f"COM error during optimal power flow: {e}")
+            raise RuntimeError(f"COM error during optimal power flow: {e}") from e
         except RuntimeError:
             raise
         except Exception as e:
-            raise RuntimeError(f"OPF execution failed: {e}")
+            raise RuntimeError(f"OPF execution failed: {e}") from e
 
         if not generators:
             raise RuntimeError("OPF returned no generator results from ETAP")
@@ -516,11 +516,11 @@ class ETAPProject:
                         'speed_at_end_of_start_percent': float(getattr(motor, 'SpeedPercent', 0.0))
                     }
         except (pythoncom.com_error, AttributeError) as e:
-            raise RuntimeError(f"COM error during motor starting analysis: {e}")
+            raise RuntimeError(f"COM error during motor starting analysis: {e}") from e
         except RuntimeError:
             raise
         except Exception as e:
-            raise RuntimeError(f"Motor starting execution failed: {e}")
+            raise RuntimeError(f"Motor starting execution failed: {e}") from e
 
         if not motors:
             raise RuntimeError("Motor starting returned no motor results from ETAP")
@@ -579,11 +579,11 @@ class ETAPProject:
                     'critical_clearing_time_sec': float(getattr(gen, 'CriticalClearingTime', 0.0)),
                 }
         except (pythoncom.com_error, AttributeError) as e:
-            raise RuntimeError(f"COM error during transient stability: {e}")
+            raise RuntimeError(f"COM error during transient stability: {e}") from e
         except RuntimeError:
             raise
         except Exception as e:
-            raise RuntimeError(f"Transient stability execution failed: {e}")
+            raise RuntimeError(f"Transient stability execution failed: {e}") from e
 
         if not generators:
             raise RuntimeError("Transient stability returned no generator results from ETAP")
@@ -626,11 +626,11 @@ class ETAPProject:
                         'voltage_kv': float(getattr(cable, 'KV', 0.0)),
                     }
         except (pythoncom.com_error, AttributeError) as e:
-            raise RuntimeError(f"COM error during cable ampacity study: {e}")
+            raise RuntimeError(f"COM error during cable ampacity study: {e}") from e
         except RuntimeError:
             raise
         except Exception as e:
-            raise RuntimeError(f"Cable ampacity execution failed: {e}")
+            raise RuntimeError(f"Cable ampacity execution failed: {e}") from e
 
         if not cables:
             raise RuntimeError("Cable ampacity returned no cable results from ETAP")
@@ -677,11 +677,11 @@ class ETAPProject:
                 },
             }
         except (pythoncom.com_error, AttributeError) as e:
-            raise RuntimeError(f"COM error during ground grid analysis: {e}")
+            raise RuntimeError(f"COM error during ground grid analysis: {e}") from e
         except RuntimeError:
             raise
         except Exception as e:
-            raise RuntimeError(f"Ground grid execution failed: {e}")
+            raise RuntimeError(f"Ground grid execution failed: {e}") from e
 
         ETAPAutomation._check_result_size(result)
         return result
@@ -716,11 +716,11 @@ class ETAPProject:
             maifi = momentary_outages / customers_served
 
         except (pythoncom.com_error, AttributeError) as e:
-            raise RuntimeError(f"COM error during reliability analysis: {e}")
+            raise RuntimeError(f"COM error during reliability analysis: {e}") from e
         except RuntimeError:
             raise
         except Exception as e:
-            raise RuntimeError(f"Reliability analysis execution failed: {e}")
+            raise RuntimeError(f"Reliability analysis execution failed: {e}") from e
 
         result = {
             'converged': True,
@@ -785,11 +785,11 @@ class ETAPProject:
                     'all_coordinated': all(r['coordinated'] for r in relay_results) if relay_results else False,
                 }
         except (pythoncom.com_error, AttributeError) as e:
-            raise RuntimeError(f"COM error during protection coordination: {e}")
+            raise RuntimeError(f"COM error during protection coordination: {e}") from e
         except RuntimeError:
             raise
         except Exception as e:
-            raise RuntimeError(f"Protection coordination execution failed: {e}")
+            raise RuntimeError(f"Protection coordination execution failed: {e}") from e
 
         if not pairs:
             raise RuntimeError("Protection coordination returned no relay results from ETAP")
@@ -926,8 +926,8 @@ class ETAPAutomation:
         if value_type == 'numeric':
             try:
                 num = float(value)
-            except (ValueError, TypeError):
-                raise ValueError(f"Expected numeric value, got {type(value).__name__}")
+            except (ValueError, TypeError) as err:
+                raise ValueError(f"Expected numeric value, got {type(value).__name__}") from err
             if not (MIN_NUMERIC_VALUE <= num <= MAX_NUMERIC_VALUE):
                 raise ValueError(
                     f"Value {num} outside system range [{MIN_NUMERIC_VALUE}, {MAX_NUMERIC_VALUE}]"
@@ -941,8 +941,8 @@ class ETAPAutomation:
         elif value_type == 'integer':
             try:
                 val = int(value)
-            except (ValueError, TypeError):
-                raise ValueError(f"Expected integer value, got {type(value).__name__}")
+            except (ValueError, TypeError) as err:
+                raise ValueError(f"Expected integer value, got {type(value).__name__}") from err
             if min_val is not None and val < min_val:
                 raise ValueError(f"Value {val} below minimum {min_val}")
             if max_val is not None and val > max_val:
@@ -1044,10 +1044,10 @@ class ETAPAutomation:
             if expected_type == "numeric":
                 try:
                     value = float(value)
-                except (ValueError, TypeError):
+                except (ValueError, TypeError) as err:
                     raise ValueError(
                         f"Parameter '{key}' must be numeric, got {type(value).__name__}"
-                    )
+                    ) from err
                 min_val = rule.get("min")
                 max_val = rule.get("max")
                 if min_val is not None and value < min_val:
@@ -1062,10 +1062,10 @@ class ETAPAutomation:
             elif expected_type == "integer":
                 try:
                     value = int(value)
-                except (ValueError, TypeError):
+                except (ValueError, TypeError) as err:
                     raise ValueError(
                         f"Parameter '{key}' must be integer, got {type(value).__name__}"
-                    )
+                    ) from err
                 min_val = rule.get("min")
                 max_val = rule.get("max")
                 if min_val is not None and value < min_val:

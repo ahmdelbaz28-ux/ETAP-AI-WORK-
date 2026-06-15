@@ -381,6 +381,7 @@ class SIEMForwarder:
                     for event in chunk:
                         if len(self._buffer) < self.buffer_size:
                             self._buffer.append(event)
+                            self._stats["buffered"] += 1
                         else:
                             self._stats["dropped"] += 1
                 success = False
@@ -495,7 +496,6 @@ class SIEMForwarder:
             "source": "etap-ai-platform",
             **self.labels,
         }
-        label_str = ",".join(f'{k}="{v}"' for k, v in sorted(labels_dict.items()))
 
         entries = []
         for event in events:

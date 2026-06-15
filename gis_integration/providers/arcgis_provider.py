@@ -90,8 +90,8 @@ class ArcGISProvider(GISProviderInterface):
                 try:
                     geojson_geom_str = geom.JSON  # type: ignore
                     geom_dict = safe_parse_geojson(geojson_geom_str)
-                except Exception:
-                    raise GISDataExtractionError("Unable to convert ArcGIS geometry to GeoJSON")
+                except Exception as err:
+                    raise GISDataExtractionError("Unable to convert ArcGIS geometry to GeoJSON") from err
 
                 ok, reason = validate_geometry_dict(geom_dict)
                 if not ok:

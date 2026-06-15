@@ -478,6 +478,7 @@ class ArcFlashEngine:
         # Calculate arc flash boundary
         D_boundary = self.calculate_arc_flash_boundary(
             voltage_kv, bolted_fault_current_ka, arc_duration_sec,
+            working_distance_mm,
             electrode_config, enclosure_type, enclosure_width_mm, enclosure_height_mm, enclosure_depth_mm
         )
 

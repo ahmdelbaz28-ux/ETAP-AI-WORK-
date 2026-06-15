@@ -99,7 +99,7 @@ class QGISProvider(GISProviderInterface):
                     props = {}
 
                 feature = GISFeature(
-                    id=str(getattr(feat, "id", lambda: i)()),
+                    id=str(getattr(feat, "id", lambda _i=i: _i)()),
                     geometry=geom_dict,
                     properties=props,
                     layer_name=layer_id,

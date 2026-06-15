@@ -22,8 +22,8 @@ from typing import Dict, List
 
 # Try to import vector database libraries
 try:
-    import chromadb
-    from chromadb.config import Settings
+    import chromadb  # noqa: F401
+    from chromadb.config import Settings  # noqa: F401
     CHROMA_AVAILABLE = True
 except ImportError:
     CHROMA_AVAILABLE = False

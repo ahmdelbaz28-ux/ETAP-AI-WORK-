@@ -144,7 +144,6 @@ class ETAPErrorRecovery:
         if diag.category == ErrorCategory.COM_CONNECTION_LOST:
             cr = self.recover_from_com_error(error)
             if cr.success:
-                self._recovery_count += 1; self._successful_recoveries += 1
                 return RecoveryAttempt(True, f"com_recovery:{cr.action}", time.monotonic() - start)
             return cr
 
@@ -182,7 +181,6 @@ class ETAPErrorRecovery:
 
         cr = self.recover_from_com_error(error)
         if cr.success:
-            self._recovery_count += 1; self._successful_recoveries += 1
             return RecoveryAttempt(True, f"com_restored:{cr.action}", time.monotonic() - start)
         return cr
 
