@@ -158,6 +158,7 @@ class SIEMForwarder:
             "forwarded": 0,
             "failed": 0,
             "buffered": 0,
+            "total_buffered": 0,  # monotonic counter — never decremented
             "dropped": 0,
         }
 
@@ -197,6 +198,7 @@ class SIEMForwarder:
                 logger.warning("SIEM buffer overflow — oldest event dropped")
             self._buffer.append(event)
             self._stats["buffered"] += 1
+            self._stats["total_buffered"] += 1
 
         # Attempt immediate flush
         return await self.flush()
@@ -382,6 +384,7 @@ class SIEMForwarder:
                         if len(self._buffer) < self.buffer_size:
                             self._buffer.append(event)
                             self._stats["buffered"] += 1
+                            self._stats["total_buffered"] += 1
                         else:
                             self._stats["dropped"] += 1
                 success = False
@@ -406,7 +409,10 @@ class SIEMForwarder:
                 await self._send_batch(events)
                 with self._lock:
                     self._stats["forwarded"] += len(events)
-                    self._stats["buffered"] -= len(events)
+                    # Derive current buffer count from the actual buffer
+                    # length instead of decrementing, to avoid drift when
+                    # events are re-buffered after a failed send.
+                    self._stats["buffered"] = len(self._buffer)
                 return True
             except Exception as exc:
                 logger.warning(
@@ -543,7 +549,8 @@ class SIEMForwarder:
             return {
                 "forwarded": self._stats["forwarded"],
                 "failed": self._stats["failed"],
-                "buffered": self._stats["buffered"],
+                "buffered": len(self._buffer),
+                "total_buffered": self._stats["total_buffered"],
                 "dropped": self._stats["dropped"],
                 "buffer_size": len(self._buffer),
                 "siem_type": self.siem_type,
