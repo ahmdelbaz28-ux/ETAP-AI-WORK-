@@ -5,6 +5,13 @@ asynchronous execution, caching, data optimization, error handling,
 numerical safety, resilience, and distributed scalability.
 """
 
+from engine.interfaces import (
+    ArcFlashEngineProtocol,
+    CoordinationEngineProtocol,
+    FaultAnalyzerProtocol,
+    LoadFlowSolverProtocol,
+    VisualizerProtocol,
+)
 from engine.async_executor import (
     AsyncExecutor,
     AsyncTask,
@@ -106,6 +113,11 @@ from engine.sparse_solver import (
 
 __all__ = [
     "PowerSystemEngine",
+    "LoadFlowSolverProtocol",
+    "FaultAnalyzerProtocol",
+    "ArcFlashEngineProtocol",
+    "CoordinationEngineProtocol",
+    "VisualizerProtocol",
     # async_executor
     "AsyncExecutor",
     "AsyncTask",

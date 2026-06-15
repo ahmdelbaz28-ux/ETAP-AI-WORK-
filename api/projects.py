@@ -250,12 +250,14 @@ class StudyResultResponse(BaseModel):
 
 
 class StudyListResponse(BaseModel):
-    """List of study results for a project."""
+    """Paginated list of study results for a project."""
 
     model_config = ConfigDict(from_attributes=True)
 
     studies: List[StudyResultResponse]
     total: int
+    page: int
+    page_size: int
 
 
 # ---------------------------------------------------------------------------
@@ -595,14 +597,15 @@ async def run_study(
 @router.get(
     "/{project_id}/studies",
     response_model=StudyListResponse,
-    summary="List study results for a project",
+    summary="List study results for a project (paginated)",
 )
 async def list_studies(
     project_id: str,
+    pagination: PaginationParams = Depends(pagination_params),  # noqa: B008
     db: AsyncSession = Depends(get_db),  # noqa: B008
     user: CurrentUser = Depends(get_current_user_from_header),  # noqa: B008
 ) -> Any:
-    """Return all study results associated with the given project."""
+    """Return a paginated list of study results associated with the given project."""
     # Verify project exists
     project_result = await db.execute(
         select(Project).where(Project.id == project_id)
@@ -615,10 +618,20 @@ async def list_studies(
             detail="Project not found",
         )
 
+    # Total count
+    count_query = select(func.count()).select_from(
+        select(StudyResult).where(StudyResult.project_id == project_id).subquery()
+    )
+    count_result = await db.execute(count_query)
+    total = count_result.scalar_one()
+
+    # Paginated results
     result = await db.execute(
         select(StudyResult)
         .where(StudyResult.project_id == project_id)
         .order_by(StudyResult.created_at.desc())
+        .offset(pagination.offset)
+        .limit(pagination.page_size)
     )
     studies = result.scalars().all()
 
@@ -638,7 +651,9 @@ async def list_studies(
             )
             for s in studies
         ],
-        total=len(studies),
+        total=total,
+        page=pagination.page,
+        page_size=pagination.page_size,
     )
 
 

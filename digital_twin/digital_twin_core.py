@@ -368,21 +368,37 @@ class SynchronizationEngine:
 
 class ChangePropagationEngine:
     """
-    Implements the automatic workflow for change propagation:
+    Implements the automatic workflow for change propagation.
 
     SCADA Update -> Topology Update -> Ybus Rebuild -> Load Flow ->
     State Estimation Validation -> Short Circuit Refresh ->
     Arc Flash Refresh -> Protection Refresh -> Digital Twin State Update
 
-    Each step is triggered by the completion of the previous step.
-    If any step fails, the propagation stops and a validation error
-    event is published.
+    Each step is modelled as a ``PropagationHandler`` in a
+    ``PropagationChain`` (see ``digital_twin.handlers``).  Adding or
+    removing steps is now a matter of configuring the handler list rather
+    than editing a monolithic method.
     """
 
     def __init__(self, dt_state: DigitalTwinState,
                  event_bus: EventBus,
                  sync_engine: SynchronizationEngine,
-                 validation_gateway: ValidationGateway):
+                 validation_gateway: ValidationGateway,
+                 chain=None):
+        """
+        Parameters
+        ----------
+        dt_state : DigitalTwinState
+            The unified digital twin state.
+        event_bus : EventBus
+            Event bus for publishing propagation events.
+        sync_engine : SynchronizationEngine
+            Engine for cross-layer synchronisation.
+        validation_gateway : ValidationGateway
+            Gateway for model validation.
+        chain : PropagationChain, optional
+            Custom handler chain.  Defaults to the standard 8-step chain.
+        """
         self.dt_state = dt_state
         self.event_bus = event_bus
         self.sync_engine = sync_engine
@@ -390,6 +406,12 @@ class ChangePropagationEngine:
         self._propagation_log: List[Dict[str, Any]] = []
         self._load_flow_solver = None
         self._state_estimator = None
+
+        if chain is not None:
+            self._chain = chain
+        else:
+            from .handlers import PropagationChain
+            self._chain = PropagationChain()
 
     def bind_load_flow_solver(self, solver) -> None:
         """Bind a load flow solver instance."""
@@ -404,208 +426,43 @@ class ChangePropagationEngine:
         """
         Propagate a switch change through the entire workflow.
 
-        Steps:
-        1. Update topology (ADMS)
-        2. Rebuild Ybus (Electrical)
-        3. Run Load Flow (Electrical)
-        4. Validate State Estimation (ADMS)
-        5. Refresh Short Circuit (Engineering)
-        6. Refresh Arc Flash (Engineering)
-        7. Refresh Protection (Engineering)
-        8. Update Digital Twin State
+        Delegates to the ``PropagationChain`` which runs each step via
+        its handler classes.  This replaces the previous 130-line
+        monolithic method with a composable chain-of-responsibility.
         """
         propagation_id = f"prop_{int(time.time() * 1000)}"
-        start_time = time.time()
-        steps = []
-        success = True
 
-        def step_result(step_name: str, step_success: bool,
-                        details: Dict[str, Any] = None) -> Dict[str, Any]:
-            return {
-                "step": step_name,
-                "success": step_success,
-                "timestamp": time.time(),
-                "details": details or {}
-            }
+        from .handlers import PropagationContext
 
-        # Step 1: Update Topology
-        try:
-            if self.dt_state.adms is not None:
-                if is_opening:
-                    self.dt_state.adms.topology.open_switch(switch_id)
-                else:
-                    self.dt_state.adms.topology.close_switch(switch_id)
-                self.dt_state.adms.topology.identify_sections()
-            steps.append(step_result("topology_update", True,
-                                     {"switch_id": switch_id, "opened": is_opening}))
-            self.event_bus.publish(TopologyChanged(
-                change_description=f"Switch {switch_id} {'opened' if is_opening else 'closed'}",
-                affected_switches=[switch_id],
-                source="change_propagation",
-                correlation_id=propagation_id
-            ))
-        except Exception as e:
-            steps.append(step_result("topology_update", False, {"error": str(e)}))
-            success = False
+        ctx = PropagationContext(
+            propagation_id=propagation_id,
+            trigger_type="switch_change",
+            switch_id=switch_id,
+            is_opening=is_opening,
+            reason=reason,
+            dt_state=self.dt_state,
+            event_bus=self.event_bus,
+            sync_engine=self.sync_engine,
+            validation_gateway=self.validation_gateway,
+            load_flow_solver=self._load_flow_solver,
+            state_estimator=self._state_estimator,
+        )
 
-        # Step 2: Rebuild Ybus
-        if success:
-            try:
-                if self.dt_state.system is not None:
-                    # Invalidate cached Ybus to force rebuild
-                    self.dt_state.system.Ybus_seq.clear()
-                    Y = self.dt_state.system.build_ybus(seq='1')
-                    steps.append(step_result("ybus_rebuild", True,
-                                             {"matrix_size": Y.shape[0]}))
-                    self.event_bus.publish(YbusRebuilt(
-                        matrix_size=Y.shape[0],
-                        sequences_rebuilt=['1'],
-                        source="change_propagation",
-                        correlation_id=propagation_id
-                    ))
-                else:
-                    steps.append(step_result("ybus_rebuild", False,
-                                             {"error": "No electrical model bound"}))
-                    success = False
-            except Exception as e:
-                steps.append(step_result("ybus_rebuild", False, {"error": str(e)}))
-                success = False
+        ctx = self._chain.execute(ctx)
 
-        # Step 3: Run Load Flow
-        if success:
-            try:
-                lf_result = self._run_load_flow()
-                steps.append(step_result("load_flow", lf_result.get("converged", False),
-                                         lf_result))
-                self.event_bus.publish(LoadFlowCompleted(
-                    converged=lf_result.get("converged", False),
-                    iterations=lf_result.get("iterations", 0),
-                    bus_voltages=lf_result.get("bus_voltages", {}),
-                    source="change_propagation",
-                    correlation_id=propagation_id
-                ))
-                if not lf_result.get("converged", False):
-                    success = False
-            except Exception as e:
-                steps.append(step_result("load_flow", False, {"error": str(e)}))
-                success = False
-
-        # Step 4: State Estimation Validation
-        if success:
-            try:
-                se_result = self._run_state_estimation()
-                steps.append(step_result("state_estimation", se_result.get("converged", False),
-                                         se_result))
-                self.event_bus.publish(StateEstimationCompleted(
-                    converged=se_result.get("converged", False),
-                    bad_data_count=se_result.get("bad_data_count", 0),
-                    max_residual=se_result.get("max_residual", 0.0),
-                    source="change_propagation",
-                    correlation_id=propagation_id
-                ))
-            except Exception as e:
-                steps.append(step_result("state_estimation", False, {"error": str(e)}))
-                # Non-fatal: state estimation failure doesn't block
-
-        # Step 5: Short Circuit Refresh
-        if success:
-            try:
-                sc_result = self._refresh_short_circuit()
-                steps.append(step_result("short_circuit_refresh", True, sc_result))
-                self.event_bus.publish(FaultAnalysisCompleted(
-                    source="change_propagation",
-                    correlation_id=propagation_id
-                ))
-            except Exception as e:
-                steps.append(step_result("short_circuit_refresh", False, {"error": str(e)}))
-                # Non-fatal
-
-        # Step 6: Arc Flash Refresh
-        if success:
-            try:
-                af_result = self._refresh_arc_flash()
-                steps.append(step_result("arc_flash_refresh", True, af_result))
-                self.event_bus.publish(ArcFlashRefreshed(
-                    source="change_propagation",
-                    correlation_id=propagation_id
-                ))
-            except Exception as e:
-                steps.append(step_result("arc_flash_refresh", False, {"error": str(e)}))
-                # Non-fatal
-
-        # Step 7: Protection Refresh
-        if success:
-            try:
-                prot_result = self._refresh_protection()
-                steps.append(step_result("protection_refresh", True, prot_result))
-                self.event_bus.publish(ProtectionRefreshed(
-                    source="change_propagation",
-                    correlation_id=propagation_id
-                ))
-            except Exception as e:
-                steps.append(step_result("protection_refresh", False, {"error": str(e)}))
-                # Non-fatal
-
-        # Step 8: Update Digital Twin State
-        try:
-            snapshot = self.dt_state.capture_snapshot(
-                source_event=f"switch_{'opened' if is_opening else 'closed'}",
-                correlation_id=propagation_id
-            )
-            # Run validation
-            validation_results = self.dt_state.validate()
-            snapshot.validation_passed = all(r.passed for r in validation_results)
-            snapshot.validation_errors = [r.message for r in validation_results if not r.passed]
-
-            # Update simulation results in snapshot
-            if success and self._load_flow_solver is not None:
-                for bid_str, _bs in snapshot.bus_states.items():
-                    try:
-                        bid_int = int(bid_str)
-                    except (ValueError, TypeError):
-                        continue
-                    bus = (self.dt_state.system.buses.get(bid_int, None)
-                           if self.dt_state.system else None)
-                    if bus:
-                        snapshot.simulation_results.load_flow_bus_voltages[bid_str] = bus.voltage
-
-            version = self.dt_state.commit_snapshot(snapshot)
-            steps.append(step_result("digital_twin_update", True,
-                                     {"version": version}))
-
-            self.event_bus.publish(DigitalTwinStateUpdated(
-                state_version=version,
-                layers_synchronized=snapshot.validation_passed,
-                validation_passed=snapshot.validation_passed,
-                source="change_propagation",
-                correlation_id=propagation_id
-            ))
-        except Exception as e:
-            steps.append(step_result("digital_twin_update", False, {"error": str(e)}))
-
-        # Log propagation
-        elapsed = time.time() - start_time
         propagation_record = {
             "propagation_id": propagation_id,
             "trigger": f"switch_{'opened' if is_opening else 'closed'}",
             "switch_id": switch_id,
-            "success": success,
-            "elapsed_seconds": elapsed,
-            "steps": steps,
-            "timestamp": time.time()
+            "success": ctx.success,
+            "elapsed_seconds": ctx.elapsed_seconds,
+            "steps": ctx.steps,
+            "timestamp": time.time(),
         }
         self._propagation_log.append(propagation_record)
 
-        if not success:
-            self.event_bus.publish(ValidationErrorEvent(
-                errors=[s["details"].get("error", "Unknown error")
-                        for s in steps if not s["success"]],
-                layer="propagation",
-                source="change_propagation",
-                correlation_id=propagation_id
-            ))
-
         return propagation_record
+
 
     def propagate_load_change(self, bus_id: str, new_power: complex) -> Dict[str, Any]:
         """Propagate a load change through the workflow."""
@@ -621,7 +478,17 @@ class ChangePropagationEngine:
                 # Rebuild Ybus and run load flow
                 self.dt_state.system.Ybus_seq.clear()
                 self.dt_state.system.build_ybus(seq='1')
-                lf_result = self._run_load_flow()
+
+                from .handlers import LoadFlowHandler, PropagationContext
+                lf_ctx = PropagationContext(
+                    propagation_id=propagation_id,
+                    dt_state=self.dt_state,
+                    load_flow_solver=self._load_flow_solver,
+                )
+                lf_ctx = LoadFlowHandler().handle(lf_ctx)
+                lf_success = (
+                    len(lf_ctx.steps) > 0 and lf_ctx.steps[-1].get("success", False)
+                )
 
                 # Update digital twin state
                 snapshot = self.dt_state.capture_snapshot(
@@ -642,9 +509,9 @@ class ChangePropagationEngine:
 
                 return {
                     "propagation_id": propagation_id,
-                    "success": lf_result.get("converged", False),
+                    "success": lf_success,
                     "elapsed_seconds": time.time() - start_time,
-                    "load_flow": lf_result
+                    "load_flow": lf_ctx.steps[-1].get("details", {}) if lf_ctx.steps else {},
                 }
 
         return {
@@ -653,208 +520,6 @@ class ChangePropagationEngine:
             "elapsed_seconds": time.time() - start_time,
             "error": "Electrical model not bound or bus not found"
         }
-
-    def _run_load_flow(self) -> Dict[str, Any]:
-        """Run load flow on the bound system."""
-        if self.dt_state.system is None:
-            return {"converged": False, "error": "No system bound"}
-
-        try:
-            from load_flow.load_flow import LoadFlowSolver
-            solver = LoadFlowSolver(self.dt_state.system)
-            converged = solver.solve(max_iter=100, tol=1e-6)
-
-            bus_voltages = {}
-            for bid in solver.bus_ids:
-                bus_voltages[str(bid)] = solver.V[solver.bus_index[bid]]
-
-            return {
-                "converged": converged,
-                "iterations": len(solver.iteration_log) if hasattr(solver, 'iteration_log') else 0,
-                "bus_voltages": bus_voltages
-            }
-        except Exception as e:
-            logger.error(f"Load flow failed: {e}")
-            return {"converged": False, "error": str(e)}
-
-    def _run_state_estimation(self) -> Dict[str, Any]:
-        """Run state estimation if measurements are available."""
-        if self.dt_state.system is None or self.dt_state.scada is None:
-            return {"converged": False, "error": "System or SCADA not bound"}
-
-        try:
-            from scada_model.state_estimation import WLSEstimator
-            estimator = WLSEstimator()
-
-            # Build measurements from SCADA
-            bus_ids = sorted(self.dt_state.system.buses.keys())
-            measurements = {'voltage_mag': {}, 'power_injection': {}, 'power_flow': {}}
-
-            for i, bid in enumerate(bus_ids):
-                vmag = self.dt_state.scada.get_latest_voltage(str(bid))
-                if vmag is not None:
-                    measurements['voltage_mag'][i] = (vmag, 0.01)
-
-                pq = self.dt_state.scada.get_latest_power(str(bid))
-                if pq is not None:
-                    measurements['power_injection'][i] = (pq[0], pq[1], 0.02, 0.02)
-
-            Ybus = self.dt_state.system.get_ybus(seq='1')
-            result = estimator.estimate(Ybus, measurements,
-                                        [str(bid) for bid in bus_ids])
-
-            return {
-                "converged": result.status.value == "converged",
-                "bad_data_count": len(result.bad_data_detected),
-                "max_residual": result.max_residual
-            }
-        except Exception as e:
-            logger.warning(f"State estimation failed: {e}")
-            return {"converged": False, "error": str(e)}
-
-    def _refresh_short_circuit(self) -> Dict[str, Any]:
-        """Refresh short circuit analysis."""
-        if self.dt_state.system is None:
-            return {"error": "No system bound"}
-        try:
-            self.dt_state.system.build_sequence_networks()
-            return {"status": "refreshed", "sequences_built": True}
-        except Exception as e:
-            return {"error": str(e)}
-
-    def _refresh_arc_flash(self) -> Dict[str, Any]:
-        """Refresh arc flash analysis using current fault current data.
-
-        Builds sequence networks from the current topology, computes fault
-        currents at each bus, and estimates incident energy per IEEE 1584-2018.
-        """
-        if self.dt_state.system is None:
-            return {"status": "skipped", "reason": "No electrical model bound"}
-
-        try:
-            import math
-
-            from fault_analysis.fault import FaultAnalyzer
-
-            self.dt_state.system.build_sequence_networks(for_fault=True)
-            Ybus_pos = self.dt_state.system.get_ybus(seq='1')
-            Ybus_neg = self.dt_state.system.get_ybus(seq='2')
-            Ybus_zero = self.dt_state.system.get_ybus(seq='0')
-
-            analyzer = FaultAnalyzer(Ybus_pos, Ybus_neg, Ybus_zero,
-                                     base_mva=self.dt_state.system.base_mva)
-
-            results: Dict[str, Any] = {}
-            bus_ids = sorted(self.dt_state.system.buses.keys())
-            bus_index = {bid: idx for idx, bid in enumerate(self.dt_state.system.buses.keys())}
-            for bus_id in bus_ids:
-                bus_idx = bus_index[bus_id]
-                fault = analyzer.three_phase_fault(bus_idx)
-                fault_ka = fault.get('fault_current_ka', 0.0)
-                # Simplified IEEE 1584-2018 incident energy estimate
-                # E = 10^(k1 + k2*log10(Ibf)) * t / D^x (VCB default)
-                arc_duration = 0.2  # default 200ms clearing time
-                working_distance_mm = 610.0  # 24 inches
-                k1, k2, x_ie = -0.153, -0.276, 1.0
-                log_Iarc = k1 + k2 * math.log10(fault_ka)
-                Iarc = 10 ** log_Iarc
-                log_E = 0.434 + (-0.262) * math.log10(Iarc)
-                E_base = 10 ** log_E
-                E = E_base * arc_duration / (working_distance_mm ** x_ie)
-                boundary_mm = (E_base * arc_duration / 1.2) ** (1.0 / x_ie)
-
-                if E <= 1.2:
-                    ppe = "0"
-                elif E <= 4.0:
-                    ppe = "1"
-                elif E <= 8.0:
-                    ppe = "2"
-                elif E <= 25.0:
-                    ppe = "3"
-                elif E <= 40.0:
-                    ppe = "4"
-                else:
-                    ppe = "DANGER"
-
-                results[str(bus_id)] = {
-                        'incident_energy_cal_cm2': round(E, 4),
-                        'arc_flash_boundary_mm': round(boundary_mm, 1),
-                        'ppe_level': ppe,
-                        'arc_current_ka': round(Iarc, 4),
-                        'fault_current_ka': round(fault_ka, 4),
-                        'method': 'IEEE 1584-2018 (estimated)',
-                    }
-
-            return {"status": "refreshed", "bus_count": len(results), "results": results}
-        except Exception as e:
-            logger.warning(f"Arc flash refresh failed: {e}")
-            return {"status": "error", "error": str(e)}
-
-    def _refresh_protection(self) -> Dict[str, Any]:
-        """Refresh protection coordination using current fault current data.
-
-        Builds sequence networks, computes fault currents, and verifies
-        that all relay pairs maintain coordination margins.
-        """
-        if self.dt_state.system is None:
-            return {"status": "skipped", "reason": "No electrical model bound"}
-
-        try:
-            from coordination.coordination import CoordinationEngine
-            from fault_analysis.fault import FaultAnalyzer
-            from relays.relay import OvercurrentRelay
-
-            self.dt_state.system.build_sequence_networks(for_fault=True)
-            Ybus_pos = self.dt_state.system.get_ybus(seq='1')
-            Ybus_neg = self.dt_state.system.get_ybus(seq='2')
-            Ybus_zero = self.dt_state.system.get_ybus(seq='0')
-
-            analyzer = FaultAnalyzer(Ybus_pos, Ybus_neg, Ybus_zero,
-                                     base_mva=self.dt_state.system.base_mva)
-
-            # Calculate fault currents at all buses
-            fault_currents: List[float] = []
-            bus_ids = sorted(self.dt_state.system.buses.keys())
-            bus_index = {bid: idx for idx, bid in enumerate(self.dt_state.system.buses.keys())}
-            for bus_id in bus_ids:
-                bus_idx = bus_index[bus_id]
-                fault = analyzer.three_phase_fault(bus_idx)
-                fc_pu = abs(fault.get('fault_current', complex(0, 0)))
-                if fc_pu > 0:
-                    fault_currents.append(fc_pu)
-
-            if not fault_currents:
-                return {"status": "skipped", "reason": "No fault currents available"}
-
-            # Use representative fault current range for coordination check
-            representative_faults = sorted(set(
-                round(fc, 0) for fc in fault_currents if fc > 1.0
-            ))[:10]  # Up to 10 representative fault levels
-
-            if not representative_faults:
-                representative_faults = [2.0, 5.0, 10.0, 20.0]
-
-            # Create default relay pair for coordination check
-            coord_engine = CoordinationEngine()
-            relay1 = OvercurrentRelay(relay_id=1, name='Upstream', TMS=0.5, Ip=1.0)
-            relay2 = OvercurrentRelay(relay_id=2, name='Downstream', TMS=0.2, Ip=1.0)
-
-            coord_results = coord_engine.check_coordination_range(
-                relay1, relay2, representative_faults
-            )
-            all_coordinated = all(r['coordinated'] for r in coord_results)
-            min_margin = min(r['margin'] for r in coord_results) if coord_results else 0.0
-
-            return {
-                "status": "refreshed",
-                "all_coordinated": all_coordinated,
-                "min_margin_sec": round(min_margin, 4),
-                "fault_levels_checked": len(representative_faults),
-                "coordination_standard": "IEC 60255",
-            }
-        except Exception as e:
-            logger.warning(f"Protection refresh failed: {e}")
-            return {"status": "error", "error": str(e)}
 
     def get_propagation_log(self) -> List[Dict[str, Any]]:
         """Get propagation history."""

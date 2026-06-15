@@ -999,7 +999,14 @@ async def run_study(request: Request, payload: StudyRequest):
             if not payload.etap_project_path:
                 raise ValueError("etap_project_path is required when use_etap=True")
             provider_name = "etap"
-            data = _run_etap_study(payload.study_type, payload.etap_project_path, payload.parameters)
+            # Offload the synchronous ETAP call to a thread so it doesn't
+            # block the async event loop (ETAP COM calls can take 5-60 sec).
+            data = await asyncio.to_thread(
+                _run_etap_study,
+                payload.study_type,
+                payload.etap_project_path,
+                payload.parameters,
+            )
             warnings = data.pop("warnings", [])
             errors = data.pop("errors", [])
             if not data.pop("success", True):
