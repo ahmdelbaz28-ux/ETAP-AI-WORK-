@@ -7,6 +7,31 @@ import { MemoryRouter } from 'react-router-dom'
 import { Dashboard } from '../Dashboard'
 import { NotificationProvider } from '../../context/NotificationContext'
 
+vi.mock('react-i18next', () => ({
+  useTranslation: () => ({
+    t: (key: string) => {
+      const map: Record<string, string> = {
+        'dashboard.title': 'Dashboard',
+        'dashboard.subtitle': 'System Overview',
+        'dashboard.systemHealth': 'System Health',
+        'dashboard.online': 'Online',
+        'dashboard.offline': 'Offline',
+        'dashboard.agents': 'Agents',
+        'dashboard.totalStudies': 'Total Studies',
+        'dashboard.engineeringService': 'Engineering Service',
+        'dashboard.healthy': 'Healthy',
+        'dashboard.studyCapabilities': 'capabilities',
+        'dashboard.activeStudies': 'Active Studies',
+        'dashboard.quickActions': 'Quick Actions',
+        'dashboard.viewAll': 'View All',
+        'common.loading': 'Loading...'
+      }
+      return map[key] || key
+    },
+    i18n: { language: 'en' }
+  })
+}))
+
 vi.mock('../../lib/api', () => ({
   fetchHealth: vi.fn().mockResolvedValue({
     ok: true,
