@@ -17,6 +17,15 @@
         "-y",
         "@mastra/mcp-docs-server"
       ]
+    },
+    "TestSprite": {
+      "command": "npx",
+      "args": [
+        "@testsprite/testsprite-mcp@latest"
+      ],
+      "env": {
+        "API_KEY": "your_testsprite_api_key_here"
+      }
     }
   }
 }
