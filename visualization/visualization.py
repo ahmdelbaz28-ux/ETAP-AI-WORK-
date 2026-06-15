@@ -1,27 +1,41 @@
-import matplotlib.pyplot as plt
-import numpy as np
-
 from relays.relay import OvercurrentRelay  # noqa: F401 - used by plot methods
 
 
 class Visualizer:
+    """
+    Plotting helper for TCC curves and coordination margins.
+
+    All matplotlib imports happen lazily inside the method that needs them,
+    so importing ``Visualizer`` or constructing a ``PowerSystemEngine`` does
+    not trigger the ~50 MB matplotlib dependency chain.
+    """
+
     def __init__(self):
-        """
-        Initialize the visualizer with sensible matplotlib defaults.
-        """
-        # Use a clean grid style; honors user's local style sheets if set.
+        """Initialize the visualizer — no matplotlib imports here."""
+        self._last_figure = None
+        self._style_applied = False
+
+    def _ensure_mpl(self):
+        """Lazy-load matplotlib and apply default styles once."""
+        if self._style_applied:
+            return
+        from matplotlib import pyplot as plt
+
         try:
             plt.style.use('seaborn-v0_8-whitegrid')
         except (OSError, ValueError):
-            # Fallback: ensure grid is on even if the named style is missing.
             plt.rcParams['axes.grid'] = True
-        # Default font sizes for engineering reports.
         plt.rcParams['axes.titlesize'] = 12
         plt.rcParams['axes.labelsize'] = 10
         plt.rcParams['legend.fontsize'] = 9
         plt.rcParams['figure.dpi'] = 100
-        # Cache for last figure so callers can save without passing axes back.
-        self._last_figure = None
+        self._style_applied = True
+
+    def _plt(self):
+        """Return the matplotlib pyplot module (lazy import)."""
+        self._ensure_mpl()
+        from matplotlib import pyplot as plt
+        return plt
 
     def plot_tcc_curve(self, relay, current_range=(0.5, 20), points=100, ax=None):
         """
@@ -36,10 +50,12 @@ class Visualizer:
         Returns:
         matplotlib.axes.Axes: The axes with the plot.
         """
+        import numpy as np
+
+        plt = self._plt()
         if ax is None:
             fig, ax = plt.subplots()
         Ip = relay.Ip
-        # Generate current values in multiples of Ip
         I_multiples = np.linspace(current_range[0], current_range[1], points)
         currents = I_multiples * Ip
         times = []
@@ -47,7 +63,6 @@ class Visualizer:
             t = relay.trip_time(I)
             times.append(t)
         times = np.array(times)
-        # Plot on log-log scale
         ax.loglog(currents, times, label=relay.name)
         ax.set_xlabel('Current (A)')
         ax.set_ylabel('Time (s)')
@@ -69,6 +84,7 @@ class Visualizer:
         Returns:
         matplotlib.figure.Figure: The figure object.
         """
+        plt = self._plt()
         if ax is None:
             fig, ax = plt.subplots()
         else:
@@ -94,6 +110,9 @@ class Visualizer:
         Returns:
         matplotlib.axes.Axes: The axes with the plot.
         """
+        import numpy as np
+
+        plt = self._plt()
         if ax is None:
             fig, ax = plt.subplots()
         else:
@@ -127,6 +146,7 @@ class Visualizer:
         Returns:
         matplotlib.axes.Axes: The axes with the plot.
         """
+        plt = self._plt()
         if ax is None:
             fig, ax = plt.subplots()
         for relay in relays:

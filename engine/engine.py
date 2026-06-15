@@ -1,6 +1,13 @@
-import matplotlib.pyplot as plt
+from typing import Any, Dict, List, Optional
 
 from coordination.coordination import CoordinationEngine
+from engine.interfaces import (
+    ArcFlashEngineProtocol,
+    CoordinationEngineProtocol,
+    FaultAnalyzerProtocol,
+    LoadFlowSolverProtocol,
+    VisualizerProtocol,
+)
 from fault_analysis.arc_flash_engine import ArcFlashEngine, ElectrodeConfig, EnclosureType
 from fault_analysis.fault import FaultAnalyzer
 from load_flow.load_flow_solver_fixed import LoadFlowSolver
@@ -9,24 +16,49 @@ from visualization.visualization import Visualizer
 
 
 class PowerSystemEngine:
-    def __init__(self, system=None):
-        """
-        Initialize the power system engine.
+    """
+    Power system simulation engine with dependency injection.
 
-        Parameters:
-        system (System, optional): The power system object. May be None for
-            studies that do not require a network model (e.g. arc flash from
-            bolted-fault current alone).
-        """
+    All solvers can be injected via the constructor, enabling unit testing
+    with mock/stub implementations.  When a solver is omitted, a default
+    concrete instance is created (maintaining full backward compatibility).
+
+    Parameters
+    ----------
+    system : System, optional
+        The power system object. May be None for studies that do not
+        require a network model (e.g. arc flash from bolted-fault current).
+    load_flow_solver : LoadFlowSolverProtocol, optional
+        Injected load-flow solver.  Defaults to ``LoadFlowSolver(system)``.
+    arc_flash_engine : ArcFlashEngineProtocol, optional
+        Injected arc-flash engine.  Defaults to ``ArcFlashEngine()``.
+    coordination_engine : CoordinationEngineProtocol, optional
+        Injected coordination engine.  Defaults to ``CoordinationEngine()``.
+    visualizer : VisualizerProtocol, optional
+        Injected visualizer.  Defaults to ``Visualizer()``.
+    """
+
+    def __init__(
+        self,
+        system=None,
+        *,
+        load_flow_solver: Optional[LoadFlowSolverProtocol] = None,
+        arc_flash_engine: Optional[ArcFlashEngineProtocol] = None,
+        coordination_engine: Optional[CoordinationEngineProtocol] = None,
+        visualizer: Optional[VisualizerProtocol] = None,
+    ):
         self.system = system
-        # Load-flow solver requires a system; only build it when available.
-        self.load_flow_solver = LoadFlowSolver(system) if system is not None else None
-        self.coordination_engine = CoordinationEngine()
-        self.visualizer = Visualizer()
-        # Arc-flash engine is stateless (IEEE 1584-2018 coefficients live in
-        # the module). It is always available.
-        self.arc_flash_engine = ArcFlashEngine()
-        # Fault analyzer will be created when needed with sequence networks
+
+        # Injected or default solvers
+        self.load_flow_solver = (
+            load_flow_solver
+            if load_flow_solver is not None
+            else (LoadFlowSolver(system) if system is not None else None)
+        )
+        self.arc_flash_engine = arc_flash_engine if arc_flash_engine is not None else ArcFlashEngine()
+        self.coordination_engine = coordination_engine if coordination_engine is not None else CoordinationEngine()
+        self.visualizer = visualizer if visualizer is not None else Visualizer()
+        # Fault analyzer is created lazily in run_fault_analysis with sequence networks
 
     def run_load_flow(self):
         """
@@ -254,6 +286,8 @@ class PowerSystemEngine:
         Returns:
         matplotlib.figure.Figure: The figure object.
         """
+        from matplotlib import pyplot as plt
+
         fig, ax = plt.subplots()
         self.visualizer.plot_multiple_tcc(relays, current_range=current_range, points=points, ax=ax)
         return fig
@@ -270,6 +304,8 @@ class PowerSystemEngine:
         Returns:
         matplotlib.figure.Figure: The figure object.
         """
+        from matplotlib import pyplot as plt
+
         fig, ax = plt.subplots()
         self.visualizer.plot_coordination_margin(upstream_relay, downstream_relay, fault_currents, ax=ax)
         return fig

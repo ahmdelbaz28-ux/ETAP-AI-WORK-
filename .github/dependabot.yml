@@ -1,50 +1,187 @@
 version: 2
 updates:
-  # Python dependencies
+  # ───────────────────────────────────────────────────────────
+  # Python dependencies (root)
+  # ───────────────────────────────────────────────────────────
   - package-ecosystem: "pip"
     directory: "/"
     schedule:
       interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "UTC"
     open-pull-requests-limit: 10
     labels:
       - "dependencies"
       - "python"
+    reviewers:
+      - "ahmdelbaz28"
+    commit-message:
+      prefix: "deps(pip)"
+      include: "scope"
+    # Group related updates into single PRs for easier review
+    groups:
+      scientific:
+        patterns:
+          - "numpy"
+          - "scipy"
+          - "pandas"
+          - "matplotlib"
+        update-types:
+          - "minor"
+          - "patch"
+      web-framework:
+        patterns:
+          - "fastapi"
+          - "uvicorn"
+          - "pydantic"
+          - "starlette"
+        update-types:
+          - "minor"
+          - "patch"
+      dev-tools:
+        patterns:
+          - "ruff"
+          - "black"
+          - "pytest*"
+          - "mypy"
+        update-types:
+          - "minor"
+          - "patch"
+      # Unmatched Python packages get individual PRs for easier changelog review.
+      # If a package receives many updates, add a dedicated group above.
 
-  # Node.js dependencies (root)
+  # ───────────────────────────────────────────────────────────
+  # Node.js dependencies (root — backend)
+  # ───────────────────────────────────────────────────────────
   - package-ecosystem: "npm"
     directory: "/"
     schedule:
       interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "UTC"
     open-pull-requests-limit: 10
+    versioning-strategy: increase
     labels:
       - "dependencies"
       - "node"
+    reviewers:
+      - "ahmdelbaz28"
+    commit-message:
+      prefix: "deps(npm)"
+      include: "scope"
+    groups:
+      mastra:
+        patterns:
+          - "@mastra/*"
+          - "mastra*"
+        update-types:
+          - "minor"
+          - "patch"
+      langwatch:
+        patterns:
+          - "@langwatch/*"
+          - "langwatch*"
+        update-types:
+          - "minor"
+          - "patch"
+      ai-sdk:
+        patterns:
+          - "@ai-sdk/*"
+          - "ai"
+        update-types:
+          - "minor"
+          - "patch"
+      testing:
+        patterns:
+          - "@testing-library/*"
+          - "vitest*"
+          - "@vitest/*"
+        update-types:
+          - "minor"
+          - "patch"
 
-  # Node.js dependencies (ui/)
+  # ───────────────────────────────────────────────────────────
+  # Node.js dependencies (ui/ — frontend)
+  # ───────────────────────────────────────────────────────────
   - package-ecosystem: "npm"
     directory: "/ui"
     schedule:
       interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "UTC"
     open-pull-requests-limit: 5
+    versioning-strategy: increase
     labels:
       - "dependencies"
       - "node"
       - "ui"
+    reviewers:
+      - "ahmdelbaz28"
+    commit-message:
+      prefix: "deps(ui)"
+      include: "scope"
+    groups:
+      react-ecosystem:
+        patterns:
+          - "react*"
+          - "@types/react*"
+          - "zustand*"
+        update-types:
+          - "minor"
+          - "patch"
+      build-tools:
+        patterns:
+          - "vite*"
+          - "@vitejs/*"
+          - "typescript*"
+          - "eslint*"
+        update-types:
+          - "minor"
+          - "patch"
+      tailwind:
+        patterns:
+          - "tailwind*"
+          - "@tailwindcss/*"
+        update-types:
+          - "minor"
+          - "patch"
 
-  # Docker
+  # ───────────────────────────────────────────────────────────
+  # Docker (root)
+  # ───────────────────────────────────────────────────────────
   - package-ecosystem: "docker"
     directory: "/"
     schedule:
       interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "UTC"
+    open-pull-requests-limit: 3
     labels:
       - "dependencies"
       - "docker"
+    reviewers:
+      - "ahmdelbaz28"
 
+  # ───────────────────────────────────────────────────────────
   # GitHub Actions
+  # ───────────────────────────────────────────────────────────
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
       interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "UTC"
+    open-pull-requests-limit: 5
     labels:
       - "dependencies"
       - "ci"
+    reviewers:
+      - "ahmdelbaz28"
+    commit-message:
+      prefix: "ci(deps)"
+      include: "scope"

@@ -82,58 +82,153 @@ class LoadFlowSolver:
 
     def _build_jacobian(self, V, P_sch=None, Q_sch=None):
         """
-        Robust reduced Jacobian via finite differences.
+        Analytical Newton-Raphson Jacobian from Ybus elements.
 
-        This replaces the analytical Jacobian to ensure consistency with:
-          mismatch ordering = [dP_pv, dP_pq, dQ_pq]
-          unknown ordering  = [dtheta_pv, dtheta_pq, d|V|_pq]
+        Computes d(mismatch)/dx = -d(P_calc, Q_calc)/dx for the polar
+        power-flow formulation (Grainger & Stevenson, Kundur).
+        This replaces the previous finite-difference Jacobian which
+        required O(n) mismatch evaluations per iteration instead of a
+        single O(n\xb2) pass through the Ybus matrix.
+
+        The mismatch vector is m = [ΔP_pv, ΔP_pq, ΔQ_pq] where
+        ΔP = P_sch - P_calc, ΔQ = Q_sch - Q_calc.
+
+        Jacobian structure:
+
+            Rows:  [ΔP_pv, ΔP_pq, ΔQ_pq]
+            Cols:  [Δθ_pv, Δθ_pq, Δ|V|_pq]
+
+        All formulas below are for ΔP/ΔQ (the mismatch), not for
+        P_calc/Q_calc directly.
+
+        **J1** (dΔP/dθ):
+            diag:    Qᵢ + Bᵢᵢ\xb7|Vᵢ|\xb2
+            off:    -|Vᵢ|\xb7|Vⱼ|\xb7(Gᵢⱼ\xb7sin θᵢⱼ - Bᵢⱼ\xb7cos θᵢⱼ)
+
+        **J2** (dΔP/d|V|):
+            diag:   -Pᵢ/|Vᵢ| - Gᵢᵢ\xb7|Vᵢ|
+            off:    -|Vᵢ|\xb7(Gᵢⱼ\xb7cos θᵢⱼ + Bᵢⱼ\xb7sin θᵢⱼ)
+
+        **J3** (dΔQ/dθ):
+            diag:   -Pᵢ + Gᵢᵢ\xb7|Vᵢ|\xb2
+            off:     |Vᵢ|\xb7|Vⱼ|\xb7(Gᵢⱼ\xb7cos θᵢⱼ + Bᵢⱼ\xb7sin θᵢⱼ)
+
+        **J4** (dΔQ/d|V|):
+            diag:   -Qᵢ/|Vᵢ| + Bᵢᵢ\xb7|Vᵢ|
+            off:    -|Vᵢ|\xb7(Gᵢⱼ\xb7sin θᵢⱼ - Bᵢⱼ\xb7cos θᵢⱼ)
+
+        Parameters
+        ----------
+        V : np.ndarray
+            (n_buses,) complex voltage vector.
+        P_sch, Q_sch : ignored
+            Present for signature compatibility; the analytical Jacobian
+            uses computed P/Q at the current operating point.
         """
-        if P_sch is None or Q_sch is None:
-            P_sch, Q_sch = self._scheduled_power()
+        G = self.Ybus.real
+        B = self.Ybus.imag
 
-        eps_theta = 1e-6
-        eps_v = 1e-6
+        Vmag = np.abs(V)
+        Vang = np.angle(V)
 
-        base_deltaP, base_deltaQ = self._power_mismatch(V, P_sch, Q_sch)
-        base_mismatch = self._build_mismatch_vector(base_deltaP, base_deltaQ)
+        # Angle differences
+        θ = Vang[:, np.newaxis] - Vang[np.newaxis, :]
+        cos_θ = np.cos(θ)
+        sin_θ = np.sin(θ)
 
-        J = np.zeros((self.n_unknowns, self.n_unknowns), dtype=float)
+        # Voltage magnitude products
+        V_i = Vmag[:, np.newaxis]        # (n, 1)
+        V_j = Vmag[np.newaxis, :]        # (1, n)
+        V_i_V_j = V_i * V_j              # (n, n)
+
+        # Current power injections (P_calc, Q_calc)
+        P, Q = self._calculate_power(V)
 
         pv = self.pv_indices
         pq = self.pq_indices
         n_pv = len(pv)
         n_pq = len(pq)
+        n_th_cols = n_pv + n_pq
 
-        # Helper to set unknown perturbation and compute mismatch
-        def compute_mismatch(V_trial):
-            dP_trial, dQ_trial = self._power_mismatch(V_trial, P_sch, Q_sch)
-            return self._build_mismatch_vector(dP_trial, dQ_trial)
+        # Row ordering: [PV..., PQ...] for dP, then [PQ...] for dQ
+        row_buses = pv + pq        # ΔP rows
+        th_col_buses = pv + pq     # Δθ columns
+        vm_col_buses = pq          # Δ|V| columns
 
-        # theta unknowns: pv then pq
-        for col in range(n_pv + n_pq):
-            V_trial = V.copy()
-            if col < n_pv:
-                bus_i = pv[col]
-                theta_i = np.angle(V_trial[bus_i])
-                V_trial[bus_i] = np.abs(V_trial[bus_i]) * np.exp(1j * (theta_i + eps_theta))
-            else:
-                bus_i = pq[col - n_pv]
-                theta_i = np.angle(V_trial[bus_i])
-                V_trial[bus_i] = np.abs(V_trial[bus_i]) * np.exp(1j * (theta_i + eps_theta))
+        J = np.zeros((self.n_unknowns, self.n_unknowns))
 
-            m = compute_mismatch(V_trial)
-            J[:, col] = (m - base_mismatch).real / eps_theta
+        # ── Precompute common products ──────────────────────────────────
+        GS = G * sin_θ          # G_ij * sin(θ_ij)
+        BC = B * cos_θ          # B_ij * cos(θ_ij)
+        GC = G * cos_θ          # G_ij * cos(θ_ij)
+        BS = B * sin_θ          # B_ij * sin(θ_ij)
 
-        # |V| unknowns: pq only
-        for k in range(n_pq):
-            col = n_pv + n_pq + k
-            V_trial = V.copy()
-            bus_i = pq[k]
-            Vmag = np.abs(V_trial[bus_i])
-            V_trial[bus_i] = (Vmag + eps_v) * np.exp(1j * np.angle(V_trial[bus_i]))
+        # dP_i/dθ_k  (P-calc derivative)  —  see formula docstring above
+        #   off-diag: V_i*V_j*(G_ij*sin - B_ij*cos)      ← d(P_calc)/dθ
+        #   needed:   -V_i*V_j*(G_ij*sin - B_ij*cos)     ← d(ΔP)/dθ = -d(P_calc)/dθ
+        J1_off = -V_i_V_j * (GS - BC)
 
-            m = compute_mismatch(V_trial)
-            J[:, col] = (m - base_mismatch).real / eps_v
+        # dP_i/d|V|_k (P-calc derivative)
+        #   off-diag: V_i*(G_ij*cos + B_ij*sin)          ← d(P_calc)/d|V|
+        #   needed:   -V_i*(G_ij*cos + B_ij*sin)         ← d(ΔP)/d|V| = -d(P_calc)/d|V|
+        J2_off = -V_i * (GC + BS)
+
+        # dQ_i/dθ_k  (Q-calc derivative)
+        #   off-diag: -V_i*V_j*(G_ij*cos + B_ij*sin)     ← d(Q_calc)/dθ
+        #   needed:   V_i*V_j*(G_ij*cos + B_ij*sin)      ← d(ΔQ)/dθ = -d(Q_calc)/dθ
+        J3_off = V_i_V_j * (GC + BS)
+
+        # dQ_i/d|V|_k (Q-calc derivative)
+        #   off-diag: V_i*(G_ij*sin - B_ij*cos)          ← d(Q_calc)/d|V|
+        #   needed:   -V_i*(G_ij*sin - B_ij*cos)         ← d(ΔQ)/d|V| = -d(Q_calc)/d|V|
+        J4_off = -V_i * (GS - BC)
+
+        # ── Diagonal helpers ────────────────────────────────────────────
+        B_diag = B.diagonal()
+        G_diag = G.diagonal()
+        V2 = Vmag ** 2
+
+        # ── J1: dΔP/dθ ──
+        for ri, bus_i in enumerate(row_buses):
+            for ci, bus_k in enumerate(th_col_buses):
+                if bus_i == bus_k:
+                    # d(ΔP_i)/dθ_i = Q_i + B_ii * |V_i|²
+                    J[ri, ci] = Q[bus_i] + B_diag[bus_i] * V2[bus_i]
+                else:
+                    J[ri, ci] = J1_off[bus_i, bus_k]
+
+        # ── J2: dΔP/d|V| ──
+        for ri, bus_i in enumerate(row_buses):
+            for ci, bus_k in enumerate(vm_col_buses):
+                col = n_th_cols + ci
+                if bus_i == bus_k:
+                    # d(ΔP_i)/d|V|_i = -P_i/|V_i| - G_ii * |V_i|
+                    J[ri, col] = -P[bus_i] / Vmag[bus_i] - G_diag[bus_i] * Vmag[bus_i]
+                else:
+                    J[ri, col] = J2_off[bus_i, bus_k]
+
+        # ── J3: dΔQ/dθ ──
+        # Rows start at n_pv + n_pq (after ΔP_pv and ΔP_pq)
+        q_row_offset = n_pv + n_pq
+        for ri, bus_i in enumerate(pq):
+            row = q_row_offset + ri
+            for ci, bus_k in enumerate(th_col_buses):
+                if bus_i == bus_k:
+                    # d(ΔQ_i)/dθ_i = -P_i + G_ii * |V_i|²
+                    J[row, ci] = -P[bus_i] + G_diag[bus_i] * V2[bus_i]
+                else:
+                    J[row, ci] = J3_off[bus_i, bus_k]
+
+        # ── J4: dΔQ/d|V| ──
+        for ri, bus_i in enumerate(pq):
+            row = q_row_offset + ri
+            for ci, bus_k in enumerate(vm_col_buses):
+                col = n_th_cols + ci
+                if bus_i == bus_k:
+                    # d(ΔQ_i)/d|V|_i = -Q_i/|V|_i + B_ii * |V_i|
+                    J[row, col] = -Q[bus_i] / Vmag[bus_i] + B_diag[bus_i] * Vmag[bus_i]
+                else:
+                    J[row, col] = J4_off[bus_i, bus_k]
 
         return J
 

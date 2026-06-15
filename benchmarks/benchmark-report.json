@@ -1,0 +1,250 @@
+{
+  "jacobian": {
+    "systems": [
+      {
+        "n_buses": 14,
+        "n_unknowns": 24,
+        "analytical_ms": 6.578,
+        "fd_ms": 1.783,
+        "speedup": 0.27,
+        "max_diff": "4.48e-05",
+        "mean_diff": "1.76e-06"
+      },
+      {
+        "n_buses": 30,
+        "n_unknowns": 53,
+        "analytical_ms": 24.977,
+        "fd_ms": 3.899,
+        "speedup": 0.16,
+        "max_diff": "4.48e-05",
+        "mean_diff": "8.39e-07"
+      },
+      {
+        "n_buses": 57,
+        "n_unknowns": 101,
+        "analytical_ms": 90.266,
+        "fd_ms": 9.295,
+        "speedup": 0.1,
+        "max_diff": "4.48e-05",
+        "mean_diff": "4.38e-07"
+      },
+      {
+        "n_buses": 118,
+        "n_unknowns": 211,
+        "analytical_ms": 283.756,
+        "fd_ms": 121.127,
+        "speedup": 0.43,
+        "max_diff": "4.48e-05",
+        "mean_diff": "2.10e-07"
+      }
+    ]
+  },
+  "load_flow": {
+    "systems": [
+      {
+        "n_buses": 14,
+        "converged": true,
+        "iterations": 5,
+        "pv_pq_switches": 0,
+        "final_mismatch": "4.03e-07",
+        "time_sec": 0.0147,
+        "ms_per_iter": 2.94
+      },
+      {
+        "n_buses": 30,
+        "converged": false,
+        "iterations": 100,
+        "pv_pq_switches": 0,
+        "final_mismatch": "8.88e-01",
+        "time_sec": 1.1838,
+        "ms_per_iter": 11.84
+      },
+      {
+        "n_buses": 57,
+        "converged": false,
+        "iterations": 100,
+        "pv_pq_switches": 0,
+        "final_mismatch": "1.70e+00",
+        "time_sec": 3.4197,
+        "ms_per_iter": 34.2
+      },
+      {
+        "n_buses": 118,
+        "converged": false,
+        "iterations": 100,
+        "pv_pq_switches": 0,
+        "final_mismatch": "2.20e+00",
+        "time_sec": 11.904,
+        "ms_per_iter": 119.04
+      }
+    ]
+  },
+  "zbus": {
+    "systems": [
+      {
+        "n_buses": 14,
+        "dense_inv_ms": 2.15,
+        "lu_total_ms": 1.237,
+        "lu_factor_ms": 0.44,
+        "lu_solve_ms": 0.8,
+        "speedup": 1.74,
+        "accuracy_dense": "5.55e-16",
+        "accuracy_lu": "5.55e-16",
+        "memory_dense_mb": 0.003
+      },
+      {
+        "n_buses": 30,
+        "dense_inv_ms": 16.39,
+        "lu_total_ms": 3.686,
+        "lu_factor_ms": 0.3,
+        "lu_solve_ms": 3.39,
+        "speedup": 4.45,
+        "accuracy_dense": "8.88e-16",
+        "accuracy_lu": "8.88e-16",
+        "memory_dense_mb": 0.014
+      },
+      {
+        "n_buses": 57,
+        "dense_inv_ms": 87.93,
+        "lu_total_ms": 6.424,
+        "lu_factor_ms": 0.63,
+        "lu_solve_ms": 5.79,
+        "speedup": 13.69,
+        "accuracy_dense": "1.22e-15",
+        "accuracy_lu": "2.22e-15",
+        "memory_dense_mb": 0.05
+      },
+      {
+        "n_buses": 118,
+        "dense_inv_ms": 234.32,
+        "lu_total_ms": 204.582,
+        "lu_factor_ms": 185.94,
+        "lu_solve_ms": 18.64,
+        "speedup": 1.15,
+        "accuracy_dense": "1.33e-15",
+        "accuracy_lu": "2.00e-15",
+        "memory_dense_mb": 0.212
+      }
+    ]
+  },
+  "cache": {
+    "scenarios": [
+      {
+        "scenario": "LRU 50MB max_size",
+        "max_size_mb": 50,
+        "strategy": "lru",
+        "hit_rate_pct": 100.0,
+        "hits": 50000,
+        "misses": 0,
+        "entries": 1000,
+        "size_mb": 0.98,
+        "utilization_pct": 1.96,
+        "throughput_kops": 13.0
+      },
+      {
+        "scenario": "LRU 200MB max_size",
+        "max_size_mb": 200,
+        "strategy": "lru",
+        "hit_rate_pct": 100.0,
+        "hits": 50000,
+        "misses": 0,
+        "entries": 1000,
+        "size_mb": 0.98,
+        "utilization_pct": 0.49,
+        "throughput_kops": 13.6
+      },
+      {
+        "scenario": "LFU 50MB max_size",
+        "max_size_mb": 50,
+        "strategy": "lfu",
+        "hit_rate_pct": 100.0,
+        "hits": 50000,
+        "misses": 0,
+        "entries": 1000,
+        "size_mb": 0.98,
+        "utilization_pct": 1.96,
+        "throughput_kops": 188.5
+      }
+    ]
+  },
+  "latency": {
+    "studies": [
+      {
+        "n_buses": 14,
+        "load_flow_ms_p50": 1.4,
+        "load_flow_ms_p95": 11.55,
+        "load_flow_ms_p99": 15.42,
+        "fault_ms_p50": 6.67,
+        "fault_ms_p95": 9.54,
+        "fault_ms_p99": 10.08
+      },
+      {
+        "n_buses": 30,
+        "load_flow_ms_p50": 3.19,
+        "load_flow_ms_p95": 790.58,
+        "load_flow_ms_p99": 1305.34,
+        "fault_ms_p50": 41.26,
+        "fault_ms_p95": 50.12,
+        "fault_ms_p99": 52.92
+      },
+      {
+        "n_buses": 57,
+        "load_flow_ms_p50": 9.22,
+        "load_flow_ms_p95": 2261.68,
+        "load_flow_ms_p99": 3734.35,
+        "fault_ms_p50": 153.97,
+        "fault_ms_p95": 164.17,
+        "fault_ms_p99": 165.76
+      },
+      {
+        "n_buses": 118,
+        "load_flow_ms_p50": 34.9,
+        "load_flow_ms_p95": 6211.78,
+        "load_flow_ms_p99": 10252.28,
+        "fault_ms_p50": 299.16,
+        "fault_ms_p95": 551.79,
+        "fault_ms_p99": 674.75
+      }
+    ]
+  },
+  "concurrent": {
+    "scenarios": [
+      {
+        "n_workers": 2,
+        "n_requests": 2,
+        "total_time_sec": 3.068,
+        "throughput_req_per_sec": 0.7,
+        "latency_ms_p50": 3026.79,
+        "latency_ms_p95": 3057.7,
+        "latency_ms_p99": 3060.44
+      },
+      {
+        "n_workers": 4,
+        "n_requests": 4,
+        "total_time_sec": 0.018,
+        "throughput_req_per_sec": 225.1,
+        "latency_ms_p50": 4.87,
+        "latency_ms_p95": 5.79,
+        "latency_ms_p99": 5.88
+      },
+      {
+        "n_workers": 8,
+        "n_requests": 8,
+        "total_time_sec": 0.037,
+        "throughput_req_per_sec": 214.8,
+        "latency_ms_p50": 4.62,
+        "latency_ms_p95": 11.19,
+        "latency_ms_p99": 12.68
+      },
+      {
+        "n_workers": 16,
+        "n_requests": 16,
+        "total_time_sec": 0.086,
+        "throughput_req_per_sec": 187.1,
+        "latency_ms_p50": 17.38,
+        "latency_ms_p95": 30.15,
+        "latency_ms_p99": 31.86
+      }
+    ]
+  }
+}
