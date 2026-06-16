@@ -46,6 +46,14 @@ COPY . .
 
 RUN pnpm build
 
+# Ensure dist/ and public/ directories exist after the build so the
+# runtime stage can COPY them without failing. The Mastra build does
+# not produce these directories (it outputs to .mastra/output/), but
+# the runtime stage expects /build/dist and /build/public to exist.
+# Creating them as empty directories is harmless — they just become
+# empty /app/ui/dist and /app/ui/public in the runtime image.
+RUN mkdir -p /build/dist /build/public
+
 # Remove dev dependencies to reduce size
 RUN pnpm prune --prod
 
