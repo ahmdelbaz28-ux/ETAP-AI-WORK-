@@ -11,9 +11,10 @@
     "electron:dev": "concurrently \"vite\" \"wait-on http://localhost:5173 && cross-env VITE_DEV_SERVER_URL=http://localhost:5173 electron .\"",
     "electron:build:win": "vite build && electron-builder --win",
     "electron:build:linux": "vite build && electron-builder --linux",
+    "electron:build:mac": "vite build && electron-builder --mac",
     "test": "vitest run",
     "test:watch": "vitest",
-    "electron:build:all": "vite build && electron-builder --win --linux"
+    "electron:build:all": "vite build && electron-builder --win --linux --mac"
   },
   "main": "electron/main.cjs",
   "build": {

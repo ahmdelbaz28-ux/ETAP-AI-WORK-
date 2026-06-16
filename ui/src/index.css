@@ -91,17 +91,40 @@
    DARK MODE (Default)
    ============================ */
 :root {
-  --bg-primary: var(--color-surface-950);
-  --bg-secondary: var(--color-surface-900);
-  --bg-card: var(--color-surface-800);
-  --bg-elevated: var(--color-surface-750);
-  --bg-input: var(--color-surface-900);
-  --border-primary: var(--color-surface-700);
-  --border-secondary: var(--color-surface-600);
-  --text-primary: #ffffff;
-  --text-secondary: var(--color-surface-300);
-  --text-tertiary: var(--color-surface-400);
-  --text-muted: var(--color-surface-500);
+  --bg-primary: #0a0e1a;
+  --bg-secondary: #0f1525;
+  --bg-tertiary: #141c2e;
+  --bg-card: #1a2340;
+  --bg-hover: #1e2a4a;
+  --bg-elevated: #1e2a4a;
+  --bg-input: #0f1525;
+  --border-primary: rgba(148, 163, 184, 0.08);
+  --border-secondary: rgba(148, 163, 184, 0.15);
+  --border-strong: rgba(148, 163, 184, 0.25);
+  --text-primary: #e2e8f0;
+  --text-secondary: #94a3b8;
+  --text-tertiary: #64748b;
+  --text-muted: #475569;
+  --accent-primary: #00d4ff;
+  --accent-secondary: #0099cc;
+  --accent-glow: rgba(0, 212, 255, 0.15);
+  --voltage: #60a5fa;
+  --current: #fbbf24;
+  --power: #22c55e;
+  --impedance: #a78bfa;
+  --fault: #ef4444;
+  --protection: #06b6d4;
+  --glow-primary: 0 0 20px rgba(0, 212, 255, 0.15);
+  --glow-success: 0 0 20px rgba(16, 185, 129, 0.15);
+  --glow-warning: 0 0 20px rgba(245, 158, 11, 0.15);
+  --glow-danger: 0 0 20px rgba(239, 68, 68, 0.15);
+  --glass-bg: rgba(15, 21, 37, 0.7);
+  --glass-border: rgba(255, 255, 255, 0.05);
+  --glass-backdrop: blur(20px) saturate(180%);
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -2px rgba(0, 0, 0, 0.3);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.5), 0 4px 6px -4px rgba(0, 0, 0, 0.4);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.6), 0 8px 10px -6px rgba(0, 0, 0, 0.5);
   color-scheme: dark;
 }
 
@@ -109,17 +132,40 @@
    LIGHT MODE
    ============================ */
 .light {
-  --bg-primary: var(--color-surface-50);
+  --bg-primary: #f8fafc;
   --bg-secondary: #ffffff;
+  --bg-tertiary: #f1f5f9;
   --bg-card: #ffffff;
-  --bg-elevated: var(--color-surface-100);
-  --bg-input: var(--color-surface-50);
-  --border-primary: var(--color-surface-200);
-  --border-secondary: var(--color-surface-300);
-  --text-primary: var(--color-surface-900);
-  --text-secondary: var(--color-surface-600);
-  --text-tertiary: var(--color-surface-500);
-  --text-muted: var(--color-surface-400);
+  --bg-hover: #f1f5f9;
+  --bg-elevated: #f1f5f9;
+  --bg-input: #f8fafc;
+  --border-primary: #e2e8f0;
+  --border-secondary: #cbd5e1;
+  --border-strong: #94a3b8;
+  --text-primary: #0f172a;
+  --text-secondary: #475569;
+  --text-tertiary: #64748b;
+  --text-muted: #94a3b8;
+  --accent-primary: #0284c7;
+  --accent-secondary: #0369a1;
+  --accent-glow: rgba(2, 132, 199, 0.1);
+  --voltage: #2563eb;
+  --current: #d97706;
+  --power: #16a34a;
+  --impedance: #7c3aed;
+  --fault: #dc2626;
+  --protection: #0891b2;
+  --glow-primary: 0 0 20px rgba(2, 132, 199, 0.1);
+  --glow-success: 0 0 20px rgba(22, 163, 74, 0.1);
+  --glow-warning: 0 0 20px rgba(217, 119, 6, 0.1);
+  --glow-danger: 0 0 20px rgba(220, 38, 38, 0.1);
+  --glass-bg: rgba(255, 255, 255, 0.7);
+  --glass-border: rgba(0, 0, 0, 0.05);
+  --glass-backdrop: blur(20px) saturate(180%);
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
   color-scheme: light;
 }
 
@@ -191,8 +237,8 @@ body {
 }
 
 @keyframes pulse-glow {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.4); }
-  50% { box-shadow: 0 0 0 8px rgba(59, 130, 246, 0); }
+  0%, 100% { box-shadow: 0 0 0 0 rgba(0, 212, 255, 0.4); }
+  50% { box-shadow: 0 0 0 8px rgba(0, 212, 255, 0); }
 }
 
 @keyframes shimmer {
@@ -203,6 +249,21 @@ body {
 @keyframes spin-slow {
   from { transform: rotate(0deg); }
   to { transform: rotate(360deg); }
+}
+
+@keyframes glow-border {
+  0%, 100% { border-color: var(--accent-primary); box-shadow: var(--glow-primary); }
+  50% { border-color: var(--accent-secondary); box-shadow: none; }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-4px); }
+}
+
+@keyframes ripple {
+  0% { transform: scale(0); opacity: 0.6; }
+  100% { transform: scale(2.5); opacity: 0; }
 }
 
 .animate-fade-in {
@@ -237,6 +298,14 @@ body {
 
 .animate-spin-slow {
   animation: spin-slow 3s linear infinite;
+}
+
+.animate-glow-border {
+  animation: glow-border 3s ease-in-out infinite;
+}
+
+.animate-float {
+  animation: float 3s ease-in-out infinite;
 }
 
 /* ============================
@@ -296,26 +365,55 @@ body {
   background-color: var(--bg-card);
   border: 1px solid var(--border-primary);
   border-radius: var(--radius-xl);
-  transition: all var(--transition-normal);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .card:hover {
   border-color: var(--border-secondary);
-  box-shadow: var(--shadow-card-hover);
+  box-shadow: var(--shadow-lg);
 }
 
 .card-interactive {
   background-color: var(--bg-card);
   border: 1px solid var(--border-primary);
   border-radius: var(--radius-xl);
-  transition: all var(--transition-normal);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   cursor: pointer;
 }
 
 .card-interactive:hover {
-  border-color: var(--color-brand-500);
-  box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.1), 0 8px 25px -5px rgba(59, 130, 246, 0.15);
-  transform: translateY(-1px);
+  border-color: var(--accent-primary);
+  box-shadow: 0 0 0 1px var(--accent-glow), 0 8px 25px -5px var(--accent-glow);
+  transform: translateY(-2px);
+}
+
+/* Engineering study card */
+.study-card {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.study-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--accent-primary), var(--accent-secondary));
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.study-card:hover::before {
+  opacity: 1;
+}
+
+.study-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-xl), var(--glow-primary);
+  border-color: var(--accent-primary);
 }
 
 /* Gradient borders */
