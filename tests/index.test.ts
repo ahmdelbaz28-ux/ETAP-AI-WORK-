@@ -71,7 +71,7 @@ describe('Cloudflare Worker API Gateway', () => {
     const res = await makeRequest('/');
     expect(res.status).toBe(200);
     const body = (await res.json()) as Record<string, unknown>;
-    expect(body.service).toBe('ETAP AI Platform');
+    expect(body.service).toBe('AhmedETAP');
     expect(body.health).toBe('/health');
   });
 

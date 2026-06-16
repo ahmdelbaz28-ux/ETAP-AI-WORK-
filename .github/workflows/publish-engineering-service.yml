@@ -67,7 +67,7 @@ concurrency:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository }}/etap-engineering-service
+  IMAGE_NAME: ahmdelbaz28-ux/etap-engineering-service
 
 permissions:
   contents: read
@@ -131,8 +131,8 @@ jobs:
             type=ref,event=pr
           labels: |
             org.opencontainers.image.title=etap-engineering-service
-            org.opencontainers.image.description=ETAP AI Engineering Service (FastAPI) — load flow, short circuit, arc flash, harmonic analysis, OPF, protection coordination
-            org.opencontainers.image.vendor=ETAP AI Platform Team
+            org.opencontainers.image.description=AhmedETAP Engineering Service (FastAPI) — load flow, short circuit, arc flash, harmonic analysis, OPF, protection coordination
+            org.opencontainers.image.vendor=AhmedETAP
 
       # ------------------------------------------------------------------
       # 6. Build & push (multi-arch)

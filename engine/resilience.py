@@ -1,5 +1,5 @@
 """
-Reliability and resilience patterns for the ETAP AI Engineering Platform.
+Reliability and resilience patterns for the AhmedETAP Engineering Platform.
 
 Provides production-grade retry handling, circuit breaker, multi-level recovery,
 and computational stability enforcement.

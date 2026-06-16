@@ -1,5 +1,5 @@
 """
-Redis Caching Layer for ETAP AI Platform
+Redis Caching Layer for AhmedETAP Platform
 ==========================================
 Provides an async Redis-backed caching layer for repeated study inputs,
 with transparent in-memory fallback when Redis is unavailable.

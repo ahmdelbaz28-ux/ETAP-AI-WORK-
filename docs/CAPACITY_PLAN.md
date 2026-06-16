@@ -1,4 +1,4 @@
-# ETAP AI Platform — Capacity Plan
+# AhmedETAP — Capacity Plan
 
 **Version:** 1.0.0  
 **Date:** 2026-06-10  

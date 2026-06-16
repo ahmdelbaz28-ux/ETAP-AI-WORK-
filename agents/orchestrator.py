@@ -1,5 +1,5 @@
 """
-ETAP AI Engineering Platform - Multi-Agent Orchestrator
+AhmedETAP - Multi-Agent Orchestrator
 ========================================================
 Chief Engineering Orchestrator that coordinates all specialized agents
 for autonomous power system analysis and ETAP automation.
@@ -1209,7 +1209,7 @@ class ReportGenerationAgent(BaseAgent):
             from reporting.advanced_reports import PDFReportGenerator, ReportMetadata
             metadata = ReportMetadata(
                 title=content.get('title', 'Engineering Report'),
-                author='ETAP AI Platform',
+                author='AhmedETAP',
                 date=datetime.now(timezone.utc).isoformat()
             )
             generator = PDFReportGenerator()
@@ -1230,7 +1230,7 @@ class ReportGenerationAgent(BaseAgent):
             from reporting.advanced_reports import DOCXReportGenerator, ReportMetadata
             metadata = ReportMetadata(
                 title=content.get('title', 'Engineering Report'),
-                author='ETAP AI Platform',
+                author='AhmedETAP',
                 date=datetime.now(timezone.utc).isoformat()
             )
             generator = DOCXReportGenerator()
@@ -1251,7 +1251,7 @@ class ReportGenerationAgent(BaseAgent):
             from reporting.advanced_reports import ReportMetadata, XLSXReportGenerator
             metadata = ReportMetadata(
                 title=content.get('title', 'Engineering Report'),
-                author='ETAP AI Platform',
+                author='AhmedETAP',
                 date=datetime.now(timezone.utc).isoformat()
             )
             generator = XLSXReportGenerator()

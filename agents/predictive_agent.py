@@ -1,5 +1,5 @@
 """
-ETAP AI Engineering Platform - Predictive Analytics Agent
+AhmedETAP - Predictive Analytics Agent
 =========================================================
 Load forecasting, fault prediction, and predictive maintenance analysis
 using statistical and machine learning methods.

@@ -1,5 +1,5 @@
 """
-Scalability and distributed computing for the ETAP AI Engineering Platform.
+Scalability and distributed computing for the AhmedETAP Engineering Platform.
 
 Provides horizontal scaling, load balancing, task queuing, cluster management,
 data partitioning, and distributed orchestration for large power system studies.

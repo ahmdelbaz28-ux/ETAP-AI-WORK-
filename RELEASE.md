@@ -1,4 +1,4 @@
-# ETAP AI Engineering Platform — Release Process
+# AhmedETAP — Release Process
 
 ## Versioning Strategy
 

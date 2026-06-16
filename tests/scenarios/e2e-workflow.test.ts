@@ -170,7 +170,7 @@ describe('E2E Full Workflow — Create → Import → Study → Report → Expor
       results: studyResult.data,
       extracted_results: extracted,
       metadata: {
-        generated_by: 'ETAP AI Platform',
+        generated_by: 'AhmedETAP',
         compliance: ['IEEE 399', 'IEC 60909'],
       },
     };
@@ -185,7 +185,7 @@ describe('E2E Full Workflow — Create → Import → Study → Report → Expor
     expect(parsed.results).toBeDefined();
     expect(parsed.results.converged).toBe(true);
     expect(parsed.extracted_results).toBeDefined();
-    expect(parsed.metadata.generated_by).toBe('ETAP AI Platform');
+    expect(parsed.metadata.generated_by).toBe('AhmedETAP');
   });
 
   it('7. runs the full E2E pipeline end-to-end in one flow', async () => {

@@ -1,6 +1,6 @@
 # GitHub Repository Optimization
 
-This document captures the recommended GitHub presentation settings for the ETAP AI Engineering Platform repository.
+This document captures the recommended GitHub presentation settings for the AhmedETAP repository.
 
 ## Repository description
 

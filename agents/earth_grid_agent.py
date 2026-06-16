@@ -1,5 +1,5 @@
 """
-ETAP AI Engineering Platform - Earth Grid Design Agent
+AhmedETAP - Earth Grid Design Agent
 =======================================================
 Substation ground grid design and safety verification per IEEE 80.
 

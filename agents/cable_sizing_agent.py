@@ -1,5 +1,5 @@
 """
-ETAP AI Engineering Platform - Cable Sizing Agent
+AhmedETAP - Cable Sizing Agent
 ==================================================
 Cable sizing and verification per IEC 60364 series.
 

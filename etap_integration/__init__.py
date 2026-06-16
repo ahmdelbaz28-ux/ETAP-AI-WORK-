@@ -2,7 +2,7 @@
 ETAP Integration Package
 ========================
 Provides ETAP COM automation, provider abstraction, worker service,
-error recovery, and compatibility checking for the ETAP AI platform.
+error recovery, and compatibility checking for the AhmedETAP platform.
 """
 
 import sys as _sys

@@ -1,5 +1,5 @@
 """
-ETAP AI Engineering Platform - Stability Analysis Agent
+AhmedETAP - Stability Analysis Agent
 ========================================================
 Transient and small-signal stability analysis per IEEE 399 (Brown Book)
 and IEEE 1584-2018.

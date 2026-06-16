@@ -1,5 +1,5 @@
 """
-ETAP AI Engineering Platform - Goal Planner Agent
+AhmedETAP - Goal Planner Agent
 ===================================================
 Goal decomposition, task extraction, and prioritized planning for
 engineering workflows and daily task management.

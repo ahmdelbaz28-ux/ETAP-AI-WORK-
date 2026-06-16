@@ -1,5 +1,5 @@
 /**
- * ETAP AI Platform — Stress Testing Suite
+ * AhmedETAP Platform — Stress Testing Suite
  * =========================================
  * Simulates extreme conditions: API spikes, agent overload, queue saturation,
  * provider outages, and network interruptions.
@@ -87,7 +87,7 @@ async function runBurst(requests: number, endpoint: string, method: 'GET' | 'POS
 
 async function runStressTest() {
   console.log('╔══════════════════════════════════════════════════════════════════╗');
-  console.log('║        ETAP AI Platform — Stress Testing Suite                ║');
+  console.log('║        AhmedETAP Platform — Stress Testing Suite                ║');
   console.log('╚══════════════════════════════════════════════════════════════════╝');
   console.log(`Target: ${DEPLOYED_URL}`);
   console.log('');
