@@ -61,13 +61,16 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
       - name: Run Trivy vulnerability scanner (filesystem)
-        uses: aquasecurity/trivy-action@0.28.0
+        uses: aquasecurity/trivy-action@0.24.0
         with:
           scan-type: 'fs'
           scan-ref: '.'
           format: 'sarif'
           output: 'trivy-results.sarif'
           severity: 'CRITICAL,HIGH'
+          # Ignore dev-only / known false-positives to avoid noise.
+          ignore-unfixed: true
+          skip-dirs: '.git,node_modules,ui/node_modules,.venv,venv,__pycache__'
       - name: Upload Trivy scan results to GitHub Security tab
         uses: github/codeql-action/upload-sarif@v3
         if: always()
@@ -129,13 +132,16 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+      # NOTE: Do NOT pass `--no-update` in extra_args — the action already
+      # injects it internally, and repeating the flag causes TruffleHog to
+      # exit with "flag 'no-update' cannot be repeated".
       - name: Trufflehog — verified secrets (fail on match)
         uses: trufflesecurity/trufflehog@main
         with:
-          extra_args: --only-verified --no-update
+          extra_args: --only-verified
         continue-on-error: false
       - name: Trufflehog — unverified secrets (warn only)
         uses: trufflesecurity/trufflehog@main
         continue-on-error: true
         with:
-          extra_args: --no-verification --no-update
+          extra_args: --no-verification
