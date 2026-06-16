@@ -55,7 +55,7 @@ curl -X POST https://ahmdelbaz28-etap-ai-platform.hf.space/api/v1/studies/run \
 |--------|-------|
 | Tests | 548 passing |
 | Validation | 31/31 gates |
-| Syntax | 174/174 files |
+| Syntax | 173/173 files |
 | Standards | IEEE/IEC/NFPA |
 
 ## Links

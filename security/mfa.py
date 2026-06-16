@@ -633,9 +633,13 @@ class WebAuthnProvider:
                 return False
 
         # Fallback: reject without webauthn library
+        # SECURITY: The fallback cannot perform cryptographic verification of the
+        # authenticator assertion.  In production, always install the 'webauthn'
+        # package.  This rejection prevents bypass of the second factor.
         logger.warning(
-            "WebAuthn authentication REJECTED: cannot verify without webauthn library. "
-            "Install the 'webauthn' package for production use."
+            "WebAuthn authentication REJECTED (no webauthn library): "
+            "credential_id=%s user=%s.  Install 'webauthn' for production.",
+            credential_id, owner_id,
         )
         return False
 
