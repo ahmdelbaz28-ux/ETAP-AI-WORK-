@@ -146,25 +146,32 @@ jobs:
             cp /tmp/hf-space/README.hf.md /tmp/hf-space/README.md
             echo "✅ README.md now contains HF Space configuration (sdk: docker, app_port: 7860)"
           else
-            echo "⚠️ README.hf.md not found — ensuring README.md has HF metadata"
-            # Prepend HF Space YAML front matter if README.md lacks it
-            if ! head -1 /tmp/hf-space/README.md | grep -q "^---"; then
-              cat > /tmp/hf-space/README.md << 'READMEEOF'
-          ---
-          title: AhmedETAP
-          emoji: "\u26A1"
-          colorFrom: blue
-          colorTo: yellow
-          sdk: docker
-          pinned: false
-          license: mit
-          app_port: 7860
-          ---
-
-          READMEEOF
-              cat "${GITHUB_WORKSPACE}/README.md" >> /tmp/hf-space/README.md
-              echo "✅ Prepended HF Space metadata to README.md"
-            fi
+            echo "⚠️ README.hf.md not found — generating HF README.md via Python"
+            # Generate HF README.md with proper column-0 YAML front matter.
+            # We use explicit \n joins (not a triple-quoted string) so that
+            # the YAML block is NOT indented by the surrounding YAML literal
+            # block. HuggingFace rejects indented front matter.
+            python3 - <<'PYEOF'
+            lines = [
+                "---",
+                'title: AhmedETAP',
+                'emoji: "\u26a1"',
+                "colorFrom: yellow",
+                "colorTo: red",
+                "sdk: docker",
+                "pinned: false",
+                "license: mit",
+                "app_port: 7860",
+                "---",
+                "",
+            ]
+            front_matter = "\n".join(lines) + "\n"
+            with open('/tmp/hf-space/README.md', 'w', encoding='utf-8') as out:
+                out.write(front_matter)
+                with open("${GITHUB_WORKSPACE}/README.md", 'r', encoding='utf-8') as src:
+                    out.write(src.read())
+            PYEOF
+            echo "✅ Generated README.md with HF Space metadata"
           fi
 
           # === Fix 2: Replace Dockerfile with HF-specific Dockerfile ===
@@ -178,6 +185,56 @@ jobs:
           else
             echo "⚠️ Dockerfile.hf not found — using default Dockerfile"
           fi
+
+      # -----------------------------------------------------------------------
+      # Step 4d: Validate README.md YAML front matter
+      # -----------------------------------------------------------------------
+      # HuggingFace's pre-receive hook rejects pushes when the README.md
+      # YAML front matter contains invalid values. The allowed colorFrom /
+      # colorTo values are: red, yellow, green, blue, indigo, purple, pink,
+      # gray. We validate BEFORE pushing so the workflow fails fast with a
+      # clear message instead of a confusing git-push rejection.
+      # -----------------------------------------------------------------------
+      - name: Validate HF README metadata
+        run: |
+          pip install --quiet pyyaml
+          python3 - <<'PYEOF'
+          import re, sys, yaml
+          path = '/tmp/hf-space/README.md'
+          with open(path, 'r', encoding='utf-8') as f:
+              content = f.read()
+          m = re.match(r'^---\n(.*?)\n---\n', content, re.DOTALL)
+          if not m:
+              print('❌ README.md is missing YAML front matter (--- ... ---) at column 0')
+              sys.exit(1)
+          try:
+              meta = yaml.safe_load(m.group(1))
+          except yaml.YAMLError as e:
+              print(f'❌ README.md YAML front matter is invalid: {e}')
+              sys.exit(1)
+          if not isinstance(meta, dict):
+              print(f'❌ README.md YAML front matter did not parse to a mapping (got {type(meta).__name__})')
+              sys.exit(1)
+          allowed_colors = {'red','yellow','green','blue','indigo','purple','pink','gray'}
+          ok = True
+          for key in ('colorFrom','colorTo'):
+              v = meta.get(key)
+              if v not in allowed_colors:
+                  print(f"❌ {key}: {v!r} is not allowed. Must be one of {sorted(allowed_colors)}")
+                  ok = False
+          allowed_sdks = {'docker','gradio','streamlit','static'}
+          if meta.get('sdk') not in allowed_sdks:
+              print(f"❌ sdk: {meta.get('sdk')!r} is not allowed. Must be one of {sorted(allowed_sdks)}")
+              ok = False
+          if not meta.get('title'):
+              print('❌ title is missing or empty')
+              ok = False
+          if not ok:
+              sys.exit(1)
+          print('✅ README.md HF metadata is valid:')
+          for k in ('title','sdk','colorFrom','colorTo','app_port'):
+              print(f'   {k}: {meta.get(k)}')
+          PYEOF
 
       # -----------------------------------------------------------------------
       # Step 5: Commit and push to HuggingFace Space
