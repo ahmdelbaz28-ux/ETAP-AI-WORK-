@@ -665,13 +665,20 @@ class RateLimiter:
 class AuditLogger:
     """
     Logs security-relevant events for audit trail.
+
+    Uses RotatingFileHandler to prevent unbounded log growth.
+    Default: 10 MB per file, keep 5 backups.
     """
 
-    def __init__(self, log_file: str = "security_audit.log"):
+    def __init__(self, log_file: str = "security_audit.log",
+                 max_bytes: int = 10_485_760, backup_count: int = 5):
         self.log_file = log_file
         self.logger = logging.getLogger("audit")
 
-        handler = logging.FileHandler(log_file)
+        from logging.handlers import RotatingFileHandler
+        handler = RotatingFileHandler(
+            log_file, maxBytes=max_bytes, backupCount=backup_count
+        )
         handler.setFormatter(logging.Formatter(
             '%(asctime)s - %(levelname)s - %(message)s'
         ))

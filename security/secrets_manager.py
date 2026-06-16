@@ -396,7 +396,11 @@ class KeyAccessAuditor:
         self._logger.setLevel(logging.INFO)
         self._logger.propagate = False
 
-        file_handler = logging.FileHandler(str(self._log_file), encoding="utf-8")
+        from logging.handlers import RotatingFileHandler
+        file_handler = RotatingFileHandler(
+            str(self._log_file), encoding="utf-8",
+            maxBytes=10_485_760, backupCount=5,
+        )
         file_handler.setFormatter(logging.Formatter(
             "%(asctime)s - %(levelname)s - %(message)s"
         ))

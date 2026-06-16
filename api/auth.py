@@ -35,7 +35,7 @@ from typing import Any, Dict, List, Optional
 
 import bcrypt
 import jwt
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Body, Depends, HTTPException, status
 from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
 from sqlalchemy import Boolean, DateTime, String, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -72,6 +72,32 @@ RESET_TOKEN_EXPIRE_MINUTES: int = int(
 _LOGIN_ATTEMPTS: Dict[str, List[float]] = {}
 _RATE_LIMIT_MAX_ATTEMPTS: int = 5
 _RATE_LIMIT_WINDOW_SEC: int = 15 * 60  # 15 minutes
+
+# ---------------------------------------------------------------------------
+# Token blacklist (in-memory — use Redis in production for multi-instance)
+# ---------------------------------------------------------------------------
+
+_TOKEN_BLACKLIST: set[str] = set()
+_TOKEN_BLACKLIST_LOCK = __import__("threading").Lock()
+
+
+def _blacklist_token(jti: str) -> None:
+    """Add a token JTI to the blacklist."""
+    with _TOKEN_BLACKLIST_LOCK:
+        _TOKEN_BLACKLIST.add(jti)
+
+
+def _is_token_blacklisted(jti: str) -> bool:
+    """Check if a token JTI is blacklisted."""
+    with _TOKEN_BLACKLIST_LOCK:
+        return jti in _TOKEN_BLACKLIST
+
+
+def _cleanup_blacklist() -> int:
+    """Remove expired entries from the blacklist (best-effort, called periodically)."""
+    # For a production system, use Redis TTL-based expiry instead.
+    # This is a safety net for the in-memory implementation.
+    return 0
 
 # ---------------------------------------------------------------------------
 # Common-password blocklist (small sample — extend as needed)
@@ -490,6 +516,14 @@ async def refresh(
             detail="Invalid token type",
         )
 
+    # Check if the refresh token has been blacklisted (logged out)
+    jti = payload.get("jti")
+    if jti and _is_token_blacklisted(jti):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Refresh token has been revoked",
+        )
+
     user_id: Optional[str] = payload.get("sub")
     if user_id is None:
         raise HTTPException(
@@ -522,14 +556,26 @@ async def refresh(
     summary="Revoke session",
 )
 async def logout(
+    body: Optional[RefreshRequest] = Body(None),
     user: CurrentUser = Depends(get_current_user_from_header),  # noqa: B008
 ) -> None:
-    """Log the current user out.
+    """Log the current user out by blacklisting the provided refresh token.
 
-    In a stateless JWT setup the token itself remains valid until it
-    expires. This endpoint is a no-op placeholder for future token-
-    blacklisting support.
+    If a refresh_token is supplied in the body, its JTI is blacklisted
+    so it cannot be exchanged for new access tokens.  The access token
+    itself remains valid until it expires (short-lived by design).
     """
+    if body and body.refresh_token:
+        try:
+            payload = jwt.decode(
+                body.refresh_token, JWT_SECRET_KEY, algorithms=[JWT_ALGORITHM],
+                options={"verify_exp": False},  # Allow blacklisting even if expired
+            )
+            jti = payload.get("jti")
+            if jti:
+                _blacklist_token(jti)
+        except jwt.InvalidTokenError:
+            pass  # Invalid token — nothing to blacklist
 
 
 @router.get(

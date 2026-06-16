@@ -702,10 +702,19 @@ if _LANGWATCH_API_KEY:
 _CORS_ORIGINS = os.environ.get("ENGINEERING_SERVICE_CORS_ORIGINS", "").strip()
 _cors_origin_list = [o.strip() for o in _CORS_ORIGINS.split(",") if o.strip()] if _CORS_ORIGINS else []
 if not _cors_origin_list:
-    logger.warning(
-        "CORS: No origins configured (ENGINEERING_SERVICE_CORS_ORIGINS is empty). "
-        "CORS will be restrictive. Set this to your frontend URL(s) in production."
-    )
+    _ENV = os.environ.get("ENVIRONMENT", os.environ.get("ENV", "development")).lower()
+    if _ENV in ("production", "prod", "staging"):
+        logger.warning(
+            "CORS: No origins configured in %s environment. "
+            "Set ENGINEERING_SERVICE_CORS_ORIGINS to your frontend URL(s). "
+            "CORS is currently restrictive (no origins allowed).",
+            _ENV,
+        )
+    else:
+        logger.info(
+            "CORS: No origins configured (development mode). "
+            "Set ENGINEERING_SERVICE_CORS_ORIGINS for production."
+        )
     _cors_origin_list = []  # No origins allowed = restrictive by default
 app.add_middleware(
     CORSMiddleware,
