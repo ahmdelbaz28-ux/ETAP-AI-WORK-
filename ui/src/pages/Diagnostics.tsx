@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from 'react'
 import { motion } from 'framer-motion'
-import { CheckCircle, XCircle, AlertTriangle, RefreshCw, Activity } from 'lucide-react'
+import { CheckCircle, XCircle, AlertTriangle, RefreshCw, Activity, Cpu } from 'lucide-react'
 import { fetchHealth, type HealthResponse } from '../lib/api'
 import { useNotify } from '../context/NotificationContext'
 import { Card, Badge, Button, EmptyState } from '../components/ui'

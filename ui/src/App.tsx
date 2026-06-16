@@ -1,36 +1,46 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
-import { useEffect } from 'react'
+import { Suspense, lazy, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { ThemeProvider } from './context/ThemeContext'
 import { NotificationProvider } from './context/NotificationContext'
 import { Layout } from './components/Layout'
-import { Dashboard } from './pages/Dashboard'
-import { Studies } from './pages/Studies'
-import { StudyRun } from './pages/StudyRun'
-import { AIAssistant } from './pages/AIAssistant'
-import { Projects } from './pages/Projects'
-import { EtapIntegration } from './pages/EtapIntegration'
-import { GisIntegration } from './pages/GisIntegration'
-import { Reports } from './pages/Reports'
-import { Settings } from './pages/Settings'
-import { Administration } from './pages/Administration'
-import { Diagnostics } from './pages/Diagnostics'
-import { AssetManagement } from './pages/AssetManagement'
-import { DigitalTwin } from './pages/DigitalTwin'
-import { DataImport } from './pages/DataImport'
-import { DataExport } from './pages/DataExport'
-import { Logs } from './pages/Logs'
-import CodeGuard from './pages/CodeGuard'
 import './i18n'
+
+function LazyPage({ loader }: { loader: () => Promise<{ [key: string]: unknown }> }) {
+  const Component = lazy(async () => {
+    const mod = await loader()
+    const name = Object.keys(mod).find(k => k !== 'default') || 'default'
+    return { default: mod[name] as React.ComponentType }
+  })
+  return (
+    <Suspense fallback={
+      <div className="flex items-center justify-center h-64">
+        <div className="flex flex-col items-center gap-3">
+          <div className="w-8 h-8 border-2 border-[var(--accent-primary)] border-t-transparent rounded-full animate-spin" />
+          <span className="text-sm text-[var(--text-muted)]">Loading...</span>
+        </div>
+      </div>
+    }>
+      <Component />
+    </Suspense>
+  )
+}
 
 export default function App() {
   const { i18n } = useTranslation()
 
-  // Set initial direction based on language
   useEffect(() => {
     document.documentElement.dir = i18n.language === 'ar' ? 'rtl' : 'ltr'
     document.documentElement.lang = i18n.language
   }, [i18n.language])
+
+  useEffect(() => {
+    if (window.electronAPI) {
+      window.electronAPI.onNavigate((path: string) => {
+        window.location.hash = path
+      })
+    }
+  }, [])
 
   return (
     <ThemeProvider>
@@ -39,23 +49,23 @@ export default function App() {
           <Routes>
             <Route element={<Layout />}>
               <Route path="/" element={<Navigate to="/dashboard" replace />} />
-              <Route path="/dashboard" element={<Dashboard />} />
-              <Route path="/studies" element={<Studies />} />
-              <Route path="/studies/:studyType" element={<StudyRun />} />
-              <Route path="/asset-management" element={<AssetManagement />} />
-              <Route path="/assistant" element={<AIAssistant />} />
-              <Route path="/projects" element={<Projects />} />
-              <Route path="/etap" element={<EtapIntegration />} />
-              <Route path="/gis" element={<GisIntegration />} />
-              <Route path="/reports" element={<Reports />} />
-              <Route path="/settings" element={<Settings />} />
-              <Route path="/admin" element={<Administration />} />
-              <Route path="/diagnostics" element={<Diagnostics />} />
-              <Route path="/digital-twin" element={<DigitalTwin />} />
-              <Route path="/data-import" element={<DataImport />} />
-              <Route path="/data-export" element={<DataExport />} />
-              <Route path="/logs" element={<Logs />} />
-              <Route path="/code-guard" element={<CodeGuard />} />
+              <Route path="/dashboard" element={<LazyPage loader={() => import('./pages/Dashboard')} />} />
+              <Route path="/studies" element={<LazyPage loader={() => import('./pages/Studies')} />} />
+              <Route path="/studies/:studyType" element={<LazyPage loader={() => import('./pages/StudyRun')} />} />
+              <Route path="/asset-management" element={<LazyPage loader={() => import('./pages/AssetManagement')} />} />
+              <Route path="/assistant" element={<LazyPage loader={() => import('./pages/AIAssistant')} />} />
+              <Route path="/projects" element={<LazyPage loader={() => import('./pages/Projects')} />} />
+              <Route path="/etap" element={<LazyPage loader={() => import('./pages/EtapIntegration')} />} />
+              <Route path="/gis" element={<LazyPage loader={() => import('./pages/GisIntegration')} />} />
+              <Route path="/reports" element={<LazyPage loader={() => import('./pages/Reports')} />} />
+              <Route path="/settings" element={<LazyPage loader={() => import('./pages/Settings')} />} />
+              <Route path="/admin" element={<LazyPage loader={() => import('./pages/Administration')} />} />
+              <Route path="/diagnostics" element={<LazyPage loader={() => import('./pages/Diagnostics')} />} />
+              <Route path="/digital-twin" element={<LazyPage loader={() => import('./pages/DigitalTwin')} />} />
+              <Route path="/data-import" element={<LazyPage loader={() => import('./pages/DataImport')} />} />
+              <Route path="/data-export" element={<LazyPage loader={() => import('./pages/DataExport')} />} />
+              <Route path="/logs" element={<LazyPage loader={() => import('./pages/Logs')} />} />
+              <Route path="/code-guard" element={<LazyPage loader={() => import('./pages/CodeGuard')} />} />
             </Route>
           </Routes>
         </BrowserRouter>
