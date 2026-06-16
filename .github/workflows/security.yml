@@ -60,17 +60,25 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-      - name: Run Trivy vulnerability scanner (filesystem)
-        uses: aquasecurity/trivy-action@v0.32.0
-        with:
-          scan-type: 'fs'
-          scan-ref: '.'
-          format: 'sarif'
-          output: 'trivy-results.sarif'
-          severity: 'CRITICAL,HIGH'
-          # Ignore dev-only / known false-positives to avoid noise.
-          ignore-unfixed: true
-          skip-dirs: '.git,node_modules,ui/node_modules,.venv,venv,__pycache__'
+      - name: Run Trivy vulnerability scanner (filesystem, via Docker)
+        # NOTE: We use the official Trivy Docker image directly instead of
+        # aquasecurity/trivy-action, because the action's setup-trivy
+        # dependency chain has been repeatedly broken (v0.28.0 depends on
+        # setup-trivy@v0.2.1 which was deleted; v0.32.0 install.sh fails
+        # with exit code 1 on Ubuntu 24.04). The Docker image is published
+        # and tested by the Trivy team and is far more stable.
+        run: |
+          docker run --rm \
+            -v "${PWD}:/repo" \
+            -v /tmp/trivy-cache:/root/.cache/trivy \
+            -w /repo \
+            aquasec/trivy:latest \
+            fs --severity CRITICAL,HIGH \
+               --ignore-unfixed \
+               --skip-dirs .git,node_modules,ui/node_modules,.venv,venv,__pycache__ \
+               --format sarif \
+               --output /repo/trivy-results.sarif \
+               .
       - name: Upload Trivy scan results to GitHub Security tab
         uses: github/codeql-action/upload-sarif@v3
         if: always()
