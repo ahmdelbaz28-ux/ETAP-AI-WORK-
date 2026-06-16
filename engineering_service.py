@@ -680,6 +680,36 @@ app = FastAPI(
 )
 
 # ---------------------------------------------------------------------------
+# Register API routers (auth, projects)
+# ---------------------------------------------------------------------------
+try:
+    from api.auth import router as auth_router
+    app.include_router(auth_router)
+    logger.info("auth_router_registered", extra={"trace_id": "startup"})
+except ImportError as e:
+    logger.warning("auth_router_unavailable: %s", e, extra={"trace_id": "startup"})
+except Exception as e:
+    logger.warning("auth_router_failed: %s", e, extra={"trace_id": "startup"})
+
+try:
+    from api.projects import router as projects_router
+    app.include_router(projects_router)
+    logger.info("projects_router_registered", extra={"trace_id": "startup"})
+except ImportError as e:
+    logger.warning("projects_router_unavailable: %s", e, extra={"trace_id": "startup"})
+except Exception as e:
+    logger.warning("projects_router_failed: %s", e, extra={"trace_id": "startup"})
+
+# Initialize database tables at startup
+try:
+    import asyncio as _asyncio
+    from api.database import init_db
+    _asyncio.get_event_loop().run_until_complete(init_db())
+    logger.info("database_initialized", extra={"trace_id": "startup"})
+except Exception as e:
+    logger.warning("database_init_failed (non-fatal): %s", e, extra={"trace_id": "startup"})
+
+# ---------------------------------------------------------------------------
 # LangWatch Observability Integration
 # ---------------------------------------------------------------------------
 _LANGWATCH_API_KEY = os.environ.get("LANGWATCH_API_KEY", "")
@@ -719,8 +749,9 @@ if not _cors_origin_list:
 app.add_middleware(
     CORSMiddleware,
     allow_origins=_cors_origin_list,
-    allow_methods=["GET", "POST", "HEAD", "OPTIONS"],
-    allow_headers=["x-api-key", "x-trace-id", "content-type"],
+    allow_credentials=True,
+    allow_methods=["GET", "POST", "PUT", "DELETE", "HEAD", "OPTIONS"],
+    allow_headers=["x-api-key", "x-trace-id", "content-type", "authorization"],
     expose_headers=["x-trace-id"],
 )
 app.add_middleware(_BodySizeLimitMiddleware)

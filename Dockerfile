@@ -51,12 +51,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends     curl     ti
 # Copy Python dependencies from builder
 COPY --from=python-builder /install /usr/local
 
-# Copy application source
-COPY --from=ts-builder /build/.next /app/.next
-COPY --from=ts-builder /build/node_modules /app/node_modules
-COPY --from=ts-builder /build/package.json /app/package.json
-COPY --from=ts-builder /build/public /app/public
-COPY --from=ts-builder /build/src /app/src
+# Copy built frontend from builder
+COPY --from=ts-builder /build/dist /app/ui/dist
+COPY --from=ts-builder /build/node_modules /app/ui/node_modules
+COPY --from=ts-builder /build/package.json /app/ui/package.json
+COPY --from=ts-builder /build/public /app/ui/public
 
 # Copy Python source files
 COPY engineering_service.py /app/
