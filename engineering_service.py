@@ -703,6 +703,7 @@ except Exception as e:
 # Initialize database tables at startup
 try:
     import asyncio as _asyncio
+
     from api.database import init_db
     _asyncio.get_event_loop().run_until_complete(init_db())
     logger.info("database_initialized", extra={"trace_id": "startup"})

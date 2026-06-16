@@ -4,6 +4,19 @@
 line-length = 120
 target-version = "py312"
 
+# Exclude benchmark scripts (intentional closures over loop variables),
+# virtual envs, build artifacts, and frontend code from linting.
+extend-exclude = [
+    "benchmarks",
+    "ui",
+    ".venv",
+    "venv",
+    "__pycache__",
+    "*.egg-info",
+    "build",
+    "dist",
+]
+
 [lint]
 # Enable comprehensive rule set
 select = ["E", "F", "I", "B", "W"]
@@ -27,6 +40,10 @@ unfixable = []
 "tests/**" = ["F401", "F841", "E741", "S101"]
 "validation_*.py" = ["F401", "F841"]
 "docs/demos/**" = ["E501", "F821"]
+# FastAPI uses Body(...), Depends(...), Query(...) etc. as default argument
+# values — this is the idiomatic dependency-injection pattern, not a bug.
+"api/**/*.py" = ["B008"]
+"engineering_service.py" = ["B008"]
 
 [format]
 quote-style = "double"
