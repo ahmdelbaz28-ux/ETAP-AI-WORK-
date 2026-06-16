@@ -19,7 +19,7 @@
   "main": "electron/main.cjs",
   "build": {
     "appId": "com.etap.ai-platform",
-    "productName": "ETAP AI Platform",
+    "productName": "Ahmed etap Platform",
     "files": [
       "dist/**/*",
       "electron/**/*"

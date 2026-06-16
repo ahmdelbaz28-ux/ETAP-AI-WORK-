@@ -1,7 +1,7 @@
 {
   "app": {
-    "name": "ETAP AI",
-    "fullName": "منصة ETAP AI الهندسية",
+    "name": "Ahmed etap",
+    "fullName": "منصة Ahmed etap الهندسية",
     "description": "منصة الهندسة الكهربائية الذكية",
     "version": "2.0.0"
   },
@@ -41,7 +41,7 @@
   },
   "dashboard": {
     "title": "لوحة التحكم",
-    "welcomeMessage": "مرحباً بك في منصة ETAP AI",
+    "welcomeMessage": "مرحباً بك في منصة Ahmed etap",
     "subtitle": "نظام هندسي ذكي بمستوى المؤسسات لتحليل أنظمة الطاقة",
     "quickActions": "إجراءات سريعة",
     "recentStudies": "الدراسات الأخيرة",

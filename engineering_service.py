@@ -673,7 +673,7 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(
-    title="ETAP AI Engineering Service",
+    title="Ahmed etap Engineering Service",
     description="Production-grade power systems engineering computation API",
     version="1.0.0",
     lifespan=lifespan,
@@ -913,7 +913,7 @@ async def trace_middleware(request: Request, call_next):
 @app.get("/")
 async def root():
     """Root endpoint — also handles HEAD / for HF Spaces health checks."""
-    return {"message": "ETAP AI Engineering Platform", "version": "1.0.0"}
+    return {"message": "Ahmed etap Engineering Platform", "version": "1.0.0"}
 
 
 @app.head("/healthz")
@@ -1965,7 +1965,7 @@ def main() -> None:
 
     parser = argparse.ArgumentParser(
         prog="engineering_service",
-        description="ETAP AI Engineering Service - FastAPI server for power systems analysis"
+        description="Ahmed etap Engineering Service - FastAPI server for power systems analysis"
     )
     parser.add_argument("--host", type=str, default=os.environ.get("ENGINEERING_SERVICE_HOST", "0.0.0.0"),
                         help="Host to bind (default: 0.0.0.0)")

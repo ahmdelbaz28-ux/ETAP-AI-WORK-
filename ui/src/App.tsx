@@ -1,9 +1,14 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
-import { Suspense, lazy, useEffect } from 'react'
+import { Suspense, lazy, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { ThemeProvider } from './context/ThemeContext'
 import { NotificationProvider } from './context/NotificationContext'
 import { Layout } from './components/Layout'
+import { SmartHelpDrawer } from './components/help/SmartHelpDrawer'
+import { CommandPalette } from './components/command/CommandPalette'
+import { OnboardingTour } from './components/onboarding/OnboardingTour'
+import { ErrorRecovery } from './components/context/ErrorRecovery'
+import { useAppStore } from './store'
 import './i18n'
 
 function LazyPage({ loader }: { loader: () => Promise<{ [key: string]: unknown }> }) {
@@ -28,18 +33,53 @@ function LazyPage({ loader }: { loader: () => Promise<{ [key: string]: unknown }
 
 export default function App() {
   const { i18n } = useTranslation()
+  const { lastError, setLastError, toggleHelpPanel } = useAppStore()
+  const [helpOpen, setHelpOpen] = useState(false)
+  const [helpContext, setHelpContext] = useState<string | undefined>()
 
   useEffect(() => {
     document.documentElement.dir = i18n.language === 'ar' ? 'rtl' : 'ltr'
     document.documentElement.lang = i18n.language
   }, [i18n.language])
 
+  // Electron menu navigation
   useEffect(() => {
     if (window.electronAPI) {
       window.electronAPI.onNavigate((path: string) => {
         window.location.hash = path
       })
     }
+  }, [])
+
+  // F1 / Ctrl+H for Smart Help
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'F1') {
+        e.preventDefault()
+        setHelpOpen(prev => !prev)
+        setHelpContext(undefined)
+      }
+      if ((e.ctrlKey || e.metaKey) && e.key === 'h') {
+        e.preventDefault()
+        setHelpOpen(prev => !prev)
+        setHelpContext(undefined)
+      }
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [])
+
+  // Listen for help context events from other components
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const customEvent = e as CustomEvent
+      if (customEvent.detail?.contextId) {
+        setHelpContext(customEvent.detail.contextId)
+        setHelpOpen(true)
+      }
+    }
+    window.addEventListener('open-smart-help', handler)
+    return () => window.removeEventListener('open-smart-help', handler)
   }, [])
 
   return (
@@ -69,6 +109,20 @@ export default function App() {
             </Route>
           </Routes>
         </BrowserRouter>
+
+        {/* Global Overlays */}
+        <CommandPalette />
+        <OnboardingTour />
+        <SmartHelpDrawer
+          open={helpOpen}
+          onClose={() => { setHelpOpen(false); setHelpContext(undefined) }}
+          initialContextId={helpContext}
+        />
+        <ErrorRecovery
+          error={lastError}
+          onDismiss={() => setLastError(null)}
+          onRetry={() => window.location.reload()}
+        />
       </NotificationProvider>
     </ThemeProvider>
   )
