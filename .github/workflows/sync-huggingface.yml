@@ -146,31 +146,27 @@ jobs:
             cp /tmp/hf-space/README.hf.md /tmp/hf-space/README.md
             echo "✅ README.md now contains HF Space configuration (sdk: docker, app_port: 7860)"
           else
-            echo "⚠️ README.hf.md not found — generating HF README.md via Python"
-            # Generate HF README.md with proper column-0 YAML front matter.
-            # We use explicit \n joins (not a triple-quoted string) so that
-            # the YAML block is NOT indented by the surrounding YAML literal
-            # block. HuggingFace rejects indented front matter.
-            python3 - <<'PYEOF'
-            lines = [
-                "---",
-                'title: AhmedETAP',
-                'emoji: "\u26a1"',
-                "colorFrom: yellow",
-                "colorTo: red",
-                "sdk: docker",
-                "pinned: false",
-                "license: mit",
-                "app_port: 7860",
-                "---",
-                "",
-            ]
-            front_matter = "\n".join(lines) + "\n"
-            with open('/tmp/hf-space/README.md', 'w', encoding='utf-8') as out:
-                out.write(front_matter)
-                with open("${GITHUB_WORKSPACE}/README.md", 'r', encoding='utf-8') as src:
-                    out.write(src.read())
-            PYEOF
+            echo "⚠️ README.hf.md not found — generating HF README.md with printf"
+            # Use printf to write the YAML front matter at column 0.
+            # We avoid bash heredocs here because heredocs inside an
+            # if/else branch inherit the branch's indentation, and the
+            # heredoc delimiter must be at column 0 (or use <<- with
+            # tabs) which is not possible inside a YAML literal block.
+            printf '%s\n' \
+              '---' \
+              'title: AhmedETAP' \
+              'emoji: "⚡"' \
+              'colorFrom: yellow' \
+              'colorTo: red' \
+              'sdk: docker' \
+              'pinned: false' \
+              'license: mit' \
+              'app_port: 7860' \
+              '---' \
+              '' \
+              > /tmp/hf-space/README.md.new
+            cat "${GITHUB_WORKSPACE}/README.md" >> /tmp/hf-space/README.md.new
+            mv /tmp/hf-space/README.md.new /tmp/hf-space/README.md
             echo "✅ Generated README.md with HF Space metadata"
           fi
 
