@@ -8,9 +8,14 @@ export default defineConfig({
   server: {
     port: 5173,
     proxy: {
-      '/api': 'http://localhost:4111',
-      '/health': 'http://localhost:4111',
-      '/metrics': 'http://localhost:4111',
+      '/api': 'http://localhost:8000',
+      '/health': 'http://localhost:8000',
+      '/healthz': 'http://localhost:8000',
+      '/ready': 'http://localhost:8000',
+      '/readyz': 'http://localhost:8000',
+      '/metrics': 'http://localhost:8000',
+      '/docs': 'http://localhost:8000',
+      '/openapi.json': 'http://localhost:8000',
     },
   },
   build: {
