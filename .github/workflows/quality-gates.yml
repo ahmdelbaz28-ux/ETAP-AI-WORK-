@@ -13,6 +13,14 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+# Required so the post-build job can upload Trivy SARIF results to the
+# GitHub Security tab via github/codeql-action/upload-sarif@v3.
+# Without 'security-events: write', the upload fails with
+# "Resource not accessible by integration".
+permissions:
+  contents: read
+  security-events: write
+
 jobs:
   pre-commit:
     name: Lint, Syntax, Validation
@@ -111,6 +119,11 @@ jobs:
         with:
           sarif_file: trivy-results.sarif
         if: always()
+        # Non-fatal: if SARIF upload fails (e.g. due to permission
+        # issues on forked PRs), the scan still ran and the SARIF file
+        # is available as a workflow artifact. Don't fail the whole
+        # workflow just because the upload was rejected.
+        continue-on-error: true
 
   scheduled-regression:
     name: Nightly Regression
