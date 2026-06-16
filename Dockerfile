@@ -12,7 +12,17 @@ WORKDIR /build
 
 COPY requirements.txt .
 
-RUN pip install --no-cache-dir --upgrade pip &&     pip install --no-cache-dir         --prefix=/install         $(grep -v "pywin32" requirements.txt | grep -v "^#" | grep -v "^$" | tr '\n' ' ')
+RUN pip install --no-cache-dir --upgrade pip && \
+    # Filter requirements.txt to a temp file (exclude pywin32 which is
+    # Windows-only). We must NOT use `tr '\n' ' '` because that breaks
+    # PEP 508 environment markers like `cupy-cuda12x>=13.0.0;
+    # platform_machine == 'x86_64'` — the shell would split the marker
+    # across spaces and pip would see a bare `==` token.
+    grep -v "pywin32" requirements.txt | grep -v "^#" | grep -v "^$" > /tmp/requirements.filtered.txt && \
+    pip install --no-cache-dir \
+        --prefix=/install \
+        -r /tmp/requirements.filtered.txt && \
+    rm -f /tmp/requirements.filtered.txt
 
 # =============================================================================
 # Stage 2: TypeScript / Node Builder
