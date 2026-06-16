@@ -547,6 +547,20 @@ graph TD
   <img src="docs/screenshots/ui/reports.png" alt="Reports" width="45%">
 </p>
 
+### Settings & Diagnostics
+
+<p align="center">
+  <img src="docs/screenshots/ui/settings.png" alt="Settings" width="45%">
+  <img src="docs/screenshots/ui/diagnostics.png" alt="Diagnostics" width="45%">
+</p>
+
+### Asset Management & ETAP Integration
+
+<p align="center">
+  <img src="docs/screenshots/ui/asset-management.png" alt="Asset Management" width="45%">
+  <img src="docs/screenshots/ui/etap-integration.png" alt="ETAP Integration" width="45%">
+</p>
+
 ---
 
 ## Deployment
