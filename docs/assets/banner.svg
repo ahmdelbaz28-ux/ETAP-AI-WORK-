@@ -1,25 +1,48 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" width="2400" height="640" viewBox="0 0 2400 640" role="img" aria-label="ETAP AI Engineering Platform banner">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 300">
   <defs>
-    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="#07111f"/>
-      <stop offset="100%" stop-color="#030712"/>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0a0e1a;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#0f1525;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#141c2e;stop-opacity:1" />
     </linearGradient>
-    <linearGradient id="brand" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="#38bdf8"/>
-      <stop offset="55%" stop-color="#2563eb"/>
-      <stop offset="100%" stop-color="#7c3aed"/>
+    <linearGradient id="accent" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#f97316;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#ef4444;stop-opacity:1" />
     </linearGradient>
-    <linearGradient id="green" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="#34d399"/>
-      <stop offset="100%" stop-color="#059669"/>
+    <linearGradient id="glow" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#00d4ff;stop-opacity:0.15" />
+      <stop offset="100%" style="stop-color:#0066ff;stop-opacity:0.15" />
     </linearGradient>
-    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
-      <feDropShadow dx="0" dy="16" stdDeviation="18" flood-color="#000000" flood-opacity="0.35"/>
-    </filter>
   </defs>
-  <rect width="100%" height="100%" fill="url(#bg)"/>
-  <circle cx="2280" cy="110" r="220" fill="#2563eb" opacity="0.12"/>
-  <circle cx="130" cy="550" r="260" fill="#7c3aed" opacity="0.12"/>
-  <text x="110" y="135" font-family="Inter, Arial, sans-serif" font-size="74" font-weight="900" fill="#ffffff">ETAP AI Engineering Platform</text><text x="112" y="205" font-family="Inter, Arial, sans-serif" font-size="30" font-weight="600" fill="#bfdbfe">Autonomous power-system studies, ETAP automation, GIS enrichment, and enterprise-grade AI workflows.</text><g transform="translate(835 105)"><rect x="0" y="0" width="420" height="260" rx="30" fill="#0f172a" stroke="#38bdf8" stroke-width="3"/><text x="32" y="52" font-family="Inter, Arial, sans-serif" font-size="24" font-weight="800" fill="#ffffff">Study Pipeline</text><text x="32" y="98" font-family="Inter, Arial, sans-serif" font-size="20" fill="#cbd5e1">Load Flow</text><text x="32" y="134" font-family="Inter, Arial, sans-serif" font-size="20" fill="#cbd5e1">Short Circuit</text><text x="32" y="170" font-family="Inter, Arial, sans-serif" font-size="20" fill="#cbd5e1">Arc Flash</text><text x="32" y="206" font-family="Inter, Arial, sans-serif" font-size="20" fill="#cbd5e1">Protection Coordination</text></g><path d="M110 275 H1120" stroke="#38bdf8" stroke-opacity="0.35" stroke-width="2" stroke-dasharray="12 14"/>
+  <rect width="1200" height="300" fill="url(#bg)" rx="12"/>
+  <!-- Grid pattern -->
+  <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+    <path d="M 40 0 L 0 0 0 40" fill="none" stroke="rgba(148,163,184,0.06)" stroke-width="0.5"/>
+  </pattern>
+  <rect width="1200" height="300" fill="url(#grid)"/>
+  <!-- Glow orbs -->
+  <circle cx="200" cy="150" r="150" fill="url(#glow)" opacity="0.5"/>
+  <circle cx="1000" cy="100" r="200" fill="url(#glow)" opacity="0.3"/>
+  <!-- Lightning bolt icon -->
+  <g transform="translate(80, 90)">
+    <rect width="80" height="80" rx="16" fill="url(#accent)" opacity="0.15"/>
+    <path d="M52 20L28 50h16L32 72l28-34H44L52 20z" fill="url(#accent)"/>
+  </g>
+  <!-- Title -->
+  <text x="180" y="135" font-family="Inter, system-ui, sans-serif" font-size="48" font-weight="800" fill="#e2e8f0" letter-spacing="-1">AhmedETAP</text>
+  <!-- Subtitle -->
+  <text x="180" y="175" font-family="Inter, system-ui, sans-serif" font-size="18" fill="#94a3b8" letter-spacing="0.5">Enterprise-Grade Autonomous Engineering Intelligence Platform</text>
+  <!-- Accent line -->
+  <rect x="180" y="195" width="120" height="3" rx="1.5" fill="url(#accent)"/>
+  <!-- Stats -->
+  <text x="180" y="235" font-family="JetBrains Mono, monospace" font-size="13" fill="#64748b">
+    <tspan fill="#22c55e">●</tspan> Python 3.13+  ·  <tspan fill="#3b82f6">●</tspan> React 19  ·  <tspan fill="#f59e0b">●</tspan> Electron 42  ·  <tspan fill="#a78bfa">●</tspan> FastAPI
+  </text>
+  <text x="180" y="260" font-family="JetBrains Mono, monospace" font-size="13" fill="#64748b">
+    <tspan fill="#06b6d4">●</tspan> 23 AI Agents  ·  <tspan fill="#ef4444">●</tspan> IEEE/IEC Standards  ·  <tspan fill="#10b981">●</tspan> 548 Tests
+  </text>
+  <!-- Author -->
+  <text x="950" y="145" font-family="Inter, system-ui, sans-serif" font-size="14" fill="#64748b" text-anchor="end">Developed by</text>
+  <text x="950" y="175" font-family="Inter, system-ui, sans-serif" font-size="18" font-weight="700" fill="#e2e8f0" text-anchor="end">Eng. Ahmed Elbaz</text>
+  <text x="950" y="200" font-family="Inter, system-ui, sans-serif" font-size="13" fill="#94a3b8" text-anchor="end">Electrical Power Engineer &amp; AI Systems Architect</text>
 </svg>
