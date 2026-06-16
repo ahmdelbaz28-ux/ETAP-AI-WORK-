@@ -1,5 +1,5 @@
 """
-ETAP AI Engineering Platform - Prompt Loader
+AhmedETAP - Prompt Loader
 ================================================
 
 Mirrors the TypeScript ``getSystemPrompt()`` from ``src/mastra/prompts.ts``

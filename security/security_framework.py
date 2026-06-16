@@ -1,5 +1,5 @@
 """
-Security Framework for ETAP AI Platform
+Security Framework for AhmedETAP Platform
 =========================================
 Implements authentication, authorization, input validation, and secure execution.
 

@@ -1,5 +1,5 @@
 """
-api/security_audit.py — Runtime security audit module for the ETAP AI Platform.
+api/security_audit.py — Runtime security audit module for the AhmedETAP.
 
 Performs comprehensive security analysis of the running service:
 
@@ -198,7 +198,7 @@ _INSECURE_FUNCTION_PATTERNS: List[Tuple[str, str, Severity]] = [
 # ---------------------------------------------------------------------------
 
 class SecurityAuditor:
-    """Perform a comprehensive security audit of the ETAP AI Platform.
+    """Perform a comprehensive security audit of the AhmedETAP.
 
     Scans API endpoints, source code, and configuration for security
     issues and generates a prioritized remediation report.
@@ -1058,7 +1058,7 @@ async def _main() -> None:
     import argparse
 
     parser = argparse.ArgumentParser(
-        description="ETAP AI Platform — Security Auditor",
+        description="AhmedETAP — Security Auditor",
     )
     parser.add_argument(
         "--project-root",
@@ -1090,7 +1090,7 @@ async def _main() -> None:
     try:
         if not args.json_only:
             print("=" * 72, file=out)
-            print("ETAP AI Platform — Security Audit Report", file=out)
+            print("AhmedETAP — Security Audit Report", file=out)
             print("=" * 72, file=out)
             print(f"Project Root:       {report.project_root}", file=out)
             print(f"Security Score:     {report.security_score}/100 (Grade: {report.grade})", file=out)

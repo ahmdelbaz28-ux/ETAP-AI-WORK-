@@ -1,5 +1,5 @@
 """
-ETAP AI Platform - Complete Setup and Test Script
+AhmedETAP Platform - Complete Setup and Test Script
 ==================================================
 Automated script to:
 1. Verify dependencies installation
@@ -480,7 +480,7 @@ def check_system_health():
 
 def main():
     """Main execution function."""
-    print_header("ETAP AI Platform - Complete Setup & Test Suite")
+    print_header("AhmedETAP Platform - Complete Setup & Test Suite")
     print_info(f"Started at: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
     print_info(f"Working directory: {os.getcwd()}")
 

@@ -14,7 +14,7 @@ export async function handleRoot(request: Request, env: Env, ctx: ExecutionConte
   return jsonResponse(
     200,
     {
-      service: 'ETAP AI Platform',
+      service: 'AhmedETAP',
       version: '1.0.0',
       documentation: '/api/v1/docs',
       health: '/health',

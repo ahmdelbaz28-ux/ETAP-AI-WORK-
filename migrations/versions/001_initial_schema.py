@@ -4,7 +4,7 @@ Revision ID: 001
 Revises: —
 Create Date: 2025-01-01 00:00:00.000000
 
-This migration creates the foundational tables for the ETAP AI Engineering
+This migration creates the foundational tables for the AhmedETAP Engineering
 Platform:
 
 * **users** — Authentication and role-based access control

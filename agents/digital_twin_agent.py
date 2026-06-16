@@ -1,5 +1,5 @@
 """
-ETAP AI Engineering Platform - Digital Twin Agent
+AhmedETAP - Digital Twin Agent
 ==================================================
 Real-time synchronization between physical power system assets and
 their digital twin representations.

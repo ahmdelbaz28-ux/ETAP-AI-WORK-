@@ -1,5 +1,5 @@
 """
-Secrets Manager for ETAP AI Engineering Platform
+Secrets Manager for AhmedETAP Engineering Platform
 =================================================
 Production-grade secrets management with HashiCorp Vault integration,
 encrypted local storage, key access auditing, and environment validation.
@@ -593,7 +593,7 @@ class EnvironmentValidator:
     def generate_env_template(self, output_path: Optional[Path] = None) -> str:
         out = output_path or Path.cwd() / ".env.example"
         lines = [
-            "# ETAP AI Engineering Platform - Environment Configuration",
+            "# AhmedETAP - Environment Configuration",
             "# Copy this file to .env and fill in your actual values",
             "# cp .env.example .env",
             "",

@@ -1,6 +1,6 @@
 # CI/CD Integration — Quality Gates
 
-This document explains the four quality gates enforced in the ETAP AI Engineering Platform pipeline and how they map to GitHub Actions workflows and jobs.
+This document explains the four quality gates enforced in the AhmedETAP pipeline and how they map to GitHub Actions workflows and jobs.
 
 ## Gate overview
 

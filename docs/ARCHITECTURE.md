@@ -1,8 +1,8 @@
-# ETAP AI Engineering Platform - Complete System Architecture
+# AhmedETAP - Complete System Architecture
 
 ## 1. System Overview
 
-The **ETAP AI Engineering Platform** is a production-ready, multi-agent autonomous engineering system designed for comprehensive power system analysis, ETAP automation, and intelligent engineering decision support.
+The **AhmedETAP** is a production-ready, multi-agent autonomous engineering system designed for comprehensive power system analysis, ETAP automation, and intelligent engineering decision support.
 
 ### Core Capabilities
 
@@ -778,7 +778,7 @@ curl http://localhost:3000/health
 from fastapi import FastAPI, Depends, HTTPException
 from pydantic import BaseModel
 
-app = FastAPI(title="ETAP AI Engineering Platform", version="1.0.0")
+app = FastAPI(title="AhmedETAP", version="1.0.0")
 
 # Authentication dependency
 def get_current_user(token: str = Header(...)):
@@ -1031,7 +1031,7 @@ docker-compose up -d
 
 ## 14. Conclusion
 
-The **ETAP AI Engineering Platform** represents a complete, production-ready solution for autonomous power system analysis. With its multi-agent architecture, comprehensive calculation engines, enterprise-grade security, and professional reporting capabilities, the platform is ready for deployment in industrial, utility, and consulting environments.
+The **AhmedETAP** represents a complete, production-ready solution for autonomous power system analysis. With its multi-agent architecture, comprehensive calculation engines, enterprise-grade security, and professional reporting capabilities, the platform is ready for deployment in industrial, utility, and consulting environments.
 
 **Key Achievements:**
 

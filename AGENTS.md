@@ -1,6 +1,6 @@
-# AGENTS.md — ETAP AI Platform Agent Reference
+# AGENTS.md — AhmedETAP Agent Reference
 
-This document describes every AI agent in the ETAP AI Platform, their capabilities, standards compliance, and the prompt loading system.
+This document describes every AI agent in the AhmedETAP, their capabilities, standards compliance, and the prompt loading system.
 
 ---
 

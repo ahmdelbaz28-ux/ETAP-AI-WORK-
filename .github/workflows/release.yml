@@ -36,7 +36,7 @@ jobs:
           else
             echo "## Initial Release" > CHANGELOG_BODY.md
             echo "" >> CHANGELOG_BODY.md
-            echo "First public release of the ETAP AI Engineering Platform." >> CHANGELOG_BODY.md
+            echo "First public release of the AhmedETAP." >> CHANGELOG_BODY.md
           fi
           
           echo "" >> CHANGELOG_BODY.md

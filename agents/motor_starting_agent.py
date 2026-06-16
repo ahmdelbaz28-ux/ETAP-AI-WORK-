@@ -1,5 +1,5 @@
 """
-ETAP AI Engineering Platform - Motor Starting Analysis Agent
+AhmedETAP - Motor Starting Analysis Agent
 =============================================================
 Motor starting current, voltage dip, torque, and acceleration analysis
 per IEEE 399 (Brown Book).

@@ -1,8 +1,8 @@
-# ETAP AI Platform — Standards Compliance Matrix
+# AhmedETAP — Standards Compliance Matrix
 
 ## Overview
 
-This document tracks compliance of the ETAP AI Engineering Platform with relevant international standards. The platform implements a comprehensive suite of power system analysis tools, each aligned with specific IEEE, IEC, ISO, and NFPA standards. Every module has been designed from the ground up to produce results that are traceable, verifiable, and compliant with the latest revisions of the governing standards.
+This document tracks compliance of the AhmedETAP with relevant international standards. The platform implements a comprehensive suite of power system analysis tools, each aligned with specific IEEE, IEC, ISO, and NFPA standards. Every module has been designed from the ground up to produce results that are traceable, verifiable, and compliant with the latest revisions of the governing standards.
 
 The compliance matrix below provides a clear mapping between each platform module, the applicable standard, the specific requirement being met, the current compliance status, and the concrete evidence (source file or test) that demonstrates compliance. This document is intended for auditors, quality assurance teams, and engineering stakeholders who need to verify that the platform meets regulatory and industry requirements.
 
@@ -197,14 +197,14 @@ The following test files provide automated validation evidence for the complianc
 
 | Date | Version | Change | Author |
 |------|---------|--------|--------|
-| 2026-03-04 | 1.0.0 | Initial compliance matrix created | ETAP AI Team |
-| 2026-03-04 | 1.1.0 | Added Phase 4–6 agents (stability, cable, earth grid, renewable, battery, SCADA) | ETAP AI Team |
-| 2026-03-04 | 1.2.0 | Added security compliance (ISO 27001, IEC 62443) | ETAP AI Team |
-| 2026-03-04 | 1.3.0 | Added GIS and digital twin standards | ETAP AI Team |
-| 2026-03-04 | 2.0.0 | Full matrix with evidence links, validation index | ETAP AI Team |
+| 2026-03-04 | 1.0.0 | Initial compliance matrix created | AhmedETAP Team |
+| 2026-03-04 | 1.1.0 | Added Phase 4–6 agents (stability, cable, earth grid, renewable, battery, SCADA) | AhmedETAP Team |
+| 2026-03-04 | 1.2.0 | Added security compliance (ISO 27001, IEC 62443) | AhmedETAP Team |
+| 2026-03-04 | 1.3.0 | Added GIS and digital twin standards | AhmedETAP Team |
+| 2026-03-04 | 2.0.0 | Full matrix with evidence links, validation index | AhmedETAP Team |
 
 ---
 
 ## Disclaimer
 
-This compliance matrix reflects the design intent and implementation status of the ETAP AI Engineering Platform at the time of publication. It does not constitute a formal certification or endorsement by IEEE, IEC, ISO, NFPA, or any other standards body. Users are responsible for independently verifying compliance for their specific applications and jurisdictions. ETAP is a registered trademark of ETAP Corporation; this project is independent and not affiliated with ETAP Corporation.
+This compliance matrix reflects the design intent and implementation status of the AhmedETAP at the time of publication. It does not constitute a formal certification or endorsement by IEEE, IEC, ISO, NFPA, or any other standards body. Users are responsible for independently verifying compliance for their specific applications and jurisdictions. ETAP is a registered trademark of ETAP Corporation; this project is independent and not affiliated with ETAP Corporation.

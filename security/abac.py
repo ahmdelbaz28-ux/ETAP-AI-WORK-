@@ -1,5 +1,5 @@
 """
-Attribute-Based Access Control (ABAC) for ETAP AI Platform
+Attribute-Based Access Control (ABAC) for AhmedETAP Platform
 ============================================================
 Extends the existing RBAC system with fine-grained, attribute-driven policies.
 

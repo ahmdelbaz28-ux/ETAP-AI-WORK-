@@ -1,5 +1,5 @@
 /**
- * ETAP AI Platform — Chaos Testing Suite
+ * AhmedETAP Platform — Chaos Testing Suite
  * ========================================
  * Randomly fails LLM providers, ETAP backend, databases, and queues.
  * Validates recovery, failover, and stability.
@@ -50,7 +50,7 @@ async function runRequest(endpoint: string, method: 'GET' | 'POST' = 'GET', body
 
 async function runChaosTest() {
   console.log('╔══════════════════════════════════════════════════════════════════╗');
-  console.log('║         ETAP AI Platform — Chaos Testing Suite                  ║');
+  console.log('║         AhmedETAP Platform — Chaos Testing Suite                  ║');
   console.log('╚══════════════════════════════════════════════════════════════════╝');
   console.log(`Target: ${DEPLOYED_URL}`);
   console.log('');

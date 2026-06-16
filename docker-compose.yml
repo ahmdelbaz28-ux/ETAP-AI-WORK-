@@ -1,6 +1,6 @@
 services:
   # ===========================================================================
-  # Main ETAP AI Platform (Linux)
+  # Main AhmedETAP (Linux)
   # ===========================================================================
   etap-platform:
     build:
@@ -56,7 +56,7 @@ services:
         condition: service_healthy
 
   # ===========================================================================
-  # ETAP AI Engineering Service (Python FastAPI - real computation)
+  # AhmedETAP Engineering Service (Python FastAPI - real computation)
   # ===========================================================================
   # Standalone Linux container that the Cloudflare Worker (or any HTTP client)
   # calls to run real engineering studies (load flow, short circuit, arc flash,

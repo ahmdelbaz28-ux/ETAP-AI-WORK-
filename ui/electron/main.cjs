@@ -6,7 +6,7 @@ let tray = null
 let isQuitting = false
 
 const isDev = !!process.env.VITE_DEV_SERVER_URL
-const APP_TITLE = 'ETAP AI Platform'
+const APP_TITLE = 'AhmedETAP Platform'
 const MIN_WIDTH = 1024
 const MIN_HEIGHT = 700
 const DEFAULT_WIDTH = 1400

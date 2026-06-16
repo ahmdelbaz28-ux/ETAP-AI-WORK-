@@ -1,5 +1,5 @@
 """
-ETAP AI Engineering Platform - Weather Impact Analysis Agent
+AhmedETAP - Weather Impact Analysis Agent
 =============================================================
 Weather information retrieval and power system weather impact analysis.
 

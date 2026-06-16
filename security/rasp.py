@@ -1,5 +1,5 @@
 """
-Runtime Application Self-Protection (RASP) for ETAP AI Platform
+Runtime Application Self-Protection (RASP) for AhmedETAP Platform
 ================================================================
 
 Provides runtime attack detection and mitigation for the FastAPI
@@ -272,6 +272,6 @@ class RASPEngine:
 def create_default_rasp_engine() -> RASPEngine:
     """Create a RASP engine with default attack detection rules.
 
-    Suitable for the ETAP AI Engineering Service.
+    Suitable for the AhmedETAP Engineering Service.
     """
     return RASPEngine(rules=_DEFAULT_RULES, enabled=True)

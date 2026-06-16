@@ -151,7 +151,7 @@ jobs:
             if ! head -1 /tmp/hf-space/README.md | grep -q "^---"; then
               cat > /tmp/hf-space/README.md << 'READMEEOF'
           ---
-          title: ETAP AI Engineering Platform
+          title: AhmedETAP
           emoji: "\u26A1"
           colorFrom: blue
           colorTo: yellow

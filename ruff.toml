@@ -1,4 +1,4 @@
-# Ruff configuration for ETAP AI Platform
+# Ruff configuration for AhmedETAP
 # https://docs.astral.sh/ruff/configuration/
 
 line-length = 120

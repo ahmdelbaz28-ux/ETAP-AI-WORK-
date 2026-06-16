@@ -1,5 +1,5 @@
 """
-ETAP AI Platform — SCADA Client (IEC 61850)
+AhmedETAP Platform — SCADA Client (IEC 61850)
 =============================================
 
 Provides real-time SCADA data ingestion via IEC 61850 protocol.

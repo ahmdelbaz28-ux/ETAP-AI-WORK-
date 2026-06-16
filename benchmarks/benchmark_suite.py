@@ -1,5 +1,5 @@
 """
-Benchmark Suite — ETAP AI Engineering Platform
+Benchmark Suite — AhmedETAP
 ===============================================
 Runs 6 benchmarks covering the performance analysis findings.
 
@@ -684,7 +684,7 @@ class BenchmarkReport:
 
 def main() -> int:
     print("+" + "-" * 70 + "+")
-    print("|  ETAP AI Engineering Platform -- Benchmark Suite")
+    print("|  AhmedETAP -- Benchmark Suite")
     print(f"|  Mode: {'QUICK' if QUICK_MODE else 'FULL'}")
     print(f"|  System sizes: {IEEE_SIZES}")
     print("+" + "-" * 70 + "+")
