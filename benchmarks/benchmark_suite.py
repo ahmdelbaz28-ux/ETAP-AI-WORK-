@@ -12,30 +12,25 @@ Output:
 
 from __future__ import annotations
 
-import hashlib
 import json
-import math
 import os
 import sys
-import time
 import threading
+import time
 from dataclasses import dataclass, field
-from typing import Any, Callable, Dict, List, Optional, Tuple
+from typing import Any, Dict, List
 
 import numpy as np
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 # ── Imports ────────────────────────────────────────────────────────────────
+from engine.cache_manager import CacheStrategy, CalculationCache
 from engine.sparse_solver import (
     SparseYBus,
-    BusData,
-    BranchData,
     _build_dense_jacobian,
 )
 from load_flow.load_flow_solver_fixed import LoadFlowSolver
-from fault_analysis.fault import FaultAnalyzer
-from engine.cache_manager import CalculationCache, CacheStrategy
 
 # ── Config ─────────────────────────────────────────────────────────────────
 
@@ -157,9 +152,8 @@ def benchmark_2_load_flow_solver() -> Dict[str, Any]:
 
         # Build a System object
         from core_model.bus import Bus
-        from core_model.line import Line
         from core_model.generator import Generator
-        from core_model.load import Load
+        from core_model.line import Line
         from core_model.system import System
 
         sys_model = System(base_mva=100.0)
@@ -397,9 +391,8 @@ def benchmark_5_study_latency() -> Dict[str, Any]:
         buses, branches = SparseYBus._generate_synthetic_system(n)
 
         from core_model.bus import Bus
-        from core_model.line import Line
         from core_model.generator import Generator
-        from core_model.load import Load
+        from core_model.line import Line
         from core_model.system import System
 
         sys_model = System(base_mva=100.0)
@@ -492,9 +485,8 @@ def benchmark_6_concurrent() -> Dict[str, Any]:
     buses, branches = SparseYBus._generate_synthetic_system(n_buses)
 
     from core_model.bus import Bus
-    from core_model.line import Line
     from core_model.generator import Generator
-    from core_model.load import Load
+    from core_model.line import Line
     from core_model.system import System
 
     sys_model = System(base_mva=100.0)

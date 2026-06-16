@@ -22,7 +22,9 @@ LABEL stage="ts-builder"
 
 RUN apt-get update && apt-get install -y     curl     --no-install-recommends     && rm -rf /var/lib/apt/lists/*
 
-RUN corepack enable && corepack prepare pnpm@latest --activate
+# Pin pnpm to v9 — pnpm 11.x requires Node 22+ (uses node:sqlite built-in)
+# which is incompatible with the node:20-slim base image used here.
+RUN corepack enable && corepack prepare pnpm@9 --activate
 
 WORKDIR /build
 
