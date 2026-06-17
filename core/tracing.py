@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import inspect
 import logging
+import os as _os
 from collections.abc import Callable
 from functools import wraps
 from typing import Any
@@ -117,6 +118,37 @@ def setup_tracing(
         exporter_type,
     )
     return _tracer
+
+
+# ---------------------------------------------------------------------------
+# Auto-initialisation from environment variables
+# ---------------------------------------------------------------------------
+#
+# If ``OTEL_EXPORTER_TYPE`` is set (e.g. ``"otlp"``), tracing is initialised
+# automatically at module import time.  This avoids requiring an explicit
+# ``setup_tracing()`` call in every entrypoint.
+#
+# Environment variables:
+#   OTEL_EXPORTER_TYPE      — "console" (default) or "otlp"
+#   OTEL_EXPORTER_ENDPOINT  — gRPC endpoint (e.g. "jaeger:4317")
+#   OTEL_SERVICE_NAME       — service name (default: "ahmedetap")
+#   OTEL_SERVICE_VERSION    — version label (default: "1.0.0")
+#   OTEL_ENVIRONMENT        — deployment env (default: "development")
+
+
+_otel_exporter_type = _os.environ.get("OTEL_EXPORTER_TYPE", "").lower()
+if _otel_exporter_type:
+    _otel_endpoint = _os.environ.get("OTEL_EXPORTER_ENDPOINT", None)
+    _otel_svc = _os.environ.get("OTEL_SERVICE_NAME", "ahmedetap")
+    _otel_ver = _os.environ.get("OTEL_SERVICE_VERSION", "1.0.0")
+    _otel_env = _os.environ.get("OTEL_ENVIRONMENT", "development")
+    setup_tracing(
+        service_name=_otel_svc,
+        service_version=_otel_ver,
+        exporter_type=_otel_exporter_type,
+        otlp_endpoint=_otel_endpoint,
+        environment=_otel_env,
+    )
 
 
 def get_tracer() -> trace.Tracer:

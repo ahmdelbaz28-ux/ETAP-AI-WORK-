@@ -351,10 +351,16 @@ _metrics_lock = _threading.Lock()
 
 
 # Import Prometheus instrumentation
-from core.metrics import generate_metrics, get_metrics_content_type, set_app_info
+from core.metrics import (
+    count_executions,
+    generate_metrics,
+    get_metrics_content_type,
+    set_app_info,
+    track_skill_operation,
+)
 
 # Import OpenTelemetry tracing
-from core.tracing import trace_operation
+from core.tracing import get_tracer, inject_context, trace_operation
 
 # Initialise app info metrics
 set_app_info(name="ahmedetap-engineering-service", version="1.0.0")
@@ -830,94 +836,120 @@ async def trace_middleware(request: Request, call_next):
     trace_id = request.headers.get("x-trace-id") or str(uuid.uuid4())
     request.state.trace_id = trace_id
 
-    # Rate limiting — skip for health endpoints
-    if not request.url.path.startswith(("/health", "/ready", "/healthz", "/readyz", "/")):
-        # Use direct client IP; ignore X-Forwarded-For unless behind a trusted proxy
-        _TRUSTED_PROXIES = os.environ.get("ENGINEERING_SERVICE_TRUSTED_PROXIES", "")
-        if _TRUSTED_PROXIES:
-            _trusted_list = [p.strip() for p in _TRUSTED_PROXIES.split(",")]
-            xff = request.headers.get("x-forwarded-for", "").split(",")[0].strip()
-            proxy_ip = request.client.host if request.client else ""
-            client_id = xff if proxy_ip in _trusted_list and xff else (request.client.host if request.client else "unknown")
-        else:
-            client_id = request.client.host if request.client else "unknown"
-        if not _check_rate_limit(client_id):
-            return JSONResponse(
-                status_code=429,
-                content={"detail": "Rate limit exceeded", "trace_id": trace_id},
-                headers={"Retry-After": str(_RATE_LIMIT_WINDOW)},
-            )
+    # ── OpenTelemetry: extract incoming trace context and start a span ──
+    tracer = get_tracer()
+    with tracer.start_as_current_span(
+        f"{request.method} {request.url.path}",
+        kind=trace.SpanKind.SERVER,
+        attributes={
+            "http.method": request.method,
+            "http.url": str(request.url),
+            "http.route": request.url.path,
+            "http.scheme": request.url.scheme,
+            "net.peer.ip": request.client.host if request.client else "unknown",
+        },
+    ) as span:
+        # Set the OTel trace ID as an attribute so it correlates with x-trace-id
+        span.set_attribute("ahmedetap.trace_id", trace_id)
 
-    # RASP — Runtime Application Self-Protection (singleton engine)
-    if not request.url.path.startswith(("/health", "/ready", "/healthz", "/readyz", "/", "/docs", "/openapi")):
-        try:
-            from security.rasp import create_default_rasp_engine
-            # Use app-level singleton RASP engine (preserves stats across requests)
-            if not hasattr(app.state, "rasp_engine"):
-                app.state.rasp_engine = create_default_rasp_engine()
-            rasp = app.state.rasp_engine
-
-            query_str = str(request.query_params) if request.query_params else ""
-            path_str = str(request.url.path)
-
-            # Inspect request headers for attack patterns
-            header_str = " ".join(f"{k}={v}" for k, v in request.headers.items())
-
-            # Inspect request body for POST/PUT/PATCH (read, then re-inject for downstream)
-            body_str = ""
-            if request.method in ("POST", "PUT", "PATCH"):
-                try:
-                    raw_body = await request.body()
-                    # Scan full body for attacks (truncation could allow bypass)
-                    # but limit to 1MB to prevent excessive memory usage
-                    body_str = raw_body.decode("utf-8", errors="replace")[:1_048_576]
-                except Exception:
-                    body_str = ""
-
-            rasp_results = rasp.inspect({
-                "query": query_str,
-                "path": path_str,
-                "body": body_str,
-                "headers": header_str,
-            })
-            blocked = [r for r in rasp_results if r.action.value == "block"]
-            if blocked:
-                attack_names = [r.rule_name for r in blocked]
-                logger.warning(
-                    "rasp_blocked attacks=%s path=%s trace_id=%s",
-                    attack_names, path_str, trace_id,
-                )
+        # Rate limiting — skip for health endpoints
+        if not request.url.path.startswith(("/health", "/ready", "/healthz", "/readyz", "/")):
+            _TRUSTED_PROXIES = os.environ.get("ENGINEERING_SERVICE_TRUSTED_PROXIES", "")
+            if _TRUSTED_PROXIES:
+                _trusted_list = [p.strip() for p in _TRUSTED_PROXIES.split(",")]
+                xff = request.headers.get("x-forwarded-for", "").split(",")[0].strip()
+                proxy_ip = request.client.host if request.client else ""
+                client_id = xff if proxy_ip in _trusted_list and xff else (request.client.host if request.client else "unknown")
+            else:
+                client_id = request.client.host if request.client else "unknown"
+            if not _check_rate_limit(client_id):
+                span.set_status(Status(StatusCode.ERROR, "rate_limit_exceeded"))
+                span.set_attribute("http.status_code", 429)
                 return JSONResponse(
-                    status_code=403,
-                    content={
-                        "detail": "Request blocked by security policy",
-                        "attacks": attack_names,
-                        "trace_id": trace_id,
-                    },
+                    status_code=429,
+                    content={"detail": "Rate limit exceeded", "trace_id": trace_id},
+                    headers={"Retry-After": str(_RATE_LIMIT_WINDOW)},
                 )
-        except ImportError:
-            pass  # RASP module not available
-        except Exception as rasp_err:
-            logger.debug("RASP check failed (non-fatal): %s", rasp_err)
 
-    start = time.perf_counter()
+        # RASP — Runtime Application Self-Protection (singleton engine)
+        if not request.url.path.startswith(("/health", "/ready", "/healthz", "/readyz", "/", "/docs", "/openapi")):
+            try:
+                from security.rasp import create_default_rasp_engine
+                if not hasattr(app.state, "rasp_engine"):
+                    app.state.rasp_engine = create_default_rasp_engine()
+                rasp = app.state.rasp_engine
 
-    try:
-        response = await asyncio.wait_for(call_next(request), timeout=_REQUEST_TIMEOUT_SEC)
-        response.headers["x-trace-id"] = trace_id
-        return response
-    except asyncio.TimeoutError:
-        logger.warning("request_timeout method=%s path=%s timeout=%ds", request.method, request.url.path, _REQUEST_TIMEOUT_SEC, extra={"trace_id": trace_id})
-        return JSONResponse(
-            status_code=504,
-            content={"detail": f"Request timed out after {_REQUEST_TIMEOUT_SEC}s", "trace_id": trace_id},
-        )
-    except Exception as e:
-        logger.error("Unhandled exception: %s", e, extra={"trace_id": trace_id})
-        raise
-    finally:
-        elapsed_ms = (time.perf_counter() - start) * 1000
-        logger.info("request=%s %s latency_ms=%.2f", request.method, request.url.path, elapsed_ms, extra={"trace_id": trace_id})
+                query_str = str(request.query_params) if request.query_params else ""
+                path_str = str(request.url.path)
+                header_str = " ".join(f"{k}={v}" for k, v in request.headers.items())
+
+                body_str = ""
+                if request.method in ("POST", "PUT", "PATCH"):
+                    try:
+                        raw_body = await request.body()
+                        body_str = raw_body.decode("utf-8", errors="replace")[:1_048_576]
+                    except Exception:
+                        body_str = ""
+
+                rasp_results = rasp.inspect({
+                    "query": query_str, "path": path_str,
+                    "body": body_str, "headers": header_str,
+                })
+                blocked = [r for r in rasp_results if r.action.value == "block"]
+                if blocked:
+                    attack_names = [r.rule_name for r in blocked]
+                    span.set_status(Status(StatusCode.ERROR, "security_blocked"))
+                    span.set_attribute("ahmedetap.blocked_attacks", str(attack_names))
+                    logger.warning(
+                        "rasp_blocked attacks=%s path=%s trace_id=%s",
+                        attack_names, path_str, trace_id,
+                    )
+                    return JSONResponse(
+                        status_code=403,
+                        content={
+                            "detail": "Request blocked by security policy",
+                            "attacks": attack_names, "trace_id": trace_id,
+                        },
+                    )
+            except ImportError:
+                pass
+            except Exception as rasp_err:
+                logger.debug("RASP check failed (non-fatal): %s", rasp_err)
+
+        start = time.perf_counter()
+
+        try:
+            response = await asyncio.wait_for(call_next(request), timeout=_REQUEST_TIMEOUT_SEC)
+            status_code = response.status_code
+            span.set_attribute("http.status_code", status_code)
+            if status_code >= 400:
+                span.set_status(Status(StatusCode.ERROR, f"HTTP {status_code}"))
+            else:
+                span.set_status(Status(StatusCode.OK))
+            response.headers["x-trace-id"] = trace_id
+            # Inject OTel traceparent into response headers for client correlation
+            _resp_carrier: dict[str, str] = {}
+            inject_context(_resp_carrier)
+            for k, v in _resp_carrier.items():
+                response.headers[k] = v
+            return response
+        except asyncio.TimeoutError:
+            span.set_status(Status(StatusCode.ERROR, "timeout"))
+            span.set_attribute("error.type", "TimeoutError")
+            logger.warning("request_timeout method=%s path=%s timeout=%ds", request.method, request.url.path, _REQUEST_TIMEOUT_SEC, extra={"trace_id": trace_id})
+            return JSONResponse(
+                status_code=504,
+                content={"detail": f"Request timed out after {_REQUEST_TIMEOUT_SEC}s", "trace_id": trace_id},
+            )
+        except Exception as e:
+            span.record_exception(e)
+            span.set_status(Status(StatusCode.ERROR, str(e)))
+            logger.error("Unhandled exception: %s", e, extra={"trace_id": trace_id})
+            raise
+        finally:
+            elapsed_ms = (time.perf_counter() - start) * 1000
+            span.set_attribute("ahmedetap.latency_ms", elapsed_ms)
+            logger.info("request=%s %s latency_ms=%.2f", request.method, request.url.path, elapsed_ms, extra={"trace_id": trace_id})
 
 
 # ---------------------------------------------------------------------------
@@ -1029,6 +1061,8 @@ async def prometheus_metrics():
 # ---------------------------------------------------------------------------
 
 @app.post("/api/v1/studies/run", response_model=StudyResult)
+@count_executions(skill_name="study")
+@track_skill_operation("study")
 async def run_study(request: Request, payload: StudyRequest):
     _require_api_key(request)
     trace_id = request.state.trace_id
@@ -1155,6 +1189,8 @@ async def run_study(request: Request, payload: StudyRequest):
 # ---------------------------------------------------------------------------
 
 @app.post("/api/v1/system/validate")
+@count_executions(skill_name="validate_system")
+@track_skill_operation("validate_system")
 async def validate_system(request: Request, spec: SystemSpec):
     """Validate a power system model specification.
 
@@ -1262,6 +1298,8 @@ async def get_agents_info(request: Request):
 # ---------------------------------------------------------------------------
 
 @app.post("/api/v1/predict/load")
+@count_executions(skill_name="predict_load")
+@track_skill_operation("predict_load")
 async def predict_load(request: Request):
     """Predict future load using the LSTM-based LoadForecaster."""
     _require_api_key(request)
@@ -1307,6 +1345,8 @@ async def predict_load(request: Request):
 
 
 @app.post("/api/v1/predict/fault")
+@count_executions(skill_name="predict_fault")
+@track_skill_operation("predict_fault")
 async def predict_fault(request: Request):
     """Predict fault type using the Random Forest FaultPredictor."""
     _require_api_key(request)
@@ -1344,6 +1384,8 @@ async def predict_fault(request: Request):
 
 
 @app.post("/api/v1/predict/anomaly")
+@count_executions(skill_name="detect_anomaly")
+@track_skill_operation("detect_anomaly")
 async def detect_anomalies(request: Request):
     """Detect anomalies in measurement data using Isolation Forest."""
     _require_api_key(request)
@@ -1381,6 +1423,8 @@ async def detect_anomalies(request: Request):
 
 
 @app.post("/api/v1/rag/query")
+@count_executions(skill_name="rag_query")
+@track_skill_operation("rag_query")
 async def rag_query(request: Request):
     """Query the engineering knowledge base with RAG (IEEE/IEC standards)."""
     _require_api_key(request)
@@ -1848,6 +1892,8 @@ class GuardReviewResponse(BaseModel):
 
 
 @app.post("/api/v1/guards/review", response_model=GuardReviewResponse)
+@count_executions(skill_name="guard_review")
+@track_skill_operation("guard_review")
 async def guard_review(request: Request, body: GuardReviewRequest):
     """Review source code against guard-skills quality gates.
 
