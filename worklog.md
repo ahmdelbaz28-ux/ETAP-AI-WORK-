@@ -1,4 +1,4 @@
-# ETAP AI Platform - Worklog
+# AhmedETAP Platform - Worklog
 
 ---
 Task ID: 0.1

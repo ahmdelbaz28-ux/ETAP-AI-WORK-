@@ -1,5 +1,5 @@
 """
-ETAP AI Engineering Platform - Arc Flash Analysis Agent
+AhmedETAP - Arc Flash Analysis Agent
 =======================================================
 Arc flash incident energy and boundary calculations per IEEE 1584
 and NFPA 70E.

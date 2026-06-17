@@ -159,7 +159,7 @@ jobs:
         with:
           payload: |
             {
-              "text": "🚨 ETAP AI Platform — Daily Health Check FAILED\n${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+              "text": "🚨 AhmedETAP — Daily Health Check FAILED\n${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
             }
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
@@ -210,7 +210,7 @@ jobs:
         with:
           payload: |
             {
-              "text": "🚨 ETAP AI Platform — Weekly Health Check FAILED\n${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+              "text": "🚨 AhmedETAP — Weekly Health Check FAILED\n${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
             }
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
@@ -261,7 +261,7 @@ jobs:
         with:
           payload: |
             {
-              "text": "🚨 ETAP AI Platform — Monthly Health Check FAILED\n${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+              "text": "🚨 AhmedETAP — Monthly Health Check FAILED\n${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
             }
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
@@ -283,7 +283,7 @@ jobs:
 
       - name: Generate summary
         run: |
-          echo "## ETAP AI Platform — Health Check Summary" >> $GITHUB_STEP_SUMMARY
+          echo "## AhmedETAP — Health Check Summary" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "| Check Type | Status | Report |" >> $GITHUB_STEP_SUMMARY
           echo "|------------|--------|--------|" >> $GITHUB_STEP_SUMMARY
@@ -319,7 +319,7 @@ jobs:
         with:
           payload: |
             {
-              "text": "📊 ETAP AI Platform — Health Checks Complete\n${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+              "text": "📊 AhmedETAP — Health Checks Complete\n${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
             }
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}

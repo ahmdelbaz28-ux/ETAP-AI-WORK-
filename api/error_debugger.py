@@ -305,7 +305,7 @@ def lookup_error_code(code: str) -> Optional[ErrorCode]:
 # ---------------------------------------------------------------------------
 
 class ETAPPlatformError(Exception):
-    """Base exception for all ETAP AI Platform errors.
+    """Base exception for all AhmedETAP errors.
 
     Every subclass carries an :class:`ErrorCode` and optional context.
     """

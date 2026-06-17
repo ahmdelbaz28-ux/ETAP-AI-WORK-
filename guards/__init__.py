@@ -1,8 +1,8 @@
 """
-ETAP AI Platform — Guard Skills Module
+AhmedETAP Platform — Guard Skills Module
 ========================================
 Surgical integration of guard-skills concepts (github.com/amElnagdy/guard-skills)
-into the ETAP AI Engineering Platform as runtime code-quality validators.
+into the AhmedETAP Engineering Platform as runtime code-quality validators.
 
 This module adapts the instructional-prompt guard system into executable
 Python validators that can be invoked by AI agents, the secure executor,

@@ -1,5 +1,5 @@
-# GitHub Actions CI/CD Pipeline for ETAP AI Platform
-name: ETAP AI Platform CI/CD
+# GitHub Actions CI/CD Pipeline for AhmedETAP
+name: AhmedETAP CI/CD
 
 on:
   push:

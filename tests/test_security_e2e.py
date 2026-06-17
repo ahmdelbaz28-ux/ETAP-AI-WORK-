@@ -1,5 +1,5 @@
 """
-test_security_e2e.py — End-to-end security tests for the ETAP AI Platform.
+test_security_e2e.py — End-to-end security tests for the AhmedETAP Platform.
 
 Covers 10 security scenarios:
 1. API key bypass attempt (no key when required)
@@ -520,14 +520,14 @@ class TestMFATOTPFlow:
 
     def test_totp_secret_generation(self):
         """TOTPProvider can generate a new TOTP secret."""
-        provider = TOTPProvider(issuer="ETAP AI Platform")
+        provider = TOTPProvider(issuer="AhmedETAP")
         secret = provider.generate_secret("test-user-1")
         assert secret is not None, "Secret should be generated"
         assert len(secret) > 0, "Secret should not be empty"
 
     def test_totp_uri_generation(self):
         """TOTPProvider can generate a provisioning URI."""
-        provider = TOTPProvider(issuer="ETAP AI Platform")
+        provider = TOTPProvider(issuer="AhmedETAP")
         secret = provider.generate_secret("test-user-2")
         uri = provider.generate_qr_code("test-user-2", secret)
         assert "otpauth://totp/" in uri, "URI should be a TOTP URI"
@@ -536,7 +536,7 @@ class TestMFATOTPFlow:
 
     def test_totp_code_verification(self):
         """A TOTP code generated from the secret verifies successfully."""
-        provider = TOTPProvider(issuer="ETAP AI Platform")
+        provider = TOTPProvider(issuer="AhmedETAP")
         secret = provider.generate_secret("test-user-3")
         # Generate a code using the internal TOTP function
         from security.mfa import _totp_code
@@ -545,7 +545,7 @@ class TestMFATOTPFlow:
 
     def test_totp_invalid_code_rejected(self):
         """An invalid TOTP code is rejected."""
-        provider = TOTPProvider(issuer="ETAP AI Platform")
+        provider = TOTPProvider(issuer="AhmedETAP")
         secret = provider.generate_secret("test-user-4")
         assert not provider.verify_code(secret, "000000"), (
             "Invalid code should be rejected"
@@ -553,7 +553,7 @@ class TestMFATOTPFlow:
 
     def test_totp_empty_code_rejected(self):
         """An empty TOTP code is rejected."""
-        provider = TOTPProvider(issuer="ETAP AI Platform")
+        provider = TOTPProvider(issuer="AhmedETAP")
         secret = provider.generate_secret("test-user-5")
         assert not provider.verify_code(secret, ""), (
             "Empty code should be rejected"

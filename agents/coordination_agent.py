@@ -1,5 +1,5 @@
 """
-ETAP AI Engineering Platform - Protection Coordination Agent
+AhmedETAP - Protection Coordination Agent
 =============================================================
 Protection system coordination analysis per IEEE 242 (Buff Book)
 and IEC 60255.

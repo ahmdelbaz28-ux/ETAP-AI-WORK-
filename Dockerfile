@@ -12,7 +12,17 @@ WORKDIR /build
 
 COPY requirements.txt .
 
-RUN pip install --no-cache-dir --upgrade pip &&     pip install --no-cache-dir         --prefix=/install         $(grep -v "pywin32" requirements.txt | grep -v "^#" | grep -v "^$" | tr '\n' ' ')
+RUN pip install --no-cache-dir --upgrade pip && \
+    # Filter requirements.txt to a temp file (exclude pywin32 which is
+    # Windows-only). We must NOT use `tr '\n' ' '` because that breaks
+    # PEP 508 environment markers like `cupy-cuda12x>=13.0.0;
+    # platform_machine == 'x86_64'` — the shell would split the marker
+    # across spaces and pip would see a bare `==` token.
+    grep -v "pywin32" requirements.txt | grep -v "^#" | grep -v "^$" > /tmp/requirements.filtered.txt && \
+    pip install --no-cache-dir \
+        --prefix=/install \
+        -r /tmp/requirements.filtered.txt && \
+    rm -f /tmp/requirements.filtered.txt
 
 # =============================================================================
 # Stage 2: TypeScript / Node Builder
@@ -22,7 +32,9 @@ LABEL stage="ts-builder"
 
 RUN apt-get update && apt-get install -y     curl     --no-install-recommends     && rm -rf /var/lib/apt/lists/*
 
-RUN corepack enable && corepack prepare pnpm@latest --activate
+# Pin pnpm to v9 — pnpm 11.x requires Node 22+ (uses node:sqlite built-in)
+# which is incompatible with the node:20-slim base image used here.
+RUN corepack enable && corepack prepare pnpm@9 --activate
 
 WORKDIR /build
 
@@ -33,6 +45,14 @@ RUN pnpm install --no-frozen-lockfile
 COPY . .
 
 RUN pnpm build
+
+# Ensure dist/ and public/ directories exist after the build so the
+# runtime stage can COPY them without failing. The Mastra build does
+# not produce these directories (it outputs to .mastra/output/), but
+# the runtime stage expects /build/dist and /build/public to exist.
+# Creating them as empty directories is harmless — they just become
+# empty /app/ui/dist and /app/ui/public in the runtime image.
+RUN mkdir -p /build/dist /build/public
 
 # Remove dev dependencies to reduce size
 RUN pnpm prune --prod
@@ -51,12 +71,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends     curl     ti
 # Copy Python dependencies from builder
 COPY --from=python-builder /install /usr/local
 
-# Copy application source
-COPY --from=ts-builder /build/.next /app/.next
-COPY --from=ts-builder /build/node_modules /app/node_modules
-COPY --from=ts-builder /build/package.json /app/package.json
-COPY --from=ts-builder /build/public /app/public
-COPY --from=ts-builder /build/src /app/src
+# Copy built frontend from builder
+COPY --from=ts-builder /build/dist /app/ui/dist
+COPY --from=ts-builder /build/node_modules /app/ui/node_modules
+COPY --from=ts-builder /build/package.json /app/ui/package.json
+COPY --from=ts-builder /build/public /app/ui/public
 
 # Copy Python source files
 COPY engineering_service.py /app/

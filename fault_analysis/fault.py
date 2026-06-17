@@ -195,7 +195,9 @@ class FaultAnalyzer:
         if abs(Z2 + Z0) > 1e-12:
             Z20 = (Z2 * Z0) / (Z2 + Z0)
         else:
-            Z20 = complex(1e9, 0)  # Approximate open circuit
+            # When both Z2 and Z0 are near zero, their parallel is also
+            # near zero — this is a short circuit, not an open circuit.
+            Z20 = complex(0, 0)
         If1 = Vpre / (Z1 + Z20)
         if abs(Z2 + Z0) > 1e-12:
             If0 = -If1 * (Z2 / (Z2 + Z0))
@@ -204,11 +206,12 @@ class FaultAnalyzer:
         If2 = -If1 - If0
         a = complex(-0.5, np.sqrt(3)/2)
         a2 = complex(-0.5, -np.sqrt(3)/2)
-        If1 + If2 + If0
+        Ia = If1 + If2 + If0
         Ib = a2*If1 + a*If2 + If0
         Ic = a*If1 + a2*If2 + If0
         return {
-            'fault_current_b': Ib,
+            'fault_current': Ia,
+            'fault_current_a': Ia,
             'fault_current_c': Ic,
             'fault_current_b_magnitude': np.abs(Ib),
             'fault_current_b_angle': np.angle(Ib, deg=True),

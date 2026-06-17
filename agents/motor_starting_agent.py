@@ -1,5 +1,5 @@
 """
-ETAP AI Engineering Platform - Motor Starting Analysis Agent
+AhmedETAP - Motor Starting Analysis Agent
 =============================================================
 Motor starting current, voltage dip, torque, and acceleration analysis
 per IEEE 399 (Brown Book).
@@ -214,7 +214,10 @@ class MotorStartingAgent(BaseAgent):
         # Z_motor_start = V_rated / (√3 × I_LR) converted to pu on system base
         z_motor_ohm = motor_rated_voltage_v / (np.sqrt(3) * motor_starting_current_a)
         z_base_ohm = (motor_rated_voltage_v ** 2) / (motor_rated_mva * 1e6)
-        z_motor_pu = z_motor_ohm / z_base_ohm * (motor_rated_mva / system_base_mva)
+        # Per-unit base conversion: Z_pu_new = Z_pu_old × (S_base_new / S_base_old)
+        # when voltage bases are equal.  Here S_base_new = system_base_mva,
+        # S_base_old = motor_rated_mva.
+        z_motor_pu = z_motor_ohm / z_base_ohm * (system_base_mva / motor_rated_mva)
 
         # Voltage divider: V_motor = V_source × Z_motor / (Z_source + Z_motor)
         z_total = source_impedance_pu + complex(z_motor_pu, 0)

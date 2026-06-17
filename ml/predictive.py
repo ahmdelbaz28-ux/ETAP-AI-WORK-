@@ -1,5 +1,5 @@
 """
-Predictive Analytics Module for ETAP AI Engineering Platform
+Predictive Analytics Module for AhmedETAP Engineering Platform
 ============================================================
 
 Provides ML-based predictive capabilities for power systems:

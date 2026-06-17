@@ -1,5 +1,5 @@
 """
-ETAP AI Engineering Platform - SCADA Integration Agent
+AhmedETAP - SCADA Integration Agent
 =======================================================
 IEC 61850 data model mapping and real-time measurement processing
 for SCADA system integration.

@@ -1,10 +1,10 @@
-# ETAP AI Engineering Platform — TestSprite Overview
+# AhmedETAP — TestSprite Overview
 
 > Use this document to help TestSprite understand the project before running tests.
 
 ## Project Identity
 
-- **Name:** ETAP AI Engineering Platform
+- **Name:** AhmedETAP
 - **Type:** Full-stack enterprise AI platform (monorepo)
 - **Version:** 1.0.0
 - **Author:** Eng Ahmed Elbaz (ahmdelbaz28@gmail.com)

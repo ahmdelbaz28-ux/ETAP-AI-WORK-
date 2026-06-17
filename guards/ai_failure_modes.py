@@ -3,7 +3,7 @@ AI Failure Mode Detector
 =========================
 Detects the 14 systematic LLM code-generation failure patterns identified
 by the guard-skills project (github.com/amElnagdy/guard-skills), adapted
-as a runtime AST/pattern scanner for the ETAP AI Platform.
+as a runtime AST/pattern scanner for the AhmedETAP Platform.
 
 These 14 failure modes are derived from published 2024-2026 research:
   - GitClear 2025: 8x duplication growth in AI-generated code

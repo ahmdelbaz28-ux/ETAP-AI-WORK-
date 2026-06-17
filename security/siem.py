@@ -1,5 +1,5 @@
 """
-SIEM Integration for ETAP AI Platform
+SIEM Integration for AhmedETAP Platform
 ======================================
 Forwards security events to external SIEM systems such as Grafana Loki
 and the ELK Stack (Elasticsearch / Logstash / Kibana).
@@ -552,7 +552,7 @@ class SIEMForwarder:
                 "buffered": len(self._buffer),
                 "total_buffered": self._stats["total_buffered"],
                 "dropped": self._stats["dropped"],
-                "buffer_size": len(self._buffer),
+                "buffer_size": self.buffer_size,
                 "siem_type": self.siem_type,
                 "endpoint": self.endpoint,
             }

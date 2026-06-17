@@ -233,13 +233,13 @@ class TestTOTP:
     def test_qr_code_uri(self):
         """Test 4: QR code URI is properly formatted."""
         from security.mfa import TOTPProvider
-        provider = TOTPProvider(issuer="ETAP AI Platform")
+        provider = TOTPProvider(issuer="AhmedETAP")
 
         secret = provider.generate_secret("user-004")
         uri = provider.generate_qr_code("user-004", secret)
 
         assert uri.startswith("otpauth://totp/")
-        assert "ETAP+AI+Platform" in uri or "ETAP AI Platform" in uri
+        assert "AhmedETAP" in uri
         assert f"secret={secret}" in uri
 
     def test_backup_codes(self):

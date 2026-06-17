@@ -1,5 +1,5 @@
 /**
- * ETAP AI Platform - Cloudflare Worker (Production Hardened)
+ * AhmedETAP - Cloudflare Worker (Production Hardened)
  * ===========================================================
  * Thin orchestrator. All real logic lives in src/core/ and src/routes/.
  *

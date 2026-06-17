@@ -1,4 +1,4 @@
-# ETAP AI Platform — Operations Risk Register
+# AhmedETAP — Operations Risk Register
 
 **Version:** 1.0.0  
 **Date:** 2026-06-10  

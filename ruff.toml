@@ -1,8 +1,21 @@
-# Ruff configuration for ETAP AI Platform
+# Ruff configuration for AhmedETAP
 # https://docs.astral.sh/ruff/configuration/
 
 line-length = 100
 target-version = "py312"
+
+# Exclude benchmark scripts (intentional closures over loop variables),
+# virtual envs, build artifacts, and frontend code from linting.
+extend-exclude = [
+    "benchmarks",
+    "ui",
+    ".venv",
+    "venv",
+    "__pycache__",
+    "*.egg-info",
+    "build",
+    "dist",
+]
 
 [lint]
 # Enable comprehensive rule set
@@ -39,6 +52,10 @@ unfixable = []
 "tests/property_based/**" = ["S101", "N802", "N803"]
 "validation_*.py" = ["F401", "F841"]
 "docs/demos/**" = ["E501", "F821"]
+# FastAPI uses Body(...), Depends(...), Query(...) etc. as default argument
+# values — this is the idiomatic dependency-injection pattern, not a bug.
+"api/**/*.py" = ["B008"]
+"engineering_service.py" = ["B008"]
 
 [lint.isort]
 known-first-party = ["skills", "core", "scripts", "agents"]

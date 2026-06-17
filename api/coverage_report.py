@@ -1,5 +1,5 @@
 """
-api/coverage_report.py — Test coverage analysis tool for the ETAP AI Platform.
+api/coverage_report.py — Test coverage analysis tool for the AhmedETAP.
 
 Scans all Python source files, identifies functions/methods that have
 corresponding tests, identifies those without tests, generates coverage
@@ -746,7 +746,7 @@ async def _main() -> None:
     import argparse
 
     parser = argparse.ArgumentParser(
-        description="ETAP AI Platform — Test Coverage Analyzer",
+        description="AhmedETAP — Test Coverage Analyzer",
     )
     parser.add_argument(
         "--project-root",
@@ -781,7 +781,7 @@ async def _main() -> None:
         if not args.json_only:
             # Print human-readable summary
             print("=" * 72, file=out)
-            print("ETAP AI Platform — Test Coverage Report", file=out)
+            print("AhmedETAP — Test Coverage Report", file=out)
             print("=" * 72, file=out)
             print(f"Project Root:      {report.project_root}", file=out)
             print(f"Total Modules:     {report.total_modules}", file=out)

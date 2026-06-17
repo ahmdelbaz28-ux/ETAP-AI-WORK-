@@ -1,6 +1,6 @@
 #!/usr/bin/env tsx
 /**
- * ETAP AI Platform — Operational Health Check Script
+ * AhmedETAP Platform — Operational Health Check Script
  * ===================================================
  * Validates daily, weekly, and monthly checklist items from the
  * Enterprise Operations Handbook against the live deployed Worker.
@@ -564,7 +564,7 @@ function generateReport(daily: CheckResult[], weekly: CheckResult[], monthly: Ch
 
 function printReport(report: HealthReport): void {
   console.log('╔══════════════════════════════════════════════════════════════════════════════╗');
-  console.log('║           ETAP AI PLATFORM — OPERATIONAL HEALTH CHECK REPORT                 ║');
+  console.log('║           AhmedETAP — OPERATIONAL HEALTH CHECK REPORT                 ║');
   console.log('╠══════════════════════════════════════════════════════════════════════════════╣');
   console.log(`║ Timestamp: ${report.timestamp.padEnd(67)} ║`);
   console.log(`║ Duration:  ${String(report.durationMs).padStart(5)}ms${''.padEnd(60)} ║`);
@@ -614,7 +614,7 @@ async function main() {
 
   if (!runDaily && !runWeekly && !runMonthly) {
     console.log(`
-ETAP AI Platform — Operational Health Check
+AhmedETAP Platform — Operational Health Check
 
 Usage:
   pnpm exec tsx scripts/health-check.ts --daily

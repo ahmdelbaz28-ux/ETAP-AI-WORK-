@@ -1,6 +1,6 @@
 # ENTERPRISE OPERATIONS HANDBOOK
 
-## ETAP AI Engineering Platform — Operational Procedures
+## AhmedETAP — Operational Procedures
 
 **Document ID:** OPS-001  
 **Version:** 1.0  
@@ -28,7 +28,7 @@
 ### 1.2 Service Dependencies
 
 ```
-ETAP AI Platform
+AhmedETAP
 ├── Cloudflare Workers Runtime (required)
 │   ├── API_KEY_SECRET (required)
 │   ├── JWT_SECRET (required)

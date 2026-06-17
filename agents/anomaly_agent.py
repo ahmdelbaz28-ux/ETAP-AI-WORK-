@@ -1,5 +1,5 @@
 """
-ETAP AI Engineering Platform - Anomaly Detection Agent
+AhmedETAP - Anomaly Detection Agent
 =======================================================
 Anomaly detection, classification, and diagnosis in power system
 operational data, equipment measurements, and engineering study results.

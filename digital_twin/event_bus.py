@@ -328,33 +328,36 @@ class EventBus:
         Returns:
         str: Subscription ID for unsubscription.
         """
-        sub_id = str(uuid.uuid4())
-        entry = (priority, sub_id, handler)
-        self._subscribers[event_type].append(entry)
-        self._subscribers[event_type].sort(key=lambda x: -x[0])
-        return sub_id
+        with self._lock:
+            sub_id = str(uuid.uuid4())
+            entry = (priority, sub_id, handler)
+            self._subscribers[event_type].append(entry)
+            self._subscribers[event_type].sort(key=lambda x: -x[0])
+            return sub_id
 
     def subscribe_all(self, handler: Callable[[DomainEvent], None],
                       priority: int = 0) -> str:
         """Subscribe to all events (wildcard)."""
-        sub_id = str(uuid.uuid4())
-        entry = (priority, sub_id, handler)
-        self._wildcard_subscribers.append(entry)
-        self._wildcard_subscribers.sort(key=lambda x: -x[0])
-        return sub_id
+        with self._lock:
+            sub_id = str(uuid.uuid4())
+            entry = (priority, sub_id, handler)
+            self._wildcard_subscribers.append(entry)
+            self._wildcard_subscribers.sort(key=lambda x: -x[0])
+            return sub_id
 
     def unsubscribe(self, sub_id: str) -> bool:
         """Remove a subscription by ID."""
-        for _event_type, entries in self._subscribers.items():
-            for i, (_, sid, _) in enumerate(entries):
+        with self._lock:
+            for _event_type, entries in self._subscribers.items():
+                for i, (_, sid, _) in enumerate(entries):
+                    if sid == sub_id:
+                        entries.pop(i)
+                        return True
+            for i, (_, sid, _) in enumerate(self._wildcard_subscribers):
                 if sid == sub_id:
-                    entries.pop(i)
+                    self._wildcard_subscribers.pop(i)
                     return True
-        for i, (_, sid, _) in enumerate(self._wildcard_subscribers):
-            if sid == sub_id:
-                self._wildcard_subscribers.pop(i)
-                return True
-        return False
+            return False
 
     def publish(self, event: DomainEvent) -> List[Exception]:
         """

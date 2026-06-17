@@ -1,5 +1,5 @@
 """
-Shared pytest fixtures for ETAP AI Platform API tests.
+Shared pytest fixtures for AhmedETAP Platform API tests.
 
 Provides:
 - In-memory SQLite database (async via aiosqlite)

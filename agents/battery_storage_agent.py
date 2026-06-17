@@ -1,5 +1,5 @@
 """
-ETAP AI Engineering Platform - Battery Storage Agent
+AhmedETAP - Battery Storage Agent
 =====================================================
 Battery Energy Storage System (BESS) analysis per IEC 62933.
 

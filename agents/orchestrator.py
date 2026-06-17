@@ -1,5 +1,5 @@
 """
-ETAP AI Engineering Platform - Multi-Agent Orchestrator
+AhmedETAP - Multi-Agent Orchestrator
 ========================================================
 Chief Engineering Orchestrator that coordinates all specialized agents
 for autonomous power system analysis and ETAP automation.
@@ -522,7 +522,7 @@ class HarmonicAnalysisAgent(BaseAgent):
 
             # Set system data
             Ybus = system_data.get_ybus(seq='1')
-            bus_ids = list(system_data.buses.keys())
+            bus_ids = sorted(system_data.buses.keys())
             engine.set_system_data(Ybus, bus_ids)
 
             # Add harmonic sources
@@ -617,9 +617,7 @@ class OptimalPowerFlowAgent(BaseAgent):
 
             # Create OPF engine
             Ybus = system_data.get_ybus(seq='1')
-            bus_ids = list(system_data.buses.keys())
-
-            # Convert generator costs
+            bus_ids = sorted(system_data.buses.keys())
             costs = [GeneratorCost(**gc) for gc in generator_costs]
 
             opf = OptimalPowerFlowEngine(Ybus, bus_ids, costs)
@@ -1211,7 +1209,7 @@ class ReportGenerationAgent(BaseAgent):
             from reporting.advanced_reports import PDFReportGenerator, ReportMetadata
             metadata = ReportMetadata(
                 title=content.get('title', 'Engineering Report'),
-                author='ETAP AI Platform',
+                author='AhmedETAP',
                 date=datetime.now(timezone.utc).isoformat()
             )
             generator = PDFReportGenerator()
@@ -1232,7 +1230,7 @@ class ReportGenerationAgent(BaseAgent):
             from reporting.advanced_reports import DOCXReportGenerator, ReportMetadata
             metadata = ReportMetadata(
                 title=content.get('title', 'Engineering Report'),
-                author='ETAP AI Platform',
+                author='AhmedETAP',
                 date=datetime.now(timezone.utc).isoformat()
             )
             generator = DOCXReportGenerator()
@@ -1253,7 +1251,7 @@ class ReportGenerationAgent(BaseAgent):
             from reporting.advanced_reports import ReportMetadata, XLSXReportGenerator
             metadata = ReportMetadata(
                 title=content.get('title', 'Engineering Report'),
-                author='ETAP AI Platform',
+                author='AhmedETAP',
                 date=datetime.now(timezone.utc).isoformat()
             )
             generator = XLSXReportGenerator()

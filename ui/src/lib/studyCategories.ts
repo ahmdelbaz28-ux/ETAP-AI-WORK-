@@ -1,5 +1,5 @@
 /**
- * ETAP AI Platform — Study Categories & Parameter Definitions
+ * Ahmed etap Platform — Study Categories & Parameter Definitions
  */
 
 export interface StudyParam {

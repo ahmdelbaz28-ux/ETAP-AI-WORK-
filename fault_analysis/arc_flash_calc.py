@@ -12,7 +12,6 @@ PPE descriptions, enclosure details, etc.) should import and use
 """
 
 import json
-
 from typing import Optional
 
 from fault_analysis.arc_flash_engine import (

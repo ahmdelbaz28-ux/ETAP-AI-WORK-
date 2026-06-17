@@ -535,7 +535,7 @@ class XLSXReportGenerator:
             ws_summary = wb.active
             ws_summary.title = "Summary"
 
-            ws_summary['A1'] = "ETAP AI Engineering Platform - Analysis Report"
+            ws_summary['A1'] = "AhmedETAP Engineering Platform - Analysis Report"
             ws_summary['A1'].font = Font(bold=True, size=14)
 
             ws_summary['A3'] = "Report Metadata"
@@ -615,7 +615,7 @@ class ReportGenerationAgent:
             metadata = ReportMetadata(
                 report_id=f"RPT_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}",
                 title="Power System Engineering Analysis Report",
-                prepared_by="ETAP AI Engineering Platform",
+                prepared_by="AhmedETAP Engineering Platform",
                 project_name="Industrial Power System",
                 client_name="Client"
             )
@@ -757,7 +757,7 @@ class ReportGenerationAgent:
         """Generate executive summary from analysis results."""
         summary_lines = [
             "This report presents the results of comprehensive power system analysis",
-            "performed using the ETAP AI Engineering Platform.",
+            "performed using the AhmedETAP Engineering Platform.",
             "",
             "Key Findings:",
             ""

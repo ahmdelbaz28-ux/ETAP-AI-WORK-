@@ -24,8 +24,7 @@ Usage::
 
 from __future__ import annotations
 
-from typing import Any, Dict, List, Optional, Protocol, Tuple, Union
-
+from typing import Any, Dict, List, Optional, Protocol, Tuple
 
 # ============================================================================
 # Load Flow Solver

@@ -1,5 +1,5 @@
 """
-Multi-Factor Authentication (MFA) for ETAP AI Platform
+Multi-Factor Authentication (MFA) for AhmedETAP Platform
 ========================================================
 Provides TOTP (Time-based One-Time Password, RFC 6238) and WebAuthn/FIDO2
 support for second-factor authentication.
@@ -152,7 +152,7 @@ class TOTPProvider:
 
     Example
     -------
-    >>> provider = TOTPProvider(issuer="ETAP AI Platform")
+    >>> provider = TOTPProvider(issuer="AhmedETAP")
     >>> secret = provider.generate_secret("user-123")
     >>> uri = provider.generate_qr_code("user-123", secret)
     >>> provider.verify_code(secret, "123456")
@@ -160,7 +160,7 @@ class TOTPProvider:
 
     def __init__(
         self,
-        issuer: str = "ETAP AI Platform",
+        issuer: str = "AhmedETAP",
         time_step: int = 30,
         digits: int = 6,
         window: int = 1,
@@ -398,7 +398,7 @@ class WebAuthnProvider:
     def __init__(
         self,
         rp_id: str = "localhost",
-        rp_name: str = "ETAP AI Platform",
+        rp_name: str = "AhmedETAP",
         origin: str = "http://localhost:3000",
     ) -> None:
         self.rp_id = rp_id
@@ -633,9 +633,13 @@ class WebAuthnProvider:
                 return False
 
         # Fallback: reject without webauthn library
+        # SECURITY: The fallback cannot perform cryptographic verification of the
+        # authenticator assertion.  In production, always install the 'webauthn'
+        # package.  This rejection prevents bypass of the second factor.
         logger.warning(
-            "WebAuthn authentication REJECTED: cannot verify without webauthn library. "
-            "Install the 'webauthn' package for production use."
+            "WebAuthn authentication REJECTED (no webauthn library): "
+            "credential_id=%s user=%s.  Install 'webauthn' for production.",
+            credential_id, owner_id,
         )
         return False
 

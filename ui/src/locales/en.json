@@ -1,7 +1,7 @@
 {
   "app": {
-    "name": "ETAP AI",
-    "fullName": "ETAP AI Engineering Platform",
+    "name": "Ahmed etap",
+    "fullName": "Ahmed etap Engineering Platform",
     "description": "Intelligent Electrical Engineering Platform",
     "version": "2.0.0"
   },
@@ -41,7 +41,7 @@
   },
   "dashboard": {
     "title": "Dashboard",
-    "welcomeMessage": "Welcome to ETAP AI Platform",
+    "welcomeMessage": "Welcome to Ahmed etap Platform",
     "subtitle": "Enterprise-grade autonomous engineering intelligence for power-system analysis",
     "quickActions": "Quick Actions",
     "recentStudies": "Recent Studies",

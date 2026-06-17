@@ -270,7 +270,7 @@ def sync_to_langwatch() -> None:
 if __name__ == "__main__":
     import argparse
 
-    parser = argparse.ArgumentParser(description="Validate ETAP AI prompt files")
+    parser = argparse.ArgumentParser(description="Validate AhmedETAP prompt files")
     parser.add_argument("--sync", action="store_true", help="Sync to LangWatch after validation")
     parser.add_argument("--strict", action="store_true", help="Fail on warnings too")
     args = parser.parse_args()
