@@ -1,0 +1,403 @@
+{
+  "version": "1.0",
+  "description": "ETAP & Zenon Official Documentation Manifest - PRIMARY REFERENCE for all AI agents",
+  "created_at": "2026-06-18",
+  "sources": {
+    "etap": {
+      "name": "ETAP - Electrical Transient Analyzer Program",
+      "vendor": "ETAP / Operation Technology, Inc.",
+      "default_path": "C:/Users/Repair SC/Desktop/New folder/etap",
+      "env_var": "ETAP_MANUALS_PATH",
+      "documents": [
+        {
+          "id": "etap_user_guide",
+          "filename": "ETAP USER GUIDE.PDF",
+          "title": "ETAP User Guide (Complete)",
+          "category": "core",
+          "priority": "PRIMARY",
+          "description": "Complete ETAP user guide covering all modules, operations, and procedures",
+          "agents": ["ALL"]
+        },
+        {
+          "id": "etap_training",
+          "filename": "etap training 1164 slides.pdf",
+          "title": "ETAP Training Material (1164 Slides)",
+          "category": "training",
+          "priority": "HIGH",
+          "description": "Comprehensive ETAP training slides covering all study types",
+          "agents": ["ALL"]
+        },
+        {
+          "id": "etap_readme",
+          "filename": "Readme.pdf",
+          "title": "ETAP Readme / Release Notes",
+          "category": "core",
+          "priority": "HIGH",
+          "description": "ETAP release notes, known issues, and important information",
+          "agents": ["ALL"]
+        },
+        {
+          "id": "etap_solutions_overview",
+          "filename": "etap-solutions-overview.pdf",
+          "title": "ETAP Solutions Overview",
+          "category": "overview",
+          "priority": "HIGH",
+          "description": "Overview of all ETAP solutions and capabilities",
+          "agents": ["ALL"]
+        },
+        {
+          "id": "etap_ac_networks",
+          "filename": "02 - AC Networks.pdf",
+          "title": "ETAP AC Networks Module",
+          "category": "study",
+          "priority": "HIGH",
+          "description": "AC network modeling and analysis in ETAP",
+          "agents": ["load_flow", "short_circuit", "coordination", "stability"]
+        },
+        {
+          "id": "etap_load_flow",
+          "filename": "03 - Load Flow and Panel.pdf",
+          "title": "ETAP Load Flow & Panel Scheduling",
+          "category": "study",
+          "priority": "PRIMARY",
+          "description": "Load flow analysis methods and panel scheduling in ETAP",
+          "agents": ["load_flow"]
+        },
+        {
+          "id": "etap_transformer_sizing",
+          "filename": "04 - Transformer Sizing.pdf",
+          "title": "ETAP Transformer Sizing",
+          "category": "study",
+          "priority": "HIGH",
+          "description": "Transformer sizing calculations in ETAP",
+          "agents": ["load_flow", "cable_sizing"]
+        },
+        {
+          "id": "etap_unbalanced_load_flow",
+          "filename": "05 - Unbalanced Load Flow.pdf",
+          "title": "ETAP Unbalanced Load Flow",
+          "category": "study",
+          "priority": "HIGH",
+          "description": "Unbalanced (3-phase) load flow analysis",
+          "agents": ["load_flow"]
+        },
+        {
+          "id": "etap_short_circuit_ansi",
+          "filename": "06 - Short Circuit_ANSI.pdf",
+          "title": "ETAP Short Circuit (ANSI/IEEE)",
+          "category": "study",
+          "priority": "PRIMARY",
+          "description": "Short circuit analysis per ANSI/IEEE standards in ETAP",
+          "agents": ["short_circuit", "arc_flash", "coordination"]
+        },
+        {
+          "id": "etap_short_circuit_iec",
+          "filename": "06 - Short-Circuit_IEC.pdf",
+          "title": "ETAP Short Circuit (IEC 60909)",
+          "category": "study",
+          "priority": "PRIMARY",
+          "description": "Short circuit analysis per IEC 60909 in ETAP",
+          "agents": ["short_circuit", "arc_flash", "coordination"]
+        },
+        {
+          "id": "etap_arc_flash",
+          "filename": "07 - ArcFlash.pdf",
+          "title": "ETAP Arc Flash Analysis (IEEE 1584)",
+          "category": "study",
+          "priority": "PRIMARY",
+          "description": "Arc flash incident energy and PPE calculation per IEEE 1584",
+          "agents": ["arc_flash", "short_circuit"]
+        },
+        {
+          "id": "etap_motor_acceleration",
+          "filename": "09 - MotorAcceleration.pdf",
+          "title": "ETAP Motor Acceleration / Starting",
+          "category": "study",
+          "priority": "PRIMARY",
+          "description": "Motor starting analysis - static and dynamic",
+          "agents": ["motor_starting"]
+        },
+        {
+          "id": "etap_parameter_estimation",
+          "filename": "10 - Parameter Estimation.pdf",
+          "title": "ETAP Parameter Estimation",
+          "category": "study",
+          "priority": "MEDIUM",
+          "description": "Parameter estimation for power system components",
+          "agents": ["stability", "load_flow"]
+        },
+        {
+          "id": "etap_transient_stability",
+          "filename": "11 - Transient Stability.pdf",
+          "title": "ETAP Transient Stability",
+          "category": "study",
+          "priority": "PRIMARY",
+          "description": "Transient stability analysis in ETAP",
+          "agents": ["stability"]
+        },
+        {
+          "id": "etap_transient_stability_2",
+          "filename": "11 - Transient Stability 2.pdf",
+          "title": "ETAP Transient Stability (Advanced)",
+          "category": "study",
+          "priority": "HIGH",
+          "description": "Advanced transient stability topics",
+          "agents": ["stability"]
+        },
+        {
+          "id": "etap_parameter_tuning",
+          "filename": "12 - Parameter Tuning.pdf",
+          "title": "ETAP Parameter Tuning",
+          "category": "study",
+          "priority": "MEDIUM",
+          "description": "Tuning parameters for dynamic simulations",
+          "agents": ["stability"]
+        },
+        {
+          "id": "etap_udm",
+          "filename": "12 - UDM.pdf",
+          "title": "ETAP User-Defined Models (UDM)",
+          "category": "study",
+          "priority": "MEDIUM",
+          "description": "Creating user-defined models in ETAP",
+          "agents": ["stability", "digital_twin"]
+        },
+        {
+          "id": "etap_harmonics",
+          "filename": "13 - Harmonics.pdf",
+          "title": "ETAP Harmonic Analysis (IEEE 519)",
+          "category": "study",
+          "priority": "PRIMARY",
+          "description": "Harmonic distortion analysis per IEEE 519 in ETAP",
+          "agents": ["harmonic"]
+        },
+        {
+          "id": "etap_ugs",
+          "filename": "14 - UGS.pdf",
+          "title": "ETAP Underground Systems (UGS)",
+          "category": "study",
+          "priority": "MEDIUM",
+          "description": "Underground cable systems modeling",
+          "agents": ["cable_sizing"]
+        },
+        {
+          "id": "etap_cable_pulling",
+          "filename": "15 - Cable Pulling.pdf",
+          "title": "ETAP Cable Pulling",
+          "category": "study",
+          "priority": "MEDIUM",
+          "description": "Cable pulling force calculations",
+          "agents": ["cable_sizing"]
+        },
+        {
+          "id": "etap_opf",
+          "filename": "16 - Optimal Power Flow.pdf",
+          "title": "ETAP Optimal Power Flow",
+          "category": "study",
+          "priority": "PRIMARY",
+          "description": "Optimal power flow and economic dispatch in ETAP",
+          "agents": ["opf"]
+        },
+        {
+          "id": "etap_ocp",
+          "filename": "17 - OCP.pdf",
+          "title": "ETAP Overcurrent Protection (OCP)",
+          "category": "study",
+          "priority": "PRIMARY",
+          "description": "Overcurrent protection coordination in ETAP",
+          "agents": ["coordination", "protection"]
+        },
+        {
+          "id": "etap_ground_grid",
+          "filename": "18 - Ground Grid.pdf",
+          "title": "ETAP Ground Grid Design (IEEE 80)",
+          "category": "study",
+          "priority": "PRIMARY",
+          "description": "Grounding grid design per IEEE 80 in ETAP",
+          "agents": ["earth_grid"]
+        },
+        {
+          "id": "etap_pde_gis",
+          "filename": "20 - PDE_GIS.pdf",
+          "title": "ETAP PDE / GIS Integration",
+          "category": "integration",
+          "priority": "MEDIUM",
+          "description": "Power distribution editor and GIS integration",
+          "agents": ["digital_twin"]
+        },
+        {
+          "id": "etap_dc_lf_sc",
+          "filename": "21 - DC LF and DC SC.pdf",
+          "title": "ETAP DC Load Flow & DC Short Circuit",
+          "category": "study",
+          "priority": "HIGH",
+          "description": "DC system load flow and short circuit analysis",
+          "agents": ["load_flow", "short_circuit", "battery_storage"]
+        },
+        {
+          "id": "etap_bsd",
+          "filename": "21a - BSD.pdf",
+          "title": "ETAP Battery Storage & DC Systems (BSD)",
+          "category": "study",
+          "priority": "HIGH",
+          "description": "Battery storage and DC systems design",
+          "agents": ["battery_storage"]
+        },
+        {
+          "id": "etap_csd",
+          "filename": "22 - CSD.pdf",
+          "title": "ETAP Cable Sizing & Design (CSD)",
+          "category": "study",
+          "priority": "HIGH",
+          "description": "Cable sizing and design per IEC 60364",
+          "agents": ["cable_sizing"]
+        },
+        {
+          "id": "etap_reliability",
+          "filename": "23 - Reliability Assesment.pdf",
+          "title": "ETAP Reliability Assessment",
+          "category": "study",
+          "priority": "MEDIUM",
+          "description": "Power system reliability assessment",
+          "agents": ["predictive", "anomaly"]
+        },
+        {
+          "id": "etap_wtg",
+          "filename": "24 - WTG.pdf",
+          "title": "ETAP Wind Turbine Generator (WTG)",
+          "category": "study",
+          "priority": "HIGH",
+          "description": "Wind turbine generator modeling and analysis",
+          "agents": ["renewable"]
+        },
+        {
+          "id": "etap_af_advanced",
+          "filename": "25 - AF-Advanced Topics.pdf",
+          "title": "ETAP Arc Flash Advanced Topics",
+          "category": "study",
+          "priority": "HIGH",
+          "description": "Advanced arc flash topics and IEEE 1584 extensions",
+          "agents": ["arc_flash"]
+        },
+        {
+          "id": "etap_artts",
+          "filename": "26 - ETAP_ARTTS.pdf",
+          "title": "ETAP ARTTS (Automated Real-Time Transient Stability)",
+          "category": "study",
+          "priority": "MEDIUM",
+          "description": "Automated real-time transient stability system",
+          "agents": ["stability", "digital_twin"]
+        },
+        {
+          "id": "etap_controls",
+          "filename": "Controls.pdf",
+          "title": "ETAP Controls & Protection",
+          "category": "study",
+          "priority": "HIGH",
+          "description": "Control systems and protection coordination in ETAP",
+          "agents": ["coordination", "protection"]
+        },
+        {
+          "id": "etap_short_circuit_study",
+          "filename": "Etap short circuit study .pdf",
+          "title": "ETAP Short Circuit Study (Detailed)",
+          "category": "study",
+          "priority": "HIGH",
+          "description": "Detailed short circuit study methodology and examples",
+          "agents": ["short_circuit"]
+        },
+        {
+          "id": "etap_renewable_brochure",
+          "filename": "ETAP-Renewable-Brochure-2021e62754460c286c028629ff04005ae238e62754460c286c028629ff04005ae238.pdf",
+          "title": "ETAP Renewable Energy Solutions",
+          "category": "overview",
+          "priority": "MEDIUM",
+          "description": "ETAP capabilities for renewable energy systems",
+          "agents": ["renewable"]
+        },
+        {
+          "id": "etap_system_requirements",
+          "filename": "SYSTEM REQUIREMENTS.PDF",
+          "title": "ETAP System Requirements",
+          "category": "setup",
+          "priority": "MEDIUM",
+          "description": "Hardware and software requirements for ETAP",
+          "agents": ["ALL"]
+        },
+        {
+          "id": "etrax_rail",
+          "filename": "etrax-rail-solution.pdf",
+          "title": "eTRAX Rail Solution",
+          "category": "integration",
+          "priority": "LOW",
+          "description": "eTRAX rail electrification solution",
+          "agents": ["load_flow", "cable_sizing"]
+        }
+      ]
+    },
+    "zenon": {
+      "name": "zenon - SCADA/HMI Software by COPA-DATA",
+      "vendor": "COPA-DATA",
+      "default_path": "C:/Users/Repair SC/Desktop/New folder/zenon",
+      "env_var": "ZENON_MANUALS_PATH",
+      "documents": [
+        {
+          "id": "zenon_basic_energy",
+          "filename": "Basic_Training_Energy.pdf",
+          "title": "zenon Basic Training - Energy Management",
+          "category": "training",
+          "priority": "PRIMARY",
+          "description": "zenon SCADA energy management training - comprehensive guide",
+          "agents": ["scada", "digital_twin"]
+        },
+        {
+          "id": "zenon_basic_fundamentals",
+          "filename": "Basic_Training_Fundamentals.pdf",
+          "title": "zenon Basic Training - Fundamentals",
+          "category": "training",
+          "priority": "PRIMARY",
+          "description": "zenon SCADA fundamentals training - core concepts and operations",
+          "agents": ["scada", "digital_twin"]
+        },
+        {
+          "id": "zenon_iec61850_module1",
+          "filename": "zenon IEC 61850 Webinar - Module 1.pdf",
+          "title": "zenon IEC 61850 Integration - Module 1",
+          "category": "integration",
+          "priority": "PRIMARY",
+          "description": "IEC 61850 protocol integration in zenon SCADA - Part 1",
+          "agents": ["scada", "coordination"]
+        },
+        {
+          "id": "zenon_iec61850_module2",
+          "filename": "zenon IEC 61850 Webinar - Module 2.pdf",
+          "title": "zenon IEC 61850 Integration - Module 2",
+          "category": "integration",
+          "priority": "HIGH",
+          "description": "IEC 61850 protocol integration in zenon SCADA - Part 2 (Advanced)",
+          "agents": ["scada", "coordination"]
+        },
+        {
+          "id": "zenon_help_online",
+          "filename": "zenon help.html",
+          "title": "zenon Online Help",
+          "category": "reference",
+          "priority": "HIGH",
+          "url": "https://www.zenon-academy.com/content/course/186/lesson/253/content/1924",
+          "description": "zenon online help documentation",
+          "agents": ["scada", "digital_twin"]
+        },
+        {
+          "id": "zenon_addin_help",
+          "filename": "zenon addin help.html",
+          "title": "zenon Add-in Help",
+          "category": "reference",
+          "priority": "HIGH",
+          "url": "https://onlinehelp.copadata.com/Content.html?product=addin&version=1500&lang=en",
+          "description": "zenon add-in development and integration help",
+          "agents": ["scada", "digital_twin"]
+        }
+      ]
+    }
+  }
+}
