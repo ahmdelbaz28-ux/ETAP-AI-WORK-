@@ -78,6 +78,7 @@ jobs:
 
           # Copy all files from GitHub repo to HF Space
           # Exclude .git, __pycache__, and other non-essential files
+          # Also exclude binary files that HF Spaces rejects
           rsync -av --delete \
             --exclude='.git' \
             --exclude='.github' \
@@ -91,6 +92,22 @@ jobs:
             --exclude='*.egg-info' \
             --exclude='.mypy_cache' \
             --exclude='.ruff_cache' \
+            --exclude='*.png' \
+            --exclude='*.jpg' \
+            --exclude='*.jpeg' \
+            --exclude='*.gif' \
+            --exclude='*.ico' \
+            --exclude='*.db' \
+            --exclude='*.duckdb' \
+            --exclude='*.duckdb.wal' \
+            --exclude='docs/demos/' \
+            --exclude='data/etap_platform.db' \
+            --exclude='src/mastra/public/' \
+            --exclude='ui/dist/assets/' \
+            --exclude='ui/src/assets/' \
+            --exclude='docs/assets/' \
+            --exclude='docs/images/' \
+            --exclude='docs/screenshots/' \
             "${GITHUB_WORKSPACE}/" /tmp/hf-space/
 
           echo "File sync completed"
