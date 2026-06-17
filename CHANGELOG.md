@@ -4,6 +4,29 @@ All notable changes to AhmedETAP will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [1.1.0] - 2026-06-17
+
+### Added
+- PostGIS spatial provider for geospatial data (GIS integration layer)
+- GIS ↔ Digital Twin bidirectional synchronization bridge
+- ETAP ↔ AhmedETAP synchronization engine (import/export pipeline)
+- GIS map visualization (6 layer types: load flow, voltage, fault, arc flash, protection, network)
+- Property-based tests (Hypothesis): 22 tests covering skill validation, retry behavior
+- Pydantic skill validation models (SkillMetadata, SkillDescription, ExecutionResult, SkillDefinition, SkillResponse[T])
+- Tenacity retry decorators (network, skill, bounded, exponential backoff with jitter)
+- Pre-commit CI pipeline (6 stages: quality, typecheck, tests, schema validation, security)
+- Ruff linting configuration (extended rules: N, UP, C4, isort, line-length=100)
+- Prometheus metrics instrumentation (counters, histograms, gauges, decorators)
+- OpenTelemetry tracing (TracerProvider, spans, context propagation)
+- Factory Boy test fixtures (SkillMetadata, ExecutionResult, ErrorResponse, SkillDescription)
+- Analytical Jacobian for Newton-Raphson load flow (replaces finite-difference)
+- Sparse LU factorization for fault analysis (replaces dense Zbus inversion)
+- `__slots__` optimization on core model classes (Bus, Line, Load, Generator, Transformer, System)
+- 31 integration tests for new modules (prometheus, tracing, factories)
+
+### Changed
+- Rebranded to "AhmedETAP" by Eng. Ahmed Elbaz
+
 ## [1.0.0] - 2026-06-16
 
 ### Added
@@ -40,9 +63,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Dark and Light theme support
 - Arabic and English internationalization (RTL)
 - Comprehensive API documentation (Swagger/OpenAPI)
-
-### Changed
-- Rebranded to "AhmedETAP" by Eng. Ahmed Elbaz
 
 ## [0.9.0] - 2026-05-01
 

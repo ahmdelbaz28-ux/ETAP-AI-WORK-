@@ -26,6 +26,8 @@ from typing import Any, Dict, List, Optional
 
 import numpy as np
 
+from core.tracing import trace_operation
+
 logger = logging.getLogger(__name__)
 
 
@@ -185,6 +187,7 @@ class BaseAgent:
             "status": self.status.value,
         }
 
+    @trace_operation("BaseAgent.execute", attributes={"component": "orchestrator"})
     async def execute(self, task: EngineeringTask) -> AgentResult:
         """
         Execute agent task. Override in subclasses.
@@ -268,6 +271,7 @@ class LoadFlowAgent(BaseAgent):
         self.voltage_limits = {'min': 0.95, 'max': 1.05}
         self.convergence_tolerance = 1e-6
 
+    @trace_operation("LoadFlowAgent.execute", attributes={"component": "orchestrator", "study_type": "load_flow"})
     async def execute(self, task: EngineeringTask) -> AgentResult:
         """Execute load flow analysis."""
         start_time = datetime.now(timezone.utc)
@@ -384,6 +388,7 @@ class ShortCircuitAgent(BaseAgent):
         super().__init__("ShortCircuitAgent")
         self.standards_compliance = ['IEC 60909-0:2016']
 
+    @trace_operation("ShortCircuitAgent.execute", attributes={"component": "orchestrator", "study_type": "short_circuit"})
     async def execute(self, task: EngineeringTask) -> AgentResult:
         """Execute short circuit analysis."""
         start_time = datetime.now(timezone.utc)
@@ -500,6 +505,7 @@ class HarmonicAnalysisAgent(BaseAgent):
         self.standard = "IEEE 519-2022"
         self.max_harmonic_order = 50
 
+    @trace_operation("HarmonicAnalysisAgent.execute", attributes={"component": "orchestrator", "study_type": "harmonic"})
     async def execute(self, task: EngineeringTask) -> AgentResult:
         """Execute harmonic analysis."""
         start_time = datetime.now(timezone.utc)
@@ -601,6 +607,7 @@ class OptimalPowerFlowAgent(BaseAgent):
     def __init__(self):
         super().__init__("OptimalPowerFlowAgent")
 
+    @trace_operation("OptimalPowerFlowAgent.execute", attributes={"component": "orchestrator", "study_type": "opf"})
     async def execute(self, task: EngineeringTask) -> AgentResult:
         """Execute optimal power flow."""
         start_time = datetime.now(timezone.utc)
@@ -715,6 +722,7 @@ class ProtectionCoordinationAgent(BaseAgent):
         super().__init__("ProtectionCoordinationAgent")
         self.standard = "IEC 60255"
 
+    @trace_operation("ProtectionCoordinationAgent.execute", attributes={"component": "orchestrator", "study_type": "protection"})
     async def execute(self, task: EngineeringTask) -> AgentResult:
         start_time = datetime.now(timezone.utc)
         self.status = AgentStatus.RUNNING
@@ -814,6 +822,7 @@ class ETAPExecutionAgent(BaseAgent):
         else:
             self.logger.warning("No ETAP provider is currently available.")
 
+    @trace_operation("ETAPExecutionAgent.execute", attributes={"component": "orchestrator", "study_type": "etap"})
     async def execute(self, task: EngineeringTask) -> AgentResult:
         """Execute ETAP automation task using the configured provider."""
         start_time = datetime.now(timezone.utc)
@@ -912,6 +921,7 @@ class ValidationAgent(BaseAgent):
             'temperature_rise_C': 65
         }
 
+    @trace_operation("ValidationAgent.execute", attributes={"component": "orchestrator"})
     async def execute(self, task: EngineeringTask) -> AgentResult:
         """Validate engineering results."""
         start_time = datetime.now(timezone.utc)
@@ -1062,6 +1072,7 @@ class ReportGenerationAgent(BaseAgent):
     def __init__(self):
         super().__init__("ReportGenerationAgent")
 
+    @trace_operation("ReportGenerationAgent.execute", attributes={"component": "orchestrator"})
     async def execute(self, task: EngineeringTask) -> AgentResult:
         """Generate engineering report."""
         start_time = datetime.now(timezone.utc)
@@ -1355,6 +1366,7 @@ class ChiefEngineeringOrchestrator:
         self.task_queue.append(task)
         self.logger.info(f"Task submitted: {task.task_id} - {task.description}")
 
+    @trace_operation("execute_autonomous_workflow", attributes={"component": "orchestrator"})
     async def execute_autonomous_workflow(self, user_goal: str,
                                           system_data: Any,
                                           parameters: Dict = None) -> Dict[str, Any]:
@@ -1431,6 +1443,7 @@ class ChiefEngineeringOrchestrator:
 
         return studies
 
+    @trace_operation("_execute_workflow", attributes={"component": "orchestrator"})
     async def _execute_workflow(self, task: EngineeringTask) -> List[AgentResult]:
         """Execute workflow by coordinating agents with parallel execution."""
         results = []
@@ -1590,6 +1603,7 @@ class ChiefEngineeringOrchestrator:
             'report': 'report',
         }
 
+    @trace_operation("execute_parallel_studies", attributes={"component": "orchestrator"})
     async def execute_parallel_studies(
         self,
         study_types: List[str],

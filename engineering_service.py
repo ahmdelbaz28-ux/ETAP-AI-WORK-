@@ -111,7 +111,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from fastapi import FastAPI, HTTPException, Request, WebSocket
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, Response
 from pydantic import AliasChoices, BaseModel, ConfigDict, Field, field_validator
 from starlette.middleware.base import BaseHTTPMiddleware
 
@@ -350,12 +350,23 @@ _total_execution_time_sec = 0.0
 _metrics_lock = _threading.Lock()
 
 
+# Import Prometheus instrumentation
+from core.metrics import generate_metrics, get_metrics_content_type, set_app_info
+
+# Import OpenTelemetry tracing
+from core.tracing import trace_operation
+
+# Initialise app info metrics
+set_app_info(name="ahmedetap-engineering-service", version="1.0.0")
+
+
 def _increment_counter(name: str, delta: int = 1) -> None:
     """Thread-safe counter increment."""
     global _request_count, _success_count, _failed_count
     with _metrics_lock:
         if name == "request":
             _request_count += delta
+            # (Prometheus gauge tracking for active connections would go here)
         elif name == "success":
             _success_count += delta
         elif name == "failed":
@@ -373,6 +384,7 @@ def _add_execution_time(delta: float) -> None:
 # System builder helper
 # ---------------------------------------------------------------------------
 
+@trace_operation("_build_system_from_spec", attributes={"component": "engineering_service"})
 def _build_system_from_spec(spec: SystemSpec) -> Any:
     """Build a Python System object from a SystemSpec."""
     from core_model.bus import Bus
@@ -467,6 +479,7 @@ def _build_system_from_spec(spec: SystemSpec) -> Any:
 _STUDIES_REQUIRING_SYSTEM = {"load_flow", "short_circuit", "fault", "protection_coordination", "coordination", "motor_starting"}
 
 
+@trace_operation("_run_native_study", attributes={"component": "engineering_service"})
 def _run_native_study(study_type: str, system: Optional[Any], parameters: Dict[str, Any]) -> Dict[str, Any]:
     """Execute a study using the native PowerSystemEngine."""
     if study_type in _STUDIES_REQUIRING_SYSTEM and system is None:
@@ -508,6 +521,7 @@ def _run_native_study(study_type: str, system: Optional[Any], parameters: Dict[s
         raise ValueError(f"Unsupported native study type: {study_type}")
 
 
+@trace_operation("_run_etap_study", attributes={"component": "engineering_service"})
 def _run_etap_study(study_type: str, project_path: str, parameters: Dict[str, Any]) -> Dict[str, Any]:
     """Execute a study via the ETAP provider."""
     provider_factory = _get_etap_provider()
@@ -984,6 +998,29 @@ async def metrics(request: Request):
         requests_failed=fail_count,
         avg_execution_time_ms=round(avg_ms, 2),
         trace_id=request.state.trace_id,
+    )
+
+
+@app.get("/prometheus/metrics")
+async def prometheus_metrics():
+    """Prometheus metrics endpoint exposing counters, histograms, and gauges
+    from ``core.metrics`` in the standard Prometheus exposition format.
+
+    Returns
+    -------
+    Response with ``Content-Type: text/plain; version=0.0.4``
+
+    Metrics include:
+    - ``skill_operations_total`` — partitioned by operation and status
+    - ``skill_operations_in_progress`` — gauge per operation type
+    - ``skill_errors_total`` — by error type and skill name
+    - ``execution_duration_seconds`` — histogram by skill and phase
+    - ``executions_total`` — counter by skill and status
+    - ``app_info`` — version metadata
+    """
+    return Response(
+        content=generate_metrics(),
+        media_type=get_metrics_content_type(),
     )
 
 
