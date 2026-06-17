@@ -723,6 +723,13 @@ class AIFailureModeDetector:
             'pandas', 'matplotlib', 'requests', 'httpx', 'aiohttp', 'redis',
             'celery', 'pytest', 'hypothesis', 'flask', 'django', 'starlette',
             'python', 'dotenv', 'jwt', 'bcrypt', 'cryptography', 'psutil',
+            # ETAP platform internal packages (not hallucinations)
+            'engine', 'agents', 'core_model', 'load_flow', 'fault_analysis',
+            'coordination', 'curves', 'relays', 'etap_integration',
+            'gis_integration', 'gis_model', 'gis_validation',
+            'digital_twin', 'security', 'reporting', 'visualization',
+            'network_solver', 'knowledge', 'scada_model', 'adms_control',
+            'core', 'backend', 'guards', 'skills',
         }
 
         # Allow context to extend known packages
