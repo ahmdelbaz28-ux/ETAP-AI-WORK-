@@ -1,5 +1,11 @@
 
 class Transformer:
+    __slots__ = (
+        'transformer_id', 'from_bus', 'to_bus', 'z1', 'z2', 'z0',
+        'yshunt1', 'yshunt2', 'yshunt0', 'rating',
+        'tap_ratio', 'phase_shift',
+    )
+
     def __init__(self, transformer_id, from_bus, to_bus,
                  z1=complex(0,0), z2=None, z0=None,
                  yshunt1=complex(0,0), yshunt2=None, yshunt0=None,

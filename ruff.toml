@@ -1,21 +1,32 @@
 # Ruff configuration for ETAP AI Platform
 # https://docs.astral.sh/ruff/configuration/
 
-line-length = 120
+line-length = 100
 target-version = "py312"
 
 [lint]
 # Enable comprehensive rule set
-select = ["E", "F", "I", "B", "W"]
+select = [
+    "E",     # pycodestyle errors
+    "W",     # pycodestyle warnings
+    "F",     # pyflakes
+    "I",     # isort
+    "N",     # pep8-naming
+    "UP",    # pyupgrade
+    "B",     # flake8-bugbear
+    "C4",    # flake8-comprehensions
+]
 
 # Only ignore rules that are genuinely acceptable for this codebase
 ignore = [
-    "E741",   # Ambiguous variable name (I, l, O are standard in electrical engineering — per-unit, current, etc.)
+    "E741",   # Ambiguous variable name (I, l, O are standard in electrical engineering)
     "E501",   # Line too long (handled by formatter, not linter)
     "E402",   # Module level import not at top (some modules need env setup before imports)
     "E701",   # Multiple statements on one line (def) — legacy patterns
     "E702",   # Multiple statements on one line (;) — legacy patterns
     "B905",   # zip() without strict= (Python 3.10+ feature, not always appropriate)
+    "UP007",  # Use X | Y for unions (requires Python 3.10+; we sometimes prefer Optional[] for clarity)
+    "UP006",  # Use list[str] instead of List[str] (gradual migration)
 ]
 
 # Allow autofix for all enabled rules
@@ -25,8 +36,12 @@ unfixable = []
 [lint.per-file-ignores]
 "__init__.py" = ["F401", "E402"]
 "tests/**" = ["F401", "F841", "E741", "S101"]
+"tests/property_based/**" = ["S101", "N802", "N803"]
 "validation_*.py" = ["F401", "F841"]
 "docs/demos/**" = ["E501", "F821"]
+
+[lint.isort]
+known-first-party = ["skills", "core", "scripts", "agents"]
 
 [format]
 quote-style = "double"

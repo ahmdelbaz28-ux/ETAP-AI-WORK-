@@ -6,6 +6,7 @@ from gis_integration.exceptions import (
     GISTransformationError,
 )
 from gis_integration.models import ADMSAsset, ADMSAssetType, GISFeature
+from gis_integration.providers.postgis_provider import PostGISProvider, SpatialAsset
 from gis_integration.transformer import GIS_TO_ADMS_Transformer
 
 __all__ = [
@@ -18,4 +19,6 @@ __all__ = [
     "ADMSAsset",
     "ADMSAssetType",
     "GIS_TO_ADMS_Transformer",
+    "PostGISProvider",
+    "SpatialAsset",
 ]

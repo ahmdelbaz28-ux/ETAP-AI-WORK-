@@ -1,0 +1,48 @@
+{
+  "systems": [
+    {
+      "n_buses": 14,
+      "dense_inv_ms": 2.85,
+      "lu_total_ms": 1.431,
+      "lu_factor_ms": 0.98,
+      "lu_solve_ms": 0.45,
+      "speedup": 1.99,
+      "accuracy_dense": "5.55e-16",
+      "accuracy_lu": "5.55e-16",
+      "memory_dense_mb": 0.003
+    },
+    {
+      "n_buses": 30,
+      "dense_inv_ms": 29.28,
+      "lu_total_ms": 0.696,
+      "lu_factor_ms": 0.14,
+      "lu_solve_ms": 0.55,
+      "speedup": 42.07,
+      "accuracy_dense": "8.88e-16",
+      "accuracy_lu": "8.88e-16",
+      "memory_dense_mb": 0.014
+    },
+    {
+      "n_buses": 57,
+      "dense_inv_ms": 175.15,
+      "lu_total_ms": 0.622,
+      "lu_factor_ms": 0.13,
+      "lu_solve_ms": 0.49,
+      "speedup": 281.59,
+      "accuracy_dense": "1.22e-15",
+      "accuracy_lu": "2.22e-15",
+      "memory_dense_mb": 0.05
+    },
+    {
+      "n_buses": 118,
+      "dense_inv_ms": 219.02,
+      "lu_total_ms": 97.302,
+      "lu_factor_ms": 87.79,
+      "lu_solve_ms": 9.51,
+      "speedup": 2.25,
+      "accuracy_dense": "1.33e-15",
+      "accuracy_lu": "2.00e-15",
+      "memory_dense_mb": 0.212
+    }
+  ]
+}

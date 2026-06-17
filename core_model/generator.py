@@ -1,5 +1,10 @@
 
 class Generator:
+    __slots__ = (
+        'generator_id', 'bus', 'internal_voltage', 'impedance',
+        'max_power', 'min_power',
+    )
+
     def __init__(self, generator_id, bus,
                  internal_voltage=None,
                  impedance=None,

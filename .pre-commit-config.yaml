@@ -1,4 +1,5 @@
 repos:
+  # ── Stage 1: Code Quality ──────────────────────────────────────────
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v4.6.0
     hooks:
@@ -17,6 +18,39 @@ repos:
         args: [--fix]
       - id: ruff-format
 
+  # ── Stage 2: Type Checking (manual only — requires pyright installed) ──
+  - repo: local
+    hooks:
+      - id: type-check
+        name: type check
+        entry: pyright
+        language: system
+        types: [python]
+        pass_filenames: false
+        stages: [manual]
+
+  # ── Stage 3: Fast Tests ────────────────────────────────────────────
+  - repo: local
+    hooks:
+      - id: fast-tests
+        name: fast tests
+        entry: pytest -x -q --timeout=60 -m "not slow"
+        language: system
+        types: [python]
+        pass_filenames: false
+        stages: [push]
+
+  # ── Stage 4: Skill Schema Validation ────────────────────────────────
+  - repo: local
+    hooks:
+      - id: validate-skill-schema
+        name: validate skill schemas
+        entry: python -m pytest tests/property_based/ -x -q --timeout=30
+        language: system
+        pass_filenames: false
+        files: ^skills/.*\.py$
+
+  # ── Stage 5: Prompt Validation ─────────────────────────────────────
   - repo: local
     hooks:
       - id: validate-prompts
@@ -25,3 +59,14 @@ repos:
         language: system
         files: ^prompts/.*\.yaml$
         pass_filenames: false
+
+  # ── Stage 6: Security Scan (on push only) ──────────────────────────
+  - repo: local
+    hooks:
+      - id: security-scan
+        name: security scan
+        entry: bandit -r skills core
+        language: system
+        types: [python]
+        pass_filenames: false
+        stages: [push]
