@@ -22,6 +22,7 @@ from __future__ import annotations
 
 import json
 import logging
+import math
 import time
 import uuid
 from dataclasses import dataclass, field
@@ -30,6 +31,7 @@ from typing import Any, Dict, List, Optional, Tuple
 
 from autodesk_connector.shared.models import (
     Breaker,
+    BreakerDef,
     Bus,
     Cable,
     Coordinates,
@@ -37,7 +39,9 @@ from autodesk_connector.shared.models import (
     Load,
     Motor,
     Panel,
+    PanelType,
     Relay,
+    SourceSystem,
     Transformer,
     UnifiedEngineeringModel,
 )
@@ -53,6 +57,7 @@ logger = logging.getLogger(__name__)
 class EngineeringIntentType(str, Enum):
     CREATE_PANEL = "create_panel"
     CREATE_SLD = "create_sld"
+    CREATE_SUBSTATION = "create_substation"
     ADD_FEEDER = "add_feeder"
     ADD_TRANSFORMER = "add_transformer"
     ADD_BUS = "add_bus"
@@ -113,6 +118,10 @@ class IntentParser:
             "single line diagram", "sld", "one-line diagram",
             "generate drawing", "create drawing",
         ],
+        EngineeringIntentType.CREATE_SUBSTATION: [
+            "substation", "create substation", "power substation",
+            "electrical substation", "substation design", "substation project",
+        ],
         EngineeringIntentType.ADD_FEEDER: [
             "add feeder", "feeder", "outgoing circuit",
             "branch circuit", "add circuit",
@@ -156,8 +165,10 @@ class IntentParser:
     }
 
     # Parameter extraction patterns
+    # kV and V are separate patterns to avoid unit confusion (e.g. "415V" should not be scaled by 1000)
     PARAM_PATTERNS = {
-        "voltage": r"(\d+(?:\.\d+)?)\s*(?:v|volt|voltage|kv|kilovolt)",
+        "voltage_kv": r"(\d+(?:\.\d+)?)\s*(?:kv\b|kilovolt\b)",
+        "voltage_v": r"(\d+(?:\.\d+)?)\s*(?:(?<![kK])v(?!a)|volt(?!s)|voltage)",
         "current": r"(\d+(?:\.\d+)?)\s*(?:a|amp|ampere|amps)",
         "power": r"(\d+(?:\.\d+)?)\s*(?:kw|kva|mw|mva|watt|w)",
         "feeder_count": r"(\d+)\s*(?:feeders|outgoing circuits|outgoing feeder)",
@@ -236,13 +247,33 @@ class IntentParser:
             if matches:
                 values = [float(m) if "." in m or m.isdigit() else m for m in matches]
                 # Convert units
-                if param_name == "voltage":
-                    if "kv" in text.lower() or "kilovolt" in text.lower():
-                        values = [v * 1000 for v in values]
+                if param_name == "voltage_kv":
+                    values = [v * 1000 for v in values]  # kV → V
+                    params["voltage"] = values[0] if len(values) == 1 else values
+                elif param_name == "voltage_v":
+                    # V values stay as-is, but only if no kV values were already extracted
+                    if "voltage" not in params:
+                        params["voltage"] = values[0] if len(values) == 1 else values
+                    else:
+                        # Merge: kV values are primary, V values are secondary
+                        pass
                 elif param_name == "power":
                     if "mw" in text.lower() or "mva" in text.lower():
                         values = [v * 1000 for v in values]  # MW → kW
-                params[param_name] = values[0] if len(values) == 1 else values
+                    params[param_name] = values[0] if len(values) == 1 else values
+                else:
+                    params[param_name] = values[0] if len(values) == 1 else values
+
+        # Special handling: when `current` is a list, interpret as [main_breaker_a, feeder_a]
+        # E.g. "2000A main with 200A feeders" → main=2000, feeder=200
+        # E.g. "6 outgoing feeders each 200A" → feeder=200
+        if "current" in params and isinstance(params["current"], list):
+            currents = params["current"]
+            params["main_current"] = currents[0]
+            if len(currents) > 1:
+                params["feeder_current"] = currents[1]
+            elif "feeder" in text.lower():
+                params["feeder_current"] = currents[0]
 
         return params
 
@@ -250,21 +281,36 @@ class IntentParser:
         """Extract named entities from the request."""
         entities = []
 
-        # Panel types
-        if "mdb" in text.lower():
+        # Panel types — comprehensive panel name detection
+        text_lower = text.lower()
+        if "main distribution panel" in text_lower or "mdb" in text_lower:
             entities.append({"type": "panel", "panel_type": "MDP"})
-        if "lighting panel" in text.lower() or "lp" in text.lower().split():
+        elif "distribution panel" in text_lower or "distribution board" in text_lower:
+            entities.append({"type": "panel", "panel_type": "DP"})
+        if "lighting panel" in text_lower or "lighting distribution" in text_lower or "lp" in text_lower.split():
             entities.append({"type": "panel", "panel_type": "LP"})
-        if "power panel" in text.lower():
+        if "power panel" in text_lower or "power distribution" in text_lower:
             entities.append({"type": "panel", "panel_type": "POWER_PANEL"})
-        if "sub panel" in text.lower() or "sp" in text.lower().split():
+        if "sub panel" in text_lower or "sub distribution" in text_lower or "sp" in text_lower.split():
             entities.append({"type": "panel", "panel_type": "SP"})
+        if "motor control center" in text_lower or "mcc" in text_lower:
+            entities.append({"type": "panel", "panel_type": "MCC"})
 
-        # Transformer types
-        if "step down" in text.lower():
+        # Transformer types — general + specific
+        if "step down" in text_lower:
             entities.append({"type": "transformer", "transformer_type": "step_down"})
-        if "step up" in text.lower():
+        if "step up" in text_lower:
             entities.append({"type": "transformer", "transformer_type": "step_up"})
+        if "main transformer" in text_lower or "power transformer" in text_lower:
+            entities.append({"type": "transformer", "transformer_type": "power"})
+        if "transformer" in text_lower and not any(e["type"] == "transformer" for e in entities):
+            entities.append({"type": "transformer", "transformer_type": "distribution"})
+
+        # Generator types
+        if "emergency generator" in text_lower or "standby generator" in text_lower:
+            entities.append({"type": "generator", "generator_type": "diesel", "load_category": "standby"})
+        if "generator" in text_lower and not any(e["type"] == "generator" for e in entities):
+            entities.append({"type": "generator", "generator_type": "synchronous"})
 
         return entities
 
@@ -316,6 +362,62 @@ class GraphBuilder:
                 "type": "creates",
             })
 
+        # If intent is panel/substation-related but no entity was extracted,
+        # create nodes from the intent type alone
+        create_panel = not any(n.get("type") == "panel" for n in graph.nodes.values())
+        create_xf = not any(n.get("type") == "transformer" for n in graph.nodes.values())
+        create_gen = not any(n.get("type") == "generator" for n in graph.nodes.values())
+
+        if intent.type in (EngineeringIntentType.CREATE_PANEL, EngineeringIntentType.CREATE_SUBSTATION):
+            raw_lower = intent.raw_text.lower()
+
+            # Create panel node if missing
+            if create_panel:
+                panel_id = f"panel_{uuid.uuid4().hex[:8]}"
+                panel_type = "MDP"
+                if "lighting" in raw_lower:
+                    panel_type = "LP"
+                elif "power panel" in raw_lower:
+                    panel_type = "POWER_PANEL"
+                elif "motor control" in raw_lower:
+                    panel_type = "MCC"
+                elif "incoming panel" in raw_lower or "main panel" in raw_lower:
+                    panel_type = "MDP"
+                graph.nodes[panel_id] = {
+                    "id": panel_id,
+                    "type": "panel",
+                    "panel_type": panel_type,
+                    "label": "auto panel from " + intent.raw_text[:40],
+                }
+                graph.edges.append({"from": root_id, "to": panel_id, "type": "creates"})
+
+            # Create transformer node if missing and substation intent
+            if create_xf and intent.type == EngineeringIntentType.CREATE_SUBSTATION:
+                xf_id = f"transformer_{uuid.uuid4().hex[:8]}"
+                xf_type = "step_down"
+                if "step up" in raw_lower:
+                    xf_type = "step_up"
+                elif "main transformer" in raw_lower or "power transformer" in raw_lower:
+                    xf_type = "power"
+                graph.nodes[xf_id] = {
+                    "id": xf_id,
+                    "type": "transformer",
+                    "transformer_type": xf_type,
+                    "label": "auto xf from " + intent.raw_text[:40],
+                }
+                graph.edges.append({"from": root_id, "to": xf_id, "type": "supplies"})
+
+            # Create generator node if missing and substation text mentions generator
+            if create_gen and ("generator" in raw_lower or "genset" in raw_lower):
+                gen_id = f"generator_{uuid.uuid4().hex[:8]}"
+                graph.nodes[gen_id] = {
+                    "id": gen_id,
+                    "type": "generator",
+                    "generator_type": "diesel" if "emergency" in raw_lower or "standby" in raw_lower else "synchronous",
+                    "label": "auto gen from " + intent.raw_text[:40],
+                }
+                graph.edges.append({"from": root_id, "to": gen_id, "type": "supplies"})
+
         # Apply parameters to nodes
         if intent.parameters:
             for node_id in graph.nodes:
@@ -328,6 +430,16 @@ class GraphBuilder:
                         graph.nodes[node_id]["count"] = intent.parameters["count"]
                     if "feeder_count" in intent.parameters:
                         graph.nodes[node_id]["feeder_count"] = intent.parameters["feeder_count"]
+                    if "main_current" in intent.parameters:
+                        graph.nodes[node_id]["main_current"] = intent.parameters["main_current"]
+                    if "feeder_current" in intent.parameters:
+                        graph.nodes[node_id]["feeder_current"] = intent.parameters["feeder_current"]
+                    # Also set from raw `current` for backward compatibility
+                    if "current" in intent.parameters:
+                        c = intent.parameters["current"]
+                        if isinstance(c, (int, float)):
+                            graph.nodes[node_id]["main_current"] = c
+                            graph.nodes[node_id]["feeder_current"] = c
 
         graph.validated = len(graph.validation_errors) == 0
         return graph
@@ -365,62 +477,142 @@ class ModelGenerator:
                 self._create_cable_from_node(model, node, graph)
             elif entity_type == "motor":
                 self._create_motor_from_node(model, node, graph)
+            elif entity_type == "generator":
+                self._create_generator_from_node(model, node, graph)
             elif entity_type == "load":
                 self._create_load_from_node(model, node, graph)
 
         return model
 
     def _create_panel_from_node(self, model: UnifiedEngineeringModel, node: dict, graph: EngineeringGraph) -> None:
-        """Create a Panel entity from a graph node."""
+        """Create a Panel entity from a graph node, linking Intent Parameters.
+
+        Connects extracted parameters (voltage, current, feeder_count) to
+        the Panel entity fields:
+        - voltage  → voltage_nominal_v
+        - main_current / current[0] → main_breaker_a, bus_rating_a
+        - feeder_current / current[1] → feeder rated_current_a
+        - feeder_count → number of BreakerDef entries in feeders
+        """
         voltage = node.get("voltage", 415)
+        if not isinstance(voltage, (int, float)):
+            voltage = 415
+
+        main_breaker = node.get("main_current", node.get("current", node.get("main_breaker", 1600)))
+        if isinstance(main_breaker, (list, tuple)):
+            main_breaker = main_breaker[0]
+        elif not isinstance(main_breaker, (int, float)):
+            main_breaker = 1600
+
+        feeder_current = node.get("feeder_current", node.get("current", 63))
+        if isinstance(feeder_current, (list, tuple)):
+            feeder_current = feeder_current[-1]  # Use last value as feeder rating
+        elif not isinstance(feeder_current, (int, float)):
+            feeder_current = 63
+
+        panel_type_str = node.get("panel_type", "MDP")
+        panel_type = PanelType.MDP
+        pts = panel_type_str.upper()
+        if pts == "LP" or "lighting" in str(panel_type_str).lower():
+            panel_type = PanelType.LP
+        elif pts == "DP":
+            panel_type = PanelType.DP
+        elif pts == "MCC":
+            panel_type = PanelType.MCC
+        elif pts == "SP":
+            panel_type = PanelType.SP
+        elif pts == "CP":
+            panel_type = PanelType.CP
+        elif pts == "AHUB":
+            panel_type = PanelType.AHUB
+        elif pts == "POWER_PANEL":
+            panel_type = PanelType.POWER_PANEL
+
         count = int(node.get("count", 1))
+        feeder_count = int(node.get("feeder_count", 0))
 
         for i in range(count):
             panel = Panel(
-                name=f"{node.get('panel_type', 'MDP')}-{i + 1}",
-                panel_type=node.get("panel_type", "MDP"),
-                voltage_nominal_v=voltage if isinstance(voltage, (int, float)) else 415,
-                main_breaker_a=node.get("main_breaker", 1600) if i == 0 else None,
+                name=f"{panel_type_str.upper()}-{i + 1:02d}",
+                panel_type=panel_type,
+                voltage_nominal_v=voltage,
+                main_breaker_a=main_breaker if i == 0 else None,
+                bus_rating_a=main_breaker if i == 0 else None,
+                phase_count=3,
+                wire_count=3,
                 coordinates=Coordinates(x=i * 50, y=0),
-                source_system="ai_generated",
+                source_system=SourceSystem.AI_GENERATED,
             )
 
-            # Add feeders if specified
-            feeder_count = int(node.get("count", 1)) if "feeder" in str(node.get("type", "")) else 0
+            # Add feeders from feeder_count parameter
             if feeder_count > 0:
+                feeder_power = node.get("power", 10)
+                if isinstance(feeder_power, (list, tuple)):
+                    feeder_power = feeder_power[-1]
+                elif not isinstance(feeder_power, (int, float)):
+                    feeder_power = 10
+
+                # Calculate load_kw properly: for 3-phase, P = sqrt(3) * V * I * pf / 1000
+                # Use voltage from panel, feeder_current, and 0.85 power factor as default
+                load_kw_approx = round(math.sqrt(3) * voltage * feeder_current * 0.85 / 1000.0, 1)
+                load_kw_final = feeder_power if feeder_power != 10 else max(load_kw_approx, 1.0)
+
                 for f in range(feeder_count):
-                    panel.feeders.append({
-                        "breaker_id": f"BRK-{panel.name}-{f + 1}",
-                        "rated_current_a": node.get("current", 63) if isinstance(node.get("current"), (int, float)) else 63,
-                        "load_name": f"LOAD-{panel.name}-{f + 1}",
-                        "load_kw": node.get("power", 10) if isinstance(node.get("power"), (int, float)) else 10,
-                    })
+                    panel.feeders.append(BreakerDef(
+                        breaker_id=f"BRK-{panel.name}-{f + 1:02d}",
+                        rated_current_a=feeder_current,
+                        load_name=f"LOAD-{panel.name}-{f + 1:02d}",
+                        load_kw=load_kw_final,
+                        poles=3,
+                    ))
 
             model.project.panels.append(panel)
 
     def _create_transformer_from_node(self, model: UnifiedEngineeringModel, node: dict, graph: EngineeringGraph) -> None:
         """Create a Transformer entity from a graph node."""
+        power = node.get("power", 1.0)
+        if isinstance(power, (list, tuple)):
+            # Multiple power values found; use the first one that matches transformer rating (typically MVA)
+            # Sort: prefer larger values (MVA ratings are typically higher kW numbers? No, MVA < kW in MVA units)
+            # For "2MVA, 500kVA" — after MW→kW conversion: [2000, 500]
+            # Pick the larger one for transformer rating
+            power = max(power)
+        elif not isinstance(power, (int, float)):
+            power = 1.0
+        # power is in kW (MW/kW patterns normalize to kW). MVA = kW / 1000 * pf approximately
+        # But transformer rated_power_mva is MVA — need to convert from kVA, not kW
+        # If power > 100, assume it's in kW and convert dividing by 1000 to get MVA
+        rated_mva = power / 1000.0 if power > 100 else power
+
         xf = Transformer(
             name=f"XF-{node.get('transformer_type', 'DIST').upper()}-1",
             from_bus_id=node.get("from_bus", "BUS-SRC"),
             to_bus_id=node.get("to_bus", "BUS-LOAD"),
-            rated_power_mva=node.get("power", 1.0) / 1000 if node.get("power", 0) > 100 else node.get("power", 1.0),
+            rated_power_mva=rated_mva,
             transformer_type=node.get("transformer_type", "distribution"),
             primary_voltage_kv=11.0,
             secondary_voltage_kv=0.415,
             impedance_percent=node.get("impedance", 5.75),
-            source_system="ai_generated",
+            source_system=SourceSystem.AI_GENERATED,
         )
         # Add to model via project metadata
         model.metadata.setdefault("transformers", []).append(xf.model_dump(mode="json"))
 
     def _create_bus_from_node(self, model: UnifiedEngineeringModel, node: dict, graph: EngineeringGraph) -> None:
         """Create a Bus entity from a graph node."""
+        voltage = node.get("voltage", 11000)
+        if isinstance(voltage, (list, tuple)):
+            voltage = voltage[0]
+        elif not isinstance(voltage, (int, float)):
+            voltage = 11000
+        # Convert from V to kV: 11000V → 11kV, 415V → 0.415kV
+        base_kv = voltage / 1000.0 if voltage >= 1000 else voltage
+
         bus = Bus(
             name=node.get("name", f"BUS-{uuid.uuid4().hex[:6].upper()}"),
-            base_kv=node.get("voltage", 11.0) / 1000 if node.get("voltage", 11000) > 1000 else node.get("voltage", 11.0),
+            base_kv=base_kv,
             voltage_magnitude_pu=1.0,
-            source_system="ai_generated",
+            source_system=SourceSystem.AI_GENERATED,
         )
         model.metadata.setdefault("buses", []).append(bus.model_dump(mode="json"))
 
@@ -433,30 +625,68 @@ class ModelGenerator:
             length_m=node.get("length", 100),
             conductor_size_mm2=node.get("size", 95),
             voltage_rating_kv=0.6,
-            source_system="ai_generated",
+            source_system=SourceSystem.AI_GENERATED,
         )
         model.metadata.setdefault("cables", []).append(cable.model_dump(mode="json"))
 
     def _create_motor_from_node(self, model: UnifiedEngineeringModel, node: dict, graph: EngineeringGraph) -> None:
         """Create a Motor entity from a graph node."""
+        voltage = node.get("voltage", 400)
+        if isinstance(voltage, (list, tuple)):
+            voltage = voltage[0]
+        elif not isinstance(voltage, (int, float)):
+            voltage = 400
+        # if voltage > 1000 assume it's in V (not kV)
+        voltage_v = voltage if voltage > 100 else voltage * 1000
+
         motor = Motor(
             name=node.get("name", f"MTR-{uuid.uuid4().hex[:6].upper()}"),
             bus_id=node.get("bus_id", "BUS-LOAD"),
             rated_power_kw=node.get("power", 75),
-            rated_voltage_v=node.get("voltage", 400),
+            rated_voltage_v=voltage_v,
             starting_method=node.get("starter", "across_the_line"),
-            source_system="ai_generated",
+            source_system=SourceSystem.AI_GENERATED,
         )
         model.metadata.setdefault("motors", []).append(motor.model_dump(mode="json"))
 
+    def _create_generator_from_node(self, model: UnifiedEngineeringModel, node: dict, graph: EngineeringGraph) -> None:
+        """Create a Generator entity from a graph node."""
+        power_kw = node.get("power", 500)
+        if isinstance(power_kw, (list, tuple)):
+            power_kw = power_kw[-1]
+        # Convert MVA/kVA to kW if needed (assume pf=0.8)
+        # The power param comes from regex matching "kw", "kva", "mva", "mw"
+        # Already normalized to kW in _extract_parameters (MW→kW, MVA→kW approx)
+        if not isinstance(power_kw, (int, float)):
+            power_kw = 500
+
+        gen_type = node.get("generator_type", "synchronous")
+        gen = Generator(
+            name=f"GEN-{uuid.uuid4().hex[:6].upper()}",
+            bus_id=node.get("bus_id", "BUS-GEN"),
+            rated_power_mw=power_kw / 1000.0,
+            generator_type=gen_type,
+            rated_power_mva=power_kw / 850.0,  # approx MVA from kW @ 0.85 pf
+            power_factor=0.85,
+            internal_voltage_pu=1.0,
+            source_system=SourceSystem.AI_GENERATED,
+        )
+        model.metadata.setdefault("generators", []).append(gen.model_dump(mode="json"))
+
     def _create_load_from_node(self, model: UnifiedEngineeringModel, node: dict, graph: EngineeringGraph) -> None:
         """Create a Load entity from a graph node."""
+        power = node.get("power", 10)
+        if isinstance(power, (list, tuple)):
+            power = power[-1]
+        elif not isinstance(power, (int, float)):
+            power = 10
+
         load = Load(
             name=node.get("name", f"LOAD-{uuid.uuid4().hex[:6].upper()}"),
             bus_id=node.get("bus_id", "BUS-LOAD"),
-            rated_power_kw=node.get("power", 10),
+            rated_power_kw=power,
             load_type=node.get("load_type", "generic"),
-            source_system="ai_generated",
+            source_system=SourceSystem.AI_GENERATED,
         )
         model.metadata.setdefault("loads", []).append(load.model_dump(mode="json"))
 
@@ -582,11 +812,20 @@ class AIDrawingEngine:
                 }
 
             # 7. Generate validation report
+            # Gather entity counts from all sources
+            panel_count = len(model.project.panels)
+            xf_count = len(model.metadata.get("transformers", []))
+            gen_count = len(model.metadata.get("generators", []))
+            has_any_entity = panel_count + xf_count + gen_count > 0
+
             validation = {
-                "model_integrity": {"passed": len(model.project.panels) > 0, "issues": []},
+                "model_integrity": {"passed": has_any_entity, "issues": []},
                 "voltage_check": {"passed": True, "issues": []},
                 "feeder_check": {"passed": True, "issues": []},
             }
+            if not has_any_entity:
+                validation["model_integrity"]["issues"].append("No entities were created from the request")
+
             if model.project.panels:
                 for panel in model.project.panels:
                     if panel.main_breaker_a and panel.bus_rating_a:

@@ -92,8 +92,10 @@ class PanelType(str, Enum):
     LP = "LP"
     CP = "CP"
     AHUB = "AHUB"
+    MCC = "MCC"
     POWER_PANEL = "POWER_PANEL"
     LIGHTING_PANEL = "LIGHTING_PANEL"
+    SUB_PANEL = "SUB_PANEL"
 
 
 class BreakerType(str, Enum):

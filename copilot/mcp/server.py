@@ -637,6 +637,6 @@ class CopilotMCPServer:
             "status": "healthy",
             "autocad_connected": self.autocad.is_connected,
             "revit_connected": self.revit.is_connected,
-            "etap_available": self.etap_provider.is_available(),
+            "etap_available": self.etap_provider.is_available() if self.etap_provider else False,
             "tools_count": len(self._tool_registry),
         }
