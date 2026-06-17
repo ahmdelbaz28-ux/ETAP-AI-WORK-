@@ -1,10 +1,9 @@
-from typing import Any, Dict, List, Optional
+from typing import Optional
 
 from coordination.coordination import CoordinationEngine
 from engine.interfaces import (
     ArcFlashEngineProtocol,
     CoordinationEngineProtocol,
-    FaultAnalyzerProtocol,
     LoadFlowSolverProtocol,
     VisualizerProtocol,
 )

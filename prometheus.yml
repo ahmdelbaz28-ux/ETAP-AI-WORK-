@@ -1,4 +1,4 @@
-# Prometheus configuration for ETAP AI Engineering Platform
+# Prometheus configuration for AhmedETAP
 global:
   scrape_interval: 15s
   evaluation_interval: 15s

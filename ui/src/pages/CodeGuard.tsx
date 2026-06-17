@@ -23,7 +23,7 @@ const severityConfig = {
 
 export default function CodeGuard() {
   const { t } = useTranslation()
-  const notify = useNotify()
+  const { notify } = useNotify()
   const [source, setSource] = useState('')
   const [guardType, setGuardType] = useState('all')
   const [loading, setLoading] = useState(false)
@@ -31,7 +31,7 @@ export default function CodeGuard() {
 
   const handleReview = async () => {
     if (!source.trim()) {
-      notify({ type: 'error', message: 'Please enter source code to review' })
+      notify('error', 'Please enter source code to review')
       return
     }
     setLoading(true)
@@ -39,12 +39,12 @@ export default function CodeGuard() {
       const res = await guardReview(source, guardType)
       setResult(res)
       if (res.all_passed) {
-        notify({ type: 'success', message: 'Code passed all guard checks!' })
+        notify('success', 'Code passed all guard checks!')
       } else {
-        notify({ type: 'warning', message: `Found ${res.must_fix_total} must-fix and ${res.should_fix_total} should-fix violations` })
+        notify('warning', `Found ${res.must_fix_total} must-fix and ${res.should_fix_total} should-fix violations`)
       }
     } catch (err) {
-      notify({ type: 'error', message: `Guard review failed: ${err}` })
+      notify('error', `Guard review failed: ${err}`)
     } finally {
       setLoading(false)
     }
@@ -72,12 +72,8 @@ export default function CodeGuard() {
       {/* Input Panel */}
       <motion.div {...fadeIn} transition={{ delay: 0.1 }}>
         <Card>
-          <CardHeader>
-            <div className="flex items-center justify-between w-full">
-              <div className="flex items-center gap-2">
-                <Code className="w-4 h-4 text-purple-500" />
-                <span className="font-medium">Source Code</span>
-              </div>
+          <CardHeader title="Source Code" icon={<Code className="w-4 h-4 text-purple-500" />}
+            action={
               <div className="flex gap-2">
                 {[
                   { value: 'all', label: 'All Guards', icon: Shield },
@@ -100,8 +96,8 @@ export default function CodeGuard() {
                   </button>
                 ))}
               </div>
-            </div>
-          </CardHeader>
+            }
+          />
           <textarea
             value={source}
             onChange={(e) => setSource(e.target.value)}

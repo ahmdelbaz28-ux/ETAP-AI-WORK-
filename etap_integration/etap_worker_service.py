@@ -20,7 +20,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from etap_integration.etap_com import ETAPAutomation, ETAPStudyType
 from security.security_framework import Permission, get_authz_manager
 
-app = FastAPI(title="ETAP AI Windows Worker", version="1.0.0")
+app = FastAPI(title="AhmedETAP Windows Worker", version="1.0.0")
 
 # ----------------------------
 # Security: JWT + RBAC

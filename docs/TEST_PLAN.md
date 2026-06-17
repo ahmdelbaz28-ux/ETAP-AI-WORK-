@@ -2,7 +2,7 @@
 
 ## TEST_SCOPE
 
-This test plan covers the ETAP AI Engineering Platform quality gates for the following domains:
+This test plan covers the AhmedETAP quality gates for the following domains:
 
 - **Python engineering engines**: core power-system models, load-flow solvers, short-circuit analysis, arc-flash calculations, protection coordination, and validation suites.
 - **ETAP integration**: ETAP COM automation workflows, Windows worker connectivity, study execution, and result reconciliation.

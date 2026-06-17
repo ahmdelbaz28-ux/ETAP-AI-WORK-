@@ -1,8 +1,8 @@
-# ETAP AI Engineering Platform — Full API Reference
+# AhmedETAP — Full API Reference
 
 ## Overview
 
-The ETAP AI Engineering Platform exposes a comprehensive RESTful API and WebSocket interface for power system analysis, agent orchestration, SCADA integration, predictive analytics, and system management. This document provides complete specifications for every endpoint, including request/response schemas, authentication requirements, rate limits, and usage examples.
+The AhmedETAP exposes a comprehensive RESTful API and WebSocket interface for power system analysis, agent orchestration, SCADA integration, predictive analytics, and system management. This document provides complete specifications for every endpoint, including request/response schemas, authentication requirements, rate limits, and usage examples.
 
 ### Base URLs
 

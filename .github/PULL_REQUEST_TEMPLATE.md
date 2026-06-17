@@ -1,29 +1,43 @@
 ## Summary
 
-<!-- What does this PR do? -->
-
-## Changes
-
-<!-- List the key changes -->
+Brief description of the changes.
 
 ## Type of Change
 
 - [ ] Bug fix
 - [ ] New feature
 - [ ] Breaking change
-- [ ] Documentation
+- [ ] Documentation update
 - [ ] Refactoring
-- [ ] CI/CD
+- [ ] Performance improvement
+
+## Related Issues
+
+Closes #(issue number)
+
+## Changes Made
+
+- Change 1
+- Change 2
+- Change 3
 
 ## Testing
 
-- [ ] Tests pass locally
-- [ ] New tests added (if applicable)
-- [ ] Manual testing performed
+- [ ] Unit tests pass (`pytest -q`)
+- [ ] Integration tests pass
+- [ ] UI builds successfully (`cd ui && pnpm build`)
+- [ ] Manual testing completed
+- [ ] Validation suite passes
 
 ## Checklist
 
 - [ ] Code follows project style guidelines
-- [ ] Self-review completed
-- [ ] Documentation updated (if applicable)
-- [ ] No secrets or credentials committed
+- [ ] Self-reviewed the code
+- [ ] Comments added for complex logic
+- [ ] Documentation updated
+- [ ] No new warnings introduced
+- [ ] Security implications considered
+
+## Screenshots (if applicable)
+
+<!-- Add screenshots showing the changes -->

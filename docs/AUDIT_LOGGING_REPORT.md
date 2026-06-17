@@ -1,4 +1,4 @@
-# ETAP AI Platform — Audit Logging & Compliance Report
+# AhmedETAP — Audit Logging & Compliance Report
 
 **Version:** 1.0.0  
 **Date:** 2026-06-10  
@@ -152,7 +152,7 @@ curl -s https://ahmed-etap.ahmdelbaz28.workers.dev/metrics | jq '.metrics.audit'
 
 ## 10. Certification Statement
 
-> The ETAP AI Platform implements operational-grade audit logging with tamper-resistant KV storage, 90-day retention, and API-based export. All user actions, authentication events, rate-limiting events, and study executions are logged with traceable correlation IDs.
+> The AhmedETAP implements operational-grade audit logging with tamper-resistant KV storage, 90-day retention, and API-based export. All user actions, authentication events, rate-limiting events, and study executions are logged with traceable correlation IDs.
 
 **Certified by:** Security Operations Team  
 **Date:** 2026-06-10  

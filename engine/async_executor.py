@@ -1,4 +1,4 @@
-"""Async execution and concurrency module for the ETAP AI Engineering Platform."""
+"""Async execution and concurrency module for the AhmedETAP Engineering Platform."""
 
 import asyncio
 import enum

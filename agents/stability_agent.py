@@ -1,5 +1,5 @@
 """
-ETAP AI Engineering Platform - Stability Analysis Agent
+AhmedETAP - Stability Analysis Agent
 ========================================================
 Transient and small-signal stability analysis per IEEE 399 (Brown Book)
 and IEEE 1584-2018.
@@ -263,19 +263,23 @@ class StabilityAgent(BaseAgent):
         # Upper-right block: Identity (d(delta)/dt = omega - omega_s)
         A[:n_gen, n_gen:] = np.eye(n_gen)
 
-        # Lower-left block: M^{-1} K_S (synchronizing)
+        # Lower-left block: -M^{-1} K_S (synchronizing)
+        # The linearized swing equation is d(Δω)/dt = M⁻¹(-K_S·Δδ - D·Δω),
+        # so the synchronizing-coefficient block carries a negative sign.
         M_inv = np.diag(1.0 / M)
-        A[n_gen:, :n_gen] = M_inv @ K_S
+        A[n_gen:, :n_gen] = -M_inv @ K_S
 
         # Lower-right block: M^{-1} D (damping)
         A[n_gen:, n_gen:] = -M_inv @ np.diag(D)
 
-        # Compute eigenvalues
-        eigenvalues = np.linalg.eigvals(A)
+        # Compute eigenvalues AND eigenvectors in a single call (avoids
+        # ordering inconsistencies between eigvals() and eig()).
+        eigenvalues, right_vecs = np.linalg.eig(A)
 
         # Sort by real part (most unstable first)
         idx = np.argsort(np.real(eigenvalues))
         eigenvalues = eigenvalues[idx]
+        right_vecs = right_vecs[:, idx]  # reorder columns to match
 
         # Compute damping ratios and frequencies for oscillatory modes
         damping_ratios = []
@@ -308,22 +312,11 @@ class StabilityAgent(BaseAgent):
                     }
                 )
 
-        # Participation factor analysis
-        eigenvalues_full, right_vecs = np.linalg.eig(A)
-
-        # Sort both values and vectors consistently
-        idx = np.argsort(np.real(eigenvalues_full))
-        eigenvalues_full = eigenvalues_full[idx]
-        right_vecs = right_vecs[:, idx]  # columns are right eigenvectors
+        # Participation factor analysis (reuse eigenvectors from same call)
         left_vecs = np.linalg.inv(right_vecs)  # rows are left eigenvectors
 
-        n_modes = 2 * n_gen
-        pf = np.zeros((n_modes, n_modes))
-        for i in range(n_modes):
-            pf[i, i] = abs(np.dot(left_vecs[i, :], right_vecs[:, i]))
-
         participation_factors = []
-        for i in range(n_modes):
+        for i in range(2 * n_gen):
             # Participation factor for mode i: P_ki = |left_i[k] * right_k[i]|
             # left_vecs[i, :] is the i-th left eigenvector (row)
             # right_vecs[:, i] is the i-th right eigenvector (column)

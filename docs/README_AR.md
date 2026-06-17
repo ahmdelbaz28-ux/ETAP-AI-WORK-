@@ -1,4 +1,4 @@
-# منصة ETAP AI للهندسة الكهربائية - دليل البدء السريع
+# منصة AhmedETAP للهندسة الكهربائية - دليل البدء السريع
 
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Python](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
@@ -8,7 +8,7 @@
 
 ## 🎯 نظرة عامة
 
-منصة **ETAP AI للهندسة الكهربائية** هي نظام متكامل متعدد الوكلاء (Multi-Agent Autonomous System) مصمم لإدارة وتحليل وتشغيل دراسات أنظمة القدرة الكهربائية بشكل احترافي ومتوافق مع المعايير الدولية IEEE و IEC و NFPA.
+منصة **AhmedETAP للهندسة الكهربائية** هي نظام متكامل متعدد الوكلاء (Multi-Agent Autonomous System) مصمم لإدارة وتحليل وتشغيل دراسات أنظمة القدرة الكهربائية بشكل احترافي ومتوافق مع المعايير الدولية IEEE و IEC و NFPA.
 
 ### القدرات الرئيسية
 

@@ -271,7 +271,7 @@ export function StudyRun() {
                   onChange={setActiveTab}
                 />
                 <TabPanels>
-                  {activeTab === 'diagram' && <OneLineDiagram data={result.data as Record<string, unknown>} />}
+                  {activeTab === 'diagram' && <OneLineDiagram />}
                   {activeTab === 'data' && (
                     <div className="relative">
                       <button

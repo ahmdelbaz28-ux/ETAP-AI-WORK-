@@ -1,179 +1,105 @@
-# Contributing to ETAP AI Engineering Platform
+# Contributing to AhmedETAP
 
-Thank you for your interest in contributing! This document provides guidelines and information for contributors.
+Thank you for your interest in contributing to AhmedETAP! This document provides guidelines and instructions for contributing.
 
 ## Table of Contents
 
 - [Code of Conduct](#code-of-conduct)
-- [Getting Started](#getting-started)
+- [How to Contribute](#how-to-contribute)
 - [Development Setup](#development-setup)
 - [Coding Standards](#coding-standards)
-- [Testing](#testing)
+- [Commit Convention](#commit-convention)
 - [Pull Request Process](#pull-request-process)
 - [Reporting Bugs](#reporting-bugs)
 - [Requesting Features](#requesting-features)
 
 ## Code of Conduct
 
-This project adheres to the [Code of Conduct](CODE_OF_CONDUCT.md). By participating, you are expected to uphold this code.
+This project adheres to our [Code of Conduct](CODE_OF_CONDUCT.md). By participating, you agree to uphold its standards.
 
-## Getting Started
+## How to Contribute
 
-1. Fork the repository
-2. Clone your fork: `git clone https://github.com/your-username/ETAP-AI-WORK-.git`
-3. Create a branch: `git checkout -b feature/my-feature`
-4. Make your changes
-5. Run tests: `pnpm test && python validation_suite.py`
-6. Commit: `git commit -m 'feat: add new feature'`
-7. Push: `git push origin feature/my-feature`
-8. Open a Pull Request
+### Types of Contributions
+
+- **Bug Fixes** — Fix issues in existing functionality
+- **Features** — Add new engineering studies, agents, or UI components
+- **Documentation** — Improve guides, API docs, or inline comments
+- **Tests** — Add test coverage for existing or new code
+- **Performance** — Optimize solvers, caching, or frontend rendering
+- **Security** — Identify and fix security vulnerabilities
+
+### First-Time Contributors
+
+Look for issues labeled `good-first-issue` or `help-wanted`.
 
 ## Development Setup
 
-### Prerequisites
-
-- Python 3.13+
-- Node.js 22+
-- pnpm
-- Docker (optional)
-
-### Installation
-
 ```bash
-# Clone the repo
-git clone https://github.com/ahmdelbaz28-ux/ETAP-AI-WORK-.git
-cd ETAP-AI-WORK-
+# Fork and clone
+git clone https://github.com/<your-username>/AhmedETAP.git
+cd AhmedETAP
 
-# Install Python dependencies
+# Create virtual environment
 python -m venv venv
-source venv/bin/activate  # or venv\Scripts\activate on Windows
+source venv/bin/activate
 pip install -r requirements.txt
 
-# Install Node.js dependencies
-pnpm install
-
-# Copy environment file
-cp .env.example .env
-# Edit .env with your configuration
+# Install frontend dependencies
+cd ui && pnpm install && cd ..
 
 # Run validation
-python validation_suite.py
-```
-
-### Running Locally
-
-```bash
-# Terminal 1: Python backend
-python3 engineering_service.py --host 0.0.0.0 --port 8000
-
-# Terminal 2: Mastra frontend
-pnpm dev
-
-# Or with Docker
-./quickstart.sh
+python validate_syntax.py
+pytest -q
 ```
 
 ## Coding Standards
 
 ### Python
+- Follow PEP 8 with `ruff` linter
+- Type hints for all function signatures
+- Docstrings for public APIs (Google style)
+- Max line length: 100 characters
 
-- Follow PEP 8
-- Use type hints
-- Write docstrings for public functions
-- Maximum line length: 88 characters (Black default)
+### TypeScript/React
+- ESLint + Prettier for formatting
+- Functional components with hooks
+- TypeScript strict mode
+- Tailwind CSS for styling
 
-### TypeScript
-
-- Use strict mode
-- Follow Airbnb style guide
-- Prefer `const` over `let`
-- Use meaningful variable names
-
-### Commits
+### Commit Convention
 
 Follow [Conventional Commits](https://www.conventionalcommits.org/):
 
-- `feat:` New feature
-- `fix:` Bug fix
-- `docs:` Documentation changes
-- `style:` Code style changes (formatting, etc.)
-- `refactor:` Code refactoring
-- `test:` Adding or updating tests
-- `chore:` Maintenance tasks
-
-### Branch Naming
-
-- `feature/description` — New features
-- `fix/description` — Bug fixes
-- `docs/description` — Documentation
-- `refactor/description` — Refactoring
-
-## Testing
-
-### Running Tests
-
-```bash
-# Python validation suite
-python validation_suite.py
-
-# Python unit tests
-pytest tests/unit_tests.py -v
-
-# TypeScript tests
-pnpm test
-
-# UI tests
-cd ui && npx vitest run
 ```
-
-### Test Requirements
-
-- All new features must include tests
-- Bug fixes must include a regression test
-- Maintain or improve code coverage
-- Tests must pass before merging
+feat: add transient stability analysis
+fix: resolve load flow convergence issue
+docs: update API documentation
+test: add arc flash validation tests
+refactor: simplify relay coordination logic
+```
 
 ## Pull Request Process
 
-1. **Create a descriptive PR** with:
-   - Clear title following conventional commits
-   - Description of changes
-   - Link to related issues
-   - Screenshots (if applicable)
-
-2. **Ensure CI passes**:
-   - TypeScript type check
-   - Python validation
-   - Dashboard tests
-   - Shell script syntax
-
-3. **Request review** from maintainers
-
-4. **Address feedback** promptly
-
-5. **Squash and merge** after approval
+1. Create a feature branch: `git checkout -b feat/my-feature`
+2. Make changes and validate: `pytest -q && cd ui && pnpm build`
+3. Commit with conventional message
+4. Push and open a Pull Request
+5. Fill in the PR template
+6. Ensure CI passes
+7. Request review from maintainers
 
 ## Reporting Bugs
 
-Use the [Bug Report](https://github.com/ahmdelbaz28-ux/ETAP-AI-WORK-/issues/new?template=bug_report.yml) template.
-
-Include:
+Use the [Bug Report template](https://github.com/ahmdelbaz28-ux/AhmedETAP/issues/new?template=bug_report.md) with:
 - Steps to reproduce
-- Expected behavior
-- Actual behavior
+- Expected vs actual behavior
 - Environment details
-- Logs/screenshots
+- Screenshots if applicable
 
 ## Requesting Features
 
-Use the [Feature Request](https://github.com/ahmdelbaz28-ux/ETAP-AI-WORK-/issues/new?template=feature_request.yml) template.
-
-Include:
-- Problem statement
+Use the [Feature Request template](https://github.com/ahmdelbaz28-ux/AhmedETAP/issues/new?template=feature_request.md) with:
+- Problem description
 - Proposed solution
 - Alternatives considered
-- Use cases
-
-## Questions?
-
-Open a [Discussion](https://github.com/ahmdelbaz28-ux/ETAP-AI-WORK-/discussions) or contact maintainers.
+- Additional context

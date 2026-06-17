@@ -1,5 +1,5 @@
 /**
- * ETAP AI Platform — Load Testing Suite
+ * AhmedETAP Platform — Load Testing Suite
  * ======================================
  * Simulates 10 / 50 / 100 / 500 concurrent users against the deployed Worker.
  * Measures: latency, throughput, memory, CPU, failure rate.
@@ -108,7 +108,7 @@ async function runConcurrentBatch(concurrency: number, endpoint: string, method:
 
 async function runLoadTest() {
   console.log('╔══════════════════════════════════════════════════════════════════╗');
-  console.log('║         ETAP AI Platform — Load Testing Suite                   ║');
+  console.log('║         AhmedETAP Platform — Load Testing Suite                   ║');
   console.log('╚══════════════════════════════════════════════════════════════════╝');
   console.log(`Target: ${DEPLOYED_URL}`);
   console.log('');

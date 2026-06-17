@@ -13,6 +13,14 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+# Required so the post-build job can upload Trivy SARIF results to the
+# GitHub Security tab via github/codeql-action/upload-sarif@v3.
+# Without 'security-events: write', the upload fails with
+# "Resource not accessible by integration".
+permissions:
+  contents: read
+  security-events: write
+
 jobs:
   pre-commit:
     name: Lint, Syntax, Validation
@@ -87,20 +95,35 @@ jobs:
         run: pytest -q tests/e2e_smoke_test.py
         continue-on-error: true
 
-      - name: Set up Trivy
-        uses: aquasecurity/trivy-action@0.28.0
-        with:
-          version: '0.56.0'
-          cache-dir: /tmp/trivy-cache
-
-      - name: Trivy filesystem scan
-        run: trivy filesystem --exit-code 0 --severity CRITICAL,HIGH --format sarif --output trivy-results.sarif .
+      - name: Run Trivy filesystem scan (via Docker image)
+        # NOTE: We use the official Trivy Docker image directly instead of
+        # aquasecurity/trivy-action. The action's setup-trivy dependency chain
+        # has been repeatedly broken (v0.28.0 was deleted; v0.32.0 install.sh
+        # fails on Ubuntu 24.04). The Docker image is published and tested by
+        # the Trivy team and is far more stable.
+        run: |
+          docker run --rm \
+            -v "${PWD}:/repo" \
+            -v /tmp/trivy-cache:/root/.cache/trivy \
+            -w /repo \
+            aquasec/trivy:latest \
+            fs --exit-code 0 --severity CRITICAL,HIGH \
+               --ignore-unfixed \
+               --skip-dirs .git,node_modules,ui/node_modules,.venv,venv,__pycache__ \
+               --format sarif \
+               --output /repo/trivy-results.sarif \
+               .
 
       - name: Upload Trivy SARIF
         uses: github/codeql-action/upload-sarif@v3
         with:
           sarif_file: trivy-results.sarif
         if: always()
+        # Non-fatal: if SARIF upload fails (e.g. due to permission
+        # issues on forked PRs), the scan still ran and the SARIF file
+        # is available as a workflow artifact. Don't fail the whole
+        # workflow just because the upload was rejected.
+        continue-on-error: true
 
   scheduled-regression:
     name: Nightly Regression

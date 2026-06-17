@@ -252,7 +252,8 @@ class MotorModel:
                    I_prime * np.exp(-t / T_prime)
             I_dc = np.sqrt(2) * abs(I_double_prime) * np.exp(-t / T_dc)
             # Asymmetrical current magnitude = sqrt(I_ac_rms^2 + I_dc^2)
-            I_motor = np.sqrt(abs(I_ac)**2 + I_dc**2) * self.mva_ratio
+            # Always return complex for API consistency (t<=0 returns complex)
+            I_motor = complex(np.sqrt(abs(I_ac)**2 + I_dc**2) * self.mva_ratio, 0)
 
         return I_motor
 

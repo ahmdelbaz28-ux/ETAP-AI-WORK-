@@ -3,7 +3,7 @@ migrations/env.py — Alembic environment configuration for async migrations.
 
 This module configures Alembic to run migrations asynchronously using
 ``aiosqlite`` as the SQLite driver.  It is designed to work with the
-ETAP AI Engineering Platform's async SQLAlchemy 2.0 stack.
+AhmedETAP Engineering Platform's async SQLAlchemy 2.0 stack.
 
 Key features:
 * Asynchronous migration execution via ``run_async_migrations``

@@ -22,11 +22,11 @@
 
 ### Purpose
 
-This Troubleshooting Guide provides comprehensive diagnostic and resolution procedures for the ETAP AI Engineering Platform. It is intended for system administrators, DevOps engineers, and support personnel responsible for operating and maintaining the platform.
+This Troubleshooting Guide provides comprehensive diagnostic and resolution procedures for the AhmedETAP. It is intended for system administrators, DevOps engineers, and support personnel responsible for operating and maintaining the platform.
 
 ### Scope
 
-This guide covers all components of the ETAP AI Platform including:
+This guide covers all components of the AhmedETAP including:
 - Multi-Agent Orchestration System (agents/orchestrator.py)
 - ETAP COM Automation Interface (etap_integration/etap_com.py)
 - Calculation Engines (load_flow, fault_analysis, relays)
@@ -1523,7 +1523,7 @@ python -c "
 import sys, os
 from pathlib import Path
 
-print('=== ETAP AI Platform Health Check ===')
+print('=== AhmedETAP Health Check ===')
 print()
 
 # 1. Environment

@@ -1,8 +1,8 @@
-# ETAP AI Engineering Platform - Deployment Guide
+# AhmedETAP - Deployment Guide
 
 ## Overview
 
-This guide provides step-by-step instructions for deploying the ETAP AI Engineering Platform in production environments.
+This guide provides step-by-step instructions for deploying the AhmedETAP in production environments.
 
 ## Prerequisites
 

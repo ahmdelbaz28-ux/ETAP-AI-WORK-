@@ -1,5 +1,5 @@
 """
-End-to-end smoke tests for the ETAP AI Engineering Platform.
+End-to-end smoke tests for the AhmedETAP Engineering Platform.
 
 These tests validate core CLI entry points and file presence without
 touching production data or external services.

@@ -673,11 +673,42 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(
-    title="ETAP AI Engineering Service",
+    title="Ahmed etap Engineering Service",
     description="Production-grade power systems engineering computation API",
     version="1.0.0",
     lifespan=lifespan,
 )
+
+# ---------------------------------------------------------------------------
+# Register API routers (auth, projects)
+# ---------------------------------------------------------------------------
+try:
+    from api.auth import router as auth_router
+    app.include_router(auth_router)
+    logger.info("auth_router_registered", extra={"trace_id": "startup"})
+except ImportError as e:
+    logger.warning("auth_router_unavailable: %s", e, extra={"trace_id": "startup"})
+except Exception as e:
+    logger.warning("auth_router_failed: %s", e, extra={"trace_id": "startup"})
+
+try:
+    from api.projects import router as projects_router
+    app.include_router(projects_router)
+    logger.info("projects_router_registered", extra={"trace_id": "startup"})
+except ImportError as e:
+    logger.warning("projects_router_unavailable: %s", e, extra={"trace_id": "startup"})
+except Exception as e:
+    logger.warning("projects_router_failed: %s", e, extra={"trace_id": "startup"})
+
+# Initialize database tables at startup
+try:
+    import asyncio as _asyncio
+
+    from api.database import init_db
+    _asyncio.get_event_loop().run_until_complete(init_db())
+    logger.info("database_initialized", extra={"trace_id": "startup"})
+except Exception as e:
+    logger.warning("database_init_failed (non-fatal): %s", e, extra={"trace_id": "startup"})
 
 # ---------------------------------------------------------------------------
 # LangWatch Observability Integration
@@ -702,16 +733,26 @@ if _LANGWATCH_API_KEY:
 _CORS_ORIGINS = os.environ.get("ENGINEERING_SERVICE_CORS_ORIGINS", "").strip()
 _cors_origin_list = [o.strip() for o in _CORS_ORIGINS.split(",") if o.strip()] if _CORS_ORIGINS else []
 if not _cors_origin_list:
-    logger.warning(
-        "CORS: No origins configured (ENGINEERING_SERVICE_CORS_ORIGINS is empty). "
-        "CORS will be restrictive. Set this to your frontend URL(s) in production."
-    )
+    _ENV = os.environ.get("ENVIRONMENT", os.environ.get("ENV", "development")).lower()
+    if _ENV in ("production", "prod", "staging"):
+        logger.warning(
+            "CORS: No origins configured in %s environment. "
+            "Set ENGINEERING_SERVICE_CORS_ORIGINS to your frontend URL(s). "
+            "CORS is currently restrictive (no origins allowed).",
+            _ENV,
+        )
+    else:
+        logger.info(
+            "CORS: No origins configured (development mode). "
+            "Set ENGINEERING_SERVICE_CORS_ORIGINS for production."
+        )
     _cors_origin_list = []  # No origins allowed = restrictive by default
 app.add_middleware(
     CORSMiddleware,
     allow_origins=_cors_origin_list,
-    allow_methods=["GET", "POST", "HEAD", "OPTIONS"],
-    allow_headers=["x-api-key", "x-trace-id", "content-type"],
+    allow_credentials=True,
+    allow_methods=["GET", "POST", "PUT", "DELETE", "HEAD", "OPTIONS"],
+    allow_headers=["x-api-key", "x-trace-id", "content-type", "authorization"],
     expose_headers=["x-trace-id"],
 )
 app.add_middleware(_BodySizeLimitMiddleware)
@@ -873,7 +914,7 @@ async def trace_middleware(request: Request, call_next):
 @app.get("/")
 async def root():
     """Root endpoint — also handles HEAD / for HF Spaces health checks."""
-    return {"message": "ETAP AI Engineering Platform", "version": "1.0.0"}
+    return {"message": "Ahmed etap Engineering Platform", "version": "1.0.0"}
 
 
 @app.head("/healthz")
@@ -1925,7 +1966,7 @@ def main() -> None:
 
     parser = argparse.ArgumentParser(
         prog="engineering_service",
-        description="ETAP AI Engineering Service - FastAPI server for power systems analysis"
+        description="Ahmed etap Engineering Service - FastAPI server for power systems analysis"
     )
     parser.add_argument("--host", type=str, default=os.environ.get("ENGINEERING_SERVICE_HOST", "0.0.0.0"),
                         help="Host to bind (default: 0.0.0.0)")

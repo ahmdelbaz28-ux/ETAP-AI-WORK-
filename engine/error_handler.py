@@ -1,4 +1,4 @@
-"""Error handling and alerting infrastructure for the ETAP AI Engineering Platform.
+"""Error handling and alerting infrastructure for the AhmedETAP Engineering Platform.
 
 Provides production-grade error tracking, alerting, automatic recovery,
 and a component guard context manager for standardized exception handling.

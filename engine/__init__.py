@@ -5,13 +5,6 @@ asynchronous execution, caching, data optimization, error handling,
 numerical safety, resilience, and distributed scalability.
 """
 
-from engine.interfaces import (
-    ArcFlashEngineProtocol,
-    CoordinationEngineProtocol,
-    FaultAnalyzerProtocol,
-    LoadFlowSolverProtocol,
-    VisualizerProtocol,
-)
 from engine.async_executor import (
     AsyncExecutor,
     AsyncTask,
@@ -63,6 +56,13 @@ from engine.error_handler import (
 )
 from engine.gpu_solver import (
     GPUSolver,
+)
+from engine.interfaces import (
+    ArcFlashEngineProtocol,
+    CoordinationEngineProtocol,
+    FaultAnalyzerProtocol,
+    LoadFlowSolverProtocol,
+    VisualizerProtocol,
 )
 from engine.numerical_safety import (
     ConsistencyCheck,

@@ -1,6 +1,6 @@
 # SECURITY OPERATIONS MANUAL
 
-## ETAP AI Engineering Platform — Security Operations
+## AhmedETAP — Security Operations
 
 **Document ID:** SEC-OPS-001  
 **Version:** 1.0  

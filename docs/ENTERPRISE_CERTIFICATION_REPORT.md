@@ -1,4 +1,4 @@
-# ETAP AI Platform — Enterprise Certification Report
+# AhmedETAP — Enterprise Certification Report
 
 **Date:** 2026-06-10
 **Version:** 1.0.0
@@ -217,7 +217,7 @@
 
 # ✅ ENTERPRISE CERTIFIED
 
-The ETAP AI Platform has successfully completed all enterprise hardening phases. The system is certified for production deployment with the following reservations:
+The AhmedETAP has successfully completed all enterprise hardening phases. The system is certified for production deployment with the following reservations:
 
 1. **Extreme burst load (>1000 req/s):** Requires Workers Paid tier or Durable Object queueing.
 2. **Python runtime:** Windows dev environment is 3.8; production should use Linux + Python 3.11+.

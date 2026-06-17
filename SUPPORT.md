@@ -1,32 +1,37 @@
 # Support
 
-## 📧 Contact
+## Getting Help
 
-- **Author**: Eng. Ahmed Elbaz
-- **Email**: [ahmdelbaz28@gmail.com](mailto:ahmdelbaz28@gmail.com)
-- **GitHub**: [@ahmdelbaz28-ux](https://github.com/ahmdelbaz28-ux)
+### Documentation
+- [README](README.md) — Project overview and quick start
+- [API Documentation](API_DOCUMENTATION.md) — REST API reference
+- [Deployment Guide](DEPLOYMENT_GUIDE.md) — Production deployment
+- [Architecture](docs/ARCHITECTURE.md) — System design
+- [Troubleshooting](docs/TROUBLESHOOTING_GUIDE.md) — Common issues
 
-## 🐛 Bug Reports & Feature Requests
+### Community
+- [GitHub Discussions](https://github.com/ahmdelbaz28-ux/AhmedETAP/discussions) — Ask questions
+- [GitHub Issues](https://github.com/ahmdelbaz28-ux/AhmedETAP/issues) — Report bugs
+- [Live Demo](https://huggingface.co/spaces/ahmdelbaz28/etap-ai-platform) — Try it online
 
-Please use [GitHub Issues](https://github.com/ahmdelbaz28-ux/ETAP-AI-WORK-/issues) for:
+### Direct Support
+- **Email:** ahmdelbaz28@gmail.com
+- **GitHub:** [@ahmdelbaz28-ux](https://github.com/ahmdelbaz28-ux)
 
-- Bug reports
-- Feature requests
-- Documentation improvements
+## Troubleshooting
 
-## ❓ Questions & Discussions
+See [docs/TROUBLESHOOTING_GUIDE.md](docs/TROUBLESHOOTING_GUIDE.md) for:
+- Backend connectivity issues
+- Database configuration
+- ETAP COM automation
+- Docker deployment problems
+- UI build errors
+- Performance optimization
 
-For questions and discussions, please [open a discussion](https://github.com/ahmdelbaz28-ux/ETAP-AI-WORK-/discussions/new/choose) on GitHub.
+## Feature Requests
 
-## 🚀 Live Demo
+Open a [Feature Request](https://github.com/ahmdelbaz28-ux/AhmedETAP/issues/new?template=feature_request.md) on GitHub.
 
-Try ETAP AI online: [Hugging Face Spaces](https://huggingface.co/spaces/ahmdelbaz28/etap-ai-platform)
+## Security Issues
 
-## 📚 Documentation
-
-See the [full documentation](docs/) for:
-- [Architecture](docs/ARCHITECTURE.md)
-- [Deployment Guide](DEPLOYMENT_GUIDE.md)
-- [API Documentation](API_DOCUMENTATION.md)
-- [Security Operations Manual](docs/SECURITY_OPERATIONS_MANUAL.md)
-- [Troubleshooting Guide](docs/TROUBLESHOOTING_GUIDE.md)
+Report security vulnerabilities privately via email. See [SECURITY.md](SECURITY.md).

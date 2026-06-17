@@ -12,6 +12,7 @@ Provides reusable dependency callables for:
 from __future__ import annotations
 
 import hmac
+import logging
 import os
 from typing import Optional
 
@@ -22,6 +23,8 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from api.database import get_db
+
+logger = logging.getLogger(__name__)
 
 # ---------------------------------------------------------------------------
 # JWT configuration
@@ -50,6 +53,14 @@ JWT_ALGORITHM: str = "HS256"
 # ---------------------------------------------------------------------------
 
 API_KEY: str = os.getenv("ENGINEERING_SERVICE_API_KEY", "")
+if not API_KEY:
+    _env = os.getenv("ENVIRONMENT", os.getenv("ENV", "development")).lower()
+    if _env in ("production", "prod", "staging"):
+        raise RuntimeError(
+            "ENGINEERING_SERVICE_API_KEY must be set in production/staging. "
+            "Refusing to start with no API key."
+        )
+    logger.warning("ENGINEERING_SERVICE_API_KEY not set — API key auth disabled in development")
 
 
 # ---------------------------------------------------------------------------

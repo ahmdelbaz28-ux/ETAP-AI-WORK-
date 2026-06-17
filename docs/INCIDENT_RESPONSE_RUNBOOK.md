@@ -1,4 +1,4 @@
-# ETAP AI Platform — Incident Response Runbook
+# AhmedETAP — Incident Response Runbook
 
 **Version:** 1.0.0  
 **Date:** 2026-06-10  
@@ -271,7 +271,7 @@ curl -s https://ahmed-etap.ahmdelbaz28.workers.dev/api/v1/providers \
 
 **SEV-1 Initial:**
 ```
-🚨 SEV-1 Incident: ETAP AI Platform is experiencing a complete outage.
+🚨 SEV-1 Incident: AhmedETAP is experiencing a complete outage.
 - All API endpoints are returning errors.
 - We are investigating and will update every 15 minutes.
 - Incident channel: #incidents-sev1

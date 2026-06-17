@@ -1,5 +1,5 @@
 """
-ETAP AI Engineering Platform - Renewable Integration Agent
+AhmedETAP - Renewable Integration Agent
 ===========================================================
 Solar PV and wind turbine integration analysis per IEEE 1547.
 

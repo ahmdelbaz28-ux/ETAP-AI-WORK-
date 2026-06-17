@@ -1,5 +1,5 @@
 """
-test_edge_cases.py — Edge-case tests for critical ETAP AI Platform functions.
+test_edge_cases.py — Edge-case tests for critical AhmedETAP Platform functions.
 
 Covers 10 edge cases:
 1. Load flow with degenerate 1-bus system (no lines, no loads)

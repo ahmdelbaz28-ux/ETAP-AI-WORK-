@@ -1,5 +1,5 @@
 /**
- * ETAP AI Platform — API Client
+ * Ahmed etap Platform — API Client
  * Centralized API layer for all backend communication.
  */
 
