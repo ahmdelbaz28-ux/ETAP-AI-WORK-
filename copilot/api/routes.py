@@ -44,9 +44,17 @@ from autodesk_connector.shared.models import (
 from copilot.ai.drawing_engine import AIDrawingEngine
 from copilot.mcp.server import CopilotMCPServer
 from copilot.translation.engine import TranslationEngine
-from etap_integration.etap_provider import get_etap_provider
-
 logger = logging.getLogger(__name__)
+
+
+def _get_etap_provider():
+    """Lazy-load ETAP provider to avoid import errors on non-Windows."""
+    try:
+        from etap_integration.etap_provider import get_etap_provider
+        return get_etap_provider()
+    except Exception:
+        logger.warning("ETAP provider not available — some features will be disabled")
+        return None
 
 # ---------------------------------------------------------------------------
 # Request / Response Models
@@ -103,7 +111,7 @@ class CopilotAPI:
             revit_url=revit_url,
         )
         self.translation = TranslationEngine()
-        self.etap_provider = get_etap_provider()
+        self.etap_provider = _get_etap_provider()
         self.ai_engine = AIDrawingEngine(
             autocad_connector=self.mcp.autocad,
             revit_connector=self.mcp.revit,
@@ -274,7 +282,7 @@ class CopilotAPI:
                 "uptime_seconds": round(time.time() - self.start_time, 2),
                 "autocad_connected": self.mcp.autocad.is_connected,
                 "revit_connected": self.mcp.revit.is_connected,
-                "etap_available": self.etap_provider.is_available(),
+                "etap_available": self.etap_provider.is_available() if self.etap_provider else False,
                 "ai_engine": self.ai_engine.get_statistics(),
                 "translation": self.translation.get_statistics(),
             }
