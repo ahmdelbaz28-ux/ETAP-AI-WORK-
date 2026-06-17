@@ -68,8 +68,10 @@ class EngineSystemError:
     resolution: Optional[str] = None
 
 
-# Backward-compatible alias removed to avoid shadowing the Python built-in SystemError.
-# All code should use EngineSystemError directly.
+# Backward-compatible alias — maps SystemError to EngineSystemError so
+# existing tests and code that import SystemError from this module continue
+# to work.  New code should use EngineSystemError directly.
+SystemError = EngineSystemError
 
 
 # ---------------------------------------------------------------------------

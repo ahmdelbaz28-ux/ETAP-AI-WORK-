@@ -1,0 +1,259 @@
+# =============================================================================
+# AhmedETAP — Monitoring Stack (Prometheus + Jaeger + Grafana)
+# =============================================================================
+#
+# This compose file bundles the complete observability stack under a single
+# Docker Compose profile so you can spin it up with one command:
+#
+#   docker compose -f docker-compose.yml -f docker-compose.monitoring.yml \
+#       --profile monitoring up -d
+#
+# Or with the full platform (engineering service + monitoring):
+#
+#   docker compose -f docker.compose.yml -f docker-compose.monitoring.yml \
+#       --profile full up -d
+#
+# Services:
+#   - Prometheus  (metrics)      — http://localhost:9090
+#   - Jaeger      (traces)       — http://localhost:16686
+#   - Grafana     (dashboards)   — http://localhost:3001
+#   - engineering-service (with OTEL enabled) — http://localhost:8000
+#
+# =============================================================================
+
+services:
+  # ===========================================================================
+  # Prometheus (Metrics Collection)
+  # ===========================================================================
+  # Scrapes /prometheus/metrics from engineering-service every 15s.
+  # Stores 30 days of metrics data.
+  # ===========================================================================
+  prometheus:
+    image: prom/prometheus:v2.51.0
+    container_name: etap-prometheus
+    ports:
+      - "${PROMETHEUS_PORT:-9090}:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    restart: unless-stopped
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--storage.tsdb.retention.time=30d'
+      - '--web.console.libraries=/usr/share/prometheus/console_libraries'
+      - '--web.console.templates=/usr/share/prometheus/consoles'
+      - '--web.enable-lifecycle'
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "-", "http://localhost:9090/-/healthy"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+    networks:
+      - etap-network
+    profiles:
+      - monitoring
+      - full
+
+  # ===========================================================================
+  # Jaeger (Distributed Tracing)
+  # ===========================================================================
+  # Receives OTLP traces from the engineering-service via gRPC on port 4317.
+  # UI available at http://localhost:16686
+  # ===========================================================================
+  jaeger:
+    image: jaegertracing/all-in-one:1.55
+    container_name: etap-jaeger
+    ports:
+      - "${JAEGER_UI_PORT:-16686}:16686"
+      - "4317:4317"   # OTLP gRPC receiver
+      - "4318:4318"   # OTLP HTTP receiver
+    environment:
+      - COLLECTOR_OTLP_ENABLED=true
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O - http://localhost:14269/ || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+    networks:
+      - etap-network
+    profiles:
+      - monitoring
+      - full
+      - tracing
+
+  # ===========================================================================
+  # Grafana (Metrics + Traces Dashboard)
+  # ===========================================================================
+  # Pre-configured with Prometheus and Jaeger data sources.
+  # Includes dashboards: Prometheus metrics + Jaeger trace correlation.
+  # UI available at http://localhost:3001
+  # ===========================================================================
+  grafana:
+    image: grafana/grafana:latest
+    container_name: etap-grafana
+    ports:
+      - "${GRAFANA_PORT:-3001}:3000"
+    environment:
+      - GF_SECURITY_ADMIN_USER=${GRAFANA_USER:-admin}
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASS:?GRAFANA_PASS is required}
+      - GF_INSTALL_PLUGINS=grafana-piechart-panel
+      # Auto-provision Prometheus and Jaeger data sources
+      - GF_DATASOURCES_PROMETHEUS_URL=http://prometheus:9090
+      - GF_DATASOURCES_JAEGER_URL=http://jaeger:16686
+    volumes:
+      - grafana_data:/var/lib/grafana
+      # Auto-provision dashboards from grafana/
+      - ./grafana/dashboard.json:/var/lib/grafana/dashboards/ahmedetap-metrics.json:ro
+      - ./grafana/dashboard-jaeger-traces.json:/var/lib/grafana/dashboards/ahmedetap-jaeger-traces.json:ro
+      # Auto-provision data sources
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro
+    restart: unless-stopped
+    depends_on:
+      prometheus:
+        condition: service_healthy
+      jaeger:
+        condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+    networks:
+      - etap-network
+    profiles:
+      - monitoring
+      - full
+
+  # ===========================================================================
+  # Engineering Service (with OTLP tracing enabled)
+  # ===========================================================================
+  # Standalone Python FastAPI service for real computation.
+  # When the monitoring profile is active, OTEL_EXPORTER_TYPE is set to "otlp"
+  # so traces flow to Jaeger automatically.
+  # ===========================================================================
+  engineering-service:
+    build:
+      context: .
+      dockerfile: Dockerfile.engineering-service
+    image: etap-engineering-service:latest
+    container_name: etap-engineering-service
+    ports:
+      - "${ENGINEERING_SERVICE_PORT:-8000}:8000"
+    environment:
+      - ENGINEERING_SERVICE_HOST=0.0.0.0
+      - ENGINEERING_SERVICE_PORT=8000
+      - ENGINEERING_SERVICE_CORS_ORIGINS=${ENGINEERING_SERVICE_CORS_ORIGINS:-http://localhost:3000}
+      - ENGINEERING_SERVICE_MAX_BODY_SIZE=${ENGINEERING_SERVICE_MAX_BODY_SIZE:-1048576}
+      - ENGINEERING_SERVICE_API_KEY=${ENGINEERING_SERVICE_API_KEY:-}
+      # Enable OTLP tracing to Jaeger when monitoring profile is active
+      - OTEL_EXPORTER_TYPE=otlp
+      - OTEL_EXPORTER_ENDPOINT=jaeger:4317
+      - OTEL_SERVICE_NAME=engineering-service
+      - OTEL_SERVICE_VERSION=${ENGINEERING_SERVICE_VERSION:-1.0.0}
+      - OTEL_ENVIRONMENT=${ENVIRONMENT:-development}
+    env_file:
+      - .env.engineering-service
+    volumes:
+      - etap_engineering_logs:/app/logs
+      - etap_engineering_reports:/app/reports
+    restart: unless-stopped
+    stop_grace_period: 30s
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+    deploy:
+      resources:
+        limits:
+          cpus: '${ENGINEERING_CPU_LIMIT:-2.0}'
+          memory: ${ENGINEERING_MEMORY_LIMIT:-4G}
+        reservations:
+          cpus: '${ENGINEERING_CPU_RESERVATION:-1.0}'
+          memory: ${ENGINEERING_MEMORY_RESERVATION:-2G}
+    networks:
+      - etap-network
+    depends_on:
+      jaeger:
+        condition: service_healthy
+    profiles:
+      - monitoring
+      - full
+
+  # ===========================================================================
+  # Redis (Caching and Session Management)
+  # ===========================================================================
+  redis:
+    image: redis:7-alpine
+    container_name: etap-redis
+    expose:
+      - "6379"
+    environment:
+      - REDIS_PASSWORD=${REDIS_PASSWORD:?REDIS_PASSWORD is required}
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+    command: >
+      sh -c 'exec redis-server --appendonly yes --requirepass "$${REDIS_PASSWORD}"'
+    healthcheck:
+      test: ["CMD", "redis-cli", "--no-auth-warning", "-a", "$$REDIS_PASSWORD", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+    networks:
+      - etap-network
+
+# =============================================================================
+# Named Volumes
+# =============================================================================
+volumes:
+  etap_engineering_logs:
+    driver: local
+  etap_engineering_reports:
+    driver: local
+  redis_data:
+    driver: local
+  prometheus_data:
+    driver: local
+  grafana_data:
+    driver: local
+
+# =============================================================================
+# Networks
+# =============================================================================
+networks:
+  etap-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
