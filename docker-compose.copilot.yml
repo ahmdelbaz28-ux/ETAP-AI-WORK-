@@ -1,0 +1,241 @@
+# Engineering Copilot — Docker Compose
+# =====================================
+# Full stack deployment for the Engineering Copilot platform.
+# Includes: Copilot API, Engineering Service, ETAP Worker, Prometheus, Jaeger, Grafana.
+#
+# Usage:
+#   # Start the full copilot stack:
+#   docker compose -f docker-compose.yml -f docker-compose.copilot.yml up -d
+#
+#   # Start with specific profile:
+#   docker compose -f docker-compose.yml -f docker-compose.copilot.yml --profile copilot up -d
+
+version: "3.9"
+
+x-logging: &default-logging
+  driver: "json-file"
+  options:
+    max-size: "10m"
+    max-file: "3"
+
+services:
+  # =========================================================================
+  # Engineering Copilot API
+  # =========================================================================
+  copilot-api:
+    build:
+      context: .
+      dockerfile: Dockerfile.engineering-service
+    container_name: etap-copilot-api
+    profiles: ["copilot", "full"]
+    ports:
+      - "8080:8080"
+    environment:
+      # Copilot configuration
+      - COPILOT_PORT=8080
+      - COPILOT_HOST=0.0.0.0
+      - AUTOCAD_PLUGIN_URL=http://host.docker.internal:4820
+      - REVIT_PLUGIN_URL=http://host.docker.internal:4830
+      - ETAP_WORKER_URL=http://etap-worker:8001
+      - ETAP_WORKER_API_KEY=${ETAP_WORKER_API_KEY:-}
+      # Tracing & Metrics
+      - OTEL_SERVICE_NAME=etap-copilot-api
+      - OTEL_EXPORTER_TYPE=otlp
+      - OTEL_EXPORTER_ENDPOINT=http://jaeger:4317
+      - OTEL_ENVIRONMENT=production
+    volumes:
+      - ./data:/app/data
+      - ./schemas:/app/schemas:ro
+    depends_on:
+      - engineering-service
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    logging: *default-logging
+    networks:
+      - etap-network
+
+  # =========================================================================
+  # Engineering Service
+  # =========================================================================
+  engineering-service:
+    build:
+      context: .
+      dockerfile: Dockerfile.engineering-service
+    container_name: etap-engineering-service
+    profiles: ["copilot", "full", "monitoring"]
+    ports:
+      - "8000:8000"
+    environment:
+      - PORT=8000
+      - ENGINEERING_SERVICE_PORT=8000
+      - DATABASE_URL=${DATABASE_URL:-sqlite+aiosqlite:///./data/etap_platform.db}
+      - REDIS_URL=${REDIS_URL:-redis://redis:6379/0}
+      - ETAP_PROVIDER=${ETAP_PROVIDER:-mock}
+      - ETAP_WORKER_URL=http://etap-worker:8001
+      - ETAP_WORKER_API_KEY=${ETAP_WORKER_API_KEY:-}
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      - OTEL_SERVICE_NAME=etap-engineering-service
+      - OTEL_EXPORTER_TYPE=${OTEL_EXPORTER_TYPE:-otlp}
+      - OTEL_EXPORTER_ENDPOINT=http://jaeger:4317
+    volumes:
+      - ./data:/app/data
+      - ./schemas:/app/schemas:ro
+    depends_on:
+      redis:
+        condition: service_started
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+    logging: *default-logging
+    networks:
+      - etap-network
+
+  # =========================================================================
+  # ETAP Windows Worker (Linux-compatible stub)
+  # =========================================================================
+  etap-worker:
+    build:
+      context: .
+      dockerfile: Dockerfile.engineering-service
+    container_name: etap-worker
+    profiles: ["copilot", "full"]
+    ports:
+      - "8001:8001"
+    environment:
+      - PORT=8001
+      - ETAP_PROVIDER=mock
+      - WORKER_MODE=etap
+    command: ["uvicorn", "etap_integration.etap_worker_service:app", "--host", "0.0.0.0", "--port", "8001"]
+    logging: *default-logging
+    networks:
+      - etap-network
+
+  # =========================================================================
+  # Redis (caching & task queue)
+  # =========================================================================
+  redis:
+    image: redis:7-alpine
+    container_name: etap-redis
+    profiles: ["copilot", "full", "monitoring"]
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    logging: *default-logging
+    networks:
+      - etap-network
+
+  # =========================================================================
+  # PostgreSQL (production database)
+  # =========================================================================
+  postgres:
+    image: postgres:16-alpine
+    container_name: etap-postgres
+    profiles: ["copilot", "full"]
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER:-etap}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-etap_secret}
+      - POSTGRES_DB=${POSTGRES_DB:-etap_platform}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U etap"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    logging: *default-logging
+    networks:
+      - etap-network
+
+  # =========================================================================
+  # Prometheus (metrics)
+  # =========================================================================
+  prometheus:
+    image: prom/prometheus:v2.51.0
+    container_name: etap-prometheus
+    profiles: ["copilot", "full", "monitoring"]
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--storage.tsdb.path=/prometheus"
+      - "--storage.tsdb.retention.time=30d"
+    depends_on:
+      - engineering-service
+    logging: *default-logging
+    networks:
+      - etap-network
+
+  # =========================================================================
+  # Jaeger (distributed tracing)
+  # =========================================================================
+  jaeger:
+    image: jaegertracing/all-in-one:1.55
+    container_name: etap-jaeger
+    profiles: ["copilot", "full", "monitoring", "tracing"]
+    ports:
+      - "16686:16686"  # UI
+      - "4317:4317"    # OTLP gRPC
+      - "4318:4318"    # OTLP HTTP
+    environment:
+      - COLLECTOR_OTLP_ENABLED=true
+    logging: *default-logging
+    networks:
+      - etap-network
+
+  # =========================================================================
+  # Grafana (visualization)
+  # =========================================================================
+  grafana:
+    image: grafana/grafana:latest
+    container_name: etap-grafana
+    profiles: ["copilot", "full", "monitoring"]
+    ports:
+      - "3001:3000"
+    environment:
+      - GF_SECURITY_ADMIN_USER=${GRAFANA_USER:-admin}
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD:-admin}
+      - GF_INSTALL_PLUGINS=grafana-piechart-panel
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./grafana/dashboard.json:/var/lib/grafana/dashboards/ahmedetap-metrics.json:ro
+      - ./grafana/dashboard-jaeger-traces.json:/var/lib/grafana/dashboards/ahmedetap-jaeger-traces.json:ro
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro
+    depends_on:
+      - prometheus
+      - jaeger
+    logging: *default-logging
+    networks:
+      - etap-network
+
+networks:
+  etap-network:
+    name: etap-network
+    driver: bridge
+
+volumes:
+  redis-data:
+    driver: local
+  postgres-data:
+    driver: local
+  prometheus-data:
+    driver: local
+  grafana-data:
+    driver: local
