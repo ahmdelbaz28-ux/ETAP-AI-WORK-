@@ -54,7 +54,7 @@ jobs:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
         run: |
           echo "Cloning HuggingFace Space repository..."
-          git clone "https://ahmdelbaz28:${HF_TOKEN}@huggingface.co/spaces/ahmdelbaz28/etap-ai-platform" /tmp/hf-space
+          git clone "https://ahmdelbaz28:${HF_TOKEN}@huggingface.co/spaces/ahmdelbaz28/AHMEDETAP.git" /tmp/hf-space
           echo "HF Space cloned successfully"
 
       # -----------------------------------------------------------------------
@@ -287,7 +287,7 @@ jobs:
           echo "Checking Space status..."
           HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" \
             -H "Authorization: Bearer ${{ secrets.HF_TOKEN }}" \
-            "https://huggingface.co/api/spaces/ahmdelbaz28/etap-ai-platform" 2>/dev/null || echo "000")
+            "https://huggingface.co/api/spaces/ahmdelbaz28/AHMEDETAP" 2>/dev/null || echo "000")
 
           if [ "$HTTP_CODE" -eq 200 ]; then
             echo "✅ HuggingFace Space API is responding (HTTP $HTTP_CODE)"
@@ -303,7 +303,7 @@ jobs:
 
           while [ $ELAPSED -lt $MAX_WAIT ]; do
             HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" \
-              "https://ahmdelbaz28-etap-ai-platform.hf.space/health" 2>/dev/null || echo "000")
+              "https://ahmdelbaz28-AHMEDETAP.hf.space/health" 2>/dev/null || echo "000")
 
             if [ "$HTTP_CODE" -eq 200 ]; then
               echo "✅ HuggingFace Space is LIVE and healthy! (after ${ELAPSED}s)"
@@ -329,8 +329,8 @@ jobs:
           echo "=============================================="
           echo "  GitHub Commit: ${GITHUB_SHA}"
           echo "  GitHub Branch: ${GITHUB_REF}"
-          echo "  HF Space: ahmdelbaz28/etap-ai-platform"
-          echo "  HF URL: https://huggingface.co/spaces/ahmdelbaz28/etap-ai-platform"
-          echo "  Live Demo: https://ahmdelbaz28-etap-ai-platform.hf.space"
+          echo "  HF Space: ahmdelbaz28/AHMEDETAP"
+          echo "  HF URL: https://huggingface.co/spaces/ahmdelbaz28/AHMEDETAP"
+          echo "  Live Demo: https://ahmdelbaz28-AHMEDETAP.hf.space"
           echo "  Workflow Run: ${GITHUB_RUN_ID}"
           echo "=============================================="
