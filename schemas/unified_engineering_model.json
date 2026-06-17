@@ -1,0 +1,677 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Unified Engineering Model",
+  "description": "Platform-wide engineering schema for ETAP-AI-WORK. Defines all entities shared across ETAP, AutoCAD, and Revit.",
+  "version": "1.0.0",
+  "definitions": {
+    "BaseEntity": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier across the platform."
+        },
+        "name": {
+          "type": "string",
+          "description": "Human-readable display name."
+        },
+        "description": {
+          "type": "string",
+          "description": "Optional description of the entity."
+        },
+        "coordinates": {
+          "$ref": "#/definitions/Coordinates",
+          "description": "Spatial position (2D/3D)."
+        },
+        "metadata": {
+          "type": "object",
+          "additionalProperties": true,
+          "description": "Extensible key-value metadata."
+        },
+        "relationships": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/Relationship" },
+          "description": "Relationships to other entities."
+        },
+        "source_system": {
+          "type": "string",
+          "enum": ["etap", "autocad", "revit", "manual", "ai_generated"],
+          "description": "Origin system of this entity."
+        },
+        "created_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updated_at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": ["id", "name", "source_system", "created_at", "updated_at"]
+    },
+    "Coordinates": {
+      "type": "object",
+      "properties": {
+        "x": { "type": "number" },
+        "y": { "type": "number" },
+        "z": { "type": "number", "default": 0.0 }
+      },
+      "required": ["x", "y"]
+    },
+    "Relationship": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": ["connected_to", "feeds", "protected_by", "located_in", "supplies", "contains", "references", "synchronized_with"]
+        },
+        "target_id": { "type": "string" },
+        "target_type": { "type": "string" },
+        "metadata": {
+          "type": "object",
+          "additionalProperties": true
+        }
+      },
+      "required": ["type", "target_id", "target_type"]
+    },
+    "Project": {
+      "allOf": [
+        { "$ref": "#/definitions/BaseEntity" },
+        {
+          "type": "object",
+          "properties": {
+            "entity_type": { "const": "project" },
+            "buildings": {
+              "type": "array",
+              "items": { "$ref": "#/definitions/Building" }
+            },
+            "electrical_rooms": {
+              "type": "array",
+              "items": { "$ref": "#/definitions/ElectricalRoom" }
+            },
+            "panels": {
+              "type": "array",
+              "items": { "$ref": "#/definitions/Panel" }
+            },
+            "switchboards": {
+              "type": "array",
+              "items": { "$ref": "#/definitions/Switchboard" }
+            },
+            "base_mva": { "type": "number", "default": 100.0 },
+            "frequency_hz": { "type": "number", "default": 60.0 },
+            "standard": {
+              "type": "string",
+              "enum": ["IEC", "ANSI", "IEEE", "BS", "custom"],
+              "default": "IEC"
+            }
+          },
+          "required": ["entity_type"]
+        }
+      ]
+    },
+    "Building": {
+      "allOf": [
+        { "$ref": "#/definitions/BaseEntity" },
+        {
+          "type": "object",
+          "properties": {
+            "entity_type": { "const": "building" },
+            "levels": {
+              "type": "array",
+              "items": { "$ref": "#/definitions/Level" }
+            },
+            "address": { "type": "string" },
+            "total_area_sqm": { "type": "number" }
+          },
+          "required": ["entity_type"]
+        }
+      ]
+    },
+    "Level": {
+      "allOf": [
+        { "$ref": "#/definitions/BaseEntity" },
+        {
+          "type": "object",
+          "properties": {
+            "entity_type": { "const": "level" },
+            "elevation_m": { "type": "number" },
+            "height_m": { "type": "number" },
+            "rooms": {
+              "type": "array",
+              "items": { "$ref": "#/definitions/Room" }
+            },
+            "building_id": { "type": "string" }
+          },
+          "required": ["entity_type"]
+        }
+      ]
+    },
+    "Room": {
+      "allOf": [
+        { "$ref": "#/definitions/BaseEntity" },
+        {
+          "type": "object",
+          "properties": {
+            "entity_type": { "const": "room" },
+            "area_sqm": { "type": "number" },
+            "volume_m3": { "type": "number" },
+            "level_id": { "type": "string" },
+            "electrical_rooms": {
+              "type": "array",
+              "items": { "$ref": "#/definitions/ElectricalRoom" }
+            }
+          },
+          "required": ["entity_type"]
+        }
+      ]
+    },
+    "ElectricalRoom": {
+      "allOf": [
+        { "$ref": "#/definitions/BaseEntity" },
+        {
+          "type": "object",
+          "properties": {
+            "entity_type": { "const": "electrical_room" },
+            "room_id": { "type": "string" },
+            "equipment": {
+              "type": "array",
+              "items": { "$ref": "#/definitions/Equipment" }
+            },
+            "panels": {
+              "type": "array",
+              "items": { "$ref": "#/definitions/Panel" }
+            },
+            "cable_trays": {
+              "type": "array",
+              "items": { "$ref": "#/definitions/Tray" }
+            },
+            "clearance_mm": { "type": "number", "default": 1100 },
+            "ventilation_type": {
+              "type": "string",
+              "enum": ["natural", "forced", "hvac"]
+            }
+          },
+          "required": ["entity_type"]
+        }
+      ]
+    },
+    "Panel": {
+      "allOf": [
+        { "$ref": "#/definitions/BaseEntity" },
+        {
+          "type": "object",
+          "properties": {
+            "entity_type": { "const": "panel" },
+            "panel_type": {
+              "type": "string",
+              "enum": ["MDP", "SP", "DP", "LP", "CP", "AHUB", "POWER_PANEL", "LIGHTING_PANEL"]
+            },
+            "voltage_nominal_v": { "type": "number" },
+            "phase_count": { "type": "integer", "enum": [1, 3] },
+            "wire_count": { "type": "integer", "enum": [2, 3, 4] },
+            "main_breaker_a": { "type": "number" },
+            "bus_rating_a": { "type": "number" },
+            "interrupting_rating_ka": { "type": "number" },
+            "feeders": {
+              "type": "array",
+              "items": { "$ref": "#/definitions/Breaker" }
+            },
+            "feed_from": { "$ref": "#/definitions/Relationship" },
+            "location": { "$ref": "#/definitions/Coordinates" },
+            "mounting": {
+              "type": "string",
+              "enum": ["surface", "flush", "freestanding"]
+            },
+            "enclosure_type": {
+              "type": "string",
+              "enum": ["NEMA 1", "NEMA 3R", "NEMA 4", "NEMA 4X", "NEMA 12"]
+            }
+          },
+          "required": ["entity_type", "panel_type", "voltage_nominal_v"]
+        }
+      ]
+    },
+    "Switchboard": {
+      "allOf": [
+        { "$ref": "#/definitions/BaseEntity" },
+        {
+          "type": "object",
+          "properties": {
+            "entity_type": { "const": "switchboard" },
+            "voltage_nominal_v": { "type": "number" },
+            "bus_rating_a": { "type": "number" },
+            "interrupting_rating_ka": { "type": "number" },
+            "main_breaker_a": { "type": "number" },
+            "sections": {
+              "type": "array",
+              "items": { "$ref": "#/definitions/Equipment" }
+            },
+            "feeders": {
+              "type": "array",
+              "items": { "$ref": "#/definitions/Breaker" }
+            }
+          },
+          "required": ["entity_type"]
+        }
+      ]
+    },
+    "Bus": {
+      "allOf": [
+        { "$ref": "#/definitions/BaseEntity" },
+        {
+          "type": "object",
+          "properties": {
+            "entity_type": { "const": "bus" },
+            "bus_type": {
+              "type": "string",
+              "enum": ["slack", "pv", "pq", "swing"]
+            },
+            "voltage_magnitude_pu": { "type": "number" },
+            "voltage_angle_deg": { "type": "number" },
+            "base_kv": { "type": "number" },
+            "nominal_kv": { "type": "number" },
+            "load_mw": { "type": "number" },
+            "load_mvar": { "type": "number" },
+            "gen_mw": { "type": "number" },
+            "gen_mvar": { "type": "number" },
+            "q_min_mvar": { "type": "number" },
+            "q_max_mvar": { "type": "number" },
+            "substation_id": { "type": "string" },
+            "zone": { "type": "string" },
+            "area": { "type": "string" }
+          },
+          "required": ["entity_type", "bus_type", "base_kv"]
+        }
+      ]
+    },
+    "Transformer": {
+      "allOf": [
+        { "$ref": "#/definitions/BaseEntity" },
+        {
+          "type": "object",
+          "properties": {
+            "entity_type": { "const": "transformer" },
+            "transformer_type": {
+              "type": "string",
+              "enum": ["step_up", "step_down", "isolation", "auto", "distribution", "power", "instrument"]
+            },
+            "from_bus_id": { "type": "string" },
+            "to_bus_id": { "type": "string" },
+            "rated_power_mva": { "type": "number" },
+            "primary_voltage_kv": { "type": "number" },
+            "secondary_voltage_kv": { "type": "number" },
+            "impedance_percent": { "type": "number" },
+            "xr_ratio": { "type": "number" },
+            "winding_config": {
+              "type": "string",
+              "enum": ["delta-delta", "delta-wye", "wye-delta", "wye-wye", "delta-zigzag", "wye-zigzag"]
+            },
+            "tap_ratio": { "type": "number", "default": 1.0 },
+            "phase_shift_deg": { "type": "number", "default": 0.0 },
+            "cooling_type": {
+              "type": "string",
+              "enum": ["ONAN", "ONAF", "OFAF", "OFWF", "ODAF", "ODWF"]
+            },
+            "vector_group": { "type": "string" },
+            "r1_pu": { "type": "number" },
+            "x1_pu": { "type": "number" },
+            "r0_pu": { "type": "number" },
+            "x0_pu": { "type": "number" }
+          },
+          "required": ["entity_type", "from_bus_id", "to_bus_id", "rated_power_mva"]
+        }
+      ]
+    },
+    "Generator": {
+      "allOf": [
+        { "$ref": "#/definitions/BaseEntity" },
+        {
+          "type": "object",
+          "properties": {
+            "entity_type": { "const": "generator" },
+            "generator_type": {
+              "type": "string",
+              "enum": ["synchronous", "induction", "inverter", "diesel", "gas_turbine", "steam", "hydro", "wind", "solar_pv", "battery_storage"]
+            },
+            "bus_id": { "type": "string" },
+            "rated_power_mva": { "type": "number" },
+            "rated_power_mw": { "type": "number" },
+            "power_factor": { "type": "number" },
+            "internal_voltage_pu": { "type": "number" },
+            "xd_percent": { "type": "number" },
+            "xd_prime_percent": { "type": "number" },
+            "xd_second_percent": { "type": "number" },
+            "max_p_mw": { "type": "number" },
+            "min_p_mw": { "type": "number" },
+            "max_q_mvar": { "type": "number" },
+            "min_q_mvar": { "type": "number" },
+            "fuel_type": { "type": "string" },
+            "excitation_type": {
+              "type": "string",
+              "enum": ["static", "brushless", "dc"]
+            },
+            "governor_type": { "type": "string" }
+          },
+          "required": ["entity_type", "bus_id", "rated_power_mw"]
+        }
+      ]
+    },
+    "Cable": {
+      "allOf": [
+        { "$ref": "#/definitions/BaseEntity" },
+        {
+          "type": "object",
+          "properties": {
+            "entity_type": { "const": "cable" },
+            "cable_type": {
+              "type": "string",
+              "enum": ["power", "control", "instrumentation", "medium_voltage", "low_voltage", "fiber_optic"]
+            },
+            "from_bus_id": { "type": "string" },
+            "to_bus_id": { "type": "string" },
+            "length_m": { "type": "number" },
+            "conductor_size_mm2": { "type": "number" },
+            "conductor_material": {
+              "type": "string",
+              "enum": ["copper", "aluminum"]
+            },
+            "insulation_type": { "type": "string" },
+            "voltage_rating_kv": { "type": "number" },
+            "ampacity_a": { "type": "number" },
+            "r_ohm_per_km": { "type": "number" },
+            "x_ohm_per_km": { "type": "number" },
+            "r0_ohm_per_km": { "type": "number" },
+            "x0_ohm_per_km": { "type": "number" },
+            "number_of_cores": { "type": "integer" },
+            "installation_method": {
+              "type": "string",
+              "enum": ["tray", "conduit", "direct_burial", "aerial", "duct_bank", "cable_ladder"]
+            },
+            "cable_tray_id": { "type": "string" },
+            "conduit_id": { "type": "string" },
+            "routing_path": {
+              "type": "array",
+              "items": { "$ref": "#/definitions/Coordinates" }
+            }
+          },
+          "required": ["entity_type", "from_bus_id", "to_bus_id", "length_m"]
+        }
+      ]
+    },
+    "Breaker": {
+      "allOf": [
+        { "$ref": "#/definitions/BaseEntity" },
+        {
+          "type": "object",
+          "properties": {
+            "entity_type": { "const": "breaker" },
+            "breaker_type": {
+              "type": "string",
+              "enum": ["mccb", "acb", "mcb", "vcb", "sf6", "air_blast", "oil", "molded_case", "insulated_case", "load_break_switch"]
+            },
+            "rated_current_a": { "type": "number" },
+            "interrupting_rating_ka": { "type": "number" },
+            "voltage_rating_kv": { "type": "number" },
+            "poles": { "type": "integer", "enum": [1, 2, 3, 4] },
+            "frame_size_a": { "type": "number" },
+            "trip_unit_type": {
+              "type": "string",
+              "enum": ["thermal_magnetic", "electronic", "solid_state", "magnetic_only"]
+            },
+            "trip_curve": {
+              "type": "string",
+              "enum": ["B", "C", "D", "K", "Z", "MA", "custom"]
+            },
+            "bus_id": { "type": "string" },
+            "panel_id": { "type": "string" },
+            "feeder_number": { "type": "integer" },
+            "load_id": { "type": "string" }
+          },
+          "required": ["entity_type", "rated_current_a", "interrupting_rating_ka"]
+        }
+      ]
+    },
+    "Load": {
+      "allOf": [
+        { "$ref": "#/definitions/BaseEntity" },
+        {
+          "type": "object",
+          "properties": {
+            "entity_type": { "const": "load" },
+            "load_type": {
+              "type": "string",
+              "enum": ["constant_power", "constant_impedance", "constant_current", "motor", "lighting", "hvac", "receptacle", "elevator", "pump", "compressor", "welder", "data_center", "generic"]
+            },
+            "bus_id": { "type": "string" },
+            "rated_power_kw": { "type": "number" },
+            "rated_power_kva": { "type": "number" },
+            "power_factor": { "type": "number" },
+            "voltage_v": { "type": "number" },
+            "phase_count": { "type": "integer", "enum": [1, 3] },
+            "demand_factor": { "type": "number", "default": 1.0 },
+            "diversity_factor": { "type": "number", "default": 1.0 },
+            "load_category": {
+              "type": "string",
+              "enum": ["critical", "essential", "normal", "standby", "optional"]
+            },
+            "is_interruptible": { "type": "boolean", "default": false },
+            "zip_model": {
+              "type": "object",
+              "properties": {
+                "z_percent": { "type": "number" },
+                "i_percent": { "type": "number" },
+                "p_percent": { "type": "number" }
+              }
+            }
+          },
+          "required": ["entity_type", "bus_id", "rated_power_kw"]
+        }
+      ]
+    },
+    "Motor": {
+      "allOf": [
+        { "$ref": "#/definitions/BaseEntity" },
+        {
+          "type": "object",
+          "properties": {
+            "entity_type": { "const": "motor" },
+            "motor_type": {
+              "type": "string",
+              "enum": ["induction", "synchronous", "dc", "servo", "stepper"]
+            },
+            "bus_id": { "type": "string" },
+            "rated_power_kw": { "type": "number" },
+            "rated_voltage_v": { "type": "number" },
+            "rated_speed_rpm": { "type": "number" },
+            "starting_method": {
+              "type": "string",
+              "enum": ["across_the_line", "star_delta", "soft_start", "vfd", "autotransformer"]
+            },
+            "starting_current_multiplier": { "type": "number", "default": 6.0 },
+            "efficiency_percent": { "type": "number" },
+            "power_factor": { "type": "number" },
+            "locked_rotor_current_a": { "type": "number" },
+            "full_load_current_a": { "type": "number" },
+            "acceleration_time_sec": { "type": "number" },
+            "load_type": { "type": "string" },
+            "load_inertia_kgm2": { "type": "number" },
+            "breaker_id": { "type": "string" }
+          },
+          "required": ["entity_type", "bus_id", "rated_power_kw"]
+        }
+      ]
+    },
+    "Relay": {
+      "allOf": [
+        { "$ref": "#/definitions/BaseEntity" },
+        {
+          "type": "object",
+          "properties": {
+            "entity_type": { "const": "relay" },
+            "relay_type": {
+              "type": "string",
+              "enum": ["overcurrent", "distance", "differential", "voltage", "frequency", "directional", "pilot", "recloser"]
+            },
+            "relay_curve": {
+              "type": "string",
+              "enum": ["iec_standard_inverse", "iec_very_inverse", "iec_extremely_inverse", "iec_long_time_inverse", "ieee_moderately_inverse", "ieee_very_inverse", "ieee_extremely_inverse", "ieee_short_time_inverse", "definite_time", "custom"]
+            },
+            "pickup_a": { "type": "number" },
+            "time_dial": { "type": "number" },
+            "ct_ratio": { "type": "number" },
+            "bus_id": { "type": "string" },
+            "breaker_id": { "type": "string" },
+            "instantaneous_pickup_a": { "type": "number" },
+            "phase_count": { "type": "integer", "enum": [1, 3], "default": 3 },
+            "function_numbers": {
+              "type": "array",
+              "items": { "type": "integer" },
+              "description": "ANSI/IEEE device function numbers (e.g., 50, 51, 67, 21, 87)"
+            }
+          },
+          "required": ["entity_type", "relay_type", "pickup_a"]
+        }
+      ]
+    },
+    "ProtectionDevice": {
+      "allOf": [
+        { "$ref": "#/definitions/BaseEntity" },
+        {
+          "type": "object",
+          "properties": {
+            "entity_type": { "const": "protection_device" },
+            "device_category": {
+              "type": "string",
+              "enum": ["relay", "fuse", "recloser", "sectionalizer", "surge_arrester", "current_transformer", "voltage_transformer"]
+            },
+            "rated_voltage_kv": { "type": "number" },
+            "continuous_current_a": { "type": "number" },
+            "interrupting_current_ka": { "type": "number" },
+            "bus_id": { "type": "string" },
+            "manufacturer": { "type": "string" },
+            "model": { "type": "string" },
+            "settings": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "required": ["entity_type", "device_category"]
+        }
+      ]
+    },
+    "Conduit": {
+      "allOf": [
+        { "$ref": "#/definitions/BaseEntity" },
+        {
+          "type": "object",
+          "properties": {
+            "entity_type": { "const": "conduit" },
+            "conduit_type": {
+              "type": "string",
+              "enum": ["rmc", "imc", "emc", "pvc", "flexible_metal", "liquidtight_flexible", "pvc_coated"]
+            },
+            "diameter_mm": { "type": "number" },
+            "wall_thickness_mm": { "type": "number" },
+            "length_m": { "type": "number" },
+            "fill_percent": { "type": "number", "maximum": 100 },
+            "cable_ids": { "type": "array", "items": { "type": "string" } },
+            "from_point": { "$ref": "#/definitions/Coordinates" },
+            "to_point": { "$ref": "#/definitions/Coordinates" },
+            "routing_path": {
+              "type": "array",
+              "items": { "$ref": "#/definitions/Coordinates" }
+            }
+          },
+          "required": ["entity_type", "diameter_mm", "length_m"]
+        }
+      ]
+    },
+    "Tray": {
+      "allOf": [
+        { "$ref": "#/definitions/BaseEntity" },
+        {
+          "type": "object",
+          "properties": {
+            "entity_type": { "const": "tray" },
+            "tray_type": {
+              "type": "string",
+              "enum": ["ladder", "perforated", "solid_bottom", "wire_mesh", "channel", "cable_bus"]
+            },
+            "width_mm": { "type": "number" },
+            "height_mm": { "type": "number" },
+            "length_m": { "type": "number" },
+            "fill_percent": { "type": "number", "maximum": 100 },
+            "cable_ids": { "type": "array", "items": { "type": "string" } },
+            "routing_path": {
+              "type": "array",
+              "items": { "$ref": "#/definitions/Coordinates" }
+            },
+            "supports_interval_m": { "type": "number" },
+            "material": {
+              "type": "string",
+              "enum": ["steel", "stainless_steel", "aluminum", "fiberglass", "pvc_coated"]
+            }
+          },
+          "required": ["entity_type", "width_mm", "length_m"]
+        }
+      ]
+    },
+    "Equipment": {
+      "allOf": [
+        { "$ref": "#/definitions/BaseEntity" },
+        {
+          "type": "object",
+          "properties": {
+            "entity_type": { "const": "equipment" },
+            "equipment_category": {
+              "type": "string",
+              "enum": ["switchgear", "motor_control_center", "panelboard", "transformer_pad", "generator_set", "ups", "battery_bank", "rectifier", "inverter", "vfd", "capacitor_bank", "reactor", "filter", "metering", "other"]
+            },
+            "manufacturer": { "type": "string" },
+            "model": { "type": "string" },
+            "rated_power_kva": { "type": "number" },
+            "voltage_nominal_v": { "type": "number" },
+            "weight_kg": { "type": "number" },
+            "dimensions": {
+              "type": "object",
+              "properties": {
+                "width_mm": { "type": "number" },
+                "depth_mm": { "type": "number" },
+                "height_mm": { "type": "number" }
+              }
+            }
+          },
+          "required": ["entity_type", "equipment_category"]
+        }
+      ]
+    },
+    "Annotation": {
+      "allOf": [
+        { "$ref": "#/definitions/BaseEntity" },
+        {
+          "type": "object",
+          "properties": {
+            "entity_type": { "const": "annotation" },
+            "annotation_type": {
+              "type": "string",
+              "enum": ["label", "dimension", "note", "symbol", "tag", "schedule", "title_block"]
+            },
+            "text": { "type": "string" },
+            "font_size": { "type": "number" },
+            "rotation_deg": { "type": "number", "default": 0 },
+            "layer": { "type": "string" },
+            "attached_to_id": { "type": "string" },
+            "attached_to_type": { "type": "string" }
+          },
+          "required": ["entity_type", "annotation_type"]
+        }
+      ]
+    }
+  },
+  "type": "object",
+  "properties": {
+    "schema_version": { "type": "string", "const": "1.0.0" },
+    "project": { "$ref": "#/definitions/Project" }
+  },
+  "required": ["schema_version", "project"]
+}
