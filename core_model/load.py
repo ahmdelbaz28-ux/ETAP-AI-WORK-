@@ -1,5 +1,10 @@
 
 class Load:
+    __slots__ = (
+        'load_id', 'bus', 'load_power', 'impedance',
+        'power_factor', 'constant_impedance',
+    )
+
     def __init__(self, load_id, bus,
                  load_power=None,
                  impedance=None,

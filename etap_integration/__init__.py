@@ -2,7 +2,7 @@
 ETAP Integration Package
 ========================
 Provides ETAP COM automation, provider abstraction, worker service,
-error recovery, and compatibility checking for the ETAP AI platform.
+error recovery, compatibility checking, and sync engine for the ETAP AI platform.
 """
 
 import sys as _sys
@@ -30,6 +30,8 @@ _RecoveryAttempt = None
 _ETAPCompatibilityChecker = None
 _CompatibilityReport = None
 _CheckResult = None
+
+_ETAPSyncEngine = None
 
 
 def __getattr__(name):
@@ -96,6 +98,11 @@ def __getattr__(name):
             "CheckResult": _CheckResult,
         }
         return mapping[name]
+    if name == "ETAPSyncEngine":
+        global _ETAPSyncEngine
+        if _ETAPSyncEngine is None:
+            from etap_integration.sync_engine import ETAPSyncEngine as _ETAPSyncEngine
+        return _ETAPSyncEngine
     raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
 
 
@@ -119,4 +126,5 @@ __all__ = [
     "ETAPCompatibilityChecker",
     "CompatibilityReport",
     "CheckResult",
+    "ETAPSyncEngine",
 ]

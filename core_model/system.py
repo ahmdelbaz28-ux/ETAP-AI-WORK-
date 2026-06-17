@@ -2,6 +2,12 @@ import numpy as np
 
 
 class System:
+    __slots__ = (
+        'base_mva', 'buses', 'lines', 'transformers',
+        'generators', 'loads', 'Ybus_seq',
+        '_include_gen_impedance_pos',
+    )
+
     def __init__(self, base_mva=100.0):
         """
         Initialize a Power System object.

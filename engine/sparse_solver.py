@@ -390,13 +390,17 @@ class SparseYBus:
                 break
 
             # --- Build Jacobian (sparse) ---
+            # The analytical Jacobian computes d(mismatch)/dx where
+            # mismatch = [\u0394P, \u0394Q] = [P_sch - P_calc, Q_sch - Q_calc].
+            # The Newton-Raphson step is J * \u0394x = -mismatch, so
+            # we negate the RHS to match the d(mismatch)/dx formulation.
             J = self._build_sparse_jacobian(
                 V, Ybus_dense, pv_idx, pq_idx, n_unknowns
             )
 
             # --- Solve linear system ---
             try:
-                dx = spsolve(J.tocsr(), mismatch)
+                dx = spsolve(J.tocsr(), -mismatch)
             except Exception:
                 # Fallback to least-squares
                 J_dense = J.toarray() if issparse(J) else np.asarray(J)
@@ -457,89 +461,126 @@ class SparseYBus:
         pq_idx: List[int],
         n_unknowns: int,
     ) -> lil_matrix:
-        """Construct the sparse Jacobian matrix.
+        """Construct the sparse Jacobian matrix analytically.
 
-        The Jacobian has the block structure::
+        Uses the closed-form Newton-Raphson Jacobian formulas directly from
+        the Y-bus elements, avoiding the O(n·n_unknowns) mismatch evaluations
+        required by the previous finite-difference approach.
 
-            [ H  N ]
-            [ M  L ]
+        The Jacobian has the block structure (mismatch formulation):
 
-        where
-            H = ∂P/∂θ,  N = ∂P/∂|V|·|V|
-            M = ∂Q/∂θ,  L = ∂Q/∂|V|·|V|
+            [ \u0394P_pv ]   [ J1  J2 ] [ \u0394\u03b8 ]
+            [ \u0394P_pq ] = [ J1  J2 ] [ \u0394\u03b8 ]
+            [ \u0394Q_pq ]   [ J3  J4 ] [ \u0394|V| ]
 
-        The mismatch / correction formulation is::
+        where all submatrices are derivatives of the **mismatch**
+        m = [\u0394P, \u0394Q] = [P_sch \u2212 P_calc, Q_sch \u2212 Q_calc],
+        not of P_calc / Q_calc directly.
 
-            [ΔP/|V|]   [ H  N ] [ Δθ       ]
-            [ΔQ/|V|] = [ M  L ] [ Δ|V|/|V| ]
+        Formulas (from Grainger & Stevenson, Kundur):
+
+            J1 diag:    Q_i + B_ii|V_i|\u00b2
+            J1 off:    \u2212|V_i||V_j|(G_ij sin \u03b8_ij \u2212 B_ij cos \u03b8_ij)
+
+            J2 diag:   \u2212P_i/|V_i| \u2212 G_ii|V_i|
+            J2 off:    \u2212|V_i|(G_ij cos \u03b8_ij + B_ij sin \u03b8_ij)
+
+            J3 diag:   \u2212P_i + G_ii|V_i|\u00b2
+            J3 off:     |V_i||V_j|(G_ij cos \u03b8_ij + B_ij sin \u03b8_ij)
+
+            J4 diag:   \u2212Q_i/|V_i| + B_ii|V_i|
+            J4 off:    \u2212|V_i|(G_ij sin \u03b8_ij \u2212 B_ij cos \u03b8_ij)
 
         Returns
         -------
-        lil_matrix  (float, n_unknowns × n_unknowns)
+        lil_matrix  (float, n_unknowns \u00d7 n_unknowns)
         """
-        len(V)
         n_pv = len(pv_idx)
         n_pq = len(pq_idx)
 
+        n = len(V)
         J = lil_matrix((n_unknowns, n_unknowns), dtype=float)
 
-        # Pre-compute helpers
-        np.abs(V)
-        np.angle(V)
+        # Precompute intermediates for the analytical formulas
+        Vmag = np.abs(V)
+        Vang = np.angle(V)
+        G = Ybus.real
+        B = Ybus.imag
 
-        # Conductance / susceptance matrices
+        # Angle differences (n x n matrix)
+        theta = Vang[:, np.newaxis] - Vang[np.newaxis, :]
+        sin_theta = np.sin(theta)
+        cos_theta = np.cos(theta)
 
-        # Pre-compute I_inj = Y * V  for all buses
-        Ybus @ V
+        # Voltage products
+        V_i = Vmag[:, np.newaxis]        # (n, 1)
+        V_j = Vmag[np.newaxis, :]        # (1, n)
+        V_i_V_j = V_i * V_j              # (n, n)
 
-        # The analytical Jacobian is complex to hand-code correctly; use
-        # the well-known sparse finite-difference approach that is both
-        # robust and preserves sparsity.
-        eps_theta = 1e-8
-        eps_v = 1e-8
+        # Current power injections
+        I = Ybus @ V
+        S = V * np.conj(I)
+        P = S.real
+        Q = S.imag
 
-        # Base mismatch
-        def _compute_mismatch(V_trial: np.ndarray) -> np.ndarray:
-            I_t = Ybus @ V_trial
-            S_t = V_trial * np.conj(I_t)
-            P_t = S_t.real
-            Q_t = S_t.imag
-            dP = P_t  # mismatch against scheduled P is handled outside
-            dQ = Q_t
-            m = np.zeros(n_unknowns)
-            for k, i in enumerate(pv_idx):
-                m[k] = dP[i]
-            for k, i in enumerate(pq_idx):
-                m[n_pv + k] = dP[i]
-            for k, i in enumerate(pq_idx):
-                m[n_pv + n_pq + k] = dQ[i]
-            return m
+        # Column indexing helpers
+        n_th_cols = n_pv + n_pq
+        row_buses = pv_idx + pq_idx       # \u0394P rows
+        th_col_buses = pv_idx + pq_idx    # \u0394\u03b8 columns
+        vm_col_buses = pq_idx             # \u0394|V| columns
 
-        base_m = _compute_mismatch(V)
+        # Precomputed products (vectorised, no Python loops over n\u00b2)
+        GS_minus_BC = G * sin_theta - B * cos_theta   # G_ij sin theta_ij - B_ij cos theta_ij
+        GS_minus_BC[np.arange(n), np.arange(n)] = 0.0   # zero diagonal for off-diag formulas
 
-        # θ perturbations (PV then PQ)
-        for col_k, i in enumerate(pv_idx + pq_idx):
-            V_trial = V.copy()
-            theta_i = np.angle(V_trial[i])
-            V_trial[i] = abs(V_trial[i]) * np.exp(1j * (theta_i + eps_theta))
-            m_trial = _compute_mismatch(V_trial)
-            col_data = (m_trial - base_m) / eps_theta
-            # Only store non-zeros
-            for row_k in range(n_unknowns):
-                if col_data[row_k] != 0.0:
-                    J[row_k, col_k] = col_data[row_k]
+        GC_plus_BS = G * cos_theta + B * sin_theta     # G_ij cos theta_ij + B_ij sin theta_ij
+        GC_plus_BS[np.arange(n), np.arange(n)] = 0.0
 
-        # |V| perturbations (PQ only)
-        for k, i in enumerate(pq_idx):
-            col_k = n_pv + n_pq + k
-            V_trial = V.copy()
-            vmag_i = abs(V_trial[i])
-            V_trial[i] = (vmag_i + eps_v) * np.exp(1j * np.angle(V_trial[i]))
-            m_trial = _compute_mismatch(V_trial)
-            col_data = (m_trial - base_m) / eps_v
-            for row_k in range(n_unknowns):
-                if col_data[row_k] != 0.0:
-                    J[row_k, col_k] = col_data[row_k]
+        # Diagonals
+        B_diag = B.diagonal()
+        G_diag = G.diagonal()
+        V2 = Vmag ** 2
+
+        # ---- J1: d\u0394P/d\u03b8 ----
+        # Row indices: 0..n_pv+n_pq-1  (all \u0394P rows)
+        # Col indices: 0..n_pv+n_pq-1  (all \u03b8 unknowns)
+        for ri, bus_i in enumerate(row_buses):
+            for ci, bus_k in enumerate(th_col_buses):
+                if bus_i == bus_k:
+                    J[ri, ci] = Q[bus_i] + B_diag[bus_i] * V2[bus_i]
+                else:
+                    J[ri, ci] = -V_i_V_j[bus_i, bus_k] * GS_minus_BC[bus_i, bus_k]
+
+        # ---- J2: d\u0394P/d|V| ----
+        # Col offset: n_pv + n_pq
+        for ri, bus_i in enumerate(row_buses):
+            for ci, bus_k in enumerate(vm_col_buses):
+                col = n_th_cols + ci
+                if bus_i == bus_k:
+                    J[ri, col] = -P[bus_i] / Vmag[bus_i] - G_diag[bus_i] * Vmag[bus_i]
+                else:
+                    J[ri, col] = -V_i[bus_i, 0] * GC_plus_BS[bus_i, bus_k]
+
+        # ---- J3: d\u0394Q/d\u03b8 ----
+        # Row offset: n_pv + n_pq
+        q_row_offset = n_pv + n_pq
+        for ri, bus_i in enumerate(pq_idx):
+            row = q_row_offset + ri
+            for ci, bus_k in enumerate(th_col_buses):
+                if bus_i == bus_k:
+                    J[row, ci] = -P[bus_i] + G_diag[bus_i] * V2[bus_i]
+                else:
+                    J[row, ci] = V_i_V_j[bus_i, bus_k] * GC_plus_BS[bus_i, bus_k]
+
+        # ---- J4: d\u0394Q/d|V| ----
+        for ri, bus_i in enumerate(pq_idx):
+            row = q_row_offset + ri
+            for ci, bus_k in enumerate(vm_col_buses):
+                col = n_th_cols + ci
+                if bus_i == bus_k:
+                    J[row, col] = -Q[bus_i] / Vmag[bus_i] + B_diag[bus_i] * Vmag[bus_i]
+                else:
+                    J[row, col] = -V_i[bus_i, 0] * GS_minus_BC[bus_i, bus_k]
 
         return J
 

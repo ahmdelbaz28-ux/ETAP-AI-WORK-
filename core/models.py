@@ -1,5 +1,8 @@
 """
-core/models.py — Core dataclasses for the Universal Data Model.
+core/models.py — Core data models for the Universal Data Model.
+
+Combines standard dataclasses (for performance-sensitive paths) with
+Pydantic BaseModels (for validation-heavy / API-facing schemas).
 """
 from __future__ import annotations
 
@@ -8,7 +11,118 @@ from datetime import datetime, timezone
 from enum import Enum
 from typing import Any, Dict, List, Optional
 
+from pydantic import BaseModel, Field, field_validator
 
+# =========================================================================
+# Pydantic models — validation + serialisation for API boundaries
+# =========================================================================
+
+
+class PydanticPoint3D(BaseModel):
+    """Pydantic equivalent of Point3D with built-in validation."""
+    x: float
+    y: float
+    z: float = 0.0
+
+
+class PydanticGeometry(BaseModel):
+    """Pydantic equivalent of Geometry with auto-validation."""
+    points: List[PydanticPoint3D] = Field(default_factory=list)
+    polyline_closed: bool = False
+    area: Optional[float] = None
+    perimeter: Optional[float] = None
+
+    @field_validator("area")
+    @classmethod
+    def area_must_be_positive(cls, v: Optional[float]) -> Optional[float]:
+        if v is not None and v < 0:
+            raise ValueError("area must be non-negative")
+        return v
+
+
+class PydanticSemanticProperties(BaseModel):
+    """Pydantic equivalent of SemanticProperties with enum validation."""
+    element_type: str
+    name: Optional[str] = None
+
+    @field_validator("element_type")
+    @classmethod
+    def element_type_must_be_valid(cls, v: str) -> str:
+        valid_types = {e.value for e in ElementType}
+        if v not in valid_types:
+            raise ValueError(
+                f"'{v}' is not a valid ElementType. Choose from: {sorted(valid_types)}"
+            )
+        return v
+    description: Optional[str] = None
+    material: Optional[str] = None
+    fire_rating: Optional[str] = None
+    height: Optional[float] = None
+    width: Optional[float] = None
+    load_bearing: Optional[bool] = None
+    layer: Optional[str] = None
+    revit_category: Optional[str] = None
+
+
+class PydanticUniversalElement(BaseModel):
+    """Pydantic equivalent of UniversalElement for API use.
+
+    Accepts either ``Relationship`` dataclass instances or plain dicts
+    in the ``relationships`` field via a ``@field_validator``.
+
+    Use ``PydanticUniversalElement.from_dataclass(elem)`` to convert from
+    the internal ``UniversalElement`` dataclass in a single call.
+    """
+    element_id: str
+    properties: Optional[PydanticSemanticProperties] = None
+    geometry: Optional[PydanticGeometry] = None
+    relationships: List[Dict[str, Any]] = Field(default_factory=list)
+    created_timestamp: Optional[datetime] = None
+    last_modified_timestamp: Optional[datetime] = None
+    last_modified_by: Optional[str] = None
+    source_file: Optional[str] = None
+    version: int = 0
+    is_deleted: bool = False
+
+    @field_validator("relationships", mode="before")
+    @classmethod
+    def coerce_relationship_objects(cls, v: Any) -> Any:
+        """Coerce ``Relationship`` dataclass instances to dicts."""
+        if isinstance(v, list):
+            return [
+                item.to_dict() if hasattr(item, "to_dict") else item
+                for item in v
+            ]
+        return v
+
+    @classmethod
+    def from_dataclass(cls, elem: UniversalElement) -> "PydanticUniversalElement":
+        """Build a Pydantic model from an internal ``UniversalElement`` dataclass."""
+        return cls(
+            element_id=elem.element_id,
+            properties=PydanticSemanticProperties(
+                **elem.properties.to_dict()
+            ) if elem.properties else None,
+            geometry=PydanticGeometry(
+                **elem.geometry.to_dict()
+            ) if elem.geometry else None,
+            relationships=[r.to_dict() for r in elem.relationships],
+            created_timestamp=elem.created_timestamp,
+            last_modified_timestamp=elem.last_modified_timestamp,
+            last_modified_by=elem.last_modified_by,
+            source_file=elem.source_file,
+            version=elem.version,
+            is_deleted=elem.is_deleted,
+        )
+
+
+# =========================================================================
+# Dataclass models — lightweight, performance-optimised for internal use
+# =========================================================================
+
+
+# Moved BEFORE Pydantic models so that @field_validator in
+# PydanticSemanticProperties can reference it without forward-reference issues.
 class ElementType(str, Enum):
     WALL = "wall"
     DOOR = "door"

@@ -45,6 +45,7 @@ from .event_bus import (
     ValidationErrorEvent,
     YbusRebuilt,
 )
+from .gis_bridge import GISSyncBridge
 from .state_store import StateSnapshot, StateStore
 from .validation_gateway import (
     DigitalTwinValidationError,
@@ -67,4 +68,5 @@ __all__ = [
     "DigitalTwinState", "SynchronizationEngine",
     "ChangePropagationEngine", "EventProcessor",
     "TimeSteppedSimulator", "LivePowerSystemEngine",
+    "GISSyncBridge",
 ]
