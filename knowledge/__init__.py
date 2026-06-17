@@ -3,6 +3,10 @@
 Provides retrieval-augmented generation (RAG) capabilities for querying
 engineering documentation, standards, and domain knowledge using vector
 database and embedding models.
+
+PRIMARY AUTHORITATIVE REFERENCES:
+- ETAP Official Manuals (knowledge_base/extracted/etap/)
+- Zenon SCADA Manuals (knowledge_base/extracted/zenon/)
 """
 
 from knowledge.rag_engine import (
