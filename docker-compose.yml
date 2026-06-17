@@ -79,6 +79,11 @@ services:
       - ENGINEERING_SERVICE_CORS_ORIGINS=${ENGINEERING_SERVICE_CORS_ORIGINS:-http://localhost:3000}
       - ENGINEERING_SERVICE_MAX_BODY_SIZE=${ENGINEERING_SERVICE_MAX_BODY_SIZE:-1048576}
       - ENGINEERING_SERVICE_API_KEY=${ENGINEERING_SERVICE_API_KEY:-}
+      - OTEL_EXPORTER_TYPE=${OTEL_EXPORTER_TYPE:-}
+      - OTEL_EXPORTER_ENDPOINT=${OTEL_EXPORTER_ENDPOINT:-jaeger:4317}
+      - OTEL_SERVICE_NAME=engineering-service
+      - OTEL_SERVICE_VERSION=${ENGINEERING_SERVICE_VERSION:-1.0.0}
+      - OTEL_ENVIRONMENT=${ENVIRONMENT:-development}
     # .env.engineering-service is optional; if present it's loaded as KEY=VALUE.
     # Long-form array syntax for Compose v2.0+ portability (not v2.24+ only).
     env_file:
@@ -272,6 +277,41 @@ services:
       - etap-network
     profiles:
       - production
+
+  # ===========================================================================
+  # Jaeger (Optional - Distributed Tracing)
+  # ===========================================================================
+  # Receives OTLP traces from the engineering-service via gRPC on port 4317.
+  # UI available at http://localhost:16686
+  # ===========================================================================
+  jaeger:
+    image: jaegertracing/all-in-one:1.55
+    container_name: etap-jaeger
+    ports:
+      - "${JAEGER_UI_PORT:-16686}:16686"
+      - "4317:4317"   # OTLP gRPC receiver
+      - "4318:4318"   # OTLP HTTP receiver
+    environment:
+      - COLLECTOR_OTLP_ENABLED=true
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O - http://localhost:14269/ || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+    networks:
+      - etap-network
+    profiles:
+      - full
+      - tracing
 
   # ===========================================================================
   # Grafana (Optional - Metrics Dashboard)

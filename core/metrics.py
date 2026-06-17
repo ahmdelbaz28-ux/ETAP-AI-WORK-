@@ -10,6 +10,7 @@ Patterns drawn from prometheus/client_python:
 
 from __future__ import annotations
 
+import inspect
 import logging
 from collections.abc import Callable
 from functools import wraps
@@ -120,6 +121,8 @@ ACTIVE_CONNECTIONS = Gauge(
 def track_skill_operation(operation: str) -> Callable:
     """Instrument a function with in-flight gauge + result counter.
 
+    Works transparently with both sync and async functions.
+
     Usage::
 
         @track_skill_operation("load")
@@ -128,8 +131,30 @@ def track_skill_operation(operation: str) -> Callable:
     """
 
     def decorator(func: Callable) -> Callable:
+        is_async = inspect.iscoroutinefunction(func)
+
+        if is_async:
+
+            @wraps(func)
+            async def async_wrapper(*args: Any, **kwargs: Any) -> Any:
+                SKILL_OPERATIONS_IN_FLIGHT.labels(operation_type=operation).inc()
+                try:
+                    result = await func(*args, **kwargs)
+                    SKILL_OPERATIONS.labels(operation=operation, status="success").inc()
+                    return result
+                except Exception as exc:
+                    SKILL_OPERATIONS.labels(operation=operation, status="error").inc()
+                    SKILL_ERRORS.labels(
+                        error_type=type(exc).__name__, skill_name="unknown"
+                    ).inc()
+                    raise
+                finally:
+                    SKILL_OPERATIONS_IN_FLIGHT.labels(operation_type=operation).dec()
+
+            return async_wrapper
+
         @wraps(func)
-        def wrapper(*args: Any, **kwargs: Any) -> Any:
+        def sync_wrapper(*args: Any, **kwargs: Any) -> Any:
             SKILL_OPERATIONS_IN_FLIGHT.labels(operation_type=operation).inc()
             try:
                 result = func(*args, **kwargs)
@@ -144,7 +169,7 @@ def track_skill_operation(operation: str) -> Callable:
             finally:
                 SKILL_OPERATIONS_IN_FLIGHT.labels(operation_type=operation).dec()
 
-        return wrapper
+        return sync_wrapper
 
     return decorator
 
@@ -165,11 +190,30 @@ def track_execution_duration(skill_name: str, phase: str = "total") -> Callable:
 
 
 def count_executions(skill_name: str) -> Callable:
-    """Increment success / error counter on function exit."""
+    """Increment success / error counter on function exit.
+
+    Works transparently with both sync and async functions.
+    """
 
     def decorator(func: Callable) -> Callable:
+        is_async = inspect.iscoroutinefunction(func)
+
+        if is_async:
+
+            @wraps(func)
+            async def async_wrapper(*args: Any, **kwargs: Any) -> Any:
+                try:
+                    result = await func(*args, **kwargs)
+                    EXECUTION_COUNT.labels(skill_name=skill_name, status="success").inc()
+                    return result
+                except Exception:
+                    EXECUTION_COUNT.labels(skill_name=skill_name, status="error").inc()
+                    raise
+
+            return async_wrapper
+
         @wraps(func)
-        def wrapper(*args: Any, **kwargs: Any) -> Any:
+        def sync_wrapper(*args: Any, **kwargs: Any) -> Any:
             try:
                 result = func(*args, **kwargs)
                 EXECUTION_COUNT.labels(skill_name=skill_name, status="success").inc()
@@ -178,7 +222,7 @@ def count_executions(skill_name: str) -> Callable:
                 EXECUTION_COUNT.labels(skill_name=skill_name, status="error").inc()
                 raise
 
-        return wrapper
+        return sync_wrapper
 
     return decorator
 
