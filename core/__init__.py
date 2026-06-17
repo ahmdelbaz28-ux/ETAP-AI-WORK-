@@ -1,3 +1,5 @@
+from core import metrics
+from core import tracing
 from core.database import UniversalDataModel
 from core.models import (
     ChangeSource,
@@ -30,4 +32,6 @@ __all__ = [
     "SemanticProperties",
     "UniversalElement",
     "UniversalDataModel",
+    "metrics",
+    "tracing",
 ]
