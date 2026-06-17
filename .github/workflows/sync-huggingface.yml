@@ -128,12 +128,12 @@ jobs:
           git lfs install
 
           # Track binary image files with LFS (HF Spaces rejects large binaries)
+          # Only track file types that actually exist in the repo
           git lfs track "*.png"
           git lfs track "*.jpg"
           git lfs track "*.jpeg"
           git lfs track "*.gif"
           git lfs track "*.ico"
-          git lfs track "*.svg"
           git lfs track "*.woff"
           git lfs track "*.woff2"
           git lfs track "*.eot"
@@ -146,7 +146,7 @@ jobs:
             git add .gitattributes
           fi
 
-          echo "✅ Git LFS configured for binary files"
+          echo "Git LFS configured for binary files"
 
       # -----------------------------------------------------------------------
       # Step 4c: Apply HuggingFace-specific configuration
