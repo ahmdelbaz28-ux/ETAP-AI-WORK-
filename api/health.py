@@ -18,7 +18,7 @@ from core.tracing import trace_operation
 router = APIRouter(prefix="", tags=["health"])
 
 # Import from core.metrics
-from core.metrics import _request_count, _success_count, _failed_count, _total_execution_time_sec, _metrics_lock
+from engineering_service import _request_count, _success_count, _failed_count, _total_execution_time_sec, _metrics_lock
 
 
 class HealthResponse:
@@ -94,13 +94,12 @@ async def readiness_check(request: Request):
         pass
     try:
         from etap_integration.etap_provider import get_etap_provider
-        provider_factory = get_etap_provider()
-        provider = provider_factory()
+        provider = get_etap_provider()
         etap_ok = provider.is_available()
     except Exception as exc:
         from logging import getLogger
         logger = getLogger("engineering_service")
-        logger.warning("etap_provider_unavailable", error=str(exc))
+        logger.warning("etap_provider_unavailable: %s", str(exc))
     return ReadyResponse(
         ready=native_ok,
         native_engine_available=native_ok,
