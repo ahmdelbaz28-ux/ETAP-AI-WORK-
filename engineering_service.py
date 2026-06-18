@@ -361,6 +361,7 @@ from core.metrics import (
 
 # Import OpenTelemetry tracing
 from core.tracing import get_tracer, inject_context, trace_operation
+from opentelemetry.trace import SpanKind, Status, StatusCode
 
 # Initialise app info metrics
 set_app_info(name="ahmedetap-engineering-service", version="1.0.0")

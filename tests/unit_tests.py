@@ -215,8 +215,8 @@ class TestWorkerRBAC:
         auth = AuthenticationManager(secret_key="test-rbac-secret")
         authz = AuthorizationManager(auth)
 
-        auth.create_user("engineer", "eng@test.com", "pass123", UserRole.ENGINEER)
-        token = auth.authenticate("engineer", "pass123")
+        auth.create_user("engineer", "eng@test.com", "password123", UserRole.ENGINEER)
+        token = auth.authenticate("engineer", "password123")
         assert token is not None
 
         for study_type, permission in STUDY_TYPE_TO_PERMISSION.items():
@@ -231,8 +231,8 @@ class TestWorkerRBAC:
         auth = AuthenticationManager(secret_key="test-viewer-secret")
         authz = AuthorizationManager(auth)
 
-        auth.create_user("viewer", "viewer@test.com", "pass123", UserRole.VIEWER)
-        token = auth.authenticate("viewer", "pass123")
+        auth.create_user("viewer", "viewer@test.com", "password123", UserRole.VIEWER)
+        token = auth.authenticate("viewer", "password123")
         assert token is not None
 
         for study_type, permission in STUDY_TYPE_TO_PERMISSION.items():
@@ -246,8 +246,8 @@ class TestWorkerRBAC:
         auth = AuthenticationManager(secret_key="test-guest-secret")
         authz = AuthorizationManager(auth)
 
-        auth.create_user("guest", "guest@test.com", "pass123", UserRole.GUEST)
-        token = auth.authenticate("guest", "pass123")
+        auth.create_user("guest", "guest@test.com", "password123", UserRole.GUEST)
+        token = auth.authenticate("guest", "password123")
         assert token is not None
 
         for perm in list(Permission)[:5]:  # Check a subset
@@ -275,8 +275,8 @@ class TestWorkerRBAC:
         auth = AuthenticationManager(secret_key="test-logout-secret")
         authz = AuthorizationManager(auth)
 
-        auth.create_user("temp_user", "temp@test.com", "pass123", UserRole.ENGINEER)
-        token = auth.authenticate("temp_user", "pass123")
+        auth.create_user("temp_user", "temp@test.com", "password123", UserRole.ENGINEER)
+        token = auth.authenticate("temp_user", "password123")
 
         # Before logout, permissions should work
         first_perm = list(STUDY_TYPE_TO_PERMISSION.values())[0]
@@ -812,8 +812,8 @@ class TestSecurityFramework:
         auth = AuthenticationManager(secret_key="test_secret")
         authz = AuthorizationManager(auth)
 
-        auth.create_user("engineer", "eng@example.com", "pass123", UserRole.ENGINEER)
-        token = auth.authenticate("engineer", "pass123")
+        auth.create_user("engineer", "eng@example.com", "password123", UserRole.ENGINEER)
+        token = auth.authenticate("engineer", "password123")
 
         # Engineer should have CALC_LOAD_FLOW permission
         has_perm = authz.check_permission(token, Permission.CALC_LOAD_FLOW)

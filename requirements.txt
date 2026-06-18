@@ -1,4 +1,11 @@
-# Power System Engineering Agent - Python Dependencies
+# Observability - OpenTelemetry
+opentelemetry-api>=1.20.0
+opentelemetry-sdk>=1.20.0
+opentelemetry-exporter-otlp>=1.20.0
+
+# Metrics - Prometheus
+prometheus-client>=0.19.0
+
 # Core numerical and scientific computing
 numpy>=1.21.0
 scipy>=1.7.0

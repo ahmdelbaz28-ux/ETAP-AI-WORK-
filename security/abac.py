@@ -766,11 +766,12 @@ def create_default_etap_abac_engine() -> ABACPolicyEngine:
     ))
 
     # Business hours deny
-    engine.add_policy(make_business_hours_policy(
+    for policy in make_business_hours_policy(
         name="business_hours_deny",
         start_hour=8,
         end_hour=18,
         priority=5,
-    ))
+    ):
+        engine.add_policy(policy)
 
     return engine
