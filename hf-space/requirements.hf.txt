@@ -1,9 +1,22 @@
-fastapi>=0.104.0
-uvicorn>=0.24.0
-pydantic>=2.0.0
-numpy>=1.21.0
-scipy>=1.7.0
-pandas>=1.3.0
-requests>=2.26.0
-pyyaml>=6.0
-httpx>=0.25.0
+# AhmedETAP HF Space — Core Dependencies
+# Python 3.11 compatible, no Windows-only packages
+
+# ─── Web Framework ────────────────────────────────────────────────────────────
+fastapi>=0.110.0
+uvicorn[standard]>=0.27.0
+pydantic>=2.5.0
+python-multipart>=0.0.9
+
+# ─── HTTP & Async ─────────────────────────────────────────────────────────────
+httpx>=0.27.0
+requests>=2.31.0
+aiohttp>=3.9.0
+
+# ─── Engineering & Scientific ─────────────────────────────────────────────────
+numpy>=1.26.0
+scipy>=1.12.0
+pandas>=2.1.0
+
+# ─── Config & Utils ───────────────────────────────────────────────────────────
+pyyaml>=6.0.1
+python-dotenv>=1.0.0
