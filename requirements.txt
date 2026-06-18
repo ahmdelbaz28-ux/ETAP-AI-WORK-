@@ -80,7 +80,7 @@ reportlab>=3.6.0
 tqdm>=4.62.0
 beautifulsoup4>=4.10.0
 lxml>=4.6.0
-langwatch>=0.1.0
+langwatch>=0.26.0
 
 # Phase 2: Security & Infrastructure
 pyotp>=2.9.0
