@@ -84,7 +84,7 @@ langwatch>=0.1.0
 
 # Phase 2: Security & Infrastructure
 pyotp>=2.9.0
-redis>=5.0.0
+redis>=8.0.0
 httpx>=0.25.0
 
 # Phase 2: GPU Computing (optional)
