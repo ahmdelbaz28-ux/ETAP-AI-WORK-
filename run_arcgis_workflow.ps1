@@ -19,9 +19,9 @@ foreach ($step in $workflowConfig.steps) {
         foreach ($key in $step.options.PSObject.Properties.Name) {
             $value = $step.options[$key]
             if ($value -is [hashtable] -or $value -is [System.Object[]]) {
-                Write-Host "    $key: $($value | ConvertTo-Json -Depth 3)" -ForegroundColor Gray
+                Write-Host "    ${key}: $($value | ConvertTo-Json -Depth 3)" -ForegroundColor Gray
             } else {
-                Write-Host "    $key: $value" -ForegroundColor Gray
+                Write-Host "    ${key}: $value" -ForegroundColor Gray
             }
         }
     }

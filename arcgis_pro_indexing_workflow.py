@@ -147,7 +147,7 @@ class ArcGISProIndexingWorkflow:
         # Initialize the transformer model if not already done
         if self.transformer_model is None:
             self.logger.info("Loading sentence transformer model...")
-            self.transformer_model = SentenceTransformer('all-MiniLM-L6-v2')
+            self.transformer_model = SentenceTransformer('all-MiniLM-L6-v2')  # type: ignore
             if self.transformer_model is None:
                 raise RuntimeError("SentenceTransformer could not be loaded")
         
@@ -157,6 +157,7 @@ class ArcGISProIndexingWorkflow:
             text_for_embedding = f"{item['title']} {item['content']}".strip()
             
             # Generate embedding
+            assert self.transformer_model is not None
             embedding = self.transformer_model.encode(text_for_embedding).tolist()
             
             # Add embedding to item
@@ -175,13 +176,12 @@ class ArcGISProIndexingWorkflow:
         # Initialize Elasticsearch client if not already done
         if self.elastic_client is None:
             elastic_config = self.config['steps'][3]['options']
-            self.elastic_client = Elasticsearch(
-                [elastic_config['host']],
-            )
+            self.elastic_client = Elasticsearch([elastic_config['host']])  # type: ignore
             if self.elastic_client is None:
                 raise RuntimeError("Elasticsearch client could not be initialized")
         
         # Create index if it doesn't exist
+        assert self.elastic_client is not None
         index_name = self.config['steps'][3]['options']['index_name']
         if not self.elastic_client.indices.exists(index=index_name):
             mappings = self.config['steps'][3]['options']['mappings']
@@ -192,6 +192,7 @@ class ArcGISProIndexingWorkflow:
             doc_id = hashlib.md5(item['url'].encode()).hexdigest()
             
             try:
+                assert self.elastic_client is not None
                 self.elastic_client.index(
                     index=index_name,
                     id=doc_id,

@@ -11,10 +11,11 @@ import time
 import uuid
 from typing import Any, Dict, List, Optional
 
-from fastapi import APIRouter, HTTPException, Request
+from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import JSONResponse
 from pydantic import AliasChoices, BaseModel, ConfigDict, Field, field_validator
 
+from api.dependencies import get_api_key
 from core.metrics import count_executions, track_skill_operation
 from core.tracing import trace_operation
 from engine.caching import StudyCache
@@ -329,7 +330,7 @@ def _run_native_study(study_type: str, system: Optional[Any], parameters: Dict[s
 @router.post("/run", response_model=StudyResult)
 @count_executions(skill_name="study")
 @track_skill_operation("study")
-async def run_study(request: Request, payload: StudyRequest):
+async def run_study(request: Request, payload: StudyRequest, _: str = Depends(get_api_key)):
     trace_id = getattr(request.state, "trace_id", "unknown")
     task_id = payload.task_id or str(uuid.uuid4())
     start = time.perf_counter()
