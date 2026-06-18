@@ -39,6 +39,15 @@
 - مع معلومات مفصلة من واجهة البرمجة (API) المتوفرة في الفهرس
 - مع رابط مباشر إلى الوثائق الأصلية وفقًا للمعلومات في الفهرس
 
+### 3. عندما يتم طرح سؤال:
+"كيف يمكنني دمج ETAP مع QGIS و ArcGIS Pro عبر SCADA؟"
+
+### الإجابة يجب أن تأتي من:
+- [scada_etap_gis_integration_guide.md](file:///c:/Users/Repair%20SC/Desktop/ETAP-AI-WORK--main/scada_etap_gis_integration_guide.md): دليل شامل لدمج SCADA مع ETAP/QGIS/ArcGIS Pro
+- [etap_scada_bridge.py](file:///c:/Users/Repair%20SC/Desktop/ETAP-AI-WORK--main/etap_scada_bridge.py): واجهة الربط بين ETAP ونظام SCADA
+- [scada_etap_consumer.py](file:///c:/Users/Repair%20SC/Desktop/ETAP-AI-WORK--main/scada_etap_consumer.py): مستهلك بيانات ETAP في نظام SCADA
+- [qgis_scada_layer.py](file:///c:/Users/Repair%20SC/Desktop/ETAP-AI-WORK--main/qgis_scada_layer.py): إنشاء طبقات SCADA لـ QGIS
+
 ## تعليمات التنفيذ
 
 ### 1. التفكير:
@@ -63,8 +72,15 @@
 
 ### 2. تعليمات الذكاء الاصطناعي
 - [scada_integration_instructions.md](file:///c:/Users/Repair%20SC/Desktop/ETAP-AI-WORK--main/scada_integration_instructions.md): تعليمات مفصلة للذكاء الاصطناعي لدمج SCADA مع ETAP/QGIS/ArcGIS Pro
+- [scada_etap_gis_integration_guide.md](file:///c:/Users/Repair%20SC/Desktop/ETAP-AI-WORK--main/scada_etap_gis_integration_guide.md): دليل شامل لدمج SCADA مع ETAP/QGIS/ArcGIS Pro
 - [ai_agent_instructions.md](file:///c:/Users/Repair%20SC/Desktop/ETAP-AI-WORK--main/ai_agent_instructions.md): تعليمات مفصلة للذكاء الاصطناعي
 - [ai_quick_reference.md](file:///c:/Users/Repair%20SC/Desktop/ETAP-AI-WORK--main/ai_quick_reference.md): مرجع سريع للذكاء الاصطناعي
+
+### 3. ملفات التنفيذ
+- [etap_scada_bridge.py](file:///c:/Users/Repair%20SC/Desktop/ETAP-AI-WORK--main/etap_scada_bridge.py): واجهة الربط بين ETAP ونظام SCADA
+- [scada_etap_consumer.py](file:///c:/Users/Repair%20SC/Desktop/ETAP-AI-WORK--main/scada_etap_consumer.py): مستهلك بيانات ETAP في نظام SCADA
+- [qgis_scada_layer.py](file:///c:/Users/Repair%20SC/Desktop/ETAP-AI-WORK--main/qgis_scada_layer.py): إنشاء طبقات SCADA لـ QGIS
+- [requirements.txt](file:///c:/Users/Repair%20SC/Desktop/ETAP-AI-WORK--main/requirements.txt): قائمة المكتبات المطلوبة
 
 ## التحقق من الصحة
 
@@ -81,3 +97,4 @@
 - عند الإجابة عن أسئلة متعلقة بالربط بين SCADA وGIS، استخدم دائمًا معلومات من قسم "Integrations" في الفهارس
 - عند الإجابة عن أسئلة متعلقة بالواجهات البرمجية (API)، استخدم دائمًا معلومات من قسم "API Reference" في الفهرسة
 - عند الإجابة عن أسئلة متعلقة بالبرمجة النصية (Python)، استخدم دائمًا معلومات من قسم "ArcPy Reference" في الفهرسة
+- عند التعامل مع دمج أنظمة SCADA مع ETAP/QGIS/ArcGIS Pro، استخدم دائمًا معلومات من [scada_integration_instructions.md](file:///c:/Users/Repair%20SC/Desktop/ETAP-AI-WORK--main/scada_integration_instructions.md) و[scada_etap_gis_integration_guide.md](file:///c:/Users/Repair%20SC/Desktop/ETAP-AI-WORK--main/scada_etap_gis_integration_guide.md)
