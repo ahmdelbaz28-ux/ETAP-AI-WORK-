@@ -103,6 +103,22 @@ kubernetes>=29.0.0
 # Phase 3: WebSocket
 websockets>=12.0
 
+# Core requirements for SCADA-GIS integration
+paho-mqtt>=1.6.1
+pyScada==0.10.12
+pyScada-mqtt
+pyScada-opcua
+pyScada-modbus
+pyScada-ems
+pymongo
+arcpy  # This is typically installed with ArcGIS Pro
+pandas
+numpy
+requests
+flask  # For potential web APIs
+geopandas  # For GIS operations
+shapely  # For geometric operations
+
 # Testing
 pytest-asyncio>=0.23.0
 hypothesis>=6.92.0
