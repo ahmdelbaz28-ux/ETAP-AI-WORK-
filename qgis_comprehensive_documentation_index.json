@@ -1,0 +1,327 @@
+{
+  "title": "Comprehensive QGIS Documentation Index",
+  "description": "Complete index of QGIS documentation including user manuals, developer guides, server documentation, training materials, and support resources in various formats",
+  "base_url": "https://docs.qgis.org/3.44/",
+  "documentation_formats": {
+    "pdf_documents": {
+      "url": "https://docs.qgis.org/3.44/pdf/en/",
+      "description": "English PDF documents for QGIS 3.44",
+      "files": [
+        {
+          "filename": "QGIS-3.44-AboutQGIS-en.pdf",
+          "size": "153K",
+          "title": "About QGIS",
+          "description": "Introduction to the QGIS project and its features",
+          "url": "https://docs.qgis.org/3.44/pdf/en/QGIS-3.44-AboutQGIS-en.pdf",
+          "category": "introduction"
+        },
+        {
+          "filename": "QGIS-3.44-DesktopUserGuide-en.pdf",
+          "size": "81M",
+          "title": "Desktop User Guide",
+          "description": "Comprehensive guide to using QGIS desktop application",
+          "url": "https://docs.qgis.org/3.44/pdf/en/QGIS-3.44-DesktopUserGuide-en.pdf",
+          "category": "user_guide"
+        },
+        {
+          "filename": "QGIS-3.44-DocumentationGuidelines-en.pdf",
+          "size": "1.4M",
+          "title": "Documentation Guidelines",
+          "description": "Guidelines for contributing to QGIS documentation",
+          "url": "https://docs.qgis.org/3.44/pdf/en/QGIS-3.44-DocumentationGuidelines-en.pdf",
+          "category": "guidelines"
+        },
+        {
+          "filename": "QGIS-3.44-GentleGISIntroduction-en.pdf",
+          "size": "16M",
+          "title": "A Gentle Introduction to GIS",
+          "description": "Beginner-friendly introduction to Geographic Information Systems",
+          "url": "https://docs.qgis.org/3.44/pdf/en/QGIS-3.44-GentleGISIntroduction-en.pdf",
+          "category": "introduction"
+        },
+        {
+          "filename": "QGIS-3.44-PyQGISDeveloperCookbook-en.pdf",
+          "size": "1.3M",
+          "title": "PyQGIS Developer Cookbook",
+          "description": "Guide for developing with the QGIS Python API",
+          "url": "https://docs.qgis.org/3.44/pdf/en/QGIS-3.44-PyQGISDeveloperCookbook-en.pdf",
+          "category": "development"
+        },
+        {
+          "filename": "QGIS-3.44-ServerUserGuide-en.pdf",
+          "size": "3.9M",
+          "title": "Server User Guide",
+          "description": "Guide for QGIS Server installation and configuration",
+          "url": "https://docs.qgis.org/3.44/pdf/en/QGIS-3.44-ServerUserGuide-en.pdf",
+          "category": "server"
+        },
+        {
+          "filename": "QGIS-3.44-TrainingManual-en.pdf",
+          "size": "89M",
+          "title": "Training Manual",
+          "description": "Comprehensive training materials for QGIS users",
+          "url": "https://docs.qgis.org/3.44/pdf/en/QGIS-3.44-TrainingManual-en.pdf",
+          "category": "training"
+        }
+      ]
+    },
+    "zip_archives": {
+      "url": "https://docs.qgis.org/3.44/zip/",
+      "description": "Full documentation packages in ZIP format for offline use",
+      "files": [
+        {
+          "filename": "QGIS-3.44-Documentation-en.zip",
+          "size": "233M",
+          "title": "English Documentation Package",
+          "description": "Complete English documentation in HTML format for offline use",
+          "url": "https://docs.qgis.org/3.44/zip/QGIS-3.44-Documentation-en.zip",
+          "language": "en"
+        },
+        {
+          "filename": "QGIS-3.44-Documentation-de.zip",
+          "size": "233M",
+          "title": "German Documentation Package",
+          "description": "Complete German documentation in HTML format for offline use",
+          "url": "https://docs.qgis.org/3.44/zip/QGIS-3.44-Documentation-de.zip",
+          "language": "de"
+        },
+        {
+          "filename": "QGIS-3.44-Documentation-es.zip",
+          "size": "234M",
+          "title": "Spanish Documentation Package",
+          "description": "Complete Spanish documentation in HTML format for offline use",
+          "url": "https://docs.qgis.org/3.44/zip/QGIS-3.44-Documentation-es.zip",
+          "language": "es"
+        },
+        {
+          "filename": "QGIS-3.44-Documentation-fr.zip",
+          "size": "234M",
+          "title": "French Documentation Package",
+          "description": "Complete French documentation in HTML format for offline use",
+          "url": "https://docs.qgis.org/3.44/zip/QGIS-3.44-Documentation-fr.zip",
+          "language": "fr"
+        },
+        {
+          "filename": "QGIS-3.44-Documentation-pt_BR.zip",
+          "size": "233M",
+          "title": "Brazilian Portuguese Documentation Package",
+          "description": "Complete Brazilian Portuguese documentation in HTML format for offline use",
+          "url": "https://docs.qgis.org/3.44/zip/QGIS-3.44-Documentation-pt_BR.zip",
+          "language": "pt_BR"
+        },
+        {
+          "filename": "QGIS-3.44-Documentation-ru.zip",
+          "size": "233M",
+          "title": "Russian Documentation Package",
+          "description": "Complete Russian documentation in HTML format for offline use",
+          "url": "https://docs.qgis.org/3.44/zip/QGIS-3.44-Documentation-ru.zip",
+          "language": "ru"
+        },
+        {
+          "filename": "QGIS-3.44-Documentation-zh_Hans.zip",
+          "size": "233M",
+          "title": "Simplified Chinese Documentation Package",
+          "description": "Complete Simplified Chinese documentation in HTML format for offline use",
+          "url": "https://docs.qgis.org/3.44/zip/QGIS-3.44-Documentation-zh_Hans.zip",
+          "language": "zh_Hans"
+        }
+      ]
+    }
+  },
+  "support_resources": {
+    "help_and_support_page": {
+      "title": "Help and Support",
+      "url": "https://docs.qgis.org/3.44/en/docs/about/help_and_support.html",
+      "description": "Comprehensive guide to QGIS support resources and communication channels",
+      "level": 1,
+      "parent": null,
+      "subsections": [
+        {
+          "title": "Mailing lists",
+          "url": "https://docs.qgis.org/3.44/en/docs/about/help_and_support.html#mailing-lists",
+          "level": 2,
+          "parent": "Help and Support",
+          "sub_subsections": [
+            {
+              "title": "QGIS Users",
+              "url": "https://docs.qgis.org/3.44/en/docs/about/help_and_support.html#qgis-users",
+              "description": "Discussion about QGIS installation and use",
+              "subscription_url": "https://lists.osgeo.org/mailman/listinfo/qgis-user",
+              "level": 3,
+              "parent": "Mailing lists"
+            },
+            {
+              "title": "QGIS Developers",
+              "url": "https://docs.qgis.org/3.44/en/docs/about/help_and_support.html#qgis-developers",
+              "description": "Technical discussions for QGIS developers",
+              "subscription_url": "https://lists.osgeo.org/mailman/listinfo/qgis-developer",
+              "level": 3,
+              "parent": "Mailing lists"
+            },
+            {
+              "title": "QGIS Community Team",
+              "url": "https://docs.qgis.org/3.44/en/docs/about/help_and_support.html#qgis-community-team",
+              "description": "Topics related to documentation, context help, user guide, websites",
+              "subscription_url": "https://lists.osgeo.org/mailman/listinfo/qgis-community-team",
+              "level": 3,
+              "parent": "Mailing lists"
+            },
+            {
+              "title": "QGIS Translations",
+              "url": "https://docs.qgis.org/3.44/en/docs/about/help_and_support.html#qgis-translations",
+              "description": "Translation efforts for website, manuals, and GUI",
+              "subscription_url": "https://lists.osgeo.org/mailman/listinfo/qgis-tr",
+              "level": 3,
+              "parent": "Mailing lists"
+            },
+            {
+              "title": "QGIS Project Steering Committee (PSC)",
+              "url": "https://docs.qgis.org/3.44/en/docs/about/help_and_support.html#qgis-project-steering-committee-psc",
+              "description": "Discussions about overall management and direction of QGIS",
+              "subscription_url": "https://lists.osgeo.org/mailman/listinfo/qgis-psc",
+              "level": 3,
+              "parent": "Mailing lists"
+            },
+            {
+              "title": "QGIS User groups",
+              "url": "https://docs.qgis.org/3.44/en/docs/about/help_and_support.html#qgis-user-groups",
+              "description": "Local QGIS communities and user groups",
+              "information_url": "https://qgis.org/community/groups/",
+              "level": 3,
+              "parent": "Mailing lists"
+            }
+          ]
+        },
+        {
+          "title": "Communication channels",
+          "url": "https://docs.qgis.org/3.44/en/docs/about/help_and_support.html#communication-channels",
+          "level": 2,
+          "parent": "Help and Support",
+          "sub_subsections": [
+            {
+              "title": "Matrix / IRC",
+              "url": "https://docs.qgis.org/3.44/en/docs/about/help_and_support.html#matrix-irc",
+              "description": "Decentralized chat via Matrix or IRC channels",
+              "room_alias": "#qgis:osgeo.org",
+              "irc_channel": "irc://irc.libera.chat/#qgis",
+              "matrix_url": "https://matrix.to/#/#qgis:osgeo.org",
+              "level": 3,
+              "parent": "Communication channels"
+            },
+            {
+              "title": "Telegram",
+              "url": "https://docs.qgis.org/3.44/en/docs/about/help_and_support.html#telegram",
+              "description": "English-speaking QGIS community chat group",
+              "web_url": "https://web.telegram.org",
+              "level": 3,
+              "parent": "Communication channels"
+            }
+          ]
+        },
+        {
+          "title": "Commercial support",
+          "url": "https://docs.qgis.org/3.44/en/docs/about/help_and_support.html#commercial-support",
+          "description": "Commercial support options for QGIS",
+          "information_url": "https://qgis.org/resources/support/commercial-support/",
+          "level": 2,
+          "parent": "Help and Support"
+        },
+        {
+          "title": "BugTracker",
+          "url": "https://docs.qgis.org/3.44/en/docs/about/help_and_support.html#bugtracker",
+          "description": "Submitting bug reports and feature requests",
+          "tracker_url": "https://github.com/qgis/QGIS/issues",
+          "level": 2,
+          "parent": "Help and Support"
+        },
+        {
+          "title": "Blog",
+          "url": "https://docs.qgis.org/3.44/en/docs/about/help_and_support.html#blog",
+          "description": "QGIS community weblog with articles for users and developers",
+          "blog_url": "https://planet.qgis.org/",
+          "level": 2,
+          "parent": "Help and Support"
+        },
+        {
+          "title": "Plugins",
+          "url": "https://docs.qgis.org/3.44/en/docs/about/help_and_support.html#plugins",
+          "description": "Official QGIS plugins web portal",
+          "plugins_url": "https://plugins.qgis.org",
+          "level": 2,
+          "parent": "Help and Support"
+        },
+        {
+          "title": "Wiki",
+          "url": "https://docs.qgis.org/3.44/en/docs/about/help_and_support.html#wiki",
+          "description": "QGIS wiki with development information and resources",
+          "wiki_url": "https://github.com/qgis/QGIS/wiki",
+          "level": 2,
+          "parent": "Help and Support"
+        }
+      ]
+    }
+  },
+  "documentation_categories": [
+    {
+      "category": "introduction",
+      "title": "Introduction to QGIS",
+      "description": "Basic information about QGIS and Geographic Information Systems",
+      "documents": [
+        "QGIS-3.44-AboutQGIS-en.pdf",
+        "QGIS-3.44-GentleGISIntroduction-en.pdf"
+      ]
+    },
+    {
+      "category": "user_guide",
+      "title": "User Guides",
+      "description": "Comprehensive guides for using QGIS desktop application",
+      "documents": [
+        "QGIS-3.44-DesktopUserGuide-en.pdf",
+        "QGIS-3.44-TrainingManual-en.pdf"
+      ]
+    },
+    {
+      "category": "development",
+      "title": "Development Resources",
+      "description": "Resources for developing with PyQGIS and QGIS APIs",
+      "documents": [
+        "QGIS-3.44-PyQGISDeveloperCookbook-en.pdf",
+        "PyQGIS API Documentation"
+      ]
+    },
+    {
+      "category": "server",
+      "title": "Server Documentation",
+      "description": "Documentation for QGIS Server setup and configuration",
+      "documents": [
+        "QGIS-3.44-ServerUserGuide-en.pdf"
+      ]
+    },
+    {
+      "category": "training",
+      "title": "Training Materials",
+      "description": "Comprehensive training resources for QGIS users",
+      "documents": [
+        "QGIS-3.44-TrainingManual-en.pdf"
+      ]
+    },
+    {
+      "category": "guidelines",
+      "title": "Documentation Guidelines",
+      "description": "Guidelines for contributing to QGIS documentation",
+      "documents": [
+        "QGIS-3.44-DocumentationGuidelines-en.pdf"
+      ]
+    }
+  ],
+  "ai_accessibility_features": {
+    "structured_navigation": "Documentation is organized by category and difficulty level for easy navigation",
+    "multilingual_support": "Documentation available in multiple languages including English, German, Spanish, French, Portuguese, Russian, and Chinese",
+    "offline_access": "Complete documentation packages available in ZIP format for offline use",
+    "comprehensive_coverage": "Covers everything from beginner introductions to advanced development topics",
+    "support_channels": "Multiple support channels available for different types of queries"
+  },
+  "last_updated": "2026-06-18",
+  "qgis_version": "3.44",
+  "base_url": "https://docs.qgis.org/3.44/"
+}
