@@ -104,7 +104,7 @@ kubernetes>=29.0.0
 websockets>=12.0
 
 # Testing
-pytest-asyncio>=0.23.0
+pytest-asyncio>=1.4.0
 hypothesis>=6.92.0
 
 # Retry and fault tolerance (used by core/retry.py)
