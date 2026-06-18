@@ -5,7 +5,7 @@ Handles all multi-factor authentication endpoints.
 Separated from main engineering service for better modularity.
 """
 
-from fastapi import APIRouter, Request
+from fastapi import APIRouter, Request, HTTPException
 from fastapi.responses import JSONResponse
 
 router = APIRouter(prefix="/api/v1/auth/mfa", tags=["mfa"])

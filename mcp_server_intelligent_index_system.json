@@ -1,0 +1,247 @@
+{
+  "system_overview": {
+    "name": "MCP Server (Master Content Processor)",
+    "purpose": "Centralized indexing and retrieval system for ArcGIS/QGIS documentation with high-performance search capabilities",
+    "architecture": "Three-tier system: Content Ingestion → Intelligent Indexing → Smart Retrieval"
+  },
+  "core_components": {
+    "mcp_server": {
+      "description": "High-performance search engine that stores and indexes all titles and links, providing fast query responses",
+      "implementation_options": [
+        {
+          "technology": "Elasticsearch on Azure/AWS",
+          "advantages": [
+            "Millions of queries per second",
+            "Direct mapping to original sources",
+            "Continuous improvement via data crawling and re-indexing"
+          ]
+        },
+        {
+          "technology": "Azure Cognitive Search with AI Embeddings",
+          "advantages": [
+            "Native AI integration",
+            "Semantic search capabilities",
+            "Enterprise-grade security"
+          ]
+        },
+        {
+          "technology": "Pinecone or FAISS for Vector Storage",
+          "advantages": [
+            "Optimized for similarity search",
+            "Embedding storage and retrieval",
+            "Scalable vector operations"
+          ]
+        }
+      ],
+      "performance_metrics": {
+        "queries_per_second": "millions",
+        "response_time": "< 50ms",
+        "accuracy_rate": "> 95%"
+      }
+    },
+    "sdk_layer": {
+      "description": "Programming interface that facilitates communication between the application and the MCP Server",
+      "implementation_options": [
+        {
+          "technology": "Elasticsearch-Python SDK or Official Node SDK",
+          "advantages": [
+            "Avoid manual HTTP requests",
+            "Configure caching and indexing",
+            "Performance monitoring"
+          ]
+        },
+        {
+          "technology": "Azure Cognitive Search SDK (Python or .NET)",
+          "advantages": [
+            "Official Microsoft integration",
+            "Built-in security features",
+            "Cloud-native capabilities"
+          ]
+        }
+      ],
+      "key_features": [
+        "Request optimization",
+        "Response caching",
+        "Error handling and retry logic",
+        "Performance metrics collection"
+      ]
+    },
+    "skills_framework": {
+      "description": "Configurable modules that add functionality like entity extraction, classification, question answering, and learning from conversations",
+      "entity_extraction_skill": {
+        "purpose": "Extract keywords and entities from titles and content",
+        "implementation": "NER (Named Entity Recognition) models for identifying technical terms, version numbers, API names, etc.",
+        "output": "Structured entities tagged from content"
+      },
+      "summarization_skill": {
+        "purpose": "Summarize content when titles have longer descriptive text",
+        "implementation": "Text summarization algorithms to condense lengthy descriptions",
+        "output": "Concise summaries of content sections"
+      },
+      "user_profile_skill": {
+        "purpose": "Determine user interests in specific categories to customize search results",
+        "implementation": "User behavior analysis and preference tracking",
+        "output": "Personalized search ranking based on user profile"
+      },
+      "learning_skill": {
+        "purpose": "Store new queries and their results within the MCP Server for future reference",
+        "implementation": "Query-result correlation and feedback loop mechanisms",
+        "output": "Enhanced search accuracy over time"
+      }
+    },
+    "llm_rag_integration": {
+      "description": "Integration of knowledge base with AI models for question answering",
+      "implementation_options": [
+        {
+          "technology": "LangChain or LlamaIndex with GPT-4.6 Turbo",
+          "advantages": [
+            "Combines traditional indexing with semantic search",
+            "Blends textual analysis with intelligence for more accurate answers"
+          ]
+        },
+        {
+          "technology": "Local embedding models (e.g., sentence-transformers)",
+          "advantages": [
+            "Generate title vectors locally",
+            "Reduce dependency on external APIs",
+            "Faster processing for similarity matching"
+          ]
+        }
+      ],
+      "capabilities": [
+        "Traditional keyword search",
+        "Semantic similarity matching",
+        "Context-aware question answering",
+        "Multi-document synthesis"
+      ]
+    }
+  },
+  "content_ingestion_process": {
+    "step_1_reading": {
+      "description": "Reads files or web pages containing documentation",
+      "input_formats_supported": [
+        "HTML pages",
+        "PDF documents",
+        "Markdown files",
+        "API reference documents"
+      ],
+      "processing_pipeline": [
+        "Content extraction",
+        "Format normalization",
+        "Link identification",
+        "Metadata preservation"
+      ]
+    },
+    "step_2_extraction": {
+      "description": "Extracts title, text, and links from the content",
+      "extracted_elements": [
+        "Document titles",
+        "Section headers",
+        "Hyperlinks (URLs)",
+        "Content text",
+        "Version information",
+        "Licensing requirements",
+        "Code examples"
+      ],
+      "metadata_extraction": [
+        "Document hierarchy",
+        "Parent-child relationships",
+        "Section levels",
+        "Cross-references"
+      ]
+    }
+  },
+  "indexing_process": {
+    "step_1_vector_conversion": {
+      "description": "Converts paragraphs and titles to vectors using NER-trained models",
+      "embedding_models_used": [
+        "Sentence-transformers for semantic similarity",
+        "Technical domain-specific embeddings",
+        "Multi-language support embeddings"
+      ],
+      "vector_storage": {
+        "database": "Vector database (Pinecone/FAISS)",
+        "dimensions": "Depends on embedding model",
+        "similarity_metric": "Cosine similarity"
+      }
+    },
+    "step_2_database_insertion": {
+      "description": "Inserts title, text, link, and vector into MCP Server",
+      "indexed_fields": [
+        "Title (primary search field)",
+        "URL (direct source reference)",
+        "Content text (for context)",
+        "Embedding vector (for semantic search)",
+        "Metadata (version, category, etc.)",
+        "Hierarchy level (for structured navigation)"
+      ],
+      "index_structure": {
+        "primary_key": "URL",
+        "text_fields": ["title", "content"],
+        "vector_field": "embedding",
+        "metadata_fields": ["version", "category", "level", "parent"]
+      }
+    }
+  },
+  "search_and_retrieval": {
+    "traditional_search": {
+      "keyword_matching": "Exact and fuzzy matching on titles and content",
+      "hierarchical_filtering": "Filter results by documentation level or category",
+      "version_control": "Return results matching specific software versions"
+    },
+    "semantic_search": {
+      "meaning_based_matching": "Find content based on meaning rather than exact keywords",
+      "contextual_understanding": "Consider surrounding context for better relevance",
+      "cross_domain_linking": "Connect related concepts across different documentation sets"
+    },
+    "result_ranking": {
+      "relevance_scoring": "Combine keyword matching, semantic similarity, and metadata",
+      "personalization": "Adjust results based on user profile and preferences",
+      "freshness_factor": "Consider content update frequency in scoring"
+    }
+  },
+  "integration_with_etap_ai_platform": {
+    "existing_architecture_alignment": {
+      "ai_agent_layer_integration": "Connect MCP Server to the 23 specialized AI agents",
+      "computation_engine_enhancement": "Provide contextual documentation for engineering calculations",
+      "gis_integration_support": "Supply detailed ArcGIS/QGIS documentation for GIS-enabled analysis"
+    },
+    "technical_specifications": {
+      "api_endpoints": [
+        {
+          "endpoint": "/search/documentation",
+          "method": "POST",
+          "description": "Search documentation with natural language query"
+        },
+        {
+          "endpoint": "/index/content",
+          "method": "PUT",
+          "description": "Add new content to the MCP Server"
+        },
+        {
+          "endpoint": "/related/links",
+          "method": "GET",
+          "description": "Retrieve related links based on current context"
+        }
+      ],
+      "security_measures": [
+        "JWT authentication for API access",
+        "Rate limiting to prevent abuse",
+        "Input validation to prevent injection attacks",
+        "Encrypted communication (HTTPS/TLS)"
+      ]
+    }
+  },
+  "maintenance_and_updates": {
+    "continuous_learning": {
+      "feedback_integration": "Incorporate user interactions to improve search relevance",
+      "content_refresh_cycles": "Regularly update indexes with new documentation versions",
+      "query_pattern_analysis": "Identify common search patterns to optimize indexing"
+    },
+    "quality_assurance": {
+      "link_validation": "Verify all indexed URLs are still accessible",
+      "content_accuracy": "Ensure indexed content matches source documentation",
+      "performance_monitoring": "Track response times and search accuracy metrics"
+    }
+  }
+}
