@@ -6,16 +6,16 @@ from datetime import datetime
 import hashlib
 from urllib.parse import urljoin, urlparse
 try:
-    from bs4 import BeautifulSoup
+    from bs4 import BeautifulSoup  # type: ignore
 except ImportError:  # pragma: no cover
     BeautifulSoup = None  # type: ignore
 import re
 try:
-    from sentence_transformers import SentenceTransformer
+    from sentence_transformers import SentenceTransformer  # type: ignore
 except ImportError:  # pragma: no cover
     SentenceTransformer = None  # type: ignore
 try:
-    from elasticsearch import Elasticsearch
+    from elasticsearch import Elasticsearch  # type: ignore
 except ImportError:  # pragma: no cover
     Elasticsearch = None  # type: ignore
 import time
@@ -147,7 +147,9 @@ class ArcGISProIndexingWorkflow:
         # Initialize the transformer model if not already done
         if self.transformer_model is None:
             self.logger.info("Loading sentence transformer model...")
-            self.transformer_model = SentenceTransformer('all-MiniLM-L6-v2')  # Smaller model for demo
+            self.transformer_model = SentenceTransformer('all-MiniLM-L6-v2')
+            if self.transformer_model is None:
+                raise RuntimeError("SentenceTransformer could not be loaded")
         
         transformed_data = []
         for item in cleaned_data:
@@ -175,11 +177,9 @@ class ArcGISProIndexingWorkflow:
             elastic_config = self.config['steps'][3]['options']
             self.elastic_client = Elasticsearch(
                 [elastic_config['host']],
-                # In production, use proper authentication
-                # http_auth=(username, password),
-                # use_ssl=True,
-                # verify_certs=True
             )
+            if self.elastic_client is None:
+                raise RuntimeError("Elasticsearch client could not be initialized")
         
         # Create index if it doesn't exist
         index_name = self.config['steps'][3]['options']['index_name']
