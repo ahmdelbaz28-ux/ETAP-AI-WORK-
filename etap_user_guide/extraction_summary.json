@@ -1,0 +1,230 @@
+{
+  "system_name": "ETAP",
+  "total_files": 37,
+  "successful": 35,
+  "failed": 2,
+  "total_pages": 2515,
+  "total_characters": 1252405,
+  "files": [
+    {
+      "filename": "02 - AC Networks.pdf",
+      "pages": 63,
+      "chunks": 28,
+      "status": "success"
+    },
+    {
+      "filename": "03 - Load Flow and Panel.pdf",
+      "pages": 75,
+      "chunks": 35,
+      "status": "success"
+    },
+    {
+      "filename": "04 - Transformer Sizing.pdf",
+      "pages": 19,
+      "chunks": 8,
+      "status": "success"
+    },
+    {
+      "filename": "05 - Unbalanced Load Flow.pdf",
+      "pages": 18,
+      "chunks": 9,
+      "status": "success"
+    },
+    {
+      "filename": "06 - Short Circuit_ANSI.pdf",
+      "pages": 50,
+      "chunks": 25,
+      "status": "success"
+    },
+    {
+      "filename": "06 - Short-Circuit_IEC.pdf",
+      "pages": 46,
+      "chunks": 15,
+      "status": "success"
+    },
+    {
+      "filename": "07 - ArcFlash.pdf",
+      "pages": 57,
+      "chunks": 32,
+      "status": "success"
+    },
+    {
+      "filename": "09 - MotorAcceleration.pdf",
+      "pages": 64,
+      "chunks": 21,
+      "status": "success"
+    },
+    {
+      "filename": "10 - Parameter Estimation.pdf",
+      "pages": 12,
+      "chunks": 4,
+      "status": "success"
+    },
+    {
+      "filename": "11 - Transient Stability 2.pdf",
+      "pages": 29,
+      "chunks": 12,
+      "status": "success"
+    },
+    {
+      "filename": "11 - Transient Stability.pdf",
+      "pages": 30,
+      "chunks": 11,
+      "status": "success"
+    },
+    {
+      "filename": "12 - Parameter Tuning.pdf",
+      "pages": 24,
+      "chunks": 23,
+      "status": "success"
+    },
+    {
+      "filename": "12 - UDM.pdf",
+      "pages": 25,
+      "chunks": 9,
+      "status": "success"
+    },
+    {
+      "filename": "13 - Harmonics.pdf",
+      "pages": 53,
+      "chunks": 20,
+      "status": "success"
+    },
+    {
+      "filename": "14 - UGS.pdf",
+      "pages": 42,
+      "chunks": 26,
+      "status": "success"
+    },
+    {
+      "filename": "15 - Cable Pulling.pdf",
+      "pages": 17,
+      "chunks": 4,
+      "status": "success"
+    },
+    {
+      "filename": "16 - Optimal Power Flow.pdf",
+      "pages": 23,
+      "chunks": 8,
+      "status": "success"
+    },
+    {
+      "filename": "17 - OCP.pdf",
+      "pages": 15,
+      "chunks": 8,
+      "status": "success"
+    },
+    {
+      "filename": "18 - Ground Grid.pdf",
+      "pages": 27,
+      "chunks": 11,
+      "status": "success"
+    },
+    {
+      "filename": "20 - PDE_GIS.pdf",
+      "pages": 14,
+      "chunks": 4,
+      "status": "success"
+    },
+    {
+      "filename": "21 - DC LF and DC SC.pdf",
+      "pages": 24,
+      "chunks": 12,
+      "status": "success"
+    },
+    {
+      "filename": "21a - BSD.pdf",
+      "pages": 19,
+      "chunks": 11,
+      "status": "success"
+    },
+    {
+      "filename": "22 - CSD.pdf",
+      "pages": 18,
+      "chunks": 13,
+      "status": "success"
+    },
+    {
+      "filename": "23 - Reliability Assesment.pdf",
+      "pages": 35,
+      "chunks": 24,
+      "status": "success"
+    },
+    {
+      "filename": "24 - WTG.pdf",
+      "pages": 32,
+      "chunks": 13,
+      "status": "success"
+    },
+    {
+      "filename": "25 - AF-Advanced Topics.pdf",
+      "pages": 35,
+      "chunks": 9,
+      "status": "success"
+    },
+    {
+      "filename": "26 - ETAP_ARTTS.pdf",
+      "pages": 22,
+      "chunks": 12,
+      "status": "success"
+    },
+    {
+      "filename": "certificate (1).pdf",
+      "status": "failed",
+      "error": "Failed to extract text or content too short"
+    },
+    {
+      "filename": "Controls.pdf",
+      "pages": 76,
+      "chunks": 89,
+      "status": "success"
+    },
+    {
+      "filename": "Etap short circuit study .pdf",
+      "pages": 46,
+      "chunks": 15,
+      "status": "success"
+    },
+    {
+      "filename": "etap training 1164 slides.pdf",
+      "pages": 1164,
+      "chunks": 420,
+      "status": "success"
+    },
+    {
+      "filename": "ETAP USER GUIDE.PDF",
+      "status": "failed",
+      "error": "Failed to extract text or content too short"
+    },
+    {
+      "filename": "ETAP-Renewable-Brochure-2021e62754460c286c028629ff04005ae238e62754460c286c028629ff04005ae238.pdf",
+      "pages": 3,
+      "chunks": 5,
+      "status": "success"
+    },
+    {
+      "filename": "etap-solutions-overview.pdf",
+      "pages": 29,
+      "chunks": 89,
+      "status": "success"
+    },
+    {
+      "filename": "etrax-rail-solution.pdf",
+      "pages": 8,
+      "chunks": 14,
+      "status": "success"
+    },
+    {
+      "filename": "Readme.pdf",
+      "pages": 300,
+      "chunks": 668,
+      "status": "success"
+    },
+    {
+      "filename": "SYSTEM REQUIREMENTS.PDF",
+      "pages": 1,
+      "chunks": 3,
+      "status": "success"
+    }
+  ]
+}
