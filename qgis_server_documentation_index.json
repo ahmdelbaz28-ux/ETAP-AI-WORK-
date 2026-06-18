@@ -1,0 +1,382 @@
+{
+  "title": "QGIS Server Documentation Index",
+  "description": "Comprehensive index of QGIS Server documentation with titles and URLs for use as reference material",
+  "base_url": "https://docs.qgis.org/3.44/en/docs/server_manual/",
+  "documentation_sections": [
+    {
+      "section_number": "1",
+      "title": "Introduction",
+      "url": "https://docs.qgis.org/3.44/en/docs/server_manual/introduction.html",
+      "summary": "Overview of QGIS Server as an open source WMS, WFS, OGC API implementation with advanced cartographic features"
+    },
+    {
+      "section_number": "2",
+      "title": "Getting Started",
+      "url": "https://docs.qgis.org/3.44/en/docs/server_manual/getting_started.html",
+      "subsections": [
+        {
+          "subsection_number": "2.1",
+          "title": "Installation on Debian-based systems",
+          "url": "https://docs.qgis.org/3.44/en/docs/server_manual/getting_started.html#installation-on-debian-based-systems",
+          "sub_subsections": [
+            {
+              "sub_subsection_title": "Apache HTTP Server",
+              "url": "https://docs.qgis.org/3.44/en/docs/server_manual/getting_started.html#apache-http-server"
+            },
+            {
+              "sub_subsection_title": "NGINX HTTP Server",
+              "url": "https://docs.qgis.org/3.44/en/docs/server_manual/getting_started.html#nginx-http-server"
+            }
+          ]
+        },
+        {
+          "subsection_number": "2.2",
+          "title": "Installation on Windows",
+          "url": "https://docs.qgis.org/3.44/en/docs/server_manual/getting_started.html#installation-on-windows"
+        },
+        {
+          "subsection_number": "2.3",
+          "title": "Serve a project",
+          "url": "https://docs.qgis.org/3.44/en/docs/server_manual/getting_started.html#serve-a-project"
+        },
+        {
+          "subsection_number": "2.4",
+          "title": "Configure your project",
+          "url": "https://docs.qgis.org/3.44/en/docs/server_manual/getting_started.html#configure-your-project"
+        },
+        {
+          "subsection_number": "2.5",
+          "title": "Integration with third parties",
+          "url": "https://docs.qgis.org/3.44/en/docs/server_manual/getting_started.html#integration-with-third-parties"
+        }
+      ]
+    },
+    {
+      "section_number": "3",
+      "title": "Services",
+      "url": "https://docs.qgis.org/3.44/en/docs/server_manual/services.html",
+      "subsections": [
+        {
+          "subsection_number": "3.1",
+          "title": "Basics",
+          "url": "https://docs.qgis.org/3.44/en/docs/server_manual/services/basics.html",
+          "sub_subsections": [
+            {
+              "sub_subsection_title": "SERVICE",
+              "url": "https://docs.qgis.org/3.44/en/docs/server_manual/services/basics.html#service"
+            },
+            {
+              "sub_subsection_title": "REQUEST",
+              "url": "https://docs.qgis.org/3.44/en/docs/server_manual/services/basics.html#request"
+            },
+            {
+              "sub_subsection_title": "MAP",
+              "url": "https://docs.qgis.org/3.44/en/docs/server_manual/services/basics.html#map"
+            },
+            {
+              "sub_subsection_title": "FILE_NAME",
+              "url": "https://docs.qgis.org/3.44/en/docs/server_manual/services/basics.html#file-name"
+            },
+            {
+              "sub_subsection_title": "Short name",
+              "url": "https://docs.qgis.org/3.44/en/docs/server_manual/services/basics.html#short-name"
+            }
+          ]
+        },
+        {
+          "subsection_number": "3.2",
+          "title": "Web Map Service (WMS)",
+          "url": "https://docs.qgis.org/3.44/en/docs/server_manual/services/wms.html",
+          "sub_subsections": [
+            {
+              "sub_subsection_title": "GetCapabilities",
+              "url": "https://docs.qgis.org/3.44/en/docs/server_manual/services/wms.html#getcapabilities"
+            },
+            {
+              "sub_subsection_title": "GetMap",
+              "url": "https://docs.qgis.org/3.44/en/docs/server_manual/services/wms.html#getmap"
+            },
+            {
+              "sub_subsection_title": "GetFeatureInfo",
+              "url": "https://docs.qgis.org/3.44/en/docs/server_manual/services/wms.html#getfeatureinfo"
+            },
+            {
+              "sub_subsection_title": "GetLegendGraphic",
+              "url": "https://docs.qgis.org/3.44/en/docs/server_manual/services/wms.html#getlegendgraphic"
+            },
+            {
+              "sub_subsection_title": "GetStyle(s)",
+              "url": "https://docs.qgis.org/3.44/en/docs/server_manual/services/wms.html#getstyles"
+            },
+            {
+              "sub_subsection_title": "DescribeLayer",
+              "url": "https://docs.qgis.org/3.44/en/docs/server_manual/services/wms.html#describelayer"
+            },
+            {
+              "sub_subsection_title": "GetPrint",
+              "url": "https://docs.qgis.org/3.44/en/docs/server_manual/services/wms.html#getprint"
+            },
+            {
+              "sub_subsection_title": "GetProjectSettings",
+              "url": "https://docs.qgis.org/3.44/en/docs/server_manual/services/wms.html#getprojectsettings"
+            },
+            {
+              "sub_subsection_title": "GetSchemaExtension",
+              "url": "https://docs.qgis.org/3.44/en/docs/server_manual/services/wms.html#getschemaextension"
+            },
+            {
+              "sub_subsection_title": "External WMS layers",
+              "url": "https://docs.qgis.org/3.44/en/docs/server_manual/services/wms.html#external-wms-layers"
+            },
+            {
+              "sub_subsection_title": "Redlining",
+              "url": "https://docs.qgis.org/3.44/en/docs/server_manual/services/wms.html#redlining"
+            }
+          ]
+        },
+        {
+          "subsection_number": "3.3",
+          "title": "Web Feature Service (WFS)",
+          "url": "https://docs.qgis.org/3.44/en/docs/server_manual/services/wfs.html",
+          "sub_subsections": [
+            {
+              "sub_subsection_title": "GetCapabilities",
+              "url": "https://docs.qgis.org/3.44/en/docs/server_manual/services/wfs.html#getcapabilities"
+            },
+            {
+              "sub_subsection_title": "GetFeature",
+              "url": "https://docs.qgis.org/3.44/en/docs/server_manual/services/wfs.html#getfeature"
+            },
+            {
+              "sub_subsection_title": "DescribeFeatureType",
+              "url": "https://docs.qgis.org/3.44/en/docs/server_manual/services/wfs.html#describefeaturetype"
+            },
+            {
+              "sub_subsection_title": "Transaction",
+              "url": "https://docs.qgis.org/3.44/en/docs/server_manual/services/wfs.html#transaction"
+            }
+          ]
+        },
+        {
+          "subsection_number": "3.4",
+          "title": "Web Coverage Service (WCS)",
+          "url": "https://docs.qgis.org/3.44/en/docs/server_manual/services/wcs.html",
+          "sub_subsections": [
+            {
+              "sub_subsection_title": "GetCapabilities",
+              "url": "https://docs.qgis.org/3.44/en/docs/server_manual/services/wcs.html#getcapabilities"
+            },
+            {
+              "sub_subsection_title": "DescribeCoverage",
+              "url": "https://docs.qgis.org/3.44/en/docs/server_manual/services/wcs.html#describecoverage"
+            },
+            {
+              "sub_subsection_title": "GetCoverage",
+              "url": "https://docs.qgis.org/3.44/en/docs/server_manual/services/wcs.html#getcoverage"
+            }
+          ]
+        },
+        {
+          "subsection_number": "3.5",
+          "title": "Web Map Tile Service (WMTS)",
+          "url": "https://docs.qgis.org/3.44/en/docs/server_manual/services/wmts.html",
+          "sub_subsections": [
+            {
+              "sub_subsection_title": "GetCapabilities",
+              "url": "https://docs.qgis.org/3.44/en/docs/server_manual/services/wmts.html#getcapabilities"
+            },
+            {
+              "sub_subsection_title": "GetTile",
+              "url": "https://docs.qgis.org/3.44/en/docs/server_manual/services/wmts.html#gettile"
+            },
+            {
+              "sub_subsection_title": "GetFeatureInfo",
+              "url": "https://docs.qgis.org/3.44/en/docs/server_manual/services/wmts.html#getfeatureinfo"
+            }
+          ]
+        },
+        {
+          "subsection_number": "3.6",
+          "title": "OGC API Features",
+          "url": "https://docs.qgis.org/3.44/en/docs/server_manual/services/ogcapif.html",
+          "sub_subsections": [
+            {
+              "sub_subsection_title": "Resource representation",
+              "url": "https://docs.qgis.org/3.44/en/docs/server_manual/services/ogcapif.html#resource-representation"
+            },
+            {
+              "sub_subsection_title": "Endpoints",
+              "url": "https://docs.qgis.org/3.44/en/docs/server_manual/services/ogcapif.html#endpoints"
+            },
+            {
+              "sub_subsection_title": "Pagination",
+              "url": "https://docs.qgis.org/3.44/en/docs/server_manual/services/ogcapif.html#pagination"
+            },
+            {
+              "sub_subsection_title": "Feature filtering",
+              "url": "https://docs.qgis.org/3.44/en/docs/server_manual/services/ogcapif.html#feature-filtering"
+            },
+            {
+              "sub_subsection_title": "Feature sorting",
+              "url": "https://docs.qgis.org/3.44/en/docs/server_manual/services/ogcapif.html#feature-sorting"
+            },
+            {
+              "sub_subsection_title": "Attribute selection",
+              "url": "https://docs.qgis.org/3.44/en/docs/server_manual/services/ogcapif.html#attribute-selection"
+            },
+            {
+              "sub_subsection_title": "Customize the HTML pages",
+              "url": "https://docs.qgis.org/3.44/en/docs/server_manual/services/ogcapif.html#customize-the-html-pages"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "section_number": "4",
+      "title": "Catalog",
+      "url": "https://docs.qgis.org/3.44/en/docs/server_manual/catalog.html",
+      "summary": "Information about QGIS Server Catalog, a simple catalog that shows the list of QGIS projects served by the QGIS Server"
+    },
+    {
+      "section_number": "5",
+      "title": "Plugins",
+      "url": "https://docs.qgis.org/3.44/en/docs/server_manual/plugins.html",
+      "subsections": [
+        {
+          "subsection_number": "5.1",
+          "title": "List of plugins",
+          "url": "https://docs.qgis.org/3.44/en/docs/server_manual/plugins.html#list-of-plugins"
+        },
+        {
+          "subsection_number": "5.2",
+          "title": "Location of plugins",
+          "url": "https://docs.qgis.org/3.44/en/docs/server_manual/plugins.html#location-of-plugins"
+        },
+        {
+          "subsection_number": "5.3",
+          "title": "Installation",
+          "url": "https://docs.qgis.org/3.44/en/docs/server_manual/plugins.html#installation",
+          "sub_subsections": [
+            {
+              "sub_subsection_title": "Manually with a ZIP",
+              "url": "https://docs.qgis.org/3.44/en/docs/server_manual/plugins.html#manually-with-a-zip"
+            },
+            {
+              "sub_subsection_title": "With a command line tool",
+              "url": "https://docs.qgis.org/3.44/en/docs/server_manual/plugins.html#with-a-command-line-tool"
+            }
+          ]
+        },
+        {
+          "subsection_number": "5.4",
+          "title": "HTTP Server configuration",
+          "url": "https://docs.qgis.org/3.44/en/docs/server_manual/plugins.html#http-server-configuration",
+          "sub_subsections": [
+            {
+              "sub_subsection_title": "Apache",
+              "url": "https://docs.qgis.org/3.44/en/docs/server_manual/plugins.html#apache"
+            }
+          ]
+        },
+        {
+          "subsection_number": "5.5",
+          "title": "How to use a plugin",
+          "url": "https://docs.qgis.org/3.44/en/docs/server_manual/plugins.html#how-to-use-a-plugin"
+        }
+      ]
+    },
+    {
+      "section_number": "6",
+      "title": "Advanced configuration",
+      "url": "https://docs.qgis.org/3.44/en/docs/server_manual/config.html",
+      "subsections": [
+        {
+          "subsection_number": "6.1",
+          "title": "Logging",
+          "url": "https://docs.qgis.org/3.44/en/docs/server_manual/config.html#logging"
+        },
+        {
+          "subsection_number": "6.2",
+          "title": "Environment variables",
+          "url": "https://docs.qgis.org/3.44/en/docs/server_manual/config.html#environment-variables"
+        },
+        {
+          "subsection_number": "6.3",
+          "title": "Settings summary",
+          "url": "https://docs.qgis.org/3.44/en/docs/server_manual/config.html#settings-summary"
+        },
+        {
+          "subsection_number": "6.4",
+          "title": "Connection to service file",
+          "url": "https://docs.qgis.org/3.44/en/docs/server_manual/config.html#connection-to-service-file"
+        },
+        {
+          "subsection_number": "6.5",
+          "title": "Add fonts to your linux server",
+          "url": "https://docs.qgis.org/3.44/en/docs/server_manual/config.html#add-fonts-to-your-linux-server"
+        }
+      ]
+    },
+    {
+      "section_number": "7",
+      "title": "Development Server",
+      "url": "https://docs.qgis.org/3.44/en/docs/server_manual/development_server.html",
+      "summary": "Information about the QGIS Development Standalone server for testing without configuring a full web server stack"
+    },
+    {
+      "section_number": "8",
+      "title": "Containerized deployment",
+      "url": "https://docs.qgis.org/3.44/en/docs/server_manual/containerized_deployment.html",
+      "subsections": [
+        {
+          "subsection_number": "8.1",
+          "title": "Simple docker images",
+          "url": "https://docs.qgis.org/3.44/en/docs/server_manual/containerized_deployment.html#simple-docker-images",
+          "sub_subsections": [
+            {
+              "sub_subsection_title": "First run",
+              "url": "https://docs.qgis.org/3.44/en/docs/server_manual/containerized_deployment.html#first-run"
+            },
+            {
+              "sub_subsection_title": "Usable sample",
+              "url": "https://docs.qgis.org/3.44/en/docs/server_manual/containerized_deployment.html#usable-sample"
+            },
+            {
+              "sub_subsection_title": "Cleanup",
+              "url": "https://docs.qgis.org/3.44/en/docs/server_manual/containerized_deployment.html#cleanup"
+            }
+          ]
+        },
+        {
+          "subsection_number": "8.2",
+          "title": "Docker stacks",
+          "url": "https://docs.qgis.org/3.44/en/docs/server_manual/containerized_deployment.html#docker-stacks",
+          "sub_subsections": [
+            {
+              "sub_subsection_title": "Swarm/docker-compose",
+              "url": "https://docs.qgis.org/3.44/en/docs/server_manual/containerized_deployment.html#swarm-docker-compose"
+            },
+            {
+              "sub_subsection_title": "Kubernetes",
+              "url": "https://docs.qgis.org/3.44/en/docs/server_manual/containerized_deployment.html#kubernetes"
+            }
+          ]
+        },
+        {
+          "subsection_number": "8.3",
+          "title": "Cloud deployment",
+          "url": "https://docs.qgis.org/3.44/en/docs/server_manual/containerized_deployment.html#cloud-deployment"
+        }
+      ]
+    },
+    {
+      "section_number": "9",
+      "title": "Frequently Asked Question",
+      "url": "https://docs.qgis.org/3.44/en/docs/server_manual/faq.html",
+      "summary": "Answers to common questions about QGIS Server, its differences from other web mapping servers, and technical specifications"
+    }
+  ],
+  "last_updated": "2026-06-18",
+  "qgis_version": "3.44"
+}

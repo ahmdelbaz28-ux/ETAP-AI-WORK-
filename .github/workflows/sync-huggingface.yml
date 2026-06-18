@@ -69,30 +69,34 @@ jobs:
 
       - name: Wait for build and verify
         run: |
-          echo "Waiting 120s for HF build..."
+          echo "Waiting 120s for HF Space to rebuild..."
           sleep 120
 
-          for i in 1 2 3 4 5; do
+          HF_URL="https://ahmdelbaz28-etap-ai-platform.hf.space"
+
+          for i in 1 2 3 4 5 6; do
             STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
-              "https://ahmdelbaz28-ETAP-AI-Platform.hf.space/healthz" 2>/dev/null || echo "000")
+              "${HF_URL}/healthz" 2>/dev/null || echo "000")
             if [ "$STATUS" = "200" ]; then
-              echo "Space is LIVE and healthy!"
+              echo "✅ Space is LIVE and healthy! (attempt $i)"
+              curl -s "${HF_URL}/health" | python3 -m json.tool || true
               exit 0
             fi
-            echo "Attempt $i: HTTP $STATUS - waiting 60s..."
+            echo "⏳ Attempt $i: HTTP $STATUS — waiting 60s..."
             sleep 60
           done
 
-          echo "WARNING: Space not healthy after 5 attempts"
-          echo "Check: https://huggingface.co/spaces/ahmdelbaz28/ETAP-AI-Platform"
+          echo "⚠️  WARNING: Space not healthy after 6 attempts (may still be building)"
+          echo "🔗 Check: https://huggingface.co/spaces/ahmdelbaz28/ETAP-AI-Platform"
 
       - name: Summary
         if: always()
         run: |
-          echo "========================================="
-          echo "  SYNC COMPLETE"
-          echo "========================================="
-          echo "  GitHub: ${{ github.sha }}"
-          echo "  HF Space: https://huggingface.co/spaces/ahmdelbaz28/ETAP-AI-Platform"
-          echo "  Live: https://ahmdelbaz28-ETAP-AI-Platform.hf.space"
-          echo "========================================="
+          echo "================================================"
+          echo "  ⚡ AhmedETAP — HuggingFace Sync Complete"
+          echo "================================================"
+          echo "  GitHub SHA : ${{ github.sha }}"
+          echo "  HF Space   : https://huggingface.co/spaces/ahmdelbaz28/ETAP-AI-Platform"
+          echo "  Live URL   : https://ahmdelbaz28-etap-ai-platform.hf.space"
+          echo "  Swagger    : https://ahmdelbaz28-etap-ai-platform.hf.space/docs"
+          echo "================================================"
