@@ -1,0 +1,129 @@
+# Unified GitHub Actions CI/CD Pipeline for AhmedETAP
+name: AhmedETAP Unified CI/CD
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # Lint and Type Check
+  lint-and-test:
+    name: Code Quality & Unit Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Install pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 9
+      
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      
+      - name: Install Node dependencies
+        run: pnpm install --no-frozen-lockfile
+      
+      - name: TypeScript typecheck
+        run: pnpm lint
+        # REMOVED: continue-on-error: true - Now fails on type errors
+      
+      - name: Run TypeScript tests
+        run: pnpm test
+        # REMOVED: continue-on-error: true - Now fails on test failures
+
+  # Python Service Validation
+  python-validation:
+    name: Python Service Validation
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install fastapi uvicorn pydantic ruff pytest
+          pip install -e ".[dev,test]"  # Install optional dependencies
+      
+      - name: Validate Engineering Service syntax
+        run: python -c "import ast; ast.parse(open('engineering_service.py').read()); print('Engineering Service syntax OK')"
+      
+      - name: Ruff lint check
+        run: ruff check .
+      
+      - name: Run Python tests
+        run: pytest -v
+      
+      - name: Validate Python engine syntax
+        run: python3 validate_syntax.py
+
+  # Security Audit
+  security-audit:
+    name: Security Audit
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      
+      - name: Install security tools
+        run: |
+          pip install pip-audit pip-licenses
+          pip install -e ".[dev,test]"
+      
+      - name: Security audit with pip-audit
+        run: |
+          pip-audit --desc on .
+      
+      - name: Check licenses with pip-licenses
+        run: |
+          pip-licenses
+      
+      - name: Check for secrets with trufflehog
+        uses: trufflesecurity/trufflehog@main
+        with:
+          path: ./
+          base: origin/main
+          head: HEAD
+
+  # Quality Gates
+  quality-gates:
+    name: Quality Gates
+    runs-on: ubuntu-latest
+    needs: [lint-and-test, python-validation]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install coverage pytest
+      
+      - name: Run coverage check
+        run: |
+          pytest --cov=. --cov-report=term-missing --cov-fail-under=75
