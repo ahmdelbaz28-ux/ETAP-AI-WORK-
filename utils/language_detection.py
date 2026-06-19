@@ -10,13 +10,19 @@ import os
 import re
 from typing import Optional, Dict, Any
 
+from typing import TYPE_CHECKING
+
 # Try to import langdetect for better language detection
 try:
     from langdetect import detect
     HAS_LANGDETECT = True
 except ImportError:
     HAS_LANGDETECT = False
+    detect = None  # type: ignore
     print("Warning: langdetect not installed. Install with 'pip install langdetect' for better language detection.")
+
+if TYPE_CHECKING or HAS_LANGDETECT and detect is not None:
+    from langdetect import detect
 
 # ---------------------------------------------------------------------------
 # Configuration
