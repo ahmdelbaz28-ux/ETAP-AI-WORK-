@@ -33,8 +33,8 @@ def main():
         logger.info("ETAP integration disabled - using native engine only")
     
     # Start the API server
-    port = int(os.environ.get("PORT", 8000))
-    host = os.environ.get("HOST", "0.0.0.0")
+    port = int(os.environ.get("ENGINEERING_SERVICE_PORT", os.environ.get("PORT", 8000)))
+    host = os.environ.get("ENGINEERING_SERVICE_HOST", os.environ.get("HOST", "0.0.0.0"))
     
     logger.info(f"Starting Engineering Service on {host}:{port}")
     
