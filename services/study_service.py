@@ -270,6 +270,22 @@ def _build_system_from_spec(spec: SystemSpec) -> Any:
 _STUDIES_REQUIRING_SYSTEM = {"load_flow", "short_circuit", "fault", "protection_coordination", "coordination", "motor_starting"}
 
 
+def _run_async(coro):
+    """Run an async coroutine safely, whether or not an event loop is active."""
+    try:
+        loop = asyncio.get_running_loop()
+    except RuntimeError:
+        loop = None
+    if loop and loop.is_running():
+        # We're inside an async context - create a new loop in a thread
+        import concurrent.futures
+        with concurrent.futures.ThreadPoolExecutor(max_workers=1) as pool:
+            future = pool.submit(asyncio.run, coro)
+            return future.result()
+    else:
+        return asyncio.run(coro)
+
+
 @trace_operation("_run_native_study", attributes={"component": "engineering_service"})
 def _run_native_study(study_type: str, system: Optional[Any], parameters: Dict[str, Any]) -> Dict[str, Any]:
     """Execute a study using the native PowerSystemEngine."""
@@ -405,7 +421,7 @@ def execute_study_logic(payload: StudyRequest, trace_id: str, start_time: float)
                     system_json = json.dumps(payload.system.model_dump(), sort_keys=True, default=str)
                     cache_params["system_hash"] = _hashlib.sha256(system_json.encode()).hexdigest()
                 if _study_cache:
-                    cached_result = asyncio.run(_study_cache.get(payload.study_type, cache_params))
+                    cached_result = _run_async(_study_cache.get(payload.study_type, cache_params))
                     if cached_result:
                         data = json.loads(cached_result)
                         cache_hit = True
@@ -422,7 +438,7 @@ def execute_study_logic(payload: StudyRequest, trace_id: str, start_time: float)
             provider_name = "etap"
             # Offload the synchronous ETAP call to a thread so it doesn't
             # block the async event loop (ETAP COM calls can take 5-60 sec).
-            data = asyncio.run(asyncio.to_thread(
+            data = _run_async(asyncio.to_thread(
                 _run_etap_study,
                 payload.study_type,
                 payload.etap_project_path,
@@ -451,7 +467,7 @@ def execute_study_logic(payload: StudyRequest, trace_id: str, start_time: float)
                     system_json = json.dumps(payload.system.model_dump(), sort_keys=True, default=str)
                     cache_params["system_hash"] = _hashlib.sha256(system_json.encode()).hexdigest()
                 if _study_cache:
-                    asyncio.run(_study_cache.set(payload.study_type, cache_params, json.dumps(data, default=str)))
+                    _run_async(_study_cache.set(payload.study_type, cache_params, json.dumps(data, default=str)))
             except Exception as cache_err:
                 logger.debug("Cache store failed (non-fatal): %s", cache_err, extra={"trace_id": trace_id})
 

@@ -42,9 +42,10 @@ from api.websocket import scada_websocket_endpoint
 app = FastAPI(
     title="Engineering Service API",
     description="Production-grade FastAPI service wrapping the Python PowerSystemEngine",
-    version="1.0.0",
+    version="2.1.0",
     docs_url="/docs",
-    redoc_url="/redoc"
+    redoc_url="/redoc",
+    lifespan=lifespan,
 )
 
 # ---------------------------------------------------------------------------
@@ -256,10 +257,10 @@ async def ready():
     return ReadyResponse(status="ok", timestamp=str(time.time()))
 
 
-@app.get("/metrics", response_model=dict)
+@app.get("/metrics")
 async def metrics():
-    from core.metrics import generate_metrics
-    return Response(content=generate_metrics(), media_type="text/plain")
+    from core.metrics import generate_metrics, get_metrics_content_type
+    return Response(content=generate_metrics(), media_type=get_metrics_content_type())
 
 
 @app.get("/prometheus/metrics")
@@ -272,9 +273,12 @@ async def prometheus_metrics():
 @app.post("/api/v1/studies/run", response_model=StudyResult)
 async def run_study(study_request: StudyRequest, request: Request):
     _require_api_key(request)
-    
-    # Execute the study synchronously
-    result = execute_study_logic(study_request.dict())
+
+    trace_id = getattr(request.state, "trace_id", str(uuid.uuid4()))
+    start_time = time.perf_counter()
+
+    # Execute the study with proper arguments
+    result = execute_study_logic(study_request, trace_id=trace_id, start_time=start_time)
     return result
 
 
@@ -299,17 +303,17 @@ async def run_study_async(study_request: StudyRequest):
     try:
         # Send the task to Celery queue
         task = execute_engineering_study_task.delay({
-            'study_type': study_request.studyType,
-            'data': study_request.dict(),
+            'study_type': study_request.study_type,
+            'data': study_request.model_dump(),
             'request_timestamp': str(time.time())
         })
-        
+
         logger.info(f'Started async study execution with task_id: {task.id}')
-        
+
         return {
             'task_id': task.id,
             'status': 'accepted',
-            'study_type': study_request.studyType,
+            'study_type': study_request.study_type,
             'submitted_at': str(time.time())
         }
     except Exception as e:
