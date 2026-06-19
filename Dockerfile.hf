@@ -160,12 +160,12 @@ logfile=/tmp/logs/supervisord.log
 pidfile=/tmp/supervisord.pid
 
 [program:backend]
-command=python3 /app/engineering_service.py --host 0.0.0.0 --port 8000
+command=python3 /app/engineering_service.py
 autostart=true
 autorestart=true
 stdout_logfile=/tmp/logs/backend.log
 stderr_logfile=/tmp/logs/backend.err
-environment=PYTHONUNBUFFERED=1
+environment=PYTHONUNBUFFERED="1",ENGINEERING_SERVICE_PORT="8000",ENGINEERING_SERVICE_HOST="0.0.0.0"
 
 [program:nginx]
 command=nginx -g "daemon off;"

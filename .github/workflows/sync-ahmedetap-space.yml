@@ -1,0 +1,61 @@
+name: Sync Full Platform to HuggingFace AHMEDETAP Space
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: hf-ahmedetap-sync
+  cancel-in-progress: false
+
+jobs:
+  sync-ahmedetap:
+    name: Sync to HuggingFace AHMEDETAP Space
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          lfs: true
+
+      - name: Setup Git LFS
+        run: |
+          git lfs install
+
+      - name: Configure git
+        run: |
+          git config --global user.email "ahmdelbaz28@gmail.com"
+          git config --global user.name "GitHub Actions Sync"
+
+      - name: Clone HuggingFace Space
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+        run: |
+          git clone "https://ahmdelbaz28:${HF_TOKEN}@huggingface.co/spaces/ahmdelbaz28/AHMEDETAP.git" /tmp/hf-space
+
+      - name: Prepare and Sync Files
+        run: |
+          # Copy everything excluding .git
+          rsync -av --exclude='.git' "${GITHUB_WORKSPACE}/" /tmp/hf-space/
+          
+          cd /tmp/hf-space
+          # Use Dockerfile.hf and README.hf.md for the Space
+          cp Dockerfile.hf Dockerfile
+          cp README.hf.md README.md
+          
+          # Track binary files
+          git lfs track "*.png" "*.wal"
+          
+          echo "Synced files ready for push."
+
+      - name: Commit and Push to HF Space
+        run: |
+          cd /tmp/hf-space
+          git add -A
+          if git diff --cached --quiet; then
+            echo "No changes - already up to date"
+            exit 0
+          fi
+          git commit -m "Auto-sync full platform from GitHub (${{ github.sha }})"
+          git push origin main
