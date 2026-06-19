@@ -240,12 +240,38 @@ def _add_execution_time(delta: float) -> None:
 # Bootstrap lifespan manager
 # ---------------------------------------------------------------------------
 
+def _validate_environment() -> None:
+    """Validate critical environment variables at startup."""
+    env = os.environ.get("ENVIRONMENT", os.environ.get("ENV", "development")).lower()
+    is_production = env in ("production", "prod", "staging")
+
+    # Warn about missing optional-but-recommended vars
+    warnings: list[str] = []
+    if is_production:
+        if not os.environ.get("JWT_SECRET_KEY"):
+            warnings.append("JWT_SECRET_KEY not set - JWT tokens will not survive restarts")
+        if not os.environ.get("ENGINEERING_SERVICE_API_KEY"):
+            auth_disabled = os.environ.get(
+                "ENGINEERING_SERVICE_AUTH_DISABLED", ""
+            ).lower() in ("1", "true", "yes")
+            if not auth_disabled:
+                warnings.append(
+                    "ENGINEERING_SERVICE_API_KEY not set and auth not disabled"
+                )
+
+    for w in warnings:
+        logger.warning("env_validation: %s", w)
+
+
 @asynccontextmanager
 async def lifespan(app):
     """
     Lifespan context manager for application startup and shutdown events.
     """
     logger.info("Application starting up")
+
+    # Validate environment
+    _validate_environment()
 
     # Privacy mode notification
     if PRIVACY_MODE:

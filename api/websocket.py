@@ -6,7 +6,7 @@ import asyncio
 import json
 import logging
 from typing import List
-from datetime import datetime
+from datetime import datetime, timezone
 
 from fastapi import WebSocket, WebSocketDisconnect
 from starlette.websockets import WebSocketState
@@ -79,7 +79,7 @@ class SCADALiveFeed:
         import random
         
         scada_data = {
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "measurements": {
                 "bus_voltages": [
                     {"bus_id": "BUS_1", "voltage_kV": round(random.uniform(11.0, 12.5), 3), "angle_deg": round(random.uniform(-5, 5), 2)},
@@ -107,7 +107,7 @@ class SCADALiveFeed:
         if random.random() < 0.1:  # 10% chance of alarm
             scada_data["alarms"].append({
                 "alarm_id": f"ALARM_{random.randint(1000, 9999)}",
-                "timestamp": datetime.utcnow().isoformat(),
+                "timestamp": datetime.now(timezone.utc).isoformat(),
                 "severity": "WARNING" if random.random() < 0.7 else "CRITICAL",
                 "description": f"Simulated alarm for equipment {random.choice(['Transformer', 'Breaker', 'Line'])}",
                 "location": random.choice(["SUBSTATION_A", "SUBSTATION_B", "FEEDER_C"])

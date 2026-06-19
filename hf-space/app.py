@@ -1,47 +1,111 @@
 """
-AhmedETAP — Enterprise Engineering Intelligence Platform
+AhmedETAP - Enterprise Engineering Intelligence Platform
 Hugging Face Spaces Entry Point
 Author: Eng. Ahmed Elbaz
 """
 
+import hmac
 import os
 import time
 import logging
+import threading
+from contextlib import asynccontextmanager
 from datetime import datetime, timezone
 from typing import Any
 
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, HTTPException
 from fastapi.responses import JSONResponse, HTMLResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import uvicorn
 
-# ─── Logging ──────────────────────────────────────────────────────────────────
+# -- Version (single source of truth) -----------------------------------------
+VERSION = "2.1.0"
+
+# -- Logging ------------------------------------------------------------------
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s | %(levelname)s | %(name)s | %(message)s",
 )
 logger = logging.getLogger("etap-ai")
 
-# ─── App Init ─────────────────────────────────────────────────────────────────
+# -- App Constants ------------------------------------------------------------
 START_TIME = time.time()
 BUILD_TIME = datetime.now(timezone.utc).isoformat()
+AGENT_COUNT = 23
+ETAP_MANUAL_COUNT = 35
+ZENON_GUIDE_COUNT = 4
 
+# -- Optional API Key Auth ----------------------------------------------------
+_API_KEY = os.environ.get("HF_API_KEY", "")
+_API_KEY_ENABLED = bool(_API_KEY)
+
+
+def _verify_api_key(request: Request) -> None:
+    """Validate API key when configured. Skips health/docs endpoints."""
+    if not _API_KEY_ENABLED:
+        return
+    # Skip auth for health, docs, and root
+    path = request.url.path
+    if path in ("/", "/healthz", "/readyz", "/health", "/ready",
+                "/docs", "/redoc", "/openapi.json", "/metrics"):
+        return
+    provided = request.headers.get("x-api-key") or ""
+    if not hmac.compare_digest(provided, _API_KEY):
+        raise HTTPException(status_code=401, detail="Invalid or missing API key")
+
+
+# -- Rate Limiting (in-memory, per-client) ------------------------------------
+_RATE_WINDOW = int(os.environ.get("RATE_LIMIT_WINDOW", "60"))
+_RATE_MAX = int(os.environ.get("RATE_LIMIT_MAX", "120"))
+_rate_store: dict[str, list[float]] = {}
+_rate_lock = threading.Lock()
+
+
+def _check_rate_limit(client_id: str) -> bool:
+    """Return True if the request is allowed, False if rate-limited."""
+    now = time.time()
+    with _rate_lock:
+        if client_id not in _rate_store:
+            _rate_store[client_id] = [now]
+            return True
+        _rate_store[client_id] = [
+            t for t in _rate_store[client_id] if now - t < _RATE_WINDOW
+        ]
+        if len(_rate_store[client_id]) >= _RATE_MAX:
+            return False
+        _rate_store[client_id].append(now)
+        return True
+
+
+# -- Lifespan -----------------------------------------------------------------
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    logger.info("AhmedETAP v%s started on Hugging Face Spaces", VERSION)
+    logger.info("Knowledge base: %d ETAP manuals + %d Zenon guides",
+                ETAP_MANUAL_COUNT, ZENON_GUIDE_COUNT)
+    logger.info("Active agents: %d", AGENT_COUNT)
+    yield
+    logger.info("AhmedETAP shutting down")
+
+
+# -- App Init -----------------------------------------------------------------
 app = FastAPI(
-    title="AhmedETAP — Enterprise Engineering Intelligence",
+    title="AhmedETAP - Enterprise Engineering Intelligence",
     description=(
         "Enterprise-grade autonomous AI engineering platform for power system analysis. "
         "Covers Load Flow (IEEE 3002.7), Short Circuit (IEC 60909), Arc Flash (IEEE 1584), "
         "Protection Coordination (IEC 60255), Motor Starting (IEEE 399), Harmonics (IEEE 519), "
         "Transient Stability, Cable Sizing (IEC 60364), Ground Grid (IEEE 80), OPF, "
-        "SCADA (IEC 61850 via Zenon), and more — powered by 23+ specialized AI agents."
+        "SCADA (IEC 61850 via Zenon), and more - powered by 23+ specialized AI agents."
     ),
-    version="2.1.0",
+    version=VERSION,
     contact={"name": "Eng. Ahmed Elbaz", "email": "ahmdelbaz28@gmail.com"},
     license_info={"name": "MIT"},
     docs_url="/docs",
     redoc_url="/redoc",
     openapi_url="/openapi.json",
+    lifespan=lifespan,
 )
 
 app.add_middleware(
@@ -52,18 +116,39 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# ─── Models ───────────────────────────────────────────────────────────────────
+# -- Auth + Rate-limit middleware ---------------------------------------------
+@app.middleware("http")
+async def auth_and_rate_limit(request: Request, call_next):
+    # API key check
+    _verify_api_key(request)
+    # Rate limit (skip health/docs)
+    path = request.url.path
+    if path not in ("/", "/healthz", "/readyz", "/health", "/ready",
+                    "/docs", "/redoc", "/openapi.json", "/metrics"):
+        client_id = request.client.host if request.client else "unknown"
+        if not _check_rate_limit(client_id):
+            return JSONResponse(
+                status_code=429,
+                content={"detail": "Rate limit exceeded"},
+                headers={"Retry-After": str(_RATE_WINDOW)},
+            )
+    return await call_next(request)
+
+
+# -- Models -------------------------------------------------------------------
 class StudyRequest(BaseModel):
     study_type: str
-    system: dict[str, Any]
+    system: dict[str, Any] = {}
     options: dict[str, Any] = {}
+
 
 class AgentRequest(BaseModel):
     agent: str
     query: str
     context: dict[str, Any] = {}
 
-# ─── Root ─────────────────────────────────────────────────────────────────────
+
+# -- Root ---------------------------------------------------------------------
 @app.get("/", response_class=HTMLResponse, tags=["Platform"])
 async def root():
     uptime = round(time.time() - START_TIME, 1)
@@ -72,7 +157,7 @@ async def root():
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>AhmedETAP — Enterprise Engineering Intelligence</title>
+  <title>AhmedETAP - Enterprise Engineering Intelligence</title>
   <style>
     *{{margin:0;padding:0;box-sizing:border-box}}
     body{{font-family:'Segoe UI',system-ui,sans-serif;background:linear-gradient(135deg,#0f0c29,#302b63,#24243e);min-height:100vh;color:#e2e8f0;display:flex;align-items:center;justify-content:center;padding:2rem}}
@@ -94,9 +179,9 @@ async def root():
 </head>
 <body>
   <div class="card">
-    <div class="status"><span class="dot"></span>LIVE — Uptime {uptime}s</div>
-    <h1>⚡ AhmedETAP</h1>
-    <p class="sub">Enterprise Engineering Intelligence Platform — v2.1.0</p>
+    <div class="status"><span class="dot"></span>LIVE - Uptime {uptime}s</div>
+    <h1>AhmedETAP</h1>
+    <p class="sub">Enterprise Engineering Intelligence Platform - v{VERSION}</p>
     <div>
       <span class="badge">IEEE 3002.7</span>
       <span class="badge">IEC 60909</span>
@@ -108,35 +193,39 @@ async def root():
       <span class="badge">IEC 60364</span>
     </div>
     <div class="grid">
-      <div class="stat"><div class="stat-num">23</div><div class="stat-label">AI Agents</div></div>
-      <div class="stat"><div class="stat-num">35+</div><div class="stat-label">ETAP Manuals</div></div>
-      <div class="stat"><div class="stat-num">4</div><div class="stat-label">Zenon Guides</div></div>
+      <div class="stat"><div class="stat-num">{AGENT_COUNT}</div><div class="stat-label">AI Agents</div></div>
+      <div class="stat"><div class="stat-num">{ETAP_MANUAL_COUNT}+</div><div class="stat-label">ETAP Manuals</div></div>
+      <div class="stat"><div class="stat-num">{ZENON_GUIDE_COUNT}</div><div class="stat-label">Zenon Guides</div></div>
       <div class="stat"><div class="stat-num">548</div><div class="stat-label">Tests Passing</div></div>
     </div>
     <div class="links">
-      <a href="/docs">📖 Swagger Docs</a>
-      <a href="/redoc">📋 ReDoc</a>
-      <a href="/healthz">❤️ Health</a>
-      <a href="/api/v1/agents">🤖 Agents</a>
-      <a href="https://github.com/ahmdelbaz28-ux/ETAP-AI-WORK-" target="_blank">⭐ GitHub</a>
+      <a href="/docs">Swagger Docs</a>
+      <a href="/redoc">ReDoc</a>
+      <a href="/healthz">Health</a>
+      <a href="/api/v1/agents">Agents</a>
+      <a href="https://github.com/ahmdelbaz28-ux/ETAP-AI-WORK-" target="_blank">GitHub</a>
     </div>
   </div>
 </body>
 </html>"""
     return HTMLResponse(content=html)
 
-# ─── Health ───────────────────────────────────────────────────────────────────
+
+# -- Health -------------------------------------------------------------------
 @app.get("/healthz", tags=["Health"])
 async def healthz():
     return JSONResponse(content={"status": "ok"}, status_code=200)
+
 
 @app.head("/healthz", tags=["Health"])
 async def healthz_head():
     return JSONResponse(content={}, status_code=200)
 
+
 @app.get("/readyz", tags=["Health"])
 async def readyz():
     return JSONResponse(content={"status": "ready"}, status_code=200)
+
 
 @app.get("/health", tags=["Health"])
 async def health():
@@ -145,40 +234,43 @@ async def health():
         "status": "healthy",
         "uptime_seconds": uptime,
         "build_time": BUILD_TIME,
-        "version": "2.1.0",
+        "version": VERSION,
         "platform": "huggingface-spaces",
-        "agents": 23,
-        "etap_manuals": 35,
-        "zenon_guides": 4,
+        "agents": AGENT_COUNT,
+        "etap_manuals": ETAP_MANUAL_COUNT,
+        "zenon_guides": ZENON_GUIDE_COUNT,
     }
+
 
 @app.get("/ready", tags=["Health"])
 async def ready():
     return {"status": "ready", "uptime": round(time.time() - START_TIME, 2)}
 
-# ─── Metrics ──────────────────────────────────────────────────────────────────
+
+# -- Metrics ------------------------------------------------------------------
 @app.get("/metrics", tags=["Monitoring"])
 async def metrics():
     return {
         "uptime_seconds": round(time.time() - START_TIME, 2),
         "platform": "huggingface-spaces",
-        "version": "2.1.0",
+        "version": VERSION,
     }
 
-# ─── Platform Info ────────────────────────────────────────────────────────────
+
+# -- Platform Info ------------------------------------------------------------
 @app.get("/api/v1/info", tags=["Platform"])
 async def platform_info():
     return {
         "name": "AhmedETAP",
-        "version": "2.1.0",
+        "version": VERSION,
         "description": "Enterprise Engineering Intelligence Platform",
         "author": "Eng. Ahmed Elbaz",
         "standards": ["IEEE 3002.7", "IEC 60909", "IEEE 1584", "IEC 60255", "IEEE 519",
                       "IEC 61850", "IEEE 80", "IEC 60364", "IEEE 399", "IEC 62933"],
-        "agents": 23,
+        "agents": AGENT_COUNT,
         "knowledge_base": {
-            "etap_manuals": 35,
-            "zenon_guides": 4,
+            "etap_manuals": ETAP_MANUAL_COUNT,
+            "zenon_guides": ZENON_GUIDE_COUNT,
             "total_chunks": "5000+",
         },
         "endpoints": {
@@ -189,36 +281,39 @@ async def platform_info():
         },
     }
 
-# ─── Agents ───────────────────────────────────────────────────────────────────
+
+# -- Agents -------------------------------------------------------------------
 AGENTS = [
-    {"id": "load-flow-agent",            "name": "Load Flow Agent",            "standard": "IEEE 3002.7",  "status": "active"},
-    {"id": "short-circuit-agent",        "name": "Short Circuit Agent",        "standard": "IEC 60909",    "status": "active"},
-    {"id": "arcflash-agent",             "name": "Arc Flash Agent",            "standard": "IEEE 1584",    "status": "active"},
-    {"id": "protection-agent",           "name": "Protection Agent",           "standard": "IEC 60255",    "status": "active"},
-    {"id": "motorstarting-agent",        "name": "Motor Starting Agent",       "standard": "IEEE 399",     "status": "active"},
-    {"id": "stability-agent",            "name": "Stability Agent",            "standard": "IEEE 399",     "status": "active"},
-    {"id": "harmonic-agent",             "name": "Harmonic Analysis Agent",    "standard": "IEEE 519",     "status": "active"},
-    {"id": "cable-sizing-agent",         "name": "Cable Sizing Agent",         "standard": "IEC 60364",    "status": "active"},
-    {"id": "earth-grid-agent",           "name": "Earth Grid Agent",           "standard": "IEEE 80",      "status": "active"},
-    {"id": "opf-agent",                  "name": "Optimal Power Flow Agent",   "standard": "IEEE 3002.7",  "status": "active"},
-    {"id": "renewable-agent",            "name": "Renewable Energy Agent",     "standard": "IEEE 1547",    "status": "active"},
-    {"id": "battery-storage-agent",      "name": "Battery Storage Agent",      "standard": "IEC 62933",    "status": "active"},
-    {"id": "scada-agent",                "name": "SCADA Agent",                "standard": "IEC 61850",    "status": "active"},
-    {"id": "digital-twin-agent",         "name": "Digital Twin Agent",         "standard": "IEC 61970",    "status": "active"},
-    {"id": "predictive-agent",           "name": "Predictive Maintenance",     "standard": "ISO 13381",    "status": "active"},
-    {"id": "anomaly-agent",              "name": "Anomaly Detection Agent",    "standard": "IEEE 1159",    "status": "active"},
-    {"id": "coordination-agent",         "name": "Coordination Agent",         "standard": "IEC 60255",    "status": "active"},
-    {"id": "report-agent",               "name": "Report Generation Agent",    "standard": "IEEE 3002.7",  "status": "active"},
-    {"id": "validation-agent",           "name": "Validation Agent",           "standard": "IEC 60038",    "status": "active"},
-    {"id": "etap-engineer-agent",        "name": "ETAP Engineer Agent",        "standard": "ETAP Manual",  "status": "active"},
-    {"id": "goal-planner-agent",         "name": "Goal Planner Agent",         "standard": "Internal",     "status": "active"},
-    {"id": "weather-agent",              "name": "Weather Agent",              "standard": "IEC 60721",    "status": "active"},
-    {"id": "power-system-coordinator",   "name": "Power System Coordinator",   "standard": "All",          "status": "active"},
+    {"id": "load-flow-agent",          "name": "Load Flow Agent",            "standard": "IEEE 3002.7",  "status": "active"},
+    {"id": "short-circuit-agent",      "name": "Short Circuit Agent",        "standard": "IEC 60909",    "status": "active"},
+    {"id": "arcflash-agent",           "name": "Arc Flash Agent",            "standard": "IEEE 1584",    "status": "active"},
+    {"id": "protection-agent",         "name": "Protection Agent",           "standard": "IEC 60255",    "status": "active"},
+    {"id": "motorstarting-agent",      "name": "Motor Starting Agent",       "standard": "IEEE 399",     "status": "active"},
+    {"id": "stability-agent",          "name": "Stability Agent",            "standard": "IEEE 399",     "status": "active"},
+    {"id": "harmonic-agent",           "name": "Harmonic Analysis Agent",    "standard": "IEEE 519",     "status": "active"},
+    {"id": "cable-sizing-agent",       "name": "Cable Sizing Agent",         "standard": "IEC 60364",    "status": "active"},
+    {"id": "earth-grid-agent",         "name": "Earth Grid Agent",           "standard": "IEEE 80",      "status": "active"},
+    {"id": "opf-agent",                "name": "Optimal Power Flow Agent",   "standard": "IEEE 3002.7",  "status": "active"},
+    {"id": "renewable-agent",          "name": "Renewable Energy Agent",     "standard": "IEEE 1547",    "status": "active"},
+    {"id": "battery-storage-agent",    "name": "Battery Storage Agent",      "standard": "IEC 62933",    "status": "active"},
+    {"id": "scada-agent",              "name": "SCADA Agent",                "standard": "IEC 61850",    "status": "active"},
+    {"id": "digital-twin-agent",       "name": "Digital Twin Agent",         "standard": "IEC 61970",    "status": "active"},
+    {"id": "predictive-agent",         "name": "Predictive Maintenance",     "standard": "ISO 13381",    "status": "active"},
+    {"id": "anomaly-agent",            "name": "Anomaly Detection Agent",    "standard": "IEEE 1159",    "status": "active"},
+    {"id": "coordination-agent",       "name": "Coordination Agent",         "standard": "IEC 60255",    "status": "active"},
+    {"id": "report-agent",             "name": "Report Generation Agent",    "standard": "IEEE 3002.7",  "status": "active"},
+    {"id": "validation-agent",         "name": "Validation Agent",           "standard": "IEC 60038",    "status": "active"},
+    {"id": "etap-engineer-agent",      "name": "ETAP Engineer Agent",        "standard": "ETAP Manual",  "status": "active"},
+    {"id": "goal-planner-agent",       "name": "Goal Planner Agent",         "standard": "Internal",     "status": "active"},
+    {"id": "weather-agent",            "name": "Weather Agent",              "standard": "IEC 60721",    "status": "active"},
+    {"id": "power-system-coordinator", "name": "Power System Coordinator",   "standard": "All",          "status": "active"},
 ]
+
 
 @app.get("/api/v1/agents", tags=["Agents"])
 async def list_agents():
     return {"count": len(AGENTS), "agents": AGENTS}
+
 
 @app.get("/api/v1/agents/{agent_id}", tags=["Agents"])
 async def get_agent(agent_id: str):
@@ -227,7 +322,8 @@ async def get_agent(agent_id: str):
         return JSONResponse(status_code=404, content={"error": f"Agent '{agent_id}' not found"})
     return agent
 
-# ─── Studies ──────────────────────────────────────────────────────────────────
+
+# -- Studies ------------------------------------------------------------------
 STUDY_TYPES = [
     "load_flow", "short_circuit", "arc_flash", "protection_coordination",
     "motor_starting", "transient_stability", "harmonic_analysis",
@@ -235,9 +331,11 @@ STUDY_TYPES = [
     "renewable_integration", "battery_storage", "scada",
 ]
 
+
 @app.get("/api/v1/studies/types", tags=["Studies"])
 async def study_types():
     return {"study_types": STUDY_TYPES}
+
 
 @app.post("/api/v1/studies/run", tags=["Studies"])
 async def run_study(request: StudyRequest):
@@ -246,20 +344,96 @@ async def run_study(request: StudyRequest):
             "error": f"Unknown study_type '{request.study_type}'",
             "valid_types": STUDY_TYPES,
         })
-    return {
-        "study_type": request.study_type,
-        "status": "accepted",
-        "message": f"Study '{request.study_type}' queued for processing by the engineering engine.",
-        "reference": f"STUDY-{int(time.time())}",
-        "note": "Full computation engine available in the self-hosted deployment. See /docs for details.",
-    }
 
-# ─── Knowledge Base Info ──────────────────────────────────────────────────────
+    # Attempt native engine execution for supported study types
+    result_data = None
+    engine_error = None
+    if request.study_type == "load_flow" and request.system:
+        try:
+            from core_model.bus import Bus
+            from core_model.line import Line
+            from core_model.system import System
+
+            sys_model = System(base_mva=request.system.get("base_mva", 100.0))
+            bus_map: dict[int, Any] = {}
+            for b in request.system.get("buses", []):
+                bus = Bus(
+                    bus_id=b["bus_id"],
+                    voltage_magnitude=b.get("voltage_magnitude", 1.0),
+                    voltage_angle=b.get("voltage_angle", 0.0),
+                    bus_type=b.get("bus_type", "pq"),
+                )
+                bus.generation_power = complex(
+                    b.get("generation_power_real", 0.0),
+                    b.get("generation_power_imag", 0.0),
+                )
+                bus.load_power = complex(
+                    b.get("load_power_real", 0.0),
+                    b.get("load_power_imag", 0.0),
+                )
+                sys_model.add_bus(bus)
+                bus_map[b["bus_id"]] = bus
+
+            for ln in request.system.get("lines", []):
+                line = Line(
+                    line_id=ln["line_id"],
+                    from_bus=bus_map[ln["from_bus_id"]],
+                    to_bus=bus_map[ln["to_bus_id"]],
+                    z1=complex(ln.get("r1", 0.01), ln.get("x1", 0.05)),
+                    z0=complex(ln.get("r0", ln.get("r1", 0.01)),
+                               ln.get("x0", ln.get("x1", 0.05))),
+                    yshunt1=complex(0, ln.get("bshunt1", 0.02)),
+                    yshunt0=complex(0, ln.get("bshunt0", ln.get("bshunt1", 0.02))),
+                )
+                sys_model.add_line(line)
+
+            from engine.engine import PowerSystemEngine
+            engine = PowerSystemEngine(sys_model)
+            result_data = engine.run_load_flow()
+            # Sanitize numpy types for JSON
+            sanitized = {}
+            for k, v in result_data.items():
+                if isinstance(v, dict):
+                    sanitized[k] = {
+                        str(bid): {"mag": round(abs(val), 4),
+                                   "angle_deg": round(float(__import__("numpy").angle(val, deg=True)), 2)}
+                        for bid, val in v.items()
+                    }
+                else:
+                    sanitized[k] = v
+            result_data = sanitized
+        except ImportError:
+            engine_error = "Engine modules not available in HF Space deployment"
+        except Exception as exc:
+            engine_error = str(exc)
+
+    response: dict[str, Any] = {
+        "study_type": request.study_type,
+        "reference": f"STUDY-{int(time.time())}",
+    }
+    if result_data is not None:
+        response["status"] = "completed"
+        response["result"] = result_data
+    else:
+        response["status"] = "accepted"
+        response["message"] = (
+            f"Study '{request.study_type}' queued for processing."
+        )
+        if engine_error:
+            response["engine_note"] = engine_error
+        response["note"] = (
+            "Full computation engine available in self-hosted deployment. "
+            "See /docs for details."
+        )
+    return response
+
+
+# -- Knowledge Base Info ------------------------------------------------------
 @app.get("/api/v1/knowledge", tags=["Knowledge"])
 async def knowledge_info():
     return {
         "etap": {
-            "manuals": 35,
+            "manuals": ETAP_MANUAL_COUNT,
             "topics": [
                 "AC Networks", "Load Flow & Panel", "Transformer Sizing",
                 "Unbalanced Load Flow", "Short Circuit ANSI", "Short Circuit IEC",
@@ -275,7 +449,7 @@ async def knowledge_info():
             "standards": ["IEEE 3002.7", "IEC 60909", "IEEE 1584", "IEC 60255", "IEEE 519"],
         },
         "zenon": {
-            "guides": 4,
+            "guides": ZENON_GUIDE_COUNT,
             "topics": [
                 "Zenon SCADA Fundamentals",
                 "Zenon Energy Management",
@@ -286,21 +460,16 @@ async def knowledge_info():
         },
     }
 
-# ─── OpenAPI fix: HEAD at root for HF health probe ───────────────────────────
+
+# -- HEAD at root for HF health probe -----------------------------------------
 @app.head("/", include_in_schema=False)
 async def root_head():
     return JSONResponse(content={}, status_code=200)
 
-# ─── Startup ──────────────────────────────────────────────────────────────────
-@app.on_event("startup")  # noqa: deprecated but still functional in FastAPI 0.110+
-async def startup():
-    logger.info("AhmedETAP v2.1.0 started on Hugging Face Spaces")
-    logger.info(f"Knowledge base: 35 ETAP manuals + 4 Zenon guides loaded")
-    logger.info(f"Active agents: {len(AGENTS)}")
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 7860))
-    logger.info(f"Starting server on port {port}")
+    logger.info("Starting server on port %d", port)
     uvicorn.run(
         app,
         host="0.0.0.0",

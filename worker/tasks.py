@@ -3,12 +3,14 @@ Celery tasks for executing heavy engineering computations.
 These tasks run asynchronously to prevent blocking the API.
 """
 import os
+import time
+import uuid
 import logging
 from celery import current_task
 from worker.celery_app import app
 
 # Import the study execution logic from the services
-from services.study_service import execute_study_logic
+from services.study_service import execute_study_logic, StudyRequest
 
 logger = logging.getLogger(__name__)
 
@@ -17,35 +19,45 @@ logger = logging.getLogger(__name__)
 def execute_engineering_study_task(self, study_data: dict):
     """
     Execute an engineering study asynchronously.
-    
+
     Args:
         study_data (dict): The study parameters and configuration
-        
+
     Returns:
         dict: The study results
     """
     try:
         # Update task progress
         current_task.update_state(state='PROGRESS', meta={'status': 'Starting study execution...'})
-        
-        logger.info(f"Starting engineering study: {study_data.get('study_type', 'Unknown')}")
-        
-        # Execute the actual study logic
-        result = execute_study_logic(study_data)
-        
-        logger.info(f"Completed engineering study: {study_data.get('study_type', 'Unknown')}")
-        
-        current_task.update_state(state='SUCCESS', meta={'status': 'Study completed successfully', 'result': result})
-        
-        return result
+
+        study_type = study_data.get('study_type', 'Unknown')
+        logger.info("Starting engineering study: %s", study_type)
+
+        # Build a proper StudyRequest from the dict
+        trace_id = study_data.get('trace_id', str(uuid.uuid4()))
+        start_time = time.perf_counter()
+
+        # If 'data' key exists (from async endpoint), use it; otherwise use study_data directly
+        payload_dict = study_data.get('data', study_data)
+        payload = StudyRequest(**payload_dict) if isinstance(payload_dict, dict) else payload_dict
+
+        result = execute_study_logic(payload, trace_id=trace_id, start_time=start_time)
+
+        logger.info("Completed engineering study: %s", study_type)
+
+        current_task.update_state(state='SUCCESS', meta={
+            'status': 'Study completed successfully',
+            'result': result.model_dump(),
+        })
+
+        return result.model_dump()
     except Exception as exc:
-        logger.error(f"Error executing engineering study: {str(exc)}")
+        logger.error("Error executing engineering study: %s", str(exc))
         current_task.update_state(
             state='FAILURE',
             meta={
                 'status': 'Study failed',
                 'error': str(exc),
-                'traceback': str(exc.__traceback__)
             }
         )
         raise exc
@@ -91,7 +103,6 @@ def execute_etap_integration_task(self, etap_command: dict):
             meta={
                 'status': 'ETAP operation failed',
                 'error': str(exc),
-                'traceback': str(exc.__traceback__)
             }
         )
         raise exc
@@ -156,7 +167,6 @@ def process_large_calculation_task(self, calculation_data: dict):
             meta={
                 'status': 'Calculation failed',
                 'error': str(exc),
-                'traceback': str(exc.__traceback__)
             }
         )
         raise exc
