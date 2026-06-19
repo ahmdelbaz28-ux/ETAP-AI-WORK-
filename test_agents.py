@@ -9,7 +9,7 @@ are properly initialized and can execute basic operations.
 import asyncio
 import sys
 import os
-from typing import Dict, Any, List
+from typing import Dict, Any, List, Union
 import logging
 
 # Add the project root to the Python path
@@ -28,7 +28,7 @@ from core_model.system import System  # We'll create a minimal system for testin
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-async def create_test_system() -> System:
+async def create_test_system() -> Any:
     """
     Create a minimal test system for agent testing.
     This creates a simple power system with minimal components to allow
@@ -38,7 +38,8 @@ async def create_test_system() -> System:
     # full computations, we'll create a minimal system
     try:
         from core_model.system import System
-        system = System(name="test_system")
+        # Some System implementations may not accept a `name=` kwarg.
+        system = System()
         return system
     except ImportError:
         # If core_model is not available, create a mock
@@ -123,63 +124,49 @@ async def test_individual_agents():
 async def test_orchestrator():
     """Test the orchestrator functionality."""
     logger.info("Testing orchestrator...")
-    
+
     try:
-        # Get orchestrator instance
         orchestrator = get_orchestrator()
-        
-        # Verify orchestrator has required methods
-        assert hasattr(orchestrator, 'execute_studies'), "Orchestrator missing execute_studies method"
-        assert hasattr(orchestrator, 'get_agents_info'), "Orchestrator missing get_agents_info method"
-        
-        # Test getting agent info
+
+        # Verify orchestrator has required methods (actual implementation uses execute_parallel_studies)
+        assert hasattr(orchestrator, "execute_parallel_studies"), "Orchestrator missing execute_parallel_studies method"
+        assert hasattr(orchestrator, "get_agents_info"), "Orchestrator missing get_agents_info method"
+
         agent_info = orchestrator.get_agents_info()
         logger.info(f"✓ Orchestrator retrieved info for {len(agent_info.get('agents', []))} agents")
-        
-        # Create a minimal test task for orchestrator
+
         test_system = await create_test_system()
-        task_params = {
-            'system': test_system,
-            'test_mode': True
-        }
-        
-        # Test executing a simple study through orchestrator
+        parameters = {"test_mode": True}
+
         try:
             result = await asyncio.wait_for(
-                orchestrator.execute_studies(
-                    studies=['load_flow'],
-                    parameters=task_params,
-                    task_id='test_orchestrator'
+                orchestrator.execute_parallel_studies(
+                    study_types=["load_flow"],
+                    system_data=test_system,
+                    parameters=parameters,
+                    max_workers=1,
+                    benchmark=False,
                 ),
-                timeout=15.0
+                timeout=15.0,
             )
-            
+
             logger.info("✓ Orchestrator executed studies successfully")
             orchestrator_result = {
-                'status': 'SUCCESS',
-                'result_keys': list(result.keys()) if isinstance(result, dict) else ['non_dict_result']
+                "status": "SUCCESS",
+                "result_keys": list(result.keys()) if isinstance(result, dict) else ["non_dict_result"],
             }
         except asyncio.TimeoutError:
             logger.warning("⚠ Orchestrator execution timed out")
-            orchestrator_result = {
-                'status': 'TIMEOUT',
-                'error': 'Execution timed out'
-            }
+            orchestrator_result = {"status": "TIMEOUT", "error": "Execution timed out"}
         except Exception as e:
             logger.warning(f"⚠ Orchestrator execution failed: {str(e)}")
-            orchestrator_result = {
-                'status': 'EXECUTION_ERROR',
-                'error': str(e)
-            }
-        
+            orchestrator_result = {"status": "EXECUTION_ERROR", "error": str(e)}
+
         return orchestrator_result
-        
+
     except Exception as e:
         logger.error(f"✗ Orchestrator test failed: {str(e)}")
-        return {
-            'status': 'ERROR',
-            'error': str(e)
-        }
+        return {"status": "ERROR", "error": str(e)}
 
 
 async def main():

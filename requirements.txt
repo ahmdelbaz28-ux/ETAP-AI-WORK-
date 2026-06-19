@@ -27,6 +27,9 @@ psutil>=5.8.0
 # HTTP requests
 requests>=2.26.0
 
+# Language detection
+langdetect>=1.0.9
+
 # YAML parsing
 pyyaml>=6.0
 
