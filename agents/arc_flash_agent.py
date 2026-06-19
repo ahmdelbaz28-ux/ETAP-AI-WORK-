@@ -93,7 +93,7 @@ class ArcFlashAgent(BaseAgent):
     (mm).
     """
 
-    prompt_handle = "arcflash_agent_prompt"
+    prompt_handle = "arcflash_agent"  # Fixed to match available prompt file
 
     def __init__(self) -> None:
         super().__init__("ArcFlashAgent")
