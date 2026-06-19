@@ -47,7 +47,7 @@ app = FastAPI(
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
-    allow_credentials=True,
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -292,7 +292,7 @@ async def root_head():
     return JSONResponse(content={}, status_code=200)
 
 # ─── Startup ──────────────────────────────────────────────────────────────────
-@app.on_event("startup")
+@app.on_event("startup")  # noqa: deprecated but still functional in FastAPI 0.110+
 async def startup():
     logger.info("AhmedETAP v2.1.0 started on Hugging Face Spaces")
     logger.info(f"Knowledge base: 35 ETAP manuals + 4 Zenon guides loaded")
