@@ -114,6 +114,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, Response
 from pydantic import AliasChoices, BaseModel, ConfigDict, Field, field_validator
 from starlette.middleware.base import BaseHTTPMiddleware
+from utils.language_detection import normalize_input
 
 # ---------------------------------------------------------------------------
 # Logging setup
@@ -1068,7 +1069,17 @@ async def run_study(request: Request, payload: StudyRequest):
     _require_api_key(request)
     trace_id = request.state.trace_id
     task_id = payload.task_id or str(uuid.uuid4())
-    start = time.perf_counter()
+
+    # Enable auto-correct for non-English input
+    auto_correct = os.getenv('AUTO_CORRECT_LANGUAGE', 'true').lower() == 'true'
+
+    # Normalize payload data if auto-correct is enabled
+    if auto_correct:
+        if payload.parameters:
+            payload.parameters = {k: normalize_input(str(v)) for k, v in payload.parameters.items()}
+        if payload.system:
+            # Normalize system data if it's a string representation
+            pass  # Add logic if needed
 
     _increment_counter("request")
 

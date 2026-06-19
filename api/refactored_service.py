@@ -57,8 +57,11 @@ for _env_key, _env_val in [
 # ---------------------------------------------------------------------------
 try:
     import numpy as np  # type: ignore
-    _HAS_NUMPY = True
+    from typing import Any as _Any
+    _HAS_NUMPY: bool = True
 except Exception:
+    # Keep type-checkers happy: when numpy import fails, `np` is set to
+    # `None`, but all accesses in `_to_jsonable()` are guarded by `_HAS_NUMPY`.
     np = None  # type: ignore
     _HAS_NUMPY = False
 
