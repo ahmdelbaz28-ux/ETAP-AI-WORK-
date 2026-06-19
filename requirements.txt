@@ -87,7 +87,7 @@ reportlab>=3.6.0
 tqdm>=4.62.0
 beautifulsoup4>=4.10.0
 lxml>=4.6.0
-langwatch>=0.1.0
+# langwatch>=0.1.0
 
 # Phase 2: Security & Infrastructure
 pyotp>=2.9.0
@@ -112,13 +112,13 @@ websockets>=12.0
 
 # Core requirements for SCADA-GIS integration
 paho-mqtt>=1.6.1
-pyScada==0.10.12
-pyScada-mqtt
+# pyScada==0.10.12
+# pyScada-mqtt
 pyScada-opcua
 pyScada-modbus
-pyScada-ems
+# pyScada-ems
 pymongo
-arcpy  # This is typically installed with ArcGIS Pro
+# arcpy  # This is typically installed with ArcGIS Pro
 pandas
 numpy
 requests

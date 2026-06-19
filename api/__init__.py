@@ -7,6 +7,7 @@ from .ai_ml import router as ai_ml_router
 from .scada import router as scada_router
 from .digital_twin import router as digital_twin_router
 from .mfa import router as mfa_router
+from .agents import router as agents_router
 
 __all__ = [
     "auth_router",
@@ -17,5 +18,6 @@ __all__ = [
     "ai_ml_router",
     "scada_router",
     "digital_twin_router",
-    "mfa_router"
+    "mfa_router",
+    "agents_router"
 ]

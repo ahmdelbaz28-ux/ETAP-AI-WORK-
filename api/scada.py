@@ -25,8 +25,10 @@ async def get_scada_live_data(request: Request):
         db = SCADADatabase()
 
         # Return a summary of the SCADA model
-        measurements = db.get_all_measurements() if hasattr(db, 'get_all_measurements') else []
-        switches = db.get_all_switches() if hasattr(db, 'get_all_switches') else []
+        # SCADADatabase stores raw objects in `measurements` and `switch_devices`.
+        # Avoid referencing non-existent `get_all_*` methods (keeps static typing clean).
+        measurements = list(db.measurements.values()) if hasattr(db, "measurements") else []
+        switches = list(db.switch_devices.values()) if hasattr(db, "switch_devices") else []
 
         return JSONResponse(content={
             "success": True,

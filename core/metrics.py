@@ -29,6 +29,51 @@ from prometheus_client import (
 logger = logging.getLogger(__name__)
 
 # ---------------------------------------------------------------------------
+# HTTP request metrics
+# ---------------------------------------------------------------------------
+
+REQUEST_ERRORS_TOTAL = Counter(
+    "request_errors_total",
+    "Total request errors",
+    ["method", "route"],
+)
+
+REQUEST_LATENCY_SECONDS = Histogram(
+    "request_latency_seconds",
+    "Request latency in seconds",
+    ["method", "route"],
+    buckets=(0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1, 2.5, 5, 10),
+)
+
+# ---------------------------------------------------------------------------
+# Cache metrics
+# ---------------------------------------------------------------------------
+
+CACHE_HITS_TOTAL = Counter(
+    "cache_hits_total",
+    "Total cache hits",
+)
+
+CACHE_MISSES_TOTAL = Counter(
+    "cache_misses_total",
+    "Total cache misses",
+)
+
+# ---------------------------------------------------------------------------
+# System availability metrics
+# ---------------------------------------------------------------------------
+
+SCADA_AVAILABLE = Gauge(
+    "scada_available",
+    "SCADA service availability",
+)
+
+DIGITAL_TWIN_AVAILABLE = Gauge(
+    "digital_twin_available",
+    "Digital Twin service availability",
+)
+
+# ---------------------------------------------------------------------------
 # Application info
 # ---------------------------------------------------------------------------
 
