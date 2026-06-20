@@ -467,6 +467,73 @@ async def root_head():
     return JSONResponse(content={}, status_code=200)
 
 
+# -- ML Capabilities ----------------------------------------------------------
+@app.get("/api/v1/ml/capabilities", tags=["AI/ML"])
+async def ml_capabilities():
+    """Discover available ML/AI capabilities and their status."""
+    try:
+        from ml.predictive import get_ml_capabilities
+        caps = get_ml_capabilities()
+        return {"success": True, "data": caps}
+    except Exception as e:
+        return JSONResponse(status_code=500, content={"success": False, "errors": [str(e)]})
+
+
+@app.post("/api/v1/predict/load", tags=["AI/ML"])
+async def predict_load(request: Request):
+    """Predict future load using Prophet/LSTM/Linear LoadForecaster."""
+    try:
+        body = await request.json()
+        historical = body.get("historical_data", [])
+        horizon = body.get("horizon_hours", 24)
+        method = body.get("method", "auto")
+
+        if not historical:
+            return JSONResponse(status_code=400, content={"error": "historical_data is required"})
+
+        from ml.predictive import LoadForecaster
+        lf = LoadForecaster(method=method)
+        data = np.array(historical, dtype=float)
+        train_result = lf.train(data)
+        predictions = lf.predict(horizon_hours=horizon)
+
+        return {
+            "success": True,
+            "data": {
+                "predictions": predictions.tolist() if hasattr(predictions, 'tolist') else list(predictions),
+                "horizon_hours": horizon,
+                "method": train_result.get("method", method),
+            },
+        }
+    except Exception as e:
+        return JSONResponse(status_code=500, content={"success": False, "errors": [str(e)]})
+
+
+@app.post("/api/v1/predict/anomaly", tags=["AI/ML"])
+async def detect_anomalies(request: Request):
+    """Detect anomalies using Isolation Forest / PyOD."""
+    try:
+        body = await request.json()
+        data = body.get("data", [])
+        method = body.get("method", "iforest")
+        contamination = body.get("contamination", 0.05)
+
+        if not data:
+            return JSONResponse(status_code=400, content={"error": "data is required"})
+
+        from ml.predictive import AnomalyDetector
+        ad = AnomalyDetector(contamination=contamination, method=method)
+        X = np.array(data, dtype=float)
+        if X.ndim == 1:
+            X = X.reshape(-1, 1)
+        ad.train(X)
+        result = ad.detect(X)
+
+        return {"success": True, "data": result}
+    except Exception as e:
+        return JSONResponse(status_code=500, content={"success": False, "errors": [str(e)]})
+
+
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 7860))
     logger.info("Starting server on port %d", port)

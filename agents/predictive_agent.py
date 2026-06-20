@@ -21,7 +21,7 @@ Standards:
 
 import logging
 from datetime import datetime, timezone
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
 import numpy as np
 
@@ -69,6 +69,8 @@ class PredictiveAgent(BaseAgent):
 
     def __init__(self) -> None:
         super().__init__("PredictiveAgent")
+        self._ml_forecaster = None
+        self._ml_fault_predictor = None
         self.standards = [
             "IEEE 3002.7",
             "IEC 61968/61970",
@@ -430,6 +432,36 @@ class PredictiveAgent(BaseAgent):
             "high_count": high,
         }
 
+    def forecast_short_term_ml(self, historical_load: List[float], horizon_hours: int = 24, method: str = "auto") -> Dict[str, Any]:
+        """Short-term load forecasting using Prophet/LSTM/Linear from ml.predictive."""
+        from ml.predictive import LoadForecaster
+        lf = LoadForecaster(method=method)
+        data = np.array(historical_load, dtype=float)
+        train_result = lf.train(data)
+        predictions = lf.predict(horizon_hours=horizon_hours)
+        metrics = lf.evaluate(data)
+        return {
+            "forecast_mw": predictions.tolist() if hasattr(predictions, 'tolist') else list(predictions),
+            "method": train_result.get("method", method),
+            "metrics": metrics,
+            "horizon_hours": horizon_hours,
+        }
+
+    def predict_fault_ml(self, features: np.ndarray, labels: Optional[np.ndarray] = None, use_xgboost: bool = True, explain: bool = False) -> Dict[str, Any]:
+        """Fault prediction using XGBoost/RandomForest with SHAP explanations."""
+        from ml.predictive import FaultPredictor
+        fp = FaultPredictor(use_xgboost=use_xgboost)
+        result = {}
+        if labels is not None:
+            train_result = fp.train(features, labels)
+            result["training"] = train_result
+            result["feature_importance"] = fp.feature_importance()
+            if explain:
+                result["explanation"] = fp.explain(features[0])
+        prediction = fp.predict(features[0])
+        result["prediction"] = prediction
+        return result
+
     # ------------------------------------------------------------------
     # Agent execute method
     # ------------------------------------------------------------------
@@ -508,6 +540,37 @@ class PredictiveAgent(BaseAgent):
                 results["maintenance_schedule"] = self.compute_maintenance_schedule(
                     equipment_list=equipment,
                 )
+
+            # --- ML-enhanced short-term forecast (Prophet/XGBoost) ---
+            if analysis_type in ("ml_short_term_forecast", "full_ml"):
+                hist_load = task.parameters.get("historical_load_mw", [])
+                if not hist_load:
+                    hours = 168
+                    hist_load = [
+                        100.0 + 30.0 * np.sin(2 * np.pi * h / 24)
+                        + 5.0 * np.random.randn()
+                        for h in range(hours)
+                    ]
+                forecast_method = task.parameters.get("forecast_method", "auto")
+                results["ml_short_term_forecast"] = self.forecast_short_term_ml(
+                    historical_load=hist_load,
+                    horizon_hours=int(task.parameters.get("horizon_hours", 24)),
+                    method=forecast_method,
+                )
+
+            # --- ML fault prediction (XGBoost + SHAP) ---
+            if analysis_type == "ml_fault_prediction":
+                fault_features = task.parameters.get("fault_features")
+                fault_labels = task.parameters.get("fault_labels")
+                if fault_features is not None and fault_labels is not None:
+                    results["ml_fault_prediction"] = self.predict_fault_ml(
+                        features=np.array(fault_features, dtype=float),
+                        labels=np.array(fault_labels, dtype=int),
+                        use_xgboost=task.parameters.get("use_xggboost", True),
+                        explain=task.parameters.get("explain", False),
+                    )
+                else:
+                    results["ml_fault_prediction"] = {"error": "fault_features and fault_labels required"}
 
             result = AgentResult(
                 agent_name=self.agent_name,
