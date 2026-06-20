@@ -34,14 +34,14 @@ import os
 import re
 import sys
 from dataclasses import asdict, dataclass, field
-from enum import Enum
-from typing import Any, Dict, List, Optional, Set
+from enum import StrEnum
+from typing import Any, Dict, List, Set
 
 # ---------------------------------------------------------------------------
 # Data structures
 # ---------------------------------------------------------------------------
 
-class CoverageLevel(str, Enum):
+class CoverageLevel(StrEnum):
     """Coverage quality rating."""
 
     EXCELLENT = "excellent"   # >= 90%
@@ -63,7 +63,7 @@ class FunctionInfo:
     line_number: int
     is_async: bool = False
     is_method: bool = False
-    class_name: Optional[str] = None
+    class_name: str | None = None
     decorators: List[str] = field(default_factory=list)
     has_test: bool = False
     test_names: List[str] = field(default_factory=list)
@@ -261,7 +261,7 @@ class _FunctionExtractor(ast.NodeVisitor):
             # Still include them but mark appropriately
             pass
 
-        class_name: Optional[str] = None
+        class_name: str | None = None
         if self._class_stack:
             class_name = self._class_stack[-1]
 
@@ -356,7 +356,7 @@ class CoverageAnalyzer:
         print(json.dumps(report.to_dict(), indent=2))
     """
 
-    def __init__(self, project_root: Optional[str] = None) -> None:
+    def __init__(self, project_root: str | None = None) -> None:
         """Initialize the analyzer.
 
         Args:
@@ -460,7 +460,7 @@ class CoverageAnalyzer:
 
         for test_file in self._test_files:
             try:
-                with open(test_file, "r", encoding="utf-8", errors="replace") as fh:
+                with open(test_file, encoding="utf-8", errors="replace") as fh:
                     source = fh.read()
                 tree = ast.parse(source, filename=test_file)
 
@@ -495,7 +495,7 @@ class CoverageAnalyzer:
                 continue
 
             try:
-                with open(src_file, "r", encoding="utf-8", errors="replace") as fh:
+                with open(src_file, encoding="utf-8", errors="replace") as fh:
                     source = fh.read()
                 tree = ast.parse(source, filename=src_file)
 

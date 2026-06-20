@@ -90,8 +90,12 @@ def __getattr__(name):
         global _ETAPCompatibilityChecker, _CompatibilityReport, _CheckResult
         if _ETAPCompatibilityChecker is None:
             from etap_integration.etap_compatibility import CheckResult as _CheckResult
-            from etap_integration.etap_compatibility import CompatibilityReport as _CompatibilityReport
-            from etap_integration.etap_compatibility import ETAPCompatibilityChecker as _ETAPCompatibilityChecker
+            from etap_integration.etap_compatibility import (
+                CompatibilityReport as _CompatibilityReport,
+            )
+            from etap_integration.etap_compatibility import (
+                ETAPCompatibilityChecker as _ETAPCompatibilityChecker,
+            )
         mapping = {
             "ETAPCompatibilityChecker": _ETAPCompatibilityChecker,
             "CompatibilityReport": _CompatibilityReport,

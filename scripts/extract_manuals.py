@@ -1,9 +1,10 @@
 import json
-import sys
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple
+from typing import List, Tuple
+
 from PyPDF2 import PdfReader
+
 
 class ManualExtractor:
     """Extracts and processes text from PDF manuals for ETAP and Zenon RAG."""
@@ -38,13 +39,13 @@ class ManualExtractor:
             "files": []
         }
 
-    def extract_pdf_text(self, pdf_path: Path) -> Tuple[Optional[str], int]:
+    def extract_pdf_text(self, pdf_path: Path) -> Tuple[str | None, int]:
         """Extract text using PyPDF2 (fast and memory-efficient)."""
         try:
             reader = PdfReader(pdf_path)
             page_count = len(reader.pages)
             text_parts = []
-            
+
             # Print extraction progress for large files
             print_interval = max(1, page_count // 5)
             for idx, page in enumerate(reader.pages):
@@ -53,7 +54,7 @@ class ManualExtractor:
                 page_text = page.extract_text()
                 if page_text:
                     text_parts.append(page_text)
-                    
+
             return "\n\n".join(text_parts), page_count
         except Exception as e:
             print(f"  Error extracting {pdf_path.name}: {e}")
@@ -73,7 +74,7 @@ class ManualExtractor:
             if line.isdigit() and len(line) <= 4:
                 continue  # Skip page numbers
             cleaned_lines.append(line)
-        
+
         text = "\n".join(cleaned_lines)
         while "\n\n\n" in text:
             text = text.replace("\n\n\n", "\n\n")
@@ -105,32 +106,32 @@ class ManualExtractor:
         print("=" * 70)
         print(f"Extracting {self.name} Manuals from: {self.source_dir}")
         print("=" * 70)
-        
+
         if not self.source_dir.exists():
             print(f"Source directory {self.source_dir} does not exist. Skipping.")
             return
 
-        pdf_files = sorted(list(self.source_dir.glob("*.pdf")))
+        pdf_files = sorted(self.source_dir.glob("*.pdf"))
         self.summary["total_files"] = len(pdf_files)
         print(f"Found {len(pdf_files)} PDF files.")
 
         for idx, pdf_path in enumerate(pdf_files, 1):
             print(f"\n[{idx}/{len(pdf_files)}] Extracting: {pdf_path.name} ({pdf_path.stat().st_size / 1024 / 1024:.2f} MB)")
-            
+
             # Extract text
             text, page_count = self.extract_pdf_text(pdf_path)
-            
+
             if text and len(text) > 100:
                 cleaned = self.clean_text(text)
-                
+
                 # Save full text
                 txt_filename = f"{pdf_path.stem}.txt"
                 with open(self.extracted_dir / txt_filename, "w", encoding="utf-8") as f:
                     f.write(cleaned)
-                    
+
                 # Create chunks
                 chunks = self.create_chunks(cleaned)
-                
+
                 # Save chunks
                 chunks_filename = f"{pdf_path.stem}_chunks.json"
                 with open(self.chunks_dir / chunks_filename, "w", encoding="utf-8") as f:
@@ -145,7 +146,7 @@ class ManualExtractor:
                             "extracted_at": datetime.now().isoformat()
                         }
                     }, f, indent=2, ensure_ascii=False)
-                
+
                 self.summary["successful"] += 1
                 self.summary["total_pages"] += page_count
                 self.summary["total_characters"] += len(cleaned)
@@ -163,7 +164,7 @@ class ManualExtractor:
                     "status": "failed",
                     "error": "Failed to extract text or content too short"
                 })
-                print(f"  [FAIL] Failed: No text extracted")
+                print("  [FAIL] Failed: No text extracted")
 
         # Save summary
         with open(self.target_dir / "extraction_summary.json", "w", encoding="utf-8") as f:
@@ -184,7 +185,7 @@ class ManualExtractor:
 
         chunk_files = list(self.chunks_dir.glob("*_chunks.json"))
         for chunk_file in chunk_files:
-            with open(chunk_file, "r", encoding="utf-8") as f:
+            with open(chunk_file, encoding="utf-8") as f:
                 data = json.load(f)
                 master_index["documents"].append({
                     "filename": data["filename"],

@@ -40,6 +40,14 @@ ignore = [
     "B905",   # zip() without strict= (Python 3.10+ feature, not always appropriate)
     "UP007",  # Use X | Y for unions (requires Python 3.10+; we sometimes prefer Optional[] for clarity)
     "UP006",  # Use list[str] instead of List[str] (gradual migration)
+    "UP035",  # Deprecated import (typing.Dict, typing.List — gradual migration)
+    "UP045",  # Non-PEP604 annotation Optional (gradual migration)
+    "N806",   # Non-lowercase variable in function (electrical engineering: Vbus, Isc, Pload, etc.)
+    "N803",   # Invalid argument name (electrical engineering: V, I, R, X, etc.)
+    "N815",   # Mixed-case variable in class scope (electrical engineering convention)
+    "N818",   # Error suffix on exception name (domain-specific naming)
+    "N811",   # Constant imported as non-constant (standard patterns in imports)
+    "N801",   # Invalid class name (some legacy patterns)
 ]
 
 # Allow autofix for all enabled rules

@@ -29,7 +29,7 @@ import ast
 import logging
 import re
 from dataclasses import dataclass
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Tuple
 
 from guards.base import GuardMode, GuardResult, GuardSeverity, GuardViolation
 
@@ -192,7 +192,7 @@ class AIFailureModeDetector:
     # Public API
     # ------------------------------------------------------------------
 
-    def detect(self, source: str, context: Optional[Dict[str, Any]] = None) -> GuardResult:
+    def detect(self, source: str, context: Dict[str, Any] | None = None) -> GuardResult:
         """Run all failure-mode detectors against *source*.
 
         Parameters
@@ -210,7 +210,7 @@ class AIFailureModeDetector:
         context = context or {}
 
         # Parse AST once; fall back to regex if AST fails
-        tree: Optional[ast.AST] = None
+        tree: ast.AST | None = None
         try:
             tree = ast.parse(source)
         except SyntaxError:
@@ -272,7 +272,7 @@ class AIFailureModeDetector:
     # ------------------------------------------------------------------
     # FM-01: Catch-all error swallowing
     # ------------------------------------------------------------------
-    def _detect_catch_all(self, tree: Optional[ast.AST], source: str) -> List[GuardViolation]:
+    def _detect_catch_all(self, tree: ast.AST | None, source: str) -> List[GuardViolation]:
         violations: List[GuardViolation] = []
         if tree is None:
             # Regex fallback
@@ -333,7 +333,7 @@ class AIFailureModeDetector:
     # ------------------------------------------------------------------
     # FM-02: Defensive guard for impossible case
     # ------------------------------------------------------------------
-    def _detect_impossible_guard(self, tree: Optional[ast.AST], source: str) -> List[GuardViolation]:
+    def _detect_impossible_guard(self, tree: ast.AST | None, source: str) -> List[GuardViolation]:
         """Heuristic: 'if x is None' checks on values that cannot be None by construction."""
         violations: List[GuardViolation] = []
         # Pattern: checking for None on return values that are never None
@@ -361,7 +361,7 @@ class AIFailureModeDetector:
     # ------------------------------------------------------------------
     # FM-04: Hardcoded success return
     # ------------------------------------------------------------------
-    def _detect_hardcoded_success(self, tree: Optional[ast.AST], source: str) -> List[GuardViolation]:
+    def _detect_hardcoded_success(self, tree: ast.AST | None, source: str) -> List[GuardViolation]:
         violations: List[GuardViolation] = []
         if tree is None:
             return violations
@@ -412,7 +412,7 @@ class AIFailureModeDetector:
     # ------------------------------------------------------------------
     # FM-05: Re-derive instead of reuse
     # ------------------------------------------------------------------
-    def _detect_rederive(self, tree: Optional[ast.AST], source: str) -> List[GuardViolation]:
+    def _detect_rederive(self, tree: ast.AST | None, source: str) -> List[GuardViolation]:
         """Heuristic: same expression computed twice in the same function."""
         violations: List[GuardViolation] = []
         if tree is None:
@@ -447,7 +447,7 @@ class AIFailureModeDetector:
     # ------------------------------------------------------------------
     # FM-07: Dead code — unused imports
     # ------------------------------------------------------------------
-    def _detect_unused_imports(self, tree: Optional[ast.AST], source: str) -> List[GuardViolation]:
+    def _detect_unused_imports(self, tree: ast.AST | None, source: str) -> List[GuardViolation]:
         violations: List[GuardViolation] = []
         if tree is None:
             return violations
@@ -487,7 +487,7 @@ class AIFailureModeDetector:
     # ------------------------------------------------------------------
     # FM-08: Write before read (overwrite input)
     # ------------------------------------------------------------------
-    def _detect_write_before_read(self, tree: Optional[ast.AST], source: str) -> List[GuardViolation]:
+    def _detect_write_before_read(self, tree: ast.AST | None, source: str) -> List[GuardViolation]:
         """Heuristic: function parameter immediately reassigned without reading."""
         violations: List[GuardViolation] = []
         if tree is None:
@@ -549,7 +549,7 @@ class AIFailureModeDetector:
     # ------------------------------------------------------------------
     # FM-09: Speculative feature (oversized functions as proxy)
     # ------------------------------------------------------------------
-    def _detect_speculative_feature(self, tree: Optional[ast.AST], source: str) -> List[GuardViolation]:
+    def _detect_speculative_feature(self, tree: ast.AST | None, source: str) -> List[GuardViolation]:
         """Heuristic: functions over 50 lines are likely doing more than specified."""
         violations: List[GuardViolation] = []
         if tree is None:
@@ -610,7 +610,7 @@ class AIFailureModeDetector:
     # ------------------------------------------------------------------
     # FM-11: Over-engineered abstraction for single use
     # ------------------------------------------------------------------
-    def _detect_over_engineering(self, tree: Optional[ast.AST], source: str) -> List[GuardViolation]:
+    def _detect_over_engineering(self, tree: ast.AST | None, source: str) -> List[GuardViolation]:
         """Heuristic: abstract base class with only one concrete subclass."""
         violations: List[GuardViolation] = []
         if tree is None:
@@ -647,13 +647,13 @@ class AIFailureModeDetector:
     # ------------------------------------------------------------------
     # FM-13: Magic numbers without named constants
     # ------------------------------------------------------------------
-    def _detect_magic_numbers(self, tree: Optional[ast.AST], source: str) -> List[GuardViolation]:
+    def _detect_magic_numbers(self, tree: ast.AST | None, source: str) -> List[GuardViolation]:
         """Detect numeric literals that are not 0, 1, -1, or commonly accepted values."""
         violations: List[GuardViolation] = []
         if tree is None:
             return violations
 
-        EXEMPT = {0, 1, -1, -1.0, 2, 2.0, 10, 100, 1000, 0.5, 0.25, 1e6, 1e9}
+        EXEMPT = {0, 1, -1, -1.0, 2, 10, 100, 1000, 0.5, 0.25, 1e6, 1e9}
         seen: set = set()  # avoid duplicate reports for same number
 
         for node in ast.walk(tree):
@@ -684,7 +684,7 @@ class AIFailureModeDetector:
     # FM-03: Hallucinated API or package
     # ------------------------------------------------------------------
     def _detect_hallucinated_api(
-        self, tree: Optional[ast.AST], source: str, context: Optional[Dict[str, Any]]
+        self, tree: ast.AST | None, source: str, context: Dict[str, Any] | None
     ) -> List[GuardViolation]:
         """Detect imports of packages that are not in the known-packages set.
 
@@ -774,7 +774,7 @@ class AIFailureModeDetector:
     # ------------------------------------------------------------------
     # FM-06: Enum boundary not enumerated first
     # ------------------------------------------------------------------
-    def _detect_enum_boundary(self, tree: Optional[ast.AST], source: str) -> List[GuardViolation]:
+    def _detect_enum_boundary(self, tree: ast.AST | None, source: str) -> List[GuardViolation]:
         """Detect if/elif chains over a closed set that lack an else clause.
 
         When code branches over a known, closed set of values (e.g., enum
@@ -835,7 +835,7 @@ class AIFailureModeDetector:
     # FM-12: Unverified import side effects
     # ------------------------------------------------------------------
     def _detect_unverified_import_side_effects(
-        self, tree: Optional[ast.AST], source: str
+        self, tree: ast.AST | None, source: str
     ) -> List[GuardViolation]:
         """Detect bare imports used only for side effects without verification.
 
@@ -918,7 +918,7 @@ class AIFailureModeDetector:
     # ------------------------------------------------------------------
     # FM-14: Test asserts on mock behavior, not system behavior
     # ------------------------------------------------------------------
-    def _detect_mock_assert(self, tree: Optional[ast.AST], source: str) -> List[GuardViolation]:
+    def _detect_mock_assert(self, tree: ast.AST | None, source: str) -> List[GuardViolation]:
         """Heuristic: assert_called_with / assert_any_call / assert_called_once in test functions."""
         violations: List[GuardViolation] = []
         # Match both direct and chained attribute access: mock.assert_called_with, mock.method.assert_called

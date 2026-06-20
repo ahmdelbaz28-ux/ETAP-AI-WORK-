@@ -14,7 +14,6 @@ Enhanced with:
 """
 
 import numpy as np
-
 from fastapi import APIRouter, HTTPException, Request
 from fastapi.responses import JSONResponse
 
@@ -94,7 +93,7 @@ async def predict_fault(request: Request):
             raise HTTPException(status_code=400, detail="features must be an array")
 
         from ml.predictive import FaultPredictor
-        fp = FaultPredictor(use_xgboost=use_xgboost)
+        FaultPredictor(use_xgboost=use_xgboost)
 
         # For prediction-only (no training needed in production, use pre-trained)
         # For now, return capability info
@@ -145,7 +144,7 @@ async def train_fault_predictor(request: Request):
         y = np.array(labels, dtype=int)
         result = fp.train(X, y)
 
-        if explain := body.get("explain", False):
+        if body.get("explain", False):
             explanation = fp.explain(X[0])
             result["explanation"] = explanation
 
@@ -259,7 +258,7 @@ async def rag_query(request: Request):
     try:
         import os
         os.environ.setdefault("RAG_ALLOW_HASH_FALLBACK", "1")
-        
+
         body = await request.json()
         query = body.get("query", "")
         top_k = body.get("top_k", 5)

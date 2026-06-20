@@ -9,10 +9,10 @@ from typing import Any, Dict
 
 import pytest
 
+from gis_integration.exceptions import GISTransformationError
 from gis_integration.models import ADMSAsset, ADMSAssetType, GISFeature
 from gis_integration.providers.postgis_provider import PostGISProvider, SpatialAsset
 from gis_integration.transformer import GIS_TO_ADMS_Transformer
-
 
 # ---------------------------------------------------------------------------
 # PostGIS Provider Tests (file fallback mode)
@@ -224,7 +224,7 @@ def test_transformer_unsupported_geometry() -> None:
         id="UNK1",
         geometry={"type": "MultiPoint", "coordinates": [[31.0, 30.0], [31.5, 30.5]]},
     )
-    with pytest.raises(Exception):
+    with pytest.raises(GISTransformationError):
         transformer.transform_feature(feature)
 
 

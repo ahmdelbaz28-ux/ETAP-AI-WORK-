@@ -7,28 +7,19 @@ Supports reading/writing Revit elements, families, parameters, and levels.
 
 from __future__ import annotations
 
-import json
 import logging
 import time
-import uuid
-from enum import Enum
-from typing import Any, Dict, List, Optional
+from enum import StrEnum
+from typing import Any, List
 
 import requests
 
 from autodesk_connector.shared.models import (
-    Annotation,
-    Breaker,
-    Building,
-    Cable,
     Conduit,
     Coordinates,
-    ElectricalRoom,
     Equipment,
     Level,
-    Load,
     Panel,
-    Relay,
     Room,
     Tray,
     UnifiedEngineeringModel,
@@ -42,7 +33,7 @@ logger = logging.getLogger(__name__)
 # ---------------------------------------------------------------------------
 
 
-class RevitElementType(str, Enum):
+class RevitElementType(StrEnum):
     WALL = "wall"
     FLOOR = "floor"
     CEILING = "ceiling"
@@ -98,7 +89,7 @@ class RevitPluginClient:
         except requests.RequestException:
             return False
 
-    def _call(self, endpoint: str, payload: Optional[dict] = None) -> dict:
+    def _call(self, endpoint: str, payload: dict | None = None) -> dict:
         """Make an API call to the Revit plugin."""
         url = f"{self.base_url}/api{endpoint}"
         resp = self.session.post(url, json=payload or {}, timeout=self.timeout)
@@ -108,7 +99,7 @@ class RevitPluginClient:
     def open_model(self, file_path: str) -> dict:
         return self._call("/model/open", {"file_path": file_path})
 
-    def save_model(self, file_path: Optional[str] = None) -> dict:
+    def save_model(self, file_path: str | None = None) -> dict:
         return self._call("/model/save", {"file_path": file_path or ""})
 
     def create_model(self, file_path: str, template: str = "") -> dict:
@@ -174,7 +165,7 @@ class RevitPluginClient:
     def list_levels(self) -> dict:
         return self._call("/level/list", {})
 
-    def create_room(self, name: str, level_id: str, bounding_box: Optional[dict] = None) -> dict:
+    def create_room(self, name: str, level_id: str, bounding_box: dict | None = None) -> dict:
         return self._call("/room/create", {
             "name": name,
             "level_id": level_id,
@@ -194,7 +185,7 @@ class RevitPluginClient:
     def read_mep_data(self) -> dict:
         return self._call("/mep/data", {})
 
-    def create_circuit(self, panel_id: str, device_ids: List[str], circuit_number: Optional[int] = None) -> dict:
+    def create_circuit(self, panel_id: str, device_ids: List[str], circuit_number: int | None = None) -> dict:
         return self._call("/mep/create_circuit", {
             "panel_id": panel_id,
             "device_ids": device_ids,
@@ -232,7 +223,7 @@ class RevitConnector:
 
     def __init__(self, plugin_url: str = "http://localhost:4830", api_key: str = ""):
         self.plugin = RevitPluginClient(plugin_url, api_key=api_key)
-        self._current_model_path: Optional[str] = None
+        self._current_model_path: str | None = None
         self._operation_log: List[dict] = []
 
     @property
@@ -445,7 +436,7 @@ class RevitConnector:
     # Helpers
     # ------------------------------------------------------------------
 
-    def _log_operation(self, operation: str, target: str, success: bool, details: Optional[dict] = None) -> None:
+    def _log_operation(self, operation: str, target: str, success: bool, details: dict | None = None) -> None:
         self._operation_log.append({
             "operation": operation,
             "target": target,

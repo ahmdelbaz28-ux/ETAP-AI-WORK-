@@ -2,6 +2,7 @@ import json
 import re
 from pathlib import Path
 
+
 def main() -> None:
     file_path = Path('api/scada.py')
     original = file_path.read_text(encoding='utf-8')

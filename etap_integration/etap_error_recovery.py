@@ -14,7 +14,6 @@ import sys
 import time
 from dataclasses import dataclass
 from enum import Enum
-from typing import Optional
 
 logger = logging.getLogger(__name__)
 
@@ -68,7 +67,7 @@ class RecoveryAttempt:
     success: bool
     action: str
     duration: float
-    error: Optional[str] = None
+    error: str | None = None
 
 
 class ETAPErrorRecovery:

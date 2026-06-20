@@ -12,8 +12,8 @@ from __future__ import annotations
 
 from typing import Any, Dict, List
 
-from hypothesis import HealthCheck, given, settings, strategies as st
-from hypothesis import Phase
+from hypothesis import HealthCheck, Phase, given, settings
+from hypothesis import strategies as st
 from pydantic import ValidationError
 
 from skills.skill_validator import (

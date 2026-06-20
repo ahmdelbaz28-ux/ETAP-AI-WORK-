@@ -7,11 +7,10 @@ import asyncio
 import json
 import logging
 import os
-import sys
-import time
 import threading
+import time
 from contextlib import asynccontextmanager
-from typing import Any, Dict
+from typing import Any
 
 import structlog
 from prometheus_client import Counter, Gauge, Histogram, Info

@@ -5,15 +5,14 @@ Handles all study execution logic, system building, and ETAP integration.
 
 import asyncio
 import json
-import logging
 import os
 import time
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
+
 from pydantic import AliasChoices, BaseModel, ConfigDict, Field, field_validator
 
-from core.bootstrap import _get_power_system_engine, _get_etap_provider, _to_jsonable, logger
+from core.bootstrap import _get_etap_provider, _get_power_system_engine, _to_jsonable, logger
 from core.tracing import trace_operation
-
 
 # ---------------------------------------------------------------------------
 # Pydantic schemas
@@ -30,12 +29,12 @@ class BusSpec(BaseModel):
     generation_power_real: float = Field(default=0.0, validation_alias=AliasChoices("generation_power_real", "power_real", "pg"))
     generation_power_imag: float = Field(default=0.0, validation_alias=AliasChoices("generation_power_imag", "power_reactive", "qg"))
     bus_type: str = "pq"
-    base_kv: Optional[float] = None
+    base_kv: float | None = None
     q_min: float = Field(default=-999.0, validation_alias=AliasChoices("q_min", "min_power_reactive", "min_q"))
     q_max: float = Field(default=999.0, validation_alias=AliasChoices("q_max", "max_power_reactive", "max_q"))
-    area: Optional[int] = None
-    zone: Optional[int] = None
-    voltage_setpoint: Optional[float] = Field(default=None, validation_alias=AliasChoices("voltage_setpoint", "voltage_magnitude_setpoint"))
+    area: int | None = None
+    zone: int | None = None
+    voltage_setpoint: float | None = Field(default=None, validation_alias=AliasChoices("voltage_setpoint", "voltage_magnitude_setpoint"))
 
     @field_validator("bus_type")
     @classmethod
@@ -54,11 +53,11 @@ class LineSpec(BaseModel):
     to_bus_id: int = Field(validation_alias=AliasChoices("to_bus_id", "to"))
     r1: float = Field(default=0.01, validation_alias=AliasChoices("r1", "resistance"))
     x1: float = Field(default=0.05, validation_alias=AliasChoices("x1", "reactance"))
-    r0: Optional[float] = None
-    x0: Optional[float] = None
+    r0: float | None = None
+    x0: float | None = None
     bshunt1: float = Field(default=0.02, validation_alias=AliasChoices("bshunt1", "b1", "bshunt", "susceptance"))
-    bshunt0: Optional[float] = Field(default=None, validation_alias=AliasChoices("bshunt0", "b0"))
-    rating_mva: Optional[float] = None
+    bshunt0: float | None = Field(default=None, validation_alias=AliasChoices("bshunt0", "b0"))
+    rating_mva: float | None = None
 
 
 class TransformerSpec(BaseModel):
@@ -80,16 +79,16 @@ class GeneratorSpec(BaseModel):
     bus_id: int
     r1: float = 0.0
     x1: float = Field(default=0.2, validation_alias=AliasChoices("x1", "xd_pu", "xdash"))
-    r2: Optional[float] = None
-    x2: Optional[float] = None
-    r0: Optional[float] = None
-    x0: Optional[float] = None
+    r2: float | None = None
+    x2: float | None = None
+    r0: float | None = None
+    x0: float | None = None
     internal_voltage_mag: float = Field(default=1.05, validation_alias=AliasChoices("internal_voltage_mag", "voltage_setpoint", "v_setpoint"))
     internal_voltage_ang_deg: float = Field(default=0.0, validation_alias=AliasChoices("internal_voltage_ang_deg", "voltage_angle"))
-    power_real: Optional[float] = Field(default=None, validation_alias=AliasChoices("power_real", "pg"))
-    power_reactive: Optional[float] = Field(default=None, validation_alias=AliasChoices("power_reactive", "qg"))
-    max_power_reactive: Optional[float] = Field(default=None, validation_alias=AliasChoices("max_power_reactive", "q_max"))
-    min_power_reactive: Optional[float] = Field(default=None, validation_alias=AliasChoices("min_power_reactive", "q_min"))
+    power_real: float | None = Field(default=None, validation_alias=AliasChoices("power_real", "pg"))
+    power_reactive: float | None = Field(default=None, validation_alias=AliasChoices("power_reactive", "qg"))
+    max_power_reactive: float | None = Field(default=None, validation_alias=AliasChoices("max_power_reactive", "q_max"))
+    min_power_reactive: float | None = Field(default=None, validation_alias=AliasChoices("min_power_reactive", "q_min"))
 
 
 class LoadSpec(BaseModel):
@@ -117,18 +116,18 @@ class StudyRequest(BaseModel):
     model_config = ConfigDict(extra="ignore")
 
     study_type: str = Field(..., description="Type of study to run")
-    system: Optional[SystemSpec] = None
+    system: SystemSpec | None = None
     parameters: Dict[str, Any] = Field(default_factory=dict)
-    task_id: Optional[str] = None
+    task_id: str | None = None
     use_etap: bool = Field(default=False, description="If True, route to ETAP provider instead of native engine")
-    etap_project_path: Optional[str] = None
+    etap_project_path: str | None = None
 
     @field_validator("study_type")
     @classmethod
     def validate_study_type(cls, v: str) -> str:
         # Check if ETAP is enabled based on environment variable
         use_etap_enabled = os.getenv('USE_ETAP', 'false').lower() == 'true'
-        
+
         allowed = {
             "load_flow",
             "short_circuit",
@@ -140,7 +139,7 @@ class StudyRequest(BaseModel):
             "harmonic_analysis",
             "optimal_power_flow",
         }
-        
+
         # Add ETAP-specific study types only if ETAP is enabled
         if use_etap_enabled:
             allowed.update({
@@ -152,7 +151,7 @@ class StudyRequest(BaseModel):
                 "etap_motor_starting",
                 "etap_protection_coordination",
             })
-        
+
         v = v.lower().strip()
         if v not in allowed:
             raise ValueError(f"study_type must be one of {sorted(allowed)}")
@@ -166,7 +165,7 @@ class StudyResult(BaseModel):
     errors: List[str] = Field(default_factory=list)
     execution_time_sec: float = 0.0
     trace_id: str = ""
-    task_id: Optional[str] = None
+    task_id: str | None = None
     study_type: str = ""
     provider: str = "native"
 
@@ -287,7 +286,7 @@ def _run_async(coro):
 
 
 @trace_operation("_run_native_study", attributes={"component": "engineering_service"})
-def _run_native_study(study_type: str, system: Optional[Any], parameters: Dict[str, Any]) -> Dict[str, Any]:
+def _run_native_study(study_type: str, system: Any | None, parameters: Dict[str, Any]) -> Dict[str, Any]:
     """Execute a study using the native PowerSystemEngine."""
     if study_type in _STUDIES_REQUIRING_SYSTEM and system is None:
         raise ValueError(f"study_type '{study_type}' requires a 'system' to be provided")
@@ -334,7 +333,7 @@ def _run_etap_study(study_type: str, project_path: str, parameters: Dict[str, An
     # Check if ETAP is enabled
     if os.getenv('USE_ETAP', 'false').lower() != 'true':
         raise RuntimeError("ETAP functionality is disabled via USE_ETAP environment variable")
-    
+
     provider_factory = _get_etap_provider()
     provider = provider_factory()
 
@@ -378,9 +377,9 @@ def _run_etap_study(study_type: str, project_path: str, parameters: Dict[str, An
 
 def execute_study_logic(payload: StudyRequest, trace_id: str, start_time: float) -> StudyResult:
     """Execute study logic with caching and proper error handling."""
-    from core.bootstrap import _increment_counter, _add_execution_time, _study_cache
+    from core.bootstrap import _add_execution_time, _increment_counter, _study_cache
     from utils.language_detection import normalize_input
-    
+
     task_id = payload.task_id or f"task_{int(time.time())}"
 
     # Enable auto-correct for non-English input

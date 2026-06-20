@@ -24,14 +24,11 @@ from __future__ import annotations
 import json
 import logging
 import time
-from typing import Any, Dict, List, Optional
+from typing import List
 
-from fastapi import APIRouter, Depends, FastAPI, HTTPException, Query, Request
-from fastapi.responses import JSONResponse
+from fastapi import APIRouter, FastAPI, HTTPException, Query
 from pydantic import BaseModel, Field
 
-from autodesk_connector.autocad.connector import AutoCADConnector
-from autodesk_connector.revit.connector import RevitConnector
 from autodesk_connector.shared.models import (
     Breaker,
     Bus,
@@ -44,6 +41,7 @@ from autodesk_connector.shared.models import (
 from copilot.ai.drawing_engine import AIDrawingEngine
 from copilot.mcp.server import CopilotMCPServer
 from copilot.translation.engine import TranslationEngine
+
 logger = logging.getLogger(__name__)
 
 
@@ -89,7 +87,7 @@ class SyncRequest(BaseModel):
 
 
 class ValidateRequest(BaseModel):
-    model_json: Optional[str] = Field(None, description="Optional model JSON to validate")
+    model_json: str | None = Field(None, description="Optional model JSON to validate")
     checks: List[str] = Field(default_factory=lambda: ["voltage", "overcurrent", "coordination"])
 
 
@@ -179,7 +177,7 @@ class CopilotAPI:
                 self.mcp._model = model
                 return {"success": True, "message": "Model updated"}
             except Exception as e:
-                raise HTTPException(status_code=400, detail=f"Invalid model: {e}")
+                raise HTTPException(status_code=400, detail=f"Invalid model: {e}") from e
 
         @router.post("/etap/sync")
         async def sync_etap(request: SyncRequest):
@@ -218,11 +216,13 @@ class CopilotAPI:
             return result
 
         @router.post("/autocad/draw")
-        async def draw_in_autocad(entity_type: str = Query(...), params: dict = {}):
+        async def draw_in_autocad(entity_type: str = Query(...), params: dict = None):
             """Draw a specific entity in AutoCAD.
 
             Entity types: bus, transformer, cable, breaker, panel, load, equipment
             """
+            if params is None:
+                params = {}
             self._call_count += 1
             cad = self.mcp.autocad
 
@@ -246,7 +246,7 @@ class CopilotAPI:
                 result = handler(params)
                 return {"success": True, "result": result}
             except Exception as e:
-                raise HTTPException(status_code=500, detail=str(e))
+                raise HTTPException(status_code=500, detail=str(e)) from e
 
         @router.post("/validate")
         async def validate_design(request: ValidateRequest):

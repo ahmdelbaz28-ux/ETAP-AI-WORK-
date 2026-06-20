@@ -12,7 +12,6 @@ PPE descriptions, enclosure details, etc.) should import and use
 """
 
 import json
-from typing import Optional
 
 from fault_analysis.arc_flash_engine import (
     ArcFlashEngine,
@@ -22,7 +21,7 @@ from fault_analysis.arc_flash_engine import (
 
 # Lazy singleton — avoids repeated object creation overhead since the
 # engine is stateless (all computation lives in static methods).
-_engine: Optional[ArcFlashEngine] = None
+_engine: ArcFlashEngine | None = None
 
 
 def _get_engine() -> ArcFlashEngine:

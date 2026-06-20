@@ -7,15 +7,11 @@ Provides high-level APIs for the Engineering Copilot.
 
 from __future__ import annotations
 
-import json
 import logging
-import os
-import subprocess
 import time
 import uuid
-from enum import Enum
-from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from enum import StrEnum
+from typing import Dict, List
 
 import requests
 
@@ -24,15 +20,11 @@ from autodesk_connector.shared.models import (
     Breaker,
     Bus,
     Cable,
-    Conduit,
     Coordinates,
     Equipment,
     Load,
     Panel,
-    Relay,
     Transformer,
-    Tray,
-    UnifiedEngineeringModel,
 )
 
 logger = logging.getLogger(__name__)
@@ -43,7 +35,7 @@ logger = logging.getLogger(__name__)
 # ---------------------------------------------------------------------------
 
 
-class AutoCADEntityType(str, Enum):
+class AutoCADEntityType(StrEnum):
     LINE = "line"
     POLYLINE = "polyline"
     CIRCLE = "circle"
@@ -60,7 +52,7 @@ class AutoCADEntityType(str, Enum):
     TABLE = "table"
 
 
-class AutoCADDrawingOperation(str, Enum):
+class AutoCADDrawingOperation(StrEnum):
     CREATE = "create"
     UPDATE = "update"
     DELETE = "delete"
@@ -108,7 +100,7 @@ class AutoCADPluginClient:
             "Content-Type": "application/json",
             "X-API-Key": api_key,
         })
-        self._available: Optional[bool] = None
+        self._available: bool | None = None
 
     def is_available(self) -> bool:
         """Check if the AutoCAD plugin is reachable."""
@@ -132,7 +124,7 @@ class AutoCADPluginClient:
         """Open a DWG file in AutoCAD."""
         return self.send_command("open_drawing", {"file_path": file_path})
 
-    def save_drawing(self, file_path: Optional[str] = None) -> dict:
+    def save_drawing(self, file_path: str | None = None) -> dict:
         """Save the current drawing."""
         return self.send_command("save_drawing", {"file_path": file_path or ""})
 
@@ -152,7 +144,7 @@ class AutoCADPluginClient:
             "lineweight": lineweight,
         })
 
-    def create_block(self, name: str, entities: List[dict], base_point: Optional[List[float]] = None) -> dict:
+    def create_block(self, name: str, entities: List[dict], base_point: List[float] | None = None) -> dict:
         """Create a block definition."""
         return self.send_command("create_block", {
             "name": name,
@@ -273,7 +265,7 @@ class AutoCADPluginClient:
             "format": format_,
         })
 
-    def draw_electrical_symbol(self, symbol_type: str, insertion_point: List[float], scale: float = 1.0, rotation: float = 0.0, attributes: Optional[dict] = None) -> dict:
+    def draw_electrical_symbol(self, symbol_type: str, insertion_point: List[float], scale: float = 1.0, rotation: float = 0.0, attributes: dict | None = None) -> dict:
         """Draw an electrical component symbol."""
         return self.send_command("draw_electrical_symbol", {
             "symbol_type": symbol_type,
@@ -283,7 +275,7 @@ class AutoCADPluginClient:
             "attributes": attributes or {},
         })
 
-    def draw_single_line_diagram(self, buses: List[dict], branches: List[dict], options: Optional[dict] = None) -> dict:
+    def draw_single_line_diagram(self, buses: List[dict], branches: List[dict], options: dict | None = None) -> dict:
         """Generate a single-line diagram from bus/branch data."""
         return self.send_command("draw_single_line_diagram", {
             "buses": buses,
@@ -306,7 +298,7 @@ class AutoCADConnector:
 
     def __init__(self, plugin_url: str = "http://localhost:4820", api_key: str = ""):
         self.plugin = AutoCADPluginClient(plugin_url, api_key=api_key)
-        self._current_drawing: Optional[AutoCADDrawingContext] = None
+        self._current_drawing: AutoCADDrawingContext | None = None
         self._operation_log: List[dict] = []
 
     @property
@@ -325,7 +317,7 @@ class AutoCADConnector:
             self._log_operation("open_drawing", file_path, True)
         return result
 
-    def save_drawing(self, file_path: Optional[str] = None) -> dict:
+    def save_drawing(self, file_path: str | None = None) -> dict:
         result = self.plugin.save_drawing(file_path)
         if result.get("success") and self._current_drawing:
             self._current_drawing.modified = False
@@ -520,7 +512,7 @@ class AutoCADConnector:
         breakers: List[Breaker],
         loads: List[Load],
         output_path: str,
-        options: Optional[dict] = None,
+        options: dict | None = None,
     ) -> dict:
         """Generate a complete single-line diagram from the unified model.
 
@@ -627,7 +619,7 @@ class AutoCADConnector:
     # Operations Log
     # ------------------------------------------------------------------
 
-    def _log_operation(self, operation: str, target: str, success: bool, details: Optional[dict] = None) -> None:
+    def _log_operation(self, operation: str, target: str, success: bool, details: dict | None = None) -> None:
         self._operation_log.append({
             "operation": operation,
             "target": target,

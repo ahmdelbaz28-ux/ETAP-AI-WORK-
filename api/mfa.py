@@ -5,7 +5,7 @@ Handles all multi-factor authentication endpoints.
 Separated from main engineering service for better modularity.
 """
 
-from fastapi import APIRouter, Request, HTTPException
+from fastapi import APIRouter, HTTPException, Request
 from fastapi.responses import JSONResponse
 
 router = APIRouter(prefix="/api/v1/auth/mfa", tags=["mfa"])
@@ -53,7 +53,7 @@ async def verify_totp(request: Request):
         body = await request.json()
         user_id = body.get("user_id")
         code = body.get("code")
-        
+
         if not user_id:
             raise HTTPException(status_code=400, detail="user_id is required")
         if not code:

@@ -30,7 +30,7 @@ import logging
 import time
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
 logger = logging.getLogger(__name__)
 
@@ -76,7 +76,7 @@ class PropagationContext:
     ybus_sequences: Dict[str, Any] = field(default_factory=dict)
 
     def record_step(self, step_name: str, step_success: bool,
-                    details: Optional[Dict[str, Any]] = None) -> None:
+                    details: Dict[str, Any] | None = None) -> None:
         self.steps.append({
             "step": step_name,
             "success": step_success,
@@ -475,9 +475,9 @@ class ProtectionRefreshHandler(PropagationHandler):
                 if fc_pu > 0:
                     fault_currents.append(fc_pu)
 
-            representative_faults = sorted(set(
+            representative_faults = sorted({
                 round(fc, 0) for fc in fault_currents if fc > 1.0
-            ))[:10]
+            })[:10]
             if not representative_faults:
                 representative_faults = [2.0, 5.0, 10.0, 20.0]
 
@@ -566,7 +566,7 @@ class PropagationChain:
     recorded and a ``ValidationErrorEvent`` is published if any step failed.
     """
 
-    def __init__(self, handlers: Optional[List[PropagationHandler]] = None):
+    def __init__(self, handlers: List[PropagationHandler] | None = None):
         self.handlers = list(handlers) if handlers is not None else list(_DEFAULT_HANDLERS)
 
     def execute(self, ctx: PropagationContext) -> PropagationContext:

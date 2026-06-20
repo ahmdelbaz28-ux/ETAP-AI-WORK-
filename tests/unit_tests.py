@@ -15,7 +15,7 @@ Coverage targets:
 import os
 import sys
 import time
-from datetime import datetime, timezone
+from datetime import UTC, datetime, timezone
 
 import numpy as np
 import pytest
@@ -44,7 +44,13 @@ from engine.error_handler import (
     component_guard,
 )
 from engine.numerical_safety import ConsistencyCheck, ConvergenceMonitor, NumericalGuard
-from engine.resilience import CircuitBreaker, CircuitBreakerState, MultiLevelRecovery, RetryHandler, StabilityEnforcer
+from engine.resilience import (
+    CircuitBreaker,
+    CircuitBreakerState,
+    MultiLevelRecovery,
+    RetryHandler,
+    StabilityEnforcer,
+)
 from etap_integration.etap_com import STUDY_TYPE_PARAMETER_SCHEMAS, ETAPAutomation, ETAPStudyType
 from fault_analysis.arc_flash_engine import ArcFlashEngine, ElectrodeConfig
 from fault_analysis.fault import FaultAnalyzer
@@ -52,7 +58,12 @@ from fault_analysis.harmonic_analysis import HarmonicAnalysisEngine
 from fault_analysis.iec60909_engine import IEC60909Engine
 from load_flow.load_flow import LoadFlowSolver
 from relays.relay import OvercurrentRelay
-from security.secrets_manager import EnvironmentValidator, KeyAccessAuditor, LocalSecretsManager, VaultSecretsManager
+from security.secrets_manager import (
+    EnvironmentValidator,
+    KeyAccessAuditor,
+    LocalSecretsManager,
+    VaultSecretsManager,
+)
 
 # ============================================================================
 # ETAP SCHEMA VALIDATION TESTS
@@ -210,7 +221,11 @@ class TestWorkerRBAC:
     def test_engineer_has_all_calc_permissions(self):
         """Test that engineer role has all required calc permissions."""
         from etap_integration.etap_worker_service import STUDY_TYPE_TO_PERMISSION
-        from security.security_framework import AuthenticationManager, AuthorizationManager, UserRole
+        from security.security_framework import (
+            AuthenticationManager,
+            AuthorizationManager,
+            UserRole,
+        )
 
         auth = AuthenticationManager(secret_key="test-rbac-secret")
         authz = AuthorizationManager(auth)
@@ -226,7 +241,11 @@ class TestWorkerRBAC:
     def test_viewer_cannot_execute_studies(self):
         """Test that viewer role lacks calc permissions."""
         from etap_integration.etap_worker_service import STUDY_TYPE_TO_PERMISSION
-        from security.security_framework import AuthenticationManager, AuthorizationManager, UserRole
+        from security.security_framework import (
+            AuthenticationManager,
+            AuthorizationManager,
+            UserRole,
+        )
 
         auth = AuthenticationManager(secret_key="test-viewer-secret")
         authz = AuthorizationManager(auth)
@@ -241,7 +260,12 @@ class TestWorkerRBAC:
 
     def test_guest_has_no_permissions(self):
         """Test that guest role has zero permissions."""
-        from security.security_framework import AuthenticationManager, AuthorizationManager, Permission, UserRole
+        from security.security_framework import (
+            AuthenticationManager,
+            AuthorizationManager,
+            Permission,
+            UserRole,
+        )
 
         auth = AuthenticationManager(secret_key="test-guest-secret")
         authz = AuthorizationManager(auth)
@@ -270,7 +294,11 @@ class TestWorkerRBAC:
     def test_permission_after_logout_rejected(self):
         """Test that token is rejected after logout."""
         from etap_integration.etap_worker_service import STUDY_TYPE_TO_PERMISSION
-        from security.security_framework import AuthenticationManager, AuthorizationManager, UserRole
+        from security.security_framework import (
+            AuthenticationManager,
+            AuthorizationManager,
+            UserRole,
+        )
 
         auth = AuthenticationManager(secret_key="test-logout-secret")
         authz = AuthorizationManager(auth)
@@ -807,7 +835,12 @@ class TestSecurityFramework:
 
     def test_permission_check(self):
         """Test permission checking."""
-        from security.security_framework import AuthenticationManager, AuthorizationManager, Permission, UserRole
+        from security.security_framework import (
+            AuthenticationManager,
+            AuthorizationManager,
+            Permission,
+            UserRole,
+        )
 
         auth = AuthenticationManager(secret_key="test_secret")
         authz = AuthorizationManager(auth)
@@ -1125,7 +1158,7 @@ class TestErrorHandler:
         error = SystemError(
             error_id="alert-test-id", message="console alert",
             component="test", severity=ErrorSeverity.ERROR,
-            timestamp=datetime.now(timezone.utc),
+            timestamp=datetime.now(UTC),
         )
         alert_mgr.trigger_alert(error, channels=["console"])
         alert_mgr.add_alert_rule("*", ErrorSeverity.WARNING, channels=["console"])

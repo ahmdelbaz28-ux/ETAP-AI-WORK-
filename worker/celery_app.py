@@ -2,8 +2,9 @@
 Celery application for handling heavy engineering tasks asynchronously.
 Uses Redis as both broker and result backend.
 """
-from celery import Celery
 import os
+
+from celery import Celery
 
 # Configure Celery to use Redis
 redis_url = os.environ.get("REDIS_URL", "redis://localhost:6379/0")

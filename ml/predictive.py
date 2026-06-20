@@ -27,7 +27,7 @@ from __future__ import annotations
 
 import logging
 from datetime import datetime, timedelta
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Tuple
 
 import numpy as np
 
@@ -89,9 +89,9 @@ except ImportError:
     logger.info("Optuna not available")
 
 try:
+    from pyod.models.auto_encoder import AutoEncoder as PyODAutoEncoder  # type: ignore
     from pyod.models.iforest import IForest as PyODIForest  # type: ignore
     from pyod.models.knn import KNN as PyODKNN  # type: ignore
-    from pyod.models.auto_encoder import AutoEncoder as PyODAutoEncoder  # type: ignore
     _HAS_PYOD = True
 except ImportError:
     logger.info("PyOD not available - advanced anomaly detection will be limited")
@@ -103,8 +103,8 @@ except ImportError:
     logger.info("PyTorch not available")
 
 try:
-    import torch_geometric  # type: ignore
-    from torch_geometric.nn import GCNConv, GATConv  # type: ignore
+    import torch_geometric  # noqa: F401 — imported to check availability
+    from torch_geometric.nn import GATConv, GCNConv  # type: ignore
     _HAS_TORCH_GEOMETRIC = True
 except ImportError:
     logger.info("PyTorch Geometric not available - GNN features disabled")
@@ -138,16 +138,16 @@ class LoadForecaster:
             'auto' selects the best available: lstm > prophet > linear.
         """
         self.model: Any = None
-        self.scaler: Optional[Any] = None
+        self.scaler: Any | None = None
         self._is_lstm: bool = False
         self._is_prophet: bool = False
         self._window_size: int = 24
-        self._fallback_weights: Optional[np.ndarray] = None
+        self._fallback_weights: np.ndarray | None = None
         self._fallback_bias: float = 0.0
         self._fallback_mean: float = 0.0
         self._fallback_std: float = 1.0
         self._method = method
-        self._training_data: Optional[np.ndarray] = None
+        self._training_data: np.ndarray | None = None
 
     # ------------------------------------------------------------------
     # Training
@@ -205,7 +205,7 @@ class LoadForecaster:
         # Create Prophet DataFrame with hourly data
         start_date = datetime(2024, 1, 1)
         dates = [start_date + timedelta(hours=i) for i in range(len(data))]
-        df = np.column_stack([dates, data])
+        np.column_stack([dates, data])
         import pandas as pd
         prophet_df = pd.DataFrame({"ds": dates, "y": data.astype(float)})
         self.model.fit(prophet_df)
@@ -288,7 +288,6 @@ class LoadForecaster:
 
     def _predict_prophet(self, horizon_hours: int) -> np.ndarray:
         """Prophet-based prediction."""
-        import pandas as pd
         future = self.model.make_future_dataframe(periods=horizon_hours, freq="h")
         forecast = self.model.predict(future)
         result = forecast["yhat"].values[-horizon_hours:]
@@ -422,7 +421,7 @@ class FaultPredictor:
         self._optimize = optimize and _HAS_OPTUNA
         self._use_shap = _HAS_SHAP
         self._explainer: Any = None
-        self._last_training_features: Optional[np.ndarray] = None
+        self._last_training_features: np.ndarray | None = None
 
     def train(self, features: np.ndarray, labels: np.ndarray) -> Dict[str, Any]:
         """Train fault classifier on fault features.
@@ -701,7 +700,7 @@ class AnomalyDetector:
         self.model: Any = None
         self.contamination = contamination
         self.method = method
-        self._threshold: Optional[float] = None
+        self._threshold: float | None = None
         self._is_trained: bool = False
 
     def train(self, normal_data: np.ndarray) -> Dict[str, Any]:
@@ -744,7 +743,7 @@ class AnomalyDetector:
             self._threshold = float(self.model.threshold_)
 
         elif self.method == "pyod_autoencoder" and _HAS_PYOD:
-            n_features = normal_data.shape[1]
+            normal_data.shape[1]
             self.model = PyODAutoEncoder(
                 contamination=self.contamination,
                 hidden_neurons=[64, 32, 32, 64],
@@ -851,8 +850,8 @@ class PowerGridGNN:
         self.num_layers = num_layers
         self.model: Any = None
         self._is_trained: bool = False
-        self._input_dim: Optional[int] = None
-        self._output_dim: Optional[int] = None
+        self._input_dim: int | None = None
+        self._output_dim: int | None = None
 
     def _build_model(self, input_dim: int, output_dim: int) -> None:
         """Build the GNN model architecture."""
@@ -871,7 +870,7 @@ class PowerGridGNN:
                 self.dropout = torch.nn.Dropout(0.2)
 
             def forward(self, x, edge_index):
-                for i, conv in enumerate(self.convs[:-1]):
+                for _i, conv in enumerate(self.convs[:-1]):
                     x = conv(x, edge_index)
                     x = self.relu(x)
                     x = self.dropout(x)
@@ -890,7 +889,7 @@ class PowerGridGNN:
                 self.dropout = torch.nn.Dropout(0.2)
 
             def forward(self, x, edge_index):
-                for i, conv in enumerate(self.convs[:-1]):
+                for _i, conv in enumerate(self.convs[:-1]):
                     x = conv(x, edge_index)
                     x = self.relu(x)
                     x = self.dropout(x)
@@ -949,7 +948,7 @@ class PowerGridGNN:
 
         self.model.train()
         losses = []
-        for epoch in range(epochs):
+        for _epoch in range(epochs):
             optimizer.zero_grad()
             out = self.model(x, edge_idx)
             loss = criterion(out, y)
@@ -1010,7 +1009,7 @@ class ModelRegistry:
     - Model artifact storage
     """
 
-    def __init__(self, tracking_uri: Optional[str] = None) -> None:
+    def __init__(self, tracking_uri: str | None = None) -> None:
         """Initialize ModelRegistry.
 
         Parameters
@@ -1102,7 +1101,7 @@ class ModelRegistry:
             self._active_run = None
 
     def get_best_run(self, experiment_name: str, metric: str = "accuracy",
-                     ascending: bool = False) -> Optional[Dict[str, Any]]:
+                     ascending: bool = False) -> Dict[str, Any] | None:
         """Get the best run for an experiment based on a metric.
 
         Parameters

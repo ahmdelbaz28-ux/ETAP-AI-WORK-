@@ -19,8 +19,9 @@ import inspect
 import logging
 import time
 from collections import defaultdict
+from collections.abc import Iterable
 from functools import partial
-from typing import Any, Iterable
+from typing import Any
 
 import anyio
 

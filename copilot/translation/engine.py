@@ -12,30 +12,18 @@ Mapping Architecture:
 from __future__ import annotations
 
 import logging
-from enum import Enum
-from typing import Any, Dict, List, Optional, Tuple
+from enum import StrEnum
+from typing import Any, Dict, List
 
 from autodesk_connector.shared.models import (
-    Annotation,
     Breaker,
     Bus,
     Cable,
-    Conduit,
-    Coordinates,
-    Equipment,
     Generator,
     Load,
-    Motor,
     Panel,
-    Project,
-    ProtectionDevice,
-    Relay,
-    Room,
     SourceSystem,
-    Switchboard,
     Transformer,
-    Tray,
-    UnifiedEngineeringModel,
 )
 
 logger = logging.getLogger(__name__)
@@ -45,7 +33,7 @@ logger = logging.getLogger(__name__)
 # Mapping Rules Registry
 # ---------------------------------------------------------------------------
 
-class MappingDirection(str, Enum):
+class MappingDirection(StrEnum):
     ETAP_TO_AUTOCAD = "etap_to_autocad"
     ETAP_TO_REVIT = "etap_to_revit"
     REVIT_TO_AUTOCAD = "revit_to_autocad"
@@ -332,7 +320,7 @@ class TranslationEngine:
             self._log_translation("etap_to_unified", "bus", str(bid), bus.id)
 
         # Translate branches to cables
-        for brid, br_data in etap_data.get("branches", {}).items():
+        for brid, _br_data in etap_data.get("branches", {}).items():
             cable = Cable(
                 id=str(brid),
                 name=f"CBL_{brid}",

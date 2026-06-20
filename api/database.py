@@ -15,7 +15,7 @@ to the default aiosqlite path so that importing never raises.
 from __future__ import annotations
 
 import os
-from typing import AsyncGenerator
+from collections.abc import AsyncGenerator
 
 from sqlalchemy.engine.url import make_url
 from sqlalchemy.ext.asyncio import (

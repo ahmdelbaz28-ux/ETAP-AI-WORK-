@@ -6,19 +6,22 @@ Separated from main engineering service for better modularity.
 """
 
 import time
-from datetime import datetime
-from typing import Dict, List
 
 from fastapi import APIRouter, Request
 from fastapi.responses import Response
 
 from core.metrics import generate_metrics, get_metrics_content_type
-from core.tracing import trace_operation
 
 router = APIRouter(prefix="", tags=["health"])
 
 # Import from core.metrics
-from engineering_service import _request_count, _success_count, _failed_count, _total_execution_time_sec, _metrics_lock
+from engineering_service import (
+    _failed_count,
+    _metrics_lock,
+    _request_count,
+    _success_count,
+    _total_execution_time_sec,
+)
 
 
 class HealthResponse:

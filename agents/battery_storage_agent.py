@@ -16,8 +16,8 @@ Standards:
 """
 
 import logging
-from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional, Tuple
+from datetime import UTC, datetime
+from typing import Any, Dict, List, Tuple
 
 import numpy as np
 
@@ -66,7 +66,7 @@ class BatteryStorageAgent(BaseAgent):
     def size_bess(
         self,
         load_profile_kw: np.ndarray,
-        target_peak_kw: Optional[float] = None,
+        target_peak_kw: float | None = None,
         max_power_kw: float = 1000.0,
         usable_soc_range: Tuple[float, float] = (0.10, 0.90),
         round_trip_efficiency: float = 0.87,
@@ -514,7 +514,7 @@ class BatteryStorageAgent(BaseAgent):
         }
 
     @staticmethod
-    def _compute_irr(cash_flows: np.ndarray, max_iter: int = 100, tol: float = 1e-8) -> Optional[float]:
+    def _compute_irr(cash_flows: np.ndarray, max_iter: int = 100, tol: float = 1e-8) -> float | None:
         """Compute IRR using Newton-Raphson method."""
         x = 0.10  # Initial guess: 10%
         for _ in range(max_iter):
@@ -726,7 +726,7 @@ class BatteryStorageAgent(BaseAgent):
         - ``'cycle_life'``: Battery degradation and cycle life
         - ``'full'``: All analyses (default)
         """
-        start_time = datetime.now(timezone.utc)
+        start_time = datetime.now(UTC)
         self.status = AgentStatus.RUNNING
 
         try:
@@ -823,7 +823,7 @@ class BatteryStorageAgent(BaseAgent):
             )
 
             result.validation_status = self.validate_result(result)
-            execution_time = (datetime.now(timezone.utc) - start_time).total_seconds()
+            execution_time = (datetime.now(UTC) - start_time).total_seconds()
             result.execution_time = execution_time
 
             self.log_execution(f"Battery storage analysis completed in {execution_time:.2f}s")

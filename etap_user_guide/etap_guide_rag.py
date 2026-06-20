@@ -110,7 +110,7 @@ class ETAPGuideRAG:
         # Load master index if exists
         master_index_file = self.index_dir / "master_index.json"
         if master_index_file.exists():
-            with open(master_index_file, 'r', encoding='utf-8') as f:
+            with open(master_index_file, encoding='utf-8') as f:
                 master_index = json.load(f)
 
                 for doc in master_index["documents"]:

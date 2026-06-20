@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Dict, List, Optional, Set, Tuple
+from typing import Dict, List, Set, Tuple
 
 from gis_validation_electrical.electrical_model import ElectricalModel
 
@@ -52,8 +52,8 @@ def _has_undirected_loop(adj: Dict[str, Set[str]]) -> Tuple[bool, List[str]]:
     Deterministic and bounded: uses DFS with parent tracking.
     """
     visited: Set[str] = set()
-    parent: Dict[str, Optional[str]] = {}
-    stack: List[Tuple[str, Optional[str]]] = []
+    parent: Dict[str, str | None] = {}
+    stack: List[Tuple[str, str | None]] = []
 
     for root in adj.keys():
         if root in visited:
@@ -106,7 +106,7 @@ def validate_radiality(model: ElectricalModel) -> Tuple[bool, List[RadialityIssu
         issues.append(
             RadialityIssue(
                 issue_type="island_detected",
-                affected_nodes=sorted(list(smallest)),
+                affected_nodes=sorted(smallest),
                 affected_edges=sorted(affected_edges),
                 details={"component_count": len(comps)},
             )

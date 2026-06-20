@@ -2,6 +2,7 @@ import json
 import os
 import sys
 
+
 def main():
     # Path to the target file relative to script location
     script_dir = os.path.dirname(os.path.abspath(__file__))
@@ -11,7 +12,7 @@ def main():
         print(json.dumps({"modified": False, "error": "File not found"}))
         sys.exit(1)
 
-    with open(target_path, 'r', encoding='utf-8') as f:
+    with open(target_path, encoding='utf-8') as f:
         lines = f.readlines()
 
     modified = False

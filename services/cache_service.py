@@ -13,7 +13,7 @@ from __future__ import annotations
 import json
 import logging
 import time
-from typing import Any, Dict, Optional
+from typing import Any, Dict
 
 logger = logging.getLogger(__name__)
 
@@ -80,7 +80,7 @@ class StudyCache:
         if expires_at is not None and time.time() >= float(expires_at):
             self._memory_cache.pop(key, None)
 
-    async def get(self, key: str, *args: Any, **kwargs: Any) -> Optional[Dict[str, Any]]:
+    async def get(self, key: str, *args: Any, **kwargs: Any) -> Dict[str, Any] | None:
         """
         Get cached value by key.
 
@@ -134,7 +134,7 @@ class StudyCache:
         self,
         key: str,
         value: Any,
-        ttl: Optional[int] = None,
+        ttl: int | None = None,
         *args: Any,
         **kwargs: Any,
     ) -> bool:

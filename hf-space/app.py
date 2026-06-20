@@ -5,19 +5,19 @@ Author: Eng. Ahmed Elbaz
 """
 
 import hmac
-import os
-import time
 import logging
+import os
 import threading
+import time
 from contextlib import asynccontextmanager
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
-from fastapi import FastAPI, Request, HTTPException
-from fastapi.responses import JSONResponse, HTMLResponse
-from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
 import uvicorn
+from fastapi import FastAPI, HTTPException, Request
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import HTMLResponse, JSONResponse
+from pydantic import BaseModel
 
 # -- Version (single source of truth) -----------------------------------------
 VERSION = "2.1.0"
@@ -31,7 +31,7 @@ logger = logging.getLogger("etap-ai")
 
 # -- App Constants ------------------------------------------------------------
 START_TIME = time.time()
-BUILD_TIME = datetime.now(timezone.utc).isoformat()
+BUILD_TIME = datetime.now(UTC).isoformat()
 AGENT_COUNT = 23
 ETAP_MANUAL_COUNT = 35
 ZENON_GUIDE_COUNT = 4
@@ -491,6 +491,8 @@ async def predict_load(request: Request):
         if not historical:
             return JSONResponse(status_code=400, content={"error": "historical_data is required"})
 
+        import numpy as np
+
         from ml.predictive import LoadForecaster
         lf = LoadForecaster(method=method)
         data = np.array(historical, dtype=float)
@@ -520,6 +522,8 @@ async def detect_anomalies(request: Request):
 
         if not data:
             return JSONResponse(status_code=400, content={"error": "data is required"})
+
+        import numpy as np
 
         from ml.predictive import AnomalyDetector
         ad = AnomalyDetector(contamination=contamination, method=method)

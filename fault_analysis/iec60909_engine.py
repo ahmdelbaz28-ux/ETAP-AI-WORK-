@@ -543,4 +543,4 @@ class IEC60909Engine:
         elif fault_type == FaultType.DOUBLE_LINE_TO_GROUND:
             return self.calculate_double_line_to_ground_fault(bus_index, **kwargs)
         else:
-            raise ValueError("Unsupported fault type: {}".format(fault_type))
+            raise ValueError(f"Unsupported fault type: {fault_type}")

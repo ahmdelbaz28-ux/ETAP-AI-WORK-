@@ -12,7 +12,6 @@ import os
 import sys
 import tempfile
 import unittest
-from unittest.mock import MagicMock, patch
 
 # Add project root to path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
@@ -20,23 +19,21 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
 from autodesk_connector.shared.models import (
     Breaker,
     Bus,
+    BusType,
     Cable,
     Coordinates,
-    Generator,
     Load,
-    Panel,
-    Transformer,
-    UnifiedEngineeringModel,
-    SourceSystem,
-    PanelType,
-    BusType,
-    TransformerType,
     LoadType,
+    Panel,
+    PanelType,
+    SourceSystem,
+    Transformer,
+    TransformerType,
+    UnifiedEngineeringModel,
 )
-from copilot.translation.engine import TranslationEngine, ENTITY_DRAWING_RULES
-from copilot.ai.drawing_engine import IntentParser, GraphBuilder, ModelGenerator, AIDrawingEngine
-from copilot.mcp.server import CopilotMCPServer, MCP_TOOL_DEFINITIONS
-
+from copilot.ai.drawing_engine import AIDrawingEngine, GraphBuilder, IntentParser, ModelGenerator
+from copilot.mcp.server import CopilotMCPServer
+from copilot.translation.engine import ENTITY_DRAWING_RULES, TranslationEngine
 
 # =========================================================================
 # Test: Unified Engineering Model

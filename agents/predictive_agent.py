@@ -20,8 +20,8 @@ Standards:
 """
 
 import logging
-from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional
+from datetime import UTC, datetime
+from typing import Any, Dict, List
 
 import numpy as np
 
@@ -447,7 +447,7 @@ class PredictiveAgent(BaseAgent):
             "horizon_hours": horizon_hours,
         }
 
-    def predict_fault_ml(self, features: np.ndarray, labels: Optional[np.ndarray] = None, use_xgboost: bool = True, explain: bool = False) -> Dict[str, Any]:
+    def predict_fault_ml(self, features: np.ndarray, labels: np.ndarray | None = None, use_xgboost: bool = True, explain: bool = False) -> Dict[str, Any]:
         """Fault prediction using XGBoost/RandomForest with SHAP explanations."""
         from ml.predictive import FaultPredictor
         fp = FaultPredictor(use_xgboost=use_xgboost)
@@ -475,7 +475,7 @@ class PredictiveAgent(BaseAgent):
         ``'failure_prediction'``, ``'maintenance_schedule'``,
         or ``'full'``.
         """
-        start_time = datetime.now(timezone.utc)
+        start_time = datetime.now(UTC)
         self.status = AgentStatus.RUNNING
 
         try:
@@ -584,7 +584,7 @@ class PredictiveAgent(BaseAgent):
             )
 
             result.validation_status = self.validate_result(result)
-            execution_time = (datetime.now(timezone.utc) - start_time).total_seconds()
+            execution_time = (datetime.now(UTC) - start_time).total_seconds()
             result.execution_time = execution_time
 
             self.log_execution(

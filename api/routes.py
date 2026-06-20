@@ -3,40 +3,30 @@ API Routes module for the Engineering Service.
 Handles all API endpoints, request validation, and response formatting.
 """
 
-import asyncio
 import hmac
-import json
-import logging
 import os
 import sys
+import threading as _threading
 import time
 import uuid
-from typing import Dict, List, Any
-from contextlib import asynccontextmanager
-
-import threading as _threading
+from typing import Dict, List
 
 from fastapi import FastAPI, HTTPException, Request, WebSocket
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, Response
+from opentelemetry.trace import SpanKind, Status, StatusCode
 from pydantic import BaseModel
 from starlette.middleware.base import BaseHTTPMiddleware
 
-from core.bootstrap import lifespan, logger, _increment_counter, _add_execution_time, _study_cache, _TraceFilter
-from services.study_service import execute_study_logic, StudyRequest, StudyResult, SystemSpec
+from api.websocket import scada_websocket_endpoint
+from core.bootstrap import lifespan, logger
 from core.metrics import (
-    count_executions,
     generate_metrics,
     get_metrics_content_type,
-    set_app_info,
-    track_skill_operation,
 )
-from core.tracing import get_tracer, inject_context, trace_operation
-from opentelemetry.trace import SpanKind, Status, StatusCode
-
-from worker.tasks import execute_engineering_study_task, execute_etap_integration_task
-from services.cache_service import get_study_cache, set_study_cache
-from api.websocket import scada_websocket_endpoint
+from core.tracing import get_tracer
+from services.study_service import StudyRequest, StudyResult, SystemSpec, execute_study_logic
+from worker.tasks import execute_engineering_study_task
 
 # Create FastAPI app instance
 app = FastAPI(
@@ -259,13 +249,11 @@ async def ready():
 
 @app.get("/metrics")
 async def metrics():
-    from core.metrics import generate_metrics, get_metrics_content_type
     return Response(content=generate_metrics(), media_type=get_metrics_content_type())
 
 
 @app.get("/prometheus/metrics")
 async def prometheus_metrics():
-    from core.metrics import generate_metrics
     return Response(content=generate_metrics(), media_type="text/plain")
 
 
@@ -286,7 +274,7 @@ async def run_study(study_request: StudyRequest, request: Request):
 @app.post("/api/v1/system/validate")
 async def validate_system(system_spec: SystemSpec, request: Request):
     _require_api_key(request)
-    
+
     # Validate the system specification
     # ... existing validation code ...
     return {"status": "validated", "valid": True}
@@ -295,7 +283,9 @@ async def validate_system(system_spec: SystemSpec, request: Request):
 # --- NEW ASYNC AND WEBSOCKET ENDPOINTS ADDED FOR PRODUCTION SCALABILITY ---
 
 from celery.result import AsyncResult
+
 from worker.celery_app import app as celery_app
+
 
 @app.post('/api/v1/studies/run_async')
 async def run_study_async(study_request: StudyRequest):
@@ -318,34 +308,34 @@ async def run_study_async(study_request: StudyRequest):
         }
     except Exception as e:
         logger.error(f'Error submitting async study: {str(e)}')
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from e
 
 @app.get('/api/v1/studies/task_status/{task_id}')
 async def get_task_status(task_id: str):
     """Get the status of an async study task."""
     try:
         task_result = AsyncResult(str(task_id), app=celery_app)
-        
+
         response = {
             'task_id': task_id,
             'status': task_result.status,
             'result': None
         }
-        
+
         if task_result.ready():
             if task_result.successful():
                 response['result'] = task_result.result
             elif task_result.failed():
                 response['error'] = str(task_result.info)
-        
+
         # If task is in progress, get progress info
         if task_result.status == 'PROGRESS':
             response['meta'] = task_result.info
-        
+
         return response
     except Exception as e:
         logger.error(f'Error getting task status: {str(e)}')
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from e
 
 @app.websocket('/ws/scada/live')
 async def websocket_scada_endpoint_handler(websocket: WebSocket):

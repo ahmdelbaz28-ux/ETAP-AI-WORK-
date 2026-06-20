@@ -4,6 +4,7 @@ Tests the full request/response cycle through the FastAPI application.
 """
 
 import json
+
 import pytest
 from fastapi.testclient import TestClient
 
@@ -44,7 +45,7 @@ def test_study_execution_endpoint(api_client, sample_3bus_network):
         "system_spec": sample_3bus_network,
         "parameters": {"tolerance": 1e-6, "max_iterations": 50}
     }
-    
+
     response = api_client.post("/api/v1/studies/run", json=payload)
     assert response.status_code == 200
     data = response.json()
@@ -69,7 +70,7 @@ def test_predict_load_endpoint(api_client):
         "historical_data": [100, 120, 110, 130, 125, 140, 135],
         "horizon_hours": 24
     }
-    
+
     response = api_client.post("/api/v1/predict/load", json=payload)
     assert response.status_code == 200
     data = response.json()
@@ -83,7 +84,7 @@ def test_predict_fault_endpoint(api_client):
     payload = {
         "features": [0.5, 0.3, 0.8, 0.2]
     }
-    
+
     response = api_client.post("/api/v1/predict/fault", json=payload)
     assert response.status_code == 200
     data = response.json()
@@ -96,7 +97,7 @@ def test_anomaly_detection_endpoint(api_client):
     payload = {
         "data": [1.0, 1.1, 0.9, 1.2, 5.0, 1.0, 1.1]  # 5.0 is an anomaly
     }
-    
+
     response = api_client.post("/api/v1/predict/anomaly", json=payload)
     assert response.status_code == 200
     data = response.json()
@@ -110,7 +111,7 @@ def test_rag_query_endpoint(api_client):
         "query": "What is IEEE 1584-2018 standard?",
         "top_k": 3
     }
-    
+
     response = api_client.post("/api/v1/rag/query", json=payload)
     # May return 500 if knowledge base is not initialized, but should not crash
     assert response.status_code in [200, 500]
