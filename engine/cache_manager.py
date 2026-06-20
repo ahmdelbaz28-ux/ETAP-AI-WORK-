@@ -3,9 +3,10 @@ import json
 import logging
 import threading
 import time
+from collections.abc import Callable
 from enum import Enum
 from functools import wraps
-from typing import Any, Callable, Dict, List, Optional, Set, Tuple
+from typing import Any, Dict, List, Set, Tuple
 
 try:
     from cachetools import LRUCache, TLRUCache
@@ -33,7 +34,7 @@ class CacheStrategy(Enum):
 class _CacheEntry:
     __slots__ = ("value", "expires_at", "tags", "size_bytes", "access_count", "created_at", "last_access")
 
-    def __init__(self, value: Any, expires_at: Optional[float] = None, tags: Optional[List[str]] = None):
+    def __init__(self, value: Any, expires_at: float | None = None, tags: List[str] | None = None):
         self.value = value
         self.expires_at = expires_at
         self.tags = tags or []
@@ -75,11 +76,11 @@ class CalculationCache:
                 self._cachetools_cache = TLRUCache(maxsize=maxsize, ttu=lambda k, v, now: now + (v.ttl or default_ttl_seconds))  # type: ignore
             else:
                 self._cachetools_cache = LRUCache(maxsize=maxsize)
-            self._cachetools_data: Dict[str, Tuple[Any, Optional[float], List[str]]] = {}
+            self._cachetools_data: Dict[str, Tuple[Any, float | None, List[str]]] = {}
         else:
             self._cachetools_cache = None
 
-    def get(self, cache_key: str) -> Optional[Any]:
+    def get(self, cache_key: str) -> Any | None:
         with self._lock:
             entry = self._entries.get(cache_key)
             if entry is None:
@@ -107,8 +108,8 @@ class CalculationCache:
         self,
         cache_key: str,
         value: Any,
-        ttl_seconds: Optional[int] = None,
-        tags: Optional[List[str]] = None,
+        ttl_seconds: int | None = None,
+        tags: List[str] | None = None,
     ) -> None:
         ttl = ttl_seconds if ttl_seconds is not None else self._default_ttl
         expires_at = time.time() + ttl if ttl > 0 else None
@@ -187,7 +188,7 @@ class CalculationCache:
                 "strategy": self._strategy.value,
             }
 
-    def get_cache_keys(self, pattern: Optional[str] = None) -> List[str]:
+    def get_cache_keys(self, pattern: str | None = None) -> List[str]:
         with self._lock:
             if pattern is None:
                 return list(self._entries.keys())
@@ -236,7 +237,7 @@ class CalculationCache:
                 victim = next(iter(self._entries))
                 self._remove_entry(victim)
 
-    def _get_lfu_victim(self) -> Optional[str]:
+    def _get_lfu_victim(self) -> str | None:
         if not self._entries:
             return None
         min_count = float("inf")
@@ -321,7 +322,7 @@ class SmartCacheStrategy:
         self,
         component: str,
         params: Dict[str, Any],
-        frequency_estimate: Optional[float] = None,
+        frequency_estimate: float | None = None,
     ) -> bool:
         if frequency_estimate is not None and frequency_estimate < 0.01:
             return False
@@ -333,7 +334,7 @@ class SmartCacheStrategy:
             return False
         return True
 
-    def get_cache_ttl(self, component: str, result_type: Optional[str] = None) -> int:
+    def get_cache_ttl(self, component: str, result_type: str | None = None) -> int:
         mapped = component
         if "load_flow" in component or "loadflow" in component:
             mapped = "load_flow"
@@ -474,9 +475,9 @@ class MemoryManager:
 
 
 _singleton_lock = threading.Lock()
-_calculation_cache_instance: Optional[CalculationCache] = None
-_smart_strategy_instance: Optional[SmartCacheStrategy] = None
-_memory_manager_instance: Optional[MemoryManager] = None
+_calculation_cache_instance: CalculationCache | None = None
+_smart_strategy_instance: SmartCacheStrategy | None = None
+_memory_manager_instance: MemoryManager | None = None
 
 
 def get_calculation_cache(
@@ -519,8 +520,8 @@ def get_memory_manager(max_memory_percent: float = 80.0) -> MemoryManager:
 
 def cached(
     component: str,
-    ttl_seconds: Optional[int] = None,
-    tags: Optional[List[str]] = None,
+    ttl_seconds: int | None = None,
+    tags: List[str] | None = None,
 ) -> Callable[[Callable[..., Any]], Callable[..., Any]]:
     def decorator(func: Callable[..., Any]) -> Callable[..., Any]:
         @wraps(func)

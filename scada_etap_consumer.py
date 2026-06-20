@@ -4,10 +4,10 @@ This module consumes data from ETAP via MQTT and processes it for SCADA systems.
 """
 
 import json
-import paho.mqtt.client as mqtt
 import sqlite3
-import os
 from datetime import datetime
+
+import paho.mqtt.client as mqtt
 
 
 class SCADAETAPConsumer:
@@ -15,12 +15,12 @@ class SCADAETAPConsumer:
         self.db_path = db_path
         self.setup_database()
         self.scada_tags = {}
-        
+
     def setup_database(self):
         """Setup SQLite database to store received data"""
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
-        
+
         # Create table for power system data
         cursor.execute('''
             CREATE TABLE IF NOT EXISTS power_system_data (
@@ -38,11 +38,11 @@ class SCADAETAPConsumer:
                 timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
             )
         ''')
-        
+
         conn.commit()
         conn.close()
         print(f"Database {self.db_path} initialized")
-    
+
     def on_message(self, client, userdata, msg):
         """
         Handle incoming MQTT messages from ETAP
@@ -50,55 +50,55 @@ class SCADAETAPConsumer:
         try:
             data = json.loads(msg.payload.decode())
             print(f"Received ETAP data on {msg.topic}: {data}")
-            
+
             # Process ETAP power system data
             if 'power' in msg.topic:
                 self.process_power_data(data)
-                
+
         except json.JSONDecodeError:
             print(f"Could not decode JSON from {msg.topic}")
         except Exception as e:
             print(f"Error processing message from {msg.topic}: {e}")
-    
+
     def process_power_data(self, data):
         """
         Process power system data received from ETAP
         """
         print(f"Processing power data: {data}")
-        
+
         # Store in database
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
-        
+
         # Prepare data for insertion
-        columns = ['id', 'status', 'voltage', 'current', 'power_factor', 
-                  'load_percentage', 'capacity', 'temperature', 'oil_level', 
+        columns = ['id', 'status', 'voltage', 'current', 'power_factor',
+                  'load_percentage', 'capacity', 'temperature', 'oil_level',
                   'current_flow', 'rated_current']
-        
+
         values = []
         for col in columns:
             val = data.get(col)
             # Convert string numbers to floats where appropriate
-            if col in ['voltage', 'current', 'power_factor', 'load_percentage', 
+            if col in ['voltage', 'current', 'power_factor', 'load_percentage',
                       'temperature', 'oil_level', 'current_flow', 'rated_current']:
                 try:
                     val = float(val) if val is not None else None
                 except (ValueError, TypeError):
                     val = None
             values.append(val)
-        
+
         # Insert or update the record
         placeholders = ', '.join(['?' for _ in columns])
         columns_str = ', '.join(columns)
-        
+
         cursor.execute(f'''
-            INSERT OR REPLACE INTO power_system_data 
+            INSERT OR REPLACE INTO power_system_data
             ({columns_str}, timestamp) VALUES ({placeholders}, datetime('now'))
         ''', values)
-        
+
         conn.commit()
         conn.close()
-        
+
         # Example: Update UPS/redundancy status for stability analysis
         if data.get('id') == 'ups_001':
             print(f"UPS Status: {data.get('status')}, Voltage: {data.get('voltage')}V, "
@@ -106,28 +106,28 @@ class SCADAETAPConsumer:
         elif data.get('id') == 'redundancy_001':
             print(f"Redundancy Status: {data.get('status')}, "
                   f"Load: {data.get('load_percentage')}%, Capacity: {data.get('capacity')}")
-        
+
         # Store in memory cache
         self.scada_tags[data['id']] = {
             'data': data,
             'timestamp': datetime.now()
         }
-    
+
     def setup_etap_integration(self):
         """
         Setup MQTT subscription for ETAP data
         """
         client = mqtt.Client()
         client.on_message = self.on_message
-        
+
         try:
             # Connect to MQTT broker
             client.connect("localhost", 1883, 60)
-            
+
             # Subscribe to ETAP topics
             client.subscribe("project/power/+/status")
             print("Subscribed to ETAP power system data")
-            
+
             return client
         except Exception as e:
             print(f"Error connecting to MQTT broker: {e}")

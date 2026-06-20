@@ -1,4 +1,4 @@
-القد"""
+"""
 ETAP Provider Interface
 =======================
 Abstracts the ETAP execution layer to support both local COM (Windows)
@@ -59,7 +59,7 @@ class LocalEtapProvider(IEtapProvider):
     def __init__(self):
         # Check if ETAP functionality is enabled via environment variable
         self.use_etap = os.getenv('USE_ETAP', 'false').lower() == 'true'
-        
+
         if not self.use_etap:
             self._available = False
             logger.info("Local ETAP provider disabled via USE_ETAP environment variable")
@@ -122,13 +122,13 @@ class RemoteEtapProvider(IEtapProvider):
     def __init__(self, worker_url: str, api_key: str):
         # Check if ETAP functionality is enabled via environment variable
         self.use_etap = os.getenv('USE_ETAP', 'false').lower() == 'true'
-        
+
         if not self.use_etap:
             logger.info("Remote ETAP provider disabled via USE_ETAP environment variable")
             self.worker_url = ""
             self.api_key = ""
             return
-            
+
         self.worker_url = worker_url.rstrip('/')
         self.api_key = api_key
         self._consecutive_failures = 0
@@ -180,7 +180,7 @@ class RemoteEtapProvider(IEtapProvider):
                 ["Remote ETAP provider disabled via USE_ETAP environment variable"],
                 0.0
             )
-            
+
         # Circuit breaker check
         if self._is_circuit_open():
             return ETAPResult(
@@ -319,7 +319,7 @@ class MockEtapProvider(IEtapProvider):
                 ["Mock ETAP provider disabled via USE_ETAP environment variable"],
                 0.0
             )
-                
+
         import time
         start_time = time.time()
 

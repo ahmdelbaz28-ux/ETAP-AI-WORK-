@@ -20,8 +20,8 @@ Standards:
 """
 
 import logging
-from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional
+from datetime import UTC, datetime
+from typing import Any, Dict, List
 
 import numpy as np
 
@@ -84,7 +84,7 @@ class DigitalTwinAgent(BaseAgent):
         self,
         predicted: np.ndarray,
         measured: np.ndarray,
-        covariance: Optional[np.ndarray] = None,
+        covariance: np.ndarray | None = None,
     ) -> Dict[str, Any]:
         """
         Compute Model Deviation Index (MDI) between predicted and
@@ -194,7 +194,7 @@ class DigitalTwinAgent(BaseAgent):
                 "bad_tags": [],
             }
 
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         good_count = 0
         bad_tags: List[str] = []
         timely_count = 0
@@ -331,7 +331,7 @@ class DigitalTwinAgent(BaseAgent):
         ``'model_deviation'``, ``'data_quality'``,
         ``'predictive_confidence'``, or ``'full'``.
         """
-        start_time = datetime.now(timezone.utc)
+        start_time = datetime.now(UTC)
         self.status = AgentStatus.RUNNING
 
         try:
@@ -390,7 +390,7 @@ class DigitalTwinAgent(BaseAgent):
             )
 
             result.validation_status = self.validate_result(result)
-            execution_time = (datetime.now(timezone.utc) - start_time).total_seconds()
+            execution_time = (datetime.now(UTC) - start_time).total_seconds()
             result.execution_time = execution_time
 
             self.log_execution(

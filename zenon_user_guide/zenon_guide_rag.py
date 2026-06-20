@@ -16,7 +16,8 @@ MANDATORY RULE:
 
 import json
 from pathlib import Path
-from typing import Dict, List, Optional
+from typing import Dict, List
+
 
 class ZenonGuideRAG:
     """
@@ -70,7 +71,7 @@ class ZenonGuideRAG:
         master_index_file = self.index_dir / "master_index.json"
         if master_index_file.exists():
             try:
-                with open(master_index_file, 'r', encoding='utf-8') as f:
+                with open(master_index_file, encoding='utf-8') as f:
                     master_index = json.load(f)
 
                 for doc in master_index.get("documents", []):

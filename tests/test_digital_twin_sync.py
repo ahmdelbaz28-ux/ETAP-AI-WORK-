@@ -9,9 +9,7 @@ import pytest
 
 from digital_twin.event_bus import EventBus, EventType, TopologyChanged
 from digital_twin.state_store import StateSnapshot, StateStore
-
 from gis_integration.providers.postgis_provider import PostGISProvider, SpatialAsset
-
 
 # ---------------------------------------------------------------------------
 # Fixtures
@@ -124,7 +122,7 @@ def test_state_store_commit_and_get(state_store: StateStore) -> None:
 
 def test_state_store_rollback(state_store: StateStore) -> None:
     """Verify state store rollback."""
-    for i in range(5):
+    for _i in range(5):
         snap = StateSnapshot()
         snap.gis_assets["key"] = type("obj", (), {
             "asset_id": "key", "asset_type": "test", "electrical_id": "",
@@ -218,11 +216,10 @@ def test_etap_sync_engine_importable() -> None:
 
 def test_etap_sync_mock_import() -> None:
     """Verify mock ETAP import creates a valid model."""
-    from etap_integration.etap_provider import MockEtapProvider
-    from etap_integration.sync_engine import ETAPSyncEngine
-
     from core_model.system import System
     from digital_twin.digital_twin_core import DigitalTwinState
+    from etap_integration.etap_provider import MockEtapProvider
+    from etap_integration.sync_engine import ETAPSyncEngine
 
     dt_state = DigitalTwinState()
     system = System(base_mva=100.0)
@@ -238,11 +235,11 @@ def test_etap_sync_mock_import() -> None:
 
 def test_etap_sync_export() -> None:
     """Verify ETAP export creates valid export data."""
-    from etap_integration.sync_engine import ETAPSyncEngine
     from core_model.bus import Bus
     from core_model.line import Line
     from core_model.system import System
     from digital_twin.digital_twin_core import DigitalTwinState
+    from etap_integration.sync_engine import ETAPSyncEngine
 
     dt_state = DigitalTwinState()
     system = System(base_mva=100.0)
@@ -270,7 +267,7 @@ def test_etap_sync_export() -> None:
 
 def test_gis_visualization_importable() -> None:
     """Verify GISVisualizer can be imported."""
-    from visualization.gis_visualization import GISVisualizer, PPE_LEVELS
+    from visualization.gis_visualization import PPE_LEVELS, GISVisualizer
     viz = GISVisualizer()
     assert viz.center == (30.0, 31.0)
     assert viz.zoom == 10
@@ -291,7 +288,7 @@ def test_gis_visualization_fallback_geojson() -> None:
 
 def test_gis_bridge_module_importable() -> None:
     """Verify GISSyncBridge can be imported."""
-    from digital_twin.gis_bridge import GISSyncBridge, GIS_TO_ELECTRICAL_MAP, ELECTRICAL_TO_GIS_MAP
+    from digital_twin.gis_bridge import ELECTRICAL_TO_GIS_MAP, GIS_TO_ELECTRICAL_MAP, GISSyncBridge
     assert "substation" in GIS_TO_ELECTRICAL_MAP
     assert "bus" in ELECTRICAL_TO_GIS_MAP
 

@@ -7,9 +7,9 @@ Pydantic BaseModels (for validation-heavy / API-facing schemas).
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
-from enum import Enum
-from typing import Any, Dict, List, Optional
+from datetime import UTC, datetime
+from enum import StrEnum
+from typing import Any, Dict, List
 
 from pydantic import BaseModel, Field, field_validator
 
@@ -29,12 +29,12 @@ class PydanticGeometry(BaseModel):
     """Pydantic equivalent of Geometry with auto-validation."""
     points: List[PydanticPoint3D] = Field(default_factory=list)
     polyline_closed: bool = False
-    area: Optional[float] = None
-    perimeter: Optional[float] = None
+    area: float | None = None
+    perimeter: float | None = None
 
     @field_validator("area")
     @classmethod
-    def area_must_be_positive(cls, v: Optional[float]) -> Optional[float]:
+    def area_must_be_positive(cls, v: float | None) -> float | None:
         if v is not None and v < 0:
             raise ValueError("area must be non-negative")
         return v
@@ -43,7 +43,7 @@ class PydanticGeometry(BaseModel):
 class PydanticSemanticProperties(BaseModel):
     """Pydantic equivalent of SemanticProperties with enum validation."""
     element_type: str
-    name: Optional[str] = None
+    name: str | None = None
 
     @field_validator("element_type")
     @classmethod
@@ -54,14 +54,14 @@ class PydanticSemanticProperties(BaseModel):
                 f"'{v}' is not a valid ElementType. Choose from: {sorted(valid_types)}"
             )
         return v
-    description: Optional[str] = None
-    material: Optional[str] = None
-    fire_rating: Optional[str] = None
-    height: Optional[float] = None
-    width: Optional[float] = None
-    load_bearing: Optional[bool] = None
-    layer: Optional[str] = None
-    revit_category: Optional[str] = None
+    description: str | None = None
+    material: str | None = None
+    fire_rating: str | None = None
+    height: float | None = None
+    width: float | None = None
+    load_bearing: bool | None = None
+    layer: str | None = None
+    revit_category: str | None = None
 
 
 class PydanticUniversalElement(BaseModel):
@@ -74,13 +74,13 @@ class PydanticUniversalElement(BaseModel):
     the internal ``UniversalElement`` dataclass in a single call.
     """
     element_id: str
-    properties: Optional[PydanticSemanticProperties] = None
-    geometry: Optional[PydanticGeometry] = None
+    properties: PydanticSemanticProperties | None = None
+    geometry: PydanticGeometry | None = None
     relationships: List[Dict[str, Any]] = Field(default_factory=list)
-    created_timestamp: Optional[datetime] = None
-    last_modified_timestamp: Optional[datetime] = None
-    last_modified_by: Optional[str] = None
-    source_file: Optional[str] = None
+    created_timestamp: datetime | None = None
+    last_modified_timestamp: datetime | None = None
+    last_modified_by: str | None = None
+    source_file: str | None = None
     version: int = 0
     is_deleted: bool = False
 
@@ -96,7 +96,7 @@ class PydanticUniversalElement(BaseModel):
         return v
 
     @classmethod
-    def from_dataclass(cls, elem: UniversalElement) -> "PydanticUniversalElement":
+    def from_dataclass(cls, elem: UniversalElement) -> PydanticUniversalElement:
         """Build a Pydantic model from an internal ``UniversalElement`` dataclass."""
         return cls(
             element_id=elem.element_id,
@@ -123,7 +123,7 @@ class PydanticUniversalElement(BaseModel):
 
 # Moved BEFORE Pydantic models so that @field_validator in
 # PydanticSemanticProperties can reference it without forward-reference issues.
-class ElementType(str, Enum):
+class ElementType(StrEnum):
     WALL = "wall"
     DOOR = "door"
     WINDOW = "window"
@@ -137,7 +137,7 @@ class ElementType(str, Enum):
     GENERIC = "generic"
 
 
-class ChangeSource(str, Enum):
+class ChangeSource(StrEnum):
     MANUAL = "manual"
     AUTOCAD = "autocad"
     REVIT = "revit"
@@ -146,7 +146,7 @@ class ChangeSource(str, Enum):
     AI = "ai"
 
 
-class ConflictType(str, Enum):
+class ConflictType(StrEnum):
     GEOMETRY_MISMATCH = "geometry_mismatch"
     PROPERTY_MISMATCH = "property_mismatch"
     MISSING_IN_SOURCE_A = "missing_in_source_a"
@@ -168,8 +168,8 @@ class Point3D:
 class Geometry:
     points: List[Point3D] = field(default_factory=list)
     polyline_closed: bool = False
-    area: Optional[float] = None
-    perimeter: Optional[float] = None
+    area: float | None = None
+    perimeter: float | None = None
 
     def calculate_area(self) -> float:
         """Calculate polygon area using shoelace formula."""
@@ -199,15 +199,15 @@ class Geometry:
 @dataclass
 class SemanticProperties:
     element_type: ElementType
-    name: Optional[str] = None
-    description: Optional[str] = None
-    material: Optional[str] = None
-    fire_rating: Optional[str] = None
-    height: Optional[float] = None
-    width: Optional[float] = None
-    load_bearing: Optional[bool] = None
-    layer: Optional[str] = None
-    revit_category: Optional[str] = None
+    name: str | None = None
+    description: str | None = None
+    material: str | None = None
+    fire_rating: str | None = None
+    height: float | None = None
+    width: float | None = None
+    load_bearing: bool | None = None
+    layer: str | None = None
+    revit_category: str | None = None
 
     def to_dict(self) -> Dict[str, Any]:
         return {
@@ -230,8 +230,8 @@ class Relationship:
     to_element_id: str
     relationship_type: str
     is_parametric: bool = False
-    metadata: Optional[Dict[str, Any]] = None
-    connection_id: Optional[str] = None
+    metadata: Dict[str, Any] | None = None
+    connection_id: str | None = None
 
     def to_dict(self) -> Dict[str, Any]:
         return {
@@ -247,21 +247,21 @@ class Relationship:
 @dataclass
 class UniversalElement:
     element_id: str
-    properties: Optional[SemanticProperties] = None
-    geometry: Optional[Geometry] = None
+    properties: SemanticProperties | None = None
+    geometry: Geometry | None = None
     relationships: List[Relationship] = field(default_factory=list)
-    created_timestamp: Optional[datetime] = None
-    last_modified_timestamp: Optional[datetime] = None
-    last_modified_by: Optional[str] = None
-    source_file: Optional[str] = None
+    created_timestamp: datetime | None = None
+    last_modified_timestamp: datetime | None = None
+    last_modified_by: str | None = None
+    source_file: str | None = None
     version: int = 0
     is_deleted: bool = False
-    autocad_handle: Optional[str] = None
-    revit_element_id: Optional[str] = None
+    autocad_handle: str | None = None
+    revit_element_id: str | None = None
 
     def __post_init__(self):
         if self.created_timestamp is None:
-            self.created_timestamp = datetime.now(timezone.utc)
+            self.created_timestamp = datetime.now(UTC)
         if self.last_modified_timestamp is None:
             self.last_modified_timestamp = self.created_timestamp
 
@@ -286,18 +286,18 @@ class UniversalElement:
 class Conflict:
     conflict_id: str
     conflict_type: ConflictType
-    element_id: Optional[str] = None
-    timestamp: Optional[datetime] = None
+    element_id: str | None = None
+    timestamp: datetime | None = None
     source_a: ChangeSource = ChangeSource.MANUAL
     source_b: ChangeSource = ChangeSource.MANUAL
-    change_a: Optional[Dict[str, Any]] = None
-    change_b: Optional[Dict[str, Any]] = None
-    resolution: Optional[Dict[str, Any]] = None
+    change_a: Dict[str, Any] | None = None
+    change_b: Dict[str, Any] | None = None
+    resolution: Dict[str, Any] | None = None
     resolved: bool = False
 
     def __post_init__(self):
         if self.timestamp is None:
-            self.timestamp = datetime.now(timezone.utc)
+            self.timestamp = datetime.now(UTC)
 
     def to_dict(self) -> Dict[str, Any]:
         return {

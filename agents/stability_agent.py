@@ -18,7 +18,7 @@ Standards:
 """
 
 import logging
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any, Dict, List, Tuple
 
 import numpy as np
@@ -460,7 +460,7 @@ class StabilityAgent(BaseAgent):
         ``'transient'``, ``'small_signal'``, ``'critical_clearing_time'``,
         or ``'full'`` (runs all three).
         """
-        start_time = datetime.now(timezone.utc)
+        start_time = datetime.now(UTC)
         self.status = AgentStatus.RUNNING
 
         try:
@@ -583,7 +583,7 @@ class StabilityAgent(BaseAgent):
             )
 
             result.validation_status = self.validate_result(result)
-            execution_time = (datetime.now(timezone.utc) - start_time).total_seconds()
+            execution_time = (datetime.now(UTC) - start_time).total_seconds()
             result.execution_time = execution_time
 
             self.log_execution(f"Stability analysis completed in {execution_time:.2f}s")

@@ -14,7 +14,7 @@ solve_load_flow_sparse(buses, branches, options)
 from __future__ import annotations
 
 import logging
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Union
 
 import numpy as np
 
@@ -166,7 +166,7 @@ def _branch_to_branch_data(
 def solve_load_flow_sparse(
     buses: List[BusInput],
     branches: List[BranchInput],
-    options: Optional[Dict[str, Any]] = None,
+    options: Dict[str, Any] | None = None,
 ) -> Dict[str, Any]:
     """Solve load flow using the sparse Y-bus Newton-Raphson solver.
 

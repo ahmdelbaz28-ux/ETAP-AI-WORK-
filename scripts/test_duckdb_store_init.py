@@ -21,12 +21,11 @@ is not provided.
 
 from __future__ import annotations
 
+import importlib
 import json
 import os
-import sys
 import traceback
-import importlib
-from typing import Any, Optional, Tuple
+from typing import Any, Tuple
 
 
 def _parse_import_path(spec: str) -> Tuple[str, str]:
@@ -103,7 +102,7 @@ def main() -> int:
         ]
     )
 
-    last_err: Optional[BaseException] = None
+    last_err: BaseException | None = None
 
     for spec in candidates:
         try:

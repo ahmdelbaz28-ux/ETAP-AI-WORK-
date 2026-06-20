@@ -19,8 +19,8 @@ Standards:
 """
 
 import logging
-from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional
+from datetime import UTC, datetime
+from typing import Any, Dict, List
 
 import numpy as np
 
@@ -134,7 +134,7 @@ class AnomalyAgent(BaseAgent):
     def detect_cusum(
         self,
         data: np.ndarray,
-        target: Optional[float] = None,
+        target: float | None = None,
         k: float = 0.5,
         h: float = 5.0,
     ) -> Dict[str, Any]:
@@ -462,7 +462,7 @@ class AnomalyAgent(BaseAgent):
         ``'spc'``, ``'cusum'``, ``'ewma'``, ``'threshold'``,
         ``'cross_correlation'``, ``'ml'``, or ``'full'`` (runs SPC + CUSUM + EWMA).
         """
-        start_time = datetime.now(timezone.utc)
+        start_time = datetime.now(UTC)
         self.status = AgentStatus.RUNNING
 
         try:
@@ -573,7 +573,7 @@ class AnomalyAgent(BaseAgent):
             )
 
             result.validation_status = self.validate_result(result)
-            execution_time = (datetime.now(timezone.utc) - start_time).total_seconds()
+            execution_time = (datetime.now(UTC) - start_time).total_seconds()
             result.execution_time = execution_time
 
             self.log_execution(

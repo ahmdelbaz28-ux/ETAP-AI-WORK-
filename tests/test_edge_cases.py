@@ -26,7 +26,7 @@ import sys
 import threading
 import uuid
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta, timezone
 
 import jwt
 import pytest
@@ -443,7 +443,7 @@ class TestJWTManipulation:
 
     def test_expired_token(self, client):
         """An expired JWT is rejected."""
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         expired_payload = {
             "sub": str(uuid.uuid4()),
             "role": "engineer",
@@ -469,8 +469,8 @@ class TestJWTManipulation:
             "sub": str(uuid.uuid4()),
             "role": "admin",
             "type": "access",
-            "iat": datetime.now(timezone.utc),
-            "exp": datetime.now(timezone.utc) + timedelta(hours=1),
+            "iat": datetime.now(UTC),
+            "exp": datetime.now(UTC) + timedelta(hours=1),
         }
         # Encode with none algorithm (no signature)
         none_token = jwt.encode(payload, "", algorithm="none")

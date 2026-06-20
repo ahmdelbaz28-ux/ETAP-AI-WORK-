@@ -1,6 +1,7 @@
 import json
 import pathlib
 
+
 def main():
     yaml_content = """groups:
   - name: etap_alerts

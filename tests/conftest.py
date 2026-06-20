@@ -5,13 +5,14 @@ Contains shared test utilities, mocks, and test network configurations.
 
 import os
 import tempfile
+from collections.abc import Generator
+from unittest.mock import AsyncMock, Mock, patch
+
 import pytest
-from unittest.mock import Mock, patch, AsyncMock
-from typing import Generator
 
 from core.bootstrap import logger
-from services.study_service import StudyRequest, SystemSpec, Bus, Line, Generator as Gen, Load, Transformer
-
+from services.study_service import Bus, Line, Load, StudyRequest, SystemSpec, Transformer
+from services.study_service import Generator as Gen
 
 # Test network configurations
 TEST_NETWORKS = {
@@ -154,12 +155,13 @@ def sample_study_request(sample_3bus_network):
 def api_client():
     """Provides a test client for API testing."""
     from fastapi.testclient import TestClient
+
     from api.routes import app
-    
+
     # Disable ETAP for testing
     os.environ["USE_ETAP"] = "false"
     os.environ["PRIVACY_MODE"] = "true"
-    
+
     client = TestClient(app)
     yield client
 
@@ -171,12 +173,12 @@ def setup_test_environment():
     os.environ["ENGINEERING_SERVICE_AUTH_DISABLED"] = "true"
     os.environ["USE_ETAP"] = "false"
     os.environ["PRIVACY_MODE"] = "true"
-    
+
     # Set logging to debug level for tests
     logger.setLevel("DEBUG")
-    
+
     yield
-    
+
     # Clean up environment variables after tests
     if "ENGINEERING_SERVICE_AUTH_DISABLED" in os.environ:
         del os.environ["ENGINEERING_SERVICE_AUTH_DISABLED"]

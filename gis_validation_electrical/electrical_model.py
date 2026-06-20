@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Tuple
 
 from gis_integration.models import ADMSAsset, ADMSAssetType
 
@@ -9,7 +9,7 @@ from gis_integration.models import ADMSAsset, ADMSAssetType
 @dataclass(frozen=True)
 class ElectricalNode:
     node_id: str  # typically substation asset_id
-    voltage_level_kv: Optional[float] = None
+    voltage_level_kv: float | None = None
     metadata: Dict[str, Any] = field(default_factory=dict)
 
 
@@ -82,7 +82,7 @@ def build_electrical_model(assets: List[ADMSAsset]) -> ElectricalModel:
 
     edges: Dict[str, ElectricalEdge] = {}
 
-    def endpoints_from_linestring(geom: Dict[str, Any]) -> Optional[Tuple[Tuple[float, float], Tuple[float, float]]]:
+    def endpoints_from_linestring(geom: Dict[str, Any]) -> Tuple[Tuple[float, float], Tuple[float, float]] | None:
         if geom.get("type") != "LineString":
             return None
         coords = geom.get("coordinates")

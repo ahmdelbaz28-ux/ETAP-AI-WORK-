@@ -13,7 +13,7 @@ Patterns drawn from pydantic/pydantic (v2):
 from __future__ import annotations
 
 import re
-from typing import Any, Dict, Generic, List, Optional, TypeVar
+from typing import Any, Dict, List, TypeVar
 
 from pydantic import BaseModel, Field, field_validator, model_validator
 
@@ -24,7 +24,7 @@ from pydantic import BaseModel, Field, field_validator, model_validator
 T = TypeVar("T")
 
 
-class SkillResponse(BaseModel, Generic[T]):
+class SkillResponse[T](BaseModel):
     """Generic envelope for every skill-related API response.
 
     Usage::
@@ -38,7 +38,7 @@ class SkillResponse(BaseModel, Generic[T]):
 
     data: T
     status: str = "ok"
-    message: Optional[str] = None
+    message: str | None = None
 
     def to_dict(self) -> Dict[str, Any]:
         return self.model_dump(mode="json")
@@ -177,8 +177,8 @@ class ExecutionResult(BaseModel):
     """
 
     success: bool
-    data: Optional[Dict[str, Any]] = None
-    error: Optional[Dict[str, str]] = None
+    data: Dict[str, Any] | None = None
+    error: Dict[str, str] | None = None
 
     @model_validator(mode="after")
     def mutually_exclusive_data_and_error(self) -> ExecutionResult:

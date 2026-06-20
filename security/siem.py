@@ -24,8 +24,8 @@ import time
 import uuid
 from collections import deque
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
-from typing import Any, Deque, Dict, List, Optional
+from datetime import UTC, datetime
+from typing import Any, Deque, Dict, List
 
 logger = logging.getLogger(__name__)
 
@@ -76,7 +76,7 @@ class SecurityEvent:
     """
 
     event_id: str = field(default_factory=lambda: str(uuid.uuid4()))
-    timestamp: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+    timestamp: str = field(default_factory=lambda: datetime.now(UTC).isoformat())
     event_type: str = ""
     severity: str = "info"
     source: str = "etap-ai-platform"
@@ -135,7 +135,7 @@ class SIEMForwarder:
         endpoint: str,
         api_key: str = "",
         siem_type: str = "loki",
-        labels: Optional[Dict[str, str]] = None,
+        labels: Dict[str, str] | None = None,
         buffer_size: int = 10_000,
         retry_attempts: int = 3,
         retry_delay_seconds: float = 1.0,
@@ -209,7 +209,7 @@ class SIEMForwarder:
         action: str,
         success: bool,
         ip: str,
-        extra: Optional[dict] = None,
+        extra: dict | None = None,
     ) -> bool:
         """Forward an authentication event.
 
@@ -248,7 +248,7 @@ class SIEMForwarder:
         resource: str,
         action: str,
         allowed: bool,
-        extra: Optional[dict] = None,
+        extra: dict | None = None,
     ) -> bool:
         """Forward an access-control event.
 
@@ -286,7 +286,7 @@ class SIEMForwarder:
         anomaly_type: str,
         description: str,
         severity: str = "warning",
-        extra: Optional[dict] = None,
+        extra: dict | None = None,
     ) -> bool:
         """Forward a security anomaly event.
 
@@ -321,7 +321,7 @@ class SIEMForwarder:
         data_type: str,
         action: str,
         record_count: int = 0,
-        extra: Optional[dict] = None,
+        extra: dict | None = None,
     ) -> bool:
         """Forward a data access / mutation event.
 
@@ -529,7 +529,7 @@ class SIEMForwarder:
         """
         lines: List[str] = []
         for event in events:
-            action = {"index": {"_index": f"etap-security-{datetime.now(timezone.utc).strftime('%Y.%m.%d')}"}}
+            action = {"index": {"_index": f"etap-security-{datetime.now(UTC).strftime('%Y.%m.%d')}"}}
             lines.append(json.dumps(action))
             lines.append(event.to_json())
         payload = "\n".join(lines) + "\n"
@@ -593,11 +593,11 @@ class SIEMForwarder:
 # Singleton helpers
 # ---------------------------------------------------------------------------
 
-_forwarder_instance: Optional[SIEMForwarder] = None
+_forwarder_instance: SIEMForwarder | None = None
 _forwarder_lock = threading.Lock()
 
 
-def get_siem_forwarder() -> Optional[SIEMForwarder]:
+def get_siem_forwarder() -> SIEMForwarder | None:
     """Get or create the global :class:`SIEMForwarder` singleton.
 
     Configuration is read from environment variables:

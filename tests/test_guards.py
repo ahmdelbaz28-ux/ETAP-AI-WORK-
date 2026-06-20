@@ -541,7 +541,7 @@ def run_all_analyses(voltage, current, frequency, impedance, power, angle, temp,
     result = guard.scan(bad_eng_code)
     must_fix = [v for v in result.violations if v.severity == GuardSeverity.MUST_FIX]
     assert len(must_fix) > 0, f"Bad engineering code not caught: must_fix={len(must_fix)}"
-    rule_ids = set(v.rule_id for v in must_fix)
+    rule_ids = {v.rule_id for v in must_fix}
     # Should detect: FM-01 (catch-all), FM-04 (hardcoded True), FM-07 (unused imports), FM-08 (overwrite)
     assert "FM-01" in rule_ids, f"FM-01 not in {rule_ids}"
     print(f"PASS: test_bad_engineering_code_detected (found: {rule_ids})")
@@ -590,7 +590,7 @@ def test_guard_review_request_model():
             source: str = Field(..., description="Source code", min_length=1, max_length=500_000)
             guard_type: str = Field(default="all")
             language: str = Field(default="python")
-            context: Optional[Dict[str, Any]] = Field(default=None)
+            context: Dict[str, Any] | None = Field(default=None)
 
         req = GuardReviewRequest(source="def hello(): pass")
         assert req.source == "def hello(): pass"

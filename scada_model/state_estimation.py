@@ -15,15 +15,15 @@ CRC Press, 2004.
 
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Dict, List, Optional, Tuple
+from typing import List, Tuple
 
 import numpy as np
 
 # Optional GNN dependency
 _HAS_TORCH_GEOMETRIC = False
 try:
-    import torch  # type: ignore
-    from torch_geometric.nn import GCNConv  # type: ignore
+    import torch  # noqa: F401 — imported to check availability
+    from torch_geometric.nn import GCNConv  # noqa: F401
     _HAS_TORCH_GEOMETRIC = True
 except ImportError:
     pass
@@ -46,8 +46,8 @@ class StateEstimationResult:
     max_residual: float = 0.0
     objective_value: float = 0.0
     bad_data_detected: List[int] = field(default_factory=list)
-    measurement_residuals: Optional[np.ndarray] = None
-    covariance_matrix: Optional[np.ndarray] = None
+    measurement_residuals: np.ndarray | None = None
+    covariance_matrix: np.ndarray | None = None
 
 
 class WLSEstimator:
@@ -438,7 +438,7 @@ class GNNStateEstimator:
         Ybus: np.ndarray,
         measurements: dict,
         bus_ids: List[str],
-        edge_list: Optional[List[Tuple[int, int]]] = None,
+        edge_list: List[Tuple[int, int]] | None = None,
         slack_bus_idx: int = 0,
     ) -> StateEstimationResult:
         """

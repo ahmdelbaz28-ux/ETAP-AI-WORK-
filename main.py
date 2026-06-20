@@ -12,7 +12,6 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 import matplotlib.pyplot as plt
 import numpy as np
-from utils.language_detection import normalize_input
 
 from core_model.bus import Bus
 from core_model.generator import Generator
@@ -82,9 +81,9 @@ def main():
     print("=" * 60)
     print("Power Protection System Demonstration")
     print("=" * 60)
-    
-    # Enable auto-correct for non-English input
-    auto_correct = os.getenv('AUTO_CORRECT_LANGUAGE', 'true').lower() == 'true'
+
+    # Enable auto-correct for non-English input (used by normalize_input for CLI args)
+    _auto_correct = os.getenv('AUTO_CORRECT_LANGUAGE', 'true').lower() == 'true'
 
     # Normalize any user input (if applicable)
     # For CLI arguments, you can wrap them with normalize_input

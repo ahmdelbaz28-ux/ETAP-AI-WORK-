@@ -7,10 +7,7 @@ Supports Arabic-to-English keyboard layout conversion for non-English input.
 """
 
 import os
-import re
-from typing import Optional, Dict, Any
-
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Dict
 
 # Try to import langdetect for better language detection
 try:
@@ -97,24 +94,24 @@ def normalize_input(text: str) -> str:
     Normalize input text by converting Arabic keyboard layout to English.
     This is especially useful when users accidentally type in Arabic layout
     but mean to type in English.
-    
+
     Args:
         text: Input text that may be in Arabic keyboard layout
-        
+
     Returns:
         Normalized text with Arabic keyboard layout converted to English
     """
     if not AUTO_CORRECT_LANGUAGE:
         return text
-    
+
     # First, check if the text has a high ratio of Arabic keyboard characters
     arabic_kb_chars = 0
     total_chars = len(text)
-    
+
     for char in text:
         if char in ARABIC_TO_ENGLISH_KEYBOARD_MAP:
             arabic_kb_chars += 1
-    
+
     # If more than 30% of characters are Arabic keyboard layout chars, convert them
     if total_chars > 0 and arabic_kb_chars / total_chars > 0.3:
         result = ""
@@ -125,16 +122,16 @@ def normalize_input(text: str) -> str:
                 # If character is not in the mapping, keep it as is
                 result += char
         return result
-    
+
     # If not primarily Arabic keyboard layout, try language detection
     detected_lang = None
     if HAS_LANGDETECT:
         try:
             detected_lang = detect(text)
-        except:
+        except Exception:
             # If langdetect fails, fall back to manual detection
             detected_lang = None
-    
+
     # If langdetect detected Arabic, convert keyboard layout
     if detected_lang == 'ar':
         result = ""
@@ -145,7 +142,7 @@ def normalize_input(text: str) -> str:
                 # If character is not in the mapping, keep it as is
                 result += char
         return result
-    
+
     # Otherwise, return the text as-is
     return text
 
@@ -153,25 +150,25 @@ def normalize_input(text: str) -> str:
 def is_arabic_text(text: str) -> bool:
     """
     Simple heuristic to check if text is likely Arabic.
-    
+
     Args:
         text: Input text to analyze
-        
+
     Returns:
         True if text appears to be Arabic, False otherwise
     """
     arabic_chars = 0
     total_alpha = 0
-    
+
     for char in text:
         if char.isalpha():
             total_alpha += 1
             if '\u0600' <= char <= '\u06FF':  # Arabic Unicode block
                 arabic_chars += 1
-    
+
     if total_alpha == 0:
         return False
-    
+
     # If more than 30% of alphabetic characters are Arabic, consider it Arabic
     return arabic_chars / total_alpha > 0.3
 
@@ -179,10 +176,10 @@ def is_arabic_text(text: str) -> bool:
 def detect_language(text: str) -> str:
     """
     Detect the likely language of input text based on character sets.
-    
+
     Args:
         text: Input text to analyze
-        
+
     Returns:
         Detected language ('arabic', 'english', or 'mixed')
     """
@@ -195,21 +192,21 @@ def detect_language(text: str) -> str:
                 return 'english'
             else:
                 return lang
-        except:
+        except Exception:
             # Fall back to simple character-based detection
             pass
-    
+
     arabic_chars = 0
     english_chars = 0
-    
+
     for char in text:
         if '\u0600' <= char <= '\u06FF':  # Arabic Unicode block
             arabic_chars += 1
         elif char.isalpha() and char <= '\u017F':  # Basic Latin characters
             english_chars += 1
-    
+
     total_alpha = arabic_chars + english_chars
-    
+
     if total_alpha == 0:
         return 'unknown'
     elif arabic_chars / total_alpha > 0.5:
@@ -223,10 +220,10 @@ def detect_language(text: str) -> str:
 def convert_arabic_to_english(text: str) -> str:
     """
     Convert Arabic keyboard layout input to English equivalent.
-    
+
     Args:
         text: Text typed using Arabic keyboard layout
-        
+
     Returns:
         Converted text as it would appear if typed using English layout
     """

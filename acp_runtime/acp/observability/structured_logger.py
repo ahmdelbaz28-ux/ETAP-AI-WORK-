@@ -17,7 +17,7 @@ import json
 import sys
 import time
 from dataclasses import dataclass, field
-from enum import Enum
+from enum import StrEnum
 from typing import Any
 
 import anyio
@@ -34,7 +34,7 @@ __all__ = [
 
 # ------------------------------------------------------------------ LogLevel
 
-class LogLevel(str, Enum):
+class LogLevel(StrEnum):
     DEBUG = "debug"
     INFO = "info"
     WARNING = "warning"
@@ -92,7 +92,7 @@ class StructuredLogger:
         self.name = name
         self._context: dict[str, Any] = {}
 
-    def with_context(self, **kwargs: Any) -> "StructuredLogger":
+    def with_context(self, **kwargs: Any) -> StructuredLogger:
         """Return a new logger with merged context fields.
 
         The original logger is not modified.

@@ -75,20 +75,20 @@ def create_scada_tags_geojson():
             }
         }
     ]
-    
+
     geojson_data = {
         "type": "FeatureCollection",
         "features": scada_tags
     }
-    
+
     # Create directory if it doesn't exist
     os.makedirs("scada_export", exist_ok=True)
-    
+
     # Write GeoJSON file
     geojson_path = "scada_export/tags.geojson"
     with open(geojson_path, "w") as f:
         json.dump(geojson_data, f, indent=2)
-    
+
     print(f"SCADA tags exported to {geojson_path}")
     return geojson_path
 
@@ -98,26 +98,26 @@ def validate_geojson_structure(geojson_path):
     Validate the structure of the generated GeoJSON
     """
     try:
-        with open(geojson_path, 'r') as f:
+        with open(geojson_path) as f:
             data = json.load(f)
-        
+
         # Basic validation
         assert data['type'] == 'FeatureCollection'
         assert 'features' in data
         assert len(data['features']) > 0
-        
+
         # Validate each feature
-        for i, feature in enumerate(data['features']):
+        for _i, feature in enumerate(data['features']):
             assert 'type' in feature
             assert feature['type'] == 'Feature'
             assert 'geometry' in feature
             assert 'properties' in feature
             assert 'coordinates' in feature['geometry']
             assert len(feature['geometry']['coordinates']) == 2  # [lon, lat]
-        
+
         print(f"GeoJSON validation passed for {len(data['features'])} features")
         return True
-        
+
     except Exception as e:
         print(f"GeoJSON validation failed: {e}")
         return False
@@ -255,12 +255,12 @@ def create_qml_style_file():
     <sizescale/>
   </renderer-v2>
 </qgis>'''
-    
+
     # Write QML style file
     qml_path = "scada_export/scada_tags_style.qml"
     with open(qml_path, "w") as f:
         f.write(qml_content)
-    
+
     print(f"QML style file created at {qml_path}")
     return qml_path
 
@@ -270,19 +270,19 @@ def main():
     Main execution function
     """
     print("Creating SCADA tags for QGIS...")
-    
+
     # Create GeoJSON
     geojson_path = create_scada_tags_geojson()
-    
+
     # Validate GeoJSON
     if validate_geojson_structure(geojson_path):
         print("GeoJSON structure is valid")
     else:
         print("GeoJSON structure validation failed")
-    
+
     # Create QML style file
     create_qml_style_file()
-    
+
     print("SCADA tags creation completed successfully")
 
 

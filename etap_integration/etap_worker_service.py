@@ -7,7 +7,7 @@ Provides a REST API for the Linux-based AI platform to execute ETAP studies.
 
 import os
 import sys
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
 import uvicorn
 from fastapi import Depends, FastAPI, HTTPException, Security
@@ -33,13 +33,13 @@ API_KEY_NAME = "X-ETAP-Worker-Key"
 api_key_header = APIKeyHeader(name=API_KEY_NAME, auto_error=False)
 
 
-def _reject_legacy_api_key(api_key: Optional[str]) -> None:
+def _reject_legacy_api_key(api_key: str | None) -> None:
     if api_key:
         raise HTTPException(status_code=401, detail="Legacy API key auth is not supported. Use JWT Bearer token.")
 
 
 async def _require_auth(
-    legacy_api_key: Optional[str] = Security(api_key_header),
+    legacy_api_key: str | None = Security(api_key_header),
     creds: HTTPAuthorizationCredentials = Security(bearer_scheme),  # noqa: B008
 ) -> str:
     """
@@ -73,7 +73,7 @@ class StudyRequest(BaseModel):
     project_path: str
     study_type: str
     visible: bool = False
-    parameters: Optional[Dict[str, Any]] = None
+    parameters: Dict[str, Any] | None = None
 
 
 class StudyResponse(BaseModel):

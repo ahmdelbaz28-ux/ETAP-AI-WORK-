@@ -12,7 +12,8 @@ Patterns drawn from Tenacity/tenacity:
 from __future__ import annotations
 
 import logging
-from typing import Callable, Type, Union
+from collections.abc import Callable
+from typing import Type, Union
 
 from tenacity import (
     after_log,

@@ -12,9 +12,10 @@ Reference: IEC 61970 CIM, EPRI ADMS Integration Guide
 """
 
 import time
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any, Dict, List, Optional
 
 
 class ValidationSeverity(Enum):
@@ -458,7 +459,7 @@ class ValidationGateway:
             if topology is not None:
                 # Check topology buses exist in electrical model
                 topo_buses = set(topology.bus_connections.keys()) if hasattr(topology, 'bus_connections') else set()
-                elec_buses = set(str(bid) for bid in system.buses.keys())
+                elec_buses = {str(bid) for bid in system.buses.keys()}
                 orphaned = topo_buses - elec_buses
                 results.append(ValidationResult(
                     rule=ValidationRule.SYNC_ADMS_ELECTRICAL_TOPOLOGY,
@@ -513,7 +514,7 @@ class ValidationGateway:
         """Get recent validation history."""
         return self._validation_history[-limit:]
 
-    def get_last_validation(self) -> Optional[List[ValidationResult]]:
+    def get_last_validation(self) -> List[ValidationResult] | None:
         """Get the most recent validation results."""
         if not self._validation_history:
             return None

@@ -2,18 +2,17 @@
 """
 Script to start the Celery worker for the Engineering Service.
 """
-import os
 import sys
-from celery import Celery
+
 
 def main():
     """Start the Celery worker."""
     # Import the Celery app
     from worker.celery_app import app
-    
+
     # Parse command-line arguments
     argv = sys.argv[1:] if len(sys.argv) > 1 else ['-A', 'worker.celery_app', 'worker', '--loglevel=info']
-    
+
     # Start the worker
     try:
         app.start(argv=argv)

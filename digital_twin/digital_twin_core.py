@@ -27,7 +27,8 @@ Hard Constraints:
 import hashlib
 import logging
 import time
-from typing import Any, Callable, Dict, List, Optional
+from collections.abc import Callable
+from typing import Any, Dict, List
 
 import numpy as np
 
@@ -47,7 +48,14 @@ from .event_bus import (
     SwitchClosed,
     SwitchOpened,
 )
-from .state_store import BusState, GISAssetState, StateSnapshot, StateStore, SwitchState, TopologyState
+from .state_store import (
+    BusState,
+    GISAssetState,
+    StateSnapshot,
+    StateStore,
+    SwitchState,
+    TopologyState,
+)
 from .validation_gateway import ValidationGateway, ValidationResult, ValidationSeverity
 
 logger = logging.getLogger(__name__)
@@ -185,7 +193,7 @@ class DigitalTwinState:
             adms_engine=self._adms_engine
         )
 
-    def get_current_snapshot(self) -> Optional[StateSnapshot]:
+    def get_current_snapshot(self) -> StateSnapshot | None:
         """Get the latest committed snapshot."""
         return self.state_store.get_current()
 
@@ -690,9 +698,9 @@ class ChangePropagationEngine:
                 return {"status": "skipped", "reason": "No fault currents available"}
 
             # Use representative fault current range for coordination check
-            representative_faults = sorted(set(
+            representative_faults = sorted({
                 round(fc, 0) for fc in fault_currents if fc > 1.0
-            ))[:10]  # Up to 10 representative fault levels
+            })[:10]  # Up to 10 representative fault levels
 
             if not representative_faults:
                 representative_faults = [2.0, 5.0, 10.0, 20.0]
@@ -949,7 +957,7 @@ class TimeSteppedSimulator:
         self.running = False
         self._event_queue: List[Dict[str, Any]] = []
         self._step_log: List[Dict[str, Any]] = []
-        self._scada_injector: Optional[Callable[[float], List[DomainEvent]]] = None
+        self._scada_injector: Callable[[float], List[DomainEvent]] | None = None
 
     def set_time_step(self, dt: float) -> None:
         """Set simulation time step in seconds."""

@@ -11,8 +11,8 @@ import os
 import sqlite3
 import threading
 import uuid
-from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional
+from datetime import UTC, datetime
+from typing import Any, Dict, List
 
 from core.models import (
     ChangeSource,
@@ -35,7 +35,7 @@ class UniversalDataModel:
     def __init__(self, db_path: str = "udm_elements.db") -> None:
         self._db_path = db_path
         self._lock = threading.RLock()
-        self._conn: Optional[sqlite3.Connection] = None
+        self._conn: sqlite3.Connection | None = None
         self._local = threading.local()
         self.elements: Dict[str, UniversalElement] = {}
         self.conflicts: Dict[str, Conflict] = {}
@@ -141,7 +141,7 @@ class UniversalDataModel:
                 if conflict:
                     self.conflicts[conflict.conflict_id] = conflict
 
-    def _row_to_element(self, row: Dict[str, Any]) -> Optional[UniversalElement]:
+    def _row_to_element(self, row: Dict[str, Any]) -> UniversalElement | None:
         """Convert database row to UniversalElement."""
         try:
             geometry = None
@@ -198,7 +198,7 @@ class UniversalDataModel:
             logger.error(f"Error converting row to element: {e}")
             return None
 
-    def _row_to_conflict(self, row: Dict[str, Any]) -> Optional[Conflict]:
+    def _row_to_conflict(self, row: Dict[str, Any]) -> Conflict | None:
         """Convert database row to Conflict."""
         try:
             return Conflict(
@@ -223,7 +223,7 @@ class UniversalDataModel:
             try:
                 conn = self._get_conn()
                 cursor = conn.cursor()
-                now = datetime.now(timezone.utc).isoformat()
+                now = datetime.now(UTC).isoformat()
 
                 cursor.execute("""
                     INSERT OR REPLACE INTO elements
@@ -262,7 +262,7 @@ class UniversalDataModel:
                 logger.error(f"Error adding element: {e}")
                 return False
 
-    def get_element(self, element_id: str) -> Optional[UniversalElement]:
+    def get_element(self, element_id: str) -> UniversalElement | None:
         """Get an element by ID."""
         with self._lock:
             return self.elements.get(element_id)
@@ -312,11 +312,11 @@ class UniversalDataModel:
                     element.is_deleted = updates["is_deleted"]
 
                 element.version += 1
-                element.last_modified_timestamp = datetime.now(timezone.utc)
+                element.last_modified_timestamp = datetime.now(UTC)
 
                 conn = self._get_conn()
                 cursor = conn.cursor()
-                now = datetime.now(timezone.utc).isoformat()
+                now = datetime.now(UTC).isoformat()
 
                 cursor.execute("""
                     UPDATE elements SET
@@ -411,7 +411,7 @@ class UniversalDataModel:
                 "pending_autocad_to_revit": 0,
                 "pending_revit_to_autocad": 0,
                 "database_version": 1,
-                "last_sync": datetime.now(timezone.utc).isoformat(),
+                "last_sync": datetime.now(UTC).isoformat(),
             }
 
     def close(self) -> None:
