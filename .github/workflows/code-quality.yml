@@ -24,7 +24,7 @@ jobs:
       - name: Install linters
         run: pip install ruff
       - name: Ruff lint
-        run: ruff check . --output-format=github
+        run: ruff check . --config ruff.toml --output-format=github
       - name: Python syntax validation
         run: python3 validate_syntax.py
 

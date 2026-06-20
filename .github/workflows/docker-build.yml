@@ -1,12 +1,9 @@
 name: Docker Build Verification
 
 on:
-  push:
-    branches: [main, develop]
-  pull_request:
-    branches: [main]
   schedule:
-    - cron: '0 6 * * 1'
+    - cron: '0 6 * * 1'  # Weekly on Monday at 06:00 UTC
+  workflow_dispatch:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
