@@ -47,6 +47,7 @@
   "devDependencies": {
     "@ai-sdk/openai": "3.0.67",
     "@modelcontextprotocol/server-filesystem": "2026.1.14",
+    "@testsprite/testsprite-mcp": "latest",
     "@types/node": "24.13.2",
     "@types/pino": "7.0.5",
     "@vitest/coverage-v8": "4.1.8",

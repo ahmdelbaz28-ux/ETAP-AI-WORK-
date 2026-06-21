@@ -138,3 +138,13 @@ alembic
 
 # LangWatch - commented out as it may not be on PyPI
 # langwatch>=0.1.0
+
+# Main requirements file
+# For production deployments (lightweight): requirements-prod.txt
+# For ML/AI features (heavy): requirements-ml.txt
+# For development: requirements-dev.txt
+
+-r requirements-prod.txt
+
+# Uncomment the line below to include ML/AI dependencies
+# -r requirements-ml.txt
