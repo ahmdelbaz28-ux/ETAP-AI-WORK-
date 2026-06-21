@@ -1,0 +1,22 @@
+# Machine Learning requirements - optional heavy dependencies
+# Phase 6: ML/AI - Core
+scikit-learn>=1.3.0
+tensorflow>=2.15.0; python_version >= '3.9'
+
+# Phase 6b: ML/AI - Enhanced Predictive Analytics
+prophet>=1.1.0                      # Facebook Prophet - seasonal load forecasting
+xgboost>=2.0.0                      # Gradient boosting - fault prediction
+shap>=0.43.0                        # Model explainability - SHAP values
+optuna>=3.0.0                       # Hyperparameter optimization
+pyod>=1.0.0                         # 30+ anomaly detection algorithms
+
+# Phase 6c: ML/AI - Deep Learning & GNN
+torch>=2.0.0                        # PyTorch - deep learning foundation
+torch-geometric>=2.3.0              # Graph Neural Networks for power grids
+
+# Phase 6d: ML/AI - Model Management
+mlflow>=2.0.0                       # Model tracking, versioning, registry
+
+# Phase 6e: ML/AI - NLP & RAG Enhancement
+transformers>=4.30.0                # HuggingFace Transformers
+sentence-transformers>=2.2.0        # Sentence embeddings for RAG

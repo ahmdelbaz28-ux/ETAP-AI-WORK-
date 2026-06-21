@@ -74,30 +74,51 @@ _RATE_LIMIT_MAX_ATTEMPTS: int = 5
 _RATE_LIMIT_WINDOW_SEC: int = 15 * 60  # 15 minutes
 
 # ---------------------------------------------------------------------------
-# Token blacklist (in-memory — use Redis in production for multi-instance)
+# Token blacklist (Redis-backed)
 # ---------------------------------------------------------------------------
 
-_TOKEN_BLACKLIST: set[str] = set()
-_TOKEN_BLACKLIST_LOCK = __import__("threading").Lock()
+try:
+    import redis.asyncio as redis_async  # type: ignore
+    REDIS_AVAILABLE = True
+except ImportError:
+    redis_async = None
+    REDIS_AVAILABLE = False
+
+_REDIS_URL = os.getenv("REDIS_URL", "").strip()
+_TOKEN_BLACKLIST_PREFIX = os.getenv("TOKEN_BLACKLIST_PREFIX", "auth:blacklist:")
+
+_redis_client = None
 
 
-def _blacklist_token(jti: str) -> None:
-    """Add a token JTI to the blacklist."""
-    with _TOKEN_BLACKLIST_LOCK:
-        _TOKEN_BLACKLIST.add(jti)
+def _get_redis_client() -> redis_async.Redis | None:
+    global _redis_client
+    if not _REDIS_URL or not REDIS_AVAILABLE:
+        return None
+    if _redis_client is None:
+        _redis_client = redis_async.from_url(_REDIS_URL, decode_responses=True)
+    return _redis_client
 
 
-def _is_token_blacklisted(jti: str) -> bool:
-    """Check if a token JTI is blacklisted."""
-    with _TOKEN_BLACKLIST_LOCK:
-        return jti in _TOKEN_BLACKLIST
+async def _blacklist_token(jti: str, ttl_seconds: int | None = None) -> None:
+    """Blacklist a refresh token JTI using Redis (with TTL)."""
+    r = _get_redis_client()
+    if r is None:
+        return  # fallback: silently no-blacklist if REDIS_URL not configured or redis not available
+    key = f"{_TOKEN_BLACKLIST_PREFIX}{jti}"
+    if ttl_seconds and ttl_seconds > 0:
+        await r.set(key, "1", ex=int(ttl_seconds))
+    else:
+        await r.set(key, "1")
 
 
-def _cleanup_blacklist() -> int:
-    """Remove expired entries from the blacklist (best-effort, called periodically)."""
-    # For a production system, use Redis TTL-based expiry instead.
-    # This is a safety net for the in-memory implementation.
-    return 0
+async def _is_token_blacklisted(jti: str) -> bool:
+    """Check if token JTI is blacklisted in Redis."""
+    r = _get_redis_client()
+    if r is None:
+        return False
+    key = f"{_TOKEN_BLACKLIST_PREFIX}{jti}"
+    val = await r.get(key)
+    return val is not None
 
 # ---------------------------------------------------------------------------
 # Common-password blocklist (small sample — extend as needed)
@@ -518,11 +539,12 @@ async def refresh(
 
     # Check if the refresh token has been blacklisted (logged out)
     jti = payload.get("jti")
-    if jti and _is_token_blacklisted(jti):
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Refresh token has been revoked",
-        )
+    if jti:
+        if await _is_token_blacklisted(jti):
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Refresh token has been revoked",
+            )
 
     user_id: str | None = payload.get("sub")
     if user_id is None:
@@ -568,12 +590,20 @@ async def logout(
     if body and body.refresh_token:
         try:
             payload = jwt.decode(
-                body.refresh_token, JWT_SECRET_KEY, algorithms=[JWT_ALGORITHM],
+                body.refresh_token,
+                JWT_SECRET_KEY,
+                algorithms=[JWT_ALGORITHM],
                 options={"verify_exp": False},  # Allow blacklisting even if expired
             )
             jti = payload.get("jti")
+            exp = payload.get("exp")  # epoch seconds
+            ttl_seconds: int | None = None
+            if isinstance(exp, (int, float)):
+                now_epoch = datetime.now(tz=UTC).timestamp()
+                ttl_seconds = int(exp - now_epoch)
+
             if jti:
-                _blacklist_token(jti)
+                await _blacklist_token(jti, ttl_seconds=ttl_seconds)
         except jwt.InvalidTokenError:
             pass  # Invalid token — nothing to blacklist
 

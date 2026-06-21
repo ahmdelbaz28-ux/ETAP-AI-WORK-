@@ -10,7 +10,9 @@ RUN apt-get update && apt-get install -y     gcc     g++     curl     --no-insta
 
 WORKDIR /build
 
-COPY requirements.txt .
+# Use production requirements for smaller image
+COPY requirements-prod.txt .
+RUN mv requirements-prod.txt requirements.txt
 
 RUN pip install --no-cache-dir --upgrade pip && \
     # Filter requirements.txt to a temp file (exclude pywin32 which is
@@ -106,6 +108,14 @@ COPY gis_validation_real/ /app/gis_validation_real/
 COPY etap_user_guide/ /app/etap_user_guide/
 COPY backend/ /app/backend/
 COPY ml/ /app/ml/
+COPY api/ /app/api/
+COPY services/ /app/services/
+COPY utils/ /app/utils/
+COPY schemas/ /app/schemas/
+COPY skills/ /app/skills/
+COPY worker/ /app/worker/
+COPY scripts/ /app/scripts/
+COPY migrations/ /app/migrations/
 
 WORKDIR /app
 

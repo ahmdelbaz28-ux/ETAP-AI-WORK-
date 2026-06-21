@@ -29,13 +29,10 @@ jobs:
           node-version: '20'
       - name: Install Node dependencies
         run: pnpm install --no-frozen-lockfile
-        continue-on-error: true
       - name: TypeScript typecheck
         run: pnpm lint
-        continue-on-error: true
       - name: Run TypeScript tests
         run: pnpm test
-        continue-on-error: true
 
   # Python Service Validation
   python-service:
