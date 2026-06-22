@@ -349,3 +349,15 @@ ui/release
 security/_tmp_secure_executor_test_runner.py
 # Helm downloaded dependency charts
 helm/**/charts/
+
+# ==========================================
+# Enterprise Infrastructure Bundle
+# ==========================================
+.claude/
+CLAUDE.md
+*.tgz
+infra/helm/etap-ai/charts/
+infra/helm/etap-ai/Chart.lock
+/tmp/kind-debug/
+infra/helm/etap-ai/tests/__snapshot__/
+_workspace/

@@ -1,0 +1,90 @@
+# ==========================================================================
+# ETAP AI — Release pipeline
+#
+# Runs when a semver tag (v1.2.3) is pushed:
+#   1. Packages the Helm chart into a .tgz
+#   2. Pushes it to GitHub Container Registry (OCI)
+#   3. Creates a GitHub Release with the chart attached
+#   4. Updates the chart index (gh-pages branch)
+#
+# Required secrets:
+#   GITHUB_TOKEN  (automatically provided by GitHub Actions)
+# ==========================================================================
+name: Release — Publish Helm Chart
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+permissions:
+  contents: write
+  packages: write
+
+jobs:
+  release:
+    name: Package + Publish Chart
+    runs-on: ubuntu-22.04
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Helm
+        uses: azure/setup-helm@v4
+        with:
+          version: v3.14.0
+
+      - name: Install helm-unittest
+        run: helm plugin install https://github.com/helm-unittest/helm-unittest.git --version v0.5.1
+
+      - name: Run unit tests (gate the release)
+        run: helm unittest infra/helm/etap-ai
+
+      - name: Lint chart
+        run: |
+          helm lint infra/helm/etap-ai
+          helm lint infra/helm/etap-ai -f infra/helm/etap-ai/values-production.yaml
+
+      - name: Package chart
+        run: |
+          mkdir -p /tmp/chart-package
+          helm package infra/helm/etap-ai -d /tmp/chart-package
+          ls -la /tmp/chart-package/
+
+      - name: Login to GHCR
+        run: |
+          echo "${{ secrets.GITHUB_TOKEN }}" | \
+            helm registry login ghcr.io -u ${{ github.actor }} --password-stdin
+
+      - name: Push chart to GHCR (OCI)
+        run: |
+          CHART_FILE=$(ls /tmp/chart-package/*.tgz | head -1)
+          CHART_NAME=$(basename "$CHART_FILE" | sed 's/-[0-9].*//')
+          OCI_REPO="ghcr.io/${{ github.repository_owner }}/charts/${CHART_NAME}"
+          echo "Pushing $CHART_FILE to $OCI_REPO"
+          helm push "$CHART_FILE" "oci://$OCI_REPO"
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: /tmp/chart-package/*.tgz
+          generate_release_notes: true
+          draft: false
+          prerelease: ${{ contains(github.ref, '-rc') || contains(github.ref, '-beta') }}
+
+      - name: Update chart index on gh-pages
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git fetch origin gh-pages:gh-pages || git checkout --orphan gh-pages
+          git checkout gh-pages
+          mkdir -p charts
+          cp /tmp/chart-package/*.tgz charts/
+          helm repo index charts --url https://${{ github.repository_owner }}.github.io/etap-enterprise-infra/charts
+          git add charts/
+          git commit -m "chore: update chart index for ${{ github.ref_name }}"
+          git push origin gh-pages

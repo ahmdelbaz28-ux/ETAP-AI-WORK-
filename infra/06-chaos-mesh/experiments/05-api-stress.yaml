@@ -1,0 +1,64 @@
+---
+# ==========================================================================
+# Experiment 9: API CPU stress — peg API pod CPU at 80% for 60s.
+#
+# Verifies: HPA / KEDA react to CPU pressure on the API. Also reveals
+# whether your /health and /ready probes degrade under load (they should
+# not — they're simple liveness checks).
+# ==========================================================================
+apiVersion: chaos-mesh.org/v1alpha1
+kind: StressChaos
+metadata:
+  name: api-cpu-stress
+  namespace: etap
+  labels:
+    app.kubernetes.io/part-of: etap-ai-platform
+    chaos-mesh.org/experiment: api-resilience
+spec:
+  mode: one
+  selector:
+    namespaces:
+      - etap
+    labelSelectors:
+      "app.kubernetes.io/component": api
+  stressors:
+    cpu:
+      workers: 1
+      load: 80
+  containerNames:
+    - api
+  scheduler:
+    cron: "0 * * * *"   # top of every hour
+  duration: "60s"
+---
+# ==========================================================================
+# Experiment 10: API memory stress — push memory usage up by 512MiB.
+#
+# Verifies: Container memory limit kicks in before the OOM killer does.
+# If your pod is OOMKilled, you'll see it in `kubectl describe pod`.
+# HPA should scale out so other pods handle the load while this one restarts.
+# ==========================================================================
+apiVersion: chaos-mesh.org/v1alpha1
+kind: StressChaos
+metadata:
+  name: api-memory-stress
+  namespace: etap
+  labels:
+    app.kubernetes.io/part-of: etap-ai-platform
+    chaos-mesh.org/experiment: api-resilience
+spec:
+  mode: one
+  selector:
+    namespaces:
+      - etap
+    labelSelectors:
+      "app.kubernetes.io/component": api
+  stressors:
+    memory:
+      workers: 1
+      size: "512MB"
+  containerNames:
+    - api
+  scheduler:
+    cron: "0 14 * * 4"   # 2 PM every Thursday
+  duration: "30s"

@@ -1,0 +1,356 @@
+# ==========================================================================
+# ETAP AI — default Helm values (development / staging baseline).
+# For production overrides see values-production.yaml.
+# ==========================================================================
+
+global:
+  imageRegistry: ""          # e.g. ghcr.io/  — leave blank to keep image.repository as-is
+  imagePullSecrets: []        # [{ name: ghcr-pull-secret }]
+  storageClass: ""            # leave blank to use cluster default
+  namespace: etap
+
+# ---------- Image ----------
+image:
+  repository: ghcr.io/ahmdelbaz28-ux/etap-engineering-service
+  pullPolicy: IfNotPresent
+  tag: "latest"
+
+nameOverride: ""
+fullnameOverride: "etap-ai"
+
+# ---------- Service Account ----------
+serviceAccount:
+  create: true
+  annotations: {}
+  # Optional: link to cloud workload identity, e.g.
+  # iam.gke.io/gcp-service-account: etap-api@my-project.iam.gserviceaccount.com
+  name: ""
+
+# ---------- Pod security ----------
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 1000
+  runAsGroup: 1000
+  fsGroup: 1000
+  fsGroupChangePolicy: OnRootMismatch
+  seccompProfile:
+    type: RuntimeDefault
+
+securityContext:
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: true
+  capabilities:
+    drop: ["ALL"]
+
+# ---------- API (FastAPI engineering-service) ----------
+api:
+  replicaCount: 3
+  revisionHistoryLimit: 10
+  image:
+    repository: ""    # falls back to global image
+    pullPolicy: ""
+    tag: ""
+  service:
+    type: ClusterIP
+    port: 8000
+    targetPort: 8000
+    annotations: {}
+  command: []          # override entrypoint if needed
+  args: []
+  probes:
+    liveness:
+      httpGet:
+        path: /health
+        port: http
+      initialDelaySeconds: 20
+      periodSeconds: 10
+      timeoutSeconds: 5
+      failureThreshold: 3
+    readiness:
+      httpGet:
+        path: /ready
+        port: http
+      initialDelaySeconds: 10
+      periodSeconds: 5
+      timeoutSeconds: 3
+      failureThreshold: 2
+    startup:
+      httpGet:
+        path: /health
+        port: http
+      periodSeconds: 10
+      failureThreshold: 30
+  resources:
+    requests:
+      cpu: 500m
+      memory: 512Mi
+    limits:
+      cpu: 2000m
+      memory: 2Gi
+  podDisruptionBudget:
+    enabled: true
+    minAvailable: 2
+  autoscaling:
+    enabled: true
+    minReplicas: 3
+    maxReplicas: 20
+    targetCPUUtilizationPercentage: 70
+    targetMemoryUtilizationPercentage: 80
+    behavior:
+      scaleUp:
+        stabilizationWindowSeconds: 60
+        policies:
+          - type: Percent
+            value: 100
+            periodSeconds: 30
+      scaleDown:
+        stabilizationWindowSeconds: 300
+        policies:
+          - type: Percent
+            value: 50
+            periodSeconds: 60
+  ingress:
+    enabled: true
+    className: nginx
+    annotations:
+      cert-manager.io/cluster-issuer: letsencrypt-prod
+      nginx.ingress.kubernetes.io/proxy-body-size: "50m"
+      nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
+      nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
+    hosts:
+      - host: etap-ai.example.com
+        paths:
+          - path: /
+            pathType: Prefix
+    tls:
+      - secretName: etap-ai-tls
+        hosts:
+          - etap-ai.example.com
+  nodeSelector: {}
+  tolerations: []
+  affinity:
+    podAntiAffinity:
+      preferredDuringSchedulingIgnoredDuringExecution:
+        - weight: 100
+          podAffinityTerm:
+            labelSelector:
+              matchExpressions:
+                - key: app.kubernetes.io/name
+                  operator: In
+                  values: ["etap-ai"]
+                - key: app.kubernetes.io/component
+                  operator: In
+                  values: ["api"]
+            topologyKey: kubernetes.io/hostname
+  topologySpreadConstraints: []
+  # Spread API pods across availability zones so a single AZ outage
+  # does not take down more than one replica:
+  #   - maxSkew: 1
+  #     topologyKey: topology.kubernetes.io/zone
+  #     whenUnsatisfiable: ScheduleAnyway
+  #     labelSelector:
+  #       matchLabels:
+  #         app.kubernetes.io/component: api
+  podAnnotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "8000"
+    prometheus.io/path: "/metrics"
+  extraEnv: []
+  extraVolumes: []
+  extraVolumeMounts: []
+  # EmptyDir backing for /tmp because readOnlyRootFilesystem is true
+  tmpDir:
+    enabled: true
+    sizeLimit: 1Gi
+
+# ---------- Celery Worker ----------
+worker:
+  replicaCount: 2
+  revisionHistoryLimit: 10
+  image:
+    repository: ""
+    pullPolicy: ""
+    tag: ""
+  command: ["celery", "-A", "worker.celery_app", "worker", "--loglevel=info"]
+  args: []
+  # Long graceful shutdown window for in-flight Celery tasks:
+  # `celery -A app worker --loglevel=info` traps SIGTERM and waits for
+  # the current task to finish. 600s matches the default Celery hard limit.
+  terminationGracePeriodSeconds: 600
+  probes:
+    # Celery workers don't expose HTTP; use an exec probe that checks
+    # the worker process is alive via `celery inspect ping`.
+    liveness:
+      exec:
+        command:
+          - /bin/sh
+          - -c
+          - "celery -A worker.celery_app inspect ping -d celery@$(hostname) --timeout=5"
+      initialDelaySeconds: 60
+      periodSeconds: 60
+      timeoutSeconds: 10
+      failureThreshold: 3
+    # No readiness probe — workers are always "ready" once they're running.
+    readiness: null
+    startup:
+      exec:
+        command:
+          - /bin/sh
+          - -c
+          - "celery -A worker.celery_app inspect ping -d celery@$(hostname) --timeout=5"
+      periodSeconds: 10
+      failureThreshold: 30
+  resources:
+    requests:
+      cpu: 500m
+      memory: 1Gi
+    limits:
+      cpu: 2000m
+      memory: 4Gi
+  podDisruptionBudget:
+    enabled: true
+    minAvailable: 1
+  autoscaling:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 30
+    targetCPUUtilizationPercentage: 75
+    targetMemoryUtilizationPercentage: 80
+    behavior:
+      scaleUp:
+        stabilizationWindowSeconds: 30
+        policies:
+          - type: Percent
+            value: 200
+            periodSeconds: 30
+          - type: Pods
+            value: 4
+            periodSeconds: 30
+        selectPolicy: Max
+      scaleDown:
+        stabilizationWindowSeconds: 600
+        policies:
+          - type: Percent
+            value: 25
+            periodSeconds: 120
+  nodeSelector: {}
+  tolerations: []
+  affinity:
+    podAntiAffinity:
+      preferredDuringSchedulingIgnoredDuringExecution:
+        - weight: 100
+          podAffinityTerm:
+            labelSelector:
+              matchExpressions:
+                - key: app.kubernetes.io/name
+                  operator: In
+                  values: ["etap-ai"]
+                - key: app.kubernetes.io/component
+                  operator: In
+                  values: ["worker"]
+            topologyKey: kubernetes.io/hostname
+  podAnnotations:
+    prometheus.io/scrape: "false"
+  extraEnv: []
+  extraVolumes: []
+  extraVolumeMounts: []
+  tmpDir:
+    enabled: true
+    sizeLimit: 1Gi
+
+# ---------- Flower (Celery dashboard, optional) ----------
+flower:
+  enabled: false
+  replicaCount: 1
+  image:
+    repository: mher/flower
+    tag: "2.0"
+    pullPolicy: IfNotPresent
+  service:
+    type: ClusterIP
+    port: 5555
+  resources:
+    requests: { cpu: 100m, memory: 128Mi }
+    limits:   { cpu: 500m, memory: 512Mi }
+  ingress:
+    enabled: false
+    className: nginx
+    hosts:
+      - host: flower.etap-ai.example.com
+        paths:
+          - path: /
+            pathType: Prefix
+
+# ---------- External services ----------
+redis:
+  # Default URL targets the Bitnami Redis Cluster chart's headless service.
+  # The client library MUST support cluster mode (redis-py >= 4 with
+  # redis.cluster.RedisCluster). If you stay on standalone Redis, switch
+  # this to redis://etap-ai-redis-master:6379/0.
+  url: "redis://etap-redis-cluster:6379/0"
+  # If auth is enabled on the cluster (recommended), reference the secret:
+  existingSecret: "etap-redis-cluster"
+  existingSecretPasswordKey: "redis-password"
+
+database:
+  # CloudNativePG exposes a read-write service `<cluster>-rw` and a
+  # read-only service `<cluster>-ro`. Apps write to `-rw`.
+  url: "postgresql://etap_user@etap-postgres-rw.etap:5432/etap_db"
+  existingSecret: "etap-postgres-app"
+  existingSecretUserKey: "username"
+  existingSecretPasswordKey: "password"
+
+# ---------- Environment variables (non-secret) ----------
+env:
+  ENVIRONMENT: production
+  USE_ETAP: "false"
+  PRIVACY_MODE: "true"
+  LOG_LEVEL: "INFO"
+  CELERY_BROKER_URL: ""          # falls back to redis.url
+  CELERY_RESULT_BACKEND: ""      # falls back to redis.url
+  PROMETHEUS_METRICS_ENABLED: "true"
+
+# ---------- Secrets ----------
+# Use `kubectl create secret` or a sealed-secret / external-secret for the
+# values below. The chart wires them as env vars via secretKeyRef.
+secrets:
+  engineeringServiceApiKey:
+    name: etap-ai-secrets
+    key: api-key
+  langwatchApiKey:
+    name: etap-ai-secrets
+    key: langwatch-api-key
+  smitheryApiKey:
+    name: etap-ai-secrets
+    key: smithery-api-key
+
+# ---------- Observability ----------
+observability:
+  serviceMonitor:
+    enabled: true
+    namespace: etap
+    interval: 15s
+    scrapeTimeout: 10s
+  tracing:
+    enabled: false
+    otlpEndpoint: "http://otel-collector.observability:4317"
+
+# ---------- Network Policy ----------
+networkPolicy:
+  enabled: true
+  # Default-deny ingress to the namespace; explicit allow-rules are emitted
+  # for the API (from ingress-controller namespace) and worker (from API).
+  ingressFromIngress: true
+  ingressFromAPI: true       # allow API -> worker (if worker exposes anything)
+  egressToRedis: true
+  egressToPostgres: true
+  egressToInternet: false    # set true if your pods need outbound internet
+  egressToDns: true
+
+# ---------- Top-level autoscaling (kept for backwards-compat with v1.0.0) ----------
+autoscaling:
+  enabled: true
+  minReplicas: 3
+  maxReplicas: 20
+  targetCPUUtilizationPercentage: 70
+  targetMemoryUtilizationPercentage: 80

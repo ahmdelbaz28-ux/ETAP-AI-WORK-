@@ -1,0 +1,54 @@
+# ==========================================================================
+# KEDA — Kubernetes Event-Driven Autoscaling.
+#
+# KEDA sits between your metrics source (Redis, Prometheus, Kafka, etc.)
+# and the Kubernetes HPA, exposing custom metrics that the HPA alone can't
+# see. The HPA created by the ETAP Helm chart scales on CPU/Memory; KEDA
+# adds queue-depth scaling on top.
+#
+# Install:
+#   helm repo add keda https://kedacore.github.io/charts
+#   helm upgrade --install keda keda/keda \
+#       -n etap-infra --create-namespace \
+#       -f 05-keda-autoscaling/values.yaml
+# ==========================================================================
+
+# Allow KEDA to use the Redis Cluster's secret for authentication
+redisCluster:
+  enabled: true
+
+# We'll install the Redis scaler separately as a ScaledObject (see below).
+# The chart here just installs the KEDA operator.
+
+# RBAC
+rbac:
+  create: true
+
+# Resource limits for the KEDA operator
+resources:
+  operator:
+    limits:   { cpu: 1000m, memory: 1Gi }
+    requests: { cpu: 100m,  memory: 256Mi }
+  metricServer:
+    limits:   { cpu: 500m,  memory: 512Mi }
+    requests: { cpu: 100m,  memory: 128Mi }
+
+# Watch all namespaces
+watchNamespace: ""
+
+# Enable Prometheus metric exporter for KEDA itself
+prometheus:
+  operator:
+    enabled: true
+    namespace: etap-infra
+    serviceMonitor:
+      enabled: true
+
+# Pod security
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 1000
+  fsGroup: 1000
+
+# Graceful shutdown
+gracefulShutDown: true

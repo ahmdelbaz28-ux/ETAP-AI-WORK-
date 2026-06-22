@@ -1,0 +1,53 @@
+# Boundary mismatch tests — detect API ↔ frontend type drift
+name: ETAP Boundary Mismatch Tests
+
+on:
+  push:
+    branches: [main, develop]
+    paths:
+      - 'api/**'
+      - 'ui/src/**'
+      - 'tests/boundary_mismatch/**'
+      - '.github/workflows/etap-boundary-tests.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'api/**'
+      - 'ui/src/**'
+      - 'tests/boundary_mismatch/**'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  boundary-tests:
+    name: API ↔ Frontend Type Drift Detection
+    runs-on: ubuntu-22.04
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          pip install --quiet pytest pyyaml
+
+      - name: Run boundary mismatch tests
+        run: |
+          python -m pytest tests/boundary_mismatch/ -v --tb=short -s 2>&1 | tee boundary-test-results.txt
+          # Boundary tests print findings but don't fail (they're informational)
+          # Convert findings to GitHub issues separately
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: boundary-test-results
+          path: boundary-test-results.txt

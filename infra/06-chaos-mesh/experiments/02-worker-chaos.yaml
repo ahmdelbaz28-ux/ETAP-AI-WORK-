@@ -1,0 +1,59 @@
+---
+# ==========================================================================
+# Experiment 3: Worker PodChaos — kill a worker pod mid-task.
+#
+# Verifies: Celery task idempotency + retry. A task running on the killed
+# worker should be redelivered to another worker (Celery's visibility_timeout
+# governs this — default 1 hour; consider lowering to 5 min for fast retry).
+# ==========================================================================
+apiVersion: chaos-mesh.org/v1alpha1
+kind: PodChaos
+metadata:
+  name: worker-pod-kill
+  namespace: etap
+  labels:
+    app.kubernetes.io/part-of: etap-ai-platform
+    chaos-mesh.org/experiment: worker-resilience
+spec:
+  action: pod-kill
+  mode: one
+  selector:
+    namespaces:
+      - etap
+    labelSelectors:
+      "app.kubernetes.io/component": worker
+  scheduler:
+    cron: "@every 15m"
+  duration: "30s"
+---
+# ==========================================================================
+# Experiment 4: Worker stress — peg the worker's CPU at 100% for 60s.
+#
+# Verifies: KEDA detects the queue build-up and scales out. HPA detects the
+# CPU pressure and also scales out. Both should fire; KEDA should win
+# because pollingInterval=15s vs HPA's default 30s.
+# ==========================================================================
+apiVersion: chaos-mesh.org/v1alpha1
+kind: StressChaos
+metadata:
+  name: worker-cpu-stress
+  namespace: etap
+  labels:
+    app.kubernetes.io/part-of: etap-ai-platform
+    chaos-mesh.org/experiment: worker-resilience
+spec:
+  mode: one
+  selector:
+    namespaces:
+      - etap
+    labelSelectors:
+      "app.kubernetes.io/component": worker
+  stressors:
+    cpu:
+      workers: 2
+      load: 80
+  containerNames:
+    - worker
+  scheduler:
+    cron: "0 * * * *"   # at the top of every hour
+  duration: "60s"

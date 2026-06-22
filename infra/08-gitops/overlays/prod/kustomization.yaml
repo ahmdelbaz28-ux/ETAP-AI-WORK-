@@ -1,0 +1,88 @@
+# Production overlay — full production config with HPA, PDB, NetworkPolicy.
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: etap
+
+resources:
+  - ../base
+
+helmCharts:
+  - name: etap-ai
+    repo: .
+    version: 2.0.0
+    releaseName: etap-ai
+    namespace: etap
+    valuesFile: ../../01-helm-chart/etap-ai/values.yaml
+    valuesInline:
+      image:
+        tag: "v1.0.0"   # pinned semver in production
+        pullPolicy: IfNotPresent
+      api:
+        replicaCount: 5
+        autoscaling:
+          enabled: true
+          minReplicas: 5
+          maxReplicas: 50
+          targetCPUUtilizationPercentage: 65
+        ingress:
+          enabled: true
+          className: nginx
+          hosts:
+            - host: etap-ai.example.com
+              paths:
+                - path: /
+                  pathType: Prefix
+          tls:
+            - secretName: etap-ai-tls
+              hosts:
+                - etap-ai.example.com
+        topologySpreadConstraints:
+          - maxSkew: 1
+            topologyKey: topology.kubernetes.io/zone
+            whenUnsatisfiable: ScheduleAnyway
+            labelSelector:
+              matchLabels:
+                app.kubernetes.io/component: api
+      worker:
+        replicaCount: 4
+        autoscaling:
+          enabled: true
+          minReplicas: 4
+          maxReplicas: 60
+        topologySpreadConstraints:
+          - maxSkew: 1
+            topologyKey: topology.kubernetes.io/zone
+            whenUnsatisfiable: ScheduleAnyway
+            labelSelector:
+              matchLabels:
+                app.kubernetes.io/component: worker
+      flower:
+        enabled: true
+        ingress:
+          enabled: true
+          className: nginx
+          hosts:
+            - host: flower.etap-ai.example.com
+              paths:
+                - path: /
+                  pathType: Prefix
+          tls:
+            - secretName: flower-tls
+              hosts:
+                - flower.etap-ai.example.com
+      networkPolicy:
+        enabled: true
+        egressToInternet: true
+      observability:
+        serviceMonitor:
+          enabled: true
+          interval: 15s
+
+commonLabels:
+  environment: production
+
+# Add production-specific annotations to all resources
+commonAnnotations:
+  reliability.automation/enabled: "true"
+  backup.automation/enabled: "true"

@@ -196,3 +196,36 @@ version: ## Show version information
 	@echo "Node: $$(node --version)"
 	@echo "Docker: $$(docker --version 2>/dev/null || echo 'Not installed')"
 	@echo "Kubectl: $$(kubectl version --client --short 2>/dev/null || echo 'Not installed')"
+
+# ==========================================
+# Enterprise Infrastructure Targets
+# ==========================================
+
+infra-validate: ## Validate all infrastructure manifests (helm lint + unittest + kubeconform)
+	@./scripts/etap-infra-validate.sh
+
+infra-test: ## Run helm unittest suite (39 tests)
+	@helm unittest infra/helm/etap-ai
+
+infra-lint: ## Helm lint (default + production values)
+	@helm lint infra/helm/etap-ai
+	@helm lint infra/helm/etap-ai -f infra/helm/etap-ai/values-production.yaml
+
+infra-dry-run: ## Render Helm chart without applying
+	@helm template etap-ai infra/helm/etap-ai -n etap \
+		-f infra/helm/etap-ai/values-production.yaml > /tmp/etap-rendered.yaml
+	@echo "Rendered to /tmp/etap-rendered.yaml"
+	@wc -l /tmp/etap-rendered.yaml
+
+infra-drift-audit: ## Run agent drift audit
+	@python scripts/audit_agent_drift.py
+
+infra-boundary-tests: ## Run boundary mismatch tests
+	@python -m pytest tests/boundary_mismatch/ -v -s
+
+infra-package: ## Package Helm chart into .tgz
+	@mkdir -p /tmp/chart-package
+	@helm package infra/helm/etap-ai -d /tmp/chart-package
+	@ls -la /tmp/chart-package/
+
+.PHONY: infra-validate infra-test infra-lint infra-dry-run infra-drift-audit infra-boundary-tests infra-package

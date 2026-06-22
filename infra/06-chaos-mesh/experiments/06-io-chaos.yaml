@@ -1,0 +1,33 @@
+---
+# ==========================================================================
+# Experiment 11: IO Chaos — slow down disk writes on a worker pod.
+#
+# Verifies: Worker's logging + report generation don't block the event
+# loop when disk I/O is slow (which happens on cloud-local SSDs under
+# contention).
+# ==========================================================================
+apiVersion: chaos-mesh.org/v1alpha1
+kind: IOChaos
+metadata:
+  name: worker-io-latency
+  namespace: etap
+  labels:
+    app.kubernetes.io/part-of: etap-ai-platform
+    chaos-mesh.org/experiment: worker-resilience
+spec:
+  action: latency
+  mode: one
+  selector:
+    namespaces:
+      - etap
+    labelSelectors:
+      "app.kubernetes.io/component": worker
+  volumePath: /app/reports
+  path: "/app/reports/**/*"
+  delay: "100ms"
+  percent: 50
+  containerNames:
+    - worker
+  scheduler:
+    cron: "0 15 * * 5"   # 3 PM every Friday
+  duration: "2m"

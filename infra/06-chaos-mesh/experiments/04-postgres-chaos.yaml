@@ -1,0 +1,75 @@
+---
+# ==========================================================================
+# Experiment 7: Postgres network loss — drop 20% of packets between the API
+# and the CloudNativePG primary.
+#
+# Verifies: Database connection pool resilience. SQLAlchemy / asyncpg should
+# retry; circuit breaker (core/circuitBreaker.ts in your repo) should fire
+# after N failures and stop hammering the DB.
+# ==========================================================================
+apiVersion: chaos-mesh.org/v1alpha1
+kind: NetworkChaos
+metadata:
+  name: postgres-network-loss
+  namespace: etap
+  labels:
+    app.kubernetes.io/part-of: etap-ai-platform
+    chaos-mesh.org/experiment: postgres-resilience
+spec:
+  action: loss
+  mode: all
+  selector:
+    namespaces:
+      - etap
+    labelSelectors:
+      "cnpg.io/cluster": etap-postgres
+  loss:
+    loss: "20"
+    correlation: "50"
+  direction: to
+  target:
+    pods:
+      etap:
+        - selector:
+            matchLabels:
+              "app.kubernetes.io/component": api
+          mode: all
+  scheduler:
+    cron: "0 11 * * 2"   # 11 AM every Tuesday
+  duration: "2m"
+---
+# ==========================================================================
+# Experiment 8: CloudNativePG failover — trigger a manual switchover via
+# the operator. This is not strictly a Chaos Mesh experiment, but it's the
+# equivalent for the database layer.
+#
+# Apply manually with:
+#   kubectl -n etap annotate cluster etap-postgres \
+#       postgresql.cnpg.io/force-rollback=true --overwrite
+#   # or use the cnpg CLI:
+#   # kubectl cnpg promote etap-postgres <pod-name>
+#
+# Expected outcome: a new primary is elected within 10 seconds. Application
+# sees ~10s of write errors, then resumes (the `-rw` service automatically
+# points at the new primary).
+# ==========================================================================
+apiVersion: chaos-mesh.org/v1alpha1
+kind: PodChaos
+metadata:
+  name: postgres-primary-kill
+  namespace: etap
+  labels:
+    app.kubernetes.io/part-of: etap-ai-platform
+    chaos-mesh.org/experiment: postgres-resilience
+spec:
+  action: pod-kill
+  mode: one
+  selector:
+    namespaces:
+      - etap
+    labelSelectors:
+      "cnpg.io/cluster": etap-postgres
+      "cnpg.io/instanceRole": primary    # kills ONLY the current primary
+  scheduler:
+    cron: "0 12 * * 3"   # 12 PM every Wednesday
+  duration: "30s"

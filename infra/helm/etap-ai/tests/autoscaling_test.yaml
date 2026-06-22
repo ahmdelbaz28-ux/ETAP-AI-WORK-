@@ -1,0 +1,56 @@
+# Tests for HPA behavior — verify scaling config renders correctly and
+# respects enabled/disabled toggle.
+suite: "autoscaling"
+tests:
+  - it: "should render API HPA with correct min/max replicas (production)"
+    values:
+      - ../values-production.yaml
+    template: api-hpa.yaml
+    asserts:
+      - isKind:
+          of: HorizontalPodAutoscaler
+      - equal:
+          path: spec.minReplicas
+          value: 5
+      - equal:
+          path: spec.maxReplicas
+          value: 50
+      - equal:
+          path: spec.metrics[0].resource.target.averageUtilization
+          value: 65
+  - it: "should render Worker HPA with correct min/max replicas (production)"
+    values:
+      - ../values-production.yaml
+    template: worker-hpa.yaml
+    asserts:
+      - isKind:
+          of: HorizontalPodAutoscaler
+      - equal:
+          path: spec.minReplicas
+          value: 4
+      - equal:
+          path: spec.maxReplicas
+          value: 60
+  - it: "should NOT render API HPA when autoscaling is disabled"
+    set:
+      api.autoscaling.enabled: false
+    template: api-hpa.yaml
+    asserts:
+      - hasDocuments:
+          count: 0
+  - it: "should NOT render Worker HPA when autoscaling is disabled"
+    set:
+      worker.autoscaling.enabled: false
+    template: worker-hpa.yaml
+    asserts:
+      - hasDocuments:
+          count: 0
+  - it: "should render HPA with scaleUp behavior (production)"
+    values:
+      - ../values-production.yaml
+    template: api-hpa.yaml
+    asserts:
+      - isNotNull:
+          path: spec.behavior.scaleUp
+      - isNotNull:
+          path: spec.behavior.scaleDown

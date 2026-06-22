@@ -83,7 +83,9 @@ lxml>=4.6.0
 
 # Phase 2: Security & Infrastructure
 pyotp>=2.9.0
-redis>=5.0.0
+redis>=4.3.0                          # >=4.3 required for redis.cluster.RedisCluster support
+celery>=5.3.0                         # >=5.3 required for Redis Cluster broker support
+asyncpg>=0.29.0                       # Async PostgreSQL driver for DATABASE_URL=postgresql+asyncpg://
 httpx>=0.25.0
 
 # Phase 6: ML/AI - Core

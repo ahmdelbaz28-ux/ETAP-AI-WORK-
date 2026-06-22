@@ -1,0 +1,94 @@
+---
+# ==========================================================================
+# Worker ScaledObject — scale Celery workers on Redis queue depth.
+#
+# This is the BIG win for cost: when the queue is empty, KEDA scales workers
+# down to `idleReplicaCount` (e.g. 1). When a study is enqueued, KEDA scales
+# up within ~15s — far faster than CPU-based HPA alone (which requires the
+# in-flight tasks to actually peg the CPU first).
+#
+# REQUIREMENT:
+#   pip install "celery[redis]>=5.3" "redis>=4.3"
+#   # celery>=5.3 supports Redis Cluster natively via redis-py cluster mode
+#
+# Disable worker.autoscaling.enabled in Helm values when applying this
+# (see api-scaledobject.yaml comment).
+# ==========================================================================
+apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
+metadata:
+  name: etap-ai-worker
+  namespace: etap
+  labels:
+    app.kubernetes.io/part-of: etap-ai-platform
+    app.kubernetes.io/component: worker
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: etap-ai-worker
+  minReplicaCount: 2
+  maxReplicaCount: 60
+  pollingInterval: 15
+  cooldownPeriod: 600           # workers are slow to drain — be patient
+  idleReplicaCount: 2
+  advanced:
+    horizontalPodAutoscalerConfig:
+      name: etap-ai-worker-hpa
+      behavior:
+        scaleUp:
+          stabilizationWindowSeconds: 30
+          policies:
+            - type: Percent
+              value: 200
+              periodSeconds: 30
+            - type: Pods
+              value: 10
+              periodSeconds: 30
+          selectPolicy: Max
+        scaleDown:
+          stabilizationWindowSeconds: 600
+          policies:
+            - type: Percent
+              value: 25
+              periodSeconds: 120
+  triggers:
+    # Primary: Celery queue length via Redis Cluster.
+    #
+    # CRITICAL: For Redis Cluster you MUST use `addresses` (comma-separated
+    # list of ALL nodes via the headless service) and set `clusterMode: true`.
+    # Using `host`/`port` alone hits only one shard and misses messages on
+    # the other 5 nodes — KEDA would never see the queue depth grow.
+    #
+    # The headless service `etap-redis-cluster-headless` resolves to all 6
+    # pod IPs. KEDA's Redis scaler will use CLUSTER SLOTS to discover the
+    # topology and query each shard's LLEN.
+    - type: redis
+      metadata:
+        clusterMode: "true"
+        addresses: "etap-redis-cluster-0.etap-redis-cluster-headless.etap:6379,etap-redis-cluster-1.etap-redis-cluster-headless.etap:6379,etap-redis-cluster-2.etap-redis-cluster-headless.etap:6379,etap-redis-cluster-3.etap-redis-cluster-headless.etap:6379,etap-redis-cluster-4.etap-redis-cluster-headless.etap:6379,etap-redis-cluster-5.etap-redis-cluster-headless.etap:6379"
+        enableTLS: "false"
+        databaseIndex: "0"
+        listName: celery       # default Celery queue name
+        listLength: "10"       # scale up by 1 pod per 10 messages queued
+      authenticationRef:
+        name: etap-redis-triggerauth
+
+    # Secondary: CPU — protects against CPU-bound tasks pegging cores
+    # without queuing many new messages (e.g. one giant study).
+    - type: cpu
+      metadata:
+        type: Utilization
+        value: "75"
+---
+# TriggerAuthentication — references the Redis password secret.
+apiVersion: keda.sh/v1alpha1
+kind: TriggerAuthentication
+metadata:
+  name: etap-redis-triggerauth
+  namespace: etap
+spec:
+  secretTargetRef:
+    - parameter: password
+      name: etap-redis-cluster
+      key: redis-password
