@@ -43,7 +43,7 @@ def test_study_execution_endpoint(api_client, sample_3bus_network):
     payload = {
         "study_type": "load_flow",
         "system_spec": sample_3bus_network,
-        "parameters": {"tolerance": 1e-6, "max_iterations": 50}
+        "parameters": {"tolerance": 1e-6, "max_iterations": 50},
     }
 
     response = api_client.post("/api/v1/studies/run", json=payload)
@@ -66,10 +66,7 @@ def test_system_validation_endpoint(api_client, sample_3bus_network):
 
 def test_predict_load_endpoint(api_client):
     """Test the load prediction endpoint."""
-    payload = {
-        "historical_data": [100, 120, 110, 130, 125, 140, 135],
-        "horizon_hours": 24
-    }
+    payload = {"historical_data": [100, 120, 110, 130, 125, 140, 135], "horizon_hours": 24}
 
     response = api_client.post("/api/v1/predict/load", json=payload)
     assert response.status_code == 200
@@ -81,9 +78,7 @@ def test_predict_load_endpoint(api_client):
 
 def test_predict_fault_endpoint(api_client):
     """Test the fault prediction endpoint."""
-    payload = {
-        "features": [0.5, 0.3, 0.8, 0.2]
-    }
+    payload = {"features": [0.5, 0.3, 0.8, 0.2]}
 
     response = api_client.post("/api/v1/predict/fault", json=payload)
     assert response.status_code == 200
@@ -107,10 +102,7 @@ def test_anomaly_detection_endpoint(api_client):
 
 def test_rag_query_endpoint(api_client):
     """Test the RAG query endpoint."""
-    payload = {
-        "query": "What is IEEE 1584-2018 standard?",
-        "top_k": 3
-    }
+    payload = {"query": "What is IEEE 1584-2018 standard?", "top_k": 3}
 
     response = api_client.post("/api/v1/rag/query", json=payload)
     # May return 500 if knowledge base is not initialized, but should not crash

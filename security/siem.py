@@ -24,7 +24,9 @@ import time
 import uuid
 from collections import deque
 from dataclasses import dataclass, field
-from datetime import UTC, datetime
+from datetime import datetime, timezone
+
+UTC = timezone.utc
 from typing import Any, Deque, Dict, List
 
 logger = logging.getLogger(__name__)
@@ -54,6 +56,7 @@ _HAS_ASYNC_HTTP = _HAS_HTTPX or _HAS_AIOHTTP
 # ---------------------------------------------------------------------------
 # Event schema
 # ---------------------------------------------------------------------------
+
 
 @dataclass
 class SecurityEvent:
@@ -101,6 +104,7 @@ class SecurityEvent:
 # ---------------------------------------------------------------------------
 # SIEM Forwarder
 # ---------------------------------------------------------------------------
+
 
 class SIEMForwarder:
     """Forward security events to Grafana Loki or ELK Stack.
@@ -429,7 +433,9 @@ class SIEMForwarder:
 
         with self._lock:
             self._stats["failed"] += len(events)
-        logger.error("SIEM forward failed after %d attempts for %d events", self.retry_attempts, len(events))
+        logger.error(
+            "SIEM forward failed after %d attempts for %d events", self.retry_attempts, len(events)
+        )
         return False
 
     async def _send_batch(self, events: List[SecurityEvent]) -> None:
@@ -484,7 +490,9 @@ class SIEMForwarder:
         import urllib.request
 
         def _blocking_post() -> None:
-            req = urllib.request.Request(self.endpoint, data=payload, headers=headers, method="POST")
+            req = urllib.request.Request(
+                self.endpoint, data=payload, headers=headers, method="POST"
+            )
             with urllib.request.urlopen(req, timeout=10) as resp:
                 if resp.status >= 400:
                     raise RuntimeError(f"SIEM returned {resp.status}")
@@ -529,7 +537,9 @@ class SIEMForwarder:
         """
         lines: List[str] = []
         for event in events:
-            action = {"index": {"_index": f"etap-security-{datetime.now(UTC).strftime('%Y.%m.%d')}"}}
+            action = {
+                "index": {"_index": f"etap-security-{datetime.now(UTC).strftime('%Y.%m.%d')}"}
+            }
             lines.append(json.dumps(action))
             lines.append(event.to_json())
         payload = "\n".join(lines) + "\n"
@@ -574,7 +584,10 @@ class SIEMForwarder:
                     healthy = resp.status_code < 400
             elif _HAS_AIOHTTP:
                 async with aiohttp.ClientSession() as session:
-                    async with session.get(self.endpoint.rsplit("/", 1)[0] + "/ready", timeout=aiohttp.ClientTimeout(total=5)) as resp:
+                    async with session.get(
+                        self.endpoint.rsplit("/", 1)[0] + "/ready",
+                        timeout=aiohttp.ClientTimeout(total=5),
+                    ) as resp:
                         healthy = resp.status < 400
             else:
                 healthy = True  # no way to check; assume OK

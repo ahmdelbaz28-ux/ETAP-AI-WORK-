@@ -5,6 +5,7 @@ Provides production-grade retry handling, circuit breaker, multi-level recovery,
 and computational stability enforcement.
 """
 
+from __future__ import annotations
 import logging
 import random
 import threading
@@ -47,6 +48,7 @@ def get_all_circuit_breakers() -> Dict[str, "CircuitBreaker"]:
 # ---------------------------------------------------------------------------
 # RetryHandler
 # ---------------------------------------------------------------------------
+
 
 class RetryHandler:
     """Retry mechanism with exponential backoff and optional jitter.
@@ -96,7 +98,7 @@ class RetryHandler:
 
     def _compute_delay(self, attempt: int) -> float:
         """Compute the delay for a given retry attempt."""
-        delay = self.base_delay * (self.exponential_base ** attempt)
+        delay = self.base_delay * (self.exponential_base**attempt)
         delay = min(delay, self.max_delay)
         if self.jitter:
             delay = random.uniform(0, delay)
@@ -146,9 +148,7 @@ class RetryHandler:
                 return fn(*args, **kwargs)
             except Exception as exc:
                 last_exc = exc
-                if attempt < self.max_retries and self._is_retryable(
-                    exc, retryable_exceptions
-                ):
+                if attempt < self.max_retries and self._is_retryable(exc, retryable_exceptions):
                     delay = self._compute_delay(attempt)
                     with self._lock:
                         self._total_retries += 1
@@ -197,9 +197,7 @@ class RetryHandler:
                 return await fn(*args, **kwargs)
             except Exception as exc:
                 last_exc = exc
-                if attempt < self.max_retries and self._is_retryable(
-                    exc, retryable_exceptions
-                ):
+                if attempt < self.max_retries and self._is_retryable(exc, retryable_exceptions):
                     delay = self._compute_delay(attempt)
                     with self._lock:
                         self._total_retries += 1
@@ -282,9 +280,8 @@ def with_retry(
     def decorator(fn: Callable[..., Any]) -> Callable[..., Any]:
         @wraps(fn)
         def wrapper(*args: Any, **kwargs: Any) -> Any:
-            return handler.execute(
-                fn, *args, retryable_exceptions=retryable_exceptions, **kwargs
-            )
+            return handler.execute(fn, *args, retryable_exceptions=retryable_exceptions, **kwargs)
+
         return wrapper
 
     return decorator
@@ -294,8 +291,10 @@ def with_retry(
 # CircuitBreaker
 # ---------------------------------------------------------------------------
 
+
 class CircuitBreakerState:
     """Circuit breaker state constants."""
+
     CLOSED = "CLOSED"
     OPEN = "OPEN"
     HALF_OPEN = "HALF_OPEN"
@@ -425,13 +424,9 @@ class CircuitBreaker:
 
         if state == CircuitBreakerState.OPEN:
             if fallback is not None:
-                logger.info(
-                    "Circuit '%s' is OPEN. Invoking fallback.", self.name
-                )
+                logger.info("Circuit '%s' is OPEN. Invoking fallback.", self.name)
                 return fallback(*args, **kwargs)
-            raise CircuitBreakerOpenError(
-                f"Circuit breaker '{self.name}' is OPEN. Call rejected."
-            )
+            raise CircuitBreakerOpenError(f"Circuit breaker '{self.name}' is OPEN. Call rejected.")
 
         if state == CircuitBreakerState.HALF_OPEN:
             with self._lock:
@@ -477,9 +472,7 @@ class CircuitBreaker:
 
         if state == CircuitBreakerState.OPEN:
             if fallback is not None:
-                logger.info(
-                    "Circuit '%s' is OPEN. Invoking async fallback.", self.name
-                )
+                logger.info("Circuit '%s' is OPEN. Invoking async fallback.", self.name)
                 return await fallback(*args, **kwargs)
             raise CircuitBreakerOpenError(
                 f"Circuit breaker '{self.name}' is OPEN. Async call rejected."
@@ -557,6 +550,7 @@ class CircuitBreakerOpenError(Exception):
 # ---------------------------------------------------------------------------
 # MultiLevelRecovery
 # ---------------------------------------------------------------------------
+
 
 class RecoveryResult:
     """Result container for a multi-level recovery attempt."""
@@ -639,9 +633,7 @@ class MultiLevelRecovery:
             raise ValueError(f"Invalid recovery level: {level}. Use 1, 2, or 3.")
         self._strategies[level].append((fn, condition_fn))
 
-    def recover(
-        self, error: BaseException, context: Any | None = None
-    ) -> RecoveryResult:
+    def recover(self, error: BaseException, context: Any | None = None) -> RecoveryResult:
         """Execute recovery strategies from level 1 upward.
 
         Returns as soon as a level produces a result considered successful
@@ -700,9 +692,7 @@ class MultiLevelRecovery:
                     )
                     level_ok = False
 
-            actions_taken.extend(
-                f"L{level}:{a}" for a in level_actions
-            )
+            actions_taken.extend(f"L{level}:{a}" for a in level_actions)
 
             if level_ok and level_actions:
                 elapsed = time.monotonic() - start
@@ -729,6 +719,7 @@ class MultiLevelRecovery:
 # StabilityEnforcer
 # ---------------------------------------------------------------------------
 
+
 class StabilityEnforcer:
     """Computational stability utilities for numerical operations.
 
@@ -749,9 +740,7 @@ class StabilityEnforcer:
     def violations_detected(self) -> int:
         return self._violations_detected
 
-    def check_matrix_singularity(
-        self, matrix: np.ndarray, tolerance: float = 1e-12
-    ) -> bool:
+    def check_matrix_singularity(self, matrix: np.ndarray, tolerance: float = 1e-12) -> bool:
         """Check whether *matrix* is near-singular.
 
         Uses the ratio of smallest to largest singular value; if below
@@ -788,9 +777,7 @@ class StabilityEnforcer:
             logger.warning("Matrix singularity check FAILED (ratio < %e).", tolerance)
         return singular
 
-    def safe_matrix_inverse(
-        self, matrix: np.ndarray, fallback_to_pinv: bool = True
-    ) -> np.ndarray:
+    def safe_matrix_inverse(self, matrix: np.ndarray, fallback_to_pinv: bool = True) -> np.ndarray:
         """Compute the inverse of *matrix* with singularity fallback.
 
         Parameters
@@ -820,9 +807,7 @@ class StabilityEnforcer:
             with self._lock:
                 self._violations_detected += 1
             if fallback_to_pinv:
-                logger.warning(
-                    "Matrix inverse failed; returning pseudo-inverse."
-                )
+                logger.warning("Matrix inverse failed; returning pseudo-inverse.")
                 return np.linalg.pinv(matrix)
             raise
 
@@ -888,9 +873,7 @@ class StabilityEnforcer:
             Clamped value.
         """
         if min_val > max_val:
-            raise ValueError(
-                f"min_val ({min_val}) must not exceed max_val ({max_val})."
-            )
+            raise ValueError(f"min_val ({min_val}) must not exceed max_val ({max_val}).")
         return max(min_val, min(value, max_val))
 
     @staticmethod
@@ -923,6 +906,7 @@ class StabilityEnforcer:
 # Global stats
 # ---------------------------------------------------------------------------
 
+
 def get_resilience_stats() -> Dict[str, Any]:
     """Return aggregate resilience statistics for the entire platform.
 
@@ -942,8 +926,7 @@ def get_resilience_stats() -> Dict[str, Any]:
         name for name, cb in breakers.items() if cb.get_state() == CircuitBreakerState.OPEN
     ]
     half_open_breakers = [
-        name for name, cb in breakers.items()
-        if cb.get_state() == CircuitBreakerState.HALF_OPEN
+        name for name, cb in breakers.items() if cb.get_state() == CircuitBreakerState.HALF_OPEN
     ]
 
     return {
@@ -956,8 +939,7 @@ def get_resilience_stats() -> Dict[str, Any]:
         "circuit_breaker_calls": {
             "total": total_calls,
             "failed": total_failures,
-            "failure_rate": (total_failures / total_calls * 100)
-            if total_calls > 0 else 0.0,
+            "failure_rate": (total_failures / total_calls * 100) if total_calls > 0 else 0.0,
         },
         "timestamp": time.time(),
     }

@@ -6,6 +6,7 @@ including ETAP version, Windows version, .NET Framework, and availability
 of required COM modules and Python dependencies.
 """
 
+from __future__ import annotations
 import logging
 import platform
 import sys
@@ -15,19 +16,30 @@ from typing import Dict, List, Tuple
 logger = logging.getLogger(__name__)
 
 WIN32_AVAILABLE = False
-if sys.platform == 'win32':
+if sys.platform == "win32":
     try:
         import winreg  # noqa: F401
 
         import pythoncom
         import win32com.client
+
         WIN32_AVAILABLE = True
     except ImportError:
         WIN32_AVAILABLE = False
 
 SUPPORTED_ETAP_VERSIONS: List[str] = [
-    "12.0.0", "12.5.0", "12.6.0", "14.0.0", "14.1.0",
-    "15.0.0", "16.0.0", "16.1.0", "20.0.0", "20.5.0", "21.0.0", "22.0.0",
+    "12.0.0",
+    "12.5.0",
+    "12.6.0",
+    "14.0.0",
+    "14.1.0",
+    "15.0.0",
+    "16.0.0",
+    "16.1.0",
+    "20.0.0",
+    "20.5.0",
+    "21.0.0",
+    "22.0.0",
 ]
 MIN_ETAP_VERSION = "12.0.0"
 
@@ -35,9 +47,17 @@ REQUIRED_PACKAGES = ["pywin32", "psutil", "pyyaml", "numpy"]
 OPTIONAL_PACKAGES = ["requests", "pydantic"]
 
 COM_MODULES = [
-    "LoadFlow", "ShortCircuit", "ArcFlash", "MotorAcceleration",
-    "TransientStability", "HarmonicAnalysis", "OptimalPowerFlow",
-    "ProtectionCoordination", "CableAmpacity", "GroundGrid", "Reliability",
+    "LoadFlow",
+    "ShortCircuit",
+    "ArcFlash",
+    "MotorAcceleration",
+    "TransientStability",
+    "HarmonicAnalysis",
+    "OptimalPowerFlow",
+    "ProtectionCoordination",
+    "CableAmpacity",
+    "GroundGrid",
+    "Reliability",
 ]
 
 
@@ -93,7 +113,7 @@ class ETAPCompatibilityChecker:
             pythoncom.CoInitialize()
             try:
                 app = win32com.client.GetActiveObject(self._etap_prog_id)
-                raw = getattr(app, 'Version', None) or getattr(app, 'VersionNumber', None)
+                raw = getattr(app, "Version", None) or getattr(app, "VersionNumber", None)
                 if raw is not None:
                     self._cached_version = str(raw).strip()
                     return self._cached_version
@@ -130,7 +150,7 @@ class ETAPCompatibilityChecker:
             pythoncom.CoInitialize()
             try:
                 app = win32com.client.GetActiveObject(self._etap_prog_id)
-                proj = getattr(app, 'ActiveProject', None)
+                proj = getattr(app, "ActiveProject", None)
                 if proj is None:
                     return False
                 avail = getattr(proj, module_name, None) is not None
@@ -146,13 +166,16 @@ class ETAPCompatibilityChecker:
 
     def check_windows_version(self) -> Tuple[bool, str]:
         """Verify Windows meets ETAP requirements (10+ x64)."""
-        if sys.platform != 'win32':
+        if sys.platform != "win32":
             return False, "Not running on Windows."
         try:
             major, minor, build, _, _ = platform.win32_ver()
-            is_64 = platform.machine().endswith('64')
+            is_64 = platform.machine().endswith("64")
             if int(major) < 10:
-                return False, f"Windows {major}.{minor} (build {build}) is too old. Win10+ required."
+                return (
+                    False,
+                    f"Windows {major}.{minor} (build {build}) is too old. Win10+ required.",
+                )
             if not is_64:
                 return False, "ETAP requires 64-bit Windows (x64)."
             return True, f"Windows {major}.{minor} (build {build}) x64 - OK."
@@ -161,14 +184,16 @@ class ETAPCompatibilityChecker:
 
     def check_dependencies(self) -> Dict[str, bool]:
         """Verify required and optional Python packages."""
-        return {pkg: self._is_package_available(pkg)
-                for pkg in REQUIRED_PACKAGES + OPTIONAL_PACKAGES}
+        return {
+            pkg: self._is_package_available(pkg) for pkg in REQUIRED_PACKAGES + OPTIONAL_PACKAGES
+        }
 
     def check_dotnet_version(self) -> Tuple[bool, str]:
         """Check .NET Framework 4.8+ via registry."""
         try:
-            key = winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE,
-                                 r"SOFTWARE\Microsoft\NET Framework Setup\NDP\v4\Full")
+            key = winreg.OpenKey(
+                winreg.HKEY_LOCAL_MACHINE, r"SOFTWARE\Microsoft\NET Framework Setup\NDP\v4\Full"
+            )
             release = winreg.QueryValueEx(key, "Release")[0]
             winreg.CloseKey(key)
             names = {528040: "4.8", 528049: "4.8", 528209: "4.8", 533320: "4.8.1", 533325: "4.8.1"}
@@ -188,32 +213,52 @@ class ETAPCompatibilityChecker:
         version = self.check_version()
         if version:
             supported = self.is_version_supported(version)
-            checks.append(CheckResult("ETAP Version", supported,
-                          f"Installed: {version}, Supported: {supported}",
-                          "error" if not supported else "info"))
+            checks.append(
+                CheckResult(
+                    "ETAP Version",
+                    supported,
+                    f"Installed: {version}, Supported: {supported}",
+                    "error" if not supported else "info",
+                )
+            )
         else:
-            checks.append(CheckResult("ETAP Version", False,
-                          "Could not detect ETAP version. Is ETAP installed?", "error"))
+            checks.append(
+                CheckResult(
+                    "ETAP Version",
+                    False,
+                    "Could not detect ETAP version. Is ETAP installed?",
+                    "error",
+                )
+            )
 
         w_ok, w_msg = self.check_windows_version()
-        checks.append(CheckResult("Windows Version", w_ok, w_msg,
-                      "error" if not w_ok else "info"))
+        checks.append(CheckResult("Windows Version", w_ok, w_msg, "error" if not w_ok else "info"))
 
         d_ok, d_msg = self.check_dotnet_version()
-        checks.append(CheckResult(".NET Framework", d_ok, d_msg,
-                      "error" if not d_ok else "info"))
+        checks.append(CheckResult(".NET Framework", d_ok, d_msg, "error" if not d_ok else "info"))
 
         for pkg, avail in self.check_dependencies().items():
             required = pkg in REQUIRED_PACKAGES
             sev = "error" if (required and not avail) else "warning" if not avail else "info"
-            checks.append(CheckResult(f"Package: {pkg}", avail,
-                          f"{'Required' if required else 'Optional'}: {'OK' if avail else 'missing'}", sev))
+            checks.append(
+                CheckResult(
+                    f"Package: {pkg}",
+                    avail,
+                    f"{'Required' if required else 'Optional'}: {'OK' if avail else 'missing'}",
+                    sev,
+                )
+            )
 
         for mod in COM_MODULES:
             avail = self.check_module_availability(mod)
-            checks.append(CheckResult(f"COM Module: {mod}", avail,
-                          "Available" if avail else "Not available",
-                          "warning" if not avail else "info"))
+            checks.append(
+                CheckResult(
+                    f"COM Module: {mod}",
+                    avail,
+                    "Available" if avail else "Not available",
+                    "warning" if not avail else "info",
+                )
+            )
 
         return checks
 
@@ -225,12 +270,20 @@ class ETAPCompatibilityChecker:
 
         windows_ok = any(c.passed for c in checks if c.name == "Windows Version")
         dotnet_ok = any(c.passed for c in checks if c.name == ".NET Framework")
-        deps_ok = all(c.passed for c in checks if c.name.startswith("Package:") and c.severity == "error")
+        deps_ok = all(
+            c.passed for c in checks if c.name.startswith("Package:") and c.severity == "error"
+        )
 
-        com_avail = [c.name.replace("COM Module: ", "") for c in checks
-                     if c.name.startswith("COM Module:") and c.passed]
-        com_miss = [c.name.replace("COM Module: ", "") for c in checks
-                    if c.name.startswith("COM Module:") and not c.passed]
+        com_avail = [
+            c.name.replace("COM Module: ", "")
+            for c in checks
+            if c.name.startswith("COM Module:") and c.passed
+        ]
+        com_miss = [
+            c.name.replace("COM Module: ", "")
+            for c in checks
+            if c.name.startswith("COM Module:") and not c.passed
+        ]
 
         return CompatibilityReport(
             etap_version=version,

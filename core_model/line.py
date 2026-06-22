@@ -1,14 +1,30 @@
-
 class Line:
     __slots__ = (
-        'line_id', 'from_bus', 'to_bus', 'z1', 'z2', 'z0',
-        'yshunt1', 'yshunt2', 'yshunt0', 'rating',
+        "line_id",
+        "from_bus",
+        "to_bus",
+        "z1",
+        "z2",
+        "z0",
+        "yshunt1",
+        "yshunt2",
+        "yshunt0",
+        "rating",
     )
 
-    def __init__(self, line_id, from_bus, to_bus,
-                 z1=complex(0,0), z2=None, z0=None,
-                 yshunt1=complex(0,0), yshunt2=None, yshunt0=None,
-                 rating=None):
+    def __init__(
+        self,
+        line_id,
+        from_bus,
+        to_bus,
+        z1=complex(0, 0),
+        z2=None,
+        z0=None,
+        yshunt1=complex(0, 0),
+        yshunt2=None,
+        yshunt0=None,
+        rating=None,
+    ):
         """
         Initialize a Line object with sequence impedances.
 
@@ -35,7 +51,7 @@ class Line:
         self.yshunt0 = yshunt0 if yshunt0 is not None else yshunt1
         self.rating = rating
 
-    def get_impedance(self, seq='1'):
+    def get_impedance(self, seq="1"):
         """
         Get impedance for a given sequence.
         Parameters:
@@ -43,16 +59,16 @@ class Line:
         Returns:
         complex: Impedance in per-unit.
         """
-        if seq == '1':
+        if seq == "1":
             return self.z1
-        elif seq == '2':
+        elif seq == "2":
             return self.z2
-        elif seq == '0':
+        elif seq == "0":
             return self.z0
         else:
             raise ValueError("Sequence must be '1', '2', or '0'")
 
-    def get_shunt_admittance(self, seq='1'):
+    def get_shunt_admittance(self, seq="1"):
         """
         Get shunt admittance for a given sequence.
         Parameters:
@@ -60,11 +76,11 @@ class Line:
         Returns:
         complex: Shunt admittance in per-unit.
         """
-        if seq == '1':
+        if seq == "1":
             return self.yshunt1
-        elif seq == '2':
+        elif seq == "2":
             return self.yshunt2
-        elif seq == '0':
+        elif seq == "0":
             return self.yshunt0
         else:
             raise ValueError("Sequence must be '1', '2', or '0'")

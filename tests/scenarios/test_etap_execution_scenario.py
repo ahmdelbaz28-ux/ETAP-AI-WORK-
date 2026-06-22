@@ -55,8 +55,10 @@ class TestETAPExecutionScenario:
         # Provider may not be available; should fail gracefully
         if not agent.provider.is_available():
             assert result.status == AgentStatus.FAILED
-            assert any("provider" in err.lower() or "available" in err.lower()
-                        for err in result.validation_errors)
+            assert any(
+                "provider" in err.lower() or "available" in err.lower()
+                for err in result.validation_errors
+            )
 
     @pytest.mark.asyncio
     async def test_study_type_mapping(self, agent):

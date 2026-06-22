@@ -126,9 +126,7 @@ def _build_observability(
 
     metrics = None
     if args.metrics or env_bool("ACP_METRICS", False):
-        default_labels = _parse_labels(
-            args.default_labels or os.environ.get("ACP_DEFAULT_LABELS")
-        )
+        default_labels = _parse_labels(args.default_labels or os.environ.get("ACP_DEFAULT_LABELS"))
         if transport_name:
             default_labels["transport"] = transport_name
         metrics = InMemoryMetricsRegistry(default_labels=default_labels)
@@ -188,7 +186,9 @@ def _build_runtime(
     return runtime, health_handler
 
 
-def _build_router(args: argparse.Namespace, runtime: AcpRuntime, tracer: Any, metrics: Any, logger: Any) -> Router:
+def _build_router(
+    args: argparse.Namespace, runtime: AcpRuntime, tracer: Any, metrics: Any, logger: Any
+) -> Router:
     """Build a Router from CLI args / env."""
     scopes = _split_scopes(args.scopes) or _split_scopes(os.environ.get("ACP_SCOPES"))
 
@@ -206,7 +206,9 @@ def _build_router(args: argparse.Namespace, runtime: AcpRuntime, tracer: Any, me
     if audit_path:
         audit_logger = NDJSONAuditLogger(audit_path)
 
-    require_auth = args.require_auth if args.require_auth is not None else env_bool("ACP_REQUIRE_AUTH", False)
+    require_auth = (
+        args.require_auth if args.require_auth is not None else env_bool("ACP_REQUIRE_AUTH", False)
+    )
 
     return Router(
         runtime,
@@ -223,6 +225,7 @@ def _build_router(args: argparse.Namespace, runtime: AcpRuntime, tracer: Any, me
 
 
 # ------------------------------------------------------------------ stdio
+
 
 async def _run_stdio(args: argparse.Namespace, tracer: Any, metrics: Any, logger: Any) -> None:
     runtime, health_handler = _build_runtime(args, tracer, metrics, logger, transport_name="stdio")
@@ -242,6 +245,7 @@ async def _run_stdio(args: argparse.Namespace, tracer: Any, metrics: Any, logger
 
 
 # ------------------------------------------------------------------ uds
+
 
 async def _run_uds(args: argparse.Namespace, tracer: Any, metrics: Any, logger: Any) -> None:
     runtime, health_handler = _build_runtime(args, tracer, metrics, logger, transport_name="uds")
@@ -265,8 +269,11 @@ async def _run_uds(args: argparse.Namespace, tracer: Any, metrics: Any, logger: 
 
 # ------------------------------------------------------------------ websocket
 
+
 async def _run_websocket(args: argparse.Namespace, tracer: Any, metrics: Any, logger: Any) -> None:
-    runtime, health_handler = _build_runtime(args, tracer, metrics, logger, transport_name="websocket")
+    runtime, health_handler = _build_runtime(
+        args, tracer, metrics, logger, transport_name="websocket"
+    )
     router = _build_router(args, runtime, tracer, metrics, logger)
     host = args.host or os.environ.get("ACP_WS_HOST", "localhost")
     port = args.port if args.port is not None else env_int("ACP_WS_PORT", 8765)
@@ -289,6 +296,7 @@ async def _run_websocket(args: argparse.Namespace, tracer: Any, metrics: Any, lo
 
 
 # ------------------------------------------------------------------ argparse
+
 
 def _build_parser() -> argparse.ArgumentParser:
     # Common arguments shared by all subcommands
@@ -378,7 +386,9 @@ def _build_parser() -> argparse.ArgumentParser:
     sub.add_parser("stdio", help="Run the stdio transport (LSP-style)", parents=[common])
 
     # uds
-    uds_parser = sub.add_parser("uds", help="Run the Unix Domain Socket transport", parents=[common])
+    uds_parser = sub.add_parser(
+        "uds", help="Run the Unix Domain Socket transport", parents=[common]
+    )
     uds_parser.add_argument(
         "--path",
         help="UDS socket path (default /tmp/acp.sock, or ACP_UDS_PATH env)",

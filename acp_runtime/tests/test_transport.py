@@ -9,6 +9,7 @@ Covers:
     * Thread-safety (concurrent writes)
     * Graceful shutdown on EOF
 """
+
 from __future__ import annotations
 
 import io
@@ -28,6 +29,7 @@ from acp.transport.uds import _LineBuffer
 
 # ------------------------------------------------------- test handlers
 
+
 class MathHandler:
     @capability("math.sum", scopes=("math.read",))
     async def sum(self, a: int, b: int) -> int:
@@ -40,6 +42,7 @@ class MathHandler:
 
 
 # ------------------------------------------------------- helpers
+
 
 class FakeByteStream:
     """Mock ``anyio.abc.ByteStream`` for testing UDSTransport."""
@@ -69,6 +72,7 @@ def _make_router() -> Router:
 
 
 # ------------------------------------------------------- StdioTransport
+
 
 class TestStdioTransport:
     def test_read_message(self):
@@ -123,6 +127,7 @@ class TestStdioTransport:
 
 
 # ------------------------------------------------------- UDSTransport
+
 
 class TestLineBuffer:
     def test_read_line_single(self):
@@ -183,6 +188,7 @@ class TestUDSTransport:
 
 
 # ------------------------------------------------------- WebSocketTransport
+
 
 class TestWebSocketTransport:
     @pytest.mark.anyio
@@ -260,18 +266,22 @@ class TestWebSocketTransport:
 
 # ------------------------------------------------------- Server
 
+
 class TestServer:
     @pytest.mark.anyio
     async def test_server_request_response(self):
         """Full loop: request → router → response."""
         stdin = io.StringIO(
-            json.dumps({
-                "jsonrpc": "2.0",
-                "id": "r1",
-                "method": "math.sum",
-                "params": {"a": 3, "b": 4},
-                "capability": "math.sum",
-            }) + "\n"
+            json.dumps(
+                {
+                    "jsonrpc": "2.0",
+                    "id": "r1",
+                    "method": "math.sum",
+                    "params": {"a": 3, "b": 4},
+                    "capability": "math.sum",
+                }
+            )
+            + "\n"
         )
         stdout = io.StringIO()
         transport = StdioTransport(stdin, stdout)
@@ -291,11 +301,14 @@ class TestServer:
     async def test_server_notification_no_response(self):
         """Notification must produce no response."""
         stdin = io.StringIO(
-            json.dumps({
-                "jsonrpc": "2.0",
-                "method": "progress.update",
-                "params": {"percent": 50},
-            }) + "\n"
+            json.dumps(
+                {
+                    "jsonrpc": "2.0",
+                    "method": "progress.update",
+                    "params": {"percent": 50},
+                }
+            )
+            + "\n"
         )
         stdout = io.StringIO()
         transport = StdioTransport(stdin, stdout)
@@ -343,14 +356,24 @@ class TestServer:
     @pytest.mark.anyio
     async def test_server_multiple_requests(self):
         """Multiple requests in sequence."""
-        req1 = json.dumps({
-            "jsonrpc": "2.0", "id": "1", "method": "math.sum",
-            "params": {"a": 1, "b": 2}, "capability": "math.sum",
-        })
-        req2 = json.dumps({
-            "jsonrpc": "2.0", "id": "2", "method": "math.sum",
-            "params": {"a": 3, "b": 4}, "capability": "math.sum",
-        })
+        req1 = json.dumps(
+            {
+                "jsonrpc": "2.0",
+                "id": "1",
+                "method": "math.sum",
+                "params": {"a": 1, "b": 2},
+                "capability": "math.sum",
+            }
+        )
+        req2 = json.dumps(
+            {
+                "jsonrpc": "2.0",
+                "id": "2",
+                "method": "math.sum",
+                "params": {"a": 3, "b": 4},
+                "capability": "math.sum",
+            }
+        )
         stdin = io.StringIO(req1 + "\n" + req2 + "\n")
         stdout = io.StringIO()
         transport = StdioTransport(stdin, stdout)
@@ -368,10 +391,15 @@ class TestServer:
     @pytest.mark.anyio
     async def test_server_scope_denied(self):
         """Request with missing scope returns error."""
-        req = json.dumps({
-            "jsonrpc": "2.0", "id": "1", "method": "math.sum",
-            "params": {"a": 1, "b": 2}, "capability": "math.sum",
-        })
+        req = json.dumps(
+            {
+                "jsonrpc": "2.0",
+                "id": "1",
+                "method": "math.sum",
+                "params": {"a": 1, "b": 2},
+                "capability": "math.sum",
+            }
+        )
         stdin = io.StringIO(req + "\n")
         stdout = io.StringIO()
         transport = StdioTransport(stdin, stdout)
@@ -429,13 +457,19 @@ class TestServer:
 
 # ------------------------------------------------------- integration: Server + Router + Runtime
 
+
 @pytest.mark.anyio
 async def test_end_to_end_stdio():
     """Full pipeline: StringIO → StdioTransport → Server → Router → Runtime."""
-    req = json.dumps({
-        "jsonrpc": "2.0", "id": "e2e", "method": "math.public",
-        "params": {"x": 99}, "capability": "math.public",
-    })
+    req = json.dumps(
+        {
+            "jsonrpc": "2.0",
+            "id": "e2e",
+            "method": "math.public",
+            "params": {"x": 99},
+            "capability": "math.public",
+        }
+    )
     stdin = io.StringIO(req + "\n")
     stdout = io.StringIO()
     transport = StdioTransport(stdin, stdout)

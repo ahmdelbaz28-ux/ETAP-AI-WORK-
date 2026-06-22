@@ -7,6 +7,7 @@ Provides capabilities covering:
     * Progress-emitting long operation (math.progress)
     * Error-raising capability (error.raise)
 """
+
 from __future__ import annotations
 
 import anyio

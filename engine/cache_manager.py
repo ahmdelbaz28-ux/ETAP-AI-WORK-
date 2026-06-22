@@ -1,3 +1,4 @@
+from __future__ import annotations
 import hashlib
 import json
 import logging
@@ -10,12 +11,14 @@ from typing import Any, Dict, List, Set, Tuple
 
 try:
     from cachetools import LRUCache, TLRUCache
+
     HAS_CACHETOOLS = True
 except ImportError:
     HAS_CACHETOOLS = False
 
 try:
     import psutil
+
     HAS_PSUTIL = True
 except ImportError:
     HAS_PSUTIL = False
@@ -32,7 +35,15 @@ class CacheStrategy(Enum):
 
 
 class _CacheEntry:
-    __slots__ = ("value", "expires_at", "tags", "size_bytes", "access_count", "created_at", "last_access")
+    __slots__ = (
+        "value",
+        "expires_at",
+        "tags",
+        "size_bytes",
+        "access_count",
+        "created_at",
+        "last_access",
+    )
 
     def __init__(self, value: Any, expires_at: float | None = None, tags: List[str] | None = None):
         self.value = value
@@ -73,7 +84,9 @@ class CalculationCache:
         if HAS_CACHETOOLS and strategy in (CacheStrategy.LRU, CacheStrategy.TTL):
             maxsize = max(1, int(max_size_mb * 1024 * 1024 / 512))
             if strategy == CacheStrategy.TTL:
-                self._cachetools_cache = TLRUCache(maxsize=maxsize, ttu=lambda k, v, now: now + (v.ttl or default_ttl_seconds))  # type: ignore
+                self._cachetools_cache = TLRUCache(
+                    maxsize=maxsize, ttu=lambda k, v, now: now + (v.ttl or default_ttl_seconds)
+                )  # type: ignore
             else:
                 self._cachetools_cache = LRUCache(maxsize=maxsize)
             self._cachetools_data: Dict[str, Tuple[Any, float | None, List[str]]] = {}
@@ -121,7 +134,7 @@ class CalculationCache:
                 self._remove_from_tag_index(cache_key, old_entry.tags)
             self._current_size_bytes += entry.size_bytes
             self._entries[cache_key] = entry
-            for tag in (tags or []):
+            for tag in tags or []:
                 self._tag_index.setdefault(tag, set()).add(cache_key)
             if self._strategy == CacheStrategy.LRU:
                 if cache_key in self._access_order:
@@ -134,7 +147,9 @@ class CalculationCache:
                     self._cachetools_cache[cache_key] = value
                     self._cachetools_data[cache_key] = (value, expires_at, tags or [])
                 except ValueError:
-                    logger.debug("Cachetools cache set skipped for key %s (value too large)", cache_key)
+                    logger.debug(
+                        "Cachetools cache set skipped for key %s (value too large)", cache_key
+                    )
 
     def invalidate(self, cache_key: str) -> bool:
         with self._lock:
@@ -184,7 +199,9 @@ class CalculationCache:
                 "size_bytes": self._current_size_bytes,
                 "size_mb": round(self._current_size_bytes / (1024 * 1024), 2),
                 "max_size_mb": round(self._max_size_bytes / (1024 * 1024), 2),
-                "memory_usage": round(self._current_size_bytes / self._max_size_bytes * 100, 2) if self._max_size_bytes > 0 else 0.0,
+                "memory_usage": round(self._current_size_bytes / self._max_size_bytes * 100, 2)
+                if self._max_size_bytes > 0
+                else 0.0,
                 "strategy": self._strategy.value,
             }
 
@@ -193,6 +210,7 @@ class CalculationCache:
             if pattern is None:
                 return list(self._entries.keys())
             import re
+
             regex = re.compile(pattern)
             return [k for k in self._entries if regex.search(k)]
 
@@ -326,7 +344,13 @@ class SmartCacheStrategy:
     ) -> bool:
         if frequency_estimate is not None and frequency_estimate < 0.01:
             return False
-        expensive = component in ("load_flow", "fault_analysis", "opf", "harmonic_analysis", "coordination")
+        expensive = component in (
+            "load_flow",
+            "fault_analysis",
+            "opf",
+            "harmonic_analysis",
+            "coordination",
+        )
         if expensive:
             return True
         size_estimate = _estimate_size(params)
@@ -357,17 +381,36 @@ class SmartCacheStrategy:
             if study == "load_flow":
                 key = builder.build_key("load_flow", "solve", builder.hash_system_state(system))
                 if not self._cache.exists(key):
-                    self._cache.set(key, None, ttl_seconds=TTL_RECOMMENDATIONS["load_flow"], tags=["prewarm", "load_flow"])
+                    self._cache.set(
+                        key,
+                        None,
+                        ttl_seconds=TTL_RECOMMENDATIONS["load_flow"],
+                        tags=["prewarm", "load_flow"],
+                    )
                     pre_warmed += 1
             elif study == "fault_analysis":
-                key = builder.build_key("fault_analysis", "analyze", builder.hash_system_state(system))
+                key = builder.build_key(
+                    "fault_analysis", "analyze", builder.hash_system_state(system)
+                )
                 if not self._cache.exists(key):
-                    self._cache.set(key, None, ttl_seconds=TTL_RECOMMENDATIONS["fault_analysis"], tags=["prewarm", "fault_analysis"])
+                    self._cache.set(
+                        key,
+                        None,
+                        ttl_seconds=TTL_RECOMMENDATIONS["fault_analysis"],
+                        tags=["prewarm", "fault_analysis"],
+                    )
                     pre_warmed += 1
             elif study == "coordination":
-                key = builder.build_key("coordination", "evaluate", builder.hash_system_state(system))
+                key = builder.build_key(
+                    "coordination", "evaluate", builder.hash_system_state(system)
+                )
                 if not self._cache.exists(key):
-                    self._cache.set(key, None, ttl_seconds=TTL_RECOMMENDATIONS["coordination"], tags=["prewarm", "coordination"])
+                    self._cache.set(
+                        key,
+                        None,
+                        ttl_seconds=TTL_RECOMMENDATIONS["coordination"],
+                        tags=["prewarm", "coordination"],
+                    )
                     pre_warmed += 1
         return pre_warmed
 
@@ -392,16 +435,20 @@ class MemoryManager:
             result["process_vms_mb"] = round(mem_info.vms / (1024 * 1024), 2)
             result["system_total_mb"] = round(total / (1024 * 1024), 2)
             result["system_percent"] = psutil.virtual_memory().percent
-            result["cache_utilization"] = round(
-                self._cache._current_size_bytes / self._cache._max_size_bytes * 100, 2
-            ) if self._cache._max_size_bytes > 0 else 0.0
+            result["cache_utilization"] = (
+                round(self._cache._current_size_bytes / self._cache._max_size_bytes * 100, 2)
+                if self._cache._max_size_bytes > 0
+                else 0.0
+            )
         else:
             result["process_rss_mb"] = 0.0
             result["system_percent"] = 0.0
             cache_max = self._cache._max_size_bytes
-            result["cache_utilization"] = round(
-                self._cache._current_size_bytes / cache_max * 100, 2
-            ) if cache_max > 0 else 0.0
+            result["cache_utilization"] = (
+                round(self._cache._current_size_bytes / cache_max * 100, 2)
+                if cache_max > 0
+                else 0.0
+            )
         return result
 
     def evict_if_needed(self, required_mb: int = 0) -> bool:
@@ -416,9 +463,13 @@ class MemoryManager:
             evicted = 0
             while self._cache._entries:
                 cache_util = (
-                    self._cache._current_size_bytes / self._cache._max_size_bytes * 100
-                ) if self._cache._max_size_bytes > 0 else 0
-                if cache_util < 70.0 and (not HAS_PSUTIL or psutil.virtual_memory().percent < self._max_memory_percent):
+                    (self._cache._current_size_bytes / self._cache._max_size_bytes * 100)
+                    if self._cache._max_size_bytes > 0
+                    else 0
+                )
+                if cache_util < 70.0 and (
+                    not HAS_PSUTIL or psutil.virtual_memory().percent < self._max_memory_percent
+                ):
                     break
                 if self._cache._strategy in (CacheStrategy.LRU, CacheStrategy.FIFO):
                     if self._cache._access_order:
@@ -441,7 +492,8 @@ class MemoryManager:
         with self._lock:
             now = time.time()
             expired_keys = [
-                k for k, e in self._cache._entries.items()
+                k
+                for k, e in self._cache._entries.items()
                 if e.expires_at is not None and now > e.expires_at
             ]
             for key in expired_keys:
@@ -466,9 +518,13 @@ class MemoryManager:
         if usage.get("cache_utilization", 0) > 90:
             recs.append("Cache utilization exceeds 90%. Consider increasing max_size_mb.")
         if stats.get("hit_rate", 100) < 50:
-            recs.append(f"Low hit rate ({stats['hit_rate']}%). Review TTL values or caching strategy.")
+            recs.append(
+                f"Low hit rate ({stats['hit_rate']}%). Review TTL values or caching strategy."
+            )
         if usage.get("system_percent", 0) > self._max_memory_percent:
-            recs.append(f"System memory at {usage['system_percent']}% (limit: {self._max_memory_percent}%). Aggressive eviction recommended.")
+            recs.append(
+                f"System memory at {usage['system_percent']}% (limit: {self._max_memory_percent}%). Aggressive eviction recommended."
+            )
         if not recs:
             recs.append("Cache health is good.")
         return recs
@@ -537,5 +593,7 @@ def cached(
             result = func(*args, **kwargs)
             cache.set(cache_key, result, ttl_seconds=ttl_seconds, tags=tags)
             return result
+
         return wrapper
+
     return decorator

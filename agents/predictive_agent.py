@@ -19,8 +19,11 @@ Standards:
 - ISO 55000: Asset Management (predictive maintenance)
 """
 
+from __future__ import annotations
 import logging
-from datetime import UTC, datetime
+from datetime import datetime, timezone
+
+UTC = timezone.utc
 from typing import Any, Dict, List
 
 import numpy as np
@@ -124,14 +127,14 @@ class PredictiveAgent(BaseAgent):
 
         if n < 2 * season_length:
             # Insufficient data for full seasonal model; use simple exponential smoothing
-            return self._simple_exponential_forecast(
-                y, horizon_hours, alpha, confidence_level
-            )
+            return self._simple_exponential_forecast(y, horizon_hours, alpha, confidence_level)
 
         # Initialize components
         # Average of first season for level
         L = np.mean(y[:season_length])
-        T = (np.mean(y[season_length:2 * season_length]) - np.mean(y[:season_length])) / season_length
+        T = (
+            np.mean(y[season_length : 2 * season_length]) - np.mean(y[:season_length])
+        ) / season_length
         S = y[:season_length] - L  # Initial seasonal indices
 
         # Holt-Winters iteration
@@ -151,7 +154,9 @@ class PredictiveAgent(BaseAgent):
         # Calculate in-sample error for confidence bounds
         fitted = []
         L_f = np.mean(y[:season_length])
-        T_f = (np.mean(y[season_length:2 * season_length]) - np.mean(y[:season_length])) / season_length
+        T_f = (
+            np.mean(y[season_length : 2 * season_length]) - np.mean(y[:season_length])
+        ) / season_length
         S_f = y[:season_length] - L_f
         for t in range(season_length, n):
             f_val = L_f + T_f + S_f[t % season_length]
@@ -172,7 +177,7 @@ class PredictiveAgent(BaseAgent):
 
         # Accuracy metrics on in-sample
         mape = float(np.mean(np.abs(errors / (y[season_length:n] + 1e-10)))) * 100.0
-        rmse = float(np.sqrt(np.mean(errors ** 2)))
+        rmse = float(np.sqrt(np.mean(errors**2)))
 
         return {
             "forecast_mw": [round(v, 2) for v in forecast],
@@ -269,8 +274,7 @@ class PredictiveAgent(BaseAgent):
 
         forecast_yr = list(range(last_year + 1, last_year + forecast_years + 1))
         forecast_mw = [
-            last_load * (1.0 + growth_rate_annual) ** (yr - last_year)
-            for yr in forecast_yr
+            last_load * (1.0 + growth_rate_annual) ** (yr - last_year) for yr in forecast_yr
         ]
 
         # Confidence bounds (based on historical variance)
@@ -336,9 +340,7 @@ class PredictiveAgent(BaseAgent):
         # Adjust for condition score: poor condition increases probability
         # Simple adjustment: effective age = age / condition_score
         effective_age = age_years / max(condition_score, 0.1)
-        adjusted_failure_prob = float(
-            1.0 - np.exp(-((effective_age / eta) ** beta))
-        )
+        adjusted_failure_prob = float(1.0 - np.exp(-((effective_age / eta) ** beta)))
 
         # Hazard rate: h(t) = (β/η) × (t/η)^(β-1)
         if age_years > 0:
@@ -409,15 +411,17 @@ class PredictiveAgent(BaseAgent):
             criticality = int(eq.get("criticality", 3))
             risk_score = fp["adjusted_failure_probability"] * criticality
 
-            schedule.append({
-                "name": name,
-                "failure_probability": fp["failure_probability"],
-                "adjusted_failure_probability": fp["adjusted_failure_probability"],
-                "remaining_useful_life_years": fp["remaining_useful_life_years"],
-                "maintenance_priority": fp["maintenance_priority"],
-                "criticality": criticality,
-                "risk_score": round(risk_score, 4),
-            })
+            schedule.append(
+                {
+                    "name": name,
+                    "failure_probability": fp["failure_probability"],
+                    "adjusted_failure_probability": fp["adjusted_failure_probability"],
+                    "remaining_useful_life_years": fp["remaining_useful_life_years"],
+                    "maintenance_priority": fp["maintenance_priority"],
+                    "criticality": criticality,
+                    "risk_score": round(risk_score, 4),
+                }
+            )
 
         # Sort by risk score descending
         schedule.sort(key=lambda x: x["risk_score"], reverse=True)
@@ -432,24 +436,36 @@ class PredictiveAgent(BaseAgent):
             "high_count": high,
         }
 
-    def forecast_short_term_ml(self, historical_load: List[float], horizon_hours: int = 24, method: str = "auto") -> Dict[str, Any]:
+    def forecast_short_term_ml(
+        self, historical_load: List[float], horizon_hours: int = 24, method: str = "auto"
+    ) -> Dict[str, Any]:
         """Short-term load forecasting using Prophet/LSTM/Linear from ml.predictive."""
         from ml.predictive import LoadForecaster
+
         lf = LoadForecaster(method=method)
         data = np.array(historical_load, dtype=float)
         train_result = lf.train(data)
         predictions = lf.predict(horizon_hours=horizon_hours)
         metrics = lf.evaluate(data)
         return {
-            "forecast_mw": predictions.tolist() if hasattr(predictions, 'tolist') else list(predictions),
+            "forecast_mw": predictions.tolist()
+            if hasattr(predictions, "tolist")
+            else list(predictions),
             "method": train_result.get("method", method),
             "metrics": metrics,
             "horizon_hours": horizon_hours,
         }
 
-    def predict_fault_ml(self, features: np.ndarray, labels: np.ndarray | None = None, use_xgboost: bool = True, explain: bool = False) -> Dict[str, Any]:
+    def predict_fault_ml(
+        self,
+        features: np.ndarray,
+        labels: np.ndarray | None = None,
+        use_xgboost: bool = True,
+        explain: bool = False,
+    ) -> Dict[str, Any]:
         """Fault prediction using XGBoost/RandomForest with SHAP explanations."""
         from ml.predictive import FaultPredictor
+
         fp = FaultPredictor(use_xgboost=use_xgboost)
         result = {}
         if labels is not None:
@@ -479,9 +495,7 @@ class PredictiveAgent(BaseAgent):
         self.status = AgentStatus.RUNNING
 
         try:
-            self.log_execution(
-                f"Starting predictive analytics for task {task.task_id}"
-            )
+            self.log_execution(f"Starting predictive analytics for task {task.task_id}")
 
             analysis_type = task.parameters.get("analysis_type", "full")
             results: Dict[str, Any] = {}
@@ -493,8 +507,7 @@ class PredictiveAgent(BaseAgent):
                     # Generate synthetic data for demo
                     hours = 168  # 1 week
                     hist_load = [
-                        100.0 + 30.0 * np.sin(2 * np.pi * h / 24)
-                        + 5.0 * np.random.randn()
+                        100.0 + 30.0 * np.sin(2 * np.pi * h / 24) + 5.0 * np.random.randn()
                         for h in range(hours)
                     ]
                 results["short_term_forecast"] = self.forecast_short_term(
@@ -507,9 +520,9 @@ class PredictiveAgent(BaseAgent):
 
             # --- Long-term load forecast ---
             if analysis_type in ("long_term_forecast", "full"):
-                peaks = task.parameters.get("peak_loads_mw", [
-                    100.0, 103.0, 107.0, 110.0, 114.0, 117.0, 121.0, 125.0
-                ])
+                peaks = task.parameters.get(
+                    "peak_loads_mw", [100.0, 103.0, 107.0, 110.0, 114.0, 117.0, 121.0, 125.0]
+                )
                 yrs = task.parameters.get("years", list(range(2016, 2024)))
                 results["long_term_forecast"] = self.forecast_long_term(
                     peak_loads_mw=peaks,
@@ -529,14 +542,35 @@ class PredictiveAgent(BaseAgent):
 
             # --- Maintenance schedule ---
             if analysis_type in ("maintenance_schedule", "full"):
-                equipment = task.parameters.get("equipment_list", [
-                    {"name": "Transformer T1", "age_years": 25, "weibull_shape": 2.0,
-                     "weibull_scale": 30.0, "condition_score": 0.6, "criticality": 5},
-                    {"name": "Circuit Breaker CB1", "age_years": 15, "weibull_shape": 2.5,
-                     "weibull_scale": 25.0, "condition_score": 0.8, "criticality": 4},
-                    {"name": "Cable C1", "age_years": 10, "weibull_shape": 1.8,
-                     "weibull_scale": 35.0, "condition_score": 0.9, "criticality": 3},
-                ])
+                equipment = task.parameters.get(
+                    "equipment_list",
+                    [
+                        {
+                            "name": "Transformer T1",
+                            "age_years": 25,
+                            "weibull_shape": 2.0,
+                            "weibull_scale": 30.0,
+                            "condition_score": 0.6,
+                            "criticality": 5,
+                        },
+                        {
+                            "name": "Circuit Breaker CB1",
+                            "age_years": 15,
+                            "weibull_shape": 2.5,
+                            "weibull_scale": 25.0,
+                            "condition_score": 0.8,
+                            "criticality": 4,
+                        },
+                        {
+                            "name": "Cable C1",
+                            "age_years": 10,
+                            "weibull_shape": 1.8,
+                            "weibull_scale": 35.0,
+                            "condition_score": 0.9,
+                            "criticality": 3,
+                        },
+                    ],
+                )
                 results["maintenance_schedule"] = self.compute_maintenance_schedule(
                     equipment_list=equipment,
                 )
@@ -547,8 +581,7 @@ class PredictiveAgent(BaseAgent):
                 if not hist_load:
                     hours = 168
                     hist_load = [
-                        100.0 + 30.0 * np.sin(2 * np.pi * h / 24)
-                        + 5.0 * np.random.randn()
+                        100.0 + 30.0 * np.sin(2 * np.pi * h / 24) + 5.0 * np.random.randn()
                         for h in range(hours)
                     ]
                 forecast_method = task.parameters.get("forecast_method", "auto")
@@ -570,7 +603,9 @@ class PredictiveAgent(BaseAgent):
                         explain=task.parameters.get("explain", False),
                     )
                 else:
-                    results["ml_fault_prediction"] = {"error": "fault_features and fault_labels required"}
+                    results["ml_fault_prediction"] = {
+                        "error": "fault_features and fault_labels required"
+                    }
 
             result = AgentResult(
                 agent_name=self.agent_name,
@@ -587,15 +622,11 @@ class PredictiveAgent(BaseAgent):
             execution_time = (datetime.now(UTC) - start_time).total_seconds()
             result.execution_time = execution_time
 
-            self.log_execution(
-                f"Predictive analytics completed in {execution_time:.2f}s"
-            )
+            self.log_execution(f"Predictive analytics completed in {execution_time:.2f}s")
             return result
 
         except Exception as e:
-            self.log_execution(
-                f"Predictive analytics failed: {str(e)}", "ERROR"
-            )
+            self.log_execution(f"Predictive analytics failed: {str(e)}", "ERROR")
             return AgentResult(
                 agent_name=self.agent_name,
                 study_type=task.study_types[0] if task.study_types else StudyType.LOAD_FLOW,

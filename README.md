@@ -22,24 +22,9 @@
   <a href="https://github.com/ahmdelbaz28-ux/AhmedETAP/actions/workflows/ci-cd.yml">
     <img src="https://img.shields.io/github/actions/workflow/status/ahmdelbaz28-ux/AhmedETAP/ci-cd.yml?style=for-the-badge&label=CI/CD" alt="CI/CD">
   </a>
-  <a href="https://github.com/ahmdelbaz28-ux/AhmedETAP/actions/workflows/security.yml">
-    <img src="https://img.shields.io/github/actions/workflow/status/ahmdelbaz28-ux/AhmedETAP/security.yml?style=for-the-badge&label=Security&color=red" alt="Security">
-  </a>
 </p>
 
 <p align="center">
-  <a href="https://github.com/ahmdelbaz28-ux/AhmedETAP/actions/workflows/code-quality.yml">
-    <img src="https://img.shields.io/github/actions/workflow/status/ahmdelbaz28-ux/AhmedETAP/code-quality.yml?style=flat-square&label=Code%20Quality&color=purple" alt="Code Quality">
-  </a>
-  <a href="https://github.com/ahmdelbaz28-ux/AhmedETAP/actions/workflows/docker-build.yml">
-    <img src="https://img.shields.io/github/actions/workflow/status/ahmdelbaz28-ux/AhmedETAP/docker-build.yml?style=flat-square&label=Docker&color=blue" alt="Docker">
-  </a>
-  <a href="https://github.com/ahmdelbaz28-ux/AhmedETAP/actions/workflows/quality-gates.yml">
-    <img src="https://img.shields.io/github/actions/workflow/status/ahmdelbaz28-ux/AhmedETAP/quality-gates.yml?style=flat-square&label=Quality%20Gates" alt="Quality Gates">
-  </a>
-  <a href="https://github.com/ahmdelbaz28-ux/AhmedETAP/actions/workflows/ui-tests.yml">
-    <img src="https://img.shields.io/github/actions/workflow/status/ahmdelbaz28-ux/AhmedETAP/ui-tests.yml?style=flat-square&label=UI%20Tests" alt="UI Tests">
-  </a>
   <a href="https://huggingface.co/spaces/ahmdelbaz28/etap-ai-platform">
     <img src="https://img.shields.io/badge/%F0%9F%A4%97%20Live%20Demo-Hugging%20Face-yellow?style=flat-square" alt="Hugging Face">
   </a>
@@ -186,7 +171,6 @@ git clone https://github.com/<your-username>/AhmedETAP.git
 git checkout -b feat/my-feature
 
 # 3. Make changes and validate
-python validate_syntax.py
 pytest -q
 
 # 4. Commit and push
@@ -212,6 +196,24 @@ git push origin feat/my-feature
 | Phase 8 | 📋 Planned | Cloud deployment (AWS/Azure), multi-tenant |
 
 See [ROADMAP.md](ROADMAP.md) for detailed planning.
+
+---
+
+## Production Entrypoints
+
+| Category | File | Command / Purpose |
+|----------|------|------------------|
+| **Production API** | `engineering_service.py` | `python engineering_service.py --host 0.0.0.0 --port 8000` — Main FastAPI engineering service |
+| **Production Worker** | (Celery) | `celery -A worker.celery_app worker` — Background task worker (requires celery config) |
+| **Database Migration** | `alembic upgrade head` | `alembic upgrade head` — Apply pending database migrations |
+| **Dev / Testing** | `scripts/dev/main.py` | Demonstration 3-bus power system example |
+| **Dev / Testing** | `scripts/dev/validation_suite.py` | Engineering validation against IEEE test systems |
+| **Dev / Testing** | `scripts/dev/validation_campaign.py` | Full verification and validation campaign |
+| **Dev / Testing** | `run_complete_setup.py` | Automated setup and test script (CI use) |
+| **Dev / Testing** | `scripts/validate_syntax.py` | Python syntax validation across all files |
+| **Dev / Testing** | `scripts/security_scan.py` | Hardcoded secrets scanner |
+| **Security** | `scripts/set-llm-secrets.sh` | Set LLM API keys as Cloudflare Worker secrets |
+| **Security** | `scripts/verify-secrets.sh` | Verify all required secrets are configured |
 
 ---
 

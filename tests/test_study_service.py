@@ -21,20 +21,20 @@ def test_execute_study_logic_basic(sample_study_request):
     assert result.success is True
     assert result.study_type == "load_flow"
     assert result.trace_id == "test-trace-id"
-    assert hasattr(result, 'results')
+    assert hasattr(result, "results")
 
 
 def test_execute_study_logic_invalid_network(sample_3bus_network):
     """Test study execution with an invalid network (missing slack bus)."""
     # Create an invalid network without a slack bus
     invalid_network = sample_3bus_network.copy()
-    invalid_network['buses'] = [bus for bus in invalid_network['buses'] if bus.bus_type != 'slack']
+    invalid_network["buses"] = [bus for bus in invalid_network["buses"] if bus.bus_type != "slack"]
 
     # Create a study request with the invalid network
     invalid_request = StudyRequest(
         study_type="load_flow",
         system_spec=SystemSpec(**invalid_network),
-        parameters={"tolerance": 1e-6, "max_iterations": 50}
+        parameters={"tolerance": 1e-6, "max_iterations": 50},
     )
 
     # Execute the study and expect failure
@@ -50,7 +50,7 @@ def test_execute_study_logic_different_types(sample_3bus_network):
     base_request = StudyRequest(
         study_type="load_flow",
         system_spec=SystemSpec(**sample_3bus_network),
-        parameters={"tolerance": 1e-6, "max_iterations": 50}
+        parameters={"tolerance": 1e-6, "max_iterations": 50},
     )
 
     # Test different study types
@@ -68,7 +68,7 @@ def test_execute_study_logic_with_parameters(sample_3bus_network):
     base_request = StudyRequest(
         study_type="load_flow",
         system_spec=SystemSpec(**sample_3bus_network),
-        parameters={"tolerance": 1e-8, "max_iterations": 100}
+        parameters={"tolerance": 1e-8, "max_iterations": 100},
     )
 
     result = execute_study_logic(base_request, "test-trace-params", 0.0)
@@ -83,7 +83,7 @@ def test_execute_study_logic_large_network(sample_ieee14_network):
     request = StudyRequest(
         study_type="load_flow",
         system_spec=SystemSpec(**sample_ieee14_network),
-        parameters={"tolerance": 1e-6, "max_iterations": 50}
+        parameters={"tolerance": 1e-6, "max_iterations": 50},
     )
 
     result = execute_study_logic(request, "test-trace-large", 0.0)

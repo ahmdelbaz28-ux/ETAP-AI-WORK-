@@ -6,6 +6,7 @@ Every ACP error carries a JSON-RPC 2.0 error code. The codes -32700 to
 
 Layer rule: only these errors (plus stdlib exceptions) may leave a layer.
 """
+
 from __future__ import annotations
 
 __all__ = [

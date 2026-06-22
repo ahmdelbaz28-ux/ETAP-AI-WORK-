@@ -12,6 +12,7 @@ Covers:
     * Auth failure maps to -32005 AuthenticationRequired
     * Audit entries for success, error, denied, notification
 """
+
 from __future__ import annotations
 
 import json
@@ -37,6 +38,7 @@ from acp.security.auth import AuthenticationRequired
 
 # ------------------------------------------------------- test handlers
 
+
 class MathHandler:
     @capability("math.sum", scopes=("math.read",))
     async def sum(self, a: int, b: int) -> int:
@@ -49,6 +51,7 @@ class MathHandler:
 
 
 # ------------------------------------------------------- HmacTokenValidator
+
 
 class TestHmacTokenValidator:
     def _make(self, secret: str = "secret", ttl: int = 3600) -> HmacTokenValidator:
@@ -88,21 +91,15 @@ class TestHmacTokenValidator:
             AuthConfig(secret_key="secret", issuer="wrong-server")
         )
         token = issuer_validator.issue("alice", {"math.read"})
-        validator = HmacTokenValidator(
-            AuthConfig(secret_key="secret", issuer="acp-server")
-        )
+        validator = HmacTokenValidator(AuthConfig(secret_key="secret", issuer="acp-server"))
         with pytest.raises(AuthenticationRequired):
             validator.validate(token)
 
     def test_audience_mismatch(self):
         # Issue with one audience, validate with another
-        aud_validator = HmacTokenValidator(
-            AuthConfig(secret_key="secret", audience="wrong-client")
-        )
+        aud_validator = HmacTokenValidator(AuthConfig(secret_key="secret", audience="wrong-client"))
         token = aud_validator.issue("alice", {"math.read"})
-        validator = HmacTokenValidator(
-            AuthConfig(secret_key="secret", audience="acp-client")
-        )
+        validator = HmacTokenValidator(AuthConfig(secret_key="secret", audience="acp-client"))
         with pytest.raises(AuthenticationRequired):
             validator.validate(token)
 
@@ -134,6 +131,7 @@ class TestHmacTokenValidator:
 
 # ------------------------------------------------------- CallerIdentity
 
+
 class TestCallerIdentity:
     def test_repr(self):
         ci = CallerIdentity("u1", {"a", "b"})
@@ -149,6 +147,7 @@ class TestCallerIdentity:
 
 
 # ------------------------------------------------------- Header helpers
+
 
 class TestHeaderHelpers:
     def test_extract_bearer_token(self):
@@ -179,6 +178,7 @@ class TestHeaderHelpers:
 
 # ------------------------------------------------------- AuditEntry
 
+
 class TestAuditEntry:
     def test_to_json(self):
         entry = AuditEntry(
@@ -202,6 +202,7 @@ class TestAuditEntry:
 
 
 # ------------------------------------------------------- InMemoryAuditLogger
+
 
 @pytest.mark.anyio
 async def test_in_memory_audit_logger():
@@ -255,6 +256,7 @@ async def test_in_memory_audit_logger_thread_safety():
 
 # ------------------------------------------------------- NDJSONAuditLogger
 
+
 @pytest.mark.anyio
 async def test_ndjson_audit_logger():
     with tempfile.TemporaryDirectory() as tmp:
@@ -277,6 +279,7 @@ async def test_ndjson_audit_logger():
 
 # ------------------------------------------------------- Router + Auth integration
 
+
 @pytest.mark.anyio
 async def test_router_with_valid_auth():
     runtime = AcpRuntime([MathHandler()])
@@ -291,14 +294,16 @@ async def test_router_with_valid_auth():
             audit_logger=audit,
         ),
     )
-    resp = await router.handle({
-        "jsonrpc": "2.0",
-        "id": "req-auth-1",
-        "method": "math.sum",
-        "params": {"a": 1, "b": 2},
-        "capability": "math.sum",
-        "trace_id": token,
-    })
+    resp = await router.handle(
+        {
+            "jsonrpc": "2.0",
+            "id": "req-auth-1",
+            "method": "math.sum",
+            "params": {"a": 1, "b": 2},
+            "capability": "math.sum",
+            "trace_id": token,
+        }
+    )
     assert resp["result"] == 3
     assert len(audit.entries) == 1
     assert audit.entries[0].caller_id == "alice"
@@ -318,14 +323,16 @@ async def test_router_with_invalid_auth():
             audit_logger=audit,
         ),
     )
-    resp = await router.handle({
-        "jsonrpc": "2.0",
-        "id": "req-auth-2",
-        "method": "math.sum",
-        "params": {"a": 1, "b": 2},
-        "capability": "math.sum",
-        "trace_id": "bad-token",
-    })
+    resp = await router.handle(
+        {
+            "jsonrpc": "2.0",
+            "id": "req-auth-2",
+            "method": "math.sum",
+            "params": {"a": 1, "b": 2},
+            "capability": "math.sum",
+            "trace_id": "bad-token",
+        }
+    )
     assert resp["error"]["code"] == -32005
     assert len(audit.entries) == 1
     assert audit.entries[0].outcome == "denied"
@@ -345,14 +352,16 @@ async def test_router_auth_missing_token():
             audit_logger=audit,
         ),
     )
-    resp = await router.handle({
-        "jsonrpc": "2.0",
-        "id": "req-auth-3",
-        "method": "math.sum",
-        "params": {"a": 1, "b": 2},
-        "capability": "math.sum",
-        "trace_id": "",
-    })
+    resp = await router.handle(
+        {
+            "jsonrpc": "2.0",
+            "id": "req-auth-3",
+            "method": "math.sum",
+            "params": {"a": 1, "b": 2},
+            "capability": "math.sum",
+            "trace_id": "",
+        }
+    )
     assert resp["error"]["code"] == -32005
     assert len(audit.entries) == 1
     assert audit.entries[0].outcome == "denied"
@@ -369,13 +378,15 @@ async def test_router_no_auth_bypass():
             audit_logger=audit,
         ),
     )
-    resp = await router.handle({
-        "jsonrpc": "2.0",
-        "id": "req-auth-4",
-        "method": "math.sum",
-        "params": {"a": 3, "b": 4},
-        "capability": "math.sum",
-    })
+    resp = await router.handle(
+        {
+            "jsonrpc": "2.0",
+            "id": "req-auth-4",
+            "method": "math.sum",
+            "params": {"a": 3, "b": 4},
+            "capability": "math.sum",
+        }
+    )
     assert resp["result"] == 7
     assert len(audit.entries) == 1
     assert audit.entries[0].caller_id == ""
@@ -396,14 +407,16 @@ async def test_router_require_auth_for_public():
         ),
     )
     # Without token, public capability should be denied
-    resp = await router.handle({
-        "jsonrpc": "2.0",
-        "id": "req-auth-5",
-        "method": "math.identity",
-        "params": {"x": 1},
-        "capability": "math.public",
-        "trace_id": "",
-    })
+    resp = await router.handle(
+        {
+            "jsonrpc": "2.0",
+            "id": "req-auth-5",
+            "method": "math.identity",
+            "params": {"x": 1},
+            "capability": "math.public",
+            "trace_id": "",
+        }
+    )
     assert resp["error"]["code"] == -32005
     assert len(audit.entries) == 1
     assert audit.entries[0].outcome == "denied"
@@ -411,14 +424,16 @@ async def test_router_require_auth_for_public():
     # With valid token, public capability should succeed
     token = validator.issue("bob", {"math.read"})
     audit.clear()
-    resp = await router.handle({
-        "jsonrpc": "2.0",
-        "id": "req-auth-6",
-        "method": "math.identity",
-        "params": {"x": 2},
-        "capability": "math.public",
-        "trace_id": token,
-    })
+    resp = await router.handle(
+        {
+            "jsonrpc": "2.0",
+            "id": "req-auth-6",
+            "method": "math.identity",
+            "params": {"x": 2},
+            "capability": "math.public",
+            "trace_id": token,
+        }
+    )
     assert resp["result"] == 2
     assert len(audit.entries) == 1
     assert audit.entries[0].outcome == "success"
@@ -441,14 +456,16 @@ async def test_router_auth_with_scope_merge():
     )
     # Token provides math.read, config provides text.read
     # math.sum requires math.read → should succeed
-    resp = await router.handle({
-        "jsonrpc": "2.0",
-        "id": "req-auth-7",
-        "method": "math.sum",
-        "params": {"a": 5, "b": 6},
-        "capability": "math.sum",
-        "trace_id": token,
-    })
+    resp = await router.handle(
+        {
+            "jsonrpc": "2.0",
+            "id": "req-auth-7",
+            "method": "math.sum",
+            "params": {"a": 5, "b": 6},
+            "capability": "math.sum",
+            "trace_id": token,
+        }
+    )
     assert resp["result"] == 11
 
 
@@ -464,13 +481,15 @@ async def test_router_audit_on_error():
         ),
     )
     # Unknown capability
-    resp = await router.handle({
-        "jsonrpc": "2.0",
-        "id": "req-audit-1",
-        "method": "math.nope",
-        "params": {},
-        "capability": "math.nope",
-    })
+    resp = await router.handle(
+        {
+            "jsonrpc": "2.0",
+            "id": "req-audit-1",
+            "method": "math.nope",
+            "params": {},
+            "capability": "math.nope",
+        }
+    )
     assert resp["error"]["code"] == -32002
     assert len(audit.entries) == 1
     assert audit.entries[0].outcome == "error"
@@ -488,13 +507,15 @@ async def test_router_audit_on_scope_denied():
             audit_logger=audit,
         ),
     )
-    resp = await router.handle({
-        "jsonrpc": "2.0",
-        "id": "req-audit-2",
-        "method": "math.sum",
-        "params": {"a": 1, "b": 2},
-        "capability": "math.sum",
-    })
+    resp = await router.handle(
+        {
+            "jsonrpc": "2.0",
+            "id": "req-audit-2",
+            "method": "math.sum",
+            "params": {"a": 1, "b": 2},
+            "capability": "math.sum",
+        }
+    )
     assert resp["error"]["code"] == -32003
     assert len(audit.entries) == 1
     assert audit.entries[0].outcome == "denied"
@@ -511,11 +532,13 @@ async def test_router_audit_on_notification():
             audit_logger=audit,
         ),
     )
-    result = await router.handle({
-        "jsonrpc": "2.0",
-        "method": "progress.update",
-        "params": {"percent": 50},
-    })
+    result = await router.handle(
+        {
+            "jsonrpc": "2.0",
+            "method": "progress.update",
+            "params": {"percent": 50},
+        }
+    )
     assert result is None
     assert len(audit.entries) == 1
     assert audit.entries[0].outcome == "notification"
@@ -530,13 +553,15 @@ async def test_router_audit_disabled():
             caller_scopes={"math.read"},
         ),
     )
-    resp = await router.handle({
-        "jsonrpc": "2.0",
-        "id": "req-audit-3",
-        "method": "math.sum",
-        "params": {"a": 1, "b": 2},
-        "capability": "math.sum",
-    })
+    resp = await router.handle(
+        {
+            "jsonrpc": "2.0",
+            "id": "req-audit-3",
+            "method": "math.sum",
+            "params": {"a": 1, "b": 2},
+            "capability": "math.sum",
+        }
+    )
     assert resp["result"] == 3
     # No audit logger configured → no entries, no crash
 
@@ -558,25 +583,29 @@ async def test_router_auth_async_validator():
             audit_logger=audit,
         ),
     )
-    resp = await router.handle({
-        "jsonrpc": "2.0",
-        "id": "req-async-1",
-        "method": "math.sum",
-        "params": {"a": 1, "b": 2},
-        "capability": "math.sum",
-        "trace_id": "async-token",
-    })
+    resp = await router.handle(
+        {
+            "jsonrpc": "2.0",
+            "id": "req-async-1",
+            "method": "math.sum",
+            "params": {"a": 1, "b": 2},
+            "capability": "math.sum",
+            "trace_id": "async-token",
+        }
+    )
     assert resp["result"] == 3
     assert audit.entries[0].caller_id == "async-user"
 
-    resp = await router.handle({
-        "jsonrpc": "2.0",
-        "id": "req-async-2",
-        "method": "math.sum",
-        "params": {"a": 1, "b": 2},
-        "capability": "math.sum",
-        "trace_id": "bad",
-    })
+    resp = await router.handle(
+        {
+            "jsonrpc": "2.0",
+            "id": "req-async-2",
+            "method": "math.sum",
+            "params": {"a": 1, "b": 2},
+            "capability": "math.sum",
+            "trace_id": "bad",
+        }
+    )
     assert resp["error"]["code"] == -32005
 
 
@@ -595,14 +624,16 @@ async def test_router_auth_exception_becomes_auth_required():
             audit_logger=audit,
         ),
     )
-    resp = await router.handle({
-        "jsonrpc": "2.0",
-        "id": "req-crash",
-        "method": "math.sum",
-        "params": {"a": 1, "b": 2},
-        "capability": "math.sum",
-        "trace_id": "any",
-    })
+    resp = await router.handle(
+        {
+            "jsonrpc": "2.0",
+            "id": "req-crash",
+            "method": "math.sum",
+            "params": {"a": 1, "b": 2},
+            "capability": "math.sum",
+            "trace_id": "any",
+        }
+    )
     assert resp["error"]["code"] == -32005
     assert "validator crashed" in resp["error"]["message"]
     assert audit.entries[0].outcome == "denied"

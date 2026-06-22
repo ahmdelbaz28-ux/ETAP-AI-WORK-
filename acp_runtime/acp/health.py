@@ -14,6 +14,7 @@ capabilities:
 All capabilities are public (no scopes required) so they can be used
 by monitoring tools and load balancers without authentication.
 """
+
 from __future__ import annotations
 
 import time
@@ -120,6 +121,7 @@ class HealthHandler:
         """
         if self._metrics is not None and hasattr(self._metrics, "snapshot"):
             from acp.observability.metrics import to_openmetrics
+
             return to_openmetrics(self._metrics.snapshot())
         return "# EOF"
 

@@ -18,8 +18,11 @@ Standards:
 - IEC 60034: Rotating Electrical Machines
 """
 
+from __future__ import annotations
 import logging
-from datetime import UTC, datetime
+from datetime import datetime, timezone
+
+UTC = timezone.utc
 from typing import Any, Dict, List
 
 import numpy as np
@@ -34,24 +37,36 @@ logger = logging.getLogger(__name__)
 # ---------------------------------------------------------------------------
 
 _NEMA_CODE_LETTERS: Dict[str, tuple] = {
-    "A": (0.0, 3.15), "B": (3.15, 3.55), "C": (3.55, 4.0),
-    "D": (4.0, 4.5), "E": (4.5, 5.0), "F": (5.0, 5.6),
-    "G": (5.6, 6.3), "H": (6.3, 7.1), "J": (7.1, 8.0),
-    "K": (8.0, 9.0), "L": (9.0, 10.0), "M": (10.0, 11.2),
-    "N": (11.2, 12.5), "P": (12.5, 14.0), "R": (14.0, 16.0),
-    "S": (16.0, 18.0), "T": (18.0, 20.0), "U": (20.0, 22.4),
+    "A": (0.0, 3.15),
+    "B": (3.15, 3.55),
+    "C": (3.55, 4.0),
+    "D": (4.0, 4.5),
+    "E": (4.5, 5.0),
+    "F": (5.0, 5.6),
+    "G": (5.6, 6.3),
+    "H": (6.3, 7.1),
+    "J": (7.1, 8.0),
+    "K": (8.0, 9.0),
+    "L": (9.0, 10.0),
+    "M": (10.0, 11.2),
+    "N": (11.2, 12.5),
+    "P": (12.5, 14.0),
+    "R": (14.0, 16.0),
+    "S": (16.0, 18.0),
+    "T": (18.0, 20.0),
+    "U": (20.0, 22.4),
     "V": (22.4, float("inf")),
 }
 
 # Typical locked-rotor current multiplier (LRA/FLA) by starting method
 _LR_MULTIPLIERS: Dict[str, float] = {
-    "DOL": 6.0,           # Direct-On-Line
-    "star_delta": 2.0,    # Star-Delta (current = 1/3 of DOL)
+    "DOL": 6.0,  # Direct-On-Line
+    "star_delta": 2.0,  # Star-Delta (current = 1/3 of DOL)
     "autotransformer_80": 3.84,  # Auto-transformer 80% tap
     "autotransformer_65": 2.54,  # Auto-transformer 65% tap
     "autotransformer_50": 1.50,  # Auto-transformer 50% tap
     "soft_starter": 3.0,  # Typical soft starter
-    "VFD": 1.5,           # Variable Frequency Drive
+    "VFD": 1.5,  # Variable Frequency Drive
 }
 
 
@@ -149,12 +164,12 @@ class MotorStartingAgent(BaseAgent):
         # All methods scale from the DOL LRA computed above
         method_current_ratios: Dict[str, float] = {
             "DOL": 1.0,
-            "star_delta": 1.0 / 3.0,   # Current = 1/3 of DOL line current
+            "star_delta": 1.0 / 3.0,  # Current = 1/3 of DOL line current
             "autotransformer_80": 0.64,  # 0.8² × DOL (tap ratio squared)
             "autotransformer_65": 0.42,  # 0.65² × DOL
             "autotransformer_50": 0.25,  # 0.5² × DOL
-            "soft_starter": 0.50,        # Typical 50% of DOL
-            "VFD": 0.25,                # VFD limits starting current to ~25% of DOL
+            "soft_starter": 0.50,  # Typical 50% of DOL
+            "VFD": 0.25,  # VFD limits starting current to ~25% of DOL
         }
 
         current_ratio = method_current_ratios.get(starting_method, 1.0)
@@ -213,7 +228,7 @@ class MotorStartingAgent(BaseAgent):
         # Motor starting impedance in per-unit
         # Z_motor_start = V_rated / (√3 × I_LR) converted to pu on system base
         z_motor_ohm = motor_rated_voltage_v / (np.sqrt(3) * motor_starting_current_a)
-        z_base_ohm = (motor_rated_voltage_v ** 2) / (motor_rated_mva * 1e6)
+        z_base_ohm = (motor_rated_voltage_v**2) / (motor_rated_mva * 1e6)
         # Per-unit base conversion: Z_pu_new = Z_pu_old × (S_base_new / S_base_old)
         # when voltage bases are equal.  Here S_base_new = system_base_mva,
         # S_base_old = motor_rated_mva.
@@ -460,9 +475,7 @@ class MotorStartingAgent(BaseAgent):
             execution_time = (datetime.now(UTC) - start_time).total_seconds()
             result.execution_time = execution_time
 
-            self.log_execution(
-                f"Motor starting analysis completed in {execution_time:.2f}s"
-            )
+            self.log_execution(f"Motor starting analysis completed in {execution_time:.2f}s")
             return result
 
         except Exception as e:

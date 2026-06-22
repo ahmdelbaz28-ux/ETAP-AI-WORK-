@@ -9,6 +9,7 @@ ACP extensions on top of vanilla JSON-RPC 2.0:
     * ``trace_id``     — opaque correlation id (logging / tracing)
     * ``deadline_ms``  — hard timeout for the request
 """
+
 from __future__ import annotations
 
 from typing import Any
@@ -27,6 +28,7 @@ __all__ = [
 
 # ------------------------------------------------------------------ Error
 
+
 class JsonRpcError(BaseModel):
     """JSON-RPC 2.0 error object."""
 
@@ -38,6 +40,7 @@ class JsonRpcError(BaseModel):
 
 
 # ------------------------------------------------------------------ Request
+
 
 class JsonRpcRequest(BaseModel):
     """JSON-RPC 2.0 request with ACP extensions.
@@ -60,6 +63,7 @@ class JsonRpcRequest(BaseModel):
 
 
 # ------------------------------------------------------------------ Response
+
 
 class JsonRpcResponse(BaseModel):
     """JSON-RPC 2.0 response.
@@ -86,6 +90,7 @@ class JsonRpcResponse(BaseModel):
 
 # ------------------------------------------------------------------ Notification
 
+
 class JsonRpcNotification(BaseModel):
     """JSON-RPC 2.0 notification (no ``id`` field).
 
@@ -105,5 +110,3 @@ class JsonRpcNotification(BaseModel):
     capability: str | None = Field(default=None, max_length=128)
     trace_id: str = Field(default="", max_length=512)
     deadline_ms: int | None = Field(default=None, ge=1, le=600_000)
-
-

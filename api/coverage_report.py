@@ -34,22 +34,23 @@ import os
 import re
 import sys
 from dataclasses import asdict, dataclass, field
-from enum import StrEnum
+from compat import StrEnum
 from typing import Any, Dict, List, Set
 
 # ---------------------------------------------------------------------------
 # Data structures
 # ---------------------------------------------------------------------------
 
+
 class CoverageLevel(StrEnum):
     """Coverage quality rating."""
 
-    EXCELLENT = "excellent"   # >= 90%
-    GOOD = "good"             # >= 70%
-    FAIR = "fair"             # >= 50%
-    POOR = "poor"             # >= 25%
-    CRITICAL = "critical"     # < 25%
-    NONE = "none"             # 0%
+    EXCELLENT = "excellent"  # >= 90%
+    GOOD = "good"  # >= 70%
+    FAIR = "fair"  # >= 50%
+    POOR = "poor"  # >= 25%
+    CRITICAL = "critical"  # < 25%
+    NONE = "none"  # 0%
 
 
 @dataclass
@@ -58,7 +59,7 @@ class FunctionInfo:
 
     name: str
     qualname: str  # e.g. "PowerSystemEngine.run_load_flow"
-    module: str    # e.g. "engine.engine"
+    module: str  # e.g. "engine.engine"
     file_path: str
     line_number: int
     is_async: bool = False
@@ -225,6 +226,7 @@ _SUGGESTION_TEMPLATES: Dict[str, List[str]] = {
 # AST-based function extractor
 # ---------------------------------------------------------------------------
 
+
 class _FunctionExtractor(ast.NodeVisitor):
     """Walk the AST and collect all function/method definitions."""
 
@@ -250,7 +252,9 @@ class _FunctionExtractor(ast.NodeVisitor):
         self._add_function(node, is_async=True)
         self.generic_visit(node)
 
-    def _add_function(self, node: ast.FunctionDef | ast.AsyncFunctionDef, *, is_async: bool) -> None:
+    def _add_function(
+        self, node: ast.FunctionDef | ast.AsyncFunctionDef, *, is_async: bool
+    ) -> None:
         """Record a function/method from the AST."""
         # Skip dunder methods (they are typically infrastructure)
         if node.name.startswith("__") and node.name.endswith("__"):
@@ -297,6 +301,7 @@ class _FunctionExtractor(ast.NodeVisitor):
 # Test-name matching strategies
 # ---------------------------------------------------------------------------
 
+
 def _normalize_name(name: str) -> str:
     """Normalize a function name for fuzzy matching.
 
@@ -342,6 +347,7 @@ def _generate_test_patterns(func: FunctionInfo) -> List[str]:
 # Main analyzer
 # ---------------------------------------------------------------------------
 
+
 class CoverageAnalyzer:
     """Analyze test coverage across the entire project.
 
@@ -364,9 +370,7 @@ class CoverageAnalyzer:
                 Defaults to the directory containing this file's parent.
         """
         if project_root is None:
-            project_root = os.path.dirname(
-                os.path.dirname(os.path.abspath(__file__))
-            )
+            project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
         self.project_root = os.path.abspath(project_root)
         self._source_files: List[str] = []
         self._test_files: List[str] = []
@@ -417,9 +421,20 @@ class CoverageAnalyzer:
 
         # Directories to skip
         skip_dirs = {
-            ".git", "__pycache__", "node_modules", ".venv", "venv",
-            ".tox", ".mypy_cache", ".pytest_cache", "dist", "build",
-            "egg-info", ".eggs", ".ruff_cache", "acp_runtime",
+            ".git",
+            "__pycache__",
+            "node_modules",
+            ".venv",
+            "venv",
+            ".tox",
+            ".mypy_cache",
+            ".pytest_cache",
+            "dist",
+            "build",
+            "egg-info",
+            ".eggs",
+            ".ruff_cache",
+            "acp_runtime",
         }
 
         for dirpath, dirnames, filenames in os.walk(self.project_root):
@@ -627,7 +642,10 @@ class CoverageAnalyzer:
 
         # If the function is in engineering_service and its name suggests an endpoint
         if "engineering_service" in func.module:
-            if any(kw in func.name for kw in ("predict", "query", "get_", "submit_", "run_", "validate_")):
+            if any(
+                kw in func.name
+                for kw in ("predict", "query", "get_", "submit_", "run_", "validate_")
+            ):
                 return "endpoint"
 
         # Integration module functions
@@ -649,7 +667,9 @@ class CoverageAnalyzer:
         total_functions = sum(m.total_functions for m in modules)
         tested_functions = sum(m.tested_functions for m in modules)
         untested_functions = total_functions - tested_functions
-        overall_percent = (tested_functions / total_functions * 100.0) if total_functions > 0 else 0.0
+        overall_percent = (
+            (tested_functions / total_functions * 100.0) if total_functions > 0 else 0.0
+        )
 
         # Identify critical gaps (modules on the watch list with low coverage)
         critical_gaps = self._identify_critical_gaps(modules)
@@ -677,31 +697,40 @@ class CoverageAnalyzer:
         for mc in modules:
             for known_module, known_funcs in _KNOWN_LOW_COVERAGE.items():
                 # Match by module base name or full module path
-                if mc.module != known_module and mc.module.split(".")[-1] != known_module.split(".")[-1]:
+                if (
+                    mc.module != known_module
+                    and mc.module.split(".")[-1] != known_module.split(".")[-1]
+                ):
                     continue
 
                 for func_name in known_funcs:
                     # Find the function in the module
-                    matching = [f for f in mc.functions if f.name == func_name or f.class_name == func_name]
+                    matching = [
+                        f for f in mc.functions if f.name == func_name or f.class_name == func_name
+                    ]
                     if not matching:
                         # Function doesn't exist in the code yet (e.g., motor_starting dispatch)
-                        gaps.append({
-                            "module": known_module,
-                            "function_or_class": func_name,
-                            "issue": "NOT IMPLEMENTED — function/class not found in source",
-                            "severity": "critical",
-                            "recommendation": f"Implement {func_name} in {known_module} and add corresponding tests",
-                        })
+                        gaps.append(
+                            {
+                                "module": known_module,
+                                "function_or_class": func_name,
+                                "issue": "NOT IMPLEMENTED — function/class not found in source",
+                                "severity": "critical",
+                                "recommendation": f"Implement {func_name} in {known_module} and add corresponding tests",
+                            }
+                        )
                     else:
                         for func in matching:
                             if not func.has_test:
-                                gaps.append({
-                                    "module": known_module,
-                                    "function": func.qualname,
-                                    "issue": "NO TEST COVERAGE",
-                                    "severity": "high",
-                                    "recommendation": f"Add tests for {func.qualname} — it is on the explicit low-coverage watch list",
-                                })
+                                gaps.append(
+                                    {
+                                        "module": known_module,
+                                        "function": func.qualname,
+                                        "issue": "NO TEST COVERAGE",
+                                        "severity": "high",
+                                        "recommendation": f"Add tests for {func.qualname} — it is on the explicit low-coverage watch list",
+                                    }
+                                )
 
         return gaps
 
@@ -721,18 +750,20 @@ class CoverageAnalyzer:
             if not untested:
                 continue
 
-            suggestions.append({
-                "priority": "high" if mc.coverage_percent < 25 else "medium",
-                "module": mc.module,
-                "current_coverage": round(mc.coverage_percent, 1),
-                "untested_count": len(untested),
-                "top_untested": [f.qualname for f in untested[:5]],
-                "suggested_actions": [
-                    f"Create test file: tests/test_{mc.module.split('.')[-1]}.py"
-                    if mc.coverage_percent == 0 else
-                    f"Expand existing tests for {mc.module}",
-                ],
-            })
+            suggestions.append(
+                {
+                    "priority": "high" if mc.coverage_percent < 25 else "medium",
+                    "module": mc.module,
+                    "current_coverage": round(mc.coverage_percent, 1),
+                    "untested_count": len(untested),
+                    "top_untested": [f.qualname for f in untested[:5]],
+                    "suggested_actions": [
+                        f"Create test file: tests/test_{mc.module.split('.')[-1]}.py"
+                        if mc.coverage_percent == 0
+                        else f"Expand existing tests for {mc.module}",
+                    ],
+                }
+            )
 
         return suggestions
 
@@ -740,6 +771,7 @@ class CoverageAnalyzer:
 # ---------------------------------------------------------------------------
 # CLI entrypoint
 # ---------------------------------------------------------------------------
+
 
 async def _main() -> None:
     """CLI entrypoint for running the coverage analyzer."""
@@ -788,7 +820,10 @@ async def _main() -> None:
             print(f"Total Functions:   {report.total_functions}", file=out)
             print(f"Tested:            {report.tested_functions}", file=out)
             print(f"Untested:          {report.untested_functions}", file=out)
-            print(f"Overall Coverage:  {report.overall_coverage_percent:.1f}% ({report.overall_level.value})", file=out)
+            print(
+                f"Overall Coverage:  {report.overall_coverage_percent:.1f}% ({report.overall_level.value})",
+                file=out,
+            )
             print(file=out)
 
             # Critical gaps

@@ -40,7 +40,7 @@ def main():
         host=host,
         port=port,
         log_level="info",
-        reload=os.environ.get("ENVIRONMENT", "development").lower() == "development"
+        reload=os.environ.get("ENVIRONMENT", "development").lower() == "development",
     )
 
 

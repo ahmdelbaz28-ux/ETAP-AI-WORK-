@@ -17,7 +17,9 @@ Standards:
 """
 
 import logging
-from datetime import UTC, datetime
+from datetime import datetime, timezone
+
+UTC = timezone.utc
 from typing import Any, Dict, List, Tuple
 
 import numpy as np
@@ -133,9 +135,7 @@ class RenewableAgent(BaseAgent):
 
         if temperature_C is None:
             # Synthetic temperature: sinusoidal daily pattern
-            temperature_C = 20.0 + 10.0 * np.sin(
-                2.0 * np.pi * (np.arange(hours) - 2200) / hours
-            )
+            temperature_C = 20.0 + 10.0 * np.sin(2.0 * np.pi * (np.arange(hours) - 2200) / hours)
         else:
             temperature_C = np.asarray(temperature_C, dtype=float)
 
@@ -157,10 +157,12 @@ class RenewableAgent(BaseAgent):
         clipping_loss_kw = P_ac_pre_loss - P_ac_clipped
 
         # System losses
-        loss_factor = (1.0 - soiling_loss_pct / 100.0) * \
-                      (1.0 - mismatch_loss_pct / 100.0) * \
-                      (1.0 - wiring_loss_pct / 100.0) * \
-                      (availability_pct / 100.0)
+        loss_factor = (
+            (1.0 - soiling_loss_pct / 100.0)
+            * (1.0 - mismatch_loss_pct / 100.0)
+            * (1.0 - wiring_loss_pct / 100.0)
+            * (availability_pct / 100.0)
+        )
 
         P_ac_final = P_ac_clipped * loss_factor
 
@@ -190,7 +192,9 @@ class RenewableAgent(BaseAgent):
             "peak_output_kw": float(np.max(P_ac_final)),
             "hours_at_peak": int(np.sum(P_ac_final >= 0.99 * np.max(P_ac_final))),
             "losses": {
-                "temperature_loss_kwh": float(total_dc_energy - np.sum(dc_capacity_kw * (irradiance_kw_m2 / G_stc))),
+                "temperature_loss_kwh": float(
+                    total_dc_energy - np.sum(dc_capacity_kw * (irradiance_kw_m2 / G_stc))
+                ),
                 "inverter_loss_kwh": float(inverter_loss),
                 "clipping_loss_kwh": float(clipping_energy),
                 "system_losses_kwh": float(system_losses),
@@ -201,7 +205,7 @@ class RenewableAgent(BaseAgent):
                 "availability_pct": availability_pct,
             },
             "monthly_energy_kwh": [
-                float(np.sum(P_ac_final[(m * 730):min((m + 1) * 730, hours)])) for m in range(12)
+                float(np.sum(P_ac_final[(m * 730) : min((m + 1) * 730, hours)])) for m in range(12)
             ],
         }
 
@@ -224,8 +228,9 @@ class RenewableAgent(BaseAgent):
         dec_rad = np.radians(declination)
         ha_rad = np.radians(hour_angle)
 
-        sin_elev = (np.sin(lat_rad) * np.sin(dec_rad) +
-                    np.cos(lat_rad) * np.cos(dec_rad) * np.cos(ha_rad))
+        sin_elev = np.sin(lat_rad) * np.sin(dec_rad) + np.cos(lat_rad) * np.cos(dec_rad) * np.cos(
+            ha_rad
+        )
         elevation = np.arcsin(np.clip(sin_elev, -1, 1))
 
         # Clear-sky irradiance on horizontal plane
@@ -239,7 +244,8 @@ class RenewableAgent(BaseAgent):
         tilt_rad = np.radians(tilt_deg)
         tilt_factor = np.clip(
             np.cos(tilt_rad) + np.sin(tilt_rad) * np.cos(elevation - tilt_rad),
-            0.0, 1.5,
+            0.0,
+            1.5,
         )
 
         poa = ghi * tilt_factor * 0.85  # Plane-of-array with diffuse contribution
@@ -320,9 +326,11 @@ class RenewableAgent(BaseAgent):
         mask_operating = (v >= cut_in_speed_ms) & (v < rated_speed_ms)
         mask_rated = (v >= rated_speed_ms) & (v < cut_out_speed_ms)
 
-        P[mask_operating] = rated_power_kw * (
-            v[mask_operating] ** 3 - cut_in_speed_ms ** 3
-        ) / (rated_speed_ms ** 3 - cut_in_speed_ms ** 3)
+        P[mask_operating] = (
+            rated_power_kw
+            * (v[mask_operating] ** 3 - cut_in_speed_ms**3)
+            / (rated_speed_ms**3 - cut_in_speed_ms**3)
+        )
         P[mask_rated] = rated_power_kw
 
         # Weibull probability distribution
@@ -331,10 +339,15 @@ class RenewableAgent(BaseAgent):
         except ImportError:
             # Fallback: Stirling's approximation for gamma function
             import math
+
             def gamma_func(x):
                 return math.gamma(x)
-        weibull_pdf = (weibull_k / weibull_c) * (v / weibull_c) ** (weibull_k - 1) * \
-                      np.exp(-(v / weibull_c) ** weibull_k)
+
+        weibull_pdf = (
+            (weibull_k / weibull_c)
+            * (v / weibull_c) ** (weibull_k - 1)
+            * np.exp(-((v / weibull_c) ** weibull_k))
+        )
         weibull_pdf[0] = 0.0  # Avoid issues at v=0
 
         # Normalise
@@ -361,7 +374,7 @@ class RenewableAgent(BaseAgent):
         mean_wind_speed = weibull_c * gamma_func(1.0 + 1.0 / weibull_k)
 
         # Theoretical max power (Betz limit)
-        P_betz = 0.5 * air_density_kgm3 * swept_area * (16.0 / 27.0) * mean_wind_speed ** 3 / 1000.0
+        P_betz = 0.5 * air_density_kgm3 * swept_area * (16.0 / 27.0) * mean_wind_speed**3 / 1000.0
 
         return {
             "rated_power_kw": rated_power_kw,
@@ -456,27 +469,37 @@ class RenewableAgent(BaseAgent):
         # 1. Penetration level
         penetration = der_capacity_kw / feeder_capacity_kva * 100.0
         penetration_ok = penetration <= 100.0
-        penetration_note = "Within limits" if penetration <= 15.0 else (
-            "Simplified interconnection if ≤15%" if penetration <= 100.0 else "Exceeds feeder capacity"
+        penetration_note = (
+            "Within limits"
+            if penetration <= 15.0
+            else (
+                "Simplified interconnection if ≤15%"
+                if penetration <= 100.0
+                else "Exceeds feeder capacity"
+            )
         )
-        checks.append({
-            "requirement": "DER Penetration Level",
-            "value": f"{penetration:.1f}%",
-            "limit": "≤100% of feeder capacity",
-            "compliant": penetration_ok,
-            "note": penetration_note,
-        })
+        checks.append(
+            {
+                "requirement": "DER Penetration Level",
+                "value": f"{penetration:.1f}%",
+                "limit": "≤100% of feeder capacity",
+                "compliant": penetration_ok,
+                "note": penetration_note,
+            }
+        )
 
         # 2. Voltage regulation
         v_reg_limit = 5.0  # ANSI C84.5 Range A
         v_reg_ok = abs(voltage_regulation_pct) <= v_reg_limit
-        checks.append({
-            "requirement": "Voltage Regulation",
-            "value": f"{voltage_regulation_pct:.2f}%",
-            "limit": f"≤±{v_reg_limit}%",
-            "compliant": v_reg_ok,
-            "note": "Per ANSI C84.5 Range A",
-        })
+        checks.append(
+            {
+                "requirement": "Voltage Regulation",
+                "value": f"{voltage_regulation_pct:.2f}%",
+                "limit": f"≤±{v_reg_limit}%",
+                "compliant": v_reg_ok,
+                "note": "Per ANSI C84.5 Range A",
+            }
+        )
 
         # 3. Frequency response (IEEE 1547 Table 15)
         freq_trip_limits = {
@@ -488,57 +511,76 @@ class RenewableAgent(BaseAgent):
         freq_limits = freq_trip_limits.get(cat, freq_trip_limits["II"])
 
         freq_ok = frequency_response_Hz >= 0.5  # Must respond to ≥0.5 Hz deviation
-        checks.append({
-            "requirement": "Frequency Response",
-            "value": f"±{frequency_response_Hz:.1f} Hz",
-            "limit": f"Category {cat}: UF≤{freq_limits['under_freq_Hz']} Hz, "
-                     f"OF≤{freq_limits['over_freq_Hz']} Hz",
-            "compliant": freq_ok,
-            "note": f"Clearing time ≤{freq_limits['clear_time_s']}s",
-        })
+        checks.append(
+            {
+                "requirement": "Frequency Response",
+                "value": f"±{frequency_response_Hz:.1f} Hz",
+                "limit": f"Category {cat}: UF≤{freq_limits['under_freq_Hz']} Hz, "
+                f"OF≤{freq_limits['over_freq_Hz']} Hz",
+                "compliant": freq_ok,
+                "note": f"Clearing time ≤{freq_limits['clear_time_s']}s",
+            }
+        )
 
         # 4. Ride-through
         ride_through_required = cat in ("II", "III")
         ride_through_ok = has_ride_through if ride_through_required else True
-        checks.append({
-            "requirement": "Voltage/Frequency Ride-Through",
-            "value": "Yes" if has_ride_through else "No",
-            "limit": f"Required for Category {cat}",
-            "compliant": ride_through_ok,
-            "note": "Mandatory for Cat II/III per IEEE 1547-2018 §6",
-        })
+        checks.append(
+            {
+                "requirement": "Voltage/Frequency Ride-Through",
+                "value": "Yes" if has_ride_through else "No",
+                "limit": f"Required for Category {cat}",
+                "compliant": ride_through_ok,
+                "note": "Mandatory for Cat II/III per IEEE 1547-2018 §6",
+            }
+        )
 
         # 5. Anti-islanding
-        checks.append({
-            "requirement": "Anti-Islanding Protection",
-            "value": "Yes" if has_anti_islanding else "No",
-            "limit": "Required for all categories",
-            "compliant": has_anti_islanding,
-            "note": "Must trip within 2.0 s per IEEE 1547.1",
-        })
+        checks.append(
+            {
+                "requirement": "Anti-Islanding Protection",
+                "value": "Yes" if has_anti_islanding else "No",
+                "limit": "Required for all categories",
+                "compliant": has_anti_islanding,
+                "note": "Must trip within 2.0 s per IEEE 1547.1",
+            }
+        )
 
         # 6. Power factor capability
         pf_min, pf_max = power_factor_range
         pf_ok = pf_min <= 0.9  # IEEE 1547 requires ±0.9 PF capability
-        checks.append({
-            "requirement": "Power Factor Capability",
-            "value": f"{pf_min:.2f} - {pf_max:.2f}",
-            "limit": "≥0.90 leading/lagging",
-            "compliant": pf_ok,
-            "note": "DER must be capable of operating at PF=0.90",
-        })
+        checks.append(
+            {
+                "requirement": "Power Factor Capability",
+                "value": f"{pf_min:.2f} - {pf_max:.2f}",
+                "limit": "≥0.90 leading/lagging",
+                "compliant": pf_ok,
+                "note": "DER must be capable of operating at PF=0.90",
+            }
+        )
 
         # 7. PCC voltage level
-        _nominal_voltages = {120: 120, 208: 208, 240: 240, 480: 480, 2400: 2400,
-                            4160: 4160, 12470: 12470, 13800: 13800, 24940: 24940}
+        _nominal_voltages = {
+            120: 120,
+            208: 208,
+            240: 240,
+            480: 480,
+            2400: 2400,
+            4160: 4160,
+            12470: 12470,
+            13800: 13800,
+            24940: 24940,
+        }
         pcc_ok = point_of_interconnection_voltage_V > 0
-        checks.append({
-            "requirement": "PCC Voltage Level",
-            "value": f"{point_of_interconnection_voltage_V:.0f} V",
-            "limit": "Standard nominal voltage",
-            "compliant": pcc_ok,
-            "note": "Must match utility nominal voltage",
-        })
+        checks.append(
+            {
+                "requirement": "PCC Voltage Level",
+                "value": f"{point_of_interconnection_voltage_V:.0f} V",
+                "limit": "Standard nominal voltage",
+                "compliant": pcc_ok,
+                "note": "Must match utility nominal voltage",
+            }
+        )
 
         all_compliant = all(c["compliant"] for c in checks)
         non_compliant = [c for c in checks if not c["compliant"]]
@@ -772,12 +814,16 @@ class RenewableAgent(BaseAgent):
             if pv.get("annual_energy_kwh", 0) <= 0:
                 errors.append("Solar PV annual energy is zero or negative")
             if pv.get("capacity_factor_pct", 0) > 35:
-                errors.append(f"Suspiciously high PV capacity factor: {pv['capacity_factor_pct']:.1f}%")
+                errors.append(
+                    f"Suspiciously high PV capacity factor: {pv['capacity_factor_pct']:.1f}%"
+                )
 
         wind = result.data.get("wind")
         if wind is not None:
             if wind.get("capacity_factor_pct", 0) > 60:
-                errors.append(f"Suspiciously high wind capacity factor: {wind['capacity_factor_pct']:.1f}%")
+                errors.append(
+                    f"Suspiciously high wind capacity factor: {wind['capacity_factor_pct']:.1f}%"
+                )
 
         compliance = result.data.get("ieee1547_compliance")
         if compliance is not None and not compliance.get("overall_compliant", True):

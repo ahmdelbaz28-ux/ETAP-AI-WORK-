@@ -64,7 +64,9 @@ class NumericalBounds(Enum):
         try:
             return cls[name].value
         except KeyError as err:
-            raise ValueError(f"Unknown parameter '{name}'. Available: {[e.name for e in cls]}") from err
+            raise ValueError(
+                f"Unknown parameter '{name}'. Available: {[e.name for e in cls]}"
+            ) from err
 
 
 class NumericalGuard:
@@ -119,7 +121,9 @@ class NumericalGuard:
         den = np.asarray(denominator, dtype=float)
         mask = np.abs(den) < epsilon
         if np.any(mask):
-            self.log.warning("Division by near-zero denominator detected — using default %s", default)
+            self.log.warning(
+                "Division by near-zero denominator detected — using default %s", default
+            )
         safe_den = np.where(mask, np.inf, den)
         return np.divide(num, safe_den, out=np.full_like(num, default, dtype=float), where=~mask)
 
@@ -145,11 +149,17 @@ class NumericalGuard:
         if self.warn_on_clamp and (np.any(below) or np.any(above)):
             self.log.warning(
                 "'%s' clamped: %d below min=%s, %d above max=%s",
-                name, int(np.sum(below)), min_val, int(np.sum(above)), max_val,
+                name,
+                int(np.sum(below)),
+                min_val,
+                int(np.sum(above)),
+                max_val,
             )
         return np.clip(arr, min_val, max_val)
 
-    def is_within_bounds(self, value: Union[float, np.ndarray], min_val: float, max_val: float) -> bool:
+    def is_within_bounds(
+        self, value: Union[float, np.ndarray], min_val: float, max_val: float
+    ) -> bool:
         """Check whether all elements lie within [min_val, max_val]."""
         arr = np.asarray(value, dtype=float)
         return bool(np.all((arr >= min_val) & (arr <= max_val)))
@@ -229,14 +239,18 @@ class ConvergenceMonitor:
         diffs = np.abs(np.diff(abs_vals))
         # Check absolute magnitude and anomalous growth
         absolute_exceeded = bool(np.any(abs_vals[-3:] > self.divergence_threshold))
-        step_exceeded = bool(
-            diffs[-1] > self.divergence_threshold
-            or (
-                len(diffs) >= 2
-                and diffs[-1] > self.divergence_threshold
-                and diffs[-1] > np.mean(diffs[:-1]) * 10
+        step_exceeded = (
+            bool(
+                diffs[-1] > self.divergence_threshold
+                or (
+                    len(diffs) >= 2
+                    and diffs[-1] > self.divergence_threshold
+                    and diffs[-1] > np.mean(diffs[:-1]) * 10
+                )
             )
-        ) if len(diffs) >= 1 else False
+            if len(diffs) >= 1
+            else False
+        )
         return absolute_exceeded or step_exceeded
 
     def get_convergence_rate(self, window: int = 5) -> float:
@@ -248,7 +262,7 @@ class ConvergenceMonitor:
             return 0.0
         ratios = np.abs(recent[1:] / np.maximum(np.abs(recent[:-1]), 1e-300))
         filtered = ratios[ratios < 1e6]
-        return float(np.mean(filtered)) if len(filtered) > 0 else float('inf')
+        return float(np.mean(filtered)) if len(filtered) > 0 else float("inf")
 
     def reset(self) -> None:
         """Clear iteration history and reset counter."""
@@ -297,7 +311,12 @@ class ConsistencyCheck:
         losses = self._to_array(total_losses)
         mismatch = float(np.sum(gen) - np.sum(load) - np.sum(losses))
         passed = bool(abs(mismatch) <= tolerance_mw)
-        result = {"check": "power_balance", "passed": passed, "mismatch_mw": mismatch, "tolerance_mw": tolerance_mw}
+        result = {
+            "check": "power_balance",
+            "passed": passed,
+            "mismatch_mw": mismatch,
+            "tolerance_mw": tolerance_mw,
+        }
         if not passed:
             self.log.warning("Power balance check failed: mismatch=%.4f MW", mismatch)
         self._results.append(result)
@@ -315,10 +334,13 @@ class ConsistencyCheck:
         n_violations = int(np.sum((v < vmin) | (v > vmax)))
         passed = n_violations == 0
         result = {
-            "check": "voltage_profile", "passed": passed,
-            "n_violations": n_violations, "n_total": n_total,
+            "check": "voltage_profile",
+            "passed": passed,
+            "n_violations": n_violations,
+            "n_total": n_total,
             "violation_pct": float(n_violations / n_total * 100) if n_total > 0 else 0.0,
-            "vmin": vmin, "vmax": vmax,
+            "vmin": vmin,
+            "vmax": vmax,
         }
         if not passed:
             self.log.warning("Voltage profile: %d/%d buses out of bounds", n_violations, n_total)
@@ -375,8 +397,13 @@ class ConsistencyCheck:
         mismatch = abs(e_in - e_out - e_losses)
         passed = mismatch <= tolerance
         result = {
-            "check": "energy_conservation", "passed": passed, "mismatch": mismatch,
-            "tolerance": tolerance, "energy_in": e_in, "energy_out": e_out, "losses": e_losses,
+            "check": "energy_conservation",
+            "passed": passed,
+            "mismatch": mismatch,
+            "tolerance": tolerance,
+            "energy_in": e_in,
+            "energy_out": e_out,
+            "losses": e_losses,
         }
         if not passed:
             self.log.warning("Energy conservation check failed: mismatch=%.4f", mismatch)
@@ -475,6 +502,7 @@ def wrap_solver(
     Injects ``_numerical_converged``, ``_numerical_diverging``, and
     ``_numerical_stats`` keys into the solver result dict.
     """
+
     def wrapped(*args: Any, **kwargs: Any) -> dict[str, Any]:
         convergence_monitor.reset()
         result = solver_fn(*args, **kwargs)
@@ -486,6 +514,7 @@ def wrap_solver(
                 result["_numerical_diverging"] = convergence_monitor.is_diverging(mismatch)
                 result["_numerical_stats"] = convergence_monitor.get_statistics()
         return result
+
     return wrapped
 
 

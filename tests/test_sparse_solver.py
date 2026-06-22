@@ -26,6 +26,7 @@ from engine.sparse_solver import (
 # 3-bus test system
 # ---------------------------------------------------------------------------
 
+
 def _make_3bus_data():
     """Build 3-bus system data.
 
@@ -36,23 +37,49 @@ def _make_3bus_data():
     Branches: 0-1, 1-2, 0-2
     """
     buses = [
-        BusData(bus_id=0, bus_type="slack", voltage_magnitude=1.0,
-                voltage_angle=0.0, p_generation=0, q_generation=0,
-                p_load=0, q_load=0, v_scheduled=1.0),
-        BusData(bus_id=1, bus_type="pv", voltage_magnitude=1.02,
-                voltage_angle=0.0, p_generation=0.5, q_generation=0,
-                p_load=0, q_load=0, v_scheduled=1.02),
-        BusData(bus_id=2, bus_type="pq", voltage_magnitude=1.0,
-                voltage_angle=0.0, p_generation=0, q_generation=0,
-                p_load=0.8, q_load=0.3),
+        BusData(
+            bus_id=0,
+            bus_type="slack",
+            voltage_magnitude=1.0,
+            voltage_angle=0.0,
+            p_generation=0,
+            q_generation=0,
+            p_load=0,
+            q_load=0,
+            v_scheduled=1.0,
+        ),
+        BusData(
+            bus_id=1,
+            bus_type="pv",
+            voltage_magnitude=1.02,
+            voltage_angle=0.0,
+            p_generation=0.5,
+            q_generation=0,
+            p_load=0,
+            q_load=0,
+            v_scheduled=1.02,
+        ),
+        BusData(
+            bus_id=2,
+            bus_type="pq",
+            voltage_magnitude=1.0,
+            voltage_angle=0.0,
+            p_generation=0,
+            q_generation=0,
+            p_load=0.8,
+            q_load=0.3,
+        ),
     ]
     branches = [
-        BranchData(from_bus=0, to_bus=1, impedance=complex(0.01, 0.05),
-                   shunt_admittance=complex(0, 0.02)),
-        BranchData(from_bus=1, to_bus=2, impedance=complex(0.02, 0.08),
-                   shunt_admittance=complex(0, 0.02)),
-        BranchData(from_bus=0, to_bus=2, impedance=complex(0.03, 0.10),
-                   shunt_admittance=complex(0, 0.02)),
+        BranchData(
+            from_bus=0, to_bus=1, impedance=complex(0.01, 0.05), shunt_admittance=complex(0, 0.02)
+        ),
+        BranchData(
+            from_bus=1, to_bus=2, impedance=complex(0.02, 0.08), shunt_admittance=complex(0, 0.02)
+        ),
+        BranchData(
+            from_bus=0, to_bus=2, impedance=complex(0.03, 0.10), shunt_admittance=complex(0, 0.02)
+        ),
     ]
     return buses, branches
 
@@ -60,6 +87,7 @@ def _make_3bus_data():
 # ---------------------------------------------------------------------------
 # IEEE 14-bus equivalent (simplified)
 # ---------------------------------------------------------------------------
+
 
 def _make_14bus_data():
     """Build a simplified IEEE 14-bus equivalent system.
@@ -75,17 +103,19 @@ def _make_14bus_data():
     q_loads = [0, 0.127, 0.19, -0.039, 0.016, 0.075, 0, 0, 0.166, 0.058, 0.018, 0.016, 0.058, 0.05]
 
     for i in range(14):
-        buses.append(BusData(
-            bus_id=i,
-            bus_type=bus_types[i],
-            voltage_magnitude=v_mags[i],
-            voltage_angle=0.0,
-            p_generation=p_gen[i],
-            q_generation=0,
-            p_load=p_loads[i],
-            q_load=q_loads[i],
-            v_scheduled=v_mags[i],
-        ))
+        buses.append(
+            BusData(
+                bus_id=i,
+                bus_type=bus_types[i],
+                voltage_magnitude=v_mags[i],
+                voltage_angle=0.0,
+                p_generation=p_gen[i],
+                q_generation=0,
+                p_load=p_loads[i],
+                q_load=q_loads[i],
+                v_scheduled=v_mags[i],
+            )
+        )
 
     # Simplified branch list (from, to, impedance)
     branch_specs = [
@@ -112,10 +142,7 @@ def _make_14bus_data():
         (11, 12, complex(0.03181, 0.08302)),
         (12, 13, complex(0.00244, 0.03091)),
     ]
-    branches = [
-        BranchData(from_bus=f, to_bus=t, impedance=z)
-        for f, t, z in branch_specs
-    ]
+    branches = [BranchData(from_bus=f, to_bus=t, impedance=z) for f, t, z in branch_specs]
     return buses, branches
 
 
@@ -144,7 +171,10 @@ class TestSparseSolver:
         ybus = solver.build_sparse_ybus(buses, branches)
 
         result = solver.sparse_newton_raphson(
-            ybus, buses, max_iter=50, tol=1e-8,
+            ybus,
+            buses,
+            max_iter=50,
+            tol=1e-8,
         )
 
         assert isinstance(result, SparseConvergenceResult)
@@ -164,7 +194,10 @@ class TestSparseSolver:
         assert ybus.shape == (14, 14)
 
         result = solver.sparse_newton_raphson(
-            ybus, buses, max_iter=100, tol=1e-8,
+            ybus,
+            buses,
+            max_iter=100,
+            tol=1e-8,
         )
 
         assert isinstance(result, SparseConvergenceResult)
@@ -214,9 +247,7 @@ class TestSparseSolver:
 
         # Ybus should satisfy Y_ij = Y_ji for passive networks without
         # phase-shifting transformers (Y is symmetric, not Hermitian)
-        np.testing.assert_array_almost_equal(
-            ybus_dense, ybus_dense.T, decimal=10
-        )
+        np.testing.assert_array_almost_equal(ybus_dense, ybus_dense.T, decimal=10)
 
     def test_power_balance_3bus(self):
         """Test 8: Power balance is satisfied after convergence."""
@@ -243,8 +274,7 @@ class TestSparseSolver:
         solver = SparseYBus()
         buses = [
             BusData(bus_id=0, bus_type="slack", voltage_magnitude=1.0),
-            BusData(bus_id=1, bus_type="pq", voltage_magnitude=1.0,
-                    p_load=0.5),
+            BusData(bus_id=1, bus_type="pq", voltage_magnitude=1.0, p_load=0.5),
         ]
         branches = [
             BranchData(from_bus=0, to_bus=1, impedance=complex(0, 0)),  # Zero!
@@ -258,12 +288,12 @@ class TestSparseSolver:
         solver = SparseYBus()
         buses = [
             BusData(bus_id=0, bus_type="slack", voltage_magnitude=1.0),
-            BusData(bus_id=1, bus_type="pq", voltage_magnitude=1.0,
-                    p_load=0.5),
+            BusData(bus_id=1, bus_type="pq", voltage_magnitude=1.0, p_load=0.5),
         ]
         branches = [
-            BranchData(from_bus=0, to_bus=1, impedance=complex(0.01, 0.1),
-                       tap_ratio=1.05, phase_shift=0.0),
+            BranchData(
+                from_bus=0, to_bus=1, impedance=complex(0.01, 0.1), tap_ratio=1.05, phase_shift=0.0
+            ),
         ]
         ybus = solver.build_sparse_ybus(buses, branches)
         ybus_dense = ybus.toarray()

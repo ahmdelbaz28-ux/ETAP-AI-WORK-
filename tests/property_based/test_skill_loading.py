@@ -27,15 +27,11 @@ from skills.skill_validator import (
 # ---------------------------------------------------------------------------
 
 # A semver-like version string strategy (limited digit length per component)
-semver_strategy = st.from_regex(
-    r"^\d{1,3}\.\d{1,3}\.\d{1,3}$", fullmatch=True
-)
+semver_strategy = st.from_regex(r"^\d{1,3}\.\d{1,3}\.\d{1,3}$", fullmatch=True)
 
 # A kebab-case name strategy with bounded length
 # Max length: 5 + 3*6 = 23 chars (well under SkillDescription.name.max_length=100)
-kebab_strategy = st.from_regex(
-    r"^[a-z0-9]{1,5}(-[a-z0-9]{1,5}){0,3}$", fullmatch=True
-)
+kebab_strategy = st.from_regex(r"^[a-z0-9]{1,5}(-[a-z0-9]{1,5}){0,3}$", fullmatch=True)
 
 # Non-empty text without problematic characters
 safe_text = st.text(
@@ -77,9 +73,7 @@ def test_skill_metadata_roundtrip(
 
 
 @given(
-    version=st.text().filter(
-        lambda v: not __import__("re").match(r"^\d+\.\d+\.\d+$", v)
-    ),
+    version=st.text().filter(lambda v: not __import__("re").match(r"^\d+\.\d+\.\d+$", v)),
 )
 @settings(max_examples=20)
 def test_invalid_version_raises(version: str) -> None:
@@ -96,8 +90,18 @@ def test_invalid_version_raises(version: str) -> None:
 
 
 # A simple multi-word description strategy (fixed word pool for performance)
-SAMPLE_WORDS = ["load", "flow", "analysis", "power", "system", "protection",
-                "simulation", "validation", "coordination", "fault"]
+SAMPLE_WORDS = [
+    "load",
+    "flow",
+    "analysis",
+    "power",
+    "system",
+    "protection",
+    "simulation",
+    "validation",
+    "coordination",
+    "fault",
+]
 multi_word_description = st.lists(
     st.sampled_from(SAMPLE_WORDS),
     min_size=3,
@@ -115,7 +119,9 @@ multi_word_description = st.lists(
         unique_by=lambda w: w.strip().lower(),
     ),
 )
-@settings(max_examples=50, suppress_health_check=[HealthCheck.too_slow, HealthCheck.filter_too_much])
+@settings(
+    max_examples=50, suppress_health_check=[HealthCheck.too_slow, HealthCheck.filter_too_much]
+)
 def test_skill_description_valid(
     name: str,
     description: str,
@@ -233,8 +239,11 @@ class SkillDescriptionStateMachine(RuleBasedStateMachine):
 
     @rule(
         words=st.lists(
-            st.text(min_size=1, max_size=10, alphabet=st.characters(
-                whitelist_categories=["Ll", "Lu", "Nd"])),
+            st.text(
+                min_size=1,
+                max_size=10,
+                alphabet=st.characters(whitelist_categories=["Ll", "Lu", "Nd"]),
+            ),
             min_size=2,
             max_size=10,
         )
@@ -249,9 +258,9 @@ class SkillDescriptionStateMachine(RuleBasedStateMachine):
             )
             # If it succeeded, there must be no duplicates
             lowered = {w.strip().lower() for w in words if w.strip()}
-            assert len(lowered) == len(
-                [w for w in words if w.strip()]
-            ), f"Expected unique trigger words, got {words}"
+            assert len(lowered) == len([w for w in words if w.strip()]), (
+                f"Expected unique trigger words, got {words}"
+            )
         except ValidationError:
             # ValidationError is expected when duplicates exist
             non_empty = [w for w in words if w.strip()]

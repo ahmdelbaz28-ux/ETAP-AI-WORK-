@@ -17,6 +17,7 @@ Covers:
     * Router integration: request metrics recorded, span recorded
     * Server integration: message/byte counters
 """
+
 from __future__ import annotations
 
 import json
@@ -48,6 +49,7 @@ from acp.transport import Server, StdioTransport
 
 # ------------------------------------------------------- test handlers
 
+
 class MathHandler:
     @capability("math.sum", scopes=("math.read",))
     async def sum(self, a: int, b: int) -> int:
@@ -60,6 +62,7 @@ class MathHandler:
 
 
 # ------------------------------------------------------- TraceContext
+
 
 class TestTraceContext:
     def test_default(self):
@@ -88,6 +91,7 @@ class TestTraceContext:
 
 
 # ------------------------------------------------------- Span
+
 
 class TestSpan:
     def test_duration_ms(self):
@@ -121,6 +125,7 @@ class TestSpan:
 
 
 # ------------------------------------------------------- Tracers
+
 
 class TestInMemoryTracer:
     def test_record_and_retrieve(self):
@@ -156,6 +161,7 @@ class TestNullTracer:
 
 
 # ------------------------------------------------------- Metrics
+
 
 class TestCounter:
     def test_inc_and_value(self):
@@ -251,6 +257,7 @@ class TestInMemoryMetricsRegistry:
 
 # ------------------------------------------------------- Structured Logging
 
+
 class TestLogEntry:
     def test_to_json(self):
         entry = LogEntry(
@@ -313,6 +320,7 @@ class TestNullStructuredLogger:
 class TestConsoleStructuredLogger:
     def test_min_level(self):
         import io
+
         stream = io.StringIO()
         logger = ConsoleStructuredLogger("test", stream=stream, min_level=LogLevel.WARNING)
         logger.debug("d")
@@ -324,6 +332,7 @@ class TestConsoleStructuredLogger:
 
 
 # ------------------------------------------------------- Runtime integration
+
 
 @pytest.mark.anyio
 async def test_runtime_metrics_on_success():
@@ -375,6 +384,7 @@ async def test_runtime_no_observability():
 
 # ------------------------------------------------------- Router integration
 
+
 @pytest.mark.anyio
 async def test_router_metrics_on_request():
     metrics = InMemoryMetricsRegistry()
@@ -386,13 +396,15 @@ async def test_router_metrics_on_request():
             metrics=metrics,
         ),
     )
-    resp = await router.handle({
-        "jsonrpc": "2.0",
-        "id": "r1",
-        "method": "math.sum",
-        "params": {"a": 1, "b": 2},
-        "capability": "math.sum",
-    })
+    resp = await router.handle(
+        {
+            "jsonrpc": "2.0",
+            "id": "r1",
+            "method": "math.sum",
+            "params": {"a": 1, "b": 2},
+            "capability": "math.sum",
+        }
+    )
     assert resp["result"] == 3
     snap = metrics.snapshot()
     assert snap["counters"]["acp.router.requests.total"]["values"][0]["value"] == 1
@@ -410,13 +422,15 @@ async def test_router_metrics_on_error():
             metrics=metrics,
         ),
     )
-    resp = await router.handle({
-        "jsonrpc": "2.0",
-        "id": "r2",
-        "method": "math.sum",
-        "params": {"a": 1, "b": 2},
-        "capability": "math.sum",
-    })
+    resp = await router.handle(
+        {
+            "jsonrpc": "2.0",
+            "id": "r2",
+            "method": "math.sum",
+            "params": {"a": 1, "b": 2},
+            "capability": "math.sum",
+        }
+    )
     assert resp["error"]["code"] == -32003
     snap = metrics.snapshot()
     assert snap["counters"]["acp.router.requests.errors"]["values"][0]["value"] == 1
@@ -433,14 +447,16 @@ async def test_router_tracer_on_request():
             tracer=tracer,
         ),
     )
-    await router.handle({
-        "jsonrpc": "2.0",
-        "id": "r3",
-        "method": "math.sum",
-        "params": {"a": 1, "b": 2},
-        "capability": "math.sum",
-        "trace_id": "t1",
-    })
+    await router.handle(
+        {
+            "jsonrpc": "2.0",
+            "id": "r3",
+            "method": "math.sum",
+            "params": {"a": 1, "b": 2},
+            "capability": "math.sum",
+            "trace_id": "t1",
+        }
+    )
     assert len(tracer.spans) == 1
     assert tracer.spans[0].name == "router.handle"
     assert tracer.spans[0].status == "ok"
@@ -465,13 +481,15 @@ async def test_router_invalid_envelope_metrics():
 
 # ------------------------------------------------------- Server integration
 
+
 @pytest.mark.anyio
 async def test_server_metrics():
     import io
+
     metrics = InMemoryMetricsRegistry()
     runtime = AcpRuntime([MathHandler()])
     router = Router(runtime, RouterConfig(caller_scopes={"math.read"}))
-    stdin = io.StringIO('')
+    stdin = io.StringIO("")
     stdout = io.StringIO()
     transport = StdioTransport(stdin, stdout)
     server = Server(router, transport, metrics=metrics)
@@ -491,9 +509,10 @@ async def test_server_metrics():
 @pytest.mark.anyio
 async def test_server_no_observability():
     import io
+
     runtime = AcpRuntime([MathHandler()])
     router = Router(runtime, RouterConfig(caller_scopes={"math.read"}))
-    stdin = io.StringIO('')
+    stdin = io.StringIO("")
     stdout = io.StringIO()
     transport = StdioTransport(stdin, stdout)
     server = Server(router, transport)
@@ -505,6 +524,7 @@ async def test_server_no_observability():
 
 
 # ------------------------------------------------------- JsonTracer
+
 
 @pytest.mark.anyio
 async def test_json_tracer():

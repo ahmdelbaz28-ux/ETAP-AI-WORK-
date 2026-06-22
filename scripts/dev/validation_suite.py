@@ -56,19 +56,25 @@ class ValidationSuite:
         system = System(base_mva=100.0)
 
         # Create buses
-        bus1 = Bus(bus_id=1, voltage_magnitude=1.05, voltage_angle=0.0, bus_type='slack')
-        bus2 = Bus(bus_id=2, voltage_magnitude=1.0, voltage_angle=0.0, bus_type='pv')
-        bus3 = Bus(bus_id=3, voltage_magnitude=1.0, voltage_angle=0.0, bus_type='pq')
+        bus1 = Bus(bus_id=1, voltage_magnitude=1.05, voltage_angle=0.0, bus_type="slack")
+        bus2 = Bus(bus_id=2, voltage_magnitude=1.0, voltage_angle=0.0, bus_type="pv")
+        bus3 = Bus(bus_id=3, voltage_magnitude=1.0, voltage_angle=0.0, bus_type="pq")
 
         system.add_bus(bus1)
         system.add_bus(bus2)
         system.add_bus(bus3)
 
         # Generators
-        gen1 = Generator(generator_id=1, bus=bus1,
-                         impedance={'1': complex(0, 0.2), '2': complex(0, 0.2), '0': complex(0, 0.1)})
-        gen2 = Generator(generator_id=2, bus=bus2,
-                         impedance={'1': complex(0, 0.15), '2': complex(0, 0.15), '0': complex(0, 0.05)})
+        gen1 = Generator(
+            generator_id=1,
+            bus=bus1,
+            impedance={"1": complex(0, 0.2), "2": complex(0, 0.2), "0": complex(0, 0.1)},
+        )
+        gen2 = Generator(
+            generator_id=2,
+            bus=bus2,
+            impedance={"1": complex(0, 0.15), "2": complex(0, 0.15), "0": complex(0, 0.05)},
+        )
 
         system.add_generator(gen1)
         system.add_generator(gen2)
@@ -82,12 +88,28 @@ class ValidationSuite:
         system.add_load(load1)
 
         # Lines
-        line12 = Line(line_id=1, from_bus=bus1, to_bus=bus2,
-                      z1=complex(0.01, 0.05), z2=complex(0.01, 0.05), z0=complex(0.03, 0.15),
-                      yshunt1=complex(0, 0.02), yshunt2=complex(0, 0.02), yshunt0=complex(0, 0.06))
-        line23 = Line(line_id=2, from_bus=bus2, to_bus=bus3,
-                      z1=complex(0.015, 0.06), z2=complex(0.015, 0.06), z0=complex(0.045, 0.18),
-                      yshunt1=complex(0, 0.02), yshunt2=complex(0, 0.02), yshunt0=complex(0, 0.06))
+        line12 = Line(
+            line_id=1,
+            from_bus=bus1,
+            to_bus=bus2,
+            z1=complex(0.01, 0.05),
+            z2=complex(0.01, 0.05),
+            z0=complex(0.03, 0.15),
+            yshunt1=complex(0, 0.02),
+            yshunt2=complex(0, 0.02),
+            yshunt0=complex(0, 0.06),
+        )
+        line23 = Line(
+            line_id=2,
+            from_bus=bus2,
+            to_bus=bus3,
+            z1=complex(0.015, 0.06),
+            z2=complex(0.015, 0.06),
+            z0=complex(0.045, 0.18),
+            yshunt1=complex(0, 0.02),
+            yshunt2=complex(0, 0.02),
+            yshunt0=complex(0, 0.06),
+        )
 
         system.add_line(line12)
         system.add_line(line23)
@@ -96,16 +118,18 @@ class ValidationSuite:
         solver = LoadFlowSolver(system)
         converged = solver.solve(max_iter=100, tol=1e-6)
 
-        self._record("3-Bus Load Flow Convergence", converged,
-                     f"Converged={converged}")
+        self._record("3-Bus Load Flow Convergence", converged, f"Converged={converged}")
 
         if converged:
             # Validate voltage magnitudes are reasonable (0.9 to 1.1 pu)
             for bid in sorted(system.buses.keys()):
                 v = abs(system.buses[bid].voltage)
                 reasonable = 0.9 <= v <= 1.1
-                self._record(f"3-Bus Bus {bid} Voltage Range", reasonable,
-                             f"|V|={v:.4f} pu (expected 0.9-1.1)")
+                self._record(
+                    f"3-Bus Bus {bid} Voltage Range",
+                    reasonable,
+                    f"|V|={v:.4f} pu (expected 0.9-1.1)",
+                )
 
             # Validate power balance (total generation ~= total load + losses)
             _total_gen = sum(b.generation_power.real for b in system.buses.values())
@@ -114,8 +138,11 @@ class ValidationSuite:
             _slack_gen = system.buses[1].generation_power.real
             # After load flow, slack generation = total load + losses - PV generation
             # We check that the slack bus generation is positive
-            self._record("3-Bus Power Balance", True,
-                         f"Total Load={total_load:.4f}, PV Gen={bus2.generation_power.real:.4f}")
+            self._record(
+                "3-Bus Power Balance",
+                True,
+                f"Total Load={total_load:.4f}, PV Gen={bus2.generation_power.real:.4f}",
+            )
 
     def validate_5bus_load_flow(self):
         """Validate load flow against IEEE 5-bus test system."""
@@ -124,20 +151,26 @@ class ValidationSuite:
         system = System(base_mva=100.0)
 
         # Create buses
-        bus1 = Bus(bus_id=1, voltage_magnitude=1.06, voltage_angle=0.0, bus_type='slack')
-        bus2 = Bus(bus_id=2, voltage_magnitude=1.0, voltage_angle=0.0, bus_type='pv')
-        bus3 = Bus(bus_id=3, voltage_magnitude=1.0, voltage_angle=0.0, bus_type='pq')
-        bus4 = Bus(bus_id=4, voltage_magnitude=1.0, voltage_angle=0.0, bus_type='pq')
-        bus5 = Bus(bus_id=5, voltage_magnitude=1.0, voltage_angle=0.0, bus_type='pq')
+        bus1 = Bus(bus_id=1, voltage_magnitude=1.06, voltage_angle=0.0, bus_type="slack")
+        bus2 = Bus(bus_id=2, voltage_magnitude=1.0, voltage_angle=0.0, bus_type="pv")
+        bus3 = Bus(bus_id=3, voltage_magnitude=1.0, voltage_angle=0.0, bus_type="pq")
+        bus4 = Bus(bus_id=4, voltage_magnitude=1.0, voltage_angle=0.0, bus_type="pq")
+        bus5 = Bus(bus_id=5, voltage_magnitude=1.0, voltage_angle=0.0, bus_type="pq")
 
         for bus in [bus1, bus2, bus3, bus4, bus5]:
             system.add_bus(bus)
 
         # Generators
-        gen1 = Generator(generator_id=1, bus=bus1,
-                         impedance={'1': complex(0, 0.25), '2': complex(0, 0.25), '0': complex(0, 0.1)})
-        gen2 = Generator(generator_id=2, bus=bus2,
-                         impedance={'1': complex(0, 0.2), '2': complex(0, 0.2), '0': complex(0, 0.08)})
+        gen1 = Generator(
+            generator_id=1,
+            bus=bus1,
+            impedance={"1": complex(0, 0.25), "2": complex(0, 0.25), "0": complex(0, 0.1)},
+        )
+        gen2 = Generator(
+            generator_id=2,
+            bus=bus2,
+            impedance={"1": complex(0, 0.2), "2": complex(0, 0.2), "0": complex(0, 0.08)},
+        )
 
         system.add_generator(gen1)
         system.add_generator(gen2)
@@ -170,15 +203,17 @@ class ValidationSuite:
         solver = LoadFlowSolver(system)
         converged = solver.solve(max_iter=100, tol=1e-6)
 
-        self._record("5-Bus Load Flow Convergence", converged,
-                     f"Converged={converged}")
+        self._record("5-Bus Load Flow Convergence", converged, f"Converged={converged}")
 
         if converged:
             for bid in sorted(system.buses.keys()):
                 v = abs(system.buses[bid].voltage)
                 reasonable = 0.85 <= v <= 1.15
-                self._record(f"5-Bus Bus {bid} Voltage Range", reasonable,
-                             f"|V|={v:.4f} pu (expected 0.85-1.15)")
+                self._record(
+                    f"5-Bus Bus {bid} Voltage Range",
+                    reasonable,
+                    f"|V|={v:.4f} pu (expected 0.85-1.15)",
+                )
 
     def validate_14bus_load_flow(self):
         """Validate load flow against IEEE 14-bus test system (simplified)."""
@@ -188,11 +223,20 @@ class ValidationSuite:
 
         # Create 14 buses
         bus_data = {
-            1: ('slack', 1.06), 2: ('pv', 1.045), 3: ('pv', 1.01),
-            4: ('pq', 1.0), 5: ('pq', 1.0), 6: ('pv', 1.07),
-            7: ('pq', 1.0), 8: ('pv', 1.09), 9: ('pq', 1.0),
-            10: ('pq', 1.0), 11: ('pq', 1.0), 12: ('pq', 1.0),
-            13: ('pq', 1.0), 14: ('pq', 1.0),
+            1: ("slack", 1.06),
+            2: ("pv", 1.045),
+            3: ("pv", 1.01),
+            4: ("pq", 1.0),
+            5: ("pq", 1.0),
+            6: ("pv", 1.07),
+            7: ("pq", 1.0),
+            8: ("pv", 1.09),
+            9: ("pq", 1.0),
+            10: ("pq", 1.0),
+            11: ("pq", 1.0),
+            12: ("pq", 1.0),
+            13: ("pq", 1.0),
+            14: ("pq", 1.0),
         }
 
         buses = {}
@@ -204,8 +248,11 @@ class ValidationSuite:
         # Generators on buses 1, 2, 3, 6, 8
         gen_buses = [1, 2, 3, 6, 8]
         for gid, bid in enumerate(gen_buses, 1):
-            gen = Generator(generator_id=gid, bus=buses[bid],
-                            impedance={'1': complex(0, 0.2), '2': complex(0, 0.2), '0': complex(0, 0.1)})
+            gen = Generator(
+                generator_id=gid,
+                bus=buses[bid],
+                impedance={"1": complex(0, 0.2), "2": complex(0, 0.2), "0": complex(0, 0.1)},
+            )
             system.add_generator(gen)
 
         # Set generation power
@@ -217,11 +264,16 @@ class ValidationSuite:
 
         # Loads (simplified)
         load_data = {
-            2: complex(0.217, 0.127), 3: complex(0.942, 0.19),
-            4: complex(0.478, -0.039), 5: complex(0.076, 0.016),
-            6: complex(0.112, 0.075), 9: complex(0.295, 0.166),
-            10: complex(0.09, 0.058), 11: complex(0.035, 0.018),
-            12: complex(0.061, 0.016), 13: complex(0.135, 0.058),
+            2: complex(0.217, 0.127),
+            3: complex(0.942, 0.19),
+            4: complex(0.478, -0.039),
+            5: complex(0.076, 0.016),
+            6: complex(0.112, 0.075),
+            9: complex(0.295, 0.166),
+            10: complex(0.09, 0.058),
+            11: complex(0.035, 0.018),
+            12: complex(0.061, 0.016),
+            13: complex(0.135, 0.058),
             14: complex(0.149, 0.05),
         }
 
@@ -261,8 +313,7 @@ class ValidationSuite:
         solver = LoadFlowSolver(system)
         converged = solver.solve(max_iter=200, tol=1e-6)
 
-        self._record("14-Bus Load Flow Convergence", converged,
-                     f"Converged={converged}")
+        self._record("14-Bus Load Flow Convergence", converged, f"Converged={converged}")
 
         if converged:
             # Check voltage ranges
@@ -273,8 +324,13 @@ class ValidationSuite:
                     all_reasonable = False
                     print(f"    Bus {bid}: |V|={v:.4f} pu (outside 0.9-1.1 range)")
 
-            self._record("14-Bus All Voltages in Range", all_reasonable,
-                         "All voltages within 0.9-1.1 pu" if all_reasonable else "Some voltages out of range")
+            self._record(
+                "14-Bus All Voltages in Range",
+                all_reasonable,
+                "All voltages within 0.9-1.1 pu"
+                if all_reasonable
+                else "Some voltages out of range",
+            )
 
     # =========================================================================
     # SHORT CIRCUIT VALIDATION
@@ -287,20 +343,37 @@ class ValidationSuite:
         # Create a simple 3-bus system for validation
         system = System(base_mva=100.0)
 
-        bus1 = Bus(bus_id=1, voltage_magnitude=1.0, voltage_angle=0.0, bus_type='slack')
-        bus2 = Bus(bus_id=2, voltage_magnitude=1.0, voltage_angle=0.0, bus_type='pq')
-        bus3 = Bus(bus_id=3, voltage_magnitude=1.0, voltage_angle=0.0, bus_type='pq')
+        bus1 = Bus(bus_id=1, voltage_magnitude=1.0, voltage_angle=0.0, bus_type="slack")
+        bus2 = Bus(bus_id=2, voltage_magnitude=1.0, voltage_angle=0.0, bus_type="pq")
+        bus3 = Bus(bus_id=3, voltage_magnitude=1.0, voltage_angle=0.0, bus_type="pq")
 
         system.add_bus(bus1)
         system.add_bus(bus2)
         system.add_bus(bus3)
 
-        gen1 = Generator(generator_id=1, bus=bus1,
-                         impedance={'1': complex(0, 0.2), '2': complex(0, 0.2), '0': complex(0, 0.1)})
+        gen1 = Generator(
+            generator_id=1,
+            bus=bus1,
+            impedance={"1": complex(0, 0.2), "2": complex(0, 0.2), "0": complex(0, 0.1)},
+        )
         system.add_generator(gen1)
 
-        line12 = Line(line_id=1, from_bus=bus1, to_bus=bus2, z1=complex(0.01, 0.05), z2=complex(0.01, 0.05), z0=complex(0.03, 0.15))
-        line23 = Line(line_id=2, from_bus=bus2, to_bus=bus3, z1=complex(0.015, 0.06), z2=complex(0.015, 0.06), z0=complex(0.045, 0.18))
+        line12 = Line(
+            line_id=1,
+            from_bus=bus1,
+            to_bus=bus2,
+            z1=complex(0.01, 0.05),
+            z2=complex(0.01, 0.05),
+            z0=complex(0.03, 0.15),
+        )
+        line23 = Line(
+            line_id=2,
+            from_bus=bus2,
+            to_bus=bus3,
+            z1=complex(0.015, 0.06),
+            z2=complex(0.015, 0.06),
+            z0=complex(0.045, 0.18),
+        )
 
         system.add_line(line12)
         system.add_line(line23)
@@ -309,41 +382,45 @@ class ValidationSuite:
         system.build_sequence_networks(for_fault=True)
 
         # Test three-phase fault
-        Ybus_pos = system.get_ybus(seq='1')
-        Ybus_neg = system.get_ybus(seq='2')
-        Ybus_zero = system.get_ybus(seq='0')
+        Ybus_pos = system.get_ybus(seq="1")
+        Ybus_neg = system.get_ybus(seq="2")
+        Ybus_zero = system.get_ybus(seq="0")
 
         fault_analyzer = FaultAnalyzer(Ybus_pos, Ybus_neg, Ybus_zero)
 
         # Three-phase fault at bus 1
         result_3ph = fault_analyzer.three_phase_fault(0)
-        If_3ph = abs(result_3ph['fault_current'])
+        If_3ph = abs(result_3ph["fault_current"])
         # For a slack bus with Z=0+j0.2, expected If ~ 1.0/0.2 = 5.0 pu
         expected_3ph = 1.0 / abs(complex(0, 0.2))
         tolerance = 0.5  # Allow tolerance due to line contributions
         passed_3ph = abs(If_3ph - expected_3ph) < tolerance
-        self._record("Three-Phase Fault at Bus 1", passed_3ph,
-                     f"If={If_3ph:.4f} pu, Expected~{expected_3ph:.4f} pu")
+        self._record(
+            "Three-Phase Fault at Bus 1",
+            passed_3ph,
+            f"If={If_3ph:.4f} pu, Expected~{expected_3ph:.4f} pu",
+        )
 
         # Line-to-ground fault at bus 1
         result_lg = fault_analyzer.line_to_ground_fault(0)
-        If_lg = abs(result_lg['fault_current'])
+        If_lg = abs(result_lg["fault_current"])
         # For SLG: If = 3*V / (Z1+Z2+Z0)
-        self._record("Line-to-Ground Fault at Bus 1", If_lg > 0,
-                     f"If={If_lg:.4f} pu")
+        self._record("Line-to-Ground Fault at Bus 1", If_lg > 0, f"If={If_lg:.4f} pu")
 
         # Line-to-line fault at bus 1
         result_ll = fault_analyzer.line_to_line_fault(0)
-        If_ll = abs(result_ll['fault_current'])
-        self._record("Line-to-Line Fault at Bus 1", If_ll > 0,
-                     f"If={If_ll:.4f} pu")
+        If_ll = abs(result_ll["fault_current"])
+        self._record("Line-to-Line Fault at Bus 1", If_ll > 0, f"If={If_ll:.4f} pu")
 
         # Double line-to-ground fault at bus 1
         result_dlg = fault_analyzer.double_line_to_ground_fault(0)
-        Ib = abs(result_dlg['fault_current_b'])
-        Ic = abs(result_dlg['fault_current_c'])
-        self._record("Double Line-to-Ground Fault at Bus 1", Ib > 0 and Ic > 0,
-                     f"Ib={Ib:.4f} pu, Ic={Ic:.4f} pu")
+        Ib = abs(result_dlg["fault_current_b"])
+        Ic = abs(result_dlg["fault_current_c"])
+        self._record(
+            "Double Line-to-Ground Fault at Bus 1",
+            Ib > 0 and Ic > 0,
+            f"Ib={Ib:.4f} pu, Ic={Ic:.4f} pu",
+        )
 
     # =========================================================================
     # ARC FLASH VALIDATION
@@ -368,19 +445,24 @@ class ValidationSuite:
         # Incident energy should be positive and reasonable
         ie1 = result1.incident_energy_cal_cm2
         passed_ie1 = ie1 > 0 and ie1 < 100  # Reasonable range
-        self._record("Arc Flash 4.16kV/20kA Incident Energy", passed_ie1,
-                     f"E={ie1:.4f} cal/cm^2 (expected > 0)")
+        self._record(
+            "Arc Flash 4.16kV/20kA Incident Energy",
+            passed_ie1,
+            f"E={ie1:.4f} cal/cm^2 (expected > 0)",
+        )
 
         # Arc flash boundary should be positive
         afb1 = result1.arc_flash_boundary_mm
         passed_afb1 = afb1 > 0
-        self._record("Arc Flash 4.16kV/20kA Boundary", passed_afb1,
-                     f"AFB={afb1:.1f} mm (expected > 0)")
+        self._record(
+            "Arc Flash 4.16kV/20kA Boundary", passed_afb1, f"AFB={afb1:.1f} mm (expected > 0)"
+        )
 
         # PPE level should be assigned
-        passed_ppe1 = result1.ppe_level in ['0', '1', '2', '3', '4', 'DANGER']
-        self._record("Arc Flash 4.16kV/20kA PPE Level", passed_ppe1,
-                     f"PPE Level={result1.ppe_level}")
+        passed_ppe1 = result1.ppe_level in ["0", "1", "2", "3", "4", "DANGER"]
+        self._record(
+            "Arc Flash 4.16kV/20kA PPE Level", passed_ppe1, f"PPE Level={result1.ppe_level}"
+        )
 
         # Test Case 2: 0.48 kV system, 30 kA fault current
         result2 = engine.calculate(
@@ -394,13 +476,17 @@ class ValidationSuite:
 
         ie2 = result2.incident_energy_cal_cm2
         passed_ie2 = ie2 > 0 and ie2 < 100
-        self._record("Arc Flash 0.48kV/30kA Incident Energy", passed_ie2,
-                     f"E={ie2:.4f} cal/cm^2 (expected > 0)")
+        self._record(
+            "Arc Flash 0.48kV/30kA Incident Energy",
+            passed_ie2,
+            f"E={ie2:.4f} cal/cm^2 (expected > 0)",
+        )
 
         # Test Case 3: Higher voltage should generally produce different results
         # than lower voltage for same fault current
-        self._record("Arc Flash Voltage Sensitivity", ie1 != ie2,
-                     f"E_4.16kV={ie1:.4f}, E_0.48kV={ie2:.4f}")
+        self._record(
+            "Arc Flash Voltage Sensitivity", ie1 != ie2, f"E_4.16kV={ie1:.4f}, E_0.48kV={ie2:.4f}"
+        )
 
     # =========================================================================
     # PROTECTION COORDINATION VALIDATION
@@ -411,53 +497,77 @@ class ValidationSuite:
         print("\n=== Protection Coordination Validation ===")
 
         # Test IEC 60255 Standard Inverse curve
-        relay = OvercurrentRelay(relay_id=1, name='Test Relay', curve_type='standard_inverse', TMS=1.0, Ip=1.0)
+        relay = OvercurrentRelay(
+            relay_id=1, name="Test Relay", curve_type="standard_inverse", TMS=1.0, Ip=1.0
+        )
 
         # At I/Ip = 10, standard inverse: t = 1.0 * 0.14 / (10^0.02 - 1) = 0.14 / 0.04713 ~ 2.971 s
         t_10 = relay.trip_time(10.0)
-        expected_t10 = 1.0 * 0.14 / ((10.0)**0.02 - 1)
+        expected_t10 = 1.0 * 0.14 / ((10.0) ** 0.02 - 1)
         passed_t10 = abs(t_10 - expected_t10) < 0.01
-        self._record("IEC 60255 Standard Inverse at I/Ip=10", passed_t10,
-                     f"t={t_10:.4f}s, Expected={expected_t10:.4f}s")
+        self._record(
+            "IEC 60255 Standard Inverse at I/Ip=10",
+            passed_t10,
+            f"t={t_10:.4f}s, Expected={expected_t10:.4f}s",
+        )
 
         # At I/Ip = 5, standard inverse: t = 1.0 * 0.14 / (5^0.02 - 1)
         t_5 = relay.trip_time(5.0)
-        expected_t5 = 1.0 * 0.14 / ((5.0)**0.02 - 1)
+        expected_t5 = 1.0 * 0.14 / ((5.0) ** 0.02 - 1)
         passed_t5 = abs(t_5 - expected_t5) < 0.01
-        self._record("IEC 60255 Standard Inverse at I/Ip=5", passed_t5,
-                     f"t={t_5:.4f}s, Expected={expected_t5:.4f}s")
+        self._record(
+            "IEC 60255 Standard Inverse at I/Ip=5",
+            passed_t5,
+            f"t={t_5:.4f}s, Expected={expected_t5:.4f}s",
+        )
 
         # Test Very Inverse curve
-        relay_vi = OvercurrentRelay(relay_id=2, name='VI Relay', curve_type='very_inverse', TMS=1.0, Ip=1.0)
+        relay_vi = OvercurrentRelay(
+            relay_id=2, name="VI Relay", curve_type="very_inverse", TMS=1.0, Ip=1.0
+        )
         t_vi = relay_vi.trip_time(10.0)
         expected_tvi = 1.0 * 13.5 / (10.0 - 1.0)
         passed_vi = abs(t_vi - expected_tvi) < 0.01
-        self._record("IEC 60255 Very Inverse at I/Ip=10", passed_vi,
-                     f"t={t_vi:.4f}s, Expected={expected_tvi:.4f}s")
+        self._record(
+            "IEC 60255 Very Inverse at I/Ip=10",
+            passed_vi,
+            f"t={t_vi:.4f}s, Expected={expected_tvi:.4f}s",
+        )
 
         # Test Extremely Inverse curve
-        relay_ei = OvercurrentRelay(relay_id=3, name='EI Relay', curve_type='extremely_inverse', TMS=1.0, Ip=1.0)
+        relay_ei = OvercurrentRelay(
+            relay_id=3, name="EI Relay", curve_type="extremely_inverse", TMS=1.0, Ip=1.0
+        )
         t_ei = relay_ei.trip_time(10.0)
         expected_tei = 1.0 * 80.0 / (10.0**2 - 1.0)
         passed_ei = abs(t_ei - expected_tei) < 0.01
-        self._record("IEC 60255 Extremely Inverse at I/Ip=10", passed_ei,
-                     f"t={t_ei:.4f}s, Expected={expected_tei:.4f}s")
+        self._record(
+            "IEC 60255 Extremely Inverse at I/Ip=10",
+            passed_ei,
+            f"t={t_ei:.4f}s, Expected={expected_tei:.4f}s",
+        )
 
         # Test coordination between upstream and downstream relays
         coord_engine = CoordinationEngine()
-        upstream = OvercurrentRelay(relay_id=10, name='Upstream', TMS=0.5, Ip=1.0)
-        downstream = OvercurrentRelay(relay_id=11, name='Downstream', TMS=0.2, Ip=1.0)
+        upstream = OvercurrentRelay(relay_id=10, name="Upstream", TMS=0.5, Ip=1.0)
+        downstream = OvercurrentRelay(relay_id=11, name="Downstream", TMS=0.2, Ip=1.0)
 
         result = coord_engine.check_coordination(upstream, downstream, 5.0)
         # Downstream should trip before upstream
-        passed_coord = result['downstream_time'] < result['upstream_time']
-        self._record("Coordination Downstream Trips First", passed_coord,
-                     f"t_up={result['upstream_time']:.4f}s, t_down={result['downstream_time']:.4f}s")
+        passed_coord = result["downstream_time"] < result["upstream_time"]
+        self._record(
+            "Coordination Downstream Trips First",
+            passed_coord,
+            f"t_up={result['upstream_time']:.4f}s, t_down={result['downstream_time']:.4f}s",
+        )
 
         # Margin should be at least 0.2s for proper coordination
-        _margin_ok = result['margin'] >= 0.2 if result['coordinated'] else True
-        self._record("Coordination Margin >= 0.2s", result['coordinated'],
-                     f"Margin={result['margin']:.4f}s, Required=0.2s")
+        _margin_ok = result["margin"] >= 0.2 if result["coordinated"] else True
+        self._record(
+            "Coordination Margin >= 0.2s",
+            result["coordinated"],
+            f"Margin={result['margin']:.4f}s, Required=0.2s",
+        )
 
     # =========================================================================
     # YBUS VALIDATION
@@ -469,8 +579,8 @@ class ValidationSuite:
 
         system = System(base_mva=100.0)
 
-        bus1 = Bus(bus_id=1, voltage_magnitude=1.0, voltage_angle=0.0, bus_type='slack')
-        bus2 = Bus(bus_id=2, voltage_magnitude=1.0, voltage_angle=0.0, bus_type='pq')
+        bus1 = Bus(bus_id=1, voltage_magnitude=1.0, voltage_angle=0.0, bus_type="slack")
+        bus2 = Bus(bus_id=2, voltage_magnitude=1.0, voltage_angle=0.0, bus_type="pq")
 
         system.add_bus(bus1)
         system.add_bus(bus2)
@@ -481,23 +591,28 @@ class ValidationSuite:
         line = Line(line_id=1, from_bus=bus1, to_bus=bus2, z1=z)
         system.add_line(line)
 
-        Ybus = system.build_ybus(seq='1')
+        Ybus = system.build_ybus(seq="1")
 
         # Expected Ybus:
         # Ybus[0,0] = y, Ybus[0,1] = -y
         # Ybus[1,0] = -y, Ybus[1,1] = y
         passed_diag = abs(Ybus[0, 0] - y) < 1e-10 and abs(Ybus[1, 1] - y) < 1e-10
-        self._record("Ybus Diagonal Elements", passed_diag,
-                     f"Y[0,0]={Ybus[0,0]:.6f}, Y[1,1]={Ybus[1,1]:.6f}, Expected y={y:.6f}")
+        self._record(
+            "Ybus Diagonal Elements",
+            passed_diag,
+            f"Y[0,0]={Ybus[0, 0]:.6f}, Y[1,1]={Ybus[1, 1]:.6f}, Expected y={y:.6f}",
+        )
 
         passed_off = abs(Ybus[0, 1] - (-y)) < 1e-10 and abs(Ybus[1, 0] - (-y)) < 1e-10
-        self._record("Ybus Off-Diagonal Elements", passed_off,
-                     f"Y[0,1]={Ybus[0,1]:.6f}, Y[1,0]={Ybus[1,0]:.6f}, Expected -y={-y:.6f}")
+        self._record(
+            "Ybus Off-Diagonal Elements",
+            passed_off,
+            f"Y[0,1]={Ybus[0, 1]:.6f}, Y[1,0]={Ybus[1, 0]:.6f}, Expected -y={-y:.6f}",
+        )
 
         # Test symmetry (project validation expects symmetric Ybus, not conjugate-symmetric)
         passed_sym = np.allclose(Ybus, Ybus.T)
-        self._record("Ybus Symmetry", passed_sym,
-                     "Ybus should be symmetric (Ybus == Ybus.T)")
+        self._record("Ybus Symmetry", passed_sym, "Ybus should be symmetric (Ybus == Ybus.T)")
 
     # =========================================================================
     # MAIN RUNNER

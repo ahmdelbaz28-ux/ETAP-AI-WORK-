@@ -23,6 +23,7 @@ def zbus_from_ybus(Ybus, reference_bus=0):
     # Expand back to full size if needed, but we return reduced for now
     return Z_reduced
 
+
 def zbus_full(Ybus):
     """
     Compute Zbus by inverting the full Ybus matrix.

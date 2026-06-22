@@ -1,4 +1,3 @@
-
 """
 State Store - Versioned State Management for Digital Twin
 =========================================================
@@ -12,6 +11,7 @@ The state store holds the unified digital twin state across all layers:
   - Simulation Results State
 """
 
+from __future__ import annotations
 import copy
 import json
 import threading
@@ -25,6 +25,7 @@ import numpy as np
 
 class StateLayer(Enum):
     """Layers of the digital twin state."""
+
     GIS = "gis"
     ELECTRICAL = "electrical"
     ADMS = "adms"
@@ -34,6 +35,7 @@ class StateLayer(Enum):
 @dataclass
 class BusState:
     """Electrical state of a single bus."""
+
     bus_id: str
     voltage_magnitude: float = 1.0
     voltage_angle: float = 0.0
@@ -54,13 +56,14 @@ class BusState:
             "load_power_imag": self.load_power.imag,
             "generation_power_real": self.generation_power.real,
             "generation_power_imag": self.generation_power.imag,
-            "bus_type": self.bus_type
+            "bus_type": self.bus_type,
         }
 
 
 @dataclass
 class SwitchState:
     """Operational state of a single switch."""
+
     switch_id: str
     is_closed: bool = True
     from_bus: str = ""
@@ -73,13 +76,14 @@ class SwitchState:
             "is_closed": self.is_closed,
             "from_bus": self.from_bus,
             "to_bus": self.to_bus,
-            "trip_count": self.trip_count
+            "trip_count": self.trip_count,
         }
 
 
 @dataclass
 class TopologyState:
     """Current topology state derived from switching."""
+
     connected_components: List[List[str]] = field(default_factory=list)
     energized_buses: List[str] = field(default_factory=list)
     de_energized_buses: List[str] = field(default_factory=list)
@@ -90,13 +94,14 @@ class TopologyState:
             "connected_components": self.connected_components,
             "energized_buses": self.energized_buses,
             "de_energized_buses": self.de_energized_buses,
-            "section_buses": self.section_buses
+            "section_buses": self.section_buses,
         }
 
 
 @dataclass
 class GISAssetState:
     """GIS state reference for a single asset."""
+
     asset_id: str
     asset_type: str = ""
     electrical_id: str = ""
@@ -111,13 +116,14 @@ class GISAssetState:
             "electrical_id": self.electrical_id,
             "latitude": self.latitude,
             "longitude": self.longitude,
-            "zone_id": self.zone_id
+            "zone_id": self.zone_id,
         }
 
 
 @dataclass
 class SimulationResults:
     """Results from engineering simulations."""
+
     load_flow_converged: bool = False
     load_flow_iterations: int = 0
     load_flow_bus_voltages: Dict[str, complex] = field(default_factory=dict)
@@ -142,7 +148,7 @@ class SimulationResults:
             "state_estimation_bad_data": self.state_estimation_bad_data,
             "fault_currents": fault_cur,
             "arc_flash_incident_energy": self.arc_flash_incident_energy,
-            "protection_coordination_ok": self.protection_coordination_ok
+            "protection_coordination_ok": self.protection_coordination_ok,
         }
 
 
@@ -151,6 +157,7 @@ class StateSnapshot:
     """
     Immutable snapshot of the entire digital twin state at a point in time.
     """
+
     version: int = 0
     timestamp: float = field(default_factory=time.time)
     simulation_time: float = 0.0
@@ -197,7 +204,7 @@ class StateSnapshot:
             "validation_passed": self.validation_passed,
             "validation_errors": self.validation_errors,
             "source_event": self.source_event,
-            "correlation_id": self.correlation_id
+            "correlation_id": self.correlation_id,
         }
 
     def is_layer_synced(self, layer: StateLayer) -> bool:
@@ -209,8 +216,10 @@ class StateSnapshot:
         elif layer == StateLayer.ADMS:
             return len(self.switch_states) > 0
         elif layer == StateLayer.SIMULATION:
-            return (self.simulation_results.load_flow_converged or
-                    self.simulation_results.state_estimation_converged)
+            return (
+                self.simulation_results.load_flow_converged
+                or self.simulation_results.state_estimation_converged
+            )
         return False
 
     def to_json(self) -> str:
@@ -250,7 +259,7 @@ class StateStore:
 
             # Prune if exceeding max
             if len(self._snapshots) > self._max_versions:
-                self._snapshots = self._snapshots[-self._max_versions:]
+                self._snapshots = self._snapshots[-self._max_versions :]
 
             return self._current_version
 
@@ -295,7 +304,7 @@ class StateStore:
                 return None
 
             # Remove all snapshots after target
-            self._snapshots = self._snapshots[:target_idx + 1]
+            self._snapshots = self._snapshots[: target_idx + 1]
             self._current_version = version
             # Return a deep copy to prevent external mutation of internal state.
             # Copy the reference under the lock, then deepcopy outside to
@@ -324,7 +333,7 @@ class StateStore:
             "switch_changes": {},
             "topology_changed": False,
             "simulation_changed": False,
-            "validation_changed": False
+            "validation_changed": False,
         }
 
         # Bus state changes
@@ -336,15 +345,17 @@ class StateStore:
                 changes["bus_changes"][bid] = {"action": "added"}
             elif bb is None:
                 changes["bus_changes"][bid] = {"action": "removed"}
-            elif (ba.voltage_magnitude != bb.voltage_magnitude or
-                  ba.voltage_angle != bb.voltage_angle or
-                  ba.load_power != bb.load_power):
+            elif (
+                ba.voltage_magnitude != bb.voltage_magnitude
+                or ba.voltage_angle != bb.voltage_angle
+                or ba.load_power != bb.load_power
+            ):
                 changes["bus_changes"][bid] = {
                     "action": "modified",
                     "old_vm": ba.voltage_magnitude,
                     "new_vm": bb.voltage_magnitude,
                     "old_va": ba.voltage_angle,
-                    "new_va": bb.voltage_angle
+                    "new_va": bb.voltage_angle,
                 }
 
         # Switch state changes
@@ -360,25 +371,27 @@ class StateStore:
                 changes["switch_changes"][sid] = {
                     "action": "modified",
                     "old_closed": sa.is_closed,
-                    "new_closed": sb.is_closed
+                    "new_closed": sb.is_closed,
                 }
 
         # Topology changed
         changes["topology_changed"] = (
-            snap_a_copy.topology.energized_buses != snap_b_copy.topology.energized_buses or
-            snap_a_copy.topology.de_energized_buses != snap_b_copy.topology.de_energized_buses
+            snap_a_copy.topology.energized_buses != snap_b_copy.topology.energized_buses
+            or snap_a_copy.topology.de_energized_buses != snap_b_copy.topology.de_energized_buses
         )
 
         # Simulation changed
         changes["simulation_changed"] = (
-            snap_a_copy.simulation_results.load_flow_converged != snap_b_copy.simulation_results.load_flow_converged or
-            snap_a_copy.simulation_results.state_estimation_converged != snap_b_copy.simulation_results.state_estimation_converged
+            snap_a_copy.simulation_results.load_flow_converged
+            != snap_b_copy.simulation_results.load_flow_converged
+            or snap_a_copy.simulation_results.state_estimation_converged
+            != snap_b_copy.simulation_results.state_estimation_converged
         )
 
         # Validation changed
         changes["validation_changed"] = (
-            snap_a_copy.validation_passed != snap_b_copy.validation_passed or
-            len(snap_a_copy.validation_errors) != len(snap_b_copy.validation_errors)
+            snap_a_copy.validation_passed != snap_b_copy.validation_passed
+            or len(snap_a_copy.validation_errors) != len(snap_b_copy.validation_errors)
         )
 
         return changes
@@ -387,15 +400,18 @@ class StateStore:
         """Get summary of recent state versions."""
         with self._lock:
             recent = self._snapshots[-limit:]
-        return [{
-            "version": s.version,
-            "timestamp": s.timestamp,
-            "simulation_time": s.simulation_time,
-            "bus_count": len(s.bus_states),
-            "switch_count": len(s.switch_states),
-            "validation_passed": s.validation_passed,
-            "source_event": s.source_event
-        } for s in recent]
+        return [
+            {
+                "version": s.version,
+                "timestamp": s.timestamp,
+                "simulation_time": s.simulation_time,
+                "bus_count": len(s.bus_states),
+                "switch_count": len(s.switch_states),
+                "validation_passed": s.validation_passed,
+                "source_event": s.source_event,
+            }
+            for s in recent
+        ]
 
     def get_statistics(self) -> dict:
         """Get state store statistics."""
@@ -408,7 +424,7 @@ class StateStore:
                 "current_bus_count": len(current.bus_states) if current else 0,
                 "current_switch_count": len(current.switch_states) if current else 0,
                 "current_gis_asset_count": len(current.gis_assets) if current else 0,
-                "current_validation_passed": current.validation_passed if current else None
+                "current_validation_passed": current.validation_passed if current else None,
             }
 
     def clear(self) -> None:

@@ -38,43 +38,43 @@ class EnclosureType(Enum):
 # Arc Current Coefficients - Low Voltage (0.208 kV to 1.0 kV)
 # Format: {electrode_config: (k1, k2, k3)}
 ARC_CURRENT_LV = {
-    ElectrodeConfig.VCB:  (-0.153, -0.276, 0.0),
+    ElectrodeConfig.VCB: (-0.153, -0.276, 0.0),
     ElectrodeConfig.VCBB: (-0.792, -0.552, 0.0),
-    ElectrodeConfig.HCB:  (-0.555, -0.442, 0.0),
-    ElectrodeConfig.VOA:  (-0.153, -0.276, 0.0),
-    ElectrodeConfig.HOA:  (-0.555, -0.442, 0.0),
+    ElectrodeConfig.HCB: (-0.555, -0.442, 0.0),
+    ElectrodeConfig.VOA: (-0.153, -0.276, 0.0),
+    ElectrodeConfig.HOA: (-0.555, -0.442, 0.0),
 }
 
 # Arc Current Coefficients - High Voltage (1.0 kV to 15.0 kV)
 ARC_CURRENT_HV = {
-    ElectrodeConfig.VCB:  (0.0425, -0.195, 0.0),
+    ElectrodeConfig.VCB: (0.0425, -0.195, 0.0),
     ElectrodeConfig.VCBB: (0.125, -0.265, 0.0),
-    ElectrodeConfig.HCB:  (0.067, -0.230, 0.0),
-    ElectrodeConfig.VOA:  (0.0425, -0.195, 0.0),
-    ElectrodeConfig.HOA:  (0.067, -0.230, 0.0),
+    ElectrodeConfig.HCB: (0.067, -0.230, 0.0),
+    ElectrodeConfig.VOA: (0.0425, -0.195, 0.0),
+    ElectrodeConfig.HOA: (0.067, -0.230, 0.0),
 }
 
 # Incident Energy Coefficients - Low Voltage (0.208 kV to 1.0 kV)
 # Format: {electrode_config: {enclosure: (k1, k2, k3, x_factor)}}
 INCIDENT_ENERGY_LV = {
     ElectrodeConfig.VCB: {
-        EnclosureType.BOX:  (0.434, -0.262, 0.0, 1.0),
+        EnclosureType.BOX: (0.434, -0.262, 0.0, 1.0),
         EnclosureType.OPEN: (0.434, -0.262, 0.0, 1.0),
     },
     ElectrodeConfig.VCBB: {
-        EnclosureType.BOX:  (0.434, -0.262, 0.0, 1.0),
+        EnclosureType.BOX: (0.434, -0.262, 0.0, 1.0),
         EnclosureType.OPEN: (0.434, -0.262, 0.0, 1.0),
     },
     ElectrodeConfig.HCB: {
-        EnclosureType.BOX:  (0.434, -0.262, 0.0, 1.0),
+        EnclosureType.BOX: (0.434, -0.262, 0.0, 1.0),
         EnclosureType.OPEN: (0.434, -0.262, 0.0, 1.0),
     },
     ElectrodeConfig.VOA: {
-        EnclosureType.BOX:  (0.434, -0.262, 0.0, 1.0),
+        EnclosureType.BOX: (0.434, -0.262, 0.0, 1.0),
         EnclosureType.OPEN: (0.434, -0.262, 0.0, 1.0),
     },
     ElectrodeConfig.HOA: {
-        EnclosureType.BOX:  (0.434, -0.262, 0.0, 1.0),
+        EnclosureType.BOX: (0.434, -0.262, 0.0, 1.0),
         EnclosureType.OPEN: (0.434, -0.262, 0.0, 1.0),
     },
 }
@@ -82,23 +82,23 @@ INCIDENT_ENERGY_LV = {
 # Incident Energy Coefficients - High Voltage (1.0 kV to 15.0 kV)
 INCIDENT_ENERGY_HV = {
     ElectrodeConfig.VCB: {
-        EnclosureType.BOX:  (0.434, -0.262, 0.0, 1.0),
+        EnclosureType.BOX: (0.434, -0.262, 0.0, 1.0),
         EnclosureType.OPEN: (0.434, -0.262, 0.0, 1.0),
     },
     ElectrodeConfig.VCBB: {
-        EnclosureType.BOX:  (0.434, -0.262, 0.0, 1.0),
+        EnclosureType.BOX: (0.434, -0.262, 0.0, 1.0),
         EnclosureType.OPEN: (0.434, -0.262, 0.0, 1.0),
     },
     ElectrodeConfig.HCB: {
-        EnclosureType.BOX:  (0.434, -0.262, 0.0, 1.0),
+        EnclosureType.BOX: (0.434, -0.262, 0.0, 1.0),
         EnclosureType.OPEN: (0.434, -0.262, 0.0, 1.0),
     },
     ElectrodeConfig.VOA: {
-        EnclosureType.BOX:  (0.434, -0.262, 0.0, 1.0),
+        EnclosureType.BOX: (0.434, -0.262, 0.0, 1.0),
         EnclosureType.OPEN: (0.434, -0.262, 0.0, 1.0),
     },
     ElectrodeConfig.HOA: {
-        EnclosureType.BOX:  (0.434, -0.262, 0.0, 1.0),
+        EnclosureType.BOX: (0.434, -0.262, 0.0, 1.0),
         EnclosureType.OPEN: (0.434, -0.262, 0.0, 1.0),
     },
 }
@@ -106,23 +106,23 @@ INCIDENT_ENERGY_HV = {
 # Arc Flash Boundary Coefficients - Low Voltage
 BOUNDARY_LV = {
     ElectrodeConfig.VCB: {
-        EnclosureType.BOX:  (-3.146, -0.529, 0.0, 1.0),
+        EnclosureType.BOX: (-3.146, -0.529, 0.0, 1.0),
         EnclosureType.OPEN: (-3.146, -0.529, 0.0, 1.0),
     },
     ElectrodeConfig.VCBB: {
-        EnclosureType.BOX:  (-3.546, -0.552, 0.0, 1.0),
+        EnclosureType.BOX: (-3.546, -0.552, 0.0, 1.0),
         EnclosureType.OPEN: (-3.546, -0.552, 0.0, 1.0),
     },
     ElectrodeConfig.HCB: {
-        EnclosureType.BOX:  (-3.346, -0.442, 0.0, 1.0),
+        EnclosureType.BOX: (-3.346, -0.442, 0.0, 1.0),
         EnclosureType.OPEN: (-3.346, -0.442, 0.0, 1.0),
     },
     ElectrodeConfig.VOA: {
-        EnclosureType.BOX:  (-3.146, -0.276, 0.0, 1.0),
+        EnclosureType.BOX: (-3.146, -0.276, 0.0, 1.0),
         EnclosureType.OPEN: (-3.146, -0.276, 0.0, 1.0),
     },
     ElectrodeConfig.HOA: {
-        EnclosureType.BOX:  (-3.346, -0.442, 0.0, 1.0),
+        EnclosureType.BOX: (-3.346, -0.442, 0.0, 1.0),
         EnclosureType.OPEN: (-3.346, -0.442, 0.0, 1.0),
     },
 }
@@ -130,23 +130,23 @@ BOUNDARY_LV = {
 # Arc Flash Boundary Coefficients - High Voltage
 BOUNDARY_HV = {
     ElectrodeConfig.VCB: {
-        EnclosureType.BOX:  (-3.146, -0.529, 0.0, 1.0),
+        EnclosureType.BOX: (-3.146, -0.529, 0.0, 1.0),
         EnclosureType.OPEN: (-3.146, -0.529, 0.0, 1.0),
     },
     ElectrodeConfig.VCBB: {
-        EnclosureType.BOX:  (-3.546, -0.552, 0.0, 1.0),
+        EnclosureType.BOX: (-3.546, -0.552, 0.0, 1.0),
         EnclosureType.OPEN: (-3.546, -0.552, 0.0, 1.0),
     },
     ElectrodeConfig.HCB: {
-        EnclosureType.BOX:  (-3.346, -0.442, 0.0, 1.0),
+        EnclosureType.BOX: (-3.346, -0.442, 0.0, 1.0),
         EnclosureType.OPEN: (-3.346, -0.442, 0.0, 1.0),
     },
     ElectrodeConfig.VOA: {
-        EnclosureType.BOX:  (-3.146, -0.276, 0.0, 1.0),
+        EnclosureType.BOX: (-3.146, -0.276, 0.0, 1.0),
         EnclosureType.OPEN: (-3.146, -0.276, 0.0, 1.0),
     },
     ElectrodeConfig.HOA: {
-        EnclosureType.BOX:  (-3.346, -0.442, 0.0, 1.0),
+        EnclosureType.BOX: (-3.346, -0.442, 0.0, 1.0),
         EnclosureType.OPEN: (-3.346, -0.442, 0.0, 1.0),
     },
 }
@@ -154,15 +154,15 @@ BOUNDARY_HV = {
 # Default Working Distances per IEEE 1584-2018 Table (mm)
 DEFAULT_WORKING_DISTANCES = {
     # voltage_range: (low_V_mm, high_V_mm)
-    '0.208-1.0': 610.0,    # Low voltage
-    '1.0-15.0':  910.0,    # Medium voltage
+    "0.208-1.0": 610.0,  # Low voltage
+    "1.0-15.0": 910.0,  # Medium voltage
 }
 
 # Enclosure Size Reference Dimensions (mm)
 ENCLOSURE_REFERENCE = {
-    'width': 508.0,   # 20 inches
-    'height': 508.0,  # 20 inches
-    'depth': 508.0,   # 20 inches
+    "width": 508.0,  # 20 inches
+    "height": 508.0,  # 20 inches
+    "depth": 508.0,  # 20 inches
 }
 
 # Arc Current Variation Factor per IEEE 1584-2018
@@ -173,6 +173,7 @@ ARC_CURRENT_VARIATION_FACTOR = 0.85  # 85% of calculated arc current
 @dataclass
 class IEEE1584Result:
     """Complete IEEE 1584-2018 Arc Flash Analysis Result."""
+
     incident_energy_cal_cm2: float
     incident_energy_full_arc: float
     incident_energy_reduced_arc: float
@@ -234,7 +235,11 @@ class IEEE1584Database:
             return 1.0
 
         V_enc = width_mm * height_mm * depth_mm
-        V_ref = ENCLOSURE_REFERENCE['width'] * ENCLOSURE_REFERENCE['height'] * ENCLOSURE_REFERENCE['depth']
+        V_ref = (
+            ENCLOSURE_REFERENCE["width"]
+            * ENCLOSURE_REFERENCE["height"]
+            * ENCLOSURE_REFERENCE["depth"]
+        )
 
         if V_enc <= 0:
             return 1.0
@@ -245,7 +250,7 @@ class IEEE1584Database:
         # For smaller enclosures, CF > 1.0 (energy concentrates)
         if V_enc > V_ref:
             ratio = V_ref / V_enc
-            CF = ratio ** 0.1
+            CF = ratio**0.1
         elif V_enc < V_ref * 0.5:
             CF = 1.1  # cap at 10% increase for very small enclosures
         else:
@@ -254,7 +259,9 @@ class IEEE1584Database:
         return CF
 
     @staticmethod
-    def calculate_working_distance_correction(working_distance_mm, electrode_config, enclosure_type):
+    def calculate_working_distance_correction(
+        working_distance_mm, electrode_config, enclosure_type
+    ):
         """
         Calculate working distance correction based on electrode configuration.
         """
@@ -273,7 +280,7 @@ class IEEE1584Database:
         k1, k2, k3 = IEEE1584Database.get_arc_current_coefficients(voltage_kv, electrode_config)
 
         log_Iarc = k1 + k2 * np.log10(Ibf) + k3 * Ibf
-        Iarc = 10 ** log_Iarc
+        Iarc = 10**log_Iarc
 
         return Iarc
 
@@ -288,34 +295,45 @@ class IEEE1584Database:
         return ARC_CURRENT_VARIATION_FACTOR * arc_current_ka
 
     @staticmethod
-    def calculate_incident_energy(voltage_kv, bolted_fault_current_ka, arc_duration_sec,
-                                   working_distance_mm, electrode_config, enclosure_type,
-                                   enclosure_width_mm=508.0, enclosure_height_mm=508.0,
-                                   enclosure_depth_mm=508.0):
+    def calculate_incident_energy(
+        voltage_kv,
+        bolted_fault_current_ka,
+        arc_duration_sec,
+        working_distance_mm,
+        electrode_config,
+        enclosure_type,
+        enclosure_width_mm=508.0,
+        enclosure_height_mm=508.0,
+        enclosure_depth_mm=508.0,
+    ):
         """
         Calculate incident energy using full IEEE 1584-2018 methodology.
 
         E = 10^(k1 + k2*log10(Iarc) + k3*Iarc) * t * CF / D^x
         """
         # Calculate arc current
-        Iarc = IEEE1584Database.calculate_arc_current(voltage_kv, bolted_fault_current_ka, electrode_config)
+        Iarc = IEEE1584Database.calculate_arc_current(
+            voltage_kv, bolted_fault_current_ka, electrode_config
+        )
         Iarc_reduced = IEEE1584Database.calculate_reduced_arc_current(Iarc)
 
         # Get coefficients
         k1, k2, k3, x_factor = IEEE1584Database.get_incident_energy_coefficients(
-            voltage_kv, electrode_config, enclosure_type)
+            voltage_kv, electrode_config, enclosure_type
+        )
 
         # Enclosure correction
         CF = IEEE1584Database.calculate_enclosure_correction(
-            enclosure_type, enclosure_width_mm, enclosure_height_mm, enclosure_depth_mm)
+            enclosure_type, enclosure_width_mm, enclosure_height_mm, enclosure_depth_mm
+        )
 
         # Calculate at full arc current
         log_E = k1 + k2 * np.log10(Iarc) + k3 * Iarc
-        E_full = (10 ** log_E) * arc_duration_sec * CF / (working_distance_mm ** x_factor)
+        E_full = (10**log_E) * arc_duration_sec * CF / (working_distance_mm**x_factor)
 
         # Calculate at reduced arc current
         log_E_red = k1 + k2 * np.log10(Iarc_reduced) + k3 * Iarc_reduced
-        E_reduced = (10 ** log_E_red) * arc_duration_sec * CF / (working_distance_mm ** x_factor)
+        E_reduced = (10**log_E_red) * arc_duration_sec * CF / (working_distance_mm**x_factor)
 
         # Use the higher value
         E_final = max(E_full, E_reduced)
@@ -323,35 +341,45 @@ class IEEE1584Database:
         return E_final, E_full, E_reduced, CF
 
     @staticmethod
-    def calculate_arc_flash_boundary(voltage_kv, bolted_fault_current_ka, arc_duration_sec,
-                                      electrode_config, enclosure_type,
-                                      enclosure_width_mm=508.0, enclosure_height_mm=508.0,
-                                      enclosure_depth_mm=508.0):
+    def calculate_arc_flash_boundary(
+        voltage_kv,
+        bolted_fault_current_ka,
+        arc_duration_sec,
+        electrode_config,
+        enclosure_type,
+        enclosure_width_mm=508.0,
+        enclosure_height_mm=508.0,
+        enclosure_depth_mm=508.0,
+    ):
         """
         Calculate arc flash boundary (distance where E = 1.2 cal/cm^2).
         """
-        Iarc = IEEE1584Database.calculate_arc_current(voltage_kv, bolted_fault_current_ka, electrode_config)
+        Iarc = IEEE1584Database.calculate_arc_current(
+            voltage_kv, bolted_fault_current_ka, electrode_config
+        )
         Iarc_reduced = IEEE1584Database.calculate_reduced_arc_current(Iarc)
 
         k1, k2, k3, x_factor = IEEE1584Database.get_boundary_coefficients(
-            voltage_kv, electrode_config, enclosure_type)
+            voltage_kv, electrode_config, enclosure_type
+        )
 
         CF = IEEE1584Database.calculate_enclosure_correction(
-            enclosure_type, enclosure_width_mm, enclosure_height_mm, enclosure_depth_mm)
+            enclosure_type, enclosure_width_mm, enclosure_height_mm, enclosure_depth_mm
+        )
 
         # Boundary at full arc current
         log_Db = k1 + k2 * np.log10(Iarc) + k3 * Iarc
         if x_factor != 0:
-            Db_full = ((10 ** log_Db) * arc_duration_sec * CF / 1.2) ** (1.0 / x_factor)
+            Db_full = ((10**log_Db) * arc_duration_sec * CF / 1.2) ** (1.0 / x_factor)
         else:
-            Db_full = float('inf')
+            Db_full = float("inf")
 
         # Boundary at reduced arc current
         log_Db_red = k1 + k2 * np.log10(Iarc_reduced) + k3 * Iarc_reduced
         if x_factor != 0:
-            Db_reduced = ((10 ** log_Db_red) * arc_duration_sec * CF / 1.2) ** (1.0 / x_factor)
+            Db_reduced = ((10**log_Db_red) * arc_duration_sec * CF / 1.2) ** (1.0 / x_factor)
         else:
-            Db_reduced = float('inf')
+            Db_reduced = float("inf")
 
         return max(Db_full, Db_reduced)
 
@@ -363,7 +391,10 @@ class IEEE1584Database:
         elif incident_energy <= 4.0:
             return "1", "Arc-Rated Shirt and Pants, Arc-Rated Face Shield (4 cal/cm^2 min)"
         elif incident_energy <= 8.0:
-            return "2", "Arc-Rated Shirt and Pants, Arc-Rated Face Shield, Arc-Rated Jacket (8 cal/cm^2 min)"
+            return (
+                "2",
+                "Arc-Rated Shirt and Pants, Arc-Rated Face Shield, Arc-Rated Jacket (8 cal/cm^2 min)",
+            )
         elif incident_energy <= 25.0:
             return "3", "Arc-Rated Shirt and Pants, Arc Flash Suit (25 cal/cm^2 min)"
         elif incident_energy <= 40.0:
@@ -372,11 +403,17 @@ class IEEE1584Database:
             return "DANGER", "E > 40 cal/cm^2 - De-energize before working"
 
     @staticmethod
-    def full_analysis(voltage_kv, bolted_fault_current_ka, arc_duration_sec,
-                       working_distance_mm, electrode_config=ElectrodeConfig.VCB,
-                       enclosure_type=EnclosureType.BOX,
-                       enclosure_width_mm=508.0, enclosure_height_mm=508.0,
-                       enclosure_depth_mm=508.0):
+    def full_analysis(
+        voltage_kv,
+        bolted_fault_current_ka,
+        arc_duration_sec,
+        working_distance_mm,
+        electrode_config=ElectrodeConfig.VCB,
+        enclosure_type=EnclosureType.BOX,
+        enclosure_width_mm=508.0,
+        enclosure_height_mm=508.0,
+        enclosure_depth_mm=508.0,
+    ):
         """
         Perform complete IEEE 1584-2018 arc flash analysis.
         """
@@ -391,18 +428,35 @@ class IEEE1584Database:
             raise ValueError("Bolted fault current above IEEE 1584 range (106 kA)")
 
         # Arc current
-        Iarc = IEEE1584Database.calculate_arc_current(voltage_kv, bolted_fault_current_ka, electrode_config)
+        Iarc = IEEE1584Database.calculate_arc_current(
+            voltage_kv, bolted_fault_current_ka, electrode_config
+        )
         Iarc_reduced = IEEE1584Database.calculate_reduced_arc_current(Iarc)
 
         # Incident energy
         E_final, E_full, E_reduced, CF = IEEE1584Database.calculate_incident_energy(
-            voltage_kv, bolted_fault_current_ka, arc_duration_sec, working_distance_mm,
-            electrode_config, enclosure_type, enclosure_width_mm, enclosure_height_mm, enclosure_depth_mm)
+            voltage_kv,
+            bolted_fault_current_ka,
+            arc_duration_sec,
+            working_distance_mm,
+            electrode_config,
+            enclosure_type,
+            enclosure_width_mm,
+            enclosure_height_mm,
+            enclosure_depth_mm,
+        )
 
         # Boundary
         D_boundary = IEEE1584Database.calculate_arc_flash_boundary(
-            voltage_kv, bolted_fault_current_ka, arc_duration_sec,
-            electrode_config, enclosure_type, enclosure_width_mm, enclosure_height_mm, enclosure_depth_mm)
+            voltage_kv,
+            bolted_fault_current_ka,
+            arc_duration_sec,
+            electrode_config,
+            enclosure_type,
+            enclosure_width_mm,
+            enclosure_height_mm,
+            enclosure_depth_mm,
+        )
 
         # PPE
         ppe_level, ppe_desc = IEEE1584Database.determine_ppe_level(E_final)

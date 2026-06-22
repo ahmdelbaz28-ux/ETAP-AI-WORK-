@@ -19,6 +19,7 @@ Methods:
 Reference: IEEE PES Test Cases, MATPOWER methodology
 """
 
+from __future__ import annotations
 import logging
 from dataclasses import dataclass
 from enum import Enum
@@ -32,15 +33,17 @@ logger = logging.getLogger(__name__)
 
 class OPFObjective(Enum):
     """OPF objective function types."""
+
     ECONOMIC_DISPATCH = "economic_dispatch"  # Minimize generation cost
-    LOSS_MINIMIZATION = "loss_minimization"   # Minimize system losses
-    VOLTAGE_PROFILE = "voltage_profile"       # Optimize voltage profile
-    MULTI_OBJECTIVE = "multi_objective"       # Weighted combination
+    LOSS_MINIMIZATION = "loss_minimization"  # Minimize system losses
+    VOLTAGE_PROFILE = "voltage_profile"  # Optimize voltage profile
+    MULTI_OBJECTIVE = "multi_objective"  # Weighted combination
 
 
 @dataclass
 class GeneratorCost:
     """Generator cost characteristics."""
+
     generator_id: int
     cost_coefficients: List[float]  # [c0, c1, c2] for quadratic: c0 + c1*P + c2*P^2
     p_min: float  # Minimum active power (MW)
@@ -53,7 +56,7 @@ class GeneratorCost:
         """Calculate generation cost for given power output."""
         if len(self.cost_coefficients) == 3:
             c0, c1, c2 = self.cost_coefficients
-            return c0 + c1 * p_mw + c2 * p_mw ** 2
+            return c0 + c1 * p_mw + c2 * p_mw**2
         elif len(self.cost_coefficients) == 2:
             c0, c1 = self.cost_coefficients
             return c0 + c1 * p_mw
@@ -64,6 +67,7 @@ class GeneratorCost:
 @dataclass
 class OPFResult:
     """Results from OPF calculation."""
+
     success: bool
     objective_value: float  # Total cost or objective value
     generator_dispatch: Dict[int, complex]  # gen_id -> P + jQ (MW + jMVAR)
@@ -91,8 +95,7 @@ class OptimalPowerFlowEngine:
       - Line flow limits (inequality constraints)
     """
 
-    def __init__(self, Ybus: np.ndarray, bus_ids: List[int],
-                 generator_costs: List[GeneratorCost]):
+    def __init__(self, Ybus: np.ndarray, bus_ids: List[int], generator_costs: List[GeneratorCost]):
         """
         Initialize OPF engine.
 
@@ -183,11 +186,14 @@ class OptimalPowerFlowEngine:
         # For LP, we use linear approximation: minimize sum(c1*Pg)
 
         # Cost coefficients (linear term)
-        c = np.array([
-            self.generator_costs[gid].cost_coefficients[1]
-            if len(self.generator_costs[gid].cost_coefficients) >= 2 else 0
-            for gid in gen_ids
-        ])
+        c = np.array(
+            [
+                self.generator_costs[gid].cost_coefficients[1]
+                if len(self.generator_costs[gid].cost_coefficients) >= 2
+                else 0
+                for gid in gen_ids
+            ]
+        )
 
         # Inequality constraints: A_ub * x <= b_ub
         # Generator limits
@@ -237,14 +243,7 @@ class OptimalPowerFlowEngine:
 
         # Solve LP
         try:
-            result = linprog(
-                c,
-                A_ub=A_ub,
-                b_ub=b_ub,
-                A_eq=A_eq,
-                b_eq=b_eq,
-                method='highs'
-            )
+            result = linprog(c, A_ub=A_ub, b_ub=b_ub, A_eq=A_eq, b_eq=b_eq, method="highs")
 
             if result.success:
                 # Extract solution
@@ -272,9 +271,9 @@ class OptimalPowerFlowEngine:
                     total_load=total_load,
                     total_losses=max(total_losses, 0),
                     constraint_violations=[],
-                    iterations=result.nit if hasattr(result, 'nit') else 0,
+                    iterations=result.nit if hasattr(result, "nit") else 0,
                     method_used="Linear Programming (DC-OPF)",
-                    convergence_status="converged"
+                    convergence_status="converged",
                 )
             else:
                 return OPFResult(
@@ -289,7 +288,7 @@ class OptimalPowerFlowEngine:
                     constraint_violations=["LP solver failed to converge"],
                     iterations=0,
                     method_used="Linear Programming (DC-OPF)",
-                    convergence_status="failed"
+                    convergence_status="failed",
                 )
 
         except Exception as e:
@@ -306,11 +305,10 @@ class OptimalPowerFlowEngine:
                 constraint_violations=[str(e)],
                 iterations=0,
                 method_used="Linear Programming (DC-OPF)",
-                convergence_status="error"
+                convergence_status="error",
             )
 
-    def solve_ac_opf_interior_point(self, max_iter: int = 100,
-                                     tol: float = 1e-6) -> OPFResult:
+    def solve_ac_opf_interior_point(self, max_iter: int = 100, tol: float = 1e-6) -> OPFResult:
         """
         Solve AC Optimal Power Flow using Interior Point Method.
 
@@ -364,30 +362,24 @@ class OptimalPowerFlowEngine:
             # Active power balance
             def active_power_constraint(x, bus_id=bus_id):
                 P_gen_bus = sum(
-                    x[i] for i, gid in enumerate(gen_ids)
-                    if self.gen_buses.get(gid) == bus_id
+                    x[i] for i, gid in enumerate(gen_ids) if self.gen_buses.get(gid) == bus_id
                 )
                 P_load = self.load_data.get(bus_id, 0).real
                 return P_gen_bus - P_load
 
-            constraints.append({
-                'type': 'eq',
-                'fun': active_power_constraint
-            })
+            constraints.append({"type": "eq", "fun": active_power_constraint})
 
             # Reactive power balance
             def reactive_power_constraint(x, bus_id=bus_id):
                 Q_gen_bus = sum(
-                    x[n_gen + i] for i, gid in enumerate(gen_ids)
+                    x[n_gen + i]
+                    for i, gid in enumerate(gen_ids)
                     if self.gen_buses.get(gid) == bus_id
                 )
                 Q_load = self.load_data.get(bus_id, 0).imag
                 return Q_gen_bus - Q_load
 
-            constraints.append({
-                'type': 'eq',
-                'fun': reactive_power_constraint
-            })
+            constraints.append({"type": "eq", "fun": reactive_power_constraint})
 
         # Variable bounds
         bounds = []
@@ -401,15 +393,11 @@ class OptimalPowerFlowEngine:
             result = minimize(
                 objective,
                 x0,
-                method='SLSQP',
+                method="SLSQP",
                 jac=gradient,
                 constraints=constraints,
                 bounds=bounds,
-                options={
-                    'maxiter': max_iter,
-                    'ftol': tol,
-                    'disp': False
-                }
+                options={"maxiter": max_iter, "ftol": tol, "disp": False},
             )
 
             if result.success:
@@ -444,7 +432,7 @@ class OptimalPowerFlowEngine:
                     constraint_violations=[],
                     iterations=result.nit,
                     method_used="Interior Point Method (AC-OPF)",
-                    convergence_status="converged"
+                    convergence_status="converged",
                 )
             else:
                 return OPFResult(
@@ -459,7 +447,7 @@ class OptimalPowerFlowEngine:
                     constraint_violations=[result.message],
                     iterations=result.nit,
                     method_used="Interior Point Method (AC-OPF)",
-                    convergence_status=result.message
+                    convergence_status=result.message,
                 )
 
         except Exception as e:
@@ -476,7 +464,7 @@ class OptimalPowerFlowEngine:
                 constraint_violations=[str(e)],
                 iterations=0,
                 method_used="Interior Point Method (AC-OPF)",
-                convergence_status="error"
+                convergence_status="error",
             )
 
     def solve_opf(self, method: str = "dc") -> OPFResult:
@@ -519,10 +507,7 @@ class OptimalPowerFlowEngine:
             Q = dispatch.imag
             gc = self.generator_costs[gen_id]
             cost = gc.cost(P)
-            lines.append(
-                f"  Gen {gen_id}: P={P:7.2f} MW, Q={Q:7.2f} MVAR, "
-                f"Cost=${cost:,.2f}/hr"
-            )
+            lines.append(f"  Gen {gen_id}: P={P:7.2f} MW, Q={Q:7.2f} MVAR, Cost=${cost:,.2f}/hr")
         lines.append("")
 
         lines.append("SYSTEM SUMMARY")
@@ -530,7 +515,9 @@ class OptimalPowerFlowEngine:
         lines.append(f"Total Generation: {result.total_generation:.2f} MW")
         lines.append(f"Total Load: {result.total_load:.2f} MW")
         lines.append(f"Total Losses: {result.total_losses:.2f} MW")
-        lines.append(f"Loss Percentage: {(result.total_losses/result.total_generation*100) if result.total_generation > 0 else 0:.2f}%")
+        lines.append(
+            f"Loss Percentage: {(result.total_losses / result.total_generation * 100) if result.total_generation > 0 else 0:.2f}%"
+        )
         lines.append("")
 
         if result.constraint_violations:

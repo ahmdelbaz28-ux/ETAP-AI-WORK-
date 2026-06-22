@@ -13,28 +13,29 @@ import sys
 # Add the project root to the Python path
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
+
 def test_agent_imports():
     """Test that all agent modules can be imported without errors."""
     print("Testing agent module imports...")
 
     agent_modules = [
-        'agents.anomaly_agent',
-        'agents.arc_flash_agent',
-        'agents.battery_storage_agent',
-        'agents.cable_sizing_agent',
-        'agents.code_guard_agent',
-        'agents.coordination_agent',
-        'agents.digital_twin_agent',
-        'agents.earth_grid_agent',
-        'agents.goal_planner_agent',
-        'agents.motor_starting_agent',
-        'agents.orchestrator',
-        'agents.predictive_agent',
-        'agents.prompt_loader',
-        'agents.renewable_agent',
-        'agents.scada_agent',
-        'agents.stability_agent',
-        'agents.weather_agent',
+        "agents.anomaly_agent",
+        "agents.arc_flash_agent",
+        "agents.battery_storage_agent",
+        "agents.cable_sizing_agent",
+        "agents.code_guard_agent",
+        "agents.coordination_agent",
+        "agents.digital_twin_agent",
+        "agents.earth_grid_agent",
+        "agents.goal_planner_agent",
+        "agents.motor_starting_agent",
+        "agents.orchestrator",
+        "agents.predictive_agent",
+        "agents.prompt_loader",
+        "agents.renewable_agent",
+        "agents.scada_agent",
+        "agents.stability_agent",
+        "agents.weather_agent",
     ]
 
     import_results = {}
@@ -44,16 +45,16 @@ def test_agent_imports():
             module = importlib.util.find_spec(module_name)
             if module is not None:
                 imported_module = importlib.import_module(module_name)
-                import_results[module_name] = {'status': 'SUCCESS', 'module': imported_module}
+                import_results[module_name] = {"status": "SUCCESS", "module": imported_module}
                 print(f"✓ {module_name} - Imported successfully")
             else:
-                import_results[module_name] = {'status': 'NOT_FOUND', 'error': 'Module not found'}
+                import_results[module_name] = {"status": "NOT_FOUND", "error": "Module not found"}
                 print(f"✗ {module_name} - Module not found")
         except ImportError as e:
-            import_results[module_name] = {'status': 'IMPORT_ERROR', 'error': str(e)}
+            import_results[module_name] = {"status": "IMPORT_ERROR", "error": str(e)}
             print(f"✗ {module_name} - Import error: {str(e)}")
         except Exception as e:
-            import_results[module_name] = {'status': 'ERROR', 'error': str(e)}
+            import_results[module_name] = {"status": "ERROR", "error": str(e)}
             print(f"✗ {module_name} - Error: {str(e)}")
 
     return import_results
@@ -82,9 +83,14 @@ def test_agent_instantiation():
         )
 
         basic_agents = [
-            LoadFlowAgent, ShortCircuitAgent, HarmonicAnalysisAgent,
-            OptimalPowerFlowAgent, ProtectionCoordinationAgent, ETAPExecutionAgent,
-            ValidationAgent, ReportGenerationAgent
+            LoadFlowAgent,
+            ShortCircuitAgent,
+            HarmonicAnalysisAgent,
+            OptimalPowerFlowAgent,
+            ProtectionCoordinationAgent,
+            ETAPExecutionAgent,
+            ValidationAgent,
+            ReportGenerationAgent,
         ]
 
         for agent_class in basic_agents:
@@ -94,36 +100,38 @@ def test_agent_instantiation():
                     agent_instance = agent_class()
 
                     # Check if the agent has required attributes
-                    has_name = hasattr(agent_instance, 'agent_name')
-                    has_execute = hasattr(agent_instance, 'execute')
-                    has_status = hasattr(agent_instance, 'status')
+                    has_name = hasattr(agent_instance, "agent_name")
+                    has_execute = hasattr(agent_instance, "execute")
+                    has_status = hasattr(agent_instance, "status")
 
                     instantiation_results[agent_class.__name__] = {
-                        'status': 'SUCCESS',
-                        'has_name': has_name,
-                        'has_execute': has_execute,
-                        'has_status': has_status
+                        "status": "SUCCESS",
+                        "has_name": has_name,
+                        "has_execute": has_execute,
+                        "has_status": has_status,
                     }
                     print(f"✓ {agent_class.__name__} - Instantiated successfully")
 
                 except Exception as e:
                     # If instantiation fails due to missing dependencies, that's expected
                     instantiation_results[agent_class.__name__] = {
-                        'status': 'INSTANTIATION_DEPENDENCY_ERROR',
-                        'error': str(e)
+                        "status": "INSTANTIATION_DEPENDENCY_ERROR",
+                        "error": str(e),
                     }
-                    print(f"⚠ {agent_class.__name__} - Expected dependency error during instantiation: {str(e)[:100]}...")
+                    print(
+                        f"⚠ {agent_class.__name__} - Expected dependency error during instantiation: {str(e)[:100]}..."
+                    )
 
             except Exception as e:
                 instantiation_results[agent_class.__name__] = {
-                    'status': 'CLASS_DEFINITION_ERROR',
-                    'error': str(e)
+                    "status": "CLASS_DEFINITION_ERROR",
+                    "error": str(e),
                 }
                 print(f"✗ {agent_class.__name__} - Class definition error: {str(e)}")
 
     except ImportError as e:
         print(f"✗ Basic agent classes - Import error: {str(e)}")
-        instantiation_results['basic_agents'] = {'status': 'IMPORT_ERROR', 'error': str(e)}
+        instantiation_results["basic_agents"] = {"status": "IMPORT_ERROR", "error": str(e)}
 
     # Test extended agents
     try:
@@ -135,8 +143,12 @@ def test_agent_instantiation():
         from agents.stability_agent import StabilityAgent
 
         extended_agents = [
-            StabilityAgent, CableSizingAgent, EarthGridAgent,
-            RenewableAgent, BatteryStorageAgent, SCADAAgent
+            StabilityAgent,
+            CableSizingAgent,
+            EarthGridAgent,
+            RenewableAgent,
+            BatteryStorageAgent,
+            SCADAAgent,
         ]
 
         for agent_class in extended_agents:
@@ -144,35 +156,37 @@ def test_agent_instantiation():
                 try:
                     agent_instance = agent_class()
 
-                    has_name = hasattr(agent_instance, 'agent_name')
-                    has_execute = hasattr(agent_instance, 'execute')
-                    has_status = hasattr(agent_instance, 'status')
+                    has_name = hasattr(agent_instance, "agent_name")
+                    has_execute = hasattr(agent_instance, "execute")
+                    has_status = hasattr(agent_instance, "status")
 
                     instantiation_results[agent_class.__name__] = {
-                        'status': 'SUCCESS',
-                        'has_name': has_name,
-                        'has_execute': has_execute,
-                        'has_status': has_status
+                        "status": "SUCCESS",
+                        "has_name": has_name,
+                        "has_execute": has_execute,
+                        "has_status": has_status,
                     }
                     print(f"✓ {agent_class.__name__} - Instantiated successfully")
 
                 except Exception as e:
                     instantiation_results[agent_class.__name__] = {
-                        'status': 'INSTANTIATION_DEPENDENCY_ERROR',
-                        'error': str(e)
+                        "status": "INSTANTIATION_DEPENDENCY_ERROR",
+                        "error": str(e),
                     }
-                    print(f"⚠ {agent_class.__name__} - Expected dependency error during instantiation: {str(e)[:100]}...")
+                    print(
+                        f"⚠ {agent_class.__name__} - Expected dependency error during instantiation: {str(e)[:100]}..."
+                    )
 
             except Exception as e:
                 instantiation_results[agent_class.__name__] = {
-                    'status': 'CLASS_DEFINITION_ERROR',
-                    'error': str(e)
+                    "status": "CLASS_DEFINITION_ERROR",
+                    "error": str(e),
                 }
                 print(f"✗ {agent_class.__name__} - Class definition error: {str(e)}")
 
     except ImportError as e:
         print(f"✗ Extended agent classes - Import error: {str(e)}")
-        instantiation_results['extended_agents'] = {'status': 'IMPORT_ERROR', 'error': str(e)}
+        instantiation_results["extended_agents"] = {"status": "IMPORT_ERROR", "error": str(e)}
 
     return instantiation_results
 
@@ -189,28 +203,27 @@ def test_orchestrator():
         # Test that we can get an orchestrator instance (even if it can't fully run)
         try:
             orchestrator = get_orchestrator()
-            has_methods = (
-                hasattr(orchestrator, 'execute_studies') and
-                hasattr(orchestrator, 'get_agents_info')
+            has_methods = hasattr(orchestrator, "execute_studies") and hasattr(
+                orchestrator, "get_agents_info"
             )
 
-            orchestrator_results['ChiefEngineeringOrchestrator'] = {
-                'status': 'SUCCESS',
-                'has_required_methods': has_methods
+            orchestrator_results["ChiefEngineeringOrchestrator"] = {
+                "status": "SUCCESS",
+                "has_required_methods": has_methods,
             }
             print("✓ ChiefEngineeringOrchestrator - Retrieved successfully")
 
         except Exception as e:
-            orchestrator_results['ChiefEngineeringOrchestrator'] = {
-                'status': 'GET_INSTANCE_ERROR',
-                'error': str(e)
+            orchestrator_results["ChiefEngineeringOrchestrator"] = {
+                "status": "GET_INSTANCE_ERROR",
+                "error": str(e),
             }
             print(f"⚠ ChiefEngineeringOrchestrator - Error getting instance: {str(e)[:100]}...")
 
     except ImportError as e:
-        orchestrator_results['ChiefEngineeringOrchestrator'] = {
-            'status': 'IMPORT_ERROR',
-            'error': str(e)
+        orchestrator_results["ChiefEngineeringOrchestrator"] = {
+            "status": "IMPORT_ERROR",
+            "error": str(e),
         }
         print(f"✗ ChiefEngineeringOrchestrator - Import error: {str(e)}")
 
@@ -231,24 +244,28 @@ def main():
     test_orchestrator()
 
     # Print summary
-    print("\n" + "="*80)
+    print("\n" + "=" * 80)
     print("BASIC AGENT TESTING SUMMARY")
-    print("="*80)
+    print("=" * 80)
 
     # Count successful imports
-    successful_imports = sum(1 for result in import_results.values() if result['status'] == 'SUCCESS')
+    successful_imports = sum(
+        1 for result in import_results.values() if result["status"] == "SUCCESS"
+    )
     total_imports = len(import_results)
 
     # Count successful instantiations (including those with expected dependency errors)
     successful_instantiations = 0
     for result in instantiation_results.values():
-        if result['status'] in ['SUCCESS', 'INSTANTIATION_DEPENDENCY_ERROR']:  # Both are acceptable
+        if result["status"] in ["SUCCESS", "INSTANTIATION_DEPENDENCY_ERROR"]:  # Both are acceptable
             successful_instantiations += 1
 
     total_instantiations = len(instantiation_results)
 
     print(f"Module Imports: {successful_imports}/{total_imports} successful")
-    print(f"Class Instantiations: {successful_instantiations}/{total_instantiations} acceptable (includes expected dependency errors)")
+    print(
+        f"Class Instantiations: {successful_instantiations}/{total_instantiations} acceptable (includes expected dependency errors)"
+    )
 
     # Calculate overall status
     all_imports_ok = successful_imports == total_imports

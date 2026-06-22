@@ -49,11 +49,13 @@ _cp_spsolve: Any = None
 
 try:
     import cupy as _cp
+
     _CUPY_AVAILABLE = True
     # Verify that CuPy can actually see a GPU
     _cp.cuda.runtime.getDeviceCount()
     _cp_sparse = _cp.sparse
     from cupyx.scipy.sparse.linalg import spsolve as _cp_spsolve
+
     logger.info(
         "CuPy %s loaded — GPU acceleration enabled (device: %s)",
         _cp.__version__,
@@ -81,6 +83,7 @@ from engine.sparse_solver import BusData, SparseConvergenceResult
 # GPUSolver
 # ---------------------------------------------------------------------------
 
+
 class GPUSolver:
     """GPU-accelerated Newton-Raphson load-flow solver.
 
@@ -103,14 +106,14 @@ class GPUSolver:
         if self._gpu_available:
             try:
                 self._device_name = (
-                    f"GPU: {_cp.cuda.Device(device_id).name} "
-                    f"(CuPy {_cp.__version__})"
+                    f"GPU: {_cp.cuda.Device(device_id).name} (CuPy {_cp.__version__})"
                 )
                 _cp.cuda.Device(device_id).use()
             except Exception as exc:
                 logger.warning(
                     "Failed to select CUDA device %d: %s — falling back to CPU.",
-                    device_id, exc,
+                    device_id,
+                    exc,
                 )
                 self._gpu_available = False
                 self._xp = np
@@ -118,7 +121,8 @@ class GPUSolver:
 
         logger.info(
             "GPUSolver initialized — device: %s, GPU available: %s",
-            self._device_name, self._gpu_available,
+            self._device_name,
+            self._gpu_available,
         )
 
     # ------------------------------------------------------------------
@@ -235,21 +239,21 @@ class GPUSolver:
 
             max_mismatch = float(xp.max(xp.abs(mismatch))) if n_unknowns > 0 else 0.0
 
-            iteration_log.append({
-                "iteration": iteration,
-                "max_mismatch": max_mismatch,
-                "n_pv": n_pv,
-                "n_pq": n_pq,
-            })
+            iteration_log.append(
+                {
+                    "iteration": iteration,
+                    "max_mismatch": max_mismatch,
+                    "n_pv": n_pv,
+                    "n_pq": n_pq,
+                }
+            )
 
             if max_mismatch < tol:
                 converged = True
                 break
 
             # --- Build sparse Jacobian ---
-            J_sparse = self._build_jacobian(
-                V, Ybus_dense, pv_idx, pq_idx, n_unknowns
-            )
+            J_sparse = self._build_jacobian(V, Ybus_dense, pv_idx, pq_idx, n_unknowns)
 
             # --- Solve linear system ---
             dx = self._solve_linear(J_sparse, mismatch, n_unknowns)
@@ -359,23 +363,39 @@ class GPUSolver:
 
         # Row groups: [PV+PQ P-mismatch rows, PQ Q-mismatch rows]
         theta_cols = pv_idx + pq_idx  # column indices for θ unknowns
-        v_cols = pq_idx               # column indices for |V| unknowns
+        v_cols = pq_idx  # column indices for |V| unknowns
 
         for row_k, i in enumerate(pv_idx + pq_idx):
             # H: ∂P_i/∂θ_j
             for col_k, j in enumerate(theta_cols):
                 if i == j:
-                    val = float(-Q[i] - B[i, i] * Vmag[i] ** 2) if not self._gpu_available else float(xp.asnumpy(-Q[i] - B[i, i] * Vmag[i] ** 2))
+                    val = (
+                        float(-Q[i] - B[i, i] * Vmag[i] ** 2)
+                        if not self._gpu_available
+                        else float(xp.asnumpy(-Q[i] - B[i, i] * Vmag[i] ** 2))
+                    )
                 else:
-                    val = float(
-                        Vmag[i] * Vmag[j]
-                        * (G[i, j] * xp.sin(Vang[i] - Vang[j])
-                           - B[i, j] * xp.cos(Vang[i] - Vang[j]))
-                    ) if not self._gpu_available else float(xp.asnumpy(
-                        Vmag[i] * Vmag[j]
-                        * (G[i, j] * xp.sin(Vang[i] - Vang[j])
-                           - B[i, j] * xp.cos(Vang[i] - Vang[j]))
-                    ))
+                    val = (
+                        float(
+                            Vmag[i]
+                            * Vmag[j]
+                            * (
+                                G[i, j] * xp.sin(Vang[i] - Vang[j])
+                                - B[i, j] * xp.cos(Vang[i] - Vang[j])
+                            )
+                        )
+                        if not self._gpu_available
+                        else float(
+                            xp.asnumpy(
+                                Vmag[i]
+                                * Vmag[j]
+                                * (
+                                    G[i, j] * xp.sin(Vang[i] - Vang[j])
+                                    - B[i, j] * xp.cos(Vang[i] - Vang[j])
+                                )
+                            )
+                        )
+                    )
                 if self._gpu_available:
                     if val != 0.0:
                         rows.append(row_k)
@@ -389,17 +409,33 @@ class GPUSolver:
             for col_k, j in enumerate(v_cols):
                 col = n_pv + n_pq + col_k
                 if i == j:
-                    val = float(P[i] + G[i, i] * Vmag[i] ** 2) if not self._gpu_available else float(xp.asnumpy(P[i] + G[i, i] * Vmag[i] ** 2))
+                    val = (
+                        float(P[i] + G[i, i] * Vmag[i] ** 2)
+                        if not self._gpu_available
+                        else float(xp.asnumpy(P[i] + G[i, i] * Vmag[i] ** 2))
+                    )
                 else:
-                    val = float(
-                        Vmag[i] * Vmag[j]
-                        * (G[i, j] * xp.cos(Vang[i] - Vang[j])
-                           + B[i, j] * xp.sin(Vang[i] - Vang[j]))
-                    ) if not self._gpu_available else float(xp.asnumpy(
-                        Vmag[i] * Vmag[j]
-                        * (G[i, j] * xp.cos(Vang[i] - Vang[j])
-                           + B[i, j] * xp.sin(Vang[i] - Vang[j]))
-                    ))
+                    val = (
+                        float(
+                            Vmag[i]
+                            * Vmag[j]
+                            * (
+                                G[i, j] * xp.cos(Vang[i] - Vang[j])
+                                + B[i, j] * xp.sin(Vang[i] - Vang[j])
+                            )
+                        )
+                        if not self._gpu_available
+                        else float(
+                            xp.asnumpy(
+                                Vmag[i]
+                                * Vmag[j]
+                                * (
+                                    G[i, j] * xp.cos(Vang[i] - Vang[j])
+                                    + B[i, j] * xp.sin(Vang[i] - Vang[j])
+                                )
+                            )
+                        )
+                    )
                 if self._gpu_available:
                     if val != 0.0:
                         rows.append(row_k)
@@ -414,17 +450,33 @@ class GPUSolver:
             # M: ∂Q_i/∂θ_j
             for col_k, j in enumerate(theta_cols):
                 if i == j:
-                    val = float(P[i] - G[i, i] * Vmag[i] ** 2) if not self._gpu_available else float(xp.asnumpy(P[i] - G[i, i] * Vmag[i] ** 2))
+                    val = (
+                        float(P[i] - G[i, i] * Vmag[i] ** 2)
+                        if not self._gpu_available
+                        else float(xp.asnumpy(P[i] - G[i, i] * Vmag[i] ** 2))
+                    )
                 else:
-                    val = float(
-                        -Vmag[i] * Vmag[j]
-                        * (G[i, j] * xp.cos(Vang[i] - Vang[j])
-                           + B[i, j] * xp.sin(Vang[i] - Vang[j]))
-                    ) if not self._gpu_available else float(xp.asnumpy(
-                        -Vmag[i] * Vmag[j]
-                        * (G[i, j] * xp.cos(Vang[i] - Vang[j])
-                           + B[i, j] * xp.sin(Vang[i] - Vang[j]))
-                    ))
+                    val = (
+                        float(
+                            -Vmag[i]
+                            * Vmag[j]
+                            * (
+                                G[i, j] * xp.cos(Vang[i] - Vang[j])
+                                + B[i, j] * xp.sin(Vang[i] - Vang[j])
+                            )
+                        )
+                        if not self._gpu_available
+                        else float(
+                            xp.asnumpy(
+                                -Vmag[i]
+                                * Vmag[j]
+                                * (
+                                    G[i, j] * xp.cos(Vang[i] - Vang[j])
+                                    + B[i, j] * xp.sin(Vang[i] - Vang[j])
+                                )
+                            )
+                        )
+                    )
                 if self._gpu_available:
                     if val != 0.0:
                         rows.append(row)
@@ -438,17 +490,33 @@ class GPUSolver:
             for col_k, j in enumerate(v_cols):
                 col = n_pv + n_pq + col_k
                 if i == j:
-                    val = float(Q[i] - B[i, i] * Vmag[i] ** 2) if not self._gpu_available else float(xp.asnumpy(Q[i] - B[i, i] * Vmag[i] ** 2))
+                    val = (
+                        float(Q[i] - B[i, i] * Vmag[i] ** 2)
+                        if not self._gpu_available
+                        else float(xp.asnumpy(Q[i] - B[i, i] * Vmag[i] ** 2))
+                    )
                 else:
-                    val = float(
-                        Vmag[i] * Vmag[j]
-                        * (G[i, j] * xp.sin(Vang[i] - Vang[j])
-                           - B[i, j] * xp.cos(Vang[i] - Vang[j]))
-                    ) if not self._gpu_available else float(xp.asnumpy(
-                        Vmag[i] * Vmag[j]
-                        * (G[i, j] * xp.sin(Vang[i] - Vang[j])
-                           - B[i, j] * xp.cos(Vang[i] - Vang[j]))
-                    ))
+                    val = (
+                        float(
+                            Vmag[i]
+                            * Vmag[j]
+                            * (
+                                G[i, j] * xp.sin(Vang[i] - Vang[j])
+                                - B[i, j] * xp.cos(Vang[i] - Vang[j])
+                            )
+                        )
+                        if not self._gpu_available
+                        else float(
+                            xp.asnumpy(
+                                Vmag[i]
+                                * Vmag[j]
+                                * (
+                                    G[i, j] * xp.sin(Vang[i] - Vang[j])
+                                    - B[i, j] * xp.cos(Vang[i] - Vang[j])
+                                )
+                            )
+                        )
+                    )
                 if self._gpu_available:
                     if val != 0.0:
                         rows.append(row)
@@ -591,7 +659,10 @@ class GPUSolver:
 
             t0 = time.perf_counter()
             result_cpu = solver_cpu.newton_raphson_gpu(
-                Ybus_dense, buses, max_iter=20, tol=1e-6,
+                Ybus_dense,
+                buses,
+                max_iter=20,
+                tol=1e-6,
             )
             t_cpu_ms = (time.perf_counter() - t0) * 1000
 
@@ -601,7 +672,10 @@ class GPUSolver:
             if self._gpu_available:
                 t0 = time.perf_counter()
                 self.newton_raphson_gpu(
-                    Ybus_dense, buses, max_iter=20, tol=1e-6,
+                    Ybus_dense,
+                    buses,
+                    max_iter=20,
+                    tol=1e-6,
                 )
                 t_gpu_ms = (time.perf_counter() - t0) * 1000
                 if t_gpu_ms > 0:

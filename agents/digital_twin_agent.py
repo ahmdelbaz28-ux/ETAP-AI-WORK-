@@ -19,8 +19,11 @@ Standards:
 - OPC UA (IEC 62541): Interoperability
 """
 
+from __future__ import annotations
 import logging
-from datetime import UTC, datetime
+from datetime import datetime, timezone
+
+UTC = timezone.utc
 from typing import Any, Dict, List
 
 import numpy as np
@@ -133,7 +136,11 @@ class DigitalTwinAgent(BaseAgent):
         for i in range(len(diff)):
             if abs(measured[i]) > 1e-10:
                 deviation_per_var.append(
-                    {"index": i, "absolute": float(abs_diff[i]), "percent": float(abs_diff[i] / abs(measured[i]) * 100.0)}
+                    {
+                        "index": i,
+                        "absolute": float(abs_diff[i]),
+                        "percent": float(abs_diff[i] / abs(measured[i]) * 100.0),
+                    }
                 )
             else:
                 deviation_per_var.append(
@@ -335,9 +342,7 @@ class DigitalTwinAgent(BaseAgent):
         self.status = AgentStatus.RUNNING
 
         try:
-            self.log_execution(
-                f"Starting digital twin synchronization for task {task.task_id}"
-            )
+            self.log_execution(f"Starting digital twin synchronization for task {task.task_id}")
 
             analysis_type = task.parameters.get("analysis_type", "full")
             results: Dict[str, Any] = {}
@@ -393,15 +398,11 @@ class DigitalTwinAgent(BaseAgent):
             execution_time = (datetime.now(UTC) - start_time).total_seconds()
             result.execution_time = execution_time
 
-            self.log_execution(
-                f"Digital twin synchronization completed in {execution_time:.2f}s"
-            )
+            self.log_execution(f"Digital twin synchronization completed in {execution_time:.2f}s")
             return result
 
         except Exception as e:
-            self.log_execution(
-                f"Digital twin synchronization failed: {str(e)}", "ERROR"
-            )
+            self.log_execution(f"Digital twin synchronization failed: {str(e)}", "ERROR")
             return AgentResult(
                 agent_name=self.agent_name,
                 study_type=task.study_types[0] if task.study_types else StudyType.LOAD_FLOW,
@@ -435,8 +436,11 @@ class DigitalTwinAgent(BaseAgent):
                 errors.append(f"MDI is not finite: {mdi}")
             status = md_data.get("status", "")
             valid_statuses = {
-                "synchronized", "minor_drift", "moderate_drift",
-                "significant_drift", "critical_drift",
+                "synchronized",
+                "minor_drift",
+                "moderate_drift",
+                "significant_drift",
+                "critical_drift",
             }
             if status and status not in valid_statuses:
                 errors.append(f"Invalid synchronization status: {status}")

@@ -51,7 +51,9 @@ class TestGuard(BaseGuard):
         super().__init__(mode)
         self._ai_detector = AIFailureModeDetector(mode)
 
-    def scan(self, source: str, language: str = "python", context: Dict[str, Any] | None = None) -> GuardResult:
+    def scan(
+        self, source: str, language: str = "python", context: Dict[str, Any] | None = None
+    ) -> GuardResult:
         violations: List[GuardViolation] = []
         context = context or {}
 
@@ -121,20 +123,22 @@ class TestGuard(BaseGuard):
         violations: List[GuardViolation] = []
         for node in ast.walk(tree):
             if isinstance(node, ast.Attribute) and isinstance(node.value, ast.Name):
-                if node.attr.startswith('_') and not node.attr.startswith('__'):
+                if node.attr.startswith("_") and not node.attr.startswith("__"):
                     # Check if this is inside a test function
                     line_num = node.lineno
-                    violations.append(GuardViolation(
-                        rule_id="T-01",
-                        rule_name="Test accesses private implementation",
-                        severity=GuardSeverity.MUST_FIX,
-                        description=f"Test accesses private attribute '{node.attr}'. "
-                                    "Tests should verify public behavior, not internal implementation.",
-                        location=f"line {line_num}",
-                        suggestion="Test the public interface instead. If the private attribute "
-                                   "has no public observable effect, it may not need testing.",
-                        evidence=f"accessing .{node.attr}",
-                    ))
+                    violations.append(
+                        GuardViolation(
+                            rule_id="T-01",
+                            rule_name="Test accesses private implementation",
+                            severity=GuardSeverity.MUST_FIX,
+                            description=f"Test accesses private attribute '{node.attr}'. "
+                            "Tests should verify public behavior, not internal implementation.",
+                            location=f"line {line_num}",
+                            suggestion="Test the public interface instead. If the private attribute "
+                            "has no public observable effect, it may not need testing.",
+                            evidence=f"accessing .{node.attr}",
+                        )
+                    )
         return violations
 
     # ------------------------------------------------------------------
@@ -150,18 +154,20 @@ class TestGuard(BaseGuard):
         ]
         for pat in internal_patch_patterns:
             for match in re.finditer(pat, source):
-                line_num = source[:match.start()].count('\n') + 1
-                violations.append(GuardViolation(
-                    rule_id="T-02",
-                    rule_name="Unjustified mock — not at system boundary",
-                    severity=GuardSeverity.MUST_FIX,
-                    description="Mock appears to patch an internal module, not an I/O boundary. "
-                                "Only external dependencies (network, DB, filesystem) should be mocked.",
-                    location=f"line {line_num}",
-                    suggestion="Use the real implementation for internal code. Only mock at "
-                               "system boundaries (APIs, databases, file I/O, external services).",
-                    evidence=match.group(0)[:80],
-                ))
+                line_num = source[: match.start()].count("\n") + 1
+                violations.append(
+                    GuardViolation(
+                        rule_id="T-02",
+                        rule_name="Unjustified mock — not at system boundary",
+                        severity=GuardSeverity.MUST_FIX,
+                        description="Mock appears to patch an internal module, not an I/O boundary. "
+                        "Only external dependencies (network, DB, filesystem) should be mocked.",
+                        location=f"line {line_num}",
+                        suggestion="Use the real implementation for internal code. Only mock at "
+                        "system boundaries (APIs, databases, file I/O, external services).",
+                        evidence=match.group(0)[:80],
+                    )
+                )
         return violations
 
     # ------------------------------------------------------------------
@@ -172,32 +178,36 @@ class TestGuard(BaseGuard):
         violations: List[GuardViolation] = []
         for node in ast.walk(tree):
             if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
-                if not node.name.startswith('test_'):
+                if not node.name.startswith("test_"):
                     continue
                 assert_count = sum(1 for child in ast.walk(node) if isinstance(child, ast.Assert))
                 # Also check self.assertX patterns
                 self_asserts = 0
                 for child in ast.walk(node):
-                    if (isinstance(child, ast.Call) and
-                            isinstance(child.func, ast.Attribute) and
-                            isinstance(child.func.value, ast.Name) and
-                            child.func.value.id == 'self' and
-                            child.func.attr.startswith('assert')):
+                    if (
+                        isinstance(child, ast.Call)
+                        and isinstance(child.func, ast.Attribute)
+                        and isinstance(child.func.value, ast.Name)
+                        and child.func.value.id == "self"
+                        and child.func.attr.startswith("assert")
+                    ):
                         self_asserts += 1
 
                 total = assert_count + self_asserts
                 if total > 5:
-                    violations.append(GuardViolation(
-                        rule_id="T-03",
-                        rule_name="Too many assertions per test",
-                        severity=GuardSeverity.SHOULD_FIX,
-                        description=f"Test '{node.name}' has {total} assert statements. "
-                                    "Each test should verify one scenario; use parametrize for variants.",
-                        location=f"function '{node.name}' (line {node.lineno})",
-                        suggestion="Split into separate test cases or use pytest.mark.parametrize "
-                                   "for data-driven variants.",
-                        evidence=f"{total} assertions",
-                    ))
+                    violations.append(
+                        GuardViolation(
+                            rule_id="T-03",
+                            rule_name="Too many assertions per test",
+                            severity=GuardSeverity.SHOULD_FIX,
+                            description=f"Test '{node.name}' has {total} assert statements. "
+                            "Each test should verify one scenario; use parametrize for variants.",
+                            location=f"function '{node.name}' (line {node.lineno})",
+                            suggestion="Split into separate test cases or use pytest.mark.parametrize "
+                            "for data-driven variants.",
+                            evidence=f"{total} assertions",
+                        )
+                    )
         return violations
 
     # ------------------------------------------------------------------
@@ -207,31 +217,35 @@ class TestGuard(BaseGuard):
         """Check that test names follow test_<scenario>_<expected> pattern."""
         violations: List[GuardViolation] = []
         for node in ast.walk(tree):
-            if isinstance(node, ast.FunctionDef) and node.name.startswith('test_'):
+            if isinstance(node, ast.FunctionDef) and node.name.startswith("test_"):
                 name = node.name
                 # Bad patterns: test_function_name, test_1, test_something_v2
-                if re.match(r'^test_\d+$', name):
-                    violations.append(GuardViolation(
-                        rule_id="T-05",
-                        rule_name="Test name is not descriptive",
-                        severity=GuardSeverity.SHOULD_FIX,
-                        description=f"Test '{name}' uses a number instead of describing the scenario.",
-                        location=f"function '{name}' (line {node.lineno})",
-                        suggestion="Rename to test_<scenario>_<expected>, e.g. "
-                                   "test_load_flow_converges_with_valid_system.",
-                        evidence=name,
-                    ))
+                if re.match(r"^test_\d+$", name):
+                    violations.append(
+                        GuardViolation(
+                            rule_id="T-05",
+                            rule_name="Test name is not descriptive",
+                            severity=GuardSeverity.SHOULD_FIX,
+                            description=f"Test '{name}' uses a number instead of describing the scenario.",
+                            location=f"function '{name}' (line {node.lineno})",
+                            suggestion="Rename to test_<scenario>_<expected>, e.g. "
+                            "test_load_flow_converges_with_valid_system.",
+                            evidence=name,
+                        )
+                    )
                 elif len(name) < 12:
-                    violations.append(GuardViolation(
-                        rule_id="T-05",
-                        rule_name="Test name too short",
-                        severity=GuardSeverity.WORTH_NOTING,
-                        description=f"Test '{name}' has a very short name that may not describe "
-                                    "the scenario adequately.",
-                        location=f"function '{name}' (line {node.lineno})",
-                        suggestion="Use a more descriptive name following test_<scenario>_<expected>.",
-                        evidence=name,
-                    ))
+                    violations.append(
+                        GuardViolation(
+                            rule_id="T-05",
+                            rule_name="Test name too short",
+                            severity=GuardSeverity.WORTH_NOTING,
+                            description=f"Test '{name}' has a very short name that may not describe "
+                            "the scenario adequately.",
+                            location=f"function '{name}' (line {node.lineno})",
+                            suggestion="Use a more descriptive name following test_<scenario>_<expected>.",
+                            evidence=name,
+                        )
+                    )
         return violations
 
     # ------------------------------------------------------------------
@@ -241,23 +255,25 @@ class TestGuard(BaseGuard):
         """Heuristic: test that only verifies Python built-in behavior."""
         violations: List[GuardViolation] = []
         framework_assert_patterns = [
-            (r'assert\s+(type|isinstance|len|str|int|float|dict|list)\s*\(', "type/builtin check"),
+            (r"assert\s+(type|isinstance|len|str|int|float|dict|list)\s*\(", "type/builtin check"),
         ]
         for pat, _desc in framework_assert_patterns:
             for match in re.finditer(pat, source):
-                line_num = source[:match.start()].count('\n') + 1
+                line_num = source[: match.start()].count("\n") + 1
                 # Only flag if the surrounding function is a test
-                violations.append(GuardViolation(
-                    rule_id="T-07",
-                    rule_name="Tests framework guarantees",
-                    severity=GuardSeverity.SHOULD_FIX,
-                    description="Test verifies a Python built-in guarantee rather than "
-                                "application behavior. Frameworks are already tested.",
-                    location=f"line {line_num}",
-                    suggestion="Remove the framework-guarantee assertion and focus on "
-                               "application-specific behavior.",
-                    evidence=match.group(0)[:80],
-                ))
+                violations.append(
+                    GuardViolation(
+                        rule_id="T-07",
+                        rule_name="Tests framework guarantees",
+                        severity=GuardSeverity.SHOULD_FIX,
+                        description="Test verifies a Python built-in guarantee rather than "
+                        "application behavior. Frameworks are already tested.",
+                        location=f"line {line_num}",
+                        suggestion="Remove the framework-guarantee assertion and focus on "
+                        "application-specific behavior.",
+                        evidence=match.group(0)[:80],
+                    )
+                )
         return violations
 
     # ------------------------------------------------------------------
@@ -266,23 +282,25 @@ class TestGuard(BaseGuard):
     def _check_mocked_value_objects(self, tree: ast.AST, source: str) -> List[GuardViolation]:
         """Heuristic: MagicMock used for data/value objects."""
         violations: List[GuardViolation] = []
-        pattern = r'MagicMock\(\s*spec\s*=\s*(\w+)'
+        pattern = r"MagicMock\(\s*spec\s*=\s*(\w+)"
         for match in re.finditer(pattern, source):
             class_name = match.group(1)
             # Common value object suffixes
-            value_suffixes = ('Data', 'Model', 'DTO', 'Request', 'Response', 'Result', 'Config')
+            value_suffixes = ("Data", "Model", "DTO", "Request", "Response", "Result", "Config")
             if class_name.endswith(value_suffixes):
-                line_num = source[:match.start()].count('\n') + 1
-                violations.append(GuardViolation(
-                    rule_id="T-08",
-                    rule_name="Value object mocked instead of using real instance",
-                    severity=GuardSeverity.MUST_FIX,
-                    description=f"'{class_name}' appears to be a value/data object but is mocked. "
-                                "Value objects should be instantiated with real data.",
-                    location=f"line {line_num}",
-                    suggestion=f"Create a real {class_name} instance with test data instead of mocking it.",
-                    evidence=match.group(0)[:80],
-                ))
+                line_num = source[: match.start()].count("\n") + 1
+                violations.append(
+                    GuardViolation(
+                        rule_id="T-08",
+                        rule_name="Value object mocked instead of using real instance",
+                        severity=GuardSeverity.MUST_FIX,
+                        description=f"'{class_name}' appears to be a value/data object but is mocked. "
+                        "Value objects should be instantiated with real data.",
+                        location=f"line {line_num}",
+                        suggestion=f"Create a real {class_name} instance with test data instead of mocking it.",
+                        evidence=match.group(0)[:80],
+                    )
+                )
         return violations
 
     # ------------------------------------------------------------------
@@ -294,34 +312,38 @@ class TestGuard(BaseGuard):
         for node in ast.walk(tree):
             if not isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
                 continue
-            if not node.name.startswith('test_'):
+            if not node.name.startswith("test_"):
                 continue
             # Check if the test body is trivial (just pass, or only assert True)
             body_strs = [ast.dump(n) for n in node.body]
             if len(body_strs) == 1:
-                if 'Pass' in body_strs[0]:
-                    violations.append(GuardViolation(
-                        rule_id="T-04",
-                        rule_name="Test does not justify its existence",
-                        severity=GuardSeverity.SHOULD_FIX,
-                        description=f"Test '{node.name}' contains only 'pass'. "
-                                    "Every test must verify meaningful behavior.",
-                        location=f"function '{node.name}' (line {node.lineno})",
-                        suggestion="Either implement the test or remove it. Empty tests "
-                                   "give a false sense of coverage.",
-                        evidence="test body is 'pass'",
-                    ))
-                elif 'Constant(value=True)' in body_strs[0]:
-                    violations.append(GuardViolation(
-                        rule_id="T-04",
-                        rule_name="Test does not justify its existence",
-                        severity=GuardSeverity.SHOULD_FIX,
-                        description=f"Test '{node.name}' only asserts True. "
-                                    "This test can never fail and provides no coverage.",
-                        location=f"function '{node.name}' (line {node.lineno})",
-                        suggestion="Assert on actual system behavior, or remove the test.",
-                        evidence="assert True",
-                    ))
+                if "Pass" in body_strs[0]:
+                    violations.append(
+                        GuardViolation(
+                            rule_id="T-04",
+                            rule_name="Test does not justify its existence",
+                            severity=GuardSeverity.SHOULD_FIX,
+                            description=f"Test '{node.name}' contains only 'pass'. "
+                            "Every test must verify meaningful behavior.",
+                            location=f"function '{node.name}' (line {node.lineno})",
+                            suggestion="Either implement the test or remove it. Empty tests "
+                            "give a false sense of coverage.",
+                            evidence="test body is 'pass'",
+                        )
+                    )
+                elif "Constant(value=True)" in body_strs[0]:
+                    violations.append(
+                        GuardViolation(
+                            rule_id="T-04",
+                            rule_name="Test does not justify its existence",
+                            severity=GuardSeverity.SHOULD_FIX,
+                            description=f"Test '{node.name}' only asserts True. "
+                            "This test can never fail and provides no coverage.",
+                            location=f"function '{node.name}' (line {node.lineno})",
+                            suggestion="Assert on actual system behavior, or remove the test.",
+                            evidence="assert True",
+                        )
+                    )
         return violations
 
     # ------------------------------------------------------------------
@@ -332,25 +354,27 @@ class TestGuard(BaseGuard):
         violations: List[GuardViolation] = []
         # Heuristic: @skip or @xfail decorators on tests that reference
         # bug/issue/regression in their name
-        skip_pattern = r'@(skip|xfail)\b'
-        regression_name_pattern = r'test_.*(regression|bug|issue|fix|crash|error)_'
+        skip_pattern = r"@(skip|xfail)\b"
+        regression_name_pattern = r"test_.*(regression|bug|issue|fix|crash|error)_"
         for match in re.finditer(skip_pattern, source):
-            line_num = source[:match.start()].count('\n') + 1
+            line_num = source[: match.start()].count("\n") + 1
             # Check if nearby test name mentions regression
-            surrounding = source[max(0, match.start() - 200):match.end() + 200]
+            surrounding = source[max(0, match.start() - 200) : match.end() + 200]
             if re.search(regression_name_pattern, surrounding, re.IGNORECASE):
-                violations.append(GuardViolation(
-                    rule_id="T-06",
-                    rule_name="Regression test skipped or xfailed",
-                    severity=GuardSeverity.MUST_FIX,
-                    description="A regression test is marked with @skip or @xfail. "
-                                "Regression tests must never be disabled — they are the "
-                                "canonical record that a bug was fixed.",
-                    location=f"line {line_num}",
-                    suggestion="Fix the test so it passes. If the underlying bug is not "
-                               "fixed, fix the bug. Never skip a regression test.",
-                    evidence=match.group(0),
-                ))
+                violations.append(
+                    GuardViolation(
+                        rule_id="T-06",
+                        rule_name="Regression test skipped or xfailed",
+                        severity=GuardSeverity.MUST_FIX,
+                        description="A regression test is marked with @skip or @xfail. "
+                        "Regression tests must never be disabled — they are the "
+                        "canonical record that a bug was fixed.",
+                        location=f"line {line_num}",
+                        suggestion="Fix the test so it passes. If the underlying bug is not "
+                        "fixed, fix the bug. Never skip a regression test.",
+                        evidence=match.group(0),
+                    )
+                )
         return violations
 
     # ------------------------------------------------------------------
@@ -361,31 +385,39 @@ class TestGuard(BaseGuard):
         integration-like tests (test files containing 'integration' or 'e2e')."""
         violations: List[GuardViolation] = []
         # Only flag if the test file looks like an integration test
-        is_integration = bool(re.search(
-            r'(integration|e2e|end.to.end|system)', source, re.IGNORECASE
-        ))
+        is_integration = bool(
+            re.search(r"(integration|e2e|end.to.end|system)", source, re.IGNORECASE)
+        )
         if not is_integration:
             return violations
 
         # Flag mocking of databases and message queues in integration tests
         infra_mock_patterns = [
-            (r'patch\(["\'].*(?:database|db|redis|kafka|rabbitmq|celery)', "database/messaging mock in integration test"),
-            (r'MagicMock.*(?:Database|Repository|Queue|Broker)', "infrastructure mock in integration test"),
+            (
+                r'patch\(["\'].*(?:database|db|redis|kafka|rabbitmq|celery)',
+                "database/messaging mock in integration test",
+            ),
+            (
+                r"MagicMock.*(?:Database|Repository|Queue|Broker)",
+                "infrastructure mock in integration test",
+            ),
         ]
         for pat, desc in infra_mock_patterns:
             for match in re.finditer(pat, source, re.IGNORECASE):
-                line_num = source[:match.start()].count('\n') + 1
-                violations.append(GuardViolation(
-                    rule_id="T-09",
-                    rule_name="Infrastructure mocked in integration test",
-                    severity=GuardSeverity.SHOULD_FIX,
-                    description=f"Detected {desc}. Integration tests should use real "
-                                "infrastructure (test databases, containers) not mocks.",
-                    location=f"line {line_num}",
-                    suggestion="Use a real test database (SQLite in-memory, test container) "
-                               "instead of mocking infrastructure in integration tests.",
-                    evidence=match.group(0)[:80],
-                ))
+                line_num = source[: match.start()].count("\n") + 1
+                violations.append(
+                    GuardViolation(
+                        rule_id="T-09",
+                        rule_name="Infrastructure mocked in integration test",
+                        severity=GuardSeverity.SHOULD_FIX,
+                        description=f"Detected {desc}. Integration tests should use real "
+                        "infrastructure (test databases, containers) not mocks.",
+                        location=f"line {line_num}",
+                        suggestion="Use a real test database (SQLite in-memory, test container) "
+                        "instead of mocking infrastructure in integration tests.",
+                        evidence=match.group(0)[:80],
+                    )
+                )
         return violations
 
     # ------------------------------------------------------------------
@@ -399,19 +431,21 @@ class TestGuard(BaseGuard):
         # Heuristic: exact string match on LLM output
         pattern = r'assert\s+.*(?:response|output|result|completion).*==\s*["\']'
         for match in re.finditer(pattern, source):
-            line_num = source[:match.start()].count('\n') + 1
-            violations.append(GuardViolation(
-                rule_id="T-L1",
-                rule_name="Exact string assertion on LLM output",
-                severity=GuardSeverity.MUST_FIX,
-                description="Test asserts exact string match on LLM output. "
-                            "LLM outputs are non-deterministic; test the contract (schema, "
-                            "key fields) instead of exact content.",
-                location=f"line {line_num}",
-                suggestion="Assert on structure (JSON schema, presence of key fields, "
-                           "type of response) rather than exact string content.",
-                evidence=match.group(0)[:80],
-            ))
+            line_num = source[: match.start()].count("\n") + 1
+            violations.append(
+                GuardViolation(
+                    rule_id="T-L1",
+                    rule_name="Exact string assertion on LLM output",
+                    severity=GuardSeverity.MUST_FIX,
+                    description="Test asserts exact string match on LLM output. "
+                    "LLM outputs are non-deterministic; test the contract (schema, "
+                    "key fields) instead of exact content.",
+                    location=f"line {line_num}",
+                    suggestion="Assert on structure (JSON schema, presence of key fields, "
+                    "type of response) rather than exact string content.",
+                    evidence=match.group(0)[:80],
+                )
+            )
 
         return violations
 
@@ -427,32 +461,41 @@ class TestGuard(BaseGuard):
         """
         violations: List[GuardViolation] = []
         # Pattern: test creates an LLM agent/call but doesn't check observability
-        llm_call_pattern = r'(?:agent|llm|completion|chat|prompt|openai|claude)\s*\('
+        llm_call_pattern = r"(?:agent|llm|completion|chat|prompt|openai|claude)\s*\("
         has_llm_call = bool(re.search(llm_call_pattern, source, re.IGNORECASE))
 
         if has_llm_call:
             # Check if there are any observability-related assertions
             observability_patterns = [
-                r'log', r'trace', r'span', r'metric', r'token', r'latency',
-                r'cost', r'duration', r'telemetry',
+                r"log",
+                r"trace",
+                r"span",
+                r"metric",
+                r"token",
+                r"latency",
+                r"cost",
+                r"duration",
+                r"telemetry",
             ]
             has_observability = any(
                 re.search(pat, source, re.IGNORECASE) for pat in observability_patterns
             )
             if not has_observability:
-                violations.append(GuardViolation(
-                    rule_id="T-L2",
-                    rule_name="LLM test lacks observability assertions",
-                    severity=GuardSeverity.SHOULD_FIX,
-                    description="Test invokes LLM functionality but does not assert on "
-                                "observability data (logs, traces, token counts, latency). "
-                                "Observability is infrastructure for LLM apps.",
-                    location="entire test file",
-                    suggestion="Add assertions for token usage, latency bounds, or trace "
-                               "span existence. LLM tests should verify the system is "
-                               "observable, not just that it produces output.",
-                    evidence="LLM call without observability checks",
-                ))
+                violations.append(
+                    GuardViolation(
+                        rule_id="T-L2",
+                        rule_name="LLM test lacks observability assertions",
+                        severity=GuardSeverity.SHOULD_FIX,
+                        description="Test invokes LLM functionality but does not assert on "
+                        "observability data (logs, traces, token counts, latency). "
+                        "Observability is infrastructure for LLM apps.",
+                        location="entire test file",
+                        suggestion="Add assertions for token usage, latency bounds, or trace "
+                        "span existence. LLM tests should verify the system is "
+                        "observable, not just that it produces output.",
+                        evidence="LLM call without observability checks",
+                    )
+                )
         return violations
 
     # ------------------------------------------------------------------
@@ -467,30 +510,38 @@ class TestGuard(BaseGuard):
         """
         violations: List[GuardViolation] = []
         # Pattern: test that uses agent workflow but only checks final result
-        agent_flow_pattern = r'(?:workflow|pipeline|chain|agent_run|run_agent|execute_agent)'
+        agent_flow_pattern = r"(?:workflow|pipeline|chain|agent_run|run_agent|execute_agent)"
         has_agent_flow = bool(re.search(agent_flow_pattern, source, re.IGNORECASE))
 
         if has_agent_flow:
             # Check for transition/step assertions
             transition_patterns = [
-                r'step', r'transition', r'state', r'stage', r'phase',
-                r'intermediate', r'before', r'after',
+                r"step",
+                r"transition",
+                r"state",
+                r"stage",
+                r"phase",
+                r"intermediate",
+                r"before",
+                r"after",
             ]
             has_transition_assertions = any(
                 re.search(pat, source, re.IGNORECASE) for pat in transition_patterns
             )
             if not has_transition_assertions:
-                violations.append(GuardViolation(
-                    rule_id="T-L3",
-                    rule_name="Agent-flow test lacks transition assertions",
-                    severity=GuardSeverity.SHOULD_FIX,
-                    description="Test exercises an agent workflow/pipeline but only "
-                                "asserts on the final result. Agent-flow tests should "
-                                "verify state transitions between steps.",
-                    location="entire test file",
-                    suggestion="Add assertions that verify intermediate states: "
-                               "what changed between step N and step N+1? Did the agent "
-                               "transition to the expected state?",
-                    evidence="agent flow without transition checks",
-                ))
+                violations.append(
+                    GuardViolation(
+                        rule_id="T-L3",
+                        rule_name="Agent-flow test lacks transition assertions",
+                        severity=GuardSeverity.SHOULD_FIX,
+                        description="Test exercises an agent workflow/pipeline but only "
+                        "asserts on the final result. Agent-flow tests should "
+                        "verify state transitions between steps.",
+                        location="entire test file",
+                        suggestion="Add assertions that verify intermediate states: "
+                        "what changed between step N and step N+1? Did the agent "
+                        "transition to the expected state?",
+                        evidence="agent flow without transition checks",
+                    )
+                )
         return violations

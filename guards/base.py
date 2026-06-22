@@ -23,8 +23,9 @@ logger = logging.getLogger(__name__)
 
 class GuardSeverity(Enum):
     """Violation severity — mirrors the guard-skills triage model."""
-    MUST_FIX = "must_fix"        # Blocks merge / execution
-    SHOULD_FIX = "should_fix"    # Should fix before shipping
+
+    MUST_FIX = "must_fix"  # Blocks merge / execution
+    SHOULD_FIX = "should_fix"  # Should fix before shipping
     WORTH_NOTING = "worth_noting"  # Informational, no block
 
 
@@ -36,6 +37,7 @@ class GuardMode(Enum):
       - LIVE:       apply rules proactively during writing
       - REVIEW:     structured audit producing a findings report
     """
+
     GUARD_PASS = "guard_pass"
     LIVE = "live"
     REVIEW = "review"
@@ -62,6 +64,7 @@ class GuardViolation:
     evidence : str
         The offending code/text fragment (truncated for safety).
     """
+
     rule_id: str
     rule_name: str
     severity: GuardSeverity
@@ -88,6 +91,7 @@ class GuardResult:
     metadata : dict
         Additional info (scan time, lines scanned, etc.).
     """
+
     guard_name: str
     mode: GuardMode
     violations: List[GuardViolation] = field(default_factory=list)
@@ -147,7 +151,9 @@ class BaseGuard:
     def __init__(self, mode: GuardMode = GuardMode.GUARD_PASS) -> None:
         self.mode = mode
 
-    def scan(self, source: str, language: str = "python", context: Dict[str, Any] | None = None) -> GuardResult:
+    def scan(
+        self, source: str, language: str = "python", context: Dict[str, Any] | None = None
+    ) -> GuardResult:
         """Run the guard against *source* text.
 
         Parameters
@@ -165,7 +171,9 @@ class BaseGuard:
         """
         raise NotImplementedError("Subclasses must implement scan()")
 
-    def _make_result(self, violations: List[GuardViolation] | None = None, **meta: Any) -> GuardResult:
+    def _make_result(
+        self, violations: List[GuardViolation] | None = None, **meta: Any
+    ) -> GuardResult:
         """Convenience to build a GuardResult with the current guard name/mode."""
         return GuardResult(
             guard_name=self.name,

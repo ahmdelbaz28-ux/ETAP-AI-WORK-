@@ -1,3 +1,4 @@
+from __future__ import annotations
 import json
 from datetime import datetime
 from pathlib import Path
@@ -36,7 +37,7 @@ class ManualExtractor:
             "failed": 0,
             "total_pages": 0,
             "total_characters": 0,
-            "files": []
+            "files": [],
         }
 
     def extract_pdf_text(self, pdf_path: Path) -> Tuple[str | None, int]:
@@ -63,7 +64,7 @@ class ManualExtractor:
     def clean_text(self, text: str) -> str:
         if not text:
             return ""
-        lines = text.split('\n')
+        lines = text.split("\n")
         cleaned_lines = []
         for line in lines:
             line = line.strip()
@@ -116,7 +117,9 @@ class ManualExtractor:
         print(f"Found {len(pdf_files)} PDF files.")
 
         for idx, pdf_path in enumerate(pdf_files, 1):
-            print(f"\n[{idx}/{len(pdf_files)}] Extracting: {pdf_path.name} ({pdf_path.stat().st_size / 1024 / 1024:.2f} MB)")
+            print(
+                f"\n[{idx}/{len(pdf_files)}] Extracting: {pdf_path.name} ({pdf_path.stat().st_size / 1024 / 1024:.2f} MB)"
+            )
 
             # Extract text
             text, page_count = self.extract_pdf_text(pdf_path)
@@ -135,35 +138,46 @@ class ManualExtractor:
                 # Save chunks
                 chunks_filename = f"{pdf_path.stem}_chunks.json"
                 with open(self.chunks_dir / chunks_filename, "w", encoding="utf-8") as f:
-                    json.dump({
-                        "source": str(pdf_path),
-                        "filename": pdf_path.name,
-                        "chunks": chunks,
-                        "chunk_count": len(chunks),
-                        "metadata": {
-                            "pages": page_count,
-                            "characters": len(cleaned),
-                            "extracted_at": datetime.now().isoformat()
-                        }
-                    }, f, indent=2, ensure_ascii=False)
+                    json.dump(
+                        {
+                            "source": str(pdf_path),
+                            "filename": pdf_path.name,
+                            "chunks": chunks,
+                            "chunk_count": len(chunks),
+                            "metadata": {
+                                "pages": page_count,
+                                "characters": len(cleaned),
+                                "extracted_at": datetime.now().isoformat(),
+                            },
+                        },
+                        f,
+                        indent=2,
+                        ensure_ascii=False,
+                    )
 
                 self.summary["successful"] += 1
                 self.summary["total_pages"] += page_count
                 self.summary["total_characters"] += len(cleaned)
-                self.summary["files"].append({
-                    "filename": pdf_path.name,
-                    "pages": page_count,
-                    "chunks": len(chunks),
-                    "status": "success"
-                })
-                print(f"  [OK] Success: {page_count} pages, {len(chunks)} chunks, {len(cleaned)} chars")
+                self.summary["files"].append(
+                    {
+                        "filename": pdf_path.name,
+                        "pages": page_count,
+                        "chunks": len(chunks),
+                        "status": "success",
+                    }
+                )
+                print(
+                    f"  [OK] Success: {page_count} pages, {len(chunks)} chunks, {len(cleaned)} chars"
+                )
             else:
                 self.summary["failed"] += 1
-                self.summary["files"].append({
-                    "filename": pdf_path.name,
-                    "status": "failed",
-                    "error": "Failed to extract text or content too short"
-                })
+                self.summary["files"].append(
+                    {
+                        "filename": pdf_path.name,
+                        "status": "failed",
+                        "error": "Failed to extract text or content too short",
+                    }
+                )
                 print("  [FAIL] Failed: No text extracted")
 
         # Save summary
@@ -180,35 +194,40 @@ class ManualExtractor:
             "total_documents": 0,
             "total_chunks": 0,
             "total_characters": 0,
-            "documents": []
+            "documents": [],
         }
 
         chunk_files = list(self.chunks_dir.glob("*_chunks.json"))
         for chunk_file in chunk_files:
             with open(chunk_file, encoding="utf-8") as f:
                 data = json.load(f)
-                master_index["documents"].append({
-                    "filename": data["filename"],
-                    "source": data["source"],
-                    "chunk_count": data["chunk_count"],
-                    "pages": data["metadata"]["pages"],
-                    "characters": data["metadata"]["characters"],
-                    "chunks": data["chunks"]
-                })
+                master_index["documents"].append(
+                    {
+                        "filename": data["filename"],
+                        "source": data["source"],
+                        "chunk_count": data["chunk_count"],
+                        "pages": data["metadata"]["pages"],
+                        "characters": data["metadata"]["characters"],
+                        "chunks": data["chunks"],
+                    }
+                )
                 master_index["total_documents"] += 1
                 master_index["total_chunks"] += data["chunk_count"]
                 master_index["total_characters"] += data["metadata"]["characters"]
 
         with open(self.index_dir / "master_index.json", "w", encoding="utf-8") as f:
             json.dump(master_index, f, indent=2, ensure_ascii=False)
-        print(f"  [OK] Master index saved. Total documents: {master_index['total_documents']}, Total chunks: {master_index['total_chunks']}")
+        print(
+            f"  [OK] Master index saved. Total documents: {master_index['total_documents']}, Total chunks: {master_index['total_chunks']}"
+        )
+
 
 def main():
     # ETAP Manuals
     etap_extractor = ManualExtractor(
         source_dir=r"C:\Users\Repair SC\Desktop\New folder\etap",
         target_dir="etap_user_guide",
-        name="ETAP"
+        name="ETAP",
     )
     etap_extractor.process_all()
 
@@ -216,9 +235,10 @@ def main():
     zenon_extractor = ManualExtractor(
         source_dir=r"C:\Users\Repair SC\Desktop\New folder\zenon",
         target_dir="zenon_user_guide",
-        name="Zenon"
+        name="Zenon",
     )
     zenon_extractor.process_all()
+
 
 if __name__ == "__main__":
     main()

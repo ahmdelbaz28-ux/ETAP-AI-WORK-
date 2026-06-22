@@ -36,6 +36,7 @@ _HAS_FOLIUM = False
 try:
     import folium  # type: ignore
     from folium.plugins import HeatMap, MarkerCluster  # type: ignore
+
     _HAS_FOLIUM = True
 except ImportError:
     logger.warning(
@@ -49,28 +50,28 @@ except ImportError:
 # ---------------------------------------------------------------------------
 
 VOLTAGE_COLORS = {
-    "excellent": "#00cc00",   # > 1.02 pu
-    "good": "#66cc00",        # 0.98 - 1.02
-    "fair": "#cccc00",        # 0.95 - 0.98
-    "poor": "#cc6600",        # 0.90 - 0.95
-    "critical": "#cc0000",    # < 0.90
+    "excellent": "#00cc00",  # > 1.02 pu
+    "good": "#66cc00",  # 0.98 - 1.02
+    "fair": "#cccc00",  # 0.95 - 0.98
+    "poor": "#cc6600",  # 0.90 - 0.95
+    "critical": "#cc0000",  # < 0.90
 }
 
 FAULT_SEVERITY_COLORS = {
-    "low": "#00cc00",         # < 5 kA
-    "medium": "#cccc00",      # 5 - 15 kA
-    "high": "#cc6600",        # 15 - 30 kA
-    "severe": "#cc0000",      # 30 - 50 kA
-    "extreme": "#990000",     # > 50 kA
+    "low": "#00cc00",  # < 5 kA
+    "medium": "#cccc00",  # 5 - 15 kA
+    "high": "#cc6600",  # 15 - 30 kA
+    "severe": "#cc0000",  # 30 - 50 kA
+    "extreme": "#990000",  # > 50 kA
 }
 
 ARC_FLASH_COLORS = {
-    "safe": "#00cc00",        # < 1.2 cal/cm2 (Category 0)
-    "low": "#66cc00",         # 1.2 - 4 (Category 1)
-    "medium": "#cccc00",      # 4 - 8 (Category 2)
-    "high": "#cc6600",        # 8 - 25 (Category 3)
-    "severe": "#cc0000",      # 25 - 40 (Category 4)
-    "extreme": "#990000",     # > 40 (Category 4+)
+    "safe": "#00cc00",  # < 1.2 cal/cm2 (Category 0)
+    "low": "#66cc00",  # 1.2 - 4 (Category 1)
+    "medium": "#cccc00",  # 4 - 8 (Category 2)
+    "high": "#cc6600",  # 8 - 25 (Category 3)
+    "severe": "#cc0000",  # 25 - 40 (Category 4)
+    "extreme": "#990000",  # > 40 (Category 4+)
 }
 
 PPE_LEVELS = {
@@ -128,9 +129,7 @@ class GISVisualizer:
             "Dark": "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png",
         }
         tile = tile_urls.get(self.tile_layer, tile_urls["OpenStreetMap"])
-        attr = (
-            "&copy; <a href='https://www.openstreetmap.org/copyright'>OpenStreetMap</a>"
-        )
+        attr = "&copy; <a href='https://www.openstreetmap.org/copyright'>OpenStreetMap</a>"
 
         m = folium.Map(
             location=self.center,
@@ -143,6 +142,7 @@ class GISVisualizer:
         # Add fullscreen button
         try:
             from folium.plugins import Fullscreen
+
             Fullscreen().add_to(m)
         except Exception:
             pass
@@ -264,8 +264,14 @@ class GISVisualizer:
                 f"Q: {bus_data.get('reactive_power', 0):.2f} MVAr"
             )
 
-            self._add_bus_marker(m, coord, str(bid), color, popup,
-                                 radius=10 if bus_data.get("bus_type") == "slack" else 8)
+            self._add_bus_marker(
+                m,
+                coord,
+                str(bid),
+                color,
+                popup,
+                radius=10 if bus_data.get("bus_type") == "slack" else 8,
+            )
 
         # Draw lines between buses
         if lines and bus_coords:
@@ -282,8 +288,10 @@ class GISVisualizer:
                         f"P: {line.get('active_power_from', 0):.2f} MW"
                     )
                     self._add_line_feature(
-                        m, [bus_coords[from_id], bus_coords[to_id]],
-                        color, weight=3 if loading and loading > 90 else 2,
+                        m,
+                        [bus_coords[from_id], bus_coords[to_id]],
+                        color,
+                        weight=3 if loading and loading > 90 else 2,
                         popup_text=popup,
                     )
 
@@ -331,13 +339,16 @@ class GISVisualizer:
                 f"Type: {bus_data.get('bus_type', 'N/A')}"
             )
 
-            self._add_bus_marker(m, coord, f"{bid} ({vm:.3f})", color, popup,
-                                 radius=10 - abs(vm - 1.0) * 5 + 5)
-            voltage_values.append({
-                "lat": coord[1],
-                "lon": coord[0],
-                "voltage": vm,
-            })
+            self._add_bus_marker(
+                m, coord, f"{bid} ({vm:.3f})", color, popup, radius=10 - abs(vm - 1.0) * 5 + 5
+            )
+            voltage_values.append(
+                {
+                    "lat": coord[1],
+                    "lon": coord[0],
+                    "voltage": vm,
+                }
+            )
 
         # Add heatmap layer for voltage distribution
         try:
@@ -392,7 +403,7 @@ class GISVisualizer:
             # Get the fault current for the specified type or three_phase
             fc_ka = fc_data.get(
                 f"{fault_type.lower().replace(' ', '_')}_ka",
-                fc_data.get("three_phase_ka", fc_data.get("fault_current_ka", 0))
+                fc_data.get("three_phase_ka", fc_data.get("fault_current_ka", 0)),
             )
             coord = bus_coords.get(str(bid)) if bus_coords else None
             if coord is None:
@@ -408,8 +419,9 @@ class GISVisualizer:
                 f"Severity: {self._fault_severity_label(fc_ka)}"
             )
 
-            self._add_bus_marker(m, coord, f"{bid}: {fc_ka:.1f} kA", color, popup,
-                                 radius=int(radius))
+            self._add_bus_marker(
+                m, coord, f"{bid}: {fc_ka:.1f} kA", color, popup, radius=int(radius)
+            )
 
         # Add fault legend
         self._add_legend(
@@ -474,8 +486,9 @@ class GISVisualizer:
                 f"Method: {af_data.get('method', 'IEEE 1584')}"
             )
 
-            self._add_bus_marker(m, coord, f"{bid}: {ie:.1f} cal/cm²", color, popup,
-                                 radius=int(radius))
+            self._add_bus_marker(
+                m, coord, f"{bid}: {ie:.1f} cal/cm²", color, popup, radius=int(radius)
+            )
 
             # Collect for heatmap
             lat = coord[1]
@@ -552,7 +565,10 @@ class GISVisualizer:
 
             if _HAS_FOLIUM:
                 from folium import Icon
-                icon = Icon(color="green" if all_coordinated else "red", icon=icon_type, prefix="glyphicon")
+
+                icon = Icon(
+                    color="green" if all_coordinated else "red", icon=icon_type, prefix="glyphicon"
+                )
                 folium.Marker(
                     location=[coord[1], coord[0]],
                     popup=folium.Popup(popup, max_width=300),
@@ -593,9 +609,12 @@ class GISVisualizer:
                 color = self._asset_type_color(asset_type)
                 popup = self._build_asset_popup(asset_type, props)
                 self._add_bus_marker(
-                    m, (coords[0], coords[1]),
+                    m,
+                    (coords[0], coords[1]),
                     f"{asset_type}: {props.get('electrical_id', '')}",
-                    color, popup, radius=8,
+                    color,
+                    popup,
+                    radius=8,
                 )
 
             elif geom.get("type") == "LineString":
@@ -605,7 +624,11 @@ class GISVisualizer:
                     color = "#0066cc" if asset_type == "line" else "#cc6600"
                     popup = self._build_asset_popup(asset_type, props)
                     self._add_line_feature(
-                        m, line_coords, color, weight=3, popup_text=popup,
+                        m,
+                        line_coords,
+                        color,
+                        weight=3,
+                        popup_text=popup,
                     )
 
         # Add feature count summary
@@ -821,6 +844,7 @@ class GISVisualizer:
     def _assign_coordinates(asset_id: str, idx: int, total: int) -> Tuple[float, float]:
         """Assign coordinates in a ring pattern when coordinates are unknown."""
         import math
+
         radius = 0.02 * (1 + idx // 20)
         angle = (2 * math.pi * idx) / max(total, 1)
         # Place around center with slight offset per asset

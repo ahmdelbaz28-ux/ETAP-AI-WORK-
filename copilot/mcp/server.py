@@ -55,7 +55,11 @@ MCP_TOOL_DEFINITIONS: List[dict] = [
             "type": "object",
             "properties": {
                 "file_path": {"type": "string", "description": "Full path to the new DWG file"},
-                "template": {"type": "string", "description": "Optional template DWG path", "default": ""},
+                "template": {
+                    "type": "string",
+                    "description": "Optional template DWG path",
+                    "default": "",
+                },
             },
             "required": ["file_path"],
         },
@@ -84,7 +88,11 @@ MCP_TOOL_DEFINITIONS: List[dict] = [
             "properties": {
                 "file_path": {"type": "string", "description": "Path to DWG file"},
                 "layer": {"type": "string", "description": "Optional layer filter", "default": ""},
-                "entity_type": {"type": "string", "description": "Optional entity type filter", "default": ""},
+                "entity_type": {
+                    "type": "string",
+                    "description": "Optional entity type filter",
+                    "default": "",
+                },
             },
             "required": ["file_path"],
         },
@@ -96,7 +104,19 @@ MCP_TOOL_DEFINITIONS: List[dict] = [
             "type": "object",
             "properties": {
                 "name": {"type": "string", "description": "Panel name"},
-                "panel_type": {"type": "string", "enum": ["MDP", "SP", "DP", "LP", "CP", "AHUB", "POWER_PANEL", "LIGHTING_PANEL"]},
+                "panel_type": {
+                    "type": "string",
+                    "enum": [
+                        "MDP",
+                        "SP",
+                        "DP",
+                        "LP",
+                        "CP",
+                        "AHUB",
+                        "POWER_PANEL",
+                        "LIGHTING_PANEL",
+                    ],
+                },
                 "voltage_nominal_v": {"type": "number", "description": "Nominal voltage"},
                 "phase_count": {"type": "integer", "default": 3},
                 "main_breaker_a": {"type": "number", "description": "Main breaker rating"},
@@ -175,7 +195,11 @@ MCP_TOOL_DEFINITIONS: List[dict] = [
             "type": "object",
             "properties": {
                 "project_path": {"type": "string", "description": "Path to ETAP .edb project"},
-                "direction": {"type": "string", "enum": ["import", "export", "full"], "default": "full"},
+                "direction": {
+                    "type": "string",
+                    "enum": ["import", "export", "full"],
+                    "default": "full",
+                },
             },
             "required": ["project_path"],
         },
@@ -187,7 +211,11 @@ MCP_TOOL_DEFINITIONS: List[dict] = [
             "type": "object",
             "properties": {
                 "model_path": {"type": "string", "description": "Path to Revit .rvt model"},
-                "direction": {"type": "string", "enum": ["import", "export", "full"], "default": "full"},
+                "direction": {
+                    "type": "string",
+                    "enum": ["import", "export", "full"],
+                    "default": "full",
+                },
             },
             "required": ["model_path"],
         },
@@ -290,6 +318,7 @@ class CopilotMCPServer:
         """Lazy-load ETAP provider to avoid import errors on non-Windows."""
         try:
             from etap_integration.etap_provider import get_etap_provider
+
             return get_etap_provider()
         except Exception:
             logger.warning("ETAP provider not available")
@@ -544,7 +573,9 @@ class CopilotMCPServer:
 
     def _handle_validate_design(self, args: dict) -> dict:
         """Run validation checks on the current model."""
-        check_types = args.get("check_types", ["overcurrent", "voltage", "coordination", "cable_sizing"])
+        check_types = args.get(
+            "check_types", ["overcurrent", "voltage", "coordination", "cable_sizing"]
+        )
         results: dict = {}
 
         if "voltage" in check_types:
