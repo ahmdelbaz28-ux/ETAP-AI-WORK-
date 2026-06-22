@@ -1,4 +1,5 @@
 """Helper module for CLI tests — contains a handler class requiring constructor args."""
+
 from acp.runtime import capability
 
 

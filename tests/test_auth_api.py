@@ -38,6 +38,7 @@ from api.dependencies import JWT_ALGORITHM, JWT_SECRET_KEY
 # 1. POST /api/v1/auth/register
 # ===========================================================================
 
+
 class TestRegister:
     """Tests for the user registration endpoint."""
 
@@ -79,7 +80,9 @@ class TestRegister:
                 "password": "S3cureP@ss!",
             },
         )
-        assert resp.status_code == 409, f"Expected 409 for duplicate username, got {resp.status_code}"
+        assert resp.status_code == 409, (
+            f"Expected 409 for duplicate username, got {resp.status_code}"
+        )
         assert "Username already registered" in resp.json()["detail"]
 
     def test_register_duplicate_email(self, client):
@@ -153,6 +156,7 @@ class TestRegister:
 # ===========================================================================
 # 2. POST /api/v1/auth/login
 # ===========================================================================
+
 
 class TestLogin:
     """Tests for the login endpoint."""
@@ -228,7 +232,7 @@ class TestLogin:
                 "/api/v1/auth/login",
                 json={"username": username, "password": f"WrongP@ss{i}!"},
             )
-            assert resp.status_code == 401, f"Attempt {i+1} should return 401"
+            assert resp.status_code == 401, f"Attempt {i + 1} should return 401"
 
         # 6th attempt should be rate-limited
         resp = client.post(
@@ -243,6 +247,7 @@ class TestLogin:
 # ===========================================================================
 # 3. POST /api/v1/auth/refresh
 # ===========================================================================
+
 
 class TestRefresh:
     """Tests for the token refresh endpoint."""
@@ -331,6 +336,7 @@ class TestRefresh:
 # 4. POST /api/v1/auth/logout
 # ===========================================================================
 
+
 class TestLogout:
     """Tests for the logout endpoint."""
 
@@ -348,6 +354,7 @@ class TestLogout:
 # ===========================================================================
 # 5. GET /api/v1/auth/me
 # ===========================================================================
+
 
 class TestGetMe:
     """Tests for the current-user profile endpoint."""
@@ -387,6 +394,7 @@ class TestGetMe:
 # ===========================================================================
 # 6. PUT /api/v1/auth/me
 # ===========================================================================
+
 
 class TestUpdateMe:
     """Tests for the update-profile endpoint."""
@@ -434,6 +442,7 @@ class TestUpdateMe:
 # ===========================================================================
 # 7. PUT /api/v1/auth/me/password
 # ===========================================================================
+
 
 class TestChangePassword:
     """Tests for the change-password endpoint."""
@@ -487,6 +496,7 @@ class TestChangePassword:
 # 8. POST /api/v1/auth/forgot-password
 # ===========================================================================
 
+
 class TestForgotPassword:
     """Tests for the forgot-password endpoint."""
 
@@ -511,14 +521,13 @@ class TestForgotPassword:
             f"Expected 200 for non-existent email (no enumeration), got {resp.status_code}"
         )
         data = resp.json()
-        assert "reset_token" not in data, (
-            "Non-existent email must NOT return a reset token"
-        )
+        assert "reset_token" not in data, "Non-existent email must NOT return a reset token"
 
 
 # ===========================================================================
 # 9. POST /api/v1/auth/reset-password
 # ===========================================================================
+
 
 class TestResetPassword:
     """Tests for the reset-password endpoint."""
@@ -581,6 +590,7 @@ class TestResetPassword:
 # 10. GET /api/v1/auth/users
 # ===========================================================================
 
+
 class TestListUsers:
     """Tests for the admin-only user list endpoint."""
 
@@ -602,6 +612,7 @@ class TestListUsers:
 # ===========================================================================
 # 11. DELETE /api/v1/auth/users/{user_id}
 # ===========================================================================
+
 
 class TestDeleteUser:
     """Tests for the admin-only user deletion endpoint."""
@@ -644,7 +655,5 @@ class TestDeleteUser:
             f"/api/v1/auth/users/{admin_id}",
             headers=admin_headers,
         )
-        assert resp.status_code == 400, (
-            f"Expected 400 for self-delete, got {resp.status_code}"
-        )
+        assert resp.status_code == 400, f"Expected 400 for self-delete, got {resp.status_code}"
         assert "own account" in resp.json()["detail"].lower()

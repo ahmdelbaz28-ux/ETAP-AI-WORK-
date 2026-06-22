@@ -90,6 +90,7 @@ def run_large_scale_simulation(*, scenario_id: str = "stress_10k_1m") -> StressR
     This is designed to avoid full in-memory datasets where possible, but the
     current dataset generator returns a list; we limit max_items for safety.
     """
+
     def gen() -> List[ADMSAsset]:
         # Generate a manageable synthetic set (still stresses transformation/validation pipeline).
         return generate_synthetic_grid(grid_type="urban", seed=42, crs="EPSG:4326")

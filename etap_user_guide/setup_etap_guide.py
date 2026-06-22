@@ -16,20 +16,20 @@ from pathlib import Path
 
 
 class Colors:
-    HEADER = '\033[95m'
-    OKBLUE = '\033[94m'
-    OKCYAN = '\033[96m'
-    OKGREEN = '\033[92m'
-    WARNING = '\033[93m'
-    FAIL = '\033[91m'
-    ENDC = '\033[0m'
-    BOLD = '\033[1m'
+    HEADER = "\033[95m"
+    OKBLUE = "\033[94m"
+    OKCYAN = "\033[96m"
+    OKGREEN = "\033[92m"
+    WARNING = "\033[93m"
+    FAIL = "\033[91m"
+    ENDC = "\033[0m"
+    BOLD = "\033[1m"
 
 
 def print_header(text):
-    print(f"\n{Colors.HEADER}{Colors.BOLD}{'='*70}{Colors.ENDC}")
+    print(f"\n{Colors.HEADER}{Colors.BOLD}{'=' * 70}{Colors.ENDC}")
     print(f"{Colors.HEADER}{Colors.BOLD}{text.center(70)}{Colors.ENDC}")
-    print(f"{Colors.HEADER}{Colors.BOLD}{'='*70}{Colors.ENDC}\n")
+    print(f"{Colors.HEADER}{Colors.BOLD}{'=' * 70}{Colors.ENDC}\n")
 
 
 def print_success(text):
@@ -58,7 +58,7 @@ def check_directory_structure():
         "etap_user_guide/ac_element",
         "etap_user_guide/extract_guide.py",
         "etap_user_guide/etap_guide_rag.py",
-        "etap_user_guide/README.md"
+        "etap_user_guide/README.md",
     ]
 
     all_exist = True
@@ -102,7 +102,7 @@ def install_dependencies():
         "pdfplumber>=0.7.0",
         "sentence-transformers>=2.2.0",
         "chromadb>=0.4.0",
-        "tqdm>=4.62.0"
+        "tqdm>=4.62.0",
     ]
 
     for package in packages:
@@ -111,7 +111,7 @@ def install_dependencies():
             subprocess.run(
                 [sys.executable, "-m", "pip", "install", package, "-q"],
                 check=True,
-                capture_output=True
+                capture_output=True,
             )
             print_success(f"{package} installed")
         except subprocess.CalledProcessError as e:
@@ -134,11 +134,7 @@ def extract_text_from_pdfs():
     print()
 
     try:
-        subprocess.run(
-            [sys.executable, str(extract_script)],
-            check=True,
-            capture_output=False
-        )
+        subprocess.run([sys.executable, str(extract_script)], check=True, capture_output=False)
 
         print()
         print_success("PDF extraction completed")
@@ -179,7 +175,8 @@ def verify_extraction():
 
     # Load and display index stats
     import json
-    with open(index_path, 'r', encoding='utf-8') as f:
+
+    with open(index_path, "r", encoding="utf-8") as f:
         index = json.load(f)
 
     print_info(f"Total documents: {index['total_documents']}")
@@ -207,7 +204,7 @@ def test_rag_engine():
         test_queries = [
             "How to create a new project?",
             "How to run load flow analysis?",
-            "How to add a bus?"
+            "How to add a bus?",
         ]
 
         print_info("Testing queries...")
@@ -228,6 +225,7 @@ def test_rag_engine():
     except Exception as e:
         print_error(f"RAG engine test failed: {e}")
         import traceback
+
         traceback.print_exc()
         return False
 
@@ -243,26 +241,27 @@ def create_integration_summary():
             "pdf_extractor": "etap_user_guide/extract_guide.py",
             "rag_engine": "etap_user_guide/etap_guide_rag.py",
             "agent_prompt": "prompts/etap_engineer_agent_v2.yaml",
-            "documentation": "etap_user_guide/README.md"
+            "documentation": "etap_user_guide/README.md",
         },
         "statistics": {
             "total_pdfs": len(list(Path("etap_user_guide/pdfs").glob("*.pdf"))),
             "total_ac_pdfs": len(list(Path("etap_user_guide/ac_element").glob("*.pdf"))),
             "extracted_files": len(list(Path("etap_user_guide/extracted").glob("*.txt"))),
-            "chunk_files": len(list(Path("etap_user_guide/chunks").glob("*_chunks.json")))
+            "chunk_files": len(list(Path("etap_user_guide/chunks").glob("*_chunks.json"))),
         },
         "mandatory_rules": {
             "primary_reference": "ETAP User Guide is the PRIMARY authority",
             "validation_required": "All operations must be validated",
             "citation_required": "All instructions must cite the source",
-            "no_guessing": "Never guess - always verify"
-        }
+            "no_guessing": "Never guess - always verify",
+        },
     }
 
     # Save summary
     import json
+
     summary_file = Path("etap_user_guide/integration_summary.json")
-    with open(summary_file, 'w', encoding='utf-8') as f:
+    with open(summary_file, "w", encoding="utf-8") as f:
         json.dump(summary, f, indent=2, ensure_ascii=False)
 
     print_success(f"Integration summary saved to: {summary_file}")
@@ -276,7 +275,7 @@ def create_integration_summary():
     print(f"  Chunk files: {summary['statistics']['chunk_files']}")
     print()
     print_info("Mandatory Rules:")
-    for _key, value in summary['mandatory_rules'].items():
+    for _key, value in summary["mandatory_rules"].items():
         print(f"  • {value}")
 
     return True

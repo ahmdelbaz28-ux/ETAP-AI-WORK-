@@ -7,6 +7,7 @@ Covers:
     * Metric name sanitization (dots, dashes, invalid chars)
     * Empty snapshot returns empty string
 """
+
 from __future__ import annotations
 
 import pytest
@@ -72,12 +73,14 @@ class TestValidateLabelName:
 class TestMetricLabelValidationIntegration:
     def test_counter_rejects_invalid_label(self):
         from acp.observability.metrics import Counter
+
         c = Counter("c1")
         with pytest.raises(ValueError, match="Invalid Prometheus label name: 'bad-name'"):
             c.inc(labels={"bad-name": "x"})
 
     def test_gauge_rejects_invalid_label(self):
         from acp.observability.metrics import Gauge
+
         g = Gauge("g1")
         with pytest.raises(ValueError, match="Invalid Prometheus label name: 'bad.name'"):
             g.set(5, labels={"bad.name": "x"})
@@ -88,6 +91,7 @@ class TestMetricLabelValidationIntegration:
 
     def test_histogram_rejects_invalid_label(self):
         from acp.observability.metrics import Histogram
+
         h = Histogram("h1")
         with pytest.raises(ValueError, match="Invalid Prometheus label name: 'bad name'"):
             h.observe(1, labels={"bad name": "x"})
@@ -145,7 +149,10 @@ class TestDefaultLabels:
         c = reg.get_or_create_counter("test.calls")
         c.inc(3, labels={"transport": "uds"})
         snap = reg.snapshot()
-        assert snap["counters"]["test.calls"]["values"][0]["labels"] == {"transport": "uds", "env": "prod"}
+        assert snap["counters"]["test.calls"]["values"][0]["labels"] == {
+            "transport": "uds",
+            "env": "prod",
+        }
 
     def test_registry_default_labels_prometheus(self):
         reg = InMemoryMetricsRegistry(default_labels={"transport": "stdio"})
@@ -185,7 +192,12 @@ class TestToPrometheus:
     def test_counter(self):
         snapshot = {
             "counters": {
-                "test.calls": {"name": "test.calls", "type": "counter", "values": [{"labels": {}, "value": 5}], "description": "Test counter"}
+                "test.calls": {
+                    "name": "test.calls",
+                    "type": "counter",
+                    "values": [{"labels": {}, "value": 5}],
+                    "description": "Test counter",
+                }
             }
         }
         text = to_prometheus(snapshot)
@@ -196,7 +208,12 @@ class TestToPrometheus:
     def test_gauge(self):
         snapshot = {
             "gauges": {
-                "test.active": {"name": "test.active", "type": "gauge", "values": [{"labels": {}, "value": 7.5}], "description": "Active gauge"}
+                "test.active": {
+                    "name": "test.active",
+                    "type": "gauge",
+                    "values": [{"labels": {}, "value": 7.5}],
+                    "description": "Active gauge",
+                }
             }
         }
         text = to_prometheus(snapshot)
@@ -240,10 +257,36 @@ class TestToPrometheus:
 
     def test_multiple_metrics(self):
         snapshot = {
-            "counters": {"a.count": {"name": "a.count", "type": "counter", "values": [{"labels": {}, "value": 1}], "description": "A"}},
-            "gauges": {"b.gauge": {"name": "b.gauge", "type": "gauge", "values": [{"labels": {}, "value": 2}], "description": "B"}},
+            "counters": {
+                "a.count": {
+                    "name": "a.count",
+                    "type": "counter",
+                    "values": [{"labels": {}, "value": 1}],
+                    "description": "A",
+                }
+            },
+            "gauges": {
+                "b.gauge": {
+                    "name": "b.gauge",
+                    "type": "gauge",
+                    "values": [{"labels": {}, "value": 2}],
+                    "description": "B",
+                }
+            },
             "histograms": {
-                "c.hist": {"name": "c.hist", "type": "histogram", "description": "C", "values": [{"labels": {}, "buckets": [{"le": "+Inf", "count": 0}], "sum": 0.0, "count": 0}]}
+                "c.hist": {
+                    "name": "c.hist",
+                    "type": "histogram",
+                    "description": "C",
+                    "values": [
+                        {
+                            "labels": {},
+                            "buckets": [{"le": "+Inf", "count": 0}],
+                            "sum": 0.0,
+                            "count": 0,
+                        }
+                    ],
+                }
             },
         }
         text = to_prometheus(snapshot)
@@ -257,7 +300,14 @@ class TestToPrometheus:
 
     def test_no_description(self):
         snapshot = {
-            "counters": {"foo": {"name": "foo", "type": "counter", "values": [{"labels": {}, "value": 1}], "description": ""}}
+            "counters": {
+                "foo": {
+                    "name": "foo",
+                    "type": "counter",
+                    "values": [{"labels": {}, "value": 1}],
+                    "description": "",
+                }
+            }
         }
         text = to_prometheus(snapshot)
         assert "# HELP foo " in text
@@ -265,11 +315,16 @@ class TestToPrometheus:
     def test_counter_with_labels(self):
         snapshot = {
             "counters": {
-                "test.calls": {"name": "test.calls", "type": "counter", "values": [
-                    {"labels": {}, "value": 3},
-                    {"labels": {"transport": "stdio"}, "value": 5},
-                    {"labels": {"transport": "uds"}, "value": 2},
-                ], "description": "Test counter"}
+                "test.calls": {
+                    "name": "test.calls",
+                    "type": "counter",
+                    "values": [
+                        {"labels": {}, "value": 3},
+                        {"labels": {"transport": "stdio"}, "value": 5},
+                        {"labels": {"transport": "uds"}, "value": 2},
+                    ],
+                    "description": "Test counter",
+                }
             }
         }
         text = to_prometheus(snapshot)
@@ -310,10 +365,15 @@ class TestToPrometheus:
     def test_gauge_with_labels(self):
         snapshot = {
             "gauges": {
-                "test.active": {"name": "test.active", "type": "gauge", "values": [
-                    {"labels": {}, "value": 7.0},
-                    {"labels": {"transport": "websocket"}, "value": 3.0},
-                ], "description": "Active gauge"}
+                "test.active": {
+                    "name": "test.active",
+                    "type": "gauge",
+                    "values": [
+                        {"labels": {}, "value": 7.0},
+                        {"labels": {"transport": "websocket"}, "value": 3.0},
+                    ],
+                    "description": "Active gauge",
+                }
             }
         }
         text = to_prometheus(snapshot)
@@ -325,7 +385,12 @@ class TestToOpenMetrics:
     def test_counter(self):
         snapshot = {
             "counters": {
-                "test.calls": {"name": "test.calls", "type": "counter", "values": [{"labels": {}, "value": 5}], "description": "Test counter"}
+                "test.calls": {
+                    "name": "test.calls",
+                    "type": "counter",
+                    "values": [{"labels": {}, "value": 5}],
+                    "description": "Test counter",
+                }
             }
         }
         text = to_openmetrics(snapshot)
@@ -337,7 +402,12 @@ class TestToOpenMetrics:
     def test_gauge(self):
         snapshot = {
             "gauges": {
-                "test.active": {"name": "test.active", "type": "gauge", "values": [{"labels": {}, "value": 7.5}], "description": "Active gauge"}
+                "test.active": {
+                    "name": "test.active",
+                    "type": "gauge",
+                    "values": [{"labels": {}, "value": 7.5}],
+                    "description": "Active gauge",
+                }
             }
         }
         text = to_openmetrics(snapshot)
@@ -386,5 +456,16 @@ class TestToOpenMetrics:
         assert "# EOF" in to_openmetrics({"counters": {}, "gauges": {}, "histograms": {}})
 
     def test_eof_is_last_line(self):
-        text = to_openmetrics({"counters": {"a": {"name": "a", "type": "counter", "values": [{"labels": {}, "value": 1}], "description": ""}}})
+        text = to_openmetrics(
+            {
+                "counters": {
+                    "a": {
+                        "name": "a",
+                        "type": "counter",
+                        "values": [{"labels": {}, "value": 1}],
+                        "description": "",
+                    }
+                }
+            }
+        )
         assert text.rstrip().endswith("# EOF")

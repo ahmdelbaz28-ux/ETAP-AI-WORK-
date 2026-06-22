@@ -31,16 +31,31 @@ VALID_ROLES = {"system", "user", "assistant"}
 
 # Valid model names
 VALID_MODELS = {
-    "gpt-4o", "gpt-4o-mini", "gpt-4-turbo", "gpt-4", "gpt-3.5-turbo",
-    "claude-3-opus", "claude-3-sonnet", "claude-3-haiku",
+    "gpt-4o",
+    "gpt-4o-mini",
+    "gpt-4-turbo",
+    "gpt-4",
+    "gpt-3.5-turbo",
+    "claude-3-opus",
+    "claude-3-sonnet",
+    "claude-3-haiku",
     "nvidia/llama-3.1-nemotron-70b-instruct",
 }
 
 # Standards that should be referenced in engineering prompts
 ENGINEERING_STANDARDS = {
-    "IEEE 3002.7", "IEC 60909", "IEEE 1584", "IEC 60255",
-    "IEEE 519", "IEEE 399", "IEC 60364", "IEEE 80",
-    "IEEE 1547", "IEC 62933", "IEC 61850", "ISO 23247",
+    "IEEE 3002.7",
+    "IEC 60909",
+    "IEEE 1584",
+    "IEC 60255",
+    "IEEE 519",
+    "IEEE 399",
+    "IEC 60364",
+    "IEEE 80",
+    "IEEE 1547",
+    "IEC 62933",
+    "IEC 61850",
+    "ISO 23247",
 }
 
 # Agent-to-standard mapping for validation
@@ -88,7 +103,9 @@ def validate_prompt_file(filepath: Path) -> list:
     if "model" in data and data["model"]:
         model = data["model"]
         if model not in VALID_MODELS:
-            issues.append(f"WARNING: Unknown model '{model}' — may not be supported by all providers")
+            issues.append(
+                f"WARNING: Unknown model '{model}' — may not be supported by all providers"
+            )
 
     # Validate temperature
     if "temperature" in data and data["temperature"] is not None:
@@ -121,18 +138,37 @@ def validate_prompt_file(filepath: Path) -> list:
                     # Template variables like {{input}} are valid short content
                     is_template = "{{" in content and "}}" in content
                     if len(content.strip()) < 10 and not is_template:
-                        issues.append(f"WARNING: Message {i} content is suspiciously short ({len(content)} chars)")
+                        issues.append(
+                            f"WARNING: Message {i} content is suspiciously short ({len(content)} chars)"
+                        )
                     # Check for engineering standards references in system messages
                     if msg["role"] == "system" and filename != "sample_prompt.yaml":
-                        agent_name = filepath.stem.replace(".prompt", "").replace("_agent", "").replace("_", "")
+                        agent_name = (
+                            filepath.stem.replace(".prompt", "")
+                            .replace("_agent", "")
+                            .replace("_", "")
+                        )
                         # Skip non-engineering prompts
-                        non_engineering = {"weatheractivityplanner", "weather", "goalplanner", "sample", "fallback", "genericagentchat"}
+                        non_engineering = {
+                            "weatheractivityplanner",
+                            "weather",
+                            "goalplanner",
+                            "sample",
+                            "fallback",
+                            "genericagentchat",
+                        }
                         # Check if any standard is mentioned
-                        has_standard = any(std.split()[0] in content for std in ENGINEERING_STANDARDS)
+                        has_standard = any(
+                            std.split()[0] in content for std in ENGINEERING_STANDARDS
+                        )
                         if not has_standard and agent_name not in non_engineering:
-                            issues.append("INFO: No engineering standard reference found in system prompt")
+                            issues.append(
+                                "INFO: No engineering standard reference found in system prompt"
+                            )
             if not has_system and filename != "sample_prompt.yaml":
-                issues.append("WARNING: No system message found — agents should have system instructions")
+                issues.append(
+                    "WARNING: No system message found — agents should have system instructions"
+                )
 
     return issues
 
@@ -174,7 +210,7 @@ def validate_all_prompts(strict: bool = False) -> bool:
                     total_info += 1
                     print(f"{prefix}ℹ️  {issue}")
 
-    print(f"\n{'='*60}")
+    print(f"\n{'=' * 60}")
     print(f"Results: {passed}/{len(yaml_files)} files passed")
     print(f"  Errors: {total_errors}")
     print(f"  Warnings: {total_warnings}")
@@ -200,7 +236,11 @@ def sync_to_langwatch() -> None:
     try:
         import langwatch
 
-        prompts_dir = Path(os.environ.get("ETAP_PROMPTS_DIR", str(Path(__file__).resolve().parent.parent / "prompts")))
+        prompts_dir = Path(
+            os.environ.get(
+                "ETAP_PROMPTS_DIR", str(Path(__file__).resolve().parent.parent / "prompts")
+            )
+        )
 
         langwatch.setup(
             api_key=api_key,
@@ -237,6 +277,7 @@ def sync_to_langwatch() -> None:
                         if project_root not in sys.path:
                             sys.path.insert(0, project_root)
                         from agents.prompt_loader import clear_prompt_cache, get_system_prompt
+
                         clear_prompt_cache()
                         local_prompt = get_system_prompt(handle)
                         if local_prompt and len(local_prompt) > 20:

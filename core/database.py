@@ -3,6 +3,7 @@ core/database.py — Universal Data Model database.
 
 Thread-safe SQLite-backed storage for BIM elements with conflict detection.
 """
+
 from __future__ import annotations
 
 import json
@@ -162,7 +163,9 @@ class UniversalDataModel:
                 fire_rating=row.get("fire_rating"),
                 height=row.get("height"),
                 width=row.get("width"),
-                load_bearing=bool(row.get("load_bearing")) if row.get("load_bearing") is not None else None,
+                load_bearing=bool(row.get("load_bearing"))
+                if row.get("load_bearing") is not None
+                else None,
                 layer=row.get("layer"),
                 revit_category=row.get("revit_category"),
             )
@@ -171,22 +174,28 @@ class UniversalDataModel:
             if row.get("relationships"):
                 rel_data = json.loads(row["relationships"])
                 for r in rel_data:
-                    relationships.append(Relationship(
-                        from_element_id=r["from_element_id"],
-                        to_element_id=r["to_element_id"],
-                        relationship_type=r["relationship_type"],
-                        is_parametric=r.get("is_parametric", False),
-                        metadata=r.get("metadata"),
-                        connection_id=r.get("connection_id"),
-                    ))
+                    relationships.append(
+                        Relationship(
+                            from_element_id=r["from_element_id"],
+                            to_element_id=r["to_element_id"],
+                            relationship_type=r["relationship_type"],
+                            is_parametric=r.get("is_parametric", False),
+                            metadata=r.get("metadata"),
+                            connection_id=r.get("connection_id"),
+                        )
+                    )
 
             return UniversalElement(
                 element_id=row["element_id"],
                 properties=properties,
                 geometry=geometry,
                 relationships=relationships,
-                created_timestamp=datetime.fromisoformat(row["created_timestamp"]) if row.get("created_timestamp") else None,
-                last_modified_timestamp=datetime.fromisoformat(row["last_modified_timestamp"]) if row.get("last_modified_timestamp") else None,
+                created_timestamp=datetime.fromisoformat(row["created_timestamp"])
+                if row.get("created_timestamp")
+                else None,
+                last_modified_timestamp=datetime.fromisoformat(row["last_modified_timestamp"])
+                if row.get("last_modified_timestamp")
+                else None,
                 last_modified_by=row.get("last_modified_by"),
                 source_file=row.get("source_file"),
                 version=row.get("version", 0),
@@ -205,7 +214,9 @@ class UniversalDataModel:
                 conflict_id=row["conflict_id"],
                 conflict_type=ConflictType(row.get("conflict_type", "geometry_mismatch")),
                 element_id=row.get("element_id"),
-                timestamp=datetime.fromisoformat(row["timestamp"]) if row.get("timestamp") else None,
+                timestamp=datetime.fromisoformat(row["timestamp"])
+                if row.get("timestamp")
+                else None,
                 source_a=ChangeSource(row.get("source_a", "manual")),
                 source_b=ChangeSource(row.get("source_b", "manual")),
                 change_a=json.loads(row["change_a"]) if row.get("change_a") else None,
@@ -225,36 +236,43 @@ class UniversalDataModel:
                 cursor = conn.cursor()
                 now = datetime.now(timezone.utc).isoformat()
 
-                cursor.execute("""
+                cursor.execute(
+                    """
                     INSERT OR REPLACE INTO elements
                     (element_id, element_type, name, description, material, fire_rating,
                      height, width, load_bearing, layer, revit_category, geometry,
                      relationships, created_timestamp, last_modified_timestamp, last_modified_by,
                      source_file, version, is_deleted, autocad_handle, revit_element_id)
                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                """, (
-                    element.element_id,
-                    element.properties.element_type.value if element.properties else "generic",
-                    element.properties.name if element.properties else None,
-                    element.properties.description if element.properties else None,
-                    element.properties.material if element.properties else None,
-                    element.properties.fire_rating if element.properties else None,
-                    element.properties.height if element.properties else None,
-                    element.properties.width if element.properties else None,
-                    int(element.properties.load_bearing) if element.properties and element.properties.load_bearing is not None else None,
-                    element.properties.layer if element.properties else None,
-                    element.properties.revit_category if element.properties else None,
-                    json.dumps(element.geometry.to_dict()) if element.geometry else None,
-                    json.dumps([r.to_dict() for r in element.relationships]) if element.relationships else None,
-                    element.created_timestamp.isoformat() if element.created_timestamp else now,
-                    now,
-                    element.last_modified_by,
-                    element.source_file,
-                    element.version,
-                    int(element.is_deleted),
-                    element.autocad_handle,
-                    element.revit_element_id,
-                ))
+                """,
+                    (
+                        element.element_id,
+                        element.properties.element_type.value if element.properties else "generic",
+                        element.properties.name if element.properties else None,
+                        element.properties.description if element.properties else None,
+                        element.properties.material if element.properties else None,
+                        element.properties.fire_rating if element.properties else None,
+                        element.properties.height if element.properties else None,
+                        element.properties.width if element.properties else None,
+                        int(element.properties.load_bearing)
+                        if element.properties and element.properties.load_bearing is not None
+                        else None,
+                        element.properties.layer if element.properties else None,
+                        element.properties.revit_category if element.properties else None,
+                        json.dumps(element.geometry.to_dict()) if element.geometry else None,
+                        json.dumps([r.to_dict() for r in element.relationships])
+                        if element.relationships
+                        else None,
+                        element.created_timestamp.isoformat() if element.created_timestamp else now,
+                        now,
+                        element.last_modified_by,
+                        element.source_file,
+                        element.version,
+                        int(element.is_deleted),
+                        element.autocad_handle,
+                        element.revit_element_id,
+                    ),
+                )
                 conn.commit()
                 self.elements[element.element_id] = element
                 return True
@@ -272,7 +290,13 @@ class UniversalDataModel:
         with self._lock:
             return [e for e in self.elements.values() if not e.is_deleted]
 
-    def update_element(self, element_id: str, updates: Dict[str, Any], source: ChangeSource = ChangeSource.MANUAL, reason: str = "") -> bool:
+    def update_element(
+        self,
+        element_id: str,
+        updates: Dict[str, Any],
+        source: ChangeSource = ChangeSource.MANUAL,
+        reason: str = "",
+    ) -> bool:
         """Update an element."""
         with self._lock:
             element = self.elements.get(element_id)
@@ -318,7 +342,8 @@ class UniversalDataModel:
                 cursor = conn.cursor()
                 now = datetime.now(timezone.utc).isoformat()
 
-                cursor.execute("""
+                cursor.execute(
+                    """
                     UPDATE elements SET
                         element_type = ?, name = ?, description = ?, material = ?,
                         fire_rating = ?, height = ?, width = ?, load_bearing = ?,
@@ -326,26 +351,32 @@ class UniversalDataModel:
                         last_modified_timestamp = ?, last_modified_by = ?, source_file = ?,
                         version = ?, is_deleted = ?
                     WHERE element_id = ?
-                """, (
-                    element.properties.element_type.value if element.properties else "generic",
-                    element.properties.name if element.properties else None,
-                    element.properties.description if element.properties else None,
-                    element.properties.material if element.properties else None,
-                    element.properties.fire_rating if element.properties else None,
-                    element.properties.height if element.properties else None,
-                    element.properties.width if element.properties else None,
-                    int(element.properties.load_bearing) if element.properties and element.properties.load_bearing is not None else None,
-                    element.properties.layer if element.properties else None,
-                    element.properties.revit_category if element.properties else None,
-                    json.dumps(element.geometry.to_dict()) if element.geometry else None,
-                    json.dumps([r.to_dict() for r in element.relationships]) if element.relationships else None,
-                    now,
-                    element.last_modified_by,
-                    element.source_file,
-                    element.version,
-                    int(element.is_deleted),
-                    element_id,
-                ))
+                """,
+                    (
+                        element.properties.element_type.value if element.properties else "generic",
+                        element.properties.name if element.properties else None,
+                        element.properties.description if element.properties else None,
+                        element.properties.material if element.properties else None,
+                        element.properties.fire_rating if element.properties else None,
+                        element.properties.height if element.properties else None,
+                        element.properties.width if element.properties else None,
+                        int(element.properties.load_bearing)
+                        if element.properties and element.properties.load_bearing is not None
+                        else None,
+                        element.properties.layer if element.properties else None,
+                        element.properties.revit_category if element.properties else None,
+                        json.dumps(element.geometry.to_dict()) if element.geometry else None,
+                        json.dumps([r.to_dict() for r in element.relationships])
+                        if element.relationships
+                        else None,
+                        now,
+                        element.last_modified_by,
+                        element.source_file,
+                        element.version,
+                        int(element.is_deleted),
+                        element_id,
+                    ),
+                )
                 conn.commit()
                 return True
             except Exception as e:
@@ -389,7 +420,7 @@ class UniversalDataModel:
                 cursor = conn.cursor()
                 cursor.execute(
                     "UPDATE conflicts SET resolved = 1, resolution = ? WHERE conflict_id = ?",
-                    (json.dumps({"strategy": strategy}), conflict.conflict_id)
+                    (json.dumps({"strategy": strategy}), conflict.conflict_id),
                 )
                 conn.commit()
                 return True

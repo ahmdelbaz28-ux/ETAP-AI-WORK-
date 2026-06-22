@@ -35,7 +35,9 @@ api_key_header = APIKeyHeader(name=API_KEY_NAME, auto_error=False)
 
 def _reject_legacy_api_key(api_key: Optional[str]) -> None:
     if api_key:
-        raise HTTPException(status_code=401, detail="Legacy API key auth is not supported. Use JWT Bearer token.")
+        raise HTTPException(
+            status_code=401, detail="Legacy API key auth is not supported. Use JWT Bearer token."
+        )
 
 
 async def _require_auth(
@@ -113,12 +115,16 @@ async def execute_study(
     try:
         study_type = ETAPStudyType[request.study_type.upper()]
     except KeyError as err:
-        raise HTTPException(status_code=400, detail=f"Invalid study type: {request.study_type}") from err
+        raise HTTPException(
+            status_code=400, detail=f"Invalid study type: {request.study_type}"
+        ) from err
 
     # RBAC: check that the authenticated user has permission for this study type
     required_perm = STUDY_TYPE_TO_PERMISSION.get(study_type)
     if required_perm is None:
-        raise HTTPException(status_code=400, detail=f"No RBAC mapping for study type: {study_type.value}")
+        raise HTTPException(
+            status_code=400, detail=f"No RBAC mapping for study type: {study_type.value}"
+        )
 
     authz = get_authz_manager()
     if not authz.check_permission(token, required_perm):

@@ -38,6 +38,7 @@ from typing import Any, Dict, List, Optional, Tuple
 # Data structures
 # ---------------------------------------------------------------------------
 
+
 class Severity(str, Enum):
     """Finding severity level."""
 
@@ -137,33 +138,73 @@ class SecurityAuditReport:
 
 _SECRET_PATTERNS: List[Tuple[str, str, Severity]] = [
     # (pattern, description, severity)
-    (r'(?:api[_-]?key|apikey)\s*[=:]\s*["\'][A-Za-z0-9\-_]{16,}["\']', "Hardcoded API key", Severity.CRITICAL),
-    (r'(?:secret|secret[_-]?key)\s*[=:]\s*["\'][A-Za-z0-9\-_]{16,}["\']', "Hardcoded secret key", Severity.CRITICAL),
-    (r'(?:password|passwd|pwd)\s*[=:]\s*["\'][^\s"\']{8,}["\']', "Hardcoded password", Severity.CRITICAL),
-    (r'(?:token|access[_-]?token|auth[_-]?token)\s*[=:]\s*["\'][A-Za-z0-9\-_.]{20,}["\']', "Hardcoded token", Severity.CRITICAL),
-    (r'(?:private[_-]?key)\s*[=:]\s*["\']-----BEGIN[A-Z ]+PRIVATE KEY', "Hardcoded private key", Severity.CRITICAL),
-    (r'(?:jwt[_-]?secret|jwt[_-]?key)\s*[=:]\s*["\'][A-Za-z0-9\-_]{8,}["\']', "Hardcoded JWT secret", Severity.HIGH),
-    (r'(?:database[_-]?url|db[_-]?url)\s*[=:]\s*["\'](?:postgres|mysql|mongodb)://[^\s"\']+', "Hardcoded database URL with credentials", Severity.HIGH),
-    (r'(?:redis[_-]?url)\s*[=:]\s*["\']redis://:[^\s"\']+', "Hardcoded Redis URL with password", Severity.MEDIUM),
-    (r'(?:aws[_-]?access[_-]?key[_-]?id)\s*[=:]\s*["\']AKIA[A-Z0-9]{16}["\']', "Hardcoded AWS access key", Severity.CRITICAL),
-    (r'(?:aws[_-]?secret[_-]?access[_-]?key)\s*[=:]\s*["\'][A-Za-z0-9/+=]{40}["\']', "Hardcoded AWS secret key", Severity.CRITICAL),
+    (
+        r'(?:api[_-]?key|apikey)\s*[=:]\s*["\'][A-Za-z0-9\-_]{16,}["\']',
+        "Hardcoded API key",
+        Severity.CRITICAL,
+    ),
+    (
+        r'(?:secret|secret[_-]?key)\s*[=:]\s*["\'][A-Za-z0-9\-_]{16,}["\']',
+        "Hardcoded secret key",
+        Severity.CRITICAL,
+    ),
+    (
+        r'(?:password|passwd|pwd)\s*[=:]\s*["\'][^\s"\']{8,}["\']',
+        "Hardcoded password",
+        Severity.CRITICAL,
+    ),
+    (
+        r'(?:token|access[_-]?token|auth[_-]?token)\s*[=:]\s*["\'][A-Za-z0-9\-_.]{20,}["\']',
+        "Hardcoded token",
+        Severity.CRITICAL,
+    ),
+    (
+        r'(?:private[_-]?key)\s*[=:]\s*["\']-----BEGIN[A-Z ]+PRIVATE KEY',
+        "Hardcoded private key",
+        Severity.CRITICAL,
+    ),
+    (
+        r'(?:jwt[_-]?secret|jwt[_-]?key)\s*[=:]\s*["\'][A-Za-z0-9\-_]{8,}["\']',
+        "Hardcoded JWT secret",
+        Severity.HIGH,
+    ),
+    (
+        r'(?:database[_-]?url|db[_-]?url)\s*[=:]\s*["\'](?:postgres|mysql|mongodb)://[^\s"\']+',
+        "Hardcoded database URL with credentials",
+        Severity.HIGH,
+    ),
+    (
+        r'(?:redis[_-]?url)\s*[=:]\s*["\']redis://:[^\s"\']+',
+        "Hardcoded Redis URL with password",
+        Severity.MEDIUM,
+    ),
+    (
+        r'(?:aws[_-]?access[_-]?key[_-]?id)\s*[=:]\s*["\']AKIA[A-Z0-9]{16}["\']',
+        "Hardcoded AWS access key",
+        Severity.CRITICAL,
+    ),
+    (
+        r'(?:aws[_-]?secret[_-]?access[_-]?key)\s*[=:]\s*["\'][A-Za-z0-9/+=]{40}["\']',
+        "Hardcoded AWS secret key",
+        Severity.CRITICAL,
+    ),
     # Skip false positives: default/change/in-production in the same line
 ]
 
 # Patterns that indicate the secret is a placeholder/default (not a real secret)
 _SAFE_CONTEXT_PATTERNS = [
-    r'change[_\-\s]in[_\-\s]production',
-    r'replace[_\-\s]with',
-    r'your[_\-\s]secret',
-    r'example',
-    r'default[_\-\s]secret',
-    r'todo',
-    r'fixme',
-    r'xxx+',
-    r'dummy',
-    r'placeholder',
-    r'for[_\-\s]development',
-    r'not[_\-\s]for[_\-\s]production',
+    r"change[_\-\s]in[_\-\s]production",
+    r"replace[_\-\s]with",
+    r"your[_\-\s]secret",
+    r"example",
+    r"default[_\-\s]secret",
+    r"todo",
+    r"fixme",
+    r"xxx+",
+    r"dummy",
+    r"placeholder",
+    r"for[_\-\s]development",
+    r"not[_\-\s]for[_\-\s]production",
 ]
 
 
@@ -180,22 +221,39 @@ _INSECURE_PACKAGES: Dict[str, List[str]] = {
 
 # Functions that indicate insecure patterns
 _INSECURE_FUNCTION_PATTERNS: List[Tuple[str, str, Severity]] = [
-    (r'\beval\s*\(', "Use of eval() — potential code injection", Severity.HIGH),
-    (r'\bexec\s*\(', "Use of exec() — potential code injection", Severity.HIGH),
-    (r'\b__import__\s*\(', "Dynamic import — potential code injection", Severity.MEDIUM),
-    (r'subprocess\.call\s*\([^)]*shell\s*=\s*True', "subprocess with shell=True — command injection risk", Severity.HIGH),
-    (r'subprocess\.Popen\s*\([^)]*shell\s*=\s*True', "subprocess.Popen with shell=True — command injection risk", Severity.HIGH),
-    (r'yaml\.load\s*\(', "yaml.load without Loader — unsafe deserialization", Severity.HIGH),
-    (r'pickle\.loads?\s*\(', "pickle.load/loads — unsafe deserialization", Severity.HIGH),
-    (r'os\.system\s*\(', "os.system — command injection risk", Severity.HIGH),
-    (r'hashlib\.md5\s*\(|hashlib\.sha1\s*\(', "Use of weak hash algorithm (MD5/SHA1)", Severity.LOW),
-    (r'random\.random\b|random\.randint\b', "Use of non-cryptographic random for security context", Severity.INFO),
+    (r"\beval\s*\(", "Use of eval() — potential code injection", Severity.HIGH),
+    (r"\bexec\s*\(", "Use of exec() — potential code injection", Severity.HIGH),
+    (r"\b__import__\s*\(", "Dynamic import — potential code injection", Severity.MEDIUM),
+    (
+        r"subprocess\.call\s*\([^)]*shell\s*=\s*True",
+        "subprocess with shell=True — command injection risk",
+        Severity.HIGH,
+    ),
+    (
+        r"subprocess\.Popen\s*\([^)]*shell\s*=\s*True",
+        "subprocess.Popen with shell=True — command injection risk",
+        Severity.HIGH,
+    ),
+    (r"yaml\.load\s*\(", "yaml.load without Loader — unsafe deserialization", Severity.HIGH),
+    (r"pickle\.loads?\s*\(", "pickle.load/loads — unsafe deserialization", Severity.HIGH),
+    (r"os\.system\s*\(", "os.system — command injection risk", Severity.HIGH),
+    (
+        r"hashlib\.md5\s*\(|hashlib\.sha1\s*\(",
+        "Use of weak hash algorithm (MD5/SHA1)",
+        Severity.LOW,
+    ),
+    (
+        r"random\.random\b|random\.randint\b",
+        "Use of non-cryptographic random for security context",
+        Severity.INFO,
+    ),
 ]
 
 
 # ---------------------------------------------------------------------------
 # Main auditor
 # ---------------------------------------------------------------------------
+
 
 class SecurityAuditor:
     """Perform a comprehensive security audit of the AhmedETAP.
@@ -218,9 +276,7 @@ class SecurityAuditor:
                 Defaults to the parent of this file's directory.
         """
         if project_root is None:
-            project_root = os.path.dirname(
-                os.path.dirname(os.path.abspath(__file__))
-            )
+            project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
         self.project_root = os.path.abspath(project_root)
         self._findings: List[SecurityFinding] = []
         self._finding_counter: int = 0
@@ -269,9 +325,16 @@ class SecurityAuditor:
             medium_count=severity_counts.get(Severity.MEDIUM, 0),
             low_count=severity_counts.get(Severity.LOW, 0),
             info_count=severity_counts.get(Severity.INFO, 0),
-            findings=sorted(self._findings, key=lambda f: [
-                Severity.CRITICAL, Severity.HIGH, Severity.MEDIUM, Severity.LOW, Severity.INFO
-            ].index(f.severity)),
+            findings=sorted(
+                self._findings,
+                key=lambda f: [
+                    Severity.CRITICAL,
+                    Severity.HIGH,
+                    Severity.MEDIUM,
+                    Severity.LOW,
+                    Severity.INFO,
+                ].index(f.severity),
+            ),
             remediation_priority=remediation,
             scan_metadata={
                 "python_files_scanned": self._count_python_files(),
@@ -378,12 +441,15 @@ class SecurityAuditor:
 
                 # Detect auth check in function body
                 if current_endpoint and not has_auth_check:
-                    if any(kw in line for kw in (
-                        "_require_api_key",
-                        "get_api_key",
-                        "Depends(get_api_key)",
-                        "get_current_user",
-                    )):
+                    if any(
+                        kw in line
+                        for kw in (
+                            "_require_api_key",
+                            "get_api_key",
+                            "Depends(get_api_key)",
+                            "get_current_user",
+                        )
+                    ):
                         has_auth_check = True
 
             # Check last endpoint
@@ -503,13 +569,17 @@ class SecurityAuditor:
             for i, line in enumerate(lines, 1):
                 # Look for POST/PUT endpoints that accept raw Request
                 # without a Pydantic model
-                if re.search(r'@app\.(post|put|patch)', line.strip()):
+                if re.search(r"@app\.(post|put|patch)", line.strip()):
                     # Check the function signature in the next few lines
-                    func_sig = "".join(lines[i:i + 3]) if i < len(lines) else ""
+                    func_sig = "".join(lines[i : i + 3]) if i < len(lines) else ""
                     if "request: Request" in func_sig and "BaseModel" not in func_sig:
                         # This endpoint accepts raw Request — check if it validates
                         # Look ahead for validation patterns
-                        func_body = "".join(lines[i:i + 20]) if i + 20 < len(lines) else "".join(lines[i:])
+                        func_body = (
+                            "".join(lines[i : i + 20])
+                            if i + 20 < len(lines)
+                            else "".join(lines[i:])
+                        )
                         if "body.get(" in func_body and "HTTPException" not in func_body:
                             # Using body.get() without raising validation errors
                             decorator_match = re.search(
@@ -533,7 +603,9 @@ class SecurityAuditor:
                                     "Define a Pydantic BaseModel for the request body "
                                     "and use it as a typed parameter in the endpoint function."
                                 ),
-                                references=["OWASP API3:2023 Broken Object Property Level Authorization"],
+                                references=[
+                                    "OWASP API3:2023 Broken Object Property Level Authorization"
+                                ],
                                 cwe_id="CWE-20",
                             )
 
@@ -567,7 +639,9 @@ class SecurityAuditor:
                 content = fh.read()
 
             # Check if global rate limiting exists
-            has_global_rate_limit = "_check_rate_limit" in content or "rate_limit" in content.lower()
+            has_global_rate_limit = (
+                "_check_rate_limit" in content or "rate_limit" in content.lower()
+            )
 
             if not has_global_rate_limit:
                 self._add_finding(
@@ -612,8 +686,16 @@ class SecurityAuditor:
     async def _scan_hardcoded_secrets(self) -> None:
         """Scan all Python source files for hardcoded secrets."""
         skip_dirs = {
-            ".git", "__pycache__", "node_modules", ".venv", "venv",
-            ".tox", ".mypy_cache", ".pytest_cache", "dist", "build",
+            ".git",
+            "__pycache__",
+            "node_modules",
+            ".venv",
+            "venv",
+            ".tox",
+            ".mypy_cache",
+            ".pytest_cache",
+            "dist",
+            "build",
             "acp_runtime",
         }
 
@@ -628,7 +710,11 @@ class SecurityAuditor:
                 rel_path = os.path.relpath(file_path, self.project_root)
 
                 # Skip test files and self-referential modules
-                if "test" in rel_path.lower() or "security_audit" in rel_path or "error_debugger" in rel_path:
+                if (
+                    "test" in rel_path.lower()
+                    or "security_audit" in rel_path
+                    or "error_debugger" in rel_path
+                ):
                     continue
 
                 try:
@@ -639,7 +725,11 @@ class SecurityAuditor:
                         stripped = line.strip()
 
                         # Skip comments and docstrings
-                        if stripped.startswith("#") or stripped.startswith('"""') or stripped.startswith("'''"):
+                        if (
+                            stripped.startswith("#")
+                            or stripped.startswith('"""')
+                            or stripped.startswith("'''")
+                        ):
                             continue
 
                         # Skip lines that are clearly safe context
@@ -673,7 +763,10 @@ class SecurityAuditor:
                                         "a secrets manager (e.g., HashiCorp Vault, AWS "
                                         "Secrets Manager)."
                                     ),
-                                    references=["OWASP API7:2023 Server Side Request Forgery", "CWE-798"],
+                                    references=[
+                                        "OWASP API7:2023 Server Side Request Forgery",
+                                        "CWE-798",
+                                    ],
                                     cwe_id="CWE-798",
                                 )
                                 break  # Only report once per line
@@ -687,8 +780,16 @@ class SecurityAuditor:
     async def _check_insecure_dependencies(self) -> None:
         """Check for insecure dependency patterns in the codebase."""
         skip_dirs = {
-            ".git", "__pycache__", "node_modules", ".venv", "venv",
-            ".tox", ".mypy_cache", ".pytest_cache", "dist", "build",
+            ".git",
+            "__pycache__",
+            "node_modules",
+            ".venv",
+            "venv",
+            ".tox",
+            ".mypy_cache",
+            ".pytest_cache",
+            "dist",
+            "build",
             "acp_runtime",
         }
 
@@ -703,7 +804,11 @@ class SecurityAuditor:
                 rel_path = os.path.relpath(file_path, self.project_root)
 
                 # Skip test files and this audit module
-                if "test" in rel_path.lower() or "security_audit" in rel_path or "error_debugger" in rel_path:
+                if (
+                    "test" in rel_path.lower()
+                    or "security_audit" in rel_path
+                    or "error_debugger" in rel_path
+                ):
                     continue
 
                 try:
@@ -747,7 +852,7 @@ class SecurityAuditor:
                     line = line.strip()
                     if not line or line.startswith("#"):
                         continue
-                    pkg_name = re.split(r'[=<>~!]', line)[0].strip().lower()
+                    pkg_name = re.split(r"[=<>~!]", line)[0].strip().lower()
                     if pkg_name in _INSECURE_PACKAGES:
                         self._add_finding(
                             category=FindingCategory.INSECURE_DEPENDENCY,
@@ -881,7 +986,8 @@ class SecurityAuditor:
             # Check for == comparison on secrets (bad)
             if "==" in content and "api_key" in content.lower():
                 lines_with_compare = [
-                    (i + 1, line) for i, line in enumerate(content.split("\n"))
+                    (i + 1, line)
+                    for i, line in enumerate(content.split("\n"))
                     if "==" in line and "api_key" in line.lower() and "hmac" not in line.lower()
                 ]
                 for _line_num, line in lines_with_compare:
@@ -1003,9 +1109,13 @@ class SecurityAuditor:
         category_priority = sorted(
             by_category.items(),
             key=lambda item: max(
-                [Severity.CRITICAL, Severity.HIGH, Severity.MEDIUM, Severity.LOW, Severity.INFO].index(
-                    f.severity
-                )
+                [
+                    Severity.CRITICAL,
+                    Severity.HIGH,
+                    Severity.MEDIUM,
+                    Severity.LOW,
+                    Severity.INFO,
+                ].index(f.severity)
                 for f in item[1]
             ),
         )
@@ -1015,20 +1125,18 @@ class SecurityAuditor:
             high = [f for f in findings if f.severity == Severity.HIGH]
             medium = [f for f in findings if f.severity == Severity.MEDIUM]
 
-            priority.append({
-                "category": category.value,
-                "total_findings": len(findings),
-                "critical": len(critical),
-                "high": len(high),
-                "medium": len(medium),
-                "top_remediation": findings[0].remediation if findings else "",
-                "affected_endpoints": list(set(
-                    f.endpoint for f in findings if f.endpoint
-                )),
-                "affected_files": list(set(
-                    f.file_path for f in findings if f.file_path
-                )),
-            })
+            priority.append(
+                {
+                    "category": category.value,
+                    "total_findings": len(findings),
+                    "critical": len(critical),
+                    "high": len(high),
+                    "medium": len(medium),
+                    "top_remediation": findings[0].remediation if findings else "",
+                    "affected_endpoints": list(set(f.endpoint for f in findings if f.endpoint)),
+                    "affected_files": list(set(f.file_path for f in findings if f.file_path)),
+                }
+            )
 
         return priority
 
@@ -1052,6 +1160,7 @@ class SecurityAuditor:
 # ---------------------------------------------------------------------------
 # CLI entrypoint
 # ---------------------------------------------------------------------------
+
 
 async def _main() -> None:
     """CLI entrypoint for running the security auditor."""
@@ -1093,7 +1202,9 @@ async def _main() -> None:
             print("AhmedETAP — Security Audit Report", file=out)
             print("=" * 72, file=out)
             print(f"Project Root:       {report.project_root}", file=out)
-            print(f"Security Score:     {report.security_score}/100 (Grade: {report.grade})", file=out)
+            print(
+                f"Security Score:     {report.security_score}/100 (Grade: {report.grade})", file=out
+            )
             print(f"Total Findings:     {report.total_findings}", file=out)
             print(f"  Critical:         {report.critical_count}", file=out)
             print(f"  High:             {report.high_count}", file=out)
@@ -1132,8 +1243,7 @@ async def _main() -> None:
                     high = item.get("high", 0)
                     med = item.get("medium", 0)
                     print(
-                        f"  {cat}: {total} findings "
-                        f"({crit} critical, {high} high, {med} medium)",
+                        f"  {cat}: {total} findings ({crit} critical, {high} high, {med} medium)",
                         file=out,
                     )
                     if item.get("top_remediation"):

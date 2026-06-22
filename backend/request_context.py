@@ -1,6 +1,7 @@
 """
 backend/request_context.py — Correlation ID middleware for request tracing.
 """
+
 from __future__ import annotations
 
 import uuid

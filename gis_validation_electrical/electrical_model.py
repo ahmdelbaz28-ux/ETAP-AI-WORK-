@@ -18,6 +18,7 @@ class ElectricalEdge:
     """
     Deterministic electrical connection between two electrical nodes.
     """
+
     edge_id: str
     from_node: str
     to_node: str
@@ -77,12 +78,16 @@ def build_electrical_model(assets: List[ADMSAsset]) -> ElectricalModel:
         if isinstance(coords, list) and len(coords) >= 2:
             key = (float(coords[0]), float(coords[1]))
             sub_coords[key] = s.asset_id
-            nodes[s.asset_id] = ElectricalNode(node_id=s.asset_id, voltage_level_kv=None, metadata=dict(s.metadata))
+            nodes[s.asset_id] = ElectricalNode(
+                node_id=s.asset_id, voltage_level_kv=None, metadata=dict(s.metadata)
+            )
             asset_to_node[s.asset_id] = s.asset_id
 
     edges: Dict[str, ElectricalEdge] = {}
 
-    def endpoints_from_linestring(geom: Dict[str, Any]) -> Optional[Tuple[Tuple[float, float], Tuple[float, float]]]:
+    def endpoints_from_linestring(
+        geom: Dict[str, Any],
+    ) -> Optional[Tuple[Tuple[float, float], Tuple[float, float]]]:
         if geom.get("type") != "LineString":
             return None
         coords = geom.get("coordinates")

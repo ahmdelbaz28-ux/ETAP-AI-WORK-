@@ -36,7 +36,10 @@ def validate_geometry_dict(geometry: Dict[str, Any]) -> Tuple[bool, str]:
     # Best-effort checks: some providers may include custom CRS fields.
     if gtype in {"Point"} and "coordinates" not in geometry:
         return False, "Point geometry missing coordinates"
-    if gtype in {"LineString", "Polygon", "MultiPoint", "MultiLineString", "MultiPolygon"} and "coordinates" not in geometry:
+    if (
+        gtype in {"LineString", "Polygon", "MultiPoint", "MultiLineString", "MultiPolygon"}
+        and "coordinates" not in geometry
+    ):
         return False, f"{gtype} geometry missing coordinates"
 
     return True, "ok"

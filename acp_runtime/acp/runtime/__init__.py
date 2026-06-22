@@ -12,6 +12,7 @@ Public surface:
     ProgressEmitter       — emit progress notifications during a handler
     ProgressEvent         — value type for progress events
 """
+
 from __future__ import annotations
 
 from acp.runtime.cancel import cancellable, is_cancelled_exception

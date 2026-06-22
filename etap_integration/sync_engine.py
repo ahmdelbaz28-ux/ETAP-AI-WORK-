@@ -40,6 +40,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class SyncMapping:
     """Maps an ETAP object ID to an AhmedETAP object ID."""
+
     etap_id: str
     etap_type: str
     ahmed_id: str
@@ -50,6 +51,7 @@ class SyncMapping:
 @dataclass
 class SyncOperation:
     """A single sync operation record."""
+
     direction: str  # etap_to_ahmed or ahmed_to_etap
     object_type: str
     etap_id: str
@@ -109,9 +111,7 @@ class ETAPSyncEngine:
         logger.info("ETAP sync: importing from %s", project_path)
 
         # Use the mock provider fallback for testing/demo
-        result = self.etap_provider.execute_study(
-            project_path, self._get_study_type("LOAD_FLOW")
-        )
+        result = self.etap_provider.execute_study(project_path, self._get_study_type("LOAD_FLOW"))
 
         if not result.success:
             logger.warning("ETAP sync: provider returned error, using mock data")
@@ -136,6 +136,7 @@ class ETAPSyncEngine:
         """Get an ETAP study type enum value."""
         try:
             from etap_integration.etap_provider import ETAPStudyType
+
             return getattr(ETAPStudyType, name, None)
         except ImportError:
             return None
@@ -158,13 +159,15 @@ class ETAPSyncEngine:
         # Parse buses from load flow results
         buses = data.get("buses", {})
         for bus_id, bus_data in buses.items():
-            objects["buses"].append({
-                "id": bus_id,
-                "voltage_magnitude": bus_data.get("voltage_magnitude", 1.0),
-                "voltage_angle": bus_data.get("voltage_angle", 0.0),
-                "active_power": bus_data.get("active_power", 0.0),
-                "reactive_power": bus_data.get("reactive_power", 0.0),
-            })
+            objects["buses"].append(
+                {
+                    "id": bus_id,
+                    "voltage_magnitude": bus_data.get("voltage_magnitude", 1.0),
+                    "voltage_angle": bus_data.get("voltage_angle", 0.0),
+                    "active_power": bus_data.get("active_power", 0.0),
+                    "reactive_power": bus_data.get("reactive_power", 0.0),
+                }
+            )
             self._mappings[bus_id] = SyncMapping(
                 etap_id=bus_id,
                 etap_type="bus",
@@ -175,12 +178,14 @@ class ETAPSyncEngine:
         # Parse branches as lines
         branches = data.get("branches", {})
         for br_id, br_data in branches.items():
-            objects["lines"].append({
-                "id": br_id,
-                "p_from": br_data.get("active_power_from", 0.0),
-                "p_to": br_data.get("active_power_to", 0.0),
-                "current": br_data.get("current", 0.0),
-            })
+            objects["lines"].append(
+                {
+                    "id": br_id,
+                    "p_from": br_data.get("active_power_from", 0.0),
+                    "p_to": br_data.get("active_power_to", 0.0),
+                    "current": br_data.get("current", 0.0),
+                }
+            )
 
         return objects
 
@@ -212,8 +217,7 @@ class ETAPSyncEngine:
                 base_kv=11.0,
             )
             system.add_bus(bus)
-            self._log_sync("etap_to_ahmed", "bus", bus_data["id"], str(bid),
-                           "created", True)
+            self._log_sync("etap_to_ahmed", "bus", bus_data["id"], str(bid), "created", True)
 
         # Import lines
         for line_data in objects.get("lines", []):
@@ -229,8 +233,7 @@ class ETAPSyncEngine:
                     z1=complex(0.01, 0.05),
                 )
                 system.add_line(line)
-                self._log_sync("etap_to_ahmed", "line", line_data["id"], str(lid),
-                               "created", True)
+                self._log_sync("etap_to_ahmed", "line", line_data["id"], str(lid), "created", True)
 
         # Set bus 1 as slack
         if system.buses:
@@ -244,8 +247,9 @@ class ETAPSyncEngine:
         except Exception as exc:
             logger.warning("Ybus rebuild after ETAP import failed: %s", exc)
 
-        logger.info("ETAP sync: built model with %d buses, %d lines",
-                     len(system.buses), len(system.lines))
+        logger.info(
+            "ETAP sync: built model with %d buses, %d lines", len(system.buses), len(system.lines)
+        )
 
     # ------------------------------------------------------------------
     # Direction: AhmedETAP -> ETAP (Export)
@@ -286,59 +290,78 @@ class ETAPSyncEngine:
 
         # Export buses
         for bid, bus in system.buses.items():
-            objects["buses"].append({
-                "id": str(bid),
-                "name": f"BUS_{bid}",
-                "voltage_magnitude": bus.voltage_magnitude,
-                "voltage_angle": bus.voltage_angle,
-                "bus_type": bus.bus_type,
-                "base_kv": bus.base_kv or 11.0,
-            })
-            self._log_sync("ahmed_to_etap", "bus", str(bid), str(bid),
-                           "exported", True)
+            objects["buses"].append(
+                {
+                    "id": str(bid),
+                    "name": f"BUS_{bid}",
+                    "voltage_magnitude": bus.voltage_magnitude,
+                    "voltage_angle": bus.voltage_angle,
+                    "bus_type": bus.bus_type,
+                    "base_kv": bus.base_kv or 11.0,
+                }
+            )
+            self._log_sync("ahmed_to_etap", "bus", str(bid), str(bid), "exported", True)
 
         # Export lines
         for line in system.lines:
-            objects["lines"].append({
-                "id": f"LINE_{line.line_id}",
-                "from_bus": str(line.from_bus.bus_id),
-                "to_bus": str(line.to_bus.bus_id),
-                "r1": line.z1.real,
-                "x1": line.z1.imag,
-                "rating": line.rating or 100,
-            })
-            self._log_sync("ahmed_to_etap", "line", f"line_{line.line_id}",
-                           f"line_{line.line_id}", "exported", True)
+            objects["lines"].append(
+                {
+                    "id": f"LINE_{line.line_id}",
+                    "from_bus": str(line.from_bus.bus_id),
+                    "to_bus": str(line.to_bus.bus_id),
+                    "r1": line.z1.real,
+                    "x1": line.z1.imag,
+                    "rating": line.rating or 100,
+                }
+            )
+            self._log_sync(
+                "ahmed_to_etap",
+                "line",
+                f"line_{line.line_id}",
+                f"line_{line.line_id}",
+                "exported",
+                True,
+            )
 
         # Export transformers
         for xf in system.transformers:
-            objects["transformers"].append({
-                "id": f"XF_{xf.transformer_id}",
-                "from_bus": str(xf.from_bus.bus_id),
-                "to_bus": str(xf.to_bus.bus_id),
-                "r1": xf.z1.real,
-                "x1": xf.z1.imag,
-                "tap_ratio": xf.tap_ratio,
-                "phase_shift": xf.phase_shift,
-            })
+            objects["transformers"].append(
+                {
+                    "id": f"XF_{xf.transformer_id}",
+                    "from_bus": str(xf.from_bus.bus_id),
+                    "to_bus": str(xf.to_bus.bus_id),
+                    "r1": xf.z1.real,
+                    "x1": xf.z1.imag,
+                    "tap_ratio": xf.tap_ratio,
+                    "phase_shift": xf.phase_shift,
+                }
+            )
 
         # Export generators
         for gen in system.generators:
-            objects["generators"].append({
-                "id": f"GEN_{gen.generator_id}",
-                "bus": str(gen.bus.bus_id),
-                "internal_voltage": abs(gen.internal_voltage.get("1", complex(1.05, 0))) if isinstance(gen.internal_voltage, dict) else 1.05,
-                "x1_pu": gen.impedance.get("1", complex(0, 0.2)).imag if isinstance(gen.impedance, dict) else 0.2,
-            })
+            objects["generators"].append(
+                {
+                    "id": f"GEN_{gen.generator_id}",
+                    "bus": str(gen.bus.bus_id),
+                    "internal_voltage": abs(gen.internal_voltage.get("1", complex(1.05, 0)))
+                    if isinstance(gen.internal_voltage, dict)
+                    else 1.05,
+                    "x1_pu": gen.impedance.get("1", complex(0, 0.2)).imag
+                    if isinstance(gen.impedance, dict)
+                    else 0.2,
+                }
+            )
 
         # Export loads
         for load in system.loads:
-            objects["loads"].append({
-                "id": f"LOAD_{load.load_id}",
-                "bus": str(load.bus.bus_id),
-                "p_mw": load.load_power.real * system.base_mva,
-                "q_mvar": load.load_power.imag * system.base_mva,
-            })
+            objects["loads"].append(
+                {
+                    "id": f"LOAD_{load.load_id}",
+                    "bus": str(load.bus.bus_id),
+                    "p_mw": load.load_power.real * system.base_mva,
+                    "q_mvar": load.load_power.imag * system.base_mva,
+                }
+            )
 
         return {
             "success": True,
@@ -427,6 +450,7 @@ class ETAPSyncEngine:
         if import_result.get("success") and self.dt_state is not None:
             try:
                 from engine.engine import PowerSystemEngine
+
                 engine = PowerSystemEngine(self.dt_state.system)
                 lf_result = engine.run_load_flow()
                 result["validation"] = {
@@ -455,12 +479,27 @@ class ETAPSyncEngine:
         """Generate mock import data when real ETAP is unavailable."""
         objects: Dict[str, List[Dict[str, Any]]] = {
             "buses": [
-                {"id": "BUS1", "voltage_magnitude": 1.05, "voltage_angle": 0.0,
-                 "active_power": 50.0, "reactive_power": 10.0},
-                {"id": "BUS2", "voltage_magnitude": 0.98, "voltage_angle": -2.5,
-                 "active_power": 0.0, "reactive_power": 0.0},
-                {"id": "BUS3", "voltage_magnitude": 0.95, "voltage_angle": -4.2,
-                 "active_power": -80.0, "reactive_power": -30.0},
+                {
+                    "id": "BUS1",
+                    "voltage_magnitude": 1.05,
+                    "voltage_angle": 0.0,
+                    "active_power": 50.0,
+                    "reactive_power": 10.0,
+                },
+                {
+                    "id": "BUS2",
+                    "voltage_magnitude": 0.98,
+                    "voltage_angle": -2.5,
+                    "active_power": 0.0,
+                    "reactive_power": 0.0,
+                },
+                {
+                    "id": "BUS3",
+                    "voltage_magnitude": 0.95,
+                    "voltage_angle": -4.2,
+                    "active_power": -80.0,
+                    "reactive_power": -30.0,
+                },
             ],
             "lines": [
                 {"id": "LINE1-2", "p_from": 50.2, "p_to": -49.8, "current": 0.52},
@@ -479,11 +518,13 @@ class ETAPSyncEngine:
         self._build_ahmed_model(objects)
 
         for bus_data in objects["buses"]:
-            self._log_sync("etap_to_ahmed", "bus", bus_data["id"],
-                           bus_data["id"], "created (mock)", True)
+            self._log_sync(
+                "etap_to_ahmed", "bus", bus_data["id"], bus_data["id"], "created (mock)", True
+            )
         for line_data in objects["lines"]:
-            self._log_sync("etap_to_ahmed", "line", line_data["id"],
-                           line_data["id"], "created (mock)", True)
+            self._log_sync(
+                "etap_to_ahmed", "line", line_data["id"], line_data["id"], "created (mock)", True
+            )
 
         return {
             "success": True,
@@ -508,17 +549,20 @@ class ETAPSyncEngine:
             return int(digits[:6])  # limit to 6 digits
         return abs(hash(id_str)) % 99999 + 1
 
-    def _log_sync(self, direction: str, obj_type: str, etap_id: str,
-                   ahmed_id: str, action: str, success: bool) -> None:
+    def _log_sync(
+        self, direction: str, obj_type: str, etap_id: str, ahmed_id: str, action: str, success: bool
+    ) -> None:
         """Add a sync operation to the log."""
-        self._sync_log.append(SyncOperation(
-            direction=direction,
-            object_type=obj_type,
-            etap_id=etap_id,
-            ahmed_id=ahmed_id,
-            action=action,
-            success=success,
-        ))
+        self._sync_log.append(
+            SyncOperation(
+                direction=direction,
+                object_type=obj_type,
+                etap_id=etap_id,
+                ahmed_id=ahmed_id,
+                action=action,
+                success=success,
+            )
+        )
 
     def get_sync_log(self, limit: int = 100) -> List[Dict[str, Any]]:
         """Get recent sync operations."""
@@ -549,5 +593,7 @@ class ETAPSyncEngine:
             "etap_to_ahmed": etap_to_ahmed,
             "ahmed_to_etap": ahmed_to_etap,
             "current_project": self._current_project_path,
-            "provider_available": self.etap_provider.is_available() if self.etap_provider else False,
+            "provider_available": self.etap_provider.is_available()
+            if self.etap_provider
+            else False,
         }

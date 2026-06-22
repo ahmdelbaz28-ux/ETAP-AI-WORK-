@@ -37,6 +37,7 @@ from typing import Any, Dict, List, Optional
 # Error-code registry
 # ---------------------------------------------------------------------------
 
+
 class ErrorCategory(str, Enum):
     """Top-level error category."""
 
@@ -54,7 +55,7 @@ class ErrorCategory(str, Enum):
 class ErrorCode:
     """Structured error code with category, numeric ID, and human label."""
 
-    code: str          # e.g. "ERR_STUDY_001"
+    code: str  # e.g. "ERR_STUDY_001"
     category: ErrorCategory
     numeric: int
     label: str
@@ -274,16 +275,34 @@ ERR_NETWORK_002 = ErrorCode(
 _ERROR_CODE_REGISTRY: Dict[str, ErrorCode] = {
     ec.code: ec
     for ec in [
-        ERR_STUDY_001, ERR_STUDY_002, ERR_STUDY_003, ERR_STUDY_004,
-        ERR_STUDY_005, ERR_STUDY_006, ERR_STUDY_007, ERR_STUDY_008,
-        ERR_VALIDATION_001, ERR_VALIDATION_002, ERR_VALIDATION_003,
-        ERR_AUTH_001, ERR_AUTH_002, ERR_AUTH_003, ERR_AUTH_004,
+        ERR_STUDY_001,
+        ERR_STUDY_002,
+        ERR_STUDY_003,
+        ERR_STUDY_004,
+        ERR_STUDY_005,
+        ERR_STUDY_006,
+        ERR_STUDY_007,
+        ERR_STUDY_008,
+        ERR_VALIDATION_001,
+        ERR_VALIDATION_002,
+        ERR_VALIDATION_003,
+        ERR_AUTH_001,
+        ERR_AUTH_002,
+        ERR_AUTH_003,
+        ERR_AUTH_004,
         ERR_RATE_LIMIT_001,
-        ERR_DATABASE_001, ERR_DATABASE_002, ERR_DATABASE_003,
-        ERR_INTEGRATION_001, ERR_INTEGRATION_002, ERR_INTEGRATION_003,
+        ERR_DATABASE_001,
+        ERR_DATABASE_002,
+        ERR_DATABASE_003,
+        ERR_INTEGRATION_001,
+        ERR_INTEGRATION_002,
+        ERR_INTEGRATION_003,
         ERR_INTEGRATION_004,
-        ERR_SYSTEM_001, ERR_SYSTEM_002, ERR_SYSTEM_003,
-        ERR_NETWORK_001, ERR_NETWORK_002,
+        ERR_SYSTEM_001,
+        ERR_SYSTEM_002,
+        ERR_SYSTEM_003,
+        ERR_NETWORK_001,
+        ERR_NETWORK_002,
     ]
 }
 
@@ -303,6 +322,7 @@ def lookup_error_code(code: str) -> Optional[ErrorCode]:
 # ---------------------------------------------------------------------------
 # Custom exception classes
 # ---------------------------------------------------------------------------
+
 
 class ETAPPlatformError(Exception):
     """Base exception for all AhmedETAP errors.
@@ -480,6 +500,7 @@ class DatabaseError(ETAPPlatformError):
 # Error-context builder
 # ---------------------------------------------------------------------------
 
+
 class ErrorContextBuilder:
     """Build a rich error-context dictionary for debugging.
 
@@ -556,7 +577,9 @@ class ErrorContextBuilder:
         info: Dict[str, Any] = {
             "method": getattr(request, "method", "UNKNOWN"),
             "url": str(getattr(request, "url", "UNKNOWN")),
-            "path": str(getattr(request.url, "path", "UNKNOWN")) if hasattr(request, "url") else "UNKNOWN",
+            "path": str(getattr(request.url, "path", "UNKNOWN"))
+            if hasattr(request, "url")
+            else "UNKNOWN",
             "query_params": dict(getattr(request, "query_params", {})),
             "headers": {},
             "client_ip": None,
@@ -600,7 +623,9 @@ class ErrorContextBuilder:
         info: Dict[str, Any] = {
             "method": getattr(request, "method", "UNKNOWN"),
             "url": str(getattr(request, "url", "UNKNOWN")),
-            "path": str(getattr(request.url, "path", "UNKNOWN")) if hasattr(request, "url") else "UNKNOWN",
+            "path": str(getattr(request.url, "path", "UNKNOWN"))
+            if hasattr(request, "url")
+            else "UNKNOWN",
             "client_ip": None,
         }
 
@@ -635,16 +660,17 @@ def _redact_secrets(text: str) -> str:
     with ``***REDACTED***``.
     """
     patterns = [
-        (r'(api[_-]?key["\s:=]+)["\']?[\w\-]{8,}["\']?', r'\1***REDACTED***'),
-        (r'(token["\s:=]+)["\']?[\w\-\.]{8,}["\']?', r'\1***REDACTED***'),
-        (r'(password["\s:=]+)["\']?[\w\-]{4,}["\']?', r'\1***REDACTED***'),
-        (r'(secret["\s:=]+)["\']?[\w\-]{8,}["\']?', r'\1***REDACTED***'),
-        (r'(bearer\s+)[\w\-\.]+', r'\1***REDACTED***'),
+        (r'(api[_-]?key["\s:=]+)["\']?[\w\-]{8,}["\']?', r"\1***REDACTED***"),
+        (r'(token["\s:=]+)["\']?[\w\-\.]{8,}["\']?', r"\1***REDACTED***"),
+        (r'(password["\s:=]+)["\']?[\w\-]{4,}["\']?', r"\1***REDACTED***"),
+        (r'(secret["\s:=]+)["\']?[\w\-]{8,}["\']?', r"\1***REDACTED***"),
+        (r"(bearer\s+)[\w\-\.]+", r"\1***REDACTED***"),
     ]
 
     result = text
     for pattern, replacement in patterns:
         import re
+
         result = re.sub(pattern, replacement, result, flags=re.IGNORECASE)
     return result
 
@@ -807,21 +833,25 @@ def get_recovery_suggestions(error_code: str) -> List[Dict[str, str]]:
         A list of suggestion dictionaries with ``action`` and
         ``description`` keys.
     """
-    return _RECOVERY_SUGGESTIONS.get(error_code, [
-        {
-            "action": "check_logs",
-            "description": "Check the service logs for more details about this error.",
-        },
-        {
-            "action": "contact_support",
-            "description": "If the error persists, contact the platform support team.",
-        },
-    ])
+    return _RECOVERY_SUGGESTIONS.get(
+        error_code,
+        [
+            {
+                "action": "check_logs",
+                "description": "Check the service logs for more details about this error.",
+            },
+            {
+                "action": "contact_support",
+                "description": "If the error persists, contact the platform support team.",
+            },
+        ],
+    )
 
 
 # ---------------------------------------------------------------------------
 # Error-report generator
 # ---------------------------------------------------------------------------
+
 
 @dataclass
 class ErrorReport:
@@ -977,6 +1007,7 @@ class ErrorReportGenerator:
 # Structured logging formatter
 # ---------------------------------------------------------------------------
 
+
 class StructuredFormatter(logging.Formatter):
     """JSON-based structured log formatter with trace IDs.
 
@@ -1016,9 +1047,7 @@ class StructuredFormatter(logging.Formatter):
     def format(self, record: logging.LogRecord) -> str:
         """Format a log record as a JSON string."""
         log_entry: Dict[str, Any] = {
-            "timestamp": datetime.fromtimestamp(
-                record.created, tz=timezone.utc
-            ).isoformat(),
+            "timestamp": datetime.fromtimestamp(record.created, tz=timezone.utc).isoformat(),
             "level": record.levelname,
             "logger": record.name,
             "service": self.service_name,

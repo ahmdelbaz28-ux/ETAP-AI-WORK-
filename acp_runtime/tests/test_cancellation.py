@@ -8,6 +8,7 @@ Covers:
     * BaseException (CancelledError) is NOT wrapped in HandlerError.
     * Nested cancel scopes work correctly.
 """
+
 from __future__ import annotations
 
 import anyio
@@ -18,6 +19,7 @@ from acp.runtime.cancel import cancellable, is_cancelled_exception
 from acp.runtime.deadline import enforce_deadline_ms
 
 # ----------------------------------------------- cancellation into handler
+
 
 @pytest.mark.anyio
 async def test_cancellation_propagates_into_handler():
@@ -77,6 +79,7 @@ async def test_handler_that_ignores_cancellation_still_bails():
     inner sleep may never complete. The important contract is that the
     caller gets DeadlineExceeded.
     """
+
     async def rogue_handler():
         try:
             await anyio.sleep(5.0)
@@ -92,6 +95,7 @@ async def test_handler_that_ignores_cancellation_still_bails():
 
 
 # --------------------------------------------------- cancellable() helper
+
 
 @pytest.mark.anyio
 async def test_cancellable_with_deadline_fires():
@@ -133,6 +137,7 @@ async def test_cancellable_without_deadline_requires_external_cancel():
 
 # --------------------------------------------------- is_cancelled_exception
 
+
 def test_is_cancelled_exception_recognises_asyncio():
     import asyncio
 
@@ -145,6 +150,7 @@ def test_is_cancelled_exception_rejects_runtime_error():
 
 # -------------------------------------- engine-level cancellation behaviour
 
+
 @pytest.mark.anyio
 async def test_engine_does_not_wrap_cancelled_error():
     """Cancellation is mapped to DeadlineExceeded, never wrapped in HandlerError.
@@ -153,6 +159,7 @@ async def test_engine_does_not_wrap_cancelled_error():
     maps the CancelledError to DeadlineExceeded, and engine.execute()
     does not catch BaseException (so it would never wrap it in HandlerError).
     """
+
     class Slow:
         @capability("slow.forever")
         async def forever(self) -> int:
@@ -165,4 +172,3 @@ async def test_engine_does_not_wrap_cancelled_error():
         await runtime.execute("slow.forever", deadline_ms=50)
 
     assert not isinstance(exc_info.value, HandlerError)
-

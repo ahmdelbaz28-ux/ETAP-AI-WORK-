@@ -43,9 +43,7 @@ class SkillMetadataFactory(factory.Factory):
     created_at = factory.LazyFunction(lambda: datetime.now(timezone.utc))
 
     @classmethod
-    def with_version(
-        cls, major: int = 1, minor: int = 0, patch: int = 0
-    ) -> dict[str, Any]:
+    def with_version(cls, major: int = 1, minor: int = 0, patch: int = 0) -> dict[str, Any]:
         return cls(version=f"{major}.{minor}.{patch}")
 
 

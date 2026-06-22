@@ -4,7 +4,7 @@ from curves.curves import IEC60255Curves
 
 
 class Relay:
-    def __init__(self, relay_id, name='Relay'):
+    def __init__(self, relay_id, name="Relay"):
         self.relay_id = relay_id
         self.name = name
         self.pickup = False
@@ -51,10 +51,13 @@ class Relay:
         Calculate trip time for time-overcurrent relays.
         Returns time in seconds, or infinity if not picked up.
         """
-        return float('inf')
+        return float("inf")
+
 
 class OvercurrentRelay(Relay):
-    def __init__(self, relay_id, name='OvercurrentRelay', curve_type='standard_inverse', TMS=1.0, Ip=1.0):
+    def __init__(
+        self, relay_id, name="OvercurrentRelay", curve_type="standard_inverse", TMS=1.0, Ip=1.0
+    ):
         """
         Overcurrent relay (50/51).
 
@@ -82,15 +85,15 @@ class OvercurrentRelay(Relay):
         Calculate trip time based on IEC curve.
         """
         if not self.pickup_logic(I):
-            return float('inf')
+            return float("inf")
         I_mag = abs(I)
-        if self.curve_type == 'standard_inverse':
+        if self.curve_type == "standard_inverse":
             return self.curves.standard_inverse(self.TMS, I_mag, self.Ip)
-        elif self.curve_type == 'very_inverse':
+        elif self.curve_type == "very_inverse":
             return self.curves.very_inverse(self.TMS, I_mag, self.Ip)
-        elif self.curve_type == 'extremely_inverse':
+        elif self.curve_type == "extremely_inverse":
             return self.curves.extremely_inverse(self.TMS, I_mag, self.Ip)
-        elif self.curve_type == 'long_inverse':
+        elif self.curve_type == "long_inverse":
             return self.curves.long_inverse(self.TMS, I_mag, self.Ip)
         else:
             raise ValueError(f"Unknown curve type: {self.curve_type}")
@@ -109,8 +112,9 @@ class OvercurrentRelay(Relay):
             self.trip = False
         return self.trip
 
+
 class DistanceRelay(Relay):
-    def __init__(self, relay_id, name='DistanceRelay', impedance_setting=0.5, offset_angle=0):
+    def __init__(self, relay_id, name="DistanceRelay", impedance_setting=0.5, offset_angle=0):
         """
         Distance relay (21).
 
@@ -144,8 +148,9 @@ class DistanceRelay(Relay):
         self.trip = self.pickup
         return self.trip
 
+
 class DifferentialRelay(Relay):
-    def __init__(self, relay_id, name='DifferentialRelay', Ip=0.1, slope1=0.2, slope2=0.5):
+    def __init__(self, relay_id, name="DifferentialRelay", Ip=0.1, slope1=0.2, slope2=0.5):
         """
         Differential relay (87).
 
@@ -185,8 +190,9 @@ class DifferentialRelay(Relay):
         self.trip = self.pickup
         return self.trip
 
+
 class DirectionalRelay(Relay):
-    def __init__(self, relay_id, name='DirectionalRelay', voltage_threshold=0.1, angle_offset=0):
+    def __init__(self, relay_id, name="DirectionalRelay", voltage_threshold=0.1, angle_offset=0):
         """
         Directional relay (67).
 

@@ -54,6 +54,7 @@ _OPS: Dict[str, Callable[[Any, Any], bool]] = {
 # Rule definitions
 # ---------------------------------------------------------------------------
 
+
 class RuleType(str, Enum):
     """Supported ABAC rule types."""
 
@@ -124,6 +125,7 @@ class ABACPolicy:
 # Helper: resolve a dot-separated path on a nested dict
 # ---------------------------------------------------------------------------
 
+
 def _resolve_path(context: Dict[str, Any], path: str) -> Any:
     """Walk *path* (e.g. ``"resource.clearance_level"``) on *context*.
 
@@ -143,6 +145,7 @@ def _resolve_path(context: Dict[str, Any], path: str) -> Any:
 # ---------------------------------------------------------------------------
 # ABAC Policy Engine
 # ---------------------------------------------------------------------------
+
 
 class ABACPolicyEngine:
     """Attribute-Based Access Control policy engine.
@@ -166,7 +169,12 @@ class ABACPolicyEngine:
         """Add a policy to the engine."""
         self._policies.append(policy)
         self._policies.sort(key=lambda p: p.priority, reverse=True)
-        logger.info("ABAC policy added: %s (priority=%d, effect=%s)", policy.name, policy.priority, policy.effect)
+        logger.info(
+            "ABAC policy added: %s (priority=%d, effect=%s)",
+            policy.name,
+            policy.priority,
+            policy.effect,
+        )
 
     def remove_policy(self, name: str) -> bool:
         """Remove a policy by name.  Returns ``True`` if found & removed."""
@@ -184,7 +192,9 @@ class ABACPolicyEngine:
     # -- rule evaluation -----------------------------------------------------
 
     @staticmethod
-    def _evaluate_rule(rule: ABACRule, subject: dict, action: str, resource: dict, environment: dict) -> bool:
+    def _evaluate_rule(
+        rule: ABACRule, subject: dict, action: str, resource: dict, environment: dict
+    ) -> bool:
         """Evaluate a single rule against the request context.
 
         The *field_path* is resolved against the appropriate context bucket
@@ -211,14 +221,18 @@ class ABACPolicyEngine:
 
         # Resolve template values like ${subject.clearance_level}
         resolved_value = rule.value
-        if isinstance(resolved_value, str) and resolved_value.startswith("${") and resolved_value.endswith("}"):
+        if (
+            isinstance(resolved_value, str)
+            and resolved_value.startswith("${")
+            and resolved_value.endswith("}")
+        ):
             template_path = resolved_value[2:-1]  # Strip ${ and }
             if template_path.startswith("subject."):
-                resolved_value = _resolve_path(subject, template_path[len("subject."):])
+                resolved_value = _resolve_path(subject, template_path[len("subject.") :])
             elif template_path.startswith("resource."):
-                resolved_value = _resolve_path(resource, template_path[len("resource."):])
+                resolved_value = _resolve_path(resource, template_path[len("resource.") :])
             elif template_path.startswith("environment."):
-                resolved_value = _resolve_path(environment, template_path[len("environment."):])
+                resolved_value = _resolve_path(environment, template_path[len("environment.") :])
             if resolved_value is None:
                 return False
 
@@ -341,6 +355,7 @@ class ABACPolicyEngine:
 # ---------------------------------------------------------------------------
 # IP range helper
 # ---------------------------------------------------------------------------
+
 
 def ip_in_ranges(ip_str: str, allowed_ranges: Sequence[str]) -> bool:
     """Check whether *ip_str* falls within any of the CIDR *allowed_ranges*.
@@ -518,6 +533,7 @@ else:
 # ---------------------------------------------------------------------------
 # Policy builder helpers
 # ---------------------------------------------------------------------------
+
 
 def make_role_policy(
     name: str,
@@ -698,6 +714,7 @@ def make_clearance_policy(
 # Convenience: engine with ETAP default policies
 # ---------------------------------------------------------------------------
 
+
 def create_default_etap_abac_engine() -> ABACPolicyEngine:
     """Create an :class:`ABACPolicyEngine` pre-loaded with ETAP platform defaults.
 
@@ -717,60 +734,72 @@ def create_default_etap_abac_engine() -> ABACPolicyEngine:
     engine = ABACPolicyEngine()
 
     # Admin full access
-    engine.add_policy(make_role_policy(
-        name="admin_full_access",
-        allowed_roles=["admin"],
-        priority=100,
-    ))
+    engine.add_policy(
+        make_role_policy(
+            name="admin_full_access",
+            allowed_roles=["admin"],
+            priority=100,
+        )
+    )
 
     # Engineer can run studies
-    engine.add_policy(make_role_policy(
-        name="engineer_studies",
-        allowed_roles=["engineer"],
-        actions=[
-            "get:/api/studies",
-            "post:/api/studies",
-            "get:/api/projects",
-            "post:/api/projects",
-        ],
-        priority=50,
-    ))
+    engine.add_policy(
+        make_role_policy(
+            name="engineer_studies",
+            allowed_roles=["engineer"],
+            actions=[
+                "get:/api/studies",
+                "post:/api/studies",
+                "get:/api/projects",
+                "post:/api/projects",
+            ],
+            priority=50,
+        )
+    )
 
     # Analyst read
-    engine.add_policy(make_role_policy(
-        name="analyst_read",
-        allowed_roles=["analyst"],
-        actions=[
-            "get:/api/studies",
-            "get:/api/projects",
-        ],
-        priority=50,
-    ))
+    engine.add_policy(
+        make_role_policy(
+            name="analyst_read",
+            allowed_roles=["analyst"],
+            actions=[
+                "get:/api/studies",
+                "get:/api/projects",
+            ],
+            priority=50,
+        )
+    )
 
     # Viewer read
-    engine.add_policy(make_role_policy(
-        name="viewer_read",
-        allowed_roles=["viewer"],
-        actions=[
-            "get:/api/studies",
-            "get:/api/projects",
-        ],
-        priority=40,
-    ))
+    engine.add_policy(
+        make_role_policy(
+            name="viewer_read",
+            allowed_roles=["viewer"],
+            actions=[
+                "get:/api/studies",
+                "get:/api/projects",
+            ],
+            priority=40,
+        )
+    )
 
     # Internal network allow
-    engine.add_policy(make_ip_allowlist_policy(
-        name="internal_network",
-        allowed_cidrs=["10.0.0.0/8", "172.16.0.0/12", "192.168.0.0/16"],
-        priority=30,
-    ))
+    engine.add_policy(
+        make_ip_allowlist_policy(
+            name="internal_network",
+            allowed_cidrs=["10.0.0.0/8", "172.16.0.0/12", "192.168.0.0/16"],
+            priority=30,
+        )
+    )
 
     # Business hours deny
-    engine.add_policy(make_business_hours_policy(
-        name="business_hours_deny",
-        start_hour=8,
-        end_hour=18,
-        priority=5,
-    ))
+    engine.add_policy(
+        make_business_hours_policy(
+            name="business_hours_deny",
+            start_hour=8,
+            end_hour=18,
+            priority=5,
+        )
+    )
 
     return engine

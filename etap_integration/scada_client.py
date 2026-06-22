@@ -51,9 +51,11 @@ _SCADA_POLL_SEC = int(os.environ.get("SCADA_POLL_SEC", "5"))
 # Data containers
 # ---------------------------------------------------------------------------
 
+
 @dataclass
 class SCADAReading:
     """A single SCADA data point with timestamp."""
+
     tag: str
     value: float
     unit: str
@@ -64,6 +66,7 @@ class SCADAReading:
 @dataclass
 class SCADATelemetry:
     """Aggregated SCADA telemetry snapshot."""
+
     voltages: List[SCADAReading] = field(default_factory=list)
     currents: List[SCADAReading] = field(default_factory=list)
     frequencies: List[SCADAReading] = field(default_factory=list)
@@ -82,12 +85,14 @@ _iec61850_module: Any = None
 
 try:
     import iec61850datamodel as iec61850  # type: ignore
+
     _HAS_IEC61850 = True
     _iec61850_module = iec61850
     logger.info("IEC 61850 datamodel library loaded — real SCADA available")
 except ImportError:
     try:
         from py61850 import Client as Py61850Client  # type: ignore  # noqa: F401
+
         _HAS_IEC61850 = True
         logger.info("py61850 library loaded — real SCADA available via py61850")
     except ImportError:
@@ -123,50 +128,60 @@ class SimulatedSCADA:
         telemetry = SCADATelemetry(source="simulation")
 
         for i in range(self._n_buses):
-            bus_name = f"BUS{i+1}"
+            bus_name = f"BUS{i + 1}"
 
             # Voltage: 1.0 p.u. ± 3% with slow oscillation
             v_base = 1.0 + 0.02 * math.sin(0.1 * elapsed + i * 0.5)
             v_noise = self._random.gauss(0, 0.005)
-            telemetry.voltages.append(SCADAReading(
-                tag=f"{bus_name}/Voltage",
-                value=round(v_base + v_noise, 4),
-                unit="p.u.",
-            ))
+            telemetry.voltages.append(
+                SCADAReading(
+                    tag=f"{bus_name}/Voltage",
+                    value=round(v_base + v_noise, 4),
+                    unit="p.u.",
+                )
+            )
 
             # Current: 0.5-0.9 p.u. with load pattern
             i_base = 0.7 + 0.15 * math.sin(0.05 * elapsed + i * 0.3)
             i_noise = self._random.gauss(0, 0.01)
-            telemetry.currents.append(SCADAReading(
-                tag=f"{bus_name}/Current",
-                value=round(i_base + i_noise, 4),
-                unit="p.u.",
-            ))
+            telemetry.currents.append(
+                SCADAReading(
+                    tag=f"{bus_name}/Current",
+                    value=round(i_base + i_noise, 4),
+                    unit="p.u.",
+                )
+            )
 
             # Frequency: 50 Hz ± 0.05 Hz
             f_base = 50.0 + 0.02 * math.sin(0.2 * elapsed)
             f_noise = self._random.gauss(0, 0.005)
-            telemetry.frequencies.append(SCADAReading(
-                tag=f"{bus_name}/Frequency",
-                value=round(f_base + f_noise, 4),
-                unit="Hz",
-            ))
+            telemetry.frequencies.append(
+                SCADAReading(
+                    tag=f"{bus_name}/Frequency",
+                    value=round(f_base + f_noise, 4),
+                    unit="Hz",
+                )
+            )
 
             # Active power
             p_val = (v_base + v_noise) * (i_base + i_noise) * 0.85
-            telemetry.active_power.append(SCADAReading(
-                tag=f"{bus_name}/ActivePower",
-                value=round(p_val, 4),
-                unit="p.u.",
-            ))
+            telemetry.active_power.append(
+                SCADAReading(
+                    tag=f"{bus_name}/ActivePower",
+                    value=round(p_val, 4),
+                    unit="p.u.",
+                )
+            )
 
             # Reactive power
             q_val = (v_base + v_noise) * (i_base + i_noise) * 0.53
-            telemetry.reactive_power.append(SCADAReading(
-                tag=f"{bus_name}/ReactivePower",
-                value=round(q_val, 4),
-                unit="p.u.",
-            ))
+            telemetry.reactive_power.append(
+                SCADAReading(
+                    tag=f"{bus_name}/ReactivePower",
+                    value=round(q_val, 4),
+                    unit="p.u.",
+                )
+            )
 
         return telemetry
 
@@ -174,6 +189,7 @@ class SimulatedSCADA:
 # ---------------------------------------------------------------------------
 # Main SCADA Client
 # ---------------------------------------------------------------------------
+
 
 class SCADAClient:
     """Real-time SCADA data client with IEC 61850 support.
@@ -199,7 +215,9 @@ class SCADAClient:
     ) -> None:
         self._host = host or _SCADA_HOST
         self._port = port if port is not None else _SCADA_PORT
-        self._poll_interval = poll_interval_sec if poll_interval_sec is not None else _SCADA_POLL_SEC
+        self._poll_interval = (
+            poll_interval_sec if poll_interval_sec is not None else _SCADA_POLL_SEC
+        )
         self._connected = False
         self._last_telemetry: Optional[SCADATelemetry] = None
         self._simulated = SimulatedSCADA()
@@ -220,16 +238,20 @@ class SCADAClient:
         try:
             # Try py61850 Client
             from py61850 import Client as Py61850Client  # type: ignore
+
             self._client = Py61850Client(self._host, self._port)
             self._connected = True
             logger.info(
                 "IEC 61850 client initialized: %s:%d",
-                self._host, self._port,
+                self._host,
+                self._port,
             )
         except Exception as exc:
             logger.warning(
                 "Failed to initialize IEC 61850 client (%s:%d): %s — using simulation",
-                self._host, self._port, exc,
+                self._host,
+                self._port,
+                exc,
             )
             self._connected = False
 
@@ -260,18 +282,22 @@ class SCADAClient:
             for i, ref in enumerate(voltage_refs):
                 try:
                     val = self._client.read(f"SimpleGenericIO/GGIO1.{ref}")
-                    telemetry.voltages.append(SCADAReading(
-                        tag=f"BUS{i+1}/Voltage",
-                        value=float(val) if val else 0.0,
-                        unit="p.u.",
-                    ))
+                    telemetry.voltages.append(
+                        SCADAReading(
+                            tag=f"BUS{i + 1}/Voltage",
+                            value=float(val) if val else 0.0,
+                            unit="p.u.",
+                        )
+                    )
                 except Exception:
-                    telemetry.voltages.append(SCADAReading(
-                        tag=f"BUS{i+1}/Voltage",
-                        value=0.0,
-                        unit="p.u.",
-                        quality="bad",
-                    ))
+                    telemetry.voltages.append(
+                        SCADAReading(
+                            tag=f"BUS{i + 1}/Voltage",
+                            value=0.0,
+                            unit="p.u.",
+                            quality="bad",
+                        )
+                    )
 
             self._last_telemetry = telemetry
             return self._telemetry_to_dict(telemetry)
@@ -290,6 +316,7 @@ class SCADAClient:
     @staticmethod
     def _telemetry_to_dict(telemetry: SCADATelemetry) -> Dict[str, Any]:
         """Convert SCADATelemetry to a JSON-serializable dictionary."""
+
         def readings_to_list(readings: List[SCADAReading]) -> List[Dict[str, Any]]:
             return [
                 {
@@ -334,6 +361,7 @@ class SCADAClient:
 # ---------------------------------------------------------------------------
 # Async streaming interface
 # ---------------------------------------------------------------------------
+
 
 async def stream_scada_data(
     client: Optional[SCADAClient] = None,

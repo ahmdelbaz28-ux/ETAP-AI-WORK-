@@ -30,6 +30,7 @@ from typing import Any, Dict, List, Optional, Protocol, Tuple
 # Load Flow Solver
 # ============================================================================
 
+
 class LoadFlowSolverProtocol(Protocol):
     """Protocol for load-flow solvers consumed by ``PowerSystemEngine``.
 
@@ -42,8 +43,7 @@ class LoadFlowSolverProtocol(Protocol):
     V: Any  # numpy.ndarray of complex bus voltages
     Ybus: Any  # numpy.ndarray — the bus admittance matrix
 
-    def solve(self, max_iter: int = 100, tol: float = 1e-6,
-              mode: str = "engineering") -> bool:
+    def solve(self, max_iter: int = 100, tol: float = 1e-6, mode: str = "engineering") -> bool:
         """Run the load-flow solution.  Returns ``True`` on convergence."""
         ...
 
@@ -51,6 +51,7 @@ class LoadFlowSolverProtocol(Protocol):
 # ============================================================================
 # Fault Analyzer
 # ============================================================================
+
 
 class FaultAnalyzerProtocol(Protocol):
     """Protocol for fault analyzers consumed by ``PowerSystemEngine``.
@@ -60,22 +61,19 @@ class FaultAnalyzerProtocol(Protocol):
     each fault type.
     """
 
-    def three_phase_fault(self, bus_index: int) -> Dict[str, Any]:
-        ...
+    def three_phase_fault(self, bus_index: int) -> Dict[str, Any]: ...
 
-    def line_to_ground_fault(self, bus_index: int) -> Dict[str, Any]:
-        ...
+    def line_to_ground_fault(self, bus_index: int) -> Dict[str, Any]: ...
 
-    def line_to_line_fault(self, bus_index: int) -> Dict[str, Any]:
-        ...
+    def line_to_line_fault(self, bus_index: int) -> Dict[str, Any]: ...
 
-    def double_line_to_ground_fault(self, bus_index: int) -> Dict[str, Any]:
-        ...
+    def double_line_to_ground_fault(self, bus_index: int) -> Dict[str, Any]: ...
 
 
 # ============================================================================
 # Arc Flash Engine
 # ============================================================================
+
 
 class ArcFlashEngineProtocol(Protocol):
     """Protocol for arc-flash engines consumed by ``PowerSystemEngine``.
@@ -104,6 +102,7 @@ class ArcFlashEngineProtocol(Protocol):
 # Coordination Engine
 # ============================================================================
 
+
 class CoordinationEngineProtocol(Protocol):
     """Protocol for protection-coordination engines.
 
@@ -112,27 +111,32 @@ class CoordinationEngineProtocol(Protocol):
     """
 
     def check_coordination(
-        self, upstream_relay: Any, downstream_relay: Any,
+        self,
+        upstream_relay: Any,
+        downstream_relay: Any,
         fault_current: float,
-    ) -> Dict[str, Any]:
-        ...
+    ) -> Dict[str, Any]: ...
 
     def check_coordination_range(
-        self, upstream_relay: Any, downstream_relay: Any,
+        self,
+        upstream_relay: Any,
+        downstream_relay: Any,
         fault_currents: List[float],
-    ) -> List[Dict[str, Any]]:
-        ...
+    ) -> List[Dict[str, Any]]: ...
 
     def suggest_tms_adjustment(
-        self, upstream_relay: Any, downstream_relay: Any,
-        fault_currents: List[float], target_margin: float = 0.2,
-    ) -> Optional[float]:
-        ...
+        self,
+        upstream_relay: Any,
+        downstream_relay: Any,
+        fault_currents: List[float],
+        target_margin: float = 0.2,
+    ) -> Optional[float]: ...
 
 
 # ============================================================================
 # Visualizer (matplotlib-based)
 # ============================================================================
+
 
 class VisualizerProtocol(Protocol):
     """Protocol for visualization helpers.
@@ -142,15 +146,17 @@ class VisualizerProtocol(Protocol):
     """
 
     def plot_multiple_tcc(
-        self, relays: List[Any],
+        self,
+        relays: List[Any],
         current_range: Tuple[float, float] = (0.5, 20),
         points: int = 100,
         ax: Any = None,
-    ) -> None:
-        ...
+    ) -> None: ...
 
     def plot_coordination_margin(
-        self, upstream_relay: Any, downstream_relay: Any,
-        fault_currents: List[float], ax: Any = None,
-    ) -> None:
-        ...
+        self,
+        upstream_relay: Any,
+        downstream_relay: Any,
+        fault_currents: List[float],
+        ax: Any = None,
+    ) -> None: ...

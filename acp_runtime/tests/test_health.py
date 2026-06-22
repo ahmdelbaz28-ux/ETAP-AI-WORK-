@@ -7,6 +7,7 @@ Covers:
     * --no-health flag disables it
     * End-to-end stdio request for system.health
 """
+
 from __future__ import annotations
 
 import io
@@ -34,6 +35,7 @@ class TestHealthHandler:
     @pytest.mark.anyio
     async def test_health_with_runtime(self):
         from acp.runtime import AcpRuntime
+
         t0 = time.time()
         handler = HealthHandler(transport_name="stdio", start_time=t0)
         runtime = AcpRuntime([handler])
@@ -105,6 +107,7 @@ class TestHealthCliIntegration:
     def test_health_capability_auto_registered(self, monkeypatch):
         monkeypatch.setenv("ACP_HANDLERS", "tests.test_cli")
         from acp.cli import _build_observability, _build_parser, _build_runtime
+
         parser = _build_parser()
         args = parser.parse_args(["stdio", "--handlers", "tests.test_cli"])
         tracer, metrics, logger = _build_observability(args)
@@ -116,6 +119,7 @@ class TestHealthCliIntegration:
     def test_no_health_flag(self, monkeypatch):
         monkeypatch.setenv("ACP_HANDLERS", "tests.test_cli")
         from acp.cli import _build_observability, _build_parser, _build_runtime
+
         parser = _build_parser()
         args = parser.parse_args(["stdio", "--handlers", "tests.test_cli", "--no-health"])
         tracer, metrics, logger = _build_observability(args)
@@ -128,12 +132,17 @@ class TestHealthCliIntegration:
 @pytest.mark.anyio
 async def test_stdio_health_request():
     """End-to-end: request system.health over stdio transport."""
-    request = json.dumps({
-        "jsonrpc": "2.0",
-        "id": "h1",
-        "method": "system.health",
-        "capability": "system.health",
-    }) + "\n"
+    request = (
+        json.dumps(
+            {
+                "jsonrpc": "2.0",
+                "id": "h1",
+                "method": "system.health",
+                "capability": "system.health",
+            }
+        )
+        + "\n"
+    )
     stdin = io.StringIO(request)
     stdout = io.StringIO()
 
@@ -161,12 +170,17 @@ async def test_stdio_health_request():
 @pytest.mark.anyio
 async def test_stdio_metrics_request():
     """End-to-end: request system.metrics over stdio transport with metrics enabled."""
-    request = json.dumps({
-        "jsonrpc": "2.0",
-        "id": "m1",
-        "method": "system.metrics",
-        "capability": "system.metrics",
-    }) + "\n"
+    request = (
+        json.dumps(
+            {
+                "jsonrpc": "2.0",
+                "id": "m1",
+                "method": "system.metrics",
+                "capability": "system.metrics",
+            }
+        )
+        + "\n"
+    )
     stdin = io.StringIO(request)
     stdout = io.StringIO()
 
@@ -191,12 +205,17 @@ async def test_stdio_metrics_request():
 @pytest.mark.anyio
 async def test_stdio_ready_request():
     """End-to-end: request system.ready over stdio transport."""
-    request = json.dumps({
-        "jsonrpc": "2.0",
-        "id": "r1",
-        "method": "system.ready",
-        "capability": "system.ready",
-    }) + "\n"
+    request = (
+        json.dumps(
+            {
+                "jsonrpc": "2.0",
+                "id": "r1",
+                "method": "system.ready",
+                "capability": "system.ready",
+            }
+        )
+        + "\n"
+    )
     stdin = io.StringIO(request)
     stdout = io.StringIO()
 

@@ -36,6 +36,7 @@ logger = logging.getLogger(__name__)
 
 class UserRole(Enum):
     """User roles for RBAC."""
+
     ADMIN = "admin"
     ENGINEER = "engineer"
     ANALYST = "analyst"
@@ -45,6 +46,7 @@ class UserRole(Enum):
 
 class Permission(Enum):
     """System permissions."""
+
     ETAP_LAUNCH = "etap:launch"
     ETAP_OPEN_PROJECT = "etap:open_project"
     ETAP_CREATE_PROJECT = "etap:create_project"
@@ -94,6 +96,11 @@ ROLE_PERMISSIONS = {
         Permission.CALC_HARMONIC,
         Permission.CALC_OPF,
         Permission.CALC_MOTOR_STARTING,
+        Permission.CALC_MOTOR_ACCELERATION,
+        Permission.CALC_TRANSIENT_STABILITY,
+        Permission.CALC_CABLE_AMACITY,
+        Permission.CALC_GROUND_GRID,
+        Permission.CALC_RELIABILITY,
         Permission.EXEC_PYTHON,
         Permission.EXEC_POWERSHELL,
         Permission.DATA_READ,
@@ -122,6 +129,7 @@ ROLE_PERMISSIONS = {
 @dataclass
 class User:
     """User account."""
+
     user_id: str
     username: str
     email: str
@@ -137,11 +145,14 @@ class User:
 @dataclass
 class Session:
     """User session."""
+
     session_id: str
     user_id: str
     token: str
     created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
-    expires_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc) + timedelta(hours=8))
+    expires_at: datetime = field(
+        default_factory=lambda: datetime.now(timezone.utc) + timedelta(hours=8)
+    )
     is_valid: bool = True
 
 
@@ -156,10 +167,13 @@ class AuthenticationManager:
     - Account lockout after failed attempts
     """
 
-    def __init__(self, secret_key: Optional[str] = None,
-                 token_expiry_hours: int = 8,
-                 max_failed_attempts: int = 5,
-                 lockout_duration_minutes: int = 30):
+    def __init__(
+        self,
+        secret_key: Optional[str] = None,
+        token_expiry_hours: int = 8,
+        max_failed_attempts: int = 5,
+        lockout_duration_minutes: int = 30,
+    ):
         if secret_key is None:
             secret_key = os.environ.get("JWT_SECRET_KEY")
         if not secret_key:
@@ -203,6 +217,7 @@ class AuthenticationManager:
             # Derive a stable key from the JWT secret (same secret = same Fernet key)
             import base64
             import hashlib
+
             derived = hashlib.sha256((self.secret_key + "_fernet_derivation").encode()).digest()
             fernet_key = base64.urlsafe_b64encode(derived)
             self.cipher = Fernet(fernet_key)
@@ -222,8 +237,9 @@ class AuthenticationManager:
             logger.debug("Password verification failed: %s", type(exc).__name__)
             return False
 
-    def create_user(self, username: str, email: str, password: str,
-                    role: UserRole = UserRole.VIEWER) -> Optional[User]:
+    def create_user(
+        self, username: str, email: str, password: str, role: UserRole = UserRole.VIEWER
+    ) -> Optional[User]:
         if username in self.username_to_id:
             logger.warning(f"Username '{username}' already exists")
             return None
@@ -232,7 +248,7 @@ class AuthenticationManager:
         if len(password) < 8:
             logger.warning("Password too short (minimum 8 characters)")
             return None
-        _common_passwords = ('password', '12345678', 'qwerty123')
+        _common_passwords = ("password", "12345678", "qwerty123")
         if password.lower() in _common_passwords or password.lower() == username.lower():
             logger.warning("Password is too common or matches username")
             return None
@@ -241,11 +257,7 @@ class AuthenticationManager:
         password_hash = self._hash_password(password)
 
         user = User(
-            user_id=user_id,
-            username=username,
-            email=email,
-            role=role,
-            password_hash=password_hash
+            user_id=user_id, username=username, email=email, role=role, password_hash=password_hash
         )
 
         self.users[user_id] = user
@@ -284,11 +296,7 @@ class AuthenticationManager:
         token = self._generate_token(user)
 
         session_id = secrets.token_hex(16)
-        session = Session(
-            session_id=session_id,
-            user_id=user_id,
-            token=token
-        )
+        session = Session(session_id=session_id, user_id=user_id, token=token)
         self.sessions[session_id] = session
         self.token_to_session[token] = session
 
@@ -299,14 +307,14 @@ class AuthenticationManager:
         """Generate JWT token for user."""
         now = datetime.now(timezone.utc)
         payload = {
-            'user_id': user.user_id,
-            'username': user.username,
-            'role': user.role.value,
-            'exp': now + timedelta(hours=self.token_expiry_hours),
-            'iat': now
+            "user_id": user.user_id,
+            "username": user.username,
+            "role": user.role.value,
+            "exp": now + timedelta(hours=self.token_expiry_hours),
+            "iat": now,
         }
 
-        token = jwt.encode(payload, self.secret_key, algorithm='HS256')
+        token = jwt.encode(payload, self.secret_key, algorithm="HS256")
         # PyJWT may return bytes depending on version; normalize to str.
         if isinstance(token, bytes):
             token = token.decode("utf-8")
@@ -324,8 +332,8 @@ class AuthenticationManager:
             return None
 
         try:
-            payload = jwt.decode(token, self.secret_key, algorithms=['HS256'])
-            if payload['user_id'] != user.user_id:
+            payload = jwt.decode(token, self.secret_key, algorithms=["HS256"])
+            if payload["user_id"] != user.user_id:
                 return None
         except jwt.ExpiredSignatureError:
             session.is_valid = False
@@ -362,7 +370,8 @@ class AuthenticationManager:
         """
         now = datetime.now(timezone.utc)
         expired_tokens = [
-            token for token, session in self.token_to_session.items()
+            token
+            for token, session in self.token_to_session.items()
             if not session.is_valid or now >= session.expires_at
         ]
         for token in expired_tokens:
@@ -420,16 +429,18 @@ class InputValidator:
     # ast.Exec was removed in Python 3 (historically Py2 only). This project targets Py3.8,
     # so reference it conditionally to keep compatibility.
     FORBIDDEN_AST_NODES = tuple(
-        n for n in (
+        n
+        for n in (
             getattr(ast, "Exec", None),
             getattr(ast, "Global", None),
             getattr(ast, "Nonlocal", None),
-        ) if n is not None
+        )
+        if n is not None
     )
 
-    FORBIDDEN_CALLS = {'__import__', 'eval', 'exec', 'compile'}
+    FORBIDDEN_CALLS = {"__import__", "eval", "exec", "compile"}
 
-    FORBIDDEN_ATTRS = {'__import__', '__builtins__'}
+    FORBIDDEN_ATTRS = {"__import__", "__builtins__"}
 
     @staticmethod
     def validate_python_code(code: str, allowed_imports: Set[str] = None) -> bool:
@@ -445,9 +456,17 @@ class InputValidator:
         """
         if allowed_imports is None:
             allowed_imports = {
-                'numpy', 'scipy', 'math', 'json', 'time',
-                'core_model', 'engine', 'load_flow', 'fault_analysis',
-                'relays', 'coordination'
+                "numpy",
+                "scipy",
+                "math",
+                "json",
+                "time",
+                "core_model",
+                "engine",
+                "load_flow",
+                "fault_analysis",
+                "relays",
+                "coordination",
             }
 
         try:
@@ -464,13 +483,13 @@ class InputValidator:
             if isinstance(node, (ast.Import, ast.ImportFrom)):
                 if isinstance(node, ast.Import):
                     for alias in node.names:
-                        module = alias.name.split('.')[0]
+                        module = alias.name.split(".")[0]
                         if module not in allowed_imports:
                             logger.warning(f"Unauthorized import: {module}")
                             return False
                 elif isinstance(node, ast.ImportFrom):
                     if node.module:
-                        module = node.module.split('.')[0]
+                        module = node.module.split(".")[0]
                         if module not in allowed_imports:
                             logger.warning(f"Unauthorized import: {module}")
                             return False
@@ -510,18 +529,31 @@ class InputValidator:
         """
         if allowed_commands is None:
             allowed_commands = {
-                'Get-Process', 'Get-Service', 'Get-EventLog',
-                'Test-Connection', 'Get-NetAdapter', 'Get-ComputerInfo'
+                "Get-Process",
+                "Get-Service",
+                "Get-EventLog",
+                "Test-Connection",
+                "Get-NetAdapter",
+                "Get-ComputerInfo",
             }
 
-        normalized = ' '.join(command.split())
+        normalized = " ".join(command.split())
 
         dangerous_patterns = [
-            'Invoke-Expression', 'Invoke-Command', 'Invoke-WebRequest',
-            'Start-Process', 'New-Object', 'WebClient',
-            'DownloadString', 'IEX', '|', ';',
-            '-Enc', '-EncodedCommand',
-            'System.Diagnostics', 'System.Reflection',
+            "Invoke-Expression",
+            "Invoke-Command",
+            "Invoke-WebRequest",
+            "Start-Process",
+            "New-Object",
+            "WebClient",
+            "DownloadString",
+            "IEX",
+            "|",
+            ";",
+            "-Enc",
+            "-EncodedCommand",
+            "System.Diagnostics",
+            "System.Reflection",
         ]
 
         for pattern in dangerous_patterns:
@@ -529,15 +561,15 @@ class InputValidator:
                 logger.warning(f"Dangerous pattern in PowerShell command: {pattern}")
                 return False
 
-        if '[' in normalized:
+        if "[" in normalized:
             logger.warning("PowerShell .NET type access detected")
             return False
 
-        if '`' in normalized:
+        if "`" in normalized:
             logger.warning("PowerShell backtick escaping detected")
             return False
 
-        cmd_name = normalized.strip().split()[0] if normalized.strip() else ''
+        cmd_name = normalized.strip().split()[0] if normalized.strip() else ""
 
         if cmd_name not in allowed_commands:
             logger.warning(f"Unauthorized PowerShell command: {cmd_name}")
@@ -596,7 +628,7 @@ class InputValidator:
     @staticmethod
     def sanitize_string(input_str: str, max_length: int = 1000) -> str:
         """Sanitize string input."""
-        sanitized = input_str.replace('\x00', '')
+        sanitized = input_str.replace("\x00", "")
 
         if len(sanitized) > max_length:
             sanitized = sanitized[:max_length]
@@ -620,13 +652,13 @@ class RateLimiter:
 
     def _cleanup_expired(self, client_id: str, now: float):
         self.requests[client_id] = [
-            t for t in self.requests[client_id]
-            if now - t < self.window_seconds
+            t for t in self.requests[client_id] if now - t < self.window_seconds
         ]
 
     def _evict_stale_clients(self, now: float):
         stale = [
-            cid for cid, timestamps in self.requests.items()
+            cid
+            for cid, timestamps in self.requests.items()
             if not timestamps or (now - timestamps[-1]) >= self.window_seconds
         ]
         for cid in stale:
@@ -636,8 +668,7 @@ class RateLimiter:
         max_clients = self.MAX_CLIENT_MULTIPLIER * self.max_requests
         if len(self.requests) > max_clients:
             sorted_clients = sorted(
-                self.requests.items(),
-                key=lambda item: item[1][-1] if item[1] else 0
+                self.requests.items(), key=lambda item: item[1][-1] if item[1] else 0
             )
             to_remove = len(self.requests) - max_clients
             for cid, _ in sorted_clients[:to_remove]:
@@ -670,30 +701,32 @@ class AuditLogger:
     Default: 10 MB per file, keep 5 backups.
     """
 
-    def __init__(self, log_file: str = "security_audit.log",
-                 max_bytes: int = 10_485_760, backup_count: int = 5):
+    def __init__(
+        self,
+        log_file: str = "security_audit.log",
+        max_bytes: int = 10_485_760,
+        backup_count: int = 5,
+    ):
         self.log_file = log_file
         self.logger = logging.getLogger("audit")
 
         from logging.handlers import RotatingFileHandler
-        handler = RotatingFileHandler(
-            log_file, maxBytes=max_bytes, backupCount=backup_count
-        )
-        handler.setFormatter(logging.Formatter(
-            '%(asctime)s - %(levelname)s - %(message)s'
-        ))
+
+        handler = RotatingFileHandler(log_file, maxBytes=max_bytes, backupCount=backup_count)
+        handler.setFormatter(logging.Formatter("%(asctime)s - %(levelname)s - %(message)s"))
         self.logger.addHandler(handler)
         self.logger.setLevel(logging.INFO)
 
-    def log_event(self, event_type: str, user_id: str, action: str,
-                  details: Dict = None, success: bool = True):
+    def log_event(
+        self, event_type: str, user_id: str, action: str, details: Dict = None, success: bool = True
+    ):
         log_entry = {
-            'timestamp': datetime.now(timezone.utc).isoformat(),
-            'event_type': event_type,
-            'user_id': user_id,
-            'action': action,
-            'success': success,
-            'details': details or {}
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "event_type": event_type,
+            "user_id": user_id,
+            "action": action,
+            "success": success,
+            "details": details or {},
         }
 
         level = logging.INFO if success else logging.WARNING
@@ -702,29 +735,22 @@ class AuditLogger:
     def log_login(self, user_id: str, success: bool, ip_address: str = None):
         """Log login attempt."""
         self.log_event(
-            'login', user_id,
+            "login",
+            user_id,
             f"Login attempt from {ip_address or 'unknown'}",
-            {'ip_address': ip_address},
-            success
+            {"ip_address": ip_address},
+            success,
         )
 
     def log_action(self, user_id: str, action: str, resource: str, success: bool = True):
         """Log user action."""
         self.log_event(
-            'action', user_id,
-            f"{action} on {resource}",
-            {'resource': resource},
-            success
+            "action", user_id, f"{action} on {resource}", {"resource": resource}, success
         )
 
     def log_security_violation(self, user_id: str, violation: str, details: Dict = None):
         """Log security violation."""
-        self.log_event(
-            'violation', user_id,
-            f"Security violation: {violation}",
-            details,
-            False
-        )
+        self.log_event("violation", user_id, f"Security violation: {violation}", details, False)
 
 
 _auth_manager = None
@@ -745,7 +771,7 @@ def get_auth_manager() -> AuthenticationManager:
     global _auth_manager
     with _auth_manager_lock:
         if _auth_manager is None:
-            secret_key = os.environ.get('JWT_SECRET_KEY')
+            secret_key = os.environ.get("JWT_SECRET_KEY")
             _auth_manager = AuthenticationManager(secret_key=secret_key)
     return _auth_manager
 

@@ -5,6 +5,7 @@ Cancellation is propagated into the wrapped coroutine; if the handler
 ignores the cancellation, the function still returns ``DeadlineExceeded``
 to the caller (best-effort cancel).
 """
+
 from __future__ import annotations
 
 from contextlib import asynccontextmanager

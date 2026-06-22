@@ -45,6 +45,7 @@ logger = logging.getLogger(__name__)
 # Mapping Rules Registry
 # ---------------------------------------------------------------------------
 
+
 class MappingDirection(str, Enum):
     ETAP_TO_AUTOCAD = "etap_to_autocad"
     ETAP_TO_REVIT = "etap_to_revit"
@@ -89,7 +90,12 @@ ENTITY_DRAWING_RULES: Dict[str, dict] = {
         "revit": {
             "family_category": "Electrical Equipment",
             "family_name": "Transformer",
-            "parameters": ["rated_power_mva", "primary_voltage_kv", "secondary_voltage_kv", "impedance_percent"],
+            "parameters": [
+                "rated_power_mva",
+                "primary_voltage_kv",
+                "secondary_voltage_kv",
+                "impedance_percent",
+            ],
         },
     },
     "Cable": {
@@ -370,7 +376,13 @@ class TranslationEngine:
 
     def unified_to_etap(self, unified_data: dict) -> dict:
         """Translate Unified Engineering Model data to ETAP format."""
-        etap_data: dict = {"buses": {}, "branches": {}, "transformers": {}, "generators": {}, "loads": {}}
+        etap_data: dict = {
+            "buses": {},
+            "branches": {},
+            "transformers": {},
+            "generators": {},
+            "loads": {},
+        }
 
         for bus_data in unified_data.get("buses", []):
             bid = bus_data.get("id", "BUS1")
@@ -415,64 +427,97 @@ class TranslationEngine:
         }
 
         # Create layers
-        for layer_name in ["E-BUS", "E-XFMR", "E-CABLE", "E-BREAKER", "E-PANEL", "E-LOAD", "E-EQUIP", "E-ANNO"]:
-            commands.append({
-                "command": "create_layer",
-                "params": {"name": layer_name, "color": "1", "linetype": "Continuous"},
-            })
+        for layer_name in [
+            "E-BUS",
+            "E-XFMR",
+            "E-CABLE",
+            "E-BREAKER",
+            "E-PANEL",
+            "E-LOAD",
+            "E-EQUIP",
+            "E-ANNO",
+        ]:
+            commands.append(
+                {
+                    "command": "create_layer",
+                    "params": {"name": layer_name, "color": "1", "linetype": "Continuous"},
+                }
+            )
 
         # Draw buses
         for i, bus_data in enumerate(unified_data.get("buses", [])):
             x = options["start_x"] + i * options["bus_spacing_x"]
             y = options["start_y"]
-            commands.append({
-                "command": "draw_electrical_symbol",
-                "params": {
-                    "symbol_type": "bus",
-                    "insertion_point": [x, y, 0],
-                    "attributes": {
-                        "BUS_ID": bus_data.get("id", ""),
-                        "KV": str(bus_data.get("base_kv", "")),
-                        "VMAG": f"{bus_data.get('voltage_magnitude_pu', 1.0):.3f}",
+            commands.append(
+                {
+                    "command": "draw_electrical_symbol",
+                    "params": {
+                        "symbol_type": "bus",
+                        "insertion_point": [x, y, 0],
+                        "attributes": {
+                            "BUS_ID": bus_data.get("id", ""),
+                            "KV": str(bus_data.get("base_kv", "")),
+                            "VMAG": f"{bus_data.get('voltage_magnitude_pu', 1.0):.3f}",
+                        },
                     },
-                },
-            })
+                }
+            )
 
         # Draw cables
         for cable_data in unified_data.get("cables", []):
             from_bus = next(
-                (b for b in unified_data.get("buses", []) if b.get("id") == cable_data.get("from_bus_id")),
+                (
+                    b
+                    for b in unified_data.get("buses", [])
+                    if b.get("id") == cable_data.get("from_bus_id")
+                ),
                 None,
             )
             to_bus = next(
-                (b for b in unified_data.get("buses", []) if b.get("id") == cable_data.get("to_bus_id")),
+                (
+                    b
+                    for b in unified_data.get("buses", [])
+                    if b.get("id") == cable_data.get("to_bus_id")
+                ),
                 None,
             )
             if from_bus and to_bus:
-                fx = options["start_x"] + unified_data["buses"].index(from_bus) * options["bus_spacing_x"] + 20
-                tx = options["start_x"] + unified_data["buses"].index(to_bus) * options["bus_spacing_x"] - 20
-                commands.append({
-                    "command": "draw_polyline",
-                    "params": {
-                        "vertices": [[fx, options["start_y"], 0], [tx, options["start_y"], 0]],
-                        "layer": "E-CABLE",
-                    },
-                })
+                fx = (
+                    options["start_x"]
+                    + unified_data["buses"].index(from_bus) * options["bus_spacing_x"]
+                    + 20
+                )
+                tx = (
+                    options["start_x"]
+                    + unified_data["buses"].index(to_bus) * options["bus_spacing_x"]
+                    - 20
+                )
+                commands.append(
+                    {
+                        "command": "draw_polyline",
+                        "params": {
+                            "vertices": [[fx, options["start_y"], 0], [tx, options["start_y"], 0]],
+                            "layer": "E-CABLE",
+                        },
+                    }
+                )
 
         # Draw transformers
         for xf_data in unified_data.get("transformers", []):
-            commands.append({
-                "command": "draw_electrical_symbol",
-                "params": {
-                    "symbol_type": "transformer",
-                    "insertion_point": [150, 150, 0],
-                    "attributes": {
-                        "XF_ID": xf_data.get("id", ""),
-                        "MVA": str(xf_data.get("rated_power_mva", "")),
-                        "Z_PCT": str(xf_data.get("impedance_percent", "")),
+            commands.append(
+                {
+                    "command": "draw_electrical_symbol",
+                    "params": {
+                        "symbol_type": "transformer",
+                        "insertion_point": [150, 150, 0],
+                        "attributes": {
+                            "XF_ID": xf_data.get("id", ""),
+                            "MVA": str(xf_data.get("rated_power_mva", "")),
+                            "Z_PCT": str(xf_data.get("impedance_percent", "")),
+                        },
                     },
-                },
-            })
+                }
+            )
 
         return commands
 
@@ -505,20 +550,24 @@ class TranslationEngine:
 
         # Translate levels
         for level_data in revit_data.get("levels", []):
-            unified["levels"].append({
-                "id": level_data.get("id", ""),
-                "name": level_data.get("name", ""),
-                "elevation_m": level_data.get("elevation", 0.0),
-            })
+            unified["levels"].append(
+                {
+                    "id": level_data.get("id", ""),
+                    "name": level_data.get("name", ""),
+                    "elevation_m": level_data.get("elevation", 0.0),
+                }
+            )
 
         # Translate rooms
         for room_data in revit_data.get("rooms", []):
-            unified["rooms"].append({
-                "id": room_data.get("id", ""),
-                "name": room_data.get("name", ""),
-                "area_sqm": room_data.get("area", 0.0),
-                "level_id": room_data.get("level_id", ""),
-            })
+            unified["rooms"].append(
+                {
+                    "id": room_data.get("id", ""),
+                    "name": room_data.get("name", ""),
+                    "area_sqm": room_data.get("area", 0.0),
+                    "level_id": room_data.get("level_id", ""),
+                }
+            )
 
         # Translate MEP elements to unified model
         for element in revit_data.get("electrical_elements", []):
@@ -540,26 +589,30 @@ class TranslationEngine:
 
         # Create levels
         for level_data in unified_data.get("levels", []):
-            commands.append({
-                "endpoint": "/level/create",
-                "payload": {
-                    "name": level_data.get("name", "Level 1"),
-                    "elevation": level_data.get("elevation_m", 0.0),
-                },
-            })
+            commands.append(
+                {
+                    "endpoint": "/level/create",
+                    "payload": {
+                        "name": level_data.get("name", "Level 1"),
+                        "elevation": level_data.get("elevation_m", 0.0),
+                    },
+                }
+            )
 
         # Create panels
         for panel_data in unified_data.get("panels", []):
-            commands.append({
-                "endpoint": "/element/create",
-                "payload": {
-                    "element_type": "panel",
-                    "params": {
-                        "location": panel_data.get("location", [0, 0, 0]),
-                        "parameters": panel_data,
+            commands.append(
+                {
+                    "endpoint": "/element/create",
+                    "payload": {
+                        "element_type": "panel",
+                        "params": {
+                            "location": panel_data.get("location", [0, 0, 0]),
+                            "parameters": panel_data,
+                        },
                     },
-                },
-            })
+                }
+            )
 
         return commands
 
@@ -613,14 +666,18 @@ class TranslationEngine:
         }
         return mapping.get(etap_type.lower(), "pq")
 
-    def _log_translation(self, direction: str, entity_type: str, source_id: str, target_id: str) -> None:
-        self._translation_log.append({
-            "direction": direction,
-            "entity_type": entity_type,
-            "source_id": source_id,
-            "target_id": target_id,
-            "timestamp": __import__("time").time(),
-        })
+    def _log_translation(
+        self, direction: str, entity_type: str, source_id: str, target_id: str
+    ) -> None:
+        self._translation_log.append(
+            {
+                "direction": direction,
+                "entity_type": entity_type,
+                "source_id": source_id,
+                "target_id": target_id,
+                "timestamp": __import__("time").time(),
+            }
+        )
 
     def get_translation_log(self, limit: int = 100) -> List[dict]:
         return self._translation_log[-limit:]

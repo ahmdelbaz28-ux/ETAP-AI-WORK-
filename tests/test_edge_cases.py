@@ -40,6 +40,7 @@ from api.dependencies import JWT_ALGORITHM, JWT_SECRET_KEY
 # 1. Load flow with degenerate 1-bus system
 # ===========================================================================
 
+
 class TestDegenerateLoadFlow:
     """Edge case: a 1-bus system with no lines and no loads."""
 
@@ -86,6 +87,7 @@ class TestDegenerateLoadFlow:
 # 2. Load flow with all buses as slack (invalid)
 # ===========================================================================
 
+
 class TestAllSlackBuses:
     """Edge case: all buses are slack — invalid power system."""
 
@@ -124,7 +126,9 @@ class TestAllSlackBuses:
         )
         # The study should not crash the server — it should either complete
         # or fail with a descriptive error
-        assert study_resp.status_code == 201, f"Study request should succeed, got {study_resp.status_code}"
+        assert study_resp.status_code == 201, (
+            f"Study request should succeed, got {study_resp.status_code}"
+        )
         data = study_resp.json()
         assert data["status"] in ("completed", "failed"), (
             f"Study should complete or fail, got: {data['status']}"
@@ -134,6 +138,7 @@ class TestAllSlackBuses:
 # ===========================================================================
 # 3. Short circuit with zero impedance line
 # ===========================================================================
+
 
 class TestZeroImpedanceShortCircuit:
     """Edge case: short circuit analysis with a zero-impedance line."""
@@ -177,7 +182,9 @@ class TestZeroImpedanceShortCircuit:
             },
         )
         # Should not crash — either complete or fail with an error message
-        assert study_resp.status_code == 201, f"Study request should not crash, got {study_resp.status_code}"
+        assert study_resp.status_code == 201, (
+            f"Study request should not crash, got {study_resp.status_code}"
+        )
         data = study_resp.json()
         assert data["status"] in ("completed", "failed"), (
             f"Study should complete or fail gracefully, got: {data['status']}"
@@ -187,6 +194,7 @@ class TestZeroImpedanceShortCircuit:
 # ===========================================================================
 # 4. Arc flash with extreme voltage values
 # ===========================================================================
+
 
 class TestExtremeVoltageArcFlash:
     """Edge case: arc flash analysis with extreme voltage values."""
@@ -240,15 +248,13 @@ class TestExtremeVoltageArcFlash:
 # 5. Study request with extremely large system (1000+ buses)
 # ===========================================================================
 
+
 class TestLargeSystem:
     """Edge case: a system with 1000+ buses."""
 
     def test_1000_bus_system(self, client, auth_headers):
         """Creating and running a study on a 1000-bus system should not crash."""
-        buses = [
-            {"bus_id": i, "voltage_magnitude": 1.0, "bus_type": "pq"}
-            for i in range(1, 1001)
-        ]
+        buses = [{"bus_id": i, "voltage_magnitude": 1.0, "bus_type": "pq"} for i in range(1, 1001)]
         # Make bus 1 slack
         buses[0]["bus_type"] = "slack"
         buses[0]["voltage_magnitude"] = 1.05
@@ -296,6 +302,7 @@ class TestLargeSystem:
 # 6. Cache collision: two different systems producing same SHA-256 hash
 # ===========================================================================
 
+
 class TestCacheCollision:
     """Edge case: SHA-256 hash collision for cache keys (format test).
 
@@ -309,36 +316,24 @@ class TestCacheCollision:
         config_a = {"base_mva": 100, "buses": [{"bus_id": 1}]}
         config_b = {"base_mva": 200, "buses": [{"bus_id": 1}]}
 
-        hash_a = hashlib.sha256(
-            json.dumps(config_a, sort_keys=True).encode()
-        ).hexdigest()
-        hash_b = hashlib.sha256(
-            json.dumps(config_b, sort_keys=True).encode()
-        ).hexdigest()
+        hash_a = hashlib.sha256(json.dumps(config_a, sort_keys=True).encode()).hexdigest()
+        hash_b = hashlib.sha256(json.dumps(config_b, sort_keys=True).encode()).hexdigest()
 
-        assert hash_a != hash_b, (
-            "Different configs must produce different SHA-256 hashes"
-        )
+        assert hash_a != hash_b, "Different configs must produce different SHA-256 hashes"
 
     def test_same_config_produces_same_hash(self):
         """Identical system configs should produce identical SHA-256 hashes."""
         config = {"base_mva": 100, "buses": [{"bus_id": 1, "voltage_magnitude": 1.05}]}
 
-        hash_1 = hashlib.sha256(
-            json.dumps(config, sort_keys=True).encode()
-        ).hexdigest()
-        hash_2 = hashlib.sha256(
-            json.dumps(config, sort_keys=True).encode()
-        ).hexdigest()
+        hash_1 = hashlib.sha256(json.dumps(config, sort_keys=True).encode()).hexdigest()
+        hash_2 = hashlib.sha256(json.dumps(config, sort_keys=True).encode()).hexdigest()
 
         assert hash_1 == hash_2, "Same config must produce same SHA-256 hash"
 
     def test_hash_format(self):
         """Cache hashes should be 64-character hex strings (SHA-256)."""
         config = {"base_mva": 100}
-        h = hashlib.sha256(
-            json.dumps(config, sort_keys=True).encode()
-        ).hexdigest()
+        h = hashlib.sha256(json.dumps(config, sort_keys=True).encode()).hexdigest()
         assert len(h) == 64, f"SHA-256 hex digest should be 64 chars, got {len(h)}"
         assert all(c in "0123456789abcdef" for c in h), "Hash should be hex"
 
@@ -346,6 +341,7 @@ class TestCacheCollision:
 # ===========================================================================
 # 7. Rate limiter under burst traffic (100 concurrent requests)
 # ===========================================================================
+
 
 class TestRateLimiterBurst:
     """Edge case: burst traffic against the login rate limiter."""
@@ -405,6 +401,7 @@ class TestRateLimiterBurst:
 # 8. JWT token manipulation
 # ===========================================================================
 
+
 class TestJWTManipulation:
     """Edge case: various JWT token manipulation attacks."""
 
@@ -437,9 +434,7 @@ class TestJWTManipulation:
             "/api/v1/auth/me",
             headers={"Authorization": f"Bearer {forged_token}"},
         )
-        assert resp.status_code == 401, (
-            f"Forged token should be rejected, got {resp.status_code}"
-        )
+        assert resp.status_code == 401, f"Forged token should be rejected, got {resp.status_code}"
 
     def test_expired_token(self, client):
         """An expired JWT is rejected."""
@@ -451,17 +446,13 @@ class TestJWTManipulation:
             "iat": now - timedelta(hours=2),
             "exp": now - timedelta(hours=1),
         }
-        expired_token = jwt.encode(
-            expired_payload, JWT_SECRET_KEY, algorithm=JWT_ALGORITHM
-        )
+        expired_token = jwt.encode(expired_payload, JWT_SECRET_KEY, algorithm=JWT_ALGORITHM)
 
         resp = client.get(
             "/api/v1/auth/me",
             headers={"Authorization": f"Bearer {expired_token}"},
         )
-        assert resp.status_code == 401, (
-            f"Expired token should be rejected, got {resp.status_code}"
-        )
+        assert resp.status_code == 401, f"Expired token should be rejected, got {resp.status_code}"
 
     def test_none_algorithm(self, client):
         """A JWT signed with 'none' algorithm is rejected."""
@@ -487,6 +478,7 @@ class TestJWTManipulation:
 # ===========================================================================
 # 9. SQL injection in project name field
 # ===========================================================================
+
 
 class TestSQLInjection:
     """Edge case: SQL injection attempts in the project name field."""
@@ -521,6 +513,7 @@ class TestSQLInjection:
 # ===========================================================================
 # 10. XSS in project description field
 # ===========================================================================
+
 
 class TestXSSInjection:
     """Edge case: XSS attempts in the project description field."""

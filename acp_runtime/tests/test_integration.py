@@ -13,6 +13,7 @@ Cross-cutting concerns:
     * Error handling (parse errors, handler errors, invalid envelopes)
     * Cancellation / graceful shutdown
 """
+
 from __future__ import annotations
 
 import io
@@ -34,6 +35,7 @@ __all__ = []
 
 
 # ------------------------------------------------------------------ helpers
+
 
 def _build_router_with_auth(
     *,
@@ -105,6 +107,7 @@ def _read_response(stdout: io.StringIO) -> dict | None:
 
 
 # ------------------------------------------------------------------ stdio
+
 
 class TestStdioIntegration:
     """End-to-end tests using StdioTransport with memory streams."""
@@ -214,14 +217,19 @@ class TestStdioIntegration:
     async def test_stdio_auth_valid_token(self):
         """Authenticated request with valid token succeeds."""
         token = _issue_token("test-secret", "user1", {"math.read"})
-        req = json.dumps({
-            "jsonrpc": "2.0",
-            "id": "auth1",
-            "method": "math.sum",
-            "params": {"a": 5, "b": 6},
-            "capability": "math.sum",
-            "trace_id": token,
-        }) + "\n"
+        req = (
+            json.dumps(
+                {
+                    "jsonrpc": "2.0",
+                    "id": "auth1",
+                    "method": "math.sum",
+                    "params": {"a": 5, "b": 6},
+                    "capability": "math.sum",
+                    "trace_id": token,
+                }
+            )
+            + "\n"
+        )
         stdin = io.StringIO(req)
         stdout = io.StringIO()
         transport = StdioTransport(stdin, stdout)
@@ -237,14 +245,19 @@ class TestStdioIntegration:
     @pytest.mark.anyio
     async def test_stdio_auth_invalid_token(self):
         """Authenticated request with bad token fails."""
-        req = json.dumps({
-            "jsonrpc": "2.0",
-            "id": "auth2",
-            "method": "math.sum",
-            "params": {"a": 1, "b": 2},
-            "capability": "math.sum",
-            "trace_id": "invalid.token.here",
-        }) + "\n"
+        req = (
+            json.dumps(
+                {
+                    "jsonrpc": "2.0",
+                    "id": "auth2",
+                    "method": "math.sum",
+                    "params": {"a": 1, "b": 2},
+                    "capability": "math.sum",
+                    "trace_id": "invalid.token.here",
+                }
+            )
+            + "\n"
+        )
         stdin = io.StringIO(req)
         stdout = io.StringIO()
         transport = StdioTransport(stdin, stdout)
@@ -261,14 +274,19 @@ class TestStdioIntegration:
     async def test_stdio_auth_missing_scope_in_token(self):
         """Token valid but missing required scope."""
         token = _issue_token("test-secret", "user1", {"public"})  # no math.read
-        req = json.dumps({
-            "jsonrpc": "2.0",
-            "id": "auth3",
-            "method": "math.sum",
-            "params": {"a": 1, "b": 2},
-            "capability": "math.sum",
-            "trace_id": token,
-        }) + "\n"
+        req = (
+            json.dumps(
+                {
+                    "jsonrpc": "2.0",
+                    "id": "auth3",
+                    "method": "math.sum",
+                    "params": {"a": 1, "b": 2},
+                    "capability": "math.sum",
+                    "trace_id": token,
+                }
+            )
+            + "\n"
+        )
         stdin = io.StringIO(req)
         stdout = io.StringIO()
         transport = StdioTransport(stdin, stdout)
@@ -350,6 +368,7 @@ class TestStdioIntegration:
 
 
 # ------------------------------------------------------------------ uds
+
 
 @pytest.fixture
 def uds_path(tmp_path):
@@ -447,14 +466,19 @@ class TestUdsIntegration:
         except (OSError, AttributeError) as e:
             pytest.skip(f"UDS not available: {e}")
 
-        req = json.dumps({
-            "jsonrpc": "2.0",
-            "id": "uauth",
-            "method": "math.sum",
-            "params": {"a": 10, "b": 20},
-            "capability": "math.sum",
-            "trace_id": token,
-        }) + "\n"
+        req = (
+            json.dumps(
+                {
+                    "jsonrpc": "2.0",
+                    "id": "uauth",
+                    "method": "math.sum",
+                    "params": {"a": 10, "b": 20},
+                    "capability": "math.sum",
+                    "trace_id": token,
+                }
+            )
+            + "\n"
+        )
         response_lines: list[str] = []
 
         async def client():
@@ -482,6 +506,7 @@ class TestUdsIntegration:
 
 
 # ------------------------------------------------------------------ websocket
+
 
 class TestWebSocketIntegration:
     """End-to-end tests using WebSocketListener with real WebSocket connections."""
@@ -539,14 +564,16 @@ class TestWebSocketIntegration:
         router = _build_router_with_auth(secret="ws-secret")
         listener = WebSocketListener("localhost", ws_port)
 
-        req = json.dumps({
-            "jsonrpc": "2.0",
-            "id": "wauth",
-            "method": "math.sum",
-            "params": {"a": 100, "b": 200},
-            "capability": "math.sum",
-            "trace_id": token,
-        })
+        req = json.dumps(
+            {
+                "jsonrpc": "2.0",
+                "id": "wauth",
+                "method": "math.sum",
+                "params": {"a": 100, "b": 200},
+                "capability": "math.sum",
+                "trace_id": token,
+            }
+        )
         response_lines: list[str] = []
 
         async def client():
@@ -573,6 +600,7 @@ class TestWebSocketIntegration:
 
 
 # ------------------------------------------------------------------ cross-cutting
+
 
 class TestCrossCutting:
     """Tests that span all transports (run via stdio for simplicity)."""

@@ -77,6 +77,7 @@ def _to_jsonable(obj: Any) -> Any:
         re, im = obj.real, obj.imag
         if not _HAS_NUMPY:
             import math as _math
+
             if not _math.isfinite(re):
                 re = 0.0
             if not _math.isfinite(im):
@@ -106,6 +107,7 @@ def _to_jsonable(obj: Any) -> Any:
     except Exception:
         return str(obj)
 
+
 # Ensure project root is on path
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
@@ -118,6 +120,7 @@ from starlette.middleware.base import BaseHTTPMiddleware
 # ---------------------------------------------------------------------------
 # Logging setup
 # ---------------------------------------------------------------------------
+
 
 class _TraceFilter(logging.Filter):
     """Injects trace_id into log records when missing."""
@@ -171,23 +174,42 @@ def _get_etap_provider():
 # Pydantic schemas
 # ---------------------------------------------------------------------------
 
+
 class BusSpec(BaseModel):
     model_config = ConfigDict(extra="ignore")
 
     bus_id: int
-    voltage_magnitude: float = Field(default=1.0, validation_alias=AliasChoices("voltage_magnitude", "vm"))
+    voltage_magnitude: float = Field(
+        default=1.0, validation_alias=AliasChoices("voltage_magnitude", "vm")
+    )
     voltage_angle: float = Field(default=0.0, validation_alias=AliasChoices("voltage_angle", "va"))
-    load_power_real: float = Field(default=0.0, validation_alias=AliasChoices("load_power_real", "p_load", "pd"))
-    load_power_imag: float = Field(default=0.0, validation_alias=AliasChoices("load_power_imag", "load_power_reactive", "q_load", "qd"))
-    generation_power_real: float = Field(default=0.0, validation_alias=AliasChoices("generation_power_real", "power_real", "pg"))
-    generation_power_imag: float = Field(default=0.0, validation_alias=AliasChoices("generation_power_imag", "power_reactive", "qg"))
+    load_power_real: float = Field(
+        default=0.0, validation_alias=AliasChoices("load_power_real", "p_load", "pd")
+    )
+    load_power_imag: float = Field(
+        default=0.0,
+        validation_alias=AliasChoices("load_power_imag", "load_power_reactive", "q_load", "qd"),
+    )
+    generation_power_real: float = Field(
+        default=0.0, validation_alias=AliasChoices("generation_power_real", "power_real", "pg")
+    )
+    generation_power_imag: float = Field(
+        default=0.0, validation_alias=AliasChoices("generation_power_imag", "power_reactive", "qg")
+    )
     bus_type: str = "pq"
     base_kv: Optional[float] = None
-    q_min: float = Field(default=-999.0, validation_alias=AliasChoices("q_min", "min_power_reactive", "min_q"))
-    q_max: float = Field(default=999.0, validation_alias=AliasChoices("q_max", "max_power_reactive", "max_q"))
+    q_min: float = Field(
+        default=-999.0, validation_alias=AliasChoices("q_min", "min_power_reactive", "min_q")
+    )
+    q_max: float = Field(
+        default=999.0, validation_alias=AliasChoices("q_max", "max_power_reactive", "max_q")
+    )
     area: Optional[int] = None
     zone: Optional[int] = None
-    voltage_setpoint: Optional[float] = Field(default=None, validation_alias=AliasChoices("voltage_setpoint", "voltage_magnitude_setpoint"))
+    voltage_setpoint: Optional[float] = Field(
+        default=None,
+        validation_alias=AliasChoices("voltage_setpoint", "voltage_magnitude_setpoint"),
+    )
 
     @field_validator("bus_type")
     @classmethod
@@ -208,7 +230,9 @@ class LineSpec(BaseModel):
     x1: float = Field(default=0.05, validation_alias=AliasChoices("x1", "reactance"))
     r0: Optional[float] = None
     x0: Optional[float] = None
-    bshunt1: float = Field(default=0.02, validation_alias=AliasChoices("bshunt1", "b1", "bshunt", "susceptance"))
+    bshunt1: float = Field(
+        default=0.02, validation_alias=AliasChoices("bshunt1", "b1", "bshunt", "susceptance")
+    )
     bshunt0: Optional[float] = Field(default=None, validation_alias=AliasChoices("bshunt0", "b0"))
     rating_mva: Optional[float] = None
 
@@ -222,7 +246,9 @@ class TransformerSpec(BaseModel):
     r1: float = 0.0
     x1: float = 0.05
     tap_ratio: float = Field(default=1.0, validation_alias=AliasChoices("tap_ratio", "tap"))
-    phase_shift_deg: float = Field(default=0.0, validation_alias=AliasChoices("phase_shift_deg", "phase_shift"))
+    phase_shift_deg: float = Field(
+        default=0.0, validation_alias=AliasChoices("phase_shift_deg", "phase_shift")
+    )
 
 
 class GeneratorSpec(BaseModel):
@@ -236,12 +262,25 @@ class GeneratorSpec(BaseModel):
     x2: Optional[float] = None
     r0: Optional[float] = None
     x0: Optional[float] = None
-    internal_voltage_mag: float = Field(default=1.05, validation_alias=AliasChoices("internal_voltage_mag", "voltage_setpoint", "v_setpoint"))
-    internal_voltage_ang_deg: float = Field(default=0.0, validation_alias=AliasChoices("internal_voltage_ang_deg", "voltage_angle"))
-    power_real: Optional[float] = Field(default=None, validation_alias=AliasChoices("power_real", "pg"))
-    power_reactive: Optional[float] = Field(default=None, validation_alias=AliasChoices("power_reactive", "qg"))
-    max_power_reactive: Optional[float] = Field(default=None, validation_alias=AliasChoices("max_power_reactive", "q_max"))
-    min_power_reactive: Optional[float] = Field(default=None, validation_alias=AliasChoices("min_power_reactive", "q_min"))
+    internal_voltage_mag: float = Field(
+        default=1.05,
+        validation_alias=AliasChoices("internal_voltage_mag", "voltage_setpoint", "v_setpoint"),
+    )
+    internal_voltage_ang_deg: float = Field(
+        default=0.0, validation_alias=AliasChoices("internal_voltage_ang_deg", "voltage_angle")
+    )
+    power_real: Optional[float] = Field(
+        default=None, validation_alias=AliasChoices("power_real", "pg")
+    )
+    power_reactive: Optional[float] = Field(
+        default=None, validation_alias=AliasChoices("power_reactive", "qg")
+    )
+    max_power_reactive: Optional[float] = Field(
+        default=None, validation_alias=AliasChoices("max_power_reactive", "q_max")
+    )
+    min_power_reactive: Optional[float] = Field(
+        default=None, validation_alias=AliasChoices("min_power_reactive", "q_min")
+    )
 
 
 class LoadSpec(BaseModel):
@@ -249,17 +288,26 @@ class LoadSpec(BaseModel):
 
     load_id: int
     bus_id: int
-    p_mw: float = Field(default=0.0, validation_alias=AliasChoices("p_mw", "power_real", "load_power_real"))
-    q_mvar: float = Field(default=0.0, validation_alias=AliasChoices("q_mvar", "power_reactive", "load_power_reactive"))
+    p_mw: float = Field(
+        default=0.0, validation_alias=AliasChoices("p_mw", "power_real", "load_power_real")
+    )
+    q_mvar: float = Field(
+        default=0.0,
+        validation_alias=AliasChoices("q_mvar", "power_reactive", "load_power_reactive"),
+    )
     constant_impedance: bool = False
 
 
 class SystemSpec(BaseModel):
     model_config = ConfigDict(extra="ignore")
 
-    base_mva: float = Field(default=100.0, validation_alias=AliasChoices("base_mva", "sbase", "base_mva"))
+    base_mva: float = Field(
+        default=100.0, validation_alias=AliasChoices("base_mva", "sbase", "base_mva")
+    )
     buses: List[BusSpec] = Field(default_factory=list)
-    lines: List[LineSpec] = Field(default_factory=list, validation_alias=AliasChoices("lines", "branches"))
+    lines: List[LineSpec] = Field(
+        default_factory=list, validation_alias=AliasChoices("lines", "branches")
+    )
     transformers: List[TransformerSpec] = Field(default_factory=list)
     generators: List[GeneratorSpec] = Field(default_factory=list)
     loads: List[LoadSpec] = Field(default_factory=list)
@@ -272,7 +320,9 @@ class StudyRequest(BaseModel):
     system: Optional[SystemSpec] = None
     parameters: Dict[str, Any] = Field(default_factory=dict)
     task_id: Optional[str] = None
-    use_etap: bool = Field(default=False, description="If True, route to ETAP provider instead of native engine")
+    use_etap: bool = Field(
+        default=False, description="If True, route to ETAP provider instead of native engine"
+    )
     etap_project_path: Optional[str] = None
 
     @field_validator("study_type")
@@ -390,6 +440,7 @@ def _add_execution_time(delta: float) -> None:
 # System builder helper
 # ---------------------------------------------------------------------------
 
+
 @trace_operation("_build_system_from_spec", attributes={"component": "engineering_service"})
 def _build_system_from_spec(spec: SystemSpec) -> Any:
     """Build a Python System object from a SystemSpec."""
@@ -458,8 +509,12 @@ def _build_system_from_spec(spec: SystemSpec) -> Any:
             },
             impedance={
                 "1": complex(g.r1, g.x1),
-                "2": complex(g.r2 if g.r2 is not None else g.r1, g.x2 if g.x2 is not None else g.x1),
-                "0": complex(g.r0 if g.r0 is not None else g.r1, g.x0 if g.x0 is not None else g.x1),
+                "2": complex(
+                    g.r2 if g.r2 is not None else g.r1, g.x2 if g.x2 is not None else g.x1
+                ),
+                "0": complex(
+                    g.r0 if g.r0 is not None else g.r1, g.x0 if g.x0 is not None else g.x1
+                ),
             },
         )
         system.add_generator(gen)
@@ -482,11 +537,20 @@ def _build_system_from_spec(spec: SystemSpec) -> Any:
 # Study execution
 # ---------------------------------------------------------------------------
 
-_STUDIES_REQUIRING_SYSTEM = {"load_flow", "short_circuit", "fault", "protection_coordination", "coordination", "motor_starting"}
+_STUDIES_REQUIRING_SYSTEM = {
+    "load_flow",
+    "short_circuit",
+    "fault",
+    "protection_coordination",
+    "coordination",
+    "motor_starting",
+}
 
 
 @trace_operation("_run_native_study", attributes={"component": "engineering_service"})
-def _run_native_study(study_type: str, system: Optional[Any], parameters: Dict[str, Any]) -> Dict[str, Any]:
+def _run_native_study(
+    study_type: str, system: Optional[Any], parameters: Dict[str, Any]
+) -> Dict[str, Any]:
     """Execute a study using the native PowerSystemEngine."""
     if study_type in _STUDIES_REQUIRING_SYSTEM and system is None:
         raise ValueError(f"study_type '{study_type}' requires a 'system' to be provided")
@@ -503,10 +567,17 @@ def _run_native_study(study_type: str, system: Optional[Any], parameters: Dict[s
             raise ValueError("bus_id is required for fault analysis")
         return engine.run_fault_analysis(fault_type, bus_id)
     elif study_type == "arc_flash":
-        required = ("voltage_kv", "bolted_fault_current_ka", "arc_duration_sec", "working_distance_mm")
+        required = (
+            "voltage_kv",
+            "bolted_fault_current_ka",
+            "arc_duration_sec",
+            "working_distance_mm",
+        )
         missing = [k for k in required if k not in parameters]
         if missing:
-            raise ValueError(f"arc_flash requires: {', '.join(required)} (missing: {', '.join(missing)})")
+            raise ValueError(
+                f"arc_flash requires: {', '.join(required)} (missing: {', '.join(missing)})"
+            )
         return engine.run_arc_flash(
             voltage_kv=float(parameters["voltage_kv"]),
             bolted_fault_current_ka=float(parameters["bolted_fault_current_ka"]),
@@ -528,7 +599,9 @@ def _run_native_study(study_type: str, system: Optional[Any], parameters: Dict[s
 
 
 @trace_operation("_run_etap_study", attributes={"component": "engineering_service"})
-def _run_etap_study(study_type: str, project_path: str, parameters: Dict[str, Any]) -> Dict[str, Any]:
+def _run_etap_study(
+    study_type: str, project_path: str, parameters: Dict[str, Any]
+) -> Dict[str, Any]:
     """Execute a study via the ETAP provider."""
     provider_factory = _get_etap_provider()
     provider = provider_factory()
@@ -594,7 +667,11 @@ _API_KEY_CONFIGURED = bool(_EXPECTED_API_KEY)
 # Fail-fast in production: if no API key is configured and AUTH_DISABLED is
 # not explicitly set, refuse to start. This prevents running an unauthenticated
 # service in production accidentally.
-_AUTH_DISABLED = os.environ.get("ENGINEERING_SERVICE_AUTH_DISABLED", "").lower() in ("1", "true", "yes")
+_AUTH_DISABLED = os.environ.get("ENGINEERING_SERVICE_AUTH_DISABLED", "").lower() in (
+    "1",
+    "true",
+    "yes",
+)
 if not _API_KEY_CONFIGURED and not _AUTH_DISABLED:
     _ENV = os.environ.get("ENVIRONMENT", os.environ.get("ENV", "development")).lower()
     if _ENV in ("production", "prod", "staging"):
@@ -624,7 +701,7 @@ def _require_api_key(request: Request) -> None:
             raise HTTPException(
                 status_code=401,
                 detail="Authentication required but no API key configured. "
-                       "Set ENGINEERING_SERVICE_API_KEY or ENGINEERING_SERVICE_AUTH_DISABLED=true",
+                "Set ENGINEERING_SERVICE_API_KEY or ENGINEERING_SERVICE_AUTH_DISABLED=true",
             )
         # Development mode: allow unauthenticated access with warning
         return
@@ -653,6 +730,7 @@ class _BodySizeLimitMiddleware(BaseHTTPMiddleware):
 # FastAPI app
 # ---------------------------------------------------------------------------
 
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     logger.info("engineering_service_startup", extra={"trace_id": "startup"})
@@ -680,13 +758,18 @@ async def lifespan(app: FastAPI):
     global _study_cache
     try:
         from engine.caching import StudyCache
+
         _study_cache = StudyCache(
             redis_url=os.environ.get("REDIS_URL", "redis://localhost:6379"),
             ttl=int(os.environ.get("STUDY_CACHE_TTL", "3600")),
         )
         logger.info("study_cache_initialized", extra={"trace_id": "startup"})
     except Exception as e:
-        logger.debug("StudyCache init failed (non-fatal, Redis may be unavailable): %s", e, extra={"trace_id": "startup"})
+        logger.debug(
+            "StudyCache init failed (non-fatal, Redis may be unavailable): %s",
+            e,
+            extra={"trace_id": "startup"},
+        )
 
     yield
     logger.info("engineering_service_shutdown", extra={"trace_id": "shutdown"})
@@ -704,6 +787,7 @@ app = FastAPI(
 # ---------------------------------------------------------------------------
 try:
     from api.auth import router as auth_router
+
     app.include_router(auth_router)
     logger.info("auth_router_registered", extra={"trace_id": "startup"})
 except ImportError as e:
@@ -713,6 +797,7 @@ except Exception as e:
 
 try:
     from api.projects import router as projects_router
+
     app.include_router(projects_router)
     logger.info("projects_router_registered", extra={"trace_id": "startup"})
 except ImportError as e:
@@ -725,6 +810,7 @@ try:
     import asyncio as _asyncio
 
     from api.database import init_db
+
     _asyncio.get_event_loop().run_until_complete(init_db())
     logger.info("database_initialized", extra={"trace_id": "startup"})
 except Exception as e:
@@ -737,6 +823,7 @@ _LANGWATCH_API_KEY = os.environ.get("LANGWATCH_API_KEY", "")
 if _LANGWATCH_API_KEY:
     try:
         import langwatch  # type: ignore
+
         langwatch.api_key = _LANGWATCH_API_KEY
         langwatch.setup(
             endpoint=os.environ.get("LANGWATCH_ENDPOINT", "https://app.langwatch.ai"),
@@ -751,7 +838,9 @@ if _LANGWATCH_API_KEY:
 # Set ENGINEERING_SERVICE_CORS_ORIGINS to a comma-separated list of allowed origins.
 # Example: ENGINEERING_SERVICE_CORS_ORIGINS=https://yourapp.example.com,https://worker.example.com
 _CORS_ORIGINS = os.environ.get("ENGINEERING_SERVICE_CORS_ORIGINS", "").strip()
-_cors_origin_list = [o.strip() for o in _CORS_ORIGINS.split(",") if o.strip()] if _CORS_ORIGINS else []
+_cors_origin_list = (
+    [o.strip() for o in _CORS_ORIGINS.split(",") if o.strip()] if _CORS_ORIGINS else []
+)
 if not _cors_origin_list:
     _ENV = os.environ.get("ENVIRONMENT", os.environ.get("ENV", "development")).lower()
     if _ENV in ("production", "prod", "staging"):
@@ -783,7 +872,9 @@ app.add_middleware(_BodySizeLimitMiddleware)
 # ---------------------------------------------------------------------------
 
 _RATE_LIMIT_WINDOW = int(os.environ.get("ENGINEERING_SERVICE_RATE_LIMIT_WINDOW", "60"))  # seconds
-_RATE_LIMIT_MAX_REQUESTS = int(os.environ.get("ENGINEERING_SERVICE_RATE_LIMIT_MAX", "100"))  # requests per window
+_RATE_LIMIT_MAX_REQUESTS = int(
+    os.environ.get("ENGINEERING_SERVICE_RATE_LIMIT_MAX", "100")
+)  # requests per window
 _rate_limit_store: Dict[str, List[float]] = {}
 _rate_limit_lock = _threading.Lock()
 _RATE_LIMIT_MAX_ENTRIES = int(os.environ.get("ENGINEERING_SERVICE_RATE_LIMIT_MAX_ENTRIES", "10000"))
@@ -806,8 +897,11 @@ def _check_rate_limit(client_id: str) -> bool:
     with _rate_limit_lock:
         # Proactive cleanup: prune stale entries when store grows too large
         if len(_rate_limit_store) > _RATE_LIMIT_MAX_ENTRIES:
-            stale = [cid for cid, timestamps in _rate_limit_store.items()
-                     if not timestamps or now - timestamps[-1] > _RATE_LIMIT_WINDOW]
+            stale = [
+                cid
+                for cid, timestamps in _rate_limit_store.items()
+                if not timestamps or now - timestamps[-1] > _RATE_LIMIT_WINDOW
+            ]
             for cid in stale:
                 del _rate_limit_store[cid]
 
@@ -859,7 +953,11 @@ async def trace_middleware(request: Request, call_next):
                 _trusted_list = [p.strip() for p in _TRUSTED_PROXIES.split(",")]
                 xff = request.headers.get("x-forwarded-for", "").split(",")[0].strip()
                 proxy_ip = request.client.host if request.client else ""
-                client_id = xff if proxy_ip in _trusted_list and xff else (request.client.host if request.client else "unknown")
+                client_id = (
+                    xff
+                    if proxy_ip in _trusted_list and xff
+                    else (request.client.host if request.client else "unknown")
+                )
             else:
                 client_id = request.client.host if request.client else "unknown"
             if not _check_rate_limit(client_id):
@@ -872,9 +970,12 @@ async def trace_middleware(request: Request, call_next):
                 )
 
         # RASP — Runtime Application Self-Protection (singleton engine)
-        if not request.url.path.startswith(("/health", "/ready", "/healthz", "/readyz", "/", "/docs", "/openapi")):
+        if not request.url.path.startswith(
+            ("/health", "/ready", "/healthz", "/readyz", "/", "/docs", "/openapi")
+        ):
             try:
                 from security.rasp import create_default_rasp_engine
+
                 if not hasattr(app.state, "rasp_engine"):
                     app.state.rasp_engine = create_default_rasp_engine()
                 rasp = app.state.rasp_engine
@@ -891,10 +992,14 @@ async def trace_middleware(request: Request, call_next):
                     except Exception:
                         body_str = ""
 
-                rasp_results = rasp.inspect({
-                    "query": query_str, "path": path_str,
-                    "body": body_str, "headers": header_str,
-                })
+                rasp_results = rasp.inspect(
+                    {
+                        "query": query_str,
+                        "path": path_str,
+                        "body": body_str,
+                        "headers": header_str,
+                    }
+                )
                 blocked = [r for r in rasp_results if r.action.value == "block"]
                 if blocked:
                     attack_names = [r.rule_name for r in blocked]
@@ -902,13 +1007,16 @@ async def trace_middleware(request: Request, call_next):
                     span.set_attribute("ahmedetap.blocked_attacks", str(attack_names))
                     logger.warning(
                         "rasp_blocked attacks=%s path=%s trace_id=%s",
-                        attack_names, path_str, trace_id,
+                        attack_names,
+                        path_str,
+                        trace_id,
                     )
                     return JSONResponse(
                         status_code=403,
                         content={
                             "detail": "Request blocked by security policy",
-                            "attacks": attack_names, "trace_id": trace_id,
+                            "attacks": attack_names,
+                            "trace_id": trace_id,
                         },
                     )
             except ImportError:
@@ -936,10 +1044,19 @@ async def trace_middleware(request: Request, call_next):
         except asyncio.TimeoutError:
             span.set_status(Status(StatusCode.ERROR, "timeout"))
             span.set_attribute("error.type", "TimeoutError")
-            logger.warning("request_timeout method=%s path=%s timeout=%ds", request.method, request.url.path, _REQUEST_TIMEOUT_SEC, extra={"trace_id": trace_id})
+            logger.warning(
+                "request_timeout method=%s path=%s timeout=%ds",
+                request.method,
+                request.url.path,
+                _REQUEST_TIMEOUT_SEC,
+                extra={"trace_id": trace_id},
+            )
             return JSONResponse(
                 status_code=504,
-                content={"detail": f"Request timed out after {_REQUEST_TIMEOUT_SEC}s", "trace_id": trace_id},
+                content={
+                    "detail": f"Request timed out after {_REQUEST_TIMEOUT_SEC}s",
+                    "trace_id": trace_id,
+                },
             )
         except Exception as e:
             span.record_exception(e)
@@ -949,12 +1066,19 @@ async def trace_middleware(request: Request, call_next):
         finally:
             elapsed_ms = (time.perf_counter() - start) * 1000
             span.set_attribute("ahmedetap.latency_ms", elapsed_ms)
-            logger.info("request=%s %s latency_ms=%.2f", request.method, request.url.path, elapsed_ms, extra={"trace_id": trace_id})
+            logger.info(
+                "request=%s %s latency_ms=%.2f",
+                request.method,
+                request.url.path,
+                elapsed_ms,
+                extra={"trace_id": trace_id},
+            )
 
 
 # ---------------------------------------------------------------------------
 # Health endpoints
 # ---------------------------------------------------------------------------
+
 
 @app.head("/")
 @app.get("/")
@@ -998,6 +1122,7 @@ async def readiness_check(request: Request):
     try:
         import numpy  # noqa: F401
         import scipy  # noqa: F401
+
         native_ok = True
     except ImportError:
         pass
@@ -1060,6 +1185,7 @@ async def prometheus_metrics():
 # Study execution endpoint
 # ---------------------------------------------------------------------------
 
+
 @app.post("/api/v1/studies/run", response_model=StudyResult)
 @count_executions(skill_name="study")
 @track_skill_operation("study")
@@ -1093,16 +1219,26 @@ async def run_study(request: Request, payload: StudyRequest):
                 if payload.system:
                     # Use deterministic hashing (SHA-256) instead of Python hash()
                     import hashlib as _hashlib
-                    system_json = json.dumps(payload.system.model_dump(), sort_keys=True, default=str)
+
+                    system_json = json.dumps(
+                        payload.system.model_dump(), sort_keys=True, default=str
+                    )
                     cache_params["system_hash"] = _hashlib.sha256(system_json.encode()).hexdigest()
                 if _study_cache:
                     cached_result = await _study_cache.get(payload.study_type, cache_params)
                     if cached_result:
                         data = json.loads(cached_result)
                         cache_hit = True
-                        logger.info("study_cache_hit study_type=%s task_id=%s", payload.study_type, task_id, extra={"trace_id": trace_id})
+                        logger.info(
+                            "study_cache_hit study_type=%s task_id=%s",
+                            payload.study_type,
+                            task_id,
+                            extra={"trace_id": trace_id},
+                        )
             except Exception as cache_err:
-                logger.debug("Cache lookup failed (non-fatal): %s", cache_err, extra={"trace_id": trace_id})
+                logger.debug(
+                    "Cache lookup failed (non-fatal): %s", cache_err, extra={"trace_id": trace_id}
+                )
 
         if cache_hit:
             # Use cached data
@@ -1138,12 +1274,19 @@ async def run_study(request: Request, payload: StudyRequest):
                 cache_params = {"study_type": payload.study_type, "parameters": payload.parameters}
                 if payload.system:
                     import hashlib as _hashlib
-                    system_json = json.dumps(payload.system.model_dump(), sort_keys=True, default=str)
+
+                    system_json = json.dumps(
+                        payload.system.model_dump(), sort_keys=True, default=str
+                    )
                     cache_params["system_hash"] = _hashlib.sha256(system_json.encode()).hexdigest()
                 if _study_cache:
-                    await _study_cache.set(payload.study_type, cache_params, json.dumps(data, default=str))
+                    await _study_cache.set(
+                        payload.study_type, cache_params, json.dumps(data, default=str)
+                    )
             except Exception as cache_err:
-                logger.debug("Cache store failed (non-fatal): %s", cache_err, extra={"trace_id": trace_id})
+                logger.debug(
+                    "Cache store failed (non-fatal): %s", cache_err, extra={"trace_id": trace_id}
+                )
 
         _increment_counter("success")
         status = "success"
@@ -1151,7 +1294,12 @@ async def run_study(request: Request, payload: StudyRequest):
         raise
     except Exception as e:
         _increment_counter("failed")
-        logger.error("study_run_failed study_type=%s error=%s", payload.study_type, str(e), extra={"trace_id": trace_id})
+        logger.error(
+            "study_run_failed study_type=%s error=%s",
+            payload.study_type,
+            str(e),
+            extra={"trace_id": trace_id},
+        )
         errors.append(str(e))
         status = "failed"
         data = {}
@@ -1188,6 +1336,7 @@ async def run_study(request: Request, payload: StudyRequest):
 # System validation endpoint
 # ---------------------------------------------------------------------------
 
+
 @app.post("/api/v1/system/validate")
 @count_executions(skill_name="validate_system")
 @track_skill_operation("validate_system")
@@ -1216,18 +1365,24 @@ async def validate_system(request: Request, spec: SystemSpec):
         if len(slack_buses) == 0:
             errors.append("System must have at least one slack bus")
         if len(slack_buses) > 1:
-            warnings.append(f"System has {len(slack_buses)} slack buses; typically only one is expected")
+            warnings.append(
+                f"System has {len(slack_buses)} slack buses; typically only one is expected"
+            )
 
         bus_ids = {b.bus_id for b in spec.buses}
         for line in spec.lines:
             if line.from_bus_id not in bus_ids:
-                errors.append(f"Line {line.line_id} references unknown from_bus_id {line.from_bus_id}")
+                errors.append(
+                    f"Line {line.line_id} references unknown from_bus_id {line.from_bus_id}"
+                )
             if line.to_bus_id not in bus_ids:
                 errors.append(f"Line {line.line_id} references unknown to_bus_id {line.to_bus_id}")
 
         for gen in spec.generators:
             if gen.bus_id not in bus_ids:
-                errors.append(f"Generator {gen.generator_id} references unknown bus_id {gen.bus_id}")
+                errors.append(
+                    f"Generator {gen.generator_id} references unknown bus_id {gen.bus_id}"
+                )
 
         for ld in spec.loads:
             if ld.bus_id not in bus_ids:
@@ -1259,6 +1414,7 @@ async def validate_system(request: Request, spec: SystemSpec):
 # Agent Info Endpoint — exposes prompt integration status
 # ---------------------------------------------------------------------------
 
+
 @app.get("/api/v1/agents/info")
 async def get_agents_info(request: Request):
     """Return metadata for all agents including prompt integration status.
@@ -1269,22 +1425,26 @@ async def get_agents_info(request: Request):
     trace_id = getattr(request.state, "trace_id", "unknown")
     try:
         from agents.orchestrator import ChiefEngineeringOrchestrator
+
         orchestrator = ChiefEngineeringOrchestrator()
         info = orchestrator.get_agents_info()
 
         # Also list available prompts from the prompt loader
         from agents.prompt_loader import list_available_prompts
+
         available_prompts = list_available_prompts()
 
-        return JSONResponse(content={
-            "success": True,
-            "data": {
-                **info,
-                "available_prompts": available_prompts,
-                "prompt_count": len(available_prompts),
-            },
-            "trace_id": trace_id,
-        })
+        return JSONResponse(
+            content={
+                "success": True,
+                "data": {
+                    **info,
+                    "available_prompts": available_prompts,
+                    "prompt_count": len(available_prompts),
+                },
+                "trace_id": trace_id,
+            }
+        )
     except Exception as e:
         logger.error("agents_info_failed error=%s", str(e), extra={"trace_id": trace_id})
         return JSONResponse(
@@ -1296,6 +1456,7 @@ async def get_agents_info(request: Request):
 # ---------------------------------------------------------------------------
 # AI/ML Endpoints — Predictive Analytics, Anomaly Detection, RAG
 # ---------------------------------------------------------------------------
+
 
 @app.post("/api/v1/predict/load")
 @count_executions(skill_name="predict_load")
@@ -1314,34 +1475,43 @@ async def predict_load(request: Request):
         if not isinstance(historical, list):
             raise HTTPException(status_code=400, detail="historical_data must be an array")
         if len(historical) > 10000:
-            raise HTTPException(status_code=400, detail="historical_data array too large (max 10000 points)")
+            raise HTTPException(
+                status_code=400, detail="historical_data array too large (max 10000 points)"
+            )
         if not isinstance(horizon, int) or horizon < 1 or horizon > 168:
             raise HTTPException(status_code=400, detail="horizon_hours must be between 1 and 168")
 
         import numpy as np
 
         from ml.predictive import LoadForecaster
+
         lf = LoadForecaster()
         data = np.array(historical, dtype=float)
         lf.train(data)
         predictions = lf.predict(horizon_hours=horizon)
-        metrics = lf.evaluate(data) if hasattr(lf, 'evaluate') else {}
+        metrics = lf.evaluate(data) if hasattr(lf, "evaluate") else {}
 
-        return JSONResponse(content={
-            "success": True,
-            "data": {
-                "predictions": predictions.tolist() if hasattr(predictions, 'tolist') else list(predictions),
-                "horizon_hours": horizon,
-                "input_points": len(historical),
-                "metrics": metrics,
-            },
-            "trace_id": trace_id,
-        })
+        return JSONResponse(
+            content={
+                "success": True,
+                "data": {
+                    "predictions": predictions.tolist()
+                    if hasattr(predictions, "tolist")
+                    else list(predictions),
+                    "horizon_hours": horizon,
+                    "input_points": len(historical),
+                    "metrics": metrics,
+                },
+                "trace_id": trace_id,
+            }
+        )
     except HTTPException:
         raise
     except Exception as e:
         logger.error("predict_load_failed error=%s", str(e), extra={"trace_id": trace_id})
-        return JSONResponse(status_code=500, content={"success": False, "errors": [str(e)], "trace_id": trace_id})
+        return JSONResponse(
+            status_code=500, content={"success": False, "errors": [str(e)], "trace_id": trace_id}
+        )
 
 
 @app.post("/api/v1/predict/fault")
@@ -1360,27 +1530,34 @@ async def predict_fault(request: Request):
         if not isinstance(features, list):
             raise HTTPException(status_code=400, detail="features must be an array")
         if len(features) > 1000:
-            raise HTTPException(status_code=400, detail="features array too large (max 1000 elements)")
+            raise HTTPException(
+                status_code=400, detail="features array too large (max 1000 elements)"
+            )
 
         import numpy as np
 
         from ml.predictive import FaultPredictor
+
         fp = FaultPredictor()
         X = np.array(features, dtype=float)
         if X.ndim == 1:
             X = X.reshape(1, -1)
         prediction = fp.predict(X)
 
-        return JSONResponse(content={
-            "success": True,
-            "data": prediction if isinstance(prediction, dict) else {"prediction": prediction},
-            "trace_id": trace_id,
-        })
+        return JSONResponse(
+            content={
+                "success": True,
+                "data": prediction if isinstance(prediction, dict) else {"prediction": prediction},
+                "trace_id": trace_id,
+            }
+        )
     except HTTPException:
         raise
     except Exception as e:
         logger.error("predict_fault_failed error=%s", str(e), extra={"trace_id": trace_id})
-        return JSONResponse(status_code=500, content={"success": False, "errors": [str(e)], "trace_id": trace_id})
+        return JSONResponse(
+            status_code=500, content={"success": False, "errors": [str(e)], "trace_id": trace_id}
+        )
 
 
 @app.post("/api/v1/predict/anomaly")
@@ -1404,22 +1581,27 @@ async def detect_anomalies(request: Request):
         import numpy as np
 
         from ml.predictive import AnomalyDetector
+
         ad = AnomalyDetector()
         X = np.array(data, dtype=float)
         if X.ndim == 1:
             X = X.reshape(-1, 1)
         result = ad.detect(X)
 
-        return JSONResponse(content={
-            "success": True,
-            "data": result,
-            "trace_id": trace_id,
-        })
+        return JSONResponse(
+            content={
+                "success": True,
+                "data": result,
+                "trace_id": trace_id,
+            }
+        )
     except HTTPException:
         raise
     except Exception as e:
         logger.error("anomaly_detection_failed error=%s", str(e), extra={"trace_id": trace_id})
-        return JSONResponse(status_code=500, content={"success": False, "errors": [str(e)], "trace_id": trace_id})
+        return JSONResponse(
+            status_code=500, content={"success": False, "errors": [str(e)], "trace_id": trace_id}
+        )
 
 
 @app.post("/api/v1/rag/query")
@@ -1439,32 +1621,43 @@ async def rag_query(request: Request):
 
         os.environ.setdefault("RAG_ALLOW_HASH_FALLBACK", "1")
         from knowledge.rag_engine import EngineeringKnowledgeBase
+
         kb = EngineeringKnowledgeBase()
         results = kb.search(query, top_k=top_k)
 
-        return JSONResponse(content={
-            "success": True,
-            "data": {
-                "query": query,
-                "results": results if isinstance(results, list) else str(results),
-                "top_k": top_k,
-                "standards_covered": [
-                    "IEEE 1584-2018", "IEC 60909", "IEEE 519-2022",
-                    "IEC 60255", "IEEE 3002.7", "IEEE 399", "IEEE 80",
-                ],
-            },
-            "trace_id": trace_id,
-        })
+        return JSONResponse(
+            content={
+                "success": True,
+                "data": {
+                    "query": query,
+                    "results": results if isinstance(results, list) else str(results),
+                    "top_k": top_k,
+                    "standards_covered": [
+                        "IEEE 1584-2018",
+                        "IEC 60909",
+                        "IEEE 519-2022",
+                        "IEC 60255",
+                        "IEEE 3002.7",
+                        "IEEE 399",
+                        "IEEE 80",
+                    ],
+                },
+                "trace_id": trace_id,
+            }
+        )
     except HTTPException:
         raise
     except Exception as e:
         logger.error("rag_query_failed error=%s", str(e), extra={"trace_id": trace_id})
-        return JSONResponse(status_code=500, content={"success": False, "errors": [str(e)], "trace_id": trace_id})
+        return JSONResponse(
+            status_code=500, content={"success": False, "errors": [str(e)], "trace_id": trace_id}
+        )
 
 
 # ---------------------------------------------------------------------------
 # SCADA Live Data Endpoint
 # ---------------------------------------------------------------------------
+
 
 @app.get("/api/v1/scada/live")
 async def get_scada_live_data(request: Request):
@@ -1478,37 +1671,43 @@ async def get_scada_live_data(request: Request):
     trace_id = getattr(request.state, "trace_id", "unknown")
     try:
         from scada_model.scada_model import MeasurementType, QualityFlag, SCADADatabase
+
         db = SCADADatabase()
 
         # Return a summary of the SCADA model
-        measurements = db.get_all_measurements() if hasattr(db, 'get_all_measurements') else []
-        switches = db.get_all_switches() if hasattr(db, 'get_all_switches') else []
+        measurements = db.get_all_measurements() if hasattr(db, "get_all_measurements") else []
+        switches = db.get_all_switches() if hasattr(db, "get_all_switches") else []
 
-        return JSONResponse(content={
-            "success": True,
-            "data": {
-                "measurement_count": len(measurements),
-                "switch_count": len(switches),
-                "measurement_types": [t.value for t in MeasurementType],
-                "quality_flags": [q.value for q in QualityFlag],
-                "iec61850_logical_nodes": {
-                    "MMXU": "Voltage, current, power measurements",
-                    "MSQI": "Sequence components & imbalance",
-                    "XCBR": "Circuit breaker positions",
-                    "XSWI": "Switch/disconnector positions",
+        return JSONResponse(
+            content={
+                "success": True,
+                "data": {
+                    "measurement_count": len(measurements),
+                    "switch_count": len(switches),
+                    "measurement_types": [t.value for t in MeasurementType],
+                    "quality_flags": [q.value for q in QualityFlag],
+                    "iec61850_logical_nodes": {
+                        "MMXU": "Voltage, current, power measurements",
+                        "MSQI": "Sequence components & imbalance",
+                        "XCBR": "Circuit breaker positions",
+                        "XSWI": "Switch/disconnector positions",
+                    },
+                    "supported_protocols": ["IEC 61850", "IEC 60870-5-104", "Modbus TCP"],
                 },
-                "supported_protocols": ["IEC 61850", "IEC 60870-5-104", "Modbus TCP"],
-            },
-            "trace_id": trace_id,
-        })
+                "trace_id": trace_id,
+            }
+        )
     except Exception as e:
         logger.error("scada_live_failed error=%s", str(e), extra={"trace_id": trace_id})
-        return JSONResponse(status_code=500, content={"success": False, "errors": [str(e)], "trace_id": trace_id})
+        return JSONResponse(
+            status_code=500, content={"success": False, "errors": [str(e)], "trace_id": trace_id}
+        )
 
 
 # ---------------------------------------------------------------------------
 # Digital Twin Sync Endpoint
 # ---------------------------------------------------------------------------
+
 
 @app.get("/api/v1/digital-twin/status")
 async def get_digital_twin_status(request: Request):
@@ -1529,33 +1728,38 @@ async def get_digital_twin_status(request: Request):
 
         # Get state store info
         state_info = {}
-        if hasattr(store, 'get_state'):
+        if hasattr(store, "get_state"):
             state = store.get_state()
             state_info = {"entities": len(state) if isinstance(state, dict) else 0}
-        elif hasattr(store, 'state'):
+        elif hasattr(store, "state"):
             state_info = {"entities": len(store.state) if isinstance(store.state, dict) else 0}
         else:
             state_info = {"available": True}
 
-        return JSONResponse(content={
-            "success": True,
-            "data": {
-                "state_store": state_info,
-                "event_bus": {"available": True},
-                "validation_gateway": {"available": True},
-                "sync_protocols": ["AWS IoT TwinMaker", "Azure Digital Twins"],
-                "supported_models": ["Substation", "Bus", "Line", "Transformer", "Generator"],
-            },
-            "trace_id": trace_id,
-        })
+        return JSONResponse(
+            content={
+                "success": True,
+                "data": {
+                    "state_store": state_info,
+                    "event_bus": {"available": True},
+                    "validation_gateway": {"available": True},
+                    "sync_protocols": ["AWS IoT TwinMaker", "Azure Digital Twins"],
+                    "supported_models": ["Substation", "Bus", "Line", "Transformer", "Generator"],
+                },
+                "trace_id": trace_id,
+            }
+        )
     except Exception as e:
         logger.error("digital_twin_status_failed error=%s", str(e), extra={"trace_id": trace_id})
-        return JSONResponse(status_code=500, content={"success": False, "errors": [str(e)], "trace_id": trace_id})
+        return JSONResponse(
+            status_code=500, content={"success": False, "errors": [str(e)], "trace_id": trace_id}
+        )
 
 
 # ---------------------------------------------------------------------------
 # MFA Endpoints
 # ---------------------------------------------------------------------------
+
 
 @app.post("/api/v1/auth/mfa/totp/setup")
 async def setup_totp(request: Request):
@@ -1569,25 +1773,30 @@ async def setup_totp(request: Request):
             raise HTTPException(status_code=400, detail="user_id is required")
 
         from security.mfa import TOTPProvider
+
         totp = TOTPProvider()
         secret = totp.generate_secret(user_id)
         qr_uri = totp.generate_qr_code(user_id, secret)
         totp.generate_backup_codes(user_id)
 
-        return JSONResponse(content={
-            "success": True,
-            "data": {
-                "qr_code_uri": qr_uri,
-                # Note: secret and backup_codes are NOT exposed in the API response
-                # to prevent credential leakage. They are stored server-side only.
-            },
-            "trace_id": trace_id,
-        })
+        return JSONResponse(
+            content={
+                "success": True,
+                "data": {
+                    "qr_code_uri": qr_uri,
+                    # Note: secret and backup_codes are NOT exposed in the API response
+                    # to prevent credential leakage. They are stored server-side only.
+                },
+                "trace_id": trace_id,
+            }
+        )
     except HTTPException:
         raise
     except Exception as e:
         logger.error("totp_setup_failed error=%s", str(e), extra={"trace_id": trace_id})
-        return JSONResponse(status_code=500, content={"success": False, "errors": [str(e)], "trace_id": trace_id})
+        return JSONResponse(
+            status_code=500, content={"success": False, "errors": [str(e)], "trace_id": trace_id}
+        )
 
 
 @app.post("/api/v1/auth/mfa/totp/verify")
@@ -1603,24 +1812,30 @@ async def verify_totp(request: Request):
             raise HTTPException(status_code=400, detail="user_id and code are required")
 
         from security.mfa import MFAOrchestrator
+
         mfa = MFAOrchestrator()
         verified = mfa.verify_totp(user_id, code)
 
-        return JSONResponse(content={
-            "success": True,
-            "data": {"verified": verified, "user_id": user_id},
-            "trace_id": trace_id,
-        })
+        return JSONResponse(
+            content={
+                "success": True,
+                "data": {"verified": verified, "user_id": user_id},
+                "trace_id": trace_id,
+            }
+        )
     except HTTPException:
         raise
     except Exception as e:
         logger.error("totp_verify_failed error=%s", str(e), extra={"trace_id": trace_id})
-        return JSONResponse(status_code=500, content={"success": False, "errors": [str(e)], "trace_id": trace_id})
+        return JSONResponse(
+            status_code=500, content={"success": False, "errors": [str(e)], "trace_id": trace_id}
+        )
 
 
 # ---------------------------------------------------------------------------
 # ABAC Endpoint
 # ---------------------------------------------------------------------------
+
 
 @app.post("/api/v1/auth/abac/check")
 async def check_abac(request: Request):
@@ -1638,29 +1853,35 @@ async def check_abac(request: Request):
             raise HTTPException(status_code=400, detail="user, resource, and action are required")
 
         from security.abac import create_default_etap_abac_engine
+
         engine = create_default_etap_abac_engine()
         allowed = engine.evaluate(user_attrs, resource, action, environment)
 
-        return JSONResponse(content={
-            "success": True,
-            "data": {
-                "allowed": allowed,
-                "user": user_attrs,
-                "resource": resource,
-                "action": action,
-            },
-            "trace_id": trace_id,
-        })
+        return JSONResponse(
+            content={
+                "success": True,
+                "data": {
+                    "allowed": allowed,
+                    "user": user_attrs,
+                    "resource": resource,
+                    "action": action,
+                },
+                "trace_id": trace_id,
+            }
+        )
     except HTTPException:
         raise
     except Exception as e:
         logger.error("abac_check_failed error=%s", str(e), extra={"trace_id": trace_id})
-        return JSONResponse(status_code=500, content={"success": False, "errors": [str(e)], "trace_id": trace_id})
+        return JSONResponse(
+            status_code=500, content={"success": False, "errors": [str(e)], "trace_id": trace_id}
+        )
 
 
 # ---------------------------------------------------------------------------
 # RASP Stats Endpoint
 # ---------------------------------------------------------------------------
+
 
 @app.get("/api/v1/security/rasp/stats")
 async def get_rasp_stats(request: Request):
@@ -1669,24 +1890,30 @@ async def get_rasp_stats(request: Request):
     trace_id = getattr(request.state, "trace_id", "unknown")
     try:
         from security.rasp import create_default_rasp_engine
+
         # Use the app-level singleton RASP engine to get accurate stats
         if hasattr(app.state, "rasp_engine"):
             rasp = app.state.rasp_engine
         else:
             rasp = create_default_rasp_engine()
         stats = rasp.get_stats()
-        return JSONResponse(content={
-            "success": True,
-            "data": stats,
-            "trace_id": trace_id,
-        })
+        return JSONResponse(
+            content={
+                "success": True,
+                "data": stats,
+                "trace_id": trace_id,
+            }
+        )
     except Exception as e:
-        return JSONResponse(status_code=500, content={"success": False, "errors": [str(e)], "trace_id": trace_id})
+        return JSONResponse(
+            status_code=500, content={"success": False, "errors": [str(e)], "trace_id": trace_id}
+        )
 
 
 # ---------------------------------------------------------------------------
 # SIEM Events Endpoint
 # ---------------------------------------------------------------------------
+
 
 @app.post("/api/v1/security/siem/event")
 async def submit_siem_event(request: Request):
@@ -1705,13 +1932,12 @@ async def submit_siem_event(request: Request):
         if severity not in _VALID_SEVERITIES:
             raise HTTPException(
                 status_code=400,
-                detail=f"Invalid severity '{severity}'. Must be one of: {', '.join(sorted(_VALID_SEVERITIES))}"
+                detail=f"Invalid severity '{severity}'. Must be one of: {', '.join(sorted(_VALID_SEVERITIES))}",
             )
         event_type = body.get("event_type", "custom")
         if not event_type or len(event_type) > 100:
             raise HTTPException(
-                status_code=400,
-                detail="event_type must be a non-empty string (max 100 chars)"
+                status_code=400, detail="event_type must be a non-empty string (max 100 chars)"
             )
         event = SecurityEvent(
             event_id=body.get("event_id", str(uuid_mod.uuid4())),
@@ -1726,19 +1952,24 @@ async def submit_siem_event(request: Request):
         if forwarder and hasattr(forwarder, "forward_event"):
             await forwarder.forward_event(event)
 
-        return JSONResponse(content={
-            "success": True,
-            "data": {"event_id": event.event_id, "forwarded": forwarder is not None},
-            "trace_id": trace_id,
-        })
+        return JSONResponse(
+            content={
+                "success": True,
+                "data": {"event_id": event.event_id, "forwarded": forwarder is not None},
+                "trace_id": trace_id,
+            }
+        )
     except Exception as e:
         logger.error("siem_event_failed error=%s", str(e), extra={"trace_id": trace_id})
-        return JSONResponse(status_code=500, content={"success": False, "errors": [str(e)], "trace_id": trace_id})
+        return JSONResponse(
+            status_code=500, content={"success": False, "errors": [str(e)], "trace_id": trace_id}
+        )
 
 
 # ---------------------------------------------------------------------------
 # Benchmark endpoint — CPU vs GPU, Sparse vs Dense, Sequential vs Parallel
 # ---------------------------------------------------------------------------
+
 
 @app.get("/api/v1/benchmark")
 async def benchmark_solvers(request: Request):
@@ -1753,6 +1984,7 @@ async def benchmark_solvers(request: Request):
         # GPU solver benchmark
         try:
             from engine.gpu_solver import GPUSolver
+
             gpu_solver = GPUSolver()
             results["gpu_solver"] = {
                 "device": gpu_solver.device_name,
@@ -1765,6 +1997,7 @@ async def benchmark_solvers(request: Request):
         # Sparse matrix memory comparison
         try:
             from engine.sparse_solver import SparseYBus
+
             builder = SparseYBus()
             sparse_results = []
             for n in [14, 30, 118]:
@@ -1772,14 +2005,16 @@ async def benchmark_solvers(request: Request):
                 ybus = builder.build_sparse_ybus(buses, branches)
                 dense_bytes = n * n * 16
                 sparse_bytes = ybus.data.nbytes + ybus.indices.nbytes + ybus.indptr.nbytes
-                sparse_results.append({
-                    "n_buses": n,
-                    "nnz": int(ybus.nnz),
-                    "density": round(float(ybus.nnz) / (n * n), 4),
-                    "dense_bytes": dense_bytes,
-                    "sparse_bytes": sparse_bytes,
-                    "savings_pct": round((1 - sparse_bytes / dense_bytes) * 100, 1),
-                })
+                sparse_results.append(
+                    {
+                        "n_buses": n,
+                        "nnz": int(ybus.nnz),
+                        "density": round(float(ybus.nnz) / (n * n), 4),
+                        "dense_bytes": dense_bytes,
+                        "sparse_bytes": sparse_bytes,
+                        "savings_pct": round((1 - sparse_bytes / dense_bytes) * 100, 1),
+                    }
+                )
             results["sparse_matrix"] = sparse_results
         except Exception as e:
             results["sparse_matrix"] = {"error": str(e)}
@@ -1787,6 +2022,7 @@ async def benchmark_solvers(request: Request):
         # Redis cache stats
         try:
             from engine.caching import StudyCache
+
             cache = StudyCache(
                 redis_url=os.environ.get("REDIS_URL", "redis://localhost:6379"),
             )
@@ -1795,11 +2031,13 @@ async def benchmark_solvers(request: Request):
         except Exception as e:
             results["cache"] = {"error": str(e), "available": False}
 
-        return JSONResponse(content={
-            "success": True,
-            "data": results,
-            "trace_id": trace_id,
-        })
+        return JSONResponse(
+            content={
+                "success": True,
+                "data": results,
+                "trace_id": trace_id,
+            }
+        )
     except Exception as e:
         logger.error("benchmark_failed error=%s", str(e), extra={"trace_id": trace_id})
         return JSONResponse(
@@ -1810,6 +2048,7 @@ async def benchmark_solvers(request: Request):
 
 # Error handlers
 # ---------------------------------------------------------------------------
+
 
 @app.exception_handler(ValueError)
 async def value_error_handler(request: Request, exc: ValueError):
@@ -1834,6 +2073,7 @@ async def generic_exception_handler(request: Request, exc: Exception):
 # ---------------------------------------------------------------------------
 # WebSocket API for Real-Time Study Updates
 # ---------------------------------------------------------------------------
+
 
 class ConnectionManager:
     """Manage WebSocket connections for real-time study updates."""
@@ -1872,16 +2112,25 @@ _ws_manager = ConnectionManager()
 # Guard Skills Endpoints (guard-skills integration)
 # ---------------------------------------------------------------------------
 
+
 class GuardReviewRequest(BaseModel):
     """Request schema for guard review endpoints."""
-    source: str = Field(..., description="Source code or documentation to review", min_length=1, max_length=500_000)
-    guard_type: str = Field(default="all", description="Guard type: code, test, docs, ai_failure_modes, or all")
+
+    source: str = Field(
+        ..., description="Source code or documentation to review", min_length=1, max_length=500_000
+    )
+    guard_type: str = Field(
+        default="all", description="Guard type: code, test, docs, ai_failure_modes, or all"
+    )
     language: str = Field(default="python", description="Language hint for the scanner")
-    context: Optional[Dict[str, Any]] = Field(default=None, description="Additional context (known symbols, etc.)")
+    context: Optional[Dict[str, Any]] = Field(
+        default=None, description="Additional context (known symbols, etc.)"
+    )
 
 
 class GuardReviewResponse(BaseModel):
     """Response schema for guard review endpoints."""
+
     success: bool
     guard_results: Dict[str, Any] = {}
     all_passed: bool = True
@@ -1983,63 +2232,68 @@ async def guard_info(request: Request):
         from guards import AI_FAILURE_MODES
         from guards.base import GuardSeverity  # noqa: F401
 
-        return JSONResponse(content={
-            "success": True,
-            "data": {
-                "guards": {
-                    "code_guard": {
-                        "name": "Code Guard",
-                        "description": "Production code quality gate: 23 clean-code rules + 14 AI failure modes",
-                        "rules_checked": 23,
+        return JSONResponse(
+            content={
+                "success": True,
+                "data": {
+                    "guards": {
+                        "code_guard": {
+                            "name": "Code Guard",
+                            "description": "Production code quality gate: 23 clean-code rules + 14 AI failure modes",
+                            "rules_checked": 23,
+                        },
+                        "test_guard": {
+                            "name": "Test Guard",
+                            "description": "Test code quality gate: 9 universal rules + 3 LLM-specific rules",
+                            "rules_checked": 12,
+                        },
+                        "docs_guard": {
+                            "name": "Docs Guard",
+                            "description": "Documentation accuracy gate: 10 rules for claim verification",
+                            "rules_checked": 10,
+                        },
+                        "ai_failure_modes": {
+                            "name": "AI Failure Mode Detector",
+                            "description": "Detects 14 systematic LLM code-generation failure patterns",
+                            "failure_modes": [
+                                {
+                                    "id": fm.id,
+                                    "name": fm.name,
+                                    "severity": fm.severity.value,
+                                    "description": fm.description,
+                                    "research_source": fm.research_source,
+                                }
+                                for fm in AI_FAILURE_MODES
+                            ],
+                        },
                     },
-                    "test_guard": {
-                        "name": "Test Guard",
-                        "description": "Test code quality gate: 9 universal rules + 3 LLM-specific rules",
-                        "rules_checked": 12,
+                    "severity_levels": {
+                        "must_fix": "Blocks execution/merge — security or correctness issue",
+                        "should_fix": "Should fix before shipping — design defect or maintenance drag",
+                        "worth_noting": "Informational — polish or architecture suggestion",
                     },
-                    "docs_guard": {
-                        "name": "Docs Guard",
-                        "description": "Documentation accuracy gate: 10 rules for claim verification",
-                        "rules_checked": 10,
-                    },
-                    "ai_failure_modes": {
-                        "name": "AI Failure Mode Detector",
-                        "description": "Detects 14 systematic LLM code-generation failure patterns",
-                        "failure_modes": [
-                            {
-                                "id": fm.id,
-                                "name": fm.name,
-                                "severity": fm.severity.value,
-                                "description": fm.description,
-                                "research_source": fm.research_source,
-                            }
-                            for fm in AI_FAILURE_MODES
-                        ],
-                    },
+                    "source": "Adapted from guard-skills (github.com/amElnagdy/guard-skills)",
                 },
-                "severity_levels": {
-                    "must_fix": "Blocks execution/merge — security or correctness issue",
-                    "should_fix": "Should fix before shipping — design defect or maintenance drag",
-                    "worth_noting": "Informational — polish or architecture suggestion",
-                },
-                "source": "Adapted from guard-skills (github.com/amElnagdy/guard-skills)",
-            },
-            "trace_id": trace_id,
-        })
+                "trace_id": trace_id,
+            }
+        )
     except ImportError:
-        return JSONResponse(content={
-            "success": True,
-            "data": {
-                "guards": {},
-                "note": "Guards module not available in this deployment",
-            },
-            "trace_id": trace_id,
-        })
+        return JSONResponse(
+            content={
+                "success": True,
+                "data": {
+                    "guards": {},
+                    "note": "Guards module not available in this deployment",
+                },
+                "trace_id": trace_id,
+            }
+        )
 
 
 # ---------------------------------------------------------------------------
 # CLI entrypoint
 # ---------------------------------------------------------------------------
+
 
 def main() -> None:
     """Entry point for the engineering service."""
@@ -2049,14 +2303,23 @@ def main() -> None:
 
     parser = argparse.ArgumentParser(
         prog="engineering_service",
-        description="Ahmed etap Engineering Service - FastAPI server for power systems analysis"
+        description="Ahmed etap Engineering Service - FastAPI server for power systems analysis",
     )
-    parser.add_argument("--host", type=str, default=os.environ.get("ENGINEERING_SERVICE_HOST", "0.0.0.0"),
-                        help="Host to bind (default: 0.0.0.0)")
-    parser.add_argument("--port", type=int, default=int(os.environ.get("ENGINEERING_SERVICE_PORT", os.environ.get("PORT", "8000"))),
-                        help="Port to bind (default: 8000, or PORT env var for HF Spaces)")
-    parser.add_argument("--workers", type=int, default=1,
-                        help="Number of worker processes (default: 1)")
+    parser.add_argument(
+        "--host",
+        type=str,
+        default=os.environ.get("ENGINEERING_SERVICE_HOST", "0.0.0.0"),
+        help="Host to bind (default: 0.0.0.0)",
+    )
+    parser.add_argument(
+        "--port",
+        type=int,
+        default=int(os.environ.get("ENGINEERING_SERVICE_PORT", os.environ.get("PORT", "8000"))),
+        help="Port to bind (default: 8000, or PORT env var for HF Spaces)",
+    )
+    parser.add_argument(
+        "--workers", type=int, default=1, help="Number of worker processes (default: 1)"
+    )
     args = parser.parse_args()
 
     logger.info("Starting Engineering Service on %s:%d", args.host, args.port)

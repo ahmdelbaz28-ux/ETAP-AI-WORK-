@@ -129,12 +129,14 @@ class TestSCADAScenario:
         }
         # Add an anomalous measurement
         anomalous = sample_measurements.copy()
-        anomalous.append({
-            "logical_node": "MMXU4",
-            "bus_id": "4",
-            "voltage_magnitude_kv": 0.01,
-            "voltage_angle_deg": 45.0,
-        })
+        anomalous.append(
+            {
+                "logical_node": "MMXU4",
+                "bus_id": "4",
+                "voltage_magnitude_kv": 0.01,
+                "voltage_angle_deg": 45.0,
+            }
+        )
         result = agent.map_to_bus_data(
             measurements=anomalous,
             bus_mapping=bus_mapping,

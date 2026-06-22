@@ -48,33 +48,34 @@ def check_readme_frontmatter():
     readme_path = os.path.join(HF_DIR, "README.md")
     if not os.path.exists(readme_path):
         raise FileNotFoundError("README.md not found in hf-space/")
-    
+
     with open(readme_path, "r", encoding="utf-8") as f:
         content = f.read()
-    
+
     m = re.match(r"^---\n(.*?)\n---\n", content, re.DOTALL)
     if not m:
         raise ValueError("Missing YAML front matter (--- ... ---)")
-    
+
     import yaml
+
     meta = yaml.safe_load(m.group(1))
-    
+
     if not isinstance(meta, dict):
         raise ValueError("YAML front matter is not a mapping")
-    
+
     allowed_colors = {"red", "yellow", "green", "blue", "indigo", "purple", "pink", "gray"}
     for key in ("colorFrom", "colorTo"):
         v = meta.get(key)
         if v not in allowed_colors:
             raise ValueError(f"{key}: {v!r} not in {sorted(allowed_colors)}")
-    
+
     allowed_sdks = {"docker", "gradio", "streamlit", "static"}
     if meta.get("sdk") not in allowed_sdks:
         raise ValueError(f"sdk: {meta.get('sdk')!r} not in {sorted(allowed_sdks)}")
-    
+
     if not meta.get("title"):
         raise ValueError("title is missing or empty")
-    
+
     return True
 
 
@@ -112,7 +113,7 @@ def check_requirements():
     path = os.path.join(HF_DIR, "requirements.hf.txt")
     if not os.path.exists(path):
         raise FileNotFoundError("requirements.hf.txt not found in hf-space/")
-    
+
     forbidden_pkgs = ["pywin32", "pyautogui", "opencv-python", "cupy"]
     with open(path, "r") as f:
         for line in f:
@@ -134,11 +135,13 @@ def check_docker_available():
 def check_docker_build():
     """Actually build the Docker image to verify it works."""
     dockerfile = os.path.join(HF_DIR, "Dockerfile")
-    
+
     if not check_docker_available():
-        warnings.append("Docker not available locally - skipping build check (will be validated on GitHub Actions)")
+        warnings.append(
+            "Docker not available locally - skipping build check (will be validated on GitHub Actions)"
+        )
         return None  # None = warning, not failure
-    
+
     with tempfile.TemporaryDirectory() as tmpdir:
         # Copy hf-space to temp dir for isolated build
         for item in os.listdir(HF_DIR):
@@ -150,70 +153,93 @@ def check_docker_build():
                 shutil.copytree(src, dst)
             else:
                 shutil.copy2(src, dst)
-        
+
         result = subprocess.run(
             ["docker", "build", "-t", "hf-guard-test:latest", tmpdir],
-            capture_output=True, text=True, timeout=300
+            capture_output=True,
+            text=True,
+            timeout=300,
         )
-        
+
         if result.returncode != 0:
             lines = result.stderr.strip().split("\n")
             error_tail = "\n".join(lines[-10:])
             raise RuntimeError(f"Docker build failed:\n{error_tail}")
-    
+
     return True
 
 
 def check_health_endpoint():
     """Run the Docker container and verify health endpoint."""
     container_name = "hf-guard-test-container"
-    
+
     if not check_docker_available():
-        warnings.append("Docker not available locally - skipping health check (will be validated on GitHub Actions)")
+        warnings.append(
+            "Docker not available locally - skipping health check (will be validated on GitHub Actions)"
+        )
         return None  # None = warning, not failure
-    
+
     try:
         # Stop any existing container
-        subprocess.run(["docker", "rm", "-f", container_name], 
-                      capture_output=True, timeout=10)
-        
+        subprocess.run(["docker", "rm", "-f", container_name], capture_output=True, timeout=10)
+
         # Run container
         result = subprocess.run(
-            ["docker", "run", "-d", "--name", container_name, "-p", "7861:7860", "hf-guard-test:latest"],
-            capture_output=True, text=True, timeout=30
+            [
+                "docker",
+                "run",
+                "-d",
+                "--name",
+                container_name,
+                "-p",
+                "7861:7860",
+                "hf-guard-test:latest",
+            ],
+            capture_output=True,
+            text=True,
+            timeout=30,
         )
-        
+
         if result.returncode != 0:
             raise RuntimeError(f"Failed to start container: {result.stderr}")
-        
+
         # Wait for startup
         import time
+
         time.sleep(5)
-        
+
         # Test health endpoint
         result = subprocess.run(
-            ["curl", "-s", "-o", "/dev/null", "-w", "%{http_code}", "http://localhost:7861/healthz"],
-            capture_output=True, text=True, timeout=10
+            [
+                "curl",
+                "-s",
+                "-o",
+                "/dev/null",
+                "-w",
+                "%{http_code}",
+                "http://localhost:7861/healthz",
+            ],
+            capture_output=True,
+            text=True,
+            timeout=10,
         )
-        
+
         status_code = result.stdout.strip()
         if status_code != "200":
             raise RuntimeError(f"Health check returned HTTP {status_code} (expected 200)")
-        
+
         # Test root endpoint
         result = subprocess.run(
-            ["curl", "-s", "http://localhost:7861/"],
-            capture_output=True, text=True, timeout=10
+            ["curl", "-s", "http://localhost:7861/"], capture_output=True, text=True, timeout=10
         )
-        
+
         if "AhmedETAP" not in result.stdout:
             raise RuntimeError("Root endpoint did not return expected content")
-        
+
         return True
-    
+
     finally:
-        subprocess.run(["docker", "rm", "-f", container_name], 
-                      capture_output=True, timeout=10)
+        subprocess.run(["docker", "rm", "-f", container_name], capture_output=True, timeout=10)
 
 
 def check_no_secrets():
@@ -226,7 +252,7 @@ def check_no_secrets():
         r"password\s*[:=]\s*['\"][^'\"]+['\"]",
         r"secret\s*[:=]\s*['\"][^'\"]+['\"]",
     ]
-    
+
     for root, dirs, files in os.walk(HF_DIR):
         dirs[:] = [d for d in dirs if d != ".git"]
         for f in files:
@@ -236,26 +262,28 @@ def check_no_secrets():
                     content = fh.read()
                 for pattern in secret_patterns:
                     if re.search(pattern, content, re.IGNORECASE):
-                        raise ValueError(f"Potential secret found in {os.path.relpath(filepath, HF_DIR)}")
+                        raise ValueError(
+                            f"Potential secret found in {os.path.relpath(filepath, HF_DIR)}"
+                        )
             except (UnicodeDecodeError, PermissionError):
                 pass
-    
+
     return True
 
 
 def cleanup():
     """Clean up Docker test artifacts."""
-    subprocess.run(["docker", "rm", "-f", "hf-guard-test-container"], 
-                  capture_output=True, timeout=10)
-    subprocess.run(["docker", "rmi", "hf-guard-test:latest"], 
-                  capture_output=True, timeout=10)
+    subprocess.run(
+        ["docker", "rm", "-f", "hf-guard-test-container"], capture_output=True, timeout=10
+    )
+    subprocess.run(["docker", "rmi", "hf-guard-test:latest"], capture_output=True, timeout=10)
 
 
 def main():
-    print(f"\n{BOLD}{'='*60}{RESET}")
+    print(f"\n{BOLD}{'=' * 60}{RESET}")
     print(f"{BOLD}  HF Space Build Guard - Pre-Push Validation{RESET}")
-    print(f"{BOLD}{'='*60}{RESET}\n")
-    
+    print(f"{BOLD}{'=' * 60}{RESET}\n")
+
     try:
         check("README.md YAML front matter", check_readme_frontmatter)
         check("No binary files (HF rejects them)", check_no_binary_files)
@@ -266,9 +294,9 @@ def main():
         check("Health endpoint responds HTTP 200", check_health_endpoint)
     finally:
         cleanup()
-    
-    print(f"\n{BOLD}{'='*60}{RESET}")
-    
+
+    print(f"\n{BOLD}{'=' * 60}{RESET}")
+
     if errors:
         print(f"\n{RED}{BOLD}FAILED - {len(errors)} critical error(s):{RESET}")
         for e in errors:

@@ -10,6 +10,7 @@ Design:
 Trace context is propagated via the ``trace_id`` field in ACP envelopes. The
 router extracts the trace_id and passes it to the runtime, which creates a span.
 """
+
 from __future__ import annotations
 
 import json
@@ -31,6 +32,7 @@ __all__ = [
 
 
 # ------------------------------------------------------------------ TraceContext
+
 
 @dataclass(frozen=True, slots=True)
 class TraceContext:
@@ -64,6 +66,7 @@ class TraceContext:
 
 
 # ------------------------------------------------------------------ Span
+
 
 @dataclass(frozen=True, slots=True)
 class Span:
@@ -123,6 +126,7 @@ class SpanStatus:
 
 # ------------------------------------------------------------------ Tracer (ABC)
 
+
 class Tracer:
     """Abstract tracer interface.
 
@@ -172,10 +176,12 @@ class Tracer:
     def _generate_span_id() -> str:
         """Generate a short unique span id."""
         import random
+
         return f"{random.getrandbits(64):016x}"
 
 
 # ------------------------------------------------------------------ NullTracer
+
 
 class NullTracer(Tracer):
     """No-op tracer."""
@@ -185,6 +191,7 @@ class NullTracer(Tracer):
 
 
 # ------------------------------------------------------------------ InMemoryTracer
+
 
 class InMemoryTracer(Tracer):
     """Stores all spans in a list for testing.
@@ -212,6 +219,7 @@ class InMemoryTracer(Tracer):
 
 
 # ------------------------------------------------------------------ JsonTracer
+
 
 class JsonTracer(Tracer):
     """Append-only JSON line tracer to a file.

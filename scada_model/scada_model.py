@@ -1,4 +1,3 @@
-
 """
 SCADA Data Model - Real-Time Grid State
 =========================================
@@ -18,6 +17,7 @@ import numpy as np
 # ============================================================
 # MEASUREMENT TYPES
 # ============================================================
+
 
 class MeasurementType(Enum):
     VOLTAGE_MAGNITUDE = "voltage_magnitude"
@@ -42,6 +42,7 @@ class QualityFlag(Enum):
 @dataclass
 class Measurement:
     """Single SCADA measurement point."""
+
     measurement_id: str
     measurement_type: MeasurementType
     element_id: str  # Bus, line, transformer ID
@@ -64,13 +65,14 @@ class Measurement:
             "value": self.value,
             "timestamp": self.timestamp,
             "quality": self.quality.value,
-            "confidence": self.confidence
+            "confidence": self.confidence,
         }
 
 
 # ============================================================
 # BREAKER / SWITCH MODEL
 # ============================================================
+
 
 class SwitchStatus(Enum):
     CLOSED = "closed"
@@ -82,9 +84,10 @@ class SwitchStatus(Enum):
 @dataclass
 class SwitchDevice:
     """Circuit breaker or disconnect switch model."""
+
     device_id: str
     from_element: str  # Bus or node ID
-    to_element: str    # Bus or node ID
+    to_element: str  # Bus or node ID
     status: SwitchStatus = SwitchStatus.CLOSED
     rated_current: float = 1000.0  # Amps
     trip_count: int = 0
@@ -116,13 +119,14 @@ class SwitchDevice:
             "rated_current": self.rated_current,
             "trip_count": self.trip_count,
             "protection_enabled": self.protection_enabled,
-            "auto_reclosing_enabled": self.auto_reclosing_enabled
+            "auto_reclosing_enabled": self.auto_reclosing_enabled,
         }
 
 
 # ============================================================
 # SCADA MEASUREMENT DATABASE
 # ============================================================
+
 
 class SCADADatabase:
     """
@@ -154,7 +158,9 @@ class SCADADatabase:
             self.measurement_history[mid] = []
         self.measurement_history[mid].append(measurement)
         if len(self.measurement_history[mid]) > self.max_history_per_point:
-            self.measurement_history[mid] = self.measurement_history[mid][-self.max_history_per_point:]
+            self.measurement_history[mid] = self.measurement_history[mid][
+                -self.max_history_per_point :
+            ]
 
     def get_measurement(self, measurement_id: str) -> Optional[Measurement]:
         return self.measurements.get(measurement_id)
@@ -224,8 +230,9 @@ class SCADADatabase:
         """Get all switches between two elements."""
         results = []
         for s in self.switch_devices.values():
-            if (s.from_element == element1 and s.to_element == element2) or \
-               (s.from_element == element2 and s.to_element == element1):
+            if (s.from_element == element1 and s.to_element == element2) or (
+                s.from_element == element2 and s.to_element == element1
+            ):
                 results.append(s)
         return results
 
@@ -248,7 +255,9 @@ class SCADADatabase:
                     if m.is_valid():
                         vang = m.value
                     break
-            voltages.append(complex(vmag * np.cos(np.radians(vang)), vmag * np.sin(np.radians(vang))))
+            voltages.append(
+                complex(vmag * np.cos(np.radians(vang)), vmag * np.sin(np.radians(vang)))
+            )
         return np.array(voltages)
 
     def get_power_injection_vector(self, bus_ids: List[str]) -> np.ndarray:
@@ -283,5 +292,5 @@ class SCADADatabase:
             "closed_switches": len(self.get_closed_switches()),
             "expired_measurements": len(self.get_expired_measurements()),
             "measurements_by_type": type_counts,
-            "history_points": sum(len(h) for h in self.measurement_history.values())
+            "history_points": sum(len(h) for h in self.measurement_history.values()),
         }

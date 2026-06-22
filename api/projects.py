@@ -43,12 +43,14 @@ from api.dependencies import (
 # Combined auth dependency (API key OR JWT)
 # ---------------------------------------------------------------------------
 
+
 async def _require_api_key_or_jwt(
     x_api_key: str = Header(default="", alias="X-API-Key"),
     authorization: str = Header(default="", alias="Authorization"),
     db: AsyncSession = Depends(get_db),  # noqa: B008
 ) -> str:
     import hmac
+
     # Try API key first
     if API_KEY and x_api_key and hmac.compare_digest(x_api_key, API_KEY):
         return "api_key"
@@ -67,6 +69,7 @@ async def _require_api_key_or_jwt(
 # ---------------------------------------------------------------------------
 # Enums
 # ---------------------------------------------------------------------------
+
 
 class ProjectStatus(str, Enum):
     """Allowed values for project status."""
@@ -102,14 +105,13 @@ class StudyStatus(str, Enum):
 # SQLAlchemy ORM models
 # ---------------------------------------------------------------------------
 
+
 class Project(Base):
     """Persisted power-system project."""
 
     __tablename__ = "projects"
 
-    id: Mapped[str] = mapped_column(
-        String(36), primary_key=True, default=lambda: str(uuid.uuid4())
-    )
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     name: Mapped[str] = mapped_column(String(255), nullable=False)
     description: Mapped[Optional[str]] = mapped_column(String(2000), nullable=True)
     system_config: Mapped[Optional[dict]] = mapped_column(JSON, nullable=True)
@@ -123,9 +125,7 @@ class Project(Base):
         onupdate=lambda: datetime.now(timezone.utc),
     )
     created_by: Mapped[str] = mapped_column(String(36), nullable=False)
-    status: Mapped[str] = mapped_column(
-        String(32), default=ProjectStatus.ACTIVE.value
-    )
+    status: Mapped[str] = mapped_column(String(32), default=ProjectStatus.ACTIVE.value)
 
 
 class StudyResult(Base):
@@ -133,34 +133,25 @@ class StudyResult(Base):
 
     __tablename__ = "study_results"
 
-    id: Mapped[str] = mapped_column(
-        String(36), primary_key=True, default=lambda: str(uuid.uuid4())
-    )
-    project_id: Mapped[str] = mapped_column(
-        String(36), index=True, nullable=False
-    )
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    project_id: Mapped[str] = mapped_column(String(36), index=True, nullable=False)
     study_type: Mapped[str] = mapped_column(String(64), nullable=False)
-    status: Mapped[str] = mapped_column(
-        String(32), default=StudyStatus.PENDING.value
-    )
+    status: Mapped[str] = mapped_column(String(32), default=StudyStatus.PENDING.value)
     config: Mapped[Optional[dict]] = mapped_column(JSON, nullable=True)
     results: Mapped[Optional[dict]] = mapped_column(JSON, nullable=True)
-    error_message: Mapped[Optional[str]] = mapped_column(
-        String(2000), nullable=True
-    )
+    error_message: Mapped[Optional[str]] = mapped_column(String(2000), nullable=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         default=lambda: datetime.now(timezone.utc),
     )
-    completed_at: Mapped[Optional[datetime]] = mapped_column(
-        DateTime(timezone=True), nullable=True
-    )
+    completed_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
     created_by: Mapped[str] = mapped_column(String(36), nullable=False)
 
 
 # ---------------------------------------------------------------------------
 # Pydantic v2 schemas — Projects
 # ---------------------------------------------------------------------------
+
 
 class ProjectCreateRequest(BaseModel):
     """Payload for ``POST /api/v1/projects``."""
@@ -187,9 +178,7 @@ class ProjectUpdateRequest(BaseModel):
     def reject_deleted_status(cls, v: Optional[ProjectStatus]) -> Optional[ProjectStatus]:
         """Prevent setting status to 'deleted' via the update endpoint."""
         if v == ProjectStatus.DELETED:
-            raise ValueError(
-                "Use DELETE endpoint to soft-delete a project"
-            )
+            raise ValueError("Use DELETE endpoint to soft-delete a project")
         return v
 
 
@@ -222,6 +211,7 @@ class ProjectListResponse(BaseModel):
 # ---------------------------------------------------------------------------
 # Pydantic v2 schemas — Studies
 # ---------------------------------------------------------------------------
+
 
 class StudyRunRequest(BaseModel):
     """Payload for ``POST /api/v1/projects/{project_id}/studies``."""
@@ -270,6 +260,7 @@ router = APIRouter(prefix="/api/v1/projects", tags=["Projects"])
 # ---------------------------------------------------------------------------
 # Endpoints — Projects CRUD
 # ---------------------------------------------------------------------------
+
 
 @router.post(
     "/",
@@ -378,9 +369,7 @@ async def get_project(
     auth: str = Depends(_require_api_key_or_jwt),
 ) -> Any:
     """Retrieve a single project by its UUID."""
-    result = await db.execute(
-        select(Project).where(Project.id == project_id)
-    )
+    result = await db.execute(select(Project).where(Project.id == project_id))
     project = result.scalar_one_or_none()
 
     if project is None:
@@ -419,9 +408,7 @@ async def update_project(
     db: AsyncSession = Depends(get_db),  # noqa: B008
 ) -> Any:
     """Update one or more fields of an existing project."""
-    result = await db.execute(
-        select(Project).where(Project.id == project_id)
-    )
+    result = await db.execute(select(Project).where(Project.id == project_id))
     project = result.scalar_one_or_none()
 
     if project is None:
@@ -474,9 +461,7 @@ async def delete_project(
     db: AsyncSession = Depends(get_db),  # noqa: B008
 ) -> Dict[str, str]:
     """Soft-delete a project by setting its status to ``deleted``."""
-    result = await db.execute(
-        select(Project).where(Project.id == project_id)
-    )
+    result = await db.execute(select(Project).where(Project.id == project_id))
     project = result.scalar_one_or_none()
 
     if project is None:
@@ -503,6 +488,7 @@ async def delete_project(
 # Endpoints — Studies
 # ---------------------------------------------------------------------------
 
+
 @router.post(
     "/{project_id}/studies",
     response_model=StudyResultResponse,
@@ -522,9 +508,7 @@ async def run_study(
     attempt to execute it inline using the PowerSystemEngine.
     """
     # Verify project exists and is not deleted
-    project_result = await db.execute(
-        select(Project).where(Project.id == project_id)
-    )
+    project_result = await db.execute(select(Project).where(Project.id == project_id))
     project = project_result.scalar_one_or_none()
 
     if project is None:
@@ -607,9 +591,7 @@ async def list_studies(
 ) -> Any:
     """Return a paginated list of study results associated with the given project."""
     # Verify project exists
-    project_result = await db.execute(
-        select(Project).where(Project.id == project_id)
-    )
+    project_result = await db.execute(select(Project).where(Project.id == project_id))
     project = project_result.scalar_one_or_none()
 
     if project is None:
@@ -660,6 +642,7 @@ async def list_studies(
 # ---------------------------------------------------------------------------
 # Internal study execution helper
 # ---------------------------------------------------------------------------
+
 
 async def _execute_study(
     study_type: str,
@@ -726,6 +709,7 @@ def _sanitize_result(obj: Any) -> Any:
         return obj
     if isinstance(obj, float):
         import math
+
         if not math.isfinite(obj):
             return None
         return obj
@@ -739,6 +723,7 @@ def _sanitize_result(obj: Any) -> Any:
     # Try numpy types
     try:
         import numpy as np  # type: ignore
+
         if isinstance(obj, np.ndarray):
             return [_sanitize_result(x) for x in obj.tolist()]
         if isinstance(obj, (np.integer,)):
@@ -746,6 +731,7 @@ def _sanitize_result(obj: Any) -> Any:
         if isinstance(obj, (np.floating,)):
             v = float(obj.item())
             import math
+
             if not math.isfinite(v):
                 return None
             return v

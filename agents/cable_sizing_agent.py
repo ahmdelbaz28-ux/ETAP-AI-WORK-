@@ -35,31 +35,84 @@ logger = logging.getLogger(__name__)
 # Base ampacity for Cu cables in air at 30 °C, 0.6/1 kV, single-core
 # Key: cross-section in mm² -> current in A
 _CU_XLPE_AIR_30C: Dict[int, float] = {
-    1.5: 24, 2.5: 33, 4: 45, 6: 58, 10: 79, 16: 107,
-    25: 143, 35: 176, 50: 216, 70: 278, 95: 339, 120: 392,
-    150: 447, 185: 509, 240: 602, 300: 697, 400: 812,
+    1.5: 24,
+    2.5: 33,
+    4: 45,
+    6: 58,
+    10: 79,
+    16: 107,
+    25: 143,
+    35: 176,
+    50: 216,
+    70: 278,
+    95: 339,
+    120: 392,
+    150: 447,
+    185: 509,
+    240: 602,
+    300: 697,
+    400: 812,
 }
 
 # Base ampacity for Al cables in air at 30 °C, 0.6/1 kV, single-core
 _AL_XLPE_AIR_30C: Dict[int, float] = {
-    2.5: 26, 4: 35, 6: 46, 10: 63, 16: 85, 25: 114,
-    35: 141, 50: 173, 70: 222, 95: 271, 120: 314, 150: 358,
-    185: 408, 240: 483, 300: 559, 400: 651,
+    2.5: 26,
+    4: 35,
+    6: 46,
+    10: 63,
+    16: 85,
+    25: 114,
+    35: 141,
+    50: 173,
+    70: 222,
+    95: 271,
+    120: 314,
+    150: 358,
+    185: 408,
+    240: 483,
+    300: 559,
+    400: 651,
 }
 
 # Resistance at 20 °C in Ω/km (copper)
 _R20_CU: Dict[int, float] = {
-    1.5: 12.1, 2.5: 7.41, 4: 4.61, 6: 3.08, 10: 1.83, 16: 1.15,
-    25: 0.727, 35: 0.524, 50: 0.387, 70: 0.268, 95: 0.193,
-    120: 0.153, 150: 0.124, 185: 0.0991, 240: 0.0754, 300: 0.0601,
+    1.5: 12.1,
+    2.5: 7.41,
+    4: 4.61,
+    6: 3.08,
+    10: 1.83,
+    16: 1.15,
+    25: 0.727,
+    35: 0.524,
+    50: 0.387,
+    70: 0.268,
+    95: 0.193,
+    120: 0.153,
+    150: 0.124,
+    185: 0.0991,
+    240: 0.0754,
+    300: 0.0601,
     400: 0.0470,
 }
 
 # Resistance at 20 °C in Ω/km (aluminium)
 _R20_AL: Dict[int, float] = {
-    2.5: 12.1, 4: 7.41, 6: 4.61, 10: 3.08, 16: 1.91, 25: 1.20,
-    35: 0.868, 50: 0.641, 70: 0.443, 95: 0.320, 120: 0.253,
-    150: 0.206, 185: 0.164, 240: 0.125, 300: 0.100, 400: 0.0778,
+    2.5: 12.1,
+    4: 7.41,
+    6: 4.61,
+    10: 3.08,
+    16: 1.91,
+    25: 1.20,
+    35: 0.868,
+    50: 0.641,
+    70: 0.443,
+    95: 0.320,
+    120: 0.253,
+    150: 0.206,
+    185: 0.164,
+    240: 0.125,
+    300: 0.100,
+    400: 0.0778,
 }
 
 # Standard cross-sections in mm² sorted ascending
@@ -173,7 +226,15 @@ class CableSizingAgent(BaseAgent):
         # 3) Soil thermal resistivity factor (for direct burial)
         if installation_method == "direct_buried":
             # Table B.52.15 simplified
-            Cs_lookup = {0.5: 1.28, 0.7: 1.15, 1.0: 1.00, 1.5: 0.89, 2.0: 0.81, 2.5: 0.76, 3.0: 0.72}
+            Cs_lookup = {
+                0.5: 1.28,
+                0.7: 1.15,
+                1.0: 1.00,
+                1.5: 0.89,
+                2.0: 0.81,
+                2.5: 0.76,
+                3.0: 0.72,
+            }
             # Interpolate
             rho_values = np.array(sorted(Cs_lookup.keys()))
             cs_values = np.array([Cs_lookup[r] for r in rho_values])
@@ -275,14 +336,16 @@ class CableSizingAgent(BaseAgent):
         X = 0.08  # Ω/km
 
         L_km = cable_length_m / 1000.0
-        sin_phi = np.sqrt(1.0 - power_factor ** 2)
+        sin_phi = np.sqrt(1.0 - power_factor**2)
 
         if n_phases == 3:
             delta_V = np.sqrt(3) * load_current_A * L_km * (R_op * power_factor + X * sin_phi)
             reference_V = system_voltage_V
         elif n_phases == 1:
             delta_V = 2.0 * load_current_A * L_km * (R_op * power_factor + X * sin_phi)
-            reference_V = system_voltage_V / np.sqrt(3) if system_voltage_V > 250 else system_voltage_V
+            reference_V = (
+                system_voltage_V / np.sqrt(3) if system_voltage_V > 250 else system_voltage_V
+            )
         else:
             # DC
             delta_V = 2.0 * load_current_A * L_km * R_op
@@ -373,10 +436,10 @@ class CableSizingAgent(BaseAgent):
         t = fault_duration_s
 
         # Permissible short-circuit energy (I²t)
-        I2t_permissible = K ** 2 * S ** 2 * np.log((theta_f + beta) / (theta_i + beta))
+        I2t_permissible = K**2 * S**2 * np.log((theta_f + beta) / (theta_i + beta))
 
         # Actual short-circuit energy
-        I2t_actual = I_fault ** 2 * t
+        I2t_actual = I_fault**2 * t
 
         # Permissible short-circuit current for the given duration
         I_permissible = np.sqrt(I2t_permissible / t) if t > 0 else float("inf")
@@ -394,7 +457,9 @@ class CableSizingAgent(BaseAgent):
             "permissible_fault_current_kA": float(I_permissible / 1000.0),
             "initial_temp_C": theta_i,
             "final_temp_limit_C": theta_f,
-            "utilization_ratio": float(I2t_actual / I2t_permissible) if I2t_permissible > 0 else float("inf"),
+            "utilization_ratio": float(I2t_actual / I2t_permissible)
+            if I2t_permissible > 0
+            else float("inf"),
             "adequate": bool(adequate),
         }
 

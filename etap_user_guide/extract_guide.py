@@ -20,6 +20,7 @@ from typing import Dict, List, Optional, Tuple
 try:
     import PyPDF2  # noqa: F401
     from PyPDF2 import PdfReader
+
     PDF_AVAILABLE = True
 except ImportError:
     PDF_AVAILABLE = False
@@ -27,6 +28,7 @@ except ImportError:
 
 try:
     import pdfplumber
+
     PDFPLUMBER_AVAILABLE = True
 except ImportError:
     PDFPLUMBER_AVAILABLE = False
@@ -59,7 +61,7 @@ class ETAPGuideExtractor:
             "failed": 0,
             "total_pages": 0,
             "total_characters": 0,
-            "files": []
+            "files": [],
         }
 
     def extract_text_from_pdf(self, pdf_path: Path) -> Tuple[Optional[str], int]:
@@ -91,7 +93,7 @@ class ETAPGuideExtractor:
                     return full_text, page_count
 
             # Fallback to PyPDF2
-            with open(pdf_path, 'rb') as file:
+            with open(pdf_path, "rb") as file:
                 reader = PdfReader(file)
                 page_count = len(reader.pages)
 
@@ -121,7 +123,7 @@ class ETAPGuideExtractor:
             return ""
 
         # Remove excessive whitespace
-        lines = text.split('\n')
+        lines = text.split("\n")
         cleaned_lines = []
 
         for line in lines:
@@ -153,7 +155,9 @@ class ETAPGuideExtractor:
 
         return text.strip()
 
-    def create_text_chunks(self, text: str, chunk_size: int = 1000, overlap: int = 100) -> List[str]:
+    def create_text_chunks(
+        self, text: str, chunk_size: int = 1000, overlap: int = 100
+    ) -> List[str]:
         """
         Split text into overlapping chunks for RAG.
 
@@ -227,7 +231,7 @@ class ETAPGuideExtractor:
 
                 # Save extracted text
                 output_file = self.output_path / "extracted" / f"{pdf_path.stem}.txt"
-                with open(output_file, 'w', encoding='utf-8') as f:
+                with open(output_file, "w", encoding="utf-8") as f:
                     f.write(cleaned_text)
 
                 # Create chunks
@@ -235,45 +239,56 @@ class ETAPGuideExtractor:
 
                 # Save chunks
                 chunk_file = self.output_path / "chunks" / f"{pdf_path.stem}_chunks.json"
-                with open(chunk_file, 'w', encoding='utf-8') as f:
-                    json.dump({
-                        "source": str(pdf_path),
-                        "filename": pdf_path.name,
-                        "chunks": chunks,
-                        "chunk_count": len(chunks),
-                        "metadata": {
-                            "pages": page_count,
-                            "characters": len(cleaned_text),
-                            "extracted_at": datetime.now().isoformat()
-                        }
-                    }, f, indent=2, ensure_ascii=False)
+                with open(chunk_file, "w", encoding="utf-8") as f:
+                    json.dump(
+                        {
+                            "source": str(pdf_path),
+                            "filename": pdf_path.name,
+                            "chunks": chunks,
+                            "chunk_count": len(chunks),
+                            "metadata": {
+                                "pages": page_count,
+                                "characters": len(cleaned_text),
+                                "extracted_at": datetime.now().isoformat(),
+                            },
+                        },
+                        f,
+                        indent=2,
+                        ensure_ascii=False,
+                    )
 
                 # Update results
                 self.extraction_results["successful"] += 1
                 self.extraction_results["total_pages"] += page_count
                 self.extraction_results["total_characters"] += len(cleaned_text)
 
-                self.extraction_results["files"].append({
-                    "filename": pdf_path.name,
-                    "pages": page_count,
-                    "characters": len(cleaned_text),
-                    "chunks": len(chunks),
-                    "status": "success"
-                })
+                self.extraction_results["files"].append(
+                    {
+                        "filename": pdf_path.name,
+                        "pages": page_count,
+                        "characters": len(cleaned_text),
+                        "chunks": len(chunks),
+                        "status": "success",
+                    }
+                )
 
-                print(f"  ✓ Extracted {page_count} pages, {len(cleaned_text)} chars, {len(chunks)} chunks")
+                print(
+                    f"  ✓ Extracted {page_count} pages, {len(cleaned_text)} chars, {len(chunks)} chunks"
+                )
             else:
                 self.extraction_results["failed"] += 1
-                self.extraction_results["files"].append({
-                    "filename": pdf_path.name,
-                    "status": "failed",
-                    "error": "No text extracted or too short"
-                })
+                self.extraction_results["files"].append(
+                    {
+                        "filename": pdf_path.name,
+                        "status": "failed",
+                        "error": "No text extracted or too short",
+                    }
+                )
                 print("  ✗ Failed to extract meaningful text")
 
         # Save extraction summary
         summary_file = self.output_path / "extraction_summary.json"
-        with open(summary_file, 'w', encoding='utf-8') as f:
+        with open(summary_file, "w", encoding="utf-8") as f:
             json.dump(self.extraction_results, f, indent=2, ensure_ascii=False)
 
         print()
@@ -303,14 +318,14 @@ class ETAPGuideExtractor:
             "total_documents": 0,
             "total_chunks": 0,
             "total_characters": 0,
-            "documents": []
+            "documents": [],
         }
 
         # Load all chunk files
         chunk_files = list((self.output_path / "chunks").glob("*_chunks.json"))
 
         for chunk_file in chunk_files:
-            with open(chunk_file, 'r', encoding='utf-8') as f:
+            with open(chunk_file, "r", encoding="utf-8") as f:
                 data = json.load(f)
 
                 doc_entry = {
@@ -319,7 +334,7 @@ class ETAPGuideExtractor:
                     "chunk_count": data["chunk_count"],
                     "pages": data["metadata"]["pages"],
                     "characters": data["metadata"]["characters"],
-                    "chunks": data["chunks"]
+                    "chunks": data["chunks"],
                 }
 
                 master_index["documents"].append(doc_entry)
@@ -329,10 +344,12 @@ class ETAPGuideExtractor:
 
         # Save master index
         index_file = self.output_path / "index" / "master_index.json"
-        with open(index_file, 'w', encoding='utf-8') as f:
+        with open(index_file, "w", encoding="utf-8") as f:
             json.dump(master_index, f, indent=2, ensure_ascii=False)
 
-        print(f"Master index created: {master_index['total_documents']} documents, {master_index['total_chunks']} chunks")
+        print(
+            f"Master index created: {master_index['total_documents']} documents, {master_index['total_chunks']} chunks"
+        )
 
         return master_index
 

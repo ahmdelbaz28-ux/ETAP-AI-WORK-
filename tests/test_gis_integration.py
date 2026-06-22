@@ -231,10 +231,12 @@ def test_transformer_unsupported_geometry() -> None:
 def test_transformer_batch() -> None:
     transformer = GIS_TO_ADMS_Transformer()
     features = [
-        GISFeature(id="P1", geometry={"type": "Point", "coordinates": [31.0, 30.0]},
-                   properties={}),
-        GISFeature(id="P2", geometry={"type": "Point", "coordinates": [31.5, 30.5]},
-                   properties={"asset_role": "switch"}),
+        GISFeature(id="P1", geometry={"type": "Point", "coordinates": [31.0, 30.0]}, properties={}),
+        GISFeature(
+            id="P2",
+            geometry={"type": "Point", "coordinates": [31.5, 30.5]},
+            properties={"asset_role": "switch"},
+        ),
     ]
     assets = transformer.transform(features)
     assert len(assets) == 2
@@ -250,5 +252,6 @@ def test_transformer_batch() -> None:
 def test_postgis_provider_importable() -> None:
     """Verify module can be imported without psycopg2."""
     from gis_integration.providers.postgis_provider import PostGISProvider
+
     provider = PostGISProvider()
     assert provider.using_fallback

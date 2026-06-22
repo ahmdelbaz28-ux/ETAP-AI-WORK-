@@ -1,4 +1,5 @@
 """Tests for the @capability decorator and discovery helpers."""
+
 from __future__ import annotations
 
 import pytest

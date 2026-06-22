@@ -90,7 +90,7 @@ def _hotp(secret_bytes: bytes, counter: int, digits: int = 6) -> str:
     # Dynamic truncation
     offset = h[-1] & 0x0F
     code = struct.unpack(">I", h[offset : offset + 4])[0] & 0x7FFFFFFF
-    return str(code % (10 ** digits)).zfill(digits)
+    return str(code % (10**digits)).zfill(digits)
 
 
 def _totp_code(
@@ -284,9 +284,7 @@ class TOTPProvider:
         if entry:
             entry.backup_codes = codes
         else:
-            self._secrets[user_id] = TOTPSecret(
-                user_id=user_id, secret="", backup_codes=codes
-            )
+            self._secrets[user_id] = TOTPSecret(user_id=user_id, secret="", backup_codes=codes)
         logger.info("Generated %d backup codes for user %s", count, user_id)
         return codes
 
@@ -308,7 +306,9 @@ class TOTPProvider:
         entry = self._secrets.get(user_id)
         if entry and code in entry.backup_codes:
             entry.backup_codes.remove(code)
-            logger.info("Backup code used for user %s (%d remaining)", user_id, len(entry.backup_codes))
+            logger.info(
+                "Backup code used for user %s (%d remaining)", user_id, len(entry.backup_codes)
+            )
             return True
         return False
 
@@ -452,7 +452,7 @@ class WebAuthnProvider:
                 "displayName": user_id,
             },
             "pubKeyCredParams": [
-                {"type": "public-key", "alg": -7},   # ES256
+                {"type": "public-key", "alg": -7},  # ES256
                 {"type": "public-key", "alg": -257},  # RS256
             ],
             "timeout": 60000,
@@ -573,7 +573,9 @@ class WebAuthnProvider:
         return {
             "challenge": challenge,
             "rpId": self.rp_id,
-            "allowCredentials": allow_credentials if allow_credentials else [{"type": "public-key", "id": "_"}],
+            "allowCredentials": allow_credentials
+            if allow_credentials
+            else [{"type": "public-key", "id": "_"}],
             "timeout": 60000,
             "userVerification": "preferred",
         }
@@ -625,7 +627,9 @@ class WebAuthnProvider:
                     credential_current_sign_count=stored_cred.sign_count,
                 )
                 # Update sign count
-                stored_cred.sign_count = response.get("response", {}).get("signCount", stored_cred.sign_count + 1)
+                stored_cred.sign_count = response.get("response", {}).get(
+                    "signCount", stored_cred.sign_count + 1
+                )
                 logger.info("WebAuthn authentication succeeded for user %s", owner_id)
                 return True
             except Exception as exc:
@@ -639,7 +643,8 @@ class WebAuthnProvider:
         logger.warning(
             "WebAuthn authentication REJECTED (no webauthn library): "
             "credential_id=%s user=%s.  Install 'webauthn' for production.",
-            credential_id, owner_id,
+            credential_id,
+            owner_id,
         )
         return False
 
