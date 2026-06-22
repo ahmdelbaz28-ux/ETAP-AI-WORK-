@@ -1,6 +1,5 @@
 """Tests for engineering_service.py — FastAPI endpoints."""
 
-
 import uuid
 
 import pytest
@@ -10,6 +9,7 @@ from httpx import ASGITransport, AsyncClient
 @pytest.fixture
 def app():
     from engineering_service import app
+
     return app
 
 
@@ -64,7 +64,12 @@ class TestMetricsEndpoint:
     async def test_metrics_contains_expected_keys(self, client):
         resp = await client.get("/metrics")
         data = resp.json()
-        for key in ("requests_total", "requests_success", "requests_failed", "avg_execution_time_ms"):
+        for key in (
+            "requests_total",
+            "requests_success",
+            "requests_failed",
+            "avg_execution_time_ms",
+        ):
             assert key in data
 
     async def test_metrics_values_are_non_negative(self, client):

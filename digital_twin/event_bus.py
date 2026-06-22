@@ -1,4 +1,3 @@
-
 """
 Event Bus - Event-Driven Architecture for Digital Twin
 ======================================================
@@ -12,6 +11,7 @@ Events follow the automatic workflow:
 Reference: IEC 61970 CIM Event Model, EPRI ADMS Architecture Guide
 """
 
+from __future__ import annotations
 import threading
 import time
 import uuid
@@ -25,8 +25,10 @@ from typing import Any, Dict, List
 # EVENT TYPES
 # ============================================================
 
+
 class EventType(Enum):
     """All event types in the digital twin event system."""
+
     # --- Input Events (from external systems) ---
     SWITCH_OPENED = "switch_opened"
     SWITCH_CLOSED = "switch_closed"
@@ -59,9 +61,11 @@ class EventType(Enum):
 # DOMAIN EVENTS
 # ============================================================
 
+
 @dataclass
 class DomainEvent:
     """Base domain event for the digital twin system."""
+
     event_type: EventType
     timestamp: float = field(default_factory=time.time)
     event_id: str = field(default_factory=lambda: str(uuid.uuid4()))
@@ -76,13 +80,14 @@ class DomainEvent:
             "event_id": self.event_id,
             "source": self.source,
             "correlation_id": self.correlation_id,
-            "metadata": self.metadata
+            "metadata": self.metadata,
         }
 
 
 @dataclass
 class SwitchOpened(DomainEvent):
     """Event: A switch has been opened."""
+
     event_type: EventType = field(default=EventType.SWITCH_OPENED, init=False)
     switch_id: str = ""
     bus1: str = ""
@@ -97,6 +102,7 @@ class SwitchOpened(DomainEvent):
 @dataclass
 class SwitchClosed(DomainEvent):
     """Event: A switch has been closed."""
+
     event_type: EventType = field(default=EventType.SWITCH_CLOSED, init=False)
     switch_id: str = ""
     bus1: str = ""
@@ -111,6 +117,7 @@ class SwitchClosed(DomainEvent):
 @dataclass
 class FaultDetected(DomainEvent):
     """Event: A fault has been detected on the network."""
+
     event_type: EventType = field(default=EventType.FAULT_DETECTED, init=False)
     fault_type: str = ""  # three_phase, line_to_ground, etc.
     bus_id: str = ""
@@ -125,6 +132,7 @@ class FaultDetected(DomainEvent):
 @dataclass
 class LoadChanged(DomainEvent):
     """Event: A load has changed at a bus."""
+
     event_type: EventType = field(default=EventType.LOAD_CHANGED, init=False)
     bus_id: str = ""
     old_power: complex = complex(0, 0)
@@ -138,6 +146,7 @@ class LoadChanged(DomainEvent):
 @dataclass
 class PVChanged(DomainEvent):
     """Event: PV generation output has changed."""
+
     event_type: EventType = field(default=EventType.PV_CHANGED, init=False)
     bus_id: str = ""
     old_power: complex = complex(0, 0)
@@ -152,6 +161,7 @@ class PVChanged(DomainEvent):
 @dataclass
 class BatteryDispatch(DomainEvent):
     """Event: Battery storage dispatch command."""
+
     event_type: EventType = field(default=EventType.BATTERY_DISPATCH, init=False)
     bus_id: str = ""
     power_command: complex = complex(0, 0)
@@ -166,6 +176,7 @@ class BatteryDispatch(DomainEvent):
 @dataclass
 class SCADAUpdateReceived(DomainEvent):
     """Event: SCADA measurement update received."""
+
     event_type: EventType = field(default=EventType.SCADA_UPDATE_RECEIVED, init=False)
     measurements: List[Dict[str, Any]] = field(default_factory=list)
     switch_statuses: Dict[str, str] = field(default_factory=dict)
@@ -178,6 +189,7 @@ class SCADAUpdateReceived(DomainEvent):
 @dataclass
 class TopologyChanged(DomainEvent):
     """Event: Network topology has changed (internal propagation)."""
+
     event_type: EventType = field(default=EventType.TOPOLOGY_CHANGED, init=False)
     change_description: str = ""
     affected_buses: List[str] = field(default_factory=list)
@@ -191,9 +203,10 @@ class TopologyChanged(DomainEvent):
 @dataclass
 class YbusRebuilt(DomainEvent):
     """Event: Ybus matrix has been rebuilt (internal propagation)."""
+
     event_type: EventType = field(default=EventType.YBUS_REBUILT, init=False)
     matrix_size: int = 0
-    sequences_rebuilt: List[str] = field(default_factory=lambda: ['1'])
+    sequences_rebuilt: List[str] = field(default_factory=lambda: ["1"])
 
     def __post_init__(self):
         if self.event_type != EventType.YBUS_REBUILT:
@@ -203,6 +216,7 @@ class YbusRebuilt(DomainEvent):
 @dataclass
 class LoadFlowCompleted(DomainEvent):
     """Event: Load flow analysis completed (internal propagation)."""
+
     event_type: EventType = field(default=EventType.LOAD_FLOW_COMPLETED, init=False)
     converged: bool = False
     iterations: int = 0
@@ -216,6 +230,7 @@ class LoadFlowCompleted(DomainEvent):
 @dataclass
 class StateEstimationCompleted(DomainEvent):
     """Event: State estimation completed (internal propagation)."""
+
     event_type: EventType = field(default=EventType.STATE_ESTIMATION_COMPLETED, init=False)
     converged: bool = False
     bad_data_count: int = 0
@@ -229,6 +244,7 @@ class StateEstimationCompleted(DomainEvent):
 @dataclass
 class FaultAnalysisCompleted(DomainEvent):
     """Event: Fault analysis completed (internal propagation)."""
+
     event_type: EventType = field(default=EventType.FAULT_ANALYSIS_COMPLETED, init=False)
     fault_type: str = ""
     fault_bus: str = ""
@@ -242,6 +258,7 @@ class FaultAnalysisCompleted(DomainEvent):
 @dataclass
 class ArcFlashRefreshed(DomainEvent):
     """Event: Arc flash analysis refreshed (internal propagation)."""
+
     event_type: EventType = field(default=EventType.ARC_FLASH_REFRESHED, init=False)
     bus_count: int = 0
     max_incident_energy: float = 0.0
@@ -254,6 +271,7 @@ class ArcFlashRefreshed(DomainEvent):
 @dataclass
 class ProtectionRefreshed(DomainEvent):
     """Event: Protection coordination refreshed (internal propagation)."""
+
     event_type: EventType = field(default=EventType.PROTECTION_REFRESHED, init=False)
     relay_count: int = 0
     coordination_issues: int = 0
@@ -266,6 +284,7 @@ class ProtectionRefreshed(DomainEvent):
 @dataclass
 class DigitalTwinStateUpdated(DomainEvent):
     """Event: Digital twin state has been fully updated (output event)."""
+
     event_type: EventType = field(default=EventType.DIGITAL_TWIN_STATE_UPDATED, init=False)
     state_version: int = 0
     layers_synchronized: bool = False
@@ -279,6 +298,7 @@ class DigitalTwinStateUpdated(DomainEvent):
 @dataclass
 class ValidationErrorEvent(DomainEvent):
     """Event: Validation error detected in the digital twin."""
+
     event_type: EventType = field(default=EventType.VALIDATION_ERROR, init=False)
     errors: List[str] = field(default_factory=list)
     layer: str = ""  # gis, electrical, adms
@@ -291,6 +311,7 @@ class ValidationErrorEvent(DomainEvent):
 # ============================================================
 # EVENT BUS
 # ============================================================
+
 
 class EventBus:
     """
@@ -315,9 +336,9 @@ class EventBus:
         self._event_queue: List[DomainEvent] = []
         self._lock = threading.Lock()
 
-    def subscribe(self, event_type: EventType,
-                  handler: Callable[[DomainEvent], None],
-                  priority: int = 0) -> str:
+    def subscribe(
+        self, event_type: EventType, handler: Callable[[DomainEvent], None], priority: int = 0
+    ) -> str:
         """
         Subscribe a handler to an event type.
 
@@ -336,8 +357,7 @@ class EventBus:
             self._subscribers[event_type].sort(key=lambda x: -x[0])
             return sub_id
 
-    def subscribe_all(self, handler: Callable[[DomainEvent], None],
-                      priority: int = 0) -> str:
+    def subscribe_all(self, handler: Callable[[DomainEvent], None], priority: int = 0) -> str:
         """Subscribe to all events (wildcard)."""
         with self._lock:
             sub_id = str(uuid.uuid4())
@@ -385,13 +405,15 @@ class EventBus:
             except Exception as e:
                 errors.append(e)
                 with self._lock:
-                    self._handler_errors.append({
-                        "event_id": event.event_id,
-                        "event_type": event.event_type.value,
-                        "handler": str(handler),
-                        "error": str(e),
-                        "timestamp": time.time()
-                    })
+                    self._handler_errors.append(
+                        {
+                            "event_id": event.event_id,
+                            "event_type": event.event_type.value,
+                            "handler": str(handler),
+                            "error": str(e),
+                            "timestamp": time.time(),
+                        }
+                    )
 
         # Call type-specific subscribers
         for _, _, handler in type_subs:
@@ -400,13 +422,15 @@ class EventBus:
             except Exception as e:
                 errors.append(e)
                 with self._lock:
-                    self._handler_errors.append({
-                        "event_id": event.event_id,
-                        "event_type": event.event_type.value,
-                        "handler": str(handler),
-                        "error": str(e),
-                        "timestamp": time.time()
-                    })
+                    self._handler_errors.append(
+                        {
+                            "event_id": event.event_id,
+                            "event_type": event.event_type.value,
+                            "handler": str(handler),
+                            "error": str(e),
+                            "timestamp": time.time(),
+                        }
+                    )
 
         return errors
 
@@ -415,10 +439,9 @@ class EventBus:
         self._history.append(event)
         if len(self._history) > self._max_history:
             # Use slice assignment instead of list replacement for efficiency
-            del self._history[:len(self._history) - self._max_history]
+            del self._history[: len(self._history) - self._max_history]
 
-    def get_history(self, event_type: EventType = None,
-                    limit: int = 100) -> List[DomainEvent]:
+    def get_history(self, event_type: EventType = None, limit: int = 100) -> List[DomainEvent]:
         """Get event history, optionally filtered by type."""
         with self._lock:
             if event_type:
@@ -445,10 +468,11 @@ class EventBus:
                 type_counts[event.event_type.value] += 1
             return {
                 "total_events_published": len(self._history),
-                "subscriber_count": sum(len(v) for v in self._subscribers.values()) + len(self._wildcard_subscribers),
+                "subscriber_count": sum(len(v) for v in self._subscribers.values())
+                + len(self._wildcard_subscribers),
                 "event_type_counts": dict(type_counts),
                 "handler_error_count": len(self._handler_errors),
-                "event_types_with_subscribers": list(self._subscribers.keys())
+                "event_types_with_subscribers": list(self._subscribers.keys()),
             }
 
     def reset(self) -> None:

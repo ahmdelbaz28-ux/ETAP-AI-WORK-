@@ -10,7 +10,9 @@ Patterns drawn from factoryboy/factory_boy:
 
 from __future__ import annotations
 
-from datetime import UTC, datetime, timezone
+from datetime import datetime, timezone
+
+UTC = timezone.utc
 from typing import Any, Optional
 
 import factory
@@ -43,9 +45,7 @@ class SkillMetadataFactory(factory.Factory):
     created_at = factory.LazyFunction(lambda: datetime.now(UTC))
 
     @classmethod
-    def with_version(
-        cls, major: int = 1, minor: int = 0, patch: int = 0
-    ) -> dict[str, Any]:
+    def with_version(cls, major: int = 1, minor: int = 0, patch: int = 0) -> dict[str, Any]:
         return cls(version=f"{major}.{minor}.{patch}")
 
 

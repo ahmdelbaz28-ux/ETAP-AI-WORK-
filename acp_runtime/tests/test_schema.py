@@ -14,6 +14,7 @@ Covers:
     * ProgressEvent (via envelope helpers)
     * Validation errors (invalid fields, extra fields, missing required fields)
 """
+
 from __future__ import annotations
 
 import json
@@ -33,6 +34,7 @@ from pydantic import ValidationError
 
 # ------------------------------------------------------- helpers
 
+
 def _roundtrip(obj: object) -> dict:
     """Serialize ``obj`` to JSON string and back to a plain dict."""
     payload = json.dumps(obj.model_dump(mode="json"), sort_keys=True)
@@ -48,6 +50,7 @@ def _assert_json_roundtrip(original):
 
 
 # ------------------------------------------------------- JsonRpcRequest
+
 
 class TestJsonRpcRequest:
     def test_minimal_request(self):
@@ -112,6 +115,7 @@ class TestJsonRpcRequest:
 
 # ------------------------------------------------------- JsonRpcResponse
 
+
 class TestJsonRpcResponse:
     def test_success_response(self):
         resp = JsonRpcResponse(id="resp-1", result={"sum": 3})
@@ -128,13 +132,18 @@ class TestJsonRpcResponse:
 
     def test_both_result_and_error_rejected(self):
         with pytest.raises(ValidationError) as exc_info:
-            JsonRpcResponse(id="resp-3", result={"ok": True}, error=JsonRpcError(code=-1, message="boom"))
+            JsonRpcResponse(
+                id="resp-3", result={"ok": True}, error=JsonRpcError(code=-1, message="boom")
+            )
         assert "exactly one" in str(exc_info.value).lower()
 
     def test_neither_result_nor_error_rejected(self):
         with pytest.raises(ValidationError) as exc_info:
             JsonRpcResponse(id="resp-4")
-        assert "exactly one" in str(exc_info.value).lower() or "at least one" in str(exc_info.value).lower()
+        assert (
+            "exactly one" in str(exc_info.value).lower()
+            or "at least one" in str(exc_info.value).lower()
+        )
 
     def test_response_with_none_id(self):
         resp = JsonRpcResponse(id=None, result={"ok": True})
@@ -152,6 +161,7 @@ class TestJsonRpcResponse:
 
 
 # ------------------------------------------------------- JsonRpcNotification
+
 
 class TestJsonRpcNotification:
     def test_minimal_notification(self):
@@ -182,7 +192,9 @@ class TestJsonRpcNotification:
     def test_extra_field_rejected(self):
         with pytest.raises(ValidationError) as exc_info:
             JsonRpcNotification(method="m", unknown="field")
-        assert any("unknown" in str(e) or "extra" in str(e).lower() for e in exc_info.value.errors())
+        assert any(
+            "unknown" in str(e) or "extra" in str(e).lower() for e in exc_info.value.errors()
+        )
 
     def test_notification_deadline_ms_bounds(self):
         with pytest.raises(ValidationError):
@@ -192,6 +204,7 @@ class TestJsonRpcNotification:
 
 
 # ------------------------------------------------------- AcpParams / AcpResult
+
 
 class TestAcpParams:
     def test_minimal_params(self):
@@ -235,6 +248,7 @@ class TestAcpResult:
 
 # ------------------------------------------------------- CapabilityDescriptor
 
+
 class TestCapabilityDescriptor:
     def test_roundtrip(self):
         cd = CapabilityDescriptor(name="math.sum", scopes=["math.read", "math.write"])
@@ -254,6 +268,7 @@ class TestCapabilityDescriptor:
 
 
 # ------------------------------------------------------- ProgressEvent
+
 
 class TestProgressEvent:
     def test_envelope_roundtrip(self):
@@ -284,6 +299,7 @@ class TestProgressEvent:
 
 # ------------------------------------------------------- integration: request → params
 
+
 class TestRequestParamsIntegration:
     def test_request_params_nested_roundtrip(self):
         """A real-world flow: params model → dict → JSON → dict → params model."""
@@ -312,6 +328,7 @@ class TestRequestParamsIntegration:
 
 
 # ------------------------------------------------------- integration: error from exception
+
 
 class TestErrorFromException:
     def test_error_from_acp_exception(self):

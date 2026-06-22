@@ -16,6 +16,7 @@ For production use, wrap a ``websockets`` connection::
 ``WebSocketListener`` provides a convenience server using the
 ``websockets`` library (optional dependency).
 """
+
 from __future__ import annotations
 
 import logging

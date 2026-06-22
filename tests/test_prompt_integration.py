@@ -68,7 +68,9 @@ class TestPromptLoader:
         for handle in agent_handles:
             clear_prompt_cache()
             prompt = get_system_prompt(handle)
-            assert len(prompt) > 20, f"Prompt '{handle}' returned too-short content ({len(prompt)} chars)"
+            assert len(prompt) > 20, (
+                f"Prompt '{handle}' returned too-short content ({len(prompt)} chars)"
+            )
 
     def test_fallback_for_missing_prompt(self):
         """A non-existent prompt handle should return a fallback string, not crash."""
@@ -145,8 +147,9 @@ class TestAgentPromptIntegration:
         from agents.orchestrator import LoadFlowAgent
 
         agent = LoadFlowAgent()
-        assert agent.prompt_handle == "load_flow_agent", \
+        assert agent.prompt_handle == "load_flow_agent", (
             f"Expected 'load_flow_agent', got '{agent.prompt_handle}'"
+        )
 
     def test_load_flow_agent_prompt_loaded(self):
         """LoadFlowAgent should have its prompt loaded at init."""
@@ -163,10 +166,12 @@ class TestAgentPromptIntegration:
 
         orch = ChiefEngineeringOrchestrator()
         for key, agent in orch.agents.items():
-            assert agent._system_prompt is not None, \
+            assert agent._system_prompt is not None, (
                 f"Agent '{key}' ({agent.agent_name}) has no prompt loaded"
-            assert len(agent._system_prompt) > 20, \
+            )
+            assert len(agent._system_prompt) > 20, (
                 f"Agent '{key}' prompt is too short ({len(agent._system_prompt)} chars)"
+            )
 
     def test_orchestrator_has_prompt(self):
         """ChiefEngineeringOrchestrator should have its own prompt loaded."""
@@ -208,13 +213,17 @@ class TestAgentPromptIntegration:
         from agents.scada_agent import SCADAAgent
         from agents.stability_agent import StabilityAgent
 
-        for cls in [StabilityAgent, CableSizingAgent, EarthGridAgent,
-                     RenewableAgent, BatteryStorageAgent, SCADAAgent]:
+        for cls in [
+            StabilityAgent,
+            CableSizingAgent,
+            EarthGridAgent,
+            RenewableAgent,
+            BatteryStorageAgent,
+            SCADAAgent,
+        ]:
             agent = cls()
-            assert agent._system_prompt is not None, \
-                f"{cls.__name__} has no prompt loaded"
-            assert len(agent._system_prompt) > 50, \
-                f"{cls.__name__} prompt is too short"
+            assert agent._system_prompt is not None, f"{cls.__name__} has no prompt loaded"
+            assert len(agent._system_prompt) > 50, f"{cls.__name__} prompt is too short"
 
     def test_agent_graceful_prompt_failure(self):
         """Agent should still work when prompt loading fails."""
@@ -224,6 +233,7 @@ class TestAgentPromptIntegration:
         try:
             os.environ["ETAP_PROMPTS_DIR"] = "/nonexistent/directory"
             from agents.prompt_loader import clear_prompt_cache
+
             clear_prompt_cache()
             agent = LoadFlowAgent()
             # Agent should still have a system_prompt property (fallback)
@@ -297,8 +307,9 @@ class TestPromptHandleMapping:
             if p not in prompt_consumers:
                 unmapped.append(p)
 
-        assert len(unmapped) == 0, \
+        assert len(unmapped) == 0, (
             f"Unmapped prompts: {unmapped}. Add them to the consumer mapping."
+        )
 
 
 if __name__ == "__main__":

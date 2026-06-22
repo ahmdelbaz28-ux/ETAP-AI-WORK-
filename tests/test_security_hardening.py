@@ -19,6 +19,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 # ABAC Tests
 # ===========================================================================
 
+
 class TestABAC:
     """Tests for the Attribute-Based Access Control engine."""
 
@@ -31,12 +32,15 @@ class TestABAC:
             RuleType,
             make_role_policy,
         )
+
         engine = ABACPolicyEngine()
-        engine.add_policy(make_role_policy(
-            name="engineer_access",
-            allowed_roles=["engineer", "admin"],
-            priority=10,
-        ))
+        engine.add_policy(
+            make_role_policy(
+                name="engineer_access",
+                allowed_roles=["engineer", "admin"],
+                priority=10,
+            )
+        )
 
         subject = {"role": "engineer", "department": "power_systems"}
         action = "post:/api/studies"
@@ -48,12 +52,15 @@ class TestABAC:
     def test_role_policy_deny(self):
         """Test 2: Role-based policy denies access to non-matching role."""
         from security.abac import ABACPolicyEngine, make_role_policy
+
         engine = ABACPolicyEngine()
-        engine.add_policy(make_role_policy(
-            name="engineer_only",
-            allowed_roles=["engineer"],
-            priority=10,
-        ))
+        engine.add_policy(
+            make_role_policy(
+                name="engineer_only",
+                allowed_roles=["engineer"],
+                priority=10,
+            )
+        )
 
         subject = {"role": "viewer", "department": "operations"}
         action = "post:/api/studies"
@@ -70,6 +77,7 @@ class TestABAC:
             ABACRule,
             RuleType,
         )
+
         engine = ABACPolicyEngine()
         policy = ABACPolicy(
             name="mena_engineers",
@@ -105,6 +113,7 @@ class TestABAC:
     def test_default_deny(self):
         """Test 4: Default deny when no policy matches."""
         from security.abac import ABACPolicyEngine
+
         engine = ABACPolicyEngine()  # No policies added
 
         subject = {"role": "admin"}
@@ -119,29 +128,32 @@ class TestABAC:
             ABACRule,
             RuleType,
         )
+
         engine = ABACPolicyEngine()
 
         # Allow all engineers
-        engine.add_policy(ABACPolicy(
-            name="allow_engineers",
-            rules=[
-                ABACRule(RuleType.ROLE, "role", "==", "engineer",
-                         "Engineer allow"),
-            ],
-            priority=5,
-            effect="allow",
-        ))
+        engine.add_policy(
+            ABACPolicy(
+                name="allow_engineers",
+                rules=[
+                    ABACRule(RuleType.ROLE, "role", "==", "engineer", "Engineer allow"),
+                ],
+                priority=5,
+                effect="allow",
+            )
+        )
 
         # Deny specific department
-        engine.add_policy(ABACPolicy(
-            name="deny_interns",
-            rules=[
-                ABACRule(RuleType.ATTRIBUTE, "department", "==", "intern",
-                         "Intern deny"),
-            ],
-            priority=10,  # Higher priority
-            effect="deny",
-        ))
+        engine.add_policy(
+            ABACPolicy(
+                name="deny_interns",
+                rules=[
+                    ABACRule(RuleType.ATTRIBUTE, "department", "==", "intern", "Intern deny"),
+                ],
+                priority=10,  # Higher priority
+                effect="deny",
+            )
+        )
 
         subject = {"role": "engineer", "department": "intern"}
         # Deny has higher priority and matches → DENY
@@ -150,6 +162,7 @@ class TestABAC:
     def test_ip_range_checking(self):
         """Test 6: IP range checking via ip_in_ranges utility."""
         from security.abac import ip_in_ranges
+
         # Internal IP → within range
         assert ip_in_ranges("10.0.1.5", ["10.0.0.0/8", "192.168.0.0/16"]) is True
         # External IP → not in range
@@ -158,10 +171,14 @@ class TestABAC:
     def test_policy_removal(self):
         """Test 7: Policies can be removed at runtime."""
         from security.abac import ABACPolicyEngine, make_role_policy
+
         engine = ABACPolicyEngine()
-        engine.add_policy(make_role_policy(
-            name="temp_access", allowed_roles=["engineer"],
-        ))
+        engine.add_policy(
+            make_role_policy(
+                name="temp_access",
+                allowed_roles=["engineer"],
+            )
+        )
         assert "temp_access" in engine.list_policies()
 
         engine.remove_policy("temp_access")
@@ -170,6 +187,7 @@ class TestABAC:
     def test_create_default_etap_abac_engine(self):
         """Test 8: Default ETAP ABAC engine has expected policies."""
         from security.abac import create_default_etap_abac_engine
+
         engine = create_default_etap_abac_engine()
         policies = engine.list_policies()
         assert "admin_full_access" in policies
@@ -178,6 +196,7 @@ class TestABAC:
     def test_ip_in_ranges(self):
         """Test 9: IP range checking utility function."""
         from security.abac import ip_in_ranges
+
         assert ip_in_ranges("10.0.1.5", ["10.0.0.0/8"]) is True
         assert ip_in_ranges("192.168.1.1", ["10.0.0.0/8"]) is False
         assert ip_in_ranges("192.168.1.1", ["10.0.0.0/8", "192.168.0.0/16"]) is True
@@ -188,12 +207,14 @@ class TestABAC:
 # TOTP Tests
 # ===========================================================================
 
+
 class TestTOTP:
     """Tests for the TOTP (Time-based One-Time Password) provider."""
 
     def test_generate_and_verify(self):
         """Test 1: Generate TOTP secret and verify a code."""
         from security.mfa import TOTPProvider
+
         provider = TOTPProvider(issuer="Test Platform")
 
         secret = provider.generate_secret("user-001")
@@ -202,12 +223,14 @@ class TestTOTP:
 
         # Generate a valid code using the pure-Python TOTP implementation
         from security.mfa import _totp_code
+
         code = _totp_code(secret)
         assert provider.verify_code(secret, code) is True
 
     def test_window_tolerance(self):
         """Test 2: TOTP verification with ±1 window for clock drift."""
         from security.mfa import TOTPProvider, _totp_code
+
         provider = TOTPProvider(issuer="Test", window=1)
 
         secret = provider.generate_secret("user-002")
@@ -225,6 +248,7 @@ class TestTOTP:
     def test_invalid_code_rejected(self):
         """Test 3: Invalid TOTP code is rejected."""
         from security.mfa import TOTPProvider
+
         provider = TOTPProvider(issuer="Test")
 
         secret = provider.generate_secret("user-003")
@@ -233,6 +257,7 @@ class TestTOTP:
     def test_qr_code_uri(self):
         """Test 4: QR code URI is properly formatted."""
         from security.mfa import TOTPProvider
+
         provider = TOTPProvider(issuer="AhmedETAP")
 
         secret = provider.generate_secret("user-004")
@@ -245,6 +270,7 @@ class TestTOTP:
     def test_backup_codes(self):
         """Test 5: Backup codes can be generated and verified."""
         from security.mfa import TOTPProvider
+
         provider = TOTPProvider(issuer="Test")
 
         codes = provider.generate_backup_codes("user-005", count=5)
@@ -264,6 +290,7 @@ class TestTOTP:
     def test_enable_totp(self):
         """Test 6: Enable TOTP returns secret, URI, and backup codes."""
         from security.mfa import TOTPProvider
+
         provider = TOTPProvider(issuer="Test")
 
         result = provider.enable_totp("user-006")
@@ -275,6 +302,7 @@ class TestTOTP:
     def test_remove_secret(self):
         """Test 7: TOTP secret can be removed."""
         from security.mfa import TOTPProvider
+
         provider = TOTPProvider(issuer="Test")
 
         provider.generate_secret("user-007")
@@ -287,6 +315,7 @@ class TestTOTP:
     def test_remove_nonexistent_secret(self):
         """Test 8: Removing nonexistent secret returns False."""
         from security.mfa import TOTPProvider
+
         provider = TOTPProvider(issuer="Test")
         assert provider.remove_secret("nonexistent") is False
 
@@ -295,12 +324,14 @@ class TestTOTP:
 # SIEM Tests
 # ===========================================================================
 
+
 class TestSIEM:
     """Tests for the SIEM event formatting and forwarding."""
 
     def test_security_event_creation(self):
         """Test 1: SecurityEvent is created with proper fields."""
         from security.siem import SecurityEvent
+
         event = SecurityEvent(
             event_type="auth",
             severity="warning",
@@ -319,6 +350,7 @@ class TestSIEM:
         import json
 
         from security.siem import SecurityEvent
+
         event = SecurityEvent(
             event_type="access",
             severity="info",
@@ -339,8 +371,7 @@ class TestSIEM:
             siem_type="loki",
         )
         events = [
-            SecurityEvent(event_type="auth", severity="info",
-                          details={"user": "admin"}),
+            SecurityEvent(event_type="auth", severity="info", details={"user": "admin"}),
         ]
         payload = forwarder._build_loki_payload(events)
         parsed = json.loads(payload)
@@ -363,8 +394,9 @@ class TestSIEM:
             siem_type="elk",
         )
         events = [
-            SecurityEvent(event_type="anomaly", severity="critical",
-                          details={"type": "brute_force"}),
+            SecurityEvent(
+                event_type="anomaly", severity="critical", details={"type": "brute_force"}
+            ),
         ]
         payload = forwarder._build_elk_payload(events)
         lines = payload.decode("utf-8").strip().split("\n")
@@ -378,6 +410,7 @@ class TestSIEM:
     def test_siem_forwarder_stats(self):
         """Test 5: Forwarder tracks statistics."""
         from security.siem import SIEMForwarder
+
         forwarder = SIEMForwarder(
             endpoint="http://localhost:3100/loki/api/v1/push",
         )
@@ -390,6 +423,7 @@ class TestSIEM:
     def test_siem_type_validation(self):
         """Test 6: Invalid SIEM type defaults to loki."""
         from security.siem import SIEMForwarder
+
         forwarder = SIEMForwarder(
             endpoint="http://localhost:9200",
             siem_type="invalid_type",
@@ -399,6 +433,7 @@ class TestSIEM:
     def test_buffer_overflow_protection(self):
         """Test 7: Buffer overflow protection drops oldest events."""
         from security.siem import SIEMForwarder
+
         forwarder = SIEMForwarder(
             endpoint="http://localhost:3100/loki/api/v1/push",
             buffer_size=5,
@@ -416,6 +451,7 @@ class TestSIEM:
         that the event is buffered properly.
         """
         from security.siem import SIEMForwarder
+
         forwarder = SIEMForwarder(
             endpoint="http://localhost:3100/loki/api/v1/push",
             retry_attempts=1,

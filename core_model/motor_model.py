@@ -21,22 +21,23 @@ import numpy as np
 @dataclass
 class MotorParameters:
     """Induction motor electrical and mechanical parameters."""
+
     name: str = "Motor"
-    rated_hp: float = 100.0         # Rated horsepower
-    rated_kv: float = 0.46          # Rated voltage (kV)
-    rated_rpm: float = 1800.0       # Rated speed (RPM)
-    power_factor: float = 0.85      # Running power factor
-    efficiency: float = 0.90        # Motor efficiency
-    starting_pf: float = 0.20       # Starting power factor
+    rated_hp: float = 100.0  # Rated horsepower
+    rated_kv: float = 0.46  # Rated voltage (kV)
+    rated_rpm: float = 1800.0  # Rated speed (RPM)
+    power_factor: float = 0.85  # Running power factor
+    efficiency: float = 0.90  # Motor efficiency
+    starting_pf: float = 0.20  # Starting power factor
     lr_current_multiplier: float = 6.0  # Locked rotor current / full load current
     inertia_constant_H: float = 0.5  # Inertia constant (seconds)
-    x_d_prime: float = 0.20        # Transient reactance (per-unit)
+    x_d_prime: float = 0.20  # Transient reactance (per-unit)
     x_d_double_prime: float = 0.15  # Subtransient reactance (per-unit)
-    r_stator: float = 0.01         # Stator resistance (per-unit)
-    r_rotor: float = 0.02          # Rotor resistance (per-unit)
-    slip_rated: float = 0.03       # Rated slip
-    base_mva: float = 100.0        # System base MVA
-    torque_speed_curve: dict = None # Optional: {slip: torque_pu}
+    r_stator: float = 0.01  # Stator resistance (per-unit)
+    r_rotor: float = 0.02  # Rotor resistance (per-unit)
+    slip_rated: float = 0.03  # Rated slip
+    base_mva: float = 100.0  # System base MVA
+    torque_speed_curve: dict = None  # Optional: {slip: torque_pu}
 
     def __post_init__(self):
         """Calculate derived parameters."""
@@ -72,7 +73,9 @@ class MotorModel:
         self.mva_ratio = self.motor_base_mva / p.base_mva
         # Impedances on system base
         self.x_d_prime_sys = p.x_d_prime / self.mva_ratio if self.mva_ratio > 0 else p.x_d_prime
-        self.x_d_double_prime_sys = p.x_d_double_prime / self.mva_ratio if self.mva_ratio > 0 else p.x_d_double_prime
+        self.x_d_double_prime_sys = (
+            p.x_d_double_prime / self.mva_ratio if self.mva_ratio > 0 else p.x_d_double_prime
+        )
 
     def full_load_current(self, system_kv: float = None) -> float:
         """
@@ -147,8 +150,9 @@ class MotorModel:
         I_running = self.mva_ratio * (np.cos(pf_angle) - 1j * np.sin(pf_angle))
         return I_running
 
-    def acceleration_time(self, load_torque_fraction: float = 0.3,
-                          voltage_fraction: float = 1.0) -> float:
+    def acceleration_time(
+        self, load_torque_fraction: float = 0.3, voltage_fraction: float = 1.0
+    ) -> float:
         """
         Estimate motor acceleration time.
 
@@ -178,13 +182,14 @@ class MotorModel:
 
         delta_T = T_motor_avg - T_load_avg
         if delta_T <= 0:
-            return float('inf')  # Motor cannot accelerate
+            return float("inf")  # Motor cannot accelerate
 
         t_acc = (2 * H) / delta_T
         return t_acc
 
-    def voltage_dip_contribution(self, source_impedance: complex,
-                                  system_kv: float = None) -> Tuple[float, float]:
+    def voltage_dip_contribution(
+        self, source_impedance: complex, system_kv: float = None
+    ) -> Tuple[float, float]:
         """
         Calculate voltage dip during motor starting.
 
@@ -214,8 +219,9 @@ class MotorModel:
 
         return dip_percent, V_motor_mag
 
-    def short_circuit_contribution(self, fault_type: str = 'three_phase',
-                                    t: float = 0.0) -> complex:
+    def short_circuit_contribution(
+        self, fault_type: str = "three_phase", t: float = 0.0
+    ) -> complex:
         """
         Calculate motor contribution to short-circuit current.
 
@@ -248,12 +254,13 @@ class MotorModel:
         if t <= 0:
             I_motor = I_double_prime * self.mva_ratio
         else:
-            I_ac = (I_double_prime - I_prime) * np.exp(-t / T_double_prime) + \
-                   I_prime * np.exp(-t / T_prime)
+            I_ac = (I_double_prime - I_prime) * np.exp(-t / T_double_prime) + I_prime * np.exp(
+                -t / T_prime
+            )
             I_dc = np.sqrt(2) * abs(I_double_prime) * np.exp(-t / T_dc)
             # Asymmetrical current magnitude = sqrt(I_ac_rms^2 + I_dc^2)
             # Always return complex for API consistency (t<=0 returns complex)
-            I_motor = complex(np.sqrt(abs(I_ac)**2 + I_dc**2) * self.mva_ratio, 0)
+            I_motor = complex(np.sqrt(abs(I_ac) ** 2 + I_dc**2) * self.mva_ratio, 0)
 
         return I_motor
 
@@ -283,13 +290,13 @@ class MotorModel:
         R2_s = R2 / slip
         Z_total = complex(R1 + R2_s, X1 + X2)
         I = V / Z_total
-        T = (abs(I)**2 * R2_s) / omega_s
+        T = (abs(I) ** 2 * R2_s) / omega_s
 
         # Normalize to rated torque
         R2_rated = R2 / p.slip_rated
         Z_rated = complex(R1 + R2_rated, X1 + X2)
         I_rated = V / Z_rated
-        T_rated = (abs(I_rated)**2 * R2_rated) / omega_s
+        T_rated = (abs(I_rated) ** 2 * R2_rated) / omega_s
 
         if T_rated > 0:
             return T / T_rated
@@ -299,17 +306,17 @@ class MotorModel:
         """Convert to dictionary."""
         p = self.params
         return {
-            'name': p.name,
-            'rated_hp': p.rated_hp,
-            'rated_kv': p.rated_kv,
-            'rated_rpm': p.rated_rpm,
-            'power_factor': p.power_factor,
-            'efficiency': p.efficiency,
-            'lr_current_multiplier': p.lr_current_multiplier,
-            'x_d_prime': p.x_d_prime,
-            'x_d_double_prime': p.x_d_double_prime,
-            'r_stator': p.r_stator,
-            'r_rotor': p.r_rotor,
-            'slip_rated': p.slip_rated,
-            'base_mva': p.base_mva,
+            "name": p.name,
+            "rated_hp": p.rated_hp,
+            "rated_kv": p.rated_kv,
+            "rated_rpm": p.rated_rpm,
+            "power_factor": p.power_factor,
+            "efficiency": p.efficiency,
+            "lr_current_multiplier": p.lr_current_multiplier,
+            "x_d_prime": p.x_d_prime,
+            "x_d_double_prime": p.x_d_double_prime,
+            "r_stator": p.r_stator,
+            "r_rotor": p.r_rotor,
+            "slip_rated": p.slip_rated,
+            "base_mva": p.base_mva,
         }

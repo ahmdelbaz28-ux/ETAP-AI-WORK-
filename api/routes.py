@@ -123,9 +123,7 @@ _RATE_LIMIT_PREFIX = os.environ.get("RATE_LIMIT_PREFIX", "rate-limit:")
 
 _rate_limit_fallback_store: Dict[str, List[float]] = {}
 _rate_limit_fallback_lock = _threading.Lock()
-_RATE_LIMIT_MAX_ENTRIES = int(
-    os.environ.get("ENGINEERING_SERVICE_RATE_LIMIT_MAX_ENTRIES", "10000")
-)
+_RATE_LIMIT_MAX_ENTRIES = int(os.environ.get("ENGINEERING_SERVICE_RATE_LIMIT_MAX_ENTRIES", "10000"))
 
 try:
     import redis.asyncio as redis_async  # type: ignore
@@ -212,9 +210,7 @@ async def trace_middleware(request: Request, call_next):
         span.set_attribute("ahmedetap.trace_id", trace_id)
 
         # Rate limiting — skip for health endpoints
-        if not request.url.path.startswith(
-            ("/health", "/ready", "/healthz", "/readyz", "/")
-        ):
+        if not request.url.path.startswith(("/health", "/ready", "/healthz", "/readyz", "/")):
             _TRUSTED_PROXIES = os.environ.get("ENGINEERING_SERVICE_TRUSTED_PROXIES", "")
             if _TRUSTED_PROXIES:
                 _trusted_list = [p.strip() for p in _TRUSTED_PROXIES.split(",")]
@@ -299,95 +295,96 @@ async def validate_system(system_spec: SystemSpec, request: Request):
 
 # --- NEW ASYNC AND WEBSOCKET ENDPOINTS ADDED FOR PRODUCTION SCALABILITY ---
 
+
 # Import celery components for async task support inside the functions to avoid startup errors
 def get_celery_components():
     """Lazy loading of Celery components to avoid import errors during startup."""
     try:
         # Use importlib to dynamically import to avoid Pylance static analysis issues
         import importlib
-        
-        celery_result_module = importlib.import_module('celery.result')
+
+        celery_result_module = importlib.import_module("celery.result")
         AsyncResult = celery_result_module.AsyncResult
-        
-        worker_tasks_module = importlib.import_module('worker.tasks')
+
+        worker_tasks_module = importlib.import_module("worker.tasks")
         execute_engineering_study_task = worker_tasks_module.execute_engineering_study_task
-        
-        worker_celery_app_module = importlib.import_module('worker.celery_app')
+
+        worker_celery_app_module = importlib.import_module("worker.celery_app")
         celery_app = worker_celery_app_module.app
-        
+
         return AsyncResult, execute_engineering_study_task, celery_app
     except ImportError as e:
         logger.warning(f"Celery not available: {e}")
         return None, None, None
 
 
-@app.post('/api/v1/studies/run_async')
+@app.post("/api/v1/studies/run_async")
 async def run_study_async(study_request: StudyRequest, request: Request):
     """Execute an engineering study asynchronously using Celery."""
     _require_api_key(request)  # Add authentication check
-    
+
     CeleryAsyncResult, execute_engineering_study_task, celery_app = get_celery_components()
-    
+
     if not execute_engineering_study_task:
         raise HTTPException(status_code=500, detail="Celery is not available for async processing")
-    
+
     try:
         # Send the task to Celery queue - using getattr to avoid Pylance type checking errors
-            
-        task = execute_engineering_study_task.delay({
-            'study_type': study_request.study_type,
-            'data': study_request.model_dump(),
-            'request_timestamp': str(time.time())
-        })
 
-        logger.info(f'Started async study execution with task_id: {task.id}')
+        task = execute_engineering_study_task.delay(
+            {
+                "study_type": study_request.study_type,
+                "data": study_request.model_dump(),
+                "request_timestamp": str(time.time()),
+            }
+        )
+
+        logger.info(f"Started async study execution with task_id: {task.id}")
 
         return {
-            'task_id': task.id,
-            'status': 'accepted',
-            'study_type': study_request.study_type,
-            'submitted_at': str(time.time())
+            "task_id": task.id,
+            "status": "accepted",
+            "study_type": study_request.study_type,
+            "submitted_at": str(time.time()),
         }
     except Exception as e:
-        logger.error(f'Error submitting async study: {str(e)}')
+        logger.error(f"Error submitting async study: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e)) from e
 
-@app.get('/api/v1/studies/task_status/{task_id}')
+
+@app.get("/api/v1/studies/task_status/{task_id}")
 async def get_task_status(task_id: str, request: Request):
     """Get the status of an async study task."""
     _require_api_key(request)  # Add authentication check
-    
+
     CeleryAsyncResult, execute_engineering_study_task, celery_app = get_celery_components()
-    
+
     if not CeleryAsyncResult or not celery_app:
         raise HTTPException(status_code=500, detail="Celery is not available")
-        
+
     try:
         # Using the retrieved AsyncResult class to create an instance
         task_result = CeleryAsyncResult(str(task_id), app=celery_app)
 
-        response = {
-            'task_id': task_id,
-            'status': task_result.status,
-            'result': None
-        }
+        response = {"task_id": task_id, "status": task_result.status, "result": None}
 
         if task_result.ready():
             if task_result.successful():
-                response['result'] = task_result.result
+                response["result"] = task_result.result
             elif task_result.failed():
-                response['error'] = str(task_result.info)
+                response["error"] = str(task_result.info)
 
         # If task is in progress, get progress info
-        if task_result.status == 'PROGRESS':
-            response['meta'] = task_result.info
+        if task_result.status == "PROGRESS":
+            response["meta"] = task_result.info
 
         return response
     except Exception as e:
-        logger.error(f'Error getting task status: {str(e)}')
+        logger.error(f"Error getting task status: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e)) from e
 
-@app.websocket('/ws/scada/live')
+
+@app.websocket("/ws/scada/live")
 async def websocket_scada_endpoint_handler(websocket: WebSocket):
     """WebSocket endpoint for real-time SCADA data streaming."""
     # Perform API key authentication for WebSocket connection
@@ -400,7 +397,7 @@ async def websocket_scada_endpoint_handler(websocket: WebSocket):
     except Exception as e:
         await websocket.close(code=1008, reason="Authentication error")
         return
-    
+
     await scada_websocket_endpoint(websocket)
 
 
@@ -411,6 +408,7 @@ if not _PRIVACY_MODE:
     if _LANGWATCH_API_KEY:
         try:
             import langwatch  # type: ignore
+
             langwatch.api_key = _LANGWATCH_API_KEY
             langwatch.setup(
                 endpoint=os.environ.get("LANGWATCH_ENDPOINT", "https://app.langwatch.ai"),
@@ -419,7 +417,9 @@ if not _PRIVACY_MODE:
         except ImportError:
             logger.warning("langwatch_not_installed", extra={"trace_id": "startup"})
         except Exception as lw_exc:
-            logger.warning("langwatch_init_failed", extra={"trace_id": "startup", "error": str(lw_exc)})
+            logger.warning(
+                "langwatch_init_failed", extra={"trace_id": "startup", "error": str(lw_exc)}
+            )
 else:
     logger.info("Privacy mode enabled - external telemetry disabled", extra={"trace_id": "startup"})
 
@@ -428,7 +428,9 @@ else:
 # Set ENGINEERING_SERVICE_CORS_ORIGINS to a comma-separated list of allowed origins.
 # Example: ENGINEERING_SERVICE_CORS_ORIGINS=https://yourapp.example.com,https://worker.example.com
 _CORS_ORIGINS = os.environ.get("ENGINEERING_SERVICE_CORS_ORIGINS", "").strip()
-_cors_origin_list = [o.strip() for o in _CORS_ORIGINS.split(",") if o.strip()] if _CORS_ORIGINS else []
+_cors_origin_list = (
+    [o.strip() for o in _CORS_ORIGINS.split(",") if o.strip()] if _CORS_ORIGINS else []
+)
 if not _cors_origin_list:
     _ENV = os.environ.get("ENVIRONMENT", os.environ.get("ENV", "development")).lower()
     if _ENV in ("production", "prod", "staging"):
@@ -465,6 +467,7 @@ else:
     )
 app.add_middleware(_BodySizeLimitMiddleware)
 
+
 # Global exception handler to prevent raw exception exposure
 @app.exception_handler(Exception)
 async def global_exception_handler(request: Request, exc: Exception):
@@ -473,7 +476,7 @@ async def global_exception_handler(request: Request, exc: Exception):
     Logs the full exception server-side but returns a generic response to clients.
     """
     import traceback
-    
+
     # Log the full exception details server-side
     logger.error(
         f"Unhandled exception in {request.method} {request.url.path}: {str(exc)}",
@@ -482,19 +485,20 @@ async def global_exception_handler(request: Request, exc: Exception):
             "method": request.method,
             "path": request.url.path,
             "exception_type": type(exc).__name__,
-            "traceback": traceback.format_exc()
-        }
+            "traceback": traceback.format_exc(),
+        },
     )
-    
+
     # Return a generic error response to prevent information disclosure
     return JSONResponse(
         status_code=500,
         content={
             "error": "Internal server error",
             "message": "An unexpected error occurred. Please contact support if the issue persists.",
-            "trace_id": getattr(request.state, "trace_id", "unknown")
-        }
+            "trace_id": getattr(request.state, "trace_id", "unknown"),
+        },
     )
+
 
 # Module-level shared instances for digital twin endpoint
 _shared_state_store = None

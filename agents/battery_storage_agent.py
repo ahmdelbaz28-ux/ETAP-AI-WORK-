@@ -15,8 +15,11 @@ Standards:
 - IEC 62933-5-2: BESS — Safety considerations
 """
 
+from __future__ import annotations
 import logging
-from datetime import UTC, datetime
+from datetime import datetime, timezone
+
+UTC = timezone.utc
 from typing import Any, Dict, List, Tuple
 
 import numpy as np
@@ -121,7 +124,11 @@ class BatteryStorageAgent(BaseAgent):
         energy_above_target = float(np.sum(load_above_target)) / n_days if n_days > 0 else 0.0
 
         # Account for efficiency: need more stored energy to deliver required energy
-        E_deliverable = energy_above_target / round_trip_efficiency if round_trip_efficiency > 0 else energy_above_target
+        E_deliverable = (
+            energy_above_target / round_trip_efficiency
+            if round_trip_efficiency > 0
+            else energy_above_target
+        )
 
         # Also consider duration-based sizing
         E_duration = P_bess * discharge_duration_hours
@@ -131,7 +138,11 @@ class BatteryStorageAgent(BaseAgent):
 
         # Apply SOC limits and reserve
         soc_range = usable_soc_range[1] - usable_soc_range[0]
-        E_total = E_required / (soc_range * (1.0 - reserve_margin_pct / 100.0)) if soc_range > 0 else E_required
+        E_total = (
+            E_required / (soc_range * (1.0 - reserve_margin_pct / 100.0))
+            if soc_range > 0
+            else E_required
+        )
 
         # Energy rating at nominal conditions (accounting for DoD)
         E_nominal = E_total / dod_max if dod_max > 0 else E_total
@@ -281,7 +292,9 @@ class BatteryStorageAgent(BaseAgent):
 
                 if load_profile_kw[t] > peak_threshold and available_energy > 0:
                     # Discharge to reduce peak
-                    P = min(bess_power_kw, load_profile_kw[t] - peak_threshold, available_energy / dt)
+                    P = min(
+                        bess_power_kw, load_profile_kw[t] - peak_threshold, available_energy / dt
+                    )
                     P_discharge[t] = P
                     soc[t + 1] = current_soc - (P * dt) / (bess_energy_kwh * sqrt_efficiency)
                     cumulative_throughput += P * dt
@@ -297,7 +310,7 @@ class BatteryStorageAgent(BaseAgent):
                 # Enforce daily cycle limit
                 if cumulative_throughput >= _max_energy_throughput:
                     # Stop further dispatch once cycle limit reached
-                    soc[t + 1:] = soc[t + 1]
+                    soc[t + 1 :] = soc[t + 1]
                     soc_history[t:] = soc[t + 1]
                     break
 
@@ -354,7 +367,9 @@ class BatteryStorageAgent(BaseAgent):
                 "revenue_discharge_$": float(revenue_discharge),
                 "cost_charge_$": float(cost_charge),
                 "net_revenue_$": float(net_revenue),
-                "daily_net_revenue_$": float(net_revenue / (n_periods / 24.0)) if n_periods > 0 else 0.0,
+                "daily_net_revenue_$": float(net_revenue / (n_periods / 24.0))
+                if n_periods > 0
+                else 0.0,
             },
             "performance": {
                 "total_charged_kwh": total_charged,
@@ -364,7 +379,9 @@ class BatteryStorageAgent(BaseAgent):
                 "min_soc": float(np.min(soc_history)),
                 "max_soc": float(np.max(soc_history)),
                 "round_trip_efficiency": round_trip_efficiency,
-                "actual_efficiency": float(total_discharged / total_charged) if total_charged > 0 else 0.0,
+                "actual_efficiency": float(total_discharged / total_charged)
+                if total_charged > 0
+                else 0.0,
             },
         }
 
@@ -462,7 +479,9 @@ class BatteryStorageAgent(BaseAgent):
             cash_flows[year] = net_cash
 
         # NPV
-        discount_factors = np.array([(1.0 / (1.0 + discount_rate) ** t) for t in range(project_life_years + 1)])
+        discount_factors = np.array(
+            [(1.0 / (1.0 + discount_rate) ** t) for t in range(project_life_years + 1)]
+        )
         npv = float(np.sum(cash_flows * discount_factors))
 
         # IRR (Newton-Raphson)
@@ -514,7 +533,9 @@ class BatteryStorageAgent(BaseAgent):
         }
 
     @staticmethod
-    def _compute_irr(cash_flows: np.ndarray, max_iter: int = 100, tol: float = 1e-8) -> float | None:
+    def _compute_irr(
+        cash_flows: np.ndarray, max_iter: int = 100, tol: float = 1e-8
+    ) -> float | None:
         """Compute IRR using Newton-Raphson method."""
         x = 0.10  # Initial guess: 10%
         for _ in range(max_iter):
@@ -605,7 +626,7 @@ class BatteryStorageAgent(BaseAgent):
 
         for dod, count in cycles.items():
             _dod_ratio = dod / nominal_dod if nominal_dod > 0 else 1.0
-            equivalent = count * (dod ** 1.8) / (nominal_dod ** 1.8)
+            equivalent = count * (dod**1.8) / (nominal_dod**1.8)
             total_equivalent_cycles += equivalent
             dod_range = f"{int(dod * 100)}%"
             cycle_histogram[dod_range] = int(count)
@@ -637,7 +658,9 @@ class BatteryStorageAgent(BaseAgent):
 
         # Estimated total life (cycle or calendar, whichever is limiting)
         cycles_per_year = total_equivalent_cycles / operating_years if operating_years > 0 else 0
-        cycle_life_years = remaining_cycles / cycles_per_year if cycles_per_year > 0 else float("inf")
+        cycle_life_years = (
+            remaining_cycles / cycles_per_year if cycles_per_year > 0 else float("inf")
+        )
         estimated_total_life_years = min(cycle_life_years, remaining_calendar_years)
 
         # End-of-life criterion (80% of nominal capacity for most chemistries)
@@ -649,9 +672,9 @@ class BatteryStorageAgent(BaseAgent):
             "adjusted_cycle_life": float(adjusted_cycle_life),
             "total_equivalent_cycles": float(total_equivalent_cycles),
             "remaining_cycles": float(remaining_cycles),
-            "cycle_utilization_pct": float(
-                total_equivalent_cycles / adjusted_cycle_life * 100.0
-            ) if adjusted_cycle_life > 0 else 0.0,
+            "cycle_utilization_pct": float(total_equivalent_cycles / adjusted_cycle_life * 100.0)
+            if adjusted_cycle_life > 0
+            else 0.0,
             "cycle_histogram": cycle_histogram,
             "temperature_derating": float(temp_factor_life),
             "crate_derating": float(crate_factor),
@@ -660,7 +683,9 @@ class BatteryStorageAgent(BaseAgent):
             "calendar_life_years": calendar_life_years,
             "remaining_calendar_years": float(remaining_calendar_years),
             "estimated_remaining_life_years": float(estimated_total_life_years),
-            "limiting_factor": "cycles" if cycle_life_years < remaining_calendar_years else "calendar",
+            "limiting_factor": "cycles"
+            if cycle_life_years < remaining_calendar_years
+            else "calendar",
             "eol_capacity_pct": float(eol_capacity_pct),
         }
 
@@ -762,8 +787,15 @@ class BatteryStorageAgent(BaseAgent):
                     prices = self._default_energy_prices(len(load_profile))
 
                 strategy = p.get("dispatch_strategy", "arbitrage")
-                bess_power = float(p.get("bess_power_kw", results.get("sizing", {}).get("power_capacity_kw", 500)))
-                bess_energy = float(p.get("bess_energy_kwh", results.get("sizing", {}).get("energy_capacity_kwh", 2000)))
+                bess_power = float(
+                    p.get("bess_power_kw", results.get("sizing", {}).get("power_capacity_kw", 500))
+                )
+                bess_energy = float(
+                    p.get(
+                        "bess_energy_kwh",
+                        results.get("sizing", {}).get("energy_capacity_kwh", 2000),
+                    )
+                )
 
                 results["dispatch"] = self.optimize_dispatch(
                     load_profile_kw=load_profile,
@@ -775,9 +807,15 @@ class BatteryStorageAgent(BaseAgent):
                 )
 
             if analysis_type in ("roi", "full"):
-                annual_revenue = float(p.get("annual_revenue_usd",
-                    results.get("dispatch", {}).get("financial", {}).get("daily_net_revenue_$", 200) * 365
-                ))
+                annual_revenue = float(
+                    p.get(
+                        "annual_revenue_usd",
+                        results.get("dispatch", {})
+                        .get("financial", {})
+                        .get("daily_net_revenue_$", 200)
+                        * 365,
+                    )
+                )
                 bess_power = float(p.get("bess_power_kw", 500))
                 bess_energy = float(p.get("bess_energy_kwh", 2000))
 
@@ -875,11 +913,9 @@ class BatteryStorageAgent(BaseAgent):
         # Mid-peak: $0.08/kWh (6-12, 18-22)
         # On-peak: $0.15/kWh (12-18)
         prices = np.where(
-            (hour_of_day < 6) | (hour_of_day >= 22), 0.04,
-            np.where(
-                (hour_of_day >= 12) & (hour_of_day < 18), 0.15,
-                0.08
-            )
+            (hour_of_day < 6) | (hour_of_day >= 22),
+            0.04,
+            np.where((hour_of_day >= 12) & (hour_of_day < 18), 0.15, 0.08),
         )
         return prices
 

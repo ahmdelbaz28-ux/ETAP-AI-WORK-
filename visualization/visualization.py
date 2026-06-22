@@ -22,19 +22,20 @@ class Visualizer:
         from matplotlib import pyplot as plt
 
         try:
-            plt.style.use('seaborn-v0_8-whitegrid')
+            plt.style.use("seaborn-v0_8-whitegrid")
         except (OSError, ValueError):
-            plt.rcParams['axes.grid'] = True
-        plt.rcParams['axes.titlesize'] = 12
-        plt.rcParams['axes.labelsize'] = 10
-        plt.rcParams['legend.fontsize'] = 9
-        plt.rcParams['figure.dpi'] = 100
+            plt.rcParams["axes.grid"] = True
+        plt.rcParams["axes.titlesize"] = 12
+        plt.rcParams["axes.labelsize"] = 10
+        plt.rcParams["legend.fontsize"] = 9
+        plt.rcParams["figure.dpi"] = 100
         self._style_applied = True
 
     def _plt(self):
         """Return the matplotlib pyplot module (lazy import)."""
         self._ensure_mpl()
         from matplotlib import pyplot as plt
+
         return plt
 
     def plot_tcc_curve(self, relay, current_range=(0.5, 20), points=100, ax=None):
@@ -64,9 +65,9 @@ class Visualizer:
             times.append(t)
         times = np.array(times)
         ax.loglog(currents, times, label=relay.name)
-        ax.set_xlabel('Current (A)')
-        ax.set_ylabel('Time (s)')
-        ax.set_title('Time-Current Curves')
+        ax.set_xlabel("Current (A)")
+        ax.set_ylabel("Time (s)")
+        ax.set_title("Time-Current Curves")
         ax.grid(True, which="both", ls="-")
         ax.legend()
         return ax
@@ -91,9 +92,9 @@ class Visualizer:
             fig = ax.get_figure()
         for relay in relays:
             self.plot_tcc_curve(relay, current_range=current_range, points=points, ax=ax)
-        ax.set_xlabel('Current (per unit)')
-        ax.set_ylabel('Time (s)')
-        ax.set_title('Multiple Time-Current Curves')
+        ax.set_xlabel("Current (per unit)")
+        ax.set_ylabel("Time (s)")
+        ax.set_title("Multiple Time-Current Curves")
         ax.grid(True, which="both", ls="-")
         return fig
 
@@ -124,12 +125,12 @@ class Visualizer:
             margin = t_up - t_down
             margins.append(margin)
         margins = np.array(margins)
-        ax.plot(fault_currents, margins, label='Margin (Up - Down)')
-        ax.axhline(y=0.2, color='r', linestyle='--', label='Required Margin (0.2 s)')
-        ax.axhline(y=0, color='k', linestyle='-', label='Zero Margin')
-        ax.set_xlabel('Fault Current (per unit)')
-        ax.set_ylabel('Margin (s)')
-        ax.set_title('Coordination Margin')
+        ax.plot(fault_currents, margins, label="Margin (Up - Down)")
+        ax.axhline(y=0.2, color="r", linestyle="--", label="Required Margin (0.2 s)")
+        ax.axhline(y=0, color="k", linestyle="-", label="Zero Margin")
+        ax.set_xlabel("Fault Current (per unit)")
+        ax.set_ylabel("Margin (s)")
+        ax.set_title("Coordination Margin")
         ax.grid(True)
         ax.legend()
         return fig
@@ -152,9 +153,9 @@ class Visualizer:
         for relay in relays:
             times = [relay.trip_time(If) for If in fault_currents]
             ax.semilogx(fault_currents, times, label=relay.name)
-        ax.set_xlabel('Fault Current (per unit)')
-        ax.set_ylabel('Trip Time (s)')
-        ax.set_title('Relay Trip Times vs Fault Current')
+        ax.set_xlabel("Fault Current (per unit)")
+        ax.set_ylabel("Trip Time (s)")
+        ax.set_title("Relay Trip Times vs Fault Current")
         ax.grid(True, which="both", ls="-")
         ax.legend()
         return ax

@@ -60,8 +60,7 @@ def network_retry(
     """
     return retry(
         stop=stop_after_attempt(max_attempts),
-        wait=wait_exponential(multiplier=1, min=1, max=max_delay)
-        + wait_random(0, 1),
+        wait=wait_exponential(multiplier=1, min=1, max=max_delay) + wait_random(0, 1),
         retry=retry_if_exception_type((ConnectionError, TimeoutError, OSError)),
         before_sleep=before_sleep_log(logger, logging.WARNING),
         after=after_log(logger, logging.INFO),
@@ -103,9 +102,7 @@ def skill_retry(
 def bounded_retry(
     max_attempts: int = 3,
     max_delay_seconds: float = 30.0,
-    exceptions: Union[
-        Type[Exception], tuple[Type[Exception], ...]
-    ] = Exception,
+    exceptions: Union[Type[Exception], tuple[Type[Exception], ...]] = Exception,
     reraise: bool = True,
 ) -> Callable:
     """General-purpose bounded retry decorator.

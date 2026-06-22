@@ -18,10 +18,12 @@ async def dummy_endpoint(request: Request):
 
 
 async def headers_endpoint(request: Request):
-    return JSONResponse({
-        "correlation_id": request.state.correlation_id,
-        "all_headers": dict(request.headers),
-    })
+    return JSONResponse(
+        {
+            "correlation_id": request.state.correlation_id,
+            "all_headers": dict(request.headers),
+        }
+    )
 
 
 @pytest.fixture

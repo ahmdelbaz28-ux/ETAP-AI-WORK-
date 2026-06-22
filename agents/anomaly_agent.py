@@ -18,8 +18,11 @@ Standards:
 - NERC CIP: Critical infrastructure monitoring
 """
 
+from __future__ import annotations
 import logging
-from datetime import UTC, datetime
+from datetime import datetime, timezone
+
+UTC = timezone.utc
 from typing import Any, Dict, List
 
 import numpy as np
@@ -246,8 +249,10 @@ class AnomalyAgent(BaseAgent):
         ucl = np.zeros(n)
         lcl = np.zeros(n)
         for i in range(n):
-            limit_factor = l_factor * sigma * np.sqrt(
-                lam * (1.0 - (1.0 - lam) ** (2.0 * (i + 1))) / (2.0 - lam)
+            limit_factor = (
+                l_factor
+                * sigma
+                * np.sqrt(lam * (1.0 - (1.0 - lam) ** (2.0 * (i + 1))) / (2.0 - lam))
             )
             ucl[i] = mu0 + limit_factor
             lcl[i] = mu0 - limit_factor
@@ -387,8 +392,7 @@ class AnomalyAgent(BaseAgent):
             )
         else:
             interpretation = (
-                f"Correlation ({corr:.3f}) within expected range. "
-                "Measurements are consistent."
+                f"Correlation ({corr:.3f}) within expected range. Measurements are consistent."
             )
 
         return {
@@ -423,6 +427,7 @@ class AnomalyAgent(BaseAgent):
             Anomaly detection results with scores and classifications.
         """
         from ml.predictive import AnomalyDetector
+
         if data.ndim == 1:
             data = data.reshape(-1, 1)
 
@@ -510,11 +515,22 @@ class AnomalyAgent(BaseAgent):
 
             # --- Threshold violation detection ---
             if method in ("threshold", "full"):
-                upper_limit = float(task.parameters.get("upper_limit", np.max(data) * 1.1)) if "upper_limit" in task.parameters else None
-                lower_limit = float(task.parameters.get("lower_limit", np.min(data) * 0.9)) if "lower_limit" in task.parameters else None
+                upper_limit = (
+                    float(task.parameters.get("upper_limit", np.max(data) * 1.1))
+                    if "upper_limit" in task.parameters
+                    else None
+                )
+                lower_limit = (
+                    float(task.parameters.get("lower_limit", np.min(data) * 0.9))
+                    if "lower_limit" in task.parameters
+                    else None
+                )
                 if upper_limit is None or lower_limit is None:
                     # Skip threshold detection if limits not explicitly provided
-                    self.log_execution("Threshold detection skipped: upper_limit and lower_limit must be explicitly provided", "WARNING")
+                    self.log_execution(
+                        "Threshold detection skipped: upper_limit and lower_limit must be explicitly provided",
+                        "WARNING",
+                    )
                 else:
                     results["threshold"] = self.detect_threshold_violations(
                         data=data,
@@ -625,9 +641,7 @@ class AnomalyAgent(BaseAgent):
 
             count = method_data.get("anomaly_count", method_data.get("violation_count", 0))
             if not isinstance(count, int) or count < 0:
-                errors.append(
-                    f"Invalid anomaly count ({count}) for method '{method_key}'"
-                )
+                errors.append(f"Invalid anomaly count ({count}) for method '{method_key}'")
 
             severity = method_data.get("severity", "")
             if severity and severity not in ("CRITICAL", "HIGH", "MEDIUM", "LOW"):

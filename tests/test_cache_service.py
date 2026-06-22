@@ -21,7 +21,7 @@ async def test_get_study_cache_redis_backend():
     assert isinstance(cache, StudyCache)
 
     # Should have proper backend (Redis or fallback)
-    assert hasattr(cache, 'redis_client') or hasattr(cache, 'cache')
+    assert hasattr(cache, "redis_client") or hasattr(cache, "cache")
 
 
 @pytest.mark.asyncio

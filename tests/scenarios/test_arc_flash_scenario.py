@@ -68,9 +68,13 @@ class TestArcFlashScenario:
 
     def test_electrode_configurations(self):
         """Test 5: Different electrode configurations are supported."""
-        configs = [ElectrodeConfig.VCB, ElectrodeConfig.VCBB,
-                   ElectrodeConfig.HCB, ElectrodeConfig.VOA,
-                   ElectrodeConfig.HOA]
+        configs = [
+            ElectrodeConfig.VCB,
+            ElectrodeConfig.VCBB,
+            ElectrodeConfig.HCB,
+            ElectrodeConfig.VOA,
+            ElectrodeConfig.HOA,
+        ]
         engine = ArcFlashEngine()
         for config in configs:
             E_final, _, _ = engine.calculate_incident_energy(

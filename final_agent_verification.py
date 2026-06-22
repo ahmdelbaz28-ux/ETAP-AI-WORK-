@@ -9,13 +9,14 @@ import sys
 # Add the project root to the Python path
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
+
 def verify_prompt_handles():
     """Verify that the prompt handles match available files."""
     print("Verifying prompt handles...")
 
     # Check arc flash agent specifically since we fixed it
     try:
-        with open('agents/arc_flash_agent.py') as f:
+        with open("agents/arc_flash_agent.py") as f:
             content = f.read()
 
         if 'prompt_handle = "arcflash_agent"' in content:
@@ -26,7 +27,8 @@ def verify_prompt_handles():
 
         # Check if corresponding prompt file exists
         import os
-        prompt_exists = os.path.exists('prompts/arcflash_agent.prompt.yaml')
+
+        prompt_exists = os.path.exists("prompts/arcflash_agent.prompt.yaml")
         if prompt_exists:
             print("✅ Corresponding prompt file 'arcflash_agent.prompt.yaml' exists")
         else:
@@ -49,10 +51,7 @@ def verify_agent_imports():
         import importlib.util
 
         # Check if orchestrator can be imported (syntax-wise)
-        spec = importlib.util.spec_from_file_location(
-            "orchestrator",
-            "agents/orchestrator.py"
-        )
+        spec = importlib.util.spec_from_file_location("orchestrator", "agents/orchestrator.py")
         if spec and spec.loader:
             importlib.util.module_from_spec(spec)
             print("✅ Orchestrator module can be loaded")
@@ -62,8 +61,7 @@ def verify_agent_imports():
 
         # Check if agents __init__ can be loaded
         agents_init_spec = importlib.util.spec_from_file_location(
-            "agents_init",
-            "agents/__init__.py"
+            "agents_init", "agents/__init__.py"
         )
         if agents_init_spec and agents_init_spec.loader:
             importlib.util.module_from_spec(agents_init_spec)
@@ -85,7 +83,7 @@ def verify_agent_imports():
 def main():
     """Main verification function."""
     print("Final Agent Verification")
-    print("="*50)
+    print("=" * 50)
 
     # Verify prompt handles
     prompt_ok = verify_prompt_handles()
@@ -93,9 +91,9 @@ def main():
     # Verify imports
     import_ok = verify_agent_imports()
 
-    print("\n" + "="*50)
+    print("\n" + "=" * 50)
     print("FINAL VERIFICATION RESULTS")
-    print("="*50)
+    print("=" * 50)
 
     if prompt_ok:
         print("✅ Prompt handle fix: CONFIRMED")

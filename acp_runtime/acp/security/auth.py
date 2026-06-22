@@ -12,6 +12,7 @@ Design decisions:
     * Expiry is checked via an ``exp`` timestamp (Unix epoch seconds).
     * The validated token yields a ``CallerIdentity`` with caller_id and scopes.
 """
+
 from __future__ import annotations
 
 import base64
@@ -35,6 +36,7 @@ __all__ = [
 ]
 
 # ------------------------------------------------------------------ CallerIdentity
+
 
 class CallerIdentity:
     """Represents an authenticated caller.
@@ -60,13 +62,11 @@ class CallerIdentity:
                 raise ValueError(f"Invalid scope in identity: {s!r}")
 
     def __repr__(self) -> str:
-        return (
-            f"CallerIdentity(caller_id={self.caller_id!r}, "
-            f"scopes={sorted(self.scopes)!r})"
-        )
+        return f"CallerIdentity(caller_id={self.caller_id!r}, scopes={sorted(self.scopes)!r})"
 
 
 # ------------------------------------------------------------------ AuthConfig
+
 
 class AuthConfig:
     """Configuration for the built-in HMAC token validator.
@@ -107,6 +107,7 @@ The callable receives a raw token string and must return a
 
 
 # ------------------------------------------------------------------ HmacTokenValidator
+
 
 class HmacTokenValidator:
     """Built-in HMAC-SHA256 bearer token validator.
@@ -238,6 +239,7 @@ class HmacTokenValidator:
 
 # ------------------------------------------------------------------ helpers
 
+
 def validate_bearer_token(
     header_value: str | None,
     validator: AuthValidator | None,
@@ -268,7 +270,9 @@ def validate_bearer_token(
     token = parts[1]
     result = validator(token)
     if isinstance(result, Coroutine):
-        raise AuthenticationRequired("Async validators are not supported by validate_bearer_token; await the validator directly")
+        raise AuthenticationRequired(
+            "Async validators are not supported by validate_bearer_token; await the validator directly"
+        )
     return result
 
 

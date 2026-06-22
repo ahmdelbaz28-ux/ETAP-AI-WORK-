@@ -154,7 +154,9 @@ class StudyCache:
         if self._use_redis and self._redis_client:
             try:
                 payload = json.dumps(value)
-                await self._redis_client.set(key, payload, ex=effective_ttl if effective_ttl > 0 else None)
+                await self._redis_client.set(
+                    key, payload, ex=effective_ttl if effective_ttl > 0 else None
+                )
                 return True
             except Exception as e:
                 logger.warning("Redis SET failed (%s); using memory cache", e)

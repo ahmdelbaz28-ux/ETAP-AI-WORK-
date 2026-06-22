@@ -4,6 +4,7 @@ Provides production-grade error tracking, alerting, automatic recovery,
 and a component guard context manager for standardized exception handling.
 """
 
+from __future__ import annotations
 import enum
 import json
 import logging
@@ -16,7 +17,9 @@ from collections import defaultdict, deque
 from collections.abc import Callable
 from contextlib import contextmanager
 from dataclasses import dataclass, field
-from datetime import UTC, datetime, timedelta
+from datetime import datetime, timedelta, timezone
+
+UTC = timezone.utc
 from email.message import EmailMessage
 from typing import Any, Dict, List, Set
 from urllib.error import URLError
@@ -25,6 +28,7 @@ from urllib.request import Request, urlopen
 # ---------------------------------------------------------------------------
 # Severity
 # ---------------------------------------------------------------------------
+
 
 class ErrorSeverity(enum.Enum):
     """Severity levels for system errors."""
@@ -39,6 +43,7 @@ class ErrorSeverity(enum.Enum):
 # ---------------------------------------------------------------------------
 # Error data model
 # ---------------------------------------------------------------------------
+
 
 @dataclass
 class EngineSystemError:
@@ -78,6 +83,7 @@ SystemError = EngineSystemError
 # ---------------------------------------------------------------------------
 # Alert manager
 # ---------------------------------------------------------------------------
+
 
 class AlertManager:
     """Manages real-time alert distribution across multiple channels.
@@ -164,11 +170,13 @@ class AlertManager:
         if channels is None:
             channels = ["console"]
         with self._lock:
-            self._rules.append({
-                "component": component,
-                "min_severity": min_severity,
-                "channels": channels,
-            })
+            self._rules.append(
+                {
+                    "component": component,
+                    "min_severity": min_severity,
+                    "channels": channels,
+                }
+            )
 
     # ------------------------------------------------------------------
     # Alert dispatch
@@ -234,10 +242,7 @@ class AlertManager:
         return list(matched) if matched else ["console"]
 
     def _alert_console(self, error: EngineSystemError) -> None:
-        msg = (
-            f"[{error.severity.value}] {error.component} | {error.error_id} | "
-            f"{error.message}"
-        )
+        msg = f"[{error.severity.value}] {error.component} | {error.error_id} | {error.message}"
         level = getattr(logging, error.severity.value, logging.ERROR)
         self._logger.log(level, msg)
 
@@ -272,16 +277,18 @@ class AlertManager:
         if cfg is None:
             return
         try:
-            payload = json.dumps({
-                "error_id": error.error_id,
-                "message": error.message,
-                "component": error.component,
-                "severity": error.severity.value,
-                "timestamp": error.timestamp.isoformat(),
-                "details": error.details,
-                "stack_trace": error.stack_trace,
-                "user_id": error.user_id,
-            }).encode("utf-8")
+            payload = json.dumps(
+                {
+                    "error_id": error.error_id,
+                    "message": error.message,
+                    "component": error.component,
+                    "severity": error.severity.value,
+                    "timestamp": error.timestamp.isoformat(),
+                    "details": error.details,
+                    "stack_trace": error.stack_trace,
+                    "user_id": error.user_id,
+                }
+            ).encode("utf-8")
             req = Request(
                 cfg["url"],
                 data=payload,
@@ -299,6 +306,7 @@ class AlertManager:
 # ---------------------------------------------------------------------------
 # Error handler
 # ---------------------------------------------------------------------------
+
 
 class ErrorHandler:
     """Central error handling service for the platform.
@@ -322,7 +330,9 @@ class ErrorHandler:
         try:
             self._audit_logger = logging.getLogger("audit.error")
         except Exception:
-            self._logger.debug("Audit logger initialization skipped (logger 'audit.error' unavailable)")
+            self._logger.debug(
+                "Audit logger initialization skipped (logger 'audit.error' unavailable)"
+            )
 
     # ------------------------------------------------------------------
     # Public API
@@ -365,7 +375,9 @@ class ErrorHandler:
             severity=severity,
             timestamp=datetime.now(UTC),
             details=details or {},
-            stack_trace="".join(traceback.format_exception(type(exception), exception, exception.__traceback__))
+            stack_trace="".join(
+                traceback.format_exception(type(exception), exception, exception.__traceback__)
+            )
             if exception
             else "",
             user_id=user_id,
@@ -518,7 +530,9 @@ class ErrorHandler:
                 error.error_id,
             )
         except Exception:
-            logging.getLogger(__name__).debug("Audit log write skipped for error %s", error.error_id)
+            logging.getLogger(__name__).debug(
+                "Audit log write skipped for error %s", error.error_id
+            )
 
     def _dispatch_alert(self, error: EngineSystemError) -> None:
         mgr = self._alert_manager
@@ -534,6 +548,7 @@ class ErrorHandler:
 # ---------------------------------------------------------------------------
 # Auto-recovery manager
 # ---------------------------------------------------------------------------
+
 
 class AutoRecoveryManager:
     """Attempts automatic recovery from known error patterns.
@@ -577,20 +592,25 @@ class AutoRecoveryManager:
         """
         name = action_name or error_pattern
         with self._lock:
-            self._actions.append({
-                "component": component,
-                "error_pattern": error_pattern,
-                "action_fn": action_fn,
-                "cooldown_seconds": cooldown_seconds,
-                "action_name": name,
-            })
-            self._status.setdefault(name, {
-                "action_name": name,
-                "success": True,
-                "attempts": 0,
-                "last_attempt_time": None,
-                "last_success": True,
-            })
+            self._actions.append(
+                {
+                    "component": component,
+                    "error_pattern": error_pattern,
+                    "action_fn": action_fn,
+                    "cooldown_seconds": cooldown_seconds,
+                    "action_name": name,
+                }
+            )
+            self._status.setdefault(
+                name,
+                {
+                    "action_name": name,
+                    "success": True,
+                    "attempts": 0,
+                    "last_attempt_time": None,
+                    "last_success": True,
+                },
+            )
 
     def attempt_recovery(self, error: EngineSystemError) -> bool:
         """Attempt automatic recovery for *error*.
@@ -606,9 +626,9 @@ class AutoRecoveryManager:
         """
         with self._lock:
             relevant = [
-                a for a in self._actions
-                if a["component"] == error.component
-                and a["error_pattern"] in error.message
+                a
+                for a in self._actions
+                if a["component"] == error.component and a["error_pattern"] in error.message
             ]
 
         for action in relevant:
@@ -668,6 +688,7 @@ class AutoRecoveryManager:
 # ---------------------------------------------------------------------------
 # Component guard
 # ---------------------------------------------------------------------------
+
 
 @contextmanager
 def component_guard(

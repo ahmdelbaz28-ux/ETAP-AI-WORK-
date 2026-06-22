@@ -102,11 +102,19 @@ def test_gis_bridge_geojson_roundtrip(postgis: PostGISProvider) -> None:
 def test_state_store_commit_and_get(state_store: StateStore) -> None:
     """Verify state store can commit and retrieve snapshots."""
     snap = StateSnapshot()
-    snap.gis_assets["BUS1"] = type("obj", (), {
-        "asset_id": "BUS1", "asset_type": "bus", "electrical_id": "1",
-        "latitude": 30.0, "longitude": 31.2, "zone_id": "Z1",
-        "to_dict": lambda self: {"asset_id": "BUS1"},
-    })()
+    snap.gis_assets["BUS1"] = type(
+        "obj",
+        (),
+        {
+            "asset_id": "BUS1",
+            "asset_type": "bus",
+            "electrical_id": "1",
+            "latitude": 30.0,
+            "longitude": 31.2,
+            "zone_id": "Z1",
+            "to_dict": lambda self: {"asset_id": "BUS1"},
+        },
+    )()
     version = state_store.commit(snap)
     assert version == 1
 
@@ -124,11 +132,19 @@ def test_state_store_rollback(state_store: StateStore) -> None:
     """Verify state store rollback."""
     for _i in range(5):
         snap = StateSnapshot()
-        snap.gis_assets["key"] = type("obj", (), {
-            "asset_id": "key", "asset_type": "test", "electrical_id": "",
-            "latitude": 0.0, "longitude": 0.0, "zone_id": "",
-            "to_dict": lambda self: {"asset_id": "key"},
-        })()
+        snap.gis_assets["key"] = type(
+            "obj",
+            (),
+            {
+                "asset_id": "key",
+                "asset_type": "test",
+                "electrical_id": "",
+                "latitude": 0.0,
+                "longitude": 0.0,
+                "zone_id": "",
+                "to_dict": lambda self: {"asset_id": "key"},
+            },
+        )()
         state_store.commit(snap)
 
     assert state_store.get_current_version() == 5
@@ -146,10 +162,12 @@ def test_event_bus_publish_and_subscribe(event_bus: EventBus) -> None:
         received_events.append(event)
 
     event_bus.subscribe(EventType.TOPOLOGY_CHANGED, handler)
-    event_bus.publish(TopologyChanged(
-        change_description="sync test",
-        source="test",
-    ))
+    event_bus.publish(
+        TopologyChanged(
+            change_description="sync test",
+            source="test",
+        )
+    )
     assert len(received_events) == 1
     assert received_events[0].event_type == EventType.TOPOLOGY_CHANGED
 
@@ -157,10 +175,12 @@ def test_event_bus_publish_and_subscribe(event_bus: EventBus) -> None:
 def test_event_bus_history(event_bus: EventBus) -> None:
     """Verify event history tracking."""
     for i in range(5):
-        event_bus.publish(TopologyChanged(
-            change_description=f"event_{i}",
-            source="test",
-        ))
+        event_bus.publish(
+            TopologyChanged(
+                change_description=f"event_{i}",
+                source="test",
+            )
+        )
     history = event_bus.get_history(limit=3)
     assert len(history) == 3
     assert history[-1].metadata or True  # last event present
@@ -207,6 +227,7 @@ def test_full_sync_pipeline_assets(postgis: PostGISProvider, state_store: StateS
 def test_etap_sync_engine_importable() -> None:
     """Verify ETAP sync engine can be imported."""
     from etap_integration.sync_engine import ETAPSyncEngine
+
     engine = ETAPSyncEngine()
     assert engine.dt_state is None
     assert engine.etap_provider is None
@@ -268,6 +289,7 @@ def test_etap_sync_export() -> None:
 def test_gis_visualization_importable() -> None:
     """Verify GISVisualizer can be imported."""
     from visualization.gis_visualization import PPE_LEVELS, GISVisualizer
+
     viz = GISVisualizer()
     assert viz.center == (30.0, 31.0)
     assert viz.zoom == 10
@@ -277,6 +299,7 @@ def test_gis_visualization_importable() -> None:
 def test_gis_visualization_fallback_geojson() -> None:
     """Verify fallback GeoJSON output when folium not available."""
     from visualization.gis_visualization import GISVisualizer
+
     viz = GISVisualizer()
     result = viz.visualize_load_flow(
         {"BUS1": {"voltage_magnitude": 1.02}},
@@ -289,6 +312,7 @@ def test_gis_visualization_fallback_geojson() -> None:
 def test_gis_bridge_module_importable() -> None:
     """Verify GISSyncBridge can be imported."""
     from digital_twin.gis_bridge import ELECTRICAL_TO_GIS_MAP, GIS_TO_ELECTRICAL_MAP, GISSyncBridge
+
     assert "substation" in GIS_TO_ELECTRICAL_MAP
     assert "bus" in ELECTRICAL_TO_GIS_MAP
 
@@ -296,8 +320,12 @@ def test_gis_bridge_module_importable() -> None:
 def test_network_mapping_build() -> None:
     """Verify network mapping GeoJSON structure."""
     from digital_twin.gis_bridge import GISSyncBridge
+
     mapping = GISSyncBridge._extract_coords
     assert mapping({"type": "Point", "coordinates": [31.2, 30.0]}) == (31.2, 30.0)
-    assert mapping({"type": "LineString", "coordinates": [[31.0, 30.0], [31.5, 30.5]]}) == (31.0, 30.0)
+    assert mapping({"type": "LineString", "coordinates": [[31.0, 30.0], [31.5, 30.5]]}) == (
+        31.0,
+        30.0,
+    )
     assert mapping(None) is None
     assert mapping({"type": "Point"}) is None

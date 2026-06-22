@@ -43,7 +43,9 @@ class CodeGuard(BaseGuard):
         super().__init__(mode)
         self._ai_detector = AIFailureModeDetector(mode)
 
-    def scan(self, source: str, language: str = "python", context: Dict[str, Any] | None = None) -> GuardResult:
+    def scan(
+        self, source: str, language: str = "python", context: Dict[str, Any] | None = None
+    ) -> GuardResult:
         violations: List[GuardViolation] = []
         context = context or {}
 
@@ -98,16 +100,18 @@ class CodeGuard(BaseGuard):
                 length = (node.end_lineno or node.lineno) - node.lineno
                 if length > 20:
                     severity = GuardSeverity.MUST_FIX if length > 50 else GuardSeverity.SHOULD_FIX
-                    violations.append(GuardViolation(
-                        rule_id="CC-01",
-                        rule_name="Function too long",
-                        severity=severity,
-                        description=f"Function '{node.name}' is {length} lines. "
-                                    "Functions should be ≤ 20 lines; anything over 50 is a must-fix.",
-                        location=f"function '{node.name}' (line {node.lineno})",
-                        suggestion="Extract helper functions so each does one thing.",
-                        evidence=f"{length} lines",
-                    ))
+                    violations.append(
+                        GuardViolation(
+                            rule_id="CC-01",
+                            rule_name="Function too long",
+                            severity=severity,
+                            description=f"Function '{node.name}' is {length} lines. "
+                            "Functions should be ≤ 20 lines; anything over 50 is a must-fix.",
+                            location=f"function '{node.name}' (line {node.lineno})",
+                            suggestion="Extract helper functions so each does one thing.",
+                            evidence=f"{length} lines",
+                        )
+                    )
         return violations
 
     # ------------------------------------------------------------------
@@ -117,21 +121,25 @@ class CodeGuard(BaseGuard):
         violations: List[GuardViolation] = []
         for node in ast.walk(tree):
             if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
-                params = [a for a in node.args.args if a.arg not in ('self', 'cls')]
+                params = [a for a in node.args.args if a.arg not in ("self", "cls")]
                 param_count = len(params) + len(node.args.kwonlyargs) + len(node.args.posonlyargs)
                 if param_count > 4:
-                    severity = GuardSeverity.MUST_FIX if param_count > 7 else GuardSeverity.SHOULD_FIX
-                    violations.append(GuardViolation(
-                        rule_id="CC-02",
-                        rule_name="Too many parameters",
-                        severity=severity,
-                        description=f"Function '{node.name}' has {param_count} parameters. "
-                                    "Maximum recommended is 4; more suggests the function does too much.",
-                        location=f"function '{node.name}' (line {node.lineno})",
-                        suggestion="Group related parameters into a dataclass or typed dict, "
-                                   "or split the function.",
-                        evidence=f"{param_count} parameters",
-                    ))
+                    severity = (
+                        GuardSeverity.MUST_FIX if param_count > 7 else GuardSeverity.SHOULD_FIX
+                    )
+                    violations.append(
+                        GuardViolation(
+                            rule_id="CC-02",
+                            rule_name="Too many parameters",
+                            severity=severity,
+                            description=f"Function '{node.name}' has {param_count} parameters. "
+                            "Maximum recommended is 4; more suggests the function does too much.",
+                            location=f"function '{node.name}' (line {node.lineno})",
+                            suggestion="Group related parameters into a dataclass or typed dict, "
+                            "or split the function.",
+                            evidence=f"{param_count} parameters",
+                        )
+                    )
         return violations
 
     # ------------------------------------------------------------------
@@ -151,21 +159,27 @@ class CodeGuard(BaseGuard):
                             loop_vars.add(elt.id)
 
         # Check assignments with single-letter names
-        exempt = {'i', 'j', 'k', 'x', 'y', 'z', 'e', 'f', 'n', 'm', 'r', 'c', '_'} | loop_vars
+        exempt = {"i", "j", "k", "x", "y", "z", "e", "f", "n", "m", "r", "c", "_"} | loop_vars
         for node in ast.walk(tree):
             if isinstance(node, ast.Assign):
                 for target in node.targets:
-                    if isinstance(target, ast.Name) and len(target.id) == 1 and target.id not in exempt:
-                        violations.append(GuardViolation(
-                            rule_id="CC-03",
-                            rule_name="Non-intent-revealing name",
-                            severity=GuardSeverity.SHOULD_FIX,
-                            description=f"Variable '{target.id}' has a single-letter name that "
-                                        "doesn't reveal intent.",
-                            location=f"line {target.lineno}",
-                            suggestion="Use a descriptive name that explains the variable's purpose.",
-                            evidence=f"var '{target.id}'",
-                        ))
+                    if (
+                        isinstance(target, ast.Name)
+                        and len(target.id) == 1
+                        and target.id not in exempt
+                    ):
+                        violations.append(
+                            GuardViolation(
+                                rule_id="CC-03",
+                                rule_name="Non-intent-revealing name",
+                                severity=GuardSeverity.SHOULD_FIX,
+                                description=f"Variable '{target.id}' has a single-letter name that "
+                                "doesn't reveal intent.",
+                                location=f"line {target.lineno}",
+                                suggestion="Use a descriptive name that explains the variable's purpose.",
+                                evidence=f"var '{target.id}'",
+                            )
+                        )
         return violations
 
     # ------------------------------------------------------------------
@@ -174,26 +188,28 @@ class CodeGuard(BaseGuard):
     def _check_why_not_what_comments(self, source: str) -> List[GuardViolation]:
         violations: List[GuardViolation] = []
         what_patterns = [
-            r'#\s*(increment|decrement|add|remove|set|get|update|delete|check|return)\s',
-            r'#\s*(if|else|for|while|try|except)\s',
+            r"#\s*(increment|decrement|add|remove|set|get|update|delete|check|return)\s",
+            r"#\s*(if|else|for|while|try|except)\s",
         ]
-        for i, line in enumerate(source.split('\n'), 1):
+        for i, line in enumerate(source.split("\n"), 1):
             stripped = line.strip()
-            if not stripped.startswith('#'):
+            if not stripped.startswith("#"):
                 continue
             for pat in what_patterns:
                 if re.search(pat, stripped, re.IGNORECASE):
-                    violations.append(GuardViolation(
-                        rule_id="CC-05",
-                        rule_name="Comment explains 'what', not 'why'",
-                        severity=GuardSeverity.WORTH_NOTING,
-                        description="Comment describes what the code does instead of why. "
-                                    "Code should be self-documenting; comments should explain intent.",
-                        location=f"line {i}",
-                        suggestion="Remove the comment if the code is self-explanatory, "
-                                   "or rewrite it to explain the reasoning behind the code.",
-                        evidence=stripped[:80],
-                    ))
+                    violations.append(
+                        GuardViolation(
+                            rule_id="CC-05",
+                            rule_name="Comment explains 'what', not 'why'",
+                            severity=GuardSeverity.WORTH_NOTING,
+                            description="Comment describes what the code does instead of why. "
+                            "Code should be self-documenting; comments should explain intent.",
+                            location=f"line {i}",
+                            suggestion="Remove the comment if the code is self-explanatory, "
+                            "or rewrite it to explain the reasoning behind the code.",
+                            evidence=stripped[:80],
+                        )
+                    )
                     break
         return violations
 
@@ -204,19 +220,25 @@ class CodeGuard(BaseGuard):
         violations: List[GuardViolation] = []
         for node in ast.walk(tree):
             if isinstance(node, ast.ClassDef):
-                methods = [n.name for n in node.body if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef))]
+                methods = [
+                    n.name
+                    for n in node.body
+                    if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef))
+                ]
                 if len(methods) > 15:
-                    violations.append(GuardViolation(
-                        rule_id="CC-09",
-                        rule_name="SRP violation — class too large",
-                        severity=GuardSeverity.SHOULD_FIX,
-                        description=f"Class '{node.name}' has {len(methods)} methods, suggesting "
-                                    "it may have multiple responsibilities.",
-                        location=f"class '{node.name}' (line {node.lineno})",
-                        suggestion="Consider splitting into smaller classes, each with a single "
-                                   "responsibility. Look for method clusters that access the same state.",
-                        evidence=f"{len(methods)} methods",
-                    ))
+                    violations.append(
+                        GuardViolation(
+                            rule_id="CC-09",
+                            rule_name="SRP violation — class too large",
+                            severity=GuardSeverity.SHOULD_FIX,
+                            description=f"Class '{node.name}' has {len(methods)} methods, suggesting "
+                            "it may have multiple responsibilities.",
+                            location=f"class '{node.name}' (line {node.lineno})",
+                            suggestion="Consider splitting into smaller classes, each with a single "
+                            "responsibility. Look for method clusters that access the same state.",
+                            evidence=f"{len(methods)} methods",
+                        )
+                    )
         return violations
 
     # ------------------------------------------------------------------
@@ -238,17 +260,19 @@ class CodeGuard(BaseGuard):
 
             if complexity > 10:
                 severity = GuardSeverity.MUST_FIX if complexity > 20 else GuardSeverity.SHOULD_FIX
-                violations.append(GuardViolation(
-                    rule_id="CC-17",
-                    rule_name="Cyclomatic complexity too high",
-                    severity=severity,
-                    description=f"Function '{node.name}' has cyclomatic complexity of {complexity}. "
-                                "Maximum recommended is 10.",
-                    location=f"function '{node.name}' (line {node.lineno})",
-                    suggestion="Reduce branching by extracting helper functions, using early returns, "
-                               "or replacing conditionals with polymorphism.",
-                    evidence=f"complexity = {complexity}",
-                ))
+                violations.append(
+                    GuardViolation(
+                        rule_id="CC-17",
+                        rule_name="Cyclomatic complexity too high",
+                        severity=severity,
+                        description=f"Function '{node.name}' has cyclomatic complexity of {complexity}. "
+                        "Maximum recommended is 10.",
+                        location=f"function '{node.name}' (line {node.lineno})",
+                        suggestion="Reduce branching by extracting helper functions, using early returns, "
+                        "or replacing conditionals with polymorphism.",
+                        evidence=f"complexity = {complexity}",
+                    )
+                )
         return violations
 
     # ------------------------------------------------------------------
@@ -262,7 +286,7 @@ class CodeGuard(BaseGuard):
             if not isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
                 continue
             for arg in node.args.args:
-                if arg.arg in ('self', 'cls'):
+                if arg.arg in ("self", "cls"):
                     continue
                 # Check if the annotation is bool or the default is True/False
                 has_bool_default = False
@@ -275,22 +299,24 @@ class CodeGuard(BaseGuard):
 
                 has_bool_annotation = False
                 if arg.annotation:
-                    if isinstance(arg.annotation, ast.Name) and arg.annotation.id == 'bool':
+                    if isinstance(arg.annotation, ast.Name) and arg.annotation.id == "bool":
                         has_bool_annotation = True
 
                 if has_bool_default or has_bool_annotation:
-                    violations.append(GuardViolation(
-                        rule_id="CC-04",
-                        rule_name="Boolean flag argument",
-                        severity=GuardSeverity.SHOULD_FIX,
-                        description=f"Function '{node.name}' has boolean parameter '{arg.arg}'. "
-                                    "Boolean flags typically indicate a function does two things "
-                                    "and should be split into two functions.",
-                        location=f"function '{node.name}' (line {node.lineno})",
-                        suggestion=f"Split '{node.name}' into two functions, one for each "
-                                   f"boolean state of '{arg.arg}'.",
-                        evidence=f"param '{arg.arg}: bool'",
-                    ))
+                    violations.append(
+                        GuardViolation(
+                            rule_id="CC-04",
+                            rule_name="Boolean flag argument",
+                            severity=GuardSeverity.SHOULD_FIX,
+                            description=f"Function '{node.name}' has boolean parameter '{arg.arg}'. "
+                            "Boolean flags typically indicate a function does two things "
+                            "and should be split into two functions.",
+                            location=f"function '{node.name}' (line {node.lineno})",
+                            suggestion=f"Split '{node.name}' into two functions, one for each "
+                            f"boolean state of '{arg.arg}'.",
+                            evidence=f"param '{arg.arg}: bool'",
+                        )
+                    )
         return violations
 
     # ------------------------------------------------------------------
@@ -301,8 +327,19 @@ class CodeGuard(BaseGuard):
         methods (append, extend, update, remove, pop, clear, sort) on
         non-local objects."""
         violations: List[GuardViolation] = []
-        MUTATING_METHODS = {'append', 'extend', 'insert', 'remove', 'pop', 'clear',
-                            'sort', 'reverse', 'update', 'add', 'discard'}
+        MUTATING_METHODS = {
+            "append",
+            "extend",
+            "insert",
+            "remove",
+            "pop",
+            "clear",
+            "sort",
+            "reverse",
+            "update",
+            "add",
+            "discard",
+        }
         for node in ast.walk(tree):
             if not isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
                 continue
@@ -312,19 +349,23 @@ class CodeGuard(BaseGuard):
             for child in ast.walk(node):
                 if isinstance(child, ast.Return) and child.value is not None:
                     has_return_value = True
-                if (isinstance(child, ast.Call) and
-                        isinstance(child.func, ast.Attribute) and
-                        child.func.attr in MUTATING_METHODS):
+                if (
+                    isinstance(child, ast.Call)
+                    and isinstance(child.func, ast.Attribute)
+                    and child.func.attr in MUTATING_METHODS
+                ):
                     # Check if this is a mutation on a non-local object
                     # self.x.method() or param.method() or external.method()
                     obj = child.func.value
                     is_nonlocal = False
                     if isinstance(obj, ast.Name):
-                        param_names = {a.arg for a in node.args.args if a.arg not in ('self', 'cls')}
-                        if obj.id in param_names or obj.id == 'self':
+                        param_names = {
+                            a.arg for a in node.args.args if a.arg not in ("self", "cls")
+                        }
+                        if obj.id in param_names or obj.id == "self":
                             is_nonlocal = True
                     elif isinstance(obj, ast.Attribute) and isinstance(obj.value, ast.Name):
-                        if obj.value.id == 'self':
+                        if obj.value.id == "self":
                             is_nonlocal = True
                     if is_nonlocal:
                         has_mutation = True
@@ -334,19 +375,21 @@ class CodeGuard(BaseGuard):
                             mutation_evidence = f"{obj.id}.{child.func.attr}()"
 
             if has_return_value and has_mutation:
-                violations.append(GuardViolation(
-                    rule_id="CC-06",
-                    rule_name="CQS violation — reads and mutates",
-                    severity=GuardSeverity.SHOULD_FIX,
-                    description=f"Function '{node.name}' both returns a value and mutates "
-                                "state. Command-Query Separation says a function should "
-                                "either compute a value (query) or perform a side effect "
-                                "(command), not both.",
-                    location=f"function '{node.name}' (line {node.lineno})",
-                    suggestion="Split into a command that mutates and a query that returns. "
-                               "Or make the mutation explicit by returning the new state.",
-                    evidence=f"mutation: {mutation_evidence}",
-                ))
+                violations.append(
+                    GuardViolation(
+                        rule_id="CC-06",
+                        rule_name="CQS violation — reads and mutates",
+                        severity=GuardSeverity.SHOULD_FIX,
+                        description=f"Function '{node.name}' both returns a value and mutates "
+                        "state. Command-Query Separation says a function should "
+                        "either compute a value (query) or perform a side effect "
+                        "(command), not both.",
+                        location=f"function '{node.name}' (line {node.lineno})",
+                        suggestion="Split into a command that mutates and a query that returns. "
+                        "Or make the mutation explicit by returning the new state.",
+                        evidence=f"mutation: {mutation_evidence}",
+                    )
+                )
         return violations
 
     # ------------------------------------------------------------------
@@ -358,27 +401,29 @@ class CodeGuard(BaseGuard):
         violations: List[GuardViolation] = []
         # Patterns that suggest commented-out code rather than comments
         code_patterns = [
-            r'#\s*(if|for|while|try|def|class|return|import|from|with|assert|raise)\s',
-            r'#\s*\w+\s*=\s*',       # assignment
-            r'#\s*\w+\.\w+\(',       # method call
-            r'#\s*print\s*\(',       # print statement
+            r"#\s*(if|for|while|try|def|class|return|import|from|with|assert|raise)\s",
+            r"#\s*\w+\s*=\s*",  # assignment
+            r"#\s*\w+\.\w+\(",  # method call
+            r"#\s*print\s*\(",  # print statement
         ]
-        for i, line in enumerate(source.split('\n'), 1):
+        for i, line in enumerate(source.split("\n"), 1):
             stripped = line.strip()
-            if not stripped.startswith('#'):
+            if not stripped.startswith("#"):
                 continue
             for pat in code_patterns:
                 if re.search(pat, stripped):
-                    violations.append(GuardViolation(
-                        rule_id="CC-15",
-                        rule_name="Commented-out code",
-                        severity=GuardSeverity.WORTH_NOTING,
-                        description="Commented-out code detected. Dead code should be removed — "
-                                    "version control tracks history, not comments.",
-                        location=f"line {i}",
-                        suggestion="Remove the commented-out code. Use version control (git) "
-                                   "to recover it if needed.",
-                        evidence=stripped[:80],
-                    ))
+                    violations.append(
+                        GuardViolation(
+                            rule_id="CC-15",
+                            rule_name="Commented-out code",
+                            severity=GuardSeverity.WORTH_NOTING,
+                            description="Commented-out code detected. Dead code should be removed — "
+                            "version control tracks history, not comments.",
+                            location=f"line {i}",
+                            suggestion="Remove the commented-out code. Use version control (git) "
+                            "to recover it if needed.",
+                            evidence=stripped[:80],
+                        )
+                    )
                     break
         return violations
