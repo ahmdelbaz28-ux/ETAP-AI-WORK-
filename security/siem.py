@@ -24,9 +24,9 @@ import time
 import uuid
 from collections import deque
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
-UTC = timezone.utc
+UTC = UTC
 from typing import Any, Deque, Dict, List
 
 logger = logging.getLogger(__name__)

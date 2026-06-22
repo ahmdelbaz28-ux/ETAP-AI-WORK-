@@ -13,7 +13,7 @@ from typing import Dict, List
 
 from fastapi import FastAPI, HTTPException, Request, WebSocket
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse, Response
+from fastapi.responses import JSONResponse
 from opentelemetry.trace import SpanKind, Status, StatusCode
 from pydantic import BaseModel
 from starlette.middleware.base import BaseHTTPMiddleware
@@ -22,15 +22,11 @@ from api.health import router as health_router
 from api.studies import router as studies_router
 from api.websocket import scada_websocket_endpoint
 from core.bootstrap import lifespan, logger
-from core.metrics import generate_metrics, get_metrics_content_type
 from core.tracing import get_tracer
 from services.study_service import (
     StudyRequest,
-    StudyResult,
     SystemSpec,
-    execute_study_logic,
 )
-from worker.tasks import execute_engineering_study_task
 
 # Create FastAPI app instance
 _ENV = os.environ.get("ENVIRONMENT", os.environ.get("ENV", "development")).lower()
@@ -394,7 +390,7 @@ async def websocket_scada_endpoint_handler(websocket: WebSocket):
         if not api_key or not hmac.compare_digest(api_key, _EXPECTED_API_KEY):
             await websocket.close(code=1008, reason="Invalid or missing API key")
             return
-    except Exception as e:
+    except Exception:
         await websocket.close(code=1008, reason="Authentication error")
         return
 

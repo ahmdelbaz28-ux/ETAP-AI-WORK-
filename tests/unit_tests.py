@@ -15,9 +15,9 @@ Coverage targets:
 import os
 import sys
 import time
-from datetime import datetime, timezone
+from datetime import UTC, datetime, timezone
 
-UTC = timezone.utc
+UTC = UTC
 
 import numpy as np
 import pytest

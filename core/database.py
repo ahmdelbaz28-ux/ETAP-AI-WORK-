@@ -12,9 +12,9 @@ import os
 import sqlite3
 import threading
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
-UTC = timezone.utc
+UTC = UTC
 from typing import Any, Dict, List
 
 from core.models import (

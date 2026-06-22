@@ -25,12 +25,13 @@ Architecture:
 """
 
 from __future__ import annotations
+
 import logging
 import os
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
-UTC = timezone.utc
+UTC = UTC
 from typing import Dict, List
 
 import numpy as np

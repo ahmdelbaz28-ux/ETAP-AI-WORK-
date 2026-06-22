@@ -8,6 +8,7 @@ Reference: IEEE C37.118, IEC 61850, EPRI ADMS Guide
 """
 
 from __future__ import annotations
+
 import time
 from collections import deque
 from dataclasses import dataclass, field

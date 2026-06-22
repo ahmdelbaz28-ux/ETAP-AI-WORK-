@@ -9,7 +9,6 @@ from __future__ import annotations
 
 import logging
 import time
-from compat import StrEnum
 from typing import Any, List
 
 import requests
@@ -24,6 +23,7 @@ from autodesk_connector.shared.models import (
     Tray,
     UnifiedEngineeringModel,
 )
+from compat import StrEnum
 
 logger = logging.getLogger(__name__)
 

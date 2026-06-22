@@ -18,10 +18,11 @@ import json
 import sys
 import time
 from dataclasses import dataclass, field
-from compat import StrEnum
 from typing import Any
 
 import anyio
+
+from compat import StrEnum
 
 __all__ = [
     "LogLevel",

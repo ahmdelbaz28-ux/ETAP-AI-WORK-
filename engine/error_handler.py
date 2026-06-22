@@ -5,6 +5,7 @@ and a component guard context manager for standardized exception handling.
 """
 
 from __future__ import annotations
+
 import enum
 import json
 import logging
@@ -17,9 +18,9 @@ from collections import defaultdict, deque
 from collections.abc import Callable
 from contextlib import contextmanager
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
-UTC = timezone.utc
+UTC = UTC
 from email.message import EmailMessage
 from typing import Any, Dict, List, Set
 from urllib.error import URLError

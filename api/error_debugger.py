@@ -29,11 +29,12 @@ import sys
 import traceback
 import uuid
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
-UTC = timezone.utc
-from compat import StrEnum
+UTC = UTC
 from typing import Any, Dict, List
+
+from compat import StrEnum
 
 # ---------------------------------------------------------------------------
 # Error-code registry

@@ -30,9 +30,9 @@ import hashlib
 import os
 import time
 import uuid
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
-UTC = timezone.utc
+UTC = UTC
 from typing import Any, Dict, List
 
 import bcrypt

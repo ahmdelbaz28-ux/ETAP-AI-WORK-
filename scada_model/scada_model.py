@@ -8,6 +8,7 @@ Reference: IEC 61850 Communication Standard, IEC 61970 CIM
 """
 
 from __future__ import annotations
+
 import time
 from dataclasses import dataclass, field
 from enum import Enum

@@ -30,12 +30,13 @@ Features:
 """
 
 from __future__ import annotations
+
 import logging
 import os
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 
-UTC = timezone.utc
+UTC = timezone.utc  # noqa: UP017 — datetime.UTC requires Python 3.11+
 from typing import Dict, List
 
 logger = logging.getLogger(__name__)

@@ -5,9 +5,7 @@ This script validates the .mcp.json configuration and demonstrates how to intera
 """
 
 import json
-import subprocess
 import sys
-import os
 from pathlib import Path
 
 
@@ -25,7 +23,7 @@ def test_mcp_configuration():
 
     # Load and parse the configuration
     try:
-        with open(mcp_config_path, "r") as f:
+        with open(mcp_config_path) as f:
             config = json.load(f)
         print("✅ Successfully parsed .mcp.json")
     except json.JSONDecodeError as e:

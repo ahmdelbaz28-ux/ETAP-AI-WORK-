@@ -12,7 +12,6 @@ Mapping Architecture:
 from __future__ import annotations
 
 import logging
-from compat import StrEnum
 from typing import Any, Dict, List
 
 from autodesk_connector.shared.models import (
@@ -25,6 +24,7 @@ from autodesk_connector.shared.models import (
     SourceSystem,
     Transformer,
 )
+from compat import StrEnum
 
 logger = logging.getLogger(__name__)
 

@@ -1,8 +1,9 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from compat import StrEnum
 from typing import Any, Dict
+
+from compat import StrEnum
 
 # -----------------------------
 # Geometry & Feature Model

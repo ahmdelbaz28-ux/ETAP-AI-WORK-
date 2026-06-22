@@ -13,6 +13,7 @@ CRC Press, 2004.
 """
 
 from __future__ import annotations
+
 from dataclasses import dataclass, field
 from enum import Enum
 from typing import List, Tuple
@@ -130,6 +131,11 @@ class WLSEstimator:
         iteration = 0
         x = np.concatenate([theta, V])
 
+        # Mask to remove slack bus theta column from Jacobian (theta column
+        # is linearly dependent on other theta columns at flat start since
+        # Jacobian rows depend on angle differences only)
+        keep_cols = [i for i in range(2 * n) if i != slack_bus_idx]
+
         for iteration in range(1, self.max_iterations + 1):
             # Compute estimated measurements and Jacobian
             h_x = self._compute_h(x, Ybus, h_indices, n)
@@ -138,9 +144,12 @@ class WLSEstimator:
             # Residual
             r = z - h_x
 
+            # Remove slack bus theta column from H to avoid singular gain matrix
+            H_reduced = H[:, keep_cols]
+
             # Gain matrix G = H^T W H
             try:
-                G = H.T @ W @ H
+                G = H_reduced.T @ W @ H_reduced
                 G_inv = np.linalg.inv(G)
             except np.linalg.LinAlgError:
                 return StateEstimationResult(
@@ -151,10 +160,11 @@ class WLSEstimator:
                 )
 
             # State update: dx = G^{-1} H^T W r
-            dx = G_inv @ H.T @ W @ r
+            dx_reduced = G_inv @ H_reduced.T @ W @ r
 
-            # Fix slack bus angle
-            dx[slack_bus_idx] = 0.0
+            # Expand dx to full dimension by inserting 0 at slack bus position
+            dx = np.zeros(2 * n)
+            dx[keep_cols] = dx_reduced
 
             x = x + dx
 
@@ -177,9 +187,10 @@ class WLSEstimator:
         r_final = z - h_x_final
         objective = float(r_final.T @ W @ r_final)
 
-        # Covariance matrix
+        # Covariance matrix (use reduced Jacobian to avoid singularity)
         try:
-            G_final = H_final.T @ W @ H_final
+            H_final_reduced = H_final[:, keep_cols]
+            G_final = H_final_reduced.T @ W @ H_final_reduced
             G_inv_final = np.linalg.inv(G_final)
             covariance = G_inv_final
         except np.linalg.LinAlgError:
@@ -189,7 +200,7 @@ class WLSEstimator:
         bad_data = []
         norm_residuals = None
         if covariance is not None:
-            S = H_final @ G_inv_final @ H_final.T @ W
+            S = H_final_reduced @ G_inv_final @ H_final_reduced.T @ W
             Omega = np.eye(m) - S
             try:
                 Omega_inv = np.linalg.inv(np.diag(np.diag(Omega)) + np.eye(m) * 1e-10)

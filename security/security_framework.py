@@ -15,6 +15,7 @@ Features:
 
 # bcrypt is a hard dependency — add to requirements.txt: bcrypt>=4.0.0
 from __future__ import annotations
+
 import ast
 import json
 import logging
@@ -23,9 +24,9 @@ import secrets
 import threading
 import time
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
-UTC = timezone.utc
+UTC = UTC
 from enum import Enum
 from pathlib import Path
 from typing import Dict, List, Set

@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 from coordination.coordination import CoordinationEngine
 from engine.interfaces import (
     ArcFlashEngineProtocol,

@@ -31,8 +31,9 @@ import os
 import re
 import sys
 from dataclasses import dataclass, field
-from compat import StrEnum
 from typing import Any, Dict, List, Tuple
+
+from compat import StrEnum
 
 # ---------------------------------------------------------------------------
 # Data structures

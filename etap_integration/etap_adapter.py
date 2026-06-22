@@ -4,6 +4,7 @@ Provides a common interface for ETAP integration with optional functionality.
 """
 
 from __future__ import annotations
+
 import os
 from abc import ABC, abstractmethod
 from enum import Enum

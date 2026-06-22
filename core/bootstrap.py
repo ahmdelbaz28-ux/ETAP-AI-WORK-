@@ -4,21 +4,21 @@ Handles initialization of logging, metrics, and core services with privacy contr
 """
 
 from __future__ import annotations
-import asyncio
+
 import json
 import logging
 import os
 import threading
 import time
 from contextlib import asynccontextmanager
-from typing import Any
-
-import structlog
 
 # Prometheus metrics are optional for dev tooling / local environments.
 # If prometheus_client isn't installed (or the interpreter isn't wired),
 # fall back to no-op metric objects to prevent import-time failures.
 from importlib import import_module
+from typing import Any
+
+import structlog
 
 try:
     _pc = import_module("prometheus_client")

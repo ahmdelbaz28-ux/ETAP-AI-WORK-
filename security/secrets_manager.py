@@ -16,15 +16,16 @@ Features:
 """
 
 from __future__ import annotations
+
 import json
 import logging
 import os
 import re
 import stat
 import threading
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
-UTC = timezone.utc
+UTC = UTC
 from pathlib import Path
 from typing import Dict, List, Tuple
 

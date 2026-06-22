@@ -23,9 +23,9 @@ import os
 import sys
 import time
 import uuid
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta, timezone
 
-UTC = timezone.utc
+UTC = UTC
 from unittest.mock import patch
 
 import jwt

@@ -1,6 +1,7 @@
 """Memory-efficient data structures and optimization for large power system models."""
 
 from __future__ import annotations
+
 import gc
 import logging
 import sys
@@ -181,7 +182,7 @@ class MemoryOptimizedSystem:
         if original is not None:
             self.from_system(original)
 
-    def from_system(self, system: System) -> "MemoryOptimizedSystem":
+    def from_system(self, system: System) -> MemoryOptimizedSystem:
         self.base_mva = system.base_mva
         self.lines = list(system.lines)
         self.transformers = list(system.transformers)
