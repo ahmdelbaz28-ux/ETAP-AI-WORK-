@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import json
 import logging
+import os
 import time
 from typing import Any, Dict
 
@@ -49,9 +50,32 @@ class StudyCache:
             try:
                 import redis.asyncio as redis_mod  # type: ignore
 
-                self._redis_client = redis_mod.from_url(redis_url)
+                # Detect Redis Cluster mode: when ETAP_REDIS_CLUSTER_MODE=true,
+                # use RedisCluster client (supports MOVED/ASK redirections).
+                # This is required when REDIS_URL points at a Redis Cluster
+                # headless service (e.g. etap-redis-cluster:6379 on K8s).
+                cluster_mode = os.environ.get("ETAP_REDIS_CLUSTER_MODE", "false").lower() == "true"
+
+                if cluster_mode:
+                    # RedisCluster needs at least one startup node; redis-py
+                    # discovers the rest via CLUSTER SLOTS.
+                    from redis.cluster import RedisCluster  # type: ignore
+                    # Parse host:port from redis_url for the startup node
+                    stripped = redis_url.replace("rediss://", "").replace("redis://", "")
+                    host_port = stripped.split("/", 1)[0]
+                    host, _, port_str = host_port.partition(":")
+                    port = int(port_str) if port_str else 6379
+                    password = os.environ.get("REDIS_PASSWORD")
+                    self._redis_client = RedisCluster(
+                        host=host, port=port, password=password,
+                        decode_responses=True, skip_full_coverage_check=True,
+                    )
+                    logger.info("Redis Cluster cache initialized: %s:%s", host, port)
+                else:
+                    self._redis_client = redis_mod.from_url(redis_url)
+                    logger.info("Redis cache initialized with URL: %s", redis_url)
+
                 self._use_redis = True
-                logger.info("Redis cache initialized with URL: %s", redis_url)
             except Exception as e:
                 logger.warning("Redis unavailable (%s); falling back to in-memory cache", e)
                 self._use_redis = False

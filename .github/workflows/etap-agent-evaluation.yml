@@ -1,0 +1,68 @@
+# Agent A/B evaluation — with-prompt vs without-prompt comparison
+name: ETAP Agent A/B Evaluation
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'prompts/**'
+      - 'agents/**'
+      - 'tests/agent_evaluation/**'
+      - '.github/workflows/etap-agent-evaluation.yml'
+  schedule:
+    # Run weekly on Sunday at 02:00 UTC
+    - cron: '0 2 * * 0'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  ab-evaluation:
+    name: A/B Test Agent Prompts
+    runs-on: ubuntu-22.04
+    timeout-minutes: 30
+    # Skip if no LLM API key (tests are no-ops without it)
+    env:
+      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          pip install --quiet pyyaml
+
+      - name: Check API key
+        id: check-key
+        run: |
+          if [ -z "$OPENAI_API_KEY" ]; then
+            echo "has_key=false" >> $GITHUB_OUTPUT
+            echo "⚠️ No OPENAI_API_KEY secret — A/B tests will be skipped"
+          else
+            echo "has_key=true" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Run A/B tests
+        if: steps.check-key.outputs.has_key == 'true'
+        run: |
+          python tests/agent_evaluation/run_ab_test.py
+
+      - name: Upload A/B test report
+        if: steps.check-key.outputs.has_key == 'true' && always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ab-test-report
+          path: tests/agent_evaluation/report.json
+
+      - name: Skip (no API key)
+        if: steps.check-key.outputs.has_key != 'true'
+        run: |
+          echo "⏭️ A/B tests skipped — set OPENAI_API_KEY secret to enable"
+          echo "To run locally: OPENAI_API_KEY=... python tests/agent_evaluation/run_ab_test.py"

@@ -341,3 +341,24 @@ ui/release/
 ui/release
 *.asar
 security/_tmp_secure_executor_test_runner.py
+
+# ==========================================
+# Enterprise Infrastructure Bundle
+# ==========================================
+# Claude Code / harness artifacts (NEVER create these in ETAP repo)
+.claude/
+CLAUDE.md
+
+# Helm chart package artifacts
+*.tgz
+infra/helm/etap-ai/charts/
+infra/helm/etap-ai/Chart.lock
+
+# kind cluster debug output
+/tmp/kind-debug/
+
+# Helm unittest snapshots
+infra/helm/etap-ai/tests/__snapshot__/
+
+# Audit workspace (transient)
+_workspace/

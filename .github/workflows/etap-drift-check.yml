@@ -1,0 +1,64 @@
+# Agent drift check — verify agents, prompts, and docs are in sync
+name: ETAP Agent Drift Check
+
+on:
+  push:
+    branches: [main, develop]
+    paths:
+      - 'agents/**'
+      - 'prompts/**'
+      - 'docs/**'
+      - 'scripts/audit_agent_drift.py'
+      - '.github/workflows/etap-drift-check.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'agents/**'
+      - 'prompts/**'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  drift-check:
+    name: Agent ↔ Prompt ↔ Doc Sync Check
+    runs-on: ubuntu-22.04
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Run drift audit
+        run: |
+          python scripts/audit_agent_drift.py --json > drift-report.json 2>&1 || true
+          cat drift-report.json
+
+      - name: Check for ERROR-level drift
+        run: |
+          # Fail only on ERROR-level findings (not WARNING or INFO)
+          python -c "
+          import json, sys
+          with open('drift-report.json') as f:
+              findings = json.load(f)
+          errors = [f for f in findings if f['severity'] == 'ERROR']
+          if errors:
+              print(f'❌ {len(errors)} ERROR-level drift findings:')
+              for e in errors:
+                  print(f\"  [{e['category']}] {e['message']}\")
+              sys.exit(1)
+          print(f'✓ No ERROR-level drift (warnings/info are acceptable)')
+          "
+
+      - name: Upload drift report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: drift-report
+          path: drift-report.json

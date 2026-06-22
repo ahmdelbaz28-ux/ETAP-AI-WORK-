@@ -67,7 +67,7 @@ services:
     environment:
       POSTGRES_DB: etap_db
       POSTGRES_USER: etap_user
-      POSTGRES_PASSWORD: etap_pass
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
     ports:
       - "5432:5432"
     volumes:
@@ -80,7 +80,7 @@ services:
     ports:
       - "3000:3000"
     environment:
-      - GF_SECURITY_ADMIN_PASSWORD=admin123
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD:?GRAFANA_ADMIN_PASSWORD is required}
     volumes:
       - grafana_storage:/var/lib/grafana
     networks:

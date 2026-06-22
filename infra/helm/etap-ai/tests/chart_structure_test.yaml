@@ -1,0 +1,76 @@
+# Chart-level tests — verify the chart structure and basic rendering.
+suite: "chart structure"
+tests:
+  - it: "should render an API Deployment named etap-ai-api"
+    template: api-deployment.yaml
+    asserts:
+      - isKind:
+          of: Deployment
+      - equal:
+          path: metadata.name
+          value: etap-ai-api
+  - it: "should render a Worker Deployment named etap-ai-worker"
+    template: worker-deployment.yaml
+    asserts:
+      - isKind:
+          of: Deployment
+      - equal:
+          path: metadata.name
+          value: etap-ai-worker
+  - it: "should render a ConfigMap named etap-ai-config"
+    template: configmap.yaml
+    asserts:
+      - isKind:
+          of: ConfigMap
+      - equal:
+          path: metadata.name
+          value: etap-ai-config
+  - it: "should render an HPA for the API when autoscaling is enabled"
+    template: api-hpa.yaml
+    asserts:
+      - isKind:
+          of: HorizontalPodAutoscaler
+      - equal:
+          path: metadata.name
+          value: etap-ai-api
+  - it: "should render an HPA for the worker when autoscaling is enabled"
+    template: worker-hpa.yaml
+    asserts:
+      - isKind:
+          of: HorizontalPodAutoscaler
+      - equal:
+          path: metadata.name
+          value: etap-ai-worker
+  - it: "should render a PDB for the API"
+    template: api-pdb.yaml
+    asserts:
+      - isKind:
+          of: PodDisruptionBudget
+      - equal:
+          path: metadata.name
+          value: etap-ai-api
+  - it: "should render a PDB for the worker"
+    template: worker-pdb.yaml
+    asserts:
+      - isKind:
+          of: PodDisruptionBudget
+      - equal:
+          path: metadata.name
+          value: etap-ai-worker
+  - it: "should render a default-deny NetworkPolicy"
+    template: networkpolicy.yaml
+    documentIndex: 0
+    asserts:
+      - isKind:
+          of: NetworkPolicy
+      - equal:
+          path: metadata.name
+          value: etap-ai-default-deny-ingress
+  - it: "should create a ServiceAccount named etap-ai"
+    template: serviceaccount.yaml
+    asserts:
+      - isKind:
+          of: ServiceAccount
+      - equal:
+          path: metadata.name
+          value: etap-ai

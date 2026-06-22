@@ -1,0 +1,73 @@
+# Tests for the env var ordering bug fix — CRITICAL: REDIS_PASSWORD must
+# appear BEFORE REDIS_URL in the env list, otherwise $(REDIS_PASSWORD)
+# expansion fails at pod startup.
+#
+# We use `matchRegex` with JSONPath-style filters to assert on specific
+# env var values, and `exists` to verify the env var is present at all.
+suite: "env var ordering"
+values:
+  - ../values-production.yaml
+tests:
+  - it: "API deployment should define REDIS_URL with $(REDIS_PASSWORD) placeholder"
+    template: api-deployment.yaml
+    asserts:
+      - matchRegex:
+          path: spec.template.spec.containers[0].env[?(@.name=="REDIS_URL")].value
+          pattern: "^redis://:\\$\\(REDIS_PASSWORD\\)@etap-redis-cluster:6379/0$"
+  - it: "API deployment should define DATABASE_URL with $(DATABASE_USER) and $(DATABASE_PASSWORD) placeholders"
+    template: api-deployment.yaml
+    asserts:
+      - matchRegex:
+          path: spec.template.spec.containers[0].env[?(@.name=="DATABASE_URL")].value
+          pattern: "^postgresql://\\$\\(DATABASE_USER\\):\\$\\(DATABASE_PASSWORD\\)@etap-postgres-rw\\.etap:5432/etap_db$"
+  - it: "API deployment should define CELERY_BROKER_URL with $(REDIS_PASSWORD) placeholder"
+    template: api-deployment.yaml
+    asserts:
+      - matchRegex:
+          path: spec.template.spec.containers[0].env[?(@.name=="CELERY_BROKER_URL")].value
+          pattern: "^redis://:\\$\\(REDIS_PASSWORD\\)@"
+  - it: "Worker deployment should define REDIS_URL with $(REDIS_PASSWORD) placeholder"
+    template: worker-deployment.yaml
+    asserts:
+      - matchRegex:
+          path: spec.template.spec.containers[0].env[?(@.name=="REDIS_URL")].value
+          pattern: "^redis://:\\$\\(REDIS_PASSWORD\\)@etap-redis-cluster:6379/0$"
+  - it: "Worker deployment should define DATABASE_URL with placeholders"
+    template: worker-deployment.yaml
+    asserts:
+      - matchRegex:
+          path: spec.template.spec.containers[0].env[?(@.name=="DATABASE_URL")].value
+          pattern: "^postgresql://\\$\\(DATABASE_USER\\):\\$\\(DATABASE_PASSWORD\\)@"
+  - it: "ConfigMap should NOT contain REDIS_URL key (must be in env, not envFrom)"
+    template: configmap.yaml
+    asserts:
+      - notExists:
+          path: data.REDIS_URL
+  - it: "ConfigMap should NOT contain DATABASE_URL key"
+    template: configmap.yaml
+    asserts:
+      - notExists:
+          path: data.DATABASE_URL
+  - it: "ConfigMap should NOT contain CELERY_BROKER_URL key"
+    template: configmap.yaml
+    asserts:
+      - notExists:
+          path: data.CELERY_BROKER_URL
+  - it: "ConfigMap should contain REDIS_HOST and REDIS_PORT (coordinates only)"
+    template: configmap.yaml
+    asserts:
+      - equal:
+          path: data.REDIS_HOST
+          value: etap-redis-cluster
+      - equal:
+          path: data.REDIS_PORT
+          value: "6379"
+  - it: "ConfigMap should contain DATABASE_HOST and DATABASE_PORT"
+    template: configmap.yaml
+    asserts:
+      - equal:
+          path: data.DATABASE_HOST
+          value: etap-postgres-rw.etap
+      - equal:
+          path: data.DATABASE_PORT
+          value: "5432"

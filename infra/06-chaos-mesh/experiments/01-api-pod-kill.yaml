@@ -1,0 +1,58 @@
+---
+# ==========================================================================
+# Experiment 1: API PodChaos — kill a random API pod every 10 minutes.
+#
+# Verifies: HPA + PDB + rolling updates recover quickly. Application must
+# stay available (3+ replicas with PDB minAvailable=2).
+#
+# Expected outcome:
+#   - One pod dies, HPA detects and replaces within 30–60s
+#   - No 5xx errors above 0.1% during the experiment
+#   - Ingress rate limit + retries absorb the disruption
+# ==========================================================================
+apiVersion: chaos-mesh.org/v1alpha1
+kind: PodChaos
+metadata:
+  name: api-pod-kill
+  namespace: etap
+  labels:
+    app.kubernetes.io/part-of: etap-ai-platform
+    chaos-mesh.org/experiment: api-resilience
+spec:
+  action: pod-kill
+  mode: one
+  selector:
+    namespaces:
+      - etap
+    labelSelectors:
+      "app.kubernetes.io/component": api
+  scheduler:
+    cron: "@every 10m"
+  duration: "30s"
+---
+# ==========================================================================
+# Experiment 2: API container-kill — kill the container but keep the pod.
+# Simulates the process crashing without the pod being deleted (so the
+# liveness probe must fire to restart it).
+# ==========================================================================
+apiVersion: chaos-mesh.org/v1alpha1
+kind: PodChaos
+metadata:
+  name: api-container-kill
+  namespace: etap
+  labels:
+    app.kubernetes.io/part-of: etap-ai-platform
+    chaos-mesh.org/experiment: api-resilience
+spec:
+  action: container-kill
+  mode: one
+  containerNames:
+    - api
+  selector:
+    namespaces:
+      - etap
+    labelSelectors:
+      "app.kubernetes.io/component": api
+  scheduler:
+    cron: "@every 30m"
+  duration: "30s"

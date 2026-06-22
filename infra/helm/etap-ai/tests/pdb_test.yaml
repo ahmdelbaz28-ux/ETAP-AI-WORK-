@@ -1,0 +1,41 @@
+# Tests for PodDisruptionBudget — verify PDB is created with correct minAvailable.
+suite: "pod disruption budget"
+tests:
+  - it: "API PDB should have minAvailable=2 (default values)"
+    template: api-pdb.yaml
+    asserts:
+      - isKind:
+          of: PodDisruptionBudget
+      - equal:
+          path: spec.minAvailable
+          value: 2
+      - equal:
+          path: spec.selector.matchLabels["app.kubernetes.io/component"]
+          value: api
+  - it: "Worker PDB should have minAvailable=1 (default values)"
+    template: worker-pdb.yaml
+    asserts:
+      - isKind:
+          of: PodDisruptionBudget
+      - equal:
+          path: spec.minAvailable
+          value: 1
+      - equal:
+          path: spec.selector.matchLabels["app.kubernetes.io/component"]
+          value: worker
+  - it: "API PDB should have minAvailable=3 (production values)"
+    values:
+      - ../values-production.yaml
+    template: api-pdb.yaml
+    asserts:
+      - equal:
+          path: spec.minAvailable
+          value: 3
+  - it: "Worker PDB should have minAvailable=2 (production values)"
+    values:
+      - ../values-production.yaml
+    template: worker-pdb.yaml
+    asserts:
+      - equal:
+          path: spec.minAvailable
+          value: 2

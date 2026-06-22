@@ -1,0 +1,47 @@
+apiVersion: v2
+name: etap-ai
+description: |
+  ETAP AI Engineering Service — production-grade Helm chart with HPA, PDB,
+  NetworkPolicy, KEDA external autoscaling hooks, Redis Cluster integration,
+  and CloudNativePG integration. Drop-in upgrade for the chart shipped in
+  helm/etap-ai/ of the upstream repo.
+type: application
+version: 2.0.0
+appVersion: "1.0.0"
+keywords:
+  - power-systems
+  - etap
+  - ai
+  - engineering
+  - fastapi
+  - celery
+home: https://github.com/ahmdelbaz28-ux/ETAP-AI-WORK-
+sources:
+  - https://github.com/ahmdelbaz28-ux/ETAP-AI-WORK-
+maintainers:
+  - name: AhmedETAP Team
+    email: ahmdelbaz28@gmail.com
+dependencies: []
+# When you want Redis Cluster as a subchart, uncomment:
+#   - name: redis-cluster
+#     version: "10.x.x"
+#     repository: https://charts.bitnami.com/bitnami
+#     condition: redis-cluster.enabled
+annotations:
+  artifacthub.io/category: ai-machine-learning
+  artifacthub.io/license: MIT
+  artifacthub.io/changes: |
+    - kind: added
+      description: "Added _helpers.tpl (was missing in v1.0.0 — chart would not render)"
+    - kind: added
+      description: "PodDisruptionBudget for API and Worker"
+    - kind: added
+      description: "NetworkPolicy default-deny + explicit allow-rules"
+    - kind: added
+      description: "HorizontalPodAutoscaler with CPU + memory targets"
+    - kind: added
+      description: "Prometheus scrape annotations and ServiceMonitor"
+    - kind: changed
+      description: "Redis URL now points at Redis Cluster headless service"
+    - kind: changed
+      description: "DATABASE_URL now points at CloudNativePG read-write service"

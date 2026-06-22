@@ -1,0 +1,38 @@
+---
+# Helm repositories that the bundle depends on.
+# Apply once with:
+#   helm repo add bitnami      https://charts.bitnami.com/bitnami
+#   helm repo add cnpg         https://cloudnative-pg.io/charts
+#   helm repo add keda         https://kedacore.github.io/charts
+#   helm repo add vmware-tanzu https://vmware-tanzu.github.io/helm-charts
+#   helm repo add chaos-mesh   https://charts.chaos-mesh.org
+#   helm repo update
+#
+# Or `helm dependency update` from each chart directory after copying
+# Chart.yaml across.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: helm-repositories
+  namespace: etap
+  annotations:
+    description: "Reference list of Helm repos required by the ETAP enterprise bundle"
+data:
+  repositories.yaml: |
+    - name: bitnami
+      url: https://charts.bitnami.com/bitnami
+    - name: cnpg
+      url: https://cloudnative-pg.io/charts
+    - name: keda
+      url: https://kedacore.github.io/charts
+    - name: vmware-tanzu
+      url: https://vmware-tanzu.github.io/helm-charts
+    - name: chaos-mesh
+      url: https://charts.chaos-mesh.org
+  install-order.txt: |
+    1. helm repo add bitnami      https://charts.bitnami.com/bitnami
+    2. helm repo add cnpg         https://cloudnative-pg.io/charts
+    3. helm repo add keda         https://kedacore.github.io/charts
+    4. helm repo add vmware-tanzu https://vmware-tanzu.github.io/helm-charts
+    5. helm repo add chaos-mesh   https://charts.chaos-mesh.org
+    6. helm repo update
