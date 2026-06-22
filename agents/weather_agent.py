@@ -19,6 +19,8 @@ Standards:
 
 import logging
 from datetime import UTC, datetime
+
+UTC = UTC
 from typing import Any, Dict, List
 
 import numpy as np
@@ -208,7 +210,7 @@ class WeatherAgent(BaseAgent):
 
         # Forced convection coefficient (simplified IEEE 738)
         if Re > 0:
-            Nu = 0.3 + 0.62 * Re ** 0.5 * 0.71 ** (1.0 / 3.0)  # Simplified
+            Nu = 0.3 + 0.62 * Re**0.5 * 0.71 ** (1.0 / 3.0)  # Simplified
             h_conv = Nu * k_air / D
         else:
             # Natural convection (no wind)
@@ -220,7 +222,7 @@ class WeatherAgent(BaseAgent):
         sigma_sb = 5.67e-8  # Stefan-Boltzmann constant
         T_c_K = T_c + 273.15
         T_a_K = T_a + 273.15
-        q_rad = emissivity * sigma_sb * np.pi * D * (T_c_K ** 4 - T_a_K ** 4)
+        q_rad = emissivity * sigma_sb * np.pi * D * (T_c_K**4 - T_a_K**4)
 
         # Solar heat gain
         q_solar = solar_absorptivity * solar_radiation_wm2 * D
@@ -238,7 +240,9 @@ class WeatherAgent(BaseAgent):
             I_dynamic = 0.0
 
         # Rating increase vs static
-        rating_increase = (I_dynamic / static_rating_a - 1.0) * 100.0 if static_rating_a > 0 else 0.0
+        rating_increase = (
+            (I_dynamic / static_rating_a - 1.0) * 100.0 if static_rating_a > 0 else 0.0
+        )
 
         # Simple DLR as cross-check: I ∝ sqrt((T_max - T_amb) / (T_max - T_static_amb))
         dlr_factor = np.sqrt(
@@ -306,19 +310,19 @@ class WeatherAgent(BaseAgent):
         """
         impact_map: Dict[str, str] = {
             "thunderstorm": "Lightning-induced surges, protection misoperation risk, "
-                            "potential equipment damage from direct strikes",
+            "potential equipment damage from direct strikes",
             "ice_storm": "Conductor galloping, ice loading on lines and structures, "
-                         "potential line sag and flashover from icing",
+            "potential line sag and flashover from icing",
             "high_wind": "Conductor galloping, tower/structure stress, "
-                         "dynamic line rating changes, vegetation contact risk",
+            "dynamic line rating changes, vegetation contact risk",
             "heat_wave": "Transformer and cable derating, increased load from cooling, "
-                         "reduced line ratings, voltage regulation stress",
+            "reduced line ratings, voltage regulation stress",
             "tornado": "Catastrophic infrastructure damage risk, extended outages, "
-                       "protection system damage",
+            "protection system damage",
             "flood": "Substation flooding, equipment submersion, "
-                     "grounding system compromise, cable vault flooding",
+            "grounding system compromise, cable vault flooding",
             "hurricane": "Extended duration high winds, flooding, storm surge, "
-                         "widespread infrastructure damage, extended restoration",
+            "widespread infrastructure damage, extended restoration",
         }
 
         action_map: Dict[str, List[str]] = {
@@ -368,8 +372,12 @@ class WeatherAgent(BaseAgent):
             "description": description,
             "affected_area": affected_area,
             "duration_hours": duration_hours,
-            "power_system_impact": impact_map.get(alert_type, "Assess impact based on local conditions"),
-            "recommended_actions": action_map.get(alert_type, ["Monitor conditions and follow standard procedures"]),
+            "power_system_impact": impact_map.get(
+                alert_type, "Assess impact based on local conditions"
+            ),
+            "recommended_actions": action_map.get(
+                alert_type, ["Monitor conditions and follow standard procedures"]
+            ),
             "risk_level": risk_level,
         }
 
@@ -389,9 +397,7 @@ class WeatherAgent(BaseAgent):
         self.status = AgentStatus.RUNNING
 
         try:
-            self.log_execution(
-                f"Starting weather impact analysis for task {task.task_id}"
-            )
+            self.log_execution(f"Starting weather impact analysis for task {task.task_id}")
 
             analysis_type = task.parameters.get("analysis_type", "full")
             results: Dict[str, Any] = {}
@@ -447,15 +453,11 @@ class WeatherAgent(BaseAgent):
             execution_time = (datetime.now(UTC) - start_time).total_seconds()
             result.execution_time = execution_time
 
-            self.log_execution(
-                f"Weather impact analysis completed in {execution_time:.2f}s"
-            )
+            self.log_execution(f"Weather impact analysis completed in {execution_time:.2f}s")
             return result
 
         except Exception as e:
-            self.log_execution(
-                f"Weather impact analysis failed: {str(e)}", "ERROR"
-            )
+            self.log_execution(f"Weather impact analysis failed: {str(e)}", "ERROR")
             return AgentResult(
                 agent_name=self.agent_name,
                 study_type=task.study_types[0] if task.study_types else StudyType.LOAD_FLOW,

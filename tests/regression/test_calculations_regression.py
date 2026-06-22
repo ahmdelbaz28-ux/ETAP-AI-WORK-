@@ -21,22 +21,54 @@ REFERENCE_RESULTS = {
         # Expected voltage magnitudes (pu) at each bus
         "expected_voltages_pu": [1.0, 0.98, 0.99],  # Approximate values
         # Expected voltage angles (degrees) at each bus
-        "expected_angles_deg": [0.0, -2.5, -1.2],   # Approximate values
+        "expected_angles_deg": [0.0, -2.5, -1.2],  # Approximate values
         # Expected active power flows (pu) on lines
-        "expected_p_flows_pu": [1.5, 0.8],          # Approximate values
+        "expected_p_flows_pu": [1.5, 0.8],  # Approximate values
         # Expected reactive power flows (pu) on lines
-        "expected_q_flows_pu": [0.8, 0.4],          # Approximate values
+        "expected_q_flows_pu": [0.8, 0.4],  # Approximate values
     },
     "ieee-14-load-flow": {
         # Expected voltage magnitudes at key buses (approximate)
-        "expected_voltages_pu": [1.06, 1.05, 1.04, 1.03, 1.02, 1.07, 1.06, 1.09, 1.05, 1.04, 1.03, 1.02, 1.01, 1.00],
+        "expected_voltages_pu": [
+            1.06,
+            1.05,
+            1.04,
+            1.03,
+            1.02,
+            1.07,
+            1.06,
+            1.09,
+            1.05,
+            1.04,
+            1.03,
+            1.02,
+            1.01,
+            1.00,
+        ],
         # Expected voltage angles at key buses (approximate)
-        "expected_angles_deg": [0.0, -2.0, -3.5, -4.2, -5.1, -1.5, -2.8, -0.5, -3.2, -3.8, -4.1, -4.3, -4.5, -4.8],
-    }
+        "expected_angles_deg": [
+            0.0,
+            -2.0,
+            -3.5,
+            -4.2,
+            -5.1,
+            -1.5,
+            -2.8,
+            -0.5,
+            -3.2,
+            -3.8,
+            -4.1,
+            -4.3,
+            -4.5,
+            -4.8,
+        ],
+    },
 }
 
 
-def calculate_result_similarity(actual: Dict[str, Any], expected: Dict[str, Any], tolerance: float = 0.1) -> float:
+def calculate_result_similarity(
+    actual: Dict[str, Any], expected: Dict[str, Any], tolerance: float = 0.1
+) -> float:
     """
     Calculate similarity between actual and expected results.
     Returns a similarity score between 0 and 1, where 1 is perfect match.
@@ -79,7 +111,7 @@ def test_3bus_load_flow_regression(sample_3bus_network):
     request = StudyRequest(
         study_type="load_flow",
         system=SystemSpec(**sample_3bus_network),
-        parameters={"tolerance": 1e-6, "max_iterations": 50}
+        parameters={"tolerance": 1e-6, "max_iterations": 50},
     )
 
     result = execute_study_logic(request, "regression-test-3bus", 0.0)
@@ -91,7 +123,7 @@ def test_3bus_load_flow_regression(sample_3bus_network):
 
     # For now, just verify the structure - in a real implementation,
     # we would extract actual voltage/angle values from the result
-    assert hasattr(result, 'results') or hasattr(result, 'data')
+    assert hasattr(result, "results") or hasattr(result, "data")
 
 
 def test_ieee14_load_flow_regression(sample_ieee14_network):
@@ -99,7 +131,7 @@ def test_ieee14_load_flow_regression(sample_ieee14_network):
     request = StudyRequest(
         study_type="load_flow",
         system=SystemSpec(**sample_ieee14_network),
-        parameters={"tolerance": 1e-6, "max_iterations": 50}
+        parameters={"tolerance": 1e-6, "max_iterations": 50},
     )
 
     result = execute_study_logic(request, "regression-test-ieee14", 0.0)
@@ -108,7 +140,7 @@ def test_ieee14_load_flow_regression(sample_ieee14_network):
     assert result.study_type == "load_flow"
 
     # Verify structure
-    assert hasattr(result, 'results') or hasattr(result, 'data')
+    assert hasattr(result, "results") or hasattr(result, "data")
 
 
 def test_calculation_tolerance_verification(sample_3bus_network):
@@ -117,7 +149,7 @@ def test_calculation_tolerance_verification(sample_3bus_network):
     request_tight = StudyRequest(
         study_type="load_flow",
         system=SystemSpec(**sample_3bus_network),
-        parameters={"tolerance": 1e-8, "max_iterations": 100}
+        parameters={"tolerance": 1e-8, "max_iterations": 100},
     )
 
     result_tight = execute_study_logic(request_tight, "tolerance-test-tight", 0.0)
@@ -126,7 +158,7 @@ def test_calculation_tolerance_verification(sample_3bus_network):
     request_loose = StudyRequest(
         study_type="load_flow",
         system=SystemSpec(**sample_3bus_network),
-        parameters={"tolerance": 1e-3, "max_iterations": 100}
+        parameters={"tolerance": 1e-3, "max_iterations": 100},
     )
 
     result_loose = execute_study_logic(request_loose, "tolerance-test-loose", 0.0)
@@ -141,7 +173,7 @@ def test_numerical_stability_multiple_runs(sample_3bus_network):
     request = StudyRequest(
         study_type="load_flow",
         system=SystemSpec(**sample_3bus_network),
-        parameters={"tolerance": 1e-6, "max_iterations": 50}
+        parameters={"tolerance": 1e-6, "max_iterations": 50},
     )
 
     results = []
@@ -165,20 +197,20 @@ def test_edge_case_handling():
         "lines": [],
         "generators": [],
         "loads": [],
-        "transformers": []
+        "transformers": [],
     }
 
     request_empty = StudyRequest(
         study_type="load_flow",
         system=SystemSpec(**empty_system),
-        parameters={"tolerance": 1e-6, "max_iterations": 50}
+        parameters={"tolerance": 1e-6, "max_iterations": 50},
     )
 
     # This should handle the empty system appropriately
     result_empty = execute_study_logic(request_empty, "edge-case-empty", 0.0)
 
     # Either success with appropriate message or handled gracefully
-    assert hasattr(result_empty, 'success')
+    assert hasattr(result_empty, "success")
 
 
 def test_large_system_performance(sample_ieee14_network):
@@ -188,7 +220,7 @@ def test_large_system_performance(sample_ieee14_network):
     request = StudyRequest(
         study_type="load_flow",
         system=SystemSpec(**sample_ieee14_network),
-        parameters={"tolerance": 1e-6, "max_iterations": 50}
+        parameters={"tolerance": 1e-6, "max_iterations": 50},
     )
 
     start_time = time.time()

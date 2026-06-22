@@ -10,7 +10,6 @@ from __future__ import annotations
 import logging
 import time
 import uuid
-from enum import StrEnum
 from typing import Dict, List
 
 import requests
@@ -26,6 +25,7 @@ from autodesk_connector.shared.models import (
     Panel,
     Transformer,
 )
+from compat import StrEnum
 
 logger = logging.getLogger(__name__)
 
@@ -96,10 +96,12 @@ class AutoCADPluginClient:
         self.base_url = base_url.rstrip("/")
         self.timeout = timeout
         self.session = requests.Session()
-        self.session.headers.update({
-            "Content-Type": "application/json",
-            "X-API-Key": api_key,
-        })
+        self.session.headers.update(
+            {
+                "Content-Type": "application/json",
+                "X-API-Key": api_key,
+            }
+        )
         self._available: bool | None = None
 
     def is_available(self) -> bool:
@@ -130,97 +132,163 @@ class AutoCADPluginClient:
 
     def create_drawing(self, file_path: str, template: str = "") -> dict:
         """Create a new DWG file."""
-        return self.send_command("create_drawing", {
-            "file_path": file_path,
-            "template": template,
-        })
+        return self.send_command(
+            "create_drawing",
+            {
+                "file_path": file_path,
+                "template": template,
+            },
+        )
 
-    def create_layer(self, name: str, color: str = "7", linetype: str = "Continuous", lineweight: str = "Default") -> dict:
+    def create_layer(
+        self, name: str, color: str = "7", linetype: str = "Continuous", lineweight: str = "Default"
+    ) -> dict:
         """Create a new layer."""
-        return self.send_command("create_layer", {
-            "name": name,
-            "color": color,
-            "linetype": linetype,
-            "lineweight": lineweight,
-        })
+        return self.send_command(
+            "create_layer",
+            {
+                "name": name,
+                "color": color,
+                "linetype": linetype,
+                "lineweight": lineweight,
+            },
+        )
 
-    def create_block(self, name: str, entities: List[dict], base_point: List[float] | None = None) -> dict:
+    def create_block(
+        self, name: str, entities: List[dict], base_point: List[float] | None = None
+    ) -> dict:
         """Create a block definition."""
-        return self.send_command("create_block", {
-            "name": name,
-            "entities": entities,
-            "base_point": base_point or [0, 0, 0],
-        })
+        return self.send_command(
+            "create_block",
+            {
+                "name": name,
+                "entities": entities,
+                "base_point": base_point or [0, 0, 0],
+            },
+        )
 
-    def insert_block(self, block_name: str, insertion_point: List[float], scale: float = 1.0, rotation: float = 0.0) -> dict:
+    def insert_block(
+        self,
+        block_name: str,
+        insertion_point: List[float],
+        scale: float = 1.0,
+        rotation: float = 0.0,
+    ) -> dict:
         """Insert a block reference."""
-        return self.send_command("insert_block", {
-            "block_name": block_name,
-            "insertion_point": insertion_point,
-            "scale": scale,
-            "rotation": rotation,
-        })
+        return self.send_command(
+            "insert_block",
+            {
+                "block_name": block_name,
+                "insertion_point": insertion_point,
+                "scale": scale,
+                "rotation": rotation,
+            },
+        )
 
     def draw_line(self, start: List[float], end: List[float], layer: str = "0") -> dict:
         """Draw a line entity."""
-        return self.send_command("draw_line", {
-            "start": start,
-            "end": end,
-            "layer": layer,
-        })
+        return self.send_command(
+            "draw_line",
+            {
+                "start": start,
+                "end": end,
+                "layer": layer,
+            },
+        )
 
-    def draw_polyline(self, vertices: List[List[float]], closed: bool = False, layer: str = "0") -> dict:
+    def draw_polyline(
+        self, vertices: List[List[float]], closed: bool = False, layer: str = "0"
+    ) -> dict:
         """Draw a polyline."""
-        return self.send_command("draw_polyline", {
-            "vertices": vertices,
-            "closed": closed,
-            "layer": layer,
-        })
+        return self.send_command(
+            "draw_polyline",
+            {
+                "vertices": vertices,
+                "closed": closed,
+                "layer": layer,
+            },
+        )
 
     def draw_circle(self, center: List[float], radius: float, layer: str = "0") -> dict:
         """Draw a circle."""
-        return self.send_command("draw_circle", {
-            "center": center,
-            "radius": radius,
-            "layer": layer,
-        })
+        return self.send_command(
+            "draw_circle",
+            {
+                "center": center,
+                "radius": radius,
+                "layer": layer,
+            },
+        )
 
-    def draw_arc(self, center: List[float], radius: float, start_angle: float, end_angle: float, layer: str = "0") -> dict:
+    def draw_arc(
+        self,
+        center: List[float],
+        radius: float,
+        start_angle: float,
+        end_angle: float,
+        layer: str = "0",
+    ) -> dict:
         """Draw an arc."""
-        return self.send_command("draw_arc", {
-            "center": center,
-            "radius": radius,
-            "start_angle": start_angle,
-            "end_angle": end_angle,
-            "layer": layer,
-        })
+        return self.send_command(
+            "draw_arc",
+            {
+                "center": center,
+                "radius": radius,
+                "start_angle": start_angle,
+                "end_angle": end_angle,
+                "layer": layer,
+            },
+        )
 
-    def draw_text(self, text: str, insertion_point: List[float], height: float = 2.5, rotation: float = 0.0, layer: str = "0") -> dict:
+    def draw_text(
+        self,
+        text: str,
+        insertion_point: List[float],
+        height: float = 2.5,
+        rotation: float = 0.0,
+        layer: str = "0",
+    ) -> dict:
         """Draw a text entity."""
-        return self.send_command("draw_text", {
-            "text": text,
-            "insertion_point": insertion_point,
-            "height": height,
-            "rotation": rotation,
-            "layer": layer,
-        })
+        return self.send_command(
+            "draw_text",
+            {
+                "text": text,
+                "insertion_point": insertion_point,
+                "height": height,
+                "rotation": rotation,
+                "layer": layer,
+            },
+        )
 
-    def draw_dimension(self, type_: str, def_point: List[float], text_point: List[float], text: str = "", layer: str = "0") -> dict:
+    def draw_dimension(
+        self,
+        type_: str,
+        def_point: List[float],
+        text_point: List[float],
+        text: str = "",
+        layer: str = "0",
+    ) -> dict:
         """Draw a dimension entity."""
-        return self.send_command("draw_dimension", {
-            "type": type_,
-            "def_point": def_point,
-            "text_point": text_point,
-            "text": text,
-            "layer": layer,
-        })
+        return self.send_command(
+            "draw_dimension",
+            {
+                "type": type_,
+                "def_point": def_point,
+                "text_point": text_point,
+                "text": text,
+                "layer": layer,
+            },
+        )
 
     def read_entities(self, layer: str = "", entity_type: str = "") -> dict:
         """Read entities from the current drawing."""
-        return self.send_command("read_entities", {
-            "layer": layer,
-            "entity_type": entity_type,
-        })
+        return self.send_command(
+            "read_entities",
+            {
+                "layer": layer,
+                "entity_type": entity_type,
+            },
+        )
 
     def read_geometry(self, entity_id: str) -> dict:
         """Read geometry of a specific entity."""
@@ -236,10 +304,13 @@ class AutoCADPluginClient:
 
     def update_entity(self, entity_id: str, properties: dict) -> dict:
         """Update entity properties."""
-        return self.send_command("update_entity", {
-            "entity_id": entity_id,
-            "properties": properties,
-        })
+        return self.send_command(
+            "update_entity",
+            {
+                "entity_id": entity_id,
+                "properties": properties,
+            },
+        )
 
     def start_transaction(self) -> dict:
         """Start a database transaction."""
@@ -259,29 +330,47 @@ class AutoCADPluginClient:
 
     def export_dwg(self, source_path: str, output_path: str, format_: str = "dwg") -> dict:
         """Export DWG to another format (PDF, DWF, DXF)."""
-        return self.send_command("export", {
-            "source_path": source_path,
-            "output_path": output_path,
-            "format": format_,
-        })
+        return self.send_command(
+            "export",
+            {
+                "source_path": source_path,
+                "output_path": output_path,
+                "format": format_,
+            },
+        )
 
-    def draw_electrical_symbol(self, symbol_type: str, insertion_point: List[float], scale: float = 1.0, rotation: float = 0.0, attributes: dict | None = None) -> dict:
+    def draw_electrical_symbol(
+        self,
+        symbol_type: str,
+        insertion_point: List[float],
+        scale: float = 1.0,
+        rotation: float = 0.0,
+        attributes: dict | None = None,
+    ) -> dict:
         """Draw an electrical component symbol."""
-        return self.send_command("draw_electrical_symbol", {
-            "symbol_type": symbol_type,
-            "insertion_point": insertion_point,
-            "scale": scale,
-            "rotation": rotation,
-            "attributes": attributes or {},
-        })
+        return self.send_command(
+            "draw_electrical_symbol",
+            {
+                "symbol_type": symbol_type,
+                "insertion_point": insertion_point,
+                "scale": scale,
+                "rotation": rotation,
+                "attributes": attributes or {},
+            },
+        )
 
-    def draw_single_line_diagram(self, buses: List[dict], branches: List[dict], options: dict | None = None) -> dict:
+    def draw_single_line_diagram(
+        self, buses: List[dict], branches: List[dict], options: dict | None = None
+    ) -> dict:
         """Generate a single-line diagram from bus/branch data."""
-        return self.send_command("draw_single_line_diagram", {
-            "buses": buses,
-            "branches": branches,
-            "options": options or {},
-        })
+        return self.send_command(
+            "draw_single_line_diagram",
+            {
+                "buses": buses,
+                "branches": branches,
+                "options": options or {},
+            },
+        )
 
 
 # ---------------------------------------------------------------------------
@@ -368,7 +457,9 @@ class AutoCADConnector:
             "MVA": f"{transformer.rated_power_mva:.1f}",
             "KV_PRIM": str(transformer.primary_voltage_kv or ""),
             "KV_SEC": str(transformer.secondary_voltage_kv or ""),
-            "Z_PCT": f"{transformer.impedance_percent:.2f}" if transformer.impedance_percent else "",
+            "Z_PCT": f"{transformer.impedance_percent:.2f}"
+            if transformer.impedance_percent
+            else "",
             "TAP": f"{transformer.tap_ratio:.3f}",
         }
 
@@ -576,8 +667,8 @@ class AutoCADConnector:
             name="Legend",
             annotation_type="label",
             text=f"Generated: {time.strftime('%Y-%m-%d %H:%M')} | "
-                 f"Base: {opts.get('base_mva', 100)} MVA | "
-                 f"System: {opts.get('frequency', 60)} Hz",
+            f"Base: {opts.get('base_mva', 100)} MVA | "
+            f"System: {opts.get('frequency', 60)} Hz",
             font_size=2.5,
             coordinates=Coordinates(x=start_x, y=start_y - bus_spacing_y),
         )
@@ -619,14 +710,18 @@ class AutoCADConnector:
     # Operations Log
     # ------------------------------------------------------------------
 
-    def _log_operation(self, operation: str, target: str, success: bool, details: dict | None = None) -> None:
-        self._operation_log.append({
-            "operation": operation,
-            "target": target,
-            "success": success,
-            "details": details or {},
-            "timestamp": time.time(),
-        })
+    def _log_operation(
+        self, operation: str, target: str, success: bool, details: dict | None = None
+    ) -> None:
+        self._operation_log.append(
+            {
+                "operation": operation,
+                "target": target,
+                "success": success,
+                "details": details or {},
+                "timestamp": time.time(),
+            }
+        )
 
     def get_operation_log(self, limit: int = 100) -> List[dict]:
         return self._operation_log[-limit:]

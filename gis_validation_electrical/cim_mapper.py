@@ -121,7 +121,9 @@ def map_adms_to_cim(assets: List[ADMSAsset]) -> CIMModel:
         conducting_equipment[eq.cim_id] = eq
         traceability[eq.cim_id] = s.asset_id
 
-    def endpoints_from_linestring(geom: Dict[str, Any]) -> Tuple[Tuple[float, float], Tuple[float, float]] | None:
+    def endpoints_from_linestring(
+        geom: Dict[str, Any],
+    ) -> Tuple[Tuple[float, float], Tuple[float, float]] | None:
         if (geom or {}).get("type") != "LineString":
             return None
         coords = geom.get("coordinates")
@@ -142,9 +144,13 @@ def map_adms_to_cim(assets: List[ADMSAsset]) -> CIMModel:
         ):
             continue
 
-        kind = "line" if a.asset_type == ADMSAssetType.LINE else (
-            "feeder" if a.asset_type == ADMSAssetType.FEEDER else (
-                "transformer" if a.asset_type == ADMSAssetType.TRANSFORMER else "switch"
+        kind = (
+            "line"
+            if a.asset_type == ADMSAssetType.LINE
+            else (
+                "feeder"
+                if a.asset_type == ADMSAssetType.FEEDER
+                else ("transformer" if a.asset_type == ADMSAssetType.TRANSFORMER else "switch")
             )
         )
 
@@ -187,7 +193,9 @@ def map_adms_to_cim(assets: List[ADMSAsset]) -> CIMModel:
             power_transformers[pt_id] = CIMPowerTransformer(
                 cim_id=pt_id,
                 equipment_id=ce_id,
-                transformer_type=str(a.metadata.get("transformer_type", "deterministic_transformer")),
+                transformer_type=str(
+                    a.metadata.get("transformer_type", "deterministic_transformer")
+                ),
                 metadata=dict(a.metadata),
             )
             traceability[pt_id] = a.asset_id

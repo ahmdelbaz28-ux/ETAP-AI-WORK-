@@ -13,6 +13,7 @@ The transport layer is intentionally thin: it handles framing, JSON
 (de)serialisation, and connection lifecycle. JSON-RPC validation and
 dispatch live in the router layer.
 """
+
 from __future__ import annotations
 
 from acp.transport.base import Transport

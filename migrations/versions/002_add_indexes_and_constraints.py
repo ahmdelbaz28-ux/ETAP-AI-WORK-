@@ -73,9 +73,7 @@ def upgrade() -> None:
     with op.batch_alter_table("users") as batch_op:
         batch_op.create_check_constraint(
             "ck_users_role",
-            sa.text(
-                "role IN ('admin', 'engineer', 'analyst', 'viewer', 'guest')"
-            ),
+            sa.text("role IN ('admin', 'engineer', 'analyst', 'viewer', 'guest')"),
         )
 
     # projects.status check constraint

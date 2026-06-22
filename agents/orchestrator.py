@@ -16,11 +16,15 @@ Architecture:
 - Report Agent: Automated report generation (PDF/DOCX/XLSX)
 """
 
+from __future__ import annotations
+
 import asyncio
 import logging
 import time
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
+
+UTC = UTC
 from enum import Enum
 from typing import Any, Dict, List
 
@@ -33,6 +37,7 @@ logger = logging.getLogger(__name__)
 
 class AgentStatus(Enum):
     """Agent execution status."""
+
     IDLE = "idle"
     RUNNING = "running"
     COMPLETED = "completed"
@@ -42,6 +47,7 @@ class AgentStatus(Enum):
 
 class StudyType(Enum):
     """Power system study types."""
+
     LOAD_FLOW = "load_flow"
     SHORT_CIRCUIT = "short_circuit"
     HARMONIC_ANALYSIS = "harmonic_analysis"
@@ -55,6 +61,7 @@ class StudyType(Enum):
 @dataclass
 class AgentResult:
     """Result from an agent execution."""
+
     agent_name: str
     study_type: StudyType
     status: AgentStatus
@@ -68,6 +75,7 @@ class AgentResult:
 @dataclass
 class EngineeringTask:
     """Complete engineering task specification."""
+
     task_id: str
     description: str
     study_types: List[StudyType]
@@ -123,7 +131,8 @@ class BaseAgent:
             name = name[:-5]
         # Convert CamelCase to snake_case
         import re
-        name = re.sub(r'(?<=[a-z0-9])([A-Z])', r'_\1', name).lower()
+
+        name = re.sub(r"(?<=[a-z0-9])([A-Z])", r"_\1", name).lower()
         return name
 
     def _load_prompt(self) -> None:
@@ -139,6 +148,7 @@ class BaseAgent:
         """
         try:
             from agents.prompt_loader import get_prompt_metadata, get_system_prompt
+
             self._system_prompt = get_system_prompt(self.prompt_handle)
             self._prompt_metadata = get_prompt_metadata(self.prompt_handle)
             self.logger.info(
@@ -148,8 +158,7 @@ class BaseAgent:
             )
         except Exception as exc:
             self.logger.warning(
-                "Failed to load prompt for handle '%s': %s. "
-                "Agent will use hardcoded logic.",
+                "Failed to load prompt for handle '%s': %s. Agent will use hardcoded logic.",
                 self.prompt_handle,
                 exc,
             )
@@ -199,8 +208,7 @@ class BaseAgent:
         """
         self.status = AgentStatus.FAILED
         self.log_execution(
-            f"BaseAgent.execute invoked on {self.agent_name} (no override). "
-            f"Task={task.task_id}",
+            f"BaseAgent.execute invoked on {self.agent_name} (no override). Task={task.task_id}",
             level="ERROR",
         )
         return AgentResult(
@@ -239,10 +247,10 @@ class BaseAgent:
     def log_execution(self, message: str, level: str = "INFO"):
         """Log execution details."""
         entry = {
-            'timestamp': datetime.now(UTC).isoformat(),
-            'agent': self.agent_name,
-            'level': level,
-            'message': message
+            "timestamp": datetime.now(UTC).isoformat(),
+            "agent": self.agent_name,
+            "level": level,
+            "message": message,
         }
         self.execution_log.append(entry)
         getattr(self.logger, level.lower())(message)
@@ -268,10 +276,12 @@ class LoadFlowAgent(BaseAgent):
 
     def __init__(self):
         super().__init__("LoadFlowAgent")
-        self.voltage_limits = {'min': 0.95, 'max': 1.05}
+        self.voltage_limits = {"min": 0.95, "max": 1.05}
         self.convergence_tolerance = 1e-6
 
-    @trace_operation("LoadFlowAgent.execute", attributes={"component": "orchestrator", "study_type": "load_flow"})
+    @trace_operation(
+        "LoadFlowAgent.execute", attributes={"component": "orchestrator", "study_type": "load_flow"}
+    )
     async def execute(self, task: EngineeringTask) -> AgentResult:
         """Execute load flow analysis."""
         start_time = datetime.now(UTC)
@@ -284,30 +294,31 @@ class LoadFlowAgent(BaseAgent):
             from load_flow.load_flow import LoadFlowSolver
 
             # Extract system data from task parameters
-            system_data = task.parameters.get('system')
+            system_data = task.parameters.get("system")
             if not system_data:
                 raise ValueError("System data not provided in task parameters")
 
             # Ensure system_data is handled consistently as a System object
             # LoadFlowSolver requires a System object, not a dictionary
             if isinstance(system_data, dict):
-                raise TypeError("system_data must be a System object instance, not a dictionary. Ensure a valid System object is passed in task parameters.")
+                raise TypeError(
+                    "system_data must be a System object instance, not a dictionary. Ensure a valid System object is passed in task parameters."
+                )
 
             # Run load flow
             solver = LoadFlowSolver(system_data)
             converged = solver.solve(
-                max_iter=task.parameters.get('max_iterations', 100),
-                tol=self.convergence_tolerance
+                max_iter=task.parameters.get("max_iterations", 100), tol=self.convergence_tolerance
             )
 
             # Extract results
             bus_results = {}
             for bus_id, bus in system_data.buses.items():
                 bus_results[bus_id] = {
-                    'voltage_magnitude_pu': abs(bus.voltage),
-                    'voltage_angle_deg': np.degrees(np.angle(bus.voltage)),
-                    'active_power_mw': bus.generation_power.real - bus.load_power.real,
-                    'reactive_power_mvar': bus.generation_power.imag - bus.load_power.imag
+                    "voltage_magnitude_pu": abs(bus.voltage),
+                    "voltage_angle_deg": np.degrees(np.angle(bus.voltage)),
+                    "active_power_mw": bus.generation_power.real - bus.load_power.real,
+                    "reactive_power_mvar": bus.generation_power.imag - bus.load_power.imag,
                 }
 
             result = AgentResult(
@@ -315,11 +326,11 @@ class LoadFlowAgent(BaseAgent):
                 study_type=StudyType.LOAD_FLOW,
                 status=AgentStatus.COMPLETED if converged else AgentStatus.FAILED,
                 data={
-                    'converged': converged,
-                    'buses': bus_results,
-                    'iterations': solver.iterations if hasattr(solver, 'iterations') else 0,
-                    'method': 'Newton-Raphson'
-                }
+                    "converged": converged,
+                    "buses": bus_results,
+                    "iterations": solver.iterations if hasattr(solver, "iterations") else 0,
+                    "method": "Newton-Raphson",
+                },
             )
 
             # Validate results
@@ -328,8 +339,9 @@ class LoadFlowAgent(BaseAgent):
             execution_time = (datetime.now(UTC) - start_time).total_seconds()
             result.execution_time = execution_time
 
-            self.log_execution(f"Load flow completed in {execution_time:.2f}s, "
-                             f"converged={converged}")
+            self.log_execution(
+                f"Load flow completed in {execution_time:.2f}s, converged={converged}"
+            )
 
             return result
 
@@ -340,20 +352,20 @@ class LoadFlowAgent(BaseAgent):
                 study_type=StudyType.LOAD_FLOW,
                 status=AgentStatus.FAILED,
                 data={},
-                validation_errors=[str(e)]
+                validation_errors=[str(e)],
             )
 
     def validate_result(self, result: AgentResult) -> bool:
         """Validate load flow results."""
-        if not result.data.get('converged'):
+        if not result.data.get("converged"):
             result.validation_errors.append("Load flow did not converge")
             return False
 
         # Check voltage limits
-        buses = result.data.get('buses', {})
+        buses = result.data.get("buses", {})
         for bus_id, bus_data in buses.items():
-            v_mag = bus_data.get('voltage_magnitude_pu', 0)
-            if v_mag < self.voltage_limits['min'] or v_mag > self.voltage_limits['max']:
+            v_mag = bus_data.get("voltage_magnitude_pu", 0)
+            if v_mag < self.voltage_limits["min"] or v_mag > self.voltage_limits["max"]:
                 result.validation_errors.append(
                     f"Bus {bus_id} voltage {v_mag:.4f} pu outside limits "
                     f"[{self.voltage_limits['min']}, {self.voltage_limits['max']}]"
@@ -386,9 +398,12 @@ class ShortCircuitAgent(BaseAgent):
 
     def __init__(self):
         super().__init__("ShortCircuitAgent")
-        self.standards_compliance = ['IEC 60909-0:2016']
+        self.standards_compliance = ["IEC 60909-0:2016"]
 
-    @trace_operation("ShortCircuitAgent.execute", attributes={"component": "orchestrator", "study_type": "short_circuit"})
+    @trace_operation(
+        "ShortCircuitAgent.execute",
+        attributes={"component": "orchestrator", "study_type": "short_circuit"},
+    )
     async def execute(self, task: EngineeringTask) -> AgentResult:
         """Execute short circuit analysis."""
         start_time = datetime.now(UTC)
@@ -399,36 +414,37 @@ class ShortCircuitAgent(BaseAgent):
 
             from fault_analysis.fault import FaultAnalyzer
 
-            system_data = task.parameters.get('system')
+            system_data = task.parameters.get("system")
             if not system_data:
                 raise ValueError("System data not provided")
 
             # Build sequence networks
             system_data.build_sequence_networks()
 
-            Ybus_pos = system_data.get_ybus(seq='1')
-            Ybus_neg = system_data.get_ybus(seq='2')
-            Ybus_zero = system_data.get_ybus(seq='0')
+            Ybus_pos = system_data.get_ybus(seq="1")
+            Ybus_neg = system_data.get_ybus(seq="2")
+            Ybus_zero = system_data.get_ybus(seq="0")
 
             # Create fault analyzer
             base_mva = system_data.base_mva
-            base_kv = task.parameters.get('base_kv', 115.0)
+            base_kv = task.parameters.get("base_kv", 115.0)
 
-            analyzer = FaultAnalyzer(Ybus_pos, Ybus_neg, Ybus_zero,
-                                    base_mva=base_mva, base_kv=base_kv)
+            analyzer = FaultAnalyzer(
+                Ybus_pos, Ybus_neg, Ybus_zero, base_mva=base_mva, base_kv=base_kv
+            )
 
             # Execute all fault types at specified buses
-            fault_buses = task.parameters.get('fault_buses', list(system_data.buses.keys()))
+            fault_buses = task.parameters.get("fault_buses", list(system_data.buses.keys()))
             fault_results = {}
 
             for bus_id in fault_buses:
                 bus_idx = list(system_data.buses.keys()).index(bus_id)
 
                 faults = {
-                    'three_phase': analyzer.three_phase_fault(bus_idx),
-                    'line_to_ground': analyzer.line_to_ground_fault(bus_idx),
-                    'line_to_line': analyzer.line_to_line_fault(bus_idx),
-                    'double_line_to_ground': analyzer.double_line_to_ground_fault(bus_idx)
+                    "three_phase": analyzer.three_phase_fault(bus_idx),
+                    "line_to_ground": analyzer.line_to_ground_fault(bus_idx),
+                    "line_to_line": analyzer.line_to_line_fault(bus_idx),
+                    "double_line_to_ground": analyzer.double_line_to_ground_fault(bus_idx),
                 }
 
                 fault_results[bus_id] = faults
@@ -438,11 +454,11 @@ class ShortCircuitAgent(BaseAgent):
                 study_type=StudyType.SHORT_CIRCUIT,
                 status=AgentStatus.COMPLETED,
                 data={
-                    'fault_results': fault_results,
-                    'standard': 'IEC 60909-0:2016',
-                    'base_mva': base_mva,
-                    'base_kv': base_kv
-                }
+                    "fault_results": fault_results,
+                    "standard": "IEC 60909-0:2016",
+                    "base_mva": base_mva,
+                    "base_kv": base_kv,
+                },
             )
 
             result.validation_status = self.validate_result(result)
@@ -459,12 +475,12 @@ class ShortCircuitAgent(BaseAgent):
                 study_type=StudyType.SHORT_CIRCUIT,
                 status=AgentStatus.FAILED,
                 data={},
-                validation_errors=[str(e)]
+                validation_errors=[str(e)],
             )
 
     def validate_result(self, result: AgentResult) -> bool:
         """Validate short circuit results."""
-        fault_results = result.data.get('fault_results', {})
+        fault_results = result.data.get("fault_results", {})
 
         if not fault_results:
             result.validation_errors.append("No fault results generated")
@@ -473,8 +489,8 @@ class ShortCircuitAgent(BaseAgent):
         # Check that all fault currents are positive
         for bus_id, faults in fault_results.items():
             for fault_type, fault_data in faults.items():
-                if 'fault_current' in fault_data:
-                    current = abs(fault_data['fault_current'])
+                if "fault_current" in fault_data:
+                    current = abs(fault_data["fault_current"])
                     if current <= 0:
                         result.validation_errors.append(
                             f"Bus {bus_id} {fault_type}: Invalid fault current {current}"
@@ -505,7 +521,10 @@ class HarmonicAnalysisAgent(BaseAgent):
         self.standard = "IEEE 519-2022"
         self.max_harmonic_order = 50
 
-    @trace_operation("HarmonicAnalysisAgent.execute", attributes={"component": "orchestrator", "study_type": "harmonic"})
+    @trace_operation(
+        "HarmonicAnalysisAgent.execute",
+        attributes={"component": "orchestrator", "study_type": "harmonic"},
+    )
     async def execute(self, task: EngineeringTask) -> AgentResult:
         """Execute harmonic analysis."""
         start_time = datetime.now(UTC)
@@ -516,18 +535,18 @@ class HarmonicAnalysisAgent(BaseAgent):
 
             from fault_analysis.harmonic_analysis import HarmonicAnalysisEngine, HarmonicSource
 
-            system_data = task.parameters.get('system')
-            harmonic_sources = task.parameters.get('harmonic_sources', [])
-            voltage_kv = task.parameters.get('voltage_kv', 13.8)
+            system_data = task.parameters.get("system")
+            harmonic_sources = task.parameters.get("harmonic_sources", [])
+            voltage_kv = task.parameters.get("voltage_kv", 13.8)
 
             # Create engine
             engine = HarmonicAnalysisEngine(
-                fundamental_freq=task.parameters.get('fundamental_freq', 60.0),
-                max_harmonic=self.max_harmonic_order
+                fundamental_freq=task.parameters.get("fundamental_freq", 60.0),
+                max_harmonic=self.max_harmonic_order,
             )
 
             # Set system data
-            Ybus = system_data.get_ybus(seq='1')
+            Ybus = system_data.get_ybus(seq="1")
             bus_ids = sorted(system_data.buses.keys())
             engine.set_system_data(Ybus, bus_ids)
 
@@ -547,15 +566,15 @@ class HarmonicAnalysisAgent(BaseAgent):
                 study_type=StudyType.HARMONIC_ANALYSIS,
                 status=AgentStatus.COMPLETED,
                 data={
-                    'thd_voltage': result_data.total_thd_voltage,
-                    'tdd_current': result_data.total_tdd_current,
-                    'resonance_detected': result_data.resonance_detected,
-                    'resonance_frequencies': result_data.resonance_frequencies,
-                    'compliance_status': result_data.compliance_status,
-                    'violations': result_data.violations,
-                    'report': report,
-                    'standard': self.standard
-                }
+                    "thd_voltage": result_data.total_thd_voltage,
+                    "tdd_current": result_data.total_tdd_current,
+                    "resonance_detected": result_data.resonance_detected,
+                    "resonance_frequencies": result_data.resonance_frequencies,
+                    "compliance_status": result_data.compliance_status,
+                    "violations": result_data.violations,
+                    "report": report,
+                    "standard": self.standard,
+                },
             )
 
             result.validation_status = self.validate_result(result)
@@ -572,12 +591,12 @@ class HarmonicAnalysisAgent(BaseAgent):
                 study_type=StudyType.HARMONIC_ANALYSIS,
                 status=AgentStatus.FAILED,
                 data={},
-                validation_errors=[str(e)]
+                validation_errors=[str(e)],
             )
 
     def validate_result(self, result: AgentResult) -> bool:
         """Validate harmonic analysis results."""
-        violations = result.data.get('violations', [])
+        violations = result.data.get("violations", [])
 
         if violations:
             result.validation_errors.extend(violations)
@@ -607,7 +626,10 @@ class OptimalPowerFlowAgent(BaseAgent):
     def __init__(self):
         super().__init__("OptimalPowerFlowAgent")
 
-    @trace_operation("OptimalPowerFlowAgent.execute", attributes={"component": "orchestrator", "study_type": "opf"})
+    @trace_operation(
+        "OptimalPowerFlowAgent.execute",
+        attributes={"component": "orchestrator", "study_type": "opf"},
+    )
     async def execute(self, task: EngineeringTask) -> AgentResult:
         """Execute optimal power flow."""
         start_time = datetime.now(UTC)
@@ -618,12 +640,12 @@ class OptimalPowerFlowAgent(BaseAgent):
 
             from load_flow.optimal_power_flow import GeneratorCost, OptimalPowerFlowEngine
 
-            system_data = task.parameters.get('system')
-            generator_costs = task.parameters.get('generator_costs', [])
-            method = task.parameters.get('method', 'dc')
+            system_data = task.parameters.get("system")
+            generator_costs = task.parameters.get("generator_costs", [])
+            method = task.parameters.get("method", "dc")
 
             # Create OPF engine
-            Ybus = system_data.get_ybus(seq='1')
+            Ybus = system_data.get_ybus(seq="1")
             bus_ids = sorted(system_data.buses.keys())
             costs = [GeneratorCost(**gc) for gc in generator_costs]
 
@@ -636,7 +658,7 @@ class OptimalPowerFlowAgent(BaseAgent):
             opf.set_load_data(load_data)
 
             # Set generator locations
-            gen_buses = task.parameters.get('generator_locations', {})
+            gen_buses = task.parameters.get("generator_locations", {})
             opf.set_generator_locations(gen_buses)
 
             # Solve OPF
@@ -650,18 +672,18 @@ class OptimalPowerFlowAgent(BaseAgent):
                 study_type=StudyType.OPTIMAL_POWER_FLOW,
                 status=AgentStatus.COMPLETED if opf_result.success else AgentStatus.FAILED,
                 data={
-                    'success': opf_result.success,
-                    'objective_value': opf_result.objective_value,
-                    'generator_dispatch': {
-                        gid: {'P_MW': dispatch.real, 'Q_MVAR': dispatch.imag}
+                    "success": opf_result.success,
+                    "objective_value": opf_result.objective_value,
+                    "generator_dispatch": {
+                        gid: {"P_MW": dispatch.real, "Q_MVAR": dispatch.imag}
                         for gid, dispatch in opf_result.generator_dispatch.items()
                     },
-                    'total_generation_mw': opf_result.total_generation,
-                    'total_load_mw': opf_result.total_load,
-                    'total_losses_mw': opf_result.total_losses,
-                    'method': opf_result.method_used,
-                    'report': report
-                }
+                    "total_generation_mw": opf_result.total_generation,
+                    "total_load_mw": opf_result.total_load,
+                    "total_losses_mw": opf_result.total_losses,
+                    "method": opf_result.method_used,
+                    "report": report,
+                },
             )
 
             result.validation_status = self.validate_result(result)
@@ -678,25 +700,23 @@ class OptimalPowerFlowAgent(BaseAgent):
                 study_type=StudyType.OPTIMAL_POWER_FLOW,
                 status=AgentStatus.FAILED,
                 data={},
-                validation_errors=[str(e)]
+                validation_errors=[str(e)],
             )
 
     def validate_result(self, result: AgentResult) -> bool:
         """Validate OPF results."""
-        if not result.data.get('success'):
+        if not result.data.get("success"):
             result.validation_errors.append("OPF did not converge")
             return False
 
         # Check power balance
-        P_gen = result.data.get('total_generation_mw', 0)
-        P_load = result.data.get('total_load_mw', 0)
-        P_losses = result.data.get('total_losses_mw', 0)
+        P_gen = result.data.get("total_generation_mw", 0)
+        P_load = result.data.get("total_load_mw", 0)
+        P_losses = result.data.get("total_losses_mw", 0)
 
         balance_error = abs(P_gen - P_load - P_losses)
         if balance_error > 1.0:  # Allow 1 MW tolerance
-            result.validation_errors.append(
-                f"Power balance error: {balance_error:.2f} MW"
-            )
+            result.validation_errors.append(f"Power balance error: {balance_error:.2f} MW")
             return False
 
         return True
@@ -722,7 +742,10 @@ class ProtectionCoordinationAgent(BaseAgent):
         super().__init__("ProtectionCoordinationAgent")
         self.standard = "IEC 60255"
 
-    @trace_operation("ProtectionCoordinationAgent.execute", attributes={"component": "orchestrator", "study_type": "protection"})
+    @trace_operation(
+        "ProtectionCoordinationAgent.execute",
+        attributes={"component": "orchestrator", "study_type": "protection"},
+    )
     async def execute(self, task: EngineeringTask) -> AgentResult:
         start_time = datetime.now(UTC)
         self.status = AgentStatus.RUNNING
@@ -733,11 +756,11 @@ class ProtectionCoordinationAgent(BaseAgent):
             from coordination.coordination import CoordinationEngine
             from relays.relay import OvercurrentRelay
 
-            system_data = task.parameters.get('system')
+            system_data = task.parameters.get("system")
             if not system_data:
                 raise ValueError("System data not provided")
 
-            relay_data = task.parameters.get('relays', [])
+            relay_data = task.parameters.get("relays", [])
             coordination_engine = CoordinationEngine()
 
             # Analyze coordination
@@ -751,18 +774,18 @@ class ProtectionCoordinationAgent(BaseAgent):
                     )
                     coordination_results.append(result)
 
-            all_coordinated = all(r.get('coordinated', False) for r in coordination_results)
+            all_coordinated = all(r.get("coordinated", False) for r in coordination_results)
 
             result = AgentResult(
                 agent_name=self.agent_name,
                 study_type=StudyType.PROTECTION_COORDINATION,
                 status=AgentStatus.COMPLETED,
                 data={
-                    'all_coordinated': all_coordinated,
-                    'coordination_results': coordination_results,
-                    'relay_count': len(relays),
-                    'standard': self.standard
-                }
+                    "all_coordinated": all_coordinated,
+                    "coordination_results": coordination_results,
+                    "relay_count": len(relays),
+                    "standard": self.standard,
+                },
             )
 
             result.validation_status = self.validate_result(result)
@@ -779,15 +802,15 @@ class ProtectionCoordinationAgent(BaseAgent):
                 study_type=StudyType.PROTECTION_COORDINATION,
                 status=AgentStatus.FAILED,
                 data={},
-                validation_errors=[str(e)]
+                validation_errors=[str(e)],
             )
 
     def validate_result(self, result: AgentResult) -> bool:
         violations = []
-        coordination_results = result.data.get('coordination_results', [])
+        coordination_results = result.data.get("coordination_results", [])
 
         for cr in coordination_results:
-            if not cr.get('coordinated', True):
+            if not cr.get("coordinated", True):
                 violations.append(f"Coordination issue: margin {cr.get('margin', 0):.3f}s")
 
         if violations:
@@ -815,6 +838,7 @@ class ETAPExecutionAgent(BaseAgent):
     def __init__(self):
         super().__init__("ETAPExecutionAgent")
         from etap_integration.etap_provider import get_etap_provider
+
         self.provider = get_etap_provider()
 
         if self.provider.is_available():
@@ -822,7 +846,9 @@ class ETAPExecutionAgent(BaseAgent):
         else:
             self.logger.warning("No ETAP provider is currently available.")
 
-    @trace_operation("ETAPExecutionAgent.execute", attributes={"component": "orchestrator", "study_type": "etap"})
+    @trace_operation(
+        "ETAPExecutionAgent.execute", attributes={"component": "orchestrator", "study_type": "etap"}
+    )
     async def execute(self, task: EngineeringTask) -> AgentResult:
         """Execute ETAP automation task using the configured provider."""
         start_time = datetime.now(UTC)
@@ -834,16 +860,18 @@ class ETAPExecutionAgent(BaseAgent):
                 study_type=StudyType.LOAD_FLOW,
                 status=AgentStatus.FAILED,
                 data={},
-                validation_errors=["No ETAP provider available (Linux requires ETAP_WORKER_URL)"]
+                validation_errors=["No ETAP provider available (Linux requires ETAP_WORKER_URL)"],
             )
 
         try:
             from etap_integration.etap_provider import ETAPStudyType
 
-            self.log_execution(f"Executing ETAP task {task.task_id} via {type(self.provider).__name__}")
+            self.log_execution(
+                f"Executing ETAP task {task.task_id} via {type(self.provider).__name__}"
+            )
 
-            project_path = task.parameters.get('project_path')
-            study_type_str = task.parameters.get('study_type', 'LOAD_FLOW')
+            project_path = task.parameters.get("project_path")
+            study_type_str = task.parameters.get("study_type", "LOAD_FLOW")
 
             # Map string to ETAPStudyType enum
             try:
@@ -856,7 +884,7 @@ class ETAPExecutionAgent(BaseAgent):
             result = self.provider.execute_study(
                 project_path=project_path,
                 study_type=study_type,
-                visible=task.parameters.get('visible', False)
+                visible=task.parameters.get("visible", False),
             )
 
             agent_result = AgentResult(
@@ -864,12 +892,12 @@ class ETAPExecutionAgent(BaseAgent):
                 study_type=StudyType.LOAD_FLOW,
                 status=AgentStatus.COMPLETED if result.success else AgentStatus.FAILED,
                 data={
-                    'success': result.success,
-                    'data': result.data,
-                    'warnings': result.warnings,
-                    'errors': result.errors,
-                    'provider': type(self.provider).__name__
-                }
+                    "success": result.success,
+                    "data": result.data,
+                    "warnings": result.warnings,
+                    "errors": result.errors,
+                    "provider": type(self.provider).__name__,
+                },
             )
 
             agent_result.validation_status = self.validate_result(agent_result)
@@ -885,13 +913,13 @@ class ETAPExecutionAgent(BaseAgent):
                 study_type=StudyType.LOAD_FLOW,
                 status=AgentStatus.FAILED,
                 data={},
-                validation_errors=[str(e)]
+                validation_errors=[str(e)],
             )
 
     def validate_result(self, result: AgentResult) -> bool:
         """Validate ETAP execution results."""
-        if not result.data.get('success'):
-            errors = result.data.get('errors', [])
+        if not result.data.get("success"):
+            errors = result.data.get("errors", [])
             result.validation_errors.extend(errors)
             return False
 
@@ -916,9 +944,9 @@ class ValidationAgent(BaseAgent):
     def __init__(self):
         super().__init__("ValidationAgent")
         self.standards = {
-            'voltage_limits': {'min': 0.95, 'max': 1.05},
-            'frequency_hz': 60.0,
-            'temperature_rise_C': 65
+            "voltage_limits": {"min": 0.95, "max": 1.05},
+            "frequency_hz": 60.0,
+            "temperature_rise_C": 65,
         }
 
     @trace_operation("ValidationAgent.execute", attributes={"component": "orchestrator"})
@@ -930,13 +958,13 @@ class ValidationAgent(BaseAgent):
         try:
             self.log_execution(f"Starting validation for task {task.task_id}")
 
-            results_to_validate = task.parameters.get('results', [])
+            results_to_validate = task.parameters.get("results", [])
             validation_summary = {
-                'total_checks': 0,
-                'passed': 0,
-                'failed': 0,
-                'warnings': [],
-                'critical_issues': []
+                "total_checks": 0,
+                "passed": 0,
+                "failed": 0,
+                "warnings": [],
+                "critical_issues": [],
             }
 
             for agent_result in results_to_validate:
@@ -950,33 +978,35 @@ class ValidationAgent(BaseAgent):
                 elif agent_result.study_type == StudyType.OPTIMAL_POWER_FLOW:
                     checks = self._validate_opf(agent_result)
                 else:
-                    checks = {'status': 'unknown', 'issues': []}
+                    checks = {"status": "unknown", "issues": []}
 
-                validation_summary['total_checks'] += 1
-                if checks['status'] == 'pass':
-                    validation_summary['passed'] += 1
+                validation_summary["total_checks"] += 1
+                if checks["status"] == "pass":
+                    validation_summary["passed"] += 1
                 else:
-                    validation_summary['failed'] += 1
-                    validation_summary['critical_issues'].extend(checks['issues'])
+                    validation_summary["failed"] += 1
+                    validation_summary["critical_issues"].extend(checks["issues"])
 
-            overall_valid = validation_summary['failed'] == 0
+            overall_valid = validation_summary["failed"] == 0
 
             result = AgentResult(
                 agent_name=self.agent_name,
                 study_type=StudyType.LOAD_FLOW,  # Generic
                 status=AgentStatus.COMPLETED,
                 data={
-                    'validation_summary': validation_summary,
-                    'overall_valid': overall_valid,
-                    'standards_checked': list(self.standards.keys())
-                }
+                    "validation_summary": validation_summary,
+                    "overall_valid": overall_valid,
+                    "standards_checked": list(self.standards.keys()),
+                },
             )
 
             result.validation_status = overall_valid
             execution_time = (datetime.now(UTC) - start_time).total_seconds()
             result.execution_time = execution_time
 
-            self.log_execution(f"Validation completed: {validation_summary['passed']}/{validation_summary['total_checks']} passed")
+            self.log_execution(
+                f"Validation completed: {validation_summary['passed']}/{validation_summary['total_checks']} passed"
+            )
             return result
 
         except Exception as e:
@@ -986,67 +1016,67 @@ class ValidationAgent(BaseAgent):
                 study_type=StudyType.LOAD_FLOW,
                 status=AgentStatus.FAILED,
                 data={},
-                validation_errors=[str(e)]
+                validation_errors=[str(e)],
             )
 
     def _validate_load_flow(self, result: AgentResult) -> Dict:
         """Validate load flow results."""
         issues = []
 
-        if not result.data.get('converged'):
+        if not result.data.get("converged"):
             issues.append("Load flow did not converge")
-            return {'status': 'fail', 'issues': issues}
+            return {"status": "fail", "issues": issues}
 
         # Check voltages
-        buses = result.data.get('buses', {})
+        buses = result.data.get("buses", {})
         for bus_id, bus_data in buses.items():
-            v_mag = bus_data.get('voltage_magnitude_pu', 0)
-            if v_mag < self.standards['voltage_limits']['min']:
+            v_mag = bus_data.get("voltage_magnitude_pu", 0)
+            if v_mag < self.standards["voltage_limits"]["min"]:
                 issues.append(f"Bus {bus_id}: Undervoltage {v_mag:.4f} pu")
-            elif v_mag > self.standards['voltage_limits']['max']:
+            elif v_mag > self.standards["voltage_limits"]["max"]:
                 issues.append(f"Bus {bus_id}: Overvoltage {v_mag:.4f} pu")
 
-        return {'status': 'pass' if not issues else 'fail', 'issues': issues}
+        return {"status": "pass" if not issues else "fail", "issues": issues}
 
     def _validate_short_circuit(self, result: AgentResult) -> Dict:
         """Validate short circuit results."""
         issues = []
 
         # Check that fault currents are reasonable
-        fault_results = result.data.get('fault_results', {})
+        fault_results = result.data.get("fault_results", {})
         for bus_id, faults in fault_results.items():
             for fault_type, fault_data in faults.items():
-                if 'fault_current' in fault_data:
-                    current = abs(fault_data['fault_current'])
+                if "fault_current" in fault_data:
+                    current = abs(fault_data["fault_current"])
                     if current > 100:  # Example: 100 kA threshold
                         issues.append(
                             f"Bus {bus_id} {fault_type}: Very high fault current {current:.2f} kA"
                         )
 
-        return {'status': 'pass' if not issues else 'fail', 'issues': issues}
+        return {"status": "pass" if not issues else "fail", "issues": issues}
 
     def _validate_harmonic(self, result: AgentResult) -> Dict:
         """Validate harmonic analysis results."""
         issues = []
 
-        violations = result.data.get('violations', [])
+        violations = result.data.get("violations", [])
         if violations:
             issues.extend(violations)
 
-        resonance = result.data.get('resonance_detected', False)
+        resonance = result.data.get("resonance_detected", False)
         if resonance:
             issues.append("Resonance detected - requires filter design")
 
-        return {'status': 'pass' if not issues else 'fail', 'issues': issues}
+        return {"status": "pass" if not issues else "fail", "issues": issues}
 
     def _validate_opf(self, result: AgentResult) -> Dict:
         """Validate OPF results."""
         issues = []
 
-        if not result.data.get('success'):
+        if not result.data.get("success"):
             issues.append("OPF did not converge")
 
-        return {'status': 'pass' if not issues else 'fail', 'issues': issues}
+        return {"status": "pass" if not issues else "fail", "issues": issues}
 
 
 class ReportGenerationAgent(BaseAgent):
@@ -1081,19 +1111,19 @@ class ReportGenerationAgent(BaseAgent):
         try:
             self.log_execution(f"Starting report generation for task {task.task_id}")
 
-            results = task.parameters.get('results', [])
-            output_format = task.parameters.get('format', 'pdf')
-            output_path = task.parameters.get('output_path', './reports')
+            results = task.parameters.get("results", [])
+            output_format = task.parameters.get("format", "pdf")
+            output_path = task.parameters.get("output_path", "./reports")
 
             # Generate report content
             report_content = self._compile_report(results)
 
             # Export in requested format
-            if output_format == 'pdf':
+            if output_format == "pdf":
                 file_path = self._export_pdf(report_content, output_path)
-            elif output_format == 'docx':
+            elif output_format == "docx":
                 file_path = self._export_docx(report_content, output_path)
-            elif output_format == 'xlsx':
+            elif output_format == "xlsx":
                 file_path = self._export_xlsx(report_content, output_path)
             else:
                 raise ValueError(f"Unsupported format: {output_format}")
@@ -1103,11 +1133,11 @@ class ReportGenerationAgent(BaseAgent):
                 study_type=StudyType.LOAD_FLOW,  # Generic
                 status=AgentStatus.COMPLETED,
                 data={
-                    'report_generated': True,
-                    'format': output_format,
-                    'file_path': file_path,
-                    'sections': list(report_content.keys())
-                }
+                    "report_generated": True,
+                    "format": output_format,
+                    "file_path": file_path,
+                    "sections": list(report_content.keys()),
+                },
             )
 
             result.validation_status = True
@@ -1124,38 +1154,38 @@ class ReportGenerationAgent(BaseAgent):
                 study_type=StudyType.LOAD_FLOW,
                 status=AgentStatus.FAILED,
                 data={},
-                validation_errors=[str(e)]
+                validation_errors=[str(e)],
             )
 
     def _compile_report(self, results: List[AgentResult]) -> Dict:
         """Compile report content from agent results."""
         report = {
-            'title': 'Power System Engineering Analysis Report',
-            'generated_at': datetime.now(UTC).isoformat(),
-            'executive_summary': '',
-            'load_flow_results': {},
-            'short_circuit_results': {},
-            'harmonic_results': {},
-            'opf_results': {},
-            'validation_summary': {},
-            'recommendations': []
+            "title": "Power System Engineering Analysis Report",
+            "generated_at": datetime.now(UTC).isoformat(),
+            "executive_summary": "",
+            "load_flow_results": {},
+            "short_circuit_results": {},
+            "harmonic_results": {},
+            "opf_results": {},
+            "validation_summary": {},
+            "recommendations": [],
         }
 
         for result in results:
             if result.study_type == StudyType.LOAD_FLOW:
-                report['load_flow_results'] = result.data
+                report["load_flow_results"] = result.data
             elif result.study_type == StudyType.SHORT_CIRCUIT:
-                report['short_circuit_results'] = result.data
+                report["short_circuit_results"] = result.data
             elif result.study_type == StudyType.HARMONIC_ANALYSIS:
-                report['harmonic_results'] = result.data
+                report["harmonic_results"] = result.data
             elif result.study_type == StudyType.OPTIMAL_POWER_FLOW:
-                report['opf_results'] = result.data
+                report["opf_results"] = result.data
 
         # Generate executive summary
-        report['executive_summary'] = self._generate_executive_summary(report)
+        report["executive_summary"] = self._generate_executive_summary(report)
 
         # Generate recommendations
-        report['recommendations'] = self._generate_recommendations(report)
+        report["recommendations"] = self._generate_recommendations(report)
 
         return report
 
@@ -1166,24 +1196,26 @@ class ReportGenerationAgent(BaseAgent):
             "=" * 60,
             "",
             f"Report Generatedenced on: {report['generated_at']}",
-            ""
+            "",
         ]
 
         # Load flow summary
-        lf = report.get('load_flow_results', {})
+        lf = report.get("load_flow_results", {})
         if lf:
-            converged = lf.get('converged', False)
-            summary_lines.append(f"Load Flow Analysis: {'Converged' if converged else 'Did Not Converge'}")
+            converged = lf.get("converged", False)
+            summary_lines.append(
+                f"Load Flow Analysis: {'Converged' if converged else 'Did Not Converge'}"
+            )
 
         # Short circuit summary
-        sc = report.get('short_circuit_results', {})
+        sc = report.get("short_circuit_results", {})
         if sc:
             summary_lines.append("Short Circuit Analysis: Completed per IEC 60909")
 
         # Harmonic summary
-        harm = report.get('harmonic_results', {})
+        harm = report.get("harmonic_results", {})
         if harm:
-            violations = harm.get('violations', [])
+            violations = harm.get("violations", [])
             summary_lines.append(f"Harmonic Analysis: {len(violations)} IEEE 519 violations found")
 
         return "\n".join(summary_lines)
@@ -1193,21 +1225,19 @@ class ReportGenerationAgent(BaseAgent):
         recommendations = []
 
         # Check for voltage issues
-        lf = report.get('load_flow_results', {})
-        buses = lf.get('buses', {})
+        lf = report.get("load_flow_results", {})
+        buses = lf.get("buses", {})
         for bus_id, bus_data in buses.items():
-            v_mag = bus_data.get('voltage_magnitude_pu', 1.0)
+            v_mag = bus_data.get("voltage_magnitude_pu", 1.0)
             if v_mag < 0.95:
                 recommendations.append(
                     f"Bus {bus_id}: Consider adding reactive compensation to improve voltage"
                 )
 
         # Check for harmonic violations
-        harm = report.get('harmonic_results', {})
-        if harm.get('resonance_detected'):
-            recommendations.append(
-                "Install passive harmonic filters to mitigate resonance"
-            )
+        harm = report.get("harmonic_results", {})
+        if harm.get("resonance_detected"):
+            recommendations.append("Install passive harmonic filters to mitigate resonance")
 
         if not recommendations:
             recommendations.append("System operates within acceptable limits")
@@ -1218,10 +1248,11 @@ class ReportGenerationAgent(BaseAgent):
         """Export report as PDF using the reporting module."""
         try:
             from reporting.advanced_reports import PDFReportGenerator, ReportMetadata
+
             metadata = ReportMetadata(
-                title=content.get('title', 'Engineering Report'),
-                author='AhmedETAP',
-                date=datetime.now(UTC).isoformat()
+                title=content.get("title", "Engineering Report"),
+                author="AhmedETAP",
+                date=datetime.now(UTC).isoformat(),
             )
             generator = PDFReportGenerator()
             file_path = f"{output_path}/report_{datetime.now(UTC).strftime('%Y%m%d_%H%M%S')}.pdf"
@@ -1229,7 +1260,9 @@ class ReportGenerationAgent(BaseAgent):
             self.log_execution(f"PDF report generated: {file_path}")
             return file_path
         except ImportError:
-            self.log_execution("PDF generator unavailable (reportlab not installed) — using placeholder", "WARNING")
+            self.log_execution(
+                "PDF generator unavailable (reportlab not installed) — using placeholder", "WARNING"
+            )
             return ""  # No file generated
         except Exception as e:
             self.log_execution(f"PDF generation failed: {e}", "ERROR")
@@ -1239,10 +1272,11 @@ class ReportGenerationAgent(BaseAgent):
         """Export report as DOCX using the reporting module."""
         try:
             from reporting.advanced_reports import DOCXReportGenerator, ReportMetadata
+
             metadata = ReportMetadata(
-                title=content.get('title', 'Engineering Report'),
-                author='AhmedETAP',
-                date=datetime.now(UTC).isoformat()
+                title=content.get("title", "Engineering Report"),
+                author="AhmedETAP",
+                date=datetime.now(UTC).isoformat(),
             )
             generator = DOCXReportGenerator()
             file_path = f"{output_path}/report_{datetime.now(UTC).strftime('%Y%m%d_%H%M%S')}.docx"
@@ -1250,7 +1284,10 @@ class ReportGenerationAgent(BaseAgent):
             self.log_execution(f"DOCX report generated: {file_path}")
             return file_path
         except ImportError:
-            self.log_execution("DOCX generator unavailable (python-docx not installed) — using placeholder", "WARNING")
+            self.log_execution(
+                "DOCX generator unavailable (python-docx not installed) — using placeholder",
+                "WARNING",
+            )
             return ""  # No file generated
         except Exception as e:
             self.log_execution(f"DOCX generation failed: {e}", "ERROR")
@@ -1260,10 +1297,11 @@ class ReportGenerationAgent(BaseAgent):
         """Export report as XLSX using the reporting module."""
         try:
             from reporting.advanced_reports import ReportMetadata, XLSXReportGenerator
+
             metadata = ReportMetadata(
-                title=content.get('title', 'Engineering Report'),
-                author='AhmedETAP',
-                date=datetime.now(UTC).isoformat()
+                title=content.get("title", "Engineering Report"),
+                author="AhmedETAP",
+                date=datetime.now(UTC).isoformat(),
             )
             generator = XLSXReportGenerator()
             file_path = f"{output_path}/report_{datetime.now(UTC).strftime('%Y%m%d_%H%M%S')}.xlsx"
@@ -1271,7 +1309,9 @@ class ReportGenerationAgent(BaseAgent):
             self.log_execution(f"XLSX report generated: {file_path}")
             return file_path
         except ImportError:
-            self.log_execution("XLSX generator unavailable (openpyxl not installed) — using placeholder", "WARNING")
+            self.log_execution(
+                "XLSX generator unavailable (openpyxl not installed) — using placeholder", "WARNING"
+            )
             return ""  # No file generated
         except Exception as e:
             self.log_execution(f"XLSX generation failed: {e}", "ERROR")
@@ -1305,22 +1345,23 @@ class ChiefEngineeringOrchestrator:
 
     def __init__(self):
         self.agents = {
-            'load_flow': LoadFlowAgent(),
-            'short_circuit': ShortCircuitAgent(),
-            'harmonic': HarmonicAnalysisAgent(),
-            'opf': OptimalPowerFlowAgent(),
-            'protection': ProtectionCoordinationAgent(),
-            'etap_execution': ETAPExecutionAgent(),
-            'validation': ValidationAgent(),
-            'report': ReportGenerationAgent()
+            "load_flow": LoadFlowAgent(),
+            "short_circuit": ShortCircuitAgent(),
+            "harmonic": HarmonicAnalysisAgent(),
+            "opf": OptimalPowerFlowAgent(),
+            "protection": ProtectionCoordinationAgent(),
+            "etap_execution": ETAPExecutionAgent(),
+            "validation": ValidationAgent(),
+            "report": ReportGenerationAgent(),
         }
 
         # Guard-skills agent for automatic code quality review
         self._code_guard_agent = None
         try:
             from agents.code_guard_agent import CodeGuardAgent
+
             self._code_guard_agent = CodeGuardAgent()
-            self.agents['code_guard'] = self._code_guard_agent
+            self.agents["code_guard"] = self._code_guard_agent
         except ImportError:
             self.logger = logging.getLogger("orchestrator")
             self.logger.info("CodeGuardAgent not available — guard-skills review disabled")
@@ -1337,6 +1378,7 @@ class ChiefEngineeringOrchestrator:
         """Load the orchestrator's prompt for coordination guidance."""
         try:
             from agents.prompt_loader import get_system_prompt
+
             self._system_prompt = get_system_prompt(self.prompt_handle)
             self.logger.info(
                 "Orchestrator prompt loaded from handle '%s' (%d chars)",
@@ -1356,9 +1398,7 @@ class ChiefEngineeringOrchestrator:
                 "prompt_handle": self.prompt_handle,
                 "prompt_loaded": self._system_prompt is not None,
             },
-            "agents": {
-                key: agent.get_agent_info() for key, agent in self.agents.items()
-            },
+            "agents": {key: agent.get_agent_info() for key, agent in self.agents.items()},
         }
 
     async def submit_task(self, task: EngineeringTask):
@@ -1367,9 +1407,9 @@ class ChiefEngineeringOrchestrator:
         self.logger.info(f"Task submitted: {task.task_id} - {task.description}")
 
     @trace_operation("execute_autonomous_workflow", attributes={"component": "orchestrator"})
-    async def execute_autonomous_workflow(self, user_goal: str,
-                                          system_data: Any,
-                                          parameters: Dict = None) -> Dict[str, Any]:
+    async def execute_autonomous_workflow(
+        self, user_goal: str, system_data: Any, parameters: Dict = None
+    ) -> Dict[str, Any]:
         """
         Execute complete autonomous engineering workflow based on user goal.
 
@@ -1391,7 +1431,7 @@ class ChiefEngineeringOrchestrator:
             task_id=f"workflow_{datetime.now(UTC).strftime('%Y%m%d_%H%M%S')}",
             description=user_goal,
             study_types=required_studies,
-            parameters={'system': system_data, **(parameters or {})}
+            parameters={"system": system_data, **(parameters or {})},
         )
 
         # Execute workflow
@@ -1405,11 +1445,11 @@ class ChiefEngineeringOrchestrator:
         self.logger.info(f"Workflow completed: {task.task_id}")
 
         return {
-            'task_id': task.task_id,
-            'goal': user_goal,
-            'studies_performed': [r.study_type.value for r in results],
-            'results': results,
-            'all_validated': all(r.validation_status for r in results)
+            "task_id": task.task_id,
+            "goal": user_goal,
+            "studies_performed": [r.study_type.value for r in results],
+            "results": results,
+            "all_validated": all(r.validation_status for r in results),
         }
 
     def _parse_user_goal(self, goal: str) -> List[StudyType]:
@@ -1418,28 +1458,24 @@ class ChiefEngineeringOrchestrator:
         studies = []
 
         # Keyword-based study selection
-        if any(kw in goal_lower for kw in ['load flow', 'power flow', 'voltage']):
+        if any(kw in goal_lower for kw in ["load flow", "power flow", "voltage"]):
             studies.append(StudyType.LOAD_FLOW)
 
-        if any(kw in goal_lower for kw in ['fault', 'short circuit', 'sc']):
+        if any(kw in goal_lower for kw in ["fault", "short circuit", "sc"]):
             studies.append(StudyType.SHORT_CIRCUIT)
 
-        if any(kw in goal_lower for kw in ['harmonic', 'distortion', 'thd']):
+        if any(kw in goal_lower for kw in ["harmonic", "distortion", "thd"]):
             studies.append(StudyType.HARMONIC_ANALYSIS)
 
-        if any(kw in goal_lower for kw in ['optimize', 'optimization', 'opf', 'economic']):
+        if any(kw in goal_lower for kw in ["optimize", "optimization", "opf", "economic"]):
             studies.append(StudyType.OPTIMAL_POWER_FLOW)
 
-        if any(kw in goal_lower for kw in ['protect', 'coordination', 'relay']):
+        if any(kw in goal_lower for kw in ["protect", "coordination", "relay"]):
             studies.append(StudyType.PROTECTION_COORDINATION)
 
         # If no specific studies identified, run comprehensive analysis
         if not studies:
-            studies = [
-                StudyType.LOAD_FLOW,
-                StudyType.SHORT_CIRCUIT,
-                StudyType.HARMONIC_ANALYSIS
-            ]
+            studies = [StudyType.LOAD_FLOW, StudyType.SHORT_CIRCUIT, StudyType.HARMONIC_ANALYSIS]
 
         return studies
 
@@ -1470,8 +1506,7 @@ class ChiefEngineeringOrchestrator:
                 results.append(result)
                 if not result.validation_status:
                     self.logger.warning(
-                        f"Validation failed for {study_type.value}: "
-                        f"{result.validation_errors}"
+                        f"Validation failed for {study_type.value}: {result.validation_errors}"
                     )
 
         # Phase 2: Run independent studies in parallel
@@ -1491,43 +1526,41 @@ class ChiefEngineeringOrchestrator:
                     else:
                         results.append(pr)
                         if not pr.validation_status:
-                            self.logger.warning(
-                                f"Validation failed: {pr.validation_errors}"
-                            )
+                            self.logger.warning(f"Validation failed: {pr.validation_errors}")
 
         # Phase 3: Final validation pass
         validation_task = EngineeringTask(
             task_id=f"validation_{task.task_id}",
             description="Final validation of all results",
             study_types=[],
-            parameters={'results': results}
+            parameters={"results": results},
         )
 
-        validation_result = await self.agents['validation'].execute(validation_task)
+        validation_result = await self.agents["validation"].execute(validation_task)
         results.append(validation_result)
 
         # Phase 3.5: Guard-skills code quality review (if enabled)
         # Automatically review any AI-generated code in the task parameters
         if self._code_guard_agent:
             try:
-                code_to_review = task.parameters.get('source', '')
+                code_to_review = task.parameters.get("source", "")
                 if code_to_review:
                     guard_task = EngineeringTask(
                         task_id=f"guard_{task.task_id}",
                         description="AI code quality guard review",
                         study_types=[],
                         parameters={
-                            'source': code_to_review,
-                            'guard_type': 'all',
-                            'language': 'python',
-                        }
+                            "source": code_to_review,
+                            "guard_type": "all",
+                            "language": "python",
+                        },
                     )
                     guard_result = await self._code_guard_agent.execute(guard_task)
                     results.append(guard_result)
                     if not guard_result.validation_status:
                         self.logger.warning(
                             "Guard-skills review found MUST_FIX violations: %s",
-                            guard_result.data.get('must_fix_total', 0)
+                            guard_result.data.get("must_fix_total", 0),
                         )
             except Exception as guard_err:
                 self.logger.warning("Guard review failed (non-blocking): %s", guard_err)
@@ -1538,14 +1571,10 @@ class ChiefEngineeringOrchestrator:
                 task_id=f"report_{task.task_id}",
                 description="Generate final report",
                 study_types=[],
-                parameters={
-                    'results': results,
-                    'format': 'pdf',
-                    'output_path': './reports'
-                }
+                parameters={"results": results, "format": "pdf", "output_path": "./reports"},
             )
 
-            report_result = await self.agents['report'].execute(report_task)
+            report_result = await self.agents["report"].execute(report_task)
             results.append(report_result)
 
         return results
@@ -1560,7 +1589,7 @@ class ChiefEngineeringOrchestrator:
             StudyType.SHORT_CIRCUIT: 2,
             StudyType.HARMONIC_ANALYSIS: 3,
             StudyType.OPTIMAL_POWER_FLOW: 4,
-            StudyType.PROTECTION_COORDINATION: 5
+            StudyType.PROTECTION_COORDINATION: 5,
         }
 
         return sorted(study_types, key=lambda x: priority_order.get(x, 99))
@@ -1568,11 +1597,11 @@ class ChiefEngineeringOrchestrator:
     def _get_agent_for_study(self, study_type: StudyType) -> BaseAgent | None:
         """Get appropriate agent for study type."""
         agent_mapping = {
-            StudyType.LOAD_FLOW: 'load_flow',
-            StudyType.SHORT_CIRCUIT: 'short_circuit',
-            StudyType.HARMONIC_ANALYSIS: 'harmonic',
-            StudyType.OPTIMAL_POWER_FLOW: 'opf',
-            StudyType.PROTECTION_COORDINATION: 'protection',
+            StudyType.LOAD_FLOW: "load_flow",
+            StudyType.SHORT_CIRCUIT: "short_circuit",
+            StudyType.HARMONIC_ANALYSIS: "harmonic",
+            StudyType.OPTIMAL_POWER_FLOW: "opf",
+            StudyType.PROTECTION_COORDINATION: "protection",
         }
 
         agent_key = agent_mapping.get(study_type)
@@ -1590,17 +1619,17 @@ class ChiefEngineeringOrchestrator:
             Dict mapping study type strings to agent key strings.
         """
         return {
-            'load_flow': 'load_flow',
-            'short_circuit': 'short_circuit',
-            'harmonic': 'harmonic',
-            'harmonic_analysis': 'harmonic',
-            'opf': 'opf',
-            'optimal_power_flow': 'opf',
-            'protection': 'protection',
-            'protection_coordination': 'protection',
-            'etap_execution': 'etap_execution',
-            'validation': 'validation',
-            'report': 'report',
+            "load_flow": "load_flow",
+            "short_circuit": "short_circuit",
+            "harmonic": "harmonic",
+            "harmonic_analysis": "harmonic",
+            "opf": "opf",
+            "optimal_power_flow": "opf",
+            "protection": "protection",
+            "protection_coordination": "protection",
+            "etap_execution": "etap_execution",
+            "validation": "validation",
+            "report": "report",
         }
 
     @trace_operation("execute_parallel_studies", attributes={"component": "orchestrator"})
@@ -1659,9 +1688,7 @@ class ChiefEngineeringOrchestrator:
         for study_str in study_types:
             agent_key = study_type_map.get(study_str)
             if agent_key is None:
-                self.logger.warning(
-                    "Unknown study type '%s' – skipping", study_str
-                )
+                self.logger.warning("Unknown study type '%s' – skipping", study_str)
                 continue
             agent = self.agents.get(agent_key)
             if agent is None:
@@ -1676,16 +1703,14 @@ class ChiefEngineeringOrchestrator:
         if not resolved:
             self.logger.error("No valid study types resolved – nothing to execute")
             return {
-                'task_id': None,
-                'study_types': [],
-                'parallel_results': {},
-                'parallel_time_seconds': 0.0,
-                'benchmark': benchmark,
+                "task_id": None,
+                "study_types": [],
+                "parallel_results": {},
+                "parallel_time_seconds": 0.0,
+                "benchmark": benchmark,
             }
 
-        task_id = (
-            f"parallel_{datetime.now(UTC).strftime('%Y%m%d_%H%M%S')}"
-        )
+        task_id = f"parallel_{datetime.now(UTC).strftime('%Y%m%d_%H%M%S')}"
 
         # -----------------------------------------------------------
         # Helper: create an EngineeringTask for a single study
@@ -1694,12 +1719,10 @@ class ChiefEngineeringOrchestrator:
             return EngineeringTask(
                 task_id=f"{task_id}_{study_str}",
                 description=f"Parallel study: {study_str}",
-                study_types=[
-                    s
-                    for s in StudyType
-                    if s.value == study_str or s.value == agent_key
-                ][:1],  # best-effort StudyType match
-                parameters={'system': system_data, **parameters},
+                study_types=[s for s in StudyType if s.value == study_str or s.value == agent_key][
+                    :1
+                ],  # best-effort StudyType match
+                parameters={"system": system_data, **parameters},
             )
 
         # -----------------------------------------------------------
@@ -1726,9 +1749,7 @@ class ChiefEngineeringOrchestrator:
                     )
                     return (study_str, result)
                 except Exception as exc:
-                    self.logger.error(
-                        "[parallel] Failed %s: %s", study_str, exc
-                    )
+                    self.logger.error("[parallel] Failed %s: %s", study_str, exc)
                     # Return a failure AgentResult instead of propagating
                     return (
                         study_str,
@@ -1765,19 +1786,17 @@ class ChiefEngineeringOrchestrator:
         parallel_results: Dict[str, AgentResult] = {}
         for item in parallel_raw:
             if isinstance(item, Exception):
-                self.logger.error(
-                    "[parallel] Unexpected exception: %s", item
-                )
+                self.logger.error("[parallel] Unexpected exception: %s", item)
                 continue
             study_str, result = item
             parallel_results[study_str] = result
 
         result: Dict[str, Any] = {
-            'task_id': task_id,
-            'study_types': [s for s, _, _ in resolved],
-            'parallel_results': parallel_results,
-            'parallel_time_seconds': round(parallel_time, 4),
-            'benchmark': benchmark,
+            "task_id": task_id,
+            "study_types": [s for s, _, _ in resolved],
+            "parallel_results": parallel_results,
+            "parallel_time_seconds": round(parallel_time, 4),
+            "benchmark": benchmark,
         }
 
         # -----------------------------------------------------------
@@ -1799,14 +1818,10 @@ class ChiefEngineeringOrchestrator:
                     seq_result = await agent.execute(task)
                     sequential_results[study_str] = seq_result
                 except Exception as exc:
-                    self.logger.error(
-                        "[sequential] Failed %s: %s", study_str, exc
-                    )
+                    self.logger.error("[sequential] Failed %s: %s", study_str, exc)
                     sequential_results[study_str] = AgentResult(
                         agent_name=agent.agent_name,
-                        study_type=task.study_types[0]
-                        if task.study_types
-                        else StudyType.LOAD_FLOW,
+                        study_type=task.study_types[0] if task.study_types else StudyType.LOAD_FLOW,
                         status=AgentStatus.FAILED,
                         data={},
                         validation_status=False,
@@ -1815,27 +1830,21 @@ class ChiefEngineeringOrchestrator:
 
             sequential_time = time.perf_counter() - sequential_start
 
-            speedup = (
-                sequential_time / parallel_time
-                if parallel_time > 0
-                else float('inf')
-            )
+            speedup = sequential_time / parallel_time if parallel_time > 0 else float("inf")
 
-            result['sequential_results'] = sequential_results
-            result['sequential_time_seconds'] = round(sequential_time, 4)
-            result['speedup_factor'] = round(speedup, 2)
+            result["sequential_results"] = sequential_results
+            result["sequential_time_seconds"] = round(sequential_time, 4)
+            result["speedup_factor"] = round(speedup, 2)
 
             self.logger.info(
-                "Benchmark complete – parallel: %.4fs, sequential: %.4fs, "
-                "speedup: %.2fx",
+                "Benchmark complete – parallel: %.4fs, sequential: %.4fs, speedup: %.2fx",
                 parallel_time,
                 sequential_time,
                 speedup,
             )
 
         self.logger.info(
-            "Parallel studies completed: task_id=%s, studies=%d, "
-            "parallel_time=%.4fs",
+            "Parallel studies completed: task_id=%s, studies=%d, parallel_time=%.4fs",
             task_id,
             len(parallel_results),
             parallel_time,
@@ -1850,6 +1859,7 @@ class ChiefEngineeringOrchestrator:
 
 # Singleton instance
 _orchestrator = None
+
 
 def get_orchestrator() -> ChiefEngineeringOrchestrator:
     """Get or create orchestrator singleton."""

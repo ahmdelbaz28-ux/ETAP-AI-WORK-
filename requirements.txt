@@ -90,7 +90,6 @@ httpx>=0.25.0
 
 # Phase 6: ML/AI - Core
 scikit-learn>=1.3.0
-tensorflow>=2.15.0; python_version >= '3.9'
 
 # Phase 6b: ML/AI - Enhanced Predictive Analytics
 prophet>=1.1.0                      # Facebook Prophet - seasonal load forecasting
@@ -140,3 +139,13 @@ alembic
 
 # LangWatch - commented out as it may not be on PyPI
 # langwatch>=0.1.0
+
+# Main requirements file
+# For production deployments (lightweight): requirements-prod.txt
+# For ML/AI features (heavy): requirements-ml.txt
+# For development: requirements-dev.txt
+
+-r requirements-prod.txt
+
+# Uncomment the line below to include ML/AI dependencies
+# -r requirements-ml.txt

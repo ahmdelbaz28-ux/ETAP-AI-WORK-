@@ -30,7 +30,7 @@ from engine.sparse_solver import (
     SparseYBus,
     _build_dense_jacobian,
 )
-from load_flow.load_flow_solver_fixed import LoadFlowSolver
+from load_flow.load_flow import LoadFlowSolver
 
 # ── Config ─────────────────────────────────────────────────────────────────
 

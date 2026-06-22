@@ -21,6 +21,8 @@ prompt-driven description, standards references, and execution guidance
 without hardcoding any of that information.
 """
 
+from __future__ import annotations
+
 import logging
 import os
 from pathlib import Path
@@ -34,7 +36,9 @@ logger = logging.getLogger(__name__)
 # Configuration
 # ---------------------------------------------------------------------------
 
-_PROMPTS_DIR = Path(os.environ.get("ETAP_PROMPTS_DIR", str(Path(__file__).resolve().parent.parent / "prompts")))
+_PROMPTS_DIR = Path(
+    os.environ.get("ETAP_PROMPTS_DIR", str(Path(__file__).resolve().parent.parent / "prompts"))
+)
 _LANGWATCH_API_KEY = os.environ.get("LANGWATCH_API_KEY", "")
 _LANGWATCH_ENDPOINT = os.environ.get("LANGWATCH_ENDPOINT", "https://app.langwatch.ai")
 
@@ -45,6 +49,7 @@ _prompt_cache: Dict[str, str | None] = {}
 # ---------------------------------------------------------------------------
 # LangWatch integration
 # ---------------------------------------------------------------------------
+
 
 def _load_from_langwatch(handle: str) -> str | None:
     """Attempt to load a prompt from the LangWatch API.
@@ -108,6 +113,7 @@ def _load_from_langwatch(handle: str) -> str | None:
 # Local YAML loading
 # ---------------------------------------------------------------------------
 
+
 def _extract_system_message(parsed: Any) -> str | None:
     """Extract the system message from a parsed YAML prompt structure."""
     if not isinstance(parsed, dict):
@@ -159,6 +165,7 @@ def _load_from_yaml(handle: str) -> str | None:
     if prompts_json_path.is_file():
         try:
             import json
+
             prompts_json = json.loads(prompts_json_path.read_text(encoding="utf-8"))
             prompt_path = prompts_json.get("prompts", {}).get(handle)
             if prompt_path and isinstance(prompt_path, str):

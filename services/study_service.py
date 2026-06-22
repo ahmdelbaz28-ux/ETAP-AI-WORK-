@@ -3,6 +3,8 @@ Study Service module for the Engineering Service.
 Handles all study execution logic, system building, and ETAP integration.
 """
 
+from __future__ import annotations
+
 import asyncio
 import json
 import os
@@ -18,23 +20,42 @@ from core.tracing import trace_operation
 # Pydantic schemas
 # ---------------------------------------------------------------------------
 
+
 class BusSpec(BaseModel):
     model_config = ConfigDict(extra="ignore")
 
     bus_id: int
-    voltage_magnitude: float = Field(default=1.0, validation_alias=AliasChoices("voltage_magnitude", "vm"))
+    voltage_magnitude: float = Field(
+        default=1.0, validation_alias=AliasChoices("voltage_magnitude", "vm")
+    )
     voltage_angle: float = Field(default=0.0, validation_alias=AliasChoices("voltage_angle", "va"))
-    load_power_real: float = Field(default=0.0, validation_alias=AliasChoices("load_power_real", "p_load", "pd"))
-    load_power_imag: float = Field(default=0.0, validation_alias=AliasChoices("load_power_imag", "load_power_reactive", "q_load", "qd"))
-    generation_power_real: float = Field(default=0.0, validation_alias=AliasChoices("generation_power_real", "power_real", "pg"))
-    generation_power_imag: float = Field(default=0.0, validation_alias=AliasChoices("generation_power_imag", "power_reactive", "qg"))
+    load_power_real: float = Field(
+        default=0.0, validation_alias=AliasChoices("load_power_real", "p_load", "pd")
+    )
+    load_power_imag: float = Field(
+        default=0.0,
+        validation_alias=AliasChoices("load_power_imag", "load_power_reactive", "q_load", "qd"),
+    )
+    generation_power_real: float = Field(
+        default=0.0, validation_alias=AliasChoices("generation_power_real", "power_real", "pg")
+    )
+    generation_power_imag: float = Field(
+        default=0.0, validation_alias=AliasChoices("generation_power_imag", "power_reactive", "qg")
+    )
     bus_type: str = "pq"
     base_kv: float | None = None
-    q_min: float = Field(default=-999.0, validation_alias=AliasChoices("q_min", "min_power_reactive", "min_q"))
-    q_max: float = Field(default=999.0, validation_alias=AliasChoices("q_max", "max_power_reactive", "max_q"))
+    q_min: float = Field(
+        default=-999.0, validation_alias=AliasChoices("q_min", "min_power_reactive", "min_q")
+    )
+    q_max: float = Field(
+        default=999.0, validation_alias=AliasChoices("q_max", "max_power_reactive", "max_q")
+    )
     area: int | None = None
     zone: int | None = None
-    voltage_setpoint: float | None = Field(default=None, validation_alias=AliasChoices("voltage_setpoint", "voltage_magnitude_setpoint"))
+    voltage_setpoint: float | None = Field(
+        default=None,
+        validation_alias=AliasChoices("voltage_setpoint", "voltage_magnitude_setpoint"),
+    )
 
     @field_validator("bus_type")
     @classmethod
@@ -55,7 +76,9 @@ class LineSpec(BaseModel):
     x1: float = Field(default=0.05, validation_alias=AliasChoices("x1", "reactance"))
     r0: float | None = None
     x0: float | None = None
-    bshunt1: float = Field(default=0.02, validation_alias=AliasChoices("bshunt1", "b1", "bshunt", "susceptance"))
+    bshunt1: float = Field(
+        default=0.02, validation_alias=AliasChoices("bshunt1", "b1", "bshunt", "susceptance")
+    )
     bshunt0: float | None = Field(default=None, validation_alias=AliasChoices("bshunt0", "b0"))
     rating_mva: float | None = None
 
@@ -69,7 +92,9 @@ class TransformerSpec(BaseModel):
     r1: float = 0.0
     x1: float = 0.05
     tap_ratio: float = Field(default=1.0, validation_alias=AliasChoices("tap_ratio", "tap"))
-    phase_shift_deg: float = Field(default=0.0, validation_alias=AliasChoices("phase_shift_deg", "phase_shift"))
+    phase_shift_deg: float = Field(
+        default=0.0, validation_alias=AliasChoices("phase_shift_deg", "phase_shift")
+    )
 
 
 class GeneratorSpec(BaseModel):
@@ -83,12 +108,25 @@ class GeneratorSpec(BaseModel):
     x2: float | None = None
     r0: float | None = None
     x0: float | None = None
-    internal_voltage_mag: float = Field(default=1.05, validation_alias=AliasChoices("internal_voltage_mag", "voltage_setpoint", "v_setpoint"))
-    internal_voltage_ang_deg: float = Field(default=0.0, validation_alias=AliasChoices("internal_voltage_ang_deg", "voltage_angle"))
-    power_real: float | None = Field(default=None, validation_alias=AliasChoices("power_real", "pg"))
-    power_reactive: float | None = Field(default=None, validation_alias=AliasChoices("power_reactive", "qg"))
-    max_power_reactive: float | None = Field(default=None, validation_alias=AliasChoices("max_power_reactive", "q_max"))
-    min_power_reactive: float | None = Field(default=None, validation_alias=AliasChoices("min_power_reactive", "q_min"))
+    internal_voltage_mag: float = Field(
+        default=1.05,
+        validation_alias=AliasChoices("internal_voltage_mag", "voltage_setpoint", "v_setpoint"),
+    )
+    internal_voltage_ang_deg: float = Field(
+        default=0.0, validation_alias=AliasChoices("internal_voltage_ang_deg", "voltage_angle")
+    )
+    power_real: float | None = Field(
+        default=None, validation_alias=AliasChoices("power_real", "pg")
+    )
+    power_reactive: float | None = Field(
+        default=None, validation_alias=AliasChoices("power_reactive", "qg")
+    )
+    max_power_reactive: float | None = Field(
+        default=None, validation_alias=AliasChoices("max_power_reactive", "q_max")
+    )
+    min_power_reactive: float | None = Field(
+        default=None, validation_alias=AliasChoices("min_power_reactive", "q_min")
+    )
 
 
 class LoadSpec(BaseModel):
@@ -96,17 +134,26 @@ class LoadSpec(BaseModel):
 
     load_id: int
     bus_id: int
-    p_mw: float = Field(default=0.0, validation_alias=AliasChoices("p_mw", "power_real", "load_power_real"))
-    q_mvar: float = Field(default=0.0, validation_alias=AliasChoices("q_mvar", "power_reactive", "load_power_reactive"))
+    p_mw: float = Field(
+        default=0.0, validation_alias=AliasChoices("p_mw", "power_real", "load_power_real")
+    )
+    q_mvar: float = Field(
+        default=0.0,
+        validation_alias=AliasChoices("q_mvar", "power_reactive", "load_power_reactive"),
+    )
     constant_impedance: bool = False
 
 
 class SystemSpec(BaseModel):
     model_config = ConfigDict(extra="ignore")
 
-    base_mva: float = Field(default=100.0, validation_alias=AliasChoices("base_mva", "sbase", "base_mva"))
+    base_mva: float = Field(
+        default=100.0, validation_alias=AliasChoices("base_mva", "sbase", "base_mva")
+    )
     buses: List[BusSpec] = Field(default_factory=list)
-    lines: List[LineSpec] = Field(default_factory=list, validation_alias=AliasChoices("lines", "branches"))
+    lines: List[LineSpec] = Field(
+        default_factory=list, validation_alias=AliasChoices("lines", "branches")
+    )
     transformers: List[TransformerSpec] = Field(default_factory=list)
     generators: List[GeneratorSpec] = Field(default_factory=list)
     loads: List[LoadSpec] = Field(default_factory=list)
@@ -119,14 +166,16 @@ class StudyRequest(BaseModel):
     system: SystemSpec | None = None
     parameters: Dict[str, Any] = Field(default_factory=dict)
     task_id: str | None = None
-    use_etap: bool = Field(default=False, description="If True, route to ETAP provider instead of native engine")
+    use_etap: bool = Field(
+        default=False, description="If True, route to ETAP provider instead of native engine"
+    )
     etap_project_path: str | None = None
 
     @field_validator("study_type")
     @classmethod
     def validate_study_type(cls, v: str) -> str:
         # Check if ETAP is enabled based on environment variable
-        use_etap_enabled = os.getenv('USE_ETAP', 'false').lower() == 'true'
+        use_etap_enabled = os.getenv("USE_ETAP", "false").lower() == "true"
 
         allowed = {
             "load_flow",
@@ -142,15 +191,17 @@ class StudyRequest(BaseModel):
 
         # Add ETAP-specific study types only if ETAP is enabled
         if use_etap_enabled:
-            allowed.update({
-                "etap_load_flow",
-                "etap_short_circuit",
-                "etap_arc_flash",
-                "etap_harmonic_analysis",
-                "etap_optimal_power_flow",
-                "etap_motor_starting",
-                "etap_protection_coordination",
-            })
+            allowed.update(
+                {
+                    "etap_load_flow",
+                    "etap_short_circuit",
+                    "etap_arc_flash",
+                    "etap_harmonic_analysis",
+                    "etap_optimal_power_flow",
+                    "etap_motor_starting",
+                    "etap_protection_coordination",
+                }
+            )
 
         v = v.lower().strip()
         if v not in allowed:
@@ -173,6 +224,7 @@ class StudyResult(BaseModel):
 # ---------------------------------------------------------------------------
 # System builder helper
 # ---------------------------------------------------------------------------
+
 
 @trace_operation("_build_system_from_spec", attributes={"component": "engineering_service"})
 def _build_system_from_spec(spec: SystemSpec) -> Any:
@@ -242,8 +294,12 @@ def _build_system_from_spec(spec: SystemSpec) -> Any:
             },
             impedance={
                 "1": complex(g.r1, g.x1),
-                "2": complex(g.r2 if g.r2 is not None else g.r1, g.x2 if g.x2 is not None else g.x1),
-                "0": complex(g.r0 if g.r0 is not None else g.r1, g.x0 if g.x0 is not None else g.x1),
+                "2": complex(
+                    g.r2 if g.r2 is not None else g.r1, g.x2 if g.x2 is not None else g.x1
+                ),
+                "0": complex(
+                    g.r0 if g.r0 is not None else g.r1, g.x0 if g.x0 is not None else g.x1
+                ),
             },
         )
         system.add_generator(gen)
@@ -266,7 +322,14 @@ def _build_system_from_spec(spec: SystemSpec) -> Any:
 # Study execution
 # ---------------------------------------------------------------------------
 
-_STUDIES_REQUIRING_SYSTEM = {"load_flow", "short_circuit", "fault", "protection_coordination", "coordination", "motor_starting"}
+_STUDIES_REQUIRING_SYSTEM = {
+    "load_flow",
+    "short_circuit",
+    "fault",
+    "protection_coordination",
+    "coordination",
+    "motor_starting",
+}
 
 
 def _run_async(coro):
@@ -278,6 +341,7 @@ def _run_async(coro):
     if loop and loop.is_running():
         # We're inside an async context - create a new loop in a thread
         import concurrent.futures
+
         with concurrent.futures.ThreadPoolExecutor(max_workers=1) as pool:
             future = pool.submit(asyncio.run, coro)
             return future.result()
@@ -286,7 +350,9 @@ def _run_async(coro):
 
 
 @trace_operation("_run_native_study", attributes={"component": "engineering_service"})
-def _run_native_study(study_type: str, system: Any | None, parameters: Dict[str, Any]) -> Dict[str, Any]:
+def _run_native_study(
+    study_type: str, system: Any | None, parameters: Dict[str, Any]
+) -> Dict[str, Any]:
     """Execute a study using the native PowerSystemEngine."""
     if study_type in _STUDIES_REQUIRING_SYSTEM and system is None:
         raise ValueError(f"study_type '{study_type}' requires a 'system' to be provided")
@@ -303,10 +369,17 @@ def _run_native_study(study_type: str, system: Any | None, parameters: Dict[str,
             raise ValueError("bus_id is required for fault analysis")
         return engine.run_fault_analysis(fault_type, bus_id)
     elif study_type == "arc_flash":
-        required = ("voltage_kv", "bolted_fault_current_ka", "arc_duration_sec", "working_distance_mm")
+        required = (
+            "voltage_kv",
+            "bolted_fault_current_ka",
+            "arc_duration_sec",
+            "working_distance_mm",
+        )
         missing = [k for k in required if k not in parameters]
         if missing:
-            raise ValueError(f"arc_flash requires: {', '.join(required)} (missing: {', '.join(missing)})")
+            raise ValueError(
+                f"arc_flash requires: {', '.join(required)} (missing: {', '.join(missing)})"
+            )
         return engine.run_arc_flash(
             voltage_kv=float(parameters["voltage_kv"]),
             bolted_fault_current_ka=float(parameters["bolted_fault_current_ka"]),
@@ -328,10 +401,12 @@ def _run_native_study(study_type: str, system: Any | None, parameters: Dict[str,
 
 
 @trace_operation("_run_etap_study", attributes={"component": "engineering_service"})
-def _run_etap_study(study_type: str, project_path: str, parameters: Dict[str, Any]) -> Dict[str, Any]:
+def _run_etap_study(
+    study_type: str, project_path: str, parameters: Dict[str, Any]
+) -> Dict[str, Any]:
     """Execute a study via the ETAP provider."""
     # Check if ETAP is enabled
-    if os.getenv('USE_ETAP', 'false').lower() != 'true':
+    if os.getenv("USE_ETAP", "false").lower() != "true":
         raise RuntimeError("ETAP functionality is disabled via USE_ETAP environment variable")
 
     provider_factory = _get_etap_provider()
@@ -383,7 +458,7 @@ def execute_study_logic(payload: StudyRequest, trace_id: str, start_time: float)
     task_id = payload.task_id or f"task_{int(time.time())}"
 
     # Enable auto-correct for non-English input
-    auto_correct = os.getenv('AUTO_CORRECT_LANGUAGE', 'true').lower() == 'true'
+    auto_correct = os.getenv("AUTO_CORRECT_LANGUAGE", "true").lower() == "true"
 
     # Normalize payload data if auto-correct is enabled
     if auto_correct:
@@ -417,16 +492,26 @@ def execute_study_logic(payload: StudyRequest, trace_id: str, start_time: float)
                 if payload.system:
                     # Use deterministic hashing (SHA-256) instead of Python hash()
                     import hashlib as _hashlib
-                    system_json = json.dumps(payload.system.model_dump(), sort_keys=True, default=str)
+
+                    system_json = json.dumps(
+                        payload.system.model_dump(), sort_keys=True, default=str
+                    )
                     cache_params["system_hash"] = _hashlib.sha256(system_json.encode()).hexdigest()
                 if _study_cache:
                     cached_result = _run_async(_study_cache.get(payload.study_type, cache_params))
                     if cached_result:
                         data = json.loads(cached_result)
                         cache_hit = True
-                        logger.info("study_cache_hit study_type=%s task_id=%s", payload.study_type, task_id, extra={"trace_id": trace_id})
+                        logger.info(
+                            "study_cache_hit study_type=%s task_id=%s",
+                            payload.study_type,
+                            task_id,
+                            extra={"trace_id": trace_id},
+                        )
             except Exception as cache_err:
-                logger.debug("Cache lookup failed (non-fatal): %s", cache_err, extra={"trace_id": trace_id})
+                logger.debug(
+                    "Cache lookup failed (non-fatal): %s", cache_err, extra={"trace_id": trace_id}
+                )
 
         if cache_hit:
             # Use cached data
@@ -437,12 +522,14 @@ def execute_study_logic(payload: StudyRequest, trace_id: str, start_time: float)
             provider_name = "etap"
             # Offload the synchronous ETAP call to a thread so it doesn't
             # block the async event loop (ETAP COM calls can take 5-60 sec).
-            data = _run_async(asyncio.to_thread(
-                _run_etap_study,
-                payload.study_type,
-                payload.etap_project_path,
-                payload.parameters,
-            ))
+            data = _run_async(
+                asyncio.to_thread(
+                    _run_etap_study,
+                    payload.study_type,
+                    payload.etap_project_path,
+                    payload.parameters,
+                )
+            )
             warnings = data.pop("warnings", [])
             errors = data.pop("errors", [])
             if not data.pop("success", True):
@@ -454,6 +541,7 @@ def execute_study_logic(payload: StudyRequest, trace_id: str, start_time: float)
                     system = _build_system_from_spec(payload.system)
                 except ValueError as ve:
                     from fastapi import HTTPException
+
                     raise HTTPException(status_code=400, detail=f"System spec error: {ve}") from ve
             data = _run_native_study(payload.study_type, system, payload.parameters)
             provider_name = "native"
@@ -463,18 +551,32 @@ def execute_study_logic(payload: StudyRequest, trace_id: str, start_time: float)
                 cache_params = {"study_type": payload.study_type, "parameters": payload.parameters}
                 if payload.system:
                     import hashlib as _hashlib
-                    system_json = json.dumps(payload.system.model_dump(), sort_keys=True, default=str)
+
+                    system_json = json.dumps(
+                        payload.system.model_dump(), sort_keys=True, default=str
+                    )
                     cache_params["system_hash"] = _hashlib.sha256(system_json.encode()).hexdigest()
                 if _study_cache:
-                    _run_async(_study_cache.set(payload.study_type, cache_params, json.dumps(data, default=str)))
+                    _run_async(
+                        _study_cache.set(
+                            payload.study_type, cache_params, json.dumps(data, default=str)
+                        )
+                    )
             except Exception as cache_err:
-                logger.debug("Cache store failed (non-fatal): %s", cache_err, extra={"trace_id": trace_id})
+                logger.debug(
+                    "Cache store failed (non-fatal): %s", cache_err, extra={"trace_id": trace_id}
+                )
 
         _increment_counter("success")
         status = "success"
     except Exception as e:
         _increment_counter("failed")
-        logger.error("study_run_failed study_type=%s error=%s", payload.study_type, str(e), extra={"trace_id": trace_id})
+        logger.error(
+            "study_run_failed study_type=%s error=%s",
+            payload.study_type,
+            str(e),
+            extra={"trace_id": trace_id},
+        )
         errors.append(str(e))
         status = "failed"
         data = {}

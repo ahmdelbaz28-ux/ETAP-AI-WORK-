@@ -1,5 +1,7 @@
 """Async execution and concurrency module for the AhmedETAP Engineering Platform."""
 
+from __future__ import annotations
+
 import asyncio
 import enum
 import logging
@@ -15,12 +17,15 @@ from concurrent.futures import (
 from contextlib import contextmanager
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
+
+UTC = UTC
 from typing import Any, List
 
 logger = logging.getLogger(__name__)
 
 try:
     from engine.error_handler import ErrorSeverity, get_error_handler
+
     _error_handler_available = True
 except ImportError:
     _error_handler_available = False
@@ -71,9 +76,7 @@ class _PriorityTaskQueue:
 
     def __init__(self, maxsize: int = 0) -> None:
         self._maxsize = maxsize
-        self._queues: dict[int, list[AsyncTask]] = {
-            v: [] for v in self._ORDER.values()
-        }
+        self._queues: dict[int, list[AsyncTask]] = {v: [] for v in self._ORDER.values()}
         self._lock = threading.Lock()
         self._cond = threading.Condition(self._lock)
 
@@ -186,7 +189,9 @@ class AsyncExecutor:
                 if self._loop is None or not self._loop.is_running():
                     raise RuntimeError("Event loop not available")
                 future = asyncio.run_coroutine_threadsafe(task.coroutine, self._loop)
-                result = future.result() if task.timeout is None else future.result(timeout=task.timeout)
+                result = (
+                    future.result() if task.timeout is None else future.result(timeout=task.timeout)
+                )
             else:
                 fn = task.callable
                 if fn is None:
@@ -312,7 +317,12 @@ class AsyncExecutor:
             task = self._tasks.get(task_id)
             if task is None:
                 return False
-            if task.status in (TaskStatus.COMPLETED, TaskStatus.FAILED, TaskStatus.CANCELLED, TaskStatus.TIMEOUT):
+            if task.status in (
+                TaskStatus.COMPLETED,
+                TaskStatus.FAILED,
+                TaskStatus.CANCELLED,
+                TaskStatus.TIMEOUT,
+            ):
                 return False
             task.status = TaskStatus.CANCELLED
             task.completed_at = datetime.now(UTC)
@@ -355,10 +365,16 @@ class AsyncExecutor:
                 break
             with self._lock:
                 done = [
-                    tid for tid in pending
+                    tid
+                    for tid in pending
                     if tid in self._tasks
                     and self._tasks[tid].status
-                    in (TaskStatus.COMPLETED, TaskStatus.FAILED, TaskStatus.CANCELLED, TaskStatus.TIMEOUT)
+                    in (
+                        TaskStatus.COMPLETED,
+                        TaskStatus.FAILED,
+                        TaskStatus.CANCELLED,
+                        TaskStatus.TIMEOUT,
+                    )
                 ]
             for tid in done:
                 pending.discard(tid)
@@ -496,7 +512,7 @@ class _TimeoutContext:
         self._seconds = seconds
         self._deadline = time.monotonic() + seconds
 
-    def __enter__(self) -> "_TimeoutContext":
+    def __enter__(self) -> _TimeoutContext:
         return self
 
     def __exit__(self, exc_type: Any, exc_val: Any, exc_tb: Any) -> bool | None:
@@ -521,7 +537,7 @@ class _RetryContext:
         self._delay = delay
         self._attempt = 0
 
-    def __enter__(self) -> "_RetryContext":
+    def __enter__(self) -> _RetryContext:
         return self
 
     def __exit__(self, exc_type: Any, exc_val: Any, exc_tb: Any) -> bool | None:
@@ -620,7 +636,8 @@ class WorkflowOrchestrator:
 
         while remaining:
             ready = [
-                n for n in remaining
+                n
+                for n in remaining
                 if dep_graph[n].issubset(set(completed.keys()) | set(errors.keys()))
             ]
             if not ready:
@@ -682,11 +699,14 @@ class WorkflowOrchestrator:
 @contextmanager
 def _timeout(seconds: float):
     import threading
+
     timed_out = threading.Event()
     exc_bucket = [None]
+
     def _watchdog():
         if not timed_out.wait(timeout=seconds):
             exc_bucket[0] = TimeoutError(f"Operation timed out after {seconds}s")
+
     watcher = threading.Thread(target=_watchdog, daemon=True)
     watcher.start()
     try:

@@ -72,8 +72,14 @@ class TestAddElement:
 
     def test_add_duplicate_replaces(self, udm):
         eid = str(uuid.uuid4())
-        el1 = UniversalElement(element_id=eid, properties=SemanticProperties(element_type=ElementType.WALL, name="First"))
-        el2 = UniversalElement(element_id=eid, properties=SemanticProperties(element_type=ElementType.DOOR, name="Second"))
+        el1 = UniversalElement(
+            element_id=eid,
+            properties=SemanticProperties(element_type=ElementType.WALL, name="First"),
+        )
+        el2 = UniversalElement(
+            element_id=eid,
+            properties=SemanticProperties(element_type=ElementType.DOOR, name="Second"),
+        )
         udm.add_element(el1)
         udm.add_element(el2)
         stored = udm.get_element(eid)
@@ -115,9 +121,13 @@ class TestGetAllElements:
 class TestUpdateElement:
     def test_update_properties(self, udm):
         eid = str(uuid.uuid4())
-        el = UniversalElement(element_id=eid, properties=SemanticProperties(element_type=ElementType.WALL))
+        el = UniversalElement(
+            element_id=eid, properties=SemanticProperties(element_type=ElementType.WALL)
+        )
         udm.add_element(el)
-        result = udm.update_element(eid, {"properties": {"element_type": "door", "name": "Updated"}})
+        result = udm.update_element(
+            eid, {"properties": {"element_type": "door", "name": "Updated"}}
+        )
         assert result is True
         stored = udm.get_element(eid)
         assert stored.properties.element_type == ElementType.DOOR
@@ -127,7 +137,15 @@ class TestUpdateElement:
         eid = str(uuid.uuid4())
         el = UniversalElement(element_id=eid)
         udm.add_element(el)
-        result = udm.update_element(eid, {"geometry": {"points": [{"x": 0, "y": 0}, {"x": 1, "y": 0}, {"x": 0, "y": 1}], "polyline_closed": True}})
+        result = udm.update_element(
+            eid,
+            {
+                "geometry": {
+                    "points": [{"x": 0, "y": 0}, {"x": 1, "y": 0}, {"x": 0, "y": 1}],
+                    "polyline_closed": True,
+                }
+            },
+        )
         assert result is True
         stored = udm.get_element(eid)
         assert len(stored.geometry.points) == 3
@@ -179,37 +197,98 @@ class TestDeleteElement:
 
 class TestConflictDetection:
     def test_detect_no_conflicts(self, udm):
-        udm.add_element(UniversalElement(element_id="a", properties=SemanticProperties(element_type=ElementType.WALL, name="Wall A")))
-        udm.add_element(UniversalElement(element_id="b", properties=SemanticProperties(element_type=ElementType.DOOR, name="Door B")))
+        udm.add_element(
+            UniversalElement(
+                element_id="a",
+                properties=SemanticProperties(element_type=ElementType.WALL, name="Wall A"),
+            )
+        )
+        udm.add_element(
+            UniversalElement(
+                element_id="b",
+                properties=SemanticProperties(element_type=ElementType.DOOR, name="Door B"),
+            )
+        )
         conflicts = udm.detect_conflicts()
         assert len(conflicts) == 0
 
     def test_detect_duplicate_conflict(self, udm):
-        udm.add_element(UniversalElement(element_id="a", properties=SemanticProperties(element_type=ElementType.WALL, name="Duplicate")))
-        udm.add_element(UniversalElement(element_id="b", properties=SemanticProperties(element_type=ElementType.WALL, name="Duplicate")))
+        udm.add_element(
+            UniversalElement(
+                element_id="a",
+                properties=SemanticProperties(element_type=ElementType.WALL, name="Duplicate"),
+            )
+        )
+        udm.add_element(
+            UniversalElement(
+                element_id="b",
+                properties=SemanticProperties(element_type=ElementType.WALL, name="Duplicate"),
+            )
+        )
         conflicts = udm.detect_conflicts()
         assert len(conflicts) == 1
         assert conflicts[0].conflict_type == ConflictType.DUPLICATE
 
     def test_detect_ignores_deleted(self, udm):
-        udm.add_element(UniversalElement(element_id="a", properties=SemanticProperties(element_type=ElementType.WALL, name="Same")))
-        udm.add_element(UniversalElement(element_id="b", properties=SemanticProperties(element_type=ElementType.WALL, name="Same"), is_deleted=True))
+        udm.add_element(
+            UniversalElement(
+                element_id="a",
+                properties=SemanticProperties(element_type=ElementType.WALL, name="Same"),
+            )
+        )
+        udm.add_element(
+            UniversalElement(
+                element_id="b",
+                properties=SemanticProperties(element_type=ElementType.WALL, name="Same"),
+                is_deleted=True,
+            )
+        )
         conflicts = udm.detect_conflicts()
         assert len(conflicts) == 0
 
     def test_detect_multiple_conflicts(self, udm):
-        udm.add_element(UniversalElement(element_id="a", properties=SemanticProperties(element_type=ElementType.WALL, name="Dup1")))
-        udm.add_element(UniversalElement(element_id="b", properties=SemanticProperties(element_type=ElementType.WALL, name="Dup1")))
-        udm.add_element(UniversalElement(element_id="c", properties=SemanticProperties(element_type=ElementType.DOOR, name="Dup2")))
-        udm.add_element(UniversalElement(element_id="d", properties=SemanticProperties(element_type=ElementType.DOOR, name="Dup2")))
+        udm.add_element(
+            UniversalElement(
+                element_id="a",
+                properties=SemanticProperties(element_type=ElementType.WALL, name="Dup1"),
+            )
+        )
+        udm.add_element(
+            UniversalElement(
+                element_id="b",
+                properties=SemanticProperties(element_type=ElementType.WALL, name="Dup1"),
+            )
+        )
+        udm.add_element(
+            UniversalElement(
+                element_id="c",
+                properties=SemanticProperties(element_type=ElementType.DOOR, name="Dup2"),
+            )
+        )
+        udm.add_element(
+            UniversalElement(
+                element_id="d",
+                properties=SemanticProperties(element_type=ElementType.DOOR, name="Dup2"),
+            )
+        )
         conflicts = udm.detect_conflicts()
         assert len(conflicts) == 2
 
 
 class TestResolveConflict:
     def test_resolve_conflict(self, udm):
-        udm.add_element(UniversalElement(element_id="a", properties=SemanticProperties(element_type=ElementType.WALL, name="Dup")))
-        udm.add_element(UniversalElement(element_id="b", properties=SemanticProperties(element_type=ElementType.WALL, name="Dup")))
+        udm.add_element(
+            UniversalElement(
+                element_id="a",
+                properties=SemanticProperties(element_type=ElementType.WALL, name="Dup"),
+            )
+        )
+        udm.add_element(
+            UniversalElement(
+                element_id="b",
+                properties=SemanticProperties(element_type=ElementType.WALL, name="Dup"),
+            )
+        )
         conflicts = udm.detect_conflicts()
         assert len(conflicts) == 1
         result = udm.resolve_conflict(conflicts[0])
@@ -224,9 +303,23 @@ class TestGetStatistics:
         assert stats["deleted_elements"] == 0
 
     def test_get_statistics_with_data(self, udm):
-        udm.add_element(UniversalElement(element_id="a", properties=SemanticProperties(element_type=ElementType.WALL)))
-        udm.add_element(UniversalElement(element_id="b", properties=SemanticProperties(element_type=ElementType.DOOR)))
-        udm.add_element(UniversalElement(element_id="c", properties=SemanticProperties(element_type=ElementType.WINDOW), is_deleted=True))
+        udm.add_element(
+            UniversalElement(
+                element_id="a", properties=SemanticProperties(element_type=ElementType.WALL)
+            )
+        )
+        udm.add_element(
+            UniversalElement(
+                element_id="b", properties=SemanticProperties(element_type=ElementType.DOOR)
+            )
+        )
+        udm.add_element(
+            UniversalElement(
+                element_id="c",
+                properties=SemanticProperties(element_type=ElementType.WINDOW),
+                is_deleted=True,
+            )
+        )
         stats = udm.get_statistics()
         assert stats["total_elements"] == 3
         assert stats["active_elements"] == 2
@@ -251,7 +344,10 @@ class TestThreadSafety:
                 el = UniversalElement(element_id=str(uuid.uuid4()))
                 results.append(udm.add_element(el))
 
-        threads = [threading.Thread(target=add_elements, args=(0, 10)), threading.Thread(target=add_elements, args=(10, 10))]
+        threads = [
+            threading.Thread(target=add_elements, args=(0, 10)),
+            threading.Thread(target=add_elements, args=(10, 10)),
+        ]
         for t in threads:
             t.start()
         for t in threads:

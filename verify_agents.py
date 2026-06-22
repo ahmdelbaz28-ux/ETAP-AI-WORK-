@@ -12,12 +12,13 @@ from typing import List
 # Add the project root to the Python path
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
+
 def check_agent_class_structure(filepath: str) -> List[str]:
     """Check if an agent file has a properly structured agent class."""
     issues = []
 
     try:
-        with open(filepath, encoding='utf-8') as f:
+        with open(filepath, encoding="utf-8") as f:
             content = f.read()
 
         tree = ast.parse(content)
@@ -26,7 +27,7 @@ def check_agent_class_structure(filepath: str) -> List[str]:
         agent_classes = []
         for node in ast.walk(tree):
             if isinstance(node, ast.ClassDef):
-                if node.name.endswith('Agent'):
+                if node.name.endswith("Agent"):
                     agent_classes.append(node)
 
         if not agent_classes:
@@ -37,28 +38,36 @@ def check_agent_class_structure(filepath: str) -> List[str]:
             # Check if the class inherits from BaseAgent
             inherits_from_base = False
             for base in agent_class.bases:
-                if isinstance(base, ast.Name) and base.id == 'BaseAgent':
+                if isinstance(base, ast.Name) and base.id == "BaseAgent":
                     inherits_from_base = True
-                elif isinstance(base, ast.Attribute) and base.attr == 'BaseAgent':
+                elif isinstance(base, ast.Attribute) and base.attr == "BaseAgent":
                     inherits_from_base = True
 
             if not inherits_from_base:
-                issues.append(f"Class {agent_class.name} in {filepath} doesn't inherit from BaseAgent")
+                issues.append(
+                    f"Class {agent_class.name} in {filepath} doesn't inherit from BaseAgent"
+                )
 
             # Check for prompt_handle assignment
             prompt_handle_found = False
             for item in agent_class.body:
                 if isinstance(item, ast.Assign):
                     for target in item.targets:
-                        if isinstance(target, ast.Name) and target.id == 'prompt_handle':
+                        if isinstance(target, ast.Name) and target.id == "prompt_handle":
                             prompt_handle_found = True
                             break
-                elif isinstance(item, ast.AnnAssign) and isinstance(item.target, ast.Name) and item.target.id == 'prompt_handle':
+                elif (
+                    isinstance(item, ast.AnnAssign)
+                    and isinstance(item.target, ast.Name)
+                    and item.target.id == "prompt_handle"
+                ):
                     prompt_handle_found = True
                     break
 
             if not prompt_handle_found:
-                issues.append(f"Class {agent_class.name} in {filepath} doesn't have prompt_handle attribute")
+                issues.append(
+                    f"Class {agent_class.name} in {filepath} doesn't have prompt_handle attribute"
+                )
 
             # Check for __init__ method
             init_method_found = False
@@ -66,13 +75,15 @@ def check_agent_class_structure(filepath: str) -> List[str]:
 
             for item in agent_class.body:
                 if isinstance(item, ast.FunctionDef):
-                    if item.name == '__init__':
+                    if item.name == "__init__":
                         init_method_found = True
-                    elif item.name == 'execute':
+                    elif item.name == "execute":
                         execute_method_found = True
 
             if not init_method_found:
-                issues.append(f"Class {agent_class.name} in {filepath} doesn't have __init__ method")
+                issues.append(
+                    f"Class {agent_class.name} in {filepath} doesn't have __init__ method"
+                )
 
             if not execute_method_found:
                 issues.append(f"Class {agent_class.name} in {filepath} doesn't have execute method")
@@ -89,8 +100,8 @@ def verify_all_agents():
     """Verify all agent files have proper structure."""
     print("Verifying agent file structures...\n")
 
-    agent_dir = os.path.join(os.path.dirname(__file__), 'agents')
-    agent_files = [f for f in os.listdir(agent_dir) if f.endswith('_agent.py')]
+    agent_dir = os.path.join(os.path.dirname(__file__), "agents")
+    agent_files = [f for f in os.listdir(agent_dir) if f.endswith("_agent.py")]
 
     all_issues = {}
 
@@ -114,40 +125,40 @@ def verify_orchestrator_agents():
     """Verify that the orchestrator properly registers all agents."""
     print("Verifying orchestrator agent registration...\n")
 
-    orchestrator_file = os.path.join(os.path.dirname(__file__), 'agents', 'orchestrator.py')
+    orchestrator_file = os.path.join(os.path.dirname(__file__), "agents", "orchestrator.py")
 
     issues = []
 
     try:
-        with open(orchestrator_file, encoding='utf-8') as f:
+        with open(orchestrator_file, encoding="utf-8") as f:
             content = f.read()
 
         # Check for the main agent classes
         required_agents = [
-            'LoadFlowAgent',
-            'ShortCircuitAgent',
-            'HarmonicAnalysisAgent',
-            'OptimalPowerFlowAgent',
-            'ProtectionCoordinationAgent',
-            'ETAPExecutionAgent',
-            'ValidationAgent',
-            'ReportGenerationAgent'
+            "LoadFlowAgent",
+            "ShortCircuitAgent",
+            "HarmonicAnalysisAgent",
+            "OptimalPowerFlowAgent",
+            "ProtectionCoordinationAgent",
+            "ETAPExecutionAgent",
+            "ValidationAgent",
+            "ReportGenerationAgent",
         ]
 
         for agent in required_agents:
-            if f'class {agent}' not in content:
+            if f"class {agent}" not in content:
                 issues.append(f"Required agent class {agent} not found in orchestrator.py")
             else:
                 print(f"✅ {agent} found in orchestrator")
 
         # Check for ALL_AGENT_CLASSES list
-        if 'ALL_AGENT_CLASSES' not in content:
+        if "ALL_AGENT_CLASSES" not in content:
             issues.append("ALL_AGENT_CLASSES not found in orchestrator")
         else:
             print("✅ ALL_AGENT_CLASSES found in orchestrator")
 
         # Check for STUDY_TYPE_AGENT_MAP
-        if 'STUDY_TYPE_AGENT_MAP' not in content:
+        if "STUDY_TYPE_AGENT_MAP" not in content:
             issues.append("STUDY_TYPE_AGENT_MAP not found in orchestrator")
         else:
             print("✅ STUDY_TYPE_AGENT_MAP found in orchestrator")
@@ -167,19 +178,19 @@ def verify_orchestrator_agents():
 def main():
     """Main verification function."""
     print("Agent Verification Script")
-    print("="*50)
+    print("=" * 50)
 
     # Verify individual agent structures
     agent_issues = verify_all_agents()
 
     # Verify orchestrator
-    print("="*50)
+    print("=" * 50)
     orchestrator_issues = verify_orchestrator_agents()
 
     # Summary
-    print("\n" + "="*50)
+    print("\n" + "=" * 50)
     print("VERIFICATION SUMMARY")
-    print("="*50)
+    print("=" * 50)
 
     total_agent_issues = sum(len(issues) for issues in agent_issues.values())
     print(f"Agent structure issues: {total_agent_issues}")

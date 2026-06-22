@@ -5,8 +5,7 @@ engine, and sparse-matrix solver integration for steady-state analysis
 of electrical power networks.
 """
 
-from load_flow.load_flow import LoadFlowSolver  # noqa: F401 — re-export from solver_fixed
-from load_flow.load_flow_solver_fixed import LoadFlowSolver as LoadFlowSolverFixed
+from load_flow.load_flow import LoadFlowSolver  # noqa: F401
 from load_flow.optimal_power_flow import (
     GeneratorCost,
     OPFObjective,
@@ -17,7 +16,6 @@ from load_flow.solver import solve_load_flow_sparse  # noqa: F401
 
 __all__ = [
     "LoadFlowSolver",
-    "LoadFlowSolverFixed",
     "OptimalPowerFlowEngine",
     "OPFObjective",
     "GeneratorCost",

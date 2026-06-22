@@ -2,6 +2,7 @@
 Celery tasks for executing heavy engineering computations.
 These tasks run asynchronously to prevent blocking the API.
 """
+
 import logging
 import os
 import time
@@ -29,37 +30,40 @@ def execute_engineering_study_task(self, study_data: dict):
     """
     try:
         # Update task progress
-        current_task.update_state(state='PROGRESS', meta={'status': 'Starting study execution...'})
+        current_task.update_state(state="PROGRESS", meta={"status": "Starting study execution..."})
 
-        study_type = study_data.get('study_type', 'Unknown')
+        study_type = study_data.get("study_type", "Unknown")
         logger.info("Starting engineering study: %s", study_type)
 
         # Build a proper StudyRequest from the dict
-        trace_id = study_data.get('trace_id', str(uuid.uuid4()))
+        trace_id = study_data.get("trace_id", str(uuid.uuid4()))
         start_time = time.perf_counter()
 
         # If 'data' key exists (from async endpoint), use it; otherwise use study_data directly
-        payload_dict = study_data.get('data', study_data)
+        payload_dict = study_data.get("data", study_data)
         payload = StudyRequest(**payload_dict) if isinstance(payload_dict, dict) else payload_dict
 
         result = execute_study_logic(payload, trace_id=trace_id, start_time=start_time)
 
         logger.info("Completed engineering study: %s", study_type)
 
-        current_task.update_state(state='SUCCESS', meta={
-            'status': 'Study completed successfully',
-            'result': result.model_dump(),
-        })
+        current_task.update_state(
+            state="SUCCESS",
+            meta={
+                "status": "Study completed successfully",
+                "result": result.model_dump(),
+            },
+        )
 
         return result.model_dump()
     except Exception as exc:
         logger.error("Error executing engineering study: %s", str(exc))
         current_task.update_state(
-            state='FAILURE',
+            state="FAILURE",
             meta={
-                'status': 'Study failed',
-                'error': str(exc),
-            }
+                "status": "Study failed",
+                "error": str(exc),
+            },
         )
         raise exc
 
@@ -77,7 +81,7 @@ def execute_etap_integration_task(self, etap_command: dict):
     """
     try:
         # Update task progress
-        current_task.update_state(state='PROGRESS', meta={'status': 'Starting ETAP integration...'})
+        current_task.update_state(state="PROGRESS", meta={"status": "Starting ETAP integration..."})
 
         # Check if ETAP is enabled
         use_etap = os.environ.get("USE_ETAP", "false").lower() == "true"
@@ -94,17 +98,20 @@ def execute_etap_integration_task(self, etap_command: dict):
 
         logger.info(f"Completed ETAP integration: {etap_command.get('command', 'Unknown')}")
 
-        current_task.update_state(state='SUCCESS', meta={'status': 'ETAP operation completed successfully', 'result': result})
+        current_task.update_state(
+            state="SUCCESS",
+            meta={"status": "ETAP operation completed successfully", "result": result},
+        )
 
         return result
     except Exception as exc:
         logger.error(f"Error executing ETAP integration: {str(exc)}")
         current_task.update_state(
-            state='FAILURE',
+            state="FAILURE",
             meta={
-                'status': 'ETAP operation failed',
-                'error': str(exc),
-            }
+                "status": "ETAP operation failed",
+                "error": str(exc),
+            },
         )
         raise exc
 
@@ -122,7 +129,9 @@ def process_large_calculation_task(self, calculation_data: dict):
     """
     try:
         # Update task progress
-        current_task.update_state(state='PROGRESS', meta={'status': 'Starting large calculation...'})
+        current_task.update_state(
+            state="PROGRESS", meta={"status": "Starting large calculation..."}
+        )
 
         logger.info(f"Starting large calculation: {calculation_data.get('type', 'Unknown')}")
 
@@ -131,16 +140,15 @@ def process_large_calculation_task(self, calculation_data: dict):
         import numpy as np
 
         # Example: Heavy matrix computation
-        size = calculation_data.get('size', 1000)
-        iterations = calculation_data.get('iterations', 100)
+        size = calculation_data.get("size", 1000)
+        iterations = calculation_data.get("iterations", 100)
 
         # Simulate computation progress
         for i in range(iterations):
             if i % 10 == 0:
                 progress = (i / iterations) * 100
                 current_task.update_state(
-                    state='PROGRESS',
-                    meta={'status': f'Calculation in progress: {progress:.1f}%'}
+                    state="PROGRESS", meta={"status": f"Calculation in progress: {progress:.1f}%"}
                 )
 
             # Perform some heavy computation
@@ -148,25 +156,27 @@ def process_large_calculation_task(self, calculation_data: dict):
             result_matrix = np.linalg.inv(matrix + np.eye(size))
 
         result = {
-            'completed': True,
-            'size': size,
-            'iterations': iterations,
-            'final_result_shape': result_matrix.shape,
-            'message': 'Large calculation completed successfully'
+            "completed": True,
+            "size": size,
+            "iterations": iterations,
+            "final_result_shape": result_matrix.shape,
+            "message": "Large calculation completed successfully",
         }
 
         logger.info(f"Completed large calculation: {calculation_data.get('type', 'Unknown')}")
 
-        current_task.update_state(state='SUCCESS', meta={'status': 'Calculation completed successfully', 'result': result})
+        current_task.update_state(
+            state="SUCCESS", meta={"status": "Calculation completed successfully", "result": result}
+        )
 
         return result
     except Exception as exc:
         logger.error(f"Error processing large calculation: {str(exc)}")
         current_task.update_state(
-            state='FAILURE',
+            state="FAILURE",
             meta={
-                'status': 'Calculation failed',
-                'error': str(exc),
-            }
+                "status": "Calculation failed",
+                "error": str(exc),
+            },
         )
         raise exc

@@ -78,9 +78,7 @@ class SkillMetadata(BaseModel):
     @classmethod
     def version_must_be_semver(cls, v: str) -> str:
         if not SEMVER_PATTERN.match(v):
-            raise ValueError(
-                f"'{v}' is not a valid semver string (expected MAJOR.MINOR.PATCH)"
-            )
+            raise ValueError(f"'{v}' is not a valid semver string (expected MAJOR.MINOR.PATCH)")
         return v
 
     @field_validator("author")
@@ -135,9 +133,7 @@ class SkillDescription(BaseModel):
     def description_should_be_substantial(cls, v: str) -> str:
         stripped = v.strip()
         if len(stripped.split()) < 3:
-            raise ValueError(
-                "description must contain at least three words to be meaningful"
-            )
+            raise ValueError("description must contain at least three words to be meaningful")
         return stripped
 
     @model_validator(mode="after")
@@ -150,9 +146,7 @@ class SkillDescription(BaseModel):
                 duplicates.append(w)
             seen.add(lowered)
         if duplicates:
-            raise ValueError(
-                f"Duplicate trigger words are not allowed: {duplicates}"
-            )
+            raise ValueError(f"Duplicate trigger words are not allowed: {duplicates}")
         return self
 
 
@@ -205,7 +199,4 @@ class SkillDefinition(BaseModel):
     description: SkillDescription
 
     def summarize(self) -> str:
-        return (
-            f"Skill '{self.description.name}' v{self.metadata.version} "
-            f"by {self.metadata.author}"
-        )
+        return f"Skill '{self.description.name}' v{self.metadata.version} by {self.metadata.author}"

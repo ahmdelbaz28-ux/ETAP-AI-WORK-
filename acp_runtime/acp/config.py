@@ -9,6 +9,7 @@ Precedence (highest → lowest):
     3. Config file
     4. Built-in defaults
 """
+
 from __future__ import annotations
 
 import json
@@ -66,10 +67,7 @@ def load_config(path: str) -> dict[str, Any]:
     except Exception as exc:
         raise SystemExit(f"Failed to parse config file {path!r}: {exc}") from exc
 
-    raise SystemExit(
-        f"Unsupported config file format: {suffix!r}. "
-        "Use .yaml, .yml, or .json."
-    )
+    raise SystemExit(f"Unsupported config file format: {suffix!r}. Use .yaml, .yml, or .json.")
 
 
 def _load_yaml(text: str) -> dict[str, Any]:
@@ -78,8 +76,7 @@ def _load_yaml(text: str) -> dict[str, Any]:
         import yaml
     except ImportError as exc:
         raise SystemExit(
-            "YAML config files require PyYAML. "
-            "Install it:  pip install pyyaml"
+            "YAML config files require PyYAML. Install it:  pip install pyyaml"
         ) from exc
     parsed = yaml.safe_load(text)
     if not isinstance(parsed, dict):

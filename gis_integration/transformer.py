@@ -71,7 +71,9 @@ class GIS_TO_ADMS_Transformer:
         if gtype == "Point":
             # Point -> SWITCH or SUBSTATION:
             # Use explicit metadata hints; never silently guess if absent.
-            meta_type = self._string_meta(feature.properties.get("asset_role") or feature.properties.get("role"))
+            meta_type = self._string_meta(
+                feature.properties.get("asset_role") or feature.properties.get("role")
+            )
             if meta_type in ("switch", "switching_device"):
                 return ADMSAssetType.SWITCH
             if meta_type in ("substation", "bus"):
@@ -83,7 +85,9 @@ class GIS_TO_ADMS_Transformer:
 
         if gtype == "LineString":
             # Line -> FEEDER or LINE
-            meta_kind = self._string_meta(feature.properties.get("line_kind") or feature.properties.get("kind"))
+            meta_kind = self._string_meta(
+                feature.properties.get("line_kind") or feature.properties.get("kind")
+            )
             if meta_kind in ("feeder", "primary_feeder"):
                 return ADMSAssetType.FEEDER
             return ADMSAssetType.LINE

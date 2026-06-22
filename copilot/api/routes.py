@@ -49,10 +49,12 @@ def _get_etap_provider():
     """Lazy-load ETAP provider to avoid import errors on non-Windows."""
     try:
         from etap_integration.etap_provider import get_etap_provider
+
         return get_etap_provider()
     except Exception:
         logger.warning("ETAP provider not available — some features will be disabled")
         return None
+
 
 # ---------------------------------------------------------------------------
 # Request / Response Models
@@ -184,11 +186,16 @@ class CopilotAPI:
             """Synchronize with ETAP project."""
             self._call_count += 1
             if not request.project_path:
-                raise HTTPException(status_code=400, detail="project_path is required for ETAP sync")
-            result = self.mcp.call_tool("sync_etap", {
-                "project_path": request.project_path,
-                "direction": request.direction,
-            })
+                raise HTTPException(
+                    status_code=400, detail="project_path is required for ETAP sync"
+                )
+            result = self.mcp.call_tool(
+                "sync_etap",
+                {
+                    "project_path": request.project_path,
+                    "direction": request.direction,
+                },
+            )
             return result
 
         @router.post("/autocad/sync")
@@ -196,11 +203,16 @@ class CopilotAPI:
             """Synchronize with AutoCAD drawing."""
             self._call_count += 1
             if not request.project_path:
-                raise HTTPException(status_code=400, detail="project_path is required for AutoCAD sync")
-            result = self.mcp.call_tool("sync_autocad", {
-                "file_path": request.project_path,
-                "direction": "export" if request.direction != "import" else "import",
-            })
+                raise HTTPException(
+                    status_code=400, detail="project_path is required for AutoCAD sync"
+                )
+            result = self.mcp.call_tool(
+                "sync_autocad",
+                {
+                    "file_path": request.project_path,
+                    "direction": "export" if request.direction != "import" else "import",
+                },
+            )
             return result
 
         @router.post("/revit/sync")
@@ -208,11 +220,16 @@ class CopilotAPI:
             """Synchronize with Revit model."""
             self._call_count += 1
             if not request.project_path:
-                raise HTTPException(status_code=400, detail="project_path is required for Revit sync")
-            result = self.mcp.call_tool("sync_revit", {
-                "model_path": request.project_path,
-                "direction": request.direction,
-            })
+                raise HTTPException(
+                    status_code=400, detail="project_path is required for Revit sync"
+                )
+            result = self.mcp.call_tool(
+                "sync_revit",
+                {
+                    "model_path": request.project_path,
+                    "direction": request.direction,
+                },
+            )
             return result
 
         @router.post("/autocad/draw")
@@ -254,14 +271,20 @@ class CopilotAPI:
             self._call_count += 1
             if request.model_json:
                 # Validate against provided model
-                result = self.mcp.call_tool("run_engineering_checks", {
-                    "model_json": request.model_json,
-                })
+                result = self.mcp.call_tool(
+                    "run_engineering_checks",
+                    {
+                        "model_json": request.model_json,
+                    },
+                )
             else:
                 # Validate current model
-                result = self.mcp.call_tool("validate_design", {
-                    "check_types": request.checks,
-                })
+                result = self.mcp.call_tool(
+                    "validate_design",
+                    {
+                        "check_types": request.checks,
+                    },
+                )
             return result
 
         @router.get("/status")
@@ -282,7 +305,9 @@ class CopilotAPI:
                 "uptime_seconds": round(time.time() - self.start_time, 2),
                 "autocad_connected": self.mcp.autocad.is_connected,
                 "revit_connected": self.mcp.revit.is_connected,
-                "etap_available": self.etap_provider.is_available() if self.etap_provider else False,
+                "etap_available": self.etap_provider.is_available()
+                if self.etap_provider
+                else False,
                 "ai_engine": self.ai_engine.get_statistics(),
                 "translation": self.translation.get_statistics(),
             }

@@ -32,13 +32,13 @@ def agent():
 def smib_params():
     """Single-Machine Infinite Bus parameters for CCT calculation."""
     return {
-        "H": 5.0,          # Inertia constant (s)
-        "Pm": 0.8,         # Mechanical power (pu)
-        "E_gen": 1.1,      # Internal voltage (pu)
-        "V_inf": 1.0,      # Infinite bus voltage (pu)
-        "X_total": 0.5,    # Pre-fault reactance (pu)
+        "H": 5.0,  # Inertia constant (s)
+        "Pm": 0.8,  # Mechanical power (pu)
+        "E_gen": 1.1,  # Internal voltage (pu)
+        "V_inf": 1.0,  # Infinite bus voltage (pu)
+        "X_total": 0.5,  # Pre-fault reactance (pu)
         "X_faulted": 1e6,  # During fault (3ph at terminals)
-        "delta0": 0.5,     # Initial angle (rad)
+        "delta0": 0.5,  # Initial angle (rad)
     }
 
 
@@ -141,7 +141,7 @@ class TestStabilityScenario:
         """Test 5: CCT returns infeasible when Pm > Pmax."""
         result = agent.critical_clearing_time(
             H=5.0,
-            Pm=10.0,       # Unrealistically high
+            Pm=10.0,  # Unrealistically high
             E_gen=1.1,
             V_inf=1.0,
             X_total=0.5,

@@ -189,9 +189,7 @@ def track_skill_operation(operation: str) -> Callable:
                     return result
                 except Exception as exc:
                     SKILL_OPERATIONS.labels(operation=operation, status="error").inc()
-                    SKILL_ERRORS.labels(
-                        error_type=type(exc).__name__, skill_name="unknown"
-                    ).inc()
+                    SKILL_ERRORS.labels(error_type=type(exc).__name__, skill_name="unknown").inc()
                     raise
                 finally:
                     SKILL_OPERATIONS_IN_FLIGHT.labels(operation_type=operation).dec()
@@ -207,9 +205,7 @@ def track_skill_operation(operation: str) -> Callable:
                 return result
             except Exception as exc:
                 SKILL_OPERATIONS.labels(operation=operation, status="error").inc()
-                SKILL_ERRORS.labels(
-                    error_type=type(exc).__name__, skill_name="unknown"
-                ).inc()
+                SKILL_ERRORS.labels(error_type=type(exc).__name__, skill_name="unknown").inc()
                 raise
             finally:
                 SKILL_OPERATIONS_IN_FLIGHT.labels(operation_type=operation).dec()

@@ -20,6 +20,7 @@ Endpoints:
 
 Any other path or method returns 404/405.
 """
+
 from __future__ import annotations
 
 import json
@@ -147,9 +148,7 @@ async def _handle_client(
         await client.aclose()
 
 
-async def start_http_server(
-    health_handler: Any, port: int, metrics_path: str = "/metrics"
-) -> None:
+async def start_http_server(health_handler: Any, port: int, metrics_path: str = "/metrics") -> None:
     """Start a TCP listener that serves health/ready/metrics JSON.
 
     Parameters:
@@ -158,6 +157,4 @@ async def start_http_server(
         port: TCP port to bind to.
     """
     listener = await anyio.create_tcp_listener(local_port=port)
-    await listener.serve(
-        lambda client: _handle_client(health_handler, client, metrics_path)
-    )
+    await listener.serve(lambda client: _handle_client(health_handler, client, metrics_path))

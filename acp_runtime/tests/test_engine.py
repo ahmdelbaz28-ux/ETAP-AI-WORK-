@@ -8,6 +8,7 @@ Covers:
     * duplicate capability registration is a constructor error
     * stats tracking
 """
+
 from __future__ import annotations
 
 import anyio
@@ -42,6 +43,7 @@ class CalcHandler:
 
 # ----------------------------------------------------------------- success
 
+
 @pytest.mark.anyio
 async def test_execute_async_handler():
     runtime = AcpRuntime([CalcHandler()])
@@ -68,6 +70,7 @@ async def test_execute_with_no_input():
 
 
 # ------------------------------------------------------------- error paths
+
 
 @pytest.mark.anyio
 async def test_unknown_capability_raises_capability_not_found():
@@ -113,6 +116,7 @@ async def test_handler_does_not_observe_cancellation_on_success():
 
 # ------------------------------------------------------------ registration
 
+
 def test_duplicate_capability_raises_on_construct():
     class H1:
         @capability("dup.x")
@@ -155,6 +159,7 @@ def test_get_meta_returns_metadata():
 
 # ----------------------------------------------------------------- stats
 
+
 @pytest.mark.anyio
 async def test_stats_track_calls_and_errors():
     runtime = AcpRuntime([CalcHandler()])
@@ -191,6 +196,7 @@ async def test_unknown_capability_does_not_increment_stats():
 
 # ------------------------------------------------ multi-handler registration
 
+
 @pytest.mark.anyio
 async def test_multiple_handlers_in_one_runtime():
     class StringHandler:
@@ -211,6 +217,7 @@ async def test_multiple_handlers_in_one_runtime():
 
 
 # ------------------------------------------------ error mapping is preserving
+
 
 @pytest.mark.anyio
 async def test_handler_error_preserves_cause():

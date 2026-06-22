@@ -49,9 +49,16 @@ def __getattr__(name):
             "ETAPStudyType": _ETAPStudyType,
         }
         return mapping[name]
-    if name in ("IEtapProvider", "LocalEtapProvider", "RemoteEtapProvider",
-                "MockEtapProvider", "NullEtapProvider", "get_etap_provider",
-                "ProviderStudyType", "ProviderResult"):
+    if name in (
+        "IEtapProvider",
+        "LocalEtapProvider",
+        "RemoteEtapProvider",
+        "MockEtapProvider",
+        "NullEtapProvider",
+        "get_etap_provider",
+        "ProviderStudyType",
+        "ProviderResult",
+    ):
         global _IEtapProvider, _LocalEtapProvider, _RemoteEtapProvider
         global _MockEtapProvider, _NullEtapProvider, _get_etap_provider
         if _IEtapProvider is None:

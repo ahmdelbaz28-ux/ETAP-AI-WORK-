@@ -9,6 +9,7 @@ Covers:
     * Error handling: missing handlers, bad module, no capability classes
     * Auth, audit, observability wiring from CLI flags
 """
+
 from __future__ import annotations
 
 import io
@@ -31,6 +32,7 @@ from acp.runtime import capability
 
 # ------------------------------------------------------- test handlers module
 
+
 class FakeHandler:
     @capability("math.sum", scopes=("math.read",))
     async def sum(self, a: int, b: int) -> int:
@@ -38,6 +40,7 @@ class FakeHandler:
 
 
 # ------------------------------------------------------- unit helpers
+
 
 class TestSplitScopes:
     def test_empty(self):
@@ -89,6 +92,7 @@ class TestEnvBool:
 
 # ------------------------------------------------------- argparse
 
+
 class TestParser:
     def test_stdio_subcommand(self):
         parser = _build_parser()
@@ -98,31 +102,43 @@ class TestParser:
 
     def test_uds_subcommand(self):
         parser = _build_parser()
-        args = parser.parse_args(["uds", "--handlers", "myapp.handlers", "--path", "/tmp/test.sock"])
+        args = parser.parse_args(
+            ["uds", "--handlers", "myapp.handlers", "--path", "/tmp/test.sock"]
+        )
         assert args.command == "uds"
         assert args.path == "/tmp/test.sock"
 
     def test_websocket_subcommand(self):
         parser = _build_parser()
-        args = parser.parse_args(["websocket", "--handlers", "myapp.handlers", "--host", "0.0.0.0", "--port", "9999"])
+        args = parser.parse_args(
+            ["websocket", "--handlers", "myapp.handlers", "--host", "0.0.0.0", "--port", "9999"]
+        )
         assert args.command == "websocket"
         assert args.host == "0.0.0.0"
         assert args.port == 9999
 
     def test_common_flags(self):
         parser = _build_parser()
-        args = parser.parse_args([
-            "stdio",
-            "--handlers", "myapp.handlers",
-            "--scopes", "math.read,math.write",
-            "--auth-secret", "secret123",
-            "--auth-ttl", "7200",
-            "--require-auth",
-            "--audit-log", "/tmp/audit.ndjson",
-            "--trace-file", "/tmp/trace.json",
-            "--metrics",
-            "--verbose",
-        ])
+        args = parser.parse_args(
+            [
+                "stdio",
+                "--handlers",
+                "myapp.handlers",
+                "--scopes",
+                "math.read,math.write",
+                "--auth-secret",
+                "secret123",
+                "--auth-ttl",
+                "7200",
+                "--require-auth",
+                "--audit-log",
+                "/tmp/audit.ndjson",
+                "--trace-file",
+                "/tmp/trace.json",
+                "--metrics",
+                "--verbose",
+            ]
+        )
         assert args.scopes == "math.read,math.write"
         assert args.auth_secret == "secret123"
         assert args.auth_ttl == 7200
@@ -139,6 +155,7 @@ class TestParser:
 
 
 # ------------------------------------------------------- handler loading
+
 
 class TestLoadHandlers:
     def test_load_this_module(self):
@@ -163,6 +180,7 @@ class TestLoadHandlers:
 
 
 # ------------------------------------------------------- runtime / router construction
+
 
 class TestBuildRuntime:
     def test_build_runtime(self, monkeypatch):
@@ -235,9 +253,12 @@ class TestBuildRouter:
 
 # ------------------------------------------------------- stdio transport integration
 
+
 @pytest.mark.anyio
 async def test_stdio_transport_start():
-    stdin = io.StringIO('{"jsonrpc":"2.0","id":"r1","method":"math.sum","params":{"a":1,"b":2},"capability":"math.sum"}\n')
+    stdin = io.StringIO(
+        '{"jsonrpc":"2.0","id":"r1","method":"math.sum","params":{"a":1,"b":2},"capability":"math.sum"}\n'
+    )
     stdout = io.StringIO()
     parser = _build_parser()
     args = parser.parse_args(["stdio", "--handlers", "tests.test_cli", "--scopes", "math.read"])
@@ -245,6 +266,7 @@ async def test_stdio_transport_start():
     runtime, _ = _build_runtime(args, tracer, metrics, logger)
     router = _build_router(args, runtime, tracer, metrics, logger)
     from acp.transport import Server, StdioTransport
+
     transport = StdioTransport(stdin, stdout)
     Server(router, transport)
     # Don't run forever — just process one message
@@ -257,6 +279,7 @@ async def test_stdio_transport_start():
 
 # ------------------------------------------------------- env var fallback
 
+
 class TestEnvVarFallback:
     def test_handlers_from_env(self, monkeypatch):
         monkeypatch.setenv("ACP_HANDLERS", "tests.test_cli")
@@ -267,6 +290,7 @@ class TestEnvVarFallback:
         parser = _build_parser()
         args = parser.parse_args(["stdio"])
         from acp.config import merge_config
+
         args = merge_config(args, {})
         tracer, metrics, logger = _build_observability(args)
         runtime, _ = _build_runtime(args, tracer, metrics, logger)
@@ -277,6 +301,7 @@ class TestEnvVarFallback:
 
 
 # ------------------------------------------------------- error cases
+
 
 class TestCliErrors:
     def test_missing_handlers(self, monkeypatch):
@@ -301,7 +326,9 @@ class TestCliErrors:
 class TestUdsArgs:
     def test_uds_args(self):
         parser = _build_parser()
-        args = parser.parse_args(["uds", "--handlers", "tests.test_cli", "--path", "/tmp/test.sock"])
+        args = parser.parse_args(
+            ["uds", "--handlers", "tests.test_cli", "--path", "/tmp/test.sock"]
+        )
         assert args.command == "uds"
         assert args.path == "/tmp/test.sock"
 
@@ -309,7 +336,9 @@ class TestUdsArgs:
 class TestWebSocketArgs:
     def test_websocket_args(self):
         parser = _build_parser()
-        args = parser.parse_args(["websocket", "--handlers", "tests.test_cli", "--host", "0.0.0.0", "--port", "9999"])
+        args = parser.parse_args(
+            ["websocket", "--handlers", "tests.test_cli", "--host", "0.0.0.0", "--port", "9999"]
+        )
         assert args.command == "websocket"
         assert args.host == "0.0.0.0"
         assert args.port == 9999
@@ -328,7 +357,9 @@ class TestHttpPortFlag:
 
     def test_http_port_with_websocket(self):
         parser = _build_parser()
-        args = parser.parse_args(["websocket", "--handlers", "tests.test_cli", "--http-port", "8082"])
+        args = parser.parse_args(
+            ["websocket", "--handlers", "tests.test_cli", "--http-port", "8082"]
+        )
         assert args.http_port == 8082
 
 
@@ -340,24 +371,38 @@ class TestMetricsPathFlag:
 
     def test_custom_metrics_path(self):
         parser = _build_parser()
-        args = parser.parse_args(["stdio", "--handlers", "tests.test_cli", "--metrics-path", "/custom-metrics"])
+        args = parser.parse_args(
+            ["stdio", "--handlers", "tests.test_cli", "--metrics-path", "/custom-metrics"]
+        )
         assert args.metrics_path == "/custom-metrics"
 
     def test_custom_metrics_path_with_uds(self):
         parser = _build_parser()
-        args = parser.parse_args(["uds", "--handlers", "tests.test_cli", "--metrics-path", "/probe/metrics"])
+        args = parser.parse_args(
+            ["uds", "--handlers", "tests.test_cli", "--metrics-path", "/probe/metrics"]
+        )
         assert args.metrics_path == "/probe/metrics"
 
     def test_custom_metrics_path_with_websocket(self):
         parser = _build_parser()
-        args = parser.parse_args(["websocket", "--handlers", "tests.test_cli", "--metrics-path", "/app/prometheus"])
+        args = parser.parse_args(
+            ["websocket", "--handlers", "tests.test_cli", "--metrics-path", "/app/prometheus"]
+        )
         assert args.metrics_path == "/app/prometheus"
 
 
 class TestDefaultLabelsFlag:
     def test_default_labels_parsed(self):
         parser = _build_parser()
-        args = parser.parse_args(["stdio", "--handlers", "tests.test_cli", "--default-labels", "transport=stdio,env=prod"])
+        args = parser.parse_args(
+            [
+                "stdio",
+                "--handlers",
+                "tests.test_cli",
+                "--default-labels",
+                "transport=stdio,env=prod",
+            ]
+        )
         assert args.default_labels == "transport=stdio,env=prod"
 
     def test_default_labels_empty(self):
@@ -367,6 +412,7 @@ class TestDefaultLabelsFlag:
 
     def test_parse_labels_helper(self):
         from acp.cli import _parse_labels
+
         assert _parse_labels("transport=stdio") == {"transport": "stdio"}
         assert _parse_labels("transport=stdio,env=prod") == {"transport": "stdio", "env": "prod"}
         assert _parse_labels("") == {}
@@ -374,25 +420,32 @@ class TestDefaultLabelsFlag:
 
     def test_parse_labels_invalid(self):
         from acp.cli import _parse_labels
+
         with pytest.raises(SystemExit):
             _parse_labels("bad_format")
 
 
 # ------------------------------------------------------- transport error paths
 
+
 class TestTransportErrorPaths:
     def test_uds_serve_oserror(self, monkeypatch):
         monkeypatch.setenv("ACP_HANDLERS", "tests.test_cli")
         parser = _build_parser()
-        args = parser.parse_args(["uds", "--handlers", "tests.test_cli", "--path", "/tmp/test.sock"])
+        args = parser.parse_args(
+            ["uds", "--handlers", "tests.test_cli", "--path", "/tmp/test.sock"]
+        )
         tracer, metrics, logger = _build_observability(args)
         runtime, _ = _build_runtime(args, tracer, metrics, logger)
         _build_router(args, runtime, tracer, metrics, logger)
         from acp.transport import UDSListener
+
         async def _broken_serve(self, router):
             raise OSError("Address already in use")
+
         with patch.object(UDSListener, "serve", _broken_serve):
             from acp.cli import _run_uds
+
             with pytest.raises(SystemExit) as exc_info:
                 anyio.run(_run_uds, args, tracer, metrics, logger)
         assert "Cannot start UDS listener" in str(exc_info.value)
@@ -400,15 +453,20 @@ class TestTransportErrorPaths:
     def test_websocket_serve_import_error(self, monkeypatch):
         monkeypatch.setenv("ACP_HANDLERS", "tests.test_cli")
         parser = _build_parser()
-        args = parser.parse_args(["websocket", "--handlers", "tests.test_cli", "--host", "localhost", "--port", "8765"])
+        args = parser.parse_args(
+            ["websocket", "--handlers", "tests.test_cli", "--host", "localhost", "--port", "8765"]
+        )
         tracer, metrics, logger = _build_observability(args)
         runtime, _ = _build_runtime(args, tracer, metrics, logger)
         _build_router(args, runtime, tracer, metrics, logger)
         from acp.transport import WebSocketListener
+
         async def _broken_serve(self, router):
             raise ImportError("No module named 'websockets'")
+
         with patch.object(WebSocketListener, "serve", _broken_serve):
             from acp.cli import _run_websocket
+
             with pytest.raises(SystemExit) as exc_info:
                 anyio.run(_run_websocket, args, tracer, metrics, logger)
         assert "Cannot start WebSocket listener" in str(exc_info.value)

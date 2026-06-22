@@ -24,12 +24,14 @@ from typing import Dict, List
 try:
     import chromadb  # noqa: F401
     from chromadb.config import Settings  # noqa: F401
+
     CHROMA_AVAILABLE = True
 except ImportError:
     CHROMA_AVAILABLE = False
 
 try:
     from sentence_transformers import SentenceTransformer
+
     SENTENCE_TRANSFORMERS_AVAILABLE = True
 except ImportError:
     SENTENCE_TRANSFORMERS_AVAILABLE = False
@@ -110,24 +112,28 @@ class ETAPGuideRAG:
         # Load master index if exists
         master_index_file = self.index_dir / "master_index.json"
         if master_index_file.exists():
-            with open(master_index_file, encoding='utf-8') as f:
+            with open(master_index_file, encoding="utf-8") as f:
                 master_index = json.load(f)
 
                 for doc in master_index["documents"]:
-                    self.documents.append({
-                        "filename": doc["filename"],
-                        "source": doc["source"],
-                        "pages": doc["pages"],
-                        "characters": doc["characters"]
-                    })
+                    self.documents.append(
+                        {
+                            "filename": doc["filename"],
+                            "source": doc["source"],
+                            "pages": doc["pages"],
+                            "characters": doc["characters"],
+                        }
+                    )
 
                     for idx, chunk in enumerate(doc["chunks"]):
                         self.chunks.append(chunk)
-                        self.chunk_metadata.append({
-                            "document": doc["filename"],
-                            "chunk_index": idx,
-                            "source": doc["source"]
-                        })
+                        self.chunk_metadata.append(
+                            {
+                                "document": doc["filename"],
+                                "chunk_index": idx,
+                                "source": doc["source"],
+                            }
+                        )
 
                 print(f"✓ Loaded {len(self.documents)} documents")
                 print(f"✓ Loaded {len(self.chunks)} text chunks")
@@ -144,14 +150,14 @@ class ETAPGuideRAG:
 
         try:
             # Load model
-            model = SentenceTransformer('all-MiniLM-L6-v2')
+            model = SentenceTransformer("all-MiniLM-L6-v2")
 
             # Create embeddings in batches
             batch_size = 100
             all_embeddings = []
 
             for i in range(0, len(self.chunks), batch_size):
-                batch = self.chunks[i:i + batch_size]
+                batch = self.chunks[i : i + batch_size]
                 batch_embeddings = model.encode(batch, show_progress_bar=True)
                 all_embeddings.extend(batch_embeddings)
 
@@ -190,11 +196,9 @@ class ETAPGuideRAG:
                     score += chunk_lower.count(term)
 
             if score > 0:
-                results.append({
-                    "chunk": chunk,
-                    "score": score,
-                    "metadata": self.chunk_metadata[idx]
-                })
+                results.append(
+                    {"chunk": chunk, "score": score, "metadata": self.chunk_metadata[idx]}
+                )
 
         # Sort by score and return top_k
         results.sort(key=lambda x: x["score"], reverse=True)
@@ -220,7 +224,7 @@ class ETAPGuideRAG:
                 "found": False,
                 "operation": operation,
                 "message": f"Procedure for '{operation}' not found in ETAP User Guide",
-                "recommendation": "Consult ETAP support or additional documentation"
+                "recommendation": "Consult ETAP support or additional documentation",
             }
 
         # Compile procedure from results
@@ -230,31 +234,30 @@ class ETAPGuideRAG:
             "sources": [],
             "steps": [],
             "notes": [],
-            "warnings": []
+            "warnings": [],
         }
 
         for result in results:
             chunk = result["chunk"]
             metadata = result["metadata"]
 
-            procedure["sources"].append({
-                "document": metadata["document"],
-                "relevance": result["score"]
-            })
+            procedure["sources"].append(
+                {"document": metadata["document"], "relevance": result["score"]}
+            )
 
             # Extract steps (lines starting with numbers or bullets)
-            lines = chunk.split('\n')
+            lines = chunk.split("\n")
             for line in lines:
                 line = line.strip()
-                if line and (line[0].isdigit() or line.startswith('-') or line.startswith('•')):
+                if line and (line[0].isdigit() or line.startswith("-") or line.startswith("•")):
                     procedure["steps"].append(line)
 
                 # Extract warnings
-                if 'warning' in line.lower() or 'caution' in line.lower():
+                if "warning" in line.lower() or "caution" in line.lower():
                     procedure["warnings"].append(line)
 
                 # Extract notes
-                if 'note' in line.lower() or 'important' in line.lower():
+                if "note" in line.lower() or "important" in line.lower():
                     procedure["notes"].append(line)
 
         return procedure
@@ -277,7 +280,7 @@ class ETAPGuideRAG:
             return {
                 "valid": False,
                 "reason": "Operation not documented in ETAP User Guide",
-                "recommendation": "Cannot validate - consult ETAP support"
+                "recommendation": "Cannot validate - consult ETAP support",
             }
 
         # Compare proposed steps with official
@@ -288,7 +291,7 @@ class ETAPGuideRAG:
             "proposed_steps": proposed_steps,
             "compliance": [],
             "issues": [],
-            "warnings": official["warnings"]
+            "warnings": official["warnings"],
         }
 
         # Simple validation: check if key terms match
@@ -301,17 +304,13 @@ class ETAPGuideRAG:
             overlap = len(step_terms & official_terms)
 
             if overlap > 0:
-                validation["compliance"].append({
-                    "step": step,
-                    "matches": overlap,
-                    "status": "compliant"
-                })
+                validation["compliance"].append(
+                    {"step": step, "matches": overlap, "status": "compliant"}
+                )
             else:
-                validation["compliance"].append({
-                    "step": step,
-                    "matches": 0,
-                    "status": "not_found_in_guide"
-                })
+                validation["compliance"].append(
+                    {"step": step, "matches": 0, "status": "not_found_in_guide"}
+                )
                 validation["issues"].append(f"Step not found in guide: {step}")
 
         if validation["issues"]:
@@ -342,7 +341,7 @@ class ETAPGuideRAG:
                 "question": question,
                 "answer": "Information not found in ETAP User Guide",
                 "sources": [],
-                "confidence": 0
+                "confidence": 0,
             }
 
         # Compile answer from results
@@ -354,10 +353,7 @@ class ETAPGuideRAG:
             metadata = result["metadata"]
 
             answer_parts.append(chunk)
-            sources.append({
-                "document": metadata["document"],
-                "relevance": result["score"]
-            })
+            sources.append({"document": metadata["document"], "relevance": result["score"]})
 
         # Combine into coherent answer
         answer = "\n\n".join(answer_parts)
@@ -367,7 +363,7 @@ class ETAPGuideRAG:
             "question": question,
             "answer": answer,
             "sources": sources,
-            "confidence": results[0]["score"] if results else 0
+            "confidence": results[0]["score"] if results else 0,
         }
 
 
@@ -390,7 +386,7 @@ def main():
         "How to create a new project in ETAP?",
         "How to run load flow analysis?",
         "How to add a bus to the one-line diagram?",
-        "How to set up short circuit analysis?"
+        "How to set up short circuit analysis?",
     ]
 
     print("Testing queries:")

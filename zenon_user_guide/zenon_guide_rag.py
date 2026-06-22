@@ -71,24 +71,28 @@ class ZenonGuideRAG:
         master_index_file = self.index_dir / "master_index.json"
         if master_index_file.exists():
             try:
-                with open(master_index_file, encoding='utf-8') as f:
+                with open(master_index_file, encoding="utf-8") as f:
                     master_index = json.load(f)
 
                 for doc in master_index.get("documents", []):
-                    self.documents.append({
-                        "filename": doc["filename"],
-                        "source": doc["source"],
-                        "pages": doc["pages"],
-                        "characters": doc["characters"]
-                    })
+                    self.documents.append(
+                        {
+                            "filename": doc["filename"],
+                            "source": doc["source"],
+                            "pages": doc["pages"],
+                            "characters": doc["characters"],
+                        }
+                    )
 
                     for idx, chunk in enumerate(doc.get("chunks", [])):
                         self.chunks.append(chunk)
-                        self.chunk_metadata.append({
-                            "document": doc["filename"],
-                            "chunk_index": idx,
-                            "source": doc["source"]
-                        })
+                        self.chunk_metadata.append(
+                            {
+                                "document": doc["filename"],
+                                "chunk_index": idx,
+                                "source": doc["source"],
+                            }
+                        )
             except Exception as e:
                 print(f"Error loading Zenon master index: {e}")
         else:
@@ -110,11 +114,9 @@ class ZenonGuideRAG:
                     score += chunk_lower.count(term)
 
             if score > 0:
-                results.append({
-                    "chunk": chunk,
-                    "score": score,
-                    "metadata": self.chunk_metadata[idx]
-                })
+                results.append(
+                    {"chunk": chunk, "score": score, "metadata": self.chunk_metadata[idx]}
+                )
 
         results.sort(key=lambda x: x["score"], reverse=True)
         return results[:top_k]
@@ -128,7 +130,7 @@ class ZenonGuideRAG:
                 "found": False,
                 "operation": operation,
                 "message": f"Procedure for '{operation}' not found in Zenon User Guide",
-                "recommendation": "Consult Zenon documentation or support"
+                "recommendation": "Consult Zenon documentation or support",
             }
 
         procedure = {
@@ -137,28 +139,31 @@ class ZenonGuideRAG:
             "sources": [],
             "steps": [],
             "notes": [],
-            "warnings": []
+            "warnings": [],
         }
 
         for result in results:
             chunk = result["chunk"]
             metadata = result["metadata"]
 
-            procedure["sources"].append({
-                "document": metadata["document"],
-                "relevance": result["score"]
-            })
+            procedure["sources"].append(
+                {"document": metadata["document"], "relevance": result["score"]}
+            )
 
-            lines = chunk.split('\n')
+            lines = chunk.split("\n")
             for line in lines:
                 line = line.strip()
-                if line and (line[0].isdigit() or line.startswith('-') or line.startswith('•')):
+                if line and (line[0].isdigit() or line.startswith("-") or line.startswith("•")):
                     procedure["steps"].append(line)
 
-                if 'warning' in line.lower() or 'caution' in line.lower() or 'danger' in line.lower():
+                if (
+                    "warning" in line.lower()
+                    or "caution" in line.lower()
+                    or "danger" in line.lower()
+                ):
                     procedure["warnings"].append(line)
 
-                if 'note' in line.lower() or 'important' in line.lower():
+                if "note" in line.lower() or "important" in line.lower():
                     procedure["notes"].append(line)
 
         return procedure
@@ -171,7 +176,7 @@ class ZenonGuideRAG:
             return {
                 "valid": False,
                 "reason": "Operation not documented in Zenon User Guide",
-                "recommendation": "Cannot validate - consult Zenon support"
+                "recommendation": "Cannot validate - consult Zenon support",
             }
 
         validation = {
@@ -181,7 +186,7 @@ class ZenonGuideRAG:
             "proposed_steps": proposed_steps,
             "compliance": [],
             "issues": [],
-            "warnings": official["warnings"]
+            "warnings": official["warnings"],
         }
 
         official_text = " ".join(official["steps"]).lower()
@@ -192,17 +197,13 @@ class ZenonGuideRAG:
             overlap = len(step_terms & official_terms)
 
             if overlap > 0:
-                validation["compliance"].append({
-                    "step": step,
-                    "matches": overlap,
-                    "status": "compliant"
-                })
+                validation["compliance"].append(
+                    {"step": step, "matches": overlap, "status": "compliant"}
+                )
             else:
-                validation["compliance"].append({
-                    "step": step,
-                    "matches": 0,
-                    "status": "not_found_in_guide"
-                })
+                validation["compliance"].append(
+                    {"step": step, "matches": 0, "status": "not_found_in_guide"}
+                )
                 validation["issues"].append(f"Step not found in guide: {step}")
 
         if validation["issues"]:
@@ -223,7 +224,7 @@ class ZenonGuideRAG:
                 "question": question,
                 "answer": "Information not found in Zenon User Guide",
                 "sources": [],
-                "confidence": 0
+                "confidence": 0,
             }
 
         answer_parts = []
@@ -233,15 +234,12 @@ class ZenonGuideRAG:
             chunk = result["chunk"]
             metadata = result["metadata"]
             answer_parts.append(chunk)
-            sources.append({
-                "document": metadata["document"],
-                "relevance": result["score"]
-            })
+            sources.append({"document": metadata["document"], "relevance": result["score"]})
 
         return {
             "answered": True,
             "question": question,
             "answer": "\n\n".join(answer_parts),
             "sources": sources,
-            "confidence": results[0]["score"] if results else 0
+            "confidence": results[0]["score"] if results else 0,
         }

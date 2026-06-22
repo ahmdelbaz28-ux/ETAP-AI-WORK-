@@ -1,15 +1,34 @@
-
 class Transformer:
     __slots__ = (
-        'transformer_id', 'from_bus', 'to_bus', 'z1', 'z2', 'z0',
-        'yshunt1', 'yshunt2', 'yshunt0', 'rating',
-        'tap_ratio', 'phase_shift',
+        "transformer_id",
+        "from_bus",
+        "to_bus",
+        "z1",
+        "z2",
+        "z0",
+        "yshunt1",
+        "yshunt2",
+        "yshunt0",
+        "rating",
+        "tap_ratio",
+        "phase_shift",
     )
 
-    def __init__(self, transformer_id, from_bus, to_bus,
-                 z1=complex(0,0), z2=None, z0=None,
-                 yshunt1=complex(0,0), yshunt2=None, yshunt0=None,
-                 rating=None, tap_ratio=1.0, phase_shift=0.0):
+    def __init__(
+        self,
+        transformer_id,
+        from_bus,
+        to_bus,
+        z1=complex(0, 0),
+        z2=None,
+        z0=None,
+        yshunt1=complex(0, 0),
+        yshunt2=None,
+        yshunt0=None,
+        rating=None,
+        tap_ratio=1.0,
+        phase_shift=0.0,
+    ):
         """
         Initialize a Transformer object with sequence impedances.
 
@@ -40,7 +59,7 @@ class Transformer:
         self.tap_ratio = tap_ratio
         self.phase_shift = phase_shift
 
-    def get_impedance(self, seq='1'):
+    def get_impedance(self, seq="1"):
         """
         Get impedance for a given sequence.
         Parameters:
@@ -48,16 +67,16 @@ class Transformer:
         Returns:
         complex: Impedance in per-unit.
         """
-        if seq == '1':
+        if seq == "1":
             return self.z1
-        elif seq == '2':
+        elif seq == "2":
             return self.z2
-        elif seq == '0':
+        elif seq == "0":
             return self.z0
         else:
             raise ValueError("Sequence must be '1', '2', or '0'")
 
-    def get_shunt_admittance(self, seq='1'):
+    def get_shunt_admittance(self, seq="1"):
         """
         Get shunt admittance for a given sequence.
         Parameters:
@@ -65,11 +84,11 @@ class Transformer:
         Returns:
         complex: Shunt admittance in per-unit.
         """
-        if seq == '1':
+        if seq == "1":
             return self.yshunt1
-        elif seq == '2':
+        elif seq == "2":
             return self.yshunt2
-        elif seq == '0':
+        elif seq == "0":
             return self.yshunt0
         else:
             raise ValueError("Sequence must be '1', '2', or '0'")

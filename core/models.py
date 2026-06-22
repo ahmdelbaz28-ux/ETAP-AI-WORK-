@@ -4,14 +4,18 @@ core/models.py — Core data models for the Universal Data Model.
 Combines standard dataclasses (for performance-sensitive paths) with
 Pydantic BaseModels (for validation-heavy / API-facing schemas).
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
-from enum import StrEnum
+
+UTC = UTC
 from typing import Any, Dict, List
 
 from pydantic import BaseModel, Field, field_validator
+
+from compat import StrEnum
 
 # =========================================================================
 # Pydantic models — validation + serialisation for API boundaries
@@ -20,6 +24,7 @@ from pydantic import BaseModel, Field, field_validator
 
 class PydanticPoint3D(BaseModel):
     """Pydantic equivalent of Point3D with built-in validation."""
+
     x: float
     y: float
     z: float = 0.0
@@ -27,6 +32,7 @@ class PydanticPoint3D(BaseModel):
 
 class PydanticGeometry(BaseModel):
     """Pydantic equivalent of Geometry with auto-validation."""
+
     points: List[PydanticPoint3D] = Field(default_factory=list)
     polyline_closed: bool = False
     area: float | None = None
@@ -42,6 +48,7 @@ class PydanticGeometry(BaseModel):
 
 class PydanticSemanticProperties(BaseModel):
     """Pydantic equivalent of SemanticProperties with enum validation."""
+
     element_type: str
     name: str | None = None
 
@@ -54,6 +61,7 @@ class PydanticSemanticProperties(BaseModel):
                 f"'{v}' is not a valid ElementType. Choose from: {sorted(valid_types)}"
             )
         return v
+
     description: str | None = None
     material: str | None = None
     fire_rating: str | None = None
@@ -73,6 +81,7 @@ class PydanticUniversalElement(BaseModel):
     Use ``PydanticUniversalElement.from_dataclass(elem)`` to convert from
     the internal ``UniversalElement`` dataclass in a single call.
     """
+
     element_id: str
     properties: PydanticSemanticProperties | None = None
     geometry: PydanticGeometry | None = None
@@ -89,10 +98,7 @@ class PydanticUniversalElement(BaseModel):
     def coerce_relationship_objects(cls, v: Any) -> Any:
         """Coerce ``Relationship`` dataclass instances to dicts."""
         if isinstance(v, list):
-            return [
-                item.to_dict() if hasattr(item, "to_dict") else item
-                for item in v
-            ]
+            return [item.to_dict() if hasattr(item, "to_dict") else item for item in v]
         return v
 
     @classmethod
@@ -100,12 +106,10 @@ class PydanticUniversalElement(BaseModel):
         """Build a Pydantic model from an internal ``UniversalElement`` dataclass."""
         return cls(
             element_id=elem.element_id,
-            properties=PydanticSemanticProperties(
-                **elem.properties.to_dict()
-            ) if elem.properties else None,
-            geometry=PydanticGeometry(
-                **elem.geometry.to_dict()
-            ) if elem.geometry else None,
+            properties=PydanticSemanticProperties(**elem.properties.to_dict())
+            if elem.properties
+            else None,
+            geometry=PydanticGeometry(**elem.geometry.to_dict()) if elem.geometry else None,
             relationships=[r.to_dict() for r in elem.relationships],
             created_timestamp=elem.created_timestamp,
             last_modified_timestamp=elem.last_modified_timestamp,
@@ -271,8 +275,12 @@ class UniversalElement:
             "properties": self.properties.to_dict() if self.properties else None,
             "geometry": self.geometry.to_dict() if self.geometry else None,
             "relationships": [r.to_dict() for r in self.relationships],
-            "created_timestamp": self.created_timestamp.isoformat() if self.created_timestamp else None,
-            "last_modified_timestamp": self.last_modified_timestamp.isoformat() if self.last_modified_timestamp else None,
+            "created_timestamp": self.created_timestamp.isoformat()
+            if self.created_timestamp
+            else None,
+            "last_modified_timestamp": self.last_modified_timestamp.isoformat()
+            if self.last_modified_timestamp
+            else None,
             "last_modified_by": self.last_modified_by,
             "source_file": self.source_file,
             "version": self.version,

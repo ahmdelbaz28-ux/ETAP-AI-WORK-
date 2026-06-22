@@ -17,7 +17,7 @@ def create_scada_tags_geojson():
             "type": "Feature",
             "geometry": {
                 "type": "Point",
-                "coordinates": [31.2357, 30.0444]  # Cairo coordinates as example
+                "coordinates": [31.2357, 30.0444],  # Cairo coordinates as example
             },
             "properties": {
                 "id": "detector_001",
@@ -25,15 +25,12 @@ def create_scada_tags_geojson():
                 "type": "smoke",
                 "coverage": "45m²",
                 "status": "normal",
-                "timestamp": datetime.utcnow().isoformat() + "Z"
-            }
+                "timestamp": datetime.utcnow().isoformat() + "Z",
+            },
         },
         {
             "type": "Feature",
-            "geometry": {
-                "type": "Point",
-                "coordinates": [31.2457, 30.0544]
-            },
+            "geometry": {"type": "Point", "coordinates": [31.2457, 30.0544]},
             "properties": {
                 "id": "extinguisher_001",
                 "zone": "zone_A",
@@ -41,45 +38,36 @@ def create_scada_tags_geojson():
                 "pressure": "10bar",
                 "flow": "120L/min",
                 "status": "ready",
-                "timestamp": datetime.utcnow().isoformat() + "Z"
-            }
+                "timestamp": datetime.utcnow().isoformat() + "Z",
+            },
         },
         {
             "type": "Feature",
-            "geometry": {
-                "type": "Point",
-                "coordinates": [31.2557, 30.0644]
-            },
+            "geometry": {"type": "Point", "coordinates": [31.2557, 30.0644]},
             "properties": {
                 "id": "detector_002",
                 "zone": "zone_B",
                 "type": "heat",
                 "coverage": "30m²",
                 "status": "normal",
-                "timestamp": datetime.utcnow().isoformat() + "Z"
-            }
+                "timestamp": datetime.utcnow().isoformat() + "Z",
+            },
         },
         {
             "type": "Feature",
-            "geometry": {
-                "type": "Point",
-                "coordinates": [31.2657, 30.0744]
-            },
+            "geometry": {"type": "Point", "coordinates": [31.2657, 30.0744]},
             "properties": {
                 "id": "valve_001",
                 "zone": "zone_C",
                 "type": "control_valve",
                 "status": "open",
                 "pressure": "8bar",
-                "timestamp": datetime.utcnow().isoformat() + "Z"
-            }
-        }
+                "timestamp": datetime.utcnow().isoformat() + "Z",
+            },
+        },
     ]
 
-    geojson_data = {
-        "type": "FeatureCollection",
-        "features": scada_tags
-    }
+    geojson_data = {"type": "FeatureCollection", "features": scada_tags}
 
     # Create directory if it doesn't exist
     os.makedirs("scada_export", exist_ok=True)
@@ -102,18 +90,18 @@ def validate_geojson_structure(geojson_path):
             data = json.load(f)
 
         # Basic validation
-        assert data['type'] == 'FeatureCollection'
-        assert 'features' in data
-        assert len(data['features']) > 0
+        assert data["type"] == "FeatureCollection"
+        assert "features" in data
+        assert len(data["features"]) > 0
 
         # Validate each feature
-        for _i, feature in enumerate(data['features']):
-            assert 'type' in feature
-            assert feature['type'] == 'Feature'
-            assert 'geometry' in feature
-            assert 'properties' in feature
-            assert 'coordinates' in feature['geometry']
-            assert len(feature['geometry']['coordinates']) == 2  # [lon, lat]
+        for _i, feature in enumerate(data["features"]):
+            assert "type" in feature
+            assert feature["type"] == "Feature"
+            assert "geometry" in feature
+            assert "properties" in feature
+            assert "coordinates" in feature["geometry"]
+            assert len(feature["geometry"]["coordinates"]) == 2  # [lon, lat]
 
         print(f"GeoJSON validation passed for {len(data['features'])} features")
         return True
@@ -127,7 +115,7 @@ def create_qml_style_file():
     """
     Create a QML style file for QGIS symbology
     """
-    qml_content = '''<!DOCTYPE qgis PUBLIC 'http://mrcc.com/qgis.dtd' 'SYSTEM'>
+    qml_content = """<!DOCTYPE qgis PUBLIC 'http://mrcc.com/qgis.dtd' 'SYSTEM'>
 <qgis version="3.28.9-Firenze" stylecategories="Symbology">
   <renderer-v2 type="categorizedSymbol" attr="type" enableorderby="0" forceraster="0">
     <categories>
@@ -254,7 +242,7 @@ def create_qml_style_file():
     <rotation/>
     <sizescale/>
   </renderer-v2>
-</qgis>'''
+</qgis>"""
 
     # Write QML style file
     qml_path = "scada_export/scada_tags_style.qml"

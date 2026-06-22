@@ -11,6 +11,7 @@ Features:
     * Optional log rotation by size or time (simple, no external deps).
     * Optional in-memory buffer for testing.
 """
+
 from __future__ import annotations
 
 import json
@@ -30,6 +31,7 @@ __all__ = [
 
 
 # ------------------------------------------------------------------ AuditEntry
+
 
 @dataclass(frozen=True, slots=True)
 class AuditEntry:
@@ -63,6 +65,7 @@ class AuditEntry:
 
 
 # ------------------------------------------------------------------ AuditLogger (ABC)
+
 
 class AuditLogger:
     """Abstract base for audit loggers.
@@ -107,6 +110,7 @@ class AuditLogger:
 
 # ------------------------------------------------------------------ InMemoryAuditLogger
 
+
 class InMemoryAuditLogger(AuditLogger):
     """Audit logger that stores entries in a list for testing.
 
@@ -132,6 +136,7 @@ class InMemoryAuditLogger(AuditLogger):
 
 
 # ------------------------------------------------------------------ NDJSONAuditLogger
+
 
 class NDJSONAuditLogger(AuditLogger):
     """Append-only NDJSON audit logger to a file on disk.

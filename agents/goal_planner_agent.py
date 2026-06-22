@@ -17,8 +17,12 @@ Standards:
 - MoSCoW prioritization method
 """
 
+from __future__ import annotations
+
 import logging
 from datetime import UTC, datetime
+
+UTC = UTC
 from typing import Any, Dict, List
 
 from agents.orchestrator import AgentResult, AgentStatus, BaseAgent, EngineeringTask, StudyType
@@ -185,12 +189,8 @@ class GoalPlannerAgent(BaseAgent):
         # Compute composite score for each task
         scored_tasks = []
         for task in tasks:
-            importance_score = _PRIORITY_LEVELS.get(
-                task.get("importance", "medium"), 3
-            ) / 5.0
-            urgency_score = _URGENCY_LEVELS.get(
-                task.get("urgency", "this_week"), 3
-            ) / 5.0
+            importance_score = _PRIORITY_LEVELS.get(task.get("importance", "medium"), 3) / 5.0
+            urgency_score = _URGENCY_LEVELS.get(task.get("urgency", "this_week"), 3) / 5.0
 
             # Dependency score: tasks with fewer blockers score higher
             dep_count = len(task.get("dependencies", []))
@@ -262,7 +262,9 @@ class GoalPlannerAgent(BaseAgent):
                     break
 
         total_scheduled_hours = sum(t["estimated_hours"] for t in scheduled)
-        utilization = (total_scheduled_hours / available_hours * 100.0) if available_hours > 0 else 0.0
+        utilization = (
+            (total_scheduled_hours / available_hours * 100.0) if available_hours > 0 else 0.0
+        )
 
         return {
             "prioritized_tasks": scored_tasks,
@@ -280,9 +282,7 @@ class GoalPlannerAgent(BaseAgent):
             },
         }
 
-    def _find_critical_path(
-        self, tasks: List[Dict[str, Any]]
-    ) -> List[str]:
+    def _find_critical_path(self, tasks: List[Dict[str, Any]]) -> List[str]:
         """
         Find the critical path (longest dependency chain) through tasks.
 
@@ -368,35 +368,22 @@ class GoalPlannerAgent(BaseAgent):
             deps = task.get("dependencies", [])
             if len(deps) > 2:
                 risks.append(
-                    f"Task '{task['name']}' has {len(deps)} dependencies — "
-                    "high coupling risk."
+                    f"Task '{task['name']}' has {len(deps)} dependencies — high coupling risk."
                 )
 
         # Assumptions
-        assumptions.append(
-            "Time estimates are approximate and may vary by ±25%"
-        )
+        assumptions.append("Time estimates are approximate and may vary by ±25%")
         if deferred_tasks:
-            assumptions.append(
-                f"{len(deferred_tasks)} task(s) deferred to next period"
-            )
+            assumptions.append(f"{len(deferred_tasks)} task(s) deferred to next period")
 
         # Recommendations
         if total_hours > available_hours:
-            recommendations.append(
-                "Consider breaking large tasks into smaller subtasks"
-            )
-            recommendations.append(
-                "Identify tasks that can be parallelized or delegated"
-            )
+            recommendations.append("Consider breaking large tasks into smaller subtasks")
+            recommendations.append("Identify tasks that can be parallelized or delegated")
         if deferred_tasks:
-            recommendations.append(
-                "Review deferred tasks for any that can be quick-wins"
-            )
+            recommendations.append("Review deferred tasks for any that can be quick-wins")
         if not risks:
-            recommendations.append(
-                "Schedule looks feasible — proceed with execution"
-            )
+            recommendations.append("Schedule looks feasible — proceed with execution")
 
         return {
             "risks": risks,
@@ -423,9 +410,7 @@ class GoalPlannerAgent(BaseAgent):
         self.status = AgentStatus.RUNNING
 
         try:
-            self.log_execution(
-                f"Starting goal planning for task {task.task_id}"
-            )
+            self.log_execution(f"Starting goal planning for task {task.task_id}")
 
             raw_input = task.parameters.get("raw_input", "")
             known_tasks = task.parameters.get("tasks")
@@ -509,18 +494,12 @@ class GoalPlannerAgent(BaseAgent):
         if prioritization is not None:
             for task in prioritization.get("scheduled_tasks", []):
                 if task.get("estimated_hours", 0) < 0:
-                    errors.append(
-                        f"Task '{task.get('name')}' has negative estimated hours"
-                    )
+                    errors.append(f"Task '{task.get('name')}' has negative estimated hours")
                 score = task.get("composite_score", 0)
                 if score < 0 or score > 1:
-                    errors.append(
-                        f"Task '{task.get('name')}' has invalid composite score: {score}"
-                    )
+                    errors.append(f"Task '{task.get('name')}' has invalid composite score: {score}")
 
-            scheduled_names = [
-                t["name"] for t in prioritization.get("scheduled_tasks", [])
-            ]
+            scheduled_names = [t["name"] for t in prioritization.get("scheduled_tasks", [])]
             if len(scheduled_names) != len(set(scheduled_names)):
                 errors.append("Duplicate task names in scheduled list")
 

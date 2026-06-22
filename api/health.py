@@ -10,18 +10,16 @@ import time
 from fastapi import APIRouter, Request
 from fastapi.responses import Response
 
-from core.metrics import generate_metrics, get_metrics_content_type
-
-router = APIRouter(prefix="", tags=["health"])
-
-# Import from core.metrics
-from engineering_service import (
+from core.bootstrap import (
     _failed_count,
     _metrics_lock,
     _request_count,
     _success_count,
     _total_execution_time_sec,
 )
+from core.metrics import generate_metrics, get_metrics_content_type
+
+router = APIRouter(prefix="", tags=["health"])
 
 
 class HealthResponse:
@@ -33,7 +31,14 @@ class HealthResponse:
 
 
 class ReadyResponse:
-    def __init__(self, ready: bool, native_engine_available: bool, etap_available: bool, timestamp: str, trace_id: str):
+    def __init__(
+        self,
+        ready: bool,
+        native_engine_available: bool,
+        etap_available: bool,
+        timestamp: str,
+        trace_id: str,
+    ):
         self.ready = ready
         self.native_engine_available = native_engine_available
         self.etap_available = etap_available
@@ -42,7 +47,14 @@ class ReadyResponse:
 
 
 class MetricsResponse:
-    def __init__(self, requests_total: int, requests_success: int, requests_failed: int, avg_execution_time_ms: float, trace_id: str):
+    def __init__(
+        self,
+        requests_total: int,
+        requests_success: int,
+        requests_failed: int,
+        avg_execution_time_ms: float,
+        trace_id: str,
+    ):
         self.requests_total = requests_total
         self.requests_success = requests_success
         self.requests_failed = requests_failed
@@ -92,15 +104,18 @@ async def readiness_check(request: Request):
     try:
         import numpy  # noqa: F401
         import scipy  # noqa: F401
+
         native_ok = True
     except ImportError:
         pass
     try:
         from etap_integration.etap_provider import get_etap_provider
+
         provider = get_etap_provider()
         etap_ok = provider.is_available()
     except Exception as exc:
         from logging import getLogger
+
         logger = getLogger("engineering_service")
         logger.warning("etap_provider_unavailable: %s", str(exc))
     return ReadyResponse(

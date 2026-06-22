@@ -2,6 +2,7 @@
 Celery application for handling heavy engineering tasks asynchronously.
 Uses Redis as both broker and result backend.
 """
+
 import os
 
 from celery import Celery
@@ -9,19 +10,14 @@ from celery import Celery
 # Configure Celery to use Redis
 redis_url = os.environ.get("REDIS_URL", "redis://localhost:6379/0")
 
-app = Celery(
-    'engineering_tasks',
-    broker=redis_url,
-    backend=redis_url,
-    include=['worker.tasks']
-)
+app = Celery("engineering_tasks", broker=redis_url, backend=redis_url, include=["worker.tasks"])
 
 # Celery configuration
 app.conf.update(
-    task_serializer='json',
-    accept_content=['json'],
-    result_serializer='json',
-    timezone='UTC',
+    task_serializer="json",
+    accept_content=["json"],
+    result_serializer="json",
+    timezone="UTC",
     enable_utc=True,
     result_expires=3600,  # Results expire after 1 hour
     task_track_started=True,
@@ -36,5 +32,5 @@ app.conf.update(
     worker_max_tasks_per_child=100,  # Recycle worker after 100 tasks (prevents memory leaks)
 )
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     app.start()

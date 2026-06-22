@@ -11,16 +11,18 @@ Design:
 Context fields are merged at log time so every entry carries the full
 context (e.g. capability name, caller_id, request_id).
 """
+
 from __future__ import annotations
 
 import json
 import sys
 import time
 from dataclasses import dataclass, field
-from enum import StrEnum
 from typing import Any
 
 import anyio
+
+from compat import StrEnum
 
 __all__ = [
     "LogLevel",
@@ -34,6 +36,7 @@ __all__ = [
 
 # ------------------------------------------------------------------ LogLevel
 
+
 class LogLevel(StrEnum):
     DEBUG = "debug"
     INFO = "info"
@@ -43,6 +46,7 @@ class LogLevel(StrEnum):
 
 
 # ------------------------------------------------------------------ LogEntry
+
 
 @dataclass(frozen=True, slots=True)
 class LogEntry:
@@ -81,6 +85,7 @@ class LogEntry:
 
 
 # ------------------------------------------------------------------ StructuredLogger (ABC)
+
 
 class StructuredLogger:
     """Abstract structured logger.
@@ -146,6 +151,7 @@ class StructuredLogger:
 
 # ------------------------------------------------------------------ NullStructuredLogger
 
+
 class NullStructuredLogger(StructuredLogger):
     """No-op structured logger."""
 
@@ -154,6 +160,7 @@ class NullStructuredLogger(StructuredLogger):
 
 
 # ------------------------------------------------------------------ InMemoryStructuredLogger
+
 
 class InMemoryStructuredLogger(StructuredLogger):
     """Stores all log entries in a list for testing.
@@ -188,6 +195,7 @@ class InMemoryStructuredLogger(StructuredLogger):
 
 # ------------------------------------------------------------------ ConsoleStructuredLogger
 
+
 class ConsoleStructuredLogger(StructuredLogger):
     """Writes JSON log lines to stdout or stderr.
 
@@ -215,6 +223,7 @@ class ConsoleStructuredLogger(StructuredLogger):
             LogLevel.CRITICAL: 4,
         }
         import threading
+
         self._lock = threading.Lock()
 
     def write(self, entry: LogEntry) -> None:
