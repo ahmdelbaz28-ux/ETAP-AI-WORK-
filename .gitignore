@@ -342,3 +342,5 @@ ui/release/
 ui/release
 *.asar
 security/_tmp_secure_executor_test_runner.py
+# Helm downloaded dependency charts
+helm/**/charts/
