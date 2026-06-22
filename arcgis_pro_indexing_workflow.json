@@ -1,0 +1,74 @@
+{
+  "workflow_name": "ARC GIS Pro Documentation Indexation",
+  "description": "Automated pipeline that ingests ArcGIS Pro docs, cleans, embeds, and indexes them into the MCP Server.",
+  "steps": [
+    {
+      "name": "FetchData",
+      "type": "http_get",
+      "options": {
+        "url": "https://doc.esri.com/en/arcgis-pro/latest/",
+        "headers": {
+          "Accept": "application/json",
+          "User-Agent": "ETAP-AI-Documentation-Crawler/1.0"
+        }
+      }
+    },
+    {
+      "name": "CleanData",
+      "type": "clean",
+      "options": {
+        "remove_empty_rows": true,
+        "strip_html": true,
+        "validate_urls": true,
+        "filter_language": "en"
+      }
+    },
+    {
+      "name": "TransformData",
+      "type": "embedding",
+      "options": {
+        "model": "sentence-transformers/all-mpnet-base-v2",
+        "fields": ["title", "content", "url"],
+        "generate_hierarchy": true,
+        "preserve_structure": true
+      }
+    },
+    {
+      "name": "IndexData",
+      "type": "elastic_index",
+      "options": {
+        "host": "https://elastic.etap-ai-platform.com",
+        "index_name": "arcgis_pro_docs",
+        "doc_type": "document",
+        "mappings": {
+          "properties": {
+            "title": {"type": "text"},
+            "url": {"type": "keyword"},
+            "content": {"type": "text"},
+            "level": {"type": "integer"},
+            "parent": {"type": "keyword"},
+            "license_required": {"type": "text"},
+            "embedding_vector": {"type": "dense_vector", "dims": 768}
+          }
+        }
+      }
+    },
+    {
+      "name": "PostProcess",
+      "type": "post",
+      "options": {
+        "action": "email_report",
+        "recipients": ["ops@etap-ai-platform.com"],
+        "summary_field": "statistics",
+        "log_results": true
+      }
+    }
+  ],
+  "schedule": "0 3 * * *",
+  "metadata": {
+    "created_by": "ETAP-AI-WORK--main",
+    "version": "3.7",
+    "last_updated": "2026-06-18",
+    "source": "https://doc.esri.com/en/arcgis-pro/latest/"
+  }
+}

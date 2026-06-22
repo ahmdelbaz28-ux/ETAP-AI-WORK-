@@ -18,7 +18,7 @@ Standards:
 """
 
 import logging
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any, Dict, List
 
 import numpy as np
@@ -614,7 +614,7 @@ class CableSizingAgent(BaseAgent):
         - ``'recommend'``: Full cable recommendation
         - ``'full'``: All analyses (default)
         """
-        start_time = datetime.now(timezone.utc)
+        start_time = datetime.now(UTC)
         self.status = AgentStatus.RUNNING
 
         try:
@@ -685,7 +685,7 @@ class CableSizingAgent(BaseAgent):
             )
 
             result.validation_status = self.validate_result(result)
-            execution_time = (datetime.now(timezone.utc) - start_time).total_seconds()
+            execution_time = (datetime.now(UTC) - start_time).total_seconds()
             result.execution_time = execution_time
 
             self.log_execution(f"Cable sizing analysis completed in {execution_time:.2f}s")

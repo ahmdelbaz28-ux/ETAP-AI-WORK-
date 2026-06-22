@@ -325,7 +325,20 @@ etap_user_guide/index/*.json
 !etap_user_guide/extract_guide.py
 !etap_user_guide/etap_guide_rag.py
 !etap_user_guide/setup_etap_guide.py
+
+# ==========================================
+# Zenon User Guide - Generated Files
+# ==========================================
+# Exclude generated extracted text, chunks, and index (large files stored locally)
+zenon_user_guide/pdfs/*.pdf
+zenon_user_guide/extracted/*.txt
+zenon_user_guide/chunks/*.json
+zenon_user_guide/index/*.json
+!zenon_user_guide/zenon_guide_rag.py
+!zenon_user_guide/extraction_summary.json
+
 .env.engineering-service
 ui/release/
 ui/release
 *.asar
+security/_tmp_secure_executor_test_runner.py

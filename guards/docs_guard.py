@@ -21,7 +21,7 @@ from __future__ import annotations
 
 import logging
 import re
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
 from guards.base import BaseGuard, GuardResult, GuardSeverity, GuardViolation
 
@@ -39,9 +39,7 @@ class DocsGuard(BaseGuard):
 
     name: str = "docs_guard"
 
-    def scan(
-        self, source: str, language: str = "markdown", context: Optional[Dict[str, Any]] = None
-    ) -> GuardResult:
+    def scan(self, source: str, language: str = "markdown", context: Dict[str, Any] | None = None) -> GuardResult:
         violations: List[GuardViolation] = []
         context = context or {}
 
@@ -353,9 +351,7 @@ class DocsGuard(BaseGuard):
     # ------------------------------------------------------------------
     # D-06: A code change owes a docs change
     # ------------------------------------------------------------------
-    def _check_docs_owed(
-        self, source: str, context: Optional[Dict[str, Any]]
-    ) -> List[GuardViolation]:
+    def _check_docs_owed(self, source: str, context: Dict[str, Any] | None) -> List[GuardViolation]:
         """Heuristic: if context provides changed_symbols, check that docs
         mention those symbols."""
         violations: List[GuardViolation] = []

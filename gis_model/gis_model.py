@@ -16,7 +16,7 @@ import json
 import math
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Tuple
 
 # ============================================================
 # GEO-REFERENCING MODEL
@@ -37,7 +37,7 @@ class GeoCoordinate:
 
     latitude: float
     longitude: float
-    elevation: Optional[float] = None
+    elevation: float | None = None
 
     def to_dict(self) -> dict:
         d = {"lat": self.latitude, "lon": self.longitude}
@@ -83,7 +83,7 @@ class GISZone:
     zone_type: GISZoneType
     name: str
     boundary: List[GeoCoordinate] = field(default_factory=list)
-    parent_zone_id: Optional[str] = None
+    parent_zone_id: str | None = None
     properties: Dict[str, Any] = field(default_factory=dict)
 
     def contains_point(self, point: GeoCoordinate) -> bool:
@@ -200,10 +200,10 @@ class GISAsset:
 
     asset_id: str
     asset_type: GISAssetType
-    electrical_id: Optional[str] = None  # Link to electrical model ID
-    position: Optional[GeoCoordinate] = None  # Point geometry
-    geometry: Optional[PolylineGeometry] = None  # Line geometry
-    zone_id: Optional[str] = None
+    electrical_id: str | None = None  # Link to electrical model ID
+    position: GeoCoordinate | None = None  # Point geometry
+    geometry: PolylineGeometry | None = None  # Line geometry
+    zone_id: str | None = None
     properties: Dict[str, Any] = field(default_factory=dict)
 
     def to_dict(self) -> dict:
@@ -269,7 +269,7 @@ class GISDatabase:
         self.assets[asset.asset_id] = asset
         self._index_asset(asset)
 
-    def get_asset(self, asset_id: str) -> Optional[GISAsset]:
+    def get_asset(self, asset_id: str) -> GISAsset | None:
         """Get a GIS asset by ID."""
         return self.assets.get(asset_id)
 
@@ -287,7 +287,7 @@ class GISDatabase:
         """Find all assets in a given zone."""
         return [a for a in self.assets.values() if a.zone_id == zone_id]
 
-    def find_asset_by_electrical_id(self, electrical_id: str) -> Optional[GISAsset]:
+    def find_asset_by_electrical_id(self, electrical_id: str) -> GISAsset | None:
         """Find GIS asset linked to an electrical model element."""
         for a in self.assets.values():
             if a.electrical_id == electrical_id:
@@ -300,7 +300,7 @@ class GISDatabase:
         """Add a GIS zone."""
         self.zones[zone.zone_id] = zone
 
-    def get_zone(self, zone_id: str) -> Optional[GISZone]:
+    def get_zone(self, zone_id: str) -> GISZone | None:
         """Get a GIS zone by ID."""
         return self.zones.get(zone_id)
 
@@ -310,7 +310,7 @@ class GISDatabase:
         """Add a feeder routing path."""
         self.feeder_routes[feeder_id] = route
 
-    def get_feeder_route(self, feeder_id: str) -> Optional[PolylineGeometry]:
+    def get_feeder_route(self, feeder_id: str) -> PolylineGeometry | None:
         """Get a feeder routing path."""
         return self.feeder_routes.get(feeder_id)
 
@@ -382,7 +382,7 @@ class GISDatabase:
         results.sort(key=lambda x: x[1])
         return results
 
-    def distance_between_assets(self, asset_id_1: str, asset_id_2: str) -> Optional[float]:
+    def distance_between_assets(self, asset_id_1: str, asset_id_2: str) -> float | None:
         """Calculate distance between two assets in meters."""
         a1 = self.assets.get(asset_id_1)
         a2 = self.assets.get(asset_id_2)
@@ -411,7 +411,7 @@ class GISDatabase:
                 features.append(feature)
         return {"type": "FeatureCollection", "features": features}
 
-    def _asset_to_geojson_feature(self, asset: GISAsset) -> Optional[dict]:
+    def _asset_to_geojson_feature(self, asset: GISAsset) -> dict | None:
         """Convert a GIS asset to a GeoJSON feature."""
         properties = {
             "asset_id": asset.asset_id,
@@ -446,7 +446,7 @@ class GISDatabase:
             if asset:
                 self.add_asset(asset)
 
-    def _geojson_feature_to_asset(self, feature: dict) -> Optional[GISAsset]:
+    def _geojson_feature_to_asset(self, feature: dict) -> GISAsset | None:
         """Convert a GeoJSON feature to a GIS asset."""
         props = feature.get("properties", {})
         geom = feature.get("geometry", {})

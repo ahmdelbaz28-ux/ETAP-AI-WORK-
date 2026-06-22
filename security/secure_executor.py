@@ -21,6 +21,8 @@ import logging
 import os
 import sys
 import traceback
+from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import TimeoutError as FutureTimeoutError
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
@@ -34,10 +36,6 @@ logger = logging.getLogger(__name__)
 
 MAX_EXECUTION_TIME_SECONDS = 30
 MAX_OUTPUT_LENGTH = 10000
-
-
-def _timeout_handler(signum, frame):
-    raise TimeoutError(f"Execution exceeded {MAX_EXECUTION_TIME_SECONDS} seconds")
 
 
 def _read_code_from_stdin():
@@ -254,65 +252,49 @@ def main():
         if mod is not None:
             _deep_freeze_module(mod)
 
-    try:
-        import signal
-
-        signal.signal(signal.SIGALRM, _timeout_handler)
-        signal.alarm(MAX_EXECUTION_TIME_SECONDS)
-    except (AttributeError, OSError) as sig_err:
-        # Signal-based timeouts are POSIX/Unix-only.  On Windows or in
-        # embedded contexts (e.g. notebooks) this will raise AttributeError;
-        # OSError covers cases where the alarm limit is rejected.  We still
-        # execute the code, but the wall-clock timeout is best-effort.
-        logger.debug("SIGALRM not available (%s); execution timeout disabled", sig_err)
-
-    try:
+    def _exec_target(_code: str, _globals: dict):
         import io
         from contextlib import redirect_stdout
 
         f = io.StringIO()
-        with redirect_stdout(f):
-            exec(code, safe_globals)
+        try:
+            with redirect_stdout(f):
+                exec(_code, _globals)
+            return {'ok': True, 'output': f.getvalue(), 'error': None, 'traceback': None}
+        except Exception as e:
+            return {
+                'ok': False,
+                'output': None,
+                'error': str(e),
+                'traceback': traceback.format_exc(),
+            }
 
-        output = f.getvalue()
+    # Cross-platform timeout enforcement (replaces signal.SIGALRM)
+    try:
+        with ThreadPoolExecutor(max_workers=1) as executor:
+            future = executor.submit(_exec_target, code, safe_globals)
+            result = future.result(timeout=MAX_EXECUTION_TIME_SECONDS)
+    except FutureTimeoutError:
+        print(json.dumps({
+            'success': False,
+            'output': None,
+            'error': f'Execution exceeded {MAX_EXECUTION_TIME_SECONDS} seconds',
+            'traceback': None
+        }))
+        return
+
+    if result.get('ok'):
+        output = result.get('output') or ''
         if len(output) > MAX_OUTPUT_LENGTH:
-            output = output[:MAX_OUTPUT_LENGTH] + "\n... [output truncated]"
-
-        try:
-            import signal
-
-            signal.alarm(0)
-        except (AttributeError, OSError) as sig_err:
-            logger.debug("Could not clear SIGALRM after success (%s)", sig_err)
-
-        print(json.dumps({"success": True, "output": output, "error": None}))
-
-    except TimeoutError as e:
-        try:
-            import signal
-
-            signal.alarm(0)
-        except (AttributeError, OSError) as sig_err:
-            logger.debug("Could not clear SIGALRM after timeout (%s)", sig_err)
-        print(json.dumps({"success": False, "output": None, "error": str(e), "traceback": None}))
-
-    except Exception as e:
-        try:
-            import signal
-
-            signal.alarm(0)
-        except (AttributeError, OSError) as sig_err:
-            logger.debug("Could not clear SIGALRM after exception (%s)", sig_err)
-        print(
-            json.dumps(
-                {
-                    "success": False,
-                    "output": None,
-                    "error": str(e),
-                    "traceback": traceback.format_exc(),
-                }
-            )
-        )
+            output = output[:MAX_OUTPUT_LENGTH] + '\n... [output truncated]'
+        print(json.dumps({'success': True, 'output': output, 'error': None}))
+    else:
+        print(json.dumps({
+            'success': False,
+            'output': None,
+            'error': result.get('error'),
+            'traceback': result.get('traceback')
+        }))
 
 
 if __name__ == "__main__":

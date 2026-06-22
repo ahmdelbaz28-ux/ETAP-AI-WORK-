@@ -20,9 +20,9 @@ import asyncio
 import logging
 import time
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
 import numpy as np
 
@@ -65,7 +65,7 @@ class AgentResult:
     validation_status: bool = False
     validation_errors: List[str] = field(default_factory=list)
     execution_time: float = 0.0
-    timestamp: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    timestamp: datetime = field(default_factory=lambda: datetime.now(UTC))
 
 
 @dataclass
@@ -77,7 +77,7 @@ class EngineeringTask:
     study_types: List[StudyType]
     parameters: Dict[str, Any]
     priority: int = 1
-    created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    created_at: datetime = field(default_factory=lambda: datetime.now(UTC))
     status: AgentStatus = AgentStatus.IDLE
     results: List[AgentResult] = field(default_factory=list)
 
@@ -109,7 +109,7 @@ class BaseAgent:
             self.prompt_handle = self._derive_prompt_handle()
 
         # Load prompt-driven metadata (description, standards, guidance)
-        self._system_prompt: Optional[str] = None
+        self._system_prompt: str | None = None
         self._prompt_metadata: Dict[str, Any] = {}
         self._load_prompt()
 
@@ -243,10 +243,10 @@ class BaseAgent:
     def log_execution(self, message: str, level: str = "INFO"):
         """Log execution details."""
         entry = {
-            "timestamp": datetime.now(timezone.utc).isoformat(),
-            "agent": self.agent_name,
-            "level": level,
-            "message": message,
+            'timestamp': datetime.now(UTC).isoformat(),
+            'agent': self.agent_name,
+            'level': level,
+            'message': message
         }
         self.execution_log.append(entry)
         getattr(self.logger, level.lower())(message)
@@ -280,7 +280,7 @@ class LoadFlowAgent(BaseAgent):
     )
     async def execute(self, task: EngineeringTask) -> AgentResult:
         """Execute load flow analysis."""
-        start_time = datetime.now(timezone.utc)
+        start_time = datetime.now(UTC)
         self.status = AgentStatus.RUNNING
 
         try:
@@ -332,7 +332,7 @@ class LoadFlowAgent(BaseAgent):
             # Validate results
             result.validation_status = self.validate_result(result)
 
-            execution_time = (datetime.now(timezone.utc) - start_time).total_seconds()
+            execution_time = (datetime.now(UTC) - start_time).total_seconds()
             result.execution_time = execution_time
 
             self.log_execution(
@@ -402,7 +402,7 @@ class ShortCircuitAgent(BaseAgent):
     )
     async def execute(self, task: EngineeringTask) -> AgentResult:
         """Execute short circuit analysis."""
-        start_time = datetime.now(timezone.utc)
+        start_time = datetime.now(UTC)
         self.status = AgentStatus.RUNNING
 
         try:
@@ -458,7 +458,7 @@ class ShortCircuitAgent(BaseAgent):
             )
 
             result.validation_status = self.validate_result(result)
-            execution_time = (datetime.now(timezone.utc) - start_time).total_seconds()
+            execution_time = (datetime.now(UTC) - start_time).total_seconds()
             result.execution_time = execution_time
 
             self.log_execution(f"Short circuit analysis completed in {execution_time:.2f}s")
@@ -523,7 +523,7 @@ class HarmonicAnalysisAgent(BaseAgent):
     )
     async def execute(self, task: EngineeringTask) -> AgentResult:
         """Execute harmonic analysis."""
-        start_time = datetime.now(timezone.utc)
+        start_time = datetime.now(UTC)
         self.status = AgentStatus.RUNNING
 
         try:
@@ -574,7 +574,7 @@ class HarmonicAnalysisAgent(BaseAgent):
             )
 
             result.validation_status = self.validate_result(result)
-            execution_time = (datetime.now(timezone.utc) - start_time).total_seconds()
+            execution_time = (datetime.now(UTC) - start_time).total_seconds()
             result.execution_time = execution_time
 
             self.log_execution(f"Harmonic analysis completed in {execution_time:.2f}s")
@@ -628,7 +628,7 @@ class OptimalPowerFlowAgent(BaseAgent):
     )
     async def execute(self, task: EngineeringTask) -> AgentResult:
         """Execute optimal power flow."""
-        start_time = datetime.now(timezone.utc)
+        start_time = datetime.now(UTC)
         self.status = AgentStatus.RUNNING
 
         try:
@@ -683,7 +683,7 @@ class OptimalPowerFlowAgent(BaseAgent):
             )
 
             result.validation_status = self.validate_result(result)
-            execution_time = (datetime.now(timezone.utc) - start_time).total_seconds()
+            execution_time = (datetime.now(UTC) - start_time).total_seconds()
             result.execution_time = execution_time
 
             self.log_execution(f"OPF completed in {execution_time:.2f}s")
@@ -743,7 +743,7 @@ class ProtectionCoordinationAgent(BaseAgent):
         attributes={"component": "orchestrator", "study_type": "protection"},
     )
     async def execute(self, task: EngineeringTask) -> AgentResult:
-        start_time = datetime.now(timezone.utc)
+        start_time = datetime.now(UTC)
         self.status = AgentStatus.RUNNING
 
         try:
@@ -785,7 +785,7 @@ class ProtectionCoordinationAgent(BaseAgent):
             )
 
             result.validation_status = self.validate_result(result)
-            execution_time = (datetime.now(timezone.utc) - start_time).total_seconds()
+            execution_time = (datetime.now(UTC) - start_time).total_seconds()
             result.execution_time = execution_time
 
             self.log_execution(f"Protection coordination completed in {execution_time:.2f}s")
@@ -847,7 +847,7 @@ class ETAPExecutionAgent(BaseAgent):
     )
     async def execute(self, task: EngineeringTask) -> AgentResult:
         """Execute ETAP automation task using the configured provider."""
-        start_time = datetime.now(timezone.utc)
+        start_time = datetime.now(UTC)
         self.status = AgentStatus.RUNNING
 
         if not self.provider.is_available():
@@ -897,7 +897,7 @@ class ETAPExecutionAgent(BaseAgent):
             )
 
             agent_result.validation_status = self.validate_result(agent_result)
-            execution_time = (datetime.now(timezone.utc) - start_time).total_seconds()
+            execution_time = (datetime.now(UTC) - start_time).total_seconds()
             agent_result.execution_time = execution_time
 
             return agent_result
@@ -948,7 +948,7 @@ class ValidationAgent(BaseAgent):
     @trace_operation("ValidationAgent.execute", attributes={"component": "orchestrator"})
     async def execute(self, task: EngineeringTask) -> AgentResult:
         """Validate engineering results."""
-        start_time = datetime.now(timezone.utc)
+        start_time = datetime.now(UTC)
         self.status = AgentStatus.RUNNING
 
         try:
@@ -997,7 +997,7 @@ class ValidationAgent(BaseAgent):
             )
 
             result.validation_status = overall_valid
-            execution_time = (datetime.now(timezone.utc) - start_time).total_seconds()
+            execution_time = (datetime.now(UTC) - start_time).total_seconds()
             result.execution_time = execution_time
 
             self.log_execution(
@@ -1101,7 +1101,7 @@ class ReportGenerationAgent(BaseAgent):
     @trace_operation("ReportGenerationAgent.execute", attributes={"component": "orchestrator"})
     async def execute(self, task: EngineeringTask) -> AgentResult:
         """Generate engineering report."""
-        start_time = datetime.now(timezone.utc)
+        start_time = datetime.now(UTC)
         self.status = AgentStatus.RUNNING
 
         try:
@@ -1137,7 +1137,7 @@ class ReportGenerationAgent(BaseAgent):
             )
 
             result.validation_status = True
-            execution_time = (datetime.now(timezone.utc) - start_time).total_seconds()
+            execution_time = (datetime.now(UTC) - start_time).total_seconds()
             result.execution_time = execution_time
 
             self.log_execution(f"Report generated: {file_path}")
@@ -1156,15 +1156,15 @@ class ReportGenerationAgent(BaseAgent):
     def _compile_report(self, results: List[AgentResult]) -> Dict:
         """Compile report content from agent results."""
         report = {
-            "title": "Power System Engineering Analysis Report",
-            "generated_at": datetime.now(timezone.utc).isoformat(),
-            "executive_summary": "",
-            "load_flow_results": {},
-            "short_circuit_results": {},
-            "harmonic_results": {},
-            "opf_results": {},
-            "validation_summary": {},
-            "recommendations": [],
+            'title': 'Power System Engineering Analysis Report',
+            'generated_at': datetime.now(UTC).isoformat(),
+            'executive_summary': '',
+            'load_flow_results': {},
+            'short_circuit_results': {},
+            'harmonic_results': {},
+            'opf_results': {},
+            'validation_summary': {},
+            'recommendations': []
         }
 
         for result in results:
@@ -1246,14 +1246,12 @@ class ReportGenerationAgent(BaseAgent):
             from reporting.advanced_reports import PDFReportGenerator, ReportMetadata
 
             metadata = ReportMetadata(
-                title=content.get("title", "Engineering Report"),
-                author="AhmedETAP",
-                date=datetime.now(timezone.utc).isoformat(),
+                title=content.get('title', 'Engineering Report'),
+                author='AhmedETAP',
+                date=datetime.now(UTC).isoformat()
             )
             generator = PDFReportGenerator()
-            file_path = (
-                f"{output_path}/report_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}.pdf"
-            )
+            file_path = f"{output_path}/report_{datetime.now(UTC).strftime('%Y%m%d_%H%M%S')}.pdf"
             generator.generate_report(metadata, content, file_path)
             self.log_execution(f"PDF report generated: {file_path}")
             return file_path
@@ -1272,14 +1270,12 @@ class ReportGenerationAgent(BaseAgent):
             from reporting.advanced_reports import DOCXReportGenerator, ReportMetadata
 
             metadata = ReportMetadata(
-                title=content.get("title", "Engineering Report"),
-                author="AhmedETAP",
-                date=datetime.now(timezone.utc).isoformat(),
+                title=content.get('title', 'Engineering Report'),
+                author='AhmedETAP',
+                date=datetime.now(UTC).isoformat()
             )
             generator = DOCXReportGenerator()
-            file_path = (
-                f"{output_path}/report_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}.docx"
-            )
+            file_path = f"{output_path}/report_{datetime.now(UTC).strftime('%Y%m%d_%H%M%S')}.docx"
             generator.generate_report(metadata, content, file_path)
             self.log_execution(f"DOCX report generated: {file_path}")
             return file_path
@@ -1299,14 +1295,12 @@ class ReportGenerationAgent(BaseAgent):
             from reporting.advanced_reports import ReportMetadata, XLSXReportGenerator
 
             metadata = ReportMetadata(
-                title=content.get("title", "Engineering Report"),
-                author="AhmedETAP",
-                date=datetime.now(timezone.utc).isoformat(),
+                title=content.get('title', 'Engineering Report'),
+                author='AhmedETAP',
+                date=datetime.now(UTC).isoformat()
             )
             generator = XLSXReportGenerator()
-            file_path = (
-                f"{output_path}/report_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}.xlsx"
-            )
+            file_path = f"{output_path}/report_{datetime.now(UTC).strftime('%Y%m%d_%H%M%S')}.xlsx"
             generator.generate_report(metadata, content, file_path)
             self.log_execution(f"XLSX report generated: {file_path}")
             return file_path
@@ -1373,7 +1367,7 @@ class ChiefEngineeringOrchestrator:
         self.logger = logging.getLogger("orchestrator")
 
         # Load orchestrator's own prompt for coordination guidance
-        self._system_prompt: Optional[str] = None
+        self._system_prompt: str | None = None
         self._load_prompt()
 
     def _load_prompt(self) -> None:
@@ -1430,7 +1424,7 @@ class ChiefEngineeringOrchestrator:
 
         # Create task
         task = EngineeringTask(
-            task_id=f"workflow_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}",
+            task_id=f"workflow_{datetime.now(UTC).strftime('%Y%m%d_%H%M%S')}",
             description=user_goal,
             study_types=required_studies,
             parameters={"system": system_data, **(parameters or {})},
@@ -1596,7 +1590,7 @@ class ChiefEngineeringOrchestrator:
 
         return sorted(study_types, key=lambda x: priority_order.get(x, 99))
 
-    def _get_agent_for_study(self, study_type: StudyType) -> Optional[BaseAgent]:
+    def _get_agent_for_study(self, study_type: StudyType) -> BaseAgent | None:
         """Get appropriate agent for study type."""
         agent_mapping = {
             StudyType.LOAD_FLOW: "load_flow",
@@ -1639,7 +1633,7 @@ class ChiefEngineeringOrchestrator:
         self,
         study_types: List[str],
         system_data: Any,
-        parameters: Optional[Dict[str, Any]] = None,
+        parameters: Dict[str, Any] | None = None,
         max_workers: int = 4,
         benchmark: bool = False,
     ) -> Dict[str, Any]:
@@ -1712,7 +1706,9 @@ class ChiefEngineeringOrchestrator:
                 "benchmark": benchmark,
             }
 
-        task_id = f"parallel_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}"
+        task_id = (
+            f"parallel_{datetime.now(UTC).strftime('%Y%m%d_%H%M%S')}"
+        )
 
         # -----------------------------------------------------------
         # Helper: create an EngineeringTask for a single study
@@ -1854,7 +1850,7 @@ class ChiefEngineeringOrchestrator:
 
         return result
 
-    async def get_task_status(self, task_id: str) -> Optional[EngineeringTask]:
+    async def get_task_status(self, task_id: str) -> EngineeringTask | None:
         """Get status of a task."""
         return self.completed_tasks.get(task_id)
 

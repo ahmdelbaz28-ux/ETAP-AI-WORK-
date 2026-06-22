@@ -9,7 +9,8 @@ from contextlib import contextmanager
 import numpy as np
 
 logger = logging.getLogger(__name__)
-from typing import Any, Callable, Dict, List, Optional, Union
+from collections.abc import Callable
+from typing import Any, Dict, List, Union
 
 from scipy.sparse import coo_matrix, csc_matrix, csr_matrix, issparse
 from scipy.sparse.linalg import splu
@@ -161,7 +162,7 @@ class MemoryOptimizedSystem:
     )
     THRESH = 100
 
-    def __init__(self, original: Optional[System] = None):
+    def __init__(self, original: System | None = None):
         self.base_mva = 100.0
         self.bus_count = 0
         self.lines = []
@@ -628,16 +629,9 @@ class PerformanceProfiler:
                 tracemalloc.stop()
             except Exception:
                 logger.debug("tracemalloc snapshot failed; memory profile details unavailable")
-            self._profiles.append(
-                dict(
-                    function="memory_block",
-                    memory_before_mb=before,
-                    memory_after_mb=after,
-                    memory_delta_mb=after - before,
-                    tracemalloc_top=details,
-                )
-            )
-
+            self._profiles.append({'function': 'memory_block', 'memory_before_mb': before,
+                                       'memory_after_mb': after, 'memory_delta_mb': after - before,
+                                        'tracemalloc_top': details})
     def _get_mem(self) -> float:
         try:
             import psutil
@@ -654,8 +648,7 @@ class PerformanceProfiler:
 
     def get_profile_report(self) -> List[Dict[str, Any]]:
         return list(self._profiles)
-
-    def suggest_optimizations(self, profile_data: Optional[Dict[str, Any]] = None) -> List[str]:
+    def suggest_optimizations(self, profile_data: Dict[str, Any] | None = None) -> List[str]:
         d = profile_data or (self._profiles[-1] if self._profiles else {})
         sug = []
         e, m = d.get("elapsed_seconds", 0), d.get("memory_delta_mb", 0)
@@ -683,7 +676,7 @@ class LargeSystemAdapter:
         self._n = self.optimized_system.get_bus_count()
         self._large, self._xl = self._n >= 1000, self._n >= 10000
 
-    def run_load_flow_optimized(self, params: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+    def run_load_flow_optimized(self, params: Dict[str, Any] | None = None) -> Dict[str, Any]:
         p = params or {}
         Y = self.sparse_manager.build_sparse_ybus(
             self.optimized_system.to_system(), p.get("seq", "1")
@@ -707,9 +700,7 @@ class LargeSystemAdapter:
         r["system_type"] = "xl" if self._xl else ("large" if self._large else "normal")
         return r
 
-    def run_fault_analysis_optimized(
-        self, params: Optional[Dict[str, Any]] = None
-    ) -> Dict[str, Any]:
+    def run_fault_analysis_optimized(self, params: Dict[str, Any] | None = None) -> Dict[str, Any]:
         p = params or {}
         sys_o = self.optimized_system.to_system()
         sys_o.build_sequence_networks(for_fault=True)
@@ -747,63 +738,28 @@ class LargeSystemAdapter:
     def get_optimization_strategy(self) -> Dict[str, Any]:
         n = self._n
         if n >= 10000:
-            flags = dict(
-                use_sparse=True,
-                use_array_storage=True,
-                use_batch_processing=True,
-                use_compression=True,
-                need_memory_monitoring=True,
-            )
-            recs = [
-                "Use SparseMatrixManager for all matrix operations.",
-                "Use MemoryOptimizedSystem array storage.",
-                "Use BatchProcessor for fault analysis.",
-                "Use DataCompressor for caching as float32/complex64.",
-                "Consider iterative solvers (GMRES, BiCGSTAB).",
-            ]
+            flags = {'use_sparse': True, 'use_array_storage': True, 'use_batch_processing': True,
+                         'use_compression': True, 'need_memory_monitoring': True}
+            recs = ["Use SparseMatrixManager for all matrix operations.",
+                    "Use MemoryOptimizedSystem array storage.",
+                    "Use BatchProcessor for fault analysis.",
+                    "Use DataCompressor for caching as float32/complex64.",
+                    "Consider iterative solvers (GMRES, BiCGSTAB)."]
         elif n >= 1000:
-            flags = dict(
-                use_sparse=True,
-                use_array_storage=True,
-                use_batch_processing=n > 5000,
-                use_compression=True,
-                need_memory_monitoring=n > 3000,
-            )
-            recs = [
-                "Use SparseMatrixManager for Ybus.",
-                "Use MemoryOptimizedSystem array storage.",
-                "Use DataCompressor for result caching.",
-            ]
+            flags = {'use_sparse': True, 'use_array_storage': True,
+                         'use_batch_processing': n > 5000, 'use_compression': True,
+                         'need_memory_monitoring': n > 3000}
+            recs = ["Use SparseMatrixManager for Ybus.",
+                    "Use MemoryOptimizedSystem array storage.",
+                    "Use DataCompressor for result caching."]
         elif n >= 100:
-            flags = dict(
-                use_sparse=True,
-                use_array_storage=True,
-                use_batch_processing=False,
-                use_compression=False,
-                need_memory_monitoring=False,
-            )
+            flags = {'use_sparse': True, 'use_array_storage': True, 'use_batch_processing': False,
+                         'use_compression': False, 'need_memory_monitoring': False}
             recs = ["Use SparseMatrixManager for Ybus.", "Use MemoryOptimizedSystem array storage."]
         else:
-            flags = {
-                k: False
-                for k in [
-                    "use_sparse",
-                    "use_array_storage",
-                    "use_batch_processing",
-                    "use_compression",
-                    "need_memory_monitoring",
-                ]
-            }
-            recs = [
-                "Small system. Standard System class is sufficient.",
-                "Dense operations preferred.",
-            ]
-        return {
-            "bus_count": n,
-            "is_large": self._large,
-            "is_xl": self._xl,
-            "flags": flags,
-            "recommendations": recs,
-            "preferred_solver": "sparse_lu" if n >= 100 else "dense",
-            "suggested_batch_size": min(10000, max(100, n // 10)),
-        }
+            flags = dict.fromkeys(['use_sparse', 'use_array_storage', 'use_batch_processing', 'use_compression', 'need_memory_monitoring'], False)
+            recs = ["Small system. Standard System class is sufficient.", "Dense operations preferred."]
+        return {'bus_count': n, 'is_large': self._large, 'is_xl': self._xl,
+                'flags': flags, 'recommendations': recs,
+                'preferred_solver': 'sparse_lu' if n >= 100 else 'dense',
+                'suggested_batch_size': min(10000, max(100, n // 10))}

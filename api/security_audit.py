@@ -31,15 +31,14 @@ import os
 import re
 import sys
 from dataclasses import dataclass, field
-from enum import Enum
-from typing import Any, Dict, List, Optional, Tuple
+from enum import StrEnum
+from typing import Any, Dict, List, Tuple
 
 # ---------------------------------------------------------------------------
 # Data structures
 # ---------------------------------------------------------------------------
 
-
-class Severity(str, Enum):
+class Severity(StrEnum):
     """Finding severity level."""
 
     CRITICAL = "critical"
@@ -49,7 +48,7 @@ class Severity(str, Enum):
     INFO = "info"
 
 
-class FindingCategory(str, Enum):
+class FindingCategory(StrEnum):
     """Category of a security finding."""
 
     MISSING_AUTH = "missing_authentication"
@@ -73,12 +72,12 @@ class SecurityFinding:
     severity: Severity
     title: str
     description: str
-    file_path: Optional[str] = None
-    line_number: Optional[int] = None
-    endpoint: Optional[str] = None
+    file_path: str | None = None
+    line_number: int | None = None
+    endpoint: str | None = None
     remediation: str = ""
     references: List[str] = field(default_factory=list)
-    cwe_id: Optional[str] = None  # CWE identifier, e.g. "CWE-306"
+    cwe_id: str | None = None  # CWE identifier, e.g. "CWE-306"
 
     def to_dict(self) -> Dict[str, Any]:
         """Convert to a JSON-serializable dictionary."""
@@ -268,7 +267,7 @@ class SecurityAuditor:
         print(f"Security Score: {report.security_score}/100 ({report.grade})")
     """
 
-    def __init__(self, project_root: Optional[str] = None) -> None:
+    def __init__(self, project_root: str | None = None) -> None:
         """Initialize the auditor.
 
         Args:
@@ -352,12 +351,12 @@ class SecurityAuditor:
         severity: Severity,
         title: str,
         description: str,
-        file_path: Optional[str] = None,
-        line_number: Optional[int] = None,
-        endpoint: Optional[str] = None,
+        file_path: str | None = None,
+        line_number: int | None = None,
+        endpoint: str | None = None,
         remediation: str = "",
-        references: Optional[List[str]] = None,
-        cwe_id: Optional[str] = None,
+        references: List[str] | None = None,
+        cwe_id: str | None = None,
     ) -> None:
         """Create and register a security finding."""
         self._finding_counter += 1
@@ -397,12 +396,12 @@ class SecurityAuditor:
             if not os.path.exists(service_file):
                 continue
 
-            with open(service_file, "r", encoding="utf-8", errors="replace") as fh:
+            with open(service_file, encoding="utf-8", errors="replace") as fh:
                 lines = fh.readlines()
 
             # Parse to find endpoint definitions
-            current_endpoint: Optional[str] = None
-            endpoint_line: Optional[int] = None
+            current_endpoint: str | None = None
+            endpoint_line: int | None = None
             has_auth_check = False
 
             for i, line in enumerate(lines, 1):
@@ -482,7 +481,7 @@ class SecurityAuditor:
             if not os.path.exists(service_file):
                 continue
 
-            with open(service_file, "r", encoding="utf-8", errors="replace") as fh:
+            with open(service_file, encoding="utf-8", errors="replace") as fh:
                 content = fh.read()
 
             # Check for wildcard origins
@@ -563,7 +562,7 @@ class SecurityAuditor:
             if not os.path.exists(service_file):
                 continue
 
-            with open(service_file, "r", encoding="utf-8", errors="replace") as fh:
+            with open(service_file, encoding="utf-8", errors="replace") as fh:
                 lines = fh.readlines()
 
             for i, line in enumerate(lines, 1):
@@ -635,7 +634,7 @@ class SecurityAuditor:
             if not os.path.exists(service_file):
                 continue
 
-            with open(service_file, "r", encoding="utf-8", errors="replace") as fh:
+            with open(service_file, encoding="utf-8", errors="replace") as fh:
                 content = fh.read()
 
             # Check if global rate limiting exists
@@ -718,7 +717,7 @@ class SecurityAuditor:
                     continue
 
                 try:
-                    with open(file_path, "r", encoding="utf-8", errors="replace") as fh:
+                    with open(file_path, encoding="utf-8", errors="replace") as fh:
                         lines = fh.readlines()
 
                     for i, line in enumerate(lines, 1):
@@ -812,7 +811,7 @@ class SecurityAuditor:
                     continue
 
                 try:
-                    with open(file_path, "r", encoding="utf-8", errors="replace") as fh:
+                    with open(file_path, encoding="utf-8", errors="replace") as fh:
                         lines = fh.readlines()
 
                     for i, line in enumerate(lines, 1):
@@ -845,7 +844,7 @@ class SecurityAuditor:
         req_file = os.path.join(self.project_root, "requirements.txt")
         if os.path.exists(req_file):
             try:
-                with open(req_file, "r", encoding="utf-8", errors="replace") as fh:
+                with open(req_file, encoding="utf-8", errors="replace") as fh:
                     requirements = fh.readlines()
 
                 for line in requirements:
@@ -880,7 +879,7 @@ class SecurityAuditor:
         # Check for the specific dead ConnectionManager in the original
         service_file = os.path.join(self.project_root, "engineering_service.py")
         if os.path.exists(service_file):
-            with open(service_file, "r", encoding="utf-8", errors="replace") as fh:
+            with open(service_file, encoding="utf-8", errors="replace") as fh:
                 content = fh.read()
                 lines = content.split("\n")
 
@@ -955,7 +954,7 @@ class SecurityAuditor:
             if not os.path.exists(service_file):
                 continue
 
-            with open(service_file, "r", encoding="utf-8", errors="replace") as fh:
+            with open(service_file, encoding="utf-8", errors="replace") as fh:
                 content = fh.read()
 
             # Check for default JWT secret
@@ -1010,7 +1009,7 @@ class SecurityAuditor:
             if not os.path.exists(service_file):
                 continue
 
-            with open(service_file, "r", encoding="utf-8", errors="replace") as fh:
+            with open(service_file, encoding="utf-8", errors="replace") as fh:
                 content = fh.read()
 
             # Check if stack traces are exposed in error responses
@@ -1125,18 +1124,20 @@ class SecurityAuditor:
             high = [f for f in findings if f.severity == Severity.HIGH]
             medium = [f for f in findings if f.severity == Severity.MEDIUM]
 
-            priority.append(
-                {
-                    "category": category.value,
-                    "total_findings": len(findings),
-                    "critical": len(critical),
-                    "high": len(high),
-                    "medium": len(medium),
-                    "top_remediation": findings[0].remediation if findings else "",
-                    "affected_endpoints": list(set(f.endpoint for f in findings if f.endpoint)),
-                    "affected_files": list(set(f.file_path for f in findings if f.file_path)),
-                }
-            )
+            priority.append({
+                "category": category.value,
+                "total_findings": len(findings),
+                "critical": len(critical),
+                "high": len(high),
+                "medium": len(medium),
+                "top_remediation": findings[0].remediation if findings else "",
+                "affected_endpoints": list({
+                    f.endpoint for f in findings if f.endpoint
+                }),
+                "affected_files": list({
+                    f.file_path for f in findings if f.file_path
+                }),
+            })
 
         return priority
 

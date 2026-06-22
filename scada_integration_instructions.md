@@ -1,0 +1,79 @@
+# تعليمات الذكاء الاصطناعي لدمج SCADA مع ETAP/QGIS/ArcGIS Pro
+
+## المبدأ الأساسي
+
+عند تلقي أي استعلام متعلق بدمج أنظمة SCADA مع ETAP أو QGIS أو ArcGIS Pro، يجب أن تكون الفهارس المُعدة مرجعيك الأول والوحيد لاتخاذ القرارات والتنفيذ والتفكير والتخطيط. هذه الفهارس تم إعدادها بعناية لتكون دليلاً شاملاً ودقيقاً لجميع الوظائف والواجهات البرمجية والوثائق.
+
+## الأولويات في الاستخدام
+
+### 1. الفهارس كمرجع أساسي (الأولوية الأولى)
+- استخدم دائمًا ملفات الفهارس التالية:
+  - [arcgis_pro_documentation_index.json](file:///c:/Users/Repair%20SC/Desktop/ETAP-AI-WORK--main/arcgis_pro_documentation_index.json)
+  - [qgis_comprehensive_documentation_index.json](file:///c:/Users/Repair%20SC/Desktop/ETAP-AI-WORK--main/qgis_comprehensive_documentation_index.json)
+  - [arcgis_pro_sdk_repositories_analysis.json](file:///c:/Users/Repair%20SC/Desktop/ETAP-AI-WORK--main/arcgis_pro_sdk_repositories_analysis.json)
+  - [mcp_server_intelligent_index_system.json](file:///c:/Users/Repair%20SC/Desktop/ETAP-AI-WORK--main/mcp_server_intelligent_index_system.json)
+
+### 2. استرجاع المعلومات
+- عند استلام استعلام حول SCADA، قم أولاً بتحليل الفهارس للعثور على القسم أو الوظيفة المقابلة
+- رتب المعلومات حسب الفئات (fundamentals، api، python، tools، advanced، etc.)
+- استخدم الوسوم (tags) ومستويات التدرج (level) والعلاقات الأبوية (parent) لتحديد السياق الدقيق
+
+### 3. تجنب الهلوسة
+- لا تقدّم معلومات غير موجودة في الفهارس
+- إذا لم تتمكن من العثور على معلومات محددة في الفهارس، أقر دائمًا بأن المعلومات غير متوفرة في المراجع الحالية
+- استخدم دائمًا معلومات التحقق من الجودة (quality_assurance) لتأكيد دقة المحتوى
+
+## مكونات النظام
+
+### 1. محرك الفهرسة (MCP Server)
+- [arcgis_pro_indexing_workflow.json](file:///c:/Users/Repair%20SC/Desktop/ETAP-AI-WORK--main/arcgis_pro_indexing_workflow.json): يحدد خطوات سير العمل لفهرسة وثائق ArcGIS Pro
+- يحتوي على 5 خطوات رئيسية: FetchData → CleanData → TransformData → IndexData → PostProcess
+- يستخدم نموذج التضمين "sentence-transformers/all-mpnet-base-v2" لتحويل النصوص إلى متجهات
+
+### 2. تعليمات الذكاء الاصطناعي
+- [ai_agent_instructions.md](file:///c:/Users/Repair%20SC/Desktop/ETAP-AI-WORK--main/ai_agent_instructions.md): تعليمات مفصلة للذكاء الاصطناعي
+- [ai_quick_reference.md](file:///c:/Users/Repair%20SC/Desktop/ETAP-AI-WORK--main/ai_quick_reference.md): مرجع سريع للذكاء الاصطناعي
+- [ai_system_prompt.md](file:///c:/Users/Repair%20SC/Desktop/ETAP-AI-WORK--main/ai_system_prompt.md): تعليمات النظام الشاملة
+
+## مثال على الاستخدام
+
+### عندما يتم طرح سؤال:
+"كيف يمكنني ربط PyScada مع ArcGIS Pro؟"
+
+### الإجابة يجب أن تأتي من:
+- البحث في قسم "ArcPy" في فهرس ArcGIS Pro
+- مع معلومات مفصلة من واجهة البرمجة (API) المتوفرة في الفهرس
+- مع رابط مباشر إلى الوثائق الأصلية وفقًا للمعلومات في الفهرس
+
+## تعليمات التنفيذ
+
+### 1. التفكير:
+- قبل تقديم أي إجابة، تحقق من الفهارس للعثور على المعلومات الدقيقة
+- استخدم معلومات الفئة لتحديد نوع الوظيفة أو المفهوم المطلوب
+- قارن بين المعلومات من عدة مستويات في الفهارس لضمان فهم شامل
+
+### 2. التخطيط:
+- خطط للإجابة بناءً على هيكل الفهارس (المستوى 1، 2، 3، إلخ)
+- رتب المعلومات من الأعموم إلى الخاص
+- استخدم معلومات التدرج الهرمي لتقديم سياق مناسب
+
+### 3. التنفيذ:
+- قدّم روابط مباشرة إلى أجزاء الوثائق الأصلية
+- استخدم الوسوم لتصنيف نوع المحتوى المقدّم
+- تأكد من دقة المعلومات من خلال مقارنتها مع معلومات الجودة في الفهارس
+
+## التحقق من الصحة
+
+- تأكد دائمًا من أن المعلومات تتطابق مع معلومات الفهارس
+- استخدم حقل "quality_assurance" للتحقق من دقة المحتوى
+- إذا كانت المعلومات غير مؤكدة، قم بالإشارة إلى ذلك بصراحة
+- راجع دائمًا "last_updated" للتحقق من صلاحية المعلومات
+
+## ملاحظات إضافية
+
+- الفهارس مُعدة بطريقة تدعم أنظمة الذكاء الاصطناعي الحديثة
+- تحتوي على معلومات مُنسقة لدعم البحث.semantic
+- مُعدة لتجنب الهلوسة وزيادة دقة النتائج
+- عند الإجابة عن أسئلة متعلقة بالواجهات البرمجية (API)، استخدم دائمًا معلومات من قسم "API Reference" في الفهارس
+- عند الإجابة عن أسئلة متعلقة بالبرمجة النصية (Python)، استخدم دائمًا معلومات من قسم "ArcPy Reference" في فهرس ArcGIS Pro
+- عند التعامل مع دمج SCADA مع أنظمة GIS، استخدم دائمًا معلومات من قسم "Integrations" في الفهارس

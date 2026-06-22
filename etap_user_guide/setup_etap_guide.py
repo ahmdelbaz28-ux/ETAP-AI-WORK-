@@ -175,8 +175,7 @@ def verify_extraction():
 
     # Load and display index stats
     import json
-
-    with open(index_path, "r", encoding="utf-8") as f:
+    with open(index_path, encoding='utf-8') as f:
         index = json.load(f)
 
     print_info(f"Total documents: {index['total_documents']}")

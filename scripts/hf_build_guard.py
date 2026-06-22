@@ -12,10 +12,10 @@ Exit codes:
 
 import os
 import re
+import shutil
 import subprocess
 import sys
 import tempfile
-import shutil
 
 RED = "\033[91m"
 GREEN = "\033[92m"
@@ -49,7 +49,7 @@ def check_readme_frontmatter():
     if not os.path.exists(readme_path):
         raise FileNotFoundError("README.md not found in hf-space/")
 
-    with open(readme_path, "r", encoding="utf-8") as f:
+    with open(readme_path, encoding="utf-8") as f:
         content = f.read()
 
     m = re.match(r"^---\n(.*?)\n---\n", content, re.DOTALL)
@@ -99,7 +99,7 @@ def check_dockerfile_exists():
     path = os.path.join(HF_DIR, "Dockerfile")
     if not os.path.exists(path):
         raise FileNotFoundError("Dockerfile not found in hf-space/")
-    with open(path, "r") as f:
+    with open(path) as f:
         content = f.read()
     if "EXPOSE" not in content:
         raise ValueError("Dockerfile missing EXPOSE directive")
@@ -115,7 +115,7 @@ def check_requirements():
         raise FileNotFoundError("requirements.hf.txt not found in hf-space/")
 
     forbidden_pkgs = ["pywin32", "pyautogui", "opencv-python", "cupy"]
-    with open(path, "r") as f:
+    with open(path) as f:
         for line in f:
             line = line.strip().lower()
             if line.startswith("#") or not line:
@@ -134,7 +134,7 @@ def check_docker_available():
 
 def check_docker_build():
     """Actually build the Docker image to verify it works."""
-    dockerfile = os.path.join(HF_DIR, "Dockerfile")
+    os.path.join(HF_DIR, "Dockerfile")
 
     if not check_docker_available():
         warnings.append(
@@ -181,7 +181,8 @@ def check_health_endpoint():
 
     try:
         # Stop any existing container
-        subprocess.run(["docker", "rm", "-f", container_name], capture_output=True, timeout=10)
+        subprocess.run(["docker", "rm", "-f", container_name],
+                      capture_output=True, timeout=10)
 
         # Run container
         result = subprocess.run(
@@ -239,7 +240,8 @@ def check_health_endpoint():
         return True
 
     finally:
-        subprocess.run(["docker", "rm", "-f", container_name], capture_output=True, timeout=10)
+        subprocess.run(["docker", "rm", "-f", container_name],
+                      capture_output=True, timeout=10)
 
 
 def check_no_secrets():
@@ -258,7 +260,7 @@ def check_no_secrets():
         for f in files:
             filepath = os.path.join(root, f)
             try:
-                with open(filepath, "r", encoding="utf-8", errors="ignore") as fh:
+                with open(filepath, encoding="utf-8", errors="ignore") as fh:
                     content = fh.read()
                 for pattern in secret_patterns:
                     if re.search(pattern, content, re.IGNORECASE):
@@ -273,16 +275,16 @@ def check_no_secrets():
 
 def cleanup():
     """Clean up Docker test artifacts."""
-    subprocess.run(
-        ["docker", "rm", "-f", "hf-guard-test-container"], capture_output=True, timeout=10
-    )
-    subprocess.run(["docker", "rmi", "hf-guard-test:latest"], capture_output=True, timeout=10)
+    subprocess.run(["docker", "rm", "-f", "hf-guard-test-container"],
+                  capture_output=True, timeout=10)
+    subprocess.run(["docker", "rmi", "hf-guard-test:latest"],
+                  capture_output=True, timeout=10)
 
 
 def main():
     print(f"\n{BOLD}{'=' * 60}{RESET}")
     print(f"{BOLD}  HF Space Build Guard - Pre-Push Validation{RESET}")
-    print(f"{BOLD}{'=' * 60}{RESET}\n")
+    print(f"{BOLD}{'='*60}{RESET}\n")
 
     try:
         check("README.md YAML front matter", check_readme_frontmatter)
@@ -295,7 +297,7 @@ def main():
     finally:
         cleanup()
 
-    print(f"\n{BOLD}{'=' * 60}{RESET}")
+    print(f"\n{BOLD}{'='*60}{RESET}")
 
     if errors:
         print(f"\n{RED}{BOLD}FAILED - {len(errors)} critical error(s):{RESET}")

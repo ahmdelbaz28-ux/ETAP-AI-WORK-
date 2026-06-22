@@ -8,8 +8,8 @@ need an explicit, externally-cancellable scope.
 
 from __future__ import annotations
 
+from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
-from typing import AsyncIterator, Optional
 
 import anyio
 
@@ -18,7 +18,7 @@ __all__ = ["cancellable", "is_cancelled_exception"]
 
 @asynccontextmanager
 async def cancellable(
-    deadline_ms: Optional[int] = None,
+    deadline_ms: int | None = None,
 ) -> AsyncIterator[anyio.CancelScope]:
     """A cancel scope with an optional deadline.
 

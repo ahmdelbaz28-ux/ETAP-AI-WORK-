@@ -455,7 +455,7 @@ class HarmonicAnalysisEngine:
                 continue
 
         # Calculate THD
-        fund_mag = fundamental_magnitudes or {bus_id: 1.0 for bus_id in self.bus_ids}
+        fund_mag = fundamental_magnitudes or dict.fromkeys(self.bus_ids, 1.0)
         thd_voltage = self.calculate_thd(harmonic_results, fund_mag)
 
         # Calculate TDD

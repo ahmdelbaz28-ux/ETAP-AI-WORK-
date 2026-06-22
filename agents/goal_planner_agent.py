@@ -18,8 +18,8 @@ Standards:
 """
 
 import logging
-from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional
+from datetime import UTC, datetime
+from typing import Any, Dict, List
 
 from agents.orchestrator import AgentResult, AgentStatus, BaseAgent, EngineeringTask, StudyType
 
@@ -96,7 +96,7 @@ class GoalPlannerAgent(BaseAgent):
     def extract_tasks(
         self,
         raw_input: str,
-        known_tasks: Optional[List[Dict[str, Any]]] = None,
+        known_tasks: List[Dict[str, Any]] | None = None,
     ) -> Dict[str, Any]:
         """
         Extract and structure tasks from free-form input text.
@@ -402,7 +402,7 @@ class GoalPlannerAgent(BaseAgent):
         2. Prioritization and scheduling
         3. Risk assessment
         """
-        start_time = datetime.now(timezone.utc)
+        start_time = datetime.now(UTC)
         self.status = AgentStatus.RUNNING
 
         try:
@@ -445,7 +445,7 @@ class GoalPlannerAgent(BaseAgent):
             )
 
             result.validation_status = self.validate_result(result)
-            execution_time = (datetime.now(timezone.utc) - start_time).total_seconds()
+            execution_time = (datetime.now(UTC) - start_time).total_seconds()
             result.execution_time = execution_time
 
             self.log_execution(

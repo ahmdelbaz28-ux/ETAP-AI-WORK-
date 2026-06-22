@@ -25,10 +25,11 @@ import ipaddress
 import logging
 import operator
 import re
+from collections.abc import Callable, Sequence
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
-from enum import Enum
-from typing import Any, Callable, Dict, List, Optional, Sequence
+from datetime import UTC, datetime
+from enum import StrEnum
+from typing import Any, Dict, List
 
 logger = logging.getLogger(__name__)
 
@@ -54,8 +55,7 @@ _OPS: Dict[str, Callable[[Any, Any], bool]] = {
 # Rule definitions
 # ---------------------------------------------------------------------------
 
-
-class RuleType(str, Enum):
+class RuleType(StrEnum):
     """Supported ABAC rule types."""
 
     ROLE = "role"
@@ -160,7 +160,7 @@ class ABACPolicyEngine:
     5. If no policy matches → DENY (default-deny).
     """
 
-    def __init__(self, policies: Optional[List[ABACPolicy]] = None) -> None:
+    def __init__(self, policies: List[ABACPolicy] | None = None) -> None:
         self._policies: List[ABACPolicy] = policies or []
 
     # -- policy management ---------------------------------------------------
@@ -306,7 +306,7 @@ class ABACPolicyEngine:
         # Ensure environment has sensible defaults
         env = dict(environment)
         if "time" not in env:
-            env["time"] = datetime.now(timezone.utc)
+            env["time"] = datetime.now(UTC)
 
         # Normalise time into convenient attributes if a datetime is given
         if isinstance(env.get("time"), datetime):
@@ -424,9 +424,9 @@ if _HAS_STARLETTE:
         def __init__(
             self,
             app: Any,
-            policies: Optional[List[ABACPolicy]] = None,
-            jwt_decode_fn: Optional[Callable[..., Any]] = None,
-            public_paths: Optional[List[str]] = None,
+            policies: List[ABACPolicy] | None = None,
+            jwt_decode_fn: Callable[..., Any] | None = None,
+            public_paths: List[str] | None = None,
         ) -> None:
             super().__init__(app)
             self.engine = ABACPolicyEngine(policies or [])
@@ -501,7 +501,7 @@ if _HAS_STARLETTE:
             # Environment
             client_ip = request.client.host if request.client else "0.0.0.0"
             environment: Dict[str, Any] = {
-                "time": datetime.now(timezone.utc),
+                "time": datetime.now(UTC),
                 "ip": client_ip,
                 "source": "abac_middleware",
             }
@@ -538,7 +538,7 @@ else:
 def make_role_policy(
     name: str,
     allowed_roles: List[str],
-    actions: Optional[List[str]] = None,
+    actions: List[str] | None = None,
     priority: int = 10,
 ) -> ABACPolicy:
     """Create a policy that allows subjects with a role in *allowed_roles*.
@@ -586,7 +586,7 @@ def make_business_hours_policy(
     start_hour: int = 8,
     end_hour: int = 18,
     priority: int = 5,
-) -> List["ABACPolicy"]:
+) -> List[ABACPolicy]:
     """Create deny policies that block access outside business hours.
 
     Parameters
@@ -793,13 +793,12 @@ def create_default_etap_abac_engine() -> ABACPolicyEngine:
     )
 
     # Business hours deny
-    engine.add_policy(
-        make_business_hours_policy(
-            name="business_hours_deny",
-            start_hour=8,
-            end_hour=18,
-            priority=5,
-        )
-    )
+    for policy in make_business_hours_policy(
+        name="business_hours_deny",
+        start_hour=8,
+        end_hour=18,
+        priority=5,
+    ):
+        engine.add_policy(policy)
 
     return engine

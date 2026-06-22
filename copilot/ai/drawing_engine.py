@@ -20,17 +20,15 @@ Flow:
 
 from __future__ import annotations
 
-import json
 import logging
 import math
 import time
 import uuid
 from dataclasses import dataclass, field
-from enum import Enum
-from typing import Any, Dict, List, Optional, Tuple
+from enum import StrEnum
+from typing import Any, Dict, List, Tuple
 
 from autodesk_connector.shared.models import (
-    Breaker,
     BreakerDef,
     Bus,
     Cable,
@@ -40,7 +38,6 @@ from autodesk_connector.shared.models import (
     Motor,
     Panel,
     PanelType,
-    Relay,
     SourceSystem,
     Transformer,
     UnifiedEngineeringModel,
@@ -54,7 +51,7 @@ logger = logging.getLogger(__name__)
 # ---------------------------------------------------------------------------
 
 
-class EngineeringIntentType(str, Enum):
+class EngineeringIntentType(StrEnum):
     CREATE_PANEL = "create_panel"
     CREATE_SLD = "create_sld"
     CREATE_SUBSTATION = "create_substation"
@@ -537,7 +534,7 @@ class ModelGenerator:
             )
         )
 
-        for node_id, node in graph.nodes.items():
+        for _node_id, node in graph.nodes.items():
             entity_type = node.get("type", "")
 
             if entity_type == "panel":

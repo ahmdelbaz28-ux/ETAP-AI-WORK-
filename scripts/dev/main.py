@@ -105,6 +105,13 @@ def main():
     print("Power Protection System Demonstration")
     print("=" * 60)
 
+    # Enable auto-correct for non-English input (used by normalize_input for CLI args)
+    _auto_correct = os.getenv('AUTO_CORRECT_LANGUAGE', 'true').lower() == 'true'
+
+    # Normalize any user input (if applicable)
+    # For CLI arguments, you can wrap them with normalize_input
+    # Example: user_input = normalize_input(user_input, auto_correct)
+
     # Create the 3-bus system
     system = create_3bus_system()
     print(f"Created system: {system}")

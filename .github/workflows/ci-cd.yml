@@ -31,10 +31,8 @@ jobs:
         run: pnpm install --no-frozen-lockfile
       - name: TypeScript typecheck
         run: pnpm lint
-        continue-on-error: true
       - name: Run TypeScript tests
         run: pnpm test
-        continue-on-error: true
 
   # Python Service Validation
   python-service:
@@ -54,7 +52,7 @@ jobs:
       - name: Validate Engineering Service syntax
         run: python -c "import ast; ast.parse(open('engineering_service.py').read()); print('Engineering Service syntax OK')"
       - name: Ruff lint check
-        run: ruff check .
+        run: ruff check . --config ruff.toml
       - name: Validate Python engine syntax
         run: python3 validate_syntax.py
 

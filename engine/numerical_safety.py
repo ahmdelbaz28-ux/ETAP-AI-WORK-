@@ -3,8 +3,9 @@
 from __future__ import annotations
 
 import logging
+from collections.abc import Callable, Sequence
 from enum import Enum
-from typing import Any, Callable, Optional, Sequence, Tuple, Union
+from typing import Any, Tuple, Union
 
 import numpy as np
 from numpy.linalg import LinAlgError, cholesky, cond, inv, lstsq, matrix_rank, norm, solve
@@ -75,9 +76,7 @@ class NumericalGuard:
     logarithm/root of non-positive numbers, and out-of-bounds values.
     """
 
-    def __init__(
-        self, warn_on_clamp: bool = True, logger_instance: Optional[logging.Logger] = None
-    ):
+    def __init__(self, warn_on_clamp: bool = True, logger_instance: logging.Logger | None = None):
         self.warn_on_clamp = warn_on_clamp
         self.log = logger_instance or logger
 
@@ -168,7 +167,7 @@ class NumericalGuard:
     def validate_matrix(
         self,
         matrix: np.ndarray,
-        expected_shape: Optional[Tuple[int, ...]] = None,
+        expected_shape: Tuple[int, ...] | None = None,
     ) -> np.ndarray:
         """Sanitise a matrix by replacing NaN/Inf and verifying shape.
 
@@ -222,7 +221,7 @@ class ConvergenceMonitor:
         self._history: list[float] = []
         self._iterations: int = 0
 
-    def add_iteration(self, value: float, iteration: Optional[int] = None) -> None:
+    def add_iteration(self, value: float, iteration: int | None = None) -> None:
         """Record an iteration mismatch value."""
         self._history.append(float(value))
         self._iterations = iteration if iteration is not None else len(self._history)
@@ -291,7 +290,7 @@ class ConsistencyCheck:
     Each check appends a result dict to an internal log.
     """
 
-    def __init__(self, logger_instance: Optional[logging.Logger] = None):
+    def __init__(self, logger_instance: logging.Logger | None = None):
         self.log = logger_instance or logger
         self._results: list[dict[str, Any]] = []
 
@@ -469,7 +468,7 @@ class MatrixStabilizer:
             self.log.warning("Linear solve failed — falling back to least-squares")
             return lstsq(A_arr, b_arr, rcond=self.default_tolerance)[0]
 
-    def is_symmetric(self, matrix: np.ndarray, tolerance: Optional[float] = None) -> bool:
+    def is_symmetric(self, matrix: np.ndarray, tolerance: float | None = None) -> bool:
         """Check if matrix is square and ||A - A^T||_inf <= tolerance."""
         mat = np.asarray(matrix, dtype=float)
         tol = tolerance if tolerance is not None else self.default_tolerance
@@ -486,7 +485,7 @@ class MatrixStabilizer:
         except LinAlgError:
             return False
 
-    def estimate_rank(self, matrix: np.ndarray, tolerance: Optional[float] = None) -> int:
+    def estimate_rank(self, matrix: np.ndarray, tolerance: float | None = None) -> int:
         """Estimate numerical rank using SVD."""
         mat = np.asarray(matrix, dtype=float)
         tol = tolerance if tolerance is not None else self.default_tolerance
@@ -523,7 +522,7 @@ def safe_calculation(
     component_name: str,
     fn: Callable[..., Any],
     *args: Any,
-    error_handler: Optional[Callable[[Exception], Any]] = None,
+    error_handler: Callable[[Exception], Any] | None = None,
     **kwargs: Any,
 ) -> Any:
     """Execute a function with numerical safety and optional error handling.

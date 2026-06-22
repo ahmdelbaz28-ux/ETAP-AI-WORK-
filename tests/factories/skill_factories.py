@@ -10,7 +10,7 @@ Patterns drawn from factoryboy/factory_boy:
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime, timezone
 from typing import Any, Optional
 
 import factory
@@ -40,7 +40,7 @@ class SkillMetadataFactory(factory.Factory):
     name = factory.Sequence(lambda n: f"skill-{n:04d}")
     version = "1.0.0"
     author = Faker("name")
-    created_at = factory.LazyFunction(lambda: datetime.now(timezone.utc))
+    created_at = factory.LazyFunction(lambda: datetime.now(UTC))
 
     @classmethod
     def with_version(cls, major: int = 1, minor: int = 0, patch: int = 0) -> dict[str, Any]:
@@ -61,7 +61,7 @@ class ExecutionResultFactory(factory.Factory):
     success = True
     data: dict[str, Any] | None = None
     error: dict[str, str] | None = None
-    timestamp = factory.LazyFunction(lambda: datetime.now(timezone.utc))
+    timestamp = factory.LazyFunction(lambda: datetime.now(UTC))
 
     @classmethod
     def failed(cls, error_type: str = "GenericError") -> dict[str, Any]:

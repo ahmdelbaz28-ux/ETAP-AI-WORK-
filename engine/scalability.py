@@ -13,8 +13,9 @@ import threading
 import time
 import uuid
 from collections import defaultdict
+from collections.abc import Callable
 from dataclasses import dataclass, field
-from typing import Any, Callable, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Tuple
 
 logger = logging.getLogger(__name__)
 
@@ -23,8 +24,7 @@ logger = logging.getLogger(__name__)
 # LoadBalancer
 # ---------------------------------------------------------------------------
 
-
-class LoadBalancingStrategy(str, enum.Enum):
+class LoadBalancingStrategy(enum.StrEnum):
     ROUND_ROBIN = "round_robin"
     LEAST_CONNECTIONS = "least_connections"
     RANDOM = "random"
@@ -60,7 +60,7 @@ class LoadBalancer:
         with self._lock:
             self._workers.pop(worker_id, None)
 
-    def get_next_worker(self, task_size: Optional[float] = None) -> Optional[str]:
+    def get_next_worker(self, task_size: float | None = None) -> str | None:
         with self._lock:
             healthy = {wid: w for wid, w in self._workers.items() if w.healthy}
             if not healthy:
@@ -88,7 +88,7 @@ class LoadBalancer:
                 return list(healthy.keys())[-1]
             return list(healthy.keys())[0]
 
-    def get_worker_status(self, worker_id: str) -> Optional[Dict[str, Any]]:
+    def get_worker_status(self, worker_id: str) -> Dict[str, Any] | None:
         with self._lock:
             w = self._workers.get(worker_id)
             if w is None:
@@ -138,8 +138,7 @@ class LoadBalancer:
 # DistributedTaskQueue
 # ---------------------------------------------------------------------------
 
-
-class TaskPriority(str, enum.Enum):
+class TaskPriority(enum.StrEnum):
     LOW = "low"
     NORMAL = "normal"
     HIGH = "high"
@@ -155,7 +154,7 @@ class TaskItem:
     task_id: str = field(compare=False)
     task_data: Any = field(compare=False)
     status: str = field(default="queued", compare=False)
-    assigned_worker: Optional[str] = field(default=None, compare=False)
+    assigned_worker: str | None = field(default=None, compare=False)
     retries: int = field(default=0, compare=False)
 
 
@@ -198,7 +197,7 @@ class DistributedTaskQueue:
             self._tasks[task_id] = item
         return task_id
 
-    def dequeue(self, worker_id: str) -> Optional[Dict[str, Any]]:
+    def dequeue(self, worker_id: str) -> Dict[str, Any] | None:
         with self._lock:
             while self._queue:
                 item = heapq.heappop(self._queue)
@@ -311,12 +310,12 @@ class ClusterManager:
                 if n.healthy
             ]
 
-    def get_node_capabilities(self, node_id: str) -> Optional[Dict[str, Any]]:
+    def get_node_capabilities(self, node_id: str) -> Dict[str, Any] | None:
         with self._lock:
             node = self._nodes.get(node_id)
             return node.capabilities if node else None
 
-    def assign_study(self, study_type: str, system_size: float) -> Optional[Dict[str, Any]]:
+    def assign_study(self, study_type: str, system_size: float) -> Dict[str, Any] | None:
         with self._lock:
             candidates = [
                 n
@@ -396,7 +395,7 @@ class HorizontalScaler:
         self._scale_down_cbs: List[Callable[[int], None]] = []
         self._lock = threading.Lock()
 
-    def evaluate_scaling(self, current_load: float) -> Optional[str]:
+    def evaluate_scaling(self, current_load: float) -> str | None:
         if current_load >= self.scale_up_threshold and self._current_nodes < self.max_nodes:
             return "scale_up"
         if current_load <= self.scale_down_threshold and self._current_nodes > self.min_nodes:
@@ -466,8 +465,7 @@ class HorizontalScaler:
 # PartitionManager
 # ---------------------------------------------------------------------------
 
-
-class PartitionType(str, enum.Enum):
+class PartitionType(enum.StrEnum):
     BUS_BASED = "bus_based"
     ZONE_BASED = "zone_based"
     VOLTAGE_LEVEL = "voltage_level"
@@ -520,7 +518,7 @@ class PartitionManager:
             )
         return results
 
-    def get_partition(self, partition_id: str) -> Optional[Dict[str, Any]]:
+    def get_partition(self, partition_id: str) -> Dict[str, Any] | None:
         p = self._partitions.get(partition_id)
         if p is None:
             return None
@@ -633,8 +631,7 @@ class PartitionManager:
 # DistributedOrchestrator
 # ---------------------------------------------------------------------------
 
-
-class ExecutionStatus(str, enum.Enum):
+class ExecutionStatus(enum.StrEnum):
     PENDING = "pending"
     RUNNING = "running"
     COMPLETED = "completed"
@@ -659,8 +656,8 @@ class Execution:
     status: ExecutionStatus
     plan: ExecutionPlan
     started_at: float = field(default_factory=time.time)
-    completed_at: Optional[float] = None
-    error: Optional[str] = None
+    completed_at: float | None = None
+    error: str | None = None
     partial_results: Dict[str, Any] = field(default_factory=dict)
 
 
@@ -697,7 +694,7 @@ class DistributedOrchestrator:
     def get_execution_plan(self, study_type: str, system_size: float) -> ExecutionPlan:
         return self._build_plan(study_type, system_size, {})
 
-    def monitor_execution(self, task_id: str) -> Optional[Dict[str, Any]]:
+    def monitor_execution(self, task_id: str) -> Dict[str, Any] | None:
         with self._lock:
             execution = self._executions.get(task_id)
             if execution is None:

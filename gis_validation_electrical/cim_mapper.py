@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Tuple
 
 from gis_integration.models import ADMSAsset, ADMSAssetType
 
@@ -18,7 +18,7 @@ class CIMConductingEquipment:
 class CIMConnectivityNode:
     cim_id: str
     label: str
-    voltage_level_kv: Optional[float] = None
+    voltage_level_kv: float | None = None
     metadata: Dict[str, Any] = field(default_factory=dict)
 
 
@@ -121,9 +121,7 @@ def map_adms_to_cim(assets: List[ADMSAsset]) -> CIMModel:
         conducting_equipment[eq.cim_id] = eq
         traceability[eq.cim_id] = s.asset_id
 
-    def endpoints_from_linestring(
-        geom: Dict[str, Any],
-    ) -> Optional[Tuple[Tuple[float, float], Tuple[float, float]]]:
+    def endpoints_from_linestring(geom: Dict[str, Any]) -> Tuple[Tuple[float, float], Tuple[float, float]] | None:
         if (geom or {}).get("type") != "LineString":
             return None
         coords = geom.get("coordinates")

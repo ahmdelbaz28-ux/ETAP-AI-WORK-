@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any, Dict, List, Optional, Set, Tuple
+from typing import Any, Dict, List, Set, Tuple
 
 from gis_integration.models import ADMSAsset, ADMSAssetType
 
@@ -24,14 +24,12 @@ class ADMSGraphModel:
 
     def __init__(self, assets: List[ADMSAsset]) -> None:
         self.assets = assets
-        self.nodes: Set[str] = set(a.asset_id for a in assets)
+        self.nodes: Set[str] = {a.asset_id for a in assets}
         self.edges: Dict[str, Set[str]] = {a.asset_id: set() for a in assets}
         self._build_deterministic_edges()
 
     @staticmethod
-    def _extract_endpoints(
-        geometry: Dict[str, Any],
-    ) -> Optional[Tuple[Tuple[float, float], Tuple[float, float]]]:
+    def _extract_endpoints(geometry: Dict[str, Any]) -> Tuple[Tuple[float, float], Tuple[float, float]] | None:
         gtype = geometry.get("type")
         coords = geometry.get("coordinates")
         if gtype == "LineString" and isinstance(coords, list) and len(coords) >= 2:

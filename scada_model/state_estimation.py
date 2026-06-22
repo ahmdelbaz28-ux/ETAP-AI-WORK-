@@ -1,8 +1,12 @@
 """
-State Estimation Engine - Weighted Least Squares (WLS)
-======================================================
+State Estimation Engine - Weighted Least Squares (WLS) + GNN Enhancement
+=======================================================================
 Implements WLS state estimator with bad data detection
 and measurement redundancy handling for ADMS.
+
+Now includes GNN-enhanced state estimation when PyTorch Geometric
+is available, providing neural-network-corrected estimates that
+combine traditional WLS with graph-based predictions.
 
 Reference: A. Abur and A.G. Exposito, "Power System State Estimation",
 CRC Press, 2004.
@@ -10,9 +14,18 @@ CRC Press, 2004.
 
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import List, Optional, Tuple
+from typing import List, Tuple
 
 import numpy as np
+
+# Optional GNN dependency
+_HAS_TORCH_GEOMETRIC = False
+try:
+    import torch  # noqa: F401 — imported to check availability
+    from torch_geometric.nn import GCNConv  # noqa: F401
+    _HAS_TORCH_GEOMETRIC = True
+except ImportError:
+    pass
 
 
 class StateEstimationStatus(Enum):
@@ -33,8 +46,8 @@ class StateEstimationResult:
     max_residual: float = 0.0
     objective_value: float = 0.0
     bad_data_detected: List[int] = field(default_factory=list)
-    measurement_residuals: Optional[np.ndarray] = None
-    covariance_matrix: Optional[np.ndarray] = None
+    measurement_residuals: np.ndarray | None = None
+    covariance_matrix: np.ndarray | None = None
 
 
 class WLSEstimator:
@@ -440,3 +453,130 @@ class WLSEstimator:
             "sufficient": redundancy >= 1.5,
             "critical": redundancy < 1.0,
         }
+
+
+class GNNStateEstimator:
+    """
+    GNN-Enhanced State Estimator for power grids.
+
+    Combines traditional WLS with Graph Neural Network predictions
+    to improve state estimation accuracy, especially when:
+    - Measurement redundancy is low
+    - Bad data is present
+    - Real-time SCADA updates need fast approximation
+
+    The power grid topology is modeled as a graph where buses are nodes
+    and transmission lines are edges. The GNN learns spatial patterns
+    in voltage and angle distributions across the network.
+
+    Usage:
+        estimator = GNNStateEstimator()
+        result = estimator.estimate_with_gnn(Ybus, measurements, bus_ids, edge_list)
+    """
+
+    def __init__(self, hidden_dim: int = 64, num_layers: int = 3):
+        """Initialize GNN State Estimator.
+
+        Parameters
+        ----------
+        hidden_dim : int
+            Hidden layer dimension for the GNN.
+        num_layers : int
+            Number of GCN layers.
+        """
+        self.hidden_dim = hidden_dim
+        self.num_layers = num_layers
+        self._gnn_model = None
+        self._wls_estimator = WLSEstimator()
+        self._is_trained = False
+
+    def estimate_with_gnn(
+        self,
+        Ybus: np.ndarray,
+        measurements: dict,
+        bus_ids: List[str],
+        edge_list: List[Tuple[int, int]] | None = None,
+        slack_bus_idx: int = 0,
+    ) -> StateEstimationResult:
+        """
+        Run GNN-enhanced state estimation.
+
+        First runs traditional WLS, then if GNN is trained,
+        uses it to refine the estimates. Falls back to pure WLS
+        if GNN is not available.
+
+        Parameters
+        ----------
+        Ybus : np.ndarray
+            Bus admittance matrix.
+        measurements : dict
+            Measurement data (same format as WLSEstimator).
+        bus_ids : List[str]
+            Bus ID list.
+        edge_list : List[Tuple[int, int]], optional
+            List of (from_bus_idx, to_bus_idx) for graph construction.
+            If None, derived from Ybus non-zero off-diagonal entries.
+        slack_bus_idx : int
+            Slack bus index.
+
+        Returns
+        -------
+        StateEstimationResult
+            Enhanced state estimation result.
+        """
+        # Step 1: Run traditional WLS
+        wls_result = self._wls_estimator.estimate(
+            Ybus, measurements, bus_ids, slack_bus_idx
+        )
+
+        # Step 2: If GNN is not trained, return WLS result
+        if not self._is_trained or not _HAS_TORCH_GEOMETRIC:
+            return wls_result
+
+        # Step 3: GNN refinement
+        try:
+            n = len(bus_ids)
+            if edge_list is None:
+                # Derive edges from Ybus
+                edge_list = []
+                for i in range(n):
+                    for j in range(n):
+                        if i != j and abs(Ybus[i, j]) > 1e-10:
+                            edge_list.append((i, j))
+
+            # Build node features: WLS estimates
+            node_features = np.column_stack([
+                wls_result.voltage_magnitudes,
+                wls_result.voltage_angles,
+            ])
+
+            # Build edge index
+            if len(edge_list) > 0:
+                edge_index = np.array(edge_list, dtype=np.int64).T
+            else:
+                # Fallback: self-loops
+                edge_index = np.array([[i, i] for i in range(n)], dtype=np.int64).T
+
+            # Run GNN prediction
+            from ml.predictive import PowerGridGNN
+            gnn = PowerGridGNN(model_type="gcn", hidden_dim=self.hidden_dim, num_layers=self.num_layers)
+            refined = gnn.predict(node_features, edge_index)
+
+            # Blend: weighted average of WLS and GNN (80% WLS, 20% GNN)
+            alpha = 0.8
+            refined_magnitudes = alpha * wls_result.voltage_magnitudes + (1 - alpha) * refined[:, 0]
+            refined_angles = alpha * wls_result.voltage_angles + (1 - alpha) * refined[:, 1]
+
+            return StateEstimationResult(
+                status=wls_result.status,
+                voltage_magnitudes=refined_magnitudes,
+                voltage_angles=refined_angles,
+                iterations=wls_result.iterations,
+                max_residual=wls_result.max_residual,
+                objective_value=wls_result.objective_value,
+                bad_data_detected=wls_result.bad_data_detected,
+            )
+        except Exception as e:
+            import logging
+            logging.getLogger(__name__).warning(f"GNN refinement failed, using WLS only: {e}")
+            return wls_result

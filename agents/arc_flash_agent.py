@@ -17,7 +17,7 @@ Standards:
 """
 
 import logging
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any, Dict, List
 
 import numpy as np
@@ -118,7 +118,7 @@ class ArcFlashAgent(BaseAgent):
     (mm).
     """
 
-    prompt_handle = "arcflash_agent_prompt"
+    prompt_handle = "arcflash_agent"  # Fixed to match available prompt file
 
     def __init__(self) -> None:
         super().__init__("ArcFlashAgent")
@@ -325,7 +325,7 @@ class ArcFlashAgent(BaseAgent):
         ``'arc_current'``, ``'incident_energy'``, or ``'full'``
         (computes arc current then incident energy).
         """
-        start_time = datetime.now(timezone.utc)
+        start_time = datetime.now(UTC)
         self.status = AgentStatus.RUNNING
 
         try:
@@ -389,7 +389,7 @@ class ArcFlashAgent(BaseAgent):
             )
 
             result.validation_status = self.validate_result(result)
-            execution_time = (datetime.now(timezone.utc) - start_time).total_seconds()
+            execution_time = (datetime.now(UTC) - start_time).total_seconds()
             result.execution_time = execution_time
 
             self.log_execution(f"Arc flash analysis completed in {execution_time:.2f}s")

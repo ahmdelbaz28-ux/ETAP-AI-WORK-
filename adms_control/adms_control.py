@@ -11,7 +11,7 @@ import time
 from collections import deque
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Dict, List, Optional, Set, Tuple
+from typing import Dict, List, Set, Tuple
 
 # ============================================================
 # ADMS CONTROL TYPES
@@ -51,7 +51,7 @@ class SwitchingAction:
     timestamp: float = field(default_factory=time.time)
     status: ControlCommandStatus = ControlCommandStatus.PENDING
     reason: str = ""
-    rollback_action_id: Optional[str] = None
+    rollback_action_id: str | None = None
 
     def to_dict(self) -> dict:
         return {
@@ -91,12 +91,11 @@ class SwitchingSequence:
 @dataclass
 class FLISRResult:
     """Result of FLISR operation."""
-
-    fault_section: Optional[str] = None
+    fault_section: str | None = None
     isolated_sections: List[str] = field(default_factory=list)
     restored_sections: List[str] = field(default_factory=list)
     unrestored_sections: List[str] = field(default_factory=list)
-    switching_sequence: Optional[SwitchingSequence] = None
+    switching_sequence: SwitchingSequence | None = None
     stage: FLISRStage = FLISRStage.FAULT_DETECTION
     customers_restored: int = 0
     customers_affected: int = 0
@@ -182,7 +181,7 @@ class TopologyProcessor:
                 components.append(component)
         return components
 
-    def find_path(self, start: str, end: str) -> Optional[List[str]]:
+    def find_path(self, start: str, end: str) -> List[str] | None:
         """Find shortest path between two buses using BFS with O(1) deque.popleft()."""
         if start not in self.bus_connections or end not in self.bus_connections:
             return None
@@ -240,7 +239,7 @@ class ADMSControlEngine:
     def __init__(self, topology: TopologyProcessor = None):
         self.topology = topology or TopologyProcessor()
         self.switching_history: List[SwitchingSequence] = []
-        self.active_flisr: Optional[FLISRResult] = None
+        self.active_flisr: FLISRResult | None = None
         self.source_buses: Set[str] = set()  # Buses with generation/source
         self.feeder_roots: Dict[str, str] = {}  # feeder_id -> root_bus
         self.section_loads: Dict[str, float] = {}  # section_id -> load MW
@@ -354,9 +353,8 @@ class ADMSControlEngine:
 
     # --- Load Transfer ---
 
-    def plan_load_transfer(
-        self, from_feeder: str, to_feeder: str, section_id: str
-    ) -> Optional[SwitchingSequence]:
+    def plan_load_transfer(self, from_feeder: str, to_feeder: str,
+                           section_id: str) -> SwitchingSequence | None:
         """
         Plan a load transfer from one feeder to another.
 
@@ -395,7 +393,7 @@ class ADMSControlEngine:
 
     # --- FLISR ---
 
-    def detect_fault_section(self, tripped_switch_ids: List[str]) -> Optional[str]:
+    def detect_fault_section(self, tripped_switch_ids: List[str]) -> str | None:
         """
         Identify the faulted section based on tripped switches.
 
@@ -419,7 +417,7 @@ class ADMSControlEngine:
                 return section_id
         return None
 
-    def isolate_fault(self, fault_section: str) -> Optional[SwitchingSequence]:
+    def isolate_fault(self, fault_section: str) -> SwitchingSequence | None:
         """
         Create switching sequence to isolate the faulted section.
 
@@ -447,9 +445,8 @@ class ADMSControlEngine:
             actions, description=f"Fault isolation for section {fault_section}"
         )
 
-    def plan_restoration(
-        self, fault_section: str, de_energized_sections: List[str] = None
-    ) -> Optional[SwitchingSequence]:
+    def plan_restoration(self, fault_section: str,
+                          de_energized_sections: List[str] = None) -> SwitchingSequence | None:
         """
         Plan service restoration for de-energized sections after fault isolation.
 

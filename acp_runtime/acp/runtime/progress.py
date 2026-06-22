@@ -9,8 +9,8 @@ the caller's hot path beyond the (very fast) ``send`` callback.
 from __future__ import annotations
 
 import time
+from collections.abc import Awaitable, Callable
 from dataclasses import dataclass, field
-from typing import Awaitable, Callable, Optional
 
 __all__ = ["ProgressEmitter", "ProgressEvent"]
 
@@ -37,7 +37,7 @@ class ProgressEvent:
         }
 
     @classmethod
-    def from_envelope(cls, env: dict) -> "ProgressEvent":
+    def from_envelope(cls, env: dict) -> ProgressEvent:
         p = env.get("params", {})
         return cls(
             trace_id=p.get("trace_id", ""),
@@ -67,9 +67,9 @@ class ProgressEmitter:
     def __init__(
         self,
         trace_id: str,
-        send: Optional[ProgressSink] = None,
+        send: ProgressSink | None = None,
         *,
-        on_drop: Optional[Callable[[ProgressEvent], None]] = None,
+        on_drop: Callable[[ProgressEvent], None] | None = None,
     ) -> None:
         self._trace_id = trace_id
         self._send = send

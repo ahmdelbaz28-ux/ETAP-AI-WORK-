@@ -19,8 +19,8 @@ Standards:
 """
 
 import logging
-from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional
+from datetime import UTC, datetime
+from typing import Any, Dict, List
 
 import numpy as np
 
@@ -134,7 +134,7 @@ class AnomalyAgent(BaseAgent):
     def detect_cusum(
         self,
         data: np.ndarray,
-        target: Optional[float] = None,
+        target: float | None = None,
         k: float = 0.5,
         h: float = 5.0,
     ) -> Dict[str, Any]:
@@ -399,6 +399,57 @@ class AnomalyAgent(BaseAgent):
             "interpretation": interpretation,
         }
 
+    def detect_ml_anomaly(
+        self,
+        data: np.ndarray,
+        method: str = "iforest",
+        contamination: float = 0.05,
+    ) -> Dict[str, Any]:
+        """
+        ML-based anomaly detection using Isolation Forest / PyOD.
+
+        Parameters
+        ----------
+        data : np.ndarray
+            2-D array of shape (n_samples, n_features) for multi-variate detection,
+            or 1-D for single-feature detection.
+        method : str
+            Detection method: 'iforest', 'pyod_iforest', 'pyod_knn', or 'pyod_autoencoder'.
+        contamination : float
+            Expected proportion of anomalies (0, 0.5].
+
+        Returns
+        -------
+        Dict[str, Any]
+            Anomaly detection results with scores and classifications.
+        """
+        from ml.predictive import AnomalyDetector
+        if data.ndim == 1:
+            data = data.reshape(-1, 1)
+
+        ad = AnomalyDetector(contamination=contamination, method=method)
+        train_result = ad.train(data)
+        detect_result = ad.detect(data)
+
+        # Determine severity based on anomaly percentage
+        anomaly_pct = (detect_result["n_anomalies"] / len(data) * 100) if len(data) > 0 else 0.0
+        if anomaly_pct > 10.0:
+            severity = "CRITICAL"
+        elif anomaly_pct > 5.0:
+            severity = "HIGH"
+        elif anomaly_pct > 2.0:
+            severity = "MEDIUM"
+        else:
+            severity = "LOW"
+
+        return {
+            **detect_result,
+            "contamination": contamination,
+            "training_info": train_result,
+            "anomaly_percentage": round(anomaly_pct, 2),
+            "severity": severity,
+        }
+
     # ------------------------------------------------------------------
     # Agent execute method
     # ------------------------------------------------------------------
@@ -410,9 +461,9 @@ class AnomalyAgent(BaseAgent):
         Dispatches to the appropriate detection method based on
         ``task.parameters['detection_method']`` which must be one of:
         ``'spc'``, ``'cusum'``, ``'ewma'``, ``'threshold'``,
-        ``'cross_correlation'``, or ``'full'`` (runs SPC + CUSUM + EWMA).
+        ``'cross_correlation'``, ``'ml'``, or ``'full'`` (runs SPC + CUSUM + EWMA).
         """
-        start_time = datetime.now(timezone.utc)
+        start_time = datetime.now(UTC)
         self.status = AgentStatus.RUNNING
 
         try:
@@ -498,6 +549,20 @@ class AnomalyAgent(BaseAgent):
                     correlation_threshold=corr_threshold,
                 )
 
+            # --- ML-based anomaly detection (PyOD) ---
+            if method in ("ml", "full"):
+                ml_method = task.parameters.get("ml_method", "iforest")
+                contamination = float(task.parameters.get("contamination", 0.05))
+                if data.ndim == 1:
+                    ml_data = data.reshape(-1, 1)
+                else:
+                    ml_data = data
+                results["ml_anomaly"] = self.detect_ml_anomaly(
+                    data=ml_data,
+                    method=ml_method,
+                    contamination=contamination,
+                )
+
             # Determine overall severity (worst case)
             severity_order = {"CRITICAL": 4, "HIGH": 3, "MEDIUM": 2, "LOW": 1}
             overall_severity = "LOW"
@@ -520,7 +585,7 @@ class AnomalyAgent(BaseAgent):
             )
 
             result.validation_status = self.validate_result(result)
-            execution_time = (datetime.now(timezone.utc) - start_time).total_seconds()
+            execution_time = (datetime.now(UTC) - start_time).total_seconds()
             result.execution_time = execution_time
 
             self.log_execution(
@@ -559,7 +624,7 @@ class AnomalyAgent(BaseAgent):
             result.validation_errors.extend(errors)
             return False
 
-        valid_methods = {"spc", "cusum", "ewma", "threshold", "cross_correlation"}
+        valid_methods = {"spc", "cusum", "ewma", "threshold", "cross_correlation", "ml_anomaly"}
         found_methods = set(result.data.keys()) & valid_methods
         if not found_methods:
             errors.append("No valid detection method results found")

@@ -24,7 +24,7 @@ without hardcoding any of that information.
 import logging
 import os
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
 import yaml
 
@@ -41,15 +41,14 @@ _LANGWATCH_API_KEY = os.environ.get("LANGWATCH_API_KEY", "")
 _LANGWATCH_ENDPOINT = os.environ.get("LANGWATCH_ENDPOINT", "https://app.langwatch.ai")
 
 # Cache for loaded prompts to avoid redundant I/O
-_prompt_cache: Dict[str, Optional[str]] = {}
+_prompt_cache: Dict[str, str | None] = {}
 
 
 # ---------------------------------------------------------------------------
 # LangWatch integration
 # ---------------------------------------------------------------------------
 
-
-def _load_from_langwatch(handle: str) -> Optional[str]:
+def _load_from_langwatch(handle: str) -> str | None:
     """Attempt to load a prompt from the LangWatch API.
 
     Returns the system message content if found, ``None`` otherwise.
@@ -111,8 +110,7 @@ def _load_from_langwatch(handle: str) -> Optional[str]:
 # Local YAML loading
 # ---------------------------------------------------------------------------
 
-
-def _extract_system_message(parsed: Any) -> Optional[str]:
+def _extract_system_message(parsed: Any) -> str | None:
     """Extract the system message from a parsed YAML prompt structure."""
     if not isinstance(parsed, dict):
         return None
@@ -134,7 +132,7 @@ def _extract_system_message(parsed: Any) -> Optional[str]:
     return None
 
 
-def _load_from_yaml(handle: str) -> Optional[str]:
+def _load_from_yaml(handle: str) -> str | None:
     """Load a prompt from a local YAML file in the prompts/ directory.
 
     Tries several filename patterns to locate the file, matching the

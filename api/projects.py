@@ -19,9 +19,9 @@ from __future__ import annotations
 
 import json
 import uuid
-from datetime import datetime, timezone
-from enum import Enum
-from typing import Any, Dict, List, Optional
+from datetime import UTC, datetime
+from enum import StrEnum
+from typing import Any, Dict, List
 
 from fastapi import APIRouter, Depends, Header, HTTPException, status
 from pydantic import BaseModel, ConfigDict, Field, field_validator
@@ -70,8 +70,7 @@ async def _require_api_key_or_jwt(
 # Enums
 # ---------------------------------------------------------------------------
 
-
-class ProjectStatus(str, Enum):
+class ProjectStatus(StrEnum):
     """Allowed values for project status."""
 
     ACTIVE = "active"
@@ -79,7 +78,7 @@ class ProjectStatus(str, Enum):
     DELETED = "deleted"
 
 
-class StudyType(str, Enum):
+class StudyType(StrEnum):
     """Supported power-system study types."""
 
     LOAD_FLOW = "load_flow"
@@ -92,7 +91,7 @@ class StudyType(str, Enum):
     STABILITY = "stability"
 
 
-class StudyStatus(str, Enum):
+class StudyStatus(StrEnum):
     """Execution status of a study run."""
 
     PENDING = "pending"
@@ -113,16 +112,16 @@ class Project(Base):
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     name: Mapped[str] = mapped_column(String(255), nullable=False)
-    description: Mapped[Optional[str]] = mapped_column(String(2000), nullable=True)
-    system_config: Mapped[Optional[dict]] = mapped_column(JSON, nullable=True)
+    description: Mapped[str | None] = mapped_column(String(2000), nullable=True)
+    system_config: Mapped[dict | None] = mapped_column(JSON, nullable=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
-        default=lambda: datetime.now(timezone.utc),
+        default=lambda: datetime.now(UTC),
     )
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
-        default=lambda: datetime.now(timezone.utc),
-        onupdate=lambda: datetime.now(timezone.utc),
+        default=lambda: datetime.now(UTC),
+        onupdate=lambda: datetime.now(UTC),
     )
     created_by: Mapped[str] = mapped_column(String(36), nullable=False)
     status: Mapped[str] = mapped_column(String(32), default=ProjectStatus.ACTIVE.value)
@@ -136,15 +135,21 @@ class StudyResult(Base):
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     project_id: Mapped[str] = mapped_column(String(36), index=True, nullable=False)
     study_type: Mapped[str] = mapped_column(String(64), nullable=False)
-    status: Mapped[str] = mapped_column(String(32), default=StudyStatus.PENDING.value)
-    config: Mapped[Optional[dict]] = mapped_column(JSON, nullable=True)
-    results: Mapped[Optional[dict]] = mapped_column(JSON, nullable=True)
-    error_message: Mapped[Optional[str]] = mapped_column(String(2000), nullable=True)
+    status: Mapped[str] = mapped_column(
+        String(32), default=StudyStatus.PENDING.value
+    )
+    config: Mapped[dict | None] = mapped_column(JSON, nullable=True)
+    results: Mapped[dict | None] = mapped_column(JSON, nullable=True)
+    error_message: Mapped[str | None] = mapped_column(
+        String(2000), nullable=True
+    )
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
-        default=lambda: datetime.now(timezone.utc),
+        default=lambda: datetime.now(UTC),
     )
-    completed_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
+    completed_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
     created_by: Mapped[str] = mapped_column(String(36), nullable=False)
 
 
@@ -159,8 +164,8 @@ class ProjectCreateRequest(BaseModel):
     model_config = ConfigDict(strict=False)
 
     name: str = Field(min_length=1, max_length=255)
-    description: Optional[str] = Field(default=None, max_length=2000)
-    system_config: Optional[Dict[str, Any]] = None
+    description: str | None = Field(default=None, max_length=2000)
+    system_config: Dict[str, Any] | None = None
 
 
 class ProjectUpdateRequest(BaseModel):
@@ -168,14 +173,14 @@ class ProjectUpdateRequest(BaseModel):
 
     model_config = ConfigDict(strict=False)
 
-    name: Optional[str] = Field(default=None, min_length=1, max_length=255)
-    description: Optional[str] = Field(default=None, max_length=2000)
-    system_config: Optional[Dict[str, Any]] = None
-    status: Optional[ProjectStatus] = None
+    name: str | None = Field(default=None, min_length=1, max_length=255)
+    description: str | None = Field(default=None, max_length=2000)
+    system_config: Dict[str, Any] | None = None
+    status: ProjectStatus | None = None
 
     @field_validator("status")
     @classmethod
-    def reject_deleted_status(cls, v: Optional[ProjectStatus]) -> Optional[ProjectStatus]:
+    def reject_deleted_status(cls, v: ProjectStatus | None) -> ProjectStatus | None:
         """Prevent setting status to 'deleted' via the update endpoint."""
         if v == ProjectStatus.DELETED:
             raise ValueError("Use DELETE endpoint to soft-delete a project")
@@ -189,10 +194,10 @@ class ProjectResponse(BaseModel):
 
     id: str
     name: str
-    description: Optional[str] = None
-    system_config: Optional[Dict[str, Any]] = None
-    created_at: Optional[datetime] = None
-    updated_at: Optional[datetime] = None
+    description: str | None = None
+    system_config: Dict[str, Any] | None = None
+    created_at: datetime | None = None
+    updated_at: datetime | None = None
     created_by: str
     status: str
 
@@ -219,7 +224,7 @@ class StudyRunRequest(BaseModel):
     model_config = ConfigDict(strict=False)
 
     study_type: StudyType
-    config: Optional[Dict[str, Any]] = None
+    config: Dict[str, Any] | None = None
 
 
 class StudyResultResponse(BaseModel):
@@ -231,11 +236,11 @@ class StudyResultResponse(BaseModel):
     project_id: str
     study_type: str
     status: str
-    config: Optional[Dict[str, Any]] = None
-    results: Optional[Dict[str, Any]] = None
-    error_message: Optional[str] = None
-    created_at: Optional[datetime] = None
-    completed_at: Optional[datetime] = None
+    config: Dict[str, Any] | None = None
+    results: Dict[str, Any] | None = None
+    error_message: str | None = None
+    created_at: datetime | None = None
+    completed_at: datetime | None = None
     created_by: str
 
 
@@ -307,7 +312,7 @@ async def create_project(
     summary="List projects",
 )
 async def list_projects(
-    status_filter: Optional[ProjectStatus] = None,
+    status_filter: ProjectStatus | None = None,
     pagination: PaginationParams = Depends(pagination_params),  # noqa: B008
     db: AsyncSession = Depends(get_db),  # noqa: B008
     auth: str = Depends(_require_api_key_or_jwt),
@@ -433,7 +438,7 @@ async def update_project(
     if body.status is not None:
         project.status = body.status.value
 
-    project.updated_at = datetime.now(timezone.utc)
+    project.updated_at = datetime.now(UTC)
     db.add(project)
     await db.flush()
     await db.refresh(project)
@@ -477,7 +482,7 @@ async def delete_project(
         )
 
     project.status = ProjectStatus.DELETED.value
-    project.updated_at = datetime.now(timezone.utc)
+    project.updated_at = datetime.now(UTC)
     db.add(project)
     await db.flush()
 
@@ -554,11 +559,11 @@ async def run_study(
         )
         study.results = study_results
         study.status = StudyStatus.COMPLETED.value
-        study.completed_at = datetime.now(timezone.utc)
+        study.completed_at = datetime.now(UTC)
     except Exception as exc:
         study.status = StudyStatus.FAILED.value
         study.error_message = str(exc)[:2000]
-        study.completed_at = datetime.now(timezone.utc)
+        study.completed_at = datetime.now(UTC)
 
     db.add(study)
     await db.flush()

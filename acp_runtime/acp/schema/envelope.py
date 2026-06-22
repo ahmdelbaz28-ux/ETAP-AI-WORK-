@@ -80,7 +80,7 @@ class JsonRpcResponse(BaseModel):
     error: JsonRpcError | None = None
 
     @model_validator(mode="after")
-    def _exactly_one_of_result_or_error(self) -> "JsonRpcResponse":
+    def _exactly_one_of_result_or_error(self) -> JsonRpcResponse:
         if self.result is not None and self.error is not None:
             raise ValueError("response must have exactly one of result or error")
         if self.result is None and self.error is None:

@@ -1,7 +1,8 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import Dict, Iterator, List, Optional
+from collections.abc import Iterator
+from typing import Dict, List
 
 from gis_integration.models import GeoCRSInfo, GISFeature
 
@@ -75,7 +76,7 @@ class GISProviderInterface(ABC):
             },
         }
 
-    def get_crs(self, layer_id: Optional[str] = None) -> GeoCRSInfo:
+    def get_crs(self, layer_id: str | None = None) -> GeoCRSInfo:
         """
         Return CRS information for the given layer (or project default).
 

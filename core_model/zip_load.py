@@ -39,13 +39,9 @@ class ZIPCoefficients:
         a_sum = self.aZ + self.aI + self.aP
         b_sum = self.bZ + self.bI + self.bP
         if abs(a_sum - 1.0) > 0.01:
-            raise ValueError(
-                "Active power ZIP coefficients must sum to 1.0, got {:.4f}".format(a_sum)
-            )
+            raise ValueError(f"Active power ZIP coefficients must sum to 1.0, got {a_sum:.4f}")
         if abs(b_sum - 1.0) > 0.01:
-            raise ValueError(
-                "Reactive power ZIP coefficients must sum to 1.0, got {:.4f}".format(b_sum)
-            )
+            raise ValueError(f"Reactive power ZIP coefficients must sum to 1.0, got {b_sum:.4f}")
 
 
 # Common ZIP load model presets
