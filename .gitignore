@@ -211,6 +211,11 @@ ui/eslint-*.json
 docker-compose.override.yml
 
 # ==========================================
+# Terraform
+# ==========================================
+.terraform/
+
+# ==========================================
 # Deployment Configs (per-environment)
 # ==========================================
 fly.toml
