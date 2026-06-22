@@ -17,8 +17,11 @@ Standards:
 - IEC 60870-5-104: Telecontrol Equipment and Systems
 """
 
+from __future__ import annotations
 import logging
-from datetime import UTC, datetime
+from datetime import datetime, timezone
+
+UTC = timezone.utc
 from typing import Any, Dict, List
 
 import numpy as np

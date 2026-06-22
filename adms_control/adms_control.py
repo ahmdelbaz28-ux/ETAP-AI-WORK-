@@ -7,6 +7,7 @@ and service restoration (FLISR) for ADMS.
 Reference: IEEE C37.118, IEC 61850, EPRI ADMS Guide
 """
 
+from __future__ import annotations
 import time
 from collections import deque
 from dataclasses import dataclass, field
@@ -91,6 +92,7 @@ class SwitchingSequence:
 @dataclass
 class FLISRResult:
     """Result of FLISR operation."""
+
     fault_section: str | None = None
     isolated_sections: List[str] = field(default_factory=list)
     restored_sections: List[str] = field(default_factory=list)
@@ -353,8 +355,9 @@ class ADMSControlEngine:
 
     # --- Load Transfer ---
 
-    def plan_load_transfer(self, from_feeder: str, to_feeder: str,
-                           section_id: str) -> SwitchingSequence | None:
+    def plan_load_transfer(
+        self, from_feeder: str, to_feeder: str, section_id: str
+    ) -> SwitchingSequence | None:
         """
         Plan a load transfer from one feeder to another.
 
@@ -445,8 +448,9 @@ class ADMSControlEngine:
             actions, description=f"Fault isolation for section {fault_section}"
         )
 
-    def plan_restoration(self, fault_section: str,
-                          de_energized_sections: List[str] = None) -> SwitchingSequence | None:
+    def plan_restoration(
+        self, fault_section: str, de_energized_sections: List[str] = None
+    ) -> SwitchingSequence | None:
         """
         Plan service restoration for de-energized sections after fault isolation.
 

@@ -25,7 +25,7 @@ import math
 import time
 import uuid
 from dataclasses import dataclass, field
-from enum import StrEnum
+from compat import StrEnum
 from typing import Any, Dict, List, Tuple
 
 from autodesk_connector.shared.models import (

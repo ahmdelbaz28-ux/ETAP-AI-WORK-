@@ -10,6 +10,7 @@ All three must remain synchronized. Any inconsistency triggers validation errors
 Reference: IEC 61970 CIM, EPRI ADMS Integration Guide
 """
 
+from __future__ import annotations
 import time
 from collections.abc import Callable
 from dataclasses import dataclass, field
@@ -540,7 +541,11 @@ class ValidationGateway:
             topology = adms_engine.topology if hasattr(adms_engine, "topology") else None
             if topology is not None:
                 # Check topology buses exist in electrical model
-                topo_buses = set(topology.bus_connections.keys()) if hasattr(topology, 'bus_connections') else set()
+                topo_buses = (
+                    set(topology.bus_connections.keys())
+                    if hasattr(topology, "bus_connections")
+                    else set()
+                )
                 elec_buses = {str(bid) for bid in system.buses.keys()}
                 orphaned = topo_buses - elec_buses
                 results.append(

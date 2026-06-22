@@ -576,7 +576,9 @@ class AIFailureModeDetector:
     # ------------------------------------------------------------------
     # FM-09: Speculative feature (oversized functions as proxy)
     # ------------------------------------------------------------------
-    def _detect_speculative_feature(self, tree: ast.AST | None, source: str) -> List[GuardViolation]:
+    def _detect_speculative_feature(
+        self, tree: ast.AST | None, source: str
+    ) -> List[GuardViolation]:
         """Heuristic: functions over 50 lines are likely doing more than specified."""
         violations: List[GuardViolation] = []
         if tree is None:

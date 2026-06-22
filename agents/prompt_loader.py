@@ -21,6 +21,7 @@ prompt-driven description, standards references, and execution guidance
 without hardcoding any of that information.
 """
 
+from __future__ import annotations
 import logging
 import os
 from pathlib import Path
@@ -47,6 +48,7 @@ _prompt_cache: Dict[str, str | None] = {}
 # ---------------------------------------------------------------------------
 # LangWatch integration
 # ---------------------------------------------------------------------------
+
 
 def _load_from_langwatch(handle: str) -> str | None:
     """Attempt to load a prompt from the LangWatch API.
@@ -109,6 +111,7 @@ def _load_from_langwatch(handle: str) -> str | None:
 # ---------------------------------------------------------------------------
 # Local YAML loading
 # ---------------------------------------------------------------------------
+
 
 def _extract_system_message(parsed: Any) -> str | None:
     """Extract the system message from a parsed YAML prompt structure."""

@@ -2,6 +2,7 @@
 """
 Script to start the Celery worker for the Engineering Service.
 """
+
 import sys
 
 
@@ -11,7 +12,11 @@ def main():
     from worker.celery_app import app
 
     # Parse command-line arguments
-    argv = sys.argv[1:] if len(sys.argv) > 1 else ['-A', 'worker.celery_app', 'worker', '--loglevel=info']
+    argv = (
+        sys.argv[1:]
+        if len(sys.argv) > 1
+        else ["-A", "worker.celery_app", "worker", "--loglevel=info"]
+    )
 
     # Start the worker
     try:
@@ -23,5 +28,6 @@ def main():
         print(f"Error starting Celery worker: {e}")
         sys.exit(1)
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     main()

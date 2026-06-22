@@ -11,7 +11,7 @@ import paho.mqtt.client as mqtt
 
 
 class SCADAETAPConsumer:
-    def __init__(self, db_path='scada_etap_data.db'):
+    def __init__(self, db_path="scada_etap_data.db"):
         self.db_path = db_path
         self.setup_database()
         self.scada_tags = {}
@@ -22,7 +22,7 @@ class SCADAETAPConsumer:
         cursor = conn.cursor()
 
         # Create table for power system data
-        cursor.execute('''
+        cursor.execute("""
             CREATE TABLE IF NOT EXISTS power_system_data (
                 id TEXT PRIMARY KEY,
                 status TEXT,
@@ -37,7 +37,7 @@ class SCADAETAPConsumer:
                 rated_current REAL,
                 timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
             )
-        ''')
+        """)
 
         conn.commit()
         conn.close()
@@ -52,7 +52,7 @@ class SCADAETAPConsumer:
             print(f"Received ETAP data on {msg.topic}: {data}")
 
             # Process ETAP power system data
-            if 'power' in msg.topic:
+            if "power" in msg.topic:
                 self.process_power_data(data)
 
         except json.JSONDecodeError:
@@ -71,16 +71,34 @@ class SCADAETAPConsumer:
         cursor = conn.cursor()
 
         # Prepare data for insertion
-        columns = ['id', 'status', 'voltage', 'current', 'power_factor',
-                  'load_percentage', 'capacity', 'temperature', 'oil_level',
-                  'current_flow', 'rated_current']
+        columns = [
+            "id",
+            "status",
+            "voltage",
+            "current",
+            "power_factor",
+            "load_percentage",
+            "capacity",
+            "temperature",
+            "oil_level",
+            "current_flow",
+            "rated_current",
+        ]
 
         values = []
         for col in columns:
             val = data.get(col)
             # Convert string numbers to floats where appropriate
-            if col in ['voltage', 'current', 'power_factor', 'load_percentage',
-                      'temperature', 'oil_level', 'current_flow', 'rated_current']:
+            if col in [
+                "voltage",
+                "current",
+                "power_factor",
+                "load_percentage",
+                "temperature",
+                "oil_level",
+                "current_flow",
+                "rated_current",
+            ]:
                 try:
                     val = float(val) if val is not None else None
                 except (ValueError, TypeError):
@@ -88,30 +106,34 @@ class SCADAETAPConsumer:
             values.append(val)
 
         # Insert or update the record
-        placeholders = ', '.join(['?' for _ in columns])
-        columns_str = ', '.join(columns)
+        placeholders = ", ".join(["?" for _ in columns])
+        columns_str = ", ".join(columns)
 
-        cursor.execute(f'''
+        cursor.execute(
+            f"""
             INSERT OR REPLACE INTO power_system_data
             ({columns_str}, timestamp) VALUES ({placeholders}, datetime('now'))
-        ''', values)
+        """,
+            values,
+        )
 
         conn.commit()
         conn.close()
 
         # Example: Update UPS/redundancy status for stability analysis
-        if data.get('id') == 'ups_001':
-            print(f"UPS Status: {data.get('status')}, Voltage: {data.get('voltage')}V, "
-                  f"Current: {data.get('current')}A")
-        elif data.get('id') == 'redundancy_001':
-            print(f"Redundancy Status: {data.get('status')}, "
-                  f"Load: {data.get('load_percentage')}%, Capacity: {data.get('capacity')}")
+        if data.get("id") == "ups_001":
+            print(
+                f"UPS Status: {data.get('status')}, Voltage: {data.get('voltage')}V, "
+                f"Current: {data.get('current')}A"
+            )
+        elif data.get("id") == "redundancy_001":
+            print(
+                f"Redundancy Status: {data.get('status')}, "
+                f"Load: {data.get('load_percentage')}%, Capacity: {data.get('capacity')}"
+            )
 
         # Store in memory cache
-        self.scada_tags[data['id']] = {
-            'data': data,
-            'timestamp': datetime.now()
-        }
+        self.scada_tags[data["id"]] = {"data": data, "timestamp": datetime.now()}
 
     def setup_etap_integration(self):
         """

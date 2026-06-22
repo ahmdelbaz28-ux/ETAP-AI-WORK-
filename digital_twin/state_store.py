@@ -11,6 +11,7 @@ The state store holds the unified digital twin state across all layers:
   - Simulation Results State
 """
 
+from __future__ import annotations
 import copy
 import json
 import threading

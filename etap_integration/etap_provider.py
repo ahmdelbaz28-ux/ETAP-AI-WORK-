@@ -72,7 +72,7 @@ class LocalEtapProvider(IEtapProvider):
 
     def __init__(self):
         # Check if ETAP functionality is enabled via environment variable
-        self.use_etap = os.getenv('USE_ETAP', 'false').lower() == 'true'
+        self.use_etap = os.getenv("USE_ETAP", "false").lower() == "true"
 
         if not self.use_etap:
             self._available = False
@@ -93,7 +93,9 @@ class LocalEtapProvider(IEtapProvider):
         self, project_path: str, study_type: ETAPStudyType, visible: bool = False
     ) -> ETAPResult:
         if not self._available:
-            return ETAPResult(False, {}, [], ["Local ETAP automation not available or disabled"], 0.0)
+            return ETAPResult(
+                False, {}, [], ["Local ETAP automation not available or disabled"], 0.0
+            )
 
         import time
 
@@ -144,7 +146,7 @@ class RemoteEtapProvider(IEtapProvider):
 
     def __init__(self, worker_url: str, api_key: str):
         # Check if ETAP functionality is enabled via environment variable
-        self.use_etap = os.getenv('USE_ETAP', 'false').lower() == 'true'
+        self.use_etap = os.getenv("USE_ETAP", "false").lower() == "true"
 
         if not self.use_etap:
             logger.info("Remote ETAP provider disabled via USE_ETAP environment variable")
@@ -152,7 +154,7 @@ class RemoteEtapProvider(IEtapProvider):
             self.api_key = ""
             return
 
-        self.worker_url = worker_url.rstrip('/')
+        self.worker_url = worker_url.rstrip("/")
         self.api_key = api_key
         self._consecutive_failures = 0
         self._circuit_open_until = 0.0
@@ -197,12 +199,16 @@ class RemoteEtapProvider(IEtapProvider):
         except Exception:
             return False
 
-    def execute_study(self, project_path: str, study_type: ETAPStudyType, visible: bool = False) -> ETAPResult:
+    def execute_study(
+        self, project_path: str, study_type: ETAPStudyType, visible: bool = False
+    ) -> ETAPResult:
         if not self.use_etap:
             return ETAPResult(
-                False, {}, [],
+                False,
+                {},
+                [],
                 ["Remote ETAP provider disabled via USE_ETAP environment variable"],
-                0.0
+                0.0,
             )
 
         # Circuit breaker check
@@ -390,33 +396,42 @@ class MockEtapProvider(IEtapProvider):
             "starting_method": "Across-the-Line",
         },
         ETAPStudyType.PROTECTION_COORDINATION: {
-            'converged': True,
-            'relay_pairs': {
-                'Relay_UP_DOWN': {'upstream_relay': 'Relay_UP', 'downstream_relay': 'Relay_DOWN', 'time_difference_sec': 0.45, 'coordinated': True},
+            "converged": True,
+            "relay_pairs": {
+                "Relay_UP_DOWN": {
+                    "upstream_relay": "Relay_UP",
+                    "downstream_relay": "Relay_DOWN",
+                    "time_difference_sec": 0.45,
+                    "coordinated": True,
+                },
             },
-            'settings': {
-                'Relay_UP': {'pickup_amps': 100.0, 'time_dial': 0.5, 'curve_type': 'CO-8'},
-                'Relay_DOWN': {'pickup_amps': 80.0, 'time_dial': 0.2, 'curve_type': 'CO-8'},
+            "settings": {
+                "Relay_UP": {"pickup_amps": 100.0, "time_dial": 0.5, "curve_type": "CO-8"},
+                "Relay_DOWN": {"pickup_amps": 80.0, "time_dial": 0.2, "curve_type": "CO-8"},
             },
-            'fault_current_range_ka': [2.0, 5.0, 10.0, 20.0],
+            "fault_current_range_ka": [2.0, 5.0, 10.0, 20.0],
         },
     }
 
     def __init__(self):
         # Check if ETAP functionality is enabled via environment variable
-        self.use_etap = os.getenv('USE_ETAP', 'false').lower() == 'true'
+        self.use_etap = os.getenv("USE_ETAP", "false").lower() == "true"
         if not self.use_etap:
             logger.info("Mock ETAP provider disabled via USE_ETAP environment variable")
 
     def is_available(self) -> bool:
         return self.use_etap
 
-    def execute_study(self, project_path: str, study_type: ETAPStudyType, visible: bool = False) -> ETAPResult:
+    def execute_study(
+        self, project_path: str, study_type: ETAPStudyType, visible: bool = False
+    ) -> ETAPResult:
         if not self.use_etap:
             return ETAPResult(
-                False, {}, [],
+                False,
+                {},
+                [],
                 ["Mock ETAP provider disabled via USE_ETAP environment variable"],
-                0.0
+                0.0,
             )
 
         import time
@@ -435,21 +450,26 @@ class MockEtapProvider(IEtapProvider):
 
 class NullEtapProvider(IEtapProvider):
     """Fallback provider when no ETAP is available."""
+
     def __init__(self):
         # Check if ETAP functionality is enabled via environment variable
-        self.use_etap = os.getenv('USE_ETAP', 'false').lower() == 'true'
+        self.use_etap = os.getenv("USE_ETAP", "false").lower() == "true"
         if self.use_etap:
             logger.info("Null ETAP provider - ETAP is enabled but no provider available")
 
     def is_available(self) -> bool:
         return False
 
-    def execute_study(self, project_path: str, study_type: ETAPStudyType, visible: bool = False) -> ETAPResult:
+    def execute_study(
+        self, project_path: str, study_type: ETAPStudyType, visible: bool = False
+    ) -> ETAPResult:
         if not self.use_etap:
             return ETAPResult(
-                False, {}, [],
+                False,
+                {},
+                [],
                 ["ETAP functionality is disabled via USE_ETAP environment variable"],
-                0.0
+                0.0,
             )
         else:
             return ETAPResult(False, {}, [], ["No ETAP provider configured or available"], 0.0)
@@ -466,7 +486,7 @@ def get_etap_provider() -> IEtapProvider:
     5. Fallback -> NullEtapProvider
     """
     # Check if ETAP is explicitly disabled
-    if os.getenv('USE_ETAP', 'true').lower() == 'false':
+    if os.getenv("USE_ETAP", "true").lower() == "false":
         logger.info("ETAP functionality disabled via USE_ETAP environment variable")
         return NullEtapProvider()
 

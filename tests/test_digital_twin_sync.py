@@ -289,6 +289,7 @@ def test_etap_sync_export() -> None:
 def test_gis_visualization_importable() -> None:
     """Verify GISVisualizer can be imported."""
     from visualization.gis_visualization import PPE_LEVELS, GISVisualizer
+
     viz = GISVisualizer()
     assert viz.center == (30.0, 31.0)
     assert viz.zoom == 10
@@ -311,6 +312,7 @@ def test_gis_visualization_fallback_geojson() -> None:
 def test_gis_bridge_module_importable() -> None:
     """Verify GISSyncBridge can be imported."""
     from digital_twin.gis_bridge import ELECTRICAL_TO_GIS_MAP, GIS_TO_ELECTRICAL_MAP, GISSyncBridge
+
     assert "substation" in GIS_TO_ELECTRICAL_MAP
     assert "bus" in ELECTRICAL_TO_GIS_MAP
 

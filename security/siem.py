@@ -24,7 +24,9 @@ import time
 import uuid
 from collections import deque
 from dataclasses import dataclass, field
-from datetime import UTC, datetime
+from datetime import datetime, timezone
+
+UTC = timezone.utc
 from typing import Any, Deque, Dict, List
 
 logger = logging.getLogger(__name__)
@@ -535,7 +537,9 @@ class SIEMForwarder:
         """
         lines: List[str] = []
         for event in events:
-            action = {"index": {"_index": f"etap-security-{datetime.now(UTC).strftime('%Y.%m.%d')}"}}
+            action = {
+                "index": {"_index": f"etap-security-{datetime.now(UTC).strftime('%Y.%m.%d')}"}
+            }
             lines.append(json.dumps(action))
             lines.append(event.to_json())
         payload = "\n".join(lines) + "\n"

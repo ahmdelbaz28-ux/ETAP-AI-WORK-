@@ -60,30 +60,35 @@ except ImportError:
 
 try:
     from tensorflow import keras  # type: ignore
+
     _HAS_TENSORFLOW = True
 except ImportError:
     logger.info("TensorFlow/Keras not available")
 
 try:
     from prophet import Prophet as _Prophet  # type: ignore
+
     _HAS_PROPHET = True
 except ImportError:
     logger.info("Prophet not available")
 
 try:
     import xgboost as xgb  # type: ignore
+
     _HAS_XGBOOST = True
 except ImportError:
     logger.info("XGBoost not available")
 
 try:
     import shap  # type: ignore
+
     _HAS_SHAP = True
 except ImportError:
     logger.info("SHAP not available")
 
 try:
     import optuna  # type: ignore
+
     _HAS_OPTUNA = True
 except ImportError:
     logger.info("Optuna not available")
@@ -92,12 +97,14 @@ try:
     from pyod.models.auto_encoder import AutoEncoder as PyODAutoEncoder  # type: ignore
     from pyod.models.iforest import IForest as PyODIForest  # type: ignore
     from pyod.models.knn import KNN as PyODKNN  # type: ignore
+
     _HAS_PYOD = True
 except ImportError:
     logger.info("PyOD not available - advanced anomaly detection will be limited")
 
 try:
     import torch  # type: ignore
+
     _HAS_TORCH = True
 except ImportError:
     logger.info("PyTorch not available")
@@ -105,12 +112,14 @@ except ImportError:
 try:
     import torch_geometric  # noqa: F401 — imported to check availability
     from torch_geometric.nn import GATConv, GCNConv  # type: ignore
+
     _HAS_TORCH_GEOMETRIC = True
 except ImportError:
     logger.info("PyTorch Geometric not available - GNN features disabled")
 
 try:
     import mlflow  # type: ignore
+
     _HAS_MLFLOW = True
 except ImportError:
     logger.info("MLflow not available - model tracking disabled")
@@ -207,6 +216,7 @@ class LoadForecaster:
         dates = [start_date + timedelta(hours=i) for i in range(len(data))]
         np.column_stack([dates, data])
         import pandas as pd
+
         prophet_df = pd.DataFrame({"ds": dates, "y": data.astype(float)})
         self.model.fit(prophet_df)
         self._is_prophet = True
@@ -438,9 +448,7 @@ class FaultPredictor:
             ``method``, and optionally ``best_params`` (if Optuna was used).
         """
         if not _HAS_SKLEARN and not self._use_xgboost:
-            raise RuntimeError(
-                "scikit-learn or XGBoost is required for FaultPredictor."
-            )
+            raise RuntimeError("scikit-learn or XGBoost is required for FaultPredictor.")
 
         if features.ndim != 2:
             raise ValueError("features must be a 2-D array (n_samples, n_features)")
@@ -457,16 +465,20 @@ class FaultPredictor:
                 best_params = self._optimize_xgboost(features, labels)
 
             self.model = xgb.XGBClassifier(
-                **(best_params if best_params else {
-                    "n_estimators": 200,
-                    "max_depth": 8,
-                    "learning_rate": 0.1,
-                    "subsample": 0.8,
-                    "colsample_bytree": 0.8,
-                    "random_state": 42,
-                    "use_label_encoder": False,
-                    "eval_metric": "mlogloss",
-                })
+                **(
+                    best_params
+                    if best_params
+                    else {
+                        "n_estimators": 200,
+                        "max_depth": 8,
+                        "learning_rate": 0.1,
+                        "subsample": 0.8,
+                        "colsample_bytree": 0.8,
+                        "random_state": 42,
+                        "use_label_encoder": False,
+                        "eval_metric": "mlogloss",
+                    }
+                )
             )
             self.model.fit(features, labels)
             method = "xgboost"
@@ -476,12 +488,16 @@ class FaultPredictor:
                 best_params = self._optimize_rf(features, labels)
 
             self.model = RandomForestClassifier(
-                **(best_params if best_params else {
-                    "n_estimators": 100,
-                    "max_depth": 10,
-                    "random_state": 42,
-                    "n_jobs": -1,
-                })
+                **(
+                    best_params
+                    if best_params
+                    else {
+                        "n_estimators": 100,
+                        "max_depth": 10,
+                        "random_state": 42,
+                        "n_jobs": -1,
+                    }
+                )
             )
             self.model.fit(features, labels)
             method = "random_forest"
@@ -525,6 +541,7 @@ class FaultPredictor:
                 "eval_metric": "mlogloss",
             }
             from sklearn.model_selection import cross_val_score
+
             clf = xgb.XGBClassifier(**params)
             scores = cross_val_score(clf, features, labels, cv=3, scoring="accuracy")
             return scores.mean()
@@ -547,6 +564,7 @@ class FaultPredictor:
                 "n_jobs": -1,
             }
             from sklearn.model_selection import cross_val_score
+
             clf = RandomForestClassifier(**params)
             scores = cross_val_score(clf, features, labels, cv=3, scoring="accuracy")
             return scores.mean()
@@ -692,9 +710,7 @@ class AnomalyDetector:
         if not 0 < contamination <= 0.5:
             raise ValueError("contamination must be in (0, 0.5]")
         if method not in self.AVAILABLE_METHODS:
-            raise ValueError(
-                f"Unknown method '{method}'. Available: {self.AVAILABLE_METHODS}"
-            )
+            raise ValueError(f"Unknown method '{method}'. Available: {self.AVAILABLE_METHODS}")
         self.model: Any = None
         self.contamination = contamination
         self.method = method
@@ -1023,6 +1039,7 @@ class ModelRegistry:
         else:
             # Default to SQLite backend (MLflow 3.x deprecated file store)
             import tempfile
+
             tmpdir = tempfile.gettempdir()
             default_uri = f"sqlite:///{tmpdir}/etap_mlflow.db"
             mlflow.set_tracking_uri(default_uri)
@@ -1098,8 +1115,9 @@ class ModelRegistry:
             mlflow.end_run()
             self._active_run = None
 
-    def get_best_run(self, experiment_name: str, metric: str = "accuracy",
-                     ascending: bool = False) -> Dict[str, Any] | None:
+    def get_best_run(
+        self, experiment_name: str, metric: str = "accuracy", ascending: bool = False
+    ) -> Dict[str, Any] | None:
         """Get the best run for an experiment based on a metric.
 
         Parameters
@@ -1130,8 +1148,12 @@ class ModelRegistry:
         best = runs.iloc[0]
         return {
             "run_id": best["run_id"],
-            "metrics": {k.replace("metrics.", ""): v for k, v in best.items() if k.startswith("metrics.")},
-            "params": {k.replace("params.", ""): v for k, v in best.items() if k.startswith("params.")},
+            "metrics": {
+                k.replace("metrics.", ""): v for k, v in best.items() if k.startswith("metrics.")
+            },
+            "params": {
+                k.replace("params.", ""): v for k, v in best.items() if k.startswith("params.")
+            },
         }
 
 
@@ -1150,26 +1172,70 @@ def get_ml_capabilities() -> Dict[str, Any]:
         recommended library.
     """
     return {
-        "sklearn": {"available": _HAS_SKLEARN, "version": "1.3+", "purpose": "Classical ML (RF, IF, preprocessing)"},
-        "tensorflow": {"available": _HAS_TENSORFLOW, "version": "2.15+", "purpose": "LSTM load forecasting"},
-        "prophet": {"available": _HAS_PROPHET, "version": "1.0+", "purpose": "Seasonal load forecasting"},
-        "xgboost": {"available": _HAS_XGBOOST, "version": "2.0+", "purpose": "Gradient boosting fault prediction"},
+        "sklearn": {
+            "available": _HAS_SKLEARN,
+            "version": "1.3+",
+            "purpose": "Classical ML (RF, IF, preprocessing)",
+        },
+        "tensorflow": {
+            "available": _HAS_TENSORFLOW,
+            "version": "2.15+",
+            "purpose": "LSTM load forecasting",
+        },
+        "prophet": {
+            "available": _HAS_PROPHET,
+            "version": "1.0+",
+            "purpose": "Seasonal load forecasting",
+        },
+        "xgboost": {
+            "available": _HAS_XGBOOST,
+            "version": "2.0+",
+            "purpose": "Gradient boosting fault prediction",
+        },
         "shap": {"available": _HAS_SHAP, "version": "0.43+", "purpose": "Model explainability"},
-        "optuna": {"available": _HAS_OPTUNA, "version": "3.0+", "purpose": "Hyperparameter optimization"},
-        "pyod": {"available": _HAS_PYOD, "version": "1.0+", "purpose": "Advanced anomaly detection (30+ algorithms)"},
-        "pytorch": {"available": _HAS_TORCH, "version": "2.0+", "purpose": "Deep learning foundation"},
-        "torch_geometric": {"available": _HAS_TORCH_GEOMETRIC, "version": "2.3+", "purpose": "Graph Neural Networks for power grids"},
-        "mlflow": {"available": _HAS_MLFLOW, "version": "2.0+", "purpose": "Model tracking and versioning"},
+        "optuna": {
+            "available": _HAS_OPTUNA,
+            "version": "3.0+",
+            "purpose": "Hyperparameter optimization",
+        },
+        "pyod": {
+            "available": _HAS_PYOD,
+            "version": "1.0+",
+            "purpose": "Advanced anomaly detection (30+ algorithms)",
+        },
+        "pytorch": {
+            "available": _HAS_TORCH,
+            "version": "2.0+",
+            "purpose": "Deep learning foundation",
+        },
+        "torch_geometric": {
+            "available": _HAS_TORCH_GEOMETRIC,
+            "version": "2.3+",
+            "purpose": "Graph Neural Networks for power grids",
+        },
+        "mlflow": {
+            "available": _HAS_MLFLOW,
+            "version": "2.0+",
+            "purpose": "Model tracking and versioning",
+        },
         "forecasting_methods": {
-            "available": ["lstm" if _HAS_TENSORFLOW else None,
-                          "prophet" if _HAS_PROPHET else None,
-                          "linear"],
-            "best_available": "lstm" if _HAS_TENSORFLOW else ("prophet" if _HAS_PROPHET else "linear"),
+            "available": [
+                "lstm" if _HAS_TENSORFLOW else None,
+                "prophet" if _HAS_PROPHET else None,
+                "linear",
+            ],
+            "best_available": "lstm"
+            if _HAS_TENSORFLOW
+            else ("prophet" if _HAS_PROPHET else "linear"),
         },
         "fault_prediction_methods": {
-            "available": ["xgboost" if _HAS_XGBOOST else None,
-                          "random_forest" if _HAS_SKLEARN else None],
-            "best_available": "xgboost" if _HAS_XGBOOST else ("random_forest" if _HAS_SKLEARN else "none"),
+            "available": [
+                "xgboost" if _HAS_XGBOOST else None,
+                "random_forest" if _HAS_SKLEARN else None,
+            ],
+            "best_available": "xgboost"
+            if _HAS_XGBOOST
+            else ("random_forest" if _HAS_SKLEARN else "none"),
         },
         "anomaly_detection_methods": {
             "available": AnomalyDetector.AVAILABLE_METHODS,

@@ -17,8 +17,11 @@ Standards:
 - MoSCoW prioritization method
 """
 
+from __future__ import annotations
 import logging
-from datetime import UTC, datetime
+from datetime import datetime, timezone
+
+UTC = timezone.utc
 from typing import Any, Dict, List
 
 from agents.orchestrator import AgentResult, AgentStatus, BaseAgent, EngineeringTask, StudyType

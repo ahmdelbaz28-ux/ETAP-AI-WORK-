@@ -23,6 +23,7 @@ Hard Constraints:
   - ADMS = Operational Truth
 """
 
+from __future__ import annotations
 import hashlib
 import logging
 import time
@@ -709,9 +710,9 @@ class ChangePropagationEngine:
                 return {"status": "skipped", "reason": "No fault currents available"}
 
             # Use representative fault current range for coordination check
-            representative_faults = sorted({
-                round(fc, 0) for fc in fault_currents if fc > 1.0
-            })[:10]  # Up to 10 representative fault levels
+            representative_faults = sorted({round(fc, 0) for fc in fault_currents if fc > 1.0})[
+                :10
+            ]  # Up to 10 representative fault levels
 
             if not representative_faults:
                 representative_faults = [2.0, 5.0, 10.0, 20.0]

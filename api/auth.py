@@ -30,7 +30,9 @@ import hashlib
 import os
 import time
 import uuid
-from datetime import UTC, datetime, timedelta
+from datetime import datetime, timedelta, timezone
+
+UTC = timezone.utc
 from typing import Any, Dict, List
 
 import bcrypt
@@ -73,6 +75,7 @@ _RATE_LIMIT_WINDOW_SEC: int = 15 * 60  # 15 minutes
 
 try:
     import redis.asyncio as redis_async  # type: ignore
+
     REDIS_AVAILABLE = True
 except ImportError:
     redis_async = None
@@ -168,13 +171,9 @@ class User(Base):
         default=lambda: datetime.now(UTC),
         onupdate=lambda: datetime.now(UTC),
     )
-    last_login: Mapped[datetime | None] = mapped_column(
-        DateTime(timezone=True), nullable=True
-    )
+    last_login: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
-    reset_token: Mapped[str | None] = mapped_column(
-        String(128), nullable=True
-    )
+    reset_token: Mapped[str | None] = mapped_column(String(128), nullable=True)
     reset_token_expires: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True), nullable=True
     )
@@ -778,9 +777,7 @@ async def forgot_password(
         reset_token = str(uuid.uuid4())
         token_hash = hashlib.sha256(reset_token.encode()).hexdigest()
         user.reset_token = token_hash
-        user.reset_token_expires = datetime.now(UTC) + timedelta(
-            minutes=RESET_TOKEN_EXPIRE_MINUTES
-        )
+        user.reset_token_expires = datetime.now(UTC) + timedelta(minutes=RESET_TOKEN_EXPIRE_MINUTES)
         user.updated_at = datetime.now(UTC)
         db.add(user)
         await db.flush()

@@ -5,6 +5,7 @@ Provides production-grade retry handling, circuit breaker, multi-level recovery,
 and computational stability enforcement.
 """
 
+from __future__ import annotations
 import logging
 import random
 import threading
@@ -632,9 +633,7 @@ class MultiLevelRecovery:
             raise ValueError(f"Invalid recovery level: {level}. Use 1, 2, or 3.")
         self._strategies[level].append((fn, condition_fn))
 
-    def recover(
-        self, error: BaseException, context: Any | None = None
-    ) -> RecoveryResult:
+    def recover(self, error: BaseException, context: Any | None = None) -> RecoveryResult:
         """Execute recovery strategies from level 1 upward.
 
         Returns as soon as a level produces a result considered successful

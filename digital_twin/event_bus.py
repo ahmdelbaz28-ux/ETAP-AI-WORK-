@@ -11,6 +11,7 @@ Events follow the automatic workflow:
 Reference: IEC 61970 CIM Event Model, EPRI ADMS Architecture Guide
 """
 
+from __future__ import annotations
 import threading
 import time
 import uuid

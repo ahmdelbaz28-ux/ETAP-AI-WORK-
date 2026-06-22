@@ -12,7 +12,7 @@ Mapping Architecture:
 from __future__ import annotations
 
 import logging
-from enum import StrEnum
+from compat import StrEnum
 from typing import Any, Dict, List
 
 from autodesk_connector.shared.models import (
@@ -32,6 +32,7 @@ logger = logging.getLogger(__name__)
 # ---------------------------------------------------------------------------
 # Mapping Rules Registry
 # ---------------------------------------------------------------------------
+
 
 class MappingDirection(StrEnum):
     ETAP_TO_AUTOCAD = "etap_to_autocad"

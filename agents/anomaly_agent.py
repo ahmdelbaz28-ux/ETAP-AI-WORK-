@@ -18,8 +18,11 @@ Standards:
 - NERC CIP: Critical infrastructure monitoring
 """
 
+from __future__ import annotations
 import logging
-from datetime import UTC, datetime
+from datetime import datetime, timezone
+
+UTC = timezone.utc
 from typing import Any, Dict, List
 
 import numpy as np
@@ -424,6 +427,7 @@ class AnomalyAgent(BaseAgent):
             Anomaly detection results with scores and classifications.
         """
         from ml.predictive import AnomalyDetector
+
         if data.ndim == 1:
             data = data.reshape(-1, 1)
 

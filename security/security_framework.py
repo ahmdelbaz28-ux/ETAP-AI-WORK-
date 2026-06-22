@@ -14,6 +14,7 @@ Features:
 """
 
 # bcrypt is a hard dependency — add to requirements.txt: bcrypt>=4.0.0
+from __future__ import annotations
 import ast
 import json
 import logging
@@ -22,7 +23,9 @@ import secrets
 import threading
 import time
 from dataclasses import dataclass, field
-from datetime import UTC, datetime, timedelta
+from datetime import datetime, timedelta, timezone
+
+UTC = timezone.utc
 from enum import Enum
 from pathlib import Path
 from typing import Dict, List, Set
@@ -165,10 +168,13 @@ class AuthenticationManager:
     - Account lockout after failed attempts
     """
 
-    def __init__(self, secret_key: str | None = None,
-                 token_expiry_hours: int = 8,
-                 max_failed_attempts: int = 5,
-                 lockout_duration_minutes: int = 30):
+    def __init__(
+        self,
+        secret_key: str | None = None,
+        token_expiry_hours: int = 8,
+        max_failed_attempts: int = 5,
+        lockout_duration_minutes: int = 30,
+    ):
         if secret_key is None:
             secret_key = os.environ.get("JWT_SECRET_KEY")
         if not secret_key:
@@ -232,8 +238,9 @@ class AuthenticationManager:
             logger.debug("Password verification failed: %s", type(exc).__name__)
             return False
 
-    def create_user(self, username: str, email: str, password: str,
-                    role: UserRole = UserRole.VIEWER) -> User | None:
+    def create_user(
+        self, username: str, email: str, password: str, role: UserRole = UserRole.VIEWER
+    ) -> User | None:
         if username in self.username_to_id:
             logger.warning(f"Username '{username}' already exists")
             return None
@@ -715,12 +722,12 @@ class AuditLogger:
         self, event_type: str, user_id: str, action: str, details: Dict = None, success: bool = True
     ):
         log_entry = {
-            'timestamp': datetime.now(UTC).isoformat(),
-            'event_type': event_type,
-            'user_id': user_id,
-            'action': action,
-            'success': success,
-            'details': details or {}
+            "timestamp": datetime.now(UTC).isoformat(),
+            "event_type": event_type,
+            "user_id": user_id,
+            "action": action,
+            "success": success,
+            "details": details or {},
         }
 
         level = logging.INFO if success else logging.WARNING

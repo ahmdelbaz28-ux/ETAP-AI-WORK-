@@ -19,5 +19,5 @@ __all__ = [
     "scada_router",
     "digital_twin_router",
     "mfa_router",
-    "agents_router"
+    "agents_router",
 ]

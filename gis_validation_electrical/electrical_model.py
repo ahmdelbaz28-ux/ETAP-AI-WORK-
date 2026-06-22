@@ -85,7 +85,9 @@ def build_electrical_model(assets: List[ADMSAsset]) -> ElectricalModel:
 
     edges: Dict[str, ElectricalEdge] = {}
 
-    def endpoints_from_linestring(geom: Dict[str, Any]) -> Tuple[Tuple[float, float], Tuple[float, float]] | None:
+    def endpoints_from_linestring(
+        geom: Dict[str, Any],
+    ) -> Tuple[Tuple[float, float], Tuple[float, float]] | None:
         if geom.get("type") != "LineString":
             return None
         coords = geom.get("coordinates")

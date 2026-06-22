@@ -5,7 +5,8 @@ Provides horizontal scaling, load balancing, task queuing, cluster management,
 data partitioning, and distributed orchestration for large power system studies.
 """
 
-import enum
+from __future__ import annotations
+from compat import StrEnum
 import heapq
 import logging
 import random
@@ -24,7 +25,8 @@ logger = logging.getLogger(__name__)
 # LoadBalancer
 # ---------------------------------------------------------------------------
 
-class LoadBalancingStrategy(enum.StrEnum):
+
+class LoadBalancingStrategy(StrEnum):
     ROUND_ROBIN = "round_robin"
     LEAST_CONNECTIONS = "least_connections"
     RANDOM = "random"
@@ -138,7 +140,8 @@ class LoadBalancer:
 # DistributedTaskQueue
 # ---------------------------------------------------------------------------
 
-class TaskPriority(enum.StrEnum):
+
+class TaskPriority(StrEnum):
     LOW = "low"
     NORMAL = "normal"
     HIGH = "high"
@@ -465,7 +468,8 @@ class HorizontalScaler:
 # PartitionManager
 # ---------------------------------------------------------------------------
 
-class PartitionType(enum.StrEnum):
+
+class PartitionType(StrEnum):
     BUS_BASED = "bus_based"
     ZONE_BASED = "zone_based"
     VOLTAGE_LEVEL = "voltage_level"
@@ -631,7 +635,8 @@ class PartitionManager:
 # DistributedOrchestrator
 # ---------------------------------------------------------------------------
 
-class ExecutionStatus(enum.StrEnum):
+
+class ExecutionStatus(StrEnum):
     PENDING = "pending"
     RUNNING = "running"
     COMPLETED = "completed"

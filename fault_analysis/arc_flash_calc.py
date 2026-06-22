@@ -11,6 +11,7 @@ PPE descriptions, enclosure details, etc.) should import and use
 ``ArcFlashEngine`` directly.
 """
 
+from __future__ import annotations
 import json
 
 from fault_analysis.arc_flash_engine import (

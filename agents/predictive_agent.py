@@ -19,8 +19,11 @@ Standards:
 - ISO 55000: Asset Management (predictive maintenance)
 """
 
+from __future__ import annotations
 import logging
-from datetime import UTC, datetime
+from datetime import datetime, timezone
+
+UTC = timezone.utc
 from typing import Any, Dict, List
 
 import numpy as np
@@ -433,24 +436,36 @@ class PredictiveAgent(BaseAgent):
             "high_count": high,
         }
 
-    def forecast_short_term_ml(self, historical_load: List[float], horizon_hours: int = 24, method: str = "auto") -> Dict[str, Any]:
+    def forecast_short_term_ml(
+        self, historical_load: List[float], horizon_hours: int = 24, method: str = "auto"
+    ) -> Dict[str, Any]:
         """Short-term load forecasting using Prophet/LSTM/Linear from ml.predictive."""
         from ml.predictive import LoadForecaster
+
         lf = LoadForecaster(method=method)
         data = np.array(historical_load, dtype=float)
         train_result = lf.train(data)
         predictions = lf.predict(horizon_hours=horizon_hours)
         metrics = lf.evaluate(data)
         return {
-            "forecast_mw": predictions.tolist() if hasattr(predictions, 'tolist') else list(predictions),
+            "forecast_mw": predictions.tolist()
+            if hasattr(predictions, "tolist")
+            else list(predictions),
             "method": train_result.get("method", method),
             "metrics": metrics,
             "horizon_hours": horizon_hours,
         }
 
-    def predict_fault_ml(self, features: np.ndarray, labels: np.ndarray | None = None, use_xgboost: bool = True, explain: bool = False) -> Dict[str, Any]:
+    def predict_fault_ml(
+        self,
+        features: np.ndarray,
+        labels: np.ndarray | None = None,
+        use_xgboost: bool = True,
+        explain: bool = False,
+    ) -> Dict[str, Any]:
         """Fault prediction using XGBoost/RandomForest with SHAP explanations."""
         from ml.predictive import FaultPredictor
+
         fp = FaultPredictor(use_xgboost=use_xgboost)
         result = {}
         if labels is not None:
@@ -566,8 +581,7 @@ class PredictiveAgent(BaseAgent):
                 if not hist_load:
                     hours = 168
                     hist_load = [
-                        100.0 + 30.0 * np.sin(2 * np.pi * h / 24)
-                        + 5.0 * np.random.randn()
+                        100.0 + 30.0 * np.sin(2 * np.pi * h / 24) + 5.0 * np.random.randn()
                         for h in range(hours)
                     ]
                 forecast_method = task.parameters.get("forecast_method", "auto")
@@ -589,7 +603,9 @@ class PredictiveAgent(BaseAgent):
                         explain=task.parameters.get("explain", False),
                     )
                 else:
-                    results["ml_fault_prediction"] = {"error": "fault_features and fault_labels required"}
+                    results["ml_fault_prediction"] = {
+                        "error": "fault_features and fault_labels required"
+                    }
 
             result = AgentResult(
                 agent_name=self.agent_name,

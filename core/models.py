@@ -8,8 +8,10 @@ Pydantic BaseModels (for validation-heavy / API-facing schemas).
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from datetime import UTC, datetime
-from enum import StrEnum
+from datetime import datetime, timezone
+
+UTC = timezone.utc
+from compat import StrEnum
 from typing import Any, Dict, List
 
 from pydantic import BaseModel, Field, field_validator
@@ -58,6 +60,7 @@ class PydanticSemanticProperties(BaseModel):
                 f"'{v}' is not a valid ElementType. Choose from: {sorted(valid_types)}"
             )
         return v
+
     description: str | None = None
     material: str | None = None
     fire_rating: str | None = None

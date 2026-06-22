@@ -181,8 +181,7 @@ def check_health_endpoint():
 
     try:
         # Stop any existing container
-        subprocess.run(["docker", "rm", "-f", container_name],
-                      capture_output=True, timeout=10)
+        subprocess.run(["docker", "rm", "-f", container_name], capture_output=True, timeout=10)
 
         # Run container
         result = subprocess.run(
@@ -240,8 +239,7 @@ def check_health_endpoint():
         return True
 
     finally:
-        subprocess.run(["docker", "rm", "-f", container_name],
-                      capture_output=True, timeout=10)
+        subprocess.run(["docker", "rm", "-f", container_name], capture_output=True, timeout=10)
 
 
 def check_no_secrets():
@@ -275,16 +273,16 @@ def check_no_secrets():
 
 def cleanup():
     """Clean up Docker test artifacts."""
-    subprocess.run(["docker", "rm", "-f", "hf-guard-test-container"],
-                  capture_output=True, timeout=10)
-    subprocess.run(["docker", "rmi", "hf-guard-test:latest"],
-                  capture_output=True, timeout=10)
+    subprocess.run(
+        ["docker", "rm", "-f", "hf-guard-test-container"], capture_output=True, timeout=10
+    )
+    subprocess.run(["docker", "rmi", "hf-guard-test:latest"], capture_output=True, timeout=10)
 
 
 def main():
     print(f"\n{BOLD}{'=' * 60}{RESET}")
     print(f"{BOLD}  HF Space Build Guard - Pre-Push Validation{RESET}")
-    print(f"{BOLD}{'='*60}{RESET}\n")
+    print(f"{BOLD}{'=' * 60}{RESET}\n")
 
     try:
         check("README.md YAML front matter", check_readme_frontmatter)
@@ -297,7 +295,7 @@ def main():
     finally:
         cleanup()
 
-    print(f"\n{BOLD}{'='*60}{RESET}")
+    print(f"\n{BOLD}{'=' * 60}{RESET}")
 
     if errors:
         print(f"\n{RED}{BOLD}FAILED - {len(errors)} critical error(s):{RESET}")

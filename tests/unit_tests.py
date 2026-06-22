@@ -15,7 +15,9 @@ Coverage targets:
 import os
 import sys
 import time
-from datetime import UTC, datetime, timezone
+from datetime import datetime, timezone
+
+UTC = timezone.utc
 
 import numpy as np
 import pytest
@@ -1217,8 +1219,10 @@ class TestErrorHandler:
     def test_alert_manager_console_alert(self):
         alert_mgr = AlertManager()
         error = SystemError(
-            error_id="alert-test-id", message="console alert",
-            component="test", severity=ErrorSeverity.ERROR,
+            error_id="alert-test-id",
+            message="console alert",
+            component="test",
+            severity=ErrorSeverity.ERROR,
             timestamp=datetime.now(UTC),
         )
         alert_mgr.trigger_alert(error, channels=["console"])

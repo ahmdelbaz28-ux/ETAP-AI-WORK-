@@ -10,7 +10,7 @@ from __future__ import annotations
 import logging
 import time
 import uuid
-from enum import StrEnum
+from compat import StrEnum
 from typing import Dict, List
 
 import requests
@@ -96,10 +96,12 @@ class AutoCADPluginClient:
         self.base_url = base_url.rstrip("/")
         self.timeout = timeout
         self.session = requests.Session()
-        self.session.headers.update({
-            "Content-Type": "application/json",
-            "X-API-Key": api_key,
-        })
+        self.session.headers.update(
+            {
+                "Content-Type": "application/json",
+                "X-API-Key": api_key,
+            }
+        )
         self._available: bool | None = None
 
     def is_available(self) -> bool:
@@ -152,7 +154,9 @@ class AutoCADPluginClient:
             },
         )
 
-    def create_block(self, name: str, entities: List[dict], base_point: List[float] | None = None) -> dict:
+    def create_block(
+        self, name: str, entities: List[dict], base_point: List[float] | None = None
+    ) -> dict:
         """Create a block definition."""
         return self.send_command(
             "create_block",
@@ -335,7 +339,14 @@ class AutoCADPluginClient:
             },
         )
 
-    def draw_electrical_symbol(self, symbol_type: str, insertion_point: List[float], scale: float = 1.0, rotation: float = 0.0, attributes: dict | None = None) -> dict:
+    def draw_electrical_symbol(
+        self,
+        symbol_type: str,
+        insertion_point: List[float],
+        scale: float = 1.0,
+        rotation: float = 0.0,
+        attributes: dict | None = None,
+    ) -> dict:
         """Draw an electrical component symbol."""
         return self.send_command(
             "draw_electrical_symbol",
@@ -348,7 +359,9 @@ class AutoCADPluginClient:
             },
         )
 
-    def draw_single_line_diagram(self, buses: List[dict], branches: List[dict], options: dict | None = None) -> dict:
+    def draw_single_line_diagram(
+        self, buses: List[dict], branches: List[dict], options: dict | None = None
+    ) -> dict:
         """Generate a single-line diagram from bus/branch data."""
         return self.send_command(
             "draw_single_line_diagram",
@@ -697,14 +710,18 @@ class AutoCADConnector:
     # Operations Log
     # ------------------------------------------------------------------
 
-    def _log_operation(self, operation: str, target: str, success: bool, details: dict | None = None) -> None:
-        self._operation_log.append({
-            "operation": operation,
-            "target": target,
-            "success": success,
-            "details": details or {},
-            "timestamp": time.time(),
-        })
+    def _log_operation(
+        self, operation: str, target: str, success: bool, details: dict | None = None
+    ) -> None:
+        self._operation_log.append(
+            {
+                "operation": operation,
+                "target": target,
+                "success": success,
+                "details": details or {},
+                "timestamp": time.time(),
+            }
+        )
 
     def get_operation_log(self, limit: int = 100) -> List[dict]:
         return self._operation_log[-limit:]

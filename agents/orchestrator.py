@@ -16,11 +16,14 @@ Architecture:
 - Report Agent: Automated report generation (PDF/DOCX/XLSX)
 """
 
+from __future__ import annotations
 import asyncio
 import logging
 import time
 from dataclasses import dataclass, field
-from datetime import UTC, datetime
+from datetime import datetime, timezone
+
+UTC = timezone.utc
 from enum import Enum
 from typing import Any, Dict, List
 
@@ -243,10 +246,10 @@ class BaseAgent:
     def log_execution(self, message: str, level: str = "INFO"):
         """Log execution details."""
         entry = {
-            'timestamp': datetime.now(UTC).isoformat(),
-            'agent': self.agent_name,
-            'level': level,
-            'message': message
+            "timestamp": datetime.now(UTC).isoformat(),
+            "agent": self.agent_name,
+            "level": level,
+            "message": message,
         }
         self.execution_log.append(entry)
         getattr(self.logger, level.lower())(message)
@@ -1156,15 +1159,15 @@ class ReportGenerationAgent(BaseAgent):
     def _compile_report(self, results: List[AgentResult]) -> Dict:
         """Compile report content from agent results."""
         report = {
-            'title': 'Power System Engineering Analysis Report',
-            'generated_at': datetime.now(UTC).isoformat(),
-            'executive_summary': '',
-            'load_flow_results': {},
-            'short_circuit_results': {},
-            'harmonic_results': {},
-            'opf_results': {},
-            'validation_summary': {},
-            'recommendations': []
+            "title": "Power System Engineering Analysis Report",
+            "generated_at": datetime.now(UTC).isoformat(),
+            "executive_summary": "",
+            "load_flow_results": {},
+            "short_circuit_results": {},
+            "harmonic_results": {},
+            "opf_results": {},
+            "validation_summary": {},
+            "recommendations": [],
         }
 
         for result in results:
@@ -1246,9 +1249,9 @@ class ReportGenerationAgent(BaseAgent):
             from reporting.advanced_reports import PDFReportGenerator, ReportMetadata
 
             metadata = ReportMetadata(
-                title=content.get('title', 'Engineering Report'),
-                author='AhmedETAP',
-                date=datetime.now(UTC).isoformat()
+                title=content.get("title", "Engineering Report"),
+                author="AhmedETAP",
+                date=datetime.now(UTC).isoformat(),
             )
             generator = PDFReportGenerator()
             file_path = f"{output_path}/report_{datetime.now(UTC).strftime('%Y%m%d_%H%M%S')}.pdf"
@@ -1270,9 +1273,9 @@ class ReportGenerationAgent(BaseAgent):
             from reporting.advanced_reports import DOCXReportGenerator, ReportMetadata
 
             metadata = ReportMetadata(
-                title=content.get('title', 'Engineering Report'),
-                author='AhmedETAP',
-                date=datetime.now(UTC).isoformat()
+                title=content.get("title", "Engineering Report"),
+                author="AhmedETAP",
+                date=datetime.now(UTC).isoformat(),
             )
             generator = DOCXReportGenerator()
             file_path = f"{output_path}/report_{datetime.now(UTC).strftime('%Y%m%d_%H%M%S')}.docx"
@@ -1295,9 +1298,9 @@ class ReportGenerationAgent(BaseAgent):
             from reporting.advanced_reports import ReportMetadata, XLSXReportGenerator
 
             metadata = ReportMetadata(
-                title=content.get('title', 'Engineering Report'),
-                author='AhmedETAP',
-                date=datetime.now(UTC).isoformat()
+                title=content.get("title", "Engineering Report"),
+                author="AhmedETAP",
+                date=datetime.now(UTC).isoformat(),
             )
             generator = XLSXReportGenerator()
             file_path = f"{output_path}/report_{datetime.now(UTC).strftime('%Y%m%d_%H%M%S')}.xlsx"
@@ -1706,9 +1709,7 @@ class ChiefEngineeringOrchestrator:
                 "benchmark": benchmark,
             }
 
-        task_id = (
-            f"parallel_{datetime.now(UTC).strftime('%Y%m%d_%H%M%S')}"
-        )
+        task_id = f"parallel_{datetime.now(UTC).strftime('%Y%m%d_%H%M%S')}"
 
         # -----------------------------------------------------------
         # Helper: create an EngineeringTask for a single study

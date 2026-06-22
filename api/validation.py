@@ -39,18 +39,24 @@ async def validate_system(request: Request, spec: SystemSpec):
         if len(slack_buses) == 0:
             errors.append("System must have at least one slack bus")
         if len(slack_buses) > 1:
-            warnings.append(f"System has {len(slack_buses)} slack buses; typically only one is expected")
+            warnings.append(
+                f"System has {len(slack_buses)} slack buses; typically only one is expected"
+            )
 
         bus_ids = {b.bus_id for b in spec.buses}
         for line in spec.lines:
             if line.from_bus_id not in bus_ids:
-                errors.append(f"Line {line.line_id} references unknown from_bus_id {line.from_bus_id}")
+                errors.append(
+                    f"Line {line.line_id} references unknown from_bus_id {line.from_bus_id}"
+                )
             if line.to_bus_id not in bus_ids:
                 errors.append(f"Line {line.line_id} references unknown to_bus_id {line.to_bus_id}")
 
         for gen in spec.generators:
             if gen.bus_id not in bus_ids:
-                errors.append(f"Generator {gen.generator_id} references unknown bus_id {gen.bus_id}")
+                errors.append(
+                    f"Generator {gen.generator_id} references unknown bus_id {gen.bus_id}"
+                )
 
         for ld in spec.loads:
             if ld.bus_id not in bus_ids:
@@ -75,6 +81,7 @@ async def validate_system(request: Request, spec: SystemSpec):
         raise HTTPException(status_code=400, detail=str(ve)) from ve
     except Exception as e:
         from logging import getLogger
+
         logger = getLogger("engineering_service")
         logger.error("system_validation_failed error=%s", str(e), extra={"trace_id": trace_id})
         raise HTTPException(status_code=500, detail="Internal validation error") from e

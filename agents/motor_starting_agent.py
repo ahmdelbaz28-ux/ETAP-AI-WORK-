@@ -18,8 +18,11 @@ Standards:
 - IEC 60034: Rotating Electrical Machines
 """
 
+from __future__ import annotations
 import logging
-from datetime import UTC, datetime
+from datetime import datetime, timezone
+
+UTC = timezone.utc
 from typing import Any, Dict, List
 
 import numpy as np

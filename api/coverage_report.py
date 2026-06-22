@@ -34,12 +34,13 @@ import os
 import re
 import sys
 from dataclasses import asdict, dataclass, field
-from enum import StrEnum
+from compat import StrEnum
 from typing import Any, Dict, List, Set
 
 # ---------------------------------------------------------------------------
 # Data structures
 # ---------------------------------------------------------------------------
+
 
 class CoverageLevel(StrEnum):
     """Coverage quality rating."""
