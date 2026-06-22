@@ -18,8 +18,8 @@ Standards:
 """
 
 import logging
-from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional
+from datetime import UTC, datetime
+from typing import Any, Dict, List
 
 import numpy as np
 
@@ -169,7 +169,7 @@ class SCADAConnection:
         self.port = port
         self.protocol = protocol
         self.connected = False
-        self.last_poll_time: Optional[datetime] = None
+        self.last_poll_time: datetime | None = None
 
     def connect(self) -> bool:
         """Simulate establishing a SCADA connection."""
@@ -264,7 +264,7 @@ class SCADAAgent(BaseAgent):
             "port": port,
             "protocol": protocol,
             "timeout_ms": timeout_ms,
-            "connected_at": datetime.now(timezone.utc).isoformat() if success else None,
+            "connected_at": datetime.now(UTC).isoformat() if success else None,
         }
 
     # ------------------------------------------------------------------
@@ -274,8 +274,8 @@ class SCADAAgent(BaseAgent):
     def read_measurements(
         self,
         connection_id: str,
-        measurement_tags: Optional[List[str]] = None,
-        iec61850_refs: Optional[List[str]] = None,
+        measurement_tags: List[str] | None = None,
+        iec61850_refs: List[str] | None = None,
     ) -> Dict[str, Any]:
         """
         Read measurements from SCADA server.
@@ -305,7 +305,7 @@ class SCADAAgent(BaseAgent):
                 "measurements": [],
             }
 
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
 
         # Generate simulated measurements if none cached
         if connection_id not in self.measurement_cache:
@@ -507,7 +507,7 @@ class SCADAAgent(BaseAgent):
     def process_realtime_data(
         self,
         measurements: List[Dict[str, Any]],
-        validation_rules: Optional[Dict[str, Dict[str, Any]]] = None,
+        validation_rules: Dict[str, Dict[str, Any]] | None = None,
         filter_type: str = "moving_average",
         filter_window: int = 5,
         anomaly_threshold_sigma: float = 3.0,
@@ -801,7 +801,7 @@ class SCADAAgent(BaseAgent):
         - ``'iec61850_model'``: Get IEC 61850 data model
         - ``'full'``: Complete workflow (default)
         """
-        start_time = datetime.now(timezone.utc)
+        start_time = datetime.now(UTC)
         self.status = AgentStatus.RUNNING
 
         try:
@@ -894,7 +894,7 @@ class SCADAAgent(BaseAgent):
             )
 
             result.validation_status = self.validate_result(result)
-            execution_time = (datetime.now(timezone.utc) - start_time).total_seconds()
+            execution_time = (datetime.now(UTC) - start_time).total_seconds()
             result.execution_time = execution_time
 
             self.log_execution(f"SCADA integration completed in {execution_time:.2f}s")

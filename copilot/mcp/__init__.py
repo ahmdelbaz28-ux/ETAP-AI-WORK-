@@ -1,3 +1,2 @@
 """MCP Server — Engineering Copilot tool server."""
-
-from copilot.mcp.server import CopilotMCPServer, MCP_TOOL_DEFINITIONS
+from copilot.mcp.server import MCP_TOOL_DEFINITIONS, CopilotMCPServer

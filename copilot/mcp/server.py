@@ -24,15 +24,12 @@ Tools exposed:
 
 from __future__ import annotations
 
-import json
 import logging
-import os
-from typing import Any, Dict, List, Optional
+from typing import Dict, List
 
 from autodesk_connector.autocad.connector import AutoCADConnector
 from autodesk_connector.revit.connector import RevitConnector
 from autodesk_connector.shared.models import (
-    Breaker,
     Bus,
     Cable,
     Coordinates,
@@ -509,8 +506,8 @@ class CopilotMCPServer:
     def _handle_sync_etap(self, args: dict) -> dict:
         direction = args.get("direction", "full")
 
-        from etap_integration.sync_engine import ETAPSyncEngine
         from digital_twin.state_store import DigitalTwinState
+        from etap_integration.sync_engine import ETAPSyncEngine
 
         sync_engine = ETAPSyncEngine(
             etap_provider=self.etap_provider,

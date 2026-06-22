@@ -1,6 +1,5 @@
 import numpy as np
 
-
 try:
     from scipy.sparse import issparse
     from scipy.sparse.linalg import splu

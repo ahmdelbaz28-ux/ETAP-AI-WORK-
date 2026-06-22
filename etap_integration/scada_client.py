@@ -34,7 +34,7 @@ import logging
 import os
 import time
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
 logger = logging.getLogger(__name__)
 
@@ -219,7 +219,7 @@ class SCADAClient:
             poll_interval_sec if poll_interval_sec is not None else _SCADA_POLL_SEC
         )
         self._connected = False
-        self._last_telemetry: Optional[SCADATelemetry] = None
+        self._last_telemetry: SCADATelemetry | None = None
         self._simulated = SimulatedSCADA()
         self._client: Any = None
 
@@ -353,7 +353,7 @@ class SCADAClient:
         return "simulation"
 
     @property
-    def last_telemetry(self) -> Optional[SCADATelemetry]:
+    def last_telemetry(self) -> SCADATelemetry | None:
         """The most recent telemetry snapshot."""
         return self._last_telemetry
 
@@ -364,7 +364,7 @@ class SCADAClient:
 
 
 async def stream_scada_data(
-    client: Optional[SCADAClient] = None,
+    client: SCADAClient | None = None,
     interval_sec: int = 5,
 ):
     """Async generator that yields SCADA telemetry at the configured interval.

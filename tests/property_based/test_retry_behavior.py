@@ -10,14 +10,14 @@ Verifies:
 
 from __future__ import annotations
 
-from typing import Any, Callable
+from collections.abc import Callable
+from typing import Any
 
 import pytest
 from hypothesis import given, settings
 from hypothesis import strategies as st
 
 from core.retry import bounded_retry, network_retry, skill_retry
-
 
 # ---------------------------------------------------------------------------
 # Unit tests — decorator composition

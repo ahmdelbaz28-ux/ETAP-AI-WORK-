@@ -14,7 +14,7 @@ import json
 import sys
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Tuple
 
 # PDF processing libraries
 try:
@@ -64,7 +64,7 @@ class ETAPGuideExtractor:
             "files": [],
         }
 
-    def extract_text_from_pdf(self, pdf_path: Path) -> Tuple[Optional[str], int]:
+    def extract_text_from_pdf(self, pdf_path: Path) -> Tuple[str | None, int]:
         """
         Extract text from a single PDF file.
 
@@ -325,7 +325,7 @@ class ETAPGuideExtractor:
         chunk_files = list((self.output_path / "chunks").glob("*_chunks.json"))
 
         for chunk_file in chunk_files:
-            with open(chunk_file, "r", encoding="utf-8") as f:
+            with open(chunk_file, encoding='utf-8') as f:
                 data = json.load(f)
 
                 doc_entry = {

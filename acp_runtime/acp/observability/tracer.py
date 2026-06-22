@@ -50,7 +50,7 @@ class TraceContext:
     parent_span_id: str = ""
     sampled: bool = True
 
-    def with_span(self, span_id: str) -> "TraceContext":
+    def with_span(self, span_id: str) -> TraceContext:
         """Return a new context with the given span_id and this span as parent."""
         return TraceContext(
             trace_id=self.trace_id,
@@ -60,7 +60,7 @@ class TraceContext:
         )
 
     @classmethod
-    def from_trace_id(cls, trace_id: str) -> "TraceContext":
+    def from_trace_id(cls, trace_id: str) -> TraceContext:
         """Create a root context from a trace_id string."""
         return cls(trace_id=trace_id, span_id=trace_id, sampled=True)
 

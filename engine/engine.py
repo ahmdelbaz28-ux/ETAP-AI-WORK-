@@ -1,4 +1,3 @@
-from typing import Optional
 
 from coordination.coordination import CoordinationEngine
 from engine.interfaces import (
@@ -41,10 +40,10 @@ class PowerSystemEngine:
         self,
         system=None,
         *,
-        load_flow_solver: Optional[LoadFlowSolverProtocol] = None,
-        arc_flash_engine: Optional[ArcFlashEngineProtocol] = None,
-        coordination_engine: Optional[CoordinationEngineProtocol] = None,
-        visualizer: Optional[VisualizerProtocol] = None,
+        load_flow_solver: LoadFlowSolverProtocol | None = None,
+        arc_flash_engine: ArcFlashEngineProtocol | None = None,
+        coordination_engine: CoordinationEngineProtocol | None = None,
+        visualizer: VisualizerProtocol | None = None,
     ):
         self.system = system
 

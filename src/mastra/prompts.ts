@@ -40,7 +40,7 @@ function stringifyContent(content: unknown): string {
 }
 
 /**
- * Simple YAML parser for basic prompt structures (avoids import issues in ESM)
+ * Improved YAML parser that handles basic structures, multiline strings, and pipe operators
  */
 function parseSimpleYaml(content: string): Record<string, unknown> {
   const result: Record<string, unknown> = {};
@@ -50,37 +50,132 @@ function parseSimpleYaml(content: string): Record<string, unknown> {
   let inMessages = false;
   let currentMessageRole = '';
   let currentMessageContent = '';
+  let inMultilineContent = false;
+  let multilineIndent = 0;
   
-  for (const line of lines) {
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    
+    // Handle multiline content started with |
+    if (inMultilineContent) {
+      const trimmedLine = line.trim();
+      if (line.startsWith(' '.repeat(multilineIndent)) || trimmedLine === '') {
+        // This line is part of the multiline content
+        if (line.trim() !== '') {
+          currentMessageContent += '\n' + line.substring(multilineIndent);
+        } else {
+          currentMessageContent += '\n' + line.substring(multilineIndent);
+        }
+      } else {
+        // End of multiline content
+        inMultilineContent = false;
+        if (currentMessageRole && currentMessageContent.trim()) {
+          currentMessages.push({ role: currentMessageRole, content: currentMessageContent.trim() });
+          currentMessageRole = '';
+          currentMessageContent = '';
+        }
+      }
+      continue;
+    }
+    
     if (line.startsWith('messages:')) {
       inMessages = true;
       continue;
     }
-    if (inMessages && line.match(/^\s+- role:/)) {
+    
+    if (inMessages && line.match(/^\s*- role:/)) {
+      // Save previous message if exists
       if (currentMessageRole && currentMessageContent) {
         currentMessages.push({ role: currentMessageRole, content: currentMessageContent.trim() });
       }
-      currentMessageRole = line.split(':')[1]?.trim().replace(/"/g, '') || '';
+      
+      currentMessageRole = line.split(':')[1]?.trim().replace(/"/g, '').replace(/'/g, '') || '';
       currentMessageContent = '';
+    } else if (inMessages && line.match(/^\s+content:\s*\|/)) {
+      // Handle multiline content with pipe operator
+      currentMessageContent = '';
+      inMultilineContent = true;
+      multilineIndent = line.search(/\S/); // Find the position of first non-space character
+      
+      // Extract content after the pipe if there's anything
+      const pipeMatch = line.match(/^\s+content:\s*\|\s*(.*)/);
+      if (pipeMatch && pipeMatch[1]) {
+        currentMessageContent = pipeMatch[1];
+      }
+      
+      // Next line should be indented content
+      multilineIndent += 2; // Content after pipe should be indented more
+      continue;
     } else if (inMessages && line.match(/^\s+content:/)) {
-      currentMessageContent = line.substring(line.indexOf(':') + 1).trim().replace(/^|\n/g, '').replace(/\|$/,'');
-    } else if (inMessages && line.match(/^\s{4}/) && currentMessageRole) {
-      currentMessageContent += '\n' + line.trim();
+      // Handle single-line content
+      const contentMatch = line.match(/^\s+content:(.*)/);
+      if (contentMatch) {
+        currentMessageContent = contentMatch[1].trim().replace(/^"|"$/g, '').replace(/^'|'$/g, '');
+      }
+    } else if (inMessages && line.match(/^\s{4,}/) && currentMessageRole && !inMultilineContent) {
+      // Handle content continuation lines (indented)
+      const contentIndent = line.search(/\S/);
+      if (contentIndent > multilineIndent && currentMessageContent) {
+        currentMessageContent += '\n' + line.trim();
+      }
     } else if (line.match(/^\S+:/) && !line.startsWith('messages')) {
+      // Handle regular key-value pairs
       inMessages = false;
+      inMultilineContent = false;
+      
+      // Save previous message if exists
       if (currentKey === 'prompt' && currentMessageContent) {
         result[currentKey] = currentMessageContent;
+        currentMessageContent = '';
       }
-      const [key, value] = line.split(':');
-      currentKey = key.trim();
-      const val = value?.trim().replace(/^"(.*)"$/, '$1').replace(/^'(.*)'$/, '$1');
-      if (currentKey && val) {
-        result[currentKey] = val;
+      
+      if (currentMessageRole && currentMessageContent) {
+        currentMessages.push({ role: currentMessageRole, content: currentMessageContent.trim() });
+        currentMessageRole = '';
+        currentMessageContent = '';
+      }
+      
+      const colonIndex = line.indexOf(':');
+      if (colonIndex > 0) {
+        currentKey = line.substring(0, colonIndex).trim();
+        let value = line.substring(colonIndex + 1).trim();
+        
+        // Handle values that start with | (multiline)
+        if (value.startsWith('|')) {
+          value = value.substring(1).trim();
+          inMultilineContent = true;
+          multilineIndent = line.search(/\S/) + 2; // Indent for content should be more than the key
+          
+          // Store the initial value if any
+          if (value) {
+            if (inMessages && currentMessageRole) {
+              currentMessageContent = value;
+            } else {
+              result[currentKey] = value;
+            }
+          }
+        } else if (value.startsWith('"') || value.startsWith("'")) {
+          // Handle quoted values
+          value = value.replace(/^"(.*)"$/, '$1').replace(/^'(.*)'$/, '$1');
+          result[currentKey] = value;
+        } else if (value.toLowerCase() === 'true' || value.toLowerCase() === 'false') {
+          // Handle boolean values
+          result[currentKey] = value.toLowerCase() === 'true';
+        } else if (!isNaN(Number(value))) {
+          // Handle numeric values
+          result[currentKey] = Number(value);
+        } else if (value !== '') {
+          // Regular string value
+          result[currentKey] = value;
+        }
       }
     }
   }
   
-  if (inMessages && currentMessageRole && currentMessageContent) {
+  // Handle remaining content after loop ends
+  if (inMultilineContent && currentMessageRole && currentMessageContent) {
+    currentMessages.push({ role: currentMessageRole, content: currentMessageContent.trim() });
+  } else if (currentMessageRole && currentMessageContent) {
     currentMessages.push({ role: currentMessageRole, content: currentMessageContent.trim() });
   }
   

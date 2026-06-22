@@ -27,7 +27,7 @@ import logging
 import re
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
 logger = logging.getLogger(__name__)
 
@@ -175,7 +175,7 @@ class RASPEngine:
 
     def __init__(
         self,
-        rules: Optional[List[RASPRule]] = None,
+        rules: List[RASPRule] | None = None,
         enabled: bool = True,
     ) -> None:
         self._rules = rules or _DEFAULT_RULES

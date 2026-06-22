@@ -15,9 +15,10 @@ import threading
 import time
 import uuid
 from collections import defaultdict
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any, Dict, List
 
 # ============================================================
 # EVENT TYPES
@@ -68,7 +69,7 @@ class DomainEvent:
     timestamp: float = field(default_factory=time.time)
     event_id: str = field(default_factory=lambda: str(uuid.uuid4()))
     source: str = "unknown"
-    correlation_id: Optional[str] = None  # Links related events
+    correlation_id: str | None = None  # Links related events
     metadata: Dict[str, Any] = field(default_factory=dict)
 
     def to_dict(self) -> dict:

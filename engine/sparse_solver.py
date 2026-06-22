@@ -33,7 +33,7 @@ from __future__ import annotations
 import logging
 import time
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Tuple
 
 import numpy as np
 from scipy.sparse import csr_matrix, issparse, lil_matrix
@@ -162,7 +162,7 @@ class SparseYBus:
 
     def __init__(self, system: Any = None) -> None:
         self._system = system
-        self._ybus_sparse: Optional[csr_matrix] = None
+        self._ybus_sparse: csr_matrix | None = None
         self._buses: List[BusData] = []
         self._branches: List[BranchData] = []
         self._bus_index: Dict[int, int] = {}
@@ -229,8 +229,8 @@ class SparseYBus:
 
     def build_sparse_ybus(
         self,
-        buses: Optional[List[BusData]] = None,
-        branches: Optional[List[BranchData]] = None,
+        buses: List[BusData] | None = None,
+        branches: List[BranchData] | None = None,
     ) -> csr_matrix:
         """Build the Y-bus admittance matrix as a sparse CSR matrix.
 
@@ -300,8 +300,8 @@ class SparseYBus:
 
     def sparse_newton_raphson(
         self,
-        ybus: Optional[csr_matrix] = None,
-        bus_data: Optional[List[BusData]] = None,
+        ybus: csr_matrix | None = None,
+        bus_data: List[BusData] | None = None,
         max_iter: int = 50,
         tol: float = 1e-8,
     ) -> SparseConvergenceResult:
@@ -601,8 +601,8 @@ class SparseYBus:
 
     def compare_memory(
         self,
-        buses: Optional[List[BusData]] = None,
-        branches: Optional[List[BranchData]] = None,
+        buses: List[BusData] | None = None,
+        branches: List[BranchData] | None = None,
     ) -> Dict[str, Any]:
         """Compare memory usage of dense vs sparse Y-bus storage.
 

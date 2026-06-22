@@ -29,7 +29,7 @@ from __future__ import annotations
 
 import logging
 import time
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Union
 
 import numpy as np
 from scipy.sparse import csr_matrix, lil_matrix
@@ -618,7 +618,7 @@ class GPUSolver:
 
     def benchmark_cpu_vs_gpu(
         self,
-        sizes: Optional[List[int]] = None,
+        sizes: List[int] | None = None,
     ) -> Dict[str, Any]:
         """Benchmark CPU vs GPU solver performance for various system sizes.
 

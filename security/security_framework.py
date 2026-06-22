@@ -22,10 +22,10 @@ import secrets
 import threading
 import time
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from enum import Enum
 from pathlib import Path
-from typing import Dict, List, Optional, Set
+from typing import Dict, List, Set
 
 import bcrypt
 import jwt
@@ -135,11 +135,11 @@ class User:
     email: str
     role: UserRole
     password_hash: str
-    created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
-    last_login: Optional[datetime] = None
+    created_at: datetime = field(default_factory=lambda: datetime.now(UTC))
+    last_login: datetime | None = None
     is_active: bool = True
     failed_login_attempts: int = 0
-    locked_until: Optional[datetime] = None
+    locked_until: datetime | None = None
 
 
 @dataclass
@@ -149,10 +149,8 @@ class Session:
     session_id: str
     user_id: str
     token: str
-    created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
-    expires_at: datetime = field(
-        default_factory=lambda: datetime.now(timezone.utc) + timedelta(hours=8)
-    )
+    created_at: datetime = field(default_factory=lambda: datetime.now(UTC))
+    expires_at: datetime = field(default_factory=lambda: datetime.now(UTC) + timedelta(hours=8))
     is_valid: bool = True
 
 
@@ -167,13 +165,10 @@ class AuthenticationManager:
     - Account lockout after failed attempts
     """
 
-    def __init__(
-        self,
-        secret_key: Optional[str] = None,
-        token_expiry_hours: int = 8,
-        max_failed_attempts: int = 5,
-        lockout_duration_minutes: int = 30,
-    ):
+    def __init__(self, secret_key: str | None = None,
+                 token_expiry_hours: int = 8,
+                 max_failed_attempts: int = 5,
+                 lockout_duration_minutes: int = 30):
         if secret_key is None:
             secret_key = os.environ.get("JWT_SECRET_KEY")
         if not secret_key:
@@ -237,9 +232,8 @@ class AuthenticationManager:
             logger.debug("Password verification failed: %s", type(exc).__name__)
             return False
 
-    def create_user(
-        self, username: str, email: str, password: str, role: UserRole = UserRole.VIEWER
-    ) -> Optional[User]:
+    def create_user(self, username: str, email: str, password: str,
+                    role: UserRole = UserRole.VIEWER) -> User | None:
         if username in self.username_to_id:
             logger.warning(f"Username '{username}' already exists")
             return None
@@ -266,7 +260,7 @@ class AuthenticationManager:
         logger.info(f"User created: {username} (role={role.value})")
         return user
 
-    def authenticate(self, username: str, password: str) -> Optional[str]:
+    def authenticate(self, username: str, password: str) -> str | None:
         user_id = self.username_to_id.get(username)
         if not user_id:
             logger.warning("Authentication failed: invalid credentials")
@@ -274,7 +268,7 @@ class AuthenticationManager:
 
         user = self.users[user_id]
 
-        if user.locked_until and datetime.now(timezone.utc) < user.locked_until:
+        if user.locked_until and datetime.now(UTC) < user.locked_until:
             logger.warning("Authentication failed: account locked")
             return None
 
@@ -282,7 +276,7 @@ class AuthenticationManager:
             user.failed_login_attempts += 1
 
             if user.failed_login_attempts >= self.max_failed_attempts:
-                user.locked_until = datetime.now(timezone.utc) + timedelta(
+                user.locked_until = datetime.now(UTC) + timedelta(
                     minutes=self.lockout_duration_minutes
                 )
                 logger.warning("Account locked: too many failed attempts")
@@ -291,7 +285,7 @@ class AuthenticationManager:
 
         user.failed_login_attempts = 0
         user.locked_until = None
-        user.last_login = datetime.now(timezone.utc)
+        user.last_login = datetime.now(UTC)
 
         token = self._generate_token(user)
 
@@ -305,7 +299,7 @@ class AuthenticationManager:
 
     def _generate_token(self, user: User) -> str:
         """Generate JWT token for user."""
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         payload = {
             "user_id": user.user_id,
             "username": user.username,
@@ -320,11 +314,11 @@ class AuthenticationManager:
             token = token.decode("utf-8")
         return token
 
-    def validate_token(self, token: str) -> Optional[User]:
+    def validate_token(self, token: str) -> User | None:
         if isinstance(token, bytes):
             token = token.decode("utf-8")
         session = self.token_to_session.get(token)
-        if not session or not session.is_valid or datetime.now(timezone.utc) >= session.expires_at:
+        if not session or not session.is_valid or datetime.now(UTC) >= session.expires_at:
             return None
 
         user = self.users.get(session.user_id)
@@ -368,7 +362,7 @@ class AuthenticationManager:
         Returns the number of sessions removed.
         Should be called periodically (e.g., via background task).
         """
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         expired_tokens = [
             token
             for token, session in self.token_to_session.items()
@@ -721,12 +715,12 @@ class AuditLogger:
         self, event_type: str, user_id: str, action: str, details: Dict = None, success: bool = True
     ):
         log_entry = {
-            "timestamp": datetime.now(timezone.utc).isoformat(),
-            "event_type": event_type,
-            "user_id": user_id,
-            "action": action,
-            "success": success,
-            "details": details or {},
+            'timestamp': datetime.now(UTC).isoformat(),
+            'event_type': event_type,
+            'user_id': user_id,
+            'action': action,
+            'success': success,
+            'details': details or {}
         }
 
         level = logging.INFO if success else logging.WARNING

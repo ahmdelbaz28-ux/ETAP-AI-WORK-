@@ -19,8 +19,8 @@ Standards:
 """
 
 import logging
-from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional
+from datetime import UTC, datetime
+from typing import Any, Dict, List
 
 import numpy as np
 
@@ -115,7 +115,7 @@ class MotorStartingAgent(BaseAgent):
         voltage_v: float,
         nema_code: str = "F",
         starting_method: str = "DOL",
-        fla_a: Optional[float] = None,
+        fla_a: float | None = None,
     ) -> Dict[str, Any]:
         """
         Calculate motor starting (locked-rotor) current.
@@ -374,7 +374,7 @@ class MotorStartingAgent(BaseAgent):
         ``'starting_current'``, ``'voltage_dip'``, ``'torque'``,
         ``'acceleration_time'``, or ``'full'`` (runs all).
         """
-        start_time = datetime.now(timezone.utc)
+        start_time = datetime.now(UTC)
         self.status = AgentStatus.RUNNING
 
         try:
@@ -469,7 +469,7 @@ class MotorStartingAgent(BaseAgent):
             )
 
             result.validation_status = self.validate_result(result)
-            execution_time = (datetime.now(timezone.utc) - start_time).total_seconds()
+            execution_time = (datetime.now(UTC) - start_time).total_seconds()
             result.execution_time = execution_time
 
             self.log_execution(f"Motor starting analysis completed in {execution_time:.2f}s")

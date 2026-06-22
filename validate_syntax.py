@@ -15,7 +15,7 @@ def validate_python_syntax():
             if f.endswith(".py"):
                 path = os.path.join(root, f)
                 try:
-                    with open(path, "r", encoding="utf-8") as fh:
+                    with open(path, encoding='utf-8') as fh:
                         ast.parse(fh.read())
                     results.append(("OK", path, ""))
                 except SyntaxError as e:
@@ -38,7 +38,7 @@ def check_imports():
 
     for path in py_files:
         try:
-            with open(path, "r", encoding="utf-8") as fh:
+            with open(path, encoding='utf-8') as fh:
                 tree = ast.parse(fh.read())
             for node in ast.walk(tree):
                 if isinstance(node, ast.ImportFrom):
@@ -71,7 +71,7 @@ def detect_circular_deps():
                 if f.endswith(".py"):
                     fpath = os.path.join(root, f)
                     try:
-                        with open(fpath, "r", encoding="utf-8") as fh:
+                        with open(fpath, encoding='utf-8') as fh:
                             tree = ast.parse(fh.read())
                         for node in ast.walk(tree):
                             if isinstance(node, ast.ImportFrom) and node.module:

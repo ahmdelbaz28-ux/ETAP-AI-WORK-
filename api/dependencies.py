@@ -14,7 +14,6 @@ from __future__ import annotations
 import hmac
 import logging
 import os
-from typing import Optional
 
 import jwt
 from fastapi import Depends, Header, HTTPException, Query, status
@@ -118,7 +117,7 @@ class CurrentUser(BaseModel):
 
 async def get_current_user(
     db: AsyncSession = Depends(get_db),  # noqa: B008
-    authorization: Optional[str] = None,  # injected by FastAPI header param
+    authorization: str | None = None,  # injected by FastAPI header param
 ) -> CurrentUser:
     """Validate the JWT from the ``Authorization: Bearer <token>`` header.
 
@@ -159,8 +158,8 @@ async def get_current_user(
             detail="Invalid token",
         ) from err
 
-    user_id: Optional[str] = payload.get("sub")
-    token_type: Optional[str] = payload.get("type")
+    user_id: str | None = payload.get("sub")
+    token_type: str | None = payload.get("type")
 
     if user_id is None or token_type != "access":
         raise HTTPException(

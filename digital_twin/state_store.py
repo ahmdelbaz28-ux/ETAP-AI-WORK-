@@ -17,7 +17,7 @@ import threading
 import time
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Tuple
 
 import numpy as np
 
@@ -262,7 +262,7 @@ class StateStore:
 
             return self._current_version
 
-    def get_current(self) -> Optional[StateSnapshot]:
+    def get_current(self) -> StateSnapshot | None:
         """Get the current (latest) state snapshot."""
         with self._lock:
             if not self._snapshots:
@@ -270,7 +270,7 @@ class StateStore:
             ref = self._snapshots[-1]
         return copy.deepcopy(ref)
 
-    def get_version(self, version: int) -> Optional[StateSnapshot]:
+    def get_version(self, version: int) -> StateSnapshot | None:
         """Get a specific version of the state."""
         with self._lock:
             for s in self._snapshots:
@@ -286,7 +286,7 @@ class StateStore:
         with self._lock:
             return self._current_version
 
-    def rollback(self, version: int) -> Optional[StateSnapshot]:
+    def rollback(self, version: int) -> StateSnapshot | None:
         """
         Rollback state to a specific version.
         Removes all snapshots after the target version.
@@ -311,7 +311,7 @@ class StateStore:
             ref = self._snapshots[-1]
         return copy.deepcopy(ref)
 
-    def diff(self, version_a: int, version_b: int) -> Optional[Dict[str, Any]]:
+    def diff(self, version_a: int, version_b: int) -> Dict[str, Any] | None:
         """
         Compute the diff between two state versions.
 
@@ -432,7 +432,7 @@ class StateStore:
             self._snapshots.clear()
             self._current_version = 0
 
-    def _get_version_unlocked(self, version: int) -> Optional[StateSnapshot]:
+    def _get_version_unlocked(self, version: int) -> StateSnapshot | None:
         """Get a specific version without acquiring lock (caller must hold lock)."""
         for s in self._snapshots:
             if s.version == version:

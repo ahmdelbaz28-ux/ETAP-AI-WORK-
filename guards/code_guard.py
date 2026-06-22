@@ -19,7 +19,7 @@ from __future__ import annotations
 import ast
 import logging
 import re
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
 from guards.ai_failure_modes import AIFailureModeDetector
 from guards.base import BaseGuard, GuardMode, GuardResult, GuardSeverity, GuardViolation
@@ -43,9 +43,7 @@ class CodeGuard(BaseGuard):
         super().__init__(mode)
         self._ai_detector = AIFailureModeDetector(mode)
 
-    def scan(
-        self, source: str, language: str = "python", context: Optional[Dict[str, Any]] = None
-    ) -> GuardResult:
+    def scan(self, source: str, language: str = "python", context: Dict[str, Any] | None = None) -> GuardResult:
         violations: List[GuardViolation] = []
         context = context or {}
 
@@ -54,7 +52,7 @@ class CodeGuard(BaseGuard):
         violations.extend(ai_result.violations)
 
         # Parse AST for structural checks
-        tree: Optional[ast.AST] = None
+        tree: ast.AST | None = None
         try:
             tree = ast.parse(source)
         except SyntaxError:

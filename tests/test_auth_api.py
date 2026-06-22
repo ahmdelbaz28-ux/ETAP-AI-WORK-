@@ -24,7 +24,7 @@ import os
 import sys
 import time
 import uuid
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta, timezone
 
 import jwt
 import pytest
@@ -281,7 +281,7 @@ class TestRefresh:
     def test_refresh_expired_token(self, client):
         """An expired refresh token returns 401."""
         # Create an expired refresh token manually
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         expired_payload = {
             "sub": str(uuid.uuid4()),
             "type": "refresh",
@@ -369,7 +369,7 @@ class TestGetMe:
 
     def test_me_expired_token(self, client):
         """GET /me with an expired token returns 401."""
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         expired_payload = {
             "sub": str(uuid.uuid4()),
             "role": "engineer",

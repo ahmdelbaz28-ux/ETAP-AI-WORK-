@@ -1,5 +1,4 @@
-from core import metrics
-from core import tracing
+from core import metrics, tracing
 from core.database import UniversalDataModel
 from core.models import (
     ChangeSource,

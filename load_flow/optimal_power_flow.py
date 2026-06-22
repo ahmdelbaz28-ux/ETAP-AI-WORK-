@@ -22,7 +22,7 @@ Reference: IEEE PES Test Cases, MATPOWER methodology
 import logging
 from dataclasses import dataclass
 from enum import Enum
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Tuple
 
 import numpy as np
 from scipy.optimize import linprog, minimize
@@ -49,7 +49,7 @@ class GeneratorCost:
     p_max: float  # Maximum active power (MW)
     q_min: float  # Minimum reactive power (MVAR)
     q_max: float  # Maximum reactive power (MVAR)
-    ramp_rate: Optional[float] = None  # MW/min (optional)
+    ramp_rate: float | None = None  # MW/min (optional)
 
     def cost(self, p_mw: float) -> float:
         """Calculate generation cost for given power output."""

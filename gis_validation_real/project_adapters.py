@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import List, Optional
+from typing import List
 
 from gis_integration.base import GISProviderInterface
 from gis_integration.exceptions import GISIntegrationError
@@ -14,9 +14,7 @@ class ExtractedLayer:
     features: List[GISFeature]
 
 
-def extract_layers_as_features(
-    provider: GISProviderInterface, *, layer_ids: Optional[List[str]] = None
-) -> List[ExtractedLayer]:
+def extract_layers_as_features(provider: GISProviderInterface, *, layer_ids: List[str] | None = None) -> List[ExtractedLayer]:
     """
     Adapter: extract real GIS layers into normalized GISFeature lists.
 

@@ -30,8 +30,8 @@ import hashlib
 import os
 import time
 import uuid
-from datetime import datetime, timedelta, timezone
-from typing import Any, Dict, List, Optional
+from datetime import UTC, datetime, timedelta
+from typing import Any, Dict, List
 
 import bcrypt
 import jwt
@@ -68,30 +68,51 @@ _RATE_LIMIT_MAX_ATTEMPTS: int = 5
 _RATE_LIMIT_WINDOW_SEC: int = 15 * 60  # 15 minutes
 
 # ---------------------------------------------------------------------------
-# Token blacklist (in-memory — use Redis in production for multi-instance)
+# Token blacklist (Redis-backed)
 # ---------------------------------------------------------------------------
 
-_TOKEN_BLACKLIST: set[str] = set()
-_TOKEN_BLACKLIST_LOCK = __import__("threading").Lock()
+try:
+    import redis.asyncio as redis_async  # type: ignore
+    REDIS_AVAILABLE = True
+except ImportError:
+    redis_async = None
+    REDIS_AVAILABLE = False
+
+_REDIS_URL = os.getenv("REDIS_URL", "").strip()
+_TOKEN_BLACKLIST_PREFIX = os.getenv("TOKEN_BLACKLIST_PREFIX", "auth:blacklist:")
+
+_redis_client = None
 
 
-def _blacklist_token(jti: str) -> None:
-    """Add a token JTI to the blacklist."""
-    with _TOKEN_BLACKLIST_LOCK:
-        _TOKEN_BLACKLIST.add(jti)
+def _get_redis_client() -> redis_async.Redis | None:
+    global _redis_client
+    if not _REDIS_URL or not REDIS_AVAILABLE:
+        return None
+    if _redis_client is None:
+        _redis_client = redis_async.from_url(_REDIS_URL, decode_responses=True)
+    return _redis_client
 
 
-def _is_token_blacklisted(jti: str) -> bool:
-    """Check if a token JTI is blacklisted."""
-    with _TOKEN_BLACKLIST_LOCK:
-        return jti in _TOKEN_BLACKLIST
+async def _blacklist_token(jti: str, ttl_seconds: int | None = None) -> None:
+    """Blacklist a refresh token JTI using Redis (with TTL)."""
+    r = _get_redis_client()
+    if r is None:
+        return  # fallback: silently no-blacklist if REDIS_URL not configured or redis not available
+    key = f"{_TOKEN_BLACKLIST_PREFIX}{jti}"
+    if ttl_seconds and ttl_seconds > 0:
+        await r.set(key, "1", ex=int(ttl_seconds))
+    else:
+        await r.set(key, "1")
 
 
-def _cleanup_blacklist() -> int:
-    """Remove expired entries from the blacklist (best-effort, called periodically)."""
-    # For a production system, use Redis TTL-based expiry instead.
-    # This is a safety net for the in-memory implementation.
-    return 0
+async def _is_token_blacklisted(jti: str) -> bool:
+    """Check if token JTI is blacklisted in Redis."""
+    r = _get_redis_client()
+    if r is None:
+        return False
+    key = f"{_TOKEN_BLACKLIST_PREFIX}{jti}"
+    val = await r.get(key)
+    return val is not None
 
 
 # ---------------------------------------------------------------------------
@@ -140,17 +161,21 @@ class User(Base):
     mfa_enabled: Mapped[bool] = mapped_column(Boolean, default=False)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
-        default=lambda: datetime.now(timezone.utc),
+        default=lambda: datetime.now(UTC),
     )
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
-        default=lambda: datetime.now(timezone.utc),
-        onupdate=lambda: datetime.now(timezone.utc),
+        default=lambda: datetime.now(UTC),
+        onupdate=lambda: datetime.now(UTC),
     )
-    last_login: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
+    last_login: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
-    reset_token: Mapped[Optional[str]] = mapped_column(String(128), nullable=True)
-    reset_token_expires: Mapped[Optional[datetime]] = mapped_column(
+    reset_token: Mapped[str | None] = mapped_column(
+        String(128), nullable=True
+    )
+    reset_token_expires: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True), nullable=True
     )
 
@@ -263,8 +288,8 @@ class UpdateProfileRequest(BaseModel):
 
     model_config = ConfigDict(strict=False)
 
-    email: Optional[EmailStr] = None
-    mfa_enabled: Optional[bool] = None
+    email: EmailStr | None = None
+    mfa_enabled: bool | None = None
 
 
 class UserResponse(BaseModel):
@@ -278,9 +303,9 @@ class UserResponse(BaseModel):
     role: str
     mfa_enabled: bool
     is_active: bool
-    created_at: Optional[datetime] = None
-    updated_at: Optional[datetime] = None
-    last_login: Optional[datetime] = None
+    created_at: datetime | None = None
+    updated_at: datetime | None = None
+    last_login: datetime | None = None
 
 
 class UserListResponse(BaseModel):
@@ -315,7 +340,7 @@ def _ensure_utc(dt: datetime) -> datetime:
     with ``datetime.now(timezone.utc)`` never fail.
     """
     if dt.tzinfo is None:
-        return dt.replace(tzinfo=timezone.utc)
+        return dt.replace(tzinfo=UTC)
     return dt
 
 
@@ -332,7 +357,7 @@ def _verify_password(plain: str, hashed: str) -> bool:
 
 def _create_access_token(user_id: str, role: str) -> str:
     """Create a short-lived JWT access token."""
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     payload = {
         "sub": user_id,
         "role": role,
@@ -345,7 +370,7 @@ def _create_access_token(user_id: str, role: str) -> str:
 
 def _create_refresh_token(user_id: str) -> str:
     """Create a longer-lived JWT refresh token."""
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     payload = {
         "sub": user_id,
         "type": "refresh",
@@ -470,7 +495,7 @@ async def login(
         )
 
     # Update last_login
-    user.last_login = datetime.now(timezone.utc)
+    user.last_login = datetime.now(UTC)
     db.add(user)
     await db.flush()
 
@@ -515,13 +540,14 @@ async def refresh(
 
     # Check if the refresh token has been blacklisted (logged out)
     jti = payload.get("jti")
-    if jti and _is_token_blacklisted(jti):
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Refresh token has been revoked",
-        )
+    if jti:
+        if await _is_token_blacklisted(jti):
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Refresh token has been revoked",
+            )
 
-    user_id: Optional[str] = payload.get("sub")
+    user_id: str | None = payload.get("sub")
     if user_id is None:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -553,7 +579,7 @@ async def refresh(
     summary="Revoke session",
 )
 async def logout(
-    body: Optional[RefreshRequest] = Body(None),
+    body: RefreshRequest | None = Body(None),
     user: CurrentUser = Depends(get_current_user_from_header),  # noqa: B008
 ) -> None:
     """Log the current user out by blacklisting the provided refresh token.
@@ -571,8 +597,14 @@ async def logout(
                 options={"verify_exp": False},  # Allow blacklisting even if expired
             )
             jti = payload.get("jti")
+            exp = payload.get("exp")  # epoch seconds
+            ttl_seconds: int | None = None
+            if isinstance(exp, (int, float)):
+                now_epoch = datetime.now(tz=UTC).timestamp()
+                ttl_seconds = int(exp - now_epoch)
+
             if jti:
-                _blacklist_token(jti)
+                await _blacklist_token(jti, ttl_seconds=ttl_seconds)
         except jwt.InvalidTokenError:
             pass  # Invalid token — nothing to blacklist
 
@@ -644,7 +676,7 @@ async def update_me(
     if body.mfa_enabled is not None:
         db_user.mfa_enabled = body.mfa_enabled
 
-    db_user.updated_at = datetime.now(timezone.utc)
+    db_user.updated_at = datetime.now(UTC)
     db.add(db_user)
     await db.flush()
     await db.refresh(db_user)
@@ -707,7 +739,7 @@ async def change_password(
         )
 
     db_user.password_hash = _hash_password(body.new_password)
-    db_user.updated_at = datetime.now(timezone.utc)
+    db_user.updated_at = datetime.now(UTC)
     db.add(db_user)
     await db.flush()
     await db.refresh(db_user)
@@ -746,10 +778,10 @@ async def forgot_password(
         reset_token = str(uuid.uuid4())
         token_hash = hashlib.sha256(reset_token.encode()).hexdigest()
         user.reset_token = token_hash
-        user.reset_token_expires = datetime.now(timezone.utc) + timedelta(
+        user.reset_token_expires = datetime.now(UTC) + timedelta(
             minutes=RESET_TOKEN_EXPIRE_MINUTES
         )
-        user.updated_at = datetime.now(timezone.utc)
+        user.updated_at = datetime.now(UTC)
         db.add(user)
         await db.flush()
 
@@ -784,7 +816,7 @@ async def reset_password(
             detail="Invalid or expired reset token",
         )
 
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     expires = _ensure_utc(user.reset_token_expires) if user.reset_token_expires else None
     if expires is None or expires < now:
         raise HTTPException(
@@ -884,7 +916,7 @@ async def delete_user(
         )
 
     target.is_active = False
-    target.updated_at = datetime.now(timezone.utc)
+    target.updated_at = datetime.now(UTC)
     db.add(target)
     await db.flush()
 

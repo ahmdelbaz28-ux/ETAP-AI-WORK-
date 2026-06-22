@@ -84,7 +84,7 @@ def validate_prompt_file(filepath: Path) -> list:
 
     # Parse YAML
     try:
-        with open(filepath, "r", encoding="utf-8") as f:
+        with open(filepath, encoding="utf-8") as f:
             data = yaml.safe_load(f)
     except yaml.YAMLError as e:
         return [f"CRITICAL: YAML parse error: {e}"]

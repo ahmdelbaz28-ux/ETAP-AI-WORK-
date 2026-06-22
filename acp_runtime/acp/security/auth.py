@@ -20,7 +20,8 @@ import hashlib
 import hmac
 import json
 import time
-from typing import Any, Callable, Coroutine
+from collections.abc import Callable, Coroutine
+from typing import Any
 
 from acp.errors import AuthenticationRequired
 from acp.schema.capability import is_valid_scope

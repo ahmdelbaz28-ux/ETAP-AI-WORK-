@@ -23,7 +23,7 @@ import os
 import sys
 import time
 import uuid
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta, timezone
 from unittest.mock import patch
 
 import jwt
@@ -122,7 +122,7 @@ class TestJWTExpiryAndRefresh:
         assert me_resp.status_code == 200, "Valid token should grant access"
 
         # Step 3: Simulate token expiry by creating an expired token
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         expired_payload = {
             "sub": me_resp.json()["id"],
             "role": "engineer",

@@ -32,8 +32,8 @@ Features:
 import logging
 import os
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
-from typing import Dict, List, Optional
+from datetime import UTC, datetime
+from typing import Dict, List
 
 logger = logging.getLogger(__name__)
 
@@ -57,12 +57,12 @@ class ReportMetadata:
     report_id: str
     title: str
     prepared_by: str
-    reviewed_by: Optional[str] = None
-    approved_by: Optional[str] = None
+    reviewed_by: str | None = None
+    approved_by: str | None = None
     company_name: str = "Engineering Consulting Firm"
     project_name: str = ""
     client_name: str = ""
-    report_date: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    report_date: datetime = field(default_factory=lambda: datetime.now(UTC))
     confidentiality: str = "Confidential"
     revision: str = "1.0"
     language: str = "en"
@@ -363,9 +363,7 @@ class PDFReportGenerator:
         # Create output directory
         os.makedirs(output_path, exist_ok=True)
 
-        filename = (
-            f"report_{metadata.report_id}_{datetime.now(timezone.utc).strftime('%Y%m%d')}.pdf"
-        )
+        filename = f"report_{metadata.report_id}_{datetime.now(UTC).strftime('%Y%m%d')}.pdf"
         filepath = os.path.join(output_path, filename)
 
         # Create document template
@@ -440,9 +438,7 @@ class PDFReportGenerator:
         """Fallback PDF generation using text-to-PDF conversion."""
         os.makedirs(output_path, exist_ok=True)
 
-        filename = (
-            f"report_{metadata.report_id}_{datetime.now(timezone.utc).strftime('%Y%m%d')}.txt"
-        )
+        filename = f"report_{metadata.report_id}_{datetime.now(UTC).strftime('%Y%m%d')}.txt"
         filepath = os.path.join(output_path, filename)
 
         with open(filepath, "w", encoding="utf-8") as f:
@@ -486,9 +482,7 @@ class DOCXReportGenerator:
 
             os.makedirs(output_path, exist_ok=True)
 
-            filename = (
-                f"report_{metadata.report_id}_{datetime.now(timezone.utc).strftime('%Y%m%d')}.docx"
-            )
+            filename = f"report_{metadata.report_id}_{datetime.now(UTC).strftime('%Y%m%d')}.docx"
             filepath = os.path.join(output_path, filename)
 
             # Create document
@@ -547,9 +541,7 @@ class XLSXReportGenerator:
 
             os.makedirs(output_path, exist_ok=True)
 
-            filename = (
-                f"report_{metadata.report_id}_{datetime.now(timezone.utc).strftime('%Y%m%d')}.xlsx"
-            )
+            filename = f"report_{metadata.report_id}_{datetime.now(UTC).strftime('%Y%m%d')}.xlsx"
             filepath = os.path.join(output_path, filename)
 
             # Create workbook
@@ -614,13 +606,10 @@ class ReportGenerationAgent:
         self.chart_generator = ChartGenerator()
         self.logger = logging.getLogger("report_agent")
 
-    async def generate_complete_report(
-        self,
-        analysis_results: Dict,
-        metadata: Optional[ReportMetadata] = None,
-        formats: List[str] = None,
-        output_path: str = "./reports",
-    ) -> Dict[str, str]:
+    async def generate_complete_report(self, analysis_results: Dict,
+                                      metadata: ReportMetadata | None = None,
+                                      formats: List[str] = None,
+                                      output_path: str = './reports') -> Dict[str, str]:
         """
         Generate complete engineering report in multiple formats.
 
@@ -640,7 +629,7 @@ class ReportGenerationAgent:
         # Create default metadata if not provided
         if metadata is None:
             metadata = ReportMetadata(
-                report_id=f"RPT_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}",
+                report_id=f"RPT_{datetime.now(UTC).strftime('%Y%m%d_%H%M%S')}",
                 title="Power System Engineering Analysis Report",
                 prepared_by="AhmedETAP Engineering Platform",
                 project_name="Industrial Power System",

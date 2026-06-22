@@ -2,8 +2,9 @@ from __future__ import annotations
 
 import copy
 import random
+from collections.abc import Callable
 from dataclasses import dataclass
-from typing import Any, Callable, Dict, List, Tuple
+from typing import Any, Dict, List, Tuple
 
 from gis_integration.models import ADMSAsset
 
