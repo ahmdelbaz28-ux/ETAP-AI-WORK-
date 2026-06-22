@@ -10,7 +10,7 @@ from core_model.generator import Generator
 from core_model.line import Line
 from core_model.load import Load
 from core_model.system import System
-from load_flow.load_flow_solver_fixed import LoadFlowSolver
+from load_flow.load_flow import LoadFlowSolver
 
 
 def build_simple_3bus():

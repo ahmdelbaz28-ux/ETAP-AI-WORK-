@@ -206,7 +206,7 @@ class LoadFlowHandler(PropagationHandler):
             return ctx
 
         try:
-            from load_flow.load_flow_solver_fixed import LoadFlowSolver
+            from load_flow.load_flow import LoadFlowSolver
 
             solver = (
                 ctx.load_flow_solver
