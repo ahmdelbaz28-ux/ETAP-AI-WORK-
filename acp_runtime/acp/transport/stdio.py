@@ -7,6 +7,7 @@ and writes are protected by locks so concurrent tasks are safe.
 For testing, pass ``io.StringIO`` instances as ``stdin`` and
 ``stdout``.
 """
+
 from __future__ import annotations
 
 import logging

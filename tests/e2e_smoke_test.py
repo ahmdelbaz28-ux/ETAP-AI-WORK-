@@ -27,29 +27,29 @@ class TestValidationSuiteCLI:
         WHEN it is executed via python3
         THEN it exits with code 0 and reports all tests passing.
         """
-        result = run_command(['python3', 'validation_suite.py'])
+        result = run_command(["python3", "validation_suite.py"])
 
         assert result.returncode == 0, (
             f"validation_suite.py failed with return code {result.returncode}\n"
             f"stdout:\n{result.stdout}\n"
             f"stderr:\n{result.stderr}"
         )
-        assert 'VALIDATION SUMMARY' in result.stdout
-        assert 'Passed:' in result.stdout
+        assert "VALIDATION SUMMARY" in result.stdout
+        assert "Passed:" in result.stdout
 
     def test_syntax_validation_cli_passes(self):
         """GIVEN the validate_syntax.py script is available
         WHEN it is executed via python3
         THEN it exits with code 0 and reports all files valid.
         """
-        result = run_command(['python3', 'validate_syntax.py'])
+        result = run_command(["python3", "validate_syntax.py"])
 
         assert result.returncode == 0, (
             f"validate_syntax.py failed with return code {result.returncode}\n"
             f"stdout:\n{result.stdout}\n"
             f"stderr:\n{result.stderr}"
         )
-        assert 'STATUS: ALL PYTHON FILES PASS SYNTAX VALIDATION' in result.stdout
+        assert "STATUS: ALL PYTHON FILES PASS SYNTAX VALIDATION" in result.stdout
 
 
 class TestDockerComposePresence:
@@ -60,7 +60,7 @@ class TestDockerComposePresence:
         WHEN checking for docker-compose.yml
         THEN the file exists and is a non-empty YAML file.
         """
-        compose_path = os.path.join(os.path.dirname(__file__), '..', 'docker-compose.yml')
+        compose_path = os.path.join(os.path.dirname(__file__), "..", "docker-compose.yml")
         compose_path = os.path.abspath(compose_path)
 
         assert os.path.isfile(compose_path), f"docker-compose.yml not found at {compose_path}"

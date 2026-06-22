@@ -67,7 +67,6 @@ nltk>=3.6.0
 # spacy>=3.0.0  # Disabled: requires numpy>=2.0 which is incompatible with Python 3.8
 
 # Sentence embeddings for RAG (optional - requires Python 3.9+)
-# sentence-transformers>=2.2.0  # Requires Python 3.9+
 # chromadb>=0.4.0  # Optional - requires Python 3.9+
 # faiss-cpu>=1.7.0  # Optional - requires Python 3.9+
 
@@ -88,11 +87,9 @@ redis>=5.0.0
 httpx>=0.25.0
 
 # Phase 2: GPU Computing (optional)
-cupy-cuda12x>=13.0.0; platform_machine == 'x86_64'
 
 # Phase 6: ML/AI
 scikit-learn>=1.3.0
-tensorflow>=2.15.0; python_version >= '3.9'
 
 # Phase 5: Kubernetes
 kubernetes>=29.0.0

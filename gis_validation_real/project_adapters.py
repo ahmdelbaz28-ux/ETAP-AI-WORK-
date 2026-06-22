@@ -14,7 +14,9 @@ class ExtractedLayer:
     features: List[GISFeature]
 
 
-def extract_layers_as_features(provider: GISProviderInterface, *, layer_ids: Optional[List[str]] = None) -> List[ExtractedLayer]:
+def extract_layers_as_features(
+    provider: GISProviderInterface, *, layer_ids: Optional[List[str]] = None
+) -> List[ExtractedLayer]:
     """
     Adapter: extract real GIS layers into normalized GISFeature lists.
 

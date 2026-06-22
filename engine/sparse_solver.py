@@ -46,6 +46,7 @@ logger = logging.getLogger(__name__)
 # Data classes for branch / bus specifications
 # ---------------------------------------------------------------------------
 
+
 @dataclass
 class BranchData:
     """Minimal representation of a network branch (line or transformer).
@@ -122,6 +123,7 @@ class BusData:
 # Convergence result container
 # ---------------------------------------------------------------------------
 
+
 @dataclass
 class SparseConvergenceResult:
     """Result of a sparse Newton-Raphson load-flow solve."""
@@ -142,6 +144,7 @@ class SparseConvergenceResult:
 # ---------------------------------------------------------------------------
 # SparseYBus – main class
 # ---------------------------------------------------------------------------
+
 
 class SparseYBus:
     """Sparse admittance-matrix builder and Newton-Raphson load-flow solver.
@@ -178,37 +181,47 @@ class SparseYBus:
         self._buses = []
         for bid in bus_ids:
             b = system.buses[bid]
-            self._buses.append(BusData(
-                bus_id=bid,
-                bus_type=b.bus_type,
-                voltage_magnitude=b.voltage_magnitude,
-                voltage_angle=b.voltage_angle,
-                p_generation=b.generation_power.real if isinstance(b.generation_power, complex) else b.generation_power,
-                q_generation=b.generation_power.imag if isinstance(b.generation_power, complex) else 0.0,
-                p_load=b.load_power.real if isinstance(b.load_power, complex) else b.load_power,
-                q_load=b.load_power.imag if isinstance(b.load_power, complex) else 0.0,
-                q_min=getattr(b, "q_min", -999.0),
-                q_max=getattr(b, "q_max", 999.0),
-                v_scheduled=b.voltage_magnitude if b.bus_type == "pv" else 1.0,
-            ))
+            self._buses.append(
+                BusData(
+                    bus_id=bid,
+                    bus_type=b.bus_type,
+                    voltage_magnitude=b.voltage_magnitude,
+                    voltage_angle=b.voltage_angle,
+                    p_generation=b.generation_power.real
+                    if isinstance(b.generation_power, complex)
+                    else b.generation_power,
+                    q_generation=b.generation_power.imag
+                    if isinstance(b.generation_power, complex)
+                    else 0.0,
+                    p_load=b.load_power.real if isinstance(b.load_power, complex) else b.load_power,
+                    q_load=b.load_power.imag if isinstance(b.load_power, complex) else 0.0,
+                    q_min=getattr(b, "q_min", -999.0),
+                    q_max=getattr(b, "q_max", 999.0),
+                    v_scheduled=b.voltage_magnitude if b.bus_type == "pv" else 1.0,
+                )
+            )
 
         self._branches = []
         for line in getattr(system, "lines", []):
-            self._branches.append(BranchData(
-                from_bus=self._bus_index[line.from_bus.bus_id],
-                to_bus=self._bus_index[line.to_bus.bus_id],
-                impedance=line.get_impedance("1"),
-                shunt_admittance=line.get_shunt_admittance("1"),
-            ))
+            self._branches.append(
+                BranchData(
+                    from_bus=self._bus_index[line.from_bus.bus_id],
+                    to_bus=self._bus_index[line.to_bus.bus_id],
+                    impedance=line.get_impedance("1"),
+                    shunt_admittance=line.get_shunt_admittance("1"),
+                )
+            )
         for xf in getattr(system, "transformers", []):
-            self._branches.append(BranchData(
-                from_bus=self._bus_index[xf.from_bus.bus_id],
-                to_bus=self._bus_index[xf.to_bus.bus_id],
-                impedance=xf.get_impedance("1"),
-                shunt_admittance=xf.get_shunt_admittance("1"),
-                tap_ratio=xf.tap_ratio,
-                phase_shift=xf.phase_shift,
-            ))
+            self._branches.append(
+                BranchData(
+                    from_bus=self._bus_index[xf.from_bus.bus_id],
+                    to_bus=self._bus_index[xf.to_bus.bus_id],
+                    impedance=xf.get_impedance("1"),
+                    shunt_admittance=xf.get_shunt_admittance("1"),
+                    tap_ratio=xf.tap_ratio,
+                    phase_shift=xf.phase_shift,
+                )
+            )
 
     # ------------------------------------------------------------------
     # Public API
@@ -278,7 +291,9 @@ class SparseYBus:
         self._ybus_sparse = Y.tocsr()
         logger.info(
             "Built sparse Y-bus: %d buses, %d branches, %d non-zeros (%.1f%% fill)",
-            n, len(self._branches), self._ybus_sparse.nnz,
+            n,
+            len(self._branches),
+            self._ybus_sparse.nnz,
             100.0 * self._ybus_sparse.nnz / (n * n) if n > 0 else 0,
         )
         return self._ybus_sparse
@@ -342,12 +357,8 @@ class SparseYBus:
             V[i] = self._buses[i].v_scheduled * np.exp(1j * np.angle(V[i]))
 
         # Scheduled power
-        P_sch = np.array(
-            [b.p_generation - b.p_load for b in self._buses], dtype=float
-        )
-        Q_sch = np.array(
-            [b.q_generation - b.q_load for b in self._buses], dtype=float
-        )
+        P_sch = np.array([b.p_generation - b.p_load for b in self._buses], dtype=float)
+        Q_sch = np.array([b.q_generation - b.q_load for b in self._buses], dtype=float)
 
         iteration_log: List[Dict[str, Any]] = []
         converged = False
@@ -378,12 +389,14 @@ class SparseYBus:
 
             max_mismatch = np.max(np.abs(mismatch))
 
-            iteration_log.append({
-                "iteration": iteration,
-                "max_mismatch": float(max_mismatch),
-                "n_pv": n_pv,
-                "n_pq": n_pq,
-            })
+            iteration_log.append(
+                {
+                    "iteration": iteration,
+                    "max_mismatch": float(max_mismatch),
+                    "n_pv": n_pv,
+                    "n_pq": n_pq,
+                }
+            )
 
             if max_mismatch < tol:
                 converged = True
@@ -394,9 +407,7 @@ class SparseYBus:
             # mismatch = [\u0394P, \u0394Q] = [P_sch - P_calc, Q_sch - Q_calc].
             # The Newton-Raphson step is J * \u0394x = -mismatch, so
             # we negate the RHS to match the d(mismatch)/dx formulation.
-            J = self._build_sparse_jacobian(
-                V, Ybus_dense, pv_idx, pq_idx, n_unknowns
-            )
+            J = self._build_sparse_jacobian(V, Ybus_dense, pv_idx, pq_idx, n_unknowns)
 
             # --- Solve linear system ---
             try:
@@ -513,9 +524,9 @@ class SparseYBus:
         cos_theta = np.cos(theta)
 
         # Voltage products
-        V_i = Vmag[:, np.newaxis]        # (n, 1)
-        V_j = Vmag[np.newaxis, :]        # (1, n)
-        V_i_V_j = V_i * V_j              # (n, n)
+        V_i = Vmag[:, np.newaxis]  # (n, 1)
+        V_j = Vmag[np.newaxis, :]  # (1, n)
+        V_i_V_j = V_i * V_j  # (n, n)
 
         # Current power injections
         I = Ybus @ V
@@ -525,21 +536,21 @@ class SparseYBus:
 
         # Column indexing helpers
         n_th_cols = n_pv + n_pq
-        row_buses = pv_idx + pq_idx       # \u0394P rows
-        th_col_buses = pv_idx + pq_idx    # \u0394\u03b8 columns
-        vm_col_buses = pq_idx             # \u0394|V| columns
+        row_buses = pv_idx + pq_idx  # \u0394P rows
+        th_col_buses = pv_idx + pq_idx  # \u0394\u03b8 columns
+        vm_col_buses = pq_idx  # \u0394|V| columns
 
         # Precomputed products (vectorised, no Python loops over n\u00b2)
-        GS_minus_BC = G * sin_theta - B * cos_theta   # G_ij sin theta_ij - B_ij cos theta_ij
-        GS_minus_BC[np.arange(n), np.arange(n)] = 0.0   # zero diagonal for off-diag formulas
+        GS_minus_BC = G * sin_theta - B * cos_theta  # G_ij sin theta_ij - B_ij cos theta_ij
+        GS_minus_BC[np.arange(n), np.arange(n)] = 0.0  # zero diagonal for off-diag formulas
 
-        GC_plus_BS = G * cos_theta + B * sin_theta     # G_ij cos theta_ij + B_ij sin theta_ij
+        GC_plus_BS = G * cos_theta + B * sin_theta  # G_ij cos theta_ij + B_ij sin theta_ij
         GC_plus_BS[np.arange(n), np.arange(n)] = 0.0
 
         # Diagonals
         B_diag = B.diagonal()
         G_diag = G.diagonal()
-        V2 = Vmag ** 2
+        V2 = Vmag**2
 
         # ---- J1: d\u0394P/d\u03b8 ----
         # Row indices: 0..n_pv+n_pq-1  (all \u0394P rows)
@@ -615,9 +626,9 @@ class SparseYBus:
 
         # Sparse CSR: data + indices + indptr
         sparse_bytes = (
-            ybus.data.nbytes      # complex128 values
+            ybus.data.nbytes  # complex128 values
             + ybus.indices.nbytes  # int32 column indices
-            + ybus.indptr.nbytes   # int32 row pointers
+            + ybus.indptr.nbytes  # int32 row pointers
         )
 
         savings_bytes = dense_bytes - sparse_bytes
@@ -673,9 +684,7 @@ class SparseYBus:
 
             # Sparse NR solve
             t0 = time.perf_counter()
-            sparse_result = self.sparse_newton_raphson(
-                ybus, buses, max_iter=20, tol=1e-6
-            )
+            sparse_result = self.sparse_newton_raphson(ybus, buses, max_iter=20, tol=1e-6)
             t_solve_sparse = (time.perf_counter() - t0) * 1000
 
             # Dense NR solve (only for small systems to avoid OOM)
@@ -823,11 +832,14 @@ class SparseYBus:
         pq_buses: List[BusData] = []
         for i in range(1, n_buses):
             if i not in pv_set:
-                pq_buses.append(BusData(
-                    bus_id=i, bus_type="pq",
-                    p_load=0.3 + 0.05 * (i % 10),
-                    q_load=0.1 + 0.02 * (i % 10),
-                ))
+                pq_buses.append(
+                    BusData(
+                        bus_id=i,
+                        bus_type="pq",
+                        p_load=0.3 + 0.05 * (i % 10),
+                        q_load=0.1 + 0.02 * (i % 10),
+                    )
+                )
 
         total_p_load = sum(b.p_load for b in pq_buses)
         total_q_load = sum(b.q_load for b in pq_buses)
@@ -836,13 +848,16 @@ class SparseYBus:
 
         for i in range(1, n_buses):
             if i in pv_set:
-                buses.append(BusData(
-                    bus_id=i, bus_type="pv",
-                    voltage_magnitude=1.02,
-                    v_scheduled=1.02,
-                    p_generation=p_gen_per_pv + 0.01 * (i % 3),
-                    q_generation=q_gen_per_pv * 0.3,
-                ))
+                buses.append(
+                    BusData(
+                        bus_id=i,
+                        bus_type="pv",
+                        voltage_magnitude=1.02,
+                        v_scheduled=1.02,
+                        p_generation=p_gen_per_pv + 0.01 * (i % 3),
+                        q_generation=q_gen_per_pv * 0.3,
+                    )
+                )
             else:
                 # Find the matching PQ bus
                 for b in pq_buses:
@@ -854,8 +869,9 @@ class SparseYBus:
         for i in range(n_buses):
             j = (i + 1) % n_buses
             z = complex(0.01 + 0.001 * (i % 5), 0.05 + 0.01 * (i % 3))
-            branches.append(BranchData(from_bus=i, to_bus=j, impedance=z,
-                                       shunt_admittance=complex(0, 0.02)))
+            branches.append(
+                BranchData(from_bus=i, to_bus=j, impedance=z, shunt_admittance=complex(0, 0.02))
+            )
 
         # Additional radial spurs: connect every 3rd bus to bus+5
         for i in range(0, n_buses - 5, 3):
@@ -870,6 +886,7 @@ class SparseYBus:
 # ---------------------------------------------------------------------------
 # Dense Jacobian helper (module-level for reuse in benchmarks)
 # ---------------------------------------------------------------------------
+
 
 def _build_dense_jacobian(
     V: np.ndarray,
@@ -908,7 +925,7 @@ def _build_dense_jacobian(
 
     # Row indices for PV+PQ P-mismatch, PQ Q-mismatch
     unknown_buses_theta = pv_idx + pq_idx  # columns for θ unknowns
-    unknown_buses_v = pq_idx               # columns for |V| unknowns
+    unknown_buses_v = pq_idx  # columns for |V| unknowns
 
     for row_k, i in enumerate(pv_idx + pq_idx):
         # H: ∂P_i/∂θ_j  (column over θ unknowns)
@@ -917,9 +934,9 @@ def _build_dense_jacobian(
                 J[row_k, col_k] = -Q[i] - B[i, i] * Vmag[i] ** 2
             else:
                 J[row_k, col_k] = (
-                    Vmag[i] * Vmag[j]
-                    * (G[i, j] * np.sin(Vang[i] - Vang[j])
-                       - B[i, j] * np.cos(Vang[i] - Vang[j]))
+                    Vmag[i]
+                    * Vmag[j]
+                    * (G[i, j] * np.sin(Vang[i] - Vang[j]) - B[i, j] * np.cos(Vang[i] - Vang[j]))
                 )
 
         # N: ∂P_i/∂|V|_j  (column over |V| unknowns, PQ only)
@@ -929,9 +946,9 @@ def _build_dense_jacobian(
                 J[row_k, col] = P[i] + G[i, i] * Vmag[i] ** 2
             else:
                 J[row_k, col] = (
-                    Vmag[i] * Vmag[j]
-                    * (G[i, j] * np.cos(Vang[i] - Vang[j])
-                       + B[i, j] * np.sin(Vang[i] - Vang[j]))
+                    Vmag[i]
+                    * Vmag[j]
+                    * (G[i, j] * np.cos(Vang[i] - Vang[j]) + B[i, j] * np.sin(Vang[i] - Vang[j]))
                 )
 
     for row_k, i in enumerate(pq_idx):
@@ -942,9 +959,9 @@ def _build_dense_jacobian(
                 J[row, col_k] = P[i] - G[i, i] * Vmag[i] ** 2
             else:
                 J[row, col_k] = (
-                    -Vmag[i] * Vmag[j]
-                    * (G[i, j] * np.cos(Vang[i] - Vang[j])
-                       + B[i, j] * np.sin(Vang[i] - Vang[j]))
+                    -Vmag[i]
+                    * Vmag[j]
+                    * (G[i, j] * np.cos(Vang[i] - Vang[j]) + B[i, j] * np.sin(Vang[i] - Vang[j]))
                 )
 
         # L: ∂Q_i/∂|V|_j
@@ -954,9 +971,9 @@ def _build_dense_jacobian(
                 J[row, col] = Q[i] - B[i, i] * Vmag[i] ** 2
             else:
                 J[row, col] = (
-                    Vmag[i] * Vmag[j]
-                    * (G[i, j] * np.sin(Vang[i] - Vang[j])
-                       - B[i, j] * np.cos(Vang[i] - Vang[j]))
+                    Vmag[i]
+                    * Vmag[j]
+                    * (G[i, j] * np.sin(Vang[i] - Vang[j]) - B[i, j] * np.cos(Vang[i] - Vang[j]))
                 )
 
     return J
@@ -965,6 +982,7 @@ def _build_dense_jacobian(
 # ---------------------------------------------------------------------------
 # Convenience wrapper for IEEE test-case creation
 # ---------------------------------------------------------------------------
+
 
 def create_ieee_test_system(case: int = 14) -> Tuple[List[BusData], List[BranchData]]:
     """Create simplified IEEE test-case data for benchmarking.

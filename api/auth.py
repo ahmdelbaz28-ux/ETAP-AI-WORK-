@@ -55,15 +55,9 @@ from api.dependencies import (
 # JWT configuration
 # ---------------------------------------------------------------------------
 
-ACCESS_TOKEN_EXPIRE_MINUTES: int = int(
-    os.getenv("JWT_ACCESS_EXPIRE_MINUTES", "30")
-)
-REFRESH_TOKEN_EXPIRE_DAYS: int = int(
-    os.getenv("JWT_REFRESH_EXPIRE_DAYS", "7")
-)
-RESET_TOKEN_EXPIRE_MINUTES: int = int(
-    os.getenv("RESET_TOKEN_EXPIRE_MINUTES", "30")
-)
+ACCESS_TOKEN_EXPIRE_MINUTES: int = int(os.getenv("JWT_ACCESS_EXPIRE_MINUTES", "30"))
+REFRESH_TOKEN_EXPIRE_DAYS: int = int(os.getenv("JWT_REFRESH_EXPIRE_DAYS", "7"))
+RESET_TOKEN_EXPIRE_MINUTES: int = int(os.getenv("RESET_TOKEN_EXPIRE_MINUTES", "30"))
 
 # ---------------------------------------------------------------------------
 # Rate-limiting (in-memory, per username)
@@ -99,15 +93,32 @@ def _cleanup_blacklist() -> int:
     # This is a safety net for the in-memory implementation.
     return 0
 
+
 # ---------------------------------------------------------------------------
 # Common-password blocklist (small sample — extend as needed)
 # ---------------------------------------------------------------------------
 
 _COMMON_PASSWORDS: set[str] = {
-    "password", "12345678", "qwerty12", "abc12345", "password1",
-    "iloveyou", "admin123", "welcome1", "123456789", "password123",
-    "Passw0rd", "monkey12", "dragon12", "sunshine1", "princess1",
-    "football1", "shadow12", "master12", "login123", "hello123",
+    "password",
+    "12345678",
+    "qwerty12",
+    "abc12345",
+    "password1",
+    "iloveyou",
+    "admin123",
+    "welcome1",
+    "123456789",
+    "password123",
+    "Passw0rd",
+    "monkey12",
+    "dragon12",
+    "sunshine1",
+    "princess1",
+    "football1",
+    "shadow12",
+    "master12",
+    "login123",
+    "hello123",
 }
 
 
@@ -115,20 +126,15 @@ _COMMON_PASSWORDS: set[str] = {
 # SQLAlchemy ORM model
 # ---------------------------------------------------------------------------
 
+
 class User(Base):
     """Persisted user account."""
 
     __tablename__ = "users"
 
-    id: Mapped[str] = mapped_column(
-        String(36), primary_key=True, default=lambda: str(uuid.uuid4())
-    )
-    username: Mapped[str] = mapped_column(
-        String(64), unique=True, index=True, nullable=False
-    )
-    email: Mapped[str] = mapped_column(
-        String(255), unique=True, index=True, nullable=False
-    )
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    username: Mapped[str] = mapped_column(String(64), unique=True, index=True, nullable=False)
+    email: Mapped[str] = mapped_column(String(255), unique=True, index=True, nullable=False)
     password_hash: Mapped[str] = mapped_column(String(128), nullable=False)
     role: Mapped[str] = mapped_column(String(32), default="engineer")
     mfa_enabled: Mapped[bool] = mapped_column(Boolean, default=False)
@@ -141,13 +147,9 @@ class User(Base):
         default=lambda: datetime.now(timezone.utc),
         onupdate=lambda: datetime.now(timezone.utc),
     )
-    last_login: Mapped[Optional[datetime]] = mapped_column(
-        DateTime(timezone=True), nullable=True
-    )
+    last_login: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
-    reset_token: Mapped[Optional[str]] = mapped_column(
-        String(128), nullable=True
-    )
+    reset_token: Mapped[Optional[str]] = mapped_column(String(128), nullable=True)
     reset_token_expires: Mapped[Optional[datetime]] = mapped_column(
         DateTime(timezone=True), nullable=True
     )
@@ -156,6 +158,7 @@ class User(Base):
 # ---------------------------------------------------------------------------
 # Pydantic v2 schemas
 # ---------------------------------------------------------------------------
+
 
 class RegisterRequest(BaseModel):
     """Payload for ``POST /register``."""
@@ -302,6 +305,7 @@ router = APIRouter(prefix="/api/v1/auth", tags=["Authentication"])
 # Helpers
 # ---------------------------------------------------------------------------
 
+
 def _ensure_utc(dt: datetime) -> datetime:
     """Return *dt* as a UTC-aware datetime.
 
@@ -377,6 +381,7 @@ def _record_failed_attempt(username: str) -> None:
 # Endpoints
 # ---------------------------------------------------------------------------
 
+
 @router.post(
     "/register",
     response_model=UserResponse,
@@ -393,9 +398,7 @@ async def register(
     already taken.
     """
     # Check username uniqueness
-    existing = await db.execute(
-        select(User).where(User.username == body.username)
-    )
+    existing = await db.execute(select(User).where(User.username == body.username))
     if existing.scalar_one_or_none() is not None:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
@@ -403,9 +406,7 @@ async def register(
         )
 
     # Check email uniqueness
-    existing = await db.execute(
-        select(User).where(User.email == body.email)
-    )
+    existing = await db.execute(select(User).where(User.email == body.email))
     if existing.scalar_one_or_none() is not None:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
@@ -452,9 +453,7 @@ async def login(
     """
     _check_rate_limit(body.username)
 
-    result = await db.execute(
-        select(User).where(User.username == body.username)
-    )
+    result = await db.execute(select(User).where(User.username == body.username))
     user = result.scalar_one_or_none()
 
     if user is None or not _verify_password(body.password, user.password_hash):
@@ -496,9 +495,7 @@ async def refresh(
 ) -> Any:
     """Exchange a valid refresh token for a new access + refresh pair."""
     try:
-        payload = jwt.decode(
-            body.refresh_token, JWT_SECRET_KEY, algorithms=[JWT_ALGORITHM]
-        )
+        payload = jwt.decode(body.refresh_token, JWT_SECRET_KEY, algorithms=[JWT_ALGORITHM])
     except jwt.ExpiredSignatureError as err:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -568,7 +565,9 @@ async def logout(
     if body and body.refresh_token:
         try:
             payload = jwt.decode(
-                body.refresh_token, JWT_SECRET_KEY, algorithms=[JWT_ALGORITHM],
+                body.refresh_token,
+                JWT_SECRET_KEY,
+                algorithms=[JWT_ALGORITHM],
                 options={"verify_exp": False},  # Allow blacklisting even if expired
             )
             jti = payload.get("jti")
@@ -776,9 +775,7 @@ async def reset_password(
 ) -> Dict[str, str]:
     """Set a new password using a valid reset token."""
     token_hash = hashlib.sha256(body.token.encode()).hexdigest()
-    result = await db.execute(
-        select(User).where(User.reset_token == token_hash)
-    )
+    result = await db.execute(select(User).where(User.reset_token == token_hash))
     user = result.scalar_one_or_none()
 
     if user is None:

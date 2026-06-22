@@ -86,10 +86,12 @@ class RevitPluginClient:
         self.base_url = base_url.rstrip("/")
         self.timeout = timeout
         self.session = requests.Session()
-        self.session.headers.update({
-            "Content-Type": "application/json",
-            "X-API-Key": api_key,
-        })
+        self.session.headers.update(
+            {
+                "Content-Type": "application/json",
+                "X-API-Key": api_key,
+            }
+        )
 
     def is_available(self) -> bool:
         try:
@@ -140,12 +142,17 @@ class RevitPluginClient:
     def load_family(self, family_path: str) -> dict:
         return self._call("/family/load", {"family_path": family_path})
 
-    def place_family(self, family_symbol: str, insertion_point: List[float], level_id: str = "") -> dict:
-        return self._call("/family/place", {
-            "family_symbol": family_symbol,
-            "insertion_point": insertion_point,
-            "level_id": level_id,
-        })
+    def place_family(
+        self, family_symbol: str, insertion_point: List[float], level_id: str = ""
+    ) -> dict:
+        return self._call(
+            "/family/place",
+            {
+                "family_symbol": family_symbol,
+                "insertion_point": insertion_point,
+                "level_id": level_id,
+            },
+        )
 
     def list_families(self, category: str = "") -> dict:
         return self._call("/family/list", {"category": category})
@@ -158,11 +165,14 @@ class RevitPluginClient:
         return self._call("/parameter/read", {"element_id": element_id})
 
     def update_parameter(self, element_id: str, param_name: str, value: Any) -> dict:
-        return self._call("/parameter/update", {
-            "element_id": element_id,
-            "param_name": param_name,
-            "value": value,
-        })
+        return self._call(
+            "/parameter/update",
+            {
+                "element_id": element_id,
+                "param_name": param_name,
+                "value": value,
+            },
+        )
 
     # ------------------------------------------------------------------
     # Levels & Rooms
@@ -175,11 +185,14 @@ class RevitPluginClient:
         return self._call("/level/list", {})
 
     def create_room(self, name: str, level_id: str, bounding_box: Optional[dict] = None) -> dict:
-        return self._call("/room/create", {
-            "name": name,
-            "level_id": level_id,
-            "bounding_box": bounding_box,
-        })
+        return self._call(
+            "/room/create",
+            {
+                "name": name,
+                "level_id": level_id,
+                "bounding_box": bounding_box,
+            },
+        )
 
     def list_rooms(self, level_id: str = "") -> dict:
         return self._call("/room/list", {"level_id": level_id})
@@ -194,12 +207,17 @@ class RevitPluginClient:
     def read_mep_data(self) -> dict:
         return self._call("/mep/data", {})
 
-    def create_circuit(self, panel_id: str, device_ids: List[str], circuit_number: Optional[int] = None) -> dict:
-        return self._call("/mep/create_circuit", {
-            "panel_id": panel_id,
-            "device_ids": device_ids,
-            "circuit_number": circuit_number,
-        })
+    def create_circuit(
+        self, panel_id: str, device_ids: List[str], circuit_number: Optional[int] = None
+    ) -> dict:
+        return self._call(
+            "/mep/create_circuit",
+            {
+                "panel_id": panel_id,
+                "device_ids": device_ids,
+                "circuit_number": circuit_number,
+            },
+        )
 
     # ------------------------------------------------------------------
     # Sync
@@ -276,8 +294,8 @@ class RevitConnector:
         bbox = {
             "min_x": room.coordinates.x if room.coordinates else 0,
             "min_y": room.coordinates.y if room.coordinates else 0,
-            "max_x": (room.coordinates.x if room.coordinates else 0) + area ** 0.5,
-            "max_y": (room.coordinates.y if room.coordinates else 0) + area ** 0.5,
+            "max_x": (room.coordinates.x if room.coordinates else 0) + area**0.5,
+            "max_y": (room.coordinates.y if room.coordinates else 0) + area**0.5,
         }
         return self.plugin.create_room(room.name, level_id, bounding_box=bbox)
 
@@ -445,14 +463,18 @@ class RevitConnector:
     # Helpers
     # ------------------------------------------------------------------
 
-    def _log_operation(self, operation: str, target: str, success: bool, details: Optional[dict] = None) -> None:
-        self._operation_log.append({
-            "operation": operation,
-            "target": target,
-            "success": success,
-            "details": details or {},
-            "timestamp": time.time(),
-        })
+    def _log_operation(
+        self, operation: str, target: str, success: bool, details: Optional[dict] = None
+    ) -> None:
+        self._operation_log.append(
+            {
+                "operation": operation,
+                "target": target,
+                "success": success,
+                "details": details or {},
+                "timestamp": time.time(),
+            }
+        )
 
     def get_operation_log(self, limit: int = 100) -> List[dict]:
         return self._operation_log[-limit:]

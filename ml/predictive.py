@@ -235,9 +235,7 @@ class LoadForecaster:
             Dictionary with ``mae``, ``rmse``, and ``mape`` metrics.
         """
         if len(test_data) < self._window_size + 1:
-            raise ValueError(
-                f"Need at least {self._window_size + 1} test data points"
-            )
+            raise ValueError(f"Need at least {self._window_size + 1} test data points")
 
         # Generate one-step-ahead predictions for the test window
         actuals: List[float] = []
@@ -268,7 +266,15 @@ class LoadForecaster:
         # MAPE — avoid division by zero
         nonzero_mask = actuals_arr != 0
         if np.any(nonzero_mask):
-            mape = float(np.mean(np.abs((actuals_arr[nonzero_mask] - preds_arr[nonzero_mask]) / actuals_arr[nonzero_mask])) * 100)
+            mape = float(
+                np.mean(
+                    np.abs(
+                        (actuals_arr[nonzero_mask] - preds_arr[nonzero_mask])
+                        / actuals_arr[nonzero_mask]
+                    )
+                )
+                * 100
+            )
         else:
             mape = float("inf")
 

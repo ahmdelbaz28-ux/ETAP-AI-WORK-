@@ -20,6 +20,7 @@ from pydantic import BaseModel, Field
 # Enums
 # ---------------------------------------------------------------------------
 
+
 class SourceSystem(str, Enum):
     ETAP = "etap"
     AUTOCAD = "autocad"
@@ -239,6 +240,7 @@ class Panel(BaseEntity):
 
 class BreakerDef(BaseModel):
     """Lightweight breaker definition used inside Panel feeders."""
+
     breaker_id: str
     rated_current_a: float
     poles: int = 3
@@ -469,6 +471,7 @@ class Annotation(BaseEntity):
 
 class UnifiedEngineeringModel(BaseModel):
     """Top-level container holding the entire engineering project model."""
+
     schema_version: str = "1.0.0"
     project: Project
     metadata: Dict[str, Any] = Field(default_factory=dict)

@@ -2,9 +2,13 @@ import numpy as np
 
 
 class CoordinationEngine:
-    def __init__(self, default_margin_sec: float = 0.2,
-                 tms_search_min: float = 0.1, tms_search_max: float = 10.0,
-                 tms_search_steps: int = 100):
+    def __init__(
+        self,
+        default_margin_sec: float = 0.2,
+        tms_search_min: float = 0.1,
+        tms_search_max: float = 10.0,
+        tms_search_steps: int = 100,
+    ):
         """
         Initialize the coordination engine with grading-margin defaults.
 
@@ -46,22 +50,22 @@ class CoordinationEngine:
             margin = t_up - t_down
             coordinated = margin >= 0.2  # typical grading margin of 0.2 seconds
             return {
-                'coordinated': coordinated,
-                'upstream_time': t_up,
-                'downstream_time': t_down,
-                'margin': margin,
-                'required_margin': 0.2,
-                'fault_current': fault_current
+                "coordinated": coordinated,
+                "upstream_time": t_up,
+                "downstream_time": t_down,
+                "margin": margin,
+                "required_margin": 0.2,
+                "fault_current": fault_current,
             }
         else:
             # Upstream trips first or same time: not coordinated
             return {
-                'coordinated': False,
-                'upstream_time': t_up,
-                'downstream_time': t_down,
-                'margin': t_up - t_down,
-                'required_margin': 0.2,
-                'fault_current': fault_current
+                "coordinated": False,
+                "upstream_time": t_up,
+                "downstream_time": t_down,
+                "margin": t_up - t_down,
+                "required_margin": 0.2,
+                "fault_current": fault_current,
             }
 
     def check_coordination_range(self, upstream_relay, downstream_relay, fault_currents):
@@ -81,7 +85,9 @@ class CoordinationEngine:
             results.append(self.check_coordination(upstream_relay, downstream_relay, If))
         return results
 
-    def suggest_tms_adjustment(self, upstream_relay, downstream_relay, fault_currents, target_margin=0.2):
+    def suggest_tms_adjustment(
+        self, upstream_relay, downstream_relay, fault_currents, target_margin=0.2
+    ):
         """
         Suggest TMS adjustment for upstream relay to achieve coordination.
 
@@ -94,6 +100,7 @@ class CoordinationEngine:
         Returns:
         float: Suggested TMS for upstream relay, or None if not possible.
         """
+
         # Compute the upstream trip time for a given TMS WITHOUT mutating the relay.
         # This avoids the original bug where the relay's TMS was temporarily changed
         # during the search loop, which could affect concurrent reads of the relay.
@@ -101,20 +108,20 @@ class CoordinationEngine:
             # Use the relay's curve type and Ip, but override TMS locally
             I_mag = abs(I)
             if I_mag < relay.Ip:
-                return float('inf')
-            if relay.curve_type == 'standard_inverse':
+                return float("inf")
+            if relay.curve_type == "standard_inverse":
                 return relay.curves.standard_inverse(tms, I_mag, relay.Ip)
-            elif relay.curve_type == 'very_inverse':
+            elif relay.curve_type == "very_inverse":
                 return relay.curves.very_inverse(tms, I_mag, relay.Ip)
-            elif relay.curve_type == 'extremely_inverse':
+            elif relay.curve_type == "extremely_inverse":
                 return relay.curves.extremely_inverse(tms, I_mag, relay.Ip)
-            elif relay.curve_type == 'long_inverse':
+            elif relay.curve_type == "long_inverse":
                 return relay.curves.long_inverse(tms, I_mag, relay.Ip)
             else:
                 raise ValueError(f"Unknown curve type: {relay.curve_type}")
 
         best_TMS = None
-        min_violation = float('inf')
+        min_violation = float("inf")
         # When upstream trips before downstream the margin is negative (or zero).
         # We penalise those cases heavily so the search will never prefer a TMS
         # that lets the upstream device trip first.
@@ -137,9 +144,7 @@ class CoordinationEngine:
                     # Upstream trips first (or same time) — fundamentally
                     # uncoordinated.  Apply a heavy penalty so this TMS never
                     # beats a genuinely coordinated solution.
-                    violations.append(
-                        UNCOORDINATED_PENALTY + (t_down - t_up)
-                    )
+                    violations.append(UNCOORDINATED_PENALTY + (t_down - t_up))
 
             if not violations:
                 best_TMS = TMS_candidate

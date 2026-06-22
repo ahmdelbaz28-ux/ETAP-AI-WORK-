@@ -5,6 +5,7 @@ Used for discovery, manifests, and registry introspection. The internal
 method name); the public descriptor is what is exposed across layer
 boundaries.
 """
+
 from __future__ import annotations
 
 import re

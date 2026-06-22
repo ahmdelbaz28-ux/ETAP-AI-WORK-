@@ -9,6 +9,7 @@ Public surface:
     JsonRpcError           — JSON-RPC 2.0 error object
     AcpParams, AcpResult   — typed payload bases for params / result
 """
+
 from __future__ import annotations
 
 from acp.schema.capability import CapabilityDescriptor, is_valid_capability_name, is_valid_scope

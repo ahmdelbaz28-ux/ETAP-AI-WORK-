@@ -34,6 +34,7 @@ logger = logging.getLogger(__name__)
 
 class RASPAction(Enum):
     """Action to take when an attack is detected."""
+
     BLOCK = "block"
     LOG = "log"
     ALLOW = "allow"  # Allow but warn
@@ -41,6 +42,7 @@ class RASPAction(Enum):
 
 class RASPSeverity(Enum):
     """Severity of the detected attack."""
+
     LOW = "low"
     MEDIUM = "medium"
     HIGH = "high"
@@ -50,6 +52,7 @@ class RASPSeverity(Enum):
 @dataclass
 class RASPRule:
     """A single RASP detection rule."""
+
     name: str
     pattern: re.Pattern
     action: RASPAction = RASPAction.BLOCK
@@ -61,6 +64,7 @@ class RASPRule:
 @dataclass
 class RASPResult:
     """Result of a RASP inspection."""
+
     is_attack: bool = False
     rule_name: str = ""
     severity: RASPSeverity = RASPSeverity.LOW
@@ -238,13 +242,17 @@ class RASPEngine:
                         self._stats["attacks_blocked"] += 1
                         logger.warning(
                             "RASP BLOCKED: rule=%s field=%s value=%s",
-                            rule.name, field_name, match.group(0)[:50],
+                            rule.name,
+                            field_name,
+                            match.group(0)[:50],
                         )
                     elif rule.action == RASPAction.LOG:
                         self._stats["attacks_logged"] += 1
                         logger.info(
                             "RASP LOGGED: rule=%s field=%s value=%s",
-                            rule.name, field_name, match.group(0)[:50],
+                            rule.name,
+                            field_name,
+                            match.group(0)[:50],
                         )
 
         if results:

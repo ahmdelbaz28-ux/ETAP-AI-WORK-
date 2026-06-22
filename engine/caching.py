@@ -51,6 +51,7 @@ except ImportError:
 # In-memory fallback store
 # ---------------------------------------------------------------------------
 
+
 class _InMemoryStore:
     """Thread-safe, TTL-aware in-memory cache that mimics the Redis interface.
 
@@ -59,7 +60,9 @@ class _InMemoryStore:
     """
 
     def __init__(self, max_entries: int = 10_000) -> None:
-        self._data: OrderedDict[str, Tuple[str, float]] = OrderedDict()  # key → (json_value, expires_at)
+        self._data: OrderedDict[str, Tuple[str, float]] = (
+            OrderedDict()
+        )  # key → (json_value, expires_at)
         self._max = max_entries
         self._lock = asyncio.Lock()
 
@@ -135,6 +138,7 @@ class _InMemoryStore:
 # ---------------------------------------------------------------------------
 # StudyCache
 # ---------------------------------------------------------------------------
+
 
 class StudyCache:
     """Redis caching layer for repeated study inputs.

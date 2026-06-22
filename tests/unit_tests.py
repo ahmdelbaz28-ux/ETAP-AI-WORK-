@@ -44,7 +44,13 @@ from engine.error_handler import (
     component_guard,
 )
 from engine.numerical_safety import ConsistencyCheck, ConvergenceMonitor, NumericalGuard
-from engine.resilience import CircuitBreaker, CircuitBreakerState, MultiLevelRecovery, RetryHandler, StabilityEnforcer
+from engine.resilience import (
+    CircuitBreaker,
+    CircuitBreakerState,
+    MultiLevelRecovery,
+    RetryHandler,
+    StabilityEnforcer,
+)
 from etap_integration.etap_com import STUDY_TYPE_PARAMETER_SCHEMAS, ETAPAutomation, ETAPStudyType
 from fault_analysis.arc_flash_engine import ArcFlashEngine, ElectrodeConfig
 from fault_analysis.fault import FaultAnalyzer
@@ -52,11 +58,17 @@ from fault_analysis.harmonic_analysis import HarmonicAnalysisEngine
 from fault_analysis.iec60909_engine import IEC60909Engine
 from load_flow.load_flow import LoadFlowSolver
 from relays.relay import OvercurrentRelay
-from security.secrets_manager import EnvironmentValidator, KeyAccessAuditor, LocalSecretsManager, VaultSecretsManager
+from security.secrets_manager import (
+    EnvironmentValidator,
+    KeyAccessAuditor,
+    LocalSecretsManager,
+    VaultSecretsManager,
+)
 
 # ============================================================================
 # ETAP SCHEMA VALIDATION TESTS
 # ============================================================================
+
 
 class TestETAPSchemaValidation:
     """Test suite for per-study-type parameter schema validation."""
@@ -156,17 +168,13 @@ class TestETAPSchemaValidation:
     def test_cable_ampacity_valid_params(self):
         """Test valid cable ampacity params."""
         params = {"installation_method": "underground", "ambient_temperature_c": 25.0}
-        result = ETAPAutomation._validate_study_parameters(
-            ETAPStudyType.CABLE_AMACITY, params
-        )
+        result = ETAPAutomation._validate_study_parameters(ETAPStudyType.CABLE_AMACITY, params)
         assert result == params
 
     def test_ground_grid_valid_params(self):
         """Test valid ground grid params."""
         params = {"soil_resistivity_ohm_m": 100.0}
-        result = ETAPAutomation._validate_study_parameters(
-            ETAPStudyType.GROUND_GRID, params
-        )
+        result = ETAPAutomation._validate_study_parameters(ETAPStudyType.GROUND_GRID, params)
         assert result == params
 
     def test_all_schemas_have_valid_keys(self):
@@ -175,13 +183,15 @@ class TestETAPSchemaValidation:
             schema = STUDY_TYPE_PARAMETER_SCHEMAS.get(study_type, {})
             for key, rule in schema.items():
                 assert "type" in rule, f"{study_type}.{key} missing 'type'"
-                assert rule["type"] in ("numeric", "integer", "string", "boolean", "list"), \
+                assert rule["type"] in ("numeric", "integer", "string", "boolean", "list"), (
                     f"{study_type}.{key} has unknown type: {rule['type']}"
+                )
 
 
 # ============================================================================
 # WORKER RBAC TESTS
 # ============================================================================
+
 
 class TestWorkerRBAC:
     """Test suite for ETAP worker RBAC enforcement."""
@@ -202,57 +212,73 @@ class TestWorkerRBAC:
         ]
 
         for study_type in implemented_studies:
-            assert study_type in STUDY_TYPE_TO_PERMISSION, \
+            assert study_type in STUDY_TYPE_TO_PERMISSION, (
                 f"{study_type} missing from STUDY_TYPE_TO_PERMISSION"
-            assert isinstance(STUDY_TYPE_TO_PERMISSION[study_type], Permission), \
+            )
+            assert isinstance(STUDY_TYPE_TO_PERMISSION[study_type], Permission), (
                 f"{study_type} maps to non-Permission value"
+            )
 
     def test_engineer_has_all_calc_permissions(self):
         """Test that engineer role has all required calc permissions."""
         from etap_integration.etap_worker_service import STUDY_TYPE_TO_PERMISSION
-        from security.security_framework import AuthenticationManager, AuthorizationManager, UserRole
+        from security.security_framework import (
+            AuthenticationManager,
+            AuthorizationManager,
+            UserRole,
+        )
 
         auth = AuthenticationManager(secret_key="test-rbac-secret")
         authz = AuthorizationManager(auth)
 
-        auth.create_user("engineer", "eng@test.com", "pass123", UserRole.ENGINEER)
-        token = auth.authenticate("engineer", "pass123")
+        auth.create_user("engineer", "eng@test.com", "password123", UserRole.ENGINEER)
+        token = auth.authenticate("engineer", "password123")
         assert token is not None
 
         for study_type, permission in STUDY_TYPE_TO_PERMISSION.items():
-            assert authz.check_permission(token, permission), \
+            assert authz.check_permission(token, permission), (
                 f"Engineer should have {permission.value} for {study_type.value}"
+            )
 
     def test_viewer_cannot_execute_studies(self):
         """Test that viewer role lacks calc permissions."""
         from etap_integration.etap_worker_service import STUDY_TYPE_TO_PERMISSION
-        from security.security_framework import AuthenticationManager, AuthorizationManager, UserRole
+        from security.security_framework import (
+            AuthenticationManager,
+            AuthorizationManager,
+            UserRole,
+        )
 
         auth = AuthenticationManager(secret_key="test-viewer-secret")
         authz = AuthorizationManager(auth)
 
-        auth.create_user("viewer", "viewer@test.com", "pass123", UserRole.VIEWER)
-        token = auth.authenticate("viewer", "pass123")
+        auth.create_user("viewer", "viewer@test.com", "password123", UserRole.VIEWER)
+        token = auth.authenticate("viewer", "password123")
         assert token is not None
 
         for study_type, permission in STUDY_TYPE_TO_PERMISSION.items():
-            assert not authz.check_permission(token, permission), \
+            assert not authz.check_permission(token, permission), (
                 f"Viewer should NOT have {permission.value} for {study_type.value}"
+            )
 
     def test_guest_has_no_permissions(self):
         """Test that guest role has zero permissions."""
-        from security.security_framework import AuthenticationManager, AuthorizationManager, Permission, UserRole
+        from security.security_framework import (
+            AuthenticationManager,
+            AuthorizationManager,
+            Permission,
+            UserRole,
+        )
 
         auth = AuthenticationManager(secret_key="test-guest-secret")
         authz = AuthorizationManager(auth)
 
-        auth.create_user("guest", "guest@test.com", "pass123", UserRole.GUEST)
-        token = auth.authenticate("guest", "pass123")
+        auth.create_user("guest", "guest@test.com", "password123", UserRole.GUEST)
+        token = auth.authenticate("guest", "password123")
         assert token is not None
 
         for perm in list(Permission)[:5]:  # Check a subset
-            assert not authz.check_permission(token, perm), \
-                f"Guest should NOT have {perm.value}"
+            assert not authz.check_permission(token, perm), f"Guest should NOT have {perm.value}"
 
     def test_invalid_token_rejected(self):
         """Test that an invalid/fake token is rejected by authz."""
@@ -264,19 +290,24 @@ class TestWorkerRBAC:
 
         fake_token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.fake.fake"
         for permission in STUDY_TYPE_TO_PERMISSION.values():
-            assert not authz.check_permission(fake_token, permission), \
+            assert not authz.check_permission(fake_token, permission), (
                 f"Fake token should not have {permission.value}"
+            )
 
     def test_permission_after_logout_rejected(self):
         """Test that token is rejected after logout."""
         from etap_integration.etap_worker_service import STUDY_TYPE_TO_PERMISSION
-        from security.security_framework import AuthenticationManager, AuthorizationManager, UserRole
+        from security.security_framework import (
+            AuthenticationManager,
+            AuthorizationManager,
+            UserRole,
+        )
 
         auth = AuthenticationManager(secret_key="test-logout-secret")
         authz = AuthorizationManager(auth)
 
-        auth.create_user("temp_user", "temp@test.com", "pass123", UserRole.ENGINEER)
-        token = auth.authenticate("temp_user", "pass123")
+        auth.create_user("temp_user", "temp@test.com", "password123", UserRole.ENGINEER)
+        token = auth.authenticate("temp_user", "password123")
 
         # Before logout, permissions should work
         first_perm = list(STUDY_TYPE_TO_PERMISSION.values())[0]
@@ -284,13 +315,13 @@ class TestWorkerRBAC:
 
         # After logout, permissions should be denied
         auth.logout(token)
-        assert not authz.check_permission(token, first_perm), \
-            "Token should be invalid after logout"
+        assert not authz.check_permission(token, first_perm), "Token should be invalid after logout"
 
 
 # ============================================================================
 # LOAD FLOW TESTS
 # ============================================================================
+
 
 class TestLoadFlow:
     """Test suite for load flow calculations."""
@@ -300,21 +331,30 @@ class TestLoadFlow:
         """Create a simple 2-bus system for testing."""
         system = System(base_mva=100.0)
 
-        bus1 = Bus(bus_id=1, voltage_magnitude=1.05, voltage_angle=0.0, bus_type='slack')
-        bus2 = Bus(bus_id=2, voltage_magnitude=1.0, voltage_angle=0.0, bus_type='pq')
+        bus1 = Bus(bus_id=1, voltage_magnitude=1.05, voltage_angle=0.0, bus_type="slack")
+        bus2 = Bus(bus_id=2, voltage_magnitude=1.0, voltage_angle=0.0, bus_type="pq")
 
         system.add_bus(bus1)
         system.add_bus(bus2)
 
-        gen = Generator(generator_id=1, bus=bus1,
-                       impedance={'1': complex(0, 0.2), '2': complex(0, 0.2), '0': complex(0, 0.1)})
+        gen = Generator(
+            generator_id=1,
+            bus=bus1,
+            impedance={"1": complex(0, 0.2), "2": complex(0, 0.2), "0": complex(0, 0.1)},
+        )
         system.add_generator(gen)
 
         load = Load(load_id=1, bus=bus2, load_power=complex(0.5, 0.2))
         system.add_load(load)
 
-        line = Line(line_id=1, from_bus=bus1, to_bus=bus2,
-                   z1=complex(0.01, 0.05), z2=complex(0.01, 0.05), z0=complex(0.03, 0.15))
+        line = Line(
+            line_id=1,
+            from_bus=bus1,
+            to_bus=bus2,
+            z1=complex(0.01, 0.05),
+            z2=complex(0.01, 0.05),
+            z0=complex(0.03, 0.15),
+        )
         system.add_line(line)
 
         return system
@@ -357,7 +397,7 @@ class TestLoadFlow:
 
     def test_ybus_symmetry(self, simple_2bus_system):
         """Test that Ybus matrix is symmetric."""
-        Ybus = simple_2bus_system.build_ybus(seq='1')
+        Ybus = simple_2bus_system.build_ybus(seq="1")
         # Ybus for passive networks is symmetric (Y == Y^T), not Hermitian
         assert np.allclose(Ybus, Ybus.T), "Ybus should be symmetric"
 
@@ -365,6 +405,7 @@ class TestLoadFlow:
 # ============================================================================
 # SHORT CIRCUIT TESTS
 # ============================================================================
+
 
 class TestShortCircuit:
     """Test suite for short circuit calculations."""
@@ -374,58 +415,67 @@ class TestShortCircuit:
         """Create system for fault analysis testing."""
         system = System(base_mva=100.0)
 
-        bus1 = Bus(bus_id=1, voltage_magnitude=1.0, voltage_angle=0.0, bus_type='slack')
-        bus2 = Bus(bus_id=2, voltage_magnitude=1.0, voltage_angle=0.0, bus_type='pq')
+        bus1 = Bus(bus_id=1, voltage_magnitude=1.0, voltage_angle=0.0, bus_type="slack")
+        bus2 = Bus(bus_id=2, voltage_magnitude=1.0, voltage_angle=0.0, bus_type="pq")
 
         system.add_bus(bus1)
         system.add_bus(bus2)
 
-        gen = Generator(generator_id=1, bus=bus1,
-                       impedance={'1': complex(0, 0.2), '2': complex(0, 0.2), '0': complex(0, 0.1)})
+        gen = Generator(
+            generator_id=1,
+            bus=bus1,
+            impedance={"1": complex(0, 0.2), "2": complex(0, 0.2), "0": complex(0, 0.1)},
+        )
         system.add_generator(gen)
 
-        line = Line(line_id=1, from_bus=bus1, to_bus=bus2,
-                   z1=complex(0.01, 0.05), z2=complex(0.01, 0.05), z0=complex(0.03, 0.15))
+        line = Line(
+            line_id=1,
+            from_bus=bus1,
+            to_bus=bus2,
+            z1=complex(0.01, 0.05),
+            z2=complex(0.01, 0.05),
+            z0=complex(0.03, 0.15),
+        )
         system.add_line(line)
 
         system.build_sequence_networks()
 
-        Ybus_pos = system.get_ybus(seq='1')
-        Ybus_neg = system.get_ybus(seq='2')
-        Ybus_zero = system.get_ybus(seq='0')
+        Ybus_pos = system.get_ybus(seq="1")
+        Ybus_neg = system.get_ybus(seq="2")
+        Ybus_zero = system.get_ybus(seq="0")
 
         return FaultAnalyzer(Ybus_pos, Ybus_neg, Ybus_zero, base_mva=100.0, base_kv=115.0)
 
     def test_three_phase_fault_positive_current(self, fault_system):
         """Test that three-phase fault current is positive."""
         result = fault_system.three_phase_fault(0)
-        assert result['fault_current'] != 0, "Fault current should be non-zero"
-        assert abs(result['fault_current']) > 0, "Fault current magnitude should be positive"
+        assert result["fault_current"] != 0, "Fault current should be non-zero"
+        assert abs(result["fault_current"]) > 0, "Fault current magnitude should be positive"
 
     def test_line_to_ground_fault(self, fault_system):
         """Test line-to-ground fault calculation."""
         result = fault_system.line_to_ground_fault(0)
-        assert result['fault_current'] != 0, "SLG fault current should be non-zero"
+        assert result["fault_current"] != 0, "SLG fault current should be non-zero"
 
     def test_line_to_line_fault(self, fault_system):
         """Test line-to-line fault calculation."""
         result = fault_system.line_to_line_fault(0)
-        assert result['fault_current'] != 0, "LL fault current should be non-zero"
+        assert result["fault_current"] != 0, "LL fault current should be non-zero"
 
     def test_double_line_to_ground_fault(self, fault_system):
         """Test double line-to-ground fault calculation."""
         result = fault_system.double_line_to_ground_fault(0)
-        assert result['fault_current_b'] != 0 or result['fault_current_c'] != 0, \
-            "DLG fault currents should be non-zero"
+        assert (
+            result["fault_current_b_magnitude"] != 0 or result["fault_current_c_magnitude"] != 0
+        ), "DLG fault currents should be non-zero"
 
     def test_iec60909_three_phase(self):
         """Test IEC 60909 three-phase fault calculation."""
         # Simple system
         _n = 2
-        Ybus = np.array([
-            [complex(10, -50), complex(-10, 50)],
-            [complex(-10, 50), complex(10, -50)]
-        ])
+        Ybus = np.array(
+            [[complex(10, -50), complex(-10, 50)], [complex(-10, 50), complex(10, -50)]]
+        )
 
         engine = IEC60909Engine(Ybus, Ybus, Ybus, base_mva=100.0, base_kv=115.0)
         result = engine.calculate_three_phase_fault(0, bus_kv=115.0)
@@ -439,6 +489,7 @@ class TestShortCircuit:
 # ARC FLASH TESTS
 # ============================================================================
 
+
 class TestArcFlash:
     """Test suite for arc flash calculations."""
 
@@ -447,9 +498,7 @@ class TestArcFlash:
         engine = ArcFlashEngine()
 
         Iarc, Iarc_reduced = engine.calculate_arc_current(
-            voltage_kv=4.16,
-            bolted_fault_current_ka=20.0,
-            electrode_config=ElectrodeConfig.VCB
+            voltage_kv=4.16, bolted_fault_current_ka=20.0, electrode_config=ElectrodeConfig.VCB
         )
 
         assert Iarc > 0, "Arc current should be positive"
@@ -463,7 +512,7 @@ class TestArcFlash:
             voltage_kv=4.16,
             bolted_fault_current_ka=20.0,
             arc_duration_sec=0.5,
-            working_distance_mm=610.0
+            working_distance_mm=610.0,
         )
 
         assert result.incident_energy_cal_cm2 > 0, "Incident energy should be positive"
@@ -476,7 +525,7 @@ class TestArcFlash:
             voltage_kv=4.16,
             bolted_fault_current_ka=20.0,
             arc_duration_sec=0.5,
-            working_distance_mm=610.0
+            working_distance_mm=610.0,
         )
 
         assert result.arc_flash_boundary_mm > 0, "Arc flash boundary should be positive"
@@ -489,10 +538,10 @@ class TestArcFlash:
             voltage_kv=4.16,
             bolted_fault_current_ka=20.0,
             arc_duration_sec=0.5,
-            working_distance_mm=610.0
+            working_distance_mm=610.0,
         )
 
-        valid_ppe_levels = ['0', '1', '2', '3', '4', 'DANGER']
+        valid_ppe_levels = ["0", "1", "2", "3", "4", "DANGER"]
         assert result.ppe_level in valid_ppe_levels, f"Invalid PPE level: {result.ppe_level}"
 
     def test_voltage_sensitivity(self):
@@ -503,18 +552,19 @@ class TestArcFlash:
             voltage_kv=0.48,
             bolted_fault_current_ka=20.0,
             arc_duration_sec=0.5,
-            working_distance_mm=610.0
+            working_distance_mm=610.0,
         )
 
         result_high = engine.calculate(
             voltage_kv=13.8,
             bolted_fault_current_ka=20.0,
             arc_duration_sec=0.5,
-            working_distance_mm=610.0
+            working_distance_mm=610.0,
         )
 
-        assert result_low.incident_energy_cal_cm2 != result_high.incident_energy_cal_cm2, \
+        assert result_low.incident_energy_cal_cm2 != result_high.incident_energy_cal_cm2, (
             "Different voltages should produce different incident energies"
+        )
 
     def test_input_validation(self):
         """Test that invalid inputs raise errors."""
@@ -525,7 +575,7 @@ class TestArcFlash:
                 voltage_kv=0.1,  # Below IEEE 1584 range
                 bolted_fault_current_ka=20.0,
                 arc_duration_sec=0.5,
-                working_distance_mm=610.0
+                working_distance_mm=610.0,
             )
 
         with pytest.raises(ValueError):
@@ -533,7 +583,7 @@ class TestArcFlash:
                 voltage_kv=4.16,
                 bolted_fault_current_ka=20.0,
                 arc_duration_sec=-1.0,  # Negative duration
-                working_distance_mm=610.0
+                working_distance_mm=610.0,
             )
 
 
@@ -541,22 +591,23 @@ class TestArcFlash:
 # PROTECTION COORDINATION TESTS
 # ============================================================================
 
+
 class TestProtectionCoordination:
     """Test suite for protection coordination."""
 
     def test_standard_inverse_curve(self):
         """Test IEC 60255 standard inverse curve."""
-        relay = OvercurrentRelay(relay_id=1, curve_type='standard_inverse', TMS=1.0, Ip=1.0)
+        relay = OvercurrentRelay(relay_id=1, curve_type="standard_inverse", TMS=1.0, Ip=1.0)
 
         # At I/Ip = 10, t ≈ 2.97s
         t = relay.trip_time(10.0)
-        expected = 1.0 * 0.14 / ((10.0)**0.02 - 1)
+        expected = 1.0 * 0.14 / ((10.0) ** 0.02 - 1)
 
         assert abs(t - expected) < 0.01, f"Trip time {t} should be close to {expected}"
 
     def test_very_inverse_curve(self):
         """Test IEC 60255 very inverse curve."""
-        relay = OvercurrentRelay(relay_id=1, curve_type='very_inverse', TMS=1.0, Ip=1.0)
+        relay = OvercurrentRelay(relay_id=1, curve_type="very_inverse", TMS=1.0, Ip=1.0)
 
         # At I/Ip = 10, t = 13.5 / (10 - 1) = 1.5s
         t = relay.trip_time(10.0)
@@ -566,7 +617,7 @@ class TestProtectionCoordination:
 
     def test_extremely_inverse_curve(self):
         """Test IEC 60255 extremely inverse curve."""
-        relay = OvercurrentRelay(relay_id=1, curve_type='extremely_inverse', TMS=1.0, Ip=1.0)
+        relay = OvercurrentRelay(relay_id=1, curve_type="extremely_inverse", TMS=1.0, Ip=1.0)
 
         # At I/Ip = 10, t = 80 / (10^2 - 1) = 0.808s
         t = relay.trip_time(10.0)
@@ -583,8 +634,9 @@ class TestProtectionCoordination:
 
         result = coord_engine.check_coordination(upstream, downstream, 5.0)
 
-        assert result['downstream_time'] < result['upstream_time'], \
+        assert result["downstream_time"] < result["upstream_time"], (
             "Downstream relay should trip faster"
+        )
 
     def test_coordination_margin(self):
         """Test coordination margin requirement."""
@@ -595,13 +647,14 @@ class TestProtectionCoordination:
 
         result = coord_engine.check_coordination(upstream, downstream, 5.0)
 
-        if result['coordinated']:
-            assert result['margin'] >= 0.2, "Coordination margin should be at least 0.2s"
+        if result["coordinated"]:
+            assert result["margin"] >= 0.2, "Coordination margin should be at least 0.2s"
 
 
 # ============================================================================
 # HARMONIC ANALYSIS TESTS
 # ============================================================================
+
 
 class TestHarmonicAnalysis:
     """Test suite for harmonic analysis."""
@@ -610,13 +663,13 @@ class TestHarmonicAnalysis:
         """Test that harmonic impedance scales correctly."""
         engine = HarmonicAnalysisEngine(fundamental_freq=60.0, max_harmonic=50)
 
-        # Create simple Ybus
-        Ybus = np.array([
-            [complex(10, -50), complex(-10, 50)],
-            [complex(-10, 50), complex(10, -50)]
-        ])
+        # Create non-singular Ybus (add shunt admittance to make invertible)
+        # A pure 2-bus line matrix is singular; adding shunt makes it invertible
+        Ybus = np.array(
+            [[complex(10.1, -50.5), complex(-10, 50)], [complex(-10, 50), complex(10.1, -50.5)]]
+        )
 
-        engine.set_system_data(Ybus, ['bus1', 'bus2'])
+        engine.set_system_data(Ybus, ["bus1", "bus2"])
 
         # Calculate harmonic impedance at 5th harmonic
         Ybus_5th = engine.calculate_harmonic_impedance(5)
@@ -628,28 +681,28 @@ class TestHarmonicAnalysis:
         """Test THD calculation."""
         engine = HarmonicAnalysisEngine()
         # Set bus_ids so calculate_thd knows which buses to process
-        engine.set_system_data(Ybus_fundamental=np.array([[complex(0.1, -0.5)]]), bus_ids=['bus1'])
+        engine.set_system_data(Ybus_fundamental=np.array([[complex(0.1, -0.5)]]), bus_ids=["bus1"])
 
         # Mock harmonic results
         from fault_analysis.harmonic_analysis import HarmonicResult
 
-        fundamental_mag = {'bus1': 1.0}
+        fundamental_mag = {"bus1": 1.0}
         harmonic_results = [
             HarmonicResult(
                 harmonic_order=h,
                 frequency_hz=h * 60.0,
-                bus_voltages={'bus1': complex(0.05/h, 0)},
+                bus_voltages={"bus1": complex(0.05 / h, 0)},
                 branch_currents={},
                 thd_voltage={},
-                thd_current={}
+                thd_current={},
             )
             for h in range(2, 11)
         ]
 
         thd = engine.calculate_thd(harmonic_results, fundamental_mag)
 
-        assert 'bus1' in thd, "THD should be calculated for bus1"
-        assert thd['bus1'] >= 0, "THD should be non-negative"
+        assert "bus1" in thd, "THD should be calculated for bus1"
+        assert thd["bus1"] >= 0, "THD should be non-negative"
 
     def test_resonance_detection(self):
         """Test resonance detection."""
@@ -662,10 +715,10 @@ class TestHarmonicAnalysis:
             HarmonicResult(
                 harmonic_order=5,
                 frequency_hz=300.0,
-                bus_voltages={'bus1': complex(15.0, 0)},  # High magnification
+                bus_voltages={"bus1": complex(15.0, 0)},  # High magnification
                 branch_currents={},
                 thd_voltage={},
-                thd_current={}
+                thd_current={},
             )
         ]
 
@@ -680,16 +733,17 @@ class TestHarmonicAnalysis:
 
         filter_design = engine.design_passive_filter(target_harmonic=5, q_factor=50.0)
 
-        assert 'capacitance_F' in filter_design, "Filter should have capacitance"
-        assert 'inductance_H' in filter_design, "Filter should have inductance"
-        assert 'resistance_ohm' in filter_design, "Filter should have resistance"
-        assert filter_design['capacitance_F'] > 0, "Capacitance should be positive"
-        assert filter_design['inductance_H'] > 0, "Inductance should be positive"
+        assert "capacitance_F" in filter_design, "Filter should have capacitance"
+        assert "inductance_H" in filter_design, "Filter should have inductance"
+        assert "resistance_ohm" in filter_design, "Filter should have resistance"
+        assert filter_design["capacitance_F"] > 0, "Capacitance should be positive"
+        assert filter_design["inductance_H"] > 0, "Inductance should be positive"
 
 
 # ============================================================================
 # OPTIMAL POWER FLOW TESTS
 # ============================================================================
+
 
 class TestOptimalPowerFlow:
     """Test suite for optimal power flow."""
@@ -699,10 +753,9 @@ class TestOptimalPowerFlow:
         from load_flow.optimal_power_flow import GeneratorCost, OptimalPowerFlowEngine
 
         # Simple 2-bus system
-        Ybus = np.array([
-            [complex(10, -50), complex(-10, 50)],
-            [complex(-10, 50), complex(10, -50)]
-        ])
+        Ybus = np.array(
+            [[complex(10, -50), complex(-10, 50)], [complex(-10, 50), complex(10, -50)]]
+        )
 
         gen_cost = GeneratorCost(
             generator_id=1,
@@ -710,7 +763,7 @@ class TestOptimalPowerFlow:
             p_min=0.0,
             p_max=100.0,
             q_min=-50.0,
-            q_max=50.0
+            q_max=50.0,
         )
 
         opf = OptimalPowerFlowEngine(Ybus, [1, 2], [gen_cost])
@@ -726,10 +779,9 @@ class TestOptimalPowerFlow:
         """Test that OPF minimizes cost."""
         from load_flow.optimal_power_flow import GeneratorCost, OptimalPowerFlowEngine
 
-        Ybus = np.array([
-            [complex(10, -50), complex(-10, 50)],
-            [complex(-10, 50), complex(10, -50)]
-        ])
+        Ybus = np.array(
+            [[complex(10, -50), complex(-10, 50)], [complex(-10, 50), complex(10, -50)]]
+        )
 
         # Two generators with different costs
         gen1 = GeneratorCost(
@@ -738,7 +790,7 @@ class TestOptimalPowerFlow:
             p_min=0.0,
             p_max=100.0,
             q_min=-50.0,
-            q_max=50.0
+            q_max=50.0,
         )
 
         gen2 = GeneratorCost(
@@ -747,7 +799,7 @@ class TestOptimalPowerFlow:
             p_min=0.0,
             p_max=100.0,
             q_min=-50.0,
-            q_max=50.0
+            q_max=50.0,
         )
 
         opf = OptimalPowerFlowEngine(Ybus, [1, 2], [gen1, gen2])
@@ -768,6 +820,7 @@ class TestOptimalPowerFlow:
 # ============================================================================
 # SECURITY FRAMEWORK TESTS
 # ============================================================================
+
 
 class TestSecurityFramework:
     """Test suite for security framework."""
@@ -807,13 +860,18 @@ class TestSecurityFramework:
 
     def test_permission_check(self):
         """Test permission checking."""
-        from security.security_framework import AuthenticationManager, AuthorizationManager, Permission, UserRole
+        from security.security_framework import (
+            AuthenticationManager,
+            AuthorizationManager,
+            Permission,
+            UserRole,
+        )
 
         auth = AuthenticationManager(secret_key="test_secret")
         authz = AuthorizationManager(auth)
 
-        auth.create_user("engineer", "eng@example.com", "pass123", UserRole.ENGINEER)
-        token = auth.authenticate("engineer", "pass123")
+        auth.create_user("engineer", "eng@example.com", "password123", UserRole.ENGINEER)
+        token = auth.authenticate("engineer", "password123")
 
         # Engineer should have CALC_LOAD_FLOW permission
         has_perm = authz.check_permission(token, Permission.CALC_LOAD_FLOW)
@@ -835,8 +893,9 @@ class TestSecurityFramework:
 
         # Dangerous code
         dangerous_code = "import os\nos.system('rm -rf /')"
-        assert not validator.validate_python_code(dangerous_code), \
+        assert not validator.validate_python_code(dangerous_code), (
             "Dangerous code should fail validation"
+        )
 
     def test_rate_limiting(self):
         """Test rate limiting."""
@@ -846,7 +905,7 @@ class TestSecurityFramework:
 
         # First 5 requests should be allowed
         for i in range(5):
-            assert limiter.is_allowed("client1"), f"Request {i+1} should be allowed"
+            assert limiter.is_allowed("client1"), f"Request {i + 1} should be allowed"
 
         # 6th request should be denied
         assert not limiter.is_allowed("client1"), "6th request should be rate-limited"
@@ -855,6 +914,7 @@ class TestSecurityFramework:
 # ============================================================================
 # INTEGRATION TESTS
 # ============================================================================
+
 
 class TestIntegration:
     """Integration tests for complete workflows."""
@@ -865,13 +925,16 @@ class TestIntegration:
 
         # Create 3-bus system
         for i in range(1, 4):
-            bus_type = 'slack' if i == 1 else 'pq'
+            bus_type = "slack" if i == 1 else "pq"
             bus = Bus(bus_id=i, voltage_magnitude=1.0, voltage_angle=0.0, bus_type=bus_type)
             system.add_bus(bus)
 
         # Add generator
-        gen = Generator(generator_id=1, bus=system.buses[1],
-                       impedance={'1': complex(0, 0.2), '2': complex(0, 0.2), '0': complex(0, 0.1)})
+        gen = Generator(
+            generator_id=1,
+            bus=system.buses[1],
+            impedance={"1": complex(0, 0.2), "2": complex(0, 0.2), "0": complex(0, 0.1)},
+        )
         system.add_generator(gen)
 
         # Add loads
@@ -881,8 +944,12 @@ class TestIntegration:
 
         # Add lines
         for i in range(1, 3):
-            line = Line(line_id=i, from_bus=system.buses[i], to_bus=system.buses[i+1],
-                       z1=complex(0.01, 0.05))
+            line = Line(
+                line_id=i,
+                from_bus=system.buses[i],
+                to_bus=system.buses[i + 1],
+                z1=complex(0.01, 0.05),
+            )
             system.add_line(line)
 
         # Run load flow
@@ -899,25 +966,34 @@ class TestIntegration:
         """Test complete fault analysis workflow."""
         system = System(base_mva=100.0)
 
-        bus1 = Bus(bus_id=1, voltage_magnitude=1.0, voltage_angle=0.0, bus_type='slack')
-        bus2 = Bus(bus_id=2, voltage_magnitude=1.0, voltage_angle=0.0, bus_type='pq')
+        bus1 = Bus(bus_id=1, voltage_magnitude=1.0, voltage_angle=0.0, bus_type="slack")
+        bus2 = Bus(bus_id=2, voltage_magnitude=1.0, voltage_angle=0.0, bus_type="pq")
 
         system.add_bus(bus1)
         system.add_bus(bus2)
 
-        gen = Generator(generator_id=1, bus=bus1,
-                       impedance={'1': complex(0, 0.2), '2': complex(0, 0.2), '0': complex(0, 0.1)})
+        gen = Generator(
+            generator_id=1,
+            bus=bus1,
+            impedance={"1": complex(0, 0.2), "2": complex(0, 0.2), "0": complex(0, 0.1)},
+        )
         system.add_generator(gen)
 
-        line = Line(line_id=1, from_bus=bus1, to_bus=bus2,
-                   z1=complex(0.01, 0.05), z2=complex(0.01, 0.05), z0=complex(0.03, 0.15))
+        line = Line(
+            line_id=1,
+            from_bus=bus1,
+            to_bus=bus2,
+            z1=complex(0.01, 0.05),
+            z2=complex(0.01, 0.05),
+            z0=complex(0.03, 0.15),
+        )
         system.add_line(line)
 
         system.build_sequence_networks()
 
-        Ybus_pos = system.get_ybus(seq='1')
-        Ybus_neg = system.get_ybus(seq='2')
-        Ybus_zero = system.get_ybus(seq='0')
+        Ybus_pos = system.get_ybus(seq="1")
+        Ybus_neg = system.get_ybus(seq="2")
+        Ybus_zero = system.get_ybus(seq="0")
 
         analyzer = FaultAnalyzer(Ybus_pos, Ybus_neg, Ybus_zero)
 
@@ -926,17 +1002,19 @@ class TestIntegration:
             analyzer.three_phase_fault(0),
             analyzer.line_to_ground_fault(0),
             analyzer.line_to_line_fault(0),
-            analyzer.double_line_to_ground_fault(0)
+            analyzer.double_line_to_ground_fault(0),
         ]
 
         for fault in faults:
-            assert 'fault_current' in fault or 'fault_current_b' in fault, \
+            assert "fault_current" in fault or "fault_current_b" in fault, (
                 "Fault result should contain current"
+            )
 
 
 # ============================================================================
 # SECRETS MANAGER TESTS
 # ============================================================================
+
 
 class TestSecretsManager:
     """Test suite for secrets management."""
@@ -959,7 +1037,9 @@ class TestSecretsManager:
 
     def test_local_secrets_store_retrieve(self, tmp_path, monkeypatch):
         monkeypatch.setattr("security.secrets_manager.SECRETS_DIR", tmp_path / "secrets")
-        monkeypatch.setattr("security.secrets_manager.ENCRYPTION_KEY_FILE", tmp_path / "secrets" / ".encryption_key")
+        monkeypatch.setattr(
+            "security.secrets_manager.ENCRYPTION_KEY_FILE", tmp_path / "secrets" / ".encryption_key"
+        )
         key = Fernet.generate_key()
         mgr = LocalSecretsManager(encryption_key=key)
         ok = mgr.set_api_key("svc_test", "sk-test-key-abc")
@@ -971,7 +1051,9 @@ class TestSecretsManager:
 
     def test_key_rotation(self, tmp_path, monkeypatch):
         monkeypatch.setattr("security.secrets_manager.SECRETS_DIR", tmp_path / "secrets")
-        monkeypatch.setattr("security.secrets_manager.ENCRYPTION_KEY_FILE", tmp_path / "secrets" / ".encryption_key")
+        monkeypatch.setattr(
+            "security.secrets_manager.ENCRYPTION_KEY_FILE", tmp_path / "secrets" / ".encryption_key"
+        )
         key = Fernet.generate_key()
         mgr = LocalSecretsManager(encryption_key=key)
         mgr.set_api_key("svc_rotate", "key-to-rotate")
@@ -985,7 +1067,9 @@ class TestSecretsManager:
         monkeypatch.setattr("security.secrets_manager.AUDIT_DIR", tmp_path / "audit")
         auditor = KeyAccessAuditor()
         auditor.log_access("user_a", "api-key-1", KeyAccessAuditor.ACTION_GET, True)
-        auditor.log_access("user_a", "api-key-2", KeyAccessAuditor.ACTION_GET, True, {"origin": "dashboard"})
+        auditor.log_access(
+            "user_a", "api-key-2", KeyAccessAuditor.ACTION_GET, True, {"origin": "dashboard"}
+        )
         logs = auditor.get_access_logs()
         assert len(logs) == 2
         assert logs[0]["user_id"] == "user_a"
@@ -1007,17 +1091,20 @@ class TestSecretsManager:
 # RESILIENCE TESTS
 # ============================================================================
 
+
 class TestResilience:
     """Test suite for resilience patterns."""
 
     def test_retry_handler_success_on_retry(self):
         handler = RetryHandler(max_retries=3, base_delay=0.01, jitter=False)
         call_count = [0]
+
         def flaky_fn():
             call_count[0] += 1
             if call_count[0] < 2:
                 raise ConnectionError("transient fail")
             return "ok"
+
         result = handler.execute(flaky_fn)
         assert result == "ok"
         assert handler.total_calls == 1
@@ -1025,8 +1112,10 @@ class TestResilience:
 
     def test_retry_handler_max_retries_exceeded(self):
         handler = RetryHandler(max_retries=2, base_delay=0.01, jitter=False)
+
         def always_fail():
             raise ConnectionError("permanent fail")
+
         with pytest.raises(ConnectionError):
             handler.execute(always_fail)
         assert handler.total_calls == 1
@@ -1035,8 +1124,10 @@ class TestResilience:
     def test_circuit_breaker_closed_to_open(self):
         cb = CircuitBreaker(name="ut_closed_open", failure_threshold=3, recovery_timeout=100)
         assert cb.get_state() == CircuitBreakerState.CLOSED
+
         def fail():
             raise ValueError("fail")
+
         for _ in range(3):
             with pytest.raises(ValueError):
                 cb.call(fail)
@@ -1046,8 +1137,10 @@ class TestResilience:
 
     def test_circuit_breaker_half_open_recovery(self):
         cb = CircuitBreaker(name="ut_half_open", failure_threshold=2, recovery_timeout=0.05)
+
         def fail():
             raise ValueError("fail")
+
         for _ in range(2):
             with pytest.raises(ValueError):
                 cb.call(fail)
@@ -1094,6 +1187,7 @@ class TestResilience:
 # ERROR HANDLER TESTS
 # ============================================================================
 
+
 class TestErrorHandler:
     """Test suite for error handling infrastructure."""
 
@@ -1123,8 +1217,10 @@ class TestErrorHandler:
     def test_alert_manager_console_alert(self):
         alert_mgr = AlertManager()
         error = SystemError(
-            error_id="alert-test-id", message="console alert",
-            component="test", severity=ErrorSeverity.ERROR,
+            error_id="alert-test-id",
+            message="console alert",
+            component="test",
+            severity=ErrorSeverity.ERROR,
             timestamp=datetime.now(timezone.utc),
         )
         alert_mgr.trigger_alert(error, channels=["console"])
@@ -1142,11 +1238,16 @@ class TestErrorHandler:
     def test_auto_recovery_action(self):
         handler = ErrorHandler()
         recovery = AutoRecoveryManager(handler)
+
         def fix_action(error):
             return True
+
         recovery.register_recovery_action(
-            "recover_comp", "critical failure", fix_action,
-            action_name="fix_critical", cooldown_seconds=1,
+            "recover_comp",
+            "critical failure",
+            fix_action,
+            action_name="fix_critical",
+            cooldown_seconds=1,
         )
         err = handler.handle_error("recover_comp", "critical failure occurred", ErrorSeverity.ERROR)
         result = recovery.attempt_recovery(err)
@@ -1160,6 +1261,7 @@ class TestErrorHandler:
 # ============================================================================
 # NUMERICAL SAFETY TESTS
 # ============================================================================
+
 
 class TestNumericalSafety:
     """Test suite for numerical safety utilities."""
@@ -1217,7 +1319,9 @@ class TestNumericalSafety:
         check = ConsistencyCheck()
         r1 = check.check_power_balance(total_gen=100.0, total_load=80.0, total_losses=20.0)
         assert r1["passed"]
-        r2 = check.check_power_balance(total_gen=100.0, total_load=50.0, total_losses=10.0, tolerance_mw=0.5)
+        r2 = check.check_power_balance(
+            total_gen=100.0, total_load=50.0, total_losses=10.0, tolerance_mw=0.5
+        )
         assert not r2["passed"]
         r3 = check.check_voltage_profile([0.98, 1.02, 1.05])
         assert r3["passed"]
@@ -1238,11 +1342,14 @@ class TestNumericalSafety:
 # CACHE MANAGER TESTS
 # ============================================================================
 
+
 class TestCacheManager:
     """Test suite for calculation cache."""
 
     def test_cache_set_get(self):
-        cache = CalculationCache(max_size_mb=10, strategy=CacheStrategy.LRU, default_ttl_seconds=3600)
+        cache = CalculationCache(
+            max_size_mb=10, strategy=CacheStrategy.LRU, default_ttl_seconds=3600
+        )
         cache.set("k1", "value_one")
         assert cache.get("k1") == "value_one"
         assert cache.get("nonexistent") is None
@@ -1287,14 +1394,17 @@ class TestCacheManager:
 # ASYNC EXECUTOR TESTS
 # ============================================================================
 
+
 class TestAsyncExecutor:
     """Test suite for async execution and concurrency."""
 
     def test_submit_and_get_task(self):
         executor = AsyncExecutor(max_workers=2)
         try:
+
             def simple_fn():
                 return 42
+
             task_id = executor.submit_task(simple_fn, name="simple_test")
             tasks = executor.wait_for_completion([task_id], timeout=5)
             assert len(tasks) == 1
@@ -1307,6 +1417,7 @@ class TestAsyncExecutor:
         executor = AsyncExecutor(max_workers=2)
         try:
             import asyncio
+
             loop = asyncio.new_event_loop()
             results = loop.run_until_complete(
                 executor.run_parallel([lambda: 10, lambda: 20, lambda: 30])
@@ -1318,8 +1429,10 @@ class TestAsyncExecutor:
 
     def test_thread_pool_execution(self):
         pool = ThreadPoolManager(max_workers=2)
+
         def multiply(x, y):
             return x * y
+
         result = pool.run_in_thread(multiply, 6, 7)
         assert result == 42
         stats = pool.get_stats()
@@ -1334,14 +1447,19 @@ class TestAsyncExecutor:
             orchestrator = WorkflowOrchestrator(executor)
             # Use initial_params to pass data between steps (avoids kwarg name mismatch)
             shared = {"value": "FIRST"}
+
             def step_first():
                 return shared["value"]
+
             def step_second():
                 return shared["value"] + "SECOND"
-            wf_id = orchestrator.define_workflow([
-                {"name": "step_first", "fn": step_first},
-                {"name": "step_second", "fn": step_second},
-            ])
+
+            wf_id = orchestrator.define_workflow(
+                [
+                    {"name": "step_first", "fn": step_first},
+                    {"name": "step_second", "fn": step_second},
+                ]
+            )
             result = orchestrator.execute_workflow(wf_id)
             assert result["status"] == "completed", f"Workflow failed: {result.get('errors', {})}"
             assert result["results"]["step_first"] == "FIRST"
@@ -1353,6 +1471,7 @@ class TestAsyncExecutor:
 # ============================================================================
 # LOAD FLOW EXPANSION TESTS
 # ============================================================================
+
 
 class TestLoadFlowExpansion:
     """Expanded test suite for load flow calculations."""
@@ -1371,15 +1490,22 @@ class TestLoadFlowExpansion:
             bus_type = "slack" if i == 1 else "pq"
             bus = Bus(bus_id=i, voltage_magnitude=1.0, voltage_angle=0.0, bus_type=bus_type)
             system.add_bus(bus)
-        gen = Generator(generator_id=1, bus=system.buses[1],
-                       impedance={"1": complex(0, 0.2), "2": complex(0, 0.2), "0": complex(0, 0.1)})
+        gen = Generator(
+            generator_id=1,
+            bus=system.buses[1],
+            impedance={"1": complex(0, 0.2), "2": complex(0, 0.2), "0": complex(0, 0.1)},
+        )
         system.add_generator(gen)
         for i in range(2, n_buses + 1):
             load = Load(load_id=i, bus=system.buses[i], load_power=complex(0.05, 0.01))
             system.add_load(load)
         for i in range(1, n_buses):
-            line = Line(line_id=i, from_bus=system.buses[i], to_bus=system.buses[i + 1],
-                       z1=complex(0.01, 0.05))
+            line = Line(
+                line_id=i,
+                from_bus=system.buses[i],
+                to_bus=system.buses[i + 1],
+                z1=complex(0.01, 0.05),
+            )
             system.add_line(line)
         solver = LoadFlowSolver(system)
         converged = solver.solve(max_iter=200, tol=1e-4)
@@ -1391,11 +1517,20 @@ class TestLoadFlowExpansion:
         bus2 = Bus(bus_id=2, voltage_magnitude=1.0, voltage_angle=0.0, bus_type="pq")
         system.add_bus(bus1)
         system.add_bus(bus2)
-        xf = Transformer(transformer_id=1, from_bus=bus1, to_bus=bus2,
-                        z1=complex(0.01, 0.06), tap_ratio=1.05, phase_shift=0.1)
+        xf = Transformer(
+            transformer_id=1,
+            from_bus=bus1,
+            to_bus=bus2,
+            z1=complex(0.01, 0.06),
+            tap_ratio=1.05,
+            phase_shift=0.1,
+        )
         system.add_transformer(xf)
-        gen = Generator(generator_id=1, bus=bus1,
-                       impedance={"1": complex(0, 0.2), "2": complex(0, 0.2), "0": complex(0, 0.1)})
+        gen = Generator(
+            generator_id=1,
+            bus=bus1,
+            impedance={"1": complex(0, 0.2), "2": complex(0, 0.2), "0": complex(0, 0.1)},
+        )
         system.add_generator(gen)
         load = Load(load_id=1, bus=bus2, load_power=complex(0.4, 0.15))
         system.add_load(load)
@@ -1409,20 +1544,26 @@ class TestLoadFlowExpansion:
     def test_reactive_power_limits(self):
         system = System(base_mva=100.0)
         bus1 = Bus(bus_id=1, voltage_magnitude=1.0, voltage_angle=0.0, bus_type="slack")
-        bus2 = Bus(bus_id=2, voltage_magnitude=1.0, voltage_angle=0.0, bus_type="pv",
-                   q_min=-0.2, q_max=0.3)
+        bus2 = Bus(
+            bus_id=2, voltage_magnitude=1.0, voltage_angle=0.0, bus_type="pv", q_min=-0.2, q_max=0.3
+        )
         system.add_bus(bus1)
         system.add_bus(bus2)
-        gen1 = Generator(generator_id=1, bus=bus1,
-                        impedance={"1": complex(0, 0.2), "2": complex(0, 0.2), "0": complex(0, 0.1)})
-        gen2 = Generator(generator_id=2, bus=bus2,
-                        impedance={"1": complex(0, 0.2), "2": complex(0, 0.2), "0": complex(0, 0.1)})
+        gen1 = Generator(
+            generator_id=1,
+            bus=bus1,
+            impedance={"1": complex(0, 0.2), "2": complex(0, 0.2), "0": complex(0, 0.1)},
+        )
+        gen2 = Generator(
+            generator_id=2,
+            bus=bus2,
+            impedance={"1": complex(0, 0.2), "2": complex(0, 0.2), "0": complex(0, 0.1)},
+        )
         system.add_generator(gen1)
         system.add_generator(gen2)
         load = Load(load_id=1, bus=bus2, load_power=complex(0.6, 0.4))
         system.add_load(load)
-        line = Line(line_id=1, from_bus=bus1, to_bus=bus2,
-                   z1=complex(0.02, 0.08))
+        line = Line(line_id=1, from_bus=bus1, to_bus=bus2, z1=complex(0.02, 0.08))
         system.add_line(line)
         solver = LoadFlowSolver(system)
         converged = solver.solve(max_iter=50, tol=1e-6)
@@ -1434,6 +1575,7 @@ class TestLoadFlowExpansion:
 # SHORT CIRCUIT EXPANSION TESTS
 # ============================================================================
 
+
 class TestShortCircuitExpansion:
     """Expanded test suite for short circuit calculations."""
 
@@ -1441,15 +1583,28 @@ class TestShortCircuitExpansion:
     def multi_bus_fault_system(self):
         system = System(base_mva=100.0)
         for i in range(1, 5):
-            bus = Bus(bus_id=i, voltage_magnitude=1.0, voltage_angle=0.0,
-                     bus_type="slack" if i == 1 else "pq")
+            bus = Bus(
+                bus_id=i,
+                voltage_magnitude=1.0,
+                voltage_angle=0.0,
+                bus_type="slack" if i == 1 else "pq",
+            )
             system.add_bus(bus)
-        gen = Generator(generator_id=1, bus=system.buses[1],
-                       impedance={"1": complex(0, 0.2), "2": complex(0, 0.2), "0": complex(0, 0.1)})
+        gen = Generator(
+            generator_id=1,
+            bus=system.buses[1],
+            impedance={"1": complex(0, 0.2), "2": complex(0, 0.2), "0": complex(0, 0.1)},
+        )
         system.add_generator(gen)
         for i in range(1, 4):
-            line = Line(line_id=i, from_bus=system.buses[i], to_bus=system.buses[i + 1],
-                       z1=complex(0.01, 0.05), z2=complex(0.01, 0.05), z0=complex(0.03, 0.15))
+            line = Line(
+                line_id=i,
+                from_bus=system.buses[i],
+                to_bus=system.buses[i + 1],
+                z1=complex(0.01, 0.05),
+                z2=complex(0.01, 0.05),
+                z0=complex(0.03, 0.15),
+            )
             system.add_line(line)
         system.build_sequence_networks(for_fault=True)
         Ybus_pos = system.get_ybus(seq="1")
@@ -1464,10 +1619,9 @@ class TestShortCircuitExpansion:
 
     def test_iec60909_fault_types_all(self):
         _n = 2
-        Ybus = np.array([
-            [complex(10, -50), complex(-10, 50)],
-            [complex(-10, 50), complex(10, -50)]
-        ])
+        Ybus = np.array(
+            [[complex(10, -50), complex(-10, 50)], [complex(-10, 50), complex(10, -50)]]
+        )
         engine = IEC60909Engine(Ybus, Ybus, Ybus, base_mva=100.0, base_kv=115.0)
         for fault_type, method in [
             ("three_phase", engine.calculate_three_phase_fault),
@@ -1483,10 +1637,9 @@ class TestShortCircuitExpansion:
 
     def test_fault_current_symmetry(self):
         _n = 2
-        Ybus = np.array([
-            [complex(10, -50), complex(-10, 50)],
-            [complex(-10, 50), complex(10, -50)]
-        ])
+        Ybus = np.array(
+            [[complex(10, -50), complex(-10, 50)], [complex(-10, 50), complex(10, -50)]]
+        )
         engine = IEC60909Engine(Ybus, Ybus, Ybus, base_mva=100.0, base_kv=115.0)
         result = engine.calculate_three_phase_fault(0, bus_kv=115.0)
         mags = [abs(result.Ia), abs(result.Ib), abs(result.Ic)]
@@ -1500,11 +1653,13 @@ class TestShortCircuitExpansion:
 # ETAP AUTOMATION TESTS
 # ============================================================================
 
+
 class TestETAPAutomation:
     """Test suite for ETAP automation (using static methods, no COM dependency)."""
 
     def test_project_path_validation(self):
         import unittest.mock as umock
+
         etap_mock = umock.MagicMock(spec=ETAPAutomation)
         etap_mock._allowed_project_dirs = []
         empty = ETAPAutomation._validate_project_path(etap_mock, "")
@@ -1556,6 +1711,7 @@ class TestETAPAutomation:
 # ============================================================================
 # MULTI-AGENT COORDINATION TESTS
 # ============================================================================
+
 
 class TestMultiAgentCoordination:
     """Test suite for multi-agent coordination data structures."""

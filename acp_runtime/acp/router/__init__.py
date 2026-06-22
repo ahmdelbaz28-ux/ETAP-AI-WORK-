@@ -16,6 +16,7 @@ Out of scope:
     * Capability implementation — Runtime layer
     * Token issuance / HMAC signing — Security layer
 """
+
 from __future__ import annotations
 
 from acp.router.router import Router, RouterConfig

@@ -5,6 +5,7 @@ push a progress event to the connected transport. The emitter is safe
 to call from inside an awaited coroutine; emissions are not awaited on
 the caller's hot path beyond the (very fast) ``send`` callback.
 """
+
 from __future__ import annotations
 
 import time

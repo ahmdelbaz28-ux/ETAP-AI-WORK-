@@ -27,6 +27,7 @@ logger = logging.getLogger(__name__)
 
 class HarmonicStandard(Enum):
     """Harmonic standards for limit checking."""
+
     IEEE_519_2022 = "IEEE 519-2022"
     IEC_61000 = "IEC 61000"
     EN_50160 = "EN 50160"
@@ -35,11 +36,12 @@ class HarmonicStandard(Enum):
 @dataclass
 class HarmonicSource:
     """Represents a harmonic current/voltage source."""
+
     source_id: str
     bus_id: str
     harmonic_order: int
     magnitude_pu: float  # Per-unit magnitude
-    angle_deg: float     # Phase angle in degrees
+    angle_deg: float  # Phase angle in degrees
     source_type: str = "current"  # "current" or "voltage"
     fundamental_freq: float = 60.0  # System fundamental frequency (Hz)
 
@@ -52,6 +54,7 @@ class HarmonicSource:
 @dataclass
 class HarmonicResult:
     """Results from harmonic analysis at a specific harmonic order."""
+
     harmonic_order: int
     frequency_hz: float
     bus_voltages: Dict[str, complex]  # bus_id -> voltage phasor
@@ -63,6 +66,7 @@ class HarmonicResult:
 @dataclass
 class HarmonicAnalysisResult:
     """Complete harmonic analysis results."""
+
     fundamental_frequency: float  # Hz
     max_harmonic_order: int
     harmonic_results: List[HarmonicResult]
@@ -97,8 +101,9 @@ class HarmonicAnalysisEngine:
         self.bus_ids = []
         self.branch_data = {}
 
-    def set_system_data(self, Ybus_fundamental: np.ndarray, bus_ids: List[str],
-                        branch_data: Dict = None):
+    def set_system_data(
+        self, Ybus_fundamental: np.ndarray, bus_ids: List[str], branch_data: Dict = None
+    ):
         """
         Set system admittance matrix and topology.
 
@@ -114,11 +119,14 @@ class HarmonicAnalysisEngine:
     def add_harmonic_source(self, source: HarmonicSource):
         """Add a harmonic current/voltage source."""
         self.harmonic_sources.append(source)
-        logger.info(f"Added harmonic source: order={source.harmonic_order}, "
-                    f"magnitude={source.magnitude_pu} pu")
+        logger.info(
+            f"Added harmonic source: order={source.harmonic_order}, "
+            f"magnitude={source.magnitude_pu} pu"
+        )
 
-    def calculate_harmonic_impedance(self, harmonic_order: int,
-                                      Ybus_fundamental: np.ndarray = None) -> np.ndarray:
+    def calculate_harmonic_impedance(
+        self, harmonic_order: int, Ybus_fundamental: np.ndarray = None
+    ) -> np.ndarray:
         """
         Calculate system impedance matrix at a specific harmonic order.
 
@@ -255,11 +263,12 @@ class HarmonicAnalysisEngine:
             bus_voltages=bus_voltages,
             branch_currents=branch_currents,
             thd_voltage=thd_voltage,
-            thd_current=thd_current
+            thd_current=thd_current,
         )
 
-    def calculate_thd(self, harmonic_results: List[HarmonicResult],
-                      fundamental_magnitude: Dict[str, float]) -> Dict[str, float]:
+    def calculate_thd(
+        self, harmonic_results: List[HarmonicResult], fundamental_magnitude: Dict[str, float]
+    ) -> Dict[str, float]:
         """
         Calculate Total Harmonic Distortion (THD).
 
@@ -287,15 +296,16 @@ class HarmonicAnalysisEngine:
             for result in harmonic_results:
                 if result.harmonic_order > 1:  # Exclude fundamental
                     V_h = abs(result.bus_voltages.get(bus_id, 0))
-                    sum_squared += V_h ** 2
+                    sum_squared += V_h**2
 
             # Calculate THD
             thd[bus_id] = (np.sqrt(sum_squared) / V1) * 100.0
 
         return thd
 
-    def calculate_tdd(self, harmonic_results: List[HarmonicResult],
-                      fundamental_current: Dict[str, float]) -> Dict[str, float]:
+    def calculate_tdd(
+        self, harmonic_results: List[HarmonicResult], fundamental_current: Dict[str, float]
+    ) -> Dict[str, float]:
         """
         Calculate Total Demand Distortion (TDD).
 
@@ -324,15 +334,16 @@ class HarmonicAnalysisEngine:
             for result in harmonic_results:
                 if result.harmonic_order > 1:
                     I_h = abs(result.branch_currents.get(branch_id, 0))
-                    sum_squared += I_h ** 2
+                    sum_squared += I_h**2
 
             # Calculate TDD
             tdd[branch_id] = (np.sqrt(sum_squared) / I_L) * 100.0
 
         return tdd
 
-    def detect_resonance(self, harmonic_results: List[HarmonicResult],
-                         threshold_factor: float = 10.0) -> Tuple[bool, List[float]]:
+    def detect_resonance(
+        self, harmonic_results: List[HarmonicResult], threshold_factor: float = 10.0
+    ) -> Tuple[bool, List[float]]:
         """
         Detect potential resonance conditions.
 
@@ -355,15 +366,17 @@ class HarmonicAnalysisEngine:
             # If voltage is significantly higher than typical, flag as resonance
             if max_voltage > threshold_factor:
                 resonance_freqs.append(result.frequency_hz)
-                logger.warning(f"Potential resonance detected at {result.frequency_hz} Hz "
-                             f"(harmonic {result.harmonic_order})")
+                logger.warning(
+                    f"Potential resonance detected at {result.frequency_hz} Hz "
+                    f"(harmonic {result.harmonic_order})"
+                )
 
         resonance_detected = len(resonance_freqs) > 0
         return resonance_detected, resonance_freqs
 
-    def check_ieee_519_compliance(self, thd_voltage: Dict[str, float],
-                                   tdd_current: Dict[str, float],
-                                   voltage_kv: float) -> Dict[str, bool]:
+    def check_ieee_519_compliance(
+        self, thd_voltage: Dict[str, float], tdd_current: Dict[str, float], voltage_kv: float
+    ) -> Dict[str, bool]:
         """
         Check compliance with IEEE 519-2022 limits.
 
@@ -399,14 +412,19 @@ class HarmonicAnalysisEngine:
             compliance[bus_id] = compliant
 
             if not compliant:
-                logger.warning(f"IEEE 519 violation at bus {bus_id}: "
-                             f"THD={thd:.2f}% exceeds limit {vthd_limit}%")
+                logger.warning(
+                    f"IEEE 519 violation at bus {bus_id}: "
+                    f"THD={thd:.2f}% exceeds limit {vthd_limit}%"
+                )
 
         return compliance
 
-    def run_full_analysis(self, fundamental_magnitudes: Dict[str, float] = None,
-                          fundamental_currents: Dict[str, float] = None,
-                          voltage_kv: float = 13.8) -> HarmonicAnalysisResult:
+    def run_full_analysis(
+        self,
+        fundamental_magnitudes: Dict[str, float] = None,
+        fundamental_currents: Dict[str, float] = None,
+        voltage_kv: float = 13.8,
+    ) -> HarmonicAnalysisResult:
         """
         Run complete harmonic analysis for all harmonic orders.
 
@@ -467,16 +485,19 @@ class HarmonicAnalysisEngine:
             resonance_detected=resonance_detected,
             resonance_frequencies=resonance_freqs,
             compliance_status=compliance,
-            violations=violations
+            violations=violations,
         )
 
-        logger.info(f"Harmonic analysis complete. Resonance: {resonance_detected}, "
-                   f"Violations: {len(violations)}")
+        logger.info(
+            f"Harmonic analysis complete. Resonance: {resonance_detected}, "
+            f"Violations: {len(violations)}"
+        )
 
         return result
 
-    def design_passive_filter(self, target_harmonic: int, q_factor: float = 50.0,
-                              tuning_frequency_offset: float = 0.05) -> Dict[str, float]:
+    def design_passive_filter(
+        self, target_harmonic: int, q_factor: float = 50.0, tuning_frequency_offset: float = 0.05
+    ) -> Dict[str, float]:
         """
         Design a passive harmonic filter (single-tuned).
 
@@ -510,26 +531,28 @@ class HarmonicAnalysisEngine:
 
         # Calculate inductance for resonance at tuned frequency
         # omega^2 = 1/(LC)
-        L = 1 / (omega_tuned ** 2 * C)
+        L = 1 / (omega_tuned**2 * C)
 
         # Calculate resistance for desired Q factor
         # Q = omega * L / R
         R = omega_tuned * L / q_factor
 
         filter_design = {
-            'target_harmonic': h_target,
-            'tuned_frequency_hz': f_tuned,
-            'capacitance_F': C,
-            'capacitance_uF': C * 1e6,
-            'inductance_H': L,
-            'inductance_mH': L * 1e3,
-            'resistance_ohm': R,
-            'q_factor': q_factor,
-            'capacitor_rating_MVAR': Q_cap_MVAR
+            "target_harmonic": h_target,
+            "tuned_frequency_hz": f_tuned,
+            "capacitance_F": C,
+            "capacitance_uF": C * 1e6,
+            "inductance_H": L,
+            "inductance_mH": L * 1e3,
+            "resistance_ohm": R,
+            "q_factor": q_factor,
+            "capacitor_rating_MVAR": Q_cap_MVAR,
         }
 
-        logger.info(f"Passive filter designed for harmonic {h_target}: "
-                   f"C={C*1e6:.2f} uF, L={L*1e3:.2f} mH, R={R:.3f} ohm")
+        logger.info(
+            f"Passive filter designed for harmonic {h_target}: "
+            f"C={C * 1e6:.2f} uF, L={L * 1e3:.2f} mH, R={R:.3f} ohm"
+        )
 
         return filter_design
 

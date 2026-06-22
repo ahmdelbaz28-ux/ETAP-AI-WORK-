@@ -18,6 +18,7 @@ from engine.caching import StudyCache, _InMemoryStore, get_study_cache
 # _InMemoryStore tests (no Redis needed)
 # ---------------------------------------------------------------------------
 
+
 class TestInMemoryStore:
     """Tests for the in-memory fallback store."""
 
@@ -129,6 +130,7 @@ class TestInMemoryStore:
 # ---------------------------------------------------------------------------
 # StudyCache tests (uses in-memory fallback when Redis unavailable)
 # ---------------------------------------------------------------------------
+
 
 class TestStudyCache:
     """Tests for the StudyCache class (in-memory fallback mode)."""

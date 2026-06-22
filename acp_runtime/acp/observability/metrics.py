@@ -10,6 +10,7 @@ Design:
 All metric operations are atomic and thread-safe. The registry uses
 ``anyio.Lock`` for async-safe reads/writes.
 """
+
 from __future__ import annotations
 
 import bisect
@@ -71,6 +72,7 @@ def _format_labels(labels: dict[str, Any]) -> str:
 
 # ------------------------------------------------------------------ Counter
 
+
 class Counter:
     """Monotonically increasing counter with optional label dimensions.
 
@@ -114,14 +116,14 @@ class Counter:
             "name": self.name,
             "type": "counter",
             "values": [
-                {"labels": dict(key), "value": val}
-                for key, val in sorted(self._values.items())
+                {"labels": dict(key), "value": val} for key, val in sorted(self._values.items())
             ],
             "description": self.description,
         }
 
 
 # ------------------------------------------------------------------ Histogram
+
 
 class Histogram:
     """Histogram that records values into buckets with optional label dimensions.
@@ -145,7 +147,9 @@ class Histogram:
     ) -> None:
         self.name = name
         self.description = description
-        self._buckets = sorted(buckets or [1, 5, 10, 25, 50, 100, 250, 500, 1000, 2500, 5000, 10000])
+        self._buckets = sorted(
+            buckets or [1, 5, 10, 25, 50, 100, 250, 500, 1000, 2500, 5000, 10000]
+        )
         # Each label key gets its own bucket counts, sum, and count.
         self._values: dict[frozenset, dict[str, Any]] = {}
         self._lock = threading.Lock()
@@ -189,15 +193,17 @@ class Histogram:
         """
         values = []
         for key, entry in sorted(self._values.items()):
-            values.append({
-                "labels": dict(key),
-                "buckets": [
-                    {"le": b, "count": entry["counts"][i]}
-                    for i, b in enumerate(self._buckets)
-                ] + [{"le": "+Inf", "count": entry["counts"][-1]}],
-                "sum": entry["sum"],
-                "count": entry["count"],
-            })
+            values.append(
+                {
+                    "labels": dict(key),
+                    "buckets": [
+                        {"le": b, "count": entry["counts"][i]} for i, b in enumerate(self._buckets)
+                    ]
+                    + [{"le": "+Inf", "count": entry["counts"][-1]}],
+                    "sum": entry["sum"],
+                    "count": entry["count"],
+                }
+            )
         return {
             "name": self.name,
             "type": "histogram",
@@ -207,6 +213,7 @@ class Histogram:
 
 
 # ------------------------------------------------------------------ Gauge
+
 
 class Gauge:
     """Gauge that holds a current value with optional label dimensions.
@@ -275,14 +282,14 @@ class Gauge:
             "name": self.name,
             "type": "gauge",
             "values": [
-                {"labels": dict(key), "value": val}
-                for key, val in sorted(self._values.items())
+                {"labels": dict(key), "value": val} for key, val in sorted(self._values.items())
             ],
             "description": self.description,
         }
 
 
 # ------------------------------------------------------------------ MetricsRegistry (ABC)
+
 
 class MetricsRegistry:
     """Abstract metrics registry.
@@ -294,7 +301,9 @@ class MetricsRegistry:
     def get_or_create_counter(self, name: str, description: str = "") -> Counter:
         raise NotImplementedError
 
-    def get_or_create_histogram(self, name: str, description: str = "", *, buckets: list[float] | None = None) -> Histogram:
+    def get_or_create_histogram(
+        self, name: str, description: str = "", *, buckets: list[float] | None = None
+    ) -> Histogram:
         raise NotImplementedError
 
     def get_or_create_gauge(self, name: str, description: str = "") -> Gauge:
@@ -305,6 +314,7 @@ class MetricsRegistry:
 
 
 # ------------------------------------------------------------------ InMemoryMetricsRegistry
+
 
 def _sanitize_metric_name(name: str) -> str:
     """Convert a metric name to a valid Prometheus metric name.
@@ -430,7 +440,9 @@ class InMemoryMetricsRegistry(MetricsRegistry):
                 self._counters[name] = Counter(name, description)
             return self._counters[name]
 
-    def get_or_create_histogram(self, name: str, description: str = "", *, buckets: list[float] | None = None) -> Histogram:
+    def get_or_create_histogram(
+        self, name: str, description: str = "", *, buckets: list[float] | None = None
+    ) -> Histogram:
         with self._lock:
             if name not in self._histograms:
                 self._histograms[name] = Histogram(name, description, buckets=buckets)

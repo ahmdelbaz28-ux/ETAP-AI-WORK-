@@ -156,7 +156,9 @@ class StabilityAgent(BaseAgent):
                 Y = post_fault_Ybus
 
             # RK4 integration
-            def derivatives(d: np.ndarray, w: np.ndarray, _Y: np.ndarray = Y) -> Tuple[np.ndarray, np.ndarray]:
+            def derivatives(
+                d: np.ndarray, w: np.ndarray, _Y: np.ndarray = Y
+            ) -> Tuple[np.ndarray, np.ndarray]:
                 Pe = electrical_power(d, _Y)
                 ddelta = w - self.omega_synchronous
                 domega = (self.omega_synchronous / (2.0 * H)) * (Pm - Pe - D * ddelta)
@@ -415,8 +417,8 @@ class StabilityAgent(BaseAgent):
             # Three-phase fault at generator terminals: Pmax_fault ≈ 0
             Pmax_fault = 0.0
 
-        numerator = Pm * (delta_max - delta0) + Pmax_post * np.cos(delta_max) - Pmax_fault * np.cos(
-            delta0
+        numerator = (
+            Pm * (delta_max - delta0) + Pmax_post * np.cos(delta_max) - Pmax_fault * np.cos(delta0)
         )
         denominator = Pmax_post - Pmax_fault
 
@@ -627,16 +629,14 @@ class StabilityAgent(BaseAgent):
             if not ss_data.get("stable", True):
                 for mode in ss_data.get("critical_modes", []):
                     if mode["type"] == "unstable":
-                        ev = mode['eigenvalue']
+                        ev = mode["eigenvalue"]
                         errors.append(
                             f"Unstable mode: eigenvalue={ev.real:.4f}{ev.imag:+.4f}j, "
                             f"ζ={mode['damping_ratio']:.4f}"
                         )
             min_zeta = ss_data.get("min_damping_ratio", 0.0)
             if min_zeta < 0.03:
-                errors.append(
-                    f"Very low damping ratio: ζ_min={min_zeta:.4f} (< 0.03 threshold)"
-                )
+                errors.append(f"Very low damping ratio: ζ_min={min_zeta:.4f} (< 0.03 threshold)")
 
         cct_data = result.data.get("critical_clearing_time")
         if cct_data is not None:

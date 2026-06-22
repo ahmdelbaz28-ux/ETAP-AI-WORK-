@@ -9,6 +9,7 @@ The decorated function is mutated in place to carry an attribute
 ``discover_capabilities`` depends on; the attribute name is prefixed
 with an underscore to discourage external use.
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -68,15 +69,12 @@ def capability(
     """
     if not is_valid_capability_name(name):
         raise ValueError(
-            f"Invalid capability name: {name!r} "
-            f"(must match ^[a-z][a-z0-9_.-]{{0,127}}$)"
+            f"Invalid capability name: {name!r} (must match ^[a-z][a-z0-9_.-]{{0,127}}$)"
         )
     scopes_t = tuple(scopes)
     for s in scopes_t:
         if not is_valid_scope(s):
-            raise ValueError(
-                f"Invalid scope: {s!r} (must match ^[a-z][a-z0-9_.-]{{0,127}}$)"
-            )
+            raise ValueError(f"Invalid scope: {s!r} (must match ^[a-z][a-z0-9_.-]{{0,127}}$)")
 
     def decorator(func: Callable[..., Any]) -> Callable[..., Any]:
         setattr(

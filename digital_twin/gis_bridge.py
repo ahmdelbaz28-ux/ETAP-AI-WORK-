@@ -74,6 +74,7 @@ ELECTRICAL_TO_GIS_MAP: Dict[str, str] = {
 @dataclass
 class SyncRecord:
     """A single synchronization record."""
+
     direction: str  # gis_to_dt or dt_to_gis
     asset_id: str
     asset_type: str
@@ -159,10 +160,12 @@ class GISSyncBridge:
             try:
                 self.dt_state.system.Ybus_seq.clear()
                 self.dt_state.system.build_ybus(seq="1")
-                self.event_bus.publish(TopologyChanged(
-                    change_description=f"GIS sync: {len(all_assets)} assets processed",
-                    source="gis_bridge",
-                ))
+                self.event_bus.publish(
+                    TopologyChanged(
+                        change_description=f"GIS sync: {len(all_assets)} assets processed",
+                        source="gis_bridge",
+                    )
+                )
                 logger.info("GIS sync: Ybus rebuilt after %d assets", len(all_assets))
             except Exception as exc:
                 logger.error("GIS sync: Ybus rebuild failed: %s", exc)
@@ -266,7 +269,13 @@ class GISSyncBridge:
         """Create or update a line in the electrical model."""
         from core_model.line import Line
 
-        lid = int(line_id.split("_")[-1]) if "_" in line_id else int(line_id) if line_id.isdigit() else 1
+        lid = (
+            int(line_id.split("_")[-1])
+            if "_" in line_id
+            else int(line_id)
+            if line_id.isdigit()
+            else 1
+        )
         existing = [l for l in self.dt_state.system.lines if l.line_id == lid]
         if not existing:
             buses = list(self.dt_state.system.buses.values())
@@ -284,7 +293,9 @@ class GISSyncBridge:
     def _upsert_switch(self, switch_id: str, coords: Optional[tuple]) -> None:
         """Register a switch in the digital twin."""
         if self.dt_state.adms is not None:
-            if hasattr(self.dt_state.adms, "topology") and hasattr(self.dt_state.adms.topology, "switches"):
+            if hasattr(self.dt_state.adms, "topology") and hasattr(
+                self.dt_state.adms.topology, "switches"
+            ):
                 if switch_id not in self.dt_state.adms.topology.switches:
                     buses = list(self.dt_state.system.buses.keys()) if self.dt_state.system else []
                     if len(buses) >= 2:
@@ -296,7 +307,13 @@ class GISSyncBridge:
         """Create or update a load in the electrical model."""
         from core_model.load import Load
 
-        lid = int(load_id.split("_")[-1]) if "_" in load_id else int(load_id) if load_id.isdigit() else 1
+        lid = (
+            int(load_id.split("_")[-1])
+            if "_" in load_id
+            else int(load_id)
+            if load_id.isdigit()
+            else 1
+        )
         existing = [l for l in self.dt_state.system.loads if l.load_id == lid]
         if not existing and self.dt_state.system.buses:
             first_bus = list(self.dt_state.system.buses.values())[0]
@@ -305,8 +322,10 @@ class GISSyncBridge:
             load = Load(
                 load_id=lid,
                 bus=first_bus,
-                load_power=complex(p_mw / max(self.dt_state.system.base_mva, 1),
-                                   q_mvar / max(self.dt_state.system.base_mva, 1)),
+                load_power=complex(
+                    p_mw / max(self.dt_state.system.base_mva, 1),
+                    q_mvar / max(self.dt_state.system.base_mva, 1),
+                ),
             )
             self.dt_state.system.add_load(load)
 
@@ -314,7 +333,9 @@ class GISSyncBridge:
         """Create or update a generator in the electrical model."""
         from core_model.generator import Generator
 
-        gid = int(gen_id.split("_")[-1]) if "_" in gen_id else int(gen_id) if gen_id.isdigit() else 1
+        gid = (
+            int(gen_id.split("_")[-1]) if "_" in gen_id else int(gen_id) if gen_id.isdigit() else 1
+        )
         existing = [g for g in self.dt_state.system.generators if g.generator_id == gid]
         if not existing and self.dt_state.system.buses:
             first_bus = list(self.dt_state.system.buses.values())[0]
@@ -358,7 +379,11 @@ class GISSyncBridge:
             logger.warning("No PostGIS provider — cannot sync DT -> GIS")
             return records
 
-        snapshot = self.dt_state.get_current_snapshot() if hasattr(self.dt_state, "get_current_snapshot") else None
+        snapshot = (
+            self.dt_state.get_current_snapshot()
+            if hasattr(self.dt_state, "get_current_snapshot")
+            else None
+        )
         if snapshot is None:
             logger.warning("No DT snapshot available — cannot sync to GIS")
             return records
@@ -402,13 +427,15 @@ class GISSyncBridge:
                     electrical_id=bid,
                 )
                 self.postgis.upsert_asset(asset)
-                records.append(SyncRecord(
-                    direction="dt_to_gis",
-                    asset_id=bid,
-                    asset_type="bus",
-                    action="updated",
-                    success=True,
-                ))
+                records.append(
+                    SyncRecord(
+                        direction="dt_to_gis",
+                        asset_id=bid,
+                        asset_type="bus",
+                        action="updated",
+                        success=True,
+                    )
+                )
             except Exception as exc:
                 logger.warning("DT->GIS sync failed for bus %s: %s", bid, exc)
 
@@ -454,13 +481,16 @@ class GISSyncBridge:
             if sim and hasattr(sim, "load_flow_converged"):
                 metadata_asset = self.postgis.get_asset("_simulation_metadata")
                 from gis_integration.providers.postgis_provider import SpatialAsset
+
                 if metadata_asset:
-                    metadata_asset.properties.update({
-                        "load_flow_converged": sim.load_flow_converged,
-                        "protection_coordination_ok": sim.protection_coordination_ok,
-                        "state_estimation_converged": sim.state_estimation_converged,
-                        "synced_at": time.time(),
-                    })
+                    metadata_asset.properties.update(
+                        {
+                            "load_flow_converged": sim.load_flow_converged,
+                            "protection_coordination_ok": sim.protection_coordination_ok,
+                            "state_estimation_converged": sim.state_estimation_converged,
+                            "synced_at": time.time(),
+                        }
+                    )
                     self.postgis.upsert_asset(metadata_asset)
         except Exception as exc:
             logger.warning("DT->GIS simulation sync failed: %s", exc)

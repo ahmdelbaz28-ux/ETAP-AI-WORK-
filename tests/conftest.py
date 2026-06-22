@@ -76,6 +76,7 @@ _TestSessionLocal = async_sessionmaker(
 # FastAPI application factory for tests
 # ---------------------------------------------------------------------------
 
+
 def _create_test_app() -> FastAPI:
     """Build a minimal FastAPI app that includes all API routers."""
     app = FastAPI()
@@ -87,6 +88,7 @@ def _create_test_app() -> FastAPI:
 # ---------------------------------------------------------------------------
 # Fixtures
 # ---------------------------------------------------------------------------
+
 
 @pytest.fixture(scope="function")
 async def db_engine() -> AsyncGenerator[AsyncEngine, None]:
@@ -119,6 +121,7 @@ def app(db_engine: AsyncEngine) -> FastAPI:
                 await session.close()
 
     from api.database import get_db as _original_get_db
+
     application.dependency_overrides[_original_get_db] = _override_get_db
 
     return application
@@ -130,6 +133,7 @@ def client(app: FastAPI) -> Generator[TestClient, None, None]:
     # Reset the in-memory login rate limiter between tests so that
     # failures in one test do not bleed into the next.
     import api.auth as _auth_module
+
     _auth_module._LOGIN_ATTEMPTS.clear()
 
     with TestClient(app) as c:
@@ -139,6 +143,7 @@ def client(app: FastAPI) -> Generator[TestClient, None, None]:
 # ---------------------------------------------------------------------------
 # Helper: create a user via the register endpoint and return auth headers
 # ---------------------------------------------------------------------------
+
 
 def _register_user(
     client: TestClient,
@@ -157,9 +162,7 @@ def _register_user(
             "role": role,
         },
     )
-    assert resp.status_code in (200, 201), (
-        f"Registration failed: {resp.status_code} {resp.text}"
-    )
+    assert resp.status_code in (200, 201), f"Registration failed: {resp.status_code} {resp.text}"
     return resp.json()
 
 
@@ -173,9 +176,7 @@ def _login_user(
         "/api/v1/auth/login",
         json={"username": username, "password": password},
     )
-    assert resp.status_code == 200, (
-        f"Login failed: {resp.status_code} {resp.text}"
-    )
+    assert resp.status_code == 200, f"Login failed: {resp.status_code} {resp.text}"
     return resp.json()
 
 

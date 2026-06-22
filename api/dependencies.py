@@ -40,6 +40,7 @@ if not _jwt_key:
         )
     import logging as _logging
     import secrets as _secrets
+
     _jwt_key = _secrets.token_hex(32)
     _logging.getLogger(__name__).warning(
         "JWT_SECRET_KEY not set; using random key. "
@@ -66,6 +67,7 @@ if not API_KEY:
 # ---------------------------------------------------------------------------
 # Pagination parameters
 # ---------------------------------------------------------------------------
+
 
 class PaginationParams(BaseModel):
     """Parsed pagination parameters for list endpoints.
@@ -97,6 +99,7 @@ def pagination_params(
 # ---------------------------------------------------------------------------
 # Current-user dependency
 # ---------------------------------------------------------------------------
+
 
 class CurrentUser(BaseModel):
     """Representation of the authenticated user injected into route handlers.
@@ -207,6 +210,7 @@ async def get_current_user_from_header(
 # Role-based access control
 # ---------------------------------------------------------------------------
 
+
 def require_role(*roles: str):
     """Dependency factory that restricts access to users with the given roles.
 
@@ -239,6 +243,7 @@ def require_role(*roles: str):
 # API-key dependency
 # ---------------------------------------------------------------------------
 
+
 async def get_api_key(
     x_api_key: str = Header(default="", alias="X-API-Key"),
 ) -> str:
@@ -270,6 +275,7 @@ async def get_api_key(
 # ---------------------------------------------------------------------------
 # Internal helpers
 # ---------------------------------------------------------------------------
+
 
 def _extract_bearer_token(authorization: str) -> str:
     """Extract the token from an ``Authorization: Bearer <token>`` value.

@@ -21,6 +21,7 @@ class GISFeature:
     - properties must be JSON-serializable
     - crs must be a string (e.g., "EPSG:4326") provided by the provider/normalizer
     """
+
     id: str
     geometry: GeoJSONGeometry
     properties: Dict[str, Any] = field(default_factory=dict)
@@ -46,6 +47,7 @@ class ADMSAsset:
     - no dynamic fields
     - deterministic mapping requirements handled by transformer
     """
+
     asset_id: str
     asset_type: ADMSAssetType
     geometry: GeoJSONGeometry
@@ -55,6 +57,7 @@ class ADMSAsset:
 # -----------------------------
 # Helper DTOs
 # -----------------------------
+
 
 @dataclass(frozen=True)
 class GeoCRSInfo:

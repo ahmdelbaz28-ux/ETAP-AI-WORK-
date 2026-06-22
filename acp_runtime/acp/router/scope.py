@@ -9,6 +9,7 @@ Rules:
     * Required scopes exist → caller must hold at least one
     * Scope strings are validated against the same regex as capability names
 """
+
 from __future__ import annotations
 
 from acp.schema.capability import is_valid_scope

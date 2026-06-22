@@ -1,4 +1,3 @@
-
 """
 GIS Spatial Layer - ETAP GIS Equivalent
 ========================================
@@ -23,6 +22,7 @@ from typing import Any, Dict, List, Optional, Tuple
 # GEO-REFERENCING MODEL
 # ============================================================
 
+
 class GISZoneType(Enum):
     SUBSTATION = "substation"
     FEEDER = "feeder"
@@ -34,6 +34,7 @@ class GISZoneType(Enum):
 @dataclass
 class GeoCoordinate:
     """Geographic coordinate with optional elevation."""
+
     latitude: float
     longitude: float
     elevation: Optional[float] = None
@@ -45,14 +46,12 @@ class GeoCoordinate:
         return d
 
     @staticmethod
-    def from_dict(data: dict) -> 'GeoCoordinate':
+    def from_dict(data: dict) -> "GeoCoordinate":
         return GeoCoordinate(
-            latitude=data["lat"],
-            longitude=data["lon"],
-            elevation=data.get("elev")
+            latitude=data["lat"], longitude=data["lon"], elevation=data.get("elev")
         )
 
-    def distance_to(self, other: 'GeoCoordinate') -> float:
+    def distance_to(self, other: "GeoCoordinate") -> float:
         """
         Calculate Haversine distance in meters between two coordinates.
         """
@@ -65,7 +64,7 @@ class GeoCoordinate:
         c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
         return R * c
 
-    def bearing_to(self, other: 'GeoCoordinate') -> float:
+    def bearing_to(self, other: "GeoCoordinate") -> float:
         """Calculate bearing in degrees from self to other."""
         lat1, lon1 = math.radians(self.latitude), math.radians(self.longitude)
         lat2, lon2 = math.radians(other.latitude), math.radians(other.longitude)
@@ -79,6 +78,7 @@ class GeoCoordinate:
 @dataclass
 class GISZone:
     """GIS zone definition for spatial grouping of assets."""
+
     zone_id: str
     zone_type: GISZoneType
     name: str
@@ -109,7 +109,7 @@ class GISZone:
             "name": self.name,
             "boundary": [c.to_dict() for c in self.boundary],
             "parent_zone_id": self.parent_zone_id,
-            "properties": self.properties
+            "properties": self.properties,
         }
 
 
@@ -117,9 +117,11 @@ class GISZone:
 # SPATIAL NETWORK GEOMETRY
 # ============================================================
 
+
 @dataclass
 class PolylineGeometry:
     """Polyline geometry for lines, feeders, and routes."""
+
     coordinates: List[GeoCoordinate] = field(default_factory=list)
 
     def total_length_meters(self) -> float:
@@ -144,11 +146,20 @@ class PolylineGeometry:
             seg_len = self.coordinates[i].distance_to(self.coordinates[i + 1])
             if accumulated + seg_len >= target:
                 seg_frac = (target - accumulated) / seg_len if seg_len > 0 else 0
-                lat = self.coordinates[i].latitude + seg_frac * (self.coordinates[i + 1].latitude - self.coordinates[i].latitude)
-                lon = self.coordinates[i].longitude + seg_frac * (self.coordinates[i + 1].longitude - self.coordinates[i].longitude)
+                lat = self.coordinates[i].latitude + seg_frac * (
+                    self.coordinates[i + 1].latitude - self.coordinates[i].latitude
+                )
+                lon = self.coordinates[i].longitude + seg_frac * (
+                    self.coordinates[i + 1].longitude - self.coordinates[i].longitude
+                )
                 elev = None
-                if self.coordinates[i].elevation is not None and self.coordinates[i + 1].elevation is not None:
-                    elev = self.coordinates[i].elevation + seg_frac * (self.coordinates[i + 1].elevation - self.coordinates[i].elevation)
+                if (
+                    self.coordinates[i].elevation is not None
+                    and self.coordinates[i + 1].elevation is not None
+                ):
+                    elev = self.coordinates[i].elevation + seg_frac * (
+                        self.coordinates[i + 1].elevation - self.coordinates[i].elevation
+                    )
                 return GeoCoordinate(lat, lon, elev)
             accumulated += seg_len
         return self.coordinates[-1]
@@ -161,7 +172,7 @@ class PolylineGeometry:
         return {"coordinates": [c.to_dict() for c in self.coordinates]}
 
     @staticmethod
-    def from_dict(data: dict) -> 'PolylineGeometry':
+    def from_dict(data: dict) -> "PolylineGeometry":
         return PolylineGeometry(
             coordinates=[GeoCoordinate.from_dict(c) for c in data.get("coordinates", [])]
         )
@@ -170,6 +181,7 @@ class PolylineGeometry:
 # ============================================================
 # GIS ASSET REGISTRY
 # ============================================================
+
 
 class GISAssetType(Enum):
     BUS = "bus"
@@ -185,6 +197,7 @@ class GISAssetType(Enum):
 @dataclass
 class GISAsset:
     """GIS-referenced power system asset."""
+
     asset_id: str
     asset_type: GISAssetType
     electrical_id: Optional[str] = None  # Link to electrical model ID
@@ -199,7 +212,7 @@ class GISAsset:
             "asset_type": self.asset_type.value,
             "electrical_id": self.electrical_id,
             "zone_id": self.zone_id,
-            "properties": self.properties
+            "properties": self.properties,
         }
         if self.position:
             d["position"] = self.position.to_dict()
@@ -208,7 +221,7 @@ class GISAsset:
         return d
 
     @staticmethod
-    def from_dict(data: dict) -> 'GISAsset':
+    def from_dict(data: dict) -> "GISAsset":
         position = GeoCoordinate.from_dict(data["position"]) if "position" in data else None
         geometry = PolylineGeometry.from_dict(data["geometry"]) if "geometry" in data else None
         return GISAsset(
@@ -218,13 +231,14 @@ class GISAsset:
             position=position,
             geometry=geometry,
             zone_id=data.get("zone_id"),
-            properties=data.get("properties", {})
+            properties=data.get("properties", {}),
         )
 
 
 # ============================================================
 # GIS DATABASE LAYER
 # ============================================================
+
 
 class GISDatabase:
     """
@@ -336,7 +350,9 @@ class GISDatabase:
                 if not self.spatial_index[key]:
                     del self.spatial_index[key]
 
-    def find_nearby_assets(self, coord: GeoCoordinate, radius_meters: float) -> List[Tuple[GISAsset, float]]:
+    def find_nearby_assets(
+        self, coord: GeoCoordinate, radius_meters: float
+    ) -> List[Tuple[GISAsset, float]]:
         """
         Find all assets within a given radius of a coordinate.
 
@@ -393,10 +409,7 @@ class GISDatabase:
             feature = self._asset_to_geojson_feature(asset)
             if feature:
                 features.append(feature)
-        return {
-            "type": "FeatureCollection",
-            "features": features
-        }
+        return {"type": "FeatureCollection", "features": features}
 
     def _asset_to_geojson_feature(self, asset: GISAsset) -> Optional[dict]:
         """Convert a GIS asset to a GeoJSON feature."""
@@ -405,29 +418,22 @@ class GISDatabase:
             "asset_type": asset.asset_type.value,
             "electrical_id": asset.electrical_id,
             "zone_id": asset.zone_id,
-            **asset.properties
+            **asset.properties,
         }
 
         if asset.position:
             geometry = {
                 "type": "Point",
-                "coordinates": [asset.position.longitude, asset.position.latitude]
+                "coordinates": [asset.position.longitude, asset.position.latitude],
             }
             if asset.position.elevation is not None:
                 geometry["coordinates"].append(asset.position.elevation)
         elif asset.geometry:
-            geometry = {
-                "type": "LineString",
-                "coordinates": asset.geometry.to_coordinate_pairs()
-            }
+            geometry = {"type": "LineString", "coordinates": asset.geometry.to_coordinate_pairs()}
         else:
             return None
 
-        return {
-            "type": "Feature",
-            "geometry": geometry,
-            "properties": properties
-        }
+        return {"type": "Feature", "geometry": geometry, "properties": properties}
 
     def from_geojson(self, geojson: dict) -> None:
         """
@@ -452,8 +458,11 @@ class GISDatabase:
         electrical_id = props.get("electrical_id")
         zone_id = props.get("zone_id")
 
-        extra_props = {k: v for k, v in props.items()
-                       if k not in ("asset_id", "asset_type", "electrical_id", "zone_id")}
+        extra_props = {
+            k: v
+            for k, v in props.items()
+            if k not in ("asset_id", "asset_type", "electrical_id", "zone_id")
+        }
 
         position = None
         geometry = None
@@ -462,8 +471,10 @@ class GISDatabase:
             elevation = coords[2] if len(coords) > 2 else None
             position = GeoCoordinate(latitude=coords[1], longitude=coords[0], elevation=elevation)
         elif geom_type == "LineString" and len(coords) >= 2:
-            gis_coords = [GeoCoordinate(latitude=c[1], longitude=c[0],
-                                        elevation=c[2] if len(c) > 2 else None) for c in coords]
+            gis_coords = [
+                GeoCoordinate(latitude=c[1], longitude=c[0], elevation=c[2] if len(c) > 2 else None)
+                for c in coords
+            ]
             geometry = PolylineGeometry(coordinates=gis_coords)
 
         return GISAsset(
@@ -473,7 +484,7 @@ class GISDatabase:
             position=position,
             geometry=geometry,
             zone_id=zone_id,
-            properties=extra_props
+            properties=extra_props,
         )
 
     def export_geojson_string(self, asset_types: List[GISAssetType] = None) -> str:
@@ -533,18 +544,21 @@ class GISDatabase:
         """Validate spatial consistency of all assets."""
         errors = []
         for asset in self.assets.values():
-            if asset.asset_type in (GISAssetType.BUS, GISAssetType.SUBSTATION,
-                                     GISAssetType.LOAD, GISAssetType.GENERATOR,
-                                     GISAssetType.SWITCH, GISAssetType.DER):
+            if asset.asset_type in (
+                GISAssetType.BUS,
+                GISAssetType.SUBSTATION,
+                GISAssetType.LOAD,
+                GISAssetType.GENERATOR,
+                GISAssetType.SWITCH,
+                GISAssetType.DER,
+            ):
                 if not asset.position:
                     errors.append(
                         f"Point asset '{asset.asset_id}' ({asset.asset_type.value}) missing position"
                     )
             if asset.asset_type in (GISAssetType.LINE,):
                 if not asset.geometry:
-                    errors.append(
-                        f"Line asset '{asset.asset_id}' missing polyline geometry"
-                    )
+                    errors.append(f"Line asset '{asset.asset_id}' missing polyline geometry")
         return errors
 
     # --- Statistics ---
@@ -559,7 +573,7 @@ class GISDatabase:
             "total_zones": len(self.zones),
             "total_feeder_routes": len(self.feeder_routes),
             "spatial_index_cells": len(self.spatial_index),
-            "assets_by_type": type_counts
+            "assets_by_type": type_counts,
         }
 
     def __repr__(self):
