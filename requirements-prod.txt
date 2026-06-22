@@ -36,7 +36,7 @@ PyJWT>=2.6.0
 
 # Data validation
 pydantic>=2.0.0
-email-validator>=2.0.0
+email-validator>=2.3.0
 
 # Database ORM (async SQLite support)
 sqlalchemy[asyncio]>=2.0.0
