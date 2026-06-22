@@ -7,6 +7,7 @@ of required COM modules and Python dependencies.
 """
 
 from __future__ import annotations
+
 import logging
 import platform
 import sys

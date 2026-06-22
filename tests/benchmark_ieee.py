@@ -5,6 +5,7 @@ Run: pytest tests/benchmark_ieee.py -v
 
 import numpy as np
 import pytest
+
 from core_model.bus import Bus
 from core_model.generator import Generator
 from core_model.line import Line

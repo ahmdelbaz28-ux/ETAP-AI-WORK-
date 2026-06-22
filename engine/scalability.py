@@ -6,7 +6,7 @@ data partitioning, and distributed orchestration for large power system studies.
 """
 
 from __future__ import annotations
-from compat import StrEnum
+
 import heapq
 import logging
 import random
@@ -17,6 +17,8 @@ from collections import defaultdict
 from collections.abc import Callable
 from dataclasses import dataclass, field
 from typing import Any, Dict, List, Tuple
+
+from compat import StrEnum
 
 logger = logging.getLogger(__name__)
 

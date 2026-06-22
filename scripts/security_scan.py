@@ -24,7 +24,7 @@ EXCLUDED_FILES = {".env.example", "security_scan.py", "README.md", "SECURITY.md"
 def scan_file(filepath):
     issues = []
     try:
-        with open(filepath, "r", encoding="utf-8", errors="ignore") as f:
+        with open(filepath, encoding="utf-8", errors="ignore") as f:
             content = f.read()
             for i, line in enumerate(content.split("\n"), 1):
                 for pattern, desc in SECRET_PATTERNS:
@@ -34,7 +34,7 @@ def scan_file(filepath):
                         if "example" in line.lower() or "placeholder" in line.lower():
                             continue
                         issues.append(f"{filepath}:{i} | {desc}: {line.strip()[:60]}")
-    except:
+    except Exception:
         pass
     return issues
 

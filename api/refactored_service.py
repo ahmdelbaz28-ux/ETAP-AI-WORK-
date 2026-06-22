@@ -109,6 +109,8 @@ def _to_jsonable(obj: Any) -> Any:
 # Ensure project root is on path
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
+from datetime import UTC
+
 from fastapi import FastAPI, HTTPException, Request, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
@@ -1143,7 +1145,7 @@ async def trace_middleware(request: Request, call_next):
         response = await asyncio.wait_for(call_next(request), timeout=_REQUEST_TIMEOUT_SEC)
         response.headers["x-trace-id"] = trace_id
         return response
-    except asyncio.TimeoutError:
+    except TimeoutError:
         logger.warning(
             "request_timeout method=%s path=%s timeout=%ds",
             request.method,
@@ -1950,7 +1952,6 @@ async def submit_siem_event(request: Request):
         body = await request.json()
         import uuid as uuid_mod
         from datetime import datetime as dt
-        from datetime import timezone as tz
 
         from security.siem import SecurityEvent, get_siem_forwarder
 
@@ -1969,7 +1970,7 @@ async def submit_siem_event(request: Request):
 
         event = SecurityEvent(
             event_id=body.get("event_id", str(uuid_mod.uuid4())),
-            timestamp=body.get("timestamp", dt.now(tz.utc).isoformat()),
+            timestamp=body.get("timestamp", dt.now(UTC).isoformat()),
             event_type=event_type,
             severity=severity,
             source=body.get("source", "engineering_service"),

@@ -13,6 +13,7 @@ Reference: IEC 61970 CIM Geographic Location model
 """
 
 from __future__ import annotations
+
 import json
 import math
 from dataclasses import dataclass, field
@@ -47,12 +48,12 @@ class GeoCoordinate:
         return d
 
     @staticmethod
-    def from_dict(data: dict) -> "GeoCoordinate":
+    def from_dict(data: dict) -> GeoCoordinate:
         return GeoCoordinate(
             latitude=data["lat"], longitude=data["lon"], elevation=data.get("elev")
         )
 
-    def distance_to(self, other: "GeoCoordinate") -> float:
+    def distance_to(self, other: GeoCoordinate) -> float:
         """
         Calculate Haversine distance in meters between two coordinates.
         """
@@ -65,7 +66,7 @@ class GeoCoordinate:
         c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
         return R * c
 
-    def bearing_to(self, other: "GeoCoordinate") -> float:
+    def bearing_to(self, other: GeoCoordinate) -> float:
         """Calculate bearing in degrees from self to other."""
         lat1, lon1 = math.radians(self.latitude), math.radians(self.longitude)
         lat2, lon2 = math.radians(other.latitude), math.radians(other.longitude)
@@ -173,7 +174,7 @@ class PolylineGeometry:
         return {"coordinates": [c.to_dict() for c in self.coordinates]}
 
     @staticmethod
-    def from_dict(data: dict) -> "PolylineGeometry":
+    def from_dict(data: dict) -> PolylineGeometry:
         return PolylineGeometry(
             coordinates=[GeoCoordinate.from_dict(c) for c in data.get("coordinates", [])]
         )
@@ -222,7 +223,7 @@ class GISAsset:
         return d
 
     @staticmethod
-    def from_dict(data: dict) -> "GISAsset":
+    def from_dict(data: dict) -> GISAsset:
         position = GeoCoordinate.from_dict(data["position"]) if "position" in data else None
         geometry = PolylineGeometry.from_dict(data["geometry"]) if "geometry" in data else None
         return GISAsset(

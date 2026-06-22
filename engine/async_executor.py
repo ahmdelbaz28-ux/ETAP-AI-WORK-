@@ -1,6 +1,7 @@
 """Async execution and concurrency module for the AhmedETAP Engineering Platform."""
 
 from __future__ import annotations
+
 import asyncio
 import enum
 import logging
@@ -15,9 +16,9 @@ from concurrent.futures import (
 )
 from contextlib import contextmanager
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
-UTC = timezone.utc
+UTC = UTC
 from typing import Any, List
 
 logger = logging.getLogger(__name__)
@@ -511,7 +512,7 @@ class _TimeoutContext:
         self._seconds = seconds
         self._deadline = time.monotonic() + seconds
 
-    def __enter__(self) -> "_TimeoutContext":
+    def __enter__(self) -> _TimeoutContext:
         return self
 
     def __exit__(self, exc_type: Any, exc_val: Any, exc_tb: Any) -> bool | None:
@@ -536,7 +537,7 @@ class _RetryContext:
         self._delay = delay
         self._attempt = 0
 
-    def __enter__(self) -> "_RetryContext":
+    def __enter__(self) -> _RetryContext:
         return self
 
     def __exit__(self, exc_type: Any, exc_val: Any, exc_tb: Any) -> bool | None:

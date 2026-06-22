@@ -6,6 +6,7 @@ and computational stability enforcement.
 """
 
 from __future__ import annotations
+
 import logging
 import random
 import threading
@@ -23,23 +24,23 @@ logger = logging.getLogger(__name__)
 # Global circuit breaker registry
 # ---------------------------------------------------------------------------
 
-_circuit_breaker_registry: Dict[str, "CircuitBreaker"] = {}
+_circuit_breaker_registry: Dict[str, CircuitBreaker] = {}
 _registry_lock = threading.Lock()
 
 
-def register_circuit_breaker(cb: "CircuitBreaker") -> None:
+def register_circuit_breaker(cb: CircuitBreaker) -> None:
     """Register a named circuit breaker in the global registry."""
     with _registry_lock:
         _circuit_breaker_registry[cb.name] = cb
 
 
-def get_circuit_breaker(name: str) -> Optional["CircuitBreaker"]:
+def get_circuit_breaker(name: str) -> Optional[CircuitBreaker]:
     """Look up a registered circuit breaker by name."""
     with _registry_lock:
         return _circuit_breaker_registry.get(name)
 
 
-def get_all_circuit_breakers() -> Dict[str, "CircuitBreaker"]:
+def get_all_circuit_breakers() -> Dict[str, CircuitBreaker]:
     """Return a copy of all registered circuit breakers."""
     with _registry_lock:
         return dict(_circuit_breaker_registry)

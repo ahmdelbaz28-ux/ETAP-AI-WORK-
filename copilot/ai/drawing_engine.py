@@ -25,7 +25,6 @@ import math
 import time
 import uuid
 from dataclasses import dataclass, field
-from compat import StrEnum
 from typing import Any, Dict, List, Tuple
 
 from autodesk_connector.shared.models import (
@@ -42,6 +41,7 @@ from autodesk_connector.shared.models import (
     Transformer,
     UnifiedEngineeringModel,
 )
+from compat import StrEnum
 
 logger = logging.getLogger(__name__)
 

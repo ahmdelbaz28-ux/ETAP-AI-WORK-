@@ -27,11 +27,12 @@ import operator
 import re
 from collections.abc import Callable, Sequence
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
-UTC = timezone.utc
-from compat import StrEnum
+UTC = UTC
 from typing import Any, Dict, List
+
+from compat import StrEnum
 
 logger = logging.getLogger(__name__)
 

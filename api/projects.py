@@ -19,10 +19,9 @@ from __future__ import annotations
 
 import json
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
-UTC = timezone.utc
-from compat import StrEnum
+UTC = UTC
 from typing import Any, Dict, List
 
 from fastapi import APIRouter, Depends, Header, HTTPException, status
@@ -40,6 +39,7 @@ from api.dependencies import (
     get_current_user_from_header,
     pagination_params,
 )
+from compat import StrEnum
 
 # ---------------------------------------------------------------------------
 # Combined auth dependency (API key OR JWT)

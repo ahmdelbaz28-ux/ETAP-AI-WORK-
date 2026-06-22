@@ -10,7 +10,6 @@ import time
 from fastapi import APIRouter, Request
 from fastapi.responses import Response
 
-from core.metrics import generate_metrics, get_metrics_content_type
 from core.bootstrap import (
     _failed_count,
     _metrics_lock,
@@ -18,6 +17,7 @@ from core.bootstrap import (
     _success_count,
     _total_execution_time_sec,
 )
+from core.metrics import generate_metrics, get_metrics_content_type
 
 router = APIRouter(prefix="", tags=["health"])
 

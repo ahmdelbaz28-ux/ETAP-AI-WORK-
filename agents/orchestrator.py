@@ -17,13 +17,14 @@ Architecture:
 """
 
 from __future__ import annotations
+
 import asyncio
 import logging
 import time
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
-UTC = timezone.utc
+UTC = UTC
 from enum import Enum
 from typing import Any, Dict, List
 

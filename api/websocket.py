@@ -6,9 +6,9 @@ Provides live updates to connected clients without requiring refresh.
 import asyncio
 import json
 import logging
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
-UTC = timezone.utc
+UTC = UTC
 from typing import List
 
 from fastapi import WebSocket, WebSocketDisconnect

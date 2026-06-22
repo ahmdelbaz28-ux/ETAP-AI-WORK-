@@ -8,13 +8,14 @@ Pydantic BaseModels (for validation-heavy / API-facing schemas).
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
-UTC = timezone.utc
-from compat import StrEnum
+UTC = UTC
 from typing import Any, Dict, List
 
 from pydantic import BaseModel, Field, field_validator
+
+from compat import StrEnum
 
 # =========================================================================
 # Pydantic models — validation + serialisation for API boundaries

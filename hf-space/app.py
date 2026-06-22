@@ -5,15 +5,16 @@ Author: Eng. Ahmed Elbaz
 """
 
 from __future__ import annotations
+
 import hmac
 import logging
 import os
 import threading
 import time
 from contextlib import asynccontextmanager
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
-UTC = timezone.utc
+UTC = UTC
 from typing import Any
 
 import uvicorn
