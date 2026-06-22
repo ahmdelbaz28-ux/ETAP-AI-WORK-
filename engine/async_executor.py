@@ -1,5 +1,6 @@
 """Async execution and concurrency module for the AhmedETAP Engineering Platform."""
 
+from __future__ import annotations
 import asyncio
 import enum
 import logging
@@ -14,7 +15,9 @@ from concurrent.futures import (
 )
 from contextlib import contextmanager
 from dataclasses import dataclass, field
-from datetime import UTC, datetime
+from datetime import datetime, timezone
+
+UTC = timezone.utc
 from typing import Any, List
 
 logger = logging.getLogger(__name__)

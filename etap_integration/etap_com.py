@@ -17,6 +17,7 @@ Usage:
     etap.close()
 """
 
+from __future__ import annotations
 import logging
 import os
 import pathlib
@@ -956,10 +957,13 @@ class ETAPAutomation:
     # -------------------------------------------------------------------------
 
     @staticmethod
-    def _validate_input(value, value_type: str,
-                        min_val: float | None = None,
-                        max_val: float | None = None,
-                        max_length: int | None = None) -> Union[int, float, str, bool]:
+    def _validate_input(
+        value,
+        value_type: str,
+        min_val: float | None = None,
+        max_val: float | None = None,
+        max_length: int | None = None,
+    ) -> Union[int, float, str, bool]:
         """
         Generic input validator.
 

@@ -29,7 +29,9 @@ class ADMSGraphModel:
         self._build_deterministic_edges()
 
     @staticmethod
-    def _extract_endpoints(geometry: Dict[str, Any]) -> Tuple[Tuple[float, float], Tuple[float, float]] | None:
+    def _extract_endpoints(
+        geometry: Dict[str, Any],
+    ) -> Tuple[Tuple[float, float], Tuple[float, float]] | None:
         gtype = geometry.get("type")
         coords = geometry.get("coordinates")
         if gtype == "LineString" and isinstance(coords, list) and len(coords) >= 2:

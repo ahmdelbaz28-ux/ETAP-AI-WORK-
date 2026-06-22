@@ -5,6 +5,7 @@ A FastAPI service to be run on Windows hosts with ETAP installed.
 Provides a REST API for the Linux-based AI platform to execute ETAP studies.
 """
 
+from __future__ import annotations
 import os
 import sys
 from typing import Any, Dict, List

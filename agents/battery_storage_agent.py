@@ -15,8 +15,11 @@ Standards:
 - IEC 62933-5-2: BESS — Safety considerations
 """
 
+from __future__ import annotations
 import logging
-from datetime import UTC, datetime
+from datetime import datetime, timezone
+
+UTC = timezone.utc
 from typing import Any, Dict, List, Tuple
 
 import numpy as np
@@ -530,7 +533,9 @@ class BatteryStorageAgent(BaseAgent):
         }
 
     @staticmethod
-    def _compute_irr(cash_flows: np.ndarray, max_iter: int = 100, tol: float = 1e-8) -> float | None:
+    def _compute_irr(
+        cash_flows: np.ndarray, max_iter: int = 100, tol: float = 1e-8
+    ) -> float | None:
         """Compute IRR using Newton-Raphson method."""
         x = 0.10  # Initial guess: 10%
         for _ in range(max_iter):

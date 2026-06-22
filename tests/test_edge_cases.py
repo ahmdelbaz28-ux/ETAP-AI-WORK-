@@ -26,7 +26,9 @@ import sys
 import threading
 import uuid
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from datetime import UTC, datetime, timedelta, timezone
+from datetime import datetime, timedelta, timezone
+
+UTC = timezone.utc
 
 import jwt
 import pytest

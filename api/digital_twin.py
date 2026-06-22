@@ -34,27 +34,32 @@ async def get_digital_twin_status(request: Request):
 
         # Get state store info
         state_info = {}
-        if hasattr(store, 'get_state'):
+        if hasattr(store, "get_state"):
             state = store.get_state()
             state_info = {"entities": len(state) if isinstance(state, dict) else 0}
-        elif hasattr(store, 'state'):
+        elif hasattr(store, "state"):
             state_info = {"entities": len(store.state) if isinstance(store.state, dict) else 0}
         else:
             state_info = {"available": True}
 
-        return JSONResponse(content={
-            "success": True,
-            "data": {
-                "state_store": state_info,
-                "event_bus": {"available": True},
-                "validation_gateway": {"available": True},
-                "sync_protocols": ["AWS IoT TwinMaker", "Azure Digital Twins"],
-                "supported_models": ["Substation", "Bus", "Line", "Transformer", "Generator"],
-            },
-            "trace_id": trace_id,
-        })
+        return JSONResponse(
+            content={
+                "success": True,
+                "data": {
+                    "state_store": state_info,
+                    "event_bus": {"available": True},
+                    "validation_gateway": {"available": True},
+                    "sync_protocols": ["AWS IoT TwinMaker", "Azure Digital Twins"],
+                    "supported_models": ["Substation", "Bus", "Line", "Transformer", "Generator"],
+                },
+                "trace_id": trace_id,
+            }
+        )
     except Exception as e:
         from logging import getLogger
+
         logger = getLogger("engineering_service")
         logger.error("digital_twin_status_failed error=%s", str(e), extra={"trace_id": trace_id})
-        return JSONResponse(status_code=500, content={"success": False, "errors": [str(e)], "trace_id": trace_id})
+        return JSONResponse(
+            status_code=500, content={"success": False, "errors": [str(e)], "trace_id": trace_id}
+        )

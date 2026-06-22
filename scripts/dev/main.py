@@ -106,7 +106,7 @@ def main():
     print("=" * 60)
 
     # Enable auto-correct for non-English input (used by normalize_input for CLI args)
-    _auto_correct = os.getenv('AUTO_CORRECT_LANGUAGE', 'true').lower() == 'true'
+    _auto_correct = os.getenv("AUTO_CORRECT_LANGUAGE", "true").lower() == "true"
 
     # Normalize any user input (if applicable)
     # For CLI arguments, you can wrap them with normalize_input

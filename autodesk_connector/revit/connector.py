@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import logging
 import time
-from enum import StrEnum
+from compat import StrEnum
 from typing import Any, List
 
 import requests
@@ -176,11 +176,14 @@ class RevitPluginClient:
         return self._call("/level/list", {})
 
     def create_room(self, name: str, level_id: str, bounding_box: dict | None = None) -> dict:
-        return self._call("/room/create", {
-            "name": name,
-            "level_id": level_id,
-            "bounding_box": bounding_box,
-        })
+        return self._call(
+            "/room/create",
+            {
+                "name": name,
+                "level_id": level_id,
+                "bounding_box": bounding_box,
+            },
+        )
 
     def list_rooms(self, level_id: str = "") -> dict:
         return self._call("/room/list", {"level_id": level_id})
@@ -195,12 +198,17 @@ class RevitPluginClient:
     def read_mep_data(self) -> dict:
         return self._call("/mep/data", {})
 
-    def create_circuit(self, panel_id: str, device_ids: List[str], circuit_number: int | None = None) -> dict:
-        return self._call("/mep/create_circuit", {
-            "panel_id": panel_id,
-            "device_ids": device_ids,
-            "circuit_number": circuit_number,
-        })
+    def create_circuit(
+        self, panel_id: str, device_ids: List[str], circuit_number: int | None = None
+    ) -> dict:
+        return self._call(
+            "/mep/create_circuit",
+            {
+                "panel_id": panel_id,
+                "device_ids": device_ids,
+                "circuit_number": circuit_number,
+            },
+        )
 
     # ------------------------------------------------------------------
     # Sync
@@ -446,14 +454,18 @@ class RevitConnector:
     # Helpers
     # ------------------------------------------------------------------
 
-    def _log_operation(self, operation: str, target: str, success: bool, details: dict | None = None) -> None:
-        self._operation_log.append({
-            "operation": operation,
-            "target": target,
-            "success": success,
-            "details": details or {},
-            "timestamp": time.time(),
-        })
+    def _log_operation(
+        self, operation: str, target: str, success: bool, details: dict | None = None
+    ) -> None:
+        self._operation_log.append(
+            {
+                "operation": operation,
+                "target": target,
+                "success": success,
+                "details": details or {},
+                "timestamp": time.time(),
+            }
+        )
 
     def get_operation_log(self, limit: int = 100) -> List[dict]:
         return self._operation_log[-limit:]

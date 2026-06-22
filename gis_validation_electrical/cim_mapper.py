@@ -121,7 +121,9 @@ def map_adms_to_cim(assets: List[ADMSAsset]) -> CIMModel:
         conducting_equipment[eq.cim_id] = eq
         traceability[eq.cim_id] = s.asset_id
 
-    def endpoints_from_linestring(geom: Dict[str, Any]) -> Tuple[Tuple[float, float], Tuple[float, float]] | None:
+    def endpoints_from_linestring(
+        geom: Dict[str, Any],
+    ) -> Tuple[Tuple[float, float], Tuple[float, float]] | None:
         if (geom or {}).get("type") != "LineString":
             return None
         coords = geom.get("coordinates")

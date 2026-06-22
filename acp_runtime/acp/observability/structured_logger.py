@@ -18,7 +18,7 @@ import json
 import sys
 import time
 from dataclasses import dataclass, field
-from enum import StrEnum
+from compat import StrEnum
 from typing import Any
 
 import anyio
@@ -34,6 +34,7 @@ __all__ = [
 
 
 # ------------------------------------------------------------------ LogLevel
+
 
 class LogLevel(StrEnum):
     DEBUG = "debug"

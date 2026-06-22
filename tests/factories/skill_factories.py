@@ -10,7 +10,9 @@ Patterns drawn from factoryboy/factory_boy:
 
 from __future__ import annotations
 
-from datetime import UTC, datetime, timezone
+from datetime import datetime, timezone
+
+UTC = timezone.utc
 from typing import Any, Optional
 
 import factory

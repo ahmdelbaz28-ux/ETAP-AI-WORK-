@@ -12,6 +12,7 @@ Supports:
 Reference: IEC 61970 CIM Geographic Location model
 """
 
+from __future__ import annotations
 import json
 import math
 from dataclasses import dataclass, field

@@ -260,13 +260,13 @@ def main():
         try:
             with redirect_stdout(f):
                 exec(_code, _globals)
-            return {'ok': True, 'output': f.getvalue(), 'error': None, 'traceback': None}
+            return {"ok": True, "output": f.getvalue(), "error": None, "traceback": None}
         except Exception as e:
             return {
-                'ok': False,
-                'output': None,
-                'error': str(e),
-                'traceback': traceback.format_exc(),
+                "ok": False,
+                "output": None,
+                "error": str(e),
+                "traceback": traceback.format_exc(),
             }
 
     # Cross-platform timeout enforcement (replaces signal.SIGALRM)
@@ -275,26 +275,34 @@ def main():
             future = executor.submit(_exec_target, code, safe_globals)
             result = future.result(timeout=MAX_EXECUTION_TIME_SECONDS)
     except FutureTimeoutError:
-        print(json.dumps({
-            'success': False,
-            'output': None,
-            'error': f'Execution exceeded {MAX_EXECUTION_TIME_SECONDS} seconds',
-            'traceback': None
-        }))
+        print(
+            json.dumps(
+                {
+                    "success": False,
+                    "output": None,
+                    "error": f"Execution exceeded {MAX_EXECUTION_TIME_SECONDS} seconds",
+                    "traceback": None,
+                }
+            )
+        )
         return
 
-    if result.get('ok'):
-        output = result.get('output') or ''
+    if result.get("ok"):
+        output = result.get("output") or ""
         if len(output) > MAX_OUTPUT_LENGTH:
-            output = output[:MAX_OUTPUT_LENGTH] + '\n... [output truncated]'
-        print(json.dumps({'success': True, 'output': output, 'error': None}))
+            output = output[:MAX_OUTPUT_LENGTH] + "\n... [output truncated]"
+        print(json.dumps({"success": True, "output": output, "error": None}))
     else:
-        print(json.dumps({
-            'success': False,
-            'output': None,
-            'error': result.get('error'),
-            'traceback': result.get('traceback')
-        }))
+        print(
+            json.dumps(
+                {
+                    "success": False,
+                    "output": None,
+                    "error": result.get("error"),
+                    "traceback": result.get("traceback"),
+                }
+            )
+        )
 
 
 if __name__ == "__main__":

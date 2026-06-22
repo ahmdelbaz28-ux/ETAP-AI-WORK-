@@ -8,8 +8,10 @@ shared across ETAP, AutoCAD, Revit, and the AI copilot.
 from __future__ import annotations
 
 import uuid
-from datetime import UTC, datetime
-from enum import StrEnum
+from datetime import datetime, timezone
+
+UTC = timezone.utc
+from compat import StrEnum
 from typing import Any, Dict, List
 
 from pydantic import BaseModel, Field
@@ -17,6 +19,7 @@ from pydantic import BaseModel, Field
 # ---------------------------------------------------------------------------
 # Enums
 # ---------------------------------------------------------------------------
+
 
 class SourceSystem(StrEnum):
     ETAP = "etap"

@@ -29,13 +29,16 @@ import sys
 import traceback
 import uuid
 from dataclasses import dataclass, field
-from datetime import UTC, datetime
-from enum import StrEnum
+from datetime import datetime, timezone
+
+UTC = timezone.utc
+from compat import StrEnum
 from typing import Any, Dict, List
 
 # ---------------------------------------------------------------------------
 # Error-code registry
 # ---------------------------------------------------------------------------
+
 
 class ErrorCategory(StrEnum):
     """Top-level error category."""
@@ -1046,9 +1049,7 @@ class StructuredFormatter(logging.Formatter):
     def format(self, record: logging.LogRecord) -> str:
         """Format a log record as a JSON string."""
         log_entry: Dict[str, Any] = {
-            "timestamp": datetime.fromtimestamp(
-                record.created, tz=UTC
-            ).isoformat(),
+            "timestamp": datetime.fromtimestamp(record.created, tz=UTC).isoformat(),
             "level": record.levelname,
             "logger": record.name,
             "service": self.service_name,

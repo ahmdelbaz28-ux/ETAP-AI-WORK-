@@ -39,7 +39,9 @@ class DocsGuard(BaseGuard):
 
     name: str = "docs_guard"
 
-    def scan(self, source: str, language: str = "markdown", context: Dict[str, Any] | None = None) -> GuardResult:
+    def scan(
+        self, source: str, language: str = "markdown", context: Dict[str, Any] | None = None
+    ) -> GuardResult:
         violations: List[GuardViolation] = []
         context = context or {}
 

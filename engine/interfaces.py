@@ -125,10 +125,12 @@ class CoordinationEngineProtocol(Protocol):
     ) -> List[Dict[str, Any]]: ...
 
     def suggest_tms_adjustment(
-        self, upstream_relay: Any, downstream_relay: Any,
-        fault_currents: List[float], target_margin: float = 0.2,
-    ) -> float | None:
-        ...
+        self,
+        upstream_relay: Any,
+        downstream_relay: Any,
+        fault_currents: List[float],
+        target_margin: float = 0.2,
+    ) -> float | None: ...
 
 
 # ============================================================================

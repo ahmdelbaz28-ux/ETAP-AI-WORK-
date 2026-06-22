@@ -19,8 +19,10 @@ from __future__ import annotations
 
 import json
 import uuid
-from datetime import UTC, datetime
-from enum import StrEnum
+from datetime import datetime, timezone
+
+UTC = timezone.utc
+from compat import StrEnum
 from typing import Any, Dict, List
 
 from fastapi import APIRouter, Depends, Header, HTTPException, status
@@ -69,6 +71,7 @@ async def _require_api_key_or_jwt(
 # ---------------------------------------------------------------------------
 # Enums
 # ---------------------------------------------------------------------------
+
 
 class ProjectStatus(StrEnum):
     """Allowed values for project status."""
@@ -135,21 +138,15 @@ class StudyResult(Base):
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     project_id: Mapped[str] = mapped_column(String(36), index=True, nullable=False)
     study_type: Mapped[str] = mapped_column(String(64), nullable=False)
-    status: Mapped[str] = mapped_column(
-        String(32), default=StudyStatus.PENDING.value
-    )
+    status: Mapped[str] = mapped_column(String(32), default=StudyStatus.PENDING.value)
     config: Mapped[dict | None] = mapped_column(JSON, nullable=True)
     results: Mapped[dict | None] = mapped_column(JSON, nullable=True)
-    error_message: Mapped[str | None] = mapped_column(
-        String(2000), nullable=True
-    )
+    error_message: Mapped[str | None] = mapped_column(String(2000), nullable=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         default=lambda: datetime.now(UTC),
     )
-    completed_at: Mapped[datetime | None] = mapped_column(
-        DateTime(timezone=True), nullable=True
-    )
+    completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     created_by: Mapped[str] = mapped_column(String(36), nullable=False)
 
 

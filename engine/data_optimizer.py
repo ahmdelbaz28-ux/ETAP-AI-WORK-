@@ -1,5 +1,6 @@
 """Memory-efficient data structures and optimization for large power system models."""
 
+from __future__ import annotations
 import gc
 import logging
 import sys
@@ -629,9 +630,16 @@ class PerformanceProfiler:
                 tracemalloc.stop()
             except Exception:
                 logger.debug("tracemalloc snapshot failed; memory profile details unavailable")
-            self._profiles.append({'function': 'memory_block', 'memory_before_mb': before,
-                                       'memory_after_mb': after, 'memory_delta_mb': after - before,
-                                        'tracemalloc_top': details})
+            self._profiles.append(
+                {
+                    "function": "memory_block",
+                    "memory_before_mb": before,
+                    "memory_after_mb": after,
+                    "memory_delta_mb": after - before,
+                    "tracemalloc_top": details,
+                }
+            )
+
     def _get_mem(self) -> float:
         try:
             import psutil
@@ -648,6 +656,7 @@ class PerformanceProfiler:
 
     def get_profile_report(self) -> List[Dict[str, Any]]:
         return list(self._profiles)
+
     def suggest_optimizations(self, profile_data: Dict[str, Any] | None = None) -> List[str]:
         d = profile_data or (self._profiles[-1] if self._profiles else {})
         sug = []
@@ -738,28 +747,63 @@ class LargeSystemAdapter:
     def get_optimization_strategy(self) -> Dict[str, Any]:
         n = self._n
         if n >= 10000:
-            flags = {'use_sparse': True, 'use_array_storage': True, 'use_batch_processing': True,
-                         'use_compression': True, 'need_memory_monitoring': True}
-            recs = ["Use SparseMatrixManager for all matrix operations.",
-                    "Use MemoryOptimizedSystem array storage.",
-                    "Use BatchProcessor for fault analysis.",
-                    "Use DataCompressor for caching as float32/complex64.",
-                    "Consider iterative solvers (GMRES, BiCGSTAB)."]
+            flags = {
+                "use_sparse": True,
+                "use_array_storage": True,
+                "use_batch_processing": True,
+                "use_compression": True,
+                "need_memory_monitoring": True,
+            }
+            recs = [
+                "Use SparseMatrixManager for all matrix operations.",
+                "Use MemoryOptimizedSystem array storage.",
+                "Use BatchProcessor for fault analysis.",
+                "Use DataCompressor for caching as float32/complex64.",
+                "Consider iterative solvers (GMRES, BiCGSTAB).",
+            ]
         elif n >= 1000:
-            flags = {'use_sparse': True, 'use_array_storage': True,
-                         'use_batch_processing': n > 5000, 'use_compression': True,
-                         'need_memory_monitoring': n > 3000}
-            recs = ["Use SparseMatrixManager for Ybus.",
-                    "Use MemoryOptimizedSystem array storage.",
-                    "Use DataCompressor for result caching."]
+            flags = {
+                "use_sparse": True,
+                "use_array_storage": True,
+                "use_batch_processing": n > 5000,
+                "use_compression": True,
+                "need_memory_monitoring": n > 3000,
+            }
+            recs = [
+                "Use SparseMatrixManager for Ybus.",
+                "Use MemoryOptimizedSystem array storage.",
+                "Use DataCompressor for result caching.",
+            ]
         elif n >= 100:
-            flags = {'use_sparse': True, 'use_array_storage': True, 'use_batch_processing': False,
-                         'use_compression': False, 'need_memory_monitoring': False}
+            flags = {
+                "use_sparse": True,
+                "use_array_storage": True,
+                "use_batch_processing": False,
+                "use_compression": False,
+                "need_memory_monitoring": False,
+            }
             recs = ["Use SparseMatrixManager for Ybus.", "Use MemoryOptimizedSystem array storage."]
         else:
-            flags = dict.fromkeys(['use_sparse', 'use_array_storage', 'use_batch_processing', 'use_compression', 'need_memory_monitoring'], False)
-            recs = ["Small system. Standard System class is sufficient.", "Dense operations preferred."]
-        return {'bus_count': n, 'is_large': self._large, 'is_xl': self._xl,
-                'flags': flags, 'recommendations': recs,
-                'preferred_solver': 'sparse_lu' if n >= 100 else 'dense',
-                'suggested_batch_size': min(10000, max(100, n // 10))}
+            flags = dict.fromkeys(
+                [
+                    "use_sparse",
+                    "use_array_storage",
+                    "use_batch_processing",
+                    "use_compression",
+                    "need_memory_monitoring",
+                ],
+                False,
+            )
+            recs = [
+                "Small system. Standard System class is sufficient.",
+                "Dense operations preferred.",
+            ]
+        return {
+            "bus_count": n,
+            "is_large": self._large,
+            "is_xl": self._xl,
+            "flags": flags,
+            "recommendations": recs,
+            "preferred_solver": "sparse_lu" if n >= 100 else "dense",
+            "suggested_batch_size": min(10000, max(100, n // 10)),
+        }

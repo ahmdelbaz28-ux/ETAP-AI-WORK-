@@ -43,5 +43,6 @@ def main():
     file_path.write_text(yaml_content, encoding="utf-8")
     print(json.dumps({"created": True, "path": "alerts.yml"}))
 
+
 if __name__ == "__main__":
     main()

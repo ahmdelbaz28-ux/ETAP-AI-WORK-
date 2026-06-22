@@ -12,6 +12,7 @@ Reference: A. Abur and A.G. Exposito, "Power System State Estimation",
 CRC Press, 2004.
 """
 
+from __future__ import annotations
 from dataclasses import dataclass, field
 from enum import Enum
 from typing import List, Tuple
@@ -23,6 +24,7 @@ _HAS_TORCH_GEOMETRIC = False
 try:
     import torch  # noqa: F401 — imported to check availability
     from torch_geometric.nn import GCNConv  # noqa: F401
+
     _HAS_TORCH_GEOMETRIC = True
 except ImportError:
     pass
@@ -525,9 +527,7 @@ class GNNStateEstimator:
             Enhanced state estimation result.
         """
         # Step 1: Run traditional WLS
-        wls_result = self._wls_estimator.estimate(
-            Ybus, measurements, bus_ids, slack_bus_idx
-        )
+        wls_result = self._wls_estimator.estimate(Ybus, measurements, bus_ids, slack_bus_idx)
 
         # Step 2: If GNN is not trained, return WLS result
         if not self._is_trained or not _HAS_TORCH_GEOMETRIC:
@@ -545,10 +545,12 @@ class GNNStateEstimator:
                             edge_list.append((i, j))
 
             # Build node features: WLS estimates
-            node_features = np.column_stack([
-                wls_result.voltage_magnitudes,
-                wls_result.voltage_angles,
-            ])
+            node_features = np.column_stack(
+                [
+                    wls_result.voltage_magnitudes,
+                    wls_result.voltage_angles,
+                ]
+            )
 
             # Build edge index
             if len(edge_list) > 0:
@@ -559,7 +561,10 @@ class GNNStateEstimator:
 
             # Run GNN prediction
             from ml.predictive import PowerGridGNN
-            gnn = PowerGridGNN(model_type="gcn", hidden_dim=self.hidden_dim, num_layers=self.num_layers)
+
+            gnn = PowerGridGNN(
+                model_type="gcn", hidden_dim=self.hidden_dim, num_layers=self.num_layers
+            )
             refined = gnn.predict(node_features, edge_index)
 
             # Blend: weighted average of WLS and GNN (80% WLS, 20% GNN)
@@ -578,5 +583,6 @@ class GNNStateEstimator:
             )
         except Exception as e:
             import logging
+
             logging.getLogger(__name__).warning(f"GNN refinement failed, using WLS only: {e}")
             return wls_result

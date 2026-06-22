@@ -24,10 +24,13 @@ Architecture:
 - Citation System
 """
 
+from __future__ import annotations
 import logging
 import os
 from dataclasses import dataclass, field
-from datetime import UTC, datetime
+from datetime import datetime, timezone
+
+UTC = timezone.utc
 from typing import Dict, List
 
 import numpy as np
@@ -392,8 +395,9 @@ class EngineeringKnowledgeBase:
     - Citation generation
     """
 
-    def __init__(self, embedding_model: EmbeddingModel | None = None,
-                 vector_db: VectorDatabase | None = None):
+    def __init__(
+        self, embedding_model: EmbeddingModel | None = None, vector_db: VectorDatabase | None = None
+    ):
         """
         Initialize knowledge base.
 

@@ -43,7 +43,9 @@ class CodeGuard(BaseGuard):
         super().__init__(mode)
         self._ai_detector = AIFailureModeDetector(mode)
 
-    def scan(self, source: str, language: str = "python", context: Dict[str, Any] | None = None) -> GuardResult:
+    def scan(
+        self, source: str, language: str = "python", context: Dict[str, Any] | None = None
+    ) -> GuardResult:
         violations: List[GuardViolation] = []
         context = context or {}
 

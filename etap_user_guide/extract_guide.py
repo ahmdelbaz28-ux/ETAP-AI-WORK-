@@ -10,6 +10,7 @@ This module:
 4. Builds a knowledge base for the RAG engine
 """
 
+from __future__ import annotations
 import json
 import sys
 from datetime import datetime
@@ -325,7 +326,7 @@ class ETAPGuideExtractor:
         chunk_files = list((self.output_path / "chunks").glob("*_chunks.json"))
 
         for chunk_file in chunk_files:
-            with open(chunk_file, encoding='utf-8') as f:
+            with open(chunk_file, encoding="utf-8") as f:
                 data = json.load(f)
 
                 doc_entry = {

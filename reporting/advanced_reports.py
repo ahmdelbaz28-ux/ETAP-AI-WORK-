@@ -29,10 +29,13 @@ Features:
 - Digital signatures
 """
 
+from __future__ import annotations
 import logging
 import os
 from dataclasses import dataclass, field
-from datetime import UTC, datetime
+from datetime import datetime, timezone
+
+UTC = timezone.utc
 from typing import Dict, List
 
 logger = logging.getLogger(__name__)
@@ -606,10 +609,13 @@ class ReportGenerationAgent:
         self.chart_generator = ChartGenerator()
         self.logger = logging.getLogger("report_agent")
 
-    async def generate_complete_report(self, analysis_results: Dict,
-                                      metadata: ReportMetadata | None = None,
-                                      formats: List[str] = None,
-                                      output_path: str = './reports') -> Dict[str, str]:
+    async def generate_complete_report(
+        self,
+        analysis_results: Dict,
+        metadata: ReportMetadata | None = None,
+        formats: List[str] = None,
+        output_path: str = "./reports",
+    ) -> Dict[str, str]:
         """
         Generate complete engineering report in multiple formats.
 

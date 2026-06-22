@@ -27,8 +27,10 @@ import operator
 import re
 from collections.abc import Callable, Sequence
 from dataclasses import dataclass, field
-from datetime import UTC, datetime
-from enum import StrEnum
+from datetime import datetime, timezone
+
+UTC = timezone.utc
+from compat import StrEnum
 from typing import Any, Dict, List
 
 logger = logging.getLogger(__name__)
@@ -54,6 +56,7 @@ _OPS: Dict[str, Callable[[Any, Any], bool]] = {
 # ---------------------------------------------------------------------------
 # Rule definitions
 # ---------------------------------------------------------------------------
+
 
 class RuleType(StrEnum):
     """Supported ABAC rule types."""

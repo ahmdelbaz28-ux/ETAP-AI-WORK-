@@ -31,12 +31,13 @@ import os
 import re
 import sys
 from dataclasses import dataclass, field
-from enum import StrEnum
+from compat import StrEnum
 from typing import Any, Dict, List, Tuple
 
 # ---------------------------------------------------------------------------
 # Data structures
 # ---------------------------------------------------------------------------
+
 
 class Severity(StrEnum):
     """Finding severity level."""
@@ -1124,20 +1125,18 @@ class SecurityAuditor:
             high = [f for f in findings if f.severity == Severity.HIGH]
             medium = [f for f in findings if f.severity == Severity.MEDIUM]
 
-            priority.append({
-                "category": category.value,
-                "total_findings": len(findings),
-                "critical": len(critical),
-                "high": len(high),
-                "medium": len(medium),
-                "top_remediation": findings[0].remediation if findings else "",
-                "affected_endpoints": list({
-                    f.endpoint for f in findings if f.endpoint
-                }),
-                "affected_files": list({
-                    f.file_path for f in findings if f.file_path
-                }),
-            })
+            priority.append(
+                {
+                    "category": category.value,
+                    "total_findings": len(findings),
+                    "critical": len(critical),
+                    "high": len(high),
+                    "medium": len(medium),
+                    "top_remediation": findings[0].remediation if findings else "",
+                    "affected_endpoints": list({f.endpoint for f in findings if f.endpoint}),
+                    "affected_files": list({f.file_path for f in findings if f.file_path}),
+                }
+            )
 
         return priority
 

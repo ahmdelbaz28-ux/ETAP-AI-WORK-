@@ -76,14 +76,17 @@ class PropagationContext:
     # --- Short-circuit cache (set by YbusRebuildHandler, read by LoadFlowHandler etc.) ---
     ybus_sequences: Dict[str, Any] = field(default_factory=dict)
 
-    def record_step(self, step_name: str, step_success: bool,
-                    details: Dict[str, Any] | None = None) -> None:
-        self.steps.append({
-            "step": step_name,
-            "success": step_success,
-            "timestamp": time.time(),
-            "details": details or {},
-        })
+    def record_step(
+        self, step_name: str, step_success: bool, details: Dict[str, Any] | None = None
+    ) -> None:
+        self.steps.append(
+            {
+                "step": step_name,
+                "success": step_success,
+                "timestamp": time.time(),
+                "details": details or {},
+            }
+        )
         if not step_success:
             self.success = False
 
@@ -522,9 +525,7 @@ class ProtectionRefreshHandler(PropagationHandler):
                 if fc_pu > 0:
                     fault_currents.append(fc_pu)
 
-            representative_faults = sorted({
-                round(fc, 0) for fc in fault_currents if fc > 1.0
-            })[:10]
+            representative_faults = sorted({round(fc, 0) for fc in fault_currents if fc > 1.0})[:10]
             if not representative_faults:
                 representative_faults = [2.0, 5.0, 10.0, 20.0]
 
