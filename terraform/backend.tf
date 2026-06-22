@@ -1,23 +1,17 @@
 # =============================================================================
-# AhmedETAP — Terraform Remote State Backend
+# AhmedETAP — Terraform Local State Backend
 # =============================================================================
-# Uses Azure Storage Account for remote state storage with locking.
-# Initialize with:
-#   terraform init -backend-config="environments/<env>/backend.hcl"
+# Uses local file-based state. No Azure subscription required.
 #
-# Or set backend config via environment variables:
-#   export ARM_ACCESS_KEY=<storage-account-key>
+# To switch back to Azure remote state, replace with:
+#   backend "azurerm" {
+#     use_azuread_auth = true
+#   }
+#   terraform init -backend-config="environments/<env>/backend.hcl"
 # =============================================================================
 
 terraform {
-  backend "azurerm" {
-    # These values are provided via -backend-config or environment variables
-    # because they differ per environment.
-    #
-    # resource_group_name  = "rg-ahmedetap-tfstate"
-    # storage_account_name = "stahmedetaptfstate"
-    # container_name       = "terraform-state"
-    # key                  = "ahmedetap/terraform.tfstate"
-    use_azuread_auth = true
+  backend "local" {
+    path = "terraform.tfstate"
   }
 }

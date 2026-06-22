@@ -1,23 +1,19 @@
 # =============================================================================
-# AhmedETAP — Terraform CI/CD Pipeline
+# AhmedETAP — Terraform CI/CD Pipeline (Local State)
 # =============================================================================
 #
-# Validates, plans, and applies Terraform IaC for Azure infrastructure.
+# Validates, plans, and applies Terraform IaC using local state.
+# No Azure subscription required.
+#
+# To switch back to Azure remote state:
+#   1. Change backend.tf from "local" to "azurerm"
+#   2. Create storage accounts (see terraform/README.md)
+#   3. Re-enable Azure Login + -backend-config flags in this workflow
 #
 # Workflow:
 #   Pull Request  → terraform fmt + init + validate + plan
 #   Merge to main → terraform apply
 #   Manual        → workflow_dispatch with environment selection
-#
-# Prerequisites:
-#   1. Azure Service Principal with Contributor + User Access Administrator
-#      roles on the target subscription
-#   2. GitHub Secrets:
-#      - AZURE_CLIENT_ID       (Service Principal App ID)
-#      - AZURE_TENANT_ID       (Azure AD tenant ID)
-#      - AZURE_SUBSCRIPTION_ID (Subscription ID)
-#   3. Storage accounts created for remote state (see terraform/README.md)
-#
 # =============================================================================
 
 name: Terraform
@@ -70,12 +66,6 @@ defaults:
 
 # ============================================================================
 # Environment resolution
-#
-# Branch-to-environment mapping:
-#   main    → staging
-#   develop → dev
-#   other   → dev (fallback)
-#   manual  → uses workflow_dispatch input
 # ============================================================================
 env:
   ENVIRONMENT: >-
@@ -150,18 +140,8 @@ jobs:
           terraform_version: 1.6.0
           terraform_wrapper: false
 
-      - name: Azure Login (OIDC)
-        uses: azure/login@v2
-        with:
-          client-id: ${{ secrets.AZURE_CLIENT_ID }}
-          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
-          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-
       - name: Terraform init
-        run: |
-          terraform init \
-            -backend-config="environments/${{ env.ENVIRONMENT }}/backend.hcl" \
-            -reconfigure
+        run: terraform init -reconfigure
 
       - name: Terraform plan
         id: plan
@@ -273,18 +253,8 @@ jobs:
           terraform_version: 1.6.0
           terraform_wrapper: false
 
-      - name: Azure Login (OIDC)
-        uses: azure/login@v2
-        with:
-          client-id: ${{ secrets.AZURE_CLIENT_ID }}
-          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
-          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-
       - name: Terraform init
-        run: |
-          terraform init \
-            -backend-config="environments/${{ env.ENVIRONMENT }}/backend.hcl" \
-            -reconfigure
+        run: terraform init -reconfigure
 
       - name: Download plan artifact (from workflow_dispatch plan)
         if: github.event_name == 'workflow_dispatch'
