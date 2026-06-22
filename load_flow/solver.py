@@ -19,7 +19,7 @@ from typing import Any, Dict, List, Union
 import numpy as np
 
 # Re-export the existing fixed solver for backward compatibility
-from load_flow.load_flow_solver_fixed import LoadFlowSolver  # noqa: F401
+from load_flow.load_flow import LoadFlowSolver  # noqa: F401
 
 logger = logging.getLogger(__name__)
 

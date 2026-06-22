@@ -8,7 +8,7 @@ from engine.interfaces import (
 )
 from fault_analysis.arc_flash_engine import ArcFlashEngine, ElectrodeConfig, EnclosureType
 from fault_analysis.fault import FaultAnalyzer
-from load_flow.load_flow_solver_fixed import LoadFlowSolver
+from load_flow.load_flow import LoadFlowSolver
 from relays.relay import OvercurrentRelay
 from visualization.visualization import Visualizer
 
