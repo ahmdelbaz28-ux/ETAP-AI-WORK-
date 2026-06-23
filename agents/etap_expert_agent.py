@@ -82,7 +82,7 @@ Classification = Literal["complete", "incomplete", "wrong", "adms"]
 
 # ADMS / DER trigger words (from skill Section 5 + 11)
 _ADMS_KEYWORDS: Tuple[str, ...] = (
-    "flisr", "fdir", "vvo", "volt/var", "cvr", "derms", "dms ", "oms ",
+    "flisr", "fdir", "vvo", "volt/var", "cvr", "derms", "dms", "oms",
     "escada", "scada", "adms", "state estimation", "load forecasting",
     "prass", "feeder balancing", "switching order", "outage management",
     "predictive simulation", "real-time", "real time", "operator training",
