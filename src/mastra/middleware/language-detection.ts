@@ -5,7 +5,16 @@
  * in the Mastra TypeScript runtime.
  */
 
-import { AgentContext, NextFunction } from '@mastra/core';
+// Type aliases for Mastra middleware compatibility across versions.
+// In @mastra/core 0.x these were exported as `AgentContext` and `NextFunction`.
+// In 1.x the middleware signature uses generic `Record<string, unknown>` contexts.
+// We define permissive local types so the middleware compiles on both lines.
+type AgentContext = {
+  input?: unknown;
+  messages?: unknown;
+  [key: string]: unknown;
+};
+type NextFunction = () => Promise<unknown> | unknown;
 
 // ===========================================================================
 // Configuration

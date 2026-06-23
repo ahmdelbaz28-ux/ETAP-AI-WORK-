@@ -104,20 +104,22 @@ jobs:
     name: Health Check (HF Space)
     runs-on: ubuntu-latest
     needs: [lint, python-service, security-scan]
-    if: github.ref == 'refs/heads/main'
+    # Run on every branch (including PRs) so the check never appears as 'skipped'.
+    # If the HF Space is rebuilding or unreachable, this will fail loudly rather
+    # than silently skipping — which is what launch readiness requires.
     steps:
       - name: Check root endpoint
         run: |
           HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" https://ahmdelbaz28-etap-ai-platform.hf.space/)
-          if [ "$HTTP_CODE" -ge 500 ]; then echo "Root endpoint returned $HTTP_CODE"; exit 1; fi
+          if [ "$HTTP_CODE" -ge 500 ] || [ "$HTTP_CODE" -eq 000 ]; then echo "Root endpoint returned $HTTP_CODE"; exit 1; fi
           echo "Root endpoint OK ($HTTP_CODE)"
       - name: Check health endpoint
         run: |
           HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" https://ahmdelbaz28-etap-ai-platform.hf.space/health)
-          if [ "$HTTP_CODE" -ge 500 ]; then echo "Health endpoint returned $HTTP_CODE"; exit 1; fi
+          if [ "$HTTP_CODE" -ge 500 ] || [ "$HTTP_CODE" -eq 000 ]; then echo "Health endpoint returned $HTTP_CODE"; exit 1; fi
           echo "Health endpoint OK ($HTTP_CODE)"
       - name: Check readyz endpoint
         run: |
           HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" https://ahmdelbaz28-etap-ai-platform.hf.space/readyz)
-          if [ "$HTTP_CODE" -ge 500 ]; then echo "Readyz endpoint returned $HTTP_CODE"; exit 1; fi
+          if [ "$HTTP_CODE" -ge 500 ] || [ "$HTTP_CODE" -eq 000 ]; then echo "Readyz endpoint returned $HTTP_CODE"; exit 1; fi
           echo "Readyz endpoint OK ($HTTP_CODE)"
