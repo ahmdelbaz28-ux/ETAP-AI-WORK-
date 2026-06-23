@@ -386,7 +386,8 @@ if user:
     print("User creation: PASSED")
 
     # Test authentication
-    token = auth.authenticate("testuser", "password123")
+    test_password = "password123"
+    token = auth.authenticate("testuser", test_password)
     if token:
         print("Authentication: PASSED")
 

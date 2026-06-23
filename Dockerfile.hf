@@ -61,6 +61,7 @@ ENV XDG_CACHE_HOME=/tmp/cache
 ENV HF_HOME=/tmp/cache
 ENV TRANSFORMERS_CACHE=/tmp/cache
 ENV TORCH_HOME=/tmp/cache
+ENV JWT_SECRET_KEY=${JWT_SECRET_KEY:?JWT_SECRET_KEY is required}
 
 # Nginx config for HF Spaces
 RUN cat > /etc/nginx/nginx.conf << 'NGINXEOF'

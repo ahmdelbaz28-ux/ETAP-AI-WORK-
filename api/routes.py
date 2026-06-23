@@ -213,7 +213,7 @@ async def trace_middleware(request: Request, call_next):
 
         # Rate limiting — skip for health endpoints
         if not request.url.path.startswith(
-            ("/health", "/ready", "/healthz", "/readyz", "/")
+            ("/health", "/ready", "/healthz", "/readyz")
         ):
             _TRUSTED_PROXIES = os.environ.get("ENGINEERING_SERVICE_TRUSTED_PROXIES", "")
             if _TRUSTED_PROXIES:
