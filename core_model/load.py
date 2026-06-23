@@ -1,14 +1,22 @@
-
 class Load:
     __slots__ = (
-        'load_id', 'bus', 'load_power', 'impedance',
-        'power_factor', 'constant_impedance',
+        "load_id",
+        "bus",
+        "load_power",
+        "impedance",
+        "power_factor",
+        "constant_impedance",
     )
 
-    def __init__(self, load_id, bus,
-                 load_power=None,
-                 impedance=None,
-                 power_factor=None, constant_impedance=False):
+    def __init__(
+        self,
+        load_id,
+        bus,
+        load_power=None,
+        impedance=None,
+        power_factor=None,
+        constant_impedance=False,
+    ):
         """
         Initialize a Load object.
 
@@ -31,9 +39,9 @@ class Load:
         # Default impedance: open circuit
         if impedance is None:
             self.impedance = {
-                '1': complex(1e9, 0.0),  # approximates open circuit
-                '2': complex(1e9, 0.0),
-                '0': complex(1e9, 0.0)
+                "1": complex(1e9, 0.0),  # approximates open circuit
+                "2": complex(1e9, 0.0),
+                "0": complex(1e9, 0.0),
             }
         else:
             self.impedance = impedance
@@ -46,9 +54,9 @@ class Load:
         # (double-counting load power when loads are re-created).
         # Accumulation now happens in System.add_load().
 
-    def get_impedance(self, seq='1'):
+    def get_impedance(self, seq="1"):
         """Get impedance for a given sequence."""
-        return self.impedance.get(seq, complex(1e9,0))
+        return self.impedance.get(seq, complex(1e9, 0))
 
     def __repr__(self):
         return f"Load({self.load_id}) at Bus {self.bus.bus_id}: P={self.load_power.real:.3f}, Q={self.load_power.imag:.3f} pu"

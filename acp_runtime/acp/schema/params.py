@@ -6,6 +6,7 @@ method defines its own params and result subclasses, but these bases
 provide the common fields (capability, trace_id, deadline_ms) that
 the Router layer validates before dispatching to the Runtime layer.
 """
+
 from __future__ import annotations
 
 from typing import Any

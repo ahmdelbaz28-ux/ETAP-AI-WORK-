@@ -133,8 +133,10 @@ class TestUnifiedEngineeringModel(unittest.TestCase):
     def test_model_serialization_roundtrip(self):
         """Test JSON serialization and deserialization."""
         panel = Panel(
-            id="PNL-1", name="Test Panel",
-            panel_type=PanelType.MDP, voltage_nominal_v=415,
+            id="PNL-1",
+            name="Test Panel",
+            panel_type=PanelType.MDP,
+            voltage_nominal_v=415,
         )
         model = UnifiedEngineeringModel(
             project=__import__("autodesk_connector.shared.models", fromlist=["Project"]).Project(
@@ -190,8 +192,18 @@ class TestTranslationEngine(unittest.TestCase):
     def test_etap_to_unified_buses(self):
         etap_data = {
             "buses": {
-                "BUS1": {"voltage_magnitude": 1.05, "voltage_angle": 0.0, "bus_type": "swing", "base_kv": 11.0},
-                "BUS2": {"voltage_magnitude": 0.98, "voltage_angle": -2.5, "bus_type": "pq", "base_kv": 11.0},
+                "BUS1": {
+                    "voltage_magnitude": 1.05,
+                    "voltage_angle": 0.0,
+                    "bus_type": "swing",
+                    "base_kv": 11.0,
+                },
+                "BUS2": {
+                    "voltage_magnitude": 0.98,
+                    "voltage_angle": -2.5,
+                    "bus_type": "pq",
+                    "base_kv": 11.0,
+                },
             },
             "branches": {
                 "BUS1-BUS2": {"active_power_from": 50.0, "active_power_to": -49.8, "current": 0.52},
@@ -205,7 +217,9 @@ class TestTranslationEngine(unittest.TestCase):
 
     def test_unified_to_etap(self):
         unified = {
-            "buses": [{"id": "BUS1", "base_kv": 11.0, "voltage_magnitude_pu": 1.05, "bus_type": "slack"}],
+            "buses": [
+                {"id": "BUS1", "base_kv": 11.0, "voltage_magnitude_pu": 1.05, "bus_type": "slack"}
+            ],
             "cables": [{"from_bus_id": "BUS1", "to_bus_id": "BUS2", "length_m": 100.0}],
         }
         result = self.engine.unified_to_etap(unified)
@@ -214,8 +228,12 @@ class TestTranslationEngine(unittest.TestCase):
 
     def test_unified_to_autocad_commands(self):
         unified = {
-            "buses": [{"id": "BUS1", "base_kv": 11.0, "voltage_magnitude_pu": 1.05, "bus_type": "slack"}],
-            "cables": [{"id": "CBL1", "from_bus_id": "BUS1", "to_bus_id": "BUS2", "length_m": 100.0}],
+            "buses": [
+                {"id": "BUS1", "base_kv": 11.0, "voltage_magnitude_pu": 1.05, "bus_type": "slack"}
+            ],
+            "cables": [
+                {"id": "CBL1", "from_bus_id": "BUS1", "to_bus_id": "BUS2", "length_m": 100.0}
+            ],
             "transformers": [{"id": "XF1", "rated_power_mva": 10.0}],
         }
         commands = self.engine.unified_to_autocad_commands(unified)
@@ -291,7 +309,9 @@ class TestAIDrawingEngine(unittest.TestCase):
         self.assertIn("validation", result["steps"])
 
     def test_engine_process_complex(self):
-        result = self.engine.process("Add 500kVA transformer feeding main distribution panel with 6 outgoing circuits")
+        result = self.engine.process(
+            "Add 500kVA transformer feeding main distribution panel with 6 outgoing circuits"
+        )
         self.assertEqual(result["status"], "completed")
         self.assertIn("model_generation", result["steps"])
         self.assertIn("autocad_commands", result["steps"])
@@ -337,51 +357,63 @@ class TestCopilotMCPServer(unittest.TestCase):
             self.assertIn("properties", tool["inputSchema"])
 
     def test_tool_create_panel(self):
-        result = self.server.call_tool("create_panel", {
-            "name": "MDP-01",
-            "panel_type": "MDP",
-            "voltage_nominal_v": 415,
-            "main_breaker_a": 1600,
-        })
+        result = self.server.call_tool(
+            "create_panel",
+            {
+                "name": "MDP-01",
+                "panel_type": "MDP",
+                "voltage_nominal_v": 415,
+                "main_breaker_a": 1600,
+            },
+        )
         self.assertTrue(result["success"])
         self.assertIn("panel_id", result)
         self.assertIn("panel", result)
         self.assertEqual(result["panel"]["panel_type"], "MDP")
 
     def test_tool_create_bus(self):
-        result = self.server.call_tool("create_bus", {
-            "name": "BUS-1",
-            "base_kv": 11.0,
-            "bus_type": "slack",
-        })
+        result = self.server.call_tool(
+            "create_bus",
+            {
+                "name": "BUS-1",
+                "base_kv": 11.0,
+                "bus_type": "slack",
+            },
+        )
         self.assertTrue(result["success"])
         self.assertIn("bus_id", result)
         self.assertEqual(result["bus"]["base_kv"], 11.0)
 
     def test_tool_create_transformer(self):
-        result = self.server.call_tool("create_transformer", {
-            "name": "XF-1",
-            "from_bus_id": "BUS-SRC",
-            "to_bus_id": "BUS-LOAD",
-            "rated_power_mva": 10.0,
-        })
+        result = self.server.call_tool(
+            "create_transformer",
+            {
+                "name": "XF-1",
+                "from_bus_id": "BUS-SRC",
+                "to_bus_id": "BUS-LOAD",
+                "rated_power_mva": 10.0,
+            },
+        )
         self.assertTrue(result["success"])
         self.assertEqual(result["transformer"]["rated_power_mva"], 10.0)
 
     def test_tool_create_cable(self):
-        result = self.server.call_tool("create_cable", {
-            "name": "CBL-1",
-            "from_bus_id": "BUS-1",
-            "to_bus_id": "BUS-2",
-            "length_m": 100.0,
-        })
+        result = self.server.call_tool(
+            "create_cable",
+            {
+                "name": "CBL-1",
+                "from_bus_id": "BUS-1",
+                "to_bus_id": "BUS-2",
+                "length_m": 100.0,
+            },
+        )
         self.assertTrue(result["success"])
         self.assertEqual(result["cable"]["length_m"], 100.0)
 
     def test_tool_validate_design(self):
-        result = self.server.call_tool("validate_design", {
-            "check_types": ["voltage", "overcurrent"]
-        })
+        result = self.server.call_tool(
+            "validate_design", {"check_types": ["voltage", "overcurrent"]}
+        )
         self.assertTrue(result["success"])
         self.assertIn("passed", result)
         self.assertIn("checks", result)
@@ -391,10 +423,13 @@ class TestCopilotMCPServer(unittest.TestCase):
             tmp_path = tmp.name
 
         try:
-            result = self.server.call_tool("export_json", {
-                "output_path": tmp_path,
-                "pretty": True,
-            })
+            result = self.server.call_tool(
+                "export_json",
+                {
+                    "output_path": tmp_path,
+                    "pretty": True,
+                },
+            )
             self.assertTrue(result["success"])
             self.assertTrue(os.path.exists(tmp_path))
 
@@ -429,29 +464,38 @@ class TestDrawingRules(unittest.TestCase):
     def test_entity_drawing_rules_completeness(self):
         """Verify all entity types have AutoCAD and Revit rules."""
         required_entities = [
-            "Bus", "Transformer", "Cable", "Breaker", "Panel",
-            "Load", "Motor", "Generator", "Switchboard", "Relay",
-            "Equipment", "Conduit", "Tray",
+            "Bus",
+            "Transformer",
+            "Cable",
+            "Breaker",
+            "Panel",
+            "Load",
+            "Motor",
+            "Generator",
+            "Switchboard",
+            "Relay",
+            "Equipment",
+            "Conduit",
+            "Tray",
         ]
         for entity in required_entities:
-            self.assertIn(entity, ENTITY_DRAWING_RULES,
-                          f"Missing drawing rule for {entity}")
+            self.assertIn(entity, ENTITY_DRAWING_RULES, f"Missing drawing rule for {entity}")
 
     def test_autocad_rules_have_required_fields(self):
         for entity, rules in ENTITY_DRAWING_RULES.items():
             autocad_rules = rules.get("autocad", {})
-            self.assertIn("entity_type", autocad_rules,
-                          f"AutoCAD rule for {entity} missing entity_type")
-            self.assertIn("layer", autocad_rules,
-                          f"AutoCAD rule for {entity} missing layer")
+            self.assertIn(
+                "entity_type", autocad_rules, f"AutoCAD rule for {entity} missing entity_type"
+            )
+            self.assertIn("layer", autocad_rules, f"AutoCAD rule for {entity} missing layer")
 
     def test_revit_rules_have_family_info(self):
         for entity, rules in ENTITY_DRAWING_RULES.items():
             revit_rules = rules.get("revit", {})
-            self.assertIn("family_category", revit_rules,
-                          f"Revit rule for {entity} missing family_category")
-            self.assertIn("parameters", revit_rules,
-                          f"Revit rule for {entity} missing parameters")
+            self.assertIn(
+                "family_category", revit_rules, f"Revit rule for {entity} missing family_category"
+            )
+            self.assertIn("parameters", revit_rules, f"Revit rule for {entity} missing parameters")
 
 
 # =========================================================================
@@ -464,6 +508,7 @@ class TestETAPAdapter(unittest.TestCase):
 
     def setUp(self):
         from autodesk_connector.shared.models import ETAPModelAdapter
+
         self.adapter = ETAPModelAdapter()
 
     def test_bus_to_unified(self):

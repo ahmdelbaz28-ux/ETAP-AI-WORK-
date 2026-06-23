@@ -11,6 +11,8 @@ PPE descriptions, enclosure details, etc.) should import and use
 ``ArcFlashEngine`` directly.
 """
 
+from __future__ import annotations
+
 import json
 
 from fault_analysis.arc_flash_engine import (
@@ -65,8 +67,10 @@ def calculate_arc_flash(
     # For voltages below IEEE 1584 range, use Ralph Lee directly
     if voltage_kv < 0.208:
         result = engine.ralph_lee_method(
-            voltage_kv, bolted_fault_current_ka,
-            arc_duration_sec, working_distance_mm,
+            voltage_kv,
+            bolted_fault_current_ka,
+            arc_duration_sec,
+            working_distance_mm,
         )
         return {
             "incident_energy_cal_per_cm2": result.incident_energy_cal_cm2,
@@ -95,17 +99,43 @@ def calculate_arc_flash(
         "ppe_level": result.ppe_level,
     }
 
-def _validate_arc_flash_input(voltage_kv, bolted_fault_ka, duration_sec, distance_mm, enclosure, electrode):
+
+def _validate_arc_flash_input(
+    voltage_kv, bolted_fault_ka, duration_sec, distance_mm, enclosure, electrode
+):
     """Validate arc flash CLI inputs against IEEE 1584-2018 bounds."""
     import math
+
     errors = []
-    if not isinstance(voltage_kv, (int, float)) or math.isnan(voltage_kv) or math.isinf(voltage_kv) or voltage_kv < 0:
+    if (
+        not isinstance(voltage_kv, (int, float))
+        or math.isnan(voltage_kv)
+        or math.isinf(voltage_kv)
+        or voltage_kv < 0
+    ):
         errors.append(f"voltage_kv must be a non-negative number, got {voltage_kv!r}")
-    if not isinstance(bolted_fault_ka, (int, float)) or math.isnan(bolted_fault_ka) or math.isinf(bolted_fault_ka) or bolted_fault_ka < 0:
-        errors.append(f"bolted_fault_current_ka must be a non-negative number, got {bolted_fault_ka!r}")
-    if not isinstance(duration_sec, (int, float)) or math.isnan(duration_sec) or math.isinf(duration_sec) or duration_sec <= 0:
+    if (
+        not isinstance(bolted_fault_ka, (int, float))
+        or math.isnan(bolted_fault_ka)
+        or math.isinf(bolted_fault_ka)
+        or bolted_fault_ka < 0
+    ):
+        errors.append(
+            f"bolted_fault_current_ka must be a non-negative number, got {bolted_fault_ka!r}"
+        )
+    if (
+        not isinstance(duration_sec, (int, float))
+        or math.isnan(duration_sec)
+        or math.isinf(duration_sec)
+        or duration_sec <= 0
+    ):
         errors.append(f"arc_duration_sec must be positive, got {duration_sec!r}")
-    if not isinstance(distance_mm, (int, float)) or math.isnan(distance_mm) or math.isinf(distance_mm) or distance_mm <= 0:
+    if (
+        not isinstance(distance_mm, (int, float))
+        or math.isnan(distance_mm)
+        or math.isinf(distance_mm)
+        or distance_mm <= 0
+    ):
         errors.append(f"working_distance_mm must be positive, got {distance_mm!r}")
     valid_enclosures = {"box", "open"}
     if enclosure.lower() not in valid_enclosures:
@@ -118,10 +148,17 @@ def _validate_arc_flash_input(voltage_kv, bolted_fault_ka, duration_sec, distanc
 
 if __name__ == "__main__":
     import sys
+
     try:
         args = sys.argv[1:]
         if len(args) != 6:
-            print(json.dumps({"error": f"Expected 6 arguments (voltage_kv, bolted_fault_ka, duration_sec, distance_mm, enclosure, electrode), got {len(args)}"}))
+            print(
+                json.dumps(
+                    {
+                        "error": f"Expected 6 arguments (voltage_kv, bolted_fault_ka, duration_sec, distance_mm, enclosure, electrode), got {len(args)}"
+                    }
+                )
+            )
             sys.exit(1)
         # Parse and validate inputs before computation
         voltage_kv = float(args[0])
@@ -131,12 +168,20 @@ if __name__ == "__main__":
         enclosure = args[4]
         electrode = args[5]
 
-        validation_errors = _validate_arc_flash_input(voltage_kv, bolted_fault_ka, duration_sec, distance_mm, enclosure, electrode)
+        validation_errors = _validate_arc_flash_input(
+            voltage_kv, bolted_fault_ka, duration_sec, distance_mm, enclosure, electrode
+        )
         if validation_errors:
-            print(json.dumps({"error": "Input validation failed", "validation_errors": validation_errors}))
+            print(
+                json.dumps(
+                    {"error": "Input validation failed", "validation_errors": validation_errors}
+                )
+            )
             sys.exit(1)
 
-        res = calculate_arc_flash(voltage_kv, bolted_fault_ka, duration_sec, distance_mm, enclosure, electrode)
+        res = calculate_arc_flash(
+            voltage_kv, bolted_fault_ka, duration_sec, distance_mm, enclosure, electrode
+        )
         print(json.dumps(res))
     except ValueError as e:
         print(json.dumps({"error": f"Invalid numeric input: {e}"}))

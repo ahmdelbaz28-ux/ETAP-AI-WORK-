@@ -17,8 +17,12 @@ Standards:
 - IEC 60870-5-104: Telecontrol Equipment and Systems
 """
 
+from __future__ import annotations
+
 import logging
 from datetime import UTC, datetime
+
+UTC = UTC
 from typing import Any, Dict, List
 
 import numpy as np
@@ -59,24 +63,74 @@ _IEC61850_LOGICAL_NODES = {
 
 _IEC61850_DATA_OBJECTS = {
     "MMXU": {
-        "Vol": {"cdc": "MV", "description": "Voltage (phase-to-phase)", "unit": "V", "si_unit": "V"},
-        "VolPhV": {"cdc": "WYE", "description": "Phase voltages (A, B, C)", "unit": "V", "si_unit": "V"},
+        "Vol": {
+            "cdc": "MV",
+            "description": "Voltage (phase-to-phase)",
+            "unit": "V",
+            "si_unit": "V",
+        },
+        "VolPhV": {
+            "cdc": "WYE",
+            "description": "Phase voltages (A, B, C)",
+            "unit": "V",
+            "si_unit": "V",
+        },
         "A": {"cdc": "MV", "description": "Current (RMS)", "unit": "A", "si_unit": "A"},
-        "APh": {"cdc": "WYE", "description": "Phase currents (A, B, C)", "unit": "A", "si_unit": "A"},
+        "APh": {
+            "cdc": "WYE",
+            "description": "Phase currents (A, B, C)",
+            "unit": "A",
+            "si_unit": "A",
+        },
         "W": {"cdc": "MV", "description": "Active power (3-phase)", "unit": "W", "si_unit": "W"},
-        "var": {"cdc": "MV", "description": "Reactive power (3-phase)", "unit": "var", "si_unit": "var"},
+        "var": {
+            "cdc": "MV",
+            "description": "Reactive power (3-phase)",
+            "unit": "var",
+            "si_unit": "var",
+        },
         "PF": {"cdc": "MV", "description": "Power factor", "unit": "pu", "si_unit": "1"},
         "Hz": {"cdc": "MV", "description": "Frequency", "unit": "Hz", "si_unit": "Hz"},
-        "PhV": {"cdc": "WYE", "description": "Phase-to-ground voltages", "unit": "V", "si_unit": "V"},
+        "PhV": {
+            "cdc": "WYE",
+            "description": "Phase-to-ground voltages",
+            "unit": "V",
+            "si_unit": "V",
+        },
     },
     "MMTR": {
-        "TotW": {"cdc": "BCR", "description": "Active energy (total)", "unit": "Wh", "si_unit": "J"},
-        "TotVAr": {"cdc": "BCR", "description": "Reactive energy (total)", "unit": "varh", "si_unit": "J"},
+        "TotW": {
+            "cdc": "BCR",
+            "description": "Active energy (total)",
+            "unit": "Wh",
+            "si_unit": "J",
+        },
+        "TotVAr": {
+            "cdc": "BCR",
+            "description": "Reactive energy (total)",
+            "unit": "varh",
+            "si_unit": "J",
+        },
     },
     "MSQI": {
-        "SeqV": {"cdc": "SEQ", "description": "Voltage sequence components", "unit": "V", "si_unit": "V"},
-        "SeqA": {"cdc": "SEQ", "description": "Current sequence components", "unit": "A", "si_unit": "A"},
-        "V2V1": {"cdc": "MV", "description": "Negative/positive seq voltage ratio", "unit": "%", "si_unit": "1"},
+        "SeqV": {
+            "cdc": "SEQ",
+            "description": "Voltage sequence components",
+            "unit": "V",
+            "si_unit": "V",
+        },
+        "SeqA": {
+            "cdc": "SEQ",
+            "description": "Current sequence components",
+            "unit": "A",
+            "si_unit": "A",
+        },
+        "V2V1": {
+            "cdc": "MV",
+            "description": "Negative/positive seq voltage ratio",
+            "unit": "%",
+            "si_unit": "1",
+        },
     },
 }
 
@@ -278,14 +332,16 @@ class SCADAAgent(BaseAgent):
         for m in filtered:
             noise = np.random.normal(0, 0.005)  # 0.5% noise
             new_value = m.value * (1.0 + noise)
-            result_measurements.append(SCADAMeasurement(
-                tag=m.tag,
-                value=new_value,
-                timestamp=now,
-                quality=m.quality,
-                iec61850_ref=m.iec61850_ref,
-                unit=m.unit,
-            ))
+            result_measurements.append(
+                SCADAMeasurement(
+                    tag=m.tag,
+                    value=new_value,
+                    timestamp=now,
+                    quality=m.quality,
+                    iec61850_ref=m.iec61850_ref,
+                    unit=m.unit,
+                )
+            )
             conn.last_poll_time = now
 
         return {
@@ -388,9 +444,9 @@ class SCADAAgent(BaseAgent):
 
             bus_entry["P_load_mw"] = P_load
             bus_entry["Q_load_mvar"] = Q_load
-            bus_entry["S_load_pu"] = complex(
-                P_load / base_mva, Q_load / base_mva
-            ) if base_mva > 0 else complex(0, 0)
+            bus_entry["S_load_pu"] = (
+                complex(P_load / base_mva, Q_load / base_mva) if base_mva > 0 else complex(0, 0)
+            )
 
             # Generation power
             P_gen = 0.0
@@ -404,9 +460,9 @@ class SCADAAgent(BaseAgent):
 
             bus_entry["P_gen_mw"] = P_gen
             bus_entry["Q_gen_mvar"] = Q_gen
-            bus_entry["S_gen_pu"] = complex(
-                P_gen / base_mva, Q_gen / base_mva
-            ) if base_mva > 0 else complex(0, 0)
+            bus_entry["S_gen_pu"] = (
+                complex(P_gen / base_mva, Q_gen / base_mva) if base_mva > 0 else complex(0, 0)
+            )
 
             # Net injection
             bus_entry["P_net_mw"] = P_gen - P_load
@@ -429,9 +485,13 @@ class SCADAAgent(BaseAgent):
 
         # Build complex voltage array for state estimation
         voltages = np.array(
-            [complex(b.get("voltage_pu", 1.0) * np.cos(np.radians(b.get("angle_deg", 0))),
-                     b.get("voltage_pu", 1.0) * np.sin(np.radians(b.get("angle_deg", 0))))
-             for b in bus_data.values()]
+            [
+                complex(
+                    b.get("voltage_pu", 1.0) * np.cos(np.radians(b.get("angle_deg", 0))),
+                    b.get("voltage_pu", 1.0) * np.sin(np.radians(b.get("angle_deg", 0))),
+                )
+                for b in bus_data.values()
+            ]
         )
 
         return {
@@ -441,9 +501,7 @@ class SCADAAgent(BaseAgent):
             "n_buses": len(bus_data),
             "voltage_array_pu": voltages.tolist(),
             "mapping_issues": mapping_issues,
-            "mapping_completeness": float(
-                1.0 - len(mapping_issues) / max(len(bus_mapping) * 4, 1)
-            ),
+            "mapping_completeness": float(1.0 - len(mapping_issues) / max(len(bus_mapping) * 4, 1)),
         }
 
     # ------------------------------------------------------------------
@@ -508,11 +566,13 @@ class SCADAAgent(BaseAgent):
             if value < v_min or value > v_max:
                 quality = "invalid"
 
-            validated.append({
-                **m,
-                "quality": quality,
-                "original_value": value,
-            })
+            validated.append(
+                {
+                    **m,
+                    "quality": quality,
+                    "original_value": value,
+                }
+            )
 
         # 2. Apply filtering
         if filter_type == "moving_average" and len(validated) >= filter_window:
@@ -532,7 +592,9 @@ class SCADAAgent(BaseAgent):
             filtered_values = np.zeros(len(validated))
             filtered_values[0] = validated[0]["value"]
             for i in range(1, len(validated)):
-                filtered_values[i] = alpha * validated[i]["value"] + (1 - alpha) * filtered_values[i - 1]
+                filtered_values[i] = (
+                    alpha * validated[i]["value"] + (1 - alpha) * filtered_values[i - 1]
+                )
 
             for i, m in enumerate(validated):
                 m["filtered_value"] = float(filtered_values[i])
@@ -550,14 +612,18 @@ class SCADAAgent(BaseAgent):
             if std_val > 0:
                 z_score = abs(m["value"] - mean_val) / std_val
                 if z_score > anomaly_threshold_sigma:
-                    anomalies.append({
-                        "tag": m.get("tag", ""),
-                        "value": m["value"],
-                        "expected_range": [float(mean_val - anomaly_threshold_sigma * std_val),
-                                          float(mean_val + anomaly_threshold_sigma * std_val)],
-                        "z_score": float(z_score),
-                        "timestamp": m.get("timestamp", ""),
-                    })
+                    anomalies.append(
+                        {
+                            "tag": m.get("tag", ""),
+                            "value": m["value"],
+                            "expected_range": [
+                                float(mean_val - anomaly_threshold_sigma * std_val),
+                                float(mean_val + anomaly_threshold_sigma * std_val),
+                            ],
+                            "z_score": float(z_score),
+                            "timestamp": m.get("timestamp", ""),
+                        }
+                    )
                     m["quality"] = "questionable"
 
         # 4. Summary statistics
@@ -623,9 +689,7 @@ class SCADAAgent(BaseAgent):
             "standard": "IEC 61850",
             "logical_nodes": ln_list,
             "total_logical_node_types": len(_IEC61850_LOGICAL_NODES),
-            "total_data_objects": sum(
-                len(dos) for dos in _IEC61850_DATA_OBJECTS.values()
-            ),
+            "total_data_objects": sum(len(dos) for dos in _IEC61850_DATA_OBJECTS.values()),
             "example_reference": f"{logical_device}/LLN0.MMXU$Vol$mag$f",
             "reference_format": "LD/LN.DO$DA$BDA",
         }
@@ -647,45 +711,81 @@ class SCADAAgent(BaseAgent):
             v_nom = 13.8  # kV
             v_kv = v_nom * (1.0 + np.random.normal(0, 0.02))
 
-            measurements.append(SCADAMeasurement(
-                tag=f"V_{bus_id}_KV", value=v_kv, timestamp=timestamp,
-                quality="good", iec61850_ref=f"LD0/{bus_id}.MMXU$Vol$mag$f", unit="kV"
-            ))
-            measurements.append(SCADAMeasurement(
-                tag=f"A_{bus_id}_A", value=500 + np.random.normal(0, 10),
-                timestamp=timestamp, quality="good",
-                iec61850_ref=f"LD0/{bus_id}.MMXU$A$mag$f", unit="A"
-            ))
-            measurements.append(SCADAMeasurement(
-                tag=f"P_{bus_id}_MW", value=5.0 + np.random.normal(0, 0.1),
-                timestamp=timestamp, quality="good",
-                iec61850_ref=f"LD0/{bus_id}.MMXU$W$mag$f", unit="MW"
-            ))
-            measurements.append(SCADAMeasurement(
-                tag=f"Q_{bus_id}_MVAR", value=1.0 + np.random.normal(0, 0.05),
-                timestamp=timestamp, quality="good",
-                iec61850_ref=f"LD0/{bus_id}.MMXU$var$mag$f", unit="MVAR"
-            ))
-            measurements.append(SCADAMeasurement(
-                tag=f"PF_{bus_id}", value=0.95 + np.random.normal(0, 0.01),
-                timestamp=timestamp, quality="good",
-                iec61850_ref=f"LD0/{bus_id}.MMXU$PF$mag$f", unit="pu"
-            ))
+            measurements.append(
+                SCADAMeasurement(
+                    tag=f"V_{bus_id}_KV",
+                    value=v_kv,
+                    timestamp=timestamp,
+                    quality="good",
+                    iec61850_ref=f"LD0/{bus_id}.MMXU$Vol$mag$f",
+                    unit="kV",
+                )
+            )
+            measurements.append(
+                SCADAMeasurement(
+                    tag=f"A_{bus_id}_A",
+                    value=500 + np.random.normal(0, 10),
+                    timestamp=timestamp,
+                    quality="good",
+                    iec61850_ref=f"LD0/{bus_id}.MMXU$A$mag$f",
+                    unit="A",
+                )
+            )
+            measurements.append(
+                SCADAMeasurement(
+                    tag=f"P_{bus_id}_MW",
+                    value=5.0 + np.random.normal(0, 0.1),
+                    timestamp=timestamp,
+                    quality="good",
+                    iec61850_ref=f"LD0/{bus_id}.MMXU$W$mag$f",
+                    unit="MW",
+                )
+            )
+            measurements.append(
+                SCADAMeasurement(
+                    tag=f"Q_{bus_id}_MVAR",
+                    value=1.0 + np.random.normal(0, 0.05),
+                    timestamp=timestamp,
+                    quality="good",
+                    iec61850_ref=f"LD0/{bus_id}.MMXU$var$mag$f",
+                    unit="MVAR",
+                )
+            )
+            measurements.append(
+                SCADAMeasurement(
+                    tag=f"PF_{bus_id}",
+                    value=0.95 + np.random.normal(0, 0.01),
+                    timestamp=timestamp,
+                    quality="good",
+                    iec61850_ref=f"LD0/{bus_id}.MMXU$PF$mag$f",
+                    unit="pu",
+                )
+            )
 
         # Frequency (system-wide)
-        measurements.append(SCADAMeasurement(
-            tag="FREQ_HZ", value=60.0 + np.random.normal(0, 0.01),
-            timestamp=timestamp, quality="good",
-            iec61850_ref="LD0/LLN0.MMXU$Hz$mag$f", unit="Hz"
-        ))
+        measurements.append(
+            SCADAMeasurement(
+                tag="FREQ_HZ",
+                value=60.0 + np.random.normal(0, 0.01),
+                timestamp=timestamp,
+                quality="good",
+                iec61850_ref="LD0/LLN0.MMXU$Hz$mag$f",
+                unit="Hz",
+            )
+        )
 
         # Breaker status
         for bk_id in ["BK1", "BK2", "BK3"]:
-            measurements.append(SCADAMeasurement(
-                tag=f"{bk_id}_STATUS", value=1.0,  # 1 = closed
-                timestamp=timestamp, quality="good",
-                iec61850_ref=f"LD0/{bk_id}.XCBR$Pos$stVal", unit="bool"
-            ))
+            measurements.append(
+                SCADAMeasurement(
+                    tag=f"{bk_id}_STATUS",
+                    value=1.0,  # 1 = closed
+                    timestamp=timestamp,
+                    quality="good",
+                    iec61850_ref=f"LD0/{bk_id}.XCBR$Pos$stVal",
+                    unit="bool",
+                )
+            )
 
         return measurements
 
@@ -724,8 +824,10 @@ class SCADAAgent(BaseAgent):
                 )
 
             if analysis_type in ("read", "full"):
-                conn_id = p.get("connection_id",
-                    f"{p.get('scada_server', 'scada.local')}:{p.get('scada_port', 102)}")
+                conn_id = p.get(
+                    "connection_id",
+                    f"{p.get('scada_server', 'scada.local')}:{p.get('scada_port', 102)}",
+                )
                 results["measurements"] = self.read_measurements(
                     connection_id=conn_id,
                     measurement_tags=p.get("measurement_tags"),
@@ -738,23 +840,26 @@ class SCADAAgent(BaseAgent):
                 if raw_meas is None and "measurements" in results:
                     raw_meas = results["measurements"].get("measurements", [])
 
-                bus_mapping = p.get("bus_mapping", {
-                    "BUS1": {
-                        "voltage_tag": "V_BUS1_KV",
-                        "P_load_tag": "P_BUS1_MW",
-                        "Q_load_tag": "Q_BUS1_MVAR",
+                bus_mapping = p.get(
+                    "bus_mapping",
+                    {
+                        "BUS1": {
+                            "voltage_tag": "V_BUS1_KV",
+                            "P_load_tag": "P_BUS1_MW",
+                            "Q_load_tag": "Q_BUS1_MVAR",
+                        },
+                        "BUS2": {
+                            "voltage_tag": "V_BUS2_KV",
+                            "P_load_tag": "P_BUS2_MW",
+                            "Q_load_tag": "Q_BUS2_MVAR",
+                        },
+                        "BUS3": {
+                            "voltage_tag": "V_BUS3_KV",
+                            "P_load_tag": "P_BUS3_MW",
+                            "Q_load_tag": "Q_BUS3_MVAR",
+                        },
                     },
-                    "BUS2": {
-                        "voltage_tag": "V_BUS2_KV",
-                        "P_load_tag": "P_BUS2_MW",
-                        "Q_load_tag": "Q_BUS2_MVAR",
-                    },
-                    "BUS3": {
-                        "voltage_tag": "V_BUS3_KV",
-                        "P_load_tag": "P_BUS3_MW",
-                        "Q_load_tag": "Q_BUS3_MVAR",
-                    },
-                })
+                )
 
                 results["bus_data"] = self.map_to_bus_data(
                     measurements=raw_meas or [],
@@ -824,15 +929,11 @@ class SCADAAgent(BaseAgent):
         meas = result.data.get("measurements")
         if meas is not None:
             invalid_count = sum(
-                1 for m in meas.get("measurements", [])
-                if m.get("quality") == "invalid"
+                1 for m in meas.get("measurements", []) if m.get("quality") == "invalid"
             )
             total = meas.get("measurement_count", 0)
             if total > 0 and invalid_count / total > 0.5:
-                errors.append(
-                    f"More than 50% of measurements are invalid: "
-                    f"{invalid_count}/{total}"
-                )
+                errors.append(f"More than 50% of measurements are invalid: {invalid_count}/{total}")
 
         bus = result.data.get("bus_data")
         if bus is not None:
@@ -843,9 +944,7 @@ class SCADAAgent(BaseAgent):
 
         processed = result.data.get("processed_data")
         if processed is not None and processed.get("anomaly_count", 0) > 10:
-            errors.append(
-                f"High number of anomalies detected: {processed['anomaly_count']}"
-            )
+            errors.append(f"High number of anomalies detected: {processed['anomaly_count']}")
 
         result.validation_errors.extend(errors)
         return len(errors) == 0

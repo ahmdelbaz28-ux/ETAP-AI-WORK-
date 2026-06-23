@@ -82,87 +82,67 @@ class TestRASPAttackDetection:
 
     def test_sqli_blocked(self):
         """SQL Injection must be blocked."""
-        results = self.rasp.inspect({
-            "body": "' OR 1=1; DROP TABLE users;--"
-        })
+        results = self.rasp.inspect({"body": "' OR 1=1; DROP TABLE users;--"})
         blocked = [r for r in results if r.action == RASPAction.BLOCK]
         assert len(blocked) > 0, "SQL Injection must be blocked"
         assert blocked[0].rule_name == "sqli_basic"
 
     def test_xss_blocked(self):
         """XSS must be blocked."""
-        results = self.rasp.inspect({
-            "body": "<script>alert(document.cookie)</script>"
-        })
+        results = self.rasp.inspect({"body": "<script>alert(document.cookie)</script>"})
         blocked = [r for r in results if r.action == RASPAction.BLOCK]
         assert len(blocked) > 0, "XSS must be blocked"
         assert blocked[0].rule_name == "xss_basic"
 
     def test_command_injection_blocked(self):
         """Command Injection must be blocked."""
-        results = self.rasp.inspect({
-            "body": "; rm -rf / | bash"
-        })
+        results = self.rasp.inspect({"body": "; rm -rf / | bash"})
         blocked = [r for r in results if r.action == RASPAction.BLOCK]
         assert len(blocked) > 0, "Command Injection must be blocked"
         assert blocked[0].rule_name == "command_injection"
 
     def test_path_traversal_blocked(self):
         """Path Traversal must be blocked."""
-        results = self.rasp.inspect({
-            "path": "/../../../etc/passwd"
-        })
+        results = self.rasp.inspect({"path": "/../../../etc/passwd"})
         blocked = [r for r in results if r.action == RASPAction.BLOCK]
         assert len(blocked) > 0, "Path Traversal must be blocked"
         assert blocked[0].rule_name == "path_traversal"
 
     def test_nosql_injection_blocked(self):
         """NoSQL Injection must be BLOCKED (not just logged)."""
-        results = self.rasp.inspect({
-            "body": '{"$where": "1=1"}'
-        })
+        results = self.rasp.inspect({"body": '{"$where": "1=1"}'})
         blocked = [r for r in results if r.action == RASPAction.BLOCK]
         assert len(blocked) > 0, "NoSQL Injection must be BLOCKED"
         assert blocked[0].rule_name == "nosql_injection"
 
     def test_ssrf_aws_metadata_blocked(self):
         """SSRF to AWS metadata endpoint must be BLOCKED."""
-        results = self.rasp.inspect({
-            "body": "http://169.254.169.254/latest/meta-data/"
-        })
+        results = self.rasp.inspect({"body": "http://169.254.169.254/latest/meta-data/"})
         blocked = [r for r in results if r.action == RASPAction.BLOCK]
         assert len(blocked) > 0, "SSRF to AWS metadata must be BLOCKED"
         assert blocked[0].rule_name == "ssrf_basic"
 
     def test_ssrf_localhost_blocked(self):
         """SSRF to localhost must be BLOCKED."""
-        results = self.rasp.inspect({
-            "body": "http://localhost:8080/admin"
-        })
+        results = self.rasp.inspect({"body": "http://localhost:8080/admin"})
         blocked = [r for r in results if r.action == RASPAction.BLOCK]
         assert len(blocked) > 0, "SSRF to localhost must be BLOCKED"
 
     def test_ssrf_internal_ip_blocked(self):
         """SSRF to internal IP must be BLOCKED."""
-        results = self.rasp.inspect({
-            "body": "http://10.0.0.1/internal-api"
-        })
+        results = self.rasp.inspect({"body": "http://10.0.0.1/internal-api"})
         blocked = [r for r in results if r.action == RASPAction.BLOCK]
         assert len(blocked) > 0, "SSRF to internal IP must be BLOCKED"
 
     def test_ssrf_file_protocol_blocked(self):
         """SSRF using file:// protocol must be BLOCKED."""
-        results = self.rasp.inspect({
-            "body": "file:///etc/passwd"
-        })
+        results = self.rasp.inspect({"body": "file:///etc/passwd"})
         blocked = [r for r in results if r.action == RASPAction.BLOCK]
         assert len(blocked) > 0, "SSRF file:// must be BLOCKED"
 
     def test_ldap_injection_blocked(self):
         """LDAP Injection must be blocked."""
-        results = self.rasp.inspect({
-            "body": "*)(&(objectClass=*))"
-        })
+        results = self.rasp.inspect({"body": "*)(&(objectClass=*))"})
         blocked = [r for r in results if r.action == RASPAction.BLOCK]
         assert len(blocked) > 0, "LDAP Injection must be blocked"
 
@@ -202,22 +182,26 @@ class TestRASPCustomRules:
         """Verify custom rules can be added."""
         rasp = create_default_rasp_engine()
         initial_count = len(rasp._rules)
-        rasp.add_rule(RASPRule(
-            name="custom_test_rule",
-            pattern=re.compile(r"CUSTOM_ATTACK_PATTERN"),
-            action=RASPAction.BLOCK,
-            severity=RASPSeverity.HIGH,
-        ))
+        rasp.add_rule(
+            RASPRule(
+                name="custom_test_rule",
+                pattern=re.compile(r"CUSTOM_ATTACK_PATTERN"),
+                action=RASPAction.BLOCK,
+                severity=RASPSeverity.HIGH,
+            )
+        )
         assert len(rasp._rules) == initial_count + 1
 
     def test_remove_custom_rule(self):
         """Verify custom rules can be removed."""
         rasp = create_default_rasp_engine()
-        rasp.add_rule(RASPRule(
-            name="custom_test_rule",
-            pattern=re.compile(r"CUSTOM_ATTACK_PATTERN"),
-            action=RASPAction.BLOCK,
-        ))
+        rasp.add_rule(
+            RASPRule(
+                name="custom_test_rule",
+                pattern=re.compile(r"CUSTOM_ATTACK_PATTERN"),
+                action=RASPAction.BLOCK,
+            )
+        )
         removed = rasp.remove_rule("custom_test_rule")
         assert removed is True
 

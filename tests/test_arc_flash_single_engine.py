@@ -164,8 +164,7 @@ def _run_via_run_python(params: dict, *, timeout: int = 30) -> dict:
 
     if not wrapper.get("success"):
         pytest.fail(
-            "secure_executor.py reported failure: "
-            f"{wrapper.get('error')!r}\nSTDERR:\n{proc.stderr}"
+            f"secure_executor.py reported failure: {wrapper.get('error')!r}\nSTDERR:\n{proc.stderr}"
         )
 
     # The inner print(json.dumps(result)) lives in the 'output' field as a
@@ -173,10 +172,7 @@ def _run_via_run_python(params: dict, *, timeout: int = 30) -> dict:
     try:
         return json.loads(wrapper["output"])
     except (KeyError, TypeError, json.JSONDecodeError) as exc:
-        pytest.fail(
-            f"Could not parse agent-path output as JSON: {exc}\n"
-            f"wrapper: {wrapper!r}"
-        )
+        pytest.fail(f"Could not parse agent-path output as JSON: {exc}\nwrapper: {wrapper!r}")
 
 
 def _assert_results_agree(direct: dict, agent: dict) -> None:
@@ -191,16 +187,12 @@ def _assert_results_agree(direct: dict, agent: dict) -> None:
 
         if isinstance(d_val, str):
             if d_val != a_val:
-                mismatches.append(
-                    f"  - {field!r}: direct={d_val!r}, agent={a_val!r}"
-                )
+                mismatches.append(f"  - {field!r}: direct={d_val!r}, agent={a_val!r}")
             continue
 
         if isinstance(d_val, bool) or isinstance(a_val, bool):
             if d_val != a_val:
-                mismatches.append(
-                    f"  - {field!r}: direct={d_val!r}, agent={a_val!r}"
-                )
+                mismatches.append(f"  - {field!r}: direct={d_val!r}, agent={a_val!r}")
             continue
 
         tol = TOLERANCES.get(field, 1e-6)
@@ -212,8 +204,7 @@ def _assert_results_agree(direct: dict, agent: dict) -> None:
 
     if mismatches:
         raise AssertionError(
-            "Direct and run_python paths disagree on arc flash result:\n"
-            + "\n".join(mismatches)
+            "Direct and run_python paths disagree on arc flash result:\n" + "\n".join(mismatches)
         )
 
 
@@ -380,15 +371,11 @@ class TestArcFlashRunPythonSecurityBoundary:
         # The validator rejects the code BEFORE execution, so the executor
         # exits with success=False and a security-violation message. The
         # process exit code is 1 in that case.
-        assert proc.returncode != 0, (
-            "secure_executor should reject code with disallowed imports"
-        )
+        assert proc.returncode != 0, "secure_executor should reject code with disallowed imports"
         # And the wrapper should report the violation clearly.
         wrapper = json.loads(proc.stdout.strip())
         assert wrapper.get("success") is False
-        assert "Forbidden" in wrapper.get("error", "") or "Unauthorized" in wrapper.get(
-            "error", ""
-        )
+        assert "Forbidden" in wrapper.get("error", "") or "Unauthorized" in wrapper.get("error", "")
 
     def test_whitelisted_engine_imports_pass_validation(self) -> None:
         """All whitelisted engine imports must pass AST-level validation —
@@ -432,9 +419,7 @@ class TestArcFlashRunPythonSecurityBoundary:
             cwd=str(PROJECT_ROOT),
             env={**os.environ, "PYTHONPATH": str(PROJECT_ROOT)},
         )
-        assert proc.returncode != 0, (
-            "secure_executor should reject direct __import__ calls"
-        )
+        assert proc.returncode != 0, "secure_executor should reject direct __import__ calls"
 
 
 if __name__ == "__main__":

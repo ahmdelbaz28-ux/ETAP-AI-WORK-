@@ -23,15 +23,17 @@ import numpy as np
 
 class ElectrodeConfig(Enum):
     """Electrode configuration types per IEEE 1584-2018."""
-    VCB = "VCB"      # Vertical conductors/electrodes inside a metal box/enclosure
-    VCBB = "VCBB"    # Vertical conductors/electrodes terminated in an insulating barrier inside a metal box/enclosure
-    HCB = "HCB"      # Horizontal conductors/electrodes inside a metal box/enclosure
-    VOA = "VOA"      # Vertical conductors/electrodes in open air
-    HOA = "HOA"      # Horizontal conductors/electrodes in open air
+
+    VCB = "VCB"  # Vertical conductors/electrodes inside a metal box/enclosure
+    VCBB = "VCBB"  # Vertical conductors/electrodes terminated in an insulating barrier inside a metal box/enclosure
+    HCB = "HCB"  # Horizontal conductors/electrodes inside a metal box/enclosure
+    VOA = "VOA"  # Vertical conductors/electrodes in open air
+    HOA = "HOA"  # Horizontal conductors/electrodes in open air
 
 
 class EnclosureType(Enum):
     """Enclosure type."""
+
     OPEN = "open"
     BOX = "box"
 
@@ -39,6 +41,7 @@ class EnclosureType(Enum):
 @dataclass
 class ArcFlashResult:
     """Result of an arc flash analysis."""
+
     incident_energy_cal_cm2: float
     incident_energy_at_full_arc_current: float
     incident_energy_at_reduced_arc_current: float
@@ -63,24 +66,24 @@ class ArcFlashResult:
 # Voltage range: 'low' = 0.208-1 kV, 'high' = 1-15 kV
 ARC_CURRENT_COEFFICIENTS = {
     ElectrodeConfig.VCB.value: {
-        'low': (-0.153, -0.276, 0.0),
-        'high': (0.0425, -0.195, 0.0),
+        "low": (-0.153, -0.276, 0.0),
+        "high": (0.0425, -0.195, 0.0),
     },
     ElectrodeConfig.VCBB.value: {
-        'low': (-0.792, -0.552, 0.0),
-        'high': (0.125, -0.265, 0.0),
+        "low": (-0.792, -0.552, 0.0),
+        "high": (0.125, -0.265, 0.0),
     },
     ElectrodeConfig.HCB.value: {
-        'low': (-0.555, -0.442, 0.0),
-        'high': (0.067, -0.230, 0.0),
+        "low": (-0.555, -0.442, 0.0),
+        "high": (0.067, -0.230, 0.0),
     },
     ElectrodeConfig.VOA.value: {
-        'low': (-0.153, -0.276, 0.0),
-        'high': (0.0425, -0.195, 0.0),
+        "low": (-0.153, -0.276, 0.0),
+        "high": (0.0425, -0.195, 0.0),
     },
     ElectrodeConfig.HOA.value: {
-        'low': (-0.555, -0.442, 0.0),
-        'high': (0.067, -0.230, 0.0),
+        "low": (-0.555, -0.442, 0.0),
+        "high": (0.067, -0.230, 0.0),
     },
 }
 
@@ -126,11 +129,13 @@ class ArcFlashEngine:
         # stateless.  Reserved instance attributes allow subclasses or tests
         # to override per-config tolerances without touching module globals.
         self.working_distance_default_mm = 610.0  # 24 inches
-        self.enclosure_reference_volume_mm3 = 508.0 ** 3  # 20" cube
+        self.enclosure_reference_volume_mm3 = 508.0**3  # 20" cube
         self.tolerance = 1e-6
 
     @staticmethod
-    def _validate_inputs(voltage_kv, bolted_fault_current_ka, arc_duration_sec, working_distance_mm):
+    def _validate_inputs(
+        voltage_kv, bolted_fault_current_ka, arc_duration_sec, working_distance_mm
+    ):
         """
         Validate input parameters for arc flash calculations.
 
@@ -144,20 +149,30 @@ class ArcFlashEngine:
         ValueError: If any input is out of the valid range.
         """
         if voltage_kv < 0.208:
-            raise ValueError(f"Voltage {voltage_kv} kV is below the IEEE 1584-2018 minimum range (0.208 kV). Use Ralph Lee method instead.")
+            raise ValueError(
+                f"Voltage {voltage_kv} kV is below the IEEE 1584-2018 minimum range (0.208 kV). Use Ralph Lee method instead."
+            )
         if voltage_kv > 15.0:
-            raise ValueError(f"Voltage {voltage_kv} kV is above the IEEE 1584-2018 maximum range (15 kV).")
+            raise ValueError(
+                f"Voltage {voltage_kv} kV is above the IEEE 1584-2018 maximum range (15 kV)."
+            )
         if bolted_fault_current_ka < 0.7:
-            raise ValueError(f"Bolted fault current {bolted_fault_current_ka} kA is below the IEEE 1584-2018 minimum range (0.7 kA).")
+            raise ValueError(
+                f"Bolted fault current {bolted_fault_current_ka} kA is below the IEEE 1584-2018 minimum range (0.7 kA)."
+            )
         if bolted_fault_current_ka > 106.0:
-            raise ValueError(f"Bolted fault current {bolted_fault_current_ka} kA is above the IEEE 1584-2018 maximum range (106 kA).")
+            raise ValueError(
+                f"Bolted fault current {bolted_fault_current_ka} kA is above the IEEE 1584-2018 maximum range (106 kA)."
+            )
         if arc_duration_sec <= 0:
             raise ValueError("Arc duration must be positive.")
         if working_distance_mm <= 0:
             raise ValueError("Working distance must be positive.")
 
     @staticmethod
-    def calculate_arc_current(voltage_kv, bolted_fault_current_ka, electrode_config=ElectrodeConfig.VCB):
+    def calculate_arc_current(
+        voltage_kv, bolted_fault_current_ka, electrode_config=ElectrodeConfig.VCB
+    ):
         """
         Calculate the arc current using IEEE 1584-2018 equations.
 
@@ -200,13 +215,13 @@ class ArcFlashEngine:
         coeffs = ARC_CURRENT_COEFFICIENTS[electrode_key]
 
         if voltage_kv < 1.0:
-            k1, k2, k3 = coeffs['low']
+            k1, k2, k3 = coeffs["low"]
         else:
-            k1, k2, k3 = coeffs['high']
+            k1, k2, k3 = coeffs["high"]
 
         # Iarc = 10^(k1 + k2 * log10(Ibf) + k3 * Ibf)
         log_Iarc = k1 + k2 * np.log10(Ibf) + k3 * Ibf
-        Iarc = 10 ** log_Iarc
+        Iarc = 10**log_Iarc
 
         # Reduced arc current (85% multiplier for fuse reduction factor)
         Iarc_reduced = 0.85 * Iarc
@@ -248,7 +263,9 @@ class ArcFlashEngine:
         )
 
         # Normalize keys for coefficient lookup (case/enum-identity safe)
-        raw_electrode = electrode_config.value if isinstance(electrode_config, Enum) else str(electrode_config)
+        raw_electrode = (
+            electrode_config.value if isinstance(electrode_config, Enum) else str(electrode_config)
+        )
         e = str(raw_electrode).strip().upper()
         if "VCBB" in e:
             electrode_key = ElectrodeConfig.VCBB.value
@@ -261,7 +278,9 @@ class ArcFlashEngine:
         else:
             electrode_key = ElectrodeConfig.VCB.value
 
-        raw_enclosure = enclosure_type.value if isinstance(enclosure_type, Enum) else str(enclosure_type)
+        raw_enclosure = (
+            enclosure_type.value if isinstance(enclosure_type, Enum) else str(enclosure_type)
+        )
         enc = str(raw_enclosure).strip().upper()
         if "OPEN" in enc:
             enclosure_key = EnclosureType.OPEN.value
@@ -279,7 +298,7 @@ class ArcFlashEngine:
             # CF = 1.0 for typical enclosures; adjusted for non-standard sizes
             V_enc = enclosure_width_mm * enclosure_height_mm * enclosure_depth_mm  # mm^3
             # Reference enclosure volume: 20" x 20" x 20" = 508^3 mm^3
-            V_ref = 508.0 ** 3
+            V_ref = 508.0**3
             if V_enc > 0 and V_enc != V_ref:
                 # Simplified correction factor
                 CF = (V_ref / V_enc) ** 0.1 if V_enc > V_ref else 1.0
@@ -294,7 +313,9 @@ class ArcFlashEngine:
         # Extra hardening against parameter mixups:
         # If working_distance_mm arrives as an Enum (e.g., ElectrodeConfig), recover a numeric D.
         if isinstance(working_distance_mm, Enum):
-            if not isinstance(enclosure_width_mm, Enum) and isinstance(enclosure_width_mm, (int, float, np.floating, np.integer)):
+            if not isinstance(enclosure_width_mm, Enum) and isinstance(
+                enclosure_width_mm, (int, float, np.floating, np.integer)
+            ):
                 working_distance_mm = enclosure_width_mm
             else:
                 working_distance_mm = 1.0
@@ -302,11 +323,11 @@ class ArcFlashEngine:
         D = float(working_distance_mm)
 
         log_E = k1 + k2 * np.log10(Iarc) + k3 * Iarc
-        E_full = (10 ** log_E) * arc_duration_sec * CF / math.pow(D, x_power)
+        E_full = (10**log_E) * arc_duration_sec * CF / math.pow(D, x_power)
 
         # Calculate incident energy at reduced arc current
         log_E_reduced = k1 + k2 * np.log10(Iarc_reduced) + k3 * Iarc_reduced
-        E_reduced = (10 ** log_E_reduced) * arc_duration_sec * CF / math.pow(D, x_power)
+        E_reduced = (10**log_E_reduced) * arc_duration_sec * CF / math.pow(D, x_power)
 
         # Use the higher of the two values
         E_final = max(E_full, E_reduced)
@@ -343,8 +364,12 @@ class ArcFlashEngine:
                 working_distance_mm = 1.0
 
         # Incident energy exponent x (normalize to string keys)
-        electrode_key = electrode_config.value if isinstance(electrode_config, Enum) else str(electrode_config)
-        enclosure_key = enclosure_type.value if isinstance(enclosure_type, Enum) else str(enclosure_type)
+        electrode_key = (
+            electrode_config.value if isinstance(electrode_config, Enum) else str(electrode_config)
+        )
+        enclosure_key = (
+            enclosure_type.value if isinstance(enclosure_type, Enum) else str(enclosure_type)
+        )
 
         electrode_key = str(electrode_key).strip().upper()
 
@@ -426,7 +451,10 @@ class ArcFlashEngine:
         elif incident_energy <= 4.0:
             return "1", "Arc-Rated Shirt and Pants, Arc-Rated Face Shield (4 cal/cm^2 minimum)"
         elif incident_energy <= 8.0:
-            return "2", "Arc-Rated Shirt and Pants, Arc-Rated Face Shield, Arc-Rated Jacket (8 cal/cm^2 minimum)"
+            return (
+                "2",
+                "Arc-Rated Shirt and Pants, Arc-Rated Face Shield, Arc-Rated Jacket (8 cal/cm^2 minimum)",
+            )
         elif incident_energy <= 25.0:
             return "3", "Arc-Rated Shirt and Pants, Arc Flash Suit (25 cal/cm^2 minimum)"
         elif incident_energy <= 40.0:
@@ -464,22 +492,39 @@ class ArcFlashEngine:
         ArcFlashResult: Complete arc flash analysis result.
         """
         # Validate inputs
-        self._validate_inputs(voltage_kv, bolted_fault_current_ka, arc_duration_sec, working_distance_mm)
+        self._validate_inputs(
+            voltage_kv, bolted_fault_current_ka, arc_duration_sec, working_distance_mm
+        )
 
         # Calculate arc current
-        Iarc, Iarc_reduced = self.calculate_arc_current(voltage_kv, bolted_fault_current_ka, electrode_config)
+        Iarc, Iarc_reduced = self.calculate_arc_current(
+            voltage_kv, bolted_fault_current_ka, electrode_config
+        )
 
         # Calculate incident energy
         E_final, E_full, E_reduced = self.calculate_incident_energy(
-            voltage_kv, bolted_fault_current_ka, arc_duration_sec, working_distance_mm,
-            electrode_config, enclosure_type, enclosure_width_mm, enclosure_height_mm, enclosure_depth_mm
+            voltage_kv,
+            bolted_fault_current_ka,
+            arc_duration_sec,
+            working_distance_mm,
+            electrode_config,
+            enclosure_type,
+            enclosure_width_mm,
+            enclosure_height_mm,
+            enclosure_depth_mm,
         )
 
         # Calculate arc flash boundary
         D_boundary = self.calculate_arc_flash_boundary(
-            voltage_kv, bolted_fault_current_ka, arc_duration_sec,
+            voltage_kv,
+            bolted_fault_current_ka,
+            arc_duration_sec,
             working_distance_mm,
-            electrode_config, enclosure_type, enclosure_width_mm, enclosure_height_mm, enclosure_depth_mm
+            electrode_config,
+            enclosure_type,
+            enclosure_width_mm,
+            enclosure_height_mm,
+            enclosure_depth_mm,
         )
 
         # Determine PPE level
@@ -505,7 +550,9 @@ class ArcFlashEngine:
         )
 
     @staticmethod
-    def ralph_lee_method(voltage_kv, bolted_fault_current_ka, arc_duration_sec, working_distance_mm):
+    def ralph_lee_method(
+        voltage_kv, bolted_fault_current_ka, arc_duration_sec, working_distance_mm
+    ):
         """
         Calculate arc flash using Ralph Lee method for voltages outside IEEE 1584 range.
 
@@ -526,7 +573,7 @@ class ArcFlashEngine:
         D = working_distance_mm
 
         # Ralph Lee method for incident energy (cal/cm^2)
-        E = (5.12e5 * V * Ibf * t) / (D ** 2)
+        E = (5.12e5 * V * Ibf * t) / (D**2)
 
         # Arc flash boundary (mm) where incident energy = 1.2 cal/cm^2
         D_boundary = ((5.12e5 * V * Ibf * t) / 1.2) ** 0.5

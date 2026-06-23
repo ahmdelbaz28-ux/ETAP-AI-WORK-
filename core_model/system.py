@@ -3,9 +3,14 @@ import numpy as np
 
 class System:
     __slots__ = (
-        'base_mva', 'buses', 'lines', 'transformers',
-        'generators', 'loads', 'Ybus_seq',
-        '_include_gen_impedance_pos',
+        "base_mva",
+        "buses",
+        "lines",
+        "transformers",
+        "generators",
+        "loads",
+        "Ybus_seq",
+        "_include_gen_impedance_pos",
     )
 
     def __init__(self, base_mva=100.0):
@@ -46,7 +51,7 @@ class System:
         # Accumulate load power at the connected bus (was previously in Load.__init__)
         load.bus.load_power += load.load_power
 
-    def build_ybus(self, seq='1'):
+    def build_ybus(self, seq="1"):
         """
         Build the Ybus admittance matrix for the system for a given sequence.
 
@@ -101,7 +106,7 @@ class System:
 
                 # Ybus entries for tap-changing transformer (standard formulation)
                 # Shunt on tapped side (bus i) must be referred through |a|²
-                Ybus[i, i] += (y / (abs(a)**2)) + y_shunt_half / (abs(a)**2)
+                Ybus[i, i] += (y / (abs(a) ** 2)) + y_shunt_half / (abs(a) ** 2)
                 Ybus[j, j] += y + y_shunt_half
                 Ybus[i, j] -= y / np.conj(a)
                 Ybus[j, i] -= y / a
@@ -117,7 +122,7 @@ class System:
         # generator impedance IS included.
         # For positive sequence with include_gen_impedance=False (load flow),
         # the generator is modeled as a voltage source, so impedance is NOT added.
-        if seq != '1' or self._include_gen_impedance_pos:
+        if seq != "1" or self._include_gen_impedance_pos:
             for gen in self.generators:
                 i = bus_index[gen.bus.bus_id]
                 zg = gen.get_impedance(seq)
@@ -140,7 +145,7 @@ class System:
         self.Ybus_seq[seq] = Ybus
         return Ybus
 
-    def get_ybus(self, seq='1'):
+    def get_ybus(self, seq="1"):
         """
         Get the Ybus matrix for a given sequence, building it if necessary.
 
@@ -166,7 +171,7 @@ class System:
         self._include_gen_impedance_pos = for_fault
         # Clear cached Ybus to force rebuild with new settings
         self.Ybus_seq.clear()
-        for seq in ['1', '2', '0']:
+        for seq in ["1", "2", "0"]:
             self.build_ybus(seq)
 
     def get_bus_voltages(self):

@@ -26,6 +26,7 @@ import numpy as np
 @dataclass
 class ZIPCoefficients:
     """ZIP load model coefficients."""
+
     aZ: float = 0.0  # Constant impedance fraction (active power)
     aI: float = 0.0  # Constant current fraction (active power)
     aP: float = 1.0  # Constant power fraction (active power)
@@ -45,17 +46,17 @@ class ZIPCoefficients:
 
 # Common ZIP load model presets
 ZIP_PRESETS = {
-    'constant_power': ZIPCoefficients(aZ=0.0, aI=0.0, aP=1.0, bZ=0.0, bI=0.0, bP=1.0),
-    'constant_impedance': ZIPCoefficients(aZ=1.0, aI=0.0, aP=0.0, bZ=1.0, bI=0.0, bP=0.0),
-    'constant_current': ZIPCoefficients(aZ=0.0, aI=1.0, aP=0.0, bZ=0.0, bI=1.0, bP=0.0),
+    "constant_power": ZIPCoefficients(aZ=0.0, aI=0.0, aP=1.0, bZ=0.0, bI=0.0, bP=1.0),
+    "constant_impedance": ZIPCoefficients(aZ=1.0, aI=0.0, aP=0.0, bZ=1.0, bI=0.0, bP=0.0),
+    "constant_current": ZIPCoefficients(aZ=0.0, aI=1.0, aP=0.0, bZ=0.0, bI=1.0, bP=0.0),
     # IEEE typical residential load
-    'residential_ieee': ZIPCoefficients(aZ=0.25, aI=0.15, aP=0.60, bZ=0.25, bI=0.15, bP=0.60),
+    "residential_ieee": ZIPCoefficients(aZ=0.25, aI=0.15, aP=0.60, bZ=0.25, bI=0.15, bP=0.60),
     # IEEE typical commercial load
-    'commercial_ieee': ZIPCoefficients(aZ=0.10, aI=0.10, aP=0.80, bZ=0.10, bI=0.10, bP=0.80),
+    "commercial_ieee": ZIPCoefficients(aZ=0.10, aI=0.10, aP=0.80, bZ=0.10, bI=0.10, bP=0.80),
     # IEEE typical industrial load
-    'industrial_ieee': ZIPCoefficients(aZ=0.15, aI=0.15, aP=0.70, bZ=0.15, bI=0.15, bP=0.70),
+    "industrial_ieee": ZIPCoefficients(aZ=0.15, aI=0.15, aP=0.70, bZ=0.15, bI=0.15, bP=0.70),
     # Mixed urban load
-    'mixed_urban': ZIPCoefficients(aZ=0.20, aI=0.20, aP=0.60, bZ=0.20, bI=0.20, bP=0.60),
+    "mixed_urban": ZIPCoefficients(aZ=0.20, aI=0.20, aP=0.60, bZ=0.20, bI=0.20, bP=0.60),
 }
 
 
@@ -64,8 +65,9 @@ class ZIPLoadModel:
     ZIP Load Model for voltage-dependent load representation.
     """
 
-    def __init__(self, P0: float, Q0: float, coefficients: ZIPCoefficients = None,
-                 preset: str = None):
+    def __init__(
+        self, P0: float, Q0: float, coefficients: ZIPCoefficients = None, preset: str = None
+    ):
         """
         Initialize ZIP load model.
 
@@ -83,7 +85,7 @@ class ZIPLoadModel:
         elif coefficients is not None:
             self.coefficients = coefficients
         else:
-            self.coefficients = ZIP_PRESETS['constant_power']
+            self.coefficients = ZIP_PRESETS["constant_power"]
 
     def calculate_power(self, V: float) -> Tuple[float, float]:
         """
@@ -165,25 +167,25 @@ class ZIPLoadModel:
     def to_dict(self) -> dict:
         """Convert to dictionary representation."""
         return {
-            'P0': self.P0,
-            'Q0': self.Q0,
-            'aZ': self.coefficients.aZ,
-            'aI': self.coefficients.aI,
-            'aP': self.coefficients.aP,
-            'bZ': self.coefficients.bZ,
-            'bI': self.coefficients.bI,
-            'bP': self.coefficients.bP,
+            "P0": self.P0,
+            "Q0": self.Q0,
+            "aZ": self.coefficients.aZ,
+            "aI": self.coefficients.aI,
+            "aP": self.coefficients.aP,
+            "bZ": self.coefficients.bZ,
+            "bI": self.coefficients.bI,
+            "bP": self.coefficients.bP,
         }
 
     @staticmethod
-    def from_dict(data: dict) -> 'ZIPLoadModel':
+    def from_dict(data: dict) -> "ZIPLoadModel":
         """Create ZIPLoadModel from dictionary."""
         coeffs = ZIPCoefficients(
-            aZ=data.get('aZ', 0.0),
-            aI=data.get('aI', 0.0),
-            aP=data.get('aP', 1.0),
-            bZ=data.get('bZ', 0.0),
-            bI=data.get('bI', 0.0),
-            bP=data.get('bP', 1.0),
+            aZ=data.get("aZ", 0.0),
+            aI=data.get("aI", 0.0),
+            aP=data.get("aP", 1.0),
+            bZ=data.get("bZ", 0.0),
+            bI=data.get("bI", 0.0),
+            bP=data.get("bP", 1.0),
         )
-        return ZIPLoadModel(P0=data['P0'], Q0=data['Q0'], coefficients=coeffs)
+        return ZIPLoadModel(P0=data["P0"], Q0=data["Q0"], coefficients=coeffs)

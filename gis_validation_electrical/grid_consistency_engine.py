@@ -53,7 +53,9 @@ def grid_consistency_engine(assets: List[ADMSAsset]) -> GridConsistencyReport:
                 details={},
             )
         )
-        return GridConsistencyReport(ok=False, failures=failures, electrical_model=model, cim_model=None)
+        return GridConsistencyReport(
+            ok=False, failures=failures, electrical_model=model, cim_model=None
+        )
 
     # Radiality compliance (electrical graph theory)
     ok_rad, rad_issues = validate_radiality(model)

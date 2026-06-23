@@ -119,7 +119,7 @@ AhmedETAP/
 │   └── rag_engine.py
 ├── 📁 load_flow/            # ⚡ Load flow solvers
 │   ├── load_flow.py
-│   ├── load_flow_solver_fixed.py  # Production solver
+│   ├── load_flow.py  # Canonical Newton-Raphson solver (consolidated)
 │   ├── optimal_power_flow.py
 │   └── solver.py
 ├── 📁 migrations/           # Database migrations

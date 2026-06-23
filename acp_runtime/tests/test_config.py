@@ -9,6 +9,7 @@ Covers:
     * merge_config precedence: CLI > env > config > defaults
     * Config integration with CLI main()
 """
+
 from __future__ import annotations
 
 import json
@@ -17,6 +18,7 @@ import pytest
 from acp.config import load_config, merge_config
 
 # ------------------------------------------------------- helpers
+
 
 class DummyArgs:
     """Simple argparse-like namespace for testing."""
@@ -27,6 +29,7 @@ class DummyArgs:
 
 
 # ------------------------------------------------------- load_config
+
 
 class TestLoadConfig:
     def test_load_json(self, tmp_path):
@@ -107,6 +110,7 @@ metrics: true
 
 
 # ------------------------------------------------------- merge_config
+
 
 class TestMergeConfig:
     def test_cli_takes_precedence(self):
@@ -262,6 +266,7 @@ class TestMergeConfig:
 
 
 # ------------------------------------------------------- CLI integration
+
 
 class TestConfigCliIntegration:
     def test_cli_with_json_config(self, monkeypatch, tmp_path):

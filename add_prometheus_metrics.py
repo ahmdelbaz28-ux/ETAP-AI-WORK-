@@ -50,10 +50,14 @@ DIGITAL_TWIN_AVAILABLE = Gauge(
 )
 """
 
+
 def main() -> None:
     content = METRICS_FILE.read_text(encoding="utf-8").splitlines()
     # Find the logger line index
-    logger_idx = next((i for i, line in enumerate(content) if "logger = logging.getLogger(__name__)" in line), None)
+    logger_idx = next(
+        (i for i, line in enumerate(content) if "logger = logging.getLogger(__name__)" in line),
+        None,
+    )
     if logger_idx is None:
         raise RuntimeError("Logger line not found in metrics file.")
     # Insert block after logger line
@@ -63,6 +67,7 @@ def main() -> None:
     METRICS_FILE.write_text("\n".join(new_content) + "\n", encoding="utf-8")
     result = {"modified": True, "lines_added": 30}
     print(json.dumps(result))
+
 
 if __name__ == "__main__":
     main()

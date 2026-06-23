@@ -6,6 +6,7 @@ Covers:
     * deadline_ms <= 0 → ValueError
     * deadline_ms > 10 minutes → ValueError (sanity)
 """
+
 from __future__ import annotations
 
 import time

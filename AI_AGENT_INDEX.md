@@ -78,7 +78,7 @@ graph TB
 | **engineering_service** | `engineering_service.py` | Main FastAPI app, all routes | fastapi, uvicorn, pydantic | Active |
 | **engine** | `engine/engine.py` | PowerSystemEngine core class | numpy, scipy | Active |
 | **load_flow** | `load_flow/load_flow.py` | Newton-Raphson solver | numpy, scipy | Active |
-| **load_flow_solver** | `load_flow/load_flow_solver_fixed.py` | Production solver | numpy | Active |
+| **load_flow_solver** | `load_flow/load_flow.py` | Newton-Raphson solver (canonical) | numpy | Active |
 | **optimal_power_flow** | `load_flow/optimal_power_flow.py` | AC/DC OPF | numpy, scipy | Active |
 | **fault_analysis** | `fault_analysis/fault.py` | Short circuit (IEC 60909) | numpy | Active |
 | **arc_flash** | `fault_analysis/arc_flash_engine.py` | IEEE 1584 calculator | numpy | Active |
@@ -374,7 +374,7 @@ CREATE TABLE study_results (
 |----------|-------|----------|
 | Dead Code | `fix_eol_strings.py` — utility script, not imported | Low |
 | Dead Code | `run_complete_setup.py` — setup script, not imported | Low |
-| Duplicate | `load_flow/load_flow.py` vs `load_flow/load_flow_solver_fixed.py` | Medium |
+| ~~Duplicate~~ | ~~`load_flow/load_flow.py` vs `load_flow/load_flow_solver_fixed.py`~~ | ~~Medium~~ ✅ **Resolved** — consolidated into `load_flow/load_flow.py` |
 | Missing | `ui/src/hooks/` only has `useSmartHelp.ts` — more hooks needed | Low |
 | Missing | No `useApi.ts` hook in frontend (raw fetch in api.ts) | Medium |
 | Security | `.mcp.json` was committed with secrets (now cleaned) | High |

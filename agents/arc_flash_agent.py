@@ -18,6 +18,8 @@ Standards:
 
 import logging
 from datetime import UTC, datetime
+
+UTC = UTC
 from typing import Any, Dict, List
 
 import numpy as np
@@ -35,31 +37,56 @@ logger = logging.getLogger(__name__)
 _ARC_CURRENT_COEFFS = {
     # (config, voltage_range): (k1, k2)
     # config: 0=VCB, 1=VCBB, 2=HCB
-    "VCB_208": (0.000, -0.028),      # 0.208 kV, VC in a box
-    "VCB_600": (-0.009, -0.019),     # 0.600 kV, VC in a box
-    "VCB_1000": (-0.009, -0.019),    # 1.000 kV, VC in a box
-    "VCB_2700": (-0.076, 0.016),     # 2.700 kV, VC in a box
-    "VCB_14300": (-0.076, 0.016),    # 14.300 kV, VC in a box
-    "VCBB_208": (0.000, -0.028),     # 0.208 kV, VCBB
-    "VCBB_600": (-0.015, -0.019),    # 0.600 kV, VCBB
-    "VCBB_1000": (-0.015, -0.019),   # 1.000 kV, VCBB
-    "VCBB_2700": (-0.079, 0.017),    # 2.700 kV, VCBB
-    "VCBB_14300": (-0.079, 0.017),   # 14.300 kV, VCBB
-    "HCB_208": (0.000, -0.028),      # 0.208 kV, HCB
-    "HCB_600": (0.003, -0.022),      # 0.600 kV, HCB
-    "HCB_1000": (0.003, -0.022),     # 1.000 kV, HCB
-    "HCB_2700": (-0.073, 0.019),     # 2.700 kV, HCB
-    "HCB_14300": (-0.073, 0.019),    # 14.300 kV, HCB
+    "VCB_208": (0.000, -0.028),  # 0.208 kV, VC in a box
+    "VCB_600": (-0.009, -0.019),  # 0.600 kV, VC in a box
+    "VCB_1000": (-0.009, -0.019),  # 1.000 kV, VC in a box
+    "VCB_2700": (-0.076, 0.016),  # 2.700 kV, VC in a box
+    "VCB_14300": (-0.076, 0.016),  # 14.300 kV, VC in a box
+    "VCBB_208": (0.000, -0.028),  # 0.208 kV, VCBB
+    "VCBB_600": (-0.015, -0.019),  # 0.600 kV, VCBB
+    "VCBB_1000": (-0.015, -0.019),  # 1.000 kV, VCBB
+    "VCBB_2700": (-0.079, 0.017),  # 2.700 kV, VCBB
+    "VCBB_14300": (-0.079, 0.017),  # 14.300 kV, VCBB
+    "HCB_208": (0.000, -0.028),  # 0.208 kV, HCB
+    "HCB_600": (0.003, -0.022),  # 0.600 kV, HCB
+    "HCB_1000": (0.003, -0.022),  # 1.000 kV, HCB
+    "HCB_2700": (-0.073, 0.019),  # 2.700 kV, HCB
+    "HCB_14300": (-0.073, 0.019),  # 14.300 kV, HCB
 }
 
 # PPE Category classification per NFPA 70E
 _PPE_CATEGORIES = [
     {"min_ie": 0.0, "max_ie": 1.2, "category": 0, "description": "No PPE required"},
-    {"min_ie": 1.2, "max_ie": 4.0, "category": 1, "description": "Arc-rated shirt and pants or coverall"},
-    {"min_ie": 4.0, "max_ie": 8.0, "category": 2, "description": "Arc-rated shirt, pants, and face shield"},
-    {"min_ie": 8.0, "max_ie": 25.0, "category": 3, "description": "Arc-rated shirt, pants, arc flash suit, and face shield"},
-    {"min_ie": 25.0, "max_ie": 40.0, "category": 4, "description": "Arc-rated shirt, pants, multi-layer arc flash suit, and face shield"},
-    {"min_ie": 40.0, "max_ie": float("inf"), "category": -1, "description": "Dangerous — no PPE adequate; de-energize equipment"},
+    {
+        "min_ie": 1.2,
+        "max_ie": 4.0,
+        "category": 1,
+        "description": "Arc-rated shirt and pants or coverall",
+    },
+    {
+        "min_ie": 4.0,
+        "max_ie": 8.0,
+        "category": 2,
+        "description": "Arc-rated shirt, pants, and face shield",
+    },
+    {
+        "min_ie": 8.0,
+        "max_ie": 25.0,
+        "category": 3,
+        "description": "Arc-rated shirt, pants, arc flash suit, and face shield",
+    },
+    {
+        "min_ie": 25.0,
+        "max_ie": 40.0,
+        "category": 4,
+        "description": "Arc-rated shirt, pants, multi-layer arc flash suit, and face shield",
+    },
+    {
+        "min_ie": 40.0,
+        "max_ie": float("inf"),
+        "category": -1,
+        "description": "Dangerous — no PPE adequate; de-energize equipment",
+    },
 ]
 
 
@@ -138,29 +165,17 @@ class ArcFlashAgent(BaseAgent):
             # Low voltage model
             k1 = 0.0
             k2 = -0.028 if electrode_config == "VCB" else -0.028
-            log_Iarc = (
-                k1
-                + k2 * G
-                + 0.921 * np.log10(Ibf)
-                + 0.0 * Ibf
-                + 0.0 * np.log10(Ibf) * G
-            )
+            log_Iarc = k1 + k2 * G + 0.921 * np.log10(Ibf) + 0.0 * Ibf + 0.0 * np.log10(Ibf) * G
         elif voltage_kv <= 2.7:
             # Medium voltage model
             k1 = -0.076 if electrode_config == "VCB" else -0.079
             k2 = 0.016 if electrode_config == "VCB" else 0.017
-            log_Iarc = (
-                k1
-                + k2 * G
-                + 0.954 * np.log10(Ibf)
-                + 0.0 * Ibf
-                + 0.0 * np.log10(Ibf) * G
-            )
+            log_Iarc = k1 + k2 * G + 0.954 * np.log10(Ibf) + 0.0 * Ibf + 0.0 * np.log10(Ibf) * G
         else:
             # High voltage (> 2.7 kV up to 15 kV)
             log_Iarc = np.log10(Ibf) * 0.978 + 0.001 * G
 
-        Iarc = float(10.0 ** log_Iarc)
+        Iarc = float(10.0**log_Iarc)
 
         # Reduced arc current (85% of Iarc for fuse / low-current evaluation)
         Iarc_reduced = 0.85 * Iarc
@@ -216,57 +231,37 @@ class ArcFlashAgent(BaseAgent):
         if voltage_kv <= 0.6:
             # Low voltage IEEE 1584 model
             if electrode_config == "VCB":
-                c1, c2, c3, c4, c5 = (
-                    -0.055, -0.802, -0.642, 0.067, 0.000
-                )
+                c1, c2, c3, c4, c5 = (-0.055, -0.802, -0.642, 0.067, 0.000)
             elif electrode_config == "VCBB":
-                c1, c2, c3, c4, c5 = (
-                    0.089, -0.803, -0.642, 0.067, 0.000
-                )
+                c1, c2, c3, c4, c5 = (0.089, -0.803, -0.642, 0.067, 0.000)
             else:  # HCB
-                c1, c2, c3, c4, c5 = (
-                    0.215, -0.803, -0.642, 0.067, 0.000
-                )
+                c1, c2, c3, c4, c5 = (0.215, -0.803, -0.642, 0.067, 0.000)
             x = 1.0
         elif voltage_kv <= 15.0:
             # Medium / high voltage IEEE 1584 model
             if electrode_config == "VCB":
-                c1, c2, c3, c4, c5 = (
-                    0.045, -0.921, -0.642, 0.067, 0.000
-                )
+                c1, c2, c3, c4, c5 = (0.045, -0.921, -0.642, 0.067, 0.000)
             elif electrode_config == "VCBB":
-                c1, c2, c3, c4, c5 = (
-                    0.076, -0.921, -0.642, 0.067, 0.000
-                )
+                c1, c2, c3, c4, c5 = (0.076, -0.921, -0.642, 0.067, 0.000)
             else:  # HCB
-                c1, c2, c3, c4, c5 = (
-                    0.198, -0.921, -0.642, 0.067, 0.000
-                )
+                c1, c2, c3, c4, c5 = (0.198, -0.921, -0.642, 0.067, 0.000)
             x = 1.0
         else:
             # Lee method for > 15 kV
             # E = 2.142 * 10^6 * V * Iarc * t / D^2
-            E_lee = 2.142e6 * voltage_kv * Iarc * t / (D ** 2)
-            return self._format_ie_result(
-                E_lee, D, arc_current_ka, voltage_kv, "Lee"
-            )
+            E_lee = 2.142e6 * voltage_kv * Iarc * t / (D**2)
+            return self._format_ie_result(E_lee, D, arc_current_ka, voltage_kv, "Lee")
 
         # IEEE 1584-2018 empirical model
         log_E = (
-            c1
-            + c2 * np.log10(Iarc)
-            + c3 * np.log10(G)
-            + c4 * np.log10(Iarc) * G
-            + c5 * np.log10(D)
+            c1 + c2 * np.log10(Iarc) + c3 * np.log10(G) + c4 * np.log10(Iarc) * G + c5 * np.log10(D)
         )
-        E_normalization = 10.0 ** log_E
+        E_normalization = 10.0**log_E
 
         # Apply duration scaling: E = E_0.2 * (t / 0.2)
         E = E_normalization * (t / 0.2) ** x
 
-        return self._format_ie_result(
-            E, D, arc_current_ka, voltage_kv, "IEEE 1584-2018"
-        )
+        return self._format_ie_result(E, D, arc_current_ka, voltage_kv, "IEEE 1584-2018")
 
     def _format_ie_result(
         self,
@@ -357,9 +352,9 @@ class ArcFlashAgent(BaseAgent):
 
             # --- Incident energy calculation ---
             if analysis_type in ("incident_energy", "full"):
-                arc_current_ka = float(task.parameters.get(
-                    "arc_current_ka", arc_result["arc_current_ka"]
-                ))
+                arc_current_ka = float(
+                    task.parameters.get("arc_current_ka", arc_result["arc_current_ka"])
+                )
                 arc_duration_s = float(task.parameters.get("arc_duration_s", 0.2))
                 working_distance_mm = float(task.parameters.get("working_distance_mm", 457.0))
 

@@ -8,6 +8,7 @@ Covers:
     * Non-GET methods return 405
     * Port binding and concurrent requests
 """
+
 from __future__ import annotations
 
 import json
@@ -19,7 +20,10 @@ from acp.http_server import start_http_server
 
 # ------------------------------------------------------------------ helpers
 
-async def _http_get(host: str, port: int, path: str, accept: str | None = None) -> tuple[int, bytes, str]:
+
+async def _http_get(
+    host: str, port: int, path: str, accept: str | None = None
+) -> tuple[int, bytes, str]:
     """Make a simple HTTP/1.1 GET request and return (status, body, content_type)."""
     client = await anyio.connect_tcp(host, port)
     try:
@@ -61,6 +65,7 @@ async def _http_get(host: str, port: int, path: str, accept: str | None = None) 
 
 
 # ------------------------------------------------------------------ tests
+
 
 @pytest.mark.anyio
 async def test_http_health_endpoint():
@@ -247,7 +252,9 @@ async def test_http_metrics_openmetrics_format():
         tg.start_soon(start_http_server, handler, port)
         await anyio.sleep(0.1)
         status, body, ct = await _http_get(
-            "127.0.0.1", port, "/metrics",
+            "127.0.0.1",
+            port,
+            "/metrics",
             accept="application/openmetrics-text",
         )
         tg.cancel_scope.cancel()
@@ -291,9 +298,7 @@ async def test_http_405():
         client = await anyio.connect_tcp("127.0.0.1", port)
         try:
             request = (
-                f"POST /health HTTP/1.1\r\n"
-                f"Host: 127.0.0.1:{port}\r\n"
-                f"Connection: close\r\n\r\n"
+                f"POST /health HTTP/1.1\r\nHost: 127.0.0.1:{port}\r\nConnection: close\r\n\r\n"
             ).encode()
             await client.send(request)
             response = b""

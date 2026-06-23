@@ -3,13 +3,31 @@ import numpy as np
 
 class Bus:
     __slots__ = (
-        'bus_id', 'voltage_magnitude', 'voltage_angle', 'load_power',
-        'generation_power', 'base_kv', 'bus_type', 'q_min', 'q_max',
-        'voltage_magnitude_scheduled', 'zip_model',
+        "bus_id",
+        "voltage_magnitude",
+        "voltage_angle",
+        "load_power",
+        "generation_power",
+        "base_kv",
+        "bus_type",
+        "q_min",
+        "q_max",
+        "voltage_magnitude_scheduled",
+        "zip_model",
     )
 
-    def __init__(self, bus_id, voltage_magnitude=1.0, voltage_angle=0.0, load_power=0+0j, generation_power=0+0j, base_kv=None, bus_type='pq',
-                 q_min=-999.0, q_max=999.0):
+    def __init__(
+        self,
+        bus_id,
+        voltage_magnitude=1.0,
+        voltage_angle=0.0,
+        load_power=0 + 0j,
+        generation_power=0 + 0j,
+        base_kv=None,
+        bus_type="pq",
+        q_min=-999.0,
+        q_max=999.0,
+    ):
         """
         Initialize a Bus object.
 
@@ -33,7 +51,7 @@ class Bus:
         self.q_min = q_min
         self.q_max = q_max
         # Scheduled voltage magnitude for PV buses (used for PQ->PV restoration)
-        self.voltage_magnitude_scheduled = voltage_magnitude if bus_type == 'pv' else None
+        self.voltage_magnitude_scheduled = voltage_magnitude if bus_type == "pv" else None
         # ZIP load model (optional)
         self.zip_model = None
 

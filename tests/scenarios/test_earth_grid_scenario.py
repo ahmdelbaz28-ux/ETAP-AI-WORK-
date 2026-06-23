@@ -60,11 +60,15 @@ class TestEarthGridScenario:
     def test_allowable_voltages_longer_fault(self, agent):
         """Test 4: Longer fault duration reduces allowable voltages."""
         v_short = agent._allowable_voltages(
-            rho_s=2000.0, rho_b=100.0, hs=0.1,
+            rho_s=2000.0,
+            rho_b=100.0,
+            hs=0.1,
             fault_duration_s=0.3,
         )
         v_long = agent._allowable_voltages(
-            rho_s=2000.0, rho_b=100.0, hs=0.1,
+            rho_s=2000.0,
+            rho_b=100.0,
+            hs=0.1,
             fault_duration_s=1.0,
         )
         # Longer fault → lower allowable voltage
@@ -93,11 +97,15 @@ class TestEarthGridScenario:
     def test_higher_resistivity_higher_allowable(self, agent):
         """Test 6: Higher surface resistivity allows higher touch voltage."""
         v_low = agent._allowable_voltages(
-            rho_s=500.0, rho_b=100.0, hs=0.1,
+            rho_s=500.0,
+            rho_b=100.0,
+            hs=0.1,
             fault_duration_s=0.5,
         )
         v_high = agent._allowable_voltages(
-            rho_s=5000.0, rho_b=100.0, hs=0.1,
+            rho_s=5000.0,
+            rho_b=100.0,
+            hs=0.1,
             fault_duration_s=0.5,
         )
         assert v_high["E_touch_allowable_V"] > v_low["E_touch_allowable_V"]

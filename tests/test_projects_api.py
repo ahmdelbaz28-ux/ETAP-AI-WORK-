@@ -30,6 +30,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 # Helper
 # ===========================================================================
 
+
 def _create_project(client, auth_headers, name="Test Project", **overrides):
     """Create a project and return the response JSON."""
     payload = {"name": name, **overrides}
@@ -44,6 +45,7 @@ def _create_project(client, auth_headers, name="Test Project", **overrides):
 # ===========================================================================
 # 1. POST /api/v1/projects — Create project
 # ===========================================================================
+
 
 class TestCreateProject:
     """Tests for project creation."""
@@ -102,6 +104,7 @@ class TestCreateProject:
 # ===========================================================================
 # 2. GET /api/v1/projects — List projects
 # ===========================================================================
+
 
 class TestListProjects:
     """Tests for listing projects."""
@@ -168,6 +171,7 @@ class TestListProjects:
 # 3. GET /api/v1/projects/{id} — Get single project
 # ===========================================================================
 
+
 class TestGetProject:
     """Tests for retrieving a single project."""
 
@@ -203,6 +207,7 @@ class TestGetProject:
 # 4. PUT /api/v1/projects/{id} — Update project
 # ===========================================================================
 
+
 class TestUpdateProject:
     """Tests for updating a project."""
 
@@ -235,7 +240,9 @@ class TestUpdateProject:
     def test_update_project_config(self, client, auth_headers):
         """Updating the system_config succeeds."""
         create_resp = _create_project(
-            client, auth_headers, name="Config Update",
+            client,
+            auth_headers,
+            name="Config Update",
             system_config={"base_mva": 100},
         )
         project_id = create_resp.json()["id"]
@@ -277,6 +284,7 @@ class TestUpdateProject:
 # 5. DELETE /api/v1/projects/{id} — Soft-delete project
 # ===========================================================================
 
+
 class TestDeleteProject:
     """Tests for soft-deleting a project."""
 
@@ -313,6 +321,7 @@ class TestDeleteProject:
 # ===========================================================================
 # 6. POST /api/v1/projects/{id}/studies — Run study
 # ===========================================================================
+
 
 class TestRunStudy:
     """Tests for running a study on a project."""
@@ -365,7 +374,9 @@ class TestRunStudy:
             headers=auth_headers,
             json={"study_type": "invalid_study_type"},
         )
-        assert resp.status_code == 422, f"Expected 422 for invalid study type, got {resp.status_code}"
+        assert resp.status_code == 422, (
+            f"Expected 422 for invalid study type, got {resp.status_code}"
+        )
 
     def test_run_study_nonexistent_project(self, client, auth_headers):
         """Running a study on a non-existent project returns 404."""
@@ -408,6 +419,7 @@ class TestRunStudy:
 # 7. GET /api/v1/projects/{id}/studies — List study results
 # ===========================================================================
 
+
 class TestListStudies:
     """Tests for listing study results for a project."""
 
@@ -415,7 +427,10 @@ class TestListStudies:
         """Listing studies for a project returns 200."""
         config = {"base_mva": 100.0}
         project_id = _create_project(
-            client, auth_headers, name="Study List", system_config=config,
+            client,
+            auth_headers,
+            name="Study List",
+            system_config=config,
         ).json()["id"]
 
         # Run a study first
@@ -447,7 +462,9 @@ class TestListStudies:
     def test_list_studies_empty(self, client, auth_headers):
         """Listing studies for a project with no studies returns an empty list."""
         project_id = _create_project(
-            client, auth_headers, name="No Studies",
+            client,
+            auth_headers,
+            name="No Studies",
         ).json()["id"]
 
         resp = client.get(

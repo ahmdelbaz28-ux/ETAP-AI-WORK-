@@ -15,6 +15,8 @@ Features:
 - get_secrets_manager(): Singleton factory (Vault first, local fallback)
 """
 
+from __future__ import annotations
+
 import json
 import logging
 import os
@@ -22,6 +24,8 @@ import re
 import stat
 import threading
 from datetime import UTC, datetime
+
+UTC = UTC
 from pathlib import Path
 from typing import Dict, List, Tuple
 
@@ -104,6 +108,7 @@ class VaultSecretsManager:
     def _init_vault_client(self):
         try:
             import hvac
+
             self._client = hvac.Client(
                 url=self.vault_addr,
                 token=self.vault_token,
@@ -226,7 +231,7 @@ class VaultSecretsManager:
             keys: List[str] = []
             for svc in services:
                 if svc.startswith(prefix):
-                    keys.append(svc[len(prefix):])
+                    keys.append(svc[len(prefix) :])
             return keys
         return []
 
@@ -353,11 +358,7 @@ class LocalSecretsManager:
             return False
 
     def list_services(self) -> List[str]:
-        return [
-            f.stem
-            for f in SECRETS_DIR.glob("*.enc")
-            if f.name != ".encryption_key"
-        ]
+        return [f.stem for f in SECRETS_DIR.glob("*.enc") if f.name != ".encryption_key"]
 
 
 class KeyAccessAuditor:
@@ -385,6 +386,7 @@ class KeyAccessAuditor:
         if audit_logger is None:
             try:
                 from security.security_framework import get_audit_logger
+
                 self._framework_audit = get_audit_logger()
             except Exception:
                 self._framework_audit = None
@@ -397,13 +399,14 @@ class KeyAccessAuditor:
         self._logger.propagate = False
 
         from logging.handlers import RotatingFileHandler
+
         file_handler = RotatingFileHandler(
-            str(self._log_file), encoding="utf-8",
-            maxBytes=10_485_760, backupCount=5,
+            str(self._log_file),
+            encoding="utf-8",
+            maxBytes=10_485_760,
+            backupCount=5,
         )
-        file_handler.setFormatter(logging.Formatter(
-            "%(asctime)s - %(levelname)s - %(message)s"
-        ))
+        file_handler.setFormatter(logging.Formatter("%(asctime)s - %(levelname)s - %(message)s"))
         self._logger.addHandler(file_handler)
         self._log_handler = file_handler
 
@@ -533,18 +536,15 @@ class EnvironmentValidator:
                     import win32api
                     import win32con
                     import win32security
+
                     sd = win32security.GetFileSecurity(
-                        str(env_path),
-                        win32security.OWNER_SECURITY_INFORMATION
+                        str(env_path), win32security.OWNER_SECURITY_INFORMATION
                     )
                     owner_sid = sd.GetSecurityDescriptorOwner()
                     owner_name, _, _ = win32security.LookupAccountSid(None, owner_sid)
                     current_user = win32api.GetUserNameEx(win32con.NameSamCompatible)
                     if owner_name != current_user.split("\\")[-1]:
-                        logger.warning(
-                            ".env owner (%s) does not match current user",
-                            owner_name
-                        )
+                        logger.warning(".env owner (%s) does not match current user", owner_name)
                         return False
                     logger.info(".env file ownership verified on Windows")
                     return True
@@ -563,24 +563,30 @@ class EnvironmentValidator:
             (r'(?i)(secret\s*=\s*["\'][a-zA-Z0-9]{20,}["\'])', "Secret"),
             (r'(?i)(password\s*=\s*["\'][^"\'\s]{6,}["\'])', "Password"),
             (r'(?i)(token\s*=\s*["\'][a-zA-Z0-9._-]{20,}["\'])', "Token"),
-            (r'(?i)(BEGIN\s+(RSA\s+)?PRIVATE\s+KEY)', "Private Key"),
+            (r"(?i)(BEGIN\s+(RSA\s+)?PRIVATE\s+KEY)", "Private Key"),
         ]
         root = Path.cwd()
         findings: List[Dict] = []
         for pattern in file_patterns:
             for fpath in root.rglob(pattern):
-                if ".git" in fpath.parts or "node_modules" in fpath.parts or "__pycache__" in fpath.parts:
+                if (
+                    ".git" in fpath.parts
+                    or "node_modules" in fpath.parts
+                    or "__pycache__" in fpath.parts
+                ):
                     continue
                 try:
                     content = fpath.read_text(encoding="utf-8", errors="ignore")
                     for regex, label in patterns:
                         for match in re.finditer(regex, content):
-                            findings.append({
-                                "file": str(fpath.relative_to(root)),
-                                "line": content[: match.start()].count("\n") + 1,
-                                "type": label,
-                                "match_preview": match.group(0)[:60],
-                            })
+                            findings.append(
+                                {
+                                    "file": str(fpath.relative_to(root)),
+                                    "line": content[: match.start()].count("\n") + 1,
+                                    "type": label,
+                                    "match_preview": match.group(0)[:60],
+                                }
+                            )
                 except (OSError, UnicodeDecodeError):
                     continue
 
@@ -603,18 +609,20 @@ class EnvironmentValidator:
         ]
         for secret in REQUIRED_SECRETS:
             lines.append(f"# {secret}=<your-{secret.lower()}-here>")
-        lines.extend([
-            "",
-            "# ==========================================",
-            "# Optional Configuration",
-            "# ==========================================",
-            "# Add any additional environment variables below",
-            "# with safe defaults where appropriate",
-            "",
-            "ENVIRONMENT=development",
-            "LOG_LEVEL=INFO",
-            "DEBUG=false",
-        ])
+        lines.extend(
+            [
+                "",
+                "# ==========================================",
+                "# Optional Configuration",
+                "# ==========================================",
+                "# Add any additional environment variables below",
+                "# with safe defaults where appropriate",
+                "",
+                "ENVIRONMENT=development",
+                "LOG_LEVEL=INFO",
+                "DEBUG=false",
+            ]
+        )
         content = "\n".join(lines) + "\n"
         out.write_text(content, encoding="utf-8")
         logger.info("Generated env template at %s", out)

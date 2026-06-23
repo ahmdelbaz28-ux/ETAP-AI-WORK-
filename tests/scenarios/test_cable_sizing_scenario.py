@@ -54,11 +54,13 @@ class TestCableSizingScenario:
     def test_ampacity_derating_temperature(self, agent):
         """Test 3: Ampacity decreases with higher ambient temperature."""
         amp_30c = agent.calculate_ampacity(
-            cross_section_mm2=70, conductor_material="Cu",
+            cross_section_mm2=70,
+            conductor_material="Cu",
             ambient_temp_C=30.0,
         )
         amp_50c = agent.calculate_ampacity(
-            cross_section_mm2=70, conductor_material="Cu",
+            cross_section_mm2=70,
+            conductor_material="Cu",
             ambient_temp_C=50.0,
         )
         assert amp_50c["derated_ampacity_A"] < amp_30c["derated_ampacity_A"]
@@ -66,11 +68,13 @@ class TestCableSizingScenario:
     def test_ampacity_derating_grouping(self, agent):
         """Test 4: Ampacity decreases with more circuits in group."""
         amp_1 = agent.calculate_ampacity(
-            cross_section_mm2=70, conductor_material="Cu",
+            cross_section_mm2=70,
+            conductor_material="Cu",
             n_circuits=1,
         )
         amp_4 = agent.calculate_ampacity(
-            cross_section_mm2=70, conductor_material="Cu",
+            cross_section_mm2=70,
+            conductor_material="Cu",
             n_circuits=4,
         )
         assert amp_4["derated_ampacity_A"] < amp_1["derated_ampacity_A"]
@@ -86,26 +90,29 @@ class TestCableSizingScenario:
             power_factor=0.85,
         )
         assert isinstance(result, dict)
-        vd_pct = result.get("voltage_drop_percent",
-                            result.get("voltage_drop_pct", 0))
+        vd_pct = result.get("voltage_drop_percent", result.get("voltage_drop_pct", 0))
         assert vd_pct > 0
 
     def test_voltage_drop_longer_cable(self, agent):
         """Test 6: Longer cable produces higher voltage drop."""
         vd_100 = agent.calculate_voltage_drop(
-            load_current_A=200, cable_length_m=100,
-            cross_section_mm2=70, conductor_material="Cu",
-            system_voltage_V=400, power_factor=0.85,
+            load_current_A=200,
+            cable_length_m=100,
+            cross_section_mm2=70,
+            conductor_material="Cu",
+            system_voltage_V=400,
+            power_factor=0.85,
         )
         vd_200 = agent.calculate_voltage_drop(
-            load_current_A=200, cable_length_m=200,
-            cross_section_mm2=70, conductor_material="Cu",
-            system_voltage_V=400, power_factor=0.85,
+            load_current_A=200,
+            cable_length_m=200,
+            cross_section_mm2=70,
+            conductor_material="Cu",
+            system_voltage_V=400,
+            power_factor=0.85,
         )
-        pct_100 = vd_100.get("voltage_drop_percent",
-                              vd_100.get("voltage_drop_pct", 0))
-        pct_200 = vd_200.get("voltage_drop_percent",
-                              vd_200.get("voltage_drop_pct", 0))
+        pct_100 = vd_100.get("voltage_drop_percent", vd_100.get("voltage_drop_pct", 0))
+        pct_200 = vd_200.get("voltage_drop_percent", vd_200.get("voltage_drop_pct", 0))
         assert pct_200 > pct_100
 
     @pytest.mark.asyncio

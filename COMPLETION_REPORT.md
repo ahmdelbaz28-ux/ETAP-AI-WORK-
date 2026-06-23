@@ -218,7 +218,7 @@ test_etap_execution_scenario.py   (6 tests)
 | LangWatch | ✅ Integrated | API key configured |
 | Smithery | ✅ Integrated | API key management active |
 | Docker Compose | ✅ 7 services | Full stack with profiles |
-| Helm Charts | ✅ Available | `charts/etap-ai/` |
+| Helm Charts | ⚠️ Removed (broken) | Moved to `infra/` in enterprise bundle |
 | CI/CD | ✅ 6 workflows | ci-cd, code-quality, quality-gates, security, health-checks, release |
 
 ---

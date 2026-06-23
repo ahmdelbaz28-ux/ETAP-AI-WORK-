@@ -33,6 +33,7 @@ def agent():
 # Scenario Tests
 # ---------------------------------------------------------------------------
 
+
 class TestLoadFlowScenario:
     """Test Load Flow Agent with multi-turn engineering scenarios."""
 
