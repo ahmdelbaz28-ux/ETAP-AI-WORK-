@@ -10,7 +10,7 @@ export const arcFlashAgent = new Agent({
   id: 'arcflash-agent',
   name: 'Arc Flash Analysis Agent',
   instructions: promptContent,
-  model: getActiveModelConfig(),
+  model: getActiveModelConfig() as any,
   tools: { run_python },
   memory: new Memory(),
 });

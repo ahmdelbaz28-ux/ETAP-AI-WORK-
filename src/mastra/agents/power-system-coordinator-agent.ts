@@ -16,7 +16,7 @@ export const powerSystemCoordinatorAgent = new Agent({
   id: 'power-system-coordinator-agent',
   name: 'Power System Coordinator Agent',
   instructions: promptContent,
-  model: getActiveModelConfig(),
+  model: getActiveModelConfig() as any,
   agents: {
     loadFlowAgent,
     shortCircuitAgent,

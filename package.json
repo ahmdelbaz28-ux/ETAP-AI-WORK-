@@ -11,7 +11,7 @@
     "test:watch": "vitest",
     "lint": "tsc --noEmit",
     "lint:ci": "tsc --noEmit && vitest run",
-    "test:scenarios": "vitest run tests/scenarios/"
+    "test:scenarios": "vitest run --config vitest.scenarios.config.ts"
   },
   "keywords": [
     "power-systems",
@@ -39,11 +39,11 @@
     "@mastra/loggers": "^1.0.0",
     "@mastra/memory": "^1.0.0",
     "@mastra/observability": "^1.0.0",
-    "ai": "4.0.6",
+    "ai": "^6.0.209",
     "langwatch": "0.30.0",
     "mastra": "0.10.0",
     "pino": "9.6.0",
-    "zod": "3.24.1"
+    "zod": "^4.4.3"
   },
   "devDependencies": {
     "@ai-sdk/openai": "1.0.5",
@@ -56,6 +56,7 @@
     "dotenv": "16.4.7",
     "tsx": "4.19.2",
     "vitest": "2.1.8",
-    "typescript": "^5.7.2"
+    "typescript": "^5.7.2",
+    "zod-to-json-schema": "3.24.5"
   }
 }

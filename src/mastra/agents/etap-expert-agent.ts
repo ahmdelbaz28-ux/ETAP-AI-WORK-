@@ -26,7 +26,7 @@ export const etapExpertAgent = new Agent({
   id: 'etap-expert-agent',
   name: 'ETAP Expert Skill Agent',
   instructions: promptContent,
-  model: getActiveModelConfig(),
+  model: getActiveModelConfig() as any,
   tools: { run_python },
   memory: new Memory(),
 });
