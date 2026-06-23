@@ -10,7 +10,7 @@ export const loadFlowAgent = new Agent({
   id: 'load-flow-agent',
   name: 'Load Flow Analysis Agent',
   instructions: promptContent,
-  model: getActiveModelConfig(),
+  model: getActiveModelConfig() as any,
   tools: { run_python },
   memory: new Memory(),
 });

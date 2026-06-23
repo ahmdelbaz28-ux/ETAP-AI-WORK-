@@ -27,6 +27,6 @@ export const goalPlannerAgent = new Agent({
   id: 'goal-planner-agent',
   name: 'Goal Planner Agent',
   instructions: promptContent,
-  model: getActiveModelConfig(),
+  model: getActiveModelConfig() as any,
   outputSchema: goalPlannerOutputSchema,
 } as any);

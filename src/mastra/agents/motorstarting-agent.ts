@@ -10,7 +10,7 @@ export const motorStartingAgent = new Agent({
   id: 'motorstarting-agent',
   name: 'Motor Starting Analysis Agent',
   instructions: promptContent,
-  model: getActiveModelConfig(),
+  model: getActiveModelConfig() as any,
   tools: { run_python },
   memory: new Memory(),
 });

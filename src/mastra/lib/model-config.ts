@@ -2,7 +2,7 @@
  * Active model configuration and provider status for Mastra agents.
  *
  * Exports:
- *   - getActiveModelConfig(): LanguageModelV1 for the active provider
+ *   - getActiveModelConfig(): LanguageModel for the active provider
  *   - getProviderStatus(): list of configured providers with their settings
  *   - testProviderById(id): test a specific provider's connectivity
  *   - ProviderConfig: the provider config type
@@ -12,7 +12,7 @@
  * provider is still listed but its test will fail with a clear error.
  */
 import { createOpenAI } from '@ai-sdk/openai';
-import type { LanguageModelV1 } from 'ai';
+import type { LanguageModel } from 'ai';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -61,8 +61,12 @@ const openai = createOpenAI({
  * Safe to call at module-load time (no API key validation happens until
  * an agent is actually invoked).
  */
-export function getActiveModelConfig(): LanguageModelV1 {
-  return openai(ACTIVE_MODEL_ID);
+export function getActiveModelConfig(): LanguageModel {
+  // Type assertion: @ai-sdk/openai returns LanguageModelV1 which is structurally
+  // compatible with Mastra's expected MastraLanguageModelV2 at runtime.
+  // The mismatch is purely a TypeScript types-version drift between
+  // @ai-sdk/openai (still on V1) and @mastra/core (expects V2/V3).
+  return openai(ACTIVE_MODEL_ID) as unknown as LanguageModel;
 }
 
 // ---------------------------------------------------------------------------
