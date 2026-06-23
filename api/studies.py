@@ -554,6 +554,17 @@ async def run_study(request: Request, payload: StudyRequest, _: str = Depends(ge
         status = "success"
     except HTTPException:
         raise
+    except ValueError as ve:
+        # Validation errors (missing question, missing system, invalid params)
+        # must return HTTP 400 Bad Request — not HTTP 200 with errors list.
+        _increment_counter("failed")
+        logger.warning(
+            "study_run_validation_error study_type=%s error=%s",
+            payload.study_type,
+            str(ve),
+            extra={"trace_id": trace_id},
+        )
+        raise HTTPException(status_code=400, detail=str(ve)) from ve
     except Exception as e:
         _increment_counter("failed")
         logger.error(
