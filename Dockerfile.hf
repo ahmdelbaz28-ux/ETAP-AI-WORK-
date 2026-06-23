@@ -3,7 +3,7 @@
 # =============================================================================
 # HF Spaces requirements:
 #   - Port 7860 exposed
-#   - Non-root user support
+#   - Non-root user support (UID 1000)
 #   - /tmp is the ONLY writable directory
 #   - Must handle HEAD / requests
 # =============================================================================
@@ -18,13 +18,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy deps and install
-COPY requirements.txt ./
-RUN pip install --no-cache-dir --user -r requirements.txt 2>&1 || \
-    pip install --no-cache-dir --user $(grep -v "pywin32" requirements.txt | grep -v "^#" | grep -v "^$" | tr '\n' ' ')
-
-# Copy source
-COPY . .
-RUN pip install --no-cache-dir --user -e . 2>&1 || true
+COPY requirements.hf.txt ./
+RUN pip install --no-cache-dir --user -r requirements.hf.txt
 
 # ─── Runtime Stage ───
 FROM python:3.13-slim AS runtime
@@ -33,20 +28,21 @@ WORKDIR /app
 
 # Install runtime deps only
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    curl nginx supervisor \
+    curl \
     && rm -rf /var/lib/apt/lists/*
 
+# Create non-root user (UID 1000 as required by HF Spaces)
+RUN useradd -m -u 1000 user && \
+    mkdir -p /app /tmp/data /tmp/cache /tmp/logs && \
+    chown -R user:user /app /tmp
+
 # Copy Python environment from builder
-COPY --from=builder /root/.local /root/.local
-ENV PATH=/root/.local/bin:$PATH
+COPY --from=builder --chown=user:user /root/.local /home/user/.local
+ENV PATH=/home/user/.local/bin:$PATH
 ENV PYTHONPATH=/app
 
 # Copy app code
-COPY --from=builder /build /app
-
-# Create writable directories in /tmp
-RUN mkdir -p /tmp/cache /tmp/logs /tmp/data /tmp/numba_cache /tmp/matplotlib_cache /tmp/hf_cache \
-    && chmod -R 777 /tmp
+COPY --chown=user:user . .
 
 # Environment for HF Spaces
 ENV PORT=7860
@@ -62,119 +58,23 @@ ENV HF_HOME=/tmp/cache
 ENV TRANSFORMERS_CACHE=/tmp/cache
 ENV TORCH_HOME=/tmp/cache
 
-# Nginx config for HF Spaces
-RUN cat > /etc/nginx/nginx.conf << 'NGINXEOF'
-events { worker_connections 1024; }
-http {
-    include /etc/nginx/mime.types;
-    default_type application/octet-stream;
-    sendfile on;
-    keepalive_timeout 65;
+# Database path (use /tmp for writable location)
+ENV DATABASE_URL=sqlite+aiosqlite:////tmp/data/etap_platform.db
 
-    upstream backend {
-        server 127.0.0.1:8000;
-    }
+# JWT secret (set as HF Space secret in production)
+ENV JWT_SECRET_KEY=${JWT_SECRET_KEY:-}
 
-    server {
-        listen 7860;
-        server_name localhost;
+# API key (set as HF Space secret in production)
+ENV ENGINEERING_SERVICE_API_KEY=${ENGINEERING_SERVICE_API_KEY:-}
 
-        # Security headers
-        add_header X-Frame-Options "SAMEORIGIN" always;
-        add_header X-Content-Type-Options "nosniff" always;
-        add_header X-XSS-Protection "1; mode=block" always;
+# Environment mode
+ENV ENVIRONMENT=${ENVIRONMENT:-production}
 
-        # HF health check (HEAD /)
-        location = / {
-            if ($request_method = HEAD) {
-                return 200 "";
-            }
-            proxy_pass http://backend/;
-            proxy_http_version 1.1;
-            proxy_set_header Host $host;
-            proxy_set_header X-Real-IP $remote_addr;
-            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-            proxy_set_header X-Forwarded-Proto $scheme;
-        }
-
-        # Lightweight health probes
-        location /healthz {
-            proxy_pass http://backend/healthz;
-            access_log off;
-        }
-
-        location /readyz {
-            proxy_pass http://backend/readyz;
-            access_log off;
-        }
-
-        # Health/readiness (existing endpoints)
-        location /health {
-            proxy_pass http://backend/health;
-            access_log off;
-        }
-
-        location /ready {
-            proxy_pass http://backend/ready;
-            access_log off;
-        }
-
-        # API documentation
-        location /docs {
-            proxy_pass http://backend/docs;
-            proxy_http_version 1.1;
-            proxy_set_header Host $host;
-        }
-
-        location /openapi.json {
-            proxy_pass http://backend/openapi.json;
-            access_log off;
-        }
-
-        # API routes
-        location /api/ {
-            proxy_pass http://backend/api/;
-            proxy_http_version 1.1;
-            proxy_set_header Host $host;
-            proxy_set_header X-Real-IP $remote_addr;
-            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-            proxy_set_header X-Forwarded-Proto $scheme;
-            proxy_read_timeout 120s;
-        }
-
-        # Metrics
-        location /metrics {
-            proxy_pass http://backend/metrics;
-        }
-    }
-}
-NGINXEOF
-
-# Supervisord config
-RUN mkdir -p /etc/supervisor/conf.d
-RUN cat > /etc/supervisor/conf.d/app.conf << 'SUPEOF'
-[supervisord]
-nodaemon=true
-user=root
-logfile=/tmp/logs/supervisord.log
-pidfile=/tmp/supervisord.pid
-
-[program:backend]
-command=python3 /app/engineering_service.py
-autostart=true
-autorestart=true
-stdout_logfile=/tmp/logs/backend.log
-stderr_logfile=/tmp/logs/backend.err
-environment=PYTHONUNBUFFERED="1",ENGINEERING_SERVICE_PORT="8000",ENGINEERING_SERVICE_HOST="0.0.0.0"
-
-[program:nginx]
-command=nginx -g "daemon off;"
-autostart=true
-autorestart=true
-stdout_logfile=/tmp/logs/nginx.log
-stderr_logfile=/tmp/logs/nginx.err
-SUPEOF
+# Redis URL (empty = use in-memory fallback)
+ENV REDIS_URL=
 
 EXPOSE 7860
 
-CMD ["supervisord", "-c", "/etc/supervisor/conf.d/app.conf"]
+USER user
+
+CMD ["python", "-m", "uvicorn", "engineering_service:app", "--host", "0.0.0.0", "--port", "7860"]

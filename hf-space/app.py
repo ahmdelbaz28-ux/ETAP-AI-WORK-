@@ -13,8 +13,6 @@ import threading
 import time
 from contextlib import asynccontextmanager
 from datetime import UTC, datetime
-
-UTC = UTC
 from typing import Any
 
 import uvicorn
@@ -122,7 +120,12 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=[
+        "https://huggingface.co",
+        "https://*.hf.space",
+        "http://localhost:3000",
+        "http://localhost:5173",
+    ],
     allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],

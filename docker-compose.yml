@@ -11,14 +11,17 @@ services:
       - REDIS_URL=redis://redis:6379/0
       - USE_ETAP=${USE_ETAP:-false}
       - PRIVACY_MODE=${PRIVACY_MODE:-false}
-      - ENGINEERING_SERVICE_API_KEY=${ENGINEERING_SERVICE_API_KEY}
+      - ENGINEERING_SERVICE_API_KEY=${ENGINEERING_SERVICE_API_KEY:?required}
       - ENVIRONMENT=${ENVIRONMENT:-development}
-      - DATABASE_URL=/data/mastra.db
+      - JWT_SECRET_KEY=${JWT_SECRET_KEY:?required}
+      - DATABASE_URL=sqlite+aiosqlite:////tmp/data/etap_platform.db
     depends_on:
-      - redis
-      - postgres
+      redis:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
     volumes:
-      - etap_data:/data
+      - etap_data:/tmp/data
       - ./engineering_service.py:/app/engineering_service.py
       - ./core:/app/core
       - ./services:/app/services
@@ -37,11 +40,14 @@ services:
       - REDIS_URL=redis://redis:6379/0
       - USE_ETAP=${USE_ETAP:-false}
       - PRIVACY_MODE=${PRIVACY_MODE:-false}
-      - ENGINEERING_SERVICE_API_KEY=${ENGINEERING_SERVICE_API_KEY}
+      - ENGINEERING_SERVICE_API_KEY=${ENGINEERING_SERVICE_API_KEY:?required}
       - ENVIRONMENT=${ENVIRONMENT:-development}
+      - JWT_SECRET_KEY=${JWT_SECRET_KEY:?required}
     depends_on:
-      - redis
-      - engineering-service
+      redis:
+        condition: service_healthy
+      engineering-service:
+        condition: service_started
     volumes:
       - ./worker:/app/worker
       - ./core:/app/core
@@ -58,6 +64,11 @@ services:
     volumes:
       - redis_data:/data
     command: redis-server --appendonly yes
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     networks:
       - etap_network
 
@@ -67,11 +78,16 @@ services:
     environment:
       POSTGRES_DB: etap_db
       POSTGRES_USER: etap_user
-      POSTGRES_PASSWORD: etap_pass
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?required}
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U etap_user -d etap_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     networks:
       - etap_network
 
@@ -80,13 +96,14 @@ services:
     ports:
       - "3000:3000"
     environment:
-      - GF_SECURITY_ADMIN_PASSWORD=admin123
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD:?required}
     volumes:
       - grafana_storage:/var/lib/grafana
     networks:
       - etap_network
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
 
 volumes:
   etap_data:

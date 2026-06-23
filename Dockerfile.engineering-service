@@ -1,5 +1,5 @@
 # =============================================================================
-# ETAP AI Engineering Service - Linux Container (Python 3.11+)
+# ETAP AI Engineering Service - Linux Container (Python 3.13+)
 # =============================================================================
 # Standalone FastAPI service that the Cloudflare Worker calls to run
 # real engineering studies (load flow, short circuit, arc flash, etc.).
@@ -38,7 +38,7 @@ FROM python:3.13-slim
 
 LABEL maintainer="ETAP AI Platform Team" \
       description="ETAP AI Engineering Service (FastAPI) - Linux container" \
-      version="1.0.0"
+      version="2.1.0"
 
 # Runtime libs only (no compilers)
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -52,13 +52,16 @@ COPY --from=builder /install /usr/local
 # Create non-root user
 RUN groupadd -r engsvc && \
     useradd -r -g engsvc -d /app -s /sbin/nologin engsvc && \
-    mkdir -p /app /app/logs /app/reports && \
-    chown -R engsvc:engsvc /app
+    mkdir -p /app /app/logs /app/reports /tmp/data && \
+    chown -R engsvc:engsvc /app /tmp
 
 WORKDIR /app
 
-# Copy the service code + its Python dependencies
+# Copy the service code + ALL required Python modules
 COPY --chown=engsvc:engsvc engineering_service.py ./
+COPY --chown=engsvc:engsvc api/ ./api/
+COPY --chown=engsvc:engsvc core/ ./core/
+COPY --chown=engsvc:engsvc services/ ./services/
 COPY --chown=engsvc:engsvc engine/ ./engine/
 COPY --chown=engsvc:engsvc core_model/ ./core_model/
 COPY --chown=engsvc:engsvc etap_integration/ ./etap_integration/
@@ -71,12 +74,33 @@ COPY --chown=engsvc:engsvc curves/ ./curves/
 COPY --chown=engsvc:engsvc visualization/ ./visualization/
 COPY --chown=engsvc:engsvc security/ ./security/
 COPY --chown=engsvc:engsvc knowledge/ ./knowledge/
+COPY --chown=engsvc:engsvc worker/ ./worker/
+COPY --chown=engsvc:engsvc ml/ ./ml/
+COPY --chown=engsvc:engsvc agents/ ./agents/
+COPY --chown=engsvc:engsvc migrations/ ./migrations/
+COPY --chown=engsvc:engsvc digital_twin/ ./digital_twin/
+COPY --chown=engsvc:engsvc scada_model/ ./scada_model/
+COPY --chown=engsvc:engsvc adms_control/ ./adms_control/
+COPY --chown=engsvc:engsvc utils/ ./utils/
+COPY --chown=engsvc:engsvc schemas/ ./schemas/
+COPY --chown=engsvc:engsvc guards/ ./guards/
+COPY --chown=engsvc:engsvc copilot/ ./copilot/
+COPY --chown=engsvc:engsvc gis_integration/ ./gis_integration/
+COPY --chown=engsvc:engsvc gis_model/ ./gis_model/
+COPY --chown=engsvc:engsvc gis_validation/ ./gis_validation/
+COPY --chown=engsvc:engsvc gis_validation_electrical/ ./gis_validation_electrical/
+COPY --chown=engsvc:engsvc gis_validation_real/ ./gis_validation_real/
+COPY --chown=engsvc:engsvc skills/ ./skills/
+COPY --chown=engsvc:engsvc reporting/ ./reporting/
+COPY --chown=engsvc:engsvc prompts/ ./prompts/
+COPY --chown=engsvc:engsvc config/ ./config/
 
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
     ENGINEERING_SERVICE_HOST=0.0.0.0 \
     ENGINEERING_SERVICE_PORT=8000 \
-    ENGINEERING_SERVICE_CORS_ORIGINS=*
+    ENGINEERING_SERVICE_CORS_ORIGINS=* \
+    DATABASE_URL=sqlite+aiosqlite:////tmp/data/etap_platform.db
 
 EXPOSE 8000
 

@@ -60,6 +60,7 @@ data/
 # Git
 .git/
 .gitignore
+.gitattributes
 
 # Documentation (not needed in container)
 docs/
@@ -68,12 +69,15 @@ docs/
 
 # Tests
 tests/
+testsprite_tests/
 .pytest_cache/
 htmlcov/
 .coverage
+coverage.xml
 
 # Node modules (will be installed in container)
 node_modules/
+ui/
 
 # Temporary files
 tmp/
@@ -99,14 +103,12 @@ ssl/
 # Backups
 backups/
 
-# Scripts (not needed in production image, but keep for context if needed)
-# scripts/
-
 # CI
 .github/
+.githooks/
+.gitsprite/
 
 # Jupyter notebooks (evaluation files)
-tests/evaluations/
 *.ipynb
 
 # Scenario tests
@@ -117,3 +119,45 @@ tests/scenarios/
 *.pid
 *.seed
 *.pid.lock
+
+# Terraform & Helm (not needed in container)
+terraform/
+helm/
+charts/
+
+# Benchmarks
+benchmarks/
+
+# Root-level scripts (not needed in container)
+fix_*.py
+test_*.py
+create_*.py
+apply_*.py
+modify_*.py
+add_*.py
+final_*.py
+validate_*.py
+verify_*.py
+run_*.py
+start_*.py
+locustfile.py
+k6-load-test.js
+
+# Root-level config files (not needed in container)
+*.json
+!pyproject.toml
+*.yml
+*.yaml
+!docker-compose*.yml
+*.toml
+!pyproject.toml
+!ruff.toml
+
+# Grafana (not needed in container)
+grafana/
+
+# Monitoring (not needed in container)
+monitoring/
+
+# Source code for other runtimes
+src/
