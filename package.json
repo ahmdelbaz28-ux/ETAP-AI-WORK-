@@ -30,8 +30,8 @@
   "devEngines": {},
   "type": "module",
   "dependencies": {
-    "@ai-sdk/anthropic": "1.0.7",
-    "@langwatch/scenario": "0.3.1",
+    "@ai-sdk/anthropic": "^1.0.7",
+    "@langwatch/scenario": "^0.4.11",
     "@mastra/core": "^1.37.1",
     "@mastra/duckdb": "^1.4.0",
     "@mastra/libsql": "^1.4.0",
