@@ -309,3 +309,73 @@ def test_prompt_yaml_file_exists():
     assert "ETAP Expert Agent" in content
     assert "6-STEP WORKFLOW" in content or "6-step workflow" in content.lower()
     assert "Format A" in content
+
+
+# ---------------------------------------------------------------------------
+# 11. Mastra-side agent (TypeScript) — file presence + registry entry
+# ---------------------------------------------------------------------------
+
+
+def test_mastra_agent_ts_file_exists():
+    """The Mastra TS-side agent file must exist."""
+    from pathlib import Path
+
+    p = (
+        Path(__file__).resolve().parent.parent
+        / "src"
+        / "mastra"
+        / "agents"
+        / "etap-expert-agent.ts"
+    )
+    assert p.exists(), f"Mastra agent file missing: {p}"
+    content = p.read_text()
+    assert "etapExpertAgent" in content
+    assert "etap-expert-agent" in content
+    assert "etap_expert_agent" in content  # prompt handle
+
+
+def test_mastra_agent_registered_in_index_ts():
+    """The Mastra index.ts must import and register etapExpertAgent."""
+    from pathlib import Path
+
+    p = Path(__file__).resolve().parent.parent / "src" / "mastra" / "index.ts"
+    content = p.read_text()
+    assert "from './agents/etap-expert-agent'" in content
+    assert "etapExpertAgent" in content
+
+
+def test_ts_agent_registry_includes_etap_expert():
+    """The TS agent registry (src/core/agents.ts) must include etap-expert-agent."""
+    from pathlib import Path
+
+    p = Path(__file__).resolve().parent.parent / "src" / "core" / "agents.ts"
+    content = p.read_text()
+    assert "'etap-expert-agent'" in content
+    assert "ETAP Expert Skill Agent" in content
+    assert "6-step workflow" in content.lower() or "6-step" in content.lower()
+
+
+# ---------------------------------------------------------------------------
+# 12. Chat endpoint — /api/v1/agents/etap-expert/chat
+# ---------------------------------------------------------------------------
+
+
+def test_chat_endpoint_registered():
+    """The /api/v1/agents/etap-expert/chat endpoint must be defined in api/agents.py."""
+    from pathlib import Path
+
+    p = Path(__file__).resolve().parent.parent / "api" / "agents.py"
+    content = p.read_text()
+    assert "/etap-expert/chat" in content
+    assert "ETAPExpertChatRequest" in content
+    assert "etap_expert_chat" in content
+
+
+def test_agents_router_registered_in_routes():
+    """api/routes.py must include the agents router."""
+    from pathlib import Path
+
+    p = Path(__file__).resolve().parent.parent / "api" / "routes.py"
+    content = p.read_text()
+    assert "from api.agents import router as agents_router" in content
+    assert "app.include_router(agents_router)" in content

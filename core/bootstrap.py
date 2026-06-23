@@ -10,7 +10,6 @@ import json
 import logging
 import os
 import threading
-import time
 from contextlib import asynccontextmanager
 
 # Prometheus metrics are optional for dev tooling / local environments.

@@ -31,14 +31,17 @@ export function getAllProviders(): ProviderConfig[] {
  * Returns an array of test results for each provider.
  * This function is exported as testAllProviders to match the expected import.
  */
-export function testAllProviders(): Array<{ name: string; success: boolean; error?: string }> {
+export async function testAllProviders(): Promise<Array<{ name: string; success: boolean; error?: string }>> {
   const providers = getProviderStatus();
-  return providers.map(provider => {
-    const result = testProviderById(provider.name);
-    return {
-      name: provider.name,
-      success: result.success,
-      error: result.error,
-    };
-  });
+  const results = await Promise.all(
+    providers.map(async (provider) => {
+      const result = await testProviderById(provider.name);
+      return {
+        name: provider.name,
+        success: result.success,
+        error: result.error,
+      };
+    })
+  );
+  return results;
 }

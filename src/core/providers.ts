@@ -9,7 +9,7 @@
  *   - Circuit breaker filters out open providers at runtime
  *   - MAX_RETRIES=1 (was 2)
  */
-import { type ModelMessage } from 'ai';
+import { type CoreMessage } from 'ai';
 import type { Env } from './types.js';
 import { CONFIG, BUILTIN_BASE_URLS, BUILTIN_MODELS, BUILTIN_PROVIDERS } from './config.js';
 import { isCircuitOpen, recordProviderFailure, recordProviderSuccess } from './circuitBreaker.js';
@@ -113,7 +113,7 @@ export function hasAnyProviderConfigured(env: Env): boolean {
 export async function generateOnce(
   provider: ProviderConfig,
   system: string,
-  messages: ModelMessage[],
+  messages: CoreMessage[],
   signal?: AbortSignal
 ): Promise<ChatResult> {
   const start = Date.now();
@@ -177,7 +177,7 @@ export async function generateOnce(
 export async function generateWithFailover(
   env: Env,
   system: string,
-  messages: ModelMessage[],
+  messages: CoreMessage[],
   signal?: AbortSignal
 ): Promise<ChatResult> {
   const candidates = _listConfiguredProviders(env).filter((p) => !isCircuitOpen(p.name));

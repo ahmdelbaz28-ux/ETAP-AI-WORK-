@@ -41,6 +41,19 @@ export const AGENT_REGISTRY: Readonly<Record<string, AgentMeta>> = Object.freeze
     description: 'Interfaces with ETAP for project automation.',
     capabilities: ['etap_automation', 'project_management', 'study_execution'],
   },
+  'etap-expert-agent': {
+    id: 'etap-expert-agent',
+    name: 'ETAP Expert Skill Agent',
+    description: 'ETAP Expert skill — 6-step workflow (PARSE → SEARCH → VALIDATE → SIMULATE → FORMAT → QA) with Format A/B/C/D responses. Knowledge base: skills/etap-expert.md (4,400+ lines). Covers ALL ETAP modules: Load Flow, Short Circuit, Arc Flash, Protection, ADMS, GIS, Renewables, Transients, Industrial.',
+    capabilities: [
+      'etap_consultation', 'load_flow', 'short_circuit', 'arc_flash',
+      'protection_coordination', 'adms', 'flisr', 'vvo', 'derms',
+      'renewables', 'pv', 'wind', 'bess', 'cable_sizing', 'transformer_sizing',
+      'ieee_1584', 'ieee_80', 'ieee_519', 'iec_60909', 'iec_61850',
+      'nec', 'nfpa_70e', 'format_a_complete', 'format_b_incomplete',
+      'format_c_wrong', 'format_d_adms',
+    ],
+  },
   'protection-agent': {
     id: 'protection-agent',
     name: 'Protection Coordination Agent',

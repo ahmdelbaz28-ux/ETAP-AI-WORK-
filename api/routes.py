@@ -13,24 +13,21 @@ from typing import Dict, List
 
 from fastapi import FastAPI, HTTPException, Request, WebSocket
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse, Response
+from fastapi.responses import JSONResponse
 from opentelemetry.trace import SpanKind, Status, StatusCode
 from pydantic import BaseModel
 from starlette.middleware.base import BaseHTTPMiddleware
 
+from api.agents import router as agents_router
 from api.health import router as health_router
 from api.studies import router as studies_router
 from api.websocket import scada_websocket_endpoint
 from core.bootstrap import lifespan, logger
-from core.metrics import generate_metrics, get_metrics_content_type
 from core.tracing import get_tracer
 from services.study_service import (
     StudyRequest,
-    StudyResult,
     SystemSpec,
-    execute_study_logic,
 )
-from worker.tasks import execute_engineering_study_task
 
 # Create FastAPI app instance
 _ENV = os.environ.get("ENVIRONMENT", os.environ.get("ENV", "development")).lower()
@@ -305,16 +302,16 @@ def get_celery_components():
     try:
         # Use importlib to dynamically import to avoid Pylance static analysis issues
         import importlib
-        
+
         celery_result_module = importlib.import_module('celery.result')
         AsyncResult = celery_result_module.AsyncResult
-        
+
         worker_tasks_module = importlib.import_module('worker.tasks')
         execute_engineering_study_task = worker_tasks_module.execute_engineering_study_task
-        
+
         worker_celery_app_module = importlib.import_module('worker.celery_app')
         celery_app = worker_celery_app_module.app
-        
+
         return AsyncResult, execute_engineering_study_task, celery_app
     except ImportError as e:
         logger.warning(f"Celery not available: {e}")
@@ -325,15 +322,15 @@ def get_celery_components():
 async def run_study_async(study_request: StudyRequest, request: Request):
     """Execute an engineering study asynchronously using Celery."""
     _require_api_key(request)  # Add authentication check
-    
+
     CeleryAsyncResult, execute_engineering_study_task, celery_app = get_celery_components()
-    
+
     if not execute_engineering_study_task:
         raise HTTPException(status_code=500, detail="Celery is not available for async processing")
-    
+
     try:
         # Send the task to Celery queue - using getattr to avoid Pylance type checking errors
-            
+
         task = execute_engineering_study_task.delay({
             'study_type': study_request.study_type,
             'data': study_request.model_dump(),
@@ -356,12 +353,12 @@ async def run_study_async(study_request: StudyRequest, request: Request):
 async def get_task_status(task_id: str, request: Request):
     """Get the status of an async study task."""
     _require_api_key(request)  # Add authentication check
-    
+
     CeleryAsyncResult, execute_engineering_study_task, celery_app = get_celery_components()
-    
+
     if not CeleryAsyncResult or not celery_app:
         raise HTTPException(status_code=500, detail="Celery is not available")
-        
+
     try:
         # Using the retrieved AsyncResult class to create an instance
         task_result = CeleryAsyncResult(str(task_id), app=celery_app)
@@ -397,10 +394,10 @@ async def websocket_scada_endpoint_handler(websocket: WebSocket):
         if not api_key or not hmac.compare_digest(api_key, _EXPECTED_API_KEY):
             await websocket.close(code=1008, reason="Invalid or missing API key")
             return
-    except Exception as e:
+    except Exception:
         await websocket.close(code=1008, reason="Authentication error")
         return
-    
+
     await scada_websocket_endpoint(websocket)
 
 
@@ -473,7 +470,7 @@ async def global_exception_handler(request: Request, exc: Exception):
     Logs the full exception server-side but returns a generic response to clients.
     """
     import traceback
-    
+
     # Log the full exception details server-side
     logger.error(
         f"Unhandled exception in {request.method} {request.url.path}: {str(exc)}",
@@ -485,7 +482,7 @@ async def global_exception_handler(request: Request, exc: Exception):
             "traceback": traceback.format_exc()
         }
     )
-    
+
     # Return a generic error response to prevent information disclosure
     return JSONResponse(
         status_code=500,
@@ -504,3 +501,4 @@ _shared_validation_gateway = None
 # Register only the routers that exist
 app.include_router(health_router)
 app.include_router(studies_router)
+app.include_router(agents_router)
