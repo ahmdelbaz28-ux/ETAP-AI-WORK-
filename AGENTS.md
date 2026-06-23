@@ -217,6 +217,23 @@ All Python agents inherit from `BaseAgent` in `agents/orchestrator.py`.
 - **Standard**: IEC 61850
 - **Methods**: Real-time data model mapping, state estimation
 
+### 24. ETAP Expert Skill Agent (`ETAPExpertAgent`)
+- **File**: `agents/etap_expert_agent.py`
+- **Skill knowledge base**: `skills/etap-expert.md` (4,400+ lines, loaded once at startup)
+- **System prompt**: `skills/etap-ai-agent-system-prompt.md` + `prompts/etap_expert_agent.prompt.yaml`
+- **Prompt Handle**: `etap_expert_agent`
+- **Study Type**: `etap_expert` (callable via `POST /api/v1/studies/run`)
+- **Workflow**: Mandatory 6-step process (PARSE → SEARCH → VALIDATE → SIMULATE → FORMAT → QA)
+- **Response Formats**:
+  - **Format A** (Complete): `✅ REQUEST ANALYSIS: COMPLETE` + INTERNAL SIMULATION + ETAP STEPS + VALIDATION
+  - **Format B** (Incomplete): `⚠️ REQUEST ANALYSIS: INCOMPLETE` + 1-3 clarifying questions
+  - **Format C** (Wrong): `❌ REQUEST ANALYSIS: INCORRECT APPROACH` + correction + education
+  - **Format D** (ADMS/DER): `🔷 ADMS REQUEST ANALYSIS` + operational context + actions
+- **Classification**: Rule-based, deterministic (no external LLM required)
+- **Coverage**: All ETAP modules — Load Flow, Short Circuit, Arc Flash, Protection, ADMS, GIS, Renewables, Transients, Industrial, API
+- **Standards**: IEEE 80/141/242/399/519/1547/1584, IEC 60909/61363/61660/61850/62351, NEC, NFPA 70E
+- **Test Suite**: `tests/test_etap_expert_skill.py` (22 tests covering all 4 formats + workflow)
+
 ---
 
 ## Orchestrator
