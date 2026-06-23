@@ -1,0 +1,69 @@
+name: Sync to HuggingFace Space
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'hf-space/**'
+      - 'Dockerfile'
+      - 'README.md'
+      - 'agents/**'
+      - 'skills/**'
+      - 'prompts/**'
+      - 'core_model/**'
+      - 'engine/**'
+      - 'load_flow/**'
+      - 'fault_analysis/**'
+      - 'coordination/**'
+      - 'relays/**'
+      - 'network_solver/**'
+      - 'VERSION'
+      - 'prompts.json'
+  workflow_dispatch:
+
+jobs:
+  sync-to-hf:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout GitHub repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Validate Dockerfile exists
+        run: |
+          test -f Dockerfile || { echo "Dockerfile missing"; exit 1; }
+          test -f hf-space/app.py || { echo "hf-space/app.py missing"; exit 1; }
+          test -f hf-space/requirements.hf.txt || { echo "requirements.hf.txt missing"; exit 1; }
+          test -f README.md || { echo "README.md missing"; exit 1; }
+          head -10 README.md | grep -q "^title:" || { echo "README.md missing HF YAML frontmatter"; exit 1; }
+          echo "All required files present."
+
+      - name: Push to HuggingFace Space
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+        run: |
+          if [ -z "$HF_TOKEN" ]; then
+            echo "HF_TOKEN secret not set — skipping sync"
+            exit 0
+          fi
+          # Clone the HF Space repo (forces overwrite with GitHub content)
+          git clone https://user:$HF_TOKEN@huggingface.co/spaces/ahmdelbaz28/AHMEDETAP hf-space-repo
+          # Remove all existing files (except .git)
+          cd hf-space-repo
+          find . -mindepth 1 -maxdepth 1 -not -name '.git' -not -name '.gitattributes' -exec rm -rf {} +
+          # Copy fresh content from GitHub
+          cp -r ../Dockerfile ../README.md ../VERSION ../prompts.json ./
+          cp -r ../hf-space ./
+          cp -r ../agents ../skills ../prompts ../core_model ../engine ../load_flow ./
+          cp -r ../fault_analysis ../coordination ../relays ../network_solver ./
+          # Commit and push
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git config user.name "github-actions[bot]"
+          git add -A
+          git commit -m "Sync from GitHub main @ $(date -u +'%Y-%m-%dT%H:%M:%SZ')" || {
+            echo "No changes to commit — HF Space is already up to date"
+            exit 0
+          }
+          git push https://user:$HF_TOKEN@huggingface.co/spaces/ahmdelbaz28/AHMEDETAP main
+          echo "✅ HF Space synced successfully"

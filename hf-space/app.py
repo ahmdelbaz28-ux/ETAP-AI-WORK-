@@ -165,11 +165,18 @@ class StudyRequest(BaseModel):
     study_type: str
     system: dict[str, Any] = {}
     options: dict[str, Any] = {}
+    parameters: dict[str, Any] = {}
+    use_etap: bool = False
 
 
 class AgentRequest(BaseModel):
     agent: str
     query: str
+    context: dict[str, Any] = {}
+
+
+class ETAPExpertChatRequest(BaseModel):
+    question: str
     context: dict[str, Any] = {}
 
 
@@ -447,6 +454,13 @@ AGENTS = [
         "standard": "All",
         "status": "active",
     },
+    {
+        "id": "etap-expert-agent",
+        "name": "ETAP Expert Skill Agent",
+        "standard": "IEEE/IEC/NEC/NFPA (all)",
+        "status": "active",
+        "description": "6-step workflow with Format A/B/C/D responses. Knowledge base: skills/etap-expert.md (4,400+ lines).",
+    },
 ]
 
 
@@ -461,6 +475,38 @@ async def get_agent(agent_id: str):
     if not agent:
         return JSONResponse(status_code=404, content={"error": f"Agent '{agent_id}' not found"})
     return agent
+
+
+@app.post("/api/v1/agents/etap-expert/chat", tags=["Agents"])
+async def etap_expert_chat(request: ETAPExpertChatRequest):
+    """Chat with the ETAP Expert skill agent.
+
+    Implements the 6-step workflow (PARSE → SEARCH → VALIDATE → SIMULATE →
+    FORMAT → QA) and returns one of four response formats:
+      - Format A (Complete)   : ✅ REQUEST ANALYSIS: COMPLETE
+      - Format B (Incomplete) : ⚠️ REQUEST ANALYSIS: INCOMPLETE
+      - Format C (Wrong)      : ❌ REQUEST ANALYSIS: INCORRECT APPROACH
+      - Format D (ADMS/DER)   : 🔷 ADMS REQUEST ANALYSIS
+
+    Knowledge base: skills/etap-expert.md (4,400+ lines)
+    """
+    question = request.question.strip()
+    if not question:
+        return JSONResponse(
+            status_code=400,
+            content={"error": "'question' field is required and must be non-empty"},
+        )
+    try:
+        from agents.etap_expert_agent import ETAPExpertAgent
+        agent = ETAPExpertAgent()
+        result = agent.answer(question)
+        return {"success": True, "data": result}
+    except Exception as exc:
+        logger.exception("etap_expert chat failed")
+        return JSONResponse(
+            status_code=500,
+            content={"error": f"ETAP Expert agent error: {exc}"},
+        )
 
 
 # -- Studies ------------------------------------------------------------------
@@ -478,6 +524,7 @@ STUDY_TYPES = [
     "renewable_integration",
     "battery_storage",
     "scada",
+    "etap_expert",  # ETAP Expert skill — 6-step workflow with Format A/B/C/D
 ]
 
 
@@ -496,6 +543,33 @@ async def run_study(request: StudyRequest):
                 "valid_types": STUDY_TYPES,
             },
         )
+
+    # ETAP Expert skill — 6-step workflow with Format A/B/C/D responses.
+    # Routes to the dedicated ETAPExpertAgent (no numerical engine needed).
+    if request.study_type == "etap_expert":
+        question = str(request.parameters.get("question", "")).strip()
+        if not question:
+            return JSONResponse(
+                status_code=400,
+                content={"error": "'question' field is required for study_type='etap_expert'"},
+            )
+        try:
+            from agents.etap_expert_agent import ETAPExpertAgent
+            agent = ETAPExpertAgent()
+            result = agent.answer(question)
+            return {
+                "study_type": "etap_expert",
+                "reference": f"ETAP-EXPERT-{int(time.time())}",
+                "status": "completed",
+                "success": True,
+                "data": result,
+            }
+        except Exception as exc:
+            logger.exception("etap_expert study failed")
+            return JSONResponse(
+                status_code=500,
+                content={"error": f"ETAP Expert agent error: {exc}"},
+            )
 
     # Attempt native engine execution for supported study types
     result_data = None
