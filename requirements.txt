@@ -117,6 +117,18 @@ alembic
 # LangWatch - commented out as it may not be on PyPI
 # langwatch>=0.1.0
 
+# ML/AI dependencies (commented out for production)
+# prophet>=1.1.0
+# xgboost>=2.0.0
+# shap>=0.43.0
+# optuna>=3.0.0
+# pyod>=1.0.0
+# torch>=2.0.0
+# torch-geometric>=2.3.0
+# mlflow>=2.0.0
+# transformers>=4.30.0
+# sentence-transformers>=2.2.0
+
 # Main requirements file
 # For production deployments (lightweight): requirements-prod.txt
 # For ML/AI features (heavy): requirements-ml.txt

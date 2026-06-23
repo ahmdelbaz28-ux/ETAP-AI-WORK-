@@ -2,12 +2,16 @@
 AhmedETAP Platform - Complete Setup and Test Script
 ==================================================
 Automated script to:
-1. Verify dependencies installation
-2. Run validation suite
-3. Run unit tests
-4. Test core functionalities
-5. Generate test reports
-6. Verify system health
+- Install dependencies
+- Setup environment
+- Run comprehensive tests
+- Validate all components
+
+Execution:
+    python run_complete_setup.py [options]
+
+Requirements:
+    Python 3.9+, Docker, Docker Compose
 """
 
 import os
