@@ -46,7 +46,7 @@ except Exception:
 # attempts to open it.
 _sqlite_file_prefix = "sqlite+aiosqlite:///"
 if DATABASE_URL.startswith(_sqlite_file_prefix):
-    _db_path = DATABASE_URL[len(_sqlite_file_prefix):]
+    _db_path = DATABASE_URL[len(_sqlite_file_prefix) :]
     _db_dir = os.path.dirname(_db_path)
     if _db_dir:
         os.makedirs(_db_dir, exist_ok=True)
@@ -74,6 +74,7 @@ async_session = async_sessionmaker(
 # Declarative base
 # ---------------------------------------------------------------------------
 
+
 class Base(DeclarativeBase):
     """Base class for all ORM models.
 
@@ -85,6 +86,7 @@ class Base(DeclarativeBase):
 # ---------------------------------------------------------------------------
 # Dependency
 # ---------------------------------------------------------------------------
+
 
 async def get_db() -> AsyncGenerator[AsyncSession, None]:
     """FastAPI dependency that yields an async database session.
@@ -106,6 +108,7 @@ async def get_db() -> AsyncGenerator[AsyncSession, None]:
 # ---------------------------------------------------------------------------
 # Initialization
 # ---------------------------------------------------------------------------
+
 
 async def init_db() -> None:
     """Create all tables that do not yet exist in the database.

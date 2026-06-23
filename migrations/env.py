@@ -80,6 +80,7 @@ config.set_main_option("sqlalchemy.url", _database_url)
 # Online migration — async engine
 # ---------------------------------------------------------------------------
 
+
 def run_migrations_online() -> None:
     """Run migrations in 'online' mode using an async engine.
 
@@ -143,6 +144,7 @@ def _do_run_migrations(connection: Connection) -> None:
 # ---------------------------------------------------------------------------
 # Offline migration — SQL script generation
 # ---------------------------------------------------------------------------
+
 
 def run_migrations_offline() -> None:
     """Run migrations in 'offline' mode.

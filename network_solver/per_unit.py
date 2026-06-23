@@ -1,4 +1,3 @@
-
 def to_per_unit(value, base_value):
     """
     Convert a value to per-unit.
@@ -11,6 +10,7 @@ def to_per_unit(value, base_value):
     float: Per-unit value.
     """
     return value / base_value
+
 
 def from_per_unit(pu_value, base_value):
     """
@@ -25,6 +25,7 @@ def from_per_unit(pu_value, base_value):
     """
     return pu_value * base_value
 
+
 def power_to_per_unit(power_watts, base_mva):
     """
     Convert power in watts to per-unit on base MVA.
@@ -38,6 +39,7 @@ def power_to_per_unit(power_watts, base_mva):
     """
     return power_watts / (base_mva * 1e6)
 
+
 def impedance_to_per_unit(impact_ohms, base_voltage_kv, base_mva):
     """
     Convert impedance in ohms to per-unit.
@@ -50,8 +52,9 @@ def impedance_to_per_unit(impact_ohms, base_voltage_kv, base_mva):
     Returns:
     complex: Per-unit impedance.
     """
-    base_ohms = (base_voltage_kv ** 2) / base_mva
+    base_ohms = (base_voltage_kv**2) / base_mva
     return impact_ohms / base_ohms
+
 
 def admittance_to_per_unit(admit_siemens, base_voltage_kv, base_mva):
     """
@@ -65,5 +68,5 @@ def admittance_to_per_unit(admit_siemens, base_voltage_kv, base_mva):
     Returns:
     complex: Per-unit admittance.
     """
-    base_siemens = base_mva / (base_voltage_kv ** 2)
+    base_siemens = base_mva / (base_voltage_kv**2)
     return admit_siemens / base_siemens

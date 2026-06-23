@@ -7,6 +7,7 @@ Runtime engine, and returns JSON-RPC 2.0 response dicts.
 The router is thin and stateless: all capability state lives in the
 ``AcpRuntime`` instance passed to the constructor.
 """
+
 from __future__ import annotations
 
 import logging
@@ -139,7 +140,9 @@ class Router:
 
         # Observability: record request count
         if self._config.metrics is not None:
-            self._config.metrics.get_or_create_counter("acp.router.requests.total", "Total requests").inc()
+            self._config.metrics.get_or_create_counter(
+                "acp.router.requests.total", "Total requests"
+            ).inc()
 
         # 1. Try request shape
         try:
@@ -151,7 +154,9 @@ class Router:
             except ValidationError:
                 # 3. Neither — invalid envelope
                 if self._config.metrics is not None:
-                    self._config.metrics.get_or_create_counter("acp.router.requests.invalid", "Invalid requests").inc()
+                    self._config.metrics.get_or_create_counter(
+                        "acp.router.requests.invalid", "Invalid requests"
+                    ).inc()
                 return self._error_response(
                     None, JSONRPC_INVALID_REQUEST, "Invalid JSON-RPC envelope"
                 )
@@ -172,6 +177,7 @@ class Router:
         span_ctx = None
         if self._config.tracer is not None:
             from acp.observability.tracer import TraceContext
+
             span_ctx = self._config.tracer.start_span(
                 "router.handle",
                 TraceContext.from_trace_id(req.trace_id) if req.trace_id else None,
@@ -196,15 +202,16 @@ class Router:
                     identity = await identity  # type: ignore[operator]
                 caller_id = identity.caller_id
                 # Merge caller scopes from token with config scopes
-                scope_validator = ScopeValidator(
-                    self._config.caller_scopes | identity.scopes
-                )
+                scope_validator = ScopeValidator(self._config.caller_scopes | identity.scopes)
             except AuthenticationRequired as e:
                 outcome = "denied"
                 error_code = AuthenticationRequired.code
                 await self._audit(
-                    req, caller_id="", outcome=outcome,
-                    error_code=error_code, duration_ms=0,
+                    req,
+                    caller_id="",
+                    outcome=outcome,
+                    error_code=error_code,
+                    duration_ms=0,
                 )
                 await self._finish_observability(span_ctx, t0, req, "denied", error_code)
                 return self._error_response(
@@ -218,8 +225,11 @@ class Router:
                 outcome = "denied"
                 error_code = AuthenticationRequired.code
                 await self._audit(
-                    req, caller_id="", outcome=outcome,
-                    error_code=error_code, duration_ms=0,
+                    req,
+                    caller_id="",
+                    outcome=outcome,
+                    error_code=error_code,
+                    duration_ms=0,
                 )
                 await self._finish_observability(span_ctx, t0, req, "denied", error_code)
                 return self._error_response(
@@ -239,7 +249,9 @@ class Router:
                 f"Capability {req.capability!r} is not registered",
                 {"capability": req.capability, "available": self._runtime.capability_names},
             )
-            await self._audit(req, caller_id, outcome, error_code, int((time.perf_counter() - t0) * 1000))
+            await self._audit(
+                req, caller_id, outcome, error_code, int((time.perf_counter() - t0) * 1000)
+            )
             await self._finish_observability(span_ctx, t0, req, "error", error_code)
             return resp
 
@@ -252,7 +264,9 @@ class Router:
                 AuthenticationRequired.code,
                 "Authentication required for all capabilities",
             )
-            await self._audit(req, caller_id, outcome, error_code, int((time.perf_counter() - t0) * 1000))
+            await self._audit(
+                req, caller_id, outcome, error_code, int((time.perf_counter() - t0) * 1000)
+            )
             await self._finish_observability(span_ctx, t0, req, "denied", error_code)
             return resp
 
@@ -266,7 +280,9 @@ class Router:
                 f"Scope not permitted for {req.capability!r}",
                 {"capability": req.capability, "required_scopes": meta.scopes},
             )
-            await self._audit(req, caller_id, outcome, error_code, int((time.perf_counter() - t0) * 1000))
+            await self._audit(
+                req, caller_id, outcome, error_code, int((time.perf_counter() - t0) * 1000)
+            )
             await self._finish_observability(span_ctx, t0, req, "denied", error_code)
             return resp
 
@@ -288,11 +304,11 @@ class Router:
             self._log.exception("unexpected error for request %s", req.id)
             outcome = "error"
             error_code = JSONRPC_INTERNAL_ERROR
-            resp = self._error_response(
-                req.id, JSONRPC_INTERNAL_ERROR, f"Internal error: {e}"
-            )
+            resp = self._error_response(req.id, JSONRPC_INTERNAL_ERROR, f"Internal error: {e}")
 
-        await self._audit(req, caller_id, outcome, error_code, int((time.perf_counter() - t0) * 1000))
+        await self._audit(
+            req, caller_id, outcome, error_code, int((time.perf_counter() - t0) * 1000)
+        )
         await self._finish_observability(span_ctx, t0, req, outcome, error_code)
         return resp
 
@@ -317,9 +333,12 @@ class Router:
                 ).inc()
         if self._config.tracer is not None and span_ctx is not None:
             from acp.observability.tracer import SpanStatus
+
             status = SpanStatus.OK if outcome == "success" else SpanStatus.ERROR
             self._config.tracer.finish_span(
-                span_ctx, "router.handle", t0,
+                span_ctx,
+                "router.handle",
+                t0,
                 status=status,
                 tags={
                     "capability": req.capability,

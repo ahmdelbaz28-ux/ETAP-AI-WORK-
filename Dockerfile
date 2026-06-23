@@ -65,7 +65,7 @@ FROM python:3.13-slim
 
 LABEL maintainer="ETAP AI Platform Team"
 LABEL description="AI-powered ETAP Engineering Platform - Multi-Arch"
-LABEL version="1.1.0"
+LABEL version="2.1.0"
 
 # Runtime libs only
 RUN apt-get update && apt-get install -y --no-install-recommends     curl     tini     && rm -rf /var/lib/apt/lists/*
@@ -81,7 +81,6 @@ COPY --from=ts-builder /build/public /app/ui/public
 
 # Copy Python source files
 COPY engineering_service.py /app/
-COPY main.py /app/
 COPY engine/ /app/engine/
 COPY core_model/ /app/core_model/
 COPY core/ /app/core/
@@ -116,6 +115,10 @@ COPY skills/ /app/skills/
 COPY worker/ /app/worker/
 COPY scripts/ /app/scripts/
 COPY migrations/ /app/migrations/
+COPY guards/ /app/guards/
+COPY copilot/ /app/copilot/
+COPY prompts/ /app/prompts/
+COPY config/ /app/config/
 
 WORKDIR /app
 

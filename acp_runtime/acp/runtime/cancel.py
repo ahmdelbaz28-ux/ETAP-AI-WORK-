@@ -5,6 +5,7 @@ Thin wrappers over ``anyio.CancelScope``. Most uses are covered by
 this module provides a slightly higher-level surface for callers that
 need an explicit, externally-cancellable scope.
 """
+
 from __future__ import annotations
 
 from collections.abc import AsyncIterator
@@ -46,6 +47,7 @@ async def cancellable(
 def is_cancelled_exception(exc: BaseException) -> bool:
     """Return True if ``exc`` is a cancellation for the current anyio backend."""
     import asyncio
+
     if isinstance(exc, asyncio.CancelledError):
         return True
     try:

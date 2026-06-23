@@ -24,6 +24,8 @@ import sys
 import time
 import uuid
 from datetime import UTC, datetime, timedelta, timezone
+
+UTC = UTC
 from unittest.mock import patch
 
 import jwt
@@ -40,6 +42,7 @@ from security.siem import SecurityEvent, SIEMForwarder
 # ===========================================================================
 # 1. API key bypass attempt
 # ===========================================================================
+
 
 class TestAPIKeyBypass:
     """Test that endpoints requiring an API key reject requests without one."""
@@ -60,9 +63,7 @@ class TestAPIKeyBypass:
             # Reload the dependency with the patched value
             resp = client.get("/api/v1/projects/", headers=auth_headers)
             # Should fail because no X-API-Key header was provided
-            assert resp.status_code == 401, (
-                f"Expected 401 without API key, got {resp.status_code}"
-            )
+            assert resp.status_code == 401, f"Expected 401 without API key, got {resp.status_code}"
 
     def test_project_list_with_correct_api_key(self, client, auth_headers):
         """When the correct API key is provided, the request succeeds."""
@@ -90,6 +91,7 @@ class TestAPIKeyBypass:
 # ===========================================================================
 # 2. JWT token expiry and refresh
 # ===========================================================================
+
 
 class TestJWTExpiryAndRefresh:
     """Test the full lifecycle: obtain token → expiry → refresh."""
@@ -130,9 +132,7 @@ class TestJWTExpiryAndRefresh:
             "iat": now - timedelta(hours=2),
             "exp": now - timedelta(hours=1),
         }
-        expired_token = jwt.encode(
-            expired_payload, JWT_SECRET_KEY, algorithm=JWT_ALGORITHM
-        )
+        expired_token = jwt.encode(expired_payload, JWT_SECRET_KEY, algorithm=JWT_ALGORITHM)
 
         expired_resp = client.get(
             "/api/v1/auth/me",
@@ -160,6 +160,7 @@ class TestJWTExpiryAndRefresh:
 # 3. RASP blocking SQL injection in request body
 # ===========================================================================
 
+
 class TestRASPBlockingSQLi:
     """Test that the RASP engine blocks SQL injection in request bodies."""
 
@@ -168,26 +169,32 @@ class TestRASPBlockingSQLi:
 
     def test_sqli_in_body_blocked(self):
         """SQL injection patterns in the request body are blocked."""
-        results = self.rasp.inspect({
-            "body": "' OR 1=1; DROP TABLE users;--",
-        })
+        results = self.rasp.inspect(
+            {
+                "body": "' OR 1=1; DROP TABLE users;--",
+            }
+        )
         blocked = [r for r in results if r.action == RASPAction.BLOCK]
         assert len(blocked) > 0, "SQL injection in body must be blocked"
         assert blocked[0].rule_name == "sqli_basic"
 
     def test_sqli_union_select_blocked(self):
         """UNION SELECT injection pattern is blocked."""
-        results = self.rasp.inspect({
-            "body": "1 UNION SELECT username, password FROM users--",
-        })
+        results = self.rasp.inspect(
+            {
+                "body": "1 UNION SELECT username, password FROM users--",
+            }
+        )
         blocked = [r for r in results if r.action == RASPAction.BLOCK]
         assert len(blocked) > 0, "UNION SELECT must be blocked"
 
     def test_clean_body_passes(self):
         """Normal request body with no attack patterns passes inspection."""
-        results = self.rasp.inspect({
-            "body": "This is a normal project description with no attacks",
-        })
+        results = self.rasp.inspect(
+            {
+                "body": "This is a normal project description with no attacks",
+            }
+        )
         blocked = [r for r in results if r.action == RASPAction.BLOCK]
         assert len(blocked) == 0, "Clean body should not be blocked"
 
@@ -203,6 +210,7 @@ class TestRASPBlockingSQLi:
 # 4. RASP blocking XSS in request body
 # ===========================================================================
 
+
 class TestRASPBlockingXSS:
     """Test that the RASP engine blocks XSS in request bodies."""
 
@@ -211,34 +219,42 @@ class TestRASPBlockingXSS:
 
     def test_script_tag_xss_blocked(self):
         """<script> tag XSS patterns are blocked."""
-        results = self.rasp.inspect({
-            "body": "<script>alert('xss')</script>",
-        })
+        results = self.rasp.inspect(
+            {
+                "body": "<script>alert('xss')</script>",
+            }
+        )
         blocked = [r for r in results if r.action == RASPAction.BLOCK]
         assert len(blocked) > 0, "<script> XSS must be blocked"
         assert blocked[0].rule_name == "xss_basic"
 
     def test_event_handler_xss_blocked(self):
         """Event handler XSS (onerror, onload) is blocked."""
-        results = self.rasp.inspect({
-            "body": '<img src=x onerror=alert(1)>',
-        })
+        results = self.rasp.inspect(
+            {
+                "body": "<img src=x onerror=alert(1)>",
+            }
+        )
         blocked = [r for r in results if r.action == RASPAction.BLOCK]
         assert len(blocked) > 0, "Event handler XSS must be blocked"
 
     def test_javascript_uri_xss_blocked(self):
         """javascript: URI XSS is blocked."""
-        results = self.rasp.inspect({
-            "body": 'javascript:alert(document.cookie)',
-        })
+        results = self.rasp.inspect(
+            {
+                "body": "javascript:alert(document.cookie)",
+            }
+        )
         blocked = [r for r in results if r.action == RASPAction.BLOCK]
         assert len(blocked) > 0, "javascript: URI must be blocked"
 
     def test_clean_html_passes(self):
         """Legitimate content without XSS patterns passes inspection."""
-        results = self.rasp.inspect({
-            "body": "The voltage at bus 1 is 1.05 pu.",
-        })
+        results = self.rasp.inspect(
+            {
+                "body": "The voltage at bus 1 is 1.05 pu.",
+            }
+        )
         blocked = [r for r in results if r.action == RASPAction.BLOCK]
         assert len(blocked) == 0, "Clean content should not be blocked"
 
@@ -246,6 +262,7 @@ class TestRASPBlockingXSS:
 # ===========================================================================
 # 5. RASP blocking path traversal in query params
 # ===========================================================================
+
 
 class TestRASPBlockingPathTraversal:
     """Test that the RASP engine blocks path traversal in query params."""
@@ -255,34 +272,42 @@ class TestRASPBlockingPathTraversal:
 
     def test_directory_traversal_blocked(self):
         """../ directory traversal is blocked."""
-        results = self.rasp.inspect({
-            "query": "../../../etc/passwd",
-        })
+        results = self.rasp.inspect(
+            {
+                "query": "../../../etc/passwd",
+            }
+        )
         blocked = [r for r in results if r.action == RASPAction.BLOCK]
         assert len(blocked) > 0, "Directory traversal must be blocked"
         assert blocked[0].rule_name == "path_traversal"
 
     def test_etc_passwd_blocked(self):
         """Direct /etc/passwd access is blocked."""
-        results = self.rasp.inspect({
-            "query": "/etc/passwd",
-        })
+        results = self.rasp.inspect(
+            {
+                "query": "/etc/passwd",
+            }
+        )
         blocked = [r for r in results if r.action == RASPAction.BLOCK]
         assert len(blocked) > 0, "/etc/passwd access must be blocked"
 
     def test_encoded_traversal_blocked(self):
         """URL-encoded path traversal (e.g. %2e%2e%2f) is blocked."""
-        results = self.rasp.inspect({
-            "query": "%2e%2e%2f%2e%2e%2fetc/passwd",
-        })
+        results = self.rasp.inspect(
+            {
+                "query": "%2e%2e%2f%2e%2e%2fetc/passwd",
+            }
+        )
         blocked = [r for r in results if r.action == RASPAction.BLOCK]
         assert len(blocked) > 0, "Encoded traversal must be blocked"
 
     def test_clean_query_passes(self):
         """Normal query parameters pass inspection."""
-        results = self.rasp.inspect({
-            "query": "status=active&page=1",
-        })
+        results = self.rasp.inspect(
+            {
+                "query": "status=active&page=1",
+            }
+        )
         blocked = [r for r in results if r.action == RASPAction.BLOCK]
         assert len(blocked) == 0, "Clean query should not be blocked"
 
@@ -290,6 +315,7 @@ class TestRASPBlockingPathTraversal:
 # ===========================================================================
 # 6. Rate limit enforcement
 # ===========================================================================
+
 
 class TestRateLimitEnforcement:
     """Test rate limiting: exceed limit, then wait and retry."""
@@ -373,6 +399,7 @@ class TestRateLimitEnforcement:
 # 7. Body size limit enforcement
 # ===========================================================================
 
+
 class TestBodySizeLimit:
     """Test that sending a very large request body is handled gracefully."""
 
@@ -413,6 +440,7 @@ class TestBodySizeLimit:
 # ===========================================================================
 # 8. ABAC policy enforcement (viewer cannot run studies)
 # ===========================================================================
+
 
 class TestABACPolicyEnforcement:
     """Test that ABAC/RBAC policies prevent viewers from running studies."""
@@ -477,11 +505,13 @@ class TestABACPolicyEnforcement:
         from security.abac import ABACPolicyEngine, make_role_policy
 
         engine = ABACPolicyEngine()
-        engine.add_policy(make_role_policy(
-            name="study_execution",
-            allowed_roles=["engineer", "admin"],
-            priority=10,
-        ))
+        engine.add_policy(
+            make_role_policy(
+                name="study_execution",
+                allowed_roles=["engineer", "admin"],
+                priority=10,
+            )
+        )
 
         subject = {"role": "viewer", "department": "operations"}
         action = "post:/api/v1/projects/{id}/studies"
@@ -496,11 +526,13 @@ class TestABACPolicyEnforcement:
         from security.abac import ABACPolicyEngine, make_role_policy
 
         engine = ABACPolicyEngine()
-        engine.add_policy(make_role_policy(
-            name="study_execution",
-            allowed_roles=["engineer", "admin"],
-            priority=10,
-        ))
+        engine.add_policy(
+            make_role_policy(
+                name="study_execution",
+                allowed_roles=["engineer", "admin"],
+                priority=10,
+            )
+        )
 
         subject = {"role": "engineer", "department": "power_systems"}
         action = "post:/api/v1/projects/{id}/studies"
@@ -514,6 +546,7 @@ class TestABACPolicyEnforcement:
 # ===========================================================================
 # 9. MFA TOTP setup and verification flow
 # ===========================================================================
+
 
 class TestMFATOTPFlow:
     """Test the MFA TOTP setup and verification flow."""
@@ -540,6 +573,7 @@ class TestMFATOTPFlow:
         secret = provider.generate_secret("test-user-3")
         # Generate a code using the internal TOTP function
         from security.mfa import _totp_code
+
         code = _totp_code(secret)
         assert provider.verify_code(secret, code), "Generated code should verify"
 
@@ -547,17 +581,13 @@ class TestMFATOTPFlow:
         """An invalid TOTP code is rejected."""
         provider = TOTPProvider(issuer="AhmedETAP")
         secret = provider.generate_secret("test-user-4")
-        assert not provider.verify_code(secret, "000000"), (
-            "Invalid code should be rejected"
-        )
+        assert not provider.verify_code(secret, "000000"), "Invalid code should be rejected"
 
     def test_totp_empty_code_rejected(self):
         """An empty TOTP code is rejected."""
         provider = TOTPProvider(issuer="AhmedETAP")
         secret = provider.generate_secret("test-user-5")
-        assert not provider.verify_code(secret, ""), (
-            "Empty code should be rejected"
-        )
+        assert not provider.verify_code(secret, ""), "Empty code should be rejected"
 
     def test_mfa_toggle_via_api(self, client, auth_headers):
         """A user can toggle MFA via the PUT /me endpoint."""
@@ -582,6 +612,7 @@ class TestMFATOTPFlow:
 # ===========================================================================
 # 10. SIEM event submission and validation
 # ===========================================================================
+
 
 class TestSIEMEventSubmission:
     """Test SIEM event creation, formatting, and validation."""

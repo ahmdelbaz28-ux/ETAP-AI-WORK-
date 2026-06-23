@@ -18,7 +18,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
       - name: Install pnpm
         uses: pnpm/action-setup@v2
         with:
@@ -40,7 +40,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
@@ -56,11 +56,54 @@ jobs:
       - name: Validate Python engine syntax
         run: python3 validate_syntax.py
 
+  # Security Scan
+  security-scan:
+    name: Security Scan
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Run security scan
+        run: python scripts/security_scan.py
+
+  # Helm Chart Validation with kubeconform
+  helm-chart:
+    name: Helm Chart Validation
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+      - name: Install Helm
+        uses: azure/setup-helm@v4
+        with:
+          version: 'v3.15.0'
+      - name: Install kubeconform
+        run: |
+          curl -sLO https://github.com/yannh/kubeconform/releases/download/v0.6.7/kubeconform-linux-amd64.tar.gz
+          tar -xzf kubeconform-linux-amd64.tar.gz
+          sudo mv kubeconform /usr/local/bin/
+          rm kubeconform-linux-amd64.tar.gz
+      - name: Helm dependency update
+        working-directory: ./helm/etap-ai
+        run: helm dependency update
+      - name: Helm lint
+        run: helm lint ./helm/etap-ai/
+      - name: Helm template
+        run: helm template etap-ai ./helm/etap-ai/ > /tmp/rendered-manifests.yaml
+      - name: kubeconform validation
+        run: |
+          kubeconform -summary /tmp/rendered-manifests.yaml
+          echo "Rendered manifest line count: $(wc -l < /tmp/rendered-manifests.yaml)"
+
   # Health Check against deployed HF Space
   health-check:
     name: Health Check (HF Space)
     runs-on: ubuntu-latest
-    needs: [lint, python-service]
+    needs: [lint, python-service, security-scan]
     if: github.ref == 'refs/heads/main'
     steps:
       - name: Check root endpoint

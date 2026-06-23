@@ -60,13 +60,12 @@ repos:
         files: ^prompts/.*\.yaml$
         pass_filenames: false
 
-  # ── Stage 6: Security Scan (on push only) ──────────────────────────
+  # ── Stage 6: Security Scan ────────────────────────────────────────
   - repo: local
     hooks:
       - id: security-scan
-        name: security scan
-        entry: bandit -r skills core
+        name: Security Scan
+        entry: python scripts/security_scan.py
         language: system
-        types: [python]
         pass_filenames: false
-        stages: [push]
+        always_run: true

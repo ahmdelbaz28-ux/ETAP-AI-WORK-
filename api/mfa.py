@@ -22,27 +22,33 @@ async def setup_totp(request: Request):
             raise HTTPException(status_code=400, detail="user_id is required")
 
         from security.mfa import TOTPProvider
+
         totp = TOTPProvider()
         secret = totp.generate_secret(user_id)
         qr_uri = totp.generate_qr_code(user_id, secret)
         totp.generate_backup_codes(user_id)
 
-        return JSONResponse(content={
-            "success": True,
-            "data": {
-                "qr_code_uri": qr_uri,
-                # Note: secret and backup_codes are NOT exposed in the API response
-                # to prevent credential leakage. They are stored server-side only.
-            },
-            "trace_id": trace_id,
-        })
+        return JSONResponse(
+            content={
+                "success": True,
+                "data": {
+                    "qr_code_uri": qr_uri,
+                    # Note: secret and backup_codes are NOT exposed in the API response
+                    # to prevent credential leakage. They are stored server-side only.
+                },
+                "trace_id": trace_id,
+            }
+        )
     except HTTPException:
         raise
     except Exception as e:
         from logging import getLogger
+
         logger = getLogger("engineering_service")
         logger.error("totp_setup_failed error=%s", str(e), extra={"trace_id": trace_id})
-        return JSONResponse(status_code=500, content={"success": False, "errors": [str(e)], "trace_id": trace_id})
+        return JSONResponse(
+            status_code=500, content={"success": False, "errors": [str(e)], "trace_id": trace_id}
+        )
 
 
 @router.post("/totp/verify")
@@ -60,20 +66,26 @@ async def verify_totp(request: Request):
             raise HTTPException(status_code=400, detail="code is required")
 
         from security.mfa import TOTPProvider
+
         totp = TOTPProvider()
         is_valid = totp.verify_code(user_id, code)
 
-        return JSONResponse(content={
-            "success": True,
-            "data": {
-                "valid": is_valid,
-            },
-            "trace_id": trace_id,
-        })
+        return JSONResponse(
+            content={
+                "success": True,
+                "data": {
+                    "valid": is_valid,
+                },
+                "trace_id": trace_id,
+            }
+        )
     except HTTPException:
         raise
     except Exception as e:
         from logging import getLogger
+
         logger = getLogger("engineering_service")
         logger.error("totp_verify_failed error=%s", str(e), extra={"trace_id": trace_id})
-        return JSONResponse(status_code=500, content={"success": False, "errors": [str(e)], "trace_id": trace_id})
+        return JSONResponse(
+            status_code=500, content={"success": False, "errors": [str(e)], "trace_id": trace_id}
+        )

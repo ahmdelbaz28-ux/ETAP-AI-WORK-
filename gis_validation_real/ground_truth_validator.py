@@ -61,7 +61,7 @@ def validate_real_gis_to_adms(
         )
 
     # Classification:
-    ok = (ok_crs and ok_norm and ok_topo and len(mismatches) == 0)
+    ok = ok_crs and ok_norm and ok_topo and len(mismatches) == 0
 
     report = {
         "adms_assets": adms_assets,

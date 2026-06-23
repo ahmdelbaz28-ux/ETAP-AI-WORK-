@@ -25,7 +25,6 @@ import math
 import time
 import uuid
 from dataclasses import dataclass, field
-from enum import StrEnum
 from typing import Any, Dict, List, Tuple
 
 from autodesk_connector.shared.models import (
@@ -42,6 +41,7 @@ from autodesk_connector.shared.models import (
     Transformer,
     UnifiedEngineeringModel,
 )
+from compat import StrEnum
 
 logger = logging.getLogger(__name__)
 
@@ -73,6 +73,7 @@ class EngineeringIntentType(StrEnum):
 @dataclass
 class EngineeringIntent:
     """Parsed engineering intent from natural language."""
+
     type: EngineeringIntentType
     confidence: float
     parameters: Dict[str, Any] = field(default_factory=dict)
@@ -84,6 +85,7 @@ class EngineeringIntent:
 @dataclass
 class EngineeringGraph:
     """Knowledge graph representing the engineering design."""
+
     nodes: Dict[str, dict] = field(default_factory=dict)
     edges: List[dict] = field(default_factory=list)
     validated: bool = False
@@ -108,56 +110,109 @@ class IntentParser:
     # Intent patterns
     PATTERNS: Dict[EngineeringIntentType, List[str]] = {
         EngineeringIntentType.CREATE_PANEL: [
-            "panel", "create panel", "add panel", "new panel", "panelboard",
-            "mdb", "distribution panel", "lighting panel", "power panel",
+            "panel",
+            "create panel",
+            "add panel",
+            "new panel",
+            "panelboard",
+            "mdb",
+            "distribution panel",
+            "lighting panel",
+            "power panel",
         ],
         EngineeringIntentType.CREATE_SLD: [
-            "single line diagram", "sld", "one-line diagram",
-            "generate drawing", "create drawing",
+            "single line diagram",
+            "sld",
+            "one-line diagram",
+            "generate drawing",
+            "create drawing",
         ],
         EngineeringIntentType.CREATE_SUBSTATION: [
-            "substation", "create substation", "power substation",
-            "electrical substation", "substation design", "substation project",
+            "substation",
+            "create substation",
+            "power substation",
+            "electrical substation",
+            "substation design",
+            "substation project",
         ],
         EngineeringIntentType.ADD_FEEDER: [
-            "add feeder", "feeder", "outgoing circuit",
-            "branch circuit", "add circuit",
+            "add feeder",
+            "feeder",
+            "outgoing circuit",
+            "branch circuit",
+            "add circuit",
         ],
         EngineeringIntentType.ADD_TRANSFORMER: [
-            "add transformer", "create transformer", "new transformer",
-            "step down transformer", "step up transformer",
+            "add transformer",
+            "create transformer",
+            "new transformer",
+            "step down transformer",
+            "step up transformer",
         ],
         EngineeringIntentType.ADD_BUS: [
-            "add bus", "create bus", "new bus", "busbar",
-            "add busbar", "electrical bus",
+            "add bus",
+            "create bus",
+            "new bus",
+            "busbar",
+            "add busbar",
+            "electrical bus",
         ],
         EngineeringIntentType.ADD_CABLE: [
-            "add cable", "run cable", "cable", "connect",
-            "wire", "conductor", "feeder cable",
+            "add cable",
+            "run cable",
+            "cable",
+            "connect",
+            "wire",
+            "conductor",
+            "feeder cable",
         ],
         EngineeringIntentType.ADD_MOTOR: [
-            "add motor", "motor", "create motor", "induction motor",
-            "motor starter", "vfd",
+            "add motor",
+            "motor",
+            "create motor",
+            "induction motor",
+            "motor starter",
+            "vfd",
         ],
         EngineeringIntentType.ADD_GENERATOR: [
-            "add generator", "generator", "genset", "diesel generator",
-            "backup generator", "standby generator",
+            "add generator",
+            "generator",
+            "genset",
+            "diesel generator",
+            "backup generator",
+            "standby generator",
         ],
         EngineeringIntentType.ADD_LOAD: [
-            "add load", "create load", "load", "equipment load",
-            "lighting load", "receptacle load", "hvac load",
+            "add load",
+            "create load",
+            "load",
+            "equipment load",
+            "lighting load",
+            "receptacle load",
+            "hvac load",
         ],
         EngineeringIntentType.VALIDATE_DESIGN: [
-            "validate", "check design", "engineering check",
-            "review design", "verify", "audit",
+            "validate",
+            "check design",
+            "engineering check",
+            "review design",
+            "verify",
+            "audit",
         ],
         EngineeringIntentType.GENERATE_REPORT: [
-            "generate report", "create report", "bill of materials",
-            "bom", "panel schedule", "cable schedule",
+            "generate report",
+            "create report",
+            "bill of materials",
+            "bom",
+            "panel schedule",
+            "cable schedule",
         ],
         EngineeringIntentType.SYNC_ALL: [
-            "sync all", "synchronize", "update all",
-            "sync everything", "full sync",
+            "sync all",
+            "synchronize",
+            "update all",
+            "sync everything",
+            "full sync",
         ],
     }
 
@@ -237,6 +292,7 @@ class IntentParser:
     def _extract_parameters(self, text: str) -> Dict[str, Any]:
         """Extract numerical and categorical parameters from text."""
         import re
+
         params: Dict[str, Any] = {}
 
         for param_name, pattern in self.PARAM_PATTERNS.items():
@@ -284,11 +340,19 @@ class IntentParser:
             entities.append({"type": "panel", "panel_type": "MDP"})
         elif "distribution panel" in text_lower or "distribution board" in text_lower:
             entities.append({"type": "panel", "panel_type": "DP"})
-        if "lighting panel" in text_lower or "lighting distribution" in text_lower or "lp" in text_lower.split():
+        if (
+            "lighting panel" in text_lower
+            or "lighting distribution" in text_lower
+            or "lp" in text_lower.split()
+        ):
             entities.append({"type": "panel", "panel_type": "LP"})
         if "power panel" in text_lower or "power distribution" in text_lower:
             entities.append({"type": "panel", "panel_type": "POWER_PANEL"})
-        if "sub panel" in text_lower or "sub distribution" in text_lower or "sp" in text_lower.split():
+        if (
+            "sub panel" in text_lower
+            or "sub distribution" in text_lower
+            or "sp" in text_lower.split()
+        ):
             entities.append({"type": "panel", "panel_type": "SP"})
         if "motor control center" in text_lower or "mcc" in text_lower:
             entities.append({"type": "panel", "panel_type": "MCC"})
@@ -305,7 +369,9 @@ class IntentParser:
 
         # Generator types
         if "emergency generator" in text_lower or "standby generator" in text_lower:
-            entities.append({"type": "generator", "generator_type": "diesel", "load_category": "standby"})
+            entities.append(
+                {"type": "generator", "generator_type": "diesel", "load_category": "standby"}
+            )
         if "generator" in text_lower and not any(e["type"] == "generator" for e in entities):
             entities.append({"type": "generator", "generator_type": "synchronous"})
 
@@ -353,11 +419,13 @@ class GraphBuilder:
             entity_id = f"{entity['type']}_{uuid.uuid4().hex[:8]}"
             entity["id"] = entity_id
             graph.nodes[entity_id] = entity
-            graph.edges.append({
-                "from": root_id,
-                "to": entity_id,
-                "type": "creates",
-            })
+            graph.edges.append(
+                {
+                    "from": root_id,
+                    "to": entity_id,
+                    "type": "creates",
+                }
+            )
 
         # If intent is panel/substation-related but no entity was extracted,
         # create nodes from the intent type alone
@@ -365,7 +433,10 @@ class GraphBuilder:
         create_xf = not any(n.get("type") == "transformer" for n in graph.nodes.values())
         create_gen = not any(n.get("type") == "generator" for n in graph.nodes.values())
 
-        if intent.type in (EngineeringIntentType.CREATE_PANEL, EngineeringIntentType.CREATE_SUBSTATION):
+        if intent.type in (
+            EngineeringIntentType.CREATE_PANEL,
+            EngineeringIntentType.CREATE_SUBSTATION,
+        ):
             raw_lower = intent.raw_text.lower()
 
             # Create panel node if missing
@@ -410,7 +481,9 @@ class GraphBuilder:
                 graph.nodes[gen_id] = {
                     "id": gen_id,
                     "type": "generator",
-                    "generator_type": "diesel" if "emergency" in raw_lower or "standby" in raw_lower else "synchronous",
+                    "generator_type": "diesel"
+                    if "emergency" in raw_lower or "standby" in raw_lower
+                    else "synchronous",
                     "label": "auto gen from " + intent.raw_text[:40],
                 }
                 graph.edges.append({"from": root_id, "to": gen_id, "type": "supplies"})
@@ -481,7 +554,9 @@ class ModelGenerator:
 
         return model
 
-    def _create_panel_from_node(self, model: UnifiedEngineeringModel, node: dict, graph: EngineeringGraph) -> None:
+    def _create_panel_from_node(
+        self, model: UnifiedEngineeringModel, node: dict, graph: EngineeringGraph
+    ) -> None:
         """Create a Panel entity from a graph node, linking Intent Parameters.
 
         Connects extracted parameters (voltage, current, feeder_count) to
@@ -555,17 +630,21 @@ class ModelGenerator:
                 load_kw_final = feeder_power if feeder_power != 10 else max(load_kw_approx, 1.0)
 
                 for f in range(feeder_count):
-                    panel.feeders.append(BreakerDef(
-                        breaker_id=f"BRK-{panel.name}-{f + 1:02d}",
-                        rated_current_a=feeder_current,
-                        load_name=f"LOAD-{panel.name}-{f + 1:02d}",
-                        load_kw=load_kw_final,
-                        poles=3,
-                    ))
+                    panel.feeders.append(
+                        BreakerDef(
+                            breaker_id=f"BRK-{panel.name}-{f + 1:02d}",
+                            rated_current_a=feeder_current,
+                            load_name=f"LOAD-{panel.name}-{f + 1:02d}",
+                            load_kw=load_kw_final,
+                            poles=3,
+                        )
+                    )
 
             model.project.panels.append(panel)
 
-    def _create_transformer_from_node(self, model: UnifiedEngineeringModel, node: dict, graph: EngineeringGraph) -> None:
+    def _create_transformer_from_node(
+        self, model: UnifiedEngineeringModel, node: dict, graph: EngineeringGraph
+    ) -> None:
         """Create a Transformer entity from a graph node."""
         power = node.get("power", 1.0)
         if isinstance(power, (list, tuple)):
@@ -595,7 +674,9 @@ class ModelGenerator:
         # Add to model via project metadata
         model.metadata.setdefault("transformers", []).append(xf.model_dump(mode="json"))
 
-    def _create_bus_from_node(self, model: UnifiedEngineeringModel, node: dict, graph: EngineeringGraph) -> None:
+    def _create_bus_from_node(
+        self, model: UnifiedEngineeringModel, node: dict, graph: EngineeringGraph
+    ) -> None:
         """Create a Bus entity from a graph node."""
         voltage = node.get("voltage", 11000)
         if isinstance(voltage, (list, tuple)):
@@ -613,7 +694,9 @@ class ModelGenerator:
         )
         model.metadata.setdefault("buses", []).append(bus.model_dump(mode="json"))
 
-    def _create_cable_from_node(self, model: UnifiedEngineeringModel, node: dict, graph: EngineeringGraph) -> None:
+    def _create_cable_from_node(
+        self, model: UnifiedEngineeringModel, node: dict, graph: EngineeringGraph
+    ) -> None:
         """Create a Cable entity from a graph node."""
         cable = Cable(
             name=node.get("name", f"CBL-{uuid.uuid4().hex[:6].upper()}"),
@@ -626,7 +709,9 @@ class ModelGenerator:
         )
         model.metadata.setdefault("cables", []).append(cable.model_dump(mode="json"))
 
-    def _create_motor_from_node(self, model: UnifiedEngineeringModel, node: dict, graph: EngineeringGraph) -> None:
+    def _create_motor_from_node(
+        self, model: UnifiedEngineeringModel, node: dict, graph: EngineeringGraph
+    ) -> None:
         """Create a Motor entity from a graph node."""
         voltage = node.get("voltage", 400)
         if isinstance(voltage, (list, tuple)):
@@ -646,7 +731,9 @@ class ModelGenerator:
         )
         model.metadata.setdefault("motors", []).append(motor.model_dump(mode="json"))
 
-    def _create_generator_from_node(self, model: UnifiedEngineeringModel, node: dict, graph: EngineeringGraph) -> None:
+    def _create_generator_from_node(
+        self, model: UnifiedEngineeringModel, node: dict, graph: EngineeringGraph
+    ) -> None:
         """Create a Generator entity from a graph node."""
         power_kw = node.get("power", 500)
         if isinstance(power_kw, (list, tuple)):
@@ -670,7 +757,9 @@ class ModelGenerator:
         )
         model.metadata.setdefault("generators", []).append(gen.model_dump(mode="json"))
 
-    def _create_load_from_node(self, model: UnifiedEngineeringModel, node: dict, graph: EngineeringGraph) -> None:
+    def _create_load_from_node(
+        self, model: UnifiedEngineeringModel, node: dict, graph: EngineeringGraph
+    ) -> None:
         """Create a Load entity from a graph node."""
         power = node.get("power", 10)
         if isinstance(power, (list, tuple)):
@@ -720,6 +809,7 @@ class AIDrawingEngine:
         self.etap_provider = etap_provider
 
         from copilot.translation.engine import TranslationEngine
+
         self.translation = TranslationEngine()
 
         self._history: List[dict] = []
@@ -783,9 +873,7 @@ class AIDrawingEngine:
                 }
             else:
                 # Generate AutoCAD commands without live connection
-                autocad_commands = self.translation.unified_to_autocad_commands(
-                    model.model_dump()
-                )
+                autocad_commands = self.translation.unified_to_autocad_commands(model.model_dump())
                 result["steps"]["autocad_commands"] = {
                     "generated": True,
                     "command_count": len(autocad_commands),
@@ -821,7 +909,9 @@ class AIDrawingEngine:
                 "feeder_check": {"passed": True, "issues": []},
             }
             if not has_any_entity:
-                validation["model_integrity"]["issues"].append("No entities were created from the request")
+                validation["model_integrity"]["issues"].append(
+                    "No entities were created from the request"
+                )
 
             if model.project.panels:
                 for panel in model.project.panels:
@@ -830,7 +920,9 @@ class AIDrawingEngine:
                             validation["feeder_check"]["issues"].append(
                                 f"Panel {panel.name}: breaker > bus rating"
                             )
-                validation["feeder_check"]["passed"] = len(validation["feeder_check"]["issues"]) == 0
+                validation["feeder_check"]["passed"] = (
+                    len(validation["feeder_check"]["issues"]) == 0
+                )
 
             result["steps"]["validation"] = validation
 
@@ -838,14 +930,16 @@ class AIDrawingEngine:
             result["elapsed_seconds"] = round(time.time() - start_time, 3)
 
             # Log to history
-            self._history.append({
-                "request": natural_language_request,
-                "intent_type": intent.type.value,
-                "confidence": intent.confidence,
-                "status": "completed",
-                "elapsed": result["elapsed_seconds"],
-                "timestamp": time.time(),
-            })
+            self._history.append(
+                {
+                    "request": natural_language_request,
+                    "intent_type": intent.type.value,
+                    "confidence": intent.confidence,
+                    "status": "completed",
+                    "elapsed": result["elapsed_seconds"],
+                    "timestamp": time.time(),
+                }
+            )
 
         except Exception as e:
             logger.exception("AI Drawing Engine failed")

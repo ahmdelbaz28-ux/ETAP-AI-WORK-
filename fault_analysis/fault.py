@@ -3,6 +3,7 @@ import numpy as np
 try:
     from scipy.sparse import issparse
     from scipy.sparse.linalg import splu
+
     HAS_SCIPY = True
 except ImportError:
     HAS_SCIPY = False
@@ -73,22 +74,22 @@ class FaultAnalyzer:
         base_ka = self.base_mva / (np.sqrt(3) * self.base_kv)
         return abs(current_pu) * base_ka
 
-    def _z(self, bus_index, matrix='pos'):
+    def _z(self, bus_index, matrix="pos"):
         """Return Zbus[bus_index, bus_index] for the given sequence.
 
         Uses the LU on-demand path when available (O(n)), otherwise
         falls back to the precomputed dense Zbus.
         """
         if self._use_lu:
-            if matrix == 'pos':
+            if matrix == "pos":
                 return self._zbus_element(self._lu_pos, bus_index)
-            elif matrix == 'neg':
+            elif matrix == "neg":
                 return self._zbus_element(self._lu_neg, bus_index)
             else:
                 return self._zbus_element(self._lu_zero, bus_index)
-        if matrix == 'pos':
+        if matrix == "pos":
             return complex(self.Zbus_pos[bus_index, bus_index])
-        elif matrix == 'neg':
+        elif matrix == "neg":
             return complex(self.Zbus_neg[bus_index, bus_index])
         else:
             return complex(self.Zbus_zero[bus_index, bus_index])
@@ -108,18 +109,18 @@ class FaultAnalyzer:
         dict: Contains fault current (complex) in per-unit, and optionally voltage.
         """
         Vpre = complex(1.0, 0.0)
-        Zth = self._z(bus_index, 'pos')
+        Zth = self._z(bus_index, "pos")
         if abs(Zth) < 1e-12:
-            If = complex(float('inf'), 0)
+            If = complex(float("inf"), 0)
         else:
             If = Vpre / Zth
         return {
-            'fault_current': If,
-            'fault_current_magnitude': np.abs(If),
-            'fault_current_ka': self._pu_to_ka(If),
-            'fault_current_angle': np.angle(If, deg=True),
-            'affected_bus_index': bus_index,
-            'fault_type': 'three_phase'
+            "fault_current": If,
+            "fault_current_magnitude": np.abs(If),
+            "fault_current_ka": self._pu_to_ka(If),
+            "fault_current_angle": np.angle(If, deg=True),
+            "affected_bus_index": bus_index,
+            "fault_type": "three_phase",
         }
 
     def line_to_ground_fault(self, bus_index):
@@ -133,21 +134,21 @@ class FaultAnalyzer:
         dict: Contains fault current (complex) in per-unit for the faulted phase.
         """
         Vpre = complex(1.0, 0.0)
-        Z1 = self._z(bus_index, 'pos')
-        Z2 = self._z(bus_index, 'neg')
-        Z0 = self._z(bus_index, 'zero')
+        Z1 = self._z(bus_index, "pos")
+        Z2 = self._z(bus_index, "neg")
+        Z0 = self._z(bus_index, "zero")
         denominator = Z1 + Z2 + Z0
         if abs(denominator) < 1e-12:
-            If = complex(float('inf'), 0)
+            If = complex(float("inf"), 0)
         else:
             If = 3 * Vpre / denominator
         return {
-            'fault_current': If,
-            'fault_current_magnitude': np.abs(If),
-            'fault_current_ka': self._pu_to_ka(If),
-            'fault_current_angle': np.angle(If, deg=True),
-            'affected_bus_index': bus_index,
-            'fault_type': 'line_to_ground'
+            "fault_current": If,
+            "fault_current_magnitude": np.abs(If),
+            "fault_current_ka": self._pu_to_ka(If),
+            "fault_current_angle": np.angle(If, deg=True),
+            "affected_bus_index": bus_index,
+            "fault_type": "line_to_ground",
         }
 
     def line_to_line_fault(self, bus_index):
@@ -161,20 +162,20 @@ class FaultAnalyzer:
         dict: Contains fault current (complex) in per-unit for the faulted phases.
         """
         Vpre = complex(1.0, 0.0)
-        Z1 = self._z(bus_index, 'pos')
-        Z2 = self._z(bus_index, 'neg')
+        Z1 = self._z(bus_index, "pos")
+        Z2 = self._z(bus_index, "neg")
         denominator = Z1 + Z2
         if abs(denominator) < 1e-12:
-            If = complex(float('inf'), 0)
+            If = complex(float("inf"), 0)
         else:
             If = Vpre * np.sqrt(3) / denominator
         return {
-            'fault_current': If,
-            'fault_current_magnitude': np.abs(If),
-            'fault_current_ka': self._pu_to_ka(If),
-            'fault_current_angle': np.angle(If, deg=True),
-            'affected_bus_index': bus_index,
-            'fault_type': 'line_to_line'
+            "fault_current": If,
+            "fault_current_magnitude": np.abs(If),
+            "fault_current_ka": self._pu_to_ka(If),
+            "fault_current_angle": np.angle(If, deg=True),
+            "affected_bus_index": bus_index,
+            "fault_type": "line_to_line",
         }
 
     def double_line_to_ground_fault(self, bus_index):
@@ -188,9 +189,9 @@ class FaultAnalyzer:
         dict: Contains fault currents (complex) in per-unit.
         """
         Vpre = complex(1.0, 0.0)
-        Z1 = self._z(bus_index, 'pos')
-        Z2 = self._z(bus_index, 'neg')
-        Z0 = self._z(bus_index, 'zero')
+        Z1 = self._z(bus_index, "pos")
+        Z2 = self._z(bus_index, "neg")
+        Z0 = self._z(bus_index, "zero")
         if abs(Z2 + Z0) > 1e-12:
             Z20 = (Z2 * Z0) / (Z2 + Z0)
         else:
@@ -203,21 +204,21 @@ class FaultAnalyzer:
         else:
             If0 = complex(0, 0)
         If2 = -If1 - If0
-        a = complex(-0.5, np.sqrt(3)/2)
-        a2 = complex(-0.5, -np.sqrt(3)/2)
+        a = complex(-0.5, np.sqrt(3) / 2)
+        a2 = complex(-0.5, -np.sqrt(3) / 2)
         Ia = If1 + If2 + If0
-        Ib = a2*If1 + a*If2 + If0
-        Ic = a*If1 + a2*If2 + If0
+        Ib = a2 * If1 + a * If2 + If0
+        Ic = a * If1 + a2 * If2 + If0
         return {
-            'fault_current': Ia,
-            'fault_current_a': Ia,
-            'fault_current_c': Ic,
-            'fault_current_b_magnitude': np.abs(Ib),
-            'fault_current_b_angle': np.angle(Ib, deg=True),
-            'fault_current_b_ka': self._pu_to_ka(Ib),
-            'fault_current_c_magnitude': np.abs(Ic),
-            'fault_current_c_angle': np.angle(Ic, deg=True),
-            'fault_current_c_ka': self._pu_to_ka(Ic),
-            'affected_bus_index': bus_index,
-            'fault_type': 'double_line_to_ground'
+            "fault_current": Ia,
+            "fault_current_a": Ia,
+            "fault_current_c": Ic,
+            "fault_current_b_magnitude": np.abs(Ib),
+            "fault_current_b_angle": np.angle(Ib, deg=True),
+            "fault_current_b_ka": self._pu_to_ka(Ib),
+            "fault_current_c_magnitude": np.abs(Ic),
+            "fault_current_c_angle": np.angle(Ic, deg=True),
+            "fault_current_c_ka": self._pu_to_ka(Ic),
+            "affected_bus_index": bus_index,
+            "fault_type": "double_line_to_ground",
         }

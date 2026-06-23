@@ -2,10 +2,13 @@
 WebSocket endpoint for real-time SCADA data streaming.
 Provides live updates to connected clients without requiring refresh.
 """
+
 import asyncio
 import json
 import logging
 from datetime import UTC, datetime
+
+UTC = UTC
 from typing import List
 
 from fastapi import WebSocket, WebSocketDisconnect
@@ -29,7 +32,9 @@ class SCADALiveFeed:
         """Add a new WebSocket connection to the active connections list."""
         await websocket.accept()
         self.active_connections.append(websocket)
-        logger.info(f"New WebSocket connection established. Total connections: {len(self.active_connections)}")
+        logger.info(
+            f"New WebSocket connection established. Total connections: {len(self.active_connections)}"
+        )
 
         # Start broadcasting if not already running
         if not self.is_broadcasting:
@@ -40,7 +45,9 @@ class SCADALiveFeed:
         """Remove a WebSocket connection from the active connections list."""
         if websocket in self.active_connections:
             self.active_connections.remove(websocket)
-            logger.info(f"WebSocket connection closed. Total connections: {len(self.active_connections)}")
+            logger.info(
+                f"WebSocket connection closed. Total connections: {len(self.active_connections)}"
+            )
 
         # Stop broadcasting if no active connections
         if len(self.active_connections) == 0 and self.is_broadcasting:
@@ -82,36 +89,74 @@ class SCADALiveFeed:
             "timestamp": datetime.now(UTC).isoformat(),
             "measurements": {
                 "bus_voltages": [
-                    {"bus_id": "BUS_1", "voltage_kV": round(random.uniform(11.0, 12.5), 3), "angle_deg": round(random.uniform(-5, 5), 2)},
-                    {"bus_id": "BUS_2", "voltage_kV": round(random.uniform(11.0, 12.5), 3), "angle_deg": round(random.uniform(-5, 5), 2)},
-                    {"bus_id": "BUS_3", "voltage_kV": round(random.uniform(11.0, 12.5), 3), "angle_deg": round(random.uniform(-5, 5), 2)},
+                    {
+                        "bus_id": "BUS_1",
+                        "voltage_kV": round(random.uniform(11.0, 12.5), 3),
+                        "angle_deg": round(random.uniform(-5, 5), 2),
+                    },
+                    {
+                        "bus_id": "BUS_2",
+                        "voltage_kV": round(random.uniform(11.0, 12.5), 3),
+                        "angle_deg": round(random.uniform(-5, 5), 2),
+                    },
+                    {
+                        "bus_id": "BUS_3",
+                        "voltage_kV": round(random.uniform(11.0, 12.5), 3),
+                        "angle_deg": round(random.uniform(-5, 5), 2),
+                    },
                 ],
                 "line_flows": [
-                    {"line_id": "LINE_1_2", "mw": round(random.uniform(10, 100), 2), "mvar": round(random.uniform(5, 50), 2)},
-                    {"line_id": "LINE_2_3", "mw": round(random.uniform(10, 100), 2), "mvar": round(random.uniform(5, 50), 2)},
+                    {
+                        "line_id": "LINE_1_2",
+                        "mw": round(random.uniform(10, 100), 2),
+                        "mvar": round(random.uniform(5, 50), 2),
+                    },
+                    {
+                        "line_id": "LINE_2_3",
+                        "mw": round(random.uniform(10, 100), 2),
+                        "mvar": round(random.uniform(5, 50), 2),
+                    },
                 ],
                 "generator_outputs": [
-                    {"gen_id": "GEN_1", "mw": round(random.uniform(50, 200), 2), "mvar": round(random.uniform(20, 80), 2)},
-                    {"gen_id": "GEN_2", "mw": round(random.uniform(50, 200), 2), "mvar": round(random.uniform(20, 80), 2)},
+                    {
+                        "gen_id": "GEN_1",
+                        "mw": round(random.uniform(50, 200), 2),
+                        "mvar": round(random.uniform(20, 80), 2),
+                    },
+                    {
+                        "gen_id": "GEN_2",
+                        "mw": round(random.uniform(50, 200), 2),
+                        "mvar": round(random.uniform(20, 80), 2),
+                    },
                 ],
                 "load_values": [
-                    {"load_id": "LOAD_1", "mw": round(random.uniform(10, 50), 2), "mvar": round(random.uniform(5, 25), 2)},
-                    {"load_id": "LOAD_2", "mw": round(random.uniform(10, 50), 2), "mvar": round(random.uniform(5, 25), 2)},
-                ]
+                    {
+                        "load_id": "LOAD_1",
+                        "mw": round(random.uniform(10, 50), 2),
+                        "mvar": round(random.uniform(5, 25), 2),
+                    },
+                    {
+                        "load_id": "LOAD_2",
+                        "mw": round(random.uniform(10, 50), 2),
+                        "mvar": round(random.uniform(5, 25), 2),
+                    },
+                ],
             },
             "alarms": [],
-            "system_status": "NORMAL"
+            "system_status": "NORMAL",
         }
 
         # Randomly add alarms occasionally
         if random.random() < 0.1:  # 10% chance of alarm
-            scada_data["alarms"].append({
-                "alarm_id": f"ALARM_{random.randint(1000, 9999)}",
-                "timestamp": datetime.now(UTC).isoformat(),
-                "severity": "WARNING" if random.random() < 0.7 else "CRITICAL",
-                "description": f"Simulated alarm for equipment {random.choice(['Transformer', 'Breaker', 'Line'])}",
-                "location": random.choice(["SUBSTATION_A", "SUBSTATION_B", "FEEDER_C"])
-            })
+            scada_data["alarms"].append(
+                {
+                    "alarm_id": f"ALARM_{random.randint(1000, 9999)}",
+                    "timestamp": datetime.now(UTC).isoformat(),
+                    "severity": "WARNING" if random.random() < 0.7 else "CRITICAL",
+                    "description": f"Simulated alarm for equipment {random.choice(['Transformer', 'Breaker', 'Line'])}",
+                    "location": random.choice(["SUBSTATION_A", "SUBSTATION_B", "FEEDER_C"]),
+                }
+            )
 
         return scada_data
 
@@ -124,7 +169,7 @@ class SCADALiveFeed:
                 scada_data = await self._generate_scada_data()
 
                 # Broadcast to all clients
-                message = json.dumps(scada_data, separators=(',', ':'))
+                message = json.dumps(scada_data, separators=(",", ":"))
                 await self.broadcast_message(message)
 
                 # Wait 1 second before next broadcast

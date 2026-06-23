@@ -22,6 +22,8 @@ Standards:
 
 import logging
 from datetime import UTC, datetime
+
+UTC = UTC
 from typing import Any, Dict, List
 
 import numpy as np
@@ -161,7 +163,7 @@ class CoordinationAgent(BaseAgent):
             A = curve_params["A"]
             B = curve_params["B"]
             p = curve_params["p"]
-            denominator = M ** p - 1.0
+            denominator = M**p - 1.0
             if denominator <= 0:
                 op_time = float("inf")
             else:
@@ -170,7 +172,7 @@ class CoordinationAgent(BaseAgent):
             # IEC 60255: t = TMS × k / (M^n - 1)
             k = curve_params["k"]
             n = curve_params["n"]
-            denominator = M ** n - 1.0
+            denominator = M**n - 1.0
             if denominator <= 0:
                 op_time = float("inf")
             else:
@@ -226,7 +228,9 @@ class CoordinationAgent(BaseAgent):
             time_multiplier=upstream_relay.get("time_multiplier", 1.0),
         )["operating_time_s"]
 
-        interval = t_up - t_down if (t_up != float("inf") and t_down != float("inf")) else float("inf")
+        interval = (
+            t_up - t_down if (t_up != float("inf") and t_down != float("inf")) else float("inf")
+        )
         coordinated = interval >= self.min_coordination_interval_s
 
         if coordinated:
@@ -251,7 +255,9 @@ class CoordinationAgent(BaseAgent):
             "coordinated": coordinated,
             "coordination_interval_s": round(float(interval), 4),
             "upstream_time_s": round(float(t_up), 4) if t_up != float("inf") else float("inf"),
-            "downstream_time_s": round(float(t_down), 4) if t_down != float("inf") else float("inf"),
+            "downstream_time_s": round(float(t_down), 4)
+            if t_down != float("inf")
+            else float("inf"),
             "upstream_relay": upstream_relay,
             "downstream_relay": downstream_relay,
             "fault_current_a": fault_current_a,
@@ -356,7 +362,9 @@ class CoordinationAgent(BaseAgent):
         for i in range(len(relay_chain) - 1):
             downstream = relay_chain[i]
             upstream = relay_chain[i + 1]
-            fault_current = fault_currents_a[i] if i < len(fault_currents_a) else fault_currents_a[-1]
+            fault_current = (
+                fault_currents_a[i] if i < len(fault_currents_a) else fault_currents_a[-1]
+            )
 
             check = self.verify_coordination(
                 upstream_relay=upstream,
@@ -368,11 +376,13 @@ class CoordinationAgent(BaseAgent):
             coordination_checks.append(check)
 
             if not check["coordinated"]:
-                non_coordinated.append({
-                    "downstream": downstream.get("name", f"relay_{i}"),
-                    "upstream": upstream.get("name", f"relay_{i + 1}"),
-                    "interval_s": check["coordination_interval_s"],
-                })
+                non_coordinated.append(
+                    {
+                        "downstream": downstream.get("name", f"relay_{i}"),
+                        "upstream": upstream.get("name", f"relay_{i + 1}"),
+                        "interval_s": check["coordination_interval_s"],
+                    }
+                )
 
         return {
             "selective": len(non_coordinated) == 0,
@@ -398,9 +408,7 @@ class CoordinationAgent(BaseAgent):
         self.status = AgentStatus.RUNNING
 
         try:
-            self.log_execution(
-                f"Starting coordination analysis for task {task.task_id}"
-            )
+            self.log_execution(f"Starting coordination analysis for task {task.task_id}")
 
             analysis_type = task.parameters.get("analysis_type", "full")
             results: Dict[str, Any] = {}
@@ -421,16 +429,22 @@ class CoordinationAgent(BaseAgent):
 
             # --- Coordination check ---
             if analysis_type in ("coordination_check", "full"):
-                upstream = task.parameters.get("upstream_relay", {
-                    "pickup_current_a": 2000.0,
-                    "curve_type": "standard_inverse",
-                    "time_multiplier": 0.5,
-                })
-                downstream = task.parameters.get("downstream_relay", {
-                    "pickup_current_a": 800.0,
-                    "curve_type": "standard_inverse",
-                    "time_multiplier": 0.3,
-                })
+                upstream = task.parameters.get(
+                    "upstream_relay",
+                    {
+                        "pickup_current_a": 2000.0,
+                        "curve_type": "standard_inverse",
+                        "time_multiplier": 0.5,
+                    },
+                )
+                downstream = task.parameters.get(
+                    "downstream_relay",
+                    {
+                        "pickup_current_a": 800.0,
+                        "curve_type": "standard_inverse",
+                        "time_multiplier": 0.3,
+                    },
+                )
                 fault_I = float(task.parameters.get("fault_current_a", 10000.0))
 
                 results["coordination_check"] = self.verify_coordination(
@@ -453,15 +467,32 @@ class CoordinationAgent(BaseAgent):
 
             # --- Selectivity analysis ---
             if analysis_type in ("selectivity", "full"):
-                relay_chain = task.parameters.get("relay_chain", [
-                    {"name": "feeder_relay", "pickup_current_a": 800.0,
-                     "curve_type": "very_inverse", "time_multiplier": 0.3},
-                    {"name": "main_relay", "pickup_current_a": 2000.0,
-                     "curve_type": "standard_inverse", "time_multiplier": 0.5},
-                    {"name": "utility_relay", "pickup_current_a": 5000.0,
-                     "curve_type": "standard_inverse", "time_multiplier": 0.7},
-                ])
-                fault_currents = task.parameters.get("fault_currents_a", [10000.0, 15000.0, 20000.0])
+                relay_chain = task.parameters.get(
+                    "relay_chain",
+                    [
+                        {
+                            "name": "feeder_relay",
+                            "pickup_current_a": 800.0,
+                            "curve_type": "very_inverse",
+                            "time_multiplier": 0.3,
+                        },
+                        {
+                            "name": "main_relay",
+                            "pickup_current_a": 2000.0,
+                            "curve_type": "standard_inverse",
+                            "time_multiplier": 0.5,
+                        },
+                        {
+                            "name": "utility_relay",
+                            "pickup_current_a": 5000.0,
+                            "curve_type": "standard_inverse",
+                            "time_multiplier": 0.7,
+                        },
+                    ],
+                )
+                fault_currents = task.parameters.get(
+                    "fault_currents_a", [10000.0, 15000.0, 20000.0]
+                )
 
                 results["selectivity"] = self.analyze_selectivity(
                     relay_chain=relay_chain,
@@ -483,15 +514,11 @@ class CoordinationAgent(BaseAgent):
             execution_time = (datetime.now(UTC) - start_time).total_seconds()
             result.execution_time = execution_time
 
-            self.log_execution(
-                f"Coordination analysis completed in {execution_time:.2f}s"
-            )
+            self.log_execution(f"Coordination analysis completed in {execution_time:.2f}s")
             return result
 
         except Exception as e:
-            self.log_execution(
-                f"Coordination analysis failed: {str(e)}", "ERROR"
-            )
+            self.log_execution(f"Coordination analysis failed: {str(e)}", "ERROR")
             return AgentResult(
                 agent_name=self.agent_name,
                 study_type=StudyType.PROTECTION_COORDINATION,
@@ -532,9 +559,7 @@ class CoordinationAgent(BaseAgent):
             n_currents = len(tcc_data.get("current_a", []))
             n_times = len(tcc_data.get("time_s", []))
             if n_currents != n_times:
-                errors.append(
-                    f"TCC data length mismatch: {n_currents} currents vs {n_times} times"
-                )
+                errors.append(f"TCC data length mismatch: {n_currents} currents vs {n_times} times")
 
         result.validation_errors.extend(errors)
         return len(errors) == 0

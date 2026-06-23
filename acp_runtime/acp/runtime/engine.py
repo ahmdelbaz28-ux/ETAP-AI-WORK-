@@ -13,6 +13,7 @@ Out of scope (handled by other layers):
     * Auth / scope check — Security layer
     * Transport I/O     — Transport layer
 """
+
 from __future__ import annotations
 
 import inspect
@@ -155,6 +156,7 @@ class AcpRuntime:
         span_ctx = None
         if self._tracer is not None:
             from acp.observability.tracer import TraceContext
+
             span_ctx = self._tracer.start_span(
                 "capability.execute",
                 TraceContext.from_trace_id(trace_id) if trace_id else None,
@@ -162,7 +164,7 @@ class AcpRuntime:
 
         try:
             method = handler.__getattribute__(meta.method_name)
-            raw = getattr(method, '__func__', method)
+            raw = getattr(method, "__func__", method)
             if inspect.iscoroutinefunction(raw):
                 coro = method(**call_kwargs)
             else:
@@ -173,7 +175,9 @@ class AcpRuntime:
             self._record_metrics(capability, True, (time.time() - t0) * 1000)
             if self._tracer is not None and span_ctx is not None:
                 self._tracer.finish_span(
-                    span_ctx, "capability.execute", t0,
+                    span_ctx,
+                    "capability.execute",
+                    t0,
                     tags={"capability": capability, "trace_id": trace_id},
                 )
             return result
@@ -183,8 +187,11 @@ class AcpRuntime:
             self._record_metrics(capability, False, (time.time() - t0) * 1000)
             if self._tracer is not None and span_ctx is not None:
                 from acp.observability.tracer import SpanStatus
+
                 self._tracer.finish_span(
-                    span_ctx, "capability.execute", t0,
+                    span_ctx,
+                    "capability.execute",
+                    t0,
                     status=SpanStatus.ERROR,
                     tags={"capability": capability, "trace_id": trace_id, "error": "control"},
                 )
@@ -198,10 +205,17 @@ class AcpRuntime:
             self._record_metrics(capability, False, (time.time() - t0) * 1000)
             if self._tracer is not None and span_ctx is not None:
                 from acp.observability.tracer import SpanStatus
+
                 self._tracer.finish_span(
-                    span_ctx, "capability.execute", t0,
+                    span_ctx,
+                    "capability.execute",
+                    t0,
                     status=SpanStatus.ERROR,
-                    tags={"capability": capability, "trace_id": trace_id, "error": type(e).__name__},
+                    tags={
+                        "capability": capability,
+                        "trace_id": trace_id,
+                        "error": type(e).__name__,
+                    },
                 )
             raise HandlerError(
                 f"Handler for {capability!r} raised {type(e).__name__}: {e}",
@@ -216,13 +230,17 @@ class AcpRuntime:
         """Record execution metrics if a metrics registry is configured."""
         if self._metrics is None:
             return
-        self._metrics.get_or_create_counter("acp.runtime.calls.total", "Total capability calls").inc()
+        self._metrics.get_or_create_counter(
+            "acp.runtime.calls.total", "Total capability calls"
+        ).inc()
         self._metrics.get_or_create_histogram(
             "acp.runtime.calls.duration_ms",
             "Capability call duration in milliseconds",
         ).observe(duration_ms)
         if not success:
-            self._metrics.get_or_create_counter("acp.runtime.calls.errors", "Total capability errors").inc()
+            self._metrics.get_or_create_counter(
+                "acp.runtime.calls.errors", "Total capability errors"
+            ).inc()
         self._metrics.get_or_create_counter(
             f"acp.runtime.calls.per_capability.{capability}",
             f"Calls for {capability}",

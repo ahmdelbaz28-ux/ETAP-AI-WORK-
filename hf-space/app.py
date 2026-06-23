@@ -4,6 +4,8 @@ Hugging Face Spaces Entry Point
 Author: Eng. Ahmed Elbaz
 """
 
+from __future__ import annotations
+
 import hmac
 import logging
 import os
@@ -47,8 +49,17 @@ def _verify_api_key(request: Request) -> None:
         return
     # Skip auth for health, docs, and root
     path = request.url.path
-    if path in ("/", "/healthz", "/readyz", "/health", "/ready",
-                "/docs", "/redoc", "/openapi.json", "/metrics"):
+    if path in (
+        "/",
+        "/healthz",
+        "/readyz",
+        "/health",
+        "/ready",
+        "/docs",
+        "/redoc",
+        "/openapi.json",
+        "/metrics",
+    ):
         return
     provided = request.headers.get("x-api-key") or ""
     if not hmac.compare_digest(provided, _API_KEY):
@@ -69,9 +80,7 @@ def _check_rate_limit(client_id: str) -> bool:
         if client_id not in _rate_store:
             _rate_store[client_id] = [now]
             return True
-        _rate_store[client_id] = [
-            t for t in _rate_store[client_id] if now - t < _RATE_WINDOW
-        ]
+        _rate_store[client_id] = [t for t in _rate_store[client_id] if now - t < _RATE_WINDOW]
         if len(_rate_store[client_id]) >= _RATE_MAX:
             return False
         _rate_store[client_id].append(now)
@@ -82,8 +91,9 @@ def _check_rate_limit(client_id: str) -> bool:
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     logger.info("AhmedETAP v%s started on Hugging Face Spaces", VERSION)
-    logger.info("Knowledge base: %d ETAP manuals + %d Zenon guides",
-                ETAP_MANUAL_COUNT, ZENON_GUIDE_COUNT)
+    logger.info(
+        "Knowledge base: %d ETAP manuals + %d Zenon guides", ETAP_MANUAL_COUNT, ZENON_GUIDE_COUNT
+    )
     logger.info("Active agents: %d", AGENT_COUNT)
     yield
     logger.info("AhmedETAP shutting down")
@@ -110,11 +120,17 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=[
+        "https://huggingface.co",
+        "https://*.hf.space",
+        "http://localhost:3000",
+        "http://localhost:5173",
+    ],
     allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
 
 # -- Auth + Rate-limit middleware ---------------------------------------------
 @app.middleware("http")
@@ -123,8 +139,17 @@ async def auth_and_rate_limit(request: Request, call_next):
     _verify_api_key(request)
     # Rate limit (skip health/docs)
     path = request.url.path
-    if path not in ("/", "/healthz", "/readyz", "/health", "/ready",
-                    "/docs", "/redoc", "/openapi.json", "/metrics"):
+    if path not in (
+        "/",
+        "/healthz",
+        "/readyz",
+        "/health",
+        "/ready",
+        "/docs",
+        "/redoc",
+        "/openapi.json",
+        "/metrics",
+    ):
         client_id = request.client.host if request.client else "unknown"
         if not _check_rate_limit(client_id):
             return JSONResponse(
@@ -265,8 +290,18 @@ async def platform_info():
         "version": VERSION,
         "description": "Enterprise Engineering Intelligence Platform",
         "author": "Eng. Ahmed Elbaz",
-        "standards": ["IEEE 3002.7", "IEC 60909", "IEEE 1584", "IEC 60255", "IEEE 519",
-                      "IEC 61850", "IEEE 80", "IEC 60364", "IEEE 399", "IEC 62933"],
+        "standards": [
+            "IEEE 3002.7",
+            "IEC 60909",
+            "IEEE 1584",
+            "IEC 60255",
+            "IEEE 519",
+            "IEC 61850",
+            "IEEE 80",
+            "IEC 60364",
+            "IEEE 399",
+            "IEC 62933",
+        ],
         "agents": AGENT_COUNT,
         "knowledge_base": {
             "etap_manuals": ETAP_MANUAL_COUNT,
@@ -284,29 +319,134 @@ async def platform_info():
 
 # -- Agents -------------------------------------------------------------------
 AGENTS = [
-    {"id": "load-flow-agent",          "name": "Load Flow Agent",            "standard": "IEEE 3002.7",  "status": "active"},
-    {"id": "short-circuit-agent",      "name": "Short Circuit Agent",        "standard": "IEC 60909",    "status": "active"},
-    {"id": "arcflash-agent",           "name": "Arc Flash Agent",            "standard": "IEEE 1584",    "status": "active"},
-    {"id": "protection-agent",         "name": "Protection Agent",           "standard": "IEC 60255",    "status": "active"},
-    {"id": "motorstarting-agent",      "name": "Motor Starting Agent",       "standard": "IEEE 399",     "status": "active"},
-    {"id": "stability-agent",          "name": "Stability Agent",            "standard": "IEEE 399",     "status": "active"},
-    {"id": "harmonic-agent",           "name": "Harmonic Analysis Agent",    "standard": "IEEE 519",     "status": "active"},
-    {"id": "cable-sizing-agent",       "name": "Cable Sizing Agent",         "standard": "IEC 60364",    "status": "active"},
-    {"id": "earth-grid-agent",         "name": "Earth Grid Agent",           "standard": "IEEE 80",      "status": "active"},
-    {"id": "opf-agent",                "name": "Optimal Power Flow Agent",   "standard": "IEEE 3002.7",  "status": "active"},
-    {"id": "renewable-agent",          "name": "Renewable Energy Agent",     "standard": "IEEE 1547",    "status": "active"},
-    {"id": "battery-storage-agent",    "name": "Battery Storage Agent",      "standard": "IEC 62933",    "status": "active"},
-    {"id": "scada-agent",              "name": "SCADA Agent",                "standard": "IEC 61850",    "status": "active"},
-    {"id": "digital-twin-agent",       "name": "Digital Twin Agent",         "standard": "IEC 61970",    "status": "active"},
-    {"id": "predictive-agent",         "name": "Predictive Maintenance",     "standard": "ISO 13381",    "status": "active"},
-    {"id": "anomaly-agent",            "name": "Anomaly Detection Agent",    "standard": "IEEE 1159",    "status": "active"},
-    {"id": "coordination-agent",       "name": "Coordination Agent",         "standard": "IEC 60255",    "status": "active"},
-    {"id": "report-agent",             "name": "Report Generation Agent",    "standard": "IEEE 3002.7",  "status": "active"},
-    {"id": "validation-agent",         "name": "Validation Agent",           "standard": "IEC 60038",    "status": "active"},
-    {"id": "etap-engineer-agent",      "name": "ETAP Engineer Agent",        "standard": "ETAP Manual",  "status": "active"},
-    {"id": "goal-planner-agent",       "name": "Goal Planner Agent",         "standard": "Internal",     "status": "active"},
-    {"id": "weather-agent",            "name": "Weather Agent",              "standard": "IEC 60721",    "status": "active"},
-    {"id": "power-system-coordinator", "name": "Power System Coordinator",   "standard": "All",          "status": "active"},
+    {
+        "id": "load-flow-agent",
+        "name": "Load Flow Agent",
+        "standard": "IEEE 3002.7",
+        "status": "active",
+    },
+    {
+        "id": "short-circuit-agent",
+        "name": "Short Circuit Agent",
+        "standard": "IEC 60909",
+        "status": "active",
+    },
+    {
+        "id": "arcflash-agent",
+        "name": "Arc Flash Agent",
+        "standard": "IEEE 1584",
+        "status": "active",
+    },
+    {
+        "id": "protection-agent",
+        "name": "Protection Agent",
+        "standard": "IEC 60255",
+        "status": "active",
+    },
+    {
+        "id": "motorstarting-agent",
+        "name": "Motor Starting Agent",
+        "standard": "IEEE 399",
+        "status": "active",
+    },
+    {
+        "id": "stability-agent",
+        "name": "Stability Agent",
+        "standard": "IEEE 399",
+        "status": "active",
+    },
+    {
+        "id": "harmonic-agent",
+        "name": "Harmonic Analysis Agent",
+        "standard": "IEEE 519",
+        "status": "active",
+    },
+    {
+        "id": "cable-sizing-agent",
+        "name": "Cable Sizing Agent",
+        "standard": "IEC 60364",
+        "status": "active",
+    },
+    {
+        "id": "earth-grid-agent",
+        "name": "Earth Grid Agent",
+        "standard": "IEEE 80",
+        "status": "active",
+    },
+    {
+        "id": "opf-agent",
+        "name": "Optimal Power Flow Agent",
+        "standard": "IEEE 3002.7",
+        "status": "active",
+    },
+    {
+        "id": "renewable-agent",
+        "name": "Renewable Energy Agent",
+        "standard": "IEEE 1547",
+        "status": "active",
+    },
+    {
+        "id": "battery-storage-agent",
+        "name": "Battery Storage Agent",
+        "standard": "IEC 62933",
+        "status": "active",
+    },
+    {"id": "scada-agent", "name": "SCADA Agent", "standard": "IEC 61850", "status": "active"},
+    {
+        "id": "digital-twin-agent",
+        "name": "Digital Twin Agent",
+        "standard": "IEC 61970",
+        "status": "active",
+    },
+    {
+        "id": "predictive-agent",
+        "name": "Predictive Maintenance",
+        "standard": "ISO 13381",
+        "status": "active",
+    },
+    {
+        "id": "anomaly-agent",
+        "name": "Anomaly Detection Agent",
+        "standard": "IEEE 1159",
+        "status": "active",
+    },
+    {
+        "id": "coordination-agent",
+        "name": "Coordination Agent",
+        "standard": "IEC 60255",
+        "status": "active",
+    },
+    {
+        "id": "report-agent",
+        "name": "Report Generation Agent",
+        "standard": "IEEE 3002.7",
+        "status": "active",
+    },
+    {
+        "id": "validation-agent",
+        "name": "Validation Agent",
+        "standard": "IEC 60038",
+        "status": "active",
+    },
+    {
+        "id": "etap-engineer-agent",
+        "name": "ETAP Engineer Agent",
+        "standard": "ETAP Manual",
+        "status": "active",
+    },
+    {
+        "id": "goal-planner-agent",
+        "name": "Goal Planner Agent",
+        "standard": "Internal",
+        "status": "active",
+    },
+    {"id": "weather-agent", "name": "Weather Agent", "standard": "IEC 60721", "status": "active"},
+    {
+        "id": "power-system-coordinator",
+        "name": "Power System Coordinator",
+        "standard": "All",
+        "status": "active",
+    },
 ]
 
 
@@ -325,10 +465,19 @@ async def get_agent(agent_id: str):
 
 # -- Studies ------------------------------------------------------------------
 STUDY_TYPES = [
-    "load_flow", "short_circuit", "arc_flash", "protection_coordination",
-    "motor_starting", "transient_stability", "harmonic_analysis",
-    "optimal_power_flow", "cable_sizing", "earth_grid",
-    "renewable_integration", "battery_storage", "scada",
+    "load_flow",
+    "short_circuit",
+    "arc_flash",
+    "protection_coordination",
+    "motor_starting",
+    "transient_stability",
+    "harmonic_analysis",
+    "optimal_power_flow",
+    "cable_sizing",
+    "earth_grid",
+    "renewable_integration",
+    "battery_storage",
+    "scada",
 ]
 
 
@@ -340,10 +489,13 @@ async def study_types():
 @app.post("/api/v1/studies/run", tags=["Studies"])
 async def run_study(request: StudyRequest):
     if request.study_type not in STUDY_TYPES:
-        return JSONResponse(status_code=400, content={
-            "error": f"Unknown study_type '{request.study_type}'",
-            "valid_types": STUDY_TYPES,
-        })
+        return JSONResponse(
+            status_code=400,
+            content={
+                "error": f"Unknown study_type '{request.study_type}'",
+                "valid_types": STUDY_TYPES,
+            },
+        )
 
     # Attempt native engine execution for supported study types
     result_data = None
@@ -380,14 +532,14 @@ async def run_study(request: StudyRequest):
                     from_bus=bus_map[ln["from_bus_id"]],
                     to_bus=bus_map[ln["to_bus_id"]],
                     z1=complex(ln.get("r1", 0.01), ln.get("x1", 0.05)),
-                    z0=complex(ln.get("r0", ln.get("r1", 0.01)),
-                               ln.get("x0", ln.get("x1", 0.05))),
+                    z0=complex(ln.get("r0", ln.get("r1", 0.01)), ln.get("x0", ln.get("x1", 0.05))),
                     yshunt1=complex(0, ln.get("bshunt1", 0.02)),
                     yshunt0=complex(0, ln.get("bshunt0", ln.get("bshunt1", 0.02))),
                 )
                 sys_model.add_line(line)
 
             from engine.engine import PowerSystemEngine
+
             engine = PowerSystemEngine(sys_model)
             result_data = engine.run_load_flow()
             # Sanitize numpy types for JSON
@@ -395,8 +547,10 @@ async def run_study(request: StudyRequest):
             for k, v in result_data.items():
                 if isinstance(v, dict):
                     sanitized[k] = {
-                        str(bid): {"mag": round(abs(val), 4),
-                                   "angle_deg": round(float(__import__("numpy").angle(val, deg=True)), 2)}
+                        str(bid): {
+                            "mag": round(abs(val), 4),
+                            "angle_deg": round(float(__import__("numpy").angle(val, deg=True)), 2),
+                        }
                         for bid, val in v.items()
                     }
                 else:
@@ -416,14 +570,11 @@ async def run_study(request: StudyRequest):
         response["result"] = result_data
     else:
         response["status"] = "accepted"
-        response["message"] = (
-            f"Study '{request.study_type}' queued for processing."
-        )
+        response["message"] = f"Study '{request.study_type}' queued for processing."
         if engine_error:
             response["engine_note"] = engine_error
         response["note"] = (
-            "Full computation engine available in self-hosted deployment. "
-            "See /docs for details."
+            "Full computation engine available in self-hosted deployment. See /docs for details."
         )
     return response
 
@@ -435,16 +586,38 @@ async def knowledge_info():
         "etap": {
             "manuals": ETAP_MANUAL_COUNT,
             "topics": [
-                "AC Networks", "Load Flow & Panel", "Transformer Sizing",
-                "Unbalanced Load Flow", "Short Circuit ANSI", "Short Circuit IEC",
-                "Arc Flash", "Motor Acceleration", "Parameter Estimation",
-                "Transient Stability", "Parameter Tuning", "UDM", "Harmonics",
-                "UGS", "Cable Pulling", "Optimal Power Flow", "OCP",
-                "Ground Grid", "PDE/GIS", "DC Load Flow & Short Circuit",
-                "BSD", "CSD", "Reliability Assessment", "WTG",
-                "Arc Flash Advanced Topics", "ETAP ARTTS", "Controls",
-                "Short Circuit Study", "Training (1164 slides)",
-                "Renewable Energy", "ETAP Solutions Overview", "eTrax Rail",
+                "AC Networks",
+                "Load Flow & Panel",
+                "Transformer Sizing",
+                "Unbalanced Load Flow",
+                "Short Circuit ANSI",
+                "Short Circuit IEC",
+                "Arc Flash",
+                "Motor Acceleration",
+                "Parameter Estimation",
+                "Transient Stability",
+                "Parameter Tuning",
+                "UDM",
+                "Harmonics",
+                "UGS",
+                "Cable Pulling",
+                "Optimal Power Flow",
+                "OCP",
+                "Ground Grid",
+                "PDE/GIS",
+                "DC Load Flow & Short Circuit",
+                "BSD",
+                "CSD",
+                "Reliability Assessment",
+                "WTG",
+                "Arc Flash Advanced Topics",
+                "ETAP ARTTS",
+                "Controls",
+                "Short Circuit Study",
+                "Training (1164 slides)",
+                "Renewable Energy",
+                "ETAP Solutions Overview",
+                "eTrax Rail",
             ],
             "standards": ["IEEE 3002.7", "IEC 60909", "IEEE 1584", "IEC 60255", "IEEE 519"],
         },
@@ -473,6 +646,7 @@ async def ml_capabilities():
     """Discover available ML/AI capabilities and their status."""
     try:
         from ml.predictive import get_ml_capabilities
+
         caps = get_ml_capabilities()
         return {"success": True, "data": caps}
     except Exception as e:
@@ -494,6 +668,7 @@ async def predict_load(request: Request):
         import numpy as np
 
         from ml.predictive import LoadForecaster
+
         lf = LoadForecaster(method=method)
         data = np.array(historical, dtype=float)
         train_result = lf.train(data)
@@ -502,7 +677,9 @@ async def predict_load(request: Request):
         return {
             "success": True,
             "data": {
-                "predictions": predictions.tolist() if hasattr(predictions, 'tolist') else list(predictions),
+                "predictions": predictions.tolist()
+                if hasattr(predictions, "tolist")
+                else list(predictions),
                 "horizon_hours": horizon,
                 "method": train_result.get("method", method),
             },
@@ -526,6 +703,7 @@ async def detect_anomalies(request: Request):
         import numpy as np
 
         from ml.predictive import AnomalyDetector
+
         ad = AnomalyDetector(contamination=contamination, method=method)
         X = np.array(data, dtype=float)
         if X.ndim == 1:

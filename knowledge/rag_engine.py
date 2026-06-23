@@ -24,10 +24,14 @@ Architecture:
 - Citation System
 """
 
+from __future__ import annotations
+
 import logging
 import os
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
+
+UTC = UTC
 from typing import Dict, List
 
 import numpy as np
@@ -38,6 +42,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class EngineeringDocument:
     """Represents an engineering standard or reference document."""
+
     doc_id: str
     title: str
     source: str  # IEEE, IEC, NFPA, etc.
@@ -51,6 +56,7 @@ class EngineeringDocument:
 @dataclass
 class RetrievalResult:
     """Result from knowledge retrieval."""
+
     document: EngineeringDocument
     relevance_score: float
     excerpt: str
@@ -67,8 +73,7 @@ class EmbeddingModel:
     - Model switching layer
     """
 
-    def __init__(self, model_name: str = "all-MiniLM-L6-v2",
-                 use_local: bool = True):
+    def __init__(self, model_name: str = "all-MiniLM-L6-v2", use_local: bool = True):
         """
         Initialize embedding model.
 
@@ -89,6 +94,7 @@ class EmbeddingModel:
         """Load local embedding model using sentence-transformers."""
         try:
             from sentence_transformers import SentenceTransformer
+
             self.model = SentenceTransformer(self.model_name)
             logger.info(f"Loaded local embedding model: {self.model_name}")
         except ImportError:
@@ -99,7 +105,8 @@ class EmbeddingModel:
         """Setup cloud API for embeddings (OpenAI)."""
         try:
             import openai
-            api_key = os.environ.get('OPENAI_API_KEY')
+
+            api_key = os.environ.get("OPENAI_API_KEY")
             if api_key:
                 openai.api_key = api_key
                 self.model = openai
@@ -135,11 +142,8 @@ class EmbeddingModel:
     def _cloud_encode(self, texts: List[str]) -> np.ndarray:
         """Encode using cloud API."""
         try:
-            response = self.model.Embedding.create(
-                model="text-embedding-ada-002",
-                input=texts
-            )
-            embeddings = [item['embedding'] for item in response['data']]
+            response = self.model.Embedding.create(model="text-embedding-ada-002", input=texts)
+            embeddings = [item["embedding"] for item in response["data"]]
             return np.array(embeddings)
         except Exception as e:
             logger.error(f"Cloud embedding failed: {e}")
@@ -157,8 +161,10 @@ class EmbeddingModel:
         testing, set the environment variable RAG_ALLOW_HASH_FALLBACK=1.
         """
         import os
+
         if os.environ.get("RAG_ALLOW_HASH_FALLBACK") == "1":
             import hashlib
+
             dim = 384
             embeddings = []
             for text in texts:
@@ -226,10 +232,11 @@ class VectorDatabase:
         """Initialize ChromaDB."""
         try:
             import chromadb
+
             self.client = chromadb.PersistentClient(path=self.db_path)
             self.collection = self.client.get_or_create_collection(
                 name="engineering_knowledge",
-                metadata={"description": "Power system engineering standards"}
+                metadata={"description": "Power system engineering standards"},
             )
             logger.info("Initialized ChromaDB vector database")
         except ImportError:
@@ -240,6 +247,7 @@ class VectorDatabase:
         """Initialize FAISS index."""
         try:
             import faiss
+
             dimension = 384  # Embedding dimension — must match embedding model output
             self.index = faiss.IndexFlatL2(dimension)
             self._faiss_id_map: List[str] = []
@@ -267,23 +275,24 @@ class VectorDatabase:
         self.embeddings[doc_id] = embedding
 
         # Add to vector index
-        if self.db_type == "chroma" and hasattr(self, 'collection'):
+        if self.db_type == "chroma" and hasattr(self, "collection"):
             self.collection.add(
                 ids=[doc_id],
                 embeddings=[embedding.tolist()],
-                metadatas=[{
-                    'title': doc.title,
-                    'source': doc.source,
-                    'standard_number': doc.standard_number
-                }],
-                documents=[doc.content]
+                metadatas=[
+                    {
+                        "title": doc.title,
+                        "source": doc.source,
+                        "standard_number": doc.standard_number,
+                    }
+                ],
+                documents=[doc.content],
             )
         elif self.db_type == "faiss" and self.index is not None:
             self.index.add(embedding.reshape(1, -1))
             self._faiss_id_map.append(doc_id)
 
-    def search(self, query_embedding: np.ndarray,
-               top_k: int = 5) -> List[RetrievalResult]:
+    def search(self, query_embedding: np.ndarray, top_k: int = 5) -> List[RetrievalResult]:
         """
         Search for similar documents.
 
@@ -294,43 +303,39 @@ class VectorDatabase:
         Returns:
         List of retrieval results ranked by relevance
         """
-        if self.db_type == "chroma" and hasattr(self, 'collection'):
+        if self.db_type == "chroma" and hasattr(self, "collection"):
             return self._search_chroma(query_embedding, top_k)
         elif self.db_type == "faiss" and self.index is not None:
             return self._search_faiss(query_embedding, top_k)
         else:
             return self._search_memory(query_embedding, top_k)
 
-    def _search_chroma(self, query_embedding: np.ndarray,
-                       top_k: int) -> List[RetrievalResult]:
+    def _search_chroma(self, query_embedding: np.ndarray, top_k: int) -> List[RetrievalResult]:
         """Search using ChromaDB."""
         results = self.collection.query(
-            query_embeddings=[query_embedding.tolist()],
-            n_results=top_k
+            query_embeddings=[query_embedding.tolist()], n_results=top_k
         )
 
         retrieval_results = []
-        for i, doc_id in enumerate(results['ids'][0]):
+        for i, doc_id in enumerate(results["ids"][0]):
             if doc_id in self.documents:
                 doc = self.documents[doc_id]
-                distance = results['distances'][0][i]
+                distance = results["distances"][0][i]
                 relevance_score = 1.0 / (1.0 + distance)
 
-                retrieval_results.append(RetrievalResult(
-                    document=doc,
-                    relevance_score=relevance_score,
-                    excerpt=doc.content[:500]  # First 500 chars
-                ))
+                retrieval_results.append(
+                    RetrievalResult(
+                        document=doc,
+                        relevance_score=relevance_score,
+                        excerpt=doc.content[:500],  # First 500 chars
+                    )
+                )
 
         return retrieval_results
 
-    def _search_faiss(self, query_embedding: np.ndarray,
-                      top_k: int) -> List[RetrievalResult]:
+    def _search_faiss(self, query_embedding: np.ndarray, top_k: int) -> List[RetrievalResult]:
         """Search using FAISS."""
-        distances, indices = self.index.search(
-            query_embedding.reshape(1, -1),
-            top_k
-        )
+        distances, indices = self.index.search(query_embedding.reshape(1, -1), top_k)
 
         retrieval_results = []
         for i, idx in enumerate(indices[0]):
@@ -340,16 +345,15 @@ class VectorDatabase:
                 if doc:
                     distance = distances[0][i]
                     relevance_score = 1.0 / (1.0 + distance)
-                    retrieval_results.append(RetrievalResult(
-                        document=doc,
-                        relevance_score=relevance_score,
-                        excerpt=doc.content[:500]
-                    ))
+                    retrieval_results.append(
+                        RetrievalResult(
+                            document=doc, relevance_score=relevance_score, excerpt=doc.content[:500]
+                        )
+                    )
 
         return retrieval_results
 
-    def _search_memory(self, query_embedding: np.ndarray,
-                       top_k: int) -> List[RetrievalResult]:
+    def _search_memory(self, query_embedding: np.ndarray, top_k: int) -> List[RetrievalResult]:
         """Search using in-memory cosine similarity."""
         if not self.embeddings:
             return []
@@ -367,20 +371,16 @@ class VectorDatabase:
                 similarities[doc_id] = similarity
 
         # Sort by similarity
-        sorted_docs = sorted(
-            similarities.items(),
-            key=lambda x: x[1],
-            reverse=True
-        )[:top_k]
+        sorted_docs = sorted(similarities.items(), key=lambda x: x[1], reverse=True)[:top_k]
 
         retrieval_results = []
         for doc_id, score in sorted_docs:
             doc = self.documents[doc_id]
-            retrieval_results.append(RetrievalResult(
-                document=doc,
-                relevance_score=float(score),
-                excerpt=doc.content[:500]
-            ))
+            retrieval_results.append(
+                RetrievalResult(
+                    document=doc, relevance_score=float(score), excerpt=doc.content[:500]
+                )
+            )
 
         return retrieval_results
 
@@ -396,8 +396,9 @@ class EngineeringKnowledgeBase:
     - Citation generation
     """
 
-    def __init__(self, embedding_model: EmbeddingModel | None = None,
-                 vector_db: VectorDatabase | None = None):
+    def __init__(
+        self, embedding_model: EmbeddingModel | None = None, vector_db: VectorDatabase | None = None
+    ):
         """
         Initialize knowledge base.
 
@@ -409,14 +410,17 @@ class EngineeringKnowledgeBase:
         self.vector_db = vector_db or VectorDatabase()
         self.logger = logging.getLogger("knowledge_base")
 
-        if hasattr(self.embedding_model, 'model') and self.embedding_model.model is not None:
+        if hasattr(self.embedding_model, "model") and self.embedding_model.model is not None:
             test_emb = self.embedding_model.encode(["test"])
             actual_dim = test_emb.shape[1]
             if self.vector_db.db_type == "faiss" and self.vector_db.index is not None:
                 faiss_dim = self.vector_db.index.d
                 if actual_dim != faiss_dim:
-                    logger.warning(f"Embedding dimension ({actual_dim}) doesn't match FAISS index ({faiss_dim}). Reinitializing FAISS.")
+                    logger.warning(
+                        f"Embedding dimension ({actual_dim}) doesn't match FAISS index ({faiss_dim}). Reinitializing FAISS."
+                    )
                     import faiss
+
                     self.vector_db.index = faiss.IndexFlatL2(actual_dim)
 
         # Load default engineering standards
@@ -428,16 +432,16 @@ class EngineeringKnowledgeBase:
 
         for std_data in standards:
             doc = EngineeringDocument(
-                doc_id=std_data['doc_id'],
-                title=std_data['title'],
-                source=std_data['source'],
-                standard_number=std_data.get('standard_number'),
-                content=std_data['content'],
-                metadata=std_data.get('metadata', {})
+                doc_id=std_data["doc_id"],
+                title=std_data["title"],
+                source=std_data["source"],
+                standard_number=std_data.get("standard_number"),
+                content=std_data["content"],
+                metadata=std_data.get("metadata", {}),
             )
 
             # Generate embedding
-            embedding = self.embedding_model.encode([std_data['content']])[0]
+            embedding = self.embedding_model.encode([std_data["content"]])[0]
 
             # Add to database
             self.vector_db.add_document(doc, embedding)
@@ -448,11 +452,11 @@ class EngineeringKnowledgeBase:
         """Get default engineering standards content."""
         return [
             {
-                'doc_id': 'ieee_519_2022_voltage_thd',
-                'title': 'IEEE 519-2022 Voltage THD Limits',
-                'source': 'IEEE',
-                'standard_number': '519-2022',
-                'content': """
+                "doc_id": "ieee_519_2022_voltage_thd",
+                "title": "IEEE 519-2022 Voltage THD Limits",
+                "source": "IEEE",
+                "standard_number": "519-2022",
+                "content": """
                 IEEE 519-2022 Table 1: Voltage Distortion Limits
 
                 For systems rated 1.0 kV and below:
@@ -471,14 +475,14 @@ class EngineeringKnowledgeBase:
                 - Individual harmonic: 1.0%
                 - Total Harmonic Distortion (THD): 1.5%
                 """,
-                'metadata': {'category': 'power_quality', 'topic': 'harmonics'}
+                "metadata": {"category": "power_quality", "topic": "harmonics"},
             },
             {
-                'doc_id': 'iec_60909_fault_types',
-                'title': 'IEC 60909 Short-Circuit Current Calculation',
-                'source': 'IEC',
-                'standard_number': '60909-0:2016',
-                'content': """
+                "doc_id": "iec_60909_fault_types",
+                "title": "IEC 60909 Short-Circuit Current Calculation",
+                "source": "IEC",
+                "standard_number": "60909-0:2016",
+                "content": """
                 IEC 60909-0:2016 defines methods for calculating short-circuit currents.
 
                 Fault Types:
@@ -501,14 +505,14 @@ class EngineeringKnowledgeBase:
                 - For maximum short-circuit currents: c_max = 1.05 or 1.10
                 - For minimum short-circuit currents: c_min = 0.95
                 """,
-                'metadata': {'category': 'fault_analysis', 'topic': 'short_circuit'}
+                "metadata": {"category": "fault_analysis", "topic": "short_circuit"},
             },
             {
-                'doc_id': 'ieee_1584_arc_flash',
-                'title': 'IEEE 1584-2018 Arc Flash Hazard Calculation',
-                'source': 'IEEE',
-                'standard_number': '1584-2018',
-                'content': """
+                "doc_id": "ieee_1584_arc_flash",
+                "title": "IEEE 1584-2018 Arc Flash Hazard Calculation",
+                "source": "IEEE",
+                "standard_number": "1584-2018",
+                "content": """
                 IEEE 1584-2018 Standard for Calculating Incident Energy.
 
                 Applicable Range:
@@ -546,14 +550,14 @@ class EngineeringKnowledgeBase:
                 - Category 4: 25 to < 40 cal/cm²
                 - Danger: ≥ 40 cal/cm²
                 """,
-                'metadata': {'category': 'safety', 'topic': 'arc_flash'}
+                "metadata": {"category": "safety", "topic": "arc_flash"},
             },
             {
-                'doc_id': 'iec_60255_protection_curves',
-                'title': 'IEC 60255 Overcurrent Relay Characteristics',
-                'source': 'IEC',
-                'standard_number': '60255',
-                'content': """
+                "doc_id": "iec_60255_protection_curves",
+                "title": "IEC 60255 Overcurrent Relay Characteristics",
+                "source": "IEC",
+                "standard_number": "60255",
+                "content": """
                 IEC 60255 Standard Inverse Time-Current Characteristics.
 
                 Standard Inverse (SI):
@@ -579,14 +583,14 @@ class EngineeringKnowledgeBase:
                 - Downstream relay should trip before upstream
                 - Consider breaker operating time (typically 3-5 cycles)
                 """,
-                'metadata': {'category': 'protection', 'topic': 'relays'}
+                "metadata": {"category": "protection", "topic": "relays"},
             },
             {
-                'doc_id': 'nec_article_110_safety',
-                'title': 'NEC Article 110 - Electrical Safety Requirements',
-                'source': 'NEC',
-                'standard_number': 'Article 110',
-                'content': """
+                "doc_id": "nec_article_110_safety",
+                "title": "NEC Article 110 - Electrical Safety Requirements",
+                "source": "NEC",
+                "standard_number": "Article 110",
+                "content": """
                 National Electrical Code Article 110: Requirements for Electrical Installations.
 
                 Key Safety Requirements:
@@ -611,14 +615,14 @@ class EngineeringKnowledgeBase:
                 - Ground-fault protection required for certain systems
                 - Equipment grounding conductor sizing per Table 250.122
                 """,
-                'metadata': {'category': 'safety', 'topic': 'electrical_safety'}
+                "metadata": {"category": "safety", "topic": "electrical_safety"},
             },
             {
-                'doc_id': 'ieee_399_load_flow',
-                'title': 'IEEE 399 Brown Book - Load Flow Analysis Methods',
-                'source': 'IEEE',
-                'standard_number': '399',
-                'content': """
+                "doc_id": "ieee_399_load_flow",
+                "title": "IEEE 399 Brown Book - Load Flow Analysis Methods",
+                "source": "IEEE",
+                "standard_number": "399",
+                "content": """
                 IEEE 399 (Brown Book): Recommended Practice for Industrial Power Systems Analysis.
 
                 Load Flow Solution Methods:
@@ -650,8 +654,8 @@ class EngineeringKnowledgeBase:
                 - PV bus (Generator): Specifies P and V
                 - PQ bus (Load): Specifies P and Q
                 """,
-                'metadata': {'category': 'analysis', 'topic': 'load_flow'}
-            }
+                "metadata": {"category": "analysis", "topic": "load_flow"},
+            },
         ]
 
     def ingest_document(self, doc: EngineeringDocument):
@@ -669,8 +673,7 @@ class EngineeringKnowledgeBase:
 
         self.logger.info(f"Ingested document: {doc.doc_id}")
 
-    def retrieve_knowledge(self, query: str,
-                          top_k: int = 5) -> List[RetrievalResult]:
+    def retrieve_knowledge(self, query: str, top_k: int = 5) -> List[RetrievalResult]:
         """
         Retrieve relevant engineering knowledge for a query.
 
@@ -691,8 +694,7 @@ class EngineeringKnowledgeBase:
 
         return results
 
-    def check_compliance(self, calculation_type: str,
-                         parameters: Dict) -> Dict:
+    def check_compliance(self, calculation_type: str, parameters: Dict) -> Dict:
         """
         Check if calculation parameters comply with standards.
 
@@ -710,11 +712,11 @@ class EngineeringKnowledgeBase:
         results = self.retrieve_knowledge(query, top_k=3)
 
         compliance_result = {
-            'calculation_type': calculation_type,
-            'compliant': True,
-            'violations': [],
-            'references': [],
-            'recommendations': []
+            "calculation_type": calculation_type,
+            "compliant": True,
+            "violations": [],
+            "references": [],
+            "recommendations": [],
         }
 
         # Check against retrieved standards
@@ -722,50 +724,44 @@ class EngineeringKnowledgeBase:
             doc = result.document
 
             # Add reference
-            compliance_result['references'].append({
-                'title': doc.title,
-                'source': doc.source,
-                'standard_number': doc.standard_number,
-                'relevance_score': result.relevance_score
-            })
-
-            # Perform specific checks based on document content
-            violations = self._check_specific_compliance(
-                calculation_type, parameters, doc
+            compliance_result["references"].append(
+                {
+                    "title": doc.title,
+                    "source": doc.source,
+                    "standard_number": doc.standard_number,
+                    "relevance_score": result.relevance_score,
+                }
             )
 
+            # Perform specific checks based on document content
+            violations = self._check_specific_compliance(calculation_type, parameters, doc)
+
             if violations:
-                compliance_result['compliant'] = False
-                compliance_result['violations'].extend(violations)
+                compliance_result["compliant"] = False
+                compliance_result["violations"].extend(violations)
 
         return compliance_result
 
-    def _check_specific_compliance(self, calc_type: str,
-                                   params: Dict,
-                                   doc: EngineeringDocument) -> List[str]:
+    def _check_specific_compliance(
+        self, calc_type: str, params: Dict, doc: EngineeringDocument
+    ) -> List[str]:
         """Check specific compliance rules."""
         violations = []
 
-        if calc_type == 'arc_flash' and 'voltage_kv' in params:
-            voltage = params['voltage_kv']
+        if calc_type == "arc_flash" and "voltage_kv" in params:
+            voltage = params["voltage_kv"]
             if voltage < 0.208 or voltage > 15.0:
-                violations.append(
-                    f"Voltage {voltage} kV outside IEEE 1584 range (0.208-15 kV)"
-                )
+                violations.append(f"Voltage {voltage} kV outside IEEE 1584 range (0.208-15 kV)")
 
-        elif calc_type == 'harmonic' and 'thd_voltage' in params:
-            thd = params['thd_voltage']
+        elif calc_type == "harmonic" and "thd_voltage" in params:
+            thd = params["thd_voltage"]
             if thd > 8.0:
-                violations.append(
-                    f"Voltage THD {thd}% exceeds IEEE 519 limit (8% for <1kV)"
-                )
+                violations.append(f"Voltage THD {thd}% exceeds IEEE 519 limit (8% for <1kV)")
 
-        elif calc_type == 'voltage' and 'magnitude_pu' in params:
-            v_mag = params['magnitude_pu']
+        elif calc_type == "voltage" and "magnitude_pu" in params:
+            v_mag = params["magnitude_pu"]
             if v_mag < 0.95 or v_mag > 1.05:
-                violations.append(
-                    f"Voltage {v_mag} pu outside acceptable range (0.95-1.05)"
-                )
+                violations.append(f"Voltage {v_mag} pu outside acceptable range (0.95-1.05)")
 
         return violations
 
@@ -790,6 +786,7 @@ class EngineeringKnowledgeBase:
 
 # Singleton instance
 _knowledge_base = None
+
 
 def get_knowledge_base() -> EngineeringKnowledgeBase:
     """Get or create knowledge base singleton."""

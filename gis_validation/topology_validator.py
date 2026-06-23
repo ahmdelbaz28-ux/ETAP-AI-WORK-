@@ -29,7 +29,9 @@ class ADMSGraphModel:
         self._build_deterministic_edges()
 
     @staticmethod
-    def _extract_endpoints(geometry: Dict[str, Any]) -> Tuple[Tuple[float, float], Tuple[float, float]] | None:
+    def _extract_endpoints(
+        geometry: Dict[str, Any],
+    ) -> Tuple[Tuple[float, float], Tuple[float, float]] | None:
         gtype = geometry.get("type")
         coords = geometry.get("coordinates")
         if gtype == "LineString" and isinstance(coords, list) and len(coords) >= 2:
@@ -44,7 +46,9 @@ class ADMSGraphModel:
         # Deterministic: connect LINE/FEEDER assets to nearest substations by matching endpoints exactly
         # when possible (within exact equality). No tolerance to avoid nondeterminism.
         substations = [a for a in self.assets if a.asset_type in (ADMSAssetType.SUBSTATION,)]
-        lines = [a for a in self.assets if a.asset_type in (ADMSAssetType.LINE, ADMSAssetType.FEEDER)]
+        lines = [
+            a for a in self.assets if a.asset_type in (ADMSAssetType.LINE, ADMSAssetType.FEEDER)
+        ]
 
         sub_endpoints: Dict[Tuple[float, float], List[str]] = {}
         for s in substations:
@@ -115,7 +119,9 @@ def validate_adms_topology(assets: List[ADMSAsset]) -> Tuple[bool, List[Topology
         )
 
     substations = [a.asset_id for a in assets if a.asset_type == ADMSAssetType.SUBSTATION]
-    lines = [a.asset_id for a in assets if a.asset_type in (ADMSAssetType.LINE, ADMSAssetType.FEEDER)]
+    lines = [
+        a.asset_id for a in assets if a.asset_type in (ADMSAssetType.LINE, ADMSAssetType.FEEDER)
+    ]
 
     # Node isolation: substations with degree 0
     isolated_subs = [sid for sid in substations if len(graph.edges.get(sid, set())) == 0]

@@ -31,11 +31,34 @@ def agent():
 @pytest.fixture
 def load_profile():
     """24-hour load profile in kW (typical industrial)."""
-    return np.array([
-        200, 180, 170, 165, 160, 180, 250, 350,
-        450, 500, 520, 510, 490, 500, 480, 460,
-        400, 380, 350, 320, 280, 250, 220, 200,
-    ])
+    return np.array(
+        [
+            200,
+            180,
+            170,
+            165,
+            160,
+            180,
+            250,
+            350,
+            450,
+            500,
+            520,
+            510,
+            490,
+            500,
+            480,
+            460,
+            400,
+            380,
+            350,
+            320,
+            280,
+            250,
+            220,
+            200,
+        ]
+    )
 
 
 class TestBatteryStorageScenario:
@@ -60,11 +83,34 @@ class TestBatteryStorageScenario:
     def test_peak_shaving_dispatch(self, agent, load_profile):
         """Test 3: Peak shaving dispatch reduces peak demand."""
         # Create energy price profile (high during peak, low during off-peak)
-        prices = np.array([
-            0.05, 0.05, 0.05, 0.05, 0.05, 0.06, 0.08, 0.10,
-            0.15, 0.20, 0.25, 0.25, 0.20, 0.20, 0.18, 0.15,
-            0.12, 0.10, 0.08, 0.07, 0.06, 0.05, 0.05, 0.05,
-        ])
+        prices = np.array(
+            [
+                0.05,
+                0.05,
+                0.05,
+                0.05,
+                0.05,
+                0.06,
+                0.08,
+                0.10,
+                0.15,
+                0.20,
+                0.25,
+                0.25,
+                0.20,
+                0.20,
+                0.18,
+                0.15,
+                0.12,
+                0.10,
+                0.08,
+                0.07,
+                0.06,
+                0.05,
+                0.05,
+                0.05,
+            ]
+        )
         result = agent.optimize_dispatch(
             load_profile_kw=load_profile,
             energy_prices=prices,

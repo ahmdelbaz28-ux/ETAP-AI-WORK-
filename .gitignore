@@ -41,6 +41,7 @@ venv/
 env/
 ENV/
 .venv
+.venv/
 env.bak/
 venv.bak/
 
@@ -210,6 +211,11 @@ ui/eslint-*.json
 docker-compose.override.yml
 
 # ==========================================
+# Terraform
+# ==========================================
+.terraform/
+
+# ==========================================
 # Deployment Configs (per-environment)
 # ==========================================
 fly.toml
@@ -341,3 +347,5 @@ ui/release/
 ui/release
 *.asar
 security/_tmp_secure_executor_test_runner.py
+# Helm downloaded dependency charts
+helm/**/charts/

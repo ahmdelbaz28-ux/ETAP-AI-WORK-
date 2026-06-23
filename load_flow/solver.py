@@ -19,7 +19,7 @@ from typing import Any, Dict, List, Union
 import numpy as np
 
 # Re-export the existing fixed solver for backward compatibility
-from load_flow.load_flow_solver_fixed import LoadFlowSolver  # noqa: F401
+from load_flow.load_flow import LoadFlowSolver  # noqa: F401
 
 logger = logging.getLogger(__name__)
 
@@ -40,6 +40,7 @@ BranchInput = Union[Dict[str, Any], Any]
 # ---------------------------------------------------------------------------
 # Conversion helpers
 # ---------------------------------------------------------------------------
+
 
 def _bus_to_bus_data(bus: BusInput, index_map: Dict[int, int]) -> Any:
     """Convert various bus representations to ``BusData``.
@@ -97,7 +98,8 @@ def _bus_to_bus_data(bus: BusInput, index_map: Dict[int, int]) -> Any:
             q_min=getattr(bus, "q_min", -999.0),
             q_max=getattr(bus, "q_max", 999.0),
             v_scheduled=getattr(bus, "voltage_magnitude", 1.0)
-            if getattr(bus, "bus_type", "pq") == "pv" else 1.0,
+            if getattr(bus, "bus_type", "pq") == "pv"
+            else 1.0,
         )
 
     raise TypeError(f"Unsupported bus type: {type(bus)}")
@@ -144,7 +146,11 @@ def _branch_to_branch_data(
         from_idx = index_map.get(from_id, from_id)
         to_idx = index_map.get(to_id, to_id)
         z = branch.get_impedance("1") if hasattr(branch, "get_impedance") else complex(0, 0.1)
-        ys = branch.get_shunt_admittance("1") if hasattr(branch, "get_shunt_admittance") else complex(0, 0)
+        ys = (
+            branch.get_shunt_admittance("1")
+            if hasattr(branch, "get_shunt_admittance")
+            else complex(0, 0)
+        )
         tap = getattr(branch, "tap_ratio", 1.0)
         ps = getattr(branch, "phase_shift", 0.0)
         return BranchData(
@@ -162,6 +168,7 @@ def _branch_to_branch_data(
 # ---------------------------------------------------------------------------
 # Main sparse solver integration
 # ---------------------------------------------------------------------------
+
 
 def solve_load_flow_sparse(
     buses: List[BusInput],
@@ -242,7 +249,10 @@ def solve_load_flow_sparse(
     if verbose:
         logger.info(
             "Sparse load-flow: %d buses, %d branches, max_iter=%d, tol=%.1e",
-            len(bus_data_list), len(branch_data_list), max_iter, tol,
+            len(bus_data_list),
+            len(branch_data_list),
+            max_iter,
+            tol,
         )
 
     # --- Build sparse Y-bus ---
@@ -255,6 +265,7 @@ def solve_load_flow_sparse(
     # --- Solve ---
     if use_gpu:
         from engine.gpu_solver import GPUSolver
+
         solver = GPUSolver()
         result = solver.newton_raphson_gpu(ybus, bus_data_list, max_iter=max_iter, tol=tol)
     else:
@@ -263,7 +274,9 @@ def solve_load_flow_sparse(
     if verbose:
         logger.info(
             "Sparse load-flow %s: converged=%s, iterations=%d, mismatch=%.2e",
-            result.solver_type, result.converged, result.iterations,
+            result.solver_type,
+            result.converged,
+            result.iterations,
             result.max_mismatch,
         )
 

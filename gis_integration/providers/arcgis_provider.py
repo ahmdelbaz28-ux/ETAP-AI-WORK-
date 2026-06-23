@@ -45,6 +45,7 @@ class ArcGISProvider(GISProviderInterface):
             return []
         try:
             import arcpy  # type: ignore
+
             # Best-effort: list layers from the default workspace if set.
             layers: List[str] = []
             try:
@@ -55,8 +56,10 @@ class ArcGISProvider(GISProviderInterface):
                 # expected in many ArcGIS sessions, so log at debug and return
                 # an empty list rather than failing the whole listing call.
                 import logging
+
                 logging.getLogger(__name__).debug(
-                    "ArcGIS Describe(workspace) failed: %s", desc_err,
+                    "ArcGIS Describe(workspace) failed: %s",
+                    desc_err,
                 )
             return layers
         except Exception:
@@ -79,7 +82,9 @@ class ArcGISProvider(GISProviderInterface):
                 lyr = layer_id
                 _ = lyr
             except Exception as exc:
-                raise GISDataExtractionError(f"Invalid ArcGIS layer_id '{layer_id}': {exc}") from exc
+                raise GISDataExtractionError(
+                    f"Invalid ArcGIS layer_id '{layer_id}': {exc}"
+                ) from exc
 
             # Fallback cursor approach: attempt to iterate without strict schema.
             cursor = arcpy.da.SearchCursor(layer_id, ["OID@", "SHAPE@"])  # type: ignore
@@ -92,7 +97,9 @@ class ArcGISProvider(GISProviderInterface):
                     geojson_geom_str = geom.JSON  # type: ignore
                     geom_dict = safe_parse_geojson(geojson_geom_str)
                 except Exception as err:
-                    raise GISDataExtractionError("Unable to convert ArcGIS geometry to GeoJSON") from err
+                    raise GISDataExtractionError(
+                        "Unable to convert ArcGIS geometry to GeoJSON"
+                    ) from err
 
                 ok, reason = validate_geometry_dict(geom_dict)
                 if not ok:

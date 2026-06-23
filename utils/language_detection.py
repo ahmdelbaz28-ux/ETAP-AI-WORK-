@@ -12,11 +12,14 @@ from typing import TYPE_CHECKING, Dict
 # Try to import langdetect for better language detection
 try:
     from langdetect import detect
+
     HAS_LANGDETECT = True
 except ImportError:
     HAS_LANGDETECT = False
     detect = None  # type: ignore
-    print("Warning: langdetect not installed. Install with 'pip install langdetect' for better language detection.")
+    print(
+        "Warning: langdetect not installed. Install with 'pip install langdetect' for better language detection."
+    )
 
 if TYPE_CHECKING or HAS_LANGDETECT and detect is not None:
     from langdetect import detect
@@ -133,7 +136,7 @@ def normalize_input(text: str) -> str:
             detected_lang = None
 
     # If langdetect detected Arabic, convert keyboard layout
-    if detected_lang == 'ar':
+    if detected_lang == "ar":
         result = ""
         for char in text:
             if char in ARABIC_TO_ENGLISH_KEYBOARD_MAP:
@@ -163,7 +166,7 @@ def is_arabic_text(text: str) -> bool:
     for char in text:
         if char.isalpha():
             total_alpha += 1
-            if '\u0600' <= char <= '\u06FF':  # Arabic Unicode block
+            if "\u0600" <= char <= "\u06ff":  # Arabic Unicode block
                 arabic_chars += 1
 
     if total_alpha == 0:
@@ -186,10 +189,10 @@ def detect_language(text: str) -> str:
     if HAS_LANGDETECT:
         try:
             lang = detect(text)
-            if lang == 'ar':
-                return 'arabic'
-            elif lang == 'en':
-                return 'english'
+            if lang == "ar":
+                return "arabic"
+            elif lang == "en":
+                return "english"
             else:
                 return lang
         except Exception:
@@ -200,21 +203,21 @@ def detect_language(text: str) -> str:
     english_chars = 0
 
     for char in text:
-        if '\u0600' <= char <= '\u06FF':  # Arabic Unicode block
+        if "\u0600" <= char <= "\u06ff":  # Arabic Unicode block
             arabic_chars += 1
-        elif char.isalpha() and char <= '\u017F':  # Basic Latin characters
+        elif char.isalpha() and char <= "\u017f":  # Basic Latin characters
             english_chars += 1
 
     total_alpha = arabic_chars + english_chars
 
     if total_alpha == 0:
-        return 'unknown'
+        return "unknown"
     elif arabic_chars / total_alpha > 0.5:
-        return 'arabic'
+        return "arabic"
     elif english_chars / total_alpha > 0.5:
-        return 'english'
+        return "english"
     else:
-        return 'mixed'
+        return "mixed"
 
 
 def convert_arabic_to_english(text: str) -> str:

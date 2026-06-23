@@ -57,6 +57,7 @@ def check_readme_frontmatter():
         raise ValueError("Missing YAML front matter (--- ... ---)")
 
     import yaml
+
     meta = yaml.safe_load(m.group(1))
 
     if not isinstance(meta, dict):
@@ -136,7 +137,9 @@ def check_docker_build():
     os.path.join(HF_DIR, "Dockerfile")
 
     if not check_docker_available():
-        warnings.append("Docker not available locally - skipping build check (will be validated on GitHub Actions)")
+        warnings.append(
+            "Docker not available locally - skipping build check (will be validated on GitHub Actions)"
+        )
         return None  # None = warning, not failure
 
     with tempfile.TemporaryDirectory() as tmpdir:
@@ -153,7 +156,9 @@ def check_docker_build():
 
         result = subprocess.run(
             ["docker", "build", "-t", "hf-guard-test:latest", tmpdir],
-            capture_output=True, text=True, timeout=300
+            capture_output=True,
+            text=True,
+            timeout=300,
         )
 
         if result.returncode != 0:
@@ -169,18 +174,30 @@ def check_health_endpoint():
     container_name = "hf-guard-test-container"
 
     if not check_docker_available():
-        warnings.append("Docker not available locally - skipping health check (will be validated on GitHub Actions)")
+        warnings.append(
+            "Docker not available locally - skipping health check (will be validated on GitHub Actions)"
+        )
         return None  # None = warning, not failure
 
     try:
         # Stop any existing container
-        subprocess.run(["docker", "rm", "-f", container_name],
-                      capture_output=True, timeout=10)
+        subprocess.run(["docker", "rm", "-f", container_name], capture_output=True, timeout=10)
 
         # Run container
         result = subprocess.run(
-            ["docker", "run", "-d", "--name", container_name, "-p", "7861:7860", "hf-guard-test:latest"],
-            capture_output=True, text=True, timeout=30
+            [
+                "docker",
+                "run",
+                "-d",
+                "--name",
+                container_name,
+                "-p",
+                "7861:7860",
+                "hf-guard-test:latest",
+            ],
+            capture_output=True,
+            text=True,
+            timeout=30,
         )
 
         if result.returncode != 0:
@@ -188,12 +205,23 @@ def check_health_endpoint():
 
         # Wait for startup
         import time
+
         time.sleep(5)
 
         # Test health endpoint
         result = subprocess.run(
-            ["curl", "-s", "-o", "/dev/null", "-w", "%{http_code}", "http://localhost:7861/healthz"],
-            capture_output=True, text=True, timeout=10
+            [
+                "curl",
+                "-s",
+                "-o",
+                "/dev/null",
+                "-w",
+                "%{http_code}",
+                "http://localhost:7861/healthz",
+            ],
+            capture_output=True,
+            text=True,
+            timeout=10,
         )
 
         status_code = result.stdout.strip()
@@ -202,8 +230,7 @@ def check_health_endpoint():
 
         # Test root endpoint
         result = subprocess.run(
-            ["curl", "-s", "http://localhost:7861/"],
-            capture_output=True, text=True, timeout=10
+            ["curl", "-s", "http://localhost:7861/"], capture_output=True, text=True, timeout=10
         )
 
         if "AhmedETAP" not in result.stdout:
@@ -212,8 +239,7 @@ def check_health_endpoint():
         return True
 
     finally:
-        subprocess.run(["docker", "rm", "-f", container_name],
-                      capture_output=True, timeout=10)
+        subprocess.run(["docker", "rm", "-f", container_name], capture_output=True, timeout=10)
 
 
 def check_no_secrets():
@@ -236,7 +262,9 @@ def check_no_secrets():
                     content = fh.read()
                 for pattern in secret_patterns:
                     if re.search(pattern, content, re.IGNORECASE):
-                        raise ValueError(f"Potential secret found in {os.path.relpath(filepath, HF_DIR)}")
+                        raise ValueError(
+                            f"Potential secret found in {os.path.relpath(filepath, HF_DIR)}"
+                        )
             except (UnicodeDecodeError, PermissionError):
                 pass
 
@@ -245,16 +273,16 @@ def check_no_secrets():
 
 def cleanup():
     """Clean up Docker test artifacts."""
-    subprocess.run(["docker", "rm", "-f", "hf-guard-test-container"],
-                  capture_output=True, timeout=10)
-    subprocess.run(["docker", "rmi", "hf-guard-test:latest"],
-                  capture_output=True, timeout=10)
+    subprocess.run(
+        ["docker", "rm", "-f", "hf-guard-test-container"], capture_output=True, timeout=10
+    )
+    subprocess.run(["docker", "rmi", "hf-guard-test:latest"], capture_output=True, timeout=10)
 
 
 def main():
-    print(f"\n{BOLD}{'='*60}{RESET}")
+    print(f"\n{BOLD}{'=' * 60}{RESET}")
     print(f"{BOLD}  HF Space Build Guard - Pre-Push Validation{RESET}")
-    print(f"{BOLD}{'='*60}{RESET}\n")
+    print(f"{BOLD}{'=' * 60}{RESET}\n")
 
     try:
         check("README.md YAML front matter", check_readme_frontmatter)
@@ -267,7 +295,7 @@ def main():
     finally:
         cleanup()
 
-    print(f"\n{BOLD}{'='*60}{RESET}")
+    print(f"\n{BOLD}{'=' * 60}{RESET}")
 
     if errors:
         print(f"\n{RED}{BOLD}FAILED - {len(errors)} critical error(s):{RESET}")
