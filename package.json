@@ -10,7 +10,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "lint": "tsc --noEmit",
-    "lint:ci": "tsc --noEmit && vitest run"
+    "lint:ci": "tsc --noEmit && vitest run",
+    "test:scenarios": "vitest run tests/scenarios/"
   },
   "keywords": [
     "power-systems",
