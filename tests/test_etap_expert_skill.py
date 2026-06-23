@@ -12,7 +12,6 @@ from __future__ import annotations
 
 import pytest
 
-
 # ---------------------------------------------------------------------------
 # Fixture: lazy-loaded agent (skill knowledge base is read once per process)
 # ---------------------------------------------------------------------------

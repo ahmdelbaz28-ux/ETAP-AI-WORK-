@@ -472,7 +472,7 @@ def _try_cable_sizing_simulation(question: str) -> Optional[Dict[str, Any]]:
         "simulation_steps": [
             f"Step 1 — Ampacity: load current = {sim.load_current_a} A → need cable ≥ {sim.load_current_a} A at 75°C",
             f"  → Selected {sim.recommended_awg} per NEC Table 310.16",
-            f"Step 2 — Voltage Drop: VD = I × (R·cosφ + X·sinφ) × L",
+            "Step 2 — Voltage Drop: VD = I × (R·cosφ + X·sinφ) × L",
             f"  PF = {sim.power_factor}, sinφ = {math.sqrt(1 - sim.power_factor**2):.3f}",
             f"  VD = {sim.voltage_drop_v:.2f} V → %VD = {sim.voltage_drop_pct:.2f}%",
             f"  Limit: 3% per IEEE 141 → {'PASS ✓' if sim.voltage_drop_pct < 3 else 'FAIL ✗ (oversized run or use larger cable)'}",
