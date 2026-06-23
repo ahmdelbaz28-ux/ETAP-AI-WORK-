@@ -201,6 +201,8 @@ class StudyRequest(BaseModel):
             "etap_optimal_power_flow",
             "etap_motor_starting",
             "etap_protection_coordination",
+            # ETAP Expert skill — 6-step workflow with Format A/B/C/D responses
+            "etap_expert",
         }
         v = v.lower().strip()
         if v not in allowed:
@@ -360,6 +362,17 @@ def _run_native_study(
     if study_type in _STUDIES_REQUIRING_SYSTEM and system is None:
         raise ValueError(f"study_type '{study_type}' requires a 'system' to be provided")
 
+    # ETAP Expert skill — 6-step workflow with Format A/B/C/D responses.
+    # Routes to the dedicated ETAPExpertAgent instead of the numerical engine.
+    if study_type == "etap_expert":
+        from agents.etap_expert_agent import ETAPExpertAgent
+
+        agent = ETAPExpertAgent()
+        question = str(parameters.get("question", "")).strip()
+        if not question:
+            raise ValueError("'question' field is required for study_type='etap_expert'")
+        return agent.answer(question)
+
     from engine.engine import PowerSystemEngine
 
     engine = PowerSystemEngine(system)
@@ -412,7 +425,7 @@ async def run_study(request: Request, payload: StudyRequest, _: str = Depends(ge
     task_id = payload.task_id or str(uuid.uuid4())
     start = time.perf_counter()
 
-    from core.metrics import _add_execution_time, _increment_counter
+    from core.bootstrap import _add_execution_time, _increment_counter
 
     _increment_counter("request")
 

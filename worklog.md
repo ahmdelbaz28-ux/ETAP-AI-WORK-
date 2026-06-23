@@ -116,3 +116,52 @@ Work Log:
 Stage Summary:
 - Auto-sync is FULLY OPERATIONAL
 - HF Space status: RUNNING
+
+---
+Task ID: etap-expert-skill
+Agent: Review & Integration Agent (Super Z)
+Task: Surgically integrate ETAP Expert Skill as a runtime-active agent + fix critical studies/run bug
+
+Work Log:
+- Reviewed remote repo @ commit 7ca45a5: confirmed previous agent's claim that "ETAP Expert Skill is embedded" was FALSE — no skill files, no agent registration, no Format A/B/C/D in runtime responses (verified via 5-gram similarity scan + 14 unique-signature grep + actual HTTP runtime tests).
+- Fixed critical bug in api/studies.py:415 — was importing `_add_execution_time` and `_increment_counter` from `core.metrics` (functions don't exist there); corrected to `core.bootstrap` (where the functions actually live). This bug broke POST /api/v1/studies/run with HTTP 500 on every request.
+- Added `etap_expert` to the allowed `study_type` set in StudyRequest validator (api/studies.py).
+- Routed `etap_expert` study type to a new dedicated agent in `_run_native_study()` (api/studies.py).
+- Created skills/etap-expert.md (4,417 lines / 168KB) — the complete ETAP Expert knowledge base (copied from user-supplied upload, single source of truth).
+- Created skills/etap-ai-agent-system-prompt.md (383 lines) — the skill system prompt.
+- Created prompts/etap_expert_agent.prompt.yaml — condensed LLM-side system prompt referencing the skill knowledge base and the 6-step workflow + 4 response formats.
+- Created agents/etap_expert_agent.py — runtime-active agent implementing:
+  * Skill knowledge loader (cached, single source of truth)
+  * Rule-based classifier (Complete / Incomplete / Wrong / ADMS) — deterministic, no external LLM API required
+  * Internal simulation engine (cable sizing per NEC Table 310.16 + IEEE 141 voltage drop, with real numerical results)
+  * Format A/B/C/D response formatters that emit the exact signatures defined by the skill specification
+  * 6-step workflow enforcement (PARSE → SEARCH → VALIDATE → SIMULATE → FORMAT → QA)
+  * Sync + async execute() methods for orchestrator compatibility
+- Registered ETAPExpertAgent in agents/orchestrator.py (`self.agents["etap_expert"]`).
+- Updated prompts.json with the `etap_expert_agent` handle.
+- Created tests/test_etap_expert_skill.py — 22 tests covering:
+  * Skill file existence + size + agent loading
+  * Classification for all 4 modes (complete/incomplete/wrong/adms)
+  * Format A signature + cable sizing simulation correctness (VD=5.44V, 1.13%, AWG selection)
+  * Format B signature + clarifying questions
+  * Format C signature + correction content
+  * Format D signature + ADMS navigation
+  * 6-step workflow count enforcement
+  * Orchestrator registration
+  * StudyRequest validator accepts `etap_expert`
+  * `_run_native_study` dispatches `etap_expert` to the agent
+  * Bug fix verification (`_add_execution_time` and `_increment_counter` importable from `core.bootstrap`)
+  * prompts.json + YAML file existence
+- Updated tests/test_prompt_integration.py to register etap_expert_agent + arcflash_agent + code_guard_agent in the prompt-consumer mapping (pre-existing unmapped-prompt failures also fixed).
+- Updated AGENTS.md with full documentation for the new ETAPExpertAgent.
+
+Stage Summary:
+- All 22 new tests pass.
+- All 68 tests in (test_etap_expert_skill + test_prompt_integration + test_new_agents) pass — 0 regressions.
+- Runtime HTTP test confirmed all 4 formats produce the exact signatures specified by the skill:
+  * Test 1 (Complete): ✅ REQUEST ANALYSIS: COMPLETE + 5.44V / 1.13% / 3/0 AWG (matches skill Example 1)
+  * Test 2 (Incomplete): ⚠️ REQUEST ANALYSIS: INCOMPLETE + clarifying questions
+  * Test 3 (Wrong): ❌ REQUEST ANALYSIS: INCORRECT APPROACH + Short Circuit correction
+  * Test 4 (ADMS): 🔷 ADMS REQUEST ANALYSIS + DSE/FLISR/VVO navigation
+- Bug fix verified: POST /api/v1/studies/run no longer returns HTTP 500.
+- Skill is now ACTUALLY active at runtime, not just present as files.
