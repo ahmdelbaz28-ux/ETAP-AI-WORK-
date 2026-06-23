@@ -65,9 +65,9 @@ services:
     image: postgres:15
     restart: always
     environment:
-      POSTGRES_DB: etap_db
-      POSTGRES_USER: etap_user
-      POSTGRES_PASSWORD: etap_pass
+      POSTGRES_DB: ${POSTGRES_DB:-etap_db}
+      POSTGRES_USER: ${POSTGRES_USER:-etap_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-etap_pass}
     ports:
       - "5432:5432"
     volumes:
@@ -80,7 +80,7 @@ services:
     ports:
       - "3000:3000"
     environment:
-      - GF_SECURITY_ADMIN_PASSWORD=admin123
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD:-admin123}
     volumes:
       - grafana_storage:/var/lib/grafana
     networks:

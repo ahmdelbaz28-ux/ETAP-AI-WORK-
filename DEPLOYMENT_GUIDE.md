@@ -62,7 +62,7 @@ cd my-awesome-agent
    # API Keys
    OPENAI_API_KEY=sk-your-openai-key
    LANGWATCH_API_KEY=sk-lw-your-key
-   SMITHERY_API_KEY=REDACTED_SMITHERY_KEY
+   SMITHERY_API_KEY=your-smithery-api-key-here
 
    # JWT Authentication
    JWT_SECRET_KEY=generate-a-secure-random-key-here

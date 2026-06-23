@@ -1,4 +1,3 @@
-# Machine Learning requirements - optional heavy dependencies
 # Phase 6: ML/AI - Core
 scikit-learn>=1.3.0
 tensorflow>=2.15.0; python_version >= '3.9'
