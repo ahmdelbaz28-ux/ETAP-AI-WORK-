@@ -1366,6 +1366,18 @@ class ChiefEngineeringOrchestrator:
             self.logger = logging.getLogger("orchestrator")
             self.logger.info("CodeGuardAgent not available — guard-skills review disabled")
 
+        # ETAP Expert skill agent — 6-step workflow with Format A/B/C/D responses
+        try:
+            from agents.etap_expert_agent import ETAPExpertAgent
+
+            self._etap_expert_agent = ETAPExpertAgent()
+            self.agents["etap_expert"] = self._etap_expert_agent
+        except Exception as exc:
+            self._etap_expert_agent = None
+            self.logger.warning(
+                "ETAPExpertAgent not available — skill disabled: %s", exc
+            )
+
         self.task_queue: List[EngineeringTask] = []
         self.completed_tasks: Dict[str, EngineeringTask] = {}
         self.logger = logging.getLogger("orchestrator")

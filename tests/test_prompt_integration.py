@@ -202,7 +202,9 @@ class TestAgentPromptIntegration:
         info = orch.get_agents_info()
         assert "orchestrator" in info
         assert "agents" in info
-        assert len(info["agents"]) == 8  # 8 core agents in orchestrator
+        # 8 core agents + code_guard (optional) + etap_expert (skill)
+        assert len(info["agents"]) >= 8
+        assert "etap_expert" in info["agents"], "etap_expert agent must be registered"
 
     def test_extended_agents_have_prompts(self):
         """Extended agent classes should also load their prompts."""
@@ -287,7 +289,10 @@ class TestPromptHandleMapping:
             "report_agent": "ReportGenerationAgent",
             "etap_engineer_agent": "ETAPExecutionAgent + etapEngineerAgent (TS)",
             "etap_engineer_agent_v2": "Reserved for V2 agent variant",
+            "etap_expert_agent": "ETAPExpertAgent (skill) + study_type='etap_expert'",
             "arcflash_agent_prompt": "arcFlashAgent (TS)",
+            "arcflash_agent": "arcFlashAgent (TS) — alias for arcflash_agent_prompt",
+            "code_guard_agent": "CodeGuardAgent (guard skills)",
             "goal_planner_agent": "goalPlannerAgent (TS)",
             "weather_agent": "weatherAgent (TS)",
             "weather_activity_planner": "Weather workflow (TS)",
