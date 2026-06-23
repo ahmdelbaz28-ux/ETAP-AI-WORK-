@@ -28,7 +28,7 @@ RUN pip install --no-cache-dir --upgrade pip && \
 
 # =============================================================================
 # Stage 2: TypeScript / Node Builder
-FROM node:20-slim AS ts-builder
+FROM node:26-slim AS ts-builder
 
 LABEL stage="ts-builder"
 
