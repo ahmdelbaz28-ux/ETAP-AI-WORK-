@@ -36,7 +36,7 @@ jobs:
           fi
       - name: Setup Pages
         if: steps.pages-check.outputs.pages_enabled == 'true'
-        uses: actions/configure-pages@v4
+        uses: actions/configure-pages@v6
       - name: Prepare docs
         if: steps.pages-check.outputs.pages_enabled == 'true'
         run: |
