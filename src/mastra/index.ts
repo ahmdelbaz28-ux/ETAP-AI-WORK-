@@ -12,6 +12,7 @@ import { shortCircuitAgent } from './agents/shortcircuit-agent';
 import { loadFlowAgent } from './agents/loadflow-agent';
 import { arcFlashAgent } from './agents/arcflash-agent';
 import { etapEngineerAgent } from './agents/etap-engineer-agent';
+import { etapExpertAgent } from './agents/etap-expert-agent';
 import { protectionAgent } from './agents/protection-agent';
 import { powerSystemCoordinatorAgent } from './agents/power-system-coordinator-agent';
 import { codeGuardAgent } from './agents/code-guard-agent';
@@ -71,6 +72,7 @@ export const mastra = new Mastra({
     loadFlowAgent,
     arcFlashAgent,
     etapEngineerAgent,
+    etapExpertAgent,
     protectionAgent,
     powerSystemCoordinatorAgent,
     codeGuardAgent

@@ -5,8 +5,13 @@ Handles all AI agent information endpoints.
 Separated from main engineering service for better modularity.
 """
 
-from fastapi import APIRouter, Request
+from typing import Any, Dict
+
+from fastapi import APIRouter, Depends, Request
 from fastapi.responses import JSONResponse
+from pydantic import BaseModel, Field
+
+from api.dependencies import get_api_key
 
 router = APIRouter(prefix="/api/v1/agents", tags=["agents"])
 
@@ -46,6 +51,63 @@ async def get_agents_info(request: Request):
 
         logger = getLogger("engineering_service")
         logger.error("agents_info_failed error=%s", str(e), extra={"trace_id": trace_id})
+        return JSONResponse(
+            status_code=500,
+            content={"success": False, "errors": [str(e)], "trace_id": trace_id},
+        )
+
+
+# ---------------------------------------------------------------------------
+# ETAP Expert Skill chat endpoint
+# ---------------------------------------------------------------------------
+
+
+class ETAPExpertChatRequest(BaseModel):
+    """Request body for the ETAP Expert chat endpoint."""
+
+    question: str = Field(..., min_length=1, max_length=4000,
+                          description="The ETAP-related question to ask the expert agent")
+    context: Dict[str, Any] | None = Field(default=None,
+                                            description="Optional additional context (voltages, currents, etc.)")
+
+
+@router.post("/etap-expert/chat")
+async def etap_expert_chat(
+    request: Request,
+    payload: ETAPExpertChatRequest,
+    _: str = Depends(get_api_key),
+):
+    """Chat with the ETAP Expert skill agent.
+
+    The agent implements the 6-step workflow (PARSE → SEARCH → VALIDATE →
+    SIMULATE → FORMAT → QA) and returns one of four response formats:
+
+    - Format A (Complete)      : ✅ REQUEST ANALYSIS: COMPLETE
+    - Format B (Incomplete)    : ⚠️ REQUEST ANALYSIS: INCOMPLETE
+    - Format C (Wrong)         : ❌ REQUEST ANALYSIS: INCORRECT APPROACH
+    - Format D (ADMS/DER)      : 🔷 ADMS REQUEST ANALYSIS
+
+    Knowledge base: skills/etap-expert.md (4,400+ lines)
+    """
+    trace_id = getattr(request.state, "trace_id", "unknown")
+    try:
+        from agents.etap_expert_agent import ETAPExpertAgent
+
+        agent = ETAPExpertAgent()
+        result = agent.answer(payload.question)
+
+        return JSONResponse(
+            content={
+                "success": True,
+                "data": result,
+                "trace_id": trace_id,
+            }
+        )
+    except Exception as e:
+        from logging import getLogger
+
+        logger = getLogger("engineering_service")
+        logger.error("etap_expert_chat_failed error=%s", str(e), extra={"trace_id": trace_id})
         return JSONResponse(
             status_code=500,
             content={"success": False, "errors": [str(e)], "trace_id": trace_id},

@@ -2,7 +2,7 @@
  * Agent listing + chat routes.
  */
 import type { Env, ExecutionContext } from '../core/types.js';
-import { type ModelMessage } from 'ai';
+import { type CoreMessage } from 'ai';
 import { jsonResponse, errorResponse, corsHeaders, getIdempotencyKey } from '../utils/response.js';
 import { getAgent, AGENT_REGISTRY } from '../core/agents.js';
 import { generateWithFailover, hasAnyProviderConfigured } from '../core/providers.js';
@@ -188,7 +188,7 @@ export async function handleChat(
   const mappedMessages = messages.map((m) => ({
     role: (validRoles.has(m.role) ? m.role : 'user') as 'system' | 'user' | 'assistant' | 'tool',
     content: typeof m.content === 'string' ? m.content : JSON.stringify(m.content),
-  })) as ModelMessage[];
+  })) as CoreMessage[];
 
   try {
     const result = await generateWithFailover(env, systemPrompt, mappedMessages);
