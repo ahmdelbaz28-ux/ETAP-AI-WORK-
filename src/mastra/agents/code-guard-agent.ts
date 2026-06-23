@@ -24,7 +24,7 @@ export const codeGuardAgent = new Agent({
   id: 'code-guard-agent',
   name: 'Code Guard Agent',
   instructions: promptContent,
-  model: getActiveModelConfig(),
+  model: getActiveModelConfig() as any,
   tools: { run_python },
   memory: new Memory(),
 });

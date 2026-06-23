@@ -10,7 +10,7 @@ export const shortCircuitAgent = new Agent({
   id: 'short-circuit-agent',
   name: 'Short Circuit Analysis Agent',
   instructions: promptContent,
-  model: getActiveModelConfig(),
+  model: getActiveModelConfig() as any,
   tools: { run_python },
   memory: new Memory(),
 });

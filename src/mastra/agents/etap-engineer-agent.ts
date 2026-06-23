@@ -10,7 +10,7 @@ export const etapEngineerAgent = new Agent({
   id: 'etap-engineer-agent',
   name: 'ETAP Engineering Agent',
   instructions: promptContent,
-  model: getActiveModelConfig(),
+  model: getActiveModelConfig() as any,
   tools: { run_python },
   memory: new Memory(),
 });
