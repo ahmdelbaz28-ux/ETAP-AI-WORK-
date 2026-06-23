@@ -1,8 +1,42 @@
-name: Sync Full Platform to HuggingFace AHMEDETAP Space
+name: Sync to HuggingFace AHMEDETAP Space
 
 on:
   push:
     branches: [main]
+    paths:
+      - 'Dockerfile.hf'
+      - 'requirements.hf.txt'
+      - 'engineering_service.py'
+      - 'api/**'
+      - 'core/**'
+      - 'services/**'
+      - 'engine/**'
+      - 'agents/**'
+      - 'load_flow/**'
+      - 'fault_analysis/**'
+      - 'coordination/**'
+      - 'network_solver/**'
+      - 'visualization/**'
+      - 'security/**'
+      - 'knowledge/**'
+      - 'worker/**'
+      - 'ml/**'
+      - 'digital_twin/**'
+      - 'scada_model/**'
+      - 'adms_control/**'
+      - 'utils/**'
+      - 'schemas/**'
+      - 'guards/**'
+      - 'copilot/**'
+      - 'gis_integration/**'
+      - 'gis_model/**'
+      - 'gis_validation/**'
+      - 'skills/**'
+      - 'reporting/**'
+      - 'prompts/**'
+      - 'config/**'
+      - 'migrations/**'
+      - 'pyproject.toml'
   workflow_dispatch:
 
 concurrency:
@@ -10,18 +44,28 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  sync-ahmedetap:
-    name: Sync to HuggingFace AHMEDETAP Space
+  validate-and-sync:
+    name: Validate & Sync to HF Space
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v7
+        uses: actions/checkout@v4
         with:
           lfs: true
 
-      - name: Setup Git LFS
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+
+      - name: Validate HF Dockerfile
         run: |
-          git lfs install
+          echo "Validating Dockerfile.hf builds successfully..."
+          docker build -f Dockerfile.hf -t etap-hf:test . || exit 1
+          echo "Dockerfile.hf validation passed!"
+
+      - name: Setup Git LFS
+        run: git lfs install
 
       - name: Configure git
         run: |
@@ -36,18 +80,32 @@ jobs:
 
       - name: Prepare and Sync Files
         run: |
-          # Copy everything excluding .git
-          rsync -av --exclude='.git' "${GITHUB_WORKSPACE}/" /tmp/hf-space/
-          
           cd /tmp/hf-space
-          # Use Dockerfile.hf and README.hf.md for the Space
-          cp Dockerfile.hf Dockerfile
-          cp README.hf.md README.md
+          
+          # Clean existing files (except .git)
+          find . -maxdepth 1 ! -name '.git' ! -name '.' -exec rm -rf {} +
+          
+          # Copy only required files
+          cp "${GITHUB_WORKSPACE}/Dockerfile.hf" ./Dockerfile
+          cp "${GITHUB_WORKSPACE}/requirements.hf.txt" ./
+          cp "${GITHUB_WORKSPACE}/engineering_service.py" ./
+          cp "${GITHUB_WORKSPACE}/pyproject.toml" ./
+          
+          # Copy required directories
+          for dir in api core services engine agents load_flow fault_analysis coordination \
+                     network_solver visualization security knowledge worker ml digital_twin \
+                     scada_model adms_control utils schemas guards copilot gis_integration \
+                     gis_model gis_validation skills reporting prompts config migrations; do
+            if [ -d "${GITHUB_WORKSPACE}/$dir" ]; then
+              cp -r "${GITHUB_WORKSPACE}/$dir" ./
+            fi
+          done
           
           # Track binary files
-          git lfs track "*.png" "*.wal"
+          git lfs track "*.png" "*.wal" "*.db"
           
           echo "Synced files ready for push."
+          ls -la
 
       - name: Commit and Push to HF Space
         run: |
@@ -57,5 +115,5 @@ jobs:
             echo "No changes - already up to date"
             exit 0
           fi
-          git commit -m "Auto-sync full platform from GitHub (${{ github.sha }})"
+          git commit -m "Sync from GitHub (${{ github.sha }})"
           git push origin main

@@ -5,6 +5,7 @@ Handles initialization of logging, metrics, and core services with privacy contr
 
 from __future__ import annotations
 
+import asyncio
 import json
 import logging
 import os
@@ -183,7 +184,7 @@ logger = structlog.get_logger("engineering_service")
 # Also configure the root logger to ensure consistency
 logging.basicConfig(
     level=logging.INFO,
-    format="%(asctime)s [%(levelname)s] %(name)s: trace_id=%(trace_id)s %(message)s",
+    format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
     handlers=[logging.StreamHandler()],
 )
 _root_logger = logging.getLogger()
@@ -365,7 +366,7 @@ async def lifespan(app):
 
     # Initialize cache
     global _study_cache
-    _study_cache = _initialize_cache_with_retry()
+    _study_cache = await _initialize_cache_with_retry()
 
     try:
         yield
@@ -379,7 +380,7 @@ async def lifespan(app):
                 logger.warning(f"Cache cleanup failed: {e}")
 
 
-def _initialize_cache_with_retry(max_retries: int = 3) -> Any:
+async def _initialize_cache_with_retry(max_retries: int = 3) -> Any:
     """Initialize cache with retry mechanism."""
     from services.cache_service import StudyCache
 
@@ -387,20 +388,23 @@ def _initialize_cache_with_retry(max_retries: int = 3) -> Any:
         try:
             cache = StudyCache()
             # Test the cache connection
-            if hasattr(cache, "ping") and cache.ping():
-                # If ping is async, we'll handle it differently when called from an async context
-                # For sync context, we'll just return the cache
-                logger.info(f"Cache connection established (attempt {attempt + 1})")
-                return cache
+            if hasattr(cache, "ping"):
+                ping_result = await cache.ping()
+                if ping_result:
+                    logger.info(f"Cache connection established (attempt {attempt + 1})")
+                    return cache
+                else:
+                    logger.warning(f"Cache connection failed (attempt {attempt + 1})")
             else:
-                logger.warning(f"Cache connection failed (attempt {attempt + 1})")
+                logger.info(f"Cache initialized without ping (attempt {attempt + 1})")
+                return cache
         except Exception as e:
             logger.warning(f"Cache initialization failed (attempt {attempt + 1}): {e}")
             if attempt == max_retries - 1:
                 logger.error("Failed to initialize cache after all retries, using fallback")
                 # Return a basic in-memory cache as fallback
                 return StudyCache(redis_url="memory://fallback", ttl=3600)
-        time.sleep(2**attempt)  # Exponential backoff
+        await asyncio.sleep(2**attempt)  # Exponential backoff
     return None
 
 
