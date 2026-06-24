@@ -24,7 +24,9 @@ import secrets
 import threading
 import time
 from dataclasses import dataclass, field
-from datetime import UTC, datetime, timedelta
+from datetime import datetime, timedelta, timezone
+
+UTC = timezone.utc  # noqa: UP017
 
 UTC = UTC
 from enum import Enum

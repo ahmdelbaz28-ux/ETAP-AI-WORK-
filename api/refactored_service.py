@@ -109,7 +109,9 @@ def _to_jsonable(obj: Any) -> Any:
 # Ensure project root is on path
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from datetime import UTC
+from datetime import timezone
+
+UTC = timezone.utc  # noqa: UP017
 
 from fastapi import FastAPI, HTTPException, Request, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware

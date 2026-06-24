@@ -15,7 +15,9 @@ Coverage targets:
 import os
 import sys
 import time
-from datetime import UTC, datetime, timezone
+from datetime import datetime, timezone
+
+UTC = timezone.utc  # noqa: UP017
 
 UTC = UTC
 
