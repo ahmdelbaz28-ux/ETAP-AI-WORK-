@@ -61,6 +61,14 @@ class StudyCache:
             self._use_redis = False
             self._redis_client = None
 
+    @property
+    def redis_client(self) -> Any:
+        return self._redis_client
+
+    @property
+    def cache(self) -> Dict[str, Any]:
+        return self._memory_cache
+
     def _generate_key(self, study_type: str, params: Dict[str, Any]) -> str:
         """
         Best-effort key generator used by legacy callers:

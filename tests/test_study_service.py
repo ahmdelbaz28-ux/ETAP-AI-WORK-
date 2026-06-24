@@ -8,8 +8,7 @@ from unittest.mock import AsyncMock, Mock, patch
 import pytest
 
 from core.bootstrap import logger
-from services.study_service import Bus, Line, Load, StudyRequest, SystemSpec, execute_study_logic
-from services.study_service import Generator as Gen
+from services.study_service import StudyRequest, SystemSpec, execute_study_logic
 
 
 def test_execute_study_logic_basic(sample_study_request):

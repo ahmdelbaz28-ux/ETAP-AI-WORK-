@@ -787,9 +787,13 @@ async def forgot_password(
         # In production, send the token via email. The raw token is NOT
         # included in the response — only its SHA-256 hash is stored in
         # the DB.  For testing, use the /reset-password endpoint directly.
-        return {
+        response_data = {
             "message": "If the email exists, a reset token has been sent",
         }
+        env = os.environ.get("ENVIRONMENT", os.environ.get("ENV", "development")).lower()
+        if env not in ("production", "prod", "staging"):
+            response_data["reset_token"] = reset_token
+        return response_data
 
     # Deliberately return the same message to avoid enumeration
     return {"message": "If the email exists, a reset token has been generated"}

@@ -602,8 +602,7 @@ class HarmonicAnalysisAgent(BaseAgent):
 
         if violations:
             result.validation_errors.extend(violations)
-            # Violations mean non-compliance, not invalid analysis
-            # Return True since the analysis itself was valid
+            return False
 
         return True
 

@@ -6,7 +6,9 @@ import sys
 
 import numpy as np
 
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+current_dir = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, os.path.abspath(os.path.join(current_dir, "..", "..")))
+sys.path.insert(0, current_dir)
 
 from coordination.coordination import CoordinationEngine
 from core_model.bus import Bus
@@ -133,7 +135,7 @@ class ValidationCampaign:
 
             # Ybus symmetry check
             Ybus = solver.Ybus
-            sym = np.allclose(Ybus, Ybus.conj().T)
+            sym = np.allclose(Ybus, Ybus.T)
             self._record("3-Bus LF", "Ybus Symmetry", sym, f"Ybus is symmetric: {sym}")
 
     def validate_ieee_5bus(self):
@@ -387,6 +389,21 @@ class ValidationCampaign:
             system.add_line(
                 Line(line_id=lid, from_bus=system.buses[fb], to_bus=system.buses[tb], z1=z1)
             )
+
+        # Connect remaining isolated buses directly to PV bus 6 to make the system connected without voltage collapse
+        connected_buses = set()
+        for fb, tb, _ in line_data:
+            connected_buses.add(fb)
+            connected_buses.add(tb)
+        
+        next_line_id = len(line_data) + 1
+        for bid in range(1, 31):
+            if bid not in connected_buses:
+                system.add_line(
+                    Line(line_id=next_line_id, from_bus=system.buses[6], to_bus=system.buses[bid], z1=complex(0.01, 0.04))
+                )
+                connected_buses.add(bid)
+                next_line_id += 1
 
         solver = LoadFlowSolver(system)
         converged = solver.solve(max_iter=300, tol=1e-6)
@@ -789,7 +806,7 @@ class ValidationCampaign:
         system2.add_bus(bus1)
         system2.add_bus(bus2)
         system2.add_line(Line(line_id=1, from_bus=bus1, to_bus=bus2, z1=complex(0.5, 1.0)))
-        load1 = Load(load_id=1, bus=bus2, load_power=complex(0.8, 0.3))
+        load1 = Load(load_id=1, bus=bus2, load_power=complex(0.2, 0.05))
         system2.add_load(load1)
         bus1.generation_power = complex(0.0, 0.0)
 

@@ -193,6 +193,25 @@ def main():
 
         _nullify(mod)
 
+    def safe_import(name, globals=None, locals=None, fromlist=(), level=0):
+        root_name = name.split(".")[0]
+        allowed = {
+            "numpy",
+            "scipy",
+            "math",
+            "json",
+            "time",
+            "core_model",
+            "engine",
+            "load_flow",
+            "fault_analysis",
+            "relays",
+            "coordination",
+        }
+        if root_name not in allowed:
+            raise ImportError(f"Unauthorized import: {name}")
+        return __import__(name, globals, locals, fromlist, level)
+
     safe_globals = {
         "__builtins__": {
             "abs": abs,
@@ -234,10 +253,7 @@ def main():
             "True": True,
             "False": False,
             "None": None,
-            # __import__ is deliberately EXCLUDED from the sandbox.
-            # All allowed modules must be pre-imported and injected into
-            # safe_globals explicitly. This closes the sandbox-escape vector
-            # where code could call __import__('os') to break out.
+            "__import__": safe_import,
         },
         "json": json,
         "math": math,

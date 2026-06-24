@@ -19,8 +19,12 @@ from pydantic import BaseModel
 from starlette.middleware.base import BaseHTTPMiddleware
 
 from api.agents import router as agents_router
+from api.ai_ml import router as ai_ml_router
+from api.auth import router as auth_router
 from api.health import router as health_router
+from api.projects import router as projects_router
 from api.studies import router as studies_router
+from api.validation import router as validation_router
 from api.websocket import scada_websocket_endpoint
 from core.bootstrap import lifespan, logger
 from core.tracing import get_tracer
@@ -285,13 +289,7 @@ class ReadyResponse(BaseModel):
 #     return result
 
 
-# Study validation endpoint
-@app.post("/api/v1/system/validate")
-async def validate_system(system_spec: SystemSpec, request: Request):
-    _require_api_key(request)
-
-    # Validate the system specification
-    return {"status": "validated", "valid": True}
+# Study validation endpoint is now handled by the validation router in api/validation.py
 
 
 # --- NEW ASYNC AND WEBSOCKET ENDPOINTS ADDED FOR PRODUCTION SCALABILITY ---
@@ -502,3 +500,7 @@ _shared_validation_gateway = None
 app.include_router(health_router)
 app.include_router(studies_router)
 app.include_router(agents_router)
+app.include_router(validation_router)
+app.include_router(ai_ml_router)
+app.include_router(auth_router)
+app.include_router(projects_router)
