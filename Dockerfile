@@ -42,12 +42,16 @@ COPY --chown=user:user skills/ /app/skills/
 COPY --chown=user:user prompts/ /app/prompts/
 COPY --chown=user:user prompts.json /app/prompts.json
 COPY --chown=user:user core_model/ /app/core_model/
+COPY --chown=user:user core/ /app/core/
 COPY --chown=user:user engine/ /app/engine/
 COPY --chown=user:user load_flow/ /app/load_flow/
 COPY --chown=user:user fault_analysis/ /app/fault_analysis/
 COPY --chown=user:user coordination/ /app/coordination/
 COPY --chown=user:user relays/ /app/relays/
 COPY --chown=user:user network_solver/ /app/network_solver/
+COPY --chown=user:user services/ /app/services/
+COPY --chown=user:user api/ /app/api/
+COPY --chown=user:user utils/ /app/utils/
 COPY --chown=user:user VERSION /app/VERSION
 
 # Environment
