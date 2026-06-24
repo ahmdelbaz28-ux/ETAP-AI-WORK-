@@ -1,0 +1,67 @@
+name: Auto-Update Project Index
+
+on:
+  push:
+    branches: [main]
+    # Ignore pushes that only changed the index files themselves
+    # to avoid infinite update loops
+    paths-ignore:
+      - 'PROJECT_INDEX.json'
+      - 'PROJECT_INDEX.md'
+      - '.github/workflows/auto-index.yml'
+  workflow_dispatch:   # Allow manual trigger from GitHub UI
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: write   # Needed to commit the updated index files
+
+jobs:
+  update-index:
+    name: Regenerate Project Index
+    runs-on: ubuntu-latest
+
+    steps:
+      # ── 1. Checkout full history so we can commit back ───────────────────
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      # ── 2. Set up Python 3.12 ────────────────────────────────────────────
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      # ── 3. Run the indexer (stdlib only — no extra deps needed) ──────────
+      - name: Run indexer.py
+        run: python indexer.py
+
+      # ── 4. Show what changed ─────────────────────────────────────────────
+      - name: Show index diff summary
+        run: |
+          echo "=== PROJECT_INDEX.json size ==="
+          wc -l PROJECT_INDEX.json
+          echo "=== PROJECT_INDEX.md size ==="
+          wc -l PROJECT_INDEX.md
+          echo "=== Git diff stat ==="
+          git diff --stat
+
+      # ── 5. Commit and push if anything changed ───────────────────────────
+      - name: Commit updated index files
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add PROJECT_INDEX.json PROJECT_INDEX.md
+          if git diff --cached --quiet; then
+            echo "No index changes detected — skipping commit."
+          else
+            COMMIT_SHA="${{ github.sha }}"
+            git commit -m "chore(index): auto-update project index @ ${COMMIT_SHA:0:7} [skip ci]"
+            git push
+            echo "Index updated and pushed successfully."
+          fi
