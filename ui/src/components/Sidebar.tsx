@@ -86,6 +86,8 @@ export function Sidebar() {
 
   return (
     <aside
+      role="complementary"
+      aria-label="Sidebar Navigation"
       className={cn(
         'h-screen flex flex-col bg-[var(--bg-secondary)] border-r border-[var(--border-primary)] shrink-0 transition-all duration-300 overflow-hidden z-[var(--z-sidebar)]',
         sidebarCollapsed ? 'w-[68px]' : 'w-64'
@@ -197,6 +199,7 @@ export function Sidebar() {
             'w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-[var(--text-secondary)] hover:bg-[var(--bg-elevated)] hover:text-[var(--text-primary)] transition-colors',
             sidebarCollapsed && 'justify-center px-0'
           )}
+          aria-label={theme === 'dark' ? t('sidebar.lightMode') : t('sidebar.darkMode')}
         >
           {theme === 'dark' ? <Sun className="w-[18px] h-[18px] shrink-0" /> : <Moon className="w-[18px] h-[18px] shrink-0" />}
           {!sidebarCollapsed && <span>{theme === 'dark' ? t('sidebar.lightMode') : t('sidebar.darkMode')}</span>}
@@ -209,6 +212,7 @@ export function Sidebar() {
             sidebarCollapsed && 'justify-center px-0'
           )}
           title={sidebarCollapsed ? t('sidebar.expand') : t('sidebar.collapse')}
+          aria-label={sidebarCollapsed ? t('sidebar.expand') : t('sidebar.collapse')}
         >
           {sidebarCollapsed
             ? <ChevronRight className={`w-[18px] h-[18px] shrink-0 ${isRtl ? 'rotate-180' : ''}`} />

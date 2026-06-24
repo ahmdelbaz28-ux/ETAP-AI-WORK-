@@ -103,6 +103,7 @@ export function Navbar() {
           onClick={toggleLanguage}
           className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm text-[var(--text-secondary)] hover:bg-[var(--bg-elevated)] hover:text-[var(--text-primary)] transition-colors"
           title={isRtl ? 'Switch to English' : 'التبديل للعربية'}
+          aria-label={isRtl ? 'Switch to English' : 'التبديل للعربية'}
         >
           <Globe className="w-4 h-4" />
           <span className="font-medium text-xs">{isRtl ? 'EN' : 'عربي'}</span>
@@ -113,6 +114,7 @@ export function Navbar() {
           onClick={toggleFullscreen}
           className="p-2 rounded-lg hover:bg-[var(--bg-elevated)] text-[var(--text-muted)] hover:text-[var(--text-secondary)] transition-colors"
           title={isFullscreen ? 'Exit Fullscreen' : 'Fullscreen'}
+          aria-label={isFullscreen ? 'Exit Fullscreen' : 'Enter Fullscreen'}
         >
           {isFullscreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
         </button>
