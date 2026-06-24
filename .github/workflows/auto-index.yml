@@ -56,12 +56,16 @@ jobs:
         run: |
           git config user.name  "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add PROJECT_INDEX.json PROJECT_INDEX.md
-          if git diff --cached --quiet; then
-            echo "No index changes detected — skipping commit."
+          if [ -f PROJECT_INDEX.json ] || [ -f PROJECT_INDEX.md ]; then
+            git add PROJECT_INDEX.json PROJECT_INDEX.md 2>/dev/null || true
+            if ! git diff --cached --quiet; then
+              COMMIT_SHA="${{ github.sha }}"
+              git commit -m "chore(index): auto-update project index @ ${COMMIT_SHA:0:7} [skip ci]"
+              git push 2>&1 || echo "::warning::Index push failed — non-blocking"
+              echo "Index updated and pushed successfully."
+            else
+              echo "No index changes detected — skipping commit."
+            fi
           else
-            COMMIT_SHA="${{ github.sha }}"
-            git commit -m "chore(index): auto-update project index @ ${COMMIT_SHA:0:7} [skip ci]"
-            git push
-            echo "Index updated and pushed successfully."
+            echo "::warning::Index files not found — skipping commit."
           fi
