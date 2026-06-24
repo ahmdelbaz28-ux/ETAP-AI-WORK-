@@ -74,7 +74,7 @@ def check_agent_class_structure(filepath: str) -> List[str]:
             execute_method_found = False
 
             for item in agent_class.body:
-                if isinstance(item, ast.FunctionDef):
+                if isinstance(item, (ast.FunctionDef, ast.AsyncFunctionDef)):
                     if item.name == "__init__":
                         init_method_found = True
                     elif item.name == "execute":
@@ -113,9 +113,9 @@ def verify_all_agents():
         if issues:
             all_issues[agent_file] = issues
             for issue in issues:
-                print(f"  ❌ {issue}")
+                print(f"  [FAIL] {issue}")
         else:
-            print("  ✅ Structure OK")
+            print("  [OK] Structure OK")
         print()
 
     return all_issues
@@ -149,28 +149,35 @@ def verify_orchestrator_agents():
             if f"class {agent}" not in content:
                 issues.append(f"Required agent class {agent} not found in orchestrator.py")
             else:
-                print(f"✅ {agent} found in orchestrator")
+                print(f"[OK] {agent} found in orchestrator")
 
-        # Check for ALL_AGENT_CLASSES list
-        if "ALL_AGENT_CLASSES" not in content:
-            issues.append("ALL_AGENT_CLASSES not found in orchestrator")
-        else:
-            print("✅ ALL_AGENT_CLASSES found in orchestrator")
+        # Check for ALL_AGENT_CLASSES list in agents/__init__.py
+        init_file = os.path.join(os.path.dirname(__file__), "agents", "__init__.py")
+        try:
+            with open(init_file, encoding="utf-8") as f_init:
+                init_content = f_init.read()
+            
+            if "ALL_AGENT_CLASSES" not in init_content:
+                issues.append("ALL_AGENT_CLASSES not found in agents/__init__.py")
+            else:
+                print("[OK] ALL_AGENT_CLASSES found in agents/__init__.py")
 
-        # Check for STUDY_TYPE_AGENT_MAP
-        if "STUDY_TYPE_AGENT_MAP" not in content:
-            issues.append("STUDY_TYPE_AGENT_MAP not found in orchestrator")
-        else:
-            print("✅ STUDY_TYPE_AGENT_MAP found in orchestrator")
+            # Check for STUDY_TYPE_AGENT_MAP
+            if "STUDY_TYPE_AGENT_MAP" not in init_content:
+                issues.append("STUDY_TYPE_AGENT_MAP not found in agents/__init__.py")
+            else:
+                print("[OK] STUDY_TYPE_AGENT_MAP found in agents/__init__.py")
+        except Exception as e:
+            issues.append(f"Error reading agents/__init__.py: {str(e)}")
 
     except Exception as e:
         issues.append(f"Error reading orchestrator.py: {str(e)}")
 
     if issues:
         for issue in issues:
-            print(f"❌ {issue}")
+            print(f"[FAIL] {issue}")
     else:
-        print("✅ All orchestrator checks passed")
+        print("[OK] All orchestrator checks passed")
 
     return issues
 
@@ -200,12 +207,12 @@ def main():
     all_issues = total_agent_issues + len(orchestrator_issues)
 
     if all_issues == 0:
-        print("\n🎉 All agents verified successfully!")
+        print("\n[SUCCESS] All agents verified successfully!")
         print("\nNote: Actual execution requires dependencies like numpy, scipy, etc.")
         print("Install with: pip install numpy scipy pandas matplotlib")
         return True
     else:
-        print(f"\n⚠️  Found {all_issues} issues that need to be addressed")
+        print(f"\n[WARN] Found {all_issues} issues that need to be addressed")
         return False
 
 

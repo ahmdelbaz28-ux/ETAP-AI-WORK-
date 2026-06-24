@@ -212,6 +212,7 @@ class FaultAnalyzer:
         return {
             "fault_current": Ia,
             "fault_current_a": Ia,
+            "fault_current_b": Ib,
             "fault_current_c": Ic,
             "fault_current_b_magnitude": np.abs(Ib),
             "fault_current_b_angle": np.angle(Ib, deg=True),

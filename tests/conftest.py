@@ -452,3 +452,164 @@ def setup_test_environment():
         del os.environ["USE_ETAP"]
     if "PRIVACY_MODE" in os.environ:
         del os.environ["PRIVACY_MODE"]
+
+
+# ---------------------------------------------------------------------------
+# Auth/Projects test fixtures (SQLite in-memory)
+# ---------------------------------------------------------------------------
+
+from typing import AsyncGenerator
+from sqlalchemy.ext.asyncio import (
+    AsyncSession,
+    AsyncEngine,
+    async_sessionmaker,
+    create_async_engine,
+)
+from sqlalchemy.pool import StaticPool
+from api.database import Base
+
+_TEST_DB_URL = "sqlite+aiosqlite://"
+
+_test_engine: AsyncEngine = create_async_engine(
+    _TEST_DB_URL,
+    connect_args={"check_same_thread": False},
+    poolclass=StaticPool,
+    echo=False,
+)
+
+_TestSessionLocal = async_sessionmaker(
+    bind=_test_engine,
+    class_=AsyncSession,
+    expire_on_commit=False,
+)
+
+
+@pytest.fixture(scope="function")
+async def db_engine() -> AsyncGenerator[AsyncEngine, None]:
+    """Provide a fresh in-memory database engine for each test."""
+    async with _test_engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+    yield _test_engine
+    async with _test_engine.begin() as conn:
+        await conn.run_sync(Base.metadata.drop_all)
+
+
+@pytest.fixture(scope="function")
+def app(db_engine: AsyncEngine):
+    """Return the FastAPI application with get_db overridden to the test DB."""
+    from fastapi import FastAPI
+    from api.routes import app as real_app
+
+    async def _override_get_db() -> AsyncGenerator[AsyncSession, None]:
+        async with _TestSessionLocal() as session:
+            try:
+                yield session
+                await session.commit()
+            except Exception:
+                await session.rollback()
+                raise
+            finally:
+                await session.close()
+
+    from api.database import get_db as _original_get_db
+    real_app.dependency_overrides[_original_get_db] = _override_get_db
+
+    yield real_app
+
+    real_app.dependency_overrides.clear()
+
+
+from fastapi.testclient import TestClient
+
+
+@pytest.fixture(scope="function")
+def client(app) -> Generator[TestClient, None, None]:
+    """Provide a TestClient wired to the test application."""
+    import api.auth as _auth_module
+    _auth_module._LOGIN_ATTEMPTS.clear()
+
+    with TestClient(app) as c:
+        yield c
+
+
+def _register_user(
+    client,
+    username: str = "testuser",
+    email: str = "testuser@example.com",
+    password: str = "Str0ngP@ss!",
+    role: str = "engineer",
+) -> dict:
+    """Call POST /api/v1/auth/register and return the JSON response."""
+    resp = client.post(
+        "/api/v1/auth/register",
+        json={
+            "username": username,
+            "email": email,
+            "password": password,
+            "role": role,
+        },
+    )
+    assert resp.status_code in (200, 201), (
+        f"Registration failed: {resp.status_code} {resp.text}"
+    )
+    return resp.json()
+
+
+def _login_user(
+    client,
+    username: str = "testuser",
+    password: str = "Str0ngP@ss!",
+) -> dict:
+    """Call POST /api/v1/auth/login and return the JSON response."""
+    resp = client.post(
+        "/api/v1/auth/login",
+        json={"username": username, "password": password},
+    )
+    assert resp.status_code == 200, (
+        f"Login failed: {resp.status_code} {resp.text}"
+    )
+    return resp.json()
+
+
+def _auth_headers(access_token: str) -> dict:
+    """Return an Authorization header dict for the given token."""
+    return {"Authorization": f"Bearer {access_token}"}
+
+
+@pytest.fixture
+def registered_user(client) -> dict:
+    """Register a test user and return the user profile dict."""
+    return _register_user(client)
+
+
+@pytest.fixture
+def auth_headers(client, registered_user: dict) -> dict:
+    """Return Authorization headers for the default registered user."""
+    login_data = _login_user(client)
+    return _auth_headers(login_data["access_token"])
+
+
+@pytest.fixture
+def admin_headers(client) -> dict:
+    """Register an admin user and return Authorization headers."""
+    _register_user(
+        client,
+        username="admin_user",
+        email="admin@example.com",
+        role="admin",
+    )
+    login_data = _login_user(client, username="admin_user")
+    return _auth_headers(login_data["access_token"])
+
+
+@pytest.fixture
+def viewer_headers(client) -> dict:
+    """Register a viewer user and return Authorization headers."""
+    _register_user(
+        client,
+        username="viewer_user",
+        email="viewer@example.com",
+        role="viewer",
+    )
+    login_data = _login_user(client, username="viewer_user")
+    return _auth_headers(login_data["access_token"])

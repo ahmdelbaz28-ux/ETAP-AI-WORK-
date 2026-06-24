@@ -40,9 +40,14 @@ def test_metrics_endpoint(api_client):
 
 def test_study_execution_endpoint(api_client, sample_3bus_network):
     """Test the study execution endpoint."""
+    system_dict = {
+        k: [item.model_dump() if hasattr(item, "model_dump") else item for item in v]
+        if isinstance(v, list) else v
+        for k, v in sample_3bus_network.items()
+    }
     payload = {
         "study_type": "load_flow",
-        "system_spec": sample_3bus_network,
+        "system": system_dict,
         "parameters": {"tolerance": 1e-6, "max_iterations": 50},
     }
 
@@ -56,7 +61,12 @@ def test_study_execution_endpoint(api_client, sample_3bus_network):
 
 def test_system_validation_endpoint(api_client, sample_3bus_network):
     """Test the system validation endpoint."""
-    response = api_client.post("/api/v1/system/validate", json=sample_3bus_network)
+    system_dict = {
+        k: [item.model_dump() if hasattr(item, "model_dump") else item for item in v]
+        if isinstance(v, list) else v
+        for k, v in sample_3bus_network.items()
+    }
+    response = api_client.post("/api/v1/system/validate", json=system_dict)
     assert response.status_code == 200
     data = response.json()
     assert "valid" in data
@@ -66,7 +76,7 @@ def test_system_validation_endpoint(api_client, sample_3bus_network):
 
 def test_predict_load_endpoint(api_client):
     """Test the load prediction endpoint."""
-    payload = {"historical_data": [100, 120, 110, 130, 125, 140, 135], "horizon_hours": 24}
+    payload = {"historical_data": [100, 120, 110, 130, 125, 140, 135] * 8, "horizon_hours": 24}
 
     response = api_client.post("/api/v1/predict/load", json=payload)
     assert response.status_code == 200

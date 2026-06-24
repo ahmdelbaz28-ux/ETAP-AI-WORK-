@@ -20,9 +20,9 @@ def verify_prompt_handles():
             content = f.read()
 
         if 'prompt_handle = "arcflash_agent"' in content:
-            print("✅ ArcFlashAgent prompt handle is correctly set to 'arcflash_agent'")
+            print("[OK] ArcFlashAgent prompt handle is correctly set to 'arcflash_agent'")
         else:
-            print("❌ ArcFlashAgent prompt handle is incorrect")
+            print("[FAIL] ArcFlashAgent prompt handle is incorrect")
             return False
 
         # Check if corresponding prompt file exists
@@ -30,13 +30,13 @@ def verify_prompt_handles():
 
         prompt_exists = os.path.exists("prompts/arcflash_agent.prompt.yaml")
         if prompt_exists:
-            print("✅ Corresponding prompt file 'arcflash_agent.prompt.yaml' exists")
+            print("[OK] Corresponding prompt file 'arcflash_agent.prompt.yaml' exists")
         else:
-            print("❌ Corresponding prompt file 'arcflash_agent.prompt.yaml' missing")
+            print("[FAIL] Corresponding prompt file 'arcflash_agent.prompt.yaml' missing")
             return False
 
     except Exception as e:
-        print(f"❌ Error checking ArcFlashAgent: {e}")
+        print(f"[FAIL] Error checking ArcFlashAgent: {e}")
         return False
 
     return True
@@ -54,9 +54,9 @@ def verify_agent_imports():
         spec = importlib.util.spec_from_file_location("orchestrator", "agents/orchestrator.py")
         if spec and spec.loader:
             importlib.util.module_from_spec(spec)
-            print("✅ Orchestrator module can be loaded")
+            print("[OK] Orchestrator module can be loaded")
         else:
-            print("❌ Orchestrator module cannot be loaded")
+            print("[FAIL] Orchestrator module cannot be loaded")
             return False
 
         # Check if agents __init__ can be loaded
@@ -65,16 +65,16 @@ def verify_agent_imports():
         )
         if agents_init_spec and agents_init_spec.loader:
             importlib.util.module_from_spec(agents_init_spec)
-            print("✅ Agents __init__ module can be loaded")
+            print("[OK] Agents __init__ module can be loaded")
         else:
-            print("❌ Agents __init__ module cannot be loaded")
+            print("[FAIL] Agents __init__ module cannot be loaded")
             return False
 
     except SyntaxError as e:
-        print(f"❌ Syntax error in agent files: {e}")
+        print(f"[FAIL] Syntax error in agent files: {e}")
         return False
     except Exception as e:
-        print(f"⚠️  Non-critical import issue (expected due to missing dependencies): {e}")
+        print(f"[WARN] Non-critical import issue (expected due to missing dependencies): {e}")
         # This is expected due to missing numpy/scipy, so we continue
 
     return True
@@ -96,19 +96,19 @@ def main():
     print("=" * 50)
 
     if prompt_ok:
-        print("✅ Prompt handle fix: CONFIRMED")
+        print("[OK] Prompt handle fix: CONFIRMED")
     else:
-        print("❌ Prompt handle fix: FAILED")
+        print("[FAIL] Prompt handle fix: FAILED")
 
     if import_ok:
-        print("✅ Import structure: OK")
+        print("[OK] Import structure: OK")
     else:
-        print("❌ Import structure: FAILED")
+        print("[FAIL] Import structure: FAILED")
 
     overall_success = prompt_ok and import_ok
 
     if overall_success:
-        print("\n🎉 All agent fixes verified successfully!")
+        print("\n[SUCCESS] All agent fixes verified successfully!")
         print("\nSummary of fixes applied:")
         print("  1. Fixed ArcFlashAgent prompt handle to match available prompt file")
         print("  2. Verified agent structure and inheritance from BaseAgent")
@@ -116,7 +116,7 @@ def main():
         print("\nNote: Full execution requires installing dependencies:")
         print("  pip install numpy scipy pandas matplotlib")
     else:
-        print("\n⚠️  Some verifications failed")
+        print("\n[WARN] Some verifications failed")
 
     return overall_success
 

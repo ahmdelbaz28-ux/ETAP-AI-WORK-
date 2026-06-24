@@ -7,6 +7,7 @@ touching production data or external services.
 
 import os
 import subprocess
+import sys
 
 
 def run_command(cmd, timeout=90):
@@ -27,7 +28,7 @@ class TestValidationSuiteCLI:
         WHEN it is executed via python3
         THEN it exits with code 0 and reports all tests passing.
         """
-        result = run_command(["python3", "validation_suite.py"])
+        result = run_command([sys.executable, "scripts/dev/validation_suite.py"])
 
         assert result.returncode == 0, (
             f"validation_suite.py failed with return code {result.returncode}\n"
@@ -42,7 +43,7 @@ class TestValidationSuiteCLI:
         WHEN it is executed via python3
         THEN it exits with code 0 and reports all files valid.
         """
-        result = run_command(["python3", "validate_syntax.py"])
+        result = run_command([sys.executable, "validate_syntax.py"])
 
         assert result.returncode == 0, (
             f"validate_syntax.py failed with return code {result.returncode}\n"

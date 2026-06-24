@@ -39,16 +39,16 @@ def print_header(text):
     print(f"{Colors.HEADER}{Colors.BOLD}{'='*70}{Colors.ENDC}\n")
 
 def print_success(text):
-    print(f"{Colors.OKGREEN}✓ {text}{Colors.ENDC}")
+    print(f"{Colors.OKGREEN}[OK] {text}{Colors.ENDC}")
 
 def print_error(text):
-    print(f"{Colors.FAIL}✗ {text}{Colors.ENDC}")
+    print(f"{Colors.FAIL}[FAIL] {text}{Colors.ENDC}")
 
 def print_info(text):
-    print(f"{Colors.OKCYAN}ℹ {text}{Colors.ENDC}")
+    print(f"{Colors.OKCYAN}[INFO] {text}{Colors.ENDC}")
 
 def print_warning(text):
-    print(f"{Colors.WARNING}⚠ {text}{Colors.ENDC}")
+    print(f"{Colors.WARNING}[WARN] {text}{Colors.ENDC}")
 
 def run_command(cmd, description="", timeout=300):
     """Run command and return success status."""
@@ -108,7 +108,7 @@ def verify_dependencies():
 
     required_packages = [
         'numpy', 'scipy', 'pandas', 'matplotlib',
-        'pytest', 'pyyaml', 'requests'
+        'pytest', 'yaml', 'requests'
     ]
 
     all_installed = True
@@ -127,7 +127,7 @@ def run_validation_suite():
     print_header("Running Engineering Validation Suite")
 
     success, output = run_command(
-        [sys.executable, "validation_suite.py"],
+        [sys.executable, "scripts/dev/validation_suite.py"],
         "Engineering Validation Suite",
         timeout=120
     )
@@ -516,7 +516,7 @@ def main():
     total = len(results)
 
     for test_name, result in results.items():
-        status = "✓ PASSED" if result else "✗ FAILED"
+        status = "[OK] PASSED" if result else "[FAIL] FAILED"
         color = Colors.OKGREEN if result else Colors.FAIL
         print(f"{color}{test_name:.<50} {status}{Colors.ENDC}")
 
