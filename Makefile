@@ -12,18 +12,19 @@ help: ## Show this help message
 
 # Installation
 install: ## Install all dependencies
-	@echo "Installing Python dependencies..."
-	pip install -r requirements.txt
+	@echo "Installing Python dependencies (Python 3.12)..."
+	.venv312/Scripts/pip install -r requirements.txt
 	@echo "Installing Node.js dependencies..."
 	pnpm install
 	@echo "Installation complete!"
+	@echo "Activate the venv:  source .venv312/Scripts/activate"
 
 test: ## Run all tests
 	@echo "Running validation suite..."
-	python3 validation_suite.py
+	.venv312/Scripts/python validation_suite.py
 	@echo ""
 	@echo "Running unit tests..."
-	pytest tests/unit_tests.py -v --cov=. --cov-report=html
+	.venv312/Scripts/pytest tests/unit_tests.py -v --cov=. --cov-report=html
 	@echo ""
 	@echo "Tests complete! Check htmlcov/index.html for coverage report"
 
@@ -34,7 +35,7 @@ run: ## Start the platform in development mode
 	@echo "  Terminal 2: pnpm dev"
 
 run-backend: ## Start Python backend only
-	python3 main.py
+	.venv312/Scripts/python main.py
 
 run-frontend: ## Start Mastra frontend only
 	pnpm dev
@@ -58,19 +59,19 @@ docker-restart: ## Restart Docker services
 
 # Development
 lint: ## Run linters
-	@echo "Linting Python code..."
-	flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+	@echo "Linting Python code (ruff)..."
+	.venv312/Scripts/ruff check . --config ruff.toml
 	@echo "Linting TypeScript code..."
 	pnpm lint
 
 format: ## Format code
-	@echo "Formatting Python code..."
-	black .
+	@echo "Formatting Python code (ruff)..."
+	.venv312/Scripts/ruff format . --config ruff.toml
 	@echo "Formatting TypeScript code..."
 	pnpm format
 
 validate: ## Run validation suite
-	python3 validation_suite.py
+	.venv312/Scripts/python validation_suite.py
 
 clean: ## Clean build artifacts and cache
 	@echo "Cleaning Python artifacts..."
@@ -138,14 +139,14 @@ db-restore: ## Restore database from backup
 # CI/CD
 # Security
 security-audit: ## Run all security scans locally
-	@echo "=== Security Audit ==="
+	@echo "=== Security Audit (Python 3.12) ==="
 	@echo ""
 	@echo "— npm audit —"
 	pnpm audit --audit-level=high 2>&1 || echo "⚠  npm audit warnings above"
 	@echo ""
 	@echo "— pip-audit —"
-	@command -v pip-audit >/dev/null 2>&1 || pip install pip-audit -q
-	python -m pip_audit 2>&1 || echo "⚠  pip-audit warnings above"
+	.venv312/Scripts/pip install pip-audit -q 2>&1 || true
+	.venv312/Scripts/python -m pip_audit 2>&1 || echo "⚠  pip-audit warnings above"
 	@echo ""
 	@echo "— Trivy (filesystem) —"
 	@command -v trivy >/dev/null 2>&1 && trivy fs --severity CRITICAL,HIGH . || echo "trivy not installed — install from https://trivy.dev"
@@ -156,8 +157,8 @@ security-audit: ## Run all security scans locally
 	@echo "Security audit done!"
 
 security-ci: ## Install CI security tools locally (for testing GitHub Actions locally)
-	@echo "Installing CI security tools..."
-	pip install pip-audit
+	@echo "Installing CI security tools in .venv312..."
+	.venv312/Scripts/pip install pip-audit
 	@echo "Done. Run 'make security-audit' to execute scans."
 
 ci-test: ## Run CI tests
@@ -184,15 +185,15 @@ env-setup: ## Setup environment file
 	fi
 
 check-deps: ## Check if all dependencies are installed
-	@echo "Checking Python dependencies..."
-	@python -c "import numpy; import scipy; import pandas; print('✓ Python deps OK')" || echo "✗ Python deps missing"
+	@echo "Checking Python dependencies (Python 3.12)..."
+	@.venv312/Scripts/python -c "import numpy; import scipy; import pandas; print('✓ Python deps OK')" || echo "✗ Python deps missing"
 	@echo "Checking Node.js dependencies..."
 	@pnpm list | head -5
 	@echo "Dependency check complete!"
 
 version: ## Show version information
 	@echo "ETAP AI Engineering Platform v1.0.0"
-	@echo "Python: $$(python --version)"
+	@echo "Python: $$(.venv312/Scripts/python --version)"
 	@echo "Node: $$(node --version)"
 	@echo "Docker: $$(docker --version 2>/dev/null || echo 'Not installed')"
 	@echo "Kubectl: $$(kubectl version --client --short 2>/dev/null || echo 'Not installed')"

@@ -11,7 +11,7 @@ Execution:
     python run_complete_setup.py [options]
 
 Requirements:
-    Python 3.9+, Docker, Docker Compose
+    Python 3.12+, Docker, Docker Compose
 """
 
 import os
@@ -98,11 +98,11 @@ def check_python_version():
     version = sys.version_info
     print_info(f"Python version: {version.major}.{version.minor}.{version.micro}")
 
-    if version.major >= 3 and version.minor >= 8:
-        print_success("Python version is compatible (>= 3.8)")
+    if version.major >= 3 and version.minor >= 12:
+        print_success("Python version is compatible (>= 3.12)")
         return True
     else:
-        print_error("Python version must be >= 3.8")
+        print_error("Python version must be >= 3.12")
         return False
 
 
