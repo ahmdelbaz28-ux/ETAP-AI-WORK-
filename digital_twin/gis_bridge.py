@@ -26,7 +26,7 @@ from __future__ import annotations
 import logging
 import time
 from dataclasses import dataclass, field
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
 from digital_twin.event_bus import (
     DigitalTwinStateUpdated,
@@ -225,7 +225,7 @@ class GISSyncBridge:
                 details={"error": str(exc)},
             )
 
-    def _upsert_bus(self, bus_id: str, coords: tuple | None) -> None:
+    def _upsert_bus(self, bus_id: str, coords: Optional[tuple]) -> None:
         """Create or update a bus in the electrical model."""
         from core_model.bus import Bus
 
@@ -244,7 +244,7 @@ class GISSyncBridge:
             )
             self.dt_state.system.add_bus(bus)
 
-    def _upsert_transformer(self, xf_id: str, coords: tuple | None) -> None:
+    def _upsert_transformer(self, xf_id: str, coords: Optional[tuple]) -> None:
         """Create or update a transformer in the electrical model."""
         from core_model.transformer import Transformer
 
@@ -264,7 +264,7 @@ class GISSyncBridge:
                 )
                 self.dt_state.system.add_transformer(xf)
 
-    def _upsert_line(self, line_id: str, coords: tuple | None, geometry: Dict) -> None:
+    def _upsert_line(self, line_id: str, coords: Optional[tuple], geometry: Dict) -> None:
         """Create or update a line in the electrical model."""
         from core_model.line import Line
 
@@ -289,7 +289,7 @@ class GISSyncBridge:
                 )
                 self.dt_state.system.add_line(line)
 
-    def _upsert_switch(self, switch_id: str, coords: tuple | None) -> None:
+    def _upsert_switch(self, switch_id: str, coords: Optional[tuple]) -> None:
         """Register a switch in the digital twin."""
         if self.dt_state.adms is not None:
             if hasattr(self.dt_state.adms, "topology") and hasattr(
@@ -302,7 +302,7 @@ class GISSyncBridge:
                         bus2 = str(buses[-1])
                         self.dt_state.adms.topology.switches[switch_id] = (bus1, bus2)
 
-    def _upsert_load(self, load_id: str, coords: tuple | None, props: Dict) -> None:
+    def _upsert_load(self, load_id: str, coords: Optional[tuple], props: Dict) -> None:
         """Create or update a load in the electrical model."""
         from core_model.load import Load
 
@@ -328,7 +328,7 @@ class GISSyncBridge:
             )
             self.dt_state.system.add_load(load)
 
-    def _upsert_generator(self, gen_id: str, coords: tuple | None, props: Dict) -> None:
+    def _upsert_generator(self, gen_id: str, coords: Optional[tuple], props: Dict) -> None:
         """Create or update a generator in the electrical model."""
         from core_model.generator import Generator
 
@@ -549,7 +549,7 @@ class GISSyncBridge:
             },
         }
 
-    def _build_bus_feature(self, bid, bus) -> Dict[str, Any] | None:
+    def _build_bus_feature(self, bid, bus) -> Optional[Dict[str, Any]]:
         """Build a GeoJSON Feature for a bus."""
         coord = self._get_bus_coordinates(bid)
         if coord is None:
@@ -569,7 +569,7 @@ class GISSyncBridge:
             },
         }
 
-    def _build_line_feature(self, line) -> Dict[str, Any] | None:
+    def _build_line_feature(self, line) -> Optional[Dict[str, Any]]:
         """Build a GeoJSON Feature for a line."""
         from_bus = line.from_bus
         to_bus = line.to_bus
@@ -594,7 +594,7 @@ class GISSyncBridge:
             },
         }
 
-    def _build_transformer_feature(self, xf) -> Dict[str, Any] | None:
+    def _build_transformer_feature(self, xf) -> Optional[Dict[str, Any]]:
         """Build a GeoJSON Feature for a transformer."""
         from_coord = self._get_bus_coordinates(xf.from_bus.bus_id)
         to_coord = self._get_bus_coordinates(xf.to_bus.bus_id)
@@ -616,7 +616,7 @@ class GISSyncBridge:
             },
         }
 
-    def _get_bus_coordinates(self, bus_id) -> tuple | None:
+    def _get_bus_coordinates(self, bus_id) -> Optional[tuple]:
         """Try to get GIS coordinates for a bus from PostGIS."""
         if self.postgis is not None:
             asset = self.postgis.get_asset(str(bus_id))
@@ -631,7 +631,7 @@ class GISSyncBridge:
         return None
 
     @staticmethod
-    def _extract_coords(geometry: Dict | None) -> tuple | None:
+    def _extract_coords(geometry: Optional[Dict]) -> Optional[tuple]:
         """Extract (lon, lat) from a GeoJSON geometry dict."""
         if geometry is None:
             return None

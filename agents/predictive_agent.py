@@ -27,7 +27,7 @@ from datetime import datetime, timezone
 UTC = timezone.utc  # noqa: UP017
 
 UTC = UTC
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
 import numpy as np
 
@@ -462,7 +462,7 @@ class PredictiveAgent(BaseAgent):
     def predict_fault_ml(
         self,
         features: np.ndarray,
-        labels: np.ndarray | None = None,
+        labels: Optional[np.ndarray] = None,
         use_xgboost: bool = True,
         explain: bool = False,
     ) -> Dict[str, Any]:

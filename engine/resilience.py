@@ -112,7 +112,7 @@ class RetryHandler:
         self,
         fn: Callable[..., Any],
         *args: Any,
-        retryable_exceptions: Sequence[Type[BaseException]] | None = None,
+        retryable_exceptions: Optional[Sequence[Type[BaseException]]] = None,
         **kwargs: Any,
     ) -> Any:
         """Execute a callable with retry logic.
@@ -139,7 +139,7 @@ class RetryHandler:
         Exception
             The last exception raised if all retries are exhausted.
         """
-        last_exc: BaseException | None = None
+        last_exc: Optional[BaseException] = None
 
         with self._lock:
             self._total_calls += 1
@@ -178,7 +178,7 @@ class RetryHandler:
         self,
         fn: Callable[..., Any],
         *args: Any,
-        retryable_exceptions: Sequence[Type[BaseException]] | None = None,
+        retryable_exceptions: Optional[Sequence[Type[BaseException]]] = None,
         **kwargs: Any,
     ) -> Any:
         """Execute an async callable with retry logic.
@@ -188,7 +188,7 @@ class RetryHandler:
         """
         import asyncio
 
-        last_exc: BaseException | None = None
+        last_exc: Optional[BaseException] = None
 
         with self._lock:
             self._total_calls += 1
@@ -226,7 +226,7 @@ class RetryHandler:
     def _is_retryable(
         self,
         exc: BaseException,
-        retryable_exceptions: Sequence[Type[BaseException]] | None,
+        retryable_exceptions: Optional[Sequence[Type[BaseException]]],
     ) -> bool:
         if retryable_exceptions is not None:
             return isinstance(exc, tuple(retryable_exceptions))
@@ -239,7 +239,7 @@ def with_retry(
     max_delay: float = 60.0,
     exponential_base: float = 2.0,
     jitter: bool = True,
-    retryable_exceptions: Sequence[Type[BaseException]] | None = None,
+    retryable_exceptions: Optional[Sequence[Type[BaseException]]] = None,
 ) -> Callable[[Callable[..., Any]], Callable[..., Any]]:
     """Decorator that wraps a function with :class:`RetryHandler`.
 
@@ -346,7 +346,7 @@ class CircuitBreaker:
         self._failure_count = 0
         self._total_calls = 0
         self._failed_calls = 0
-        self._last_failure_time: float | None = None
+        self._last_failure_time: Optional[float] = None
         self._state_changes = 0
         self._half_open_calls = 0
         self._lock = threading.Lock()
@@ -364,7 +364,7 @@ class CircuitBreaker:
         return self._failed_calls
 
     @property
-    def last_failure_time(self) -> float | None:
+    def last_failure_time(self) -> Optional[float]:
         return self._last_failure_time
 
     @property
@@ -390,7 +390,7 @@ class CircuitBreaker:
         self,
         fn: Callable[..., Any],
         *args: Any,
-        fallback: Callable[..., Any] | None = None,
+        fallback: Optional[Callable[..., Any]] = None,
         **kwargs: Any,
     ) -> Any:
         """Execute *fn* through the circuit breaker.
@@ -458,7 +458,7 @@ class CircuitBreaker:
         self,
         fn: Callable[..., Any],
         *args: Any,
-        fallback: Callable[..., Any] | None = None,
+        fallback: Optional[Callable[..., Any]] = None,
         **kwargs: Any,
     ) -> Any:
         """Async variant of :meth:`call`.
@@ -562,7 +562,7 @@ class RecoveryResult:
         level_used: int,
         actions_taken: List[str],
         duration: float,
-        error: BaseException | None = None,
+        error: Optional[BaseException] = None,
     ) -> None:
         self.success = success
         self.level_used = level_used
@@ -595,7 +595,7 @@ class MultiLevelRecovery:
 
     def __init__(self, name: str) -> None:
         self.name = name
-        self._strategies: Dict[int, List[Tuple[Callable, Callable | None]]] = {
+        self._strategies: Dict[int, List[Tuple[Callable, Optional[Callable]]]] = {
             1: [],
             2: [],
             3: [],
@@ -616,7 +616,7 @@ class MultiLevelRecovery:
         self,
         level: int,
         fn: Callable[[Any], Any],
-        condition_fn: Callable[[Any], bool] | None = None,
+        condition_fn: Optional[Callable[[Any], bool]] = None,
     ) -> None:
         """Register a recovery strategy at the given level.
 
@@ -634,7 +634,7 @@ class MultiLevelRecovery:
             raise ValueError(f"Invalid recovery level: {level}. Use 1, 2, or 3.")
         self._strategies[level].append((fn, condition_fn))
 
-    def recover(self, error: BaseException, context: Any | None = None) -> RecoveryResult:
+    def recover(self, error: BaseException, context: Optional[Any] = None) -> RecoveryResult:
         """Execute recovery strategies from level 1 upward.
 
         Returns as soon as a level produces a result considered successful

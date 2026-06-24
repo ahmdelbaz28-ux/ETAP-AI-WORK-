@@ -29,7 +29,7 @@ UTC = timezone.utc  # noqa: UP017
 
 UTC = UTC
 from pathlib import Path
-from typing import Dict, List, Tuple
+from typing import Dict, List, Optional, Tuple
 
 from cryptography.fernet import Fernet, InvalidToken
 
@@ -54,7 +54,7 @@ def _ensure_dir(path: Path) -> Path:
     return path
 
 
-def _get_cipher(key: bytes | None = None) -> Tuple[Fernet, bytes]:
+def _get_cipher(key: Optional[bytes] = None) -> Tuple[Fernet, bytes]:
     if key:
         return Fernet(key), key
     key = Fernet.generate_key()
@@ -94,7 +94,7 @@ class VaultSecretsManager:
 
         # Disk-backed fallback (no in-memory secret loss on restart).
         # We reuse LocalSecretsManager (Fernet-encrypted files under SECRETS_DIR).
-        self._fallback_store: LocalSecretsManager | None = None
+        self._fallback_store: Optional[LocalSecretsManager] = None
 
         self._init_vault_client()
 
@@ -143,7 +143,7 @@ class VaultSecretsManager:
         raw = f"{self.mount_path}__{path}__{key}"
         return re.sub(r"[^a-zA-Z0-9_-]", "_", raw)
 
-    def get_secret(self, path: str, key: str) -> str | None:
+    def get_secret(self, path: str, key: str) -> Optional[str]:
         if self._connected and self._client:
             try:
                 response = self._client.secrets.kv.v2.read_secret_version(
@@ -250,7 +250,7 @@ class LocalSecretsManager:
     but maintains its own independent key for isolation.
     """
 
-    def __init__(self, encryption_key: bytes | None = None):
+    def __init__(self, encryption_key: Optional[bytes] = None):
         _ensure_dir(SECRETS_DIR)
         self._key: bytes
         self._cipher: Fernet
@@ -303,7 +303,7 @@ class LocalSecretsManager:
             logger.error("Failed to store API key for %s: %s", service_name, exc)
             return False
 
-    def get_api_key(self, service_name: str) -> str | None:
+    def get_api_key(self, service_name: str) -> Optional[str]:
         path = self._service_file(service_name)
         if not path.exists():
             logger.warning("No stored API key for %s", service_name)
@@ -383,7 +383,7 @@ class KeyAccessAuditor:
     def __init__(self, audit_logger=None):
         _ensure_dir(AUDIT_DIR)
         self._log_file = AUDIT_DIR / "key_access.log"
-        self._log_handler: logging.Handler | None = None
+        self._log_handler: Optional[logging.Handler] = None
         self._setup_logger()
         if audit_logger is None:
             try:
@@ -418,7 +418,7 @@ class KeyAccessAuditor:
         key_name: str,
         action: str,
         success: bool,
-        details: Dict | None = None,
+        details: Optional[Dict] = None,
     ):
         entry = {
             "timestamp": datetime.now(UTC).isoformat(),
@@ -442,10 +442,10 @@ class KeyAccessAuditor:
 
     def get_access_logs(
         self,
-        key_name: str | None = None,
-        user_id: str | None = None,
-        start_time: datetime | None = None,
-        end_time: datetime | None = None,
+        key_name: Optional[str] = None,
+        user_id: Optional[str] = None,
+        start_time: Optional[datetime] = None,
+        end_time: Optional[datetime] = None,
     ) -> List[Dict]:
         if not self._log_file.exists():
             return []
@@ -493,7 +493,7 @@ class EnvironmentValidator:
     - Generates .env.example template from required secrets
     """
 
-    def __init__(self, env_path: Path | None = None, required_secrets: List[str] | None = None):
+    def __init__(self, env_path: Optional[Path] = None, required_secrets: Optional[List[str]] = None):
         self.env_path = env_path or Path.cwd() / ".env"
         self.required_secrets = required_secrets or REQUIRED_SECRETS
 
@@ -557,7 +557,7 @@ class EnvironmentValidator:
             logger.error("Cannot check .env permissions: %s", exc)
             return False
 
-    def check_for_hardcoded_secrets(self, file_patterns: List[str] | None = None) -> List[Dict]:
+    def check_for_hardcoded_secrets(self, file_patterns: Optional[List[str]] = None) -> List[Dict]:
         if file_patterns is None:
             file_patterns = ["*.py", "*.ts", "*.js", "*.tsx", "*.jsx", "*.yaml", "*.yml"]
         patterns = [
@@ -598,7 +598,7 @@ class EnvironmentValidator:
             logger.info("No hardcoded secrets detected")
         return findings
 
-    def generate_env_template(self, output_path: Path | None = None) -> str:
+    def generate_env_template(self, output_path: Optional[Path] = None) -> str:
         out = output_path or Path.cwd() / ".env.example"
         lines = [
             "# AhmedETAP - Environment Configuration",

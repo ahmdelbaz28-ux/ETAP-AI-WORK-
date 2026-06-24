@@ -29,7 +29,7 @@ from datetime import datetime, timezone
 UTC = timezone.utc  # noqa: UP017
 
 UTC = UTC
-from typing import Any, Deque, Dict, List
+from typing import Any, Deque, Dict, List, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -141,7 +141,7 @@ class SIEMForwarder:
         endpoint: str,
         api_key: str = "",
         siem_type: str = "loki",
-        labels: Dict[str, str] | None = None,
+        labels: Optional[Dict[str, str]] = None,
         buffer_size: int = 10_000,
         retry_attempts: int = 3,
         retry_delay_seconds: float = 1.0,
@@ -215,7 +215,7 @@ class SIEMForwarder:
         action: str,
         success: bool,
         ip: str,
-        extra: dict | None = None,
+        extra: Optional[dict] = None,
     ) -> bool:
         """Forward an authentication event.
 
@@ -254,7 +254,7 @@ class SIEMForwarder:
         resource: str,
         action: str,
         allowed: bool,
-        extra: dict | None = None,
+        extra: Optional[dict] = None,
     ) -> bool:
         """Forward an access-control event.
 
@@ -292,7 +292,7 @@ class SIEMForwarder:
         anomaly_type: str,
         description: str,
         severity: str = "warning",
-        extra: dict | None = None,
+        extra: Optional[dict] = None,
     ) -> bool:
         """Forward a security anomaly event.
 
@@ -327,7 +327,7 @@ class SIEMForwarder:
         data_type: str,
         action: str,
         record_count: int = 0,
-        extra: dict | None = None,
+        extra: Optional[dict] = None,
     ) -> bool:
         """Forward a data access / mutation event.
 
@@ -608,11 +608,11 @@ class SIEMForwarder:
 # Singleton helpers
 # ---------------------------------------------------------------------------
 
-_forwarder_instance: SIEMForwarder | None = None
+_forwarder_instance: Optional[SIEMForwarder] = None
 _forwarder_lock = threading.Lock()
 
 
-def get_siem_forwarder() -> SIEMForwarder | None:
+def get_siem_forwarder() -> Optional[SIEMForwarder]:
     """Get or create the global :class:`SIEMForwarder` singleton.
 
     Configuration is read from environment variables:

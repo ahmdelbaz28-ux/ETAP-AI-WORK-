@@ -26,7 +26,7 @@ import logging
 import os
 import time
 from dataclasses import dataclass, field
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -254,7 +254,7 @@ class ETAPSyncEngine:
     # Direction: AhmedETAP -> ETAP (Export)
     # ------------------------------------------------------------------
 
-    def export_to_etap(self, project_path: str | None = None) -> Dict[str, Any]:
+    def export_to_etap(self, project_path: Optional[str] = None) -> Dict[str, Any]:
         """Export the AhmedETAP model to an ETAP project.
 
         Parameters

@@ -25,7 +25,7 @@ import time
 from collections.abc import Generator
 from contextlib import contextmanager
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 logger = logging.getLogger(__name__)
 
@@ -48,9 +48,9 @@ class SpatialAsset:
 
     asset_id: str
     asset_type: str  # bus, line, transformer, substation, switch, load, generator
-    geometry: Dict[str, Any] | None = None  # GeoJSON geometry dict
+    geometry: Optional[Dict[str, Any]] = None  # GeoJSON geometry dict
     properties: Dict[str, Any] = field(default_factory=dict)
-    electrical_id: str | None = None
+    electrical_id: Optional[str] = None
     crs: int = _SPATIAL_REF_SYS
     created_at: float = field(default_factory=time.time)
     updated_at: float = field(default_factory=time.time)
@@ -272,7 +272,7 @@ class PostGISProvider:
             logger.error("PostGIS upsert failed: %s", exc)
             return False
 
-    def get_asset(self, asset_id: str) -> SpatialAsset | None:
+    def get_asset(self, asset_id: str) -> Optional[SpatialAsset]:
         """Get a single asset by ID."""
         if self._use_fallback:
             return self._fallback_get(asset_id)
@@ -546,7 +546,7 @@ class PostGISProvider:
                 count += 1
         return count
 
-    def export_geojson_collection(self, asset_type: str | None = None) -> Dict[str, Any]:
+    def export_geojson_collection(self, asset_type: Optional[str] = None) -> Dict[str, Any]:
         """Export assets as a GeoJSON FeatureCollection."""
         assets = self.query_by_type(asset_type) if asset_type else self.get_all_assets()
         return {
@@ -588,7 +588,7 @@ class PostGISProvider:
             logger.error("Fallback upsert failed: %s", exc)
             return False
 
-    def _fallback_get(self, asset_id: str) -> SpatialAsset | None:
+    def _fallback_get(self, asset_id: str) -> Optional[SpatialAsset]:
         path = self._fallback_path(asset_id)
         try:
             with open(path) as f:
@@ -651,7 +651,7 @@ class PostGISProvider:
             return False
 
     @staticmethod
-    def _get_geometry_center(geometry: Dict[str, Any]) -> Tuple[float, float] | None:
+    def _get_geometry_center(geometry: Dict[str, Any]) -> Optional[Tuple[float, float]]:
         gtype = geometry.get("type")
         coords = geometry.get("coordinates")
         if not coords:

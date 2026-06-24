@@ -26,7 +26,7 @@ from __future__ import annotations
 import logging
 import os
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
 import yaml
 
@@ -43,7 +43,7 @@ _LANGWATCH_API_KEY = os.environ.get("LANGWATCH_API_KEY", "")
 _LANGWATCH_ENDPOINT = os.environ.get("LANGWATCH_ENDPOINT", "https://app.langwatch.ai")
 
 # Cache for loaded prompts to avoid redundant I/O
-_prompt_cache: Dict[str, str | None] = {}
+_prompt_cache: Dict[str, Optional[str]] = {}
 
 
 # ---------------------------------------------------------------------------
@@ -51,7 +51,7 @@ _prompt_cache: Dict[str, str | None] = {}
 # ---------------------------------------------------------------------------
 
 
-def _load_from_langwatch(handle: str) -> str | None:
+def _load_from_langwatch(handle: str) -> Optional[str]:
     """Attempt to load a prompt from the LangWatch API.
 
     Returns the system message content if found, ``None`` otherwise.
@@ -114,7 +114,7 @@ def _load_from_langwatch(handle: str) -> str | None:
 # ---------------------------------------------------------------------------
 
 
-def _extract_system_message(parsed: Any) -> str | None:
+def _extract_system_message(parsed: Any) -> Optional[str]:
     """Extract the system message from a parsed YAML prompt structure."""
     if not isinstance(parsed, dict):
         return None
@@ -136,7 +136,7 @@ def _extract_system_message(parsed: Any) -> str | None:
     return None
 
 
-def _load_from_yaml(handle: str) -> str | None:
+def _load_from_yaml(handle: str) -> Optional[str]:
     """Load a prompt from a local YAML file in the prompts/ directory.
 
     Tries several filename patterns to locate the file, matching the

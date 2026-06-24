@@ -12,7 +12,7 @@ import numpy as np
 
 logger = logging.getLogger(__name__)
 from collections.abc import Callable
-from typing import Any, Dict, List, Union
+from typing import Any, Dict, List, Optional, Union
 
 from scipy.sparse import coo_matrix, csc_matrix, csr_matrix, issparse
 from scipy.sparse.linalg import splu
@@ -164,7 +164,7 @@ class MemoryOptimizedSystem:
     )
     THRESH = 100
 
-    def __init__(self, original: System | None = None):
+    def __init__(self, original: Optional[System] = None):
         self.base_mva = 100.0
         self.bus_count = 0
         self.lines = []
@@ -658,7 +658,7 @@ class PerformanceProfiler:
     def get_profile_report(self) -> List[Dict[str, Any]]:
         return list(self._profiles)
 
-    def suggest_optimizations(self, profile_data: Dict[str, Any] | None = None) -> List[str]:
+    def suggest_optimizations(self, profile_data: Optional[Dict[str, Any]] = None) -> List[str]:
         d = profile_data or (self._profiles[-1] if self._profiles else {})
         sug = []
         e, m = d.get("elapsed_seconds", 0), d.get("memory_delta_mb", 0)
@@ -686,7 +686,7 @@ class LargeSystemAdapter:
         self._n = self.optimized_system.get_bus_count()
         self._large, self._xl = self._n >= 1000, self._n >= 10000
 
-    def run_load_flow_optimized(self, params: Dict[str, Any] | None = None) -> Dict[str, Any]:
+    def run_load_flow_optimized(self, params: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
         p = params or {}
         Y = self.sparse_manager.build_sparse_ybus(
             self.optimized_system.to_system(), p.get("seq", "1")
@@ -710,7 +710,7 @@ class LargeSystemAdapter:
         r["system_type"] = "xl" if self._xl else ("large" if self._large else "normal")
         return r
 
-    def run_fault_analysis_optimized(self, params: Dict[str, Any] | None = None) -> Dict[str, Any]:
+    def run_fault_analysis_optimized(self, params: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
         p = params or {}
         sys_o = self.optimized_system.to_system()
         sys_o.build_sequence_networks(for_fault=True)

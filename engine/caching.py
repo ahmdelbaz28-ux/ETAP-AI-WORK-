@@ -30,7 +30,7 @@ import logging
 import threading
 import time
 from collections import OrderedDict
-from typing import Any, List, Tuple
+from typing import Any, List, Optional, Tuple
 
 logger = logging.getLogger(__name__)
 
@@ -66,7 +66,7 @@ class _InMemoryStore:
         self._max = max_entries
         self._lock = asyncio.Lock()
 
-    async def get(self, key: str) -> str | None:
+    async def get(self, key: str) -> Optional[str]:
         """Get a value by key.  Returns ``None`` if missing or expired."""
         async with self._lock:
             entry = self._data.get(key)
@@ -171,7 +171,7 @@ class StudyCache:
         self._key_prefix = key_prefix
         self._max_fallback_entries = max_fallback_entries
 
-        self._redis: Any | None = None
+        self._redis: Optional[Any] = None
         self._fallback = _InMemoryStore(max_entries=max_fallback_entries)
         self._using_fallback = True
 
@@ -180,7 +180,7 @@ class StudyCache:
         self._misses = 0
         self._sets = 0
         self._invalidations = 0
-        self._stats_lock: asyncio.Lock | None = None
+        self._stats_lock: Optional[asyncio.Lock] = None
 
         # Attempt initial Redis connection
         if HAS_REDIS:
@@ -259,7 +259,7 @@ class StudyCache:
 
     # -- core operations -----------------------------------------------------
 
-    async def get(self, study_type: str, params: dict) -> dict | None:
+    async def get(self, study_type: str, params: dict) -> Optional[dict]:
         """Get cached study result.
 
         Parameters
@@ -491,7 +491,7 @@ class StudyCache:
 # Singleton
 # ---------------------------------------------------------------------------
 
-_cache_instance: StudyCache | None = None
+_cache_instance: Optional[StudyCache] = None
 _cache_lock = threading.Lock()
 
 

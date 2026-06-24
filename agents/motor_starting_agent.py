@@ -26,7 +26,7 @@ from datetime import datetime, timezone
 UTC = timezone.utc  # noqa: UP017
 
 UTC = UTC
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
 import numpy as np
 
@@ -121,7 +121,7 @@ class MotorStartingAgent(BaseAgent):
         voltage_v: float,
         nema_code: str = "F",
         starting_method: str = "DOL",
-        fla_a: float | None = None,
+        fla_a: Optional[float] = None,
     ) -> Dict[str, Any]:
         """
         Calculate motor starting (locked-rotor) current.

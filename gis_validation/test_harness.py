@@ -3,7 +3,7 @@ from __future__ import annotations
 import importlib
 import time
 from dataclasses import dataclass
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
 from gis_integration.models import ADMSAsset
 from gis_validation.crs_validator import validate_crs_consistency, validate_normalization_applied
@@ -161,9 +161,9 @@ def run_stress_validation_tests() -> ValidationReport:
 
 
 def production_readiness_gate(
-    qgis_project_path: str | None = None,
-    arcgis_project_path: str | None = None,
-    adms_output_path: str | None = None,
+    qgis_project_path: Optional[str] = None,
+    arcgis_project_path: Optional[str] = None,
+    adms_output_path: Optional[str] = None,
 ) -> bool:
     """
     Single authoritative production validation entry point.

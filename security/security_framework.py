@@ -31,7 +31,7 @@ UTC = timezone.utc  # noqa: UP017
 UTC = UTC
 from enum import Enum
 from pathlib import Path
-from typing import Dict, List, Set
+from typing import Dict, List, Optional, Set
 
 import bcrypt
 import jwt
@@ -142,10 +142,10 @@ class User:
     role: UserRole
     password_hash: str
     created_at: datetime = field(default_factory=lambda: datetime.now(UTC))
-    last_login: datetime | None = None
+    last_login: Optional[datetime] = None
     is_active: bool = True
     failed_login_attempts: int = 0
-    locked_until: datetime | None = None
+    locked_until: Optional[datetime] = None
 
 
 @dataclass
@@ -173,7 +173,7 @@ class AuthenticationManager:
 
     def __init__(
         self,
-        secret_key: str | None = None,
+        secret_key: Optional[str] = None,
         token_expiry_hours: int = 8,
         max_failed_attempts: int = 5,
         lockout_duration_minutes: int = 30,
@@ -243,7 +243,7 @@ class AuthenticationManager:
 
     def create_user(
         self, username: str, email: str, password: str, role: UserRole = UserRole.VIEWER
-    ) -> User | None:
+    ) -> Optional[User]:
         if username in self.username_to_id:
             logger.warning(f"Username '{username}' already exists")
             return None
@@ -270,7 +270,7 @@ class AuthenticationManager:
         logger.info(f"User created: {username} (role={role.value})")
         return user
 
-    def authenticate(self, username: str, password: str) -> str | None:
+    def authenticate(self, username: str, password: str) -> Optional[str]:
         user_id = self.username_to_id.get(username)
         if not user_id:
             logger.warning("Authentication failed: invalid credentials")
@@ -324,7 +324,7 @@ class AuthenticationManager:
             token = token.decode("utf-8")
         return token
 
-    def validate_token(self, token: str) -> User | None:
+    def validate_token(self, token: str) -> Optional[User]:
         if isinstance(token, bytes):
             token = token.decode("utf-8")
         session = self.token_to_session.get(token)

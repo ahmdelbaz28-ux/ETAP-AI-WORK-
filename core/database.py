@@ -17,7 +17,7 @@ from datetime import datetime, timezone
 UTC = timezone.utc  # noqa: UP017
 
 UTC = UTC
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
 from core.models import (
     ChangeSource,
@@ -40,7 +40,7 @@ class UniversalDataModel:
     def __init__(self, db_path: str = "udm_elements.db") -> None:
         self._db_path = db_path
         self._lock = threading.RLock()
-        self._conn: sqlite3.Connection | None = None
+        self._conn: Optional[sqlite3.Connection] = None
         self._local = threading.local()
         self.elements: Dict[str, UniversalElement] = {}
         self.conflicts: Dict[str, Conflict] = {}
@@ -146,7 +146,7 @@ class UniversalDataModel:
                 if conflict:
                     self.conflicts[conflict.conflict_id] = conflict
 
-    def _row_to_element(self, row: Dict[str, Any]) -> UniversalElement | None:
+    def _row_to_element(self, row: Dict[str, Any]) -> Optional[UniversalElement]:
         """Convert database row to UniversalElement."""
         try:
             geometry = None
@@ -211,7 +211,7 @@ class UniversalDataModel:
             logger.error(f"Error converting row to element: {e}")
             return None
 
-    def _row_to_conflict(self, row: Dict[str, Any]) -> Conflict | None:
+    def _row_to_conflict(self, row: Dict[str, Any]) -> Optional[Conflict]:
         """Convert database row to Conflict."""
         try:
             return Conflict(
@@ -284,7 +284,7 @@ class UniversalDataModel:
                 logger.error(f"Error adding element: {e}")
                 return False
 
-    def get_element(self, element_id: str) -> UniversalElement | None:
+    def get_element(self, element_id: str) -> Optional[UniversalElement]:
         """Get an element by ID."""
         with self._lock:
             return self.elements.get(element_id)

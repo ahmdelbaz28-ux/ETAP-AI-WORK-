@@ -11,6 +11,7 @@ from __future__ import annotations
 import time
 from collections.abc import Awaitable, Callable
 from dataclasses import dataclass, field
+from typing import Optional
 
 __all__ = ["ProgressEmitter", "ProgressEvent"]
 
@@ -67,9 +68,9 @@ class ProgressEmitter:
     def __init__(
         self,
         trace_id: str,
-        send: ProgressSink | None = None,
+        send: Optional[ProgressSink] = None,
         *,
-        on_drop: Callable[[ProgressEvent], None] | None = None,
+        on_drop: Optional[Callable[[ProgressEvent], None]] = None,
     ) -> None:
         self._trace_id = trace_id
         self._send = send

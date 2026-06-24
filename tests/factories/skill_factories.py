@@ -63,8 +63,8 @@ class ExecutionResultFactory(factory.Factory):
         model = dict
 
     success = True
-    data: dict[str, Any] | None = None
-    error: dict[str, str] | None = None
+    data: Optional[dict[str, Any]] = None
+    error: Optional[dict[str, str]] = None
     timestamp = factory.LazyFunction(lambda: datetime.now(UTC))
 
     @classmethod
@@ -97,7 +97,7 @@ class ErrorResponseFactory(factory.Factory):
     error = True
     type = "TestError"
     message = Faker("sentence")
-    action_required: str | None = None
+    action_required: Optional[str] = None
     can_retry = False
 
 

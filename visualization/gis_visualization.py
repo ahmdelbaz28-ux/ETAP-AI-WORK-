@@ -24,7 +24,7 @@ from __future__ import annotations
 
 import logging
 import os
-from typing import Any, Dict, List, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 logger = logging.getLogger(__name__)
 
@@ -207,10 +207,10 @@ class GISVisualizer:
     def visualize_load_flow(
         self,
         buses: Dict[str, Dict[str, Any]],
-        lines: List[Dict[str, Any]] | None = None,
-        bus_coords: Dict[str, Tuple[float, float]] | None = None,
+        lines: Optional[List[Dict[str, Any]]] = None,
+        bus_coords: Optional[Dict[str, Tuple[float, float]]] = None,
         title: str = "Load Flow Results",
-        output_path: str | None = None,
+        output_path: Optional[str] = None,
     ) -> Any:
         """Visualize load flow results on a geographic map.
 
@@ -313,9 +313,9 @@ class GISVisualizer:
     def visualize_voltage_profile(
         self,
         buses: Dict[str, Dict[str, Any]],
-        bus_coords: Dict[str, Tuple[float, float]] | None = None,
+        bus_coords: Optional[Dict[str, Tuple[float, float]]] = None,
         title: str = "Voltage Profile Map",
-        output_path: str | None = None,
+        output_path: Optional[str] = None,
     ) -> Any:
         """Visualize voltage profile with color-coded buses and contour overlay."""
         m = self._create_base_map()
@@ -379,10 +379,10 @@ class GISVisualizer:
     def visualize_fault_analysis(
         self,
         fault_currents: Dict[str, Dict[str, Any]],
-        bus_coords: Dict[str, Tuple[float, float]] | None = None,
+        bus_coords: Optional[Dict[str, Tuple[float, float]]] = None,
         fault_type: str = "Three Phase",
         title: str = "Fault Analysis Results",
-        output_path: str | None = None,
+        output_path: Optional[str] = None,
     ) -> Any:
         """Visualize fault current magnitudes at each bus.
 
@@ -445,9 +445,9 @@ class GISVisualizer:
     def visualize_arc_flash(
         self,
         arc_flash_results: Dict[str, Dict[str, Any]],
-        bus_coords: Dict[str, Tuple[float, float]] | None = None,
+        bus_coords: Optional[Dict[str, Tuple[float, float]]] = None,
         title: str = "Arc Flash Risk Assessment",
-        output_path: str | None = None,
+        output_path: Optional[str] = None,
     ) -> Any:
         """Visualize arc flash incident energy at each bus.
 
@@ -536,9 +536,9 @@ class GISVisualizer:
     def visualize_protection_coordination(
         self,
         relay_data: Dict[str, Dict[str, Any]],
-        bus_coords: Dict[str, Tuple[float, float]] | None = None,
+        bus_coords: Optional[Dict[str, Tuple[float, float]]] = None,
         title: str = "Protection Coordination View",
-        output_path: str | None = None,
+        output_path: Optional[str] = None,
     ) -> Any:
         """Visualize protection relay coverage and coordination status."""
         m = self._create_base_map()
@@ -586,7 +586,7 @@ class GISVisualizer:
         self,
         network_geojson: Dict[str, Any],
         title: str = "Electrical Network Map",
-        output_path: str | None = None,
+        output_path: Optional[str] = None,
     ) -> Any:
         """Visualize the complete electrical network from a GeoJSON FeatureCollection."""
         m = self._create_base_map()
@@ -653,13 +653,13 @@ class GISVisualizer:
 
     def create_dashboard_map(
         self,
-        load_flow_buses: Dict | None = None,
-        fault_currents: Dict | None = None,
-        arc_flash_results: Dict | None = None,
-        network_geojson: Dict | None = None,
-        bus_coords: Dict[str, Tuple[float, float]] | None = None,
+        load_flow_buses: Optional[Dict] = None,
+        fault_currents: Optional[Dict] = None,
+        arc_flash_results: Optional[Dict] = None,
+        network_geojson: Optional[Dict] = None,
+        bus_coords: Optional[Dict[str, Tuple[float, float]]] = None,
         title: str = "AhmedETAP Engineering Dashboard",
-        output_path: str | None = None,
+        output_path: Optional[str] = None,
     ) -> Any:
         """Create a combined dashboard with multiple data layers.
 
@@ -906,7 +906,7 @@ class GISVisualizer:
     # Output
     # ------------------------------------------------------------------
 
-    def _save_or_return(self, m: Any, output_path: str | None = None) -> Any:
+    def _save_or_return(self, m: Any, output_path: Optional[str] = None) -> Any:
         """Save map to HTML or return the map object."""
         if output_path:
             os.makedirs(os.path.dirname(output_path) or ".", exist_ok=True)

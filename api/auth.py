@@ -35,7 +35,7 @@ from datetime import datetime, timedelta, timezone
 UTC = timezone.utc  # noqa: UP017
 
 UTC = UTC
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
 import bcrypt
 import jwt
@@ -89,7 +89,7 @@ _TOKEN_BLACKLIST_PREFIX = os.getenv("TOKEN_BLACKLIST_PREFIX", "auth:blacklist:")
 _redis_client = None
 
 
-def _get_redis_client() -> redis_async.Redis | None:
+def _get_redis_client() -> Optional[redis_async.Redis]:
     global _redis_client
     if not _REDIS_URL or not REDIS_AVAILABLE:
         return None
@@ -98,7 +98,7 @@ def _get_redis_client() -> redis_async.Redis | None:
     return _redis_client
 
 
-async def _blacklist_token(jti: str, ttl_seconds: int | None = None) -> None:
+async def _blacklist_token(jti: str, ttl_seconds: Optional[int] = None) -> None:
     """Blacklist a refresh token JTI using Redis (with TTL)."""
     r = _get_redis_client()
     if r is None:
@@ -173,10 +173,10 @@ class User(Base):
         default=lambda: datetime.now(UTC),
         onupdate=lambda: datetime.now(UTC),
     )
-    last_login: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    last_login: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
-    reset_token: Mapped[str | None] = mapped_column(String(128), nullable=True)
-    reset_token_expires: Mapped[datetime | None] = mapped_column(
+    reset_token: Mapped[Optional[str]] = mapped_column(String(128), nullable=True)
+    reset_token_expires: Mapped[Optional[datetime]] = mapped_column(
         DateTime(timezone=True), nullable=True
     )
 
@@ -289,8 +289,8 @@ class UpdateProfileRequest(BaseModel):
 
     model_config = ConfigDict(strict=False)
 
-    email: EmailStr | None = None
-    mfa_enabled: bool | None = None
+    email: Optional[EmailStr] = None
+    mfa_enabled: Optional[bool] = None
 
 
 class UserResponse(BaseModel):
@@ -304,9 +304,9 @@ class UserResponse(BaseModel):
     role: str
     mfa_enabled: bool
     is_active: bool
-    created_at: datetime | None = None
-    updated_at: datetime | None = None
-    last_login: datetime | None = None
+    created_at: Optional[datetime] = None
+    updated_at: Optional[datetime] = None
+    last_login: Optional[datetime] = None
 
 
 class UserListResponse(BaseModel):
@@ -548,7 +548,7 @@ async def refresh(
                 detail="Refresh token has been revoked",
             )
 
-    user_id: str | None = payload.get("sub")
+    user_id: Optional[str] = payload.get("sub")
     if user_id is None:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -580,7 +580,7 @@ async def refresh(
     summary="Revoke session",
 )
 async def logout(
-    body: RefreshRequest | None = Body(None),
+    body: Optional[RefreshRequest] = Body(None),
     user: CurrentUser = Depends(get_current_user_from_header),  # noqa: B008
 ) -> None:
     """Log the current user out by blacklisting the provided refresh token.
@@ -599,7 +599,7 @@ async def logout(
             )
             jti = payload.get("jti")
             exp = payload.get("exp")  # epoch seconds
-            ttl_seconds: int | None = None
+            ttl_seconds: Optional[int] = None
             if isinstance(exp, (int, float)):
                 now_epoch = datetime.now(tz=UTC).timestamp()
                 ttl_seconds = int(exp - now_epoch)
