@@ -37,6 +37,7 @@ RUN pip install --no-cache-dir --upgrade pip && \
 
 # Application code — copy only what hf-space/app.py needs
 COPY --chown=user:user hf-space/app.py /app/app.py
+COPY --chown=user:user compat.py /app/compat.py
 COPY --chown=user:user agents/ /app/agents/
 COPY --chown=user:user skills/ /app/skills/
 COPY --chown=user:user prompts/ /app/prompts/
