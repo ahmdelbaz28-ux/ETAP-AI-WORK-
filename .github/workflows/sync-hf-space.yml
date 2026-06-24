@@ -58,7 +58,7 @@ jobs:
           cd hf-space-repo
           find . -mindepth 1 -maxdepth 1 -not -name '.git' -not -name '.gitattributes' -exec rm -rf {} +
           # Copy fresh content from GitHub
-          cp -r ../Dockerfile ../README.md ../VERSION ../prompts.json ./
+          cp -r ../Dockerfile ../README.md ../VERSION ../prompts.json ../compat.py ./
           cp -r ../hf-space ./
           cp -r ../agents ../skills ../prompts ../core_model ../core ../engine ./
           cp -r ../load_flow ../fault_analysis ../coordination ../relays ./
