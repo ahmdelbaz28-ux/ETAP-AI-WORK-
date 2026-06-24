@@ -3,15 +3,12 @@ import { TopBar } from './TopBar'
 import { Sidebar } from './Sidebar'
 import { StatusBar } from './StatusBar'
 import { cn } from '../../utils/helpers'
-import { useAppStore } from '../../store'
 
 interface AppShellProps {
   children: ReactNode
 }
 
 export function AppShell({ children }: AppShellProps) {
-  const { sidebarCollapsed } = useAppStore()
-
   return (
     <div className="flex flex-col h-screen overflow-hidden bg-[var(--bg-primary)]">
       <TopBar />

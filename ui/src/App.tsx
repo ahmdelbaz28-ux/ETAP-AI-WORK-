@@ -1,5 +1,5 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
-import { Suspense, lazy, useEffect, useState } from 'react'
+import { Suspense, lazy, useEffect, useState, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import { ThemeProvider } from './context/ThemeContext'
 import { NotificationProvider } from './context/NotificationContext'
@@ -11,29 +11,41 @@ import { ErrorRecovery } from './components/context/ErrorRecovery'
 import { useAppStore } from './store'
 import './i18n'
 
-function LazyPage({ loader }: { loader: () => Promise<{ [key: string]: unknown }> }) {
-  const Component = lazy(async () => {
-    const mod = await loader()
-    const name = Object.keys(mod).find(k => k !== 'default') || 'default'
-    return { default: mod[name] as React.ComponentType }
-  })
-  return (
-    <Suspense fallback={
-      <div className="flex items-center justify-center h-64">
-        <div className="flex flex-col items-center gap-3">
-          <div className="w-8 h-8 border-2 border-[var(--accent-primary)] border-t-transparent rounded-full animate-spin" />
-          <span className="text-sm text-[var(--text-muted)]">Loading...</span>
-        </div>
-      </div>
-    }>
-      <Component />
-    </Suspense>
-  )
-}
+// Lazy-loaded page components — loaded on demand
+const LoadingFallback = () => (
+  <div className="flex items-center justify-center h-64">
+    <div className="flex flex-col items-center gap-3">
+      <div className="w-8 h-8 border-2 border-[var(--accent-primary)] border-t-transparent rounded-full animate-spin" />
+      <span className="text-sm text-[var(--text-muted)]">Loading...</span>
+    </div>
+  </div>
+)
+
+const LazyPage = ({ children }: { children: ReactNode }) => (
+  <Suspense fallback={<LoadingFallback />}>{children}</Suspense>
+)
+
+const DashboardPage = lazy(() => import('./pages/Dashboard'))
+const StudiesPage = lazy(() => import('./pages/Studies'))
+const StudyRunPage = lazy(() => import('./pages/StudyRun'))
+const AssetManagementPage = lazy(() => import('./pages/AssetManagement'))
+const AIAssistantPage = lazy(() => import('./pages/AIAssistant'))
+const ProjectsPage = lazy(() => import('./pages/Projects'))
+const EtapIntegrationPage = lazy(() => import('./pages/EtapIntegration'))
+const GisIntegrationPage = lazy(() => import('./pages/GisIntegration'))
+const ReportsPage = lazy(() => import('./pages/Reports'))
+const SettingsPage = lazy(() => import('./pages/Settings'))
+const AdministrationPage = lazy(() => import('./pages/Administration'))
+const DiagnosticsPage = lazy(() => import('./pages/Diagnostics'))
+const DigitalTwinPage = lazy(() => import('./pages/DigitalTwin'))
+const DataImportPage = lazy(() => import('./pages/DataImport'))
+const DataExportPage = lazy(() => import('./pages/DataExport'))
+const LogsPage = lazy(() => import('./pages/Logs'))
+const CodeGuardPage = lazy(() => import('./pages/CodeGuard'))
 
 export default function App() {
   const { i18n } = useTranslation()
-  const { lastError, setLastError, toggleHelpPanel } = useAppStore()
+  const { lastError, setLastError } = useAppStore()
   const [helpOpen, setHelpOpen] = useState(false)
   const [helpContext, setHelpContext] = useState<string | undefined>()
 
@@ -89,23 +101,23 @@ export default function App() {
           <Routes>
             <Route element={<Layout />}>
               <Route path="/" element={<Navigate to="/dashboard" replace />} />
-              <Route path="/dashboard" element={<LazyPage loader={() => import('./pages/Dashboard')} />} />
-              <Route path="/studies" element={<LazyPage loader={() => import('./pages/Studies')} />} />
-              <Route path="/studies/:studyType" element={<LazyPage loader={() => import('./pages/StudyRun')} />} />
-              <Route path="/asset-management" element={<LazyPage loader={() => import('./pages/AssetManagement')} />} />
-              <Route path="/assistant" element={<LazyPage loader={() => import('./pages/AIAssistant')} />} />
-              <Route path="/projects" element={<LazyPage loader={() => import('./pages/Projects')} />} />
-              <Route path="/etap" element={<LazyPage loader={() => import('./pages/EtapIntegration')} />} />
-              <Route path="/gis" element={<LazyPage loader={() => import('./pages/GisIntegration')} />} />
-              <Route path="/reports" element={<LazyPage loader={() => import('./pages/Reports')} />} />
-              <Route path="/settings" element={<LazyPage loader={() => import('./pages/Settings')} />} />
-              <Route path="/admin" element={<LazyPage loader={() => import('./pages/Administration')} />} />
-              <Route path="/diagnostics" element={<LazyPage loader={() => import('./pages/Diagnostics')} />} />
-              <Route path="/digital-twin" element={<LazyPage loader={() => import('./pages/DigitalTwin')} />} />
-              <Route path="/data-import" element={<LazyPage loader={() => import('./pages/DataImport')} />} />
-              <Route path="/data-export" element={<LazyPage loader={() => import('./pages/DataExport')} />} />
-              <Route path="/logs" element={<LazyPage loader={() => import('./pages/Logs')} />} />
-              <Route path="/code-guard" element={<LazyPage loader={() => import('./pages/CodeGuard')} />} />
+              <Route path="/dashboard" element={<LazyPage><DashboardPage /></LazyPage>} />
+              <Route path="/studies" element={<LazyPage><StudiesPage /></LazyPage>} />
+              <Route path="/studies/:studyType" element={<LazyPage><StudyRunPage /></LazyPage>} />
+              <Route path="/asset-management" element={<LazyPage><AssetManagementPage /></LazyPage>} />
+              <Route path="/assistant" element={<LazyPage><AIAssistantPage /></LazyPage>} />
+              <Route path="/projects" element={<LazyPage><ProjectsPage /></LazyPage>} />
+              <Route path="/etap" element={<LazyPage><EtapIntegrationPage /></LazyPage>} />
+              <Route path="/gis" element={<LazyPage><GisIntegrationPage /></LazyPage>} />
+              <Route path="/reports" element={<LazyPage><ReportsPage /></LazyPage>} />
+              <Route path="/settings" element={<LazyPage><SettingsPage /></LazyPage>} />
+              <Route path="/admin" element={<LazyPage><AdministrationPage /></LazyPage>} />
+              <Route path="/diagnostics" element={<LazyPage><DiagnosticsPage /></LazyPage>} />
+              <Route path="/digital-twin" element={<LazyPage><DigitalTwinPage /></LazyPage>} />
+              <Route path="/data-import" element={<LazyPage><DataImportPage /></LazyPage>} />
+              <Route path="/data-export" element={<LazyPage><DataExportPage /></LazyPage>} />
+              <Route path="/logs" element={<LazyPage><LogsPage /></LazyPage>} />
+              <Route path="/code-guard" element={<LazyPage><CodeGuardPage /></LazyPage>} />
             </Route>
           </Routes>
         </BrowserRouter>

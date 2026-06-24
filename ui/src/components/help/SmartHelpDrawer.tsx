@@ -1,14 +1,13 @@
-import { useState, useEffect, useRef } from 'react'
+import { useEffect, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
 import {
-  X, Search, BookOpen, ChevronRight, ArrowRight, ExternalLink,
-  Zap, FolderPlus, Radio, FileText, ShieldCheck, Settings, Activity,
+  X, Search, BookOpen, ChevronRight, ArrowRight,
+  Zap, FolderPlus, Radio, FileText, Settings, Activity,
   Layers, Bug, HelpCircle,
 } from 'lucide-react'
 import { cn } from '../../utils/helpers'
 import { useSmartHelp } from '../../hooks/useSmartHelp'
-import type { HelpCategory } from '../../help/types'
 
 const categoryIcons: Record<string, React.ElementType> = {
   'getting-started': Zap,

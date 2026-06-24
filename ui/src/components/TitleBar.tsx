@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Minus, Square, X, Maximize2 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
-import { cn } from '../utils/helpers'
 
 declare global {
   interface Window {
