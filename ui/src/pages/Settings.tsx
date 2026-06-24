@@ -216,7 +216,7 @@ function loadInitialSettings(): Record<string, string> {
   return defaults
 }
 
-export function Settings() {
+export default function Settings() {
   const [settings, setSettings] = useState<Record<string, string>>(loadInitialSettings)
   const [saving, setSaving] = useState(false)
   const { notify } = useNotify()

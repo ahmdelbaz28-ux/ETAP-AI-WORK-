@@ -37,7 +37,7 @@ const recentExports = [
   { name: 'system_model.json', size: '456 KB', date: '2026-06-08' },
 ]
 
-export function DataExport() {
+export default function DataExport() {
   const { notify } = useNotify()
 
   return (

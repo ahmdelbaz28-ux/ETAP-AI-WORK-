@@ -122,7 +122,7 @@ function MiniGauge({ label, value, max, color }: { label: string; value: number;
   )
 }
 
-export function Dashboard() {
+export default function Dashboard() {
   const { t } = useTranslation()
   const [health, setHealth] = useState<HealthResponse | null>(null)
   const [agents, setAgents] = useState<AgentMeta[]>([])

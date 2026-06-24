@@ -12,7 +12,7 @@ const supportedFormats = [
   { name: 'CSV', icon: <FileSpreadsheet className="w-5 h-5" />, desc: 'Comma-separated values' },
 ]
 
-export function DataImport() {
+export default function DataImport() {
   const { notify } = useNotify()
 
   return (

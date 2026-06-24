@@ -10,15 +10,13 @@ Auto-update:
   The .github/workflows/auto-index.yml workflow re-runs this script
   on every push to main and commits the updated index files automatically.
 """
+import ast
+import datetime
+import hashlib
+import json
 import os
 import re
-import ast
-import json
-import hashlib
-import datetime
-from datetime import timezone
 from pathlib import Path
-from typing import Any
 
 PROJECT_ROOT = Path(".")
 OUTPUT_DIR = PROJECT_ROOT
@@ -254,7 +252,7 @@ def scan_infra() -> dict:
 def collect_all_api_routes(modules: dict) -> list:
     """Flatten all API routes across all scanned modules."""
     all_routes = []
-    for pkg, pkg_data in modules.items():
+    for _pkg, pkg_data in modules.items():
         for file_path, file_data in pkg_data.get("files", {}).items():
             for route in file_data.get("api_routes", []):
                 all_routes.append({
@@ -305,8 +303,8 @@ def generate_markdown(index: dict) -> str:
         "",
         "## 📊 Project Statistics",
         "",
-        f"| Metric | Count |",
-        f"|:---|---:|",
+        "| Metric | Count |",
+        "|:---|---:|",
         f"| Python Packages | {stats['python_packages']} |",
         f"| Python Files | {stats['python_files']} |",
         f"| Python Classes | {stats['python_classes']} |",
@@ -429,7 +427,7 @@ def main():
         "meta": {
             "project": "AhmedETAP — Power Systems Engineering AI Platform",
             "version": open("VERSION", encoding="utf-8").read().strip() if Path("VERSION").exists() else "unknown",
-            "generated_at": datetime.datetime.now(timezone.utc).isoformat(),
+            "generated_at": datetime.datetime.now(datetime.UTC).isoformat(),
 
             "indexer_version": "1.0.0",
             "total_api_routes": len(all_routes),

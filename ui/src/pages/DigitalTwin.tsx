@@ -135,7 +135,7 @@ function DigitalTwinDiagram() {
   )
 }
 
-export function DigitalTwin() {
+export default function DigitalTwin() {
   const [syncing, setSyncing] = useState(false)
 
   const handleSync = () => {

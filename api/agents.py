@@ -5,7 +5,7 @@ Handles all AI agent information endpoints.
 Separated from main engineering service for better modularity.
 """
 
-from typing import Any, Dict
+from typing import Any, Dict, List, Optional
 
 from fastapi import APIRouter, Depends, Request
 from fastapi.responses import JSONResponse
@@ -67,7 +67,7 @@ class ETAPExpertChatRequest(BaseModel):
 
     question: str = Field(..., min_length=1, max_length=4000,
                           description="The ETAP-related question to ask the expert agent")
-    context: Dict[str, Any] | None = Field(default=None,
+    context: Optional[Dict[str, Any]] = Field(default=None,
                                             description="Optional additional context (voltages, currents, etc.)")
 
 
@@ -124,7 +124,7 @@ class ETAPGUIChatRequest(BaseModel):
 
     question: str = Field(..., min_length=1, max_length=4000,
                           description="The GUI automation question to ask the agent")
-    context: Dict[str, Any] | None = Field(default=None,
+    context: Optional[Dict[str, Any]] = Field(default=None,
                                             description="Optional additional context (app name, etc.)")
 
 
