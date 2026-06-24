@@ -54,6 +54,7 @@ export function TitleBar() {
           onClick={handleMinimize}
           className="h-full px-3 flex items-center justify-center hover:bg-white/5 transition-colors"
           title="Minimize"
+          aria-label="Minimize Window"
         >
           <Minus className="w-3.5 h-3.5 text-[var(--text-muted)]" />
         </button>
@@ -61,6 +62,7 @@ export function TitleBar() {
           onClick={handleMaximize}
           className="h-full px-3 flex items-center justify-center hover:bg-white/5 transition-colors"
           title={isMaximized ? 'Restore' : 'Maximize'}
+          aria-label={isMaximized ? 'Restore Window' : 'Maximize Window'}
         >
           {isMaximized
             ? <Square className="w-3 h-3 text-[var(--text-muted)]" />
@@ -71,6 +73,7 @@ export function TitleBar() {
           onClick={handleClose}
           className="h-full px-3 flex items-center justify-center hover:bg-red-500/80 group transition-colors"
           title="Close"
+          aria-label="Close Window"
         >
           <X className="w-3.5 h-3.5 text-[var(--text-muted)] group-hover:text-white" />
         </button>
