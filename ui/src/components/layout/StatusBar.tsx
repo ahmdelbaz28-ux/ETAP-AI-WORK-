@@ -1,8 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Wifi, WifiOff, Clock } from 'lucide-react'
 import { fetchHealth, type HealthResponse } from '../../lib/api'
-import { cn } from '../../utils/helpers'
 import { StatusIndicator } from '../ui/Visual'
 
 export function StatusBar() {

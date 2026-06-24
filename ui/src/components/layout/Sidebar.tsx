@@ -7,8 +7,8 @@ import { useEffect, useState } from 'react'
 import {
   LayoutDashboard, FlaskConical, Bot, FolderKanban, Settings,
   ShieldCheck, Bug, Map, FileText, Upload, Download, ScrollText,
-  ChevronLeft, ChevronRight, Sun, Moon, Zap, Plug, Layers, Network,
-  Cpu, Wrench, Shield, Radio,
+  ChevronLeft, ChevronRight, Sun, Moon, Plug, Layers, Network,
+  Cpu, Wrench, Shield,
 } from 'lucide-react'
 import { cn } from '../../utils/helpers'
 import { StatusIndicator } from '../ui/Visual'

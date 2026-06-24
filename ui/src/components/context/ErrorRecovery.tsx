@@ -1,13 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
-import { AlertTriangle, X, ExternalLink, RefreshCw, HelpCircle, ChevronRight } from 'lucide-react'
+import { AlertTriangle, X, ExternalLink, RefreshCw } from 'lucide-react'
 import { cn } from '../../utils/helpers'
-
-interface ErrorInfo {
-  id: string
-  message: string
-  code?: number
-  timestamp: number
-}
 
 interface HelpMapping {
   topic: string
@@ -131,6 +124,7 @@ export function ErrorRecovery({ error, onDismiss, onRetry }: ErrorRecoveryProps)
   const [expanded, setExpanded] = useState(false)
 
   useEffect(() => {
+    /* eslint-disable react-hooks/set-state-in-effect */
     if (error) {
       setHelp(mapErrorToHelp(error))
       setExpanded(true)
@@ -138,6 +132,7 @@ export function ErrorRecovery({ error, onDismiss, onRetry }: ErrorRecoveryProps)
       setHelp(null)
       setExpanded(false)
     }
+    /* eslint-enable react-hooks/set-state-in-effect */
   }, [error])
 
   const handleAction = useCallback((action: string) => {
@@ -232,6 +227,7 @@ export function ErrorRecovery({ error, onDismiss, onRetry }: ErrorRecoveryProps)
 }
 
 // Global error handler hook
+// eslint-disable-next-line react-refresh/only-export-components
 export function useErrorRecovery() {
   const [error, setError] = useState<Error | string | null>(null)
 

@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
-  Search, LayoutDashboard, FolderPlus, Radio, FileText, ShieldCheck,
+  Search, LayoutDashboard, FolderPlus, FileText, ShieldCheck,
   HelpCircle, Settings, Activity, Zap, FlaskConical, Bot, Map,
   Layers, Bug, ScrollText, Download, Upload, ArrowRight, Command,
 } from 'lucide-react'
@@ -81,11 +81,13 @@ export function CommandPalette() {
   useEffect(() => {
     if (open) {
       setTimeout(() => inputRef.current?.focus(), 50)
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setSelectedIndex(0)
     }
   }, [open])
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setSelectedIndex(0)
   }, [query])
 

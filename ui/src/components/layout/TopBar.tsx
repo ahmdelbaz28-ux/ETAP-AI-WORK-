@@ -1,9 +1,8 @@
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
 import {
-  Search, HelpCircle, Settings, Zap, ChevronDown, Bell,
+  Search, HelpCircle, Settings, Zap, ChevronDown,
 } from 'lucide-react'
-import { cn } from '../../utils/helpers'
 import { useAppStore } from '../../store'
 
 interface TopBarProps {
@@ -11,10 +10,9 @@ interface TopBarProps {
 }
 
 export function TopBar({ onHelpOpen }: TopBarProps) {
-  const { t, i18n } = useTranslation()
+  const { t } = useTranslation()
   const navigate = useNavigate()
   const { toggleHelpPanel } = useAppStore()
-  const isRtl = i18n.language === 'ar'
 
   const handleHelp = () => {
     if (onHelpOpen) onHelpOpen()

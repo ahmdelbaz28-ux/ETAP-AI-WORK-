@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { X, ChevronRight, ChevronLeft, Zap, LayoutDashboard, FolderPlus, Radio, HelpCircle, Activity, CheckCircle } from 'lucide-react'
+import { X, ChevronRight, ChevronLeft, Zap, LayoutDashboard, FolderPlus, HelpCircle, Activity, CheckCircle } from 'lucide-react'
 import { cn } from '../../utils/helpers'
 
 const ONBOARDING_KEY = 'etap-ai-onboarding-completed'
