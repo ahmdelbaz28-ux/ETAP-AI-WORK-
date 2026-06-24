@@ -37,7 +37,7 @@ const statusConfig = {
   },
 }
 
-export function Diagnostics() {
+export default function Diagnostics() {
   const [checks, setChecks] = useState<DiagnosticCheck[]>([])
   const [running, setRunning] = useState(false)
   const [progress, setProgress] = useState(0)

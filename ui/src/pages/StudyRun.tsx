@@ -119,7 +119,7 @@ function ResultSummary({ result }: { result: Record<string, unknown> }) {
   )
 }
 
-export function StudyRun() {
+export default function StudyRun() {
   const { studyType } = useParams<{ studyType: string }>()
   const navigate = useNavigate()
   const { t } = useTranslation()

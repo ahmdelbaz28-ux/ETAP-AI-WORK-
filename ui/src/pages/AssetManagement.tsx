@@ -46,7 +46,7 @@ const statusConfig: Record<string, { variant: 'success' | 'warning' | 'danger' |
   offline: { variant: 'default', label: 'Offline' },
 }
 
-export function AssetManagement() {
+export default function AssetManagement() {
   const [assets] = useState<Asset[]>(loadAssets)
   const [search, setSearch] = useState('')
   const [filterStatus, setFilterStatus] = useState<string>('all')

@@ -4,7 +4,7 @@ import { useNotify } from '../context/NotificationContext'
 import { Card, CardHeader, Badge, Button } from '../components/ui'
 import { cn } from '../utils/helpers'
 
-export function GisIntegration() {
+export default function GisIntegration() {
   const { notify } = useNotify()
 
   const providers = [

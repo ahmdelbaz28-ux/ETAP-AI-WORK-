@@ -24,7 +24,7 @@ const formatIcons: Record<string, React.ReactNode> = {
   CSV: <Table className="w-4 h-4 text-amber-400" />,
 }
 
-export function Reports() {
+export default function Reports() {
   const { notify } = useNotify()
 
   const generatedCount = reports.filter(r => r.status === 'generated').length

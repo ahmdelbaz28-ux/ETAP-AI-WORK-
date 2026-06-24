@@ -6,7 +6,7 @@ import { useNotify } from '../context/NotificationContext'
 import { Card, CardHeader, Badge, Button } from '../components/ui'
 import { cn } from '../utils/helpers'
 
-export function Administration() {
+export default function Administration() {
   const [metrics, setMetrics] = useState<MetricsResponse | null>(null)
   const [agents, setAgents] = useState<AgentMeta[]>([])
   const [loading, setLoading] = useState(true)

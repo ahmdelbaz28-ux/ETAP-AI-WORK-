@@ -29,7 +29,7 @@ function saveProjects(projects: Project[]) {
   localStorage.setItem('etap-projects', JSON.stringify(projects))
 }
 
-export function Projects() {
+export default function Projects() {
   const [projects] = useState<Project[]>(loadProjects)
   const { notify } = useNotify()
 

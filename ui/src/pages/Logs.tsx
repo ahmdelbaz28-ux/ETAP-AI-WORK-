@@ -60,7 +60,7 @@ const levelConfig = {
   },
 }
 
-export function Logs() {
+export default function Logs() {
   const [filter, setFilter] = useState<string>('all')
   const [logs, setLogs] = useState<LogEntry[]>([])
   const [loading, setLoading] = useState(false)

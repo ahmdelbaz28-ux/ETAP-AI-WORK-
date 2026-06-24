@@ -10,10 +10,10 @@ Usage:
         ...
 """
 
-import os
 import functools
 import logging
-from typing import Any, Callable, Optional
+import os
+from typing import Callable, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -138,10 +138,12 @@ def track_llm_call(
             with langwatch_tracker.get_context_manager(
                 name=name,
                 metadata={"agent": agent, "model": model},
-            ):
+            ) as trace:
                 result = await func(*args, **kwargs)
-                if capture_output and langwatch_tracker.enabled:
-                    pass  # output captured by SDK context
+                if input_text and hasattr(trace, "update"):
+                    trace.update(input=input_text)
+                if capture_output and langwatch_tracker.enabled and hasattr(trace, "update"):
+                    trace.update(output=str(result))
                 return result
 
         @functools.wraps(func)

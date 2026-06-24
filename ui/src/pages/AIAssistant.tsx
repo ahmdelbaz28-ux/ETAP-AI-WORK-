@@ -12,7 +12,7 @@ interface Message {
   timestamp: number
 }
 
-export function AIAssistant() {
+export default function AIAssistant() {
   const [agents, setAgents] = useState<AgentMeta[]>([])
   const [selectedAgent, setSelectedAgent] = useState<string>('power-system-coordinator-agent')
   const [messages, setMessages] = useState<Message[]>([])

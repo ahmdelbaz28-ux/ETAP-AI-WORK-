@@ -13,7 +13,7 @@ Patterns drawn from pydantic/pydantic (v2):
 from __future__ import annotations
 
 import re
-from typing import Any, Dict, List, TypeVar
+from typing import Any, Dict, List, TypeVar, Generic
 
 from pydantic import BaseModel, Field, field_validator, model_validator
 
@@ -24,7 +24,7 @@ from pydantic import BaseModel, Field, field_validator, model_validator
 T = TypeVar("T")
 
 
-class SkillResponse[T](BaseModel):
+class SkillResponse(BaseModel, Generic[T]):
     """Generic envelope for every skill-related API response.
 
     Usage::

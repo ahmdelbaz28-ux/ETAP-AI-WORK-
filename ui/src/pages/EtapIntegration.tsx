@@ -3,7 +3,7 @@ import { Cable, Settings2, Link2, Activity, Clock, CheckCircle, Server, FileText
 import { useNotify } from '../context/NotificationContext'
 import { Card, CardHeader, Badge, Button } from '../components/ui'
 
-export function EtapIntegration() {
+export default function EtapIntegration() {
   const { notify } = useNotify()
 
   const connectionItems = [

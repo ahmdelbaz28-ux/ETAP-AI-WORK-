@@ -17,7 +17,7 @@ const categoryColors: Record<string, string> = {
   transient_stability: 'from-rose-500 to-pink-700',
 }
 
-export function Studies() {
+export default function Studies() {
   const { t } = useTranslation()
   const navigate = useNavigate()
 
