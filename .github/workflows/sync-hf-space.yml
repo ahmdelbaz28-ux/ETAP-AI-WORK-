@@ -22,9 +22,13 @@ on:
       - 'services/**'
       - 'api/**'
       - 'utils/**'
+      - 'integrations/**'       # LangWatch + Smithery MCP integrations
+      - 'docs/**'               # Documentation assets
+      - 'scripts/**'            # Setup and utility scripts
       - 'VERSION'
+      - '.env.example'
       - '.github/workflows/sync-hf-space.yml'
-  workflow_dispatch:
+  workflow_dispatch:            # Allow manual trigger from GitHub UI
 
 jobs:
   sync-to-hf:
