@@ -25,7 +25,7 @@ from datetime import datetime, timezone
 UTC = timezone.utc  # noqa: UP017
 
 UTC = UTC
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
 import numpy as np
 
@@ -175,7 +175,7 @@ class SCADAConnection:
         self.port = port
         self.protocol = protocol
         self.connected = False
-        self.last_poll_time: datetime | None = None
+        self.last_poll_time: Optional[datetime] = None
 
     def connect(self) -> bool:
         """Simulate establishing a SCADA connection."""
@@ -280,8 +280,8 @@ class SCADAAgent(BaseAgent):
     def read_measurements(
         self,
         connection_id: str,
-        measurement_tags: List[str] | None = None,
-        iec61850_refs: List[str] | None = None,
+        measurement_tags: Optional[List[str]] = None,
+        iec61850_refs: Optional[List[str]] = None,
     ) -> Dict[str, Any]:
         """
         Read measurements from SCADA server.
@@ -513,7 +513,7 @@ class SCADAAgent(BaseAgent):
     def process_realtime_data(
         self,
         measurements: List[Dict[str, Any]],
-        validation_rules: Dict[str, Dict[str, Any]] | None = None,
+        validation_rules: Optional[Dict[str, Dict[str, Any]]] = None,
         filter_type: str = "moving_average",
         filter_window: int = 5,
         anomaly_threshold_sigma: float = 3.0,

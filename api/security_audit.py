@@ -31,7 +31,7 @@ import os
 import re
 import sys
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 from compat import StrEnum
 
@@ -74,12 +74,12 @@ class SecurityFinding:
     severity: Severity
     title: str
     description: str
-    file_path: str | None = None
-    line_number: int | None = None
-    endpoint: str | None = None
+    file_path: Optional[str] = None
+    line_number: Optional[int] = None
+    endpoint: Optional[str] = None
     remediation: str = ""
     references: List[str] = field(default_factory=list)
-    cwe_id: str | None = None  # CWE identifier, e.g. "CWE-306"
+    cwe_id: Optional[str] = None  # CWE identifier, e.g. "CWE-306"
 
     def to_dict(self) -> Dict[str, Any]:
         """Convert to a JSON-serializable dictionary."""
@@ -269,7 +269,7 @@ class SecurityAuditor:
         print(f"Security Score: {report.security_score}/100 ({report.grade})")
     """
 
-    def __init__(self, project_root: str | None = None) -> None:
+    def __init__(self, project_root: Optional[str] = None) -> None:
         """Initialize the auditor.
 
         Args:
@@ -353,12 +353,12 @@ class SecurityAuditor:
         severity: Severity,
         title: str,
         description: str,
-        file_path: str | None = None,
-        line_number: int | None = None,
-        endpoint: str | None = None,
+        file_path: Optional[str] = None,
+        line_number: Optional[int] = None,
+        endpoint: Optional[str] = None,
         remediation: str = "",
-        references: List[str] | None = None,
-        cwe_id: str | None = None,
+        references: Optional[List[str]] = None,
+        cwe_id: Optional[str] = None,
     ) -> None:
         """Create and register a security finding."""
         self._finding_counter += 1
@@ -402,8 +402,8 @@ class SecurityAuditor:
                 lines = fh.readlines()
 
             # Parse to find endpoint definitions
-            current_endpoint: str | None = None
-            endpoint_line: int | None = None
+            current_endpoint: Optional[str] = None
+            endpoint_line: Optional[int] = None
             has_auth_check = False
 
             for i, line in enumerate(lines, 1):

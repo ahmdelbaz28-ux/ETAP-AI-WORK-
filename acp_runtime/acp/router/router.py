@@ -13,7 +13,7 @@ from __future__ import annotations
 import logging
 import time
 from collections.abc import Callable, Coroutine
-from typing import Any
+from typing import Any, Optional
 
 from pydantic import ValidationError
 
@@ -47,7 +47,7 @@ JSONRPC_INTERNAL_ERROR = -32603
 
 
 # Type alias for an optional notification handler callback.
-NotificationHandler = Callable[[dict], Coroutine[Any, Any, None]] | None
+NotificationHandler = Optional[Callable[[dict], Coroutine[Any, Any, None]]]
 
 # Type alias for auth validator (re-exported from security for convenience)
 # Type alias for audit logger (re-exported from security for convenience)
@@ -79,15 +79,15 @@ class RouterConfig:
 
     def __init__(
         self,
-        caller_scopes: set[str] | None = None,
+        caller_scopes: Optional[set[str]] = None,
         *,
         on_notification: NotificationHandler = None,
-        auth_validator: AuthValidator | None = None,
-        audit_logger: AuditLogger | None = None,
+        auth_validator: Optional[AuthValidator] = None,
+        audit_logger: Optional[AuditLogger] = None,
         require_auth_for_public: bool = False,
-        tracer: Any | None = None,
-        metrics: Any | None = None,
-        logger: Any | None = None,
+        tracer: Optional[Any] = None,
+        metrics: Optional[Any] = None,
+        logger: Optional[Any] = None,
     ) -> None:
         self.caller_scopes = set(caller_scopes or ())
         self.on_notification = on_notification
@@ -112,7 +112,7 @@ class Router:
         response_dict = await router.handle(incoming_dict)
     """
 
-    def __init__(self, runtime: AcpRuntime, config: RouterConfig | None = None) -> None:
+    def __init__(self, runtime: AcpRuntime, config: Optional[RouterConfig] = None) -> None:
         self._runtime = runtime
         self._config = config or RouterConfig()
         self._scope_validator = ScopeValidator(self._config.caller_scopes)
@@ -120,7 +120,7 @@ class Router:
 
     # ------------------------------------------------------------- public API
 
-    async def handle(self, envelope: dict) -> dict | None:
+    async def handle(self, envelope: dict) -> Optional[dict]:
         """Accept a JSON-RPC envelope dict, return a response dict (or None).
 
         Args:
@@ -314,7 +314,7 @@ class Router:
 
     async def _finish_observability(
         self,
-        span_ctx: Any | None,
+        span_ctx: Optional[Any],
         t0: float,
         req: JsonRpcRequest,
         outcome: str,
@@ -410,7 +410,7 @@ class Router:
         req_id: Any,
         code: int,
         message: str,
-        data: dict | None = None,
+        data: Optional[dict] = None,
     ) -> dict:
         return JsonRpcResponse(
             id=req_id,

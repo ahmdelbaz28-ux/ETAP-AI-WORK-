@@ -6,7 +6,7 @@ providers. Tests are skipped if the required imports are not available.
 """
 import pytest
 
-# Attempt import — gis_integration may fail on Python 3.8 due to X | None syntax
+# Attempt import — gis_integration may fail on Python 3.8 due to Optional[X] syntax
 try:
     from gis_integration.models import ADMSAsset, ADMSAssetType
     from gis_validation.crs_validator import (

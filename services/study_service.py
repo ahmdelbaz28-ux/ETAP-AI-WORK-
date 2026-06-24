@@ -351,7 +351,7 @@ def _run_async(coro):
 
 @trace_operation("_run_native_study", attributes={"component": "engineering_service"})
 def _run_native_study(
-    study_type: str, system: Any | None, parameters: Dict[str, Any]
+    study_type: str, system: Optional[Any], parameters: Dict[str, Any]
 ) -> Dict[str, Any]:
     """Execute a study using the native PowerSystemEngine."""
     if study_type in _STUDIES_REQUIRING_SYSTEM and system is None:

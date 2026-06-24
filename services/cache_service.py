@@ -13,7 +13,7 @@ from __future__ import annotations
 import json
 import logging
 import time
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -29,7 +29,7 @@ class StudyCache:
     Tests expect:
       - StudyCache(redis_url="...", ttl=...)
       - await cache.set(key, value, ttl=...)
-      - await cache.get(key) -> dict | None
+      - await cache.get(key) -> Optional[dict]
       - await cache.ping() -> True (even for in-memory fallback)
       - await cache.clear()
     """
@@ -42,7 +42,7 @@ class StudyCache:
         self._use_redis = False
 
         # In-memory fallback store.
-        # Maps key -> {"value": <Any>, "expires_at": <float|None>}
+        # Maps key -> {"value": <Any>, "expires_at": <Optional[float]>}
         self._memory_cache: Dict[str, Dict[str, Any]] = {}
 
         if _is_redis_url(redis_url):
@@ -88,15 +88,15 @@ class StudyCache:
         if expires_at is not None and time.time() >= float(expires_at):
             self._memory_cache.pop(key, None)
 
-    async def get(self, key: str, *args: Any, **kwargs: Any) -> Dict[str, Any] | None:
+    async def get(self, key: str, *args: Any, **kwargs: Any) -> Optional[Dict[str, Any]]:
         """
         Get cached value by key.
 
         Primary/tested signature:
-            await cache.get("some_key") -> dict | None
+            await cache.get("some_key") -> Optional[dict]
 
         Best-effort backward compatibility:
-            await cache.get(study_type: str, params: Dict[str, Any]) -> dict | None
+            await cache.get(study_type: str, params: Dict[str, Any]) -> Optional[dict]
         """
         # Legacy: get(study_type, params)
         if len(args) == 1 and isinstance(args[0], dict) and not kwargs:
@@ -142,7 +142,7 @@ class StudyCache:
         self,
         key: str,
         value: Any,
-        ttl: int | None = None,
+        ttl: Optional[int] = None,
         *args: Any,
         **kwargs: Any,
     ) -> bool:

@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 from datetime import datetime
 from pathlib import Path
-from typing import List, Tuple
+from typing import List, Optional, Tuple
 
 from PyPDF2 import PdfReader
 
@@ -41,7 +41,7 @@ class ManualExtractor:
             "files": [],
         }
 
-    def extract_pdf_text(self, pdf_path: Path) -> Tuple[str | None, int]:
+    def extract_pdf_text(self, pdf_path: Path) -> Tuple[Optional[str], int]:
         """Extract text using PyPDF2 (fast and memory-efficient)."""
         try:
             reader = PdfReader(pdf_path)

@@ -11,7 +11,7 @@ import asyncio
 import json
 import time
 import uuid
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import AliasChoices, BaseModel, ConfigDict, Field, field_validator
@@ -53,16 +53,16 @@ class BusSpec(BaseModel):
         default=0.0, validation_alias=AliasChoices("generation_power_imag", "power_reactive", "qg")
     )
     bus_type: str = "pq"
-    base_kv: float | None = None
+    base_kv: Optional[float] = None
     q_min: float = Field(
         default=-999.0, validation_alias=AliasChoices("q_min", "min_power_reactive", "min_q")
     )
     q_max: float = Field(
         default=999.0, validation_alias=AliasChoices("q_max", "max_power_reactive", "max_q")
     )
-    area: int | None = None
-    zone: int | None = None
-    voltage_setpoint: float | None = Field(
+    area: Optional[int] = None
+    zone: Optional[int] = None
+    voltage_setpoint: Optional[float] = Field(
         default=None,
         validation_alias=AliasChoices("voltage_setpoint", "voltage_magnitude_setpoint"),
     )
@@ -84,13 +84,13 @@ class LineSpec(BaseModel):
     to_bus_id: int = Field(validation_alias=AliasChoices("to_bus_id", "to"))
     r1: float = Field(default=0.01, validation_alias=AliasChoices("r1", "resistance"))
     x1: float = Field(default=0.05, validation_alias=AliasChoices("x1", "reactance"))
-    r0: float | None = None
-    x0: float | None = None
+    r0: Optional[float] = None
+    x0: Optional[float] = None
     bshunt1: float = Field(
         default=0.02, validation_alias=AliasChoices("bshunt1", "b1", "bshunt", "susceptance")
     )
-    bshunt0: float | None = Field(default=None, validation_alias=AliasChoices("bshunt0", "b0"))
-    rating_mva: float | None = None
+    bshunt0: Optional[float] = Field(default=None, validation_alias=AliasChoices("bshunt0", "b0"))
+    rating_mva: Optional[float] = None
 
 
 class TransformerSpec(BaseModel):
@@ -114,10 +114,10 @@ class GeneratorSpec(BaseModel):
     bus_id: int
     r1: float = 0.0
     x1: float = Field(default=0.2, validation_alias=AliasChoices("x1", "xd_pu", "xdash"))
-    r2: float | None = None
-    x2: float | None = None
-    r0: float | None = None
-    x0: float | None = None
+    r2: Optional[float] = None
+    x2: Optional[float] = None
+    r0: Optional[float] = None
+    x0: Optional[float] = None
     internal_voltage_mag: float = Field(
         default=1.05,
         validation_alias=AliasChoices("internal_voltage_mag", "voltage_setpoint", "v_setpoint"),
@@ -125,16 +125,16 @@ class GeneratorSpec(BaseModel):
     internal_voltage_ang_deg: float = Field(
         default=0.0, validation_alias=AliasChoices("internal_voltage_ang_deg", "voltage_angle")
     )
-    power_real: float | None = Field(
+    power_real: Optional[float] = Field(
         default=None, validation_alias=AliasChoices("power_real", "pg")
     )
-    power_reactive: float | None = Field(
+    power_reactive: Optional[float] = Field(
         default=None, validation_alias=AliasChoices("power_reactive", "qg")
     )
-    max_power_reactive: float | None = Field(
+    max_power_reactive: Optional[float] = Field(
         default=None, validation_alias=AliasChoices("max_power_reactive", "q_max")
     )
-    min_power_reactive: float | None = Field(
+    min_power_reactive: Optional[float] = Field(
         default=None, validation_alias=AliasChoices("min_power_reactive", "q_min")
     )
 
@@ -173,13 +173,13 @@ class StudyRequest(BaseModel):
     model_config = ConfigDict(extra="ignore")
 
     study_type: str = Field(..., description="Type of study to run")
-    system: SystemSpec | None = None
+    system: Optional[SystemSpec] = None
     parameters: Dict[str, Any] = Field(default_factory=dict)
-    task_id: str | None = None
+    task_id: Optional[str] = None
     use_etap: bool = Field(
         default=False, description="If True, route to ETAP provider instead of native engine"
     )
-    etap_project_path: str | None = None
+    etap_project_path: Optional[str] = None
 
     @field_validator("study_type")
     @classmethod
@@ -219,7 +219,7 @@ class StudyResult(BaseModel):
     errors: List[str] = Field(default_factory=list)
     execution_time_sec: float = 0.0
     trace_id: str = ""
-    task_id: str | None = None
+    task_id: Optional[str] = None
     study_type: str = ""
     provider: str = "native"
 
@@ -358,7 +358,7 @@ _STUDIES_REQUIRING_SYSTEM = {
 
 
 def _run_native_study(
-    study_type: str, system: Any | None, parameters: Dict[str, Any]
+    study_type: str, system: Optional[Any], parameters: Dict[str, Any]
 ) -> Dict[str, Any]:
     """Execute a study using the native PowerSystemEngine."""
     if study_type in _STUDIES_REQUIRING_SYSTEM and system is None:

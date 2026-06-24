@@ -12,7 +12,7 @@ from __future__ import annotations
 import time
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Dict, List, Tuple
+from typing import Dict, List, Optional, Tuple
 
 import numpy as np
 
@@ -93,7 +93,7 @@ class SwitchDevice:
     status: SwitchStatus = SwitchStatus.CLOSED
     rated_current: float = 1000.0  # Amps
     trip_count: int = 0
-    last_operation_time: float | None = None
+    last_operation_time: Optional[float] = None
     protection_enabled: bool = True
     auto_reclosing_enabled: bool = True
     auto_reclosing_attempts: int = 0
@@ -164,7 +164,7 @@ class SCADADatabase:
                 -self.max_history_per_point :
             ]
 
-    def get_measurement(self, measurement_id: str) -> Measurement | None:
+    def get_measurement(self, measurement_id: str) -> Optional[Measurement]:
         return self.measurements.get(measurement_id)
 
     def get_measurements_for_element(self, element_id: str) -> List[Measurement]:
@@ -175,7 +175,7 @@ class SCADADatabase:
         """Get all measurements of a given type."""
         return [m for m in self.measurements.values() if m.measurement_type == mtype]
 
-    def get_latest_voltage(self, bus_id: str) -> float | None:
+    def get_latest_voltage(self, bus_id: str) -> Optional[float]:
         """Get latest voltage magnitude for a bus."""
         for m in self.measurements.values():
             if m.element_id == bus_id and m.measurement_type == MeasurementType.VOLTAGE_MAGNITUDE:
@@ -183,7 +183,7 @@ class SCADADatabase:
                     return m.value
         return None
 
-    def get_latest_power(self, element_id: str) -> Tuple[float, float] | None:
+    def get_latest_power(self, element_id: str) -> Optional[Tuple[float, float]]:
         """Get latest P, Q for an element."""
         p, q = None, None
         for m in self.measurements.values():
@@ -212,7 +212,7 @@ class SCADADatabase:
     def add_switch_device(self, device: SwitchDevice) -> None:
         self.switch_devices[device.device_id] = device
 
-    def get_switch_device(self, device_id: str) -> SwitchDevice | None:
+    def get_switch_device(self, device_id: str) -> Optional[SwitchDevice]:
         return self.switch_devices.get(device_id)
 
     def operate_switch(self, device_id: str, new_status: SwitchStatus) -> bool:

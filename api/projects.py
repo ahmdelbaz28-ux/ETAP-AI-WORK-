@@ -24,7 +24,7 @@ from datetime import datetime, timezone
 UTC = timezone.utc  # noqa: UP017
 
 UTC = UTC
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
 from fastapi import APIRouter, Depends, Header, HTTPException, status
 from pydantic import BaseModel, ConfigDict, Field, field_validator
@@ -117,8 +117,8 @@ class Project(Base):
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     name: Mapped[str] = mapped_column(String(255), nullable=False)
-    description: Mapped[str | None] = mapped_column(String(2000), nullable=True)
-    system_config: Mapped[dict | None] = mapped_column(JSON, nullable=True)
+    description: Mapped[Optional[str]] = mapped_column(String(2000), nullable=True)
+    system_config: Mapped[Optional[dict]] = mapped_column(JSON, nullable=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         default=lambda: datetime.now(UTC),
@@ -141,14 +141,14 @@ class StudyResult(Base):
     project_id: Mapped[str] = mapped_column(String(36), index=True, nullable=False)
     study_type: Mapped[str] = mapped_column(String(64), nullable=False)
     status: Mapped[str] = mapped_column(String(32), default=StudyStatus.PENDING.value)
-    config: Mapped[dict | None] = mapped_column(JSON, nullable=True)
-    results: Mapped[dict | None] = mapped_column(JSON, nullable=True)
-    error_message: Mapped[str | None] = mapped_column(String(2000), nullable=True)
+    config: Mapped[Optional[dict]] = mapped_column(JSON, nullable=True)
+    results: Mapped[Optional[dict]] = mapped_column(JSON, nullable=True)
+    error_message: Mapped[Optional[str]] = mapped_column(String(2000), nullable=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         default=lambda: datetime.now(UTC),
     )
-    completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    completed_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
     created_by: Mapped[str] = mapped_column(String(36), nullable=False)
 
 
@@ -163,8 +163,8 @@ class ProjectCreateRequest(BaseModel):
     model_config = ConfigDict(strict=False)
 
     name: str = Field(min_length=1, max_length=255)
-    description: str | None = Field(default=None, max_length=2000)
-    system_config: Dict[str, Any] | None = None
+    description: Optional[str] = Field(default=None, max_length=2000)
+    system_config: Optional[Dict[str, Any]] = None
 
 
 class ProjectUpdateRequest(BaseModel):
@@ -172,14 +172,14 @@ class ProjectUpdateRequest(BaseModel):
 
     model_config = ConfigDict(strict=False)
 
-    name: str | None = Field(default=None, min_length=1, max_length=255)
-    description: str | None = Field(default=None, max_length=2000)
-    system_config: Dict[str, Any] | None = None
-    status: ProjectStatus | None = None
+    name: Optional[str] = Field(default=None, min_length=1, max_length=255)
+    description: Optional[str] = Field(default=None, max_length=2000)
+    system_config: Optional[Dict[str, Any]] = None
+    status: Optional[ProjectStatus] = None
 
     @field_validator("status")
     @classmethod
-    def reject_deleted_status(cls, v: ProjectStatus | None) -> ProjectStatus | None:
+    def reject_deleted_status(cls, v: Optional[ProjectStatus]) -> Optional[ProjectStatus]:
         """Prevent setting status to 'deleted' via the update endpoint."""
         if v == ProjectStatus.DELETED:
             raise ValueError("Use DELETE endpoint to soft-delete a project")
@@ -193,10 +193,10 @@ class ProjectResponse(BaseModel):
 
     id: str
     name: str
-    description: str | None = None
-    system_config: Dict[str, Any] | None = None
-    created_at: datetime | None = None
-    updated_at: datetime | None = None
+    description: Optional[str] = None
+    system_config: Optional[Dict[str, Any]] = None
+    created_at: Optional[datetime] = None
+    updated_at: Optional[datetime] = None
     created_by: str
     status: str
 
@@ -223,7 +223,7 @@ class StudyRunRequest(BaseModel):
     model_config = ConfigDict(strict=False)
 
     study_type: StudyType
-    config: Dict[str, Any] | None = None
+    config: Optional[Dict[str, Any]] = None
 
 
 class StudyResultResponse(BaseModel):
@@ -235,11 +235,11 @@ class StudyResultResponse(BaseModel):
     project_id: str
     study_type: str
     status: str
-    config: Dict[str, Any] | None = None
-    results: Dict[str, Any] | None = None
-    error_message: str | None = None
-    created_at: datetime | None = None
-    completed_at: datetime | None = None
+    config: Optional[Dict[str, Any]] = None
+    results: Optional[Dict[str, Any]] = None
+    error_message: Optional[str] = None
+    created_at: Optional[datetime] = None
+    completed_at: Optional[datetime] = None
     created_by: str
 
 
@@ -311,7 +311,7 @@ async def create_project(
     summary="List projects",
 )
 async def list_projects(
-    status_filter: ProjectStatus | None = None,
+    status_filter: Optional[ProjectStatus] = None,
     pagination: PaginationParams = Depends(pagination_params),  # noqa: B008
     db: AsyncSession = Depends(get_db),  # noqa: B008
     auth: str = Depends(_require_api_key_or_jwt),

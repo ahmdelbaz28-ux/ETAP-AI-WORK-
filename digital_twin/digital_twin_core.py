@@ -29,7 +29,7 @@ import hashlib
 import logging
 import time
 from collections.abc import Callable
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
 import numpy as np
 
@@ -198,7 +198,7 @@ class DigitalTwinState:
             adms_engine=self._adms_engine,
         )
 
-    def get_current_snapshot(self) -> StateSnapshot | None:
+    def get_current_snapshot(self) -> Optional[StateSnapshot]:
         """Get the latest committed snapshot."""
         return self.state_store.get_current()
 
@@ -985,7 +985,7 @@ class TimeSteppedSimulator:
         self.running = False
         self._event_queue: List[Dict[str, Any]] = []
         self._step_log: List[Dict[str, Any]] = []
-        self._scada_injector: Callable[[float], List[DomainEvent]] | None = None
+        self._scada_injector: Optional[Callable[[float], List[DomainEvent]]] = None
 
     def set_time_step(self, dt: float) -> None:
         """Set simulation time step in seconds."""

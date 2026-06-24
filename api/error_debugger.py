@@ -34,7 +34,7 @@ from datetime import datetime, timezone
 UTC = timezone.utc  # noqa: UP017
 
 UTC = UTC
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
 from compat import StrEnum
 
@@ -312,7 +312,7 @@ _ERROR_CODE_REGISTRY: Dict[str, ErrorCode] = {
 }
 
 
-def lookup_error_code(code: str) -> ErrorCode | None:
+def lookup_error_code(code: str) -> Optional[ErrorCode]:
     """Look up an :class:`ErrorCode` by its string code.
 
     Args:
@@ -339,9 +339,9 @@ class ETAPPlatformError(Exception):
         self,
         message: str,
         error_code: ErrorCode = ERR_SYSTEM_001,
-        context: Dict[str, Any] | None = None,
-        trace_id: str | None = None,
-        cause: Exception | None = None,
+        context: Optional[Dict[str, Any]] = None,
+        trace_id: Optional[str] = None,
+        cause: Optional[Exception] = None,
     ) -> None:
         super().__init__(message)
         self.message = message
@@ -378,11 +378,11 @@ class StudyExecutionError(ETAPPlatformError):
     def __init__(
         self,
         message: str,
-        study_type: str | None = None,
+        study_type: Optional[str] = None,
         error_code: ErrorCode = ERR_STUDY_001,
-        context: Dict[str, Any] | None = None,
-        trace_id: str | None = None,
-        cause: Exception | None = None,
+        context: Optional[Dict[str, Any]] = None,
+        trace_id: Optional[str] = None,
+        cause: Optional[Exception] = None,
     ) -> None:
         ctx = context or {}
         if study_type:
@@ -408,11 +408,11 @@ class SystemValidationError(ETAPPlatformError):
     def __init__(
         self,
         message: str,
-        validation_errors: List[str] | None = None,
+        validation_errors: Optional[List[str]] = None,
         error_code: ErrorCode = ERR_VALIDATION_001,
-        context: Dict[str, Any] | None = None,
-        trace_id: str | None = None,
-        cause: Exception | None = None,
+        context: Optional[Dict[str, Any]] = None,
+        trace_id: Optional[str] = None,
+        cause: Optional[Exception] = None,
     ) -> None:
         ctx = context or {}
         if validation_errors:
@@ -438,9 +438,9 @@ class AuthenticationError(ETAPPlatformError):
         self,
         message: str,
         error_code: ErrorCode = ERR_AUTH_001,
-        context: Dict[str, Any] | None = None,
-        trace_id: str | None = None,
-        cause: Exception | None = None,
+        context: Optional[Dict[str, Any]] = None,
+        trace_id: Optional[str] = None,
+        cause: Optional[Exception] = None,
     ) -> None:
         super().__init__(
             message=message,
@@ -462,9 +462,9 @@ class RateLimitError(ETAPPlatformError):
         message: str = "Rate limit exceeded",
         retry_after_sec: int = 60,
         error_code: ErrorCode = ERR_RATE_LIMIT_001,
-        context: Dict[str, Any] | None = None,
-        trace_id: str | None = None,
-        cause: Exception | None = None,
+        context: Optional[Dict[str, Any]] = None,
+        trace_id: Optional[str] = None,
+        cause: Optional[Exception] = None,
     ) -> None:
         ctx = context or {}
         ctx["retry_after_sec"] = retry_after_sec
@@ -488,9 +488,9 @@ class DatabaseError(ETAPPlatformError):
         self,
         message: str,
         error_code: ErrorCode = ERR_DATABASE_001,
-        context: Dict[str, Any] | None = None,
-        trace_id: str | None = None,
-        cause: Exception | None = None,
+        context: Optional[Dict[str, Any]] = None,
+        trace_id: Optional[str] = None,
+        cause: Optional[Exception] = None,
     ) -> None:
         super().__init__(
             message=message,
@@ -522,7 +522,7 @@ class ErrorContextBuilder:
     def __init__(
         self,
         request: Any = None,
-        extra: Dict[str, Any] | None = None,
+        extra: Optional[Dict[str, Any]] = None,
     ) -> None:
         """Initialize the context builder.
 
@@ -875,8 +875,8 @@ class ErrorReport:
     timestamp: str
     context: Dict[str, Any] = field(default_factory=dict)
     recovery_suggestions: List[Dict[str, str]] = field(default_factory=list)
-    request_id: str | None = None
-    documentation_url: str | None = None
+    request_id: Optional[str] = None
+    documentation_url: Optional[str] = None
 
     def to_dict(self) -> Dict[str, Any]:
         """Convert to a JSON-serializable dictionary."""
@@ -922,7 +922,7 @@ class ErrorReportGenerator:
         self,
         exc: Exception,
         request: Any = None,
-        trace_id: str | None = None,
+        trace_id: Optional[str] = None,
     ) -> ErrorReport:
         """Build an error report from an exception.
 
@@ -976,9 +976,9 @@ class ErrorReportGenerator:
     def from_error_code(
         self,
         error_code: ErrorCode,
-        message: str | None = None,
-        context: Dict[str, Any] | None = None,
-        trace_id: str | None = None,
+        message: Optional[str] = None,
+        context: Optional[Dict[str, Any]] = None,
+        trace_id: Optional[str] = None,
     ) -> ErrorReport:
         """Build an error report from an error code.
 

@@ -37,7 +37,7 @@ from dataclasses import dataclass, field
 from datetime import datetime, timezone
 
 UTC = timezone.utc  # noqa: UP017 — datetime.UTC requires Python 3.11+
-from typing import Dict, List
+from typing import Dict, List, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -61,8 +61,8 @@ class ReportMetadata:
     report_id: str
     title: str
     prepared_by: str
-    reviewed_by: str | None = None
-    approved_by: str | None = None
+    reviewed_by: Optional[str] = None
+    approved_by: Optional[str] = None
     company_name: str = "Engineering Consulting Firm"
     project_name: str = ""
     client_name: str = ""
@@ -613,7 +613,7 @@ class ReportGenerationAgent:
     async def generate_complete_report(
         self,
         analysis_results: Dict,
-        metadata: ReportMetadata | None = None,
+        metadata: Optional[ReportMetadata] = None,
         formats: List[str] = None,
         output_path: str = "./reports",
     ) -> Dict[str, str]:

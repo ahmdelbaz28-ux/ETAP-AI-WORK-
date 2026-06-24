@@ -28,7 +28,7 @@ UTC = timezone.utc  # noqa: UP017
 
 UTC = UTC
 from enum import Enum
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
 import numpy as np
 
@@ -115,7 +115,7 @@ class BaseAgent:
             self.prompt_handle = self._derive_prompt_handle()
 
         # Load prompt-driven metadata (description, standards, guidance)
-        self._system_prompt: str | None = None
+        self._system_prompt: Optional[str] = None
         self._prompt_metadata: Dict[str, Any] = {}
         self._load_prompt()
 
@@ -1397,7 +1397,7 @@ class ChiefEngineeringOrchestrator:
         self.logger = logging.getLogger("orchestrator")
 
         # Load orchestrator's own prompt for coordination guidance
-        self._system_prompt: str | None = None
+        self._system_prompt: Optional[str] = None
         self._load_prompt()
 
     def _load_prompt(self) -> None:
@@ -1620,7 +1620,7 @@ class ChiefEngineeringOrchestrator:
 
         return sorted(study_types, key=lambda x: priority_order.get(x, 99))
 
-    def _get_agent_for_study(self, study_type: StudyType) -> BaseAgent | None:
+    def _get_agent_for_study(self, study_type: StudyType) -> Optional[BaseAgent]:
         """Get appropriate agent for study type."""
         agent_mapping = {
             StudyType.LOAD_FLOW: "load_flow",
@@ -1663,7 +1663,7 @@ class ChiefEngineeringOrchestrator:
         self,
         study_types: List[str],
         system_data: Any,
-        parameters: Dict[str, Any] | None = None,
+        parameters: Optional[Dict[str, Any]] = None,
         max_workers: int = 4,
         benchmark: bool = False,
     ) -> Dict[str, Any]:
@@ -1878,7 +1878,7 @@ class ChiefEngineeringOrchestrator:
 
         return result
 
-    async def get_task_status(self, task_id: str) -> EngineeringTask | None:
+    async def get_task_status(self, task_id: str) -> Optional[EngineeringTask]:
         """Get status of a task."""
         return self.completed_tasks.get(task_id)
 

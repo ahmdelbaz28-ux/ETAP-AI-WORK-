@@ -28,7 +28,7 @@ import tempfile
 import time
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any, Dict, List, Union
+from typing import Any, Dict, List, Optional, Union
 
 logger = logging.getLogger(__name__)
 
@@ -858,7 +858,7 @@ class ETAPProject:
         ETAPAutomation._check_result_size(result)
         return result
 
-    def get_bus_data(self, bus_id: str) -> Dict[str, Any] | None:
+    def get_bus_data(self, bus_id: str) -> Optional[Dict[str, Any]]:
         """Get data for a specific bus."""
         ETAPAutomation._validate_bus_id(bus_id)
         try:
@@ -894,7 +894,7 @@ class ETAPProject:
             logger.error(f"Error retrieving buses: {e}")
         return buses
 
-    def save(self, file_path: str | None = None) -> bool:
+    def save(self, file_path: Optional[str] = None) -> bool:
         """Save the project."""
         try:
             path = file_path or self.file_path
@@ -961,9 +961,9 @@ class ETAPAutomation:
     def _validate_input(
         value,
         value_type: str,
-        min_val: float | None = None,
-        max_val: float | None = None,
-        max_length: int | None = None,
+        min_val: Optional[float] = None,
+        max_val: Optional[float] = None,
+        max_length: Optional[int] = None,
     ) -> Union[int, float, str, bool]:
         """
         Generic input validator.
@@ -1308,7 +1308,7 @@ class ETAPAutomation:
             logger.error(f"Failed to launch ETAP: {e}")
             return False
 
-    def open_project(self, file_path: str) -> ETAPProject | None:
+    def open_project(self, file_path: str) -> Optional[ETAPProject]:
         """
         Open an existing ETAP project.
 
@@ -1346,7 +1346,7 @@ class ETAPAutomation:
             logger.error(f"Error opening project {file_path}: {e}")
             return None
 
-    def create_project(self, project_name: str = "NewProject") -> ETAPProject | None:
+    def create_project(self, project_name: str = "NewProject") -> Optional[ETAPProject]:
         """
         Create a new ETAP project.
 
@@ -1385,7 +1385,7 @@ class ETAPAutomation:
             logger.error(f"Error creating project: {e}")
             return None
 
-    def get_active_project(self) -> ETAPProject | None:
+    def get_active_project(self) -> Optional[ETAPProject]:
         """Get the currently active project."""
         if not self.is_running:
             return None
@@ -1453,7 +1453,7 @@ class ETAPAutomation:
             logger.error(f"Error shutting down ETAP: {e}")
             return False
 
-    def get_version(self) -> str | None:
+    def get_version(self) -> Optional[str]:
         """Get ETAP version information."""
         if not self.is_running:
             return None

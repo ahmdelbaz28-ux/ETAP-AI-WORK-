@@ -26,7 +26,7 @@ from datetime import datetime, timezone
 UTC = timezone.utc  # noqa: UP017
 
 UTC = UTC
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
 import numpy as np
 
@@ -140,7 +140,7 @@ class AnomalyAgent(BaseAgent):
     def detect_cusum(
         self,
         data: np.ndarray,
-        target: float | None = None,
+        target: Optional[float] = None,
         k: float = 0.5,
         h: float = 5.0,
     ) -> Dict[str, Any]:

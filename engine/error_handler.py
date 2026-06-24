@@ -24,7 +24,7 @@ UTC = timezone.utc  # noqa: UP017
 
 UTC = UTC
 from email.message import EmailMessage
-from typing import Any, Dict, List, Set
+from typing import Any, Dict, List, Optional, Set
 from urllib.error import URLError
 from urllib.request import Request, urlopen
 
@@ -72,9 +72,9 @@ class EngineSystemError:
     timestamp: datetime
     details: dict = field(default_factory=dict)
     stack_trace: str = ""
-    user_id: str | None = None
+    user_id: Optional[str] = None
     acknowledged: bool = False
-    resolution: str | None = None
+    resolution: Optional[str] = None
 
 
 # Backward-compatible alias — maps SystemError to EngineSystemError so
@@ -102,8 +102,8 @@ class AlertManager:
 
     def __init__(self) -> None:
         self._logger = logging.getLogger("alert")
-        self._email_config: dict | None = None
-        self._webhook_config: dict | None = None
+        self._email_config: Optional[dict] = None
+        self._webhook_config: Optional[dict] = None
         self._rules: list[dict] = []
         self._lock = threading.Lock()
 
@@ -143,7 +143,7 @@ class AlertManager:
             "to_addrs": to_addrs,
         }
 
-    def configure_webhook(self, url: str, headers: dict | None = None) -> None:
+    def configure_webhook(self, url: str, headers: Optional[dict] = None) -> None:
         """Configure a webhook URL for alert delivery.
 
         Args:
@@ -156,7 +156,7 @@ class AlertManager:
         self,
         component: str,
         min_severity: ErrorSeverity,
-        channels: List[str] | None = None,
+        channels: Optional[List[str]] = None,
     ) -> None:
         """Register an alert routing rule.
 
@@ -188,7 +188,7 @@ class AlertManager:
     def trigger_alert(
         self,
         error: EngineSystemError,
-        channels: List[str] | None = None,
+        channels: Optional[List[str]] = None,
     ) -> None:
         """Dispatch an alert for *error* through matching channels.
 
@@ -325,8 +325,8 @@ class ErrorHandler:
         self._max_history = max_history
         self._history: deque = deque(maxlen=max_history)
         self._history_map: Dict[str, EngineSystemError] = {}
-        self._alert_manager: AlertManager | None = None
-        self._audit_logger: logging.Logger | None = None
+        self._alert_manager: Optional[AlertManager] = None
+        self._audit_logger: Optional[logging.Logger] = None
         self._lock = threading.Lock()
         self._logger: logging.Logger = logging.getLogger(__name__)
 
@@ -350,9 +350,9 @@ class ErrorHandler:
         component: str,
         message: str,
         severity: ErrorSeverity = ErrorSeverity.ERROR,
-        details: dict | None = None,
-        exception: BaseException | None = None,
-        user_id: str | None = None,
+        details: Optional[dict] = None,
+        exception: Optional[BaseException] = None,
+        user_id: Optional[str] = None,
     ) -> EngineSystemError:
         """Record and process an error.
 
@@ -396,8 +396,8 @@ class ErrorHandler:
 
     def get_error_history(
         self,
-        component: str | None = None,
-        severity: ErrorSeverity | None = None,
+        component: Optional[str] = None,
+        severity: Optional[ErrorSeverity] = None,
         limit: int = 100,
     ) -> List[EngineSystemError]:
         """Query error history with optional filters.
@@ -419,7 +419,7 @@ class ErrorHandler:
         result.sort(key=lambda e: e.timestamp, reverse=True)
         return result[:limit]
 
-    def get_error_by_id(self, error_id: str) -> EngineSystemError | None:
+    def get_error_by_id(self, error_id: str) -> Optional[EngineSystemError]:
         """Retrieve a single error by its UUID.
 
         Args:
@@ -578,7 +578,7 @@ class AutoRecoveryManager:
         error_pattern: str,
         action_fn: Callable[[EngineSystemError], bool],
         cooldown_seconds: int = 300,
-        action_name: str | None = None,
+        action_name: Optional[str] = None,
     ) -> None:
         """Register an automatic recovery action.
 
@@ -698,8 +698,8 @@ def component_guard(
     component_name: str,
     error_handler: ErrorHandler,
     severity: ErrorSeverity = ErrorSeverity.ERROR,
-    details: dict | None = None,
-    user_id: str | None = None,
+    details: Optional[dict] = None,
+    user_id: Optional[str] = None,
 ):
     """Context manager that catches exceptions and routes them to the handler.
 
@@ -742,9 +742,9 @@ def component_guard(
 # Singleton factory
 # ---------------------------------------------------------------------------
 
-_handler: ErrorHandler | None = None
-_alert_manager: AlertManager | None = None
-_auto_recovery: AutoRecoveryManager | None = None
+_handler: Optional[ErrorHandler] = None
+_alert_manager: Optional[AlertManager] = None
+_auto_recovery: Optional[AutoRecoveryManager] = None
 _lock = threading.Lock()
 
 

@@ -34,7 +34,7 @@ import os
 import re
 import sys
 from dataclasses import asdict, dataclass, field
-from typing import Any, Dict, List, Set
+from typing import Any, Dict, List, Optional, Set
 
 from compat import StrEnum
 
@@ -65,7 +65,7 @@ class FunctionInfo:
     line_number: int
     is_async: bool = False
     is_method: bool = False
-    class_name: str | None = None
+    class_name: Optional[str] = None
     decorators: List[str] = field(default_factory=list)
     has_test: bool = False
     test_names: List[str] = field(default_factory=list)
@@ -266,7 +266,7 @@ class _FunctionExtractor(ast.NodeVisitor):
             # Still include them but mark appropriately
             pass
 
-        class_name: str | None = None
+        class_name: Optional[str] = None
         if self._class_stack:
             class_name = self._class_stack[-1]
 
@@ -363,7 +363,7 @@ class CoverageAnalyzer:
         print(json.dumps(report.to_dict(), indent=2))
     """
 
-    def __init__(self, project_root: str | None = None) -> None:
+    def __init__(self, project_root: Optional[str] = None) -> None:
         """Initialize the analyzer.
 
         Args:

@@ -10,6 +10,8 @@ Provides capabilities covering:
 
 from __future__ import annotations
 
+from typing import Optional
+
 import anyio
 from acp.runtime import ProgressEmitter, capability
 
@@ -32,7 +34,7 @@ class IntegrationHandler:
         return a / b
 
     @capability("math.progress", scopes=("math.read",))
-    async def progress(self, steps: int = 5, emitter: ProgressEmitter | None = None) -> str:
+    async def progress(self, steps: int = 5, emitter: Optional[ProgressEmitter] = None) -> str:
         """Emit progress events and return a completion message."""
         if emitter is None:
             return "done"

@@ -9,6 +9,8 @@ Layer rule: only these errors (plus stdlib exceptions) may leave a layer.
 
 from __future__ import annotations
 
+from typing import Optional
+
 __all__ = [
     "AcpError",
     "DeadlineExceeded",
@@ -30,7 +32,7 @@ class AcpError(Exception):
     code: int = -32603  # JSON-RPC "Internal error" (default)
     message: str = "Internal ACP error"
 
-    def __init__(self, message: str | None = None, *, data: dict | None = None) -> None:
+    def __init__(self, message: Optional[str] = None, *, data: Optional[dict] = None) -> None:
         if message is not None:
             self.message = message
         self.data: dict = data or {}

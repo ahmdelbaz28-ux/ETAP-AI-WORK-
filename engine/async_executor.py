@@ -21,7 +21,7 @@ from datetime import datetime, timezone
 UTC = timezone.utc  # noqa: UP017
 
 UTC = UTC
-from typing import Any, List
+from typing import Any, List, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -53,19 +53,19 @@ class TaskStatus(enum.Enum):
 class AsyncTask:
     task_id: str
     name: str
-    coroutine: Coroutine | None = None
-    callable: Callable | None = None
+    coroutine: Optional[Coroutine] = None
+    callable: Optional[Callable] = None
     args: tuple = field(default_factory=tuple)
     kwargs: dict = field(default_factory=dict)
     priority: TaskPriority = TaskPriority.MEDIUM
     status: TaskStatus = TaskStatus.PENDING
     created_at: datetime = field(default_factory=datetime.utcnow)
-    started_at: datetime | None = None
-    completed_at: datetime | None = None
+    started_at: Optional[datetime] = None
+    completed_at: Optional[datetime] = None
     result: Any = None
-    error: str | None = None
+    error: Optional[str] = None
     tags: List[str] = field(default_factory=list)
-    timeout: float | None = None
+    timeout: Optional[float] = None
 
 
 class _PriorityTaskQueue:
@@ -90,7 +90,7 @@ class _PriorityTaskQueue:
             self._queues[prio].append(task)
             self._cond.notify()
 
-    def get(self, timeout: float | None = None) -> AsyncTask | None:
+    def get(self, timeout: Optional[float] = None) -> Optional[AsyncTask]:
         deadline = None if timeout is None else time.monotonic() + timeout
         with self._cond:
             while True:
@@ -104,11 +104,11 @@ class _PriorityTaskQueue:
                         return None
                 self._cond.wait(timeout=remaining)
 
-    def peek(self) -> AsyncTask | None:
+    def peek(self) -> Optional[AsyncTask]:
         with self._lock:
             return self._get_highest_prio()
 
-    def remove(self, task_id: str) -> AsyncTask | None:
+    def remove(self, task_id: str) -> Optional[AsyncTask]:
         with self._lock:
             for prio in sorted(self._queues):
                 for i, t in enumerate(self._queues[prio]):
@@ -123,7 +123,7 @@ class _PriorityTaskQueue:
     def qsize_unlocked(self) -> int:
         return sum(len(q) for q in self._queues.values())
 
-    def _get_highest_prio(self) -> AsyncTask | None:
+    def _get_highest_prio(self) -> Optional[AsyncTask]:
         for prio in sorted(self._queues):
             if self._queues[prio]:
                 return self._queues[prio].pop(0)
@@ -143,7 +143,7 @@ class AsyncExecutor:
         self._lock = threading.Lock()
         self._workers: list[threading.Thread] = []
         self._shutdown_event = threading.Event()
-        self._loop: asyncio.AbstractEventLoop | None = None
+        self._loop: Optional[asyncio.AbstractEventLoop] = None
         self._loop_ready = threading.Event()
         self._stats: dict[str, Any] = {
             "total_submitted": 0,
@@ -243,9 +243,9 @@ class AsyncExecutor:
         fn: Callable,
         *args: Any,
         priority: TaskPriority = TaskPriority.MEDIUM,
-        name: str | None = None,
-        tags: List[str] | None = None,
-        timeout: float | None = None,
+        name: Optional[str] = None,
+        tags: Optional[List[str]] = None,
+        timeout: Optional[float] = None,
         **kwargs: Any,
     ) -> str:
         task_id = str(uuid.uuid4())
@@ -268,9 +268,9 @@ class AsyncExecutor:
         self,
         coro: Coroutine,
         priority: TaskPriority = TaskPriority.MEDIUM,
-        name: str | None = None,
-        tags: List[str] | None = None,
-        timeout: float | None = None,
+        name: Optional[str] = None,
+        tags: Optional[List[str]] = None,
+        timeout: Optional[float] = None,
     ) -> str:
         task_id = str(uuid.uuid4())
         task = AsyncTask(
@@ -289,7 +289,7 @@ class AsyncExecutor:
     async def run_parallel(
         self,
         tasks: Sequence[Any],
-        max_concurrent: int | None = None,
+        max_concurrent: Optional[int] = None,
         return_exceptions: bool = False,
     ) -> List[Any]:
         semaphore = asyncio.Semaphore(max_concurrent or len(tasks))
@@ -310,7 +310,7 @@ class AsyncExecutor:
             return await asyncio.gather(*coros, return_exceptions=True)
         return await asyncio.gather(*coros)
 
-    def get_task(self, task_id: str) -> AsyncTask | None:
+    def get_task(self, task_id: str) -> Optional[AsyncTask]:
         with self._lock:
             return self._tasks.get(task_id)
 
@@ -357,7 +357,7 @@ class AsyncExecutor:
     def wait_for_completion(
         self,
         task_ids: List[str],
-        timeout: float | None = None,
+        timeout: Optional[float] = None,
     ) -> List[AsyncTask]:
         deadline = None if timeout is None else time.monotonic() + timeout
         pending = set(task_ids)
@@ -391,7 +391,7 @@ class AsyncExecutor:
 class ThreadPoolManager:
     def __init__(
         self,
-        max_workers: int | None = None,
+        max_workers: Optional[int] = None,
         thread_name_prefix: str = "CalcWorker",
     ) -> None:
         self._executor = ThreadPoolExecutor(
@@ -437,7 +437,7 @@ class ThreadPoolManager:
     def run_batch(
         self,
         fns: Sequence[Callable],
-        max_concurrent: int | None = None,
+        max_concurrent: Optional[int] = None,
     ) -> List[Any]:
         submitted = [self._executor.submit(fn) for fn in fns]
         with self._lock:
@@ -467,7 +467,7 @@ class ThreadPoolManager:
 
 
 class ProcessPoolManager:
-    def __init__(self, max_workers: int | None = None) -> None:
+    def __init__(self, max_workers: Optional[int] = None) -> None:
         self._executor = ProcessPoolExecutor(max_workers=max_workers)
         self._lock = threading.Lock()
         self._stats: dict[str, Any] = {
@@ -517,7 +517,7 @@ class _TimeoutContext:
     def __enter__(self) -> _TimeoutContext:
         return self
 
-    def __exit__(self, exc_type: Any, exc_val: Any, exc_tb: Any) -> bool | None:
+    def __exit__(self, exc_type: Any, exc_val: Any, exc_tb: Any) -> Optional[bool]:
         if exc_type is not None:
             return False
         if time.monotonic() > self._deadline:
@@ -542,7 +542,7 @@ class _RetryContext:
     def __enter__(self) -> _RetryContext:
         return self
 
-    def __exit__(self, exc_type: Any, exc_val: Any, exc_tb: Any) -> bool | None:
+    def __exit__(self, exc_type: Any, exc_val: Any, exc_tb: Any) -> Optional[bool]:
         if exc_type is None:
             return None
         self._attempt += 1
@@ -577,8 +577,8 @@ class _WorkflowStep:
         self,
         name: str,
         fn: Callable,
-        depends_on: List[str] | None = None,
-        timeout: float | None = None,
+        depends_on: Optional[List[str]] = None,
+        timeout: Optional[float] = None,
     ) -> None:
         self.name = name
         self.fn = fn
@@ -617,7 +617,7 @@ class WorkflowOrchestrator:
     def execute_workflow(
         self,
         workflow_id: str,
-        initial_params: dict | None = None,
+        initial_params: Optional[dict] = None,
     ) -> dict:
         with self._lock:
             wf = self._workflows.get(workflow_id)
@@ -683,7 +683,7 @@ class WorkflowOrchestrator:
             "errors": errors,
         }
 
-    def get_workflow_status(self, workflow_id: str) -> dict | None:
+    def get_workflow_status(self, workflow_id: str) -> Optional[dict]:
         with self._lock:
             wf = self._workflows.get(workflow_id)
             if wf is None:
@@ -720,9 +720,9 @@ def _timeout(seconds: float):
             raise exc_bucket[0]
 
 
-_async_executor: AsyncExecutor | None = None
-_thread_pool: ThreadPoolManager | None = None
-_process_pool: ProcessPoolManager | None = None
+_async_executor: Optional[AsyncExecutor] = None
+_thread_pool: Optional[ThreadPoolManager] = None
+_process_pool: Optional[ProcessPoolManager] = None
 _singleton_lock = threading.Lock()
 
 
@@ -742,7 +742,7 @@ def get_async_executor(
 
 
 def get_thread_pool_manager(
-    max_workers: int | None = None,
+    max_workers: Optional[int] = None,
     thread_name_prefix: str = "CalcWorker",
 ) -> ThreadPoolManager:
     global _thread_pool
@@ -757,7 +757,7 @@ def get_thread_pool_manager(
 
 
 def get_process_pool_manager(
-    max_workers: int | None = None,
+    max_workers: Optional[int] = None,
 ) -> ProcessPoolManager:
     global _process_pool
     if _process_pool is None:

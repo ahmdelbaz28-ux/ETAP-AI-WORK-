@@ -16,7 +16,7 @@ import json
 import sys
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, List, Tuple
+from typing import Dict, List, Optional, Tuple
 
 # PDF processing libraries
 try:
@@ -66,7 +66,7 @@ class ETAPGuideExtractor:
             "files": [],
         }
 
-    def extract_text_from_pdf(self, pdf_path: Path) -> Tuple[str | None, int]:
+    def extract_text_from_pdf(self, pdf_path: Path) -> Tuple[Optional[str], int]:
         """
         Extract text from a single PDF file.
 
