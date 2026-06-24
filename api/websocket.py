@@ -6,7 +6,9 @@ Provides live updates to connected clients without requiring refresh.
 import asyncio
 import json
 import logging
-from datetime import UTC, datetime
+from datetime import datetime, timezone
+
+UTC = timezone.utc  # noqa: UP017
 
 UTC = UTC
 from typing import List

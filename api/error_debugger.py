@@ -29,7 +29,9 @@ import sys
 import traceback
 import uuid
 from dataclasses import dataclass, field
-from datetime import UTC, datetime
+from datetime import datetime, timezone
+
+UTC = timezone.utc  # noqa: UP017
 
 UTC = UTC
 from typing import Any, Dict, List

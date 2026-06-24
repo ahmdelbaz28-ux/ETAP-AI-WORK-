@@ -22,7 +22,9 @@ import asyncio
 import logging
 import time
 from dataclasses import dataclass, field
-from datetime import UTC, datetime
+from datetime import datetime, timezone
+
+UTC = timezone.utc  # noqa: UP017
 
 UTC = UTC
 from enum import Enum
