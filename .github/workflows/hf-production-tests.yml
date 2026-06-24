@@ -25,8 +25,8 @@ jobs:
         with:
           python-version: '3.12'
 
-      - name: Install pytest
-        run: pip install pytest
+      - name: Install pytest + pydantic + fastapi
+        run: pip install pytest pydantic fastapi
 
       - name: Wait for HF Space to finish rebuilding
         run: |
@@ -49,4 +49,6 @@ jobs:
         env:
           HF_SPACE_PRODUCTION_TESTS: 'true'
         run: |
-          python -m pytest tests/test_hf_space_production.py -v --tb=short
+          # Use --noconftest to bypass tests/conftest.py which requires heavy deps.
+          # The production tests only need urllib + json (stdlib) + pytest.
+          python -m pytest tests/test_hf_space_production.py -v --tb=short --noconftest
