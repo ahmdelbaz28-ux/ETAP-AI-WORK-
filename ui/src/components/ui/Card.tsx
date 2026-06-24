@@ -24,7 +24,13 @@ const paddingStyles = {
 
 export function Card({ variant = 'default', padding = 'md', className, children, ...props }: CardProps) {
   return (
-    <div className={cn('rounded-xl', variantStyles[variant], paddingStyles[padding], className)} {...props}>
+    <div className={cn(
+      'rounded-xl',
+      variantStyles[variant],
+      paddingStyles[padding],
+      variant !== 'flat' && variant !== 'glass' && 'card-hover-lift',
+      className
+    )} {...props}>
       {children}
     </div>
   )

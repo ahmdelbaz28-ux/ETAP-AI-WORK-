@@ -126,8 +126,10 @@ export function Sidebar() {
               cn(
                 'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all duration-150 group relative',
                 sidebarCollapsed && 'justify-center px-0',
+                !sidebarCollapsed && 'nav-indicator',
+                isActive && !sidebarCollapsed && 'active',
                 isActive
-                  ? 'bg-brand-600 text-white font-medium shadow-sm shadow-brand-600/30'
+                  ? 'bg-brand-600/80 text-white font-medium shadow-sm shadow-brand-600/30 ring-1 ring-brand-500/30'
                   : 'text-[var(--text-secondary)] hover:bg-[var(--bg-elevated)] hover:text-[var(--text-primary)]'
               )
             }
