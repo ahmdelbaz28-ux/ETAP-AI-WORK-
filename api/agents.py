@@ -5,7 +5,7 @@ Handles all AI agent information endpoints.
 Separated from main engineering service for better modularity.
 """
 
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, Optional
 
 from fastapi import APIRouter, Depends, Request
 from fastapi.responses import JSONResponse
