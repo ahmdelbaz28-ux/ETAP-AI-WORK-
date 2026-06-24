@@ -30,7 +30,6 @@ from core.bootstrap import lifespan, logger
 from core.tracing import get_tracer
 from services.study_service import (
     StudyRequest,
-    SystemSpec,
 )
 
 # Create FastAPI app instance

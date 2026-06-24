@@ -156,7 +156,7 @@ def verify_orchestrator_agents():
         try:
             with open(init_file, encoding="utf-8") as f_init:
                 init_content = f_init.read()
-            
+
             if "ALL_AGENT_CLASSES" not in init_content:
                 issues.append("ALL_AGENT_CLASSES not found in agents/__init__.py")
             else:
