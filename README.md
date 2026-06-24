@@ -11,618 +11,706 @@ app_port: 7860
 
 <div align="center">
 
+<img src="docs/assets/banner.png" alt="AhmedETAP Banner" width="100%"/>
+
+<br/><br/>
+
 # ⚡ AhmedETAP
 
-### Enterprise-Grade Autonomous Engineering Intelligence Platform
+### المنصة الذكية لهندسة أنظمة القوى الكهربائية
+### Enterprise AI-Powered Power Systems Engineering Platform
 
-*Power System Analysis · AI Agent Orchestration · ETAP Integration · GIS Enrichment*
+<br/>
 
-[![Version](https://img.shields.io/badge/version-1.0.0-blue?style=for-the-badge&logo=semantic-release)](https://github.com/ahmdelbaz28-ux/ETAP-AI-WORK-/releases)
-[![License](https://img.shields.io/badge/license-MIT-green?style=for-the-badge&logo=open-source-initiative)](LICENSE)
-[![CI/CD](https://img.shields.io/github/actions/workflow/status/ahmdelbaz28-ux/ETAP-AI-WORK-/ci-cd.yml?style=for-the-badge&label=CI%2FCD&logo=github-actions)](https://github.com/ahmdelbaz28-ux/ETAP-AI-WORK-/actions)
-[![Python](https://img.shields.io/badge/python-3.12-blue?style=for-the-badge&logo=python)](https://www.python.org)
-[![FastAPI](https://img.shields.io/badge/FastAPI-0.115-009688?style=for-the-badge&logo=fastapi)](https://fastapi.tiangolo.com)
-[![React](https://img.shields.io/badge/React-19-61DAFB?style=for-the-badge&logo=react)](https://react.dev)
-[![Docker](https://img.shields.io/badge/Docker-Ready-2496ED?style=for-the-badge&logo=docker)](Dockerfile)
+[![Version](https://img.shields.io/badge/version-1.0.0-blue?style=for-the-badge&logo=semantic-release&logoColor=white)](https://github.com/ahmdelbaz28-ux/ETAP-AI-WORK-/releases)
+[![Python](https://img.shields.io/badge/Python-3.12-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://python.org)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.115-009688?style=for-the-badge&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com)
+[![React](https://img.shields.io/badge/React-19-61DAFB?style=for-the-badge&logo=react&logoColor=black)](https://react.dev)
+[![Docker](https://img.shields.io/badge/Docker-Ready-2496ED?style=for-the-badge&logo=docker&logoColor=white)](Dockerfile)
+[![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge&logo=open-source-initiative&logoColor=white)](LICENSE)
 
-[![Live Demo](https://img.shields.io/badge/🤗%20Live%20Demo-Hugging%20Face-yellow?style=flat-square&logo=huggingface)](https://huggingface.co/spaces/ahmdelbaz28/AHMEDETAP)
-[![Tests](https://img.shields.io/badge/tests-989%20passing-brightgreen?style=flat-square&logo=pytest)](tests/)
-[![Index](https://img.shields.io/badge/project%20index-auto--updated-blueviolet?style=flat-square)](PROJECT_INDEX.md)
+<br/>
+
+[![Tests](https://img.shields.io/badge/Tests-989%20Passing-brightgreen?style=flat-square&logo=pytest)](tests/)
+[![CI/CD](https://img.shields.io/github/actions/workflow/status/ahmdelbaz28-ux/ETAP-AI-WORK-/ci-cd.yml?style=flat-square&label=CI%2FCD&logo=github-actions)](https://github.com/ahmdelbaz28-ux/ETAP-AI-WORK-/actions)
+[![Agents](https://img.shields.io/badge/AI%20Agents-10%20Specialist-purple?style=flat-square&logo=openai)](agents/)
+[![API Endpoints](https://img.shields.io/badge/API%20Endpoints-51-orange?style=flat-square&logo=swagger)](docs/API_REFERENCE.md)
+[![Index](https://img.shields.io/badge/Project%20Index-Auto%20Updated-blueviolet?style=flat-square)](PROJECT_INDEX.md)
+
+<br/>
+
+**[🚀 Live Demo](https://huggingface.co/spaces/ahmdelbaz28/AHMEDETAP)** &nbsp;•&nbsp;
+**[📚 Documentation](docs/)** &nbsp;•&nbsp;
+**[🌐 API Reference](docs/API_REFERENCE.md)** &nbsp;•&nbsp;
+**[📋 Project Index](PROJECT_INDEX.md)**
 
 </div>
 
 ---
 
-## 📌 Table of Contents
+## 🎬 Demo Video
 
-- [Overview](#-overview)
-- [Key Capabilities](#-key-capabilities)
-- [Architecture](#-architecture)
-- [Quick Start](#-quick-start)
-- [API Reference](#-api-reference)
-- [Project Structure](#-project-structure)
-- [Configuration](#-configuration)
-- [Testing](#-testing)
-- [Deployment](#-deployment)
-- [Contributing](#-contributing)
-- [Security](#-security)
-- [Documentation Portal](#-documentation-portal)
-- [License](#-license)
+<div align="center">
+
+[![Demo Video](docs/assets/demo_thumbnail.png)](https://huggingface.co/spaces/ahmdelbaz28/AHMEDETAP)
+
+> **▶️ اضغط على الصورة لتشغيل الديمو المباشر على Hugging Face**
+
+</div>
 
 ---
 
-## 🔭 Overview
+## 📸 لقطات الشاشة
 
-**AhmedETAP** is a production-ready, AI-powered platform for electrical power system engineering. It combines a multi-agent AI orchestration layer with rigorous numerical power system solvers, enabling engineers to run complex studies — load flow, fault analysis, arc flash, harmonic analysis, optimal power flow — through a conversational interface, REST API, or React web dashboard.
+<div align="center">
 
-The platform is built to enterprise standards with full security hardening (ABAC, MFA, RASP, SIEM), observability (Prometheus + Grafana), and automated CI/CD to Hugging Face Spaces and Docker registries.
+### 🖥️ لوحة التحكم الرئيسية — Main Dashboard
 
-| Dimension | Detail |
-|:---|:---|
-| **Backend** | Python 3.12 · FastAPI · Celery · Redis · SQLite/PostgreSQL |
-| **Frontend** | React 19 · Vite 6 · TypeScript · Tailwind CSS 4 |
-| **AI Stack** | Multi-agent orchestration · RAG · GNN · ETAP Expert agent |
-| **Infrastructure** | Docker · Helm · Terraform · GitHub Actions |
-| **Standards** | IEEE 1584 · IEC 60909 · IEEE 519 · NFPA 70E |
+<img src="docs/assets/screenshot_dashboard.png" alt="AhmedETAP Dashboard" width="90%"/>
 
----
+<br/><br/>
 
-## 🚀 Key Capabilities
+### 🤖 مساعد الذكاء الاصطناعي — AI Engineering Assistant
 
-### 🔌 Power System Analysis Engines
-| Study Type | Standard | Engine |
-|:---|:---|:---|
-| Load Flow (Newton-Raphson) | IEEE | `load_flow/load_flow.py` |
-| Short Circuit (Symmetrical & Asymmetrical) | IEC 60909 | `fault_analysis/iec60909_engine.py` |
-| Arc Flash Hazard Analysis | IEEE 1584-2018 | `fault_analysis/ieee1584_database.py` |
-| Harmonic Analysis & THD/TDD | IEEE 519 | `fault_analysis/harmonic_analysis.py` |
-| Optimal Power Flow (DC & AC) | IEEE | `load_flow/optimal_power_flow.py` |
-| Protection Coordination | IEEE | `coordination/` |
+<img src="docs/assets/screenshot_ai_chat.png" alt="AI Chat Interface" width="90%"/>
 
-### 🤖 AI Agent System
-- **Chief Orchestrator Agent** — decomposes requests, coordinates specialist agents
-- **ETAP Expert Agent** — conversational power system Q&A with RAG over IEEE/IEC documents
-- **ETAP GUI Agent** — step-by-step GUI workflow guidance
-- **Load Flow Agent** — autonomous load flow study execution
-- **Short Circuit Agent** — fault analysis and reporting
-- **Harmonic Analysis Agent** — IEEE 519 compliance checks
-- **OPF Agent** — optimal dispatch and generation scheduling
-- **Protection Agent** — relay coordination and grading
-- **Validation Agent** — results verification against engineering standards
-- **Report Agent** — PDF / DOCX / XLSX report generation
+<br/><br/>
 
-### 🔐 Enterprise Security
-- ABAC (Attribute-Based Access Control) with policy engine
-- Multi-Factor Authentication (TOTP + WebAuthn/FIDO2)
-- RASP (Runtime Application Self-Protection)
-- SIEM event forwarding
-- JWT + API Key authentication
-- Secrets Manager (Vault-compatible + local)
+### ⚡ تحليل Arc Flash — IEEE 1584-2018
 
-### 📊 Observability & Operations
-- Prometheus metrics endpoint (`/prometheus/metrics`)
-- Grafana dashboard templates
-- Structured audit logging
-- Redis caching layer
-- Celery async task workers
-- Digital Twin live status
+<img src="docs/assets/screenshot_arc_flash.png" alt="Arc Flash Analysis" width="90%"/>
+
+</div>
 
 ---
 
-## 🏛️ Architecture
+## 🌟 ما هو AhmedETAP؟
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│                     USER INTERFACES                         │
-│  React Web UI  │  REST API  │  CLI  │  MCP Protocol         │
-└──────────────────────────┬──────────────────────────────────┘
-                           │ HTTP / WebSocket
-┌──────────────────────────▼──────────────────────────────────┐
-│                  FASTAPI GATEWAY (api/)                      │
-│  Auth · Rate Limiting · ABAC · RASP · Request Validation    │
-└──────┬──────────┬──────────┬──────────┬───────────┬─────────┘
-       │          │          │          │           │
-┌──────▼───┐ ┌───▼────┐ ┌───▼────┐ ┌───▼────┐ ┌───▼────┐
-│ Studies  │ │  RAG   │ │  ML   │ │ SCADA  │ │Security│
-│  API     │ │  API   │ │  API  │ │  API   │ │  API   │
-└──────┬───┘ └───┬────┘ └───┬────┘ └───┬────┘ └───┬────┘
-       │          │          │          │           │
-┌──────▼──────────▼──────────▼──────────▼───────────▼────────┐
-│                 ORCHESTRATION LAYER (agents/)                │
-│         Chief Orchestrator Agent                            │
-│   ┌──────────┬──────────┬──────────┬──────────┬──────────┐ │
-│   │Load Flow │  Short   │Harmonic  │   OPF    │Protection│ │
-│   │  Agent   │ Circuit  │  Agent   │  Agent   │  Agent   │ │
-│   └──────────┴──────────┴──────────┴──────────┴──────────┘ │
-│         Validation Agent  ·  Report Agent                   │
-└──────────────────────┬──────────────────────────────────────┘
-                       │
-┌──────────────────────▼──────────────────────────────────────┐
-│              COMPUTATION LAYER                               │
-│  load_flow/  │  fault_analysis/  │  engine/  │  ml/         │
-│  solver.py   │  iec60909_engine  │  network  │  predictive  │
-│  opf.py      │  ieee1584_db      │  solvers  │  gnn.py      │
-└──────────────────────┬──────────────────────────────────────┘
-                       │
-┌──────────────────────▼──────────────────────────────────────┐
-│              DATA & PERSISTENCE LAYER                        │
-│  SQLite / PostgreSQL  │  Redis Cache  │  Vector DB (RAG)    │
-│  Celery + Workers     │  SCADA Models │  Engineering Docs   │
-└─────────────────────────────────────────────────────────────┘
-```
+**AhmedETAP** هو منصة ذكاء اصطناعي متكاملة لهندسة أنظمة القوى الكهربائية. تجمع بين:
 
-**Full architecture document:** [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)
+- 🔢 **محركات حسابية** متخصصة لأصعب دراسات الطاقة الكهربائية
+- 🤖 **10 وكلاء ذكاء اصطناعي** متخصصين يعملون معاً
+- 🌐 **واجهة ويب حديثة** بـ React 19
+- 🔌 **API مفتوح** بـ 51 endpoint
+- 🔐 **أمان على مستوى المؤسسات**
+
+> **للمهندسين المبتدئين:** تتحدث مع المنصة بلغة عادية وتقوم بتشغيل الدراسات الهندسية تلقائياً!
+>
+> **للمهندسين المتخصصين:** API كامل، محركات IEC/IEEE مباشرة، وتكامل مع ETAP.
 
 ---
 
-## ⚡ Quick Start
+## 🔬 الدراسات الهندسية المدعومة
 
-### Prerequisites
-
-| Tool | Version |
-|:---|:---|
-| Python | 3.12+ |
-| Node.js | 20+ |
-| Docker | 24+ |
-| Redis | 7+ |
-
-### Option 1 — Docker Compose (Recommended)
-
-```bash
-# Clone the repository
-git clone https://github.com/ahmdelbaz28-ux/ETAP-AI-WORK-.git
-cd ETAP-AI-WORK-
-
-# Copy environment template
-cp .env.example .env
-# Edit .env with your secrets
-
-# Start all services
-docker compose up -d
-
-# Services will be available at:
-#   API:       http://localhost:8000
-#   Frontend:  http://localhost:3000
-#   Metrics:   http://localhost:8000/prometheus/metrics
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                   Power Studies Coverage                        │
+├──────────────────────┬──────────────────────┬───────────────────┤
+│  ✅ Load Flow        │  ✅ Short Circuit     │  ✅ Arc Flash      │
+│  Newton-Raphson      │  IEC 60909           │  IEEE 1584-2018   │
+├──────────────────────┼──────────────────────┼───────────────────┤
+│  ✅ Harmonic Analysis│  ✅ Optimal Power Flow│  ✅ Protection     │
+│  IEEE 519-2022       │  DC & AC-OPF         │  Coordination     │
+└──────────────────────┴──────────────────────┴───────────────────┘
 ```
 
-### Option 2 — Local Development
+---
 
-```bash
-# ── Backend ──────────────────────────────────────────────
-python -m venv .venv
-.venv\Scripts\activate          # Windows
-# source .venv/bin/activate     # Linux/macOS
+## 🏛️ معمارية النظام — System Architecture
 
-pip install -r requirements.txt
+```mermaid
+graph TB
+    subgraph UI["🖥️ User Interface Layer"]
+        WEB[React 19 Web App]
+        API_CLIENT[REST API Client]
+        CLI[CLI Tool]
+    end
 
-# Start the API server
-python engineering_service.py
+    subgraph GATEWAY["🔐 API Gateway — FastAPI"]
+        AUTH[Auth & ABAC]
+        RATE[Rate Limiting]
+        RASP[RASP Protection]
+    end
 
-# Start Celery worker (in a separate terminal)
-celery -A worker.celery_app worker --loglevel=info
+    subgraph AGENTS["🤖 AI Agent Orchestration Layer"]
+        ORCH[Chief Orchestrator Agent]
+        LF[Load Flow Agent]
+        SC[Short Circuit Agent]
+        HA[Harmonic Agent]
+        OPF[OPF Agent]
+        PROT[Protection Agent]
+        VAL[Validation Agent]
+        REP[Report Agent]
+        ETAP_A[ETAP Expert Agent]
+        RAG_A[RAG Agent]
+    end
 
-# ── Frontend ─────────────────────────────────────────────
-cd ui
-npm install
-npm run dev
-# → http://localhost:5173
+    subgraph ENGINES["⚙️ Computation Engines"]
+        LF_ENG[Load Flow Solver\nNewton-Raphson]
+        SC_ENG[IEC 60909 Engine\nShort Circuit]
+        AF_ENG[IEEE 1584 Engine\nArc Flash]
+        HA_ENG[Harmonic Engine\nIEEE 519]
+        OPF_ENG[OPF Engine\nDC & AC]
+        ML_ENG[ML Engine\nGNN + Predictive]
+    end
+
+    subgraph DATA["💾 Data Layer"]
+        DB[(SQLite / PostgreSQL)]
+        CACHE[(Redis Cache)]
+        VDB[(Vector DB\nRAG Knowledge)]
+        SCADA_M[SCADA Models]
+    end
+
+    UI --> GATEWAY
+    GATEWAY --> AGENTS
+    ORCH --> LF & SC & HA & OPF & PROT
+    ORCH --> VAL & REP & ETAP_A & RAG_A
+    AGENTS --> ENGINES
+    ENGINES --> DATA
+
+    style UI fill:#1a1a2e,color:#00d4ff
+    style GATEWAY fill:#16213e,color:#ffd700
+    style AGENTS fill:#0f3460,color:#e0e0e0
+    style ENGINES fill:#533483,color:#ffffff
+    style DATA fill:#1a1a2e,color:#00ff88
 ```
 
-### Option 3 — Hugging Face Demo
+---
 
-No setup required. Access the live demo instantly:
+## 🚀 التثبيت — Installation Guide
+
+> **للمبتدئين:** اختر الطريقة الأسهل لك. كل الطرق تنتهي بنفس النتيجة!
+
+---
+
+### 🥇 الطريقة الأولى: الديمو الفوري (بدون تثبيت)
+
+**لا تحتاج لتثبيت أي شيء!** فقط اضغط:
 
 👉 **[huggingface.co/spaces/ahmdelbaz28/AHMEDETAP](https://huggingface.co/spaces/ahmdelbaz28/AHMEDETAP)**
 
 ---
 
-## 🌐 API Reference
+### 🐳 الطريقة الثانية: Docker Compose (الأسهل للتثبيت المحلي)
 
-**Base URL:** `http://localhost:8000`  
-**API Version:** `v1` (prefix: `/api/v1/`)
+> **المطلوب:** [Docker Desktop](https://www.docker.com/products/docker-desktop/) فقط
 
-### Authentication
-
-All protected endpoints require a JWT bearer token:
-```
-Authorization: Bearer <token>
-```
-
-Obtain a token via `POST /api/v1/auth/login`.
-
-### Core Endpoints
-
-| Method | Endpoint | Description | Auth |
-|:---|:---|:---|:---:|
-| `GET` | `/health` | Liveness check | ❌ |
-| `GET` | `/ready` | Readiness check | ❌ |
-| `GET` | `/metrics` | Application metrics | ❌ |
-| `GET` | `/prometheus/metrics` | Prometheus scrape endpoint | ❌ |
-| `POST` | `/api/v1/studies/run` | Execute a power system study | ✅ |
-| `POST` | `/api/v1/system/validate` | Validate system topology | ✅ |
-| `POST` | `/api/v1/rag/query` | RAG knowledge base query | ✅ |
-| `GET` | `/api/v1/agents/info` | List all available agents | ✅ |
-| `GET` | `/api/v1/scada/live` | Live SCADA telemetry | ✅ |
-| `GET` | `/api/v1/digital-twin/status` | Digital Twin status | ✅ |
-| `POST` | `/api/v1/predict/load` | ML load forecasting | ✅ |
-| `POST` | `/api/v1/predict/fault` | ML fault prediction | ✅ |
-| `POST` | `/api/v1/predict/anomaly` | Anomaly detection | ✅ |
-| `POST` | `/api/v1/auth/mfa/totp/setup` | Enable TOTP MFA | ✅ |
-| `POST` | `/api/v1/auth/mfa/totp/verify` | Verify TOTP code | ✅ |
-| `POST` | `/api/v1/auth/abac/check` | ABAC permission check | ✅ |
-| `GET` | `/api/v1/security/rasp/stats` | RASP runtime stats | ✅ |
-| `POST` | `/api/v1/security/siem/event` | Submit SIEM event | ✅ |
-| `GET` | `/api/v1/benchmark` | Performance benchmark | ✅ |
-| `POST` | `/etap-expert/chat` | ETAP Expert AI chat | ✅ |
-| `POST` | `/etap-gui/chat` | ETAP GUI Agent chat | ✅ |
-| `POST` | `/gnn/predict` | Graph Neural Network prediction | ✅ |
-
-**Full API Reference:** [`docs/API_REFERENCE.md`](docs/API_REFERENCE.md)
-
-### Example — Run a Load Flow Study
-
+**الخطوة 1 — تحميل المشروع:**
 ```bash
-curl -X POST http://localhost:8000/api/v1/studies/run \
-  -H "Authorization: Bearer $TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "study_type": "load_flow",
-    "system": {
-      "buses": [
-        {"id": "B1", "base_kv": 11.0, "bus_type": "slack"},
-        {"id": "B2", "base_kv": 11.0, "bus_type": "load"}
-      ],
-      "lines": [
-        {"from_bus": "B1", "to_bus": "B2", "r_pu": 0.01, "x_pu": 0.05, "b_pu": 0.0}
-      ],
-      "loads": [
-        {"bus": "B2", "p_mw": 10.0, "q_mvar": 3.0}
-      ]
-    }
-  }'
+git clone https://github.com/ahmdelbaz28-ux/ETAP-AI-WORK-.git
+cd ETAP-AI-WORK-
 ```
 
-### Example — ETAP Expert Chat
-
+**الخطوة 2 — إعداد المتغيرات:**
 ```bash
-curl -X POST http://localhost:8000/etap-expert/chat \
-  -H "Authorization: Bearer $TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "message": "What is the difference between a 3-phase and line-to-ground fault in IEC 60909?",
-    "session_id": "sess-001"
-  }'
+# انسخ ملف الإعدادات
+copy .env.example .env        # Windows
+# cp .env.example .env        # Linux/Mac
+
+# افتح الملف وغير هذه القيم:
+# SECRET_KEY=any-random-long-string-here
+# DATABASE_URL=sqlite+aiosqlite:///./etap.db
+```
+
+**الخطوة 3 — تشغيل كل الخدمات:**
+```bash
+docker compose up -d
+```
+
+**الخطوة 4 — افتح المتصفح:**
+```
+🌐 الواجهة:     http://localhost:3000
+🔌 API:         http://localhost:8000
+📊 Metrics:     http://localhost:8000/prometheus/metrics
+📖 API Docs:    http://localhost:8000/docs
+```
+
+**لإيقاف التشغيل:**
+```bash
+docker compose down
 ```
 
 ---
 
-## 📁 Project Structure
+### 🐍 الطريقة الثالثة: Python مباشر (للمطورين)
+
+> **المطلوب:** Python 3.12 · Node.js 20 · Redis
+
+**الخطوة 1 — تحميل المشروع:**
+```bash
+git clone https://github.com/ahmdelbaz28-ux/ETAP-AI-WORK-.git
+cd ETAP-AI-WORK-
+```
+
+**الخطوة 2 — إعداد بيئة Python:**
+```bash
+# إنشاء بيئة افتراضية
+python -m venv .venv
+
+# تفعيلها
+.venv\Scripts\activate        # Windows
+source .venv/bin/activate     # Linux/Mac
+
+# تثبيت المكتبات
+pip install -r requirements.txt
+```
+
+**الخطوة 3 — إعداد المتغيرات:**
+```bash
+copy .env.example .env
+```
+
+```env
+# محتوى ملف .env للتشغيل المحلي
+ENVIRONMENT=development
+PORT=8000
+SECRET_KEY=my-local-dev-secret-key-123
+DATABASE_URL=sqlite+aiosqlite:///./etap.db
+REDIS_URL=redis://localhost:6379/0
+```
+
+**الخطوة 4 — تشغيل الباكند:**
+```bash
+python engineering_service.py
+```
+
+**الخطوة 5 — تشغيل الفرونت إند (terminal جديد):**
+```bash
+cd ui
+npm install
+npm run dev
+```
+
+**الخطوة 6 — تشغيل Celery Worker (terminal جديد):**
+```bash
+celery -A worker.celery_app worker --loglevel=info
+```
+
+---
+
+### ☁️ الطريقة الرابعة: Kubernetes / Helm
+
+> **للمؤسسات والإنتاج الكامل**
+
+```bash
+# إضافة الـ Dependencies
+helm dependency update helm/etap-ai/
+
+# التثبيت
+helm upgrade --install etap-ai helm/etap-ai/ \
+  --namespace etap \
+  --create-namespace \
+  --set image.tag=1.0.0 \
+  --set secrets.key="your-production-secret"
+
+# التحقق
+kubectl get pods -n etap
+```
+
+---
+
+### ✅ التحقق من نجاح التثبيت
+
+بعد التشغيل، تحقق أن كل شيء يعمل:
+
+```bash
+# هل الخدمة تعمل؟
+curl http://localhost:8000/health
+# Expected: {"status": "healthy", "version": "1.0.0"}
+
+# هل الـ API جاهز؟
+curl http://localhost:8000/ready
+# Expected: {"status": "ready"}
+
+# هل يمكن تشغيل دراسة؟
+curl -X POST http://localhost:8000/api/v1/studies/run \
+  -H "Content-Type: application/json" \
+  -d '{"study_type": "load_flow", "system": {"buses": [{"id": "B1", "base_kv": 11.0, "bus_type": "slack"}, {"id": "B2", "base_kv": 11.0, "bus_type": "load"}], "lines": [{"from_bus": "B1", "to_bus": "B2", "r_pu": 0.01, "x_pu": 0.05, "b_pu": 0.0}], "loads": [{"bus": "B2", "p_mw": 5.0, "q_mvar": 2.0}]}}'
+```
+
+---
+
+## 🔌 مثال سريع — Quick Example
+
+### تحليل Load Flow بسيط
+
+```python
+import requests
+
+# تشغيل دراسة Load Flow
+response = requests.post("http://localhost:8000/api/v1/studies/run",
+    json={
+        "study_type": "load_flow",
+        "system": {
+            "buses": [
+                {"id": "BUS-1", "base_kv": 11.0, "bus_type": "slack"},
+                {"id": "BUS-2", "base_kv": 11.0, "bus_type": "load"},
+                {"id": "BUS-3", "base_kv": 0.4,  "bus_type": "load"}
+            ],
+            "lines": [
+                {"from_bus": "BUS-1", "to_bus": "BUS-2", "r_pu": 0.01, "x_pu": 0.05},
+                {"from_bus": "BUS-2", "to_bus": "BUS-3", "r_pu": 0.02, "x_pu": 0.08}
+            ],
+            "loads": [
+                {"bus": "BUS-2", "p_mw": 10.0, "q_mvar": 3.0},
+                {"bus": "BUS-3", "p_mw": 5.0,  "q_mvar": 1.5}
+            ]
+        }
+    }
+)
+print(response.json())
+```
+
+### التحدث مع ETAP Expert AI
+
+```python
+# سؤال مباشر باللغة العربية أو الإنجليزية
+response = requests.post("http://localhost:8000/etap-expert/chat",
+    json={
+        "message": "ما هي قيمة تيار القصر الثلاثي الأطوار على Bus-4 وما هي توصيات PPE؟",
+        "session_id": "engineer-session-001"
+    }
+)
+print(response.json()["reply"])
+```
+
+---
+
+## 🤖 وكلاء الذكاء الاصطناعي
+
+```mermaid
+flowchart LR
+    USER([👤 المهندس]) --> ORCH
+
+    subgraph ORCH["🧠 Chief Orchestrator"]
+        direction TB
+        PARSE[تحليل الطلب]
+        ROUTE[توزيع المهام]
+        COORD[التنسيق]
+    end
+
+    ORCH --> LF([⚡ Load Flow\nAgent])
+    ORCH --> SC([💥 Short Circuit\nAgent])
+    ORCH --> ARC([🔥 Arc Flash\nAgent])
+    ORCH --> HARM([📊 Harmonic\nAgent])
+    ORCH --> OPF([🎯 OPF\nAgent])
+    ORCH --> PROT([🛡️ Protection\nAgent])
+
+    LF & SC & ARC & HARM & OPF & PROT --> VAL([✅ Validation\nAgent])
+    VAL --> REP([📄 Report\nAgent])
+    REP --> USER
+
+    style ORCH fill:#0f3460,color:#fff
+    style USER fill:#1a1a2e,color:#00d4ff
+```
+
+| الوكيل | التخصص | المعيار |
+|:---|:---|:---|
+| 🧠 **Chief Orchestrator** | تنسيق جميع الوكلاء وتوزيع المهام | — |
+| ⚡ **Load Flow Agent** | تحليل انسياب الأحمال | IEEE |
+| 💥 **Short Circuit Agent** | حساب تيارات القصر | IEC 60909 |
+| 🔥 **Arc Flash Agent** | تحليل مخاطر القوس الكهربائي | IEEE 1584-2018 |
+| 📊 **Harmonic Agent** | تحليل التوافقيات والتشويه | IEEE 519-2022 |
+| 🎯 **OPF Agent** | جدولة الأحمال الأمثل | IEEE |
+| 🛡️ **Protection Agent** | تنسيق الحماية والمرحلات | IEEE |
+| ✅ **Validation Agent** | التحقق من النتائج والمعايير | Multi-standard |
+| 📄 **Report Agent** | توليد التقارير (PDF/DOCX/XLSX) | — |
+| 🔍 **RAG Agent** | استرجاع المعرفة من قواعد IEEE/IEC | — |
+
+---
+
+## 🌐 نقاط الـ API
+
+> **الرابط الأساسي:** `http://localhost:8000`
+> **توثيق تفاعلي:** `http://localhost:8000/docs`
+
+```mermaid
+graph LR
+    subgraph HEALTH["🟢 Health"]
+        H1[GET /health]
+        H2[GET /ready]
+        H3[GET /metrics]
+    end
+
+    subgraph STUDIES["📐 Studies"]
+        S1[POST /api/v1/studies/run]
+        S2[POST /api/v1/system/validate]
+    end
+
+    subgraph AI["🤖 AI & ML"]
+        A1[POST /etap-expert/chat]
+        A2[POST /etap-gui/chat]
+        A3[POST /api/v1/rag/query]
+        A4[POST /api/v1/predict/load]
+        A5[POST /api/v1/predict/fault]
+        A6[POST /gnn/predict]
+    end
+
+    subgraph SEC["🔐 Security"]
+        SEC1[POST /api/v1/auth/mfa/totp/setup]
+        SEC2[POST /api/v1/auth/abac/check]
+        SEC3[GET /api/v1/security/rasp/stats]
+    end
+
+    subgraph OPS["📊 Operations"]
+        O1[GET /api/v1/scada/live]
+        O2[GET /api/v1/digital-twin/status]
+        O3[GET /api/v1/benchmark]
+    end
+```
+
+**[📖 Full API Reference →](docs/API_REFERENCE.md)**
+
+---
+
+## ⚙️ إعدادات البيئة — Configuration
+
+| المتغير | القيمة الافتراضية | الوصف |
+|:---|:---|:---|
+| `ENVIRONMENT` | `development` | `development` / `production` |
+| `PORT` | `8000` | منفذ الـ API |
+| `SECRET_KEY` | — | مفتاح التشفير (إلزامي) |
+| `DATABASE_URL` | `sqlite+aiosqlite:///./etap.db` | قاعدة البيانات |
+| `REDIS_URL` | `redis://localhost:6379/0` | خادم Redis للكاش |
+| `USE_ETAP` | `false` | تفعيل تكامل ETAP |
+| `JWT_ALGORITHM` | `HS256` | خوارزمية JWT |
+| `ACCESS_TOKEN_EXPIRE_MINUTES` | `480` | صلاحية التوكن |
+| `PROMETHEUS_ENABLED` | `true` | تفعيل Prometheus |
+
+---
+
+## 🧪 الاختبارات — Testing
+
+```bash
+# تشغيل كل الاختبارات
+pytest
+
+# مع تقرير التغطية
+pytest --cov=. --cov-report=html --cov-report=term-missing
+
+# فئات محددة
+pytest -m unit           # اختبارات الوحدة فقط
+pytest -m integration    # اختبارات التكامل
+pytest -m regression     # اختبارات الانحدار
+```
+
+```
+╔═══════════════════════════════════════════════╗
+║          AhmedETAP Test Results               ║
+╠══════════════╦═══════════╦════════╦══════════╣
+║ Category     ║ Files     ║ Tests  ║ Status   ║
+╠══════════════╬═══════════╬════════╬══════════╣
+║ Unit         ║    32     ║  ~520  ║  ✅ Pass ║
+║ Integration  ║    14     ║  ~280  ║  ✅ Pass ║
+║ Regression   ║     8     ║  ~120  ║  ✅ Pass ║
+║ Performance  ║     4     ║   ~69  ║  ✅ Pass ║
+╠══════════════╬═══════════╬════════╬══════════╣
+║ TOTAL        ║    58     ║   989  ║  ✅ Pass ║
+╚══════════════╩═══════════╩════════╩══════════╝
+```
+
+---
+
+## 🚢 النشر — Deployment
+
+```mermaid
+graph LR
+    PUSH[git push] --> CI
+
+    subgraph CI["🔄 CI/CD Pipeline"]
+        LINT[Lint & Format\nruff + mypy]
+        TEST[Tests\npytest 989]
+        SCAN[Security Scan\nbandit + trivy]
+        BUILD[Build Docker\nImage]
+    end
+
+    LINT --> TEST --> SCAN --> BUILD
+
+    BUILD --> STAGE[Deploy Staging]
+    STAGE --> INT_TEST[Integration\nTests]
+    INT_TEST --> PROD[Deploy Production]
+    INT_TEST --> HF[Sync Hugging Face\nSpace]
+    PROD & HF --> INDEX[Auto-Update\nProject Index]
+
+    style CI fill:#0f3460,color:#fff
+    style PROD fill:#1a472a,color:#00ff88
+    style HF fill:#ff9a00,color:#000
+```
+
+### خيارات النشر
+
+| الطريقة | للـ | الأمر |
+|:---|:---|:---|
+| **Docker Compose** | التطوير والتجريب | `docker compose up -d` |
+| **Kubernetes/Helm** | الإنتاج الكامل | `helm upgrade --install etap-ai helm/etap-ai/` |
+| **Hugging Face** | الديمو العام | تلقائي عبر GitHub Actions |
+| **Bare Metal** | السيرفرات المباشرة | `python engineering_service.py` |
+
+---
+
+## 📁 هيكل المشروع — Project Structure
 
 ```
 etap-ai-work/
 │
-├── 📄 engineering_service.py    # Application entry point
-├── 📄 indexer.py                # Codebase auto-indexer
-├── 📄 PROJECT_INDEX.json        # Machine-readable project index (auto-generated)
-├── 📄 PROJECT_INDEX.md          # Human-readable project index (auto-generated)
+├── 📄 engineering_service.py    ← نقطة الدخول الرئيسية
+├── 📄 indexer.py                ← أداة فهرسة المشروع
 │
-├── 📂 api/                      # FastAPI route handlers
-│   ├── routes.py                # Main router (studies, health, metrics)
-│   ├── agents.py                # AI agent endpoints
-│   ├── ai_ml.py                 # ML prediction endpoints
-│   ├── scada.py                 # SCADA live data
-│   ├── digital_twin.py          # Digital twin status
-│   ├── mfa.py                   # MFA endpoints
-│   ├── validation.py            # System validation
-│   ├── health.py                # Health & readiness probes
-│   └── dependencies.py          # Auth dependencies / user context
+├── 📂 api/                      ← FastAPI Route Handlers
+│   ├── routes.py                  الـ Router الرئيسي
+│   ├── agents.py                  نقاط AI Agents
+│   ├── ai_ml.py                   نقاط ML & GNN
+│   ├── health.py                  Health Checks
+│   └── ...
 │
-├── 📂 agents/                   # AI agent implementations
-│   ├── orchestrator.py          # Chief Orchestrator Agent
-│   ├── load_flow_agent.py       # Load Flow specialist
-│   ├── short_circuit_agent.py   # Short Circuit specialist
-│   ├── harmonic_agent.py        # Harmonic Analysis specialist
-│   ├── opf_agent.py             # OPF specialist
-│   ├── protection_agent.py      # Protection Coordination specialist
-│   ├── validation_agent.py      # Results validator
-│   ├── report_agent.py          # Report generator
-│   ├── etap_agent.py            # ETAP integration agent
-│   └── rag_agent.py             # RAG knowledge retrieval agent
+├── 📂 agents/                   ← 10 وكلاء AI
+│   ├── orchestrator.py            قائد الوكلاء
+│   ├── load_flow_agent.py
+│   ├── short_circuit_agent.py
+│   ├── harmonic_agent.py
+│   └── ...
 │
-├── 📂 load_flow/                # Power system load flow solvers
-│   ├── load_flow.py             # Newton-Raphson solver
-│   ├── optimal_power_flow.py    # DC/AC OPF engine
-│   └── solver.py                # Sparse matrix solver utilities
+├── 📂 load_flow/                ← محركات الـ Load Flow
+│   ├── load_flow.py               Newton-Raphson Solver
+│   └── optimal_power_flow.py      DC/AC OPF Engine
 │
-├── 📂 fault_analysis/           # Fault and arc flash engines
-│   ├── iec60909_engine.py       # IEC 60909 short circuit engine
-│   ├── ieee1584_database.py     # IEEE 1584-2018 arc flash engine
-│   └── harmonic_analysis.py    # Harmonic + IEEE 519 compliance
+├── 📂 fault_analysis/           ← محركات الأعطال
+│   ├── iec60909_engine.py         IEC 60909 Short Circuit
+│   ├── ieee1584_database.py       IEEE 1584 Arc Flash
+│   └── harmonic_analysis.py      IEEE 519 Harmonics
 │
-├── 📂 security/                 # Enterprise security framework
-│   ├── security_framework.py   # Auth, AuthZ, sessions
-│   ├── abac.py                  # Attribute-Based Access Control
-│   ├── mfa.py                   # TOTP + WebAuthn/FIDO2
-│   ├── rasp.py                  # Runtime Application Self-Protection
-│   ├── siem.py                  # SIEM event forwarding
-│   └── secrets_manager.py      # Secrets & API key management
+├── 📂 security/                 ← الأمان المؤسسي
+│   ├── abac.py                    Attribute-Based Access Control
+│   ├── mfa.py                     TOTP + WebAuthn
+│   ├── rasp.py                    Runtime Protection
+│   └── siem.py                    SIEM Events
 │
-├── 📂 ml/                       # Machine learning models
-│   └── predictive.py            # Load forecasting, fault prediction, anomaly detection, GNN
+├── 📂 ml/                       ← الذكاء الاصطناعي
+│   └── predictive.py              GNN + Load Forecasting
 │
-├── 📂 services/                 # Business logic services
-│   ├── study_service.py         # Study orchestration logic
-│   └── cache_service.py         # Redis cache abstraction
-│
-├── 📂 worker/                   # Async task workers
-│   ├── celery_app.py            # Celery app configuration
-│   └── tasks.py                 # Async study execution tasks
-│
-├── 📂 core/                     # Application core & bootstrap
-├── 📂 engine/                   # Network computation engine
-├── 📂 digital_twin/             # Digital twin model
-├── 📂 reporting/                # Report generation (PDF/DOCX/XLSX)
-├── 📂 coordination/             # Protection coordination
-├── 📂 scada_model/              # SCADA data models
-├── 📂 etap_integration/         # ETAP software integration layer
-│
-├── 📂 ui/                       # React 19 + Vite 6 frontend
+├── 📂 ui/                       ← React 19 Frontend
 │   └── src/
-│       ├── pages/               # Application pages (50 UI files)
-│       ├── components/          # Reusable UI components
-│       ├── hooks/               # React custom hooks
-│       ├── store/               # State management
-│       └── utils/               # Frontend utilities
+│       ├── pages/                 الصفحات (50 ملف)
+│       ├── components/            المكونات
+│       └── hooks/                 React Hooks
 │
-├── 📂 tests/                    # Test suite
-│   ├── conftest.py              # Shared fixtures
-│   └── test_*.py                # 58 test files · 989 tests
+├── 📂 tests/                    ← 58 ملف · 989 اختبار
 │
-├── 📂 docs/                     # Full documentation portal
-│   ├── ARCHITECTURE.md          # System architecture deep-dive
-│   ├── API_REFERENCE.md         # Complete API documentation
-│   ├── OPERATIONS_RUNBOOK.md    # Production operations guide
-│   ├── TROUBLESHOOTING_GUIDE.md # Debugging and diagnostics
-│   ├── COMPLIANCE.md            # Standards compliance reference
-│   ├── SECURITY_OPERATIONS_MANUAL.md
-│   └── AR/                      # Arabic documentation
+├── 📂 docs/                     ← التوثيق الكامل
+│   ├── ARCHITECTURE.md
+│   ├── API_REFERENCE.md
+│   ├── DEVELOPER_GUIDE.md
+│   ├── OPERATIONS_RUNBOOK.md
+│   └── assets/                  الصور والأصول
 │
-├── 📂 .github/
-│   ├── workflows/
-│   │   ├── ci-cd.yml            # Main CI/CD pipeline
-│   │   ├── auto-index.yml       # Auto-update project index
-│   │   ├── security.yml         # Security scanning
-│   │   └── sync-hf-space.yml    # Hugging Face Space deployment
-│   └── ISSUE_TEMPLATE/
-│
-├── 📂 helm/                     # Kubernetes Helm chart
-├── 📂 terraform/                # Infrastructure as Code
-├── 📄 docker-compose.yml        # Multi-service orchestration
-├── 📄 Dockerfile                # Main application image
-├── 📄 Dockerfile.engineering-service
-├── 📄 pyproject.toml            # Python project configuration
-└── 📄 requirements.txt          # Python dependencies
+└── 📂 .github/workflows/        ← CI/CD Pipelines
+    ├── ci-cd.yml
+    ├── auto-index.yml
+    └── sync-hf-space.yml
 ```
 
 ---
 
-## ⚙️ Configuration
+## 📊 إحصائيات المشروع
 
-All configuration is managed via environment variables. Copy `.env.example` to `.env`:
+<div align="center">
+
+| 📦 Python Packages | 📄 Python Files | 🏛️ Classes | 🔧 Functions |
+|:---:|:---:|:---:|:---:|
+| **25** | **201** | **572** | **312** |
+
+| 🌐 API Endpoints | ⚛️ UI Files | 🧪 Test Files | ✅ Total Tests |
+|:---:|:---:|:---:|:---:|
+| **51** | **50** | **58** | **989** |
+
+</div>
+
+> 📋 *الإحصائيات تُحدَّث تلقائياً بواسطة [`indexer.py`](indexer.py) عند كل `push` إلى `main`*
+
+---
+
+## 🛡️ الأمان — Security
+
+```
+┌──────────────────────────────────────────────────────────────┐
+│               AhmedETAP Security Architecture                │
+├────────────────────┬─────────────────────────────────────────┤
+│  🔑 Authentication │  JWT Bearer + API Key                   │
+│  👥 Authorization  │  ABAC (Attribute-Based Access Control)  │
+│  📱 MFA            │  TOTP (Google Auth) + WebAuthn/FIDO2    │
+│  🛡️  RASP          │  Runtime Application Self-Protection    │
+│  📡 SIEM           │  Security Event Forwarding              │
+│  🔒 Secrets        │  Vault-Compatible Secrets Manager       │
+│  🔍 Scanning       │  Bandit + Trivy on every PR             │
+└────────────────────┴─────────────────────────────────────────┘
+```
+
+**الإبلاغ عن ثغرات:** راجع [`SECURITY.md`](SECURITY.md)
+
+---
+
+## 📚 التوثيق الكامل — Full Documentation
+
+| الملف | الوصف | الحجم |
+|:---|:---|:---|
+| [📐 ARCHITECTURE.md](docs/ARCHITECTURE.md) | المعمارية الكاملة للنظام | 42 KB |
+| [🌐 API_REFERENCE.md](docs/API_REFERENCE.md) | كل الـ endpoints مع أمثلة | 33 KB |
+| [🛠️ DEVELOPER_GUIDE.md](docs/DEVELOPER_GUIDE.md) | دليل المطورين العملي | 8 KB |
+| [🚀 OPERATIONS_RUNBOOK.md](docs/OPERATIONS_RUNBOOK.md) | تشغيل الإنتاج | 45 KB |
+| [🔧 TROUBLESHOOTING_GUIDE.md](docs/TROUBLESHOOTING_GUIDE.md) | حل المشكلات | 58 KB |
+| [🔒 SECURITY_OPERATIONS_MANUAL.md](docs/SECURITY_OPERATIONS_MANUAL.md) | دليل الأمان | 11 KB |
+| [🌍 README_AR.md](docs/README_AR.md) | التوثيق بالعربية الكاملة | 15 KB |
+| [📋 PROJECT_INDEX.md](PROJECT_INDEX.md) | فهرس المشروع التلقائي | 116 KB |
+
+---
+
+## 🤝 المساهمة — Contributing
+
+نرحب بمساهماتكم! اتبع هذه الخطوات:
 
 ```bash
-cp .env.example .env
+# 1. Fork ثم Clone
+git clone https://github.com/YOUR-USERNAME/ETAP-AI-WORK-.git
+
+# 2. إنشاء Branch جديد
+git checkout -b feat/your-feature-name
+
+# 3. تطوير وتحقق
+pytest              # تشغيل الاختبارات
+ruff check . --fix  # إصلاح الـ Linting
+
+# 4. Commit مع رسالة وصفية
+git commit -m "feat(load-flow): add Newton-Raphson convergence option"
+
+# 5. Push وفتح Pull Request
+git push origin feat/your-feature-name
 ```
 
-### Core Variables
-
-```env
-# Application
-ENVIRONMENT=production           # development | staging | production
-PORT=8000
-HOST=0.0.0.0
-SECRET_KEY=<random-256-bit-hex>
-
-# Database
-DATABASE_URL=sqlite+aiosqlite:///./etap.db
-# For production: postgresql+asyncpg://user:pass@host/db
-
-# Redis Cache
-REDIS_URL=redis://localhost:6379/0
-
-# ETAP Integration
-USE_ETAP=false                   # true to enable ETAP software bridge
-ETAP_HOST=localhost
-ETAP_PORT=5000
-
-# Security
-JWT_SECRET_KEY=<random-secret>
-JWT_ALGORITHM=HS256
-ACCESS_TOKEN_EXPIRE_MINUTES=480
-
-# Observability
-LANGWATCH_API_KEY=<optional>
-PROMETHEUS_ENABLED=true
-```
-
-**Full configuration reference:** [`docs/OPERATIONS_RUNBOOK.md`](docs/OPERATIONS_RUNBOOK.md)
+**قوالب المشاكل:** [Bug Report](.github/ISSUE_TEMPLATE/bug_report.md) · [Feature Request](.github/ISSUE_TEMPLATE/feature_request.md)
 
 ---
 
-## 🧪 Testing
+## 📜 الرخصة — License
 
-The project maintains a **989-test** suite across **58 test files**:
-
-```bash
-# Run all tests
-pytest
-
-# Run with coverage report
-pytest --cov=. --cov-report=html --cov-report=term-missing
-
-# Run specific categories
-pytest -m unit          # Unit tests only
-pytest -m integration   # Integration tests only
-pytest -m regression    # Regression tests only
-
-# Run a specific module
-pytest tests/test_load_flow.py -v
-
-# Performance validation
-pytest -m performance --benchmark-only
-```
-
-### Test Coverage by Category
-
-| Category | Files | Tests | Status |
-|:---|---:|---:|:---:|
-| Unit Tests | 32 | ~520 | ✅ Pass |
-| Integration Tests | 14 | ~280 | ✅ Pass |
-| Regression Tests | 8 | ~120 | ✅ Pass |
-| Performance Tests | 4 | ~69 | ✅ Pass |
-| **Total** | **58** | **989** | **✅ Pass** |
-
----
-
-## 🚢 Deployment
-
-### Docker Compose (Staging/Production)
-
-```bash
-# Build all images
-docker compose build
-
-# Start services in detached mode
-docker compose up -d
-
-# View logs
-docker compose logs -f engineering-service
-
-# Scale workers
-docker compose up -d --scale celery-worker=4
-```
-
-### Kubernetes (Helm)
-
-```bash
-# Add chart dependencies
-helm dependency update helm/etap-ai/
-
-# Install to cluster
-helm upgrade --install etap-ai helm/etap-ai/ \
-  --namespace etap \
-  --create-namespace \
-  --values helm/etap-ai/values.yaml \
-  --set image.tag=1.0.0
-```
-
-### Hugging Face Spaces
-
-Deployment is automated via GitHub Actions on every push to `main`:
-- **Workflow:** [`.github/workflows/sync-hf-space.yml`](.github/workflows/sync-hf-space.yml)
-- **Space URL:** [huggingface.co/spaces/ahmdelbaz28/AHMEDETAP](https://huggingface.co/spaces/ahmdelbaz28/AHMEDETAP)
-
-### CI/CD Pipeline
-
-```
-Push to main
-     │
-     ├─► Lint (ruff) + Type Check (mypy)
-     ├─► Unit Tests (pytest)
-     ├─► Security Scan (bandit + trivy)
-     ├─► Build Docker Image
-     ├─► Push to Registry
-     ├─► Deploy to Staging
-     ├─► Integration Tests
-     ├─► Deploy to Production
-     ├─► Sync to Hugging Face Space
-     └─► Auto-update PROJECT_INDEX
-```
-
-**Full deployment guide:** [`docs/CI_CD_INTEGRATION.md`](docs/CI_CD_INTEGRATION.md)
-
----
-
-## 🤝 Contributing
-
-We welcome contributions! Please read our contribution guidelines before submitting:
-
-1. **Fork** the repository
-2. **Create** a feature branch: `git checkout -b feat/your-feature`
-3. **Write tests** for any new functionality
-4. **Run** the full test suite: `pytest`
-5. **Lint** your code: `ruff check . && ruff format .`
-6. **Submit** a Pull Request using the provided template
-
-**Issues:** Please use the [GitHub Issue Templates](.github/ISSUE_TEMPLATE/) for bug reports and feature requests.
-
-**Code of Conduct:** We follow the [Contributor Covenant](https://www.contributor-covenant.org/version/2/1/code_of_conduct/).
-
----
-
-## 🔒 Security
-
-Security is a first-class concern in AhmedETAP:
-
-- **Vulnerability Reporting:** See [`SECURITY.md`](SECURITY.md) for responsible disclosure guidelines
-- **Security Architecture:** See [`.github/SECURITY.md`](.github/SECURITY.md) for the full security model
-- **Automated Scanning:** Bandit, Trivy, and Dependabot run on every PR
-- **ABAC Policies:** Fine-grained access control for all API operations
-- **MFA:** TOTP and WebAuthn/FIDO2 support for all user accounts
-- **RASP:** Runtime protection against SQL injection, path traversal, and other attacks
-
----
-
-## 📚 Documentation Portal
-
-| Document | Description |
-|:---|:---|
-| [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) | Full system architecture (42 KB) |
-| [`docs/API_REFERENCE.md`](docs/API_REFERENCE.md) | Complete API docs with examples (33 KB) |
-| [`docs/OPERATIONS_RUNBOOK.md`](docs/OPERATIONS_RUNBOOK.md) | Production operations guide (45 KB) |
-| [`docs/TROUBLESHOOTING_GUIDE.md`](docs/TROUBLESHOOTING_GUIDE.md) | Debugging & diagnostics (58 KB) |
-| [`docs/COMPLIANCE.md`](docs/COMPLIANCE.md) | IEEE/IEC/NFPA standards reference (17 KB) |
-| [`docs/SECURITY_OPERATIONS_MANUAL.md`](docs/SECURITY_OPERATIONS_MANUAL.md) | Security operations (11 KB) |
-| [`docs/DISASTER_RECOVERY_PLAN.md`](docs/DISASTER_RECOVERY_PLAN.md) | DR & BCP procedures (8 KB) |
-| [`docs/SLA_SLO_DOCUMENT.md`](docs/SLA_SLO_DOCUMENT.md) | SLA/SLO definitions (10 KB) |
-| [`docs/AR/README.md`](docs/AR/README.md) | Arabic documentation / التوثيق بالعربية |
-| [`PROJECT_INDEX.md`](PROJECT_INDEX.md) | Full auto-generated codebase index (116 KB) |
-| [`PROJECT_INDEX.json`](PROJECT_INDEX.json) | Machine-readable index (516 KB) |
-
----
-
-## 📈 Project Statistics
-
-| Metric | Value |
-|:---|:---|
-| Python Packages | 25 |
-| Python Files | 201 |
-| Python Classes | 572 |
-| Python Functions | 312 |
-| API Endpoints | 51 |
-| UI Files (TSX/TS) | 50 |
-| Test Files | 58 |
-| Total Tests | **989** |
-| Documentation Files | 65+ |
-
-*Statistics auto-updated by [`indexer.py`](indexer.py) on every push.*
-
----
-
-## 📜 License
-
-This project is licensed under the **MIT License** — see the [`LICENSE`](LICENSE) file for details.
+هذا المشروع مرخص بموجب **رخصة MIT** — راجع ملف [`LICENSE`](LICENSE).
 
 ---
 
 <div align="center">
 
-**Built with ❤️ for Power System Engineers**
+<br/>
 
-*AhmedETAP — Where AI Meets Electrical Engineering Excellence*
+**⚡ بُني بشغف لمهندسي أنظمة القوى الكهربائية حول العالم**
 
-[![GitHub](https://img.shields.io/badge/GitHub-ahmdelbaz28--ux-black?style=flat-square&logo=github)](https://github.com/ahmdelbaz28-ux)
-[![Hugging Face](https://img.shields.io/badge/🤗-ahmdelbaz28-yellow?style=flat-square)](https://huggingface.co/ahmdelbaz28)
+*AhmedETAP — حيث يلتقي الذكاء الاصطناعي بهندسة الطاقة الكهربائية*
+
+<br/>
+
+[![GitHub](https://img.shields.io/badge/GitHub-ahmdelbaz28--ux-black?style=for-the-badge&logo=github)](https://github.com/ahmdelbaz28-ux)
+[![Hugging Face](https://img.shields.io/badge/🤗_Live_Demo-Hugging_Face-yellow?style=for-the-badge)](https://huggingface.co/spaces/ahmdelbaz28/AHMEDETAP)
+
+<br/>
+
+*آخر تحديث للفهرس: تلقائي عبر GitHub Actions على كل `push`*
 
 </div>
