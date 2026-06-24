@@ -203,6 +203,8 @@ class StudyRequest(BaseModel):
             "etap_protection_coordination",
             # ETAP Expert skill — 6-step workflow with Format A/B/C/D responses
             "etap_expert",
+            # ETAP GUI Agent — Computer Use Agent for desktop apps (ETAP, Revit, AutoCAD, etc.)
+            "etap_gui",
         }
         v = v.lower().strip()
         if v not in allowed:
@@ -371,6 +373,17 @@ def _run_native_study(
         question = str(parameters.get("question", "")).strip()
         if not question:
             raise ValueError("'question' field is required for study_type='etap_expert'")
+        return agent.answer(question)
+
+    # ETAP GUI Agent — Computer Use Agent for desktop apps.
+    # Falls back gracefully on headless servers (returns Format U).
+    if study_type == "etap_gui":
+        from agents.etap_gui_agent import ETAPGUIAgent
+
+        agent = ETAPGUIAgent()
+        question = str(parameters.get("question", "")).strip()
+        if not question:
+            raise ValueError("'question' field is required for study_type='etap_gui'")
         return agent.answer(question)
 
     from engine.engine import PowerSystemEngine

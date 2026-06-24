@@ -180,6 +180,11 @@ class ETAPExpertChatRequest(BaseModel):
     context: dict[str, Any] = {}
 
 
+class ETAPGUIChatRequest(BaseModel):
+    question: str
+    context: dict[str, Any] = {}
+
+
 # -- Root ---------------------------------------------------------------------
 @app.get("/", response_class=HTMLResponse, tags=["Platform"])
 async def root():
@@ -461,6 +466,13 @@ AGENTS = [
         "status": "active",
         "description": "6-step workflow with Format A/B/C/D responses. Knowledge base: skills/etap-expert.md (4,400+ lines).",
     },
+    {
+        "id": "etap-gui-agent",
+        "name": "ETAP GUI Agent (Computer Use Agent)",
+        "standard": "Safety + Audit",
+        "status": "active",
+        "description": "Computer Use Agent for desktop apps (ETAP, Revit, AutoCAD, SCADA, QGIS, ArcGIS). 4 modes: Analyze/Monitor/Control/Solve. Falls back gracefully on headless servers.",
+    },
 ]
 
 
@@ -509,6 +521,35 @@ async def etap_expert_chat(request: ETAPExpertChatRequest):
         )
 
 
+@app.post("/api/v1/agents/etap-gui/chat", tags=["Agents"])
+async def etap_gui_chat(request: ETAPGUIChatRequest):
+    """Chat with the ETAP GUI Agent (Computer Use Agent).
+
+    Classifies the question into Analyze/Monitor/Control/Solve modes.
+    Falls back to Format U (unavailable) on headless servers / HF Space
+    where pyautogui, pytesseract, opencv are not installed.
+
+    Knowledge base: skills/etap-gui-agent.md (440+ lines)
+    """
+    question = request.question.strip()
+    if not question:
+        return JSONResponse(
+            status_code=400,
+            content={"error": "'question' field is required and must be non-empty"},
+        )
+    try:
+        from agents.etap_gui_agent import ETAPGUIAgent
+        agent = ETAPGUIAgent()
+        result = agent.answer(question)
+        return {"success": True, "data": result}
+    except Exception as exc:
+        logger.exception("etap_gui chat failed")
+        return JSONResponse(
+            status_code=500,
+            content={"error": f"ETAP GUI agent error: {exc}"},
+        )
+
+
 # -- Studies ------------------------------------------------------------------
 STUDY_TYPES = [
     "load_flow",
@@ -525,6 +566,7 @@ STUDY_TYPES = [
     "battery_storage",
     "scada",
     "etap_expert",  # ETAP Expert skill — 6-step workflow with Format A/B/C/D
+    "etap_gui",     # ETAP GUI Agent — Computer Use Agent for desktop apps
 ]
 
 
@@ -569,6 +611,33 @@ async def run_study(request: StudyRequest):
             return JSONResponse(
                 status_code=500,
                 content={"error": f"ETAP Expert agent error: {exc}"},
+            )
+
+    # ETAP GUI Agent — Computer Use Agent for desktop apps.
+    # Falls back gracefully on headless servers (returns Format U).
+    if request.study_type == "etap_gui":
+        question = str(request.parameters.get("question", "")).strip()
+        if not question:
+            return JSONResponse(
+                status_code=400,
+                content={"error": "'question' field is required for study_type='etap_gui'"},
+            )
+        try:
+            from agents.etap_gui_agent import ETAPGUIAgent
+            agent = ETAPGUIAgent()
+            result = agent.answer(question)
+            return {
+                "study_type": "etap_gui",
+                "reference": f"ETAP-GUI-{int(time.time())}",
+                "status": "completed",
+                "success": True,
+                "data": result,
+            }
+        except Exception as exc:
+            logger.exception("etap_gui study failed")
+            return JSONResponse(
+                status_code=500,
+                content={"error": f"ETAP GUI agent error: {exc}"},
             )
 
     # Attempt native engine execution for supported study types
