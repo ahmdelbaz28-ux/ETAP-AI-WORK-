@@ -112,3 +112,61 @@ async def etap_expert_chat(
             status_code=500,
             content={"success": False, "errors": [str(e)], "trace_id": trace_id},
         )
+
+
+# ---------------------------------------------------------------------------
+# ETAP GUI Agent chat endpoint
+# ---------------------------------------------------------------------------
+
+
+class ETAPGUIChatRequest(BaseModel):
+    """Request body for the ETAP GUI Agent chat endpoint."""
+
+    question: str = Field(..., min_length=1, max_length=4000,
+                          description="The GUI automation question to ask the agent")
+    context: Dict[str, Any] | None = Field(default=None,
+                                            description="Optional additional context (app name, etc.)")
+
+
+@router.post("/etap-gui/chat")
+async def etap_gui_chat(
+    request: Request,
+    payload: ETAPGUIChatRequest,
+    _: str = Depends(get_api_key),
+):
+    """Chat with the ETAP GUI Agent (Computer Use Agent).
+
+    The agent classifies the question into one of four modes:
+    - Analyze (Format A) — read-only inspection
+    - Monitor (Format B) — passive observation
+    - Control (Format C) — modifies app state (REQUIRES CONFIRMATION)
+    - Solve (Format D) — multi-step problem-solving (REQUIRES CONFIRMATION)
+
+    If GUI deps (pyautogui, pytesseract, opencv) are unavailable, returns
+    Format U (graceful fallback) — never crashes.
+
+    Knowledge base: skills/etap-gui-agent.md (440+ lines)
+    """
+    trace_id = getattr(request.state, "trace_id", "unknown")
+    try:
+        from agents.etap_gui_agent import ETAPGUIAgent
+
+        agent = ETAPGUIAgent()
+        result = agent.answer(payload.question)
+
+        return JSONResponse(
+            content={
+                "success": True,
+                "data": result,
+                "trace_id": trace_id,
+            }
+        )
+    except Exception as e:
+        from logging import getLogger
+
+        logger = getLogger("engineering_service")
+        logger.error("etap_gui_chat_failed error=%s", str(e), extra={"trace_id": trace_id})
+        return JSONResponse(
+            status_code=500,
+            content={"success": False, "errors": [str(e)], "trace_id": trace_id},
+        )
