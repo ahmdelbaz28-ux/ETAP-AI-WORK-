@@ -183,7 +183,9 @@ class InMemoryStructuredLogger(StructuredLogger):
     def clear(self) -> None:
         self._entries.clear()
 
-    def filter(self, level: Optional[LogLevel] = None, logger: Optional[str] = None) -> list[LogEntry]:
+    def filter(
+        self, level: Optional[LogLevel] = None, logger: Optional[str] = None
+    ) -> list[LogEntry]:
         """Filter entries by level and/or logger name."""
         out = self._entries
         if level is not None:

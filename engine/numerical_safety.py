@@ -76,7 +76,9 @@ class NumericalGuard:
     logarithm/root of non-positive numbers, and out-of-bounds values.
     """
 
-    def __init__(self, warn_on_clamp: bool = True, logger_instance: Optional[logging.Logger] = None):
+    def __init__(
+        self, warn_on_clamp: bool = True, logger_instance: Optional[logging.Logger] = None
+    ):
         self.warn_on_clamp = warn_on_clamp
         self.log = logger_instance or logger
 

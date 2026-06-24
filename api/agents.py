@@ -65,10 +65,15 @@ async def get_agents_info(request: Request):
 class ETAPExpertChatRequest(BaseModel):
     """Request body for the ETAP Expert chat endpoint."""
 
-    question: str = Field(..., min_length=1, max_length=4000,
-                          description="The ETAP-related question to ask the expert agent")
-    context: Optional[Dict[str, Any]] = Field(default=None,
-                                            description="Optional additional context (voltages, currents, etc.)")
+    question: str = Field(
+        ...,
+        min_length=1,
+        max_length=4000,
+        description="The ETAP-related question to ask the expert agent",
+    )
+    context: Optional[Dict[str, Any]] = Field(
+        default=None, description="Optional additional context (voltages, currents, etc.)"
+    )
 
 
 @router.post("/etap-expert/chat")
@@ -122,10 +127,15 @@ async def etap_expert_chat(
 class ETAPGUIChatRequest(BaseModel):
     """Request body for the ETAP GUI Agent chat endpoint."""
 
-    question: str = Field(..., min_length=1, max_length=4000,
-                          description="The GUI automation question to ask the agent")
-    context: Optional[Dict[str, Any]] = Field(default=None,
-                                            description="Optional additional context (app name, etc.)")
+    question: str = Field(
+        ...,
+        min_length=1,
+        max_length=4000,
+        description="The GUI automation question to ask the agent",
+    )
+    context: Optional[Dict[str, Any]] = Field(
+        default=None, description="Optional additional context (app name, etc.)"
+    )
 
 
 @router.post("/etap-gui/chat")

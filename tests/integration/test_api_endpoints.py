@@ -42,7 +42,8 @@ def test_study_execution_endpoint(api_client, sample_3bus_network):
     """Test the study execution endpoint."""
     system_dict = {
         k: [item.model_dump() if hasattr(item, "model_dump") else item for item in v]
-        if isinstance(v, list) else v
+        if isinstance(v, list)
+        else v
         for k, v in sample_3bus_network.items()
     }
     payload = {
@@ -63,7 +64,8 @@ def test_system_validation_endpoint(api_client, sample_3bus_network):
     """Test the system validation endpoint."""
     system_dict = {
         k: [item.model_dump() if hasattr(item, "model_dump") else item for item in v]
-        if isinstance(v, list) else v
+        if isinstance(v, list)
+        else v
         for k, v in sample_3bus_network.items()
     }
     response = api_client.post("/api/v1/system/validate", json=system_dict)

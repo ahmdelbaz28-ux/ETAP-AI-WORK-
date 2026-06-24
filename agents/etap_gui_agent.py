@@ -91,29 +91,76 @@ Classification = Literal["analyze", "monitor", "control", "solve", "unavailable"
 
 # CONTROL triggers — actions that modify application state
 _CONTROL_KEYWORDS: Tuple[str, ...] = (
-    "click", "open etap", "launch etap", "run study", "run load flow",
-    "run short circuit", "run arc flash", "modify", "change", "set ",
-    "update ", "apply ", "delete ", "remove ", "add bus", "add transformer",
-    "edit ", "configure ", "execute ", "press ", "type ", "save ", "export ",
-    "close etap", "stop study", "cancel ",
+    "click",
+    "open etap",
+    "launch etap",
+    "run study",
+    "run load flow",
+    "run short circuit",
+    "run arc flash",
+    "modify",
+    "change",
+    "set ",
+    "update ",
+    "apply ",
+    "delete ",
+    "remove ",
+    "add bus",
+    "add transformer",
+    "edit ",
+    "configure ",
+    "execute ",
+    "press ",
+    "type ",
+    "save ",
+    "export ",
+    "close etap",
+    "stop study",
+    "cancel ",
 )
 
 # SOLVE triggers — multi-step problem-solving workflows
 _SOLVE_KEYWORDS: Tuple[str, ...] = (
-    "solve ", "fix ", "troubleshoot", "resolve ", "automate ", "workflow",
-    "diagnose ", "investigate ", "debug ", "step-by-step", "step by step",
+    "solve ",
+    "fix ",
+    "troubleshoot",
+    "resolve ",
+    "automate ",
+    "workflow",
+    "diagnose ",
+    "investigate ",
+    "debug ",
+    "step-by-step",
+    "step by step",
 )
 
 # MONITOR triggers — passive observation
 _MONITOR_KEYWORDS: Tuple[str, ...] = (
-    "monitor ", "watch ", "observe ", "track ", "wait for", "check status",
-    "live ", "real-time ", "real time ",
+    "monitor ",
+    "watch ",
+    "observe ",
+    "track ",
+    "wait for",
+    "check status",
+    "live ",
+    "real-time ",
+    "real time ",
 )
 
 # ANALYZE triggers — read-only inspection (default)
 _ANALYZE_KEYWORDS: Tuple[str, ...] = (
-    "analyze ", "inspect ", "read ", "look at", "screenshot", "capture ",
-    "find ", "locate ", "identify ", "what ", "where ", "show me",
+    "analyze ",
+    "inspect ",
+    "read ",
+    "look at",
+    "screenshot",
+    "capture ",
+    "find ",
+    "locate ",
+    "identify ",
+    "what ",
+    "where ",
+    "show me",
 )
 
 
@@ -179,144 +226,153 @@ _SEP = "━" * 60
 
 def _format_unavailable(missing: List[str]) -> str:
     """Format U — GUI deps unavailable (graceful fallback)."""
-    return "\n".join([
-        "⚠️ GUI AGENT UNAVAILABLE",
-        _SEP,
-        "",
-        "The GUI Agent requires desktop dependencies which are not "
-        "available in this environment.",
-        "",
-        f"**Missing dependencies:** {', '.join(missing)}",
-        "",
-        "**Suggested alternative:** Use the ETAP Expert Skill "
-        "(study_type='etap_expert') for knowledge-based analysis.",
-        "",
-        "**To enable the GUI Agent:**",
-        "  1. Run on a desktop environment (Windows/Linux/macOS)",
-        "  2. Install: pip install pyautogui pytesseract opencv-python pillow",
-        "  3. Install Tesseract OCR (https://github.com/UB-Mannheim/tesseract/wiki)",
-        "  4. Set ETAP_GUI_AGENT_ENABLED=true",
-        "",
-        "**Safety:** The GUI Agent never crashes the application — "
-        "it falls back gracefully when deps are missing.",
-    ])
+    return "\n".join(
+        [
+            "⚠️ GUI AGENT UNAVAILABLE",
+            _SEP,
+            "",
+            "The GUI Agent requires desktop dependencies which are not "
+            "available in this environment.",
+            "",
+            f"**Missing dependencies:** {', '.join(missing)}",
+            "",
+            "**Suggested alternative:** Use the ETAP Expert Skill "
+            "(study_type='etap_expert') for knowledge-based analysis.",
+            "",
+            "**To enable the GUI Agent:**",
+            "  1. Run on a desktop environment (Windows/Linux/macOS)",
+            "  2. Install: pip install pyautogui pytesseract opencv-python pillow",
+            "  3. Install Tesseract OCR (https://github.com/UB-Mannheim/tesseract/wiki)",
+            "  4. Set ETAP_GUI_AGENT_ENABLED=true",
+            "",
+            "**Safety:** The GUI Agent never crashes the application — "
+            "it falls back gracefully when deps are missing.",
+        ]
+    )
 
 
 def _format_a_analyze(question: str, app: str) -> str:
     """Format A — ANALYZE (read-only inspection)."""
-    return "\n".join([
-        "👁️ GUI AGENT — ANALYZE MODE",
-        _SEP,
-        "",
-        f"**Your Request:** {question}",
-        "**Mode:** Analyze (read-only)",
-        f"**Target App:** {app}",
-        "",
-        "**PLANNED STEPS:**",
-        f"  1. Launch {app} (if not already running)",
-        "  2. Capture initial screenshot",
-        "  3. OCR-analyze the screen",
-        "  4. Identify UI elements (menus, buttons, dialogs)",
-        "  5. Report findings",
-        "",
-        "**SAFETY:** Read-only — no modifications will be made.",
-        "",
-        "**REQUIRES:** Human confirmation to proceed with screen capture.",
-        "",
-        "**REFERENCES:**",
-        "  - skills/etap-gui-agent.md (knowledge base)",
-        "  - Safety rule: read-only by default",
-    ])
+    return "\n".join(
+        [
+            "👁️ GUI AGENT — ANALYZE MODE",
+            _SEP,
+            "",
+            f"**Your Request:** {question}",
+            "**Mode:** Analyze (read-only)",
+            f"**Target App:** {app}",
+            "",
+            "**PLANNED STEPS:**",
+            f"  1. Launch {app} (if not already running)",
+            "  2. Capture initial screenshot",
+            "  3. OCR-analyze the screen",
+            "  4. Identify UI elements (menus, buttons, dialogs)",
+            "  5. Report findings",
+            "",
+            "**SAFETY:** Read-only — no modifications will be made.",
+            "",
+            "**REQUIRES:** Human confirmation to proceed with screen capture.",
+            "",
+            "**REFERENCES:**",
+            "  - skills/etap-gui-agent.md (knowledge base)",
+            "  - Safety rule: read-only by default",
+        ]
+    )
 
 
 def _format_b_monitor(question: str, app: str) -> str:
     """Format B — MONITOR (passive observation)."""
-    return "\n".join([
-        "📊 GUI AGENT — MONITOR MODE",
-        _SEP,
-        "",
-        f"**Your Request:** {question}",
-        "**Mode:** Monitor (passive observation)",
-        f"**Target App:** {app}",
-        "**Duration:** Until study completes or user stops (default: 5 minutes)",
-        "",
-        "**MONITORING POINTS:**",
-        "  1. Study convergence status",
-        "  2. Error/warning dialogs",
-        "  3. Progress indicators",
-        "  4. Result availability",
-        "",
-        "**SAFETY:** Passive observation only — no actions taken.",
-        "",
-        "**REQUIRES:** Human confirmation to start monitoring.",
-    ])
+    return "\n".join(
+        [
+            "📊 GUI AGENT — MONITOR MODE",
+            _SEP,
+            "",
+            f"**Your Request:** {question}",
+            "**Mode:** Monitor (passive observation)",
+            f"**Target App:** {app}",
+            "**Duration:** Until study completes or user stops (default: 5 minutes)",
+            "",
+            "**MONITORING POINTS:**",
+            "  1. Study convergence status",
+            "  2. Error/warning dialogs",
+            "  3. Progress indicators",
+            "  4. Result availability",
+            "",
+            "**SAFETY:** Passive observation only — no actions taken.",
+            "",
+            "**REQUIRES:** Human confirmation to start monitoring.",
+        ]
+    )
 
 
 def _format_c_control(question: str, app: str) -> str:
     """Format C — CONTROL (modifies app state, requires confirmation)."""
-    return "\n".join([
-        "🖱️ GUI AGENT — CONTROL MODE",
-        _SEP,
-        "",
-        f"**Your Request:** {question}",
-        "**Mode:** Control (modifies application state)",
-        f"**Target App:** {app}",
-        "",
-        "**PLANNED ACTIONS:**",
-        f"  1. Focus {app} window",
-        "  2. Navigate to target menu/dialog",
-        "  3. Execute the requested action (click/type)",
-        "  4. Capture before/after screenshots",
-        "",
-        "⚠️ **WARNING:** This will modify the application state.",
-        "",
-        "**CONFIRMATION REQUIRED:** Reply 'CONFIRM' to execute, "
-        "'CANCEL' to abort.",
-        "",
-        "**SAFETY RULES ACTIVE:**",
-        "  - Failsafe enabled (move mouse to corner = immediate stop)",
-        "  - Timeout: 60 seconds per action",
-        "  - Full audit log will be recorded (screenshots + actions)",
-        "  - pyautogui.FAILSAFE = True",
-        "",
-        "**REFERENCES:**",
-        "  - skills/etap-gui-agent.md (Safety Rules section)",
-    ])
+    return "\n".join(
+        [
+            "🖱️ GUI AGENT — CONTROL MODE",
+            _SEP,
+            "",
+            f"**Your Request:** {question}",
+            "**Mode:** Control (modifies application state)",
+            f"**Target App:** {app}",
+            "",
+            "**PLANNED ACTIONS:**",
+            f"  1. Focus {app} window",
+            "  2. Navigate to target menu/dialog",
+            "  3. Execute the requested action (click/type)",
+            "  4. Capture before/after screenshots",
+            "",
+            "⚠️ **WARNING:** This will modify the application state.",
+            "",
+            "**CONFIRMATION REQUIRED:** Reply 'CONFIRM' to execute, 'CANCEL' to abort.",
+            "",
+            "**SAFETY RULES ACTIVE:**",
+            "  - Failsafe enabled (move mouse to corner = immediate stop)",
+            "  - Timeout: 60 seconds per action",
+            "  - Full audit log will be recorded (screenshots + actions)",
+            "  - pyautogui.FAILSAFE = True",
+            "",
+            "**REFERENCES:**",
+            "  - skills/etap-gui-agent.md (Safety Rules section)",
+        ]
+    )
 
 
 def _format_d_solve(question: str, app: str) -> str:
     """Format D — SOLVE (multi-step problem-solving workflow)."""
-    return "\n".join([
-        "⚡ GUI AGENT — SOLVE MODE",
-        _SEP,
-        "",
-        f"**Your Request:** {question}",
-        "**Mode:** Solve (multi-step problem-solving)",
-        f"**Target App:** {app}",
-        "",
-        "**WORKFLOW:**",
-        "  1. Analyze current state (screenshot + OCR)",
-        "  2. Identify problem (read errors, compare to expected)",
-        "  3. Propose solution (with ETAP Expert Skill knowledge)",
-        "  4. Apply solution (requires explicit confirmation)",
-        "  5. Verify result (re-run study, check output)",
-        "  6. Report outcome (success/failure + audit log)",
-        "",
-        "**INTEGRATION:**",
-        "  - ETAP Expert Skill: knowledge base (skills/etap-expert.md)",
-        "  - GUI Agent: execution (mouse/keyboard control)",
-        "  - LLM Vision: decision making (optional)",
-        "",
-        "⚠️ Step 4 requires explicit user confirmation.",
-        "",
-        "**SAFETY RULES ACTIVE:**",
-        "  - Failsafe enabled",
-        "  - Timeout: 60 seconds per action",
-        "  - Audit log: every action recorded with before/after screenshots",
-        "",
-        "**REFERENCES:**",
-        "  - skills/etap-gui-agent.md (CUA Loop + Safety Rules)",
-    ])
+    return "\n".join(
+        [
+            "⚡ GUI AGENT — SOLVE MODE",
+            _SEP,
+            "",
+            f"**Your Request:** {question}",
+            "**Mode:** Solve (multi-step problem-solving)",
+            f"**Target App:** {app}",
+            "",
+            "**WORKFLOW:**",
+            "  1. Analyze current state (screenshot + OCR)",
+            "  2. Identify problem (read errors, compare to expected)",
+            "  3. Propose solution (with ETAP Expert Skill knowledge)",
+            "  4. Apply solution (requires explicit confirmation)",
+            "  5. Verify result (re-run study, check output)",
+            "  6. Report outcome (success/failure + audit log)",
+            "",
+            "**INTEGRATION:**",
+            "  - ETAP Expert Skill: knowledge base (skills/etap-expert.md)",
+            "  - GUI Agent: execution (mouse/keyboard control)",
+            "  - LLM Vision: decision making (optional)",
+            "",
+            "⚠️ Step 4 requires explicit user confirmation.",
+            "",
+            "**SAFETY RULES ACTIVE:**",
+            "  - Failsafe enabled",
+            "  - Timeout: 60 seconds per action",
+            "  - Audit log: every action recorded with before/after screenshots",
+            "",
+            "**REFERENCES:**",
+            "  - skills/etap-gui-agent.md (CUA Loop + Safety Rules)",
+        ]
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -434,12 +490,19 @@ class ETAPGUIAgent(BaseAgent):
             "deps_available": deps_ok,
             "missing_deps": missing if not deps_ok else [],
             "supported_formats": [
-                "A (analyze)", "B (monitor)", "C (control)", "D (solve)", "U (unavailable)"
+                "A (analyze)",
+                "B (monitor)",
+                "C (control)",
+                "D (solve)",
+                "U (unavailable)",
             ],
             "supported_apps": ["ETAP", "Revit", "AutoCAD", "SCADA", "QGIS", "ArcGIS", "Zenon"],
             "safety_rules": [
-                "failsafe_enabled", "confirmation_required_for_control",
-                "confirmation_required_for_solve", "audit_logging", "timeout_60s",
+                "failsafe_enabled",
+                "confirmation_required_for_control",
+                "confirmation_required_for_solve",
+                "audit_logging",
+                "timeout_60s",
             ],
         }
 

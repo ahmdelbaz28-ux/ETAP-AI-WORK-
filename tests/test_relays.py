@@ -1,6 +1,7 @@
 """
 Tests for relays module — OvercurrentRelay, DistanceRelay, DifferentialRelay, DirectionalRelay.
 """
+
 import math
 
 import numpy as np
@@ -17,6 +18,7 @@ from relays.relay import (
 # ===========================================================================
 # Base Relay
 # ===========================================================================
+
 
 class TestRelay:
     def test_default_pickup_is_false(self):
@@ -42,6 +44,7 @@ class TestRelay:
 # ===========================================================================
 # OvercurrentRelay
 # ===========================================================================
+
 
 class TestOvercurrentRelay:
     def test_pickup_below_threshold(self):
@@ -150,6 +153,7 @@ class TestOvercurrentRelay:
 # DistanceRelay
 # ===========================================================================
 
+
 class TestDistanceRelay:
     def test_pickup_within_zone(self):
         r = DistanceRelay(relay_id=1, impedance_setting=0.5)
@@ -204,6 +208,7 @@ class TestDistanceRelay:
 # DifferentialRelay
 # ===========================================================================
 
+
 class TestDifferentialRelay:
     def test_no_pickup_balanced(self):
         r = DifferentialRelay(relay_id=1, Ip=0.1, slope1=0.2, slope2=0.5)
@@ -249,6 +254,7 @@ class TestDifferentialRelay:
 # ===========================================================================
 # DirectionalRelay (uses numpy, use == not is for assertions)
 # ===========================================================================
+
 
 class TestDirectionalRelay:
     def test_pickup_forward_power(self):

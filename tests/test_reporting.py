@@ -1,6 +1,7 @@
 """
 Tests for reporting module — ReportSection, ReportMetadata, ChartGenerator, TableGenerator.
 """
+
 import os
 import tempfile
 from datetime import datetime, timezone
@@ -31,8 +32,11 @@ class TestReportSection:
 
     def test_with_charts_and_tables(self):
         s = ReportSection(
-            title="Load Flow", content="Results", order=2,
-            include_charts=True, include_tables=True,
+            title="Load Flow",
+            content="Results",
+            order=2,
+            include_charts=True,
+            include_tables=True,
             data={"chart_path": "/tmp/chart.png", "table_data": [["a", "b"]]},
         )
         assert s.include_charts is True
@@ -53,9 +57,7 @@ class TestReportSection:
 
 class TestReportMetadata:
     def test_defaults(self):
-        m = ReportMetadata(
-            report_id="RPT_001", title="Test", prepared_by="Engineer"
-        )
+        m = ReportMetadata(report_id="RPT_001", title="Test", prepared_by="Engineer")
         assert m.report_id == "RPT_001"
         assert m.title == "Test"
         assert m.prepared_by == "Engineer"
@@ -159,10 +161,18 @@ class TestTableGenerator:
 
     def test_load_flow_table(self):
         bus_data = {
-            "B1": {"voltage_magnitude_pu": 1.01, "voltage_angle_deg": -2.0,
-                   "active_power_mw": 50, "reactive_power_mvar": 10},
-            "B2": {"voltage_magnitude_pu": 0.94, "voltage_angle_deg": -3.5,
-                   "active_power_mw": 30, "reactive_power_mvar": 15},
+            "B1": {
+                "voltage_magnitude_pu": 1.01,
+                "voltage_angle_deg": -2.0,
+                "active_power_mw": 50,
+                "reactive_power_mvar": 10,
+            },
+            "B2": {
+                "voltage_magnitude_pu": 0.94,
+                "voltage_angle_deg": -3.5,
+                "active_power_mw": 30,
+                "reactive_power_mvar": 15,
+            },
         }
         table = self.gen.generate_load_flow_table(bus_data)
         assert "LOAD FLOW RESULTS" in table
@@ -173,8 +183,12 @@ class TestTableGenerator:
 
     def test_load_flow_table_over_voltage(self):
         bus_data = {
-            "B1": {"voltage_magnitude_pu": 1.06, "voltage_angle_deg": 0.0,
-                   "active_power_mw": 0, "reactive_power_mvar": 0},
+            "B1": {
+                "voltage_magnitude_pu": 1.06,
+                "voltage_angle_deg": 0.0,
+                "active_power_mw": 0,
+                "reactive_power_mvar": 0,
+            },
         }
         table = self.gen.generate_load_flow_table(bus_data)
         assert "OVER" in table
@@ -203,8 +217,13 @@ class TestTableGenerator:
 
     def test_compliance_table_pass(self):
         results = [
-            {"standard": "IEEE 519", "parameter": "THD", "value": 2.5,
-             "limit": 5.0, "compliant": True},
+            {
+                "standard": "IEEE 519",
+                "parameter": "THD",
+                "value": 2.5,
+                "limit": 5.0,
+                "compliant": True,
+            },
         ]
         table = self.gen.generate_compliance_table(results)
         assert "COMPLIANCE" in table
@@ -212,8 +231,13 @@ class TestTableGenerator:
 
     def test_compliance_table_fail(self):
         results = [
-            {"standard": "IEEE 519", "parameter": "THD", "value": 8.0,
-             "limit": 5.0, "compliant": False},
+            {
+                "standard": "IEEE 519",
+                "parameter": "THD",
+                "value": 8.0,
+                "limit": 5.0,
+                "compliant": False,
+            },
         ]
         table = self.gen.generate_compliance_table(results)
         assert "FAIL" in table
@@ -227,9 +251,7 @@ class TestPDFReportGenerator:
     def test_fallback_pdf(self):
         try:
             gen = PDFReportGenerator()
-            meta = ReportMetadata(
-                report_id="TEST_001", title="Test", prepared_by="Engineer"
-            )
+            meta = ReportMetadata(report_id="TEST_001", title="Test", prepared_by="Engineer")
             sections = [
                 ReportSection(title="Section 1", content="Content 1", order=1),
             ]

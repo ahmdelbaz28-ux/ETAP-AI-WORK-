@@ -1,6 +1,7 @@
 """
 Tests for ML predictive analytics — LoadForecaster, FaultPredictor, AnomalyDetector.
 """
+
 import numpy as np
 import pytest
 
@@ -16,6 +17,7 @@ _skip_no_sklearn = pytest.mark.skipif(
 # ===========================================================================
 # LoadForecaster
 # ===========================================================================
+
 
 class TestLoadForecaster:
     def test_train_linear_fallback(self):
@@ -83,6 +85,7 @@ class TestLoadForecaster:
 # FaultPredictor
 # ===========================================================================
 
+
 @_skip_no_sklearn
 class TestFaultPredictor:
     def test_predict_after_train(self):
@@ -132,6 +135,7 @@ class TestFaultPredictor:
 # AnomalyDetector
 # ===========================================================================
 
+
 @_skip_no_sklearn
 class TestAnomalyDetector:
     def test_train_and_detect(self):
@@ -149,11 +153,30 @@ class TestAnomalyDetector:
 
     def test_detect_obvious_anomaly(self):
         detector = AnomalyDetector(contamination=0.3)
-        normal = np.array([[1.0, 1.0], [1.1, 1.0], [0.9, 1.0], [1.0, 1.1],
-                           [1.05, 0.95], [0.95, 1.05], [1.02, 0.98], [0.98, 1.02],
-                           [1.1, 1.1], [0.9, 0.9], [1.0, 0.9], [1.0, 1.0],
-                           [1.0, 1.0], [1.0, 1.0], [1.0, 1.0], [1.0, 1.0],
-                           [1.0, 1.0], [1.0, 1.0], [1.0, 1.0], [1.0, 1.0]])
+        normal = np.array(
+            [
+                [1.0, 1.0],
+                [1.1, 1.0],
+                [0.9, 1.0],
+                [1.0, 1.1],
+                [1.05, 0.95],
+                [0.95, 1.05],
+                [1.02, 0.98],
+                [0.98, 1.02],
+                [1.1, 1.1],
+                [0.9, 0.9],
+                [1.0, 0.9],
+                [1.0, 1.0],
+                [1.0, 1.0],
+                [1.0, 1.0],
+                [1.0, 1.0],
+                [1.0, 1.0],
+                [1.0, 1.0],
+                [1.0, 1.0],
+                [1.0, 1.0],
+                [1.0, 1.0],
+            ]
+        )
         detector.train(normal)
         test_data = np.array([[1.0, 1.0], [100.0, 100.0]])
         result = detector.detect(test_data)

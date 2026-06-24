@@ -4,6 +4,7 @@ Python version compatibility shims.
 Provides backports of Python 3.11+ features for Python 3.8 compatibility.
 Project target: Python 3.12+
 """
+
 import sys
 from enum import Enum
 
@@ -13,4 +14,5 @@ else:
 
     class StrEnum(str, Enum):  # type: ignore  # noqa: UP042
         """Backport of Python 3.11's ``enum.StrEnum``."""
+
         pass

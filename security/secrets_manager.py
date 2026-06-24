@@ -493,7 +493,9 @@ class EnvironmentValidator:
     - Generates .env.example template from required secrets
     """
 
-    def __init__(self, env_path: Optional[Path] = None, required_secrets: Optional[List[str]] = None):
+    def __init__(
+        self, env_path: Optional[Path] = None, required_secrets: Optional[List[str]] = None
+    ):
         self.env_path = env_path or Path.cwd() / ".env"
         self.required_secrets = required_secrets or REQUIRED_SECRETS
 

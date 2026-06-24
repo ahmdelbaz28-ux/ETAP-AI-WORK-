@@ -61,7 +61,9 @@ def test_vitest_config_does_not_exclude_scenarios_globally():
 
 def test_ci_workflow_runs_scenario_tests_step():
     """The CI workflow must have a dedicated step that runs scenario tests."""
-    wf = (Path(__file__).resolve().parent.parent / ".github" / "workflows" / "ci-cd.yml").read_text()
+    wf = (
+        Path(__file__).resolve().parent.parent / ".github" / "workflows" / "ci-cd.yml"
+    ).read_text()
     assert "test:scenarios" in wf, (
         "CI workflow must invoke 'pnpm test:scenarios' explicitly — "
         "otherwise scenario tests are dead code in CI"
@@ -89,14 +91,18 @@ def fastapi_client():
 
     # Bypass Redis (no Redis in test env)
     import services.cache_service as cs
+
     _orig = cs.StudyCache.__init__
+
     def _patched(self, redis_url="memory://", ttl=3600):
         return _orig(self, redis_url="memory://", ttl=ttl)
+
     cs.StudyCache.__init__ = _patched
 
     from fastapi.testclient import TestClient
 
     from api.routes import app
+
     return TestClient(app)
 
 
@@ -206,8 +212,7 @@ def test_study_endpoint_rejects_missing_question(fastapi_client):
         f"Returning 200 with success=False hides the error from API clients."
     )
     body = r.json()
-    assert "question" in str(body).lower(), \
-        f"Error message must mention 'question', got: {body}"
+    assert "question" in str(body).lower(), f"Error message must mention 'question', got: {body}"
 
 
 # ---------------------------------------------------------------------------
@@ -217,22 +222,42 @@ def test_study_endpoint_rejects_missing_question(fastapi_client):
 
 def test_backward_compat_all_old_agents_registered():
     from agents.orchestrator import ChiefEngineeringOrchestrator
+
     orch = ChiefEngineeringOrchestrator()
-    expected = {"load_flow", "short_circuit", "harmonic", "opf",
-                "protection", "etap_execution", "validation", "report"}
+    expected = {
+        "load_flow",
+        "short_circuit",
+        "harmonic",
+        "opf",
+        "protection",
+        "etap_execution",
+        "validation",
+        "report",
+    }
     missing = expected - set(orch.agents.keys())
     assert not missing, f"Backward compat broken — missing old agents: {missing}"
 
 
 def test_backward_compat_all_old_study_types_accepted():
     from api.studies import StudyRequest
+
     old_types = [
-        "load_flow", "short_circuit", "fault", "arc_flash",
-        "protection_coordination", "coordination", "motor_starting",
-        "harmonic_analysis", "optimal_power_flow",
-        "etap_load_flow", "etap_short_circuit", "etap_arc_flash",
-        "etap_harmonic_analysis", "etap_optimal_power_flow",
-        "etap_motor_starting", "etap_protection_coordination",
+        "load_flow",
+        "short_circuit",
+        "fault",
+        "arc_flash",
+        "protection_coordination",
+        "coordination",
+        "motor_starting",
+        "harmonic_analysis",
+        "optimal_power_flow",
+        "etap_load_flow",
+        "etap_short_circuit",
+        "etap_arc_flash",
+        "etap_harmonic_analysis",
+        "etap_optimal_power_flow",
+        "etap_motor_starting",
+        "etap_protection_coordination",
     ]
     for st in old_types:
         req = StudyRequest(study_type=st, parameters={})
@@ -241,10 +266,16 @@ def test_backward_compat_all_old_study_types_accepted():
 
 def test_backward_compat_all_old_prompts_load():
     from agents.prompt_loader import get_system_prompt
+
     old_handles = [
-        "load_flow_agent", "short_circuit_agent", "harmonic_agent",
-        "opf_agent", "protection_agent", "etap_engineer_agent",
-        "validation_agent", "report_agent",
+        "load_flow_agent",
+        "short_circuit_agent",
+        "harmonic_agent",
+        "opf_agent",
+        "protection_agent",
+        "etap_engineer_agent",
+        "validation_agent",
+        "report_agent",
     ]
     for h in old_handles:
         p = get_system_prompt(h)
@@ -260,10 +291,13 @@ def test_backward_compat_load_flow_still_returns_converged():
         _build_system_from_spec,
         _run_native_study,
     )
+
     spec = SystemSpec(
         name="compat",
-        buses=[BusSpec(bus_id=1, base_kv=13.8, bus_type="slack"),
-               BusSpec(bus_id=2, base_kv=13.8, bus_type="pq")],
+        buses=[
+            BusSpec(bus_id=1, base_kv=13.8, bus_type="slack"),
+            BusSpec(bus_id=2, base_kv=13.8, bus_type="pq"),
+        ],
         loads=[LoadSpec(load_id=1, bus_id=2, p_load=5.0, q_load=1.0)],
     )
     system = _build_system_from_spec(spec)
@@ -280,6 +314,7 @@ def test_backward_compat_load_flow_still_returns_converged():
 def test_format_a_simulation_matches_skill_example_1():
     """The skill Example 1 specifies: 200A, 300ft, 480V → VD=5.44V, %VD=1.13%, 3/0 AWG."""
     from agents.etap_expert_agent import ETAPExpertAgent
+
     agent = ETAPExpertAgent()
     r = agent.answer("What cable size for 200A load, 300ft, 480V?")
     response = r["response"]
@@ -288,13 +323,15 @@ def test_format_a_simulation_matches_skill_example_1():
     # Example 1 (skills/etap-expert.md Section 15.2 Example 1).
     assert "5.44" in response, "Voltage drop must be 5.44V (skill Example 1)"
     assert "1.13" in response, "%VD must be 1.13% (skill Example 1)"
-    assert "3/0 AWG" in response or "4/0 AWG" in response, \
+    assert "3/0 AWG" in response or "4/0 AWG" in response, (
         "Cable must be 3/0 or 4/0 AWG per NEC Table 310.16"
+    )
 
 
 def test_format_a_contains_all_mandatory_sections():
     """Format A must contain all 7 mandatory sections per skill spec."""
     from agents.etap_expert_agent import ETAPExpertAgent
+
     agent = ETAPExpertAgent()
     r = agent.answer("What cable size for 200A load, 300ft, 480V?")
     resp = r["response"]
@@ -315,6 +352,7 @@ def test_format_a_contains_all_mandatory_sections():
 def test_format_a_contains_units_in_all_numbers():
     """Per Critical Rule #9: include units in ALL answers."""
     from agents.etap_expert_agent import ETAPExpertAgent
+
     agent = ETAPExpertAgent()
     r = agent.answer("What cable size for 200A load, 300ft, 480V?")
     resp = r["response"]
@@ -331,11 +369,13 @@ def test_format_a_contains_units_in_all_numbers():
 def test_format_b_has_1_to_3_clarifying_questions():
     """Format B must have between 1 and 3 clarifying questions."""
     from agents.etap_expert_agent import ETAPExpertAgent
+
     agent = ETAPExpertAgent()
     r = agent.answer("Size transformer for 500kW")
     resp = r["response"]
     # Count "Question N:" occurrences
     import re
+
     matches = re.findall(r"\*\*Question \d+:\*\*", resp)
     assert 1 <= len(matches) <= 3, f"Format B must have 1-3 questions, found {len(matches)}"
 
@@ -343,6 +383,7 @@ def test_format_b_has_1_to_3_clarifying_questions():
 def test_format_b_has_why_i_need_this_per_question():
     """Each clarifying question must be followed by 'Why I need this:'."""
     from agents.etap_expert_agent import ETAPExpertAgent
+
     agent = ETAPExpertAgent()
     r = agent.answer("Size transformer for 500kW")
     resp = r["response"]
@@ -352,6 +393,7 @@ def test_format_b_has_why_i_need_this_per_question():
 def test_format_b_contains_what_i_can_tell_you_now():
     """Format B must include the 'What I can tell you now' guidance section."""
     from agents.etap_expert_agent import ETAPExpertAgent
+
     agent = ETAPExpertAgent()
     r = agent.answer("Size transformer for 500kW")
     resp = r["response"]
@@ -366,6 +408,7 @@ def test_format_b_contains_what_i_can_tell_you_now():
 def test_format_c_contains_all_mandatory_sections():
     """Format C must contain 6 mandatory correction sections."""
     from agents.etap_expert_agent import ETAPExpertAgent
+
     agent = ETAPExpertAgent()
     r = agent.answer("Run Load Flow to find fault current")
     resp = r["response"]
@@ -385,16 +428,19 @@ def test_format_c_contains_all_mandatory_sections():
 def test_format_c_offers_four_followup_options():
     """Format C must end with options A/B/C/D for follow-up."""
     from agents.etap_expert_agent import ETAPExpertAgent
+
     agent = ETAPExpertAgent()
     r = agent.answer("Run Load Flow to find fault current")
     resp = r["response"]
-    assert "A)" in resp and "B)" in resp and "C)" in resp and "D)" in resp, \
+    assert "A)" in resp and "B)" in resp and "C)" in resp and "D)" in resp, (
         "Format C must offer options A/B/C/D"
+    )
 
 
 def test_format_c_corrects_short_circuit_for_fault_current():
     """Wrong-study correction must specifically mention Short Circuit + standard."""
     from agents.etap_expert_agent import ETAPExpertAgent
+
     agent = ETAPExpertAgent()
     r = agent.answer("Run Load Flow to find fault current")
     resp = r["response"]
@@ -410,6 +456,7 @@ def test_format_c_corrects_short_circuit_for_fault_current():
 def test_format_d_contains_all_mandatory_sections():
     """Format D must contain 7 mandatory ADMS sections."""
     from agents.etap_expert_agent import ETAPExpertAgent
+
     agent = ETAPExpertAgent()
     r = agent.answer("How does FLISR work for fault on Feeder 1?")
     resp = r["response"]
@@ -429,16 +476,19 @@ def test_format_d_contains_all_mandatory_sections():
 def test_format_d_mentions_state_estimation():
     """Format D must reference Distribution State Estimation (DSE), not Load Flow."""
     from agents.etap_expert_agent import ETAPExpertAgent
+
     agent = ETAPExpertAgent()
     r = agent.answer("How does FLISR work for fault on Feeder 1?")
     resp = r["response"]
-    assert "DSE" in resp or "State Estimation" in resp, \
+    assert "DSE" in resp or "State Estimation" in resp, (
         "ADMS must use DSE (not Load Flow) per skill Section 5.2"
+    )
 
 
 def test_format_d_includes_references():
     """Format D must include references to standards + skill section."""
     from agents.etap_expert_agent import ETAPExpertAgent
+
     agent = ETAPExpertAgent()
     r = agent.answer("How does FLISR work for fault on Feeder 1?")
     resp = r["response"]
@@ -458,8 +508,9 @@ def test_skill_md_file_is_substantial():
     content = p.read_text()
     lines = content.count("\n")
     assert lines >= 4000, f"Skill file too short: {lines} lines (expected >= 4000)"
-    assert len(content.encode()) >= 100_000, \
+    assert len(content.encode()) >= 100_000, (
         f"Skill file too small: {len(content)} bytes (expected >= 100KB)"
+    )
 
 
 def test_skill_md_contains_all_17_sections():
@@ -492,6 +543,7 @@ def test_skill_md_contains_all_17_sections():
 def test_agent_reports_skill_loaded_with_correct_size():
     """Agent.get_agent_info() must report skill_loaded=True and skill_chars > 100000."""
     from agents.etap_expert_agent import ETAPExpertAgent
+
     agent = ETAPExpertAgent()
     info = agent.get_agent_info()
     assert info["skill_loaded"] is True
@@ -510,14 +562,12 @@ CLASSIFIER_DATASET = [
     ("Calculate voltage drop for 4/0 AWG, 200ft, 480V, 200A", "complete"),
     ("Help me design a power system", "complete"),
     ("What is the typical X/R ratio for a utility source?", "complete"),
-
     # INCOMPLETE (5)
     ("Size transformer for 500kW", "incomplete"),
     ("Set relay for motor", "incomplete"),
     ("Calculate voltage drop", "incomplete"),
     ("Run arc flash", "incomplete"),
     ("Size battery", "incomplete"),
-
     # WRONG (6)
     ("Run Load Flow to find fault current", "wrong"),
     ("Check arc flash with Load Flow", "wrong"),
@@ -525,7 +575,6 @@ CLASSIFIER_DATASET = [
     ("Find motor starting time with Load Flow", "wrong"),
     ("Check protection with Load Flow", "wrong"),
     ("Do FEM analysis in ETAP", "wrong"),
-
     # ADMS (5)
     ("How does FLISR work for fault on Feeder 1?", "adms"),
     ("Configure VVO on feeder 2", "adms"),
@@ -538,6 +587,7 @@ CLASSIFIER_DATASET = [
 def test_classifier_accuracy_at_least_90_percent():
     """Classifier must achieve >= 90% accuracy on the 20-question dataset."""
     from agents.etap_expert_agent import classify
+
     correct = 0
     failures = []
     for q, expected in CLASSIFIER_DATASET:
@@ -559,8 +609,9 @@ def test_classifier_dataset_size():
     counts = {}
     for _, c in CLASSIFIER_DATASET:
         counts[c] = counts.get(c, 0) + 1
-    assert counts == {"complete": 4, "incomplete": 5, "wrong": 6, "adms": 5}, \
+    assert counts == {"complete": 4, "incomplete": 5, "wrong": 6, "adms": 5}, (
         f"Dataset distribution off: {counts}"
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -581,14 +632,18 @@ def test_no_skip_markers_in_skill_tests():
     # Patterns must start a line (with optional whitespace) — comments/docstrings
     # that merely mention the marker name will not match.
     import re
+
     forbidden_regexes = [
         re.compile(r"^\s*@pytest\.mark\.(skip|xfail|skipif)", re.MULTILINE),
         re.compile(r"^\s*pytest\.skip\(", re.MULTILINE),
         re.compile(r"^\s*pytest\.mark\.(skip|xfail|skipif)\(", re.MULTILINE),
     ]
     violations = []
-    for tf in ["test_etap_expert_skill.py", "test_backward_compatibility.py",
-               "test_etap_expert_proof.py"]:
+    for tf in [
+        "test_etap_expert_skill.py",
+        "test_backward_compatibility.py",
+        "test_etap_expert_proof.py",
+    ]:
         path = test_dir / tf
         if not path.exists():
             continue
@@ -596,7 +651,7 @@ def test_no_skip_markers_in_skill_tests():
         for regex in forbidden_regexes:
             for m in regex.finditer(content):
                 # Find the line number for a helpful error message
-                line_no = content[:m.start()].count("\n") + 1
+                line_no = content[: m.start()].count("\n") + 1
                 violations.append((tf, line_no, m.group(0).strip()))
     assert not violations, (
         f"Skill tests must not use skip/xfail markers (would hide broken code). "

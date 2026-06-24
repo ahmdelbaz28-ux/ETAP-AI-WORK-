@@ -400,7 +400,12 @@ class ValidationCampaign:
         for bid in range(1, 31):
             if bid not in connected_buses:
                 system.add_line(
-                    Line(line_id=next_line_id, from_bus=system.buses[6], to_bus=system.buses[bid], z1=complex(0.01, 0.04))
+                    Line(
+                        line_id=next_line_id,
+                        from_bus=system.buses[6],
+                        to_bus=system.buses[bid],
+                        z1=complex(0.01, 0.04),
+                    )
                 )
                 connected_buses.add(bid)
                 next_line_id += 1
