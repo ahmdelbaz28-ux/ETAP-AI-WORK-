@@ -1,0 +1,52 @@
+name: HF Space Production Smoke Tests
+
+on:
+  workflow_run:
+    workflows: ["Sync to HuggingFace Space"]
+    types:
+      - completed
+  workflow_dispatch:
+  schedule:
+    # Run daily at 06:00 UTC to catch HF Space drift
+    - cron: '0 6 * * *'
+
+jobs:
+  production-smoke:
+    name: Production Smoke Tests
+    runs-on: ubuntu-latest
+    # Only run if the sync workflow succeeded (or manual/schedule trigger)
+    if: ${{ github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success' }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install pytest
+        run: pip install pytest
+
+      - name: Wait for HF Space to finish rebuilding
+        run: |
+          # The sync workflow triggers a rebuild on HF Space. Wait up to 5 min
+          # for the Space to reach RUNNING state before running smoke tests.
+          for i in $(seq 1 30); do
+            STAGE=$(curl -s https://huggingface.co/api/spaces/ahmdelbaz28/AHMEDETAP | \
+                    python3 -c "import sys, json; print(json.load(sys.stdin).get('runtime',{}).get('stage','UNKNOWN'))")
+            echo "Attempt $i: HF Space stage = $STAGE"
+            if [ "$STAGE" = "RUNNING" ]; then
+              echo "✅ HF Space is RUNNING — proceeding with smoke tests"
+              exit 0
+            fi
+            sleep 10
+          done
+          echo "❌ HF Space did not reach RUNNING state in 5 minutes"
+          exit 1
+
+      - name: Run production smoke tests
+        env:
+          HF_SPACE_PRODUCTION_TESTS: 'true'
+        run: |
+          python -m pytest tests/test_hf_space_production.py -v --tb=short

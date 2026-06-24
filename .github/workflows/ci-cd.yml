@@ -127,3 +127,19 @@ jobs:
           HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" https://ahmdelbaz28-etap-ai-platform.hf.space/readyz)
           if [ "$HTTP_CODE" -ge 500 ] || [ "$HTTP_CODE" -eq 000 ]; then echo "Readyz endpoint returned $HTTP_CODE"; exit 1; fi
           echo "Readyz endpoint OK ($HTTP_CODE)"
+      - name: Check ETAP Expert skill endpoint
+        run: |
+          # Verify the ETAP Expert skill is reachable in production
+          RESPONSE=$(curl -s -X POST https://ahmdelbaz28-ahmedetap.hf.space/api/v1/studies/run \
+            -H "Content-Type: application/json" \
+            -d '{"study_type":"etap_expert","parameters":{"question":"What cable size for 200A load, 300ft, 480V?"},"use_etap":false}')
+          echo "Response: $RESPONSE"
+          echo "$RESPONSE" | python3 -c "
+          import sys, json
+          d = json.load(sys.stdin)
+          assert d.get('success') is True, f'skill call failed: {d}'
+          inner = d.get('data', {})
+          assert inner.get('format') == 'A', f'expected Format A, got: {inner.get(\"format\")}'
+          assert 'COMPLETE' in inner.get('response', ''), 'missing COMPLETE signature'
+          print('✅ ETAP Expert skill is live in production')
+          "
