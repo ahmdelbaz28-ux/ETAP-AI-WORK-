@@ -395,7 +395,7 @@ class ValidationCampaign:
         for fb, tb, _ in line_data:
             connected_buses.add(fb)
             connected_buses.add(tb)
-        
+
         next_line_id = len(line_data) + 1
         for bid in range(1, 31):
             if bid not in connected_buses:

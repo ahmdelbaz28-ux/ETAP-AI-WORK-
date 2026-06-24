@@ -5,10 +5,11 @@ Contains shared test utilities, mocks, and test network configurations.
 
 import os
 import tempfile
-from collections.abc import Generator
+from typing import AsyncGenerator, Generator
 from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
+from fastapi.testclient import TestClient
 
 try:
     from core.bootstrap import logger
@@ -458,15 +459,14 @@ def setup_test_environment():
 # Auth/Projects test fixtures (SQLite in-memory)
 # ---------------------------------------------------------------------------
 
-from typing import AsyncGenerator
-from sqlalchemy.ext.asyncio import (
+from sqlalchemy.ext.asyncio import (  # noqa: I001
     AsyncSession,
     AsyncEngine,
     async_sessionmaker,
     create_async_engine,
 )
-from sqlalchemy.pool import StaticPool
-from api.database import Base
+from sqlalchemy.pool import StaticPool  # noqa: I001
+from api.database import Base  # noqa: I001
 
 _TEST_DB_URL = "sqlite+aiosqlite://"
 
@@ -497,8 +497,8 @@ async def db_engine() -> AsyncGenerator[AsyncEngine, None]:
 @pytest.fixture(scope="function")
 def app(db_engine: AsyncEngine):
     """Return the FastAPI application with get_db overridden to the test DB."""
-    from fastapi import FastAPI
-    from api.routes import app as real_app
+    from fastapi import FastAPI  # noqa: I001
+    from api.routes import app as real_app  # noqa: I001
 
     async def _override_get_db() -> AsyncGenerator[AsyncSession, None]:
         async with _TestSessionLocal() as session:
@@ -517,9 +517,6 @@ def app(db_engine: AsyncEngine):
     yield real_app
 
     real_app.dependency_overrides.clear()
-
-
-from fastapi.testclient import TestClient
 
 
 @pytest.fixture(scope="function")
