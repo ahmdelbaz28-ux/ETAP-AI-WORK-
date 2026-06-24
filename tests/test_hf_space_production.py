@@ -20,9 +20,7 @@ import urllib.request
 import pytest
 
 PRODUCTION_URL = "https://ahmdelbaz28-ahmedetap.hf.space"
-SKIP_REASON = (
-    f"Set HF_SPACE_PRODUCTION_TESTS=true to run production tests against {PRODUCTION_URL}"
-)
+SKIP_REASON = f"Set HF_SPACE_PRODUCTION_TESTS=true to run production tests against {PRODUCTION_URL}"
 
 
 def _skip_if_not_enabled():
@@ -218,10 +216,19 @@ def test_production_old_study_types_still_listed():
     d = _get("/api/v1/studies/types")
     types = d.get("study_types", [])
     expected_old = [
-        "load_flow", "short_circuit", "arc_flash", "protection_coordination",
-        "motor_starting", "transient_stability", "harmonic_analysis",
-        "optimal_power_flow", "cable_sizing", "earth_grid",
-        "renewable_integration", "battery_storage", "scada",
+        "load_flow",
+        "short_circuit",
+        "arc_flash",
+        "protection_coordination",
+        "motor_starting",
+        "transient_stability",
+        "harmonic_analysis",
+        "optimal_power_flow",
+        "cable_sizing",
+        "earth_grid",
+        "renewable_integration",
+        "battery_storage",
+        "scada",
     ]
     for t in expected_old:
         assert t in types, f"Old study type '{t}' missing from production"
@@ -233,5 +240,6 @@ def test_production_unknown_study_type_rejected():
         "/api/v1/studies/run",
         {"study_type": "nonexistent_study", "parameters": {}, "use_etap": False},
     )
-    assert d.get("_http_error") == 400 or "error" in d or "Unknown" in str(d), \
+    assert d.get("_http_error") == 400 or "error" in d or "Unknown" in str(d), (
         f"Expected 400 or error for unknown study type, got: {d}"
+    )

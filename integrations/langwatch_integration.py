@@ -106,10 +106,18 @@ class LangWatchTracker:
 
 class _NoOpContext:
     """Silent no-op context manager when LangWatch is disabled."""
-    def __enter__(self): return self
-    def __exit__(self, *args): pass
-    def update(self, **kwargs): pass
-    def send(self): pass
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *args):
+        pass
+
+    def update(self, **kwargs):
+        pass
+
+    def send(self):
+        pass
 
 
 # ─── Module-level singleton ───────────────────────────────────────────────────
@@ -131,6 +139,7 @@ def track_llm_call(
         async def analyze_fault(prompt: str) -> str:
             return await llm.complete(prompt)
     """
+
     def decorator(func: Callable) -> Callable:
         @functools.wraps(func)
         async def async_wrapper(*args, **kwargs):
@@ -155,6 +164,7 @@ def track_llm_call(
                 return func(*args, **kwargs)
 
         import asyncio
+
         if asyncio.iscoroutinefunction(func):
             return async_wrapper
         return sync_wrapper

@@ -89,8 +89,7 @@ def test_dockerfile_copies_skill_files():
     ]
     for pat in required_copy_patterns:
         assert pat in dockerfile, (
-            f"Dockerfile must include '{pat}' so the skill is available "
-            f"in the HF Space container"
+            f"Dockerfile must include '{pat}' so the skill is available in the HF Space container"
         )
 
 
@@ -189,6 +188,7 @@ def test_hf_space_chat_endpoint_returns_format_a():
         pytest.skip(f"hf-space/app.py import failed: {e}")
 
     from fastapi.testclient import TestClient
+
     client = TestClient(mod.app)
 
     r = client.post(
@@ -211,6 +211,7 @@ def test_hf_space_study_endpoint_returns_format_a():
         pytest.skip(f"hf-space/app.py import failed: {e}")
 
     from fastapi.testclient import TestClient
+
     client = TestClient(mod.app)
 
     r = client.post(
@@ -235,6 +236,7 @@ def test_hf_space_study_endpoint_rejects_missing_question():
         pytest.skip(f"hf-space/app.py import failed: {e}")
 
     from fastapi.testclient import TestClient
+
     client = TestClient(mod.app)
 
     r = client.post(

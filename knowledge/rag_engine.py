@@ -399,7 +399,9 @@ class EngineeringKnowledgeBase:
     """
 
     def __init__(
-        self, embedding_model: Optional[EmbeddingModel] = None, vector_db: Optional[VectorDatabase] = None
+        self,
+        embedding_model: Optional[EmbeddingModel] = None,
+        vector_db: Optional[VectorDatabase] = None,
     ):
         """
         Initialize knowledge base.

@@ -343,7 +343,9 @@ class AIFailureModeDetector:
     # ------------------------------------------------------------------
     # FM-02: Defensive guard for impossible case
     # ------------------------------------------------------------------
-    def _detect_impossible_guard(self, tree: Optional[ast.AST], source: str) -> List[GuardViolation]:
+    def _detect_impossible_guard(
+        self, tree: Optional[ast.AST], source: str
+    ) -> List[GuardViolation]:
         """Heuristic: 'if x is None' checks on values that cannot be None by construction."""
         violations: List[GuardViolation] = []
         # Pattern: checking for None on return values that are never None
@@ -373,7 +375,9 @@ class AIFailureModeDetector:
     # ------------------------------------------------------------------
     # FM-04: Hardcoded success return
     # ------------------------------------------------------------------
-    def _detect_hardcoded_success(self, tree: Optional[ast.AST], source: str) -> List[GuardViolation]:
+    def _detect_hardcoded_success(
+        self, tree: Optional[ast.AST], source: str
+    ) -> List[GuardViolation]:
         violations: List[GuardViolation] = []
         if tree is None:
             return violations
@@ -512,7 +516,9 @@ class AIFailureModeDetector:
     # ------------------------------------------------------------------
     # FM-08: Write before read (overwrite input)
     # ------------------------------------------------------------------
-    def _detect_write_before_read(self, tree: Optional[ast.AST], source: str) -> List[GuardViolation]:
+    def _detect_write_before_read(
+        self, tree: Optional[ast.AST], source: str
+    ) -> List[GuardViolation]:
         """Heuristic: function parameter immediately reassigned without reading."""
         violations: List[GuardViolation] = []
         if tree is None:
@@ -643,7 +649,9 @@ class AIFailureModeDetector:
     # ------------------------------------------------------------------
     # FM-11: Over-engineered abstraction for single use
     # ------------------------------------------------------------------
-    def _detect_over_engineering(self, tree: Optional[ast.AST], source: str) -> List[GuardViolation]:
+    def _detect_over_engineering(
+        self, tree: Optional[ast.AST], source: str
+    ) -> List[GuardViolation]:
         """Heuristic: abstract base class with only one concrete subclass."""
         violations: List[GuardViolation] = []
         if tree is None:

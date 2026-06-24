@@ -10,6 +10,7 @@ Auto-update:
   The .github/workflows/auto-index.yml workflow re-runs this script
   on every push to main and commits the updated index files automatically.
 """
+
 import ast
 import datetime
 import hashlib
@@ -25,11 +26,31 @@ MD_FILE = OUTPUT_DIR / "PROJECT_INDEX.md"
 
 # ─── Directories to scan for Python modules ─────────────────────────────────
 PYTHON_DIRS = [
-    "agents", "api", "core", "engine", "fault_analysis", "load_flow",
-    "services", "security", "ml", "worker", "reporting", "digital_twin",
-    "network_solver", "coordination", "relays", "adms_control", "utils",
-    "guards", "copilot", "schemas", "migrations", "etap_integration",
-    "core_model", "scada_model", "acp_runtime"
+    "agents",
+    "api",
+    "core",
+    "engine",
+    "fault_analysis",
+    "load_flow",
+    "services",
+    "security",
+    "ml",
+    "worker",
+    "reporting",
+    "digital_twin",
+    "network_solver",
+    "coordination",
+    "relays",
+    "adms_control",
+    "utils",
+    "guards",
+    "copilot",
+    "schemas",
+    "migrations",
+    "etap_integration",
+    "core_model",
+    "scada_model",
+    "acp_runtime",
 ]
 
 # ─── UI pages and components ─────────────────────────────────────────────────
@@ -44,14 +65,26 @@ UI_DIRS = {
 
 # ─── Infrastructure files ─────────────────────────────────────────────────────
 INFRA_FILES = [
-    "Dockerfile", "Dockerfile.engineering-service", "Dockerfile.hf",
-    "docker-compose.yml", "docker-compose.monitoring.yml",
-    "docker-compose.copilot.yml", "pyproject.toml", "requirements.txt",
-    "requirements-prod.txt", "requirements-dev.txt", ".github/workflows/ci-cd.yml",
-    ".github/workflows/security.yml", ".github/workflows/sync-hf-space.yml",
-    ".github/workflows/release.yml", "scripts/docker_deploy.sh",
-    "scripts/docker_build.sh", "scripts/deploy-engineering-service.sh",
-    "Makefile", "alembic.ini", "ruff.toml",
+    "Dockerfile",
+    "Dockerfile.engineering-service",
+    "Dockerfile.hf",
+    "docker-compose.yml",
+    "docker-compose.monitoring.yml",
+    "docker-compose.copilot.yml",
+    "pyproject.toml",
+    "requirements.txt",
+    "requirements-prod.txt",
+    "requirements-dev.txt",
+    ".github/workflows/ci-cd.yml",
+    ".github/workflows/security.yml",
+    ".github/workflows/sync-hf-space.yml",
+    ".github/workflows/release.yml",
+    "scripts/docker_deploy.sh",
+    "scripts/docker_build.sh",
+    "scripts/deploy-engineering-service.sh",
+    "Makefile",
+    "alembic.ini",
+    "ruff.toml",
 ]
 
 # ─── Test files ───────────────────────────────────────────────────────────────
@@ -79,28 +112,33 @@ def extract_python_metadata(path: Path) -> dict:
     for node in ast.walk(tree):
         if isinstance(node, ast.ClassDef):
             methods = [
-                n.name for n in node.body
+                n.name
+                for n in node.body
                 if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef))
                 and not n.name.startswith("_")
             ]
-            classes.append({
-                "name": node.name,
-                "line": node.lineno,
-                "public_methods": methods[:20],
-                "docstring": ast.get_docstring(node) or ""
-            })
+            classes.append(
+                {
+                    "name": node.name,
+                    "line": node.lineno,
+                    "public_methods": methods[:20],
+                    "docstring": ast.get_docstring(node) or "",
+                }
+            )
 
     functions = []
     for node in tree.body:
         if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
             if not node.name.startswith("_"):
                 is_async = isinstance(node, ast.AsyncFunctionDef)
-                functions.append({
-                    "name": node.name,
-                    "line": node.lineno,
-                    "async": is_async,
-                    "docstring": ast.get_docstring(node) or ""
-                })
+                functions.append(
+                    {
+                        "name": node.name,
+                        "line": node.lineno,
+                        "async": is_async,
+                        "docstring": ast.get_docstring(node) or "",
+                    }
+                )
 
     imports = []
     for node in ast.walk(tree):
@@ -125,14 +163,14 @@ def extract_api_routes(path: Path) -> list:
     routes = []
     try:
         content = path.read_text(encoding="utf-8", errors="ignore")
-        pattern = re.compile(
-            r'@\w+\.(get|post|put|delete|patch)\("([^"]+)"', re.IGNORECASE
-        )
+        pattern = re.compile(r'@\w+\.(get|post|put|delete|patch)\("([^"]+)"', re.IGNORECASE)
         for m in pattern.finditer(content):
-            routes.append({
-                "method": m.group(1).upper(),
-                "path": m.group(2),
-            })
+            routes.append(
+                {
+                    "method": m.group(1).upper(),
+                    "path": m.group(2),
+                }
+            )
     except Exception:
         pass
     return routes
@@ -189,8 +227,10 @@ def scan_ui() -> dict:
                 rel = str(fpath.relative_to(PROJECT_ROOT)).replace("\\", "/")
                 content = fpath.read_text(encoding="utf-8", errors="ignore")
                 # Extract exported components/functions
-                exports = re.findall(r'export\s+(?:default\s+)?(?:function|class|const)\s+(\w+)', content)
-                props_interfaces = re.findall(r'interface\s+(\w+Props)', content)
+                exports = re.findall(
+                    r"export\s+(?:default\s+)?(?:function|class|const)\s+(\w+)", content
+                )
+                props_interfaces = re.findall(r"interface\s+(\w+Props)", content)
                 ui_index[section][rel] = {
                     "file": rel,
                     "hash": file_hash(fpath),
@@ -215,17 +255,15 @@ def scan_tests() -> dict:
             fpath = Path(root) / fname
             rel = str(fpath.relative_to(PROJECT_ROOT)).replace("\\", "/")
             meta = extract_python_metadata(fpath)
-            test_funcs = [
-                f["name"] for f in meta["functions"]
-                if f["name"].startswith("test_")
-            ]
+            test_funcs = [f["name"] for f in meta["functions"] if f["name"].startswith("test_")]
             test_classes = [c["name"] for c in meta["classes"] if c["name"].startswith("Test")]
             test_index[rel] = {
                 "file": rel,
                 "hash": file_hash(fpath),
                 "test_functions": test_funcs,
                 "test_classes": test_classes,
-                "total_tests": len(test_funcs) + sum(
+                "total_tests": len(test_funcs)
+                + sum(
                     len([m for m in c["public_methods"] if m.startswith("test_")])
                     for c in meta["classes"]
                 ),
@@ -255,26 +293,22 @@ def collect_all_api_routes(modules: dict) -> list:
     for _pkg, pkg_data in modules.items():
         for file_path, file_data in pkg_data.get("files", {}).items():
             for route in file_data.get("api_routes", []):
-                all_routes.append({
-                    "method": route["method"],
-                    "path": route["path"],
-                    "file": file_path,
-                })
+                all_routes.append(
+                    {
+                        "method": route["method"],
+                        "path": route["path"],
+                        "file": file_path,
+                    }
+                )
     return sorted(all_routes, key=lambda r: r["path"])
 
 
 def build_stats(modules: dict, ui: dict, tests: dict) -> dict:
     """Build summary statistics."""
     total_py_files = sum(len(p["files"]) for p in modules.values())
-    total_classes = sum(
-        len(f["classes"])
-        for p in modules.values()
-        for f in p["files"].values()
-    )
+    total_classes = sum(len(f["classes"]) for p in modules.values() for f in p["files"].values())
     total_functions = sum(
-        len(f["functions"])
-        for p in modules.values()
-        for f in p["files"].values()
+        len(f["functions"]) for p in modules.values() for f in p["files"].values()
     )
     total_ui_files = sum(len(s) for s in ui.values())
     total_test_files = len(tests)
@@ -354,7 +388,9 @@ def generate_markdown(index: dict) -> str:
     ]
     for route in index["api_routes"]:
         method = route["method"]
-        badge = {"GET": "🟢", "POST": "🔵", "PUT": "🟡", "DELETE": "🔴", "PATCH": "🟠"}.get(method, "⚪")
+        badge = {"GET": "🟢", "POST": "🔵", "PUT": "🟡", "DELETE": "🔴", "PATCH": "🟠"}.get(
+            method, "⚪"
+        )
         lines.append(f"| {badge} `{method}` | `{route['path']}` | `{route['file']}` |")
 
     lines += [
@@ -381,7 +417,9 @@ def generate_markdown(index: dict) -> str:
     ]
     for path, t in index["tests"].items():
         fname = path.split("/")[-1]
-        lines.append(f"| `{fname}` | {len(t['test_functions'])} | {len(t['test_classes'])} | **{t['total_tests']}** |")
+        lines.append(
+            f"| `{fname}` | {len(t['test_functions'])} | {len(t['test_classes'])} | **{t['total_tests']}** |"
+        )
 
     lines += [
         "",
@@ -426,9 +464,10 @@ def main():
     index = {
         "meta": {
             "project": "AhmedETAP — Power Systems Engineering AI Platform",
-            "version": open("VERSION", encoding="utf-8").read().strip() if Path("VERSION").exists() else "unknown",
+            "version": open("VERSION", encoding="utf-8").read().strip()
+            if Path("VERSION").exists()
+            else "unknown",
             "generated_at": datetime.datetime.now(datetime.UTC).isoformat(),
-
             "indexer_version": "1.0.0",
             "total_api_routes": len(all_routes),
         },

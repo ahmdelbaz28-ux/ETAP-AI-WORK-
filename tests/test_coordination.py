@@ -1,6 +1,7 @@
 """
 Tests for coordination module — CoordinationEngine.
 """
+
 import math
 
 import numpy as np
@@ -13,12 +14,18 @@ from relays.relay import OvercurrentRelay
 class TestCoordinationEngine:
     def make_relays(self, upstream_TMS=1.0, downstream_TMS=0.2, upstream_Ip=1.0, downstream_Ip=1.0):
         upstream = OvercurrentRelay(
-            relay_id=1, name="Upstream", curve_type="standard_inverse",
-            TMS=upstream_TMS, Ip=upstream_Ip,
+            relay_id=1,
+            name="Upstream",
+            curve_type="standard_inverse",
+            TMS=upstream_TMS,
+            Ip=upstream_Ip,
         )
         downstream = OvercurrentRelay(
-            relay_id=2, name="Downstream", curve_type="standard_inverse",
-            TMS=downstream_TMS, Ip=downstream_Ip,
+            relay_id=2,
+            name="Downstream",
+            curve_type="standard_inverse",
+            TMS=downstream_TMS,
+            Ip=downstream_Ip,
         )
         return upstream, downstream
 

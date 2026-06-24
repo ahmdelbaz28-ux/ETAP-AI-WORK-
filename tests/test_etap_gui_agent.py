@@ -54,6 +54,7 @@ def test_gui_skill_contains_required_sections():
 def test_agent_reports_skill_loaded():
     """Agent.get_agent_info() must report skill_loaded=True."""
     from agents.etap_gui_agent import ETAPGUIAgent
+
     agent = ETAPGUIAgent()
     info = agent.get_agent_info()
     assert info["skill_loaded"] is True
@@ -69,6 +70,7 @@ def test_agent_reports_skill_loaded():
 def test_check_gui_deps_returns_tuple():
     """_check_gui_deps must return (bool, list)."""
     from agents.etap_gui_agent import _check_gui_deps
+
     ok, missing = _check_gui_deps()
     assert isinstance(ok, bool)
     assert isinstance(missing, list)
@@ -78,6 +80,7 @@ def test_fallback_when_deps_unavailable():
     """When GUI deps are missing, agent returns Format U (unavailable).
     This is the CRITICAL safety guarantee — the agent never crashes."""
     from agents.etap_gui_agent import ETAPGUIAgent, _check_gui_deps
+
     ok, missing = _check_gui_deps()
     agent = ETAPGUIAgent()
     result = agent.answer("Open ETAP and run Load Flow")
@@ -103,6 +106,7 @@ def test_fallback_when_deps_unavailable():
 def test_classify_analyze_request():
     """Analyze questions (read-only inspection) must classify as 'analyze'."""
     from agents.etap_gui_agent import classify
+
     assert classify("Take a screenshot of ETAP") == "analyze"
     assert classify("What is shown on the screen?") == "analyze"
     assert classify("Analyze the ETAP one-line diagram") == "analyze"
@@ -111,6 +115,7 @@ def test_classify_analyze_request():
 def test_classify_monitor_request():
     """Monitor questions must classify as 'monitor'."""
     from agents.etap_gui_agent import classify
+
     assert classify("Monitor the running Load Flow study") == "monitor"
     assert classify("Watch the SCADA screen for alarms") == "monitor"
     assert classify("Observe the study convergence status") == "monitor"
@@ -119,6 +124,7 @@ def test_classify_monitor_request():
 def test_classify_control_request():
     """Control questions (modify state) must classify as 'control'."""
     from agents.etap_gui_agent import classify
+
     assert classify("Open ETAP and run Load Flow") == "control"
     assert classify("Click the Run button") == "control"
     assert classify("Set the transformer MVA to 1500") == "control"
@@ -128,6 +134,7 @@ def test_classify_control_request():
 def test_classify_solve_request():
     """Solve questions (multi-step) must classify as 'solve'."""
     from agents.etap_gui_agent import classify
+
     assert classify("Solve the voltage drop problem") == "solve"
     assert classify("Fix the convergence issue step by step") == "solve"
     assert classify("Troubleshoot the arc flash study") == "solve"
@@ -137,6 +144,7 @@ def test_classify_solve_takes_precedence_over_control():
     """SOLVE must take precedence over CONTROL (multi-step workflows
     often contain control actions)."""
     from agents.etap_gui_agent import classify
+
     # "solve" + "run" (control keyword) → should be 'solve'
     assert classify("Solve by running Load Flow") == "solve"
     # "fix" + "click" → should be 'solve'
@@ -150,17 +158,20 @@ def test_classify_solve_takes_precedence_over_control():
 
 def test_detect_target_app_etap():
     from agents.etap_gui_agent import detect_target_app
+
     assert detect_target_app("Open ETAP") == "ETAP"
     assert detect_target_app("Launch etap.exe") == "ETAP"
 
 
 def test_detect_target_app_revit():
     from agents.etap_gui_agent import detect_target_app
+
     assert detect_target_app("Open Revit") == "Revit"
 
 
 def test_detect_target_app_unknown():
     from agents.etap_gui_agent import detect_target_app
+
     assert detect_target_app("Open notepad") == "unknown"
 
 
@@ -172,12 +183,14 @@ def test_detect_target_app_unknown():
 @pytest.fixture
 def gui_agent():
     from agents.etap_gui_agent import ETAPGUIAgent
+
     return ETAPGUIAgent()
 
 
 def _maybe_skip_if_unavailable(agent):
     """Skip format tests if GUI deps unavailable (Format U is tested elsewhere)."""
     from agents.etap_gui_agent import _check_gui_deps
+
     ok, _ = _check_gui_deps()
     if not ok:
         pytest.skip("GUI deps unavailable — Format U tested in test_fallback_when_deps_unavailable")
@@ -257,6 +270,7 @@ def test_solve_response_mentions_integration(gui_agent):
 def test_unavailable_response_mentions_alternative():
     """Format U must suggest the ETAP Expert Skill as alternative."""
     from agents.etap_gui_agent import ETAPGUIAgent, _check_gui_deps
+
     ok, _ = _check_gui_deps()
     if ok:
         pytest.skip("GUI deps available — Format U not triggered")
@@ -275,6 +289,7 @@ def test_unavailable_response_mentions_alternative():
 def test_agent_registered_in_orchestrator():
     """The orchestrator must register the etap_gui agent."""
     from agents.orchestrator import ChiefEngineeringOrchestrator
+
     orch = ChiefEngineeringOrchestrator()
     assert "etap_gui" in orch.agents, "etap_gui not registered in orchestrator"
     assert orch.agents["etap_gui"].__class__.__name__ == "ETAPGUIAgent"
@@ -283,6 +298,7 @@ def test_agent_registered_in_orchestrator():
 def test_study_type_etap_gui_accepted():
     """StudyRequest validator must accept study_type='etap_gui'."""
     from api.studies import StudyRequest
+
     req = StudyRequest(study_type="etap_gui", parameters={"question": "test"})
     assert req.study_type == "etap_gui"
 
@@ -290,6 +306,7 @@ def test_study_type_etap_gui_accepted():
 def test_study_type_etap_gui_dispatches_to_agent():
     """_run_native_study must route etap_gui to the GUI agent."""
     from api.studies import _run_native_study
+
     data = _run_native_study(
         study_type="etap_gui",
         system=None,
@@ -304,6 +321,7 @@ def test_study_type_etap_gui_dispatches_to_agent():
 def test_study_type_etap_gui_requires_question():
     """Dispatcher must raise if 'question' is missing."""
     from api.studies import _run_native_study
+
     with pytest.raises(ValueError, match="question"):
         _run_native_study(
             study_type="etap_gui",
@@ -358,6 +376,7 @@ def test_prompt_yaml_exists():
 def test_prompt_registered_in_prompts_json():
     """prompts.json must include etap_gui_agent handle."""
     import json
+
     p = Path(__file__).resolve().parent.parent / "prompts.json"
     data = json.loads(p.read_text())
     assert "etap_gui_agent" in data["prompts"]
@@ -372,6 +391,7 @@ def test_prompt_registered_in_prompts_json():
 def test_etap_expert_still_registered():
     """Adding etap_gui must NOT remove etap_expert."""
     from agents.orchestrator import ChiefEngineeringOrchestrator
+
     orch = ChiefEngineeringOrchestrator()
     assert "etap_expert" in orch.agents
     assert "etap_gui" in orch.agents
@@ -380,6 +400,7 @@ def test_etap_expert_still_registered():
 def test_etap_expert_study_type_still_accepted():
     """etap_expert study_type must still be accepted."""
     from api.studies import StudyRequest
+
     req = StudyRequest(study_type="etap_expert", parameters={"question": "test"})
     assert req.study_type == "etap_expert"
 
@@ -406,14 +427,18 @@ def fastapi_client():
     os.environ.setdefault("DEPLOYMENT_VERIFICATION", "true")
 
     import services.cache_service as cs
+
     _orig = cs.StudyCache.__init__
+
     def _patched(self, redis_url="memory://", ttl=3600):
         return _orig(self, redis_url="memory://", ttl=ttl)
+
     cs.StudyCache.__init__ = _patched
 
     from fastapi.testclient import TestClient
 
     from api.routes import app
+
     return TestClient(app)
 
 

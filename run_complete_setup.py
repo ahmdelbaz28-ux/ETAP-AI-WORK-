@@ -23,32 +23,38 @@ from datetime import datetime
 
 # Colors for output
 class Colors:
-    HEADER = '\033[95m'
-    OKBLUE = '\033[94m'
-    OKCYAN = '\033[96m'
-    OKGREEN = '\033[92m'
-    WARNING = '\033[93m'
-    FAIL = '\033[91m'
-    ENDC = '\033[0m'
-    BOLD = '\033[1m'
-    UNDERLINE = '\033[4m'
+    HEADER = "\033[95m"
+    OKBLUE = "\033[94m"
+    OKCYAN = "\033[96m"
+    OKGREEN = "\033[92m"
+    WARNING = "\033[93m"
+    FAIL = "\033[91m"
+    ENDC = "\033[0m"
+    BOLD = "\033[1m"
+    UNDERLINE = "\033[4m"
+
 
 def print_header(text):
-    print(f"\n{Colors.HEADER}{Colors.BOLD}{'='*70}{Colors.ENDC}")
+    print(f"\n{Colors.HEADER}{Colors.BOLD}{'=' * 70}{Colors.ENDC}")
     print(f"{Colors.HEADER}{Colors.BOLD}{text.center(70)}{Colors.ENDC}")
-    print(f"{Colors.HEADER}{Colors.BOLD}{'='*70}{Colors.ENDC}\n")
+    print(f"{Colors.HEADER}{Colors.BOLD}{'=' * 70}{Colors.ENDC}\n")
+
 
 def print_success(text):
     print(f"{Colors.OKGREEN}[OK] {text}{Colors.ENDC}")
 
+
 def print_error(text):
     print(f"{Colors.FAIL}[FAIL] {text}{Colors.ENDC}")
+
 
 def print_info(text):
     print(f"{Colors.OKCYAN}[INFO] {text}{Colors.ENDC}")
 
+
 def print_warning(text):
     print(f"{Colors.WARNING}[WARN] {text}{Colors.ENDC}")
+
 
 def run_command(cmd, description="", timeout=300):
     """Run command and return success status."""
@@ -63,11 +69,7 @@ def run_command(cmd, description="", timeout=300):
             cmd_parts = cmd
 
         result = subprocess.run(
-            cmd_parts,
-            capture_output=True,
-            text=True,
-            timeout=timeout,
-            cwd=os.getcwd()
+            cmd_parts, capture_output=True, text=True, timeout=timeout, cwd=os.getcwd()
         )
 
         if result.returncode == 0:
@@ -88,6 +90,7 @@ def run_command(cmd, description="", timeout=300):
         print_error(f"{description} - ERROR: {str(e)}")
         return False, str(e)
 
+
 def check_python_version():
     """Check Python version compatibility."""
     print_header("Checking Python Version")
@@ -102,14 +105,12 @@ def check_python_version():
         print_error("Python version must be >= 3.8")
         return False
 
+
 def verify_dependencies():
     """Verify all required packages are installed."""
     print_header("Verifying Dependencies")
 
-    required_packages = [
-        'numpy', 'scipy', 'pandas', 'matplotlib',
-        'pytest', 'yaml', 'requests'
-    ]
+    required_packages = ["numpy", "scipy", "pandas", "matplotlib", "pytest", "yaml", "requests"]
 
     all_installed = True
     for package in required_packages:
@@ -122,6 +123,7 @@ def verify_dependencies():
 
     return all_installed
 
+
 def run_validation_suite():
     """Run engineering validation suite."""
     print_header("Running Engineering Validation Suite")
@@ -129,7 +131,7 @@ def run_validation_suite():
     success, output = run_command(
         [sys.executable, "scripts/dev/validation_suite.py"],
         "Engineering Validation Suite",
-        timeout=120
+        timeout=120,
     )
 
     if success:
@@ -140,6 +142,7 @@ def run_validation_suite():
 
     return success
 
+
 def run_unit_tests():
     """Run unit tests with coverage."""
     print_header("Running Unit Tests")
@@ -147,7 +150,7 @@ def run_unit_tests():
     success, output = run_command(
         [sys.executable, "-m", "pytest", "tests/unit_tests.py", "-v", "--tb=short"],
         "Unit Tests",
-        timeout=180
+        timeout=180,
     )
 
     if success:
@@ -156,6 +159,7 @@ def run_unit_tests():
         print_warning("Some unit tests may have failed")
 
     return success
+
 
 def test_load_flow():
     """Test Load Flow analysis."""
@@ -200,13 +204,10 @@ else:
     print("Load Flow Test: FAILED")
 """
 
-    success, output = run_command(
-        [sys.executable, "-c", test_code],
-        "Load Flow Test",
-        timeout=30
-    )
+    success, output = run_command([sys.executable, "-c", test_code], "Load Flow Test", timeout=30)
 
     return success
+
 
 def test_short_circuit():
     """Test Short Circuit analysis."""
@@ -251,12 +252,11 @@ print("Short Circuit Test: PASSED")
 """
 
     success, output = run_command(
-        [sys.executable, "-c", test_code],
-        "Short Circuit Test",
-        timeout=30
+        [sys.executable, "-c", test_code], "Short Circuit Test", timeout=30
     )
 
     return success
+
 
 def test_arc_flash():
     """Test Arc Flash analysis."""
@@ -280,13 +280,10 @@ print(f"PPE Level: {result.ppe_level}")
 print("Arc Flash Test: PASSED")
 """
 
-    success, output = run_command(
-        [sys.executable, "-c", test_code],
-        "Arc Flash Test",
-        timeout=30
-    )
+    success, output = run_command([sys.executable, "-c", test_code], "Arc Flash Test", timeout=30)
 
     return success
+
 
 def test_harmonic_analysis():
     """Test Harmonic Analysis."""
@@ -322,12 +319,11 @@ print("Harmonic Analysis Test: PASSED")
 """
 
     success, output = run_command(
-        [sys.executable, "-c", test_code],
-        "Harmonic Analysis Test",
-        timeout=30
+        [sys.executable, "-c", test_code], "Harmonic Analysis Test", timeout=30
     )
 
     return success
+
 
 def test_opf():
     """Test Optimal Power Flow."""
@@ -365,13 +361,10 @@ if result.success:
 print("OPF Test: PASSED")
 """
 
-    success, output = run_command(
-        [sys.executable, "-c", test_code],
-        "OPF Test",
-        timeout=30
-    )
+    success, output = run_command([sys.executable, "-c", test_code], "OPF Test", timeout=30)
 
     return success
+
 
 def test_security_framework():
     """Test Security Framework."""
@@ -409,12 +402,11 @@ else:
 """
 
     success, output = run_command(
-        [sys.executable, "-c", test_code],
-        "Security Framework Test",
-        timeout=30
+        [sys.executable, "-c", test_code], "Security Framework Test", timeout=30
     )
 
     return success
+
 
 def generate_test_report():
     """Generate a test report."""
@@ -458,12 +450,11 @@ result = asyncio.run(test_report())
 """
 
     success, output = run_command(
-        [sys.executable, "-c", test_code],
-        "Report Generation Test",
-        timeout=60
+        [sys.executable, "-c", test_code], "Report Generation Test", timeout=60
     )
 
     return success
+
 
 def check_system_health():
     """Check overall system health."""
@@ -483,6 +474,7 @@ def check_system_health():
 
     return all_passed
 
+
 def main():
     """Main execution function."""
     print_header("AhmedETAP Platform - Complete Setup & Test Suite")
@@ -492,22 +484,22 @@ def main():
     results = {}
 
     # Step 1: System Health
-    results['health_check'] = check_system_health()
+    results["health_check"] = check_system_health()
 
     # Step 2: Validation Suite
-    results['validation'] = run_validation_suite()
+    results["validation"] = run_validation_suite()
 
     # Step 3: Unit Tests
-    results['unit_tests'] = run_unit_tests()
+    results["unit_tests"] = run_unit_tests()
 
     # Step 4: Functional Tests
-    results['load_flow'] = test_load_flow()
-    results['short_circuit'] = test_short_circuit()
-    results['arc_flash'] = test_arc_flash()
-    results['harmonic'] = test_harmonic_analysis()
-    results['opf'] = test_opf()
-    results['security'] = test_security_framework()
-    results['report_gen'] = generate_test_report()
+    results["load_flow"] = test_load_flow()
+    results["short_circuit"] = test_short_circuit()
+    results["arc_flash"] = test_arc_flash()
+    results["harmonic"] = test_harmonic_analysis()
+    results["opf"] = test_opf()
+    results["security"] = test_security_framework()
+    results["report_gen"] = generate_test_report()
 
     # Summary
     print_header("Test Results Summary")
@@ -532,6 +524,7 @@ def main():
     print_info(f"Completed at: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
 
     return passed == total
+
 
 if __name__ == "__main__":
     success = main()

@@ -5,6 +5,7 @@ Note: EngineeringKnowledgeBase.__init__ calls self._load_default_standards()
 which needs an embedding provider. Without sentence-transformers installed,
 set RAG_ALLOW_HASH_FALLBACK=1 to use deterministic SHA-256 fallback.
 """
+
 import os
 
 import numpy as np
@@ -17,12 +18,14 @@ os.environ["RAG_ALLOW_HASH_FALLBACK"] = "1"
 _HAS_KNOWLEDGE_DEPS = False
 try:
     import sqlite3
+
     if sqlite3.sqlite_version_info >= (3, 35, 0):
         from knowledge.rag_engine import (
             EngineeringDocument,
             EngineeringKnowledgeBase,
             get_knowledge_base,
         )
+
         _HAS_KNOWLEDGE_DEPS = True
 except (ImportError, ModuleNotFoundError, RuntimeError, Exception):
     _HAS_KNOWLEDGE_DEPS = False

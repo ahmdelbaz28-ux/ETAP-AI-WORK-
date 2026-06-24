@@ -46,7 +46,9 @@ class _CacheEntry:
         "last_access",
     )
 
-    def __init__(self, value: Any, expires_at: Optional[float] = None, tags: Optional[List[str]] = None):
+    def __init__(
+        self, value: Any, expires_at: Optional[float] = None, tags: Optional[List[str]] = None
+    ):
         self.value = value
         self.expires_at = expires_at
         self.tags = tags or []

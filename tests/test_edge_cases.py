@@ -1,6 +1,7 @@
 """
 Extended edge case tests for load flow, sparse solver, and power system models.
 """
+
 import numpy as np
 import pytest
 
@@ -17,11 +18,14 @@ from load_flow.load_flow import LoadFlowSolver
 # Load Flow Solver Edge Cases
 # ===========================================================================
 
+
 class TestLoadFlowEdgeCases:
     def test_single_slack_bus(self):
         """Single bus system — solver may not handle 1-bus cases (needs >= 2 PV+PQ)."""
         system = System(base_mva=100.0)
-        bus = Bus(bus_id=1, voltage_magnitude=1.0, voltage_angle=0.0, bus_type="slack", base_kv=13.8)
+        bus = Bus(
+            bus_id=1, voltage_magnitude=1.0, voltage_angle=0.0, bus_type="slack", base_kv=13.8
+        )
         system.add_bus(bus)
         system.build_ybus(seq="1")
         try:
@@ -36,7 +40,14 @@ class TestLoadFlowEdgeCases:
         """Simple 2-bus: slack + PQ load."""
         system = System(base_mva=100.0)
         b1 = Bus(bus_id=1, voltage_magnitude=1.0, voltage_angle=0.0, bus_type="slack", base_kv=13.8)
-        b2 = Bus(bus_id=2, voltage_magnitude=1.0, voltage_angle=0.0, bus_type="pq", base_kv=13.8, load_power=complex(1.0, 0.5))
+        b2 = Bus(
+            bus_id=2,
+            voltage_magnitude=1.0,
+            voltage_angle=0.0,
+            bus_type="pq",
+            base_kv=13.8,
+            load_power=complex(1.0, 0.5),
+        )
         system.add_bus(b1)
         system.add_bus(b2)
         line = Line(line_id=1, from_bus=b1, to_bus=b2, z1=complex(0.01, 0.05))
@@ -50,7 +61,14 @@ class TestLoadFlowEdgeCases:
         """2-bus: slack + PV generator."""
         system = System(base_mva=100.0)
         b1 = Bus(bus_id=1, voltage_magnitude=1.0, voltage_angle=0.0, bus_type="slack", base_kv=13.8)
-        b2 = Bus(bus_id=2, voltage_magnitude=1.0, voltage_angle=0.0, bus_type="pv", base_kv=13.8, generation_power=complex(0.5, 0))
+        b2 = Bus(
+            bus_id=2,
+            voltage_magnitude=1.0,
+            voltage_angle=0.0,
+            bus_type="pv",
+            base_kv=13.8,
+            generation_power=complex(0.5, 0),
+        )
         system.add_bus(b1)
         system.add_bus(b2)
         line = Line(line_id=1, from_bus=b1, to_bus=b2, z1=complex(0.01, 0.05))
@@ -65,9 +83,25 @@ class TestLoadFlowEdgeCases:
     def test_three_bus_mesh(self):
         """3-bus meshed system with 2 lines."""
         system = System(base_mva=100.0)
-        b1 = Bus(bus_id=1, voltage_magnitude=1.02, voltage_angle=0.0, bus_type="slack", base_kv=13.8)
-        b2 = Bus(bus_id=2, voltage_magnitude=1.0, voltage_angle=0.0, bus_type="pq", base_kv=13.8, load_power=complex(0.8, 0.3))
-        b3 = Bus(bus_id=3, voltage_magnitude=1.01, voltage_angle=0.0, bus_type="pq", base_kv=13.8, load_power=complex(0.5, 0.2))
+        b1 = Bus(
+            bus_id=1, voltage_magnitude=1.02, voltage_angle=0.0, bus_type="slack", base_kv=13.8
+        )
+        b2 = Bus(
+            bus_id=2,
+            voltage_magnitude=1.0,
+            voltage_angle=0.0,
+            bus_type="pq",
+            base_kv=13.8,
+            load_power=complex(0.8, 0.3),
+        )
+        b3 = Bus(
+            bus_id=3,
+            voltage_magnitude=1.01,
+            voltage_angle=0.0,
+            bus_type="pq",
+            base_kv=13.8,
+            load_power=complex(0.5, 0.2),
+        )
         system.add_bus(b1)
         system.add_bus(b2)
         system.add_bus(b3)
@@ -81,7 +115,14 @@ class TestLoadFlowEdgeCases:
     def test_high_accuracy_mode(self):
         system = System(base_mva=100.0)
         b1 = Bus(bus_id=1, voltage_magnitude=1.0, voltage_angle=0.0, bus_type="slack", base_kv=13.8)
-        b2 = Bus(bus_id=2, voltage_magnitude=1.0, voltage_angle=0.0, bus_type="pq", base_kv=13.8, load_power=complex(0.5, 0.2))
+        b2 = Bus(
+            bus_id=2,
+            voltage_magnitude=1.0,
+            voltage_angle=0.0,
+            bus_type="pq",
+            base_kv=13.8,
+            load_power=complex(0.5, 0.2),
+        )
         system.add_bus(b1)
         system.add_bus(b2)
         system.add_line(Line(line_id=1, from_bus=b1, to_bus=b2, z1=complex(0.01, 0.05)))
@@ -94,7 +135,14 @@ class TestLoadFlowEdgeCases:
         """Test that solved voltages are within reasonable bounds."""
         system = System(base_mva=100.0)
         b1 = Bus(bus_id=1, voltage_magnitude=1.0, voltage_angle=0.0, bus_type="slack", base_kv=13.8)
-        b2 = Bus(bus_id=2, voltage_magnitude=1.0, voltage_angle=0.0, bus_type="pq", base_kv=13.8, load_power=complex(0.5, 0.2))
+        b2 = Bus(
+            bus_id=2,
+            voltage_magnitude=1.0,
+            voltage_angle=0.0,
+            bus_type="pq",
+            base_kv=13.8,
+            load_power=complex(0.5, 0.2),
+        )
         system.add_bus(b1)
         system.add_bus(b2)
         system.add_line(Line(line_id=1, from_bus=b1, to_bus=b2, z1=complex(0.01, 0.05)))
@@ -109,6 +157,7 @@ class TestLoadFlowEdgeCases:
 # ===========================================================================
 # Bus Model Edge Cases
 # ===========================================================================
+
 
 class TestBusEdgeCases:
     def test_bus_default_values(self):
@@ -140,6 +189,7 @@ class TestBusEdgeCases:
 # Line Model Edge Cases
 # ===========================================================================
 
+
 class TestLineEdgeCases:
     def test_line_impedance_zero(self):
         b1 = Bus(bus_id=1)
@@ -151,7 +201,9 @@ class TestLineEdgeCases:
     def test_line_with_zero_seq(self):
         b1 = Bus(bus_id=1)
         b2 = Bus(bus_id=2)
-        line = Line(line_id=1, from_bus=b1, to_bus=b2, z1=complex(0.01, 0.05), z0=complex(0.03, 0.15))
+        line = Line(
+            line_id=1, from_bus=b1, to_bus=b2, z1=complex(0.01, 0.05), z0=complex(0.03, 0.15)
+        )
         assert line.get_impedance("0") == complex(0.03, 0.15)
         assert line.get_impedance("1") == complex(0.01, 0.05)
         assert line.get_impedance("2") == complex(0.01, 0.05)
@@ -159,13 +211,16 @@ class TestLineEdgeCases:
     def test_line_shunt_admittance(self):
         b1 = Bus(bus_id=1)
         b2 = Bus(bus_id=2)
-        line = Line(line_id=1, from_bus=b1, to_bus=b2, z1=complex(0.01, 0.05), yshunt1=complex(0, 0.001))
+        line = Line(
+            line_id=1, from_bus=b1, to_bus=b2, z1=complex(0.01, 0.05), yshunt1=complex(0, 0.001)
+        )
         assert line.get_shunt_admittance("1") == complex(0, 0.001)
 
 
 # ===========================================================================
 # Transformer Model
 # ===========================================================================
+
 
 class TestTransformerEdgeCases:
     def test_transformer_defaults(self):
@@ -178,7 +233,9 @@ class TestTransformerEdgeCases:
     def test_transformer_with_tap(self):
         b1 = Bus(bus_id=1)
         b2 = Bus(bus_id=2)
-        t = Transformer(transformer_id=1, from_bus=b1, to_bus=b2, z1=complex(0.01, 0.1), tap_ratio=1.05)
+        t = Transformer(
+            transformer_id=1, from_bus=b1, to_bus=b2, z1=complex(0.01, 0.1), tap_ratio=1.05
+        )
         assert t.tap_ratio == 1.05
         z = t.get_impedance("1")
         assert z == complex(0.01, 0.1)
@@ -186,7 +243,9 @@ class TestTransformerEdgeCases:
     def test_transformer_phase_shift(self):
         b1 = Bus(bus_id=1)
         b2 = Bus(bus_id=2)
-        t = Transformer(transformer_id=1, from_bus=b1, to_bus=b2, z1=complex(0.01, 0.1), phase_shift=30)
+        t = Transformer(
+            transformer_id=1, from_bus=b1, to_bus=b2, z1=complex(0.01, 0.1), phase_shift=30
+        )
         assert t.phase_shift == 30
 
     def test_transformer_rating(self):
@@ -205,6 +264,7 @@ class TestTransformerEdgeCases:
 # ===========================================================================
 # Motor Model
 # ===========================================================================
+
 
 class TestMotorModel:
     def test_motor_defaults(self):
@@ -239,10 +299,13 @@ class TestMotorModel:
 # Generator Model Additional Tests
 # ===========================================================================
 
+
 class TestGeneratorAdditional:
     def test_generator_with_impedance(self):
         bus = Bus(bus_id=1)
-        gen = Generator(generator_id=1, bus=bus, impedance={"1": complex(0, 0.25), "0": complex(0, 0.15)})
+        gen = Generator(
+            generator_id=1, bus=bus, impedance={"1": complex(0, 0.25), "0": complex(0, 0.15)}
+        )
         assert gen.impedance["1"] == complex(0, 0.25)
         assert gen.impedance["0"] == complex(0, 0.15)
 
@@ -255,6 +318,7 @@ class TestGeneratorAdditional:
 # ===========================================================================
 # Load Model Additional Tests
 # ===========================================================================
+
 
 class TestLoadAdditional:
     def test_load_defaults(self):

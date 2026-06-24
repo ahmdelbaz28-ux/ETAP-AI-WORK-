@@ -1375,9 +1375,7 @@ class ChiefEngineeringOrchestrator:
             self.agents["etap_expert"] = self._etap_expert_agent
         except Exception as exc:
             self._etap_expert_agent = None
-            self.logger.warning(
-                "ETAPExpertAgent not available — skill disabled: %s", exc
-            )
+            self.logger.warning("ETAPExpertAgent not available — skill disabled: %s", exc)
 
         # ETAP GUI Agent — Computer Use Agent for desktop apps (ETAP, Revit, AutoCAD, etc.)
         # Falls back gracefully on headless servers / HF Space (returns Format U).
@@ -1388,9 +1386,7 @@ class ChiefEngineeringOrchestrator:
             self.agents["etap_gui"] = self._etap_gui_agent
         except Exception as exc:
             self._etap_gui_agent = None
-            self.logger.warning(
-                "ETAPGUIAgent not available — skill disabled: %s", exc
-            )
+            self.logger.warning("ETAPGUIAgent not available — skill disabled: %s", exc)
 
         self.task_queue: List[EngineeringTask] = []
         self.completed_tasks: Dict[str, EngineeringTask] = {}

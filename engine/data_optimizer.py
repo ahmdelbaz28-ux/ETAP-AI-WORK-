@@ -710,7 +710,9 @@ class LargeSystemAdapter:
         r["system_type"] = "xl" if self._xl else ("large" if self._large else "normal")
         return r
 
-    def run_fault_analysis_optimized(self, params: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+    def run_fault_analysis_optimized(
+        self, params: Optional[Dict[str, Any]] = None
+    ) -> Dict[str, Any]:
         p = params or {}
         sys_o = self.optimized_system.to_system()
         sys_o.build_sequence_networks(for_fault=True)

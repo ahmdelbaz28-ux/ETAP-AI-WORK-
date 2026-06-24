@@ -512,6 +512,7 @@ def app(db_engine: AsyncEngine):
                 await session.close()
 
     from api.database import get_db as _original_get_db
+
     real_app.dependency_overrides[_original_get_db] = _override_get_db
 
     yield real_app
@@ -523,6 +524,7 @@ def app(db_engine: AsyncEngine):
 def client(app) -> Generator[TestClient, None, None]:
     """Provide a TestClient wired to the test application."""
     import api.auth as _auth_module
+
     _auth_module._LOGIN_ATTEMPTS.clear()
 
     with TestClient(app) as c:
@@ -546,9 +548,7 @@ def _register_user(
             "role": role,
         },
     )
-    assert resp.status_code in (200, 201), (
-        f"Registration failed: {resp.status_code} {resp.text}"
-    )
+    assert resp.status_code in (200, 201), f"Registration failed: {resp.status_code} {resp.text}"
     return resp.json()
 
 
@@ -562,9 +562,7 @@ def _login_user(
         "/api/v1/auth/login",
         json={"username": username, "password": password},
     )
-    assert resp.status_code == 200, (
-        f"Login failed: {resp.status_code} {resp.text}"
-    )
+    assert resp.status_code == 200, f"Login failed: {resp.status_code} {resp.text}"
     return resp.json()
 
 

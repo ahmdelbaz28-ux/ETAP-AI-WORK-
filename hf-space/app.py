@@ -512,6 +512,7 @@ async def etap_expert_chat(request: ETAPExpertChatRequest):
         )
     try:
         from agents.etap_expert_agent import ETAPExpertAgent
+
         agent = ETAPExpertAgent()
         result = agent.answer(question)
         return {"success": True, "data": result}
@@ -541,6 +542,7 @@ async def etap_gui_chat(request: ETAPGUIChatRequest):
         )
     try:
         from agents.etap_gui_agent import ETAPGUIAgent
+
         agent = ETAPGUIAgent()
         result = agent.answer(question)
         return {"success": True, "data": result}
@@ -568,7 +570,7 @@ STUDY_TYPES = [
     "battery_storage",
     "scada",
     "etap_expert",  # ETAP Expert skill — 6-step workflow with Format A/B/C/D
-    "etap_gui",     # ETAP GUI Agent — Computer Use Agent for desktop apps
+    "etap_gui",  # ETAP GUI Agent — Computer Use Agent for desktop apps
 ]
 
 
@@ -599,6 +601,7 @@ async def run_study(request: StudyRequest):
             )
         try:
             from agents.etap_expert_agent import ETAPExpertAgent
+
             agent = ETAPExpertAgent()
             result = agent.answer(question)
             return {
@@ -626,6 +629,7 @@ async def run_study(request: StudyRequest):
             )
         try:
             from agents.etap_gui_agent import ETAPGUIAgent
+
             agent = ETAPGUIAgent()
             result = agent.answer(question)
             return {

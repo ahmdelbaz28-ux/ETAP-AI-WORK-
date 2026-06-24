@@ -4,6 +4,7 @@ Tests for GIS validation modules — TopologyValidator, CRSValidator, ADMSGraphM
 Note: gis_integration has Python 3.8 type hint compatibility issues in some
 providers. Tests are skipped if the required imports are not available.
 """
+
 import pytest
 
 # Attempt import — gis_integration may fail on Python 3.8 due to Optional[X] syntax
@@ -56,6 +57,7 @@ pytestmark = pytest.mark.skipif(
 # ADMSGraphModel
 # ===========================================================================
 
+
 class TestADMSGraphModel:
     def test_empty_assets(self):
         model = ADMSGraphModel([])
@@ -72,7 +74,8 @@ class TestADMSGraphModel:
         assets = [
             _make_asset("S1", geometry={"type": "Point", "coordinates": [31.0, 30.0]}),
             _make_asset(
-                "L1", ADMSAssetType.LINE,
+                "L1",
+                ADMSAssetType.LINE,
                 geometry={
                     "type": "LineString",
                     "coordinates": [[31.0, 30.0], [31.1, 30.1]],
@@ -87,7 +90,8 @@ class TestADMSGraphModel:
         assets = [
             _make_asset("S1", geometry={"type": "Point", "coordinates": [31.0, 30.0]}),
             _make_asset(
-                "L1", ADMSAssetType.LINE,
+                "L1",
+                ADMSAssetType.LINE,
                 geometry={
                     "type": "LineString",
                     "coordinates": [[32.0, 31.0], [33.0, 32.0]],
@@ -102,14 +106,16 @@ class TestADMSGraphModel:
         assets = [
             _make_asset("S1", geometry={"type": "Point", "coordinates": [31.0, 30.0]}),
             _make_asset(
-                "L1", ADMSAssetType.LINE,
+                "L1",
+                ADMSAssetType.LINE,
                 geometry={
                     "type": "LineString",
                     "coordinates": [[31.0, 30.0], [31.1, 30.1]],
                 },
             ),
             _make_asset(
-                "L2", ADMSAssetType.LINE,
+                "L2",
+                ADMSAssetType.LINE,
                 geometry={
                     "type": "LineString",
                     "coordinates": [[31.0, 30.0], [31.2, 29.9]],
@@ -123,7 +129,8 @@ class TestADMSGraphModel:
         assets = [
             _make_asset("S1", geometry={"type": "Point", "coordinates": [31.0, 30.0]}),
             _make_asset(
-                "L1", ADMSAssetType.LINE,
+                "L1",
+                ADMSAssetType.LINE,
                 geometry={
                     "type": "LineString",
                     "coordinates": [[31.0, 30.0], [31.1, 30.1]],
@@ -138,7 +145,8 @@ class TestADMSGraphModel:
         assets = [
             _make_asset("S1", geometry={"type": "Point", "coordinates": [31.0, 30.0]}),
             _make_asset(
-                "L1", ADMSAssetType.LINE,
+                "L1",
+                ADMSAssetType.LINE,
                 geometry={
                     "type": "LineString",
                     "coordinates": [[31.0, 30.0], [31.1, 30.1]],
@@ -177,7 +185,8 @@ class TestADMSGraphModel:
         assets = [
             _make_asset("S1", geometry={"type": "Point", "coordinates": [31.0, 30.0]}),
             _make_asset(
-                "F1", ADMSAssetType.FEEDER,
+                "F1",
+                ADMSAssetType.FEEDER,
                 geometry={
                     "type": "LineString",
                     "coordinates": [[31.0, 30.0], [31.1, 30.1]],
@@ -191,6 +200,7 @@ class TestADMSGraphModel:
 # ===========================================================================
 # validate_adms_topology
 # ===========================================================================
+
 
 class TestValidateADMSTopology:
     def test_empty_assets(self):
@@ -209,7 +219,8 @@ class TestValidateADMSTopology:
         assets = [
             _make_asset("S1", geometry={"type": "Point", "coordinates": [31.0, 30.0]}),
             _make_asset(
-                "L1", ADMSAssetType.LINE,
+                "L1",
+                ADMSAssetType.LINE,
                 geometry={
                     "type": "LineString",
                     "coordinates": [[31.0, 30.0], [31.1, 30.1]],
@@ -232,7 +243,8 @@ class TestValidateADMSTopology:
     def test_dangling_line_detected(self):
         assets = [
             _make_asset(
-                "L1", ADMSAssetType.LINE,
+                "L1",
+                ADMSAssetType.LINE,
                 geometry={
                     "type": "LineString",
                     "coordinates": [[32.0, 31.0], [33.0, 32.0]],
@@ -248,6 +260,7 @@ class TestValidateADMSTopology:
 # ===========================================================================
 # CRS Validator
 # ===========================================================================
+
 
 class TestCRSValidator:
     def test_empty_assets(self):
@@ -338,6 +351,7 @@ class TestNormalizationApplied:
 # ===========================================================================
 # Dataclass tests (no import guard needed)
 # ===========================================================================
+
 
 class TestTopologyIssueDataclass:
     def test_create(self):

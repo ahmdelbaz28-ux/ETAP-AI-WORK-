@@ -129,8 +129,16 @@ def test_etap_expert_does_not_interfere_with_orchestrator_get_agents_info():
     info = orch.get_agents_info()
     assert "agents" in info
     # All old agents must still appear
-    for old_agent in ["load_flow", "short_circuit", "harmonic", "opf", "protection",
-                      "etap_execution", "validation", "report"]:
+    for old_agent in [
+        "load_flow",
+        "short_circuit",
+        "harmonic",
+        "opf",
+        "protection",
+        "etap_execution",
+        "validation",
+        "report",
+    ]:
         assert old_agent in info["agents"], f"Agent '{old_agent}' missing from get_agents_info()"
 
 
