@@ -10,15 +10,20 @@ on:
       - 'agents/**'
       - 'skills/**'
       - 'prompts/**'
+      - 'prompts.json'
       - 'core_model/**'
+      - 'core/**'
       - 'engine/**'
       - 'load_flow/**'
       - 'fault_analysis/**'
       - 'coordination/**'
       - 'relays/**'
       - 'network_solver/**'
+      - 'services/**'
+      - 'api/**'
+      - 'utils/**'
       - 'VERSION'
-      - 'prompts.json'
+      - '.github/workflows/sync-hf-space.yml'
   workflow_dispatch:
 
 jobs:
