@@ -90,11 +90,26 @@ def execute_etap_integration_task(self, etap_command: dict):
 
         logger.info(f"Starting ETAP integration: {etap_command.get('command', 'Unknown')}")
 
-        # Import ETAP provider only when needed (to avoid Windows dependency issues)
-        from etap_integration.etap_provider import ETAPProvider
+        from etap_integration.etap_provider import get_etap_provider
 
-        provider = ETAPProvider()
-        result = provider.execute_command(etap_command)
+        provider = get_etap_provider()
+        if hasattr(provider, "execute_command"):
+            result = provider.execute_command(etap_command)
+        else:
+            project_path = etap_command.get("project_path", "")
+            from etap_integration.etap_provider import ETAPStudyType
+            study_type_str = etap_command.get("command", "LOAD_FLOW").upper()
+            try:
+                study_type = ETAPStudyType(study_type_str)
+            except ValueError:
+                study_type = ETAPStudyType.LOAD_FLOW
+            res = provider.execute_study(project_path, study_type)
+            result = {
+                "success": res.success,
+                "data": res.data,
+                "warnings": res.warnings,
+                "errors": res.errors,
+            }
 
         logger.info(f"Completed ETAP integration: {etap_command.get('command', 'Unknown')}")
 

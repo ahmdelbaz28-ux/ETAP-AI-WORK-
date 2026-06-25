@@ -116,7 +116,7 @@ UTC = timezone.utc  # noqa: UP017
 from fastapi import FastAPI, HTTPException, Request, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
-from pydantic import AliasChoices, BaseModel, ConfigDict, Field, field_validator
+from pydantic import AliasChoices, BaseModel, ConfigDict, Field, field_validator, model_validator
 from starlette.middleware.base import BaseHTTPMiddleware
 
 # Import existing modular routers
@@ -366,7 +366,7 @@ class StudyRequest(BaseModel):
     model_config = ConfigDict(extra="ignore")
 
     study_type: str = Field(..., description="Type of study to run")
-    system: Optional[SystemSpec] = None
+    system: Optional[SystemSpec] = Field(default=None, validation_alias=AliasChoices("system", "system_spec"))
     parameters: Dict[str, Any] = Field(default_factory=dict)
     task_id: Optional[str] = None
     use_etap: bool = Field(
@@ -404,6 +404,7 @@ class StudyRequest(BaseModel):
 class StudyResult(BaseModel):
     success: bool
     data: Dict[str, Any] = Field(default_factory=dict)
+    results: Dict[str, Any] = Field(default_factory=dict)
     warnings: List[str] = Field(default_factory=list)
     errors: List[str] = Field(default_factory=list)
     execution_time_sec: float = 0.0
@@ -411,6 +412,16 @@ class StudyResult(BaseModel):
     task_id: Optional[str] = None
     study_type: str = ""
     provider: str = "native"
+
+    @model_validator(mode="before")
+    @classmethod
+    def sync_data_and_results(cls, data: Any) -> Any:
+        if isinstance(data, dict):
+            if "data" in data and "results" not in data:
+                data["results"] = data["data"]
+            elif "results" in data and "data" not in data:
+                data["data"] = data["results"]
+        return data
 
 
 class HealthResponse(BaseModel):
