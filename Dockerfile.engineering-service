@@ -59,6 +59,7 @@ WORKDIR /app
 
 # Copy the service code + ALL required Python modules
 COPY --chown=engsvc:engsvc engineering_service.py ./
+COPY --chown=engsvc:engsvc compat.py ./
 COPY --chown=engsvc:engsvc api/ ./api/
 COPY --chown=engsvc:engsvc core/ ./core/
 COPY --chown=engsvc:engsvc services/ ./services/
@@ -90,6 +91,7 @@ COPY --chown=engsvc:engsvc gis_model/ ./gis_model/
 COPY --chown=engsvc:engsvc gis_validation/ ./gis_validation/
 COPY --chown=engsvc:engsvc gis_validation_electrical/ ./gis_validation_electrical/
 COPY --chown=engsvc:engsvc gis_validation_real/ ./gis_validation_real/
+COPY --chown=engsvc:engsvc autodesk_connector/ ./autodesk_connector/
 COPY --chown=engsvc:engsvc skills/ ./skills/
 COPY --chown=engsvc:engsvc reporting/ ./reporting/
 COPY --chown=engsvc:engsvc prompts/ ./prompts/
@@ -99,7 +101,7 @@ ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
     ENGINEERING_SERVICE_HOST=0.0.0.0 \
     ENGINEERING_SERVICE_PORT=8000 \
-    ENGINEERING_SERVICE_CORS_ORIGINS=* \
+    ENGINEERING_SERVICE_CORS_ORIGINS=${ENGINEERING_SERVICE_CORS_ORIGINS:-http://localhost:3000} \
     DATABASE_URL=sqlite+aiosqlite:////tmp/data/etap_platform.db
 
 EXPOSE 8000

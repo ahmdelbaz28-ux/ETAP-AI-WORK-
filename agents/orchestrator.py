@@ -25,8 +25,6 @@ from dataclasses import dataclass, field
 from datetime import datetime, timezone
 
 UTC = timezone.utc  # noqa: UP017
-
-UTC = UTC
 from enum import Enum
 from typing import Any, Dict, List, Optional
 
@@ -1544,11 +1542,11 @@ class ChiefEngineeringOrchestrator:
                 parallel_results = await asyncio.gather(*parallel_tasks, return_exceptions=True)
                 for pr in parallel_results:
                     if isinstance(pr, Exception):
-                        self.logger.error(f"Parallel agent failed: {pr}")
+                        self.logger.error("Parallel agent failed: %s", pr)
                     else:
                         results.append(pr)
                         if not pr.validation_status:
-                            self.logger.warning(f"Validation failed: {pr.validation_errors}")
+                            self.logger.warning("Validation failed: %s", pr.validation_errors)
 
         # Phase 3: Final validation pass
         validation_task = EngineeringTask(

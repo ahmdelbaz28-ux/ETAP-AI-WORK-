@@ -28,16 +28,22 @@ serviceAccount:
 
 podAnnotations: {}
 
-podSecurityContext: {}
-  # fsGroup: 2000
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 1000
+  runAsGroup: 1000
+  fsGroup: 1000
+  seccompProfile:
+    type: RuntimeDefault
 
-securityContext: {}
-  # capabilities:
-  #   drop:
-  #   - ALL
-  # readOnlyRootFilesystem: true
-  # runAsNonRoot: true
-  # runAsUser: 1000
+securityContext:
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop:
+      - ALL
+  readOnlyRootFilesystem: true
+  runAsNonRoot: true
+  runAsUser: 1000
 
 # API Service Configuration
 api:
@@ -118,7 +124,7 @@ env:
   REDIS_URL: redis://etap-ai-redis-master:6379/0
   USE_ETAP: "false"
   PRIVACY_MODE: "true"
-  ENGINEERING_SERVICE_API_KEY: "your-api-key-here"
+  ENGINEERING_SERVICE_API_KEY: "CHANGE-ME-IN-PRODUCTION"
   LOG_LEVEL: "INFO"
 
 # Database Configuration
@@ -149,3 +155,15 @@ nodeSelector: {}
 tolerations: []
 
 affinity: {}
+
+# Network Policy Configuration (Zero-Trust)
+networkPolicy:
+  # Set to true to enforce zero-trust network policies
+  enabled: true
+  # Labels used to identify the Ingress controller pods and namespace
+  # Adjust these to match your cluster's Ingress controller deployment
+  ingressController:
+    namespaceLabels:
+      kubernetes.io/metadata.name: ingress-nginx
+    podLabels:
+      app.kubernetes.io/name: ingress-nginx

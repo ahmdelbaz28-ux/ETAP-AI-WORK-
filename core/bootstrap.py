@@ -376,7 +376,7 @@ async def lifespan(app):
             try:
                 await _study_cache.clear()
             except Exception as e:
-                logger.warning(f"Cache cleanup failed: {e}")
+                logger.warning("Cache cleanup failed: %s", e, exc_info=True)
 
 
 async def _initialize_cache_with_retry(max_retries: int = 3) -> Any:
@@ -393,12 +393,12 @@ async def _initialize_cache_with_retry(max_retries: int = 3) -> Any:
                     logger.info(f"Cache connection established (attempt {attempt + 1})")
                     return cache
                 else:
-                    logger.warning(f"Cache connection failed (attempt {attempt + 1})")
+                    logger.warning("Cache connection failed (attempt %s)", attempt + 1)
             else:
                 logger.info(f"Cache initialized without ping (attempt {attempt + 1})")
                 return cache
         except Exception as e:
-            logger.warning(f"Cache initialization failed (attempt {attempt + 1}): {e}")
+            logger.warning("Cache initialization failed (attempt %s): %s", attempt + 1, e, exc_info=True)
             if attempt == max_retries - 1:
                 logger.error("Failed to initialize cache after all retries, using fallback")
                 # Return a basic in-memory cache as fallback

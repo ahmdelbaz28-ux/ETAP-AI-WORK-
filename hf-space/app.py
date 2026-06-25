@@ -2,29 +2,53 @@
 AhmedETAP - Enterprise Engineering Intelligence Platform
 Hugging Face Spaces Entry Point
 Author: Eng. Ahmed Elbaz
+
+This file now imports shared logic from ``api.shared_handlers`` so that
+constants, models, agent lists, study execution, rate limiting, and auth
+are defined in one place and reused by both the HF Space and the main API.
 """
 
 from __future__ import annotations
 
-import hmac
 import logging
 import os
-import threading
 import time
 from contextlib import asynccontextmanager
-from datetime import datetime, timezone
-
-UTC = timezone.utc  # noqa: UP017
-from typing import Any
 
 import uvicorn
-from fastapi import FastAPI, HTTPException, Request
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse, JSONResponse
-from pydantic import BaseModel
 
-# -- Version (single source of truth) -----------------------------------------
-VERSION = "2.1.0"
+# -- Shared handlers (single source of truth) ---------------------------------
+from api.shared_handlers import (
+    AGENTS,
+    AGENT_COUNT,
+    BUILD_TIME,
+    ETAP_MANUAL_COUNT,
+    PUBLIC_PATHS,
+    START_TIME,
+    STUDY_TYPES,
+    VERSION,
+    ZENON_GUIDE_COUNT,
+    InMemoryRateLimiter,
+    SharedETAPExpertChatRequest,
+    SharedETAPGUIChatRequest,
+    SharedStudyRequest,
+    build_health_response,
+    build_knowledge_info,
+    build_metrics_response,
+    build_platform_info,
+    build_ready_response,
+    handle_detect_anomalies,
+    handle_etap_expert_chat,
+    handle_etap_gui_chat,
+    handle_ml_capabilities,
+    handle_predict_load,
+    rate_limiter,
+    run_study_lightweight,
+    verify_api_key,
+)
 
 # -- Logging ------------------------------------------------------------------
 logging.basicConfig(
@@ -32,62 +56,6 @@ logging.basicConfig(
     format="%(asctime)s | %(levelname)s | %(name)s | %(message)s",
 )
 logger = logging.getLogger("etap-ai")
-
-# -- App Constants ------------------------------------------------------------
-START_TIME = time.time()
-BUILD_TIME = datetime.now(UTC).isoformat()
-AGENT_COUNT = 23
-ETAP_MANUAL_COUNT = 35
-ZENON_GUIDE_COUNT = 4
-
-# -- Optional API Key Auth ----------------------------------------------------
-_API_KEY = os.environ.get("HF_API_KEY", "")
-_API_KEY_ENABLED = bool(_API_KEY)
-
-
-def _verify_api_key(request: Request) -> None:
-    """Validate API key when configured. Skips health/docs endpoints."""
-    if not _API_KEY_ENABLED:
-        return
-    # Skip auth for health, docs, and root
-    path = request.url.path
-    if path in (
-        "/",
-        "/healthz",
-        "/readyz",
-        "/health",
-        "/ready",
-        "/docs",
-        "/redoc",
-        "/openapi.json",
-        "/metrics",
-    ):
-        return
-    provided = request.headers.get("x-api-key") or ""
-    if not hmac.compare_digest(provided, _API_KEY):
-        raise HTTPException(status_code=401, detail="Invalid or missing API key")
-
-
-# -- Rate Limiting (in-memory, per-client) ------------------------------------
-_RATE_WINDOW = int(os.environ.get("RATE_LIMIT_WINDOW", "60"))
-_RATE_MAX = int(os.environ.get("RATE_LIMIT_MAX", "120"))
-_rate_store: dict[str, list[float]] = {}
-_rate_lock = threading.Lock()
-
-
-def _check_rate_limit(client_id: str) -> bool:
-    """Return True if the request is allowed, False if rate-limited."""
-    now = time.time()
-    with _rate_lock:
-        if client_id not in _rate_store:
-            _rate_store[client_id] = [now]
-            return True
-        _rate_store[client_id] = [t for t in _rate_store[client_id] if now - t < _RATE_WINDOW]
-        if len(_rate_store[client_id]) >= _RATE_MAX:
-            return False
-        _rate_store[client_id].append(now)
-        return True
-
 
 # -- Lifespan -----------------------------------------------------------------
 @asynccontextmanager
@@ -137,54 +105,18 @@ app.add_middleware(
 # -- Auth + Rate-limit middleware ---------------------------------------------
 @app.middleware("http")
 async def auth_and_rate_limit(request: Request, call_next):
-    # API key check
-    _verify_api_key(request)
+    # API key check (uses shared verify_api_key with HF_API_KEY env var)
+    verify_api_key(request)
     # Rate limit (skip health/docs)
-    path = request.url.path
-    if path not in (
-        "/",
-        "/healthz",
-        "/readyz",
-        "/health",
-        "/ready",
-        "/docs",
-        "/redoc",
-        "/openapi.json",
-        "/metrics",
-    ):
+    if request.url.path not in PUBLIC_PATHS:
         client_id = request.client.host if request.client else "unknown"
-        if not _check_rate_limit(client_id):
+        if not rate_limiter.is_allowed(client_id):
             return JSONResponse(
                 status_code=429,
                 content={"detail": "Rate limit exceeded"},
-                headers={"Retry-After": str(_RATE_WINDOW)},
+                headers={"Retry-After": str(rate_limiter.window)},
             )
     return await call_next(request)
-
-
-# -- Models -------------------------------------------------------------------
-class StudyRequest(BaseModel):
-    study_type: str
-    system: dict[str, Any] = {}
-    options: dict[str, Any] = {}
-    parameters: dict[str, Any] = {}
-    use_etap: bool = False
-
-
-class AgentRequest(BaseModel):
-    agent: str
-    query: str
-    context: dict[str, Any] = {}
-
-
-class ETAPExpertChatRequest(BaseModel):
-    question: str
-    context: dict[str, Any] = {}
-
-
-class ETAPGUIChatRequest(BaseModel):
-    question: str
-    context: dict[str, Any] = {}
 
 
 # -- Root ---------------------------------------------------------------------
@@ -250,7 +182,7 @@ async def root():
     return HTMLResponse(content=html)
 
 
-# -- Health -------------------------------------------------------------------
+# -- Health (delegates to shared builders) ------------------------------------
 @app.get("/healthz", tags=["Health"])
 async def healthz():
     return JSONResponse(content={"status": "ok"}, status_code=200)
@@ -268,216 +200,27 @@ async def readyz():
 
 @app.get("/health", tags=["Health"])
 async def health():
-    uptime = round(time.time() - START_TIME, 2)
-    return {
-        "status": "healthy",
-        "uptime_seconds": uptime,
-        "build_time": BUILD_TIME,
-        "version": VERSION,
-        "platform": "huggingface-spaces",
-        "agents": AGENT_COUNT,
-        "etap_manuals": ETAP_MANUAL_COUNT,
-        "zenon_guides": ZENON_GUIDE_COUNT,
-    }
+    return build_health_response(platform="huggingface-spaces")
 
 
 @app.get("/ready", tags=["Health"])
 async def ready():
-    return {"status": "ready", "uptime": round(time.time() - START_TIME, 2)}
+    return build_ready_response()
 
 
 # -- Metrics ------------------------------------------------------------------
 @app.get("/metrics", tags=["Monitoring"])
 async def metrics():
-    return {
-        "uptime_seconds": round(time.time() - START_TIME, 2),
-        "platform": "huggingface-spaces",
-        "version": VERSION,
-    }
+    return build_metrics_response(platform="huggingface-spaces")
 
 
 # -- Platform Info ------------------------------------------------------------
 @app.get("/api/v1/info", tags=["Platform"])
 async def platform_info():
-    return {
-        "name": "AhmedETAP",
-        "version": VERSION,
-        "description": "Enterprise Engineering Intelligence Platform",
-        "author": "Eng. Ahmed Elbaz",
-        "standards": [
-            "IEEE 3002.7",
-            "IEC 60909",
-            "IEEE 1584",
-            "IEC 60255",
-            "IEEE 519",
-            "IEC 61850",
-            "IEEE 80",
-            "IEC 60364",
-            "IEEE 399",
-            "IEC 62933",
-        ],
-        "agents": AGENT_COUNT,
-        "knowledge_base": {
-            "etap_manuals": ETAP_MANUAL_COUNT,
-            "zenon_guides": ZENON_GUIDE_COUNT,
-            "total_chunks": "5000+",
-        },
-        "endpoints": {
-            "docs": "/docs",
-            "health": "/healthz",
-            "studies": "/api/v1/studies/run",
-            "agents": "/api/v1/agents",
-        },
-    }
+    return build_platform_info()
 
 
 # -- Agents -------------------------------------------------------------------
-AGENTS = [
-    {
-        "id": "load-flow-agent",
-        "name": "Load Flow Agent",
-        "standard": "IEEE 3002.7",
-        "status": "active",
-    },
-    {
-        "id": "short-circuit-agent",
-        "name": "Short Circuit Agent",
-        "standard": "IEC 60909",
-        "status": "active",
-    },
-    {
-        "id": "arcflash-agent",
-        "name": "Arc Flash Agent",
-        "standard": "IEEE 1584",
-        "status": "active",
-    },
-    {
-        "id": "protection-agent",
-        "name": "Protection Agent",
-        "standard": "IEC 60255",
-        "status": "active",
-    },
-    {
-        "id": "motorstarting-agent",
-        "name": "Motor Starting Agent",
-        "standard": "IEEE 399",
-        "status": "active",
-    },
-    {
-        "id": "stability-agent",
-        "name": "Stability Agent",
-        "standard": "IEEE 399",
-        "status": "active",
-    },
-    {
-        "id": "harmonic-agent",
-        "name": "Harmonic Analysis Agent",
-        "standard": "IEEE 519",
-        "status": "active",
-    },
-    {
-        "id": "cable-sizing-agent",
-        "name": "Cable Sizing Agent",
-        "standard": "IEC 60364",
-        "status": "active",
-    },
-    {
-        "id": "earth-grid-agent",
-        "name": "Earth Grid Agent",
-        "standard": "IEEE 80",
-        "status": "active",
-    },
-    {
-        "id": "opf-agent",
-        "name": "Optimal Power Flow Agent",
-        "standard": "IEEE 3002.7",
-        "status": "active",
-    },
-    {
-        "id": "renewable-agent",
-        "name": "Renewable Energy Agent",
-        "standard": "IEEE 1547",
-        "status": "active",
-    },
-    {
-        "id": "battery-storage-agent",
-        "name": "Battery Storage Agent",
-        "standard": "IEC 62933",
-        "status": "active",
-    },
-    {"id": "scada-agent", "name": "SCADA Agent", "standard": "IEC 61850", "status": "active"},
-    {
-        "id": "digital-twin-agent",
-        "name": "Digital Twin Agent",
-        "standard": "IEC 61970",
-        "status": "active",
-    },
-    {
-        "id": "predictive-agent",
-        "name": "Predictive Maintenance",
-        "standard": "ISO 13381",
-        "status": "active",
-    },
-    {
-        "id": "anomaly-agent",
-        "name": "Anomaly Detection Agent",
-        "standard": "IEEE 1159",
-        "status": "active",
-    },
-    {
-        "id": "coordination-agent",
-        "name": "Coordination Agent",
-        "standard": "IEC 60255",
-        "status": "active",
-    },
-    {
-        "id": "report-agent",
-        "name": "Report Generation Agent",
-        "standard": "IEEE 3002.7",
-        "status": "active",
-    },
-    {
-        "id": "validation-agent",
-        "name": "Validation Agent",
-        "standard": "IEC 60038",
-        "status": "active",
-    },
-    {
-        "id": "etap-engineer-agent",
-        "name": "ETAP Engineer Agent",
-        "standard": "ETAP Manual",
-        "status": "active",
-    },
-    {
-        "id": "goal-planner-agent",
-        "name": "Goal Planner Agent",
-        "standard": "Internal",
-        "status": "active",
-    },
-    {"id": "weather-agent", "name": "Weather Agent", "standard": "IEC 60721", "status": "active"},
-    {
-        "id": "power-system-coordinator",
-        "name": "Power System Coordinator",
-        "standard": "All",
-        "status": "active",
-    },
-    {
-        "id": "etap-expert-agent",
-        "name": "ETAP Expert Skill Agent",
-        "standard": "IEEE/IEC/NEC/NFPA (all)",
-        "status": "active",
-        "description": "6-step workflow with Format A/B/C/D responses. Knowledge base: skills/etap-expert.md (4,400+ lines).",
-    },
-    {
-        "id": "etap-gui-agent",
-        "name": "ETAP GUI Agent (Computer Use Agent)",
-        "standard": "Safety + Audit",
-        "status": "active",
-        "description": "Computer Use Agent for desktop apps (ETAP, Revit, AutoCAD, SCADA, QGIS, ArcGIS). 4 modes: Analyze/Monitor/Control/Solve. Falls back gracefully on headless servers.",
-    },
-]
-
-
 @app.get("/api/v1/agents", tags=["Agents"])
 async def list_agents():
     return {"count": len(AGENTS), "agents": AGENTS}
@@ -492,7 +235,7 @@ async def get_agent(agent_id: str):
 
 
 @app.post("/api/v1/agents/etap-expert/chat", tags=["Agents"])
-async def etap_expert_chat(request: ETAPExpertChatRequest):
+async def etap_expert_chat(request: SharedETAPExpertChatRequest):
     """Chat with the ETAP Expert skill agent.
 
     Implements the 6-step workflow (PARSE → SEARCH → VALIDATE → SIMULATE →
@@ -504,28 +247,15 @@ async def etap_expert_chat(request: ETAPExpertChatRequest):
 
     Knowledge base: skills/etap-expert.md (4,400+ lines)
     """
-    question = request.question.strip()
-    if not question:
-        return JSONResponse(
-            status_code=400,
-            content={"error": "'question' field is required and must be non-empty"},
-        )
-    try:
-        from agents.etap_expert_agent import ETAPExpertAgent
-
-        agent = ETAPExpertAgent()
-        result = agent.answer(question)
-        return {"success": True, "data": result}
-    except Exception as exc:
-        logger.exception("etap_expert chat failed")
-        return JSONResponse(
-            status_code=500,
-            content={"error": f"ETAP Expert agent error: {exc}"},
-        )
+    result = handle_etap_expert_chat(request.question)
+    status = result.pop("_status", None)
+    if status:
+        return JSONResponse(status_code=status, content=result)
+    return result
 
 
 @app.post("/api/v1/agents/etap-gui/chat", tags=["Agents"])
-async def etap_gui_chat(request: ETAPGUIChatRequest):
+async def etap_gui_chat(request: SharedETAPGUIChatRequest):
     """Chat with the ETAP GUI Agent (Computer Use Agent).
 
     Classifies the question into Analyze/Monitor/Control/Solve modes.
@@ -534,253 +264,32 @@ async def etap_gui_chat(request: ETAPGUIChatRequest):
 
     Knowledge base: skills/etap-gui-agent.md (440+ lines)
     """
-    question = request.question.strip()
-    if not question:
-        return JSONResponse(
-            status_code=400,
-            content={"error": "'question' field is required and must be non-empty"},
-        )
-    try:
-        from agents.etap_gui_agent import ETAPGUIAgent
-
-        agent = ETAPGUIAgent()
-        result = agent.answer(question)
-        return {"success": True, "data": result}
-    except Exception as exc:
-        logger.exception("etap_gui chat failed")
-        return JSONResponse(
-            status_code=500,
-            content={"error": f"ETAP GUI agent error: {exc}"},
-        )
+    result = handle_etap_gui_chat(request.question)
+    status = result.pop("_status", None)
+    if status:
+        return JSONResponse(status_code=status, content=result)
+    return result
 
 
 # -- Studies ------------------------------------------------------------------
-STUDY_TYPES = [
-    "load_flow",
-    "short_circuit",
-    "arc_flash",
-    "protection_coordination",
-    "motor_starting",
-    "transient_stability",
-    "harmonic_analysis",
-    "optimal_power_flow",
-    "cable_sizing",
-    "earth_grid",
-    "renewable_integration",
-    "battery_storage",
-    "scada",
-    "etap_expert",  # ETAP Expert skill — 6-step workflow with Format A/B/C/D
-    "etap_gui",  # ETAP GUI Agent — Computer Use Agent for desktop apps
-]
-
-
 @app.get("/api/v1/studies/types", tags=["Studies"])
 async def study_types():
     return {"study_types": STUDY_TYPES}
 
 
 @app.post("/api/v1/studies/run", tags=["Studies"])
-async def run_study(request: StudyRequest):
-    if request.study_type not in STUDY_TYPES:
-        return JSONResponse(
-            status_code=400,
-            content={
-                "error": f"Unknown study_type '{request.study_type}'",
-                "valid_types": STUDY_TYPES,
-            },
-        )
-
-    # ETAP Expert skill — 6-step workflow with Format A/B/C/D responses.
-    # Routes to the dedicated ETAPExpertAgent (no numerical engine needed).
-    if request.study_type == "etap_expert":
-        question = str(request.parameters.get("question", "")).strip()
-        if not question:
-            return JSONResponse(
-                status_code=400,
-                content={"error": "'question' field is required for study_type='etap_expert'"},
-            )
-        try:
-            from agents.etap_expert_agent import ETAPExpertAgent
-
-            agent = ETAPExpertAgent()
-            result = agent.answer(question)
-            return {
-                "study_type": "etap_expert",
-                "reference": f"ETAP-EXPERT-{int(time.time())}",
-                "status": "completed",
-                "success": True,
-                "data": result,
-            }
-        except Exception as exc:
-            logger.exception("etap_expert study failed")
-            return JSONResponse(
-                status_code=500,
-                content={"error": f"ETAP Expert agent error: {exc}"},
-            )
-
-    # ETAP GUI Agent — Computer Use Agent for desktop apps.
-    # Falls back gracefully on headless servers (returns Format U).
-    if request.study_type == "etap_gui":
-        question = str(request.parameters.get("question", "")).strip()
-        if not question:
-            return JSONResponse(
-                status_code=400,
-                content={"error": "'question' field is required for study_type='etap_gui'"},
-            )
-        try:
-            from agents.etap_gui_agent import ETAPGUIAgent
-
-            agent = ETAPGUIAgent()
-            result = agent.answer(question)
-            return {
-                "study_type": "etap_gui",
-                "reference": f"ETAP-GUI-{int(time.time())}",
-                "status": "completed",
-                "success": True,
-                "data": result,
-            }
-        except Exception as exc:
-            logger.exception("etap_gui study failed")
-            return JSONResponse(
-                status_code=500,
-                content={"error": f"ETAP GUI agent error: {exc}"},
-            )
-
-    # Attempt native engine execution for supported study types
-    result_data = None
-    engine_error = None
-    if request.study_type == "load_flow" and request.system:
-        try:
-            from core_model.bus import Bus
-            from core_model.line import Line
-            from core_model.system import System
-
-            sys_model = System(base_mva=request.system.get("base_mva", 100.0))
-            bus_map: dict[int, Any] = {}
-            for b in request.system.get("buses", []):
-                bus = Bus(
-                    bus_id=b["bus_id"],
-                    voltage_magnitude=b.get("voltage_magnitude", 1.0),
-                    voltage_angle=b.get("voltage_angle", 0.0),
-                    bus_type=b.get("bus_type", "pq"),
-                )
-                bus.generation_power = complex(
-                    b.get("generation_power_real", 0.0),
-                    b.get("generation_power_imag", 0.0),
-                )
-                bus.load_power = complex(
-                    b.get("load_power_real", 0.0),
-                    b.get("load_power_imag", 0.0),
-                )
-                sys_model.add_bus(bus)
-                bus_map[b["bus_id"]] = bus
-
-            for ln in request.system.get("lines", []):
-                line = Line(
-                    line_id=ln["line_id"],
-                    from_bus=bus_map[ln["from_bus_id"]],
-                    to_bus=bus_map[ln["to_bus_id"]],
-                    z1=complex(ln.get("r1", 0.01), ln.get("x1", 0.05)),
-                    z0=complex(ln.get("r0", ln.get("r1", 0.01)), ln.get("x0", ln.get("x1", 0.05))),
-                    yshunt1=complex(0, ln.get("bshunt1", 0.02)),
-                    yshunt0=complex(0, ln.get("bshunt0", ln.get("bshunt1", 0.02))),
-                )
-                sys_model.add_line(line)
-
-            from engine.engine import PowerSystemEngine
-
-            engine = PowerSystemEngine(sys_model)
-            result_data = engine.run_load_flow()
-            # Sanitize numpy types for JSON
-            sanitized = {}
-            for k, v in result_data.items():
-                if isinstance(v, dict):
-                    sanitized[k] = {
-                        str(bid): {
-                            "mag": round(abs(val), 4),
-                            "angle_deg": round(float(__import__("numpy").angle(val, deg=True)), 2),
-                        }
-                        for bid, val in v.items()
-                    }
-                else:
-                    sanitized[k] = v
-            result_data = sanitized
-        except ImportError:
-            engine_error = "Engine modules not available in HF Space deployment"
-        except Exception as exc:
-            engine_error = str(exc)
-
-    response: dict[str, Any] = {
-        "study_type": request.study_type,
-        "reference": f"STUDY-{int(time.time())}",
-    }
-    if result_data is not None:
-        response["status"] = "completed"
-        response["result"] = result_data
-    else:
-        response["status"] = "accepted"
-        response["message"] = f"Study '{request.study_type}' queued for processing."
-        if engine_error:
-            response["engine_note"] = engine_error
-        response["note"] = (
-            "Full computation engine available in self-hosted deployment. See /docs for details."
-        )
-    return response
+async def run_study(request: SharedStudyRequest):
+    result = run_study_lightweight(request.study_type, request.system, request.parameters)
+    status = result.pop("_status", None)
+    if status:
+        return JSONResponse(status_code=status, content=result)
+    return result
 
 
 # -- Knowledge Base Info ------------------------------------------------------
 @app.get("/api/v1/knowledge", tags=["Knowledge"])
 async def knowledge_info():
-    return {
-        "etap": {
-            "manuals": ETAP_MANUAL_COUNT,
-            "topics": [
-                "AC Networks",
-                "Load Flow & Panel",
-                "Transformer Sizing",
-                "Unbalanced Load Flow",
-                "Short Circuit ANSI",
-                "Short Circuit IEC",
-                "Arc Flash",
-                "Motor Acceleration",
-                "Parameter Estimation",
-                "Transient Stability",
-                "Parameter Tuning",
-                "UDM",
-                "Harmonics",
-                "UGS",
-                "Cable Pulling",
-                "Optimal Power Flow",
-                "OCP",
-                "Ground Grid",
-                "PDE/GIS",
-                "DC Load Flow & Short Circuit",
-                "BSD",
-                "CSD",
-                "Reliability Assessment",
-                "WTG",
-                "Arc Flash Advanced Topics",
-                "ETAP ARTTS",
-                "Controls",
-                "Short Circuit Study",
-                "Training (1164 slides)",
-                "Renewable Energy",
-                "ETAP Solutions Overview",
-                "eTrax Rail",
-            ],
-            "standards": ["IEEE 3002.7", "IEC 60909", "IEEE 1584", "IEC 60255", "IEEE 519"],
-        },
-        "zenon": {
-            "guides": ZENON_GUIDE_COUNT,
-            "topics": [
-                "Zenon SCADA Fundamentals",
-                "Zenon Energy Management",
-                "Zenon IEC 61850 Module 1",
-                "Zenon IEC 61850 Module 2",
-            ],
-            "standards": ["IEC 61850", "IEC 61968", "IEC 61970"],
-        },
-    }
+    return build_knowledge_info()
 
 
 # -- HEAD at root for HF health probe -----------------------------------------
@@ -793,76 +302,33 @@ async def root_head():
 @app.get("/api/v1/ml/capabilities", tags=["AI/ML"])
 async def ml_capabilities():
     """Discover available ML/AI capabilities and their status."""
-    try:
-        from ml.predictive import get_ml_capabilities
-
-        caps = get_ml_capabilities()
-        return {"success": True, "data": caps}
-    except Exception as e:
-        return JSONResponse(status_code=500, content={"success": False, "errors": [str(e)]})
+    result = handle_ml_capabilities()
+    status = result.pop("_status", None)
+    if status:
+        return JSONResponse(status_code=status, content=result)
+    return result
 
 
 @app.post("/api/v1/predict/load", tags=["AI/ML"])
 async def predict_load(request: Request):
     """Predict future load using Prophet/LSTM/Linear LoadForecaster."""
-    try:
-        body = await request.json()
-        historical = body.get("historical_data", [])
-        horizon = body.get("horizon_hours", 24)
-        method = body.get("method", "auto")
-
-        if not historical:
-            return JSONResponse(status_code=400, content={"error": "historical_data is required"})
-
-        import numpy as np
-
-        from ml.predictive import LoadForecaster
-
-        lf = LoadForecaster(method=method)
-        data = np.array(historical, dtype=float)
-        train_result = lf.train(data)
-        predictions = lf.predict(horizon_hours=horizon)
-
-        return {
-            "success": True,
-            "data": {
-                "predictions": predictions.tolist()
-                if hasattr(predictions, "tolist")
-                else list(predictions),
-                "horizon_hours": horizon,
-                "method": train_result.get("method", method),
-            },
-        }
-    except Exception as e:
-        return JSONResponse(status_code=500, content={"success": False, "errors": [str(e)]})
+    body = await request.json()
+    result = handle_predict_load(body)
+    status = result.pop("_status", None)
+    if status:
+        return JSONResponse(status_code=status, content=result)
+    return result
 
 
 @app.post("/api/v1/predict/anomaly", tags=["AI/ML"])
 async def detect_anomalies(request: Request):
     """Detect anomalies using Isolation Forest / PyOD."""
-    try:
-        body = await request.json()
-        data = body.get("data", [])
-        method = body.get("method", "iforest")
-        contamination = body.get("contamination", 0.05)
-
-        if not data:
-            return JSONResponse(status_code=400, content={"error": "data is required"})
-
-        import numpy as np
-
-        from ml.predictive import AnomalyDetector
-
-        ad = AnomalyDetector(contamination=contamination, method=method)
-        X = np.array(data, dtype=float)
-        if X.ndim == 1:
-            X = X.reshape(-1, 1)
-        ad.train(X)
-        result = ad.detect(X)
-
-        return {"success": True, "data": result}
-    except Exception as e:
-        return JSONResponse(status_code=500, content={"success": False, "errors": [str(e)]})
+    body = await request.json()
+    result = handle_detect_anomalies(body)
+    status = result.pop("_status", None)
+    if status:
+        return JSONResponse(status_code=status, content=result)
+    return result
 
 
 if __name__ == "__main__":

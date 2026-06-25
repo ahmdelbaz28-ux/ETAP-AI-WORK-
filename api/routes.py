@@ -3,13 +3,15 @@ API Routes module for the Engineering Service.
 Handles all API endpoints, request validation, and response formatting.
 """
 
+from __future__ import annotations
+
 import hmac
 import os
 import sys
 import threading as _threading
 import time
 import uuid
-from typing import Dict, List
+from typing import Any, Dict, List, Optional, Tuple
 
 from fastapi import FastAPI, HTTPException, Request, WebSocket
 from fastapi.middleware.cors import CORSMiddleware
@@ -103,7 +105,7 @@ _MAX_BODY_SIZE = int(os.environ.get("ENGINEERING_SERVICE_MAX_BODY_SIZE", "1_048_
 
 
 class _BodySizeLimitMiddleware(BaseHTTPMiddleware):
-    async def dispatch(self, request: Request, call_next):
+    async def dispatch(self, request: Request, call_next: Any) -> Any:
         if request.method in ("POST", "PUT", "PATCH"):
             content_length = request.headers.get("content-length")
             if content_length and int(content_length) > _MAX_BODY_SIZE:
@@ -133,7 +135,7 @@ except Exception:  # pragma: no cover
 _redis_client = None
 
 
-def _get_rate_limit_redis():
+def _get_rate_limit_redis() -> Optional[Any]:
     global _redis_client
     if not _REDIS_URL or redis_async is None:
         return None
@@ -191,7 +193,7 @@ _REQUEST_TIMEOUT_SEC = int(os.environ.get("ENGINEERING_SERVICE_REQUEST_TIMEOUT",
 
 
 @app.middleware("http")
-async def trace_middleware(request: Request, call_next):
+async def trace_middleware(request: Request, call_next: Any) -> Any:
     trace_id = request.headers.get("x-trace-id") or str(uuid.uuid4())
     request.state.trace_id = trace_id
 
@@ -249,39 +251,9 @@ class ReadyResponse(BaseModel):
 
 # Health endpoints are now handled by health router
 # See api/health.py for implementation
-# @app.head("/health")
-# @app.get("/health", response_model=HealthResponse)
-# async def health():
-#     return HealthResponse(status="ok", timestamp=str(time.time()))
-#
-#
-# @app.head("/ready")
-# @app.get("/ready", response_model=ReadyResponse)
-# async def ready():
-#     return ReadyResponse(status="ok", timestamp=str(time.time()))
-#
-#
-# @app.get("/metrics")
-# async def metrics():
-#     return Response(content=generate_metrics(), media_type=get_metrics_content_type())
-#
-#
-# @app.get("/prometheus/metrics")
-# async def prometheus_metrics():
-#     return Response(content=generate_metrics(), media_type="text/plain")
 
 # Main study execution endpoint is now handled by studies router
 # See api/studies.py for implementation
-# @app.post("/api/v1/studies/run", response_model=StudyResult)
-# async def run_study(study_request: StudyRequest, request: Request):
-#     _require_api_key(request)
-#
-#     trace_id = getattr(request.state, "trace_id", str(uuid.uuid4()))
-#     start_time = time.perf_counter()
-#
-#     # Execute the study with proper arguments
-#     result = execute_study_logic(study_request, trace_id=trace_id, start_time=start_time)
-#     return result
 
 
 # Study validation endpoint is now handled by the validation router in api/validation.py
@@ -290,30 +262,35 @@ class ReadyResponse(BaseModel):
 # --- NEW ASYNC AND WEBSOCKET ENDPOINTS ADDED FOR PRODUCTION SCALABILITY ---
 
 
-# Import celery components for async task support inside the functions to avoid startup errors
-def get_celery_components():
-    """Lazy loading of Celery components to avoid import errors during startup."""
+# Module-level cache for Celery components (lazy-loaded once, then reused)
+_celery_cache: tuple = ()  # empty tuple = not yet loaded
+
+
+def get_celery_components() -> Tuple[Optional[Any], Optional[Any], Optional[Any]]:
+    """Lazy loading of Celery components to avoid import errors during startup.
+
+    Uses a module-level cache so that imports are performed only once;
+    subsequent calls return the cached tuple directly.
+    """
+    global _celery_cache
+    if _celery_cache:
+        return _celery_cache
+
     try:
-        # Use importlib to dynamically import to avoid Pylance static analysis issues
-        import importlib
+        from celery.result import AsyncResult  # type: ignore
+        from worker.celery_app import app as celery_app  # type: ignore
+        from worker.tasks import execute_engineering_study_task  # type: ignore
 
-        celery_result_module = importlib.import_module("celery.result")
-        AsyncResult = celery_result_module.AsyncResult
-
-        worker_tasks_module = importlib.import_module("worker.tasks")
-        execute_engineering_study_task = worker_tasks_module.execute_engineering_study_task
-
-        worker_celery_app_module = importlib.import_module("worker.celery_app")
-        celery_app = worker_celery_app_module.app
-
-        return AsyncResult, execute_engineering_study_task, celery_app
+        _celery_cache = (AsyncResult, execute_engineering_study_task, celery_app)
+        return _celery_cache
     except ImportError as e:
-        logger.warning(f"Celery not available: {e}")
-        return None, None, None
+        logger.warning("Celery not available: %s", e, exc_info=True)
+        _celery_cache = (None, None, None)
+        return _celery_cache
 
 
 @app.post("/api/v1/studies/run_async")
-async def run_study_async(study_request: StudyRequest, request: Request):
+async def run_study_async(study_request: StudyRequest, request: Request) -> Dict[str, Any]:
     """Execute an engineering study asynchronously using Celery."""
     _require_api_key(request)  # Add authentication check
 
@@ -342,12 +319,12 @@ async def run_study_async(study_request: StudyRequest, request: Request):
             "submitted_at": str(time.time()),
         }
     except Exception as e:
-        logger.error(f"Error submitting async study: {str(e)}")
+        logger.error("Error submitting async study: %s", e, exc_info=True)
         raise HTTPException(status_code=500, detail=str(e)) from e
 
 
 @app.get("/api/v1/studies/task_status/{task_id}")
-async def get_task_status(task_id: str, request: Request):
+async def get_task_status(task_id: str, request: Request) -> Dict[str, Any]:
     """Get the status of an async study task."""
     _require_api_key(request)  # Add authentication check
 
@@ -374,12 +351,12 @@ async def get_task_status(task_id: str, request: Request):
 
         return response
     except Exception as e:
-        logger.error(f"Error getting task status: {str(e)}")
+        logger.error("Error getting task status: %s", e, exc_info=True)
         raise HTTPException(status_code=500, detail=str(e)) from e
 
 
 @app.websocket("/ws/scada/live")
-async def websocket_scada_endpoint_handler(websocket: WebSocket):
+async def websocket_scada_endpoint_handler(websocket: WebSocket) -> None:
     """WebSocket endpoint for real-time SCADA data streaming."""
     # Perform API key authentication for WebSocket connection
     try:
@@ -464,7 +441,7 @@ app.add_middleware(_BodySizeLimitMiddleware)
 
 # Global exception handler to prevent raw exception exposure
 @app.exception_handler(Exception)
-async def global_exception_handler(request: Request, exc: Exception):
+async def global_exception_handler(request: Request, exc: Exception) -> JSONResponse:
     """
     Global exception handler to prevent raw exception exposure in production.
     Logs the full exception server-side but returns a generic response to clients.

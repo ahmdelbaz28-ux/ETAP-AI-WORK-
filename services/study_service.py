@@ -9,7 +9,7 @@ import asyncio
 import json
 import os
 import time
-from typing import Any, Dict, List, Optional
+from typing import Any, Coroutine, Dict, List, Optional, TypeVar
 
 from pydantic import AliasChoices, BaseModel, ConfigDict, Field, field_validator, model_validator
 
@@ -223,7 +223,7 @@ class StudyResult(BaseModel):
 
     @model_validator(mode="before")
     @classmethod
-    def sync_data_and_results(cls, data: Any) -> Any:
+    def sync_data_and_results(cls, data: Any) -> Any:  # type: ignore[misc]
         if isinstance(data, dict):
             if "data" in data and "results" not in data:
                 data["results"] = data["data"]
@@ -267,12 +267,12 @@ def _build_system_from_spec(spec: SystemSpec) -> Any:
 
     for l in spec.lines:
         if l.from_bus_id not in bus_map:
-            logger.warning(f"Line {l.line_id} references unknown from_bus {l.from_bus_id}, creating default PQ bus")
+            logger.warning("Line %s references unknown from_bus %s, creating default PQ bus", l.line_id, l.from_bus_id)
             bus = Bus(bus_id=l.from_bus_id, bus_type="pq")
             system.add_bus(bus)
             bus_map[l.from_bus_id] = bus
         if l.to_bus_id not in bus_map:
-            logger.warning(f"Line {l.line_id} references unknown to_bus {l.to_bus_id}, creating default PQ bus")
+            logger.warning("Line %s references unknown to_bus %s, creating default PQ bus", l.line_id, l.to_bus_id)
             bus = Bus(bus_id=l.to_bus_id, bus_type="pq")
             system.add_bus(bus)
             bus_map[l.to_bus_id] = bus
@@ -289,12 +289,12 @@ def _build_system_from_spec(spec: SystemSpec) -> Any:
 
     for t in spec.transformers:
         if t.from_bus_id not in bus_map:
-            logger.warning(f"Transformer {t.transformer_id} references unknown from_bus {t.from_bus_id}, creating default PQ bus")
+            logger.warning("Transformer %s references unknown from_bus %s, creating default PQ bus", t.transformer_id, t.from_bus_id)
             bus = Bus(bus_id=t.from_bus_id, bus_type="pq")
             system.add_bus(bus)
             bus_map[t.from_bus_id] = bus
         if t.to_bus_id not in bus_map:
-            logger.warning(f"Transformer {t.transformer_id} references unknown to_bus {t.to_bus_id}, creating default PQ bus")
+            logger.warning("Transformer %s references unknown to_bus %s, creating default PQ bus", t.transformer_id, t.to_bus_id)
             bus = Bus(bus_id=t.to_bus_id, bus_type="pq")
             system.add_bus(bus)
             bus_map[t.to_bus_id] = bus
@@ -310,7 +310,7 @@ def _build_system_from_spec(spec: SystemSpec) -> Any:
 
     for g in spec.generators:
         if g.bus_id not in bus_map:
-            logger.warning(f"Generator {g.generator_id} references unknown bus {g.bus_id}, creating default PV bus")
+            logger.warning("Generator %s references unknown bus %s, creating default PV bus", g.generator_id, g.bus_id)
             bus = Bus(bus_id=g.bus_id, bus_type="pv")
             system.add_bus(bus)
             bus_map[g.bus_id] = bus
@@ -336,7 +336,7 @@ def _build_system_from_spec(spec: SystemSpec) -> Any:
 
     for ld in spec.loads:
         if ld.bus_id not in bus_map:
-            logger.warning(f"Load {ld.load_id} references unknown bus {ld.bus_id}, creating default PQ bus")
+            logger.warning("Load %s references unknown bus %s, creating default PQ bus", ld.load_id, ld.bus_id)
             bus = Bus(bus_id=ld.bus_id, bus_type="pq")
             system.add_bus(bus)
             bus_map[ld.bus_id] = bus
@@ -366,7 +366,10 @@ _STUDIES_REQUIRING_SYSTEM = {
 }
 
 
-def _run_async(coro):
+T = TypeVar("T")
+
+
+def _run_async(coro: Coroutine[Any, Any, T]) -> T:
     """Run an async coroutine safely, whether or not an event loop is active."""
     try:
         loop = asyncio.get_running_loop()
