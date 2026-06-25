@@ -67,6 +67,19 @@ jobs:
         working-directory: ui
         run: npx tsc --noEmit 2>&1 || echo "::warning::TypeScript check failed but continuing"
 
+      - name: Install pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 8
+
+      - name: Install root dependencies
+        run: pnpm install --no-frozen-lockfile
+
+      - name: Run scenario tests
+        env:
+          SKIP_LIVE_SCENARIO_TESTS: 'true'
+        run: pnpm test:scenarios
+
   # ── 2. PYTHON TESTS ─────────────────────────────────────────────────────────
   python-tests:
     name: 🧪 Python Test Suite

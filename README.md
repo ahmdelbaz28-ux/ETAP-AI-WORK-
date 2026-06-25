@@ -57,12 +57,12 @@ app_port: 7860
 
 <div align="center">
   <h3>🖥️ واجهة لوحة التحكم الذكية — Platform Intelligent Dashboard</h3>
-  <img src="docs/images/etap_ai_dashboard.png" alt="AhmedETAP Platform Dashboard" width="90%" style="border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.3);"/>
+  <img src="docs/images/etap_ai_dashboard.jpg" alt="AhmedETAP Platform Dashboard" width="90%" style="border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.3);"/>
   
   <br/><br/><br/>
   
   <h3>📊 لوحة المراقبة والتحليلات — Grafana Production Metrics</h3>
-  <img src="docs/images/grafana_dashboard.png" alt="Grafana Production Metrics" width="90%" style="border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.3);"/>
+  <img src="docs/images/grafana_dashboard.jpg" alt="Grafana Production Metrics" width="90%" style="border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.3);"/>
 </div>
 
 <br/>

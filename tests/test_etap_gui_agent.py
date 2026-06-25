@@ -30,7 +30,7 @@ def test_gui_skill_file_exists():
     """skills/etap-gui-agent.md must exist."""
     p = Path(__file__).resolve().parent.parent / "skills" / "etap-gui-agent.md"
     assert p.exists(), f"GUI skill file missing: {p}"
-    content = p.read_text()
+    content = p.read_text(encoding="utf-8")
     assert len(content) > 5000, "GUI skill file too small"
     assert "GUI Agent" in content or "GUI AGENT" in content
 
@@ -38,7 +38,7 @@ def test_gui_skill_file_exists():
 def test_gui_skill_contains_required_sections():
     """The skill md must contain the key sections from the spec."""
     p = Path(__file__).resolve().parent.parent / "skills" / "etap-gui-agent.md"
-    content = p.read_text()
+    content = p.read_text(encoding="utf-8")
     required = [
         "Architecture",
         "CUA Loop",
@@ -333,7 +333,7 @@ def test_study_type_etap_gui_requires_question():
 def test_chat_endpoint_in_api_agents():
     """api/agents.py must define /etap-gui/chat endpoint."""
     p = Path(__file__).resolve().parent.parent / "api" / "agents.py"
-    content = p.read_text()
+    content = p.read_text(encoding="utf-8")
     assert "/etap-gui/chat" in content
     assert "ETAPGUIChatRequest" in content
     assert "etap_gui_chat" in content
@@ -342,7 +342,7 @@ def test_chat_endpoint_in_api_agents():
 def test_chat_endpoint_in_hf_space_app():
     """hf-space/app.py must define /etap-gui/chat endpoint."""
     p = Path(__file__).resolve().parent.parent / "hf-space" / "app.py"
-    content = p.read_text()
+    content = p.read_text(encoding="utf-8")
     assert "/etap-gui/chat" in content
     assert "ETAPGUIChatRequest" in content
     assert "etap_gui_chat" in content
@@ -351,14 +351,14 @@ def test_chat_endpoint_in_hf_space_app():
 def test_etap_gui_in_hf_space_study_types():
     """hf-space/app.py STUDY_TYPES must include 'etap_gui'."""
     p = Path(__file__).resolve().parent.parent / "hf-space" / "app.py"
-    content = p.read_text()
+    content = p.read_text(encoding="utf-8")
     assert '"etap_gui"' in content
 
 
 def test_etap_gui_agent_in_hf_space_agents_list():
     """hf-space/app.py AGENTS list must include 'etap-gui-agent'."""
     p = Path(__file__).resolve().parent.parent / "hf-space" / "app.py"
-    content = p.read_text()
+    content = p.read_text(encoding="utf-8")
     assert '"etap-gui-agent"' in content
 
 
@@ -366,7 +366,7 @@ def test_prompt_yaml_exists():
     """prompts/etap_gui_agent.prompt.yaml must exist and contain key sections."""
     p = Path(__file__).resolve().parent.parent / "prompts" / "etap_gui_agent.prompt.yaml"
     assert p.exists()
-    content = p.read_text()
+    content = p.read_text(encoding="utf-8")
     assert "GUI Agent" in content
     assert "CUA" in content
     assert "safety" in content.lower()
@@ -378,7 +378,7 @@ def test_prompt_registered_in_prompts_json():
     import json
 
     p = Path(__file__).resolve().parent.parent / "prompts.json"
-    data = json.loads(p.read_text())
+    data = json.loads(p.read_text(encoding="utf-8"))
     assert "etap_gui_agent" in data["prompts"]
     assert data["prompts"]["etap_gui_agent"] == "prompts/etap_gui_agent.prompt.yaml"
 
@@ -408,7 +408,7 @@ def test_etap_expert_study_type_still_accepted():
 def test_etap_expert_chat_endpoint_still_exists():
     """etap-expert chat endpoint must still be in api/agents.py."""
     p = Path(__file__).resolve().parent.parent / "api" / "agents.py"
-    content = p.read_text()
+    content = p.read_text(encoding="utf-8")
     assert "/etap-expert/chat" in content
 
 
