@@ -180,3 +180,33 @@ def process_large_calculation_task(self, calculation_data: dict):
             },
         )
         raise exc
+
+
+@app.task(bind=False, name="worker.tasks.celery_heartbeat", ignore_result=True)
+def celery_heartbeat():
+    """Periodic heartbeat task — emits a log line every 60s for monitoring.
+
+    This task is scheduled by Celery Beat and is used to confirm the worker
+    pool is alive and processing tasks.  Prometheus / Grafana can alert when
+    this metric stops appearing.
+    """
+    import socket
+
+    hostname = socket.gethostname()
+    logger.info(
+        "celery_heartbeat worker=%s timestamp=%s",
+        hostname,
+        time.time(),
+    )
+    # Optionally push heartbeat to Redis for external monitoring
+    try:
+        import redis as _redis
+
+        redis_url = os.environ.get("REDIS_URL", "redis://localhost:6379/0")
+        r = _redis.from_url(redis_url, socket_timeout=5)
+        r.setex(f"etap:worker:heartbeat:{hostname}", 120, "alive")
+    except Exception:
+        pass  # heartbeat is best-effort
+
+    return {"status": "alive", "worker": hostname, "ts": time.time()}
+

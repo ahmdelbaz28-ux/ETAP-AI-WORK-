@@ -109,15 +109,16 @@ jobs:
       - name: Validate Python syntax
         run: python -c "import ast; ast.parse(open('engineering_service.py').read()); print('✅ Syntax OK')"
 
-      - name: Run test suite
+      - name: Run test suite with coverage gate
         run: |
           pytest tests/ -v \
             --cov=. \
             --cov-report=term-missing \
             --cov-report=xml \
+            --cov-fail-under=80 \
             -x \
             --tb=short \
-            2>&1 | tail -50
+            2>&1 | tail -80
 
       - name: Upload coverage report
         uses: codecov/codecov-action@v4
@@ -126,6 +127,7 @@ jobs:
           file: coverage.xml
           flags: python
           fail_ci_if_error: false
+
 
   # ── 3. SECURITY SCAN ────────────────────────────────────────────────────────
   security-scan:
@@ -225,6 +227,48 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
+  # ── 5b. CONTAINER SCAN + SBOM ────────────────────────────────────────────────
+  container-scan:
+    name: 🔬 Container Scan + SBOM
+    runs-on: ubuntu-latest
+    needs: docker-build
+    if: github.ref == 'refs/heads/main'
+    permissions:
+      contents: write
+      security-events: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Trivy container vulnerability scan
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+          severity: 'CRITICAL,HIGH'
+          exit-code: '0'    # warn only — don't block deploy on first scan
+
+      - name: Upload Trivy scan results to GitHub Security
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: 'trivy-results.sarif'
+
+      - name: Generate SBOM (CycloneDX)
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+          format: 'cyclonedx'
+          output: 'sbom.json'
+
+      - name: Upload SBOM artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: sbom-${{ github.sha }}
+          path: sbom.json
+          retention-days: 90
 
   # ── 6. DEPLOY TO HUGGING FACE ────────────────────────────────────────────────
   deploy-hf:
