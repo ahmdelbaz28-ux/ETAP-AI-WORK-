@@ -35,7 +35,7 @@ def _load_hf_app_module():
 
 def test_hf_space_app_py_contains_etap_expert_in_study_types():
     """hf-space/app.py STUDY_TYPES must include 'etap_expert'."""
-    app_py = (Path(__file__).resolve().parent.parent / "hf-space" / "app.py").read_text()
+    app_py = (Path(__file__).resolve().parent.parent / "hf-space" / "app.py").read_text(encoding="utf-8")
     assert '"etap_expert"' in app_py, (
         "hf-space/app.py STUDY_TYPES must include 'etap_expert' — otherwise "
         "the skill is unreachable in the HF Space production deployment."
@@ -44,7 +44,7 @@ def test_hf_space_app_py_contains_etap_expert_in_study_types():
 
 def test_hf_space_app_py_has_etap_expert_chat_endpoint():
     """hf-space/app.py must define the /api/v1/agents/etap-expert/chat endpoint."""
-    app_py = (Path(__file__).resolve().parent.parent / "hf-space" / "app.py").read_text()
+    app_py = (Path(__file__).resolve().parent.parent / "hf-space" / "app.py").read_text(encoding="utf-8")
     assert "/api/v1/agents/etap-expert/chat" in app_py, (
         "hf-space/app.py must define the etap-expert chat endpoint"
     )
@@ -55,7 +55,7 @@ def test_hf_space_app_py_has_etap_expert_chat_endpoint():
 
 def test_hf_space_app_py_routes_etap_expert_to_agent():
     """hf-space/app.py run_study must dispatch etap_expert to ETAPExpertAgent."""
-    app_py = (Path(__file__).resolve().parent.parent / "hf-space" / "app.py").read_text()
+    app_py = (Path(__file__).resolve().parent.parent / "hf-space" / "app.py").read_text(encoding="utf-8")
     assert "from agents.etap_expert_agent import ETAPExpertAgent" in app_py, (
         "hf-space/app.py must import ETAPExpertAgent from agents.etap_expert_agent"
     )
@@ -66,7 +66,7 @@ def test_hf_space_app_py_routes_etap_expert_to_agent():
 
 def test_hf_space_agents_list_includes_etap_expert_agent():
     """The /api/v1/agents list in hf-space/app.py must include etap-expert-agent."""
-    app_py = (Path(__file__).resolve().parent.parent / "hf-space" / "app.py").read_text()
+    app_py = (Path(__file__).resolve().parent.parent / "hf-space" / "app.py").read_text(encoding="utf-8")
     assert '"etap-expert-agent"' in app_py, (
         "hf-space/app.py AGENTS list must include 'etap-expert-agent'"
     )
@@ -79,7 +79,7 @@ def test_hf_space_agents_list_includes_etap_expert_agent():
 
 def test_dockerfile_copies_skill_files():
     """The Dockerfile (used by HF Space) must COPY the skill files."""
-    dockerfile = (Path(__file__).resolve().parent.parent / "Dockerfile").read_text()
+    dockerfile = (Path(__file__).resolve().parent.parent / "Dockerfile").read_text(encoding="utf-8")
     required_copy_patterns = [
         "COPY",
         "hf-space/app.py",
@@ -96,7 +96,7 @@ def test_dockerfile_copies_skill_files():
 def test_dockerfile_uses_hf_requirements():
     """Dockerfile must use hf-space/requirements.hf.txt (lightweight),
     NOT the heavy root requirements.txt."""
-    dockerfile = (Path(__file__).resolve().parent.parent / "Dockerfile").read_text()
+    dockerfile = (Path(__file__).resolve().parent.parent / "Dockerfile").read_text(encoding="utf-8")
     assert "requirements.hf.txt" in dockerfile, (
         "Dockerfile must use hf-space/requirements.hf.txt — the root "
         "requirements.txt is too heavy for HF Spaces (causes BUILD_ERROR)"
@@ -105,13 +105,13 @@ def test_dockerfile_uses_hf_requirements():
 
 def test_dockerfile_exposes_7860():
     """HF Spaces require port 7860 exposed."""
-    dockerfile = (Path(__file__).resolve().parent.parent / "Dockerfile").read_text()
+    dockerfile = (Path(__file__).resolve().parent.parent / "Dockerfile").read_text(encoding="utf-8")
     assert "EXPOSE 7860" in dockerfile
 
 
 def test_dockerfile_uses_non_root_user():
     """HF Spaces require non-root user with UID 1000."""
-    dockerfile = (Path(__file__).resolve().parent.parent / "Dockerfile").read_text()
+    dockerfile = (Path(__file__).resolve().parent.parent / "Dockerfile").read_text(encoding="utf-8")
     assert "useradd -m -u 1000" in dockerfile or "UID 1000" in dockerfile
 
 
@@ -122,7 +122,7 @@ def test_dockerfile_uses_non_root_user():
 
 def test_readme_has_hf_yaml_frontmatter():
     """README.md must start with HF Spaces YAML frontmatter (title, sdk, etc.)."""
-    readme = (Path(__file__).resolve().parent.parent / "README.md").read_text()
+    readme = (Path(__file__).resolve().parent.parent / "README.md").read_text(encoding="utf-8")
     assert readme.startswith("---"), "README.md must start with YAML frontmatter ---"
     # Extract the frontmatter block
     parts = readme.split("---", 2)
@@ -142,7 +142,7 @@ def test_hf_sync_workflow_exists():
     """The .github/workflows/sync-hf-space.yml must exist and trigger on main push."""
     wf_path = Path(__file__).resolve().parent.parent / ".github" / "workflows" / "sync-hf-space.yml"
     assert wf_path.exists(), "sync-hf-space.yml workflow must exist"
-    content = wf_path.read_text()
+    content = wf_path.read_text(encoding="utf-8")
     assert "branches: [main]" in content
     assert "HF_TOKEN" in content
     assert "huggingface.co/spaces/ahmdelbaz28/AHMEDETAP" in content

@@ -42,7 +42,7 @@ def test_vitest_config_does_not_exclude_scenarios_globally():
     dedicated test:scenarios script with their own config.
     """
     root = Path(__file__).resolve().parent.parent
-    vitest_root = (root / "vitest.config.ts").read_text()
+    vitest_root = (root / "vitest.config.ts").read_text(encoding="utf-8")
     # The exclude list may mention scenarios ONLY if a separate config exists
     # that explicitly includes them.
     assert "tests/scenarios/**" in vitest_root, (
@@ -53,7 +53,7 @@ def test_vitest_config_does_not_exclude_scenarios_globally():
     assert scenarios_config.exists(), (
         "vitest.scenarios.config.ts must exist so scenarios are not dead code"
     )
-    sc = scenarios_config.read_text()
+    sc = scenarios_config.read_text(encoding="utf-8")
     assert "tests/scenarios/**/*.test.ts" in sc, (
         "vitest.scenarios.config.ts must include scenario test files"
     )
@@ -63,7 +63,7 @@ def test_ci_workflow_runs_scenario_tests_step():
     """The CI workflow must have a dedicated step that runs scenario tests."""
     wf = (
         Path(__file__).resolve().parent.parent / ".github" / "workflows" / "ci-cd.yml"
-    ).read_text()
+    ).read_text(encoding="utf-8")
     assert "test:scenarios" in wf, (
         "CI workflow must invoke 'pnpm test:scenarios' explicitly — "
         "otherwise scenario tests are dead code in CI"
@@ -505,7 +505,7 @@ def test_skill_md_file_is_substantial():
     """skills/etap-expert.md must be >= 4000 lines and >= 100KB."""
     p = Path(__file__).resolve().parent.parent / "skills" / "etap-expert.md"
     assert p.exists()
-    content = p.read_text()
+    content = p.read_text(encoding="utf-8")
     lines = content.count("\n")
     assert lines >= 4000, f"Skill file too short: {lines} lines (expected >= 4000)"
     assert len(content.encode()) >= 100_000, (
@@ -516,7 +516,7 @@ def test_skill_md_file_is_substantial():
 def test_skill_md_contains_all_17_sections():
     """The skill must contain all 17 sections listed in its table of contents."""
     p = Path(__file__).resolve().parent.parent / "skills" / "etap-expert.md"
-    content = p.read_text()
+    content = p.read_text(encoding="utf-8")
     required_sections = [
         "CORE IDENTITY & PHILOSOPHY",
         "COMPLETE ETAP MODULE DIRECTORY",
@@ -647,7 +647,7 @@ def test_no_skip_markers_in_skill_tests():
         path = test_dir / tf
         if not path.exists():
             continue
-        content = path.read_text()
+        content = path.read_text(encoding="utf-8")
         for regex in forbidden_regexes:
             for m in regex.finditer(content):
                 # Find the line number for a helpful error message
