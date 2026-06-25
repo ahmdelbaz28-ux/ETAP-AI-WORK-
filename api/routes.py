@@ -507,3 +507,33 @@ app.include_router(validation_router)
 app.include_router(ai_ml_router)
 app.include_router(auth_router)
 app.include_router(projects_router)
+
+# ---------------------------------------------------------------------------
+# SCADA Protocols Integration (scada_protocols package)
+# ---------------------------------------------------------------------------
+# Wires Modbus TCP, OPC UA, and IEC 60870-5-104 adapters into the platform.
+# Loads config from $SCADA_PROTOCOLS_CONFIG (or defaults), builds the
+# SCADAProtocolManager wired to the SCADADatabase + EventBus, starts all
+# enabled protocols, mounts the API router at /api/v1/scada/protocols, and
+# registers a shutdown handler.
+#
+# Set SCADA_PROTOCOLS_CONFIG=/path/to/scada.yaml to use a custom config.
+# Set SCADA_PROTOCOLS_ENABLED=false to skip wiring entirely (e.g. for tests).
+# ---------------------------------------------------------------------------
+if os.environ.get("SCADA_PROTOCOLS_ENABLED", "true").lower() == "true":
+    try:
+        from scada_protocols.wiring import wire_into_app
+
+        wire_into_app(
+            app,
+            scada_db=_shared_state_store,  # may be None; bridge auto-creates
+            event_bus=_shared_event_bus,   # may be None; bridge degrades gracefully
+        )
+        logger.info("scada_protocols_wired")
+    except ImportError:
+        logger.warning(
+            "scada_protocols package not installed — SCADA protocol "
+            "endpoints will not be available"
+        )
+    except Exception as _scada_exc:
+        logger.error("scada_protocols wiring failed: %s", _scada_exc)

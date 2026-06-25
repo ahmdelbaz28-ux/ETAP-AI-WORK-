@@ -1,0 +1,128 @@
+# =============================================================================
+# Docker Compose snippet — SCADA Protocol Services for AhmedETAP
+# =============================================================================
+# This file is intended to be merged into the main docker-compose.yml via:
+#
+#   docker compose -f docker-compose.yml -f scada_protocols/docker-compose.scada.yml up
+#
+# OR copied into the main compose file's `services:` section.
+#
+# The snippet runs three SCADA protocol servers (Modbus, OPC UA, IEC 104)
+# alongside the existing AhmedETAP services. The host application still owns
+# the SCADAProtocolManager — this compose file only exposes the TCP ports
+# that external masters/clients connect to.
+# =============================================================================
+
+services:
+  # ---------------------------------------------------------------------------
+  # Modbus TCP slave — exposes AhmedETAP measurements to Modbus masters
+  # (HMIs, BMS, SCADA front-ends that only speak Modbus).
+  # ---------------------------------------------------------------------------
+  # The port 5020 (unprivileged) is mapped to the container's 5020.
+  # External masters connect to <host>:5020 with unit_id=1.
+  #
+  # NOTE: This assumes the AhmedETAP app itself is running in another service
+  # (e.g. `etap-api`) and is reachable on the internal network. The app
+  # owns the SCADAProtocolManager + ModbusAdapter which binds to 0.0.0.0:5020.
+  # We do NOT run a separate Modbus container — the adapter lives inside the
+  # main app process.
+  #
+  # To expose Modbus from the main app, add this to the etap-api service:
+  #   ports:
+  #     - "5020:5020"
+  # And ensure SCADA_PROTOCOLS_CONFIG points to a config that enables modbus
+  # server on 0.0.0.0:5020.
+
+  # ---------------------------------------------------------------------------
+  # OPC UA server — exposes AhmedETAP measurements to OPC UA clients
+  # ---------------------------------------------------------------------------
+  # Same pattern: the OpcUaAdapter lives inside the main app. To expose:
+  #   ports:
+  #     - "4840:4840"
+
+  # ---------------------------------------------------------------------------
+  # IEC 60870-5-104 server (RTU) — exposes AhmedETAP measurements to masters
+  # ---------------------------------------------------------------------------
+  # Same pattern: the IEC104Adapter lives inside the main app. To expose:
+  #   ports:
+  #     - "2404:2404"
+
+  # ---------------------------------------------------------------------------
+  # Optional: standalone SCADA simulator for testing
+  # ---------------------------------------------------------------------------
+  # A minimal Modbus slave that simulates an external RTU. Useful for
+  # integration testing without real hardware.
+  scada-simulator:
+    image: "python:3.12-slim"
+    container_name: etap-scada-simulator
+    restart: unless-stopped
+    networks:
+      - etap-net
+    volumes:
+      # Mount our scada_protocols package + a tiny driver script.
+      - ./scada_protocols:/app/scada_protocols:ro
+      - ./scripts/scada_simulator.py:/app/sim.py:ro
+    working_dir: /app
+    command: >
+      python -u sim.py
+      --modbus-port 5021
+      --interval-ms 1000
+    ports:
+      # Expose simulator's Modbus slave on host port 5021.
+      - "5021:5021"
+    environment:
+      PYTHONUNBUFFERED: "1"
+      PYTHONPATH: "/app"
+    depends_on:
+      - etap-api
+
+  # ---------------------------------------------------------------------------
+  # Optional: InfluxDB for time-series storage of SCADA measurements
+  # (used by the digital_twin TimeSteppedSimulator when configured)
+  # ---------------------------------------------------------------------------
+  scada-timeseries:
+    image: "influxdb:2.7-alpine"
+    container_name: etap-scada-influxdb
+    restart: unless-stopped
+    networks:
+      - etap-net
+    ports:
+      - "8086:8086"
+    environment:
+      DOCKER_INFLUXDB_INIT_MODE: setup
+      DOCKER_INFLUXDB_INIT_USERNAME: etap
+      DOCKER_INFLUXDB_INIT_PASSWORD: "${INFLUXDB_PASSWORD:-etap-change-me}"
+      DOCKER_INFLUXDB_INIT_ORG: ahmdetap
+      DOCKER_INFLUXDB_INIT_BUCKET: scada
+      DOCKER_INFLUXDB_INIT_ADMIN_TOKEN: "${INFLUXDB_TOKEN:-etap-dev-token-change-me}"
+    volumes:
+      - scada-influxdb-data:/var/lib/influxdb2
+
+  # ---------------------------------------------------------------------------
+  # Optional: Telegraf to bridge SCADA measurements into InfluxDB
+  # ---------------------------------------------------------------------------
+  # Telegraf can subscribe to the AhmedETAP MQTT broker (if enabled) and
+  # write measurements into InfluxDB for historical analysis.
+  scada-telegraf:
+    image: "telegraf:1.30-alpine"
+    container_name: etap-scada-telegraf
+    restart: unless-stopped
+    networks:
+      - etap-net
+    volumes:
+      - ./scada_protocols/config/telegraf.conf:/etc/telegraf/telegraf.conf:ro
+    depends_on:
+      - scada-timeseries
+    environment:
+      INFLUXDB_TOKEN: "${INFLUXDB_TOKEN:-etap-dev-token-change-me}"
+      INFLUXDB_ORG: ahmdetap
+      INFLUXDB_BUCKET: scada
+
+networks:
+  etap-net:
+    external: true
+    name: etap-ai_default  # match the network name from the main docker-compose.yml
+
+volumes:
+  scada-influxdb-data:
+    name: etap-scada-influxdb-data

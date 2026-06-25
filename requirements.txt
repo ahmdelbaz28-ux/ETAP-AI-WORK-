@@ -109,6 +109,15 @@ flask  # For potential web APIs
 geopandas  # For GIS operations
 shapely  # For geometric operations
 
+# SCADA Protocols Integration (scada_protocols package)
+# Real Modbus TCP / OPC UA / IEC 60870-5-104 support for the Digital Twin.
+# pymodbus 3.10+ deprecated the legacy datastore API; pin <3.8 until the
+# v4 SimData migration is complete in scada_protocols/modbus/server.py.
+pymodbus>=3.6,<3.8
+asyncua>=1.0.0
+c104>=2.0.0
+pyyaml>=6.0
+
 # Retry and fault tolerance (used by core/retry.py)
 tenacity>=8.2.0
 
