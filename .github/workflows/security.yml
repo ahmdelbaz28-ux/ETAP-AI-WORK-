@@ -19,7 +19,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v7
+        uses: actions/checkout@v4
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
@@ -50,10 +50,10 @@ jobs:
     # warning rather than a hard failure, so Dependabot PRs are not blocked
     # by a missing repo setting. To get hard failures on bad deps, enable
     # Dependency graph in the repo settings.
-    continue-on-error: true
+    # continue-on-error removed — security scan must block the pipeline
     steps:
       - name: Checkout code
-        uses: actions/checkout@v7
+        uses: actions/checkout@v4
       - name: Dependency Review
         uses: actions/dependency-review-action@v4
         with:
@@ -64,7 +64,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v7
+        uses: actions/checkout@v4
       - name: Run Trivy vulnerability scanner (filesystem, via Docker)
         # NOTE: We use the official Trivy Docker image directly instead of
         # aquasecurity/trivy-action, because the action's setup-trivy
@@ -80,6 +80,7 @@ jobs:
             aquasec/trivy:latest \
             fs --severity CRITICAL,HIGH \
                --ignore-unfixed \
+               --exit-code 1 \
                --skip-dirs .git,node_modules,ui/node_modules,.venv,venv,__pycache__ \
                --format sarif \
                --output /repo/trivy-results.sarif \
@@ -95,7 +96,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v7
+        uses: actions/checkout@v4
       - name: Install pnpm
         uses: pnpm/action-setup@v2
         with:
@@ -109,19 +110,19 @@ jobs:
       - name: Run pnpm audit
         run: |
           echo "### pnpm audit summary ###"
-          pnpm audit --audit-level=high 2>&1 || echo "::warning::pnpm audit found high/critical vulnerabilities"
+          pnpm audit --audit-level=high 2>&1  # blocking — audit must fail the pipeline on high/critical vulns
       - name: Audit UI dependencies
         working-directory: ui
         run: |
           echo "### npm audit (ui/) summary ###"
-          npm audit --audit-level=high 2>&1 || echo "::warning::npm audit (ui/) found high/critical vulnerabilities"
+          npm audit --audit-level=high 2>&1  # blocking — audit must fail the pipeline on high/critical vulns
 
   pip-audit:
     name: pip Audit (Python)
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v7
+        uses: actions/checkout@v4
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
@@ -135,14 +136,14 @@ jobs:
       - name: Run pip-audit
         run: |
           echo "### pip-audit summary ###"
-          python -m pip_audit --requirement requirements.txt 2>&1 || echo "::warning::pip-audit found vulnerabilities"
+          python -m pip_audit --requirement requirements.txt 2>&1  # blocking — audit must fail the pipeline on vulnerabilities
 
   secret-scan:
     name: Secret Detection (TruffleHog)
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v7
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
       # NOTE: Do NOT pass `--no-update` in extra_args — the action already
@@ -153,8 +154,8 @@ jobs:
         with:
           extra_args: --only-verified
         continue-on-error: false
-      - name: Trufflehog — unverified secrets (warn only)
+      - name: Trufflehog — unverified secrets (blocking)
         uses: trufflesecurity/trufflehog@main
-        continue-on-error: true
+        # continue-on-error removed — security scan must block the pipeline
         with:
           extra_args: --no-verification

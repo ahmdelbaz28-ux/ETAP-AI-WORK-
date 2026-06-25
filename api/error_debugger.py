@@ -32,8 +32,6 @@ from dataclasses import dataclass, field
 from datetime import datetime, timezone
 
 UTC = timezone.utc  # noqa: UP017
-
-UTC = UTC
 from typing import Any, Dict, List, Optional
 
 from compat import StrEnum

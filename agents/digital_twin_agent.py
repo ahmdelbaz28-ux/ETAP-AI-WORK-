@@ -25,8 +25,6 @@ import logging
 from datetime import datetime, timezone
 
 UTC = timezone.utc  # noqa: UP017
-
-UTC = UTC
 from typing import Any, Dict, List, Optional
 
 import numpy as np

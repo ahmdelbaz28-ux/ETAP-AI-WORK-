@@ -26,8 +26,6 @@ import threading
 from datetime import datetime, timezone
 
 UTC = timezone.utc  # noqa: UP017
-
-UTC = UTC
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 

@@ -9,8 +9,6 @@ import logging
 from datetime import datetime, timezone
 
 UTC = timezone.utc  # noqa: UP017
-
-UTC = UTC
 from typing import List
 
 from fastapi import WebSocket, WebSocketDisconnect
@@ -73,7 +71,7 @@ class SCADALiveFeed:
                 else:
                     disconnected_clients.append(connection)
             except Exception as e:
-                logger.error(f"Error sending message to WebSocket: {e}")
+                logger.error("Error sending message to WebSocket: %s", e, exc_info=True)
                 disconnected_clients.append(connection)
 
         # Remove disconnected clients
@@ -181,7 +179,7 @@ class SCADALiveFeed:
                 logger.info("SCADA broadcast loop cancelled")
                 break
             except Exception as e:
-                logger.error(f"Error in SCADA broadcast loop: {e}")
+                logger.error("Error in SCADA broadcast loop: %s", e, exc_info=True)
                 await asyncio.sleep(5)  # Wait 5 seconds before retrying
 
 
@@ -203,5 +201,5 @@ async def scada_websocket_endpoint(websocket: WebSocket):
     except WebSocketDisconnect:
         scada_feed.disconnect(websocket)
     except Exception as e:
-        logger.error(f"WebSocket error: {e}")
+        logger.error("WebSocket error: %s", e, exc_info=True)
         scada_feed.disconnect(websocket)

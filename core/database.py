@@ -15,8 +15,6 @@ import uuid
 from datetime import datetime, timezone
 
 UTC = timezone.utc  # noqa: UP017
-
-UTC = UTC
 from typing import Any, Dict, List, Optional
 
 from core.models import (
@@ -208,7 +206,7 @@ class UniversalDataModel:
                 revit_element_id=row.get("revit_element_id"),
             )
         except Exception as e:
-            logger.error(f"Error converting row to element: {e}")
+            logger.error("Error converting row to element: %s", e, exc_info=True)
             return None
 
     def _row_to_conflict(self, row: Dict[str, Any]) -> Optional[Conflict]:
@@ -229,7 +227,7 @@ class UniversalDataModel:
                 resolved=bool(row.get("resolved", 0)),
             )
         except Exception as e:
-            logger.error(f"Error converting row to conflict: {e}")
+            logger.error("Error converting row to conflict: %s", e, exc_info=True)
             return None
 
     def add_element(self, element: UniversalElement) -> bool:
@@ -281,7 +279,7 @@ class UniversalDataModel:
                 self.elements[element.element_id] = element
                 return True
             except Exception as e:
-                logger.error(f"Error adding element: {e}")
+                logger.error("Error adding element: %s", e, exc_info=True)
                 return False
 
     def get_element(self, element_id: str) -> Optional[UniversalElement]:
@@ -384,7 +382,7 @@ class UniversalDataModel:
                 conn.commit()
                 return True
             except Exception as e:
-                logger.error(f"Error updating element: {e}")
+                logger.error("Error updating element: %s", e, exc_info=True)
                 return False
 
     def delete_element(self, element_id: str, source: ChangeSource = ChangeSource.MANUAL) -> bool:
@@ -429,7 +427,7 @@ class UniversalDataModel:
                 conn.commit()
                 return True
             except Exception as e:
-                logger.error(f"Error resolving conflict: {e}")
+                logger.error("Error resolving conflict: %s", e, exc_info=True)
                 return False
 
     def get_statistics(self) -> Dict[str, Any]:

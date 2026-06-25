@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Optional
+from typing import Any, Optional
 
 from coordination.coordination import CoordinationEngine
 from engine.interfaces import (
@@ -14,6 +14,7 @@ from fault_analysis.fault import FaultAnalyzer
 from load_flow.load_flow import LoadFlowSolver
 from relays.relay import OvercurrentRelay
 from visualization.visualization import Visualizer
+from core_model.system import System
 
 
 class PowerSystemEngine:
@@ -41,13 +42,13 @@ class PowerSystemEngine:
 
     def __init__(
         self,
-        system=None,
+        system: Optional[System] = None,
         *,
         load_flow_solver: Optional[LoadFlowSolverProtocol] = None,
         arc_flash_engine: Optional[ArcFlashEngineProtocol] = None,
         coordination_engine: Optional[CoordinationEngineProtocol] = None,
         visualizer: Optional[VisualizerProtocol] = None,
-    ):
+    ) -> None:
         self.system = system
 
         # Injected or default solvers
@@ -65,7 +66,7 @@ class PowerSystemEngine:
         self.visualizer = visualizer if visualizer is not None else Visualizer()
         # Fault analyzer is created lazily in run_fault_analysis with sequence networks
 
-    def run_load_flow(self):
+    def run_load_flow(self) -> dict[str, Any]:
         """
         Run load flow analysis.
 
@@ -85,7 +86,7 @@ class PowerSystemEngine:
             "Ybus": self.load_flow_solver.Ybus,
         }
 
-    def run_fault_analysis(self, fault_type, bus_id):
+    def run_fault_analysis(self, fault_type: str, bus_id: int) -> dict[str, Any]:
         """
         Run fault analysis for a given fault type and bus.
 
@@ -122,16 +123,16 @@ class PowerSystemEngine:
 
     def run_arc_flash(
         self,
-        voltage_kv,
-        bolted_fault_current_ka,
-        arc_duration_sec,
-        working_distance_mm,
-        electrode_config="VCB",
-        enclosure_type="box",
-        enclosure_width_mm=508.0,
-        enclosure_height_mm=508.0,
-        enclosure_depth_mm=508.0,
-    ):
+        voltage_kv: float,
+        bolted_fault_current_ka: float,
+        arc_duration_sec: float,
+        working_distance_mm: float,
+        electrode_config: str = "VCB",
+        enclosure_type: str = "box",
+        enclosure_width_mm: float = 508.0,
+        enclosure_height_mm: float = 508.0,
+        enclosure_depth_mm: float = 508.0,
+    ) -> dict[str, Any]:
         """
         Run arc flash analysis per IEEE 1584-2018.
 
@@ -200,7 +201,7 @@ class PowerSystemEngine:
             "working_distance_mm": result.working_distance_mm,
         }
 
-    def run_protection_coordination(self, upstream_relay_id, downstream_relay_id, fault_currents):
+    def run_protection_coordination(self, upstream_relay_id: int, downstream_relay_id: int, fault_currents: list[float]) -> dict[str, Any]:
         """
         Run protection coordination check between two relays.
 
@@ -238,7 +239,7 @@ class PowerSystemEngine:
             "downstream_relay": downstream_relay,
         }
 
-    def run_study(self, study_type, **kwargs):
+    def run_study(self, study_type: str, **kwargs: Any) -> dict[str, Any]:
         """
         Run a study based on study type.
 
@@ -294,7 +295,7 @@ class PowerSystemEngine:
         else:
             raise ValueError(f"Unsupported study type: {study_type}")
 
-    def visualize_tcc(self, relays, current_range=(0.5, 20), points=100):
+    def visualize_tcc(self, relays: list[OvercurrentRelay], current_range: tuple[float, float] = (0.5, 20), points: int = 100) -> Any:
         """
         Visualize TCC curves for a list of relays.
 
@@ -312,7 +313,7 @@ class PowerSystemEngine:
         self.visualizer.plot_multiple_tcc(relays, current_range=current_range, points=points, ax=ax)
         return fig
 
-    def visualize_coordination(self, upstream_relay, downstream_relay, fault_currents):
+    def visualize_coordination(self, upstream_relay: OvercurrentRelay, downstream_relay: OvercurrentRelay, fault_currents: list[float]) -> Any:
         """
         Visualize coordination margin.
 

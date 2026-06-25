@@ -73,8 +73,22 @@ spec:
               value: "{{ .Values.env.ENVIRONMENT }}"
             - name: LOG_LEVEL
               value: "{{ .Values.env.LOG_LEVEL }}"
+          volumeMounts:
+            - name: app-logs
+              mountPath: /app/logs
+            - name: app-reports
+              mountPath: /app/reports
+            - name: tmp-data
+              mountPath: /tmp/data
           resources:
             {{- toYaml .Values.api.resources | nindent 12 }}
+      volumes:
+        - name: app-logs
+          emptyDir: {}
+        - name: app-reports
+          emptyDir: {}
+        - name: tmp-data
+          emptyDir: {}
       {{- with .Values.api.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
@@ -150,8 +164,18 @@ spec:
               value: "{{ .Values.env.ENVIRONMENT }}"
             - name: LOG_LEVEL
               value: "{{ .Values.env.LOG_LEVEL }}"
+          volumeMounts:
+            - name: app-logs
+              mountPath: /app/logs
+            - name: tmp-data
+              mountPath: /tmp/data
           resources:
             {{- toYaml .Values.worker.resources | nindent 12 }}
+      volumes:
+        - name: app-logs
+          emptyDir: {}
+        - name: tmp-data
+          emptyDir: {}
       {{- with .Values.worker.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}

@@ -33,8 +33,6 @@ import uuid
 from datetime import datetime, timedelta, timezone
 
 UTC = timezone.utc  # noqa: UP017
-
-UTC = UTC
 from typing import Any, Dict, List, Optional
 
 import bcrypt

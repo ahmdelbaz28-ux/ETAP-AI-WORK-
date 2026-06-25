@@ -160,15 +160,15 @@ jobs:
 
       - name: Bandit SAST scan
         run: bandit -r . -x tests/,node_modules/,.venv/ -ll --format txt
-        continue-on-error: true
+        # continue-on-error removed — security scan must block the pipeline
 
       - name: Safety dependency check
         run: safety check -r requirements.txt --full-report
-        continue-on-error: true
+        # continue-on-error removed — security scan must block the pipeline
 
       - name: Custom security scan
         run: python scripts/security_scan.py
-        continue-on-error: true
+        # continue-on-error removed — security scan must block the pipeline
 
       - name: Trivy filesystem scan
         uses: aquasecurity/trivy-action@master
@@ -176,7 +176,7 @@ jobs:
           scan-type: 'fs'
           scan-ref: '.'
           severity: 'CRITICAL,HIGH'
-          exit-code: '0'    # warn only, don't fail build
+          exit-code: '1'    # FAIL on CRITICAL/HIGH — security scan must block the pipeline
 
   # ── 4. HELM CHART VALIDATION ─────────────────────────────────────────────────
   helm-chart:
@@ -261,7 +261,7 @@ jobs:
           format: 'sarif'
           output: 'trivy-results.sarif'
           severity: 'CRITICAL,HIGH'
-          exit-code: '0'    # warn only — don't block deploy on first scan
+          exit-code: '1'    # FAIL on CRITICAL/HIGH — security scan must block the pipeline
 
       - name: Upload Trivy scan results to GitHub Security
         uses: github/codeql-action/upload-sarif@v3

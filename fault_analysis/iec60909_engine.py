@@ -16,10 +16,14 @@ Calculates:
 - Thermal equivalent short-circuit current Ith
 """
 
+from __future__ import annotations
+
 from dataclasses import dataclass
 from enum import Enum
+from typing import Any, Optional, Union
 
 import numpy as np
+import numpy.typing as npt
 
 
 class FaultType(Enum):
@@ -71,14 +75,14 @@ class IEC60909Engine:
 
     def __init__(
         self,
-        Ybus_pos,
-        Ybus_neg,
-        Ybus_zero,
-        base_mva=100.0,
-        base_kv=115.0,
-        generators=None,
-        r_override=None,
-    ):
+        Ybus_pos: npt.NDArray[np.complexfloating],
+        Ybus_neg: npt.NDArray[np.complexfloating],
+        Ybus_zero: npt.NDArray[np.complexfloating],
+        base_mva: float = 100.0,
+        base_kv: float = 115.0,
+        generators: Optional[list[Any]] = None,
+        r_override: Optional[dict[int, float]] = None,
+    ) -> None:
         """
         Initialize the IEC 60909 engine.
 
@@ -107,7 +111,7 @@ class IEC60909Engine:
         # Compute Zbus matrices (inverse of Ybus)
         self._compute_zbus()
 
-    def _compute_zbus(self):
+    def _compute_zbus(self) -> None:
         """Compute Zbus matrices from Ybus."""
         try:
             self.Zbus_pos = np.linalg.inv(self.Ybus_pos)
@@ -122,7 +126,7 @@ class IEC60909Engine:
         except np.linalg.LinAlgError:
             self.Zbus_zero = np.linalg.pinv(self.Ybus_zero)
 
-    def _get_voltage_factor(self, bus_kv, maximum=True):
+    def _get_voltage_factor(self, bus_kv: float, maximum: bool = True) -> float:
         """
         Get IEC 60909 voltage factor c.
 
@@ -148,7 +152,7 @@ class IEC60909Engine:
             else:
                 return VoltageFactorC.C_MIN_LV.value
 
-    def _get_rx_ratio(self, bus_index):
+    def _get_rx_ratio(self, bus_index: int) -> float:
         """
         Get the R/X ratio at a bus for peak current calculation.
 
@@ -161,7 +165,7 @@ class IEC60909Engine:
             rx_ratio = 10.0  # default high R/X for pure resistance
         return rx_ratio
 
-    def _calculate_kappa(self, bus_index):
+    def _calculate_kappa(self, bus_index: int) -> float:
         """
         Calculate the peak factor kappa per IEC 60909.
 
@@ -174,7 +178,7 @@ class IEC60909Engine:
         kappa = 1.02 + 0.98 * np.exp(-3.0 * rx)
         return min(kappa, 2.0)  # kappa max is 2.0
 
-    def _calculate_mu(self, Ik_initial_pu, t_min=0.02):
+    def _calculate_mu(self, Ik_initial_pu: float, t_min: float = 0.02) -> float:
         """
         Calculate the factor mu for breaking current per IEC 60909.
 
@@ -198,7 +202,7 @@ class IEC60909Engine:
             mu = 0.62 + 0.72 * np.exp(-0.32 * min(Ik_initial_pu, 20.0))
         return min(mu, 1.0)
 
-    def _calculate_thermal_factor(self, Ik_initial, ip, t_k=1.0, m_factor=1.0):
+    def _calculate_thermal_factor(self, Ik_initial: float, ip: float, t_k: float = 1.0, m_factor: float = 1.0) -> float:
         """
         Calculate thermal equivalent current Ith per IEC 60909.
 
@@ -235,8 +239,14 @@ class IEC60909Engine:
         return Ith
 
     def calculate_three_phase_fault(
-        self, bus_index, c_factor=None, bus_kv=115.0, maximum=True, t_min=0.02, t_k=1.0
-    ):
+        self,
+        bus_index: int,
+        c_factor: Optional[float] = None,
+        bus_kv: float = 115.0,
+        maximum: bool = True,
+        t_min: float = 0.02,
+        t_k: float = 1.0,
+    ) -> ShortCircuitResult:
         """
         Calculate three-phase short-circuit current per IEC 60909.
 
@@ -306,8 +316,14 @@ class IEC60909Engine:
         )
 
     def calculate_line_to_ground_fault(
-        self, bus_index, c_factor=None, bus_kv=115.0, maximum=True, t_min=0.02, t_k=1.0
-    ):
+        self,
+        bus_index: int,
+        c_factor: Optional[float] = None,
+        bus_kv: float = 115.0,
+        maximum: bool = True,
+        t_min: float = 0.02,
+        t_k: float = 1.0,
+    ) -> ShortCircuitResult:
         """
         Calculate single line-to-ground short-circuit current per IEC 60909.
 
@@ -381,8 +397,14 @@ class IEC60909Engine:
         )
 
     def calculate_line_to_line_fault(
-        self, bus_index, c_factor=None, bus_kv=115.0, maximum=True, t_min=0.02, t_k=1.0
-    ):
+        self,
+        bus_index: int,
+        c_factor: Optional[float] = None,
+        bus_kv: float = 115.0,
+        maximum: bool = True,
+        t_min: float = 0.02,
+        t_k: float = 1.0,
+    ) -> ShortCircuitResult:
         """
         Calculate line-to-line short-circuit current per IEC 60909.
 
@@ -457,8 +479,14 @@ class IEC60909Engine:
         )
 
     def calculate_double_line_to_ground_fault(
-        self, bus_index, c_factor=None, bus_kv=115.0, maximum=True, t_min=0.02, t_k=1.0
-    ):
+        self,
+        bus_index: int,
+        c_factor: Optional[float] = None,
+        bus_kv: float = 115.0,
+        maximum: bool = True,
+        t_min: float = 0.02,
+        t_k: float = 1.0,
+    ) -> ShortCircuitResult:
         """
         Calculate double line-to-ground short-circuit current per IEC 60909.
 
@@ -532,7 +560,7 @@ class IEC60909Engine:
             Ic=Ic_phase,
         )
 
-    def calculate(self, fault_type, bus_index, **kwargs):
+    def calculate(self, fault_type: Union[str, FaultType], bus_index: int, **kwargs: Any) -> ShortCircuitResult:
         """
         Calculate short-circuit current for a given fault type.
 

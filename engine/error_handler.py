@@ -21,8 +21,6 @@ from dataclasses import dataclass, field
 from datetime import datetime, timedelta, timezone
 
 UTC = timezone.utc  # noqa: UP017
-
-UTC = UTC
 from email.message import EmailMessage
 from typing import Any, Dict, List, Optional, Set
 from urllib.error import URLError
