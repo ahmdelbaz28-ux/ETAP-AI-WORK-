@@ -686,15 +686,27 @@ class AnomalyDetector:
     """Anomaly detection with Isolation Forest (sklearn) and PyOD models.
 
     Supports multiple detection algorithms:
-    - Isolation Forest (sklearn, always available)
+    - Isolation Forest (sklearn, when available)
     - PyOD IForest (enhanced isolation forest)
     - PyOD KNN (k-nearest neighbors)
     - PyOD AutoEncoder (deep learning based)
+    - Statistical (z-score based, always available as fallback)
     """
 
-    AVAILABLE_METHODS = ["iforest"]
-    if _HAS_PYOD:
-        AVAILABLE_METHODS.extend(["pyod_iforest", "pyod_knn", "pyod_autoencoder"])
+    @classmethod
+    def _build_available_methods(cls) -> list:
+        methods = ["statistical"]  # always available
+        if _HAS_SKLEARN:
+            methods.insert(0, "iforest")  # preferred default when sklearn present
+        if _HAS_PYOD:
+            methods.extend(["pyod_iforest", "pyod_knn", "pyod_autoencoder"])
+        return methods
+
+    @classmethod
+    def get_default_method(cls) -> str:
+        if _HAS_SKLEARN:
+            return "iforest"
+        return "statistical"
 
     def __init__(self, contamination: float = 0.01, method: str = "iforest") -> None:
         """Initialize the detector.
@@ -704,18 +716,31 @@ class AnomalyDetector:
         contamination : float
             Expected proportion of anomalies in the data (0, 0.5].
         method : str
-            Detection method: 'iforest', 'pyod_iforest', 'pyod_knn',
-            or 'pyod_autoencoder'.
+            Detection method: 'iforest' (requires sklearn), 'pyod_iforest',
+            'pyod_knn', 'pyod_autoencoder', or 'statistical' (always available).
         """
         if not 0 < contamination <= 0.5:
             raise ValueError("contamination must be in (0, 0.5]")
-        if method not in self.AVAILABLE_METHODS:
-            raise ValueError(f"Unknown method '{method}'. Available: {self.AVAILABLE_METHODS}")
+
+        # Remap "iforest" to "statistical" when sklearn is missing
+        if method == "iforest" and not _HAS_SKLEARN:
+            logger.warning(
+                "scikit-learn not available — falling back to 'statistical' anomaly detection"
+            )
+            method = "statistical"
+
+        available = self._build_available_methods()
+        if method not in available:
+            raise ValueError(f"Unknown method '{method}'. Available: {available}")
+
         self.model: Any = None
         self.contamination = contamination
         self.method = method
         self._threshold: Optional[float] = None
         self._is_trained: bool = False
+        self._train_mean: Optional[float] = None
+        self._train_std: Optional[float] = None
+
 
     def train(self, normal_data: np.ndarray) -> Dict[str, Any]:
         """Train on normal operating data.
@@ -734,7 +759,14 @@ class AnomalyDetector:
         if normal_data.ndim != 2:
             raise ValueError("normal_data must be a 2-D array (n_samples, n_features)")
 
-        if self.method == "iforest":
+        if self.method == "statistical":
+            # Z-score based detection — always available, no external deps
+            self._train_mean = float(np.mean(normal_data))
+            self._train_std = float(np.std(normal_data)) or 1.0
+            z_scores = np.abs((normal_data - self._train_mean) / self._train_std)
+            self._threshold = float(np.percentile(z_scores, (1 - self.contamination) * 100))
+
+        elif self.method == "iforest":
             if not _HAS_SKLEARN:
                 raise RuntimeError("scikit-learn required for iforest method")
             self.model = IsolationForest(
@@ -791,13 +823,22 @@ class AnomalyDetector:
         dict
             Dictionary with anomaly detection results.
         """
-        if not self._is_trained or self.model is None:
+        if not self._is_trained:
             raise RuntimeError("Model has not been trained yet. Call train() first.")
 
         if data.ndim == 1:
             data = data.reshape(1, -1)
 
-        if self.method == "iforest":
+        if self.method == "statistical":
+            mean = self._train_mean if self._train_mean is not None else float(np.mean(data))
+            std = self._train_std if self._train_std is not None else (float(np.std(data)) or 1.0)
+            z_scores = np.abs((data - mean) / std)
+            flat_scores = [float(z_scores[i].max()) for i in range(len(z_scores))]
+            thresh = self._threshold if self._threshold is not None else 3.0
+            anomalies = [s > thresh for s in flat_scores]
+            scores_list = flat_scores
+
+        elif self.method == "iforest":
             predictions = self.model.predict(data)
             scores = self.model.decision_function(data)
             anomalies = [int(p) == -1 for p in predictions]
@@ -822,6 +863,7 @@ class AnomalyDetector:
         if self._threshold is None:
             raise RuntimeError("Model has not been trained yet. Call train() first.")
         return self._threshold
+
 
 
 # ===========================================================================
