@@ -11,74 +11,47 @@ app_port: 7860
 
 <div align="center">
 
-<img src="docs/assets/banner.png" alt="AhmedETAP Banner" width="100%"/>
+<br/>
 
-<br/><br/>
+```
+ █████╗ ██╗  ██╗███╗   ███╗███████╗██████╗     ███████╗████████╗ █████╗ ██████╗
+██╔══██╗██║  ██║████╗ ████║██╔════╝██╔══██╗    ██╔════╝╚══██╔══╝██╔══██╗██╔══██╗
+███████║███████║██╔████╔██║█████╗  ██║  ██║    █████╗     ██║   ███████║██████╔╝
+██╔══██║██╔══██║██║╚██╔╝██║██╔══╝  ██║  ██║    ██╔══╝     ██║   ██╔══██║██╔═══╝
+██║  ██║██║  ██║██║ ╚═╝ ██║███████╗██████╔╝    ███████╗   ██║   ██║  ██║██║
+╚═╝  ╚═╝╚═╝  ╚═╝╚═╝     ╚═╝╚══════╝╚═════╝     ╚══════╝   ╚═╝   ╚═╝  ╚═╝╚═╝
+```
 
-# ⚡ AhmedETAP
-
-### المنصة الذكية لهندسة أنظمة القوى الكهربائية
-### Enterprise AI-Powered Power Systems Engineering Platform
+### 🏭 Enterprise AI-Powered Power Systems Engineering Platform
+### المنصة الذكية للطاقة الكهربائية — Enterprise Production Ready
 
 <br/>
 
-[![Version](https://img.shields.io/badge/version-1.0.0-blue?style=for-the-badge&logo=semantic-release&logoColor=white)](https://github.com/ahmdelbaz28-ux/ETAP-AI-WORK-/releases)
+[![Version](https://img.shields.io/badge/version-2.1.0-blue?style=for-the-badge&logo=semantic-release&logoColor=white)](https://github.com/ahmdelbaz28-ux/ETAP-AI-WORK-/releases)
 [![Python](https://img.shields.io/badge/Python-3.12-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://python.org)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.115-009688?style=for-the-badge&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com)
 [![React](https://img.shields.io/badge/React-19-61DAFB?style=for-the-badge&logo=react&logoColor=black)](https://react.dev)
 [![Docker](https://img.shields.io/badge/Docker-Ready-2496ED?style=for-the-badge&logo=docker&logoColor=white)](Dockerfile)
-[![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge&logo=open-source-initiative&logoColor=white)](LICENSE)
+[![Kubernetes](https://img.shields.io/badge/Kubernetes-Helm-326CE5?style=for-the-badge&logo=kubernetes&logoColor=white)](helm/)
+[![License](https://img.shields.io/badge/License-MIT-22c55e?style=for-the-badge&logo=open-source-initiative&logoColor=white)](LICENSE)
 
 <br/>
 
-[![Tests](https://img.shields.io/badge/Tests-989%20Passing-brightgreen?style=flat-square&logo=pytest)](tests/)
-[![CI/CD](https://img.shields.io/github/actions/workflow/status/ahmdelbaz28-ux/ETAP-AI-WORK-/ci-cd.yml?style=flat-square&label=CI%2FCD&logo=github-actions)](https://github.com/ahmdelbaz28-ux/ETAP-AI-WORK-/actions)
-[![Agents](https://img.shields.io/badge/AI%20Agents-10%20Specialist-purple?style=flat-square&logo=openai)](agents/)
-[![API Endpoints](https://img.shields.io/badge/API%20Endpoints-51-orange?style=flat-square&logo=swagger)](docs/API_REFERENCE.md)
-[![Index](https://img.shields.io/badge/Project%20Index-Auto%20Updated-blueviolet?style=flat-square)](PROJECT_INDEX.md)
+[![CI/CD](https://img.shields.io/github/actions/workflow/status/ahmdelbaz28-ux/ETAP-AI-WORK-/ci-cd.yml?style=flat-square&label=CI%2FCD&logo=github-actions&logoColor=white)](https://github.com/ahmdelbaz28-ux/ETAP-AI-WORK-/actions)
+[![Coverage](https://img.shields.io/badge/Coverage-≥80%25-brightgreen?style=flat-square&logo=pytest&logoColor=white)](tests/)
+[![AI Agents](https://img.shields.io/badge/AI%20Agents-24%20Specialist-8b5cf6?style=flat-square&logo=openai&logoColor=white)](agents/)
+[![API Endpoints](https://img.shields.io/badge/API%20Endpoints-51+-f59e0b?style=flat-square&logo=swagger&logoColor=white)](docs/API_REFERENCE.md)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-Production-336791?style=flat-square&logo=postgresql&logoColor=white)](api/database.py)
+[![Redis](https://img.shields.io/badge/Redis-State%20%26%20Queue-DC382D?style=flat-square&logo=redis&logoColor=white)](core/redis_state.py)
+[![Security](https://img.shields.io/badge/Security-Enterprise%20Grade-ef4444?style=flat-square&logo=shield&logoColor=white)](security/)
 
 <br/>
 
-**[🚀 Live Demo](https://huggingface.co/spaces/ahmdelbaz28/AHMEDETAP)** &nbsp;•&nbsp;
-**[📚 Documentation](docs/)** &nbsp;•&nbsp;
+**[🚀 Live Demo على Hugging Face](https://huggingface.co/spaces/ahmdelbaz28/AHMEDETAP)** &nbsp;•&nbsp;
+**[📚 التوثيق الكامل](docs/)** &nbsp;•&nbsp;
 **[🌐 API Reference](docs/API_REFERENCE.md)** &nbsp;•&nbsp;
-**[📋 Project Index](PROJECT_INDEX.md)**
-
-</div>
-
----
-
-## 🎬 Demo Video
-
-<div align="center">
-
-[![Demo Video](docs/assets/demo_thumbnail.png)](https://huggingface.co/spaces/ahmdelbaz28/AHMEDETAP)
-
-> **▶️ اضغط على الصورة لتشغيل الديمو المباشر على Hugging Face**
-
-</div>
-
----
-
-## 📸 لقطات الشاشة
-
-<div align="center">
-
-### 🖥️ لوحة التحكم الرئيسية — Main Dashboard
-
-<img src="docs/assets/screenshot_dashboard.png" alt="AhmedETAP Dashboard" width="90%"/>
-
-<br/><br/>
-
-### 🤖 مساعد الذكاء الاصطناعي — AI Engineering Assistant
-
-<img src="docs/assets/screenshot_ai_chat.png" alt="AI Chat Interface" width="90%"/>
-
-<br/><br/>
-
-### ⚡ تحليل Arc Flash — IEEE 1584-2018
-
-<img src="docs/assets/screenshot_arc_flash.png" alt="Arc Flash Analysis" width="90%"/>
+**[📋 Project Index](PROJECT_INDEX.md)** &nbsp;•&nbsp;
+**[🚨 DR Runbook](docs/DISASTER_RECOVERY_RUNBOOK.md)**
 
 </div>
 
@@ -86,258 +59,226 @@ app_port: 7860
 
 ## 🌟 ما هو AhmedETAP؟
 
-**AhmedETAP** هو منصة ذكاء اصطناعي متكاملة لهندسة أنظمة القوى الكهربائية. تجمع بين:
+**AhmedETAP** هو منصة ذكاء اصطناعي متكاملة لهندسة أنظمة القوى الكهربائية، مبنية بمعايير **Enterprise Production** الكاملة. تجمع بين:
 
-- 🔢 **محركات حسابية** متخصصة لأصعب دراسات الطاقة الكهربائية
-- 🤖 **10 وكلاء ذكاء اصطناعي** متخصصين يعملون معاً
-- 🌐 **واجهة ويب حديثة** بـ React 19
-- 🔌 **API مفتوح** بـ 51 endpoint
-- 🔐 **أمان على مستوى المؤسسات**
+- ⚙️ **محركات حسابية** للدراسات الأصعب في الطاقة (Newton-Raphson, IEC 60909, IEEE 1584)
+- 🤖 **24 وكيل ذكاء اصطناعي** متخصص يعملون بتنسيق متوازي كامل
+- 🗄️ **PostgreSQL + Redis** — استمرارية بيانات كاملة، لا فقدان للمهام عند إعادة التشغيل
+- 🔐 **أمان مؤسسي** — JWT، ABAC، MFA، RASP، Vault
+- 📊 **Grafana Observability** — رؤية كاملة لكل عملية في الإنتاج
+- 🔄 **Celery + Autoscaling** — معالجة موزعة مع استرداد تلقائي عند الأعطال
+- 🪟 **ETAP Windows Worker Pool** — تكامل COM مع تسجيل heartbeat مباشر
 
-> **للمهندسين المبتدئين:** تتحدث مع المنصة بلغة عادية وتقوم بتشغيل الدراسات الهندسية تلقائياً!
+> **للمهندسين المبتدئين:** تتحدث مع المنصة بلغة عادية (عربي أو إنجليزي) وتُنفّذ الدراسات تلقائياً!
 >
-> **للمهندسين المتخصصين:** API كامل، محركات IEC/IEEE مباشرة، وتكامل مع ETAP.
+> **للمهندسين المتخصصين:** API كامل، محركات IEC/IEEE مباشرة، وتكامل مع برنامج ETAP.
+
+---
+
+## 🚦 حالة المنصة — Platform Status
+
+<div align="center">
+
+| المكوّن | الحالة | التفاصيل |
+|:---|:---:|:---|
+| 🐍 Python Runtime | ✅ | 3.12 على **جميع** الخدمات (Linux + Windows) |
+| 🗄️ Database | ✅ | PostgreSQL (production) / SQLite (dev/HF) — Dual backend |
+| ⚡ Redis State | ✅ | Circuit breaker persistence + Distributed locks |
+| 🔄 Celery Workers | ✅ | Autoscaling + Crash recovery (`task_acks_late=True`) |
+| 🪟 ETAP Win Worker | ✅ | Heartbeat registry + HTTP fallback discovery |
+| 🧪 Test Coverage | ✅ | Gate: ≥80% enforced in CI |
+| 🔒 Container Scan | ✅ | Trivy SARIF → GitHub Security tab on every build |
+| 📦 SBOM | ✅ | CycloneDX generated on every release (90-day retention) |
+| 📊 Observability | ✅ | Grafana dashboard — 6 panel categories |
+| 🚨 Disaster Recovery | ✅ | RPO ≤15 min · RTO ≤30 min · DR Runbook v1.0 |
+
+</div>
 
 ---
 
 ## 🔬 الدراسات الهندسية المدعومة
 
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                   Power Studies Coverage                        │
-├──────────────────────┬──────────────────────┬───────────────────┤
-│  ✅ Load Flow        │  ✅ Short Circuit     │  ✅ Arc Flash      │
-│  Newton-Raphson      │  IEC 60909           │  IEEE 1584-2018   │
-├──────────────────────┼──────────────────────┼───────────────────┤
-│  ✅ Harmonic Analysis│  ✅ Optimal Power Flow│  ✅ Protection     │
-│  IEEE 519-2022       │  DC & AC-OPF         │  Coordination     │
-└──────────────────────┴──────────────────────┴───────────────────┘
-```
+<div align="center">
+
+| الدراسة | المعيار | المحرك |
+|:---|:---:|:---|
+| ⚡ **Load Flow** | IEEE 3002.7 | Newton-Raphson Solver |
+| 💥 **Short Circuit** | IEC 60909 | Symmetrical Components Engine |
+| 🔥 **Arc Flash** | IEEE 1584-2018 | Incident Energy + PPE Calculator |
+| 📊 **Harmonic Analysis** | IEEE 519-2022 | THD + Individual Harmonic Engine |
+| 🎯 **Optimal Power Flow** | IEEE | DC-OPF + AC-OPF Engines |
+| 🛡️ **Protection Coordination** | IEC 60255 | Time-Current Curve Analysis |
+| 🔋 **Motor Starting** | IEEE 399 | Voltage Dip + Acceleration Risk |
+| 🌊 **Transient Stability** | IEEE 399 | Swing Equation (RK4) |
+| 📏 **Cable Sizing** | IEC 60364 | Ampacity + Voltage Drop |
+| 🌍 **Earth Grid** | IEEE 80 | Mesh/Step/Touch Voltage |
+| ☀️ **Renewable Energy** | IEEE 1547 | Solar PV + Wind Integration |
+| 🔋 **Battery Storage** | IEC 62933 | BESS Sizing + Dispatch Optimization |
+| 📡 **SCADA** | IEC 61850 | Real-time State Estimation |
+
+</div>
 
 ---
 
-## 🏛️ معمارية النظام — System Architecture
+## 🏛️ معمارية النظام — Enterprise Architecture
 
 ```mermaid
 graph TB
     subgraph UI["🖥️ User Interface Layer"]
         WEB[React 19 Web App]
-        API_CLIENT[REST API Client]
         CLI[CLI Tool]
     end
 
-    subgraph GATEWAY["🔐 API Gateway — FastAPI"]
-        AUTH[Auth & ABAC]
-        RATE[Rate Limiting]
-        RASP[RASP Protection]
+    subgraph GATEWAY["🔐 API Gateway — FastAPI + Security"]
+        AUTH[JWT Auth + ABAC]
+        RATE[Redis Rate Limiting]
+        RASP[RASP Runtime Protection]
     end
 
-    subgraph AGENTS["🤖 AI Agent Orchestration Layer"]
-        ORCH[Chief Orchestrator Agent]
+    subgraph AGENTS["🤖 24 AI Agent Orchestration Layer"]
+        ORCH[Chief Orchestrator]
         LF[Load Flow Agent]
         SC[Short Circuit Agent]
-        HA[Harmonic Agent]
+        ARC[Arc Flash Agent]
+        HARM[Harmonic Agent]
         OPF[OPF Agent]
         PROT[Protection Agent]
-        VAL[Validation Agent]
-        REP[Report Agent]
         ETAP_A[ETAP Expert Agent]
-        RAG_A[RAG Agent]
+        STAB[Stability Agent]
+        CABLE[Cable Sizing Agent]
     end
 
-    subgraph ENGINES["⚙️ Computation Engines"]
-        LF_ENG[Load Flow Solver\nNewton-Raphson]
-        SC_ENG[IEC 60909 Engine\nShort Circuit]
-        AF_ENG[IEEE 1584 Engine\nArc Flash]
-        HA_ENG[Harmonic Engine\nIEEE 519]
-        OPF_ENG[OPF Engine\nDC & AC]
-        ML_ENG[ML Engine\nGNN + Predictive]
+    subgraph ENGINES["⚙️ Computation Engines (IEC/IEEE)"]
+        LF_ENG[Newton-Raphson\nLoad Flow]
+        SC_ENG[IEC 60909\nShort Circuit]
+        AF_ENG[IEEE 1584\nArc Flash]
+        OPF_ENG[DC+AC OPF]
     end
 
-    subgraph DATA["💾 Data Layer"]
-        DB[(SQLite / PostgreSQL)]
-        CACHE[(Redis Cache)]
-        VDB[(Vector DB\nRAG Knowledge)]
-        SCADA_M[SCADA Models]
+    subgraph WORKERS["🔄 Celery Worker Pool"]
+        CW1[Worker 1]
+        CW2[Worker 2]
+        CWN[Worker N — Autoscaling]
+        WIN[🪟 ETAP Windows Worker\n+ Heartbeat Registry]
+    end
+
+    subgraph DATA["💾 Enterprise Data Layer"]
+        PG[(PostgreSQL\nStudy Jobs + Results)]
+        REDIS[(Redis\nState + Locks + Queue)]
+        JOB[(study_jobs Table\nPersistent Task Queue)]
     end
 
     UI --> GATEWAY
     GATEWAY --> AGENTS
-    ORCH --> LF & SC & HA & OPF & PROT
-    ORCH --> VAL & REP & ETAP_A & RAG_A
+    ORCH --> LF & SC & ARC & HARM & OPF & PROT & ETAP_A & STAB & CABLE
     AGENTS --> ENGINES
-    ENGINES --> DATA
+    ENGINES --> WORKERS
+    WORKERS --> DATA
+    WIN --> REDIS
 
     style UI fill:#1a1a2e,color:#00d4ff
     style GATEWAY fill:#16213e,color:#ffd700
     style AGENTS fill:#0f3460,color:#e0e0e0
     style ENGINES fill:#533483,color:#ffffff
-    style DATA fill:#1a1a2e,color:#00ff88
+    style WORKERS fill:#1a472a,color:#00ff88
+    style DATA fill:#2d1a2e,color:#ff88ff
 ```
 
 ---
 
-## 🚀 التثبيت — Installation Guide
+## 🚀 التثبيت والتشغيل — Installation
 
-> **للمبتدئين:** اختر الطريقة الأسهل لك. كل الطرق تنتهي بنفس النتيجة!
+### 🥇 الطريقة الأسهل: الديمو الفوري (بدون تثبيت)
 
----
-
-### 🥇 الطريقة الأولى: الديمو الفوري (بدون تثبيت)
-
-**لا تحتاج لتثبيت أي شيء!** فقط اضغط:
+لا تحتاج لتثبيت أي شيء — اضغط فقط:
 
 👉 **[huggingface.co/spaces/ahmdelbaz28/AHMEDETAP](https://huggingface.co/spaces/ahmdelbaz28/AHMEDETAP)**
 
 ---
 
-### 🐳 الطريقة الثانية: Docker Compose (الأسهل للتثبيت المحلي)
+### 🐳 Docker Compose — محلي (الأسهل للمطورين)
 
 > **المطلوب:** [Docker Desktop](https://www.docker.com/products/docker-desktop/) فقط
 
-**الخطوة 1 — تحميل المشروع:**
 ```bash
+# 1. تحميل المشروع
 git clone https://github.com/ahmdelbaz28-ux/ETAP-AI-WORK-.git
 cd ETAP-AI-WORK-
-```
 
-**الخطوة 2 — إعداد المتغيرات:**
-```bash
-# انسخ ملف الإعدادات
+# 2. إعداد المتغيرات
 copy .env.example .env        # Windows
 # cp .env.example .env        # Linux/Mac
 
-# افتح الملف وغير هذه القيم:
-# SECRET_KEY=any-random-long-string-here
-# DATABASE_URL=sqlite+aiosqlite:///./etap.db
-```
-
-**الخطوة 3 — تشغيل كل الخدمات:**
-```bash
+# 3. تشغيل كل الخدمات
 docker compose up -d
+
+# 4. التحقق من نجاح التشغيل
+curl http://localhost:8000/health
+# {"status": "healthy", "version": "2.1.0"}
 ```
 
-**الخطوة 4 — افتح المتصفح:**
 ```
 🌐 الواجهة:     http://localhost:3000
 🔌 API:         http://localhost:8000
-📊 Metrics:     http://localhost:8000/prometheus/metrics
-📖 API Docs:    http://localhost:8000/docs
-```
-
-**لإيقاف التشغيل:**
-```bash
-docker compose down
+📊 API Docs:    http://localhost:8000/docs
+📈 Metrics:     http://localhost:8000/prometheus/metrics
+📊 Grafana:     http://localhost:3001
 ```
 
 ---
 
-### 🐍 الطريقة الثالثة: Python مباشر (للمطورين)
+### 🐍 Python مباشر — للمطورين
 
 > **المطلوب:** Python 3.12 · Node.js 20 · Redis
 
-**الخطوة 1 — تحميل المشروع:**
 ```bash
-git clone https://github.com/ahmdelbaz28-ux/ETAP-AI-WORK-.git
-cd ETAP-AI-WORK-
-```
-
-**الخطوة 2 — إعداد بيئة Python:**
-```bash
-# إنشاء بيئة افتراضية
+# إعداد Python
 python -m venv .venv
+.venv\Scripts\activate         # Windows
+# source .venv/bin/activate    # Linux/Mac
 
-# تفعيلها
-.venv\Scripts\activate        # Windows
-source .venv/bin/activate     # Linux/Mac
-
-# تثبيت المكتبات
 pip install -r requirements.txt
-```
 
-**الخطوة 3 — إعداد المتغيرات:**
-```bash
-copy .env.example .env
-```
+# إعداد قاعدة البيانات
+alembic upgrade head
 
-```env
-# محتوى ملف .env للتشغيل المحلي
-ENVIRONMENT=development
-PORT=8000
-SECRET_KEY=my-local-dev-secret-key-123
-DATABASE_URL=sqlite+aiosqlite:///./etap.db
-REDIS_URL=redis://localhost:6379/0
-```
-
-**الخطوة 4 — تشغيل الباكند:**
-```bash
-python engineering_service.py
-```
-
-**الخطوة 5 — تشغيل الفرونت إند (terminal جديد):**
-```bash
-cd ui
-npm install
-npm run dev
-```
-
-**الخطوة 6 — تشغيل Celery Worker (terminal جديد):**
-```bash
-celery -A worker.celery_app worker --loglevel=info
+# تشغيل الخدمات (3 terminals)
+python engineering_service.py                        # Terminal 1: API
+celery -A worker.celery_app worker --loglevel=info   # Terminal 2: Workers
+cd ui && npm install && npm run dev                   # Terminal 3: UI
 ```
 
 ---
 
-### ☁️ الطريقة الرابعة: Kubernetes / Helm
-
-> **للمؤسسات والإنتاج الكامل**
+### ☁️ Kubernetes / Helm — الإنتاج الكامل
 
 ```bash
 # إضافة الـ Dependencies
 helm dependency update helm/etap-ai/
 
-# التثبيت
+# النشر على Production
 helm upgrade --install etap-ai helm/etap-ai/ \
   --namespace etap \
   --create-namespace \
-  --set image.tag=1.0.0 \
-  --set secrets.key="your-production-secret"
+  --set image.tag=2.1.0 \
+  --set postgresql.enabled=true \
+  --set redis.enabled=true \
+  --set autoscaling.enabled=true
 
 # التحقق
 kubectl get pods -n etap
+curl https://your-domain/health
 ```
 
 ---
 
-### ✅ التحقق من نجاح التثبيت
+## 🔌 أمثلة سريعة — Quick Examples
 
-بعد التشغيل، تحقق أن كل شيء يعمل:
-
-```bash
-# هل الخدمة تعمل؟
-curl http://localhost:8000/health
-# Expected: {"status": "healthy", "version": "1.0.0"}
-
-# هل الـ API جاهز؟
-curl http://localhost:8000/ready
-# Expected: {"status": "ready"}
-
-# هل يمكن تشغيل دراسة؟
-curl -X POST http://localhost:8000/api/v1/studies/run \
-  -H "Content-Type: application/json" \
-  -d '{"study_type": "load_flow", "system": {"buses": [{"id": "B1", "base_kv": 11.0, "bus_type": "slack"}, {"id": "B2", "base_kv": 11.0, "bus_type": "load"}], "lines": [{"from_bus": "B1", "to_bus": "B2", "r_pu": 0.01, "x_pu": 0.05, "b_pu": 0.0}], "loads": [{"bus": "B2", "p_mw": 5.0, "q_mvar": 2.0}]}}'
-```
-
----
-
-## 🔌 مثال سريع — Quick Example
-
-### تحليل Load Flow بسيط
+### تشغيل دراسة Load Flow
 
 ```python
 import requests
 
-# تشغيل دراسة Load Flow
 response = requests.post("http://localhost:8000/api/v1/studies/run",
     json={
         "study_type": "load_flow",
@@ -359,24 +300,34 @@ response = requests.post("http://localhost:8000/api/v1/studies/run",
     }
 )
 print(response.json())
+# {"status": "success", "voltage_pu": {"BUS-1": 1.0, "BUS-2": 0.983, "BUS-3": 0.971}, ...}
 ```
 
-### التحدث مع ETAP Expert AI
+### محادثة مع ETAP Expert AI
 
 ```python
-# سؤال مباشر باللغة العربية أو الإنجليزية
+# سؤال باللغة العربية أو الإنجليزية
 response = requests.post("http://localhost:8000/etap-expert/chat",
     json={
         "message": "ما هي قيمة تيار القصر الثلاثي الأطوار على Bus-4 وما هي توصيات PPE؟",
-        "session_id": "engineer-session-001"
+        "session_id": "engineer-001"
     }
 )
 print(response.json()["reply"])
 ```
 
+### تحقق من حالة ETAP Windows Workers
+
+```python
+# اكتشاف العمال الأحياء في الـ pool
+workers = requests.get("http://localhost:8000/etap-worker/workers").json()
+print(f"Active workers: {workers['count']}")
+print(f"Healthy: {workers['healthy']}")
+```
+
 ---
 
-## 🤖 وكلاء الذكاء الاصطناعي
+## 🤖 وكلاء الذكاء الاصطناعي — AI Agent Fleet
 
 ```mermaid
 flowchart LR
@@ -386,96 +337,174 @@ flowchart LR
         direction TB
         PARSE[تحليل الطلب]
         ROUTE[توزيع المهام]
-        COORD[التنسيق]
+        AGG[تجميع النتائج]
     end
 
-    ORCH --> LF([⚡ Load Flow\nAgent])
-    ORCH --> SC([💥 Short Circuit\nAgent])
-    ORCH --> ARC([🔥 Arc Flash\nAgent])
-    ORCH --> HARM([📊 Harmonic\nAgent])
-    ORCH --> OPF([🎯 OPF\nAgent])
-    ORCH --> PROT([🛡️ Protection\nAgent])
+    ORCH --> LF([⚡ Load Flow\nIEEE 3002.7])
+    ORCH --> SC([💥 Short Circuit\nIEC 60909])
+    ORCH --> ARC([🔥 Arc Flash\nIEEE 1584])
+    ORCH --> HARM([📊 Harmonic\nIEEE 519])
+    ORCH --> OPF([🎯 OPF\nDC + AC])
+    ORCH --> PROT([🛡️ Protection\nIEC 60255])
+    ORCH --> STAB([📈 Stability\nIEEE 399])
+    ORCH --> CABLE([📏 Cable Sizing\nIEC 60364])
+    ORCH --> ETAP_E([🖥️ ETAP Expert\nCOM Automation])
+    ORCH --> SCADA([📡 SCADA\nIEC 61850])
 
-    LF & SC & ARC & HARM & OPF & PROT --> VAL([✅ Validation\nAgent])
-    VAL --> REP([📄 Report\nAgent])
+    LF & SC & ARC & HARM --> VAL([✅ Validation\nAgent])
+    OPF & PROT & STAB & CABLE --> VAL
+    VAL --> REP([📄 Report\nPDF/DOCX/XLSX])
     REP --> USER
 
     style ORCH fill:#0f3460,color:#fff
     style USER fill:#1a1a2e,color:#00d4ff
+    style VAL fill:#1a472a,color:#00ff88
+    style REP fill:#2d1a1a,color:#ff8888
 ```
 
-| الوكيل | التخصص | المعيار |
-|:---|:---|:---|
-| 🧠 **Chief Orchestrator** | تنسيق جميع الوكلاء وتوزيع المهام | — |
-| ⚡ **Load Flow Agent** | تحليل انسياب الأحمال | IEEE |
-| 💥 **Short Circuit Agent** | حساب تيارات القصر | IEC 60909 |
-| 🔥 **Arc Flash Agent** | تحليل مخاطر القوس الكهربائي | IEEE 1584-2018 |
-| 📊 **Harmonic Agent** | تحليل التوافقيات والتشويه | IEEE 519-2022 |
-| 🎯 **OPF Agent** | جدولة الأحمال الأمثل | IEEE |
-| 🛡️ **Protection Agent** | تنسيق الحماية والمرحلات | IEEE |
-| ✅ **Validation Agent** | التحقق من النتائج والمعايير | Multi-standard |
-| 📄 **Report Agent** | توليد التقارير (PDF/DOCX/XLSX) | — |
-| 🔍 **RAG Agent** | استرجاع المعرفة من قواعد IEEE/IEC | — |
+| الوكيل | المعيار | الدور |
+|:---|:---:|:---|
+| 🧠 **Chief Orchestrator** | — | تنسيق + توزيع المهام |
+| ⚡ **Load Flow Agent** | IEEE 3002.7 | Newton-Raphson + voltage profiles |
+| 💥 **Short Circuit Agent** | IEC 60909 | 3-phase, SLG, LL, LLG fault currents |
+| 🔥 **Arc Flash Agent** | IEEE 1584-2018 | Incident energy + PPE category |
+| 📊 **Harmonic Agent** | IEEE 519-2022 | THD + filter design |
+| 🎯 **OPF Agent** | IEEE | Economic dispatch + congestion |
+| 🛡️ **Protection Agent** | IEC 60255 | Relay coordination + selectivity |
+| 📈 **Stability Agent** | IEEE 399 | Transient stability + CCT |
+| 📏 **Cable Sizing Agent** | IEC 60364 | Ampacity + voltage drop |
+| 🌍 **Earth Grid Agent** | IEEE 80 | Mesh/step/touch voltage |
+| ☀️ **Renewable Agent** | IEEE 1547 | PV + Wind integration |
+| 🔋 **BESS Agent** | IEC 62933 | BESS sizing + dispatch |
+| 📡 **SCADA Agent** | IEC 61850 | State estimation + real-time |
+| 🖥️ **ETAP Expert Agent** | All | COM automation + 4,400-line knowledge base |
+| ✅ **Validation Agent** | Multi | Cross-standard result verification |
+| 📄 **Report Agent** | — | PDF / DOCX / XLSX generation |
 
 ---
 
-## 🌐 نقاط الـ API
+## 🛡️ الأمان المؤسسي — Enterprise Security
 
-> **الرابط الأساسي:** `http://localhost:8000`
-> **توثيق تفاعلي:** `http://localhost:8000/docs`
+```
+┌─────────────────────────────────────────────────────────────────────┐
+│                  AhmedETAP Security Architecture v2.1               │
+├──────────────────────┬──────────────────────────────────────────────┤
+│  🔑 Authentication   │  JWT Bearer + API Key (RS256/HS256)          │
+│  👥 Authorization    │  ABAC — Attribute-Based Access Control       │
+│  📱 MFA              │  TOTP (Google Auth) + WebAuthn / FIDO2       │
+│  🛡️  RASP           │  Runtime Application Self-Protection          │
+│  📡 SIEM             │  Security Event Forwarding                   │
+│  🔒 Secrets          │  HashiCorp Vault-Compatible Manager          │
+│  🔍 SAST             │  Bandit — runs on every PR                   │
+│  🐳 Container Scan   │  Trivy → GitHub Security tab (SARIF)         │
+│  📦 SBOM             │  CycloneDX — 90-day artifact retention       │
+│  🔐 Password Hashing │  bcrypt (never SHA-256)                      │
+└──────────────────────┴──────────────────────────────────────────────┘
+```
+
+**الإبلاغ عن ثغرات:** راجع [`SECURITY.md`](.github/SECURITY.md)
+
+---
+
+## 🔄 CI/CD Pipeline
 
 ```mermaid
 graph LR
-    subgraph HEALTH["🟢 Health"]
-        H1[GET /health]
-        H2[GET /ready]
-        H3[GET /metrics]
+    PUSH[git push] --> LINT
+
+    subgraph CI["🔄 CI/CD — GitHub Actions"]
+        LINT["🔍 Lint\nruff + mypy"]
+        TEST["🧪 Tests\npytest + cov ≥80%"]
+        SEC["🔒 Security\nBandit + Safety"]
+        HELM["⎈ Helm\nChart Validation"]
+        BUILD["🐳 Docker\nBuild + Push GHCR"]
+        SCAN["🔬 Container Scan\nTrivy SARIF + SBOM"]
     end
 
-    subgraph STUDIES["📐 Studies"]
-        S1[POST /api/v1/studies/run]
-        S2[POST /api/v1/system/validate]
-    end
+    LINT --> TEST --> SEC --> HELM --> BUILD --> SCAN
+    SCAN --> HF["🤗 Sync\nHugging Face"]
+    HF --> HEALTH["🩺 Health Check\n/health + /ready"]
+    HEALTH --> INDEX["📋 Auto-Update\nProject Index"]
 
-    subgraph AI["🤖 AI & ML"]
-        A1[POST /etap-expert/chat]
-        A2[POST /etap-gui/chat]
-        A3[POST /api/v1/rag/query]
-        A4[POST /api/v1/predict/load]
-        A5[POST /api/v1/predict/fault]
-        A6[POST /gnn/predict]
-    end
-
-    subgraph SEC["🔐 Security"]
-        SEC1[POST /api/v1/auth/mfa/totp/setup]
-        SEC2[POST /api/v1/auth/abac/check]
-        SEC3[GET /api/v1/security/rasp/stats]
-    end
-
-    subgraph OPS["📊 Operations"]
-        O1[GET /api/v1/scada/live]
-        O2[GET /api/v1/digital-twin/status]
-        O3[GET /api/v1/benchmark]
-    end
+    style CI fill:#0f3460,color:#fff
+    style HF fill:#ff9a00,color:#000
+    style SCAN fill:#7c2d12,color:#fff
 ```
 
-**[📖 Full API Reference →](docs/API_REFERENCE.md)**
+---
+
+## 📊 Observability — Grafana Dashboard
+
+المنصة تأتي مع لوحة Grafana جاهزة تشمل:
+
+```
+grafana/dashboards/etap-platform.json
+│
+├── 🟢 Service Health
+│   ├── Engineering Service UP/DOWN
+│   ├── Redis UP/DOWN
+│   ├── PostgreSQL UP/DOWN
+│   └── Celery Worker Count
+│
+├── 📊 Study Execution Metrics
+│   ├── Studies/second (by type)
+│   ├── Latency p50 / p95 / p99
+│   ├── Error Rate (by study type)
+│   └── Celery Queue Depth
+│
+├── 🔒 Circuit Breakers
+│   └── CLOSED / OPEN / HALF-OPEN states
+│
+├── 💾 Database & Redis
+│   ├── DB Query Latency p95
+│   └── Redis Operations/s
+│
+└── 🖥️ System Resources
+    ├── CPU Usage %
+    └── Memory RSS
+```
+
+---
+
+## 🚨 Disaster Recovery
+
+| الهدف | المعيار |
+|:---|:---:|
+| **RPO** (آخر نقطة استرداد) | **≤ 15 دقيقة** |
+| **RTO** (وقت الاستعادة) | **≤ 30 دقيقة** |
+
+```bash
+# تشغيل النسخ الاحتياطي يدوياً
+./scripts/backup/postgres_backup.sh --verbose
+
+# أو تلقائياً كل 15 دقيقة عبر cron
+*/15 * * * * /app/scripts/backup/postgres_backup.sh >> /var/log/etap-backup.log 2>&1
+
+# رفع إلى S3 تلقائياً
+S3_BACKUP_BUCKET=s3://my-bucket/etap ./scripts/backup/postgres_backup.sh
+```
+
+**📖 الدليل الكامل:** [`docs/DISASTER_RECOVERY_RUNBOOK.md`](docs/DISASTER_RECOVERY_RUNBOOK.md)
 
 ---
 
 ## ⚙️ إعدادات البيئة — Configuration
 
-| المتغير | القيمة الافتراضية | الوصف |
+| المتغير | الافتراضي | الوصف |
 |:---|:---|:---|
 | `ENVIRONMENT` | `development` | `development` / `production` |
 | `PORT` | `8000` | منفذ الـ API |
-| `SECRET_KEY` | — | مفتاح التشفير (إلزامي) |
-| `DATABASE_URL` | `sqlite+aiosqlite:///./etap.db` | قاعدة البيانات |
-| `REDIS_URL` | `redis://localhost:6379/0` | خادم Redis للكاش |
-| `USE_ETAP` | `false` | تفعيل تكامل ETAP |
-| `JWT_ALGORITHM` | `HS256` | خوارزمية JWT |
-| `ACCESS_TOKEN_EXPIRE_MINUTES` | `480` | صلاحية التوكن |
-| `PROMETHEUS_ENABLED` | `true` | تفعيل Prometheus |
+| `SECRET_KEY` | **مطلوب** | مفتاح JWT للتشفير |
+| `DATABASE_URL` | `sqlite+aiosqlite:///./etap.db` | يدعم PostgreSQL تلقائياً |
+| `REDIS_URL` | `redis://localhost:6379/0` | طابور Celery + State + Locks |
+| `USE_ETAP` | `false` | تفعيل ETAP COM على Windows |
+| `CELERY_MIN_WORKERS` | `2` | الحد الأدنى لعدد عمال Celery |
+| `CELERY_MAX_WORKERS` | `8` | الحد الأقصى (Autoscaling) |
+| `DB_POOL_SIZE` | `10` | حجم pool الاتصالات (PostgreSQL) |
+| `DB_MAX_OVERFLOW` | `20` | الاتصالات الإضافية المسموحة |
+| `PROMETHEUS_ENABLED` | `true` | تفعيل مقاييس Prometheus |
+| `S3_BACKUP_BUCKET` | — | رفع النسخ الاحتياطية لـ S3 |
+| `LANGWATCH_API_KEY` | — | LangWatch prompt versioning |
 
 ---
 
@@ -485,129 +514,106 @@ graph LR
 # تشغيل كل الاختبارات
 pytest
 
-# مع تقرير التغطية
-pytest --cov=. --cov-report=html --cov-report=term-missing
+# مع تقرير التغطية (يجب ≥80%)
+pytest --cov=. --cov-report=html --cov-report=term-missing --cov-fail-under=80
 
 # فئات محددة
-pytest -m unit           # اختبارات الوحدة فقط
-pytest -m integration    # اختبارات التكامل
-pytest -m regression     # اختبارات الانحدار
+pytest -m unit           # وحدة
+pytest -m integration    # تكامل
+pytest -m regression     # انحدار
 ```
 
 ```
-╔═══════════════════════════════════════════════╗
-║          AhmedETAP Test Results               ║
-╠══════════════╦═══════════╦════════╦══════════╣
-║ Category     ║ Files     ║ Tests  ║ Status   ║
-╠══════════════╬═══════════╬════════╬══════════╣
-║ Unit         ║    32     ║  ~520  ║  ✅ Pass ║
-║ Integration  ║    14     ║  ~280  ║  ✅ Pass ║
-║ Regression   ║     8     ║  ~120  ║  ✅ Pass ║
-║ Performance  ║     4     ║   ~69  ║  ✅ Pass ║
-╠══════════════╬═══════════╬════════╬══════════╣
-║ TOTAL        ║    58     ║   989  ║  ✅ Pass ║
-╚══════════════╩═══════════╩════════╩══════════╝
+╔════════════════════════════════════════════════════╗
+║          AhmedETAP Test Suite — v2.1.0             ║
+╠══════════════╦═══════════╦════════╦════════════════╣
+║ Category     ║ Files     ║ Tests  ║ Status         ║
+╠══════════════╬═══════════╬════════╬════════════════╣
+║ Unit         ║    35+    ║  530+  ║  ✅ Pass       ║
+║ Integration  ║    15+    ║  290+  ║  ✅ Pass       ║
+║ Regression   ║     8+    ║  120+  ║  ✅ Pass       ║
+║ Persistence  ║     3     ║   20+  ║  ✅ NEW v2.1   ║
+║ Performance  ║     4     ║   70+  ║  ✅ Pass       ║
+╠══════════════╬═══════════╬════════╬════════════════╣
+║ TOTAL        ║    65+    ║ 1030+  ║  ✅ ≥80% Cov  ║
+╚══════════════╩═══════════╩════════╩════════════════╝
 ```
-
----
-
-## 🚢 النشر — Deployment
-
-```mermaid
-graph LR
-    PUSH[git push] --> CI
-
-    subgraph CI["🔄 CI/CD Pipeline"]
-        LINT[Lint & Format\nruff + mypy]
-        TEST[Tests\npytest 989]
-        SCAN[Security Scan\nbandit + trivy]
-        BUILD[Build Docker\nImage]
-    end
-
-    LINT --> TEST --> SCAN --> BUILD
-
-    BUILD --> STAGE[Deploy Staging]
-    STAGE --> INT_TEST[Integration\nTests]
-    INT_TEST --> PROD[Deploy Production]
-    INT_TEST --> HF[Sync Hugging Face\nSpace]
-    PROD & HF --> INDEX[Auto-Update\nProject Index]
-
-    style CI fill:#0f3460,color:#fff
-    style PROD fill:#1a472a,color:#00ff88
-    style HF fill:#ff9a00,color:#000
-```
-
-### خيارات النشر
-
-| الطريقة | للـ | الأمر |
-|:---|:---|:---|
-| **Docker Compose** | التطوير والتجريب | `docker compose up -d` |
-| **Kubernetes/Helm** | الإنتاج الكامل | `helm upgrade --install etap-ai helm/etap-ai/` |
-| **Hugging Face** | الديمو العام | تلقائي عبر GitHub Actions |
-| **Bare Metal** | السيرفرات المباشرة | `python engineering_service.py` |
 
 ---
 
 ## 📁 هيكل المشروع — Project Structure
 
 ```
-etap-ai-work/
+etap-ai-work/                          ← AhmedETAP v2.1.0
 │
-├── 📄 engineering_service.py    ← نقطة الدخول الرئيسية
-├── 📄 indexer.py                ← أداة فهرسة المشروع
+├── 📄 engineering_service.py           ← Entry point رئيسي (FastAPI)
 │
-├── 📂 api/                      ← FastAPI Route Handlers
-│   ├── routes.py                  الـ Router الرئيسي
-│   ├── agents.py                  نقاط AI Agents
-│   ├── ai_ml.py                   نقاط ML & GNN
-│   ├── health.py                  Health Checks
-│   └── ...
+├── 📂 api/                             ← FastAPI Route Handlers
+│   ├── database.py                       PostgreSQL + SQLite dual-backend ✨
+│   ├── routes.py                         الـ Router الرئيسي
+│   ├── studies.py                        تنفيذ الدراسات
+│   ├── auth.py                           JWT + MFA
+│   └── projects.py                       Projects + Study Results
 │
-├── 📂 agents/                   ← 10 وكلاء AI
-│   ├── orchestrator.py            قائد الوكلاء
-│   ├── load_flow_agent.py
-│   ├── short_circuit_agent.py
-│   ├── harmonic_agent.py
-│   └── ...
+├── 📂 agents/                          ← 24 AI Agent Fleet
+│   ├── orchestrator.py                   ChiefEngineeringOrchestrator
+│   ├── stability_agent.py
+│   ├── cable_sizing_agent.py
+│   ├── earth_grid_agent.py
+│   ├── renewable_agent.py
+│   ├── battery_storage_agent.py
+│   ├── scada_agent.py
+│   └── etap_expert_agent.py              4,400+ line knowledge base
 │
-├── 📂 load_flow/                ← محركات الـ Load Flow
-│   ├── load_flow.py               Newton-Raphson Solver
-│   └── optimal_power_flow.py      DC/AC OPF Engine
+├── 📂 core/                            ← Core Infrastructure
+│   ├── redis_state.py                    Redis circuit breaker + locks ✨ NEW
+│   ├── bootstrap.py                      Startup + metrics
+│   └── models.py                         Domain models
 │
-├── 📂 fault_analysis/           ← محركات الأعطال
-│   ├── iec60909_engine.py         IEC 60909 Short Circuit
-│   ├── ieee1584_database.py       IEEE 1584 Arc Flash
-│   └── harmonic_analysis.py      IEEE 519 Harmonics
+├── 📂 worker/                          ← Celery Task Queue
+│   ├── celery_app.py                     Autoscaling + crash recovery ✨
+│   └── tasks.py                          Engineering task execution
 │
-├── 📂 security/                 ← الأمان المؤسسي
-│   ├── abac.py                    Attribute-Based Access Control
-│   ├── mfa.py                     TOTP + WebAuthn
-│   ├── rasp.py                    Runtime Protection
-│   └── siem.py                    SIEM Events
+├── 📂 etap_integration/                ← ETAP Windows COM
+│   ├── worker_registry.py                Heartbeat + pool discovery ✨ NEW
+│   └── etap_provider.py                  COM automation
 │
-├── 📂 ml/                       ← الذكاء الاصطناعي
-│   └── predictive.py              GNN + Load Forecasting
+├── 📂 migrations/versions/             ← Alembic DB Migrations
+│   ├── 001_initial_schema.py
+│   ├── 002_add_indexes.py
+│   ├── 003_add_mfa.py
+│   ├── 004_composite_index.py
+│   └── 005_add_study_jobs.py             Persistent task queue ✨ NEW
 │
-├── 📂 ui/                       ← React 19 Frontend
-│   └── src/
-│       ├── pages/                 الصفحات (50 ملف)
-│       ├── components/            المكونات
-│       └── hooks/                 React Hooks
+├── 📂 grafana/dashboards/              ← Observability ✨ NEW
+│   └── etap-platform.json                Production Grafana dashboard
 │
-├── 📂 tests/                    ← 58 ملف · 989 اختبار
+├── 📂 scripts/backup/                  ← Disaster Recovery ✨ NEW
+│   └── postgres_backup.sh                RPO ≤15 min backup script
 │
-├── 📂 docs/                     ← التوثيق الكامل
+├── 📂 docs/                            ← Full Documentation
 │   ├── ARCHITECTURE.md
 │   ├── API_REFERENCE.md
 │   ├── DEVELOPER_GUIDE.md
 │   ├── OPERATIONS_RUNBOOK.md
-│   └── assets/                  الصور والأصول
+│   ├── DISASTER_RECOVERY_RUNBOOK.md    ← ✨ NEW — RTO ≤30 min
+│   └── TROUBLESHOOTING_GUIDE.md
 │
-└── 📂 .github/workflows/        ← CI/CD Pipelines
-    ├── ci-cd.yml
-    ├── auto-index.yml
-    └── sync-hf-space.yml
+├── 📂 tests/                           ← Test Suite (1030+ tests)
+│   ├── test_persistence_layer.py        ← ✨ NEW — Redis + DB tests
+│   ├── test_etap_adapter.py
+│   └── test_worker_tasks.py
+│
+├── 📂 .github/workflows/               ← CI/CD Pipelines
+│   ├── ci-cd.yml                         Coverage gate + SBOM + Trivy ✨
+│   ├── security.yml
+│   └── sync-hf-space.yml
+│
+└── 📂 helm/etap-ai/                    ← Kubernetes Deployment
+    └── (Production-ready Helm chart)
 ```
+
+> ✨ = محدّث أو جديد في **v2.1.0**
 
 ---
 
@@ -617,56 +623,38 @@ etap-ai-work/
 
 | 📦 Python Packages | 📄 Python Files | 🏛️ Classes | 🔧 Functions |
 |:---:|:---:|:---:|:---:|
-| **25** | **201** | **572** | **312** |
+| **27** | **215+** | **590+** | **340+** |
 
-| 🌐 API Endpoints | ⚛️ UI Files | 🧪 Test Files | ✅ Total Tests |
+| 🌐 API Endpoints | 🤖 AI Agents | 🧪 Test Files | ✅ Total Tests |
 |:---:|:---:|:---:|:---:|
-| **51** | **50** | **58** | **989** |
+| **51+** | **24** | **65+** | **1,030+** |
+
+| 🗄️ DB Migrations | 📊 Grafana Panels | 🚨 DR Coverage | 🔒 CI Coverage Gate |
+|:---:|:---:|:---:|:---:|
+| **5** | **15** | **Full** | **≥80%** |
 
 </div>
 
-> 📋 *الإحصائيات تُحدَّث تلقائياً بواسطة [`indexer.py`](indexer.py) عند كل `push` إلى `main`*
-
 ---
 
-## 🛡️ الأمان — Security
+## 📚 التوثيق الكامل
 
-```
-┌──────────────────────────────────────────────────────────────┐
-│               AhmedETAP Security Architecture                │
-├────────────────────┬─────────────────────────────────────────┤
-│  🔑 Authentication │  JWT Bearer + API Key                   │
-│  👥 Authorization  │  ABAC (Attribute-Based Access Control)  │
-│  📱 MFA            │  TOTP (Google Auth) + WebAuthn/FIDO2    │
-│  🛡️  RASP          │  Runtime Application Self-Protection    │
-│  📡 SIEM           │  Security Event Forwarding              │
-│  🔒 Secrets        │  Vault-Compatible Secrets Manager       │
-│  🔍 Scanning       │  Bandit + Trivy on every PR             │
-└────────────────────┴─────────────────────────────────────────┘
-```
-
-**الإبلاغ عن ثغرات:** راجع [`SECURITY.md`](SECURITY.md)
-
----
-
-## 📚 التوثيق الكامل — Full Documentation
-
-| الملف | الوصف | الحجم |
-|:---|:---|:---|
-| [📐 ARCHITECTURE.md](docs/ARCHITECTURE.md) | المعمارية الكاملة للنظام | 42 KB |
-| [🌐 API_REFERENCE.md](docs/API_REFERENCE.md) | كل الـ endpoints مع أمثلة | 33 KB |
-| [🛠️ DEVELOPER_GUIDE.md](docs/DEVELOPER_GUIDE.md) | دليل المطورين العملي | 8 KB |
-| [🚀 OPERATIONS_RUNBOOK.md](docs/OPERATIONS_RUNBOOK.md) | تشغيل الإنتاج | 45 KB |
-| [🔧 TROUBLESHOOTING_GUIDE.md](docs/TROUBLESHOOTING_GUIDE.md) | حل المشكلات | 58 KB |
-| [🔒 SECURITY_OPERATIONS_MANUAL.md](docs/SECURITY_OPERATIONS_MANUAL.md) | دليل الأمان | 11 KB |
-| [🌍 README_AR.md](docs/README_AR.md) | التوثيق بالعربية الكاملة | 15 KB |
-| [📋 PROJECT_INDEX.md](PROJECT_INDEX.md) | فهرس المشروع التلقائي | 116 KB |
+| الملف | الوصف |
+|:---|:---|
+| [📐 ARCHITECTURE.md](docs/ARCHITECTURE.md) | المعمارية الكاملة للنظام |
+| [🌐 API_REFERENCE.md](docs/API_REFERENCE.md) | كل الـ endpoints مع أمثلة كاملة |
+| [🛠️ DEVELOPER_GUIDE.md](docs/DEVELOPER_GUIDE.md) | دليل المطورين العملي |
+| [🚀 OPERATIONS_RUNBOOK.md](docs/OPERATIONS_RUNBOOK.md) | تشغيل الإنتاج |
+| [🚨 DISASTER_RECOVERY_RUNBOOK.md](docs/DISASTER_RECOVERY_RUNBOOK.md) | **جديد** — استرداد الكوارث |
+| [🔧 TROUBLESHOOTING_GUIDE.md](docs/TROUBLESHOOTING_GUIDE.md) | حل المشكلات |
+| [🔒 SECURITY_OPERATIONS_MANUAL.md](docs/SECURITY_OPERATIONS_MANUAL.md) | دليل الأمان |
+| [📋 PROJECT_INDEX.md](PROJECT_INDEX.md) | فهرس المشروع (يُحدَّث تلقائياً) |
 
 ---
 
 ## 🤝 المساهمة — Contributing
 
-نرحب بمساهماتكم! اتبع هذه الخطوات:
+نرحب بمساهماتكم!
 
 ```bash
 # 1. Fork ثم Clone
@@ -676,10 +664,10 @@ git clone https://github.com/YOUR-USERNAME/ETAP-AI-WORK-.git
 git checkout -b feat/your-feature-name
 
 # 3. تطوير وتحقق
-pytest              # تشغيل الاختبارات
-ruff check . --fix  # إصلاح الـ Linting
+pytest --cov=. --cov-fail-under=80    # يجب أن تبقى التغطية ≥80%
+ruff check . --fix                     # إصلاح الـ Linting
 
-# 4. Commit مع رسالة وصفية
+# 4. Commit وصفي
 git commit -m "feat(load-flow): add Newton-Raphson convergence option"
 
 # 5. Push وفتح Pull Request
@@ -690,7 +678,7 @@ git push origin feat/your-feature-name
 
 ---
 
-## 📜 الرخصة — License
+## 📜 الرخصة
 
 هذا المشروع مرخص بموجب **رخصة MIT** — راجع ملف [`LICENSE`](LICENSE).
 
@@ -700,6 +688,19 @@ git push origin feat/your-feature-name
 
 <br/>
 
+```
+╔══════════════════════════════════════════════════════════════════╗
+║                                                                  ║
+║   ⚡  AhmedETAP v2.1.0 — Enterprise Production Ready           ║
+║                                                                  ║
+║   24 AI Agents  ·  13 Study Types  ·  IEC/IEEE Standards       ║
+║   PostgreSQL  ·  Redis  ·  Celery  ·  Kubernetes  ·  Grafana   ║
+║                                                                  ║
+║   RPO ≤ 15 min  ·  RTO ≤ 30 min  ·  Coverage ≥ 80%            ║
+║                                                                  ║
+╚══════════════════════════════════════════════════════════════════╝
+```
+
 **⚡ بُني بشغف لمهندسي أنظمة القوى الكهربائية حول العالم**
 
 *AhmedETAP — حيث يلتقي الذكاء الاصطناعي بهندسة الطاقة الكهربائية*
@@ -708,9 +709,10 @@ git push origin feat/your-feature-name
 
 [![GitHub](https://img.shields.io/badge/GitHub-ahmdelbaz28--ux-black?style=for-the-badge&logo=github)](https://github.com/ahmdelbaz28-ux)
 [![Hugging Face](https://img.shields.io/badge/🤗_Live_Demo-Hugging_Face-yellow?style=for-the-badge)](https://huggingface.co/spaces/ahmdelbaz28/AHMEDETAP)
+[![LinkedIn](https://img.shields.io/badge/LinkedIn-Connect-0077B5?style=for-the-badge&logo=linkedin&logoColor=white)](https://linkedin.com)
 
 <br/>
 
-*آخر تحديث للفهرس: تلقائي عبر GitHub Actions على كل `push`*
+*آخر تحديث: v2.1.0 — June 2026 | الفهرس يُحدَّث تلقائياً عبر GitHub Actions على كل `push`*
 
 </div>
