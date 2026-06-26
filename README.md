@@ -509,6 +509,24 @@ S3_BACKUP_BUCKET=s3://my-bucket/etap ./scripts/backup/postgres_backup.sh
 
 ---
 
+## 🧠 الذاكرة الذكية ومحرك سياق الأكواد — AI Memory & Code RAG
+
+تم بناء نظام RAG متكامل ومتقدم لتزويد الوكلاء بالذاكرة الدائمة وسياق الكود الدقيق دون إهدار الـ Tokens أو إدخال هلوسة (تطبيقاً لمبدأ Andrej Karpathy "Delete ruthlessly"):
+
+### 1. الذاكرة الهجينة (Hybrid AI Memory Service)
+- **قاعدة البيانات المتجهة (Qdrant Cloud)**: تخزين الـ conversation embeddings وتاريخ المحادثات ونتائج الدراسات دلالياً لتوفير ذاكرة قصيرة وطويلة الأجل للوكلاء الـ 24.
+- **قاعدة البيانات الرسومية (Neo4j)**: تخزين هيكل طوبولوجيا الشبكة الكهربائية وعلاقات الربط لتمكين الاستعلام الدقيق وتأثير التغيرات (Impact Analysis) بالاعتماد على GraphRAG.
+- **التعامل الذكي مع الغياب (Graceful Degradation)**: عند غياب الاتصال أو المكتبات، يعمل نظام `DeterministicFallbackEmbeddings` محلياً لتوفير تشفير دلالي مستقر واختبارات سريعة 100% دون الحاجة لطلب خوادم خارجية.
+
+### 2. محرك سياق الأكواد (Code Context Engine)
+- **تحليل الهيكل المتقدم (Tree-Sitter / AST)**: استخراج الدوال والكلاسات بدقة متناهية من الكود المصدري مع آلية رجوع تلقائية مدمجة لـ Python AST القياسي في بيئات Windows لضمان استقرار وموثوقية التشغيل بنسبة 100%.
+- **قاعدة بيانات سياق محلي (ChromaDB)**: فهرسة الكود في مجلد محلي دائم `./index/` وتوفير استعلام دلالي فوري لإمداد الوكيل بقطع الكود المطلوبة فقط لتنفيذ التعديلات.
+
+### 3. دعم خوادم الذكاء الاصطناعي المخصصة (Custom LLM Provider)
+- إمكانية تشغيل نموذج `zai-org/GLM-5.1-FP8` فائق الدقة محلياً أو سحابياً عبر بيئة Modal من خلال توجيه الـ API إلى رابط مخصص.
+
+---
+
 ## ⚙️ إعدادات البيئة — Configuration
 
 | المتغير | الافتراضي | الوصف |
@@ -525,7 +543,14 @@ S3_BACKUP_BUCKET=s3://my-bucket/etap ./scripts/backup/postgres_backup.sh
 | `DB_MAX_OVERFLOW` | `20` | الاتصالات الإضافية المسموحة |
 | `PROMETHEUS_ENABLED` | `true` | تفعيل مقاييس Prometheus |
 | `S3_BACKUP_BUCKET` | — | رفع النسخ الاحتياطية لـ S3 |
-| `LANGWATCH_API_KEY` | — | LangWatch prompt versioning |
+| `LANGWATCH_API_KEY` | — | مفتاح LangWatch لمراقبة وإصدار البرومبتات |
+| `QDRANT_URL` | — | رابط اتصال Qdrant Cloud |
+| `QDRANT_API_KEY` | — | مفتاح ترخيص Qdrant Cloud |
+| `NEO4J_URI` | — | رابط اتصال Neo4j Graph DB |
+| `NEO4J_USER` | — | اسم مستخدم قاعدة Neo4j |
+| `NEO4J_PASSWORD` | — | كلمة سر قاعدة Neo4j |
+| `OPENAI_API_BASE` | `https://api.openai.com/v1` | رابط خادم OpenAI (أو Modal endpoint البديل) |
+| `LLM_MODEL` | `gpt-4o` | النموذج المعتمد للذكاء الاصطناعي (مثل `zai-org/GLM-5.1-FP8`) |
 
 ---
 

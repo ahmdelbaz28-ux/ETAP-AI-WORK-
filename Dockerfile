@@ -53,6 +53,7 @@ COPY --chown=user:user network_solver/ /app/network_solver/
 COPY --chown=user:user services/ /app/services/
 COPY --chown=user:user api/ /app/api/
 COPY --chown=user:user utils/ /app/utils/
+COPY --chown=user:user ai_context_engine/ /app/ai_context_engine/
 COPY --chown=user:user VERSION /app/VERSION
 
 # Environment
