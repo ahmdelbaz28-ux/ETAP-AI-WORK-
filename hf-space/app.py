@@ -36,12 +36,14 @@ from api.shared_handlers import (
     SharedETAPGUIChatRequest,
     SharedStudyRequest,
     SharedContextRetrieveRequest,
+    SharedImpactAnalysisRequest,
     build_health_response,
     build_knowledge_info,
     build_metrics_response,
     build_platform_info,
     build_ready_response,
     handle_context_retrieval,
+    handle_impact_analysis,
     handle_detect_anomalies,
     handle_etap_expert_chat,
     handle_etap_gui_chat,
@@ -296,6 +298,19 @@ async def retrieve_context(request: SharedContextRetrieveRequest):
         query=request.query,
         top_k=request.top_k,
         max_tokens=request.max_tokens
+    )
+    status = result.pop("_status", None)
+    if status:
+        return JSONResponse(status_code=status, content=result)
+    return result
+
+
+@app.post("/api/v1/context/impact", tags=["Context Engine"])
+async def analyze_impact(request: SharedImpactAnalysisRequest):
+    """Perform dependency impact analysis on a component using the Code Property Graph."""
+    result = handle_impact_analysis(
+        component=request.component,
+        max_depth=request.max_depth
     )
     status = result.pop("_status", None)
     if status:
