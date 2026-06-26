@@ -41,6 +41,7 @@ app_port: 7860
 [![Docker](https://img.shields.io/badge/Docker-Ready-2496ED?style=for-the-badge&logo=docker&logoColor=white)](Dockerfile)
 [![Kubernetes](https://img.shields.io/badge/Kubernetes-Helm-326CE5?style=for-the-badge&logo=kubernetes&logoColor=white)](helm/)
 [![License](https://img.shields.io/badge/License-MIT-22c55e?style=for-the-badge&logo=open-source-initiative&logoColor=white)](LICENSE)
+[![Vercel](https://img.shields.io/badge/Vercel-Deployment-black?style=for-the-badge&logo=vercel&logoColor=white)](https://vercel.com/ahmdelbaz28-uxs-projects/etap-ai-work)
 
 <br/>
 
@@ -55,6 +56,7 @@ app_port: 7860
 <br/>
 
 **[🚀 Live Demo على Hugging Face](https://huggingface.co/spaces/ahmdelbaz28/AHMEDETAP)** &nbsp;•&nbsp;
+**[💻 لوحة التحكم على Vercel](https://vercel.com/ahmdelbaz28-uxs-projects/etap-ai-work)** &nbsp;•&nbsp;
 **[📚 التوثيق الكامل](docs/)** &nbsp;•&nbsp;
 **[🌐 API Reference](docs/API_REFERENCE.md)** &nbsp;•&nbsp;
 **[📋 Project Index](PROJECT_INDEX.md)** &nbsp;•&nbsp;
@@ -670,6 +672,22 @@ etap-ai-work/                          ← AhmedETAP v2.1.0
 ```
 
 > ✨ = محدّث أو جديد في **v2.1.0**
+
+---
+
+## 🚀 استضافة ونشر الواجهة (Frontend Deployment — Vercel)
+
+تم تهيئة نشر واجهة المستخدم المستندة إلى **Vite + React** على منصة **Vercel** بشكل احترافي ومتوافق مع بنية الـ Monorepo:
+
+### ⚙️ إعدادات النشر ومزامنة المستودع
+يتم التحكم في عملية البناء محلياً عبر ملف التكوين [`vercel.json`](file:///c:/Users/Repair%20SC/Desktop/ETAP-AI-WORK--main/vercel.json) لضمان استقرار البناء ومنع أي فشل أثناء النشر التلقائي:
+- **Root Directory**: يتم البناء من المجلد الرئيسي للمستودع.
+- **Install Command**: `npm install --prefix ui` (تثبيت حزم الواجهة فقط بشكل مستقل).
+- **Build Command**: `npm run build --prefix ui` (تشغيل الـ compiler والـ bundler داخل مجلد `ui/`).
+- **Output Directory**: `ui/dist` (مجلد الملفات الجاهزة للإنتاج).
+- **Framework Preset**: `Vite` (لتحسين أداء التقديم والتخزين المؤقت).
+
+عند إجراء أي `git push` للمستودع الأصلي على فرع `main` يتم تلقائياً تشغيل بناء جديد متزامن على Vercel وخلال ثوانٍ تكون التحديثات حية.
 
 ---
 
