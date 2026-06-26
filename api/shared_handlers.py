@@ -150,6 +150,13 @@ class SharedContextRetrieveRequest(BaseModel):
     max_tokens: int = 2000
 
 
+class SharedImpactAnalysisRequest(BaseModel):
+    """Request body for AI Context Engine impact endpoint."""
+
+    component: str
+    max_depth: int = 2
+
+
 # ---------------------------------------------------------------------------
 # Paths that should skip authentication
 # ---------------------------------------------------------------------------
@@ -720,4 +727,29 @@ def handle_context_retrieval(query: str, top_k: int = 5, max_tokens: int = 2000)
             "chunks": compressed
         }
     except Exception as e:
+        return {"success": False, "errors": [str(e)], "_status": 500}
+
+
+def handle_impact_analysis(component: str, max_depth: int = 2) -> Dict[str, Any]:
+    """Perform impact analysis on a component using the Code Property Graph."""
+    try:
+        from ai_context_engine.knowledge_graph import KnowledgeGraph
+
+        # Build graph on the fly (very fast for local files)
+        kg = KnowledgeGraph()
+        # Scan current workspace directory
+        kg.scan_repo(".")
+
+        subgraph = kg.generate_impact_subgraph(component, max_depth=max_depth)
+        
+        return {
+            "success": True,
+            "component": component,
+            "max_depth": max_depth,
+            "nodes_count": len(subgraph["nodes"]),
+            "edges_count": len(subgraph["edges"]),
+            "impact": subgraph
+        }
+    except Exception as e:
+        logger.exception("Failed to run impact analysis")
         return {"success": False, "errors": [str(e)], "_status": 500}

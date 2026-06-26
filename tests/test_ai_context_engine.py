@@ -195,3 +195,96 @@ class TestContextRetrievalAPI:
         if r.status_code == 200:
             assert r.json()["success"] is True
 
+
+from ai_context_engine.knowledge_graph import KnowledgeGraph
+
+class TestKnowledgeGraph:
+    def test_add_nodes_and_edges(self):
+        kg = KnowledgeGraph()
+        kg.add_node("ServiceA", "service", {"key": "val"})
+        kg.add_relationship("ServiceA", "uses", "ConfigB")
+        
+        assert "ServiceA" in kg.nodes
+        assert "ConfigB" in kg.nodes
+        assert len(kg.edges) == 1
+        assert kg.edges[0]["source"] == "ServiceA"
+        assert kg.edges[0]["relationship"] == "uses"
+        assert kg.edges[0]["target"] == "ConfigB"
+
+    def test_find_path_simple(self):
+        kg = KnowledgeGraph()
+        kg.add_relationship("A", "calls", "B")
+        kg.add_relationship("B", "calls", "C")
+        
+        paths = kg.find_path("A", "C")
+        assert len(paths) == 1
+        # Path should be A -> B -> C
+        path = paths[0]
+        assert len(path) == 3
+        assert path[0] == ("A", "start")
+        assert path[1] == ("B", "calls")
+        assert path[2] == ("C", "calls")
+
+    def test_generate_impact_subgraph(self):
+        kg = KnowledgeGraph()
+        kg.add_relationship("X", "depends_on", "Y")
+        kg.add_relationship("Y", "depends_on", "Z")
+        kg.add_relationship("A", "depends_on", "B") # disjoint
+        
+        subgraph = kg.generate_impact_subgraph("X", max_depth=2)
+        assert "X" in subgraph["nodes"]
+        assert "Y" in subgraph["nodes"]
+        assert "Z" in subgraph["nodes"]
+        assert "A" not in subgraph["nodes"]
+        assert len(subgraph["edges"]) == 2
+
+    def test_ast_file_scanning(self, sample_code_file, tmp_path):
+        kg = KnowledgeGraph()
+        kg.scan_file_for_relations(sample_code_file, tmp_path)
+        
+        # Verify it finds defined classes/functions from sample code
+        defined_nodes = [node_id for node_id, data in kg.nodes.items() if data["label"] in ("class", "function")]
+        assert any("DatabaseHandler" in nid for nid in defined_nodes)
+        assert any("standalone_function" in nid for nid in defined_nodes)
+
+    def test_resolve_references(self):
+        kg = KnowledgeGraph()
+        # Simulate scanning result
+        kg.add_node("file:services/memory_service.py", "file", {"path": "services/memory_service.py"})
+        kg.add_node("services/memory_service.py::MemoryService", "class", {"name": "MemoryService", "filepath": "services/memory_service.py"})
+        kg.add_node("module:services.memory_service", "module")
+        kg.add_node("class_ref:MemoryService", "class_reference")
+        
+        kg.resolve_references()
+        
+        # Verify module resolved to file
+        resolves_module = [edge for edge in kg.edges if edge["source"] == "module:services.memory_service" and edge["relationship"] == "resolves_to"]
+        assert len(resolves_module) == 1
+        assert resolves_module[0]["target"] == "file:services/memory_service.py"
+        
+        # Verify class reference resolved to class node
+        resolves_class = [edge for edge in kg.edges if edge["source"] == "class_ref:MemoryService" and edge["relationship"] == "resolves_to"]
+        assert len(resolves_class) == 1
+        assert resolves_class[0]["target"] == "services/memory_service.py::MemoryService"
+
+
+
+class TestImpactAnalysisAPI:
+    def test_impact_api_route(self):
+        from fastapi.testclient import TestClient
+        from api.routes import app
+        
+        client = TestClient(app)
+        r = client.post(
+            "/api/v1/context/impact",
+            json={"component": "api/shared_handlers.py", "max_depth": 1},
+            headers={"x-api-key": "ci-test-secret-key-for-github-actions"}
+        )
+        assert r.status_code in (200, 401)
+        if r.status_code == 200:
+            body = r.json()
+            assert body["success"] is True
+            assert "impact" in body
+            assert "nodes_count" in body
+
+
