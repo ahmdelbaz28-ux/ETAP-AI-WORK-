@@ -51,7 +51,7 @@ class SmitheryClient:
             async with httpx.AsyncClient(timeout=10) as client:
                 params = {"q": query} if query else {}
                 resp = await client.get(
-                    f"{self.base_url}/v1/servers",
+                    f"{self.base_url}/servers",
                     headers=self._headers,
                     params=params,
                 )
@@ -88,7 +88,7 @@ class SmitheryClient:
                     "arguments": arguments,
                 }
                 resp = await client.post(
-                    f"{self.base_url}/v1/call",
+                    f"{self.base_url}/call",
                     headers=self._headers,
                     json=payload,
                 )
