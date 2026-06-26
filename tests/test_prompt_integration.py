@@ -304,6 +304,7 @@ class TestPromptHandleMapping:
             "digital_twin_agent": "DigitalTwinAgent (future DT)",
             "predictive_agent": "PredictiveAgent (future ML)",
             "sample_prompt": "Template/sample only",
+            "etap_gui_agent": "ETAP GUI Agent or interface handler",
         }
 
         prompts = list_available_prompts()
