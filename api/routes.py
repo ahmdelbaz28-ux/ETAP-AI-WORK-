@@ -23,6 +23,7 @@ from starlette.middleware.base import BaseHTTPMiddleware
 from api.agents import router as agents_router
 from api.ai_ml import router as ai_ml_router
 from api.auth import router as auth_router
+from api.context_engine import router as context_engine_router
 from api.health import router as health_router
 from api.projects import router as projects_router
 from api.studies import router as studies_router
@@ -484,3 +485,4 @@ app.include_router(validation_router)
 app.include_router(ai_ml_router)
 app.include_router(auth_router)
 app.include_router(projects_router)
+app.include_router(context_engine_router)

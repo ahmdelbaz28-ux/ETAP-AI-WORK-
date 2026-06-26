@@ -35,11 +35,13 @@ from api.shared_handlers import (
     SharedETAPExpertChatRequest,
     SharedETAPGUIChatRequest,
     SharedStudyRequest,
+    SharedContextRetrieveRequest,
     build_health_response,
     build_knowledge_info,
     build_metrics_response,
     build_platform_info,
     build_ready_response,
+    handle_context_retrieval,
     handle_detect_anomalies,
     handle_etap_expert_chat,
     handle_etap_gui_chat,
@@ -280,6 +282,21 @@ async def study_types():
 @app.post("/api/v1/studies/run", tags=["Studies"])
 async def run_study(request: SharedStudyRequest):
     result = run_study_lightweight(request.study_type, request.system, request.parameters)
+    status = result.pop("_status", None)
+    if status:
+        return JSONResponse(status_code=status, content=result)
+    return result
+
+
+# -- Context Engine -----------------------------------------------------------
+@app.post("/api/v1/context/retrieve", tags=["Context Engine"])
+async def retrieve_context(request: SharedContextRetrieveRequest):
+    """Retrieve and compress matching code snippets for a given query."""
+    result = handle_context_retrieval(
+        query=request.query,
+        top_k=request.top_k,
+        max_tokens=request.max_tokens
+    )
     status = result.pop("_status", None)
     if status:
         return JSONResponse(status_code=status, content=result)
