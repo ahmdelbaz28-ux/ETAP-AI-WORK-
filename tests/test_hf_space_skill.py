@@ -35,10 +35,10 @@ def _load_hf_app_module():
 
 def test_hf_space_app_py_contains_etap_expert_in_study_types():
     """hf-space/app.py STUDY_TYPES must include 'etap_expert'."""
-    app_py = (Path(__file__).resolve().parent.parent / "hf-space" / "app.py").read_text(encoding="utf-8")
-    assert '"etap_expert"' in app_py, (
-        "hf-space/app.py STUDY_TYPES must include 'etap_expert' — otherwise "
-        "the skill is unreachable in the HF Space production deployment."
+    from api.shared_handlers import STUDY_TYPES
+    assert "etap_expert" in STUDY_TYPES, (
+        "STUDY_TYPES in api/shared_handlers.py must include 'etap_expert' — otherwise "
+        "the skill is unreachable in the HF Space deployment."
     )
 
 
@@ -54,21 +54,19 @@ def test_hf_space_app_py_has_etap_expert_chat_endpoint():
 
 
 def test_hf_space_app_py_routes_etap_expert_to_agent():
-    """hf-space/app.py run_study must dispatch etap_expert to ETAPExpertAgent."""
+    """hf-space/app.py run_study must delegate to run_study_lightweight."""
     app_py = (Path(__file__).resolve().parent.parent / "hf-space" / "app.py").read_text(encoding="utf-8")
-    assert "from agents.etap_expert_agent import ETAPExpertAgent" in app_py, (
-        "hf-space/app.py must import ETAPExpertAgent from agents.etap_expert_agent"
-    )
-    assert "agent.answer(question)" in app_py, (
-        "hf-space/app.py must call agent.answer(question) for etap_expert study type"
+    assert "run_study_lightweight" in app_py, (
+        "hf-space/app.py must use run_study_lightweight to execute studies"
     )
 
 
 def test_hf_space_agents_list_includes_etap_expert_agent():
     """The /api/v1/agents list in hf-space/app.py must include etap-expert-agent."""
-    app_py = (Path(__file__).resolve().parent.parent / "hf-space" / "app.py").read_text(encoding="utf-8")
-    assert '"etap-expert-agent"' in app_py, (
-        "hf-space/app.py AGENTS list must include 'etap-expert-agent'"
+    from api.shared_handlers import AGENTS
+    agent_ids = [a["id"] for a in AGENTS]
+    assert "etap-expert-agent" in agent_ids, (
+        "AGENTS list in api/shared_handlers.py must include 'etap-expert-agent'"
     )
 
 

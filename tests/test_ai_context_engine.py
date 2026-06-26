@@ -66,7 +66,13 @@ class TestCodeIndexer:
     @pytest.fixture
     def mock_indexer(self, tmp_path):
         """Create an indexer with a temporary output directory."""
-        return CodeIndexer(output_dir=str(tmp_path / "index"))
+        dummy_emb = None
+        if CHROMA_AVAILABLE:
+            def dummy_embedding(input):
+                # ChromaDB expects a list of embeddings for list of documents
+                return [[0.1] * 384 for _ in input]
+            dummy_emb = dummy_embedding
+        return CodeIndexer(output_dir=str(tmp_path / "index"), embedding_function=dummy_emb)
 
     def test_hash_code_is_deterministic(self, mock_indexer):
         """Test that the same code string always produces the same hash."""

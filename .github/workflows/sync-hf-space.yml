@@ -22,6 +22,7 @@ on:
       - 'services/**'
       - 'api/**'
       - 'utils/**'
+      - 'ai_context_engine/**'  # AST Indexer and Code RAG engine
       - 'integrations/**'       # LangWatch + Smithery MCP integrations
       - 'docs/**'               # Documentation assets
       - 'scripts/**'            # Setup and utility scripts
@@ -66,7 +67,7 @@ jobs:
           cp -r ../hf-space ./
           cp -r ../agents ../skills ../prompts ../core_model ../core ../engine ./
           cp -r ../load_flow ../fault_analysis ../coordination ../relays ./
-          cp -r ../network_solver ../services ../api ../utils ./
+          cp -r ../network_solver ../services ../api ../utils ../ai_context_engine ./
           # Commit and push
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git config user.name "github-actions[bot]"

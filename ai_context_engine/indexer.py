@@ -108,7 +108,7 @@ class CodeExtractor:
 
 
 class CodeIndexer:
-    def __init__(self, output_dir: str):
+    def __init__(self, output_dir: str, embedding_function=None):
         self.output_dir = Path(output_dir)
         self.output_dir.mkdir(parents=True, exist_ok=True)
         self.client = None
@@ -116,8 +116,10 @@ class CodeIndexer:
         
         if CHROMA_AVAILABLE:
             self.client = chromadb.PersistentClient(path=str(self.output_dir))
-            # Default embedding function in Chroma is all-MiniLM-L6-v2
-            self.collection = self.client.get_or_create_collection(name="code_context")
+            self.collection = self.client.get_or_create_collection(
+                name="code_context",
+                embedding_function=embedding_function
+            )
 
     def hash_code(self, code: str) -> str:
         return hashlib.sha256(code.encode('utf-8')).hexdigest()
