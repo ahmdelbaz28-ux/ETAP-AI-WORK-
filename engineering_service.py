@@ -36,7 +36,7 @@ def main():
 
     # Run the application
     run(
-        api_app,
+        "api.routes:app",
         host=host,
         port=port,
         log_level="info",

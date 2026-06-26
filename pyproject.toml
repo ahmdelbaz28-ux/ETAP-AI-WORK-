@@ -68,6 +68,13 @@ dependencies = [
     "python-multipart>=0.0.6",
     "alembic>=1.13.0",
     "pyotp>=2.9.0",
+    "neo4j>=5.0.0",
+    "langchain-neo4j>=0.1.0",
+    "langchain-experimental>=0.0.1",
+    "langchain-openai>=0.1.0",
+    "langchain-core>=0.1.0",
+    "qdrant-client>=1.7.0",
+    "langchain-qdrant>=0.1.0",
 ]
 
 [project.optional-dependencies]

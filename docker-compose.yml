@@ -100,11 +100,41 @@ services:
     depends_on:
       - postgres
 
+  qdrant:
+    image: qdrant/qdrant:latest
+    container_name: etap-qdrant
+    restart: always
+    ports:
+      - "6333:6333"
+      - "6334:6334"
+    volumes:
+      - qdrant_storage:/qdrant/storage
+    networks:
+      - etap_network
+
+  neo4j:
+    image: neo4j:5-community
+    container_name: etap-neo4j
+    restart: always
+    environment:
+      - NEO4J_AUTH=neo4j/etap_password
+    ports:
+      - "7474:7474"
+      - "7687:7687"
+    volumes:
+      - neo4j_data:/data
+      - neo4j_logs:/logs
+    networks:
+      - etap_network
+
 volumes:
   etap_data:
   redis_data:
   postgres_data:
   grafana_storage:
+  qdrant_storage:
+  neo4j_data:
+  neo4j_logs:
 
 networks:
   etap_network:
