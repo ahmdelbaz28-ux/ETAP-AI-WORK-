@@ -142,6 +142,14 @@ class SharedETAPGUIChatRequest(BaseModel):
     context: Dict[str, Any] = {}
 
 
+class SharedContextRetrieveRequest(BaseModel):
+    """Request body for AI Context Engine retrieve endpoint."""
+
+    query: str
+    top_k: int = 5
+    max_tokens: int = 2000
+
+
 # ---------------------------------------------------------------------------
 # Paths that should skip authentication
 # ---------------------------------------------------------------------------
@@ -690,5 +698,26 @@ def handle_detect_anomalies(body: Dict[str, Any]) -> Dict[str, Any]:
         result = ad.detect(X)
 
         return {"success": True, "data": result}
+    except Exception as e:
+        return {"success": False, "errors": [str(e)], "_status": 500}
+
+
+def handle_context_retrieval(query: str, top_k: int = 5, max_tokens: int = 2000) -> Dict[str, Any]:
+    """Retrieve and compress relevant code chunks based on semantic search."""
+    try:
+        from ai_context_engine.retriever import CodeRetriever
+
+        # Determine path to Chroma DB (default to ./index/)
+        index_dir = os.environ.get("CODE_CONTEXT_INDEX_DIR", "./index")
+        
+        retriever = CodeRetriever(index_dir=index_dir)
+        compressed = retriever.retrieve_and_compress(query, top_k=top_k, max_tokens=max_tokens)
+        
+        return {
+            "success": True,
+            "query": query,
+            "count": len(compressed),
+            "chunks": compressed
+        }
     except Exception as e:
         return {"success": False, "errors": [str(e)], "_status": 500}
