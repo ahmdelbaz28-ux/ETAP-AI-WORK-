@@ -37,7 +37,7 @@ from typing import Any, Dict, List, Optional
 
 import bcrypt
 import jwt
-from fastapi import APIRouter, Body, Depends, HTTPException, status
+from fastapi import APIRouter, Body, Depends, HTTPException, Response, status
 from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
 from sqlalchemy import Boolean, DateTime, String, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -575,12 +575,13 @@ async def refresh(
 @router.post(
     "/logout",
     status_code=status.HTTP_204_NO_CONTENT,
+    response_class=Response,
     summary="Revoke session",
 )
 async def logout(
     body: Optional[RefreshRequest] = Body(None),
     user: CurrentUser = Depends(get_current_user_from_header),  # noqa: B008
-) -> None:
+) -> Response:
     """Log the current user out by blacklisting the provided refresh token.
 
     If a refresh_token is supplied in the body, its JTI is blacklisted
@@ -606,6 +607,8 @@ async def logout(
                 await _blacklist_token(jti, ttl_seconds=ttl_seconds)
         except jwt.InvalidTokenError:
             pass  # Invalid token — nothing to blacklist
+
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
 @router.get(
