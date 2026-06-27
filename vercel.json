@@ -2,7 +2,6 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "buildCommand": "cd ui && npm install && npm run build",
   "outputDirectory": "ui/dist",
-  "installCommand": "echo 'skip'",
   "framework": null,
   "rewrites": [
     { "source": "/assets/(.*)", "destination": "/assets/$1" },
