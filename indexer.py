@@ -154,10 +154,13 @@ HELP_CONTEXT_FILE = "ui/src/help/contextRegistry.ts"
 
 
 def file_hash(path: Path) -> str:
-    """Fast content hash for change detection."""
+    """Fast content hash for change detection (NOT for security purposes)."""
     try:
         content = path.read_bytes()
-        return hashlib.md5(content).hexdigest()[:12]
+        # usedforsecurity=False tells Python this hash is for cache keys /
+        # change detection, not cryptographic security. This avoids Bandit
+        # B324 warnings while still using the fast MD5 algorithm.
+        return hashlib.md5(content, usedforsecurity=False).hexdigest()[:12]
     except Exception:
         return "error"
 

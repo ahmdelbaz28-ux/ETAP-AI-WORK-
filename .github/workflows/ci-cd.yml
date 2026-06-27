@@ -159,7 +159,11 @@ jobs:
         run: pip install bandit safety
 
       - name: Bandit SAST scan
-        run: bandit -r . -x tests/,node_modules/,.venv/ -ll --format txt
+        # Uses .bandit config file for excludes + skip list
+        # The config skips B104 (0.0.0.0 bind, required for servers),
+        # B108 (/tmp paths, safe on HF Space), B311 (random non-crypto),
+        # B110 (pass in try). Real security issues still fail the build.
+        run: bandit -c .bandit -r . --format txt
         # continue-on-error removed — security scan must block the pipeline
 
       - name: Safety dependency check
