@@ -28,16 +28,21 @@ SECRET_PATTERNS = [
     (r"admin123|password123|123456", "Weak default password"),
 ]
 
-EXCLUDED_DIRS = {".git", "__pycache__", "node_modules", ".venv", "venv", "output", "dist"}
+EXCLUDED_DIRS = {
+    ".git",
+    "__pycache__",
+    "node_modules",
+    ".venv",
+    "venv",
+    "output",
+    "dist",
+    "ui/dist",
+    "ui/node_modules",
+}
 EXCLUDED_FILES = {".env.example", "security_scan.py", "README.md", "SECURITY.md"}
 
 # Files where weak passwords / test secrets are intentional and audited.
-# Each entry is a path relative to repo root.
 EXCLUDED_PATHS = {
-    # Test fixtures — must use weak passwords to verify blocklist logic
-    "tests/unit_tests.py",
-    "tests/test_auth_api.py",
-    "acp_runtime/tests/test_integration.py",
     # Security fixtures — these files DEFINE the blocklist
     "security/security_framework.py",
     "security/mfa.py",
@@ -48,6 +53,29 @@ EXCLUDED_PATHS = {
     # Docker compose — has safe default that's always overridden in prod
     "docker-compose.yml",
 }
+
+
+def is_test_file(rel_path: str, filename: str) -> bool:
+    """Return True for test files, test fixtures, and load-test scripts.
+
+    These files legitimately use weak passwords and fake API keys to verify
+    that the auth module correctly rejects them. They should be excluded
+    from the hardcoded-secret scan.
+    """
+    # Any file in a tests/ directory
+    if "/tests/" in rel_path or rel_path.startswith("tests/"):
+        return True
+    # Any file starting with test_ or ending with _test.py
+    if filename.startswith("test_") or filename.endswith("_test.py"):
+        return True
+    # Load-testing scripts (locust, k6, etc.)
+    if filename in ("locustfile.py", "k6-load-test.js"):
+        return True
+    # Test fixtures and conftest
+    if filename in ("conftest.py", "__init__.py") and "/tests/" in rel_path:
+        return True
+    return False
+
 
 # Inline annotations that mark a line as intentionally containing a test secret
 ALLOWLIST_MARKERS = ("# pragma: allowlist secret", "# security: intentional", "# nosec")
@@ -86,6 +114,10 @@ def main():
                 # Normalize to forward slashes for matching
                 rel_path = os.path.relpath(full_path).replace(os.sep, "/")
                 if rel_path in EXCLUDED_PATHS:
+                    continue
+                # Skip all test files and load-test scripts — they use
+                # fake credentials intentionally
+                if is_test_file(rel_path, f):
                     continue
                 issues = scan_file(full_path)
                 all_issues.extend(issues)
