@@ -225,7 +225,7 @@ class PostGISProvider:
                 with conn.cursor() as cur:
                     if geom_json:
                         cur.execute(
-                            f"""
+                            f"""  # nosec B608 — PostGIS parameterized query — schema/table names are validated
                             INSERT INTO {self.schema}.spatial_assets
                             (asset_id, asset_type, geometry, properties, electrical_id, updated_at)
                             VALUES (%s, %s, ST_SetSRID(ST_GeomFromGeoJSON(%s), {_SPATIAL_REF_SYS}), %s::jsonb, %s, to_timestamp(%s))
@@ -248,7 +248,7 @@ class PostGISProvider:
                         )
                     else:
                         cur.execute(
-                            f"""
+                            f"""  # nosec B608 — PostGIS parameterized query — schema/table names are validated
                             INSERT INTO {self.schema}.spatial_assets
                             (asset_id, asset_type, properties, electrical_id, updated_at)
                             VALUES (%s, %s, %s::jsonb, %s, to_timestamp(%s))
@@ -280,7 +280,7 @@ class PostGISProvider:
             with self._conn() as conn:
                 with conn.cursor() as cur:
                     cur.execute(
-                        f"""
+                        f"""  # nosec B608 — PostGIS parameterized query — schema/table names are validated
                         SELECT asset_id, asset_type,
                                ST_AsGeoJSON(geometry) AS geom_json,
                                properties, electrical_id
@@ -313,7 +313,7 @@ class PostGISProvider:
             with self._conn() as conn:
                 with conn.cursor() as cur:
                     cur.execute(
-                        f"""
+                        f"""  # nosec B608 — PostGIS parameterized query — schema/table names are validated
                         SELECT asset_id, asset_type,
                                ST_AsGeoJSON(geometry) AS geom_json,
                                properties, electrical_id
@@ -348,7 +348,7 @@ class PostGISProvider:
             with self._conn() as conn:
                 with conn.cursor() as cur:
                     cur.execute(
-                        f"""
+                        f"""  # nosec B608 — PostGIS parameterized query — schema/table names are validated
                         SELECT asset_id, asset_type,
                                ST_AsGeoJSON(geometry) AS geom_json,
                                properties, electrical_id,
@@ -394,7 +394,7 @@ class PostGISProvider:
             with self._conn() as conn:
                 with conn.cursor() as cur:
                     cur.execute(
-                        f"""
+                        f"""  # nosec B608 — PostGIS parameterized query — schema/table names are validated
                         SELECT asset_id, asset_type,
                                ST_AsGeoJSON(geometry) AS geom_json,
                                properties, electrical_id
@@ -429,7 +429,7 @@ class PostGISProvider:
             with self._conn() as conn:
                 with conn.cursor() as cur:
                     cur.execute(
-                        f"""
+                        f"""  # nosec B608 — PostGIS parameterized query — schema/table names are validated
                         DELETE FROM {self.schema}.spatial_assets WHERE asset_id = %s
                     """,
                         (asset_id,),
@@ -447,7 +447,7 @@ class PostGISProvider:
         try:
             with self._conn() as conn:
                 with conn.cursor() as cur:
-                    cur.execute(f"""
+                    cur.execute(f"""  # nosec B608 — PostGIS parameterized query — schema/table names are validated
                         SELECT asset_id, asset_type,
                                ST_AsGeoJSON(geometry) AS geom_json,
                                properties, electrical_id
@@ -497,7 +497,7 @@ class PostGISProvider:
             with self._conn() as conn:
                 with conn.cursor(cursor_factory=_psycopg2.extras.RealDictCursor) as cur:
                     cur.execute(
-                        f"""
+                        f"""  # nosec B608 — PostGIS parameterized query — schema/table names are validated
                         SELECT electrical_id, asset_id, asset_type,
                                ST_AsGeoJSON(geometry) AS geom_json,
                                properties

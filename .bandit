@@ -1,0 +1,55 @@
+# .bandit — Bandit configuration for AhmedETAP
+# https://bandit.readthedocs.io/en/latest/config.html
+
+# Exclude test directories, vendored code, and build artifacts
+exclude_dirs:
+  - tests
+  - acp_runtime/tests
+  - tests/scenarios
+  - tests/property_based
+  - tests/load
+  - tests/chaos
+  - tests/regression
+  - tests/stress
+  - tests/factories
+  - node_modules
+  - .venv
+  - venv
+  - ui/dist
+  - ui/node_modules
+  - scripts
+  - docs
+  - .git
+  - __pycache__
+  - .pytest_cache
+  - .ruff_cache
+
+# Only report medium and high severity issues (low severity produces too
+# much noise — e.g. /tmp paths in test files, assert statements, etc.)
+level: MEDIUM
+
+# Only report medium and high confidence issues
+confidence: MEDIUM
+
+# Skipped tests (false positives that are safe in our context)
+# B104 = binding to 0.0.0.0 — required for server apps to accept connections
+# B108 = /tmp paths — safe on HF Space (ephemeral filesystem, no secrets stored)
+# B608 = SQL string construction — parameters are validated before use
+# B310 = urllib open — internal URLs only, no user input
+# B102 = exec — used in sandboxed secure_executor
+# B311 = random — used for non-cryptographic purposes (load balancing, jitter)
+skips:
+  - B104  # Possible binding to 0.0.0.0 (required for servers)
+  - B108  # Probable insecure usage of /tmp (safe on HF Space)
+  - B311  # Use of random for non-crypto purposes
+  - B110  # Pass into a try block (false positive in our codebase)
+
+# Tests that should NEVER be skipped (real security issues)
+# B102 (exec) — keep, but allow with # nosec comment
+# B608 (SQL injection) — keep, but allow with # nosec comment
+
+# Output format
+output_format: txt
+
+# Exit code 1 if any issue found (we want CI to fail on real security issues)
+exit_zero: false

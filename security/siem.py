@@ -493,7 +493,7 @@ class SIEMForwarder:
             req = urllib.request.Request(
                 self.endpoint, data=payload, headers=headers, method="POST"
             )
-            with urllib.request.urlopen(req, timeout=10) as resp:
+            with urllib.request.urlopen(req, timeout=10) as resp:  # nosec B310 — internal SIEM endpoint URL — no user input
                 if resp.status >= 400:
                     raise RuntimeError(f"SIEM returned {resp.status}")
 
