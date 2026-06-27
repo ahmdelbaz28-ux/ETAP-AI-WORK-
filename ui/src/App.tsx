@@ -6,10 +6,12 @@ import { NotificationProvider } from './context/NotificationContext'
 import { Layout } from './components/Layout'
 import { SmartHelpDrawer } from './components/help/SmartHelpDrawer'
 import { CommandPalette } from './components/command/CommandPalette'
+import { ShortcutsPanel } from './components/command/ShortcutsPanel'
 import { OnboardingTour } from './components/onboarding/OnboardingTour'
 import { ErrorRecovery } from './components/context/ErrorRecovery'
 import { useAppStore } from './store'
 import { MagicHelpInspector } from './components/help/MagicHelpInspector'
+import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts'
 import './i18n'
 
 // Lazy-loaded page components — loaded on demand
@@ -44,11 +46,18 @@ const DataExportPage = lazy(() => import('./pages/DataExport'))
 const LogsPage = lazy(() => import('./pages/Logs'))
 const CodeGuardPage = lazy(() => import('./pages/CodeGuard'))
 
+// Inner component that activates keyboard shortcuts inside the Router context
+function KeyboardShortcutsHandler() {
+  useKeyboardShortcuts()
+  return null
+}
+
 export default function App() {
   const { i18n } = useTranslation()
   const { lastError, setLastError } = useAppStore()
   const [helpOpen, setHelpOpen] = useState(false)
   const [helpContext, setHelpContext] = useState<string | undefined>()
+  const [shortcutsOpen, setShortcutsOpen] = useState(false)
 
   useEffect(() => {
     document.documentElement.dir = i18n.language === 'ar' ? 'rtl' : 'ltr'
@@ -81,6 +90,38 @@ export default function App() {
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [])
+
+  // Listen for toggle-shortcuts-panel events (from the Navbar shortcuts button)
+  useEffect(() => {
+    const handler = () => setShortcutsOpen(prev => !prev)
+    window.addEventListener('toggle-shortcuts-panel', handler)
+    return () => window.removeEventListener('toggle-shortcuts-panel', handler)
+  }, [])
+
+  // Listen for toggle-theme events
+  useEffect(() => {
+    const handler = () => {
+      const current = document.documentElement.classList.contains('dark') ? 'dark' : 'light'
+      const next = current === 'dark' ? 'light' : 'dark'
+      document.documentElement.classList.remove(current)
+      document.documentElement.classList.add(next)
+      localStorage.setItem('etap-theme', next)
+    }
+    window.addEventListener('toggle-theme', handler)
+    return () => window.removeEventListener('toggle-theme', handler)
+  }, [])
+
+  // Listen for toggle-language events
+  useEffect(() => {
+    const handler = () => {
+      const newLang = i18n.language === 'ar' ? 'en' : 'ar'
+      i18n.changeLanguage(newLang)
+      document.documentElement.dir = newLang === 'ar' ? 'rtl' : 'ltr'
+      document.documentElement.lang = newLang
+    }
+    window.addEventListener('toggle-language', handler)
+    return () => window.removeEventListener('toggle-language', handler)
+  }, [i18n])
 
   // Listen for help context events from other components
   useEffect(() => {
@@ -133,12 +174,17 @@ export default function App() {
           </Routes>
 
           {/* Global Overlays inside Router context */}
+          <KeyboardShortcutsHandler />
           <CommandPalette />
           <OnboardingTour />
           <SmartHelpDrawer
             open={helpOpen}
             onClose={() => { setHelpOpen(false); setHelpContext(undefined) }}
             initialContextId={helpContext}
+          />
+          <ShortcutsPanel
+            open={shortcutsOpen}
+            onClose={() => setShortcutsOpen(false)}
           />
           <MagicHelpInspector />
         </BrowserRouter>
