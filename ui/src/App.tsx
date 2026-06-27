@@ -9,6 +9,7 @@ import { CommandPalette } from './components/command/CommandPalette'
 import { OnboardingTour } from './components/onboarding/OnboardingTour'
 import { ErrorRecovery } from './components/context/ErrorRecovery'
 import { useAppStore } from './store'
+import { MagicHelpInspector } from './components/help/MagicHelpInspector'
 import './i18n'
 
 // Lazy-loaded page components — loaded on demand
@@ -129,6 +130,7 @@ export default function App() {
             onClose={() => { setHelpOpen(false); setHelpContext(undefined) }}
             initialContextId={helpContext}
           />
+          <MagicHelpInspector />
         </BrowserRouter>
 
         <ErrorRecovery

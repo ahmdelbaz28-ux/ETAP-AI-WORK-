@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom'
 import {
   X, Search, BookOpen, ChevronRight, ArrowRight,
   Zap, FolderPlus, Radio, FileText, Settings, Activity,
-  Layers, Bug, HelpCircle,
+  Layers, Bug, HelpCircle, Sparkles,
 } from 'lucide-react'
 import { cn } from '../../utils/helpers'
 import { useSmartHelp } from '../../hooks/useSmartHelp'
@@ -97,12 +97,25 @@ export function SmartHelpDrawer({ open, onClose, initialContextId }: SmartHelpDr
               </p>
             </div>
           </div>
-          <button
-            onClick={onClose}
-            className="p-1.5 rounded-lg hover:bg-[var(--bg-elevated)] text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors"
-          >
-            <X className="w-4 h-4" />
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => {
+                onClose();
+                window.dispatchEvent(new CustomEvent('start-magic-help-inspect'));
+              }}
+              className="flex items-center gap-1 px-2 py-1 rounded-md bg-brand-500/10 border border-brand-500/20 text-brand-400 hover:bg-brand-500 hover:text-white transition-all text-[11px] font-medium"
+              title={lang === 'ar' ? 'فحص عناصر الصفحة' : 'Inspect page elements'}
+            >
+              <Sparkles className="w-3 h-3 text-brand-400" />
+              <span>{lang === 'ar' ? 'الفحص الذكي' : 'Magic Inspect'}</span>
+            </button>
+            <button
+              onClick={onClose}
+              className="p-1.5 rounded-lg hover:bg-[var(--bg-elevated)] text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
         </div>
 
         {/* Content Area */}

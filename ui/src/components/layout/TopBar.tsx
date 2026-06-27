@@ -1,7 +1,7 @@
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
 import {
-  Search, HelpCircle, Settings, Zap, ChevronDown,
+  Search, HelpCircle, Settings, Zap, ChevronDown, Sparkles,
 } from 'lucide-react'
 import { useAppStore } from '../../store'
 
@@ -53,6 +53,16 @@ export function TopBar({ onHelpOpen }: TopBarProps) {
 
       {/* Right: Actions */}
       <div className="flex items-center gap-1">
+        <button
+          className="p-2 rounded-lg text-brand-400 hover:bg-brand-500/10 hover:text-brand-300 transition-colors relative"
+          title="Magic Help Inspector / فاحص المساعدة الذكي"
+          onClick={() => {
+            window.dispatchEvent(new CustomEvent('start-magic-help-inspect'));
+          }}
+        >
+          <Sparkles className="w-4 h-4" />
+          <span className="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 rounded-full bg-brand-500 animate-ping" />
+        </button>
         <button
           className="p-2 rounded-lg text-[var(--text-muted)] hover:bg-[var(--bg-elevated)] hover:text-[var(--text-primary)] transition-colors"
           title={t('help.title') || 'Help'}

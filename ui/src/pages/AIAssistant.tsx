@@ -110,7 +110,7 @@ export default function AIAssistant() {
               <Sparkles className="w-10 h-10 text-brand-400" />
             </div>
             <h3 className="text-lg font-semibold text-[var(--text-primary)]">Start a Conversation</h3>
-            <p className="text-sm text-[var(--text-tertiary)] mt-1 max-w-md mx-auto">
+            <p className="text-sm text-[var(--text-tertiary)] mt-1 max-w-[480px] mx-auto w-full">
               Ask about power systems analysis, load flow studies, fault calculations, or any engineering topic.
             </p>
             <div className="flex flex-wrap gap-2 justify-center mt-4">
