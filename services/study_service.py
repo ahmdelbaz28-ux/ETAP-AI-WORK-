@@ -163,9 +163,7 @@ class StudyRequest(BaseModel):
     model_config = ConfigDict(extra="ignore")
 
     study_type: str = Field(..., description="Type of study to run")
-    system: Optional[SystemSpec] = Field(
-        default=None, validation_alias=AliasChoices("system", "system_spec")
-    )
+    system: Optional[SystemSpec] = Field(default=None, validation_alias=AliasChoices("system", "system_spec"))
     parameters: Dict[str, Any] = Field(default_factory=dict)
     task_id: Optional[str] = None
     use_etap: bool = Field(
@@ -269,20 +267,12 @@ def _build_system_from_spec(spec: SystemSpec) -> Any:
 
     for l in spec.lines:
         if l.from_bus_id not in bus_map:
-            logger.warning(
-                "Line %s references unknown from_bus %s, creating default PQ bus",
-                l.line_id,
-                l.from_bus_id,
-            )
+            logger.warning("Line %s references unknown from_bus %s, creating default PQ bus", l.line_id, l.from_bus_id)
             bus = Bus(bus_id=l.from_bus_id, bus_type="pq")
             system.add_bus(bus)
             bus_map[l.from_bus_id] = bus
         if l.to_bus_id not in bus_map:
-            logger.warning(
-                "Line %s references unknown to_bus %s, creating default PQ bus",
-                l.line_id,
-                l.to_bus_id,
-            )
+            logger.warning("Line %s references unknown to_bus %s, creating default PQ bus", l.line_id, l.to_bus_id)
             bus = Bus(bus_id=l.to_bus_id, bus_type="pq")
             system.add_bus(bus)
             bus_map[l.to_bus_id] = bus
@@ -299,20 +289,12 @@ def _build_system_from_spec(spec: SystemSpec) -> Any:
 
     for t in spec.transformers:
         if t.from_bus_id not in bus_map:
-            logger.warning(
-                "Transformer %s references unknown from_bus %s, creating default PQ bus",
-                t.transformer_id,
-                t.from_bus_id,
-            )
+            logger.warning("Transformer %s references unknown from_bus %s, creating default PQ bus", t.transformer_id, t.from_bus_id)
             bus = Bus(bus_id=t.from_bus_id, bus_type="pq")
             system.add_bus(bus)
             bus_map[t.from_bus_id] = bus
         if t.to_bus_id not in bus_map:
-            logger.warning(
-                "Transformer %s references unknown to_bus %s, creating default PQ bus",
-                t.transformer_id,
-                t.to_bus_id,
-            )
+            logger.warning("Transformer %s references unknown to_bus %s, creating default PQ bus", t.transformer_id, t.to_bus_id)
             bus = Bus(bus_id=t.to_bus_id, bus_type="pq")
             system.add_bus(bus)
             bus_map[t.to_bus_id] = bus
@@ -328,11 +310,7 @@ def _build_system_from_spec(spec: SystemSpec) -> Any:
 
     for g in spec.generators:
         if g.bus_id not in bus_map:
-            logger.warning(
-                "Generator %s references unknown bus %s, creating default PV bus",
-                g.generator_id,
-                g.bus_id,
-            )
+            logger.warning("Generator %s references unknown bus %s, creating default PV bus", g.generator_id, g.bus_id)
             bus = Bus(bus_id=g.bus_id, bus_type="pv")
             system.add_bus(bus)
             bus_map[g.bus_id] = bus
@@ -358,9 +336,7 @@ def _build_system_from_spec(spec: SystemSpec) -> Any:
 
     for ld in spec.loads:
         if ld.bus_id not in bus_map:
-            logger.warning(
-                "Load %s references unknown bus %s, creating default PQ bus", ld.load_id, ld.bus_id
-            )
+            logger.warning("Load %s references unknown bus %s, creating default PQ bus", ld.load_id, ld.bus_id)
             bus = Bus(bus_id=ld.bus_id, bus_type="pq")
             system.add_bus(bus)
             bus_map[ld.bus_id] = bus
@@ -393,7 +369,7 @@ _STUDIES_REQUIRING_SYSTEM = {
 T = TypeVar("T")
 
 
-def _run_async[T](coro: Coroutine[Any, Any, T]) -> T:
+def _run_async(coro: Coroutine[Any, Any, T]) -> T:
     """Run an async coroutine safely, whether or not an event loop is active."""
     try:
         loop = asyncio.get_running_loop()

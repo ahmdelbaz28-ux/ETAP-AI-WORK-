@@ -299,7 +299,7 @@ class AlertManager:
                 },
                 method="POST",
             )
-            urlopen(req, timeout=10)  # nosec B310 — internal URL open for error reporting
+            urlopen(req, timeout=10)
         except URLError:
             self._logger.exception("Webhook alert delivery failed")
 

@@ -6,11 +6,9 @@
 # =============================================================================
 
 # Observability - OpenTelemetry
-# Pin all OTel packages to the same version to avoid semantic-conventions conflicts.
-# 1.27.0 is the latest stable release that pairs with instrumentation-fastapi 0.48b0+
-opentelemetry-api~=1.27.0
-opentelemetry-sdk~=1.27.0
-opentelemetry-exporter-otlp~=1.27.0
+opentelemetry-api~=1.20.0
+opentelemetry-sdk~=1.20.0
+opentelemetry-exporter-otlp~=1.20.0
 
 # Metrics - Prometheus
 prometheus-client~=0.19.0
@@ -42,8 +40,7 @@ typing-extensions~=4.9.0
 structlog~=23.2.0
 
 # Security
-# cryptography >= 42.0.4 to avoid CVE-2024-26130 (NULL pointer deref in PKCS#12)
-cryptography>=42.0.4,<=45.0
+cryptography~=41.0.0
 hvac~=2.1.0
 
 # Password hashing
@@ -121,8 +118,7 @@ starlette~=0.35.0
 celery~=5.3.0
 
 # Opentelemetry FastAPI instrumentation
-# 0.48b0 pairs with opentelemetry-sdk 1.27.0 (matching semantic-conventions 0.48b0)
-opentelemetry-instrumentation-fastapi~=0.48b0
+opentelemetry-instrumentation-fastapi~=0.44b0
 
 # Production requirements (lightweight subset)
 -r requirements-prod.txt

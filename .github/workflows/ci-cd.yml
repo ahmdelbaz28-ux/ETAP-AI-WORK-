@@ -159,11 +159,7 @@ jobs:
         run: pip install bandit safety
 
       - name: Bandit SAST scan
-        # Uses .bandit config file for excludes + skip list.
-        # --exit-zero ensures Bandit never fails the build (we rely on the
-        # skips list + # nosec comments for false-positive suppression).
-        # Real security issues are caught by Trivy + Safety + security_scan.py.
-        run: bandit -c .bandit -r . --exit-zero --format txt
+        run: bandit -r . -x tests/,node_modules/,.venv/ -ll --format txt
         # continue-on-error removed — security scan must block the pipeline
 
       - name: Safety dependency check
@@ -357,29 +353,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: 'npm'
-          cache-dependency-path: ui/package-lock.json
-
-      - name: Install Vercel CLI
-        run: npm install -g vercel@latest
-
-      - name: Pull Vercel env (preview)
-        env:
-          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-        run: |
-          if [ -z "$VERCEL_TOKEN" ]; then
-            echo "⚠️ VERCEL_TOKEN secret not set — skipping Vercel deployment"
-            exit 0
-          fi
-          # The root vercel.json tells Vercel to build the ui/ subdirectory.
-          # We deploy from the repo root so the vercel.json is picked up.
-          vercel pull --yes --environment=production --token "$VERCEL_TOKEN" || true
-
-      - name: Build and Deploy to Vercel
+      - name: Deploy to Vercel
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           VERCEL_ORG_ID: team_eeEYqzXI8zkrTo62cUOTMVmS
@@ -389,15 +363,7 @@ jobs:
             echo "⚠️ VERCEL_TOKEN secret not set — skipping Vercel deployment"
             exit 0
           fi
-          # Set the org + project IDs vercel CLI needs
-          export VERCEL_ORG_ID="team_eeEYqzXI8zkrTo62cUOTMVmS"
-          export VERCEL_PROJECT_ID="prj_WucHqc3lQDwYe0i3ykgWz7UR5E3I"
-          # Deploy from repo root — vercel.json at root handles the ui/ build
-          vercel deploy --prod --yes --token "$VERCEL_TOKEN" 2>&1 | tee vercel-deploy.log
-          # Extract the deployment URL
-          DEPLOY_URL=$(grep -oE 'https://[a-z0-9-]+\.vercel\.app' vercel-deploy.log | head -1)
-          echo "Deployment URL: $DEPLOY_URL"
-          echo "VERCEL_DEPLOY_URL=$DEPLOY_URL" >> $GITHUB_ENV
+          npx vercel --prod --token $VERCEL_TOKEN --yes
 
   # ── 7. HEALTH CHECK ──────────────────────────────────────────────────────────
   health-check:

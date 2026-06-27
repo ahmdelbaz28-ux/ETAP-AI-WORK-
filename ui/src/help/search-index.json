@@ -2288,6 +2288,82 @@
     },
     {
       "type": "ui-component",
+      "id": "CommandPalette",
+      "title": {
+        "en": "CommandPalette",
+        "ar": "CommandPalette"
+      },
+      "description": {
+        "en": "components component in ui/src/components/command/CommandPalette.tsx",
+        "ar": "مكون components في ui/src/components/command/CommandPalette.tsx"
+      },
+      "tags": [
+        "component",
+        "ui",
+        "components",
+        "commandpalette"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "ui-component",
+      "id": "ContextPanel",
+      "title": {
+        "en": "ContextPanel",
+        "ar": "ContextPanel"
+      },
+      "description": {
+        "en": "components component in ui/src/components/context/ContextPanel.tsx",
+        "ar": "مكون components في ui/src/components/context/ContextPanel.tsx"
+      },
+      "tags": [
+        "component",
+        "ui",
+        "components",
+        "contextpanel"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "ui-component",
+      "id": "ErrorRecovery",
+      "title": {
+        "en": "ErrorRecovery",
+        "ar": "ErrorRecovery"
+      },
+      "description": {
+        "en": "components component in ui/src/components/context/ErrorRecovery.tsx",
+        "ar": "مكون components في ui/src/components/context/ErrorRecovery.tsx"
+      },
+      "tags": [
+        "component",
+        "ui",
+        "components",
+        "errorrecovery"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "ui-component",
+      "id": "useErrorRecovery",
+      "title": {
+        "en": "useErrorRecovery",
+        "ar": "useErrorRecovery"
+      },
+      "description": {
+        "en": "components component in ui/src/components/context/ErrorRecovery.tsx",
+        "ar": "مكون components في ui/src/components/context/ErrorRecovery.tsx"
+      },
+      "tags": [
+        "component",
+        "ui",
+        "components",
+        "useerrorrecovery"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "ui-component",
       "id": "ContextHelpButton",
       "title": {
         "en": "ContextHelpButton",
@@ -2340,6 +2416,120 @@
         "ui",
         "components",
         "smarthelpdrawer"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "ui-component",
+      "id": "AppShell",
+      "title": {
+        "en": "AppShell",
+        "ar": "AppShell"
+      },
+      "description": {
+        "en": "components component in ui/src/components/layout/AppShell.tsx",
+        "ar": "مكون components في ui/src/components/layout/AppShell.tsx"
+      },
+      "tags": [
+        "component",
+        "ui",
+        "components",
+        "appshell"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "ui-component",
+      "id": "EngineeringWorkspace",
+      "title": {
+        "en": "EngineeringWorkspace",
+        "ar": "EngineeringWorkspace"
+      },
+      "description": {
+        "en": "components component in ui/src/components/layout/EngineeringWorkspace.tsx",
+        "ar": "مكون components في ui/src/components/layout/EngineeringWorkspace.tsx"
+      },
+      "tags": [
+        "component",
+        "ui",
+        "components",
+        "engineeringworkspace"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "ui-component",
+      "id": "Sidebar",
+      "title": {
+        "en": "Sidebar",
+        "ar": "Sidebar"
+      },
+      "description": {
+        "en": "components component in ui/src/components/layout/Sidebar.tsx",
+        "ar": "مكون components في ui/src/components/layout/Sidebar.tsx"
+      },
+      "tags": [
+        "component",
+        "ui",
+        "components",
+        "sidebar"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "ui-component",
+      "id": "StatusBar",
+      "title": {
+        "en": "StatusBar",
+        "ar": "StatusBar"
+      },
+      "description": {
+        "en": "components component in ui/src/components/layout/StatusBar.tsx",
+        "ar": "مكون components في ui/src/components/layout/StatusBar.tsx"
+      },
+      "tags": [
+        "component",
+        "ui",
+        "components",
+        "statusbar"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "ui-component",
+      "id": "TopBar",
+      "title": {
+        "en": "TopBar",
+        "ar": "TopBar"
+      },
+      "description": {
+        "en": "components component in ui/src/components/layout/TopBar.tsx",
+        "ar": "مكون components في ui/src/components/layout/TopBar.tsx"
+      },
+      "tags": [
+        "component",
+        "ui",
+        "components",
+        "topbar"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "ui-component",
+      "id": "OnboardingTour",
+      "title": {
+        "en": "OnboardingTour",
+        "ar": "OnboardingTour"
+      },
+      "description": {
+        "en": "components component in ui/src/components/onboarding/OnboardingTour.tsx",
+        "ar": "مكون components في ui/src/components/onboarding/OnboardingTour.tsx"
+      },
+      "tags": [
+        "component",
+        "ui",
+        "components",
+        "onboardingtour"
       ],
       "navigateTo": null
     },
@@ -2739,196 +2929,6 @@
         "ui",
         "components",
         "glowcard"
-      ],
-      "navigateTo": null
-    },
-    {
-      "type": "ui-component",
-      "id": "OnboardingTour",
-      "title": {
-        "en": "OnboardingTour",
-        "ar": "OnboardingTour"
-      },
-      "description": {
-        "en": "components component in ui/src/components/onboarding/OnboardingTour.tsx",
-        "ar": "مكون components في ui/src/components/onboarding/OnboardingTour.tsx"
-      },
-      "tags": [
-        "component",
-        "ui",
-        "components",
-        "onboardingtour"
-      ],
-      "navigateTo": null
-    },
-    {
-      "type": "ui-component",
-      "id": "ContextPanel",
-      "title": {
-        "en": "ContextPanel",
-        "ar": "ContextPanel"
-      },
-      "description": {
-        "en": "components component in ui/src/components/context/ContextPanel.tsx",
-        "ar": "مكون components في ui/src/components/context/ContextPanel.tsx"
-      },
-      "tags": [
-        "component",
-        "ui",
-        "components",
-        "contextpanel"
-      ],
-      "navigateTo": null
-    },
-    {
-      "type": "ui-component",
-      "id": "ErrorRecovery",
-      "title": {
-        "en": "ErrorRecovery",
-        "ar": "ErrorRecovery"
-      },
-      "description": {
-        "en": "components component in ui/src/components/context/ErrorRecovery.tsx",
-        "ar": "مكون components في ui/src/components/context/ErrorRecovery.tsx"
-      },
-      "tags": [
-        "component",
-        "ui",
-        "components",
-        "errorrecovery"
-      ],
-      "navigateTo": null
-    },
-    {
-      "type": "ui-component",
-      "id": "useErrorRecovery",
-      "title": {
-        "en": "useErrorRecovery",
-        "ar": "useErrorRecovery"
-      },
-      "description": {
-        "en": "components component in ui/src/components/context/ErrorRecovery.tsx",
-        "ar": "مكون components في ui/src/components/context/ErrorRecovery.tsx"
-      },
-      "tags": [
-        "component",
-        "ui",
-        "components",
-        "useerrorrecovery"
-      ],
-      "navigateTo": null
-    },
-    {
-      "type": "ui-component",
-      "id": "AppShell",
-      "title": {
-        "en": "AppShell",
-        "ar": "AppShell"
-      },
-      "description": {
-        "en": "components component in ui/src/components/layout/AppShell.tsx",
-        "ar": "مكون components في ui/src/components/layout/AppShell.tsx"
-      },
-      "tags": [
-        "component",
-        "ui",
-        "components",
-        "appshell"
-      ],
-      "navigateTo": null
-    },
-    {
-      "type": "ui-component",
-      "id": "EngineeringWorkspace",
-      "title": {
-        "en": "EngineeringWorkspace",
-        "ar": "EngineeringWorkspace"
-      },
-      "description": {
-        "en": "components component in ui/src/components/layout/EngineeringWorkspace.tsx",
-        "ar": "مكون components في ui/src/components/layout/EngineeringWorkspace.tsx"
-      },
-      "tags": [
-        "component",
-        "ui",
-        "components",
-        "engineeringworkspace"
-      ],
-      "navigateTo": null
-    },
-    {
-      "type": "ui-component",
-      "id": "Sidebar",
-      "title": {
-        "en": "Sidebar",
-        "ar": "Sidebar"
-      },
-      "description": {
-        "en": "components component in ui/src/components/layout/Sidebar.tsx",
-        "ar": "مكون components في ui/src/components/layout/Sidebar.tsx"
-      },
-      "tags": [
-        "component",
-        "ui",
-        "components",
-        "sidebar"
-      ],
-      "navigateTo": null
-    },
-    {
-      "type": "ui-component",
-      "id": "StatusBar",
-      "title": {
-        "en": "StatusBar",
-        "ar": "StatusBar"
-      },
-      "description": {
-        "en": "components component in ui/src/components/layout/StatusBar.tsx",
-        "ar": "مكون components في ui/src/components/layout/StatusBar.tsx"
-      },
-      "tags": [
-        "component",
-        "ui",
-        "components",
-        "statusbar"
-      ],
-      "navigateTo": null
-    },
-    {
-      "type": "ui-component",
-      "id": "TopBar",
-      "title": {
-        "en": "TopBar",
-        "ar": "TopBar"
-      },
-      "description": {
-        "en": "components component in ui/src/components/layout/TopBar.tsx",
-        "ar": "مكون components في ui/src/components/layout/TopBar.tsx"
-      },
-      "tags": [
-        "component",
-        "ui",
-        "components",
-        "topbar"
-      ],
-      "navigateTo": null
-    },
-    {
-      "type": "ui-component",
-      "id": "CommandPalette",
-      "title": {
-        "en": "CommandPalette",
-        "ar": "CommandPalette"
-      },
-      "description": {
-        "en": "components component in ui/src/components/command/CommandPalette.tsx",
-        "ar": "مكون components في ui/src/components/command/CommandPalette.tsx"
-      },
-      "tags": [
-        "component",
-        "ui",
-        "components",
-        "commandpalette"
       ],
       "navigateTo": null
     },
@@ -4797,10 +4797,10 @@
   ],
   "total": 247,
   "by_type": {
-    "python-module": 43,
-    "help-topic": 35,
-    "ui-component": 95,
     "api-route": 50,
+    "ui-component": 95,
+    "help-topic": 35,
+    "python-module": 43,
     "ui-page": 24
   }
 }

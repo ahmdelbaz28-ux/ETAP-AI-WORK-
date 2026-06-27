@@ -3,12 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { X, ChevronRight, ChevronLeft, Zap, LayoutDashboard, FolderPlus, HelpCircle, Activity, CheckCircle } from 'lucide-react'
 import { cn } from '../../utils/helpers'
 
-// Use a versioned key — bumping the version forces a re-show for users who
-// saw the old buggy version. After they complete or skip v2, they won't see
-// it again until the version bumps.
 const ONBOARDING_KEY = 'etap-ai-onboarding-completed'
-const ONBOARDING_VERSION = 'v2-fixed-layout'
-const ONBOARDING_VERSIONED_KEY = `${ONBOARDING_KEY}-${ONBOARDING_VERSION}`
 
 interface TourStep {
   id: string
@@ -83,14 +78,9 @@ export function OnboardingTour() {
   ]
 
   useEffect(() => {
-    // Check the versioned key — users who completed the OLD tour (with the
-    // broken layout) will see the new one once. Users who complete THIS
-    // version won't see it again.
-    const hasCompleted = localStorage.getItem(ONBOARDING_VERSIONED_KEY)
+    const hasCompleted = localStorage.getItem(ONBOARDING_KEY)
     if (!hasCompleted) {
-      // Wait a bit longer (2s) to ensure the page is fully rendered
-      // before showing the tour — this prevents CSS-not-yet-loaded issues.
-      const timer = setTimeout(() => setShow(true), 2000)
+      const timer = setTimeout(() => setShow(true), 1000)
       return () => clearTimeout(timer)
     }
   }, [])
@@ -110,30 +100,25 @@ export function OnboardingTour() {
   }
 
   const handleComplete = () => {
-    // Set BOTH the versioned and the legacy key, so old code paths that
-    // check the legacy key also see it as completed.
-    localStorage.setItem(ONBOARDING_VERSIONED_KEY, 'true')
     localStorage.setItem(ONBOARDING_KEY, 'true')
     setCompleted(true)
     setTimeout(() => setShow(false), 300)
   }
 
   const handleSkip = () => {
-    localStorage.setItem(ONBOARDING_VERSIONED_KEY, 'true')
     localStorage.setItem(ONBOARDING_KEY, 'true')
     setCompleted(true)
     setTimeout(() => setShow(false), 300)
   }
 
   const handleRestart = () => {
-    localStorage.removeItem(ONBOARDING_VERSIONED_KEY)
     localStorage.removeItem(ONBOARDING_KEY)
     setCurrentStep(0)
     setCompleted(false)
     setShow(true)
   }
 
-  // Expose restart function globally (for the Help drawer "Restart tour" button)
+  // Expose restart function globally
   useEffect(() => {
     const w = window as unknown as Record<string, unknown>
     w.__restartOnboarding = handleRestart
@@ -147,23 +132,16 @@ export function OnboardingTour() {
   const isLast = currentStep === steps.length - 1
 
   return (
-    <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-[200] flex items-center justify-center">
       <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={handleSkip} />
 
-      {/* FIX: Use a fixed width (not just max-w-md) + min-width to prevent
-          the text from breaking word-by-word when the parent flex container
-          hasn't computed its width yet. The previous `w-full max-w-md` could
-          collapse to width=0 during initial render. */}
-      <div
-        style={{ width: 'min(92vw, 32rem)', minWidth: '320px' }}
-        className={cn(
-          'relative z-[201]',
-          'bg-[var(--bg-secondary)] border border-[var(--border-secondary)] rounded-2xl',
-          'shadow-2xl shadow-black/50',
-          'transition-all duration-300',
-          completed ? 'opacity-0 scale-95' : 'opacity-100 scale-100'
-        )}
-      >
+      <div className={cn(
+        'relative z-[201] w-full max-w-md mx-4',
+        'bg-[var(--bg-secondary)] border border-[var(--border-secondary)] rounded-2xl',
+        'shadow-2xl shadow-black/50',
+        'transition-all duration-300',
+        completed ? 'opacity-0 scale-95' : 'opacity-100 scale-100'
+      )}>
         {/* Progress */}
         <div className="flex gap-1 px-6 pt-5">
           {steps.map((_, i) => (
@@ -181,13 +159,12 @@ export function OnboardingTour() {
         <button
           onClick={handleSkip}
           className="absolute top-4 right-4 p-1.5 rounded-lg hover:bg-[var(--bg-elevated)] text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors"
-          aria-label="Close tour"
         >
           <X className="w-4 h-4" />
         </button>
 
-        {/* Content — explicit overflow handling + word-break normal */}
-        <div className="px-6 py-6 overflow-hidden">
+        {/* Content */}
+        <div className="px-6 py-6">
           <div className={cn(
             'w-14 h-14 rounded-2xl flex items-center justify-center mb-4',
             isLast
@@ -197,19 +174,10 @@ export function OnboardingTour() {
             <StepIcon className="w-7 h-7" />
           </div>
 
-          {/* FIX: whitespace-normal + break-words ensures the title stays
-              on one line when there's room, and only breaks at word
-              boundaries when there isn't. */}
-          <h3
-            className="text-lg font-semibold text-[var(--text-primary)] mb-2 whitespace-normal break-words"
-            style={{ wordBreak: 'break-word', overflowWrap: 'break-word' }}
-          >
+          <h3 className="text-lg font-semibold text-[var(--text-primary)] mb-2">
             {step.title}
           </h3>
-          <p
-            className="text-sm text-[var(--text-secondary)] leading-relaxed whitespace-normal break-words"
-            style={{ wordBreak: 'break-word', overflowWrap: 'break-word' }}
-          >
+          <p className="text-sm text-[var(--text-secondary)] leading-relaxed">
             {step.description}
           </p>
         </div>
@@ -218,7 +186,7 @@ export function OnboardingTour() {
         <div className="flex items-center justify-between px-6 pb-5">
           <button
             onClick={handleSkip}
-            className="text-xs text-[var(--text-muted)] hover:text-[var(--text-secondary)] transition-colors whitespace-nowrap"
+            className="text-xs text-[var(--text-muted)] hover:text-[var(--text-secondary)] transition-colors"
           >
             Skip tour
           </button>
@@ -227,7 +195,7 @@ export function OnboardingTour() {
             {currentStep > 0 && (
               <button
                 onClick={handlePrev}
-                className="flex items-center gap-1 px-3 py-1.5 text-xs text-[var(--text-secondary)] hover:bg-[var(--bg-elevated)] rounded-lg transition-colors whitespace-nowrap"
+                className="flex items-center gap-1 px-3 py-1.5 text-xs text-[var(--text-secondary)] hover:bg-[var(--bg-elevated)] rounded-lg transition-colors"
               >
                 <ChevronLeft className="w-3.5 h-3.5" />
                 Back
@@ -236,7 +204,7 @@ export function OnboardingTour() {
             <button
               onClick={handleNext}
               className={cn(
-                'flex items-center gap-1.5 px-4 py-2 text-sm font-medium rounded-lg transition-all whitespace-nowrap',
+                'flex items-center gap-1.5 px-4 py-2 text-sm font-medium rounded-lg transition-all',
                 isLast
                   ? 'bg-green-600 hover:bg-green-500 text-white'
                   : 'bg-[var(--accent-primary)] hover:opacity-90 text-black'

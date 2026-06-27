@@ -72,11 +72,11 @@ def _eager_mode():
     The fixture auto-resets the original configuration after each test so
     that tests cannot leak state into one another.
     """
-    overrides = {
-        "task_always_eager": True,
-        "task_eager_propagates": True,  # exceptions propagate immediately
-        "result_backend": "cache+memory://",  # in-memory result backend
-    }
+    overrides = dict(
+        task_always_eager=True,
+        task_eager_propagates=True,       # exceptions propagate immediately
+        result_backend="cache+memory://",  # in-memory result backend
+    )
     prev = {k: celery_app.conf.get(k) for k in overrides}
     celery_app.conf.update(overrides)
     yield
@@ -85,18 +85,18 @@ def _eager_mode():
 
 def _fake_study_result(**overrides) -> StudyResult:
     """Build a realistic StudyResult for mocking purposes."""
-    defaults = {
-        "success": True,
-        "data": {"converged": True, "voltages": [1.0, 0.98]},
-        "results": {"converged": True, "voltages": [1.0, 0.98]},
-        "warnings": [],
-        "errors": [],
-        "execution_time_sec": 0.05,
-        "trace_id": "test-trace-001",
-        "task_id": "test-task-001",
-        "study_type": "load_flow",
-        "provider": "native",
-    }
+    defaults = dict(
+        success=True,
+        data={"converged": True, "voltages": [1.0, 0.98]},
+        results={"converged": True, "voltages": [1.0, 0.98]},
+        warnings=[],
+        errors=[],
+        execution_time_sec=0.05,
+        trace_id="test-trace-001",
+        task_id="test-task-001",
+        study_type="load_flow",
+        provider="native",
+    )
     defaults.update(overrides)
     return StudyResult(**defaults)
 
@@ -285,9 +285,9 @@ class TestTaskStatusTracking:
 
         # Verify that at least one PROGRESS state update was published
         progress_calls = [
-            call
-            for call in mock_ct.update_state.call_args_list
-            if call.kwargs.get("state") == "PROGRESS" or (call.args and call.args[0] == "PROGRESS")
+            call for call in mock_ct.update_state.call_args_list
+            if call.kwargs.get("state") == "PROGRESS"
+            or (call.args and call.args[0] == "PROGRESS")
         ]
         assert len(progress_calls) >= 1, (
             "Expected at least one PROGRESS state update, "
@@ -306,9 +306,9 @@ class TestTaskStatusTracking:
         )
 
         success_calls = [
-            call
-            for call in mock_ct.update_state.call_args_list
-            if call.kwargs.get("state") == "SUCCESS" or (call.args and call.args[0] == "SUCCESS")
+            call for call in mock_ct.update_state.call_args_list
+            if call.kwargs.get("state") == "SUCCESS"
+            or (call.args and call.args[0] == "SUCCESS")
         ]
         assert len(success_calls) >= 1
 
@@ -325,9 +325,9 @@ class TestTaskStatusTracking:
             )
 
         failure_calls = [
-            call
-            for call in mock_ct.update_state.call_args_list
-            if call.kwargs.get("state") == "FAILURE" or (call.args and call.args[0] == "FAILURE")
+            call for call in mock_ct.update_state.call_args_list
+            if call.kwargs.get("state") == "FAILURE"
+            or (call.args and call.args[0] == "FAILURE")
         ]
         assert len(failure_calls) >= 1
 
@@ -341,9 +341,9 @@ class TestTaskStatusTracking:
         )
 
         progress_calls = [
-            call
-            for call in mock_ct.update_state.call_args_list
-            if call.kwargs.get("state") == "PROGRESS" or (call.args and call.args[0] == "PROGRESS")
+            call for call in mock_ct.update_state.call_args_list
+            if call.kwargs.get("state") == "PROGRESS"
+            or (call.args and call.args[0] == "PROGRESS")
         ]
         assert len(progress_calls) >= 1
 
@@ -385,18 +385,9 @@ class TestTaskResultRetrieval:
         )
         result = async_result.get(timeout=5)
 
-        for field in (
-            "success",
-            "data",
-            "results",
-            "warnings",
-            "errors",
-            "execution_time_sec",
-            "trace_id",
-            "task_id",
-            "study_type",
-            "provider",
-        ):
+        for field in ("success", "data", "results", "warnings", "errors",
+                       "execution_time_sec", "trace_id", "task_id",
+                       "study_type", "provider"):
             assert field in result, f"Missing field: {field}"
 
     @patch("worker.tasks.execute_study_logic")
@@ -504,9 +495,9 @@ class TestTaskFailureHandling:
 
         # Find the FAILURE state update and inspect its meta
         failure_calls = [
-            call
-            for call in mock_ct.update_state.call_args_list
-            if (call.kwargs.get("state") == "FAILURE") or (call.args and call.args[0] == "FAILURE")
+            call for call in mock_ct.update_state.call_args_list
+            if (call.kwargs.get("state") == "FAILURE")
+            or (call.args and call.args[0] == "FAILURE")
         ]
         assert len(failure_calls) >= 1
 
@@ -530,9 +521,9 @@ class TestTaskFailureHandling:
             )
 
         failure_calls = [
-            call
-            for call in mock_ct.update_state.call_args_list
-            if (call.kwargs.get("state") == "FAILURE") or (call.args and call.args[0] == "FAILURE")
+            call for call in mock_ct.update_state.call_args_list
+            if (call.kwargs.get("state") == "FAILURE")
+            or (call.args and call.args[0] == "FAILURE")
         ]
         meta = failure_calls[0].kwargs.get("meta") or failure_calls[0].args[1]
         assert "status" in meta
@@ -609,7 +600,9 @@ class TestTaskTimeout:
         """The soft time limit should be less than the hard time limit."""
         soft = celery_app.conf.task_soft_time_limit
         hard = celery_app.conf.task_time_limit
-        assert soft < hard, f"Soft time limit ({soft}s) should be less than hard limit ({hard}s)"
+        assert soft < hard, (
+            f"Soft time limit ({soft}s) should be less than hard limit ({hard}s)"
+        )
 
     @patch("worker.tasks.execute_study_logic")
     @patch("worker.tasks.current_task")
@@ -643,8 +636,7 @@ class TestTaskTimeout:
         )
 
         progress_calls = [
-            call
-            for call in mock_ct.update_state.call_args_list
+            call for call in mock_ct.update_state.call_args_list
             if (call.kwargs.get("state") == "PROGRESS")
             or (call.args and call.args[0] == "PROGRESS")
         ]
@@ -658,10 +650,13 @@ class TestTaskTimeout:
         This ensures that a task that takes up to the hard limit is not
         prematurely re-queued by the broker.
         """
-        vis_timeout = celery_app.conf.broker_transport_options.get("visibility_timeout", 0)
+        vis_timeout = celery_app.conf.broker_transport_options.get(
+            "visibility_timeout", 0
+        )
         hard_limit = celery_app.conf.task_time_limit
         assert vis_timeout >= hard_limit, (
-            f"visibility_timeout ({vis_timeout}s) should be >= task_time_limit ({hard_limit}s)"
+            f"visibility_timeout ({vis_timeout}s) should be >= "
+            f"task_time_limit ({hard_limit}s)"
         )
 
     def test_result_expires_configured(self):
@@ -712,7 +707,7 @@ class TestTaskRetry:
         # Verify the task is bound (bind=True) which enables self.retry()
         # Note: bind attribute may not exist on the task object directly in all Celery versions
         # Instead verify the task accepts 'self' as first arg (signature check)
-        assert hasattr(execute_engineering_study_task, "run"), "Task should have a run method"
+        assert hasattr(execute_engineering_study_task, 'run'), "Task should have a run method"
 
     @patch("worker.tasks.execute_study_logic")
     @patch("worker.tasks.current_task")
@@ -781,7 +776,9 @@ class TestTaskRetry:
         with patch("etap_integration.etap_provider.get_etap_provider") as mock_factory:
             mock_provider = MagicMock()
             # Simulate connection failure
-            mock_provider.execute_command.side_effect = ConnectionError("ETAP COM timeout")
+            mock_provider.execute_command.side_effect = ConnectionError(
+                "ETAP COM timeout"
+            )
             mock_factory.return_value = mock_provider
 
             with pytest.raises(ConnectionError):
@@ -950,9 +947,9 @@ class TestTaskIntegration:
 
         # 2. Verify FAILURE state was published
         failure_calls = [
-            call
-            for call in mock_ct.update_state.call_args_list
-            if (call.kwargs.get("state") == "FAILURE") or (call.args and call.args[0] == "FAILURE")
+            call for call in mock_ct.update_state.call_args_list
+            if (call.kwargs.get("state") == "FAILURE")
+            or (call.args and call.args[0] == "FAILURE")
         ]
         assert len(failure_calls) >= 1
 

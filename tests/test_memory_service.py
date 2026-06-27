@@ -19,7 +19,6 @@ import pytest
 # Helper: detect which optional packages are installed in the test environment
 # ---------------------------------------------------------------------------
 
-
 def _has_module(name: str) -> bool:
     """Return True if *name* can be imported."""
     try:
@@ -155,7 +154,6 @@ class TestAIMemoryServiceConfig:
 # 3. Qdrant integration — mocked tests (no live server needed)
 # ---------------------------------------------------------------------------
 
-
 class TestQdrantIntegrationMocked:
     """Test Qdrant vector memory operations fully mocked."""
 
@@ -173,7 +171,8 @@ class TestQdrantIntegrationMocked:
         assert result is True
         assert svc._initialized_qdrant is True
         MockClient.assert_called_once_with(
-            url="https://test.cloud.qdrant.io", api_key="test-api-key"
+            url="https://test.cloud.qdrant.io",
+            api_key="test-api-key"
         )
 
     @pytest.mark.skipif(not QDRANT_AVAILABLE, reason="qdrant-client not installed")
@@ -194,9 +193,7 @@ class TestQdrantIntegrationMocked:
     @pytest.mark.skipif(not QDRANT_AVAILABLE, reason="qdrant-client not installed")
     def test_initialize_qdrant_connection_failure(self):
         """initialize_qdrant() must return False on connection error."""
-        with patch(
-            "services.memory_service.QdrantClient", side_effect=Exception("connection refused")
-        ):
+        with patch("services.memory_service.QdrantClient", side_effect=Exception("connection refused")):
             svc = AIMemoryService()
             result = svc.initialize_qdrant()
 
@@ -209,10 +206,8 @@ class TestQdrantIntegrationMocked:
         mock_client = MagicMock()
         mock_client.collection_exists.return_value = False
 
-        with (
-            patch("services.memory_service.QdrantClient", return_value=mock_client),
-            patch("services.memory_service.QdrantVectorStore") as MockVS,
-        ):
+        with patch("services.memory_service.QdrantClient", return_value=mock_client), \
+             patch("services.memory_service.QdrantVectorStore") as MockVS:
             MockVS.return_value = MagicMock()
             svc = AIMemoryService()
             svc.initialize_qdrant()
@@ -228,10 +223,8 @@ class TestQdrantIntegrationMocked:
         mock_client = MagicMock()
         mock_client.collection_exists.return_value = True
 
-        with (
-            patch("services.memory_service.QdrantClient", return_value=mock_client),
-            patch("services.memory_service.QdrantVectorStore") as MockVS,
-        ):
+        with patch("services.memory_service.QdrantClient", return_value=mock_client), \
+             patch("services.memory_service.QdrantVectorStore") as MockVS:
             MockVS.return_value = MagicMock()
             svc = AIMemoryService()
             svc.initialize_qdrant()
@@ -242,9 +235,7 @@ class TestQdrantIntegrationMocked:
     @pytest.mark.skipif(not QDRANT_AVAILABLE, reason="qdrant-client not installed")
     def test_query_returns_answer_from_retrieved_docs(self, monkeypatch):
         """query_vector_memory() must retrieve docs, prompt LLM, and return result."""
-        monkeypatch.setenv(
-            "OPENAI_API_KEY", "modalresearch_TzUJFpXlhpM9zxRhymgDm4DZmIT_IFDGYuPtZT9Eekg"
-        )
+        monkeypatch.setenv("OPENAI_API_KEY", "modalresearch_TzUJFpXlhpM9zxRhymgDm4DZmIT_IFDGYuPtZT9Eekg")
         monkeypatch.setenv("LLM_MODEL", "zai-org/GLM-5.1-FP8")
 
         mock_client = MagicMock()
@@ -260,11 +251,9 @@ class TestQdrantIntegrationMocked:
         mock_llm = MagicMock()
         mock_llm.predict.return_value = "T1 transformer rating is 50MVA."
 
-        with (
-            patch("services.memory_service.QdrantClient", return_value=mock_client),
-            patch("services.memory_service.QdrantVectorStore", return_value=mock_vs),
-            patch("services.memory_service.ChatOpenAI", return_value=mock_llm),
-        ):
+        with patch("services.memory_service.QdrantClient", return_value=mock_client), \
+             patch("services.memory_service.QdrantVectorStore", return_value=mock_vs), \
+             patch("services.memory_service.ChatOpenAI", return_value=mock_llm):
             svc = AIMemoryService()
             svc.initialize_qdrant()
             answer = svc.query_vector_memory("What is T1 rating?", index_name="test_col")
@@ -290,7 +279,6 @@ class TestQdrantIntegrationMocked:
 # 4. Neo4j integration — mocked tests
 # ---------------------------------------------------------------------------
 
-
 class TestNeo4jIntegrationMocked:
     """Test Neo4j graph memory operations fully mocked."""
 
@@ -308,9 +296,7 @@ class TestNeo4jIntegrationMocked:
     @pytest.mark.skipif(not LANGCHAIN_NEO4J_AVAILABLE, reason="langchain-neo4j not installed")
     def test_initialize_neo4j_failure_returns_false(self):
         """initialize_neo4j() must return False when Neo4j is unreachable."""
-        with patch(
-            "services.memory_service.Neo4jGraph", side_effect=Exception("connection refused")
-        ):
+        with patch("services.memory_service.Neo4jGraph", side_effect=Exception("connection refused")):
             svc = AIMemoryService()
             result = svc.initialize_neo4j()
 
@@ -320,11 +306,9 @@ class TestNeo4jIntegrationMocked:
     @pytest.mark.skipif(not LANGCHAIN_NEO4J_AVAILABLE, reason="langchain-neo4j not installed")
     def test_add_knowledge_transforms_text_to_graph(self):
         """add_knowledge_to_graph() must call LLMGraphTransformer and add_graph_documents."""
-        with (
-            patch("services.memory_service.Neo4jGraph") as MockGraph,
-            patch("services.memory_service.LLMGraphTransformer") as MockTransformer,
-            patch("services.memory_service.ChatOpenAI"),
-        ):
+        with patch("services.memory_service.Neo4jGraph") as MockGraph, \
+             patch("services.memory_service.LLMGraphTransformer") as MockTransformer, \
+             patch("services.memory_service.ChatOpenAI"):
             mock_graph = MagicMock()
             MockGraph.return_value = mock_graph
             mock_transformer = MagicMock()
@@ -334,7 +318,8 @@ class TestNeo4jIntegrationMocked:
             svc = AIMemoryService()
             svc.initialize_neo4j()
             result = svc.add_knowledge_to_graph(
-                "Bus 1 is connected to Bus 2 via Line 10", allowed_nodes=["Bus", "Line"]
+                "Bus 1 is connected to Bus 2 via Line 10",
+                allowed_nodes=["Bus", "Line"]
             )
 
         assert result is True
@@ -344,11 +329,9 @@ class TestNeo4jIntegrationMocked:
     @pytest.mark.skipif(not LANGCHAIN_NEO4J_AVAILABLE, reason="langchain-neo4j not installed")
     def test_query_graph_invokes_cypher_chain(self):
         """query_graph() must route the question through GraphCypherQAChain."""
-        with (
-            patch("services.memory_service.Neo4jGraph") as MockGraph,
-            patch("services.memory_service.GraphCypherQAChain") as MockChain,
-            patch("services.memory_service.ChatOpenAI"),
-        ):
+        with patch("services.memory_service.Neo4jGraph") as MockGraph, \
+             patch("services.memory_service.GraphCypherQAChain") as MockChain, \
+             patch("services.memory_service.ChatOpenAI"):
             MockGraph.return_value = MagicMock()
             mock_chain = MagicMock()
             mock_chain.run.return_value = "Bus 1 and Bus 2 are connected via Line 10."
@@ -365,7 +348,6 @@ class TestNeo4jIntegrationMocked:
 # ---------------------------------------------------------------------------
 # 5. Graceful degradation (always run — no deps required)
 # ---------------------------------------------------------------------------
-
 
 class TestGracefulDegradation:
     """Verify the service fails safely when optional libraries are unavailable."""

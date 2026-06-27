@@ -19,17 +19,18 @@ class KnowledgeGraph:
     def __init__(self):
         self.nodes = {}  # node_id -> {label, properties}
         self.edges = []  # list of {source, relationship, target, properties}
-        self.adj = {}  # adjacency list: source -> list of (target, relationship)
+        self.adj = {}    # adjacency list: source -> list of (target, relationship)
 
     def add_node(self, node_id: str, label: str, properties: dict = None) -> None:
         """Add a component node to the graph."""
-        self.nodes[node_id] = {"label": label, "properties": properties or {}}
+        self.nodes[node_id] = {
+            "label": label,
+            "properties": properties or {}
+        }
         if node_id not in self.adj:
             self.adj[node_id] = []
 
-    def add_relationship(
-        self, source: str, relationship: str, target: str, properties: dict = None
-    ) -> None:
+    def add_relationship(self, source: str, relationship: str, target: str, properties: dict = None) -> None:
         """Add a directed relationship between two components."""
         # Ensure nodes exist
         if source not in self.nodes:
@@ -41,7 +42,7 @@ class KnowledgeGraph:
             "source": source,
             "relationship": relationship,
             "target": target,
-            "properties": properties or {},
+            "properties": properties or {}
         }
         self.edges.append(edge)
         self.adj[source].append((target, relationship))
@@ -100,10 +101,17 @@ class KnowledgeGraph:
 
             if depth < max_depth:
                 for neighbor, rel in self.get_neighbors(node):
-                    impacted_edges.append({"source": node, "relationship": rel, "target": neighbor})
+                    impacted_edges.append({
+                        "source": node,
+                        "relationship": rel,
+                        "target": neighbor
+                    })
                     queue.append((neighbor, depth + 1))
 
-        return {"nodes": impacted_nodes, "edges": impacted_edges}
+        return {
+            "nodes": impacted_nodes,
+            "edges": impacted_edges
+        }
 
     def scan_file_for_relations(self, filepath: Path, repo_root: Path) -> None:
         """Parse file imports and class structure using AST to populate the graph."""
@@ -146,9 +154,7 @@ class KnowledgeGraph:
                 # Detect Functions
                 elif isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
                     func_node_id = f"{rel_path}::{node.name}"
-                    self.add_node(
-                        func_node_id, "function", {"name": node.name, "filepath": rel_path}
-                    )
+                    self.add_node(func_node_id, "function", {"name": node.name, "filepath": rel_path})
                     self.add_relationship(file_node_id, "defines", func_node_id)
 
         except Exception as e:
@@ -206,20 +212,18 @@ class KnowledgeGraph:
         """Scan entire repository to build a Code Property Graph."""
         repo_dir = Path(repo_path)
         for root, dirs, files in os.walk(repo_dir):
-            dirs[:] = [
-                d
-                for d in dirs
-                if not d.startswith(".")
-                and d not in ("venv", "node_modules", "__pycache__", "index")
-            ]
+            dirs[:] = [d for d in dirs if not d.startswith('.') and d not in ('venv', 'node_modules', '__pycache__', 'index')]
             for file in files:
-                if file.endswith(".py"):
+                if file.endswith('.py'):
                     self.scan_file_for_relations(Path(root) / file, repo_dir)
         self.resolve_references()
 
     def to_json(self) -> str:
         """Serialize graph to JSON string."""
-        return json.dumps({"nodes": self.nodes, "edges": self.edges}, indent=2)
+        return json.dumps({
+            "nodes": self.nodes,
+            "edges": self.edges
+        }, indent=2)
 
     def from_json(self, data_str: str) -> None:
         """Load graph from JSON string."""

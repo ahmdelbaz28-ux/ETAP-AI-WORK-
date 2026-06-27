@@ -124,7 +124,6 @@ export function ErrorRecovery({ error, onDismiss, onRetry }: ErrorRecoveryProps)
   const [expanded, setExpanded] = useState(false)
 
   useEffect(() => {
-    /* eslint-disable react-hooks/set-state-in-effect */
     if (error) {
       setHelp(mapErrorToHelp(error))
       setExpanded(true)
@@ -132,7 +131,6 @@ export function ErrorRecovery({ error, onDismiss, onRetry }: ErrorRecoveryProps)
       setHelp(null)
       setExpanded(false)
     }
-    /* eslint-enable react-hooks/set-state-in-effect */
   }, [error])
 
   const handleAction = useCallback((action: string) => {

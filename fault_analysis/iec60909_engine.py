@@ -202,9 +202,7 @@ class IEC60909Engine:
             mu = 0.62 + 0.72 * np.exp(-0.32 * min(Ik_initial_pu, 20.0))
         return min(mu, 1.0)
 
-    def _calculate_thermal_factor(
-        self, Ik_initial: float, ip: float, t_k: float = 1.0, m_factor: float = 1.0
-    ) -> float:
+    def _calculate_thermal_factor(self, Ik_initial: float, ip: float, t_k: float = 1.0, m_factor: float = 1.0) -> float:
         """
         Calculate thermal equivalent current Ith per IEC 60909.
 
@@ -562,9 +560,7 @@ class IEC60909Engine:
             Ic=Ic_phase,
         )
 
-    def calculate(
-        self, fault_type: Union[str, FaultType], bus_index: int, **kwargs: Any
-    ) -> ShortCircuitResult:
+    def calculate(self, fault_type: Union[str, FaultType], bus_index: int, **kwargs: Any) -> ShortCircuitResult:
         """
         Calculate short-circuit current for a given fault type.
 

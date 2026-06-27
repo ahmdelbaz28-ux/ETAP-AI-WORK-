@@ -741,6 +741,7 @@ class AnomalyDetector:
         self._train_mean: Optional[float] = None
         self._train_std: Optional[float] = None
 
+
     def train(self, normal_data: np.ndarray) -> Dict[str, Any]:
         """Train on normal operating data.
 
@@ -862,6 +863,7 @@ class AnomalyDetector:
         if self._threshold is None:
             raise RuntimeError("Model has not been trained yet. Call train() first.")
         return self._threshold
+
 
 
 # ===========================================================================

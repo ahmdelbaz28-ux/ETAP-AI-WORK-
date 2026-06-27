@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom'
 import {
   X, Search, BookOpen, ChevronRight, ArrowRight,
   Zap, FolderPlus, Radio, FileText, Settings, Activity,
-  Layers, Bug, HelpCircle, Sparkles, Folder, FileQuestion
+  Layers, Bug, HelpCircle, Sparkles, FileQuestion
 } from 'lucide-react'
 import { cn } from '../../utils/helpers'
 import { useSmartHelp } from '../../hooks/useSmartHelp'

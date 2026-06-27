@@ -20,19 +20,5 @@ export default defineConfig({
   },
   build: {
     outDir: 'dist',
-    chunkSizeWarningLimit: 600,
-    rollupOptions: {
-      output: {
-        manualChunks: {
-          // Split vendor libraries into separate chunks for better caching
-          'react-vendor': ['react', 'react-dom', 'react-router-dom'],
-          'charts-vendor': ['recharts'],
-          'animation-vendor': ['framer-motion'],
-          'icons-vendor': ['lucide-react', 'react-icons'],
-          'state-vendor': ['zustand', '@tanstack/react-query'],
-          'i18n-vendor': ['i18next', 'react-i18next', 'i18next-browser-languagedetector'],
-        },
-      },
-    },
   },
 })

@@ -45,21 +45,28 @@ def upgrade() -> None:
         "study_jobs",
         # Primary key
         sa.Column("id", sa.String(36), primary_key=True, nullable=False),
+
         # Study identity
         sa.Column("study_type", sa.String(64), nullable=False),
         sa.Column("project_id", sa.String(36), nullable=True),
+
         # Status lifecycle
         sa.Column("status", sa.String(32), nullable=False, server_default="pending"),
+
         # Payload (request body stored as JSON)
         sa.Column("payload", sa.Text(), nullable=True),
+
         # Celery integration
         sa.Column("celery_task_id", sa.String(64), nullable=True),
+
         # Result storage
         sa.Column("result", sa.Text(), nullable=True),
         sa.Column("error_message", sa.String(2000), nullable=True),
+
         # Retry tracking
         sa.Column("attempt", sa.Integer(), nullable=False, server_default="0"),
         sa.Column("max_attempts", sa.Integer(), nullable=False, server_default="3"),
+
         # Timestamps
         sa.Column(
             "created_at",
@@ -69,8 +76,10 @@ def upgrade() -> None:
         ),
         sa.Column("started_at", sa.DateTime(timezone=True), nullable=True),
         sa.Column("completed_at", sa.DateTime(timezone=True), nullable=True),
+
         # Ownership
         sa.Column("created_by", sa.String(36), nullable=False, server_default="system"),
+
         # Worker routing
         sa.Column("worker_id", sa.String(128), nullable=True),
         sa.Column("priority", sa.Integer(), nullable=False, server_default="5"),

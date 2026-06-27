@@ -195,7 +195,7 @@ class ArcGISProIndexingWorkflow:
 
         # Index each document
         for i, item in enumerate(transformed_data):
-            doc_id = hashlib.md5(item["url"].encode(), usedforsecurity=False).hexdigest()
+            doc_id = hashlib.md5(item["url"].encode()).hexdigest()
 
             try:
                 assert self.elastic_client is not None

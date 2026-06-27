@@ -17,56 +17,42 @@ try:
     from langchain_qdrant import QdrantVectorStore
     from qdrant_client import QdrantClient
     from qdrant_client.http import models as qdrant_models
-
     QDRANT_AVAILABLE = True
 except ImportError as err:
     logger.warning(f"Qdrant dependencies not fully available: {err}")
     QDRANT_AVAILABLE = False
-
     class QdrantClient:
         pass
-
     class QdrantVectorStore:
         pass
-
     qdrant_models = None
 
 try:
     from langchain_core.embeddings import Embeddings
 except ImportError:
-
     class Embeddings:
         """Fallback empty class when langchain_core is not available."""
-
         pass
-
 
 try:
     from langchain_core.documents import Document
     from langchain_experimental.graph_transformers import LLMGraphTransformer
     from langchain_neo4j import GraphCypherQAChain, Neo4jGraph
     from langchain_openai import ChatOpenAI, OpenAIEmbeddings
-
     LANGCHAIN_CORE_AVAILABLE = True
 except ImportError as err:
     logger.warning(f"LangChain core/openai dependencies not fully available: {err}")
     LANGCHAIN_CORE_AVAILABLE = False
-
     class Neo4jGraph:
         pass
-
     class LLMGraphTransformer:
         pass
-
     class ChatOpenAI:
         pass
-
     class OpenAIEmbeddings:
         pass
-
     class Document:
         pass
-
     class GraphCypherQAChain:
         pass
 
@@ -84,14 +70,14 @@ class DeterministicFallbackEmbeddings(Embeddings):
         return self._embed(text)
 
     def _embed(self, text: str) -> List[float]:
-        h = hashlib.sha256(text.encode("utf-8")).digest()
+        h = hashlib.sha256(text.encode('utf-8')).digest()
         vector = []
         for i in range(self.dimension):
             val = (h[i % len(h)] + i) % 256
             # Normalize to [-1.0, 1.0]
             vector.append((val / 128.0) - 1.0)
         # Normalize to unit length
-        norm = sum(x * x for x in vector) ** 0.5
+        norm = sum(x*x for x in vector) ** 0.5
         if norm > 0:
             vector = [x / norm for x in vector]
         return vector
@@ -156,11 +142,14 @@ class AIMemoryService:
                 logger.info(f"Connecting to Qdrant Cloud at {self.qdrant_url}")
                 self._qdrant_client = QdrantClient(
                     url=self.qdrant_url,
-                    api_key=self.qdrant_api_key if self.qdrant_api_key else None,
+                    api_key=self.qdrant_api_key if self.qdrant_api_key else None
                 )
             else:
                 logger.info(f"Connecting to local Qdrant at {self.qdrant_host}:{self.qdrant_port}")
-                self._qdrant_client = QdrantClient(host=self.qdrant_host, port=self.qdrant_port)
+                self._qdrant_client = QdrantClient(
+                    host=self.qdrant_host,
+                    port=self.qdrant_port
+                )
             self._initialized_qdrant = True
             return True
         except Exception as exc:
@@ -175,21 +164,17 @@ class AIMemoryService:
 
         # If no API key is specified and we're using default settings, fallback immediately
         if not self.embedding_api_key or "your-openai-key" in self.embedding_api_key.lower():
-            logger.info(
-                "No embedding API key provided. Using deterministic offline fallback embeddings."
-            )
+            logger.info("No embedding API key provided. Using deterministic offline fallback embeddings.")
             return DeterministicFallbackEmbeddings()
 
         try:
             return OpenAIEmbeddings(
                 model=self.embedding_model,
                 base_url=self.embedding_base_url,
-                api_key=self.embedding_api_key,
+                api_key=self.embedding_api_key
             )
         except Exception as exc:
-            logger.warning(
-                f"Failed to initialize OpenAIEmbeddings ({exc}). Using offline fallback."
-            )
+            logger.warning(f"Failed to initialize OpenAIEmbeddings ({exc}). Using offline fallback.")
             return DeterministicFallbackEmbeddings()
 
     def _get_llm(self) -> Any:
@@ -200,7 +185,10 @@ class AIMemoryService:
         # Ensure we have some API key for ChatOpenAI compatibility
         api_key = self.openai_api_key if self.openai_api_key else "dummy-api-key"
         return ChatOpenAI(
-            model=self.llm_model, base_url=self.openai_base_url, api_key=api_key, temperature=0
+            model=self.llm_model,
+            base_url=self.openai_base_url,
+            api_key=api_key,
+            temperature=0
         )
 
     def add_knowledge_to_graph(self, text: str, allowed_nodes: Optional[List[str]] = None) -> bool:
@@ -210,7 +198,10 @@ class AIMemoryService:
             return False
         try:
             llm = self._get_llm()
-            transformer = LLMGraphTransformer(llm=llm, allowed_nodes=allowed_nodes)
+            transformer = LLMGraphTransformer(
+                llm=llm,
+                allowed_nodes=allowed_nodes
+            )
             docs = [Document(page_content=text)]
             graph_documents = transformer.convert_to_graph_documents(docs)
             self._graph.add_graph_documents(graph_documents)
@@ -226,7 +217,11 @@ class AIMemoryService:
             return "AI Memory Service is not connected to Neo4j."
         try:
             llm = self._get_llm()
-            chain = GraphCypherQAChain.from_llm(llm=llm, graph=self._graph, verbose=True)
+            chain = GraphCypherQAChain.from_llm(
+                llm=llm,
+                graph=self._graph,
+                verbose=True
+            )
             return chain.run(query)
         except Exception as exc:
             logger.error(f"Cypher query execution failed: {exc}")
@@ -251,13 +246,16 @@ class AIMemoryService:
                 self._qdrant_client.create_collection(
                     collection_name=index_name,
                     vectors_config=qdrant_models.VectorParams(
-                        size=dimension, distance=qdrant_models.Distance.COSINE
-                    ),
+                        size=dimension,
+                        distance=qdrant_models.Distance.COSINE
+                    )
                 )
 
             # Store using QdrantVectorStore wrapper
             vector_db = QdrantVectorStore(
-                client=self._qdrant_client, collection_name=index_name, embedding=embeddings
+                client=self._qdrant_client,
+                collection_name=index_name,
+                embedding=embeddings
             )
             vector_db.add_texts([fact_text])
             logger.info(f"Successfully added fact to Qdrant collection '{index_name}'")
@@ -277,7 +275,9 @@ class AIMemoryService:
                 return "Vector memory collection does not exist."
 
             vector_db = QdrantVectorStore(
-                client=self._qdrant_client, collection_name=index_name, embedding=embeddings
+                client=self._qdrant_client,
+                collection_name=index_name,
+                embedding=embeddings
             )
             retriever = vector_db.as_retriever()
             docs = retriever.get_relevant_documents(question)
