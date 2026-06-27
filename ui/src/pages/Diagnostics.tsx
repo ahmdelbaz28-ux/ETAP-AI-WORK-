@@ -6,6 +6,7 @@ import { useNotify } from '../context/NotificationContext'
 import { Card, Badge, Button, EmptyState } from '../components/ui'
 import { cn } from '../utils/helpers'
 
+import { ContextHelpButton } from '../components/help/ContextHelpButton'
 interface DiagnosticCheck {
   name: string
   status: 'pass' | 'fail' | 'warn'
@@ -113,6 +114,7 @@ export default function Diagnostics() {
           </div>
           <div>
             <h2 className="text-2xl font-bold text-[var(--text-primary)]">Diagnostics</h2>
+          <ContextHelpButton contextId="diagnostics.overview" />
             <p className="text-sm text-[var(--text-tertiary)]">System health checks & status</p>
           </div>
         </div>

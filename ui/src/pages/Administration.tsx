@@ -6,6 +6,7 @@ import { useNotify } from '../context/NotificationContext'
 import { Card, CardHeader, Badge, Button } from '../components/ui'
 import { cn } from '../utils/helpers'
 
+import { ContextHelpButton } from '../components/help/ContextHelpButton'
 export default function Administration() {
   const [metrics, setMetrics] = useState<MetricsResponse | null>(null)
   const [agents, setAgents] = useState<AgentMeta[]>([])
@@ -81,6 +82,7 @@ export default function Administration() {
           </div>
           <div>
             <h2 className="text-2xl font-bold text-[var(--text-primary)]">Administration</h2>
+          <ContextHelpButton contextId="administration.overview" />
             <p className="text-sm text-[var(--text-tertiary)]">Platform monitoring & management</p>
           </div>
         </div>

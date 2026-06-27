@@ -10,6 +10,7 @@ import { studyCategories } from '../lib/studyCategories'
 import { Card, CardHeader, Badge } from '../components/ui'
 import { cn } from '../utils/helpers'
 
+import { ContextHelpButton } from '../components/help/ContextHelpButton'
 // Simulated time-series data for charts
 const generateTimeSeriesData = () => {
   const data = []
@@ -159,6 +160,7 @@ export default function Dashboard() {
       <motion.div {...fadeIn} className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-bold text-[var(--text-primary)]">{t('dashboard.title')}</h2>
+          <ContextHelpButton contextId="dashboard.overview" />
           <p className="text-[var(--text-tertiary)] mt-0.5">{t('dashboard.subtitle')}</p>
         </div>
         <div className="flex items-center gap-2">

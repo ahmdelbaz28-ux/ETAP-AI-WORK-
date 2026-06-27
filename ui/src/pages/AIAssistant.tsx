@@ -6,6 +6,7 @@ import { chatWithAgent, fetchAgents, type AgentMeta } from '../lib/api'
 import { Badge, Button } from '../components/ui'
 import { cn } from '../utils/helpers'
 
+import { ContextHelpButton } from '../components/help/ContextHelpButton'
 interface Message {
   role: 'user' | 'assistant'
   content: string
@@ -62,6 +63,7 @@ export default function AIAssistant() {
           </div>
           <div>
             <h2 className="text-2xl font-bold text-[var(--text-primary)]">AI Assistant</h2>
+          <ContextHelpButton contextId="ai-assistant.overview" />
             <p className="text-xs text-[var(--text-muted)]">Power systems engineering AI agent</p>
           </div>
         </div>

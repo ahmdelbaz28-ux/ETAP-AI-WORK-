@@ -4,6 +4,7 @@ import { useNotify } from '../context/NotificationContext'
 import { Card, CardHeader, Button } from '../components/ui'
 import { cn } from '../utils/helpers'
 
+import { ContextHelpButton } from '../components/help/ContextHelpButton'
 const exportFormats = [
   {
     id: 'pdf',
@@ -49,6 +50,7 @@ export default function DataExport() {
           </div>
           <div>
             <h2 className="text-2xl font-bold text-[var(--text-primary)]">Data Export</h2>
+          <ContextHelpButton contextId="data-export.overview" />
             <p className="text-sm text-[var(--text-tertiary)]">Export study results and system data</p>
           </div>
         </div>

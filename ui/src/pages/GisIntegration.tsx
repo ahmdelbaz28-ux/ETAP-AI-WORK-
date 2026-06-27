@@ -4,6 +4,7 @@ import { useNotify } from '../context/NotificationContext'
 import { Card, CardHeader, Badge, Button } from '../components/ui'
 import { cn } from '../utils/helpers'
 
+import { ContextHelpButton } from '../components/help/ContextHelpButton'
 export default function GisIntegration() {
   const { notify } = useNotify()
 
@@ -34,6 +35,7 @@ export default function GisIntegration() {
           </div>
           <div>
             <h2 className="text-2xl font-bold text-[var(--text-primary)]">GIS Integration</h2>
+          <ContextHelpButton contextId="gis-integration.overview" />
             <p className="text-sm text-[var(--text-tertiary)]">Geographic information system connectivity</p>
           </div>
         </div>

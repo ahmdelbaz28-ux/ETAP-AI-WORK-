@@ -3,6 +3,7 @@ import { Upload, CloudUpload, FileJson, FileSpreadsheet, FileText, Database, Cab
 import { useNotify } from '../context/NotificationContext'
 import { Card, CardHeader } from '../components/ui'
 
+import { ContextHelpButton } from '../components/help/ContextHelpButton'
 const supportedFormats = [
   { name: 'CIM/XML', icon: <FileText className="w-5 h-5" />, desc: 'IEC Common Information Model' },
   { name: 'PSS/E RAW', icon: <Database className="w-5 h-5" />, desc: 'Siemens PSS/E format' },
@@ -24,6 +25,7 @@ export default function DataImport() {
           </div>
           <div>
             <h2 className="text-2xl font-bold text-[var(--text-primary)]">Data Import</h2>
+          <ContextHelpButton contextId="data-import.overview" />
             <p className="text-sm text-[var(--text-tertiary)]">Import power system models and data</p>
           </div>
         </div>

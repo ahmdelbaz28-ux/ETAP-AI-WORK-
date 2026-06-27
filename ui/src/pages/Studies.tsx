@@ -6,6 +6,7 @@ import { studyCategories } from '../lib/studyCategories'
 import { Card, Badge } from '../components/ui'
 import { cn } from '../utils/helpers'
 
+import { ContextHelpButton } from '../components/help/ContextHelpButton'
 const categoryColors: Record<string, string> = {
   load_flow: 'from-blue-500 to-blue-700',
   short_circuit: 'from-amber-500 to-orange-600',
@@ -30,6 +31,7 @@ export default function Studies() {
           </div>
           <div>
             <h2 className="text-2xl font-bold text-[var(--text-primary)]">{t('studies.title')}</h2>
+          <ContextHelpButton contextId="studies.overview" />
             <p className="text-[var(--text-tertiary)] mt-0.5">{t('studies.subtitle')}</p>
           </div>
         </div>

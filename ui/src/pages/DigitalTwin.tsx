@@ -4,6 +4,7 @@ import { Layers, RefreshCw, Activity, Box, HardDrive, Cpu, Wifi, WifiOff, AlertT
 import { Card, CardHeader, Badge, Button } from '../components/ui'
 import { cn } from '../utils/helpers'
 
+import { ContextHelpButton } from '../components/help/ContextHelpButton'
 interface SyncSource {
   name: string
   status: 'online' | 'offline' | 'warning'
@@ -158,6 +159,7 @@ export default function DigitalTwin() {
           </div>
           <div>
             <h2 className="text-2xl font-bold text-[var(--text-primary)]">Digital Twin</h2>
+          <ContextHelpButton contextId="digital-twin.overview" />
             <p className="text-sm text-[var(--text-tertiary)]">Real-time power system topology & synchronization</p>
           </div>
         </div>
