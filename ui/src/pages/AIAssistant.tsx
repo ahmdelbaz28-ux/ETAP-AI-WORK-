@@ -6,8 +6,6 @@ import { chatWithAgent, fetchAgents, type AgentMeta } from '../lib/api'
 import { cn } from '../utils/helpers'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
-import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter'
-import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism'
 
 interface Message {
   id: string
@@ -176,15 +174,12 @@ export default function AIAssistant() {
                                       {copiedId === m.id + children ? 'Copied' : 'Copy'}
                                     </button>
                                   </div>
-                                  <SyntaxHighlighter
-                                    style={vscDarkPlus as any}
-                                    language={match[1]}
-                                    PreTag="div"
-                                    customStyle={{ margin: 0, padding: '1rem', background: 'transparent' }}
-                                    {...props}
-                                  >
-                                    {String(children).replace(/\n$/, '')}
-                                  </SyntaxHighlighter>
+                                  <pre
+                                    className="p-4 overflow-x-auto text-sm font-mono text-gray-200 dark:text-gray-300"
+                    {...props}
+                  >
+                    {String(children).replace(/\n$/, '')}
+                  </pre>
                                 </div>
                               ) : (
                                 <code className={cn('bg-gray-100 dark:bg-gray-800 text-[#d97706] dark:text-[#fbbf24] px-1.5 py-0.5 rounded-md text-[0.9em] font-mono', className)} {...props}>
