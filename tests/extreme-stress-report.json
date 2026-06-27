@@ -1,0 +1,182 @@
+{
+  "start_time": 1782598346.8464866,
+  "tests": [
+    {
+      "name": "Module imports",
+      "passed": true,
+      "details": "45/56 imported, 11 failed, 4 slow, 2 memory-heavy"
+    },
+    {
+      "name": "10K segments chunking",
+      "passed": true,
+      "details": "910 chunks in 0.007s"
+    },
+    {
+      "name": "Empty segments",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "1M char segment",
+      "passed": true,
+      "details": "1 chunks in 0.012s"
+    },
+    {
+      "name": "All 11 segment types",
+      "passed": true,
+      "details": "4 chunks"
+    },
+    {
+      "name": "Negative target_length rejection",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "RAG init",
+      "passed": true,
+      "details": "0.00s"
+    },
+    {
+      "name": "50 concurrent RAG queries",
+      "passed": true,
+      "details": "50/50 succeeded in 0.02s"
+    },
+    {
+      "name": "Security scan (hardcoded secrets)",
+      "passed": true,
+      "details": "[PASS] No hardcoded secrets detected."
+    },
+    {
+      "name": ".env not in git",
+      "passed": true,
+      "details": "not tracked"
+    },
+    {
+      "name": "JWT secret length",
+      "passed": true,
+      "details": "64 chars"
+    },
+    {
+      "name": "Fernet key validity",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "SQL injection scan",
+      "passed": true,
+      "details": "clean"
+    },
+    {
+      "name": "Chunker memory leak",
+      "passed": true,
+      "details": "memory growth: 0.25MB after 50 iterations"
+    },
+    {
+      "name": "RAG memory leak",
+      "passed": true,
+      "details": "memory growth: 0.02MB after 20 queries"
+    },
+    {
+      "name": "20 concurrent chunker workers",
+      "passed": true,
+      "details": "20/20 succeeded, 0 errors"
+    },
+    {
+      "name": "20 concurrent RAG queries",
+      "passed": true,
+      "details": "20/20 succeeded"
+    },
+    {
+      "name": "UI bundle total",
+      "passed": true,
+      "details": "1217KB across 31 JS files"
+    },
+    {
+      "name": "No oversized chunks",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "None content handling",
+      "passed": true,
+      "details": "1 chunks"
+    },
+    {
+      "name": "Unicode/multilingual",
+      "passed": true,
+      "details": "1 chunks"
+    },
+    {
+      "name": "Deep nesting (300 segments)",
+      "passed": true,
+      "details": "100 chunks"
+    },
+    {
+      "name": "API schema coverage",
+      "passed": false,
+      "details": "60/68 have schemas"
+    },
+    {
+      "name": "Pinned dependencies",
+      "passed": true,
+      "details": "all 47 pinned"
+    }
+  ],
+  "weaknesses": [
+    {
+      "component": "Import Performance",
+      "severity": "MEDIUM",
+      "description": "Module 'api.auth' takes 5.64s to import (>2s threshold)",
+      "file": ""
+    },
+    {
+      "component": "Import Performance",
+      "severity": "MEDIUM",
+      "description": "Module 'api.studies' takes 12.29s to import (>2s threshold)",
+      "file": ""
+    },
+    {
+      "component": "Import Memory",
+      "severity": "MEDIUM",
+      "description": "Module 'api.studies' uses 56.0MB peak on import (>50MB threshold)",
+      "file": ""
+    },
+    {
+      "component": "Import Performance",
+      "severity": "MEDIUM",
+      "description": "Module 'ai_context_engine.document_ingestor' takes 5.05s to import (>2s threshold)",
+      "file": ""
+    },
+    {
+      "component": "Import Memory",
+      "severity": "MEDIUM",
+      "description": "Module 'ai_context_engine.document_ingestor' uses 120.0MB peak on import (>50MB threshold)",
+      "file": ""
+    },
+    {
+      "component": "Import Performance",
+      "severity": "MEDIUM",
+      "description": "Module 'ml.predictive' takes 5.90s to import (>2s threshold)",
+      "file": ""
+    },
+    {
+      "component": "API Validation",
+      "severity": "MEDIUM",
+      "description": "8 endpoints lack Pydantic request models",
+      "file": ""
+    }
+  ],
+  "end_time": 1782598397.5254672,
+  "total_duration_sec": 50.678980588912964,
+  "summary": {
+    "total_tests": 24,
+    "passed": 23,
+    "failed": 1,
+    "weaknesses": {
+      "critical": 0,
+      "high": 0,
+      "medium": 7,
+      "low": 0
+    }
+  }
+}

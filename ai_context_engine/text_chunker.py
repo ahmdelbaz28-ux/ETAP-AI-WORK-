@@ -94,6 +94,8 @@ class Segment:
 
     def word_count(self) -> int:
         """Count words in the segment content (whitespace-separated)."""
+        if not self.content:
+            return 0
         return len(self.content.split())
 
 
