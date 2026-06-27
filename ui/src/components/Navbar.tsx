@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Search, Bell, X, Globe, User, Clock, Command, Maximize2, Minimize2 } from 'lucide-react'
+import { Search, Bell, X, Globe, User, Clock, Command, Maximize2, Minimize2, Sparkles } from 'lucide-react'
 import { useAppStore } from '../store'
 import { cn } from '../utils/helpers'
 
@@ -117,6 +117,18 @@ export function Navbar() {
           aria-label={isFullscreen ? 'Exit Fullscreen' : 'Enter Fullscreen'}
         >
           {isFullscreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
+        </button>
+
+        {/* Magic Help Inspector */}
+        <button
+          onClick={() => {
+            window.dispatchEvent(new CustomEvent('start-magic-help-inspect'));
+          }}
+          className="p-2 rounded-lg text-brand-400 hover:bg-brand-500/10 hover:text-brand-300 transition-colors relative"
+          title="Magic Help Inspector / فاحص المساعدة الذكي"
+        >
+          <Sparkles className="w-4 h-4" />
+          <span className="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 rounded-full bg-brand-500 animate-ping" />
         </button>
 
         {/* Notifications */}

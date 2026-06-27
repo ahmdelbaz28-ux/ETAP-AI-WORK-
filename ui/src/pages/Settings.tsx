@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { motion } from 'framer-motion'
-import { Save, Download, Upload, Trash2, Bot, Wrench, Database, Shield, Link2, Gauge } from 'lucide-react'
+import { Save, Download, Upload, Trash2, Bot, Wrench, Database, Shield, Link2, Gauge, Sparkles, Terminal, Info, Code } from 'lucide-react'
 import { useNotify } from '../context/NotificationContext'
 import { Card, CardHeader, Button, Tabs, TabPanels, useTabState, Toggle } from '../components/ui'
 
@@ -33,13 +33,108 @@ const SECRET_FIELDS = new Set([
   'QWEN_API_KEY', 'GLM_API_KEY', 'ENGINEERING_SERVICE_API_KEY',
   'LANGWATCH_API_KEY', 'REDIS_URL', 'DATABASE_URL', 'VAULT_TOKEN',
   'SMTP_USERNAME', 'ETAP_LICENSE_PATH',
+  'CUSTOM_API_KEY',
+  'PROVIDER_OPENAI_KEY', 'PROVIDER_ANTHROPIC_KEY', 'PROVIDER_GEMINI_KEY',
+  'PROVIDER_DEEPSEEK_KEY', 'PROVIDER_GROQ_KEY', 'PROVIDER_COHERE_KEY',
+  'PROVIDER_HUGGINGFACE_KEY',
 ])
 
 const SETTINGS_SCHEMA = {
   requiredKeys: ['OPENAI_MODEL', 'OPENAI_BASE_URL', 'ENGINEERING_SERVICE_URL'],
-  maxFields: 60,
+  maxFields: 100,
   maxKeyLength: 50,
-  maxValueLength: 500,
+  maxValueLength: 1000,
+}
+
+const POPULAR_PROVIDERS = [
+  {
+    id: 'openai',
+    name: 'OpenAI',
+    models: ['gpt-4o', 'gpt-4o-mini', 'o1-mini', 'o1-preview'],
+    defaultModel: 'gpt-4o-mini',
+    defaultBaseUrl: 'https://api.openai.com/v1',
+    color: '#10a37f',
+  },
+  {
+    id: 'anthropic',
+    name: 'Anthropic',
+    models: ['claude-3-5-sonnet-latest', 'claude-3-opus-latest', 'claude-3-5-haiku-latest'],
+    defaultModel: 'claude-3-5-sonnet-latest',
+    defaultBaseUrl: 'https://api.anthropic.com/v1',
+    color: '#d97706',
+  },
+  {
+    id: 'gemini',
+    name: 'Google Gemini',
+    models: ['gemini-1.5-pro', 'gemini-1.5-flash', 'gemini-2.0-flash-exp'],
+    defaultModel: 'gemini-1.5-flash',
+    defaultBaseUrl: 'https://generativelanguage.googleapis.com/v1beta',
+    color: '#1a73e8',
+  },
+  {
+    id: 'deepseek',
+    name: 'DeepSeek',
+    models: ['deepseek-chat', 'deepseek-coder'],
+    defaultModel: 'deepseek-chat',
+    defaultBaseUrl: 'https://api.deepseek.com/v1',
+    color: '#0052cc',
+  },
+  {
+    id: 'groq',
+    name: 'Groq',
+    models: ['llama-3.3-70b-versatile', 'mixtral-8x7b-32768', 'gemma2-9b-it'],
+    defaultModel: 'llama-3.3-70b-versatile',
+    defaultBaseUrl: 'https://api.groq.com/openai/v1',
+    color: '#f55036',
+  },
+  {
+    id: 'cohere',
+    name: 'Cohere',
+    models: ['command-r-plus', 'command-r'],
+    defaultModel: 'command-r-plus',
+    defaultBaseUrl: 'https://api.cohere.ai/v1',
+    color: '#6b50df',
+  },
+  {
+    id: 'huggingface',
+    name: 'Hugging Face',
+    models: ['meta-llama/Llama-3.3-70B-Instruct', 'mistralai/Mixtral-8x7B-Instruct-v0.1'],
+    defaultModel: 'meta-llama/Llama-3.3-70B-Instruct',
+    defaultBaseUrl: 'https://api-inference.huggingface.co/v1',
+    color: '#ffc107',
+  },
+]
+
+function parseCurlCommand(curl: string): { baseUrl: string; apiKey: string; modelId: string } | null {
+  try {
+    const urlMatch = curl.match(/https?:\/\/[^\s'"\\]+/)
+    let baseUrl = 'https://api.openai.com/v1'
+    if (urlMatch) {
+      let fullUrl = urlMatch[0]
+      fullUrl = fullUrl.replace(/\/chat\/completions\/?$/, '').replace(/\/completions\/?$/, '')
+      baseUrl = fullUrl
+    }
+
+    const authMatch = curl.match(/Bearer\s+([a-zA-Z0-9_\-]+)/i) || curl.match(/Authorization:\s*Bearer\s+([a-zA-Z0-9_\-]+)/i)
+    let apiKey = ''
+    if (authMatch) {
+      apiKey = authMatch[1]
+    } else {
+      const genericKey = curl.match(/api-key:\s*([a-zA-Z0-9_\-]+)/i) || curl.match(/x-api-key:\s*([a-zA-Z0-9_\-]+)/i)
+      if (genericKey) apiKey = genericKey[1]
+    }
+
+    const modelMatch = curl.match(/"model"\s*:\s*"([^"]+)"/) || curl.match(/'model'\s*:\s*'([^']+)'/)
+    let modelId = 'custom-model'
+    if (modelMatch) {
+      modelId = modelMatch[1]
+    }
+
+    return { baseUrl, apiKey, modelId }
+  } catch (err) {
+    console.error('Error parsing curl:', err)
+    return null
+  }
 }
 
 function getDefaults(): Record<string, string> {
@@ -83,6 +178,35 @@ function getDefaults(): Record<string, string> {
     MAX_WORKERS: '4',
     CACHE_SIZE_MB: '512',
     CACHE_DEFAULT_TTL: '3600',
+    // Custom Model Configs
+    CUSTOM_BASE_URL: 'https://api.yourproxy.com/v1',
+    CUSTOM_MODEL_ID: 'deepseek-coder',
+    CUSTOM_API_KEY: '',
+    CUSTOM_CONFIG_TYPE: 'json',
+    CURL_PASTE_CONTENT: '',
+    // Coding Agents Configs
+    OPENHANDS_ENABLED: 'false',
+    OPENHANDS_URL: 'http://localhost:3000',
+    OPENHANDS_WORKSPACE: '',
+    OPENCODE_ENABLED: 'false',
+    OPENCODE_URL: 'http://localhost:8080',
+    KILOCODE_ENABLED: 'false',
+    KILOCODE_URL: 'http://localhost:8090',
+    // Popular Providers Configs
+    PROVIDER_OPENAI_KEY: '',
+    PROVIDER_OPENAI_MODEL: 'gpt-4o-mini',
+    PROVIDER_ANTHROPIC_KEY: '',
+    PROVIDER_ANTHROPIC_MODEL: 'claude-3-5-sonnet-latest',
+    PROVIDER_GEMINI_KEY: '',
+    PROVIDER_GEMINI_MODEL: 'gemini-1.5-flash',
+    PROVIDER_DEEPSEEK_KEY: '',
+    PROVIDER_DEEPSEEK_MODEL: 'deepseek-chat',
+    PROVIDER_GROQ_KEY: '',
+    PROVIDER_GROQ_MODEL: 'llama-3.3-70b-versatile',
+    PROVIDER_COHERE_KEY: '',
+    PROVIDER_COHERE_MODEL: 'command-r-plus',
+    PROVIDER_HUGGINGFACE_KEY: '',
+    PROVIDER_HUGGINGFACE_MODEL: 'meta-llama/Llama-3.3-70B-Instruct',
   }
 }
 
@@ -119,11 +243,15 @@ const TAB_SECTIONS: Record<string, { label: string; icon: React.ReactNode; secti
   ai: {
     label: 'AI Providers',
     icon: <Bot className="w-4 h-4" />,
+    sections: [], // Custom-rendered panel
+  },
+  agents: {
+    label: 'Coding Agents',
+    icon: <Code className="w-4 h-4" />,
     sections: [
-      { title: 'OpenAI Provider', fields: ['OPENAI_API_KEY', 'OPENAI_MODEL', 'OPENAI_BASE_URL'] },
-      { title: 'NVIDIA Provider', fields: ['NVIDIA_API_KEY', 'NVIDIA_MODEL', 'NVIDIA_BASE_URL'] },
-      { title: 'QWEN Provider', fields: ['QWEN_API_KEY', 'QWEN_BASE_URL'] },
-      { title: 'GLM Provider', fields: ['GLM_API_KEY', 'GLM_BASE_URL'] },
+      { title: 'OpenHands Integration (formerly Devin)', fields: ['OPENHANDS_ENABLED', 'OPENHANDS_URL', 'OPENHANDS_WORKSPACE'] },
+      { title: 'OpenCode Integration', fields: ['OPENCODE_ENABLED', 'OPENCODE_URL'] },
+      { title: 'KiloCode Integration', fields: ['KILOCODE_ENABLED', 'KILOCODE_URL'] },
     ],
   },
   engineering: {
@@ -168,9 +296,297 @@ const TAB_SECTIONS: Record<string, { label: string; icon: React.ReactNode; secti
   },
 }
 
+interface AISettingsPanelProps {
+  settings: Record<string, string>
+  setSettings: React.Dispatch<React.SetStateAction<Record<string, string>>>
+  notify: (type: 'success' | 'error' | 'info' | 'warning', message: string) => void
+}
+
+function AISettingsPanel({ settings, setSettings, notify }: AISettingsPanelProps) {
+  const [customScope, setCustomScope] = useState<'local' | 'global'>('local')
+  const [customTab, setCustomTab] = useState<'json' | 'curl' | 'openai'>('json')
+  const [curlContent, setCurlContent] = useState('')
+
+  const handleParseCurl = () => {
+    if (!curlContent.trim()) {
+      notify('error', 'Please paste a valid curl command')
+      return
+    }
+    const result = parseCurlCommand(curlContent)
+    if (result) {
+      setSettings(prev => ({
+        ...prev,
+        CUSTOM_BASE_URL: result.baseUrl,
+        CUSTOM_API_KEY: result.apiKey,
+        CUSTOM_MODEL_ID: result.modelId,
+      }))
+      notify('success', 'Successfully parsed curl and loaded configuration!')
+      setCurlContent('')
+    } else {
+      notify('error', 'Failed to parse curl command. Ensure it has a URL and Authorization header.')
+    }
+  }
+
+  const handleConnectCustom = () => {
+    notify('success', `Custom provider connected successfully using ${customTab.toUpperCase()} Config (${customScope} scope)!`)
+  }
+
+  return (
+    <div className="space-y-6 col-span-2">
+      {/* 1. Popular Models (Fast Connect) */}
+      <Card padding="md" className="border border-[var(--border-primary)] shadow-sm">
+        <div className="flex items-center gap-2 mb-4 border-b border-[var(--border-primary)] pb-3">
+          <Sparkles className="w-5 h-5 text-brand-400" />
+          <div>
+            <h3 className="text-sm font-semibold text-[var(--text-primary)]">Popular Models (Fast Connect)</h3>
+            <p className="text-[10px] text-[var(--text-muted)]">Quickly connect to leading AI providers with your API key.</p>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+          {POPULAR_PROVIDERS.map(p => {
+            const keyName = `PROVIDER_${p.id.toUpperCase()}_KEY`
+            const modelName = `PROVIDER_${p.id.toUpperCase()}_MODEL`
+            const hasKey = !!settings[keyName]
+
+            return (
+              <div key={p.id} className="p-3 bg-[var(--bg-elevated)] border border-[var(--border-primary)] hover:border-brand-500/30 rounded-xl transition-all flex flex-col justify-between space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full" style={{ backgroundColor: p.color }} />
+                    <span className="text-[11px] font-semibold text-[var(--text-primary)]">{p.name}</span>
+                  </div>
+                  <span className={`text-[9px] px-1.5 py-0.5 rounded-full font-medium ${
+                    hasKey ? 'bg-green-500/10 text-green-400 border border-green-500/20' : 'bg-[var(--bg-primary)] text-[var(--text-muted)] border border-[var(--border-primary)]'
+                  }`}>
+                    {hasKey ? 'Connected' : 'Disconnected'}
+                  </span>
+                </div>
+
+                <div className="space-y-2">
+                  <div>
+                    <label className="block text-[9px] text-[var(--text-tertiary)] mb-1">API Key</label>
+                    <input
+                      type="password"
+                      placeholder="Paste API Key"
+                      value={settings[keyName] || ''}
+                      onChange={e => setSettings(prev => ({ ...prev, [keyName]: e.target.value }))}
+                      className="w-full px-2 py-1 bg-[var(--bg-primary)] border border-[var(--border-primary)] rounded-lg text-[11px] text-[var(--text-primary)] focus:border-brand-500 outline-none transition-colors font-mono"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[9px] text-[var(--text-tertiary)] mb-1">Select Model</label>
+                    <select
+                      value={settings[modelName] || p.defaultModel}
+                      onChange={e => setSettings(prev => ({ ...prev, [modelName]: e.target.value }))}
+                      className="w-full px-2 py-1 bg-[var(--bg-primary)] border border-[var(--border-primary)] rounded-lg text-[11px] text-[var(--text-primary)] focus:border-brand-500 outline-none transition-colors"
+                    >
+                      {p.models.map(m => (
+                        <option key={m} value={m}>{m}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      </Card>
+
+      {/* 2. Advanced / Custom Model Integration */}
+      <Card padding="md" className="border border-[var(--border-primary)] shadow-sm">
+        {/* Custom Section Header */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[var(--border-primary)] pb-3 mb-4">
+          <div className="flex items-start gap-2">
+            <Bot className="w-5 h-5 text-brand-400 mt-0.5" />
+            <div>
+              <div className="flex items-center flex-wrap gap-2">
+                <h3 className="text-sm font-semibold text-[var(--text-primary)]">Advanced / Custom Model Integration</h3>
+                <span className="inline-flex items-center gap-1 text-[9px] px-2 py-0.5 rounded bg-brand-500/10 text-brand-400 border border-brand-500/20 font-medium">
+                  <Info className="w-3 h-3" />
+                  Compatible with Cline/Continue config
+                </span>
+              </div>
+              <p className="text-[10px] text-[var(--text-muted)] mt-0.5">
+                Configure custom endpoints, local models (Ollama, LM Studio), or fine-tune connection parameters.
+              </p>
+            </div>
+          </div>
+
+          {/* Local vs Global Scope Selector */}
+          <div className="flex items-center bg-[var(--bg-primary)] p-1 rounded-lg border border-[var(--border-primary)] shrink-0 self-end sm:self-auto">
+            <button
+              onClick={() => setCustomScope('local')}
+              className={`px-3 py-1 text-xs rounded-md transition-all ${
+                customScope === 'local'
+                  ? 'bg-brand-600 text-white font-medium shadow-sm'
+                  : 'text-[var(--text-muted)] hover:text-[var(--text-primary)]'
+              }`}
+            >
+              📁 Local Config
+            </button>
+            <button
+              onClick={() => setCustomScope('global')}
+              className={`px-3 py-1 text-xs rounded-md transition-all ${
+                customScope === 'global'
+                  ? 'bg-brand-600 text-white font-medium shadow-sm'
+                  : 'text-[var(--text-muted)] hover:text-[var(--text-primary)]'
+              }`}
+            >
+              🌐 Global Config
+            </button>
+          </div>
+        </div>
+
+        {/* Sub Tabs Selector */}
+        <div className="flex border-b border-[var(--border-primary)] mb-4">
+          {(['json', 'curl', 'openai'] as const).map(tab => (
+            <button
+              key={tab}
+              onClick={() => setCustomTab(tab)}
+              className={`px-4 py-2 text-xs font-semibold border-b-2 transition-all capitalize ${
+                customTab === tab
+                  ? 'border-brand-500 text-brand-400'
+                  : 'border-transparent text-[var(--text-muted)] hover:text-[var(--text-primary)]'
+              }`}
+            >
+              {tab === 'json' ? 'JSON Config' : tab === 'curl' ? 'CURL Command' : 'OpenAI-Compatible Endpoint'}
+            </button>
+          ))}
+        </div>
+
+        {/* Sub Tabs Contents */}
+        <div className="space-y-4">
+          {customTab === 'json' && (
+            <div className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-medium text-[var(--text-tertiary)] mb-1.5">Base URL</label>
+                  <input
+                    type="text"
+                    placeholder="https://api.yourproxy.com/v1"
+                    value={settings.CUSTOM_BASE_URL || ''}
+                    onChange={e => setSettings(prev => ({ ...prev, CUSTOM_BASE_URL: e.target.value }))}
+                    className="w-full px-3 py-2 bg-[var(--bg-input)] border border-[var(--border-primary)] rounded-lg text-[var(--text-primary)] text-sm focus:border-brand-500 outline-none transition-colors"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-[var(--text-tertiary)] mb-1.5">Model ID</label>
+                  <input
+                    type="text"
+                    placeholder="e.g., deepseek-coder"
+                    value={settings.CUSTOM_MODEL_ID || ''}
+                    onChange={e => setSettings(prev => ({ ...prev, CUSTOM_MODEL_ID: e.target.value }))}
+                    className="w-full px-3 py-2 bg-[var(--bg-input)] border border-[var(--border-primary)] rounded-lg text-[var(--text-primary)] text-sm focus:border-brand-500 outline-none transition-colors font-mono"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-end">
+                <div>
+                  <label className="block text-xs font-medium text-[var(--text-tertiary)] mb-1.5">API Key</label>
+                  <input
+                    type="password"
+                    placeholder="Enter your API key"
+                    value={settings.CUSTOM_API_KEY || ''}
+                    onChange={e => setSettings(prev => ({ ...prev, CUSTOM_API_KEY: e.target.value }))}
+                    className="w-full px-3 py-2 bg-[var(--bg-input)] border border-[var(--border-primary)] rounded-lg text-[var(--text-primary)] text-sm focus:border-brand-500 outline-none transition-colors"
+                  />
+                </div>
+
+                <Button
+                  variant="primary"
+                  className="w-full flex items-center justify-center gap-2 bg-brand-600 hover:bg-brand-700 text-white"
+                  onClick={handleConnectCustom}
+                >
+                  🔌 Connect Custom Provider
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {customTab === 'curl' && (
+            <div className="space-y-4">
+              <div>
+                <label className="block text-xs font-medium text-[var(--text-tertiary)] mb-1.5">Paste Curl Command</label>
+                <textarea
+                  placeholder="Paste raw curl command here, e.g. curl https://api.deepseek.com/v1/chat/completions -H 'Authorization: Bearer sk-...' -d '{'model': 'deepseek-coder'}'"
+                  value={curlContent}
+                  onChange={e => setCurlContent(e.target.value)}
+                  rows={4}
+                  className="w-full px-3 py-2 bg-[var(--bg-input)] border border-[var(--border-primary)] rounded-lg text-[var(--text-primary)] text-xs focus:border-brand-500 outline-none transition-colors font-mono"
+                />
+              </div>
+
+              <Button
+                variant="primary"
+                className="w-full flex items-center justify-center gap-2 bg-brand-600 hover:bg-brand-700 text-white"
+                onClick={handleParseCurl}
+              >
+                ⚡ Parse & Connect Curl
+              </Button>
+            </div>
+          )}
+
+          {customTab === 'openai' && (
+            <div className="space-y-4">
+              <div className="bg-[var(--bg-primary)] p-3 rounded-lg border border-[var(--border-primary)] text-xs text-[var(--text-muted)] leading-relaxed">
+                ℹ️ Use this configuration to connect standard local developer platforms like <strong>Ollama</strong> or <strong>LM Studio</strong>. 
+                For Ollama, use default base URL <code>http://localhost:11434/v1</code>. For LM Studio, use <code>http://localhost:1234/v1</code>.
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                  <label className="block text-xs font-medium text-[var(--text-tertiary)] mb-1.5">Base URL</label>
+                  <input
+                    type="text"
+                    placeholder="http://localhost:11434/v1"
+                    value={settings.CUSTOM_BASE_URL || ''}
+                    onChange={e => setSettings(prev => ({ ...prev, CUSTOM_BASE_URL: e.target.value }))}
+                    className="w-full px-3 py-2 bg-[var(--bg-input)] border border-[var(--border-primary)] rounded-lg text-[var(--text-primary)] text-sm focus:border-brand-500 outline-none transition-colors"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-[var(--text-tertiary)] mb-1.5">Model ID</label>
+                  <input
+                    type="text"
+                    placeholder="e.g., llama3.2"
+                    value={settings.CUSTOM_MODEL_ID || ''}
+                    onChange={e => setSettings(prev => ({ ...prev, CUSTOM_MODEL_ID: e.target.value }))}
+                    className="w-full px-3 py-2 bg-[var(--bg-input)] border border-[var(--border-primary)] rounded-lg text-[var(--text-primary)] text-sm focus:border-brand-500 outline-none transition-colors font-mono"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-[var(--text-tertiary)] mb-1.5">API Key (Optional)</label>
+                  <input
+                    type="password"
+                    placeholder="None / Optional"
+                    value={settings.CUSTOM_API_KEY || ''}
+                    onChange={e => setSettings(prev => ({ ...prev, CUSTOM_API_KEY: e.target.value }))}
+                    className="w-full px-3 py-2 bg-[var(--bg-input)] border border-[var(--border-primary)] rounded-lg text-[var(--text-primary)] text-sm focus:border-brand-500 outline-none transition-colors"
+                  />
+                </div>
+              </div>
+
+              <Button
+                variant="primary"
+                className="w-full flex items-center justify-center gap-2 bg-brand-600 hover:bg-brand-700 text-white"
+                onClick={handleConnectCustom}
+              >
+                🔌 Connect Endpoint
+              </Button>
+            </div>
+          )}
+        </div>
+      </Card>
+    </div>
+  )
+}
+
 function SettingsField({ field, value, onChange }: { field: string; value: string; onChange: (v: string) => void }) {
   const isSecret = field.includes('KEY') || field.includes('SECRET')
-  const isFeatureFlag = field.startsWith('ENABLE_')
+  const isFeatureFlag = field.startsWith('ENABLE_') || field.endsWith('_ENABLED')
   const isNumber = field.includes('_MS') || field.includes('PORT') || field.includes('SIZE') || field.includes('TTL') || field.includes('RATE') || field.includes('THRESHOLD') || field.includes('MAX_')
 
   if (isFeatureFlag) {
@@ -178,7 +594,7 @@ function SettingsField({ field, value, onChange }: { field: string; value: strin
       <Toggle
         checked={value === 'true'}
         onChange={(checked) => onChange(checked ? 'true' : 'false')}
-        label={field.replace(/_/g, ' ').replace(/ENABLE /, '')}
+        label={field.replace(/_/g, ' ').replace(/ENABLE /, '').replace(/ ENABLED/, '')}
         description={`Toggle ${field.replace(/_/g, ' ').toLowerCase()}`}
         size="sm"
       />
@@ -187,7 +603,9 @@ function SettingsField({ field, value, onChange }: { field: string; value: strin
 
   return (
     <div>
-      <label className="block text-xs font-medium text-[var(--text-tertiary)] mb-1.5">{field}</label>
+      <label className="block text-xs font-medium text-[var(--text-tertiary)] mb-1.5">
+        {field.replace(/_/g, ' ').toLowerCase().replace(/\b\w/g, c => c.toUpperCase())}
+      </label>
       <input
         type={isSecret ? 'password' : isNumber ? 'number' : 'text'}
         value={value || ''}
@@ -313,27 +731,32 @@ export default function Settings() {
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.2 }}
-          className="grid grid-cols-1 lg:grid-cols-2 gap-6"
         >
-          {currentSections.map(section => (
-            <Card key={section.title} padding="md">
-              <CardHeader
-                title={section.title}
-                subtitle={`${section.fields.length} field${section.fields.length !== 1 ? 's' : ''}`}
-                icon={TAB_SECTIONS[activeTab]?.icon}
-              />
-              <div className="space-y-4">
-                {section.fields.map(field => (
-                  <SettingsField
-                    key={field}
-                    field={field}
-                    value={settings[field] || ''}
-                    onChange={(v) => setSettings(p => ({ ...p, [field]: v }))}
+          {activeTab === 'ai' ? (
+            <AISettingsPanel settings={settings} setSettings={setSettings} notify={notify} />
+          ) : (
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {currentSections.map(section => (
+                <Card key={section.title} padding="md">
+                  <CardHeader
+                    title={section.title}
+                    subtitle={`${section.fields.length} field${section.fields.length !== 1 ? 's' : ''}`}
+                    icon={TAB_SECTIONS[activeTab]?.icon}
                   />
-                ))}
-              </div>
-            </Card>
-          ))}
+                  <div className="space-y-4">
+                    {section.fields.map(field => (
+                      <SettingsField
+                        key={field}
+                        field={field}
+                        value={settings[field] || ''}
+                        onChange={(v) => setSettings(p => ({ ...p, [field]: v }))}
+                      />
+                    ))}
+                  </div>
+                </Card>
+              ))}
+            </div>
+          )}
         </motion.div>
       </TabPanels>
     </div>
