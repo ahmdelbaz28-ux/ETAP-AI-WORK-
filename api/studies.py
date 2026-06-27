@@ -15,18 +15,13 @@ from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import AliasChoices, BaseModel, ConfigDict, Field, field_validator, model_validator
 
 from api.dependencies import get_api_key
-from core.metrics import count_executions, track_skill_operation
-from engine.caching import StudyCache
 
 router = APIRouter(prefix="/api/v1/studies", tags=["studies"])
 
-# Import from core models
-from core_model.bus import Bus
-from core_model.generator import Generator
-from core_model.line import Line
-from core_model.load import Load
-from core_model.system import System
-from core_model.transformer import Transformer
+# Lazy imports for heavy modules — these pull in numpy, scipy, pandas which
+# take 10+ seconds to load. We defer them to function-call time.
+# At module level, we only need the Pydantic models (defined below) which
+# don't require any of the scientific computing stack.
 
 
 class BusSpec(BaseModel):
@@ -276,6 +271,14 @@ def _to_jsonable(obj: Any) -> Any:
 
 def _build_system_from_spec(spec: SystemSpec) -> Any:
     """Build a Python System object from a SystemSpec."""
+    # Lazy imports — these pull in numpy/scipy which are heavy
+    from core_model.bus import Bus
+    from core_model.generator import Generator
+    from core_model.line import Line
+    from core_model.load import Load
+    from core_model.system import System
+    from core_model.transformer import Transformer
+
     system = System(base_mva=spec.base_mva)
     bus_map: Dict[int, Any] = {}
 
@@ -441,9 +444,14 @@ def _run_native_study(
         raise ValueError(f"Unsupported native study type: {study_type}")
 
 
+# Lazy import the metric decorators — they pull in prometheus_client
+from core.metrics import count_executions as _count_executions
+from core.metrics import track_skill_operation as _track_skill_operation
+
+
 @router.post("/run", response_model=StudyResult)
-@count_executions(skill_name="study")
-@track_skill_operation("study")
+@_count_executions(skill_name="study")
+@_track_skill_operation("study")
 async def run_study(request: Request, payload: StudyRequest, _: str = Depends(get_api_key)):
     trace_id = getattr(request.state, "trace_id", "unknown")
     task_id = payload.task_id or str(uuid.uuid4())
@@ -474,6 +482,8 @@ async def run_study(request: Request, payload: StudyRequest, _: str = Depends(ge
         # Initialize study cache if needed
         study_cache = None
         try:
+            from engine.caching import StudyCache  # Lazy import — pulls in redis
+
             study_cache = StudyCache(
                 redis_url="redis://localhost:6379",
                 ttl=3600,

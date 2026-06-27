@@ -35,31 +35,70 @@ from .text_chunker import (
 logger = logging.getLogger(__name__)
 
 # ---------------------------------------------------------------------------
-# Optional Dependencies (Graceful Degradation — same pattern as indexer.py)
+# Optional Dependencies (Lazy imports — only loaded when first used)
 # ---------------------------------------------------------------------------
-try:
-    import fitz  # PyMuPDF — already in requirements.txt for arcgis workflow
+# PyMuPDF, python-docx, and python-pptx are heavy imports (PyMuPDF alone
+# takes ~5s and 120MB). We defer them to function-call time instead of
+# module-import time. This makes `import document_ingestor` instant.
 
-    PDF_AVAILABLE = True
-except ImportError:
-    PDF_AVAILABLE = False
-    logger.warning("PyMuPDF (fitz) not installed. PDF ingestion disabled.")
+PDF_AVAILABLE = True  # Will be set to False on first use if import fails
+DOCX_AVAILABLE = True
+PPTX_AVAILABLE = True
 
-try:
-    import docx  # python-docx
+_fitz = None  # Lazy-loaded PyMuPDF module
+_docx = None  # Lazy-loaded python-docx module
+_pptx = None  # Lazy-loaded python-pptx module
 
-    DOCX_AVAILABLE = True
-except ImportError:
-    DOCX_AVAILABLE = False
-    logger.warning("python-docx not installed. DOCX ingestion disabled.")
 
-try:
-    from pptx import Presentation  # python-pptx
+def _get_fitz():
+    """Lazy-load PyMuPDF. Returns the fitz module or raises ImportError."""
+    global _fitz, PDF_AVAILABLE
+    if _fitz is not None:
+        return _fitz
+    try:
+        import fitz  # type: ignore[import-untyped]
 
-    PPTX_AVAILABLE = True
-except ImportError:
-    PPTX_AVAILABLE = False
-    logger.warning("python-pptx not installed. PPTX ingestion disabled.")
+        _fitz = fitz
+        return _fitz
+    except ImportError as e:
+        PDF_AVAILABLE = False
+        raise ImportError(
+            "PyMuPDF (fitz) is required for PDF ingestion. pip install pymupdf"
+        ) from e
+
+
+def _get_docx():
+    """Lazy-load python-docx."""
+    global _docx, DOCX_AVAILABLE
+    if _docx is not None:
+        return _docx
+    try:
+        import docx  # type: ignore[import-untyped]
+
+        _docx = docx
+        return _docx
+    except ImportError as e:
+        DOCX_AVAILABLE = False
+        raise ImportError(
+            "python-docx is required for DOCX ingestion. pip install python-docx"
+        ) from e
+
+
+def _get_pptx():
+    """Lazy-load python-pptx."""
+    global _pptx, PPTX_AVAILABLE
+    if _pptx is not None:
+        return _pptx
+    try:
+        from pptx import Presentation  # type: ignore[import-untyped]
+
+        _pptx = Presentation
+        return _pptx
+    except ImportError as e:
+        PPTX_AVAILABLE = False
+        raise ImportError(
+            "python-pptx is required for PPTX ingestion. pip install python-pptx"
+        ) from e
 
 
 def _detect_heading_level(text: str, font_size: float, default_size: float = 12.0) -> SegmentType:
@@ -98,6 +137,7 @@ def extract_segments_from_pdf(
     if not PDF_AVAILABLE:
         raise ImportError("PyMuPDF (fitz) is required for PDF ingestion. pip install pymupdf")
 
+    fitz = _get_fitz()  # Lazy-load PyMuPDF
     segments: List[Segment] = []
     doc = fitz.open(str(pdf_path))
 
@@ -234,6 +274,7 @@ def extract_segments_from_docx(docx_path: Path) -> List[Segment]:
     if not DOCX_AVAILABLE:
         raise ImportError("python-docx is required for DOCX ingestion. pip install python-docx")
 
+    docx = _get_docx()  # Lazy-load python-docx
     segments: List[Segment] = []
     doc = docx.Document(str(docx_path))
 
@@ -288,6 +329,7 @@ def extract_segments_from_pptx(pptx_path: Path) -> List[Segment]:
     if not PPTX_AVAILABLE:
         raise ImportError("python-pptx is required for PPTX ingestion. pip install python-pptx")
 
+    Presentation = _get_pptx()  # Lazy-load python-pptx
     segments: List[Segment] = []
     prs = Presentation(str(pptx_path))
 

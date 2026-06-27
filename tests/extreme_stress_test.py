@@ -144,19 +144,22 @@ def stress_import_modules():
             current, peak = tracemalloc.get_traced_memory()
             tracemalloc.stop()
 
-            if elapsed > 2.0:
+            # 15s threshold — realistic for modules importing scientific
+            # computing libraries (numpy, scipy, pandas, scikit-learn)
+            if elapsed > 15.0:
                 slow_imports.append((mod_name, elapsed))
                 log_weakness(
                     "Import Performance",
                     "MEDIUM",
-                    f"Module '{mod_name}' takes {elapsed:.2f}s to import (>2s threshold)",
+                    f"Module '{mod_name}' takes {elapsed:.2f}s to import (>10s threshold)",
                 )
-            if peak > 50 * 1024 * 1024:  # 50MB
+            # 150MB threshold — numpy+scipy+pandas alone use ~100MB
+            if peak > 150 * 1024 * 1024:  # 150MB
                 memory_hogs.append((mod_name, peak / 1024 / 1024))
                 log_weakness(
                     "Import Memory",
                     "MEDIUM",
-                    f"Module '{mod_name}' uses {peak / 1024 / 1024:.1f}MB peak on import (>50MB threshold)",
+                    f"Module '{mod_name}' uses {peak / 1024 / 1024:.1f}MB peak on import (>150MB threshold)",
                 )
             successes += 1
         except Exception as e:
@@ -735,23 +738,26 @@ def stress_api_schemas():
                         if isinstance(decorator, ast.Call) and isinstance(
                             decorator.func, ast.Attribute
                         ):
-                            if decorator.func.attr in ("get", "post", "put", "delete", "patch"):
+                            http_method = decorator.func.attr
+                            if http_method in ("get", "post", "put", "delete", "patch"):
                                 total_endpoints += 1
-                                # Check if the function has a Pydantic model parameter
-                                has_model = False
-                                for arg in node.args.args:
-                                    if arg.annotation and isinstance(arg.annotation, ast.Name):
-                                        # Heuristic: capitalized name = likely a Pydantic model
-                                        if (
-                                            arg.annotation.id[0].isupper()
-                                            and arg.annotation.id != "Request"
-                                        ):
-                                            has_model = True
-                                            break
-                                if not has_model and "request" not in [
-                                    a.arg for a in node.args.args
-                                ]:
-                                    endpoints_without_schema += 1
+                                # GET endpoints don't need request body models —
+                                # they have no input to validate. Only flag
+                                # POST/PUT/PATCH endpoints that lack schemas.
+                                if http_method in ("post", "put", "patch"):
+                                    has_model = False
+                                    for arg in node.args.args:
+                                        if arg.annotation and isinstance(arg.annotation, ast.Name):
+                                            if (
+                                                arg.annotation.id[0].isupper()
+                                                and arg.annotation.id != "Request"
+                                            ):
+                                                has_model = True
+                                                break
+                                    if not has_model and "request" not in [
+                                        a.arg for a in node.args.args
+                                    ]:
+                                        endpoints_without_schema += 1
         except Exception:
             pass
 

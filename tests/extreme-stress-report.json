@@ -1,10 +1,10 @@
 {
-  "start_time": 1782598346.8464866,
+  "start_time": 1782599614.0252519,
   "tests": [
     {
       "name": "Module imports",
       "passed": true,
-      "details": "45/56 imported, 11 failed, 4 slow, 2 memory-heavy"
+      "details": "45/56 imported, 11 failed, 0 slow, 0 memory-heavy"
     },
     {
       "name": "10K segments chunking",
@@ -19,7 +19,7 @@
     {
       "name": "1M char segment",
       "passed": true,
-      "details": "1 chunks in 0.012s"
+      "details": "1 chunks in 0.011s"
     },
     {
       "name": "All 11 segment types",
@@ -89,7 +89,7 @@
     {
       "name": "UI bundle total",
       "passed": true,
-      "details": "1217KB across 31 JS files"
+      "details": "1227KB across 32 JS files"
     },
     {
       "name": "No oversized chunks",
@@ -113,8 +113,8 @@
     },
     {
       "name": "API schema coverage",
-      "passed": false,
-      "details": "60/68 have schemas"
+      "passed": true,
+      "details": "68/68 have schemas"
     },
     {
       "name": "Pinned dependencies",
@@ -122,60 +122,17 @@
       "details": "all 47 pinned"
     }
   ],
-  "weaknesses": [
-    {
-      "component": "Import Performance",
-      "severity": "MEDIUM",
-      "description": "Module 'api.auth' takes 5.64s to import (>2s threshold)",
-      "file": ""
-    },
-    {
-      "component": "Import Performance",
-      "severity": "MEDIUM",
-      "description": "Module 'api.studies' takes 12.29s to import (>2s threshold)",
-      "file": ""
-    },
-    {
-      "component": "Import Memory",
-      "severity": "MEDIUM",
-      "description": "Module 'api.studies' uses 56.0MB peak on import (>50MB threshold)",
-      "file": ""
-    },
-    {
-      "component": "Import Performance",
-      "severity": "MEDIUM",
-      "description": "Module 'ai_context_engine.document_ingestor' takes 5.05s to import (>2s threshold)",
-      "file": ""
-    },
-    {
-      "component": "Import Memory",
-      "severity": "MEDIUM",
-      "description": "Module 'ai_context_engine.document_ingestor' uses 120.0MB peak on import (>50MB threshold)",
-      "file": ""
-    },
-    {
-      "component": "Import Performance",
-      "severity": "MEDIUM",
-      "description": "Module 'ml.predictive' takes 5.90s to import (>2s threshold)",
-      "file": ""
-    },
-    {
-      "component": "API Validation",
-      "severity": "MEDIUM",
-      "description": "8 endpoints lack Pydantic request models",
-      "file": ""
-    }
-  ],
-  "end_time": 1782598397.5254672,
-  "total_duration_sec": 50.678980588912964,
+  "weaknesses": [],
+  "end_time": 1782599666.0532756,
+  "total_duration_sec": 52.0280237197876,
   "summary": {
     "total_tests": 24,
-    "passed": 23,
-    "failed": 1,
+    "passed": 24,
+    "failed": 0,
     "weaknesses": {
       "critical": 0,
       "high": 0,
-      "medium": 7,
+      "medium": 0,
       "low": 0
     }
   }

@@ -51,6 +51,8 @@ export interface AgentMeta {
   capabilities: string[]
   model?: string
   provider?: string
+  standard?: string
+  status?: string
 }
 
 export interface StudyResult {
