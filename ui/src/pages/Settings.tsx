@@ -37,6 +37,7 @@ const SECRET_FIELDS = new Set([
   'PROVIDER_OPENAI_KEY', 'PROVIDER_ANTHROPIC_KEY', 'PROVIDER_GEMINI_KEY',
   'PROVIDER_DEEPSEEK_KEY', 'PROVIDER_GROQ_KEY', 'PROVIDER_COHERE_KEY',
   'PROVIDER_HUGGINGFACE_KEY',
+  'SCADA_API_KEY',
 ])
 
 const SETTINGS_SCHEMA = {
@@ -178,6 +179,12 @@ function getDefaults(): Record<string, string> {
     MAX_WORKERS: '4',
     CACHE_SIZE_MB: '512',
     CACHE_DEFAULT_TTL: '3600',
+    // SCADA zenon Configs
+    SCADA_SYSTEM_TYPE: 'Copa-Data zenon SCADA',
+    SCADA_SERVER_URL: 'http://localhost:8080/zenon',
+    SCADA_PROJECT_NAME: 'ETAP_Zenon_Sync',
+    SCADA_SYNC_INTERVAL_SEC: '10',
+    SCADA_API_KEY: '',
     // Custom Model Configs
     CUSTOM_BASE_URL: 'https://api.yourproxy.com/v1',
     CUSTOM_MODEL_ID: 'deepseek-coder',
@@ -282,6 +289,7 @@ const TAB_SECTIONS: Record<string, { label: string; icon: React.ReactNode; secti
     icon: <Link2 className="w-4 h-4" />,
     sections: [
       { title: 'ETAP Integration', fields: ['ETAP_LICENSE_PATH', 'ETAP_WORKER_URL'] },
+      { title: 'Copa-Data zenon SCADA Integration', fields: ['SCADA_SYSTEM_TYPE', 'SCADA_SERVER_URL', 'SCADA_PROJECT_NAME', 'SCADA_SYNC_INTERVAL_SEC', 'SCADA_API_KEY'] },
       { title: 'Email Alerts', fields: ['SMTP_SERVER', 'SMTP_PORT', 'SMTP_USERNAME', 'ALERT_EMAIL_TO'] },
     ],
   },

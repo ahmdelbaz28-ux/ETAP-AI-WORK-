@@ -181,6 +181,19 @@ export const helpTopics: HelpTopic[] = [
     navigateTo: '/settings',
     relatedTopics: ['settings.backend', 'troubleshooting.api'],
   },
+  {
+    id: 'integration.scada',
+    category: 'settings',
+    title: { en: 'SCADA System Integration (zenon)', ar: 'ربط نظام الإسكادا (زينون)' },
+    description: { en: 'Configure and monitor Copa-Data zenon SCADA system connection', ar: 'تكوين ومراقبة اتصال نظام إسكادا زينون (zenon)' },
+    content: {
+      en: `**zenon SCADA Connectivity:**\nCopa-Data zenon SCADA is integrated directly with the Ahmed etap platform via the SCADA Agent, facilitating real-time status monitoring, state estimation, and IEC 61850 data model mapping.\n\n**Configuration Parameters:**\n- **SCADA System Type** — Copa-Data zenon SCADA (default)\n- **SCADA Server URL** — HTTP endpoint of the zenon REST API/Web Server\n- **Project Name** — Name of the active zenon project to synchronize variables from\n- **Sync Interval** — Interval in seconds for pulling real-time variables\n- **SCADA API Key** — Authorization secret token for secure data transfer\n\n**Common Operations:**\n1. Mapping zenon tags to ETAP nodes\n2. Real-time alarm monitoring\n3. Single-line diagram animation based on live breaker states`,
+      ar: `**ربط نظام إسكادا زينون (zenon SCADA):**\nيتكامل نظام Copa-Data zenon SCADA مباشرة مع منصة Ahmed etap عبر وكيل الإسكادا، مما يسهل مراقبة الحالة الحية وتقدير حالة النظام ومطابقة نموذج بيانات المعيار IEC 61850.\n\n**محددات التكوين:**\n- **نوع نظام الإسكادا** — Copa-Data zenon SCADA (افتراضي)\n- **رابط الخادم** — الرابط الشبكي لخدمة zenon REST API/Web Server\n- **اسم المشروع** — اسم مشروع zenon النشط لمزامنة المتغيرات منه\n- **معدل المزامنة** — الوقت بالثواني لجلب قيم المتغيرات في الوقت الفعلي\n- **مفتاح API** — رمز التفويض السري لنقل البيانات الآمن\n\n**العمليات الشائعة:**\n1. مطابقة وسوم (tags) زينون مع عقد شبكة إيتاب\n2. مراقبة الإنذارات في الوقت الفعلي\n3. تحريك مخطط الخط الواحد بناءً على حالة المفاتيح الحية`,
+    },
+    tags: ['scada', 'zenon', 'integration', 'iec61850', 'إسكادا', 'زينون', 'ربط'],
+    navigateTo: '/settings',
+    relatedTopics: ['digital-twin.overview', 'settings.backend'],
+  },
 ]
 
 export const helpCategories = [
