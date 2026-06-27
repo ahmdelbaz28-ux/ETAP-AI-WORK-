@@ -21,6 +21,7 @@ export const contextRegistry: ContextMapping[] = [
 
   // Settings
   { contextId: 'settings.backend', topicId: 'settings.backend', priority: 1 },
+  { contextId: 'settings.scada', topicId: 'integration.scada', priority: 1 },
 
   // Troubleshooting
   { contextId: 'troubleshooting.backend', topicId: 'troubleshooting.backend', priority: 1 },
@@ -35,6 +36,7 @@ export const contextRegistry: ContextMapping[] = [
   { contextId: 'action.run-compliance', topicId: 'fire-alarm.detector-placement', priority: 1 },
   { contextId: 'action.sync-project', topicId: 'digital-twin.overview', priority: 1 },
   { contextId: 'action.configure-backend', topicId: 'settings.backend', priority: 1 },
+  { contextId: 'action.configure-scada', topicId: 'integration.scada', priority: 1 },
 ]
 
 export function resolveContext(contextId: string): string | null {
