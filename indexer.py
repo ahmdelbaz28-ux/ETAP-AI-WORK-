@@ -154,13 +154,10 @@ HELP_CONTEXT_FILE = "ui/src/help/contextRegistry.ts"
 
 
 def file_hash(path: Path) -> str:
-    """Fast content hash for change detection (NOT for security purposes)."""
+    """Fast content hash for change detection."""
     try:
         content = path.read_bytes()
-        # usedforsecurity=False tells Python this hash is for cache keys /
-        # change detection, not cryptographic security. This avoids Bandit
-        # B324 warnings while still using the fast MD5 algorithm.
-        return hashlib.md5(content, usedforsecurity=False).hexdigest()[:12]
+        return hashlib.md5(content).hexdigest()[:12]
     except Exception:
         return "error"
 
@@ -442,17 +439,15 @@ def scan_help_topics() -> dict:
         if rel_match:
             related = re.findall(r"'([^']+)'", rel_match.group(1))
 
-        topics.append(
-            {
-                "id": topic_id,
-                "category": category,
-                "title": {"en": title_en, "ar": title_ar},
-                "description": {"en": desc_en, "ar": desc_ar},
-                "tags": tags,
-                "navigateTo": navigate_to,
-                "relatedTopics": related,
-            }
-        )
+        topics.append({
+            "id": topic_id,
+            "category": category,
+            "title": {"en": title_en, "ar": title_ar},
+            "description": {"en": desc_en, "ar": desc_ar},
+            "tags": tags,
+            "navigateTo": navigate_to,
+            "relatedTopics": related,
+        })
 
     # Extract categories list
     categories = []
@@ -460,12 +455,10 @@ def scan_help_topics() -> dict:
         r"id:\s*'([a-z-]+)'\s+as\s+const,\s+label:\s*\{\s*en:\s*'([^']+)'\s*,\s*ar:\s*'([^']+)'\s*\}"
     )
     for m in cat_pattern.finditer(content):
-        categories.append(
-            {
-                "id": m.group(1),
-                "label": {"en": m.group(2), "ar": m.group(3)},
-            }
-        )
+        categories.append({
+            "id": m.group(1),
+            "label": {"en": m.group(2), "ar": m.group(3)},
+        })
 
     return {
         "topics": topics,
@@ -489,13 +482,11 @@ def scan_context_registry() -> dict:
         re.DOTALL,
     )
     for m in pattern.finditer(content):
-        mappings.append(
-            {
-                "contextId": m.group(1),
-                "topicId": m.group(2),
-                "priority": int(m.group(3)) if m.group(3) else 1,
-            }
-        )
+        mappings.append({
+            "contextId": m.group(1),
+            "topicId": m.group(2),
+            "priority": int(m.group(3)) if m.group(3) else 1,
+        })
 
     return {"mappings": mappings, "total": len(mappings)}
 
@@ -543,9 +534,7 @@ def scan_env_variables() -> dict:
                 except Exception:
                     continue
                 # Find all os.getenv("VAR") and os.environ.get("VAR")
-                for m in re.finditer(
-                    r'os\.(?:getenv|environ\.get)\(\s*["\']([A-Z_][A-Z0-9_]*)["\']', content
-                ):
+                for m in re.finditer(r'os\.(?:getenv|environ\.get)\(\s*["\']([A-Z_][A-Z0-9_]*)["\']', content):
                     var_name = m.group(1)
                     if var_name not in env_vars:
                         env_vars[var_name] = {
@@ -593,7 +582,7 @@ def scan_scripts() -> dict:
                     if m:
                         desc = m.group(1).strip().split("\n")[0][:120]
                 elif fname.endswith((".sh", ".mjs", ".js")):
-                    m = re.search(r"^#\s*(.+?)$", content, re.MULTILINE)
+                    m = re.search(r'^#\s*(.+?)$', content, re.MULTILINE)
                     if m:
                         desc = m.group(1).strip()[:120]
             except Exception:
@@ -633,7 +622,7 @@ def scan_ai_agents() -> dict:
         desc = doc.split("\n\n")[0].strip()[:200] if doc else ""
 
         # Look for standard identifiers in the docstring (ETAP, IEEE, IEC)
-        standards = re.findall(r"(IEEE\s*\d+(?:\.\d+)*|IEC\s*\d+(?:-\d+)*(?:-\d+)?)", doc)
+        standards = re.findall(r'(IEEE\s*\d+(?:\.\d+)*|IEC\s*\d+(?:-\d+)*(?:-\d+)?)', doc)
 
         agents[fname] = {
             "file": rel,
@@ -690,10 +679,10 @@ def scan_integrations() -> dict:
 def build_dependency_graph(modules: dict) -> dict:
     """Build a cross-module dependency graph from imports."""
     graph = {}
-    for _pkg_name, pkg_data in modules.items():
+    for pkg_name, pkg_data in modules.items():
         for file_path, file_data in pkg_data.get("files", {}).items():
             # The file's module is its path without .py, with / replaced by .
-            file_path.replace("/", ".").replace(".py", "")
+            file_module = file_path.replace("/", ".").replace(".py", "")
             # Get the top-level package this file belongs to
             top_pkg = file_path.split("/")[0]
             graph.setdefault(top_pkg, {"imports": set(), "imported_by": set()})
@@ -725,93 +714,72 @@ def build_ui_search_index(help_data: dict, modules: dict, ui: dict, api_routes: 
 
     # 1. Help topics
     for topic in help_data.get("topics", []):
-        entries.append(
-            {
-                "type": "help-topic",
-                "id": topic["id"],
-                "title": topic["title"],
-                "description": topic["description"],
-                "tags": topic["tags"],
-                "navigateTo": topic["navigateTo"],
-            }
-        )
+        entries.append({
+            "type": "help-topic",
+            "id": topic["id"],
+            "title": topic["title"],
+            "description": topic["description"],
+            "tags": topic["tags"],
+            "navigateTo": topic["navigateTo"],
+        })
 
     # 2. API routes
     for route in api_routes:
-        entries.append(
-            {
-                "type": "api-route",
-                "id": f"{route['method']} {route['path']}",
-                "title": {
-                    "en": f"{route['method']} {route['path']}",
-                    "ar": f"{route['method']} {route['path']}",
-                },
-                "description": {
-                    "en": f"API endpoint in {route['file']}",
-                    "ar": f"نقطة API في {route['file']}",
-                },
-                "tags": ["api", "endpoint", route["method"].lower()],
-                "navigateTo": None,
-            }
-        )
+        entries.append({
+            "type": "api-route",
+            "id": f"{route['method']} {route['path']}",
+            "title": {"en": f"{route['method']} {route['path']}", "ar": f"{route['method']} {route['path']}"},
+            "description": {"en": f"API endpoint in {route['file']}", "ar": f"نقطة API في {route['file']}"},
+            "tags": ["api", "endpoint", route["method"].lower()],
+            "navigateTo": None,
+        })
 
     # 3. UI pages
     for rel_path, file_data in ui.get("pages", {}).items():
         page_name = rel_path.split("/")[-1].replace(".tsx", "")
-        entries.append(
-            {
-                "type": "ui-page",
-                "id": page_name,
-                "title": {"en": page_name, "ar": page_name},
-                "description": {"en": f"UI page at {rel_path}", "ar": f"صفحة UI في {rel_path}"},
-                "tags": ["page", "ui", page_name.lower()],
-                "navigateTo": f"/{page_name.lower()}",
-                "exports": file_data.get("exports", []),
-            }
-        )
+        entries.append({
+            "type": "ui-page",
+            "id": page_name,
+            "title": {"en": page_name, "ar": page_name},
+            "description": {"en": f"UI page at {rel_path}", "ar": f"صفحة UI في {rel_path}"},
+            "tags": ["page", "ui", page_name.lower()],
+            "navigateTo": f"/{page_name.lower()}",
+            "exports": file_data.get("exports", []),
+        })
 
     # 4. UI components
     for section, files in ui.items():
         if section == "pages":
             continue
         for rel_path, file_data in files.items():
-            rel_path.split("/")[-1].replace(".tsx", "").replace(".ts", "")
+            comp_name = rel_path.split("/")[-1].replace(".tsx", "").replace(".ts", "")
             for export in file_data.get("exports", []):
-                entries.append(
-                    {
-                        "type": "ui-component",
-                        "id": export,
-                        "title": {"en": export, "ar": export},
-                        "description": {
-                            "en": f"{section} component in {rel_path}",
-                            "ar": f"مكون {section} في {rel_path}",
-                        },
-                        "tags": ["component", "ui", section, export.lower()],
-                        "navigateTo": None,
-                    }
-                )
+                entries.append({
+                    "type": "ui-component",
+                    "id": export,
+                    "title": {"en": export, "ar": export},
+                    "description": {"en": f"{section} component in {rel_path}", "ar": f"مكون {section} في {rel_path}"},
+                    "tags": ["component", "ui", section, export.lower()],
+                    "navigateTo": None,
+                })
 
     # 5. Python modules (top-level packages)
     for pkg_name in modules.keys():
-        entries.append(
-            {
-                "type": "python-module",
-                "id": pkg_name,
-                "title": {"en": pkg_name, "ar": pkg_name},
-                "description": {
-                    "en": f"Python package: {pkg_name}/",
-                    "ar": f"حزمة Python: {pkg_name}/",
-                },
-                "tags": ["python", "module", "package", pkg_name],
-                "navigateTo": None,
-            }
-        )
+        entries.append({
+            "type": "python-module",
+            "id": pkg_name,
+            "title": {"en": pkg_name, "ar": pkg_name},
+            "description": {"en": f"Python package: {pkg_name}/", "ar": f"حزمة Python: {pkg_name}/"},
+            "tags": ["python", "module", "package", pkg_name],
+            "navigateTo": None,
+        })
 
     return {
         "entries": entries,
         "total": len(entries),
         "by_type": {
-            t: sum(1 for e in entries if e["type"] == t) for t in {e["type"] for e in entries}
+            t: sum(1 for e in entries if e["type"] == t)
+            for t in {e["type"] for e in entries}
         },
     }
 
@@ -971,14 +939,9 @@ def generate_markdown(index: dict) -> str:
     ]
     for route in index["api_routes"]:
         method = route["method"]
-        badge = {
-            "GET": "🟢",
-            "POST": "🔵",
-            "PUT": "🟡",
-            "DELETE": "🔴",
-            "PATCH": "🟠",
-            "WS": "🟣",
-        }.get(method, "⚪")
+        badge = {"GET": "🟢", "POST": "🔵", "PUT": "🟡", "DELETE": "🔴", "PATCH": "🟠", "WS": "🟣"}.get(
+            method, "⚪"
+        )
         lines.append(f"| {badge} `{method}` | `{route['path']}` | `{route['file']}` |")
 
     lines += [
@@ -1178,9 +1141,7 @@ def main():
     UI_SEARCH_INDEX.parent.mkdir(parents=True, exist_ok=True)
     with open(UI_SEARCH_INDEX, "w", encoding="utf-8") as f:
         json.dump(ui_search_index, f, indent=2, ensure_ascii=False)
-    print(
-        f"[OK] UI search index written to: {UI_SEARCH_INDEX} ({UI_SEARCH_INDEX.stat().st_size // 1024} KB)"
-    )
+    print(f"[OK] UI search index written to: {UI_SEARCH_INDEX} ({UI_SEARCH_INDEX.stat().st_size // 1024} KB)")
 
     # Write Markdown index
     md_content = generate_markdown(index)

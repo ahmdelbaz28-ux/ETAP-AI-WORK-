@@ -201,9 +201,7 @@ class PowerSystemEngine:
             "working_distance_mm": result.working_distance_mm,
         }
 
-    def run_protection_coordination(
-        self, upstream_relay_id: int, downstream_relay_id: int, fault_currents: list[float]
-    ) -> dict[str, Any]:
+    def run_protection_coordination(self, upstream_relay_id: int, downstream_relay_id: int, fault_currents: list[float]) -> dict[str, Any]:
         """
         Run protection coordination check between two relays.
 
@@ -297,12 +295,7 @@ class PowerSystemEngine:
         else:
             raise ValueError(f"Unsupported study type: {study_type}")
 
-    def visualize_tcc(
-        self,
-        relays: list[OvercurrentRelay],
-        current_range: tuple[float, float] = (0.5, 20),
-        points: int = 100,
-    ) -> Any:
+    def visualize_tcc(self, relays: list[OvercurrentRelay], current_range: tuple[float, float] = (0.5, 20), points: int = 100) -> Any:
         """
         Visualize TCC curves for a list of relays.
 
@@ -320,12 +313,7 @@ class PowerSystemEngine:
         self.visualizer.plot_multiple_tcc(relays, current_range=current_range, points=points, ax=ax)
         return fig
 
-    def visualize_coordination(
-        self,
-        upstream_relay: OvercurrentRelay,
-        downstream_relay: OvercurrentRelay,
-        fault_currents: list[float],
-    ) -> Any:
+    def visualize_coordination(self, upstream_relay: OvercurrentRelay, downstream_relay: OvercurrentRelay, fault_currents: list[float]) -> Any:
         """
         Visualize coordination margin.
 

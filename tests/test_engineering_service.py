@@ -25,11 +25,9 @@ from httpx import ASGITransport, AsyncClient
 # Fixtures
 # ---------------------------------------------------------------------------
 
-
 @pytest.fixture
 def app():
     from api.routes import app
-
     return app
 
 
@@ -44,27 +42,9 @@ async def client(app):
 _MINI_SYSTEM = {
     "base_mva": 100.0,
     "buses": [
-        {
-            "bus_id": 1,
-            "voltage_magnitude": 1.0,
-            "voltage_angle": 0.0,
-            "bus_type": "slack",
-            "base_kv": 20.0,
-        },
-        {
-            "bus_id": 2,
-            "voltage_magnitude": 1.0,
-            "voltage_angle": 0.0,
-            "bus_type": "pq",
-            "base_kv": 20.0,
-        },
-        {
-            "bus_id": 3,
-            "voltage_magnitude": 1.0,
-            "voltage_angle": 0.0,
-            "bus_type": "pv",
-            "base_kv": 20.0,
-        },
+        {"bus_id": 1, "voltage_magnitude": 1.0, "voltage_angle": 0.0, "bus_type": "slack", "base_kv": 20.0},
+        {"bus_id": 2, "voltage_magnitude": 1.0, "voltage_angle": 0.0, "bus_type": "pq", "base_kv": 20.0},
+        {"bus_id": 3, "voltage_magnitude": 1.0, "voltage_angle": 0.0, "bus_type": "pv", "base_kv": 20.0},
     ],
     "lines": [
         {"line_id": 1, "from_bus_id": 1, "to_bus_id": 2, "r1": 0.02, "x1": 0.08, "bshunt1": 0.0},
@@ -181,13 +161,7 @@ class TestReadyEndpoint:
         """Verify the full ReadyResponse schema."""
         resp = await client.get("/ready")
         data = resp.json()
-        required_fields = {
-            "ready",
-            "native_engine_available",
-            "etap_available",
-            "timestamp",
-            "trace_id",
-        }
+        required_fields = {"ready", "native_engine_available", "etap_available", "timestamp", "trace_id"}
         assert required_fields.issubset(data.keys()), (
             f"Missing fields: {required_fields - data.keys()}"
         )
@@ -244,7 +218,8 @@ class TestMetricsEndpoint:
         assert "#" in text
         # At least one of our registered metrics should appear
         assert any(
-            name in text for name in ("skill_operations_total", "app_info", "executions_total")
+            name in text
+            for name in ("skill_operations_total", "app_info", "executions_total")
         )
 
 
@@ -465,7 +440,6 @@ class TestCORS:
         omits access-control-expose-headers.  We verify the configuration
         directly on the middleware object."""
         from api.routes import app
-
         for mw in app.user_middleware:
             if hasattr(mw, "cls") and mw.cls.__name__ == "CORSMiddleware":
                 # kwargs stored by Starlette for later initialization
@@ -657,160 +631,124 @@ class TestSupportedStudyTypes:
     # --- Native study types that require a system ---
 
     async def test_load_flow(self, client):
-        resp = await client.post(
-            "/api/v1/studies/run",
-            json={
-                "study_type": "load_flow",
-                "system": _MINI_SYSTEM,
-            },
-        )
+        resp = await client.post("/api/v1/studies/run", json={
+            "study_type": "load_flow",
+            "system": _MINI_SYSTEM,
+        })
         assert resp.status_code == 200
         assert resp.json()["success"] is True
 
     async def test_short_circuit(self, client):
-        resp = await client.post(
-            "/api/v1/studies/run",
-            json={
-                "study_type": "short_circuit",
-                "system": _MINI_SYSTEM,
-                "parameters": {"bus_id": 1, "fault_type": "three_phase"},
-            },
-        )
+        resp = await client.post("/api/v1/studies/run", json={
+            "study_type": "short_circuit",
+            "system": _MINI_SYSTEM,
+            "parameters": {"bus_id": 1, "fault_type": "three_phase"},
+        })
         assert resp.status_code == 200
         assert resp.json()["success"] is True
 
     async def test_fault(self, client):
-        resp = await client.post(
-            "/api/v1/studies/run",
-            json={
-                "study_type": "fault",
-                "system": _MINI_SYSTEM,
-                "parameters": {"bus_id": 1, "fault_type": "three_phase"},
-            },
-        )
+        resp = await client.post("/api/v1/studies/run", json={
+            "study_type": "fault",
+            "system": _MINI_SYSTEM,
+            "parameters": {"bus_id": 1, "fault_type": "three_phase"},
+        })
         assert resp.status_code == 200
         assert resp.json()["success"] is True
 
     async def test_arc_flash(self, client):
-        resp = await client.post(
-            "/api/v1/studies/run",
-            json={
-                "study_type": "arc_flash",
-                "parameters": {
-                    "voltage_kv": 13.8,
-                    "bolted_fault_current_ka": 20.0,
-                    "arc_duration_sec": 0.5,
-                    "working_distance_mm": 610,
-                },
+        resp = await client.post("/api/v1/studies/run", json={
+            "study_type": "arc_flash",
+            "parameters": {
+                "voltage_kv": 13.8,
+                "bolted_fault_current_ka": 20.0,
+                "arc_duration_sec": 0.5,
+                "working_distance_mm": 610,
             },
-        )
+        })
         assert resp.status_code == 200
         assert resp.json()["success"] is True
 
     async def test_protection_coordination(self, client):
-        resp = await client.post(
-            "/api/v1/studies/run",
-            json={
-                "study_type": "protection_coordination",
-                "system": _MINI_SYSTEM,
-                "parameters": {
-                    "upstream_relay_id": 1,
-                    "downstream_relay_id": 2,
-                    "fault_currents": [2.0, 5.0, 10.0],
-                },
+        resp = await client.post("/api/v1/studies/run", json={
+            "study_type": "protection_coordination",
+            "system": _MINI_SYSTEM,
+            "parameters": {
+                "upstream_relay_id": 1,
+                "downstream_relay_id": 2,
+                "fault_currents": [2.0, 5.0, 10.0],
             },
-        )
+        })
         assert resp.status_code == 200
         assert resp.json()["success"] is True
 
     async def test_coordination(self, client):
-        resp = await client.post(
-            "/api/v1/studies/run",
-            json={
-                "study_type": "coordination",
-                "system": _MINI_SYSTEM,
-                "parameters": {
-                    "upstream_relay_id": 1,
-                    "downstream_relay_id": 2,
-                },
+        resp = await client.post("/api/v1/studies/run", json={
+            "study_type": "coordination",
+            "system": _MINI_SYSTEM,
+            "parameters": {
+                "upstream_relay_id": 1,
+                "downstream_relay_id": 2,
             },
-        )
+        })
         assert resp.status_code == 200
         assert resp.json()["success"] is True
 
     async def test_motor_starting(self, client):
         """motor_starting requires a system but may not have native engine support;
         it should at least pass validation (not 422)."""
-        resp = await client.post(
-            "/api/v1/studies/run",
-            json={
-                "study_type": "motor_starting",
-                "system": _MINI_SYSTEM,
-            },
-        )
+        resp = await client.post("/api/v1/studies/run", json={
+            "study_type": "motor_starting",
+            "system": _MINI_SYSTEM,
+        })
         assert resp.status_code in (200, 400)  # accepted but may be unsupported
 
     async def test_harmonic_analysis(self, client):
         """harmonic_analysis does not require a system but may not have native engine support."""
-        resp = await client.post(
-            "/api/v1/studies/run",
-            json={
-                "study_type": "harmonic_analysis",
-            },
-        )
+        resp = await client.post("/api/v1/studies/run", json={
+            "study_type": "harmonic_analysis",
+        })
         assert resp.status_code in (200, 400)  # accepted but may be unsupported
 
     async def test_optimal_power_flow(self, client):
         """optimal_power_flow does not require a system but may not have native engine support."""
-        resp = await client.post(
-            "/api/v1/studies/run",
-            json={
-                "study_type": "optimal_power_flow",
-            },
-        )
+        resp = await client.post("/api/v1/studies/run", json={
+            "study_type": "optimal_power_flow",
+        })
         assert resp.status_code in (200, 400)
 
     # --- ETAP-prefixed study types (pass validation; may fail at execution) ---
 
-    @pytest.mark.parametrize(
-        "study_type",
-        [
-            "etap_load_flow",
-            "etap_short_circuit",
-            "etap_arc_flash",
-            "etap_harmonic_analysis",
-            "etap_optimal_power_flow",
-            "etap_motor_starting",
-            "etap_protection_coordination",
-        ],
-    )
+    @pytest.mark.parametrize("study_type", [
+        "etap_load_flow",
+        "etap_short_circuit",
+        "etap_arc_flash",
+        "etap_harmonic_analysis",
+        "etap_optimal_power_flow",
+        "etap_motor_starting",
+        "etap_protection_coordination",
+    ])
     async def test_etap_study_types_pass_validation(self, client, study_type):
         """ETAP study types should pass Pydantic validation (not 422)."""
-        resp = await client.post(
-            "/api/v1/studies/run",
-            json={
-                "study_type": study_type,
-            },
-        )
+        resp = await client.post("/api/v1/studies/run", json={
+            "study_type": study_type,
+        })
         # Not 422 means the study_type is valid; actual execution may fail
         assert resp.status_code != 422
 
     # --- Study types that should NOT pass validation ---
 
-    @pytest.mark.parametrize(
-        "invalid_type",
-        [
-            "stability",
-            "cable_sizing",
-            "earth_grid",
-            "renewable",
-            "battery_storage",
-            "scada",
-            "harmonic",  # should be harmonic_analysis
-            "opf",  # should be optimal_power_flow
-            "protection",  # should be protection_coordination
-        ],
-    )
+    @pytest.mark.parametrize("invalid_type", [
+        "stability",
+        "cable_sizing",
+        "earth_grid",
+        "renewable",
+        "battery_storage",
+        "scada",
+        "harmonic",        # should be harmonic_analysis
+        "opf",             # should be optimal_power_flow
+        "protection",      # should be protection_coordination
+    ])
     async def test_unsupported_study_type_returns_422(self, client, invalid_type):
         """Study types not in the validator's allowed set should return 422."""
         resp = await client.post("/api/v1/studies/run", json={"study_type": invalid_type})

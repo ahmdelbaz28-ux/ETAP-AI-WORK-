@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components */
 import { useState, useEffect, createContext, useContext, createElement } from 'react';
 
 interface User {
@@ -68,31 +69,27 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const login = async (email: string, password: string) => {
-    try {
-      const response = await fetch('/api/v1/auth/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email, password }),
-      });
+    const response = await fetch('/api/v1/auth/login', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ email, password }),
+    });
 
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({ detail: 'Invalid credentials' }));
-        throw new Error(errorData.detail || 'Invalid credentials');
-      }
-
-      const data = await response.json();
-      
-      // Save tokens
-      localStorage.setItem('authToken', data.access_token);
-      localStorage.setItem('refreshToken', data.refresh_token);
-      
-      // Set user
-      setUser(data.user);
-    } catch (error) {
-      throw error;
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({ detail: 'Invalid credentials' }));
+      throw new Error(errorData.detail || 'Invalid credentials');
     }
+
+    const data = await response.json();
+    
+    // Save tokens
+    localStorage.setItem('authToken', data.access_token);
+    localStorage.setItem('refreshToken', data.refresh_token);
+    
+    // Set user
+    setUser(data.user);
   };
 
   const logout = () => {
@@ -102,31 +99,27 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const register = async (email: string, password: string, name: string) => {
-    try {
-      const response = await fetch('/api/v1/auth/register', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email, password, name }),
-      });
+    const response = await fetch('/api/v1/auth/register', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ email, password, name }),
+    });
 
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({ detail: 'Registration failed' }));
-        throw new Error(errorData.detail || 'Registration failed');
-      }
-
-      const data = await response.json();
-      
-      // Save tokens
-      localStorage.setItem('authToken', data.access_token);
-      localStorage.setItem('refreshToken', data.refresh_token);
-      
-      // Set user
-      setUser(data.user);
-    } catch (error) {
-      throw error;
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({ detail: 'Registration failed' }));
+      throw new Error(errorData.detail || 'Registration failed');
     }
+
+    const data = await response.json();
+    
+    // Save tokens
+    localStorage.setItem('authToken', data.access_token);
+    localStorage.setItem('refreshToken', data.refresh_token);
+    
+    // Set user
+    setUser(data.user);
   };
 
   const refreshToken = async () => {

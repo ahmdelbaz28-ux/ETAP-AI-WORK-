@@ -28,7 +28,7 @@ export function ContextHelpButton({
   size = 'sm',
   label,
 }: ContextHelpButtonProps) {
-  const { t, i18n } = useTranslation()
+  const { i18n } = useTranslation()
   const lang = i18n.language === 'ar' ? 'ar' : 'en'
   const displayLabel = label ?? (lang === 'ar' ? 'مساعدة' : 'Help')
 

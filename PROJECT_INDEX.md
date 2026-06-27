@@ -1,6 +1,6 @@
 # 📘 AhmedETAP — Complete Project Index v2.0.0
 
-> Auto-generated on **2026-06-27T18:25:11.059754+00:00** by indexer v2.0.0.
+> Auto-generated on **2026-06-27T21:55:00.528840+00:00** by indexer v2.0.0.
 > Re-run `python indexer.py` to refresh.
 
 ---
@@ -18,7 +18,7 @@
 | Total Tests | 1379 |
 | Help Topics | 35 |
 | Context Mappings | 93 |
-| Environment Variables | 141 |
+| Environment Variables | 144 |
 | Scripts | 29 |
 | AI Agents | 19 |
 | Integrations | 2 |
@@ -35,7 +35,7 @@
 | **Battery Storage** | `battery_storage_agent.py` | IEC 62933 | AhmedETAP - Battery Storage Agent ========================== |
 | **Cable Sizing** | `cable_sizing_agent.py` | IEC 60364 | AhmedETAP - Cable Sizing Agent ============================= |
 | **Code Guard** | `code_guard_agent.py` | — | Code Guard Agent — AI-Powered Code Quality Review ========== |
-| **Coordination** | `coordination_agent.py` | IEEE 242, IEC 60255 | AhmedETAP - Protection Coordination Agent ================== |
+| **Coordination** | `coordination_agent.py` | IEC 60255, IEEE 242 | AhmedETAP - Protection Coordination Agent ================== |
 | **Digital Twin** | `digital_twin_agent.py` | — | AhmedETAP - Digital Twin Agent ============================= |
 | **Earth Grid** | `earth_grid_agent.py` | IEEE 80 | AhmedETAP - Earth Grid Design Agent ======================== |
 | **Etap Expert** | `etap_expert_agent.py` | — | agents/etap_expert_agent.py — ETAP Expert Skill Agent |
@@ -65,6 +65,7 @@
 - Langwatch
 - Smithery
 - Github
+- Vercel
 
 ---
 
@@ -216,7 +217,7 @@ Total: **93** mappings
 
 ## 🔐 Environment Variables
 
-Total: **141** variables
+Total: **144** variables
 
 ### =
 
@@ -268,6 +269,9 @@ Total: **141** variables
 - `SMITHERY_API_KEY`
 - `SMITHERY_BASE_URL`
 - `USE_ETAP`
+- `VERCEL_ORG_ID`
+- `VERCEL_PROJECT_ID`
+- `VERCEL_TOKEN`
 
 ### Detected in code
 
@@ -650,7 +654,7 @@ Exposes the following endpoints under the ``/api/v1/auth`` prefix:
 - **async def** `reset_password()` (line 808)
 - **async def** `list_users()` (line 853)
 
-#### 📄 `api/context_engine.py` _1.6 KB_
+#### 📄 `api/context_engine.py` _1.5 KB_
 > FastAPI Router for AI Context Engine (Code RAG).
 
 - **async def** `retrieve_context()` (line 20)
@@ -887,10 +891,10 @@ Handles all API endpoints, request validation, and response formatting.
 - **Class** `ReadyResponse` (line 248)
 - **async def** `trace_middleware()` (line 197)
 - **def** `get_celery_components()` (line 270)
-- **async def** `run_study_async()` (line 294)
-- **async def** `get_task_status()` (line 328)
-- **async def** `websocket_scada_endpoint_handler()` (line 360)
-- **async def** `global_exception_handler()` (line 445)
+- **async def** `run_study_async()` (line 295)
+- **async def** `get_task_status()` (line 329)
+- **async def** `websocket_scada_endpoint_handler()` (line 361)
+- **async def** `global_exception_handler()` (line 446)
 
   **API Routes:**
   - `POST /api/v1/studies/run_async`
@@ -923,29 +927,29 @@ Performs comprehensive security analysis of the running service:
 - **Class** `SecurityAuditor` (line 259)
   - Methods: `run()`
 
-#### 📄 `api/shared_handlers.py` _26.9 KB_
+#### 📄 `api/shared_handlers.py` _26.8 KB_
 > Shared Handlers & Utilities for AhmedETAP
 ==========================================
 
 Lightweight, dependency-free implementations of common logic use
 
-- **Class** `SharedStudyRequest` (line 121)
-- **Class** `SharedETAPExpertChatRequest` (line 131)
-- **Class** `SharedETAPGUIChatRequest` (line 138)
-- **Class** `SharedContextRetrieveRequest` (line 145)
-- **Class** `SharedImpactAnalysisRequest` (line 153)
-- **Class** `InMemoryRateLimiter` (line 224)
+- **Class** `SharedStudyRequest` (line 120)
+- **Class** `SharedETAPExpertChatRequest` (line 130)
+- **Class** `SharedETAPGUIChatRequest` (line 137)
+- **Class** `SharedContextRetrieveRequest` (line 144)
+- **Class** `SharedImpactAnalysisRequest` (line 152)
+- **Class** `InMemoryRateLimiter` (line 223)
   - Methods: `is_allowed()`
-- **def** `verify_api_key()` (line 183)
-- **def** `build_health_response()` (line 281)
-- **def** `build_ready_response()` (line 296)
-- **def** `build_metrics_response()` (line 301)
-- **def** `build_platform_info()` (line 315)
-- **def** `build_knowledge_info()` (line 349)
-- **def** `sanitize_result()` (line 408)
-- **def** `run_study_lightweight()` (line 449)
-- **def** `handle_etap_expert_chat()` (line 599)
-- **def** `handle_etap_gui_chat()` (line 618)
+- **def** `verify_api_key()` (line 182)
+- **def** `build_health_response()` (line 280)
+- **def** `build_ready_response()` (line 295)
+- **def** `build_metrics_response()` (line 300)
+- **def** `build_platform_info()` (line 314)
+- **def** `build_knowledge_info()` (line 348)
+- **def** `sanitize_result()` (line 407)
+- **def** `run_study_lightweight()` (line 448)
+- **def** `handle_etap_expert_chat()` (line 598)
+- **def** `handle_etap_gui_chat()` (line 617)
 
 #### 📄 `api/studies.py` _23.0 KB_
 > Study Execution API Router
@@ -1398,7 +1402,7 @@ engine, and sparse-matrix solver inte
 This module consolidates the load flow solver implementations to address the
 technical de
 
-- **Class** `LoadFlowSolver` (line 16)
+- **Class** `LoadFlowSolver` (line 17)
   - Methods: `solve()`
 
 #### 📄 `load_flow/load_flow.py` _20.5 KB_
@@ -1446,24 +1450,24 @@ Provides a StudyCache with:
   - Methods: `redis_client()`, `cache()`, `get()`, `set()`, `clear()`, `ping()`
 - **async def** `get_study_cache()` (line 198)
 
-#### 📄 `services/memory_service.py` _11.8 KB_
+#### 📄 `services/memory_service.py` _11.7 KB_
 > services/memory_service.py — AI Memory Service (RAG & GraphRAG)
 ================================================================
 Handles vector-based 
 
-- **Class** `DeterministicFallbackEmbeddings` (line 61)
+- **Class** `DeterministicFallbackEmbeddings` (line 60)
   - Methods: `embed_documents()`, `embed_query()`
-- **Class** `AIMemoryService` (line 87)
+- **Class** `AIMemoryService` (line 86)
   - Methods: `initialize_neo4j()`, `initialize_qdrant()`, `add_knowledge_to_graph()`, `query_graph()`, `save_to_vector_memory()`, `query_vector_memory()`
 - **Class** `QdrantClient` (line 24)
 - **Class** `QdrantVectorStore` (line 26)
 - **Class** `Embeddings` (line 33)
-- **Class** `Neo4jGraph` (line 47)
-- **Class** `LLMGraphTransformer` (line 49)
-- **Class** `ChatOpenAI` (line 51)
-- **Class** `OpenAIEmbeddings` (line 53)
-- **Class** `Document` (line 55)
-- **Class** `GraphCypherQAChain` (line 57)
+- **Class** `Neo4jGraph` (line 46)
+- **Class** `LLMGraphTransformer` (line 48)
+- **Class** `ChatOpenAI` (line 50)
+- **Class** `OpenAIEmbeddings` (line 52)
+- **Class** `Document` (line 54)
+- **Class** `GraphCypherQAChain` (line 56)
 
 #### 📄 `services/study_service.py` _24.2 KB_
 > Study Service module for the Engineering Service.
@@ -1966,24 +1970,28 @@ Impl
 
 ### 📦 `copilot/`
 
-#### 📄 `copilot/tests/test_copilot_unit.py` _19.2 KB_
-> Engineering Copilot — Integration Tests
-========================================
-Tests for the unified model, translation engine, AI drawing engine,
-M
+#### 📄 `copilot/ai/__init__.py` _0.2 KB_
+> AI Drawing Engine — Autonomous CAD generation from natural language.
 
-- **Class** `TestUnifiedEngineeringModel` (line 43)
-  - Methods: `test_create_bus()`, `test_create_transformer()`, `test_create_panel()`, `test_create_cable()`, `test_create_breaker()`, `test_create_load()`, `test_coordinates()`, `test_model_serialization_roundtrip()`
-- **Class** `TestTranslationEngine` (line 166)
-  - Methods: `setUp()`, `test_get_drawing_rule()`, `test_get_all_mapping_rules()`, `test_etap_to_unified_buses()`, `test_unified_to_etap()`, `test_unified_to_autocad_commands()`, `test_translate_dispatch()`
-- **Class** `TestAIDrawingEngine` (line 261)
-  - Methods: `setUp()`, `test_parse_panel_intent()`, `test_parse_sld_intent()`, `test_parse_validate_intent()`, `test_parse_add_feeder()`, `test_build_graph()`, `test_generate_model()`, `test_engine_process_basic()`
-- **Class** `TestCopilotMCPServer` (line 332)
-  - Methods: `setUp()`, `test_list_tools()`, `test_tool_has_schemas()`, `test_tool_create_panel()`, `test_tool_create_bus()`, `test_tool_create_transformer()`, `test_tool_create_cable()`, `test_tool_validate_design()`
-- **Class** `TestDrawingRules` (line 461)
-  - Methods: `test_entity_drawing_rules_completeness()`, `test_autocad_rules_have_required_fields()`, `test_revit_rules_have_family_info()`
-- **Class** `TestETAPAdapter` (line 506)
-  - Methods: `setUp()`, `test_bus_to_unified()`, `test_transformer_to_unified()`, `test_cable_to_unified()`
+
+#### 📄 `copilot/ai/drawing_engine.py` _37.1 KB_
+> AI Drawing Engine
+=================
+Autonomous CAD generation engine that translates natural language
+engineering intent into:
+  1. Engineering Knowle
+
+- **Class** `EngineeringIntentType` (line 54)
+- **Class** `EngineeringIntent` (line 74)
+- **Class** `EngineeringGraph` (line 86)
+- **Class** `IntentParser` (line 100)
+  - Methods: `parse()`
+- **Class** `GraphBuilder` (line 399)
+  - Methods: `build()`
+- **Class** `ModelGenerator` (line 523)
+  - Methods: `generate()`
+- **Class** `AIDrawingEngine` (line 785)
+  - Methods: `process()`, `get_history()`, `get_statistics()`
 
 #### 📄 `copilot/api/__init__.py` _0.1 KB_
 > FastAPI Backend — Engineering Copilot REST API.
@@ -2017,6 +2025,25 @@ as MCP
 - **Class** `CopilotMCPServer` (line 294)
   - Methods: `list_tools()`, `call_tool()`, `health_check()`
 
+#### 📄 `copilot/tests/test_copilot_unit.py` _19.2 KB_
+> Engineering Copilot — Integration Tests
+========================================
+Tests for the unified model, translation engine, AI drawing engine,
+M
+
+- **Class** `TestUnifiedEngineeringModel` (line 43)
+  - Methods: `test_create_bus()`, `test_create_transformer()`, `test_create_panel()`, `test_create_cable()`, `test_create_breaker()`, `test_create_load()`, `test_coordinates()`, `test_model_serialization_roundtrip()`
+- **Class** `TestTranslationEngine` (line 166)
+  - Methods: `setUp()`, `test_get_drawing_rule()`, `test_get_all_mapping_rules()`, `test_etap_to_unified_buses()`, `test_unified_to_etap()`, `test_unified_to_autocad_commands()`, `test_translate_dispatch()`
+- **Class** `TestAIDrawingEngine` (line 261)
+  - Methods: `setUp()`, `test_parse_panel_intent()`, `test_parse_sld_intent()`, `test_parse_validate_intent()`, `test_parse_add_feeder()`, `test_build_graph()`, `test_generate_model()`, `test_engine_process_basic()`
+- **Class** `TestCopilotMCPServer` (line 332)
+  - Methods: `setUp()`, `test_list_tools()`, `test_tool_has_schemas()`, `test_tool_create_panel()`, `test_tool_create_bus()`, `test_tool_create_transformer()`, `test_tool_create_cable()`, `test_tool_validate_design()`
+- **Class** `TestDrawingRules` (line 461)
+  - Methods: `test_entity_drawing_rules_completeness()`, `test_autocad_rules_have_required_fields()`, `test_revit_rules_have_family_info()`
+- **Class** `TestETAPAdapter` (line 506)
+  - Methods: `setUp()`, `test_bus_to_unified()`, `test_transformer_to_unified()`, `test_cable_to_unified()`
+
 #### 📄 `copilot/translation/__init__.py` _0.1 KB_
 > Translation Engine — Bidirectional engineering data translation.
 
@@ -2031,29 +2058,6 @@ Mapping Arch
 - **Class** `MappingDirection` (line 37)
 - **Class** `TranslationEngine` (line 259)
   - Methods: `get_drawing_rule()`, `get_all_mapping_rules()`, `etap_to_unified()`, `unified_to_etap()`, `unified_to_autocad_commands()`, `etap_to_autocad()`, `revit_to_unified()`, `unified_to_revit_commands()`
-
-#### 📄 `copilot/ai/__init__.py` _0.2 KB_
-> AI Drawing Engine — Autonomous CAD generation from natural language.
-
-
-#### 📄 `copilot/ai/drawing_engine.py` _37.1 KB_
-> AI Drawing Engine
-=================
-Autonomous CAD generation engine that translates natural language
-engineering intent into:
-  1. Engineering Knowle
-
-- **Class** `EngineeringIntentType` (line 54)
-- **Class** `EngineeringIntent` (line 74)
-- **Class** `EngineeringGraph` (line 86)
-- **Class** `IntentParser` (line 100)
-  - Methods: `parse()`
-- **Class** `GraphBuilder` (line 399)
-  - Methods: `build()`
-- **Class** `ModelGenerator` (line 523)
-  - Methods: `generate()`
-- **Class** `AIDrawingEngine` (line 785)
-  - Methods: `process()`, `get_history()`, `get_statistics()`
 
 ### 📦 `schemas/`
 
@@ -2259,14 +2263,14 @@ Why this exists
 ---------------
 The ETAP Windows worker runs as
 
-- **Class** `ETAPWorkerHeartbeat` (line 139)
+- **Class** `ETAPWorkerHeartbeat` (line 138)
   - Methods: `register()`, `deregister()`, `set_status()`, `run()`, `stop()`
-- **Class** `WorkerRegistry` (line 232)
+- **Class** `WorkerRegistry` (line 231)
   - Methods: `get_available_workers()`, `get_worker_count()`, `is_any_worker_available()`
-- **async def** `list_workers()` (line 304)
-- **async def** `worker_pool_health()` (line 317)
-- **async def** `register_worker()` (line 342)
-- **async def** `worker_heartbeat()` (line 367)
+- **async def** `list_workers()` (line 303)
+- **async def** `worker_pool_health()` (line 316)
+- **async def** `register_worker()` (line 341)
+- **async def** `worker_heartbeat()` (line 366)
 
 ### 📦 `core_model/`
 
@@ -2360,6 +2364,359 @@ Imple
   - Methods: `estimate_with_gnn()`
 
 ### 📦 `acp_runtime/`
+
+#### 📄 `acp_runtime/acp/__init__.py` _3.3 KB_
+> acp — Agent Communication Protocol (standalone, Python 3.12+).
+
+
+#### 📄 `acp_runtime/acp/__main__.py` _0.1 KB_
+> Allow running ACP as a module: ``python -m acp <command>``.
+
+
+#### 📄 `acp_runtime/acp/cli.py` _14.4 KB_
+> Unified CLI entrypoint for ACP.
+
+Usage::
+
+    python -m acp stdio --handlers myapp.handlers
+    python -m acp uds --handlers myapp.handlers --path /tm
+
+- **def** `main()` (line 412)
+
+#### 📄 `acp_runtime/acp/config.py` _5.0 KB_
+> ACP configuration file loader.
+
+Supports both YAML and JSON.  Config keys are the same as the CLI flag
+names (without leading dashes) so the mapping i
+
+- **def** `env_int()` (line 23)
+- **def** `env_bool()` (line 34)
+- **def** `load_config()` (line 42)
+- **def** `merge_config()` (line 87)
+
+#### 📄 `acp_runtime/acp/errors.py` _2.0 KB_
+> AcpError hierarchy.
+
+Every ACP error carries a JSON-RPC 2.0 error code. The codes -32700 to
+-32603 are reserved by the JSON-RPC 2.0 spec; ACP defines 
+
+- **Class** `AcpError` (line 26)
+  - Methods: `to_wire()`
+- **Class** `DeadlineExceeded` (line 52)
+- **Class** `CapabilityNotFound` (line 57)
+- **Class** `ScopeNotPermitted` (line 62)
+- **Class** `HandlerError` (line 67)
+- **Class** `AuthenticationRequired` (line 72)
+- **Class** `RateLimitExceeded` (line 77)
+- **Class** `TransportClosed` (line 82)
+
+#### 📄 `acp_runtime/acp/health.py` _5.6 KB_
+> Built-in health & status handler for the ACP runtime.
+
+This module provides a ``HealthHandler`` class that is automatically
+registered by the CLI when
+
+- **Class** `HealthHandler` (line 29)
+  - Methods: `set_runtime()`, `health()`, `metrics()`, `prometheus()`, `openmetrics()`, `ready()`
+
+#### 📄 `acp_runtime/acp/http_server.py` _5.7 KB_
+> Lightweight async HTTP server for health/ready/metrics probes.
+
+Intended for container and Kubernetes environments where a simple HTTP
+endpoint is nee
+
+- **async def** `start_http_server()` (line 151)
+
+#### 📄 `acp_runtime/acp/observability/__init__.py` _1.9 KB_
+> acp.observability — Tracing, metrics, and structured logging.
+
+The observability layer provides three complementary signals:
+
+    * **Tracing** — requ
+
+
+#### 📄 `acp_runtime/acp/observability/metrics.py` _16.1 KB_
+> Metrics — counters, histograms, gauges, and registry.
+
+Design:
+    * ``Counter`` — monotonically increasing value (inc / reset).
+    * ``Histogram`` —
+
+- **Class** `Counter` (line 76)
+  - Methods: `inc()`, `reset()`, `value()`, `snapshot()`
+- **Class** `Histogram` (line 128)
+  - Methods: `observe()`, `reset()`, `buckets()`, `snapshot()`
+- **Class** `Gauge` (line 218)
+  - Methods: `set()`, `inc()`, `dec()`, `reset()`, `value()`, `snapshot()`
+- **Class** `MetricsRegistry` (line 294)
+  - Methods: `get_or_create_counter()`, `get_or_create_histogram()`, `get_or_create_gauge()`, `snapshot()`
+- **Class** `InMemoryMetricsRegistry` (line 417)
+  - Methods: `get_or_create_counter()`, `get_or_create_histogram()`, `get_or_create_gauge()`, `snapshot()`, `prometheus()`, `reset_all()`
+- **def** `to_prometheus()` (line 385)
+- **def** `to_openmetrics()` (line 397)
+
+#### 📄 `acp_runtime/acp/observability/structured_logger.py` _6.6 KB_
+> Structured logging — contextual JSON log entries.
+
+Design:
+    * ``LogEntry`` is an immutable record of a log event with timestamp,
+      level, messa
+
+- **Class** `LogLevel` (line 40)
+- **Class** `LogEntry` (line 52)
+  - Methods: `to_json()`
+- **Class** `StructuredLogger` (line 90)
+  - Methods: `with_context()`, `bind()`, `unbind()`, `debug()`, `info()`, `warning()`, `error()`, `critical()`
+- **Class** `NullStructuredLogger` (line 155)
+  - Methods: `write()`
+- **Class** `InMemoryStructuredLogger` (line 165)
+  - Methods: `write()`, `entries()`, `clear()`, `filter()`
+- **Class** `ConsoleStructuredLogger` (line 201)
+  - Methods: `write()`
+
+#### 📄 `acp_runtime/acp/observability/tracer.py` _7.0 KB_
+> Tracing — request-scoped spans with trace context propagation.
+
+Design:
+    * ``TraceContext`` carries trace_id, span_id, parent_span_id, and a sample
+
+- **Class** `TraceContext` (line 38)
+  - Methods: `with_span()`, `from_trace_id()`
+- **Class** `Span` (line 72)
+  - Methods: `duration_ms()`, `to_json()`
+- **Class** `SpanStatus` (line 121)
+- **Class** `Tracer` (line 130)
+  - Methods: `start_span()`, `finish_span()`, `record_span()`
+- **Class** `NullTracer` (line 186)
+  - Methods: `record_span()`
+- **Class** `InMemoryTracer` (line 196)
+  - Methods: `record_span()`, `spans()`, `clear()`, `spans_for_trace()`
+- **Class** `JsonTracer` (line 224)
+  - Methods: `record_span()`
+
+#### 📄 `acp_runtime/acp/router/__init__.py` _1.0 KB_
+> acp.router — JSON-RPC 2.0 dispatch layer.
+
+The router sits between the Transport layer (receives raw dicts) and
+the Runtime layer (executes capabiliti
+
+
+#### 📄 `acp_runtime/acp/router/router.py` _15.4 KB_
+> Router — JSON-RPC 2.0 dispatch layer.
+
+Accepts raw Python dicts (already parsed from JSON), validates them as
+ACP envelopes, enforces scope-based auth
+
+- **Class** `RouterConfig` (line 58)
+- **Class** `Router` (line 102)
+  - Methods: `handle()`
+
+#### 📄 `acp_runtime/acp/router/scope.py` _2.0 KB_
+> Scope validation — capability-based authorization.
+
+A capability declares zero or more required scopes. A caller declares
+the scopes they possess (typ
+
+- **Class** `ScopeValidator` (line 20)
+  - Methods: `is_permitted()`
+- **def** `check_scope()` (line 48)
+
+#### 📄 `acp_runtime/acp/runtime/__init__.py` _1.4 KB_
+> acp.runtime — the async execution engine for ACP.
+
+Public surface:
+    AcpRuntime            — main engine
+    capability            — decorator for m
+
+
+#### 📄 `acp_runtime/acp/runtime/cancel.py` _1.7 KB_
+> Cancellation helpers.
+
+Thin wrappers over ``anyio.CancelScope``. Most uses are covered by
+``enforce_deadline_ms`` (which uses ``move_on_after`` intern
+
+- **async def** `cancellable()` (line 21)
+- **def** `is_cancelled_exception()` (line 48)
+
+#### 📄 `acp_runtime/acp/runtime/deadline.py` _2.3 KB_
+> Deadline enforcement — wraps a coroutine with a hard timeout.
+
+Built on ``anyio.move_on_after`` so it works on both asyncio and trio.
+Cancellation is 
+
+- **async def** `enforce_deadline_ms()` (line 22)
+- **async def** `deadline_scope()` (line 62)
+
+#### 📄 `acp_runtime/acp/runtime/engine.py` _9.5 KB_
+> AcpRuntime — the main async execution engine.
+
+Responsibilities:
+    * Build a frozen capability registry from a list of handlers.
+    * Dispatch an i
+
+- **Class** `AcpRuntime` (line 47)
+  - Methods: `capability_names()`, `get_meta()`, `execute()`, `handler_count()`, `stats()`
+
+#### 📄 `acp_runtime/acp/runtime/handler.py` _3.6 KB_
+> @capability decorator, AcpHandler Protocol, and capability discovery.
+
+A *handler* is any object with one or more methods decorated with
+``@capability
+
+- **Class** `CapabilityMeta` (line 37)
+- **Class** `AcpHandler` (line 46)
+- **def** `capability()` (line 53)
+- **def** `discover_capabilities()` (line 91)
+- **def** `list_capabilities()` (line 114)
+
+#### 📄 `acp_runtime/acp/runtime/progress.py` _3.6 KB_
+> ProgressEmitter — fire-and-forget progress notifications.
+
+Handlers that do long-running work can call ``emitter.emit(...)`` to
+push a progress event 
+
+- **Class** `ProgressEvent` (line 20)
+  - Methods: `to_envelope()`, `from_envelope()`
+- **Class** `ProgressEmitter` (line 57)
+  - Methods: `trace_id()`, `events()`, `emit()`
+
+#### 📄 `acp_runtime/acp/schema/__init__.py` _1.1 KB_
+> acp.schema — pydantic v2 models for the ACP wire format.
+
+Public surface:
+    CapabilityDescriptor   — frozen, validated capability name + scopes
+    
+
+
+#### 📄 `acp_runtime/acp/schema/capability.py` _1.6 KB_
+> CapabilityDescriptor — wire-safe representation of a callable capability.
+
+Used for discovery, manifests, and registry introspection. The internal
+``@
+
+- **Class** `CapabilityDescriptor` (line 30)
+- **def** `is_valid_capability_name()` (line 22)
+- **def** `is_valid_scope()` (line 26)
+
+#### 📄 `acp_runtime/acp/schema/envelope.py` _3.6 KB_
+> JSON-RPC 2.0 envelope schemas — Request, Response, Notification, Error.
+
+All models are frozen (immutable), extra=forbid, and validated at
+constructio
+
+- **Class** `JsonRpcError` (line 32)
+- **Class** `JsonRpcRequest` (line 45)
+- **Class** `JsonRpcResponse` (line 68)
+- **Class** `JsonRpcNotification` (line 94)
+
+#### 📄 `acp_runtime/acp/schema/ids.py` _0.9 KB_
+> Typed identifier aliases.
+
+These are validated identifiers used as ``id`` (request) and ``trace_id``
+(progress / audit correlation). Using ``Annotated
+
+
+#### 📄 `acp_runtime/acp/schema/params.py` _1.5 KB_
+> ACP params / result base models.
+
+These are the strongly-typed, domain-specific wrappers that sit inside
+``JsonRpcRequest.params`` and ``JsonRpcRespon
+
+- **Class** `AcpParams` (line 19)
+- **Class** `AcpResult` (line 35)
+
+#### 📄 `acp_runtime/acp/security/__init__.py` _1.3 KB_
+> acp.security — Authentication, authorization, and audit logging.
+
+The security layer sits between the Transport layer and the Router layer.
+It provide
+
+
+#### 📄 `acp_runtime/acp/security/audit.py` _6.4 KB_
+> Audit logging — append-only, structured, and async-safe.
+
+Every audit entry is a single line of JSON (NDJSON) written to a file.
+The logger is designe
+
+- **Class** `AuditEntry` (line 37)
+  - Methods: `to_json()`
+- **Class** `AuditLogger` (line 70)
+  - Methods: `log()`, `write()`, `close()`
+- **Class** `InMemoryAuditLogger` (line 114)
+  - Methods: `write()`, `entries()`, `clear()`
+- **Class** `NDJSONAuditLogger` (line 141)
+  - Methods: `write()`, `close()`
+
+#### 📄 `acp_runtime/acp/security/auth.py` _9.8 KB_
+> Authentication — token validation and caller identity.
+
+The ACP security layer is intentionally lightweight and pluggable. It
+ships with a simple HMAC
+
+- **Class** `CallerIdentity` (line 41)
+- **Class** `AuthConfig` (line 71)
+- **Class** `HmacTokenValidator` (line 112)
+  - Methods: `validate()`, `issue()`
+- **def** `validate_bearer_token()` (line 243)
+- **def** `extract_token_from_header()` (line 279)
+
+#### 📄 `acp_runtime/acp/transport/__init__.py` _1.1 KB_
+> acp.transport — Transport layer adapters.
+
+Provides three transport implementations:
+    * StdioTransport      — line-delimited JSON over stdin/stdout
+
+
+#### 📄 `acp_runtime/acp/transport/base.py` _1.4 KB_
+> Transport abstract base class.
+
+All ACP transports implement the same interface so the ``Server``
+can drive them uniformly. The transport layer is res
+
+- **Class** `Transport` (line 22)
+  - Methods: `read_message()`, `write_message()`, `close()`
+
+#### 📄 `acp_runtime/acp/transport/server.py` _4.0 KB_
+> Server — drives a ``Transport`` + ``Router`` event loop.
+
+The server is the glue between the transport layer (framing) and the
+router layer (dispatch)
+
+- **Class** `Server` (line 33)
+  - Methods: `run()`
+
+#### 📄 `acp_runtime/acp/transport/stdio.py` _2.1 KB_
+> Stdio transport — line-delimited JSON over stdin / stdout.
+
+The canonical transport for local editor integration (LSP-style).
+Each JSON-RPC message is
+
+- **Class** `StdioTransport` (line 24)
+  - Methods: `read_message()`, `write_message()`, `close()`
+
+#### 📄 `acp_runtime/acp/transport/uds.py` _3.7 KB_
+> Unix Domain Socket (UDS) transport — line-delimited JSON over UDS.
+
+UDS is the preferred IPC transport for low-latency, same-host agent
+communication.
+
+- **Class** `_LineBuffer` (line 29)
+  - Methods: `read_line()`
+- **Class** `UDSTransport` (line 53)
+  - Methods: `read_message()`, `write_message()`, `close()`
+- **Class** `UDSListener` (line 95)
+  - Methods: `serve()`
+
+#### 📄 `acp_runtime/acp/transport/websocket.py` _3.4 KB_
+> WebSocket transport — JSON messages over WebSocket text frames.
+
+The ``WebSocketTransport`` is transport-library-agnostic: it only
+requires two async 
+
+- **Class** `WebSocketTransport` (line 38)
+  - Methods: `read_message()`, `write_message()`, `close()`
+- **Class** `WebSocketListener` (line 75)
+  - Methods: `serve()`
 
 #### 📄 `acp_runtime/tests/__init__.py` _0.3 KB_
 > Test suite for the ACP (Agent Communication Protocol) runtime engine.
@@ -2752,359 +3109,6 @@ Covers:
   - Methods: `test_server_request_response()`, `test_server_notification_no_response()`, `test_server_parse_error()`, `test_server_eof()`, `test_server_multiple_requests()`, `test_server_scope_denied()`, `test_server_invalid_jsonrpc_envelope()`, `test_server_concurrent_writes()`
 - **async def** `test_end_to_end_stdio()` (line 462)
 
-#### 📄 `acp_runtime/acp/__init__.py` _3.3 KB_
-> acp — Agent Communication Protocol (standalone, Python 3.12+).
-
-
-#### 📄 `acp_runtime/acp/__main__.py` _0.1 KB_
-> Allow running ACP as a module: ``python -m acp <command>``.
-
-
-#### 📄 `acp_runtime/acp/cli.py` _14.4 KB_
-> Unified CLI entrypoint for ACP.
-
-Usage::
-
-    python -m acp stdio --handlers myapp.handlers
-    python -m acp uds --handlers myapp.handlers --path /tm
-
-- **def** `main()` (line 412)
-
-#### 📄 `acp_runtime/acp/config.py` _5.0 KB_
-> ACP configuration file loader.
-
-Supports both YAML and JSON.  Config keys are the same as the CLI flag
-names (without leading dashes) so the mapping i
-
-- **def** `env_int()` (line 23)
-- **def** `env_bool()` (line 34)
-- **def** `load_config()` (line 42)
-- **def** `merge_config()` (line 87)
-
-#### 📄 `acp_runtime/acp/errors.py` _2.0 KB_
-> AcpError hierarchy.
-
-Every ACP error carries a JSON-RPC 2.0 error code. The codes -32700 to
--32603 are reserved by the JSON-RPC 2.0 spec; ACP defines 
-
-- **Class** `AcpError` (line 26)
-  - Methods: `to_wire()`
-- **Class** `DeadlineExceeded` (line 52)
-- **Class** `CapabilityNotFound` (line 57)
-- **Class** `ScopeNotPermitted` (line 62)
-- **Class** `HandlerError` (line 67)
-- **Class** `AuthenticationRequired` (line 72)
-- **Class** `RateLimitExceeded` (line 77)
-- **Class** `TransportClosed` (line 82)
-
-#### 📄 `acp_runtime/acp/health.py` _5.6 KB_
-> Built-in health & status handler for the ACP runtime.
-
-This module provides a ``HealthHandler`` class that is automatically
-registered by the CLI when
-
-- **Class** `HealthHandler` (line 29)
-  - Methods: `set_runtime()`, `health()`, `metrics()`, `prometheus()`, `openmetrics()`, `ready()`
-
-#### 📄 `acp_runtime/acp/http_server.py` _5.7 KB_
-> Lightweight async HTTP server for health/ready/metrics probes.
-
-Intended for container and Kubernetes environments where a simple HTTP
-endpoint is nee
-
-- **async def** `start_http_server()` (line 151)
-
-#### 📄 `acp_runtime/acp/schema/__init__.py` _1.1 KB_
-> acp.schema — pydantic v2 models for the ACP wire format.
-
-Public surface:
-    CapabilityDescriptor   — frozen, validated capability name + scopes
-    
-
-
-#### 📄 `acp_runtime/acp/schema/capability.py` _1.6 KB_
-> CapabilityDescriptor — wire-safe representation of a callable capability.
-
-Used for discovery, manifests, and registry introspection. The internal
-``@
-
-- **Class** `CapabilityDescriptor` (line 30)
-- **def** `is_valid_capability_name()` (line 22)
-- **def** `is_valid_scope()` (line 26)
-
-#### 📄 `acp_runtime/acp/schema/envelope.py` _3.6 KB_
-> JSON-RPC 2.0 envelope schemas — Request, Response, Notification, Error.
-
-All models are frozen (immutable), extra=forbid, and validated at
-constructio
-
-- **Class** `JsonRpcError` (line 32)
-- **Class** `JsonRpcRequest` (line 45)
-- **Class** `JsonRpcResponse` (line 68)
-- **Class** `JsonRpcNotification` (line 94)
-
-#### 📄 `acp_runtime/acp/schema/ids.py` _0.9 KB_
-> Typed identifier aliases.
-
-These are validated identifiers used as ``id`` (request) and ``trace_id``
-(progress / audit correlation). Using ``Annotated
-
-
-#### 📄 `acp_runtime/acp/schema/params.py` _1.5 KB_
-> ACP params / result base models.
-
-These are the strongly-typed, domain-specific wrappers that sit inside
-``JsonRpcRequest.params`` and ``JsonRpcRespon
-
-- **Class** `AcpParams` (line 19)
-- **Class** `AcpResult` (line 35)
-
-#### 📄 `acp_runtime/acp/router/__init__.py` _1.0 KB_
-> acp.router — JSON-RPC 2.0 dispatch layer.
-
-The router sits between the Transport layer (receives raw dicts) and
-the Runtime layer (executes capabiliti
-
-
-#### 📄 `acp_runtime/acp/router/router.py` _15.4 KB_
-> Router — JSON-RPC 2.0 dispatch layer.
-
-Accepts raw Python dicts (already parsed from JSON), validates them as
-ACP envelopes, enforces scope-based auth
-
-- **Class** `RouterConfig` (line 58)
-- **Class** `Router` (line 102)
-  - Methods: `handle()`
-
-#### 📄 `acp_runtime/acp/router/scope.py` _2.0 KB_
-> Scope validation — capability-based authorization.
-
-A capability declares zero or more required scopes. A caller declares
-the scopes they possess (typ
-
-- **Class** `ScopeValidator` (line 20)
-  - Methods: `is_permitted()`
-- **def** `check_scope()` (line 48)
-
-#### 📄 `acp_runtime/acp/security/__init__.py` _1.3 KB_
-> acp.security — Authentication, authorization, and audit logging.
-
-The security layer sits between the Transport layer and the Router layer.
-It provide
-
-
-#### 📄 `acp_runtime/acp/security/audit.py` _6.4 KB_
-> Audit logging — append-only, structured, and async-safe.
-
-Every audit entry is a single line of JSON (NDJSON) written to a file.
-The logger is designe
-
-- **Class** `AuditEntry` (line 37)
-  - Methods: `to_json()`
-- **Class** `AuditLogger` (line 70)
-  - Methods: `log()`, `write()`, `close()`
-- **Class** `InMemoryAuditLogger` (line 114)
-  - Methods: `write()`, `entries()`, `clear()`
-- **Class** `NDJSONAuditLogger` (line 141)
-  - Methods: `write()`, `close()`
-
-#### 📄 `acp_runtime/acp/security/auth.py` _9.8 KB_
-> Authentication — token validation and caller identity.
-
-The ACP security layer is intentionally lightweight and pluggable. It
-ships with a simple HMAC
-
-- **Class** `CallerIdentity` (line 41)
-- **Class** `AuthConfig` (line 71)
-- **Class** `HmacTokenValidator` (line 112)
-  - Methods: `validate()`, `issue()`
-- **def** `validate_bearer_token()` (line 243)
-- **def** `extract_token_from_header()` (line 279)
-
-#### 📄 `acp_runtime/acp/transport/__init__.py` _1.1 KB_
-> acp.transport — Transport layer adapters.
-
-Provides three transport implementations:
-    * StdioTransport      — line-delimited JSON over stdin/stdout
-
-
-#### 📄 `acp_runtime/acp/transport/base.py` _1.4 KB_
-> Transport abstract base class.
-
-All ACP transports implement the same interface so the ``Server``
-can drive them uniformly. The transport layer is res
-
-- **Class** `Transport` (line 22)
-  - Methods: `read_message()`, `write_message()`, `close()`
-
-#### 📄 `acp_runtime/acp/transport/server.py` _4.0 KB_
-> Server — drives a ``Transport`` + ``Router`` event loop.
-
-The server is the glue between the transport layer (framing) and the
-router layer (dispatch)
-
-- **Class** `Server` (line 33)
-  - Methods: `run()`
-
-#### 📄 `acp_runtime/acp/transport/stdio.py` _2.1 KB_
-> Stdio transport — line-delimited JSON over stdin / stdout.
-
-The canonical transport for local editor integration (LSP-style).
-Each JSON-RPC message is
-
-- **Class** `StdioTransport` (line 24)
-  - Methods: `read_message()`, `write_message()`, `close()`
-
-#### 📄 `acp_runtime/acp/transport/uds.py` _3.7 KB_
-> Unix Domain Socket (UDS) transport — line-delimited JSON over UDS.
-
-UDS is the preferred IPC transport for low-latency, same-host agent
-communication.
-
-- **Class** `_LineBuffer` (line 29)
-  - Methods: `read_line()`
-- **Class** `UDSTransport` (line 53)
-  - Methods: `read_message()`, `write_message()`, `close()`
-- **Class** `UDSListener` (line 95)
-  - Methods: `serve()`
-
-#### 📄 `acp_runtime/acp/transport/websocket.py` _3.4 KB_
-> WebSocket transport — JSON messages over WebSocket text frames.
-
-The ``WebSocketTransport`` is transport-library-agnostic: it only
-requires two async 
-
-- **Class** `WebSocketTransport` (line 38)
-  - Methods: `read_message()`, `write_message()`, `close()`
-- **Class** `WebSocketListener` (line 75)
-  - Methods: `serve()`
-
-#### 📄 `acp_runtime/acp/runtime/__init__.py` _1.4 KB_
-> acp.runtime — the async execution engine for ACP.
-
-Public surface:
-    AcpRuntime            — main engine
-    capability            — decorator for m
-
-
-#### 📄 `acp_runtime/acp/runtime/cancel.py` _1.7 KB_
-> Cancellation helpers.
-
-Thin wrappers over ``anyio.CancelScope``. Most uses are covered by
-``enforce_deadline_ms`` (which uses ``move_on_after`` intern
-
-- **async def** `cancellable()` (line 21)
-- **def** `is_cancelled_exception()` (line 48)
-
-#### 📄 `acp_runtime/acp/runtime/deadline.py` _2.3 KB_
-> Deadline enforcement — wraps a coroutine with a hard timeout.
-
-Built on ``anyio.move_on_after`` so it works on both asyncio and trio.
-Cancellation is 
-
-- **async def** `enforce_deadline_ms()` (line 22)
-- **async def** `deadline_scope()` (line 62)
-
-#### 📄 `acp_runtime/acp/runtime/engine.py` _9.5 KB_
-> AcpRuntime — the main async execution engine.
-
-Responsibilities:
-    * Build a frozen capability registry from a list of handlers.
-    * Dispatch an i
-
-- **Class** `AcpRuntime` (line 47)
-  - Methods: `capability_names()`, `get_meta()`, `execute()`, `handler_count()`, `stats()`
-
-#### 📄 `acp_runtime/acp/runtime/handler.py` _3.6 KB_
-> @capability decorator, AcpHandler Protocol, and capability discovery.
-
-A *handler* is any object with one or more methods decorated with
-``@capability
-
-- **Class** `CapabilityMeta` (line 37)
-- **Class** `AcpHandler` (line 46)
-- **def** `capability()` (line 53)
-- **def** `discover_capabilities()` (line 91)
-- **def** `list_capabilities()` (line 114)
-
-#### 📄 `acp_runtime/acp/runtime/progress.py` _3.6 KB_
-> ProgressEmitter — fire-and-forget progress notifications.
-
-Handlers that do long-running work can call ``emitter.emit(...)`` to
-push a progress event 
-
-- **Class** `ProgressEvent` (line 20)
-  - Methods: `to_envelope()`, `from_envelope()`
-- **Class** `ProgressEmitter` (line 57)
-  - Methods: `trace_id()`, `events()`, `emit()`
-
-#### 📄 `acp_runtime/acp/observability/__init__.py` _1.9 KB_
-> acp.observability — Tracing, metrics, and structured logging.
-
-The observability layer provides three complementary signals:
-
-    * **Tracing** — requ
-
-
-#### 📄 `acp_runtime/acp/observability/metrics.py` _16.1 KB_
-> Metrics — counters, histograms, gauges, and registry.
-
-Design:
-    * ``Counter`` — monotonically increasing value (inc / reset).
-    * ``Histogram`` —
-
-- **Class** `Counter` (line 76)
-  - Methods: `inc()`, `reset()`, `value()`, `snapshot()`
-- **Class** `Histogram` (line 128)
-  - Methods: `observe()`, `reset()`, `buckets()`, `snapshot()`
-- **Class** `Gauge` (line 218)
-  - Methods: `set()`, `inc()`, `dec()`, `reset()`, `value()`, `snapshot()`
-- **Class** `MetricsRegistry` (line 294)
-  - Methods: `get_or_create_counter()`, `get_or_create_histogram()`, `get_or_create_gauge()`, `snapshot()`
-- **Class** `InMemoryMetricsRegistry` (line 417)
-  - Methods: `get_or_create_counter()`, `get_or_create_histogram()`, `get_or_create_gauge()`, `snapshot()`, `prometheus()`, `reset_all()`
-- **def** `to_prometheus()` (line 385)
-- **def** `to_openmetrics()` (line 397)
-
-#### 📄 `acp_runtime/acp/observability/structured_logger.py` _6.6 KB_
-> Structured logging — contextual JSON log entries.
-
-Design:
-    * ``LogEntry`` is an immutable record of a log event with timestamp,
-      level, messa
-
-- **Class** `LogLevel` (line 40)
-- **Class** `LogEntry` (line 52)
-  - Methods: `to_json()`
-- **Class** `StructuredLogger` (line 90)
-  - Methods: `with_context()`, `bind()`, `unbind()`, `debug()`, `info()`, `warning()`, `error()`, `critical()`
-- **Class** `NullStructuredLogger` (line 155)
-  - Methods: `write()`
-- **Class** `InMemoryStructuredLogger` (line 165)
-  - Methods: `write()`, `entries()`, `clear()`, `filter()`
-- **Class** `ConsoleStructuredLogger` (line 201)
-  - Methods: `write()`
-
-#### 📄 `acp_runtime/acp/observability/tracer.py` _7.0 KB_
-> Tracing — request-scoped spans with trace context propagation.
-
-Design:
-    * ``TraceContext`` carries trace_id, span_id, parent_span_id, and a sample
-
-- **Class** `TraceContext` (line 38)
-  - Methods: `with_span()`, `from_trace_id()`
-- **Class** `Span` (line 72)
-  - Methods: `duration_ms()`, `to_json()`
-- **Class** `SpanStatus` (line 121)
-- **Class** `Tracer` (line 130)
-  - Methods: `start_span()`, `finish_span()`, `record_span()`
-- **Class** `NullTracer` (line 186)
-  - Methods: `record_span()`
-- **Class** `InMemoryTracer` (line 196)
-  - Methods: `record_span()`, `spans()`, `clear()`, `spans_for_trace()`
-- **Class** `JsonTracer` (line 224)
-  - Methods: `record_span()`
-
 ### 📦 `integrations/`
 
 #### 📄 `integrations/__init__.py` _0.3 KB_
@@ -3429,7 +3433,7 @@ Automated script to:
 
 ### 📦 `ai_context_engine/`
 
-#### 📄 `ai_context_engine/indexer.py` _6.9 KB_
+#### 📄 `ai_context_engine/indexer.py` _6.6 KB_
 > AI Context Engine - Code Indexer
 Implements Phase 1: Indexing with Tree-Sitter (or AST fallback) and ChromaDB.
 
@@ -3438,20 +3442,20 @@ Implements Phase 1: Indexing with Tree-Sitter (or AST fallback) and ChromaDB.
 - **Class** `CodeIndexer` (line 110)
   - Methods: `hash_code()`, `index_repo()`
 
-#### 📄 `ai_context_engine/knowledge_graph.py` _10.1 KB_
+#### 📄 `ai_context_engine/knowledge_graph.py` _9.8 KB_
 > AI Context Engine - Knowledge Graph
 Implements Phase 3: Explicit code relationships and dependency mapping (Code Property Graph).
 
 - **Class** `KnowledgeGraph` (line 16)
   - Methods: `add_node()`, `add_relationship()`, `get_neighbors()`, `find_path()`, `generate_impact_subgraph()`, `scan_file_for_relations()`, `resolve_references()`, `scan_repo()`
 
-#### 📄 `ai_context_engine/retriever.py` _5.3 KB_
+#### 📄 `ai_context_engine/retriever.py` _5.2 KB_
 > AI Context Engine - Code Retriever and Compressor
 Implements Phase 2: Semantic retrieval from ChromaDB + Lexical & Semantic Compression (Pruning).
 
-- **Class** `CodeCompressor` (line 20)
+- **Class** `CodeCompressor` (line 19)
   - Methods: `get_token_estimate()`, `compress_chunks()`
-- **Class** `CodeRetriever` (line 86)
+- **Class** `CodeRetriever` (line 85)
   - Methods: `retrieve()`, `retrieve_and_compress()`
 
 ### 📦 `backend/`
@@ -3465,6 +3469,50 @@ Implements Phase 2: Semantic retrieval from ChromaDB + Lexical & Semantic Compre
   - Methods: `dispatch()`
 
 ### 📦 `autodesk_connector/`
+
+#### 📄 `autodesk_connector/autocad/__init__.py` _0.5 KB_
+> AutoCAD Connector Package
+=========================
+Provides the AutoCAD .NET API integration layer for the Engineering Copilot.
+
+Architecture:
+  Pyth
+
+
+#### 📄 `autodesk_connector/autocad/connector.py` _23.9 KB_
+> AutoCAD Connector — Python Service Layer
+=========================================
+Orchestrates AutoCAD operations via the C# AutoCAD Plugin.
+Provides
+
+- **Class** `AutoCADEntityType` (line 38)
+- **Class** `AutoCADDrawingOperation` (line 55)
+- **Class** `AutoCADDrawingContext` (line 69)
+- **Class** `AutoCADPluginClient` (line 87)
+  - Methods: `is_available()`, `send_command()`, `open_drawing()`, `save_drawing()`, `create_drawing()`, `create_layer()`, `create_block()`, `insert_block()`
+- **Class** `AutoCADConnector` (line 381)
+  - Methods: `is_connected()`, `open_drawing()`, `save_drawing()`, `create_drawing()`, `close_drawing()`, `draw_bus()`, `draw_transformer()`, `draw_cable()`
+
+#### 📄 `autodesk_connector/revit/__init__.py` _0.5 KB_
+> Revit Connector Package
+=======================
+Provides the Revit API integration layer for the Engineering Copilot.
+
+Architecture:
+  Python service 
+
+
+#### 📄 `autodesk_connector/revit/connector.py` _16.8 KB_
+> Revit Connector — Python Service Layer
+=======================================
+Orchestrates Revit BIM operations via the C# Revit Plugin.
+Supports rea
+
+- **Class** `RevitElementType` (line 36)
+- **Class** `RevitPluginClient` (line 68)
+  - Methods: `is_available()`, `open_model()`, `save_model()`, `create_model()`, `create_element()`, `update_element()`, `delete_element()`, `read_element()`
+- **Class** `RevitConnector` (line 235)
+  - Methods: `is_connected()`, `open_model()`, `create_model()`, `save_model()`, `create_level()`, `create_room()`, `place_panel()`, `place_equipment()`
 
 #### 📄 `autodesk_connector/shared/models.py` _19.2 KB_
 > Unified Engineering Model — Python Dataclass Implementation
@@ -3511,50 +3559,6 @@ Pydantic models for the Unifi
   - Methods: `to_json()`, `from_json()`, `from_dict()`, `add_building()`, `add_panel()`, `get_all_buses()`, `get_all_cables()`, `get_all_transformers()`
 - **Class** `ETAPModelAdapter` (line 545)
   - Methods: `bus_to_unified()`, `transformer_to_unified()`, `cable_to_unified()`
-
-#### 📄 `autodesk_connector/revit/__init__.py` _0.5 KB_
-> Revit Connector Package
-=======================
-Provides the Revit API integration layer for the Engineering Copilot.
-
-Architecture:
-  Python service 
-
-
-#### 📄 `autodesk_connector/revit/connector.py` _16.8 KB_
-> Revit Connector — Python Service Layer
-=======================================
-Orchestrates Revit BIM operations via the C# Revit Plugin.
-Supports rea
-
-- **Class** `RevitElementType` (line 36)
-- **Class** `RevitPluginClient` (line 68)
-  - Methods: `is_available()`, `open_model()`, `save_model()`, `create_model()`, `create_element()`, `update_element()`, `delete_element()`, `read_element()`
-- **Class** `RevitConnector` (line 235)
-  - Methods: `is_connected()`, `open_model()`, `create_model()`, `save_model()`, `create_level()`, `create_room()`, `place_panel()`, `place_equipment()`
-
-#### 📄 `autodesk_connector/autocad/__init__.py` _0.5 KB_
-> AutoCAD Connector Package
-=========================
-Provides the AutoCAD .NET API integration layer for the Engineering Copilot.
-
-Architecture:
-  Pyth
-
-
-#### 📄 `autodesk_connector/autocad/connector.py` _23.9 KB_
-> AutoCAD Connector — Python Service Layer
-=========================================
-Orchestrates AutoCAD operations via the C# AutoCAD Plugin.
-Provides
-
-- **Class** `AutoCADEntityType` (line 38)
-- **Class** `AutoCADDrawingOperation` (line 55)
-- **Class** `AutoCADDrawingContext` (line 69)
-- **Class** `AutoCADPluginClient` (line 87)
-  - Methods: `is_available()`, `send_command()`, `open_drawing()`, `save_drawing()`, `create_drawing()`, `create_layer()`, `create_block()`, `insert_block()`
-- **Class** `AutoCADConnector` (line 381)
-  - Methods: `is_connected()`, `open_drawing()`, `save_drawing()`, `create_drawing()`, `close_drawing()`, `draw_bus()`, `draw_transformer()`, `draw_cable()`
 
 ### 📦 `config/`
 
@@ -3658,9 +3662,18 @@ Provides
 - `Navbar.tsx` → Exports: `Navbar`
 - `Sidebar.tsx` → Exports: `Sidebar`
 - `TitleBar.tsx` → Exports: `TitleBar`
+- `CommandPalette.tsx` → Exports: `CommandPalette`
+- `ContextPanel.tsx` → Exports: `ContextPanel`
+- `ErrorRecovery.tsx` → Exports: `ErrorRecovery`, `useErrorRecovery`
 - `ContextHelpButton.tsx` → Exports: `ContextHelpButton`
 - `MagicHelpInspector.tsx` → Exports: `MagicHelpInspector`
 - `SmartHelpDrawer.tsx` → Exports: `SmartHelpDrawer`
+- `AppShell.tsx` → Exports: `AppShell`
+- `EngineeringWorkspace.tsx` → Exports: `EngineeringWorkspace`
+- `Sidebar.tsx` → Exports: `Sidebar`
+- `StatusBar.tsx` → Exports: `StatusBar`
+- `TopBar.tsx` → Exports: `TopBar`
+- `OnboardingTour.tsx` → Exports: `OnboardingTour`
 - `Badge.tsx` → Exports: `Badge`
 - `Button.tsx` → Exports: `Button`
 - `Card.tsx` → Exports: `Card`, `CardHeader`, `CardSection`
@@ -3671,15 +3684,6 @@ Provides
 - `Toggle.tsx` → Exports: `Toggle`
 - `Visual.tsx` → Exports: `GlassPanel`, `AnimatedBackground`, `StatusIndicator`, `PremiumEmptyState`, `PremiumLoading`, `GradientText`, `GlowCard`
 - `index.ts` → Exports: _none_
-- `OnboardingTour.tsx` → Exports: `OnboardingTour`
-- `ContextPanel.tsx` → Exports: `ContextPanel`
-- `ErrorRecovery.tsx` → Exports: `ErrorRecovery`, `useErrorRecovery`
-- `AppShell.tsx` → Exports: `AppShell`
-- `EngineeringWorkspace.tsx` → Exports: `EngineeringWorkspace`
-- `Sidebar.tsx` → Exports: `Sidebar`
-- `StatusBar.tsx` → Exports: `StatusBar`
-- `TopBar.tsx` → Exports: `TopBar`
-- `CommandPalette.tsx` → Exports: `CommandPalette`
 
 ### 🖥️ `components/help/`
 - `ContextHelpButton.tsx` → Exports: `ContextHelpButton`
@@ -3751,10 +3755,10 @@ Provides
 
 | Type | Count |
 |:---|---:|
-| python-module | 43 |
-| help-topic | 35 |
-| ui-component | 95 |
 | api-route | 50 |
+| ui-component | 95 |
+| help-topic | 35 |
+| python-module | 43 |
 | ui-page | 24 |
 | **TOTAL** | **247** |
 
@@ -3858,6 +3862,9 @@ Provides
 | `test_temp_vercel.py` | 1 | 0 | **1** |
 | `test_visualization.py` | 0 | 5 | **23** |
 | `test_worker_tasks.py` | 0 | 3 | **6** |
+| `test_api_endpoints.py` | 12 | 0 | **12** |
+| `test_retry_behavior.py` | 11 | 0 | **11** |
+| `test_skill_loading.py` | 7 | 0 | **7** |
 | `test_calculations_regression.py` | 6 | 0 | **6** |
 | `test_arc_flash_scenario.py` | 0 | 1 | **6** |
 | `test_battery_storage_scenario.py` | 0 | 1 | **6** |
@@ -3874,9 +3881,6 @@ Provides
 | `test_short_circuit_scenario.py` | 0 | 1 | **6** |
 | `test_stability_scenario.py` | 0 | 1 | **6** |
 | `test_validation_scenario.py` | 0 | 1 | **6** |
-| `test_retry_behavior.py` | 11 | 0 | **11** |
-| `test_skill_loading.py` | 7 | 0 | **7** |
-| `test_api_endpoints.py` | 12 | 0 | **12** |
 
 ---
 
@@ -3889,7 +3893,7 @@ Provides
 | `scripts/backup/postgres_backup.sh` | sh | 8.3 KB | !/usr/bin/env bash |
 | `scripts/capture-screenshots.cjs` | cjs | 1.4 KB |  |
 | `scripts/capture.mjs` | mjs | 1.6 KB |  |
-| `scripts/clean_git_history.py` | py | 5.6 KB | Git History Cleanup Script |
+| `scripts/clean_git_history.py` | py | 5.5 KB | Git History Cleanup Script |
 | `scripts/demo.sh` | sh | 3.6 KB | !/usr/bin/env bash |
 | `scripts/deploy-engineering-service.sh` | sh | 10.3 KB | !/usr/bin/env bash |
 | `scripts/dev/main.py` | py | 9.4 KB | Main demonstration script for the power_protection_system. |
@@ -3920,9 +3924,9 @@ Provides
 
 | File | Size | Hash |
 |:---|---:|:---|
-| `Dockerfile` | 3.2 KB | `899367409741` |
-| `Dockerfile.engineering-service` | 4.5 KB | `d32e94786b2d` |
-| `Dockerfile.hf` | 2.4 KB | `6b58d3e3e1b6` |
+| `Dockerfile` | 3.3 KB | `a2e43e8c76ba` |
+| `Dockerfile.engineering-service` | 4.6 KB | `3236854206bd` |
+| `Dockerfile.hf` | 2.5 KB | `1c682fbfd145` |
 | `Dockerfile.windows-worker` | 2.9 KB | `cd53c47c1d7e` |
 | `docker-compose.yml` | 3.4 KB | `23c2cf0be446` |
 | `docker-compose.monitoring.yml` | 8.7 KB | `d00866419cef` |
@@ -3930,26 +3934,26 @@ Provides
 | `docker-compose.loki.yml` | 1.3 KB | `4d91a64caae6` |
 | `docker-compose.windows.yml` | 1.8 KB | `efe7a5ed30d2` |
 | `pyproject.toml` | 4.6 KB | `bc39bf8224ee` |
-| `requirements.txt` | 2.5 KB | `fd20d90ea27a` |
-| `requirements-prod.txt` | 1.6 KB | `df8b0033edb3` |
-| `requirements-dev.txt` | 0.3 KB | `3f3b3aeed91f` |
-| `requirements-minimal.txt` | 0.7 KB | `c54170abd300` |
-| `requirements-ml.txt` | 1.0 KB | `7b193a051292` |
-| `requirements.hf.txt` | 0.9 KB | `e335bce27135` |
-| `.github/workflows/ci-cd.yml` | 14.0 KB | `c075ec656c2b` |
+| `requirements.txt` | 2.6 KB | `c27edf69ccba` |
+| `requirements-prod.txt` | 1.7 KB | `ec69e53185d1` |
+| `requirements-dev.txt` | 0.3 KB | `b01e6554da26` |
+| `requirements-minimal.txt` | 0.7 KB | `80dbf8ff7108` |
+| `requirements-ml.txt` | 1.0 KB | `43e986654cbe` |
+| `requirements.hf.txt` | 1.0 KB | `b34d3b16afab` |
+| `.github/workflows/ci-cd.yml` | 14.8 KB | `78bd00f65b9b` |
 | `.github/workflows/security.yml` | 5.5 KB | `53e9015135b9` |
 | `.github/workflows/sync-hf-space.yml` | 3.0 KB | `db53c8c4132f` |
 | `.github/workflows/release.yml` | 0.7 KB | `da0e2ecf1633` |
 | `scripts/docker_deploy.sh` | 5.8 KB | `36699346dbc7` |
 | `scripts/docker_build.sh` | 10.5 KB | `479b7a2517a0` |
 | `scripts/deploy-engineering-service.sh` | 10.3 KB | `e491ad4f1c79` |
-| `Makefile` | 7.2 KB | `2e72d882cb26` |
+| `Makefile` | 7.4 KB | `9ef7c798d7e8` |
 | `alembic.ini` | 2.5 KB | `afb311aa031b` |
 | `ruff.toml` | 2.6 KB | `aba9676f8b0b` |
-| `nginx.conf` | 6.5 KB | `2dd233f3aa21` |
-| `hf-space/Dockerfile` | 1.6 KB | `032e5b560b20` |
-| `hf-space/app.py` | 13.9 KB | `5126c593be09` |
-| `ui/package.json` | 2.5 KB | `5b42d5b53b3d` |
+| `nginx.conf` | 6.7 KB | `324447f2cb91` |
+| `hf-space/Dockerfile` | 1.7 KB | `f1b7ae432702` |
+| `hf-space/app.py` | 13.9 KB | `bf1658b8f4fe` |
+| `ui/package.json` | 2.7 KB | `5c16730bedfe` |
 | `ui/vite.config.ts` | 0.6 KB | `bc3d92b256e0` |
 | `ui/tsconfig.json` | 0.1 KB | `a3d39fa780eb` |
 | `mastra.config.ts` | 0.4 KB | `5f57f5833f51` |

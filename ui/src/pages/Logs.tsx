@@ -80,7 +80,6 @@ export default function Logs() {
   }, [notify])
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     loadLogs()
   }, [loadLogs])
 

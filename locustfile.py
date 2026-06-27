@@ -24,13 +24,8 @@ _study_failure_count: int = 0
 @events.test_start.add_listener
 def on_test_start(environment, **kwargs):
     """Log when the test starts."""
-    runner_type = (
-        "master"
-        if isinstance(environment.runner, MasterRunner)
-        else "worker"
-        if isinstance(environment.runner, WorkerRunner)
-        else "standalone"
-    )
+    runner_type = "master" if isinstance(environment.runner, MasterRunner) else \
+                  "worker" if isinstance(environment.runner, WorkerRunner) else "standalone"
     logger.info(f"Locust test starting — runner: {runner_type}")
 
 
@@ -45,9 +40,9 @@ def on_test_stop(environment, **kwargs):
         sorted_times = sorted(_study_execution_times)
         p95_time = sorted_times[min(p95_idx, len(sorted_times) - 1)]
         logger.info(
-            f"\n{'=' * 60}\n"
+            f"\n{'='*60}\n"
             f"  Study Execution Metrics (Custom)\n"
-            f"{'=' * 60}\n"
+            f"{'='*60}\n"
             f"  Total studies:    {len(_study_execution_times)}\n"
             f"  Successful:       {_study_success_count}\n"
             f"  Failed:           {_study_failure_count}\n"
@@ -55,7 +50,7 @@ def on_test_stop(environment, **kwargs):
             f"  Min time:         {min_time:.1f} ms\n"
             f"  Max time:         {max_time:.1f} ms\n"
             f"  P95 time:         {p95_time:.1f} ms\n"
-            f"{'=' * 60}"
+            f"{'='*60}"
         )
 
 
@@ -78,22 +73,10 @@ SAMPLE_SYSTEM = {
     "base_mva": 100.0,
     "buses": [
         {"bus_id": 1, "voltage_magnitude": 1.05, "bus_type": "slack", "base_kv": 138.0},
-        {
-            "bus_id": 2,
-            "voltage_magnitude": 1.0,
-            "bus_type": "pq",
-            "base_kv": 13.8,
-            "load_power_real": 50,
-            "load_power_imag": 20,
-        },
-        {
-            "bus_id": 3,
-            "voltage_magnitude": 1.0,
-            "bus_type": "pv",
-            "base_kv": 4.16,
-            "generation_power_real": 30,
-            "voltage_setpoint": 1.02,
-        },
+        {"bus_id": 2, "voltage_magnitude": 1.0, "bus_type": "pq", "base_kv": 13.8,
+         "load_power_real": 50, "load_power_imag": 20},
+        {"bus_id": 3, "voltage_magnitude": 1.0, "bus_type": "pv", "base_kv": 4.16,
+         "generation_power_real": 30, "voltage_setpoint": 1.02},
     ],
     "lines": [
         {"line_id": 1, "from_bus_id": 1, "to_bus_id": 2, "r1": 0.01, "x1": 0.05, "bshunt1": 0.02},
@@ -101,13 +84,7 @@ SAMPLE_SYSTEM = {
     ],
     "generators": [
         {"generator_id": 1, "bus_id": 1, "x1": 0.2, "internal_voltage_mag": 1.05},
-        {
-            "generator_id": 2,
-            "bus_id": 3,
-            "x1": 0.15,
-            "internal_voltage_mag": 1.02,
-            "power_real": 30,
-        },
+        {"generator_id": 2, "bus_id": 3, "x1": 0.15, "internal_voltage_mag": 1.02, "power_real": 30},
     ],
     "loads": [
         {"load_id": 1, "bus_id": 2, "p_mw": 50, "q_mvar": 20},
@@ -129,7 +106,6 @@ AI_QUESTIONS = [
 
 
 # ─── User Classes ────────────────────────────────────────────────────────────
-
 
 class AuthenticatedUser(HttpUser):
     """Base user that handles authentication flow.
@@ -268,7 +244,7 @@ class EngineeringServiceUser(AuthenticatedUser):
     @task(8)
     def run_load_flow(self):
         """Execute a load flow study with a realistic power system model."""
-        time.time()
+        start_time = time.time()
         self.client.post(
             "/api/v1/studies/run",
             json={
@@ -325,7 +301,6 @@ class EngineeringServiceUser(AuthenticatedUser):
     def etap_expert_chat(self):
         """Chat with the ETAP Expert AI assistant."""
         import random
-
         question = random.choice(AI_QUESTIONS)
         self.client.post(
             "/api/v1/agents/etap-expert/chat",
@@ -340,7 +315,6 @@ class EngineeringServiceUser(AuthenticatedUser):
     def etap_gui_chat(self):
         """Chat with the ETAP GUI Agent."""
         import random
-
         question = random.choice(AI_QUESTIONS[:5])  # Shorter questions for GUI agent
         self.client.post(
             "/api/v1/agents/etap-gui/chat",

@@ -275,7 +275,7 @@ def main():
         f = io.StringIO()
         try:
             with redirect_stdout(f):
-                exec(_code, _globals)  # nosec B102 — sandboxed exec in secure_executor — only runs validated code
+                exec(_code, _globals)
             return {"ok": True, "output": f.getvalue(), "error": None, "traceback": None}
         except Exception as e:
             return {

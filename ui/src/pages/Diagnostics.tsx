@@ -97,7 +97,6 @@ export default function Diagnostics() {
   }, [notify])
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     runDiagnostics()
   }, [runDiagnostics])
 

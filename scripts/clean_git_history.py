@@ -17,7 +17,7 @@ import subprocess
 import sys
 
 
-def run_git_command(cmd_parts, cwd="."):
+def run_git_command(cmd_parts, cwd='.'):
     """Run a git command and return the result."""
     try:
         # Use list form to avoid shell=True vulnerability
@@ -31,11 +31,10 @@ def run_git_command(cmd_parts, cwd="."):
         print(f"Exception running command: {' '.join(cmd_parts)}, Error: {e}")
         return False, str(e)
 
-
 def clean_sensitive_files(repo_path, files_to_remove):
     """
     Clean sensitive files from git history.
-
+    
     Args:
         repo_path: Path to the git repository
         files_to_remove: List of file patterns to remove from history
@@ -45,7 +44,7 @@ def clean_sensitive_files(repo_path, files_to_remove):
     print(f"Files to remove: {files_to_remove}")
 
     # Verify we're in a git repo
-    if not os.path.exists(os.path.join(repo_path, ".git")):
+    if not os.path.exists(os.path.join(repo_path, '.git')):
         print("Error: Not a git repository")
         return False
 
@@ -58,9 +57,7 @@ def clean_sensitive_files(repo_path, files_to_remove):
 
     success, output = run_git_command(["git", "branch"], repo_path)
     if "backup-pre-cleanup" not in output:
-        success, output = run_git_command(
-            ["git", "checkout", "-b", "backup-pre-cleanup"], repo_path
-        )
+        success, output = run_git_command(["git", "checkout", "-b", "backup-pre-cleanup"], repo_path)
         if not success:
             print(f"Failed to create backup branch: {output}")
             return False
@@ -90,7 +87,12 @@ def clean_sensitive_files(repo_path, files_to_remove):
 
     print(f"Running BFG command: {' '.join(bfg_cmd_parts)}")
     try:
-        result = subprocess.run(bfg_cmd_parts, capture_output=True, text=True, cwd=repo_path)
+        result = subprocess.run(
+            bfg_cmd_parts,
+            capture_output=True,
+            text=True,
+            cwd=repo_path
+        )
 
         if result.returncode != 0:
             print(f"BFG command failed: {result.stderr}")
@@ -106,7 +108,7 @@ def clean_sensitive_files(repo_path, files_to_remove):
     print("Cleaning up git refs...")
     commands = [
         ["git", "reflog", "expire", "--expire=now", "--all"],
-        ["git", "gc", "--prune=now", "--aggressive"],
+        ["git", "gc", "--prune=now", "--aggressive"]
     ]
 
     for cmd_parts in commands:
@@ -123,7 +125,6 @@ def clean_sensitive_files(repo_path, files_to_remove):
 
     return True
 
-
 def main():
     """Main function to execute the git history cleanup."""
     # Get repository path
@@ -133,7 +134,7 @@ def main():
     files_to_remove = [
         ".mcp.json",
         "*.pem",  # SSL certificates
-        "*.key",  # Private keys
+        "*.key",   # Private keys
         "*.p12",  # PKCS#12 files
         "config/secrets/*",
         "*.env",
@@ -141,12 +142,12 @@ def main():
     ]
 
     print("Git History Cleanup Tool")
-    print("=" * 50)
+    print("="*50)
     print("This script will remove sensitive files from git history.")
     print("Make sure you have a backup before proceeding!\n")
 
     response = input("Do you want to proceed? (yes/no): ").strip().lower()
-    if response != "yes":
+    if response != 'yes':
         print("Operation cancelled.")
         return
 
@@ -159,7 +160,6 @@ def main():
     else:
         print("\nCleanup failed. Check the errors above.")
         sys.exit(1)
-
 
 if __name__ == "__main__":
     main()

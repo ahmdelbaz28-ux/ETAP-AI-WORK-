@@ -4,7 +4,7 @@ import {
   Search, LayoutDashboard, FolderPlus, FileText, ShieldCheck,
   HelpCircle, Settings, Activity, Zap, FlaskConical, Bot, Map,
   Layers, Bug, ScrollText, Download, Upload, ArrowRight, Command,
-  Code, Database, Plug, FileCode, BookOpen,
+  Code, Database, FileCode, BookOpen,
 } from 'lucide-react'
 import { cn } from '../../utils/helpers'
 import { useTranslation } from 'react-i18next'
@@ -200,14 +200,12 @@ export function CommandPalette() {
   useEffect(() => {
     if (open) {
       setTimeout(() => inputRef.current?.focus(), 50)
-      // eslint-disable-next-line react-hooks/set_state-in-effect
       setSelectedIndex(0)
     }
   }, [open])
 
   // Reset selection on query change
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set_state-in-effect
     setSelectedIndex(0)
   }, [query])
 

@@ -61,9 +61,9 @@ def test_vitest_config_does_not_exclude_scenarios_globally():
 
 def test_ci_workflow_runs_scenario_tests_step():
     """The CI workflow must have a dedicated step that runs scenario tests."""
-    wf = (Path(__file__).resolve().parent.parent / ".github" / "workflows" / "ci-cd.yml").read_text(
-        encoding="utf-8"
-    )
+    wf = (
+        Path(__file__).resolve().parent.parent / ".github" / "workflows" / "ci-cd.yml"
+    ).read_text(encoding="utf-8")
     assert "test:scenarios" in wf, (
         "CI workflow must invoke 'pnpm test:scenarios' explicitly — "
         "otherwise scenario tests are dead code in CI"

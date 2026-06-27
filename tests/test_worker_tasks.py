@@ -14,25 +14,23 @@ from services.study_service import StudyResult
 
 # ─── Helpers ────────────────────────────────────────────────────────────────
 
-
 def _fake_study_result(**overrides) -> StudyResult:
-    defaults = {
-        "success": True,
-        "data": {"converged": True},
-        "warnings": [],
-        "errors": [],
-        "execution_time_sec": 0.05,
-        "trace_id": "test-trace",
-        "task_id": "test-task",
-        "study_type": "load_flow",
-        "provider": "native",
-    }
+    defaults = dict(
+        success=True,
+        data={"converged": True},
+        warnings=[],
+        errors=[],
+        execution_time_sec=0.05,
+        trace_id="test-trace",
+        task_id="test-task",
+        study_type="load_flow",
+        provider="native",
+    )
     defaults.update(overrides)
     return StudyResult(**defaults)
 
 
 # ─── execute_engineering_study_task ─────────────────────────────────────────
-
 
 class TestExecuteEngineeringStudyTask:
     """Test the Celery task that wraps execute_study_logic."""
@@ -53,11 +51,13 @@ class TestExecuteEngineeringStudyTask:
                 "system": {
                     "base_mva": 100.0,
                     "buses": [
-                        {"bus_id": 1, "bus_type": "slack", "voltage_magnitude": 1.05},
+                        {"bus_id": 1, "bus_type": "slack",
+                            "voltage_magnitude": 1.05},
                         {"bus_id": 2, "bus_type": "pq", "load_power_real": 0.5},
                     ],
                     "lines": [
-                        {"line_id": 1, "from_bus_id": 1, "to_bus_id": 2, "r1": 0.01, "x1": 0.05},
+                        {"line_id": 1, "from_bus_id": 1,
+                            "to_bus_id": 2, "r1": 0.01, "x1": 0.05},
                     ],
                 },
             },
@@ -116,7 +116,6 @@ class TestExecuteEngineeringStudyTask:
 
 # ─── execute_etap_integration_task ──────────────────────────────────────────
 
-
 class TestExecuteEtapIntegrationTask:
     """Test the ETAP COM integration Celery task."""
 
@@ -153,7 +152,6 @@ class TestExecuteEtapIntegrationTask:
 
 
 # ─── process_large_calculation_task ─────────────────────────────────────────
-
 
 class TestProcessLargeCalculationTask:
     """Test the heavy-computation Celery task."""

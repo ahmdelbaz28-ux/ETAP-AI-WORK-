@@ -1,172 +1,47 @@
-import { useState, useRef, useEffect, useCallback } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import {
-  Bot, Send, User, Sparkles, Cpu, Copy, RotateCcw, Terminal,
-  ShieldCheck, ShieldOff, Zap, ChevronDown, Check, Brain,
-  Code2, FileText, Lightbulb, AlertCircle,
-} from 'lucide-react'
+import { Bot, Send, User, Sparkles, Cpu, Copy, RotateCcw, MessageSquare, Check, ChevronDown } from 'lucide-react'
 import { useNotify } from '../context/NotificationContext'
 import { chatWithAgent, fetchAgents, type AgentMeta } from '../lib/api'
-import { Badge, Button, Toggle } from '../components/ui'
 import { cn } from '../utils/helpers'
-import { ContextHelpButton } from '../components/help/ContextHelpButton'
+import ReactMarkdown from 'react-markdown'
+import remarkGfm from 'remark-gfm'
+import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter'
+import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism'
 
-// ============================================================================
-// Types
-// ============================================================================
 interface Message {
+  id: string
   role: 'user' | 'assistant'
   content: string
   timestamp: number
-  thinking?: boolean
-  copied?: boolean
 }
 
-interface AgentSetting {
-  skipPermissions: boolean
-  verboseMode: boolean
-  autoExecute: boolean
-}
-
-// ============================================================================
-// Markdown Renderer — renders **bold**, `code`, ```code blocks```, lists
-// ============================================================================
-function MarkdownText({ text }: { text: string }) {
-  const parts = text.split(/(```[\s\S]*?```|`[^`]+`|\*\*[^*]+\*\*|\*[^*]+\*|\n)/g)
-  return (
-    <div className="text-sm leading-relaxed">
-      {parts.map((part, i) => {
-        // Code block
-        if (part.startsWith('```') && part.endsWith('```')) {
-          const code = part.slice(3, -3).replace(/^\w+\n/, '').trim()
-          return (
-            <div key={i} className="my-3 rounded-lg overflow-hidden border border-[var(--border-primary)] bg-[rgba(0,0,0,0.3)]">
-              <div className="flex items-center justify-between px-3 py-1.5 bg-[var(--bg-elevated)] border-b border-[var(--border-primary)]">
-                <span className="text-[10px] font-mono text-[var(--text-muted)] uppercase tracking-wider">Code</span>
-                <button
-                  onClick={() => navigator.clipboard.writeText(code)}
-                  className="p-1 rounded hover:bg-[var(--bg-card)] text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors"
-                >
-                  <Copy className="w-3 h-3" />
-                </button>
-              </div>
-              <pre className="p-3 overflow-x-auto text-xs font-mono text-[var(--text-secondary)] leading-relaxed">
-                <code>{code}</code>
-              </pre>
-            </div>
-          )
-        }
-        // Inline code
-        if (part.startsWith('`') && part.endsWith('`') && part.length > 2) {
-          return (
-            <code key={i} className="px-1.5 py-0.5 rounded bg-[var(--bg-elevated)] text-brand-400 text-xs font-mono border border-[var(--border-primary)]">
-              {part.slice(1, -1)}
-            </code>
-          )
-        }
-        // Bold
-        if (part.startsWith('**') && part.endsWith('**') && part.length > 4) {
-          return <strong key={i} className="font-semibold text-[var(--text-primary)]">{part.slice(2, -2)}</strong>
-        }
-        // Italic
-        if (part.startsWith('*') && part.endsWith('*') && part.length > 2 && !part.startsWith('**')) {
-          return <em key={i} className="italic">{part.slice(1, -1)}</em>
-        }
-        // Newline
-        if (part === '\n') return <br key={i} />
-        // Regular text — render as paragraphs
-        if (part.trim()) {
-          // Check if it's a list item
-          if (part.match(/^\s*[-•]\s/)) {
-            return <div key={i} className="flex gap-2 my-0.5"><span className="text-brand-400">•</span><span>{part.replace(/^\s*[-•]\s/, '')}</span></div>
-          }
-          return <span key={i}>{part}</span>
-        }
-        return null
-      })}
-    </div>
-  )
-}
-
-// ============================================================================
-// Thinking Indicator — Claude Code style pulsing brain
-// ============================================================================
-function ThinkingIndicator() {
-  return (
-    <div className="flex items-center gap-2 text-[var(--text-muted)]">
-      <Brain className="w-4 h-4 text-brand-400 animate-pulse" />
-      <span className="text-xs font-mono italic">thinking...</span>
-      <div className="flex gap-1">
-        <span className="w-1 h-1 bg-brand-400 rounded-full animate-bounce" />
-        <span className="w-1 h-1 bg-brand-400 rounded-full animate-bounce [animation-delay:0.15s]" />
-        <span className="w-1 h-1 bg-brand-400 rounded-full animate-bounce [animation-delay:0.3s]" />
-      </div>
-    </div>
-  )
-}
-
-// ============================================================================
-// Quick Prompt Buttons
-// ============================================================================
-const QUICK_PROMPTS = [
-  { icon: Zap, label: 'Run load flow analysis', prompt: 'Run a Newton-Raphson load flow analysis on a 5-bus system and explain the results.' },
-  { icon: AlertCircle, label: 'Short circuit calculation', prompt: 'Calculate the three-phase short circuit current for a typical 11kV system per IEC 60909.' },
-  { icon: FileText, label: 'Explain arc flash study', prompt: 'Explain the IEEE 1584-2018 arc flash analysis methodology step by step.' },
-  { icon: Code2, label: 'Write protection code', prompt: 'Write Python code for an overcurrent relay coordination check using IEC 60255 curves.' },
-]
-
-// ============================================================================
-// Main Component
-// ============================================================================
 export default function AIAssistant() {
   const [agents, setAgents] = useState<AgentMeta[]>([])
   const [selectedAgent, setSelectedAgent] = useState<string>('power-system-coordinator-agent')
   const [messages, setMessages] = useState<Message[]>([])
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
-  const [settings, setSettings] = useState<AgentSetting>({
-    skipPermissions: false,
-    verboseMode: false,
-    autoExecute: false,
-  })
-  const [showSettings, setShowSettings] = useState(false)
-  const [streamingText, setStreamingText] = useState('')
+  const [copiedId, setCopiedId] = useState<string | null>(null)
   const { notify } = useNotify()
   const messagesEndRef = useRef<HTMLDivElement>(null)
-  const inputRef = useRef<HTMLInputElement>(null)
+  const inputRef = useRef<HTMLTextAreaElement>(null)
 
   useEffect(() => {
     fetchAgents().then(setAgents).catch(() => notify('error', 'Failed to load agents'))
+    // focus input on mount
+    setTimeout(() => inputRef.current?.focus(), 100)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
-  }, [messages, streamingText])
-
-  // Streaming effect — simulate character-by-character typing
-  const streamResponse = useCallback((fullText: string, onComplete: () => void) => {
-    let i = 0
-    const words = fullText.split(' ')
-    setStreamingText('')
-    const interval = setInterval(() => {
-      if (i >= words.length) {
-        clearInterval(interval)
-        setStreamingText('')
-        onComplete()
-        return
-      }
-      setStreamingText(prev => prev + (i === 0 ? '' : ' ') + words[i])
-      i++
-    }, 30) // 30ms per word — fast but visible
-    return interval
-  }, [])
+  }, [messages, loading])
 
   const handleSend = async () => {
     if (!input.trim() || loading) return
-    const userMsg: Message = { role: 'user', content: input.trim(), timestamp: Date.now() }
+    const userMsg: Message = { id: Date.now().toString(), role: 'user', content: input.trim(), timestamp: Date.now() }
     setMessages(prev => [...prev, userMsg])
-    const userQuery = input.trim()
     setInput('')
     setLoading(true)
 
@@ -175,390 +50,247 @@ export default function AIAssistant() {
         selectedAgent,
         [...messages, userMsg].map(m => m.content).join('\n')
       )
-      // Stream the response for a Claude Code-like experience
-      const responseText = reply.response || 'No response received.'
-      streamResponse(responseText, () => {
-        setMessages(prev => [...prev, {
-          role: 'assistant',
-          content: responseText,
-          timestamp: Date.now(),
-        }])
-        setLoading(false)
-      })
+      setMessages(prev => [...prev, { id: Date.now().toString(), role: 'assistant', content: reply.response, timestamp: Date.now() }])
     } catch (err) {
       notify('error', `Chat failed: ${err instanceof Error ? err.message : 'Unknown error'}`)
+    } finally {
       setLoading(false)
+      setTimeout(() => inputRef.current?.focus(), 50)
     }
   }
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    // Enter to send, Shift+Enter for newline
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault()
       handleSend()
     }
   }
 
-  const handleCopy = (index: number) => {
-    const msg = messages[index]
-    if (msg) {
-      navigator.clipboard.writeText(msg.content)
-      setMessages(prev => prev.map((m, i) => i === index ? { ...m, copied: true } : m))
-      setTimeout(() => {
-        setMessages(prev => prev.map((m, i) => i === index ? { ...m, copied: false } : m))
-      }, 2000)
-    }
+  const handleCopy = (id: string, content: string) => {
+    navigator.clipboard.writeText(content)
+    setCopiedId(id)
+    setTimeout(() => setCopiedId(null), 2000)
   }
 
   const selectedAgentData = agents.find(a => a.id === selectedAgent)
 
   return (
-    <div className="h-[calc(100vh-140px)] flex flex-col" data-help-context="ai-assistant.overview">
-      {/* ─── Header ─── */}
-      <div className="flex items-center justify-between mb-3">
+    <div className="flex flex-col h-[calc(100vh-64px)] bg-[#fdfdfc] dark:bg-[#1a1b1e] text-[#1f2937] dark:text-[#e5e7eb] font-sans -mx-4 -my-4 sm:-mx-8 sm:-my-6">
+      {/* Top Header / Model Selector */}
+      <header className="flex items-center justify-between px-4 sm:px-8 py-4 border-b border-gray-200 dark:border-gray-800/50 bg-white/50 dark:bg-black/20 backdrop-blur-md sticky top-0 z-10">
         <div className="flex items-center gap-3">
-          <div className="p-2.5 rounded-xl bg-gradient-to-br from-brand-500/15 to-brand-700/10 border border-brand-500/20">
-            <Terminal className="w-5 h-5 text-brand-400" />
-          </div>
-          <div className="flex items-center gap-2">
-            <h2 className="text-xl font-bold text-[var(--text-primary)] tracking-tight">AI Assistant</h2>
-            <ContextHelpButton contextId="ai-assistant.overview" />
-            {settings.skipPermissions && (
-              <Badge variant="warning" size="sm" className="ml-1">
-                <ShieldOff className="w-3 h-3 mr-1" />
-                Skip Perms
-              </Badge>
-            )}
-          </div>
-        </div>
-
-        <div className="flex items-center gap-2">
-          {/* Agent selector */}
-          <div className="relative">
+          <div className="relative group cursor-pointer flex items-center gap-2 px-3 py-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
+            <Sparkles className="w-4 h-4 text-brand-500" />
             <select
               value={selectedAgent}
               onChange={e => setSelectedAgent(e.target.value)}
-              className="appearance-none pl-3 pr-8 py-2 bg-[var(--bg-card)] border border-[var(--border-primary)] rounded-lg text-[var(--text-primary)] text-sm focus:border-brand-500 outline-none cursor-pointer hover:border-[var(--border-secondary)] transition-colors"
+              className="appearance-none bg-transparent font-medium text-sm text-gray-800 dark:text-gray-200 outline-none cursor-pointer pr-6"
             >
-              {agents.map(a => (
-                <option key={a.id} value={a.id}>{a.name}</option>
-              ))}
+              {agents.length > 0 ? (
+                agents.map(a => <option key={a.id} value={a.id} className="dark:bg-gray-800">{a.name}</option>)
+              ) : (
+                <option value="default" className="dark:bg-gray-800">Claude 3.5 Sonnet</option>
+              )}
             </select>
-            <ChevronDown className="w-4 h-4 text-[var(--text-muted)] absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none" />
+            <ChevronDown className="w-4 h-4 text-gray-500 absolute right-2 pointer-events-none" />
           </div>
-
-          {/* Settings toggle */}
-          <button
-            onClick={() => setShowSettings(prev => !prev)}
-            className={cn(
-              'p-2 rounded-lg border transition-colors',
-              showSettings
-                ? 'bg-brand-500/10 border-brand-500/30 text-brand-400'
-                : 'bg-[var(--bg-card)] border-[var(--border-primary)] text-[var(--text-muted)] hover:text-[var(--text-primary)]'
-            )}
-            title="Agent settings"
-          >
-            <Cpu className="w-4 h-4" />
-          </button>
-
-          {/* Clear button */}
-          {messages.length > 0 && (
-            <Button
-              variant="ghost"
-              size="sm"
-              icon={RotateCcw}
-              onClick={() => { setMessages([]); setStreamingText('') }}
-            >
-              Clear
-            </Button>
+          {selectedAgentData && (
+            <span className="hidden sm:inline-block px-2 py-0.5 rounded-full bg-gray-100 dark:bg-gray-800 text-[10px] font-medium text-gray-500 dark:text-gray-400 border border-gray-200 dark:border-gray-700">
+              {selectedAgentData.provider || 'Anthropic'}
+            </span>
           )}
         </div>
-      </div>
-
-      {/* ─── Settings Panel (collapsible) ─── */}
-      <AnimatePresence>
-        {showSettings && (
-          <motion.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: 'auto', opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            className="overflow-hidden mb-3"
-          >
-            <div className="bg-[var(--bg-card)] rounded-xl border border-[var(--border-primary)] p-4 space-y-3">
-              <div className="flex items-center gap-2 mb-2">
-                <Cpu className="w-4 h-4 text-brand-400" />
-                <span className="text-sm font-semibold text-[var(--text-primary)]">Agent Settings</span>
-              </div>
-
-              {/* Skip Permissions */}
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  {settings.skipPermissions ? (
-                    <ShieldOff className="w-4 h-4 text-amber-400" />
-                  ) : (
-                    <ShieldCheck className="w-4 h-4 text-green-400" />
-                  )}
-                  <div>
-                    <div className="text-sm font-medium text-[var(--text-primary)]">
-                      Skip Permissions
-                    </div>
-                    <div className="text-[11px] text-[var(--text-muted)]">
-                      Allow agent to execute actions without asking for confirmation
-                    </div>
-                  </div>
-                </div>
-                <Toggle
-                  checked={settings.skipPermissions}
-                  onChange={(v) => setSettings(prev => ({ ...prev, skipPermissions: v }))}
-                  size="sm"
-                />
-              </div>
-
-              {/* Verbose Mode */}
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <Terminal className="w-4 h-4 text-[var(--text-muted)]" />
-                  <div>
-                    <div className="text-sm font-medium text-[var(--text-primary)]">
-                      Verbose Mode
-                    </div>
-                    <div className="text-[11px] text-[var(--text-muted)]">
-                      Show detailed reasoning and intermediate steps
-                    </div>
-                  </div>
-                </div>
-                <Toggle
-                  checked={settings.verboseMode}
-                  onChange={(v) => setSettings(prev => ({ ...prev, verboseMode: v }))}
-                  size="sm"
-                />
-              </div>
-
-              {/* Auto Execute */}
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <Zap className="w-4 h-4 text-[var(--text-muted)]" />
-                  <div>
-                    <div className="text-sm font-medium text-[var(--text-primary)]">
-                      Auto-Execute Studies
-                    </div>
-                    <div className="text-[11px] text-[var(--text-muted)]">
-                      Automatically run recommended studies without confirmation
-                    </div>
-                  </div>
-                </div>
-                <Toggle
-                  checked={settings.autoExecute}
-                  onChange={(v) => setSettings(prev => ({ ...prev, autoExecute: v }))}
-                  size="sm"
-                />
-              </div>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* ─── Agent Info Bar ─── */}
-      {selectedAgentData && (
-        <div className="flex items-center gap-3 px-4 py-2 bg-[var(--bg-card)] rounded-lg border border-[var(--border-primary)] mb-3">
-          <div className="w-7 h-7 rounded-lg bg-brand-500/10 border border-brand-500/20 flex items-center justify-center shrink-0">
-            <Bot className="w-3.5 h-3.5 text-brand-400" />
-          </div>
-          <div className="flex-1 min-w-0">
-            <span className="text-sm font-medium text-[var(--text-primary)]">{selectedAgentData.name}</span>
-            {selectedAgentData.standard && (
-              <span className="text-xs text-[var(--text-muted)] ml-2 font-mono">{selectedAgentData.standard}</span>
-            )}
-          </div>
-          <div className="flex items-center gap-2">
-            <span className="flex items-center gap-1 text-[10px] text-green-400">
-              <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" />
-              Active
-            </span>
-            <Badge variant="brand" size="sm">{selectedAgentData.provider || 'native'}</Badge>
-          </div>
+        <div className="flex items-center gap-2">
+          {messages.length > 0 && (
+            <button
+              onClick={() => setMessages([])}
+              className="px-3 py-1.5 flex items-center gap-2 text-xs font-medium text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-md transition-colors"
+            >
+              <RotateCcw className="w-3.5 h-3.5" />
+              Reset Chat
+            </button>
+          )}
         </div>
-      )}
+      </header>
 
-      {/* ─── Messages Area ─── */}
-      <div className="flex-1 bg-[var(--bg-card)] rounded-xl border border-[var(--border-primary)] overflow-hidden flex flex-col">
-        <div className="flex-1 overflow-y-auto p-4 space-y-3">
-          {/* Empty state */}
-          {messages.length === 0 && !loading && (
-            <div className="text-center py-12">
-              <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-brand-500/15 to-brand-700/10 flex items-center justify-center mx-auto mb-4 border border-brand-500/15">
-                <Sparkles className="w-8 h-8 text-brand-400" />
+      {/* Main Chat Area */}
+      <main className="flex-1 overflow-y-auto px-4 sm:px-8 py-8 w-full">
+        <div className="max-w-3xl mx-auto w-full space-y-8 pb-32">
+          {messages.length === 0 ? (
+            <div className="flex flex-col items-center justify-center h-full pt-16 sm:pt-32 text-center animate-in fade-in slide-in-from-bottom-4 duration-700">
+              <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-[#d97706] to-[#f59e0b] flex items-center justify-center mb-6 shadow-xl shadow-amber-500/20">
+                <Sparkles className="w-8 h-8 text-white" />
               </div>
-              <h3 className="text-base font-semibold text-[var(--text-primary)] mb-1">
+              <h1 className="text-3xl font-semibold tracking-tight text-gray-900 dark:text-white mb-3">
                 How can I help you today?
-              </h3>
-              <p className="text-xs text-[var(--text-muted)] max-w-[400px] mx-auto mb-6">
-                I'm your AI engineering assistant. Ask me about power systems, run studies, or write code.
+              </h1>
+              <p className="text-gray-500 dark:text-gray-400 max-w-md mx-auto text-sm">
+                I can write code, analyze power systems, solve short circuits, and help with ETAP integrations.
               </p>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-w-[520px] mx-auto">
-                {QUICK_PROMPTS.map(qp => (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-10 w-full max-w-2xl">
+                {['Run a Newton-Raphson load flow', 'Calculate arc flash incident energy', 'Write a Python script for GIS', 'Explain protective relay coordination'].map(q => (
                   <button
-                    key={qp.label}
-                    onClick={() => { setInput(qp.prompt); inputRef.current?.focus() }}
-                    className="flex items-center gap-2.5 px-3 py-2.5 text-left bg-[var(--bg-elevated)] hover:bg-brand-500/8 border border-[var(--border-primary)] hover:border-brand-500/30 rounded-lg transition-all group"
+                    key={q}
+                    onClick={() => setInput(q)}
+                    className="p-4 text-left text-sm text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700/50 hover:border-[#d97706] dark:hover:border-[#d97706] hover:shadow-md rounded-xl transition-all"
                   >
-                    <qp.icon className="w-4 h-4 text-[var(--text-muted)] group-hover:text-brand-400 transition-colors shrink-0" />
-                    <span className="text-xs text-[var(--text-secondary)] group-hover:text-[var(--text-primary)] transition-colors">
-                      {qp.label}
-                    </span>
+                    {q}
                   </button>
                 ))}
               </div>
             </div>
-          )}
-
-          {/* Messages */}
-          {messages.map((m, i) => (
-            <motion.div
-              key={i}
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.2 }}
-              className={cn(
-                'flex gap-3',
-                m.role === 'user' ? 'justify-end' : 'justify-start'
-              )}
-            >
-              {/* Assistant avatar */}
-              {m.role === 'assistant' && (
-                <div className="w-8 h-8 rounded-lg bg-brand-500/10 border border-brand-500/20 flex items-center justify-center shrink-0 mt-0.5">
-                  <Bot className="w-4 h-4 text-brand-400" />
-                </div>
-              )}
-
-              {/* Message bubble */}
-              <div className={cn(
-                'max-w-[78%] rounded-xl px-4 py-3',
-                m.role === 'user'
-                  ? 'bg-brand-600 text-white'
-                  : 'bg-[var(--bg-elevated)] text-[var(--text-primary)] border border-[var(--border-primary)]'
-              )}>
-                {m.role === 'assistant' ? (
-                  <MarkdownText text={m.content} />
+          ) : (
+            messages.map((m) => (
+              <motion.div
+                key={m.id}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3 }}
+                className={cn('flex flex-col', m.role === 'user' ? 'items-end' : 'items-start')}
+              >
+                {m.role === 'user' ? (
+                  <div className="bg-[#f3f4f6] dark:bg-[#27272a] text-gray-900 dark:text-gray-100 px-5 py-3.5 rounded-2xl max-w-[85%] text-[15px] leading-relaxed shadow-sm">
+                    {m.content}
+                  </div>
                 ) : (
-                  <p className="text-sm whitespace-pre-wrap">{m.content}</p>
+                  <div className="flex gap-4 w-full">
+                    <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-[#d97706] to-[#f59e0b] flex items-center justify-center shrink-0 shadow-md">
+                      <Bot className="w-4 h-4 text-white" />
+                    </div>
+                    <div className="flex-1 space-y-4 max-w-[100%] overflow-hidden">
+                      <div className="prose prose-sm sm:prose-base dark:prose-invert prose-p:leading-relaxed prose-pre:bg-[#1e1e1e] prose-pre:p-0 prose-pre:rounded-xl overflow-hidden max-w-none text-[15px]">
+                        <ReactMarkdown
+                          remarkPlugins={[remarkGfm]}
+                          components={{
+                            code({ node, inline, className, children, ...props }: any) {
+                              const match = /language-(\w+)/.exec(className || '')
+                              return !inline && match ? (
+                                <div className="rounded-xl overflow-hidden border border-gray-200 dark:border-gray-700 my-4 shadow-sm bg-[#1e1e1e]">
+                                  <div className="flex items-center justify-between px-4 py-2 bg-[#2d2d2d] text-gray-400 text-xs font-mono border-b border-gray-700">
+                                    <span>{match[1]}</span>
+                                    <button
+                                      onClick={() => handleCopy(m.id + children, String(children))}
+                                      className="hover:text-white transition-colors flex items-center gap-1.5"
+                                    >
+                                      {copiedId === m.id + children ? <Check className="w-3.5 h-3.5 text-green-400" /> : <Copy className="w-3.5 h-3.5" />}
+                                      {copiedId === m.id + children ? 'Copied' : 'Copy'}
+                                    </button>
+                                  </div>
+                                  <SyntaxHighlighter
+                                    style={vscDarkPlus as any}
+                                    language={match[1]}
+                                    PreTag="div"
+                                    customStyle={{ margin: 0, padding: '1rem', background: 'transparent' }}
+                                    {...props}
+                                  >
+                                    {String(children).replace(/\n$/, '')}
+                                  </SyntaxHighlighter>
+                                </div>
+                              ) : (
+                                <code className={cn('bg-gray-100 dark:bg-gray-800 text-[#d97706] dark:text-[#fbbf24] px-1.5 py-0.5 rounded-md text-[0.9em] font-mono', className)} {...props}>
+                                  {children}
+                                </code>
+                              )
+                            }
+                          }}
+                        >
+                          {m.content}
+                        </ReactMarkdown>
+                      </div>
+                      <div className="flex items-center gap-2 pt-1 opacity-0 hover:opacity-100 transition-opacity">
+                        <button
+                          onClick={() => handleCopy(m.id, m.content)}
+                          className="p-1.5 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors flex items-center gap-1.5 text-xs font-medium"
+                        >
+                          {copiedId === m.id ? <Check className="w-3.5 h-3.5 text-green-500" /> : <Copy className="w-3.5 h-3.5" />}
+                          {copiedId === m.id ? 'Copied!' : 'Copy text'}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
                 )}
+              </motion.div>
+            ))
+          )}
 
-                {/* Footer */}
-                <div className={cn(
-                  'flex items-center gap-2 mt-2 pt-2 border-t',
-                  m.role === 'user' ? 'border-white/10' : 'border-[var(--border-primary)]'
-                )}>
-                  <span className="text-[10px] opacity-40 font-mono">
-                    {new Date(m.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+          {loading && (
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="flex gap-4 w-full"
+            >
+              <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-[#d97706] to-[#f59e0b] flex items-center justify-center shrink-0 shadow-md">
+                <Bot className="w-4 h-4 text-white" />
+              </div>
+              <div className="flex-1 mt-1">
+                <div className="flex flex-col gap-2">
+                  <span className="text-xs font-medium text-amber-600 dark:text-amber-500 flex items-center gap-2">
+                    <LoaderIcon className="w-3.5 h-3.5 animate-spin" />
+                    Thinking...
                   </span>
-                  {m.role === 'assistant' && (
-                    <button
-                      onClick={() => handleCopy(i)}
-                      className="ml-auto flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-card)] transition-colors"
-                    >
-                      {m.copied ? (
-                        <><Check className="w-3 h-3 text-green-400" /> Copied</>
-                      ) : (
-                        <><Copy className="w-3 h-3" /> Copy</>
-                      )}
-                    </button>
-                  )}
+                  <div className="flex flex-col gap-2 w-full max-w-sm opacity-50">
+                    <div className="h-4 bg-gray-200 dark:bg-gray-800 rounded animate-pulse w-3/4"></div>
+                    <div className="h-4 bg-gray-200 dark:bg-gray-800 rounded animate-pulse w-1/2"></div>
+                  </div>
                 </div>
               </div>
-
-              {/* User avatar */}
-              {m.role === 'user' && (
-                <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-brand-500 to-brand-700 flex items-center justify-center shrink-0 mt-0.5">
-                  <User className="w-4 h-4 text-white" />
-                </div>
-              )}
             </motion.div>
-          ))}
-
-          {/* Streaming response (Claude Code style) */}
-          {loading && streamingText && (
-            <div className="flex gap-3 justify-start">
-              <div className="w-8 h-8 rounded-lg bg-brand-500/10 border border-brand-500/20 flex items-center justify-center shrink-0 mt-0.5">
-                <Bot className="w-4 h-4 text-brand-400" />
-              </div>
-              <div className="max-w-[78%] rounded-xl px-4 py-3 bg-[var(--bg-elevated)] text-[var(--text-primary)] border border-[var(--border-primary)]">
-                <MarkdownText text={streamingText} />
-                <span className="inline-block w-1.5 h-4 bg-brand-400 animate-pulse ml-0.5 align-middle" />
-              </div>
-            </div>
           )}
-
-          {/* Thinking indicator (before streaming starts) */}
-          {loading && !streamingText && (
-            <div className="flex gap-3 justify-start">
-              <div className="w-8 h-8 rounded-lg bg-brand-500/10 border border-brand-500/20 flex items-center justify-center shrink-0 mt-0.5">
-                <Bot className="w-4 h-4 text-brand-400" />
-              </div>
-              <div className="rounded-xl px-4 py-3 bg-[var(--bg-elevated)] border border-[var(--border-primary)]">
-                <ThinkingIndicator />
-              </div>
-            </div>
-          )}
-
-          <div ref={messagesEndRef} />
+          <div ref={messagesEndRef} className="h-4" />
         </div>
+      </main>
 
-        {/* ─── Input Area ─── */}
-        <div className="border-t border-[var(--border-primary)] p-3 bg-[var(--bg-secondary)]">
+      {/* Bottom Input Area */}
+      <div className="absolute bottom-0 left-0 w-full bg-gradient-to-t from-white via-white to-transparent dark:from-[#1a1b1e] dark:via-[#1a1b1e] dark:to-transparent pt-10 pb-6 px-4 sm:px-8 z-10">
+        <div className="max-w-3xl mx-auto w-full relative">
           <form
             onSubmit={e => { e.preventDefault(); handleSend() }}
-            className="flex gap-2 items-end"
+            className="relative flex flex-col bg-white dark:bg-[#27272a] border border-gray-300 dark:border-gray-700 rounded-2xl shadow-sm focus-within:border-[#d97706] focus-within:ring-1 focus-within:ring-[#d97706] transition-all overflow-hidden"
           >
-            <div className="flex-1 relative">
-              <input
-                ref={inputRef}
-                value={input}
-                onChange={e => setInput(e.target.value)}
-                onKeyDown={handleKeyDown}
-                disabled={loading}
-                placeholder={loading ? 'AI is responding...' : 'Ask about power systems engineering...  (Enter to send, Shift+Enter for newline)'}
-                className="w-full px-4 py-2.5 bg-[var(--bg-card)] border border-[var(--border-primary)] rounded-xl text-[var(--text-primary)] text-sm outline-none placeholder:text-[var(--text-muted)] focus:border-brand-500/50 focus:ring-1 focus:ring-brand-500/20 transition-all disabled:opacity-50"
-              />
-            </div>
-            <Button
-              type="submit"
-              variant="primary"
-              size="icon"
-              disabled={loading || !input.trim()}
-              icon={Send}
-              className="shrink-0"
+            <textarea
+              ref={inputRef}
+              value={input}
+              onChange={e => setInput(e.target.value)}
+              onKeyDown={handleKeyDown}
+              disabled={loading}
+              placeholder="Message AI Assistant..."
+              className="w-full max-h-48 min-h-[56px] px-4 pt-4 pb-12 bg-transparent text-[#1f2937] dark:text-[#e5e7eb] text-[15px] resize-none outline-none placeholder:text-gray-400 dark:placeholder:text-gray-500 leading-relaxed"
+              rows={input.split('\n').length > 1 ? Math.min(input.split('\n').length, 8) : 1}
             />
+            <div className="absolute bottom-2 right-2 flex items-center justify-between left-4">
+              <div className="flex items-center gap-2 text-xs text-gray-400">
+                <Cpu className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">ETAP Engineering Engine</span>
+              </div>
+              <button
+                type="submit"
+                disabled={loading || !input.trim()}
+                className={cn(
+                  "p-2 rounded-xl transition-all duration-200 flex items-center justify-center",
+                  loading || !input.trim()
+                    ? "bg-gray-100 dark:bg-gray-800 text-gray-400 cursor-not-allowed"
+                    : "bg-[#d97706] hover:bg-[#b45309] text-white shadow-md shadow-amber-500/20"
+                )}
+              >
+                <Send className="w-4 h-4" />
+              </button>
+            </div>
           </form>
-
-          {/* Status bar */}
-          <div className="flex items-center justify-between mt-2 px-1">
-            <div className="flex items-center gap-3 text-[10px] text-[var(--text-muted)] font-mono">
-              <span className="flex items-center gap-1">
-                <span className={cn('w-1.5 h-1.5 rounded-full', loading ? 'bg-amber-400 animate-pulse' : 'bg-green-400')} />
-                {loading ? 'Processing' : 'Ready'}
-              </span>
-              <span>•</span>
-              <span>{selectedAgentData?.name || 'No agent'}</span>
-              {settings.skipPermissions && (
-                <>
-                  <span>•</span>
-                  <span className="text-amber-400">⚠ Skip Perms ON</span>
-                </>
-              )}
-              {settings.verboseMode && (
-                <>
-                  <span>•</span>
-                  <span className="text-blue-400">Verbose</span>
-                </>
-              )}
-            </div>
-            <div className="text-[10px] text-[var(--text-muted)] font-mono">
-              {messages.length} message{messages.length !== 1 ? 's' : ''}
-            </div>
+          <div className="text-center mt-3">
+            <span className="text-[10px] text-gray-400 dark:text-gray-500">
+              AI Assistant can make mistakes. Please verify critical engineering decisions.
+            </span>
           </div>
         </div>
       </div>
     </div>
+  )
+}
+
+function LoaderIcon(props: React.SVGProps<SVGSVGElement>) {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
+      <path d="M21 12a9 9 0 1 1-6.219-8.56" />
+    </svg>
   )
 }
