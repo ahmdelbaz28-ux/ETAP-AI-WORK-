@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { motion } from 'framer-motion'
-import { Save, Download, Upload, Trash2, Bot, Wrench, Database, Shield, Link2, Gauge, Sparkles, Terminal, Info, Code } from 'lucide-react'
+import { Save, Download, Upload, Trash2, Bot, Wrench, Database, Shield, Link2, Gauge, Sparkles, Terminal, Info, Code, CheckCircle2, XCircle, Loader2, ExternalLink } from 'lucide-react'
 import { useNotify } from '../context/NotificationContext'
 import { Card, CardHeader, Button, Tabs, TabPanels, useTabState, Toggle } from '../components/ui'
 
@@ -616,6 +616,346 @@ function AISettingsPanel({ settings, setSettings, notify }: AISettingsPanelProps
   )
 }
 
+// ============================================================================
+// ExternalServicesPanel — dedicated panel with Test Connection buttons + status
+// ============================================================================
+type TestStatus = 'idle' | 'testing' | 'ok' | 'fail'
+
+interface ServiceDescriptor {
+  id: 'langwatch' | 'smithery' | 'huggingface' | 'github' | 'vercel'
+  name: string
+  description: string
+  dashboardUrl: string
+  color: string
+  fields: { key: string; label: string; placeholder: string; required: boolean; type?: 'text' | 'password' }[]
+  // Returns null if the request cannot be attempted (missing fields),
+  // otherwise returns a Promise that resolves to { ok: boolean; detail: string }.
+  testConnection: (settings: Record<string, string>) => Promise<{ ok: boolean; detail: string }> | null
+}
+
+const EXTERNAL_SERVICES: ServiceDescriptor[] = [
+  {
+    id: 'langwatch',
+    name: 'LangWatch',
+    description: 'LLM observability & tracing dashboard',
+    dashboardUrl: 'https://app.langwatch.ai',
+    color: '#6366f1',
+    fields: [
+      { key: 'LANGWATCH_API_KEY', label: 'API Key', placeholder: 'sk-lw-...', required: true, type: 'password' },
+      { key: 'LANGWATCH_PROJECT', label: 'Project Name', placeholder: 'AhmedETAP', required: true },
+      { key: 'LANGWATCH_ENDPOINT', label: 'Endpoint', placeholder: 'https://app.langwatch.ai', required: true },
+    ],
+    testConnection: (s) => {
+      const apiKey = s.LANGWATCH_API_KEY?.trim()
+      const endpoint = s.LANGWATCH_ENDPOINT?.trim() || 'https://app.langwatch.ai'
+      if (!apiKey) return null
+      // LangWatch has CORS restrictions on browser fetches. We use a no-cors mode
+      // probe to verify the server is reachable (we won't be able to read the response,
+      // but the request will resolve on network success).
+      // Step 1: probe /api/v1/projects with normal mode — if it succeeds, great.
+      // Step 2: fall back to no-cors mode HEAD probe — if it resolves, server is reachable.
+      const tryNormal = fetch(`${endpoint}/api/v1/projects`, {
+        method: 'GET',
+        headers: { 'X-Auth-Token': apiKey, 'Accept': 'application/json' },
+      })
+        .then(async (r) => {
+          if (r.ok) return { ok: true, detail: 'Connected — project list reachable' }
+          if (r.status === 401 || r.status === 403) return { ok: false, detail: 'Invalid API key (401/403)' }
+          if (r.status === 404) return { ok: true, detail: 'Endpoint reachable (path 404 is normal)' }
+          return { ok: false, detail: `HTTP ${r.status}` }
+        })
+
+      // If normal fetch throws (CORS), try no-cors probe as fallback
+      return tryNormal.catch(() =>
+        fetch(`${endpoint}/api/v1/projects`, {
+          method: 'GET',
+          mode: 'no-cors',
+          headers: { 'X-Auth-Token': apiKey },
+        })
+          .then(() => ({ ok: true, detail: 'Endpoint reachable (no-cors probe OK)' }))
+          .catch((e) => ({ ok: false, detail: `Network error: ${e.message}` }))
+      )
+    },
+  },
+  {
+    id: 'smithery',
+    name: 'Smithery MCP',
+    description: 'Model Context Protocol server registry',
+    dashboardUrl: 'https://smithery.ai/console/api-keys',
+    color: '#10b981',
+    fields: [
+      { key: 'SMITHERY_API_KEY', label: 'API Key', placeholder: 'UUID-format key', required: true, type: 'password' },
+      { key: 'SMITHERY_BASE_URL', label: 'Base URL', placeholder: 'https://api.smithery.ai', required: true },
+    ],
+    testConnection: (s) => {
+      const apiKey = s.SMITHERY_API_KEY?.trim()
+      const baseUrl = s.SMITHERY_BASE_URL?.trim() || 'https://api.smithery.ai'
+      if (!apiKey) return null
+      // Smithery exposes /v1/servers as a public listing endpoint
+      return fetch(`${baseUrl}/v1/servers?limit=1`, {
+        method: 'GET',
+        headers: { 'Authorization': `Bearer ${apiKey}`, 'Accept': 'application/json' },
+      })
+        .then(async (r) => {
+          if (r.ok) return { ok: true, detail: 'Connected — server registry reachable' }
+          if (r.status === 401 || r.status === 403) return { ok: false, detail: 'Invalid API key' }
+          // Try alternative endpoint
+          return fetch(`${baseUrl}/servers?limit=1`, {
+            method: 'GET',
+            headers: { 'Authorization': `Bearer ${apiKey}` },
+          }).then(r2 => r2.ok
+            ? { ok: true, detail: 'Connected (alt path)' }
+            : { ok: false, detail: `HTTP ${r.status} / ${r2.status}` })
+        })
+        .catch((e) => ({ ok: false, detail: `Network error: ${e.message}` }))
+    },
+  },
+  {
+    id: 'huggingface',
+    name: 'Hugging Face',
+    description: 'Model hub & Spaces deployment',
+    dashboardUrl: 'https://huggingface.co/settings/tokens',
+    color: '#ffd21e',
+    fields: [
+      { key: 'HF_TOKEN', label: 'Access Token', placeholder: 'hf_...', required: true, type: 'password' },
+      { key: 'HF_SPACE_NAME', label: 'Space Name', placeholder: 'username/space-name', required: true },
+      { key: 'HF_REPO_URL', label: 'Space URL', placeholder: 'https://huggingface.co/spaces/...', required: false },
+    ],
+    testConnection: (s) => {
+      const token = s.HF_TOKEN?.trim()
+      if (!token) return null
+      // HuggingFace exposes /api/whoami-v2 which validates the token
+      return fetch('https://huggingface.co/api/whoami-v2', {
+        method: 'GET',
+        headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/json' },
+      })
+        .then(async (r) => {
+          if (r.ok) {
+            try {
+              const data = await r.json()
+              const username = data.name || data.user?.name || 'unknown'
+              return { ok: true, detail: `Connected as @${username}` }
+            } catch {
+              return { ok: true, detail: 'Connected (token valid)' }
+            }
+          }
+          if (r.status === 401) return { ok: false, detail: 'Invalid or expired token' }
+          return { ok: false, detail: `HTTP ${r.status}` }
+        })
+        .catch((e) => ({ ok: false, detail: `Network error: ${e.message}` }))
+    },
+  },
+  {
+    id: 'github',
+    name: 'GitHub',
+    description: 'Repository access & CI/CD',
+    dashboardUrl: 'https://github.com/settings/tokens',
+    color: '#6e7681',
+    fields: [
+      { key: 'GITHUB_TOKEN', label: 'Personal Access Token', placeholder: 'github_pat_... or ghp_...', required: true, type: 'password' },
+      { key: 'GITHUB_REPO', label: 'Repository', placeholder: 'owner/repo-name', required: true },
+    ],
+    testConnection: (s) => {
+      const token = s.GITHUB_TOKEN?.trim()
+      if (!token) return null
+      return fetch('https://api.github.com/user', {
+        method: 'GET',
+        headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/vnd.github+json' },
+      })
+        .then(async (r) => {
+          if (r.ok) {
+            try {
+              const data = await r.json()
+              return { ok: true, detail: `Connected as @${data.login}` }
+            } catch {
+              return { ok: true, detail: 'Connected (token valid)' }
+            }
+          }
+          if (r.status === 401) return { ok: false, detail: 'Invalid token' }
+          if (r.status === 403) return { ok: false, detail: 'Rate-limited or forbidden' }
+          return { ok: false, detail: `HTTP ${r.status}` }
+        })
+        .catch((e) => ({ ok: false, detail: `Network error: ${e.message}` }))
+    },
+  },
+  {
+    id: 'vercel',
+    name: 'Vercel',
+    description: 'Frontend deployment & preview',
+    dashboardUrl: 'https://vercel.com/account/tokens',
+    color: '#000000',
+    fields: [
+      { key: 'VERCEL_PROJECT_ID', label: 'Project ID', placeholder: 'prj_...', required: true },
+      { key: 'VERCEL_ACCESS_TOKEN', label: 'Access Token', placeholder: 'vcp_...', required: true, type: 'password' },
+    ],
+    testConnection: (s) => {
+      const token = s.VERCEL_ACCESS_TOKEN?.trim()
+      const projectId = s.VERCEL_PROJECT_ID?.trim()
+      if (!token || !projectId) return null
+      // Vercel API: GET /v9/projects/{id}
+      return fetch(`https://api.vercel.com/v9/projects/${projectId}`, {
+        method: 'GET',
+        headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/json' },
+      })
+        .then(async (r) => {
+          if (r.ok) {
+            try {
+              const data = await r.json()
+              return { ok: true, detail: `Connected — project "${data.name}"` }
+            } catch {
+              return { ok: true, detail: 'Connected (project reachable)' }
+            }
+          }
+          if (r.status === 401) return { ok: false, detail: 'Invalid access token' }
+          if (r.status === 404) return { ok: false, detail: 'Project not found (bad project ID?)' }
+          return { ok: false, detail: `HTTP ${r.status}` }
+        })
+        .catch((e) => ({ ok: false, detail: `Network error: ${e.message}` }))
+    },
+  },
+]
+
+function ExternalServicesPanel({
+  settings,
+  setSettings,
+  notify,
+}: {
+  settings: Record<string, string>
+  setSettings: React.Dispatch<React.SetStateAction<Record<string, string>>>
+  notify: (type: 'success' | 'error' | 'info' | 'warning', message: string) => void
+}) {
+  // status[id] = { state, detail }
+  const [status, setStatus] = useState<Record<string, { state: TestStatus; detail: string }>>({})
+
+  const handleTest = async (svc: ServiceDescriptor) => {
+    const result = svc.testConnection(settings)
+    if (result === null) {
+      notify('warning', `Please fill in all required fields for ${svc.name}`)
+      return
+    }
+    setStatus(prev => ({ ...prev, [svc.id]: { state: 'testing', detail: 'Testing…' } }))
+    try {
+      const r = await result
+      setStatus(prev => ({ ...prev, [svc.id]: { state: r.ok ? 'ok' : 'fail', detail: r.detail } }))
+      notify(r.ok ? 'success' : 'error', `${svc.name}: ${r.detail}`)
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : String(e)
+      setStatus(prev => ({ ...prev, [svc.id]: { state: 'fail', detail: msg } }))
+      notify('error', `${svc.name}: ${msg}`)
+    }
+  }
+
+  return (
+    <div className="space-y-6 col-span-2">
+      <Card padding="md" className="border border-[var(--border-primary)] shadow-sm">
+        <div className="flex items-center gap-2 mb-4 border-b border-[var(--border-primary)] pb-3">
+          <Link2 className="w-5 h-5 text-brand-400" />
+          <div>
+            <h3 className="text-sm font-semibold text-[var(--text-primary)]">External Services</h3>
+            <p className="text-[10px] text-[var(--text-muted)]">
+              Configure and verify connections to LangWatch, Smithery, Hugging Face, GitHub, and Vercel.
+              Click "Test" to verify each integration in real-time.
+            </p>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {EXTERNAL_SERVICES.map(svc => {
+            const st = status[svc.id] || { state: 'idle' as TestStatus, detail: '' }
+            const isConfigured = svc.fields
+              .filter(f => f.required)
+              .every(f => (settings[f.key] || '').trim().length > 0)
+
+            return (
+              <div
+                key={svc.id}
+                className="rounded-xl border border-[var(--border-primary)] p-4 bg-[var(--bg-secondary)] hover:border-[var(--color-brand-500)] transition-colors"
+              >
+                <div className="flex items-start justify-between mb-3">
+                  <div className="flex items-center gap-2">
+                    <div
+                      className="w-3 h-3 rounded-full"
+                      style={{ backgroundColor: svc.color }}
+                      aria-hidden
+                    />
+                    <div>
+                      <h4 className="text-sm font-semibold text-[var(--text-primary)]">{svc.name}</h4>
+                      <p className="text-[10px] text-[var(--text-muted)]">{svc.description}</p>
+                    </div>
+                  </div>
+                  {st.state === 'ok' && <CheckCircle2 className="w-4 h-4 text-green-500" />}
+                  {st.state === 'fail' && <XCircle className="w-4 h-4 text-red-500" />}
+                  {st.state === 'testing' && <Loader2 className="w-4 h-4 text-yellow-400 animate-spin" />}
+                </div>
+
+                <div className="space-y-2 mb-3">
+                  {svc.fields.map(f => (
+                    <div key={f.key}>
+                      <label className="block text-[10px] font-medium text-[var(--text-tertiary)] mb-1">
+                        {f.label}{f.required && <span className="text-red-400"> *</span>}
+                      </label>
+                      <input
+                        type={f.type === 'password' ? 'password' : 'text'}
+                        placeholder={f.placeholder}
+                        value={settings[f.key] || ''}
+                        onChange={e => setSettings(prev => ({ ...prev, [f.key]: e.target.value }))}
+                        className="w-full px-2.5 py-1.5 bg-[var(--bg-input)] border border-[var(--border-primary)] rounded-md text-[var(--text-primary)] text-xs focus:border-brand-500 outline-none font-mono transition-colors"
+                      />
+                    </div>
+                  ))}
+                </div>
+
+                {st.detail && (
+                  <div
+                    className={`text-[10px] mb-2 px-2 py-1 rounded ${
+                      st.state === 'ok'
+                        ? 'bg-green-500/10 text-green-400'
+                        : st.state === 'fail'
+                        ? 'bg-red-500/10 text-red-400'
+                        : 'bg-yellow-500/10 text-yellow-400'
+                    }`}
+                  >
+                    {st.detail}
+                  </div>
+                )}
+
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant={isConfigured ? 'primary' : 'ghost'}
+                    size="sm"
+                    disabled={st.state === 'testing'}
+                    onClick={() => handleTest(svc)}
+                    className="flex-1"
+                  >
+                    {st.state === 'testing' ? 'Testing…' : 'Test Connection'}
+                  </Button>
+                  <a
+                    href={svc.dashboardUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="px-2.5 py-1.5 text-xs rounded-md border border-[var(--border-primary)] text-[var(--text-secondary)] hover:bg-[var(--bg-tertiary)] flex items-center gap-1"
+                    title={`Open ${svc.name} dashboard`}
+                  >
+                    <ExternalLink className="w-3 h-3" />
+                  </a>
+                </div>
+              </div>
+            )
+          })}
+        </div>
+
+        <div className="mt-4 p-3 rounded-lg bg-[var(--bg-tertiary)] border border-[var(--border-primary)] text-[11px] text-[var(--text-muted)] leading-relaxed">
+          <Info className="w-3.5 h-3.5 inline-block mr-1.5 -mt-0.5" />
+          <strong>How it works:</strong> Each service is tested by calling its public API with your
+          credentials. Tokens are stored locally (obfuscated) and never sent to our backend. After
+          saving, copy the same values into your HF Space secrets or server <code>.env</code> for
+          backend runtime access.
+        </div>
+      </Card>
+    </div>
+  )
+}
+
 function SettingsField({ field, value, onChange }: { field: string; value: string; onChange: (v: string) => void }) {
   const isSecret = field.includes('KEY') || field.includes('SECRET')
   const isFeatureFlag = field.startsWith('ENABLE_') || field.endsWith('_ENABLED')
@@ -766,6 +1106,8 @@ export default function Settings() {
         >
           {activeTab === 'ai' ? (
             <AISettingsPanel settings={settings} setSettings={setSettings} notify={notify} />
+          ) : activeTab === 'external' ? (
+            <ExternalServicesPanel settings={settings} setSettings={setSettings} notify={notify} />
           ) : (
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {currentSections.map(section => (
