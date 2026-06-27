@@ -120,16 +120,17 @@ export default function App() {
               <Route path="/code-guard" element={<LazyPage><CodeGuardPage /></LazyPage>} />
             </Route>
           </Routes>
+
+          {/* Global Overlays inside Router context */}
+          <CommandPalette />
+          <OnboardingTour />
+          <SmartHelpDrawer
+            open={helpOpen}
+            onClose={() => { setHelpOpen(false); setHelpContext(undefined) }}
+            initialContextId={helpContext}
+          />
         </BrowserRouter>
 
-        {/* Global Overlays */}
-        <CommandPalette />
-        <OnboardingTour />
-        <SmartHelpDrawer
-          open={helpOpen}
-          onClose={() => { setHelpOpen(false); setHelpContext(undefined) }}
-          initialContextId={helpContext}
-        />
         <ErrorRecovery
           error={lastError}
           onDismiss={() => setLastError(null)}
