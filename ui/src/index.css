@@ -566,3 +566,18 @@ body {
 @media (min-width: 769px) {
   .hide-desktop { display: none !important; }
 }
+
+/* Hide Vercel live feedback / toolbar widget */
+#vercel-live-feedback,
+vercel-live-feedback,
+.vercel-live-feedback,
+#vercel-preview-feedback,
+#vercel-toolbar,
+[id^="vercel-"],
+[class^="vercel-"],
+iframe[src*="vercel.com"] {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
