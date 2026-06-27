@@ -4,6 +4,7 @@ import { FolderOpen, Plus, FlaskConical, Calendar } from 'lucide-react'
 import { useNotify } from '../context/NotificationContext'
 import { Card, CardSection, Badge, Button, EmptyState } from '../components/ui'
 
+import { ContextHelpButton } from '../components/help/ContextHelpButton'
 interface Project {
   id: string
   name: string
@@ -47,6 +48,7 @@ export default function Projects() {
           </div>
           <div>
             <h2 className="text-2xl font-bold text-[var(--text-primary)]">Projects</h2>
+          <ContextHelpButton contextId="projects.manage" />
             <p className="text-sm text-[var(--text-tertiary)]">
               {activeCount} active · {archivedCount} archived
             </p>

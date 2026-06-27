@@ -9,6 +9,7 @@ import { useNotify } from '../context/NotificationContext'
 import { guardReview, type GuardReviewResult, type GuardViolation } from '../lib/api'
 import { Card, CardHeader, Badge } from '../components/ui'
 
+import { ContextHelpButton } from '../components/help/ContextHelpButton'
 const fadeIn = {
   initial: { opacity: 0, y: 20 },
   animate: { opacity: 1, y: 0 },
@@ -52,6 +53,7 @@ export default function CodeGuard() {
 
   return (
     <div className="space-y-6">
+      <ContextHelpButton contextId="code-guard.overview" className="absolute top-0 right-0" />
       {/* Header */}
       <motion.div {...fadeIn}>
         <div className="flex items-center gap-3">

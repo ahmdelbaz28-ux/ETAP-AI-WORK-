@@ -3,6 +3,7 @@ import { Cable, Settings2, Link2, Activity, Clock, CheckCircle, Server, FileText
 import { useNotify } from '../context/NotificationContext'
 import { Card, CardHeader, Badge, Button } from '../components/ui'
 
+import { ContextHelpButton } from '../components/help/ContextHelpButton'
 export default function EtapIntegration() {
   const { notify } = useNotify()
 
@@ -28,6 +29,7 @@ export default function EtapIntegration() {
           </div>
           <div>
             <h2 className="text-2xl font-bold text-[var(--text-primary)]">ETAP Integration</h2>
+          <ContextHelpButton contextId="etap-integration.overview" />
             <p className="text-sm text-[var(--text-tertiary)]">Connect to ETAP engineering platform</p>
           </div>
         </div>

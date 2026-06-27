@@ -95,6 +95,16 @@ export default function App() {
     return () => window.removeEventListener('open-smart-help', handler)
   }, [])
 
+  // Listen for toggle-smart-help events (from the Help button in the navbar)
+  useEffect(() => {
+    const handler = () => {
+      setHelpOpen(prev => !prev)
+      setHelpContext(undefined)
+    }
+    window.addEventListener('toggle-smart-help', handler)
+    return () => window.removeEventListener('toggle-smart-help', handler)
+  }, [])
+
   return (
     <ThemeProvider>
       <NotificationProvider>

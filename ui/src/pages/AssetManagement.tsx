@@ -4,6 +4,7 @@ import { Cpu, Zap, Cable, Settings2, Activity, Wrench, Search, Filter } from 'lu
 import { Card, CardSection, Badge, Button, EmptyState } from '../components/ui'
 import { cn } from '../utils/helpers'
 
+import { ContextHelpButton } from '../components/help/ContextHelpButton'
 interface Asset {
   id: string
   name: string
@@ -75,6 +76,7 @@ export default function AssetManagement() {
           </div>
           <div>
             <h2 className="text-2xl font-bold text-[var(--text-primary)]">Asset Management</h2>
+          <ContextHelpButton contextId="asset-management.overview" />
             <p className="text-sm text-[var(--text-tertiary)]">{assets.length} assets in inventory</p>
           </div>
         </div>

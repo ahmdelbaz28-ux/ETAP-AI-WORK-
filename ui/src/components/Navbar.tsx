@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Search, Bell, X, Globe, User, Clock, Command, Maximize2, Minimize2, Sparkles } from 'lucide-react'
+import { Search, Bell, X, Globe, User, Clock, Command, Maximize2, Minimize2, Sparkles, HelpCircle } from 'lucide-react'
 import { useAppStore } from '../store'
 import { cn } from '../utils/helpers'
 
@@ -12,6 +12,12 @@ export function Navbar() {
   const [isFullscreen, setIsFullscreen] = useState(false)
 
   const isRtl = i18n.language === 'ar'
+
+  const openHelp = () => {
+    // Dispatch a global event that App.tsx listens for — opens SmartHelpDrawer
+    // with no specific context (shows the table of contents).
+    window.dispatchEvent(new CustomEvent('toggle-smart-help'))
+  }
 
   useEffect(() => {
     const timer = setInterval(() => setCurrentTime(new Date()), 1000)
@@ -124,11 +130,23 @@ export function Navbar() {
           onClick={() => {
             window.dispatchEvent(new CustomEvent('start-magic-help-inspect'));
           }}
+          data-help-context="magic-help.inspector"
           className="p-2 rounded-lg text-brand-400 hover:bg-brand-500/10 hover:text-brand-300 transition-colors relative"
           title="Magic Help Inspector / فاحص المساعدة الذكي"
         >
           <Sparkles className="w-4 h-4" />
           <span className="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 rounded-full bg-brand-500 animate-ping" />
+        </button>
+
+        {/* Main Help Button (opens Smart Help drawer with TOC) */}
+        <button
+          onClick={openHelp}
+          data-help-context="dashboard.overview"
+          className="p-2 rounded-lg text-[var(--text-muted)] hover:bg-[var(--bg-elevated)] hover:text-[var(--accent-primary)] transition-colors"
+          title={isRtl ? 'المساعدة (F1)' : 'Help (F1)'}
+          aria-label={isRtl ? 'المساعدة' : 'Help'}
+        >
+          <HelpCircle className="w-4 h-4" />
         </button>
 
         {/* Notifications */}

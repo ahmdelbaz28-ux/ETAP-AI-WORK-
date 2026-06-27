@@ -6,6 +6,7 @@ import { useNotify } from '../context/NotificationContext'
 import { Card, Button, EmptyState } from '../components/ui'
 import { cn } from '../utils/helpers'
 
+import { ContextHelpButton } from '../components/help/ContextHelpButton'
 interface LogEntry {
   timestamp: string
   level: 'info' | 'warn' | 'error'
@@ -98,6 +99,7 @@ export default function Logs() {
           </div>
           <div>
             <h2 className="text-2xl font-bold text-[var(--text-primary)]">Logs</h2>
+          <ContextHelpButton contextId="logs.overview" />
             <p className="text-sm text-[var(--text-tertiary)]">{logs.length} entries · Real-time activity</p>
           </div>
         </div>

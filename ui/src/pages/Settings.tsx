@@ -4,6 +4,7 @@ import { Save, Download, Upload, Trash2, Bot, Wrench, Database, Shield, Link2, G
 import { useNotify } from '../context/NotificationContext'
 import { Card, CardHeader, Button, Tabs, TabPanels, useTabState, Toggle } from '../components/ui'
 
+import { ContextHelpButton } from '../components/help/ContextHelpButton'
 // Simple XOR-based obfuscation for localStorage storage.
 // NOT a substitute for server-side encryption — but prevents
 // plaintext secrets from being readable via DevTools at a glance.
@@ -1081,6 +1082,7 @@ export default function Settings() {
     <div className="space-y-6">
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="flex items-center justify-between">
         <h2 className="text-2xl font-bold text-[var(--text-primary)]">Settings</h2>
+          <ContextHelpButton contextId="settings.backend" />
         <div className="flex items-center gap-2">
           <Button variant="ghost" size="sm" icon={Upload} onClick={handleImport}>Import</Button>
           <Button variant="ghost" size="sm" icon={Download} onClick={handleExport}>Export</Button>

@@ -13,6 +13,7 @@ import { studyCategories } from '../lib/studyCategories'
 import { Card, CardHeader, Badge, Button, Toggle, Tabs, TabPanels, useTabState } from '../components/ui'
 import { cn } from '../utils/helpers'
 
+import { ContextHelpButton } from '../components/help/ContextHelpButton'
 // One-line diagram SVG component for study results visualization
 function OneLineDiagram() {
   return (
@@ -174,6 +175,7 @@ export default function StudyRun() {
           </div>
           <div className="flex-1">
             <h2 className="text-2xl font-bold text-[var(--text-primary)]">{category.name}</h2>
+          <ContextHelpButton contextId="studies.overview" />
             <p className="text-[var(--text-tertiary)] text-sm">{category.description}</p>
           </div>
           {category.standard && (
