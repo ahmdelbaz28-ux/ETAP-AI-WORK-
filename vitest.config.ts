@@ -31,6 +31,8 @@ export default withScenario(defineConfig({
       'tests/load/**',
       'tests/stress/**',
       'tests/chaos/**',
+      '.kilo/**',
+      '.testsprite/**',
       // Scenario tests require zod/v3 exports that are broken by the
       // zod-to-json-schema 3.25.x ↔ zod 3.24.x version mismatch.
       // They run via the dedicated `pnpm test:scenarios` script after

@@ -22,6 +22,11 @@ export default withScenario(defineConfig({
     reporters: ['default', new VitestReporter()],
     setupFiles: ['./tests/setup.ts'],
     include: ['tests/scenarios/**/*.test.ts'],
-    exclude: ['**/node_modules/**', '**/dist/**'],
+    exclude: [
+      '**/node_modules/**',
+      '**/dist/**',
+      '.kilo/**',
+      '.testsprite/**',
+    ],
   },
 }));

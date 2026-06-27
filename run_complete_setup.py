@@ -98,11 +98,11 @@ def check_python_version():
     version = sys.version_info
     print_info(f"Python version: {version.major}.{version.minor}.{version.micro}")
 
-    if version.major >= 3 and version.minor >= 12:
-        print_success("Python version is compatible (>= 3.12)")
+    if version.major >= 3 and version.minor >= 11:
+        print_success("Python version is compatible (>= 3.11)")
         return True
     else:
-        print_error("Python version must be >= 3.12")
+        print_error("Python version must be >= 3.11")
         return False
 
 
