@@ -1,0 +1,4806 @@
+{
+  "entries": [
+    {
+      "type": "help-topic",
+      "id": "dashboard.overview",
+      "title": {
+        "en": "Dashboard Overview",
+        "ar": "نظرة عامة على لوحة التحكم"
+      },
+      "description": {
+        "en": "Navigate the main dashboard and understand system status",
+        "ar": "التنقل في لوحة التحكم الرئيسية وفهم حالة النظام"
+      },
+      "tags": [
+        "dashboard",
+        "overview",
+        "home",
+        "لوحة تحكم",
+        "نظرة عامة"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "help-topic",
+      "id": "keyboard-shortcuts",
+      "title": {
+        "en": "Keyboard Shortcuts",
+        "ar": "اختصارات لوحة المفاتيح"
+      },
+      "description": {
+        "en": "Essential keyboard shortcuts for faster workflow",
+        "ar": "اختصارات لوحة المفاتيح الأساسية لسرعة العمل"
+      },
+      "tags": [
+        "keyboard",
+        "shortcuts",
+        "hotkeys",
+        "keys",
+        "لوحة مفاتيح",
+        "اختصارات"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "help-topic",
+      "id": "magic-help.inspector",
+      "title": {
+        "en": "Magic Help Inspector",
+        "ar": "فاحص المساعدة السحرية"
+      },
+      "description": {
+        "en": "Click any element to instantly see its documentation",
+        "ar": "انقر على أي عنصر لرؤية شرحه فوراً"
+      },
+      "tags": [
+        "magic",
+        "help",
+        "inspector",
+        "inspect",
+        "سحري",
+        "مساعدة",
+        "فحص"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "help-topic",
+      "id": "projects.create",
+      "title": {
+        "en": "Creating a Project",
+        "ar": "إنشاء مشروع"
+      },
+      "description": {
+        "en": "How to create and configure a new engineering project",
+        "ar": "كيفية إنشاء وتكوين مشروع هندسي جديد"
+      },
+      "tags": [
+        "project",
+        "create",
+        "new",
+        "مشروع",
+        "إنشاء",
+        "جديد"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "help-topic",
+      "id": "projects.manage",
+      "title": {
+        "en": "Managing Projects",
+        "ar": "إدارة المشاريع"
+      },
+      "description": {
+        "en": "Open, edit, archive, and delete projects",
+        "ar": "فتح وتعديل وأرشفة وحذف المشاريع"
+      },
+      "tags": [
+        "project",
+        "manage",
+        "open",
+        "edit",
+        "archive",
+        "delete",
+        "مشروع",
+        "إدارة",
+        "فتح",
+        "تعديل"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "help-topic",
+      "id": "studies.overview",
+      "title": {
+        "en": "Studies Overview",
+        "ar": "نظرة عامة على الدراسات"
+      },
+      "description": {
+        "en": "All available engineering study types and how to run them",
+        "ar": "جميع أنواع الدراسات الهندسية المتاحة وكيفية تشغيلها"
+      },
+      "tags": [
+        "studies",
+        "overview",
+        "all",
+        "دراسات",
+        "نظرة عامة"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "help-topic",
+      "id": "studies.load-flow",
+      "title": {
+        "en": "Load Flow Study",
+        "ar": "دراسة تدفق الحمل"
+      },
+      "description": {
+        "en": "Newton-Raphson power flow analysis per IEEE 3002.7",
+        "ar": "تحليل تدفق القدرة بطريقة نيوتن-رافسون حسب IEEE 3002.7"
+      },
+      "tags": [
+        "load",
+        "flow",
+        "newton",
+        "raphson",
+        "power",
+        "تدفق",
+        "حمل",
+        "قدرة"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "help-topic",
+      "id": "studies.short-circuit",
+      "title": {
+        "en": "Short Circuit Study",
+        "ar": "دراسة الدائرة القصيرة"
+      },
+      "description": {
+        "en": "IEC 60909 fault current calculation",
+        "ar": "حساب تيار العطل حسب IEC 60909"
+      },
+      "tags": [
+        "short",
+        "circuit",
+        "fault",
+        "iec",
+        "60909",
+        "قصر",
+        "دائرة",
+        "عطل"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "help-topic",
+      "id": "studies.arc-flash",
+      "title": {
+        "en": "Arc Flash Study",
+        "ar": "دراسة شرارة القوس"
+      },
+      "description": {
+        "en": "IEEE 1584-2018 incident energy analysis",
+        "ar": "تحليل طاقة الحادث حسب IEEE 1584-2018"
+      },
+      "tags": [
+        "arc",
+        "flash",
+        "ieee",
+        "1584",
+        "incident",
+        "energy",
+        "قوس",
+        "شرارة",
+        "حادث"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "help-topic",
+      "id": "studies.protection",
+      "title": {
+        "en": "Protection Coordination",
+        "ar": "تنسيق الحماية"
+      },
+      "description": {
+        "en": "IEC 60255 relay curve coordination",
+        "ar": "تنسيق منحنيات المُرحّل IEC 60255"
+      },
+      "tags": [
+        "protection",
+        "relay",
+        "coordination",
+        "iec",
+        "60255",
+        "حماية",
+        "مُرحّل",
+        "تنسيق"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "help-topic",
+      "id": "studies.harmonic",
+      "title": {
+        "en": "Harmonic Analysis",
+        "ar": "تحليل التوافقيات"
+      },
+      "description": {
+        "en": "IEEE 519-2022 distortion study",
+        "ar": "دراسة التشوه IEEE 519-2022"
+      },
+      "tags": [
+        "harmonic",
+        "thd",
+        "ieee",
+        "519",
+        "distortion",
+        "توافقيات",
+        "تشوه"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "help-topic",
+      "id": "studies.motor-starting",
+      "title": {
+        "en": "Motor Starting Study",
+        "ar": "دراسة بدء المحرك"
+      },
+      "description": {
+        "en": "IEEE 399 transient analysis",
+        "ar": "تحليل عابر IEEE 399"
+      },
+      "tags": [
+        "motor",
+        "starting",
+        "ieee",
+        "399",
+        "voltage",
+        "dip",
+        "محرك",
+        "بدء"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "help-topic",
+      "id": "studies.cable-sizing",
+      "title": {
+        "en": "Cable Sizing",
+        "ar": "تحديد مقاس الكابلات"
+      },
+      "description": {
+        "en": "IEC 60364 current-carrying capacity",
+        "ar": "القدرة على حمل التيار IEC 60364"
+      },
+      "tags": [
+        "cable",
+        "sizing",
+        "iec",
+        "60364",
+        "كابل",
+        "مقاس"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "help-topic",
+      "id": "studies.earth-grid",
+      "title": {
+        "en": "Earth Grid Design",
+        "ar": "تصميم شبكة التأريض"
+      },
+      "description": {
+        "en": "IEEE 80 ground grid design",
+        "ar": "تصميم شبكة التأريض IEEE 80"
+      },
+      "tags": [
+        "earth",
+        "grid",
+        "ground",
+        "ieee",
+        "80",
+        "تأريض",
+        "شبكة"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "help-topic",
+      "id": "studies.stability",
+      "title": {
+        "en": "Transient Stability",
+        "ar": "الاستقرار العابر"
+      },
+      "description": {
+        "en": "Power system transient stability analysis",
+        "ar": "تحليل الاستقرار العابر لنظام القدرة"
+      },
+      "tags": [
+        "stability",
+        "transient",
+        "rotor",
+        "angle",
+        "استقرار",
+        "عابر"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "help-topic",
+      "id": "studies.opf",
+      "title": {
+        "en": "Optimal Power Flow (OPF)",
+        "ar": "تدفق القدرة الأمثل"
+      },
+      "description": {
+        "en": "Cost-optimized generation dispatch",
+        "ar": "إرسال توليد أمثل للتكلفة"
+      },
+      "tags": [
+        "opf",
+        "optimal",
+        "power",
+        "flow",
+        "cost",
+        "أمثل",
+        "تكلفة"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "help-topic",
+      "id": "ai-assistant.overview",
+      "title": {
+        "en": "AI Assistant",
+        "ar": "المساعد الذكي"
+      },
+      "description": {
+        "en": "Chat with the ETAP Expert AI agent for engineering guidance",
+        "ar": "تحدث مع وكيل ETAP Expert الذكي للحصول على إرشادات هندسية"
+      },
+      "tags": [
+        "ai",
+        "assistant",
+        "chat",
+        "agent",
+        "ذكاء",
+        "اصطناعي",
+        "مساعد"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "help-topic",
+      "id": "asset-management.overview",
+      "title": {
+        "en": "Asset Management",
+        "ar": "إدارة الأصول"
+      },
+      "description": {
+        "en": "Track physical equipment across your power system",
+        "ar": "تتبع المعدات الفيزيائية في نظام القدرة"
+      },
+      "tags": [
+        "asset",
+        "management",
+        "equipment",
+        "أصول",
+        "معدات"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "help-topic",
+      "id": "etap-integration.overview",
+      "title": {
+        "en": "ETAP Integration",
+        "ar": "تكامل ETAP"
+      },
+      "description": {
+        "en": "Connect to ETAP desktop software for native study execution",
+        "ar": "اتصل ببرنامج ETAP المكتبي لتنفيذ الدراسات الأصلية"
+      },
+      "tags": [
+        "etap",
+        "integration",
+        "worker",
+        "windows",
+        "تكامل",
+        "عامل"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "help-topic",
+      "id": "gis-integration.overview",
+      "title": {
+        "en": "GIS Integration",
+        "ar": "تكامل GIS"
+      },
+      "description": {
+        "en": "Connect to ArcGIS / QGIS / PostGIS for geospatial power system data",
+        "ar": "اتصل بـ ArcGIS / QGIS / PostGIS لبيانات نظام القدرة الجغرافية"
+      },
+      "tags": [
+        "gis",
+        "arcgis",
+        "qgis",
+        "postgis",
+        "geo",
+        "جغرافي"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "help-topic",
+      "id": "reports.generate",
+      "title": {
+        "en": "Generating Reports",
+        "ar": "إنشاء التقارير"
+      },
+      "description": {
+        "en": "How to generate and customize engineering reports",
+        "ar": "كيفية إنشاء وتخصيص التقارير الهندسية"
+      },
+      "tags": [
+        "report",
+        "generate",
+        "pdf",
+        "compliance",
+        "تقرير",
+        "إنشاء",
+        "امتثال"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "help-topic",
+      "id": "digital-twin.overview",
+      "title": {
+        "en": "Digital Twin Overview",
+        "ar": "نظرة عامة على التوأم الرقمي"
+      },
+      "description": {
+        "en": "Real-time virtual replica of your physical power system",
+        "ar": "نسخة افتراضية في الوقت الفعلي من نظام القدرة الفيزيائي"
+      },
+      "tags": [
+        "digital",
+        "twin",
+        "sync",
+        "real-time",
+        "توأم",
+        "رقمي",
+        "مزامنة"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "help-topic",
+      "id": "settings.backend",
+      "title": {
+        "en": "Backend Configuration",
+        "ar": "تكوين الخادم"
+      },
+      "description": {
+        "en": "Configure the engineering service backend connection",
+        "ar": "تكوين اتصال خادم الخدمة الهندسية"
+      },
+      "tags": [
+        "settings",
+        "backend",
+        "config",
+        "api",
+        "إعدادات",
+        "خادم",
+        "تكوين"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "help-topic",
+      "id": "settings.external-services",
+      "title": {
+        "en": "External Services (LangWatch, Smithery, HF, GitHub, Vercel)",
+        "ar": "الخدمات الخارجية (LangWatch, Smithery, HF, GitHub, Vercel)"
+      },
+      "description": {
+        "en": "Configure and test third-party integrations",
+        "ar": "تكوين واختبار التكاملات الخارجية"
+      },
+      "tags": [
+        "settings",
+        "external",
+        "services",
+        "langwatch",
+        "smithery",
+        "huggingface",
+        "github",
+        "vercel",
+        "إعدادات",
+        "خدمات",
+        "خارجية"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "help-topic",
+      "id": "settings.ai-providers",
+      "title": {
+        "en": "AI Providers Configuration",
+        "ar": "تكوين مزودي الذكاء الاصطناعي"
+      },
+      "description": {
+        "en": "Connect to OpenAI, Anthropic, Gemini, DeepSeek, Groq, Cohere, Hugging Face",
+        "ar": "اتصل بـ OpenAI، Anthropic، Gemini، DeepSeek، Groq، Cohere، Hugging Face"
+      },
+      "tags": [
+        "ai",
+        "provider",
+        "openai",
+        "anthropic",
+        "gemini",
+        "deepseek",
+        "groq",
+        "cohere",
+        "مزود",
+        "ذكاء"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "help-topic",
+      "id": "code-guard.overview",
+      "title": {
+        "en": "Code Guard",
+        "ar": "حارس الكود"
+      },
+      "description": {
+        "en": "AI-powered code review for engineering calculations",
+        "ar": "مراجعة أكواد بالذكاء الاصطناعي للحسابات الهندسية"
+      },
+      "tags": [
+        "code",
+        "guard",
+        "review",
+        "ai",
+        "كود",
+        "حارس",
+        "مراجعة"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "help-topic",
+      "id": "data-import.overview",
+      "title": {
+        "en": "Data Import",
+        "ar": "استيراد البيانات"
+      },
+      "description": {
+        "en": "Import engineering data from CSV, JSON, Excel, ETAP files",
+        "ar": "استيراد بيانات هندسية من CSV، JSON، Excel، ملفات ETAP"
+      },
+      "tags": [
+        "import",
+        "csv",
+        "json",
+        "excel",
+        "data",
+        "استيراد",
+        "بيانات"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "help-topic",
+      "id": "data-export.overview",
+      "title": {
+        "en": "Data Export",
+        "ar": "تصدير البيانات"
+      },
+      "description": {
+        "en": "Export engineering data to CSV, JSON, Excel, PDF",
+        "ar": "تصدير بيانات هندسية إلى CSV، JSON، Excel، PDF"
+      },
+      "tags": [
+        "export",
+        "csv",
+        "json",
+        "excel",
+        "pdf",
+        "data",
+        "تصدير",
+        "بيانات"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "help-topic",
+      "id": "administration.overview",
+      "title": {
+        "en": "Administration",
+        "ar": "الإدارة"
+      },
+      "description": {
+        "en": "User management, roles, and system administration",
+        "ar": "إدارة المستخدمين والأدوار وإدارة النظام"
+      },
+      "tags": [
+        "admin",
+        "user",
+        "management",
+        "role",
+        "إدارة",
+        "مستخدم",
+        "دور"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "help-topic",
+      "id": "diagnostics.overview",
+      "title": {
+        "en": "Diagnostics",
+        "ar": "التشخيص"
+      },
+      "description": {
+        "en": "System health checks, logs, and performance metrics",
+        "ar": "فحوصات صحة النظام والسجلات ومقاييس الأداء"
+      },
+      "tags": [
+        "diagnostics",
+        "health",
+        "logs",
+        "metrics",
+        "تشخيص",
+        "صحة",
+        "سجلات"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "help-topic",
+      "id": "logs.overview",
+      "title": {
+        "en": "Logs",
+        "ar": "السجلات"
+      },
+      "description": {
+        "en": "Real-time application logs with filtering",
+        "ar": "سجلات التطبيق المباشرة مع الفلترة"
+      },
+      "tags": [
+        "logs",
+        "stream",
+        "filter",
+        "debug",
+        "سجلات",
+        "تصحيح"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "help-topic",
+      "id": "troubleshooting.backend",
+      "title": {
+        "en": "Backend Unavailable",
+        "ar": "الخادم غير متاح"
+      },
+      "description": {
+        "en": "The engineering service is not responding",
+        "ar": "خدمة الخدمة الهندسية لا تستجيب"
+      },
+      "tags": [
+        "backend",
+        "unavailable",
+        "error",
+        "connection",
+        "خادم",
+        "غير متاح",
+        "خطأ"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "help-topic",
+      "id": "troubleshooting.api",
+      "title": {
+        "en": "API Errors",
+        "ar": "أخطاء API"
+      },
+      "description": {
+        "en": "Common API error codes and their solutions",
+        "ar": "أكواد أخطاء API الشائعة وحلولها"
+      },
+      "tags": [
+        "api",
+        "error",
+        "400",
+        "401",
+        "403",
+        "404",
+        "429",
+        "500",
+        "api",
+        "خطأ"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "help-topic",
+      "id": "troubleshooting.auth",
+      "title": {
+        "en": "Authentication Issues",
+        "ar": "مشاكل المصادقة"
+      },
+      "description": {
+        "en": "Login failures and token problems",
+        "ar": "فشل تسجيل الدخول ومشاكل الرمز"
+      },
+      "tags": [
+        "auth",
+        "login",
+        "token",
+        "jwt",
+        "mfa",
+        "مصادقة",
+        "دخول",
+        "رمز"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "help-topic",
+      "id": "integration.scada",
+      "title": {
+        "en": "SCADA System Integration (zenon)",
+        "ar": "ربط نظام الإسكادا (زينون)"
+      },
+      "description": {
+        "en": "Configure and monitor Copa-Data zenon SCADA system connection",
+        "ar": "تكوين ومراقبة اتصال نظام إسكادا زينون (zenon)"
+      },
+      "tags": [
+        "scada",
+        "zenon",
+        "integration",
+        "iec61850",
+        "إسكادا",
+        "زينون",
+        "ربط"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "api-route",
+      "id": "GET /",
+      "title": {
+        "en": "GET /",
+        "ar": "GET /"
+      },
+      "description": {
+        "en": "API endpoint in api/health.py",
+        "ar": "نقطة API في api/health.py"
+      },
+      "tags": [
+        "api",
+        "endpoint",
+        "get"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "api-route",
+      "id": "GET /",
+      "title": {
+        "en": "GET /",
+        "ar": "GET /"
+      },
+      "description": {
+        "en": "API endpoint in api/refactored_service.py",
+        "ar": "نقطة API في api/refactored_service.py"
+      },
+      "tags": [
+        "api",
+        "endpoint",
+        "get"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "api-route",
+      "id": "GET /api/v1/agents/info",
+      "title": {
+        "en": "GET /api/v1/agents/info",
+        "ar": "GET /api/v1/agents/info"
+      },
+      "description": {
+        "en": "API endpoint in api/refactored_service.py",
+        "ar": "نقطة API في api/refactored_service.py"
+      },
+      "tags": [
+        "api",
+        "endpoint",
+        "get"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "api-route",
+      "id": "POST /api/v1/auth/abac/check",
+      "title": {
+        "en": "POST /api/v1/auth/abac/check",
+        "ar": "POST /api/v1/auth/abac/check"
+      },
+      "description": {
+        "en": "API endpoint in api/refactored_service.py",
+        "ar": "نقطة API في api/refactored_service.py"
+      },
+      "tags": [
+        "api",
+        "endpoint",
+        "post"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "api-route",
+      "id": "POST /api/v1/auth/mfa/totp/setup",
+      "title": {
+        "en": "POST /api/v1/auth/mfa/totp/setup",
+        "ar": "POST /api/v1/auth/mfa/totp/setup"
+      },
+      "description": {
+        "en": "API endpoint in api/refactored_service.py",
+        "ar": "نقطة API في api/refactored_service.py"
+      },
+      "tags": [
+        "api",
+        "endpoint",
+        "post"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "api-route",
+      "id": "POST /api/v1/auth/mfa/totp/verify",
+      "title": {
+        "en": "POST /api/v1/auth/mfa/totp/verify",
+        "ar": "POST /api/v1/auth/mfa/totp/verify"
+      },
+      "description": {
+        "en": "API endpoint in api/refactored_service.py",
+        "ar": "نقطة API في api/refactored_service.py"
+      },
+      "tags": [
+        "api",
+        "endpoint",
+        "post"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "api-route",
+      "id": "GET /api/v1/benchmark",
+      "title": {
+        "en": "GET /api/v1/benchmark",
+        "ar": "GET /api/v1/benchmark"
+      },
+      "description": {
+        "en": "API endpoint in api/refactored_service.py",
+        "ar": "نقطة API في api/refactored_service.py"
+      },
+      "tags": [
+        "api",
+        "endpoint",
+        "get"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "api-route",
+      "id": "GET /api/v1/digital-twin/status",
+      "title": {
+        "en": "GET /api/v1/digital-twin/status",
+        "ar": "GET /api/v1/digital-twin/status"
+      },
+      "description": {
+        "en": "API endpoint in api/refactored_service.py",
+        "ar": "نقطة API في api/refactored_service.py"
+      },
+      "tags": [
+        "api",
+        "endpoint",
+        "get"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "api-route",
+      "id": "POST /api/v1/predict/anomaly",
+      "title": {
+        "en": "POST /api/v1/predict/anomaly",
+        "ar": "POST /api/v1/predict/anomaly"
+      },
+      "description": {
+        "en": "API endpoint in api/refactored_service.py",
+        "ar": "نقطة API في api/refactored_service.py"
+      },
+      "tags": [
+        "api",
+        "endpoint",
+        "post"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "api-route",
+      "id": "POST /api/v1/predict/fault",
+      "title": {
+        "en": "POST /api/v1/predict/fault",
+        "ar": "POST /api/v1/predict/fault"
+      },
+      "description": {
+        "en": "API endpoint in api/refactored_service.py",
+        "ar": "نقطة API في api/refactored_service.py"
+      },
+      "tags": [
+        "api",
+        "endpoint",
+        "post"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "api-route",
+      "id": "POST /api/v1/predict/load",
+      "title": {
+        "en": "POST /api/v1/predict/load",
+        "ar": "POST /api/v1/predict/load"
+      },
+      "description": {
+        "en": "API endpoint in api/refactored_service.py",
+        "ar": "نقطة API في api/refactored_service.py"
+      },
+      "tags": [
+        "api",
+        "endpoint",
+        "post"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "api-route",
+      "id": "POST /api/v1/rag/query",
+      "title": {
+        "en": "POST /api/v1/rag/query",
+        "ar": "POST /api/v1/rag/query"
+      },
+      "description": {
+        "en": "API endpoint in api/refactored_service.py",
+        "ar": "نقطة API في api/refactored_service.py"
+      },
+      "tags": [
+        "api",
+        "endpoint",
+        "post"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "api-route",
+      "id": "GET /api/v1/scada/live",
+      "title": {
+        "en": "GET /api/v1/scada/live",
+        "ar": "GET /api/v1/scada/live"
+      },
+      "description": {
+        "en": "API endpoint in api/refactored_service.py",
+        "ar": "نقطة API في api/refactored_service.py"
+      },
+      "tags": [
+        "api",
+        "endpoint",
+        "get"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "api-route",
+      "id": "GET /api/v1/security/rasp/stats",
+      "title": {
+        "en": "GET /api/v1/security/rasp/stats",
+        "ar": "GET /api/v1/security/rasp/stats"
+      },
+      "description": {
+        "en": "API endpoint in api/refactored_service.py",
+        "ar": "نقطة API في api/refactored_service.py"
+      },
+      "tags": [
+        "api",
+        "endpoint",
+        "get"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "api-route",
+      "id": "POST /api/v1/security/siem/event",
+      "title": {
+        "en": "POST /api/v1/security/siem/event",
+        "ar": "POST /api/v1/security/siem/event"
+      },
+      "description": {
+        "en": "API endpoint in api/refactored_service.py",
+        "ar": "نقطة API في api/refactored_service.py"
+      },
+      "tags": [
+        "api",
+        "endpoint",
+        "post"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "api-route",
+      "id": "POST /api/v1/studies/run",
+      "title": {
+        "en": "POST /api/v1/studies/run",
+        "ar": "POST /api/v1/studies/run"
+      },
+      "description": {
+        "en": "API endpoint in api/refactored_service.py",
+        "ar": "نقطة API في api/refactored_service.py"
+      },
+      "tags": [
+        "api",
+        "endpoint",
+        "post"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "api-route",
+      "id": "POST /api/v1/studies/run_async",
+      "title": {
+        "en": "POST /api/v1/studies/run_async",
+        "ar": "POST /api/v1/studies/run_async"
+      },
+      "description": {
+        "en": "API endpoint in api/routes.py",
+        "ar": "نقطة API في api/routes.py"
+      },
+      "tags": [
+        "api",
+        "endpoint",
+        "post"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "api-route",
+      "id": "GET /api/v1/studies/task_status/{task_id}",
+      "title": {
+        "en": "GET /api/v1/studies/task_status/{task_id}",
+        "ar": "GET /api/v1/studies/task_status/{task_id}"
+      },
+      "description": {
+        "en": "API endpoint in api/routes.py",
+        "ar": "نقطة API في api/routes.py"
+      },
+      "tags": [
+        "api",
+        "endpoint",
+        "get"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "api-route",
+      "id": "POST /api/v1/system/validate",
+      "title": {
+        "en": "POST /api/v1/system/validate",
+        "ar": "POST /api/v1/system/validate"
+      },
+      "description": {
+        "en": "API endpoint in api/refactored_service.py",
+        "ar": "نقطة API في api/refactored_service.py"
+      },
+      "tags": [
+        "api",
+        "endpoint",
+        "post"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "api-route",
+      "id": "POST /etap-expert/chat",
+      "title": {
+        "en": "POST /etap-expert/chat",
+        "ar": "POST /etap-expert/chat"
+      },
+      "description": {
+        "en": "API endpoint in api/agents.py",
+        "ar": "نقطة API في api/agents.py"
+      },
+      "tags": [
+        "api",
+        "endpoint",
+        "post"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "api-route",
+      "id": "POST /etap-gui/chat",
+      "title": {
+        "en": "POST /etap-gui/chat",
+        "ar": "POST /etap-gui/chat"
+      },
+      "description": {
+        "en": "API endpoint in api/agents.py",
+        "ar": "نقطة API في api/agents.py"
+      },
+      "tags": [
+        "api",
+        "endpoint",
+        "post"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "api-route",
+      "id": "POST /gnn/predict",
+      "title": {
+        "en": "POST /gnn/predict",
+        "ar": "POST /gnn/predict"
+      },
+      "description": {
+        "en": "API endpoint in api/ai_ml.py",
+        "ar": "نقطة API في api/ai_ml.py"
+      },
+      "tags": [
+        "api",
+        "endpoint",
+        "post"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "api-route",
+      "id": "GET /health",
+      "title": {
+        "en": "GET /health",
+        "ar": "GET /health"
+      },
+      "description": {
+        "en": "API endpoint in api/health.py",
+        "ar": "نقطة API في api/health.py"
+      },
+      "tags": [
+        "api",
+        "endpoint",
+        "get"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "api-route",
+      "id": "GET /health",
+      "title": {
+        "en": "GET /health",
+        "ar": "GET /health"
+      },
+      "description": {
+        "en": "API endpoint in api/refactored_service.py",
+        "ar": "نقطة API في api/refactored_service.py"
+      },
+      "tags": [
+        "api",
+        "endpoint",
+        "get"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "api-route",
+      "id": "GET /healthz",
+      "title": {
+        "en": "GET /healthz",
+        "ar": "GET /healthz"
+      },
+      "description": {
+        "en": "API endpoint in api/health.py",
+        "ar": "نقطة API في api/health.py"
+      },
+      "tags": [
+        "api",
+        "endpoint",
+        "get"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "api-route",
+      "id": "GET /healthz",
+      "title": {
+        "en": "GET /healthz",
+        "ar": "GET /healthz"
+      },
+      "description": {
+        "en": "API endpoint in api/refactored_service.py",
+        "ar": "نقطة API في api/refactored_service.py"
+      },
+      "tags": [
+        "api",
+        "endpoint",
+        "get"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "api-route",
+      "id": "POST /impact",
+      "title": {
+        "en": "POST /impact",
+        "ar": "POST /impact"
+      },
+      "description": {
+        "en": "API endpoint in api/context_engine.py",
+        "ar": "نقطة API في api/context_engine.py"
+      },
+      "tags": [
+        "api",
+        "endpoint",
+        "post"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "api-route",
+      "id": "GET /info",
+      "title": {
+        "en": "GET /info",
+        "ar": "GET /info"
+      },
+      "description": {
+        "en": "API endpoint in api/agents.py",
+        "ar": "نقطة API في api/agents.py"
+      },
+      "tags": [
+        "api",
+        "endpoint",
+        "get"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "api-route",
+      "id": "GET /live",
+      "title": {
+        "en": "GET /live",
+        "ar": "GET /live"
+      },
+      "description": {
+        "en": "API endpoint in api/scada.py",
+        "ar": "نقطة API في api/scada.py"
+      },
+      "tags": [
+        "api",
+        "endpoint",
+        "get"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "api-route",
+      "id": "GET /me",
+      "title": {
+        "en": "GET /me",
+        "ar": "GET /me"
+      },
+      "description": {
+        "en": "API endpoint in api/dependencies.py",
+        "ar": "نقطة API في api/dependencies.py"
+      },
+      "tags": [
+        "api",
+        "endpoint",
+        "get"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "api-route",
+      "id": "GET /metrics",
+      "title": {
+        "en": "GET /metrics",
+        "ar": "GET /metrics"
+      },
+      "description": {
+        "en": "API endpoint in api/health.py",
+        "ar": "نقطة API في api/health.py"
+      },
+      "tags": [
+        "api",
+        "endpoint",
+        "get"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "api-route",
+      "id": "GET /metrics",
+      "title": {
+        "en": "GET /metrics",
+        "ar": "GET /metrics"
+      },
+      "description": {
+        "en": "API endpoint in api/refactored_service.py",
+        "ar": "نقطة API في api/refactored_service.py"
+      },
+      "tags": [
+        "api",
+        "endpoint",
+        "get"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "api-route",
+      "id": "GET /ml/capabilities",
+      "title": {
+        "en": "GET /ml/capabilities",
+        "ar": "GET /ml/capabilities"
+      },
+      "description": {
+        "en": "API endpoint in api/ai_ml.py",
+        "ar": "نقطة API في api/ai_ml.py"
+      },
+      "tags": [
+        "api",
+        "endpoint",
+        "get"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "api-route",
+      "id": "POST /predict/anomaly",
+      "title": {
+        "en": "POST /predict/anomaly",
+        "ar": "POST /predict/anomaly"
+      },
+      "description": {
+        "en": "API endpoint in api/ai_ml.py",
+        "ar": "نقطة API في api/ai_ml.py"
+      },
+      "tags": [
+        "api",
+        "endpoint",
+        "post"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "api-route",
+      "id": "POST /predict/fault",
+      "title": {
+        "en": "POST /predict/fault",
+        "ar": "POST /predict/fault"
+      },
+      "description": {
+        "en": "API endpoint in api/ai_ml.py",
+        "ar": "نقطة API في api/ai_ml.py"
+      },
+      "tags": [
+        "api",
+        "endpoint",
+        "post"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "api-route",
+      "id": "POST /predict/fault/train",
+      "title": {
+        "en": "POST /predict/fault/train",
+        "ar": "POST /predict/fault/train"
+      },
+      "description": {
+        "en": "API endpoint in api/ai_ml.py",
+        "ar": "نقطة API في api/ai_ml.py"
+      },
+      "tags": [
+        "api",
+        "endpoint",
+        "post"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "api-route",
+      "id": "POST /predict/load",
+      "title": {
+        "en": "POST /predict/load",
+        "ar": "POST /predict/load"
+      },
+      "description": {
+        "en": "API endpoint in api/ai_ml.py",
+        "ar": "نقطة API في api/ai_ml.py"
+      },
+      "tags": [
+        "api",
+        "endpoint",
+        "post"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "api-route",
+      "id": "GET /prometheus/metrics",
+      "title": {
+        "en": "GET /prometheus/metrics",
+        "ar": "GET /prometheus/metrics"
+      },
+      "description": {
+        "en": "API endpoint in api/health.py",
+        "ar": "نقطة API في api/health.py"
+      },
+      "tags": [
+        "api",
+        "endpoint",
+        "get"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "api-route",
+      "id": "POST /rag/query",
+      "title": {
+        "en": "POST /rag/query",
+        "ar": "POST /rag/query"
+      },
+      "description": {
+        "en": "API endpoint in api/ai_ml.py",
+        "ar": "نقطة API في api/ai_ml.py"
+      },
+      "tags": [
+        "api",
+        "endpoint",
+        "post"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "api-route",
+      "id": "GET /ready",
+      "title": {
+        "en": "GET /ready",
+        "ar": "GET /ready"
+      },
+      "description": {
+        "en": "API endpoint in api/health.py",
+        "ar": "نقطة API في api/health.py"
+      },
+      "tags": [
+        "api",
+        "endpoint",
+        "get"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "api-route",
+      "id": "GET /ready",
+      "title": {
+        "en": "GET /ready",
+        "ar": "GET /ready"
+      },
+      "description": {
+        "en": "API endpoint in api/refactored_service.py",
+        "ar": "نقطة API في api/refactored_service.py"
+      },
+      "tags": [
+        "api",
+        "endpoint",
+        "get"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "api-route",
+      "id": "GET /readyz",
+      "title": {
+        "en": "GET /readyz",
+        "ar": "GET /readyz"
+      },
+      "description": {
+        "en": "API endpoint in api/health.py",
+        "ar": "نقطة API في api/health.py"
+      },
+      "tags": [
+        "api",
+        "endpoint",
+        "get"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "api-route",
+      "id": "GET /readyz",
+      "title": {
+        "en": "GET /readyz",
+        "ar": "GET /readyz"
+      },
+      "description": {
+        "en": "API endpoint in api/refactored_service.py",
+        "ar": "نقطة API في api/refactored_service.py"
+      },
+      "tags": [
+        "api",
+        "endpoint",
+        "get"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "api-route",
+      "id": "POST /retrieve",
+      "title": {
+        "en": "POST /retrieve",
+        "ar": "POST /retrieve"
+      },
+      "description": {
+        "en": "API endpoint in api/context_engine.py",
+        "ar": "نقطة API في api/context_engine.py"
+      },
+      "tags": [
+        "api",
+        "endpoint",
+        "post"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "api-route",
+      "id": "POST /run",
+      "title": {
+        "en": "POST /run",
+        "ar": "POST /run"
+      },
+      "description": {
+        "en": "API endpoint in api/studies.py",
+        "ar": "نقطة API في api/studies.py"
+      },
+      "tags": [
+        "api",
+        "endpoint",
+        "post"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "api-route",
+      "id": "GET /status",
+      "title": {
+        "en": "GET /status",
+        "ar": "GET /status"
+      },
+      "description": {
+        "en": "API endpoint in api/digital_twin.py",
+        "ar": "نقطة API في api/digital_twin.py"
+      },
+      "tags": [
+        "api",
+        "endpoint",
+        "get"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "api-route",
+      "id": "POST /totp/setup",
+      "title": {
+        "en": "POST /totp/setup",
+        "ar": "POST /totp/setup"
+      },
+      "description": {
+        "en": "API endpoint in api/mfa.py",
+        "ar": "نقطة API في api/mfa.py"
+      },
+      "tags": [
+        "api",
+        "endpoint",
+        "post"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "api-route",
+      "id": "POST /totp/verify",
+      "title": {
+        "en": "POST /totp/verify",
+        "ar": "POST /totp/verify"
+      },
+      "description": {
+        "en": "API endpoint in api/mfa.py",
+        "ar": "نقطة API في api/mfa.py"
+      },
+      "tags": [
+        "api",
+        "endpoint",
+        "post"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "api-route",
+      "id": "DELETE /users/{user_id}",
+      "title": {
+        "en": "DELETE /users/{user_id}",
+        "ar": "DELETE /users/{user_id}"
+      },
+      "description": {
+        "en": "API endpoint in api/dependencies.py",
+        "ar": "نقطة API في api/dependencies.py"
+      },
+      "tags": [
+        "api",
+        "endpoint",
+        "delete"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "api-route",
+      "id": "POST /validate",
+      "title": {
+        "en": "POST /validate",
+        "ar": "POST /validate"
+      },
+      "description": {
+        "en": "API endpoint in api/validation.py",
+        "ar": "نقطة API في api/validation.py"
+      },
+      "tags": [
+        "api",
+        "endpoint",
+        "post"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "ui-page",
+      "id": "AIAssistant",
+      "title": {
+        "en": "AIAssistant",
+        "ar": "AIAssistant"
+      },
+      "description": {
+        "en": "UI page at ui/src/pages/AIAssistant.tsx",
+        "ar": "صفحة UI في ui/src/pages/AIAssistant.tsx"
+      },
+      "tags": [
+        "page",
+        "ui",
+        "aiassistant"
+      ],
+      "navigateTo": "/aiassistant",
+      "exports": [
+        "AIAssistant"
+      ]
+    },
+    {
+      "type": "ui-page",
+      "id": "Administration",
+      "title": {
+        "en": "Administration",
+        "ar": "Administration"
+      },
+      "description": {
+        "en": "UI page at ui/src/pages/Administration.tsx",
+        "ar": "صفحة UI في ui/src/pages/Administration.tsx"
+      },
+      "tags": [
+        "page",
+        "ui",
+        "administration"
+      ],
+      "navigateTo": "/administration",
+      "exports": [
+        "Administration"
+      ]
+    },
+    {
+      "type": "ui-page",
+      "id": "AssetManagement",
+      "title": {
+        "en": "AssetManagement",
+        "ar": "AssetManagement"
+      },
+      "description": {
+        "en": "UI page at ui/src/pages/AssetManagement.tsx",
+        "ar": "صفحة UI في ui/src/pages/AssetManagement.tsx"
+      },
+      "tags": [
+        "page",
+        "ui",
+        "assetmanagement"
+      ],
+      "navigateTo": "/assetmanagement",
+      "exports": [
+        "AssetManagement"
+      ]
+    },
+    {
+      "type": "ui-page",
+      "id": "CodeGuard",
+      "title": {
+        "en": "CodeGuard",
+        "ar": "CodeGuard"
+      },
+      "description": {
+        "en": "UI page at ui/src/pages/CodeGuard.tsx",
+        "ar": "صفحة UI في ui/src/pages/CodeGuard.tsx"
+      },
+      "tags": [
+        "page",
+        "ui",
+        "codeguard"
+      ],
+      "navigateTo": "/codeguard",
+      "exports": [
+        "CodeGuard"
+      ]
+    },
+    {
+      "type": "ui-page",
+      "id": "Dashboard",
+      "title": {
+        "en": "Dashboard",
+        "ar": "Dashboard"
+      },
+      "description": {
+        "en": "UI page at ui/src/pages/Dashboard.tsx",
+        "ar": "صفحة UI في ui/src/pages/Dashboard.tsx"
+      },
+      "tags": [
+        "page",
+        "ui",
+        "dashboard"
+      ],
+      "navigateTo": "/dashboard",
+      "exports": [
+        "Dashboard"
+      ]
+    },
+    {
+      "type": "ui-page",
+      "id": "DataExport",
+      "title": {
+        "en": "DataExport",
+        "ar": "DataExport"
+      },
+      "description": {
+        "en": "UI page at ui/src/pages/DataExport.tsx",
+        "ar": "صفحة UI في ui/src/pages/DataExport.tsx"
+      },
+      "tags": [
+        "page",
+        "ui",
+        "dataexport"
+      ],
+      "navigateTo": "/dataexport",
+      "exports": [
+        "DataExport"
+      ]
+    },
+    {
+      "type": "ui-page",
+      "id": "DataImport",
+      "title": {
+        "en": "DataImport",
+        "ar": "DataImport"
+      },
+      "description": {
+        "en": "UI page at ui/src/pages/DataImport.tsx",
+        "ar": "صفحة UI في ui/src/pages/DataImport.tsx"
+      },
+      "tags": [
+        "page",
+        "ui",
+        "dataimport"
+      ],
+      "navigateTo": "/dataimport",
+      "exports": [
+        "DataImport"
+      ]
+    },
+    {
+      "type": "ui-page",
+      "id": "Diagnostics",
+      "title": {
+        "en": "Diagnostics",
+        "ar": "Diagnostics"
+      },
+      "description": {
+        "en": "UI page at ui/src/pages/Diagnostics.tsx",
+        "ar": "صفحة UI في ui/src/pages/Diagnostics.tsx"
+      },
+      "tags": [
+        "page",
+        "ui",
+        "diagnostics"
+      ],
+      "navigateTo": "/diagnostics",
+      "exports": [
+        "Diagnostics"
+      ]
+    },
+    {
+      "type": "ui-page",
+      "id": "DigitalTwin",
+      "title": {
+        "en": "DigitalTwin",
+        "ar": "DigitalTwin"
+      },
+      "description": {
+        "en": "UI page at ui/src/pages/DigitalTwin.tsx",
+        "ar": "صفحة UI في ui/src/pages/DigitalTwin.tsx"
+      },
+      "tags": [
+        "page",
+        "ui",
+        "digitaltwin"
+      ],
+      "navigateTo": "/digitaltwin",
+      "exports": [
+        "DigitalTwin"
+      ]
+    },
+    {
+      "type": "ui-page",
+      "id": "EtapIntegration",
+      "title": {
+        "en": "EtapIntegration",
+        "ar": "EtapIntegration"
+      },
+      "description": {
+        "en": "UI page at ui/src/pages/EtapIntegration.tsx",
+        "ar": "صفحة UI في ui/src/pages/EtapIntegration.tsx"
+      },
+      "tags": [
+        "page",
+        "ui",
+        "etapintegration"
+      ],
+      "navigateTo": "/etapintegration",
+      "exports": [
+        "EtapIntegration"
+      ]
+    },
+    {
+      "type": "ui-page",
+      "id": "GisIntegration",
+      "title": {
+        "en": "GisIntegration",
+        "ar": "GisIntegration"
+      },
+      "description": {
+        "en": "UI page at ui/src/pages/GisIntegration.tsx",
+        "ar": "صفحة UI في ui/src/pages/GisIntegration.tsx"
+      },
+      "tags": [
+        "page",
+        "ui",
+        "gisintegration"
+      ],
+      "navigateTo": "/gisintegration",
+      "exports": [
+        "GisIntegration"
+      ]
+    },
+    {
+      "type": "ui-page",
+      "id": "Login",
+      "title": {
+        "en": "Login",
+        "ar": "Login"
+      },
+      "description": {
+        "en": "UI page at ui/src/pages/Login.tsx",
+        "ar": "صفحة UI في ui/src/pages/Login.tsx"
+      },
+      "tags": [
+        "page",
+        "ui",
+        "login"
+      ],
+      "navigateTo": "/login",
+      "exports": [
+        "Login"
+      ]
+    },
+    {
+      "type": "ui-page",
+      "id": "Logs",
+      "title": {
+        "en": "Logs",
+        "ar": "Logs"
+      },
+      "description": {
+        "en": "UI page at ui/src/pages/Logs.tsx",
+        "ar": "صفحة UI في ui/src/pages/Logs.tsx"
+      },
+      "tags": [
+        "page",
+        "ui",
+        "logs"
+      ],
+      "navigateTo": "/logs",
+      "exports": [
+        "Logs"
+      ]
+    },
+    {
+      "type": "ui-page",
+      "id": "Projects",
+      "title": {
+        "en": "Projects",
+        "ar": "Projects"
+      },
+      "description": {
+        "en": "UI page at ui/src/pages/Projects.tsx",
+        "ar": "صفحة UI في ui/src/pages/Projects.tsx"
+      },
+      "tags": [
+        "page",
+        "ui",
+        "projects"
+      ],
+      "navigateTo": "/projects",
+      "exports": [
+        "Projects"
+      ]
+    },
+    {
+      "type": "ui-page",
+      "id": "Register",
+      "title": {
+        "en": "Register",
+        "ar": "Register"
+      },
+      "description": {
+        "en": "UI page at ui/src/pages/Register.tsx",
+        "ar": "صفحة UI في ui/src/pages/Register.tsx"
+      },
+      "tags": [
+        "page",
+        "ui",
+        "register"
+      ],
+      "navigateTo": "/register",
+      "exports": [
+        "Register"
+      ]
+    },
+    {
+      "type": "ui-page",
+      "id": "Reports",
+      "title": {
+        "en": "Reports",
+        "ar": "Reports"
+      },
+      "description": {
+        "en": "UI page at ui/src/pages/Reports.tsx",
+        "ar": "صفحة UI في ui/src/pages/Reports.tsx"
+      },
+      "tags": [
+        "page",
+        "ui",
+        "reports"
+      ],
+      "navigateTo": "/reports",
+      "exports": [
+        "Reports"
+      ]
+    },
+    {
+      "type": "ui-page",
+      "id": "Settings",
+      "title": {
+        "en": "Settings",
+        "ar": "Settings"
+      },
+      "description": {
+        "en": "UI page at ui/src/pages/Settings.tsx",
+        "ar": "صفحة UI في ui/src/pages/Settings.tsx"
+      },
+      "tags": [
+        "page",
+        "ui",
+        "settings"
+      ],
+      "navigateTo": "/settings",
+      "exports": [
+        "Settings"
+      ]
+    },
+    {
+      "type": "ui-page",
+      "id": "Studies",
+      "title": {
+        "en": "Studies",
+        "ar": "Studies"
+      },
+      "description": {
+        "en": "UI page at ui/src/pages/Studies.tsx",
+        "ar": "صفحة UI في ui/src/pages/Studies.tsx"
+      },
+      "tags": [
+        "page",
+        "ui",
+        "studies"
+      ],
+      "navigateTo": "/studies",
+      "exports": [
+        "Studies"
+      ]
+    },
+    {
+      "type": "ui-page",
+      "id": "StudyRun",
+      "title": {
+        "en": "StudyRun",
+        "ar": "StudyRun"
+      },
+      "description": {
+        "en": "UI page at ui/src/pages/StudyRun.tsx",
+        "ar": "صفحة UI في ui/src/pages/StudyRun.tsx"
+      },
+      "tags": [
+        "page",
+        "ui",
+        "studyrun"
+      ],
+      "navigateTo": "/studyrun",
+      "exports": [
+        "StudyRun"
+      ]
+    },
+    {
+      "type": "ui-page",
+      "id": "AIAssistant.test",
+      "title": {
+        "en": "AIAssistant.test",
+        "ar": "AIAssistant.test"
+      },
+      "description": {
+        "en": "UI page at ui/src/pages/__tests__/AIAssistant.test.tsx",
+        "ar": "صفحة UI في ui/src/pages/__tests__/AIAssistant.test.tsx"
+      },
+      "tags": [
+        "page",
+        "ui",
+        "aiassistant.test"
+      ],
+      "navigateTo": "/aiassistant.test",
+      "exports": []
+    },
+    {
+      "type": "ui-page",
+      "id": "Dashboard.test",
+      "title": {
+        "en": "Dashboard.test",
+        "ar": "Dashboard.test"
+      },
+      "description": {
+        "en": "UI page at ui/src/pages/__tests__/Dashboard.test.tsx",
+        "ar": "صفحة UI في ui/src/pages/__tests__/Dashboard.test.tsx"
+      },
+      "tags": [
+        "page",
+        "ui",
+        "dashboard.test"
+      ],
+      "navigateTo": "/dashboard.test",
+      "exports": []
+    },
+    {
+      "type": "ui-page",
+      "id": "Login.test",
+      "title": {
+        "en": "Login.test",
+        "ar": "Login.test"
+      },
+      "description": {
+        "en": "UI page at ui/src/pages/__tests__/Login.test.tsx",
+        "ar": "صفحة UI في ui/src/pages/__tests__/Login.test.tsx"
+      },
+      "tags": [
+        "page",
+        "ui",
+        "login.test"
+      ],
+      "navigateTo": "/login.test",
+      "exports": []
+    },
+    {
+      "type": "ui-page",
+      "id": "Settings.test",
+      "title": {
+        "en": "Settings.test",
+        "ar": "Settings.test"
+      },
+      "description": {
+        "en": "UI page at ui/src/pages/__tests__/Settings.test.tsx",
+        "ar": "صفحة UI في ui/src/pages/__tests__/Settings.test.tsx"
+      },
+      "tags": [
+        "page",
+        "ui",
+        "settings.test"
+      ],
+      "navigateTo": "/settings.test",
+      "exports": []
+    },
+    {
+      "type": "ui-page",
+      "id": "Studies.test",
+      "title": {
+        "en": "Studies.test",
+        "ar": "Studies.test"
+      },
+      "description": {
+        "en": "UI page at ui/src/pages/__tests__/Studies.test.tsx",
+        "ar": "صفحة UI في ui/src/pages/__tests__/Studies.test.tsx"
+      },
+      "tags": [
+        "page",
+        "ui",
+        "studies.test"
+      ],
+      "navigateTo": "/studies.test",
+      "exports": []
+    },
+    {
+      "type": "ui-component",
+      "id": "Breadcrumbs",
+      "title": {
+        "en": "Breadcrumbs",
+        "ar": "Breadcrumbs"
+      },
+      "description": {
+        "en": "components component in ui/src/components/Breadcrumbs.tsx",
+        "ar": "مكون components في ui/src/components/Breadcrumbs.tsx"
+      },
+      "tags": [
+        "component",
+        "ui",
+        "components",
+        "breadcrumbs"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "ui-component",
+      "id": "ErrorBoundary",
+      "title": {
+        "en": "ErrorBoundary",
+        "ar": "ErrorBoundary"
+      },
+      "description": {
+        "en": "components component in ui/src/components/ErrorBoundary.tsx",
+        "ar": "مكون components في ui/src/components/ErrorBoundary.tsx"
+      },
+      "tags": [
+        "component",
+        "ui",
+        "components",
+        "errorboundary"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "ui-component",
+      "id": "Layout",
+      "title": {
+        "en": "Layout",
+        "ar": "Layout"
+      },
+      "description": {
+        "en": "components component in ui/src/components/Layout.tsx",
+        "ar": "مكون components في ui/src/components/Layout.tsx"
+      },
+      "tags": [
+        "component",
+        "ui",
+        "components",
+        "layout"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "ui-component",
+      "id": "Navbar",
+      "title": {
+        "en": "Navbar",
+        "ar": "Navbar"
+      },
+      "description": {
+        "en": "components component in ui/src/components/Navbar.tsx",
+        "ar": "مكون components في ui/src/components/Navbar.tsx"
+      },
+      "tags": [
+        "component",
+        "ui",
+        "components",
+        "navbar"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "ui-component",
+      "id": "Sidebar",
+      "title": {
+        "en": "Sidebar",
+        "ar": "Sidebar"
+      },
+      "description": {
+        "en": "components component in ui/src/components/Sidebar.tsx",
+        "ar": "مكون components في ui/src/components/Sidebar.tsx"
+      },
+      "tags": [
+        "component",
+        "ui",
+        "components",
+        "sidebar"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "ui-component",
+      "id": "TitleBar",
+      "title": {
+        "en": "TitleBar",
+        "ar": "TitleBar"
+      },
+      "description": {
+        "en": "components component in ui/src/components/TitleBar.tsx",
+        "ar": "مكون components في ui/src/components/TitleBar.tsx"
+      },
+      "tags": [
+        "component",
+        "ui",
+        "components",
+        "titlebar"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "ui-component",
+      "id": "ContextHelpButton",
+      "title": {
+        "en": "ContextHelpButton",
+        "ar": "ContextHelpButton"
+      },
+      "description": {
+        "en": "components component in ui/src/components/help/ContextHelpButton.tsx",
+        "ar": "مكون components في ui/src/components/help/ContextHelpButton.tsx"
+      },
+      "tags": [
+        "component",
+        "ui",
+        "components",
+        "contexthelpbutton"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "ui-component",
+      "id": "MagicHelpInspector",
+      "title": {
+        "en": "MagicHelpInspector",
+        "ar": "MagicHelpInspector"
+      },
+      "description": {
+        "en": "components component in ui/src/components/help/MagicHelpInspector.tsx",
+        "ar": "مكون components في ui/src/components/help/MagicHelpInspector.tsx"
+      },
+      "tags": [
+        "component",
+        "ui",
+        "components",
+        "magichelpinspector"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "ui-component",
+      "id": "SmartHelpDrawer",
+      "title": {
+        "en": "SmartHelpDrawer",
+        "ar": "SmartHelpDrawer"
+      },
+      "description": {
+        "en": "components component in ui/src/components/help/SmartHelpDrawer.tsx",
+        "ar": "مكون components في ui/src/components/help/SmartHelpDrawer.tsx"
+      },
+      "tags": [
+        "component",
+        "ui",
+        "components",
+        "smarthelpdrawer"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "ui-component",
+      "id": "Badge",
+      "title": {
+        "en": "Badge",
+        "ar": "Badge"
+      },
+      "description": {
+        "en": "components component in ui/src/components/ui/Badge.tsx",
+        "ar": "مكون components في ui/src/components/ui/Badge.tsx"
+      },
+      "tags": [
+        "component",
+        "ui",
+        "components",
+        "badge"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "ui-component",
+      "id": "Button",
+      "title": {
+        "en": "Button",
+        "ar": "Button"
+      },
+      "description": {
+        "en": "components component in ui/src/components/ui/Button.tsx",
+        "ar": "مكون components في ui/src/components/ui/Button.tsx"
+      },
+      "tags": [
+        "component",
+        "ui",
+        "components",
+        "button"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "ui-component",
+      "id": "Card",
+      "title": {
+        "en": "Card",
+        "ar": "Card"
+      },
+      "description": {
+        "en": "components component in ui/src/components/ui/Card.tsx",
+        "ar": "مكون components في ui/src/components/ui/Card.tsx"
+      },
+      "tags": [
+        "component",
+        "ui",
+        "components",
+        "card"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "ui-component",
+      "id": "CardHeader",
+      "title": {
+        "en": "CardHeader",
+        "ar": "CardHeader"
+      },
+      "description": {
+        "en": "components component in ui/src/components/ui/Card.tsx",
+        "ar": "مكون components في ui/src/components/ui/Card.tsx"
+      },
+      "tags": [
+        "component",
+        "ui",
+        "components",
+        "cardheader"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "ui-component",
+      "id": "CardSection",
+      "title": {
+        "en": "CardSection",
+        "ar": "CardSection"
+      },
+      "description": {
+        "en": "components component in ui/src/components/ui/Card.tsx",
+        "ar": "مكون components في ui/src/components/ui/Card.tsx"
+      },
+      "tags": [
+        "component",
+        "ui",
+        "components",
+        "cardsection"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "ui-component",
+      "id": "EmptyState",
+      "title": {
+        "en": "EmptyState",
+        "ar": "EmptyState"
+      },
+      "description": {
+        "en": "components component in ui/src/components/ui/EmptyState.tsx",
+        "ar": "مكون components في ui/src/components/ui/EmptyState.tsx"
+      },
+      "tags": [
+        "component",
+        "ui",
+        "components",
+        "emptystate"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "ui-component",
+      "id": "Modal",
+      "title": {
+        "en": "Modal",
+        "ar": "Modal"
+      },
+      "description": {
+        "en": "components component in ui/src/components/ui/Modal.tsx",
+        "ar": "مكون components في ui/src/components/ui/Modal.tsx"
+      },
+      "tags": [
+        "component",
+        "ui",
+        "components",
+        "modal"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "ui-component",
+      "id": "Skeleton",
+      "title": {
+        "en": "Skeleton",
+        "ar": "Skeleton"
+      },
+      "description": {
+        "en": "components component in ui/src/components/ui/Skeleton.tsx",
+        "ar": "مكون components في ui/src/components/ui/Skeleton.tsx"
+      },
+      "tags": [
+        "component",
+        "ui",
+        "components",
+        "skeleton"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "ui-component",
+      "id": "SkeletonCard",
+      "title": {
+        "en": "SkeletonCard",
+        "ar": "SkeletonCard"
+      },
+      "description": {
+        "en": "components component in ui/src/components/ui/Skeleton.tsx",
+        "ar": "مكون components في ui/src/components/ui/Skeleton.tsx"
+      },
+      "tags": [
+        "component",
+        "ui",
+        "components",
+        "skeletoncard"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "ui-component",
+      "id": "SkeletonTable",
+      "title": {
+        "en": "SkeletonTable",
+        "ar": "SkeletonTable"
+      },
+      "description": {
+        "en": "components component in ui/src/components/ui/Skeleton.tsx",
+        "ar": "مكون components في ui/src/components/ui/Skeleton.tsx"
+      },
+      "tags": [
+        "component",
+        "ui",
+        "components",
+        "skeletontable"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "ui-component",
+      "id": "Tabs",
+      "title": {
+        "en": "Tabs",
+        "ar": "Tabs"
+      },
+      "description": {
+        "en": "components component in ui/src/components/ui/Tabs.tsx",
+        "ar": "مكون components في ui/src/components/ui/Tabs.tsx"
+      },
+      "tags": [
+        "component",
+        "ui",
+        "components",
+        "tabs"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "ui-component",
+      "id": "TabPanels",
+      "title": {
+        "en": "TabPanels",
+        "ar": "TabPanels"
+      },
+      "description": {
+        "en": "components component in ui/src/components/ui/Tabs.tsx",
+        "ar": "مكون components في ui/src/components/ui/Tabs.tsx"
+      },
+      "tags": [
+        "component",
+        "ui",
+        "components",
+        "tabpanels"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "ui-component",
+      "id": "useTabState",
+      "title": {
+        "en": "useTabState",
+        "ar": "useTabState"
+      },
+      "description": {
+        "en": "components component in ui/src/components/ui/Tabs.tsx",
+        "ar": "مكون components في ui/src/components/ui/Tabs.tsx"
+      },
+      "tags": [
+        "component",
+        "ui",
+        "components",
+        "usetabstate"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "ui-component",
+      "id": "Toggle",
+      "title": {
+        "en": "Toggle",
+        "ar": "Toggle"
+      },
+      "description": {
+        "en": "components component in ui/src/components/ui/Toggle.tsx",
+        "ar": "مكون components في ui/src/components/ui/Toggle.tsx"
+      },
+      "tags": [
+        "component",
+        "ui",
+        "components",
+        "toggle"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "ui-component",
+      "id": "GlassPanel",
+      "title": {
+        "en": "GlassPanel",
+        "ar": "GlassPanel"
+      },
+      "description": {
+        "en": "components component in ui/src/components/ui/Visual.tsx",
+        "ar": "مكون components في ui/src/components/ui/Visual.tsx"
+      },
+      "tags": [
+        "component",
+        "ui",
+        "components",
+        "glasspanel"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "ui-component",
+      "id": "AnimatedBackground",
+      "title": {
+        "en": "AnimatedBackground",
+        "ar": "AnimatedBackground"
+      },
+      "description": {
+        "en": "components component in ui/src/components/ui/Visual.tsx",
+        "ar": "مكون components في ui/src/components/ui/Visual.tsx"
+      },
+      "tags": [
+        "component",
+        "ui",
+        "components",
+        "animatedbackground"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "ui-component",
+      "id": "StatusIndicator",
+      "title": {
+        "en": "StatusIndicator",
+        "ar": "StatusIndicator"
+      },
+      "description": {
+        "en": "components component in ui/src/components/ui/Visual.tsx",
+        "ar": "مكون components في ui/src/components/ui/Visual.tsx"
+      },
+      "tags": [
+        "component",
+        "ui",
+        "components",
+        "statusindicator"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "ui-component",
+      "id": "PremiumEmptyState",
+      "title": {
+        "en": "PremiumEmptyState",
+        "ar": "PremiumEmptyState"
+      },
+      "description": {
+        "en": "components component in ui/src/components/ui/Visual.tsx",
+        "ar": "مكون components في ui/src/components/ui/Visual.tsx"
+      },
+      "tags": [
+        "component",
+        "ui",
+        "components",
+        "premiumemptystate"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "ui-component",
+      "id": "PremiumLoading",
+      "title": {
+        "en": "PremiumLoading",
+        "ar": "PremiumLoading"
+      },
+      "description": {
+        "en": "components component in ui/src/components/ui/Visual.tsx",
+        "ar": "مكون components في ui/src/components/ui/Visual.tsx"
+      },
+      "tags": [
+        "component",
+        "ui",
+        "components",
+        "premiumloading"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "ui-component",
+      "id": "GradientText",
+      "title": {
+        "en": "GradientText",
+        "ar": "GradientText"
+      },
+      "description": {
+        "en": "components component in ui/src/components/ui/Visual.tsx",
+        "ar": "مكون components في ui/src/components/ui/Visual.tsx"
+      },
+      "tags": [
+        "component",
+        "ui",
+        "components",
+        "gradienttext"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "ui-component",
+      "id": "GlowCard",
+      "title": {
+        "en": "GlowCard",
+        "ar": "GlowCard"
+      },
+      "description": {
+        "en": "components component in ui/src/components/ui/Visual.tsx",
+        "ar": "مكون components في ui/src/components/ui/Visual.tsx"
+      },
+      "tags": [
+        "component",
+        "ui",
+        "components",
+        "glowcard"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "ui-component",
+      "id": "OnboardingTour",
+      "title": {
+        "en": "OnboardingTour",
+        "ar": "OnboardingTour"
+      },
+      "description": {
+        "en": "components component in ui/src/components/onboarding/OnboardingTour.tsx",
+        "ar": "مكون components في ui/src/components/onboarding/OnboardingTour.tsx"
+      },
+      "tags": [
+        "component",
+        "ui",
+        "components",
+        "onboardingtour"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "ui-component",
+      "id": "ContextPanel",
+      "title": {
+        "en": "ContextPanel",
+        "ar": "ContextPanel"
+      },
+      "description": {
+        "en": "components component in ui/src/components/context/ContextPanel.tsx",
+        "ar": "مكون components في ui/src/components/context/ContextPanel.tsx"
+      },
+      "tags": [
+        "component",
+        "ui",
+        "components",
+        "contextpanel"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "ui-component",
+      "id": "ErrorRecovery",
+      "title": {
+        "en": "ErrorRecovery",
+        "ar": "ErrorRecovery"
+      },
+      "description": {
+        "en": "components component in ui/src/components/context/ErrorRecovery.tsx",
+        "ar": "مكون components في ui/src/components/context/ErrorRecovery.tsx"
+      },
+      "tags": [
+        "component",
+        "ui",
+        "components",
+        "errorrecovery"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "ui-component",
+      "id": "useErrorRecovery",
+      "title": {
+        "en": "useErrorRecovery",
+        "ar": "useErrorRecovery"
+      },
+      "description": {
+        "en": "components component in ui/src/components/context/ErrorRecovery.tsx",
+        "ar": "مكون components في ui/src/components/context/ErrorRecovery.tsx"
+      },
+      "tags": [
+        "component",
+        "ui",
+        "components",
+        "useerrorrecovery"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "ui-component",
+      "id": "AppShell",
+      "title": {
+        "en": "AppShell",
+        "ar": "AppShell"
+      },
+      "description": {
+        "en": "components component in ui/src/components/layout/AppShell.tsx",
+        "ar": "مكون components في ui/src/components/layout/AppShell.tsx"
+      },
+      "tags": [
+        "component",
+        "ui",
+        "components",
+        "appshell"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "ui-component",
+      "id": "EngineeringWorkspace",
+      "title": {
+        "en": "EngineeringWorkspace",
+        "ar": "EngineeringWorkspace"
+      },
+      "description": {
+        "en": "components component in ui/src/components/layout/EngineeringWorkspace.tsx",
+        "ar": "مكون components في ui/src/components/layout/EngineeringWorkspace.tsx"
+      },
+      "tags": [
+        "component",
+        "ui",
+        "components",
+        "engineeringworkspace"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "ui-component",
+      "id": "Sidebar",
+      "title": {
+        "en": "Sidebar",
+        "ar": "Sidebar"
+      },
+      "description": {
+        "en": "components component in ui/src/components/layout/Sidebar.tsx",
+        "ar": "مكون components في ui/src/components/layout/Sidebar.tsx"
+      },
+      "tags": [
+        "component",
+        "ui",
+        "components",
+        "sidebar"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "ui-component",
+      "id": "StatusBar",
+      "title": {
+        "en": "StatusBar",
+        "ar": "StatusBar"
+      },
+      "description": {
+        "en": "components component in ui/src/components/layout/StatusBar.tsx",
+        "ar": "مكون components في ui/src/components/layout/StatusBar.tsx"
+      },
+      "tags": [
+        "component",
+        "ui",
+        "components",
+        "statusbar"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "ui-component",
+      "id": "TopBar",
+      "title": {
+        "en": "TopBar",
+        "ar": "TopBar"
+      },
+      "description": {
+        "en": "components component in ui/src/components/layout/TopBar.tsx",
+        "ar": "مكون components في ui/src/components/layout/TopBar.tsx"
+      },
+      "tags": [
+        "component",
+        "ui",
+        "components",
+        "topbar"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "ui-component",
+      "id": "CommandPalette",
+      "title": {
+        "en": "CommandPalette",
+        "ar": "CommandPalette"
+      },
+      "description": {
+        "en": "components component in ui/src/components/command/CommandPalette.tsx",
+        "ar": "مكون components في ui/src/components/command/CommandPalette.tsx"
+      },
+      "tags": [
+        "component",
+        "ui",
+        "components",
+        "commandpalette"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "ui-component",
+      "id": "ContextHelpButton",
+      "title": {
+        "en": "ContextHelpButton",
+        "ar": "ContextHelpButton"
+      },
+      "description": {
+        "en": "components/help component in ui/src/components/help/ContextHelpButton.tsx",
+        "ar": "مكون components/help في ui/src/components/help/ContextHelpButton.tsx"
+      },
+      "tags": [
+        "component",
+        "ui",
+        "components/help",
+        "contexthelpbutton"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "ui-component",
+      "id": "MagicHelpInspector",
+      "title": {
+        "en": "MagicHelpInspector",
+        "ar": "MagicHelpInspector"
+      },
+      "description": {
+        "en": "components/help component in ui/src/components/help/MagicHelpInspector.tsx",
+        "ar": "مكون components/help في ui/src/components/help/MagicHelpInspector.tsx"
+      },
+      "tags": [
+        "component",
+        "ui",
+        "components/help",
+        "magichelpinspector"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "ui-component",
+      "id": "SmartHelpDrawer",
+      "title": {
+        "en": "SmartHelpDrawer",
+        "ar": "SmartHelpDrawer"
+      },
+      "description": {
+        "en": "components/help component in ui/src/components/help/SmartHelpDrawer.tsx",
+        "ar": "مكون components/help في ui/src/components/help/SmartHelpDrawer.tsx"
+      },
+      "tags": [
+        "component",
+        "ui",
+        "components/help",
+        "smarthelpdrawer"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "ui-component",
+      "id": "AppShell",
+      "title": {
+        "en": "AppShell",
+        "ar": "AppShell"
+      },
+      "description": {
+        "en": "components/layout component in ui/src/components/layout/AppShell.tsx",
+        "ar": "مكون components/layout في ui/src/components/layout/AppShell.tsx"
+      },
+      "tags": [
+        "component",
+        "ui",
+        "components/layout",
+        "appshell"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "ui-component",
+      "id": "EngineeringWorkspace",
+      "title": {
+        "en": "EngineeringWorkspace",
+        "ar": "EngineeringWorkspace"
+      },
+      "description": {
+        "en": "components/layout component in ui/src/components/layout/EngineeringWorkspace.tsx",
+        "ar": "مكون components/layout في ui/src/components/layout/EngineeringWorkspace.tsx"
+      },
+      "tags": [
+        "component",
+        "ui",
+        "components/layout",
+        "engineeringworkspace"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "ui-component",
+      "id": "Sidebar",
+      "title": {
+        "en": "Sidebar",
+        "ar": "Sidebar"
+      },
+      "description": {
+        "en": "components/layout component in ui/src/components/layout/Sidebar.tsx",
+        "ar": "مكون components/layout في ui/src/components/layout/Sidebar.tsx"
+      },
+      "tags": [
+        "component",
+        "ui",
+        "components/layout",
+        "sidebar"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "ui-component",
+      "id": "StatusBar",
+      "title": {
+        "en": "StatusBar",
+        "ar": "StatusBar"
+      },
+      "description": {
+        "en": "components/layout component in ui/src/components/layout/StatusBar.tsx",
+        "ar": "مكون components/layout في ui/src/components/layout/StatusBar.tsx"
+      },
+      "tags": [
+        "component",
+        "ui",
+        "components/layout",
+        "statusbar"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "ui-component",
+      "id": "TopBar",
+      "title": {
+        "en": "TopBar",
+        "ar": "TopBar"
+      },
+      "description": {
+        "en": "components/layout component in ui/src/components/layout/TopBar.tsx",
+        "ar": "مكون components/layout في ui/src/components/layout/TopBar.tsx"
+      },
+      "tags": [
+        "component",
+        "ui",
+        "components/layout",
+        "topbar"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "ui-component",
+      "id": "Badge",
+      "title": {
+        "en": "Badge",
+        "ar": "Badge"
+      },
+      "description": {
+        "en": "components/ui component in ui/src/components/ui/Badge.tsx",
+        "ar": "مكون components/ui في ui/src/components/ui/Badge.tsx"
+      },
+      "tags": [
+        "component",
+        "ui",
+        "components/ui",
+        "badge"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "ui-component",
+      "id": "Button",
+      "title": {
+        "en": "Button",
+        "ar": "Button"
+      },
+      "description": {
+        "en": "components/ui component in ui/src/components/ui/Button.tsx",
+        "ar": "مكون components/ui في ui/src/components/ui/Button.tsx"
+      },
+      "tags": [
+        "component",
+        "ui",
+        "components/ui",
+        "button"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "ui-component",
+      "id": "Card",
+      "title": {
+        "en": "Card",
+        "ar": "Card"
+      },
+      "description": {
+        "en": "components/ui component in ui/src/components/ui/Card.tsx",
+        "ar": "مكون components/ui في ui/src/components/ui/Card.tsx"
+      },
+      "tags": [
+        "component",
+        "ui",
+        "components/ui",
+        "card"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "ui-component",
+      "id": "CardHeader",
+      "title": {
+        "en": "CardHeader",
+        "ar": "CardHeader"
+      },
+      "description": {
+        "en": "components/ui component in ui/src/components/ui/Card.tsx",
+        "ar": "مكون components/ui في ui/src/components/ui/Card.tsx"
+      },
+      "tags": [
+        "component",
+        "ui",
+        "components/ui",
+        "cardheader"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "ui-component",
+      "id": "CardSection",
+      "title": {
+        "en": "CardSection",
+        "ar": "CardSection"
+      },
+      "description": {
+        "en": "components/ui component in ui/src/components/ui/Card.tsx",
+        "ar": "مكون components/ui في ui/src/components/ui/Card.tsx"
+      },
+      "tags": [
+        "component",
+        "ui",
+        "components/ui",
+        "cardsection"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "ui-component",
+      "id": "EmptyState",
+      "title": {
+        "en": "EmptyState",
+        "ar": "EmptyState"
+      },
+      "description": {
+        "en": "components/ui component in ui/src/components/ui/EmptyState.tsx",
+        "ar": "مكون components/ui في ui/src/components/ui/EmptyState.tsx"
+      },
+      "tags": [
+        "component",
+        "ui",
+        "components/ui",
+        "emptystate"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "ui-component",
+      "id": "Modal",
+      "title": {
+        "en": "Modal",
+        "ar": "Modal"
+      },
+      "description": {
+        "en": "components/ui component in ui/src/components/ui/Modal.tsx",
+        "ar": "مكون components/ui في ui/src/components/ui/Modal.tsx"
+      },
+      "tags": [
+        "component",
+        "ui",
+        "components/ui",
+        "modal"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "ui-component",
+      "id": "Skeleton",
+      "title": {
+        "en": "Skeleton",
+        "ar": "Skeleton"
+      },
+      "description": {
+        "en": "components/ui component in ui/src/components/ui/Skeleton.tsx",
+        "ar": "مكون components/ui في ui/src/components/ui/Skeleton.tsx"
+      },
+      "tags": [
+        "component",
+        "ui",
+        "components/ui",
+        "skeleton"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "ui-component",
+      "id": "SkeletonCard",
+      "title": {
+        "en": "SkeletonCard",
+        "ar": "SkeletonCard"
+      },
+      "description": {
+        "en": "components/ui component in ui/src/components/ui/Skeleton.tsx",
+        "ar": "مكون components/ui في ui/src/components/ui/Skeleton.tsx"
+      },
+      "tags": [
+        "component",
+        "ui",
+        "components/ui",
+        "skeletoncard"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "ui-component",
+      "id": "SkeletonTable",
+      "title": {
+        "en": "SkeletonTable",
+        "ar": "SkeletonTable"
+      },
+      "description": {
+        "en": "components/ui component in ui/src/components/ui/Skeleton.tsx",
+        "ar": "مكون components/ui في ui/src/components/ui/Skeleton.tsx"
+      },
+      "tags": [
+        "component",
+        "ui",
+        "components/ui",
+        "skeletontable"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "ui-component",
+      "id": "Tabs",
+      "title": {
+        "en": "Tabs",
+        "ar": "Tabs"
+      },
+      "description": {
+        "en": "components/ui component in ui/src/components/ui/Tabs.tsx",
+        "ar": "مكون components/ui في ui/src/components/ui/Tabs.tsx"
+      },
+      "tags": [
+        "component",
+        "ui",
+        "components/ui",
+        "tabs"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "ui-component",
+      "id": "TabPanels",
+      "title": {
+        "en": "TabPanels",
+        "ar": "TabPanels"
+      },
+      "description": {
+        "en": "components/ui component in ui/src/components/ui/Tabs.tsx",
+        "ar": "مكون components/ui في ui/src/components/ui/Tabs.tsx"
+      },
+      "tags": [
+        "component",
+        "ui",
+        "components/ui",
+        "tabpanels"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "ui-component",
+      "id": "useTabState",
+      "title": {
+        "en": "useTabState",
+        "ar": "useTabState"
+      },
+      "description": {
+        "en": "components/ui component in ui/src/components/ui/Tabs.tsx",
+        "ar": "مكون components/ui في ui/src/components/ui/Tabs.tsx"
+      },
+      "tags": [
+        "component",
+        "ui",
+        "components/ui",
+        "usetabstate"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "ui-component",
+      "id": "Toggle",
+      "title": {
+        "en": "Toggle",
+        "ar": "Toggle"
+      },
+      "description": {
+        "en": "components/ui component in ui/src/components/ui/Toggle.tsx",
+        "ar": "مكون components/ui في ui/src/components/ui/Toggle.tsx"
+      },
+      "tags": [
+        "component",
+        "ui",
+        "components/ui",
+        "toggle"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "ui-component",
+      "id": "GlassPanel",
+      "title": {
+        "en": "GlassPanel",
+        "ar": "GlassPanel"
+      },
+      "description": {
+        "en": "components/ui component in ui/src/components/ui/Visual.tsx",
+        "ar": "مكون components/ui في ui/src/components/ui/Visual.tsx"
+      },
+      "tags": [
+        "component",
+        "ui",
+        "components/ui",
+        "glasspanel"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "ui-component",
+      "id": "AnimatedBackground",
+      "title": {
+        "en": "AnimatedBackground",
+        "ar": "AnimatedBackground"
+      },
+      "description": {
+        "en": "components/ui component in ui/src/components/ui/Visual.tsx",
+        "ar": "مكون components/ui في ui/src/components/ui/Visual.tsx"
+      },
+      "tags": [
+        "component",
+        "ui",
+        "components/ui",
+        "animatedbackground"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "ui-component",
+      "id": "StatusIndicator",
+      "title": {
+        "en": "StatusIndicator",
+        "ar": "StatusIndicator"
+      },
+      "description": {
+        "en": "components/ui component in ui/src/components/ui/Visual.tsx",
+        "ar": "مكون components/ui في ui/src/components/ui/Visual.tsx"
+      },
+      "tags": [
+        "component",
+        "ui",
+        "components/ui",
+        "statusindicator"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "ui-component",
+      "id": "PremiumEmptyState",
+      "title": {
+        "en": "PremiumEmptyState",
+        "ar": "PremiumEmptyState"
+      },
+      "description": {
+        "en": "components/ui component in ui/src/components/ui/Visual.tsx",
+        "ar": "مكون components/ui في ui/src/components/ui/Visual.tsx"
+      },
+      "tags": [
+        "component",
+        "ui",
+        "components/ui",
+        "premiumemptystate"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "ui-component",
+      "id": "PremiumLoading",
+      "title": {
+        "en": "PremiumLoading",
+        "ar": "PremiumLoading"
+      },
+      "description": {
+        "en": "components/ui component in ui/src/components/ui/Visual.tsx",
+        "ar": "مكون components/ui في ui/src/components/ui/Visual.tsx"
+      },
+      "tags": [
+        "component",
+        "ui",
+        "components/ui",
+        "premiumloading"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "ui-component",
+      "id": "GradientText",
+      "title": {
+        "en": "GradientText",
+        "ar": "GradientText"
+      },
+      "description": {
+        "en": "components/ui component in ui/src/components/ui/Visual.tsx",
+        "ar": "مكون components/ui في ui/src/components/ui/Visual.tsx"
+      },
+      "tags": [
+        "component",
+        "ui",
+        "components/ui",
+        "gradienttext"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "ui-component",
+      "id": "GlowCard",
+      "title": {
+        "en": "GlowCard",
+        "ar": "GlowCard"
+      },
+      "description": {
+        "en": "components/ui component in ui/src/components/ui/Visual.tsx",
+        "ar": "مكون components/ui في ui/src/components/ui/Visual.tsx"
+      },
+      "tags": [
+        "component",
+        "ui",
+        "components/ui",
+        "glowcard"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "ui-component",
+      "id": "CommandPalette",
+      "title": {
+        "en": "CommandPalette",
+        "ar": "CommandPalette"
+      },
+      "description": {
+        "en": "components/command component in ui/src/components/command/CommandPalette.tsx",
+        "ar": "مكون components/command في ui/src/components/command/CommandPalette.tsx"
+      },
+      "tags": [
+        "component",
+        "ui",
+        "components/command",
+        "commandpalette"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "ui-component",
+      "id": "ContextPanel",
+      "title": {
+        "en": "ContextPanel",
+        "ar": "ContextPanel"
+      },
+      "description": {
+        "en": "components/context component in ui/src/components/context/ContextPanel.tsx",
+        "ar": "مكون components/context في ui/src/components/context/ContextPanel.tsx"
+      },
+      "tags": [
+        "component",
+        "ui",
+        "components/context",
+        "contextpanel"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "ui-component",
+      "id": "ErrorRecovery",
+      "title": {
+        "en": "ErrorRecovery",
+        "ar": "ErrorRecovery"
+      },
+      "description": {
+        "en": "components/context component in ui/src/components/context/ErrorRecovery.tsx",
+        "ar": "مكون components/context في ui/src/components/context/ErrorRecovery.tsx"
+      },
+      "tags": [
+        "component",
+        "ui",
+        "components/context",
+        "errorrecovery"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "ui-component",
+      "id": "useErrorRecovery",
+      "title": {
+        "en": "useErrorRecovery",
+        "ar": "useErrorRecovery"
+      },
+      "description": {
+        "en": "components/context component in ui/src/components/context/ErrorRecovery.tsx",
+        "ar": "مكون components/context في ui/src/components/context/ErrorRecovery.tsx"
+      },
+      "tags": [
+        "component",
+        "ui",
+        "components/context",
+        "useerrorrecovery"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "ui-component",
+      "id": "OnboardingTour",
+      "title": {
+        "en": "OnboardingTour",
+        "ar": "OnboardingTour"
+      },
+      "description": {
+        "en": "components/onboarding component in ui/src/components/onboarding/OnboardingTour.tsx",
+        "ar": "مكون components/onboarding في ui/src/components/onboarding/OnboardingTour.tsx"
+      },
+      "tags": [
+        "component",
+        "ui",
+        "components/onboarding",
+        "onboardingtour"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "ui-component",
+      "id": "useApi",
+      "title": {
+        "en": "useApi",
+        "ar": "useApi"
+      },
+      "description": {
+        "en": "hooks component in ui/src/hooks/useApi.ts",
+        "ar": "مكون hooks في ui/src/hooks/useApi.ts"
+      },
+      "tags": [
+        "component",
+        "ui",
+        "hooks",
+        "useapi"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "ui-component",
+      "id": "useAuth",
+      "title": {
+        "en": "useAuth",
+        "ar": "useAuth"
+      },
+      "description": {
+        "en": "hooks component in ui/src/hooks/useAuth.tsx",
+        "ar": "مكون hooks في ui/src/hooks/useAuth.tsx"
+      },
+      "tags": [
+        "component",
+        "ui",
+        "hooks",
+        "useauth"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "ui-component",
+      "id": "AuthProvider",
+      "title": {
+        "en": "AuthProvider",
+        "ar": "AuthProvider"
+      },
+      "description": {
+        "en": "hooks component in ui/src/hooks/useAuth.tsx",
+        "ar": "مكون hooks في ui/src/hooks/useAuth.tsx"
+      },
+      "tags": [
+        "component",
+        "ui",
+        "hooks",
+        "authprovider"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "ui-component",
+      "id": "useSmartHelp",
+      "title": {
+        "en": "useSmartHelp",
+        "ar": "useSmartHelp"
+      },
+      "description": {
+        "en": "hooks component in ui/src/hooks/useSmartHelp.ts",
+        "ar": "مكون hooks في ui/src/hooks/useSmartHelp.ts"
+      },
+      "tags": [
+        "component",
+        "ui",
+        "hooks",
+        "usesmarthelp"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "ui-component",
+      "id": "useAppStore",
+      "title": {
+        "en": "useAppStore",
+        "ar": "useAppStore"
+      },
+      "description": {
+        "en": "store component in ui/src/store/index.ts",
+        "ar": "مكون store في ui/src/store/index.ts"
+      },
+      "tags": [
+        "component",
+        "ui",
+        "store",
+        "useappstore"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "ui-component",
+      "id": "NotificationProvider",
+      "title": {
+        "en": "NotificationProvider",
+        "ar": "NotificationProvider"
+      },
+      "description": {
+        "en": "context component in ui/src/context/NotificationContext.tsx",
+        "ar": "مكون context في ui/src/context/NotificationContext.tsx"
+      },
+      "tags": [
+        "component",
+        "ui",
+        "context",
+        "notificationprovider"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "ui-component",
+      "id": "useNotify",
+      "title": {
+        "en": "useNotify",
+        "ar": "useNotify"
+      },
+      "description": {
+        "en": "context component in ui/src/context/NotificationContext.tsx",
+        "ar": "مكون context في ui/src/context/NotificationContext.tsx"
+      },
+      "tags": [
+        "component",
+        "ui",
+        "context",
+        "usenotify"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "ui-component",
+      "id": "ThemeProvider",
+      "title": {
+        "en": "ThemeProvider",
+        "ar": "ThemeProvider"
+      },
+      "description": {
+        "en": "context component in ui/src/context/ThemeContext.tsx",
+        "ar": "مكون context في ui/src/context/ThemeContext.tsx"
+      },
+      "tags": [
+        "component",
+        "ui",
+        "context",
+        "themeprovider"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "ui-component",
+      "id": "useTheme",
+      "title": {
+        "en": "useTheme",
+        "ar": "useTheme"
+      },
+      "description": {
+        "en": "context component in ui/src/context/ThemeContext.tsx",
+        "ar": "مكون context في ui/src/context/ThemeContext.tsx"
+      },
+      "tags": [
+        "component",
+        "ui",
+        "context",
+        "usetheme"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "ui-component",
+      "id": "cn",
+      "title": {
+        "en": "cn",
+        "ar": "cn"
+      },
+      "description": {
+        "en": "utils component in ui/src/utils/helpers.ts",
+        "ar": "مكون utils في ui/src/utils/helpers.ts"
+      },
+      "tags": [
+        "component",
+        "ui",
+        "utils",
+        "cn"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "ui-component",
+      "id": "formatNumber",
+      "title": {
+        "en": "formatNumber",
+        "ar": "formatNumber"
+      },
+      "description": {
+        "en": "utils component in ui/src/utils/helpers.ts",
+        "ar": "مكون utils في ui/src/utils/helpers.ts"
+      },
+      "tags": [
+        "component",
+        "ui",
+        "utils",
+        "formatnumber"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "ui-component",
+      "id": "formatDate",
+      "title": {
+        "en": "formatDate",
+        "ar": "formatDate"
+      },
+      "description": {
+        "en": "utils component in ui/src/utils/helpers.ts",
+        "ar": "مكون utils في ui/src/utils/helpers.ts"
+      },
+      "tags": [
+        "component",
+        "ui",
+        "utils",
+        "formatdate"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "ui-component",
+      "id": "formatDuration",
+      "title": {
+        "en": "formatDuration",
+        "ar": "formatDuration"
+      },
+      "description": {
+        "en": "utils component in ui/src/utils/helpers.ts",
+        "ar": "مكون utils في ui/src/utils/helpers.ts"
+      },
+      "tags": [
+        "component",
+        "ui",
+        "utils",
+        "formatduration"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "ui-component",
+      "id": "generateId",
+      "title": {
+        "en": "generateId",
+        "ar": "generateId"
+      },
+      "description": {
+        "en": "utils component in ui/src/utils/helpers.ts",
+        "ar": "مكون utils في ui/src/utils/helpers.ts"
+      },
+      "tags": [
+        "component",
+        "ui",
+        "utils",
+        "generateid"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "ui-component",
+      "id": "logger",
+      "title": {
+        "en": "logger",
+        "ar": "logger"
+      },
+      "description": {
+        "en": "lib component in ui/src/lib/logger.ts",
+        "ar": "مكون lib في ui/src/lib/logger.ts"
+      },
+      "tags": [
+        "component",
+        "ui",
+        "lib",
+        "logger"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "ui-component",
+      "id": "installTelemetry",
+      "title": {
+        "en": "installTelemetry",
+        "ar": "installTelemetry"
+      },
+      "description": {
+        "en": "lib component in ui/src/lib/logger.ts",
+        "ar": "مكون lib في ui/src/lib/logger.ts"
+      },
+      "tags": [
+        "component",
+        "ui",
+        "lib",
+        "installtelemetry"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "ui-component",
+      "id": "studyCategories",
+      "title": {
+        "en": "studyCategories",
+        "ar": "studyCategories"
+      },
+      "description": {
+        "en": "lib component in ui/src/lib/studyCategories.ts",
+        "ar": "مكون lib في ui/src/lib/studyCategories.ts"
+      },
+      "tags": [
+        "component",
+        "ui",
+        "lib",
+        "studycategories"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "ui-component",
+      "id": "contextRegistry",
+      "title": {
+        "en": "contextRegistry",
+        "ar": "contextRegistry"
+      },
+      "description": {
+        "en": "help component in ui/src/help/contextRegistry.ts",
+        "ar": "مكون help في ui/src/help/contextRegistry.ts"
+      },
+      "tags": [
+        "component",
+        "ui",
+        "help",
+        "contextregistry"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "ui-component",
+      "id": "resolveContext",
+      "title": {
+        "en": "resolveContext",
+        "ar": "resolveContext"
+      },
+      "description": {
+        "en": "help component in ui/src/help/contextRegistry.ts",
+        "ar": "مكون help في ui/src/help/contextRegistry.ts"
+      },
+      "tags": [
+        "component",
+        "ui",
+        "help",
+        "resolvecontext"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "ui-component",
+      "id": "helpTopics",
+      "title": {
+        "en": "helpTopics",
+        "ar": "helpTopics"
+      },
+      "description": {
+        "en": "help component in ui/src/help/helpTopics.ts",
+        "ar": "مكون help في ui/src/help/helpTopics.ts"
+      },
+      "tags": [
+        "component",
+        "ui",
+        "help",
+        "helptopics"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "ui-component",
+      "id": "helpCategories",
+      "title": {
+        "en": "helpCategories",
+        "ar": "helpCategories"
+      },
+      "description": {
+        "en": "help component in ui/src/help/helpTopics.ts",
+        "ar": "مكون help في ui/src/help/helpTopics.ts"
+      },
+      "tags": [
+        "component",
+        "ui",
+        "help",
+        "helpcategories"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "python-module",
+      "id": "agents",
+      "title": {
+        "en": "agents",
+        "ar": "agents"
+      },
+      "description": {
+        "en": "Python package: agents/",
+        "ar": "حزمة Python: agents/"
+      },
+      "tags": [
+        "python",
+        "module",
+        "package",
+        "agents"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "python-module",
+      "id": "api",
+      "title": {
+        "en": "api",
+        "ar": "api"
+      },
+      "description": {
+        "en": "Python package: api/",
+        "ar": "حزمة Python: api/"
+      },
+      "tags": [
+        "python",
+        "module",
+        "package",
+        "api"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "python-module",
+      "id": "core",
+      "title": {
+        "en": "core",
+        "ar": "core"
+      },
+      "description": {
+        "en": "Python package: core/",
+        "ar": "حزمة Python: core/"
+      },
+      "tags": [
+        "python",
+        "module",
+        "package",
+        "core"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "python-module",
+      "id": "engine",
+      "title": {
+        "en": "engine",
+        "ar": "engine"
+      },
+      "description": {
+        "en": "Python package: engine/",
+        "ar": "حزمة Python: engine/"
+      },
+      "tags": [
+        "python",
+        "module",
+        "package",
+        "engine"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "python-module",
+      "id": "fault_analysis",
+      "title": {
+        "en": "fault_analysis",
+        "ar": "fault_analysis"
+      },
+      "description": {
+        "en": "Python package: fault_analysis/",
+        "ar": "حزمة Python: fault_analysis/"
+      },
+      "tags": [
+        "python",
+        "module",
+        "package",
+        "fault_analysis"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "python-module",
+      "id": "load_flow",
+      "title": {
+        "en": "load_flow",
+        "ar": "load_flow"
+      },
+      "description": {
+        "en": "Python package: load_flow/",
+        "ar": "حزمة Python: load_flow/"
+      },
+      "tags": [
+        "python",
+        "module",
+        "package",
+        "load_flow"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "python-module",
+      "id": "services",
+      "title": {
+        "en": "services",
+        "ar": "services"
+      },
+      "description": {
+        "en": "Python package: services/",
+        "ar": "حزمة Python: services/"
+      },
+      "tags": [
+        "python",
+        "module",
+        "package",
+        "services"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "python-module",
+      "id": "security",
+      "title": {
+        "en": "security",
+        "ar": "security"
+      },
+      "description": {
+        "en": "Python package: security/",
+        "ar": "حزمة Python: security/"
+      },
+      "tags": [
+        "python",
+        "module",
+        "package",
+        "security"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "python-module",
+      "id": "ml",
+      "title": {
+        "en": "ml",
+        "ar": "ml"
+      },
+      "description": {
+        "en": "Python package: ml/",
+        "ar": "حزمة Python: ml/"
+      },
+      "tags": [
+        "python",
+        "module",
+        "package",
+        "ml"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "python-module",
+      "id": "worker",
+      "title": {
+        "en": "worker",
+        "ar": "worker"
+      },
+      "description": {
+        "en": "Python package: worker/",
+        "ar": "حزمة Python: worker/"
+      },
+      "tags": [
+        "python",
+        "module",
+        "package",
+        "worker"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "python-module",
+      "id": "reporting",
+      "title": {
+        "en": "reporting",
+        "ar": "reporting"
+      },
+      "description": {
+        "en": "Python package: reporting/",
+        "ar": "حزمة Python: reporting/"
+      },
+      "tags": [
+        "python",
+        "module",
+        "package",
+        "reporting"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "python-module",
+      "id": "digital_twin",
+      "title": {
+        "en": "digital_twin",
+        "ar": "digital_twin"
+      },
+      "description": {
+        "en": "Python package: digital_twin/",
+        "ar": "حزمة Python: digital_twin/"
+      },
+      "tags": [
+        "python",
+        "module",
+        "package",
+        "digital_twin"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "python-module",
+      "id": "network_solver",
+      "title": {
+        "en": "network_solver",
+        "ar": "network_solver"
+      },
+      "description": {
+        "en": "Python package: network_solver/",
+        "ar": "حزمة Python: network_solver/"
+      },
+      "tags": [
+        "python",
+        "module",
+        "package",
+        "network_solver"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "python-module",
+      "id": "coordination",
+      "title": {
+        "en": "coordination",
+        "ar": "coordination"
+      },
+      "description": {
+        "en": "Python package: coordination/",
+        "ar": "حزمة Python: coordination/"
+      },
+      "tags": [
+        "python",
+        "module",
+        "package",
+        "coordination"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "python-module",
+      "id": "relays",
+      "title": {
+        "en": "relays",
+        "ar": "relays"
+      },
+      "description": {
+        "en": "Python package: relays/",
+        "ar": "حزمة Python: relays/"
+      },
+      "tags": [
+        "python",
+        "module",
+        "package",
+        "relays"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "python-module",
+      "id": "adms_control",
+      "title": {
+        "en": "adms_control",
+        "ar": "adms_control"
+      },
+      "description": {
+        "en": "Python package: adms_control/",
+        "ar": "حزمة Python: adms_control/"
+      },
+      "tags": [
+        "python",
+        "module",
+        "package",
+        "adms_control"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "python-module",
+      "id": "utils",
+      "title": {
+        "en": "utils",
+        "ar": "utils"
+      },
+      "description": {
+        "en": "Python package: utils/",
+        "ar": "حزمة Python: utils/"
+      },
+      "tags": [
+        "python",
+        "module",
+        "package",
+        "utils"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "python-module",
+      "id": "guards",
+      "title": {
+        "en": "guards",
+        "ar": "guards"
+      },
+      "description": {
+        "en": "Python package: guards/",
+        "ar": "حزمة Python: guards/"
+      },
+      "tags": [
+        "python",
+        "module",
+        "package",
+        "guards"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "python-module",
+      "id": "copilot",
+      "title": {
+        "en": "copilot",
+        "ar": "copilot"
+      },
+      "description": {
+        "en": "Python package: copilot/",
+        "ar": "حزمة Python: copilot/"
+      },
+      "tags": [
+        "python",
+        "module",
+        "package",
+        "copilot"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "python-module",
+      "id": "schemas",
+      "title": {
+        "en": "schemas",
+        "ar": "schemas"
+      },
+      "description": {
+        "en": "Python package: schemas/",
+        "ar": "حزمة Python: schemas/"
+      },
+      "tags": [
+        "python",
+        "module",
+        "package",
+        "schemas"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "python-module",
+      "id": "migrations",
+      "title": {
+        "en": "migrations",
+        "ar": "migrations"
+      },
+      "description": {
+        "en": "Python package: migrations/",
+        "ar": "حزمة Python: migrations/"
+      },
+      "tags": [
+        "python",
+        "module",
+        "package",
+        "migrations"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "python-module",
+      "id": "etap_integration",
+      "title": {
+        "en": "etap_integration",
+        "ar": "etap_integration"
+      },
+      "description": {
+        "en": "Python package: etap_integration/",
+        "ar": "حزمة Python: etap_integration/"
+      },
+      "tags": [
+        "python",
+        "module",
+        "package",
+        "etap_integration"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "python-module",
+      "id": "core_model",
+      "title": {
+        "en": "core_model",
+        "ar": "core_model"
+      },
+      "description": {
+        "en": "Python package: core_model/",
+        "ar": "حزمة Python: core_model/"
+      },
+      "tags": [
+        "python",
+        "module",
+        "package",
+        "core_model"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "python-module",
+      "id": "scada_model",
+      "title": {
+        "en": "scada_model",
+        "ar": "scada_model"
+      },
+      "description": {
+        "en": "Python package: scada_model/",
+        "ar": "حزمة Python: scada_model/"
+      },
+      "tags": [
+        "python",
+        "module",
+        "package",
+        "scada_model"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "python-module",
+      "id": "acp_runtime",
+      "title": {
+        "en": "acp_runtime",
+        "ar": "acp_runtime"
+      },
+      "description": {
+        "en": "Python package: acp_runtime/",
+        "ar": "حزمة Python: acp_runtime/"
+      },
+      "tags": [
+        "python",
+        "module",
+        "package",
+        "acp_runtime"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "python-module",
+      "id": "integrations",
+      "title": {
+        "en": "integrations",
+        "ar": "integrations"
+      },
+      "description": {
+        "en": "Python package: integrations/",
+        "ar": "حزمة Python: integrations/"
+      },
+      "tags": [
+        "python",
+        "module",
+        "package",
+        "integrations"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "python-module",
+      "id": "knowledge",
+      "title": {
+        "en": "knowledge",
+        "ar": "knowledge"
+      },
+      "description": {
+        "en": "Python package: knowledge/",
+        "ar": "حزمة Python: knowledge/"
+      },
+      "tags": [
+        "python",
+        "module",
+        "package",
+        "knowledge"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "python-module",
+      "id": "visualization",
+      "title": {
+        "en": "visualization",
+        "ar": "visualization"
+      },
+      "description": {
+        "en": "Python package: visualization/",
+        "ar": "حزمة Python: visualization/"
+      },
+      "tags": [
+        "python",
+        "module",
+        "package",
+        "visualization"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "python-module",
+      "id": "gis_integration",
+      "title": {
+        "en": "gis_integration",
+        "ar": "gis_integration"
+      },
+      "description": {
+        "en": "Python package: gis_integration/",
+        "ar": "حزمة Python: gis_integration/"
+      },
+      "tags": [
+        "python",
+        "module",
+        "package",
+        "gis_integration"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "python-module",
+      "id": "gis_model",
+      "title": {
+        "en": "gis_model",
+        "ar": "gis_model"
+      },
+      "description": {
+        "en": "Python package: gis_model/",
+        "ar": "حزمة Python: gis_model/"
+      },
+      "tags": [
+        "python",
+        "module",
+        "package",
+        "gis_model"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "python-module",
+      "id": "gis_validation",
+      "title": {
+        "en": "gis_validation",
+        "ar": "gis_validation"
+      },
+      "description": {
+        "en": "Python package: gis_validation/",
+        "ar": "حزمة Python: gis_validation/"
+      },
+      "tags": [
+        "python",
+        "module",
+        "package",
+        "gis_validation"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "python-module",
+      "id": "gis_validation_real",
+      "title": {
+        "en": "gis_validation_real",
+        "ar": "gis_validation_real"
+      },
+      "description": {
+        "en": "Python package: gis_validation_real/",
+        "ar": "حزمة Python: gis_validation_real/"
+      },
+      "tags": [
+        "python",
+        "module",
+        "package",
+        "gis_validation_real"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "python-module",
+      "id": "gis_validation_electrical",
+      "title": {
+        "en": "gis_validation_electrical",
+        "ar": "gis_validation_electrical"
+      },
+      "description": {
+        "en": "Python package: gis_validation_electrical/",
+        "ar": "حزمة Python: gis_validation_electrical/"
+      },
+      "tags": [
+        "python",
+        "module",
+        "package",
+        "gis_validation_electrical"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "python-module",
+      "id": "curves",
+      "title": {
+        "en": "curves",
+        "ar": "curves"
+      },
+      "description": {
+        "en": "Python package: curves/",
+        "ar": "حزمة Python: curves/"
+      },
+      "tags": [
+        "python",
+        "module",
+        "package",
+        "curves"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "python-module",
+      "id": "zenon_user_guide",
+      "title": {
+        "en": "zenon_user_guide",
+        "ar": "zenon_user_guide"
+      },
+      "description": {
+        "en": "Python package: zenon_user_guide/",
+        "ar": "حزمة Python: zenon_user_guide/"
+      },
+      "tags": [
+        "python",
+        "module",
+        "package",
+        "zenon_user_guide"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "python-module",
+      "id": "etap_user_guide",
+      "title": {
+        "en": "etap_user_guide",
+        "ar": "etap_user_guide"
+      },
+      "description": {
+        "en": "Python package: etap_user_guide/",
+        "ar": "حزمة Python: etap_user_guide/"
+      },
+      "tags": [
+        "python",
+        "module",
+        "package",
+        "etap_user_guide"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "python-module",
+      "id": "ai_context_engine",
+      "title": {
+        "en": "ai_context_engine",
+        "ar": "ai_context_engine"
+      },
+      "description": {
+        "en": "Python package: ai_context_engine/",
+        "ar": "حزمة Python: ai_context_engine/"
+      },
+      "tags": [
+        "python",
+        "module",
+        "package",
+        "ai_context_engine"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "python-module",
+      "id": "backend",
+      "title": {
+        "en": "backend",
+        "ar": "backend"
+      },
+      "description": {
+        "en": "Python package: backend/",
+        "ar": "حزمة Python: backend/"
+      },
+      "tags": [
+        "python",
+        "module",
+        "package",
+        "backend"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "python-module",
+      "id": "autodesk_connector",
+      "title": {
+        "en": "autodesk_connector",
+        "ar": "autodesk_connector"
+      },
+      "description": {
+        "en": "Python package: autodesk_connector/",
+        "ar": "حزمة Python: autodesk_connector/"
+      },
+      "tags": [
+        "python",
+        "module",
+        "package",
+        "autodesk_connector"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "python-module",
+      "id": "config",
+      "title": {
+        "en": "config",
+        "ar": "config"
+      },
+      "description": {
+        "en": "Python package: config/",
+        "ar": "حزمة Python: config/"
+      },
+      "tags": [
+        "python",
+        "module",
+        "package",
+        "config"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "python-module",
+      "id": "monitoring",
+      "title": {
+        "en": "monitoring",
+        "ar": "monitoring"
+      },
+      "description": {
+        "en": "Python package: monitoring/",
+        "ar": "حزمة Python: monitoring/"
+      },
+      "tags": [
+        "python",
+        "module",
+        "package",
+        "monitoring"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "python-module",
+      "id": "helm",
+      "title": {
+        "en": "helm",
+        "ar": "helm"
+      },
+      "description": {
+        "en": "Python package: helm/",
+        "ar": "حزمة Python: helm/"
+      },
+      "tags": [
+        "python",
+        "module",
+        "package",
+        "helm"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "python-module",
+      "id": "terraform",
+      "title": {
+        "en": "terraform",
+        "ar": "terraform"
+      },
+      "description": {
+        "en": "Python package: terraform/",
+        "ar": "حزمة Python: terraform/"
+      },
+      "tags": [
+        "python",
+        "module",
+        "package",
+        "terraform"
+      ],
+      "navigateTo": null
+    }
+  ],
+  "total": 247,
+  "by_type": {
+    "python-module": 43,
+    "help-topic": 35,
+    "ui-component": 95,
+    "api-route": 50,
+    "ui-page": 24
+  }
+}
