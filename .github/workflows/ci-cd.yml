@@ -343,11 +343,33 @@ jobs:
                   print(f"  ⚠️  Skipped (empty): {key}")
           EOF
 
+  # ── 6b. DEPLOY TO VERCEL ─────────────────────────────────────────────────────
+  deploy-vercel:
+    name: ▲ Deploy to Vercel Production
+    runs-on: ubuntu-latest
+    needs: [python-tests, security-scan]
+    if: github.ref == 'refs/heads/main'
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Deploy to Vercel
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: team_eeEYqzXI8zkrTo62cUOTMVmS
+          VERCEL_PROJECT_ID: prj_WucHqc3lQDwYe0i3ykgWz7UR5E3I
+        run: |
+          if [ -z "$VERCEL_TOKEN" ]; then
+            echo "⚠️ VERCEL_TOKEN secret not set — skipping Vercel deployment"
+            exit 0
+          fi
+          npx vercel --prod --token $VERCEL_TOKEN --yes
+
   # ── 7. HEALTH CHECK ──────────────────────────────────────────────────────────
   health-check:
     name: 🩺 Production Health Check
     runs-on: ubuntu-latest
-    needs: deploy-hf
+    needs: [deploy-hf, deploy-vercel]
     if: github.ref == 'refs/heads/main'
 
     steps:
