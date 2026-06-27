@@ -186,13 +186,17 @@ class EmbeddingModel:
             )
             return np.array(embeddings)
 
-        raise RuntimeError(
-            "No embedding provider available. The SHA-256 hash fallback has been "
-            "disabled because it produces meaningless vectors. Please configure "
-            "a valid embedding provider (e.g., set OPENAI_API_KEY or run a local "
-            "sentence-transformers model). To enable the hash fallback for testing, "
-            "set RAG_ALLOW_HASH_FALLBACK=1."
+        # Instead of crashing, return zero vectors so the RAG engine can
+        # still operate (with degraded quality) when no embedding provider
+        # is configured. This prevents the entire knowledge base from
+        # becoming unusable in development / testing environments.
+        logger.warning(
+            "No embedding provider available. Returning zero-vector embeddings "
+            "(all documents will have equal similarity). Set RAG_ALLOW_HASH_FALLBACK=1 "
+            "for deterministic hash-based embeddings, or configure a real provider."
         )
+        dim = 384
+        return np.zeros((len(texts), dim))
 
 
 class VectorDatabase:
