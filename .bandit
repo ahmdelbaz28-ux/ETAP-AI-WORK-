@@ -1,9 +1,8 @@
-# .bandit — Bandit configuration for AhmedETAP
+# .bandit — Bandit YAML configuration for AhmedETAP
 # https://bandit.readthedocs.io/en/latest/config.html
 #
-# This config is consumed by 'bandit -c .bandit -r .' in CI.
-# It excludes test directories, vendored code, and build artifacts,
-# and skips false-positive test IDs that are safe in our context.
+# Bandit 1.9.x reads this file as YAML when invoked with '-c .bandit'.
+# The top-level YAML keys are recognized directly.
 
 # Directories to exclude from scanning
 exclude_dirs:
@@ -21,7 +20,7 @@ exclude_dirs:
   - .pytest_cache
   - .ruff_cache
 
-# Skipped tests (false positives that are safe in our context):
+# Skipped tests (false positives safe in our context):
 # B104 = binding to 0.0.0.0 — required for server apps to accept connections
 # B108 = /tmp paths — safe on HF Space (ephemeral filesystem)
 # B311 = random module — used for non-cryptographic purposes (jitter, load balancing)
@@ -32,9 +31,7 @@ skips:
   - B311
   - B110
 
-# Always exit 0 (don't fail the build on remaining issues).
-# We rely on the # nosec comments in the source code to suppress
-# individual false positives, and on the skips list above for
-# pattern-wide false positives.
-# Real security issues are caught by Trivy + Safety + custom security_scan.py.
+# Always exit 0 — we rely on # nosec comments + skips list for false-positive
+# suppression. Real security issues are caught by Trivy + Safety + custom
+# security_scan.py.
 exit_zero: true
