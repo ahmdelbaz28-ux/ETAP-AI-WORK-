@@ -14,13 +14,36 @@ from unittest.mock import MagicMock, Mock, patch
 
 import pytest
 
+# ---------------------------------------------------------------------------
+# AutoCAD imports
+# ---------------------------------------------------------------------------
+from autodesk_connector.autocad.connector import (
+    AutoCADConnector,
+    AutoCADDrawingContext,
+    AutoCADDrawingOperation,
+    AutoCADEntityType,
+    AutoCADPluginClient,
+)
+
+# ---------------------------------------------------------------------------
+# Revit imports
+# ---------------------------------------------------------------------------
+from autodesk_connector.revit.connector import (
+    RevitConnector,
+    RevitElementType,
+    RevitPluginClient,
+)
 from autodesk_connector.shared.models import (
+    Annotation,
+    Breaker,
+    BreakerType,
+    Building,
     Bus,
     BusType,
     Cable,
     CableType,
-    Coordinates,
     Conduit,
+    Coordinates,
     Equipment,
     Level,
     Load,
@@ -29,38 +52,11 @@ from autodesk_connector.shared.models import (
     PanelType,
     Project,
     Room,
-    Tray,
     Transformer,
     TransformerType,
+    Tray,
     UnifiedEngineeringModel,
-    Building,
-    Breaker,
-    BreakerType,
-    Annotation,
 )
-
-# ---------------------------------------------------------------------------
-# Revit imports
-# ---------------------------------------------------------------------------
-
-from autodesk_connector.revit.connector import (
-    RevitConnector,
-    RevitElementType,
-    RevitPluginClient,
-)
-
-# ---------------------------------------------------------------------------
-# AutoCAD imports
-# ---------------------------------------------------------------------------
-
-from autodesk_connector.autocad.connector import (
-    AutoCADConnector,
-    AutoCADDrawingContext,
-    AutoCADEntityType,
-    AutoCADDrawingOperation,
-    AutoCADPluginClient,
-)
-
 
 # ===========================================================================
 # Helpers
@@ -259,9 +255,7 @@ class TestRevitPluginClientHealth:
         import requests
 
         client = RevitPluginClient()
-        with patch.object(
-            client.session, "get", side_effect=requests.ConnectionError("refused")
-        ):
+        with patch.object(client.session, "get", side_effect=requests.ConnectionError("refused")):
             assert client.is_available() is False
 
 
@@ -276,7 +270,9 @@ class TestRevitPluginClientCalls:
     def test_call_posts_to_correct_url(self):
         """_call should POST to /api{endpoint} with the given payload."""
         client = RevitPluginClient()
-        with patch.object(client.session, "post", return_value=_mock_response({"ok": True})) as mock_post:
+        with patch.object(
+            client.session, "post", return_value=_mock_response({"ok": True})
+        ) as mock_post:
             result = client._call("/model/open", {"file_path": "/tmp/test.rvt"})
             mock_post.assert_called_once()
             call_url = mock_post.call_args[0][0]
@@ -286,7 +282,9 @@ class TestRevitPluginClientCalls:
     def test_open_model(self):
         """open_model should call /api/model/open with file_path."""
         client = RevitPluginClient()
-        with patch.object(client.session, "post", return_value=_mock_response({"success": True})) as mock_post:
+        with patch.object(
+            client.session, "post", return_value=_mock_response({"success": True})
+        ) as mock_post:
             result = client.open_model("/tmp/project.rvt")
             payload = mock_post.call_args[1]["json"]
             assert payload["file_path"] == "/tmp/project.rvt"
@@ -302,7 +300,9 @@ class TestRevitPluginClientCalls:
     def test_list_elements_with_filters(self):
         """list_elements should pass category and level_id filters."""
         client = RevitPluginClient()
-        with patch.object(client.session, "post", return_value=_mock_response({"elements": []})) as mock_post:
+        with patch.object(
+            client.session, "post", return_value=_mock_response({"elements": []})
+        ) as mock_post:
             client.list_elements(category="panels", level_id="level-1")
             payload = mock_post.call_args[1]["json"]
             assert payload["category"] == "panels"
@@ -313,9 +313,7 @@ class TestRevitPluginClientCalls:
         import requests
 
         client = RevitPluginClient()
-        with patch.object(
-            client.session, "post", return_value=_mock_response(status_code=401)
-        ):
+        with patch.object(client.session, "post", return_value=_mock_response(status_code=401)):
             with pytest.raises(requests.exceptions.HTTPError):
                 client._call("/model/open", {})
 
@@ -336,7 +334,8 @@ class TestRevitConnector:
         """RevitConnector.open_model stores path on success."""
         conn = self._make_connector()
         with patch.object(
-            conn.plugin.session, "post",
+            conn.plugin.session,
+            "post",
             return_value=_mock_response({"success": True}),
         ):
             result = conn.open_model("/tmp/test.rvt")
@@ -347,7 +346,8 @@ class TestRevitConnector:
         """RevitConnector.open_model does not update path on failure."""
         conn = self._make_connector()
         with patch.object(
-            conn.plugin.session, "post",
+            conn.plugin.session,
+            "post",
             return_value=_mock_response({"success": False}),
         ):
             result = conn.open_model("/tmp/fail.rvt")
@@ -358,7 +358,8 @@ class TestRevitConnector:
         conn = self._make_connector()
         level = _make_level()
         with patch.object(
-            conn.plugin.session, "post",
+            conn.plugin.session,
+            "post",
             return_value=_mock_response({"success": True}),
         ):
             conn.create_level(level)
@@ -373,7 +374,8 @@ class TestRevitConnector:
         conn = self._make_connector()
         room = _make_room(name="Office", area=100.0)
         with patch.object(
-            conn.plugin.session, "post",
+            conn.plugin.session,
+            "post",
             return_value=_mock_response({"success": True}),
         ) as mock_post:
             conn.create_room(room, level_id="level-1")
@@ -389,7 +391,8 @@ class TestRevitConnector:
         conn = self._make_connector()
         panel = _make_panel()
         with patch.object(
-            conn.plugin.session, "post",
+            conn.plugin.session,
+            "post",
             return_value=_mock_response({"success": True}),
         ) as mock_post:
             conn.place_panel(panel, level_id="level-1")
@@ -402,7 +405,8 @@ class TestRevitConnector:
         equipment = _make_equipment()
         location = Coordinates(x=10, y=20, z=0)
         with patch.object(
-            conn.plugin.session, "post",
+            conn.plugin.session,
+            "post",
             return_value=_mock_response({"success": True}),
         ) as mock_post:
             conn.place_equipment(equipment, level_id="level-1", location=location)
@@ -427,7 +431,8 @@ class TestRevitConnector:
             ],
         )
         with patch.object(
-            conn.plugin.session, "post",
+            conn.plugin.session,
+            "post",
             return_value=_mock_response({"success": True}),
         ) as mock_post:
             conn.create_cable_tray(tray, level_id="level-1")
@@ -447,7 +452,8 @@ class TestRevitConnector:
             length_m=25.0,
         )
         with patch.object(
-            conn.plugin.session, "post",
+            conn.plugin.session,
+            "post",
             return_value=_mock_response({"success": True}),
         ) as mock_post:
             conn.create_conduit(conduit, level_id="level-1")
@@ -459,7 +465,8 @@ class TestRevitConnector:
         """export_to_unified_model should call sync_revit_to_model."""
         conn = self._make_connector()
         with patch.object(
-            conn.plugin.session, "post",
+            conn.plugin.session,
+            "post",
             return_value=_mock_response({"success": True, "model": {}}),
         ):
             result = conn.export_to_unified_model()
@@ -511,9 +518,7 @@ class TestAutoCADPluginClientInit:
         import requests
 
         client = AutoCADPluginClient()
-        with patch.object(
-            client.session, "get", side_effect=requests.ConnectionError("down")
-        ):
+        with patch.object(client.session, "get", side_effect=requests.ConnectionError("down")):
             assert client.is_available() is False
 
 
@@ -529,7 +534,8 @@ class TestAutoCADPluginClientCommands:
         """send_command should POST to /api/command with command and params."""
         client = AutoCADPluginClient()
         with patch.object(
-            client.session, "post",
+            client.session,
+            "post",
             return_value=_mock_response({"success": True}),
         ) as mock_post:
             client.send_command("draw_line", {"start": [0, 0], "end": [100, 100]})
@@ -542,7 +548,8 @@ class TestAutoCADPluginClientCommands:
         """open_drawing should send the file_path in params."""
         client = AutoCADPluginClient()
         with patch.object(
-            client.session, "post",
+            client.session,
+            "post",
             return_value=_mock_response({"success": True}),
         ) as mock_post:
             client.open_drawing("/tmp/test.dwg")
@@ -554,7 +561,8 @@ class TestAutoCADPluginClientCommands:
         """create_layer should include name, color, linetype, lineweight."""
         client = AutoCADPluginClient()
         with patch.object(
-            client.session, "post",
+            client.session,
+            "post",
             return_value=_mock_response({"success": True}),
         ) as mock_post:
             client.create_layer("E-PANEL", color="5", linetype="Continuous")
@@ -567,7 +575,8 @@ class TestAutoCADPluginClientCommands:
         """draw_line should include start, end, and layer."""
         client = AutoCADPluginClient()
         with patch.object(
-            client.session, "post",
+            client.session,
+            "post",
             return_value=_mock_response({"success": True}),
         ) as mock_post:
             client.draw_line([0, 0, 0], [100, 100, 0], layer="E-CABLE")
@@ -582,7 +591,8 @@ class TestAutoCADPluginClientCommands:
         client = AutoCADPluginClient()
         ops = [{"command": "draw_line", "params": {}}]
         with patch.object(
-            client.session, "post",
+            client.session,
+            "post",
             return_value=_mock_response({"success": True}),
         ) as mock_post:
             client.batch_operation(ops)
@@ -605,7 +615,8 @@ class TestAutoCADConnector:
         """AutoCADConnector.open_drawing should create an AutoCADDrawingContext."""
         conn = self._make_connector()
         with patch.object(
-            conn.plugin.session, "post",
+            conn.plugin.session,
+            "post",
             return_value=_mock_response({"success": True}),
         ):
             result = conn.open_drawing("/tmp/test.dwg")
@@ -626,7 +637,8 @@ class TestAutoCADConnector:
         conn = self._make_connector()
         bus = _make_bus()
         with patch.object(
-            conn.plugin.session, "post",
+            conn.plugin.session,
+            "post",
             return_value=_mock_response({"success": True}),
         ) as mock_post:
             conn.draw_bus(bus)
@@ -641,7 +653,8 @@ class TestAutoCADConnector:
         conn = self._make_connector()
         xf = _make_transformer()
         with patch.object(
-            conn.plugin.session, "post",
+            conn.plugin.session,
+            "post",
             return_value=_mock_response({"success": True}),
         ) as mock_post:
             conn.draw_transformer(xf)
@@ -656,7 +669,8 @@ class TestAutoCADConnector:
         cable = _make_cable()
         # Mock both create_layer and draw_polyline calls
         with patch.object(
-            conn.plugin.session, "post",
+            conn.plugin.session,
+            "post",
             return_value=_mock_response({"success": True}),
         ) as mock_post:
             conn.draw_cable(cable)
@@ -668,7 +682,8 @@ class TestAutoCADConnector:
         conn = self._make_connector()
         breaker = _make_breaker()
         with patch.object(
-            conn.plugin.session, "post",
+            conn.plugin.session,
+            "post",
             return_value=_mock_response({"success": True}),
         ) as mock_post:
             conn.draw_breaker(breaker)
@@ -681,7 +696,8 @@ class TestAutoCADConnector:
         conn = self._make_connector()
         panel = _make_panel()
         with patch.object(
-            conn.plugin.session, "post",
+            conn.plugin.session,
+            "post",
             return_value=_mock_response({"success": True}),
         ) as mock_post:
             conn.draw_panel(panel)
@@ -694,7 +710,8 @@ class TestAutoCADConnector:
         conn = self._make_connector()
         load = _make_load()
         with patch.object(
-            conn.plugin.session, "post",
+            conn.plugin.session,
+            "post",
             return_value=_mock_response({"success": True}),
         ) as mock_post:
             conn.draw_load(load)
@@ -715,7 +732,8 @@ class TestAutoCADConnector:
             coordinates=Coordinates(x=10, y=20),
         )
         with patch.object(
-            conn.plugin.session, "post",
+            conn.plugin.session,
+            "post",
             return_value=_mock_response({"success": True}),
         ) as mock_post:
             conn.draw_annotation(annotation)
@@ -734,7 +752,8 @@ class TestAutoCADConnector:
             coordinates=Coordinates(x=10, y=20),
         )
         with patch.object(
-            conn.plugin.session, "post",
+            conn.plugin.session,
+            "post",
             return_value=_mock_response({"success": True}),
         ) as mock_post:
             conn.draw_annotation(annotation)
@@ -764,12 +783,17 @@ class TestDataModelValidation:
 
     def test_panel_requires_voltage(self):
         """Panel should require voltage_nominal_v."""
-        with pytest.raises(Exception):
+        # Pydantic raises ValidationError when a required field is missing.
+        from pydantic import ValidationError
+
+        with pytest.raises(ValidationError):
             Panel(name="Bad Panel", panel_type=PanelType.MDP)
 
     def test_bus_requires_base_kv(self):
         """Bus should require base_kv."""
-        with pytest.raises(Exception):
+        from pydantic import ValidationError
+
+        with pytest.raises(ValidationError):
             Bus(name="Bad Bus")
 
     def test_cable_routing_path_is_list_of_coordinates(self):
@@ -808,7 +832,8 @@ class TestConnectionFailures:
 
         client = RevitPluginClient()
         with patch.object(
-            client.session, "post",
+            client.session,
+            "post",
             side_effect=requests.exceptions.Timeout("timed out"),
         ):
             with pytest.raises(requests.exceptions.Timeout):
@@ -820,7 +845,8 @@ class TestConnectionFailures:
 
         client = RevitPluginClient()
         with patch.object(
-            client.session, "post",
+            client.session,
+            "post",
             return_value=_mock_response(status_code=401),
         ):
             with pytest.raises(requests.exceptions.HTTPError):
@@ -832,7 +858,8 @@ class TestConnectionFailures:
 
         client = AutoCADPluginClient()
         with patch.object(
-            client.session, "post",
+            client.session,
+            "post",
             side_effect=requests.exceptions.ConnectionError("refused"),
         ):
             with pytest.raises(requests.exceptions.ConnectionError):
@@ -844,7 +871,8 @@ class TestConnectionFailures:
 
         client = AutoCADPluginClient()
         with patch.object(
-            client.session, "post",
+            client.session,
+            "post",
             return_value=_mock_response(status_code=500),
         ):
             with pytest.raises(requests.exceptions.HTTPError):
@@ -854,7 +882,8 @@ class TestConnectionFailures:
         """RevitConnector should handle plugin failures without crashing."""
         conn = RevitConnector()
         with patch.object(
-            conn.plugin.session, "post",
+            conn.plugin.session,
+            "post",
             side_effect=Exception("unexpected failure"),
         ):
             with pytest.raises(Exception, match="unexpected failure"):
@@ -876,7 +905,8 @@ class TestDataTransformation:
         conn = RevitConnector()
         panel = _make_panel()
         with patch.object(
-            conn.plugin.session, "post",
+            conn.plugin.session,
+            "post",
             return_value=_mock_response({"success": True}),
         ) as mock_post:
             conn.place_panel(panel, level_id="level-1")
@@ -891,7 +921,8 @@ class TestDataTransformation:
         conn = AutoCADConnector()
         bus = _make_bus()
         with patch.object(
-            conn.plugin.session, "post",
+            conn.plugin.session,
+            "post",
             return_value=_mock_response({"success": True}),
         ) as mock_post:
             conn.draw_bus(bus)
@@ -905,7 +936,8 @@ class TestDataTransformation:
         conn = AutoCADConnector()
         xf = _make_transformer()
         with patch.object(
-            conn.plugin.session, "post",
+            conn.plugin.session,
+            "post",
             return_value=_mock_response({"success": True}),
         ) as mock_post:
             conn.draw_transformer(xf)
@@ -926,7 +958,8 @@ class TestDataTransformation:
             metadata={"from_point": [0, 0, 0], "to_point": [50, 0, 0]},
         )
         with patch.object(
-            conn.plugin.session, "post",
+            conn.plugin.session,
+            "post",
             return_value=_mock_response({"success": True}),
         ):
             # Should not raise
@@ -937,7 +970,8 @@ class TestDataTransformation:
         conn = RevitConnector()
         model = _make_unified_model()
         with patch.object(
-            conn.plugin.session, "post",
+            conn.plugin.session,
+            "post",
             return_value=_mock_response({"success": True, "model": {}}),
         ):
             result = conn.synchronize(model)
@@ -983,7 +1017,8 @@ class TestTypeHints:
         """Operation log entries should contain expected keys."""
         conn = RevitConnector()
         with patch.object(
-            conn.plugin.session, "post",
+            conn.plugin.session,
+            "post",
             return_value=_mock_response({"success": True}),
         ):
             conn.open_model("/tmp/test.rvt")

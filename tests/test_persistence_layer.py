@@ -59,6 +59,7 @@ class _FakeRedis:
 
     async def keys(self, pattern):
         import fnmatch
+
         return [k for k in self._store if fnmatch.fnmatch(k, pattern.replace("*", "[^:]*"))]
 
     async def eval(self, script, numkeys, *args):
@@ -468,14 +469,16 @@ class TestWorkerRegistry:
     @pytest.mark.asyncio
     async def test_stale_worker_excluded(self):
         """Workers with heartbeat > stale_threshold seconds ago should be excluded."""
-        from etap_integration.worker_registry import WorkerRegistry, _REGISTRY_PREFIX
+        from etap_integration.worker_registry import _REGISTRY_PREFIX, WorkerRegistry
 
         fake_redis = _FakeRedis()
-        old_info = json.dumps({
-            "worker_id": "old-worker",
-            "last_heartbeat": time.time() - 200,  # 200s ago — stale
-            "status": "idle",
-        })
+        old_info = json.dumps(
+            {
+                "worker_id": "old-worker",
+                "last_heartbeat": time.time() - 200,  # 200s ago — stale
+                "status": "idle",
+            }
+        )
         await fake_redis.set(f"{_REGISTRY_PREFIX}old-worker", old_info)
 
         # Manually inject redis so it uses fake_redis
@@ -492,7 +495,7 @@ class TestWorkerRegistry:
     @pytest.mark.asyncio
     async def test_alive_worker_included(self):
         """Workers with recent heartbeat should be returned."""
-        from etap_integration.worker_registry import WorkerRegistry, _REGISTRY_PREFIX
+        from etap_integration.worker_registry import _REGISTRY_PREFIX, WorkerRegistry
 
         fake_redis = _FakeRedis()
         alive_info = {

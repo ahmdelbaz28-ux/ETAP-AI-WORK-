@@ -6,31 +6,33 @@ All tests mock the heavy backends (study engine, ETAP COM, Redis broker).
 
 import time
 import uuid
+from unittest.mock import MagicMock, patch
+
 import pytest
-from unittest.mock import patch, MagicMock
 
 from services.study_service import StudyResult
 
-
 # ─── Helpers ────────────────────────────────────────────────────────────────
 
+
 def _fake_study_result(**overrides) -> StudyResult:
-    defaults = dict(
-        success=True,
-        data={"converged": True},
-        warnings=[],
-        errors=[],
-        execution_time_sec=0.05,
-        trace_id="test-trace",
-        task_id="test-task",
-        study_type="load_flow",
-        provider="native",
-    )
+    defaults = {
+        "success": True,
+        "data": {"converged": True},
+        "warnings": [],
+        "errors": [],
+        "execution_time_sec": 0.05,
+        "trace_id": "test-trace",
+        "task_id": "test-task",
+        "study_type": "load_flow",
+        "provider": "native",
+    }
     defaults.update(overrides)
     return StudyResult(**defaults)
 
 
 # ─── execute_engineering_study_task ─────────────────────────────────────────
+
 
 class TestExecuteEngineeringStudyTask:
     """Test the Celery task that wraps execute_study_logic."""
@@ -51,13 +53,11 @@ class TestExecuteEngineeringStudyTask:
                 "system": {
                     "base_mva": 100.0,
                     "buses": [
-                        {"bus_id": 1, "bus_type": "slack",
-                            "voltage_magnitude": 1.05},
+                        {"bus_id": 1, "bus_type": "slack", "voltage_magnitude": 1.05},
                         {"bus_id": 2, "bus_type": "pq", "load_power_real": 0.5},
                     ],
                     "lines": [
-                        {"line_id": 1, "from_bus_id": 1,
-                            "to_bus_id": 2, "r1": 0.01, "x1": 0.05},
+                        {"line_id": 1, "from_bus_id": 1, "to_bus_id": 2, "r1": 0.01, "x1": 0.05},
                     ],
                 },
             },
@@ -93,8 +93,8 @@ class TestExecuteEngineeringStudyTask:
     @patch("worker.tasks.execute_study_logic")
     def test_payload_dict_parsed_as_study_request(self, mock_exec, mock_current_task):
         """The 'data' key should be unpacked into a StudyRequest."""
-        from worker.tasks import execute_engineering_study_task
         from services.study_service import StudyRequest
+        from worker.tasks import execute_engineering_study_task
 
         mock_exec.return_value = _fake_study_result()
         mock_current_task.update_state = MagicMock()
@@ -115,6 +115,7 @@ class TestExecuteEngineeringStudyTask:
 
 
 # ─── execute_etap_integration_task ──────────────────────────────────────────
+
 
 class TestExecuteEtapIntegrationTask:
     """Test the ETAP COM integration Celery task."""
@@ -152,6 +153,7 @@ class TestExecuteEtapIntegrationTask:
 
 
 # ─── process_large_calculation_task ─────────────────────────────────────────
+
 
 class TestProcessLargeCalculationTask:
     """Test the heavy-computation Celery task."""
