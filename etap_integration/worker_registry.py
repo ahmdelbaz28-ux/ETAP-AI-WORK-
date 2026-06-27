@@ -64,7 +64,6 @@ import os
 import platform
 import socket
 import time
-import uuid
 from typing import Any, Dict, List, Optional
 
 from fastapi import APIRouter, HTTPException
@@ -76,8 +75,8 @@ logger = logging.getLogger(__name__)
 # ---------------------------------------------------------------------------
 
 _REGISTRY_PREFIX = "etap:worker:registry:"
-_HEARTBEAT_INTERVAL = 30          # seconds — worker sends HB every 30s
-_WORKER_TTL = 90                  # seconds — worker considered dead after 90s
+_HEARTBEAT_INTERVAL = 30  # seconds — worker sends HB every 30s
+_WORKER_TTL = 90  # seconds — worker considered dead after 90s
 _WORKER_CAPABILITY_VERSION = "2.1.0"
 
 # ---------------------------------------------------------------------------
@@ -210,10 +209,8 @@ class ETAPWorkerHeartbeat:
             while not self._stop_event.is_set():
                 await self.register(status="idle")
                 try:
-                    await asyncio.wait_for(
-                        self._stop_event.wait(), timeout=self.interval
-                    )
-                except asyncio.TimeoutError:
+                    await asyncio.wait_for(self._stop_event.wait(), timeout=self.interval)
+                except TimeoutError:
                     pass  # normal — just heartbeat interval elapsed
         finally:
             await self.deregister()

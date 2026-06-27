@@ -22,31 +22,29 @@ from fastapi.responses import HTMLResponse, JSONResponse
 
 # -- Shared handlers (single source of truth) ---------------------------------
 from api.shared_handlers import (
-    AGENTS,
     AGENT_COUNT,
-    BUILD_TIME,
+    AGENTS,
     ETAP_MANUAL_COUNT,
     PUBLIC_PATHS,
     START_TIME,
     STUDY_TYPES,
     VERSION,
     ZENON_GUIDE_COUNT,
-    InMemoryRateLimiter,
+    SharedContextRetrieveRequest,
     SharedETAPExpertChatRequest,
     SharedETAPGUIChatRequest,
-    SharedStudyRequest,
-    SharedContextRetrieveRequest,
     SharedImpactAnalysisRequest,
+    SharedStudyRequest,
     build_health_response,
     build_knowledge_info,
     build_metrics_response,
     build_platform_info,
     build_ready_response,
     handle_context_retrieval,
-    handle_impact_analysis,
     handle_detect_anomalies,
     handle_etap_expert_chat,
     handle_etap_gui_chat,
+    handle_impact_analysis,
     handle_ml_capabilities,
     handle_predict_load,
     rate_limiter,
@@ -60,6 +58,7 @@ logging.basicConfig(
     format="%(asctime)s | %(levelname)s | %(name)s | %(message)s",
 )
 logger = logging.getLogger("etap-ai")
+
 
 # -- Lifespan -----------------------------------------------------------------
 @asynccontextmanager
@@ -295,9 +294,7 @@ async def run_study(request: SharedStudyRequest):
 async def retrieve_context(request: SharedContextRetrieveRequest):
     """Retrieve and compress matching code snippets for a given query."""
     result = handle_context_retrieval(
-        query=request.query,
-        top_k=request.top_k,
-        max_tokens=request.max_tokens
+        query=request.query, top_k=request.top_k, max_tokens=request.max_tokens
     )
     status = result.pop("_status", None)
     if status:
@@ -308,10 +305,7 @@ async def retrieve_context(request: SharedContextRetrieveRequest):
 @app.post("/api/v1/context/impact", tags=["Context Engine"])
 async def analyze_impact(request: SharedImpactAnalysisRequest):
     """Perform dependency impact analysis on a component using the Code Property Graph."""
-    result = handle_impact_analysis(
-        component=request.component,
-        max_depth=request.max_depth
-    )
+    result = handle_impact_analysis(component=request.component, max_depth=request.max_depth)
     status = result.pop("_status", None)
     if status:
         return JSONResponse(status_code=status, content=result)

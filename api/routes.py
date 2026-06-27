@@ -279,6 +279,7 @@ def get_celery_components() -> Tuple[Optional[Any], Optional[Any], Optional[Any]
 
     try:
         from celery.result import AsyncResult  # type: ignore
+
         from worker.celery_app import app as celery_app  # type: ignore
         from worker.tasks import execute_engineering_study_task  # type: ignore
 

@@ -98,6 +98,7 @@ def execute_etap_integration_task(self, etap_command: dict):
         else:
             project_path = etap_command.get("project_path", "")
             from etap_integration.etap_provider import ETAPStudyType
+
             study_type_str = etap_command.get("command", "LOAD_FLOW").upper()
             try:
                 study_type = ETAPStudyType(study_type_str)
@@ -224,4 +225,3 @@ def celery_heartbeat():
         pass  # heartbeat is best-effort
 
     return {"status": "alive", "worker": hostname, "ts": time.time()}
-

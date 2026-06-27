@@ -8,7 +8,6 @@ import os
 
 from uvicorn import run
 
-from api.routes import app as api_app  # Import the configured API app
 from core.bootstrap import logger
 
 

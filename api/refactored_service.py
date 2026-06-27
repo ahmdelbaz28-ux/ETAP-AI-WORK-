@@ -366,7 +366,9 @@ class StudyRequest(BaseModel):
     model_config = ConfigDict(extra="ignore")
 
     study_type: str = Field(..., description="Type of study to run")
-    system: Optional[SystemSpec] = Field(default=None, validation_alias=AliasChoices("system", "system_spec"))
+    system: Optional[SystemSpec] = Field(
+        default=None, validation_alias=AliasChoices("system", "system_spec")
+    )
     parameters: Dict[str, Any] = Field(default_factory=dict)
     task_id: Optional[str] = None
     use_etap: bool = Field(
