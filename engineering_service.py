@@ -6,6 +6,12 @@ This file now serves as the main application runner, delegating to the modular c
 import logging
 import os
 
+# Defensive import: ensure `trace` is available even if a middleware or downstream
+# module references `trace.SpanKind.SERVER` directly. This prevents NameError at
+# request time when OpenTelemetry tracing is wired into FastAPI middleware.
+# See: FIXES_APPLIED.md (2026-06-28 — Vercel Build Fix + Cross-Platform Auto-Sync)
+from opentelemetry import trace  # noqa: F401 — re-exported for downstream use
+
 from uvicorn import run
 
 from core.bootstrap import logger

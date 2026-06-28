@@ -98,6 +98,7 @@ class TestAPIKeyBypass:
 class TestJWTExpiryAndRefresh:
     """Test the full lifecycle: obtain token → expiry → refresh."""
 
+    @pytest.mark.timeout(60)
     def test_token_lifecycle(self, client):
         """Register, login, verify access, simulate expiry, then refresh."""
         # Step 1: Register and login
@@ -322,6 +323,7 @@ class TestRASPBlockingPathTraversal:
 class TestRateLimitEnforcement:
     """Test rate limiting: exceed limit, then wait and retry."""
 
+    @pytest.mark.timeout(60)  # bcrypt.checkpw is CPU-intensive; allow up to 60s
     def test_rate_limit_then_cooldown(self, client):
         """After exceeding the rate limit, waiting should allow retries.
 
@@ -372,6 +374,7 @@ class TestRateLimitEnforcement:
             "Different user should not be affected by another's rate limit"
         )
 
+    @pytest.mark.timeout(60)  # bcrypt.checkpw is CPU-intensive; allow up to 60s
     def test_rate_limit_per_username_isolation(self, client):
         """Rate limiting for one username does not affect another."""
         client.post(
