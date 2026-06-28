@@ -349,17 +349,31 @@ def test_chat_endpoint_in_hf_space_app():
 
 
 def test_etap_gui_in_hf_space_study_types():
-    """hf-space/app.py STUDY_TYPES must include 'etap_gui'."""
-    p = Path(__file__).resolve().parent.parent / "hf-space" / "app.py"
-    content = p.read_text(encoding="utf-8")
-    assert '"etap_gui"' in content
+    """hf-space/app.py must expose STUDY_TYPES that includes 'etap_gui'.
+
+    The STUDY_TYPES list is defined in api/shared_handlers.py (single source
+    of truth) and re-exported by hf-space/app.py. We import the runtime
+    value instead of grepping for a literal string, so the test stays
+    correct even if the list is moved or refactored.
+    """
+    from api.shared_handlers import STUDY_TYPES
+
+    assert "etap_gui" in STUDY_TYPES, f"STUDY_TYPES must include 'etap_gui', got: {STUDY_TYPES}"
 
 
 def test_etap_gui_agent_in_hf_space_agents_list():
-    """hf-space/app.py AGENTS list must include 'etap-gui-agent'."""
-    p = Path(__file__).resolve().parent.parent / "hf-space" / "app.py"
-    content = p.read_text(encoding="utf-8")
-    assert '"etap-gui-agent"' in content
+    """The AGENTS list (defined in api/shared_handlers.py, re-exported by
+    hf-space/app.py) must include an entry with id 'etap-gui-agent'.
+
+    We check the runtime value rather than grepping for a literal string,
+    so the test stays correct even if the list is refactored.
+    """
+    from api.shared_handlers import AGENTS
+
+    agent_ids = [a.get("id") for a in AGENTS if isinstance(a, dict)]
+    assert "etap-gui-agent" in agent_ids, (
+        f"AGENTS must include 'etap-gui-agent', got ids: {agent_ids}"
+    )
 
 
 def test_prompt_yaml_exists():

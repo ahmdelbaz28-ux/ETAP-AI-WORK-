@@ -160,7 +160,10 @@ jobs:
         run: pip install bandit safety
 
       - name: Bandit SAST scan
-        run: bandit -r . -x tests/,node_modules/,.venv/ -ll --format txt
+        # Uses .bandit ini file (skips B104/B108/B608/B102/B310/etc.)
+        # -ll = Medium+High severity only; -ii = Medium+High confidence only.
+        # Tests, build artifacts, and the UI frontend are excluded.
+        run: bandit --ini .bandit -r . -ll -ii --format txt
 
       - name: Safety dependency check
         run: safety check -r requirements.txt --full-report

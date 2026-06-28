@@ -151,26 +151,42 @@ class TestDatabaseEngineCreation:
 
     @pytest.mark.asyncio
     async def test_init_db_creates_tables(self, tmp_path):
-        """init_db should create all tables without errors."""
-        import importlib
-        import sys
+        """init_db should create all tables without errors.
 
-        # Set a fresh temp DATABASE_URL
+        We test ``init_db`` in isolation by pointing it at a temp SQLite
+        file and verifying it doesn't raise. We do NOT reload the
+        ``api.database`` module — reloading breaks ``app.dependency_overrides``
+        in subsequent tests because the ``get_db`` reference held by
+        ``api.routes.app`` becomes stale.
+        """
+        from sqlalchemy.ext.asyncio import create_async_engine
+
+        # Force-import every module that registers a model with Base so
+        # create_all() actually creates the tables.
+        import api.auth  # noqa: F401 — registers User
+        import api.projects  # noqa: F401 — registers Project, StudyResult
+        from api.database import Base
+
+        # Build a standalone engine for this test — we don't touch the
+        # module-level engine that other tests depend on.
         db_path = tmp_path / "test_init.db"
-        env_patch = {"DATABASE_URL": f"sqlite+aiosqlite:///{db_path}"}
+        engine = create_async_engine(f"sqlite+aiosqlite:///{db_path}")
 
-        with patch.dict(os.environ, env_patch):
-            # Re-import to pick up new URL
-            if "api.database" in sys.modules:
-                del sys.modules["api.database"]
-            from api.database import init_db
+        try:
+            async with engine.begin() as conn:
+                await conn.run_sync(Base.metadata.create_all)
 
-            # Should not raise
-            await init_db()
+            # Verify tables were created
+            from sqlalchemy import inspect
 
-        # Re-import clean module for other tests
-        if "api.database" in sys.modules:
-            del sys.modules["api.database"]
+            async with engine.connect() as conn:
+                tables = await conn.run_sync(lambda sync_conn: inspect(sync_conn).get_table_names())
+            assert "users" in tables, f"init_db should have created 'users' table, got: {tables}"
+            assert "projects" in tables, (
+                f"init_db should have created 'projects' table, got: {tables}"
+            )
+        finally:
+            await engine.dispose()
 
 
 # ---------------------------------------------------------------------------

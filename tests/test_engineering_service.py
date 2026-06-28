@@ -602,13 +602,11 @@ class TestBodySizeLimit:
     async def test_oversized_request_rejected(self, client):
         """POST with Content-Length exceeding the limit should be rejected.
 
-        The _BodySizeLimitMiddleware raises HTTPException(413) which
-        propagates through the ASGI transport in test mode.  We verify
-        the exception is raised (the feature works) regardless of whether
-        it surfaces as a clean HTTP 413 response or an unhandled exception.
+        The _BodySizeLimitMiddleware returns a JSONResponse with status 413
+        (it used to raise HTTPException, but raising inside BaseHTTPMiddleware
+        caused Starlette to wrap it as a 500 — returning a JSONResponse is
+        the correct pattern).
         """
-        from fastapi.exceptions import HTTPException
-
         import api.routes as routes_mod
 
         original_max = routes_mod._MAX_BODY_SIZE
@@ -618,9 +616,10 @@ class TestBodySizeLimit:
 
             # Payload whose JSON encoding exceeds 100 bytes
             large_payload = {"study_type": "load_flow", "parameters": {"data": "x" * 200}}
-            with pytest.raises(HTTPException) as exc_info:
-                await client.post("/api/v1/studies/run", json=large_payload)
-            assert exc_info.value.status_code == 413
+            resp = await client.post("/api/v1/studies/run", json=large_payload)
+            assert resp.status_code == 413, (
+                f"Expected 413 for oversized request, got {resp.status_code}"
+            )
         finally:
             routes_mod._MAX_BODY_SIZE = original_max
 

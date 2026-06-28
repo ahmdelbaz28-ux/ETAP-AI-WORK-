@@ -154,10 +154,15 @@ HELP_CONTEXT_FILE = "ui/src/help/contextRegistry.ts"
 
 
 def file_hash(path: Path) -> str:
-    """Fast content hash for change detection."""
+    """Fast content hash for change detection.
+
+    Uses MD5 because it is only a cache key (not a security primitive) —
+    the hash is used to detect content changes for re-indexing, not to
+    protect against adversaries.
+    """
     try:
         content = path.read_bytes()
-        return hashlib.md5(content).hexdigest()[:12]
+        return hashlib.md5(content).hexdigest()[:12]  # nosec B324 — non-security cache key
     except Exception:
         return "error"
 
