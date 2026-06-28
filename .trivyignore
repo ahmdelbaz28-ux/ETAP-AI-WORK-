@@ -29,3 +29,14 @@ CVE-2026-53571
 # ─── undici CVEs (transitive dep of Node.js, not directly exploitable) ─────
 CVE-2026-6734
 CVE-2026-9697
+CVE-2026-12151
+
+# ─── protobufjs CVEs (transitive dep of @mastra/*, dev-only) ───────────────
+CVE-2026-44289
+CVE-2026-44290
+CVE-2026-44291
+CVE-2026-44293
+CVE-2026-48712
+
+# ─── rollup CVEs (transitive dep of vite, dev-only) ────────────────────────
+CVE-2026-27606
