@@ -64,8 +64,8 @@ STUDY_TYPES: List[str] = [
     "renewable_integration",
     "battery_storage",
     "scada",
-    "etap_expert",   # ETAP Expert skill — 6-step workflow with Format A/B/C/D
-    "etap_gui",      # ETAP GUI Agent — Computer Use Agent for desktop apps
+    "etap_expert",  # ETAP Expert skill — 6-step workflow with Format A/B/C/D
+    "etap_gui",  # ETAP GUI Agent — Computer Use Agent for desktop apps
 ]
 
 # ---------------------------------------------------------------------------
@@ -73,29 +73,134 @@ STUDY_TYPES: List[str] = [
 # ---------------------------------------------------------------------------
 
 AGENTS: List[Dict[str, str]] = [
-    {"id": "load-flow-agent", "name": "Load Flow Agent", "standard": "IEEE 3002.7", "status": "active"},
-    {"id": "short-circuit-agent", "name": "Short Circuit Agent", "standard": "IEC 60909", "status": "active"},
-    {"id": "arcflash-agent", "name": "Arc Flash Agent", "standard": "IEEE 1584", "status": "active"},
-    {"id": "protection-agent", "name": "Protection Agent", "standard": "IEC 60255", "status": "active"},
-    {"id": "motorstarting-agent", "name": "Motor Starting Agent", "standard": "IEEE 399", "status": "active"},
-    {"id": "stability-agent", "name": "Stability Agent", "standard": "IEEE 399", "status": "active"},
-    {"id": "harmonic-agent", "name": "Harmonic Analysis Agent", "standard": "IEEE 519", "status": "active"},
-    {"id": "cable-sizing-agent", "name": "Cable Sizing Agent", "standard": "IEC 60364", "status": "active"},
-    {"id": "earth-grid-agent", "name": "Earth Grid Agent", "standard": "IEEE 80", "status": "active"},
-    {"id": "opf-agent", "name": "Optimal Power Flow Agent", "standard": "IEEE 3002.7", "status": "active"},
-    {"id": "renewable-agent", "name": "Renewable Energy Agent", "standard": "IEEE 1547", "status": "active"},
-    {"id": "battery-storage-agent", "name": "Battery Storage Agent", "standard": "IEC 62933", "status": "active"},
+    {
+        "id": "load-flow-agent",
+        "name": "Load Flow Agent",
+        "standard": "IEEE 3002.7",
+        "status": "active",
+    },
+    {
+        "id": "short-circuit-agent",
+        "name": "Short Circuit Agent",
+        "standard": "IEC 60909",
+        "status": "active",
+    },
+    {
+        "id": "arcflash-agent",
+        "name": "Arc Flash Agent",
+        "standard": "IEEE 1584",
+        "status": "active",
+    },
+    {
+        "id": "protection-agent",
+        "name": "Protection Agent",
+        "standard": "IEC 60255",
+        "status": "active",
+    },
+    {
+        "id": "motorstarting-agent",
+        "name": "Motor Starting Agent",
+        "standard": "IEEE 399",
+        "status": "active",
+    },
+    {
+        "id": "stability-agent",
+        "name": "Stability Agent",
+        "standard": "IEEE 399",
+        "status": "active",
+    },
+    {
+        "id": "harmonic-agent",
+        "name": "Harmonic Analysis Agent",
+        "standard": "IEEE 519",
+        "status": "active",
+    },
+    {
+        "id": "cable-sizing-agent",
+        "name": "Cable Sizing Agent",
+        "standard": "IEC 60364",
+        "status": "active",
+    },
+    {
+        "id": "earth-grid-agent",
+        "name": "Earth Grid Agent",
+        "standard": "IEEE 80",
+        "status": "active",
+    },
+    {
+        "id": "opf-agent",
+        "name": "Optimal Power Flow Agent",
+        "standard": "IEEE 3002.7",
+        "status": "active",
+    },
+    {
+        "id": "renewable-agent",
+        "name": "Renewable Energy Agent",
+        "standard": "IEEE 1547",
+        "status": "active",
+    },
+    {
+        "id": "battery-storage-agent",
+        "name": "Battery Storage Agent",
+        "standard": "IEC 62933",
+        "status": "active",
+    },
     {"id": "scada-agent", "name": "SCADA Agent", "standard": "IEC 61850", "status": "active"},
-    {"id": "digital-twin-agent", "name": "Digital Twin Agent", "standard": "IEC 61970", "status": "active"},
-    {"id": "predictive-agent", "name": "Predictive Maintenance", "standard": "ISO 13381", "status": "active"},
-    {"id": "anomaly-agent", "name": "Anomaly Detection Agent", "standard": "IEEE 1159", "status": "active"},
-    {"id": "coordination-agent", "name": "Coordination Agent", "standard": "IEC 60255", "status": "active"},
-    {"id": "report-agent", "name": "Report Generation Agent", "standard": "IEEE 3002.7", "status": "active"},
-    {"id": "validation-agent", "name": "Validation Agent", "standard": "IEC 60038", "status": "active"},
-    {"id": "etap-engineer-agent", "name": "ETAP Engineer Agent", "standard": "ETAP Manual", "status": "active"},
-    {"id": "goal-planner-agent", "name": "Goal Planner Agent", "standard": "Internal", "status": "active"},
+    {
+        "id": "digital-twin-agent",
+        "name": "Digital Twin Agent",
+        "standard": "IEC 61970",
+        "status": "active",
+    },
+    {
+        "id": "predictive-agent",
+        "name": "Predictive Maintenance",
+        "standard": "ISO 13381",
+        "status": "active",
+    },
+    {
+        "id": "anomaly-agent",
+        "name": "Anomaly Detection Agent",
+        "standard": "IEEE 1159",
+        "status": "active",
+    },
+    {
+        "id": "coordination-agent",
+        "name": "Coordination Agent",
+        "standard": "IEC 60255",
+        "status": "active",
+    },
+    {
+        "id": "report-agent",
+        "name": "Report Generation Agent",
+        "standard": "IEEE 3002.7",
+        "status": "active",
+    },
+    {
+        "id": "validation-agent",
+        "name": "Validation Agent",
+        "standard": "IEC 60038",
+        "status": "active",
+    },
+    {
+        "id": "etap-engineer-agent",
+        "name": "ETAP Engineer Agent",
+        "standard": "ETAP Manual",
+        "status": "active",
+    },
+    {
+        "id": "goal-planner-agent",
+        "name": "Goal Planner Agent",
+        "standard": "Internal",
+        "status": "active",
+    },
     {"id": "weather-agent", "name": "Weather Agent", "standard": "IEC 60721", "status": "active"},
-    {"id": "power-system-coordinator", "name": "Power System Coordinator", "standard": "All", "status": "active"},
+    {
+        "id": "power-system-coordinator",
+        "name": "Power System Coordinator",
+        "standard": "All",
+        "status": "active",
+    },
     {
         "id": "etap-expert-agent",
         "name": "ETAP Expert Skill Agent",
@@ -259,9 +364,7 @@ class InMemoryRateLimiter:
                 return True
 
             # Prune timestamps outside the window
-            self._store[client_id] = [
-                t for t in self._store[client_id] if now - t < self.window
-            ]
+            self._store[client_id] = [t for t in self._store[client_id] if now - t < self.window]
             if len(self._store[client_id]) >= self.max_requests:
                 return False
 
@@ -445,7 +548,9 @@ def sanitize_result(obj: Any) -> Any:
 # ---------------------------------------------------------------------------
 
 
-def run_study_lightweight(study_type: str, system: Dict[str, Any], parameters: Dict[str, Any]) -> Dict[str, Any]:
+def run_study_lightweight(
+    study_type: str, system: Dict[str, Any], parameters: Dict[str, Any]
+) -> Dict[str, Any]:
     """Execute an engineering study with **no** external service dependencies.
 
     This is the lightweight counterpart of the full study runner in
@@ -719,12 +824,7 @@ def handle_context_retrieval(query: str, top_k: int = 5, max_tokens: int = 2000)
         retriever = CodeRetriever(index_dir=index_dir)
         compressed = retriever.retrieve_and_compress(query, top_k=top_k, max_tokens=max_tokens)
 
-        return {
-            "success": True,
-            "query": query,
-            "count": len(compressed),
-            "chunks": compressed
-        }
+        return {"success": True, "query": query, "count": len(compressed), "chunks": compressed}
     except Exception as e:
         return {"success": False, "errors": [str(e)], "_status": 500}
 
@@ -747,7 +847,7 @@ def handle_impact_analysis(component: str, max_depth: int = 2) -> Dict[str, Any]
             "max_depth": max_depth,
             "nodes_count": len(subgraph["nodes"]),
             "edges_count": len(subgraph["edges"]),
-            "impact": subgraph
+            "impact": subgraph,
         }
     except Exception as e:
         logger.exception("Failed to run impact analysis")

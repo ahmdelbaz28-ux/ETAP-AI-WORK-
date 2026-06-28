@@ -27,37 +27,33 @@ class LoadFlowSolver:
 
     def __init__(self, system):
         self.system = system
-        self.Ybus = self.system.get_ybus(seq='1')
+        self.Ybus = self.system.get_ybus(seq="1")
         self.n_buses = self.Ybus.shape[0]
 
         self.bus_ids = sorted(self.system.buses.keys())
         self.bus_index = {bid: i for i, bid in enumerate(self.bus_ids)}
-        self.V = np.array(
-            [self.system.buses[bid].voltage for bid in self.bus_ids],
-            dtype=complex
-        )
+        self.V = np.array([self.system.buses[bid].voltage for bid in self.bus_ids], dtype=complex)
 
         # PV Q limits: {bus_index: (Qmin, Qmax)}
         self.q_limits = {}
         for bid in self.bus_ids:
             bus = self.system.buses[bid]
-            if bus.bus_type == 'pv':
-                qmin = getattr(bus, 'q_min', -999.0)
-                qmax = getattr(bus, 'q_max', 999.0)
+            if bus.bus_type == "pv":
+                qmin = getattr(bus, "q_min", -999.0)
+                qmax = getattr(bus, "q_max", 999.0)
                 self.q_limits[self.bus_index[bid]] = (qmin, qmax)
 
         # Original PV indices (indices in bus_ids order)
         self.original_pv_indices = [
-            i for i, bid in enumerate(self.bus_ids)
-            if self.system.buses[bid].bus_type == 'pv'
+            i for i, bid in enumerate(self.bus_ids) if self.system.buses[bid].bus_type == "pv"
         ]
 
         self._rebuild_bus_type_indices()
 
         # Solver parameters
         self.damping_factor = 1.0
-        self.max_step_angle = 0.2       # radians
-        self.max_step_voltage = 0.1    # pu
+        self.max_step_angle = 0.2  # radians
+        self.max_step_voltage = 0.1  # pu
         self.oscillation_window = 5
         self.oscillation_threshold = 0.7
 
@@ -67,9 +63,9 @@ class LoadFlowSolver:
 
     def _rebuild_bus_type_indices(self):
         self.bus_types = [self.system.buses[bid].bus_type for bid in self.bus_ids]
-        self.slack_indices = [i for i, bt in enumerate(self.bus_types) if bt == 'slack']
-        self.pv_indices = [i for i, bt in enumerate(self.bus_types) if bt == 'pv']
-        self.pq_indices = [i for i, bt in enumerate(self.bus_types) if bt == 'pq']
+        self.slack_indices = [i for i, bt in enumerate(self.bus_types) if bt == "slack"]
+        self.pv_indices = [i for i, bt in enumerate(self.bus_types) if bt == "pv"]
+        self.pq_indices = [i for i, bt in enumerate(self.bus_types) if bt == "pq"]
         self.n_unknowns = len(self.pv_indices) + 2 * len(self.pq_indices)
 
     def _calculate_power(self, V):
@@ -147,9 +143,9 @@ class LoadFlowSolver:
         sin_θ = np.sin(θ)
 
         # Voltage magnitude products
-        V_i = Vmag[:, np.newaxis]        # (n, 1)
-        V_j = Vmag[np.newaxis, :]        # (1, n)
-        V_i_V_j = V_i * V_j              # (n, n)
+        V_i = Vmag[:, np.newaxis]  # (n, 1)
+        V_j = Vmag[np.newaxis, :]  # (1, n)
+        V_i_V_j = V_i * V_j  # (n, n)
 
         # Current power injections (P_calc, Q_calc)
         P, Q = self._calculate_power(V)
@@ -161,17 +157,17 @@ class LoadFlowSolver:
         n_th_cols = n_pv + n_pq
 
         # Row ordering: [PV..., PQ...] for dP, then [PQ...] for dQ
-        row_buses = pv + pq        # ΔP rows
-        th_col_buses = pv + pq     # Δθ columns
-        vm_col_buses = pq          # Δ|V| columns
+        row_buses = pv + pq  # ΔP rows
+        th_col_buses = pv + pq  # Δθ columns
+        vm_col_buses = pq  # Δ|V| columns
 
         J = np.zeros((self.n_unknowns, self.n_unknowns))
 
         # ── Precompute common products ──────────────────────────────────
-        GS = G * sin_θ          # G_ij * sin(θ_ij)
-        BC = B * cos_θ          # B_ij * cos(θ_ij)
-        GC = G * cos_θ          # G_ij * cos(θ_ij)
-        BS = B * sin_θ          # B_ij * sin(θ_ij)
+        GS = G * sin_θ  # G_ij * sin(θ_ij)
+        BC = B * cos_θ  # B_ij * cos(θ_ij)
+        GC = G * cos_θ  # G_ij * cos(θ_ij)
+        BS = B * sin_θ  # B_ij * sin(θ_ij)
 
         # dP_i/dθ_k  (P-calc derivative)  —  see formula docstring above
         #   off-diag: V_i*V_j*(G_ij*sin - B_ij*cos)      ← d(P_calc)/dθ
@@ -196,7 +192,7 @@ class LoadFlowSolver:
         # ── Diagonal helpers ───────────────────────────────────────────
         B_diag = B.diagonal()
         G_diag = G.diagonal()
-        V2 = Vmag ** 2
+        V2 = Vmag**2
 
         # ── J1: dΔP/dθ ──
         for ri, bus_i in enumerate(row_buses):
@@ -250,8 +246,8 @@ class LoadFlowSolver:
 
         mismatch = np.zeros(self.n_unknowns)
         mismatch[:n_pv] = deltaP[pv]
-        mismatch[n_pv:n_pv + n_pq] = deltaP[pq]
-        mismatch[n_pv + n_pq:] = deltaQ[pq]
+        mismatch[n_pv : n_pv + n_pq] = deltaP[pq]
+        mismatch[n_pv + n_pq :] = deltaQ[pq]
         return mismatch
 
     def _apply_step_limiting(self, correction):
@@ -329,16 +325,16 @@ class LoadFlowSolver:
             qmin, qmax = self.q_limits[bus_i]
             Q_gen = Q[bus_i] + bus.load_power.imag
 
-            if bus.bus_type == 'pv' and Q_gen > qmax:
-                bus.bus_type = 'pq'
+            if bus.bus_type == "pv" and Q_gen > qmax:
+                bus.bus_type = "pq"
                 bus.generation_power = complex(bus.generation_power.real, qmax)
                 event = f"PV->PQ (Q>Qmax): Bus {bid} Q={Q_gen:.4f} > Qmax={qmax:.4f}"
                 self.switching_log.append(event)
                 logger.info(event)
                 switched = True
 
-            elif bus.bus_type == 'pv' and Q_gen < qmin:
-                bus.bus_type = 'pq'
+            elif bus.bus_type == "pv" and Q_gen < qmin:
+                bus.bus_type = "pq"
                 bus.generation_power = complex(bus.generation_power.real, qmin)
                 event = f"PV->PQ (Q<Qmin): Bus {bid} Q={Q_gen:.4f} < Qmin={qmin:.4f}"
                 self.switching_log.append(event)
@@ -352,14 +348,14 @@ class LoadFlowSolver:
     def _detect_oscillation(self, mismatch_history):
         if len(mismatch_history) < 2 * self.oscillation_window:
             return False
-        recent = mismatch_history[-self.oscillation_window:]
-        prev = mismatch_history[-2 * self.oscillation_window:-self.oscillation_window]
+        recent = mismatch_history[-self.oscillation_window :]
+        prev = mismatch_history[-2 * self.oscillation_window : -self.oscillation_window]
         if np.mean(recent) > self.oscillation_threshold * np.mean(prev):
             return True
         return False
 
-    def solve(self, max_iter=100, tol=1e-6, mode='engineering'):
-        if mode == 'high_accuracy':
+    def solve(self, max_iter=100, tol=1e-6, mode="engineering"):
+        if mode == "high_accuracy":
             tol = min(tol, 1e-8)
 
         P_sch, Q_sch = self._scheduled_power()
@@ -391,14 +387,18 @@ class LoadFlowSolver:
                         f"nan_count={nan_count} inf_count={inf_count} shape={J_dbg.shape}"
                     )
                 except Exception as e:
-                    logger.exception(f"[LoadFlow] iter={iteration} Jacobian build debug failed: {e}")
+                    logger.exception(
+                        f"[LoadFlow] iter={iteration} Jacobian build debug failed: {e}"
+                    )
 
-            self.iteration_log.append({
-                'iteration': iteration,
-                'max_mismatch': max_mismatch,
-                'n_pv': len(self.pv_indices),
-                'n_pq': len(self.pq_indices),
-            })
+            self.iteration_log.append(
+                {
+                    "iteration": iteration,
+                    "max_mismatch": max_mismatch,
+                    "n_pv": len(self.pv_indices),
+                    "n_pq": len(self.pq_indices),
+                }
+            )
 
             if max_mismatch < tol:
                 switched = self._check_q_limits(self.V)
@@ -414,8 +414,7 @@ class LoadFlowSolver:
                     bus.voltage = self.V[i]
                     # generation_power = injected power + load (since P_inj = P_gen - P_load)
                     bus.generation_power = complex(
-                        P[i] + bus.load_power.real,
-                        Q[i] + bus.load_power.imag
+                        P[i] + bus.load_power.real, Q[i] + bus.load_power.imag
                     )
                 return True
 
@@ -484,7 +483,11 @@ class LoadFlowSolver:
                                 logger.info(
                                     "LM escape at iter=%d lambda=%.2f alpha=%.2f "
                                     "mismatch %.4e -> %.4e",
-                                    iteration, lm_lambda, alpha, mismatch_prev, max_trial
+                                    iteration,
+                                    lm_lambda,
+                                    alpha,
+                                    mismatch_prev,
+                                    max_trial,
                                 )
                                 break
                         if lm_escaped:
@@ -507,7 +510,9 @@ class LoadFlowSolver:
                 )
 
             if max_mismatch > 1e4:
-                logger.error(f"Divergence detected at iteration {iteration} (mismatch={max_mismatch:.2e})")
+                logger.error(
+                    f"Divergence detected at iteration {iteration} (mismatch={max_mismatch:.2e})"
+                )
                 break
 
         # Best-effort writeback even on non-convergence
@@ -515,8 +520,5 @@ class LoadFlowSolver:
         for i, bid in enumerate(self.bus_ids):
             bus = self.system.buses[bid]
             bus.voltage = self.V[i]
-            bus.generation_power = complex(
-                P[i] + bus.load_power.real,
-                Q[i] + bus.load_power.imag
-            )
+            bus.generation_power = complex(P[i] + bus.load_power.real, Q[i] + bus.load_power.imag)
         return False

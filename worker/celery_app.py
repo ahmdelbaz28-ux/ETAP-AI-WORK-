@@ -57,50 +57,38 @@ app.conf.update(
     task_serializer="json",
     accept_content=["json"],
     result_serializer="json",
-
     # Timezone
     timezone="UTC",
     enable_utc=True,
-
     # Result retention (1 hour — matches task store TTL)
     result_expires=3600,
-
     # Task tracking
     task_track_started=True,
-
     # Reliability — process one task at a time (studies are CPU-heavy)
     worker_prefetch_multiplier=1,
-
     # Crash recovery — acknowledge task AFTER completion, not before
     task_acks_late=True,
-
     # Re-queue tasks if the worker is killed mid-execution
     task_reject_on_worker_lost=True,
-
     # Time limits per task (soft warning → hard kill)
-    task_soft_time_limit=600,   # 10 minutes soft limit
-    task_time_limit=900,        # 15 minutes hard kill
-
+    task_soft_time_limit=600,  # 10 minutes soft limit
+    task_time_limit=900,  # 15 minutes hard kill
     # Queues
     task_queues=[_HIGH_PRIORITY_QUEUE, _DEFAULT_QUEUE, _LOW_PRIORITY_QUEUE],
     task_default_queue="default",
     task_default_routing_key="default",
-
     # Route ETAP studies to high-priority queue
     task_routes={
         "worker.tasks.execute_engineering_study_task": {"queue": "default"},
     },
-
     # Autoscaling — controlled by env vars for Kubernetes
     worker_autoscaler="celery.worker.autoscale:Autoscaler",
     worker_min_tasks_per_child=50,
-
     # Connection retry on startup (prevents crash if Redis isn't ready yet)
     broker_connection_retry_on_startup=True,
     broker_connection_retry=True,
     broker_connection_max_retries=10,
     broker_connection_timeout=30,
-
     # Redis-specific options
     broker_transport_options={
         "visibility_timeout": 3600,  # 1 hour (≥ task_time_limit)
