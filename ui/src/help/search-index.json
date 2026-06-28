@@ -2307,6 +2307,25 @@
     },
     {
       "type": "ui-component",
+      "id": "ShortcutsPanel",
+      "title": {
+        "en": "ShortcutsPanel",
+        "ar": "ShortcutsPanel"
+      },
+      "description": {
+        "en": "components component in ui/src/components/command/ShortcutsPanel.tsx",
+        "ar": "مكون components في ui/src/components/command/ShortcutsPanel.tsx"
+      },
+      "tags": [
+        "component",
+        "ui",
+        "components",
+        "shortcutspanel"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "ui-component",
       "id": "ContextPanel",
       "title": {
         "en": "ContextPanel",
@@ -3504,6 +3523,25 @@
     },
     {
       "type": "ui-component",
+      "id": "ShortcutsPanel",
+      "title": {
+        "en": "ShortcutsPanel",
+        "ar": "ShortcutsPanel"
+      },
+      "description": {
+        "en": "components/command component in ui/src/components/command/ShortcutsPanel.tsx",
+        "ar": "مكون components/command في ui/src/components/command/ShortcutsPanel.tsx"
+      },
+      "tags": [
+        "component",
+        "ui",
+        "components/command",
+        "shortcutspanel"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "ui-component",
       "id": "ContextPanel",
       "title": {
         "en": "ContextPanel",
@@ -3632,6 +3670,44 @@
         "ui",
         "hooks",
         "authprovider"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "ui-component",
+      "id": "useKeyboardShortcuts",
+      "title": {
+        "en": "useKeyboardShortcuts",
+        "ar": "useKeyboardShortcuts"
+      },
+      "description": {
+        "en": "hooks component in ui/src/hooks/useKeyboardShortcuts.ts",
+        "ar": "مكون hooks في ui/src/hooks/useKeyboardShortcuts.ts"
+      },
+      "tags": [
+        "component",
+        "ui",
+        "hooks",
+        "usekeyboardshortcuts"
+      ],
+      "navigateTo": null
+    },
+    {
+      "type": "ui-component",
+      "id": "SHORTCUT_DEFINITIONS",
+      "title": {
+        "en": "SHORTCUT_DEFINITIONS",
+        "ar": "SHORTCUT_DEFINITIONS"
+      },
+      "description": {
+        "en": "hooks component in ui/src/hooks/useKeyboardShortcuts.ts",
+        "ar": "مكون hooks في ui/src/hooks/useKeyboardShortcuts.ts"
+      },
+      "tags": [
+        "component",
+        "ui",
+        "hooks",
+        "shortcut_definitions"
       ],
       "navigateTo": null
     },
@@ -4795,12 +4871,12 @@
       "navigateTo": null
     }
   ],
-  "total": 247,
+  "total": 251,
   "by_type": {
+    "ui-component": 99,
     "api-route": 50,
-    "ui-component": 95,
-    "help-topic": 35,
     "python-module": 43,
+    "help-topic": 35,
     "ui-page": 24
   }
 }

@@ -196,6 +196,7 @@ coordination_margin.png
 # ==========================================
 tmp/
 temp/
+temp-hf/
 *.tmp
 *.bak
 *.backup
