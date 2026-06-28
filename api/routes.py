@@ -71,13 +71,27 @@ _AUTH_DISABLED = os.environ.get("ENGINEERING_SERVICE_AUTH_DISABLED", "").lower()
     "true",
     "yes",
 )
+if _AUTH_DISABLED:
+    _ENV = os.environ.get("ENVIRONMENT", os.environ.get("ENV", "development")).lower()
+    if _ENV in ("production", "prod", "staging"):
+        logger.critical(
+            "FATAL: ENGINEERING_SERVICE_AUTH_DISABLED=true is NOT allowed in %s environment. "
+            "Remove this environment variable or set ENGINEERING_SERVICE_API_KEY.",
+            _ENV,
+        )
+        sys.exit(1)
+    logger.warning(
+        "WARNING: Authentication is DISABLED. "
+        "Set ENGINEERING_SERVICE_API_KEY to enable authentication. "
+        "This is NOT recommended outside of local development.",
+    )
 if not _API_KEY_CONFIGURED and not _AUTH_DISABLED:
     _ENV = os.environ.get("ENVIRONMENT", os.environ.get("ENV", "development")).lower()
     if _ENV in ("production", "prod", "staging"):
         logger.critical(
             "FATAL: ENGINEERING_SERVICE_API_KEY is not set in %s environment. "
-            "Set the API key or explicitly set ENGINEERING_SERVICE_AUTH_DISABLED=true "
-            "to allow unauthenticated access (NOT recommended for production).",
+            "Set the API key, or set ENGINEERING_SERVICE_AUTH_DISABLED=true "
+            "(NOT recommended for production).",
             _ENV,
         )
         sys.exit(1)
@@ -207,6 +221,10 @@ _REQUEST_TIMEOUT_SEC = int(os.environ.get("ENGINEERING_SERVICE_REQUEST_TIMEOUT",
 @app.middleware("http")
 async def trace_middleware(request: Request, call_next: Any) -> Any:
     trace_id = request.headers.get("x-trace-id") or str(uuid.uuid4())
+    # SECURITY: Sanitize trace_id to prevent log injection (CRLF, newlines)
+    trace_id = "".join(c for c in trace_id if c.isalnum() or c in "-_.")
+    if not trace_id:
+        trace_id = str(uuid.uuid4())
     request.state.trace_id = trace_id
 
     tracer = get_tracer()
@@ -482,12 +500,6 @@ async def global_exception_handler(request: Request, exc: Exception) -> JSONResp
             "trace_id": getattr(request.state, "trace_id", "unknown"),
         },
     )
-
-
-# Module-level shared instances for digital twin endpoint
-_shared_state_store = None
-_shared_event_bus = None
-_shared_validation_gateway = None
 
 # Register only the routers that exist
 app.include_router(health_router)
