@@ -19,12 +19,17 @@ from etap_integration.etap_adapter import (
 
 # ─── ETAPStudyType enum ─────────────────────────────────────────────────────
 
+
 class TestETAPStudyType:
     def test_all_study_types_exist(self):
         expected = {
-            "LOAD_FLOW", "SHORT_CIRCUIT", "ARC_FLASH",
-            "HARMONIC_ANALYSIS", "OPTIMAL_POWER_FLOW",
-            "MOTOR_STARTING", "PROTECTION_COORDINATION",
+            "LOAD_FLOW",
+            "SHORT_CIRCUIT",
+            "ARC_FLASH",
+            "HARMONIC_ANALYSIS",
+            "OPTIMAL_POWER_FLOW",
+            "MOTOR_STARTING",
+            "PROTECTION_COORDINATION",
         }
         actual = {e.name for e in ETAPStudyType}
         assert expected == actual
@@ -36,6 +41,7 @@ class TestETAPStudyType:
 
 
 # ─── ETAPResult ─────────────────────────────────────────────────────────────
+
 
 class TestETAPResult:
     def test_defaults(self):
@@ -60,6 +66,7 @@ class TestETAPResult:
 
 
 # ─── MockETAPAdapter ────────────────────────────────────────────────────────
+
 
 class TestMockETAPAdapter:
     def test_disabled_when_use_etap_false(self):
@@ -104,6 +111,7 @@ class TestMockETAPAdapter:
 
 # ─── ETAPProviderAdapter ────────────────────────────────────────────────────
 
+
 class TestETAPProviderAdapter:
     def test_disabled_when_use_etap_false(self):
         with patch.dict(os.environ, {"USE_ETAP": "false"}):
@@ -138,6 +146,7 @@ class TestETAPProviderAdapter:
 
 
 # ─── Factory function ───────────────────────────────────────────────────────
+
 
 class TestGetEtapAdapter:
     def test_returns_mock_when_use_mock(self):

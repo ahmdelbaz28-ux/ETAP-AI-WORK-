@@ -392,7 +392,9 @@ async def _initialize_cache_with_retry(max_retries: int = 3) -> Any:
     # in-memory fallback. This avoids the 7-second retry delay (1+2+4s)
     # that occurs when Redis is unavailable.
     if os.environ.get("ENGINEERING_SERVICE_CACHE_DISABLED", "").lower() == "true":
-        logger.info("Cache disabled via ENGINEERING_SERVICE_CACHE_DISABLED — using in-memory fallback")
+        logger.info(
+            "Cache disabled via ENGINEERING_SERVICE_CACHE_DISABLED — using in-memory fallback"
+        )
         return StudyCache(redis_url="memory://fallback", ttl=3600)
 
     for attempt in range(max_retries):
@@ -410,7 +412,9 @@ async def _initialize_cache_with_retry(max_retries: int = 3) -> Any:
                 logger.info(f"Cache initialized without ping (attempt {attempt + 1})")
                 return cache
         except Exception as e:
-            logger.warning("Cache initialization failed (attempt %s): %s", attempt + 1, e, exc_info=True)
+            logger.warning(
+                "Cache initialization failed (attempt %s): %s", attempt + 1, e, exc_info=True
+            )
             if attempt == max_retries - 1:
                 logger.error("Failed to initialize cache after all retries, using fallback")
                 # Return a basic in-memory cache as fallback

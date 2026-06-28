@@ -46,13 +46,14 @@ _DEFAULT_DB_URL = "sqlite+aiosqlite:///./data/etap_platform.db"
 
 _raw_db_url: str = os.getenv("DATABASE_URL", _DEFAULT_DB_URL)
 
+
 # Normalise plain postgres:// / postgresql:// → asyncpg driver
 def _normalise_url(raw: str) -> str:
     """Convert bare postgres URLs to the correct async driver string."""
     if raw.startswith("postgres://"):
-        raw = "postgresql+asyncpg://" + raw[len("postgres://"):]
+        raw = "postgresql+asyncpg://" + raw[len("postgres://") :]
     elif raw.startswith("postgresql://") and "+asyncpg" not in raw:
-        raw = "postgresql+asyncpg://" + raw[len("postgresql://"):]
+        raw = "postgresql+asyncpg://" + raw[len("postgresql://") :]
     return raw
 
 
@@ -71,7 +72,7 @@ _IS_SQLITE = DATABASE_URL.startswith("sqlite")
 
 if _IS_SQLITE:
     _sqlite_prefix = "sqlite+aiosqlite:///"
-    _db_path = DATABASE_URL[len(_sqlite_prefix):]
+    _db_path = DATABASE_URL[len(_sqlite_prefix) :]
     _db_dir = os.path.dirname(_db_path)
     if _db_dir:
         os.makedirs(_db_dir, exist_ok=True)
@@ -99,7 +100,7 @@ if _IS_POSTGRES:
         max_overflow=_MAX_OVERFLOW,
         pool_timeout=_POOL_TIMEOUT,
         pool_recycle=_POOL_RECYCLE,
-        pool_pre_ping=True,          # detect stale connections
+        pool_pre_ping=True,  # detect stale connections
         connect_args={
             "server_settings": {"application_name": "etap-engineering-service"},
         },

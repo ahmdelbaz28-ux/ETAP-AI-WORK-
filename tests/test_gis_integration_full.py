@@ -165,9 +165,13 @@ class TestArcGISProvider:
         mock_arcpy.da.SearchCursor.return_value = mock_cursor
 
         with patch.dict("sys.modules", {"arcpy": mock_arcpy, "arcpy.da": mock_arcpy.da}):
-            with patch("gis_integration.providers.arcgis_provider.safe_parse_geojson") as mock_parse:
+            with patch(
+                "gis_integration.providers.arcgis_provider.safe_parse_geojson"
+            ) as mock_parse:
                 mock_parse.return_value = {"type": "Point", "coordinates": [31.5, 30.5]}
-                with patch("gis_integration.providers.arcgis_provider.validate_geometry_dict") as mock_validate:
+                with patch(
+                    "gis_integration.providers.arcgis_provider.validate_geometry_dict"
+                ) as mock_validate:
                     mock_validate.return_value = (True, "ok")
                     features = list(provider.extract_features("test_layer"))
 
@@ -372,10 +376,14 @@ class TestQGISProvider:
         mock_qgis_core.QgsProject = mock_qgs_project
         mock_qgis_core.QgsApplication = mock_qgs_app
 
-        with patch.dict("sys.modules", {"qgis": Mock(core=mock_qgis_core), "qgis.core": mock_qgis_core}):
+        with patch.dict(
+            "sys.modules", {"qgis": Mock(core=mock_qgis_core), "qgis.core": mock_qgis_core}
+        ):
             with patch("gis_integration.providers.qgis_provider.safe_parse_geojson") as mock_parse:
                 mock_parse.return_value = {"type": "Point", "coordinates": [31.0, 30.0]}
-                with patch("gis_integration.providers.qgis_provider.validate_geometry_dict") as mock_val:
+                with patch(
+                    "gis_integration.providers.qgis_provider.validate_geometry_dict"
+                ) as mock_val:
                     mock_val.return_value = (True, "ok")
                     with patch(
                         "gis_integration.providers.qgis_provider.QgsProject",
@@ -1030,9 +1038,13 @@ class TestProviderErrorHandling:
         mock_arcpy.da.SearchCursor.return_value = mock_cursor
 
         with patch.dict("sys.modules", {"arcpy": mock_arcpy, "arcpy.da": mock_arcpy.da}):
-            with patch("gis_integration.providers.arcgis_provider.safe_parse_geojson") as mock_parse:
+            with patch(
+                "gis_integration.providers.arcgis_provider.safe_parse_geojson"
+            ) as mock_parse:
                 mock_parse.return_value = {"type": "InvalidType", "coordinates": []}
-                with patch("gis_integration.providers.arcgis_provider.validate_geometry_dict") as mock_val:
+                with patch(
+                    "gis_integration.providers.arcgis_provider.validate_geometry_dict"
+                ) as mock_val:
                     mock_val.return_value = (False, "unsupported geometry type: InvalidType")
                     with pytest.raises(GISDataExtractionError, match="Invalid geometry"):
                         list(provider.extract_features("bad_layer"))

@@ -213,9 +213,7 @@ class RedisDistributedLock:
         deadline = time.monotonic() + timeout_ms / 1000
 
         while True:
-            result = await self._client.set(
-                self._key, token, nx=True, px=self._ttl_ms
-            )
+            result = await self._client.set(self._key, token, nx=True, px=self._ttl_ms)
             if result:
                 self._token = token
                 return True
