@@ -152,7 +152,7 @@ export default function Dashboard() {
     )
   }
 
-  const studyCount = agents.reduce((sum, a) => sum + a.capabilities.length, 0)
+  const studyCount = agents.reduce((sum, a) => sum + (a.capabilities?.length ?? 0), 0)
 
   return (
     <div className="space-y-6">

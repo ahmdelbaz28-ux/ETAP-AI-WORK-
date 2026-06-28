@@ -57,7 +57,7 @@ export default function Administration() {
     {
       title: 'Agents',
       value: agents.length,
-      subtitle: `${agents.reduce((s, a) => s + a.capabilities.length, 0)} capabilities`,
+      subtitle: `${agents.reduce((s, a) => s + (a.capabilities?.length ?? 0), 0)} capabilities`,
       icon: <Shield className="w-4 h-4" />,
       color: 'text-green-400',
       bgColor: 'bg-green-500/10',
@@ -167,7 +167,7 @@ export default function Administration() {
                 <div key={a.id} className="p-3 bg-[var(--bg-primary)] rounded-lg border border-[var(--border-primary)]">
                   <div className="flex items-center justify-between">
                     <span className="text-sm font-medium text-[var(--text-primary)]">{a.name}</span>
-                    <span className="text-xs text-[var(--text-muted)]">{a.capabilities.slice(0, 3).join(', ')}</span>
+                    <span className="text-xs text-[var(--text-muted)]">{(a.capabilities ?? []).slice(0, 3).join(', ')}</span>
                   </div>
                 </div>
               ))}
@@ -198,11 +198,11 @@ export default function Administration() {
                     </div>
                   </div>
                   <div className="flex flex-wrap gap-1 mt-2">
-                    {agent.capabilities.slice(0, 3).map(cap => (
+                    {(agent.capabilities ?? []).slice(0, 3).map(cap => (
                       <Badge key={cap} variant="neutral" size="sm">{cap}</Badge>
                     ))}
-                    {agent.capabilities.length > 3 && (
-                      <Badge variant="neutral" size="sm">+{agent.capabilities.length - 3}</Badge>
+                    {(agent.capabilities?.length ?? 0) > 3 && (
+                      <Badge variant="neutral" size="sm">+{(agent.capabilities?.length ?? 0) - 3}</Badge>
                     )}
                   </div>
                 </div>
