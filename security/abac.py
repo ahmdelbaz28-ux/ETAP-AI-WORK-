@@ -169,8 +169,23 @@ class ABACPolicyEngine:
 
     # -- policy management ---------------------------------------------------
 
-    def add_policy(self, policy: ABACPolicy) -> None:
-        """Add a policy to the engine."""
+    def add_policy(self, policy: ABACPolicy | List[ABACPolicy]) -> None:
+        """Add one or more policies to the engine.
+
+        If a list is passed (e.g. the return value of
+        :func:`make_business_hours_policy`), each policy in the list is
+        flattened into the engine individually. This prevents the bug where
+        ``engine.add_policy(make_business_hours_policy(...))`` would store the
+        whole list as a single element of ``_policies`` and then crash with
+        ``AttributeError: 'list' object has no attribute 'priority'`` when
+        sorting.
+        """
+        # Flatten: accept either a single ABACPolicy or a list of them.
+        if isinstance(policy, list):
+            for p in policy:
+                self.add_policy(p)
+            return
+
         self._policies.append(policy)
         self._policies.sort(key=lambda p: p.priority, reverse=True)
         logger.info(
