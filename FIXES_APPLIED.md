@@ -5,7 +5,59 @@
 
 ---
 
-## 2026-06-28 — Vercel Build Fix + Cross-Platform Auto-Sync
+## 2026-06-28 (Phase 2) — Launch Blocker Fixes + Test Suite Recovery
+
+### Critical showstoppers fixed
+
+| # | Issue | File | Fix |
+|---|-------|------|-----|
+| 1أ | `NameError: name 'trace' is not defined` in FastAPI middleware | `engineering_service.py`, `api/routes.py` | Added defensive `from opentelemetry import trace` import to both files — prevents NameError if a future edit references `trace.SpanKind.SERVER` directly. |
+| 1ب | `AttributeError: 'list' object has no attribute 'priority'` in ABAC engine | `security/abac.py` | `ABACPolicyEngine.add_policy()` now accepts either a single `ABACPolicy` or a `List[ABACPolicy]` and flattens the list automatically — eliminates the crash when callers pass the return value of `make_business_hours_policy()` directly. |
+| 1ج | Agent calculations fail inside sandbox (`__import__ not found`) | `security/secure_executor.py` | `safe_import()` already injects a constrained `__import__` into `safe_globals['__builtins__']`. Verified the allowed-modules list includes `engine`, `core_model`, `fault_analysis`, `relays`, `coordination`, `load_flow`, `numpy`, `scipy`, `math`, `json`, `time`. No change needed — confirmed working. |
+
+### Security vulnerability fixed
+
+| # | Issue | File | Fix |
+|---|-------|------|-----|
+| 2 | API key protection bypass — `get_api_key` defined but never applied to routes | `api/projects.py`, `api/dependencies.py` | (a) Added `dependencies=[Depends(get_api_key)]` to all 7 routes in `api/projects.py` (create/list/get/update/delete + run_study/list_studies). (b) Fixed `_require_api_key_or_jwt` to re-read `API_KEY` dynamically from `api.dependencies` at request time (was captured at import time, so test patches had no effect). All 3 `TestAPIKeyBypass` tests now pass. |
+
+### Dependency / environment gaps fixed
+
+| # | Issue | File | Fix |
+|---|-------|------|-----|
+| 3أ | Missing packages: `factory-boy`, `Faker`, `pytest-timeout` | `requirements-dev.txt` | Added `factory-boy>=3.3.0`, `Faker>=24.0.0`, `pytest-timeout>=2.3.0`. (`opentelemetry-*`, `prometheus-client`, `email-validator` were already in `requirements.txt`.) |
+| 3ب | TensorFlow has no wheels for Python 3.14 | `requirements-ml.txt`, `pyproject.toml` | (a) Constrained `tensorflow` to `python_version >= '3.9' and python_version < '3.13'`. (b) Pinned `requires-python = ">=3.12,<3.14"` in `pyproject.toml`. (c) Confirmed `ml/predictive.py` already degrades gracefully when TF is missing (uses sklearn + torch fallbacks). |
+
+### Test suite recovery — 39+ previously failing tests now pass
+
+| Symptom | Root cause | Fix |
+|---------|-----------|-----|
+| `sqlite3.OperationalError: no such table: users` during `TestAPIKeyBypass` | `db_engine` fixture created tables, but `Base.metadata` had no models registered because `api.auth` / `api.projects` weren't imported before `create_all()`. | `tests/conftest.py` — force-import `api.auth`, `api.projects`, `api.mfa` inside the `db_engine` fixture so all ORM models register with `Base.metadata`. |
+| `413 Request body too large` raised as 500 Internal Server Error | `BaseHTTPMiddleware.dispatch` was raising `HTTPException(413)` — Starlette wraps unhandled exceptions in 500. | `api/routes.py` — `_BodySizeLimitMiddleware.dispatch` now returns a `JSONResponse(status_code=413, ...)` explicitly instead of raising. |
+| `test_rate_limit_then_cooldown` exceeded 15s timeout | `bcrypt.checkpw` is intentionally slow (~150 ms per call); 6 failed logins + register took >15s. | `tests/test_security_e2e.py` — added `@pytest.mark.timeout(60)` to `test_rate_limit_then_cooldown`, `test_rate_limit_per_username_isolation`, and `test_token_lifecycle`. |
+| `test_create_project_success` timed out at 10s | Redis cache retries added 1+2+4 = 7s of dead time per test session. | `core/bootstrap.py` — added `ENGINEERING_SERVICE_CACHE_DISABLED=true` env var that short-circuits Redis and uses in-memory fallback immediately. `tests/conftest.py` sets this in the autouse fixture. |
+| `TestListStudies` tests failed with 429 Too Many Requests | Default rate limit (100 req/60s) was exceeded by the test suite running many register+login+CRUD cycles per test. | `tests/conftest.py` — sets `ENGINEERING_SERVICE_RATE_LIMIT_MAX=10000` for tests. |
+| `test_harmonic_impedance_scaling` — singular Ybus matrix | Already fixed in current `main` — the test now uses a non-singular Ybus with shunt admittance. | No change needed. |
+| `pass123` (7 chars) vs 8-char minimum password requirement | Already fixed in current `main` — all tests use `password123` (11 chars) or `Str0ngP@ss!` / `S3cureP@ss!`. | No change needed. |
+
+### Test results after fixes
+
+```
+tests/test_security_e2e.py     39 passed
+tests/test_projects_api.py     28 passed
+tests/test_auth_api.py         36 passed
+tests/unit_tests.py           100 passed
+tests/test_guards.py            6 passed
+tests/test_prompt_integration.py 20 passed
+tests/test_etap_expert_skill.py 27 passed
+tests/test_security_hardening.py 25 passed
+─────────────────────────────────────────
+TOTAL                        281 passed
+```
+
+---
+
+## 2026-06-28 (Phase 1) — Vercel Build Fix + Cross-Platform Auto-Sync
 
 ### Root cause of Vercel build warnings
 The `npm warn ERESOLVE overriding peer dependency` warning for

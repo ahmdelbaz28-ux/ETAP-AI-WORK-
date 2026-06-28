@@ -35,6 +35,7 @@ from api.dependencies import (
     API_KEY,
     CurrentUser,
     PaginationParams,
+    get_api_key,
     get_current_user,
     get_current_user_from_header,
     pagination_params,
@@ -51,10 +52,24 @@ async def _require_api_key_or_jwt(
     authorization: str = Header(default="", alias="Authorization"),
     db: AsyncSession = Depends(get_db),  # noqa: B008
 ) -> str:
+    """Allow authentication via EITHER a valid X-API-Key OR a Bearer JWT.
+
+    .. note::
+       The ``API_KEY`` value is read **dynamically** from
+       ``api.dependencies`` at request time (not at module import). This
+       allows tests to patch ``api.dependencies.API_KEY`` and have the
+       change take effect immediately — see
+       ``tests/test_security_e2e.py::TestAPIKeyBypass``.
+    """
     import hmac
 
+    # Re-read API_KEY from the source module so test patches take effect.
+    from api import dependencies as _dep
+
+    _api_key = _dep.API_KEY
+
     # Try API key first
-    if API_KEY and x_api_key and hmac.compare_digest(x_api_key, API_KEY):
+    if _api_key and x_api_key and hmac.compare_digest(x_api_key, _api_key):
         return "api_key"
     # Then try JWT
     if authorization:
@@ -63,7 +78,7 @@ async def _require_api_key_or_jwt(
             return "jwt"
         except HTTPException:
             pass
-    if not API_KEY:
+    if not _api_key:
         return "dev"
     raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Authentication required")
 
@@ -269,6 +284,7 @@ router = APIRouter(prefix="/api/v1/projects", tags=["Projects"])
     response_model=ProjectResponse,
     status_code=status.HTTP_201_CREATED,
     summary="Create a new project",
+    dependencies=[Depends(get_api_key)],  # enforce X-API-Key when API_KEY is configured
 )
 async def create_project(
     body: ProjectCreateRequest,
@@ -307,6 +323,7 @@ async def create_project(
     "/",
     response_model=ProjectListResponse,
     summary="List projects",
+    dependencies=[Depends(get_api_key)],  # enforce X-API-Key when API_KEY is configured
 )
 async def list_projects(
     status_filter: Optional[ProjectStatus] = None,
@@ -364,6 +381,7 @@ async def list_projects(
     "/{project_id}",
     response_model=ProjectResponse,
     summary="Get project by ID",
+    dependencies=[Depends(get_api_key)],  # enforce X-API-Key when API_KEY is configured
 )
 async def get_project(
     project_id: str,
@@ -402,6 +420,7 @@ async def get_project(
     "/{project_id}",
     response_model=ProjectResponse,
     summary="Update a project",
+    dependencies=[Depends(get_api_key)],  # enforce X-API-Key when API_KEY is configured
 )
 async def update_project(
     project_id: str,
@@ -456,6 +475,7 @@ async def update_project(
     "/{project_id}",
     status_code=status.HTTP_200_OK,
     summary="Soft-delete a project",
+    dependencies=[Depends(get_api_key)],  # enforce X-API-Key when API_KEY is configured
 )
 async def delete_project(
     project_id: str,
@@ -496,6 +516,7 @@ async def delete_project(
     response_model=StudyResultResponse,
     status_code=status.HTTP_201_CREATED,
     summary="Run a study on a saved project config",
+    dependencies=[Depends(get_api_key)],  # enforce X-API-Key when API_KEY is configured
 )
 async def run_study(
     project_id: str,
@@ -584,6 +605,7 @@ async def run_study(
     "/{project_id}/studies",
     response_model=StudyListResponse,
     summary="List study results for a project (paginated)",
+    dependencies=[Depends(get_api_key)],  # enforce X-API-Key when API_KEY is configured
 )
 async def list_studies(
     project_id: str,
