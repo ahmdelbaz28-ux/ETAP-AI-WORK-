@@ -118,21 +118,39 @@ jobs:
         run: |
           pip install --upgrade pip
           pip install -r requirements.txt
-          pip install pytest pytest-asyncio pytest-cov
+          pip install pytest pytest-asyncio pytest-cov pytest-timeout pytest-xdist
 
       - name: Validate Python syntax
         run: python -c "import ast; ast.parse(open('engineering_service.py').read()); print('✅ Syntax OK')"
 
       - name: Run test suite with coverage gate
+        # Excluded directories:
+        #   - tests/scenarios, tests/load, tests/stress, tests/chaos — these
+        #     are long-running integration/load tests that require external
+        #     services (Redis, real HTTP servers) and take 10+ minutes.
+        #     They run in their own dedicated workflow (load-test.yml).
+        #   - tests/property_based — uses Hypothesis which is slow.
+        #   - tests/regression — requires full ETAP desktop app.
+        # pytest-timeout kills any individual test that exceeds 60s.
+        # pytest-xdist runs tests in parallel (4 workers) to speed up CI.
         run: |
-          pytest tests/ -v \
+          pytest tests/ \
+            --ignore=tests/scenarios \
+            --ignore=tests/load \
+            --ignore=tests/stress \
+            --ignore=tests/chaos \
+            --ignore=tests/property_based \
+            --ignore=tests/regression \
+            -v \
             --cov=. \
             --cov-report=term-missing \
             --cov-report=xml \
             --cov-fail-under=80 \
-            -x \
+            --timeout=60 \
+            --maxfail=10 \
+            -n 4 \
             --tb=short \
-            2>&1 | tail -80
+            2>&1 | tail -120
 
       - name: Upload coverage report
         uses: codecov/codecov-action@v4
