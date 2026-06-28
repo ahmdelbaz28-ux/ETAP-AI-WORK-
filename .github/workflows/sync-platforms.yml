@@ -160,25 +160,30 @@ jobs:
           fi
           VERSION=$(cat VERSION 2>/dev/null || echo "unknown")
           SHORT_SHA=$(echo "$GITHUB_SHA" | cut -c1-7)
-          # LangWatch supports custom metadata via its tracker API.
-          # We use the generic /api/v1/track endpoint to register a deployment marker.
-          curl -s -X POST \
-            -H "Authorization: Bearer $LANGWATCH_API_KEY" \
-            -H "Content-Type: application/json" \
-            -d "{
-              \"project\": \"AhmedETAP\",
-              \"event\": \"deployment\",
-              \"version\": \"$VERSION+$SHORT_SHA\",
-              \"ref\": \"$GITHUB_SHA\",
-              \"ref_name\": \"$GITHUB_REF_NAME\",
-              \"actor\": \"$GITHUB_ACTOR\",
-              \"timestamp\": \"$(date -u +%Y-%m-%dT%H:%M:%SZ)\"
-            }" \
-            https://app.langwatch.ai/api/v1/track || echo "ℹ️ LangWatch marker send completed (non-blocking)"
-          echo "✅ LangWatch deployment marker sent: v$VERSION+$SHORT_SHA"
 
-      # ── 1e. Verify Smithery MCP registry reachable ──────────────────────────
-      - name: 🔧 Verify Smithery MCP registry
+          # LangWatch uses 'X-Auth-Token' (not Authorization: Bearer) for its REST API.
+          # Project-level keys can read /api/experiments and /api/annotations but
+          # cannot create traces via REST — traces must be sent via the LangWatch
+          # SDK from inside the running app. Here we verify the key is valid by
+          # hitting the /api/experiments endpoint.
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
+            -H "X-Auth-Token: $LANGWATCH_API_KEY" \
+            https://app.langwatch.ai/api/experiments)
+
+          if [ "$STATUS" = "200" ]; then
+            echo "✅ LangWatch API reachable (HTTP $STATUS) — project key valid"
+            echo "   Deployment version: v$VERSION+$SHORT_SHA"
+            echo "   Note: Traces will be sent at runtime by the LangWatch SDK"
+            echo "         configured in integrations/langwatch_integration.py"
+          elif [ "$STATUS" = "401" ]; then
+            echo "⚠️ LangWatch API returned 401 — project key invalid or expired"
+            exit 1
+          else
+            echo "⚠️ LangWatch API returned HTTP $STATUS — non-blocking"
+          fi
+
+      # ── 1e. Verify Smithery MCP integration is wired correctly ──────────────
+      - name: 🔧 Verify Smithery MCP integration
         env:
           SMITHERY_API_KEY: ${{ secrets.SMITHERY_API_KEY }}
         run: |
@@ -187,13 +192,32 @@ jobs:
             echo "⚠️ SMITHERY_API_KEY not set — skipping"
             exit 0
           fi
-          STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
-            -H "Authorization: Bearer $SMITHERY_API_KEY" \
-            https://api.smithery.ai/v1/servers)
-          if [ "$STATUS" = "200" ] || [ "$STATUS" = "204" ]; then
-            echo "✅ Smithery API reachable (HTTP $STATUS)"
+
+          # Smithery does not expose a public REST API for key validation —
+          # the key is consumed by the MCP client at runtime when the running
+          # app (integrations/smithery_mcp.py) connects to Smithery-hosted MCP
+          # servers via the Model Context Protocol. Here we verify:
+          #   1. The integration module is present in the repo
+          #   2. The key is non-empty and matches the expected UUID format
+          #   3. The smithery.ai website itself is reachable
+
+          test -f integrations/smithery_mcp.py || {
+            echo "❌ integrations/smithery_mcp.py missing from repo"
+            exit 1
+          }
+          echo "✅ integrations/smithery_mcp.py present"
+
+          if ! echo "$SMITHERY_API_KEY" | grep -qE '^[0-9a-f-]{36}$'; then
+            echo "⚠️ SMITHERY_API_KEY does not match UUID format — integration may fail at runtime"
           else
-            echo "⚠️ Smithery API returned HTTP $STATUS — integration will retry at runtime"
+            echo "✅ SMITHERY_API_KEY format is valid (UUID)"
+          fi
+
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" https://smithery.ai/)
+          if [ "$STATUS" = "200" ]; then
+            echo "✅ smithery.ai reachable (HTTP $STATUS) — MCP servers will be discoverable at runtime"
+          else
+            echo "⚠️ smithery.ai returned HTTP $STATUS — non-blocking (integration retries at runtime)"
           fi
 
       - name: 📝 Sync summary
