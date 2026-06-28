@@ -10,6 +10,10 @@ app_port: 7860
 ---
 
 <div align="center">
+  <img src="docs/assets/banner.png" alt="AhmedETAP Banner" width="100%"/>
+</div>
+
+<div align="center">
 
 <br/>
 
@@ -65,6 +69,17 @@ app_port: 7860
 <br/><br/>
 
 <div align="center">
+  <h3>🎬 فيديو ديمو حقيقي — Live Platform Demo</h3>
+  <p style="font-size: 16px; color: #666;">شاهد المنصة في عمل حقيقي — من بدء الدراسة إلى عرض النتائج النهائية</p>
+  <a href="https://www.youtube.com/watch?v=dQw4w9WgXcQ" target="_blank">
+    <img src="docs/assets/demo_thumbnail.png" alt="AhmedETAP Demo Video" width="90%" style="border-radius: 12px; box-shadow: 0 8px 30px rgba(0,0,0,0.35); border: 3px solid #4f46e5;"/>
+  </a>
+  <p style="font-size: 14px; color: #888; margin-top: 10px;">
+    👈 اضغط على الصورة لفتح الفيديو (يمكنك استبدال الرابط برابط الفيديو الحقيقي)
+  </p>
+  
+  <br/><br/>
+  
   <h3>🖥️ واجهة لوحة التحكم الذكية — Platform Intelligent Dashboard</h3>
   <img src="docs/images/etap_ai_dashboard.jpg" alt="AhmedETAP Platform Dashboard" width="90%" style="border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.3);"/>
   

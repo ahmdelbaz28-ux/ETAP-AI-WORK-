@@ -1,6 +1,6 @@
 # 📘 AhmedETAP — Complete Project Index v2.0.0
 
-> Auto-generated on **2026-06-27T21:55:00.528840+00:00** by indexer v2.0.0.
+> Auto-generated on **2026-06-28T19:34:27.926759+00:00** by indexer v2.0.0.
 > Re-run `python indexer.py` to refresh.
 
 ---
@@ -13,16 +13,16 @@
 | Python Files | 264 |
 | Python Classes | 709 |
 | Python Functions | 389 |
-| UI Files (TSX/TS) | 88 |
-| Test Files | 68 |
-| Total Tests | 1379 |
+| UI Files (TSX/TS) | 91 |
+| Test Files | 69 |
+| Total Tests | 1372 |
 | Help Topics | 35 |
 | Context Mappings | 93 |
-| Environment Variables | 144 |
+| Environment Variables | 125 |
 | Scripts | 29 |
 | AI Agents | 19 |
 | Integrations | 2 |
-| UI Search Index Entries | 247 |
+| UI Search Index Entries | 251 |
 
 ---
 
@@ -35,7 +35,7 @@
 | **Battery Storage** | `battery_storage_agent.py` | IEC 62933 | AhmedETAP - Battery Storage Agent ========================== |
 | **Cable Sizing** | `cable_sizing_agent.py` | IEC 60364 | AhmedETAP - Cable Sizing Agent ============================= |
 | **Code Guard** | `code_guard_agent.py` | — | Code Guard Agent — AI-Powered Code Quality Review ========== |
-| **Coordination** | `coordination_agent.py` | IEC 60255, IEEE 242 | AhmedETAP - Protection Coordination Agent ================== |
+| **Coordination** | `coordination_agent.py` | IEEE 242, IEC 60255 | AhmedETAP - Protection Coordination Agent ================== |
 | **Digital Twin** | `digital_twin_agent.py` | — | AhmedETAP - Digital Twin Agent ============================= |
 | **Earth Grid** | `earth_grid_agent.py` | IEEE 80 | AhmedETAP - Earth Grid Design Agent ======================== |
 | **Etap Expert** | `etap_expert_agent.py` | — | agents/etap_expert_agent.py — ETAP Expert Skill Agent |
@@ -217,7 +217,7 @@ Total: **93** mappings
 
 ## 🔐 Environment Variables
 
-Total: **144** variables
+Total: **125** variables
 
 ### =
 
@@ -249,7 +249,6 @@ Total: **144** variables
 - `LANGWATCH_ENDPOINT`
 - `LANGWATCH_PROJECT`
 - `MAX_WORKERS`
-- `NEO4J_PASSWORD`
 - `NEO4J_URI`
 - `NEO4J_USER`
 - `NVIDIA_API_KEY`
@@ -283,16 +282,12 @@ Total: **144** variables
 - `ACP_TRACE_FILE`
 - `ACP_UDS_PATH`
 - `ACP_WS_HOST`
-- `ANDROID_BUILD_TOP`
 - `AUTO_CORRECT_LANGUAGE`
 - `CACHE_TTL`
 - `CELERY_MAX_WORKERS`
 - `CELERY_MIN_WORKERS`
 - `CELERY_RESULT_BACKEND`
-- `CFLAGS`
 - `CODE_CONTEXT_INDEX_DIR`
-- `CPPFLAGS`
-- `CXXFLAGS`
 - `DB_ECHO`
 - `DB_MAX_OVERFLOW`
 - `DB_POOL_RECYCLE`
@@ -302,11 +297,11 @@ Total: **144** variables
 - `DUCKDBSTORE_CONSTRUCTOR_KWARGS_JSON`
 - `DUCKDBSTORE_DB_PATH`
 - `DUCKDBSTORE_IMPORT_PATH`
-- `DXSDK_DIR`
 - `EMBEDDING_API_BASE`
 - `EMBEDDING_API_KEY`
 - `EMBEDDING_MODEL`
 - `ENGINEERING_SERVICE_AUTH_DISABLED`
+- `ENGINEERING_SERVICE_CACHE_DISABLED`
 - `ENGINEERING_SERVICE_HOST`
 - `ENGINEERING_SERVICE_MAX_BODY_SIZE`
 - `ENGINEERING_SERVICE_RATE_LIMIT_MAX`
@@ -321,32 +316,22 @@ Total: **144** variables
 - `ETAP_WORKER_API_KEY`
 - `ETAP_WORKER_PORT`
 - `ETAP_WORKER_URL`
-- `GYP_CONFIG_DIR`
-- `GYP_CROSSCOMPILE`
-- `GYP_GENERATORS`
-- `GYP_GENERATOR_OUTPUT`
-- `GYP_LINK_CONCURRENCY`
-- `GYP_LINK_CONCURRENCY_MAX`
-- `GYP_MSVS_OVERRIDE_PATH`
-- `GYP_MSVS_VERSION`
-- `GYP_USE_SEPARATE_MSPDBSRV`
 - `HF_SPACE_PRODUCTION_TESTS`
 - `JWT_ACCESS_EXPIRE_MINUTES`
 - `JWT_REFRESH_EXPIRE_DAYS`
-- `LDFLAGS`
 - `LLM_MODEL`
+- `LOGIN_RATE_LIMIT_MAX_ATTEMPTS`
+- `LOGIN_RATE_LIMIT_WINDOW_SEC`
+- `NEO4J_PASSWORD`
 - `OPENAI_API_BASE`
 - `OTEL_ENVIRONMENT`
 - `OTEL_EXPORTER_ENDPOINT`
 - `OTEL_EXPORTER_TYPE`
 - `OTEL_SERVICE_NAME`
 - `OTEL_SERVICE_VERSION`
-- `PATH`
 - `POSTGIS_DSN`
 - `POSTGIS_SCHEMA`
 - `PRIVACY_MODE`
-- `PROCESSOR_ARCHITECTURE`
-- `PROCESSOR_ARCHITEW6432`
 - `QDRANT_API_KEY`
 - `QDRANT_URL`
 - `RAG_ALLOW_HASH_FALLBACK`
@@ -360,14 +345,10 @@ Total: **144** variables
 - `SIEM_TYPE`
 - `STUDY_CACHE_TTL`
 - `TOKEN_BLACKLIST_PREFIX`
-- `USERDOMAIN`
-- `USERNAME`
 - `USE_MOCK_ETAP`
 - `VAR`
 - `VAULT_ADDR`
 - `VAULT_TOKEN`
-- `WDK_DIR`
-- `WINDIR`
 
 ---
 
@@ -622,43 +603,43 @@ Separated from main engineering service fo
   - `POST /gnn/predict`
   - `POST /rag/query`
 
-#### 📄 `api/auth.py` _28.9 KB_
+#### 📄 `api/auth.py` _30.4 KB_
 > api/auth.py — Authentication & user-management router.
 
 Exposes the following endpoints under the ``/api/v1/auth`` prefix:
 
 * ``POST /register``      
 
-- **Class** `User` (line 154)
-- **Class** `RegisterRequest` (line 187)
+- **Class** `User` (line 148)
+- **Class** `RegisterRequest` (line 188)
   - Methods: `validate_password_strength()`
-- **Class** `LoginRequest` (line 212)
-- **Class** `TokenResponse` (line 221)
-- **Class** `RefreshRequest` (line 232)
-- **Class** `ChangePasswordRequest` (line 240)
+- **Class** `LoginRequest` (line 213)
+- **Class** `TokenResponse` (line 222)
+- **Class** `RefreshRequest` (line 233)
+- **Class** `ChangePasswordRequest` (line 241)
   - Methods: `validate_new_password()`
-- **Class** `ForgotPasswordRequest` (line 259)
-- **Class** `ResetPasswordRequest` (line 267)
+- **Class** `ForgotPasswordRequest` (line 260)
+- **Class** `ResetPasswordRequest` (line 268)
   - Methods: `validate_new_password()`
-- **Class** `UpdateProfileRequest` (line 285)
-- **Class** `UserResponse` (line 294)
-- **Class** `UserListResponse` (line 310)
-- **async def** `register()` (line 415)
-- **async def** `login()` (line 469)
-- **async def** `refresh()` (line 516)
-- **async def** `logout()` (line 581)
-- **async def** `get_me()` (line 619)
-- **async def** `update_me()` (line 651)
-- **async def** `change_password()` (line 704)
-- **async def** `forgot_password()` (line 767)
-- **async def** `reset_password()` (line 808)
-- **async def** `list_users()` (line 853)
+- **Class** `UpdateProfileRequest` (line 286)
+- **Class** `UserResponse` (line 295)
+- **Class** `UserListResponse` (line 311)
+- **async def** `register()` (line 436)
+- **async def** `login()` (line 490)
+- **async def** `refresh()` (line 537)
+- **async def** `logout()` (line 602)
+- **async def** `get_me()` (line 640)
+- **async def** `update_me()` (line 672)
+- **async def** `change_password()` (line 725)
+- **async def** `forgot_password()` (line 788)
+- **async def** `reset_password()` (line 826)
+- **async def** `list_users()` (line 871)
 
 #### 📄 `api/context_engine.py` _1.5 KB_
 > FastAPI Router for AI Context Engine (Code RAG).
 
 - **async def** `retrieve_context()` (line 20)
-- **async def** `analyze_impact()` (line 37)
+- **async def** `analyze_impact()` (line 35)
 
   **API Routes:**
   - `POST /retrieve`
@@ -689,10 +670,10 @@ Supports two backends:
   • PostgreSQL (production)  — asyncpg driver, connection pooling
  
 
-- **Class** `Base` (line 138)
-- **async def** `get_db()` (line 151)
-- **async def** `check_db_health()` (line 173)
-- **async def** `init_db()` (line 194)
+- **Class** `Base` (line 139)
+- **async def** `get_db()` (line 152)
+- **async def** `check_db_health()` (line 174)
+- **async def** `init_db()` (line 195)
 
 #### 📄 `api/dependencies.py` _9.3 KB_
 > api/dependencies.py — Shared FastAPI dependencies.
@@ -792,35 +773,35 @@ Separated from main engineering service for better
   - `POST /totp/setup`
   - `POST /totp/verify`
 
-#### 📄 `api/projects.py` _23.3 KB_
+#### 📄 `api/projects.py` _24.4 KB_
 > api/projects.py — Power-system project CRUD router.
 
 Exposes the following endpoints under the ``/api/v1/projects`` prefix:
 
 * ``POST /``             
 
-- **Class** `ProjectStatus` (line 76)
-- **Class** `StudyType` (line 84)
-- **Class** `StudyStatus` (line 97)
-- **Class** `Project` (line 111)
-- **Class** `StudyResult` (line 133)
-- **Class** `ProjectCreateRequest` (line 158)
-- **Class** `ProjectUpdateRequest` (line 168)
+- **Class** `ProjectStatus` (line 90)
+- **Class** `StudyType` (line 98)
+- **Class** `StudyStatus` (line 111)
+- **Class** `Project` (line 125)
+- **Class** `StudyResult` (line 147)
+- **Class** `ProjectCreateRequest` (line 172)
+- **Class** `ProjectUpdateRequest` (line 182)
   - Methods: `reject_deleted_status()`
-- **Class** `ProjectResponse` (line 187)
-- **Class** `ProjectListResponse` (line 202)
-- **Class** `StudyRunRequest` (line 218)
-- **Class** `StudyResultResponse` (line 227)
-- **Class** `StudyListResponse` (line 244)
-- **async def** `create_project()` (line 273)
-- **async def** `list_projects()` (line 311)
-- **async def** `get_project()` (line 368)
-- **async def** `update_project()` (line 406)
-- **async def** `delete_project()` (line 460)
-- **async def** `run_study()` (line 500)
-- **async def** `list_studies()` (line 588)
+- **Class** `ProjectResponse` (line 201)
+- **Class** `ProjectListResponse` (line 216)
+- **Class** `StudyRunRequest` (line 232)
+- **Class** `StudyResultResponse` (line 241)
+- **Class** `StudyListResponse` (line 258)
+- **async def** `create_project()` (line 288)
+- **async def** `list_projects()` (line 327)
+- **async def** `get_project()` (line 385)
+- **async def** `update_project()` (line 424)
+- **async def** `delete_project()` (line 479)
+- **async def** `run_study()` (line 520)
+- **async def** `list_studies()` (line 609)
 
-#### 📄 `api/refactored_service.py` _81.0 KB_
+#### 📄 `api/refactored_service.py` _81.1 KB_
 > api/refactored_service.py — Refactored Engineering Service with modular architecture.
 
 This file demonstrates how the monolithic ``engineering_service
@@ -836,27 +817,27 @@ This file demonstrates how the monolithic ``engineering_service
 - **Class** `SystemSpec` (line 350)
 - **Class** `StudyRequest` (line 365)
   - Methods: `validate_study_type()`
-- **Class** `StudyResult` (line 404)
+- **Class** `StudyResult` (line 406)
   - Methods: `sync_data_and_results()`
-- **Class** `HealthResponse` (line 427)
-- **Class** `ReadyResponse` (line 434)
-- **Class** `MetricsResponse` (line 442)
-- **Class** `_BodySizeLimitMiddleware` (line 817)
+- **Class** `HealthResponse` (line 429)
+- **Class** `ReadyResponse` (line 436)
+- **Class** `MetricsResponse` (line 444)
+- **Class** `_BodySizeLimitMiddleware` (line 819)
   - Methods: `dispatch()`
-- **Class** `_RequestLoggingMiddleware` (line 833)
+- **Class** `_RequestLoggingMiddleware` (line 835)
   - Methods: `dispatch()`
-- **Class** `ConnectionManager` (line 920)
+- **Class** `ConnectionManager` (line 922)
   - Methods: `connect()`, `disconnect()`, `broadcast()`
-- **async def** `lifespan()` (line 964)
-- **async def** `trace_middleware()` (line 1088)
-- **async def** `root()` (line 1197)
-- **async def** `healthz()` (line 1204)
-- **async def** `readyz()` (line 1211)
-- **async def** `health_check()` (line 1220)
-- **async def** `readiness_check()` (line 1232)
-- **async def** `metrics()` (line 1260)
-- **async def** `run_study()` (line 1278)
-- **async def** `validate_system()` (line 1434)
+- **async def** `lifespan()` (line 966)
+- **async def** `trace_middleware()` (line 1090)
+- **async def** `root()` (line 1199)
+- **async def** `healthz()` (line 1206)
+- **async def** `readyz()` (line 1213)
+- **async def** `health_check()` (line 1222)
+- **async def** `readiness_check()` (line 1234)
+- **async def** `metrics()` (line 1262)
+- **async def** `run_study()` (line 1280)
+- **async def** `validate_system()` (line 1436)
 
   **API Routes:**
   - `GET /`
@@ -881,20 +862,20 @@ This file demonstrates how the monolithic ``engineering_service
   - `POST /api/v1/security/siem/event`
   - `GET /api/v1/benchmark`
 
-#### 📄 `api/routes.py` _18.4 KB_
+#### 📄 `api/routes.py` _19.6 KB_
 > API Routes module for the Engineering Service.
 Handles all API endpoints, request validation, and response formatting.
 
-- **Class** `_BodySizeLimitMiddleware` (line 108)
+- **Class** `_BodySizeLimitMiddleware` (line 126)
   - Methods: `dispatch()`
-- **Class** `HealthResponse` (line 243)
-- **Class** `ReadyResponse` (line 248)
-- **async def** `trace_middleware()` (line 197)
-- **def** `get_celery_components()` (line 270)
-- **async def** `run_study_async()` (line 295)
-- **async def** `get_task_status()` (line 329)
-- **async def** `websocket_scada_endpoint_handler()` (line 361)
-- **async def** `global_exception_handler()` (line 446)
+- **Class** `HealthResponse` (line 272)
+- **Class** `ReadyResponse` (line 277)
+- **async def** `trace_middleware()` (line 222)
+- **def** `get_celery_components()` (line 299)
+- **async def** `run_study_async()` (line 324)
+- **async def** `get_task_status()` (line 358)
+- **async def** `websocket_scada_endpoint_handler()` (line 390)
+- **async def** `global_exception_handler()` (line 475)
 
   **API Routes:**
   - `POST /api/v1/studies/run_async`
@@ -927,48 +908,51 @@ Performs comprehensive security analysis of the running service:
 - **Class** `SecurityAuditor` (line 259)
   - Methods: `run()`
 
-#### 📄 `api/shared_handlers.py` _26.8 KB_
+#### 📄 `api/shared_handlers.py` _27.6 KB_
 > Shared Handlers & Utilities for AhmedETAP
 ==========================================
 
 Lightweight, dependency-free implementations of common logic use
 
-- **Class** `SharedStudyRequest` (line 120)
-- **Class** `SharedETAPExpertChatRequest` (line 130)
-- **Class** `SharedETAPGUIChatRequest` (line 137)
-- **Class** `SharedContextRetrieveRequest` (line 144)
-- **Class** `SharedImpactAnalysisRequest` (line 152)
-- **Class** `InMemoryRateLimiter` (line 223)
+- **Class** `SharedStudyRequest` (line 227)
+- **Class** `SharedETAPExpertChatRequest` (line 237)
+- **Class** `SharedETAPGUIChatRequest` (line 244)
+- **Class** `SharedContextRetrieveRequest` (line 251)
+- **Class** `SharedImpactAnalysisRequest` (line 259)
+- **Class** `InMemoryRateLimiter` (line 330)
   - Methods: `is_allowed()`
-- **def** `verify_api_key()` (line 182)
-- **def** `build_health_response()` (line 280)
-- **def** `build_ready_response()` (line 295)
-- **def** `build_metrics_response()` (line 300)
-- **def** `build_platform_info()` (line 314)
-- **def** `build_knowledge_info()` (line 348)
-- **def** `sanitize_result()` (line 407)
-- **def** `run_study_lightweight()` (line 448)
-- **def** `handle_etap_expert_chat()` (line 598)
-- **def** `handle_etap_gui_chat()` (line 617)
+- **def** `verify_api_key()` (line 289)
+- **def** `build_health_response()` (line 385)
+- **def** `build_ready_response()` (line 400)
+- **def** `build_metrics_response()` (line 405)
+- **def** `build_platform_info()` (line 419)
+- **def** `build_knowledge_info()` (line 453)
+- **def** `sanitize_result()` (line 512)
+- **def** `run_study_lightweight()` (line 553)
+- **def** `handle_etap_expert_chat()` (line 705)
+- **def** `handle_etap_gui_chat()` (line 724)
 
-#### 📄 `api/studies.py` _23.0 KB_
+#### 📄 `api/studies.py` _25.7 KB_
 > Study Execution API Router
 ==========================
 Handles all power system study execution endpoints.
 Separated from main engineering service for 
 
 - **Class** `BusSpec` (line 32)
-  - Methods: `validate_bus_type()`
-- **Class** `LineSpec` (line 77)
-- **Class** `TransformerSpec` (line 94)
-- **Class** `GeneratorSpec` (line 108)
-- **Class** `LoadSpec` (line 140)
-- **Class** `SystemSpec` (line 155)
-- **Class** `StudyRequest` (line 170)
+  - Methods: `validate_bus_type()`, `validate_voltage_magnitude()`, `validate_voltage_angle()`, `validate_reactive_limits()`
+- **Class** `LineSpec` (line 107)
+  - Methods: `validate_impedance_values()`, `validate_rating()`
+- **Class** `TransformerSpec` (line 140)
+  - Methods: `validate_tap_ratio()`, `validate_phase_shift()`
+- **Class** `GeneratorSpec` (line 170)
+- **Class** `LoadSpec` (line 202)
+- **Class** `SystemSpec` (line 217)
+  - Methods: `validate_base_mva()`
+- **Class** `StudyRequest` (line 242)
   - Methods: `validate_study_type()`
-- **Class** `StudyResult` (line 213)
+- **Class** `StudyResult` (line 287)
   - Methods: `sync_data_and_results()`
-- **async def** `run_study()` (line 445)
+- **async def** `run_study()` (line 519)
 
   **API Routes:**
   - `POST /run`
@@ -996,7 +980,7 @@ Provides live updates to connected clients without requiring refresh.
 
 #### 📄 `core/__init__.py` _0.7 KB_
 
-#### 📄 `core/bootstrap.py` _12.9 KB_
+#### 📄 `core/bootstrap.py` _13.6 KB_
 > Bootstrap module for the Engineering Service.
 Handles initialization of logging, metrics, and core services with privacy controls.
 
@@ -1007,8 +991,8 @@ Handles initialization of logging, metrics, and core services with privacy contr
 - **Class** `_PromStub` (line 31)
   - Methods: `labels()`, `inc()`, `dec()`, `observe()`, `set()`, `info()`
 - **async def** `lifespan()` (line 348)
-- **def** `get_study_cache()` (line 414)
-- **def** `get_logger()` (line 419)
+- **def** `get_study_cache()` (line 430)
+- **def** `get_logger()` (line 435)
 
 #### 📄 `core/database.py` _19.0 KB_
 > core/database.py — Universal Data Model database.
@@ -1078,9 +1062,9 @@ Why this exists
   - Methods: `acquire()`, `release()`
 - **async def** `get_redis_state_client()` (line 61)
 - **async def** `close_redis_state_client()` (line 84)
-- **async def** `save_workflow_state()` (line 261)
-- **async def** `load_workflow_state()` (line 290)
-- **async def** `delete_workflow_state()` (line 311)
+- **async def** `save_workflow_state()` (line 259)
+- **async def** `load_workflow_state()` (line 288)
+- **async def** `delete_workflow_state()` (line 309)
 
 #### 📄 `core/retry.py` _4.0 KB_
 > core/retry.py — Reusable retry decorators for network, skill-loading,
@@ -1185,7 +1169,7 @@ Provides an async Redis-backed caching layer for repeated study
 - **Class** `LargeSystemAdapter` (line 676)
   - Methods: `run_load_flow_optimized()`, `run_fault_analysis_optimized()`, `get_optimization_strategy()`
 
-#### 📄 `engine/engine.py` _13.6 KB_
+#### 📄 `engine/engine.py` _13.7 KB_
 - **Class** `PowerSystemEngine` (line 20)
   - Methods: `run_load_flow()`, `run_fault_analysis()`, `run_arc_flash()`, `run_protection_coordination()`, `run_study()`, `visualize_tcc()`, `visualize_coordination()`
 
@@ -1361,7 +1345,7 @@ Supports:
 - **Class** `HarmonicAnalysisEngine` (line 81)
   - Methods: `set_system_data()`, `add_harmonic_source()`, `calculate_harmonic_impedance()`, `solve_harmonic_power_flow()`, `calculate_thd()`, `calculate_tdd()`, `detect_resonance()`, `check_ieee_519_compliance()`
 
-#### 📄 `fault_analysis/iec60909_engine.py` _18.3 KB_
+#### 📄 `fault_analysis/iec60909_engine.py` _18.4 KB_
 > IEC 60909 Short Circuit Calculation Engine
 
 Implements IEC 60909-0:2016 "Short-circuit currents in three-phase AC systems"
@@ -1450,26 +1434,26 @@ Provides a StudyCache with:
   - Methods: `redis_client()`, `cache()`, `get()`, `set()`, `clear()`, `ping()`
 - **async def** `get_study_cache()` (line 198)
 
-#### 📄 `services/memory_service.py` _11.7 KB_
+#### 📄 `services/memory_service.py` _11.5 KB_
 > services/memory_service.py — AI Memory Service (RAG & GraphRAG)
 ================================================================
 Handles vector-based 
 
-- **Class** `DeterministicFallbackEmbeddings` (line 60)
+- **Class** `DeterministicFallbackEmbeddings` (line 74)
   - Methods: `embed_documents()`, `embed_query()`
-- **Class** `AIMemoryService` (line 86)
+- **Class** `AIMemoryService` (line 100)
   - Methods: `initialize_neo4j()`, `initialize_qdrant()`, `add_knowledge_to_graph()`, `query_graph()`, `save_to_vector_memory()`, `query_vector_memory()`
-- **Class** `QdrantClient` (line 24)
-- **Class** `QdrantVectorStore` (line 26)
-- **Class** `Embeddings` (line 33)
-- **Class** `Neo4jGraph` (line 46)
-- **Class** `LLMGraphTransformer` (line 48)
-- **Class** `ChatOpenAI` (line 50)
-- **Class** `OpenAIEmbeddings` (line 52)
-- **Class** `Document` (line 54)
-- **Class** `GraphCypherQAChain` (line 56)
+- **Class** `QdrantClient` (line 26)
+- **Class** `QdrantVectorStore` (line 29)
+- **Class** `Embeddings` (line 38)
+- **Class** `Neo4jGraph` (line 55)
+- **Class** `LLMGraphTransformer` (line 58)
+- **Class** `ChatOpenAI` (line 61)
+- **Class** `OpenAIEmbeddings` (line 64)
+- **Class** `Document` (line 67)
+- **Class** `GraphCypherQAChain` (line 70)
 
-#### 📄 `services/study_service.py` _24.2 KB_
+#### 📄 `services/study_service.py` _24.5 KB_
 > Study Service module for the Engineering Service.
 Handles all study execution logic, system building, and ETAP integration.
 
@@ -1482,15 +1466,15 @@ Handles all study execution logic, system building, and ETAP integration.
 - **Class** `SystemSpec` (line 147)
 - **Class** `StudyRequest` (line 162)
   - Methods: `validate_study_type()`
-- **Class** `StudyResult` (line 212)
+- **Class** `StudyResult` (line 214)
   - Methods: `sync_data_and_results()`
-- **def** `execute_study_logic()` (line 491)
+- **def** `execute_study_logic()` (line 515)
 
 ### 📦 `security/`
 
 #### 📄 `security/__init__.py` _0.8 KB_
 
-#### 📄 `security/abac.py` _25.2 KB_
+#### 📄 `security/abac.py` _25.9 KB_
 > Attribute-Based Access Control (ABAC) for AhmedETAP Platform
 ============================================================
 Extends the existing RBAC sy
@@ -1500,15 +1484,15 @@ Extends the existing RBAC sy
 - **Class** `ABACPolicy` (line 99)
 - **Class** `ABACPolicyEngine` (line 154)
   - Methods: `add_policy()`, `remove_policy()`, `list_policies()`, `evaluate()`
-- **Class** `ABACMiddleware` (line 407)
+- **Class** `ABACMiddleware` (line 422)
   - Methods: `add_policy()`, `dispatch()`
-- **Class** `ABACMiddleware` (line 530)
-- **def** `ip_in_ranges()` (line 364)
-- **def** `make_role_policy()` (line 542)
-- **def** `make_business_hours_policy()` (line 588)
-- **def** `make_ip_allowlist_policy()` (line 646)
-- **def** `make_clearance_policy()` (line 683)
-- **def** `create_default_etap_abac_engine()` (line 722)
+- **Class** `ABACMiddleware` (line 545)
+- **def** `ip_in_ranges()` (line 379)
+- **def** `make_role_policy()` (line 557)
+- **def** `make_business_hours_policy()` (line 603)
+- **def** `make_ip_allowlist_policy()` (line 661)
+- **def** `make_clearance_policy()` (line 698)
+- **def** `create_default_etap_abac_engine()` (line 737)
 
 #### 📄 `security/mfa.py` _27.0 KB_
 > Multi-Factor Authentication (MFA) for AhmedETAP Platform
@@ -1629,19 +1613,19 @@ Provides ML-based predict
   - Methods: `train()`, `predict()`, `explain()`, `feature_importance()`
 - **Class** `AnomalyDetector` (line 685)
   - Methods: `get_default_method()`, `train()`, `detect()`, `get_threshold()`
-- **Class** `PowerGridGNN` (line 874)
+- **Class** `PowerGridGNN` (line 872)
   - Methods: `train_model()`, `predict()`
-- **Class** `ModelRegistry` (line 1058)
+- **Class** `ModelRegistry` (line 1056)
   - Methods: `create_experiment()`, `start_run()`, `log_params()`, `log_metrics()`, `log_model()`, `end_run()`, `get_best_run()`
-- **Class** `GCNModel` (line 917)
+- **Class** `GCNModel` (line 915)
   - Methods: `forward()`
-- **Class** `GATModel` (line 936)
+- **Class** `GATModel` (line 934)
   - Methods: `forward()`
-- **def** `get_ml_capabilities()` (line 1207)
+- **def** `get_ml_capabilities()` (line 1205)
 
 ### 📦 `worker/`
 
-#### 📄 `worker/celery_app.py` _4.4 KB_
+#### 📄 `worker/celery_app.py` _4.3 KB_
 > worker/celery_app.py — Celery application for handling heavy engineering tasks.
 
 Uses Redis as both broker and result backend.
@@ -1656,8 +1640,8 @@ These tasks run asynchronously to prevent blocking the API.
 
 - **def** `execute_engineering_study_task()` (line 21)
 - **def** `execute_etap_integration_task()` (line 72)
-- **def** `process_large_calculation_task()` (line 135)
-- **def** `celery_heartbeat()` (line 201)
+- **def** `process_large_calculation_task()` (line 136)
+- **def** `celery_heartbeat()` (line 202)
 
 ### 📦 `reporting/`
 
@@ -2135,7 +2119,7 @@ Why this migration exists
 ----
 
 - **def** `upgrade()` (line 42)
-- **def** `downgrade()` (line 117)
+- **def** `downgrade()` (line 108)
 
 #### 📄 `migrations/versions/__init__.py` _0.0 KB_
 
@@ -2265,12 +2249,12 @@ The ETAP Windows worker runs as
 
 - **Class** `ETAPWorkerHeartbeat` (line 138)
   - Methods: `register()`, `deregister()`, `set_status()`, `run()`, `stop()`
-- **Class** `WorkerRegistry` (line 231)
+- **Class** `WorkerRegistry` (line 229)
   - Methods: `get_available_workers()`, `get_worker_count()`, `is_any_worker_available()`
-- **async def** `list_workers()` (line 303)
-- **async def** `worker_pool_health()` (line 316)
-- **async def** `register_worker()` (line 341)
-- **async def** `worker_heartbeat()` (line 366)
+- **async def** `list_workers()` (line 301)
+- **async def** `worker_pool_health()` (line 314)
+- **async def** `register_worker()` (line 339)
+- **async def** `worker_heartbeat()` (line 364)
 
 ### 📦 `core_model/`
 
@@ -3433,13 +3417,13 @@ Automated script to:
 
 ### 📦 `ai_context_engine/`
 
-#### 📄 `ai_context_engine/indexer.py` _6.6 KB_
+#### 📄 `ai_context_engine/indexer.py` _6.9 KB_
 > AI Context Engine - Code Indexer
 Implements Phase 1: Indexing with Tree-Sitter (or AST fallback) and ChromaDB.
 
-- **Class** `CodeExtractor` (line 36)
+- **Class** `CodeExtractor` (line 38)
   - Methods: `extract_with_ast()`, `extract_with_tree_sitter()`, `extract()`
-- **Class** `CodeIndexer` (line 110)
+- **Class** `CodeIndexer` (line 120)
   - Methods: `hash_code()`, `index_repo()`
 
 #### 📄 `ai_context_engine/knowledge_graph.py` _9.8 KB_
@@ -3449,13 +3433,13 @@ Implements Phase 3: Explicit code relationships and dependency mapping (Code Pro
 - **Class** `KnowledgeGraph` (line 16)
   - Methods: `add_node()`, `add_relationship()`, `get_neighbors()`, `find_path()`, `generate_impact_subgraph()`, `scan_file_for_relations()`, `resolve_references()`, `scan_repo()`
 
-#### 📄 `ai_context_engine/retriever.py` _5.2 KB_
+#### 📄 `ai_context_engine/retriever.py` _5.4 KB_
 > AI Context Engine - Code Retriever and Compressor
 Implements Phase 2: Semantic retrieval from ChromaDB + Lexical & Semantic Compression (Pruning).
 
-- **Class** `CodeCompressor` (line 19)
+- **Class** `CodeCompressor` (line 20)
   - Methods: `get_token_estimate()`, `compress_chunks()`
-- **Class** `CodeRetriever` (line 85)
+- **Class** `CodeRetriever` (line 91)
   - Methods: `retrieve()`, `retrieve_and_compress()`
 
 ### 📦 `backend/`
@@ -3663,6 +3647,7 @@ Pydantic models for the Unifi
 - `Sidebar.tsx` → Exports: `Sidebar`
 - `TitleBar.tsx` → Exports: `TitleBar`
 - `CommandPalette.tsx` → Exports: `CommandPalette`
+- `ShortcutsPanel.tsx` → Exports: `ShortcutsPanel`
 - `ContextPanel.tsx` → Exports: `ContextPanel`
 - `ErrorRecovery.tsx` → Exports: `ErrorRecovery`, `useErrorRecovery`
 - `ContextHelpButton.tsx` → Exports: `ContextHelpButton`
@@ -3711,6 +3696,7 @@ Pydantic models for the Unifi
 
 ### 🖥️ `components/command/`
 - `CommandPalette.tsx` → Exports: `CommandPalette`
+- `ShortcutsPanel.tsx` → Exports: `ShortcutsPanel`
 
 ### 🖥️ `components/context/`
 - `ContextPanel.tsx` → Exports: `ContextPanel`
@@ -3722,6 +3708,7 @@ Pydantic models for the Unifi
 ### 🖥️ `hooks/`
 - `useApi.ts` → Exports: `useApi`
 - `useAuth.tsx` → Exports: `useAuth`, `AuthProvider`
+- `useKeyboardShortcuts.ts` → Exports: `useKeyboardShortcuts`, `SHORTCUT_DEFINITIONS`
 - `useSmartHelp.ts` → Exports: `useSmartHelp`
 - `useAuth.test.tsx` → Exports: _none_
 
@@ -3755,12 +3742,12 @@ Pydantic models for the Unifi
 
 | Type | Count |
 |:---|---:|
+| ui-component | 99 |
 | api-route | 50 |
-| ui-component | 95 |
-| help-topic | 35 |
 | python-module | 43 |
+| help-topic | 35 |
 | ui-page | 24 |
-| **TOTAL** | **247** |
+| **TOTAL** | **251** |
 
 ---
 
@@ -3772,7 +3759,7 @@ Pydantic models for the Unifi
 | `adms_control` | `scada_model` | — |
 | `agents` | `coordination`, `core`, `etap_integration`, `fault_analysis`, `guards`, `load_flow`, `ml`, `relays`, `reporting` | `api` |
 | `ai_context_engine` | — | `api` |
-| `api` | `agents`, `ai_context_engine`, `core`, `core_model`, `digital_twin`, `engine`, `etap_integration`, `fault_analysis`, `knowledge`, `load_flow`, `ml`, `scada_model`, `security`, `services`, `worker` | `core`, `migrations` |
+| `api` | `agents`, `ai_context_engine`, `core`, `core_model`, `digital_twin`, `engine`, `etap_integration`, `knowledge`, `load_flow`, `ml`, `scada_model`, `security`, `services`, `worker` | `core`, `migrations` |
 | `autodesk_connector` | — | `copilot` |
 | `backend` | — | — |
 | `coordination` | — | `agents`, `digital_twin`, `engine` |
@@ -3784,7 +3771,7 @@ Pydantic models for the Unifi
 | `engine` | `coordination`, `core_model`, `fault_analysis`, `load_flow`, `relays`, `visualization` | `api`, `core`, `digital_twin`, `etap_integration`, `load_flow` |
 | `etap_integration` | `core`, `core_model`, `engine`, `security` | `agents`, `api`, `copilot`, `core`, `services`, `worker` |
 | `etap_user_guide` | — | — |
-| `fault_analysis` | — | `agents`, `api`, `digital_twin`, `engine` |
+| `fault_analysis` | — | `agents`, `digital_twin`, `engine` |
 | `gis_integration` | — | `digital_twin`, `gis_validation`, `gis_validation_electrical`, `gis_validation_real` |
 | `gis_model` | — | `digital_twin` |
 | `gis_validation` | `gis_integration`, `gis_validation_real` | `gis_validation_real` |
@@ -3843,7 +3830,7 @@ Pydantic models for the Unifi
 | `test_integration_metrics.py` | 0 | 3 | **13** |
 | `test_integration_tracing.py` | 0 | 3 | **8** |
 | `test_knowledge.py` | 0 | 1 | **15** |
-| `test_memory_service.py` | 0 | 5 | **27** |
+| `test_memory_service.py` | 0 | 0 | **0** |
 | `test_ml.py` | 0 | 3 | **22** |
 | `test_network_solver.py` | 0 | 2 | **30** |
 | `test_new_agents.py` | 0 | 6 | **26** |
@@ -3856,6 +3843,7 @@ Pydantic models for the Unifi
 | `test_scada_state_estimation.py` | 0 | 4 | **44** |
 | `test_scada_websocket.py` | 0 | 12 | **44** |
 | `test_security_e2e.py` | 0 | 10 | **39** |
+| `test_security_fixes.py` | 0 | 6 | **20** |
 | `test_security_hardening.py` | 0 | 3 | **25** |
 | `test_sparse_solver.py` | 0 | 1 | **10** |
 | `test_study_service.py` | 5 | 0 | **5** |
@@ -3891,7 +3879,7 @@ Pydantic models for the Unifi
 | `scripts/backup-mastra-db.ps1` | ps1 | 1.3 KB |  |
 | `scripts/backup-mastra-db.sh` | sh | 1.1 KB | !/bin/bash |
 | `scripts/backup/postgres_backup.sh` | sh | 8.3 KB | !/usr/bin/env bash |
-| `scripts/capture-screenshots.cjs` | cjs | 1.4 KB |  |
+| `scripts/capture-screenshots.cjs` | cjs | 1.5 KB |  |
 | `scripts/capture.mjs` | mjs | 1.6 KB |  |
 | `scripts/clean_git_history.py` | py | 5.5 KB | Git History Cleanup Script |
 | `scripts/demo.sh` | sh | 3.6 KB | !/usr/bin/env bash |
@@ -3905,7 +3893,7 @@ Pydantic models for the Unifi
 | `scripts/extract_manuals.py` | py | 8.7 KB |  |
 | `scripts/hf_build_guard.py` | py | 9.7 KB | HF Space Build Guard |
 | `scripts/pin-versions.mjs` | mjs | 1.5 KB |  |
-| `scripts/security_scan.py` | py | 3.9 KB | Security scanner to detect hardcoded secrets before commit. |
+| `scripts/security_scan.py` | py | 4.1 KB | Security scanner to detect hardcoded secrets before commit. |
 | `scripts/set-engineering-service-url.ps1` | ps1 | 3.5 KB |  |
 | `scripts/set-engineering-service-url.sh` | sh | 4.1 KB | !/usr/bin/env bash |
 | `scripts/set-llm-secrets.ps1` | ps1 | 8.9 KB |  |
@@ -3927,20 +3915,20 @@ Pydantic models for the Unifi
 | `Dockerfile` | 3.3 KB | `a2e43e8c76ba` |
 | `Dockerfile.engineering-service` | 4.6 KB | `3236854206bd` |
 | `Dockerfile.hf` | 2.5 KB | `1c682fbfd145` |
-| `Dockerfile.windows-worker` | 2.9 KB | `cd53c47c1d7e` |
-| `docker-compose.yml` | 3.4 KB | `23c2cf0be446` |
+| `Dockerfile.windows-worker` | 3.0 KB | `7a205ebebc0f` |
+| `docker-compose.yml` | 3.7 KB | `0205410cf882` |
 | `docker-compose.monitoring.yml` | 8.7 KB | `d00866419cef` |
 | `docker-compose.copilot.yml` | 7.4 KB | `042ce6111c73` |
 | `docker-compose.loki.yml` | 1.3 KB | `4d91a64caae6` |
 | `docker-compose.windows.yml` | 1.8 KB | `efe7a5ed30d2` |
-| `pyproject.toml` | 4.6 KB | `bc39bf8224ee` |
-| `requirements.txt` | 2.6 KB | `c27edf69ccba` |
-| `requirements-prod.txt` | 1.7 KB | `ec69e53185d1` |
-| `requirements-dev.txt` | 0.3 KB | `b01e6554da26` |
+| `pyproject.toml` | 4.6 KB | `c3b133587f15` |
+| `requirements.txt` | 2.9 KB | `fa3742a32b03` |
+| `requirements-prod.txt` | 1.8 KB | `e32d1cc2ed60` |
+| `requirements-dev.txt` | 0.4 KB | `7f7c7c2c5138` |
 | `requirements-minimal.txt` | 0.7 KB | `80dbf8ff7108` |
-| `requirements-ml.txt` | 1.0 KB | `43e986654cbe` |
+| `requirements-ml.txt` | 1.2 KB | `a928c5a778e0` |
 | `requirements.hf.txt` | 1.0 KB | `b34d3b16afab` |
-| `.github/workflows/ci-cd.yml` | 14.8 KB | `78bd00f65b9b` |
+| `.github/workflows/ci-cd.yml` | 17.5 KB | `160715fbcd1b` |
 | `.github/workflows/security.yml` | 5.5 KB | `53e9015135b9` |
 | `.github/workflows/sync-hf-space.yml` | 3.0 KB | `db53c8c4132f` |
 | `.github/workflows/release.yml` | 0.7 KB | `da0e2ecf1633` |
@@ -3948,13 +3936,13 @@ Pydantic models for the Unifi
 | `scripts/docker_build.sh` | 10.5 KB | `479b7a2517a0` |
 | `scripts/deploy-engineering-service.sh` | 10.3 KB | `e491ad4f1c79` |
 | `Makefile` | 7.4 KB | `9ef7c798d7e8` |
-| `alembic.ini` | 2.5 KB | `afb311aa031b` |
-| `ruff.toml` | 2.6 KB | `aba9676f8b0b` |
+| `alembic.ini` | 2.6 KB | `c6acd592ffa3` |
+| `ruff.toml` | 2.8 KB | `3917514902ed` |
 | `nginx.conf` | 6.7 KB | `324447f2cb91` |
 | `hf-space/Dockerfile` | 1.7 KB | `f1b7ae432702` |
-| `hf-space/app.py` | 13.9 KB | `bf1658b8f4fe` |
-| `ui/package.json` | 2.7 KB | `5c16730bedfe` |
-| `ui/vite.config.ts` | 0.6 KB | `bc3d92b256e0` |
+| `hf-space/app.py` | 13.8 KB | `9c94cd1dfbdd` |
+| `ui/package.json` | 2.8 KB | `e662f4ca1f5b` |
+| `ui/vite.config.ts` | 1.2 KB | `b674a9e0310f` |
 | `ui/tsconfig.json` | 0.1 KB | `a3d39fa780eb` |
 | `mastra.config.ts` | 0.4 KB | `5f57f5833f51` |
 | `pnpm-workspace.yaml` | 0.1 KB | `9058a897e811` |
