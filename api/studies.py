@@ -73,6 +73,36 @@ class BusSpec(BaseModel):
             raise ValueError("bus_type must be slack, pv, or pq")
         return v
 
+    @field_validator("voltage_magnitude")
+    @classmethod
+    def validate_voltage_magnitude(cls, v: float) -> float:
+        """Voltage magnitude must be reasonable (0.5–2.0 pu)."""
+        if v < 0.5 or v > 2.0:
+            raise ValueError(
+                f"voltage_magnitude must be between 0.5 and 2.0 pu, got {v}"
+            )
+        return v
+
+    @field_validator("voltage_angle")
+    @classmethod
+    def validate_voltage_angle(cls, v: float) -> float:
+        """Voltage angle must be within -360 to +360 degrees."""
+        if v < -360.0 or v > 360.0:
+            raise ValueError(
+                f"voltage_angle must be between -360 and 360 degrees, got {v}"
+            )
+        return v
+
+    @field_validator("q_min", "q_max")
+    @classmethod
+    def validate_reactive_limits(cls, v: float, info: Any) -> float:
+        """Reactive power limits must be within a reasonable range."""
+        if v < -9999.0 or v > 9999.0:
+            raise ValueError(
+                f"Reactive power limit out of reasonable range (-9999 to 9999), got {v}"
+            )
+        return v
+
 
 class LineSpec(BaseModel):
     model_config = ConfigDict(extra="ignore")
@@ -90,6 +120,22 @@ class LineSpec(BaseModel):
     bshunt0: Optional[float] = Field(default=None, validation_alias=AliasChoices("bshunt0", "b0"))
     rating_mva: Optional[float] = None
 
+    @field_validator("r1", "x1", "r0", "x0")
+    @classmethod
+    def validate_impedance_values(cls, v: Optional[float], info: Any) -> Optional[float]:
+        """Impedance values must be non-negative."""
+        if v is not None and v < 0:
+            raise ValueError(f"{info.field_name} must be non-negative, got {v}")
+        return v
+
+    @field_validator("rating_mva")
+    @classmethod
+    def validate_rating(cls, v: Optional[float]) -> Optional[float]:
+        """Line rating must be positive if provided."""
+        if v is not None and v <= 0:
+            raise ValueError(f"rating_mva must be positive, got {v}")
+        return v
+
 
 class TransformerSpec(BaseModel):
     model_config = ConfigDict(extra="ignore")
@@ -103,6 +149,22 @@ class TransformerSpec(BaseModel):
     phase_shift_deg: float = Field(
         default=0.0, validation_alias=AliasChoices("phase_shift_deg", "phase_shift")
     )
+
+    @field_validator("tap_ratio")
+    @classmethod
+    def validate_tap_ratio(cls, v: float) -> float:
+        """Transformer tap ratio must be reasonable (0.5–2.0 pu)."""
+        if v < 0.5 or v > 2.0:
+            raise ValueError(f"tap_ratio must be between 0.5 and 2.0 pu, got {v}")
+        return v
+
+    @field_validator("phase_shift_deg")
+    @classmethod
+    def validate_phase_shift(cls, v: float) -> float:
+        """Phase shift must be within -180 to +180 degrees."""
+        if v < -180.0 or v > 180.0:
+            raise ValueError(f"phase_shift_deg must be between -180 and 180, got {v}")
+        return v
 
 
 class GeneratorSpec(BaseModel):
@@ -165,6 +227,16 @@ class SystemSpec(BaseModel):
     transformers: List[TransformerSpec] = Field(default_factory=list)
     generators: List[GeneratorSpec] = Field(default_factory=list)
     loads: List[LoadSpec] = Field(default_factory=list)
+
+    @field_validator("base_mva")
+    @classmethod
+    def validate_base_mva(cls, v: float) -> float:
+        """Base MVA must be positive and within a reasonable range (1–10000)."""
+        if v <= 0:
+            raise ValueError(f"base_mva must be positive, got {v}")
+        if v > 10000:
+            raise ValueError(f"base_mva is unreasonably large ({v}), max is 10000")
+        return v
 
 
 class StudyRequest(BaseModel):

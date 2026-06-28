@@ -184,7 +184,7 @@ async def check_db_health() -> dict:
         return {"status": "healthy", "backend": "postgresql" if _IS_POSTGRES else "sqlite"}
     except Exception as exc:
         logger.error("Database health check failed: %s", exc)
-        return {"status": "unhealthy", "error": str(exc)}
+        return {"status": "unhealthy", "error": "Database connection failed"}
 
 
 # ---------------------------------------------------------------------------

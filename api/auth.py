@@ -39,7 +39,7 @@ import bcrypt
 import jwt
 from fastapi import APIRouter, Body, Depends, HTTPException, Response, status
 from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
-from sqlalchemy import Boolean, DateTime, String, func, select
+from sqlalchemy import Boolean, DateTime, Index, String, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -62,12 +62,12 @@ REFRESH_TOKEN_EXPIRE_DAYS: int = int(os.getenv("JWT_REFRESH_EXPIRE_DAYS", "7"))
 RESET_TOKEN_EXPIRE_MINUTES: int = int(os.getenv("RESET_TOKEN_EXPIRE_MINUTES", "30"))
 
 # ---------------------------------------------------------------------------
-# Rate-limiting (in-memory, per username)
+# Rate-limiting (Redis-backed, per username, with in-memory fallback)
 # ---------------------------------------------------------------------------
 
 _LOGIN_ATTEMPTS: Dict[str, List[float]] = {}
-_RATE_LIMIT_MAX_ATTEMPTS: int = 5
-_RATE_LIMIT_WINDOW_SEC: int = 15 * 60  # 15 minutes
+_RATE_LIMIT_MAX_ATTEMPTS: int = int(os.getenv("LOGIN_RATE_LIMIT_MAX_ATTEMPTS", "5"))
+_RATE_LIMIT_WINDOW_SEC: int = int(os.getenv("LOGIN_RATE_LIMIT_WINDOW_SEC", "900"))  # 15 minutes
 
 # ---------------------------------------------------------------------------
 # Token blacklist (Redis-backed)
@@ -123,26 +123,20 @@ async def _is_token_blacklisted(jti: str) -> bool:
 # ---------------------------------------------------------------------------
 
 _COMMON_PASSWORDS: set[str] = {
-    "password",
-    "12345678",
-    "qwerty12",
-    "abc12345",
-    "password1",
-    "iloveyou",
-    "admin123",
-    "welcome1",
-    "123456789",
-    "password123",
-    "Passw0rd",
-    "monkey12",
-    "dragon12",
-    "sunshine1",
-    "princess1",
-    "football1",
-    "shadow12",
-    "master12",
-    "login123",
-    "hello123",
+    # Top 50 most common passwords (2024)
+    "password", "12345678", "qwerty12", "abc12345", "password1",
+    "iloveyou", "admin123", "welcome1", "123456789", "password123",
+    "Passw0rd", "monkey12", "dragon12", "sunshine1", "princess1",
+    "football1", "shadow12", "master12", "login123", "hello123",
+    "123456", "1234567890", "1234567", "12345678910", "qwerty123",
+    "letmein", "11111111", "00000000", "trustno1", "passw0rd",
+    "password!", "qwerty12345", "changeme", "Password1", "password12",
+    "Password123", "letmein123", "welcome123", "admin2025", "admin2024",
+    "test1234", "test12345", "demo1234", "default1", "temp1234",
+    "secret123", "pass12345", "P@ssw0rd", "P@ssword1", "Password!23",
+    # Application-specific
+    "etap12345", "etapadmin", "ahmedetap", "power123", "engineer1",
+    "etap1234", "etap2025", "etap2024", "ahmed123", "elbaz123",
 }
 
 
@@ -155,6 +149,13 @@ class User(Base):
     """Persisted user account."""
 
     __tablename__ = "users"
+
+    __table_args__ = (
+        # Composite index for login queries (username + password_hash)
+        # and for reset-password flow (reset_token + expires)
+        Index("ix_users_username_password", "username", "password_hash"),
+        Index("ix_users_reset_token", "reset_token", "reset_token_expires"),
+    )
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     username: Mapped[str] = mapped_column(String(64), unique=True, index=True, nullable=False)
@@ -380,11 +381,27 @@ def _create_refresh_token(user_id: str) -> str:
     return jwt.encode(payload, JWT_SECRET_KEY, algorithm=JWT_ALGORITHM)
 
 
-def _check_rate_limit(username: str) -> None:
-    """Raise 429 if *username* has exceeded the login attempt threshold."""
+async def _check_rate_limit(username: str) -> None:
+    """Raise 429 if *username* has exceeded the login attempt threshold.
+
+    Uses Redis when available, falls back to in-memory store.
+    """
+    r = _get_redis_client()
+    if r is not None:
+        key = f"auth:ratelimit:{username}"
+        current = await r.incr(key)
+        if current == 1:
+            await r.expire(key, _RATE_LIMIT_WINDOW_SEC)
+        if current > _RATE_LIMIT_MAX_ATTEMPTS:
+            raise HTTPException(
+                status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+                detail="Too many login attempts. Please try again later.",
+            )
+        return
+
+    # In-memory fallback
     now = time.monotonic()
     attempts = _LOGIN_ATTEMPTS.get(username, [])
-    # Prune expired attempts
     attempts = [t for t in attempts if now - t < _RATE_LIMIT_WINDOW_SEC]
     _LOGIN_ATTEMPTS[username] = attempts
 
@@ -396,7 +413,11 @@ def _check_rate_limit(username: str) -> None:
 
 
 def _record_failed_attempt(username: str) -> None:
-    """Record a failed login attempt for rate-limiting."""
+    """Record a failed login attempt for rate-limiting (in-memory fallback).
+
+    When Redis is active, the counter is managed by INCR/EXPIRE in _check_rate_limit,
+    so this function only records for the in-memory fallback path.
+    """
     now = time.monotonic()
     _LOGIN_ATTEMPTS.setdefault(username, []).append(now)
 
@@ -475,7 +496,7 @@ async def login(
     On success, returns an access token and a refresh token.
     On failure, returns 401 with a generic message (no user-enumeration leak).
     """
-    _check_rate_limit(body.username)
+    await _check_rate_limit(body.username)
 
     result = await db.execute(select(User).where(User.username == body.username))
     user = result.scalar_one_or_none()
@@ -785,16 +806,13 @@ async def forgot_password(
         db.add(user)
         await db.flush()
 
-        # In production, send the token via email. The raw token is NOT
-        # included in the response — only its SHA-256 hash is stored in
-        # the DB.  For testing, use the /reset-password endpoint directly.
-        response_data = {
+        # SECURITY: The raw reset token is NEVER included in the API response.
+        # Only its SHA-256 hash is stored in the DB. Developers can generate
+        # tokens manually via the Python shell for testing:
+        #   python -c "import secrets; print(secrets.token_urlsafe(32))"
+        return {
             "message": "If the email exists, a reset token has been sent",
         }
-        env = os.environ.get("ENVIRONMENT", os.environ.get("ENV", "development")).lower()
-        if env not in ("production", "prod", "staging"):
-            response_data["reset_token"] = reset_token
-        return response_data
 
     # Deliberately return the same message to avoid enumeration
     return {"message": "If the email exists, a reset token has been generated"}
