@@ -34,7 +34,7 @@ def run_git_command(cmd_parts, cwd='.'):
 def clean_sensitive_files(repo_path, files_to_remove):
     """
     Clean sensitive files from git history.
-    
+
     Args:
         repo_path: Path to the git repository
         files_to_remove: List of file patterns to remove from history

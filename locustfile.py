@@ -6,7 +6,6 @@
 
 import json
 import logging
-import time
 
 from locust import HttpUser, between, events, task
 from locust.runners import MasterRunner, WorkerRunner
@@ -244,7 +243,7 @@ class EngineeringServiceUser(AuthenticatedUser):
     @task(8)
     def run_load_flow(self):
         """Execute a load flow study with a realistic power system model."""
-        start_time = time.time()
+        # start_time reserved for future latency reporting
         self.client.post(
             "/api/v1/studies/run",
             json={

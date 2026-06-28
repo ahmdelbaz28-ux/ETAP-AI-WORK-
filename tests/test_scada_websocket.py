@@ -753,14 +753,18 @@ class TestAuthentication:
 
     def test_missing_api_key_rejected(self, auth_client: TestClient):
         """A connection without an API key is rejected with code 1008."""
-        with pytest.raises(Exception):
+        from starlette.websockets import WebSocketDisconnect
+
+        with pytest.raises(WebSocketDisconnect):
             # The server should close the connection immediately
             with auth_client.websocket_connect(WS_PATH) as ws:
                 ws.receive_json()
 
     def test_wrong_api_key_rejected(self, auth_client: TestClient):
         """A connection with an incorrect API key is rejected."""
-        with pytest.raises(Exception):
+        from starlette.websockets import WebSocketDisconnect
+
+        with pytest.raises(WebSocketDisconnect):
             with auth_client.websocket_connect(
                 WS_PATH, headers={"x-api-key": "wrong-key"}
             ) as ws:
@@ -768,7 +772,9 @@ class TestAuthentication:
 
     def test_empty_api_key_rejected(self, auth_client: TestClient):
         """An empty ``x-api-key`` header is treated as missing."""
-        with pytest.raises(Exception):
+        from starlette.websockets import WebSocketDisconnect
+
+        with pytest.raises(WebSocketDisconnect):
             with auth_client.websocket_connect(
                 WS_PATH, headers={"x-api-key": ""}
             ) as ws:

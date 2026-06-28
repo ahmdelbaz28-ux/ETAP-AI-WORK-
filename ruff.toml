@@ -48,6 +48,8 @@ ignore = [
     "N818",   # Error suffix on exception name (domain-specific naming)
     "N811",   # Constant imported as non-constant (standard patterns in imports)
     "N801",   # Invalid class name (some legacy patterns)
+    "UP047",  # Use type parameters (Python 3.12+ generic syntax; not yet adopted repo-wide)
+    "B007",   # Loop control variable not used (acceptable when iterating for side-effects)
 ]
 
 # Allow autofix for all enabled rules

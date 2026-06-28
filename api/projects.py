@@ -32,7 +32,6 @@ from sqlalchemy.orm import Mapped, mapped_column
 
 from api.database import Base, get_db
 from api.dependencies import (
-    API_KEY,
     CurrentUser,
     PaginationParams,
     get_api_key,

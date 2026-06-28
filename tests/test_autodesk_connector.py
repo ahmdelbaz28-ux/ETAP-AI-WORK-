@@ -760,12 +760,12 @@ class TestDataModelValidation:
 
     def test_panel_requires_voltage(self):
         """Panel should require voltage_nominal_v."""
-        with pytest.raises(Exception):
+        with pytest.raises((ValueError, TypeError)):
             Panel(name="Bad Panel", panel_type=PanelType.MDP)
 
     def test_bus_requires_base_kv(self):
         """Bus should require base_kv."""
-        with pytest.raises(Exception):
+        with pytest.raises((ValueError, TypeError)):
             Bus(name="Bad Bus")
 
     def test_cable_routing_path_is_list_of_coordinates(self):

@@ -72,11 +72,11 @@ def _eager_mode():
     The fixture auto-resets the original configuration after each test so
     that tests cannot leak state into one another.
     """
-    overrides = dict(
-        task_always_eager=True,
-        task_eager_propagates=True,       # exceptions propagate immediately
-        result_backend="cache+memory://",  # in-memory result backend
-    )
+    overrides = {
+        "task_always_eager": True,
+        "task_eager_propagates": True,       # exceptions propagate immediately
+        "result_backend": "cache+memory://",  # in-memory result backend
+    }
     prev = {k: celery_app.conf.get(k) for k in overrides}
     celery_app.conf.update(overrides)
     yield
@@ -85,18 +85,18 @@ def _eager_mode():
 
 def _fake_study_result(**overrides) -> StudyResult:
     """Build a realistic StudyResult for mocking purposes."""
-    defaults = dict(
-        success=True,
-        data={"converged": True, "voltages": [1.0, 0.98]},
-        results={"converged": True, "voltages": [1.0, 0.98]},
-        warnings=[],
-        errors=[],
-        execution_time_sec=0.05,
-        trace_id="test-trace-001",
-        task_id="test-task-001",
-        study_type="load_flow",
-        provider="native",
-    )
+    defaults = {
+        "success": True,
+        "data": {"converged": True, "voltages": [1.0, 0.98]},
+        "results": {"converged": True, "voltages": [1.0, 0.98]},
+        "warnings": [],
+        "errors": [],
+        "execution_time_sec": 0.05,
+        "trace_id": "test-trace-001",
+        "task_id": "test-task-001",
+        "study_type": "load_flow",
+        "provider": "native",
+    }
     defaults.update(overrides)
     return StudyResult(**defaults)
 
