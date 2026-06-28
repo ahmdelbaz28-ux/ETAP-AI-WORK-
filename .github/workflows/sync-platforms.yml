@@ -81,9 +81,11 @@ jobs:
           npm run build:vercel
           echo "✅ UI build successful — Vercel will deploy from this commit automatically"
 
-      # ── 1b. Trigger Vercel redeploy via API (Vercel auto-deploys on push,   ─
-      #       but this also verifies the project is reachable)                   ─
-      - name: ▲ Verify Vercel project & trigger redeploy if force=true
+      # ── 1b. Verify Vercel project reachability ───────────────────────────────
+      # Vercel's GitHub integration auto-deploys on every push to main — no
+      # explicit redeploy trigger needed. This step just verifies the Vercel
+      # API token is valid by listing the project's recent deployments.
+      - name: ▲ Verify Vercel project reachability
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
         run: |
@@ -92,25 +94,24 @@ jobs:
             echo "⚠️ VERCEL_TOKEN or VERCEL_PROJECT_ID not set — skipping"
             exit 0
           fi
-          echo "Checking Vercel project status…"
-          STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
+          echo "Fetching latest deployment from Vercel…"
+          # The /v6/deployments endpoint accepts projectId as a query param.
+          RESPONSE=$(curl -s -w "\n%{http_code}" \
             -H "Authorization: Bearer $VERCEL_TOKEN" \
-            "https://api.vercel.com/v13/deployments?projectId=$VERCEL_PROJECT_ID&limit=1")
+            "https://api.vercel.com/v6/deployments?projectId=$VERCEL_PROJECT_ID&limit=1")
+          STATUS=$(echo "$RESPONSE" | tail -1)
+          BODY=$(echo "$RESPONSE" | sed '$d')
           echo "Vercel API responded with HTTP $STATUS"
-          if [ "$STATUS" != "200" ]; then
-            echo "⚠️ Vercel API unreachable — Vercel GitHub integration will still auto-deploy"
-            exit 0
+          if [ "$STATUS" = "200" ]; then
+            LATEST_URL=$(echo "$BODY" | jq -r '.deployments[0].url // "unknown"')
+            LATEST_STATE=$(echo "$BODY" | jq -r '.deployments[0].ready // "building"')
+            LATEST_BRANCH=$(echo "$BODY" | jq -r '.deployments[0].meta.githubCommitRef // "unknown"')
+            echo "✅ Vercel integration healthy"
+            echo "   Latest deployment: https://$LATEST_URL"
+            echo "   Branch: $LATEST_BRANCH"
+          else
+            echo "⚠️ Vercel API returned HTTP $STATUS — Vercel GitHub integration still auto-deploys on push"
           fi
-          if [ "${{ github.event.inputs.force }}" = "true" ]; then
-            echo "Force-triggering Vercel redeploy…"
-            curl -s -X POST \
-              -H "Authorization: Bearer $VERCEL_TOKEN" \
-              -H "Content-Type: application/json" \
-              -d "{\"name\":\"force-redeploy-$(date +%s)\",\"gitSource\":{\"type\":\"github\",\"repo\":\"ahmdelbaz28-ux/ETAP-AI-WORK-\",\"ref\":\"main\"}}" \
-              "https://api.vercel.com/v13/deployments?projectId=$VERCEL_PROJECT_ID" \
-              | python3 -c "import json,sys; d=json.load(sys.stdin); print('Deployment ID:', d.get('id','?'), 'URL:', d.get('url','?'))" || true
-          fi
-          echo "✅ Vercel integration healthy"
 
       # ── 1c. Sync to HuggingFace Space ───────────────────────────────────────
       - name: 🤗 Sync to HuggingFace Space
