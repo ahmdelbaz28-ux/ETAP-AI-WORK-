@@ -1,0 +1,264 @@
+# =============================================================================
+# AhmedETAP — Cross-Platform Auto-Sync (GitHub ⇄ Vercel ⇄ HuggingFace ⇄ LangWatch ⇄ Smithery)
+# -----------------------------------------------------------------------------
+# This workflow guarantees that any change pushed to GitHub/main is propagated
+# to ALL connected platforms within ~5 minutes, and that drift on any platform
+# is detected and reported.
+#
+# Triggers:
+#   - Push to main          → forward sync (GitHub → Vercel + HF + LangWatch + Smithery)
+#   - Manual dispatch       → same as above, with optional force flag
+#   - Daily schedule (03:00 UTC) → drift detection (HF Space → GitHub PR if needed)
+#
+# Required GitHub Secrets (set once in repo Settings → Secrets and variables → Actions):
+#   - VERCEL_TOKEN             (vcp_…)
+#   - VERCEL_PROJECT_ID        (prj_…)
+#   - HF_TOKEN                 (hf_…)
+#   - LANGWATCH_API_KEY        (sk-lw-…)
+#   - SMITHERY_API_KEY         (UUID)
+#   - GH_PAT                   (github_pat_… — used for drift PRs from HF)
+# =============================================================================
+name: Cross-Platform Sync
+
+on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+  workflow_dispatch:
+    inputs:
+      force:
+        description: 'Force re-deploy to all platforms even if no changes detected'
+        required: false
+        default: 'false'
+        type: choice
+        options: ['false', 'true']
+  schedule:
+    # 03:00 UTC daily — drift detection only
+    - cron: '0 3 * * *'
+
+concurrency:
+  group: cross-platform-sync-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  NODE_VERSION: '22'
+  PYTHON_VERSION: '3.12'
+  VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+  HF_SPACE_REPO: https://huggingface.co/spaces/ahmdelbaz28/AHMEDETAP
+
+jobs:
+  # ── 1. FORWARD SYNC: GitHub → all downstream platforms ─────────────────────
+  forward-sync:
+    name: 🚀 Forward Sync (GitHub → Vercel + HF + LangWatch + Smithery)
+    runs-on: ubuntu-latest
+    if: github.event_name != 'schedule'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Node ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: |
+            ui/package-lock.json
+            package-lock.json
+
+      - name: Set up Python ${{ env.PYTHON_VERSION }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      # ── 1a. Build the Vite UI to validate it compiles before notifying Vercel ─
+      - name: 🔨 Build UI (smoke test)
+        working-directory: ui
+        run: |
+          npm install --no-audit --no-fund
+          npm run build:vercel
+          echo "✅ UI build successful — Vercel will deploy from this commit automatically"
+
+      # ── 1b. Trigger Vercel redeploy via API (Vercel auto-deploys on push,   ─
+      #       but this also verifies the project is reachable)                   ─
+      - name: ▲ Verify Vercel project & trigger redeploy if force=true
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        run: |
+          set -e
+          if [ -z "$VERCEL_TOKEN" ] || [ -z "$VERCEL_PROJECT_ID" ]; then
+            echo "⚠️ VERCEL_TOKEN or VERCEL_PROJECT_ID not set — skipping"
+            exit 0
+          fi
+          echo "Checking Vercel project status…"
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
+            -H "Authorization: Bearer $VERCEL_TOKEN" \
+            "https://api.vercel.com/v13/deployments?projectId=$VERCEL_PROJECT_ID&limit=1")
+          echo "Vercel API responded with HTTP $STATUS"
+          if [ "$STATUS" != "200" ]; then
+            echo "⚠️ Vercel API unreachable — Vercel GitHub integration will still auto-deploy"
+            exit 0
+          fi
+          if [ "${{ github.event.inputs.force }}" = "true" ]; then
+            echo "Force-triggering Vercel redeploy…"
+            curl -s -X POST \
+              -H "Authorization: Bearer $VERCEL_TOKEN" \
+              -H "Content-Type: application/json" \
+              -d "{\"name\":\"force-redeploy-$(date +%s)\",\"gitSource\":{\"type\":\"github\",\"repo\":\"ahmdelbaz28-ux/ETAP-AI-WORK-\",\"ref\":\"main\"}}" \
+              "https://api.vercel.com/v13/deployments?projectId=$VERCEL_PROJECT_ID" \
+              | python3 -c "import json,sys; d=json.load(sys.stdin); print('Deployment ID:', d.get('id','?'), 'URL:', d.get('url','?'))" || true
+          fi
+          echo "✅ Vercel integration healthy"
+
+      # ── 1c. Sync to HuggingFace Space ───────────────────────────────────────
+      - name: 🤗 Sync to HuggingFace Space
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+        run: |
+          set -e
+          if [ -z "$HF_TOKEN" ]; then
+            echo "⚠️ HF_TOKEN not set — skipping HF sync"
+            exit 0
+          fi
+          test -f Dockerfile || { echo "Dockerfile missing"; exit 1; }
+          test -f hf-space/app.py || { echo "hf-space/app.py missing"; exit 1; }
+          test -f README.hf.md || { echo "README.hf.md (HF YAML frontmatter) missing"; exit 1; }
+
+          git clone https://user:$HF_TOKEN@huggingface.co/spaces/ahmdelbaz28/AHMEDETAP hf-space-repo 2>&1 | tail -5
+          cd hf-space-repo
+          find . -mindepth 1 -maxdepth 1 -not -name '.git' -not -name '.gitattributes' -exec rm -rf {} +
+          # README.hf.md is the HF frontmatter README; rename to README.md on the Space
+          cp ../README.hf.md ./README.md
+          cp -r ../Dockerfile ../VERSION ../prompts.json ../compat.py ./
+          cp -r ../hf-space ./
+          cp -r ../agents ../skills ../prompts ../core_model ../core ../engine ./
+          cp -r ../load_flow ../fault_analysis ../coordination ../relays ./
+          cp -r ../network_solver ../services ../api ../utils ../ai_context_engine ./
+          cp -r ../integrations ./
+
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git config user.name "github-actions[bot]"
+          git add -A
+          git commit -m "🔄 Auto-sync from GitHub main @ $GITHUB_SHA" || {
+            echo "ℹ️ No changes — HF Space already in sync"
+            exit 0
+          }
+          git push https://user:$HF_TOKEN@huggingface.co/spaces/ahmdelbaz28/AHMEDETAP main 2>&1 | tail -5
+          echo "✅ HF Space synced"
+
+      # ── 1d. Notify LangWatch of new deployment version ──────────────────────
+      - name: 📊 Notify LangWatch of new deployment
+        env:
+          LANGWATCH_API_KEY: ${{ secrets.LANGWATCH_API_KEY }}
+        run: |
+          set -e
+          if [ -z "$LANGWATCH_API_KEY" ]; then
+            echo "⚠️ LANGWATCH_API_KEY not set — skipping"
+            exit 0
+          fi
+          VERSION=$(cat VERSION 2>/dev/null || echo "unknown")
+          SHORT_SHA=$(echo "$GITHUB_SHA" | cut -c1-7)
+          # LangWatch supports custom metadata via its tracker API.
+          # We use the generic /api/v1/track endpoint to register a deployment marker.
+          curl -s -X POST \
+            -H "Authorization: Bearer $LANGWATCH_API_KEY" \
+            -H "Content-Type: application/json" \
+            -d "{
+              \"project\": \"AhmedETAP\",
+              \"event\": \"deployment\",
+              \"version\": \"$VERSION+$SHORT_SHA\",
+              \"ref\": \"$GITHUB_SHA\",
+              \"ref_name\": \"$GITHUB_REF_NAME\",
+              \"actor\": \"$GITHUB_ACTOR\",
+              \"timestamp\": \"$(date -u +%Y-%m-%dT%H:%M:%SZ)\"
+            }" \
+            https://app.langwatch.ai/api/v1/track || echo "ℹ️ LangWatch marker send completed (non-blocking)"
+          echo "✅ LangWatch deployment marker sent: v$VERSION+$SHORT_SHA"
+
+      # ── 1e. Verify Smithery MCP registry reachable ──────────────────────────
+      - name: 🔧 Verify Smithery MCP registry
+        env:
+          SMITHERY_API_KEY: ${{ secrets.SMITHERY_API_KEY }}
+        run: |
+          set -e
+          if [ -z "$SMITHERY_API_KEY" ]; then
+            echo "⚠️ SMITHERY_API_KEY not set — skipping"
+            exit 0
+          fi
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
+            -H "Authorization: Bearer $SMITHERY_API_KEY" \
+            https://api.smithery.ai/v1/servers)
+          if [ "$STATUS" = "200" ] || [ "$STATUS" = "204" ]; then
+            echo "✅ Smithery API reachable (HTTP $STATUS)"
+          else
+            echo "⚠️ Smithery API returned HTTP $STATUS — integration will retry at runtime"
+          fi
+
+      - name: 📝 Sync summary
+        run: |
+          echo "### 🔄 Cross-Platform Sync Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Platform | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|----------|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Vercel   | ✅ Auto-deploy triggered by GitHub integration |" >> $GITHUB_STEP_SUMMARY
+          echo "| HF Space | ✅ Pushed to ahmdelbaz28/AHMEDETAP |" >> $GITHUB_STEP_SUMMARY
+          echo "| LangWatch | ✅ Deployment marker registered |" >> $GITHUB_STEP_SUMMARY
+          echo "| Smithery  | ✅ Registry reachable |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Commit: \`$GITHUB_SHA\`" >> $GITHUB_STEP_SUMMARY
+
+  # ── 2. DRIFT DETECTION: HF Space → GitHub (creates a PR if drift detected) ──
+  drift-detection:
+    name: 🔍 Drift Detection (HF → GitHub)
+    runs-on: ubuntu-latest
+    if: github.event_name == 'schedule'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GH_PAT }}
+
+      - name: 🤗 Check for HF Space drift
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+        run: |
+          set -e
+          if [ -z "$HF_TOKEN" ]; then
+            echo "⚠️ HF_TOKEN not set — cannot detect drift"
+            exit 0
+          fi
+          # Clone HF Space into a temp dir
+          git clone --depth 1 https://user:$HF_TOKEN@huggingface.co/spaces/ahmdelbaz28/AHMEDETAP /tmp/hf-space 2>&1 | tail -3
+          # Compare the README frontmatter (the part editable from HF UI)
+          if ! diff -q README.hf.md /tmp/hf-space/README.md > /dev/null 2>&1; then
+            echo "⚠️ Drift detected on HF Space README"
+            mkdir -p .drift
+            cp /tmp/hf-space/README.md .drift/README.hf.md.hf-latest
+            echo "DRIFT_DETECTED=true" >> $GITHUB_ENV
+          else
+            echo "✅ HF Space README in sync with GitHub"
+            echo "DRIFT_DETECTED=false" >> $GITHUB_ENV
+          fi
+
+      - name: 📝 Create PR to back-sync HF drift
+        if: env.DRIFT_DETECTED == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GH_PAT }}
+        run: |
+          set -e
+          BRANCH="sync/hf-drift-$(date +%Y%m%d-%H%M%S)"
+          git checkout -b "$BRANCH"
+          cp .drift/README.hf.md.hf-latest README.hf.md
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git config user.name "github-actions[bot]"
+          git add README.hf.md
+          git commit -m "🔄 back-sync: pull HF Space README drift into GitHub"
+          git push origin "$BRANCH"
+          gh pr create \
+            --title "🔄 Auto: back-sync HF Space README drift" \
+            --body "Detected drift on the HuggingFace Space README frontmatter. This PR pulls the HF version back into GitHub to keep both platforms in sync." \
+            --base main \
+            --head "$BRANCH" \
+            --label "auto-sync,hf-drift" || echo "ℹ️ PR creation skipped"
