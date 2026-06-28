@@ -24,8 +24,8 @@ except ImportError:
     logger.warning("chromadb not installed. Vector storage disabled.")
 
 try:
-    import tree_sitter
-    import tree_sitter_python
+    import tree_sitter  # noqa: F401 — imported for the side-effect of being available
+    import tree_sitter_python  # noqa: F401
     from tree_sitter import Language, Parser
     TREE_SITTER_AVAILABLE = True
 except ImportError:

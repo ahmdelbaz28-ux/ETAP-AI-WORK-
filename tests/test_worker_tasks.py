@@ -15,17 +15,17 @@ from services.study_service import StudyResult
 # ─── Helpers ────────────────────────────────────────────────────────────────
 
 def _fake_study_result(**overrides) -> StudyResult:
-    defaults = dict(
-        success=True,
-        data={"converged": True},
-        warnings=[],
-        errors=[],
-        execution_time_sec=0.05,
-        trace_id="test-trace",
-        task_id="test-task",
-        study_type="load_flow",
-        provider="native",
-    )
+    defaults = {
+        "success": True,
+        "data": {"converged": True},
+        "warnings": [],
+        "errors": [],
+        "execution_time_sec": 0.05,
+        "trace_id": "test-trace",
+        "task_id": "test-task",
+        "study_type": "load_flow",
+        "provider": "native",
+    }
     defaults.update(overrides)
     return StudyResult(**defaults)
 

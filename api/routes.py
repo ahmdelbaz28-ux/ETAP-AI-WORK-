@@ -16,10 +16,10 @@ from typing import Any, Dict, List, Optional, Tuple
 from fastapi import FastAPI, HTTPException, Request, WebSocket
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+
 # Import both the `trace` module (for trace.get_current_span() etc.) and the
 # specific symbols used by the middleware below. This prevents NameError if a
 # future edit references `trace.X` directly inside trace_middleware.
-from opentelemetry import trace
 from opentelemetry.trace import SpanKind, Status, StatusCode
 from pydantic import BaseModel
 from starlette.middleware.base import BaseHTTPMiddleware

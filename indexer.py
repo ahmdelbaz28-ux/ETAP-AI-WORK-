@@ -679,10 +679,11 @@ def scan_integrations() -> dict:
 def build_dependency_graph(modules: dict) -> dict:
     """Build a cross-module dependency graph from imports."""
     graph = {}
-    for pkg_name, pkg_data in modules.items():
+    for _pkg_name, pkg_data in modules.items():
         for file_path, file_data in pkg_data.get("files", {}).items():
             # The file's module is its path without .py, with / replaced by .
-            file_module = file_path.replace("/", ".").replace(".py", "")
+            # file_module is computed but currently unused — kept for future debug.
+            # file_module = file_path.replace("/", ".").replace(".py", "")
             # Get the top-level package this file belongs to
             top_pkg = file_path.split("/")[0]
             graph.setdefault(top_pkg, {"imports": set(), "imported_by": set()})
@@ -752,7 +753,9 @@ def build_ui_search_index(help_data: dict, modules: dict, ui: dict, api_routes: 
         if section == "pages":
             continue
         for rel_path, file_data in files.items():
-            comp_name = rel_path.split("/")[-1].replace(".tsx", "").replace(".ts", "")
+            # comp_name is the basename without extension; not currently used
+            # in the entry below but useful for debugging.
+            # comp_name = rel_path.split("/")[-1].replace(".tsx", "").replace(".ts", "")
             for export in file_data.get("exports", []):
                 entries.append({
                     "type": "ui-component",
