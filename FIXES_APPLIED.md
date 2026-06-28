@@ -5,6 +5,38 @@
 
 ---
 
+## 2026-06-28 — Vercel Build Fix + Cross-Platform Auto-Sync
+
+### Root cause of Vercel build warnings
+The `npm warn ERESOLVE overriding peer dependency` warning for
+`@vitest/mocker@2.1.8 → vite@^5.0.0 vs vite@6.0.5` was caused by
+`vitest@2.1.8` not officially supporting `vite@6.x`. While npm was
+auto-resolving it, the underlying mismatch made the install step
+fragile and could trigger failures on stricter CI environments.
+
+### Fixes applied
+1. **`ui/package.json`** — upgraded `vitest` from `2.1.8` → `3.0.9`
+   (Vitest 3.x officially supports Vite 6.x → eliminates the peer
+   dependency warning entirely).
+2. **`package.json` (root)** — upgraded `vitest` + `@vitest/coverage-v8`
+   from `2.1.8` → `3.0.9` to keep the monorepo consistent.
+3. **`ui/package.json`** — added `build:vercel` script that skips
+   `tsc -b` (Vite handles TS transforms; type-checks run in CI).
+4. **`ui/vercel.json`** — pinned `installCommand`, `buildCommand`,
+   `outputDirectory`, and added security headers.
+5. **`ui/.npmrc`** — set `auto-install-peers=true` + `audit=false` for
+   faster, more reliable installs.
+6. **`.nvmrc`** — pinned Node 22 so Vercel/HF/local all use the same
+   runtime.
+7. **`.github/workflows/sync-platforms.yml`** — new unified workflow
+   that auto-syncs every push to `main` across **Vercel + HuggingFace
+   Space + LangWatch + Smithery**, plus a daily drift-detection job
+   that opens a PR if the HF Space README diverges from GitHub.
+8. **`.github/SECRETS_SETUP.md`** — step-by-step guide to set all
+   required GitHub Secrets.
+
+---
+
 ## Summary of Changes
 
 ### 1. HF Space Build Fixes (A1-A5, A3, A4)
