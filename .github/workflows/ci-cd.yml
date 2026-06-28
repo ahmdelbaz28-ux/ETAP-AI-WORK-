@@ -178,7 +178,8 @@ jobs:
           scan-ref: '.'
           severity: 'CRITICAL,HIGH'
           exit-code: '1'
-          ignore-policy: '.trivyignore.yaml'
+          ignore-unfixed: true
+          trivyignores: .trivyignore
 
   # ── 4. HELM CHART VALIDATION ─────────────────────────────────────────────────
   helm-chart:

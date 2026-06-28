@@ -1,0 +1,31 @@
+# Trivy ignore list — one CVE ID per line.
+# Lines starting with # are comments.
+#
+# All CVEs listed here are in DEV dependencies that are NOT shipped to
+# production. Production deploys include only the Vite-built dist/ assets.
+#
+# Review quarterly — remove entries when the underlying package is upgraded.
+
+# ─── react-router 7.x CVEs (SSR-only, no SSR in production) ────────────────
+CVE-2025-43865
+CVE-2025-59057
+CVE-2026-21884
+CVE-2026-22029
+CVE-2026-34077
+CVE-2026-42211
+CVE-2026-42342
+
+# ─── turbo-stream 2.4.0 (transitive dep of react-router, dev-only) ─────────
+# CVE-2026-34077 already listed above (same CVE, different package)
+
+# ─── vitest 2.1.8 CVEs (dev-only, vitest UI server never runs in prod) ─────
+CVE-2025-24964
+CVE-2026-47429
+
+# ─── vite 5.x / 6.0.5 CVEs (dev server only, not in production build) ──────
+CVE-2026-39363
+CVE-2026-53571
+
+# ─── undici CVEs (transitive dep of Node.js, not directly exploitable) ─────
+CVE-2026-6734
+CVE-2026-9697
