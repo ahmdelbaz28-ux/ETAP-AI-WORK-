@@ -1,6 +1,7 @@
 # =============================================================================
-# AhmedETAP — Complete CI/CD Pipeline
-# GitHub → Tests → Security → Build → Deploy (HF + Production)
+# AhmedETAP — Complete CI/CD Pipeline (OPTIMIZED)
+# GitHub → Tests → Build → Deploy (HF + Vercel) → Health Check → Index Update
+# Auto-deploy triggers on EVERY push to main/develop
 # =============================================================================
 name: AhmedETAP CI/CD
 
@@ -160,15 +161,12 @@ jobs:
 
       - name: Bandit SAST scan
         run: bandit -r . -x tests/,node_modules/,.venv/ -ll --format txt
-        # continue-on-error removed — security scan must block the pipeline
 
       - name: Safety dependency check
         run: safety check -r requirements.txt --full-report
-        # continue-on-error removed — security scan must block the pipeline
 
       - name: Custom security scan
         run: python scripts/security_scan.py
-        # continue-on-error removed — security scan must block the pipeline
 
       - name: Trivy filesystem scan
         uses: aquasecurity/trivy-action@master
@@ -176,7 +174,7 @@ jobs:
           scan-type: 'fs'
           scan-ref: '.'
           severity: 'CRITICAL,HIGH'
-          exit-code: '1'    # FAIL on CRITICAL/HIGH — security scan must block the pipeline
+          exit-code: '1'
 
   # ── 4. HELM CHART VALIDATION ─────────────────────────────────────────────────
   helm-chart:
@@ -200,7 +198,38 @@ jobs:
       - name: Helm template render
         run: helm template etap-ai ./helm/etap-ai/ > /tmp/rendered-manifests.yaml
 
-  # ── 5. BUILD DOCKER IMAGE ────────────────────────────────────────────────────
+  # ── 5. BUILD UI (VITE) ──────────────────────────────────────────────────────
+  build-ui:
+    name: 🏗️ Build UI (Vite)
+    runs-on: ubuntu-latest
+    needs: [python-tests, security-scan]
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: ui/package-lock.json
+
+      - name: Install UI dependencies
+        working-directory: ui
+        run: npm install --ignore-scripts --no-optional
+
+      - name: Build UI
+        working-directory: ui
+        run: npm run build
+
+      - name: Upload UI build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ui-dist-${{ github.sha }}
+          path: ui/dist/
+          retention-days: 1
+
+  # ── 6. BUILD DOCKER IMAGE ────────────────────────────────────────────────────
   docker-build:
     name: 🐳 Build Docker Image
     runs-on: ubuntu-latest
@@ -241,7 +270,7 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-  # ── 5b. CONTAINER SCAN + SBOM ────────────────────────────────────────────────
+  # ── 6b. CONTAINER SCAN + SBOM ────────────────────────────────────────────────
   container-scan:
     name: 🔬 Container Scan + SBOM
     runs-on: ubuntu-latest
@@ -261,7 +290,7 @@ jobs:
           format: 'sarif'
           output: 'trivy-results.sarif'
           severity: 'CRITICAL,HIGH'
-          exit-code: '1'    # FAIL on CRITICAL/HIGH — security scan must block the pipeline
+          exit-code: '1'
 
       - name: Upload Trivy scan results to GitHub Security
         uses: github/codeql-action/upload-sarif@v3
@@ -283,17 +312,64 @@ jobs:
           path: sbom.json
           retention-days: 90
 
-  # ── 6. DEPLOY TO HUGGING FACE ────────────────────────────────────────────────
+  # ── 7. DEPLOY TO VERCEL (Auto on push to main) ─────────────────────────────
+  deploy-vercel:
+    name: ▲ Deploy to Vercel (Auto)
+    runs-on: ubuntu-latest
+    needs: [python-tests, security-scan, build-ui]
+    if: github.ref == 'refs/heads/main'
+    environment:
+      name: production-vercel
+      url: https://vercel.com/ahmdelbaz28-uxs-projects/etap-ai-work
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Install Vercel CLI
+        run: npm install -g vercel@latest
+
+      - name: Deploy to Vercel Production
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: team_eeEYqzXI8zkrTo62cUOTMVmS
+          VERCEL_PROJECT_ID: prj_WucHqc3lQDwYe0i3ykgWz7UR5E3I
+        run: |
+          if [ -z "$VERCEL_TOKEN" ]; then
+            echo "⚠️ VERCEL_TOKEN secret not set — skipping Vercel deployment"
+            exit 0
+          fi
+          echo "🚀 Deploying to Vercel Production..."
+          vercel --prod --token "$VERCEL_TOKEN" --yes
+          echo "✅ Vercel deployment complete"
+
+  # ── 8. DEPLOY TO HUGGING FACE (Auto on push to main) ────────────────────────
   deploy-hf:
-    name: 🤗 Deploy to Hugging Face Space
+    name: 🤗 Deploy to HuggingFace Space (Auto)
     runs-on: ubuntu-latest
     needs: [python-tests, security-scan]
     if: github.ref == 'refs/heads/main'
+    environment:
+      name: production-hf
+      url: https://huggingface.co/spaces/ahmdelbaz28/AHMEDETAP
 
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          lfs: true
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install huggingface_hub
+        run: pip install huggingface_hub
 
       - name: Sync to Hugging Face Space
         env:
@@ -309,23 +385,25 @@ jobs:
 
           echo "🚀 Syncing to HF Space: ahmdelbaz28/AHMEDETAP"
           git push https://user:${HF_TOKEN}@huggingface.co/spaces/ahmdelbaz28/AHMEDETAP main --force
+          echo "✅ HF Sync complete"
 
-          echo "✅ Sync complete"
-
-      - name: Set HF Space Secrets
+      - name: Update HF Space Secrets
         env:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
           LANGWATCH_API_KEY: ${{ secrets.LANGWATCH_API_KEY }}
           SMITHERY_API_KEY: ${{ secrets.SMITHERY_API_KEY }}
           JWT_SECRET_KEY: ${{ secrets.JWT_SECRET_KEY }}
         run: |
-          pip install huggingface_hub
-
           python - <<'EOF'
           import os
           from huggingface_hub import HfApi
 
-          api  = HfApi(token=os.environ["HF_TOKEN"])
+          hf_token = os.environ.get("HF_TOKEN", "")
+          if not hf_token:
+              print("⚠️  HF_TOKEN not set — skipping secret update")
+              exit(0)
+
+          api  = HfApi(token=hf_token)
           repo = "ahmdelbaz28/AHMEDETAP"
 
           secrets_to_set = {
@@ -343,29 +421,7 @@ jobs:
                   print(f"  ⚠️  Skipped (empty): {key}")
           EOF
 
-  # ── 6b. DEPLOY TO VERCEL ─────────────────────────────────────────────────────
-  deploy-vercel:
-    name: ▲ Deploy to Vercel Production
-    runs-on: ubuntu-latest
-    needs: [python-tests, security-scan]
-    if: github.ref == 'refs/heads/main'
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Deploy to Vercel
-        env:
-          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-          VERCEL_ORG_ID: team_eeEYqzXI8zkrTo62cUOTMVmS
-          VERCEL_PROJECT_ID: prj_WucHqc3lQDwYe0i3ykgWz7UR5E3I
-        run: |
-          if [ -z "$VERCEL_TOKEN" ]; then
-            echo "⚠️ VERCEL_TOKEN secret not set — skipping Vercel deployment"
-            exit 0
-          fi
-          npx vercel --prod --token $VERCEL_TOKEN --yes
-
-  # ── 7. HEALTH CHECK ──────────────────────────────────────────────────────────
+  # ── 9. HEALTH CHECK ──────────────────────────────────────────────────────────
   health-check:
     name: 🩺 Production Health Check
     runs-on: ubuntu-latest
@@ -388,18 +444,15 @@ jobs:
           echo "Ready: $HTTP"
           [ "$HTTP" != "000" ] && [ "$HTTP" -lt 500 ] || exit 1
 
-      - name: LangWatch connectivity (from HF Space)
-        run: |
-          echo "✅ LangWatch integration verified via LANGWATCH_API_KEY secret"
-
       - name: Notify deployment success
         run: |
           echo "🎉 AhmedETAP deployed successfully!"
-          echo "   Space URL: ${{ env.HF_SPACE_URL }}"
+          echo "   HF Space:  ${{ env.HF_SPACE_URL }}"
+          echo "   Vercel:    https://vercel.com/ahmdelbaz28-uxs-projects/etap-ai-work"
           echo "   Commit:    ${{ github.sha }}"
           echo "   Branch:    ${{ github.ref_name }}"
 
-  # ── 8. AUTO-UPDATE PROJECT INDEX ─────────────────────────────────────────────
+  # ── 10. AUTO-UPDATE PROJECT INDEX ─────────────────────────────────────────────
   update-index:
     name: 📋 Update Project Index
     runs-on: ubuntu-latest
