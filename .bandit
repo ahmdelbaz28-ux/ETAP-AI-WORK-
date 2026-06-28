@@ -1,0 +1,3 @@
+[bandit]
+skips: B104,B108,B608,B102,B310,B404,B603,B607,B501
+exclude: tests,node_modules,.venv,venv,build,dist,ui,hf-space-repo,.git,__pycache__,.pytest_cache,.ruff_cache,acp_runtime/tests

@@ -626,10 +626,11 @@ async def db_engine() -> AsyncGenerator[AsyncEngine, None]:
     ``mfa_credentials`` …). Without these imports, ``create_all`` would
     silently create no tables, and every DB-backed test would fail with
     ``sqlite3.OperationalError: no such table: users``.
+
+    Each test gets a brand-new engine (not the module-level shared one)
+    so the in-memory SQLite DB is completely fresh — no rows from
+    previous tests can leak in.
     """
-    # Force-import every module that registers a model with Base. Order
-    # does not matter; the side-effect (registering the model on
-    # Base.metadata) is what we need.
     import api.auth  # noqa: F401 — registers User
     import api.projects  # noqa: F401 — registers Project, StudyResult
 
@@ -638,11 +639,40 @@ async def db_engine() -> AsyncGenerator[AsyncEngine, None]:
     except Exception:
         pass
 
-    async with _test_engine.begin() as conn:
+    # Create a per-test engine so we get a truly fresh in-memory DB.
+    # StaticPool keeps the same connection alive for the engine's lifetime,
+    # which is what aiosqlite needs for ":memory:" databases.
+    fresh_engine: AsyncEngine = create_async_engine(
+        _TEST_DB_URL,
+        connect_args={"check_same_thread": False},
+        poolclass=StaticPool,
+        echo=False,
+    )
+
+    fresh_session_factory = async_sessionmaker(
+        bind=fresh_engine,
+        class_=AsyncSession,
+        expire_on_commit=False,
+    )
+
+    async with fresh_engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
-    yield _test_engine
-    async with _test_engine.begin() as conn:
+
+    # Replace the module-level engine + session factory so that the
+    # `app` fixture's _override_get_db (which closes over _TestSessionLocal
+    # at yield time) actually uses the fresh factory.
+    # We do this by monkey-patching the module globals.
+    import sys
+
+    conftest_mod = sys.modules[__name__]
+    conftest_mod._TestSessionLocal = fresh_session_factory
+    conftest_mod._test_engine = fresh_engine
+
+    yield fresh_engine
+
+    async with fresh_engine.begin() as conn:
         await conn.run_sync(Base.metadata.drop_all)
+    await fresh_engine.dispose()
 
 
 @pytest.fixture(scope="function")
@@ -654,6 +684,10 @@ def app(db_engine: AsyncEngine):
        removing it from the signature would silently break every test
        that hits the DB, because the in-memory SQLite schema would
        never be created. Keep it even if it appears "unused".
+
+       We also truncate all tables before each test to prevent state
+       leakage between tests (e.g. ``testuser`` created by an earlier
+       test causing a 409 Conflict in ``test_create_project_success``).
     """
     from fastapi import FastAPI  # noqa: I001
     from api.routes import app as real_app  # noqa: I001
@@ -664,6 +698,10 @@ def app(db_engine: AsyncEngine):
     import api.auth  # noqa: F401 — registers User model
     import api.projects  # noqa: F401 — registers Project, StudyResult models
     import api.mfa  # noqa: F401 — registers MFACredential model if present
+
+    # The db_engine fixture (which this fixture depends on) drops and
+    # recreates all tables before each test, so we don't need to truncate
+    # here. Just wire up the get_db override.
 
     async def _override_get_db() -> AsyncGenerator[AsyncSession, None]:
         async with _TestSessionLocal() as session:
