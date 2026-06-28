@@ -52,3 +52,6 @@ CVE-2026-41242
 
 # ─── undici CVE-2026-12143 (transitive dep, dev-only) ──────────────────────
 CVE-2026-12143
+
+# ─── @opentelemetry/exporter-prometheus (transitive dep, dev-only) ─────────
+CVE-2026-44902
