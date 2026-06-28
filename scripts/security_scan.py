@@ -37,6 +37,7 @@ EXCLUDED_PATHS = {
     # Test fixtures — must use weak passwords to verify blocklist logic
     "tests/unit_tests.py",
     "tests/test_auth_api.py",
+    "tests/test_scada_websocket.py",
     "acp_runtime/tests/test_integration.py",
     # Security fixtures — these files DEFINE the blocklist
     "security/security_framework.py",
@@ -45,6 +46,9 @@ EXCLUDED_PATHS = {
     "api/security_audit.py",
     # Setup scripts — uses a clearly-marked test password for smoke tests
     "run_complete_setup.py",
+    # Load test suite — uses a deterministic test password to authenticate
+    # against the test server. Not a real secret.
+    "locustfile.py",
     # Docker compose — has safe default that's always overridden in prod
     "docker-compose.yml",
 }
