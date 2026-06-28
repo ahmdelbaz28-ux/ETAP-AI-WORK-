@@ -10,7 +10,7 @@ prophet>=1.1.0                      # Facebook Prophet - seasonal load forecasti
 xgboost>=2.0.0                      # Gradient boosting - fault prediction
 shap>=0.43.0                        # Model explainability - SHAP values
 optuna>=3.0.0                       # Hyperparameter optimization
-pyod>=1.0.0                         # 30+ anomaly detection algorithms
+pyod>=3.6.1                         # 30+ anomaly detection algorithms
 
 # Phase 6c: ML/AI - Deep Learning & GNN
 torch>=2.0.0                        # PyTorch - deep learning foundation
