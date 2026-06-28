@@ -380,8 +380,20 @@ async def lifespan(app):
 
 
 async def _initialize_cache_with_retry(max_retries: int = 3) -> Any:
-    """Initialize cache with retry mechanism."""
+    """Initialize cache with retry mechanism.
+
+    Set ``ENGINEERING_SERVICE_CACHE_DISABLED=true`` to skip Redis entirely
+    and use the in-memory fallback immediately — useful for tests and local
+    dev where Redis is not running.
+    """
     from services.cache_service import StudyCache
+
+    # Short-circuit: if cache is explicitly disabled, go straight to the
+    # in-memory fallback. This avoids the 7-second retry delay (1+2+4s)
+    # that occurs when Redis is unavailable.
+    if os.environ.get("ENGINEERING_SERVICE_CACHE_DISABLED", "").lower() == "true":
+        logger.info("Cache disabled via ENGINEERING_SERVICE_CACHE_DISABLED — using in-memory fallback")
+        return StudyCache(redis_url="memory://fallback", ttl=3600)
 
     for attempt in range(max_retries):
         try:

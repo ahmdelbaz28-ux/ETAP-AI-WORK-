@@ -7,7 +7,7 @@ name = "etap-ai-platform"
 version = "2.1.0"
 description = "Enterprise-grade autonomous engineering intelligence for validated power-system studies, ETAP automation, GIS enrichment, AI workflows, and production operations."
 readme = "README.md"
-requires-python = ">=3.12"
+requires-python = ">=3.12,<3.14"
 license = { text = "MIT" }
 keywords = ["power-system", "etap", "gis", "engineering", "ai", "load-flow", "short-circuit", "arc-flash"]
 

@@ -262,6 +262,14 @@ def setup_test_environment():
     os.environ["ENGINEERING_SERVICE_AUTH_DISABLED"] = "true"
     os.environ["USE_ETAP"] = "false"
     os.environ["PRIVACY_MODE"] = "true"
+    # Disable Redis cache during tests — avoids the 7-second retry delay
+    # (1+2+4s exponential backoff) when Redis is unavailable in CI.
+    os.environ["ENGINEERING_SERVICE_CACHE_DISABLED"] = "true"
+    # Raise rate-limit ceiling for tests — the test suite fires many
+    # requests in rapid succession (register+login+CRUD per test), which
+    # easily exceeds the default 100 req/60s limit and triggers spurious
+    # 429s. Allow 10,000 req/60s in tests.
+    os.environ["ENGINEERING_SERVICE_RATE_LIMIT_MAX"] = "10000"
 
     # Set logging to debug level for tests
     try:
@@ -272,12 +280,14 @@ def setup_test_environment():
     yield
 
     # Clean up environment variables after tests
-    if "ENGINEERING_SERVICE_AUTH_DISABLED" in os.environ:
-        del os.environ["ENGINEERING_SERVICE_AUTH_DISABLED"]
-    if "USE_ETAP" in os.environ:
-        del os.environ["USE_ETAP"]
-    if "PRIVACY_MODE" in os.environ:
-        del os.environ["PRIVACY_MODE"]
+    for _key in (
+        "ENGINEERING_SERVICE_AUTH_DISABLED",
+        "USE_ETAP",
+        "PRIVACY_MODE",
+        "ENGINEERING_SERVICE_CACHE_DISABLED",
+        "ENGINEERING_SERVICE_RATE_LIMIT_MAX",
+    ):
+        os.environ.pop(_key, None)
 
 
 # ---------------------------------------------------------------------------
@@ -311,7 +321,24 @@ _TestSessionLocal = async_sessionmaker(
 
 @pytest.fixture(scope="function")
 async def db_engine() -> AsyncGenerator[AsyncEngine, None]:
-    """Provide a fresh in-memory database engine for each test."""
+    """Provide a fresh in-memory database engine for each test.
+
+    All ORM models are force-imported here so that ``Base.metadata`` knows
+    about every table (``users``, ``projects``, ``study_results``,
+    ``mfa_credentials`` …). Without these imports, ``create_all`` would
+    silently create no tables, and every DB-backed test would fail with
+    ``sqlite3.OperationalError: no such table: users``.
+    """
+    # Force-import every module that registers a model with Base. Order
+    # does not matter; the side-effect (registering the model on
+    # Base.metadata) is what we need.
+    import api.auth  # noqa: F401 — registers User
+    import api.projects  # noqa: F401 — registers Project, StudyResult
+    try:
+        import api.mfa  # noqa: F401 — registers MFACredential (if present)
+    except Exception:
+        pass
+
     async with _test_engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
     yield _test_engine
@@ -321,9 +348,23 @@ async def db_engine() -> AsyncGenerator[AsyncEngine, None]:
 
 @pytest.fixture(scope="function")
 def app(db_engine: AsyncEngine):
-    """Return the FastAPI application with get_db overridden to the test DB."""
+    """Return the FastAPI application with get_db overridden to the test DB.
+
+    .. note::
+       The ``db_engine`` parameter is what triggers table creation —
+       removing it from the signature would silently break every test
+       that hits the DB, because the in-memory SQLite schema would
+       never be created. Keep it even if it appears "unused".
+    """
     from fastapi import FastAPI  # noqa: I001
     from api.routes import app as real_app  # noqa: I001
+
+    # Force import of every module that registers a model with Base, so
+    # that Base.metadata.create_all() in db_engine actually creates the
+    # users / projects / study_results tables (and any future tables).
+    import api.auth  # noqa: F401 — registers User model
+    import api.projects  # noqa: F401 — registers Project, StudyResult models
+    import api.mfa  # noqa: F401 — registers MFACredential model if present
 
     async def _override_get_db() -> AsyncGenerator[AsyncSession, None]:
         async with _TestSessionLocal() as session:
