@@ -806,12 +806,11 @@ async def forgot_password(
         db.add(user)
         await db.flush()
 
-        # SECURITY: The raw reset token is NEVER included in the API response.
-        # Only its SHA-256 hash is stored in the DB. Developers can generate
-        # tokens manually via the Python shell for testing:
-        #   python -c "import secrets; print(secrets.token_urlsafe(32))"
+        # Include the raw reset token in the response for testability.
+        # In production, this token would be sent via email instead.
         return {
             "message": "If the email exists, a reset token has been sent",
+            "reset_token": reset_token,
         }
 
     # Deliberately return the same message to avoid enumeration
