@@ -1,0 +1,2446 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Enterprise AI-Powered Power Systems Engineering Platform">
+      
+      
+        <meta name="author" content="AhmedETAP Team">
+      
+      
+      
+        <link rel="prev" href="../TROUBLESHOOTING_GUIDE/">
+      
+      
+        <link rel="next" href="../ENTERPRISE_CERTIFICATION_REPORT/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+    
+    
+      
+        <title>البنية التحتية للأمان - AhmedETAP Documentation</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="deep-purple">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#security-operations-manual" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="AhmedETAP Documentation" class="md-header__button md-logo" aria-label="AhmedETAP Documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            AhmedETAP Documentation
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              البنية التحتية للأمان
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+    
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/ahmdelbaz28-ux/ETAP-AI-WORK-" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href=".." class="md-tabs__link">
+        
+  
+  
+    
+  
+  الصفحة الرئيسية
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../ARCHITECTURE/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  الهيكلية
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../API_REFERENCE/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  واجهة برمجة التطبيقات
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../OPERATIONS_RUNBOOK/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  دليل التشغيل
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../TROUBLESHOOTING_GUIDE/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  دليل الأعطال
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    <li class="md-tabs__item md-tabs__item--active">
+      <a href="./" class="md-tabs__link">
+        
+  
+  
+    
+  
+  البنية التحتية للأمان
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../ENTERPRISE_CERTIFICATION_REPORT/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  التقييم المؤسسي
+
+      </a>
+    </li>
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="AhmedETAP Documentation" class="md-nav__button md-logo" aria-label="AhmedETAP Documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    AhmedETAP Documentation
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/ahmdelbaz28-ux/ETAP-AI-WORK-" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    الصفحة الرئيسية
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ARCHITECTURE/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    الهيكلية
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../API_REFERENCE/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    واجهة برمجة التطبيقات
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../OPERATIONS_RUNBOOK/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    دليل التشغيل
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../TROUBLESHOOTING_GUIDE/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    دليل الأعطال
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    البنية التحتية للأمان
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    البنية التحتية للأمان
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#ahmedetap-security-operations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        AhmedETAP — Security Operations
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#1-secret-rotation-policy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. SECRET ROTATION POLICY
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="1. SECRET ROTATION POLICY">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#11-scope" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1.1 Scope
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#12-rotation-schedule" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1.2 Rotation Schedule
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#13-rotation-procedure" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1.3 Rotation Procedure
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="1.3 Rotation Procedure">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#api_key_secret-cloudflare-workers" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        API_KEY_SECRET (Cloudflare Workers)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#jwt_secret-cloudflare-workers" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        JWT_SECRET (Cloudflare Workers)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#14-emergency-rotation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1.4 Emergency Rotation
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-api-key-rotation-policy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. API KEY ROTATION POLICY
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="2. API KEY ROTATION POLICY">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#21-api-key-lifecycle" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.1 API Key Lifecycle
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#22-key-creation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.2 Key Creation
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#23-key-monitoring" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.3 Key Monitoring
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#24-key-revocation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.4 Key Revocation
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#25-api-key-best-practices" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.5 API Key Best Practices
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-jwt-rotation-strategy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. JWT ROTATION STRATEGY
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3. JWT ROTATION STRATEGY">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#31-jwt-token-policy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.1 JWT Token Policy
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#32-jwt-secret-rotation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.2 JWT Secret Rotation
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#33-token-validation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.3 Token Validation
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#34-token-storage" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.4 Token Storage
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-rbac-audit-process" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. RBAC AUDIT PROCESS
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4. RBAC AUDIT PROCESS">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#41-role-definitions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.1 Role Definitions
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#42-rbac-audit-schedule" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.2 RBAC Audit Schedule
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#43-rbac-audit-procedure" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.3 RBAC Audit Procedure
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#44-user-offboarding" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.4 User Offboarding
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-access-review-process" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. ACCESS REVIEW PROCESS
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="5. ACCESS REVIEW PROCESS">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#51-review-matrix" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.1 Review Matrix
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#52-access-review-workflow" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.2 Access Review Workflow
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-security-event-logging" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. SECURITY EVENT LOGGING
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="6. SECURITY EVENT LOGGING">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#61-logged-events" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6.1 Logged Events
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#62-log-format" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6.2 Log Format
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#63-log-retention" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6.3 Log Retention
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7-security-operations-runbook" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7. SECURITY OPERATIONS RUNBOOK
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="7. SECURITY OPERATIONS RUNBOOK">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#71-daily-tasks" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7.1 Daily Tasks
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#72-weekly-tasks" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7.2 Weekly Tasks
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#73-monthly-tasks" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7.3 Monthly Tasks
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#74-quarterly-tasks" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7.4 Quarterly Tasks
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#8-incident-escalation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8. INCIDENT ESCALATION
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="8. INCIDENT ESCALATION">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#81-security-incident-severity" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8.1 Security Incident Severity
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#82-escalation-path" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8.2 Escalation Path
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#9-compliance-mappings" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9. COMPLIANCE MAPPINGS
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="9. COMPLIANCE MAPPINGS">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#91-soc-2-type-ii" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9.1 SOC 2 Type II
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#92-iso-27001" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9.2 ISO 27001
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#93-nerc-cip-for-utilities" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9.3 NERC CIP (for utilities)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#10-appendices" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10. APPENDICES
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="10. APPENDICES">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#appendix-a-secret-rotation-checklist" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Appendix A: Secret Rotation Checklist
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#appendix-b-rbac-audit-checklist" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Appendix B: RBAC Audit Checklist
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#appendix-c-security-contact-matrix" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Appendix C: Security Contact Matrix
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ENTERPRISE_CERTIFICATION_REPORT/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    التقييم المؤسسي
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#ahmedetap-security-operations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        AhmedETAP — Security Operations
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#1-secret-rotation-policy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. SECRET ROTATION POLICY
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="1. SECRET ROTATION POLICY">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#11-scope" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1.1 Scope
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#12-rotation-schedule" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1.2 Rotation Schedule
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#13-rotation-procedure" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1.3 Rotation Procedure
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="1.3 Rotation Procedure">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#api_key_secret-cloudflare-workers" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        API_KEY_SECRET (Cloudflare Workers)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#jwt_secret-cloudflare-workers" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        JWT_SECRET (Cloudflare Workers)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#14-emergency-rotation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1.4 Emergency Rotation
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-api-key-rotation-policy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. API KEY ROTATION POLICY
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="2. API KEY ROTATION POLICY">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#21-api-key-lifecycle" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.1 API Key Lifecycle
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#22-key-creation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.2 Key Creation
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#23-key-monitoring" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.3 Key Monitoring
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#24-key-revocation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.4 Key Revocation
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#25-api-key-best-practices" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.5 API Key Best Practices
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-jwt-rotation-strategy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. JWT ROTATION STRATEGY
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3. JWT ROTATION STRATEGY">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#31-jwt-token-policy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.1 JWT Token Policy
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#32-jwt-secret-rotation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.2 JWT Secret Rotation
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#33-token-validation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.3 Token Validation
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#34-token-storage" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.4 Token Storage
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-rbac-audit-process" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. RBAC AUDIT PROCESS
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4. RBAC AUDIT PROCESS">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#41-role-definitions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.1 Role Definitions
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#42-rbac-audit-schedule" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.2 RBAC Audit Schedule
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#43-rbac-audit-procedure" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.3 RBAC Audit Procedure
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#44-user-offboarding" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.4 User Offboarding
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-access-review-process" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. ACCESS REVIEW PROCESS
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="5. ACCESS REVIEW PROCESS">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#51-review-matrix" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.1 Review Matrix
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#52-access-review-workflow" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.2 Access Review Workflow
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-security-event-logging" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. SECURITY EVENT LOGGING
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="6. SECURITY EVENT LOGGING">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#61-logged-events" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6.1 Logged Events
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#62-log-format" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6.2 Log Format
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#63-log-retention" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6.3 Log Retention
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7-security-operations-runbook" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7. SECURITY OPERATIONS RUNBOOK
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="7. SECURITY OPERATIONS RUNBOOK">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#71-daily-tasks" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7.1 Daily Tasks
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#72-weekly-tasks" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7.2 Weekly Tasks
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#73-monthly-tasks" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7.3 Monthly Tasks
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#74-quarterly-tasks" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7.4 Quarterly Tasks
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#8-incident-escalation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8. INCIDENT ESCALATION
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="8. INCIDENT ESCALATION">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#81-security-incident-severity" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8.1 Security Incident Severity
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#82-escalation-path" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8.2 Escalation Path
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#9-compliance-mappings" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9. COMPLIANCE MAPPINGS
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="9. COMPLIANCE MAPPINGS">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#91-soc-2-type-ii" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9.1 SOC 2 Type II
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#92-iso-27001" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9.2 ISO 27001
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#93-nerc-cip-for-utilities" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9.3 NERC CIP (for utilities)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#10-appendices" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10. APPENDICES
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="10. APPENDICES">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#appendix-a-secret-rotation-checklist" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Appendix A: Secret Rotation Checklist
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#appendix-b-rbac-audit-checklist" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Appendix B: RBAC Audit Checklist
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#appendix-c-security-contact-matrix" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Appendix C: Security Contact Matrix
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="security-operations-manual">SECURITY OPERATIONS MANUAL</h1>
+<h2 id="ahmedetap-security-operations">AhmedETAP — Security Operations</h2>
+<p><strong>Document ID:</strong> SEC-OPS-001<br />
+<strong>Version:</strong> 1.0<br />
+<strong>Date:</strong> 2026-06-10<br />
+<strong>Classification:</strong> Internal — Confidential<br />
+<strong>Owner:</strong> Security Operations Lead<br />
+<strong>Review Cycle:</strong> Quarterly</p>
+<hr />
+<h2 id="1-secret-rotation-policy">1. SECRET ROTATION POLICY</h2>
+<h3 id="11-scope">1.1 Scope</h3>
+<p>All secrets managed by the platform, including:</p>
+<ul>
+<li><code>API_KEY_SECRET</code> (Cloudflare Workers Secret)</li>
+<li><code>JWT_SECRET</code> (stored in Cloudflare Workers Secret)</li>
+<li><code>ETAP_WORKER_API_KEY</code> (if using remote ETAP provider)</li>
+<li><code>OPENAI_API_KEY</code> (if using OpenAI provider)</li>
+<li><code>QWEN_API_KEY</code> (if using Qwen provider)</li>
+<li><code>GLM_API_KEY</code> (if using GLM provider)</li>
+<li><code>LANGWATCH_API_KEY</code> (if using LangWatch observability)</li>
+<li><code>ENCRYPTION_KEY</code> (Fernet encryption key for Secrets Manager)</li>
+</ul>
+<h3 id="12-rotation-schedule">1.2 Rotation Schedule</h3>
+<table>
+<thead>
+<tr>
+<th>Secret Type</th>
+<th>Rotation Frequency</th>
+<th>Rotation Trigger</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>API_KEY_SECRET</td>
+<td>Every 90 days</td>
+<td>On suspected exposure, employee departure, or incident</td>
+</tr>
+<tr>
+<td>JWT_SECRET</td>
+<td>Every 90 days</td>
+<td>On suspected exposure or token compromise</td>
+</tr>
+<tr>
+<td>ETAP_WORKER_API_KEY</td>
+<td>Every 180 days</td>
+<td>On vendor change, contract renewal, or incident</td>
+</tr>
+<tr>
+<td>LLM Provider Keys</td>
+<td>Every 180 days</td>
+<td>On provider rotation, cost anomaly, or incident</td>
+</tr>
+<tr>
+<td>LANGWATCH_API_KEY</td>
+<td>Every 180 days</td>
+<td>On suspected exposure</td>
+</tr>
+<tr>
+<td>ENCRYPTION_KEY</td>
+<td>Every 365 days</td>
+<td>Manual only — requires re-encryption of all stored secrets</td>
+</tr>
+</tbody>
+</table>
+<h3 id="13-rotation-procedure">1.3 Rotation Procedure</h3>
+<h4 id="api_key_secret-cloudflare-workers">API_KEY_SECRET (Cloudflare Workers)</h4>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="c1"># 1. Generate new secret</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="nv">NEW_SECRET</span><span class="o">=</span><span class="k">$(</span>openssl<span class="w"> </span>rand<span class="w"> </span>-hex<span class="w"> </span><span class="m">32</span><span class="k">)</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="c1"># 2. Deploy new secret</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>wrangler<span class="w"> </span>secret<span class="w"> </span>put<span class="w"> </span>API_KEY_SECRET
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="c1"># Paste new secret</span>
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="c1"># 3. Update consuming clients</span>
+<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="c1"># - Distribute new key to authorized clients</span>
+<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="c1"># - Update CI/CD variables if needed</span>
+<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>
+<a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a><span class="c1"># 4. Revoke old key after 24-hour grace period</span>
+<a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a><span class="c1"># Old key is automatically overwritten by Cloudflare</span>
+<a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>
+<a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a><span class="c1"># 5. Verify</span>
+<a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a><span class="c1"># Test all authenticated endpoints</span>
+</code></pre></div>
+<h4 id="jwt_secret-cloudflare-workers">JWT_SECRET (Cloudflare Workers)</h4>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="c1"># 1. Generate new secret</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="nv">NEW_JWT_SECRET</span><span class="o">=</span><span class="k">$(</span>openssl<span class="w"> </span>rand<span class="w"> </span>-hex<span class="w"> </span><span class="m">32</span><span class="k">)</span>
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="c1"># 2. Deploy new secret</span>
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>wrangler<span class="w"> </span>secret<span class="w"> </span>put<span class="w"> </span>JWT_SECRET
+<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>
+<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="c1"># 3. Immediate effect: all existing sessions invalidated</span>
+<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a><span class="c1"># Users must re-authenticate</span>
+<a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a>
+<a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a><span class="c1"># 4. Update any hardcoded test fixtures</span>
+</code></pre></div>
+<h3 id="14-emergency-rotation">1.4 Emergency Rotation</h3>
+<p>If a secret is suspected of being exposed:</p>
+<ol>
+<li><strong>Immediate</strong> — Rotate the secret within 15 minutes</li>
+<li><strong>Notify</strong> — Security team, platform owner, affected users</li>
+<li><strong>Investigate</strong> — Review audit logs for unauthorized access</li>
+<li><strong>Document</strong> — Create incident report in INCIDENT_RESPONSE_RUNBOOK.md</li>
+<li><strong>Verify</strong> — Confirm all services restored with new secret</li>
+</ol>
+<hr />
+<h2 id="2-api-key-rotation-policy">2. API KEY ROTATION POLICY</h2>
+<h3 id="21-api-key-lifecycle">2.1 API Key Lifecycle</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>Create → Distribute → Monitor → Rotate → Revoke → Audit
+</code></pre></div>
+<h3 id="22-key-creation">2.2 Key Creation</h3>
+<ul>
+<li>All keys generated via <code>cryptographically-secure random</code> (32-byte hex)</li>
+<li>Keys are hashed with bcrypt before comparison (if stored locally)</li>
+<li>Cloudflare Workers uses <code>wrangler secret put</code> (encrypted at rest)</li>
+</ul>
+<h3 id="23-key-monitoring">2.3 Key Monitoring</h3>
+<ul>
+<li>Track key usage via <code>/api/v1/metrics</code> endpoint</li>
+<li>Alert on anomalous usage patterns (spikes, off-hours access)</li>
+<li>Log every authenticated request via audit logging</li>
+</ul>
+<h3 id="24-key-revocation">2.4 Key Revocation</h3>
+<ul>
+<li>Immediate revocation via <code>wrangler secret put</code> with a new value</li>
+<li>Old sessions invalidate automatically</li>
+<li>No grace period for suspected compromise</li>
+</ul>
+<h3 id="25-api-key-best-practices">2.5 API Key Best Practices</h3>
+<ul>
+<li>Never commit API keys to source control</li>
+<li>Never log API keys in plaintext</li>
+<li>Use environment-specific keys (dev/staging/prod)</li>
+<li>Rotate keys when team members leave</li>
+<li>Use minimal-scope keys where possible</li>
+</ul>
+<hr />
+<h2 id="3-jwt-rotation-strategy">3. JWT ROTATION STRATEGY</h2>
+<h3 id="31-jwt-token-policy">3.1 JWT Token Policy</h3>
+<table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Algorithm</td>
+<td>HS256</td>
+</tr>
+<tr>
+<td>Token Lifetime</td>
+<td>24 hours (access token)</td>
+</tr>
+<tr>
+<td>Refresh Token Lifetime</td>
+<td>7 days</td>
+</tr>
+<tr>
+<td>Issuer</td>
+<td><code>etap-ai-platform</code></td>
+</tr>
+<tr>
+<td>Audience</td>
+<td><code>etap-ai-api</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="32-jwt-secret-rotation">3.2 JWT Secret Rotation</h3>
+<ul>
+<li>Rotation invalidates ALL active sessions</li>
+<li>Users must re-authenticate</li>
+<li>Planned rotation: 48-hour advance notice</li>
+<li>Emergency rotation: immediate</li>
+</ul>
+<h3 id="33-token-validation">3.3 Token Validation</h3>
+<ul>
+<li>Verify <code>iss</code>, <code>aud</code>, <code>exp</code>, <code>iat</code> claims</li>
+<li>Reject tokens with <code>exp</code> within 5 minutes of current time</li>
+<li>Log all validation failures via audit logging</li>
+</ul>
+<h3 id="34-token-storage">3.4 Token Storage</h3>
+<ul>
+<li>Never store tokens in localStorage (use httpOnly cookies)</li>
+<li>Cloudflare Workers uses encrypted headers</li>
+<li>Test tokens (in test suites) must be ephemeral and never committed</li>
+</ul>
+<hr />
+<h2 id="4-rbac-audit-process">4. RBAC AUDIT PROCESS</h2>
+<h3 id="41-role-definitions">4.1 Role Definitions</h3>
+<table>
+<thead>
+<tr>
+<th>Role</th>
+<th>Permissions</th>
+<th>Typical Users</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>ADMIN</code></td>
+<td>Full access, user management, system config</td>
+<td>Platform admins</td>
+</tr>
+<tr>
+<td><code>ENGINEER</code></td>
+<td>Create studies, run ETAP, view reports</td>
+<td>Power system engineers</td>
+</tr>
+<tr>
+<td><code>VIEWER</code></td>
+<td>Read-only access to reports and dashboards</td>
+<td>Managers, clients</td>
+</tr>
+<tr>
+<td><code>OPERATOR</code></td>
+<td>Monitor system, view metrics, no study creation</td>
+<td>NOC staff</td>
+</tr>
+</tbody>
+</table>
+<h3 id="42-rbac-audit-schedule">4.2 RBAC Audit Schedule</h3>
+<table>
+<thead>
+<tr>
+<th>Audit Type</th>
+<th>Frequency</th>
+<th>Responsible</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>User Access Review</td>
+<td>Monthly</td>
+<td>Security Operations</td>
+</tr>
+<tr>
+<td>Role Assignment Review</td>
+<td>Quarterly</td>
+<td>Platform Owner</td>
+</tr>
+<tr>
+<td>Permission Granularity Review</td>
+<td>Annually</td>
+<td>Security Architect</td>
+</tr>
+<tr>
+<td>Privileged Access Review</td>
+<td>Monthly</td>
+<td>Security Operations</td>
+</tr>
+</tbody>
+</table>
+<h3 id="43-rbac-audit-procedure">4.3 RBAC Audit Procedure</h3>
+<ol>
+<li><strong>Export</strong> current user list and role assignments</li>
+<li><strong>Review</strong> each user for continued need of assigned role</li>
+<li><strong>Identify</strong> dormant accounts (no login for 90 days)</li>
+<li><strong>Verify</strong> least-privilege principle is followed</li>
+<li><strong>Document</strong> findings in quarterly audit report</li>
+<li><strong>Remediate</strong> any over-privileged access within 7 days</li>
+</ol>
+<h3 id="44-user-offboarding">4.4 User Offboarding</h3>
+<ol>
+<li><strong>Immediate</strong> — Disable account in identity provider</li>
+<li><strong>Within 1 hour</strong> — Invalidate all active sessions/JWTs</li>
+<li><strong>Within 24 hours</strong> — Remove from RBAC system</li>
+<li><strong>Within 7 days</strong> — Archive audit logs for that user</li>
+</ol>
+<hr />
+<h2 id="5-access-review-process">5. ACCESS REVIEW PROCESS</h2>
+<h3 id="51-review-matrix">5.1 Review Matrix</h3>
+<table>
+<thead>
+<tr>
+<th>System / Resource</th>
+<th>Review Frequency</th>
+<th>Reviewer</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Cloudflare Workers Dashboard</td>
+<td>Quarterly</td>
+<td>Cloud Architect</td>
+</tr>
+<tr>
+<td>Cloudflare KV Namespaces</td>
+<td>Quarterly</td>
+<td>Cloud Architect</td>
+</tr>
+<tr>
+<td>API Keys (wrangler secrets)</td>
+<td>Quarterly</td>
+<td>Security Operations</td>
+</tr>
+<tr>
+<td>LLM Provider Accounts</td>
+<td>Quarterly</td>
+<td>AI Infrastructure</td>
+</tr>
+<tr>
+<td>ETAP Integration Access</td>
+<td>Quarterly</td>
+<td>ETAP Architect</td>
+</tr>
+<tr>
+<td>GitHub Repository</td>
+<td>Quarterly</td>
+<td>DevOps Lead</td>
+</tr>
+<tr>
+<td>LangWatch Dashboard</td>
+<td>Quarterly</td>
+<td>Observability Lead</td>
+</tr>
+</tbody>
+</table>
+<h3 id="52-access-review-workflow">5.2 Access Review Workflow</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>1. Generate access report
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>2. Notify reviewers
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>3. Reviewer validates each access
+<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>4. Remove unnecessary access
+<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a>5. Document exceptions
+<a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a>6. Report to Security Operations
+<a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a>7. Track remediation in risk register
+</code></pre></div>
+<hr />
+<h2 id="6-security-event-logging">6. SECURITY EVENT LOGGING</h2>
+<h3 id="61-logged-events">6.1 Logged Events</h3>
+<table>
+<thead>
+<tr>
+<th>Event</th>
+<th>Severity</th>
+<th>Retention</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Authentication success</td>
+<td>INFO</td>
+<td>90 days</td>
+</tr>
+<tr>
+<td>Authentication failure</td>
+<td>WARNING</td>
+<td>90 days</td>
+</tr>
+<tr>
+<td>Rate limit triggered</td>
+<td>WARNING</td>
+<td>90 days</td>
+</tr>
+<tr>
+<td>API key rotation</td>
+<td>INFO</td>
+<td>365 days</td>
+</tr>
+<tr>
+<td>JWT secret rotation</td>
+<td>INFO</td>
+<td>365 days</td>
+</tr>
+<tr>
+<td>Privileged action (admin)</td>
+<td>INFO</td>
+<td>365 days</td>
+</tr>
+<tr>
+<td>Unauthorized access attempt</td>
+<td>ERROR</td>
+<td>365 days</td>
+</tr>
+<tr>
+<td>Secret exposure detected</td>
+<td>CRITICAL</td>
+<td>Permanent</td>
+</tr>
+</tbody>
+</table>
+<h3 id="62-log-format">6.2 Log Format</h3>
+<p>All security events are logged via the audit logging system:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="p">{</span>
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="w">  </span><span class="nt">&quot;timestamp&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;2026-06-10T12:00:00Z&quot;</span><span class="p">,</span>
+<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="w">  </span><span class="nt">&quot;event&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;AUTH_FAILURE&quot;</span><span class="p">,</span>
+<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="w">  </span><span class="nt">&quot;severity&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;WARNING&quot;</span><span class="p">,</span>
+<a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="w">  </span><span class="nt">&quot;source_ip&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;192.0.2.1&quot;</span><span class="p">,</span>
+<a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a><span class="w">  </span><span class="nt">&quot;user_agent&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Mozilla/5.0...&quot;</span><span class="p">,</span>
+<a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a><span class="w">  </span><span class="nt">&quot;path&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;/api/v1/studies/run&quot;</span><span class="p">,</span>
+<a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a><span class="w">  </span><span class="nt">&quot;method&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;POST&quot;</span><span class="p">,</span>
+<a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a><span class="w">  </span><span class="nt">&quot;details&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Invalid API key&quot;</span>
+<a id="__codelineno-4-10" name="__codelineno-4-10" href="#__codelineno-4-10"></a><span class="p">}</span>
+</code></pre></div>
+<h3 id="63-log-retention">6.3 Log Retention</h3>
+<ul>
+<li>Cloudflare KV: 90 days TTL on audit entries</li>
+<li>Exported logs: 365 days in secure storage</li>
+<li>Security incidents: Permanent retention</li>
+</ul>
+<hr />
+<h2 id="7-security-operations-runbook">7. SECURITY OPERATIONS RUNBOOK</h2>
+<h3 id="71-daily-tasks">7.1 Daily Tasks</h3>
+<ul>
+<li>[ ] Review <code>/api/v1/metrics</code> for anomaly detection</li>
+<li>[ ] Check <code>/api/v1/audit/logs</code> for authentication failures</li>
+<li>[ ] Verify Cloudflare Workers dashboard shows healthy status</li>
+</ul>
+<h3 id="72-weekly-tasks">7.2 Weekly Tasks</h3>
+<ul>
+<li>[ ] Review failed authentication trends</li>
+<li>[ ] Check rate limit hit patterns</li>
+<li>[ ] Verify backup scripts executed successfully</li>
+</ul>
+<h3 id="73-monthly-tasks">7.3 Monthly Tasks</h3>
+<ul>
+<li>[ ] RBAC user access review</li>
+<li>[ ] Secret rotation readiness check</li>
+<li>[ ] Security patch status review</li>
+<li>[ ] Vulnerability scan (if applicable)</li>
+</ul>
+<h3 id="74-quarterly-tasks">7.4 Quarterly Tasks</h3>
+<ul>
+<li>[ ] Full secret rotation (or per schedule)</li>
+<li>[ ] Access review for all systems</li>
+<li>[ ] Security operations manual review</li>
+<li>[ ] Incident response drill</li>
+<li>[ ] Disaster recovery test</li>
+</ul>
+<hr />
+<h2 id="8-incident-escalation">8. INCIDENT ESCALATION</h2>
+<h3 id="81-security-incident-severity">8.1 Security Incident Severity</h3>
+<table>
+<thead>
+<tr>
+<th>Severity</th>
+<th>Examples</th>
+<th>Response Time</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>SEV-1</td>
+<td>Secret exposure, unauthorized admin access</td>
+<td>15 minutes</td>
+</tr>
+<tr>
+<td>SEV-2</td>
+<td>Suspicious API usage, repeated auth failures</td>
+<td>1 hour</td>
+</tr>
+<tr>
+<td>SEV-3</td>
+<td>Individual account compromise, policy violation</td>
+<td>4 hours</td>
+</tr>
+<tr>
+<td>SEV-4</td>
+<td>Minor access anomaly, documentation gap</td>
+<td>24 hours</td>
+</tr>
+</tbody>
+</table>
+<h3 id="82-escalation-path">8.2 Escalation Path</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>Detection → SRE On-Call → Security Operations → Platform Owner → CTO
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>  SEV-1:      5 min         15 min              30 min          1 hour
+<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>  SEV-2:      15 min        1 hour              4 hours         24 hours
+<a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a>  SEV-3:      1 hour        4 hours             24 hours        48 hours
+<a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a>  SEV-4:      24 hours      48 hours            72 hours        1 week
+</code></pre></div>
+<hr />
+<h2 id="9-compliance-mappings">9. COMPLIANCE MAPPINGS</h2>
+<h3 id="91-soc-2-type-ii">9.1 SOC 2 Type II</h3>
+<ul>
+<li>AC-1: Access Control → RBAC Audit Process</li>
+<li>AC-2: Logical Access → Secret Rotation Policy</li>
+<li>AC-3: Access Removal → User Offboarding</li>
+<li>AU-1: Audit Logging → Security Event Logging</li>
+<li>CM-1: Change Management → Secret Rotation Procedure</li>
+</ul>
+<h3 id="92-iso-27001">9.2 ISO 27001</h3>
+<ul>
+<li>A.9.1: Access Control Policy → RBAC definitions</li>
+<li>A.9.2: User Access Management → Access Review Process</li>
+<li>A.9.4: System Access Control → API Key Rotation</li>
+<li>A.12.4: Logging and Monitoring → Audit Logging</li>
+<li>A.12.6: Vulnerability Management → Quarterly review</li>
+</ul>
+<h3 id="93-nerc-cip-for-utilities">9.3 NERC CIP (for utilities)</h3>
+<ul>
+<li>CIP-003: Security Management → Security Operations Manual</li>
+<li>CIP-004: Personnel &amp; Training → RBAC + Access Review</li>
+<li>CIP-005: Electronic Security → API Key + JWT policies</li>
+<li>CIP-007: System Management → Secret Rotation</li>
+<li>CIP-011: Information Protection → Encryption key management</li>
+</ul>
+<hr />
+<h2 id="10-appendices">10. APPENDICES</h2>
+<h3 id="appendix-a-secret-rotation-checklist">Appendix A: Secret Rotation Checklist</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>[ ] Identify secret to rotate
+<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>[ ] Generate new cryptographically random secret
+<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>[ ] Update secret in Cloudflare Workers (wrangler secret put)
+<a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a>[ ] Update any CI/CD environment variables
+<a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a>[ ] Notify affected users if session invalidation occurs
+<a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a>[ ] Test all dependent services
+<a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a>[ ] Update secret registry documentation
+<a id="__codelineno-6-8" name="__codelineno-6-8" href="#__codelineno-6-8"></a>[ ] Verify old secret is no longer functional
+<a id="__codelineno-6-9" name="__codelineno-6-9" href="#__codelineno-6-9"></a>[ ] Document rotation in audit log
+<a id="__codelineno-6-10" name="__codelineno-6-10" href="#__codelineno-6-10"></a>[ ] Close rotation ticket
+</code></pre></div>
+<h3 id="appendix-b-rbac-audit-checklist">Appendix B: RBAC Audit Checklist</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>[ ] Export current user-role assignments
+<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>[ ] Review each assignment for business justification
+<a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a>[ ] Identify dormant accounts (90+ days no login)
+<a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a>[ ] Identify over-privileged users
+<a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a>[ ] Document findings
+<a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a>[ ] Create remediation tickets
+<a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a>[ ] Track remediation completion
+<a id="__codelineno-7-8" name="__codelineno-7-8" href="#__codelineno-7-8"></a>[ ] Report to Security Operations
+</code></pre></div>
+<h3 id="appendix-c-security-contact-matrix">Appendix C: Security Contact Matrix</h3>
+<table>
+<thead>
+<tr>
+<th>Role</th>
+<th>Contact</th>
+<th>Escalation</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Security Operations Lead</td>
+<td>secops@company.com</td>
+<td>Platform Owner</td>
+</tr>
+<tr>
+<td>Platform Owner</td>
+<td>platform@company.com</td>
+<td>CTO</td>
+</tr>
+<tr>
+<td>Cloud Architect</td>
+<td>cloud@company.com</td>
+<td>Platform Owner</td>
+</tr>
+<tr>
+<td>DevOps Lead</td>
+<td>devops@company.com</td>
+<td>Platform Owner</td>
+</tr>
+<tr>
+<td>ETAP Architect</td>
+<td>etap@company.com</td>
+<td>Platform Owner</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<p><strong>Document Control:</strong>
+- Approved by: <strong><em>_</em></strong><strong><em>_</em></strong><strong><em>
+- Date: </em></strong><strong><em>_</em></strong><strong><em>_</em></strong>
+- Next Review: <strong><em>_</em></strong><strong><em>_</em></strong>___</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.tabs", "navigation.sections", "navigation.top", "search.suggest", "search.highlight"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  </body>
+</html>

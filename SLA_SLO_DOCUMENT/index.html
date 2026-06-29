@@ -1,0 +1,1469 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Enterprise AI-Powered Power Systems Engineering Platform">
+      
+      
+        <meta name="author" content="AhmedETAP Team">
+      
+      
+      
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+    
+    
+      
+        <title>AhmedETAP — SLA / SLO Definition Document - AhmedETAP Documentation</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="deep-purple">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#ahmedetap-sla-slo-definition-document" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="AhmedETAP Documentation" class="md-header__button md-logo" aria-label="AhmedETAP Documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            AhmedETAP Documentation
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              AhmedETAP — SLA / SLO Definition Document
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+    
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/ahmdelbaz28-ux/ETAP-AI-WORK-" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href=".." class="md-tabs__link">
+        
+  
+  
+    
+  
+  الصفحة الرئيسية
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../ARCHITECTURE/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  الهيكلية
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../API_REFERENCE/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  واجهة برمجة التطبيقات
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../OPERATIONS_RUNBOOK/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  دليل التشغيل
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../TROUBLESHOOTING_GUIDE/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  دليل الأعطال
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../SECURITY_OPERATIONS_MANUAL/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  البنية التحتية للأمان
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../ENTERPRISE_CERTIFICATION_REPORT/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  التقييم المؤسسي
+
+      </a>
+    </li>
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="AhmedETAP Documentation" class="md-nav__button md-logo" aria-label="AhmedETAP Documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    AhmedETAP Documentation
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/ahmdelbaz28-ux/ETAP-AI-WORK-" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    الصفحة الرئيسية
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ARCHITECTURE/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    الهيكلية
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../API_REFERENCE/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    واجهة برمجة التطبيقات
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../OPERATIONS_RUNBOOK/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    دليل التشغيل
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../TROUBLESHOOTING_GUIDE/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    دليل الأعطال
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../SECURITY_OPERATIONS_MANUAL/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    البنية التحتية للأمان
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ENTERPRISE_CERTIFICATION_REPORT/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    التقييم المؤسسي
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1-service-level-objective-slo-summary" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Service Level Objective (SLO) Summary
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-service-level-agreement-sla-customer-facing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Service Level Agreement (SLA) — Customer-Facing
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="2. Service Level Agreement (SLA) — Customer-Facing">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#21-availability-sla" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.1 Availability SLA
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#22-response-time-sla" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.2 Response Time SLA
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#23-support-sla" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.3 Support SLA
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-slo-details-measurement" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. SLO Details &amp; Measurement
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3. SLO Details &amp; Measurement">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#31-api-availability-999" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.1 API Availability — 99.9%
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#32-api-latency-p95-2s-p99-5s" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.2 API Latency — P95 &lt; 2s, P99 &lt; 5s
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#33-agent-chat-success-rate-995" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.3 Agent Chat Success Rate — 99.5%
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#34-study-execution-success-rate-990" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.4 Study Execution Success Rate — 99.0%
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#35-etap-engine-availability-995" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.5 ETAP Engine Availability — 99.5%
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#36-provider-failover-success-999" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.6 Provider Failover Success — 99.9%
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#37-error-rate-10" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.7 Error Rate — &lt; 1.0%
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-error-budgets" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Error Budgets
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4. Error Budgets">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#41-availability-error-budget" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.1 Availability Error Budget
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#42-error-budget-policy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.2 Error Budget Policy
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-sli-service-level-indicator-dashboard" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. SLI (Service Level Indicator) Dashboard
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-sla-enforcement" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. SLA Enforcement
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="6. SLA Enforcement">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#61-credit-calculation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6.1 Credit Calculation
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#62-credit-request-process" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6.2 Credit Request Process
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7-slo-review-schedule" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7. SLO Review Schedule
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#8-current-slo-performance" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8. Current SLO Performance
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="ahmedetap-sla-slo-definition-document">AhmedETAP — SLA / SLO Definition Document</h1>
+<p><strong>Version:</strong> 1.0.0<br />
+<strong>Date:</strong> 2026-06-10<br />
+<strong>Classification:</strong> INTERNAL — CUSTOMER-FACING<br />
+<strong>Owner:</strong> Product &amp; Site Reliability Engineering<br />
+<strong>Status:</strong> ACTIVE</p>
+<hr />
+<h2 id="1-service-level-objective-slo-summary">1. Service Level Objective (SLO) Summary</h2>
+<table>
+<thead>
+<tr>
+<th>SLO</th>
+<th>Target</th>
+<th>Measurement Window</th>
+<th>Measurement Method</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>API Availability</strong></td>
+<td>99.9%</td>
+<td>30-day rolling</td>
+<td>Cloudflare Workers Analytics + health check polling</td>
+</tr>
+<tr>
+<td><strong>API Latency (P95)</strong></td>
+<td>&lt; 2,000 ms</td>
+<td>30-day rolling</td>
+<td>Response time from edge to origin</td>
+</tr>
+<tr>
+<td><strong>API Latency (P99)</strong></td>
+<td>&lt; 5,000 ms</td>
+<td>30-day rolling</td>
+<td>Response time from edge to origin</td>
+</tr>
+<tr>
+<td><strong>Agent Chat Success Rate</strong></td>
+<td>99.5%</td>
+<td>30-day rolling</td>
+<td>Successful AI response / total chat requests</td>
+</tr>
+<tr>
+<td><strong>Study Execution Success Rate</strong></td>
+<td>99.0%</td>
+<td>30-day rolling</td>
+<td>Completed studies / total study submissions</td>
+</tr>
+<tr>
+<td><strong>ETAP Engine Availability</strong></td>
+<td>99.5%</td>
+<td>30-day rolling</td>
+<td>Docker container health checks</td>
+</tr>
+<tr>
+<td><strong>Provider Failover Success</strong></td>
+<td>99.9%</td>
+<td>30-day rolling</td>
+<td>Successful failover / total provider failures</td>
+</tr>
+<tr>
+<td><strong>Error Rate</strong></td>
+<td>&lt; 1.0%</td>
+<td>30-day rolling</td>
+<td>5xx errors / total requests</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="2-service-level-agreement-sla-customer-facing">2. Service Level Agreement (SLA) — Customer-Facing</h2>
+<h3 id="21-availability-sla">2.1 Availability SLA</h3>
+<table>
+<thead>
+<tr>
+<th>Tier</th>
+<th>Availability</th>
+<th>Monthly Downtime Budget</th>
+<th>Credit</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Standard</strong></td>
+<td>99.9%</td>
+<td>43.8 minutes</td>
+<td>10% credit for every 0.1% below target</td>
+</tr>
+<tr>
+<td><strong>Premium</strong></td>
+<td>99.95%</td>
+<td>21.9 minutes</td>
+<td>15% credit for every 0.05% below target</td>
+</tr>
+<tr>
+<td><strong>Enterprise</strong></td>
+<td>99.99%</td>
+<td>4.38 minutes</td>
+<td>25% credit for every 0.01% below target</td>
+</tr>
+</tbody>
+</table>
+<h3 id="22-response-time-sla">2.2 Response Time SLA</h3>
+<table>
+<thead>
+<tr>
+<th>Tier</th>
+<th>P95 Latency</th>
+<th>P99 Latency</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Standard</strong></td>
+<td>&lt; 3,000 ms</td>
+<td>&lt; 8,000 ms</td>
+</tr>
+<tr>
+<td><strong>Premium</strong></td>
+<td>&lt; 2,000 ms</td>
+<td>&lt; 5,000 ms</td>
+</tr>
+<tr>
+<td><strong>Enterprise</strong></td>
+<td>&lt; 1,000 ms</td>
+<td>&lt; 3,000 ms</td>
+</tr>
+</tbody>
+</table>
+<h3 id="23-support-sla">2.3 Support SLA</h3>
+<table>
+<thead>
+<tr>
+<th>Tier</th>
+<th>Response Time</th>
+<th>Resolution Target</th>
+<th>Channels</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Standard</strong></td>
+<td>4 hours (business hours)</td>
+<td>24 hours</td>
+<td>Email</td>
+</tr>
+<tr>
+<td><strong>Premium</strong></td>
+<td>1 hour (24/7)</td>
+<td>8 hours</td>
+<td>Email + Slack</td>
+</tr>
+<tr>
+<td><strong>Enterprise</strong></td>
+<td>15 minutes (24/7)</td>
+<td>4 hours</td>
+<td>Email + Slack + Phone + Dedicated TAM</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="3-slo-details-measurement">3. SLO Details &amp; Measurement</h2>
+<h3 id="31-api-availability-999">3.1 API Availability — 99.9%</h3>
+<p><strong>Definition:</strong> The percentage of time the API Gateway (<code>/health</code>, <code>/api/v1/*</code>) returns a successful HTTP response (200–299) within 5 seconds.</p>
+<p><strong>Calculation:</strong>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>Availability = (Successful Requests / Total Requests) × 100
+</code></pre></div></p>
+<p><strong>Measurement:</strong>
+- Cloudflare Workers Analytics Dashboard
+- Synthetic health check polling every 30 seconds from 3 regions
+- <code>GET /health</code> must return <code>200 OK</code> with <code>ok: true</code></p>
+<p><strong>Excluded Downtime:</strong>
+- Planned maintenance windows (announced 24 hours in advance)
+- Customer-caused issues (invalid API keys, malformed requests)
+- Force majeure events (Cloudflare platform outage, internet backbone failure)</p>
+<p><strong>Evidence from Load Tests:</strong>
+- 10–100 concurrent users: 100% availability
+- 500 concurrent users: 98.8% availability (6 errors out of 500)
+- Sustained load (500 req/10s): 100% availability</p>
+<hr />
+<h3 id="32-api-latency-p95-2s-p99-5s">3.2 API Latency — P95 &lt; 2s, P99 &lt; 5s</h3>
+<p><strong>Definition:</strong> The response time from the edge (Cloudflare) to the Worker origin.</p>
+<p><strong>Measurement:</strong>
+- Cloudflare Workers <code>cf-worker</code> timing header
+- Synthetic monitoring from 3 regions
+- Internal metrics from <code>/metrics</code> endpoint</p>
+<p><strong>Evidence from Load Tests:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Scenario</th>
+<th>P50</th>
+<th>P95</th>
+<th>P99</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Health Check (10 users)</td>
+<td>1,865 ms</td>
+<td>1,883 ms</td>
+<td>1,883 ms</td>
+</tr>
+<tr>
+<td>Health Check (50 users)</td>
+<td>909 ms</td>
+<td>1,466 ms</td>
+<td>1,468 ms</td>
+</tr>
+<tr>
+<td>Health Check (100 users)</td>
+<td>1,187 ms</td>
+<td>3,545 ms</td>
+<td>6,488 ms</td>
+</tr>
+<tr>
+<td>Health Check (500 users)</td>
+<td>14,635 ms</td>
+<td>15,973 ms</td>
+<td>16,190 ms</td>
+</tr>
+<tr>
+<td>List Agents (10 users)</td>
+<td>748 ms</td>
+<td>866 ms</td>
+<td>866 ms</td>
+</tr>
+<tr>
+<td>List Agents (50 users)</td>
+<td>895 ms</td>
+<td>1,203 ms</td>
+<td>1,507 ms</td>
+</tr>
+<tr>
+<td>Run Study (10 users)</td>
+<td>190 ms</td>
+<td>202 ms</td>
+<td>202 ms</td>
+</tr>
+<tr>
+<td>Run Study (50 users)</td>
+<td>448 ms</td>
+<td>874 ms</td>
+<td>1,171 ms</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Conclusion:</strong> At ≤100 concurrent users, P95 latency is &lt; 4s. At 500 users, latency degrades significantly. <strong>Target tier: Standard (99.9%) supports up to 100 concurrent users.</strong></p>
+<hr />
+<h3 id="33-agent-chat-success-rate-995">3.3 Agent Chat Success Rate — 99.5%</h3>
+<p><strong>Definition:</strong> The percentage of agent chat requests that return a valid AI-generated response.</p>
+<p><strong>Calculation:</strong>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>Success Rate = (Successful Chats / Total Chat Requests) × 100
+</code></pre></div></p>
+<p><strong>Success Criteria:</strong>
+- HTTP 200 response
+- Non-empty <code>text</code> field in response body
+- <code>finishReason</code> is not <code>"error"</code></p>
+<p><strong>Failure Modes:</strong>
+- All AI providers down (circuit breaker open)
+- Invalid API key (401)
+- Rate limit exceeded (429)
+- Invalid request body (400)</p>
+<p><strong>Mitigation:</strong>
+- 3-tier provider failover (OpenAI → Qwen → GLM)
+- Circuit breaker with 60-second reset
+- Retry with exponential backoff</p>
+<hr />
+<h3 id="34-study-execution-success-rate-990">3.4 Study Execution Success Rate — 99.0%</h3>
+<p><strong>Definition:</strong> The percentage of study submissions that complete successfully (status = "completed").</p>
+<p><strong>Calculation:</strong>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>Success Rate = (Completed Studies / Total Submissions) × 100
+</code></pre></div></p>
+<p><strong>States:</strong>
+- <code>queued</code> → <code>submitted</code> → <code>completed</code> = SUCCESS
+- <code>queued</code> → <code>failed</code> = FAILURE
+- <code>queued</code> (no provider) = FAILURE (after timeout)</p>
+<p><strong>Evidence:</strong>
+- Load test: 50 concurrent study submissions → 100% success rate
+- Stress test: 300 concurrent study submissions → 100% success rate</p>
+<hr />
+<h3 id="35-etap-engine-availability-995">3.5 ETAP Engine Availability — 99.5%</h3>
+<p><strong>Definition:</strong> The percentage of time the ETAP Python engine is operational and responsive.</p>
+<p><strong>Measurement:</strong>
+- Docker health check: <code>curl -f http://etap-worker:8081/health</code>
+- Kubernetes liveness probe: <code>/health</code> every 30s
+- Python engine import test: <code>python -c "from engine.engine import PowerSystemEngine; print('OK')"</code></p>
+<p><strong>RTO:</strong> 20 minutes (container restart + license verification)</p>
+<hr />
+<h3 id="36-provider-failover-success-999">3.6 Provider Failover Success — 99.9%</h3>
+<p><strong>Definition:</strong> The percentage of AI provider failures that are successfully handled by the failover chain.</p>
+<p><strong>Calculation:</strong>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>Failover Success = (Successful Failovers / Total Provider Failures) × 100
+</code></pre></div></p>
+<p><strong>Evidence:</strong>
+- Circuit breaker opens after 5 consecutive failures
+- 60-second reset window
+- 2 retries per provider with exponential backoff
+- All 3 providers must fail for total AI unavailability</p>
+<hr />
+<h3 id="37-error-rate-10">3.7 Error Rate — &lt; 1.0%</h3>
+<p><strong>Definition:</strong> The percentage of all API requests that return a 5xx status code.</p>
+<p><strong>Calculation:</strong>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>Error Rate = (5xx Responses / Total Responses) × 100
+</code></pre></div></p>
+<p><strong>Evidence:</strong>
+- Load test: 0% error rate at ≤100 users
+- Load test: 1.2% error rate at 500 users
+- Stress test: 35.7% error rate at 1000 req/s spike (extreme burst)</p>
+<p><strong>Target:</strong> &lt; 1.0% under normal operating conditions (≤100 concurrent users).</p>
+<hr />
+<h2 id="4-error-budgets">4. Error Budgets</h2>
+<h3 id="41-availability-error-budget">4.1 Availability Error Budget</h3>
+<table>
+<thead>
+<tr>
+<th>Target</th>
+<th>Monthly Budget</th>
+<th>Daily Budget</th>
+<th>Burn Rate Alert</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>99.9%</td>
+<td>43.8 minutes</td>
+<td>1.46 minutes</td>
+<td>50% consumed in 15 days</td>
+</tr>
+<tr>
+<td>99.95%</td>
+<td>21.9 minutes</td>
+<td>0.73 minutes</td>
+<td>50% consumed in 15 days</td>
+</tr>
+<tr>
+<td>99.99%</td>
+<td>4.38 minutes</td>
+<td>0.146 minutes</td>
+<td>50% consumed in 15 days</td>
+</tr>
+</tbody>
+</table>
+<h3 id="42-error-budget-policy">4.2 Error Budget Policy</h3>
+<p><strong>When error budget is exhausted:</strong>
+1. Freeze all non-critical deployments.
+2. Prioritize reliability work over feature development.
+3. Escalate to Engineering Manager.
+4. Conduct emergency post-mortem.</p>
+<p><strong>When error budget is &gt; 50% consumed:</strong>
+1. Yellow alert in #sre-alerts.
+2. Review all pending deployments.
+3. Increase monitoring frequency.</p>
+<hr />
+<h2 id="5-sli-service-level-indicator-dashboard">5. SLI (Service Level Indicator) Dashboard</h2>
+<table>
+<thead>
+<tr>
+<th>SLI</th>
+<th>Metric Source</th>
+<th>Alert Threshold</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>API Uptime</td>
+<td><code>/health</code> polling</td>
+<td>&lt; 99.9% over 5 min</td>
+</tr>
+<tr>
+<td>API Latency P95</td>
+<td>Cloudflare Workers Analytics</td>
+<td>&gt; 3,000 ms over 10 min</td>
+</tr>
+<tr>
+<td>API Latency P99</td>
+<td>Cloudflare Workers Analytics</td>
+<td>&gt; 8,000 ms over 10 min</td>
+</tr>
+<tr>
+<td>Error Rate</td>
+<td><code>/metrics</code> + Cloudflare</td>
+<td>&gt; 1% over 5 min</td>
+</tr>
+<tr>
+<td>Provider Health</td>
+<td><code>/api/v1/providers</code></td>
+<td>Any provider <code>healthy: false</code> for &gt; 5 min</td>
+</tr>
+<tr>
+<td>Task Queue Depth</td>
+<td><code>/metrics</code></td>
+<td>&gt; 800 tasks (80% of max)</td>
+</tr>
+<tr>
+<td>Rate Limit Hits</td>
+<td><code>/metrics</code></td>
+<td>&gt; 10% of requests rate-limited</td>
+</tr>
+<tr>
+<td>Auth Failures</td>
+<td><code>/metrics</code></td>
+<td>&gt; 5% of requests failing auth</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="6-sla-enforcement">6. SLA Enforcement</h2>
+<h3 id="61-credit-calculation">6.1 Credit Calculation</h3>
+<p><strong>Standard Tier (99.9%):</strong>
+- If availability &lt; 99.9% but ≥ 99.8%: 10% monthly credit
+- If availability &lt; 99.8% but ≥ 99.5%: 20% monthly credit
+- If availability &lt; 99.5%: 50% monthly credit</p>
+<p><strong>Premium Tier (99.95%):</strong>
+- If availability &lt; 99.95% but ≥ 99.9%: 15% monthly credit
+- If availability &lt; 99.9% but ≥ 99.5%: 30% monthly credit
+- If availability &lt; 99.5%: 50% monthly credit</p>
+<p><strong>Enterprise Tier (99.99%):</strong>
+- If availability &lt; 99.99% but ≥ 99.95%: 25% monthly credit
+- If availability &lt; 99.95% but ≥ 99.9%: 40% monthly credit
+- If availability &lt; 99.9%: 50% monthly credit</p>
+<h3 id="62-credit-request-process">6.2 Credit Request Process</h3>
+<ol>
+<li>Customer submits SLA credit request within 30 days of incident.</li>
+<li>SRE team validates availability metrics.</li>
+<li>Finance team processes credit within 15 business days.</li>
+<li>Credit applied to next invoice.</li>
+</ol>
+<hr />
+<h2 id="7-slo-review-schedule">7. SLO Review Schedule</h2>
+<table>
+<thead>
+<tr>
+<th>Review</th>
+<th>Frequency</th>
+<th>Owner</th>
+<th>Deliverable</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>SLO Performance</td>
+<td>Weekly</td>
+<td>SRE</td>
+<td>SLO dashboard review</td>
+</tr>
+<tr>
+<td>Error Budget</td>
+<td>Weekly</td>
+<td>SRE</td>
+<td>Error budget status</td>
+</tr>
+<tr>
+<td>SLA Compliance</td>
+<td>Monthly</td>
+<td>Product</td>
+<td>SLA compliance report</td>
+</tr>
+<tr>
+<td>SLO Review</td>
+<td>Quarterly</td>
+<td>Engineering</td>
+<td>SLO adjustments</td>
+</tr>
+<tr>
+<td>SLA Review</td>
+<td>Annually</td>
+<td>Product + Legal</td>
+<td>SLA contract updates</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="8-current-slo-performance">8. Current SLO Performance</h2>
+<p>Based on load test and stress test evidence (2026-06-10):</p>
+<table>
+<thead>
+<tr>
+<th>SLO</th>
+<th>Target</th>
+<th>Measured</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>API Availability</td>
+<td>99.9%</td>
+<td>100% (≤100 users)</td>
+<td>✅ PASS</td>
+</tr>
+<tr>
+<td>API Latency P95</td>
+<td>&lt; 2,000 ms</td>
+<td>1,883 ms (10 users)</td>
+<td>✅ PASS</td>
+</tr>
+<tr>
+<td>API Latency P99</td>
+<td>&lt; 5,000 ms</td>
+<td>6,488 ms (100 users)</td>
+<td>⚠️ MARGINAL</td>
+</tr>
+<tr>
+<td>Agent Chat Success</td>
+<td>99.5%</td>
+<td>N/A (no live providers)</td>
+<td>⏳ PENDING</td>
+</tr>
+<tr>
+<td>Study Execution Success</td>
+<td>99.0%</td>
+<td>100% (mock)</td>
+<td>✅ PASS</td>
+</tr>
+<tr>
+<td>ETAP Engine Availability</td>
+<td>99.5%</td>
+<td>N/A (dev environment)</td>
+<td>⏳ PENDING</td>
+</tr>
+<tr>
+<td>Provider Failover Success</td>
+<td>99.9%</td>
+<td>N/A (no live providers)</td>
+<td>⏳ PENDING</td>
+</tr>
+<tr>
+<td>Error Rate</td>
+<td>&lt; 1.0%</td>
+<td>0% (≤100 users)</td>
+<td>✅ PASS</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<p><em>Document Classification: INTERNAL — CUSTOMER-FACING</em><br />
+<em>Distribution: Product, SRE, Sales, Customer Success, Legal</em><br />
+<em>Review: Quarterly or after any SLA breach</em></p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.tabs", "navigation.sections", "navigation.top", "search.suggest", "search.highlight"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  </body>
+</html>

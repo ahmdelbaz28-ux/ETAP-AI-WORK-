@@ -1,0 +1,5125 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Enterprise AI-Powered Power Systems Engineering Platform">
+      
+      
+        <meta name="author" content="AhmedETAP Team">
+      
+      
+      
+        <link rel="prev" href="../API_REFERENCE/">
+      
+      
+        <link rel="next" href="../TROUBLESHOOTING_GUIDE/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+    
+    
+      
+        <title>دليل التشغيل - AhmedETAP Documentation</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="deep-purple">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#operations-runbook" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="AhmedETAP Documentation" class="md-header__button md-logo" aria-label="AhmedETAP Documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            AhmedETAP Documentation
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              دليل التشغيل
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+    
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/ahmdelbaz28-ux/ETAP-AI-WORK-" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href=".." class="md-tabs__link">
+        
+  
+  
+    
+  
+  الصفحة الرئيسية
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../ARCHITECTURE/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  الهيكلية
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../API_REFERENCE/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  واجهة برمجة التطبيقات
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    <li class="md-tabs__item md-tabs__item--active">
+      <a href="./" class="md-tabs__link">
+        
+  
+  
+    
+  
+  دليل التشغيل
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../TROUBLESHOOTING_GUIDE/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  دليل الأعطال
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../SECURITY_OPERATIONS_MANUAL/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  البنية التحتية للأمان
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../ENTERPRISE_CERTIFICATION_REPORT/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  التقييم المؤسسي
+
+      </a>
+    </li>
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="AhmedETAP Documentation" class="md-nav__button md-logo" aria-label="AhmedETAP Documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    AhmedETAP Documentation
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/ahmdelbaz28-ux/ETAP-AI-WORK-" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    الصفحة الرئيسية
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ARCHITECTURE/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    الهيكلية
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../API_REFERENCE/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    واجهة برمجة التطبيقات
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    دليل التشغيل
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    دليل التشغيل
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#table-of-contents" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Table of Contents
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#1-system-architecture-overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. System Architecture Overview
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="1. System Architecture Overview">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#architecture-diagram" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Architecture Diagram
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#component-descriptions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Component Descriptions
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#data-flow-request-lifecycle" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Data Flow (Request Lifecycle)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-standard-operating-procedures" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Standard Operating Procedures
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="2. Standard Operating Procedures">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#21-starting-the-system" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.1 Starting the System
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="2.1 Starting the System">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#prerequisites" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Prerequisites
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#option-a-docker-deployment-production" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Option A: Docker Deployment (Production)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#option-b-standalone-development" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Option B: Standalone (Development)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#option-c-windows-service" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Option C: Windows Service
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#22-stopping-the-system" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.2 Stopping the System
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="2.2 Stopping the System">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#graceful-shutdown" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Graceful Shutdown
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#emergency-shutdown-system-unresponsive" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Emergency Shutdown (System Unresponsive)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#23-restarting-services" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.3 Restarting Services
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="2.3 Restarting Services">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#restart-all-services" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Restart All Services
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#restart-individual-components" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Restart Individual Components
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#rolling-restart-zero-downtime-in-kubernetes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Rolling Restart (Zero Downtime in Kubernetes)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#24-backup-procedures" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.4 Backup Procedures
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="2.4 Backup Procedures">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#database-backup" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Database Backup
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#full-system-backup" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Full System Backup
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#25-restore-procedures" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.5 Restore Procedures
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="2.5 Restore Procedures">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#database-restore" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Database Restore
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#full-system-restore" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Full System Restore
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-monitoring" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Monitoring
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3. Monitoring">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#31-key-metrics-to-monitor" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.1 Key Metrics to Monitor
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3.1 Key Metrics to Monitor">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#system-level-metrics" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        System-Level Metrics
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#application-level-metrics" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Application-Level Metrics
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#business-level-metrics" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Business-Level Metrics
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#32-alert-thresholds" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.2 Alert Thresholds
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3.2 Alert Thresholds">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#pagerdutyon-call-alerts" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        PagerDuty/On-Call Alerts
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#33-dashboard-setup" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.3 Dashboard Setup
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3.3 Dashboard Setup">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#prometheus-metrics-endpoint" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Prometheus Metrics Endpoint
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#grafana-dashboard-recommended-panels" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Grafana Dashboard (Recommended Panels)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#34-log-file-locations-and-formats" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.4 Log File Locations and Formats
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3.4 Log File Locations and Formats">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#log-file-index" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Log File Index
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#log-format-json" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Log Format (JSON)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#log-query-examples" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Log Query Examples
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-incident-response" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Incident Response
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4. Incident Response">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#41-incident-severity-classification" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.1 Incident Severity Classification
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#42-response-times" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.2 Response Times
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#43-escalation-matrix" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.3 Escalation Matrix
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#44-incident-response-procedures" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.4 Incident Response Procedures
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4.4 Incident Response Procedures">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#441-service-outage-p1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.4.1 Service Outage (P1)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#442-security-breach-p1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.4.2 Security Breach (P1)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#443-data-corruption-p1-p2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.4.3 Data Corruption (P1-P2)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#444-performance-degradation-p2-p3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.4.4 Performance Degradation (P2-P3)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#445-etap-crash-p2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.4.5 ETAP Crash (P2)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-maintenance" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. Maintenance
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="5. Maintenance">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#51-regular-maintenance-tasks" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.1 Regular Maintenance Tasks
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#52-database-maintenance" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.2 Database Maintenance
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="5.2 Database Maintenance">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#sqlite-maintenance" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        SQLite Maintenance
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#scheduled-maintenance-script" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Scheduled Maintenance Script
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#53-log-rotation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.3 Log Rotation
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="5.3 Log Rotation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#configuration-loggingconf-or-environment-variables" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Configuration (logging.conf or environment variables)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#docker-log-rotation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Docker Log Rotation
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#manual-log-rotation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Manual Log Rotation
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#54-certificate-renewal" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.4 Certificate Renewal
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="5.4 Certificate Renewal">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#ssltls-certificate-renewal-nginx" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        SSL/TLS Certificate Renewal (Nginx)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#self-signed-certificate-renewal" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Self-Signed Certificate Renewal
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#55-dependency-updates" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.5 Dependency Updates
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="5.5 Dependency Updates">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#python-dependencies" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Python Dependencies
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#nodejs-dependencies" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Node.js Dependencies
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#docker-image-updates" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Docker Image Updates
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-disaster-recovery" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. Disaster Recovery
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="6. Disaster Recovery">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#recovery-objectives" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Recovery Objectives
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#61-recovery-procedures" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6.1 Recovery Procedures
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="6.1 Recovery Procedures">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#scenario-1-complete-infrastructure-loss" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Scenario 1: Complete Infrastructure Loss
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#scenario-2-database-only-loss" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Scenario 2: Database Only Loss
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#scenario-3-etap-server-loss" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Scenario 3: ETAP Server Loss
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#62-dr-testing-schedule" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6.2 DR Testing Schedule
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="6.2 DR Testing Schedule">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#dr-test-procedure" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        DR Test Procedure
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7-capacity-planning" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7. Capacity Planning
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="7. Capacity Planning">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#71-current-capacity-limits" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7.1 Current Capacity Limits
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#72-scaling-triggers" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7.2 Scaling Triggers
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#73-growth-projections" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7.3 Growth Projections
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="7.3 Growth Projections">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#capacity-upgrade-procedures" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Capacity Upgrade Procedures
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#8-contact-information" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8. Contact Information
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="8. Contact Information">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#81-internal-contacts" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8.1 Internal Contacts
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#82-external-contacts" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8.2 External Contacts
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#83-escalation-path" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8.3 Escalation Path
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#84-communication-channels" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8.4 Communication Channels
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#85-on-call-schedule" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8.5 On-Call Schedule
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#86-escalation-notification-templates" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8.6 Escalation Notification Templates
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="8.6 Escalation Notification Templates">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#p1-incident-notification-smspager" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        P1 Incident Notification (SMS/Pager)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#status-page-update" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Status Page Update
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#appendix-quick-command-reference" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Appendix: Quick Command Reference
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Appendix: Quick Command Reference">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#startup-shutdown" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Startup &amp; Shutdown
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#health-checks" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Health Checks
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#backup-restore" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Backup &amp; Restore
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#diagnostics" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Diagnostics
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#maintenance" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Maintenance
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#scaling" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Scaling
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../TROUBLESHOOTING_GUIDE/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    دليل الأعطال
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../SECURITY_OPERATIONS_MANUAL/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    البنية التحتية للأمان
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ENTERPRISE_CERTIFICATION_REPORT/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    التقييم المؤسسي
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#table-of-contents" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Table of Contents
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#1-system-architecture-overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. System Architecture Overview
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="1. System Architecture Overview">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#architecture-diagram" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Architecture Diagram
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#component-descriptions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Component Descriptions
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#data-flow-request-lifecycle" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Data Flow (Request Lifecycle)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-standard-operating-procedures" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Standard Operating Procedures
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="2. Standard Operating Procedures">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#21-starting-the-system" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.1 Starting the System
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="2.1 Starting the System">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#prerequisites" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Prerequisites
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#option-a-docker-deployment-production" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Option A: Docker Deployment (Production)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#option-b-standalone-development" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Option B: Standalone (Development)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#option-c-windows-service" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Option C: Windows Service
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#22-stopping-the-system" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.2 Stopping the System
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="2.2 Stopping the System">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#graceful-shutdown" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Graceful Shutdown
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#emergency-shutdown-system-unresponsive" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Emergency Shutdown (System Unresponsive)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#23-restarting-services" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.3 Restarting Services
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="2.3 Restarting Services">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#restart-all-services" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Restart All Services
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#restart-individual-components" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Restart Individual Components
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#rolling-restart-zero-downtime-in-kubernetes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Rolling Restart (Zero Downtime in Kubernetes)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#24-backup-procedures" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.4 Backup Procedures
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="2.4 Backup Procedures">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#database-backup" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Database Backup
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#full-system-backup" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Full System Backup
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#25-restore-procedures" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.5 Restore Procedures
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="2.5 Restore Procedures">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#database-restore" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Database Restore
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#full-system-restore" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Full System Restore
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-monitoring" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Monitoring
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3. Monitoring">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#31-key-metrics-to-monitor" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.1 Key Metrics to Monitor
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3.1 Key Metrics to Monitor">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#system-level-metrics" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        System-Level Metrics
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#application-level-metrics" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Application-Level Metrics
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#business-level-metrics" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Business-Level Metrics
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#32-alert-thresholds" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.2 Alert Thresholds
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3.2 Alert Thresholds">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#pagerdutyon-call-alerts" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        PagerDuty/On-Call Alerts
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#33-dashboard-setup" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.3 Dashboard Setup
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3.3 Dashboard Setup">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#prometheus-metrics-endpoint" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Prometheus Metrics Endpoint
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#grafana-dashboard-recommended-panels" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Grafana Dashboard (Recommended Panels)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#34-log-file-locations-and-formats" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.4 Log File Locations and Formats
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3.4 Log File Locations and Formats">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#log-file-index" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Log File Index
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#log-format-json" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Log Format (JSON)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#log-query-examples" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Log Query Examples
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-incident-response" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Incident Response
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4. Incident Response">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#41-incident-severity-classification" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.1 Incident Severity Classification
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#42-response-times" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.2 Response Times
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#43-escalation-matrix" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.3 Escalation Matrix
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#44-incident-response-procedures" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.4 Incident Response Procedures
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4.4 Incident Response Procedures">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#441-service-outage-p1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.4.1 Service Outage (P1)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#442-security-breach-p1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.4.2 Security Breach (P1)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#443-data-corruption-p1-p2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.4.3 Data Corruption (P1-P2)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#444-performance-degradation-p2-p3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.4.4 Performance Degradation (P2-P3)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#445-etap-crash-p2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.4.5 ETAP Crash (P2)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-maintenance" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. Maintenance
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="5. Maintenance">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#51-regular-maintenance-tasks" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.1 Regular Maintenance Tasks
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#52-database-maintenance" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.2 Database Maintenance
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="5.2 Database Maintenance">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#sqlite-maintenance" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        SQLite Maintenance
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#scheduled-maintenance-script" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Scheduled Maintenance Script
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#53-log-rotation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.3 Log Rotation
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="5.3 Log Rotation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#configuration-loggingconf-or-environment-variables" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Configuration (logging.conf or environment variables)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#docker-log-rotation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Docker Log Rotation
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#manual-log-rotation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Manual Log Rotation
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#54-certificate-renewal" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.4 Certificate Renewal
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="5.4 Certificate Renewal">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#ssltls-certificate-renewal-nginx" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        SSL/TLS Certificate Renewal (Nginx)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#self-signed-certificate-renewal" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Self-Signed Certificate Renewal
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#55-dependency-updates" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.5 Dependency Updates
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="5.5 Dependency Updates">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#python-dependencies" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Python Dependencies
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#nodejs-dependencies" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Node.js Dependencies
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#docker-image-updates" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Docker Image Updates
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-disaster-recovery" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. Disaster Recovery
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="6. Disaster Recovery">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#recovery-objectives" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Recovery Objectives
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#61-recovery-procedures" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6.1 Recovery Procedures
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="6.1 Recovery Procedures">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#scenario-1-complete-infrastructure-loss" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Scenario 1: Complete Infrastructure Loss
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#scenario-2-database-only-loss" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Scenario 2: Database Only Loss
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#scenario-3-etap-server-loss" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Scenario 3: ETAP Server Loss
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#62-dr-testing-schedule" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6.2 DR Testing Schedule
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="6.2 DR Testing Schedule">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#dr-test-procedure" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        DR Test Procedure
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7-capacity-planning" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7. Capacity Planning
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="7. Capacity Planning">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#71-current-capacity-limits" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7.1 Current Capacity Limits
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#72-scaling-triggers" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7.2 Scaling Triggers
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#73-growth-projections" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7.3 Growth Projections
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="7.3 Growth Projections">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#capacity-upgrade-procedures" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Capacity Upgrade Procedures
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#8-contact-information" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8. Contact Information
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="8. Contact Information">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#81-internal-contacts" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8.1 Internal Contacts
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#82-external-contacts" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8.2 External Contacts
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#83-escalation-path" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8.3 Escalation Path
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#84-communication-channels" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8.4 Communication Channels
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#85-on-call-schedule" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8.5 On-Call Schedule
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#86-escalation-notification-templates" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8.6 Escalation Notification Templates
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="8.6 Escalation Notification Templates">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#p1-incident-notification-smspager" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        P1 Incident Notification (SMS/Pager)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#status-page-update" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Status Page Update
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#appendix-quick-command-reference" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Appendix: Quick Command Reference
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Appendix: Quick Command Reference">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#startup-shutdown" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Startup &amp; Shutdown
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#health-checks" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Health Checks
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#backup-restore" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Backup &amp; Restore
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#diagnostics" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Diagnostics
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#maintenance" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Maintenance
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#scaling" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Scaling
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="operations-runbook">Operations Runbook</h1>
+<h2 id="table-of-contents">Table of Contents</h2>
+<ol>
+<li>System Architecture Overview</li>
+<li>Standard Operating Procedures</li>
+<li>Monitoring</li>
+<li>Incident Response</li>
+<li>Maintenance</li>
+<li>Disaster Recovery</li>
+<li>Capacity Planning</li>
+<li>Contact Information</li>
+</ol>
+<hr />
+<h2 id="1-system-architecture-overview">1. System Architecture Overview</h2>
+<h3 id="architecture-diagram">Architecture Diagram</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>                                   ┌──────────────┐
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>                                   │   Clients     │
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>                                   │ CLI / Web /  │
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>                                   │   API / MCP   │
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>                                   └──────┬───────┘
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>                                          │ HTTPS (443)
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>                                   ┌──────▼───────┐
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>                                   │   Nginx       │
+<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>                                   │  Reverse Proxy│
+<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>                                   └──────┬───────┘
+<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>                                          │
+<a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>                          ┌───────────────┼───────────────┐
+<a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>                          │               │               │
+<a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>                   ┌──────▼──────┐  ┌─────▼──────┐  ┌─────▼──────┐
+<a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a>                   │ Mastra AI   │  │ FastAPI     │  │  Health &amp;   │
+<a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a>                   │ Server      │  │ Python      │  │  Metrics    │
+<a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a>                   │ :3000       │  │ Backend     │  │  :3000/health│
+<a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a>                   │ TypeScript  │  │ :8000       │  └────────────┘
+<a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a>                   │ Agents      │  │ Engines     │
+<a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a>                   └──────┬──────┘  └──────┬──────┘
+<a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a>                          │                │
+<a id="__codelineno-0-22" name="__codelineno-0-22" href="#__codelineno-0-22"></a>                          │    ┌───────────▼────────────┐
+<a id="__codelineno-0-23" name="__codelineno-0-23" href="#__codelineno-0-23"></a>                          │    │   Agent Orchestrator    │
+<a id="__codelineno-0-24" name="__codelineno-0-24" href="#__codelineno-0-24"></a>                          │    │   agents/orchestrator.py│
+<a id="__codelineno-0-25" name="__codelineno-0-25" href="#__codelineno-0-25"></a>                          │    └───────────┬────────────┘
+<a id="__codelineno-0-26" name="__codelineno-0-26" href="#__codelineno-0-26"></a>                          │                │
+<a id="__codelineno-0-27" name="__codelineno-0-27" href="#__codelineno-0-27"></a>              ┌───────────┼───────────┬────┼────┬───────────────┐
+<a id="__codelineno-0-28" name="__codelineno-0-28" href="#__codelineno-0-28"></a>              │           │           │    │    │               │
+<a id="__codelineno-0-29" name="__codelineno-0-29" href="#__codelineno-0-29"></a>       ┌──────▼────┐ ┌───▼───┐ ┌───▼───┐│┌──▼───┐┌──────▼────┐
+<a id="__codelineno-0-30" name="__codelineno-0-30" href="#__codelineno-0-30"></a>       │ Load Flow  │ │ Fault │ │Harmon │││ OPF  ││ Protection │
+<a id="__codelineno-0-31" name="__codelineno-0-31" href="#__codelineno-0-31"></a>       │ Engine     │ │Engine │ │Engine │││Engine││ Engine     │
+<a id="__codelineno-0-32" name="__codelineno-0-32" href="#__codelineno-0-32"></a>       └──────┬────┘ └───┬───┘ └───┬───┘│└──┬───┘└──────┬────┘
+<a id="__codelineno-0-33" name="__codelineno-0-33" href="#__codelineno-0-33"></a>              │           │         │    │   │           │
+<a id="__codelineno-0-34" name="__codelineno-0-34" href="#__codelineno-0-34"></a>              └───────────┼─────────┼────┼───┼───────────┘
+<a id="__codelineno-0-35" name="__codelineno-0-35" href="#__codelineno-0-35"></a>                          │         │    │   │
+<a id="__codelineno-0-36" name="__codelineno-0-36" href="#__codelineno-0-36"></a>                    ┌─────▼─────────▼────▼───▼──────┐
+<a id="__codelineno-0-37" name="__codelineno-0-37" href="#__codelineno-0-37"></a>                    │      Validation Agent         │
+<a id="__codelineno-0-38" name="__codelineno-0-38" href="#__codelineno-0-38"></a>                    │      + RAG Knowledge Base      │
+<a id="__codelineno-0-39" name="__codelineno-0-39" href="#__codelineno-0-39"></a>                    └──────────────┬────────────────┘
+<a id="__codelineno-0-40" name="__codelineno-0-40" href="#__codelineno-0-40"></a>                                   │
+<a id="__codelineno-0-41" name="__codelineno-0-41" href="#__codelineno-0-41"></a>                          ┌────────▼────────┐
+<a id="__codelineno-0-42" name="__codelineno-0-42" href="#__codelineno-0-42"></a>                          │  Report Agent    │
+<a id="__codelineno-0-43" name="__codelineno-0-43" href="#__codelineno-0-43"></a>                          │  PDF/DOCX/XLSX   │
+<a id="__codelineno-0-44" name="__codelineno-0-44" href="#__codelineno-0-44"></a>                          └────────┬────────┘
+<a id="__codelineno-0-45" name="__codelineno-0-45" href="#__codelineno-0-45"></a>                                   │
+<a id="__codelineno-0-46" name="__codelineno-0-46" href="#__codelineno-0-46"></a>                          ┌────────▼────────┐
+<a id="__codelineno-0-47" name="__codelineno-0-47" href="#__codelineno-0-47"></a>                          │    ETAP COM      │
+<a id="__codelineno-0-48" name="__codelineno-0-48" href="#__codelineno-0-48"></a>                          │   Automation     │
+<a id="__codelineno-0-49" name="__codelineno-0-49" href="#__codelineno-0-49"></a>                          │  (Windows Only)  │
+<a id="__codelineno-0-50" name="__codelineno-0-50" href="#__codelineno-0-50"></a>                          └─────────────────┘
+</code></pre></div>
+<h3 id="component-descriptions">Component Descriptions</h3>
+<table>
+<thead>
+<tr>
+<th>Component</th>
+<th>Technology</th>
+<th>Port</th>
+<th>Purpose</th>
+<th>Dependencies</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Mastra AI Server</td>
+<td>TypeScript/Node.js</td>
+<td>3000</td>
+<td>Agent orchestration, LLM integration, workflow management</td>
+<td>OpenAI API, Python Backend</td>
+</tr>
+<tr>
+<td>Python Backend</td>
+<td>Python/FastAPI</td>
+<td>8000</td>
+<td>Calculation engines, system model, RAG, reporting</td>
+<td>NumPy, SciPy, PyTorch, ChromaDB</td>
+</tr>
+<tr>
+<td>Nginx</td>
+<td>C</td>
+<td>443/80</td>
+<td>Reverse proxy, SSL termination, load balancing</td>
+<td>Configuration files</td>
+</tr>
+<tr>
+<td>SQLite/DuckDB</td>
+<td>C</td>
+<td>N/A</td>
+<td>Database, vector store</td>
+<td>Backend services</td>
+</tr>
+<tr>
+<td>ETAP (External)</td>
+<td>Windows COM</td>
+<td>N/A</td>
+<td>Power system simulation</td>
+<td>ETAP license, Windows OS</td>
+</tr>
+</tbody>
+</table>
+<h3 id="data-flow-request-lifecycle">Data Flow (Request Lifecycle)</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>1. Client sends HTTPS request to Nginx
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>2. Nginx proxies to Mastra Server (:3000)
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>3. Mastra Agent decomposes the engineering goal
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>4. Mastra invokes Python Backend (:8000) via HTTP
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>5. Python Orchestrator assigns tasks to calculation engines
+<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>6. Engines perform computations (Load Flow, Fault, etc.)
+<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a>7. Results are validated against IEEE/IEC standards via RAG
+<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a>8. Report Agent generates PDF/DOCX/XLSX output
+<a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a>9. Optionally, ETAP COM is used for validation/execution
+<a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a>10. Consolidated response flows back through Nginx to client
+</code></pre></div>
+<hr />
+<h2 id="2-standard-operating-procedures">2. Standard Operating Procedures</h2>
+<h3 id="21-starting-the-system">2.1 Starting the System</h3>
+<h4 id="prerequisites">Prerequisites</h4>
+<p>Before starting, verify:
+- <code>.env</code> file exists with all required variables
+- Ports 3000, 8000 are not in use
+- Docker Desktop is running (if using Docker)
+- Sufficient disk space (&gt;5GB free)</p>
+<h4 id="option-a-docker-deployment-production">Option A: Docker Deployment (Production)</h4>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a># Step 1: Build images
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>docker-compose build
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a># Step 2: Start all services in detached mode
+<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>docker-compose up -d
+<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>
+<a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a># Step 3: Verify all services are running
+<a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a>docker-compose ps
+<a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a>
+<a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a># Expected output:
+<a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a>#   Name                    Status              Ports
+<a id="__codelineno-2-12" name="__codelineno-2-12" href="#__codelineno-2-12"></a>#   etap-platform           Up                  0.0.0.0:3000-&gt;3000/tcp, 0.0.0.0:8000-&gt;8000/tcp
+<a id="__codelineno-2-13" name="__codelineno-2-13" href="#__codelineno-2-13"></a>#   redis                   Up                  0.0.0.0:6379-&gt;6379/tcp
+<a id="__codelineno-2-14" name="__codelineno-2-14" href="#__codelineno-2-14"></a>#   rabbitmq                Up                  0.0.0.0:5672-&gt;5672/tcp, 0.0.0.0:15672-&gt;15672/tcp
+<a id="__codelineno-2-15" name="__codelineno-2-15" href="#__codelineno-2-15"></a>
+<a id="__codelineno-2-16" name="__codelineno-2-16" href="#__codelineno-2-16"></a># Step 4: Run health check
+<a id="__codelineno-2-17" name="__codelineno-2-17" href="#__codelineno-2-17"></a>curl http://localhost:3000/health
+<a id="__codelineno-2-18" name="__codelineno-2-18" href="#__codelineno-2-18"></a># Expected: {&quot;status&quot;:&quot;healthy&quot;,&quot;timestamp&quot;:&quot;...&quot;,&quot;version&quot;:&quot;1.0.0&quot;}
+</code></pre></div>
+<h4 id="option-b-standalone-development">Option B: Standalone (Development)</h4>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a># Step 1: Activate Python virtual environment
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>.\\venv\\Scripts\\activate
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>
+<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a># Step 2: Start Python backend
+<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a>python main.py --port 8000 --log-level INFO
+<a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a># Keep this terminal open
+<a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a>
+<a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a># Step 3: In a new terminal, start Mastra server
+<a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a>pnpm dev --port 3000
+<a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a>
+<a id="__codelineno-3-11" name="__codelineno-3-11" href="#__codelineno-3-11"></a># Step 4: Verify both services
+<a id="__codelineno-3-12" name="__codelineno-3-12" href="#__codelineno-3-12"></a>curl http://localhost:3000/health
+<a id="__codelineno-3-13" name="__codelineno-3-13" href="#__codelineno-3-13"></a>curl http://localhost:8000/health
+</code></pre></div>
+<h4 id="option-c-windows-service">Option C: Windows Service</h4>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a># Install as Windows service
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>sc create &quot;ETAPPlatform&quot; binPath=&quot;C:\Python311\python.exe C:\app\main.py --service&quot; start=auto
+<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>
+<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a># Start the service
+<a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a>net start ETAPPlatform
+<a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a>
+<a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a># Verify service is running
+<a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a>sc query ETAPPlatform
+</code></pre></div>
+<h3 id="22-stopping-the-system">2.2 Stopping the System</h3>
+<h4 id="graceful-shutdown">Graceful Shutdown</h4>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a># Option A: Docker
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>docker-compose down
+<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a># Use --volumes to also remove data volumes (WILL LOSE DATA):
+<a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a>docker-compose down --volumes
+<a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a>
+<a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a># Option B: Standalone
+<a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a># Press Ctrl+C in each terminal, or:
+<a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a>taskkill /F /IM python.exe
+<a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a>taskkill /F /IM node.exe
+<a id="__codelineno-5-10" name="__codelineno-5-10" href="#__codelineno-5-10"></a>
+<a id="__codelineno-5-11" name="__codelineno-5-11" href="#__codelineno-5-11"></a># Option C: Windows Service
+<a id="__codelineno-5-12" name="__codelineno-5-12" href="#__codelineno-5-12"></a>net stop ETAPPlatform
+</code></pre></div>
+<h4 id="emergency-shutdown-system-unresponsive">Emergency Shutdown (System Unresponsive)</h4>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a># Force kill all platform processes
+<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>docker-compose down --timeout 0
+<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>taskkill /F /FI &quot;IMAGENAME eq python.exe&quot;
+<a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a>taskkill /F /FI &quot;IMAGENAME eq node.exe&quot;
+<a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a>taskkill /F /IM etap.exe  # If ETAP is stuck
+<a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a>
+<a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a># Verify no orphaned processes
+<a id="__codelineno-6-8" name="__codelineno-6-8" href="#__codelineno-6-8"></a>tasklist | findstr /I &quot;python node etap&quot;
+</code></pre></div>
+<h3 id="23-restarting-services">2.3 Restarting Services</h3>
+<h4 id="restart-all-services">Restart All Services</h4>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>docker-compose restart
+</code></pre></div>
+<h4 id="restart-individual-components">Restart Individual Components</h4>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a># Restart Python backend only
+<a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a>docker-compose restart etap-platform
+<a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a># Or standalone:
+<a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a>taskkill /F /IM python.exe &amp;&amp; python main.py
+<a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a>
+<a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a># Restart Mastra server only
+<a id="__codelineno-8-7" name="__codelineno-8-7" href="#__codelineno-8-7"></a>docker-compose restart etap-platform
+<a id="__codelineno-8-8" name="__codelineno-8-8" href="#__codelineno-8-8"></a># Or restart the Node process
+<a id="__codelineno-8-9" name="__codelineno-8-9" href="#__codelineno-8-9"></a>
+<a id="__codelineno-8-10" name="__codelineno-8-10" href="#__codelineno-8-10"></a># Restart Redis (if used)
+<a id="__codelineno-8-11" name="__codelineno-8-11" href="#__codelineno-8-11"></a>docker-compose restart redis
+</code></pre></div>
+<h4 id="rolling-restart-zero-downtime-in-kubernetes">Rolling Restart (Zero Downtime in Kubernetes)</h4>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>kubectl rollout restart deployment/etap-platform
+<a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a>kubectl rollout status deployment/etap-platform
+</code></pre></div>
+<h3 id="24-backup-procedures">2.4 Backup Procedures</h3>
+<h4 id="database-backup">Database Backup</h4>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a># Create backup directory
+<a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a>mkdir -p ./backups
+<a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a>
+<a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a># Manual backup
+<a id="__codelineno-10-5" name="__codelineno-10-5" href="#__codelineno-10-5"></a>copy mastra.db backups\mastra_%date:~10,4%%date:~4,2%%date:~7,2%_%time:~0,2%%time:~3,2%%time:~6,2%.db
+<a id="__codelineno-10-6" name="__codelineno-10-6" href="#__codelineno-10-6"></a>
+<a id="__codelineno-10-7" name="__codelineno-10-7" href="#__codelineno-10-7"></a># Automated backup (create a scheduled task)
+<a id="__codelineno-10-8" name="__codelineno-10-8" href="#__codelineno-10-8"></a>@echo off
+<a id="__codelineno-10-9" name="__codelineno-10-9" href="#__codelineno-10-9"></a>set BACKUP_DIR=.\backups
+<a id="__codelineno-10-10" name="__codelineno-10-10" href="#__codelineno-10-10"></a>set TIMESTAMP=%date:~10,4%%date:~4,2%%date:~7,2%_%time:~0,2%%time:~3,2%
+<a id="__codelineno-10-11" name="__codelineno-10-11" href="#__codelineno-10-11"></a>copy mastra.db %BACKUP_DIR%\mastra_%TIMESTAMP%.db
+<a id="__codelineno-10-12" name="__codelineno-10-12" href="#__codelineno-10-12"></a>copy mastra.duckdb %BACKUP_DIR%\mastra_%TIMESTAMP%.duckdb
+<a id="__codelineno-10-13" name="__codelineno-10-13" href="#__codelineno-10-13"></a>tar -czf %BACKUP_DIR%\knowledge_%TIMESTAMP%.tar.gz knowledge_db\
+<a id="__codelineno-10-14" name="__codelineno-10-14" href="#__codelineno-10-14"></a>tar -czf %BACKUP_DIR%\reports_%TIMESTAMP%.tar.gz reports\
+<a id="__codelineno-10-15" name="__codelineno-10-15" href="#__codelineno-10-15"></a>copy .env %BACKUP_DIR%\env_%TIMESTAMP%.txt
+<a id="__codelineno-10-16" name="__codelineno-10-16" href="#__codelineno-10-16"></a>
+<a id="__codelineno-10-17" name="__codelineno-10-17" href="#__codelineno-10-17"></a># Remove backups older than 30 days
+<a id="__codelineno-10-18" name="__codelineno-10-18" href="#__codelineno-10-18"></a>forfiles -p %BACKUP_DIR% -m *.db -d -30 -c &quot;cmd /c del @path&quot;
+<a id="__codelineno-10-19" name="__codelineno-10-19" href="#__codelineno-10-19"></a>forfiles -p %BACKUP_DIR% -m *.tar.gz -d -30 -c &quot;cmd /c del @path&quot;
+</code></pre></div>
+<h4 id="full-system-backup">Full System Backup</h4>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a># Backup script: backup.sh / backup.ps1
+<a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a># This should be run daily via Windows Task Scheduler
+<a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a>
+<a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a>$backupRoot = &quot;.\backups&quot;
+<a id="__codelineno-11-5" name="__codelineno-11-5" href="#__codelineno-11-5"></a>$timestamp = Get-Date -Format &quot;yyyyMMdd_HHmmss&quot;
+<a id="__codelineno-11-6" name="__codelineno-11-6" href="#__codelineno-11-6"></a>$backupDir = Join-Path $backupRoot $timestamp
+<a id="__codelineno-11-7" name="__codelineno-11-7" href="#__codelineno-11-7"></a>
+<a id="__codelineno-11-8" name="__codelineno-11-8" href="#__codelineno-11-8"></a>New-Item -ItemType Directory -Path $backupDir -Force
+<a id="__codelineno-11-9" name="__codelineno-11-9" href="#__codelineno-11-9"></a>
+<a id="__codelineno-11-10" name="__codelineno-11-10" href="#__codelineno-11-10"></a># Stop services for consistent backup
+<a id="__codelineno-11-11" name="__codelineno-11-11" href="#__codelineno-11-11"></a>docker-compose pause
+<a id="__codelineno-11-12" name="__codelineno-11-12" href="#__codelineno-11-12"></a>
+<a id="__codelineno-11-13" name="__codelineno-11-13" href="#__codelineno-11-13"></a># Backup databases
+<a id="__codelineno-11-14" name="__codelineno-11-14" href="#__codelineno-11-14"></a>Copy-Item &quot;mastra.db&quot; (Join-Path $backupDir &quot;mastra.db&quot;)
+<a id="__codelineno-11-15" name="__codelineno-11-15" href="#__codelineno-11-15"></a>Copy-Item &quot;mastra.duckdb&quot; (Join-Path $backupDir &quot;mastra.duckdb&quot;)
+<a id="__codelineno-11-16" name="__codelineno-11-16" href="#__codelineno-11-16"></a>
+<a id="__codelineno-11-17" name="__codelineno-11-17" href="#__codelineno-11-17"></a># Backup knowledge base
+<a id="__codelineno-11-18" name="__codelineno-11-18" href="#__codelineno-11-18"></a>Compress-Archive -Path &quot;knowledge_db\*&quot; -DestinationPath (Join-Path $backupDir &quot;knowledge_db.zip&quot;)
+<a id="__codelineno-11-19" name="__codelineno-11-19" href="#__codelineno-11-19"></a>
+<a id="__codelineno-11-20" name="__codelineno-11-20" href="#__codelineno-11-20"></a># Backup reports
+<a id="__codelineno-11-21" name="__codelineno-11-21" href="#__codelineno-11-21"></a>Compress-Archive -Path &quot;reports\*&quot; -DestinationPath (Join-Path $backupDir &quot;reports.zip&quot;)
+<a id="__codelineno-11-22" name="__codelineno-11-22" href="#__codelineno-11-22"></a>
+<a id="__codelineno-11-23" name="__codelineno-11-23" href="#__codelineno-11-23"></a># Backup environment (redact secrets)
+<a id="__codelineno-11-24" name="__codelineno-11-24" href="#__codelineno-11-24"></a>Get-Content &quot;.env.example&quot; | Set-Content (Join-Path $backupDir &quot;.env.example&quot;)
+<a id="__codelineno-11-25" name="__codelineno-11-25" href="#__codelineno-11-25"></a>
+<a id="__codelineno-11-26" name="__codelineno-11-26" href="#__codelineno-11-26"></a># Resume services
+<a id="__codelineno-11-27" name="__codelineno-11-27" href="#__codelineno-11-27"></a>docker-compose unpause
+<a id="__codelineno-11-28" name="__codelineno-11-28" href="#__codelineno-11-28"></a>
+<a id="__codelineno-11-29" name="__codelineno-11-29" href="#__codelineno-11-29"></a># Retention: keep 30 daily backups, 12 monthly
+<a id="__codelineno-11-30" name="__codelineno-11-30" href="#__codelineno-11-30"></a>Get-ChildItem $backupRoot | Where-Object { $_.PSIsContainer -and $_.CreationTime -lt (Get-Date).AddDays(-30) } | Remove-Item -Recurse -Force
+<a id="__codelineno-11-31" name="__codelineno-11-31" href="#__codelineno-11-31"></a>
+<a id="__codelineno-11-32" name="__codelineno-11-32" href="#__codelineno-11-32"></a>Write-Host &quot;Backup completed: $timestamp&quot;
+</code></pre></div>
+<h3 id="25-restore-procedures">2.5 Restore Procedures</h3>
+<h4 id="database-restore">Database Restore</h4>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a># Step 1: Stop services
+<a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a>docker-compose down
+<a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a>
+<a id="__codelineno-12-4" name="__codelineno-12-4" href="#__codelineno-12-4"></a># Step 2: Backup current state (just in case)
+<a id="__codelineno-12-5" name="__codelineno-12-5" href="#__codelineno-12-5"></a>copy mastra.db mastra.db.before_restore
+<a id="__codelineno-12-6" name="__codelineno-12-6" href="#__codelineno-12-6"></a>
+<a id="__codelineno-12-7" name="__codelineno-12-7" href="#__codelineno-12-7"></a># Step 3: Restore from backup
+<a id="__codelineno-12-8" name="__codelineno-12-8" href="#__codelineno-12-8"></a>copy /Y backups\mastra_20260607_020000.db mastra.db
+<a id="__codelineno-12-9" name="__codelineno-12-9" href="#__codelineno-12-9"></a>
+<a id="__codelineno-12-10" name="__codelineno-12-10" href="#__codelineno-12-10"></a># Step 4: Verify database integrity
+<a id="__codelineno-12-11" name="__codelineno-12-11" href="#__codelineno-12-11"></a>python -c &quot;
+<a id="__codelineno-12-12" name="__codelineno-12-12" href="#__codelineno-12-12"></a>import sqlite3
+<a id="__codelineno-12-13" name="__codelineno-12-13" href="#__codelineno-12-13"></a>conn = sqlite3.connect(&#39;mastra.db&#39;)
+<a id="__codelineno-12-14" name="__codelineno-12-14" href="#__codelineno-12-14"></a>cursor = conn.execute(&#39;PRAGMA integrity_check&#39;)
+<a id="__codelineno-12-15" name="__codelineno-12-15" href="#__codelineno-12-15"></a>result = cursor.fetchone()
+<a id="__codelineno-12-16" name="__codelineno-12-16" href="#__codelineno-12-16"></a>print(f&#39;Integrity check: {result[0]}&#39;)
+<a id="__codelineno-12-17" name="__codelineno-12-17" href="#__codelineno-12-17"></a>conn.close()
+<a id="__codelineno-12-18" name="__codelineno-12-18" href="#__codelineno-12-18"></a>&quot;
+<a id="__codelineno-12-19" name="__codelineno-12-19" href="#__codelineno-12-19"></a>
+<a id="__codelineno-12-20" name="__codelineno-12-20" href="#__codelineno-12-20"></a># Step 5: Restart services
+<a id="__codelineno-12-21" name="__codelineno-12-21" href="#__codelineno-12-21"></a>docker-compose up -d
+<a id="__codelineno-12-22" name="__codelineno-12-22" href="#__codelineno-12-22"></a>
+<a id="__codelineno-12-23" name="__codelineno-12-23" href="#__codelineno-12-23"></a># Step 6: Verify system is healthy
+<a id="__codelineno-12-24" name="__codelineno-12-24" href="#__codelineno-12-24"></a>curl http://localhost:3000/health
+</code></pre></div>
+<h4 id="full-system-restore">Full System Restore</h4>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a># Step 1: Stop services
+<a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a>docker-compose down
+<a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a>
+<a id="__codelineno-13-4" name="__codelineno-13-4" href="#__codelineno-13-4"></a># Step 2: Restore databases
+<a id="__codelineno-13-5" name="__codelineno-13-5" href="#__codelineno-13-5"></a>copy /Y backups\20260607_020000\mastra.db .\mastra.db
+<a id="__codelineno-13-6" name="__codelineno-13-6" href="#__codelineno-13-6"></a>copy /Y backups\20260607_020000\mastra.duckdb .\mastra.duckdb
+<a id="__codelineno-13-7" name="__codelineno-13-7" href="#__codelineno-13-7"></a>
+<a id="__codelineno-13-8" name="__codelineno-13-8" href="#__codelineno-13-8"></a># Step 3: Restore knowledge base
+<a id="__codelineno-13-9" name="__codelineno-13-9" href="#__codelineno-13-9"></a>Expand-Archive -Path backups\20260607_020000\knowledge_db.zip -DestinationPath .\ -Force
+<a id="__codelineno-13-10" name="__codelineno-13-10" href="#__codelineno-13-10"></a>
+<a id="__codelineno-13-11" name="__codelineno-13-11" href="#__codelineno-13-11"></a># Step 4: Restore reports
+<a id="__codelineno-13-12" name="__codelineno-13-12" href="#__codelineno-13-12"></a>Expand-Archive -Path backups\20260607_020000\reports.zip -DestinationPath .\ -Force
+<a id="__codelineno-13-13" name="__codelineno-13-13" href="#__codelineno-13-13"></a>
+<a id="__codelineno-13-14" name="__codelineno-13-14" href="#__codelineno-13-14"></a># Step 5: Verify database integrity
+<a id="__codelineno-13-15" name="__codelineno-13-15" href="#__codelineno-13-15"></a>python -c &quot;
+<a id="__codelineno-13-16" name="__codelineno-13-16" href="#__codelineno-13-16"></a>import sqlite3
+<a id="__codelineno-13-17" name="__codelineno-13-17" href="#__codelineno-13-17"></a>conn = sqlite3.connect(&#39;mastra.db&#39;)
+<a id="__codelineno-13-18" name="__codelineno-13-18" href="#__codelineno-13-18"></a>assert conn.execute(&#39;PRAGMA integrity_check&#39;).fetchone()[0] == &#39;ok&#39;
+<a id="__codelineno-13-19" name="__codelineno-13-19" href="#__codelineno-13-19"></a>print(&#39;Database integrity: OK&#39;)
+<a id="__codelineno-13-20" name="__codelineno-13-20" href="#__codelineno-13-20"></a>conn.close()
+<a id="__codelineno-13-21" name="__codelineno-13-21" href="#__codelineno-13-21"></a>&quot;
+<a id="__codelineno-13-22" name="__codelineno-13-22" href="#__codelineno-13-22"></a>
+<a id="__codelineno-13-23" name="__codelineno-13-23" href="#__codelineno-13-23"></a># Step 6: Start services
+<a id="__codelineno-13-24" name="__codelineno-13-24" href="#__codelineno-13-24"></a>docker-compose up -d
+<a id="__codelineno-13-25" name="__codelineno-13-25" href="#__codelineno-13-25"></a>
+<a id="__codelineno-13-26" name="__codelineno-13-26" href="#__codelineno-13-26"></a># Step 7: Verify
+<a id="__codelineno-13-27" name="__codelineno-13-27" href="#__codelineno-13-27"></a>python -c &quot;
+<a id="__codelineno-13-28" name="__codelineno-13-28" href="#__codelineno-13-28"></a>import sqlite3
+<a id="__codelineno-13-29" name="__codelineno-13-29" href="#__codelineno-13-29"></a>conn = sqlite3.connect(&#39;mastra.db&#39;)
+<a id="__codelineno-13-30" name="__codelineno-13-30" href="#__codelineno-13-30"></a># Check that key tables have data
+<a id="__codelineno-13-31" name="__codelineno-13-31" href="#__codelineno-13-31"></a>tables = conn.execute(\&quot;SELECT name FROM sqlite_master WHERE type=&#39;table&#39;\&quot;).fetchall()
+<a id="__codelineno-13-32" name="__codelineno-13-32" href="#__codelineno-13-32"></a>print(f&#39;Tables restored: {len(tables)}&#39;)
+<a id="__codelineno-13-33" name="__codelineno-13-33" href="#__codelineno-13-33"></a>conn.close()
+<a id="__codelineno-13-34" name="__codelineno-13-34" href="#__codelineno-13-34"></a>&quot;
+</code></pre></div>
+<hr />
+<h2 id="3-monitoring">3. Monitoring</h2>
+<h3 id="31-key-metrics-to-monitor">3.1 Key Metrics to Monitor</h3>
+<h4 id="system-level-metrics">System-Level Metrics</h4>
+<table>
+<thead>
+<tr>
+<th>Metric</th>
+<th>Source</th>
+<th>Warning Threshold</th>
+<th>Critical Threshold</th>
+<th>Check Interval</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>CPU Usage</td>
+<td>OS / Docker stats</td>
+<td>&gt;70%</td>
+<td>&gt;90%</td>
+<td>30 seconds</td>
+</tr>
+<tr>
+<td>Memory Usage</td>
+<td>OS / Docker stats</td>
+<td>&gt;3GB</td>
+<td>&gt;4GB</td>
+<td>30 seconds</td>
+</tr>
+<tr>
+<td>Disk Usage</td>
+<td>OS</td>
+<td>&gt;80%</td>
+<td>&gt;90%</td>
+<td>5 minutes</td>
+</tr>
+<tr>
+<td>Disk I/O Wait</td>
+<td>OS</td>
+<td>&gt;20%</td>
+<td>&gt;50%</td>
+<td>60 seconds</td>
+</tr>
+<tr>
+<td>Network I/O</td>
+<td>OS</td>
+<td>&gt;100 Mbps</td>
+<td>&gt;500 Mbps</td>
+<td>60 seconds</td>
+</tr>
+</tbody>
+</table>
+<h4 id="application-level-metrics">Application-Level Metrics</h4>
+<table>
+<thead>
+<tr>
+<th>Metric</th>
+<th>Source</th>
+<th>Warning Threshold</th>
+<th>Critical Threshold</th>
+<th>Check Interval</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>HTTP Request Rate</td>
+<td>Prometheus / Nginx</td>
+<td>&gt;100 req/min</td>
+<td>&gt;500 req/min</td>
+<td>60 seconds</td>
+</tr>
+<tr>
+<td>HTTP Error Rate</td>
+<td>Prometheus / Nginx</td>
+<td>&gt;5%</td>
+<td>&gt;20%</td>
+<td>60 seconds</td>
+</tr>
+<tr>
+<td>P95 Response Time</td>
+<td>Prometheus</td>
+<td>&gt;2000ms</td>
+<td>&gt;5000ms</td>
+<td>60 seconds</td>
+</tr>
+<tr>
+<td>Active Workflows</td>
+<td>Python Backend</td>
+<td>&gt;5</td>
+<td>&gt;10</td>
+<td>30 seconds</td>
+</tr>
+<tr>
+<td>Queue Depth</td>
+<td>Celery/RabbitMQ</td>
+<td>&gt;50</td>
+<td>&gt;200</td>
+<td>30 seconds</td>
+</tr>
+<tr>
+<td>ETAP Connection Status</td>
+<td>Python Backend</td>
+<td>Disconnected</td>
+<td>Timeout &gt;60s</td>
+<td>30 seconds</td>
+</tr>
+<tr>
+<td>Calculation Convergence Rate</td>
+<td>Python Backend</td>
+<td>&lt;95%</td>
+<td>&lt;90%</td>
+<td>Per calculation</td>
+</tr>
+<tr>
+<td>RAG Query Latency</td>
+<td>Python Backend</td>
+<td>&gt;500ms</td>
+<td>&gt;2000ms</td>
+<td>Per query</td>
+</tr>
+<tr>
+<td>Cache Hit Rate</td>
+<td>Python Backend</td>
+<td>&lt;80%</td>
+<td>&lt;60%</td>
+<td>5 minutes</td>
+</tr>
+<tr>
+<td>Authentication Failure Rate</td>
+<td>Security</td>
+<td>&gt;5/min</td>
+<td>&gt;20/min</td>
+<td>60 seconds</td>
+</tr>
+</tbody>
+</table>
+<h4 id="business-level-metrics">Business-Level Metrics</h4>
+<table>
+<thead>
+<tr>
+<th>Metric</th>
+<th>Description</th>
+<th>Target</th>
+<th>Alert If</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Successful Studies</td>
+<td>Studies completed without error</td>
+<td>&gt;95%</td>
+<td>&lt;90% over 1 hour</td>
+</tr>
+<tr>
+<td>Average Study Duration</td>
+<td>Time from submission to completion</td>
+<td>&lt;30s</td>
+<td>&gt;120s</td>
+</tr>
+<tr>
+<td>Report Generation Rate</td>
+<td>Successful reports / total attempts</td>
+<td>&gt;98%</td>
+<td>&lt;95%</td>
+</tr>
+<tr>
+<td>ETAP Automation Success</td>
+<td>ETAP operations completed</td>
+<td>&gt;90%</td>
+<td>&lt;80%</td>
+</tr>
+<tr>
+<td>Data Freshness</td>
+<td>Age of latest vector DB update</td>
+<td>&lt;24 hours</td>
+<td>&gt;48 hours</td>
+</tr>
+</tbody>
+</table>
+<h3 id="32-alert-thresholds">3.2 Alert Thresholds</h3>
+<h4 id="pagerdutyon-call-alerts">PagerDuty/On-Call Alerts</h4>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a>CRITICAL (P1) - Immediate response required:
+<a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a>- Service completely down (health check fails &gt;5 min)
+<a id="__codelineno-14-3" name="__codelineno-14-3" href="#__codelineno-14-3"></a>- Complete ETAP integration failure
+<a id="__codelineno-14-4" name="__codelineno-14-4" href="#__codelineno-14-4"></a>- Database corruption detected
+<a id="__codelineno-14-5" name="__codelineno-14-5" href="#__codelineno-14-5"></a>- Security breach detected
+<a id="__codelineno-14-6" name="__codelineno-14-6" href="#__codelineno-14-6"></a>- Disk full on critical volume
+<a id="__codelineno-14-7" name="__codelineno-14-7" href="#__codelineno-14-7"></a>
+<a id="__codelineno-14-8" name="__codelineno-14-8" href="#__codelineno-14-8"></a>HIGH (P2) - Respond within 1 hour:
+<a id="__codelineno-14-9" name="__codelineno-14-9" href="#__codelineno-14-9"></a>- P95 response time &gt;5 seconds
+<a id="__codelineno-14-10" name="__codelineno-14-10" href="#__codelineno-14-10"></a>- Error rate &gt;20%
+<a id="__codelineno-14-11" name="__codelineno-14-11" href="#__codelineno-14-11"></a>- ETAP COM connection flapping
+<a id="__codelineno-14-12" name="__codelineno-14-12" href="#__codelineno-14-12"></a>- Calculation engine failures &gt;50% in 10 min
+<a id="__codelineno-14-13" name="__codelineno-14-13" href="#__codelineno-14-13"></a>- Memory usage &gt;90%
+<a id="__codelineno-14-14" name="__codelineno-14-14" href="#__codelineno-14-14"></a>
+<a id="__codelineno-14-15" name="__codelineno-14-15" href="#__codelineno-14-15"></a>WARNING (P3) - Respond within 8 hours:
+<a id="__codelineno-14-16" name="__codelineno-14-16" href="#__codelineno-14-16"></a>- P95 response time &gt;2 seconds
+<a id="__codelineno-14-17" name="__codelineno-14-17" href="#__codelineno-14-17"></a>- Error rate &gt;5%
+<a id="__codelineno-14-18" name="__codelineno-14-18" href="#__codelineno-14-18"></a>- Cache hit rate &lt;70%
+<a id="__codelineno-14-19" name="__codelineno-14-19" href="#__codelineno-14-19"></a>- Active workflows &gt;80% of max
+<a id="__codelineno-14-20" name="__codelineno-14-20" href="#__codelineno-14-20"></a>- Disk usage &gt;80%
+<a id="__codelineno-14-21" name="__codelineno-14-21" href="#__codelineno-14-21"></a>
+<a id="__codelineno-14-22" name="__codelineno-14-22" href="#__codelineno-14-22"></a>INFO (P4) - Next business day:
+<a id="__codelineno-14-23" name="__codelineno-14-23" href="#__codelineno-14-23"></a>- Certificate expiry &lt;30 days
+<a id="__codelineno-14-24" name="__codelineno-14-24" href="#__codelineno-14-24"></a>- Backup failure
+<a id="__codelineno-14-25" name="__codelineno-14-25" href="#__codelineno-14-25"></a>- Log rotation failure
+<a id="__codelineno-14-26" name="__codelineno-14-26" href="#__codelineno-14-26"></a>- Deprecated dependency detected
+</code></pre></div>
+<h3 id="33-dashboard-setup">3.3 Dashboard Setup</h3>
+<h4 id="prometheus-metrics-endpoint">Prometheus Metrics Endpoint</h4>
+<p>The Python backend exposes metrics at <code>http://localhost:8000/metrics</code>:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a># Example Prometheus metrics
+<a id="__codelineno-15-2" name="__codelineno-15-2" href="#__codelineno-15-2"></a>http_requests_total{method=&quot;POST&quot;,endpoint=&quot;/api/v1/analyze&quot;,status=&quot;200&quot;} 1254
+<a id="__codelineno-15-3" name="__codelineno-15-3" href="#__codelineno-15-3"></a>http_request_duration_seconds{endpoint=&quot;/api/v1/analyze&quot;,quantile=&quot;0.95&quot;} 2.3
+<a id="__codelineno-15-4" name="__codelineno-15-4" href="#__codelineno-15-4"></a>active_workflows 3
+<a id="__codelineno-15-5" name="__codelineno-15-5" href="#__codelineno-15-5"></a>etap_connection_status 1
+<a id="__codelineno-15-6" name="__codelineno-15-6" href="#__codelineno-15-6"></a>load_flow_convergence_rate 0.97
+<a id="__codelineno-15-7" name="__codelineno-15-7" href="#__codelineno-15-7"></a>rag_query_latency_ms 245
+<a id="__codelineno-15-8" name="__codelineno-15-8" href="#__codelineno-15-8"></a>cache_hit_ratio 0.85
+<a id="__codelineno-15-9" name="__codelineno-15-9" href="#__codelineno-15-9"></a>auth_errors_total 12
+</code></pre></div>
+<h4 id="grafana-dashboard-recommended-panels">Grafana Dashboard (Recommended Panels)</h4>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a>Panel 1: Service Health
+<a id="__codelineno-16-2" name="__codelineno-16-2" href="#__codelineno-16-2"></a>- Uptime gauge
+<a id="__codelineno-16-3" name="__codelineno-16-3" href="#__codelineno-16-3"></a>- Health check status (green/red)
+<a id="__codelineno-16-4" name="__codelineno-16-4" href="#__codelineno-16-4"></a>- Component status indicators (Mastra, Python, ETAP, DB)
+<a id="__codelineno-16-5" name="__codelineno-16-5" href="#__codelineno-16-5"></a>
+<a id="__codelineno-16-6" name="__codelineno-16-6" href="#__codelineno-16-6"></a>Panel 2: Request Metrics
+<a id="__codelineno-16-7" name="__codelineno-16-7" href="#__codelineno-16-7"></a>- Request rate (requests/min) - time series
+<a id="__codelineno-16-8" name="__codelineno-16-8" href="#__codelineno-16-8"></a>- Error rate (%) - time series
+<a id="__codelineno-16-9" name="__codelineno-16-9" href="#__codelineno-16-9"></a>- P50/P95/P99 latency - time series
+<a id="__codelineno-16-10" name="__codelineno-16-10" href="#__codelineno-16-10"></a>
+<a id="__codelineno-16-11" name="__codelineno-16-11" href="#__codelineno-16-11"></a>Panel 3: Workflow Metrics
+<a id="__codelineno-16-12" name="__codelineno-16-12" href="#__codelineno-16-12"></a>- Active workflows - gauge
+<a id="__codelineno-16-13" name="__codelineno-16-13" href="#__codelineno-16-13"></a>- Study completion rate - time series
+<a id="__codelineno-16-14" name="__codelineno-16-14" href="#__codelineno-16-14"></a>- Study duration - heatmap
+<a id="__codelineno-16-15" name="__codelineno-16-15" href="#__codelineno-16-15"></a>- Queue depth - time series
+<a id="__codelineno-16-16" name="__codelineno-16-16" href="#__codelineno-16-16"></a>
+<a id="__codelineno-16-17" name="__codelineno-16-17" href="#__codelineno-16-17"></a>Panel 4: System Resources
+<a id="__codelineno-16-18" name="__codelineno-16-18" href="#__codelineno-16-18"></a>- CPU usage (%) - time series
+<a id="__codelineno-16-19" name="__codelineno-16-19" href="#__codelineno-16-19"></a>- Memory usage (GB) - time series
+<a id="__codelineno-16-20" name="__codelineno-16-20" href="#__codelineno-16-20"></a>- Disk usage (%) - gauge
+<a id="__codelineno-16-21" name="__codelineno-16-21" href="#__codelineno-16-21"></a>- Network I/O (MB/s) - time series
+<a id="__codelineno-16-22" name="__codelineno-16-22" href="#__codelineno-16-22"></a>
+<a id="__codelineno-16-23" name="__codelineno-16-23" href="#__codelineno-16-23"></a>Panel 5: ETAP Status
+<a id="__codelineno-16-24" name="__codelineno-16-24" href="#__codelineno-16-24"></a>- Connection status - state timeline
+<a id="__codelineno-16-25" name="__codelineno-16-25" href="#__codelineno-16-25"></a>- Study success/failure - pie chart
+<a id="__codelineno-16-26" name="__codelineno-16-26" href="#__codelineno-16-26"></a>- Project count - gauge
+<a id="__codelineno-16-27" name="__codelineno-16-27" href="#__codelineno-16-27"></a>- COM operation latency - time series
+<a id="__codelineno-16-28" name="__codelineno-16-28" href="#__codelineno-16-28"></a>
+<a id="__codelineno-16-29" name="__codelineno-16-29" href="#__codelineno-16-29"></a>Panel 6: Business Metrics
+<a id="__codelineno-16-30" name="__codelineno-16-30" href="#__codelineno-16-30"></a>- Successful studies (24h) - stat
+<a id="__codelineno-16-31" name="__codelineno-16-31" href="#__codelineno-16-31"></a>- Avg study duration - stat
+<a id="__codelineno-16-32" name="__codelineno-16-32" href="#__codelineno-16-32"></a>- Reports generated (24h) - stat
+<a id="__codelineno-16-33" name="__codelineno-16-33" href="#__codelineno-16-33"></a>- Authenticated users - stat
+</code></pre></div>
+<h3 id="34-log-file-locations-and-formats">3.4 Log File Locations and Formats</h3>
+<h4 id="log-file-index">Log File Index</h4>
+<table>
+<thead>
+<tr>
+<th>Log File</th>
+<th>Path</th>
+<th>Retention</th>
+<th>Format</th>
+<th>Key Fields</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Python Backend</td>
+<td><code>./logs/python-backend.log</code></td>
+<td>30 days</td>
+<td>JSON</td>
+<td>timestamp, level, module, message, task_id</td>
+</tr>
+<tr>
+<td>Mastra Server</td>
+<td><code>./logs/mastra-server.log</code></td>
+<td>30 days</td>
+<td>JSON</td>
+<td>timestamp, level, agent, message, workflow_id</td>
+</tr>
+<tr>
+<td>ETAP COM</td>
+<td><code>./logs/etap-com.log</code></td>
+<td>30 days</td>
+<td>JSON</td>
+<td>timestamp, level, operation, duration_ms, project</td>
+</tr>
+<tr>
+<td>Security</td>
+<td><code>./logs/security.log</code></td>
+<td>90 days</td>
+<td>JSON</td>
+<td>timestamp, level, user, action, ip_address, result</td>
+</tr>
+<tr>
+<td>Calculation</td>
+<td><code>./logs/calculation.log</code></td>
+<td>30 days</td>
+<td>JSON</td>
+<td>timestamp, level, engine, study_type, system_size, convergence</td>
+</tr>
+<tr>
+<td>RAG Engine</td>
+<td><code>./logs/rag-engine.log</code></td>
+<td>30 days</td>
+<td>JSON</td>
+<td>timestamp, level, query_truncated, sources_count, latency_ms</td>
+</tr>
+</tbody>
+</table>
+<h4 id="log-format-json">Log Format (JSON)</h4>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a><span class="p">{</span>
+<a id="__codelineno-17-2" name="__codelineno-17-2" href="#__codelineno-17-2"></a><span class="w">  </span><span class="nt">&quot;timestamp&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;2026-06-08T12:00:00.000Z&quot;</span><span class="p">,</span>
+<a id="__codelineno-17-3" name="__codelineno-17-3" href="#__codelineno-17-3"></a><span class="w">  </span><span class="nt">&quot;level&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;ERROR&quot;</span><span class="p">,</span>
+<a id="__codelineno-17-4" name="__codelineno-17-4" href="#__codelineno-17-4"></a><span class="w">  </span><span class="nt">&quot;module&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;etap_integration.etap_com&quot;</span><span class="p">,</span>
+<a id="__codelineno-17-5" name="__codelineno-17-5" href="#__codelineno-17-5"></a><span class="w">  </span><span class="nt">&quot;message&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;ETAP COM connection failed&quot;</span><span class="p">,</span>
+<a id="__codelineno-17-6" name="__codelineno-17-6" href="#__codelineno-17-6"></a><span class="w">  </span><span class="nt">&quot;error_code&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;ERR-001&quot;</span><span class="p">,</span>
+<a id="__codelineno-17-7" name="__codelineno-17-7" href="#__codelineno-17-7"></a><span class="w">  </span><span class="nt">&quot;task_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;wf_20260608_120000&quot;</span><span class="p">,</span>
+<a id="__codelineno-17-8" name="__codelineno-17-8" href="#__codelineno-17-8"></a><span class="w">  </span><span class="nt">&quot;user&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;engineer@example.com&quot;</span><span class="p">,</span>
+<a id="__codelineno-17-9" name="__codelineno-17-9" href="#__codelineno-17-9"></a><span class="w">  </span><span class="nt">&quot;duration_ms&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">15342</span><span class="p">,</span>
+<a id="__codelineno-17-10" name="__codelineno-17-10" href="#__codelineno-17-10"></a><span class="w">  </span><span class="nt">&quot;details&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-17-11" name="__codelineno-17-11" href="#__codelineno-17-11"></a><span class="w">    </span><span class="nt">&quot;reason&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;ETAP not installed&quot;</span><span class="p">,</span>
+<a id="__codelineno-17-12" name="__codelineno-17-12" href="#__codelineno-17-12"></a><span class="w">    </span><span class="nt">&quot;attempt&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">3</span><span class="p">,</span>
+<a id="__codelineno-17-13" name="__codelineno-17-13" href="#__codelineno-17-13"></a><span class="w">    </span><span class="nt">&quot;last_error&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;pythoncom.com_error: (-2147221164, &#39;Class not registered&#39;, None, None)&quot;</span>
+<a id="__codelineno-17-14" name="__codelineno-17-14" href="#__codelineno-17-14"></a><span class="w">  </span><span class="p">},</span>
+<a id="__codelineno-17-15" name="__codelineno-17-15" href="#__codelineno-17-15"></a><span class="w">  </span><span class="nt">&quot;stack_trace&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Traceback (most recent call last):\n  ...&quot;</span>
+<a id="__codelineno-17-16" name="__codelineno-17-16" href="#__codelineno-17-16"></a><span class="p">}</span>
+</code></pre></div>
+<h4 id="log-query-examples">Log Query Examples</h4>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a># Find all ERROR level logs in the last hour
+<a id="__codelineno-18-2" name="__codelineno-18-2" href="#__codelineno-18-2"></a>Get-Content logs\python-backend.log | Select-String &#39;&quot;level&quot;:&quot;ERROR&quot;&#39; | Select-String &quot;2026-06-08T1[2-3]&quot;
+<a id="__codelineno-18-3" name="__codelineno-18-3" href="#__codelineno-18-3"></a>
+<a id="__codelineno-18-4" name="__codelineno-18-4" href="#__codelineno-18-4"></a># Find all ERR-001 occurrences
+<a id="__codelineno-18-5" name="__codelineno-18-5" href="#__codelineno-18-5"></a>Get-Content logs\etap-com.log | Select-String &quot;ERR-001&quot;
+<a id="__codelineno-18-6" name="__codelineno-18-6" href="#__codelineno-18-6"></a>
+<a id="__codelineno-18-7" name="__codelineno-18-7" href="#__codelineno-18-7"></a># Find logs for a specific task
+<a id="__codelineno-18-8" name="__codelineno-18-8" href="#__codelineno-18-8"></a>Get-Content logs\*.log | Select-String &quot;wf_20260608_120000&quot;
+<a id="__codelineno-18-9" name="__codelineno-18-9" href="#__codelineno-18-9"></a>
+<a id="__codelineno-18-10" name="__codelineno-18-10" href="#__codelineno-18-10"></a># Calculate error rate per minute
+<a id="__codelineno-18-11" name="__codelineno-18-11" href="#__codelineno-18-11"></a>Get-Content logs\python-backend.log | Select-String &quot;ERROR&quot; | Group-Object { $_.substring(0, 16) } | Format-Table Count, Name
+<a id="__codelineno-18-12" name="__codelineno-18-12" href="#__codelineno-18-12"></a>
+<a id="__codelineno-18-13" name="__codelineno-18-13" href="#__codelineno-18-13"></a># Top 10 slowest operations
+<a id="__codelineno-18-14" name="__codelineno-18-14" href="#__codelineno-18-14"></a>Get-Content logs\etap-com.log | ConvertFrom-Json | Where-Object { $_.duration_ms -gt 10000 } | Sort-Object duration_ms -Descending | Select-Object -First 10
+</code></pre></div>
+<hr />
+<h2 id="4-incident-response">4. Incident Response</h2>
+<h3 id="41-incident-severity-classification">4.1 Incident Severity Classification</h3>
+<table>
+<thead>
+<tr>
+<th>Severity</th>
+<th>Label</th>
+<th>Definition</th>
+<th>Response Time</th>
+<th>Example</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>P1</td>
+<td>Critical</td>
+<td>Complete service outage, data loss, security breach</td>
+<td>&lt; 15 min</td>
+<td>Platform completely down, database corrupted</td>
+</tr>
+<tr>
+<td>P2</td>
+<td>High</td>
+<td>Major feature degradation, partial outage, performance severe</td>
+<td>&lt; 1 hour</td>
+<td>ETAP integration down, calculations failing</td>
+</tr>
+<tr>
+<td>P3</td>
+<td>Medium</td>
+<td>Minor feature impact, non-critical degradation</td>
+<td>&lt; 4 hours</td>
+<td>Report generation slow, some studies non-converging</td>
+</tr>
+<tr>
+<td>P4</td>
+<td>Low</td>
+<td>Cosmetic issues, minor bugs, documentation gaps</td>
+<td>&lt; 24 hours</td>
+<td>Minor UI issues, non-critical log warnings</td>
+</tr>
+</tbody>
+</table>
+<h3 id="42-response-times">4.2 Response Times</h3>
+<table>
+<thead>
+<tr>
+<th>Severity</th>
+<th>Initial Response</th>
+<th>Status Update</th>
+<th>Resolution Target</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>P1</td>
+<td>15 minutes</td>
+<td>Every 30 minutes</td>
+<td>4 hours</td>
+</tr>
+<tr>
+<td>P2</td>
+<td>1 hour</td>
+<td>Every 2 hours</td>
+<td>8 hours</td>
+</tr>
+<tr>
+<td>P3</td>
+<td>4 hours</td>
+<td>Every 8 hours</td>
+<td>24 hours</td>
+</tr>
+<tr>
+<td>P4</td>
+<td>24 hours</td>
+<td>Every 48 hours</td>
+<td>72 hours</td>
+</tr>
+</tbody>
+</table>
+<h3 id="43-escalation-matrix">4.3 Escalation Matrix</h3>
+<table>
+<thead>
+<tr>
+<th>Role</th>
+<th>Name</th>
+<th>Contact</th>
+<th>Available</th>
+<th>Escalation For</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Primary On-Call Engineer</td>
+<td>-</td>
+<td>PagerDuty / +1-XXX-XXX-XXXX</td>
+<td>24/7</td>
+<td>P1, P2</td>
+</tr>
+<tr>
+<td>Engineering Lead</td>
+<td>-</td>
+<td>+1-XXX-XXX-XXXX</td>
+<td>Business hours</td>
+<td>P1 unresolved &gt;1hr</td>
+</tr>
+<tr>
+<td>DevOps Engineer</td>
+<td>-</td>
+<td>+1-XXX-XXX-XXXX</td>
+<td>24/7</td>
+<td>Infrastructure issues</td>
+</tr>
+<tr>
+<td>Security Lead</td>
+<td>-</td>
+<td>+1-XXX-XXX-XXXX</td>
+<td>24/7</td>
+<td>Security incidents</td>
+</tr>
+<tr>
+<td>ETAP Support</td>
+<td>ETAP Inc.</td>
+<td>+1-949-900-1000</td>
+<td>Business hours</td>
+<td>ETAP-specific issues</td>
+</tr>
+<tr>
+<td>VP Engineering</td>
+<td>-</td>
+<td>+1-XXX-XXX-XXXX</td>
+<td>Business hours</td>
+<td>P1 unresolved &gt;4hrs</td>
+</tr>
+</tbody>
+</table>
+<h3 id="44-incident-response-procedures">4.4 Incident Response Procedures</h3>
+<h4 id="441-service-outage-p1">4.4.1 Service Outage (P1)</h4>
+<p><strong>Symptoms:</strong>
+- All health checks fail
+- HTTP 502/503 for all endpoints
+- No process running on ports 3000/8000
+- <code>docker ps</code> shows no running containers</p>
+<p><strong>Immediate Actions (First 15 minutes):</strong>
+1. <strong>Acknowledge incident</strong> via PagerDuty
+2. <strong>Check platform status:</strong>
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-19-1" name="__codelineno-19-1" href="#__codelineno-19-1"></a>docker-compose ps
+<a id="__codelineno-19-2" name="__codelineno-19-2" href="#__codelineno-19-2"></a>docker logs etap-platform --tail 100
+</code></pre></div>
+3. <strong>Attempt quick restart:</strong>
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-20-1" name="__codelineno-20-1" href="#__codelineno-20-1"></a>docker-compose restart
+</code></pre></div>
+4. <strong>Check host system:</strong>
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-21-1" name="__codelineno-21-1" href="#__codelineno-21-1"></a>systeminfo | findstr &quot;Total Physical Memory&quot;
+<a id="__codelineno-21-2" name="__codelineno-21-2" href="#__codelineno-21-2"></a>dir C:\  # Check disk space
+<a id="__codelineno-21-3" name="__codelineno-21-3" href="#__codelineno-21-3"></a>netstat -ano | findstr &quot;:3000 :8000&quot;
+</code></pre></div>
+5. <strong>If restart fails, try rebuild:</strong>
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-22-1" name="__codelineno-22-1" href="#__codelineno-22-1"></a>docker-compose down --timeout 0
+<a id="__codelineno-22-2" name="__codelineno-22-2" href="#__codelineno-22-2"></a>docker-compose up -d --build
+</code></pre></div></p>
+<p><strong>Diagnostic Actions (15-60 minutes):</strong>
+1. Collect full diagnostic bundle (see Troubleshooting Guide Section 12.2)
+2. Check if related to recent deployment:
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-23-1" name="__codelineno-23-1" href="#__codelineno-23-1"></a>git log --oneline -10
+</code></pre></div>
+3. Check resource constraints:
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-24-1" name="__codelineno-24-1" href="#__codelineno-24-1"></a>docker stats --no-stream
+</code></pre></div>
+4. Check ETAP status:
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-25-1" name="__codelineno-25-1" href="#__codelineno-25-1"></a>tasklist | findstr /I etap
+</code></pre></div></p>
+<p><strong>Resolution Actions (1-4 hours):</strong>
+1. If resource exhaustion: increase limits, kill non-essential processes
+2. If code regression: rollback to last known good version:
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-26-1" name="__codelineno-26-1" href="#__codelineno-26-1"></a>git revert HEAD
+<a id="__codelineno-26-2" name="__codelineno-26-2" href="#__codelineno-26-2"></a>docker-compose up -d --build
+</code></pre></div>
+3. If data corruption: restore from latest backup
+4. If environment issue: restore <code>.env</code> from backup</p>
+<p><strong>Post-Incident:</strong>
+1. Update status page
+2. Document root cause in post-mortem
+3. Add monitoring alert if missing
+4. Update runbook with lessons learned</p>
+<h4 id="442-security-breach-p1">4.4.2 Security Breach (P1)</h4>
+<p><strong>Symptoms:</strong>
+- Unauthorized API access detected
+- Suspicious audit log entries
+- Unknown API keys being used
+- Data exfiltration alerts
+- Multiple failed login attempts from unusual IPs</p>
+<p><strong>Immediate Actions (First 15 minutes):</strong>
+1. <strong>Isolate the platform:</strong>
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-27-1" name="__codelineno-27-1" href="#__codelineno-27-1"></a># Block all external traffic at Nginx/firewall level
+<a id="__codelineno-27-2" name="__codelineno-27-2" href="#__codelineno-27-2"></a>docker-compose stop
+</code></pre></div>
+2. <strong>Preserve evidence:</strong>
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-28-1" name="__codelineno-28-1" href="#__codelineno-28-1"></a># Copy logs before they rotate
+<a id="__codelineno-28-2" name="__codelineno-28-2" href="#__codelineno-28-2"></a>copy logs\security.log logs\security_incident_$(date +%Y%m%d_%H%M%S).log
+</code></pre></div>
+3. <strong>Rotate all secrets:</strong>
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-29-1" name="__codelineno-29-1" href="#__codelineno-29-1"></a># Regenerate JWT_SECRET_KEY
+<a id="__codelineno-29-2" name="__codelineno-29-2" href="#__codelineno-29-2"></a># Regenerate OPENAI_API_KEY in OpenAI dashboard
+<a id="__codelineno-29-3" name="__codelineno-29-3" href="#__codelineno-29-3"></a># Update .env file
+</code></pre></div>
+4. <strong>Notify security team immediately</strong></p>
+<p><strong>Investigation Actions (1-4 hours):</strong>
+1. Review security logs for the affected period
+2. Check for unauthorized database access
+3. Review network access logs
+4. Identify compromised accounts and revoke access
+5. Determine scope of data exposure</p>
+<p><strong>Recovery Actions (4-8 hours):</strong>
+1. Restore from pre-incident backup
+2. Deploy with new secrets and certificates
+3. Enable additional security measures (IP allowlisting)
+4. Notify affected users if PII was exposed</p>
+<p><strong>Post-Incident:</strong>
+1. Full security audit
+2. Implement additional security controls
+3. Update incident response plan
+4. Legal notification if required</p>
+<h4 id="443-data-corruption-p1-p2">4.4.3 Data Corruption (P1-P2)</h4>
+<p><strong>Symptoms:</strong>
+- <code>DATABASE_CORRUPTION</code> error (ERR-033)
+- SQLite integrity check fails
+- Reports contain garbage data
+- Agent returns nonsensical results
+- RAG vector DB returns irrelevant results</p>
+<p><strong>Immediate Actions:</strong>
+1. <strong>Stop all write operations:</strong>
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-30-1" name="__codelineno-30-1" href="#__codelineno-30-1"></a>docker-compose pause
+</code></pre></div>
+2. <strong>Backup corrupted data (for investigation):</strong>
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-31-1" name="__codelineno-31-1" href="#__codelineno-31-1"></a>copy mastra.db mastra.db.corrupted_$(date +%Y%m%d)
+</code></pre></div>
+3. <strong>Check what's affected:</strong>
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-32-1" name="__codelineno-32-1" href="#__codelineno-32-1"></a>python -c &quot;
+<a id="__codelineno-32-2" name="__codelineno-32-2" href="#__codelineno-32-2"></a>import sqlite3
+<a id="__codelineno-32-3" name="__codelineno-32-3" href="#__codelineno-32-3"></a>conn = sqlite3.connect(&#39;mastra.db&#39;)
+<a id="__codelineno-32-4" name="__codelineno-32-4" href="#__codelineno-32-4"></a>cursor = conn.execute(&#39;PRAGMA integrity_check&#39;)
+<a id="__codelineno-32-5" name="__codelineno-32-5" href="#__codelineno-32-5"></a>result = cursor.fetchall()
+<a id="__codelineno-32-6" name="__codelineno-32-6" href="#__codelineno-32-6"></a>print(f&#39;Integrity check: {result}&#39;)
+<a id="__codelineno-32-7" name="__codelineno-32-7" href="#__codelineno-32-7"></a>conn.close()
+<a id="__codelineno-32-8" name="__codelineno-32-8" href="#__codelineno-32-8"></a>&quot;
+</code></pre></div></p>
+<p><strong>Restoration Actions:</strong>
+1. Identify the latest uncorrupted backup
+2. Restore database from backup (see Section 2.5)
+3. If RAG vector DB is corrupted, rebuild from source documents:
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-33-1" name="__codelineno-33-1" href="#__codelineno-33-1"></a>python -c &quot;
+<a id="__codelineno-33-2" name="__codelineno-33-2" href="#__codelineno-33-2"></a>from knowledge.rag_engine import RAGEngine
+<a id="__codelineno-33-3" name="__codelineno-33-3" href="#__codelineno-33-3"></a>engine = RAGEngine()
+<a id="__codelineno-33-4" name="__codelineno-33-4" href="#__codelineno-33-4"></a>engine.rebuild_index(source_documents=&#39;knowledge/&#39;)
+<a id="__codelineno-33-5" name="__codelineno-33-5" href="#__codelineno-33-5"></a>print(&#39;Vector DB rebuilt&#39;)
+<a id="__codelineno-33-6" name="__codelineno-33-6" href="#__codelineno-33-6"></a>&quot;
+</code></pre></div>
+4. Verify data integrity after restore
+5. Resume services</p>
+<p><strong>Prevention:</strong>
+- Enable WAL mode for SQLite
+- Use UPS with graceful shutdown
+- Implement write-ahead logging
+- Increase backup frequency</p>
+<h4 id="444-performance-degradation-p2-p3">4.4.4 Performance Degradation (P2-P3)</h4>
+<p><strong>Symptoms:</strong>
+- Response times exceed P95 threshold &gt;5s
+- High CPU/memory usage
+- Study completion rate drops below 90%
+- Queue depth growing
+- Users reporting slow operations</p>
+<p><strong>Diagnostic Flow:</strong></p>
+<ol>
+<li>
+<p><strong>Identify bottleneck:</strong>
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-34-1" name="__codelineno-34-1" href="#__codelineno-34-1"></a># Check CPU/memory per process
+<a id="__codelineno-34-2" name="__codelineno-34-2" href="#__codelineno-34-2"></a>docker stats --no-stream
+<a id="__codelineno-34-3" name="__codelineno-34-3" href="#__codelineno-34-3"></a>
+<a id="__codelineno-34-4" name="__codelineno-34-4" href="#__codelineno-34-4"></a># Check calculation engine performance
+<a id="__codelineno-34-5" name="__codelineno-34-5" href="#__codelineno-34-5"></a>python -c &quot;
+<a id="__codelineno-34-6" name="__codelineno-34-6" href="#__codelineno-34-6"></a>from load_flow.load_flow import LoadFlowEngine
+<a id="__codelineno-34-7" name="__codelineno-34-7" href="#__codelineno-34-7"></a>engine = LoadFlowEngine()
+<a id="__codelineno-34-8" name="__codelineno-34-8" href="#__codelineno-34-8"></a>engine.benchmark()
+<a id="__codelineno-34-9" name="__codelineno-34-9" href="#__codelineno-34-9"></a># Compare against known baselines
+<a id="__codelineno-34-10" name="__codelineno-34-10" href="#__codelineno-34-10"></a>&quot;
+<a id="__codelineno-34-11" name="__codelineno-34-11" href="#__codelineno-34-11"></a>
+<a id="__codelineno-34-12" name="__codelineno-34-12" href="#__codelineno-34-12"></a># Check database query performance
+<a id="__codelineno-34-13" name="__codelineno-34-13" href="#__codelineno-34-13"></a>python -c &quot;
+<a id="__codelineno-34-14" name="__codelineno-34-14" href="#__codelineno-34-14"></a>import sqlite3
+<a id="__codelineno-34-15" name="__codelineno-34-15" href="#__codelineno-34-15"></a>conn = sqlite3.connect(&#39;mastra.db&#39;)
+<a id="__codelineno-34-16" name="__codelineno-34-16" href="#__codelineno-34-16"></a>import time
+<a id="__codelineno-34-17" name="__codelineno-34-17" href="#__codelineno-34-17"></a>start = time.time()
+<a id="__codelineno-34-18" name="__codelineno-34-18" href="#__codelineno-34-18"></a>conn.execute(&#39;SELECT COUNT(*) FROM tasks&#39;).fetchone()
+<a id="__codelineno-34-19" name="__codelineno-34-19" href="#__codelineno-34-19"></a>print(f&#39;Query time: {(time.time()-start)*1000:.1f}ms&#39;)
+<a id="__codelineno-34-20" name="__codelineno-34-20" href="#__codelineno-34-20"></a>&quot;
+</code></pre></div></p>
+</li>
+<li>
+<p><strong>Check for resource contention:</strong>
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-35-1" name="__codelineno-35-1" href="#__codelineno-35-1"></a># Number of concurrent studies
+<a id="__codelineno-35-2" name="__codelineno-35-2" href="#__codelineno-35-2"></a>curl http://localhost:8000/metrics | findstr active_workflows
+<a id="__codelineno-35-3" name="__codelineno-35-3" href="#__codelineno-35-3"></a>
+<a id="__codelineno-35-4" name="__codelineno-35-4" href="#__codelineno-35-4"></a># Queue depth
+<a id="__codelineno-35-5" name="__codelineno-35-5" href="#__codelineno-35-5"></a>curl http://localhost:8000/metrics | findstr queue_depth
+</code></pre></div></p>
+</li>
+<li>
+<p><strong>Check for slow ETAP operations:</strong>
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-36-1" name="__codelineno-36-1" href="#__codelineno-36-1"></a>Get-Content logs\etap-com.log | ConvertFrom-Json | Where-Object { $_.duration_ms -gt 10000 } | Format-Table timestamp, operation, duration_ms -AutoSize
+</code></pre></div></p>
+</li>
+</ol>
+<p><strong>Resolution Options:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Issue</th>
+<th>Solution</th>
+<th>Implementation</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>High concurrent load</td>
+<td>Scale horizontally</td>
+<td><code>docker-compose up -d --scale etap-platform=5</code></td>
+</tr>
+<tr>
+<td>Slow calculations</td>
+<td>Use fast decoupled method</td>
+<td>Set <code>METHOD=FAST_DECOUPLED</code> in config</td>
+</tr>
+<tr>
+<td>Memory pressure</td>
+<td>Reduce model size</td>
+<td>Switch to <code>all-MiniLM-L6-v2</code> embedding</td>
+</tr>
+<tr>
+<td>Database slow</td>
+<td>Add indexes</td>
+<td><code>CREATE INDEX idx_tasks_status ON tasks(status)</code></td>
+</tr>
+<tr>
+<td>ETAP slow</td>
+<td>Reduce COM polling frequency</td>
+<td>Increase <code>COM_POLL_INTERVAL</code> in .env</td>
+</tr>
+<tr>
+<td>Queue backed up</td>
+<td>Add workers</td>
+<td><code>docker-compose up -d --scale worker=3</code></td>
+</tr>
+</tbody>
+</table>
+<h4 id="445-etap-crash-p2">4.4.5 ETAP Crash (P2)</h4>
+<p><strong>Symptoms:</strong>
+- <code>ETAP_COM_CONNECTION_FAILED</code> (ERR-001)
+- ETAP process no longer in task list
+- ETAP windows disappear
+- COM operations return "Call was rejected by callee"</p>
+<p><strong>Immediate Actions:</strong>
+1. <strong>Check if ETAP process is still running:</strong>
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-37-1" name="__codelineno-37-1" href="#__codelineno-37-1"></a>tasklist | findstr /I etap
+</code></pre></div></p>
+<ol>
+<li>
+<p><strong>Check Windows Event Viewer for ETAP errors:</strong>
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-38-1" name="__codelineno-38-1" href="#__codelineno-38-1"></a>Get-WinEvent -LogName Application | Where-Object { $_.ProviderName -like &quot;*ETAP*&quot; } | Select-Object -First 5
+</code></pre></div></p>
+</li>
+<li>
+<p><strong>Restart ETAP:</strong>
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-39-1" name="__codelineno-39-1" href="#__codelineno-39-1"></a>python -c &quot;
+<a id="__codelineno-39-2" name="__codelineno-39-2" href="#__codelineno-39-2"></a>from etap_integration.etap_com import ETAPAutomation
+<a id="__codelineno-39-3" name="__codelineno-39-3" href="#__codelineno-39-3"></a># This will launch a new ETAP instance
+<a id="__codelineno-39-4" name="__codelineno-39-4" href="#__codelineno-39-4"></a>with ETAPAutomation(visible=False) as etap:
+<a id="__codelineno-39-5" name="__codelineno-39-5" href="#__codelineno-39-5"></a>    print(f&#39;ETAP restarted: v{etap.get_version()}&#39;)
+<a id="__codelineno-39-6" name="__codelineno-39-6" href="#__codelineno-39-6"></a>&quot;
+</code></pre></div></p>
+</li>
+<li>
+<p><strong>If restart fails:</strong></p>
+</li>
+<li>Reboot the Windows host: <code>shutdown /r /t 60</code></li>
+<li>Or manually launch ETAP from Start Menu</li>
+</ol>
+<p><strong>Root Cause Investigation:</strong>
+- Check ETAP crash logs: <code>%APPDATA%\ETAP\*\Logs\</code>
+- Check for Windows crash dumps: <code>%LOCALAPPDATA%\CrashDumps</code>
+- Verify ETAP license is valid
+- Check for ETAP updates or patches</p>
+<p><strong>Prevention:</strong>
+- Configure automatic ETAP restart via Windows Task Scheduler
+- Implement ETAP health monitoring in the platform
+- Use a separate Windows VM/bare metal for ETAP
+- Keep ETAP and COM components updated</p>
+<hr />
+<h2 id="5-maintenance">5. Maintenance</h2>
+<h3 id="51-regular-maintenance-tasks">5.1 Regular Maintenance Tasks</h3>
+<table>
+<thead>
+<tr>
+<th>Frequency</th>
+<th>Task</th>
+<th>Responsibility</th>
+<th>Duration</th>
+<th>Impact</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Daily</td>
+<td>Verify health check</td>
+<td>Operator</td>
+<td>5 min</td>
+<td>None</td>
+</tr>
+<tr>
+<td>Daily</td>
+<td>Review error logs</td>
+<td>Operator</td>
+<td>10 min</td>
+<td>None</td>
+</tr>
+<tr>
+<td>Daily</td>
+<td>Backup databases</td>
+<td>Automated</td>
+<td>15 min</td>
+<td>Minimal (pause services)</td>
+</tr>
+<tr>
+<td>Weekly</td>
+<td>Review backup integrity</td>
+<td>Operator</td>
+<td>15 min</td>
+<td>None</td>
+</tr>
+<tr>
+<td>Weekly</td>
+<td>Check disk usage</td>
+<td>Automated</td>
+<td>5 min</td>
+<td>None</td>
+</tr>
+<tr>
+<td>Bi-weekly</td>
+<td>Update dependencies</td>
+<td>DevOps</td>
+<td>1 hour</td>
+<td>Requires restart</td>
+</tr>
+<tr>
+<td>Monthly</td>
+<td>Certificate renewal</td>
+<td>DevOps</td>
+<td>30 min</td>
+<td>Requires restart</td>
+</tr>
+<tr>
+<td>Monthly</td>
+<td>Log rotation verification</td>
+<td>Operator</td>
+<td>10 min</td>
+<td>None</td>
+</tr>
+<tr>
+<td>Monthly</td>
+<td>Performance benchmark</td>
+<td>Engineering</td>
+<td>2 hours</td>
+<td>None</td>
+</tr>
+<tr>
+<td>Quarterly</td>
+<td>Full DR test</td>
+<td>DevOps + Engineering</td>
+<td>4 hours</td>
+<td>Requires downtime</td>
+</tr>
+<tr>
+<td>Quarterly</td>
+<td>Dependency audit</td>
+<td>Engineering</td>
+<td>2 hours</td>
+<td>None</td>
+</tr>
+<tr>
+<td>Annually</td>
+<td>Security audit</td>
+<td>Security + Engineering</td>
+<td>8 hours</td>
+<td>Requires downtime</td>
+</tr>
+</tbody>
+</table>
+<h3 id="52-database-maintenance">5.2 Database Maintenance</h3>
+<h4 id="sqlite-maintenance">SQLite Maintenance</h4>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-40-1" name="__codelineno-40-1" href="#__codelineno-40-1"></a># Reclaim disk space after deletions
+<a id="__codelineno-40-2" name="__codelineno-40-2" href="#__codelineno-40-2"></a>python -c &quot;
+<a id="__codelineno-40-3" name="__codelineno-40-3" href="#__codelineno-40-3"></a>import sqlite3
+<a id="__codelineno-40-4" name="__codelineno-40-4" href="#__codelineno-40-4"></a>conn = sqlite3.connect(&#39;mastra.db&#39;)
+<a id="__codelineno-40-5" name="__codelineno-40-5" href="#__codelineno-40-5"></a>conn.execute(&#39;VACUUM&#39;)
+<a id="__codelineno-40-6" name="__codelineno-40-6" href="#__codelineno-40-6"></a>print(&#39;Database vacuum completed&#39;)
+<a id="__codelineno-40-7" name="__codelineno-40-7" href="#__codelineno-40-7"></a>conn.close()
+<a id="__codelineno-40-8" name="__codelineno-40-8" href="#__codelineno-40-8"></a>&quot;
+<a id="__codelineno-40-9" name="__codelineno-40-9" href="#__codelineno-40-9"></a>
+<a id="__codelineno-40-10" name="__codelineno-40-10" href="#__codelineno-40-10"></a># Rebuild indexes for better performance
+<a id="__codelineno-40-11" name="__codelineno-40-11" href="#__codelineno-40-11"></a>python -c &quot;
+<a id="__codelineno-40-12" name="__codelineno-40-12" href="#__codelineno-40-12"></a>import sqlite3
+<a id="__codelineno-40-13" name="__codelineno-40-13" href="#__codelineno-40-13"></a>conn = sqlite3.connect(&#39;mastra.db&#39;)
+<a id="__codelineno-40-14" name="__codelineno-40-14" href="#__codelineno-40-14"></a>conn.execute(&#39;REINDEX&#39;)
+<a id="__codelineno-40-15" name="__codelineno-40-15" href="#__codelineno-40-15"></a>print(&#39;Indexes rebuilt&#39;)
+<a id="__codelineno-40-16" name="__codelineno-40-16" href="#__codelineno-40-16"></a>conn.close()
+<a id="__codelineno-40-17" name="__codelineno-40-17" href="#__codelineno-40-17"></a>&quot;
+<a id="__codelineno-40-18" name="__codelineno-40-18" href="#__codelineno-40-18"></a>
+<a id="__codelineno-40-19" name="__codelineno-40-19" href="#__codelineno-40-19"></a># Analyze query optimizer statistics
+<a id="__codelineno-40-20" name="__codelineno-40-20" href="#__codelineno-40-20"></a>python -c &quot;
+<a id="__codelineno-40-21" name="__codelineno-40-21" href="#__codelineno-40-21"></a>import sqlite3
+<a id="__codelineno-40-22" name="__codelineno-40-22" href="#__codelineno-40-22"></a>conn = sqlite3.connect(&#39;mastra.db&#39;)
+<a id="__codelineno-40-23" name="__codelineno-40-23" href="#__codelineno-40-23"></a>conn.execute(&#39;ANALYZE&#39;)
+<a id="__codelineno-40-24" name="__codelineno-40-24" href="#__codelineno-40-24"></a>print(&#39;Query statistics updated&#39;)
+<a id="__codelineno-40-25" name="__codelineno-40-25" href="#__codelineno-40-25"></a>conn.close()
+<a id="__codelineno-40-26" name="__codelineno-40-26" href="#__codelineno-40-26"></a>&quot;
+</code></pre></div>
+<h4 id="scheduled-maintenance-script">Scheduled Maintenance Script</h4>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-41-1" name="__codelineno-41-1" href="#__codelineno-41-1"></a># Create: maintenance.ps1 (run weekly via Task Scheduler)
+<a id="__codelineno-41-2" name="__codelineno-41-2" href="#__codelineno-41-2"></a>Write-Host &quot;=== ETAP Platform Weekly Maintenance ===&quot; -ForegroundColor Cyan
+<a id="__codelineno-41-3" name="__codelineno-41-3" href="#__codelineno-41-3"></a>
+<a id="__codelineno-41-4" name="__codelineno-41-4" href="#__codelineno-41-4"></a>Write-Host &quot;[1/6] Checking disk space...&quot;
+<a id="__codelineno-41-5" name="__codelineno-41-5" href="#__codelineno-41-5"></a>$disk = Get-PSDrive C | Select-Object Free, Used
+<a id="__codelineno-41-6" name="__codelineno-41-6" href="#__codelineno-41-6"></a>$freeGB = [math]::Round($disk.Free / 1GB, 2)
+<a id="__codelineno-41-7" name="__codelineno-41-7" href="#__codelineno-41-7"></a>Write-Host &quot;  Free space: $freeGB GB&quot;
+<a id="__codelineno-41-8" name="__codelineno-41-8" href="#__codelineno-41-8"></a>if ($freeGB -lt 10) { Write-Warning &quot;Low disk space!&quot; }
+<a id="__codelineno-41-9" name="__codelineno-41-9" href="#__codelineno-41-9"></a>
+<a id="__codelineno-41-10" name="__codelineno-41-10" href="#__codelineno-41-10"></a>Write-Host &quot;[2/6] Vacuuming database...&quot;
+<a id="__codelineno-41-11" name="__codelineno-41-11" href="#__codelineno-41-11"></a>python -c &quot;import sqlite3; sqlite3.connect(&#39;mastra.db&#39;).execute(&#39;VACUUM&#39;)&quot;
+<a id="__codelineno-41-12" name="__codelineno-41-12" href="#__codelineno-41-12"></a>if ($LASTEXITCODE -eq 0) { Write-Host &quot;  Database vacuum: OK&quot; }
+<a id="__codelineno-41-13" name="__codelineno-41-13" href="#__codelineno-41-13"></a>
+<a id="__codelineno-41-14" name="__codelineno-41-14" href="#__codelineno-41-14"></a>Write-Host &quot;[3/6] Rotating logs...&quot;
+<a id="__codelineno-41-15" name="__codelineno-41-15" href="#__codelineno-41-15"></a>Get-ChildItem &quot;logs\*.log&quot; | Where-Object { $_.LastWriteTime -lt (Get-Date).AddDays(-30) } | Remove-Item
+<a id="__codelineno-41-16" name="__codelineno-41-16" href="#__codelineno-41-16"></a>Write-Host &quot;  Old logs cleaned&quot;
+<a id="__codelineno-41-17" name="__codelineno-41-17" href="#__codelineno-41-17"></a>
+<a id="__codelineno-41-18" name="__codelineno-41-18" href="#__codelineno-41-18"></a>Write-Host &quot;[4/6] Cleaning old reports...&quot;
+<a id="__codelineno-41-19" name="__codelineno-41-19" href="#__codelineno-41-19"></a>Get-ChildItem &quot;reports\*&quot; -Directory | Where-Object { $_.LastWriteTime -lt (Get-Date).AddDays(-90) } | Remove-Item -Recurse -Force
+<a id="__codelineno-41-20" name="__codelineno-41-20" href="#__codelineno-41-20"></a>Get-ChildItem &quot;reports\*.pdf&quot;,&quot;reports\*.docx&quot;,&quot;reports\*.xlsx&quot; | Where-Object { $_.LastWriteTime -lt (Get-Date).AddDays(-30) } | Remove-Item
+<a id="__codelineno-41-21" name="__codelineno-41-21" href="#__codelineno-41-21"></a>Write-Host &quot;  Old reports cleaned&quot;
+<a id="__codelineno-41-22" name="__codelineno-41-22" href="#__codelineno-41-22"></a>
+<a id="__codelineno-41-23" name="__codelineno-41-23" href="#__codelineno-41-23"></a>Write-Host &quot;[5/6] Verifying database integrity...&quot;
+<a id="__codelineno-41-24" name="__codelineno-41-24" href="#__codelineno-41-24"></a>python -c &quot;import sqlite3; c=sqlite3.connect(&#39;mastra.db&#39;); assert c.execute(&#39;PRAGMA integrity_check&#39;).fetchone()[0]==&#39;ok&#39;; print(&#39;  Integrity: OK&#39;)&quot;
+<a id="__codelineno-41-25" name="__codelineno-41-25" href="#__codelineno-41-25"></a>
+<a id="__codelineno-41-26" name="__codelineno-41-26" href="#__codelineno-41-26"></a>Write-Host &quot;[6/6] Taking weekly backup...&quot;
+<a id="__codelineno-41-27" name="__codelineno-41-27" href="#__codelineno-41-27"></a>&amp; &quot;.\backup.ps1&quot;
+<a id="__codelineno-41-28" name="__codelineno-41-28" href="#__codelineno-41-28"></a>
+<a id="__codelineno-41-29" name="__codelineno-41-29" href="#__codelineno-41-29"></a>Write-Host &quot;=== Maintenance Complete ===&quot; -ForegroundColor Green
+</code></pre></div>
+<h3 id="53-log-rotation">5.3 Log Rotation</h3>
+<h4 id="configuration-loggingconf-or-environment-variables">Configuration (logging.conf or environment variables)</h4>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-42-1" name="__codelineno-42-1" href="#__codelineno-42-1"></a># Python logging rotation (in main.py or logging config)
+<a id="__codelineno-42-2" name="__codelineno-42-2" href="#__codelineno-42-2"></a>LOGGING_MAX_BYTES=10485760      # 10MB per log file
+<a id="__codelineno-42-3" name="__codelineno-42-3" href="#__codelineno-42-3"></a>LOGGING_BACKUP_COUNT=30         # Keep 30 rotated files
+<a id="__codelineno-42-4" name="__codelineno-42-4" href="#__codelineno-42-4"></a>LOGGING_FORMAT=json             # JSON format for structured logging
+</code></pre></div>
+<h4 id="docker-log-rotation">Docker Log Rotation</h4>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-43-1" name="__codelineno-43-1" href="#__codelineno-43-1"></a><span class="c1"># In docker-compose.yml</span>
+<a id="__codelineno-43-2" name="__codelineno-43-2" href="#__codelineno-43-2"></a><span class="nt">services</span><span class="p">:</span>
+<a id="__codelineno-43-3" name="__codelineno-43-3" href="#__codelineno-43-3"></a><span class="w">  </span><span class="nt">etap-platform</span><span class="p">:</span>
+<a id="__codelineno-43-4" name="__codelineno-43-4" href="#__codelineno-43-4"></a><span class="w">    </span><span class="nt">logging</span><span class="p">:</span>
+<a id="__codelineno-43-5" name="__codelineno-43-5" href="#__codelineno-43-5"></a><span class="w">      </span><span class="nt">driver</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;json-file&quot;</span>
+<a id="__codelineno-43-6" name="__codelineno-43-6" href="#__codelineno-43-6"></a><span class="w">      </span><span class="nt">options</span><span class="p">:</span>
+<a id="__codelineno-43-7" name="__codelineno-43-7" href="#__codelineno-43-7"></a><span class="w">        </span><span class="nt">max-size</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;10m&quot;</span>
+<a id="__codelineno-43-8" name="__codelineno-43-8" href="#__codelineno-43-8"></a><span class="w">        </span><span class="nt">max-file</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;5&quot;</span>
+</code></pre></div>
+<h4 id="manual-log-rotation">Manual Log Rotation</h4>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-44-1" name="__codelineno-44-1" href="#__codelineno-44-1"></a># Compress and archive logs older than 7 days
+<a id="__codelineno-44-2" name="__codelineno-44-2" href="#__codelineno-44-2"></a>Compress-Archive -Path &quot;logs\*.log&quot; -DestinationPath &quot;logs\archive_$(Get-Date -Format yyyyMMdd).zip&quot;
+<a id="__codelineno-44-3" name="__codelineno-44-3" href="#__codelineno-44-3"></a>Remove-Item &quot;logs\*.log&quot; -Exclude &quot;python-backend.log&quot;  # Keep current
+<a id="__codelineno-44-4" name="__codelineno-44-4" href="#__codelineno-44-4"></a>
+<a id="__codelineno-44-5" name="__codelineno-44-5" href="#__codelineno-44-5"></a># Remove archives older than 90 days
+<a id="__codelineno-44-6" name="__codelineno-44-6" href="#__codelineno-44-6"></a>Get-ChildItem &quot;logs\archive_*.zip&quot; | Where-Object { $_.LastWriteTime -lt (Get-Date).AddDays(-90) } | Remove-Item
+</code></pre></div>
+<h3 id="54-certificate-renewal">5.4 Certificate Renewal</h3>
+<h4 id="ssltls-certificate-renewal-nginx">SSL/TLS Certificate Renewal (Nginx)</h4>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-45-1" name="__codelineno-45-1" href="#__codelineno-45-1"></a># Step 1: Obtain new certificate (Let&#39;s Encrypt)
+<a id="__codelineno-45-2" name="__codelineno-45-2" href="#__codelineno-45-2"></a>certbot renew --nginx
+<a id="__codelineno-45-3" name="__codelineno-45-3" href="#__codelineno-45-3"></a>
+<a id="__codelineno-45-4" name="__codelineno-45-4" href="#__codelineno-45-4"></a># Step 2: Verify certificate
+<a id="__codelineno-45-5" name="__codelineno-45-5" href="#__codelineno-45-5"></a>certbot certificates
+<a id="__codelineno-45-6" name="__codelineno-45-6" href="#__codelineno-45-6"></a>
+<a id="__codelineno-45-7" name="__codelineno-45-7" href="#__codelineno-45-7"></a># Step 3: Reload Nginx to apply new certificate
+<a id="__codelineno-45-8" name="__codelineno-45-8" href="#__codelineno-45-8"></a>docker exec etap-nginx nginx -s reload
+<a id="__codelineno-45-9" name="__codelineno-45-9" href="#__codelineno-45-9"></a>
+<a id="__codelineno-45-10" name="__codelineno-45-10" href="#__codelineno-45-10"></a># Step 4: Verify the new certificate
+<a id="__codelineno-45-11" name="__codelineno-45-11" href="#__codelineno-45-11"></a>openssl s_client -connect yourdomain.com:443 -servername yourdomain.com &lt; /dev/null 2&gt;/dev/null | openssl x509 -noout -dates
+</code></pre></div>
+<h4 id="self-signed-certificate-renewal">Self-Signed Certificate Renewal</h4>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-46-1" name="__codelineno-46-1" href="#__codelineno-46-1"></a># Step 1: Generate new self-signed cert
+<a id="__codelineno-46-2" name="__codelineno-46-2" href="#__codelineno-46-2"></a>openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
+<a id="__codelineno-46-3" name="__codelineno-46-3" href="#__codelineno-46-3"></a>    -keyout nginx/ssl/etap-platform.key \
+<a id="__codelineno-46-4" name="__codelineno-46-4" href="#__codelineno-46-4"></a>    -out nginx/ssl/etap-platform.crt \
+<a id="__codelineno-46-5" name="__codelineno-46-5" href="#__codelineno-46-5"></a>    -subj &quot;/C=US/ST=State/L=City/O=Organization/CN=etap-platform.local&quot;
+<a id="__codelineno-46-6" name="__codelineno-46-6" href="#__codelineno-46-6"></a>
+<a id="__codelineno-46-7" name="__codelineno-46-7" href="#__codelineno-46-7"></a># Step 2: Reload Nginx
+<a id="__codelineno-46-8" name="__codelineno-46-8" href="#__codelineno-46-8"></a>docker exec etap-nginx nginx -s reload
+<a id="__codelineno-46-9" name="__codelineno-46-9" href="#__codelineno-46-9"></a>
+<a id="__codelineno-46-10" name="__codelineno-46-10" href="#__codelineno-46-10"></a># Step 3: Verify
+<a id="__codelineno-46-11" name="__codelineno-46-11" href="#__codelineno-46-11"></a>openssl x509 -in nginx/ssl/etap-platform.crt -text -noout | grep &quot;Not After&quot;
+</code></pre></div>
+<h3 id="55-dependency-updates">5.5 Dependency Updates</h3>
+<h4 id="python-dependencies">Python Dependencies</h4>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-47-1" name="__codelineno-47-1" href="#__codelineno-47-1"></a># Step 1: Check for outdated packages
+<a id="__codelineno-47-2" name="__codelineno-47-2" href="#__codelineno-47-2"></a>pip list --outdated
+<a id="__codelineno-47-3" name="__codelineno-47-3" href="#__codelineno-47-3"></a>
+<a id="__codelineno-47-4" name="__codelineno-47-4" href="#__codelineno-47-4"></a># Step 2: Update specific packages
+<a id="__codelineno-47-5" name="__codelineno-47-5" href="#__codelineno-47-5"></a>pip install --upgrade numpy scipy pandas
+<a id="__codelineno-47-6" name="__codelineno-47-6" href="#__codelineno-47-6"></a>
+<a id="__codelineno-47-7" name="__codelineno-47-7" href="#__codelineno-47-7"></a># Step 3: Update all packages
+<a id="__codelineno-47-8" name="__codelineno-47-8" href="#__codelineno-47-8"></a>pip freeze &gt; requirements-pinned.txt
+<a id="__codelineno-47-9" name="__codelineno-47-9" href="#__codelineno-47-9"></a>pip install --upgrade -r requirements.txt
+<a id="__codelineno-47-10" name="__codelineno-47-10" href="#__codelineno-47-10"></a>
+<a id="__codelineno-47-11" name="__codelineno-47-11" href="#__codelineno-47-11"></a># Step 4: Run tests to verify compatibility
+<a id="__codelineno-47-12" name="__codelineno-47-12" href="#__codelineno-47-12"></a>pytest tests/ -v
+<a id="__codelineno-47-13" name="__codelineno-47-13" href="#__codelineno-47-13"></a>
+<a id="__codelineno-47-14" name="__codelineno-47-14" href="#__codelineno-47-14"></a># Step 5: Update requirements.txt with new versions
+<a id="__codelineno-47-15" name="__codelineno-47-15" href="#__codelineno-47-15"></a>pip freeze &gt; requirements.txt
+</code></pre></div>
+<h4 id="nodejs-dependencies">Node.js Dependencies</h4>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-48-1" name="__codelineno-48-1" href="#__codelineno-48-1"></a># Step 1: Check for outdated packages
+<a id="__codelineno-48-2" name="__codelineno-48-2" href="#__codelineno-48-2"></a>pnpm outdated
+<a id="__codelineno-48-3" name="__codelineno-48-3" href="#__codelineno-48-3"></a>
+<a id="__codelineno-48-4" name="__codelineno-48-4" href="#__codelineno-48-4"></a># Step 2: Update all dependencies
+<a id="__codelineno-48-5" name="__codelineno-48-5" href="#__codelineno-48-5"></a>pnpm update
+<a id="__codelineno-48-6" name="__codelineno-48-6" href="#__codelineno-48-6"></a>
+<a id="__codelineno-48-7" name="__codelineno-48-7" href="#__codelineno-48-7"></a># Step 3: Run build to verify
+<a id="__codelineno-48-8" name="__codelineno-48-8" href="#__codelineno-48-8"></a>pnpm build
+<a id="__codelineno-48-9" name="__codelineno-48-9" href="#__codelineno-48-9"></a>
+<a id="__codelineno-48-10" name="__codelineno-48-10" href="#__codelineno-48-10"></a># Step 4: Run tests
+<a id="__codelineno-48-11" name="__codelineno-48-11" href="#__codelineno-48-11"></a>pnpm test
+<a id="__codelineno-48-12" name="__codelineno-48-12" href="#__codelineno-48-12"></a>
+<a id="__codelineno-48-13" name="__codelineno-48-13" href="#__codelineno-48-13"></a># Step 5: Update lockfile
+<a id="__codelineno-48-14" name="__codelineno-48-14" href="#__codelineno-48-14"></a>pnpm install --frozen-lockfile
+</code></pre></div>
+<h4 id="docker-image-updates">Docker Image Updates</h4>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-49-1" name="__codelineno-49-1" href="#__codelineno-49-1"></a># Step 1: Rebuild with security updates
+<a id="__codelineno-49-2" name="__codelineno-49-2" href="#__codelineno-49-2"></a>docker-compose build --no-cache
+<a id="__codelineno-49-3" name="__codelineno-49-3" href="#__codelineno-49-3"></a>
+<a id="__codelineno-49-4" name="__codelineno-49-4" href="#__codelineno-49-4"></a># Step 2: Run security scan
+<a id="__codelineno-49-5" name="__codelineno-49-5" href="#__codelineno-49-5"></a>docker scan etap-platform:latest
+<a id="__codelineno-49-6" name="__codelineno-49-6" href="#__codelineno-49-6"></a>
+<a id="__codelineno-49-7" name="__codelineno-49-7" href="#__codelineno-49-7"></a># Step 3: Deploy updated images
+<a id="__codelineno-49-8" name="__codelineno-49-8" href="#__codelineno-49-8"></a>docker-compose up -d
+</code></pre></div>
+<hr />
+<h2 id="6-disaster-recovery">6. Disaster Recovery</h2>
+<h3 id="recovery-objectives">Recovery Objectives</h3>
+<table>
+<thead>
+<tr>
+<th>Metric</th>
+<th>Target</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Recovery Point Objective (RPO)</td>
+<td>1 hour</td>
+<td>Maximum acceptable data loss</td>
+</tr>
+<tr>
+<td>Recovery Time Objective (RTO)</td>
+<td>4 hours</td>
+<td>Maximum acceptable downtime</td>
+</tr>
+</tbody>
+</table>
+<h3 id="61-recovery-procedures">6.1 Recovery Procedures</h3>
+<h4 id="scenario-1-complete-infrastructure-loss">Scenario 1: Complete Infrastructure Loss</h4>
+<p><strong>Trigger:</strong> Total loss of primary server, all data inaccessible.</p>
+<p><strong>Recovery Steps:</strong></p>
+<ol>
+<li>
+<p><strong>Provision new server (30 min):</strong>
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-50-1" name="__codelineno-50-1" href="#__codelineno-50-1"></a># Deploy new VM/cloud instance with:
+<a id="__codelineno-50-2" name="__codelineno-50-2" href="#__codelineno-50-2"></a># - Windows Server 2019 or later
+<a id="__codelineno-50-3" name="__codelineno-50-3" href="#__codelineno-50-3"></a># - Docker Desktop
+<a id="__codelineno-50-4" name="__codelineno-50-4" href="#__codelineno-50-4"></a># - ETAP x.x (Windows-only component)
+<a id="__codelineno-50-5" name="__codelineno-50-5" href="#__codelineno-50-5"></a># - Python 3.11
+<a id="__codelineno-50-6" name="__codelineno-50-6" href="#__codelineno-50-6"></a># - Node.js 18+
+</code></pre></div></p>
+</li>
+<li>
+<p><strong>Restore code from repository (15 min):</strong>
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-51-1" name="__codelineno-51-1" href="#__codelineno-51-1"></a>git clone https://github.com/your-org/etap-ai-platform.git
+<a id="__codelineno-51-2" name="__codelineno-51-2" href="#__codelineno-51-2"></a>cd etap-ai-platform
+<a id="__codelineno-51-3" name="__codelineno-51-3" href="#__codelineno-51-3"></a>git checkout production
+</code></pre></div></p>
+</li>
+<li>
+<p><strong>Restore secrets (10 min):</strong></p>
+</li>
+<li>Copy <code>.env</code> from secure vault (LastPass, 1Password, Azure Key Vault)</li>
+<li>
+<p>Verify all API keys are valid</p>
+</li>
+<li>
+<p><strong>Restore data from backup (30 min):</strong>
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-52-1" name="__codelineno-52-1" href="#__codelineno-52-1"></a># Restore database from latest backup
+<a id="__codelineno-52-2" name="__codelineno-52-2" href="#__codelineno-52-2"></a>copy /Y \\backup-server\etap-backups\latest\mastra.db .\mastra.db
+<a id="__codelineno-52-3" name="__codelineno-52-3" href="#__codelineno-52-3"></a>copy /Y \\backup-server\etap-backups\latest\mastra.duckdb .\mastra.duckdb
+<a id="__codelineno-52-4" name="__codelineno-52-4" href="#__codelineno-52-4"></a>
+<a id="__codelineno-52-5" name="__codelineno-52-5" href="#__codelineno-52-5"></a># Restore knowledge base
+<a id="__codelineno-52-6" name="__codelineno-52-6" href="#__codelineno-52-6"></a>Expand-Archive -Path \\backup-server\etap-backups\latest\knowledge_db.zip -DestinationPath .\
+<a id="__codelineno-52-7" name="__codelineno-52-7" href="#__codelineno-52-7"></a>
+<a id="__codelineno-52-8" name="__codelineno-52-8" href="#__codelineno-52-8"></a># Restore reports
+<a id="__codelineno-52-9" name="__codelineno-52-9" href="#__codelineno-52-9"></a>Expand-Archive -Path \\backup-server\etap-backups\latest\reports.zip -DestinationPath .\
+</code></pre></div></p>
+</li>
+<li>
+<p><strong>Build and start services (30 min):</strong>
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-53-1" name="__codelineno-53-1" href="#__codelineno-53-1"></a>docker-compose build
+<a id="__codelineno-53-2" name="__codelineno-53-2" href="#__codelineno-53-2"></a>docker-compose up -d
+</code></pre></div></p>
+</li>
+<li>
+<p><strong>Verify recovery (15 min):</strong>
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-54-1" name="__codelineno-54-1" href="#__codelineno-54-1"></a>curl http://localhost:3000/health
+<a id="__codelineno-54-2" name="__codelineno-54-2" href="#__codelineno-54-2"></a>python -c &quot;
+<a id="__codelineno-54-3" name="__codelineno-54-3" href="#__codelineno-54-3"></a>import sqlite3
+<a id="__codelineno-54-4" name="__codelineno-54-4" href="#__codelineno-54-4"></a>conn = sqlite3.connect(&#39;mastra.db&#39;)
+<a id="__codelineno-54-5" name="__codelineno-54-5" href="#__codelineno-54-5"></a>count = conn.execute(&#39;SELECT COUNT(*) FROM tasks&#39;).fetchone()[0]
+<a id="__codelineno-54-6" name="__codelineno-54-6" href="#__codelineno-54-6"></a>print(f&#39;Recovered {count} tasks&#39;)
+<a id="__codelineno-54-7" name="__codelineno-54-7" href="#__codelineno-54-7"></a>&quot;
+<a id="__codelineno-54-8" name="__codelineno-54-8" href="#__codelineno-54-8"></a>python -c &quot;
+<a id="__codelineno-54-9" name="__codelineno-54-9" href="#__codelineno-54-9"></a>from knowledge.rag_engine import RAGEngine
+<a id="__codelineno-54-10" name="__codelineno-54-10" href="#__codelineno-54-10"></a>rag = RAGEngine()
+<a id="__codelineno-54-11" name="__codelineno-54-11" href="#__codelineno-54-11"></a>result = rag.query(&#39;test query&#39;, use_llm=False)
+<a id="__codelineno-54-12" name="__codelineno-54-12" href="#__codelineno-54-12"></a>print(f&#39;RAG restored: {len(result[\&quot;sources\&quot;])} sources&#39;)
+<a id="__codelineno-54-13" name="__codelineno-54-13" href="#__codelineno-54-13"></a>&quot;
+</code></pre></div></p>
+</li>
+<li>
+<p><strong>Total RTO: ~2 hours</strong> (under RTO of 4 hours)</p>
+</li>
+</ol>
+<h4 id="scenario-2-database-only-loss">Scenario 2: Database Only Loss</h4>
+<p><strong>Trigger:</strong> Database file corrupted or deleted.</p>
+<p><strong>Recovery Steps:</strong></p>
+<ol>
+<li>
+<p><strong>Identify latest valid backup:</strong>
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-55-1" name="__codelineno-55-1" href="#__codelineno-55-1"></a>dir backups\*.db | Sort-Object LastWriteTime -Descending | Select-Object -First 5
+</code></pre></div></p>
+</li>
+<li>
+<p><strong>Restore database:</strong>
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-56-1" name="__codelineno-56-1" href="#__codelineno-56-1"></a>copy /Y backups\mastra_20260607_020000.db mastra.db
+</code></pre></div></p>
+</li>
+<li>
+<p><strong>Verify integrity:</strong>
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-57-1" name="__codelineno-57-1" href="#__codelineno-57-1"></a>python -c &quot;
+<a id="__codelineno-57-2" name="__codelineno-57-2" href="#__codelineno-57-2"></a>import sqlite3
+<a id="__codelineno-57-3" name="__codelineno-57-3" href="#__codelineno-57-3"></a>conn = sqlite3.connect(&#39;mastra.db&#39;)
+<a id="__codelineno-57-4" name="__codelineno-57-4" href="#__codelineno-57-4"></a>result = conn.execute(&#39;PRAGMA integrity_check&#39;).fetchone()
+<a id="__codelineno-57-5" name="__codelineno-57-5" href="#__codelineno-57-5"></a>assert result[0] == &#39;ok&#39;, f&#39;Corrupted: {result}&#39;
+<a id="__codelineno-57-6" name="__codelineno-57-6" href="#__codelineno-57-6"></a>tables = conn.execute(\&quot;SELECT name FROM sqlite_master WHERE type=&#39;table&#39;\&quot;).fetchall()
+<a id="__codelineno-57-7" name="__codelineno-57-7" href="#__codelineno-57-7"></a>print(f&#39;Database restored with {len(tables)} tables&#39;)
+<a id="__codelineno-57-8" name="__codelineno-57-8" href="#__codelineno-57-8"></a>&quot;
+</code></pre></div></p>
+</li>
+<li>
+<p><strong>Restart services:</strong>
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-58-1" name="__codelineno-58-1" href="#__codelineno-58-1"></a>docker-compose restart
+</code></pre></div></p>
+</li>
+<li>
+<p><strong>Total RTO: ~30 minutes</strong></p>
+</li>
+</ol>
+<h4 id="scenario-3-etap-server-loss">Scenario 3: ETAP Server Loss</h4>
+<p><strong>Trigger:</strong> Windows server running ETAP is unavailable.</p>
+<p><strong>Recovery Steps:</strong></p>
+<ol>
+<li><strong>Provision new Windows server with ETAP:</strong></li>
+<li>Install ETAP from installation media</li>
+<li>Apply license file</li>
+<li>
+<p>Register COM components: <code>regsvr32 ETAPAutomation.dll</code></p>
+</li>
+<li>
+<p><strong>Copy ETAP project files:</strong>
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-59-1" name="__codelineno-59-1" href="#__codelineno-59-1"></a>copy /Y \\backup-server\etap-projects\* &quot;C:\Projects\&quot;
+</code></pre></div></p>
+</li>
+<li>
+<p><strong>Update platform configuration:</strong>
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-60-1" name="__codelineno-60-1" href="#__codelineno-60-1"></a># Update .env with new ETAP server hostname
+<a id="__codelineno-60-2" name="__codelineno-60-2" href="#__codelineno-60-2"></a>ETAP_HOST=new-etap-server.domain.com
+</code></pre></div></p>
+</li>
+<li>
+<p><strong>Test ETAP connection:</strong>
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-61-1" name="__codelineno-61-1" href="#__codelineno-61-1"></a>python -c &quot;
+<a id="__codelineno-61-2" name="__codelineno-61-2" href="#__codelineno-61-2"></a>from etap_integration.etap_com import ETAPAutomation
+<a id="__codelineno-61-3" name="__codelineno-61-3" href="#__codelineno-61-3"></a>with ETAPAutomation(visible=False) as etap:
+<a id="__codelineno-61-4" name="__codelineno-61-4" href="#__codelineno-61-4"></a>    print(f&#39;ETAP reconnected: v{etap.get_version()}&#39;)
+<a id="__codelineno-61-5" name="__codelineno-61-5" href="#__codelineno-61-5"></a>&quot;
+</code></pre></div></p>
+</li>
+<li>
+<p><strong>Total RTO: ~4 hours</strong> (dominated by ETAP installation)</p>
+</li>
+</ol>
+<h3 id="62-dr-testing-schedule">6.2 DR Testing Schedule</h3>
+<table>
+<thead>
+<tr>
+<th>Test Type</th>
+<th>Frequency</th>
+<th>Scope</th>
+<th>Success Criteria</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Database restore</td>
+<td>Monthly</td>
+<td>Restore from backup to test environment</td>
+<td>All data intact, integrity check OK</td>
+</tr>
+<tr>
+<td>Full DR failover</td>
+<td>Quarterly</td>
+<td>Provision new server, restore all components</td>
+<td>RTO &lt; 4 hrs, RPO &lt; 1 hr</td>
+</tr>
+<tr>
+<td>ETAP recovery</td>
+<td>Quarterly</td>
+<td>Rebuild ETAP server from scratch</td>
+<td>ETAP COM operational within 2 hrs</td>
+</tr>
+<tr>
+<td>Backup validation</td>
+<td>Weekly</td>
+<td>Verify backup files are not corrupted</td>
+<td>All backup files pass checksum</td>
+</tr>
+<tr>
+<td>Secret rotation</td>
+<td>Quarterly</td>
+<td>Rotate all API keys and certificates</td>
+<td>New secrets work without errors</td>
+</tr>
+</tbody>
+</table>
+<h4 id="dr-test-procedure">DR Test Procedure</h4>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-62-1" name="__codelineno-62-1" href="#__codelineno-62-1"></a># Pre-test: Document current state
+<a id="__codelineno-62-2" name="__codelineno-62-2" href="#__codelineno-62-2"></a>echo &quot;Pre-test state captured at $(Get-Date)&quot; &gt; dr-test-log.txt
+<a id="__codelineno-62-3" name="__codelineno-62-3" href="#__codelineno-62-3"></a>python -c &quot;
+<a id="__codelineno-62-4" name="__codelineno-62-4" href="#__codelineno-62-4"></a>import sqlite3
+<a id="__codelineno-62-5" name="__codelineno-62-5" href="#__codelineno-62-5"></a>conn = sqlite3.connect(&#39;mastra.db&#39;)
+<a id="__codelineno-62-6" name="__codelineno-62-6" href="#__codelineno-62-6"></a>count = conn.execute(&#39;SELECT COUNT(*) FROM tasks&#39;).fetchone()[0]
+<a id="__codelineno-62-7" name="__codelineno-62-7" href="#__codelineno-62-7"></a>print(f&#39;Tasks in production: {count}&#39;)&quot; &gt;&gt; dr-test-log.txt
+<a id="__codelineno-62-8" name="__codelineno-62-8" href="#__codelineno-62-8"></a>
+<a id="__codelineno-62-9" name="__codelineno-62-9" href="#__codelineno-62-9"></a># Test 1: Backup restore (in test environment)
+<a id="__codelineno-62-10" name="__codelineno-62-10" href="#__codelineno-62-10"></a># - Take a backup
+<a id="__codelineno-62-11" name="__codelineno-62-11" href="#__codelineno-62-11"></a># - Restore to test database
+<a id="__codelineno-62-12" name="__codelineno-62-12" href="#__codelineno-62-12"></a># - Verify data integrity and count
+<a id="__codelineno-62-13" name="__codelineno-62-13" href="#__codelineno-62-13"></a>
+<a id="__codelineno-62-14" name="__codelineno-62-14" href="#__codelineno-62-14"></a># Test 2: Full failover (in test environment)
+<a id="__codelineno-62-15" name="__codelineno-62-15" href="#__codelineno-62-15"></a># - Stop production analog
+<a id="__codelineno-62-16" name="__codelineno-62-16" href="#__codelineno-62-16"></a># - Provision new environment
+<a id="__codelineno-62-17" name="__codelineno-62-17" href="#__codelineno-62-17"></a># - Restore code, data, configuration
+<a id="__codelineno-62-18" name="__codelineno-62-18" href="#__codelineno-62-18"></a># - Start services
+<a id="__codelineno-62-19" name="__codelineno-62-19" href="#__codelineno-62-19"></a># - Verify health check
+<a id="__codelineno-62-20" name="__codelineno-62-20" href="#__codelineno-62-20"></a># - Run a test workflow
+<a id="__codelineno-62-21" name="__codelineno-62-21" href="#__codelineno-62-21"></a>
+<a id="__codelineno-62-22" name="__codelineno-62-22" href="#__codelineno-62-22"></a># Test 3: Measure RTO
+<a id="__codelineno-62-23" name="__codelineno-62-23" href="#__codelineno-62-23"></a>$startTime = Get-Date
+<a id="__codelineno-62-24" name="__codelineno-62-24" href="#__codelineno-62-24"></a># [Execute DR procedure]
+<a id="__codelineno-62-25" name="__codelineno-62-25" href="#__codelineno-62-25"></a>$endTime = Get-Date
+<a id="__codelineno-62-26" name="__codelineno-62-26" href="#__codelineno-62-26"></a>$rto = ($endTime - $startTime).TotalMinutes
+<a id="__codelineno-62-27" name="__codelineno-62-27" href="#__codelineno-62-27"></a>Write-Host &quot;Measured RTO: $rto minutes&quot;
+<a id="__codelineno-62-28" name="__codelineno-62-28" href="#__codelineno-62-28"></a>if ($rto -gt 240) { Write-Warning &quot;RTO exceeds 4 hour target!&quot; }
+<a id="__codelineno-62-29" name="__codelineno-62-29" href="#__codelineno-62-29"></a>
+<a id="__codelineno-62-30" name="__codelineno-62-30" href="#__codelineno-62-30"></a># Test 4: Measure RPO
+<a id="__codelineno-62-31" name="__codelineno-62-31" href="#__codelineno-62-31"></a># Compare backup timestamp with last data change
+<a id="__codelineno-62-32" name="__codelineno-62-32" href="#__codelineno-62-32"></a># Verify data loss is within 1 hour window
+<a id="__codelineno-62-33" name="__codelineno-62-33" href="#__codelineno-62-33"></a>
+<a id="__codelineno-62-34" name="__codelineno-62-34" href="#__codelineno-62-34"></a># Post-test: Document results
+<a id="__codelineno-62-35" name="__codelineno-62-35" href="#__codelineno-62-35"></a>echo &quot;DR test completed at $(Get-Date)&quot; &gt;&gt; dr-test-log.txt
+<a id="__codelineno-62-36" name="__codelineno-62-36" href="#__codelineno-62-36"></a>echo &quot;RTO: $rto minutes&quot; &gt;&gt; dr-test-log.txt
+</code></pre></div>
+<hr />
+<h2 id="7-capacity-planning">7. Capacity Planning</h2>
+<h3 id="71-current-capacity-limits">7.1 Current Capacity Limits</h3>
+<table>
+<thead>
+<tr>
+<th>Resource</th>
+<th>Current Limit</th>
+<th>Unit</th>
+<th>Components</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>System size</td>
+<td>500</td>
+<td>buses</td>
+<td>Recommended maximum for interactive use</td>
+</tr>
+<tr>
+<td>Concurrent workflows</td>
+<td>10</td>
+<td>workflows</td>
+<td>Limited by ETAP single-instance constraint</td>
+</tr>
+<tr>
+<td>Concurrent users</td>
+<td>100</td>
+<td>users</td>
+<td>With horizontal scaling</td>
+</tr>
+<tr>
+<td>Request throughput</td>
+<td>10</td>
+<td>workflows/min</td>
+<td>With 3 Docker replicas</td>
+</tr>
+<tr>
+<td>Database size</td>
+<td>10</td>
+<td>GB</td>
+<td>Before performance impact</td>
+</tr>
+<tr>
+<td>Log storage</td>
+<td>30</td>
+<td>days</td>
+<td>At current log volume</td>
+</tr>
+<tr>
+<td>Report storage</td>
+<td>1000</td>
+<td>reports</td>
+<td>Before disk cleanup needed</td>
+</tr>
+<tr>
+<td>RAG vector DB</td>
+<td>10000</td>
+<td>documents</td>
+<td>Before query latency increases</td>
+</tr>
+<tr>
+<td>Max file upload</td>
+<td>50</td>
+<td>MB</td>
+<td>Per file</td>
+</tr>
+</tbody>
+</table>
+<h3 id="72-scaling-triggers">7.2 Scaling Triggers</h3>
+<table>
+<thead>
+<tr>
+<th>Trigger Metric</th>
+<th>Threshold</th>
+<th>Action</th>
+<th>Lead Time</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>CPU usage &gt; 80%</td>
+<td>5 min sustained</td>
+<td>Scale up CPU allocation</td>
+<td>Immediate</td>
+</tr>
+<tr>
+<td>Memory &gt; 85%</td>
+<td>10 min sustained</td>
+<td>Scale up memory, review leaks</td>
+<td>1 hour</td>
+</tr>
+<tr>
+<td>P95 latency &gt; 5s</td>
+<td>15 min sustained</td>
+<td>Add more replicas</td>
+<td>30 min</td>
+</tr>
+<tr>
+<td>Error rate &gt; 10%</td>
+<td>10 min sustained</td>
+<td>Investigate, rollback if needed</td>
+<td>30 min</td>
+</tr>
+<tr>
+<td>Queue depth &gt; 100</td>
+<td>5 min sustained</td>
+<td>Add workers</td>
+<td>15 min</td>
+</tr>
+<tr>
+<td>Disk usage &gt; 85%</td>
+<td>N/A</td>
+<td>Clean old data, increase volume</td>
+<td>1 week</td>
+</tr>
+<tr>
+<td>Concurrent workflows &gt; 15</td>
+<td>10 min sustained</td>
+<td>Scale horizontally</td>
+<td>30 min</td>
+</tr>
+<tr>
+<td>ETAP failures &gt; 5/min</td>
+<td>5 min window</td>
+<td>ETAP license check, restart</td>
+<td>15 min</td>
+</tr>
+</tbody>
+</table>
+<h3 id="73-growth-projections">7.3 Growth Projections</h3>
+<table>
+<thead>
+<tr>
+<th>Quarter</th>
+<th>Expected Workload</th>
+<th>Required Capacity</th>
+<th>Scaling Plan</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Q3 2026</td>
+<td>100 studies/day</td>
+<td>2 replicas, 200 bus avg</td>
+<td>Current setup sufficient</td>
+</tr>
+<tr>
+<td>Q4 2026</td>
+<td>250 studies/day</td>
+<td>3 replicas, 300 bus avg</td>
+<td>Add 1 replica, optimize solvers</td>
+</tr>
+<tr>
+<td>Q1 2027</td>
+<td>500 studies/day</td>
+<td>5 replicas, 400 bus avg</td>
+<td>Add 2 replicas, consider K8s</td>
+</tr>
+<tr>
+<td>Q2 2027</td>
+<td>1000 studies/day</td>
+<td>10 replicas, 500 bus avg</td>
+<td>Full K8s migration, database sharding</td>
+</tr>
+<tr>
+<td>Q3 2027</td>
+<td>2000 studies/day</td>
+<td>15 replicas, 600 bus avg</td>
+<td>Multi-region deployment</td>
+</tr>
+</tbody>
+</table>
+<h4 id="capacity-upgrade-procedures">Capacity Upgrade Procedures</h4>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-63-1" name="__codelineno-63-1" href="#__codelineno-63-1"></a># Scale up Docker replicas (horizontal)
+<a id="__codelineno-63-2" name="__codelineno-63-2" href="#__codelineno-63-2"></a>docker-compose up -d --scale etap-platform=5
+<a id="__codelineno-63-3" name="__codelineno-63-3" href="#__codelineno-63-3"></a>
+<a id="__codelineno-63-4" name="__codelineno-63-4" href="#__codelineno-63-4"></a># Scale up Kubernetes (horizontal)
+<a id="__codelineno-63-5" name="__codelineno-63-5" href="#__codelineno-63-5"></a>kubectl scale deployment etap-platform --replicas=10
+<a id="__codelineno-63-6" name="__codelineno-63-6" href="#__codelineno-63-6"></a>
+<a id="__codelineno-63-7" name="__codelineno-63-7" href="#__codelineno-63-7"></a># Increase resource limits (vertical, in docker-compose.yml)
+<a id="__codelineno-63-8" name="__codelineno-63-8" href="#__codelineno-63-8"></a>services:
+<a id="__codelineno-63-9" name="__codelineno-63-9" href="#__codelineno-63-9"></a>  etap-platform:
+<a id="__codelineno-63-10" name="__codelineno-63-10" href="#__codelineno-63-10"></a>    deploy:
+<a id="__codelineno-63-11" name="__codelineno-63-11" href="#__codelineno-63-11"></a>      resources:
+<a id="__codelineno-63-12" name="__codelineno-63-12" href="#__codelineno-63-12"></a>        limits:
+<a id="__codelineno-63-13" name="__codelineno-63-13" href="#__codelineno-63-13"></a>          memory: 8g
+<a id="__codelineno-63-14" name="__codelineno-63-14" href="#__codelineno-63-14"></a>          cpus: &#39;4&#39;
+<a id="__codelineno-63-15" name="__codelineno-63-15" href="#__codelineno-63-15"></a>
+<a id="__codelineno-63-16" name="__codelineno-63-16" href="#__codelineno-63-16"></a># Add database read replicas (if using PostgreSQL)
+<a id="__codelineno-63-17" name="__codelineno-63-17" href="#__codelineno-63-17"></a># Configure in .env:
+<a id="__codelineno-63-18" name="__codelineno-63-18" href="#__codelineno-63-18"></a>DATABASE_URL=postgresql://master:5432/etap
+<a id="__codelineno-63-19" name="__codelineno-63-19" href="#__codelineno-63-19"></a>DATABASE_READ_REPLICA_URL=postgresql://replica:5432/etap
+</code></pre></div>
+<hr />
+<h2 id="8-contact-information">8. Contact Information</h2>
+<h3 id="81-internal-contacts">8.1 Internal Contacts</h3>
+<table>
+<thead>
+<tr>
+<th>Role</th>
+<th>Name</th>
+<th>Email</th>
+<th>Phone</th>
+<th>Coverage</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Engineering On-Call</td>
+<td>Rotating</td>
+<td>oncall@yourcompany.com</td>
+<td>+1-XXX-XXX-XXXX</td>
+<td>24/7</td>
+</tr>
+<tr>
+<td>Engineering Lead</td>
+<td>-</td>
+<td>eng-lead@yourcompany.com</td>
+<td>+1-XXX-XXX-XXXX</td>
+<td>Business hours</td>
+</tr>
+<tr>
+<td>DevOps Engineer</td>
+<td>-</td>
+<td>devops@yourcompany.com</td>
+<td>+1-XXX-XXX-XXXX</td>
+<td>24/7</td>
+</tr>
+<tr>
+<td>Security Team</td>
+<td>-</td>
+<td>security@yourcompany.com</td>
+<td>+1-XXX-XXX-XXXX</td>
+<td>24/7</td>
+</tr>
+<tr>
+<td>QA Lead</td>
+<td>-</td>
+<td>qa@yourcompany.com</td>
+<td>+1-XXX-XXX-XXXX</td>
+<td>Business hours</td>
+</tr>
+<tr>
+<td>Product Manager</td>
+<td>-</td>
+<td>pm@yourcompany.com</td>
+<td>+1-XXX-XXX-XXXX</td>
+<td>Business hours</td>
+</tr>
+</tbody>
+</table>
+<h3 id="82-external-contacts">8.2 External Contacts</h3>
+<table>
+<thead>
+<tr>
+<th>Organization</th>
+<th>Contact</th>
+<th>Phone</th>
+<th>Email</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>ETAP Support</td>
+<td>ETAP Inc.</td>
+<td>+1-949-900-1000</td>
+<td>support@etap.com</td>
+<td>ETAP software/license issues</td>
+</tr>
+<tr>
+<td>OpenAI</td>
+<td>Support Portal</td>
+<td>-</td>
+<td>https://support.openai.com</td>
+<td>API key/rate limit issues</td>
+</tr>
+<tr>
+<td>Docker</td>
+<td>Support Portal</td>
+<td>-</td>
+<td>https://support.docker.com</td>
+<td>Docker licensing issues</td>
+</tr>
+<tr>
+<td>Microsoft Azure (if used)</td>
+<td>Azure Support</td>
+<td>-</td>
+<td>https://portal.azure.com</td>
+<td>Cloud infrastructure</td>
+</tr>
+<tr>
+<td>Cloudflare (if used)</td>
+<td>Support Portal</td>
+<td>-</td>
+<td>https://support.cloudflare.com</td>
+<td>CDN/DDoS protection</td>
+</tr>
+</tbody>
+</table>
+<h3 id="83-escalation-path">8.3 Escalation Path</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-64-1" name="__codelineno-64-1" href="#__codelineno-64-1"></a>User reports issue
+<a id="__codelineno-64-2" name="__codelineno-64-2" href="#__codelineno-64-2"></a>    │
+<a id="__codelineno-64-3" name="__codelineno-64-3" href="#__codelineno-64-3"></a>    ▼
+<a id="__codelineno-64-4" name="__codelineno-64-4" href="#__codelineno-64-4"></a>L1: On-Call Engineer
+<a id="__codelineno-64-5" name="__codelineno-64-5" href="#__codelineno-64-5"></a>    │  Contact: PagerDuty / +1-XXX-XXX-XXXX
+<a id="__codelineno-64-6" name="__codelineno-64-6" href="#__codelineno-64-6"></a>    │  Response: 15 min (P1), 1 hour (P2)
+<a id="__codelineno-64-7" name="__codelineno-64-7" href="#__codelineno-64-7"></a>    │
+<a id="__codelineno-64-8" name="__codelineno-64-8" href="#__codelineno-64-8"></a>    ├── Resolved → Close
+<a id="__codelineno-64-9" name="__codelineno-64-9" href="#__codelineno-64-9"></a>    │
+<a id="__codelineno-64-10" name="__codelineno-64-10" href="#__codelineno-64-10"></a>    ▼
+<a id="__codelineno-64-11" name="__codelineno-64-11" href="#__codelineno-64-11"></a>L2: Engineering Lead
+<a id="__codelineno-64-12" name="__codelineno-64-12" href="#__codelineno-64-12"></a>    │  Contact: +1-XXX-XXX-XXXX
+<a id="__codelineno-64-13" name="__codelineno-64-13" href="#__codelineno-64-13"></a>    │  Response: 1 hour
+<a id="__codelineno-64-14" name="__codelineno-64-14" href="#__codelineno-64-14"></a>    │
+<a id="__codelineno-64-15" name="__codelineno-64-15" href="#__codelineno-64-15"></a>    ├── Resolved → Post-mortem → Update runbook
+<a id="__codelineno-64-16" name="__codelineno-64-16" href="#__codelineno-64-16"></a>    │
+<a id="__codelineno-64-17" name="__codelineno-64-17" href="#__codelineno-64-17"></a>    ▼
+<a id="__codelineno-64-18" name="__codelineno-64-18" href="#__codelineno-64-18"></a>L3: VP Engineering
+<a id="__codelineno-64-19" name="__codelineno-64-19" href="#__codelineno-64-19"></a>    │  Contact: +1-XXX-XXX-XXXX
+<a id="__codelineno-64-20" name="__codelineno-64-20" href="#__codelineno-64-20"></a>    │  Response: Immediate for P1
+<a id="__codelineno-64-21" name="__codelineno-64-21" href="#__codelineno-64-21"></a>    │
+<a id="__codelineno-64-22" name="__codelineno-64-22" href="#__codelineno-64-22"></a>    ▼
+<a id="__codelineno-64-23" name="__codelineno-64-23" href="#__codelineno-64-23"></a>L4: Executive / Crisis Team
+<a id="__codelineno-64-24" name="__codelineno-64-24" href="#__codelineno-64-24"></a>       Contact: emergency@yourcompany.com
+<a id="__codelineno-64-25" name="__codelineno-64-25" href="#__codelineno-64-25"></a>       Response: Immediate
+</code></pre></div>
+<h3 id="84-communication-channels">8.4 Communication Channels</h3>
+<table>
+<thead>
+<tr>
+<th>Channel</th>
+<th>Purpose</th>
+<th>URL/Details</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Incident Alerts</td>
+<td>P1/P2 notifications</td>
+<td>PagerDuty integration</td>
+</tr>
+<tr>
+<td>Status Page</td>
+<td>Public service status</td>
+<td>https://status.yourcompany.com</td>
+</tr>
+<tr>
+<td>Slack</td>
+<td>Team communication</td>
+<td>#etap-platform-alerts</td>
+</tr>
+<tr>
+<td>Email</td>
+<td>Formal notifications</td>
+<td>ops@yourcompany.com</td>
+</tr>
+<tr>
+<td>Jira</td>
+<td>Issue tracking</td>
+<td>https://yourcompany.atlassian.net/projects/ETAP</td>
+</tr>
+<tr>
+<td>Confluence</td>
+<td>Documentation</td>
+<td>https://yourcompany.atlassian.net/wiki/spaces/ETAP</td>
+</tr>
+<tr>
+<td>Video Conferencing</td>
+<td>Incident bridge</td>
+<td>https://meet.yourcompany.com/incident-bridge</td>
+</tr>
+</tbody>
+</table>
+<h3 id="85-on-call-schedule">8.5 On-Call Schedule</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-65-1" name="__codelineno-65-1" href="#__codelineno-65-1"></a>Weekly rotation: Engineering team (4 engineers)
+<a id="__codelineno-65-2" name="__codelineno-65-2" href="#__codelineno-65-2"></a>Shift: Mon-Fri 9am-6pm (business hours)
+<a id="__codelineno-65-3" name="__codelineno-65-3" href="#__codelineno-65-3"></a>After-hours: On-call engineer carries pager 24/7
+<a id="__codelineno-65-4" name="__codelineno-65-4" href="#__codelineno-65-4"></a>Weekend: Dedicated on-call engineer
+<a id="__codelineno-65-5" name="__codelineno-65-5" href="#__codelineno-65-5"></a>Holiday: Pre-arranged coverage with compensation
+<a id="__codelineno-65-6" name="__codelineno-65-6" href="#__codelineno-65-6"></a>
+<a id="__codelineno-65-7" name="__codelineno-65-7" href="#__codelineno-65-7"></a>Primary On-Call:
+<a id="__codelineno-65-8" name="__codelineno-65-8" href="#__codelineno-65-8"></a>- Current: [NAME] - [DATE RANGE]
+<a id="__codelineno-65-9" name="__codelineno-65-9" href="#__codelineno-65-9"></a>- Phone: +1-XXX-XXX-XXXX
+<a id="__codelineno-65-10" name="__codelineno-65-10" href="#__codelineno-65-10"></a>
+<a id="__codelineno-65-11" name="__codelineno-65-11" href="#__codelineno-65-11"></a>Secondary On-Call:
+<a id="__codelineno-65-12" name="__codelineno-65-12" href="#__codelineno-65-12"></a>- Current: [NAME] - [DATE RANGE]
+<a id="__codelineno-65-13" name="__codelineno-65-13" href="#__codelineno-65-13"></a>- Phone: +1-XXX-XXX-XXXX
+</code></pre></div>
+<h3 id="86-escalation-notification-templates">8.6 Escalation Notification Templates</h3>
+<h4 id="p1-incident-notification-smspager">P1 Incident Notification (SMS/Pager)</h4>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-66-1" name="__codelineno-66-1" href="#__codelineno-66-1"></a>[P1] ETAP Platform - [BRIEF DESCRIPTION]
+<a id="__codelineno-66-2" name="__codelineno-66-2" href="#__codelineno-66-2"></a>Impact: [SERVICE IMPACT]
+<a id="__codelineno-66-3" name="__codelineno-66-3" href="#__codelineno-66-3"></a>Affected: [COMPONENT/S]
+<a id="__codelineno-66-4" name="__codelineno-66-4" href="#__codelineno-66-4"></a>Status: Investigating / Resolved
+<a id="__codelineno-66-5" name="__codelineno-66-5" href="#__codelineno-66-5"></a>Time: [TIMESTAMP]
+<a id="__codelineno-66-6" name="__codelineno-66-6" href="#__codelineno-66-6"></a>Lead: [ENGINEER NAME]
+<a id="__codelineno-66-7" name="__codelineno-66-7" href="#__codelineno-66-7"></a>Bridge: [CONFERENCE LINK]
+</code></pre></div>
+<h4 id="status-page-update">Status Page Update</h4>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-67-1" name="__codelineno-67-1" href="#__codelineno-67-1"></a>Title: [Minor / Major / Critical] - [SERVICE NAME] - [INCIDENT TYPE]
+<a id="__codelineno-67-2" name="__codelineno-67-2" href="#__codelineno-67-2"></a>Status: Investigating / Identified / Monitoring / Resolved
+<a id="__codelineno-67-3" name="__codelineno-67-3" href="#__codelineno-67-3"></a>Description: [TECHNICAL DESCRIPTION IN PLAIN ENGLISH]
+<a id="__codelineno-67-4" name="__codelineno-67-4" href="#__codelineno-67-4"></a>Impact: [USER-FACING IMPACT]
+<a id="__codelineno-67-5" name="__codelineno-67-5" href="#__codelineno-67-5"></a>Start Time: [START TIME]
+<a id="__codelineno-67-6" name="__codelineno-67-6" href="#__codelineno-67-6"></a>Estimated Resolution: [ESTIMATE OR &quot;N/A&quot;]
+<a id="__codelineno-67-7" name="__codelineno-67-7" href="#__codelineno-67-7"></a>Components: [LIST OF AFFECTED COMPONENTS]
+</code></pre></div>
+<hr />
+<h2 id="appendix-quick-command-reference">Appendix: Quick Command Reference</h2>
+<h3 id="startup-shutdown">Startup &amp; Shutdown</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-68-1" name="__codelineno-68-1" href="#__codelineno-68-1"></a>docker-compose up -d                    # Start all services
+<a id="__codelineno-68-2" name="__codelineno-68-2" href="#__codelineno-68-2"></a>docker-compose down                     # Stop all services
+<a id="__codelineno-68-3" name="__codelineno-68-3" href="#__codelineno-68-3"></a>docker-compose restart                  # Restart all services
+<a id="__codelineno-68-4" name="__codelineno-68-4" href="#__codelineno-68-4"></a>docker-compose logs -f                  # Follow all logs
+</code></pre></div>
+<h3 id="health-checks">Health Checks</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-69-1" name="__codelineno-69-1" href="#__codelineno-69-1"></a>curl http://localhost:3000/health       # Basic health
+<a id="__codelineno-69-2" name="__codelineno-69-2" href="#__codelineno-69-2"></a>curl http://localhost:8000/metrics      # Prometheus metrics
+<a id="__codelineno-69-3" name="__codelineno-69-3" href="#__codelineno-69-3"></a>docker-compose ps                       # Container status
+</code></pre></div>
+<h3 id="backup-restore">Backup &amp; Restore</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-70-1" name="__codelineno-70-1" href="#__codelineno-70-1"></a>.\backup.ps1                            # Run backup script
+<a id="__codelineno-70-2" name="__codelineno-70-2" href="#__codelineno-70-2"></a>copy backups\latest\mastra.db .         # Restore database
+</code></pre></div>
+<h3 id="diagnostics">Diagnostics</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-71-1" name="__codelineno-71-1" href="#__codelineno-71-1"></a>Get-Content logs\*.log | Select-String &quot;ERROR&quot;  # Find errors
+<a id="__codelineno-71-2" name="__codelineno-71-2" href="#__codelineno-71-2"></a>docker stats --no-stream                         # Resource usage
+<a id="__codelineno-71-3" name="__codelineno-71-3" href="#__codelineno-71-3"></a>docker-compose logs etap-platform --tail 100     # Last 100 lines
+</code></pre></div>
+<h3 id="maintenance">Maintenance</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-72-1" name="__codelineno-72-1" href="#__codelineno-72-1"></a>python -c &quot;import sqlite3; sqlite3.connect(&#39;mastra.db&#39;).execute(&#39;VACUUM&#39;)&quot;  # DB maintenance
+<a id="__codelineno-72-2" name="__codelineno-72-2" href="#__codelineno-72-2"></a>pip list --outdated                                                         # Check updates
+<a id="__codelineno-72-3" name="__codelineno-72-3" href="#__codelineno-72-3"></a>pnpm outdated                                                                 # Check updates
+</code></pre></div>
+<h3 id="scaling">Scaling</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-73-1" name="__codelineno-73-1" href="#__codelineno-73-1"></a>docker-compose up -d --scale etap-platform=5    # Scale horizontally
+<a id="__codelineno-73-2" name="__codelineno-73-2" href="#__codelineno-73-2"></a>kubectl scale deployment etap-platform --replicas=10  # Scale in K8s
+</code></pre></div>
+<hr />
+<p><strong>Document Version:</strong> 1.0<br />
+<strong>Last Updated:</strong> June 8, 2026<br />
+<strong>Maintained By:</strong> Engineering Team<br />
+<strong>Classification:</strong> Internal - Operations<br />
+<strong>Review Frequency:</strong> Quarterly<br />
+<strong>DR Test Required:</strong> Yes - Quarterly</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.tabs", "navigation.sections", "navigation.top", "search.suggest", "search.highlight"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  </body>
+</html>

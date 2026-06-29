@@ -1,0 +1,1355 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Enterprise AI-Powered Power Systems Engineering Platform">
+      
+      
+        <meta name="author" content="AhmedETAP Team">
+      
+      
+      
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+    
+    
+      
+        <title>AhmedETAP — Incident Response Runbook - AhmedETAP Documentation</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="deep-purple">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#ahmedetap-incident-response-runbook" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="AhmedETAP Documentation" class="md-header__button md-logo" aria-label="AhmedETAP Documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            AhmedETAP Documentation
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              AhmedETAP — Incident Response Runbook
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+    
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/ahmdelbaz28-ux/ETAP-AI-WORK-" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href=".." class="md-tabs__link">
+        
+  
+  
+    
+  
+  الصفحة الرئيسية
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../ARCHITECTURE/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  الهيكلية
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../API_REFERENCE/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  واجهة برمجة التطبيقات
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../OPERATIONS_RUNBOOK/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  دليل التشغيل
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../TROUBLESHOOTING_GUIDE/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  دليل الأعطال
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../SECURITY_OPERATIONS_MANUAL/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  البنية التحتية للأمان
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../ENTERPRISE_CERTIFICATION_REPORT/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  التقييم المؤسسي
+
+      </a>
+    </li>
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="AhmedETAP Documentation" class="md-nav__button md-logo" aria-label="AhmedETAP Documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    AhmedETAP Documentation
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/ahmdelbaz28-ux/ETAP-AI-WORK-" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    الصفحة الرئيسية
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ARCHITECTURE/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    الهيكلية
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../API_REFERENCE/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    واجهة برمجة التطبيقات
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../OPERATIONS_RUNBOOK/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    دليل التشغيل
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../TROUBLESHOOTING_GUIDE/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    دليل الأعطال
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../SECURITY_OPERATIONS_MANUAL/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    البنية التحتية للأمان
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ENTERPRISE_CERTIFICATION_REPORT/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    التقييم المؤسسي
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1-incident-severity-levels" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Incident Severity Levels
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="1. Incident Severity Levels">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#sev-1-critical" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        SEV-1 — Critical
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sev-2-major" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        SEV-2 — Major
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sev-3-minor" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        SEV-3 — Minor
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sev-4-informational" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        SEV-4 — Informational
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-escalation-matrix" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Escalation Matrix
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-incident-response-procedures" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Incident Response Procedures
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3. Incident Response Procedures">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#31-detection" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.1 Detection
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#32-triage" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.2 Triage
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#33-response" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.3 Response
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#34-mitigation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.4 Mitigation
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#35-resolution" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.5 Resolution
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#36-post-mortem" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.6 Post-Mortem
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-emergency-contacts" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Emergency Contacts
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-outage-procedures" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. Outage Procedures
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="5. Outage Procedures">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#51-planned-maintenance" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.1 Planned Maintenance
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#52-unplanned-outage" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.2 Unplanned Outage
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-incident-response-tools" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. Incident Response Tools
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7-training-drills" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7. Training &amp; Drills
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="ahmedetap-incident-response-runbook">AhmedETAP — Incident Response Runbook</h1>
+<p><strong>Version:</strong> 1.0.0<br />
+<strong>Date:</strong> 2026-06-10<br />
+<strong>Classification:</strong> INTERNAL — OPERATIONS<br />
+<strong>Owner:</strong> Site Reliability Engineering Team<br />
+<strong>Status:</strong> ACTIVE</p>
+<hr />
+<h2 id="1-incident-severity-levels">1. Incident Severity Levels</h2>
+<h3 id="sev-1-critical">SEV-1 — Critical</h3>
+<p><strong>Definition:</strong> Complete service outage or severe degradation affecting all users.<br />
+<strong>Examples:</strong>
+- All API endpoints returning 500/502 for &gt;5 minutes
+- Cloudflare Worker completely unreachable
+- ETAP engine unavailable and all AI providers down
+- Security breach (credential compromise, unauthorized access)
+- Data loss or corruption</p>
+<p><strong>Response:</strong>
+- <strong>Page immediately:</strong> On-call SRE, Engineering Manager, Security Lead
+- <strong>Slack channel:</strong> <code>#incidents-sev1</code>
+- <strong>War room:</strong> Zoom/Meet within 10 minutes
+- <strong>Update frequency:</strong> Every 15 minutes until resolved
+- <strong>Post-mortem:</strong> Within 24 hours</p>
+<h3 id="sev-2-major">SEV-2 — Major</h3>
+<p><strong>Definition:</strong> Significant degradation affecting a large portion of users or critical functionality.<br />
+<strong>Examples:</strong>
+- <code>/api/v1/studies/run</code> failing for &gt;50% of requests
+- AI provider failover exhausted (all 3 providers down)
+- Rate limiting incorrectly blocking all users
+- ETAP Worker service down (but AI fallback works)
+- Data inconsistency in task store</p>
+<p><strong>Response:</strong>
+- <strong>Page:</strong> On-call SRE
+- <strong>Slack channel:</strong> <code>#incidents-sev2</code>
+- <strong>War room:</strong> Optional (decision within 30 minutes)
+- <strong>Update frequency:</strong> Every 30 minutes until resolved
+- <strong>Post-mortem:</strong> Within 48 hours</p>
+<h3 id="sev-3-minor">SEV-3 — Minor</h3>
+<p><strong>Definition:</strong> Partial degradation affecting a small subset of users or non-critical functionality.<br />
+<strong>Examples:</strong>
+- Single agent endpoint returning errors
+- Increased latency (&gt;5s) on specific endpoints
+- One AI provider down (failover working)
+- Metrics endpoint returning stale data
+- Non-critical UI elements broken</p>
+<p><strong>Response:</strong>
+- <strong>Notify:</strong> On-call SRE (no page, Slack notification)
+- <strong>Slack channel:</strong> <code>#incidents-sev3</code>
+- <strong>Update frequency:</strong> Every 2 hours
+- <strong>Post-mortem:</strong> Optional (within 1 week)</p>
+<h3 id="sev-4-informational">SEV-4 — Informational</h3>
+<p><strong>Definition:</strong> Issues that do not affect users or require immediate action.<br />
+<strong>Examples:</strong>
+- Warning logs increasing
+- Deprecation notices
+- Capacity approaching threshold
+- Non-urgent security patches available
+- Documentation gaps</p>
+<p><strong>Response:</strong>
+- <strong>Log:</strong> In incident tracking system
+- <strong>Slack channel:</strong> <code>#incidents-sev4</code>
+- <strong>Action:</strong> Schedule during business hours
+- <strong>Post-mortem:</strong> Not required</p>
+<hr />
+<h2 id="2-escalation-matrix">2. Escalation Matrix</h2>
+<table>
+<thead>
+<tr>
+<th>Time Since Detection</th>
+<th>SEV-1</th>
+<th>SEV-2</th>
+<th>SEV-3</th>
+<th>SEV-4</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>0 min</strong></td>
+<td>Page on-call SRE</td>
+<td>Page on-call SRE</td>
+<td>Slack notify SRE</td>
+<td>Log ticket</td>
+</tr>
+<tr>
+<td><strong>15 min</strong></td>
+<td>Page Engineering Manager</td>
+<td>—</td>
+<td>—</td>
+<td>—</td>
+</tr>
+<tr>
+<td><strong>30 min</strong></td>
+<td>Page CTO / VP Engineering</td>
+<td>Page Engineering Manager</td>
+<td>—</td>
+<td>—</td>
+</tr>
+<tr>
+<td><strong>1 hour</strong></td>
+<td>Page CEO (if customer-facing)</td>
+<td>—</td>
+<td>Escalate to SRE lead</td>
+<td>—</td>
+</tr>
+<tr>
+<td><strong>2 hours</strong></td>
+<td>Executive briefing</td>
+<td>Escalate to CTO</td>
+<td>—</td>
+<td>—</td>
+</tr>
+<tr>
+<td><strong>4 hours</strong></td>
+<td>External comms (if needed)</td>
+<td>Customer comms (if needed)</td>
+<td>—</td>
+<td>—</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Escalation Path:</strong>
+1. On-call SRE
+2. SRE Team Lead
+3. Engineering Manager
+4. CTO / VP Engineering
+5. CEO (for SEV-1 with customer impact)</p>
+<hr />
+<h2 id="3-incident-response-procedures">3. Incident Response Procedures</h2>
+<h3 id="31-detection">3.1 Detection</h3>
+<p><strong>Monitoring Sources:</strong>
+- Cloudflare Workers Analytics Dashboard
+- <code>/health</code> endpoint polling (every 30s from 3 regions)
+- <code>/metrics</code> endpoint for anomaly detection
+- Error rate alerts (SEV-1: &gt;10% error rate for 5 min)
+- PagerDuty integration for automated paging</p>
+<p><strong>Detection Commands:</strong>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="c1"># Check health from multiple regions</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>curl<span class="w"> </span>-s<span class="w"> </span>https://ahmed-etap.ahmdelbaz28.workers.dev/health<span class="w"> </span><span class="p">|</span><span class="w"> </span>jq<span class="w"> </span>.
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>curl<span class="w"> </span>-s<span class="w"> </span>https://ahmed-etap.ahmdelbaz28.workers.dev/metrics<span class="w"> </span><span class="p">|</span><span class="w"> </span>jq<span class="w"> </span>.
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="c1"># Check error rate</span>
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="c1"># (via Cloudflare Workers dashboard or log aggregation)</span>
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="c1"># Check provider health</span>
+<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>curl<span class="w"> </span>-s<span class="w"> </span>https://ahmed-etap.ahmdelbaz28.workers.dev/api/v1/providers<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="w">  </span>-H<span class="w"> </span><span class="s2">&quot;x-api-key: &lt;secret&gt;&quot;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>jq<span class="w"> </span>.
+</code></pre></div></p>
+<h3 id="32-triage">3.2 Triage</h3>
+<p><strong>Within 5 minutes of detection:</strong>
+1. Verify the issue is real (not a false alarm).
+2. Determine severity level (SEV-1 to SEV-4).
+3. Create incident ticket in tracking system.
+4. Post initial status in <code>#incidents</code> Slack channel.</p>
+<p><strong>Triage Questions:</strong>
+- Is the service completely down? → SEV-1
+- Are users unable to run studies? → SEV-2
+- Is one feature broken? → SEV-3
+- Is this a warning? → SEV-4
+- Is there a security component? → Escalate +1 level</p>
+<h3 id="33-response">3.3 Response</h3>
+<p><strong>SEV-1 Response Checklist:</strong>
+- [ ] Page on-call SRE
+- [ ] Create <code>#incidents-sev1</code> Slack channel
+- [ ] Start war room (Zoom/Meet)
+- [ ] Identify incident commander (first SRE on call)
+- [ ] Assess scope: number of affected users, endpoints, regions
+- [ ] Apply immediate mitigation if known (e.g., rollback, disable feature)
+- [ ] Communicate status every 15 minutes
+- [ ] Page Engineering Manager at 15 min if not resolved
+- [ ] Page CTO at 30 min if not resolved
+- [ ] Document all actions in incident ticket</p>
+<p><strong>SEV-2 Response Checklist:</strong>
+- [ ] Page on-call SRE
+- [ ] Create <code>#incidents-sev2</code> Slack channel
+- [ ] Assess scope
+- [ ] Apply mitigation
+- [ ] Communicate status every 30 minutes
+- [ ] Page Engineering Manager at 30 min if not resolved</p>
+<h3 id="34-mitigation">3.4 Mitigation</h3>
+<p><strong>Common Mitigations:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Issue</th>
+<th>Mitigation</th>
+<th>Time to Apply</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Worker deployment broken</td>
+<td>Rollback: <code>npx wrangler deploy --env=production</code></td>
+<td>5 min</td>
+</tr>
+<tr>
+<td>KV namespace issues</td>
+<td>Recreate KV, update <code>wrangler.jsonc</code>, re-deploy</td>
+<td>10 min</td>
+</tr>
+<tr>
+<td>AI provider down</td>
+<td>Verify failover (automatic) — check <code>/api/v1/providers</code></td>
+<td>2 min</td>
+</tr>
+<tr>
+<td>All AI providers down</td>
+<td>Enable static response mode (return queued status)</td>
+<td>5 min</td>
+</tr>
+<tr>
+<td>Rate limiting too aggressive</td>
+<td>Temporarily increase <code>RATE_LIMIT_REQUESTS_PER_MINUTE</code></td>
+<td>2 min</td>
+</tr>
+<tr>
+<td>ETAP Worker down</td>
+<td>Restart container, check license</td>
+<td>10 min</td>
+</tr>
+<tr>
+<td>High error rate</td>
+<td>Enable maintenance mode (return 503 with retry-after)</td>
+<td>5 min</td>
+</tr>
+</tbody>
+</table>
+<h3 id="35-resolution">3.5 Resolution</h3>
+<p><strong>Resolution Criteria:</strong>
+- All health checks pass for 5 consecutive minutes.
+- Error rate returns to &lt;1% for 10 minutes.
+- Latency returns to P95 &lt;2s for 10 minutes.
+- All critical metrics within normal thresholds.</p>
+<p><strong>Resolution Steps:</strong>
+1. Verify fix in production.
+2. Close incident ticket with resolution timestamp.
+3. Post final status in Slack.
+4. Schedule post-mortem within 24h (SEV-1) or 48h (SEV-2).</p>
+<h3 id="36-post-mortem">3.6 Post-Mortem</h3>
+<p><strong>Required for:</strong> SEV-1 (within 24h), SEV-2 (within 48h)<br />
+<strong>Optional for:</strong> SEV-3 (within 1 week)</p>
+<p><strong>Post-Mortem Template:</strong>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a># Incident Post-Mortem: &lt;INCIDENT-ID&gt;
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>## Summary
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>- Incident ID: &lt;ID&gt;
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>- Date: &lt;DATE&gt;
+<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>- Severity: &lt;SEV&gt;
+<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a>- Duration: &lt;START&gt; to &lt;END&gt;
+<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a>- Impact: &lt;AFFECTED USERS / ENDPOINTS&gt;
+<a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a>
+<a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a>## Timeline
+<a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a>- &lt;TIME&gt;: Detection
+<a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a>- &lt;TIME&gt;: Triage
+<a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a>- &lt;TIME&gt;: Mitigation applied
+<a id="__codelineno-1-14" name="__codelineno-1-14" href="#__codelineno-1-14"></a>- &lt;TIME&gt;: Resolution
+<a id="__codelineno-1-15" name="__codelineno-1-15" href="#__codelineno-1-15"></a>
+<a id="__codelineno-1-16" name="__codelineno-1-16" href="#__codelineno-1-16"></a>## Root Cause
+<a id="__codelineno-1-17" name="__codelineno-1-17" href="#__codelineno-1-17"></a>&lt;Detailed description of what caused the incident&gt;
+<a id="__codelineno-1-18" name="__codelineno-1-18" href="#__codelineno-1-18"></a>
+<a id="__codelineno-1-19" name="__codelineno-1-19" href="#__codelineno-1-19"></a>## Impact
+<a id="__codelineno-1-20" name="__codelineno-1-20" href="#__codelineno-1-20"></a>- Users affected: &lt;COUNT&gt;
+<a id="__codelineno-1-21" name="__codelineno-1-21" href="#__codelineno-1-21"></a>- Requests failed: &lt;COUNT&gt;
+<a id="__codelineno-1-22" name="__codelineno-1-22" href="#__codelineno-1-22"></a>- Data loss: &lt;YES/NO, details&gt;
+<a id="__codelineno-1-23" name="__codelineno-1-23" href="#__codelineno-1-23"></a>- Financial impact: &lt;IF APPLICABLE&gt;
+<a id="__codelineno-1-24" name="__codelineno-1-24" href="#__codelineno-1-24"></a>
+<a id="__codelineno-1-25" name="__codelineno-1-25" href="#__codelineno-1-25"></a>## Lessons Learned
+<a id="__codelineno-1-26" name="__codelineno-1-26" href="#__codelineno-1-26"></a>- What went well?
+<a id="__codelineno-1-27" name="__codelineno-1-27" href="#__codelineno-1-27"></a>- What went poorly?
+<a id="__codelineno-1-28" name="__codelineno-1-28" href="#__codelineno-1-28"></a>- What was confusing?
+<a id="__codelineno-1-29" name="__codelineno-1-29" href="#__codelineno-1-29"></a>
+<a id="__codelineno-1-30" name="__codelineno-1-30" href="#__codelineno-1-30"></a>## Action Items
+<a id="__codelineno-1-31" name="__codelineno-1-31" href="#__codelineno-1-31"></a>| Action | Owner | Due Date | Priority |
+<a id="__codelineno-1-32" name="__codelineno-1-32" href="#__codelineno-1-32"></a>|--------|-------|----------|----------|
+<a id="__codelineno-1-33" name="__codelineno-1-33" href="#__codelineno-1-33"></a>| &lt;Action&gt; | &lt;Owner&gt; | &lt;Date&gt; | &lt;P0/P1/P2&gt; |
+<a id="__codelineno-1-34" name="__codelineno-1-34" href="#__codelineno-1-34"></a>
+<a id="__codelineno-1-35" name="__codelineno-1-35" href="#__codelineno-1-35"></a>## Prevention
+<a id="__codelineno-1-36" name="__codelineno-1-36" href="#__codelineno-1-36"></a>- How can we prevent this from happening again?
+<a id="__codelineno-1-37" name="__codelineno-1-37" href="#__codelineno-1-37"></a>- What monitoring/alerting should be added?
+</code></pre></div></p>
+<hr />
+<h2 id="4-emergency-contacts">4. Emergency Contacts</h2>
+<table>
+<thead>
+<tr>
+<th>Role</th>
+<th>Name</th>
+<th>Slack</th>
+<th>Phone</th>
+<th>Escalation</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>On-Call SRE</td>
+<td>Rotation</td>
+<td>@sre-oncall</td>
+<td>PagerDuty</td>
+<td>+30 min</td>
+</tr>
+<tr>
+<td>SRE Team Lead</td>
+<td>TBD</td>
+<td>@sre-lead</td>
+<td>—</td>
+<td>+1 hour</td>
+</tr>
+<tr>
+<td>Engineering Manager</td>
+<td>TBD</td>
+<td>@eng-manager</td>
+<td>—</td>
+<td>+2 hours</td>
+</tr>
+<tr>
+<td>CTO / VP Engineering</td>
+<td>TBD</td>
+<td>@cto</td>
+<td>—</td>
+<td>+4 hours</td>
+</tr>
+<tr>
+<td>Security Lead</td>
+<td>TBD</td>
+<td>@security-lead</td>
+<td>—</td>
+<td>Immediate for security</td>
+</tr>
+<tr>
+<td>Cloudflare Support</td>
+<td>—</td>
+<td>—</td>
+<td>https://support.cloudflare.com</td>
+<td>Platform issues</td>
+</tr>
+<tr>
+<td>ETAP Support</td>
+<td>—</td>
+<td>—</td>
+<td>support@etap.com</td>
+<td>ETAP engine issues</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="5-outage-procedures">5. Outage Procedures</h2>
+<h3 id="51-planned-maintenance">5.1 Planned Maintenance</h3>
+<p><strong>Notification:</strong> 24 hours in advance for maintenance windows &gt;15 minutes.<br />
+<strong>Window:</strong> Sundays 02:00–04:00 UTC (lowest traffic).<br />
+<strong>Procedure:</strong>
+1. Post maintenance notice in <code>#platform-status</code>.
+2. Enable maintenance mode (if applicable).
+3. Execute maintenance.
+4. Verify all systems.
+5. Post completion notice.</p>
+<h3 id="52-unplanned-outage">5.2 Unplanned Outage</h3>
+<p><strong>Immediate:</strong>
+1. Detect via monitoring or user report.
+2. Triage and classify.
+3. Apply fastest mitigation.
+4. Communicate status.</p>
+<p><strong>Communication Templates:</strong></p>
+<p><strong>SEV-1 Initial:</strong>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>🚨 SEV-1 Incident: AhmedETAP is experiencing a complete outage.
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>- All API endpoints are returning errors.
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>- We are investigating and will update every 15 minutes.
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>- Incident channel: #incidents-sev1
+<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>- ETA: Unknown
+</code></pre></div></p>
+<p><strong>SEV-1 Update:</strong>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>🔔 SEV-1 Update (15 min): Root cause identified: &lt;CAUSE&gt;
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>- Mitigation in progress.
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>- ETA to resolution: &lt;TIME&gt;
+</code></pre></div></p>
+<p><strong>SEV-1 Resolved:</strong>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>✅ SEV-1 Resolved: Service is fully restored.
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>- Duration: &lt;TIME&gt;
+<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>- Root cause: &lt;CAUSE&gt;
+<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a>- Post-mortem scheduled: &lt;DATE/TIME&gt;
+</code></pre></div></p>
+<hr />
+<h2 id="6-incident-response-tools">6. Incident Response Tools</h2>
+<table>
+<thead>
+<tr>
+<th>Tool</th>
+<th>Purpose</th>
+<th>URL</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>PagerDuty</td>
+<td>On-call paging and escalation</td>
+<td>https://pagerduty.com</td>
+</tr>
+<tr>
+<td>Slack</td>
+<td>Real-time communication</td>
+<td>#incidents, #incidents-sev1</td>
+</tr>
+<tr>
+<td>Cloudflare Dashboard</td>
+<td>Worker analytics and logs</td>
+<td>https://dash.cloudflare.com</td>
+</tr>
+<tr>
+<td>Cloudflare Status</td>
+<td>Platform status</td>
+<td>https://www.cloudflarestatus.com</td>
+</tr>
+<tr>
+<td>GitHub</td>
+<td>Deployment history and rollback</td>
+<td>https://github.com</td>
+</tr>
+<tr>
+<td>wrangler CLI</td>
+<td>Deployment and KV management</td>
+<td><code>npx wrangler</code></td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="7-training-drills">7. Training &amp; Drills</h2>
+<table>
+<thead>
+<tr>
+<th>Drill</th>
+<th>Frequency</th>
+<th>Last Run</th>
+<th>Next Run</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>SEV-1 simulation</td>
+<td>Quarterly</td>
+<td>—</td>
+<td>2026-09-10</td>
+</tr>
+<tr>
+<td>SEV-2 simulation</td>
+<td>Quarterly</td>
+<td>—</td>
+<td>2026-09-10</td>
+</tr>
+<tr>
+<td>Rollback drill</td>
+<td>Monthly</td>
+<td>2026-06-10</td>
+<td>2026-07-10</td>
+</tr>
+<tr>
+<td>Escalation test</td>
+<td>Quarterly</td>
+<td>—</td>
+<td>2026-09-10</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<p><em>Document Classification: INTERNAL — OPERATIONS</em><br />
+<em>Distribution: All Engineering, SRE, Security, Leadership</em><br />
+<em>Review: Quarterly or after any SEV-1 incident</em></p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.tabs", "navigation.sections", "navigation.top", "search.suggest", "search.highlight"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  </body>
+</html>

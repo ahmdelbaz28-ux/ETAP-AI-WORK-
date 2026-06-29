@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="320" viewBox="0 0 1200 320" role="img" aria-label="AhmedETAP logo">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#06111f"/>
+      <stop offset="100%" stop-color="#030712"/>
+    </linearGradient>
+    <linearGradient id="brand" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#38bdf8"/>
+      <stop offset="55%" stop-color="#2563eb"/>
+      <stop offset="100%" stop-color="#7c3aed"/>
+    </linearGradient>
+    <linearGradient id="green" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#34d399"/>
+      <stop offset="100%" stop-color="#059669"/>
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="16" stdDeviation="18" flood-color="#000000" flood-opacity="0.35"/>
+    </filter>
+  </defs>
+  <rect width="100%" height="100%" fill="url(#bg)"/>
+  <circle cx="1080" cy="110" r="220" fill="#2563eb" opacity="0.12"/>
+  <circle cx="130" cy="230" r="260" fill="#7c3aed" opacity="0.12"/>
+  <text x="90" y="120" font-family="Inter, Arial, sans-serif" font-size="42" font-weight="900" fill="#ffffff">ETAP</text><text x="90" y="165" font-family="Inter, Arial, sans-serif" font-size="22" font-weight="700" fill="#93c5fd">AI Engineering Platform</text><path d="M760 82 C820 20 930 20 990 82 L990 210 C930 272 820 272 760 210 Z" fill="url(#brand)" opacity="0.92"/><path d="M810 148 L870 92 L940 148 L895 148 L895 216 L845 216 L845 148 Z" fill="#ffffff" opacity="0.94"/><path d="M80 248 C280 205 450 205 650 248" fill="none" stroke="url(#brand)" stroke-width="12" stroke-linecap="round" opacity="0.85"/>
+</svg>

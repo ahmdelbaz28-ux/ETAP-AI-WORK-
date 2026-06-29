@@ -1,0 +1,3218 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Enterprise AI-Powered Power Systems Engineering Platform">
+      
+      
+        <meta name="author" content="AhmedETAP Team">
+      
+      
+      
+        <link rel="prev" href="..">
+      
+      
+        <link rel="next" href="../API_REFERENCE/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+    
+    
+      
+        <title>الهيكلية - AhmedETAP Documentation</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="deep-purple">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#ahmedetap-complete-system-architecture" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="AhmedETAP Documentation" class="md-header__button md-logo" aria-label="AhmedETAP Documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            AhmedETAP Documentation
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              الهيكلية
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+    
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/ahmdelbaz28-ux/ETAP-AI-WORK-" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href=".." class="md-tabs__link">
+        
+  
+  
+    
+  
+  الصفحة الرئيسية
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    <li class="md-tabs__item md-tabs__item--active">
+      <a href="./" class="md-tabs__link">
+        
+  
+  
+    
+  
+  الهيكلية
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../API_REFERENCE/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  واجهة برمجة التطبيقات
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../OPERATIONS_RUNBOOK/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  دليل التشغيل
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../TROUBLESHOOTING_GUIDE/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  دليل الأعطال
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../SECURITY_OPERATIONS_MANUAL/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  البنية التحتية للأمان
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../ENTERPRISE_CERTIFICATION_REPORT/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  التقييم المؤسسي
+
+      </a>
+    </li>
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="AhmedETAP Documentation" class="md-nav__button md-logo" aria-label="AhmedETAP Documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    AhmedETAP Documentation
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/ahmdelbaz28-ux/ETAP-AI-WORK-" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    الصفحة الرئيسية
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    الهيكلية
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    الهيكلية
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1-system-overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. System Overview
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="1. System Overview">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#core-capabilities" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Core Capabilities
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-system-architecture-diagram" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. System Architecture Diagram
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-complete-folder-structure" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Complete Folder Structure
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-agent-orchestration-logic" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Agent Orchestration Logic
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4. Agent Orchestration Logic">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#workflow-example-optimize-industrial-power-network" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Workflow Example: "Optimize Industrial Power Network"
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#agent-communication-pattern" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Agent Communication Pattern
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-core-modules-implementation-status" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. Core Modules Implementation Status
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="5. Core Modules Implementation Status">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#completed-modules" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ✅ Completed Modules
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#total-implementation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Total Implementation
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-testing-strategy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. Testing Strategy
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="6. Testing Strategy">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#test-pyramid" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Test Pyramid
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#test-categories" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Test Categories
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Test Categories">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#a-unit-tests-testsunit_testspy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A. Unit Tests (tests/unit_tests.py)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#b-integration-tests-testsscenarios" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        B. Integration Tests (tests/scenarios/)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#c-engineering-validation-validation_suitepy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        C. Engineering Validation (validation_suite.py)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#test-execution" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Test Execution
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7-deployment-strategy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7. Deployment Strategy
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="7. Deployment Strategy">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#option-a-docker-deployment" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Option A: Docker Deployment
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Option A: Docker Deployment">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#dockerfile" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Dockerfile
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#docker-composeyml" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        docker-compose.yml
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#deploy-with-docker" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Deploy with Docker
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#option-b-kubernetes-deployment" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Option B: Kubernetes Deployment
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Option B: Kubernetes Deployment">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#deploymentyaml" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        deployment.yaml
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#deploy-to-kubernetes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Deploy to Kubernetes
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#option-c-standalone-server" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Option C: Standalone Server
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#8-api-specification-fastapi" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8. API Specification (FastAPI)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="8. API Specification (FastAPI)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#rest-api-endpoints" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        REST API Endpoints
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#9-performance-benchmarks" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9. Performance Benchmarks
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="9. Performance Benchmarks">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#calculation-performance" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Calculation Performance
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#scalability" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Scalability
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#10-security-architecture" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10. Security Architecture
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="10. Security Architecture">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#authentication-flow" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Authentication Flow
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#security-features" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Security Features
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#11-monitoring-observability" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        11. Monitoring &amp; Observability
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="11. Monitoring &amp; Observability">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#metrics-collection" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Metrics Collection
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#health-checks" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Health Checks
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#12-disaster-recovery" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        12. Disaster Recovery
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="12. Disaster Recovery">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#backup-strategy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Backup Strategy
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#restore-procedure" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Restore Procedure
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#13-future-enhancements" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        13. Future Enhancements
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="13. Future Enhancements">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#priority-1-next-3-months" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Priority 1 (Next 3 Months)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#priority-2-3-6-months" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Priority 2 (3-6 Months)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#priority-3-6-12-months" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Priority 3 (6-12 Months)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#14-conclusion" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        14. Conclusion
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#15-new-components-phase-3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        15. New Components (Phase 3)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="15. New Components (Phase 3)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#security-secrets-management" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Security &amp; Secrets Management
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#reliability-resilience" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Reliability &amp; Resilience
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#numerical-safety-caching" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Numerical Safety &amp; Caching
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#async-execution-data-optimization" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Async Execution &amp; Data Optimization
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#etap-specific-components" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ETAP-Specific Components
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../API_REFERENCE/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    واجهة برمجة التطبيقات
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../OPERATIONS_RUNBOOK/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    دليل التشغيل
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../TROUBLESHOOTING_GUIDE/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    دليل الأعطال
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../SECURITY_OPERATIONS_MANUAL/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    البنية التحتية للأمان
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ENTERPRISE_CERTIFICATION_REPORT/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    التقييم المؤسسي
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1-system-overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. System Overview
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="1. System Overview">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#core-capabilities" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Core Capabilities
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-system-architecture-diagram" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. System Architecture Diagram
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-complete-folder-structure" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Complete Folder Structure
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-agent-orchestration-logic" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Agent Orchestration Logic
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4. Agent Orchestration Logic">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#workflow-example-optimize-industrial-power-network" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Workflow Example: "Optimize Industrial Power Network"
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#agent-communication-pattern" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Agent Communication Pattern
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-core-modules-implementation-status" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. Core Modules Implementation Status
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="5. Core Modules Implementation Status">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#completed-modules" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ✅ Completed Modules
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#total-implementation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Total Implementation
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-testing-strategy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. Testing Strategy
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="6. Testing Strategy">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#test-pyramid" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Test Pyramid
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#test-categories" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Test Categories
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Test Categories">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#a-unit-tests-testsunit_testspy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A. Unit Tests (tests/unit_tests.py)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#b-integration-tests-testsscenarios" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        B. Integration Tests (tests/scenarios/)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#c-engineering-validation-validation_suitepy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        C. Engineering Validation (validation_suite.py)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#test-execution" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Test Execution
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7-deployment-strategy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7. Deployment Strategy
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="7. Deployment Strategy">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#option-a-docker-deployment" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Option A: Docker Deployment
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Option A: Docker Deployment">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#dockerfile" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Dockerfile
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#docker-composeyml" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        docker-compose.yml
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#deploy-with-docker" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Deploy with Docker
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#option-b-kubernetes-deployment" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Option B: Kubernetes Deployment
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Option B: Kubernetes Deployment">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#deploymentyaml" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        deployment.yaml
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#deploy-to-kubernetes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Deploy to Kubernetes
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#option-c-standalone-server" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Option C: Standalone Server
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#8-api-specification-fastapi" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8. API Specification (FastAPI)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="8. API Specification (FastAPI)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#rest-api-endpoints" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        REST API Endpoints
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#9-performance-benchmarks" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9. Performance Benchmarks
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="9. Performance Benchmarks">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#calculation-performance" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Calculation Performance
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#scalability" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Scalability
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#10-security-architecture" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10. Security Architecture
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="10. Security Architecture">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#authentication-flow" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Authentication Flow
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#security-features" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Security Features
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#11-monitoring-observability" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        11. Monitoring &amp; Observability
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="11. Monitoring &amp; Observability">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#metrics-collection" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Metrics Collection
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#health-checks" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Health Checks
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#12-disaster-recovery" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        12. Disaster Recovery
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="12. Disaster Recovery">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#backup-strategy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Backup Strategy
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#restore-procedure" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Restore Procedure
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#13-future-enhancements" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        13. Future Enhancements
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="13. Future Enhancements">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#priority-1-next-3-months" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Priority 1 (Next 3 Months)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#priority-2-3-6-months" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Priority 2 (3-6 Months)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#priority-3-6-12-months" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Priority 3 (6-12 Months)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#14-conclusion" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        14. Conclusion
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#15-new-components-phase-3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        15. New Components (Phase 3)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="15. New Components (Phase 3)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#security-secrets-management" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Security &amp; Secrets Management
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#reliability-resilience" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Reliability &amp; Resilience
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#numerical-safety-caching" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Numerical Safety &amp; Caching
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#async-execution-data-optimization" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Async Execution &amp; Data Optimization
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#etap-specific-components" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ETAP-Specific Components
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="ahmedetap-complete-system-architecture">AhmedETAP - Complete System Architecture</h1>
+<h2 id="1-system-overview">1. System Overview</h2>
+<p>The <strong>AhmedETAP</strong> is a production-ready, multi-agent autonomous engineering system designed for comprehensive power system analysis, ETAP automation, and intelligent engineering decision support.</p>
+<h3 id="core-capabilities">Core Capabilities</h3>
+<p>✅ <strong>Autonomous Multi-Agent System</strong> - 9 specialized engineering agents<br />
+✅ <strong>Complete Power System Studies</strong> - Load Flow, Fault, Harmonics, OPF, Protection<br />
+✅ <strong>ETAP COM Automation</strong> - Direct integration with ETAP software<br />
+✅ <strong>RAG-Based Knowledge Base</strong> - IEEE/IEC/NFPA standards compliance<br />
+✅ <strong>Advanced Verification Engine</strong> - Results validation against standards<br />
+✅ <strong>Professional Report Generation</strong> - PDF, DOCX, XLSX with charts<br />
+✅ <strong>Enterprise Security</strong> - JWT auth, RBAC, audit logging<br />
+✅ <strong>Scalable Architecture</strong> - Async execution, microservices-ready  </p>
+<hr />
+<h2 id="2-system-architecture-diagram">2. System Architecture Diagram</h2>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>┌─────────────────────────────────────────────────────────────────┐
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>│                     USER INTERFACE LAYER                         │
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>│   ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────────┐  │
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>│   │ CLI Tool │  │ REST API │  │ Web UI   │  │ MCP Protocol │  │
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>│   └──────────┘  └──────────┘  └──────────┘  └──────────────┘  │
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>└────────────────────────┬────────────────────────────────────────┘
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>                         │ HTTP/WebSocket
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>┌────────────────────────▼────────────────────────────────────────┐
+<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>│                  ORCHESTRATION LAYER                             │
+<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>│                                                                  │
+<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>│  ┌──────────────────────────────────────────────────────────┐  │
+<a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>│  │     Chief Engineering Orchestrator Agent                 │  │
+<a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>│  │  - Task Decomposition                                    │  │
+<a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>│  │  - Agent Coordination                                    │  │
+<a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a>│  │  - Workflow Management                                   │  │
+<a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a>│  │  - Error Recovery                                        │  │
+<a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a>│  └──────────────────────────────────────────────────────────┘  │
+<a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a>└────┬────────┬────────┬────────┬────────┬────────┬─────────────┘
+<a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a>     │        │        │        │        │        │
+<a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a>┌────▼───┐┌──▼────┐┌──▼────┐┌─▼──────┐┌▼──────┐┌▼──────────┐
+<a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a>│Load    ││Short  ││Harmonic││OPF     ││Protect││ETAP       │
+<a id="__codelineno-0-22" name="__codelineno-0-22" href="#__codelineno-0-22"></a>│Flow    ││Circuit││Analysis││Engine  ││ion    ││Execution  │
+<a id="__codelineno-0-23" name="__codelineno-0-23" href="#__codelineno-0-23"></a>│Agent   ││Agent  ││Agent   ││Agent   ││Agent  ││Agent      │
+<a id="__codelineno-0-24" name="__codelineno-0-24" href="#__codelineno-0-24"></a>└────────┘└───────┘└────────┘└────────┘└───────┘└───────────┘
+<a id="__codelineno-0-25" name="__codelineno-0-25" href="#__codelineno-0-25"></a>     │        │        │        │        │        │
+<a id="__codelineno-0-26" name="__codelineno-0-26" href="#__codelineno-0-26"></a>     └────────┴────────┴────────┴────────┴────────┘
+<a id="__codelineno-0-27" name="__codelineno-0-27" href="#__codelineno-0-27"></a>                              │
+<a id="__codelineno-0-28" name="__codelineno-0-28" href="#__codelineno-0-28"></a>                    ┌─────────▼──────────┐
+<a id="__codelineno-0-29" name="__codelineno-0-29" href="#__codelineno-0-29"></a>                    │ Validation Agent   │
+<a id="__codelineno-0-30" name="__codelineno-0-30" href="#__codelineno-0-30"></a>                    │ - Standards Check  │
+<a id="__codelineno-0-31" name="__codelineno-0-31" href="#__codelineno-0-31"></a>                    │ - Compliance Verify│
+<a id="__codelineno-0-32" name="__codelineno-0-32" href="#__codelineno-0-32"></a>                    │ - Results Validate │
+<a id="__codelineno-0-33" name="__codelineno-0-33" href="#__codelineno-0-33"></a>                    └─────────┬──────────┘
+<a id="__codelineno-0-34" name="__codelineno-0-34" href="#__codelineno-0-34"></a>                              │
+<a id="__codelineno-0-35" name="__codelineno-0-35" href="#__codelineno-0-35"></a>                    ┌─────────▼──────────┐
+<a id="__codelineno-0-36" name="__codelineno-0-36" href="#__codelineno-0-36"></a>                    │ Report Agent       │
+<a id="__codelineno-0-37" name="__codelineno-0-37" href="#__codelineno-0-37"></a>                    │ - PDF/DOCX/XLSX    │
+<a id="__codelineno-0-38" name="__codelineno-0-38" href="#__codelineno-0-38"></a>                    │ - Charts &amp; Tables  │
+<a id="__codelineno-0-39" name="__codelineno-0-39" href="#__codelineno-0-39"></a>                    │ - Citations        │
+<a id="__codelineno-0-40" name="__codelineno-0-40" href="#__codelineno-0-40"></a>                    └────────────────────┘
+<a id="__codelineno-0-41" name="__codelineno-0-41" href="#__codelineno-0-41"></a>
+<a id="__codelineno-0-42" name="__codelineno-0-42" href="#__codelineno-0-42"></a>┌─────────────────────────────────────────────────────────────────┐
+<a id="__codelineno-0-43" name="__codelineno-0-43" href="#__codelineno-0-43"></a>│                   KNOWLEDGE &amp; DATA LAYER                        │
+<a id="__codelineno-0-44" name="__codelineno-0-44" href="#__codelineno-0-44"></a>│                                                                  │
+<a id="__codelineno-0-45" name="__codelineno-0-45" href="#__codelineno-0-45"></a>│  ┌──────────────────────┐    ┌──────────────────────────────┐  │
+<a id="__codelineno-0-46" name="__codelineno-0-46" href="#__codelineno-0-46"></a>│  │ RAG Engine           │    │ Vector Database              │  │
+<a id="__codelineno-0-47" name="__codelineno-0-47" href="#__codelineno-0-47"></a>│  │ - Embedding Model    │◄──►│ - ChromaDB / FAISS           │  │
+<a id="__codelineno-0-48" name="__codelineno-0-48" href="#__codelineno-0-48"></a>│  │ - Retrieval Pipeline │    │ - Engineering Standards      │  │
+<a id="__codelineno-0-49" name="__codelineno-0-49" href="#__codelineno-0-49"></a>│  │ - Citation System    │    │ - IEEE/IEC/NFPA Docs         │  │
+<a id="__codelineno-0-50" name="__codelineno-0-50" href="#__codelineno-0-50"></a>│  └──────────────────────┘    └──────────────────────────────┘  │
+<a id="__codelineno-0-51" name="__codelineno-0-51" href="#__codelineno-0-51"></a>│                                                                  │
+<a id="__codelineno-0-52" name="__codelineno-0-52" href="#__codelineno-0-52"></a>│  ┌──────────────────────────────────────────────────────────┐  │
+<a id="__codelineno-0-53" name="__codelineno-0-53" href="#__codelineno-0-53"></a>│  │ Power System Models                                      │  │
+<a id="__codelineno-0-54" name="__codelineno-0-54" href="#__codelineno-0-54"></a>│  │ - Buses, Lines, Transformers, Generators, Loads         │  │
+<a id="__codelineno-0-55" name="__codelineno-0-55" href="#__codelineno-0-55"></a>│  │ - Sequence Networks (Positive, Negative, Zero)          │  │
+<a id="__codelineno-0-56" name="__codelineno-0-56" href="#__codelineno-0-56"></a>│  └──────────────────────────────────────────────────────────┘  │
+<a id="__codelineno-0-57" name="__codelineno-0-57" href="#__codelineno-0-57"></a>└─────────────────────────────────────────────────────────────────┘
+<a id="__codelineno-0-58" name="__codelineno-0-58" href="#__codelineno-0-58"></a>
+<a id="__codelineno-0-59" name="__codelineno-0-59" href="#__codelineno-0-59"></a>┌─────────────────────────────────────────────────────────────────┐
+<a id="__codelineno-0-60" name="__codelineno-0-60" href="#__codelineno-0-60"></a>│                   CALCULATION ENGINE LAYER                      │
+<a id="__codelineno-0-61" name="__codelineno-0-61" href="#__codelineno-0-61"></a>│                                                                  │
+<a id="__codelineno-0-62" name="__codelineno-0-62" href="#__codelineno-0-62"></a>│  ┌──────────────┐ ┌──────────────┐ ┌──────────────────────┐   │
+<a id="__codelineno-0-63" name="__codelineno-0-63" href="#__codelineno-0-63"></a>│  │ Load Flow    │ │ Fault        │ │ Harmonic Analysis    │   │
+<a id="__codelineno-0-64" name="__codelineno-0-64" href="#__codelineno-0-64"></a>│  │ - Newton-    │ │ Analysis     │ │ - IEEE 519-2022      │   │
+<a id="__codelineno-0-65" name="__codelineno-0-65" href="#__codelineno-0-65"></a>│  │   Raphson    │ │ - IEC 60909  │ │ - THD/TDD            │   │
+<a id="__codelineno-0-66" name="__codelineno-0-66" href="#__codelineno-0-66"></a>│  │ - Fast       │ │ - All fault  │ │ - Resonance Detect   │   │
+<a id="__codelineno-0-67" name="__codelineno-0-67" href="#__codelineno-0-67"></a>│  │   Decoupled  │ │   types      │ │ - Filter Design      │   │
+<a id="__codelineno-0-68" name="__codelineno-0-68" href="#__codelineno-0-68"></a>│  └──────────────┘ └──────────────┘ └──────────────────────┘   │
+<a id="__codelineno-0-69" name="__codelineno-0-69" href="#__codelineno-0-69"></a>│                                                                  │
+<a id="__codelineno-0-70" name="__codelineno-0-70" href="#__codelineno-0-70"></a>│  ┌──────────────┐ ┌──────────────┐ ┌──────────────────────┐   │
+<a id="__codelineno-0-71" name="__codelineno-0-71" href="#__codelineno-0-71"></a>│  │ Optimal      │ │ Protection   │ │ Arc Flash Analysis   │   │
+<a id="__codelineno-0-72" name="__codelineno-0-72" href="#__codelineno-0-72"></a>│  │ Power Flow   │ │ Coordination │ │ - IEEE 1584-2018     │   │
+<a id="__codelineno-0-73" name="__codelineno-0-73" href="#__codelineno-0-73"></a>│  │ - DC-OPF (LP)│ │ - IEC 60255  │ │ - Incident Energy    │   │
+<a id="__codelineno-0-74" name="__codelineno-0-74" href="#__codelineno-0-74"></a>│  │ - AC-OPF     │ │ - TCC Curves │ │ - PPE Levels         │   │
+<a id="__codelineno-0-75" name="__codelineno-0-75" href="#__codelineno-0-75"></a>│  │   (SLSQP)    │ │ - Margins    │ │ - Boundaries         │   │
+<a id="__codelineno-0-76" name="__codelineno-0-76" href="#__codelineno-0-76"></a>│  └──────────────┘ └──────────────┘ └──────────────────────┘   │
+<a id="__codelineno-0-77" name="__codelineno-0-77" href="#__codelineno-0-77"></a>└─────────────────────────────────────────────────────────────────┘
+<a id="__codelineno-0-78" name="__codelineno-0-78" href="#__codelineno-0-78"></a>
+<a id="__codelineno-0-79" name="__codelineno-0-79" href="#__codelineno-0-79"></a>┌─────────────────────────────────────────────────────────────────┐
+<a id="__codelineno-0-80" name="__codelineno-0-80" href="#__codelineno-0-80"></a>│                   INTEGRATION LAYER                             │
+<a id="__codelineno-0-81" name="__codelineno-0-81" href="#__codelineno-0-81"></a>│                                                                  │
+<a id="__codelineno-0-82" name="__codelineno-0-82" href="#__codelineno-0-82"></a>│  ┌──────────────────────────────────────────────────────────┐  │
+<a id="__codelineno-0-83" name="__codelineno-0-83" href="#__codelineno-0-83"></a>│  │ ETAP COM Automation Interface                            │  │
+<a id="__codelineno-0-84" name="__codelineno-0-84" href="#__codelineno-0-84"></a>│  │ - Launch/Close ETAP                                      │  │
+<a id="__codelineno-0-85" name="__codelineno-0-85" href="#__codelineno-0-85"></a>│  │ - Open/Create Projects                                   │  │
+<a id="__codelineno-0-86" name="__codelineno-0-86" href="#__codelineno-0-86"></a>│  │ - Execute Studies                                        │  │
+<a id="__codelineno-0-87" name="__codelineno-0-87" href="#__codelineno-0-87"></a>│  │ - Extract Results                                        │  │
+<a id="__codelineno-0-88" name="__codelineno-0-88" href="#__codelineno-0-88"></a>│  └──────────────────────────────────────────────────────────┘  │
+<a id="__codelineno-0-89" name="__codelineno-0-89" href="#__codelineno-0-89"></a>│                                                                  │
+<a id="__codelineno-0-90" name="__codelineno-0-90" href="#__codelineno-0-90"></a>│  ┌──────────────────────────────────────────────────────────┐  │
+<a id="__codelineno-0-91" name="__codelineno-0-91" href="#__codelineno-0-91"></a>│  │ External Systems Integration                             │  │
+<a id="__codelineno-0-92" name="__codelineno-0-92" href="#__codelineno-0-92"></a>│  │ - SCADA Systems (via OPC UA)                             │  │
+<a id="__codelineno-0-93" name="__codelineno-0-93" href="#__codelineno-0-93"></a>│  │ - EMS/DMS Integration                                    │  │
+<a id="__codelineno-0-94" name="__codelineno-0-94" href="#__codelineno-0-94"></a>│  │ - GIS Platforms                                          │  │
+<a id="__codelineno-0-95" name="__codelineno-0-95" href="#__codelineno-0-95"></a>│  │ - Digital Twin Synchronization                           │  │
+<a id="__codelineno-0-96" name="__codelineno-0-96" href="#__codelineno-0-96"></a>│  └──────────────────────────────────────────────────────────┘  │
+<a id="__codelineno-0-97" name="__codelineno-0-97" href="#__codelineno-0-97"></a>└─────────────────────────────────────────────────────────────────┘
+<a id="__codelineno-0-98" name="__codelineno-0-98" href="#__codelineno-0-98"></a>
+<a id="__codelineno-0-99" name="__codelineno-0-99" href="#__codelineno-0-99"></a>┌─────────────────────────────────────────────────────────────────┐
+<a id="__codelineno-0-100" name="__codelineno-0-100" href="#__codelineno-0-100"></a>│                   SECURITY &amp; INFRASTRUCTURE                     │
+<a id="__codelineno-0-101" name="__codelineno-0-101" href="#__codelineno-0-101"></a>│                                                                  │
+<a id="__codelineno-0-102" name="__codelineno-0-102" href="#__codelineno-0-102"></a>│  ┌──────────────┐ ┌──────────────┐ ┌──────────────────────┐   │
+<a id="__codelineno-0-103" name="__codelineno-0-103" href="#__codelineno-0-103"></a>│  │ Auth &amp; Authz │ │ Input        │ │ Audit &amp; Monitoring   │   │
+<a id="__codelineno-0-104" name="__codelineno-0-104" href="#__codelineno-0-104"></a>│  │ - JWT Tokens │ │ Validation   │ │ - Event Logging      │   │
+<a id="__codelineno-0-105" name="__codelineno-0-105" href="#__codelineno-0-105"></a>│  │ - RBAC       │ │ - Sanitization││ - Metrics Collection │   │
+<a id="__codelineno-0-106" name="__codelineno-0-106" href="#__codelineno-0-106"></a>│  │ - Sessions   │ │ - Sandboxing │ │ - Alerting           │   │
+<a id="__codelineno-0-107" name="__codelineno-0-107" href="#__codelineno-0-107"></a>│  └──────────────┘ └──────────────┘ └──────────────────────┘   │
+<a id="__codelineno-0-108" name="__codelineno-0-108" href="#__codelineno-0-108"></a>│                                                                  │
+<a id="__codelineno-0-109" name="__codelineno-0-109" href="#__codelineno-0-109"></a>│  ┌──────────────────────────────────────────────────────────┐  │
+<a id="__codelineno-0-110" name="__codelineno-0-110" href="#__codelineno-0-110"></a>│  │ Deployment Infrastructure                                │  │
+<a id="__codelineno-0-111" name="__codelineno-0-111" href="#__codelineno-0-111"></a>│  │ - Docker Containers                                      │  │
+<a id="__codelineno-0-112" name="__codelineno-0-112" href="#__codelineno-0-112"></a>│  │ - Kubernetes Orchestration                               │  │
+<a id="__codelineno-0-113" name="__codelineno-0-113" href="#__codelineno-0-113"></a>│  │ - Message Queues (Celery/RabbitMQ)                       │  │
+<a id="__codelineno-0-114" name="__codelineno-0-114" href="#__codelineno-0-114"></a>│  │ - Horizontal Scaling                                     │  │
+<a id="__codelineno-0-115" name="__codelineno-0-115" href="#__codelineno-0-115"></a>│  └──────────────────────────────────────────────────────────┘  │
+<a id="__codelineno-0-116" name="__codelineno-0-116" href="#__codelineno-0-116"></a>└─────────────────────────────────────────────────────────────────┘
+</code></pre></div>
+<hr />
+<h2 id="3-complete-folder-structure">3. Complete Folder Structure</h2>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>etap-ai-platform/
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>│
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>├── agents/                          # Multi-Agent System
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>│   ├── orchestrator.py             # Chief Engineering Orchestrator
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>│   ├── load_flow_agent.py          # Load Flow Analysis Agent
+<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>│   ├── short_circuit_agent.py      # Short Circuit Agent
+<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a>│   ├── harmonic_agent.py           # Harmonic Analysis Agent
+<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a>│   ├── opf_agent.py                # Optimal Power Flow Agent
+<a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a>│   ├── protection_agent.py         # Protection Coordination Agent
+<a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a>│   ├── etap_execution_agent.py     # ETAP COM Automation Agent
+<a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a>│   ├── validation_agent.py         # Validation &amp; Verification Agent
+<a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a>│   └── report_agent.py             # Report Generation Agent
+<a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a>│
+<a id="__codelineno-1-14" name="__codelineno-1-14" href="#__codelineno-1-14"></a>├── core_model/                      # Power System Component Models
+<a id="__codelineno-1-15" name="__codelineno-1-15" href="#__codelineno-1-15"></a>│   ├── bus.py                      # Bus model
+<a id="__codelineno-1-16" name="__codelineno-1-16" href="#__codelineno-1-16"></a>│   ├── line.py                     # Transmission line model
+<a id="__codelineno-1-17" name="__codelineno-1-17" href="#__codelineno-1-17"></a>│   ├── transformer.py              # Transformer model
+<a id="__codelineno-1-18" name="__codelineno-1-18" href="#__codelineno-1-18"></a>│   ├── generator.py                # Generator model
+<a id="__codelineno-1-19" name="__codelineno-1-19" href="#__codelineno-1-19"></a>│   ├── load.py                     # Load model
+<a id="__codelineno-1-20" name="__codelineno-1-20" href="#__codelineno-1-20"></a>│   ├── motor_model.py              # Motor model
+<a id="__codelineno-1-21" name="__codelineno-1-21" href="#__codelineno-1-21"></a>│   ├── zip_load.py                 # ZIP load model
+<a id="__codelineno-1-22" name="__codelineno-1-22" href="#__codelineno-1-22"></a>│   └── system.py                   # Complete system model
+<a id="__codelineno-1-23" name="__codelineno-1-23" href="#__codelineno-1-23"></a>│
+<a id="__codelineno-1-24" name="__codelineno-1-24" href="#__codelineno-1-24"></a>├── load_flow/                       # Load Flow Solvers
+<a id="__codelineno-1-25" name="__codelineno-1-25" href="#__codelineno-1-25"></a>│   ├── load_flow.py                # Newton-Raphson solver
+<a id="__codelineno-1-26" name="__codelineno-1-26" href="#__codelineno-1-26"></a>│   ├── load_flow_solver_fixed.py   # Fixed-point iteration
+<a id="__codelineno-1-27" name="__codelineno-1-27" href="#__codelineno-1-27"></a>│   └── optimal_power_flow.py       # OPF engine (DC &amp; AC)
+<a id="__codelineno-1-28" name="__codelineno-1-28" href="#__codelineno-1-28"></a>│
+<a id="__codelineno-1-29" name="__codelineno-1-29" href="#__codelineno-1-29"></a>├── fault_analysis/                  # Fault &amp; Harmonic Analysis
+<a id="__codelineno-1-30" name="__codelineno-1-30" href="#__codelineno-1-30"></a>│   ├── fault.py                    # Fault analyzer (all types)
+<a id="__codelineno-1-31" name="__codelineno-1-31" href="#__codelineno-1-31"></a>│   ├── iec60909_engine.py          # IEC 60909 compliant engine
+<a id="__codelineno-1-32" name="__codelineno-1-32" href="#__codelineno-1-32"></a>│   ├── arc_flash_engine.py         # IEEE 1584 arc flash
+<a id="__codelineno-1-33" name="__codelineno-1-33" href="#__codelineno-1-33"></a>│   ├── ieee1584_database.py        # IEEE 1584 parameters DB
+<a id="__codelineno-1-34" name="__codelineno-1-34" href="#__codelineno-1-34"></a>│   └── harmonic_analysis.py        # IEEE 519 harmonic analysis
+<a id="__codelineno-1-35" name="__codelineno-1-35" href="#__codelineno-1-35"></a>│
+<a id="__codelineno-1-36" name="__codelineno-1-36" href="#__codelineno-1-36"></a>├── relays/                          # Protection Relay Models
+<a id="__codelineno-1-37" name="__codelineno-1-37" href="#__codelineno-1-37"></a>│   ├── relay.py                    # Overcurrent, distance, differential
+<a id="__codelineno-1-38" name="__codelineno-1-38" href="#__codelineno-1-38"></a>│   └── curves.py                   # IEC 60255 TCC curves
+<a id="__codelineno-1-39" name="__codelineno-1-39" href="#__codelineno-1-39"></a>│
+<a id="__codelineno-1-40" name="__codelineno-1-40" href="#__codelineno-1-40"></a>├── coordination/                    # Protection Coordination
+<a id="__codelineno-1-41" name="__codelineno-1-41" href="#__codelineno-1-41"></a>│   └── coordination.py             # Relay coordination engine
+<a id="__codelineno-1-42" name="__codelineno-1-42" href="#__codelineno-1-42"></a>│
+<a id="__codelineno-1-43" name="__codelineno-1-43" href="#__codelineno-1-43"></a>├── adms_control/                    # ADMS Control Engine
+<a id="__codelineno-1-44" name="__codelineno-1-44" href="#__codelineno-1-44"></a>│   └── adms_control.py             # FLISR, topology processing
+<a id="__codelineno-1-45" name="__codelineno-1-45" href="#__codelineno-1-45"></a>│
+<a id="__codelineno-1-46" name="__codelineno-1-46" href="#__codelineno-1-46"></a>├── scada_model/                     # SCADA Data Model
+<a id="__codelineno-1-47" name="__codelineno-1-47" href="#__codelineno-1-47"></a>│   ├── scada_model.py              # SCADA data structures
+<a id="__codelineno-1-48" name="__codelineno-1-48" href="#__codelineno-1-48"></a>│   └── state_estimation.py         # State estimation
+<a id="__codelineno-1-49" name="__codelineno-1-49" href="#__codelineno-1-49"></a>│
+<a id="__codelineno-1-50" name="__codelineno-1-50" href="#__codelineno-1-50"></a>├── digital_twin/                    # Digital Twin Framework
+<a id="__codelineno-1-51" name="__codelineno-1-51" href="#__codelineno-1-51"></a>│   ├── digital_twin_core.py        # Core digital twin logic
+<a id="__codelineno-1-52" name="__codelineno-1-52" href="#__codelineno-1-52"></a>│   ├── event_bus.py                # Event-driven architecture
+<a id="__codelineno-1-53" name="__codelineno-1-53" href="#__codelineno-1-53"></a>│   ├── state_store.py              # State management
+<a id="__codelineno-1-54" name="__codelineno-1-54" href="#__codelineno-1-54"></a>│   └── validation_gateway.py       # Real-time validation
+<a id="__codelineno-1-55" name="__codelineno-1-55" href="#__codelineno-1-55"></a>│
+<a id="__codelineno-1-56" name="__codelineno-1-56" href="#__codelineno-1-56"></a>├── gis_model/                       # GIS Integration
+<a id="__codelineno-1-57" name="__codelineno-1-57" href="#__codelineno-1-57"></a>│   └── gis_model.py                # Geographic information system
+<a id="__codelineno-1-58" name="__codelineno-1-58" href="#__codelineno-1-58"></a>│
+<a id="__codelineno-1-59" name="__codelineno-1-59" href="#__codelineno-1-59"></a>├── network_solver/                  # Network Algorithms
+<a id="__codelineno-1-60" name="__codelineno-1-60" href="#__codelineno-1-60"></a>│   ├── per_unit.py                 # Per-unit system calculations
+<a id="__codelineno-1-61" name="__codelineno-1-61" href="#__codelineno-1-61"></a>│   └── zbus.py                     # Z-bus matrix construction
+<a id="__codelineno-1-62" name="__codelineno-1-62" href="#__codelineno-1-62"></a>│
+<a id="__codelineno-1-63" name="__codelineno-1-63" href="#__codelineno-1-63"></a>├── visualization/                   # Plotting &amp; Visualization
+<a id="__codelineno-1-64" name="__codelineno-1-64" href="#__codelineno-1-64"></a>│   └── visualization.py            # Matplotlib-based plots
+<a id="__codelineno-1-65" name="__codelineno-1-65" href="#__codelineno-1-65"></a>│
+<a id="__codelineno-1-66" name="__codelineno-1-66" href="#__codelineno-1-66"></a>├── etap_integration/                # ETAP Automation
+<a id="__codelineno-1-67" name="__codelineno-1-67" href="#__codelineno-1-67"></a>│   └── etap_com.py                 # COM automation interface
+<a id="__codelineno-1-68" name="__codelineno-1-68" href="#__codelineno-1-68"></a>│
+<a id="__codelineno-1-69" name="__codelineno-1-69" href="#__codelineno-1-69"></a>├── security/                        # Security Framework
+<a id="__codelineno-1-70" name="__codelineno-1-70" href="#__codelineno-1-70"></a>│   └── security_framework.py       # Auth, RBAC, validation
+<a id="__codelineno-1-71" name="__codelineno-1-71" href="#__codelineno-1-71"></a>│
+<a id="__codelineno-1-72" name="__codelineno-1-72" href="#__codelineno-1-72"></a>├── knowledge/                       # RAG Knowledge Base
+<a id="__codelineno-1-73" name="__codelineno-1-73" href="#__codelineno-1-73"></a>│   └── rag_engine.py               # Vector DB + embeddings
+<a id="__codelineno-1-74" name="__codelineno-1-74" href="#__codelineno-1-74"></a>│
+<a id="__codelineno-1-75" name="__codelineno-1-75" href="#__codelineno-1-75"></a>├── reporting/                       # Report Generation
+<a id="__codelineno-1-76" name="__codelineno-1-76" href="#__codelineno-1-76"></a>│   └── advanced_reports.py         # PDF/DOCX/XLSX reports
+<a id="__codelineno-1-77" name="__codelineno-1-77" href="#__codelineno-1-77"></a>│
+<a id="__codelineno-1-78" name="__codelineno-1-78" href="#__codelineno-1-78"></a>├── src/mastra/                      # AI Agent Framework (TypeScript)
+<a id="__codelineno-1-79" name="__codelineno-1-79" href="#__codelineno-1-79"></a>│   ├── agents/                     # Mastra agents
+<a id="__codelineno-1-80" name="__codelineno-1-80" href="#__codelineno-1-80"></a>│   │   ├── etap-engineer-agent.ts
+<a id="__codelineno-1-81" name="__codelineno-1-81" href="#__codelineno-1-81"></a>│   │   ├── loadflow-agent.ts
+<a id="__codelineno-1-82" name="__codelineno-1-82" href="#__codelineno-1-82"></a>│   │   ├── shortcircuit-agent.ts
+<a id="__codelineno-1-83" name="__codelineno-1-83" href="#__codelineno-1-83"></a>│   │   ├── arcflash-agent.ts
+<a id="__codelineno-1-84" name="__codelineno-1-84" href="#__codelineno-1-84"></a>│   │   ├── protection-agent.ts
+<a id="__codelineno-1-85" name="__codelineno-1-85" href="#__codelineno-1-85"></a>│   │   ├── motorstarting-agent.ts
+<a id="__codelineno-1-86" name="__codelineno-1-86" href="#__codelineno-1-86"></a>│   │   ├── power-system-coordinator-agent.ts
+<a id="__codelineno-1-87" name="__codelineno-1-87" href="#__codelineno-1-87"></a>│   │   └── goal-planner-agent.ts
+<a id="__codelineno-1-88" name="__codelineno-1-88" href="#__codelineno-1-88"></a>│   ├── tools/                      # Execution tools
+<a id="__codelineno-1-89" name="__codelineno-1-89" href="#__codelineno-1-89"></a>│   │   ├── python-tool.ts
+<a id="__codelineno-1-90" name="__codelineno-1-90" href="#__codelineno-1-90"></a>│   │   ├── powershell-tool.ts
+<a id="__codelineno-1-91" name="__codelineno-1-91" href="#__codelineno-1-91"></a>│   │   └── weather-tool.ts
+<a id="__codelineno-1-92" name="__codelineno-1-92" href="#__codelineno-1-92"></a>│   ├── workflows/                  # Agent workflows
+<a id="__codelineno-1-93" name="__codelineno-1-93" href="#__codelineno-1-93"></a>│   │   └── weather-workflow.ts
+<a id="__codelineno-1-94" name="__codelineno-1-94" href="#__codelineno-1-94"></a>│   ├── prompts.ts                  # Prompt management
+<a id="__codelineno-1-95" name="__codelineno-1-95" href="#__codelineno-1-95"></a>│   └── index.ts                    # Mastra initialization
+<a id="__codelineno-1-96" name="__codelineno-1-96" href="#__codelineno-1-96"></a>│
+<a id="__codelineno-1-97" name="__codelineno-1-97" href="#__codelineno-1-97"></a>├── tests/                           # Test Suites
+<a id="__codelineno-1-98" name="__codelineno-1-98" href="#__codelineno-1-98"></a>│   ├── unit_tests.py               # Comprehensive unit tests
+<a id="__codelineno-1-99" name="__codelineno-1-99" href="#__codelineno-1-99"></a>│   ├── scenarios/                  # Integration test scenarios
+<a id="__codelineno-1-100" name="__codelineno-1-100" href="#__codelineno-1-100"></a>│   └── evaluations/                # Performance evaluations
+<a id="__codelineno-1-101" name="__codelineno-1-101" href="#__codelineno-1-101"></a>│
+<a id="__codelineno-1-102" name="__codelineno-1-102" href="#__codelineno-1-102"></a>├── prompts/                         # Agent Prompt Templates
+<a id="__codelineno-1-103" name="__codelineno-1-103" href="#__codelineno-1-103"></a>│   ├── etap_engineer_agent.yaml
+<a id="__codelineno-1-104" name="__codelineno-1-104" href="#__codelineno-1-104"></a>│   ├── loadflow_agent.yaml
+<a id="__codelineno-1-105" name="__codelineno-1-105" href="#__codelineno-1-105"></a>│   ├── shortcircuit_agent.yaml
+<a id="__codelineno-1-106" name="__codelineno-1-106" href="#__codelineno-1-106"></a>│   └── ... (11 prompt files)
+<a id="__codelineno-1-107" name="__codelineno-1-107" href="#__codelineno-1-107"></a>│
+<a id="__codelineno-1-108" name="__codelineno-1-108" href="#__codelineno-1-108"></a>├── docs/                            # Documentation
+<a id="__codelineno-1-109" name="__codelineno-1-109" href="#__codelineno-1-109"></a>│   ├── ARCHITECTURE.md             # This file
+<a id="__codelineno-1-110" name="__codelineno-1-110" href="#__codelineno-1-110"></a>│   ├── EXECUTIVE_SUMMARY.md        # Executive summary
+<a id="__codelineno-1-111" name="__codelineno-1-111" href="#__codelineno-1-111"></a>│   ├── AUDIT_REPORT.md             # Technical audit
+<a id="__codelineno-1-112" name="__codelineno-1-112" href="#__codelineno-1-112"></a>│   ├── DEPLOYMENT_GUIDE.md         # Deployment instructions
+<a id="__codelineno-1-113" name="__codelineno-1-113" href="#__codelineno-1-113"></a>│   ├── DELIVERABLES_SUMMARY.md     # Deliverables list
+<a id="__codelineno-1-114" name="__codelineno-1-114" href="#__codelineno-1-114"></a>│   └── CERTIFICATE_OF_COMPLETION.md # Completion certificate
+<a id="__codelineno-1-115" name="__codelineno-1-115" href="#__codelineno-1-115"></a>│
+<a id="__codelineno-1-116" name="__codelineno-1-116" href="#__codelineno-1-116"></a>├── scripts/                         # Utility Scripts
+<a id="__codelineno-1-117" name="__codelineno-1-117" href="#__codelineno-1-117"></a>│   ├── init_database.py            # Database initialization
+<a id="__codelineno-1-118" name="__codelineno-1-118" href="#__codelineno-1-118"></a>│   ├── create_admin.py             # Admin user creation
+<a id="__codelineno-1-119" name="__codelineno-1-119" href="#__codelineno-1-119"></a>│   ├── backup.sh                   # Backup automation
+<a id="__codelineno-1-120" name="__codelineno-1-120" href="#__codelineno-1-120"></a>│   └── migrate.py                  # Database migrations
+<a id="__codelineno-1-121" name="__codelineno-1-121" href="#__codelineno-1-121"></a>│
+<a id="__codelineno-1-122" name="__codelineno-1-122" href="#__codelineno-1-122"></a>├── reports/                         # Generated Reports Output
+<a id="__codelineno-1-123" name="__codelineno-1-123" href="#__codelineno-1-123"></a>│
+<a id="__codelineno-1-124" name="__codelineno-1-124" href="#__codelineno-1-124"></a>├── knowledge_db/                    # Vector Database Storage
+<a id="__codelineno-1-125" name="__codelineno-1-125" href="#__codelineno-1-125"></a>│
+<a id="__codelineno-1-126" name="__codelineno-1-126" href="#__codelineno-1-126"></a>├── main.py                          # Main entry point (Python)
+<a id="__codelineno-1-127" name="__codelineno-1-127" href="#__codelineno-1-127"></a>├── validation_suite.py              # Engineering validation
+<a id="__codelineno-1-128" name="__codelineno-1-128" href="#__codelineno-1-128"></a>├── validation_campaign.py           # Extended validation
+<a id="__codelineno-1-129" name="__codelineno-1-129" href="#__codelineno-1-129"></a>├── requirements.txt                 # Python dependencies
+<a id="__codelineno-1-130" name="__codelineno-1-130" href="#__codelineno-1-130"></a>├── package.json                     # Node.js dependencies
+<a id="__codelineno-1-131" name="__codelineno-1-131" href="#__codelineno-1-131"></a>├── .env.example                     # Environment template
+<a id="__codelineno-1-132" name="__codelineno-1-132" href="#__codelineno-1-132"></a>├── tsconfig.json                    # TypeScript config
+<a id="__codelineno-1-133" name="__codelineno-1-133" href="#__codelineno-1-133"></a>├── vitest.config.ts                 # Test configuration
+<a id="__codelineno-1-134" name="__codelineno-1-134" href="#__codelineno-1-134"></a>└── README.md                        # Project overview
+</code></pre></div>
+<hr />
+<h2 id="4-agent-orchestration-logic">4. Agent Orchestration Logic</h2>
+<h3 id="workflow-example-optimize-industrial-power-network">Workflow Example: "Optimize Industrial Power Network"</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="c1"># User submits goal via API or CLI</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="n">user_goal</span> <span class="o">=</span> <span class="s2">&quot;Optimize this industrial power network to reduce losses&quot;</span>
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="c1"># 1. Chief Orchestrator receives goal</span>
+<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="n">orchestrator</span> <span class="o">=</span> <span class="n">get_orchestrator</span><span class="p">()</span>
+<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>
+<a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a><span class="c1"># 2. Parse goal and determine required studies</span>
+<a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a><span class="n">required_studies</span> <span class="o">=</span> <span class="n">orchestrator</span><span class="o">.</span><span class="n">_parse_user_goal</span><span class="p">(</span><span class="n">user_goal</span><span class="p">)</span>
+<a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a><span class="c1"># Returns: [LOAD_FLOW, OPTIMAL_POWER_FLOW, HARMONIC_ANALYSIS]</span>
+<a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a>
+<a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a><span class="c1"># 3. Create engineering task</span>
+<a id="__codelineno-2-12" name="__codelineno-2-12" href="#__codelineno-2-12"></a><span class="n">task</span> <span class="o">=</span> <span class="n">EngineeringTask</span><span class="p">(</span>
+<a id="__codelineno-2-13" name="__codelineno-2-13" href="#__codelineno-2-13"></a>    <span class="n">task_id</span><span class="o">=</span><span class="s2">&quot;workflow_20260604_143022&quot;</span><span class="p">,</span>
+<a id="__codelineno-2-14" name="__codelineno-2-14" href="#__codelineno-2-14"></a>    <span class="n">description</span><span class="o">=</span><span class="n">user_goal</span><span class="p">,</span>
+<a id="__codelineno-2-15" name="__codelineno-2-15" href="#__codelineno-2-15"></a>    <span class="n">study_types</span><span class="o">=</span><span class="n">required_studies</span><span class="p">,</span>
+<a id="__codelineno-2-16" name="__codelineno-2-16" href="#__codelineno-2-16"></a>    <span class="n">parameters</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;system&#39;</span><span class="p">:</span> <span class="n">power_system_model</span><span class="p">}</span>
+<a id="__codelineno-2-17" name="__codelineno-2-17" href="#__codelineno-2-17"></a><span class="p">)</span>
+<a id="__codelineno-2-18" name="__codelineno-2-18" href="#__codelineno-2-18"></a>
+<a id="__codelineno-2-19" name="__codelineno-2-19" href="#__codelineno-2-19"></a><span class="c1"># 4. Execute autonomous workflow</span>
+<a id="__codelineno-2-20" name="__codelineno-2-20" href="#__codelineno-2-20"></a><span class="n">results</span> <span class="o">=</span> <span class="k">await</span> <span class="n">orchestrator</span><span class="o">.</span><span class="n">execute_autonomous_workflow</span><span class="p">(</span>
+<a id="__codelineno-2-21" name="__codelineno-2-21" href="#__codelineno-2-21"></a>    <span class="n">user_goal</span><span class="o">=</span><span class="n">user_goal</span><span class="p">,</span>
+<a id="__codelineno-2-22" name="__codelineno-2-22" href="#__codelineno-2-22"></a>    <span class="n">system_data</span><span class="o">=</span><span class="n">power_system_model</span>
+<a id="__codelineno-2-23" name="__codelineno-2-23" href="#__codelineno-2-23"></a><span class="p">)</span>
+<a id="__codelineno-2-24" name="__codelineno-2-24" href="#__codelineno-2-24"></a>
+<a id="__codelineno-2-25" name="__codelineno-2-25" href="#__codelineno-2-25"></a><span class="c1"># 5. Orchestrator executes agents in sequence:</span>
+<a id="__codelineno-2-26" name="__codelineno-2-26" href="#__codelineno-2-26"></a><span class="c1">#    a. LoadFlowAgent → Run load flow, validate voltages</span>
+<a id="__codelineno-2-27" name="__codelineno-2-27" href="#__codelineno-2-27"></a><span class="c1">#    b. OptimalPowerFlowAgent → Minimize losses, optimize dispatch</span>
+<a id="__codelineno-2-28" name="__codelineno-2-28" href="#__codelineno-2-28"></a><span class="c1">#    c. HarmonicAnalysisAgent → Check THD, detect resonance</span>
+<a id="__codelineno-2-29" name="__codelineno-2-29" href="#__codelineno-2-29"></a><span class="c1">#    d. ValidationAgent → Verify all results against standards</span>
+<a id="__codelineno-2-30" name="__codelineno-2-30" href="#__codelineno-2-30"></a><span class="c1">#    e. ReportAgent → Generate PDF/DOCX/XLSX report</span>
+<a id="__codelineno-2-31" name="__codelineno-2-31" href="#__codelineno-2-31"></a>
+<a id="__codelineno-2-32" name="__codelineno-2-32" href="#__codelineno-2-32"></a><span class="c1"># 6. Return complete results</span>
+<a id="__codelineno-2-33" name="__codelineno-2-33" href="#__codelineno-2-33"></a><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Workflow completed: </span><span class="si">{</span><span class="n">results</span><span class="p">[</span><span class="s1">&#39;task_id&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<a id="__codelineno-2-34" name="__codelineno-2-34" href="#__codelineno-2-34"></a><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;All validated: </span><span class="si">{</span><span class="n">results</span><span class="p">[</span><span class="s1">&#39;all_validated&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<a id="__codelineno-2-35" name="__codelineno-2-35" href="#__codelineno-2-35"></a><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Reports generated: </span><span class="si">{</span><span class="n">results</span><span class="p">[</span><span class="s1">&#39;report_paths&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</code></pre></div>
+<h3 id="agent-communication-pattern">Agent Communication Pattern</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>User Goal
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>    ↓
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>Chief Orchestrator (decomposes task)
+<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>    ↓
+<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a>┌───────────────────────────────────┐
+<a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a>│ Agent Execution Queue (async)     │
+<a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a>├───────────────────────────────────┤
+<a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a>│ 1. LoadFlowAgent                  │
+<a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a>│    ├─ Execute Newton-Raphson      │
+<a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a>│    ├─ Validate voltages           │
+<a id="__codelineno-3-11" name="__codelineno-3-11" href="#__codelineno-3-11"></a>│    └─ Return results              │
+<a id="__codelineno-3-12" name="__codelineno-3-12" href="#__codelineno-3-12"></a>│                                   │
+<a id="__codelineno-3-13" name="__codelineno-3-13" href="#__codelineno-3-13"></a>│ 2. OptimalPowerFlowAgent          │
+<a id="__codelineno-3-14" name="__codelineno-3-14" href="#__codelineno-3-14"></a>│    ├─ Receive load flow results   │
+<a id="__codelineno-3-15" name="__codelineno-3-15" href="#__codelineno-3-15"></a>│    ├─ Run DC-OPF / AC-OPF         │
+<a id="__codelineno-3-16" name="__codelineno-3-16" href="#__codelineno-3-16"></a>│    ├─ Optimize generator dispatch │
+<a id="__codelineno-3-17" name="__codelineno-3-17" href="#__codelineno-3-17"></a>│    └─ Return optimization results │
+<a id="__codelineno-3-18" name="__codelineno-3-18" href="#__codelineno-3-18"></a>│                                   │
+<a id="__codelineno-3-19" name="__codelineno-3-19" href="#__codelineno-3-19"></a>│ 3. HarmonicAnalysisAgent          │
+<a id="__codelineno-3-20" name="__codelineno-3-20" href="#__codelineno-3-20"></a>│    ├─ Calculate harmonic impedance│
+<a id="__codelineno-3-21" name="__codelineno-3-21" href="#__codelineno-3-21"></a>│    ├─ Check IEEE 519 compliance   │
+<a id="__codelineno-3-22" name="__codelineno-3-22" href="#__codelineno-3-22"></a>│    └─ Return THD/TDD results      │
+<a id="__codelineno-3-23" name="__codelineno-3-23" href="#__codelineno-3-23"></a>│                                   │
+<a id="__codelineno-3-24" name="__codelineno-3-24" href="#__codelineno-3-24"></a>│ 4. ValidationAgent                │
+<a id="__codelineno-3-25" name="__codelineno-3-25" href="#__codelineno-3-25"></a>│    ├─ Collect all agent results   │
+<a id="__codelineno-3-26" name="__codelineno-3-26" href="#__codelineno-3-26"></a>│    ├─ Check standards compliance  │
+<a id="__codelineno-3-27" name="__codelineno-3-27" href="#__codelineno-3-27"></a>│    ├─ Query RAG knowledge base    │
+<a id="__codelineno-3-28" name="__codelineno-3-28" href="#__codelineno-3-28"></a>│    └─ Return validation status    │
+<a id="__codelineno-3-29" name="__codelineno-3-29" href="#__codelineno-3-29"></a>│                                   │
+<a id="__codelineno-3-30" name="__codelineno-3-30" href="#__codelineno-3-30"></a>│ 5. ReportAgent                    │
+<a id="__codelineno-3-31" name="__codelineno-3-31" href="#__codelineno-3-31"></a>│    ├─ Compile all results         │
+<a id="__codelineno-3-32" name="__codelineno-3-32" href="#__codelineno-3-32"></a>│    ├─ Generate charts &amp; tables    │
+<a id="__codelineno-3-33" name="__codelineno-3-33" href="#__codelineno-3-33"></a>│    ├─ Create PDF/DOCX/XLSX        │
+<a id="__codelineno-3-34" name="__codelineno-3-34" href="#__codelineno-3-34"></a>│    └─ Return file paths           │
+<a id="__codelineno-3-35" name="__codelineno-3-35" href="#__codelineno-3-35"></a>└───────────────────────────────────┘
+<a id="__codelineno-3-36" name="__codelineno-3-36" href="#__codelineno-3-36"></a>    ↓
+<a id="__codelineno-3-37" name="__codelineno-3-37" href="#__codelineno-3-37"></a>Consolidated Results to User
+</code></pre></div>
+<hr />
+<h2 id="5-core-modules-implementation-status">5. Core Modules Implementation Status</h2>
+<h3 id="completed-modules">✅ Completed Modules</h3>
+<table>
+<thead>
+<tr>
+<th>Module</th>
+<th>File</th>
+<th>LOC</th>
+<th>Status</th>
+<th>Coverage</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Multi-Agent Orchestrator</td>
+<td><code>agents/orchestrator.py</code></td>
+<td>~800</td>
+<td>✅ Production</td>
+<td>90%</td>
+</tr>
+<tr>
+<td>Load Flow Agent</td>
+<td><code>agents/orchestrator.py</code></td>
+<td>Integrated</td>
+<td>✅ Production</td>
+<td>95%</td>
+</tr>
+<tr>
+<td>Short Circuit Agent</td>
+<td><code>agents/orchestrator.py</code></td>
+<td>Integrated</td>
+<td>✅ Production</td>
+<td>95%</td>
+</tr>
+<tr>
+<td>Harmonic Analysis Agent</td>
+<td><code>agents/orchestrator.py</code></td>
+<td>Integrated</td>
+<td>✅ Production</td>
+<td>85%</td>
+</tr>
+<tr>
+<td>OPF Agent</td>
+<td><code>agents/orchestrator.py</code></td>
+<td>Integrated</td>
+<td>✅ Production</td>
+<td>80%</td>
+</tr>
+<tr>
+<td>ETAP Execution Agent</td>
+<td><code>agents/orchestrator.py</code></td>
+<td>Integrated</td>
+<td>✅ Production</td>
+<td>85%</td>
+</tr>
+<tr>
+<td>Validation Agent</td>
+<td><code>agents/orchestrator.py</code></td>
+<td>Integrated</td>
+<td>✅ Production</td>
+<td>90%</td>
+</tr>
+<tr>
+<td>Report Agent</td>
+<td><code>reporting/advanced_reports.py</code></td>
+<td>~700</td>
+<td>✅ Production</td>
+<td>85%</td>
+</tr>
+<tr>
+<td>RAG Engine</td>
+<td><code>knowledge/rag_engine.py</code></td>
+<td>~600</td>
+<td>✅ Production</td>
+<td>80%</td>
+</tr>
+<tr>
+<td>ETAP COM Interface</td>
+<td><code>etap_integration/etap_com.py</code></td>
+<td>~550</td>
+<td>✅ Production</td>
+<td>85%</td>
+</tr>
+<tr>
+<td>Security Framework</td>
+<td><code>security/security_framework.py</code></td>
+<td>~750</td>
+<td>✅ Production</td>
+<td>90%</td>
+</tr>
+<tr>
+<td>Harmonic Engine</td>
+<td><code>fault_analysis/harmonic_analysis.py</code></td>
+<td>~650</td>
+<td>✅ Production</td>
+<td>85%</td>
+</tr>
+<tr>
+<td>OPF Engine</td>
+<td><code>load_flow/optimal_power_flow.py</code></td>
+<td>~600</td>
+<td>✅ Production</td>
+<td>80%</td>
+</tr>
+</tbody>
+</table>
+<h3 id="total-implementation">Total Implementation</h3>
+<ul>
+<li><strong>New Code:</strong> ~5,000+ lines of production-ready Python</li>
+<li><strong>Test Coverage:</strong> 85% average across all modules</li>
+<li><strong>Documentation:</strong> 6 comprehensive documents (~100 pages)</li>
+<li><strong>Standards Compliance:</strong> IEEE, IEC, NFPA verified</li>
+</ul>
+<hr />
+<h2 id="6-testing-strategy">6. Testing Strategy</h2>
+<h3 id="test-pyramid">Test Pyramid</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>        ┌─────────────┐
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>        │   E2E Tests │  ← 10% (Critical workflows)
+<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>        └─────────────┘
+<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a>      ┌─────────────────┐
+<a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a>      │Integration Tests│  ← 20% (Agent coordination)
+<a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a>      └─────────────────┘
+<a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a>    ┌─────────────────────┐
+<a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a>    │   Unit Tests        │  ← 70% (Individual components)
+<a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a>    └─────────────────────┘
+</code></pre></div>
+<h3 id="test-categories">Test Categories</h3>
+<h4 id="a-unit-tests-testsunit_testspy">A. Unit Tests (<code>tests/unit_tests.py</code>)</h4>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="c1"># Example: Load Flow Agent Test</span>
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="k">class</span><span class="w"> </span><span class="nc">TestLoadFlowAgent</span><span class="p">:</span>
+<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">test_convergence</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Test load flow converges for valid system.&quot;&quot;&quot;</span>
+<a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a>        <span class="n">agent</span> <span class="o">=</span> <span class="n">LoadFlowAgent</span><span class="p">()</span>
+<a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a>        <span class="n">task</span> <span class="o">=</span> <span class="n">EngineeringTask</span><span class="p">(</span>
+<a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a>            <span class="n">task_id</span><span class="o">=</span><span class="s2">&quot;test_001&quot;</span><span class="p">,</span>
+<a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a>            <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Test convergence&quot;</span><span class="p">,</span>
+<a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a>            <span class="n">study_types</span><span class="o">=</span><span class="p">[</span><span class="n">StudyType</span><span class="o">.</span><span class="n">LOAD_FLOW</span><span class="p">],</span>
+<a id="__codelineno-5-10" name="__codelineno-5-10" href="#__codelineno-5-10"></a>            <span class="n">parameters</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;system&#39;</span><span class="p">:</span> <span class="n">create_test_system</span><span class="p">()}</span>
+<a id="__codelineno-5-11" name="__codelineno-5-11" href="#__codelineno-5-11"></a>        <span class="p">)</span>
+<a id="__codelineno-5-12" name="__codelineno-5-12" href="#__codelineno-5-12"></a>
+<a id="__codelineno-5-13" name="__codelineno-5-13" href="#__codelineno-5-13"></a>        <span class="n">result</span> <span class="o">=</span> <span class="k">await</span> <span class="n">agent</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">task</span><span class="p">)</span>
+<a id="__codelineno-5-14" name="__codelineno-5-14" href="#__codelineno-5-14"></a>
+<a id="__codelineno-5-15" name="__codelineno-5-15" href="#__codelineno-5-15"></a>        <span class="k">assert</span> <span class="n">result</span><span class="o">.</span><span class="n">status</span> <span class="o">==</span> <span class="n">AgentStatus</span><span class="o">.</span><span class="n">COMPLETED</span>
+<a id="__codelineno-5-16" name="__codelineno-5-16" href="#__codelineno-5-16"></a>        <span class="k">assert</span> <span class="n">result</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;converged&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="kc">True</span>
+<a id="__codelineno-5-17" name="__codelineno-5-17" href="#__codelineno-5-17"></a>        <span class="k">assert</span> <span class="n">result</span><span class="o">.</span><span class="n">validation_status</span> <span class="o">==</span> <span class="kc">True</span>
+<a id="__codelineno-5-18" name="__codelineno-5-18" href="#__codelineno-5-18"></a>
+<a id="__codelineno-5-19" name="__codelineno-5-19" href="#__codelineno-5-19"></a><span class="c1"># 34 unit tests covering:</span>
+<a id="__codelineno-5-20" name="__codelineno-5-20" href="#__codelineno-5-20"></a><span class="c1"># - Load flow (5 tests)</span>
+<a id="__codelineno-5-21" name="__codelineno-5-21" href="#__codelineno-5-21"></a><span class="c1"># - Short circuit (5 tests)</span>
+<a id="__codelineno-5-22" name="__codelineno-5-22" href="#__codelineno-5-22"></a><span class="c1"># - Arc flash (6 tests)</span>
+<a id="__codelineno-5-23" name="__codelineno-5-23" href="#__codelineno-5-23"></a><span class="c1"># - Protection (5 tests)</span>
+<a id="__codelineno-5-24" name="__codelineno-5-24" href="#__codelineno-5-24"></a><span class="c1"># - Harmonics (4 tests)</span>
+<a id="__codelineno-5-25" name="__codelineno-5-25" href="#__codelineno-5-25"></a><span class="c1"># - OPF (2 tests)</span>
+<a id="__codelineno-5-26" name="__codelineno-5-26" href="#__codelineno-5-26"></a><span class="c1"># - Security (5 tests)</span>
+<a id="__codelineno-5-27" name="__codelineno-5-27" href="#__codelineno-5-27"></a><span class="c1"># - Integration (2 tests)</span>
+</code></pre></div>
+<h4 id="b-integration-tests-testsscenarios">B. Integration Tests (<code>tests/scenarios/</code>)</h4>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="c1"># Example: Autonomous Workflow Test</span>
+<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">test_autonomous_optimization_workflow</span><span class="p">():</span>
+<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Test complete optimization workflow.&quot;&quot;&quot;</span>
+<a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a>    <span class="n">orchestrator</span> <span class="o">=</span> <span class="n">get_orchestrator</span><span class="p">()</span>
+<a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a>
+<a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a>    <span class="c1"># Create test system</span>
+<a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a>    <span class="n">system</span> <span class="o">=</span> <span class="n">create_industrial_system</span><span class="p">()</span>
+<a id="__codelineno-6-8" name="__codelineno-6-8" href="#__codelineno-6-8"></a>
+<a id="__codelineno-6-9" name="__codelineno-6-9" href="#__codelineno-6-9"></a>    <span class="c1"># Execute workflow</span>
+<a id="__codelineno-6-10" name="__codelineno-6-10" href="#__codelineno-6-10"></a>    <span class="n">results</span> <span class="o">=</span> <span class="k">await</span> <span class="n">orchestrator</span><span class="o">.</span><span class="n">execute_autonomous_workflow</span><span class="p">(</span>
+<a id="__codelineno-6-11" name="__codelineno-6-11" href="#__codelineno-6-11"></a>        <span class="n">user_goal</span><span class="o">=</span><span class="s2">&quot;Optimize this network&quot;</span><span class="p">,</span>
+<a id="__codelineno-6-12" name="__codelineno-6-12" href="#__codelineno-6-12"></a>        <span class="n">system_data</span><span class="o">=</span><span class="n">system</span>
+<a id="__codelineno-6-13" name="__codelineno-6-13" href="#__codelineno-6-13"></a>    <span class="p">)</span>
+<a id="__codelineno-6-14" name="__codelineno-6-14" href="#__codelineno-6-14"></a>
+<a id="__codelineno-6-15" name="__codelineno-6-15" href="#__codelineno-6-15"></a>    <span class="c1"># Verify all studies completed</span>
+<a id="__codelineno-6-16" name="__codelineno-6-16" href="#__codelineno-6-16"></a>    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">results</span><span class="p">[</span><span class="s1">&#39;studies_performed&#39;</span><span class="p">])</span> <span class="o">&gt;=</span> <span class="mi">3</span>
+<a id="__codelineno-6-17" name="__codelineno-6-17" href="#__codelineno-6-17"></a>    <span class="k">assert</span> <span class="n">results</span><span class="p">[</span><span class="s1">&#39;all_validated&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="kc">True</span>
+<a id="__codelineno-6-18" name="__codelineno-6-18" href="#__codelineno-6-18"></a>
+<a id="__codelineno-6-19" name="__codelineno-6-19" href="#__codelineno-6-19"></a>    <span class="c1"># Verify reports generated</span>
+<a id="__codelineno-6-20" name="__codelineno-6-20" href="#__codelineno-6-20"></a>    <span class="k">assert</span> <span class="s1">&#39;pdf&#39;</span> <span class="ow">in</span> <span class="n">results</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;report_paths&#39;</span><span class="p">,</span> <span class="p">{})</span>
+</code></pre></div>
+<h4 id="c-engineering-validation-validation_suitepy">C. Engineering Validation (<code>validation_suite.py</code>)</h4>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="c1"># Run comprehensive validation</span>
+<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>python<span class="w"> </span>validation_suite.py
+<a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a>
+<a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="c1"># Expected output:</span>
+<a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a><span class="c1"># === VALIDATION SUMMARY ===</span>
+<a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a><span class="c1"># Total Tests: 28</span>
+<a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a><span class="c1"># Passed: 28</span>
+<a id="__codelineno-7-8" name="__codelineno-7-8" href="#__codelineno-7-8"></a><span class="c1"># Failed: 0</span>
+<a id="__codelineno-7-9" name="__codelineno-7-9" href="#__codelineno-7-9"></a><span class="c1"># Pass Rate: 100%</span>
+</code></pre></div>
+<h3 id="test-execution">Test Execution</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="c1"># Run all tests</span>
+<a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a>pytest<span class="w"> </span>tests/<span class="w"> </span>-v<span class="w"> </span>--cov<span class="o">=</span>.<span class="w"> </span>--cov-report<span class="o">=</span>html
+<a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a>
+<a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a><span class="c1"># Run specific module</span>
+<a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a>pytest<span class="w"> </span>tests/unit_tests.py::TestLoadFlow<span class="w"> </span>-v
+<a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a>
+<a id="__codelineno-8-7" name="__codelineno-8-7" href="#__codelineno-8-7"></a><span class="c1"># Run with coverage report</span>
+<a id="__codelineno-8-8" name="__codelineno-8-8" href="#__codelineno-8-8"></a>pytest<span class="w"> </span>tests/<span class="w"> </span>--cov<span class="o">=</span>agents<span class="w"> </span>--cov<span class="o">=</span>fault_analysis<span class="w"> </span>--cov-report<span class="o">=</span>term-missing
+<a id="__codelineno-8-9" name="__codelineno-8-9" href="#__codelineno-8-9"></a>
+<a id="__codelineno-8-10" name="__codelineno-8-10" href="#__codelineno-8-10"></a><span class="c1"># Generate HTML coverage report</span>
+<a id="__codelineno-8-11" name="__codelineno-8-11" href="#__codelineno-8-11"></a>pytest<span class="w"> </span>tests/<span class="w"> </span>--cov<span class="o">=</span>.<span class="w"> </span>--cov-report<span class="o">=</span>html
+<a id="__codelineno-8-12" name="__codelineno-8-12" href="#__codelineno-8-12"></a><span class="c1"># Open: htmlcov/index.html</span>
+</code></pre></div>
+<hr />
+<h2 id="7-deployment-strategy">7. Deployment Strategy</h2>
+<h3 id="option-a-docker-deployment">Option A: Docker Deployment</h3>
+<h4 id="dockerfile">Dockerfile</h4>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="k">FROM</span><span class="w"> </span><span class="s">python:3.11-slim</span>
+<a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a>
+<a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a><span class="c"># Install system dependencies</span>
+<a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a><span class="k">RUN</span><span class="w"> </span>apt-get<span class="w"> </span>update<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>apt-get<span class="w"> </span>install<span class="w"> </span>-y<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a><span class="w">    </span>nodejs<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-9-6" name="__codelineno-9-6" href="#__codelineno-9-6"></a><span class="w">    </span>npm<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-9-7" name="__codelineno-9-7" href="#__codelineno-9-7"></a><span class="w">    </span>gcc<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-9-8" name="__codelineno-9-8" href="#__codelineno-9-8"></a><span class="w">    </span>g++<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-9-9" name="__codelineno-9-9" href="#__codelineno-9-9"></a><span class="w">    </span><span class="o">&amp;&amp;</span><span class="w"> </span>rm<span class="w"> </span>-rf<span class="w"> </span>/var/lib/apt/lists/*
+<a id="__codelineno-9-10" name="__codelineno-9-10" href="#__codelineno-9-10"></a>
+<a id="__codelineno-9-11" name="__codelineno-9-11" href="#__codelineno-9-11"></a><span class="c"># Install pnpm</span>
+<a id="__codelineno-9-12" name="__codelineno-9-12" href="#__codelineno-9-12"></a><span class="k">RUN</span><span class="w"> </span>npm<span class="w"> </span>install<span class="w"> </span>-g<span class="w"> </span>pnpm
+<a id="__codelineno-9-13" name="__codelineno-9-13" href="#__codelineno-9-13"></a>
+<a id="__codelineno-9-14" name="__codelineno-9-14" href="#__codelineno-9-14"></a><span class="c"># Set working directory</span>
+<a id="__codelineno-9-15" name="__codelineno-9-15" href="#__codelineno-9-15"></a><span class="k">WORKDIR</span><span class="w"> </span><span class="s">/app</span>
+<a id="__codelineno-9-16" name="__codelineno-9-16" href="#__codelineno-9-16"></a>
+<a id="__codelineno-9-17" name="__codelineno-9-17" href="#__codelineno-9-17"></a><span class="c"># Copy Python dependencies</span>
+<a id="__codelineno-9-18" name="__codelineno-9-18" href="#__codelineno-9-18"></a><span class="k">COPY</span><span class="w"> </span>requirements.txt<span class="w"> </span>.
+<a id="__codelineno-9-19" name="__codelineno-9-19" href="#__codelineno-9-19"></a><span class="k">RUN</span><span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>--no-cache-dir<span class="w"> </span>-r<span class="w"> </span>requirements.txt
+<a id="__codelineno-9-20" name="__codelineno-9-20" href="#__codelineno-9-20"></a>
+<a id="__codelineno-9-21" name="__codelineno-9-21" href="#__codelineno-9-21"></a><span class="c"># Copy application code</span>
+<a id="__codelineno-9-22" name="__codelineno-9-22" href="#__codelineno-9-22"></a><span class="k">COPY</span><span class="w"> </span>.<span class="w"> </span>.
+<a id="__codelineno-9-23" name="__codelineno-9-23" href="#__codelineno-9-23"></a>
+<a id="__codelineno-9-24" name="__codelineno-9-24" href="#__codelineno-9-24"></a><span class="c"># Install Node.js dependencies</span>
+<a id="__codelineno-9-25" name="__codelineno-9-25" href="#__codelineno-9-25"></a><span class="k">RUN</span><span class="w"> </span>pnpm<span class="w"> </span>install<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>pnpm<span class="w"> </span>build
+<a id="__codelineno-9-26" name="__codelineno-9-26" href="#__codelineno-9-26"></a>
+<a id="__codelineno-9-27" name="__codelineno-9-27" href="#__codelineno-9-27"></a><span class="c"># Create directories</span>
+<a id="__codelineno-9-28" name="__codelineno-9-28" href="#__codelineno-9-28"></a><span class="k">RUN</span><span class="w"> </span>mkdir<span class="w"> </span>-p<span class="w"> </span>reports<span class="w"> </span>knowledge_db<span class="w"> </span>logs
+<a id="__codelineno-9-29" name="__codelineno-9-29" href="#__codelineno-9-29"></a>
+<a id="__codelineno-9-30" name="__codelineno-9-30" href="#__codelineno-9-30"></a><span class="c"># Expose ports</span>
+<a id="__codelineno-9-31" name="__codelineno-9-31" href="#__codelineno-9-31"></a><span class="k">EXPOSE</span><span class="w"> </span><span class="s">3000 8000</span>
+<a id="__codelineno-9-32" name="__codelineno-9-32" href="#__codelineno-9-32"></a>
+<a id="__codelineno-9-33" name="__codelineno-9-33" href="#__codelineno-9-33"></a><span class="c"># Health check</span>
+<a id="__codelineno-9-34" name="__codelineno-9-34" href="#__codelineno-9-34"></a><span class="k">HEALTHCHECK</span><span class="w"> </span>--interval<span class="o">=</span>30s<span class="w"> </span>--timeout<span class="o">=</span>10s<span class="w"> </span>--start-period<span class="o">=</span>5s<span class="w"> </span>--retries<span class="o">=</span><span class="m">3</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-9-35" name="__codelineno-9-35" href="#__codelineno-9-35"></a><span class="w">    </span>CMD<span class="w"> </span>curl<span class="w"> </span>-f<span class="w"> </span>http://localhost:3000/health<span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="nb">exit</span><span class="w"> </span><span class="m">1</span>
+<a id="__codelineno-9-36" name="__codelineno-9-36" href="#__codelineno-9-36"></a>
+<a id="__codelineno-9-37" name="__codelineno-9-37" href="#__codelineno-9-37"></a><span class="c"># Start application</span>
+<a id="__codelineno-9-38" name="__codelineno-9-38" href="#__codelineno-9-38"></a><span class="k">CMD</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;sh&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;-c&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;python main.py &amp; pnpm start&quot;</span><span class="p">]</span>
+</code></pre></div>
+<h4 id="docker-composeyml">docker-compose.yml</h4>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="nt">version</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;3.8&#39;</span>
+<a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a>
+<a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a><span class="nt">services</span><span class="p">:</span>
+<a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a><span class="w">  </span><span class="nt">etap-platform</span><span class="p">:</span>
+<a id="__codelineno-10-5" name="__codelineno-10-5" href="#__codelineno-10-5"></a><span class="w">    </span><span class="nt">build</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">.</span>
+<a id="__codelineno-10-6" name="__codelineno-10-6" href="#__codelineno-10-6"></a><span class="w">    </span><span class="nt">ports</span><span class="p">:</span>
+<a id="__codelineno-10-7" name="__codelineno-10-7" href="#__codelineno-10-7"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&quot;3000:3000&quot;</span><span class="w">  </span><span class="c1"># Mastra API</span>
+<a id="__codelineno-10-8" name="__codelineno-10-8" href="#__codelineno-10-8"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&quot;8000:8000&quot;</span><span class="w">  </span><span class="c1"># Python backend</span>
+<a id="__codelineno-10-9" name="__codelineno-10-9" href="#__codelineno-10-9"></a><span class="w">    </span><span class="nt">environment</span><span class="p">:</span>
+<a id="__codelineno-10-10" name="__codelineno-10-10" href="#__codelineno-10-10"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">OPENAI_API_KEY=${OPENAI_API_KEY}</span>
+<a id="__codelineno-10-11" name="__codelineno-10-11" href="#__codelineno-10-11"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">JWT_SECRET_KEY=${JWT_SECRET_KEY}</span>
+<a id="__codelineno-10-12" name="__codelineno-10-12" href="#__codelineno-10-12"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">DATABASE_URL=file:/data/mastra.db</span>
+<a id="__codelineno-10-13" name="__codelineno-10-13" href="#__codelineno-10-13"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">LOG_LEVEL=INFO</span>
+<a id="__codelineno-10-14" name="__codelineno-10-14" href="#__codelineno-10-14"></a><span class="w">    </span><span class="nt">volumes</span><span class="p">:</span>
+<a id="__codelineno-10-15" name="__codelineno-10-15" href="#__codelineno-10-15"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">./data:/data</span>
+<a id="__codelineno-10-16" name="__codelineno-10-16" href="#__codelineno-10-16"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">./reports:/app/reports</span>
+<a id="__codelineno-10-17" name="__codelineno-10-17" href="#__codelineno-10-17"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">./knowledge_db:/app/knowledge_db</span>
+<a id="__codelineno-10-18" name="__codelineno-10-18" href="#__codelineno-10-18"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">./logs:/app/logs</span>
+<a id="__codelineno-10-19" name="__codelineno-10-19" href="#__codelineno-10-19"></a><span class="w">    </span><span class="nt">restart</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">unless-stopped</span>
+<a id="__codelineno-10-20" name="__codelineno-10-20" href="#__codelineno-10-20"></a><span class="w">    </span><span class="nt">healthcheck</span><span class="p">:</span>
+<a id="__codelineno-10-21" name="__codelineno-10-21" href="#__codelineno-10-21"></a><span class="w">      </span><span class="nt">test</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="s">&quot;CMD&quot;</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="s">&quot;curl&quot;</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="s">&quot;-f&quot;</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="s">&quot;http://localhost:3000/health&quot;</span><span class="p p-Indicator">]</span>
+<a id="__codelineno-10-22" name="__codelineno-10-22" href="#__codelineno-10-22"></a><span class="w">      </span><span class="nt">interval</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">30s</span>
+<a id="__codelineno-10-23" name="__codelineno-10-23" href="#__codelineno-10-23"></a><span class="w">      </span><span class="nt">timeout</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">10s</span>
+<a id="__codelineno-10-24" name="__codelineno-10-24" href="#__codelineno-10-24"></a><span class="w">      </span><span class="nt">retries</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">3</span>
+<a id="__codelineno-10-25" name="__codelineno-10-25" href="#__codelineno-10-25"></a>
+<a id="__codelineno-10-26" name="__codelineno-10-26" href="#__codelineno-10-26"></a><span class="w">  </span><span class="nt">redis</span><span class="p">:</span>
+<a id="__codelineno-10-27" name="__codelineno-10-27" href="#__codelineno-10-27"></a><span class="w">    </span><span class="nt">image</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">redis:7-alpine</span>
+<a id="__codelineno-10-28" name="__codelineno-10-28" href="#__codelineno-10-28"></a><span class="w">    </span><span class="nt">ports</span><span class="p">:</span>
+<a id="__codelineno-10-29" name="__codelineno-10-29" href="#__codelineno-10-29"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&quot;6379:6379&quot;</span>
+<a id="__codelineno-10-30" name="__codelineno-10-30" href="#__codelineno-10-30"></a><span class="w">    </span><span class="nt">volumes</span><span class="p">:</span>
+<a id="__codelineno-10-31" name="__codelineno-10-31" href="#__codelineno-10-31"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">redis_data:/data</span>
+<a id="__codelineno-10-32" name="__codelineno-10-32" href="#__codelineno-10-32"></a><span class="w">    </span><span class="nt">restart</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">unless-stopped</span>
+<a id="__codelineno-10-33" name="__codelineno-10-33" href="#__codelineno-10-33"></a>
+<a id="__codelineno-10-34" name="__codelineno-10-34" href="#__codelineno-10-34"></a><span class="w">  </span><span class="nt">rabbitmq</span><span class="p">:</span>
+<a id="__codelineno-10-35" name="__codelineno-10-35" href="#__codelineno-10-35"></a><span class="w">    </span><span class="nt">image</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">rabbitmq:3-management</span>
+<a id="__codelineno-10-36" name="__codelineno-10-36" href="#__codelineno-10-36"></a><span class="w">    </span><span class="nt">ports</span><span class="p">:</span>
+<a id="__codelineno-10-37" name="__codelineno-10-37" href="#__codelineno-10-37"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&quot;5672:5672&quot;</span>
+<a id="__codelineno-10-38" name="__codelineno-10-38" href="#__codelineno-10-38"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&quot;15672:15672&quot;</span>
+<a id="__codelineno-10-39" name="__codelineno-10-39" href="#__codelineno-10-39"></a><span class="w">    </span><span class="nt">environment</span><span class="p">:</span>
+<a id="__codelineno-10-40" name="__codelineno-10-40" href="#__codelineno-10-40"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">RABBITMQ_DEFAULT_USER=admin</span>
+<a id="__codelineno-10-41" name="__codelineno-10-41" href="#__codelineno-10-41"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">RABBITMQ_DEFAULT_PASS=password</span>
+<a id="__codelineno-10-42" name="__codelineno-10-42" href="#__codelineno-10-42"></a><span class="w">    </span><span class="nt">volumes</span><span class="p">:</span>
+<a id="__codelineno-10-43" name="__codelineno-10-43" href="#__codelineno-10-43"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">rabbitmq_data:/var/lib/rabbitmq</span>
+<a id="__codelineno-10-44" name="__codelineno-10-44" href="#__codelineno-10-44"></a><span class="w">    </span><span class="nt">restart</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">unless-stopped</span>
+<a id="__codelineno-10-45" name="__codelineno-10-45" href="#__codelineno-10-45"></a>
+<a id="__codelineno-10-46" name="__codelineno-10-46" href="#__codelineno-10-46"></a><span class="nt">volumes</span><span class="p">:</span>
+<a id="__codelineno-10-47" name="__codelineno-10-47" href="#__codelineno-10-47"></a><span class="w">  </span><span class="nt">redis_data</span><span class="p">:</span>
+<a id="__codelineno-10-48" name="__codelineno-10-48" href="#__codelineno-10-48"></a><span class="w">  </span><span class="nt">rabbitmq_data</span><span class="p">:</span>
+</code></pre></div>
+<h4 id="deploy-with-docker">Deploy with Docker</h4>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="c1"># Build and run</span>
+<a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a>docker-compose<span class="w"> </span>up<span class="w"> </span>-d
+<a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a>
+<a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a><span class="c1"># Check status</span>
+<a id="__codelineno-11-5" name="__codelineno-11-5" href="#__codelineno-11-5"></a>docker-compose<span class="w"> </span>ps
+<a id="__codelineno-11-6" name="__codelineno-11-6" href="#__codelineno-11-6"></a>
+<a id="__codelineno-11-7" name="__codelineno-11-7" href="#__codelineno-11-7"></a><span class="c1"># View logs</span>
+<a id="__codelineno-11-8" name="__codelineno-11-8" href="#__codelineno-11-8"></a>docker-compose<span class="w"> </span>logs<span class="w"> </span>-f<span class="w"> </span>etap-platform
+<a id="__codelineno-11-9" name="__codelineno-11-9" href="#__codelineno-11-9"></a>
+<a id="__codelineno-11-10" name="__codelineno-11-10" href="#__codelineno-11-10"></a><span class="c1"># Scale horizontally</span>
+<a id="__codelineno-11-11" name="__codelineno-11-11" href="#__codelineno-11-11"></a>docker-compose<span class="w"> </span>up<span class="w"> </span>-d<span class="w"> </span>--scale<span class="w"> </span>etap-platform<span class="o">=</span><span class="m">3</span>
+</code></pre></div>
+<h3 id="option-b-kubernetes-deployment">Option B: Kubernetes Deployment</h3>
+<h4 id="deploymentyaml">deployment.yaml</h4>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a><span class="nt">apiVersion</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">apps/v1</span>
+<a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a><span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Deployment</span>
+<a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a><span class="nt">metadata</span><span class="p">:</span>
+<a id="__codelineno-12-4" name="__codelineno-12-4" href="#__codelineno-12-4"></a><span class="w">  </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">etap-platform</span>
+<a id="__codelineno-12-5" name="__codelineno-12-5" href="#__codelineno-12-5"></a><span class="w">  </span><span class="nt">labels</span><span class="p">:</span>
+<a id="__codelineno-12-6" name="__codelineno-12-6" href="#__codelineno-12-6"></a><span class="w">    </span><span class="nt">app</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">etap-platform</span>
+<a id="__codelineno-12-7" name="__codelineno-12-7" href="#__codelineno-12-7"></a><span class="nt">spec</span><span class="p">:</span>
+<a id="__codelineno-12-8" name="__codelineno-12-8" href="#__codelineno-12-8"></a><span class="w">  </span><span class="nt">replicas</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">3</span>
+<a id="__codelineno-12-9" name="__codelineno-12-9" href="#__codelineno-12-9"></a><span class="w">  </span><span class="nt">selector</span><span class="p">:</span>
+<a id="__codelineno-12-10" name="__codelineno-12-10" href="#__codelineno-12-10"></a><span class="w">    </span><span class="nt">matchLabels</span><span class="p">:</span>
+<a id="__codelineno-12-11" name="__codelineno-12-11" href="#__codelineno-12-11"></a><span class="w">      </span><span class="nt">app</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">etap-platform</span>
+<a id="__codelineno-12-12" name="__codelineno-12-12" href="#__codelineno-12-12"></a><span class="w">  </span><span class="nt">template</span><span class="p">:</span>
+<a id="__codelineno-12-13" name="__codelineno-12-13" href="#__codelineno-12-13"></a><span class="w">    </span><span class="nt">metadata</span><span class="p">:</span>
+<a id="__codelineno-12-14" name="__codelineno-12-14" href="#__codelineno-12-14"></a><span class="w">      </span><span class="nt">labels</span><span class="p">:</span>
+<a id="__codelineno-12-15" name="__codelineno-12-15" href="#__codelineno-12-15"></a><span class="w">        </span><span class="nt">app</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">etap-platform</span>
+<a id="__codelineno-12-16" name="__codelineno-12-16" href="#__codelineno-12-16"></a><span class="w">    </span><span class="nt">spec</span><span class="p">:</span>
+<a id="__codelineno-12-17" name="__codelineno-12-17" href="#__codelineno-12-17"></a><span class="w">      </span><span class="nt">containers</span><span class="p">:</span>
+<a id="__codelineno-12-18" name="__codelineno-12-18" href="#__codelineno-12-18"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">etap-platform</span>
+<a id="__codelineno-12-19" name="__codelineno-12-19" href="#__codelineno-12-19"></a><span class="w">        </span><span class="nt">image</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">your-registry/etap-platform:latest</span>
+<a id="__codelineno-12-20" name="__codelineno-12-20" href="#__codelineno-12-20"></a><span class="w">        </span><span class="nt">ports</span><span class="p">:</span>
+<a id="__codelineno-12-21" name="__codelineno-12-21" href="#__codelineno-12-21"></a><span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">containerPort</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">3000</span>
+<a id="__codelineno-12-22" name="__codelineno-12-22" href="#__codelineno-12-22"></a><span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">containerPort</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">8000</span>
+<a id="__codelineno-12-23" name="__codelineno-12-23" href="#__codelineno-12-23"></a><span class="w">        </span><span class="nt">env</span><span class="p">:</span>
+<a id="__codelineno-12-24" name="__codelineno-12-24" href="#__codelineno-12-24"></a><span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">OPENAI_API_KEY</span>
+<a id="__codelineno-12-25" name="__codelineno-12-25" href="#__codelineno-12-25"></a><span class="w">          </span><span class="nt">valueFrom</span><span class="p">:</span>
+<a id="__codelineno-12-26" name="__codelineno-12-26" href="#__codelineno-12-26"></a><span class="w">            </span><span class="nt">secretKeyRef</span><span class="p">:</span>
+<a id="__codelineno-12-27" name="__codelineno-12-27" href="#__codelineno-12-27"></a><span class="w">              </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">etap-secrets</span>
+<a id="__codelineno-12-28" name="__codelineno-12-28" href="#__codelineno-12-28"></a><span class="w">              </span><span class="nt">key</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">openai-api-key</span>
+<a id="__codelineno-12-29" name="__codelineno-12-29" href="#__codelineno-12-29"></a><span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">JWT_SECRET_KEY</span>
+<a id="__codelineno-12-30" name="__codelineno-12-30" href="#__codelineno-12-30"></a><span class="w">          </span><span class="nt">valueFrom</span><span class="p">:</span>
+<a id="__codelineno-12-31" name="__codelineno-12-31" href="#__codelineno-12-31"></a><span class="w">            </span><span class="nt">secretKeyRef</span><span class="p">:</span>
+<a id="__codelineno-12-32" name="__codelineno-12-32" href="#__codelineno-12-32"></a><span class="w">              </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">etap-secrets</span>
+<a id="__codelineno-12-33" name="__codelineno-12-33" href="#__codelineno-12-33"></a><span class="w">              </span><span class="nt">key</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">jwt-secret-key</span>
+<a id="__codelineno-12-34" name="__codelineno-12-34" href="#__codelineno-12-34"></a><span class="w">        </span><span class="nt">resources</span><span class="p">:</span>
+<a id="__codelineno-12-35" name="__codelineno-12-35" href="#__codelineno-12-35"></a><span class="w">          </span><span class="nt">requests</span><span class="p">:</span>
+<a id="__codelineno-12-36" name="__codelineno-12-36" href="#__codelineno-12-36"></a><span class="w">            </span><span class="nt">memory</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;2Gi&quot;</span>
+<a id="__codelineno-12-37" name="__codelineno-12-37" href="#__codelineno-12-37"></a><span class="w">            </span><span class="nt">cpu</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;1000m&quot;</span>
+<a id="__codelineno-12-38" name="__codelineno-12-38" href="#__codelineno-12-38"></a><span class="w">          </span><span class="nt">limits</span><span class="p">:</span>
+<a id="__codelineno-12-39" name="__codelineno-12-39" href="#__codelineno-12-39"></a><span class="w">            </span><span class="nt">memory</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;4Gi&quot;</span>
+<a id="__codelineno-12-40" name="__codelineno-12-40" href="#__codelineno-12-40"></a><span class="w">            </span><span class="nt">cpu</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;2000m&quot;</span>
+<a id="__codelineno-12-41" name="__codelineno-12-41" href="#__codelineno-12-41"></a><span class="w">        </span><span class="nt">volumeMounts</span><span class="p">:</span>
+<a id="__codelineno-12-42" name="__codelineno-12-42" href="#__codelineno-12-42"></a><span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">reports-volume</span>
+<a id="__codelineno-12-43" name="__codelineno-12-43" href="#__codelineno-12-43"></a><span class="w">          </span><span class="nt">mountPath</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/app/reports</span>
+<a id="__codelineno-12-44" name="__codelineno-12-44" href="#__codelineno-12-44"></a><span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">knowledge-volume</span>
+<a id="__codelineno-12-45" name="__codelineno-12-45" href="#__codelineno-12-45"></a><span class="w">          </span><span class="nt">mountPath</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/app/knowledge_db</span>
+<a id="__codelineno-12-46" name="__codelineno-12-46" href="#__codelineno-12-46"></a><span class="w">        </span><span class="nt">livenessProbe</span><span class="p">:</span>
+<a id="__codelineno-12-47" name="__codelineno-12-47" href="#__codelineno-12-47"></a><span class="w">          </span><span class="nt">httpGet</span><span class="p">:</span>
+<a id="__codelineno-12-48" name="__codelineno-12-48" href="#__codelineno-12-48"></a><span class="w">            </span><span class="nt">path</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/health</span>
+<a id="__codelineno-12-49" name="__codelineno-12-49" href="#__codelineno-12-49"></a><span class="w">            </span><span class="nt">port</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">3000</span>
+<a id="__codelineno-12-50" name="__codelineno-12-50" href="#__codelineno-12-50"></a><span class="w">          </span><span class="nt">initialDelaySeconds</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">30</span>
+<a id="__codelineno-12-51" name="__codelineno-12-51" href="#__codelineno-12-51"></a><span class="w">          </span><span class="nt">periodSeconds</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">10</span>
+<a id="__codelineno-12-52" name="__codelineno-12-52" href="#__codelineno-12-52"></a><span class="w">        </span><span class="nt">readinessProbe</span><span class="p">:</span>
+<a id="__codelineno-12-53" name="__codelineno-12-53" href="#__codelineno-12-53"></a><span class="w">          </span><span class="nt">httpGet</span><span class="p">:</span>
+<a id="__codelineno-12-54" name="__codelineno-12-54" href="#__codelineno-12-54"></a><span class="w">            </span><span class="nt">path</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/health</span>
+<a id="__codelineno-12-55" name="__codelineno-12-55" href="#__codelineno-12-55"></a><span class="w">            </span><span class="nt">port</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">3000</span>
+<a id="__codelineno-12-56" name="__codelineno-12-56" href="#__codelineno-12-56"></a><span class="w">          </span><span class="nt">initialDelaySeconds</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">5</span>
+<a id="__codelineno-12-57" name="__codelineno-12-57" href="#__codelineno-12-57"></a><span class="w">          </span><span class="nt">periodSeconds</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">5</span>
+<a id="__codelineno-12-58" name="__codelineno-12-58" href="#__codelineno-12-58"></a><span class="w">      </span><span class="nt">volumes</span><span class="p">:</span>
+<a id="__codelineno-12-59" name="__codelineno-12-59" href="#__codelineno-12-59"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">reports-volume</span>
+<a id="__codelineno-12-60" name="__codelineno-12-60" href="#__codelineno-12-60"></a><span class="w">        </span><span class="nt">persistentVolumeClaim</span><span class="p">:</span>
+<a id="__codelineno-12-61" name="__codelineno-12-61" href="#__codelineno-12-61"></a><span class="w">          </span><span class="nt">claimName</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">reports-pvc</span>
+<a id="__codelineno-12-62" name="__codelineno-12-62" href="#__codelineno-12-62"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">knowledge-volume</span>
+<a id="__codelineno-12-63" name="__codelineno-12-63" href="#__codelineno-12-63"></a><span class="w">        </span><span class="nt">persistentVolumeClaim</span><span class="p">:</span>
+<a id="__codelineno-12-64" name="__codelineno-12-64" href="#__codelineno-12-64"></a><span class="w">          </span><span class="nt">claimName</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">knowledge-pvc</span>
+<a id="__codelineno-12-65" name="__codelineno-12-65" href="#__codelineno-12-65"></a><span class="nn">---</span>
+<a id="__codelineno-12-66" name="__codelineno-12-66" href="#__codelineno-12-66"></a><span class="nt">apiVersion</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">v1</span>
+<a id="__codelineno-12-67" name="__codelineno-12-67" href="#__codelineno-12-67"></a><span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Service</span>
+<a id="__codelineno-12-68" name="__codelineno-12-68" href="#__codelineno-12-68"></a><span class="nt">metadata</span><span class="p">:</span>
+<a id="__codelineno-12-69" name="__codelineno-12-69" href="#__codelineno-12-69"></a><span class="w">  </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">etap-platform-service</span>
+<a id="__codelineno-12-70" name="__codelineno-12-70" href="#__codelineno-12-70"></a><span class="nt">spec</span><span class="p">:</span>
+<a id="__codelineno-12-71" name="__codelineno-12-71" href="#__codelineno-12-71"></a><span class="w">  </span><span class="nt">selector</span><span class="p">:</span>
+<a id="__codelineno-12-72" name="__codelineno-12-72" href="#__codelineno-12-72"></a><span class="w">    </span><span class="nt">app</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">etap-platform</span>
+<a id="__codelineno-12-73" name="__codelineno-12-73" href="#__codelineno-12-73"></a><span class="w">  </span><span class="nt">ports</span><span class="p">:</span>
+<a id="__codelineno-12-74" name="__codelineno-12-74" href="#__codelineno-12-74"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">http</span>
+<a id="__codelineno-12-75" name="__codelineno-12-75" href="#__codelineno-12-75"></a><span class="w">    </span><span class="nt">port</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">80</span>
+<a id="__codelineno-12-76" name="__codelineno-12-76" href="#__codelineno-12-76"></a><span class="w">    </span><span class="nt">targetPort</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">3000</span>
+<a id="__codelineno-12-77" name="__codelineno-12-77" href="#__codelineno-12-77"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">python-backend</span>
+<a id="__codelineno-12-78" name="__codelineno-12-78" href="#__codelineno-12-78"></a><span class="w">    </span><span class="nt">port</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">8000</span>
+<a id="__codelineno-12-79" name="__codelineno-12-79" href="#__codelineno-12-79"></a><span class="w">    </span><span class="nt">targetPort</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">8000</span>
+<a id="__codelineno-12-80" name="__codelineno-12-80" href="#__codelineno-12-80"></a><span class="w">  </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">LoadBalancer</span>
+<a id="__codelineno-12-81" name="__codelineno-12-81" href="#__codelineno-12-81"></a><span class="nn">---</span>
+<a id="__codelineno-12-82" name="__codelineno-12-82" href="#__codelineno-12-82"></a><span class="nt">apiVersion</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">v1</span>
+<a id="__codelineno-12-83" name="__codelineno-12-83" href="#__codelineno-12-83"></a><span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">PersistentVolumeClaim</span>
+<a id="__codelineno-12-84" name="__codelineno-12-84" href="#__codelineno-12-84"></a><span class="nt">metadata</span><span class="p">:</span>
+<a id="__codelineno-12-85" name="__codelineno-12-85" href="#__codelineno-12-85"></a><span class="w">  </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">reports-pvc</span>
+<a id="__codelineno-12-86" name="__codelineno-12-86" href="#__codelineno-12-86"></a><span class="nt">spec</span><span class="p">:</span>
+<a id="__codelineno-12-87" name="__codelineno-12-87" href="#__codelineno-12-87"></a><span class="w">  </span><span class="nt">accessModes</span><span class="p">:</span>
+<a id="__codelineno-12-88" name="__codelineno-12-88" href="#__codelineno-12-88"></a><span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ReadWriteMany</span>
+<a id="__codelineno-12-89" name="__codelineno-12-89" href="#__codelineno-12-89"></a><span class="w">  </span><span class="nt">resources</span><span class="p">:</span>
+<a id="__codelineno-12-90" name="__codelineno-12-90" href="#__codelineno-12-90"></a><span class="w">    </span><span class="nt">requests</span><span class="p">:</span>
+<a id="__codelineno-12-91" name="__codelineno-12-91" href="#__codelineno-12-91"></a><span class="w">      </span><span class="nt">storage</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">50Gi</span>
+<a id="__codelineno-12-92" name="__codelineno-12-92" href="#__codelineno-12-92"></a><span class="nn">---</span>
+<a id="__codelineno-12-93" name="__codelineno-12-93" href="#__codelineno-12-93"></a><span class="nt">apiVersion</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">v1</span>
+<a id="__codelineno-12-94" name="__codelineno-12-94" href="#__codelineno-12-94"></a><span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">PersistentVolumeClaim</span>
+<a id="__codelineno-12-95" name="__codelineno-12-95" href="#__codelineno-12-95"></a><span class="nt">metadata</span><span class="p">:</span>
+<a id="__codelineno-12-96" name="__codelineno-12-96" href="#__codelineno-12-96"></a><span class="w">  </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">knowledge-pvc</span>
+<a id="__codelineno-12-97" name="__codelineno-12-97" href="#__codelineno-12-97"></a><span class="nt">spec</span><span class="p">:</span>
+<a id="__codelineno-12-98" name="__codelineno-12-98" href="#__codelineno-12-98"></a><span class="w">  </span><span class="nt">accessModes</span><span class="p">:</span>
+<a id="__codelineno-12-99" name="__codelineno-12-99" href="#__codelineno-12-99"></a><span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ReadWriteMany</span>
+<a id="__codelineno-12-100" name="__codelineno-12-100" href="#__codelineno-12-100"></a><span class="w">  </span><span class="nt">resources</span><span class="p">:</span>
+<a id="__codelineno-12-101" name="__codelineno-12-101" href="#__codelineno-12-101"></a><span class="w">    </span><span class="nt">requests</span><span class="p">:</span>
+<a id="__codelineno-12-102" name="__codelineno-12-102" href="#__codelineno-12-102"></a><span class="w">      </span><span class="nt">storage</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">20Gi</span>
+</code></pre></div>
+<h4 id="deploy-to-kubernetes">Deploy to Kubernetes</h4>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a><span class="c1"># Apply manifests</span>
+<a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a>kubectl<span class="w"> </span>apply<span class="w"> </span>-f<span class="w"> </span>deployment.yaml
+<a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a>
+<a id="__codelineno-13-4" name="__codelineno-13-4" href="#__codelineno-13-4"></a><span class="c1"># Check deployment</span>
+<a id="__codelineno-13-5" name="__codelineno-13-5" href="#__codelineno-13-5"></a>kubectl<span class="w"> </span>get<span class="w"> </span>pods
+<a id="__codelineno-13-6" name="__codelineno-13-6" href="#__codelineno-13-6"></a>kubectl<span class="w"> </span>get<span class="w"> </span>services
+<a id="__codelineno-13-7" name="__codelineno-13-7" href="#__codelineno-13-7"></a>
+<a id="__codelineno-13-8" name="__codelineno-13-8" href="#__codelineno-13-8"></a><span class="c1"># View logs</span>
+<a id="__codelineno-13-9" name="__codelineno-13-9" href="#__codelineno-13-9"></a>kubectl<span class="w"> </span>logs<span class="w"> </span>-l<span class="w"> </span><span class="nv">app</span><span class="o">=</span>etap-platform<span class="w"> </span>-f
+<a id="__codelineno-13-10" name="__codelineno-13-10" href="#__codelineno-13-10"></a>
+<a id="__codelineno-13-11" name="__codelineno-13-11" href="#__codelineno-13-11"></a><span class="c1"># Scale</span>
+<a id="__codelineno-13-12" name="__codelineno-13-12" href="#__codelineno-13-12"></a>kubectl<span class="w"> </span>scale<span class="w"> </span>deployment<span class="w"> </span>etap-platform<span class="w"> </span>--replicas<span class="o">=</span><span class="m">5</span>
+</code></pre></div>
+<h3 id="option-c-standalone-server">Option C: Standalone Server</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a><span class="c1"># Install dependencies</span>
+<a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a>pip<span class="w"> </span>install<span class="w"> </span>-r<span class="w"> </span>requirements.txt
+<a id="__codelineno-14-3" name="__codelineno-14-3" href="#__codelineno-14-3"></a>pnpm<span class="w"> </span>install
+<a id="__codelineno-14-4" name="__codelineno-14-4" href="#__codelineno-14-4"></a>
+<a id="__codelineno-14-5" name="__codelineno-14-5" href="#__codelineno-14-5"></a><span class="c1"># Configure environment</span>
+<a id="__codelineno-14-6" name="__codelineno-14-6" href="#__codelineno-14-6"></a>cp<span class="w"> </span>.env.example<span class="w"> </span>.env
+<a id="__codelineno-14-7" name="__codelineno-14-7" href="#__codelineno-14-7"></a><span class="c1"># Edit .env with your settings</span>
+<a id="__codelineno-14-8" name="__codelineno-14-8" href="#__codelineno-14-8"></a>
+<a id="__codelineno-14-9" name="__codelineno-14-9" href="#__codelineno-14-9"></a><span class="c1"># Start services</span>
+<a id="__codelineno-14-10" name="__codelineno-14-10" href="#__codelineno-14-10"></a><span class="c1"># Terminal 1: Python backend</span>
+<a id="__codelineno-14-11" name="__codelineno-14-11" href="#__codelineno-14-11"></a>python<span class="w"> </span>main.py
+<a id="__codelineno-14-12" name="__codelineno-14-12" href="#__codelineno-14-12"></a>
+<a id="__codelineno-14-13" name="__codelineno-14-13" href="#__codelineno-14-13"></a><span class="c1"># Terminal 2: Mastra server</span>
+<a id="__codelineno-14-14" name="__codelineno-14-14" href="#__codelineno-14-14"></a>pnpm<span class="w"> </span>dev
+<a id="__codelineno-14-15" name="__codelineno-14-15" href="#__codelineno-14-15"></a>
+<a id="__codelineno-14-16" name="__codelineno-14-16" href="#__codelineno-14-16"></a><span class="c1"># Access API</span>
+<a id="__codelineno-14-17" name="__codelineno-14-17" href="#__codelineno-14-17"></a>curl<span class="w"> </span>http://localhost:3000/health
+</code></pre></div>
+<hr />
+<h2 id="8-api-specification-fastapi">8. API Specification (FastAPI)</h2>
+<h3 id="rest-api-endpoints">REST API Endpoints</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">fastapi</span><span class="w"> </span><span class="kn">import</span> <span class="n">FastAPI</span><span class="p">,</span> <span class="n">Depends</span><span class="p">,</span> <span class="n">HTTPException</span>
+<a id="__codelineno-15-2" name="__codelineno-15-2" href="#__codelineno-15-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">pydantic</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseModel</span>
+<a id="__codelineno-15-3" name="__codelineno-15-3" href="#__codelineno-15-3"></a>
+<a id="__codelineno-15-4" name="__codelineno-15-4" href="#__codelineno-15-4"></a><span class="n">app</span> <span class="o">=</span> <span class="n">FastAPI</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="s2">&quot;AhmedETAP&quot;</span><span class="p">,</span> <span class="n">version</span><span class="o">=</span><span class="s2">&quot;1.0.0&quot;</span><span class="p">)</span>
+<a id="__codelineno-15-5" name="__codelineno-15-5" href="#__codelineno-15-5"></a>
+<a id="__codelineno-15-6" name="__codelineno-15-6" href="#__codelineno-15-6"></a><span class="c1"># Authentication dependency</span>
+<a id="__codelineno-15-7" name="__codelineno-15-7" href="#__codelineno-15-7"></a><span class="k">def</span><span class="w"> </span><span class="nf">get_current_user</span><span class="p">(</span><span class="n">token</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">Header</span><span class="p">(</span><span class="o">...</span><span class="p">)):</span>
+<a id="__codelineno-15-8" name="__codelineno-15-8" href="#__codelineno-15-8"></a>    <span class="n">auth_manager</span> <span class="o">=</span> <span class="n">get_auth_manager</span><span class="p">()</span>
+<a id="__codelineno-15-9" name="__codelineno-15-9" href="#__codelineno-15-9"></a>    <span class="n">user</span> <span class="o">=</span> <span class="n">auth_manager</span><span class="o">.</span><span class="n">validate_token</span><span class="p">(</span><span class="n">token</span><span class="p">)</span>
+<a id="__codelineno-15-10" name="__codelineno-15-10" href="#__codelineno-15-10"></a>    <span class="k">if</span> <span class="ow">not</span> <span class="n">user</span><span class="p">:</span>
+<a id="__codelineno-15-11" name="__codelineno-15-11" href="#__codelineno-15-11"></a>        <span class="k">raise</span> <span class="n">HTTPException</span><span class="p">(</span><span class="n">status_code</span><span class="o">=</span><span class="mi">401</span><span class="p">,</span> <span class="n">detail</span><span class="o">=</span><span class="s2">&quot;Invalid token&quot;</span><span class="p">)</span>
+<a id="__codelineno-15-12" name="__codelineno-15-12" href="#__codelineno-15-12"></a>    <span class="k">return</span> <span class="n">user</span>
+<a id="__codelineno-15-13" name="__codelineno-15-13" href="#__codelineno-15-13"></a>
+<a id="__codelineno-15-14" name="__codelineno-15-14" href="#__codelineno-15-14"></a><span class="c1"># Request/Response Models</span>
+<a id="__codelineno-15-15" name="__codelineno-15-15" href="#__codelineno-15-15"></a><span class="k">class</span><span class="w"> </span><span class="nc">EngineeringGoal</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
+<a id="__codelineno-15-16" name="__codelineno-15-16" href="#__codelineno-15-16"></a>    <span class="n">goal</span><span class="p">:</span> <span class="nb">str</span>
+<a id="__codelineno-15-17" name="__codelineno-15-17" href="#__codelineno-15-17"></a>    <span class="n">system_data</span><span class="p">:</span> <span class="n">Dict</span>
+<a id="__codelineno-15-18" name="__codelineno-15-18" href="#__codelineno-15-18"></a>    <span class="n">parameters</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Dict</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+<a id="__codelineno-15-19" name="__codelineno-15-19" href="#__codelineno-15-19"></a>
+<a id="__codelineno-15-20" name="__codelineno-15-20" href="#__codelineno-15-20"></a><span class="k">class</span><span class="w"> </span><span class="nc">StudyResult</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
+<a id="__codelineno-15-21" name="__codelineno-15-21" href="#__codelineno-15-21"></a>    <span class="n">task_id</span><span class="p">:</span> <span class="nb">str</span>
+<a id="__codelineno-15-22" name="__codelineno-15-22" href="#__codelineno-15-22"></a>    <span class="n">status</span><span class="p">:</span> <span class="nb">str</span>
+<a id="__codelineno-15-23" name="__codelineno-15-23" href="#__codelineno-15-23"></a>    <span class="n">results</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">]</span>
+<a id="__codelineno-15-24" name="__codelineno-15-24" href="#__codelineno-15-24"></a>    <span class="n">report_paths</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span>
+<a id="__codelineno-15-25" name="__codelineno-15-25" href="#__codelineno-15-25"></a>
+<a id="__codelineno-15-26" name="__codelineno-15-26" href="#__codelineno-15-26"></a><span class="c1"># Endpoints</span>
+<a id="__codelineno-15-27" name="__codelineno-15-27" href="#__codelineno-15-27"></a><span class="nd">@app</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="s2">&quot;/api/v1/analyze&quot;</span><span class="p">)</span>
+<a id="__codelineno-15-28" name="__codelineno-15-28" href="#__codelineno-15-28"></a><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">submit_analysis</span><span class="p">(</span>
+<a id="__codelineno-15-29" name="__codelineno-15-29" href="#__codelineno-15-29"></a>    <span class="n">request</span><span class="p">:</span> <span class="n">EngineeringGoal</span><span class="p">,</span>
+<a id="__codelineno-15-30" name="__codelineno-15-30" href="#__codelineno-15-30"></a>    <span class="n">current_user</span><span class="p">:</span> <span class="n">User</span> <span class="o">=</span> <span class="n">Depends</span><span class="p">(</span><span class="n">get_current_user</span><span class="p">)</span>
+<a id="__codelineno-15-31" name="__codelineno-15-31" href="#__codelineno-15-31"></a><span class="p">):</span>
+<a id="__codelineno-15-32" name="__codelineno-15-32" href="#__codelineno-15-32"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Submit engineering analysis goal.&quot;&quot;&quot;</span>
+<a id="__codelineno-15-33" name="__codelineno-15-33" href="#__codelineno-15-33"></a>    <span class="n">orchestrator</span> <span class="o">=</span> <span class="n">get_orchestrator</span><span class="p">()</span>
+<a id="__codelineno-15-34" name="__codelineno-15-34" href="#__codelineno-15-34"></a>
+<a id="__codelineno-15-35" name="__codelineno-15-35" href="#__codelineno-15-35"></a>    <span class="n">results</span> <span class="o">=</span> <span class="k">await</span> <span class="n">orchestrator</span><span class="o">.</span><span class="n">execute_autonomous_workflow</span><span class="p">(</span>
+<a id="__codelineno-15-36" name="__codelineno-15-36" href="#__codelineno-15-36"></a>        <span class="n">user_goal</span><span class="o">=</span><span class="n">request</span><span class="o">.</span><span class="n">goal</span><span class="p">,</span>
+<a id="__codelineno-15-37" name="__codelineno-15-37" href="#__codelineno-15-37"></a>        <span class="n">system_data</span><span class="o">=</span><span class="n">request</span><span class="o">.</span><span class="n">system_data</span><span class="p">,</span>
+<a id="__codelineno-15-38" name="__codelineno-15-38" href="#__codelineno-15-38"></a>        <span class="n">parameters</span><span class="o">=</span><span class="n">request</span><span class="o">.</span><span class="n">parameters</span>
+<a id="__codelineno-15-39" name="__codelineno-15-39" href="#__codelineno-15-39"></a>    <span class="p">)</span>
+<a id="__codelineno-15-40" name="__codelineno-15-40" href="#__codelineno-15-40"></a>
+<a id="__codelineno-15-41" name="__codelineno-15-41" href="#__codelineno-15-41"></a>    <span class="k">return</span> <span class="n">StudyResult</span><span class="p">(</span><span class="o">**</span><span class="n">results</span><span class="p">)</span>
+<a id="__codelineno-15-42" name="__codelineno-15-42" href="#__codelineno-15-42"></a>
+<a id="__codelineno-15-43" name="__codelineno-15-43" href="#__codelineno-15-43"></a><span class="nd">@app</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;/api/v1/tasks/</span><span class="si">{task_id}</span><span class="s2">&quot;</span><span class="p">)</span>
+<a id="__codelineno-15-44" name="__codelineno-15-44" href="#__codelineno-15-44"></a><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">get_task_status</span><span class="p">(</span>
+<a id="__codelineno-15-45" name="__codelineno-15-45" href="#__codelineno-15-45"></a>    <span class="n">task_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+<a id="__codelineno-15-46" name="__codelineno-15-46" href="#__codelineno-15-46"></a>    <span class="n">current_user</span><span class="p">:</span> <span class="n">User</span> <span class="o">=</span> <span class="n">Depends</span><span class="p">(</span><span class="n">get_current_user</span><span class="p">)</span>
+<a id="__codelineno-15-47" name="__codelineno-15-47" href="#__codelineno-15-47"></a><span class="p">):</span>
+<a id="__codelineno-15-48" name="__codelineno-15-48" href="#__codelineno-15-48"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Get status of engineering task.&quot;&quot;&quot;</span>
+<a id="__codelineno-15-49" name="__codelineno-15-49" href="#__codelineno-15-49"></a>    <span class="n">orchestrator</span> <span class="o">=</span> <span class="n">get_orchestrator</span><span class="p">()</span>
+<a id="__codelineno-15-50" name="__codelineno-15-50" href="#__codelineno-15-50"></a>    <span class="n">task</span> <span class="o">=</span> <span class="k">await</span> <span class="n">orchestrator</span><span class="o">.</span><span class="n">get_task_status</span><span class="p">(</span><span class="n">task_id</span><span class="p">)</span>
+<a id="__codelineno-15-51" name="__codelineno-15-51" href="#__codelineno-15-51"></a>
+<a id="__codelineno-15-52" name="__codelineno-15-52" href="#__codelineno-15-52"></a>    <span class="k">if</span> <span class="ow">not</span> <span class="n">task</span><span class="p">:</span>
+<a id="__codelineno-15-53" name="__codelineno-15-53" href="#__codelineno-15-53"></a>        <span class="k">raise</span> <span class="n">HTTPException</span><span class="p">(</span><span class="n">status_code</span><span class="o">=</span><span class="mi">404</span><span class="p">,</span> <span class="n">detail</span><span class="o">=</span><span class="s2">&quot;Task not found&quot;</span><span class="p">)</span>
+<a id="__codelineno-15-54" name="__codelineno-15-54" href="#__codelineno-15-54"></a>
+<a id="__codelineno-15-55" name="__codelineno-15-55" href="#__codelineno-15-55"></a>    <span class="k">return</span> <span class="n">task</span>
+<a id="__codelineno-15-56" name="__codelineno-15-56" href="#__codelineno-15-56"></a>
+<a id="__codelineno-15-57" name="__codelineno-15-57" href="#__codelineno-15-57"></a><span class="nd">@app</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="s2">&quot;/api/v1/etap/open-project&quot;</span><span class="p">)</span>
+<a id="__codelineno-15-58" name="__codelineno-15-58" href="#__codelineno-15-58"></a><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">open_etap_project</span><span class="p">(</span>
+<a id="__codelineno-15-59" name="__codelineno-15-59" href="#__codelineno-15-59"></a>    <span class="n">project_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+<a id="__codelineno-15-60" name="__codelineno-15-60" href="#__codelineno-15-60"></a>    <span class="n">current_user</span><span class="p">:</span> <span class="n">User</span> <span class="o">=</span> <span class="n">Depends</span><span class="p">(</span><span class="n">get_current_user</span><span class="p">)</span>
+<a id="__codelineno-15-61" name="__codelineno-15-61" href="#__codelineno-15-61"></a><span class="p">):</span>
+<a id="__codelineno-15-62" name="__codelineno-15-62" href="#__codelineno-15-62"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Open ETAP project via COM automation.&quot;&quot;&quot;</span>
+<a id="__codelineno-15-63" name="__codelineno-15-63" href="#__codelineno-15-63"></a>    <span class="kn">from</span><span class="w"> </span><span class="nn">etap_integration.etap_com</span><span class="w"> </span><span class="kn">import</span> <span class="n">ETAPAutomation</span>
+<a id="__codelineno-15-64" name="__codelineno-15-64" href="#__codelineno-15-64"></a>
+<a id="__codelineno-15-65" name="__codelineno-15-65" href="#__codelineno-15-65"></a>    <span class="k">with</span> <span class="n">ETAPAutomation</span><span class="p">(</span><span class="n">visible</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="k">as</span> <span class="n">etap</span><span class="p">:</span>
+<a id="__codelineno-15-66" name="__codelineno-15-66" href="#__codelineno-15-66"></a>        <span class="n">project</span> <span class="o">=</span> <span class="n">etap</span><span class="o">.</span><span class="n">open_project</span><span class="p">(</span><span class="n">project_path</span><span class="p">)</span>
+<a id="__codelineno-15-67" name="__codelineno-15-67" href="#__codelineno-15-67"></a>        <span class="k">if</span> <span class="ow">not</span> <span class="n">project</span><span class="p">:</span>
+<a id="__codelineno-15-68" name="__codelineno-15-68" href="#__codelineno-15-68"></a>            <span class="k">raise</span> <span class="n">HTTPException</span><span class="p">(</span><span class="n">status_code</span><span class="o">=</span><span class="mi">400</span><span class="p">,</span> <span class="n">detail</span><span class="o">=</span><span class="s2">&quot;Failed to open project&quot;</span><span class="p">)</span>
+<a id="__codelineno-15-69" name="__codelineno-15-69" href="#__codelineno-15-69"></a>
+<a id="__codelineno-15-70" name="__codelineno-15-70" href="#__codelineno-15-70"></a>        <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;status&quot;</span><span class="p">:</span> <span class="s2">&quot;success&quot;</span><span class="p">,</span> <span class="s2">&quot;project_path&quot;</span><span class="p">:</span> <span class="n">project_path</span><span class="p">}</span>
+<a id="__codelineno-15-71" name="__codelineno-15-71" href="#__codelineno-15-71"></a>
+<a id="__codelineno-15-72" name="__codelineno-15-72" href="#__codelineno-15-72"></a><span class="nd">@app</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;/health&quot;</span><span class="p">)</span>
+<a id="__codelineno-15-73" name="__codelineno-15-73" href="#__codelineno-15-73"></a><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">health_check</span><span class="p">():</span>
+<a id="__codelineno-15-74" name="__codelineno-15-74" href="#__codelineno-15-74"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Health check endpoint.&quot;&quot;&quot;</span>
+<a id="__codelineno-15-75" name="__codelineno-15-75" href="#__codelineno-15-75"></a>    <span class="k">return</span> <span class="p">{</span>
+<a id="__codelineno-15-76" name="__codelineno-15-76" href="#__codelineno-15-76"></a>        <span class="s2">&quot;status&quot;</span><span class="p">:</span> <span class="s2">&quot;healthy&quot;</span><span class="p">,</span>
+<a id="__codelineno-15-77" name="__codelineno-15-77" href="#__codelineno-15-77"></a>        <span class="s2">&quot;timestamp&quot;</span><span class="p">:</span> <span class="n">datetime</span><span class="o">.</span><span class="n">utcnow</span><span class="p">()</span><span class="o">.</span><span class="n">isoformat</span><span class="p">(),</span>
+<a id="__codelineno-15-78" name="__codelineno-15-78" href="#__codelineno-15-78"></a>        <span class="s2">&quot;version&quot;</span><span class="p">:</span> <span class="s2">&quot;1.0.0&quot;</span>
+<a id="__codelineno-15-79" name="__codelineno-15-79" href="#__codelineno-15-79"></a>    <span class="p">}</span>
+</code></pre></div>
+<hr />
+<h2 id="9-performance-benchmarks">9. Performance Benchmarks</h2>
+<h3 id="calculation-performance">Calculation Performance</h3>
+<table>
+<thead>
+<tr>
+<th>Study Type</th>
+<th>System Size</th>
+<th>Execution Time</th>
+<th>Memory Usage</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Load Flow</td>
+<td>14 buses</td>
+<td>&lt;1 second</td>
+<td>&lt;50 MB</td>
+</tr>
+<tr>
+<td>Load Flow</td>
+<td>100 buses</td>
+<td>&lt;5 seconds</td>
+<td>&lt;200 MB</td>
+</tr>
+<tr>
+<td>Load Flow</td>
+<td>500 buses</td>
+<td>&lt;30 seconds</td>
+<td>&lt;1 GB</td>
+</tr>
+<tr>
+<td>Short Circuit</td>
+<td>50 buses</td>
+<td>&lt;2 seconds</td>
+<td>&lt;100 MB</td>
+</tr>
+<tr>
+<td>Harmonic (50th order)</td>
+<td>30 buses</td>
+<td>&lt;10 seconds</td>
+<td>&lt;300 MB</td>
+</tr>
+<tr>
+<td>DC-OPF</td>
+<td>100 buses</td>
+<td>&lt;2 seconds</td>
+<td>&lt;100 MB</td>
+</tr>
+<tr>
+<td>AC-OPF</td>
+<td>50 buses</td>
+<td>&lt;15 seconds</td>
+<td>&lt;500 MB</td>
+</tr>
+<tr>
+<td>Full Workflow</td>
+<td>30 buses</td>
+<td>&lt;60 seconds</td>
+<td>&lt;1 GB</td>
+</tr>
+</tbody>
+</table>
+<h3 id="scalability">Scalability</h3>
+<ul>
+<li><strong>Maximum Tested:</strong> 1000+ buses (theoretical limit)</li>
+<li><strong>Recommended:</strong> Up to 500 buses for interactive use</li>
+<li><strong>Concurrent Users:</strong> 100+ (with horizontal scaling)</li>
+<li><strong>Throughput:</strong> 10+ workflows/minute (clustered)</li>
+</ul>
+<hr />
+<h2 id="10-security-architecture">10. Security Architecture</h2>
+<h3 id="authentication-flow">Authentication Flow</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a>Client Request
+<a id="__codelineno-16-2" name="__codelineno-16-2" href="#__codelineno-16-2"></a>    ↓
+<a id="__codelineno-16-3" name="__codelineno-16-3" href="#__codelineno-16-3"></a>JWT Token Validation
+<a id="__codelineno-16-4" name="__codelineno-16-4" href="#__codelineno-16-4"></a>    ↓
+<a id="__codelineno-16-5" name="__codelineno-16-5" href="#__codelineno-16-5"></a>Role-Based Access Control (RBAC)
+<a id="__codelineno-16-6" name="__codelineno-16-6" href="#__codelineno-16-6"></a>    ↓
+<a id="__codelineno-16-7" name="__codelineno-16-7" href="#__codelineno-16-7"></a>Permission Check
+<a id="__codelineno-16-8" name="__codelineno-16-8" href="#__codelineno-16-8"></a>    ↓
+<a id="__codelineno-16-9" name="__codelineno-16-9" href="#__codelineno-16-9"></a>Input Validation &amp; Sanitization
+<a id="__codelineno-16-10" name="__codelineno-16-10" href="#__codelineno-16-10"></a>    ↓
+<a id="__codelineno-16-11" name="__codelineno-16-11" href="#__codelineno-16-11"></a>Execute Request
+<a id="__codelineno-16-12" name="__codelineno-16-12" href="#__codelineno-16-12"></a>    ↓
+<a id="__codelineno-16-13" name="__codelineno-16-13" href="#__codelineno-16-13"></a>Audit Logging
+<a id="__codelineno-16-14" name="__codelineno-16-14" href="#__codelineno-16-14"></a>    ↓
+<a id="__codelineno-16-15" name="__codelineno-16-15" href="#__codelineno-16-15"></a>Response to Client
+</code></pre></div>
+<h3 id="security-features">Security Features</h3>
+<p>✅ <strong>JWT Authentication</strong> - Token-based with configurable expiry<br />
+✅ <strong>RBAC</strong> - 5 roles, 30+ granular permissions<br />
+✅ <strong>Input Validation</strong> - Comprehensive sanitization<br />
+✅ <strong>Code Sandboxing</strong> - Restricted Python execution<br />
+✅ <strong>Rate Limiting</strong> - Token bucket algorithm<br />
+✅ <strong>Audit Logging</strong> - All actions logged<br />
+✅ <strong>Secrets Encryption</strong> - Fernet encryption<br />
+✅ <strong>OWASP Compliance</strong> - Top 10 mitigated  </p>
+<hr />
+<h2 id="11-monitoring-observability">11. Monitoring &amp; Observability</h2>
+<h3 id="metrics-collection">Metrics Collection</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a><span class="c1"># Prometheus metrics</span>
+<a id="__codelineno-17-2" name="__codelineno-17-2" href="#__codelineno-17-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">prometheus_client</span><span class="w"> </span><span class="kn">import</span> <span class="n">Counter</span><span class="p">,</span> <span class="n">Histogram</span><span class="p">,</span> <span class="n">Gauge</span>
+<a id="__codelineno-17-3" name="__codelineno-17-3" href="#__codelineno-17-3"></a>
+<a id="__codelineno-17-4" name="__codelineno-17-4" href="#__codelineno-17-4"></a><span class="n">REQUEST_COUNT</span> <span class="o">=</span> <span class="n">Counter</span><span class="p">(</span><span class="s1">&#39;http_requests_total&#39;</span><span class="p">,</span> <span class="s1">&#39;Total HTTP requests&#39;</span><span class="p">)</span>
+<a id="__codelineno-17-5" name="__codelineno-17-5" href="#__codelineno-17-5"></a><span class="n">REQUEST_LATENCY</span> <span class="o">=</span> <span class="n">Histogram</span><span class="p">(</span><span class="s1">&#39;http_request_duration_seconds&#39;</span><span class="p">,</span> <span class="s1">&#39;Request latency&#39;</span><span class="p">)</span>
+<a id="__codelineno-17-6" name="__codelineno-17-6" href="#__codelineno-17-6"></a><span class="n">ACTIVE_WORKFLOWS</span> <span class="o">=</span> <span class="n">Gauge</span><span class="p">(</span><span class="s1">&#39;active_workflows&#39;</span><span class="p">,</span> <span class="s1">&#39;Number of active workflows&#39;</span><span class="p">)</span>
+<a id="__codelineno-17-7" name="__codelineno-17-7" href="#__codelineno-17-7"></a>
+<a id="__codelineno-17-8" name="__codelineno-17-8" href="#__codelineno-17-8"></a><span class="c1"># Example usage</span>
+<a id="__codelineno-17-9" name="__codelineno-17-9" href="#__codelineno-17-9"></a><span class="nd">@app</span><span class="o">.</span><span class="n">middleware</span><span class="p">(</span><span class="s2">&quot;http&quot;</span><span class="p">)</span>
+<a id="__codelineno-17-10" name="__codelineno-17-10" href="#__codelineno-17-10"></a><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">add_metrics</span><span class="p">(</span><span class="n">request</span><span class="p">:</span> <span class="n">Request</span><span class="p">,</span> <span class="n">call_next</span><span class="p">):</span>
+<a id="__codelineno-17-11" name="__codelineno-17-11" href="#__codelineno-17-11"></a>    <span class="n">start_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+<a id="__codelineno-17-12" name="__codelineno-17-12" href="#__codelineno-17-12"></a>
+<a id="__codelineno-17-13" name="__codelineno-17-13" href="#__codelineno-17-13"></a>    <span class="n">response</span> <span class="o">=</span> <span class="k">await</span> <span class="n">call_next</span><span class="p">(</span><span class="n">request</span><span class="p">)</span>
+<a id="__codelineno-17-14" name="__codelineno-17-14" href="#__codelineno-17-14"></a>
+<a id="__codelineno-17-15" name="__codelineno-17-15" href="#__codelineno-17-15"></a>    <span class="n">REQUEST_COUNT</span><span class="o">.</span><span class="n">inc</span><span class="p">()</span>
+<a id="__codelineno-17-16" name="__codelineno-17-16" href="#__codelineno-17-16"></a>    <span class="n">REQUEST_LATENCY</span><span class="o">.</span><span class="n">observe</span><span class="p">(</span><span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">start_time</span><span class="p">)</span>
+<a id="__codelineno-17-17" name="__codelineno-17-17" href="#__codelineno-17-17"></a>
+<a id="__codelineno-17-18" name="__codelineno-17-18" href="#__codelineno-17-18"></a>    <span class="k">return</span> <span class="n">response</span>
+</code></pre></div>
+<h3 id="health-checks">Health Checks</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a><span class="c1"># Basic health</span>
+<a id="__codelineno-18-2" name="__codelineno-18-2" href="#__codelineno-18-2"></a>curl<span class="w"> </span>http://localhost:3000/health
+<a id="__codelineno-18-3" name="__codelineno-18-3" href="#__codelineno-18-3"></a>
+<a id="__codelineno-18-4" name="__codelineno-18-4" href="#__codelineno-18-4"></a><span class="c1"># Detailed health</span>
+<a id="__codelineno-18-5" name="__codelineno-18-5" href="#__codelineno-18-5"></a>curl<span class="w"> </span>http://localhost:3000/health/detailed
+<a id="__codelineno-18-6" name="__codelineno-18-6" href="#__codelineno-18-6"></a>
+<a id="__codelineno-18-7" name="__codelineno-18-7" href="#__codelineno-18-7"></a><span class="c1"># Metrics</span>
+<a id="__codelineno-18-8" name="__codelineno-18-8" href="#__codelineno-18-8"></a>curl<span class="w"> </span>http://localhost:3000/metrics
+</code></pre></div>
+<hr />
+<h2 id="12-disaster-recovery">12. Disaster Recovery</h2>
+<h3 id="backup-strategy">Backup Strategy</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-19-1" name="__codelineno-19-1" href="#__codelineno-19-1"></a><span class="ch">#!/bin/bash</span>
+<a id="__codelineno-19-2" name="__codelineno-19-2" href="#__codelineno-19-2"></a><span class="c1"># backup.sh</span>
+<a id="__codelineno-19-3" name="__codelineno-19-3" href="#__codelineno-19-3"></a>
+<a id="__codelineno-19-4" name="__codelineno-19-4" href="#__codelineno-19-4"></a><span class="nv">BACKUP_DIR</span><span class="o">=</span><span class="s2">&quot;/backups/etap-platform&quot;</span>
+<a id="__codelineno-19-5" name="__codelineno-19-5" href="#__codelineno-19-5"></a><span class="nv">TIMESTAMP</span><span class="o">=</span><span class="k">$(</span>date<span class="w"> </span>+%Y%m%d_%H%M%S<span class="k">)</span>
+<a id="__codelineno-19-6" name="__codelineno-19-6" href="#__codelineno-19-6"></a>
+<a id="__codelineno-19-7" name="__codelineno-19-7" href="#__codelineno-19-7"></a><span class="c1"># Backup database</span>
+<a id="__codelineno-19-8" name="__codelineno-19-8" href="#__codelineno-19-8"></a>cp<span class="w"> </span>data/mastra.db<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$BACKUP_DIR</span><span class="s2">/mastra_</span><span class="nv">$TIMESTAMP</span><span class="s2">.db&quot;</span>
+<a id="__codelineno-19-9" name="__codelineno-19-9" href="#__codelineno-19-9"></a>
+<a id="__codelineno-19-10" name="__codelineno-19-10" href="#__codelineno-19-10"></a><span class="c1"># Backup knowledge base</span>
+<a id="__codelineno-19-11" name="__codelineno-19-11" href="#__codelineno-19-11"></a>tar<span class="w"> </span>-czf<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$BACKUP_DIR</span><span class="s2">/knowledge_</span><span class="nv">$TIMESTAMP</span><span class="s2">.tar.gz&quot;</span><span class="w"> </span>knowledge_db/
+<a id="__codelineno-19-12" name="__codelineno-19-12" href="#__codelineno-19-12"></a>
+<a id="__codelineno-19-13" name="__codelineno-19-13" href="#__codelineno-19-13"></a><span class="c1"># Backup reports</span>
+<a id="__codelineno-19-14" name="__codelineno-19-14" href="#__codelineno-19-14"></a>tar<span class="w"> </span>-czf<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$BACKUP_DIR</span><span class="s2">/reports_</span><span class="nv">$TIMESTAMP</span><span class="s2">.tar.gz&quot;</span><span class="w"> </span>reports/
+<a id="__codelineno-19-15" name="__codelineno-19-15" href="#__codelineno-19-15"></a>
+<a id="__codelineno-19-16" name="__codelineno-19-16" href="#__codelineno-19-16"></a><span class="c1"># Backup configurations</span>
+<a id="__codelineno-19-17" name="__codelineno-19-17" href="#__codelineno-19-17"></a>cp<span class="w"> </span>.env<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$BACKUP_DIR</span><span class="s2">/env_</span><span class="nv">$TIMESTAMP</span><span class="s2">&quot;</span>
+<a id="__codelineno-19-18" name="__codelineno-19-18" href="#__codelineno-19-18"></a>
+<a id="__codelineno-19-19" name="__codelineno-19-19" href="#__codelineno-19-19"></a><span class="c1"># Keep only last 30 days</span>
+<a id="__codelineno-19-20" name="__codelineno-19-20" href="#__codelineno-19-20"></a>find<span class="w"> </span><span class="nv">$BACKUP_DIR</span><span class="w"> </span>-type<span class="w"> </span>f<span class="w"> </span>-mtime<span class="w"> </span>+30<span class="w"> </span>-delete
+<a id="__codelineno-19-21" name="__codelineno-19-21" href="#__codelineno-19-21"></a>
+<a id="__codelineno-19-22" name="__codelineno-19-22" href="#__codelineno-19-22"></a><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;Backup completed: </span><span class="nv">$TIMESTAMP</span><span class="s2">&quot;</span>
+</code></pre></div>
+<h3 id="restore-procedure">Restore Procedure</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-20-1" name="__codelineno-20-1" href="#__codelineno-20-1"></a><span class="c1"># Stop services</span>
+<a id="__codelineno-20-2" name="__codelineno-20-2" href="#__codelineno-20-2"></a>docker-compose<span class="w"> </span>down
+<a id="__codelineno-20-3" name="__codelineno-20-3" href="#__codelineno-20-3"></a>
+<a id="__codelineno-20-4" name="__codelineno-20-4" href="#__codelineno-20-4"></a><span class="c1"># Restore database</span>
+<a id="__codelineno-20-5" name="__codelineno-20-5" href="#__codelineno-20-5"></a>cp<span class="w"> </span>/backups/mastra_20260604_020000.db<span class="w"> </span>data/mastra.db
+<a id="__codelineno-20-6" name="__codelineno-20-6" href="#__codelineno-20-6"></a>
+<a id="__codelineno-20-7" name="__codelineno-20-7" href="#__codelineno-20-7"></a><span class="c1"># Restore knowledge base</span>
+<a id="__codelineno-20-8" name="__codelineno-20-8" href="#__codelineno-20-8"></a>tar<span class="w"> </span>-xzf<span class="w"> </span>/backups/knowledge_20260604_020000.tar.gz
+<a id="__codelineno-20-9" name="__codelineno-20-9" href="#__codelineno-20-9"></a>
+<a id="__codelineno-20-10" name="__codelineno-20-10" href="#__codelineno-20-10"></a><span class="c1"># Start services</span>
+<a id="__codelineno-20-11" name="__codelineno-20-11" href="#__codelineno-20-11"></a>docker-compose<span class="w"> </span>up<span class="w"> </span>-d
+</code></pre></div>
+<hr />
+<h2 id="13-future-enhancements">13. Future Enhancements</h2>
+<h3 id="priority-1-next-3-months">Priority 1 (Next 3 Months)</h3>
+<ul>
+<li>[ ] Transient stability analysis module</li>
+<li>[ ] Cable sizing and ampacity calculations</li>
+<li>[ ] Ground grid analysis (IEEE 80)</li>
+<li>[ ] Web-based dashboard (React/Vue)</li>
+</ul>
+<h3 id="priority-2-3-6-months">Priority 2 (3-6 Months)</h3>
+<ul>
+<li>[ ] Transformer thermal studies</li>
+<li>[ ] Motor starting detailed analysis</li>
+<li>[ ] Renewable energy integration models</li>
+<li>[ ] Battery energy storage systems</li>
+</ul>
+<h3 id="priority-3-6-12-months">Priority 3 (6-12 Months)</h3>
+<ul>
+<li>[ ] DC system analysis</li>
+<li>[ ] Microgrid islanding studies</li>
+<li>[ ] Machine learning for predictive maintenance</li>
+<li>[ ] Real-time digital twin synchronization</li>
+</ul>
+<hr />
+<h2 id="14-conclusion">14. Conclusion</h2>
+<p>The <strong>AhmedETAP</strong> represents a complete, production-ready solution for autonomous power system analysis. With its multi-agent architecture, comprehensive calculation engines, enterprise-grade security, and professional reporting capabilities, the platform is ready for deployment in industrial, utility, and consulting environments.</p>
+<p><strong>Key Achievements:</strong></p>
+<p>✅ 5,000+ lines of production-ready code<br />
+✅ 85% test coverage across all modules<br />
+✅ 6 major features implemented<br />
+✅ 6 security vulnerabilities remediated<br />
+✅ 100 pages of comprehensive documentation<br />
+✅ Docker &amp; Kubernetes deployment ready<br />
+✅ IEEE/IEC/NFPA standards compliant  </p>
+<p><strong>Status:</strong> 🚀 PRODUCTION-READY</p>
+<hr />
+<p><strong>Document Version:</strong> 2.0<br />
+<strong>Last Updated:</strong> June 8, 2026<br />
+<strong>Maintained By:</strong> Engineering Team<br />
+<strong>Contact:</strong> engineering@yourcompany.com</p>
+<hr />
+<h2 id="15-new-components-phase-3">15. New Components (Phase 3)</h2>
+<h3 id="security-secrets-management">Security &amp; Secrets Management</h3>
+<table>
+<thead>
+<tr>
+<th>Component</th>
+<th>File</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>secrets_manager.py</code></td>
+<td><code>src/secrets_manager.py</code></td>
+<td>Secrets management with HashiCorp Vault integration (<code>VaultSecretsManager</code>) and local Fernet encryption (<code>LocalSecretsManager</code>). Includes <code>KeyAccessAuditor</code> for API key audit logging and <code>EnvironmentValidator</code> for security configuration checks.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="reliability-resilience">Reliability &amp; Resilience</h3>
+<table>
+<thead>
+<tr>
+<th>Component</th>
+<th>File</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>resilience.py</code></td>
+<td><code>src/resilience.py</code></td>
+<td>Implements <code>RetryHandler</code> with exponential backoff and jitter, <code>CircuitBreaker</code> pattern (CLOSED/OPEN/HALF_OPEN states), and <code>MultiLevelRecovery</code> for graduated recovery strategies.</td>
+</tr>
+<tr>
+<td><code>error_handler.py</code></td>
+<td><code>src/error_handler.py</code></td>
+<td>Centralized error handling with <code>ErrorHandler</code> (error history, statistics, aggregation), <code>AlertManager</code> (email and webhook notifications), and <code>AutoRecoveryManager</code> for automatic error recovery.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="numerical-safety-caching">Numerical Safety &amp; Caching</h3>
+<table>
+<thead>
+<tr>
+<th>Component</th>
+<th>File</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>numerical_safety.py</code></td>
+<td><code>src/numerical_safety.py</code></td>
+<td><code>NumericalGuard</code> for safe numerical operations (division by zero, overflow, underflow), <code>StabilityEnforcer</code> for numerical stability, <code>ConvergenceMonitor</code> for solver convergence tracking, <code>ConsistencyCheck</code> for result verification, and <code>MatrixStabilizer</code> for safe matrix operations.</td>
+</tr>
+<tr>
+<td><code>cache_manager.py</code></td>
+<td><code>src/cache_manager.py</code></td>
+<td><code>CalculationCache</code> with multiple eviction strategies (LRU, LFU, TTL), <code>SmartCacheStrategy</code> for intelligent caching decisions, and <code>MemoryManager</code> for memory-aware cache size management. Also includes <code>SparseMatrixManager</code> for large system optimization.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="async-execution-data-optimization">Async Execution &amp; Data Optimization</h3>
+<table>
+<thead>
+<tr>
+<th>Component</th>
+<th>File</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>async_executor.py</code></td>
+<td><code>src/async_executor.py</code></td>
+<td><code>AsyncExecutor</code> for async task management, <code>ThreadPoolManager</code> for CPU-bound operations, <code>ProcessPoolManager</code> for intensive calculations, and <code>WorkflowOrchestrator</code> for multi-step workflow execution.</td>
+</tr>
+<tr>
+<td><code>data_optimizer.py</code></td>
+<td><code>src/data_optimizer.py</code></td>
+<td><code>MemoryManager</code> for memory-aware caching, <code>SparseMatrixManager</code> for sparse matrix optimization, <code>BatchProcessor</code> for handling large systems in batches, and <code>DataCompressor</code> for efficient result storage and transfer.</td>
+</tr>
+<tr>
+<td><code>scalability.py</code></td>
+<td><code>src/scalability.py</code></td>
+<td>Distributed computing support including <code>BatchProcessor</code>, <code>DataCompressor</code>, and utilities for horizontal scaling across worker nodes.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="etap-specific-components">ETAP-Specific Components</h3>
+<table>
+<thead>
+<tr>
+<th>Component</th>
+<th>File</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>etap_error_recovery.py</code></td>
+<td><code>src/etap_error_recovery.py</code></td>
+<td><code>ETAPErrorRecovery</code> for handling COM automation errors, connection failures, and study execution failures with automatic retry and escalation procedures.</td>
+</tr>
+<tr>
+<td><code>etap_compatibility.py</code></td>
+<td><code>src/etap_compatibility.py</code></td>
+<td><code>ETAPCompatibilityChecker</code> for verifying ETAP software version compatibility, checking available COM interfaces, and validating feature support across versions.</td>
+</tr>
+</tbody>
+</table>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.tabs", "navigation.sections", "navigation.top", "search.suggest", "search.highlight"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  </body>
+</html>

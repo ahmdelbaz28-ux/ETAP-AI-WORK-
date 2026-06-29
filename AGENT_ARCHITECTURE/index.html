@@ -1,0 +1,1984 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Enterprise AI-Powered Power Systems Engineering Platform">
+      
+      
+        <meta name="author" content="AhmedETAP Team">
+      
+      
+      
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+    
+    
+      
+        <title>Agent Architecture: Python & Mastra TypeScript Systems - AhmedETAP Documentation</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="deep-purple">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#agent-architecture-python-mastra-typescript-systems" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="AhmedETAP Documentation" class="md-header__button md-logo" aria-label="AhmedETAP Documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            AhmedETAP Documentation
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Agent Architecture: Python &amp; Mastra TypeScript Systems
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+    
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/ahmdelbaz28-ux/ETAP-AI-WORK-" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href=".." class="md-tabs__link">
+        
+  
+  
+    
+  
+  الصفحة الرئيسية
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../ARCHITECTURE/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  الهيكلية
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../API_REFERENCE/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  واجهة برمجة التطبيقات
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../OPERATIONS_RUNBOOK/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  دليل التشغيل
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../TROUBLESHOOTING_GUIDE/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  دليل الأعطال
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../SECURITY_OPERATIONS_MANUAL/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  البنية التحتية للأمان
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../ENTERPRISE_CERTIFICATION_REPORT/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  التقييم المؤسسي
+
+      </a>
+    </li>
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="AhmedETAP Documentation" class="md-nav__button md-logo" aria-label="AhmedETAP Documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    AhmedETAP Documentation
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/ahmdelbaz28-ux/ETAP-AI-WORK-" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    الصفحة الرئيسية
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ARCHITECTURE/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    الهيكلية
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../API_REFERENCE/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    واجهة برمجة التطبيقات
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../OPERATIONS_RUNBOOK/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    دليل التشغيل
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../TROUBLESHOOTING_GUIDE/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    دليل الأعطال
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../SECURITY_OPERATIONS_MANUAL/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    البنية التحتية للأمان
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ENTERPRISE_CERTIFICATION_REPORT/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    التقييم المؤسسي
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#table-of-contents" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Table of Contents
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#1-overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Overview
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="1. Overview">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#why-two-systems" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why two systems?
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-python-agent-system-agents" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Python Agent System (agents/)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="2. Python Agent System (agents/)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#21-when-to-use" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.1 When to Use
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#22-architecture" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.2 Architecture
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#23-core-classes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.3 Core Classes
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="2.3 Core Classes">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#baseagent-abstract-base" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        BaseAgent (abstract base)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#engineeringtask-and-agentresult" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        EngineeringTask and AgentResult
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#chiefengineeringorchestrator" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ChiefEngineeringOrchestrator
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#24-built-in-core-agents" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.4 Built-in Core Agents
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#25-api-entry-points" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.5 API Entry Points
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#26-prompt-loading-python-side" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.6 Prompt Loading (Python side)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-mastra-typescript-agent-system-srcmastra" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Mastra TypeScript Agent System (src/mastra/)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3. Mastra TypeScript Agent System (src/mastra/)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#31-when-to-use" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.1 When to Use
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#32-architecture" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.2 Architecture
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#33-mastra-instance-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.3 Mastra Instance Configuration
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#34-agent-pattern" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.4 Agent Pattern
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#35-coordinator-agent-networked-routing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.5 Coordinator Agent (Networked Routing)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#36-tools" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.6 Tools
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3.6 Tools">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#run_python-execute-python-code" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        run_python — Execute Python code
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#run_powershell-execute-read-only-powershell-commands" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        run_powershell — Execute read-only PowerShell commands
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#37-prompt-loading-typescript-side" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.7 Prompt Loading (TypeScript side)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-decision-matrix" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Decision Matrix
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4. Decision Matrix">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#quick-decision-flowchart" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Quick Decision Flowchart
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-communication-between-systems" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. Communication Between Systems
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="5. Communication Between Systems">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#51-shared-prompt-layer" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.1 Shared Prompt Layer
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#52-run_python-tool-bridge" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.2 run_python Tool Bridge
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#53-run_powershell-tool-bridge" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.3 run_powershell Tool Bridge
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#54-api-level-integration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.4 API-Level Integration
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#55-no-direct-agent-to-agent-calls" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.5 No Direct Agent-to-Agent Calls
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-adding-a-new-agent" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. Adding a New Agent
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="6. Adding a New Agent">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#61-adding-a-python-agent" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6.1 Adding a Python Agent
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#62-adding-a-mastra-typescript-agent" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6.2 Adding a Mastra TypeScript Agent
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#63-checklist-adding-an-agent-to-both-systems" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6.3 Checklist: Adding an Agent to Both Systems
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#appendix-file-reference-summary" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Appendix: File Reference Summary
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="agent-architecture-python-mastra-typescript-systems">Agent Architecture: Python &amp; Mastra TypeScript Systems</h1>
+<blockquote>
+<p><strong>Document version:</strong> 2026-03-04
+<strong>Project:</strong> AhmedETAP — AI-Powered Power Systems Engineering Platform</p>
+</blockquote>
+<hr />
+<h2 id="table-of-contents">Table of Contents</h2>
+<ol>
+<li><a href="#1-overview">Overview</a></li>
+<li><a href="#2-python-agent-system-agents">Python Agent System (<code>agents/</code>)</a></li>
+<li><a href="#3-mastra-typescript-agent-system-srcmastra">Mastra TypeScript Agent System (<code>src/mastra/</code>)</a></li>
+<li><a href="#4-decision-matrix">Decision Matrix</a></li>
+<li><a href="#5-communication-between-systems">Communication Between Systems</a></li>
+<li><a href="#6-adding-a-new-agent">Adding a New Agent</a></li>
+</ol>
+<hr />
+<h2 id="1-overview">1. Overview</h2>
+<p>AhmedETAP runs <strong>two parallel agent systems</strong> that coexist within the same monorepo:</p>
+<table>
+<thead>
+<tr>
+<th>Aspect</th>
+<th>Python Agent System</th>
+<th>Mastra TypeScript Agent System</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Location</strong></td>
+<td><code>agents/</code></td>
+<td><code>src/mastra/</code></td>
+</tr>
+<tr>
+<td><strong>Language</strong></td>
+<td>Python (async)</td>
+<td>TypeScript (Node.js)</td>
+</tr>
+<tr>
+<td><strong>Framework</strong></td>
+<td>Custom (<code>BaseAgent</code> + <code>ChiefEngineeringOrchestrator</code>)</td>
+<td>Mastra Core (<code>@mastra/core/agent</code>)</td>
+</tr>
+<tr>
+<td><strong>Primary role</strong></td>
+<td>Deterministic computation, numerical analysis, orchestration</td>
+<td>LLM-powered conversation, tool use, networked agent routing</td>
+</tr>
+<tr>
+<td><strong>API surface</strong></td>
+<td>FastAPI (<code>/api/v1/studies/run</code>, <code>/api/v1/agents/</code>)</td>
+<td>Next.js API routes (<code>/api/v1/agents/*/chat</code>)</td>
+</tr>
+<tr>
+<td><strong>Prompt management</strong></td>
+<td>Shared <code>prompts/</code> YAML + LangWatch</td>
+<td>Shared <code>prompts/</code> YAML + LangWatch</td>
+</tr>
+<tr>
+<td><strong>Requires LLM?</strong></td>
+<td>No — most agents are purely computational</td>
+<td>Yes — every agent is LLM-driven</td>
+</tr>
+</tbody>
+</table>
+<h3 id="why-two-systems">Why two systems?</h3>
+<p>The two systems exist because they solve fundamentally different problems:</p>
+<ul>
+<li>
+<p><strong>Python agents</strong> perform <strong>deterministic engineering calculations</strong> (Newton-Raphson load flow, IEC 60909 short-circuit analysis, IEEE 519 harmonic compliance, relay coordination). These computations require NumPy, domain-specific solvers, and direct access to the power system model. They must produce <strong>bit-exact, reproducible results</strong> — an LLM cannot replace a Newton-Raphson solver.</p>
+</li>
+<li>
+<p><strong>Mastra TypeScript agents</strong> provide <strong>conversational AI</strong> experiences. They interpret natural-language user requests, decide which specialist to route to, and use LLM reasoning to explain results, suggest corrective actions, and guide non-expert users through complex engineering workflows. They also serve as the <strong>web-facing gateway</strong> for the chat UI.</p>
+</li>
+</ul>
+<p>Both systems share the same prompt management layer (<code>prompts/*.yaml</code> + LangWatch API) and the same domain knowledge, ensuring consistent behavior regardless of which system handles a request.</p>
+<hr />
+<h2 id="2-python-agent-system-agents">2. Python Agent System (<code>agents/</code>)</h2>
+<h3 id="21-when-to-use">2.1 When to Use</h3>
+<p>Use the Python agent system when you need to:</p>
+<ul>
+<li>Run <strong>numerical power-system computations</strong> (load flow, short circuit, harmonics, OPF, protection coordination)</li>
+<li>Execute <strong>deterministic, standards-based analysis</strong> that must produce reproducible results</li>
+<li>Orchestrate <strong>multi-step engineering workflows</strong> with dependencies between studies</li>
+<li>Perform <strong>validation and compliance checking</strong> against IEEE/IEC standards</li>
+<li>Generate <strong>engineering reports</strong> (PDF/DOCX/XLSX)</li>
+<li>Interact with <strong>ETAP via COM automation</strong> (Windows) or remote API</li>
+<li>Handle requests via the <strong>FastAPI REST API</strong> (<code>/api/v1/studies/run</code>)</li>
+</ul>
+<h3 id="22-architecture">2.2 Architecture</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>agents/
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>├── __init__.py
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>├── orchestrator.py              # BaseAgent, all core agents, ChiefEngineeringOrchestrator
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>├── prompt_loader.py             # 3-tier prompt loading (LangWatch → YAML → fallback)
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>├── etap_expert_agent.py         # Rule-based ETAP expert (Format A/B/C/D)
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>├── etap_gui_agent.py            # Computer Use Agent for desktop apps
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>├── code_guard_agent.py          # Automated code quality review
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>├── arc_flash_agent.py           # Standalone arc flash analysis
+<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>├── goal_planner_agent.py        # Goal decomposition
+<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>├── weather_agent.py             # Weather data agent
+<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>├── motor_starting_agent.py      # Motor starting analysis
+<a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>├── cable_sizing_agent.py        # Cable sizing calculations
+<a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>├── earth_grid_agent.py          # Earth grid design agent
+<a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>├── stability_agent.py           # Transient stability analysis
+<a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a>├── coordination_agent.py        # Protection coordination
+<a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a>├── predictive_agent.py          # Predictive maintenance
+<a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a>├── renewable_agent.py           # Renewable energy integration
+<a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a>├── battery_storage_agent.py     # Battery storage analysis
+<a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a>├── digital_twin_agent.py        # Digital twin agent
+<a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a>├── scada_agent.py               # SCADA integration
+<a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a>├── anomaly_agent.py             # Anomaly detection
+</code></pre></div>
+<h3 id="23-core-classes">2.3 Core Classes</h3>
+<h4 id="baseagent-abstract-base"><code>BaseAgent</code> (abstract base)</h4>
+<p>Every Python agent inherits from <code>BaseAgent</code>, which provides:</p>
+<ul>
+<li><strong>Prompt integration:</strong> Each agent declares a <code>prompt_handle</code> (e.g., <code>"load_flow_agent"</code>) that maps to a YAML prompt file. If not set, the handle is derived from the class name via CamelCase → snake_case conversion.</li>
+<li><strong>3-tier prompt loading:</strong> LangWatch API → local YAML → hardcoded fallback.</li>
+<li><strong>Lifecycle tracking:</strong> <code>AgentStatus</code> enum (<code>IDLE</code>, <code>RUNNING</code>, <code>COMPLETED</code>, <code>FAILED</code>, <code>VALIDATING</code>).</li>
+<li><strong>Execution logging:</strong> Structured log entries with timestamps.</li>
+<li><strong>Tracing:</strong> <code>@trace_operation</code> decorator for observability.</li>
+</ul>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="k">class</span><span class="w"> </span><span class="nc">BaseAgent</span><span class="p">:</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>    <span class="n">prompt_handle</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>  <span class="c1"># Override in subclass</span>
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">agent_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">agent_name</span> <span class="o">=</span> <span class="n">agent_name</span>
+<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">status</span> <span class="o">=</span> <span class="n">AgentStatus</span><span class="o">.</span><span class="n">IDLE</span>
+<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">_load_prompt</span><span class="p">()</span>  <span class="c1"># Loads from LangWatch / YAML / fallback</span>
+<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a>
+<a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a>    <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">task</span><span class="p">:</span> <span class="n">EngineeringTask</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">AgentResult</span><span class="p">:</span>
+<a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Override in subclass. Default returns FAILED.&quot;&quot;&quot;</span>
+<a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a>        <span class="o">...</span>
+<a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a>
+<a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">validate_result</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">result</span><span class="p">:</span> <span class="n">AgentResult</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<a id="__codelineno-1-14" name="__codelineno-1-14" href="#__codelineno-1-14"></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Override for domain-specific validation.&quot;&quot;&quot;</span>
+<a id="__codelineno-1-15" name="__codelineno-1-15" href="#__codelineno-1-15"></a>        <span class="o">...</span>
+</code></pre></div>
+<h4 id="engineeringtask-and-agentresult"><code>EngineeringTask</code> and <code>AgentResult</code></h4>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="nd">@dataclass</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="k">class</span><span class="w"> </span><span class="nc">EngineeringTask</span><span class="p">:</span>
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>    <span class="n">task_id</span><span class="p">:</span> <span class="nb">str</span>
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>    <span class="n">description</span><span class="p">:</span> <span class="nb">str</span>
+<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>    <span class="n">study_types</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">StudyType</span><span class="p">]</span>
+<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>    <span class="n">parameters</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span>
+<a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a>    <span class="n">priority</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span>
+<a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a>    <span class="n">status</span><span class="p">:</span> <span class="n">AgentStatus</span> <span class="o">=</span> <span class="n">AgentStatus</span><span class="o">.</span><span class="n">IDLE</span>
+<a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a>    <span class="n">results</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">AgentResult</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">list</span><span class="p">)</span>
+<a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a>
+<a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a><span class="nd">@dataclass</span>
+<a id="__codelineno-2-12" name="__codelineno-2-12" href="#__codelineno-2-12"></a><span class="k">class</span><span class="w"> </span><span class="nc">AgentResult</span><span class="p">:</span>
+<a id="__codelineno-2-13" name="__codelineno-2-13" href="#__codelineno-2-13"></a>    <span class="n">agent_name</span><span class="p">:</span> <span class="nb">str</span>
+<a id="__codelineno-2-14" name="__codelineno-2-14" href="#__codelineno-2-14"></a>    <span class="n">study_type</span><span class="p">:</span> <span class="n">StudyType</span>
+<a id="__codelineno-2-15" name="__codelineno-2-15" href="#__codelineno-2-15"></a>    <span class="n">status</span><span class="p">:</span> <span class="n">AgentStatus</span>
+<a id="__codelineno-2-16" name="__codelineno-2-16" href="#__codelineno-2-16"></a>    <span class="n">data</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span>
+<a id="__codelineno-2-17" name="__codelineno-2-17" href="#__codelineno-2-17"></a>    <span class="n">validation_status</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
+<a id="__codelineno-2-18" name="__codelineno-2-18" href="#__codelineno-2-18"></a>    <span class="n">validation_errors</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">list</span><span class="p">)</span>
+<a id="__codelineno-2-19" name="__codelineno-2-19" href="#__codelineno-2-19"></a>    <span class="n">execution_time</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span>
+<a id="__codelineno-2-20" name="__codelineno-2-20" href="#__codelineno-2-20"></a>    <span class="n">timestamp</span><span class="p">:</span> <span class="n">datetime</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="k">lambda</span><span class="p">:</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">(</span><span class="n">UTC</span><span class="p">))</span>
+</code></pre></div>
+<h4 id="chiefengineeringorchestrator"><code>ChiefEngineeringOrchestrator</code></h4>
+<p>The orchestrator registers all agents and coordinates multi-step workflows:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="k">class</span><span class="w"> </span><span class="nc">ChiefEngineeringOrchestrator</span><span class="p">:</span>
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>    <span class="n">prompt_handle</span> <span class="o">=</span> <span class="s2">&quot;power_system_coordinator_agent&quot;</span>
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>
+<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">agents</span> <span class="o">=</span> <span class="p">{</span>
+<a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a>            <span class="s2">&quot;load_flow&quot;</span><span class="p">:</span>     <span class="n">LoadFlowAgent</span><span class="p">(),</span>
+<a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a>            <span class="s2">&quot;short_circuit&quot;</span><span class="p">:</span> <span class="n">ShortCircuitAgent</span><span class="p">(),</span>
+<a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a>            <span class="s2">&quot;harmonic&quot;</span><span class="p">:</span>      <span class="n">HarmonicAnalysisAgent</span><span class="p">(),</span>
+<a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a>            <span class="s2">&quot;opf&quot;</span><span class="p">:</span>           <span class="n">OptimalPowerFlowAgent</span><span class="p">(),</span>
+<a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a>            <span class="s2">&quot;protection&quot;</span><span class="p">:</span>    <span class="n">ProtectionCoordinationAgent</span><span class="p">(),</span>
+<a id="__codelineno-3-11" name="__codelineno-3-11" href="#__codelineno-3-11"></a>            <span class="s2">&quot;etap_execution&quot;</span><span class="p">:</span> <span class="n">ETAPExecutionAgent</span><span class="p">(),</span>
+<a id="__codelineno-3-12" name="__codelineno-3-12" href="#__codelineno-3-12"></a>            <span class="s2">&quot;validation&quot;</span><span class="p">:</span>    <span class="n">ValidationAgent</span><span class="p">(),</span>
+<a id="__codelineno-3-13" name="__codelineno-3-13" href="#__codelineno-3-13"></a>            <span class="s2">&quot;report&quot;</span><span class="p">:</span>        <span class="n">ReportGenerationAgent</span><span class="p">(),</span>
+<a id="__codelineno-3-14" name="__codelineno-3-14" href="#__codelineno-3-14"></a>            <span class="s2">&quot;code_guard&quot;</span><span class="p">:</span>    <span class="n">CodeGuardAgent</span><span class="p">(),</span>        <span class="c1"># optional</span>
+<a id="__codelineno-3-15" name="__codelineno-3-15" href="#__codelineno-3-15"></a>            <span class="s2">&quot;etap_expert&quot;</span><span class="p">:</span>   <span class="n">ETAPExpertAgent</span><span class="p">(),</span>        <span class="c1"># optional</span>
+<a id="__codelineno-3-16" name="__codelineno-3-16" href="#__codelineno-3-16"></a>            <span class="s2">&quot;etap_gui&quot;</span><span class="p">:</span>      <span class="n">ETAPGUIAgent</span><span class="p">(),</span>           <span class="c1"># optional</span>
+<a id="__codelineno-3-17" name="__codelineno-3-17" href="#__codelineno-3-17"></a>        <span class="p">}</span>
+<a id="__codelineno-3-18" name="__codelineno-3-18" href="#__codelineno-3-18"></a>
+<a id="__codelineno-3-19" name="__codelineno-3-19" href="#__codelineno-3-19"></a>    <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">execute_autonomous_workflow</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">user_goal</span><span class="p">,</span> <span class="n">system_data</span><span class="p">,</span> <span class="n">parameters</span><span class="p">):</span>
+<a id="__codelineno-3-20" name="__codelineno-3-20" href="#__codelineno-3-20"></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Parse goal → determine studies → execute with dependencies → validate.&quot;&quot;&quot;</span>
+<a id="__codelineno-3-21" name="__codelineno-3-21" href="#__codelineno-3-21"></a>        <span class="o">...</span>
+</code></pre></div>
+<p><strong>Workflow execution phases:</strong></p>
+<ol>
+<li><strong>Goal parsing</strong> — keyword-based mapping from natural language to <code>StudyType</code> list.</li>
+<li><strong>Phase 1</strong> — Run load flow first (dependency for other studies).</li>
+<li><strong>Phase 2</strong> — Run independent studies in parallel via <code>asyncio.gather</code>.</li>
+<li><strong>Phase 3</strong> — Final validation pass across all results.</li>
+<li><strong>Phase 3.5</strong> — Code guard review (if source code was provided).</li>
+</ol>
+<h3 id="24-built-in-core-agents">2.4 Built-in Core Agents</h3>
+<table>
+<thead>
+<tr>
+<th>Agent</th>
+<th>Prompt Handle</th>
+<th>Study Type</th>
+<th>Standards</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>LoadFlowAgent</code></td>
+<td><code>load_flow_agent</code></td>
+<td><code>LOAD_FLOW</code></td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>ShortCircuitAgent</code></td>
+<td><code>short_circuit_agent</code></td>
+<td><code>SHORT_CIRCUIT</code></td>
+<td>IEC 60909-0:2016</td>
+</tr>
+<tr>
+<td><code>HarmonicAnalysisAgent</code></td>
+<td><code>harmonic_agent</code></td>
+<td><code>HARMONIC_ANALYSIS</code></td>
+<td>IEEE 519-2022</td>
+</tr>
+<tr>
+<td><code>OptimalPowerFlowAgent</code></td>
+<td><code>opf_agent</code></td>
+<td><code>OPTIMAL_POWER_FLOW</code></td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>ProtectionCoordinationAgent</code></td>
+<td><code>protection_agent</code></td>
+<td><code>PROTECTION_COORDINATION</code></td>
+<td>IEC 60255</td>
+</tr>
+<tr>
+<td><code>ETAPExecutionAgent</code></td>
+<td><code>etap_engineer_agent</code></td>
+<td>ETAP COM/API</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>ValidationAgent</code></td>
+<td><code>validation_agent</code></td>
+<td>Cross-cutting</td>
+<td>IEEE/IEC</td>
+</tr>
+<tr>
+<td><code>ReportGenerationAgent</code></td>
+<td><code>report_agent</code></td>
+<td>Cross-cutting</td>
+<td>—</td>
+</tr>
+</tbody>
+</table>
+<h3 id="25-api-entry-points">2.5 API Entry Points</h3>
+<p>The Python agents are exposed through FastAPI:</p>
+<ul>
+<li><strong><code>POST /api/v1/studies/run</code></strong> — Execute a power system study (dispatches to the appropriate agent via <code>_run_native_study()</code> or the orchestrator).</li>
+<li><strong><code>GET /api/v1/agents/info</code></strong> — Returns metadata for all registered agents including prompt status.</li>
+<li><strong><code>POST /api/v1/agents/etap-expert/chat</code></strong> — Direct access to the ETAP Expert skill agent.</li>
+</ul>
+<p>The <code>_run_native_study()</code> function in <code>api/studies.py</code> routes requests:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="k">def</span><span class="w"> </span><span class="nf">_run_native_study</span><span class="p">(</span><span class="n">study_type</span><span class="p">,</span> <span class="n">system</span><span class="p">,</span> <span class="n">parameters</span><span class="p">):</span>
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>    <span class="k">if</span> <span class="n">study_type</span> <span class="o">==</span> <span class="s2">&quot;etap_expert&quot;</span><span class="p">:</span>
+<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>        <span class="n">agent</span> <span class="o">=</span> <span class="n">ETAPExpertAgent</span><span class="p">()</span>
+<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a>        <span class="k">return</span> <span class="n">agent</span><span class="o">.</span><span class="n">answer</span><span class="p">(</span><span class="n">parameters</span><span class="p">[</span><span class="s2">&quot;question&quot;</span><span class="p">])</span>
+<a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a>    <span class="k">if</span> <span class="n">study_type</span> <span class="o">==</span> <span class="s2">&quot;etap_gui&quot;</span><span class="p">:</span>
+<a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a>        <span class="n">agent</span> <span class="o">=</span> <span class="n">ETAPGUIAgent</span><span class="p">()</span>
+<a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a>        <span class="k">return</span> <span class="n">agent</span><span class="o">.</span><span class="n">answer</span><span class="p">(</span><span class="n">parameters</span><span class="p">[</span><span class="s2">&quot;question&quot;</span><span class="p">])</span>
+<a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a>    <span class="c1"># Numerical studies delegate to PowerSystemEngine</span>
+<a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a>    <span class="n">engine</span> <span class="o">=</span> <span class="n">PowerSystemEngine</span><span class="p">(</span><span class="n">system</span><span class="p">)</span>
+<a id="__codelineno-4-10" name="__codelineno-4-10" href="#__codelineno-4-10"></a>    <span class="k">if</span> <span class="n">study_type</span> <span class="o">==</span> <span class="s2">&quot;load_flow&quot;</span><span class="p">:</span>
+<a id="__codelineno-4-11" name="__codelineno-4-11" href="#__codelineno-4-11"></a>        <span class="k">return</span> <span class="n">engine</span><span class="o">.</span><span class="n">run_load_flow</span><span class="p">()</span>
+<a id="__codelineno-4-12" name="__codelineno-4-12" href="#__codelineno-4-12"></a>    <span class="o">...</span>
+</code></pre></div>
+<h3 id="26-prompt-loading-python-side">2.6 Prompt Loading (Python side)</h3>
+<p><code>agents/prompt_loader.py</code> mirrors the TypeScript <code>getSystemPrompt()</code> with the same 3-tier fallback:</p>
+<ol>
+<li><strong>In-memory cache</strong> (prevents redundant I/O and API calls)</li>
+<li><strong>LangWatch API</strong> (if <code>LANGWATCH_API_KEY</code> is set and <code>DEPLOYMENT_VERIFICATION != "true"</code>)</li>
+<li><strong>Local YAML</strong> (<code>prompts/{handle}.yaml</code> or <code>prompts/{handle}.prompt.yaml</code>)</li>
+<li><strong>Fallback agent prompt</strong> (<code>prompts/fallback_agent.prompt.yaml</code>)</li>
+<li><strong>Hardcoded safety-net</strong> — generic engineering assistant string</li>
+</ol>
+<hr />
+<h2 id="3-mastra-typescript-agent-system-srcmastra">3. Mastra TypeScript Agent System (<code>src/mastra/</code>)</h2>
+<h3 id="31-when-to-use">3.1 When to Use</h3>
+<p>Use the Mastra agent system when you need to:</p>
+<ul>
+<li>Provide <strong>conversational AI</strong> interfaces (chat, multi-turn dialogue)</li>
+<li>Route user requests to the <strong>most appropriate specialist agent</strong> via LLM reasoning</li>
+<li>Execute <strong>Python code dynamically</strong> via the <code>run_python</code> tool for ad-hoc calculations</li>
+<li>Serve agent capabilities through the <strong>Next.js web UI</strong></li>
+<li>Leverage <strong>Mastra's built-in memory, storage, and observability</strong> (LibSQL, DuckDB, Pino logging)</li>
+<li>Build <strong>networked agent topologies</strong> (coordinator → specialist routing)</li>
+</ul>
+<h3 id="32-architecture">3.2 Architecture</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>src/mastra/
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>├── index.ts                              # Mastra instance (agents, workflows, storage, observability)
+<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>├── prompts.ts                            # 3-tier prompt loading (LangWatch → YAML → fallback)
+<a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a>├── utils.ts                              # Shared utilities
+<a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a>├── lib/
+<a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a>│   ├── model-config.ts                   # OpenAI model resolution &amp; provider testing
+<a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a>│   └── logger.ts                         # Logging utilities
+<a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a>├── middleware/
+<a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a>│   └── language-detection.ts             # Request language detection
+<a id="__codelineno-5-10" name="__codelineno-5-10" href="#__codelineno-5-10"></a>├── types/
+<a id="__codelineno-5-11" name="__codelineno-5-11" href="#__codelineno-5-11"></a>│   └── goal-planner.ts                   # TypeScript types for goal planner
+<a id="__codelineno-5-12" name="__codelineno-5-12" href="#__codelineno-5-12"></a>├── agents/
+<a id="__codelineno-5-13" name="__codelineno-5-13" href="#__codelineno-5-13"></a>│   ├── etap-expert-agent.ts              # ETAP Expert Skill Agent
+<a id="__codelineno-5-14" name="__codelineno-5-14" href="#__codelineno-5-14"></a>│   ├── etap-engineer-agent.ts            # ETAP Engineering Agent
+<a id="__codelineno-5-15" name="__codelineno-5-15" href="#__codelineno-5-15"></a>│   ├── power-system-coordinator-agent.ts # Coordinator (routes to specialists)
+<a id="__codelineno-5-16" name="__codelineno-5-16" href="#__codelineno-5-16"></a>│   ├── loadflow-agent.ts                 # Load Flow specialist
+<a id="__codelineno-5-17" name="__codelineno-5-17" href="#__codelineno-5-17"></a>│   ├── shortcircuit-agent.ts             # Short Circuit specialist
+<a id="__codelineno-5-18" name="__codelineno-5-18" href="#__codelineno-5-18"></a>│   ├── arcflash-agent.ts                 # Arc Flash specialist
+<a id="__codelineno-5-19" name="__codelineno-5-19" href="#__codelineno-5-19"></a>│   ├── motorstarting-agent.ts            # Motor Starting specialist
+<a id="__codelineno-5-20" name="__codelineno-5-20" href="#__codelineno-5-20"></a>│   ├── protection-agent.ts               # Protection specialist
+<a id="__codelineno-5-21" name="__codelineno-5-21" href="#__codelineno-5-21"></a>│   ├── goal-planner-agent.ts             # Goal decomposition
+<a id="__codelineno-5-22" name="__codelineno-5-22" href="#__codelineno-5-22"></a>│   ├── code-guard-agent.ts               # Code quality review
+<a id="__codelineno-5-23" name="__codelineno-5-23" href="#__codelineno-5-23"></a>│   └── weather-agent.ts                  # Weather data agent
+<a id="__codelineno-5-24" name="__codelineno-5-24" href="#__codelineno-5-24"></a>├── tools/
+<a id="__codelineno-5-25" name="__codelineno-5-25" href="#__codelineno-5-25"></a>│   ├── python-tool.ts                    # Run validated Python code via secure_executor.py
+<a id="__codelineno-5-26" name="__codelineno-5-26" href="#__codelineno-5-26"></a>│   ├── powershell-tool.ts                # Run safe PowerShell commands
+<a id="__codelineno-5-27" name="__codelineno-5-27" href="#__codelineno-5-27"></a>│   ├── weather-tool.ts                   # Weather API integration
+<a id="__codelineno-5-28" name="__codelineno-5-28" href="#__codelineno-5-28"></a>│   └── provider-settings-tool.ts         # LLM provider configuration
+<a id="__codelineno-5-29" name="__codelineno-5-29" href="#__codelineno-5-29"></a>└── workflows/
+<a id="__codelineno-5-30" name="__codelineno-5-30" href="#__codelineno-5-30"></a>    └── weather-workflow.ts               # Mastra workflow example
+</code></pre></div>
+<h3 id="33-mastra-instance-configuration">3.3 Mastra Instance Configuration</h3>
+<p><code>src/mastra/index.ts</code> creates the central Mastra instance:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="k">export</span><span class="w"> </span><span class="kd">const</span><span class="w"> </span><span class="nx">mastra</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">Mastra</span><span class="p">({</span>
+<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="w">  </span><span class="nx">workflows</span><span class="o">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">weatherWorkflow</span><span class="w"> </span><span class="p">},</span>
+<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="w">  </span><span class="nx">agents</span><span class="o">:</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="w">    </span><span class="nx">weatherAgent</span><span class="p">,</span>
+<a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a><span class="w">    </span><span class="nx">goalPlannerAgent</span><span class="p">,</span>
+<a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a><span class="w">    </span><span class="nx">motorStartingAgent</span><span class="p">,</span>
+<a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a><span class="w">    </span><span class="nx">shortCircuitAgent</span><span class="p">,</span>
+<a id="__codelineno-6-8" name="__codelineno-6-8" href="#__codelineno-6-8"></a><span class="w">    </span><span class="nx">loadFlowAgent</span><span class="p">,</span>
+<a id="__codelineno-6-9" name="__codelineno-6-9" href="#__codelineno-6-9"></a><span class="w">    </span><span class="nx">arcFlashAgent</span><span class="p">,</span>
+<a id="__codelineno-6-10" name="__codelineno-6-10" href="#__codelineno-6-10"></a><span class="w">    </span><span class="nx">etapEngineerAgent</span><span class="p">,</span>
+<a id="__codelineno-6-11" name="__codelineno-6-11" href="#__codelineno-6-11"></a><span class="w">    </span><span class="nx">etapExpertAgent</span><span class="p">,</span>
+<a id="__codelineno-6-12" name="__codelineno-6-12" href="#__codelineno-6-12"></a><span class="w">    </span><span class="nx">protectionAgent</span><span class="p">,</span>
+<a id="__codelineno-6-13" name="__codelineno-6-13" href="#__codelineno-6-13"></a><span class="w">    </span><span class="nx">powerSystemCoordinatorAgent</span><span class="p">,</span>
+<a id="__codelineno-6-14" name="__codelineno-6-14" href="#__codelineno-6-14"></a><span class="w">    </span><span class="nx">codeGuardAgent</span><span class="p">,</span>
+<a id="__codelineno-6-15" name="__codelineno-6-15" href="#__codelineno-6-15"></a><span class="w">  </span><span class="p">},</span>
+<a id="__codelineno-6-16" name="__codelineno-6-16" href="#__codelineno-6-16"></a><span class="w">  </span><span class="nx">storage</span><span class="o">:</span><span class="w"> </span><span class="kt">new</span><span class="w"> </span><span class="nx">MastraCompositeStore</span><span class="p">({</span>
+<a id="__codelineno-6-17" name="__codelineno-6-17" href="#__codelineno-6-17"></a><span class="w">    </span><span class="nx">id</span><span class="o">:</span><span class="w"> </span><span class="s1">&#39;composite-storage&#39;</span><span class="p">,</span>
+<a id="__codelineno-6-18" name="__codelineno-6-18" href="#__codelineno-6-18"></a><span class="w">    </span><span class="nx">default</span><span class="o">:</span><span class="w"> </span><span class="kt">new</span><span class="w"> </span><span class="nx">LibSQLStore</span><span class="p">({</span><span class="w"> </span><span class="nx">url</span><span class="o">:</span><span class="w"> </span><span class="s1">&#39;file:./mastra.db&#39;</span><span class="w"> </span><span class="p">}),</span>
+<a id="__codelineno-6-19" name="__codelineno-6-19" href="#__codelineno-6-19"></a><span class="w">    </span><span class="nx">domains</span><span class="o">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">observability</span><span class="o">:</span><span class="w"> </span><span class="kt">observabilityStoreProxy</span><span class="w"> </span><span class="p">},</span><span class="w">  </span><span class="c1">// DuckDB (lazy)</span>
+<a id="__codelineno-6-20" name="__codelineno-6-20" href="#__codelineno-6-20"></a><span class="w">  </span><span class="p">}),</span>
+<a id="__codelineno-6-21" name="__codelineno-6-21" href="#__codelineno-6-21"></a><span class="w">  </span><span class="nx">logger</span><span class="o">:</span><span class="w"> </span><span class="kt">new</span><span class="w"> </span><span class="nx">PinoLogger</span><span class="p">({</span><span class="w"> </span><span class="nx">name</span><span class="o">:</span><span class="w"> </span><span class="s1">&#39;Mastra&#39;</span><span class="p">,</span><span class="w"> </span><span class="nx">level</span><span class="o">:</span><span class="w"> </span><span class="s1">&#39;info&#39;</span><span class="w"> </span><span class="p">}),</span>
+<a id="__codelineno-6-22" name="__codelineno-6-22" href="#__codelineno-6-22"></a><span class="w">  </span><span class="nx">observability</span><span class="o">:</span><span class="w"> </span><span class="kt">new</span><span class="w"> </span><span class="nx">Observability</span><span class="p">({</span>
+<a id="__codelineno-6-23" name="__codelineno-6-23" href="#__codelineno-6-23"></a><span class="w">    </span><span class="nx">configs</span><span class="o">:</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-6-24" name="__codelineno-6-24" href="#__codelineno-6-24"></a><span class="w">      </span><span class="k">default</span><span class="o">:</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-6-25" name="__codelineno-6-25" href="#__codelineno-6-25"></a><span class="w">        </span><span class="nx">serviceName</span><span class="o">:</span><span class="w"> </span><span class="s1">&#39;mastra&#39;</span><span class="p">,</span>
+<a id="__codelineno-6-26" name="__codelineno-6-26" href="#__codelineno-6-26"></a><span class="w">        </span><span class="nx">exporters</span><span class="o">:</span><span class="w"> </span><span class="p">[</span>
+<a id="__codelineno-6-27" name="__codelineno-6-27" href="#__codelineno-6-27"></a><span class="w">          </span><span class="ow">new</span><span class="w"> </span><span class="nx">MastraStorageExporter</span><span class="p">(),</span>
+<a id="__codelineno-6-28" name="__codelineno-6-28" href="#__codelineno-6-28"></a><span class="w">          </span><span class="ow">new</span><span class="w"> </span><span class="nx">MastraPlatformExporter</span><span class="p">(),</span>
+<a id="__codelineno-6-29" name="__codelineno-6-29" href="#__codelineno-6-29"></a><span class="w">        </span><span class="p">],</span>
+<a id="__codelineno-6-30" name="__codelineno-6-30" href="#__codelineno-6-30"></a><span class="w">        </span><span class="nx">spanOutputProcessors</span><span class="o">:</span><span class="w"> </span><span class="p">[</span><span class="ow">new</span><span class="w"> </span><span class="nx">SensitiveDataFilter</span><span class="p">()],</span>
+<a id="__codelineno-6-31" name="__codelineno-6-31" href="#__codelineno-6-31"></a><span class="w">      </span><span class="p">},</span>
+<a id="__codelineno-6-32" name="__codelineno-6-32" href="#__codelineno-6-32"></a><span class="w">    </span><span class="p">},</span>
+<a id="__codelineno-6-33" name="__codelineno-6-33" href="#__codelineno-6-33"></a><span class="w">  </span><span class="p">}),</span>
+<a id="__codelineno-6-34" name="__codelineno-6-34" href="#__codelineno-6-34"></a><span class="p">});</span>
+</code></pre></div>
+<p>The provider configuration is in <code>mastra.config.ts</code>:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="k">export</span><span class="w"> </span><span class="k">default</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="w">  </span><span class="nx">dir</span><span class="o">:</span><span class="w"> </span><span class="s1">&#39;./src/mastra&#39;</span><span class="p">,</span>
+<a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="w">  </span><span class="nx">providers</span><span class="o">:</span><span class="w"> </span><span class="p">[{</span>
+<a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="w">    </span><span class="nx">id</span><span class="o">:</span><span class="w"> </span><span class="s1">&#39;openai&#39;</span><span class="p">,</span>
+<a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a><span class="w">    </span><span class="nx">client</span><span class="o">:</span><span class="w"> </span><span class="kt">createOpenAI</span><span class="p">({</span>
+<a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a><span class="w">      </span><span class="nx">apiKey</span><span class="o">:</span><span class="w"> </span><span class="kt">process.env.OPENAI_API_KEY</span><span class="p">,</span>
+<a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a><span class="w">      </span><span class="nx">baseURL</span><span class="o">:</span><span class="w"> </span><span class="kt">process.env.OPENAI_BASE_URL</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="s1">&#39;https://api.openai.com/v1&#39;</span><span class="p">,</span>
+<a id="__codelineno-7-8" name="__codelineno-7-8" href="#__codelineno-7-8"></a><span class="w">    </span><span class="p">}),</span>
+<a id="__codelineno-7-9" name="__codelineno-7-9" href="#__codelineno-7-9"></a><span class="w">    </span><span class="nx">model</span><span class="o">:</span><span class="w"> </span><span class="kt">process.env.OPENAI_MODEL_ID</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="s1">&#39;gpt-4o&#39;</span><span class="p">,</span>
+<a id="__codelineno-7-10" name="__codelineno-7-10" href="#__codelineno-7-10"></a><span class="w">  </span><span class="p">}],</span>
+<a id="__codelineno-7-11" name="__codelineno-7-11" href="#__codelineno-7-11"></a><span class="p">};</span>
+</code></pre></div>
+<h3 id="34-agent-pattern">3.4 Agent Pattern</h3>
+<p>Every Mastra agent follows the same pattern:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="k">import</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">Agent</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="kr">from</span><span class="w"> </span><span class="s1">&#39;@mastra/core/agent&#39;</span><span class="p">;</span>
+<a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="k">import</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">Memory</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="kr">from</span><span class="w"> </span><span class="s1">&#39;@mastra/memory&#39;</span><span class="p">;</span>
+<a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a><span class="k">import</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">run_python</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="kr">from</span><span class="w"> </span><span class="s1">&#39;../tools/python-tool&#39;</span><span class="p">;</span>
+<a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a><span class="k">import</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">getSystemPrompt</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="kr">from</span><span class="w"> </span><span class="s1">&#39;../prompts&#39;</span><span class="p">;</span>
+<a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a><span class="k">import</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">getActiveModelConfig</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="kr">from</span><span class="w"> </span><span class="s1">&#39;../lib/model-config&#39;</span><span class="p">;</span>
+<a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a>
+<a id="__codelineno-8-7" name="__codelineno-8-7" href="#__codelineno-8-7"></a><span class="kd">const</span><span class="w"> </span><span class="nx">promptContent</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">await</span><span class="w"> </span><span class="nx">getSystemPrompt</span><span class="p">(</span><span class="s1">&#39;load_flow_agent&#39;</span><span class="p">);</span>
+<a id="__codelineno-8-8" name="__codelineno-8-8" href="#__codelineno-8-8"></a>
+<a id="__codelineno-8-9" name="__codelineno-8-9" href="#__codelineno-8-9"></a><span class="k">export</span><span class="w"> </span><span class="kd">const</span><span class="w"> </span><span class="nx">loadFlowAgent</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">Agent</span><span class="p">({</span>
+<a id="__codelineno-8-10" name="__codelineno-8-10" href="#__codelineno-8-10"></a><span class="w">  </span><span class="nx">id</span><span class="o">:</span><span class="w"> </span><span class="s1">&#39;load-flow-agent&#39;</span><span class="p">,</span>
+<a id="__codelineno-8-11" name="__codelineno-8-11" href="#__codelineno-8-11"></a><span class="w">  </span><span class="nx">name</span><span class="o">:</span><span class="w"> </span><span class="s1">&#39;Load Flow Analysis Agent&#39;</span><span class="p">,</span>
+<a id="__codelineno-8-12" name="__codelineno-8-12" href="#__codelineno-8-12"></a><span class="w">  </span><span class="nx">instructions</span><span class="o">:</span><span class="w"> </span><span class="kt">promptContent</span><span class="p">,</span>
+<a id="__codelineno-8-13" name="__codelineno-8-13" href="#__codelineno-8-13"></a><span class="w">  </span><span class="nx">model</span><span class="o">:</span><span class="w"> </span><span class="kt">getActiveModelConfig</span><span class="p">()</span><span class="w"> </span><span class="kr">as</span><span class="w"> </span><span class="nx">any</span><span class="p">,</span>
+<a id="__codelineno-8-14" name="__codelineno-8-14" href="#__codelineno-8-14"></a><span class="w">  </span><span class="nx">tools</span><span class="o">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">run_python</span><span class="w"> </span><span class="p">},</span><span class="w">       </span><span class="c1">// Optional: agents can have tools</span>
+<a id="__codelineno-8-15" name="__codelineno-8-15" href="#__codelineno-8-15"></a><span class="w">  </span><span class="nx">memory</span><span class="o">:</span><span class="w"> </span><span class="kt">new</span><span class="w"> </span><span class="nx">Memory</span><span class="p">(),</span><span class="w">        </span><span class="c1">// Built-in conversation memory</span>
+<a id="__codelineno-8-16" name="__codelineno-8-16" href="#__codelineno-8-16"></a><span class="p">});</span>
+</code></pre></div>
+<p>Key observations:
+- <strong><code>instructions</code></strong> — Loaded from the same shared prompt system as Python agents.
+- <strong><code>model</code></strong> — Resolved from <code>getActiveModelConfig()</code> which reads <code>OPENAI_MODEL_ID</code> (default: <code>gpt-4o</code>).
+- <strong><code>tools</code></strong> — Agents can be given tools like <code>run_python</code> for dynamic code execution.
+- <strong><code>memory</code></strong> — Mastra's built-in <code>Memory</code> class provides multi-turn conversation support.
+- <strong><code>agents</code></strong> — The coordinator agent can reference sub-agents for routing (see below).</p>
+<h3 id="35-coordinator-agent-networked-routing">3.5 Coordinator Agent (Networked Routing)</h3>
+<p>The <code>powerSystemCoordinatorAgent</code> is the Mastra-side counterpart of the Python <code>ChiefEngineeringOrchestrator</code>. It uses Mastra's <strong>agent network</strong> feature to route user requests to the most appropriate specialist:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="k">export</span><span class="w"> </span><span class="kd">const</span><span class="w"> </span><span class="nx">powerSystemCoordinatorAgent</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">Agent</span><span class="p">({</span>
+<a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a><span class="w">  </span><span class="nx">id</span><span class="o">:</span><span class="w"> </span><span class="s1">&#39;power-system-coordinator-agent&#39;</span><span class="p">,</span>
+<a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a><span class="w">  </span><span class="nx">name</span><span class="o">:</span><span class="w"> </span><span class="s1">&#39;Power System Coordinator Agent&#39;</span><span class="p">,</span>
+<a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a><span class="w">  </span><span class="nx">instructions</span><span class="o">:</span><span class="w"> </span><span class="kt">promptContent</span><span class="p">,</span>
+<a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a><span class="w">  </span><span class="nx">model</span><span class="o">:</span><span class="w"> </span><span class="kt">getActiveModelConfig</span><span class="p">()</span><span class="w"> </span><span class="kr">as</span><span class="w"> </span><span class="nx">any</span><span class="p">,</span>
+<a id="__codelineno-9-6" name="__codelineno-9-6" href="#__codelineno-9-6"></a><span class="w">  </span><span class="nx">agents</span><span class="o">:</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-9-7" name="__codelineno-9-7" href="#__codelineno-9-7"></a><span class="w">    </span><span class="nx">loadFlowAgent</span><span class="p">,</span>
+<a id="__codelineno-9-8" name="__codelineno-9-8" href="#__codelineno-9-8"></a><span class="w">    </span><span class="nx">shortCircuitAgent</span><span class="p">,</span>
+<a id="__codelineno-9-9" name="__codelineno-9-9" href="#__codelineno-9-9"></a><span class="w">    </span><span class="nx">protectionAgent</span><span class="p">,</span>
+<a id="__codelineno-9-10" name="__codelineno-9-10" href="#__codelineno-9-10"></a><span class="w">    </span><span class="nx">motorStartingAgent</span><span class="p">,</span>
+<a id="__codelineno-9-11" name="__codelineno-9-11" href="#__codelineno-9-11"></a><span class="w">    </span><span class="nx">arcFlashAgent</span><span class="p">,</span>
+<a id="__codelineno-9-12" name="__codelineno-9-12" href="#__codelineno-9-12"></a><span class="w">    </span><span class="nx">etapEngineerAgent</span><span class="p">,</span>
+<a id="__codelineno-9-13" name="__codelineno-9-13" href="#__codelineno-9-13"></a><span class="w">    </span><span class="nx">goalPlannerAgent</span><span class="p">,</span>
+<a id="__codelineno-9-14" name="__codelineno-9-14" href="#__codelineno-9-14"></a><span class="w">  </span><span class="p">},</span>
+<a id="__codelineno-9-15" name="__codelineno-9-15" href="#__codelineno-9-15"></a><span class="w">  </span><span class="nx">memory</span><span class="o">:</span><span class="w"> </span><span class="kt">new</span><span class="w"> </span><span class="nx">Memory</span><span class="p">(),</span>
+<a id="__codelineno-9-16" name="__codelineno-9-16" href="#__codelineno-9-16"></a><span class="w">  </span><span class="nx">defaultNetworkOptions</span><span class="o">:</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-9-17" name="__codelineno-9-17" href="#__codelineno-9-17"></a><span class="w">    </span><span class="nx">maxSteps</span><span class="o">:</span><span class="w"> </span><span class="kt">10</span><span class="p">,</span>
+<a id="__codelineno-9-18" name="__codelineno-9-18" href="#__codelineno-9-18"></a><span class="w">    </span><span class="nx">routing</span><span class="o">:</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-9-19" name="__codelineno-9-19" href="#__codelineno-9-19"></a><span class="w">      </span><span class="nx">additionalInstructions</span><span class="o">:</span>
+<a id="__codelineno-9-20" name="__codelineno-9-20" href="#__codelineno-9-20"></a><span class="w">        </span><span class="s1">&#39;Prefer the narrowest specialist agent that can safely answer the user request.&#39;</span><span class="p">,</span>
+<a id="__codelineno-9-21" name="__codelineno-9-21" href="#__codelineno-9-21"></a><span class="w">    </span><span class="p">},</span>
+<a id="__codelineno-9-22" name="__codelineno-9-22" href="#__codelineno-9-22"></a><span class="w">  </span><span class="p">},</span>
+<a id="__codelineno-9-23" name="__codelineno-9-23" href="#__codelineno-9-23"></a><span class="p">});</span>
+</code></pre></div>
+<p>When a user sends a message to the coordinator, the LLM decides which specialist agent to delegate to — without requiring manual routing logic.</p>
+<h3 id="36-tools">3.6 Tools</h3>
+<p>Mastra agents can execute actions through tools:</p>
+<h4 id="run_python-execute-python-code"><code>run_python</code> — Execute Python code</h4>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="k">export</span><span class="w"> </span><span class="kd">const</span><span class="w"> </span><span class="nx">run_python</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">createTool</span><span class="p">({</span>
+<a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a><span class="w">  </span><span class="nx">id</span><span class="o">:</span><span class="w"> </span><span class="s1">&#39;run-python&#39;</span><span class="p">,</span>
+<a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a><span class="w">  </span><span class="nx">description</span><span class="o">:</span><span class="w"> </span><span class="s1">&#39;Run validated Python code for engineering calculations.&#39;</span><span class="p">,</span>
+<a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a><span class="w">  </span><span class="nx">inputSchema</span><span class="o">:</span><span class="w"> </span><span class="kt">z.object</span><span class="p">({</span><span class="w"> </span><span class="nx">code</span><span class="o">:</span><span class="w"> </span><span class="kt">z.string</span><span class="p">()</span><span class="w"> </span><span class="p">}),</span>
+<a id="__codelineno-10-5" name="__codelineno-10-5" href="#__codelineno-10-5"></a><span class="w">  </span><span class="nx">execute</span><span class="o">:</span><span class="w"> </span><span class="kt">async</span><span class="w"> </span><span class="p">({</span><span class="w"> </span><span class="nx">code</span><span class="w"> </span><span class="p">})</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-10-6" name="__codelineno-10-6" href="#__codelineno-10-6"></a><span class="w">    </span><span class="c1">// Spawns: python security/secure_executor.py</span>
+<a id="__codelineno-10-7" name="__codelineno-10-7" href="#__codelineno-10-7"></a><span class="w">    </span><span class="c1">// Code is passed via stdin (prevents shell injection)</span>
+<a id="__codelineno-10-8" name="__codelineno-10-8" href="#__codelineno-10-8"></a><span class="w">    </span><span class="c1">// Output is JSON-parsed with success/error handling</span>
+<a id="__codelineno-10-9" name="__codelineno-10-9" href="#__codelineno-10-9"></a><span class="w">    </span><span class="c1">// Timeout: 30s, max output: 10,000 chars</span>
+<a id="__codelineno-10-10" name="__codelineno-10-10" href="#__codelineno-10-10"></a><span class="w">  </span><span class="p">},</span>
+<a id="__codelineno-10-11" name="__codelineno-10-11" href="#__codelineno-10-11"></a><span class="p">});</span>
+</code></pre></div>
+<p>This tool is the <strong>primary bridge</strong> from the Mastra LLM agents to the Python computational layer. The LLM can generate Python code to perform calculations that would be unreliable if done purely through text generation.</p>
+<h4 id="run_powershell-execute-read-only-powershell-commands"><code>run_powershell</code> — Execute read-only PowerShell commands</h4>
+<p>Similar pattern to <code>run_python</code>, but for Windows-specific operations like querying ETAP via COM.</p>
+<h3 id="37-prompt-loading-typescript-side">3.7 Prompt Loading (TypeScript side)</h3>
+<p><code>src/mastra/prompts.ts</code> implements the same 3-tier fallback as the Python side:</p>
+<ol>
+<li><strong>LangWatch API</strong> — <code>langwatch.prompts.get(handle)</code> (if <code>LANGWATCH_API_KEY</code> is set)</li>
+<li><strong>Local YAML</strong> — Custom YAML parser reads <code>prompts/{handle}.yaml</code> or <code>prompts/{handle}.prompt.yaml</code></li>
+<li><strong>Fallback agent</strong> — Tries <code>prompts/fallback_agent.prompt.yaml</code></li>
+<li><strong>Hardcoded safety-net</strong> — Returns a generic engineering assistant string</li>
+</ol>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="k">export</span><span class="w"> </span><span class="k">async</span><span class="w"> </span><span class="kd">function</span><span class="w"> </span><span class="nx">getSystemPrompt</span><span class="p">(</span><span class="nx">handle</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">)</span><span class="o">:</span><span class="w"> </span><span class="nb">Promise</span><span class="o">&lt;</span><span class="kt">string</span><span class="o">&gt;</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a><span class="w">  </span><span class="c1">// 1. Try LangWatch</span>
+<a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a><span class="w">  </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nx">process</span><span class="p">.</span><span class="nx">env</span><span class="p">.</span><span class="nx">DEPLOYMENT_VERIFICATION</span><span class="w"> </span><span class="o">!==</span><span class="w"> </span><span class="s1">&#39;true&#39;</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a><span class="w">    </span><span class="kd">const</span><span class="w"> </span><span class="nx">prompt</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">await</span><span class="w"> </span><span class="nx">langwatch</span><span class="p">.</span><span class="nx">prompts</span><span class="p">.</span><span class="nx">get</span><span class="p">(</span><span class="nx">handle</span><span class="p">);</span>
+<a id="__codelineno-11-5" name="__codelineno-11-5" href="#__codelineno-11-5"></a><span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nx">prompt</span><span class="p">)</span><span class="w"> </span><span class="k">return</span><span class="w"> </span><span class="nx">extractContent</span><span class="p">(</span><span class="nx">prompt</span><span class="p">);</span>
+<a id="__codelineno-11-6" name="__codelineno-11-6" href="#__codelineno-11-6"></a><span class="w">  </span><span class="p">}</span>
+<a id="__codelineno-11-7" name="__codelineno-11-7" href="#__codelineno-11-7"></a><span class="w">  </span><span class="c1">// 2. Try local YAML</span>
+<a id="__codelineno-11-8" name="__codelineno-11-8" href="#__codelineno-11-8"></a><span class="w">  </span><span class="kd">const</span><span class="w"> </span><span class="nx">localPrompt</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">loadLocalPrompt</span><span class="p">(</span><span class="nx">handle</span><span class="p">);</span>
+<a id="__codelineno-11-9" name="__codelineno-11-9" href="#__codelineno-11-9"></a><span class="w">  </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nx">localPrompt</span><span class="p">)</span><span class="w"> </span><span class="k">return</span><span class="w"> </span><span class="nx">localPrompt</span><span class="p">;</span>
+<a id="__codelineno-11-10" name="__codelineno-11-10" href="#__codelineno-11-10"></a><span class="w">  </span><span class="c1">// 3. Fallback agent prompt</span>
+<a id="__codelineno-11-11" name="__codelineno-11-11" href="#__codelineno-11-11"></a><span class="w">  </span><span class="kd">const</span><span class="w"> </span><span class="nx">fallbackPrompt</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">loadLocalPrompt</span><span class="p">(</span><span class="s1">&#39;fallback_agent&#39;</span><span class="p">);</span>
+<a id="__codelineno-11-12" name="__codelineno-11-12" href="#__codelineno-11-12"></a><span class="w">  </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nx">fallbackPrompt</span><span class="p">)</span><span class="w"> </span><span class="k">return</span><span class="w"> </span><span class="nx">fallbackPrompt</span><span class="p">;</span>
+<a id="__codelineno-11-13" name="__codelineno-11-13" href="#__codelineno-11-13"></a><span class="w">  </span><span class="c1">// 4. Hardcoded default</span>
+<a id="__codelineno-11-14" name="__codelineno-11-14" href="#__codelineno-11-14"></a><span class="w">  </span><span class="k">return</span><span class="w"> </span><span class="s1">&#39;You are a safety-net fallback AI assistant...&#39;</span><span class="p">;</span>
+<a id="__codelineno-11-15" name="__codelineno-11-15" href="#__codelineno-11-15"></a><span class="p">}</span>
+</code></pre></div>
+<hr />
+<h2 id="4-decision-matrix">4. Decision Matrix</h2>
+<p>Use this table to decide which agent system is appropriate for a given task:</p>
+<table>
+<thead>
+<tr>
+<th>Criteria</th>
+<th>Python Agent System</th>
+<th>Mastra TypeScript Agent System</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Numerical computation</strong> (load flow, fault analysis, harmonics)</td>
+<td>✅ Primary</td>
+<td>❌ Not suitable</td>
+</tr>
+<tr>
+<td><strong>Deterministic, reproducible results</strong></td>
+<td>✅ Required</td>
+<td>❌ LLM output is non-deterministic</td>
+</tr>
+<tr>
+<td><strong>Standards compliance checking</strong> (IEEE/IEC)</td>
+<td>✅ Built-in</td>
+<td>⚠️ Can interpret, not compute</td>
+</tr>
+<tr>
+<td><strong>Conversational AI / chat interface</strong></td>
+<td>❌ Not designed for this</td>
+<td>✅ Primary</td>
+</tr>
+<tr>
+<td><strong>Multi-turn dialogue</strong></td>
+<td>❌ No memory</td>
+<td>✅ Built-in <code>Memory</code></td>
+</tr>
+<tr>
+<td><strong>Natural language understanding</strong></td>
+<td>❌ Rule-based only</td>
+<td>✅ LLM-powered</td>
+</tr>
+<tr>
+<td><strong>Request routing to specialists</strong></td>
+<td>⚠️ Keyword-based</td>
+<td>✅ LLM-powered network routing</td>
+</tr>
+<tr>
+<td><strong>Web UI integration</strong></td>
+<td>⚠️ Via FastAPI only</td>
+<td>✅ Native Next.js integration</td>
+</tr>
+<tr>
+<td><strong>Autonomous multi-step workflows</strong></td>
+<td>✅ Orchestrator handles dependencies</td>
+<td>⚠️ Limited to LLM chain-of-thought</td>
+</tr>
+<tr>
+<td><strong>ETAP COM automation</strong></td>
+<td>✅ Direct integration</td>
+<td>⚠️ Via <code>run_powershell</code> tool</td>
+</tr>
+<tr>
+<td><strong>Offline / no LLM API required</strong></td>
+<td>✅ Works offline</td>
+<td>❌ Requires LLM API key</td>
+</tr>
+<tr>
+<td><strong>Ad-hoc code execution</strong></td>
+<td>❌ Not designed for this</td>
+<td>✅ Via <code>run_python</code> tool</td>
+</tr>
+<tr>
+<td><strong>Observability / tracing</strong></td>
+<td>✅ <code>@trace_operation</code></td>
+<td>✅ Mastra built-in (DuckDB + OpenTelemetry)</td>
+</tr>
+<tr>
+<td><strong>Prompt management</strong></td>
+<td>✅ Shared system</td>
+<td>✅ Shared system</td>
+</tr>
+<tr>
+<td><strong>Testing ease</strong></td>
+<td>✅ Deterministic = easy to test</td>
+<td>⚠️ LLM output = harder to assert</td>
+</tr>
+</tbody>
+</table>
+<h3 id="quick-decision-flowchart">Quick Decision Flowchart</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a>Does the task require numerical computation?
+<a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a>  └─ YES → Python Agent System
+<a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a>  └─ NO → Does it require conversational AI / natural language?
+<a id="__codelineno-12-4" name="__codelineno-12-4" href="#__codelineno-12-4"></a>        └─ YES → Mastra TypeScript Agent System
+<a id="__codelineno-12-5" name="__codelineno-12-5" href="#__codelineno-12-5"></a>        └─ NO → Does it need multi-step orchestration with dependencies?
+<a id="__codelineno-12-6" name="__codelineno-12-6" href="#__codelineno-12-6"></a>              └─ YES → Python Agent System (ChiefEngineeringOrchestrator)
+<a id="__codelineno-12-7" name="__codelineno-12-7" href="#__codelineno-12-7"></a>              └─ NO → Does it need web UI / chat interface?
+<a id="__codelineno-12-8" name="__codelineno-12-8" href="#__codelineno-12-8"></a>                    └─ YES → Mastra TypeScript Agent System
+<a id="__codelineno-12-9" name="__codelineno-12-9" href="#__codelineno-12-9"></a>                    └─ NO → Either system may work; prefer the simpler option
+</code></pre></div>
+<hr />
+<h2 id="5-communication-between-systems">5. Communication Between Systems</h2>
+<p>The two agent systems are <strong>not directly coupled</strong> — they communicate through well-defined boundaries:</p>
+<h3 id="51-shared-prompt-layer">5.1 Shared Prompt Layer</h3>
+<p>Both systems read from the same <code>prompts/*.yaml</code> files and the same LangWatch API. This ensures that whether a user interacts through the Python API or the Mastra chat UI, the agent's behavior is guided by the same system prompt.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a>prompts/
+<a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a>├── load_flow_agent.prompt.yaml          ← Read by both Python &amp; Mastra
+<a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a>├── short_circuit_agent.prompt.yaml      ← Read by both
+<a id="__codelineno-13-4" name="__codelineno-13-4" href="#__codelineno-13-4"></a>├── harmonic_agent.prompt.yaml           ← Read by both
+<a id="__codelineno-13-5" name="__codelineno-13-5" href="#__codelineno-13-5"></a>├── protection_agent.prompt.yaml         ← Read by both
+<a id="__codelineno-13-6" name="__codelineno-13-6" href="#__codelineno-13-6"></a>├── etap_expert_agent.prompt.yaml        ← Read by both
+<a id="__codelineno-13-7" name="__codelineno-13-7" href="#__codelineno-13-7"></a>├── etap_engineer_agent.yaml             ← Read by both
+<a id="__codelineno-13-8" name="__codelineno-13-8" href="#__codelineno-13-8"></a>├── power_system_coordinator_agent.yaml  ← Read by both
+<a id="__codelineno-13-9" name="__codelineno-13-9" href="#__codelineno-13-9"></a>├── code_guard_agent.prompt.yaml         ← Read by both
+<a id="__codelineno-13-10" name="__codelineno-13-10" href="#__codelineno-13-10"></a>├── fallback_agent.prompt.yaml           ← Read by both
+<a id="__codelineno-13-11" name="__codelineno-13-11" href="#__codelineno-13-11"></a>└── ... (30+ prompt files)
+</code></pre></div>
+<h3 id="52-run_python-tool-bridge">5.2 <code>run_python</code> Tool Bridge</h3>
+<p>The <strong>primary runtime bridge</strong> from Mastra to Python is the <code>run_python</code> tool. When a Mastra LLM agent needs to perform a calculation, it generates Python code and executes it through the secure executor:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a>User (chat UI)
+<a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a>  → Mastra Agent (TypeScript)
+<a id="__codelineno-14-3" name="__codelineno-14-3" href="#__codelineno-14-3"></a>    → LLM decides to use run_python tool
+<a id="__codelineno-14-4" name="__codelineno-14-4" href="#__codelineno-14-4"></a>      → spawns: python security/secure_executor.py
+<a id="__codelineno-14-5" name="__codelineno-14-5" href="#__codelineno-14-5"></a>        → Python code executes
+<a id="__codelineno-14-6" name="__codelineno-14-6" href="#__codelineno-14-6"></a>          → Results returned as string
+<a id="__codelineno-14-7" name="__codelineno-14-7" href="#__codelineno-14-7"></a>    → LLM interprets results and responds to user
+</code></pre></div>
+<p><strong>Security:</strong> Code is passed via <code>stdin</code> (not CLI args) to prevent shell injection. The <code>secure_executor.py</code> validates code against security policies before execution. Output is truncated at 10,000 characters and execution times out at 30 seconds.</p>
+<h3 id="53-run_powershell-tool-bridge">5.3 <code>run_powershell</code> Tool Bridge</h3>
+<p>Similar to <code>run_python</code>, but for Windows-specific operations:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a>Mastra Agent → run_powershell → python security/secure_powershell_executor.py → PowerShell command
+</code></pre></div>
+<h3 id="54-api-level-integration">5.4 API-Level Integration</h3>
+<p>The FastAPI backend serves both systems:</p>
+<ul>
+<li><strong>Python agents</strong> are called directly via <code>POST /api/v1/studies/run</code> with <code>study_type</code> and parameters.</li>
+<li><strong>Mastra agents</strong> are exposed via Next.js API routes at <code>/api/v1/agents/{agent-id}/chat</code>, which internally call the Mastra agent's <code>.generate()</code> or <code>.stream()</code> methods.</li>
+</ul>
+<p>A client (web UI, external API consumer) chooses which endpoint to call based on the nature of the request.</p>
+<h3 id="55-no-direct-agent-to-agent-calls">5.5 No Direct Agent-to-Agent Calls</h3>
+<p>There is <strong>no direct agent-to-agent calling</strong> between the Python and Mastra systems at runtime. Each system operates independently:</p>
+<ul>
+<li>Python agents call other Python agents through the <code>ChiefEngineeringOrchestrator</code>.</li>
+<li>Mastra agents call other Mastra agents through the coordinator's <code>agents</code> network.</li>
+</ul>
+<p>The only cross-system communication happens at the <strong>tool level</strong> (<code>run_python</code>, <code>run_powershell</code>) where the Mastra agent spawns a Python subprocess.</p>
+<hr />
+<h2 id="6-adding-a-new-agent">6. Adding a New Agent</h2>
+<h3 id="61-adding-a-python-agent">6.1 Adding a Python Agent</h3>
+<p><strong>Step 1: Create the agent class</strong></p>
+<p>Create a new file <code>agents/my_new_agent.py</code>:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a><span class="sd">&quot;&quot;&quot;My New Agent — Description of what it does.&quot;&quot;&quot;</span>
+<a id="__codelineno-16-2" name="__codelineno-16-2" href="#__codelineno-16-2"></a>
+<a id="__codelineno-16-3" name="__codelineno-16-3" href="#__codelineno-16-3"></a><span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
+<a id="__codelineno-16-4" name="__codelineno-16-4" href="#__codelineno-16-4"></a><span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
+<a id="__codelineno-16-5" name="__codelineno-16-5" href="#__codelineno-16-5"></a><span class="kn">from</span><span class="w"> </span><span class="nn">datetime</span><span class="w"> </span><span class="kn">import</span> <span class="n">datetime</span><span class="p">,</span> <span class="n">timezone</span>
+<a id="__codelineno-16-6" name="__codelineno-16-6" href="#__codelineno-16-6"></a><span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span>
+<a id="__codelineno-16-7" name="__codelineno-16-7" href="#__codelineno-16-7"></a>
+<a id="__codelineno-16-8" name="__codelineno-16-8" href="#__codelineno-16-8"></a><span class="kn">from</span><span class="w"> </span><span class="nn">agents.orchestrator</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+<a id="__codelineno-16-9" name="__codelineno-16-9" href="#__codelineno-16-9"></a>    <span class="n">AgentResult</span><span class="p">,</span>
+<a id="__codelineno-16-10" name="__codelineno-16-10" href="#__codelineno-16-10"></a>    <span class="n">AgentStatus</span><span class="p">,</span>
+<a id="__codelineno-16-11" name="__codelineno-16-11" href="#__codelineno-16-11"></a>    <span class="n">BaseAgent</span><span class="p">,</span>
+<a id="__codelineno-16-12" name="__codelineno-16-12" href="#__codelineno-16-12"></a>    <span class="n">EngineeringTask</span><span class="p">,</span>
+<a id="__codelineno-16-13" name="__codelineno-16-13" href="#__codelineno-16-13"></a>    <span class="n">StudyType</span><span class="p">,</span>
+<a id="__codelineno-16-14" name="__codelineno-16-14" href="#__codelineno-16-14"></a><span class="p">)</span>
+<a id="__codelineno-16-15" name="__codelineno-16-15" href="#__codelineno-16-15"></a><span class="kn">from</span><span class="w"> </span><span class="nn">core.tracing</span><span class="w"> </span><span class="kn">import</span> <span class="n">trace_operation</span>
+<a id="__codelineno-16-16" name="__codelineno-16-16" href="#__codelineno-16-16"></a>
+<a id="__codelineno-16-17" name="__codelineno-16-17" href="#__codelineno-16-17"></a><span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s2">&quot;agent.my_new&quot;</span><span class="p">)</span>
+<a id="__codelineno-16-18" name="__codelineno-16-18" href="#__codelineno-16-18"></a>
+<a id="__codelineno-16-19" name="__codelineno-16-19" href="#__codelineno-16-19"></a>
+<a id="__codelineno-16-20" name="__codelineno-16-20" href="#__codelineno-16-20"></a><span class="k">class</span><span class="w"> </span><span class="nc">MyNewAgent</span><span class="p">(</span><span class="n">BaseAgent</span><span class="p">):</span>
+<a id="__codelineno-16-21" name="__codelineno-16-21" href="#__codelineno-16-21"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;My New Agent.</span>
+<a id="__codelineno-16-22" name="__codelineno-16-22" href="#__codelineno-16-22"></a>
+<a id="__codelineno-16-23" name="__codelineno-16-23" href="#__codelineno-16-23"></a><span class="sd">    Prompt Handle: my_new_agent</span>
+<a id="__codelineno-16-24" name="__codelineno-16-24" href="#__codelineno-16-24"></a>
+<a id="__codelineno-16-25" name="__codelineno-16-25" href="#__codelineno-16-25"></a><span class="sd">    Capabilities:</span>
+<a id="__codelineno-16-26" name="__codelineno-16-26" href="#__codelineno-16-26"></a><span class="sd">    - Describe what this agent computes</span>
+<a id="__codelineno-16-27" name="__codelineno-16-27" href="#__codelineno-16-27"></a><span class="sd">    - Reference applicable standards</span>
+<a id="__codelineno-16-28" name="__codelineno-16-28" href="#__codelineno-16-28"></a><span class="sd">    &quot;&quot;&quot;</span>
+<a id="__codelineno-16-29" name="__codelineno-16-29" href="#__codelineno-16-29"></a>
+<a id="__codelineno-16-30" name="__codelineno-16-30" href="#__codelineno-16-30"></a>    <span class="n">prompt_handle</span> <span class="o">=</span> <span class="s2">&quot;my_new_agent&quot;</span>
+<a id="__codelineno-16-31" name="__codelineno-16-31" href="#__codelineno-16-31"></a>
+<a id="__codelineno-16-32" name="__codelineno-16-32" href="#__codelineno-16-32"></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<a id="__codelineno-16-33" name="__codelineno-16-33" href="#__codelineno-16-33"></a>        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="s2">&quot;MyNewAgent&quot;</span><span class="p">)</span>
+<a id="__codelineno-16-34" name="__codelineno-16-34" href="#__codelineno-16-34"></a>        <span class="c1"># Initialize agent-specific parameters</span>
+<a id="__codelineno-16-35" name="__codelineno-16-35" href="#__codelineno-16-35"></a>
+<a id="__codelineno-16-36" name="__codelineno-16-36" href="#__codelineno-16-36"></a>    <span class="nd">@trace_operation</span><span class="p">(</span>
+<a id="__codelineno-16-37" name="__codelineno-16-37" href="#__codelineno-16-37"></a>        <span class="s2">&quot;MyNewAgent.execute&quot;</span><span class="p">,</span>
+<a id="__codelineno-16-38" name="__codelineno-16-38" href="#__codelineno-16-38"></a>        <span class="n">attributes</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;component&quot;</span><span class="p">:</span> <span class="s2">&quot;orchestrator&quot;</span><span class="p">,</span> <span class="s2">&quot;study_type&quot;</span><span class="p">:</span> <span class="s2">&quot;my_new&quot;</span><span class="p">},</span>
+<a id="__codelineno-16-39" name="__codelineno-16-39" href="#__codelineno-16-39"></a>    <span class="p">)</span>
+<a id="__codelineno-16-40" name="__codelineno-16-40" href="#__codelineno-16-40"></a>    <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">task</span><span class="p">:</span> <span class="n">EngineeringTask</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">AgentResult</span><span class="p">:</span>
+<a id="__codelineno-16-41" name="__codelineno-16-41" href="#__codelineno-16-41"></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Execute the analysis.&quot;&quot;&quot;</span>
+<a id="__codelineno-16-42" name="__codelineno-16-42" href="#__codelineno-16-42"></a>        <span class="n">start_time</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">(</span><span class="n">timezone</span><span class="o">.</span><span class="n">utc</span><span class="p">)</span>
+<a id="__codelineno-16-43" name="__codelineno-16-43" href="#__codelineno-16-43"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">status</span> <span class="o">=</span> <span class="n">AgentStatus</span><span class="o">.</span><span class="n">RUNNING</span>
+<a id="__codelineno-16-44" name="__codelineno-16-44" href="#__codelineno-16-44"></a>
+<a id="__codelineno-16-45" name="__codelineno-16-45" href="#__codelineno-16-45"></a>        <span class="k">try</span><span class="p">:</span>
+<a id="__codelineno-16-46" name="__codelineno-16-46" href="#__codelineno-16-46"></a>            <span class="bp">self</span><span class="o">.</span><span class="n">log_execution</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Starting analysis for task </span><span class="si">{</span><span class="n">task</span><span class="o">.</span><span class="n">task_id</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<a id="__codelineno-16-47" name="__codelineno-16-47" href="#__codelineno-16-47"></a>
+<a id="__codelineno-16-48" name="__codelineno-16-48" href="#__codelineno-16-48"></a>            <span class="c1"># --- Your computation logic here ---</span>
+<a id="__codelineno-16-49" name="__codelineno-16-49" href="#__codelineno-16-49"></a>            <span class="n">result_data</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;key&quot;</span><span class="p">:</span> <span class="s2">&quot;value&quot;</span><span class="p">}</span>
+<a id="__codelineno-16-50" name="__codelineno-16-50" href="#__codelineno-16-50"></a>
+<a id="__codelineno-16-51" name="__codelineno-16-51" href="#__codelineno-16-51"></a>            <span class="n">result</span> <span class="o">=</span> <span class="n">AgentResult</span><span class="p">(</span>
+<a id="__codelineno-16-52" name="__codelineno-16-52" href="#__codelineno-16-52"></a>                <span class="n">agent_name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">agent_name</span><span class="p">,</span>
+<a id="__codelineno-16-53" name="__codelineno-16-53" href="#__codelineno-16-53"></a>                <span class="n">study_type</span><span class="o">=</span><span class="n">StudyType</span><span class="o">.</span><span class="n">LOAD_FLOW</span><span class="p">,</span>  <span class="c1"># Choose appropriate StudyType</span>
+<a id="__codelineno-16-54" name="__codelineno-16-54" href="#__codelineno-16-54"></a>                <span class="n">status</span><span class="o">=</span><span class="n">AgentStatus</span><span class="o">.</span><span class="n">COMPLETED</span><span class="p">,</span>
+<a id="__codelineno-16-55" name="__codelineno-16-55" href="#__codelineno-16-55"></a>                <span class="n">data</span><span class="o">=</span><span class="n">result_data</span><span class="p">,</span>
+<a id="__codelineno-16-56" name="__codelineno-16-56" href="#__codelineno-16-56"></a>            <span class="p">)</span>
+<a id="__codelineno-16-57" name="__codelineno-16-57" href="#__codelineno-16-57"></a>
+<a id="__codelineno-16-58" name="__codelineno-16-58" href="#__codelineno-16-58"></a>            <span class="n">result</span><span class="o">.</span><span class="n">validation_status</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">validate_result</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+<a id="__codelineno-16-59" name="__codelineno-16-59" href="#__codelineno-16-59"></a>            <span class="n">result</span><span class="o">.</span><span class="n">execution_time</span> <span class="o">=</span> <span class="p">(</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">(</span><span class="n">timezone</span><span class="o">.</span><span class="n">utc</span><span class="p">)</span> <span class="o">-</span> <span class="n">start_time</span><span class="p">)</span><span class="o">.</span><span class="n">total_seconds</span><span class="p">()</span>
+<a id="__codelineno-16-60" name="__codelineno-16-60" href="#__codelineno-16-60"></a>            <span class="k">return</span> <span class="n">result</span>
+<a id="__codelineno-16-61" name="__codelineno-16-61" href="#__codelineno-16-61"></a>
+<a id="__codelineno-16-62" name="__codelineno-16-62" href="#__codelineno-16-62"></a>        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+<a id="__codelineno-16-63" name="__codelineno-16-63" href="#__codelineno-16-63"></a>            <span class="bp">self</span><span class="o">.</span><span class="n">log_execution</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Analysis failed: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="s2">&quot;ERROR&quot;</span><span class="p">)</span>
+<a id="__codelineno-16-64" name="__codelineno-16-64" href="#__codelineno-16-64"></a>            <span class="k">return</span> <span class="n">AgentResult</span><span class="p">(</span>
+<a id="__codelineno-16-65" name="__codelineno-16-65" href="#__codelineno-16-65"></a>                <span class="n">agent_name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">agent_name</span><span class="p">,</span>
+<a id="__codelineno-16-66" name="__codelineno-16-66" href="#__codelineno-16-66"></a>                <span class="n">study_type</span><span class="o">=</span><span class="n">StudyType</span><span class="o">.</span><span class="n">LOAD_FLOW</span><span class="p">,</span>
+<a id="__codelineno-16-67" name="__codelineno-16-67" href="#__codelineno-16-67"></a>                <span class="n">status</span><span class="o">=</span><span class="n">AgentStatus</span><span class="o">.</span><span class="n">FAILED</span><span class="p">,</span>
+<a id="__codelineno-16-68" name="__codelineno-16-68" href="#__codelineno-16-68"></a>                <span class="n">data</span><span class="o">=</span><span class="p">{},</span>
+<a id="__codelineno-16-69" name="__codelineno-16-69" href="#__codelineno-16-69"></a>                <span class="n">validation_errors</span><span class="o">=</span><span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)],</span>
+<a id="__codelineno-16-70" name="__codelineno-16-70" href="#__codelineno-16-70"></a>            <span class="p">)</span>
+<a id="__codelineno-16-71" name="__codelineno-16-71" href="#__codelineno-16-71"></a>
+<a id="__codelineno-16-72" name="__codelineno-16-72" href="#__codelineno-16-72"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">validate_result</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">result</span><span class="p">:</span> <span class="n">AgentResult</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<a id="__codelineno-16-73" name="__codelineno-16-73" href="#__codelineno-16-73"></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Validate results against standards.&quot;&quot;&quot;</span>
+<a id="__codelineno-16-74" name="__codelineno-16-74" href="#__codelineno-16-74"></a>        <span class="c1"># Add domain-specific checks</span>
+<a id="__codelineno-16-75" name="__codelineno-16-75" href="#__codelineno-16-75"></a>        <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">validate_result</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+</code></pre></div>
+<p><strong>Step 2: Create the prompt file</strong></p>
+<p>Create <code>prompts/my_new_agent.prompt.yaml</code>:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a><span class="nt">model</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">gpt-4o</span>
+<a id="__codelineno-17-2" name="__codelineno-17-2" href="#__codelineno-17-2"></a><span class="nt">temperature</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.2</span>
+<a id="__codelineno-17-3" name="__codelineno-17-3" href="#__codelineno-17-3"></a><span class="nt">messages</span><span class="p">:</span>
+<a id="__codelineno-17-4" name="__codelineno-17-4" href="#__codelineno-17-4"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">role</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">system</span>
+<a id="__codelineno-17-5" name="__codelineno-17-5" href="#__codelineno-17-5"></a><span class="w">    </span><span class="nt">content</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
+<a id="__codelineno-17-6" name="__codelineno-17-6" href="#__codelineno-17-6"></a><span class="w">      </span><span class="no">You are the My New Agent for power systems engineering.</span>
+<a id="__codelineno-17-7" name="__codelineno-17-7" href="#__codelineno-17-7"></a><span class="w">      </span><span class="no">Your role is to [describe purpose].</span>
+<a id="__codelineno-17-8" name="__codelineno-17-8" href="#__codelineno-17-8"></a><span class="w">      </span><span class="no">Standards: [list applicable standards].</span>
+<a id="__codelineno-17-9" name="__codelineno-17-9" href="#__codelineno-17-9"></a><span class="w">      </span><span class="no">When analyzing results, always check [validation criteria].</span>
+</code></pre></div>
+<p><strong>Step 3: Register with the orchestrator</strong></p>
+<p>In <code>agents/orchestrator.py</code>, add the agent to <code>ChiefEngineeringOrchestrator.__init__()</code>:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">agents.my_new_agent</span><span class="w"> </span><span class="kn">import</span> <span class="n">MyNewAgent</span>
+<a id="__codelineno-18-2" name="__codelineno-18-2" href="#__codelineno-18-2"></a>
+<a id="__codelineno-18-3" name="__codelineno-18-3" href="#__codelineno-18-3"></a><span class="k">class</span><span class="w"> </span><span class="nc">ChiefEngineeringOrchestrator</span><span class="p">:</span>
+<a id="__codelineno-18-4" name="__codelineno-18-4" href="#__codelineno-18-4"></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<a id="__codelineno-18-5" name="__codelineno-18-5" href="#__codelineno-18-5"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">agents</span> <span class="o">=</span> <span class="p">{</span>
+<a id="__codelineno-18-6" name="__codelineno-18-6" href="#__codelineno-18-6"></a>            <span class="c1"># ... existing agents ...</span>
+<a id="__codelineno-18-7" name="__codelineno-18-7" href="#__codelineno-18-7"></a>            <span class="s2">&quot;my_new&quot;</span><span class="p">:</span> <span class="n">MyNewAgent</span><span class="p">(),</span>
+<a id="__codelineno-18-8" name="__codelineno-18-8" href="#__codelineno-18-8"></a>        <span class="p">}</span>
+</code></pre></div>
+<p><strong>Step 4: (Optional) Add API route</strong></p>
+<p>In <code>api/studies.py</code>, add a dispatch case in <code>_run_native_study()</code>:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-19-1" name="__codelineno-19-1" href="#__codelineno-19-1"></a><span class="k">if</span> <span class="n">study_type</span> <span class="o">==</span> <span class="s2">&quot;my_new&quot;</span><span class="p">:</span>
+<a id="__codelineno-19-2" name="__codelineno-19-2" href="#__codelineno-19-2"></a>    <span class="k">return</span> <span class="n">engine</span><span class="o">.</span><span class="n">run_my_new_analysis</span><span class="p">(</span><span class="n">parameters</span><span class="p">)</span>
+</code></pre></div>
+<p><strong>Step 5: (Optional) Add to <code>StudyType</code> enum</strong></p>
+<p>In <code>agents/orchestrator.py</code>:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-20-1" name="__codelineno-20-1" href="#__codelineno-20-1"></a><span class="k">class</span><span class="w"> </span><span class="nc">StudyType</span><span class="p">(</span><span class="n">Enum</span><span class="p">):</span>
+<a id="__codelineno-20-2" name="__codelineno-20-2" href="#__codelineno-20-2"></a>    <span class="c1"># ... existing types ...</span>
+<a id="__codelineno-20-3" name="__codelineno-20-3" href="#__codelineno-20-3"></a>    <span class="n">MY_NEW</span> <span class="o">=</span> <span class="s2">&quot;my_new&quot;</span>
+</code></pre></div>
+<hr />
+<h3 id="62-adding-a-mastra-typescript-agent">6.2 Adding a Mastra TypeScript Agent</h3>
+<p><strong>Step 1: Create the agent file</strong></p>
+<p>Create <code>src/mastra/agents/my-new-agent.ts</code>:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-21-1" name="__codelineno-21-1" href="#__codelineno-21-1"></a><span class="k">import</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">Agent</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="kr">from</span><span class="w"> </span><span class="s1">&#39;@mastra/core/agent&#39;</span><span class="p">;</span>
+<a id="__codelineno-21-2" name="__codelineno-21-2" href="#__codelineno-21-2"></a><span class="k">import</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">Memory</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="kr">from</span><span class="w"> </span><span class="s1">&#39;@mastra/memory&#39;</span><span class="p">;</span>
+<a id="__codelineno-21-3" name="__codelineno-21-3" href="#__codelineno-21-3"></a><span class="k">import</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">run_python</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="kr">from</span><span class="w"> </span><span class="s1">&#39;../tools/python-tool&#39;</span><span class="p">;</span>
+<a id="__codelineno-21-4" name="__codelineno-21-4" href="#__codelineno-21-4"></a><span class="k">import</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">getSystemPrompt</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="kr">from</span><span class="w"> </span><span class="s1">&#39;../prompts&#39;</span><span class="p">;</span>
+<a id="__codelineno-21-5" name="__codelineno-21-5" href="#__codelineno-21-5"></a><span class="k">import</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">getActiveModelConfig</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="kr">from</span><span class="w"> </span><span class="s1">&#39;../lib/model-config&#39;</span><span class="p">;</span>
+<a id="__codelineno-21-6" name="__codelineno-21-6" href="#__codelineno-21-6"></a>
+<a id="__codelineno-21-7" name="__codelineno-21-7" href="#__codelineno-21-7"></a><span class="kd">const</span><span class="w"> </span><span class="nx">promptContent</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">await</span><span class="w"> </span><span class="nx">getSystemPrompt</span><span class="p">(</span><span class="s1">&#39;my_new_agent&#39;</span><span class="p">);</span>
+<a id="__codelineno-21-8" name="__codelineno-21-8" href="#__codelineno-21-8"></a>
+<a id="__codelineno-21-9" name="__codelineno-21-9" href="#__codelineno-21-9"></a><span class="k">export</span><span class="w"> </span><span class="kd">const</span><span class="w"> </span><span class="nx">myNewAgent</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">Agent</span><span class="p">({</span>
+<a id="__codelineno-21-10" name="__codelineno-21-10" href="#__codelineno-21-10"></a><span class="w">  </span><span class="nx">id</span><span class="o">:</span><span class="w"> </span><span class="s1">&#39;my-new-agent&#39;</span><span class="p">,</span>
+<a id="__codelineno-21-11" name="__codelineno-21-11" href="#__codelineno-21-11"></a><span class="w">  </span><span class="nx">name</span><span class="o">:</span><span class="w"> </span><span class="s1">&#39;My New Agent&#39;</span><span class="p">,</span>
+<a id="__codelineno-21-12" name="__codelineno-21-12" href="#__codelineno-21-12"></a><span class="w">  </span><span class="nx">instructions</span><span class="o">:</span><span class="w"> </span><span class="kt">promptContent</span><span class="p">,</span>
+<a id="__codelineno-21-13" name="__codelineno-21-13" href="#__codelineno-21-13"></a><span class="w">  </span><span class="nx">model</span><span class="o">:</span><span class="w"> </span><span class="kt">getActiveModelConfig</span><span class="p">()</span><span class="w"> </span><span class="kr">as</span><span class="w"> </span><span class="nx">any</span><span class="p">,</span>
+<a id="__codelineno-21-14" name="__codelineno-21-14" href="#__codelineno-21-14"></a><span class="w">  </span><span class="nx">tools</span><span class="o">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">run_python</span><span class="w"> </span><span class="p">},</span><span class="w">  </span><span class="c1">// Include tools the agent needs</span>
+<a id="__codelineno-21-15" name="__codelineno-21-15" href="#__codelineno-21-15"></a><span class="w">  </span><span class="nx">memory</span><span class="o">:</span><span class="w"> </span><span class="kt">new</span><span class="w"> </span><span class="nx">Memory</span><span class="p">(),</span>
+<a id="__codelineno-21-16" name="__codelineno-21-16" href="#__codelineno-21-16"></a><span class="p">});</span>
+</code></pre></div>
+<p><strong>Step 2: Create the prompt file</strong></p>
+<p>Use the same <code>prompts/my_new_agent.prompt.yaml</code> created for the Python agent (shared prompt layer).</p>
+<p><strong>Step 3: Register with the Mastra instance</strong></p>
+<p>In <code>src/mastra/index.ts</code>:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-22-1" name="__codelineno-22-1" href="#__codelineno-22-1"></a><span class="k">import</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">myNewAgent</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="kr">from</span><span class="w"> </span><span class="s1">&#39;./agents/my-new-agent&#39;</span><span class="p">;</span>
+<a id="__codelineno-22-2" name="__codelineno-22-2" href="#__codelineno-22-2"></a>
+<a id="__codelineno-22-3" name="__codelineno-22-3" href="#__codelineno-22-3"></a><span class="k">export</span><span class="w"> </span><span class="kd">const</span><span class="w"> </span><span class="nx">mastra</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">Mastra</span><span class="p">({</span>
+<a id="__codelineno-22-4" name="__codelineno-22-4" href="#__codelineno-22-4"></a><span class="w">  </span><span class="nx">agents</span><span class="o">:</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-22-5" name="__codelineno-22-5" href="#__codelineno-22-5"></a><span class="w">    </span><span class="c1">// ... existing agents ...</span>
+<a id="__codelineno-22-6" name="__codelineno-22-6" href="#__codelineno-22-6"></a><span class="w">    </span><span class="nx">myNewAgent</span><span class="p">,</span>
+<a id="__codelineno-22-7" name="__codelineno-22-7" href="#__codelineno-22-7"></a><span class="w">  </span><span class="p">},</span>
+<a id="__codelineno-22-8" name="__codelineno-22-8" href="#__codelineno-22-8"></a><span class="w">  </span><span class="c1">// ...</span>
+<a id="__codelineno-22-9" name="__codelineno-22-9" href="#__codelineno-22-9"></a><span class="p">});</span>
+</code></pre></div>
+<p><strong>Step 4: (Optional) Add to the coordinator's network</strong></p>
+<p>If the agent should be routable from the coordinator, add it to the <code>agents</code> property in <code>power-system-coordinator-agent.ts</code>:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-23-1" name="__codelineno-23-1" href="#__codelineno-23-1"></a><span class="k">import</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">myNewAgent</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="kr">from</span><span class="w"> </span><span class="s1">&#39;./my-new-agent&#39;</span><span class="p">;</span>
+<a id="__codelineno-23-2" name="__codelineno-23-2" href="#__codelineno-23-2"></a>
+<a id="__codelineno-23-3" name="__codelineno-23-3" href="#__codelineno-23-3"></a><span class="k">export</span><span class="w"> </span><span class="kd">const</span><span class="w"> </span><span class="nx">powerSystemCoordinatorAgent</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">Agent</span><span class="p">({</span>
+<a id="__codelineno-23-4" name="__codelineno-23-4" href="#__codelineno-23-4"></a><span class="w">  </span><span class="c1">// ...</span>
+<a id="__codelineno-23-5" name="__codelineno-23-5" href="#__codelineno-23-5"></a><span class="w">  </span><span class="nx">agents</span><span class="o">:</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-23-6" name="__codelineno-23-6" href="#__codelineno-23-6"></a><span class="w">    </span><span class="c1">// ... existing agents ...</span>
+<a id="__codelineno-23-7" name="__codelineno-23-7" href="#__codelineno-23-7"></a><span class="w">    </span><span class="nx">myNewAgent</span><span class="p">,</span>
+<a id="__codelineno-23-8" name="__codelineno-23-8" href="#__codelineno-23-8"></a><span class="w">  </span><span class="p">},</span>
+<a id="__codelineno-23-9" name="__codelineno-23-9" href="#__codelineno-23-9"></a><span class="w">  </span><span class="c1">// ...</span>
+<a id="__codelineno-23-10" name="__codelineno-23-10" href="#__codelineno-23-10"></a><span class="p">});</span>
+</code></pre></div>
+<p><strong>Step 5: (Optional) Add an API route</strong></p>
+<p>Create a Next.js API route at <code>src/app/api/v1/agents/my-new-agent/chat/route.ts</code> to expose the agent via HTTP.</p>
+<hr />
+<h3 id="63-checklist-adding-an-agent-to-both-systems">6.3 Checklist: Adding an Agent to Both Systems</h3>
+<p>If the new agent should be available in both the Python and Mastra systems:</p>
+<ul>
+<li>[ ] Create <code>agents/my_new_agent.py</code> (Python agent class)</li>
+<li>[ ] Create <code>src/mastra/agents/my-new-agent.ts</code> (Mastra agent definition)</li>
+<li>[ ] Create <code>prompts/my_new_agent.prompt.yaml</code> (shared prompt — one file serves both)</li>
+<li>[ ] Register Python agent in <code>ChiefEngineeringOrchestrator.__init__()</code></li>
+<li>[ ] Register Mastra agent in <code>src/mastra/index.ts</code></li>
+<li>[ ] Add to coordinator agent's network (Mastra) if needed</li>
+<li>[ ] Add dispatch case in <code>api/studies.py</code> if needed</li>
+<li>[ ] Add <code>StudyType</code> enum value if needed</li>
+<li>[ ] Upload prompt to LangWatch (if using managed prompts)</li>
+<li>[ ] Write tests for both the Python and Mastra versions</li>
+<li>[ ] Update this documentation</li>
+</ul>
+<hr />
+<h2 id="appendix-file-reference-summary">Appendix: File Reference Summary</h2>
+<table>
+<thead>
+<tr>
+<th>File</th>
+<th>System</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>agents/orchestrator.py</code></td>
+<td>Python</td>
+<td><code>BaseAgent</code>, core agents, <code>ChiefEngineeringOrchestrator</code></td>
+</tr>
+<tr>
+<td><code>agents/prompt_loader.py</code></td>
+<td>Python</td>
+<td>3-tier prompt loading (mirrors TS implementation)</td>
+</tr>
+<tr>
+<td><code>agents/etap_expert_agent.py</code></td>
+<td>Python</td>
+<td>Rule-based ETAP expert (no LLM required)</td>
+</tr>
+<tr>
+<td><code>src/mastra/index.ts</code></td>
+<td>Mastra</td>
+<td>Central Mastra instance with agents, storage, observability</td>
+</tr>
+<tr>
+<td><code>src/mastra/prompts.ts</code></td>
+<td>Mastra</td>
+<td>3-tier prompt loading (mirrors Python implementation)</td>
+</tr>
+<tr>
+<td><code>src/mastra/agents/*.ts</code></td>
+<td>Mastra</td>
+<td>Individual agent definitions</td>
+</tr>
+<tr>
+<td><code>src/mastra/tools/python-tool.ts</code></td>
+<td>Mastra</td>
+<td>Bridge: execute Python code from Mastra agents</td>
+</tr>
+<tr>
+<td><code>src/mastra/tools/powershell-tool.ts</code></td>
+<td>Mastra</td>
+<td>Bridge: execute PowerShell from Mastra agents</td>
+</tr>
+<tr>
+<td><code>src/mastra/lib/model-config.ts</code></td>
+<td>Mastra</td>
+<td>OpenAI model resolution and provider testing</td>
+</tr>
+<tr>
+<td><code>mastra.config.ts</code></td>
+<td>Mastra</td>
+<td>Mastra framework configuration (provider, directory)</td>
+</tr>
+<tr>
+<td><code>prompts/*.yaml</code></td>
+<td>Shared</td>
+<td>Prompt definitions used by both systems</td>
+</tr>
+<tr>
+<td><code>api/studies.py</code></td>
+<td>Python</td>
+<td>FastAPI routes for study execution</td>
+</tr>
+<tr>
+<td><code>api/agents.py</code></td>
+<td>Python</td>
+<td>FastAPI routes for agent information and ETAP expert chat</td>
+</tr>
+</tbody>
+</table>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.tabs", "navigation.sections", "navigation.top", "search.suggest", "search.highlight"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  </body>
+</html>

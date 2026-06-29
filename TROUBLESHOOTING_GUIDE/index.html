@@ -1,0 +1,4504 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Enterprise AI-Powered Power Systems Engineering Platform">
+      
+      
+        <meta name="author" content="AhmedETAP Team">
+      
+      
+      
+        <link rel="prev" href="../OPERATIONS_RUNBOOK/">
+      
+      
+        <link rel="next" href="../SECURITY_OPERATIONS_MANUAL/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+    
+    
+      
+        <title>دليل الأعطال - AhmedETAP Documentation</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="deep-purple">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#troubleshooting-guide" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="AhmedETAP Documentation" class="md-header__button md-logo" aria-label="AhmedETAP Documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            AhmedETAP Documentation
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              دليل الأعطال
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+    
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/ahmdelbaz28-ux/ETAP-AI-WORK-" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href=".." class="md-tabs__link">
+        
+  
+  
+    
+  
+  الصفحة الرئيسية
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../ARCHITECTURE/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  الهيكلية
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../API_REFERENCE/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  واجهة برمجة التطبيقات
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../OPERATIONS_RUNBOOK/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  دليل التشغيل
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    <li class="md-tabs__item md-tabs__item--active">
+      <a href="./" class="md-tabs__link">
+        
+  
+  
+    
+  
+  دليل الأعطال
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../SECURITY_OPERATIONS_MANUAL/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  البنية التحتية للأمان
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../ENTERPRISE_CERTIFICATION_REPORT/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  التقييم المؤسسي
+
+      </a>
+    </li>
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="AhmedETAP Documentation" class="md-nav__button md-logo" aria-label="AhmedETAP Documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    AhmedETAP Documentation
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/ahmdelbaz28-ux/ETAP-AI-WORK-" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    الصفحة الرئيسية
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ARCHITECTURE/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    الهيكلية
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../API_REFERENCE/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    واجهة برمجة التطبيقات
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../OPERATIONS_RUNBOOK/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    دليل التشغيل
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    دليل الأعطال
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    دليل الأعطال
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#table-of-contents" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Table of Contents
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#1-introduction" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Introduction
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="1. Introduction">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#purpose" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Purpose
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#scope" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Scope
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#prerequisites" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Prerequisites
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#log-file-locations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Log File Locations
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-common-issues-and-solutions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Common Issues and Solutions
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="2. Common Issues and Solutions">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#issue-21-platform-fails-to-start" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Issue 2.1: Platform fails to start
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#issue-22-api-requests-time-out" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Issue 2.2: API requests time out
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#issue-23-reports-fail-to-generate" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Issue 2.3: Reports fail to generate
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-installation-problems" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Installation Problems
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3. Installation Problems">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#issue-31-pip-install-fails" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Issue 3.1: pip install fails
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#issue-32-pnpm-install-fails" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Issue 3.2: pnpm install fails
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-configuration-issues" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Configuration Issues
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4. Configuration Issues">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#issue-41-environment-variables-not-loading" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Issue 4.1: Environment variables not loading
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#issue-42-database-connection-failures" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Issue 4.2: Database connection failures
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-etap-integration-issues" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. ETAP Integration Issues
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="5. ETAP Integration Issues">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#issue-51-etap-com-connection-fails" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Issue 5.1: ETAP COM connection fails
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#issue-52-etap-project-fails-to-open" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Issue 5.2: ETAP project fails to open
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#issue-53-etap-study-execution-fails" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Issue 5.3: ETAP study execution fails
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#issue-54-etap-com-times-out" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Issue 5.4: ETAP COM times out
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-calculation-engine-issues" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. Calculation Engine Issues
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="6. Calculation Engine Issues">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#issue-61-load-flow-does-not-converge" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Issue 6.1: Load flow does not converge
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#issue-62-short-circuit-results-are-incorrect" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Issue 6.2: Short circuit results are incorrect
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#issue-63-harmonic-analysis-yields-invalid-thd" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Issue 6.3: Harmonic analysis yields invalid THD
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#issue-64-opf-solver-fails" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Issue 6.4: OPF solver fails
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7-securityauthentication-issues" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7. Security/Authentication Issues
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="7. Security/Authentication Issues">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#issue-71-authentication-fails-jwt" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Issue 7.1: Authentication fails (JWT)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#issue-72-rbac-permission-denied" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Issue 7.2: RBAC permission denied
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#8-performance-issues" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8. Performance Issues
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="8. Performance Issues">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#issue-81-slow-load-flow-calculations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Issue 8.1: Slow load flow calculations
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#issue-82-high-memory-usage" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Issue 8.2: High memory usage
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#9-deployment-issues" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9. Deployment Issues
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="9. Deployment Issues">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#issue-91-kubernetes-pod-crashes-on-startup" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Issue 9.1: Kubernetes pod crashes on startup
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#issue-92-docker-build-fails" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Issue 9.2: Docker build fails
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#10-dockercontainer-issues" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10. Docker/Container Issues
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="10. Docker/Container Issues">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#issue-101-container-exits-immediately" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Issue 10.1: Container exits immediately
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#issue-102-volume-mount-permission-issues" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Issue 10.2: Volume mount permission issues
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#11-error-code-reference" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        11. Error Code Reference
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="11. Error Code Reference">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#err-001-to-err-010-etap-integration-errors" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ERR-001 to ERR-010: ETAP Integration Errors
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#err-009-to-err-019-calculation-engine-errors" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ERR-009 to ERR-019: Calculation Engine Errors
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#err-020-to-err-029-security-errors" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ERR-020 to ERR-029: Security Errors
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#err-030-to-err-040-data-and-storage-errors" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ERR-030 to ERR-040: Data and Storage Errors
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#err-041-to-err-050-system-and-infrastructure-errors" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ERR-041 to ERR-050: System and Infrastructure Errors
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#12-diagnostic-procedures" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        12. Diagnostic Procedures
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="12. Diagnostic Procedures">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#procedure-121-full-system-health-check" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Procedure 12.1: Full System Health Check
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#procedure-122-log-collection-bundle" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Procedure 12.2: Log Collection Bundle
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#procedure-123-component-isolation-test" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Procedure 12.3: Component Isolation Test
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#13-support-escalation-process" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        13. Support Escalation Process
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="13. Support Escalation Process">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#tier-1-self-service-first-response" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Tier 1: Self-Service (First Response)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#tier-2-engineering-team" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Tier 2: Engineering Team
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#tier-3-etap-support-etap-specific-issues" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Tier 3: ETAP Support (ETAP-Specific Issues)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#tier-4-vendoremergency" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Tier 4: Vendor/Emergency
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#escalation-flow-diagram" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Escalation Flow Diagram
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sla-summary" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        SLA Summary
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#appendix-quick-reference-card" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Appendix: Quick Reference Card
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Appendix: Quick Reference Card">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#most-common-fixes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Most Common Fixes
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#key-commands-reference" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Key Commands Reference
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../SECURITY_OPERATIONS_MANUAL/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    البنية التحتية للأمان
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ENTERPRISE_CERTIFICATION_REPORT/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    التقييم المؤسسي
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#table-of-contents" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Table of Contents
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#1-introduction" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Introduction
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="1. Introduction">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#purpose" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Purpose
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#scope" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Scope
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#prerequisites" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Prerequisites
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#log-file-locations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Log File Locations
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-common-issues-and-solutions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Common Issues and Solutions
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="2. Common Issues and Solutions">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#issue-21-platform-fails-to-start" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Issue 2.1: Platform fails to start
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#issue-22-api-requests-time-out" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Issue 2.2: API requests time out
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#issue-23-reports-fail-to-generate" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Issue 2.3: Reports fail to generate
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-installation-problems" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Installation Problems
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3. Installation Problems">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#issue-31-pip-install-fails" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Issue 3.1: pip install fails
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#issue-32-pnpm-install-fails" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Issue 3.2: pnpm install fails
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-configuration-issues" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Configuration Issues
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4. Configuration Issues">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#issue-41-environment-variables-not-loading" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Issue 4.1: Environment variables not loading
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#issue-42-database-connection-failures" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Issue 4.2: Database connection failures
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-etap-integration-issues" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. ETAP Integration Issues
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="5. ETAP Integration Issues">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#issue-51-etap-com-connection-fails" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Issue 5.1: ETAP COM connection fails
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#issue-52-etap-project-fails-to-open" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Issue 5.2: ETAP project fails to open
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#issue-53-etap-study-execution-fails" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Issue 5.3: ETAP study execution fails
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#issue-54-etap-com-times-out" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Issue 5.4: ETAP COM times out
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-calculation-engine-issues" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. Calculation Engine Issues
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="6. Calculation Engine Issues">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#issue-61-load-flow-does-not-converge" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Issue 6.1: Load flow does not converge
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#issue-62-short-circuit-results-are-incorrect" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Issue 6.2: Short circuit results are incorrect
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#issue-63-harmonic-analysis-yields-invalid-thd" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Issue 6.3: Harmonic analysis yields invalid THD
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#issue-64-opf-solver-fails" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Issue 6.4: OPF solver fails
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7-securityauthentication-issues" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7. Security/Authentication Issues
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="7. Security/Authentication Issues">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#issue-71-authentication-fails-jwt" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Issue 7.1: Authentication fails (JWT)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#issue-72-rbac-permission-denied" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Issue 7.2: RBAC permission denied
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#8-performance-issues" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8. Performance Issues
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="8. Performance Issues">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#issue-81-slow-load-flow-calculations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Issue 8.1: Slow load flow calculations
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#issue-82-high-memory-usage" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Issue 8.2: High memory usage
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#9-deployment-issues" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9. Deployment Issues
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="9. Deployment Issues">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#issue-91-kubernetes-pod-crashes-on-startup" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Issue 9.1: Kubernetes pod crashes on startup
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#issue-92-docker-build-fails" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Issue 9.2: Docker build fails
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#10-dockercontainer-issues" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10. Docker/Container Issues
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="10. Docker/Container Issues">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#issue-101-container-exits-immediately" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Issue 10.1: Container exits immediately
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#issue-102-volume-mount-permission-issues" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Issue 10.2: Volume mount permission issues
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#11-error-code-reference" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        11. Error Code Reference
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="11. Error Code Reference">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#err-001-to-err-010-etap-integration-errors" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ERR-001 to ERR-010: ETAP Integration Errors
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#err-009-to-err-019-calculation-engine-errors" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ERR-009 to ERR-019: Calculation Engine Errors
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#err-020-to-err-029-security-errors" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ERR-020 to ERR-029: Security Errors
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#err-030-to-err-040-data-and-storage-errors" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ERR-030 to ERR-040: Data and Storage Errors
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#err-041-to-err-050-system-and-infrastructure-errors" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ERR-041 to ERR-050: System and Infrastructure Errors
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#12-diagnostic-procedures" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        12. Diagnostic Procedures
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="12. Diagnostic Procedures">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#procedure-121-full-system-health-check" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Procedure 12.1: Full System Health Check
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#procedure-122-log-collection-bundle" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Procedure 12.2: Log Collection Bundle
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#procedure-123-component-isolation-test" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Procedure 12.3: Component Isolation Test
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#13-support-escalation-process" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        13. Support Escalation Process
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="13. Support Escalation Process">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#tier-1-self-service-first-response" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Tier 1: Self-Service (First Response)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#tier-2-engineering-team" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Tier 2: Engineering Team
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#tier-3-etap-support-etap-specific-issues" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Tier 3: ETAP Support (ETAP-Specific Issues)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#tier-4-vendoremergency" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Tier 4: Vendor/Emergency
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#escalation-flow-diagram" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Escalation Flow Diagram
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sla-summary" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        SLA Summary
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#appendix-quick-reference-card" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Appendix: Quick Reference Card
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Appendix: Quick Reference Card">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#most-common-fixes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Most Common Fixes
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#key-commands-reference" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Key Commands Reference
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="troubleshooting-guide">Troubleshooting Guide</h1>
+<h2 id="table-of-contents">Table of Contents</h2>
+<ol>
+<li>Introduction</li>
+<li>Common Issues and Solutions</li>
+<li>Installation Problems</li>
+<li>Configuration Issues</li>
+<li>ETAP Integration Issues</li>
+<li>Calculation Engine Issues</li>
+<li>Security/Authentication Issues</li>
+<li>Performance Issues</li>
+<li>Deployment Issues</li>
+<li>Docker/Container Issues</li>
+<li>Error Code Reference</li>
+<li>Diagnostic Procedures</li>
+<li>Support Escalation Process</li>
+</ol>
+<hr />
+<h2 id="1-introduction">1. Introduction</h2>
+<h3 id="purpose">Purpose</h3>
+<p>This Troubleshooting Guide provides comprehensive diagnostic and resolution procedures for the AhmedETAP. It is intended for system administrators, DevOps engineers, and support personnel responsible for operating and maintaining the platform.</p>
+<h3 id="scope">Scope</h3>
+<p>This guide covers all components of the AhmedETAP including:
+- Multi-Agent Orchestration System (agents/orchestrator.py)
+- ETAP COM Automation Interface (etap_integration/etap_com.py)
+- Calculation Engines (load_flow, fault_analysis, relays)
+- RAG Knowledge Engine (knowledge/rag_engine.py)
+- Security Framework (security/security_framework.py)
+- Reporting Engine (reporting/advanced_reports.py)
+- Mastra AI Agent Framework (src/mastra/)
+- Docker/Kubernetes Deployment Infrastructure</p>
+<h3 id="prerequisites">Prerequisites</h3>
+<p>Before troubleshooting, ensure you have:
+- Access to log files (default: <code>./logs/</code>)
+- Access to the monitoring dashboard (if configured)
+- Administrative access to the host system
+- ETAP credentials (for ETAP-related issues)
+- Environment configuration (.env file contents)</p>
+<h3 id="log-file-locations">Log File Locations</h3>
+<table>
+<thead>
+<tr>
+<th>Component</th>
+<th>Log Location</th>
+<th>Format</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Python Backend</td>
+<td><code>./logs/python-backend.log</code></td>
+<td>JSON</td>
+</tr>
+<tr>
+<td>Mastra Server</td>
+<td><code>./logs/mastra-server.log</code></td>
+<td>JSON</td>
+</tr>
+<tr>
+<td>ETAP COM</td>
+<td><code>./logs/etap-com.log</code></td>
+<td>JSON</td>
+</tr>
+<tr>
+<td>Security/Auth</td>
+<td><code>./logs/security.log</code></td>
+<td>JSON</td>
+</tr>
+<tr>
+<td>Calculation Engine</td>
+<td><code>./logs/calculation.log</code></td>
+<td>JSON</td>
+</tr>
+<tr>
+<td>RAG Engine</td>
+<td><code>./logs/rag-engine.log</code></td>
+<td>JSON</td>
+</tr>
+<tr>
+<td>Docker (container)</td>
+<td><code>docker logs etap-platform</code></td>
+<td>stdout/stderr</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="2-common-issues-and-solutions">2. Common Issues and Solutions</h2>
+<h3 id="issue-21-platform-fails-to-start">Issue 2.1: Platform fails to start</h3>
+<p><strong>Symptoms:</strong>
+- <code>docker-compose up</code> exits immediately
+- <code>python main.py</code> crashes on startup
+- Health check endpoint returns 503</p>
+<p><strong>Root Causes:</strong>
+- Missing or misconfigured <code>.env</code> file
+- Port conflict (ports 3000 or 8000 already in use)
+- Missing Python or Node.js dependencies
+- Database file is corrupted</p>
+<p><strong>Resolution Procedure:</strong></p>
+<ol>
+<li>
+<p>Check if another process is using required ports:
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>netstat -ano | findstr :3000
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>netstat -ano | findstr :8000
+</code></pre></div>
+   Kill the occupying process: <code>taskkill /PID &lt;PID&gt; /F</code></p>
+</li>
+<li>
+<p>Verify environment configuration:
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>diff .env.example .env
+</code></pre></div>
+   Ensure all required variables are set: OPENAI_API_KEY, JWT_SECRET_KEY, DATABASE_URL.</p>
+</li>
+<li>
+<p>Validate Python dependencies:
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>pip check
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>pip install -r requirements.txt --force-reinstall
+</code></pre></div></p>
+</li>
+<li>
+<p>Check Node.js dependencies:
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>pnpm install --force
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>pnpm build
+</code></pre></div></p>
+</li>
+<li>
+<p>Verify database integrity:
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>python -c &quot;import sqlite3; conn = sqlite3.connect(&#39;mastra.db&#39;); conn.execute(&#39;SELECT 1&#39;); conn.close()&quot;
+</code></pre></div>
+   If corrupted, restore from backup: <code>cp backups/mastra_latest.db ./mastra.db</code></p>
+</li>
+<li>
+<p>Check the startup logs for specific errors:
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>cat logs/python-backend.log | grep ERROR
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>cat logs/mastra-server.log | grep ERROR
+</code></pre></div></p>
+</li>
+</ol>
+<p><strong>Verification Steps:</strong>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>curl http://localhost:3000/health
+<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a># Expected: {&quot;status&quot;: &quot;healthy&quot;, &quot;version&quot;: &quot;1.0.0&quot;}
+</code></pre></div></p>
+<p><strong>Prevention Measures:</strong>
+- Run <code>./quickstart.sh</code> which validates all prerequisites before starting
+- Use Docker health checks to auto-restart on failure
+- Configure log rotation to prevent disk-full conditions</p>
+<hr />
+<h3 id="issue-22-api-requests-time-out">Issue 2.2: API requests time out</h3>
+<p><strong>Symptoms:</strong>
+- HTTP 504 Gateway Timeout errors
+- <code>asyncio.TimeoutError</code> in logs
+- Frontend shows "Request Timed Out" messages</p>
+<p><strong>Root Causes:</strong>
+- Calculation engine is overloaded with large systems (500+ buses)
+- Orchestrator agent is stuck on a non-converging study
+- ETAP COM operation is hung waiting for ETAP to respond
+- Insufficient worker threads in the async pool</p>
+<p><strong>Resolution Procedure:</strong></p>
+<ol>
+<li>
+<p>Check active workflow count:
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>curl http://localhost:8000/metrics | grep active_workflows
+</code></pre></div></p>
+</li>
+<li>
+<p>List stuck tasks:
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>python -c &quot;from agents.orchestrator import get_orchestrator; o=get_orchestrator(); print(o.get_stuck_tasks(timeout_minutes=5))&quot;
+</code></pre></div></p>
+</li>
+<li>
+<p>Cancel hung workflows:
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>curl -X POST http://localhost:8000/api/v1/tasks/&lt;task_id&gt;/cancel
+</code></pre></div></p>
+</li>
+<li>
+<p>Increase timeout configuration in <code>.env</code>:
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>TASK_TIMEOUT_SECONDS=300
+<a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a>WORKFLOW_TIMEOUT_SECONDS=600
+</code></pre></div></p>
+</li>
+<li>
+<p>Restart the affected service:
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a>docker-compose restart etap-platform
+</code></pre></div></p>
+</li>
+</ol>
+<p><strong>Verification Steps:</strong>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a>curl http://localhost:3000/health/detailed
+<a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a># Check that all components report &quot;healthy&quot;
+</code></pre></div></p>
+<p><strong>Prevention Measures:</strong>
+- Set realistic timeouts based on system size
+- Implement circuit breakers for long-running operations
+- Monitor active task count and set alerts at 80% of capacity</p>
+<hr />
+<h3 id="issue-23-reports-fail-to-generate">Issue 2.3: Reports fail to generate</h3>
+<p><strong>Symptoms:</strong>
+- Report generation returns error
+- PDF/DOCX/XLSX output files are empty or corrupt
+- <code>ReportAgent</code> execution status shows <code>FAILED</code></p>
+<p><strong>Root Causes:</strong>
+- Missing report template files
+- Disk space full in <code>./reports/</code> directory
+- Required Python libraries not installed (reportlab, python-docx, openpyxl)
+- Special characters in data that break the report formatter</p>
+<p><strong>Resolution Procedure:</strong></p>
+<ol>
+<li>
+<p>Check disk space:
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a>df -h ./reports
+<a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a>dir ./reports
+</code></pre></div></p>
+</li>
+<li>
+<p>Verify report dependencies:
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a>pip list | findstr reportlab
+<a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a>pip list | findstr python-docx
+<a id="__codelineno-14-3" name="__codelineno-14-3" href="#__codelineno-14-3"></a>pip list | findstr openpyxl
+</code></pre></div></p>
+</li>
+<li>
+<p>Clear the report queue:
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a>rm -rf ./reports/pending/*
+</code></pre></div></p>
+</li>
+<li>
+<p>Test with a minimal report:
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a>python -c &quot;
+<a id="__codelineno-16-2" name="__codelineno-16-2" href="#__codelineno-16-2"></a>from reporting.advanced_reports import ReportAgent
+<a id="__codelineno-16-3" name="__codelineno-16-3" href="#__codelineno-16-3"></a>agent = ReportAgent()
+<a id="__codelineno-16-4" name="__codelineno-16-4" href="#__codelineno-16-4"></a>result = agent.generate_test_report()
+<a id="__codelineno-16-5" name="__codelineno-16-5" href="#__codelineno-16-5"></a>print(f&#39;Test report: {result}&#39;)
+<a id="__codelineno-16-6" name="__codelineno-16-6" href="#__codelineno-16-6"></a>&quot;
+</code></pre></div></p>
+</li>
+<li>
+<p>Check for encoding issues in input data (looking for non-ASCII characters in system names).</p>
+</li>
+</ol>
+<p><strong>Verification Steps:</strong>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a>python -c &quot;
+<a id="__codelineno-17-2" name="__codelineno-17-2" href="#__codelineno-17-2"></a>from reporting.advanced_reports import get_report_agent
+<a id="__codelineno-17-3" name="__codelineno-17-3" href="#__codelineno-17-3"></a>agent = get_report_agent()
+<a id="__codelineno-17-4" name="__codelineno-17-4" href="#__codelineno-17-4"></a># Verify the agent initializes without errors
+<a id="__codelineno-17-5" name="__codelineno-17-5" href="#__codelineno-17-5"></a>print(&#39;ReportAgent ready&#39;)
+<a id="__codelineno-17-6" name="__codelineno-17-6" href="#__codelineno-17-6"></a>&quot;
+</code></pre></div></p>
+<p><strong>Prevention Measures:</strong>
+- Set up automatic disk usage monitoring on the reports volume
+- Sanitize input data before passing to report generators
+- Run monthly report generation tests via cron</p>
+<hr />
+<h2 id="3-installation-problems">3. Installation Problems</h2>
+<h3 id="issue-31-pip-install-fails">Issue 3.1: pip install fails</h3>
+<p><strong>Symptoms:</strong>
+- <code>pip install -r requirements.txt</code> exits with errors
+- Conflicting dependency versions
+- Package not found errors</p>
+<p><strong>Common Errors and Solutions:</strong></p>
+<p><strong>Error: <code>Microsoft Visual C++ 14.0 is required</code></strong>
+- Install Microsoft C++ Build Tools from https://visualstudio.microsoft.com/visual-cpp-build-tools/
+- Or use pre-compiled wheels: <code>pip install --only-binary=:all: -r requirements.txt</code></p>
+<p><strong>Error: <code>No matching distribution found for chromadb</code></strong>
+- Ensure Python 3.10 or 3.11 is installed: <code>python --version</code>
+- Install with platform specifier: <code>pip install chromadb --index-url https://pypi.org/simple/</code></p>
+<p><strong>Error: <code>sentence-transformers requires torch</code></strong>
+- Install PyTorch first: <code>pip install torch --index-url https://download.pytorch.org/whl/cpu</code>
+- Then proceed with requirements</p>
+<p><strong>Resolution Steps:</strong></p>
+<ol>
+<li>
+<p>Create a clean virtual environment:
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a>python -m venv venv
+<a id="__codelineno-18-2" name="__codelineno-18-2" href="#__codelineno-18-2"></a>.\venv\Scripts\activate
+</code></pre></div></p>
+</li>
+<li>
+<p>Upgrade pip and setuptools:
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-19-1" name="__codelineno-19-1" href="#__codelineno-19-1"></a>python -m pip install --upgrade pip setuptools wheel
+</code></pre></div></p>
+</li>
+<li>
+<p>Install requirements in stages:
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-20-1" name="__codelineno-20-1" href="#__codelineno-20-1"></a>pip install numpy pandas scipy
+<a id="__codelineno-20-2" name="__codelineno-20-2" href="#__codelineno-20-2"></a>pip install -r requirements.txt
+</code></pre></div></p>
+</li>
+</ol>
+<p><strong>Verification:</strong>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-21-1" name="__codelineno-21-1" href="#__codelineno-21-1"></a>python -c &quot;import chromadb; import torch; import transformers; print(&#39;All core modules loaded&#39;)&quot;
+</code></pre></div></p>
+<hr />
+<h3 id="issue-32-pnpm-install-fails">Issue 3.2: pnpm install fails</h3>
+<p><strong>Symptoms:</strong>
+- <code>pnpm install</code> exits with non-zero code
+- Native module build failures (node-gyp)
+- Version mismatches in lockfile</p>
+<p><strong>Resolution Steps:</strong></p>
+<ol>
+<li>
+<p>Verify Node.js version:
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-22-1" name="__codelineno-22-1" href="#__codelineno-22-1"></a>node --version  # Required: &gt;= 18.x
+</code></pre></div></p>
+</li>
+<li>
+<p>Clear pnpm cache and node_modules:
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-23-1" name="__codelineno-23-1" href="#__codelineno-23-1"></a>rm -rf node_modules
+<a id="__codelineno-23-2" name="__codelineno-23-2" href="#__codelineno-23-2"></a>pnpm store prune
+</code></pre></div></p>
+</li>
+<li>
+<p>Install with frozen lockfile:
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-24-1" name="__codelineno-24-1" href="#__codelineno-24-1"></a>pnpm install --frozen-lockfile
+</code></pre></div></p>
+</li>
+<li>
+<p>For node-gyp errors on Windows, install build tools:
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-25-1" name="__codelineno-25-1" href="#__codelineno-25-1"></a>npm install --global windows-build-tools
+</code></pre></div></p>
+</li>
+</ol>
+<p><strong>Verification:</strong>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-26-1" name="__codelineno-26-1" href="#__codelineno-26-1"></a>pnpm build
+<a id="__codelineno-26-2" name="__codelineno-26-2" href="#__codelineno-26-2"></a># Expected: Build completed successfully
+</code></pre></div></p>
+<hr />
+<h2 id="4-configuration-issues">4. Configuration Issues</h2>
+<h3 id="issue-41-environment-variables-not-loading">Issue 4.1: Environment variables not loading</h3>
+<p><strong>Symptoms:</strong>
+- <code>KeyError</code> on environment variable access
+- Default values being used instead of configured values
+- <code>None</code> returned for required settings</p>
+<p><strong>Resolution Steps:</strong></p>
+<ol>
+<li>
+<p>Verify the <code>.env</code> file exists and has correct permissions:
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-27-1" name="__codelineno-27-1" href="#__codelineno-27-1"></a>dir .env
+</code></pre></div></p>
+</li>
+<li>
+<p>Check for syntax errors in <code>.env</code> (no spaces around <code>=</code>, no quotes unless needed):
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-28-1" name="__codelineno-28-1" href="#__codelineno-28-1"></a># BAD
+<a id="__codelineno-28-2" name="__codelineno-28-2" href="#__codelineno-28-2"></a>API_KEY = &quot;my-key&quot;
+<a id="__codelineno-28-3" name="__codelineno-28-3" href="#__codelineno-28-3"></a># GOOD
+<a id="__codelineno-28-4" name="__codelineno-28-4" href="#__codelineno-28-4"></a>API_KEY=my-key
+</code></pre></div></p>
+</li>
+<li>
+<p>Test loading in Python:
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-29-1" name="__codelineno-29-1" href="#__codelineno-29-1"></a>python -c &quot;
+<a id="__codelineno-29-2" name="__codelineno-29-2" href="#__codelineno-29-2"></a>from dotenv import load_dotenv
+<a id="__codelineno-29-3" name="__codelineno-29-3" href="#__codelineno-29-3"></a>import os
+<a id="__codelineno-29-4" name="__codelineno-29-4" href="#__codelineno-29-4"></a>load_dotenv()
+<a id="__codelineno-29-5" name="__codelineno-29-5" href="#__codelineno-29-5"></a>assert os.getenv(&#39;OPENAI_API_KEY&#39;) is not None, &#39;OPENAI_API_KEY not set&#39;
+<a id="__codelineno-29-6" name="__codelineno-29-6" href="#__codelineno-29-6"></a>assert os.getenv(&#39;JWT_SECRET_KEY&#39;) is not None, &#39;JWT_SECRET_KEY not set&#39;
+<a id="__codelineno-29-7" name="__codelineno-29-7" href="#__codelineno-29-7"></a>print(&#39;Environment loaded successfully&#39;)
+<a id="__codelineno-29-8" name="__codelineno-29-8" href="#__codelineno-29-8"></a>&quot;
+</code></pre></div></p>
+</li>
+</ol>
+<p><strong>Required Environment Variables:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Variable</th>
+<th>Required</th>
+<th>Default</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>OPENAI_API_KEY</td>
+<td>Yes</td>
+<td>-</td>
+<td>OpenAI API key for LLM access</td>
+</tr>
+<tr>
+<td>JWT_SECRET_KEY</td>
+<td>Yes</td>
+<td>-</td>
+<td>Secret for JWT token signing</td>
+</tr>
+<tr>
+<td>DATABASE_URL</td>
+<td>No</td>
+<td>file:mastra.db</td>
+<td>Database connection string</td>
+</tr>
+<tr>
+<td>LOG_LEVEL</td>
+<td>No</td>
+<td>INFO</td>
+<td>Logging level (DEBUG, INFO, WARNING, ERROR)</td>
+</tr>
+<tr>
+<td>CACHE_TTL</td>
+<td>No</td>
+<td>3600</td>
+<td>Cache time-to-live in seconds</td>
+</tr>
+<tr>
+<td>RATE_LIMIT</td>
+<td>No</td>
+<td>100</td>
+<td>API rate limit per minute</td>
+</tr>
+<tr>
+<td>ETAP_EXECUTABLE</td>
+<td>No</td>
+<td>auto-detect</td>
+<td>Path to ETAP executable</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h3 id="issue-42-database-connection-failures">Issue 4.2: Database connection failures</h3>
+<p><strong>Symptoms:</strong>
+- <code>SQLAlchemy</code> connection errors in logs
+- <code>mastra.db</code> file is missing or locked
+- Read/write permission errors</p>
+<p><strong>Resolution Steps:</strong></p>
+<ol>
+<li>
+<p>Check if the database file exists and is accessible:
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-30-1" name="__codelineno-30-1" href="#__codelineno-30-1"></a>dir mastra.db
+</code></pre></div></p>
+</li>
+<li>
+<p>Verify SQLite file integrity:
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-31-1" name="__codelineno-31-1" href="#__codelineno-31-1"></a>python -c &quot;
+<a id="__codelineno-31-2" name="__codelineno-31-2" href="#__codelineno-31-2"></a>import sqlite3
+<a id="__codelineno-31-3" name="__codelineno-31-3" href="#__codelineno-31-3"></a>conn = sqlite3.connect(&#39;mastra.db&#39;)
+<a id="__codelineno-31-4" name="__codelineno-31-4" href="#__codelineno-31-4"></a>cursor = conn.execute(&#39;PRAGMA integrity_check&#39;)
+<a id="__codelineno-31-5" name="__codelineno-31-5" href="#__codelineno-31-5"></a>print(cursor.fetchone())
+<a id="__codelineno-31-6" name="__codelineno-31-6" href="#__codelineno-31-6"></a>conn.close()
+<a id="__codelineno-31-7" name="__codelineno-31-7" href="#__codelineno-31-7"></a>&quot;
+</code></pre></div>
+   Expected result: <code>('ok',)</code></p>
+</li>
+<li>
+<p>If the database is locked, check for other processes:
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-32-1" name="__codelineno-32-1" href="#__codelineno-32-1"></a>python -c &quot;
+<a id="__codelineno-32-2" name="__codelineno-32-2" href="#__codelineno-32-2"></a>import psutil
+<a id="__codelineno-32-3" name="__codelineno-32-3" href="#__codelineno-32-3"></a>for proc in psutil.process_iter([&#39;pid&#39;, &#39;name&#39;]):
+<a id="__codelineno-32-4" name="__codelineno-32-4" href="#__codelineno-32-4"></a>    if &#39;python&#39; in proc.info[&#39;name&#39;]:
+<a id="__codelineno-32-5" name="__codelineno-32-5" href="#__codelineno-32-5"></a>        print(f&#39;Python process: {proc.info[\&quot;pid\&quot;]}&#39;)
+<a id="__codelineno-32-6" name="__codelineno-32-6" href="#__codelineno-32-6"></a>&quot;
+</code></pre></div></p>
+</li>
+<li>
+<p>For permission issues, set correct ACLs on Windows:
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-33-1" name="__codelineno-33-1" href="#__codelineno-33-1"></a>icacls mastra.db /grant &quot;Everyone:(R,W)&quot;
+</code></pre></div></p>
+</li>
+<li>
+<p>Restore from backup if corrupted:
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-34-1" name="__codelineno-34-1" href="#__codelineno-34-1"></a>copy /Y backups\mastra_latest.db mastra.db
+</code></pre></div></p>
+</li>
+</ol>
+<hr />
+<h2 id="5-etap-integration-issues">5. ETAP Integration Issues</h2>
+<h3 id="issue-51-etap-com-connection-fails">Issue 5.1: ETAP COM connection fails</h3>
+<p><strong>Symptoms:</strong>
+- <code>ERR-001: ETAP_COM_CONNECTION_FAILED</code>
+- <code>pythoncom.com_error</code> in logs
+- ETAP window does not open
+- <code>ETAPAutomation</code> fails on <code>__enter__</code></p>
+<p><strong>Root Causes:</strong>
+- ETAP is not installed on the machine
+- ETAP COM components are not registered
+- Running on Linux/macOS (COM is Windows-only)
+- ETAP version incompatibility
+- Antivirus blocking COM instantiation
+- ETAP already running without automation permissions</p>
+<p><strong>Resolution Procedure:</strong></p>
+<ol>
+<li>
+<p>Verify ETAP is installed:
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-35-1" name="__codelineno-35-1" href="#__codelineno-35-1"></a>python -c &quot;
+<a id="__codelineno-35-2" name="__codelineno-35-2" href="#__codelineno-35-2"></a>import winreg
+<a id="__codelineno-35-3" name="__codelineno-35-3" href="#__codelineno-35-3"></a>with winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, r&#39;SOFTWARE\ETAP&#39;) as key:
+<a id="__codelineno-35-4" name="__codelineno-35-4" href="#__codelineno-35-4"></a>    version = winreg.QueryValueEx(key, &#39;Version&#39;)
+<a id="__codelineno-35-5" name="__codelineno-35-5" href="#__codelineno-35-5"></a>    print(f&#39;ETAP Version: {version}&#39;)
+<a id="__codelineno-35-6" name="__codelineno-35-6" href="#__codelineno-35-6"></a>&quot;
+</code></pre></div></p>
+</li>
+<li>
+<p>Register ETAP COM components:
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-36-1" name="__codelineno-36-1" href="#__codelineno-36-1"></a>cd &quot;C:\Program Files\ETAP\ETAP xx.x&quot;
+<a id="__codelineno-36-2" name="__codelineno-36-2" href="#__codelineno-36-2"></a>regsvr32 ETAPAutomation.dll
+</code></pre></div></p>
+</li>
+<li>
+<p>Test COM instantiation:
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-37-1" name="__codelineno-37-1" href="#__codelineno-37-1"></a>python -c &quot;
+<a id="__codelineno-37-2" name="__codelineno-37-2" href="#__codelineno-37-2"></a>import pythoncom
+<a id="__codelineno-37-3" name="__codelineno-37-3" href="#__codelineno-37-3"></a>import win32com.client
+<a id="__codelineno-37-4" name="__codelineno-37-4" href="#__codelineno-37-4"></a>pythoncom.CoInitialize()
+<a id="__codelineno-37-5" name="__codelineno-37-5" href="#__codelineno-37-5"></a>try:
+<a id="__codelineno-37-6" name="__codelineno-37-6" href="#__codelineno-37-6"></a>    etap = win32com.client.Dispatch(&#39;ETAP.Application&#39;)
+<a id="__codelineno-37-7" name="__codelineno-37-7" href="#__codelineno-37-7"></a>    print(&#39;ETAP COM Dispatch successful&#39;)
+<a id="__codelineno-37-8" name="__codelineno-37-8" href="#__codelineno-37-8"></a>    etap.Quit()
+<a id="__codelineno-37-9" name="__codelineno-37-9" href="#__codelineno-37-9"></a>except Exception as e:
+<a id="__codelineno-37-10" name="__codelineno-37-10" href="#__codelineno-37-10"></a>    print(f&#39;COM Dispatch failed: {e}&#39;)
+<a id="__codelineno-37-11" name="__codelineno-37-11" href="#__codelineno-37-11"></a>finally:
+<a id="__codelineno-37-12" name="__codelineno-37-12" href="#__codelineno-37-12"></a>    pythoncom.CoUninitialize()
+<a id="__codelineno-37-13" name="__codelineno-37-13" href="#__codelineno-37-13"></a>&quot;
+</code></pre></div></p>
+</li>
+<li>
+<p>Check if ETAP is already running (only one instance allowed):
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-38-1" name="__codelineno-38-1" href="#__codelineno-38-1"></a>tasklist | findstr etap.exe
+</code></pre></div>
+   If running, either use the existing instance or close it: <code>taskkill /F /IM etap.exe</code></p>
+</li>
+<li>
+<p>Verify that ETAP is configured for automation:</p>
+</li>
+<li>Open ETAP manually</li>
+<li>Go to Tools &gt; Options &gt; Automation</li>
+<li>Ensure "Enable COM Automation" is checked</li>
+<li>
+<p>Note: This setting may require restarting ETAP</p>
+</li>
+<li>
+<p>If running as a service, ensure the service has "Allow service to interact with desktop" checked, or run the ETAP agent as the logged-in user.</p>
+</li>
+</ol>
+<p><strong>Verification Steps:</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-39-1" name="__codelineno-39-1" href="#__codelineno-39-1"></a>python -c &quot;
+<a id="__codelineno-39-2" name="__codelineno-39-2" href="#__codelineno-39-2"></a>from etap_integration.etap_com import ETAPAutomation
+<a id="__codelineno-39-3" name="__codelineno-39-3" href="#__codelineno-39-3"></a>with ETAPAutomation(visible=False) as etap:
+<a id="__codelineno-39-4" name="__codelineno-39-4" href="#__codelineno-39-4"></a>    version = etap.get_version()
+<a id="__codelineno-39-5" name="__codelineno-39-5" href="#__codelineno-39-5"></a>    print(f&#39;ETAP connected: {version}&#39;)
+<a id="__codelineno-39-6" name="__codelineno-39-6" href="#__codelineno-39-6"></a>&quot;
+</code></pre></div>
+<p><strong>Log Files to Check:</strong>
+- <code>./logs/etap-com.log</code>
+- Windows Event Viewer: Applications and Services Logs</p>
+<p><strong>Prevention Measures:</strong>
+- Ensure ETAP is installed as part of the deployment process
+- Pre-register COM components during setup
+- Use a dedicated service account with desktop interaction permissions
+- Implement retry logic in <code>etap_com.py</code> with exponential backoff</p>
+<hr />
+<h3 id="issue-52-etap-project-fails-to-open">Issue 5.2: ETAP project fails to open</h3>
+<p><strong>Symptoms:</strong>
+- <code>ERR-002: ETAP_PROJECT_OPEN_FAILED</code>
+- <code>FileNotFoundError</code> or <code>COMError</code> in logs
+- ETAP shows "Unable to open project" dialog</p>
+<p><strong>Root Causes:</strong>
+- Project file path is invalid or contains spaces
+- Project file is from a newer/older version of ETAP
+- Project file is corrupted
+- Insufficient file permissions
+- Unicode characters in path</p>
+<p><strong>Resolution Steps:</strong></p>
+<ol>
+<li>
+<p>Verify the project file exists:
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-40-1" name="__codelineno-40-1" href="#__codelineno-40-1"></a>dir &quot;C:\Projects\MyProject.edb&quot;
+</code></pre></div></p>
+</li>
+<li>
+<p>Check file permissions:
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-41-1" name="__codelineno-41-1" href="#__codelineno-41-1"></a>icacls &quot;C:\Projects\MyProject.edb&quot;
+</code></pre></div></p>
+</li>
+<li>
+<p>Test opening in ETAP manually:</p>
+</li>
+<li>Open ETAP</li>
+<li>File &gt; Open &gt; Select project</li>
+<li>
+<p>Note any error messages from ETAP itself</p>
+</li>
+<li>
+<p>Check ETAP version compatibility:
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-42-1" name="__codelineno-42-1" href="#__codelineno-42-1"></a>python -c &quot;
+<a id="__codelineno-42-2" name="__codelineno-42-2" href="#__codelineno-42-2"></a>with open(&#39;C:\\Projects\\MyProject.edb&#39;, &#39;rb&#39;) as f:
+<a id="__codelineno-42-3" name="__codelineno-42-3" href="#__codelineno-42-3"></a>    header = f.read(50)
+<a id="__codelineno-42-4" name="__codelineno-42-4" href="#__codelineno-42-4"></a>    print(f&#39;File header: {header[:20].hex()}&#39;)
+<a id="__codelineno-42-5" name="__codelineno-42-5" href="#__codelineno-42-5"></a>    # ETAP version is encoded in the header
+<a id="__codelineno-42-6" name="__codelineno-42-6" href="#__codelineno-42-6"></a>&quot;
+</code></pre></div></p>
+</li>
+<li>
+<p>If the file path contains spaces, use the short path (8.3 format):
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-43-1" name="__codelineno-43-1" href="#__codelineno-43-1"></a>python -c &quot;
+<a id="__codelineno-43-2" name="__codelineno-43-2" href="#__codelineno-43-2"></a>import win32api
+<a id="__codelineno-43-3" name="__codelineno-43-3" href="#__codelineno-43-3"></a>short_path = win32api.GetShortPathName(r&#39;C:\My Long Path\Project.edb&#39;)
+<a id="__codelineno-43-4" name="__codelineno-43-4" href="#__codelineno-43-4"></a>print(f&#39;Short path: {short_path}&#39;)
+<a id="__codelineno-43-5" name="__codelineno-43-5" href="#__codelineno-43-5"></a>&quot;
+</code></pre></div></p>
+</li>
+<li>
+<p>For corrupted files, restore from backup:
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-44-1" name="__codelineno-44-1" href="#__codelineno-44-1"></a>copy /Y &quot;C:\Backups\Projects\MyProject.edb&quot; &quot;C:\Projects\MyProject.edb&quot;
+</code></pre></div></p>
+</li>
+</ol>
+<p><strong>Verification:</strong>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-45-1" name="__codelineno-45-1" href="#__codelineno-45-1"></a>python -c &quot;
+<a id="__codelineno-45-2" name="__codelineno-45-2" href="#__codelineno-45-2"></a>from etap_integration.etap_com import ETAPAutomation
+<a id="__codelineno-45-3" name="__codelineno-45-3" href="#__codelineno-45-3"></a>with ETAPAutomation(visible=False) as etap:
+<a id="__codelineno-45-4" name="__codelineno-45-4" href="#__codelineno-45-4"></a>    proj = etap.open_project(r&#39;C:\Projects\MyProject.edb&#39;)
+<a id="__codelineno-45-5" name="__codelineno-45-5" href="#__codelineno-45-5"></a>    assert proj is not None, &#39;Failed to open project&#39;
+<a id="__codelineno-45-6" name="__codelineno-45-6" href="#__codelineno-45-6"></a>    print(f&#39;Project opened: {proj.name}&#39;)
+<a id="__codelineno-45-7" name="__codelineno-45-7" href="#__codelineno-45-7"></a>    proj.close()
+<a id="__codelineno-45-8" name="__codelineno-45-8" href="#__codelineno-45-8"></a>&quot;
+</code></pre></div></p>
+<hr />
+<h3 id="issue-53-etap-study-execution-fails">Issue 5.3: ETAP study execution fails</h3>
+<p><strong>Symptoms:</strong>
+- <code>ERR-003: ETAP_STUDY_EXECUTION_FAILED</code>
+- Study returns <code>success=False</code> with error message
+- ETAP shows calculation errors
+- Results contain NaN or infinite values</p>
+<p><strong>Root Causes:</strong>
+- Load flow diverges due to system data issues
+- Missing study configuration parameters
+- ETAP license limit reached (concurrent study cap)
+- Input data validation errors in ETAP</p>
+<p><strong>Resolution Steps:</strong></p>
+<ol>
+<li>
+<p>Check ETAP license status:
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-46-1" name="__codelineno-46-1" href="#__codelineno-46-1"></a>python -c &quot;
+<a id="__codelineno-46-2" name="__codelineno-46-2" href="#__codelineno-46-2"></a>from etap_integration.etap_com import ETAPAutomation
+<a id="__codelineno-46-3" name="__codelineno-46-3" href="#__codelineno-46-3"></a>with ETAPAutomation(visible=False) as etap:
+<a id="__codelineno-46-4" name="__codelineno-46-4" href="#__codelineno-46-4"></a>    license_info = etap.get_license_info()
+<a id="__codelineno-46-5" name="__codelineno-46-5" href="#__codelineno-46-5"></a>    print(f&#39;License: {license_info}&#39;)
+<a id="__codelineno-46-6" name="__codelineno-46-6" href="#__codelineno-46-6"></a>&quot;
+</code></pre></div></p>
+</li>
+<li>
+<p>Run study with verbose logging enabled:
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-47-1" name="__codelineno-47-1" href="#__codelineno-47-1"></a>python -c &quot;
+<a id="__codelineno-47-2" name="__codelineno-47-2" href="#__codelineno-47-2"></a>from etap_integration.etap_com import ETAPAutomation, ETAPStudyType
+<a id="__codelineno-47-3" name="__codelineno-47-3" href="#__codelineno-47-3"></a>with ETAPAutomation(visible=False) as etap:
+<a id="__codelineno-47-4" name="__codelineno-47-4" href="#__codelineno-47-4"></a>    proj = etap.open_project(r&#39;C:\Projects\MyProject.edb&#39;)
+<a id="__codelineno-47-5" name="__codelineno-47-5" href="#__codelineno-47-5"></a>    proj.set_log_level(&#39;DEBUG&#39;)
+<a id="__codelineno-47-6" name="__codelineno-47-6" href="#__codelineno-47-6"></a>    result = proj.run_study(ETAPStudyType.LOAD_FLOW)
+<a id="__codelineno-47-7" name="__codelineno-47-7" href="#__codelineno-47-7"></a>    print(f&#39;Success: {result.success}&#39;)
+<a id="__codelineno-47-8" name="__codelineno-47-8" href="#__codelineno-47-8"></a>    print(f&#39;Errors: {result.error}&#39;)
+<a id="__codelineno-47-9" name="__codelineno-47-9" href="#__codelineno-47-9"></a>    print(f&#39;Log: {result.log}&#39;)
+<a id="__codelineno-47-10" name="__codelineno-47-10" href="#__codelineno-47-10"></a>&quot;
+</code></pre></div></p>
+</li>
+<li>
+<p>Validate the system data before running the study:</p>
+</li>
+<li>Check for isolated buses (no connection to any source)</li>
+<li>Verify generator ratings and dispatch settings</li>
+<li>Check load values are reasonable</li>
+<li>
+<p>Verify transformer tap settings</p>
+</li>
+<li>
+<p>For load flow divergence:</p>
+</li>
+<li>Increase the maximum iteration count: <code>proj.set_study_parameter('MaxIterations', 50)</code></li>
+<li>Use a flat start instead of previous solution: <code>proj.set_study_parameter('StartType', 'Flat')</code></li>
+<li>
+<p>Switch to Newton-Raphson instead of Fast Decoupled</p>
+</li>
+<li>
+<p>Reset study parameters to defaults:
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-48-1" name="__codelineno-48-1" href="#__codelineno-48-1"></a>python -c &quot;
+<a id="__codelineno-48-2" name="__codelineno-48-2" href="#__codelineno-48-2"></a>from etap_integration.etap_com import ETAPAutomation
+<a id="__codelineno-48-3" name="__codelineno-48-3" href="#__codelineno-48-3"></a>with ETAPAutomation(visible=False) as etap:
+<a id="__codelineno-48-4" name="__codelineno-48-4" href="#__codelineno-48-4"></a>    proj = etap.open_project(r&#39;C:\Projects\MyProject.edb&#39;)
+<a id="__codelineno-48-5" name="__codelineno-48-5" href="#__codelineno-48-5"></a>    proj.reset_study_settings(&#39;load_flow&#39;)
+<a id="__codelineno-48-6" name="__codelineno-48-6" href="#__codelineno-48-6"></a>    print(&#39;Study settings reset to default&#39;)
+<a id="__codelineno-48-7" name="__codelineno-48-7" href="#__codelineno-48-7"></a>&quot;
+</code></pre></div></p>
+</li>
+</ol>
+<p><strong>Verification:</strong>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-49-1" name="__codelineno-49-1" href="#__codelineno-49-1"></a>python -c &quot;
+<a id="__codelineno-49-2" name="__codelineno-49-2" href="#__codelineno-49-2"></a>from etap_integration.etap_com import ETAPAutomation, ETAPStudyType
+<a id="__codelineno-49-3" name="__codelineno-49-3" href="#__codelineno-49-3"></a>with ETAPAutomation(visible=False) as etap:
+<a id="__codelineno-49-4" name="__codelineno-49-4" href="#__codelineno-49-4"></a>    proj = etap.open_project(r&#39;C:\Projects\MyProject.edb&#39;)
+<a id="__codelineno-49-5" name="__codelineno-49-5" href="#__codelineno-49-5"></a>    result = proj.run_study(ETAPStudyType.LOAD_FLOW)
+<a id="__codelineno-49-6" name="__codelineno-49-6" href="#__codelineno-49-6"></a>    assert result.success, f&#39;Study failed: {result.error}&#39;
+<a id="__codelineno-49-7" name="__codelineno-49-7" href="#__codelineno-49-7"></a>    print(f&#39;Study completed: {len(result.data[\&quot;buses\&quot;])} buses analyzed&#39;)
+<a id="__codelineno-49-8" name="__codelineno-49-8" href="#__codelineno-49-8"></a>&quot;
+</code></pre></div></p>
+<hr />
+<h3 id="issue-54-etap-com-times-out">Issue 5.4: ETAP COM times out</h3>
+<p><strong>Symptoms:</strong>
+- Operations hang indefinitely
+- <code>pywintypes.com_error: (-2147221008, 'Call was rejected by callee.')</code>
+- Timeout errors after 30+ seconds</p>
+<p><strong>Root Causes:</strong>
+- ETAP is busy with another operation (modal dialog open)
+- ETAP is showing a message box waiting for user input
+- ETAP crash but process still running
+- COM marshaling delays with large data transfers</p>
+<p><strong>Resolution Steps:</strong></p>
+<ol>
+<li>
+<p>Check if ETAP has a modal dialog open:
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-50-1" name="__codelineno-50-1" href="#__codelineno-50-1"></a>python -c &quot;
+<a id="__codelineno-50-2" name="__codelineno-50-2" href="#__codelineno-50-2"></a>import win32gui, win32process
+<a id="__codelineno-50-3" name="__codelineno-50-3" href="#__codelineno-50-3"></a>import psutil
+<a id="__codelineno-50-4" name="__codelineno-50-4" href="#__codelineno-50-4"></a>for proc in psutil.process_iter([&#39;pid&#39;, &#39;name&#39;]):
+<a id="__codelineno-50-5" name="__codelineno-50-5" href="#__codelineno-50-5"></a>    if &#39;etap&#39; in proc.info[&#39;name&#39;].lower():
+<a id="__codelineno-50-6" name="__codelineno-50-6" href="#__codelineno-50-6"></a>        def enum_windows(hwnd, _):
+<a id="__codelineno-50-7" name="__codelineno-50-7" href="#__codelineno-50-7"></a>            if win32gui.IsWindowVisible(hwnd):
+<a id="__codelineno-50-8" name="__codelineno-50-8" href="#__codelineno-50-8"></a>                _, pid = win32process.GetWindowThreadProcessId(hwnd)
+<a id="__codelineno-50-9" name="__codelineno-50-9" href="#__codelineno-50-9"></a>                if pid == proc.info[&#39;pid&#39;]:
+<a id="__codelineno-50-10" name="__codelineno-50-10" href="#__codelineno-50-10"></a>                    text = win32gui.GetWindowText(hwnd)
+<a id="__codelineno-50-11" name="__codelineno-50-11" href="#__codelineno-50-11"></a>                    if text and &#39;ETAP&#39; in text:
+<a id="__codelineno-50-12" name="__codelineno-50-12" href="#__codelineno-50-12"></a>                        print(f&#39;ETAP window: {text}&#39;)
+<a id="__codelineno-50-13" name="__codelineno-50-13" href="#__codelineno-50-13"></a>        win32gui.EnumWindows(enum_windows, None)
+<a id="__codelineno-50-14" name="__codelineno-50-14" href="#__codelineno-50-14"></a>&quot;
+</code></pre></div></p>
+</li>
+<li>
+<p>Close any open modal dialogs programmatically:
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-51-1" name="__codelineno-51-1" href="#__codelineno-51-1"></a>python -c &quot;
+<a id="__codelineno-51-2" name="__codelineno-51-2" href="#__codelineno-51-2"></a>import win32com.client
+<a id="__codelineno-51-3" name="__codelineno-51-3" href="#__codelineno-51-3"></a>shell = win32com.client.Dispatch(&#39;Shell.Application&#39;)
+<a id="__codelineno-51-4" name="__codelineno-51-4" href="#__codelineno-51-4"></a>shell.Windows().Item(0).Quit()  # Close open dialogs
+<a id="__codelineno-51-5" name="__codelineno-51-5" href="#__codelineno-51-5"></a>&quot;
+</code></pre></div></p>
+</li>
+<li>
+<p>Kill orphaned ETAP processes:
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-52-1" name="__codelineno-52-1" href="#__codelineno-52-1"></a>taskkill /F /IM etap.exe
+</code></pre></div></p>
+</li>
+<li>
+<p>Implement shorter COM timeouts in <code>etap_com.py</code>:</p>
+</li>
+<li>Set <code>pythoncom.CoInitializeEx(pythoncom.COINIT_MULTITHREADED)</code></li>
+<li>Use async COM calls with timeout wrappers</li>
+</ol>
+<p><strong>Prevention:</strong>
+- Always run ETAP with <code>visible=False</code> to suppress dialog boxes
+- Implement watchdog timers in the COM interface
+- Use the <code>ETAPAutomation</code> context manager which ensures cleanup</p>
+<hr />
+<h2 id="6-calculation-engine-issues">6. Calculation Engine Issues</h2>
+<h3 id="issue-61-load-flow-does-not-converge">Issue 6.1: Load flow does not converge</h3>
+<p><strong>Symptoms:</strong>
+- <code>ERR-010: LOAD_FLOW_DIVERGENCE</code>
+- Newton-Raphson iteration count exceeds maximum
+- Voltage magnitudes oscillate or diverge
+- <code>converged=False</code> returned</p>
+<p><strong>Root Causes:</strong>
+- System has isolated buses (not connected to any source)
+- Slack bus reference angle is unstable
+- Generator reactive power limits are too restrictive
+- Transformer tap settings are outside feasible range
+- Load values exceed generation capacity
+- High R/X ratio causing numerical instability</p>
+<p><strong>Resolution Procedure:</strong></p>
+<ol>
+<li>
+<p>Verify system connectivity:
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-53-1" name="__codelineno-53-1" href="#__codelineno-53-1"></a>python -c &quot;
+<a id="__codelineno-53-2" name="__codelineno-53-2" href="#__codelineno-53-2"></a>from core_model.system import System
+<a id="__codelineno-53-3" name="__codelineno-53-3" href="#__codelineno-53-3"></a>sys = System.load(&#39;path/to/system.json&#39;)
+<a id="__codelineno-53-4" name="__codelineno-53-4" href="#__codelineno-53-4"></a>islands = sys.find_islands()
+<a id="__codelineno-53-5" name="__codelineno-53-5" href="#__codelineno-53-5"></a>for i, island in enumerate(islands):
+<a id="__codelineno-53-6" name="__codelineno-53-6" href="#__codelineno-53-6"></a>    print(f&#39;Island {i}: {len(island.buses)} buses, has_slack={island.has_slack_bus()}&#39;)
+<a id="__codelineno-53-7" name="__codelineno-53-7" href="#__codelineno-53-7"></a>&quot;
+</code></pre></div></p>
+</li>
+<li>
+<p>Check for buses outside voltage limits:
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-54-1" name="__codelineno-54-1" href="#__codelineno-54-1"></a>python -c &quot;
+<a id="__codelineno-54-2" name="__codelineno-54-2" href="#__codelineno-54-2"></a>from load_flow.load_flow import LoadFlowEngine
+<a id="__codelineno-54-3" name="__codelineno-54-3" href="#__codelineno-54-3"></a>engine = LoadFlowEngine()
+<a id="__codelineno-54-4" name="__codelineno-54-4" href="#__codelineno-54-4"></a>engine.load_system(&#39;path/to/system.json&#39;)
+<a id="__codelineno-54-5" name="__codelineno-54-5" href="#__codelineno-54-5"></a>violations = engine.check_voltage_limits(0.95, 1.05)
+<a id="__codelineno-54-6" name="__codelineno-54-6" href="#__codelineno-54-6"></a>print(f&#39;Voltage violations found: {len(violations)}&#39;)
+<a id="__codelineno-54-7" name="__codelineno-54-7" href="#__codelineno-54-7"></a>for v in violations[:5]:
+<a id="__codelineno-54-8" name="__codelineno-54-8" href="#__codelineno-54-8"></a>    print(f&#39;  Bus {v[\&quot;bus\&quot;]}: {v[\&quot;voltage\&quot;]:.4f} pu&#39;)
+<a id="__codelineno-54-9" name="__codelineno-54-9" href="#__codelineno-54-9"></a>&quot;
+</code></pre></div></p>
+</li>
+<li>
+<p>Increase max iterations or adjust tolerance:
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-55-1" name="__codelineno-55-1" href="#__codelineno-55-1"></a><span class="n">engine</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">max_iterations</span> <span class="o">=</span> <span class="mi">50</span>
+<a id="__codelineno-55-2" name="__codelineno-55-2" href="#__codelineno-55-2"></a><span class="n">engine</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">tolerance</span> <span class="o">=</span> <span class="mf">1e-4</span>
+<a id="__codelineno-55-3" name="__codelineno-55-3" href="#__codelineno-55-3"></a><span class="n">engine</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">acceleration_factor</span> <span class="o">=</span> <span class="mf">1.2</span>
+</code></pre></div></p>
+</li>
+<li>
+<p>Switch solution method if using Fast Decoupled, try Newton-Raphson:
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-56-1" name="__codelineno-56-1" href="#__codelineno-56-1"></a><span class="n">engine</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">method</span> <span class="o">=</span> <span class="s1">&#39;NEWTON_RAPHSON&#39;</span>
+</code></pre></div></p>
+</li>
+<li>
+<p>Gradually apply loads (continuation power flow approach):
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-57-1" name="__codelineno-57-1" href="#__codelineno-57-1"></a><span class="n">engine</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">load_scaling_factor</span> <span class="o">=</span> <span class="mf">0.5</span>  <span class="c1"># Start at 50% load</span>
+<a id="__codelineno-57-2" name="__codelineno-57-2" href="#__codelineno-57-2"></a><span class="n">engine</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">scaling_enabled</span> <span class="o">=</span> <span class="kc">True</span>
+</code></pre></div></p>
+</li>
+<li>
+<p>Check for numerical issues:</p>
+</li>
+<li>Ensure per-unit values are within reasonable ranges</li>
+<li>Verify base MVA is consistent across all components</li>
+<li>Check transformer impedances are in correct units</li>
+</ol>
+<p><strong>Verification Steps:</strong>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-58-1" name="__codelineno-58-1" href="#__codelineno-58-1"></a>python -c &quot;
+<a id="__codelineno-58-2" name="__codelineno-58-2" href="#__codelineno-58-2"></a>from load_flow.load_flow import LoadFlowEngine
+<a id="__codelineno-58-3" name="__codelineno-58-3" href="#__codelineno-58-3"></a>engine = LoadFlowEngine()
+<a id="__codelineno-58-4" name="__codelineno-58-4" href="#__codelineno-58-4"></a>engine.load_system(&#39;path/to/system.json&#39;)
+<a id="__codelineno-58-5" name="__codelineno-58-5" href="#__codelineno-58-5"></a>engine.parameters.max_iterations = 50
+<a id="__codelineno-58-6" name="__codelineno-58-6" href="#__codelineno-58-6"></a>result = engine.solve()
+<a id="__codelineno-58-7" name="__codelineno-58-7" href="#__codelineno-58-7"></a>assert result.converged, f&#39;Load flow did not converge after {engine.iteration_count} iterations&#39;
+<a id="__codelineno-58-8" name="__codelineno-58-8" href="#__codelineno-58-8"></a>print(f&#39;Converged in {engine.iteration_count} iterations. Max voltage: {result.max_voltage:.4f} pu&#39;)
+<a id="__codelineno-58-9" name="__codelineno-58-9" href="#__codelineno-58-9"></a>&quot;
+</code></pre></div></p>
+<p><strong>Log Files to Check:</strong>
+- <code>./logs/calculation.log</code> - Search for "LOAD_FLOW_DIVERGENCE"
+- <code>./logs/python-backend.log</code> - Orchestrator task logs</p>
+<p><strong>Prevention Measures:</strong>
+- Validate system connectivity before running load flow
+- Set realistic voltage limits based on system voltage level
+- Implement automatic method switching (NR -&gt; FD -&gt; DC)
+- Use continuation power flow for ill-conditioned systems</p>
+<hr />
+<h3 id="issue-62-short-circuit-results-are-incorrect">Issue 6.2: Short circuit results are incorrect</h3>
+<p><strong>Symptoms:</strong>
+- <code>ERR-012: SHORT_CIRCUIT_CALCULATION_ERROR</code>
+- Fault currents are unrealistically high (&gt;100 kA)
+- Zero-sequence values are NaN or zero
+- IEC 60909 correction factors produce unexpected results</p>
+<p><strong>Root Causes:</strong>
+- Missing ground paths in transformer connections
+- Incorrect generator subtransient reactance values
+- Zero-sequence network not properly constructed
+- Missing neutral grounding impedance data
+- Voltage factor (c) selection incorrect per IEC 60909</p>
+<p><strong>Resolution Steps:</strong></p>
+<ol>
+<li>
+<p>Verify generator data:
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-59-1" name="__codelineno-59-1" href="#__codelineno-59-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">core_model.system</span><span class="w"> </span><span class="kn">import</span> <span class="n">System</span>
+<a id="__codelineno-59-2" name="__codelineno-59-2" href="#__codelineno-59-2"></a><span class="n">sys</span> <span class="o">=</span> <span class="n">System</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s1">&#39;system.json&#39;</span><span class="p">)</span>
+<a id="__codelineno-59-3" name="__codelineno-59-3" href="#__codelineno-59-3"></a><span class="k">for</span> <span class="n">gen</span> <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">generators</span><span class="p">:</span>
+<a id="__codelineno-59-4" name="__codelineno-59-4" href="#__codelineno-59-4"></a>    <span class="k">if</span> <span class="n">gen</span><span class="o">.</span><span class="n">xd_subtransient</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">gen</span><span class="o">.</span><span class="n">xd_subtransient</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+<a id="__codelineno-59-5" name="__codelineno-59-5" href="#__codelineno-59-5"></a>        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Warning: Generator </span><span class="si">{</span><span class="n">gen</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s1"> missing subtransient reactance&#39;</span><span class="p">)</span>
+</code></pre></div></p>
+</li>
+<li>
+<p>Check transformer grounding configuration:
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-60-1" name="__codelineno-60-1" href="#__codelineno-60-1"></a><span class="k">for</span> <span class="n">tx</span> <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">transformers</span><span class="p">:</span>
+<a id="__codelineno-60-2" name="__codelineno-60-2" href="#__codelineno-60-2"></a>    <span class="k">if</span> <span class="n">tx</span><span class="o">.</span><span class="n">winding1_connection</span> <span class="o">==</span> <span class="s1">&#39;Y&#39;</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">tx</span><span class="o">.</span><span class="n">winding1_grounded</span><span class="p">:</span>
+<a id="__codelineno-60-3" name="__codelineno-60-3" href="#__codelineno-60-3"></a>        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Warning: Transformer </span><span class="si">{</span><span class="n">tx</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s1"> ungrounded wye on primary&#39;</span><span class="p">)</span>
+<a id="__codelineno-60-4" name="__codelineno-60-4" href="#__codelineno-60-4"></a>    <span class="k">if</span> <span class="n">tx</span><span class="o">.</span><span class="n">winding2_connection</span> <span class="o">==</span> <span class="s1">&#39;Y&#39;</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">tx</span><span class="o">.</span><span class="n">winding2_grounded</span><span class="p">:</span>
+<a id="__codelineno-60-5" name="__codelineno-60-5" href="#__codelineno-60-5"></a>        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Warning: Transformer </span><span class="si">{</span><span class="n">tx</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s1"> ungrounded wye on secondary&#39;</span><span class="p">)</span>
+</code></pre></div></p>
+</li>
+<li>
+<p>Validate zero-sequence network:
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-61-1" name="__codelineno-61-1" href="#__codelineno-61-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">fault_analysis.fault</span><span class="w"> </span><span class="kn">import</span> <span class="n">FaultAnalyzer</span>
+<a id="__codelineno-61-2" name="__codelineno-61-2" href="#__codelineno-61-2"></a><span class="n">analyzer</span> <span class="o">=</span> <span class="n">FaultAnalyzer</span><span class="p">(</span><span class="n">sys</span><span class="p">)</span>
+<a id="__codelineno-61-3" name="__codelineno-61-3" href="#__codelineno-61-3"></a><span class="n">z_network</span> <span class="o">=</span> <span class="n">analyzer</span><span class="o">.</span><span class="n">build_zero_sequence_network</span><span class="p">()</span>
+<a id="__codelineno-61-4" name="__codelineno-61-4" href="#__codelineno-61-4"></a><span class="k">if</span> <span class="n">z_network</span><span class="o">.</span><span class="n">is_singular</span><span class="p">():</span>
+<a id="__codelineno-61-5" name="__codelineno-61-5" href="#__codelineno-61-5"></a>    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Zero-sequence network is singular - check grounding&#39;</span><span class="p">)</span>
+</code></pre></div></p>
+</li>
+<li>
+<p>Verify IEC 60909 voltage factor (c):
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-62-1" name="__codelineno-62-1" href="#__codelineno-62-1"></a>| Voltage Level | c_max (for max fault) | c_min (for min fault) |
+<a id="__codelineno-62-2" name="__codelineno-62-2" href="#__codelineno-62-2"></a>|---------------|----------------------|----------------------|
+<a id="__codelineno-62-3" name="__codelineno-62-3" href="#__codelineno-62-3"></a>| LV (&lt;=1kV)    | 1.10                 | 0.95                 |
+<a id="__codelineno-62-4" name="__codelineno-62-4" href="#__codelineno-62-4"></a>| MV (1-35kV)   | 1.10                 | 1.00                 |
+<a id="__codelineno-62-5" name="__codelineno-62-5" href="#__codelineno-62-5"></a>| HV (&gt;35kV)    | 1.10                 | 1.00                 |
+</code></pre></div></p>
+</li>
+<li>
+<p>Test with a simple 3-bus system to verify the algorithm:
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-63-1" name="__codelineno-63-1" href="#__codelineno-63-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">fault_analysis.test_fault_debug</span><span class="w"> </span><span class="kn">import</span> <span class="n">test_simple_fault</span>
+<a id="__codelineno-63-2" name="__codelineno-63-2" href="#__codelineno-63-2"></a><span class="n">test_simple_fault</span><span class="p">()</span>
+</code></pre></div></p>
+</li>
+</ol>
+<p><strong>Verification:</strong>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-64-1" name="__codelineno-64-1" href="#__codelineno-64-1"></a>python -c &quot;
+<a id="__codelineno-64-2" name="__codelineno-64-2" href="#__codelineno-64-2"></a>from fault_analysis.fault import FaultAnalyzer
+<a id="__codelineno-64-3" name="__codelineno-64-3" href="#__codelineno-64-3"></a>from core_model.system import System
+<a id="__codelineno-64-4" name="__codelineno-64-4" href="#__codelineno-64-4"></a>sys = System.load(&#39;system.json&#39;)
+<a id="__codelineno-64-5" name="__codelineno-64-5" href="#__codelineno-64-5"></a>analyzer = FaultAnalyzer(sys)
+<a id="__codelineno-64-6" name="__codelineno-64-6" href="#__codelineno-64-6"></a>results = analyzer.calculate_all_faults()
+<a id="__codelineno-64-7" name="__codelineno-64-7" href="#__codelineno-64-7"></a>for bus, faults in results.items():
+<a id="__codelineno-64-8" name="__codelineno-64-8" href="#__codelineno-64-8"></a>    for ftype, data in faults.items():
+<a id="__codelineno-64-9" name="__codelineno-64-9" href="#__codelineno-64-9"></a>        current = abs(data[&#39;fault_current&#39;])
+<a id="__codelineno-64-10" name="__codelineno-64-10" href="#__codelineno-64-10"></a>        assert 0.1 &lt; current &lt; 100, f&#39;Implausible fault current: {current} kA&#39;
+<a id="__codelineno-64-11" name="__codelineno-64-11" href="#__codelineno-64-11"></a>print(&#39;Short circuit results validated&#39;)
+<a id="__codelineno-64-12" name="__codelineno-64-12" href="#__codelineno-64-12"></a>&quot;
+</code></pre></div></p>
+<hr />
+<h3 id="issue-63-harmonic-analysis-yields-invalid-thd">Issue 6.3: Harmonic analysis yields invalid THD</h3>
+<p><strong>Symptoms:</strong>
+- <code>ERR-014: HARMONIC_ANALYSIS_ERROR</code>
+- THD values exceed 100%
+- Resonant frequencies detected at fundamental
+- Harmonic impedance matrix is singular</p>
+<p><strong>Root Causes:</strong>
+- Missing harmonic source data (current injection values)
+- Incorrect frequency-dependent impedance models
+- Resonance near fundamental frequency (system design issue)
+- Insufficient harmonic orders analyzed</p>
+<p><strong>Resolution Steps:</strong></p>
+<ol>
+<li>
+<p>Verify harmonic source data:
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-65-1" name="__codelineno-65-1" href="#__codelineno-65-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">fault_analysis.harmonic_analysis</span><span class="w"> </span><span class="kn">import</span> <span class="n">HarmonicAnalyzer</span>
+<a id="__codelineno-65-2" name="__codelineno-65-2" href="#__codelineno-65-2"></a><span class="n">analyzer</span> <span class="o">=</span> <span class="n">HarmonicAnalyzer</span><span class="p">(</span><span class="n">sys</span><span class="p">)</span>
+<a id="__codelineno-65-3" name="__codelineno-65-3" href="#__codelineno-65-3"></a><span class="n">sources</span> <span class="o">=</span> <span class="n">analyzer</span><span class="o">.</span><span class="n">get_harmonic_sources</span><span class="p">()</span>
+<a id="__codelineno-65-4" name="__codelineno-65-4" href="#__codelineno-65-4"></a><span class="k">for</span> <span class="n">bus</span><span class="p">,</span> <span class="n">source</span> <span class="ow">in</span> <span class="n">sources</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+<a id="__codelineno-65-5" name="__codelineno-65-5" href="#__codelineno-65-5"></a>    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Bus </span><span class="si">{</span><span class="n">bus</span><span class="si">}</span><span class="s1">: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">source</span><span class="o">.</span><span class="n">spectrum</span><span class="p">)</span><span class="si">}</span><span class="s1"> harmonics&#39;</span><span class="p">)</span>
+<a id="__codelineno-65-6" name="__codelineno-65-6" href="#__codelineno-65-6"></a>    <span class="k">if</span> <span class="nb">max</span><span class="p">(</span><span class="n">source</span><span class="o">.</span><span class="n">spectrum</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span> <span class="o">&lt;</span> <span class="mi">50</span><span class="p">:</span>
+<a id="__codelineno-65-7" name="__codelineno-65-7" href="#__codelineno-65-7"></a>        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;  Warning: Only analyzing up to </span><span class="si">{</span><span class="nb">max</span><span class="p">(</span><span class="n">source</span><span class="o">.</span><span class="n">spectrum</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span><span class="si">}</span><span class="s1">th harmonic&#39;</span><span class="p">)</span>
+</code></pre></div></p>
+</li>
+<li>
+<p>Check for resonance near 50/60 Hz:
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-66-1" name="__codelineno-66-1" href="#__codelineno-66-1"></a><span class="n">impedance_scan</span> <span class="o">=</span> <span class="n">analyzer</span><span class="o">.</span><span class="n">scan_impedance</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">5000</span><span class="p">)</span>  <span class="c1"># 1 Hz to 5 kHz</span>
+<a id="__codelineno-66-2" name="__codelineno-66-2" href="#__codelineno-66-2"></a><span class="n">resonances</span> <span class="o">=</span> <span class="n">impedance_scan</span><span class="o">.</span><span class="n">find_resonances</span><span class="p">()</span>
+<a id="__codelineno-66-3" name="__codelineno-66-3" href="#__codelineno-66-3"></a><span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">resonances</span><span class="p">:</span>
+<a id="__codelineno-66-4" name="__codelineno-66-4" href="#__codelineno-66-4"></a>    <span class="k">if</span> <span class="nb">abs</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">frequency</span> <span class="o">-</span> <span class="mi">50</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">5</span> <span class="ow">or</span> <span class="nb">abs</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">frequency</span> <span class="o">-</span> <span class="mi">60</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">5</span><span class="p">:</span>
+<a id="__codelineno-66-5" name="__codelineno-66-5" href="#__codelineno-66-5"></a>        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;CRITICAL: Resonance near fundamental at </span><span class="si">{</span><span class="n">r</span><span class="o">.</span><span class="n">frequency</span><span class="si">}</span><span class="s1"> Hz&#39;</span><span class="p">)</span>
+</code></pre></div></p>
+</li>
+<li>
+<p>Increase harmonic order range:
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-67-1" name="__codelineno-67-1" href="#__codelineno-67-1"></a><span class="n">analyzer</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">max_harmonic_order</span> <span class="o">=</span> <span class="mi">50</span>  <span class="c1"># Up to 50th harmonic</span>
+</code></pre></div></p>
+</li>
+<li>
+<p>Verify frequency-dependent parameters:</p>
+</li>
+<li>Transformer leakage reactance: X(f) = X_rated * f/f_rated</li>
+<li>Line resistance: R(f) = R_dc * (1 + k * sqrt(f))</li>
+<li>Capacitor impedance: X_c(f) = X_c_rated / (f/f_rated)</li>
+</ol>
+<p><strong>Verification:</strong>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-68-1" name="__codelineno-68-1" href="#__codelineno-68-1"></a>python -c &quot;
+<a id="__codelineno-68-2" name="__codelineno-68-2" href="#__codelineno-68-2"></a>from fault_analysis.harmonic_analysis import HarmonicAnalyzer
+<a id="__codelineno-68-3" name="__codelineno-68-3" href="#__codelineno-68-3"></a>analyzer = HarmonicAnalyzer(sys)
+<a id="__codelineno-68-4" name="__codelineno-68-4" href="#__codelineno-68-4"></a>results = analyzer.analyze()
+<a id="__codelineno-68-5" name="__codelineno-68-5" href="#__codelineno-68-5"></a>thd_v = results[&#39;max_thd_voltage&#39;]
+<a id="__codelineno-68-6" name="__codelineno-68-6" href="#__codelineno-68-6"></a>thd_i = results[&#39;max_thd_current&#39;]
+<a id="__codelineno-68-7" name="__codelineno-68-7" href="#__codelineno-68-7"></a>assert thd_v &lt; 100, f&#39;THD &gt; 100%: {thd_v}%&#39;
+<a id="__codelineno-68-8" name="__codelineno-68-8" href="#__codelineno-68-8"></a>print(f&#39;Max THDv: {thd_v:.2f}%, Max THDi: {thd_i:.2f}%&#39;)
+<a id="__codelineno-68-9" name="__codelineno-68-9" href="#__codelineno-68-9"></a>&quot;
+</code></pre></div></p>
+<hr />
+<h3 id="issue-64-opf-solver-fails">Issue 6.4: OPF solver fails</h3>
+<p><strong>Symptoms:</strong>
+- <code>ERR-016: OPF_SOLVER_FAILED</code>
+- <code>SLSQP</code> or <code>LP</code> solver returns non-optimal status
+- Generator dispatch results violate constraints
+- Dual variables/infinity in sensitivity analysis</p>
+<p><strong>Root Causes:</strong>
+- Problem is infeasible (load exceeds generation capacity)
+- Line flow limits are too restrictive
+- Generator cost curves are non-convex
+- Voltage constraints conflict with reactive power limits
+- DC-OPF approximation invalid for system (high R/X)</p>
+<p><strong>Resolution Steps:</strong></p>
+<ol>
+<li>
+<p>Check problem feasibility:
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-69-1" name="__codelineno-69-1" href="#__codelineno-69-1"></a>python -c &quot;
+<a id="__codelineno-69-2" name="__codelineno-69-2" href="#__codelineno-69-2"></a>from load_flow.optimal_power_flow import OPFEngine
+<a id="__codelineno-69-3" name="__codelineno-69-3" href="#__codelineno-69-3"></a>opf = OPFEngine(sys)
+<a id="__codelineno-69-4" name="__codelineno-69-4" href="#__codelineno-69-4"></a>feasibility = opf.check_feasibility()
+<a id="__codelineno-69-5" name="__codelineno-69-5" href="#__codelineno-69-5"></a>print(f&#39;Feasible: {feasibility.is_feasible}&#39;)
+<a id="__codelineno-69-6" name="__codelineno-69-6" href="#__codelineno-69-6"></a>if not feasibility.is_feasible:
+<a id="__codelineno-69-7" name="__codelineno-69-7" href="#__codelineno-69-7"></a>    for constraint in feasibility.violated_constraints:
+<a id="__codelineno-69-8" name="__codelineno-69-8" href="#__codelineno-69-8"></a>        print(f&#39;  Constraint violated: {constraint}&#39;)
+<a id="__codelineno-69-9" name="__codelineno-69-9" href="#__codelineno-69-9"></a>&quot;
+</code></pre></div></p>
+</li>
+<li>
+<p>Compare total generation capacity vs total load:
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-70-1" name="__codelineno-70-1" href="#__codelineno-70-1"></a><span class="n">total_load</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">bus</span><span class="o">.</span><span class="n">load</span><span class="o">.</span><span class="n">p</span> <span class="k">for</span> <span class="n">bus</span> <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">buses</span><span class="p">)</span>
+<a id="__codelineno-70-2" name="__codelineno-70-2" href="#__codelineno-70-2"></a><span class="n">total_gen</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">gen</span><span class="o">.</span><span class="n">p_max</span> <span class="k">for</span> <span class="n">gen</span> <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">generators</span><span class="p">)</span>
+<a id="__codelineno-70-3" name="__codelineno-70-3" href="#__codelineno-70-3"></a><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Total load: </span><span class="si">{</span><span class="n">total_load</span><span class="si">}</span><span class="s1"> MW, Total gen capacity: </span><span class="si">{</span><span class="n">total_gen</span><span class="si">}</span><span class="s1"> MW&#39;</span><span class="p">)</span>
+<a id="__codelineno-70-4" name="__codelineno-70-4" href="#__codelineno-70-4"></a><span class="k">if</span> <span class="n">total_load</span> <span class="o">&gt;</span> <span class="n">total_gen</span><span class="p">:</span>
+<a id="__codelineno-70-5" name="__codelineno-70-5" href="#__codelineno-70-5"></a>    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;ERROR: Load exceeds generation capacity&#39;</span><span class="p">)</span>
+</code></pre></div></p>
+</li>
+<li>
+<p>Relax constraint limits progressively:
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-71-1" name="__codelineno-71-1" href="#__codelineno-71-1"></a><span class="n">opf</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">line_flow_limit_multiplier</span> <span class="o">=</span> <span class="mf">1.2</span>  <span class="c1"># 20% headroom</span>
+<a id="__codelineno-71-2" name="__codelineno-71-2" href="#__codelineno-71-2"></a><span class="n">opf</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">voltage_limit_tolerance</span> <span class="o">=</span> <span class="mf">0.02</span>     <span class="c1"># +/- 0.02 pu tolerance</span>
+</code></pre></div></p>
+</li>
+<li>
+<p>Try AC-OPF with different initial guess:
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-72-1" name="__codelineno-72-1" href="#__codelineno-72-1"></a><span class="n">opf</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">initialization</span> <span class="o">=</span> <span class="s1">&#39;flat_start&#39;</span>
+<a id="__codelineno-72-2" name="__codelineno-72-2" href="#__codelineno-72-2"></a><span class="n">opf</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">method</span> <span class="o">=</span> <span class="s1">&#39;SLSQP&#39;</span>
+<a id="__codelineno-72-3" name="__codelineno-72-3" href="#__codelineno-72-3"></a><span class="n">opf</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">max_iterations</span> <span class="o">=</span> <span class="mi">1000</span>
+</code></pre></div></p>
+</li>
+<li>
+<p>For non-convex cost curves, convert to piecewise linear approximation:
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-73-1" name="__codelineno-73-1" href="#__codelineno-73-1"></a><span class="k">for</span> <span class="n">gen</span> <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">generators</span><span class="p">:</span>
+<a id="__codelineno-73-2" name="__codelineno-73-2" href="#__codelineno-73-2"></a>    <span class="k">if</span> <span class="n">gen</span><span class="o">.</span><span class="n">cost_curve_type</span> <span class="o">==</span> <span class="s1">&#39;quadratic&#39;</span><span class="p">:</span>
+<a id="__codelineno-73-3" name="__codelineno-73-3" href="#__codelineno-73-3"></a>        <span class="n">gen</span><span class="o">.</span><span class="n">linearize_cost_curve</span><span class="p">(</span><span class="n">n_segments</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+</code></pre></div></p>
+</li>
+</ol>
+<p><strong>Verification:</strong>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-74-1" name="__codelineno-74-1" href="#__codelineno-74-1"></a>python -c &quot;
+<a id="__codelineno-74-2" name="__codelineno-74-2" href="#__codelineno-74-2"></a>from load_flow.optimal_power_flow import OPFEngine
+<a id="__codelineno-74-3" name="__codelineno-74-3" href="#__codelineno-74-3"></a>opf = OPFEngine(sys)
+<a id="__codelineno-74-4" name="__codelineno-74-4" href="#__codelineno-74-4"></a>result = opf.solve()
+<a id="__codelineno-74-5" name="__codelineno-74-5" href="#__codelineno-74-5"></a>assert result.status == &#39;optimal&#39;, f&#39;OPF failed: {result.status}&#39;
+<a id="__codelineno-74-6" name="__codelineno-74-6" href="#__codelineno-74-6"></a>print(f&#39;Optimal cost: ${result.total_cost:.2f}/hr&#39;)
+<a id="__codelineno-74-7" name="__codelineno-74-7" href="#__codelineno-74-7"></a>print(f&#39;Total losses: {result.total_losses:.2f} MW&#39;)
+<a id="__codelineno-74-8" name="__codelineno-74-8" href="#__codelineno-74-8"></a>&quot;
+</code></pre></div></p>
+<hr />
+<h2 id="7-securityauthentication-issues">7. Security/Authentication Issues</h2>
+<h3 id="issue-71-authentication-fails-jwt">Issue 7.1: Authentication fails (JWT)</h3>
+<p><strong>Symptoms:</strong>
+- <code>ERR-020: AUTHENTICATION_FAILED</code>
+- HTTP 401 Unauthorized responses
+- <code>Invalid token</code> or <code>Token expired</code> errors
+- Cannot access any API endpoints</p>
+<p><strong>Root Causes:</strong>
+- JWT secret key changed (invalidation of all tokens)
+- Token expired beyond its TTL
+- Clock skew between client and server
+- Token tampered with (signature mismatch)
+- Missing <code>Bearer</code> prefix in Authorization header</p>
+<p><strong>Resolution Steps:</strong></p>
+<ol>
+<li>
+<p>Verify JWT_SECRET_KEY is set:
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-75-1" name="__codelineno-75-1" href="#__codelineno-75-1"></a>python -c &quot;
+<a id="__codelineno-75-2" name="__codelineno-75-2" href="#__codelineno-75-2"></a>import os; assert os.getenv(&#39;JWT_SECRET_KEY&#39;), &#39;JWT_SECRET_KEY not set&#39;
+<a id="__codelineno-75-3" name="__codelineno-75-3" href="#__codelineno-75-3"></a>print(f&#39;JWT_SECRET_KEY configured: {os.getenv(\&quot;JWT_SECRET_KEY\&quot;)[:8]}...&#39;)
+<a id="__codelineno-75-4" name="__codelineno-75-4" href="#__codelineno-75-4"></a>&quot;
+</code></pre></div></p>
+</li>
+<li>
+<p>Test token generation and validation:
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-76-1" name="__codelineno-76-1" href="#__codelineno-76-1"></a>python -c &quot;
+<a id="__codelineno-76-2" name="__codelineno-76-2" href="#__codelineno-76-2"></a>from security.security_framework import AuthManager
+<a id="__codelineno-76-3" name="__codelineno-76-3" href="#__codelineno-76-3"></a>auth = AuthManager()
+<a id="__codelineno-76-4" name="__codelineno-76-4" href="#__codelineno-76-4"></a>token = auth.generate_token(user_id=&#39;test&#39;, role=&#39;engineer&#39;)
+<a id="__codelineno-76-5" name="__codelineno-76-5" href="#__codelineno-76-5"></a>print(f&#39;Token generated: {token[:50]}...&#39;)
+<a id="__codelineno-76-6" name="__codelineno-76-6" href="#__codelineno-76-6"></a>payload = auth.validate_token(token)
+<a id="__codelineno-76-7" name="__codelineno-76-7" href="#__codelineno-76-7"></a>assert payload is not None, &#39;Token validation failed&#39;
+<a id="__codelineno-76-8" name="__codelineno-76-8" href="#__codelineno-76-8"></a>print(f&#39;Token valid for user: {payload[\&quot;user_id\&quot;]}&#39;)
+<a id="__codelineno-76-9" name="__codelineno-76-9" href="#__codelineno-76-9"></a>&quot;
+</code></pre></div></p>
+</li>
+<li>
+<p>Check clock skew:
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-77-1" name="__codelineno-77-1" href="#__codelineno-77-1"></a>python -c &quot;
+<a id="__codelineno-77-2" name="__codelineno-77-2" href="#__codelineno-77-2"></a>import time, datetime
+<a id="__codelineno-77-3" name="__codelineno-77-3" href="#__codelineno-77-3"></a>print(f&#39;Server time: {datetime.datetime.utcnow()}&#39;)
+<a id="__codelineno-77-4" name="__codelineno-77-4" href="#__codelineno-77-4"></a># Compare with NTP time if possible
+<a id="__codelineno-77-5" name="__codelineno-77-5" href="#__codelineno-77-5"></a>&quot;
+</code></pre></div></p>
+</li>
+<li>
+<p>If secret key was rotated, invalidate all existing tokens by incrementing the token version.</p>
+</li>
+<li>
+<p>Verify the Authorization header format:
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-78-1" name="__codelineno-78-1" href="#__codelineno-78-1"></a>curl -H &quot;Authorization: Bearer &lt;token&gt;&quot; http://localhost:3000/api/v1/analyze
+</code></pre></div></p>
+</li>
+</ol>
+<p><strong>Verification:</strong>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-79-1" name="__codelineno-79-1" href="#__codelineno-79-1"></a>curl -H &quot;Authorization: Bearer $(python -c &#39;from security.security_framework import AuthManager; print(AuthManager().generate_token(\&quot;test\&quot;, \&quot;admin\&quot;))&#39;)&quot; http://localhost:3000/health
+<a id="__codelineno-79-2" name="__codelineno-79-2" href="#__codelineno-79-2"></a># Expected: 200 OK
+</code></pre></div></p>
+<hr />
+<h3 id="issue-72-rbac-permission-denied">Issue 7.2: RBAC permission denied</h3>
+<p><strong>Symptoms:</strong>
+- HTTP 403 Forbidden
+- <code>Insufficient permissions</code> error
+- User role cannot access resources they need</p>
+<p><strong>Root Causes:</strong>
+- User assigned incorrect role
+- Permission not granted for the specific action
+- Resource ownership mismatch
+- Role hierarchy not properly configured</p>
+<p><strong>Resolution Steps:</strong></p>
+<ol>
+<li>
+<p>Check user's current role and permissions:
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-80-1" name="__codelineno-80-1" href="#__codelineno-80-1"></a>python -c &quot;
+<a id="__codelineno-80-2" name="__codelineno-80-2" href="#__codelineno-80-2"></a>from security.security_framework import AuthManager
+<a id="__codelineno-80-3" name="__codelineno-80-3" href="#__codelineno-80-3"></a>auth = AuthManager()
+<a id="__codelineno-80-4" name="__codelineno-80-4" href="#__codelineno-80-4"></a>user = auth.get_user(&#39;username&#39;)
+<a id="__codelineno-80-5" name="__codelineno-80-5" href="#__codelineno-80-5"></a>print(f&#39;User role: {user.role}&#39;)
+<a id="__codelineno-80-6" name="__codelineno-80-6" href="#__codelineno-80-6"></a>print(f&#39;Permissions: {user.list_permissions()}&#39;)
+<a id="__codelineno-80-7" name="__codelineno-80-7" href="#__codelineno-80-7"></a>&quot;
+</code></pre></div></p>
+</li>
+<li>
+<p>List all available permissions:
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-81-1" name="__codelineno-81-1" href="#__codelineno-81-1"></a>python -c &quot;
+<a id="__codelineno-81-2" name="__codelineno-81-2" href="#__codelineno-81-2"></a>from security.security_framework import RBACManager
+<a id="__codelineno-81-3" name="__codelineno-81-3" href="#__codelineno-81-3"></a>rbac = RBACManager()
+<a id="__codelineno-81-4" name="__codelineno-81-4" href="#__codelineno-81-4"></a>for role, perms in rbac.get_all_permissions().items():
+<a id="__codelineno-81-5" name="__codelineno-81-5" href="#__codelineno-81-5"></a>    print(f&#39;{role}: {len(perms)} permissions&#39;)
+<a id="__codelineno-81-6" name="__codelineno-81-6" href="#__codelineno-81-6"></a>&quot;
+</code></pre></div></p>
+</li>
+<li>
+<p>Upgrade user role if appropriate:
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-82-1" name="__codelineno-82-1" href="#__codelineno-82-1"></a>python -c &quot;
+<a id="__codelineno-82-2" name="__codelineno-82-2" href="#__codelineno-82-2"></a>from security.security_framework import AuthManager
+<a id="__codelineno-82-3" name="__codelineno-82-3" href="#__codelineno-82-3"></a>auth = AuthManager()
+<a id="__codelineno-82-4" name="__codelineno-82-4" href="#__codelineno-82-4"></a>auth.update_user_role(&#39;username&#39;, &#39;admin&#39;)
+<a id="__codelineno-82-5" name="__codelineno-82-5" href="#__codelineno-82-5"></a>print(&#39;User upgraded to admin&#39;)
+<a id="__codelineno-82-6" name="__codelineno-82-6" href="#__codelineno-82-6"></a>&quot;
+</code></pre></div></p>
+</li>
+<li>
+<p>Check if resource ownership is enforced and the user owns the resource.</p>
+</li>
+</ol>
+<p><strong>Verification:</strong>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-83-1" name="__codelineno-83-1" href="#__codelineno-83-1"></a>python -c &quot;
+<a id="__codelineno-83-2" name="__codelineno-83-2" href="#__codelineno-83-2"></a>from security.security_framework import AuthManager, check_permission
+<a id="__codelineno-83-3" name="__codelineno-83-3" href="#__codelineno-83-3"></a>result = check_permission(&#39;username&#39;, &#39;run:etap_study&#39;)
+<a id="__codelineno-83-4" name="__codelineno-83-4" href="#__codelineno-83-4"></a>print(f&#39;Permission granted: {result}&#39;)
+<a id="__codelineno-83-5" name="__codelineno-83-5" href="#__codelineno-83-5"></a>&quot;
+</code></pre></div></p>
+<hr />
+<h2 id="8-performance-issues">8. Performance Issues</h2>
+<h3 id="issue-81-slow-load-flow-calculations">Issue 8.1: Slow load flow calculations</h3>
+<p><strong>Symptoms:</strong>
+- Load flow takes &gt;30 seconds for systems under 100 buses
+- CPU utilization is low during calculations (not CPU-bound)
+- Memory usage grows unexpectedly</p>
+<p><strong>Root Causes:</strong>
+- Jacobian matrix construction is inefficient
+- Using Newton-Raphson when Fast Decoupled would suffice
+- Large impedance values causing near-singular matrix
+- Python overhead in hot loops</p>
+<p><strong>Resolution Steps:</strong></p>
+<ol>
+<li>
+<p>Switch solver method for better performance:
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-84-1" name="__codelineno-84-1" href="#__codelineno-84-1"></a><span class="n">engine</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">method</span> <span class="o">=</span> <span class="s1">&#39;FAST_DECOUPLED&#39;</span>  <span class="c1"># 2-5x faster for transmission systems</span>
+</code></pre></div></p>
+</li>
+<li>
+<p>Enable sparse matrix solvers:
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-85-1" name="__codelineno-85-1" href="#__codelineno-85-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">scipy.sparse.linalg</span><span class="w"> </span><span class="kn">import</span> <span class="n">spsolve</span>
+<a id="__codelineno-85-2" name="__codelineno-85-2" href="#__codelineno-85-2"></a><span class="n">engine</span><span class="o">.</span><span class="n">use_sparse</span> <span class="o">=</span> <span class="kc">True</span>
+</code></pre></div></p>
+</li>
+<li>
+<p>If memory is the issue, reduce system size or enable out-of-core computation:
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-86-1" name="__codelineno-86-1" href="#__codelineno-86-1"></a><span class="n">engine</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">memory_limit_mb</span> <span class="o">=</span> <span class="mi">1024</span>
+<a id="__codelineno-86-2" name="__codelineno-86-2" href="#__codelineno-86-2"></a><span class="n">engine</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">use_incremental_solving</span> <span class="o">=</span> <span class="kc">True</span>
+</code></pre></div></p>
+</li>
+<li>
+<p>Profile the calculation to find bottlenecks:
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-87-1" name="__codelineno-87-1" href="#__codelineno-87-1"></a>python -m cProfile -o profile.out load_flow/load_flow.py
+<a id="__codelineno-87-2" name="__codelineno-87-2" href="#__codelineno-87-2"></a>python -c &quot;
+<a id="__codelineno-87-3" name="__codelineno-87-3" href="#__codelineno-87-3"></a>import pstats
+<a id="__codelineno-87-4" name="__codelineno-87-4" href="#__codelineno-87-4"></a>p = pstats.Stats(&#39;profile.out&#39;)
+<a id="__codelineno-87-5" name="__codelineno-87-5" href="#__codelineno-87-5"></a>p.sort_stats(&#39;cumtime&#39;).print_stats(20)
+<a id="__codelineno-87-6" name="__codelineno-87-6" href="#__codelineno-87-6"></a>&quot;
+</code></pre></div></p>
+</li>
+<li>
+<p>Cache the Jacobian matrix if topology hasn't changed:
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-88-1" name="__codelineno-88-1" href="#__codelineno-88-1"></a><span class="n">engine</span><span class="o">.</span><span class="n">cache_jacobian</span> <span class="o">=</span> <span class="kc">True</span>  <span class="c1"># Reuse Jacobian for similar operating points</span>
+</code></pre></div></p>
+</li>
+</ol>
+<p><strong>Benchmark Comparison:</strong>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-89-1" name="__codelineno-89-1" href="#__codelineno-89-1"></a>| Method | 14 Bus | 100 Bus | 500 Bus |
+<a id="__codelineno-89-2" name="__codelineno-89-2" href="#__codelineno-89-2"></a>|--------|--------|---------|---------|
+<a id="__codelineno-89-3" name="__codelineno-89-3" href="#__codelineno-89-3"></a>| Newton-Raphson (dense) | 0.8s | 4.5s | 28s |
+<a id="__codelineno-89-4" name="__codelineno-89-4" href="#__codelineno-89-4"></a>| Fast Decoupled | 0.3s | 1.2s | 8s |
+<a id="__codelineno-89-5" name="__codelineno-89-5" href="#__codelineno-89-5"></a>| NR + Sparse | 0.2s | 0.8s | 5s |
+</code></pre></div></p>
+<hr />
+<h3 id="issue-82-high-memory-usage">Issue 8.2: High memory usage</h3>
+<p><strong>Symptoms:</strong>
+- Memory usage exceeds 4GB
+- OOM (Out of Memory) killer terminates processes
+- Swap usage is high</p>
+<p><strong>Root Causes:</strong>
+- Large system model with many buses/lines
+- Fault analysis storing all Z-bus matrices
+- RAG engine loading large embedding models
+- Report generation with high-resolution images</p>
+<p><strong>Resolution Steps:</strong></p>
+<ol>
+<li>
+<p>Monitor memory usage per component:
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-90-1" name="__codelineno-90-1" href="#__codelineno-90-1"></a>python -c &quot;
+<a id="__codelineno-90-2" name="__codelineno-90-2" href="#__codelineno-90-2"></a>import psutil
+<a id="__codelineno-90-3" name="__codelineno-90-3" href="#__codelineno-90-3"></a>proc = psutil.Process()
+<a id="__codelineno-90-4" name="__codelineno-90-4" href="#__codelineno-90-4"></a>print(f&#39;Memory: {proc.memory_info().rss / 1024**3:.2f} GB&#39;)
+<a id="__codelineno-90-5" name="__codelineno-90-5" href="#__codelineno-90-5"></a>for child in proc.children():
+<a id="__codelineno-90-6" name="__codelineno-90-6" href="#__codelineno-90-6"></a>    print(f&#39;  Child: {child.memory_info().rss / 1024**3:.2f} GB&#39;)
+<a id="__codelineno-90-7" name="__codelineno-90-7" href="#__codelineno-90-7"></a>&quot;
+</code></pre></div></p>
+</li>
+<li>
+<p>Reduce embedding model size in RAG:
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-91-1" name="__codelineno-91-1" href="#__codelineno-91-1"></a># In .env
+<a id="__codelineno-91-2" name="__codelineno-91-2" href="#__codelineno-91-2"></a>EMBEDDING_MODEL=all-MiniLM-L6-v2  # Smaller model (80MB vs 400MB)
+</code></pre></div></p>
+</li>
+<li>
+<p>Limit concurrent studies:
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-92-1" name="__codelineno-92-1" href="#__codelineno-92-1"></a># In .env
+<a id="__codelineno-92-2" name="__codelineno-92-2" href="#__codelineno-92-2"></a>MAX_CONCURRENT_STUDIES=2
+</code></pre></div></p>
+</li>
+<li>
+<p>Clear caches periodically:
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-93-1" name="__codelineno-93-1" href="#__codelineno-93-1"></a>python -c &quot;
+<a id="__codelineno-93-2" name="__codelineno-93-2" href="#__codelineno-93-2"></a>from knowledge.rag_engine import RAGEngine
+<a id="__codelineno-93-3" name="__codelineno-93-3" href="#__codelineno-93-3"></a>engine = RAGEngine()
+<a id="__codelineno-93-4" name="__codelineno-93-4" href="#__codelineno-93-4"></a>engine.clear_cache()
+<a id="__codelineno-93-5" name="__codelineno-93-5" href="#__codelineno-93-5"></a>print(&#39;RAG cache cleared&#39;)
+<a id="__codelineno-93-6" name="__codelineno-93-6" href="#__codelineno-93-6"></a>&quot;
+</code></pre></div></p>
+</li>
+<li>
+<p>Enable memory limits in Docker:
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-94-1" name="__codelineno-94-1" href="#__codelineno-94-1"></a><span class="c1"># In docker-compose.yml</span>
+<a id="__codelineno-94-2" name="__codelineno-94-2" href="#__codelineno-94-2"></a><span class="nt">services</span><span class="p">:</span>
+<a id="__codelineno-94-3" name="__codelineno-94-3" href="#__codelineno-94-3"></a><span class="w">  </span><span class="nt">etap-platform</span><span class="p">:</span>
+<a id="__codelineno-94-4" name="__codelineno-94-4" href="#__codelineno-94-4"></a><span class="w">    </span><span class="nt">mem_limit</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">4g</span>
+<a id="__codelineno-94-5" name="__codelineno-94-5" href="#__codelineno-94-5"></a><span class="w">    </span><span class="nt">mem_reservation</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">2g</span>
+</code></pre></div></p>
+</li>
+</ol>
+<hr />
+<h2 id="9-deployment-issues">9. Deployment Issues</h2>
+<h3 id="issue-91-kubernetes-pod-crashes-on-startup">Issue 9.1: Kubernetes pod crashes on startup</h3>
+<p><strong>Symptoms:</strong>
+- <code>CrashLoopBackOff</code> status
+- Pod exits with non-zero code immediately
+- Liveness probe fails</p>
+<p><strong>Root Causes:</strong>
+- Secrets not mounted or missing keys
+- PersistentVolumeClaims not bound
+- Resource limits too restrictive
+- Missing ConfigMap entries</p>
+<p><strong>Resolution Steps:</strong></p>
+<ol>
+<li>
+<p>Check pod logs:
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-95-1" name="__codelineno-95-1" href="#__codelineno-95-1"></a>kubectl logs -l app=etap-platform --tail=100
+</code></pre></div></p>
+</li>
+<li>
+<p>Verify secrets are mounted:
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-96-1" name="__codelineno-96-1" href="#__codelineno-96-1"></a>kubectl exec -it &lt;pod-name&gt; -- env | grep -E &#39;OPENAI|JWT|DATABASE&#39;
+</code></pre></div></p>
+</li>
+<li>
+<p>Check PVC status:
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-97-1" name="__codelineno-97-1" href="#__codelineno-97-1"></a>kubectl get pvc
+<a id="__codelineno-97-2" name="__codelineno-97-2" href="#__codelineno-97-2"></a>kubectl describe pvc reports-pvc
+</code></pre></div></p>
+</li>
+<li>
+<p>Verify resource requests are not exceeding node capacity:
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-98-1" name="__codelineno-98-1" href="#__codelineno-98-1"></a>kubectl describe nodes | grep -A 5 Capacity
+</code></pre></div></p>
+</li>
+<li>
+<p>Test locally with the same configuration:
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-99-1" name="__codelineno-99-1" href="#__codelineno-99-1"></a>docker run --rm -it etap-platform:latest python -c &quot;from main import app; print(&#39;App loaded&#39;)&quot;
+</code></pre></div></p>
+</li>
+</ol>
+<p><strong>Verification:</strong>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-100-1" name="__codelineno-100-1" href="#__codelineno-100-1"></a>kubectl rollout status deployment/etap-platform
+<a id="__codelineno-100-2" name="__codelineno-100-2" href="#__codelineno-100-2"></a>kubectl get pods -l app=etap-platform
+<a id="__codelineno-100-3" name="__codelineno-100-3" href="#__codelineno-100-3"></a># Expected: 3/3 Running
+</code></pre></div></p>
+<hr />
+<h3 id="issue-92-docker-build-fails">Issue 9.2: Docker build fails</h3>
+<p><strong>Symptoms:</strong>
+- <code>docker build</code> exits with error
+- Layer caching issues
+- Network timeout during apt-get or pip install</p>
+<p><strong>Resolution Steps:</strong></p>
+<ol>
+<li>
+<p>Retry with no cache:
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-101-1" name="__codelineno-101-1" href="#__codelineno-101-1"></a>docker build --no-cache -t etap-platform:latest .
+</code></pre></div></p>
+</li>
+<li>
+<p>Use a different base image if dependencies conflict:
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-102-1" name="__codelineno-102-1" href="#__codelineno-102-1"></a><span class="k">FROM</span><span class="w"> </span><span class="s">python:3.11-slim-bookworm</span>
+</code></pre></div></p>
+</li>
+<li>
+<p>Add retry logic to apt-get:
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-103-1" name="__codelineno-103-1" href="#__codelineno-103-1"></a><span class="k">RUN</span><span class="w"> </span>apt-get<span class="w"> </span>update<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>apt-get<span class="w"> </span>install<span class="w"> </span>-y<span class="w"> </span>--no-install-recommends<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-103-2" name="__codelineno-103-2" href="#__codelineno-103-2"></a><span class="w">    </span>nodejs<span class="w"> </span>npm<span class="w"> </span>gcc<span class="w"> </span>g++<span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-103-3" name="__codelineno-103-3" href="#__codelineno-103-3"></a><span class="w">    </span><span class="o">(</span>sleep<span class="w"> </span><span class="m">5</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>apt-get<span class="w"> </span>update<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>apt-get<span class="w"> </span>install<span class="w"> </span>-y<span class="w"> </span>--no-install-recommends<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-103-4" name="__codelineno-103-4" href="#__codelineno-103-4"></a><span class="w">        </span>nodejs<span class="w"> </span>npm<span class="w"> </span>gcc<span class="w"> </span>g++<span class="o">)</span>
+</code></pre></div></p>
+</li>
+<li>
+<p>Use pip mirrors for faster installs:
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-104-1" name="__codelineno-104-1" href="#__codelineno-104-1"></a>pip install -r requirements.txt -i https://mirrors.aliyun.com/pypi/simple/
+</code></pre></div></p>
+</li>
+</ol>
+<p><strong>Verification:</strong>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-105-1" name="__codelineno-105-1" href="#__codelineno-105-1"></a>docker images | findstr etap-platform
+<a id="__codelineno-105-2" name="__codelineno-105-2" href="#__codelineno-105-2"></a># Expected: etap-platform   latest   &lt;hash&gt;   10 minutes ago
+</code></pre></div></p>
+<hr />
+<h2 id="10-dockercontainer-issues">10. Docker/Container Issues</h2>
+<h3 id="issue-101-container-exits-immediately">Issue 10.1: Container exits immediately</h3>
+<p><strong>Symptoms:</strong>
+- Container runs for &lt; 1 second then stops
+- No output in docker logs
+- Exit code 1 or 137</p>
+<p><strong>Root Causes:</strong>
+- Entrypoint script fails
+- Missing environment variables
+- Port binding conflicts
+- OOM kill (exit code 137)</p>
+<p><strong>Resolution Steps:</strong></p>
+<ol>
+<li>
+<p>Run interactively to see error:
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-106-1" name="__codelineno-106-1" href="#__codelineno-106-1"></a>docker run --rm -it --entrypoint /bin/bash etap-platform:latest
+<a id="__codelineno-106-2" name="__codelineno-106-2" href="#__codelineno-106-2"></a># Then manually start the service
+<a id="__codelineno-106-3" name="__codelineno-106-3" href="#__codelineno-106-3"></a>python main.py
+</code></pre></div></p>
+</li>
+<li>
+<p>Check exit code meaning:</p>
+</li>
+<li>Exit 0: Normal termination</li>
+<li>Exit 1: Application error (check logs)</li>
+<li>Exit 137: OOM killed (increase memory)</li>
+<li>
+<p>Exit 139: Segmentation fault</p>
+</li>
+<li>
+<p>Verify port mapping:
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-107-1" name="__codelineno-107-1" href="#__codelineno-107-1"></a>docker run --rm -p 3000:3000 -p 8000:8000 --env-file .env etap-platform:latest
+</code></pre></div></p>
+</li>
+</ol>
+<p><strong>Verification:</strong>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-108-1" name="__codelineno-108-1" href="#__codelineno-108-1"></a>docker ps --filter &quot;status=running&quot; --filter &quot;name=etap-platform&quot;
+</code></pre></div></p>
+<hr />
+<h3 id="issue-102-volume-mount-permission-issues">Issue 10.2: Volume mount permission issues</h3>
+<p><strong>Symptoms:</strong>
+- Permission denied errors in logs
+- Reports directory not writable
+- Database file cannot be created</p>
+<p><strong>Root Causes:</strong>
+- Host directory doesn't exist
+- UID/GID mismatch between container and host
+- SELinux/AppArmor blocking mounts</p>
+<p><strong>Resolution Steps:</strong></p>
+<ol>
+<li>
+<p>Create directories on host before mounting:
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-109-1" name="__codelineno-109-1" href="#__codelineno-109-1"></a>mkdir -p ./reports ./knowledge_db ./logs
+</code></pre></div></p>
+</li>
+<li>
+<p>For Windows, ensure shared drives are configured in Docker Desktop.</p>
+</li>
+<li>
+<p>Test volume mount explicitly:
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-110-1" name="__codelineno-110-1" href="#__codelineno-110-1"></a>docker run --rm -v C:\Users\EWS-01\Desktop\my-awesome-agent\reports:/app/reports etap-platform:latest ls -la /app/reports
+</code></pre></div></p>
+</li>
+<li>
+<p>If using Docker Desktop, reset credentials or shared drives in Docker Desktop settings.</p>
+</li>
+</ol>
+<p><strong>Verification:</strong>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-111-1" name="__codelineno-111-1" href="#__codelineno-111-1"></a>docker exec -it &lt;container_id&gt; touch /app/reports/test.txt
+<a id="__codelineno-111-2" name="__codelineno-111-2" href="#__codelineno-111-2"></a>echo &quot;Write test successful&quot;
+</code></pre></div></p>
+<hr />
+<h2 id="11-error-code-reference">11. Error Code Reference</h2>
+<h3 id="err-001-to-err-010-etap-integration-errors">ERR-001 to ERR-010: ETAP Integration Errors</h3>
+<table>
+<thead>
+<tr>
+<th>Code</th>
+<th>Message Template</th>
+<th>Component</th>
+<th>Severity</th>
+<th>Description</th>
+<th>Recommended Action</th>
+<th>Log File</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>ERR-001</td>
+<td><code>ETAP_COM_CONNECTION_FAILED: {reason}</code></td>
+<td>ETAP COM</td>
+<td>Fatal</td>
+<td>ETAP COM interface failed to initialize</td>
+<td>Verify ETAP installation, register COM components, check antivirus</td>
+<td>etap-com.log</td>
+</tr>
+<tr>
+<td>ERR-002</td>
+<td><code>ETAP_PROJECT_OPEN_FAILED: {path} - {reason}</code></td>
+<td>ETAP COM</td>
+<td>Error</td>
+<td>Unable to open ETAP project file</td>
+<td>Verify file exists, check version compatibility, restore from backup</td>
+<td>etap-com.log</td>
+</tr>
+<tr>
+<td>ERR-003</td>
+<td><code>ETAP_STUDY_EXECUTION_FAILED: {study_type} - {reason}</code></td>
+<td>ETAP COM</td>
+<td>Error</td>
+<td>ETAP study did not complete successfully</td>
+<td>Check study parameters, validate input data, review ETAP calculation log</td>
+<td>etap-com.log</td>
+</tr>
+<tr>
+<td>ERR-004</td>
+<td><code>ETAP_LICENSE_ERROR: {detail}</code></td>
+<td>ETAP COM</td>
+<td>Fatal</td>
+<td>ETAP license check failed</td>
+<td>Verify license server, check concurrent usage count, contact ETAP support</td>
+<td>etap-com.log</td>
+</tr>
+<tr>
+<td>ERR-005</td>
+<td><code>ETAP_VERSION_MISMATCH: expected {expected}, found {actual}</code></td>
+<td>ETAP COM</td>
+<td>Error</td>
+<td>ETAP version does not match expected</td>
+<td>Install supported ETAP version or update compatibility layer</td>
+<td>etap-com.log</td>
+</tr>
+<tr>
+<td>ERR-006</td>
+<td><code>ETAP_RESULT_EXTRACTION_FAILED: {study_type} - {field}</code></td>
+<td>ETAP COM</td>
+<td>Error</td>
+<td>Failed to extract results from completed study</td>
+<td>Check result format, verify study completed with data</td>
+<td>etap-com.log</td>
+</tr>
+<tr>
+<td>ERR-007</td>
+<td><code>ETAP_PROJECT_SAVE_FAILED: {path} - {reason}</code></td>
+<td>ETAP COM</td>
+<td>Warning</td>
+<td>Unable to save project changes</td>
+<td>Check disk space, file permissions</td>
+<td>etap-com.log</td>
+</tr>
+<tr>
+<td>ERR-008</td>
+<td><code>ETAP_COM_TIMEOUT: {operation} exceeded {timeout}s</code></td>
+<td>ETAP COM</td>
+<td>Error</td>
+<td>ETAP COM operation timed out</td>
+<td>Check ETAP for modal dialogs, kill orphaned processes, increase timeout</td>
+<td>etap-com.log</td>
+</tr>
+</tbody>
+</table>
+<h3 id="err-009-to-err-019-calculation-engine-errors">ERR-009 to ERR-019: Calculation Engine Errors</h3>
+<table>
+<thead>
+<tr>
+<th>Code</th>
+<th>Message Template</th>
+<th>Component</th>
+<th>Severity</th>
+<th>Description</th>
+<th>Recommended Action</th>
+<th>Log File</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>ERR-009</td>
+<td><code>SYSTEM_MODEL_INVALID: {detail}</code></td>
+<td>Core Model</td>
+<td>Fatal</td>
+<td>Power system model fails validation</td>
+<td>Validate JSON structure, check required fields, verify bus connectivity</td>
+<td>calculation.log</td>
+</tr>
+<tr>
+<td>ERR-010</td>
+<td><code>LOAD_FLOW_DIVERGENCE: {detail}</code></td>
+<td>Load Flow</td>
+<td>Error</td>
+<td>Load flow solver did not converge</td>
+<td>Check system connectivity, increase iterations, verify slack bus, switch solver method</td>
+<td>calculation.log</td>
+</tr>
+<tr>
+<td>ERR-011</td>
+<td><code>LOAD_FLOW_SINGULAR_JACOBIAN</code></td>
+<td>Load Flow</td>
+<td>Error</td>
+<td>Jacobian matrix is singular</td>
+<td>Check for isolated buses, verify slack bus assignment, review impedance values</td>
+<td>calculation.log</td>
+</tr>
+<tr>
+<td>ERR-012</td>
+<td><code>SHORT_CIRCUIT_CALCULATION_ERROR: {detail}</code></td>
+<td>Fault Analysis</td>
+<td>Error</td>
+<td>Short circuit calculation failed</td>
+<td>Check zero-sequence network, verify generator reactances, validate grounding</td>
+<td>calculation.log</td>
+</tr>
+<tr>
+<td>ERR-013</td>
+<td><code>IEC60909_C_FACTOR_ERROR: {voltage}</code></td>
+<td>Fault Analysis</td>
+<td>Warning</td>
+<td>IEC 60909 voltage factor c is outside standard range</td>
+<td>Review c factor selection per IEC 60909 Table 1</td>
+<td>calculation.log</td>
+</tr>
+<tr>
+<td>ERR-014</td>
+<td><code>HARMONIC_ANALYSIS_ERROR: {detail}</code></td>
+<td>Harmonic Analysis</td>
+<td>Error</td>
+<td>Harmonic analysis calculation failed</td>
+<td>Check harmonic source data, verify impedance scanning, increase frequency range</td>
+<td>calculation.log</td>
+</tr>
+<tr>
+<td>ERR-015</td>
+<td><code>IEEE519_COMPLIANCE_FAILED: {detail}</code></td>
+<td>Harmonic Analysis</td>
+<td>Warning</td>
+<td>IEEE 519 compliance check failed</td>
+<td>Review THD/TDD values, identify dominant harmonics, design filters</td>
+<td>calculation.log</td>
+</tr>
+<tr>
+<td>ERR-016</td>
+<td><code>OPF_SOLVER_FAILED: {detail}</code></td>
+<td>OPF</td>
+<td>Error</td>
+<td>Optimal power flow solver did not reach optimal solution</td>
+<td>Check problem feasibility, relax constraints, verify cost curves are convex</td>
+<td>calculation.log</td>
+</tr>
+<tr>
+<td>ERR-017</td>
+<td><code>PROTECTION_COORDINATION_ERROR: {detail}</code></td>
+<td>Protection</td>
+<td>Error</td>
+<td>Protection coordination calculation failed</td>
+<td>Verify relay settings, check TCC curve data, validate time grading margins</td>
+<td>calculation.log</td>
+</tr>
+<tr>
+<td>ERR-018</td>
+<td><code>ARC_FLASH_CALCULATION_ERROR: {detail}</code></td>
+<td>Fault Analysis</td>
+<td>Error</td>
+<td>Arc flash calculation failed per IEEE 1584</td>
+<td>Verify equipment parameters, check bolted fault currents, validate gap distances</td>
+<td>calculation.log</td>
+</tr>
+<tr>
+<td>ERR-019</td>
+<td><code>PER_UNIT_CONVERSION_ERROR: {detail}</code></td>
+<td>Network Solver</td>
+<td>Error</td>
+<td>Per-unit conversion produced invalid values</td>
+<td>Check base values (MVA, kV), verify impedance units (ohm vs pu)</td>
+<td>calculation.log</td>
+</tr>
+</tbody>
+</table>
+<h3 id="err-020-to-err-029-security-errors">ERR-020 to ERR-029: Security Errors</h3>
+<table>
+<thead>
+<tr>
+<th>Code</th>
+<th>Message Template</th>
+<th>Component</th>
+<th>Severity</th>
+<th>Description</th>
+<th>Recommended Action</th>
+<th>Log File</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>ERR-020</td>
+<td><code>AUTHENTICATION_FAILED: {reason}</code></td>
+<td>Security</td>
+<td>Error</td>
+<td>User authentication failed</td>
+<td>Verify credentials, check JWT token validity, ensure JWT_SECRET_KEY is configured</td>
+<td>security.log</td>
+</tr>
+<tr>
+<td>ERR-021</td>
+<td><code>TOKEN_EXPIRED</code></td>
+<td>Security</td>
+<td>Warning</td>
+<td>JWT token has expired</td>
+<td>Re-authenticate or refresh token</td>
+<td>security.log</td>
+</tr>
+<tr>
+<td>ERR-022</td>
+<td><code>TOKEN_INVALID: {reason}</code></td>
+<td>Security</td>
+<td>Error</td>
+<td>JWT token validation failed</td>
+<td>Check token signature, verify issuer, ensure token not tampered</td>
+<td>security.log</td>
+</tr>
+<tr>
+<td>ERR-023</td>
+<td><code>AUTHORIZATION_FAILED: {user} - {required_permission}</code></td>
+<td>Security</td>
+<td>Error</td>
+<td>User lacks required permissions</td>
+<td>Review RBAC role assignment, upgrade user permissions if appropriate</td>
+<td>security.log</td>
+</tr>
+<tr>
+<td>ERR-024</td>
+<td><code>INVALID_CREDENTIALS: {user}</code></td>
+<td>Security</td>
+<td>Error</td>
+<td>Invalid username or password</td>
+<td>Reset password, verify user account exists</td>
+<td>security.log</td>
+</tr>
+<tr>
+<td>ERR-025</td>
+<td><code>ACCOUNT_LOCKED: {user} - {reason}</code></td>
+<td>Security</td>
+<td>Warning</td>
+<td>User account is locked</td>
+<td>Unlock account via admin console, wait for lockout period</td>
+<td>security.log</td>
+</tr>
+<tr>
+<td>ERR-026</td>
+<td><code>INPUT_VALIDATION_FAILED: {field} - {reason}</code></td>
+<td>Security</td>
+<td>Error</td>
+<td>Input validation rejected the provided data</td>
+<td>Review input format, sanitize special characters, ensure types match schema</td>
+<td>security.log</td>
+</tr>
+<tr>
+<td>ERR-027</td>
+<td><code>SQL_INJECTION_DETECTED: {input_preview}</code></td>
+<td>Security</td>
+<td>Fatal</td>
+<td>SQL injection attempt was blocked</td>
+<td>Review input, ensure parameterized queries are used</td>
+<td>security.log</td>
+</tr>
+<tr>
+<td>ERR-028</td>
+<td><code>CSRF_TOKEN_MISMATCH</code></td>
+<td>Security</td>
+<td>Error</td>
+<td>CSRF token validation failed</td>
+<td>Refresh page, verify CSRF token in form submissions</td>
+<td>security.log</td>
+</tr>
+<tr>
+<td>ERR-029</td>
+<td><code>RATE_LIMIT_EXCEEDED: {client_ip} - {endpoint}</code></td>
+<td>Security</td>
+<td>Warning</td>
+<td>API rate limit was exceeded for this client</td>
+<td>Reduce request frequency, implement backoff strategy</td>
+<td>security.log</td>
+</tr>
+</tbody>
+</table>
+<h3 id="err-030-to-err-040-data-and-storage-errors">ERR-030 to ERR-040: Data and Storage Errors</h3>
+<table>
+<thead>
+<tr>
+<th>Code</th>
+<th>Message Template</th>
+<th>Component</th>
+<th>Severity</th>
+<th>Description</th>
+<th>Recommended Action</th>
+<th>Log File</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>ERR-030</td>
+<td><code>INPUT_VALIDATION_FAILED: {field} - {reason}</code></td>
+<td>Core</td>
+<td>Error</td>
+<td>User input failed validation</td>
+<td>Review input requirements, sanitize data, check allowed values</td>
+<td>python-backend.log</td>
+</tr>
+<tr>
+<td>ERR-031</td>
+<td><code>DATABASE_CONNECTION_FAILED: {url}</code></td>
+<td>Database</td>
+<td>Fatal</td>
+<td>Unable to connect to the database</td>
+<td>Check database URL, verify database server is running, check credentials</td>
+<td>python-backend.log</td>
+</tr>
+<tr>
+<td>ERR-032</td>
+<td><code>DATABASE_MIGRATION_FAILED: {version} - {reason}</code></td>
+<td>Database</td>
+<td>Fatal</td>
+<td>Database migration could not be applied</td>
+<td>Verify migration file integrity, check database state, restore from backup</td>
+<td>python-backend.log</td>
+</tr>
+<tr>
+<td>ERR-033</td>
+<td><code>DATABASE_CORRUPTION: {detail}</code></td>
+<td>Database</td>
+<td>Fatal</td>
+<td>Database integrity check failed</td>
+<td>Restore from most recent backup, run recovery tools</td>
+<td>python-backend.log</td>
+</tr>
+<tr>
+<td>ERR-034</td>
+<td><code>CACHE_CORRUPTION: {cache_name}</code></td>
+<td>Core</td>
+<td>Warning</td>
+<td>Cache data is corrupted or invalid</td>
+<td>Clear cache and allow it to repopulate</td>
+<td>python-backend.log</td>
+</tr>
+<tr>
+<td>ERR-035</td>
+<td><code>FILE_NOT_FOUND: {path}</code></td>
+<td>Core</td>
+<td>Error</td>
+<td>Required file does not exist</td>
+<td>Verify file path, check file system, restore from backup</td>
+<td>python-backend.log</td>
+</tr>
+<tr>
+<td>ERR-036</td>
+<td><code>DISK_FULL: {path} - {free_space}</code></td>
+<td>Core</td>
+<td>Fatal</td>
+<td>Disk space exhausted on the storage volume</td>
+<td>Free up disk space, increase volume size, enable log rotation</td>
+<td>python-backend.log</td>
+</tr>
+<tr>
+<td>ERR-037</td>
+<td><code>SERIALIZATION_ERROR: {type} - {reason}</code></td>
+<td>Core</td>
+<td>Error</td>
+<td>Failed to serialize/deserialize data</td>
+<td>Check data format compatibility, verify schema version</td>
+<td>python-backend.log</td>
+</tr>
+<tr>
+<td>ERR-038</td>
+<td><code>IMPORT_ERROR: {module} - {reason}</code></td>
+<td>Core</td>
+<td>Fatal</td>
+<td>Required Python module failed to import</td>
+<td>Install missing dependency, check Python version compatibility</td>
+<td>python-backend.log</td>
+</tr>
+</tbody>
+</table>
+<h3 id="err-041-to-err-050-system-and-infrastructure-errors">ERR-041 to ERR-050: System and Infrastructure Errors</h3>
+<table>
+<thead>
+<tr>
+<th>Code</th>
+<th>Message Template</th>
+<th>Component</th>
+<th>Severity</th>
+<th>Description</th>
+<th>Recommended Action</th>
+<th>Log File</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>ERR-041</td>
+<td><code>RAG_ENGINE_FAILURE: {detail}</code></td>
+<td>RAG</td>
+<td>Error</td>
+<td>RAG knowledge engine failed to respond</td>
+<td>Check vector database connectivity, verify embedding model loaded</td>
+<td>rag-engine.log</td>
+</tr>
+<tr>
+<td>ERR-042</td>
+<td><code>RAG_EMBEDDING_FAILED: {text_preview}</code></td>
+<td>RAG</td>
+<td>Error</td>
+<td>Text embedding generation failed</td>
+<td>Check embedding model, reduce input text size, verify API key</td>
+<td>rag-engine.log</td>
+</tr>
+<tr>
+<td>ERR-043</td>
+<td><code>VECTOR_DB_CONNECTION_FAILED: {detail}</code></td>
+<td>RAG</td>
+<td>Error</td>
+<td>Vector database connection failed</td>
+<td>Check ChromaDB/FAISS status, verify database path exists</td>
+<td>rag-engine.log</td>
+</tr>
+<tr>
+<td>ERR-044</td>
+<td><code>LLM_API_ERROR: {provider} - {status_code}</code></td>
+<td>LLM</td>
+<td>Error</td>
+<td>LLM API call failed</td>
+<td>Check API key validity, verify API endpoint, handle rate limiting</td>
+<td>python-backend.log</td>
+</tr>
+<tr>
+<td>ERR-045</td>
+<td><code>LLM_RESPONSE_PARSE_ERROR: {raw_response}</code></td>
+<td>LLM</td>
+<td>Warning</td>
+<td>LLM response could not be parsed</td>
+<td>Retry request with clearer prompt, check for malformed JSON in response</td>
+<td>python-backend.log</td>
+</tr>
+<tr>
+<td>ERR-046</td>
+<td><code>ORCHESTRATOR_TASK_FAILED: {task_id} - {agent} - {reason}</code></td>
+<td>Orchestrator</td>
+<td>Error</td>
+<td>An agent task within the orchestrator failed</td>
+<td>Check individual agent logs, review task parameters</td>
+<td>python-backend.log</td>
+</tr>
+<tr>
+<td>ERR-047</td>
+<td><code>WORKFLOW_TIMEOUT: {workflow_id} - {duration}</code></td>
+<td>Orchestrator</td>
+<td>Warning</td>
+<td>Complete workflow exceeded maximum execution time</td>
+<td>Review workflow complexity, increase timeout, optimize individual steps</td>
+<td>python-backend.log</td>
+</tr>
+<tr>
+<td>ERR-048</td>
+<td><code>REPORT_GENERATION_FAILED: {format} - {reason}</code></td>
+<td>Reporting</td>
+<td>Error</td>
+<td>Report generation failed</td>
+<td>Check template files, verify disk space, review input data</td>
+<td>python-backend.log</td>
+</tr>
+<tr>
+<td>ERR-049</td>
+<td><code>REPORT_TEMPLATE_NOT_FOUND: {template_name}</code></td>
+<td>Reporting</td>
+<td>Error</td>
+<td>Report template is missing</td>
+<td>Reinstall templates from repository, check template directory</td>
+<td>python-backend.log</td>
+</tr>
+<tr>
+<td>ERR-050</td>
+<td><code>RATE_LIMIT_EXCEEDED: {client_id} - {endpoint}</code></td>
+<td>API</td>
+<td>Warning</td>
+<td>Client has exceeded the allowed request rate</td>
+<td>Implement exponential backoff, increase rate limit for trusted clients</td>
+<td>python-backend.log</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="12-diagnostic-procedures">12. Diagnostic Procedures</h2>
+<h3 id="procedure-121-full-system-health-check">Procedure 12.1: Full System Health Check</h3>
+<p>Run this comprehensive diagnostic to assess the health of all platform components:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-112-1" name="__codelineno-112-1" href="#__codelineno-112-1"></a>python -c &quot;
+<a id="__codelineno-112-2" name="__codelineno-112-2" href="#__codelineno-112-2"></a>import sys, os
+<a id="__codelineno-112-3" name="__codelineno-112-3" href="#__codelineno-112-3"></a>from pathlib import Path
+<a id="__codelineno-112-4" name="__codelineno-112-4" href="#__codelineno-112-4"></a>
+<a id="__codelineno-112-5" name="__codelineno-112-5" href="#__codelineno-112-5"></a>print(&#39;=== AhmedETAP Health Check ===&#39;)
+<a id="__codelineno-112-6" name="__codelineno-112-6" href="#__codelineno-112-6"></a>print()
+<a id="__codelineno-112-7" name="__codelineno-112-7" href="#__codelineno-112-7"></a>
+<a id="__codelineno-112-8" name="__codelineno-112-8" href="#__codelineno-112-8"></a># 1. Environment
+<a id="__codelineno-112-9" name="__codelineno-112-9" href="#__codelineno-112-9"></a>print(&#39;[1/7] Environment Check&#39;)
+<a id="__codelineno-112-10" name="__codelineno-112-10" href="#__codelineno-112-10"></a>print(f&#39;  Python: {sys.version}&#39;)
+<a id="__codelineno-112-11" name="__codelineno-112-11" href="#__codelineno-112-11"></a>print(f&#39;  CWD: {os.getcwd()}&#39;)
+<a id="__codelineno-112-12" name="__codelineno-112-12" href="#__codelineno-112-12"></a>print(f&#39;  .env exists: {os.path.exists(\&quot;.env\&quot;)}&#39;)
+<a id="__codelineno-112-13" name="__codelineno-112-13" href="#__codelineno-112-13"></a>print(f&#39;  OPENAI_API_KEY set: {os.getenv(\&quot;OPENAI_API_KEY\&quot;) is not None}&#39;)
+<a id="__codelineno-112-14" name="__codelineno-112-14" href="#__codelineno-112-14"></a>print(f&#39;  JWT_SECRET_KEY set: {os.getenv(\&quot;JWT_SECRET_KEY\&quot;) is not None}&#39;)
+<a id="__codelineno-112-15" name="__codelineno-112-15" href="#__codelineno-112-15"></a>print()
+<a id="__codelineno-112-16" name="__codelineno-112-16" href="#__codelineno-112-16"></a>
+<a id="__codelineno-112-17" name="__codelineno-112-17" href="#__codelineno-112-17"></a># 2. Dependencies
+<a id="__codelineno-112-18" name="__codelineno-112-18" href="#__codelineno-112-18"></a>print(&#39;[2/7] Dependency Check&#39;)
+<a id="__codelineno-112-19" name="__codelineno-112-19" href="#__codelineno-112-19"></a>modules = [&#39;numpy&#39;, &#39;scipy&#39;, &#39;pandas&#39;, &#39;reportlab&#39;, &#39;chromadb&#39;, &#39;torch&#39;, &#39;transformers&#39;]
+<a id="__codelineno-112-20" name="__codelineno-112-20" href="#__codelineno-112-20"></a>for mod in modules:
+<a id="__codelineno-112-21" name="__codelineno-112-21" href="#__codelineno-112-21"></a>    try:
+<a id="__codelineno-112-22" name="__codelineno-112-22" href="#__codelineno-112-22"></a>        __import__(mod)
+<a id="__codelineno-112-23" name="__codelineno-112-23" href="#__codelineno-112-23"></a>        print(f&#39;  {mod}: OK&#39;)
+<a id="__codelineno-112-24" name="__codelineno-112-24" href="#__codelineno-112-24"></a>    except ImportError as e:
+<a id="__codelineno-112-25" name="__codelineno-112-25" href="#__codelineno-112-25"></a>        print(f&#39;  {mod}: MISSING - {e}&#39;)
+<a id="__codelineno-112-26" name="__codelineno-112-26" href="#__codelineno-112-26"></a>print()
+<a id="__codelineno-112-27" name="__codelineno-112-27" href="#__codelineno-112-27"></a>
+<a id="__codelineno-112-28" name="__codelineno-112-28" href="#__codelineno-112-28"></a># 3. Log Files
+<a id="__codelineno-112-29" name="__codelineno-112-29" href="#__codelineno-112-29"></a>print(&#39;[3/7] Log File Check&#39;)
+<a id="__codelineno-112-30" name="__codelineno-112-30" href="#__codelineno-112-30"></a>log_dir = Path(&#39;logs&#39;)
+<a id="__codelineno-112-31" name="__codelineno-112-31" href="#__codelineno-112-31"></a>log_dir.mkdir(exist_ok=True)
+<a id="__codelineno-112-32" name="__codelineno-112-32" href="#__codelineno-112-32"></a>print(f&#39;  Log directory: {log_dir.absolute()}&#39;)
+<a id="__codelineno-112-33" name="__codelineno-112-33" href="#__codelineno-112-33"></a>print(f&#39;  Writable: {os.access(str(log_dir), os.W_OK)}&#39;)
+<a id="__codelineno-112-34" name="__codelineno-112-34" href="#__codelineno-112-34"></a>print()
+<a id="__codelineno-112-35" name="__codelineno-112-35" href="#__codelineno-112-35"></a>
+<a id="__codelineno-112-36" name="__codelineno-112-36" href="#__codelineno-112-36"></a># 4. Core Modules
+<a id="__codelineno-112-37" name="__codelineno-112-37" href="#__codelineno-112-37"></a>print(&#39;[4/7] Core Module Check&#39;)
+<a id="__codelineno-112-38" name="__codelineno-112-38" href="#__codelineno-112-38"></a>try:
+<a id="__codelineno-112-39" name="__codelineno-112-39" href="#__codelineno-112-39"></a>    from core_model.system import System
+<a id="__codelineno-112-40" name="__codelineno-112-40" href="#__codelineno-112-40"></a>    print(&#39;  Core Model: OK&#39;)
+<a id="__codelineno-112-41" name="__codelineno-112-41" href="#__codelineno-112-41"></a>except Exception as e:
+<a id="__codelineno-112-42" name="__codelineno-112-42" href="#__codelineno-112-42"></a>    print(f&#39;  Core Model: FAIL - {e}&#39;)
+<a id="__codelineno-112-43" name="__codelineno-112-43" href="#__codelineno-112-43"></a>
+<a id="__codelineno-112-44" name="__codelineno-112-44" href="#__codelineno-112-44"></a>try:
+<a id="__codelineno-112-45" name="__codelineno-112-45" href="#__codelineno-112-45"></a>    from load_flow.load_flow import LoadFlowEngine
+<a id="__codelineno-112-46" name="__codelineno-112-46" href="#__codelineno-112-46"></a>    print(&#39;  Load Flow: OK&#39;)
+<a id="__codelineno-112-47" name="__codelineno-112-47" href="#__codelineno-112-47"></a>except Exception as e:
+<a id="__codelineno-112-48" name="__codelineno-112-48" href="#__codelineno-112-48"></a>    print(f&#39;  Load Flow: FAIL - {e}&#39;)
+<a id="__codelineno-112-49" name="__codelineno-112-49" href="#__codelineno-112-49"></a>
+<a id="__codelineno-112-50" name="__codelineno-112-50" href="#__codelineno-112-50"></a>try:
+<a id="__codelineno-112-51" name="__codelineno-112-51" href="#__codelineno-112-51"></a>    from fault_analysis.fault import FaultAnalyzer
+<a id="__codelineno-112-52" name="__codelineno-112-52" href="#__codelineno-112-52"></a>    print(&#39;  Fault Analysis: OK&#39;)
+<a id="__codelineno-112-53" name="__codelineno-112-53" href="#__codelineno-112-53"></a>except Exception as e:
+<a id="__codelineno-112-54" name="__codelineno-112-54" href="#__codelineno-112-54"></a>    print(f&#39;  Fault Analysis: FAIL - {e}&#39;)
+<a id="__codelineno-112-55" name="__codelineno-112-55" href="#__codelineno-112-55"></a>
+<a id="__codelineno-112-56" name="__codelineno-112-56" href="#__codelineno-112-56"></a>try:
+<a id="__codelineno-112-57" name="__codelineno-112-57" href="#__codelineno-112-57"></a>    from security.security_framework import AuthManager
+<a id="__codelineno-112-58" name="__codelineno-112-58" href="#__codelineno-112-58"></a>    print(&#39;  Security: OK&#39;)
+<a id="__codelineno-112-59" name="__codelineno-112-59" href="#__codelineno-112-59"></a>except Exception as e:
+<a id="__codelineno-112-60" name="__codelineno-112-60" href="#__codelineno-112-60"></a>    print(f&#39;  Security: FAIL - {e}&#39;)
+<a id="__codelineno-112-61" name="__codelineno-112-61" href="#__codelineno-112-61"></a>
+<a id="__codelineno-112-62" name="__codelineno-112-62" href="#__codelineno-112-62"></a>try:
+<a id="__codelineno-112-63" name="__codelineno-112-63" href="#__codelineno-112-63"></a>    from knowledge.rag_engine import RAGEngine
+<a id="__codelineno-112-64" name="__codelineno-112-64" href="#__codelineno-112-64"></a>    print(&#39;  RAG Engine: OK&#39;)
+<a id="__codelineno-112-65" name="__codelineno-112-65" href="#__codelineno-112-65"></a>except Exception as e:
+<a id="__codelineno-112-66" name="__codelineno-112-66" href="#__codelineno-112-66"></a>    print(f&#39;  RAG Engine: FAIL - {e}&#39;)
+<a id="__codelineno-112-67" name="__codelineno-112-67" href="#__codelineno-112-67"></a>
+<a id="__codelineno-112-68" name="__codelineno-112-68" href="#__codelineno-112-68"></a>try:
+<a id="__codelineno-112-69" name="__codelineno-112-69" href="#__codelineno-112-69"></a>    from reporting.advanced_reports import ReportAgent
+<a id="__codelineno-112-70" name="__codelineno-112-70" href="#__codelineno-112-70"></a>    print(&#39;  Reporting: OK&#39;)
+<a id="__codelineno-112-71" name="__codelineno-112-71" href="#__codelineno-112-71"></a>except Exception as e:
+<a id="__codelineno-112-72" name="__codelineno-112-72" href="#__codelineno-112-72"></a>    print(f&#39;  Reporting: FAIL - {e}&#39;)
+<a id="__codelineno-112-73" name="__codelineno-112-73" href="#__codelineno-112-73"></a>print()
+<a id="__codelineno-112-74" name="__codelineno-112-74" href="#__codelineno-112-74"></a>
+<a id="__codelineno-112-75" name="__codelineno-112-75" href="#__codelineno-112-75"></a># 5. ETAP COM
+<a id="__codelineno-112-76" name="__codelineno-112-76" href="#__codelineno-112-76"></a>print(&#39;[5/7] ETAP COM Check&#39;)
+<a id="__codelineno-112-77" name="__codelineno-112-77" href="#__codelineno-112-77"></a>try:
+<a id="__codelineno-112-78" name="__codelineno-112-78" href="#__codelineno-112-78"></a>    from etap_integration.etap_com import ETAPAutomation
+<a id="__codelineno-112-79" name="__codelineno-112-79" href="#__codelineno-112-79"></a>    print(&#39;  ETAP COM module: OK&#39;)
+<a id="__codelineno-112-80" name="__codelineno-112-80" href="#__codelineno-112-80"></a>    try:
+<a id="__codelineno-112-81" name="__codelineno-112-81" href="#__codelineno-112-81"></a>        with ETAPAutomation(visible=False) as etap:
+<a id="__codelineno-112-82" name="__codelineno-112-82" href="#__codelineno-112-82"></a>            ver = etap.get_version()
+<a id="__codelineno-112-83" name="__codelineno-112-83" href="#__codelineno-112-83"></a>            print(f&#39;  ETAP connection: OK (version: {ver})&#39;)
+<a id="__codelineno-112-84" name="__codelineno-112-84" href="#__codelineno-112-84"></a>    except Exception as e:
+<a id="__codelineno-112-85" name="__codelineno-112-85" href="#__codelineno-112-85"></a>        print(f&#39;  ETAP connection: FAIL - {e}&#39;)
+<a id="__codelineno-112-86" name="__codelineno-112-86" href="#__codelineno-112-86"></a>except Exception as e:
+<a id="__codelineno-112-87" name="__codelineno-112-87" href="#__codelineno-112-87"></a>    print(f&#39;  ETAP COM module: FAIL - {e}&#39;)
+<a id="__codelineno-112-88" name="__codelineno-112-88" href="#__codelineno-112-88"></a>print()
+<a id="__codelineno-112-89" name="__codelineno-112-89" href="#__codelineno-112-89"></a>
+<a id="__codelineno-112-90" name="__codelineno-112-90" href="#__codelineno-112-90"></a># 6. Database
+<a id="__codelineno-112-91" name="__codelineno-112-91" href="#__codelineno-112-91"></a>print(&#39;[6/7] Database Check&#39;)
+<a id="__codelineno-112-92" name="__codelineno-112-92" href="#__codelineno-112-92"></a>db_paths = [&#39;mastra.db&#39;, &#39;mastra.duckdb&#39;]
+<a id="__codelineno-112-93" name="__codelineno-112-93" href="#__codelineno-112-93"></a>for db in db_paths:
+<a id="__codelineno-112-94" name="__codelineno-112-94" href="#__codelineno-112-94"></a>    if os.path.exists(db):
+<a id="__codelineno-112-95" name="__codelineno-112-95" href="#__codelineno-112-95"></a>        size = os.path.getsize(db)
+<a id="__codelineno-112-96" name="__codelineno-112-96" href="#__codelineno-112-96"></a>        print(f&#39;  {db}: OK ({size/1024:.1f} KB)&#39;)
+<a id="__codelineno-112-97" name="__codelineno-112-97" href="#__codelineno-112-97"></a>    else:
+<a id="__codelineno-112-98" name="__codelineno-112-98" href="#__codelineno-112-98"></a>        print(f&#39;  {db}: NOT FOUND&#39;)
+<a id="__codelineno-112-99" name="__codelineno-112-99" href="#__codelineno-112-99"></a>print()
+<a id="__codelineno-112-100" name="__codelineno-112-100" href="#__codelineno-112-100"></a>
+<a id="__codelineno-112-101" name="__codelineno-112-101" href="#__codelineno-112-101"></a># 7. API Endpoint
+<a id="__codelineno-112-102" name="__codelineno-112-102" href="#__codelineno-112-102"></a>print(&#39;[7/7] API Health Check&#39;)
+<a id="__codelineno-112-103" name="__codelineno-112-103" href="#__codelineno-112-103"></a>import urllib.request
+<a id="__codelineno-112-104" name="__codelineno-112-104" href="#__codelineno-112-104"></a>try:
+<a id="__codelineno-112-105" name="__codelineno-112-105" href="#__codelineno-112-105"></a>    response = urllib.request.urlopen(&#39;http://localhost:3000/health&#39;, timeout=5)
+<a id="__codelineno-112-106" name="__codelineno-112-106" href="#__codelineno-112-106"></a>    print(f&#39;  API health: OK ({response.status})&#39;)
+<a id="__codelineno-112-107" name="__codelineno-112-107" href="#__codelineno-112-107"></a>except Exception as e:
+<a id="__codelineno-112-108" name="__codelineno-112-108" href="#__codelineno-112-108"></a>    print(f&#39;  API health: FAIL - {e}&#39;)
+<a id="__codelineno-112-109" name="__codelineno-112-109" href="#__codelineno-112-109"></a>
+<a id="__codelineno-112-110" name="__codelineno-112-110" href="#__codelineno-112-110"></a>print()
+<a id="__codelineno-112-111" name="__codelineno-112-111" href="#__codelineno-112-111"></a>print(&#39;=== Health Check Complete ===&#39;)
+<a id="__codelineno-112-112" name="__codelineno-112-112" href="#__codelineno-112-112"></a>&quot;
+</code></pre></div>
+<h3 id="procedure-122-log-collection-bundle">Procedure 12.2: Log Collection Bundle</h3>
+<p>When reporting an issue, use this procedure to collect all relevant information:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-113-1" name="__codelineno-113-1" href="#__codelineno-113-1"></a># Create diagnostic bundle
+<a id="__codelineno-113-2" name="__codelineno-113-2" href="#__codelineno-113-2"></a>mkdir -p ./diag-$(date +%Y%m%d-%H%M%S)
+<a id="__codelineno-113-3" name="__codelineno-113-3" href="#__codelineno-113-3"></a>cd ./diag-$(date +%Y%m%d-%H%M%S)
+<a id="__codelineno-113-4" name="__codelineno-113-4" href="#__codelineno-113-4"></a>
+<a id="__codelineno-113-5" name="__codelineno-113-5" href="#__codelineno-113-5"></a># Collect logs
+<a id="__codelineno-113-6" name="__codelineno-113-6" href="#__codelineno-113-6"></a>copy ..\logs\*.log .
+<a id="__codelineno-113-7" name="__codelineno-113-7" href="#__codelineno-113-7"></a>docker logs etap-platform &gt; docker-etap-platform.log 2&gt;&amp;1 2&gt;NUL
+<a id="__codelineno-113-8" name="__codelineno-113-8" href="#__codelineno-113-8"></a>
+<a id="__codelineno-113-9" name="__codelineno-113-9" href="#__codelineno-113-9"></a># Collect configuration (redacted)
+<a id="__codelineno-113-10" name="__codelineno-113-10" href="#__codelineno-113-10"></a>python -c &quot;
+<a id="__codelineno-113-11" name="__codelineno-113-11" href="#__codelineno-113-11"></a>import os
+<a id="__codelineno-113-12" name="__codelineno-113-12" href="#__codelineno-113-12"></a>with open(&#39;../.env&#39;) as f:
+<a id="__codelineno-113-13" name="__codelineno-113-13" href="#__codelineno-113-13"></a>    for line in f:
+<a id="__codelineno-113-14" name="__codelineno-113-14" href="#__codelineno-113-14"></a>        if &#39;=&#39; in line and not line.startswith(&#39;#&#39;):
+<a id="__codelineno-113-15" name="__codelineno-113-15" href="#__codelineno-113-15"></a>            key = line.split(&#39;=&#39;)[0]
+<a id="__codelineno-113-16" name="__codelineno-113-16" href="#__codelineno-113-16"></a>            print(f&#39;{key}=***REDACTED***&#39;)
+<a id="__codelineno-113-17" name="__codelineno-113-17" href="#__codelineno-113-17"></a>&quot; &gt; env-redacted.txt
+<a id="__codelineno-113-18" name="__codelineno-113-18" href="#__codelineno-113-18"></a>
+<a id="__codelineno-113-19" name="__codelineno-113-19" href="#__codelineno-113-19"></a># Collect system info
+<a id="__codelineno-113-20" name="__codelineno-113-20" href="#__codelineno-113-20"></a>systeminfo &gt; system-info.txt
+<a id="__codelineno-113-21" name="__codelineno-113-21" href="#__codelineno-113-21"></a>python --version &gt; python-version.txt
+<a id="__codelineno-113-22" name="__codelineno-113-22" href="#__codelineno-113-22"></a>node --version &gt; node-version.txt 2&gt;NUL
+<a id="__codelineno-113-23" name="__codelineno-113-23" href="#__codelineno-113-23"></a>pip list &gt; pip-list.txt
+<a id="__codelineno-113-24" name="__codelineno-113-24" href="#__codelineno-113-24"></a>pnpm list --depth=0 &gt; pnpm-list.txt 2&gt;NUL
+<a id="__codelineno-113-25" name="__codelineno-113-25" href="#__codelineno-113-25"></a>
+<a id="__codelineno-113-26" name="__codelineno-113-26" href="#__codelineno-113-26"></a># Collect running processes (ETAP related)
+<a id="__codelineno-113-27" name="__codelineno-113-27" href="#__codelineno-113-27"></a>tasklist | findstr /I etap &gt; etap-processes.txt
+<a id="__codelineno-113-28" name="__codelineno-113-28" href="#__codelineno-113-28"></a>netstat -ano | findstr &quot;:3000 :8000&quot; &gt; port-usage.txt
+<a id="__codelineno-113-29" name="__codelineno-113-29" href="#__codelineno-113-29"></a>
+<a id="__codelineno-113-30" name="__codelineno-113-30" href="#__codelineno-113-30"></a>echo Diagnostic bundle created in %cd%
+</code></pre></div>
+<h3 id="procedure-123-component-isolation-test">Procedure 12.3: Component Isolation Test</h3>
+<p>To determine if an issue is caused by a specific component:</p>
+<ol>
+<li>
+<p><strong>Isolate Python engines</strong> - Test without ETAP:
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-114-1" name="__codelineno-114-1" href="#__codelineno-114-1"></a>python -c &quot;
+<a id="__codelineno-114-2" name="__codelineno-114-2" href="#__codelineno-114-2"></a>from load_flow.load_flow import LoadFlowEngine
+<a id="__codelineno-114-3" name="__codelineno-114-3" href="#__codelineno-114-3"></a>engine = LoadFlowEngine()
+<a id="__codelineno-114-4" name="__codelineno-114-4" href="#__codelineno-114-4"></a># Test with built-in test system
+<a id="__codelineno-114-5" name="__codelineno-114-5" href="#__codelineno-114-5"></a>result = engine.run_test_case(&#39;ieee_14_bus&#39;)
+<a id="__codelineno-114-6" name="__codelineno-114-6" href="#__codelineno-114-6"></a>print(f&#39;Load Flow standalone: converged={result.converged}&#39;)
+<a id="__codelineno-114-7" name="__codelineno-114-7" href="#__codelineno-114-7"></a>&quot;
+</code></pre></div></p>
+</li>
+<li>
+<p><strong>Isolate ETAP COM</strong> - Test without agents:
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-115-1" name="__codelineno-115-1" href="#__codelineno-115-1"></a>python -c &quot;
+<a id="__codelineno-115-2" name="__codelineno-115-2" href="#__codelineno-115-2"></a>from etap_integration.etap_com import ETAPAutomation
+<a id="__codelineno-115-3" name="__codelineno-115-3" href="#__codelineno-115-3"></a>with ETAPAutomation(visible=False) as etap:
+<a id="__codelineno-115-4" name="__codelineno-115-4" href="#__codelineno-115-4"></a>    print(f&#39;ETAP standalone: {etap.get_version()}&#39;)
+<a id="__codelineno-115-5" name="__codelineno-115-5" href="#__codelineno-115-5"></a>&quot;
+</code></pre></div></p>
+</li>
+<li>
+<p><strong>Isolate RAG</strong> - Test without LLM:
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-116-1" name="__codelineno-116-1" href="#__codelineno-116-1"></a>python -c &quot;
+<a id="__codelineno-116-2" name="__codelineno-116-2" href="#__codelineno-116-2"></a>from knowledge.rag_engine import RAGEngine
+<a id="__codelineno-116-3" name="__codelineno-116-3" href="#__codelineno-116-3"></a>rag = RAGEngine()
+<a id="__codelineno-116-4" name="__codelineno-116-4" href="#__codelineno-116-4"></a>result = rag.query(&#39;What are the voltage limits per IEEE standards?&#39;, use_llm=False)
+<a id="__codelineno-116-5" name="__codelineno-116-5" href="#__codelineno-116-5"></a>print(f&#39;RAG standalone: {len(result[\&quot;sources\&quot;])} sources found&#39;)
+<a id="__codelineno-116-6" name="__codelineno-116-6" href="#__codelineno-116-6"></a>&quot;
+</code></pre></div></p>
+</li>
+<li>
+<p><strong>Isolate Security</strong> - Test without database:
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-117-1" name="__codelineno-117-1" href="#__codelineno-117-1"></a>python -c &quot;
+<a id="__codelineno-117-2" name="__codelineno-117-2" href="#__codelineno-117-2"></a>from security.security_framework import AuthManager
+<a id="__codelineno-117-3" name="__codelineno-117-3" href="#__codelineno-117-3"></a>auth = AuthManager(use_database=False)
+<a id="__codelineno-117-4" name="__codelineno-117-4" href="#__codelineno-117-4"></a>token = auth.generate_token(&#39;test&#39;, &#39;admin&#39;)
+<a id="__codelineno-117-5" name="__codelineno-117-5" href="#__codelineno-117-5"></a>payload = auth.validate_token(token)
+<a id="__codelineno-117-6" name="__codelineno-117-6" href="#__codelineno-117-6"></a>print(f&#39;Security standalone: valid={payload is not None}&#39;)
+<a id="__codelineno-117-7" name="__codelineno-117-7" href="#__codelineno-117-7"></a>&quot;
+</code></pre></div></p>
+</li>
+</ol>
+<hr />
+<h2 id="13-support-escalation-process">13. Support Escalation Process</h2>
+<h3 id="tier-1-self-service-first-response">Tier 1: Self-Service (First Response)</h3>
+<p><strong>Response Time:</strong> &lt; 30 minutes
+<strong>Scope:</strong>
+- Verify <code>.env</code> configuration
+- Check log files for error codes
+- Restart services
+- Verify network connectivity
+- Check disk space and resource usage</p>
+<p><strong>Actions:</strong>
+1. Reference this Troubleshooting Guide for the specific error code
+2. Run the Health Check diagnostic (Section 12.1)
+3. Collect log bundle (Section 12.2)
+4. Attempt restart: <code>docker-compose restart etap-platform</code></p>
+<h3 id="tier-2-engineering-team">Tier 2: Engineering Team</h3>
+<p><strong>Response Time:</strong> &lt; 4 hours (business hours)
+<strong>Scope:</strong>
+- Code-level debugging
+- ETAP COM issues
+- Calculation engine algorithm issues
+- Database corruption recovery
+- Complex configuration problems
+- Performance optimization</p>
+<p><strong>Escalation Trigger:</strong>
+- Error code not documented in this guide
+- Tier 1 procedures did not resolve the issue
+- Data loss or corruption
+- Security vulnerability suspected
+- ETAP version incompatibility</p>
+<p><strong>Contact:</strong>
+- Email: engineering@yourcompany.com
+- Slack: #etap-platform-engineering
+- Jira: https://yourcompany.atlassian.net/projects/ETAP</p>
+<h3 id="tier-3-etap-support-etap-specific-issues">Tier 3: ETAP Support (ETAP-Specific Issues)</h3>
+<p><strong>Response Time:</strong> &lt; 8 hours (business hours)
+<strong>Scope:</strong>
+- ETAP software bugs
+- ETAP licensing issues
+- COM API limitations
+- ETAP calculation engine discrepancies</p>
+<p><strong>Escalation Trigger:</strong>
+- Confirmed ETAP software bug
+- ETAP license server issues
+- COM API unexpected behavior
+- Results mismatch with ETAP manual calculations</p>
+<p><strong>Contact:</strong>
+- ETAP Support Portal: https://support.etap.com
+- ETAP Support Phone: +1-949-900-1000
+- Reference: Provide ETAP version, log bundle, and error code</p>
+<h3 id="tier-4-vendoremergency">Tier 4: Vendor/Emergency</h3>
+<p><strong>Response Time:</strong> &lt; 1 hour (24/7)
+<strong>Scope:</strong>
+- Production system down
+- Security breach in progress
+- Complete data loss</p>
+<p><strong>Escalation Trigger:</strong>
+- P1 incident declared (complete service outage)
+- Security breach confirmed
+- Customer data compromised</p>
+<p><strong>Contact:</strong>
+- Emergency Phone: +1-XXX-XXX-XXXX
+- On-Call Engineer: Available via PagerDuty
+- Email: emergency@yourcompany.com</p>
+<h3 id="escalation-flow-diagram">Escalation Flow Diagram</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-118-1" name="__codelineno-118-1" href="#__codelineno-118-1"></a>User Reports Issue
+<a id="__codelineno-118-2" name="__codelineno-118-2" href="#__codelineno-118-2"></a>    |
+<a id="__codelineno-118-3" name="__codelineno-118-3" href="#__codelineno-118-3"></a>    v
+<a id="__codelineno-118-4" name="__codelineno-118-4" href="#__codelineno-118-4"></a>[Tier 1] Self-Service (30 min)
+<a id="__codelineno-118-5" name="__codelineno-118-5" href="#__codelineno-118-5"></a>    |--- Run diagnostic procedures
+<a id="__codelineno-118-6" name="__codelineno-118-6" href="#__codelineno-118-6"></a>    |--- Consult error code reference
+<a id="__codelineno-118-7" name="__codelineno-118-7" href="#__codelineno-118-7"></a>    |--- Attempt standard resolution
+<a id="__codelineno-118-8" name="__codelineno-118-8" href="#__codelineno-118-8"></a>    |
+<a id="__codelineno-118-9" name="__codelineno-118-9" href="#__codelineno-118-9"></a>    ├── Resolved? → Close ticket
+<a id="__codelineno-118-10" name="__codelineno-118-10" href="#__codelineno-118-10"></a>    |
+<a id="__codelineno-118-11" name="__codelineno-118-11" href="#__codelineno-118-11"></a>    └── Not resolved?
+<a id="__codelineno-118-12" name="__codelineno-118-12" href="#__codelineno-118-12"></a>            |
+<a id="__codelineno-118-13" name="__codelineno-118-13" href="#__codelineno-118-13"></a>            v
+<a id="__codelineno-118-14" name="__codelineno-118-14" href="#__codelineno-118-14"></a>    [Tier 2] Engineering Team (4 hrs)
+<a id="__codelineno-118-15" name="__codelineno-118-15" href="#__codelineno-118-15"></a>        |--- Review logs and diagnostics
+<a id="__codelineno-118-16" name="__codelineno-118-16" href="#__codelineno-118-16"></a>        |--- Code-level debugging
+<a id="__codelineno-118-17" name="__codelineno-118-17" href="#__codelineno-118-17"></a>        |--- ETAP COM investigation
+<a id="__codelineno-118-18" name="__codelineno-118-18" href="#__codelineno-118-18"></a>        |
+<a id="__codelineno-118-19" name="__codelineno-118-19" href="#__codelineno-118-19"></a>        ├── Resolved? → Document solution
+<a id="__codelineno-118-20" name="__codelineno-118-20" href="#__codelineno-118-20"></a>        |
+<a id="__codelineno-118-21" name="__codelineno-118-21" href="#__codelineno-118-21"></a>        └── Not resolved?
+<a id="__codelineno-118-22" name="__codelineno-118-22" href="#__codelineno-118-22"></a>                |
+<a id="__codelineno-118-23" name="__codelineno-118-23" href="#__codelineno-118-23"></a>                v
+<a id="__codelineno-118-24" name="__codelineno-118-24" href="#__codelineno-118-24"></a>        [Tier 3] ETAP Support (8 hrs)
+<a id="__codelineno-118-25" name="__codelineno-118-25" href="#__codelineno-118-25"></a>            |--- ETAP-specific debugging
+<a id="__codelineno-118-26" name="__codelineno-118-26" href="#__codelineno-118-26"></a>            |--- Licensing verification
+<a id="__codelineno-118-27" name="__codelineno-118-27" href="#__codelineno-118-27"></a>            |
+<a id="__codelineno-118-28" name="__codelineno-118-28" href="#__codelineno-118-28"></a>            ├── Resolved? → Update knowledge base
+<a id="__codelineno-118-29" name="__codelineno-118-29" href="#__codelineno-118-29"></a>            |
+<a id="__codelineno-118-30" name="__codelineno-118-30" href="#__codelineno-118-30"></a>            └── Not resolved?
+<a id="__codelineno-118-31" name="__codelineno-118-31" href="#__codelineno-118-31"></a>                    |
+<a id="__codelineno-118-32" name="__codelineno-118-32" href="#__codelineno-118-32"></a>                    v
+<a id="__codelineno-118-33" name="__codelineno-118-33" href="#__codelineno-118-33"></a>            [Tier 4] Vendor/Emergency (1 hr)
+<a id="__codelineno-118-34" name="__codelineno-118-34" href="#__codelineno-118-34"></a>                |--- Crisis management
+<a id="__codelineno-118-35" name="__codelineno-118-35" href="#__codelineno-118-35"></a>                |--- Root cause analysis
+<a id="__codelineno-118-36" name="__codelineno-118-36" href="#__codelineno-118-36"></a>                └── Post-mortem review
+</code></pre></div>
+<h3 id="sla-summary">SLA Summary</h3>
+<table>
+<thead>
+<tr>
+<th>Tier</th>
+<th>Response Time</th>
+<th>Resolution Time</th>
+<th>Availability</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>T1 - Self-Service</td>
+<td>30 min</td>
+<td>2 hrs</td>
+<td>Business hours</td>
+</tr>
+<tr>
+<td>T2 - Engineering</td>
+<td>4 hrs</td>
+<td>8 hrs</td>
+<td>Business hours</td>
+</tr>
+<tr>
+<td>T3 - ETAP Support</td>
+<td>8 hrs</td>
+<td>24 hrs</td>
+<td>Business hours</td>
+</tr>
+<tr>
+<td>T4 - Emergency</td>
+<td>1 hr</td>
+<td>4 hrs</td>
+<td>24/7</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="appendix-quick-reference-card">Appendix: Quick Reference Card</h2>
+<h3 id="most-common-fixes">Most Common Fixes</h3>
+<table>
+<thead>
+<tr>
+<th>Symptom</th>
+<th>Most Likely Cause</th>
+<th>Quick Fix</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Service won't start</td>
+<td>Missing JWT_SECRET_KEY</td>
+<td>Add to .env</td>
+</tr>
+<tr>
+<td>ETAP connection fails</td>
+<td>ETAP not installed</td>
+<td>Install ETAP or register COM</td>
+</tr>
+<tr>
+<td>Load flow diverges</td>
+<td>Isolated buses</td>
+<td>Check system connectivity</td>
+</tr>
+<tr>
+<td>Auth fails (401)</td>
+<td>Token expired</td>
+<td>Re-authenticate</td>
+</tr>
+<tr>
+<td>Slow calculations</td>
+<td>Large system, dense solver</td>
+<td>Enable sparse matrices</td>
+</tr>
+<tr>
+<td>Memory high</td>
+<td>Large embedding model</td>
+<td>Switch to all-MiniLM-L6-v2</td>
+</tr>
+<tr>
+<td>Reports fail</td>
+<td>Disk full</td>
+<td>Clean reports directory</td>
+</tr>
+<tr>
+<td>Docker crash</td>
+<td>OOM limit</td>
+<td>Increase memory limit</td>
+</tr>
+<tr>
+<td>Database corruption</td>
+<td>Unexpected shutdown</td>
+<td>Restore from backup</td>
+</tr>
+</tbody>
+</table>
+<h3 id="key-commands-reference">Key Commands Reference</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-119-1" name="__codelineno-119-1" href="#__codelineno-119-1"></a># Health check
+<a id="__codelineno-119-2" name="__codelineno-119-2" href="#__codelineno-119-2"></a>curl http://localhost:3000/health
+<a id="__codelineno-119-3" name="__codelineno-119-3" href="#__codelineno-119-3"></a>
+<a id="__codelineno-119-4" name="__codelineno-119-4" href="#__codelineno-119-4"></a># View logs
+<a id="__codelineno-119-5" name="__codelineno-119-5" href="#__codelineno-119-5"></a>tail -f logs/python-backend.log
+<a id="__codelineno-119-6" name="__codelineno-119-6" href="#__codelineno-119-6"></a>
+<a id="__codelineno-119-7" name="__codelineno-119-7" href="#__codelineno-119-7"></a># Restart platform
+<a id="__codelineno-119-8" name="__codelineno-119-8" href="#__codelineno-119-8"></a>docker-compose restart
+<a id="__codelineno-119-9" name="__codelineno-119-9" href="#__codelineno-119-9"></a>
+<a id="__codelineno-119-10" name="__codelineno-119-10" href="#__codelineno-119-10"></a># Force rebuild
+<a id="__codelineno-119-11" name="__codelineno-119-11" href="#__codelineno-119-11"></a>docker-compose up -d --build
+<a id="__codelineno-119-12" name="__codelineno-119-12" href="#__codelineno-119-12"></a>
+<a id="__codelineno-119-13" name="__codelineno-119-13" href="#__codelineno-119-13"></a># Backup database
+<a id="__codelineno-119-14" name="__codelineno-119-14" href="#__codelineno-119-14"></a>copy mastra.db backups/mastra_$(date +%Y%m%d).db
+<a id="__codelineno-119-15" name="__codelineno-119-15" href="#__codelineno-119-15"></a>
+<a id="__codelineno-119-16" name="__codelineno-119-16" href="#__codelineno-119-16"></a># Test ETAP connection
+<a id="__codelineno-119-17" name="__codelineno-119-17" href="#__codelineno-119-17"></a>python -c &quot;from etap_integration.etap_com import ETAPAutomation; ETAPAutomation()&quot;
+<a id="__codelineno-119-18" name="__codelineno-119-18" href="#__codelineno-119-18"></a>
+<a id="__codelineno-119-19" name="__codelineno-119-19" href="#__codelineno-119-19"></a># Run tests
+<a id="__codelineno-119-20" name="__codelineno-119-20" href="#__codelineno-119-20"></a>pytest tests/ -v
+<a id="__codelineno-119-21" name="__codelineno-119-21" href="#__codelineno-119-21"></a>
+<a id="__codelineno-119-22" name="__codelineno-119-22" href="#__codelineno-119-22"></a># Clear cache
+<a id="__codelineno-119-23" name="__codelineno-119-23" href="#__codelineno-119-23"></a>python -c &quot;from knowledge.rag_engine import RAGEngine; RAGEngine().clear_cache()&quot;
+</code></pre></div>
+<hr />
+<p><strong>Document Version:</strong> 1.0<br />
+<strong>Last Updated:</strong> June 8, 2026<br />
+<strong>Maintained By:</strong> Engineering Team<br />
+<strong>Classification:</strong> Internal - Operations<br />
+<strong>Review Frequency:</strong> Quarterly</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.tabs", "navigation.sections", "navigation.top", "search.suggest", "search.highlight"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  </body>
+</html>

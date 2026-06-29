@@ -1,0 +1,1205 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Enterprise AI-Powered Power Systems Engineering Platform">
+      
+      
+        <meta name="author" content="AhmedETAP Team">
+      
+      
+      
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+    
+    
+      
+        <title>AhmedETAP — Disaster Recovery Plan - AhmedETAP Documentation</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="deep-purple">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#ahmedetap-disaster-recovery-plan" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="AhmedETAP Documentation" class="md-header__button md-logo" aria-label="AhmedETAP Documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            AhmedETAP Documentation
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              AhmedETAP — Disaster Recovery Plan
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+    
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/ahmdelbaz28-ux/ETAP-AI-WORK-" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href=".." class="md-tabs__link">
+        
+  
+  
+    
+  
+  الصفحة الرئيسية
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../ARCHITECTURE/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  الهيكلية
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../API_REFERENCE/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  واجهة برمجة التطبيقات
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../OPERATIONS_RUNBOOK/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  دليل التشغيل
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../TROUBLESHOOTING_GUIDE/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  دليل الأعطال
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../SECURITY_OPERATIONS_MANUAL/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  البنية التحتية للأمان
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../ENTERPRISE_CERTIFICATION_REPORT/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  التقييم المؤسسي
+
+      </a>
+    </li>
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="AhmedETAP Documentation" class="md-nav__button md-logo" aria-label="AhmedETAP Documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    AhmedETAP Documentation
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/ahmdelbaz28-ux/ETAP-AI-WORK-" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    الصفحة الرئيسية
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ARCHITECTURE/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    الهيكلية
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../API_REFERENCE/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    واجهة برمجة التطبيقات
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../OPERATIONS_RUNBOOK/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    دليل التشغيل
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../TROUBLESHOOTING_GUIDE/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    دليل الأعطال
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../SECURITY_OPERATIONS_MANUAL/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    البنية التحتية للأمان
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ENTERPRISE_CERTIFICATION_REPORT/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    التقييم المؤسسي
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1-recovery-objectives" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Recovery Objectives
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-service-inventory-criticality" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Service Inventory &amp; Criticality
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-disaster-scenarios-recovery-procedures" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Disaster Scenarios &amp; Recovery Procedures
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3. Disaster Scenarios &amp; Recovery Procedures">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#31-scenario-a-cloudflare-worker-platform-outage" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.1 Scenario A — Cloudflare Worker Platform Outage
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#32-scenario-b-kv-namespace-corruption-loss" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.2 Scenario B — KV Namespace Corruption / Loss
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#33-scenario-c-mastra-database-mastradb-corruption" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.3 Scenario C — Mastra Database (mastra.db) Corruption
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#34-scenario-d-etap-worker-service-failure" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.4 Scenario D — ETAP Worker Service Failure
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#35-scenario-e-complete-environment-destruction" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.5 Scenario E — Complete Environment Destruction
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-backup-strategy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Backup Strategy
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-emergency-contacts" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. Emergency Contacts
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-dr-testing-schedule" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. DR Testing Schedule
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7-dr-plan-activation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7. DR Plan Activation
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="ahmedetap-disaster-recovery-plan">AhmedETAP — Disaster Recovery Plan</h1>
+<p><strong>Version:</strong> 1.0.0<br />
+<strong>Date:</strong> 2026-06-10<br />
+<strong>Classification:</strong> INTERNAL — CRITICAL<br />
+<strong>Owner:</strong> Disaster Recovery Architect<br />
+<strong>RTO Target:</strong> &lt; 30 minutes<br />
+<strong>RPO Target:</strong> &lt; 15 minutes<br />
+<strong>Activation Threshold:</strong> Any SEV-1 incident or complete service unavailability</p>
+<hr />
+<h2 id="1-recovery-objectives">1. Recovery Objectives</h2>
+<table>
+<thead>
+<tr>
+<th>Objective</th>
+<th>Target</th>
+<th>Measurement</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>RTO (Recovery Time Objective)</strong></td>
+<td>&lt; 30 minutes</td>
+<td>Time from incident declaration to full service restoration</td>
+</tr>
+<tr>
+<td><strong>RPO (Recovery Point Objective)</strong></td>
+<td>&lt; 15 minutes</td>
+<td>Maximum acceptable data loss (last backup to incident time)</td>
+</tr>
+<tr>
+<td><strong>MTO (Maximum Tolerable Outage)</strong></td>
+<td>60 minutes</td>
+<td>Maximum time the business can tolerate outage before critical impact</td>
+</tr>
+<tr>
+<td><strong>WRT (Work Recovery Time)</strong></td>
+<td>30 minutes</td>
+<td>Time to validate all systems are operational post-recovery</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="2-service-inventory-criticality">2. Service Inventory &amp; Criticality</h2>
+<table>
+<thead>
+<tr>
+<th>Service</th>
+<th>Tier</th>
+<th>RTO</th>
+<th>RPO</th>
+<th>Recovery Method</th>
+<th>Owner</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Cloudflare Worker API Gateway</td>
+<td>Tier 1</td>
+<td>15 min</td>
+<td>0 min</td>
+<td>Re-deploy via <code>wrangler deploy</code></td>
+<td>SRE</td>
+</tr>
+<tr>
+<td>KV Namespace (Rate Limiting)</td>
+<td>Tier 2</td>
+<td>30 min</td>
+<td>15 min</td>
+<td>Recreate + rebind in <code>wrangler.jsonc</code></td>
+<td>SRE</td>
+</tr>
+<tr>
+<td>Mastra Backend (LibSQL/DuckDB)</td>
+<td>Tier 2</td>
+<td>30 min</td>
+<td>15 min</td>
+<td>Restore from <code>mastra.db</code> backup</td>
+<td>SRE</td>
+</tr>
+<tr>
+<td>ETAP Python Engine</td>
+<td>Tier 1</td>
+<td>20 min</td>
+<td>0 min</td>
+<td>Restart Docker container / K8s pod</td>
+<td>SRE</td>
+</tr>
+<tr>
+<td>ETAP Worker Service</td>
+<td>Tier 1</td>
+<td>20 min</td>
+<td>0 min</td>
+<td>Restart Windows container</td>
+<td>SRE</td>
+</tr>
+<tr>
+<td>Prompt Registry</td>
+<td>Tier 3</td>
+<td>60 min</td>
+<td>60 min</td>
+<td>Restore from Git repository</td>
+<td>DevOps</td>
+</tr>
+<tr>
+<td>Agent Configuration</td>
+<td>Tier 3</td>
+<td>60 min</td>
+<td>60 min</td>
+<td>Restore from Git repository</td>
+<td>DevOps</td>
+</tr>
+<tr>
+<td>Secrets (API keys, JWT)</td>
+<td>Tier 1</td>
+<td>15 min</td>
+<td>0 min</td>
+<td>Re-set via <code>wrangler secret put</code></td>
+<td>Security</td>
+</tr>
+<tr>
+<td>Redis Cache</td>
+<td>Tier 3</td>
+<td>45 min</td>
+<td>0 min</td>
+<td>Warm restart (data rebuildable)</td>
+<td>SRE</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="3-disaster-scenarios-recovery-procedures">3. Disaster Scenarios &amp; Recovery Procedures</h2>
+<h3 id="31-scenario-a-cloudflare-worker-platform-outage">3.1 Scenario A — Cloudflare Worker Platform Outage</h3>
+<p><strong>Impact:</strong> All API endpoints unreachable.<br />
+<strong>Detection:</strong> Health check endpoint (<code>/health</code>) fails from multiple regions.<br />
+<strong>Recovery:</strong></p>
+<ol>
+<li><strong>Declare incident</strong> (5 min) — Page on-call SRE, create SEV-1 ticket.</li>
+<li><strong>Verify Cloudflare status</strong> (5 min) — Check <code>https://www.cloudflarestatus.com/</code>.</li>
+<li><strong>If Cloudflare platform is down:</strong></li>
+<li>Activate DNS failover to backup origin (if configured).</li>
+<li>Switch to Docker Compose deployment on backup VM (15 min).</li>
+<li><strong>If Worker-specific issue:</strong></li>
+<li>Roll back to last known good deployment: <code>npx wrangler deploy --env=production</code> (5 min).</li>
+<li>Verify <code>/health</code> returns 200.</li>
+<li><strong>Post-recovery validation</strong> (10 min):</li>
+<li>Run <code>curl -s https://&lt;domain&gt;/health</code></li>
+<li>Run <code>curl -s https://&lt;domain&gt;/api/v1/agents -H "x-api-key: &lt;secret&gt;"</code></li>
+<li>Run <code>curl -s https://&lt;domain&gt;/metrics</code></li>
+<li>Confirm all provider health is <code>true</code>.</li>
+</ol>
+<p><strong>RTO:</strong> 15–25 minutes<br />
+<strong>RPO:</strong> 0 minutes (stateless Worker)</p>
+<hr />
+<h3 id="32-scenario-b-kv-namespace-corruption-loss">3.2 Scenario B — KV Namespace Corruption / Loss</h3>
+<p><strong>Impact:</strong> Rate limiting data lost. Users may experience incorrect rate limits.<br />
+<strong>Detection:</strong> KV <code>get</code> operations returning null unexpectedly.<br />
+<strong>Recovery:</strong></p>
+<ol>
+<li><strong>Verify KV status</strong> (5 min) — <code>npx wrangler kv namespace list</code></li>
+<li><strong>If namespace is corrupted:</strong></li>
+<li>Create new KV namespace: <code>npx wrangler kv namespace create "rate-limit-kv-backup"</code></li>
+<li>Update <code>wrangler.jsonc</code> with new ID.</li>
+<li>Re-deploy Worker: <code>npx wrangler deploy</code></li>
+<li><strong>Data loss impact:</strong> Minimal — rate limit counters are reset. No critical data lost.</li>
+<li><strong>Validation:</strong> Confirm rate limiting works on test requests.</li>
+</ol>
+<p><strong>RTO:</strong> 10 minutes<br />
+<strong>RPO:</strong> 15 minutes (counters are transient)</p>
+<hr />
+<h3 id="33-scenario-c-mastra-database-mastradb-corruption">3.3 Scenario C — Mastra Database (<code>mastra.db</code>) Corruption</h3>
+<p><strong>Impact:</strong> Agent memory, observability data, and storage lost.<br />
+<strong>Detection:</strong> Mastra startup errors or DuckDB initialization failures.<br />
+<strong>Recovery:</strong></p>
+<ol>
+<li><strong>Stop Mastra backend</strong> (2 min).</li>
+<li><strong>Restore from backup</strong> (10 min):</li>
+<li>Locate latest backup: <code>backups/mastra.db.YYYY-MM-DD-HH-MM.bak</code></li>
+<li>Replace <code>mastra.db</code> with backup.</li>
+<li>If no backup, re-initialize with <code>pnpx mastra init</code> (creates fresh schema).</li>
+<li><strong>Restart Mastra</strong> (3 min).</li>
+<li><strong>Validate:</strong></li>
+<li>Check <code>npx tsx -e "import {mastra} from './src/mastra/index.js'; console.log('OK', Object.keys(mastra.getAgents()).length)"</code></li>
+<li>Confirm all 9 agents load.</li>
+</ol>
+<p><strong>RTO:</strong> 20 minutes<br />
+<strong>RPO:</strong> 15 minutes (with hourly backups)</p>
+<hr />
+<h3 id="34-scenario-d-etap-worker-service-failure">3.4 Scenario D — ETAP Worker Service Failure</h3>
+<p><strong>Impact:</strong> No ETAP COM automation. Python studies cannot run.<br />
+<strong>Detection:</strong> <code>curl http://etap-worker:8081/health</code> fails.<br />
+<strong>Recovery:</strong></p>
+<ol>
+<li><strong>Restart container</strong> (5 min):</li>
+<li><code>docker-compose restart etap-worker</code> (Docker)</li>
+<li><code>kubectl rollout restart deployment/etap-worker -n etap-platform</code> (K8s)</li>
+<li><strong>If restart fails:</strong></li>
+<li>Pull latest image: <code>docker-compose pull etap-worker</code></li>
+<li>Rebuild: <code>docker-compose up -d --build etap-worker</code></li>
+<li><strong>Verify health</strong> (5 min):</li>
+<li><code>curl -s http://etap-worker:8081/health</code></li>
+<li>Run Python engine test: <code>python -c "from engine.engine import PowerSystemEngine; print('OK')"</code></li>
+<li><strong>If ETAP license is invalid:</strong></li>
+<li>Check <code>ETAP_LICENSE_PATH</code> environment variable.</li>
+<li>Re-activate license via ETAP admin console.</li>
+</ol>
+<p><strong>RTO:</strong> 20 minutes<br />
+<strong>RPO:</strong> 0 minutes (ETAP engine is stateless)</p>
+<hr />
+<h3 id="35-scenario-e-complete-environment-destruction">3.5 Scenario E — Complete Environment Destruction</h3>
+<p><strong>Impact:</strong> All infrastructure lost. Complete rebuild required.<br />
+<strong>Detection:</strong> Multiple services down simultaneously.<br />
+<strong>Recovery:</strong></p>
+<ol>
+<li><strong>Provision new environment</strong> (10 min):</li>
+<li>Cloudflare Workers: <code>npx wrangler deploy</code> (from CI/CD or local)</li>
+<li>KV: <code>npx wrangler kv namespace create "rate-limit-kv"</code></li>
+<li>Update <code>wrangler.jsonc</code> with new KV ID.</li>
+<li>Re-set secrets: <code>wrangler secret put API_KEY_SECRET</code>, <code>wrangler secret put OPENAI_API_KEY</code>, etc.</li>
+<li><strong>Restore databases</strong> (10 min):</li>
+<li>Restore <code>mastra.db</code> from backup.</li>
+<li>Restore <code>prompts.json</code> from Git.</li>
+<li><strong>Restore configuration</strong> (5 min):</li>
+<li><code>wrangler.jsonc</code> from Git.</li>
+<li><code>docker-compose.yml</code> from Git.</li>
+<li><code>.env</code> from encrypted backup.</li>
+<li><strong>Verify</strong> (5 min):</li>
+<li>Run full test suite: <code>npx vitest run</code></li>
+<li>Run Python tests: <code>python -m pytest tests/unit_tests.py</code></li>
+<li>Verify all endpoints: <code>curl</code> test script.</li>
+</ol>
+<p><strong>RTO:</strong> 30 minutes<br />
+<strong>RPO:</strong> 15 minutes</p>
+<hr />
+<h2 id="4-backup-strategy">4. Backup Strategy</h2>
+<table>
+<thead>
+<tr>
+<th>Data</th>
+<th>Frequency</th>
+<th>Retention</th>
+<th>Location</th>
+<th>Method</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>wrangler.jsonc</code></td>
+<td>Every commit</td>
+<td>Infinite</td>
+<td>Git repository</td>
+<td>Git</td>
+</tr>
+<tr>
+<td><code>src/</code></td>
+<td>Every commit</td>
+<td>Infinite</td>
+<td>Git repository</td>
+<td>Git</td>
+</tr>
+<tr>
+<td><code>mastra.db</code></td>
+<td>Hourly</td>
+<td>7 days</td>
+<td>Local + Cloud backup</td>
+<td>Cron + <code>cp</code></td>
+</tr>
+<tr>
+<td><code>prompts/*.yaml</code></td>
+<td>Every commit</td>
+<td>Infinite</td>
+<td>Git repository</td>
+<td>Git</td>
+</tr>
+<tr>
+<td>Cloudflare KV</td>
+<td>Weekly</td>
+<td>4 weeks</td>
+<td>KV list export</td>
+<td><code>wrangler kv key list</code></td>
+</tr>
+<tr>
+<td>Secrets</td>
+<td>On change</td>
+<td>Last 2 versions</td>
+<td>Password manager / Vault</td>
+<td>Manual + Vault</td>
+</tr>
+<tr>
+<td>Docker volumes</td>
+<td>Daily</td>
+<td>7 days</td>
+<td>Backup server</td>
+<td><code>docker volume backup</code></td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="5-emergency-contacts">5. Emergency Contacts</h2>
+<table>
+<thead>
+<tr>
+<th>Role</th>
+<th>Contact</th>
+<th>Escalation</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>On-Call SRE</td>
+<td>PagerDuty / Slack #sre-oncall</td>
+<td>+30 min → Engineering Manager</td>
+</tr>
+<tr>
+<td>Security Lead</td>
+<td>Slack #security-oncall</td>
+<td>Immediate for credential compromise</td>
+</tr>
+<tr>
+<td>Cloudflare Support</td>
+<td>https://support.cloudflare.com</td>
+<td>Tier 2 for platform issues</td>
+</tr>
+<tr>
+<td>ETAP Support</td>
+<td>support@etap.com</td>
+<td>For ETAP license/engine issues</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="6-dr-testing-schedule">6. DR Testing Schedule</h2>
+<table>
+<thead>
+<tr>
+<th>Test</th>
+<th>Frequency</th>
+<th>Last Run</th>
+<th>Next Run</th>
+<th>Owner</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Worker rollback</td>
+<td>Monthly</td>
+<td>2026-06-10</td>
+<td>2026-07-10</td>
+<td>SRE</td>
+</tr>
+<tr>
+<td>KV namespace recreate</td>
+<td>Quarterly</td>
+<td>—</td>
+<td>2026-09-10</td>
+<td>SRE</td>
+</tr>
+<tr>
+<td><code>mastra.db</code> restore</td>
+<td>Monthly</td>
+<td>—</td>
+<td>2026-07-10</td>
+<td>SRE</td>
+</tr>
+<tr>
+<td>Full environment rebuild</td>
+<td>Quarterly</td>
+<td>—</td>
+<td>2026-09-10</td>
+<td>SRE</td>
+</tr>
+<tr>
+<td>ETAP Worker restart</td>
+<td>Monthly</td>
+<td>—</td>
+<td>2026-07-10</td>
+<td>SRE</td>
+</tr>
+<tr>
+<td>Secret rotation drill</td>
+<td>Quarterly</td>
+<td>—</td>
+<td>2026-09-10</td>
+<td>Security</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="7-dr-plan-activation">7. DR Plan Activation</h2>
+<p><strong>Activation Authority:</strong> On-Call SRE, Engineering Manager, or Security Lead<br />
+<strong>Activation Method:</strong>
+1. Create SEV-1 incident ticket.
+2. Page on-call SRE via PagerDuty.
+3. Post in <code>#incidents</code> Slack channel.
+4. Notify stakeholders in <code>#platform-status</code>.</p>
+<p><strong>Deactivation Criteria:</strong>
+- All health checks pass for 5 consecutive minutes.
+- All critical metrics (RTO, error rate, latency) return to normal.
+- Post-incident review scheduled within 24 hours.</p>
+<hr />
+<p><em>Document Classification: INTERNAL — CRITICAL</em><br />
+<em>Distribution: SRE Team, Engineering Leadership, Security Team</em><br />
+<em>Review: Quarterly or after any SEV-1 incident</em></p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.tabs", "navigation.sections", "navigation.top", "search.suggest", "search.highlight"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  </body>
+</html>
