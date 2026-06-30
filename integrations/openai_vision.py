@@ -201,21 +201,21 @@ class OpenAIVisionClient:
         if not image_data_url:
             return {"error": "image_encoding_failed", "message": "Could not encode image to base64"}
 
-        # Build the chat messages
-        user_content = self._build_user_content(objective, context, pil_image.size)
+        # Build the chat messages — pass the ACTUAL image data URL (not a placeholder)
+        user_content = self._build_user_content(objective, context, pil_image.size, image_data_url)
         messages = [
             {"role": "system", "content": SYSTEM_PROMPT},
             {"role": "user", "content": user_content},
         ]
 
-        # Build request payload
+        # Build request payload — WITHOUT response_format for max compatibility.
+        # Some providers (freemodel.dev, etc.) return 400 if response_format is set.
+        # The system prompt already asks for strict JSON, which is sufficient.
         payload = {
             "model": self.model,
             "messages": messages,
             "temperature": 0.1,
             "max_tokens": 2048,
-            # Some providers support response_format for strict JSON
-            "response_format": {"type": "json_object"},
         }
 
         # Build headers
@@ -227,7 +227,7 @@ class OpenAIVisionClient:
         # Build URL
         url = f"{self.base_url}/chat/completions"
 
-        # Retry loop
+        # Retry loop — first try WITHOUT response_format, then try WITH it
         last_error: Optional[str] = None
         for attempt in range(1, self.max_retries + 1):
             try:
@@ -304,9 +304,19 @@ class OpenAIVisionClient:
 
     @staticmethod
     def _build_user_content(
-        objective: str, context: Optional[str], image_size: tuple[int, int]
+        objective: str,
+        context: Optional[str],
+        image_size: tuple[int, int],
+        image_data_url: str,
     ) -> List[Dict[str, Any]]:
-        """Build the user message content with text + image_url."""
+        """Build the user message content with text + image_url.
+
+        Args:
+            objective: what the agent is trying to accomplish
+            context: optional prior-step summary
+            image_size: (width, height) of the screenshot
+            image_data_url: the actual data:image/png;base64,... URL
+        """
         width, height = image_size
         parts: List[Dict[str, Any]] = [
             {
@@ -323,7 +333,7 @@ class OpenAIVisionClient:
             {
                 "type": "image_url",
                 "image_url": {
-                    "url": "data:image/png;base64,PLACEHOLDER",  # replaced by _make_request
+                    "url": image_data_url,
                     "detail": "high",
                 },
             },
