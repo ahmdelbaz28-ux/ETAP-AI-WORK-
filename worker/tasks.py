@@ -143,9 +143,7 @@ def process_large_calculation_task(self, calculation_data: dict):
     """
     try:
         # Update task progress
-        self.update_state(
-            state="PROGRESS", meta={"status": "Starting large calculation..."}
-        )
+        self.update_state(state="PROGRESS", meta={"status": "Starting large calculation..."})
 
         logger.info(f"Starting large calculation: {calculation_data.get('type', 'Unknown')}")
 

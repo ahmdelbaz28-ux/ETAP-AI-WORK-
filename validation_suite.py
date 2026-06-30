@@ -16,9 +16,7 @@ def run_syntax_check():
     print("=" * 80)
     try:
         result = subprocess.run(
-            [sys.executable, "validate_syntax.py"],
-            capture_output=True,
-            text=True
+            [sys.executable, "validate_syntax.py"], capture_output=True, text=True
         )
         print(result.stdout)
         if result.stderr:
@@ -42,7 +40,7 @@ def check_required_files():
         "Dockerfile",
         "requirements.txt",
         "engineering_service.py",
-        "pyproject.toml"
+        "pyproject.toml",
     ]
     missing = []
     for file in required_files:
@@ -106,4 +104,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-

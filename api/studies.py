@@ -78,9 +78,7 @@ class BusSpec(BaseModel):
     def validate_voltage_magnitude(cls, v: float) -> float:
         """Voltage magnitude must be reasonable (0.5–2.0 pu)."""
         if v < 0.5 or v > 2.0:
-            raise ValueError(
-                f"voltage_magnitude must be between 0.5 and 2.0 pu, got {v}"
-            )
+            raise ValueError(f"voltage_magnitude must be between 0.5 and 2.0 pu, got {v}")
         return v
 
     @field_validator("voltage_angle")
@@ -88,9 +86,7 @@ class BusSpec(BaseModel):
     def validate_voltage_angle(cls, v: float) -> float:
         """Voltage angle must be within -360 to +360 degrees."""
         if v < -360.0 or v > 360.0:
-            raise ValueError(
-                f"voltage_angle must be between -360 and 360 degrees, got {v}"
-            )
+            raise ValueError(f"voltage_angle must be between -360 and 360 degrees, got {v}")
         return v
 
     @field_validator("q_min", "q_max")

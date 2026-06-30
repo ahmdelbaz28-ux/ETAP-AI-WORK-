@@ -501,6 +501,7 @@ async def global_exception_handler(request: Request, exc: Exception) -> JSONResp
         },
     )
 
+
 # Register only the routers that exist
 app.include_router(health_router)
 app.include_router(studies_router)
