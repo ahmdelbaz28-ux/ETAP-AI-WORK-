@@ -243,12 +243,12 @@ class MotorStartingAgent(BaseAgent):
         voltage_dip_pct = (source_voltage_pu - motor_voltage_pu) / source_voltage_pu * 100.0
 
         return {
-            "motor_bus_voltage_pu": round(float(motor_voltage_pu), 4),
-            "voltage_dip_percent": round(float(voltage_dip_pct), 2),
+            "motor_bus_voltage_pu": round(motor_voltage_pu, 4),
+            "voltage_dip_percent": round(voltage_dip_pct, 2),
             "source_voltage_pu": source_voltage_pu,
-            "source_impedance_r_pu": round(float(source_impedance_pu.real), 6),
-            "source_impedance_x_pu": round(float(source_impedance_pu.imag), 6),
-            "motor_starting_impedance_pu": round(float(z_motor_pu), 6),
+            "source_impedance_r_pu": round(source_impedance_pu.real, 6),
+            "source_impedance_x_pu": round(source_impedance_pu.imag, 6),
+            "motor_starting_impedance_pu": round(z_motor_pu, 6),
             "assessment": self._assess_voltage_dip(motor_voltage_pu),
         }
 
@@ -319,12 +319,12 @@ class MotorStartingAgent(BaseAgent):
         starting_torque = rated_torque_nm * torque_ratio
 
         return {
-            "starting_torque_nm": round(float(starting_torque), 2),
-            "torque_per_rated": round(float(torque_ratio), 4),
+            "starting_torque_nm": round(starting_torque, 2),
+            "torque_per_rated": round(torque_ratio, 4),
             "starting_method": starting_method,
-            "method_voltage_ratio": round(float(v_ratio), 4),
+            "method_voltage_ratio": round(v_ratio, 4),
             "motor_bus_voltage_pu": motor_bus_voltage_pu,
-            "voltage_factor": round(float(combined_voltage_factor), 4),
+            "voltage_factor": round(combined_voltage_factor, 4),
             "rated_torque_nm": rated_torque_nm,
         }
 
@@ -359,11 +359,11 @@ class MotorStartingAgent(BaseAgent):
             t_acc = float("inf")
 
         return {
-            "acceleration_time_s": round(float(t_acc), 2),
+            "acceleration_time_s": round(t_acc, 2),
             "rated_speed_rpm": rated_speed_rpm,
             "j_total_kgm2": j_total_kgm2,
-            "avg_accelerating_torque_nm": round(float(avg_accelerating_torque_nm), 2),
-            "omega_rated_rad_s": round(float(omega_rated), 2),
+            "avg_accelerating_torque_nm": round(avg_accelerating_torque_nm, 2),
+            "omega_rated_rad_s": round(omega_rated, 2),
         }
 
     # ------------------------------------------------------------------
