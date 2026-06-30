@@ -30,7 +30,7 @@ def execute_engineering_study_task(self, study_data: dict):
     """
     try:
         # Update task progress
-        current_task.update_state(state="PROGRESS", meta={"status": "Starting study execution..."})
+        self.update_state(state="PROGRESS", meta={"status": "Starting study execution..."})
 
         study_type = study_data.get("study_type", "Unknown")
         logger.info("Starting engineering study: %s", study_type)
@@ -47,7 +47,7 @@ def execute_engineering_study_task(self, study_data: dict):
 
         logger.info("Completed engineering study: %s", study_type)
 
-        current_task.update_state(
+        self.update_state(
             state="SUCCESS",
             meta={
                 "status": "Study completed successfully",
@@ -58,7 +58,7 @@ def execute_engineering_study_task(self, study_data: dict):
         return result.model_dump()
     except Exception as exc:
         logger.error("Error executing engineering study: %s", str(exc))
-        current_task.update_state(
+        self.update_state(
             state="FAILURE",
             meta={
                 "status": "Study failed",
@@ -81,7 +81,7 @@ def execute_etap_integration_task(self, etap_command: dict):
     """
     try:
         # Update task progress
-        current_task.update_state(state="PROGRESS", meta={"status": "Starting ETAP integration..."})
+        self.update_state(state="PROGRESS", meta={"status": "Starting ETAP integration..."})
 
         # Check if ETAP is enabled
         use_etap = os.environ.get("USE_ETAP", "false").lower() == "true"
@@ -94,7 +94,7 @@ def execute_etap_integration_task(self, etap_command: dict):
 
         provider = get_etap_provider()
         if hasattr(provider, "execute_command"):
-            result = provider.execute_command(etap_command)
+            result = provider.execute_command(etap_command)  # type: ignore[reportAttributeAccessIssue]
         else:
             project_path = etap_command.get("project_path", "")
             from etap_integration.etap_provider import ETAPStudyType
@@ -114,7 +114,7 @@ def execute_etap_integration_task(self, etap_command: dict):
 
         logger.info(f"Completed ETAP integration: {etap_command.get('command', 'Unknown')}")
 
-        current_task.update_state(
+        self.update_state(
             state="SUCCESS",
             meta={"status": "ETAP operation completed successfully", "result": result},
         )
@@ -122,7 +122,7 @@ def execute_etap_integration_task(self, etap_command: dict):
         return result
     except Exception as exc:
         logger.error(f"Error executing ETAP integration: {str(exc)}")
-        current_task.update_state(
+        self.update_state(
             state="FAILURE",
             meta={
                 "status": "ETAP operation failed",
@@ -145,7 +145,7 @@ def process_large_calculation_task(self, calculation_data: dict):
     """
     try:
         # Update task progress
-        current_task.update_state(
+        self.update_state(
             state="PROGRESS", meta={"status": "Starting large calculation..."}
         )
 
@@ -163,7 +163,7 @@ def process_large_calculation_task(self, calculation_data: dict):
         for i in range(iterations):
             if i % 10 == 0:
                 progress = (i / iterations) * 100
-                current_task.update_state(
+                self.update_state(
                     state="PROGRESS", meta={"status": f"Calculation in progress: {progress:.1f}%"}
                 )
 
@@ -181,14 +181,14 @@ def process_large_calculation_task(self, calculation_data: dict):
 
         logger.info(f"Completed large calculation: {calculation_data.get('type', 'Unknown')}")
 
-        current_task.update_state(
+        self.update_state(
             state="SUCCESS", meta={"status": "Calculation completed successfully", "result": result}
         )
 
         return result
     except Exception as exc:
         logger.error(f"Error processing large calculation: {str(exc)}")
-        current_task.update_state(
+        self.update_state(
             state="FAILURE",
             meta={
                 "status": "Calculation failed",

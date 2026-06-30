@@ -701,7 +701,7 @@ def _timeout(seconds: float):
     import threading
 
     timed_out = threading.Event()
-    exc_bucket = [None]
+    exc_bucket: list[TimeoutError | None] = [None]
 
     def _watchdog():
         if not timed_out.wait(timeout=seconds):
