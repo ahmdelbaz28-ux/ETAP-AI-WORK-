@@ -28,6 +28,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libcups2 libdrm2 libxkbcommon0 libxcomposite1 libxdamage1 \
     libxfixes3 libxrandr2 libgbm1 libasound2 libpango-1.0-0 \
     libcairo2 libatspi2.0-0 \
+    # Tesseract OCR — for offline vision fallback (integrations/opencv_vision.py)
+    # Used when Gemini Vision is unreachable (network down, API quota exceeded)
+    tesseract-ocr tesseract-ocr-eng \
     && rm -rf /var/lib/apt/lists/*
 
 # Create non-root user (UID 1000 as required by HF Spaces)

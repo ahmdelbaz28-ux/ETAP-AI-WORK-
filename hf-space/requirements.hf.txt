@@ -63,3 +63,10 @@ websockets>=12.0
 playwright>=1.40.0
 google-generativeai>=0.8.0
 Pillow>=10.2.0
+
+# OpenCV + pytesseract — local offline vision fallback
+# Used by integrations/opencv_vision.py when Gemini Vision is unreachable
+# (network down, API quota exceeded). Provides degraded but functional
+# screen analysis via contour detection + OCR.
+opencv-python-headless>=4.10.0
+pytesseract>=0.3.10

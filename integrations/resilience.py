@@ -1,0 +1,406 @@
+"""
+integrations/resilience.py — Connection resilience for the CUA Loop
+
+Provides retry, checkpoint, and offline-fallback mechanisms so the CUA Loop
+can survive transient network failures without losing all progress.
+
+PROBLEM IT SOLVES:
+    The CUA Loop runs for many steps (up to 50). If step 12 of 15 fails
+    because Gemini Vision returned a 503, the entire loop aborts and the
+    user loses all progress. This module fixes that.
+
+WHAT IT PROVIDES:
+    1. retry_with_backoff() — decorator for transient failures
+    2. CheckpointStore — persists loop state to disk every step
+    3. ResumeManager — loads the latest checkpoint and resumes from there
+    4. HybridVisionRouter — tries Gemini first, falls back to OpenCV
+
+USAGE:
+    from integrations.resilience import retry_with_backoff, CheckpointStore
+
+    @retry_with_backoff(max_retries=3, base_delay=2.0)
+    def call_gemini(...):
+        ...
+
+    store = CheckpointStore(directory="/tmp/cua_checkpoints")
+    store.save(execution_id="abc123", step_num=5, state={...})
+    latest = store.load_latest("abc123")
+    if latest:
+        resume_from = latest["step_num"]
+
+References:
+    - agents/cua_executor.py (consumer)
+    - agents/browser_cua_executor.py (consumer)
+    - integrations/gemini_vision.py (online path)
+    - integrations/opencv_vision.py (offline fallback)
+"""
+
+from __future__ import annotations
+
+import functools
+import json
+import logging
+import os
+import time
+import uuid
+from datetime import UTC, datetime
+from pathlib import Path
+from typing import Any, Callable, Dict, List, Optional
+
+logger = logging.getLogger(__name__)
+
+
+# ─── 1. Retry decorator with exponential backoff ──────────────────────────
+
+
+def retry_with_backoff(
+    max_retries: int = 3,
+    base_delay: float = 2.0,
+    max_delay: float = 30.0,
+    exceptions: tuple = (Exception,),
+    on_retry: Optional[Callable[[int, Exception], None]] = None,
+):
+    """Decorator: retry a function on transient failures with exponential backoff.
+
+    Args:
+        max_retries: max number of retry attempts (total attempts = max_retries + 1)
+        base_delay: initial delay in seconds (doubles each retry)
+        max_delay: cap on delay between retries
+        exceptions: which exception types to retry on (default: all)
+        on_retry: optional callback(attempt, exception) called before each retry
+
+    Example:
+        @retry_with_backoff(max_retries=3, base_delay=2.0)
+        def call_gemini_api(...):
+            return requests.post(...)
+    """
+
+    def decorator(func: Callable) -> Callable:
+        @functools.wraps(func)
+        def wrapper(*args, **kwargs):
+            last_exc: Optional[Exception] = None
+            for attempt in range(1, max_retries + 2):  # +1 for initial attempt
+                try:
+                    return func(*args, **kwargs)
+                except exceptions as exc:
+                    last_exc = exc
+                    if attempt > max_retries:
+                        logger.error(
+                            "%s failed after %d attempts: %s",
+                            func.__name__,
+                            attempt,
+                            exc,
+                        )
+                        raise
+                    delay = min(base_delay * (2 ** (attempt - 1)), max_delay)
+                    logger.warning(
+                        "%s attempt %d/%d failed: %s — retrying in %.1fs",
+                        func.__name__,
+                        attempt,
+                        max_retries + 1,
+                        exc,
+                        delay,
+                    )
+                    if on_retry:
+                        try:
+                            on_retry(attempt, exc)
+                        except Exception:  # noqa: BLE001
+                            pass
+                    time.sleep(delay)
+            # Should never reach here, but defensive
+            if last_exc:
+                raise last_exc
+
+        return wrapper
+
+    return decorator
+
+
+# ─── 2. Checkpoint store — persist loop state to disk ──────────────────────
+
+
+class CheckpointStore:
+    """Persists CUA Loop state to disk so it can be resumed after a crash.
+
+    Each checkpoint is a JSON file containing:
+        - execution_id
+        - step_num
+        - objective
+        - completed_steps (list of step dicts)
+        - timestamp
+        - context (string passed to next iteration)
+
+    Files are written atomically (write to .tmp, then rename) so a crash
+    mid-write never leaves a corrupted checkpoint.
+    """
+
+    def __init__(self, directory: str = "/tmp/cua_checkpoints") -> None:
+        self.directory = Path(directory)
+        self.directory.mkdir(parents=True, exist_ok=True)
+
+    def save(
+        self,
+        execution_id: str,
+        step_num: int,
+        objective: str,
+        completed_steps: List[Dict[str, Any]],
+        context: str = "",
+        extra: Optional[Dict[str, Any]] = None,
+    ) -> Path:
+        """Save a checkpoint. Returns the path to the checkpoint file."""
+        checkpoint = {
+            "execution_id": execution_id,
+            "step_num": step_num,
+            "objective": objective,
+            "completed_steps": completed_steps,
+            "context": context,
+            "timestamp": datetime.now(UTC).isoformat(),
+            "extra": extra or {},
+        }
+        filename = f"{execution_id}_step{step_num:04d}.json"
+        filepath = self.directory / filename
+        tmp_path = filepath.with_suffix(".json.tmp")
+
+        # Atomic write: write to .tmp, then rename
+        with open(tmp_path, "w", encoding="utf-8") as fh:
+            json.dump(checkpoint, fh, indent=2, default=str)
+        os.replace(tmp_path, filepath)
+
+        logger.debug("Checkpoint saved: %s (step %d)", filepath, step_num)
+        return filepath
+
+    def load_latest(self, execution_id: str) -> Optional[Dict[str, Any]]:
+        """Load the latest checkpoint for a given execution_id.
+
+        Returns None if no checkpoints exist.
+        """
+        pattern = f"{execution_id}_step*.json"
+        files = sorted(self.directory.glob(pattern))
+        if not files:
+            return None
+        latest_file = files[-1]
+        try:
+            with open(latest_file, encoding="utf-8") as fh:
+                return json.load(fh)
+        except (json.JSONDecodeError, OSError) as exc:
+            logger.warning("Failed to load checkpoint %s: %s", latest_file, exc)
+            return None
+
+    def list_checkpoints(self, execution_id: str) -> List[Path]:
+        """List all checkpoint files for an execution_id, sorted by step."""
+        pattern = f"{execution_id}_step*.json"
+        return sorted(self.directory.glob(pattern))
+
+    def cleanup(self, execution_id: str, keep_last: int = 1) -> int:
+        """Delete old checkpoints, keeping only the last N.
+
+        Returns the number of files deleted.
+        """
+        files = self.list_checkpoints(execution_id)
+        if len(files) <= keep_last:
+            return 0
+        to_delete = files[:-keep_last]
+        for f in to_delete:
+            try:
+                f.unlink()
+            except OSError:
+                pass
+        return len(to_delete)
+
+    def clear_all(self, execution_id: str) -> int:
+        """Delete ALL checkpoints for an execution_id. Returns count deleted."""
+        files = self.list_checkpoints(execution_id)
+        for f in files:
+            try:
+                f.unlink()
+            except OSError:
+                pass
+        return len(files)
+
+
+# ─── 3. Hybrid Vision Router — Gemini first, OpenCV fallback ──────────────
+
+
+class HybridVisionRouter:
+    """Routes analyze_screenshot() calls to Gemini Vision first, then OpenCV.
+
+    Decision logic:
+        1. Try Gemini Vision (online, high accuracy)
+        2. If Gemini fails OR returns error OR is disabled → try OpenCV
+        3. If OpenCV also fails → return error
+
+    This guarantees the CUA Loop can continue operating even when the
+    network is down, albeit with reduced accuracy.
+
+    Usage:
+        from integrations.resilience import hybrid_vision
+
+        analysis = hybrid_vision.analyze_screenshot(
+            image=screenshot_path,
+            objective="Click the Run button",
+        )
+        # → uses Gemini if available, OpenCV as fallback
+    """
+
+    def __init__(self) -> None:
+        from integrations.gemini_vision import gemini_vision
+        from integrations.opencv_vision import opencv_vision
+
+        self.gemini = gemini_vision
+        self.opencv = opencv_vision
+        self.primary = (
+            "gemini" if gemini_vision.enabled else ("opencv" if opencv_vision.enabled else "none")
+        )
+        self.fallback = "opencv" if self.primary == "gemini" else "none"
+
+        logger.info(
+            "HybridVisionRouter initialized — primary=%s, fallback=%s",
+            self.primary,
+            self.fallback,
+        )
+
+    @retry_with_backoff(max_retries=2, base_delay=1.0, exceptions=(Exception,))
+    def _call_gemini(self, image, objective, context):
+        """Call Gemini with one retry (the decorator handles the retry)."""
+        return self.gemini.analyze_screenshot(image=image, objective=objective, context=context)
+
+    def analyze_screenshot(
+        self,
+        image: Any,
+        objective: str,
+        context: Optional[str] = None,
+    ) -> Optional[Dict[str, Any]]:
+        """Analyze a screenshot, trying Gemini first then OpenCV.
+
+        Returns the analysis dict, with an extra "source" field indicating
+        which analyzer was used ("gemini" or "opencv").
+        """
+        # Try Gemini first
+        if self.gemini.enabled:
+            try:
+                result = self._call_gemini(image, objective, context)
+                if result and "error" not in result:
+                    result.setdefault("source", "gemini")
+                    return result
+                logger.warning("Gemini returned error, falling back to OpenCV: %s", result)
+            except Exception as exc:  # noqa: BLE001
+                logger.warning("Gemini call failed, falling back to OpenCV: %s", exc)
+
+        # Fallback to OpenCV
+        if self.opencv.enabled:
+            result = self.opencv.analyze_screenshot(
+                image=image, objective=objective, context=context
+            )
+            if result and "error" not in result:
+                result.setdefault("source", "opencv")
+                return result
+            return result  # return the error dict
+
+        # Neither available
+        return {
+            "error": "no_vision_backend",
+            "message": "Both Gemini Vision and OpenCV are unavailable",
+        }
+
+    def health_check(self) -> Dict[str, Any]:
+        """Return combined health status."""
+        return {
+            "primary": self.primary,
+            "fallback": self.fallback,
+            "gemini": self.gemini.health_check(),
+            "opencv": self.opencv.health_check(),
+        }
+
+
+# ─── 4. Resume Manager — orchestrate checkpoint loading + loop resume ──────
+
+
+class ResumeManager:
+    """Manages execution IDs and resume-from-checkpoint logic.
+
+    Usage:
+        rm = ResumeManager()
+        exec_id = rm.start_execution(objective="Open ETAP")
+        # ... run loop, save checkpoints ...
+        # If crash happens:
+        rm2 = ResumeManager()
+        exec_id, resume_from, prior_steps = rm2.resume_or_start(objective="Open ETAP")
+    """
+
+    def __init__(self, checkpoint_dir: str = "/tmp/cua_checkpoints") -> None:
+        self.store = CheckpointStore(directory=checkpoint_dir)
+
+    def start_execution(self, objective: str) -> str:
+        """Generate a new execution_id for a fresh CUA run."""
+        # execution_id = first 8 chars of objective hash + uuid suffix
+        import hashlib
+
+        obj_hash = hashlib.sha256(objective.encode()).hexdigest()[:8]
+        return f"{obj_hash}_{uuid.uuid4().hex[:8]}"
+
+    def resume_or_start(
+        self,
+        objective: str,
+    ) -> tuple[str, int, List[Dict[str, Any]], str]:
+        """Either resume an existing execution or start a new one.
+
+        Returns (execution_id, resume_from_step, prior_steps, context).
+        If no checkpoint found, returns (new_id, 0, [], "").
+        """
+        # Look for any checkpoint matching this objective
+        import hashlib
+
+        obj_hash = hashlib.sha256(objective.encode()).hexdigest()[:8]
+        # Check all files starting with this hash
+        candidates = list(self.store.directory.glob(f"{obj_hash}_*"))
+        if not candidates:
+            return self.start_execution(objective), 0, [], ""
+
+        # Find the most recent checkpoint (across all execution_ids with this objective)
+        latest_data = None
+        latest_time = 0
+        for f in candidates:
+            try:
+                with open(f, encoding="utf-8") as fh:
+                    data = json.load(fh)
+                # Parse timestamp
+                ts = data.get("timestamp", "")
+                if ts:
+                    # Compare lexicographically (ISO format sorts correctly)
+                    if ts > latest_time or not latest_time:
+                        latest_time = ts
+                        latest_data = data
+            except (json.JSONDecodeError, OSError):
+                continue
+
+        if not latest_data:
+            return self.start_execution(objective), 0, [], ""
+
+        exec_id = latest_data["execution_id"]
+        resume_from = latest_data["step_num"]
+        prior_steps = latest_data.get("completed_steps", [])
+        context = latest_data.get("context", "")
+
+        logger.info(
+            "Resuming execution %s from step %d (%d prior steps completed)",
+            exec_id,
+            resume_from,
+            len(prior_steps),
+        )
+        return exec_id, resume_from, prior_steps, context
+
+
+# ─── Module-level singletons ───────────────────────────────────────────────
+
+hybrid_vision = HybridVisionRouter()
+resume_manager = ResumeManager()
+
+
+__all__ = [
+    "CheckpointStore",
+    "HybridVisionRouter",
+    "ResumeManager",
+    "hybrid_vision",
+    "resume_manager",
+    "retry_with_backoff",
+]
