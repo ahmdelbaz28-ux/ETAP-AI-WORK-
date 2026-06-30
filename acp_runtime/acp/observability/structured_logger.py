@@ -48,7 +48,7 @@ class LogLevel(StrEnum):
 # ------------------------------------------------------------------ LogEntry
 
 
-@dataclass(frozen=True, slots=True)
+@dataclass(frozen=True)
 class LogEntry:
     """Immutable structured log entry.
 

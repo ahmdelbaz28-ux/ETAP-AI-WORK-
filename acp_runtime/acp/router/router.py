@@ -12,7 +12,7 @@ from __future__ import annotations
 
 import logging
 import time
-from collections.abc import Callable, Coroutine
+from typing import Callable, Coroutine
 from typing import Any, Optional
 
 from pydantic import ValidationError

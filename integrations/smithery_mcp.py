@@ -8,6 +8,8 @@ in a standardized way. Smithery is the registry/gateway for MCP servers.
 Docs: https://smithery.ai/docs
 """
 
+from __future__ import annotations
+
 import logging
 import os
 from typing import Any, Optional

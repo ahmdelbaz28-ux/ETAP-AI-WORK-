@@ -161,7 +161,7 @@ include = [
 ]
 
 [tool.pytest.ini_options]
-testpaths = ["tests", "acp_runtime/tests"]
+testpaths = ["tests",     "acp_runtime/acp_tests"]
 asyncio_mode = "auto"
 python_files = ["test_*.py", "*_test.py", "unit_tests.py"]
 addopts = "-v --tb=short -x"

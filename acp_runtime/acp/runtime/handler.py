@@ -33,7 +33,7 @@ __all__ = [
 _CAPABILITY_ATTR = "_acp_capability"
 
 
-@dataclass(frozen=True, slots=True)
+@dataclass(frozen=True)
 class CapabilityMeta:
     """Internal metadata stored on a @capability-decorated function."""
 

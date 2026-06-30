@@ -34,7 +34,7 @@ __all__ = [
 # ------------------------------------------------------------------ TraceContext
 
 
-@dataclass(frozen=True, slots=True)
+@dataclass(frozen=True)
 class TraceContext:
     """Immutable trace context that propagates across layers.
 
@@ -68,7 +68,7 @@ class TraceContext:
 # ------------------------------------------------------------------ Span
 
 
-@dataclass(frozen=True, slots=True)
+@dataclass(frozen=True)
 class Span:
     """An immutable record of a completed span.
 
