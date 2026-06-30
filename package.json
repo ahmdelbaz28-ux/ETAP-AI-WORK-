@@ -39,7 +39,7 @@
     "@mastra/loggers": "^1.0.0",
     "@mastra/memory": "^1.0.0",
     "@mastra/observability": "^1.0.0",
-    "ai": "^6.0.209",
+    "ai": "^6.0.216",
     "langwatch": "0.30.0",
     "mastra": "0.10.0",
     "pino": "9.6.0",
