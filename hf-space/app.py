@@ -274,6 +274,62 @@ async def etap_gui_chat(request: SharedETAPGUIChatRequest):
     return result
 
 
+@app.post("/api/v1/agents/etap-gui/execute", tags=["Agents"])
+async def etap_gui_execute(
+    question: str,
+    max_steps: int = 15,
+    require_confirmation: bool = True,
+    audit_dir: str | None = None,
+):
+    """Execute the REAL CUA Loop (Computer Use Agent).
+
+    On HF Space this will return Format U (unavailable) because the
+    environment is headless — no display server, no pyautogui.
+
+    To enable real CUA execution, run this on a desktop environment:
+      - Windows / Linux / macOS with a display
+      - GEMINI_API_KEY env var set
+      - pip install pyautogui pillow google-generativeai
+
+    See: agents/cua_executor.py and integrations/gemini_vision.py
+    """
+    from agents.etap_gui_agent import ETAPGUIAgent
+
+    agent = ETAPGUIAgent()
+    result = agent.execute_cua_loop(
+        question=question,
+        max_steps=max_steps,
+        require_confirmation=require_confirmation,
+        audit_dir=audit_dir,
+    )
+    return {"success": True, "data": result}
+
+
+@app.get("/api/v1/agents/etap-gui/health", tags=["Agents"])
+async def etap_gui_health():
+    """Health check for CUA execution capabilities.
+
+    Returns whether the CUA Loop can run in the current environment.
+    On HF Space this will report cua_loop_available=False with the list
+    of missing dependencies.
+    """
+    from agents.etap_gui_agent import ETAPGUIAgent, _check_gui_deps
+    from integrations.gemini_vision import gemini_vision
+
+    deps_ok, missing = _check_gui_deps()
+    agent = ETAPGUIAgent()
+    info = agent.get_agent_info()
+    return {
+        "success": True,
+        "data": {
+            "cua_loop_available": deps_ok,
+            "missing_dependencies": missing,
+            "gemini_vision": gemini_vision.health_check(),
+            "agent_info": info,
+        },
+    }
+
+
 # -- Studies ------------------------------------------------------------------
 @app.get("/api/v1/studies/types", tags=["Studies"])
 async def study_types():

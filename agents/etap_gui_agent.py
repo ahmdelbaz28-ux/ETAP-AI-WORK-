@@ -11,22 +11,28 @@ Implements the ETAP GUI Agent skill as a runtime-active agent that:
      defined by the skill
   5. Enforces safety rules: failsafe, confirmation required for CONTROL/SOLVE,
      audit logging, timeouts
+  6. **Executes the CUA Loop** by delegating to agents.cua_executor.CUAExecutor,
+     which captures real screenshots, analyzes them via Gemini Vision, and
+     drives pyautogui to click/type/hotkey the target desktop application.
 
 This agent is registered as study_type="etap_gui" in api/studies.py
 and is callable via POST /api/v1/studies/run.
 
-The agent does NOT require an external LLM API — classification and
-formatting are deterministic so the skill is always available offline.
+On headless servers (HF Space, CI), the executor reports deps unavailable
+and the agent falls back to Format U (planning-only response).
 
 References:
   - skills/etap-gui-agent.md            (knowledge base)
   - prompts/etap_gui_agent.prompt.yaml  (LLM prompt for Mastra side)
   - api/studies.py:_run_native_study    (dispatch entry point)
+  - agents/cua_executor.py              (CUA Loop execution layer)
+  - integrations/gemini_vision.py       (Visual perception via Gemini Vision API)
 """
 
 from __future__ import annotations
 
 import logging
+import os
 from pathlib import Path
 from typing import Any, Dict, List, Literal, Optional, Tuple
 
@@ -65,21 +71,63 @@ def _check_gui_deps() -> Tuple[bool, List[str]]:
     """Check whether the GUI automation dependencies are available.
 
     Returns (all_available, missing_list).
+
+    Required for real CUA execution:
+      - pyautogui   (mouse/keyboard control)
+      - PIL/Pillow  (image handling)
+      - google.generativeai (Gemini Vision for visual perception)
+      - pyautogui needs a display server (X11 / Windows / macOS GUI)
+
+    Optional (fallback OCR if Gemini is unavailable):
+      - pytesseract + tesseract binary
     """
     missing: List[str] = []
-    for mod in ("pyautogui", "pytesseract", "cv2", "PIL"):
-        try:
-            __import__(mod)
-        except ImportError:
-            missing.append(mod)
-    # Also check for the Tesseract binary
+
+    # pyautogui imports succeed even without a display, but screenshot() will fail.
+    # We detect the actual display server here.
+    try:
+        import pyautogui  # noqa: F401
+
+        # Check display server
+        if os.name == "posix":
+            if not os.environ.get("DISPLAY") and not os.environ.get("WAYLAND_DISPLAY"):
+                missing.append("display-server")
+    except ImportError:
+        missing.append("pyautogui")
+
+    # PIL/Pillow
+    try:
+        import PIL  # noqa: F401
+    except ImportError:
+        missing.append("PIL")
+
+    # Gemini Vision SDK (required — we use it instead of pytesseract for OCR)
+    try:
+        import google.generativeai  # noqa: F401
+
+        if not os.environ.get("GEMINI_API_KEY"):
+            missing.append("GEMINI_API_KEY-env-var")
+    except ImportError:
+        missing.append("google-generativeai")
+
+    # Optional: pytesseract + binary (only needed if Gemini Vision is down)
     try:
         import shutil
 
+        import pytesseract  # noqa: F401
+
         if not shutil.which("tesseract"):
-            missing.append("tesseract-binary")
-    except Exception:
-        missing.append("tesseract-binary")
+            missing.append("tesseract-binary-optional")
+    except ImportError:
+        missing.append("pytesseract-optional")
+
+    # cv2 is no longer required (Gemini does visual analysis)
+    # but we keep it in the deps list for backward compatibility
+    try:
+        import cv2  # noqa: F401
+    except ImportError:
+        missing.append("cv2-optional")
+
     return (len(missing) == 0), missing
 
 
@@ -449,6 +497,120 @@ class ETAPGUIAgent(BaseAgent):
             "target_app": app,
             "workflow_steps_executed": 6,
         }
+
+    def execute_cua_loop(
+        self,
+        question: str,
+        max_steps: int = 15,
+        require_confirmation: bool = True,
+        on_confirmation_request=None,
+        audit_dir: Optional[str] = None,
+    ) -> Dict[str, Any]:
+        """Run the actual CUA Loop — captures screenshots, analyzes them
+        via Gemini Vision, and drives pyautogui to click/type/hotkey.
+
+        This is the REAL Computer Use Agent execution. On headless servers
+        (HF Space, CI), it returns the same Format U fallback as answer().
+
+        Args:
+            question: the user's objective (e.g., "Open ETAP and run Load Flow")
+            max_steps: hard safety limit on CUA loop iterations
+            require_confirmation: pause for human approval before CONTROL/SOLVE actions
+            on_confirmation_request: callable(action) -> bool; if returns False, abort
+            audit_dir: directory for before/after screenshots (default /tmp/cua_audit)
+
+        Returns:
+            Dict with: executed (bool), result (CUAExecutionResult.to_dict()),
+            classification, format, target_app, deps_available.
+        """
+        # Import lazily so module import never crashes on headless servers
+        from agents.cua_executor import CUAExecutor
+
+        # Re-check deps (cheaper than re-running _check_gui_deps for callers who already did)
+        deps_ok, missing = _check_gui_deps()
+        if not deps_ok:
+            return {
+                "executed": False,
+                "classification": "unavailable",
+                "format": "U",
+                "response": _format_unavailable(missing),
+                "deps_available": False,
+                "missing_deps": missing,
+                "target_app": detect_target_app(question),
+                "result": None,
+            }
+
+        cls = classify(question)
+        app = detect_target_app(question)
+
+        # CONTROL/SOLVE require confirmation by default
+        needs_confirmation = cls in ("control", "solve") and require_confirmation
+
+        executor = CUAExecutor(
+            audit_dir=audit_dir or "/tmp/cua_audit",
+            action_timeout=60,
+        )
+
+        result = executor.execute_loop(
+            objective=question,
+            max_steps=max_steps,
+            require_confirmation=needs_confirmation,
+            on_confirmation_request=on_confirmation_request,
+            context=f"Target app: {app}. Mode: {cls}.",
+        )
+
+        return {
+            "executed": True,
+            "classification": cls,
+            "format": {"analyze": "A", "monitor": "B", "control": "C", "solve": "D"}[cls],
+            "target_app": app,
+            "deps_available": True,
+            "result": result.to_dict(),
+            "response": self._format_cua_result_response(cls, app, question, result),
+        }
+
+    @staticmethod
+    def _format_cua_result_response(cls: str, app: str, question: str, result) -> str:
+        """Format the human-readable summary of a CUA execution."""
+        icon = {"analyze": "👁️", "monitor": "📊", "control": "🖱️", "solve": "⚡"}[cls]
+        lines = [
+            f"{icon} GUI AGENT — {cls.upper()} MODE (EXECUTED)",
+            _SEP,
+            "",
+            f"**Your Request:** {question}",
+            f"**Mode:** {cls} (executed via CUA Loop)",
+            f"**Target App:** {app}",
+            "",
+            f"**Outcome:** {'✅ SUCCESS' if result.success else '❌ FAILED'}",
+            f"**Steps Executed:** {len(result.steps)}",
+            f"**Objective Complete:** {result.objective_complete}",
+            f"**Total Duration:** {result.total_duration_ms} ms",
+            "",
+        ]
+        if result.final_summary:
+            lines.append(f"**Final Summary:** {result.final_summary}")
+            lines.append("")
+        if result.aborted_reason:
+            lines.append(f"**Aborted Reason:** {result.aborted_reason}")
+            lines.append("")
+        lines.append("**Audit Trail:**")
+        for step in result.steps:
+            status = "✓" if step.success else "✗"
+            action_desc = step.action.type
+            if step.action.target:
+                action_desc += f" ({step.action.target})"
+            elif step.action.x is not None:
+                action_desc += f" ({step.action.x},{step.action.y})"
+            lines.append(
+                f"  {status} Step {step.step_number}: {action_desc} — {step.duration_ms}ms"
+            )
+            if step.error:
+                lines.append(f"      error: {step.error}")
+        lines.append("")
+        lines.append("**Screenshots:** saved to /tmp/cua_audit/")
+        lines.append("")
+        lines.append("**Safety:** All actions logged with before/after screenshots.")
+        return "\n".join(lines)
 
     async def execute(self, task: EngineeringTask) -> AgentResult:
         """Async wrapper for orchestrator compatibility."""

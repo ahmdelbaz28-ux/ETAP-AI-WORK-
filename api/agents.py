@@ -180,3 +180,123 @@ async def etap_gui_chat(
             status_code=500,
             content={"success": False, "errors": [str(e)], "trace_id": trace_id},
         )
+
+
+class ETAPGUIExecuteRequest(BaseModel):
+    """Request body for the ETAP GUI Agent REAL CUA execution endpoint."""
+
+    question: str = Field(
+        ...,
+        min_length=1,
+        max_length=4000,
+        description="The objective to accomplish (e.g., 'Open ETAP and run Load Flow')",
+    )
+    max_steps: int = Field(
+        default=15,
+        ge=1,
+        le=50,
+        description="Hard safety limit on CUA loop iterations (default: 15)",
+    )
+    require_confirmation: bool = Field(
+        default=True,
+        description="If True, CONTROL/SOLVE actions pause for human approval",
+    )
+    audit_dir: Optional[str] = Field(
+        default=None,
+        description="Directory for before/after screenshots (default: /tmp/cua_audit)",
+    )
+
+
+@router.post("/etap-gui/execute")
+async def etap_gui_execute(
+    request: Request,
+    payload: ETAPGUIExecuteRequest,
+    _: str = Depends(get_api_key),
+):
+    """Execute the REAL CUA Loop — captures screenshots, analyzes them via
+    Gemini Vision, and drives pyautogui to click/type/hotkey.
+
+    This is the actual Computer Use Agent execution (not just planning).
+    The agent:
+      1. Captures a screenshot via pyautogui.screenshot()
+      2. Sends it to Gemini Vision API for analysis
+      3. Receives structured JSON: description, ui_elements, next_action
+      4. Executes the next_action (click / type / hotkey / wait / done)
+      5. Re-screenshots to verify the action succeeded
+      6. Repeats until objective_complete=true or max_steps reached
+
+    Every step is logged with before/after screenshots in audit_dir.
+
+    SAFETY:
+      - pyautogui.FAILSAFE = True (move mouse to corner = immediate stop)
+      - 60-second timeout per action
+      - CONTROL/SOLVE actions require explicit confirmation (via require_confirmation)
+      - Destructive dialogs (Delete/Format/Override/Reset) are NEVER auto-clicked
+
+    On headless servers (HF Space, CI), returns Format U fallback — never crashes.
+
+    Required env vars (for real execution):
+      - GEMINI_API_KEY — Google AI Studio API key
+      - DISPLAY or WAYLAND_DISPLAY — X11/Wayland session (Linux desktop)
+    """
+    trace_id = getattr(request.state, "trace_id", "unknown")
+    try:
+        from agents.etap_gui_agent import ETAPGUIAgent
+
+        agent = ETAPGUIAgent()
+        result = agent.execute_cua_loop(
+            question=payload.question,
+            max_steps=payload.max_steps,
+            require_confirmation=payload.require_confirmation,
+            audit_dir=payload.audit_dir,
+        )
+
+        return JSONResponse(
+            content={
+                "success": True,
+                "data": result,
+                "trace_id": trace_id,
+            }
+        )
+    except Exception as e:
+        from logging import getLogger
+
+        logger = getLogger("engineering_service")
+        logger.error("etap_gui_execute_failed error=%s", str(e), extra={"trace_id": trace_id})
+        return JSONResponse(
+            status_code=500,
+            content={"success": False, "errors": [str(e)], "trace_id": trace_id},
+        )
+
+
+@router.get("/etap-gui/health")
+async def etap_gui_health(
+    _: str = Depends(get_api_key),
+):
+    """Health check for the ETAP GUI Agent CUA execution capabilities.
+
+    Returns whether the CUA Loop can run in the current environment:
+      - pyautogui availability
+      - display server (X11/Wayland)
+      - Gemini Vision SDK + API key
+      - PIL/Pillow
+      - Tesseract (optional OCR fallback)
+    """
+    from agents.etap_gui_agent import ETAPGUIAgent, _check_gui_deps
+    from integrations.gemini_vision import gemini_vision
+
+    deps_ok, missing = _check_gui_deps()
+    agent = ETAPGUIAgent()
+    info = agent.get_agent_info()
+
+    return JSONResponse(
+        content={
+            "success": True,
+            "data": {
+                "cua_loop_available": deps_ok,
+                "missing_dependencies": missing,
+                "gemini_vision": gemini_vision.health_check(),
+                "agent_info": info,
+            },
+        }
+    )

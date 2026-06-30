@@ -127,3 +127,27 @@ opentelemetry-instrumentation-fastapi~=0.51b0
 
 # Production requirements (lightweight subset)
 -r requirements-prod.txt
+
+# =============================================================================
+# ETAP GUI Agent — Computer Use Agent (CUA) dependencies
+# =============================================================================
+# These are required for REAL CUA execution (screenshot + click + type).
+# On headless servers (HF Space, CI), they are optional — the agent falls back
+# to Format U (planning-only response) gracefully.
+# =============================================================================
+
+# Google Gemini Vision SDK — visual perception layer for the CUA Loop
+# Used by integrations/gemini_vision.py to analyze screenshots and decide
+# the next action (click coordinates, text to type, hotkeys to press).
+google-generativeai~=0.8.0
+
+# Pillow — image handling for screenshots (also a pyautogui dep, listed explicitly)
+Pillow~=10.2.0
+
+# pyautogui — mouse/keyboard control (desktop only, NOT installable on headless Linux
+# without X11 libs). Install manually on the desktop where the CUA will run:
+#   pip install pyautogui
+# Also requires Tesseract OCR for the optional OCR fallback path:
+#   sudo apt-get install tesseract-ocr   (Linux)
+#   https://github.com/UB-Mannheim/tesseract/wiki  (Windows)
+
