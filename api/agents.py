@@ -205,6 +205,15 @@ class ETAPGUIExecuteRequest(BaseModel):
         default=None,
         description="Directory for before/after screenshots (default: /tmp/cua_audit)",
     )
+    start_url: Optional[str] = Field(
+        default=None,
+        description=(
+            "URL to navigate to before starting the CUA loop (Browser CUA only). "
+            "On desktop (pyautogui), this is ignored. On headless servers with "
+            "Playwright, the agent opens this URL in a headless Chromium and "
+            "controls the web page. Example: 'https://your-app.com/dashboard'"
+        ),
+    )
 
 
 @router.post("/etap-gui/execute")
@@ -249,6 +258,7 @@ async def etap_gui_execute(
             max_steps=payload.max_steps,
             require_confirmation=payload.require_confirmation,
             audit_dir=payload.audit_dir,
+            start_url=payload.start_url,
         )
 
         return JSONResponse(

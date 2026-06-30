@@ -23,17 +23,28 @@ WORKDIR /app
 # System dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
     gcc g++ curl \
+    # Playwright Chromium runtime deps (libnss3, libnspr4, libatk1.0, etc.)
+    libnss3 libnspr4 libatk1.0-0 libatk-bridge2.0-0 \
+    libcups2 libdrm2 libxkbcommon0 libxcomposite1 libxdamage1 \
+    libxfixes3 libxrandr2 libgbm1 libasound2 libpango-1.0-0 \
+    libcairo2 libatspi2.0-0 \
     && rm -rf /var/lib/apt/lists/*
 
 # Create non-root user (UID 1000 as required by HF Spaces)
 RUN useradd -m -u 1000 user && \
-    mkdir -p /app /tmp/cache /tmp/logs /tmp/data && \
+    mkdir -p /app /tmp/cache /tmp/logs /tmp/data /tmp/cua_audit && \
     chown -R user:user /app /tmp
 
 # Python dependencies — lightweight subset (no ML, no Celery, no Redis)
 COPY hf-space/requirements.hf.txt /tmp/requirements.hf.txt
 RUN pip install --no-cache-dir --upgrade pip && \
     pip install --no-cache-dir -r /tmp/requirements.hf.txt
+
+# Install Chromium for Playwright (BrowserCUAExecutor — headless CUA on HF Space)
+# This downloads ~150MB but enables the CUA Loop to work without a display server
+RUN playwright install chromium --with-deps 2>&1 || \
+    playwright install chromium 2>&1 || \
+    echo "⚠️ Playwright Chromium install failed — BrowserCUA will fall back to Format U"
 
 # Application code — copy only what hf-space/app.py needs
 COPY --chown=user:user hf-space/app.py /app/app.py
@@ -54,6 +65,7 @@ COPY --chown=user:user services/ /app/services/
 COPY --chown=user:user api/ /app/api/
 COPY --chown=user:user utils/ /app/utils/
 COPY --chown=user:user ai_context_engine/ /app/ai_context_engine/
+COPY --chown=user:user integrations/ /app/integrations/
 COPY --chown=user:user VERSION /app/VERSION
 
 # Environment

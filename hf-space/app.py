@@ -280,18 +280,23 @@ async def etap_gui_execute(
     max_steps: int = 15,
     require_confirmation: bool = True,
     audit_dir: str | None = None,
+    start_url: str | None = None,
 ):
     """Execute the REAL CUA Loop (Computer Use Agent).
 
-    On HF Space this will return Format U (unavailable) because the
-    environment is headless — no display server, no pyautogui.
+    AUTO-DETECTS THE ENVIRONMENT:
+      - Desktop (pyautogui + display) → controls native apps (ETAP.exe, etc.)
+      - Headless (Playwright + Chromium) → controls web pages via headless browser
+      - Neither available → returns Format U fallback
 
-    To enable real CUA execution, run this on a desktop environment:
-      - Windows / Linux / macOS with a display
-      - GEMINI_API_KEY env var set
-      - pip install pyautogui pillow google-generativeai
+    On HF Space, the Browser CUA path is used (Playwright + Chromium are
+    installed in the Dockerfile). The agent opens start_url in a headless
+    Chromium and controls the web page — clicking, typing, navigating.
 
-    See: agents/cua_executor.py and integrations/gemini_vision.py
+    Required env vars:
+      - GEMINI_API_KEY (for visual perception via Gemini Vision)
+
+    See: agents/browser_cua_executor.py and integrations/gemini_vision.py
     """
     from agents.etap_gui_agent import ETAPGUIAgent
 
@@ -301,6 +306,7 @@ async def etap_gui_execute(
         max_steps=max_steps,
         require_confirmation=require_confirmation,
         audit_dir=audit_dir,
+        start_url=start_url,
     )
     return {"success": True, "data": result}
 

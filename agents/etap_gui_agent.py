@@ -273,30 +273,56 @@ _SEP = "━" * 60
 
 
 def _format_unavailable(missing: List[str]) -> str:
-    """Format U — GUI deps unavailable (graceful fallback)."""
-    return "\n".join(
+    """Format U — GUI deps unavailable (graceful fallback).
+
+    Lists both options to enable CUA:
+      1. Desktop CUA (pyautogui) — controls native apps (ETAP, Revit, etc.)
+      2. Browser CUA (Playwright) — controls web pages, works on headless servers
+    """
+    # Determine whether Gemini Vision is missing (required for BOTH paths)
+    has_gemini_issue = any("gemini" in m.lower() or "google" in m.lower() for m in missing)
+
+    lines = [
+        "⚠️ GUI AGENT UNAVAILABLE",
+        _SEP,
+        "",
+        "The CUA Loop cannot run in this environment.",
+        "",
+        f"**Missing dependencies:** {', '.join(missing)}",
+        "",
+    ]
+
+    if has_gemini_issue:
+        lines.extend(
+            [
+                "**Required for BOTH paths:**",
+                "  • Set GEMINI_API_KEY env var (get one at https://aistudio.google.com/app/apikey)",
+                "  • pip install google-generativeai",
+                "",
+            ]
+        )
+
+    lines.extend(
         [
-            "⚠️ GUI AGENT UNAVAILABLE",
-            _SEP,
+            "**Two ways to enable the CUA Loop:**",
             "",
-            "The GUI Agent requires desktop dependencies which are not "
-            "available in this environment.",
+            "  Option 1 — Desktop CUA (controls native apps like ETAP.exe):",
+            "    • Run on Windows/Linux/macOS with a display",
+            "    • pip install pyautogui pillow",
+            "    • Set DISPLAY or WAYLAND_DISPLAY env var (Linux)",
             "",
-            f"**Missing dependencies:** {', '.join(missing)}",
+            "  Option 2 — Browser CUA (controls web pages, works on HF Space!):",
+            "    • pip install playwright",
+            "    • playwright install chromium",
+            "    • Then call execute_cua_loop(question=..., start_url='https://your-app')",
             "",
-            "**Suggested alternative:** Use the ETAP Expert Skill "
+            "**Suggested alternative (no deps needed):** Use the ETAP Expert Skill "
             "(study_type='etap_expert') for knowledge-based analysis.",
             "",
-            "**To enable the GUI Agent:**",
-            "  1. Run on a desktop environment (Windows/Linux/macOS)",
-            "  2. Install: pip install pyautogui pytesseract opencv-python pillow",
-            "  3. Install Tesseract OCR (https://github.com/UB-Mannheim/tesseract/wiki)",
-            "  4. Set ETAP_GUI_AGENT_ENABLED=true",
-            "",
-            "**Safety:** The GUI Agent never crashes the application — "
-            "it falls back gracefully when deps are missing.",
+            "**Safety:** The GUI Agent never crashes — it always falls back gracefully.",
         ]
     )
+    return "\n".join(lines)
 
 
 def _format_a_analyze(question: str, app: str) -> str:
@@ -505,12 +531,16 @@ class ETAPGUIAgent(BaseAgent):
         require_confirmation: bool = True,
         on_confirmation_request=None,
         audit_dir: Optional[str] = None,
+        start_url: Optional[str] = None,
     ) -> Dict[str, Any]:
         """Run the actual CUA Loop — captures screenshots, analyzes them
-        via Gemini Vision, and drives pyautogui to click/type/hotkey.
+        via Gemini Vision, and drives the appropriate executor to click/type/hotkey.
 
-        This is the REAL Computer Use Agent execution. On headless servers
-        (HF Space, CI), it returns the same Format U fallback as answer().
+        AUTO-DETECTS THE ENVIRONMENT and picks the best executor:
+          1. DesktopCUAExecutor (pyautogui + display server) — controls native apps
+          2. BrowserCUAExecutor (Playwright + Chromium) — controls web pages,
+             works on headless servers like HF Space
+          3. Format U fallback — if neither is available
 
         Args:
             question: the user's objective (e.g., "Open ETAP and run Load Flow")
@@ -518,46 +548,71 @@ class ETAPGUIAgent(BaseAgent):
             require_confirmation: pause for human approval before CONTROL/SOLVE actions
             on_confirmation_request: callable(action) -> bool; if returns False, abort
             audit_dir: directory for before/after screenshots (default /tmp/cua_audit)
+            start_url: optional URL to navigate to (BrowserCUA only; ignored by Desktop)
 
         Returns:
             Dict with: executed (bool), result (CUAExecutionResult.to_dict()),
-            classification, format, target_app, deps_available.
+            classification, format, target_app, deps_available, executor_used.
         """
-        # Import lazily so module import never crashes on headless servers
-        from agents.cua_executor import CUAExecutor
+        cls = classify(question)
+        app = detect_target_app(question)
 
-        # Re-check deps (cheaper than re-running _check_gui_deps for callers who already did)
-        deps_ok, missing = _check_gui_deps()
-        if not deps_ok:
+        # Try Desktop CUA first (pyautogui + display server)
+        desktop_deps_ok, desktop_missing = _check_gui_deps()
+        # Check Browser CUA (Playwright + Chromium)
+        browser_executor = None
+        browser_deps: Dict[str, Any] = {"all_available": False, "missing": ["not-checked"]}
+        try:
+            from agents.browser_cua_executor import BrowserCUAExecutor
+
+            browser_executor = BrowserCUAExecutor(audit_dir=audit_dir or "/tmp/cua_audit")
+            browser_deps = browser_executor.check_dependencies()
+        except Exception as exc:  # noqa: BLE001
+            logger.debug("BrowserCUAExecutor init failed: %s", exc)
+
+        # Decide which executor to use
+        if desktop_deps_ok:
+            # Desktop environment — control native apps via pyautogui
+            from agents.cua_executor import CUAExecutor
+
+            executor = CUAExecutor(
+                audit_dir=audit_dir or "/tmp/cua_audit",
+                action_timeout=60,
+            )
+            executor_type = "desktop"
+            result = executor.execute_loop(
+                objective=question,
+                max_steps=max_steps,
+                require_confirmation=cls in ("control", "solve") and require_confirmation,
+                on_confirmation_request=on_confirmation_request,
+                context=f"Target app: {app}. Mode: {cls}.",
+            )
+        elif browser_deps["all_available"]:
+            # Headless environment with Playwright — control a browser instead
+            assert browser_executor is not None  # for type checker
+            executor_type = "browser"
+            result = browser_executor.execute_loop(
+                objective=question,
+                start_url=start_url,
+                max_steps=max_steps,
+                require_confirmation=cls in ("control", "solve") and require_confirmation,
+                on_confirmation_request=on_confirmation_request,
+                context=f"Target app: {app}. Mode: {cls}. Browser CUA.",
+            )
+        else:
+            # Neither available — Format U fallback
+            all_missing = list(set(desktop_missing + browser_deps.get("missing", [])))
             return {
                 "executed": False,
                 "classification": "unavailable",
                 "format": "U",
-                "response": _format_unavailable(missing),
+                "response": _format_unavailable(all_missing),
                 "deps_available": False,
-                "missing_deps": missing,
-                "target_app": detect_target_app(question),
+                "missing_deps": all_missing,
+                "target_app": app,
+                "executor_used": "none",
                 "result": None,
             }
-
-        cls = classify(question)
-        app = detect_target_app(question)
-
-        # CONTROL/SOLVE require confirmation by default
-        needs_confirmation = cls in ("control", "solve") and require_confirmation
-
-        executor = CUAExecutor(
-            audit_dir=audit_dir or "/tmp/cua_audit",
-            action_timeout=60,
-        )
-
-        result = executor.execute_loop(
-            objective=question,
-            max_steps=max_steps,
-            require_confirmation=needs_confirmation,
-            on_confirmation_request=on_confirmation_request,
-            context=f"Target app: {app}. Mode: {cls}.",
-        )
 
         return {
             "executed": True,
@@ -565,6 +620,7 @@ class ETAPGUIAgent(BaseAgent):
             "format": {"analyze": "A", "monitor": "B", "control": "C", "solve": "D"}[cls],
             "target_app": app,
             "deps_available": True,
+            "executor_used": executor_type,
             "result": result.to_dict(),
             "response": self._format_cua_result_response(cls, app, question, result),
         }
