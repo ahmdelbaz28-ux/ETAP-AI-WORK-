@@ -142,6 +142,21 @@ class AnthropicVisionClient:
         self.timeout = int(os.getenv("ANTHROPIC_TIMEOUT", str(DEFAULT_TIMEOUT)))
         self.max_retries = int(os.getenv("ANTHROPIC_MAX_RETRIES", str(DEFAULT_MAX_RETRIES)))
 
+        # ─── Check user-supplied key from Settings UI (DB) ─────────────────
+        try:
+            from services.api_key_store import api_key_store
+
+            user_config = api_key_store.get_key("anthropic")
+            if user_config and user_config.api_key:
+                self.api_key = user_config.api_key
+                if user_config.base_url:
+                    self.base_url = user_config.base_url.rstrip("/")
+                if user_config.model_name:
+                    self.model = user_config.model_name
+                logger.info("Anthropic Vision: using user-supplied key from Settings UI")
+        except Exception as exc:  # noqa: BLE001
+            logger.debug("Could not load user-supplied Anthropic key: %s", exc)
+
         self.enabled = bool(self.api_key and PIL_AVAILABLE)
 
         if self.enabled:
