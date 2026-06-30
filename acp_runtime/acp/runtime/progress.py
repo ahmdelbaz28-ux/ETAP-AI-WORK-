@@ -9,14 +9,15 @@ the caller's hot path beyond the (very fast) ``send`` callback.
 from __future__ import annotations
 
 import time
-from collections.abc import Awaitable, Callable
+from typing import Awaitable
+from typing import Callable
 from dataclasses import dataclass, field
 from typing import Optional
 
 __all__ = ["ProgressEmitter", "ProgressEvent"]
 
 
-@dataclass(frozen=True, slots=True)
+@dataclass(frozen=True)
 class ProgressEvent:
     trace_id: str
     percent: int
