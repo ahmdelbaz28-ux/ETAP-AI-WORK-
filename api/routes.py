@@ -403,6 +403,20 @@ async def websocket_scada_endpoint_handler(websocket: WebSocket) -> None:
     await scada_websocket_endpoint(websocket)
 
 
+@app.websocket("/ws/cua/confirmation")
+async def websocket_cua_confirmation_handler(websocket: WebSocket) -> None:
+    """WebSocket endpoint for real-time CUA dual-confirmation.
+
+    Used by the CUA Loop to request two-human approval before executing
+    life-safety-critical actions (protection setting changes, breaker ops).
+
+    See: api/cua_confirmation_ws.py for the protocol.
+    """
+    from api.cua_confirmation_ws import cua_confirmation_ws
+
+    await cua_confirmation_ws(websocket)
+
+
 # Privacy mode check
 _PRIVACY_MODE = os.environ.get("PRIVACY_MODE", "false").lower() == "true"
 if not _PRIVACY_MODE:
