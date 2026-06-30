@@ -44,10 +44,15 @@ RUN pip install --no-cache-dir --upgrade pip && \
     pip install --no-cache-dir -r /tmp/requirements.hf.txt
 
 # Install Chromium for Playwright (BrowserCUAExecutor — headless CUA on HF Space)
-# This downloads ~150MB but enables the CUA Loop to work without a display server
+# This downloads ~150MB but enables the CUA Loop to work without a display server.
+# Install as the non-root user so the browser is accessible to the app.
+# Set PLAYWRIGHT_BROWSERS_PATH to a shared location both root and user can access.
+ENV PLAYWRIGHT_BROWSERS_PATH=/ms-playwright
 RUN playwright install chromium --with-deps 2>&1 || \
     playwright install chromium 2>&1 || \
     echo "⚠️ Playwright Chromium install failed — BrowserCUA will fall back to Format U"
+# Make Chromium accessible to the non-root user
+RUN chmod -R 755 /ms-playwright 2>/dev/null || true
 
 # Application code — copy only what hf-space/app.py needs
 COPY --chown=user:user hf-space/app.py /app/app.py
