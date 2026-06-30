@@ -316,21 +316,39 @@ async def etap_gui_health():
     """Health check for CUA execution capabilities.
 
     Returns whether the CUA Loop can run in the current environment.
-    On HF Space this will report cua_loop_available=False with the list
-    of missing dependencies.
+    Reports BOTH Desktop CUA (pyautogui) and Browser CUA (Playwright)
+    availability — the agent auto-detects which to use.
     """
     from agents.etap_gui_agent import ETAPGUIAgent, _check_gui_deps
     from agents.life_safety import life_safety_guard
     from integrations.gemini_vision import gemini_vision
 
-    deps_ok, missing = _check_gui_deps()
+    # Check Desktop CUA deps (pyautogui + display)
+    desktop_deps_ok, desktop_missing = _check_gui_deps()
+
+    # Check Browser CUA deps (Playwright + Chromium)
+    browser_deps = {"all_available": False, "missing": ["not-checked"]}
+    try:
+        from agents.browser_cua_executor import BrowserCUAExecutor
+
+        browser_exec = BrowserCUAExecutor()
+        browser_deps = browser_exec.check_dependencies()
+    except Exception:  # noqa: BLE001
+        pass
+
+    # CUA Loop is available if EITHER Desktop OR Browser deps are met
+    cua_loop_available = desktop_deps_ok or browser_deps.get("all_available", False)
+
     agent = ETAPGUIAgent()
     info = agent.get_agent_info()
     return {
         "success": True,
         "data": {
-            "cua_loop_available": deps_ok,
-            "missing_dependencies": missing,
+            "cua_loop_available": cua_loop_available,
+            "desktop_cua_available": desktop_deps_ok,
+            "browser_cua_available": browser_deps.get("all_available", False),
+            "missing_dependencies": desktop_missing if not desktop_deps_ok else [],
+            "browser_cua_deps": browser_deps,
             "gemini_vision": gemini_vision.health_check(),
             "agent_info": info,
             "life_safety": life_safety_guard.health_check(),
