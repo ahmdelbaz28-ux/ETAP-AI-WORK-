@@ -1,4 +1,9 @@
 {
   "include": ["."],
-  "extraPaths": ["."]
+  "exclude": ["src"],
+  "executionEnvironments": [
+    {
+      "root": "."
+    }
+  ]
 }
