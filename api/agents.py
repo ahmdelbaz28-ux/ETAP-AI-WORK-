@@ -5,6 +5,7 @@ Handles all AI agent information endpoints.
 Separated from main engineering service for better modularity.
 """
 
+from datetime import UTC, datetime
 from typing import Any, Dict, Optional
 
 from fastapi import APIRouter, Depends, Request
@@ -307,6 +308,132 @@ async def etap_gui_health(
                 "missing_dependencies": missing,
                 "gemini_vision": gemini_vision.health_check(),
                 "agent_info": info,
+                # Life safety status — non-bypassable safety layer
+                "life_safety": _get_life_safety_status(),
+            },
+        }
+    )
+
+
+# ─── Life Safety endpoints ──────────────────────────────────────────────────
+# These endpoints expose the EMERGENCY STOP (kill switch) and the safety
+# audit trail. They are critical for life-safety compliance.
+
+
+def _get_life_safety_status() -> dict:
+    """Get the current life safety system status."""
+    from agents.life_safety import life_safety_guard
+
+    return life_safety_guard.health_check()
+
+
+@router.post("/etap-gui/kill-switch/activate", tags=["Agents", "Safety"])
+async def etap_gui_activate_kill_switch(
+    request: Request,
+    reason: str = "manual_api_call",
+    _: str = Depends(get_api_key),
+):
+    """🚨 EMERGENCY STOP — Activate the CUA kill switch.
+
+    Once activated, the CUA Loop will abort on the next action check.
+    The kill switch is file-based (/tmp/cua_kill_switch) so it works
+    even if the API server is unresponsive.
+
+    Use cases:
+      - Operator sees the agent clicking the wrong button
+      - Engineering review reveals a hazardous action plan
+      - Process safety system triggers an alarm
+      - Manual override during commissioning
+
+    After activation, the CUA Loop cannot execute ANY action until
+    /etap-gui/kill-switch/deactivate is called.
+    """
+    from agents.life_safety import activate_kill_switch
+
+    activate_kill_switch(reason=reason)
+    return JSONResponse(
+        content={
+            "success": True,
+            "data": {
+                "kill_switch_active": True,
+                "reason": reason,
+                "activated_at": datetime.now(UTC).isoformat(),
+                "message": "CUA Loop will abort on next action. Call /deactivate to resume.",
+            },
+        }
+    )
+
+
+@router.post("/etap-gui/kill-switch/deactivate", tags=["Agents", "Safety"])
+async def etap_gui_deactivate_kill_switch(
+    _: str = Depends(get_api_key),
+):
+    """Deactivate the CUA kill switch.
+
+    Use with caution — only after the safety issue that triggered the
+    kill switch has been resolved and reviewed.
+    """
+    from agents.life_safety import deactivate_kill_switch, is_kill_switch_active
+
+    was_active = deactivate_kill_switch()
+    return JSONResponse(
+        content={
+            "success": True,
+            "data": {
+                "was_active": was_active,
+                "kill_switch_active": is_kill_switch_active(),
+                "message": "Kill switch deactivated. CUA Loop can resume."
+                if was_active
+                else "Kill switch was not active.",
+            },
+        }
+    )
+
+
+@router.get("/etap-gui/safety/health", tags=["Agents", "Safety"])
+async def etap_gui_safety_health(
+    _: str = Depends(get_api_key),
+):
+    """Get the life safety system status.
+
+    Returns:
+      - kill_switch_active: whether the emergency stop is active
+      - audit_chain_valid: whether the tamper-evident audit log is intact
+      - audit_chain_broken_entries: any broken entries (indicates tampering)
+      - lethal_patterns_count: how many lethal patterns are blocked
+      - dual_confirmation_patterns_count: how many patterns need 2 humans
+      - cooldown_seconds: mandatory pause between control actions
+      - degraded_vision_sources: which vision backends are read-only
+    """
+    return JSONResponse(content={"success": True, "data": _get_life_safety_status()})
+
+
+@router.get("/etap-gui/safety/audit/verify", tags=["Agents", "Safety"])
+async def etap_gui_safety_audit_verify(
+    _: str = Depends(get_api_key),
+):
+    """Verify the integrity of the tamper-evident audit log.
+
+    The audit log uses SHA-256 chaining — each entry's hash depends on
+    the previous entry. Any modification to a past entry breaks the chain.
+
+    Returns:
+      - is_valid: True if the entire chain is intact
+      - broken_entries: list of broken entry IDs (empty if valid)
+    """
+    from agents.life_safety import life_safety_guard
+
+    is_valid, broken = life_safety_guard.audit_log.verify_chain()
+    return JSONResponse(
+        content={
+            "success": True,
+            "data": {
+                "is_valid": is_valid,
+                "broken_entries": broken,
+                "total_broken": len(broken),
+                "message": "Audit chain is intact"
+                if is_valid
+                else f"Audit chain has {len(broken)} broken entries — possible tampering!",
             },
         }
     )
