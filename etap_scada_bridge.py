@@ -6,7 +6,8 @@ This module handles the integration between ETAP ADMS and SCADA systems via MQTT
 import csv
 import json
 import os
-from datetime import UTC, datetime
+from datetime import datetime, timezone
+UTC = timezone.utc
 
 import paho.mqtt.client as mqtt
 
