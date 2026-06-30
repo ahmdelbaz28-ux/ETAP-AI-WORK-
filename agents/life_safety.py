@@ -96,6 +96,28 @@ LETHAL_TARGET_PATTERNS: tuple[str, ...] = (
     "disable 27",
     "disable 59",
     "disable 81",
+    # Additional ANSI device numbers (added per Step 2 review)
+    "disable 46",  # Negative sequence (motor unbalance protection)
+    "disable 49",  # Thermal overload (motor heating protection)
+    "disable 21",  # Distance relay (transmission line protection)
+    "disable 79",  # Auto-reclose (could cause re-energization of fault)
+    "disable 86",  # Lockout (bypassing post-fault lockout is lethal)
+    # Ground fault protection
+    "ground fault",  # Disabling GF protection = electrocution risk
+    "disable gf",
+    "disable ground fault",
+    # Bypass / override / force operations (added per Step 2 review)
+    "bypass protection",
+    "bypass arc flash",
+    "override interlock",
+    "force close",
+    "force open",
+    "emergency stop disable",
+    # Network element deletion (added per Step 2 review)
+    "delete bus",
+    "delete source",
+    "modify coordination study",
+    "disable scada alarm",
     # Breaker operations (real-world switching can kill)
     "open breaker",
     "close breaker",
@@ -595,7 +617,11 @@ class LifeSafetyGuard:
         analysis: Optional[Dict[str, Any]] = None,
         extra: Optional[Dict[str, Any]] = None,
     ) -> str:
-        """Append an entry to the tamper-evident audit chain."""
+        """Append an entry to the tamper-evident audit chain.
+
+        Also forwards the event to the SIEM Syslog forwarder (if configured)
+        so life-safety events appear in the enterprise SIEM in real time.
+        """
         data = {
             "event_type": event_type,
             "action": {
@@ -615,11 +641,32 @@ class LifeSafetyGuard:
             "analysis_confidence": (analysis or {}).get("confidence"),
             "extra": extra or {},
         }
+        audit_hash = "audit_failed"
         try:
-            return self.audit_log.append(data)
+            audit_hash = self.audit_log.append(data)
         except Exception as exc:  # noqa: BLE001
             logger.error("Failed to append audit entry: %s", exc)
-            return "audit_failed"
+
+        # ── SIEM FORWARDING (Step 4) ──────────────────────────────────────
+        # Forward every life-safety event to the enterprise SIEM via Syslog.
+        # Best-effort: failures are logged but never block the CUA Loop.
+        try:
+            from integrations.siem_syslog import siem_forwarder
+
+            if siem_forwarder.enabled:
+                # Build a chain-entry-like dict for the forwarder
+                chain_entry = {
+                    "entry_id": None,  # unknown at this point
+                    "prev_hash": None,
+                    "hash": audit_hash if audit_hash != "audit_failed" else None,
+                    "timestamp": result.timestamp,
+                    "data": data,
+                }
+                siem_forwarder.forward_audit_entry(chain_entry)
+        except Exception as exc:  # noqa: BLE001
+            logger.debug("SIEM forward failed (non-critical): %s", exc)
+
+        return audit_hash
 
     # ─── Internal: helpers ─────────────────────────────────────────────────
 

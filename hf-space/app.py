@@ -16,7 +16,7 @@ import time
 from contextlib import asynccontextmanager
 
 import uvicorn
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, WebSocket
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse, JSONResponse
 
@@ -320,6 +320,7 @@ async def etap_gui_health():
     of missing dependencies.
     """
     from agents.etap_gui_agent import ETAPGUIAgent, _check_gui_deps
+    from agents.life_safety import life_safety_guard
     from integrations.gemini_vision import gemini_vision
 
     deps_ok, missing = _check_gui_deps()
@@ -332,6 +333,86 @@ async def etap_gui_health():
             "missing_dependencies": missing,
             "gemini_vision": gemini_vision.health_check(),
             "agent_info": info,
+            "life_safety": life_safety_guard.health_check(),
+        },
+    }
+
+
+# -- Life Safety endpoints (mirrored from api/agents.py) --------------------
+
+
+@app.post("/api/v1/agents/etap-gui/kill-switch/activate", tags=["Agents", "Safety"])
+async def etap_gui_activate_kill_switch(reason: str = "manual_api_call"):
+    """🚨 EMERGENCY STOP — Activate the CUA kill switch on HF Space.
+
+    Once activated, the CUA Loop will abort on the next action check.
+    The kill switch is file-based (/tmp/cua_kill_switch) so it works
+    even if the API server is unresponsive.
+    """
+    from agents.life_safety import activate_kill_switch
+
+    activate_kill_switch(reason=reason)
+    from datetime import UTC, datetime
+
+    return {
+        "success": True,
+        "data": {
+            "kill_switch_active": True,
+            "reason": reason,
+            "activated_at": datetime.now(UTC).isoformat(),
+            "message": "CUA Loop will abort on next action. Call /deactivate to resume.",
+        },
+    }
+
+
+@app.post("/api/v1/agents/etap-gui/kill-switch/deactivate", tags=["Agents", "Safety"])
+async def etap_gui_deactivate_kill_switch():
+    """Deactivate the CUA kill switch.
+
+    Use with caution — only after the safety issue has been resolved.
+    """
+    from agents.life_safety import deactivate_kill_switch, is_kill_switch_active
+
+    was_active = deactivate_kill_switch()
+    return {
+        "success": True,
+        "data": {
+            "was_active": was_active,
+            "kill_switch_active": is_kill_switch_active(),
+            "message": "Kill switch deactivated. CUA Loop can resume."
+            if was_active
+            else "Kill switch was not active.",
+        },
+    }
+
+
+@app.get("/api/v1/agents/etap-gui/safety/health", tags=["Agents", "Safety"])
+async def etap_gui_safety_health():
+    """Get the life safety system status on HF Space."""
+    from agents.life_safety import life_safety_guard
+
+    return {"success": True, "data": life_safety_guard.health_check()}
+
+
+@app.get("/api/v1/agents/etap-gui/safety/audit/verify", tags=["Agents", "Safety"])
+async def etap_gui_safety_audit_verify():
+    """Verify the integrity of the tamper-evident audit log on HF Space.
+
+    Returns is_valid=True if the SHA-256 chain is intact, plus any
+    broken entries if tampering is detected.
+    """
+    from agents.life_safety import life_safety_guard
+
+    is_valid, broken = life_safety_guard.audit_log.verify_chain()
+    return {
+        "success": True,
+        "data": {
+            "is_valid": is_valid,
+            "broken_entries": broken,
+            "total_broken": len(broken),
+            "message": "Audit chain is intact"
+            if is_valid
+            else f"Audit chain has {len(broken)} broken entries — possible tampering!",
         },
     }
 
@@ -340,6 +421,24 @@ async def etap_gui_health():
 @app.get("/api/v1/studies/types", tags=["Studies"])
 async def study_types():
     return {"study_types": STUDY_TYPES}
+
+
+@app.websocket("/ws/cua/confirmation")
+async def websocket_cua_confirmation(websocket: WebSocket):
+    """WebSocket endpoint for real-time CUA dual-confirmation on HF Space.
+
+    Allows two humans to approve life-safety-critical CUA actions
+    (protection setting changes, breaker operations) in real time.
+
+    Protocol:
+      Client → Server: {"action": "confirm", "request_id": "...", "session_id": "..."}
+                       {"action": "reject", "request_id": "...", "session_id": "...", "reason": "..."}
+      Server → Client: {"type": "confirmation_request", "data": {...}}
+                       {"type": "confirmation_resolved", "approved": true/false}
+    """
+    from api.cua_confirmation_ws import cua_confirmation_ws
+
+    await cua_confirmation_ws(websocket)
 
 
 @app.post("/api/v1/studies/run", tags=["Studies"])
