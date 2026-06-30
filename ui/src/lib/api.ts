@@ -229,3 +229,66 @@ export async function fetchGuardInfo(): Promise<GuardInfo> {
   const data = await request<{ success: boolean; data: GuardInfo }>('/api/v1/guards/info')
   return data.data
 }
+
+// ---------- Vision API Keys (Settings) ----------
+
+export interface VisionKeyConfig {
+  provider: string
+  api_key_masked: string
+  api_key_set: boolean
+  base_url: string | null
+  model_name: string | null
+  is_active: boolean
+  created_at: string | null
+  updated_at: string | null
+}
+
+export interface VisionKeysResponse {
+  success: boolean
+  data: Record<string, VisionKeyConfig>
+  providers: string[]
+}
+
+export interface VisionKeyTestResult {
+  success: boolean
+  message: string
+  base_url?: string
+  model?: string
+  sample_models?: string[]
+}
+
+export async function fetchVisionKeys(): Promise<VisionKeysResponse> {
+  return request<VisionKeysResponse>('/api/v1/settings/keys')
+}
+
+export async function saveVisionKey(
+  provider: string,
+  apiKey: string,
+  baseUrl?: string,
+  modelName?: string,
+  isActive: boolean = true
+): Promise<{ success: boolean; data: VisionKeyConfig | null; message: string }> {
+  const params = new URLSearchParams({
+    api_key: apiKey,
+    is_active: String(isActive),
+  })
+  if (baseUrl) params.set('base_url', baseUrl)
+  if (modelName) params.set('model_name', modelName)
+
+  return request(`/api/v1/settings/keys/${provider}?${params.toString()}`, {
+    method: 'POST',
+  })
+}
+
+export async function deleteVisionKey(provider: string): Promise<{ success: boolean; message: string }> {
+  return request(`/api/v1/settings/keys/${provider}`, {
+    method: 'DELETE',
+  })
+}
+
+export async function testVisionKey(provider: string): Promise<{ success: boolean; data: VisionKeyTestResult }> {
+  return request(`/api/v1/settings/keys/${provider}/test`, {
+    method: 'POST',
+  })
+}
+
