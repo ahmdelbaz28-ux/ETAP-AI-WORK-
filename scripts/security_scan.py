@@ -38,6 +38,8 @@ EXCLUDED_PATHS = {
     "tests/unit_tests.py",
     "tests/test_auth_api.py",
     "tests/test_scada_websocket.py",
+    "tests/test_security_fixes.py",
+    "tests/test_security_e2e.py",
     "acp_runtime/tests/test_integration.py",
     # Security fixtures — these files DEFINE the blocklist
     "security/security_framework.py",
