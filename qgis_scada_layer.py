@@ -5,7 +5,8 @@ This module creates GeoJSON from SCADA tags for QGIS import.
 
 import json
 import os
-from datetime import UTC, datetime
+from datetime import datetime, timezone
+UTC = timezone.utc
 
 
 def create_scada_tags_geojson():

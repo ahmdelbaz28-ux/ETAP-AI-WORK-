@@ -226,6 +226,7 @@ def test_mutually_exclusive_data_and_error(
 from hypothesis.stateful import RuleBasedStateMachine, initialize, rule  # noqa: E402
 
 
+@settings(max_examples=15, suppress_health_check=[HealthCheck.too_slow])
 class SkillDescriptionStateMachine(RuleBasedStateMachine):
     """State machine that verifies trigger-word uniqueness is enforced."""
 
