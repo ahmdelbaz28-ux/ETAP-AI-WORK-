@@ -187,6 +187,9 @@ def activate_kill_switch(reason: str = "manual") -> None:
     This is the EMERGENCY STOP — call it from outside the CUA process
     (e.g., from a FastAPI endpoint, a shell command, a monitoring script).
 
+    Also forwards the activation event to the SIEM (if configured) so the
+    emergency stop is recorded in the enterprise security log.
+
     Args:
         reason: why the kill switch was activated (logged)
     """
@@ -203,6 +206,25 @@ def activate_kill_switch(reason: str = "manual") -> None:
         encoding="utf-8",
     )
     logger.critical("🚨 CUA KILL SWITCH ACTIVATED — reason: %s", reason)
+
+    # ── SIEM FORWARDING — record the kill switch activation ──────────────
+    # This is critical for forensic analysis: if someone hits the emergency
+    # stop, the SIEM must capture WHO/WHEN/WHY.
+    try:
+        from integrations.siem_syslog import siem_forwarder
+
+        if siem_forwarder.enabled:
+            siem_forwarder.forward(
+                {
+                    "event_type": "kill_switch_activated",
+                    "reason": reason,
+                    "activated_at": datetime.now(UTC).isoformat(),
+                    "pid": os.getpid(),
+                    "hostname": os.uname().nodename if hasattr(os, "uname") else "unknown",
+                }
+            )
+    except Exception as exc:  # noqa: BLE001
+        logger.debug("SIEM forward of kill_switch activation failed: %s", exc)
 
 
 def deactivate_kill_switch() -> bool:
