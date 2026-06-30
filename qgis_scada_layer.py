@@ -5,7 +5,7 @@ This module creates GeoJSON from SCADA tags for QGIS import.
 
 import json
 import os
-from datetime import datetime
+from datetime import datetime, timezone
 
 
 def create_scada_tags_geojson():
@@ -25,7 +25,7 @@ def create_scada_tags_geojson():
                 "type": "smoke",
                 "coverage": "45m²",
                 "status": "normal",
-                "timestamp": datetime.utcnow().isoformat() + "Z",
+                "timestamp": datetime.now(timezone.utc).isoformat(),
             },
         },
         {
@@ -38,7 +38,7 @@ def create_scada_tags_geojson():
                 "pressure": "10bar",
                 "flow": "120L/min",
                 "status": "ready",
-                "timestamp": datetime.utcnow().isoformat() + "Z",
+                "timestamp": datetime.now(timezone.utc).isoformat(),
             },
         },
         {
@@ -50,7 +50,7 @@ def create_scada_tags_geojson():
                 "type": "heat",
                 "coverage": "30m²",
                 "status": "normal",
-                "timestamp": datetime.utcnow().isoformat() + "Z",
+                "timestamp": datetime.now(timezone.utc).isoformat(),
             },
         },
         {
@@ -62,7 +62,7 @@ def create_scada_tags_geojson():
                 "type": "control_valve",
                 "status": "open",
                 "pressure": "8bar",
-                "timestamp": datetime.utcnow().isoformat() + "Z",
+                "timestamp": datetime.now(timezone.utc).isoformat(),
             },
         },
     ]

@@ -6,7 +6,7 @@ This module handles the integration between ETAP ADMS and SCADA systems via MQTT
 import csv
 import json
 import os
-from datetime import datetime
+from datetime import datetime, timezone
 
 import paho.mqtt.client as mqtt
 
@@ -21,7 +21,7 @@ def export_power_system_data():
 
     # Mock data simulating ETAP ADMS output
     power_data = {
-        "timestamp": datetime.utcnow().isoformat() + "Z",
+        "timestamp": datetime.now(timezone.utc).isoformat(),
         "devices": [
             {
                 "id": "ups_001",

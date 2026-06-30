@@ -234,9 +234,12 @@ class RenewableAgent(BaseAgent):
         elevation = np.arcsin(np.clip(sin_elev, -1, 1))
 
         # Clear-sky irradiance on horizontal plane
+        # Clamp sin(elevation) to a small positive value to avoid overflow
+        # when np.where evaluates both branches.
+        safe_sin = np.clip(np.sin(elevation), 0.01, None)
         ghi = np.where(
             elevation > 0,
-            1.0 * np.sin(elevation) * (0.7 ** (1.0 / (np.sin(elevation) + 0.01))),
+            1.0 * safe_sin * (0.7 ** (1.0 / safe_sin)),
             0.0,
         )
 
