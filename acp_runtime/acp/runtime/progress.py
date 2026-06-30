@@ -9,10 +9,8 @@ the caller's hot path beyond the (very fast) ``send`` callback.
 from __future__ import annotations
 
 import time
-from typing import Awaitable
-from typing import Callable
 from dataclasses import dataclass, field
-from typing import Optional
+from typing import Awaitable, Callable, Optional
 
 __all__ = ["ProgressEmitter", "ProgressEvent"]
 

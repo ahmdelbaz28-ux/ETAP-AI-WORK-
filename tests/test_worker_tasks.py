@@ -9,6 +9,7 @@ import uuid
 from unittest.mock import MagicMock, patch
 
 import pytest
+
 pytest.importorskip("celery")
 
 from services.study_service import StudyResult
