@@ -151,6 +151,12 @@ opencv-python~=4.10.0
 # NumPy — required by OpenCV, also used for numerical operations
 numpy~=1.26.0
 
+# httpx — HTTP client for OpenAI-compatible + Anthropic Vision APIs
+# Used by integrations/openai_vision.py and integrations/anthropic_vision.py
+# (falls back to urllib if not installed, but httpx is recommended for better
+# timeout handling and connection pooling)
+httpx~=0.27.0
+
 # pyautogui — mouse/keyboard control (desktop only, NOT installable on headless Linux
 # without X11 libs). Install manually on the desktop where the CUA will run:
 #   pip install pyautogui
