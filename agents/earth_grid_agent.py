@@ -144,7 +144,7 @@ class EarthGridAgent(BaseAgent):
         return {
             "E_touch_allowable_V": float(E_touch),
             "E_step_allowable_V": float(E_step),
-            "Cs_surface_derating": float(Cs),
+            "Cs_surface_derating": Cs,
             "body_current_A": float(I_body),
             "body_weight_kg": body_weight_kg,
         }
@@ -231,13 +231,13 @@ class EarthGridAgent(BaseAgent):
         return {
             "E_mesh_V": float(E_mesh),
             "K_m": float(K_m),
-            "K_i": float(K_i),
-            "L_total_conductor_m": float(L_total),
-            "L_rods_m": float(L_rods),
-            "L_effective_m": float(L_M),
+            "K_i": K_i,
+            "L_total_conductor_m": L_total,
+            "L_rods_m": L_rods,
+            "L_effective_m": L_M,
             "n_parallel_conductors": n_parallel,
             "n_cross_conductors": n_cross,
-            "mesh_spacing_D_m": float(D),
+            "mesh_spacing_D_m": D,
             "grid_length_m": grid_length_m,
             "grid_width_m": grid_width_m,
         }
@@ -318,8 +318,8 @@ class EarthGridAgent(BaseAgent):
         return {
             "E_step_V": float(E_step),
             "K_s": float(K_s),
-            "K_i": float(K_i),
-            "L_S_effective_m": float(L_S),
+            "K_i": K_i,
+            "L_S_effective_m": L_S,
             "n_parallel_conductors": n_parallel,
         }
 
@@ -392,8 +392,8 @@ class EarthGridAgent(BaseAgent):
             "E_touch_perimeter_V": float(E_touch_perimeter),
             "GPR_V": float(GPR),
             "R_grid_ohm": float(R_grid),
-            "grid_area_m2": float(A_grid),
-            "L_total_buried_m": float(L_total_buried),
+            "grid_area_m2": A_grid,
+            "L_total_buried_m": L_total_buried,
             "E_mesh_V": float(E_mesh),
         }
 
@@ -605,9 +605,7 @@ class EarthGridAgent(BaseAgent):
                 "rho_top_ohm_m": rho_1_est,
                 "rho_bottom_ohm_m": rho_2_est,
                 "layer_depth_H_m": H_est,
-                "reflection_coefficient_K": float(
-                    (rho_2_est - rho_1_est) / (rho_2_est + rho_1_est)
-                ),
+                "reflection_coefficient_K": (rho_2_est - rho_1_est) / (rho_2_est + rho_1_est),
             },
             "average_resistivity_ohm_m": float(np.mean(rho_apparent)),
             "min_resistivity_ohm_m": float(np.min(rho_apparent)),
@@ -672,24 +670,24 @@ class EarthGridAgent(BaseAgent):
         touch_ok = E_touch_V <= E_touch_limit
 
         return {
-            "E_mesh_V": float(E_mesh_V),
-            "E_touch_allowable_V": float(E_touch_limit),
-            "E_mesh_safe": bool(mesh_ok),
-            "mesh_utilization": float(E_mesh_V / E_touch_limit)
+            "E_mesh_V": E_mesh_V,
+            "E_touch_allowable_V": E_touch_limit,
+            "E_mesh_safe": mesh_ok,
+            "mesh_utilization": (E_mesh_V / E_touch_limit)
             if E_touch_limit > 0
             else float("inf"),
-            "E_step_V": float(E_step_V),
-            "E_step_allowable_V": float(E_step_limit),
-            "E_step_safe": bool(step_ok),
-            "step_utilization": float(E_step_V / E_step_limit)
+            "E_step_V": E_step_V,
+            "E_step_allowable_V": E_step_limit,
+            "E_step_safe": step_ok,
+            "step_utilization": (E_step_V / E_step_limit)
             if E_step_limit > 0
             else float("inf"),
-            "E_touch_V": float(E_touch_V),
-            "E_touch_safe": bool(touch_ok),
-            "touch_utilization": float(E_touch_V / E_touch_limit)
+            "E_touch_V": E_touch_V,
+            "E_touch_safe": touch_ok,
+            "touch_utilization": (E_touch_V / E_touch_limit)
             if E_touch_limit > 0
             else float("inf"),
-            "all_safe": bool(mesh_ok and step_ok and touch_ok),
+            "all_safe": (mesh_ok and step_ok and touch_ok),
             "allowable_limits": allowable,
         }
 
