@@ -1,10 +1,17 @@
-import { useState } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { motion } from 'framer-motion'
-import { Save, Download, Upload, Trash2, Bot, Wrench, Database, Shield, Link2, Gauge, Sparkles, Terminal, Info, Code, CheckCircle2, XCircle, Loader2, ExternalLink } from 'lucide-react'
+import { Save, Download, Upload, Trash2, Bot, Wrench, Database, Shield, Link2, Gauge, Sparkles, Terminal, Info, Code, CheckCircle2, XCircle, Loader2, ExternalLink, Eye, Key, Zap } from 'lucide-react'
 import { useNotify } from '../context/NotificationContext'
 import { Card, CardHeader, Button, Tabs, TabPanels, useTabState, Toggle } from '../components/ui'
 
 import { ContextHelpButton } from '../components/help/ContextHelpButton'
+import {
+  fetchVisionKeys,
+  saveVisionKey,
+  deleteVisionKey,
+  testVisionKey,
+  type VisionKeyConfig,
+} from '../lib/api'
 // Simple XOR-based obfuscation for localStorage storage.
 // NOT a substitute for server-side encryption — but prevents
 // plaintext secrets from being readable via DevTools at a glance.
@@ -326,6 +333,11 @@ const TAB_SECTIONS: Record<string, { label: string; icon: React.ReactNode; secti
       { title: 'Rate Limiting & Circuit Breaker', fields: ['RATE_LIMIT_REQUESTS_PER_MINUTE', 'CIRCUIT_BREAKER_FAILURE_THRESHOLD', 'MAX_BODY_SIZE'] },
       { title: 'Feature Flags', fields: ['ENABLE_ASYNC_EXECUTION', 'ENABLE_CACHING', 'ENABLE_OBSERVABILITY'] },
     ],
+  },
+  vision: {
+    label: 'Vision API Keys',
+    icon: <Eye className="w-4 h-4" />,
+    sections: [],
   },
 }
 
@@ -1007,6 +1019,401 @@ function loadInitialSettings(): Record<string, string> {
   return defaults
 }
 
+// ─── Vision API Keys Panel ─────────────────────────────────────────────────
+// Connects to the backend /api/v1/settings/keys endpoints.
+// Allows users to enter OpenAI/Gemini/Anthropic API keys (encrypted server-side).
+
+const VISION_PROVIDERS = [
+  {
+    id: 'openai',
+    label: 'OpenAI-Compatible',
+    description: 'Works with OpenAI, Azure, Together AI, Groq, freemodel.dev, etc.',
+    defaultBaseUrl: 'https://api.openai.com/v1',
+    defaultModel: 'gpt-4o',
+    placeholder: 'sk-...',
+    docsUrl: 'https://platform.openai.com/api-keys',
+  },
+  {
+    id: 'gemini',
+    label: 'Google Gemini',
+    description: 'Google AI Studio Gemini Vision API',
+    defaultBaseUrl: '',
+    defaultModel: 'gemini-2.0-flash-exp',
+    placeholder: 'AIza...',
+    docsUrl: 'https://aistudio.google.com/app/apikey',
+  },
+  {
+    id: 'anthropic',
+    label: 'Anthropic Claude',
+    description: 'Claude 3.5 Sonnet / Opus / Haiku Vision',
+    defaultBaseUrl: 'https://api.anthropic.com',
+    defaultModel: 'claude-3-5-sonnet-20241022',
+    placeholder: 'sk-ant-...',
+    docsUrl: 'https://console.anthropic.com/',
+  },
+]
+
+function VisionApiKeysPanel({ notify }: { notify: (type: 'success' | 'error' | 'info' | 'warning', message: string) => void }) {
+  const [keys, setKeys] = useState<Record<string, VisionKeyConfig>>({})
+  const [loading, setLoading] = useState(true)
+  const [editing, setEditing] = useState<Record<string, { apiKey: string; baseUrl: string; modelName: string }>>({})
+  const [savingProvider, setSavingProvider] = useState<string | null>(null)
+  const [testingProvider, setTestingProvider] = useState<string | null>(null)
+  const [testResults, setTestResults] = useState<Record<string, { success: boolean; message: string }>>({})
+
+  const loadKeys = useCallback(async () => {
+    setLoading(true)
+    try {
+      const resp = await fetchVisionKeys()
+      setKeys(resp.data || {})
+    } catch (err) {
+      notify('error', `Failed to load API keys: ${err instanceof Error ? err.message : 'Unknown error'}`)
+    } finally {
+      setLoading(false)
+    }
+  }, [notify])
+
+  useEffect(() => {
+    loadKeys()
+  }, [loadKeys])
+
+  const handleSave = async (providerId: string) => {
+    const edit = editing[providerId]
+    if (!edit || !edit.apiKey.trim()) {
+      notify('error', 'Please enter an API key')
+      return
+    }
+    setSavingProvider(providerId)
+    try {
+      await saveVisionKey(
+        providerId,
+        edit.apiKey.trim(),
+        edit.baseUrl.trim() || undefined,
+        edit.modelName.trim() || undefined,
+        true
+      )
+      notify('success', `${providerId} API key saved (encrypted)`)
+      setEditing(prev => {
+        const next = { ...prev }
+        delete next[providerId]
+        return next
+      })
+      setTestResults(prev => {
+        const next = { ...prev }
+        delete next[providerId]
+        return next
+      })
+      await loadKeys()
+    } catch (err) {
+      notify('error', `Failed to save: ${err instanceof Error ? err.message : 'Unknown error'}`)
+    } finally {
+      setSavingProvider(null)
+    }
+  }
+
+  const handleDelete = async (providerId: string) => {
+    if (!confirm(`Delete the ${providerId} API key? This cannot be undone.`)) return
+    try {
+      await deleteVisionKey(providerId)
+      notify('info', `${providerId} API key deleted`)
+      setTestResults(prev => {
+        const next = { ...prev }
+        delete next[providerId]
+        return next
+      })
+      await loadKeys()
+    } catch (err) {
+      notify('error', `Failed to delete: ${err instanceof Error ? err.message : 'Unknown error'}`)
+    }
+  }
+
+  const handleTest = async (providerId: string) => {
+    setTestingProvider(providerId)
+    setTestResults(prev => ({ ...prev, [providerId]: { success: false, message: 'Testing...' } }))
+    try {
+      const resp = await testVisionKey(providerId)
+      const result = resp.data
+      setTestResults(prev => ({
+        ...prev,
+        [providerId]: { success: result.success, message: result.message },
+      }))
+      if (result.success) {
+        notify('success', `${providerId} key is valid!`)
+      } else {
+        notify('warning', `${providerId} key test failed: ${result.message}`)
+      }
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Unknown error'
+      setTestResults(prev => ({ ...prev, [providerId]: { success: false, message: msg } }))
+      notify('error', `Test failed: ${msg}`)
+    } finally {
+      setTestingProvider(null)
+    }
+  }
+
+  const startEditing = (providerId: string, existing?: VisionKeyConfig) => {
+    setEditing(prev => ({
+      ...prev,
+      [providerId]: {
+        apiKey: '',
+        baseUrl: existing?.base_url || VISION_PROVIDERS.find(p => p.id === providerId)?.defaultBaseUrl || '',
+        modelName: existing?.model_name || VISION_PROVIDERS.find(p => p.id === providerId)?.defaultModel || '',
+      },
+    }))
+  }
+
+  const cancelEditing = (providerId: string) => {
+    setEditing(prev => {
+      const next = { ...prev }
+      delete next[providerId]
+      return next
+    })
+  }
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <Loader2 className="w-8 h-8 animate-spin text-[var(--accent-primary)]" />
+        <span className="ml-3 text-[var(--text-muted)]">Loading API keys...</span>
+      </div>
+    )
+  }
+
+  return (
+    <div className="space-y-6">
+      <Card padding="md">
+        <CardHeader
+          title="Vision API Keys"
+          subtitle="Enter your own API keys for the CUA Loop vision backends. Keys are encrypted (AES-256) and stored server-side — never exposed in the frontend."
+          icon={<Eye className="w-5 h-5" />}
+        />
+        <div className="mt-4 p-3 rounded-lg bg-[var(--bg-secondary)] border border-[var(--border-primary)]">
+          <div className="flex items-start gap-2">
+            <Info className="w-4 h-4 text-[var(--accent-primary)] mt-0.5 flex-shrink-0" />
+            <div className="text-sm text-[var(--text-secondary)]">
+              <p className="font-medium mb-1">How it works:</p>
+              <ul className="list-disc list-inside space-y-1 text-xs">
+                <li>Keys are <strong>optional</strong> — the CUA Loop works without them (falls back to OpenCV)</li>
+                <li>Keys are <strong>encrypted</strong> with AES-256 before storage</li>
+                <li>Keys <strong>override</strong> server-side env vars when set</li>
+                <li>Keys are <strong>masked</strong> in the UI (sk-***...***) — never shown in plaintext</li>
+                <li>You can enter keys <strong>anytime</strong> — changes take effect immediately</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </Card>
+
+      {VISION_PROVIDERS.map(provider => {
+        const existing = keys[provider.id]
+        const isEditing = !!editing[provider.id]
+        const edit = editing[provider.id]
+        const testResult = testResults[provider.id]
+        const isSaving = savingProvider === provider.id
+        const isTesting = testingProvider === provider.id
+
+        return (
+          <Card key={provider.id} padding="md">
+            <CardHeader
+              title={
+                <div className="flex items-center gap-2">
+                  <Key className="w-4 h-4" />
+                  <span>{provider.label}</span>
+                  {existing?.is_active && (
+                    <span className="px-2 py-0.5 text-xs rounded-full bg-green-500/20 text-green-400 border border-green-500/30">
+                      Active
+                    </span>
+                  )}
+                </div>
+              }
+              subtitle={provider.description}
+              icon={null}
+            />
+
+            <div className="mt-4 space-y-4">
+              {/* Existing key display (masked) */}
+              {existing && !isEditing && (
+                <div className="space-y-3">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                    <div>
+                      <label className="text-xs text-[var(--text-muted)]">API Key</label>
+                      <div className="font-mono text-sm text-[var(--text-secondary)] bg-[var(--bg-secondary)] px-3 py-2 rounded-md border border-[var(--border-primary)]">
+                        {existing.api_key_masked}
+                      </div>
+                    </div>
+                    {existing.base_url && (
+                      <div>
+                        <label className="text-xs text-[var(--text-muted)]">Base URL</label>
+                        <div className="text-sm text-[var(--text-secondary)] bg-[var(--bg-secondary)] px-3 py-2 rounded-md border border-[var(--border-primary)] truncate">
+                          {existing.base_url}
+                        </div>
+                      </div>
+                    )}
+                    {existing.model_name && (
+                      <div>
+                        <label className="text-xs text-[var(--text-muted)]">Model</label>
+                        <div className="text-sm text-[var(--text-secondary)] bg-[var(--bg-secondary)] px-3 py-2 rounded-md border border-[var(--border-primary)] truncate">
+                          {existing.model_name}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {testResult && (
+                    <div className={`flex items-center gap-2 p-2 rounded-md text-sm ${
+                      testResult.success
+                        ? 'bg-green-500/10 text-green-400 border border-green-500/20'
+                        : 'bg-red-500/10 text-red-400 border border-red-500/20'
+                    }`}>
+                      {testResult.success ? <CheckCircle2 className="w-4 h-4" /> : <XCircle className="w-4 h-4" />}
+                      <span className="truncate">{testResult.message}</span>
+                    </div>
+                  )}
+
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      icon={isTesting ? Loader2 : Zap}
+                      onClick={() => handleTest(provider.id)}
+                      disabled={isTesting}
+                    >
+                      {isTesting ? 'Testing...' : 'Test'}
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => startEditing(provider.id, existing)}
+                    >
+                      Update
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      icon={Trash2}
+                      onClick={() => handleDelete(provider.id)}
+                      className="text-red-400 hover:text-red-300"
+                    >
+                      Delete
+                    </Button>
+                    <a
+                      href={provider.docsUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="ml-auto text-xs text-[var(--accent-primary)] hover:underline flex items-center gap-1"
+                    >
+                      Get API key <ExternalLink className="w-3 h-3" />
+                    </a>
+                  </div>
+                </div>
+              )}
+
+              {/* Edit / new key form */}
+              {(isEditing || !existing) && edit && (
+                <div className="space-y-3">
+                  <div>
+                    <label className="text-xs text-[var(--text-muted)] mb-1 block">API Key</label>
+                    <input
+                      type="password"
+                      value={edit.apiKey}
+                      onChange={e => setEditing(prev => ({
+                        ...prev,
+                        [provider.id]: { ...edit, apiKey: e.target.value }
+                      }))}
+                      placeholder={provider.placeholder}
+                      className="w-full px-3 py-2 rounded-md bg-[var(--bg-secondary)] border border-[var(--border-primary)] text-[var(--text-primary)] text-sm focus:outline-none focus:border-[var(--accent-primary)]"
+                      autoComplete="off"
+                    />
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div>
+                      <label className="text-xs text-[var(--text-muted)] mb-1 block">Base URL (optional)</label>
+                      <input
+                        type="text"
+                        value={edit.baseUrl}
+                        onChange={e => setEditing(prev => ({
+                          ...prev,
+                          [provider.id]: { ...edit, baseUrl: e.target.value }
+                        }))}
+                        placeholder={provider.defaultBaseUrl || '(default)'}
+                        className="w-full px-3 py-2 rounded-md bg-[var(--bg-secondary)] border border-[var(--border-primary)] text-[var(--text-primary)] text-sm focus:outline-none focus:border-[var(--accent-primary)]"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-xs text-[var(--text-muted)] mb-1 block">Model (optional)</label>
+                      <input
+                        type="text"
+                        value={edit.modelName}
+                        onChange={e => setEditing(prev => ({
+                          ...prev,
+                          [provider.id]: { ...edit, modelName: e.target.value }
+                        }))}
+                        placeholder={provider.defaultModel}
+                        className="w-full px-3 py-2 rounded-md bg-[var(--bg-secondary)] border border-[var(--border-primary)] text-[var(--text-primary)] text-sm focus:outline-none focus:border-[var(--accent-primary)]"
+                      />
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="primary"
+                      size="sm"
+                      icon={isSaving ? Loader2 : Save}
+                      onClick={() => handleSave(provider.id)}
+                      disabled={isSaving || !edit.apiKey.trim()}
+                    >
+                      {isSaving ? 'Saving...' : 'Save Key'}
+                    </Button>
+                    {isEditing && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => cancelEditing(provider.id)}
+                      >
+                        Cancel
+                      </Button>
+                    )}
+                    <a
+                      href={provider.docsUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="ml-auto text-xs text-[var(--accent-primary)] hover:underline flex items-center gap-1"
+                    >
+                      Get API key <ExternalLink className="w-3 h-3" />
+                    </a>
+                  </div>
+                </div>
+              )}
+
+              {/* No key + not editing → show "Add Key" button */}
+              {!existing && !isEditing && (
+                <div className="flex items-center gap-3">
+                  <p className="text-sm text-[var(--text-muted)]">No key configured — using server default or OpenCV fallback</p>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    icon={Key}
+                    onClick={() => startEditing(provider.id)}
+                  >
+                    Add Key
+                  </Button>
+                  <a
+                    href={provider.docsUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-xs text-[var(--accent-primary)] hover:underline flex items-center gap-1"
+                  >
+                    Get API key <ExternalLink className="w-3 h-3" />
+                  </a>
+                </div>
+              )}
+            </div>
+          </Card>
+        )
+      })}
+    </div>
+  )
+}
+
 export default function Settings() {
   const [settings, setSettings] = useState<Record<string, string>>(loadInitialSettings)
   const [saving, setSaving] = useState(false)
@@ -1110,6 +1517,8 @@ export default function Settings() {
             <AISettingsPanel settings={settings} setSettings={setSettings} notify={notify} />
           ) : activeTab === 'external' ? (
             <ExternalServicesPanel settings={settings} setSettings={setSettings} notify={notify} />
+          ) : activeTab === 'vision' ? (
+            <VisionApiKeysPanel notify={notify} />
           ) : (
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {currentSections.map(section => (
