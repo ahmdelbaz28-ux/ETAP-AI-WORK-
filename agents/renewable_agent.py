@@ -20,7 +20,7 @@ import logging
 from datetime import datetime, timezone
 
 UTC = timezone.utc  # noqa: UP017
-from typing import Any, Dict, List, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 import numpy as np
 
@@ -60,8 +60,8 @@ class RenewableAgent(BaseAgent):
         self,
         dc_capacity_kw: float,
         ac_capacity_kw: float,
-        irradiance_kw_m2: np.ndarray = None,
-        temperature_C: np.ndarray = None,
+        irradiance_kw_m2: Optional[np.ndarray] = None,
+        temperature_C: Optional[np.ndarray] = None,
         noct_C: float = 45.0,
         temp_coeff_power_pctK: float = -0.40,
         soiling_loss_pct: float = 2.0,
@@ -677,7 +677,7 @@ class RenewableAgent(BaseAgent):
         }
 
         HC_overall = min(HC_voltage, HC_thermal_kw, HC_reverse, HC_protection)
-        limiting_constraint = min(constraints, key=constraints.get)
+        limiting_constraint = min(constraints, key=lambda k: constraints[k])
 
         penetration_at_HC = (HC_overall / feeder_head_kva) * 100.0 if feeder_head_kva > 0 else 0.0
 
@@ -722,8 +722,8 @@ class RenewableAgent(BaseAgent):
                 results["solar_pv"] = self.analyze_solar_pv(
                     dc_capacity_kw=float(p.get("pv_dc_capacity_kw", 500)),
                     ac_capacity_kw=float(p.get("pv_ac_capacity_kw", 400)),
-                    irradiance_kw_m2=p.get("irradiance_profile"),
-                    temperature_C=p.get("temperature_profile"),
+                    irradiance_kw_m2=p.get("irradiance_profile"),  # type: ignore[reportArgumentType]
+                    temperature_C=p.get("temperature_profile"),  # type: ignore[reportArgumentType]
                     noct_C=float(p.get("noct_C", 45.0)),
                     temp_coeff_power_pctK=float(p.get("temp_coeff_pctK", -0.40)),
                     soiling_loss_pct=float(p.get("soiling_loss_pct", 2.0)),
