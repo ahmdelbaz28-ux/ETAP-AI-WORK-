@@ -673,20 +673,14 @@ class EarthGridAgent(BaseAgent):
             "E_mesh_V": E_mesh_V,
             "E_touch_allowable_V": E_touch_limit,
             "E_mesh_safe": mesh_ok,
-            "mesh_utilization": (E_mesh_V / E_touch_limit)
-            if E_touch_limit > 0
-            else float("inf"),
+            "mesh_utilization": (E_mesh_V / E_touch_limit) if E_touch_limit > 0 else float("inf"),
             "E_step_V": E_step_V,
             "E_step_allowable_V": E_step_limit,
             "E_step_safe": step_ok,
-            "step_utilization": (E_step_V / E_step_limit)
-            if E_step_limit > 0
-            else float("inf"),
+            "step_utilization": (E_step_V / E_step_limit) if E_step_limit > 0 else float("inf"),
             "E_touch_V": E_touch_V,
             "E_touch_safe": touch_ok,
-            "touch_utilization": (E_touch_V / E_touch_limit)
-            if E_touch_limit > 0
-            else float("inf"),
+            "touch_utilization": (E_touch_V / E_touch_limit) if E_touch_limit > 0 else float("inf"),
             "all_safe": (mesh_ok and step_ok and touch_ok),
             "allowable_limits": allowable,
         }
