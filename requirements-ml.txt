@@ -7,7 +7,7 @@ tensorflow>=2.15.0; python_version >= '3.9' and python_version < '3.13'
 
 # Phase 6b: ML/AI - Enhanced Predictive Analytics
 prophet>=1.1.0                      # Facebook Prophet - seasonal load forecasting
-xgboost>=2.0.0                      # Gradient boosting - fault prediction
+xgboost>=3.3.0                      # Gradient boosting - fault prediction
 shap>=0.43.0                        # Model explainability - SHAP values
 optuna>=3.0.0                       # Hyperparameter optimization
 pyod>=1.0.0                         # 30+ anomaly detection algorithms
