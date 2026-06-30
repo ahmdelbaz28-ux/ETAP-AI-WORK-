@@ -642,7 +642,7 @@ class ETAPExpertAgent(BaseAgent):
         if not question:
             return AgentResult(
                 agent_name=self.agent_name,
-                study_type=StudyType.LOAD_FLOW, # Placeholder since etap_expert is not in StudyType enum
+                study_type=StudyType.LOAD_FLOW,  # Placeholder since etap_expert is not in StudyType enum
                 status=AgentStatus.FAILED,
                 data={},
                 validation_errors=["Missing 'question' parameter"],

@@ -5,7 +5,7 @@ Implements Phase 2: Semantic retrieval from ChromaDB + Lexical & Semantic Compre
 
 import logging
 from pathlib import Path
-from typing import List, Dict
+from typing import Dict, List
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("ai_context_engine_retriever")
