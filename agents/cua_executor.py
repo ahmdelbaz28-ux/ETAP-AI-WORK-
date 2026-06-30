@@ -181,6 +181,9 @@ class CUAExecutionResult:
     objective_complete: bool = False
     aborted_reason: Optional[str] = None
     total_duration_ms: int = 0
+    execution_id: Optional[str] = None
+    resumed_from_step: int = 0
+    vision_source: Optional[str] = None  # "gemini" | "opencv" | "hybrid"
 
     def to_dict(self) -> Dict[str, Any]:
         return {
@@ -191,6 +194,9 @@ class CUAExecutionResult:
             "final_summary": self.final_summary,
             "aborted_reason": self.aborted_reason,
             "total_duration_ms": self.total_duration_ms,
+            "execution_id": self.execution_id,
+            "resumed_from_step": self.resumed_from_step,
+            "vision_source": self.vision_source,
         }
 
 
@@ -298,13 +304,46 @@ class CUAExecutor:
                 aborted_reason=f"Dependencies unavailable: {deps['missing']}",
             )
 
-        from integrations.gemini_vision import gemini_vision
+        # ─── RESILIENCE: use Hybrid Vision (Gemini + OpenCV fallback) ───────
+        from integrations.resilience import CheckpointStore, hybrid_vision, resume_manager
 
+        # ─── RESILIENCE: resume from checkpoint if available ────────────────
+        exec_id, resume_from, prior_steps, prior_context = resume_manager.resume_or_start(objective)
         steps: List[CUAStepResult] = []
-        current_context = context or "Starting fresh"
-        last_analysis: Optional[Dict[str, Any]] = None
+        # Reconstruct prior step results from checkpoint (simplified — audit-only)
+        for ps in prior_steps:
+            try:
+                step = CUAStepResult(
+                    step_number=ps.get("step", 0),
+                    action=CUAAction(
+                        type=ps.get("action", {}).get("type", "unknown"),
+                        x=ps.get("action", {}).get("x"),
+                        y=ps.get("action", {}).get("y"),
+                        text=ps.get("action", {}).get("text"),
+                        keys=ps.get("action", {}).get("keys", []),
+                        target=ps.get("action", {}).get("target"),
+                    ),
+                    success=ps.get("success", False),
+                    screenshot_before=ps.get("screenshot_before"),
+                    screenshot_after=ps.get("screenshot_after"),
+                    duration_ms=ps.get("duration_ms", 0),
+                    error=ps.get("error"),
+                )
+                steps.append(step)
+            except Exception:  # noqa: BLE001
+                pass  # skip malformed prior steps
 
-        for step_num in range(1, max_steps + 1):
+        current_context = context or prior_context or "Starting fresh"
+        last_analysis: Optional[Dict[str, Any]] = None
+        vision_sources_used: set = set()
+        checkpoint_store = CheckpointStore()
+
+        # If resuming, start from the next step
+        start_step = max(1, resume_from + 1)
+        if resume_from > 0:
+            logger.info("Resuming CUA execution %s from step %d", exec_id, start_step)
+
+        for step_num in range(start_step, max_steps + 1):
             step_start = time.monotonic()
 
             # STEP 1: capture screenshot
@@ -316,12 +355,14 @@ class CUAExecutor:
                     aborted_reason="Screenshot capture failed",
                 )
 
-            # STEP 2: analyze with Gemini Vision
-            analysis = gemini_vision.analyze_screenshot(
+            # STEP 2: analyze with Hybrid Vision (Gemini first, OpenCV fallback)
+            analysis = hybrid_vision.analyze_screenshot(
                 image=screenshot_before,
                 objective=objective,
                 context=current_context,
             )
+            if analysis and "source" in analysis:
+                vision_sources_used.add(analysis["source"])
             if not analysis or "error" in analysis:
                 err = (analysis or {}).get("error", "unknown")
                 msg = (analysis or {}).get("message", "")
@@ -330,14 +371,17 @@ class CUAExecutor:
                     action=CUAAction(type="unknown", reason=msg or err),
                     success=False,
                     screenshot_before=screenshot_before,
-                    error=f"Gemini Vision error: {err} — {msg}",
+                    error=f"Hybrid Vision error: {err} — {msg}",
                     duration_ms=int((time.monotonic() - step_start) * 1000),
                 )
                 steps.append(step_result)
                 return CUAExecutionResult(
                     success=False,
                     steps=steps,
-                    aborted_reason=f"Gemini Vision failed at step {step_num}: {err}",
+                    aborted_reason=f"Hybrid Vision failed at step {step_num}: {err}",
+                    total_duration_ms=int((time.monotonic() - step_start) * 1000),
+                    execution_id=exec_id,
+                    resumed_from_step=resume_from,
                 )
 
             last_analysis = analysis
@@ -357,12 +401,20 @@ class CUAExecutor:
                     duration_ms=int((time.monotonic() - step_start) * 1000),
                 )
                 steps.append(step_result)
+                # Clean up checkpoints on success
+                try:
+                    checkpoint_store.cleanup(exec_id, keep_last=0)
+                except Exception:  # noqa: BLE001
+                    pass
                 return CUAExecutionResult(
                     success=True,
                     steps=steps,
                     final_summary=action.summary or "Objective complete",
                     objective_complete=True,
                     total_duration_ms=int((time.monotonic() - start_time) * 1000),
+                    execution_id=exec_id,
+                    resumed_from_step=resume_from,
+                    vision_source=analysis.get("source"),
                 )
 
             # STEP 5: check for unknown / blocked
@@ -380,8 +432,11 @@ class CUAExecutor:
                 return CUAExecutionResult(
                     success=False,
                     steps=steps,
-                    aborted_reason=f"Gemini could not determine action: {action.reason}",
+                    aborted_reason=f"Vision could not determine action: {action.reason}",
                     total_duration_ms=int((time.monotonic() - start_time) * 1000),
+                    execution_id=exec_id,
+                    resumed_from_step=resume_from,
+                    vision_source=analysis.get("source"),
                 )
 
             # STEP 6: safety check — destructive actions
@@ -401,6 +456,9 @@ class CUAExecutor:
                     steps=steps,
                     aborted_reason="Destructive action requires human intervention",
                     total_duration_ms=int((time.monotonic() - start_time) * 1000),
+                    execution_id=exec_id,
+                    resumed_from_step=resume_from,
+                    vision_source=analysis.get("source"),
                 )
 
             # STEP 7: human confirmation for CONTROL actions
@@ -422,6 +480,9 @@ class CUAExecutor:
                         steps=steps,
                         aborted_reason="User declined to confirm action",
                         total_duration_ms=int((time.monotonic() - start_time) * 1000),
+                        execution_id=exec_id,
+                        resumed_from_step=resume_from,
+                        vision_source=analysis.get("source"),
                     )
 
             # STEP 8: execute the action
@@ -454,13 +515,37 @@ class CUAExecutor:
                 + (f" — result: {exec_error}" if exec_error else " — success")
             )
 
+            # ─── RESILIENCE: save checkpoint after each step ─────────────────
+            try:
+                checkpoint_store.save(
+                    execution_id=exec_id,
+                    step_num=step_num,
+                    objective=objective,
+                    completed_steps=[s.to_audit_dict() for s in steps],
+                    context=current_context,
+                )
+            except Exception as exc:  # noqa: BLE001
+                logger.debug("Checkpoint save failed (non-critical): %s", exc)
+
         # max_steps reached without completion
+        # Determine which vision source was used (for transparency)
+        if vision_sources_used:
+            if len(vision_sources_used) == 1:
+                vision_src = next(iter(vision_sources_used))
+            else:
+                vision_src = "hybrid"
+        else:
+            vision_src = None
+
         return CUAExecutionResult(
             success=False,
             steps=steps,
             aborted_reason=f"Reached max_steps={max_steps} without objective_complete",
             final_summary=last_analysis.get("description", "") if last_analysis else "",
             total_duration_ms=int((time.monotonic() - start_time) * 1000),
+            execution_id=exec_id,
+            resumed_from_step=resume_from,
+            vision_source=vision_src,
         )
 
     # ─── Internal: screenshot capture ──────────────────────────────────────

@@ -144,6 +144,13 @@ google-generativeai~=0.8.0
 # Pillow — image handling for screenshots (also a pyautogui dep, listed explicitly)
 Pillow~=10.2.0
 
+# OpenCV — local screen analysis (offline fallback when Gemini is unreachable)
+# Used by integrations/opencv_vision.py for contour detection + UI element detection
+opencv-python~=4.10.0
+
+# NumPy — required by OpenCV, also used for numerical operations
+numpy~=1.26.0
+
 # pyautogui — mouse/keyboard control (desktop only, NOT installable on headless Linux
 # without X11 libs). Install manually on the desktop where the CUA will run:
 #   pip install pyautogui
