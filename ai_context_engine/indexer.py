@@ -9,6 +9,7 @@ import hashlib
 import logging
 import os
 from pathlib import Path
+from typing import List, Dict
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("ai_context_engine")
@@ -20,9 +21,9 @@ try:
     import chromadb
 
     CHROMA_AVAILABLE = True
-except ImportError:
+except (ImportError, RuntimeError) as e:
     CHROMA_AVAILABLE = False
-    logger.warning("chromadb not installed. Vector storage disabled.")
+    logger.warning(f"chromadb not available ({e}). Vector storage disabled.")
 
 try:
     import tree_sitter  # noqa: F401 — imported for the side-effect of being available
@@ -39,7 +40,7 @@ class CodeExtractor:
     """Extracts classes and functions from Python code using Tree-sitter or AST."""
 
     @staticmethod
-    def extract_with_ast(filepath: Path) -> list[dict]:
+    def extract_with_ast(filepath: Path) -> List[Dict]:
         """Fallback extractor using standard library AST (100% reliable for Python)."""
         chunks = []
         try:
@@ -69,7 +70,7 @@ class CodeExtractor:
         return chunks
 
     @staticmethod
-    def extract_with_tree_sitter(filepath: Path) -> list[dict]:
+    def extract_with_tree_sitter(filepath: Path) -> List[Dict]:
         """Primary extractor using Tree-sitter."""
         chunks = []
         try:
@@ -109,7 +110,7 @@ class CodeExtractor:
         return chunks
 
     @classmethod
-    def extract(cls, filepath: Path) -> list[dict]:
+    def extract(cls, filepath: Path) -> List[Dict]:
         """Extract chunks using the best available method."""
         if TREE_SITTER_AVAILABLE:
             return cls.extract_with_tree_sitter(filepath)

@@ -328,7 +328,7 @@ class LoadFlowAgent(BaseAgent):
                 data={
                     "converged": converged,
                     "buses": bus_results,
-                    "iterations": solver.iterations if hasattr(solver, "iterations") else 0,
+                    "iterations": getattr(solver, "iterations", 0),
                     "method": "Newton-Raphson",
                 },
             )
@@ -536,6 +536,9 @@ class HarmonicAnalysisAgent(BaseAgent):
             from fault_analysis.harmonic_analysis import HarmonicAnalysisEngine, HarmonicSource
 
             system_data = task.parameters.get("system")
+            if not system_data:
+                raise ValueError("System data not provided")
+            assert system_data is not None
             harmonic_sources = task.parameters.get("harmonic_sources", [])
             voltage_kv = task.parameters.get("voltage_kv", 13.8)
 
@@ -640,6 +643,9 @@ class OptimalPowerFlowAgent(BaseAgent):
             from load_flow.optimal_power_flow import GeneratorCost, OptimalPowerFlowEngine
 
             system_data = task.parameters.get("system")
+            if not system_data:
+                raise ValueError("System data not provided")
+            assert system_data is not None
             generator_costs = task.parameters.get("generator_costs", [])
             method = task.parameters.get("method", "dc")
 
@@ -869,7 +875,7 @@ class ETAPExecutionAgent(BaseAgent):
                 f"Executing ETAP task {task.task_id} via {type(self.provider).__name__}"
             )
 
-            project_path = task.parameters.get("project_path")
+            project_path = task.parameters.get("project_path", "")
             study_type_str = task.parameters.get("study_type", "LOAD_FLOW")
 
             # Map string to ETAPStudyType enum
@@ -1246,16 +1252,17 @@ class ReportGenerationAgent(BaseAgent):
     def _export_pdf(self, content: Dict, output_path: str) -> str:
         """Export report as PDF using the reporting module."""
         try:
-            from reporting.advanced_reports import PDFReportGenerator, ReportMetadata
+            from reporting.advanced_reports import PDFReportGenerator, ReportMetadata, ReportSection
 
             metadata = ReportMetadata(
+                report_id=f"RPT_{datetime.now(UTC).strftime('%Y%m%d_%H%M%S')}",
                 title=content.get("title", "Engineering Report"),
-                author="AhmedETAP",
-                date=datetime.now(UTC).isoformat(),
+                prepared_by="AhmedETAP",
             )
+            sections = [ReportSection(title="Analysis Results", content=str(content), order=1)]
             generator = PDFReportGenerator()
             file_path = f"{output_path}/report_{datetime.now(UTC).strftime('%Y%m%d_%H%M%S')}.pdf"
-            generator.generate_report(metadata, content, file_path)
+            generator.generate_report(metadata, sections, file_path)
             self.log_execution(f"PDF report generated: {file_path}")
             return file_path
         except ImportError:
@@ -1270,16 +1277,17 @@ class ReportGenerationAgent(BaseAgent):
     def _export_docx(self, content: Dict, output_path: str) -> str:
         """Export report as DOCX using the reporting module."""
         try:
-            from reporting.advanced_reports import DOCXReportGenerator, ReportMetadata
+            from reporting.advanced_reports import DOCXReportGenerator, ReportMetadata, ReportSection
 
             metadata = ReportMetadata(
+                report_id=f"RPT_{datetime.now(UTC).strftime('%Y%m%d_%H%M%S')}",
                 title=content.get("title", "Engineering Report"),
-                author="AhmedETAP",
-                date=datetime.now(UTC).isoformat(),
+                prepared_by="AhmedETAP",
             )
+            sections = [ReportSection(title="Analysis Results", content=str(content), order=1)]
             generator = DOCXReportGenerator()
             file_path = f"{output_path}/report_{datetime.now(UTC).strftime('%Y%m%d_%H%M%S')}.docx"
-            generator.generate_report(metadata, content, file_path)
+            generator.generate_report(metadata, sections, file_path)
             self.log_execution(f"DOCX report generated: {file_path}")
             return file_path
         except ImportError:
@@ -1295,16 +1303,17 @@ class ReportGenerationAgent(BaseAgent):
     def _export_xlsx(self, content: Dict, output_path: str) -> str:
         """Export report as XLSX using the reporting module."""
         try:
-            from reporting.advanced_reports import ReportMetadata, XLSXReportGenerator
+            from reporting.advanced_reports import ReportMetadata, XLSXReportGenerator, ReportSection
 
             metadata = ReportMetadata(
+                report_id=f"RPT_{datetime.now(UTC).strftime('%Y%m%d_%H%M%S')}",
                 title=content.get("title", "Engineering Report"),
-                author="AhmedETAP",
-                date=datetime.now(UTC).isoformat(),
+                prepared_by="AhmedETAP",
             )
+            sections = [ReportSection(title="Analysis Results", content=str(content), order=1)]
             generator = XLSXReportGenerator()
             file_path = f"{output_path}/report_{datetime.now(UTC).strftime('%Y%m%d_%H%M%S')}.xlsx"
-            generator.generate_report(metadata, content, file_path)
+            generator.generate_report(metadata, sections, file_path)
             self.log_execution(f"XLSX report generated: {file_path}")
             return file_path
         except ImportError:
@@ -1428,7 +1437,7 @@ class ChiefEngineeringOrchestrator:
 
     @trace_operation("execute_autonomous_workflow", attributes={"component": "orchestrator"})
     async def execute_autonomous_workflow(
-        self, user_goal: str, system_data: Any, parameters: Dict = None
+        self, user_goal: str, system_data: Any, parameters: Optional[Dict] = None
     ) -> Dict[str, Any]:
         """
         Execute complete autonomous engineering workflow based on user goal.
@@ -1541,7 +1550,7 @@ class ChiefEngineeringOrchestrator:
             if parallel_tasks:
                 parallel_results = await asyncio.gather(*parallel_tasks, return_exceptions=True)
                 for pr in parallel_results:
-                    if isinstance(pr, Exception):
+                    if isinstance(pr, BaseException):
                         self.logger.error("Parallel agent failed: %s", pr)
                     else:
                         results.append(pr)
@@ -1625,6 +1634,8 @@ class ChiefEngineeringOrchestrator:
         }
 
         agent_key = agent_mapping.get(study_type)
+        if agent_key is None:
+            return None
         return self.agents.get(agent_key)
 
     def get_study_type_mapping(self) -> Dict[str, str]:
@@ -1805,10 +1816,11 @@ class ChiefEngineeringOrchestrator:
 
         parallel_results: Dict[str, AgentResult] = {}
         for item in parallel_raw:
-            if isinstance(item, Exception):
+            if isinstance(item, BaseException):
                 self.logger.error("[parallel] Unexpected exception: %s", item)
                 continue
             study_str, result = item
+            assert isinstance(result, AgentResult)
             parallel_results[study_str] = result
 
         result: Dict[str, Any] = {

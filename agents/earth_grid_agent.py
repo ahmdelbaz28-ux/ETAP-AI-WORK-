@@ -22,7 +22,7 @@ from typing import Any, Dict, List
 
 import numpy as np
 
-from agents.orchestrator import AgentResult, AgentStatus, BaseAgent, EngineeringTask, StudyType
+from .orchestrator import AgentResult, AgentStatus, BaseAgent, EngineeringTask, StudyType
 
 logger = logging.getLogger(__name__)
 

@@ -1087,7 +1087,7 @@ class TestSecretsManager:
         template = validator.generate_env_template(tmp_path / ".env.test")
         assert "JWT_SECRET_KEY" in template
         assert "ENVIRONMENT" in template
-        findings = validator.check_for_hardcoded_secrets(file_patterns=["*.md"])
+        findings = validator.check_for_hardcoded_secrets(file_patterns=["security/*.py"])
         assert isinstance(findings, list)
 
 

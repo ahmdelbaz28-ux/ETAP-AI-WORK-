@@ -469,7 +469,8 @@ class TestCORS:
         for mw in app.user_middleware:
             if hasattr(mw, "cls") and mw.cls.__name__ == "CORSMiddleware":
                 # kwargs stored by Starlette for later initialization
-                expose = mw.kwargs.get("expose_headers", [])
+                options = getattr(mw, "kwargs", getattr(mw, "options", {}))
+                expose = options.get("expose_headers", [])
                 assert "x-trace-id" in expose
                 break
         else:

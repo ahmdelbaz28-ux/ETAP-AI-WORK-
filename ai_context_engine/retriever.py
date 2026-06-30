@@ -5,6 +5,7 @@ Implements Phase 2: Semantic retrieval from ChromaDB + Lexical & Semantic Compre
 
 import logging
 from pathlib import Path
+from typing import List, Dict
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("ai_context_engine_retriever")
@@ -13,8 +14,9 @@ try:
     import chromadb
 
     CHROMA_AVAILABLE = True
-except ImportError:
+except (ImportError, RuntimeError) as e:
     CHROMA_AVAILABLE = False
+    logger.warning(f"chromadb not available ({e}).")
 
 
 class CodeCompressor:
@@ -26,7 +28,7 @@ class CodeCompressor:
         return len(text) // 4
 
     @classmethod
-    def compress_chunks(cls, chunks: list[dict], query: str, max_tokens: int = 2000) -> list[dict]:
+    def compress_chunks(cls, chunks: List[Dict], query: str, max_tokens: int = 2000) -> List[Dict]:
         """
         Compresses chunks using Jaccard lexical overlap ranking and token budget enforcement.
         Keeps highest-scoring code snippets within the max_tokens limit.
@@ -103,7 +105,7 @@ class CodeRetriever:
             except Exception as e:
                 logger.error(f"Failed to load Chroma collection: {e}")
 
-    def retrieve(self, query: str, top_k: int = 5) -> list[dict]:
+    def retrieve(self, query: str, top_k: int = 5) -> List[Dict]:
         """Query ChromaDB and return raw matching code chunks."""
         if not CHROMA_AVAILABLE or not self.collection:
             logger.warning("ChromaDB not initialized or code_context collection missing.")
@@ -135,7 +137,7 @@ class CodeRetriever:
 
     def retrieve_and_compress(
         self, query: str, top_k: int = 5, max_tokens: int = 2000
-    ) -> list[dict]:
+    ) -> List[Dict]:
         """Fetches raw chunks and compresses them using Jaccard pruning."""
         raw_chunks = self.retrieve(query, top_k=top_k)
         return CodeCompressor.compress_chunks(raw_chunks, query, max_tokens=max_tokens)

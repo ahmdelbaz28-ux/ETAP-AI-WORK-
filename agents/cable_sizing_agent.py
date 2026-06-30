@@ -25,7 +25,7 @@ from typing import Any, Dict, List
 
 import numpy as np
 
-from agents.orchestrator import AgentResult, AgentStatus, BaseAgent, EngineeringTask, StudyType
+from .orchestrator import AgentResult, AgentStatus, BaseAgent, EngineeringTask, StudyType
 
 logger = logging.getLogger(__name__)
 
@@ -36,7 +36,7 @@ logger = logging.getLogger(__name__)
 
 # Base ampacity for Cu cables in air at 30 °C, 0.6/1 kV, single-core
 # Key: cross-section in mm² -> current in A
-_CU_XLPE_AIR_30C: Dict[int, float] = {
+_CU_XLPE_AIR_30C: Dict[float, float] = {
     1.5: 24,
     2.5: 33,
     4: 45,
@@ -57,7 +57,7 @@ _CU_XLPE_AIR_30C: Dict[int, float] = {
 }
 
 # Base ampacity for Al cables in air at 30 °C, 0.6/1 kV, single-core
-_AL_XLPE_AIR_30C: Dict[int, float] = {
+_AL_XLPE_AIR_30C: Dict[float, float] = {
     2.5: 26,
     4: 35,
     6: 46,
@@ -77,7 +77,7 @@ _AL_XLPE_AIR_30C: Dict[int, float] = {
 }
 
 # Resistance at 20 °C in Ω/km (copper)
-_R20_CU: Dict[int, float] = {
+_R20_CU: Dict[float, float] = {
     1.5: 12.1,
     2.5: 7.41,
     4: 4.61,
@@ -98,7 +98,7 @@ _R20_CU: Dict[int, float] = {
 }
 
 # Resistance at 20 °C in Ω/km (aluminium)
-_R20_AL: Dict[int, float] = {
+_R20_AL: Dict[float, float] = {
     2.5: 12.1,
     4: 7.41,
     6: 4.61,
@@ -118,7 +118,7 @@ _R20_AL: Dict[int, float] = {
 }
 
 # Standard cross-sections in mm² sorted ascending
-_STANDARD_XSECTIONS: List[int] = sorted(_CU_XLPE_AIR_30C.keys())
+_STANDARD_XSECTIONS: List[float] = sorted(_CU_XLPE_AIR_30C.keys())
 
 
 class CableSizingAgent(BaseAgent):
@@ -149,7 +149,7 @@ class CableSizingAgent(BaseAgent):
 
     def calculate_ampacity(
         self,
-        cross_section_mm2: int,
+        cross_section_mm2: float,
         conductor_material: str = "Cu",
         insulation: str = "XLPE",
         installation_method: str = "in_air",
@@ -277,7 +277,7 @@ class CableSizingAgent(BaseAgent):
         self,
         load_current_A: float,
         cable_length_m: float,
-        cross_section_mm2: int,
+        cross_section_mm2: float,
         conductor_material: str = "Cu",
         system_voltage_V: float = 400.0,
         power_factor: float = 0.85,
@@ -302,7 +302,7 @@ class CableSizingAgent(BaseAgent):
             Design load current in A.
         cable_length_m : float
             One-way cable length in metres.
-        cross_section_mm2 : int
+        cross_section_mm2 : float
             Conductor cross-section in mm².
         conductor_material : str
             ``'Cu'`` or ``'Al'``.
@@ -379,7 +379,7 @@ class CableSizingAgent(BaseAgent):
 
     def verify_short_circuit_rating(
         self,
-        cross_section_mm2: int,
+        cross_section_mm2: float,
         conductor_material: str = "Cu",
         insulation: str = "XLPE",
         fault_current_kA: float = 25.0,
@@ -401,7 +401,7 @@ class CableSizingAgent(BaseAgent):
 
         Parameters
         ----------
-        cross_section_mm2 : int
+        cross_section_mm2 : float
             Conductor cross-section in mm².
         conductor_material : str
             ``'Cu'`` or ``'Al'``.
