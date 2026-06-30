@@ -170,6 +170,7 @@ class BrowserCUAExecutor:
         require_confirmation: bool = True,
         on_confirmation_request=None,
         context: Optional[str] = None,
+        mode: str = "control",
     ) -> CUAExecutionResult:
         """Run the CUA Loop against a headless browser.
 
@@ -403,12 +404,88 @@ class BrowserCUAExecutor:
                                 vision_source=analysis.get("source"),
                             )
 
-                    # STEP 8: execute the action in the browser
+                    # STEP 8: LIFE SAFETY CHECK — non-bypassable gate
+                    from agents.life_safety import life_safety_guard
+
+                    safety_check = life_safety_guard.pre_action_check(
+                        action=action,
+                        screenshot_before=screenshot_before,
+                        gemini_analysis=analysis,
+                        vision_source=analysis.get("source", "gemini"),
+                        mode=mode,
+                    )
+                    if safety_check.blocked:
+                        step_result = CUAStepResult(
+                            step_number=step_num,
+                            action=action,
+                            success=False,
+                            screenshot_before=screenshot_before,
+                            gemini_analysis=analysis,
+                            error=f"SAFETY BLOCKED: {safety_check.reason}",
+                            duration_ms=int((time.monotonic() - step_start) * 1000),
+                        )
+                        steps.append(step_result)
+                        try:
+                            checkpoint_store.save(
+                                execution_id=exec_id,
+                                step_num=step_num,
+                                objective=objective,
+                                completed_steps=[s.to_audit_dict() for s in steps],
+                                context=f"Step {step_num}: SAFETY BLOCKED — {safety_check.reason}",
+                            )
+                        except Exception:  # noqa: BLE001
+                            pass
+                        browser.close()
+                        return CUAExecutionResult(
+                            success=False,
+                            steps=steps,
+                            aborted_reason=f"Life safety block: {safety_check.reason}",
+                            total_duration_ms=int((time.monotonic() - start_time) * 1000),
+                            execution_id=exec_id,
+                            resumed_from_step=resume_from,
+                            vision_source=analysis.get("source"),
+                        )
+
+                    # Dual confirmation for protection-setting changes
+                    if (
+                        safety_check.requires_dual_confirmation
+                        and on_confirmation_request is not None
+                    ):
+                        approved = on_confirmation_request(action)
+                        if not approved:
+                            step_result = CUAStepResult(
+                                step_number=step_num,
+                                action=action,
+                                success=False,
+                                screenshot_before=screenshot_before,
+                                gemini_analysis=analysis,
+                                error="Dual confirmation not obtained for protection-setting change",
+                                duration_ms=int((time.monotonic() - step_start) * 1000),
+                            )
+                            steps.append(step_result)
+                            browser.close()
+                            return CUAExecutionResult(
+                                success=False,
+                                steps=steps,
+                                aborted_reason="Dual confirmation required (life-safety setting)",
+                                total_duration_ms=int((time.monotonic() - start_time) * 1000),
+                                execution_id=exec_id,
+                                resumed_from_step=resume_from,
+                                vision_source=analysis.get("source"),
+                            )
+
+                    # STEP 9: execute the action (passed safety check)
                     exec_error = self._execute_browser_action(page, action)
 
-                    # STEP 9: capture after screenshot
+                    # STEP 10: capture after screenshot + post-action safety record
                     page.wait_for_timeout(500)  # let UI settle
                     screenshot_after = self._capture_screenshot(page, step_num, "after")
+                    life_safety_guard.post_action_record(
+                        action=action,
+                        screenshot_after=screenshot_after,
+                        pre_check=safety_check,
+                        exec_error=exec_error,
+                    )
 
                     step_result = CUAStepResult(
                         step_number=step_num,

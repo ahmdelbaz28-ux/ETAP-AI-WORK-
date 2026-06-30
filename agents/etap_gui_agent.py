@@ -586,6 +586,7 @@ class ETAPGUIAgent(BaseAgent):
                 require_confirmation=cls in ("control", "solve") and require_confirmation,
                 on_confirmation_request=on_confirmation_request,
                 context=f"Target app: {app}. Mode: {cls}.",
+                mode=cls,
             )
         elif browser_deps["all_available"]:
             # Headless environment with Playwright — control a browser instead
