@@ -1,7 +1,10 @@
 import asyncio
+
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.testclient import TestClient
+
 from api.websocket import SCADALiveFeed
+
 WS_PATH = "/ws/scada/live"
 
 feed = SCADALiveFeed()

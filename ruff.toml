@@ -58,7 +58,7 @@ unfixable = []
 
 [lint.per-file-ignores]
 "__init__.py" = ["F401", "E402"]
-"tests/**" = ["F401", "F841", "E741", "S101"]
+"tests/**" = ["F401", "F841", "E741", "S101", "B017"]
 "tests/property_based/**" = ["S101", "N802", "N803"]
 "validation_*.py" = ["F401", "F841"]
 "docs/demos/**" = ["E501", "F821"]
