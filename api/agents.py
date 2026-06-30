@@ -253,10 +253,14 @@ async def etap_gui_execute(
     """
     trace_id = getattr(request.state, "trace_id", "unknown")
     try:
+        import asyncio
+
         from agents.etap_gui_agent import ETAPGUIAgent
 
         agent = ETAPGUIAgent()
-        result = agent.execute_cua_loop(
+        # Run in thread to avoid Playwright Sync API + asyncio conflict
+        result = await asyncio.to_thread(
+            agent.execute_cua_loop,
             question=payload.question,
             max_steps=payload.max_steps,
             require_confirmation=payload.require_confirmation,
