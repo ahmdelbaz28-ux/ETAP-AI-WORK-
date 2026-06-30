@@ -144,7 +144,9 @@ def test_readme_has_hf_yaml_frontmatter():
 
 def test_hf_sync_workflow_exists():
     """The .github/workflows/sync-platforms.yml must exist and trigger on main push."""
-    wf_path = Path(__file__).resolve().parent.parent / ".github" / "workflows" / "sync-platforms.yml"
+    wf_path = (
+        Path(__file__).resolve().parent.parent / ".github" / "workflows" / "sync-platforms.yml"
+    )
     assert wf_path.exists(), "sync-platforms.yml workflow must exist"
     content = wf_path.read_text(encoding="utf-8")
     assert "branches: [main]" in content

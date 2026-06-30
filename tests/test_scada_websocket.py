@@ -733,6 +733,7 @@ class TestMultipleConcurrentConnections:
             # ws1 disconnected, but the feed should still track 0 connections
             # (since ws2 was never opened in this variant)
             import time
+
             for _ in range(20):
                 if len(feed.active_connections) == 0:
                     break
