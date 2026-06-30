@@ -368,9 +368,7 @@ class BatteryStorageAgent(BaseAgent):
                 "revenue_discharge_$": revenue_discharge,
                 "cost_charge_$": cost_charge,
                 "net_revenue_$": net_revenue,
-                "daily_net_revenue_$": (net_revenue / (n_periods / 24.0))
-                if n_periods > 0
-                else 0.0,
+                "daily_net_revenue_$": (net_revenue / (n_periods / 24.0)) if n_periods > 0 else 0.0,
             },
             "performance": {
                 "total_charged_kwh": total_charged,

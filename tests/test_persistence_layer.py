@@ -23,6 +23,7 @@ import pytest
 
 try:
     import celery
+
     CELERY_AVAILABLE = True
 except ImportError:
     CELERY_AVAILABLE = False

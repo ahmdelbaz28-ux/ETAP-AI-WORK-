@@ -9,7 +9,7 @@ import hashlib
 import logging
 import os
 from pathlib import Path
-from typing import List, Dict
+from typing import Dict, List
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("ai_context_engine")

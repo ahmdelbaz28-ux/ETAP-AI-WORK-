@@ -1277,7 +1277,11 @@ class ReportGenerationAgent(BaseAgent):
     def _export_docx(self, content: Dict, output_path: str) -> str:
         """Export report as DOCX using the reporting module."""
         try:
-            from reporting.advanced_reports import DOCXReportGenerator, ReportMetadata, ReportSection
+            from reporting.advanced_reports import (
+                DOCXReportGenerator,
+                ReportMetadata,
+                ReportSection,
+            )
 
             metadata = ReportMetadata(
                 report_id=f"RPT_{datetime.now(UTC).strftime('%Y%m%d_%H%M%S')}",
@@ -1303,7 +1307,11 @@ class ReportGenerationAgent(BaseAgent):
     def _export_xlsx(self, content: Dict, output_path: str) -> str:
         """Export report as XLSX using the reporting module."""
         try:
-            from reporting.advanced_reports import ReportMetadata, XLSXReportGenerator, ReportSection
+            from reporting.advanced_reports import (
+                ReportMetadata,
+                ReportSection,
+                XLSXReportGenerator,
+            )
 
             metadata = ReportMetadata(
                 report_id=f"RPT_{datetime.now(UTC).strftime('%Y%m%d_%H%M%S')}",
