@@ -12,6 +12,17 @@ on:
         default: "false"
         type: boolean
 
+# Required: allow github-actions[bot] to push the gh-pages branch back to the repo
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+# Avoid concurrent deploys racing on the gh-pages branch
+concurrency:
+  group: mkdocs-pages
+  cancel-in-progress: false
+
 jobs:
   deploy:
     runs-on: ubuntu-latest

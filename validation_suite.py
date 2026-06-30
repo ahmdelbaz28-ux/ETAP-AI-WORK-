@@ -5,8 +5,8 @@ Runs all validation checks: syntax, imports, configs, and basic health.
 """
 
 import os
-import sys
 import subprocess
+import sys
 
 
 def run_syntax_check():

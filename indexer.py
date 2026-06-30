@@ -1145,7 +1145,7 @@ def main():
             "version": open("VERSION", encoding="utf-8").read().strip()
             if Path("VERSION").exists()
             else "unknown",
-            "generated_at": datetime.datetime.now(datetime.timezone.utc).isoformat(),
+            "generated_at": datetime.datetime.now(datetime.UTC).isoformat(),
             "indexer_version": "2.0.0",
             "total_api_routes": len(all_routes),
             "total_help_topics": help_topics["total"],

@@ -23,15 +23,11 @@ import logging
 import os
 import threading
 import time
-from datetime import datetime, timezone
-
-UTC = timezone.utc
+from datetime import UTC, datetime
 from typing import Any, Dict, List, Optional
 
 from fastapi import HTTPException, Request
 from pydantic import BaseModel
-
-UTC = UTC
 
 logger = logging.getLogger("etap-ai")
 
