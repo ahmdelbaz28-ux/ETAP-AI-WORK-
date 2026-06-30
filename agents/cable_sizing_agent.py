@@ -258,11 +258,11 @@ class CableSizingAgent(BaseAgent):
             "conductor_material": conductor_material,
             "insulation": insulation,
             "installation_method": installation_method,
-            "base_ampacity_A": float(I_base),
+            "base_ampacity_A": I_base,
             "temperature_correction_Ca": float(Ca),
-            "grouping_correction_Cg": float(Cg),
-            "soil_correction_Cs": float(Cs),
-            "method_factor": float(method_factor),
+            "grouping_correction_Cg": Cg,
+            "soil_correction_Cs": Cs,
+            "method_factor": method_factor,
             "ambient_temp_C": ambient_temp_C,
             "max_conductor_temp_C": max_temp,
             "n_circuits": n_circuits,
@@ -362,8 +362,8 @@ class CableSizingAgent(BaseAgent):
             "voltage_drop_V": float(delta_V),
             "voltage_drop_percent": float(delta_V_percent),
             "voltage_at_load_V": float(V_load),
-            "resistance_per_km_ohm": float(R_op),
-            "reactance_per_km_ohm": float(X),
+            "resistance_per_km_ohm": R_op,
+            "reactance_per_km_ohm": X,
             "cable_length_m": cable_length_m,
             "load_current_A": load_current_A,
             "power_factor": power_factor,
@@ -433,7 +433,7 @@ class CableSizingAgent(BaseAgent):
             theta_i = 70.0
             theta_f = 160.0
 
-        S = float(cross_section_mm2)
+        S = cross_section_mm2
         I_fault = fault_current_kA * 1000.0  # Convert to A
         t = fault_duration_s
 
@@ -454,7 +454,7 @@ class CableSizingAgent(BaseAgent):
             "insulation": insulation,
             "fault_current_kA": fault_current_kA,
             "fault_duration_s": fault_duration_s,
-            "actual_I2t_A2s": float(I2t_actual),
+            "actual_I2t_A2s": I2t_actual,
             "permissible_I2t_A2s": float(I2t_permissible),
             "permissible_fault_current_kA": float(I_permissible / 1000.0),
             "initial_temp_C": theta_i,
