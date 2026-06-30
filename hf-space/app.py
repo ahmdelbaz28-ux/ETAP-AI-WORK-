@@ -417,6 +417,61 @@ async def etap_gui_safety_audit_verify():
     }
 
 
+@app.get("/api/v1/agents/etap-gui/siem/health", tags=["Agents", "Safety"])
+async def etap_gui_siem_health():
+    """Get the SIEM Syslog forwarder status on HF Space."""
+    from integrations.siem_syslog import siem_forwarder
+
+    return {"success": True, "data": siem_forwarder.health_check()}
+
+
+@app.get("/api/v1/agents/etap-gui/siem/events", tags=["Agents", "Safety"])
+async def etap_gui_siem_events(limit: int = 50):
+    """Read recent SIEM events from the logging-only JSONL file on HF Space."""
+    import json
+    import os
+
+    from integrations.siem_syslog import siem_forwarder
+
+    if not siem_forwarder.logging_only or not siem_forwarder.log_file:
+        return JSONResponse(
+            status_code=400,
+            content={
+                "success": False,
+                "error": "logging_only_mode_not_active",
+                "message": "Set SIEM_LOG_FILE env var to enable event viewing",
+            },
+        )
+
+    log_path = siem_forwarder.log_file
+    if not os.path.exists(log_path):
+        return {"success": True, "data": {"events": [], "total": 0, "message": "No events yet"}}
+
+    limit = min(max(limit, 1), 200)
+    events = []
+    try:
+        with open(log_path, encoding="utf-8") as fh:
+            lines = fh.readlines()
+        for line in lines[-limit:]:
+            line = line.strip()
+            if not line:
+                continue
+            try:
+                events.append(json.loads(line))
+            except json.JSONDecodeError:
+                continue
+    except OSError as exc:
+        return JSONResponse(
+            status_code=500,
+            content={"success": False, "error": "read_failed", "message": str(exc)},
+        )
+
+    return {
+        "success": True,
+        "data": {"events": events, "total": len(events), "log_file": log_path},
+    }
+
+
 # -- Studies ------------------------------------------------------------------
 @app.get("/api/v1/studies/types", tags=["Studies"])
 async def study_types():
