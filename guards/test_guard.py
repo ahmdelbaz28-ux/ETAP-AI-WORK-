@@ -45,6 +45,8 @@ class TestGuard(BaseGuard):
     >>> result = guard.scan(test_source_code)
     """
 
+    __test__ = False  # Prevent pytest from collecting this class
+
     name: str = "test_guard"
 
     def __init__(self, mode: GuardMode = GuardMode.GUARD_PASS) -> None:

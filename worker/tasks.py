@@ -220,7 +220,7 @@ def celery_heartbeat():
 
         redis_url = os.environ.get("REDIS_URL", "redis://localhost:6379/0")
         r = _redis.from_url(redis_url, socket_timeout=5)
-        r.setex(f"etap:worker:heartbeat:{hostname}", 120, "alive")
+        r.set(f"etap:worker:heartbeat:{hostname}", "alive", ex=120)
     except Exception:
         pass  # heartbeat is best-effort
 

@@ -169,7 +169,8 @@ markers = [
     "slow: marks tests as slow",
     "integration: marks tests as integration tests",
     "regression: marks tests as regression tests",
-    "unit: marks tests as unit tests"
+    "unit: marks tests as unit tests",
+    "timeout: marks tests with a timeout limit",
 ]
 
 [tool.coverage.run]
