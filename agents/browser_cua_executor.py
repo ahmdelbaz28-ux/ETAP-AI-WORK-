@@ -51,6 +51,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
+import os
 import time
 import uuid
 from pathlib import Path
@@ -82,19 +83,52 @@ def _check_chromium_installed() -> tuple[bool, str]:
 
     Playwright needs `playwright install chromium` to download the browser.
     Returns (installed, message).
+
+    Checks multiple locations:
+      - $PLAYWRIGHT_BROWSERS_PATH (if set)
+      - ~/.cache/ms-playwright (default Linux)
+      - /ms-playwright (common in Docker images)
+      - /root/.cache/ms-playwright (running as root)
+      - /app/.cache/ms-playwright (HF Space non-root user)
+      - /home/user/.cache/ms-playwright (HF Space default user)
     """
     try:
-        # Check common install locations
-        candidates = [
-            Path.home() / ".cache" / "ms-playwright",
-            Path("/ms-playwright"),  # Common in Docker images
-            Path("/root/.cache/ms-playwright"),
-        ]
+        candidates: list[Path] = []
+
+        # Check PLAYWRIGHT_BROWSERS_PATH env var first
+        env_path = os.environ.get("PLAYWRIGHT_BROWSERS_PATH")
+        if env_path:
+            candidates.append(Path(env_path))
+
+        # Add common locations
+        candidates.extend(
+            [
+                Path.home() / ".cache" / "ms-playwright",
+                Path("/ms-playwright"),  # Common in Docker images
+                Path("/root/.cache/ms-playwright"),
+                Path("/app/.cache/ms-playwright"),  # HF Space non-root
+                Path("/home/user/.cache/ms-playwright"),  # HF Space default user
+            ]
+        )
+
         for p in candidates:
             if p.exists():
                 chromium_dirs = list(p.glob("chromium-*"))
                 if chromium_dirs:
                     return True, f"chromium at {chromium_dirs[0]}"
+
+        # Last resort: try to query Playwright directly
+        try:
+            from playwright.sync_api import sync_playwright
+
+            with sync_playwright() as p:
+                # This will raise if Chromium is not installed
+                exec_path = p.chromium.executable_path
+                if exec_path and Path(exec_path).exists():
+                    return True, f"chromium at {exec_path}"
+        except Exception:  # noqa: BLE001
+            pass
+
         return False, "chromium binary not found — run: playwright install chromium"
     except Exception as exc:  # noqa: BLE001
         return False, f"chromium check error: {exc}"
