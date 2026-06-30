@@ -5,6 +5,8 @@ Handles all AI agent information endpoints.
 Separated from main engineering service for better modularity.
 """
 
+import json
+import os
 from datetime import UTC, datetime
 from typing import Any, Dict, Optional
 
@@ -434,6 +436,87 @@ async def etap_gui_safety_audit_verify(
                 "message": "Audit chain is intact"
                 if is_valid
                 else f"Audit chain has {len(broken)} broken entries — possible tampering!",
+            },
+        }
+    )
+
+
+# ─── SIEM endpoints ─────────────────────────────────────────────────────────
+
+
+@router.get("/etap-gui/siem/health", tags=["Agents", "Safety"])
+async def etap_gui_siem_health(
+    _: str = Depends(get_api_key),
+):
+    """Get the SIEM Syslog forwarder status.
+
+    Returns whether SIEM forwarding is enabled, which protocol is used
+    (udp/tcp/tls/file), and the target host or log file path.
+    """
+    from integrations.siem_syslog import siem_forwarder
+
+    return JSONResponse(content={"success": True, "data": siem_forwarder.health_check()})
+
+
+@router.get("/etap-gui/siem/events", tags=["Agents", "Safety"])
+async def etap_gui_siem_events(
+    limit: int = 50,
+    _: str = Depends(get_api_key),
+):
+    """Read recent SIEM events from the logging-only JSONL file.
+
+    Only available when SIEM_LOG_FILE is set (logging-only mode).
+    Returns the last N events (default 50, max 200).
+    """
+    from integrations.siem_syslog import siem_forwarder
+
+    if not siem_forwarder.logging_only or not siem_forwarder.log_file:
+        return JSONResponse(
+            content={
+                "success": False,
+                "error": "logging_only_mode_not_active",
+                "message": "Set SIEM_LOG_FILE env var to enable event viewing",
+            },
+            status_code=400,
+        )
+
+    log_path = siem_forwarder.log_file
+    if not os.path.exists(log_path):
+        return JSONResponse(
+            content={
+                "success": True,
+                "data": {"events": [], "total": 0, "message": "No events yet"},
+            }
+        )
+
+    # Read last N lines (efficient for large files)
+    limit = min(max(limit, 1), 200)
+    events: list = []
+    try:
+        with open(log_path, encoding="utf-8") as fh:
+            lines = fh.readlines()
+        # Take the last N lines
+        for line in lines[-limit:]:
+            line = line.strip()
+            if not line:
+                continue
+            try:
+                events.append(json.loads(line))
+            except json.JSONDecodeError:
+                continue
+    except OSError as exc:
+        return JSONResponse(
+            content={"success": False, "error": "read_failed", "message": str(exc)},
+            status_code=500,
+        )
+
+    return JSONResponse(
+        content={
+            "success": True,
+            "data": {
+                "events": events,
+                "total": len(events),
+                "log_file": log_path,
             },
         }
     )

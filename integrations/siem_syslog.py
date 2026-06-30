@@ -140,8 +140,24 @@ class SIEMSyslogForwarder:
         self.hostname = socket.gethostname() or "unknown"
         self.tls_ca_cert = os.getenv("SIEM_TLS_CA_CERT", "")
 
+        # ─── LOGGING-ONLY MODE (no SIEM server needed) ─────────────────────
+        # When SIEM_LOG_FILE is set, events are written to a local JSONL file
+        # instead of being sent over the network. Useful for:
+        #   - Testing without a SIEM server
+        #   - HF Space (which has no inbound network access)
+        #   - Local forensic logging
+        self.log_file = os.getenv("SIEM_LOG_FILE", "")
+        self.logging_only = bool(self.log_file) and self.protocol == "file"
+
+        # If SIEM_LOG_FILE is set, enable in logging-only mode automatically
+        if self.log_file and not self.host:
+            self.logging_only = True
+            self.enabled = True  # enable forwarding to the local file
+            self.protocol = "file"
+            logger.info("SIEM in LOGGING-ONLY mode — events written to %s", self.log_file)
+
         # Validate config
-        if self.enabled and not self.host:
+        if self.enabled and not self.host and not self.logging_only:
             logger.warning("SIEM enabled but SIEM_HOST not set — disabling")
             self.enabled = False
 
@@ -155,18 +171,36 @@ class SIEMSyslogForwarder:
         # TLS context (lazy init)
         self._tls_context: Optional[ssl.SSLContext] = None
 
+        # Ensure log file directory exists (for logging-only mode)
+        if self.logging_only and self.log_file:
+            try:
+                log_path = os.path.dirname(self.log_file)
+                if log_path:
+                    os.makedirs(log_path, exist_ok=True)
+            except OSError as exc:
+                logger.warning("Cannot create SIEM log dir %s: %s", log_path, exc)
+
         if self.enabled:
-            logger.info(
-                "✅ SIEM Syslog forwarder initialized — %s://%s:%d (facility=%s)",
-                self.protocol,
-                self.host,
-                self.port,
-                self.facility_name,
-            )
+            if self.logging_only:
+                logger.info(
+                    "✅ SIEM LOGGING-ONLY mode — file=%s (facility=%s)",
+                    self.log_file,
+                    self.facility_name,
+                )
+            else:
+                logger.info(
+                    "✅ SIEM Syslog forwarder initialized — %s://%s:%d (facility=%s)",
+                    self.protocol,
+                    self.host,
+                    self.port,
+                    self.facility_name,
+                )
         else:
             missing = []
             if not os.getenv("SIEM_HOST"):
                 missing.append("SIEM_HOST")
+            if not os.getenv("SIEM_LOG_FILE"):
+                missing.append("SIEM_LOG_FILE")
             logger.info(
                 "SIEM Syslog disabled — missing: %s", ", ".join(missing) or "SIEM_ENABLED=false"
             )
@@ -256,6 +290,8 @@ class SIEMSyslogForwarder:
             "app_name": self.app_name,
             "hostname": self.hostname,
             "tls_configured": bool(self.tls_ca_cert),
+            "logging_only": self.logging_only,
+            "log_file": self.log_file,
         }
 
     # ─── Internal: format RFC 5424 message ────────────────────────────────
@@ -363,7 +399,9 @@ class SIEMSyslogForwarder:
 
         def _send_thread():
             try:
-                if self.protocol == "udp":
+                if self.protocol == "file":
+                    self._send_file(message)
+                elif self.protocol == "udp":
                     self._send_udp(message)
                 elif self.protocol == "tcp":
                     self._send_tcp(message)
@@ -393,6 +431,36 @@ class SIEMSyslogForwarder:
                 )
                 message = message[:65000]
             sock.sendto(message, (self.host, self.port))
+
+    def _send_file(self, message: bytes) -> None:
+        """LOGGING-ONLY mode — write the syslog message to a local JSONL file.
+
+        Each line is a JSON object with:
+          - timestamp: ISO 8601 UTC
+          - syslog_message: the raw RFC 5424 message (decoded)
+          - parsed: the structured data extracted from the message
+
+        This is useful for:
+          - Testing without a SIEM server
+          - HF Space (no inbound network)
+          - Local forensic logging
+        """
+        if not self.log_file:
+            return
+
+        # Decode the syslog message for JSON storage
+        message_str = message.decode("utf-8", errors="replace")
+
+        # Build the JSONL entry
+        entry = {
+            "timestamp": datetime.datetime.now(UTC).isoformat(),
+            "syslog_message": message_str,
+            "log_file": self.log_file,
+        }
+
+        # Append to the file (one JSON per line)
+        with open(self.log_file, "a", encoding="utf-8") as fh:
+            fh.write(json.dumps(entry, default=str) + "\n")
 
     def _send_tcp(self, message: bytes) -> None:
         """Send via TCP (reliable, but may block if SIEM is down)."""
