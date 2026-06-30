@@ -7,5 +7,5 @@ sys.path.insert(0, str(PROJECT_ROOT))
 from tests.test_arc_flash_single_engine import STUDY_PARAMS, _run_via_run_python
 
 result = _run_via_run_python(STUDY_PARAMS)
-print('Result keys:', list(result.keys()))
-print('Result snippet:', {k: result[k] for k in list(result)[:5]})
+print("Result keys:", list(result.keys()))
+print("Result snippet:", {k: result[k] for k in list(result)[:5]})

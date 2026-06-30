@@ -5,8 +5,8 @@ import sys
 import time
 from pathlib import Path
 
-PROJECT_ROOT = Path('.').resolve()
-SECURE_EXECUTOR = PROJECT_ROOT / 'security' / 'secure_executor.py'
+PROJECT_ROOT = Path(".").resolve()
+SECURE_EXECUTOR = PROJECT_ROOT / "security" / "secure_executor.py"
 params = {
     "voltage_kv": 4.16,
     "bolted_fault_current_ka": 20.0,
@@ -24,6 +24,14 @@ code = (
 )
 for i in range(5):
     start = time.time()
-    proc = subprocess.run([sys.executable, str(SECURE_EXECUTOR)], input=code, capture_output=True, text=True, timeout=30, cwd=str(PROJECT_ROOT), env={**os.environ, 'PYTHONPATH': str(PROJECT_ROOT)})
+    proc = subprocess.run(
+        [sys.executable, str(SECURE_EXECUTOR)],
+        input=code,
+        capture_output=True,
+        text=True,
+        timeout=30,
+        cwd=str(PROJECT_ROOT),
+        env={**os.environ, "PYTHONPATH": str(PROJECT_ROOT)},
+    )
     elapsed = time.time() - start
-    print(i, 'rc', proc.returncode, 'time', elapsed)
+    print(i, "rc", proc.returncode, "time", elapsed)

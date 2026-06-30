@@ -100,26 +100,31 @@ class TestDatabaseHealth:
 class TestStudyValidators:
     def test_bus_spec_valid(self):
         from api.studies import BusSpec
+
         bus = BusSpec(bus_id=1, voltage_magnitude=1.05, voltage_angle=0.0, bus_type="slack")
         assert bus.bus_id == 1
 
     def test_bus_spec_rejects_bad_voltage(self):
         from api.studies import BusSpec
+
         with pytest.raises(Exception):
             BusSpec(bus_id=1, voltage_magnitude=3.0, voltage_angle=0.0, bus_type="pq")
 
     def test_line_spec_rejects_negative_impedance(self):
         from api.studies import LineSpec
+
         with pytest.raises(Exception):
             LineSpec(line_id=1, from_bus_id=1, to_bus_id=2, r1=-0.01, x1=0.05)
 
     def test_transformer_rejects_bad_tap_ratio(self):
         from api.studies import TransformerSpec
+
         with pytest.raises(Exception):
             TransformerSpec(transformer_id=1, from_bus_id=1, to_bus_id=2, tap_ratio=3.0)
 
     def test_system_spec_rejects_invalid_base_mva(self):
         from api.studies import SystemSpec
+
         with pytest.raises(Exception):
             SystemSpec(base_mva=-50.0)
 
@@ -127,4 +132,5 @@ class TestStudyValidators:
 class TestAuthRateLimiting:
     def test_rate_limit_is_async(self):
         import api.auth as auth
+
         assert inspect.iscoroutinefunction(auth._check_rate_limit)
