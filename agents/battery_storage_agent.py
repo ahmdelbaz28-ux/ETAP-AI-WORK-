@@ -162,21 +162,21 @@ class BatteryStorageAgent(BaseAgent):
         daily_cycles = daily_energy_shifted / E_total if E_total > 0 else 0.0
 
         return {
-            "power_capacity_kw": float(P_bess),
-            "energy_capacity_kwh": float(E_total),
-            "energy_nominal_kwh": float(E_nominal),
-            "discharge_duration_h": float(E_total / P_bess) if P_bess > 0 else 0.0,
+            "power_capacity_kw": P_bess,
+            "energy_capacity_kwh": E_total,
+            "energy_nominal_kwh": E_nominal,
+            "discharge_duration_h": (E_total / P_bess) if P_bess > 0 else 0.0,
             "round_trip_efficiency": round_trip_efficiency,
             "usable_soc_range": list(usable_soc_range),
             "max_dod": dod_max,
             "reserve_margin_pct": reserve_margin_pct,
-            "target_peak_kw": float(target_peak_kw),
-            "original_peak_kw": float(original_peak),
-            "new_peak_kw": float(new_peak),
-            "peak_reduction_kw": float(peak_reduction),
-            "peak_reduction_pct": float(peak_reduction_pct),
-            "daily_energy_shifted_kwh": float(daily_energy_shifted),
-            "estimated_daily_cycles": float(daily_cycles),
+            "target_peak_kw": target_peak_kw,
+            "original_peak_kw": original_peak,
+            "new_peak_kw": new_peak,
+            "peak_reduction_kw": peak_reduction,
+            "peak_reduction_pct": peak_reduction_pct,
+            "daily_energy_shifted_kwh": daily_energy_shifted,
+            "estimated_daily_cycles": daily_cycles,
             "sizing_basis": "peak_shaving",
         }
 
@@ -365,22 +365,22 @@ class BatteryStorageAgent(BaseAgent):
                 "soc": soc_history.tolist(),
             },
             "financial": {
-                "revenue_discharge_$": float(revenue_discharge),
-                "cost_charge_$": float(cost_charge),
-                "net_revenue_$": float(net_revenue),
-                "daily_net_revenue_$": float(net_revenue / (n_periods / 24.0))
+                "revenue_discharge_$": revenue_discharge,
+                "cost_charge_$": cost_charge,
+                "net_revenue_$": net_revenue,
+                "daily_net_revenue_$": (net_revenue / (n_periods / 24.0))
                 if n_periods > 0
                 else 0.0,
             },
             "performance": {
                 "total_charged_kwh": total_charged,
                 "total_discharged_kwh": total_discharged,
-                "equivalent_cycles": float(equivalent_cycles),
+                "equivalent_cycles": equivalent_cycles,
                 "average_soc": float(np.mean(soc_history)),
                 "min_soc": float(np.min(soc_history)),
                 "max_soc": float(np.max(soc_history)),
                 "round_trip_efficiency": round_trip_efficiency,
-                "actual_efficiency": float(total_discharged / total_charged)
+                "actual_efficiency": (total_discharged / total_charged)
                 if total_charged > 0
                 else 0.0,
             },
@@ -515,22 +515,22 @@ class BatteryStorageAgent(BaseAgent):
         lcos = abs(npv) / total_discounted_energy if total_discounted_energy > 0 else float("inf")
 
         return {
-            "total_capex_$": float(total_capex),
-            "capex_energy_$": float(capex_energy),
-            "capex_power_$": float(capex_power),
-            "itc_value_$": float(itc_value),
-            "net_capex_$": float(net_capex),
-            "annual_opex_$": float(annual_opex),
-            "annual_revenue_usd": float(annual_revenue_usd),
-            "npv_$": float(npv),
-            "irr_pct": float(irr * 100.0) if irr is not None else None,
+            "total_capex_$": total_capex,
+            "capex_energy_$": capex_energy,
+            "capex_power_$": capex_power,
+            "itc_value_$": itc_value,
+            "net_capex_$": net_capex,
+            "annual_opex_$": annual_opex,
+            "annual_revenue_usd": annual_revenue_usd,
+            "npv_$": npv,
+            "irr_pct": (irr * 100.0) if irr is not None else None,
             "simple_payback_years": payback_year if payback_year > 0 else None,
             "discounted_payback_years": disc_payback_year if disc_payback_year > 0 else None,
-            "lcos_$_kwh": float(lcos),
-            "discount_rate_pct": float(discount_rate * 100.0),
+            "lcos_$_kwh": lcos,
+            "discount_rate_pct": (discount_rate * 100.0),
             "project_life_years": project_life_years,
             "degradation_pct_year": degradation_pct_year,
-            "salvage_value_$": float(salvage_value),
+            "salvage_value_$": salvage_value,
         }
 
     @staticmethod
@@ -618,7 +618,7 @@ class BatteryStorageAgent(BaseAgent):
 
         params = chemistry_params.get(battery_chemistry, chemistry_params["LFP"])
         if nominal_cycles != params["nominal_cycles"]:
-            params["nominal_cycles"] = nominal_cycles
+            params["nominal_cycles"] = int(nominal_cycles)
 
         # Convert cycles to equivalent full cycles using Whittaker-DOD factor
         # N_equiv = N_actual × (DoD / DoD_nominal)^1.8
@@ -682,12 +682,12 @@ class BatteryStorageAgent(BaseAgent):
             "operating_temperature_C": temperature_C,
             "operating_c_rate": c_rate,
             "calendar_life_years": calendar_life_years,
-            "remaining_calendar_years": float(remaining_calendar_years),
-            "estimated_remaining_life_years": float(estimated_total_life_years),
+            "remaining_calendar_years": remaining_calendar_years,
+            "estimated_remaining_life_years": estimated_total_life_years,
             "limiting_factor": "cycles"
             if cycle_life_years < remaining_calendar_years
             else "calendar",
-            "eol_capacity_pct": float(eol_capacity_pct),
+            "eol_capacity_pct": eol_capacity_pct,
         }
 
     @staticmethod
