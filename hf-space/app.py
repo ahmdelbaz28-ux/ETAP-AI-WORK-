@@ -558,6 +558,130 @@ async def knowledge_info():
     return build_knowledge_info()
 
 
+# -- Settings (API Keys) ------------------------------------------------------
+# User-supplied API keys stored encrypted in SQLite.
+# Allows end users to enter their own OpenAI/Gemini/Anthropic keys
+# via the Settings UI, overriding the server-side env vars.
+
+
+@app.get("/api/v1/settings/keys", tags=["Settings"])
+async def settings_list_keys():
+    """List all stored API keys (masked — never returns plaintext)."""
+    from services.api_key_store import api_key_store
+
+    keys = api_key_store.get_all_keys()
+    return {"success": True, "data": keys, "providers": list(keys.keys())}
+
+
+@app.get("/api/v1/settings/keys/{provider}", tags=["Settings"])
+async def settings_get_key(provider: str):
+    """Get a single API key (masked)."""
+    from services.api_key_store import APIKeyStore, api_key_store
+
+    provider = provider.lower().strip()
+    if provider not in APIKeyStore.SUPPORTED_PROVIDERS:
+        return JSONResponse(
+            status_code=400,
+            content={"success": False, "error": f"Unsupported provider: {provider}"},
+        )
+    config = api_key_store.get_key(provider)
+    if not config:
+        return {"success": True, "data": None, "message": f"No key for '{provider}'"}
+    return {"success": True, "data": config.to_masked_dict()}
+
+
+@app.post("/api/v1/settings/keys/{provider}", tags=["Settings"])
+async def settings_save_key(
+    provider: str,
+    api_key: str,
+    base_url: str = None,
+    model_name: str = None,
+    is_active: bool = True,
+):
+    """Save or update an API key (encrypted with AES-256)."""
+    import logging
+
+    from services.api_key_store import APIKeyStore, api_key_store
+
+    logger = logging.getLogger(__name__)
+    provider = provider.lower().strip()
+    if provider not in APIKeyStore.SUPPORTED_PROVIDERS:
+        return JSONResponse(
+            status_code=400,
+            content={"success": False, "error": f"Unsupported provider: {provider}"},
+        )
+    try:
+        api_key_store.set_key(provider, api_key, base_url, model_name, is_active)
+        config = api_key_store.get_key(provider)
+        masked = config.to_masked_dict() if config else None
+        return {
+            "success": True,
+            "data": masked,
+            "message": f"API key for '{provider}' saved (encrypted)",
+        }
+    except Exception as exc:  # noqa: BLE001
+        logger.exception("Failed to save API key")
+        return JSONResponse(
+            status_code=500,
+            content={"success": False, "error": "save_failed", "message": str(exc)},
+        )
+
+
+@app.delete("/api/v1/settings/keys/{provider}", tags=["Settings"])
+async def settings_delete_key(provider: str):
+    """Delete an API key permanently."""
+    from services.api_key_store import api_key_store
+
+    provider = provider.lower().strip()
+    deleted = api_key_store.delete_key(provider)
+    return {
+        "success": deleted,
+        "message": f"Key for '{provider}' deleted" if deleted else f"No key for '{provider}'",
+    }
+
+
+@app.post("/api/v1/settings/keys/{provider}/test", tags=["Settings"])
+async def settings_test_key(provider: str):
+    """Test an API key by making a minimal API call."""
+    from api.settings import _test_anthropic_key, _test_gemini_key, _test_openai_key
+    from services.api_key_store import api_key_store
+
+    provider = provider.lower().strip()
+    config = api_key_store.get_key(provider)
+    if not config:
+        return JSONResponse(
+            status_code=404,
+            content={
+                "success": False,
+                "error": "key_not_found",
+                "message": f"No key for '{provider}'",
+            },
+        )
+    try:
+        if provider == "openai":
+            result = _test_openai_key(config)
+        elif provider == "gemini":
+            result = _test_gemini_key(config)
+        elif provider == "anthropic":
+            result = _test_anthropic_key(config)
+        else:
+            result = {"success": False, "message": f"Unknown provider: {provider}"}
+        return {"success": True, "data": result}
+    except Exception as exc:  # noqa: BLE001
+        return JSONResponse(
+            status_code=500,
+            content={"success": False, "error": "test_failed", "message": str(exc)},
+        )
+
+
+@app.get("/api/v1/settings/health", tags=["Settings"])
+async def settings_health():
+    """Get the API key storage health status."""
+    from services.api_key_store import api_key_store
+
+    return {"success": True, "data": api_key_store.health_check()}
+
+
 # -- HEAD at root for HF health probe -----------------------------------------
 @app.head("/", include_in_schema=False)
 async def root_head():
