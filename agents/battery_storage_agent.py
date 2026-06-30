@@ -691,7 +691,7 @@ class BatteryStorageAgent(BaseAgent):
         }
 
     @staticmethod
-    def _rainflow_count(signal: np.ndarray) -> Dict[float, int]:
+    def _rainflow_count(signal: np.ndarray) -> Dict[float, float]:
         """
         Simplified rainflow cycle counting.
 
@@ -705,12 +705,12 @@ class BatteryStorageAgent(BaseAgent):
 
         Returns
         -------
-        Dict[float, int]
+        Dict[float, float]
             Mapping of DoD level to number of cycles.
         """
         # Bin DoD ranges
         dod_bins = np.arange(0.05, 1.05, 0.10)
-        cycles: Dict[float, int] = {}
+        cycles: Dict[float, float] = {}
 
         # Find local extrema
         diff = np.diff(signal)

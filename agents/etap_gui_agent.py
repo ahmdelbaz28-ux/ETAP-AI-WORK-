@@ -30,7 +30,7 @@ import logging
 from pathlib import Path
 from typing import Any, Dict, List, Literal, Optional, Tuple
 
-from agents.orchestrator import AgentResult, AgentStatus, BaseAgent, EngineeringTask
+from agents.orchestrator import AgentResult, AgentStatus, BaseAgent, EngineeringTask, StudyType
 
 logger = logging.getLogger("agent.etap_gui")
 
@@ -455,26 +455,28 @@ class ETAPGUIAgent(BaseAgent):
         question = str(task.parameters.get("question", "")).strip()
         if not question:
             return AgentResult(
-                success=False,
                 agent_name=self.agent_name,
+                study_type=StudyType.LOAD_FLOW,
                 status=AgentStatus.FAILED,
-                error="Missing 'question' parameter",
+                data={},
+                validation_errors=["Missing 'question' parameter"],
             )
         try:
             data = self.answer(question)
             return AgentResult(
-                success=True,
                 agent_name=self.agent_name,
+                study_type=StudyType.LOAD_FLOW,
                 status=AgentStatus.COMPLETED,
                 data=data,
             )
         except Exception as exc:
             logger.exception("ETAPGUIAgent failed")
             return AgentResult(
-                success=False,
                 agent_name=self.agent_name,
+                study_type=StudyType.LOAD_FLOW,
                 status=AgentStatus.FAILED,
-                error=str(exc),
+                data={},
+                validation_errors=[str(exc)],
             )
 
     def get_agent_info(self) -> Dict[str, Any]:

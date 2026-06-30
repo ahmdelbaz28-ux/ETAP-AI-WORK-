@@ -28,7 +28,7 @@ from typing import Any, Dict, List, Optional
 
 import numpy as np
 
-from agents.orchestrator import AgentResult, AgentStatus, BaseAgent, EngineeringTask, StudyType
+from .orchestrator import AgentResult, AgentStatus, BaseAgent, EngineeringTask, StudyType
 
 logger = logging.getLogger(__name__)
 
@@ -176,6 +176,7 @@ class MotorStartingAgent(BaseAgent):
         current_ratio = method_current_ratios.get(starting_method, 1.0)
         lra_actual = lra_dol * current_ratio
 
+        assert fla_a is not None
         lra_per_fla = lra_actual / fla_a if fla_a > 0 else 0.0
 
         return {
