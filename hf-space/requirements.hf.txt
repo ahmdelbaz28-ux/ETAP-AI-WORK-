@@ -70,3 +70,7 @@ Pillow>=10.2.0
 # screen analysis via contour detection + OCR.
 opencv-python-headless>=4.10.0
 pytesseract>=0.3.10
+
+# httpx — HTTP client for OpenAI-compatible + Anthropic Vision APIs
+# Used by integrations/openai_vision.py and integrations/anthropic_vision.py
+httpx>=0.27.0

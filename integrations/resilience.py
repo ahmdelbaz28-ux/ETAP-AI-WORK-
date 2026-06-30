@@ -218,19 +218,27 @@ class CheckpointStore:
         return len(files)
 
 
-# ─── 3. Hybrid Vision Router — Gemini first, OpenCV fallback ──────────────
+# ─── 3. Hybrid Vision Router — multi-vendor fallback chain ─────────────────
 
 
 class HybridVisionRouter:
-    """Routes analyze_screenshot() calls to Gemini Vision first, then OpenCV.
+    """Routes analyze_screenshot() calls through a multi-vendor fallback chain.
+
+    Chain order (highest accuracy first):
+        1. Gemini Vision (online, ~95% accuracy) — may fail due to geo restrictions
+        2. OpenAI-compatible Vision (online, ~95% accuracy) — works globally
+        3. Anthropic Claude Vision (online, ~95% accuracy) — works globally
+        4. OpenCV + Tesseract (offline, ~70% accuracy) — always available
 
     Decision logic:
-        1. Try Gemini Vision (online, high accuracy)
-        2. If Gemini fails OR returns error OR is disabled → try OpenCV
-        3. If OpenCV also fails → return error
+        - Try each backend in order
+        - First successful response wins
+        - If all fail, return the last error
 
-    This guarantees the CUA Loop can continue operating even when the
-    network is down, albeit with reduced accuracy.
+    This guarantees the CUA Loop can continue operating even when:
+        - Gemini is geo-blocked (use OpenAI or Claude)
+        - All cloud APIs are down (use OpenCV)
+        - No API keys configured (use OpenCV only)
 
     Usage:
         from integrations.resilience import hybrid_vision
@@ -239,30 +247,45 @@ class HybridVisionRouter:
             image=screenshot_path,
             objective="Click the Run button",
         )
-        # → uses Gemini if available, OpenCV as fallback
+        # → tries Gemini → OpenAI → Claude → OpenCV
     """
 
     def __init__(self) -> None:
+        from integrations.anthropic_vision import anthropic_vision
         from integrations.gemini_vision import gemini_vision
+        from integrations.openai_vision import openai_vision
         from integrations.opencv_vision import opencv_vision
 
         self.gemini = gemini_vision
+        self.openai = openai_vision
+        self.anthropic = anthropic_vision
         self.opencv = opencv_vision
-        self.primary = (
-            "gemini" if gemini_vision.enabled else ("opencv" if opencv_vision.enabled else "none")
-        )
-        self.fallback = "opencv" if self.primary == "gemini" else "none"
+
+        # Build the chain in priority order
+        self.chain: List[tuple[str, Any]] = []
+        if self.gemini.enabled:
+            self.chain.append(("gemini", self.gemini))
+        if self.openai.enabled:
+            self.chain.append(("openai", self.openai))
+        if self.anthropic.enabled:
+            self.chain.append(("anthropic", self.anthropic))
+        if self.opencv.enabled:
+            self.chain.append(("opencv", self.opencv))
+
+        self.primary = self.chain[0][0] if self.chain else "none"
+        self.fallback_count = max(0, len(self.chain) - 1)
 
         logger.info(
-            "HybridVisionRouter initialized — primary=%s, fallback=%s",
+            "HybridVisionRouter initialized — chain=%s (primary=%s, %d fallbacks)",
+            [name for name, _ in self.chain],
             self.primary,
-            self.fallback,
+            self.fallback_count,
         )
 
     @retry_with_backoff(max_retries=2, base_delay=1.0, exceptions=(Exception,))
-    def _call_gemini(self, image, objective, context):
-        """Call Gemini with one retry (the decorator handles the retry)."""
-        return self.gemini.analyze_screenshot(image=image, objective=objective, context=context)
+    def _call_backend(self, backend, image, objective, context):
+        """Call a vision backend with one retry (decorator handles retry)."""
+        return backend.analyze_screenshot(image=image, objective=objective, context=context)
 
     def analyze_screenshot(
         self,
@@ -270,44 +293,55 @@ class HybridVisionRouter:
         objective: str,
         context: Optional[str] = None,
     ) -> Optional[Dict[str, Any]]:
-        """Analyze a screenshot, trying Gemini first then OpenCV.
+        """Analyze a screenshot, trying each backend in the chain.
 
-        Returns the analysis dict, with an extra "source" field indicating
-        which analyzer was used ("gemini" or "opencv").
+        Returns the analysis dict, with a "source" field indicating which
+        backend was used ("gemini" | "openai" | "anthropic" | "opencv").
         """
-        # Try Gemini first
-        if self.gemini.enabled:
+        if not self.chain:
+            return {
+                "error": "no_vision_backend",
+                "message": "No vision backends available (Gemini, OpenAI, Anthropic, OpenCV all disabled)",
+            }
+
+        last_error: Optional[Dict[str, Any]] = None
+
+        for name, backend in self.chain:
             try:
-                result = self._call_gemini(image, objective, context)
+                # OpenCV doesn't need retry (it's local, no network)
+                if name == "opencv":
+                    result = backend.analyze_screenshot(
+                        image=image, objective=objective, context=context
+                    )
+                else:
+                    result = self._call_backend(backend, image, objective, context)
+
                 if result and "error" not in result:
-                    result.setdefault("source", "gemini")
+                    result.setdefault("source", name)
                     return result
-                logger.warning("Gemini returned error, falling back to OpenCV: %s", result)
+
+                last_error = result
+                logger.warning("%s returned error, trying next backend: %s", name, result)
+
             except Exception as exc:  # noqa: BLE001
-                logger.warning("Gemini call failed, falling back to OpenCV: %s", exc)
+                last_error = {"error": f"{name}_exception", "message": str(exc)}
+                logger.warning("%s call failed, trying next backend: %s", name, exc)
 
-        # Fallback to OpenCV
-        if self.opencv.enabled:
-            result = self.opencv.analyze_screenshot(
-                image=image, objective=objective, context=context
-            )
-            if result and "error" not in result:
-                result.setdefault("source", "opencv")
-                return result
-            return result  # return the error dict
-
-        # Neither available
-        return {
-            "error": "no_vision_backend",
-            "message": "Both Gemini Vision and OpenCV are unavailable",
+        # All backends failed
+        return last_error or {
+            "error": "all_backends_failed",
+            "message": "All vision backends failed",
         }
 
     def health_check(self) -> Dict[str, Any]:
-        """Return combined health status."""
+        """Return combined health status for all backends."""
         return {
             "primary": self.primary,
-            "fallback": self.fallback,
+            "fallback_count": self.fallback_count,
+            "chain": [name for name, _ in self.chain],
             "gemini": self.gemini.health_check(),
+            "openai": self.openai.health_check(),
+            "anthropic": self.anthropic.health_check(),
             "opencv": self.opencv.health_check(),
         }
 
