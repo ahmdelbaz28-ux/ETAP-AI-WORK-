@@ -301,7 +301,13 @@ async def etap_gui_execute(
     from agents.etap_gui_agent import ETAPGUIAgent
 
     agent = ETAPGUIAgent()
-    result = agent.execute_cua_loop(
+    # Run the CUA Loop in a thread to avoid Playwright Sync API conflict
+    # with the asyncio event loop. Playwright Sync API cannot run inside
+    # an asyncio loop, so we offload to a thread.
+    import asyncio
+
+    result = await asyncio.to_thread(
+        agent.execute_cua_loop,
         question=question,
         max_steps=max_steps,
         require_confirmation=require_confirmation,
