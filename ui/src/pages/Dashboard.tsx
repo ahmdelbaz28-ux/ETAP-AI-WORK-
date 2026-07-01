@@ -352,7 +352,7 @@ export default function Dashboard() {
                 </div>
                 <div className="min-w-0 flex-1">
                   <p className="text-sm text-[var(--text-primary)] font-medium truncate group-hover:text-brand-400 transition-colors">{agent.name}</p>
-                  <p className="text-xs text-[var(--text-muted)] truncate">{agent.capabilities.slice(0, 3).join(' \u2022 ')}</p>
+                  <p className="text-xs text-[var(--text-muted)] truncate">{(agent.capabilities ?? []).slice(0, 3).join(' \u2022 ')}</p>
                 </div>
                 <Badge variant="brand" size="sm">{agent.provider || 'active'}</Badge>
               </button>
