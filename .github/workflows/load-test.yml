@@ -215,7 +215,7 @@ jobs:
 
       - name: Upload k6 results artifact
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: k6-load-test-results-${{ github.sha }}
           path: load-test-results/k6/
@@ -387,7 +387,7 @@ jobs:
 
       - name: Upload Locust results artifact
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: locust-stress-test-results-${{ github.sha }}
           path: load-test-results/locust/

@@ -246,7 +246,7 @@ jobs:
         run: npm run build
 
       - name: Upload UI build artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: ui-dist-${{ github.sha }}
           path: ui/dist/
@@ -329,7 +329,7 @@ jobs:
           output: 'sbom.json'
 
       - name: Upload SBOM artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: sbom-${{ github.sha }}
           path: sbom.json
