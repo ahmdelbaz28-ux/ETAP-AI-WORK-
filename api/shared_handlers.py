@@ -39,9 +39,27 @@ logger = logging.getLogger("etap-ai")
 
 VERSION = "2.1.0"
 
-AGENT_COUNT: int = 23
+# NOTE: AGENT_COUNT is computed from len(AGENTS) at the bottom of the AGENTS list
+# (see "AGENT_COUNT = len(AGENTS)" below). Do NOT hardcode it here — the previous
+# hardcoded value of 23 drifted out of sync with the actual list length.
 ETAP_MANUAL_COUNT: int = 35
 ZENON_GUIDE_COUNT: int = 4
+
+# Engineering standards supported by the platform — single source of truth.
+# Used by build_platform_info() and by the homepage stat card. Adding a new
+# standard here automatically updates both places.
+SUPPORTED_STANDARDS: List[str] = [
+    "IEEE 3002.7",
+    "IEC 60909",
+    "IEEE 1584",
+    "IEC 60255",
+    "IEEE 519",
+    "IEC 61850",
+    "IEEE 80",
+    "IEC 60364",
+    "IEEE 399",
+    "IEC 62933",
+]
 
 START_TIME: float = time.time()
 BUILD_TIME: str = datetime.now(UTC).isoformat()
@@ -216,6 +234,11 @@ AGENTS: List[Dict[str, str]] = [
         "description": "Computer Use Agent for desktop apps (ETAP, Revit, AutoCAD, SCADA, QGIS, ArcGIS). 4 modes: Analyze/Monitor/Control/Solve. Falls back gracefully on headless servers.",
     },
 ]
+
+# Single source of truth for the agent count — derived from the list above so
+# adding/removing an agent entry automatically updates /health, /api/v1/info,
+# and the homepage stat card. Never hardcode this value.
+AGENT_COUNT: int = len(AGENTS)
 
 # ---------------------------------------------------------------------------
 # Pydantic request models (lightweight — no heavy deps)
@@ -421,18 +444,7 @@ def build_platform_info() -> Dict[str, Any]:
         "version": VERSION,
         "description": "Enterprise Engineering Intelligence Platform",
         "author": "Eng. Ahmed Elbaz",
-        "standards": [
-            "IEEE 3002.7",
-            "IEC 60909",
-            "IEEE 1584",
-            "IEC 60255",
-            "IEEE 519",
-            "IEC 61850",
-            "IEEE 80",
-            "IEC 60364",
-            "IEEE 399",
-            "IEC 62933",
-        ],
+        "standards": SUPPORTED_STANDARDS,
         "agents": AGENT_COUNT,
         "knowledge_base": {
             "etap_manuals": ETAP_MANUAL_COUNT,
@@ -750,6 +762,33 @@ def handle_ml_capabilities() -> Dict[str, Any]:
 
         caps = get_ml_capabilities()
         return {"success": True, "data": caps}
+    except ImportError as e:
+        # Distinguish "ml/ directory missing" from "numpy not installed"
+        msg = str(e)
+        if "No module named 'ml'" in msg:
+            hint = (
+                "The ml/ package is not present in this deployment. "
+                "If you are on Hugging Face Spaces, this is a known issue — "
+                "the Dockerfile must COPY ml/ into the container. "
+                "On self-hosted deployments, ensure the ml/ directory is on PYTHONPATH."
+            )
+        else:
+            hint = (
+                "ml.predictive failed to import. Install ML dependencies: "
+                "pip install numpy scipy pandas scikit-learn. "
+                f"Detail: {msg}"
+            )
+        return {
+            "success": False,
+            "errors": [hint],
+            "deployment_note": (
+                "ML endpoints (load forecasting, anomaly detection) require "
+                "numpy + scikit-learn. On HF Space cpu-basic hardware these are "
+                "intentionally omitted to keep the image small. Run the "
+                "self-hosted Docker Compose deployment for full ML support."
+            ),
+            "_status": 503,
+        }
     except Exception as e:
         return {"success": False, "errors": [str(e)], "_status": 500}
 
@@ -816,7 +855,7 @@ def handle_detect_anomalies(body: Dict[str, Any]) -> Dict[str, Any]:
 def handle_context_retrieval(query: str, top_k: int = 5, max_tokens: int = 2000) -> Dict[str, Any]:
     """Retrieve and compress relevant code chunks based on semantic search."""
     try:
-        from ai_context_engine.retriever import CodeRetriever
+        from ai_context_engine.retriever import CodeRetriever, CHROMA_AVAILABLE
 
         # Determine path to Chroma DB (default to ./index/)
         index_dir = os.environ.get("CODE_CONTEXT_INDEX_DIR", "./index")
@@ -824,7 +863,33 @@ def handle_context_retrieval(query: str, top_k: int = 5, max_tokens: int = 2000)
         retriever = CodeRetriever(index_dir=index_dir)
         compressed = retriever.retrieve_and_compress(query, top_k=top_k, max_tokens=max_tokens)
 
-        return {"success": True, "query": query, "count": len(compressed), "chunks": compressed}
+        response: Dict[str, Any] = {
+            "success": True,
+            "query": query,
+            "count": len(compressed),
+            "chunks": compressed,
+        }
+        # When 0 chunks are returned, explain WHY so the caller can distinguish
+        # "no results matched" from "RAG backend not configured".
+        if len(compressed) == 0:
+            if not CHROMA_AVAILABLE:
+                response["note"] = (
+                    "ChromaDB is not installed in this deployment — semantic "
+                    "retrieval is disabled. Run the self-hosted Docker Compose "
+                    "deployment or pip install chromadb to enable RAG."
+                )
+            elif not retriever.collection:
+                response["note"] = (
+                    f"No ChromaDB collection found at '{index_dir}'. The code "
+                    "index has not been built yet — run "
+                    "`python -m ai_context_engine.indexer <repo_path>` to build it."
+                )
+            else:
+                response["note"] = (
+                    "No code chunks matched the query. Try different keywords or "
+                    "rebuild the index with `python -m ai_context_engine.indexer .`"
+                )
+        return response
     except Exception as e:
         return {"success": False, "errors": [str(e)], "_status": 500}
 

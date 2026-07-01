@@ -14,7 +14,7 @@ short_description: Enterprise AI Engineering Platform — Power Systems Analysis
 
 **Developed by Eng. Ahmed Elbaz** | v2.1.0
 
-Enterprise-grade autonomous AI engineering platform for power system analysis, ETAP automation, and AI-powered engineering decision support — powered by **23 specialized AI agents** backed by **35 ETAP manuals** and **4 Zenon SCADA guides** as primary knowledge base.
+Enterprise-grade autonomous AI engineering platform for power system analysis, ETAP automation, and AI-powered engineering decision support — powered by **25 specialized AI agents** backed by **35 ETAP manuals** and **4 Zenon SCADA guides** as primary knowledge base.
 
 ---
 
@@ -50,7 +50,7 @@ Enterprise-grade autonomous AI engineering platform for power system analysis, E
 | `/docs` | GET | Swagger UI |
 | `/redoc` | GET | ReDoc documentation |
 | `/api/v1/info` | GET | Platform info |
-| `/api/v1/agents` | GET | List all 23 AI agents |
+| `/api/v1/agents` | GET | List all 25 AI agents |
 | `/api/v1/agents/{id}` | GET | Get specific agent info |
 | `/api/v1/studies/types` | GET | Available study types |
 | `/api/v1/studies/run` | POST | Run engineering study |
@@ -63,13 +63,13 @@ Enterprise-grade autonomous AI engineering platform for power system analysis, E
 
 ```bash
 # Health check
-curl https://ahmdelbaz28-etap-ai-platform.hf.space/healthz
+curl https://ahmdelbaz28-ahmedetap.hf.space/healthz
 
 # List all agents
-curl https://ahmdelbaz28-etap-ai-platform.hf.space/api/v1/agents
+curl https://ahmdelbaz28-ahmedetap.hf.space/api/v1/agents
 
 # Run a load flow study
-curl -X POST https://ahmdelbaz28-etap-ai-platform.hf.space/api/v1/studies/run \
+curl -X POST https://ahmdelbaz28-ahmedetap.hf.space/api/v1/studies/run \
   -H "Content-Type: application/json" \
   -d '{
     "study_type": "load_flow",
@@ -92,17 +92,17 @@ curl -X POST https://ahmdelbaz28-etap-ai-platform.hf.space/api/v1/studies/run \
 
 | Metric | Value |
 |---|---|
-| AI Agents | 23 specialized |
+| AI Agents | 25 specialized |
 | ETAP Manuals | 35 documents |
 | Zenon Guides | 4 SCADA documents |
-| Standards | 10+ IEEE/IEC/NFPA |
-| Tests | 548 passing |
-| Validation Gates | 31/31 |
+| Standards | 10 IEEE/IEC |
+| Tests | 1680+ passing |
+| Study Types | 15 |
 
 ---
 
 ## 🔗 Links
 
 - [GitHub Repository](https://github.com/ahmdelbaz28-ux/ETAP-AI-WORK-)
-- [API Documentation](https://ahmdelbaz28-etap-ai-platform.hf.space/docs)
+- [API Documentation](https://ahmdelbaz28-ahmedetap.hf.space/docs)
 - [Author Email](mailto:ahmdelbaz28@gmail.com)
