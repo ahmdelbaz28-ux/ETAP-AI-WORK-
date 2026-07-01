@@ -171,7 +171,31 @@ def setup_tracing(
         processor = SimpleSpanProcessor(exporter)
 
     provider.add_span_processor(processor)
-    trace.set_tracer_provider(provider)
+
+    # SAFETY: set_tracer_provider raises if a provider is already set.
+    # In production, ``core.tracing`` may be imported multiple times
+    # (e.g., auto-init at module load + explicit setup_tracing() call
+    # from the app entrypoint). We catch the warning and reuse the
+    # existing provider, but we still add our processor so spans reach
+    # the chosen exporter.
+    try:
+        trace.set_tracer_provider(provider)
+    except Exception as exc:
+        # Already set — try to add our processor to the existing provider.
+        logger.debug(
+            "TracerProvider already set (%s); reusing existing provider "
+            "but adding our span processor. Call setup_tracing() only once "
+            "at app startup to avoid this.",
+            exc,
+        )
+        try:
+            existing_provider = trace.get_tracer_provider()
+            if hasattr(existing_provider, "add_span_processor"):
+                existing_provider.add_span_processor(processor)
+        except Exception:
+            # If we cannot attach, the existing provider's exporter will
+            # be used. This is non-fatal.
+            pass
 
     _tracer = trace.get_tracer(service_name, service_version)
     set_global_textmap(_propagator)
