@@ -338,6 +338,9 @@ class HybridVisionRouter:
         return {
             "primary": self.primary,
             "fallback_count": self.fallback_count,
+            # Backwards-compat alias: older code/tests expect a "fallback" key.
+            # Keeps both names so neither old nor new consumers break.
+            "fallback": self.fallback_count,
             "chain": [name for name, _ in self.chain],
             "gemini": self.gemini.health_check(),
             "openai": self.openai.health_check(),
@@ -392,7 +395,7 @@ class ResumeManager:
 
         # Find the most recent checkpoint (across all execution_ids with this objective)
         latest_data = None
-        latest_time = 0
+        latest_time: str = ""
         for f in candidates:
             try:
                 with open(f, encoding="utf-8") as fh:
@@ -400,8 +403,9 @@ class ResumeManager:
                 # Parse timestamp
                 ts = data.get("timestamp", "")
                 if ts:
-                    # Compare lexicographically (ISO format sorts correctly)
-                    if ts > latest_time or not latest_time:
+                    # Compare lexicographically (ISO format sorts correctly).
+                    # Both operands must be str to avoid TypeError (was: str > int).
+                    if not latest_time or ts > latest_time:
                         latest_time = ts
                         latest_data = data
             except (json.JSONDecodeError, OSError):
