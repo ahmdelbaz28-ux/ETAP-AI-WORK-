@@ -107,7 +107,7 @@ lxml~=5.1.0
 # Phase 2: Security & Infrastructure
 pyotp~=2.9.0
 redis~=5.0.0
-httpx~=0.27.0
+httpx>=0.27,<0.29
 
 # Phase 5: Kubernetes
 kubernetes~=29.0.0
@@ -168,7 +168,7 @@ Pillow~=10.2.0
 opencv-python~=4.10.0
 
 # (numpy and httpx are already declared above — duplicates removed to avoid
-# pip resolver conflicts. numpy~=1.26.0 at line 36, httpx~=0.27.0 at line 106.)
+# pip resolver conflicts. numpy~=1.26.0 at line 36, httpx>=0.27,<0.29 at line 106.)
 
 # pyautogui — mouse/keyboard control (desktop only, NOT installable on headless Linux
 # without X11 libs). Install manually on the desktop where the CUA will run:
