@@ -17,7 +17,7 @@ torch>=2.0.0                        # PyTorch - deep learning foundation
 torch-geometric>=2.3.0              # Graph Neural Networks for power grids
 
 # Phase 6d: ML/AI - Model Management
-mlflow>=2.0.0                       # Model tracking, versioning, registry
+mlflow>=3.14.0                       # Model tracking, versioning, registry
 
 # Phase 6e: ML/AI - NLP & RAG Enhancement
 transformers>=4.30.0                # HuggingFace Transformers
