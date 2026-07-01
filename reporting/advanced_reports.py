@@ -348,11 +348,12 @@ class PDFReportGenerator:
         if filepath and os.path.exists(filepath):
             try:
                 from integrations.supabase_integration import supabase_client
+
                 if supabase_client.enabled:
                     # Read file bytes
                     with open(filepath, "rb") as f:
                         file_bytes = f.read()
-                    
+
                     # Upload to Supabase Storage
                     filename = os.path.basename(filepath)
                     result = supabase_client.upload_bytes(
@@ -361,13 +362,19 @@ class PDFReportGenerator:
                         data=file_bytes,
                         content_type="application/pdf",
                     )
-                    
+
                     if result.get("success"):
                         self.logger.info(f"PDF uploaded to Supabase Storage: {filename}")
                         # Store the Supabase URL in metadata
-                        metadata.supabase_url = result.get("data", {}).get("public_url") if isinstance(result.get("data"), dict) else None
+                        metadata.supabase_url = (
+                            result.get("data", {}).get("public_url")
+                            if isinstance(result.get("data"), dict)
+                            else None
+                        )
                     else:
-                        self.logger.warning(f"Failed to upload PDF to Supabase: {result.get('error')}")
+                        self.logger.warning(
+                            f"Failed to upload PDF to Supabase: {result.get('error')}"
+                        )
             except Exception as e:
                 self.logger.warning(f"Supabase upload failed (non-critical): {e}")
 

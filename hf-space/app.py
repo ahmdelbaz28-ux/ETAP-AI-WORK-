@@ -128,9 +128,7 @@ async def add_security_headers(request: Request, call_next):
     # HSTS only over HTTPS (production). On localhost HTTP dev, skip it so the
     # browser doesn't pin HSTS for a year on a non-TLS origin.
     if request.url.scheme == "https" or request.headers.get("x-forwarded-proto") == "https":
-        response.headers["Strict-Transport-Security"] = (
-            "max-age=31536000; includeSubDomains"
-        )
+        response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
     # Permissive CSP that allows Swagger UI + ReDoc + homepage inline styles.
     # Tightening this requires moving Swagger/ReDoc to a CDN-less self-hosted
     # build, which is out of scope for the HF Space deployment.

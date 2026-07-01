@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 """Verify all external service connections."""
+
 import os
+
 import httpx
 
 print("=" * 60)
@@ -19,8 +21,8 @@ try:
         servers = r.json().get("servers", [])
         print(f"  Available servers: {len(servers)}")
         for s in servers[:5]:
-            print(f"    - {s.get('displayName','?')} ({s.get('qualifiedName','?')})")
-        print(f"    ... and {len(servers)-5} more" if len(servers) > 5 else "")
+            print(f"    - {s.get('displayName', '?')} ({s.get('qualifiedName', '?')})")
+        print(f"    ... and {len(servers) - 5} more" if len(servers) > 5 else "")
     else:
         print(f"  Error: {r.text[:200]}")
 except Exception as e:
@@ -38,7 +40,7 @@ try:
         prompts = r.json()
         print(f"  Registered prompts: {len(prompts)}")
         for p in prompts:
-            print(f"    - {p.get('handle','?')} (id: {p.get('id','?')[:20]}...)")
+            print(f"    - {p.get('handle', '?')} (id: {p.get('id', '?')[:20]}...)")
     else:
         print(f"  Error: {r.text[:200]}")
 except Exception as e:
@@ -59,9 +61,9 @@ try:
     print(f"  Repo API: {r.status_code}")
     if r.status_code == 200:
         data = r.json()
-        print(f"  Name: {data.get('full_name','?')}")
-        print(f"  Default branch: {data.get('default_branch','?')}")
-        print(f"  Last push: {data.get('pushed_at','?')}")
+        print(f"  Name: {data.get('full_name', '?')}")
+        print(f"  Default branch: {data.get('default_branch', '?')}")
+        print(f"  Last push: {data.get('pushed_at', '?')}")
 except Exception as e:
     print(f"  Connection failed: {e}")
 

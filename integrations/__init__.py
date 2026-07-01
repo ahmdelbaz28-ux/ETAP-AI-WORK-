@@ -1,30 +1,6 @@
 """Integrations package for AhmedETAP external service connections."""
 
 # Supabase (managed Postgres + Storage + optional Auth)
-from integrations.supabase_auth import (
-    SupabaseAuthError,
-    get_oauth_url as supabase_get_oauth_url,
-    health_check as supabase_auth_health_check,
-    link_or_create_local_user,
-    send_magic_link,
-    verify_supabase_token,
-)
-from integrations.supabase_integration import (
-    PRIVATE_BUCKET_REPORTS,
-    PRIVATE_BUCKET_SCREENSHOTS,
-    PRIVATE_BUCKET_UPLOADS,
-    PUBLIC_BUCKET_MANUALS,
-    SupabaseUploadError,
-    delete_file,
-    ensure_buckets_exist,
-    get_public_url,
-    get_signed_url,
-    health_check as supabase_health_check,
-    list_files,
-    upload_bytes,
-    upload_file,
-)
-
 # Primary observability — Langfuse (unlimited prompts on free Hobby plan)
 from integrations.langfuse_evals import (
     ci_gate_block_unsafe_prompts,
@@ -46,10 +22,12 @@ from integrations.langfuse_llm import (
     SafetyValidationError,
     anthropic,
     estimate_cost_usd,
-    health_check as llm_health_check,
     openai,
     safe_anthropic_message,
     safe_openai_chat,
+)
+from integrations.langfuse_llm import (
+    health_check as llm_health_check,
 )
 from integrations.langfuse_middleware import (
     LangfuseMiddleware,
@@ -68,11 +46,42 @@ from integrations.langfuse_sessions import (
 # Legacy fallback — LangWatch (free plan capped at 3 prompts)
 from integrations.langwatch_integration import (
     langwatch_tracker,
+)
+from integrations.langwatch_integration import (
     track_llm_call as track_llm_call_langwatch,
 )
 
 # Smithery MCP
 from integrations.smithery_mcp import mcp_registry, smithery_client
+from integrations.supabase_auth import (
+    SupabaseAuthError,
+    link_or_create_local_user,
+    send_magic_link,
+    verify_supabase_token,
+)
+from integrations.supabase_auth import (
+    get_oauth_url as supabase_get_oauth_url,
+)
+from integrations.supabase_auth import (
+    health_check as supabase_auth_health_check,
+)
+from integrations.supabase_integration import (
+    PRIVATE_BUCKET_REPORTS,
+    PRIVATE_BUCKET_SCREENSHOTS,
+    PRIVATE_BUCKET_UPLOADS,
+    PUBLIC_BUCKET_MANUALS,
+    SupabaseUploadError,
+    delete_file,
+    ensure_buckets_exist,
+    get_public_url,
+    get_signed_url,
+    list_files,
+    upload_bytes,
+    upload_file,
+)
+from integrations.supabase_integration import (
+    health_check as supabase_health_check,
+)
 
 __all__ = [
     # Langfuse core (integration.py)

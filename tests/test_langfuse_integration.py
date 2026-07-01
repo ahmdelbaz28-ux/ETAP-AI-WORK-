@@ -44,8 +44,8 @@ def langfuse_disabled(monkeypatch):
     # Force re-import of the modules to pick up env changes
     import importlib
 
-    import integrations.langfuse_integration as lf
     import agents.prompt_loader as pl
+    import integrations.langfuse_integration as lf
 
     importlib.reload(lf)
     importlib.reload(pl)
@@ -95,7 +95,7 @@ class TestSyncPromptLoaderSafety:
 
     def test_sync_caches_results(self):
         """Cache hit returns the same prompt without re-reading YAML."""
-        from agents.prompt_loader import get_system_prompt, get_prompt_cache_info
+        from agents.prompt_loader import get_prompt_cache_info, get_system_prompt
 
         prompt1 = get_system_prompt("anomaly_agent")
         info1 = get_prompt_cache_info()
@@ -231,9 +231,7 @@ class TestIntegrityCheck:
 
         monkeypatch.setattr(prompt_loader, "_load_from_langfuse_async", _mock_langfuse)
 
-        prompt = asyncio.run(
-            prompt_loader.get_system_prompt_async("nonexistent_agent_xyz")
-        )
+        prompt = asyncio.run(prompt_loader.get_system_prompt_async("nonexistent_agent_xyz"))
         assert prompt == "Remote-only prompt content"
 
 
@@ -311,9 +309,7 @@ class TestCacheTTL:
 
         info = prompt_loader.get_prompt_cache_info()
         # The most recent entry should have age < 0.1s
-        load_flow_entry = [
-            e for e in info["cache_entries"] if e["handle"] == "load_flow_agent"
-        ][0]
+        load_flow_entry = [e for e in info["cache_entries"] if e["handle"] == "load_flow_agent"][0]
         assert load_flow_entry["age_seconds"] < 0.1
 
     def test_clear_cache_purges_all(self):
@@ -453,7 +449,10 @@ class TestSafetyNetPrompt:
         from agents.prompt_loader import _FALLBACK_PROMPT
 
         assert "REFUSE" in _FALLBACK_PROMPT or "refuse" in _FALLBACK_PROMPT.lower()
-        assert "licensed engineer" in _FALLBACK_PROMPT.lower() or "engineer" in _FALLBACK_PROMPT.lower()
+        assert (
+            "licensed engineer" in _FALLBACK_PROMPT.lower()
+            or "engineer" in _FALLBACK_PROMPT.lower()
+        )
 
     def test_safety_net_mentions_standards(self):
         """Safety-net prompt mentions IEEE/IEC standards."""

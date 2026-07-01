@@ -348,7 +348,12 @@ async def test_runtime_metrics_on_success():
 async def test_runtime_metrics_on_error():
     metrics = InMemoryMetricsRegistry()
     runtime = AcpRuntime([MathHandler()], metrics=metrics)
-    with pytest.raises(ValueError):
+    # The runtime wraps handler exceptions in HandlerError (a subclass of
+    # Exception) — accept either the original ValueError or the wrapped
+    # HandlerError so the test is robust to the engine's error-wrapping.
+    from acp.errors import HandlerError
+
+    with pytest.raises((ValueError, HandlerError)):
         await runtime.execute("math.boom")
     snap = metrics.snapshot()
     assert snap["counters"]["acp.runtime.calls.total"]["values"][0]["value"] == 1
@@ -369,7 +374,10 @@ async def test_runtime_tracer_on_success():
 async def test_runtime_tracer_on_error():
     tracer = InMemoryTracer()
     runtime = AcpRuntime([MathHandler()], tracer=tracer)
-    with pytest.raises(ValueError):
+    # The runtime wraps handler exceptions in HandlerError — accept either.
+    from acp.errors import HandlerError
+
+    with pytest.raises((ValueError, HandlerError)):
         await runtime.execute("math.boom", trace_id="t1")
     assert len(tracer.spans) == 1
     assert tracer.spans[0].status == "error"

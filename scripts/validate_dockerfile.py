@@ -109,9 +109,7 @@ def validate_expose_matches_cmd(instructions: list) -> list[str]:
                 val = val.split("=", 1)[1]
             env_port = val
     if expose_port and env_port and expose_port != env_port:
-        errors.append(
-            f"EXPOSE port ({expose_port}) does not match ENV PORT ({env_port})"
-        )
+        errors.append(f"EXPOSE port ({expose_port}) does not match ENV PORT ({env_port})")
     return errors
 
 
@@ -134,9 +132,7 @@ def main() -> int:
     if sync_yml.exists():
         content = sync_yml.read_text()
         if "../ml" not in content and "ml " not in content:
-            all_errors.append(
-                "sync-platforms.yml does not copy ml/ to HF Space repo"
-            )
+            all_errors.append("sync-platforms.yml does not copy ml/ to HF Space repo")
         else:
             print("✅ sync-platforms.yml copies ml/ to HF Space")
 

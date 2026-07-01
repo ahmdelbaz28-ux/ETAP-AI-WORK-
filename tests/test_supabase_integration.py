@@ -17,7 +17,6 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-
 # ---------------------------------------------------------------------------
 # Storage safety validation
 # ---------------------------------------------------------------------------
@@ -456,9 +455,7 @@ class TestDatabaseUrlDetection:
     def test_sqlite_not_detected(self, monkeypatch):
         from integrations import supabase_integration
 
-        monkeypatch.setenv(
-            "DATABASE_URL", "sqlite+aiosqlite:///./data/etap_platform.db"
-        )
+        monkeypatch.setenv("DATABASE_URL", "sqlite+aiosqlite:///./data/etap_platform.db")
         assert supabase_integration._is_supabase_database() is False
 
 

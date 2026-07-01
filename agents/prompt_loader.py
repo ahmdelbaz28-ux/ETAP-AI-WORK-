@@ -95,8 +95,7 @@ _LANGFUSE_SECRET_KEY = os.environ.get("LANGFUSE_SECRET_KEY", "")
 _LANGFUSE_ENABLED = (
     bool(_LANGFUSE_PUBLIC_KEY)
     and bool(_LANGFUSE_SECRET_KEY)
-    and os.environ.get("LANGFUSE_ENABLED", "true").lower()
-    not in ("0", "false", "no", "off")
+    and os.environ.get("LANGFUSE_ENABLED", "true").lower() not in ("0", "false", "no", "off")
 )
 # SAFETY: remote override is OFF by default. Must be explicitly enabled.
 _LANGFUSE_OVERRIDE_MODE = os.environ.get("LANGFUSE_OVERRIDE_MODE", "false").lower() in (
@@ -110,9 +109,12 @@ _LANGFUSE_TIMEOUT = float(os.environ.get("LANGFUSE_TIMEOUT", "3.0"))
 # LangWatch config (legacy)
 _LANGWATCH_API_KEY = os.environ.get("LANGWATCH_API_KEY", "")
 _LANGWATCH_ENDPOINT = os.environ.get("LANGWATCH_ENDPOINT", "https://app.langwatch.ai")
-_LANGWATCH_OVERRIDE_MODE = os.environ.get(
-    "LANGWATCH_OVERRIDE_MODE", "false"
-).lower() in ("1", "true", "yes", "on")
+_LANGWATCH_OVERRIDE_MODE = os.environ.get("LANGWATCH_OVERRIDE_MODE", "false").lower() in (
+    "1",
+    "true",
+    "yes",
+    "on",
+)
 _LANGWATCH_TIMEOUT = float(os.environ.get("LANGWATCH_TIMEOUT", "3.0"))
 
 # Cache configuration
@@ -171,8 +173,7 @@ class _CircuitBreaker:
             if self._failures >= self.failure_threshold:
                 self._opened_at = time.monotonic()
                 logger.warning(
-                    "Prompt-fetch circuit breaker opened after %d failures "
-                    "(will reset in %.1fs)",
+                    "Prompt-fetch circuit breaker opened after %d failures (will reset in %.1fs)",
                     self._failures,
                     self.reset_seconds,
                 )
@@ -250,9 +251,7 @@ def _load_from_yaml(handle: str) -> Optional[str]:
             prompts_json = json.loads(prompts_json_path.read_text(encoding="utf-8"))
             prompt_path = prompts_json.get("prompts", {}).get(handle)
             if prompt_path and isinstance(prompt_path, str):
-                actual_path = (
-                    prompt_path[5:] if prompt_path.startswith("file:") else prompt_path
-                )
+                actual_path = prompt_path[5:] if prompt_path.startswith("file:") else prompt_path
                 full_path = _PROMPTS_DIR.parent / actual_path
                 if full_path.is_file():
                     content = full_path.read_text(encoding="utf-8")
@@ -297,9 +296,7 @@ async def _load_from_langfuse_async(handle: str) -> Optional[str]:
         result = await asyncio.wait_for(
             asyncio.get_event_loop().run_in_executor(
                 None,
-                lambda: langfuse_tracker.get_prompt(
-                    name=handle, label="production", fallback=None
-                ),
+                lambda: langfuse_tracker.get_prompt(name=handle, label="production", fallback=None),
             ),
             timeout=_LANGFUSE_TIMEOUT,
         )
@@ -308,7 +305,7 @@ async def _load_from_langfuse_async(handle: str) -> Optional[str]:
             _langfuse_cb.record_success()
             return result
         return None
-    except asyncio.TimeoutError:
+    except TimeoutError:
         _langfuse_cb.record_failure()
         logger.warning(
             "Langfuse prompt fetch timed out for '%s' (timeout=%.1fs)",
@@ -578,9 +575,7 @@ async def get_system_prompt_async(handle: str) -> str:
     # Tier 6: Hardcoded safety-net
     with _cache_lock:
         _prompt_cache[handle] = (None, time.monotonic(), "safety_net")
-    logger.error(
-        "Prompt '%s' not found anywhere — using hardcoded safety-net.", handle
-    )
+    logger.error("Prompt '%s' not found anywhere — using hardcoded safety-net.", handle)
     return _FALLBACK_PROMPT
 
 

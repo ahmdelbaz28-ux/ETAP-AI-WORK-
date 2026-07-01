@@ -33,11 +33,9 @@ The middleware is a no-op when Langfuse is disabled (env var
 
 from __future__ import annotations
 
-import json
 import logging
 import os
 import time
-import uuid
 from typing import Any, Awaitable, Callable, Optional
 
 from starlette.middleware.base import BaseHTTPMiddleware
@@ -102,13 +100,16 @@ class LangfuseMiddleware(BaseHTTPMiddleware):
 
     def __init__(self, app: ASGIApp) -> None:
         super().__init__(app)
-        self._enabled = os.environ.get("LANGFUSE_ENABLED", "true").lower() in (
-            "1",
-            "true",
-            "yes",
-            "on",
-        ) and bool(os.environ.get("LANGFUSE_PUBLIC_KEY")) and bool(
-            os.environ.get("LANGFUSE_SECRET_KEY")
+        self._enabled = (
+            os.environ.get("LANGFUSE_ENABLED", "true").lower()
+            in (
+                "1",
+                "true",
+                "yes",
+                "on",
+            )
+            and bool(os.environ.get("LANGFUSE_PUBLIC_KEY"))
+            and bool(os.environ.get("LANGFUSE_SECRET_KEY"))
         )
         if self._enabled:
             logger.info("LangfuseMiddleware enabled — HTTP requests will be traced")

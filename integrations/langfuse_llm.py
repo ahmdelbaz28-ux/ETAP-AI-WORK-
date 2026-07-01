@@ -70,12 +70,18 @@ logger = logging.getLogger(__name__)
 # ─── Safety guardrails (config) ───────────────────────────────────────────
 
 _LLM_MAX_INPUT_CHARS = int(os.environ.get("LLM_MAX_INPUT_CHARS", "50000"))
-_LLM_ALLOW_UNKNOWN_MODELS = os.environ.get(
-    "LLM_ALLOW_UNKNOWN_MODELS", "false"
-).lower() in ("1", "true", "yes", "on")
-_LLM_REQUIRE_AGENT_TAG = os.environ.get(
-    "LLM_REQUIRE_AGENT_TAG", "true"
-).lower() in ("1", "true", "yes", "on")
+_LLM_ALLOW_UNKNOWN_MODELS = os.environ.get("LLM_ALLOW_UNKNOWN_MODELS", "false").lower() in (
+    "1",
+    "true",
+    "yes",
+    "on",
+)
+_LLM_REQUIRE_AGENT_TAG = os.environ.get("LLM_REQUIRE_AGENT_TAG", "true").lower() in (
+    "1",
+    "true",
+    "yes",
+    "on",
+)
 
 # Allowlist of approved models for safety-critical engineering work.
 # Using an unapproved model could produce wrong calculations.
@@ -186,8 +192,7 @@ def _get_anthropic_client():
         logger.info("✅ Langfuse-wrapped Anthropic client loaded")
     except ImportError as e:
         logger.warning(
-            "langfuse.anthropic not available — Anthropic calls will NOT be traced. "
-            "Error: %s",
+            "langfuse.anthropic not available — Anthropic calls will NOT be traced. Error: %s",
             e,
         )
         try:
@@ -251,9 +256,7 @@ def safe_openai_chat(
         missing agent tag).
     """
     if openai is None:
-        raise RuntimeError(
-            "OpenAI SDK not installed. Run: pip install openai langfuse"
-        )
+        raise RuntimeError("OpenAI SDK not installed. Run: pip install openai langfuse")
 
     # 1. Run safety guardrails
     _validate_input(messages, metadata)
@@ -289,8 +292,7 @@ def safe_openai_chat(
         response = openai.chat.completions.create(**call_kwargs)
         elapsed = time.monotonic() - start
         logger.debug(
-            "OpenAI call: model=%s, agent=%s, latency=%.2fs, "
-            "usage=%s",
+            "OpenAI call: model=%s, agent=%s, latency=%.2fs, usage=%s",
             model,
             (metadata or {}).get("agent", "unknown"),
             elapsed,
@@ -300,8 +302,7 @@ def safe_openai_chat(
     except Exception as exc:
         elapsed = time.monotonic() - start
         logger.error(
-            "OpenAI call FAILED: model=%s, agent=%s, latency=%.2fs, "
-            "error=%s: %s",
+            "OpenAI call FAILED: model=%s, agent=%s, latency=%.2fs, error=%s: %s",
             model,
             (metadata or {}).get("agent", "unknown"),
             elapsed,
@@ -326,9 +327,7 @@ def safe_anthropic_message(
     See ``safe_openai_chat`` for parameter docs.
     """
     if anthropic is None:
-        raise RuntimeError(
-            "Anthropic SDK not installed. Run: pip install anthropic langfuse"
-        )
+        raise RuntimeError("Anthropic SDK not installed. Run: pip install anthropic langfuse")
 
     _validate_input(messages, metadata)
     _validate_model(model)
@@ -364,8 +363,7 @@ def safe_anthropic_message(
     except Exception as exc:
         elapsed = time.monotonic() - start
         logger.error(
-            "Anthropic call FAILED: model=%s, agent=%s, latency=%.2fs, "
-            "error=%s: %s",
+            "Anthropic call FAILED: model=%s, agent=%s, latency=%.2fs, error=%s: %s",
             model,
             (metadata or {}).get("agent", "unknown"),
             elapsed,
@@ -392,9 +390,7 @@ _PRICING_USD_PER_1K = {
 }
 
 
-def estimate_cost_usd(
-    model: str, input_tokens: int, output_tokens: int
-) -> Optional[float]:
+def estimate_cost_usd(model: str, input_tokens: int, output_tokens: int) -> Optional[float]:
     """Estimate the USD cost of an LLM call.
 
     Returns ``None`` if the model is not in the pricing table.
@@ -402,9 +398,7 @@ def estimate_cost_usd(
     pricing = _PRICING_USD_PER_1K.get(model)
     if pricing is None:
         return None
-    cost = (input_tokens / 1000) * pricing["input"] + (
-        output_tokens / 1000
-    ) * pricing["output"]
+    cost = (input_tokens / 1000) * pricing["input"] + (output_tokens / 1000) * pricing["output"]
     return round(cost, 6)
 
 

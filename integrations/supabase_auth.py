@@ -52,9 +52,12 @@ logger = logging.getLogger(__name__)
 
 SUPABASE_URL = os.environ.get("SUPABASE_URL", "").rstrip("/")
 SUPABASE_ANON_KEY = os.environ.get("SUPABASE_ANON_KEY", "")
-SUPABASE_AUTH_ENABLED = os.environ.get(
-    "SUPABASE_AUTH_ENABLED", "false"
-).lower() in ("1", "true", "yes", "on")
+SUPABASE_AUTH_ENABLED = os.environ.get("SUPABASE_AUTH_ENABLED", "false").lower() in (
+    "1",
+    "true",
+    "yes",
+    "on",
+)
 
 
 class SupabaseAuthError(ValueError):
@@ -68,9 +71,7 @@ def _check_enabled() -> None:
             "Supabase Auth is disabled. Set SUPABASE_AUTH_ENABLED=true to enable."
         )
     if not SUPABASE_URL or not SUPABASE_ANON_KEY:
-        raise SupabaseAuthError(
-            "SUPABASE_URL and SUPABASE_ANON_KEY must be set for Supabase Auth."
-        )
+        raise SupabaseAuthError("SUPABASE_URL and SUPABASE_ANON_KEY must be set for Supabase Auth.")
 
 
 # ─── Token verification ─────────────────────────────────────────────────

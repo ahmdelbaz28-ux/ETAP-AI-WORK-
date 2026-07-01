@@ -149,9 +149,7 @@ def setup_tracing(
                 exporter = ConsoleSpanExporter()
                 processor = SimpleSpanProcessor(exporter)
             else:
-                basic_auth = _b64.b64encode(
-                    f"{public_key}:{secret_key}".encode()
-                ).decode()
+                basic_auth = _b64.b64encode(f"{public_key}:{secret_key}".encode()).decode()
                 exporter = HTTPSpanExporter(
                     endpoint=langfuse_url,
                     headers={"Authorization": f"Basic {basic_auth}"},

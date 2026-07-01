@@ -34,9 +34,7 @@ ROOT = Path(__file__).resolve().parent.parent
 PROMPTS_DIR = ROOT / "prompts"
 
 API_KEY = os.environ.get("LANGWATCH_API_KEY", "")
-PROJECT_ID = os.environ.get(
-    "LANGWATCH_PROJECT_ID", "project_uJ1AuCpZ1p9v849vI_-Ec"
-)
+PROJECT_ID = os.environ.get("LANGWATCH_PROJECT_ID", "project_uJ1AuCpZ1p9v849vI_-Ec")
 BASE_URL = os.environ.get("LANGWATCH_ENDPOINT", "https://app.langwatch.ai")
 DEFAULT_MODEL = os.environ.get("LANGWATCH_DEFAULT_MODEL", "gpt-4o")
 
@@ -58,9 +56,7 @@ HEADERS = {
 # `.prompt.yaml` files take priority over plain `.yaml` files when both
 # exist for the same handle.
 handles: dict[str, Path] = {}
-for yaml_file in sorted(PROMPTS_DIR.glob("*.yaml")) + sorted(
-    PROMPTS_DIR.glob("*.prompt.yaml")
-):
+for yaml_file in sorted(PROMPTS_DIR.glob("*.yaml")) + sorted(PROMPTS_DIR.glob("*.prompt.yaml")):
     handle = yaml_file.stem
     if handle.endswith(".prompt"):
         handle = handle[:-7]
@@ -98,8 +94,7 @@ for handle, yaml_file in sorted(handles.items()):
         continue
 
     lw_messages = [
-        {"role": msg.get("role", "user"), "content": msg.get("content", "")}
-        for msg in messages
+        {"role": msg.get("role", "user"), "content": msg.get("content", "")} for msg in messages
     ]
 
     # Model from YAML, falling back to the default. Including `model` in the
@@ -116,9 +111,7 @@ for handle, yaml_file in sorted(handles.items()):
 
     try:
         # Try POST to create
-        r = httpx.post(
-            f"{BASE_URL}/api/prompts", headers=HEADERS, json=payload, timeout=20
-        )
+        r = httpx.post(f"{BASE_URL}/api/prompts", headers=HEADERS, json=payload, timeout=20)
         if r.status_code in (200, 201):
             print(f"  CREATED: {handle}  (model={model})")
             created += 1
