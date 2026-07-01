@@ -29,6 +29,10 @@ anthropic~=0.39.0
 # or when using Supabase Storage for PDFs/reports/screenshots.
 supabase~=2.31.0
 
+# Neo4j (graph database) — used by integrations/neo4j_integration.py
+# Required for network topology modeling and knowledge graph operations.
+neo4j~=5.20.0
+
 # Metrics - Prometheus
 prometheus-client~=0.19.0
 
