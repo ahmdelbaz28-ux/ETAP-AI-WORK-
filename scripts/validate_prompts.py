@@ -216,173 +216,19 @@ def validate_all_prompts(strict: bool = False) -> bool:
 
 
 def sync_to_langwatch() -> None:
-    """Sync validated prompts to LangWatch.
-
-    Uploads each YAML prompt file to LangWatch so that the
-    TypeScript getSystemPrompt() and Python get_system_prompt()
-    can retrieve them at runtime via the LangWatch API.
-    """
-    api_key = os.environ.get("LANGWATCH_API_KEY", "")
-    if not api_key:
-        print("ERROR: LANGWATCH_API_KEY not set — cannot sync")
+    """Delegate to the standalone sync_to_langwatch.py script."""
+    sync_script = Path(__file__).resolve().parent / "sync_to_langwatch.py"
+    if not sync_script.is_file():
+        print("ERROR: sync_to_langwatch.py not found alongside validate_prompts.py")
         sys.exit(1)
 
-    try:
-        import langwatch
-
-        prompts_dir = Path(
-            os.environ.get(
-                "ETAP_PROMPTS_DIR", str(Path(__file__).resolve().parent.parent / "prompts")
-            )
-        )
-
-        langwatch.setup(
-            api_key=api_key,
-            endpoint_url=os.environ.get("LANGWATCH_ENDPOINT", "https://app.langwatch.ai"),
-            prompts_path=str(prompts_dir),
-        )
-        print("LangWatch initialized for sync")
-
-        synced = 0
-        failed = 0
-        created = 0
-        updated = 0
-
-        for yaml_file in sorted(prompts_dir.glob("*.yaml") + prompts_dir.glob("*.prompt.yaml")):
-            handle = yaml_file.stem
-            # Strip .prompt suffix if present
-            if handle.endswith(".prompt"):
-                handle = handle[:-7]
-
-            # Read and parse the YAML
-            try:
-                content = yaml_file.read_text(encoding="utf-8")
-                parsed = yaml.safe_load(content)
-            except Exception as e:
-                print(f"  FAILED: {handle} - cannot parse YAML: {e}")
-                failed += 1
-                continue
-
-            # Build messages list
-            messages = parsed.get("messages", [])
-            model = parsed.get("model", "")
-            temperature = parsed.get("temperature", 0.7)
-
-            # Format messages for LangWatch
-            lw_messages = []
-            for msg in messages:
-                lw_messages.append({
-                    "role": msg.get("role", "user"),
-                    "content": msg.get("content", ""),
-                })
-
-            # Try to get the prompt by handle first
-            try:
-                # Check if prompt already exists on LangWatch
-                existing = langwatch.prompts.get(handle)
-                if existing and isinstance(existing, dict):
-                    # Update existing prompt
-                    prompt_id = existing.get("id") or existing.get("handle") or handle
-                    try:
-                        result = langwatch.prompts.update(
-                            prompt_id_or_handle=prompt_id,
-                            scope="PROJECT",
-                            commit_message=f"Auto-sync from {yaml_file.name}",
-                            messages=lw_messages,
-                            prompt=content,
-                            parameters={
-                                "model": model,
-                                "temperature": temperature,
-                                "source_file": yaml_file.name,
-                            },
-                        )
-                        print(f"  UPDATED: {handle}")
-                        updated += 1
-                        synced += 1
-                    except Exception as e:
-                        print(f"  FAILED: {handle} - update: {e}")
-                        failed += 1
-                else:
-                    # Create new prompt
-                    try:
-                        result = langwatch.prompts.create(
-                            handle=handle,
-                            scope="PROJECT",
-                            messages=lw_messages,
-                            prompt=content,
-                            parameters={
-                                "model": model,
-                                "temperature": temperature,
-                                "source_file": yaml_file.name,
-                            },
-                        )
-                        print(f"  CREATED: {handle}")
-                        created += 1
-                        synced += 1
-                    except Exception as e:
-                        error_msg = str(e)
-                        # If it already exists but get failed, try update
-                        if "already exists" in error_msg.lower() or "conflict" in error_msg.lower():
-                            try:
-                                result = langwatch.prompts.update(
-                                    prompt_id_or_handle=handle,
-                                    scope="PROJECT",
-                                    commit_message=f"Auto-sync from {yaml_file.name}",
-                                    messages=lw_messages,
-                                    prompt=content,
-                                    parameters={
-                                        "model": model,
-                                        "temperature": temperature,
-                                        "source_file": yaml_file.name,
-                                    },
-                                )
-                                print(f"  UPDATED (after conflict): {handle}")
-                                updated += 1
-                                synced += 1
-                            except Exception as e2:
-                                print(f"  FAILED: {handle} - conflict + update: {e2}")
-                                failed += 1
-                        else:
-                            print(f"  FAILED: {handle} - create: {e}")
-                            failed += 1
-
-            except Exception as e:
-                error_msg = str(e)
-                if "Prompt not found" in error_msg or "not found" in error_msg.lower() or "404" in error_msg:
-                    # Create new prompt
-                    try:
-                        result = langwatch.prompts.create(
-                            handle=handle,
-                            scope="PROJECT",
-                            messages=lw_messages,
-                            prompt=content,
-                            parameters={
-                                "model": model,
-                                "temperature": temperature,
-                                "source_file": yaml_file.name,
-                            },
-                        )
-                        print(f"  CREATED: {handle}")
-                        created += 1
-                        synced += 1
-                    except Exception as e2:
-                        print(f"  FAILED: {handle} - create: {e2}")
-                        failed += 1
-                else:
-                    print(f"  FAILED: {handle} - {e}")
-                    failed += 1
-
-        print(f"\nLangWatch sync complete: {synced} synced ({created} created, {updated} updated), {failed} failed")
-        print(f"Dashboard: https://app.langwatch.ai")
-        if failed > 0:
-            sys.exit(1)
-
-    except ImportError:
-        print("ERROR: langwatch package not installed — run: pip install langwatch")
-        sys.exit(1)
-    except Exception as e:
-        print(f"ERROR: LangWatch sync failed: {e}")
-        sys.exit(1)
+    import subprocess
+    result = subprocess.run(
+        [sys.executable, str(sync_script)],
+        env={**os.environ},
+        capture_output=False,
+    )
+    sys.exit(result.returncode)
 
 
 if __name__ == "__main__":
