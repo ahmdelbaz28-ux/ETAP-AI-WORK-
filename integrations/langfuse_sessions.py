@@ -61,7 +61,7 @@ import logging
 import os
 import time
 import uuid
-from typing import Any, Optional
+from typing import Optional
 
 logger = logging.getLogger(__name__)
 
@@ -116,8 +116,7 @@ class EngineeringSession:
         still be recorded, but the session is considered closed."""
         elapsed = time.time() - self.started_at
         logger.info(
-            "Engineering session ended: id=%s, user=%s, study=%s, "
-            "project=%s, duration=%.1fs",
+            "Engineering session ended: id=%s, user=%s, study=%s, project=%s, duration=%.1fs",
             self.id,
             self.user_id,
             self.study_type,
@@ -293,9 +292,7 @@ def get_trace_share_url(trace_id: str, make_public: bool = True) -> Optional[str
 # ─── Safety alerts ────────────────────────────────────────────────────────
 
 _ALERT_WEBHOOK_URL = os.environ.get("LANGFUSE_ALERT_WEBHOOK_URL", "")
-_ALERT_WEBHOOK_HEADERS = json.loads(
-    os.environ.get("LANGFUSE_ALERT_WEBHOOK_HEADERS", "{}")
-)
+_ALERT_WEBHOOK_HEADERS = json.loads(os.environ.get("LANGFUSE_ALERT_WEBHOOK_HEADERS", "{}"))
 
 
 def alert_on_unsafe_trace(

@@ -54,9 +54,7 @@ HEADERS = {
 # `.prompt.yaml` files take priority over plain `.yaml` files when both
 # exist for the same handle.
 handles: dict[str, Path] = {}
-for yaml_file in sorted(PROMPTS_DIR.glob("*.yaml")) + sorted(
-    PROMPTS_DIR.glob("*.prompt.yaml")
-):
+for yaml_file in sorted(PROMPTS_DIR.glob("*.yaml")) + sorted(PROMPTS_DIR.glob("*.prompt.yaml")):
     handle = yaml_file.stem
     if handle.endswith(".prompt"):
         handle = handle[:-7]
@@ -114,8 +112,7 @@ for handle, yaml_file in sorted(handles.items()):
 
     # Normalize messages into the Langfuse chat format
     chat_messages = [
-        {"role": msg.get("role", "user"), "content": msg.get("content", "")}
-        for msg in messages
+        {"role": msg.get("role", "user"), "content": msg.get("content", "")} for msg in messages
     ]
 
     # Build config from YAML metadata

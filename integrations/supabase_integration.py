@@ -71,7 +71,7 @@ import logging
 import os
 import uuid
 from pathlib import Path
-from typing import Any, BinaryIO, Optional
+from typing import Any, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -82,13 +82,13 @@ SUPABASE_ANON_KEY = os.environ.get("SUPABASE_ANON_KEY", "")
 SUPABASE_SERVICE_ROLE_KEY = os.environ.get("SUPABASE_SERVICE_ROLE_KEY", "")
 
 # Buckets used by AhmedETAP. Created on first init if missing.
-PUBLIC_BUCKET_MANUALS = "manuals"        # IEC/IEEE standards, ETAP guides (public read)
-PRIVATE_BUCKET_REPORTS = "reports"       # Generated reports (private, signed URLs)
+PUBLIC_BUCKET_MANUALS = "manuals"  # IEC/IEEE standards, ETAP guides (public read)
+PRIVATE_BUCKET_REPORTS = "reports"  # Generated reports (private, signed URLs)
 PRIVATE_BUCKET_SCREENSHOTS = "screenshots"  # ETAP screenshots (private, signed URLs)
 PRIVATE_BUCKET_UPLOADS = "user-uploads"  # User-uploaded files (private, signed URLs)
 
 ALL_BUCKETS = [
-    (PUBLIC_BUCKET_MANUALS, True),       # (name, is_public)
+    (PUBLIC_BUCKET_MANUALS, True),  # (name, is_public)
     (PRIVATE_BUCKET_REPORTS, False),
     (PRIVATE_BUCKET_SCREENSHOTS, False),
     (PRIVATE_BUCKET_UPLOADS, False),
@@ -133,18 +133,14 @@ def _get_client():
     _client_init_attempted = True
 
     if not SUPABASE_URL or not SUPABASE_SERVICE_ROLE_KEY:
-        logger.info(
-            "Supabase disabled: SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY not set"
-        )
+        logger.info("Supabase disabled: SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY not set")
         return None
 
     try:
         from supabase import create_client  # type: ignore
 
         _client = create_client(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)
-        logger.info(
-            "✅ Supabase client initialized — URL: %s", SUPABASE_URL
-        )
+        logger.info("✅ Supabase client initialized — URL: %s", SUPABASE_URL)
     except ImportError:
         logger.warning(
             "supabase package not installed. Run: pip install supabase. "
@@ -193,9 +189,7 @@ def ensure_buckets_exist() -> dict[str, bool]:
                 options={"public": is_public},
             )
             created[name] = True
-            logger.info(
-                "Created Supabase bucket '%s' (public=%s)", name, is_public
-            )
+            logger.info("Created Supabase bucket '%s' (public=%s)", name, is_public)
         except Exception as e:
             logger.warning("Failed to create bucket '%s': %s", name, e)
             created[name] = False
@@ -216,12 +210,11 @@ def _validate_upload(content: bytes, content_type: str) -> None:
     if len(content) > _MAX_UPLOAD_BYTES:
         raise SupabaseUploadError(
             f"Upload too large: {len(content)} bytes > {_MAX_UPLOAD_BYTES} limit "
-            f"({len(content) // (1024*1024)} MB > {_MAX_UPLOAD_BYTES // (1024*1024)} MB)"
+            f"({len(content) // (1024 * 1024)} MB > {_MAX_UPLOAD_BYTES // (1024 * 1024)} MB)"
         )
     if content_type not in _ALLOWED_MIME_TYPES:
         raise SupabaseUploadError(
-            f"Disallowed MIME type: '{content_type}'. "
-            f"Allowed: {sorted(_ALLOWED_MIME_TYPES)}"
+            f"Disallowed MIME type: '{content_type}'. Allowed: {sorted(_ALLOWED_MIME_TYPES)}"
         )
 
 
@@ -404,9 +397,7 @@ def get_public_url(bucket: str, path: str) -> Optional[str]:
         return None
 
 
-def get_signed_url(
-    *, bucket: str, path: str, expires_in: int = 3600
-) -> Optional[str]:
+def get_signed_url(*, bucket: str, path: str, expires_in: int = 3600) -> Optional[str]:
     """Return a signed URL for a private file.
 
     Parameters
@@ -427,9 +418,7 @@ def get_signed_url(
     if client is None:
         return None
     try:
-        response = client.storage.from_(bucket).create_signed_url(
-            path, expires_in
-        )
+        response = client.storage.from_(bucket).create_signed_url(path, expires_in)
         # Supabase-py returns dict with 'signedURL' or {'signedUrl': ...}
         if isinstance(response, dict):
             return response.get("signedURL") or response.get("signedUrl")
@@ -456,17 +445,13 @@ def delete_file(*, bucket: str, path: str) -> bool:
         return False
 
 
-def list_files(
-    *, bucket: str, prefix: str = "", limit: int = 100
-) -> list[dict[str, Any]]:
+def list_files(*, bucket: str, prefix: str = "", limit: int = 100) -> list[dict[str, Any]]:
     """List files in a bucket. Returns a list of file metadata dicts."""
     client = _get_client()
     if client is None:
         return []
     try:
-        response = client.storage.from_(bucket).list(
-            path=prefix, options={"limit": limit}
-        )
+        response = client.storage.from_(bucket).list(path=prefix, options={"limit": limit})
         if isinstance(response, list):
             return response
         return []

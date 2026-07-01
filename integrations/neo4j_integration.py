@@ -23,7 +23,7 @@ logger = logging.getLogger(__name__)
 
 # ─── Neo4j SDK (optional dependency) ─────────────────────────────────────
 try:
-    from neo4j import GraphDatabase, Driver, Session
+    from neo4j import Driver, GraphDatabase
 
     NEO4J_AVAILABLE = True
     logger.debug("Neo4j SDK loaded successfully")
@@ -72,7 +72,9 @@ class Neo4jClient:
         if self.driver:
             self.driver.close()
 
-    def execute_query(self, query: str, parameters: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+    def execute_query(
+        self, query: str, parameters: Optional[Dict[str, Any]] = None
+    ) -> Dict[str, Any]:
         """Execute a Cypher query."""
         if not self.enabled or not self.driver:
             return {"error": "Neo4j is not enabled", "data": []}
@@ -106,6 +108,7 @@ def get_neo4j_db() -> Neo4jClient:
 
 # ─── Graph database helpers for common operations ────────────────────────────
 
+
 class Neo4jDB:
     """High-level graph database operations for AhmedETAP."""
 
@@ -134,13 +137,18 @@ class Neo4jDB:
         CREATE (b:Bus {id: $bus_id, voltage_kv: $voltage_kv, type: $bus_type})
         RETURN b
         """
-        return self.client.execute_query(query, {
-            "bus_id": bus_id,
-            "voltage_kv": voltage_kv,
-            "bus_type": bus_type,
-        })
+        return self.client.execute_query(
+            query,
+            {
+                "bus_id": bus_id,
+                "voltage_kv": voltage_kv,
+                "bus_type": bus_type,
+            },
+        )
 
-    def create_line(self, line_id: str, from_bus: str, to_bus: str, impedance: float) -> Dict[str, Any]:
+    def create_line(
+        self, line_id: str, from_bus: str, to_bus: str, impedance: float
+    ) -> Dict[str, Any]:
         """Create a new transmission line."""
         query = """
         MATCH (from:Bus {id: $from_bus})
@@ -148,12 +156,15 @@ class Neo4jDB:
         CREATE (from)-[r:LINE {id: $line_id, impedance: $impedance}]->(to)
         RETURN r
         """
-        return self.client.execute_query(query, {
-            "line_id": line_id,
-            "from_bus": from_bus,
-            "to_bus": to_bus,
-            "impedance": impedance,
-        })
+        return self.client.execute_query(
+            query,
+            {
+                "line_id": line_id,
+                "from_bus": from_bus,
+                "to_bus": to_bus,
+                "impedance": impedance,
+            },
+        )
 
     def get_shortest_path(self, from_bus: str, to_bus: str) -> Optional[List[Dict[str, Any]]]:
         """Find the shortest path between two buses."""
@@ -162,10 +173,13 @@ class Neo4jDB:
         MATCH path = shortestPath((from)-[*]-(to))
         RETURN [node IN nodes(path) | node.id] AS path
         """
-        result = self.client.execute_query(query, {
-            "from_bus": from_bus,
-            "to_bus": to_bus,
-        })
+        result = self.client.execute_query(
+            query,
+            {
+                "from_bus": from_bus,
+                "to_bus": to_bus,
+            },
+        )
         data = result.get("data", [])
         return data[0]["path"] if data else None
 

@@ -295,9 +295,7 @@ class TestAnomalyDetectorMethods:
         methods = AnomalyDetector._build_available_methods()
         assert isinstance(methods, list)
         # 'statistical' is always available (pure Python, no deps)
-        assert "statistical" in methods, (
-            "statistical method must always be available as a fallback"
-        )
+        assert "statistical" in methods, "statistical method must always be available as a fallback"
 
     def test_get_ml_capabilities_does_not_raise(self):
         """get_ml_capabilities() must not raise AttributeError on
@@ -354,6 +352,5 @@ class TestDocsNoStaleCounts:
                 continue
             content = path.read_text(encoding="utf-8")
             assert wrong_url not in content, (
-                f"{filename} contains wrong HF URL '{wrong_url}'. "
-                f"Use '{correct_url}' instead."
+                f"{filename} contains wrong HF URL '{wrong_url}'. Use '{correct_url}' instead."
             )

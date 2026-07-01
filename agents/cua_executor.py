@@ -28,6 +28,7 @@ lazily inside the executor methods, so importing this module never crashes.
 from __future__ import annotations
 
 import logging
+import os
 import time
 import uuid
 from dataclasses import dataclass, field
@@ -636,26 +637,27 @@ class CUAExecutor:
             filepath = self.audit_dir / filename
             img = self._pyautogui.screenshot()
             img.save(str(filepath))
-            
+
             # Upload to Supabase Storage if available
             self._upload_screenshot_to_supabase(filepath, step_num, phase)
-            
+
             return str(filepath)
         except Exception as exc:  # noqa: BLE001
             logger.error("Screenshot capture failed: %s", exc)
             return None
-    
+
     def _upload_screenshot_to_supabase(self, filepath: str, step_num: int, phase: str) -> None:
         """Upload screenshot to Supabase Storage (non-blocking)."""
         try:
             from integrations.supabase_integration import supabase_client
+
             if not supabase_client.enabled:
                 return
-            
+
             # Read file bytes
             with open(filepath, "rb") as f:
                 file_bytes = f.read()
-            
+
             # Upload to Supabase Storage
             filename = os.path.basename(filepath)
             result = supabase_client.upload_bytes(
@@ -664,7 +666,7 @@ class CUAExecutor:
                 data=file_bytes,
                 content_type="image/png",
             )
-            
+
             if result.get("success"):
                 logger.debug(f"Screenshot uploaded to Supabase: {filename}")
             else:

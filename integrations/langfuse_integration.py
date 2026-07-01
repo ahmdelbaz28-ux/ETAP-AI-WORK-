@@ -345,9 +345,7 @@ class LangfuseTracker:
             "endpoint": self.base_url,
             "sdk_available": LANGFUSE_AVAILABLE,
             "client_initialized": self._client is not None,
-            "public_key_prefix": (
-                (self.public_key[:12] + "...") if self.public_key else None
-            ),
+            "public_key_prefix": ((self.public_key[:12] + "...") if self.public_key else None),
             "timeout_seconds": self.timeout,
             "max_capture_chars": self.max_capture_chars,
             "dashboard": self.dashboard_url if self.enabled else None,

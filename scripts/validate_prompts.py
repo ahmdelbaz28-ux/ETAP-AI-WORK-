@@ -117,7 +117,9 @@ def validate_prompt_file(filepath: Path, strict: bool = False) -> tuple[bool, li
     # Validate model name if present
     model = parsed.get("model", "")
     if model and model not in VALID_MODELS:
-        issues.append(f"WARNING: Model '{model}' not in known valid list ({', '.join(sorted(VALID_MODELS))})")
+        issues.append(
+            f"WARNING: Model '{model}' not in known valid list ({', '.join(sorted(VALID_MODELS))})"
+        )
 
     # Validate temperature range if present
     temp = parsed.get("temperature")
@@ -148,7 +150,9 @@ def validate_prompt_file(filepath: Path, strict: bool = False) -> tuple[bool, li
             if role == "system":
                 has_system = True
         if not has_system:
-            issues.append("WARNING: No system message found — agents should have system instructions")
+            issues.append(
+                "WARNING: No system message found — agents should have system instructions"
+            )
 
     # Check for engineering standards references in system messages
     if has_system:
@@ -167,7 +171,9 @@ def validate_prompt_file(filepath: Path, strict: bool = False) -> tuple[bool, li
     if total_chars > 10000:
         issues.append(f"INFO: Large prompt ({total_chars} chars, ~{total_chars // 4} tokens)")
 
-    return len([i for i in issues if i.startswith("CRITICAL:") or i.startswith("ERROR:")]) == 0, issues
+    return len(
+        [i for i in issues if i.startswith("CRITICAL:") or i.startswith("ERROR:")]
+    ) == 0, issues
 
 
 def validate_all_prompts(strict: bool = False) -> bool:
@@ -223,6 +229,7 @@ def sync_to_langwatch() -> None:
         sys.exit(1)
 
     import subprocess
+
     result = subprocess.run(
         [sys.executable, str(sync_script)],
         env={**os.environ},

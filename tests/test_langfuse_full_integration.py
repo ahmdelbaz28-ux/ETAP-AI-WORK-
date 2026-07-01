@@ -35,6 +35,7 @@ class TestLLMSafetyGuardrails:
         monkeypatch.setenv("LLM_MAX_INPUT_CHARS", "100")
         # Reload to pick up env change
         import importlib
+
         import integrations.langfuse_llm as llm_mod
 
         importlib.reload(llm_mod)
@@ -77,6 +78,7 @@ class TestLLMSafetyGuardrails:
     def test_allow_unknown_models_bypasses_check(self, monkeypatch):
         """LLM_ALLOW_UNKNOWN_MODELS=true disables the model check."""
         import importlib
+
         import integrations.langfuse_llm as llm_mod
 
         monkeypatch.setenv("LLM_ALLOW_UNKNOWN_MODELS", "true")
@@ -170,9 +172,7 @@ class TestStandardsComplianceEvaluator:
     def test_cites_ieee_1584(self):
         from integrations.langfuse_evals import eval_standards_compliance
 
-        result = eval_standards_compliance(
-            output="Per IEEE 1584 and IEC 60909, ..."
-        )
+        result = eval_standards_compliance(output="Per IEEE 1584 and IEC 60909, ...")
         assert "IEEE 1584 (arc flash)" in result["cited_standards"]
         assert "IEC 60909 (short circuit)" in result["cited_standards"]
         assert result["passed"]
@@ -191,9 +191,7 @@ class TestHelpfulnessEvaluator:
     def test_structured_output_passes(self):
         from integrations.langfuse_evals import eval_helpfulness
 
-        result = eval_helpfulness(
-            output="# Analysis\n\n- Point 1\n- Point 2\n\n" + "x" * 400
-        )
+        result = eval_helpfulness(output="# Analysis\n\n- Point 1\n- Point 2\n\n" + "x" * 400)
         assert result["passed"]
 
     def test_short_unstructured_fails(self):
@@ -236,10 +234,7 @@ class TestCIGate:
     def test_block_when_pass_rate_below_threshold(self):
         from integrations.langfuse_evals import ci_gate_block_unsafe_prompts
 
-        assert (
-            ci_gate_block_unsafe_prompts({"ran": True, "pass_rate": 0.5, "items": []})
-            is False
-        )
+        assert ci_gate_block_unsafe_prompts({"ran": True, "pass_rate": 0.5, "items": []}) is False
 
     def test_block_when_safety_eval_failed(self):
         from integrations.langfuse_evals import ci_gate_block_unsafe_prompts
@@ -251,8 +246,12 @@ class TestCIGate:
                 {
                     "item_id": "1",
                     "scores": [
-                        {"name": "safety", "passed": False, "score": 0.0,
-                         "reason": "no standard cited"},
+                        {
+                            "name": "safety",
+                            "passed": False,
+                            "score": 0.0,
+                            "reason": "no standard cited",
+                        },
                     ],
                 }
             ],
@@ -271,21 +270,15 @@ class TestEngineeringSession:
     def test_session_has_unique_id(self):
         from integrations.langfuse_sessions import start_engineering_session
 
-        s1 = start_engineering_session(
-            user_id="user1", study_type="arc_flash"
-        )
-        s2 = start_engineering_session(
-            user_id="user1", study_type="arc_flash"
-        )
+        s1 = start_engineering_session(user_id="user1", study_type="arc_flash")
+        s2 = start_engineering_session(user_id="user1", study_type="arc_flash")
         assert s1.id != s2.id
         assert s1.study_type == "arc_flash"
 
     def test_session_context_manager(self):
         from integrations.langfuse_sessions import start_engineering_session
 
-        with start_engineering_session(
-            user_id="u", study_type="load_flow"
-        ) as session:
+        with start_engineering_session(user_id="u", study_type="load_flow") as session:
             assert session.id.startswith("sess_")
         # After context exit, session is ended (no exception)
 
@@ -316,9 +309,7 @@ class TestUserFeedback:
         from integrations import langfuse_sessions
 
         mock_client = MagicMock()
-        monkeypatch.setattr(
-            langfuse_sessions, "_get_client", lambda: mock_client
-        )
+        monkeypatch.setattr(langfuse_sessions, "_get_client", lambda: mock_client)
         # Avoid triggering the alert path
         monkeypatch.setattr(langfuse_sessions, "alert_on_unsafe_trace", lambda **kw: True)
 
@@ -336,9 +327,7 @@ class TestUserFeedback:
         from integrations import langfuse_sessions
 
         mock_client = MagicMock()
-        monkeypatch.setattr(
-            langfuse_sessions, "_get_client", lambda: mock_client
-        )
+        monkeypatch.setattr(langfuse_sessions, "_get_client", lambda: mock_client)
 
         alert_called = []
         monkeypatch.setattr(
@@ -370,9 +359,7 @@ class TestSafetyAlerts:
         from integrations import langfuse_sessions
 
         mock_client = MagicMock()
-        monkeypatch.setattr(
-            langfuse_sessions, "_get_client", lambda: mock_client
-        )
+        monkeypatch.setattr(langfuse_sessions, "_get_client", lambda: mock_client)
         monkeypatch.delenv("LANGFUSE_ALERT_WEBHOOK_URL", raising=False)
         monkeypatch.setattr(
             langfuse_sessions,
@@ -395,13 +382,9 @@ class TestSafetyAlerts:
         from integrations import langfuse_sessions
 
         mock_client = MagicMock()
-        monkeypatch.setattr(
-            langfuse_sessions, "_get_client", lambda: mock_client
-        )
+        monkeypatch.setattr(langfuse_sessions, "_get_client", lambda: mock_client)
         # Override the module-level webhook URL (it was read at import time)
-        monkeypatch.setattr(
-            langfuse_sessions, "_ALERT_WEBHOOK_URL", "https://hooks.slack.com/test"
-        )
+        monkeypatch.setattr(langfuse_sessions, "_ALERT_WEBHOOK_URL", "https://hooks.slack.com/test")
         monkeypatch.setattr(
             langfuse_sessions,
             "get_trace_share_url",
@@ -439,6 +422,7 @@ class TestLangfuseMiddleware:
 
         # Re-import to pick up env
         import importlib
+
         import integrations.langfuse_middleware as mw_mod
 
         importlib.reload(mw_mod)
