@@ -49,6 +49,12 @@ from integrations.langwatch_integration import (
 # Smithery MCP
 from integrations.smithery_mcp import mcp_registry, smithery_client
 
+# Supabase PostgreSQL + Auth + Storage
+from integrations.supabase_integration import get_supabase_db, supabase_client
+
+# Neo4j Graph Database
+from integrations.neo4j_integration import get_neo4j_db, neo4j_client
+
 __all__ = [
     # Langfuse core (integration.py)
     "LangfuseTracker",
@@ -89,4 +95,10 @@ __all__ = [
     # Smithery MCP
     "smithery_client",
     "mcp_registry",
+    # Supabase
+    "supabase_client",
+    "get_supabase_db",
+    # Neo4j
+    "neo4j_client",
+    "get_neo4j_db",
 ]
