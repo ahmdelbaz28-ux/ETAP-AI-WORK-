@@ -1,5 +1,30 @@
 """Integrations package for AhmedETAP external service connections."""
 
+# Supabase (managed Postgres + Storage + optional Auth)
+from integrations.supabase_auth import (
+    SupabaseAuthError,
+    get_oauth_url as supabase_get_oauth_url,
+    health_check as supabase_auth_health_check,
+    link_or_create_local_user,
+    send_magic_link,
+    verify_supabase_token,
+)
+from integrations.supabase_integration import (
+    PRIVATE_BUCKET_REPORTS,
+    PRIVATE_BUCKET_SCREENSHOTS,
+    PRIVATE_BUCKET_UPLOADS,
+    PUBLIC_BUCKET_MANUALS,
+    SupabaseUploadError,
+    delete_file,
+    ensure_buckets_exist,
+    get_public_url,
+    get_signed_url,
+    health_check as supabase_health_check,
+    list_files,
+    upload_bytes,
+    upload_file,
+)
+
 # Primary observability — Langfuse (unlimited prompts on free Hobby plan)
 from integrations.langfuse_evals import (
     ci_gate_block_unsafe_prompts,
@@ -49,12 +74,6 @@ from integrations.langwatch_integration import (
 # Smithery MCP
 from integrations.smithery_mcp import mcp_registry, smithery_client
 
-# Supabase PostgreSQL + Auth + Storage
-from integrations.supabase_integration import get_supabase_db, supabase_client
-
-# Neo4j Graph Database
-from integrations.neo4j_integration import get_neo4j_db, neo4j_client
-
 __all__ = [
     # Langfuse core (integration.py)
     "LangfuseTracker",
@@ -95,10 +114,24 @@ __all__ = [
     # Smithery MCP
     "smithery_client",
     "mcp_registry",
-    # Supabase
-    "supabase_client",
-    "get_supabase_db",
-    # Neo4j
-    "neo4j_client",
-    "get_neo4j_db",
+    # Supabase (Postgres + Storage + Auth)
+    "PUBLIC_BUCKET_MANUALS",
+    "PRIVATE_BUCKET_REPORTS",
+    "PRIVATE_BUCKET_SCREENSHOTS",
+    "PRIVATE_BUCKET_UPLOADS",
+    "SupabaseUploadError",
+    "SupabaseAuthError",
+    "upload_bytes",
+    "upload_file",
+    "get_public_url",
+    "get_signed_url",
+    "delete_file",
+    "list_files",
+    "ensure_buckets_exist",
+    "supabase_health_check",
+    "verify_supabase_token",
+    "supabase_get_oauth_url",
+    "send_magic_link",
+    "link_or_create_local_user",
+    "supabase_auth_health_check",
 ]
