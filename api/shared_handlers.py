@@ -855,7 +855,7 @@ def handle_detect_anomalies(body: Dict[str, Any]) -> Dict[str, Any]:
 def handle_context_retrieval(query: str, top_k: int = 5, max_tokens: int = 2000) -> Dict[str, Any]:
     """Retrieve and compress relevant code chunks based on semantic search."""
     try:
-        from ai_context_engine.retriever import CodeRetriever, CHROMA_AVAILABLE
+        from ai_context_engine.retriever import CHROMA_AVAILABLE, CodeRetriever
 
         # Determine path to Chroma DB (default to ./index/)
         index_dir = os.environ.get("CODE_CONTEXT_INDEX_DIR", "./index")
