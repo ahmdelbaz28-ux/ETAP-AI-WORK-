@@ -57,7 +57,7 @@
 
 | Module | Tests | Status |
 |---|---|---|
-| Agent Suite (24 agents: load_flow, short_circuit, arc_flash, etc.) | 101 | PASS |
+| Agent Suite (25 agents: load_flow, short_circuit, arc_flash, etc.) | 101 | PASS |
 | ETAP Expert Proof (deterministic skill) | 12 | PASS |
 | Knowledge Base (RAG, compliance, citations) | 11 | PASS |
 | Visualization (matplotlib, styles) | 23 | PASS |

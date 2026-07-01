@@ -1278,6 +1278,6 @@ def get_ml_capabilities() -> Dict[str, Any]:
             else ("random_forest" if _HAS_SKLEARN else "none"),
         },
         "anomaly_detection_methods": {
-            "available": AnomalyDetector.AVAILABLE_METHODS,
+            "available": AnomalyDetector._build_available_methods(),
         },
     }

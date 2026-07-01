@@ -24,7 +24,7 @@ AhmedETAP is an enterprise-grade autonomous engineering intelligence platform de
    - Built-in validation and serialization
 
 3. **Sophisticated AI agent orchestration system**
-   - 23 specialized AI agents for different power system studies
+   - 25 specialized AI agents for different power system studies
    - Chief Engineering Orchestrator for task decomposition and coordination
    - Prompt management system with 3-tier fallback
 

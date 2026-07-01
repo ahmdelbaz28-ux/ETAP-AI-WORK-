@@ -74,6 +74,7 @@ COPY --chown=user:user api/ /app/api/
 COPY --chown=user:user utils/ /app/utils/
 COPY --chown=user:user ai_context_engine/ /app/ai_context_engine/
 COPY --chown=user:user integrations/ /app/integrations/
+COPY --chown=user:user ml/ /app/ml/
 COPY --chown=user:user VERSION /app/VERSION
 
 # Environment

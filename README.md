@@ -680,7 +680,7 @@ etap-ai-work/                          ← AhmedETAP v2.1.0
 │   ├── DISASTER_RECOVERY_RUNBOOK.md    ← ✨ NEW — RTO ≤30 min
 │   └── TROUBLESHOOTING_GUIDE.md
 │
-├── 📂 tests/                           ← Test Suite (1030+ tests)
+├── 📂 tests/                           ← Test Suite (1680+ tests)
 │   ├── test_persistence_layer.py        ← ✨ NEW — Redis + DB tests
 │   ├── test_etap_adapter.py
 │   └── test_worker_tasks.py
@@ -790,7 +790,7 @@ git push origin feat/your-feature-name
 ║                                                                  ║
 ║   ⚡  AhmedETAP v2.1.0 — Enterprise Production Ready           ║
 ║                                                                  ║
-║   24 AI Agents  ·  13 Study Types  ·  IEC/IEEE Standards       ║
+║   25 AI Agents  ·  15 Study Types  ·  IEC/IEEE Standards       ║
 ║   PostgreSQL  ·  Redis  ·  Celery  ·  Kubernetes  ·  Grafana   ║
 ║                                                                  ║
 ║   RPO ≤ 15 min  ·  RTO ≤ 30 min  ·  Coverage ≥ 80%            ║

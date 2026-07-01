@@ -28,6 +28,7 @@ from api.shared_handlers import (
     PUBLIC_PATHS,
     START_TIME,
     STUDY_TYPES,
+    SUPPORTED_STANDARDS,
     VERSION,
     ZENON_GUIDE_COUNT,
     SharedContextRetrieveRequest,
@@ -105,6 +106,45 @@ app.add_middleware(
 )
 
 
+# -- Security headers middleware ----------------------------------------------
+#
+# Adds standard HTTP security headers to every response. The CSP is intentionally
+# permissive on ``'unsafe-inline'`` and ``'unsafe-eval'`` because:
+#   1. Swagger UI (/docs) and ReDoc (/redoc) require inline scripts/styles.
+#   2. The homepage uses an inline <style> block.
+# A stricter CSP would break the API documentation viewers. The other headers
+# (HSTS, X-Content-Type-Options, X-Frame-Options, Referrer-Policy) are safe to
+# enforce everywhere and protect against common attack vectors (MIME sniffing,
+# clickjacking, referrer leakage, SSL downgrade).
+#
+# HSTS is only sent over HTTPS — sending it over HTTP is a no-op (browsers
+# ignore it) but it pollutes dev logs and can confuse local testing.
+@app.middleware("http")
+async def add_security_headers(request: Request, call_next):
+    response = await call_next(request)
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    response.headers["X-Frame-Options"] = "SAMEORIGIN"
+    response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+    # HSTS only over HTTPS (production). On localhost HTTP dev, skip it so the
+    # browser doesn't pin HSTS for a year on a non-TLS origin.
+    if request.url.scheme == "https" or request.headers.get("x-forwarded-proto") == "https":
+        response.headers["Strict-Transport-Security"] = (
+            "max-age=31536000; includeSubDomains"
+        )
+    # Permissive CSP that allows Swagger UI + ReDoc + homepage inline styles.
+    # Tightening this requires moving Swagger/ReDoc to a CDN-less self-hosted
+    # build, which is out of scope for the HF Space deployment.
+    response.headers["Content-Security-Policy"] = (
+        "default-src 'self'; "
+        "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net; "
+        "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; "
+        "img-src 'self' data: https:; "
+        "font-src 'self' data: https://cdn.jsdelivr.net; "
+        "connect-src 'self'"
+    )
+    return response
+
+
 # -- Auth + Rate-limit middleware ---------------------------------------------
 @app.middleware("http")
 async def auth_and_rate_limit(request: Request, call_next):
@@ -170,7 +210,7 @@ async def root():
       <div class="stat"><div class="stat-num">{AGENT_COUNT}</div><div class="stat-label">AI Agents</div></div>
       <div class="stat"><div class="stat-num">{ETAP_MANUAL_COUNT}+</div><div class="stat-label">ETAP Manuals</div></div>
       <div class="stat"><div class="stat-num">{ZENON_GUIDE_COUNT}</div><div class="stat-label">Zenon Guides</div></div>
-      <div class="stat"><div class="stat-num">548</div><div class="stat-label">Tests Passing</div></div>
+      <div class="stat"><div class="stat-num">{len(SUPPORTED_STANDARDS)}</div><div class="stat-label">Standards</div></div>
     </div>
     <div class="links">
       <a href="/docs">Swagger Docs</a>
