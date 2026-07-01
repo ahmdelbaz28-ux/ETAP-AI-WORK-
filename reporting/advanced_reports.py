@@ -339,11 +339,39 @@ class PDFReportGenerator:
             )
 
             self.logger.info("Generating PDF report using ReportLab")
-            return self._generate_with_reportlab(metadata, sections, output_path)
-
+            filepath = self._generate_with_reportlab(metadata, sections, output_path)
         except ImportError:
             self.logger.warning("ReportLab not available. Using fallback PDF generation.")
-            return self._generate_fallback_pdf(metadata, sections, output_path)
+            filepath = self._generate_fallback_pdf(metadata, sections, output_path)
+
+        # Upload to Supabase Storage if available
+        if filepath and os.path.exists(filepath):
+            try:
+                from integrations.supabase_integration import supabase_client
+                if supabase_client.enabled:
+                    # Read file bytes
+                    with open(filepath, "rb") as f:
+                        file_bytes = f.read()
+                    
+                    # Upload to Supabase Storage
+                    filename = os.path.basename(filepath)
+                    result = supabase_client.upload_bytes(
+                        bucket="reports",
+                        path=f"reports/{metadata.report_id}/{filename}",
+                        data=file_bytes,
+                        content_type="application/pdf",
+                    )
+                    
+                    if result.get("success"):
+                        self.logger.info(f"PDF uploaded to Supabase Storage: {filename}")
+                        # Store the Supabase URL in metadata
+                        metadata.supabase_url = result.get("data", {}).get("public_url") if isinstance(result.get("data"), dict) else None
+                    else:
+                        self.logger.warning(f"Failed to upload PDF to Supabase: {result.get('error')}")
+            except Exception as e:
+                self.logger.warning(f"Supabase upload failed (non-critical): {e}")
+
+        return filepath
 
     def _generate_with_reportlab(
         self, metadata: ReportMetadata, sections: List[ReportSection], output_path: str
