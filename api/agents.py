@@ -19,6 +19,158 @@ from api.dependencies import get_api_key
 router = APIRouter(prefix="/api/v1/agents", tags=["agents"])
 
 
+class AgentMetaResponse(BaseModel):
+    id: str
+    name: str
+    description: str = ""
+    capabilities: list[str] = []
+    model: str = ""
+    provider: str = ""
+
+
+@router.get("")
+async def get_agents_list(request: Request):
+    """Return simple list of agents for frontend administration."""
+    trace_id = getattr(request.state, "trace_id", "unknown")
+    try:
+        # Return a predefined list of available agents for the frontend
+        agents_list = [
+            {
+                "id": "etap-expert",
+                "name": "ETAP Expert",
+                "description": "ETAP power systems engineering expert",
+                "capabilities": ["load_flow", "short_circuit", "arc_flash", "protection", "motor_starting"],
+                "model": "gemini-2.0-flash-exp",
+                "provider": "google"
+            },
+            {
+                "id": "etap-gui",
+                "name": "ETAP GUI Agent",
+                "description": "ETAP GUI automation and computer use agent",
+                "capabilities": ["gui_automation", "cua", "screenshot_analysis"],
+                "model": "gemini-2.0-flash-exp",
+                "provider": "google"
+            },
+            {
+                "id": "load-flow",
+                "name": "Load Flow Agent",
+                "description": "Load flow and voltage analysis",
+                "capabilities": ["load_flow", "voltage_profile", "power_losses"],
+                "model": "gpt-4o",
+                "provider": "openai"
+            },
+            {
+                "id": "short-circuit",
+                "name": "Short Circuit Agent",
+                "description": "Fault current analysis",
+                "capabilities": ["short_circuit", "iec_60909", "equipment_rating"],
+                "model": "gpt-4o",
+                "provider": "openai"
+            },
+            {
+                "id": "arc-flash",
+                "name": "Arc Flash Agent",
+                "description": "Incident energy and arc flash boundary calculations",
+                "capabilities": ["arc_flash", "ieee_1584", "ppe_category"],
+                "model": "gpt-4o",
+                "provider": "openai"
+            },
+            {
+                "id": "protection",
+                "name": "Protection Agent",
+                "description": "Relay coordination and protection studies",
+                "capabilities": ["protection", "relay_coordination", "time_current_curves"],
+                "model": "gpt-4o",
+                "provider": "openai"
+            },
+            {
+                "id": "motor-starting",
+                "name": "Motor Starting Agent",
+                "description": "Motor starting current and voltage dip analysis",
+                "capabilities": ["motor_starting", "voltage_dip", "acceleration"],
+                "model": "gpt-4o",
+                "provider": "openai"
+            },
+            {
+                "id": "stability",
+                "name": "Stability Agent",
+                "description": "Transient and steady-state stability analysis",
+                "capabilities": ["stability", "swing_equation", "critical_clearing_time"],
+                "model": "gpt-4o",
+                "provider": "openai"
+            },
+            {
+                "id": "cable-sizing",
+                "name": "Cable Sizing Agent",
+                "description": "Cable ampacity and voltage drop calculations",
+                "capabilities": ["cable_sizing", "iec_60364", "voltage_drop"],
+                "model": "gpt-4o",
+                "provider": "openai"
+            },
+            {
+                "id": "earth-grid",
+                "name": "Earth Grid Agent",
+                "description": "Grounding system and earth grid design",
+                "capabilities": ["earth_grid", "ieee_80", "step_touch_voltage"],
+                "model": "gpt-4o",
+                "provider": "openai"
+            },
+            {
+                "id": "renewable",
+                "name": "Renewable Agent",
+                "description": "Solar and wind integration analysis",
+                "capabilities": ["renewable", "solar", "wind", "ieee_1547"],
+                "model": "gpt-4o",
+                "provider": "openai"
+            },
+            {
+                "id": "battery-storage",
+                "name": "BESS Agent",
+                "description": "Battery energy storage system analysis",
+                "capabilities": ["battery_storage", "bess", "dispatch_optimization"],
+                "model": "gpt-4o",
+                "provider": "openai"
+            },
+            {
+                "id": "harmonic",
+                "name": "Harmonic Agent",
+                "description": "Harmonic distortion and filter design",
+                "capabilities": ["harmonic", "ieee_519", "filter_design"],
+                "model": "gpt-4o",
+                "provider": "openai"
+            },
+            {
+                "id": "optimal-power-flow",
+                "name": "OPF Agent",
+                "description": "Optimal power flow and economic dispatch",
+                "capabilities": ["opf", "economic_dispatch", "optimal_power_flow"],
+                "model": "gpt-4o",
+                "provider": "openai"
+            }
+        ]
+        
+        return JSONResponse(
+            content={
+                "success": True,
+                "agents": agents_list,
+                "trace_id": trace_id
+            }
+        )
+    except Exception as e:
+        from logging import getLogger
+        logger = getLogger("engineering_service")
+        logger.error("agents_list_failed error=%s", str(e), extra={"trace_id": trace_id})
+        # Return an empty list as fallback
+        return JSONResponse(
+            content={
+                "success": False,
+                "agents": [],
+                "trace_id": trace_id
+            },
+            status_code=500
+        )
+
+
 @router.get("/info")
 async def get_agents_info(request: Request):
     """Return metadata for all agents including prompt integration status.

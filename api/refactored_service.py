@@ -128,6 +128,7 @@ from api.error_debugger import (
     StudyExecutionError,
 )
 from api.projects import router as projects_router
+from api.agents import router as agents_router
 
 # ---------------------------------------------------------------------------
 # Structured logging with trace IDs
@@ -442,11 +443,17 @@ class ReadyResponse(BaseModel):
 
 
 class MetricsResponse(BaseModel):
+    # New (current backend) fields
     requests_total: int
     requests_success: int
     requests_failed: int
     avg_execution_time_ms: float
     trace_id: str
+    # Legacy (frontend expected) fields for compatibility
+    api: dict[str, int] = {}
+    providers: dict[str, dict] = {}
+    perKey: dict[str, int] = {}
+    circuits: dict[str, dict] = {}
 
 
 # ---------------------------------------------------------------------------
@@ -1079,6 +1086,7 @@ app.add_middleware(_RequestLoggingMiddleware)
 # Mount existing routers
 app.include_router(auth_router, tags=["Auth"])
 app.include_router(projects_router, tags=["Projects"])
+app.include_router(agents_router, tags=["Agents"])
 
 
 # ---------------------------------------------------------------------------
@@ -1262,12 +1270,23 @@ async def readiness_check(request: Request):
 async def metrics(request: Request):
     """Return request metrics."""
     state: AppState = app.state.etap
+    # Build both formats for compatibility
+    api_metrics = {
+        "total": state.request_count,
+        "success": state.success_count,
+        "failed": state.failed_count,
+        "errors": state.failed_count
+    }
     return MetricsResponse(
         requests_total=state.request_count,
         requests_success=state.success_count,
         requests_failed=state.failed_count,
         avg_execution_time_ms=round(state.avg_execution_time_ms, 2),
         trace_id=request.state.trace_id,
+        api=api_metrics,
+        providers={},
+        perKey={},
+        circuits={}
     )
 
 
