@@ -3,13 +3,18 @@
  * Kept in core/ so every module can import without circular deps.
  */
 export interface Env {
-  // AI provider secrets (only NVIDIA + OpenAI are used; see src/core/config.ts)
+  // AI provider secrets (NVIDIA + OpenAI + Clovie Router are used; see src/core/config.ts)
   OPENAI_API_KEY?: string;
   OPENAI_BASE_URL?: string;
   OPENAI_MODEL?: string;
   NVIDIA_API_KEY?: string;
   NVIDIA_BASE_URL?: string;
   NVIDIA_MODEL?: string;
+  // Clovie Router — OpenAI-compatible gateway for MiMo models
+  // (mimo-v2.5-pro, mimo-v2.5, mimo-v2-omni, mimo-v2-pro, mimo-v2-flash)
+  CLOVIE_API_KEY?: string;
+  CLOVIE_BASE_URL?: string;
+  CLOVIE_MODEL?: string;
 
   // Mastra backend
   MASTRA_API_URL?: string;
