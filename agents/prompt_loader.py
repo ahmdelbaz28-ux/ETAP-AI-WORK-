@@ -3,11 +3,16 @@ AhmedETAP - Prompt Loader
 ================================================
 
 Mirrors the TypeScript ``getSystemPrompt()`` from ``src/mastra/prompts.ts``
-on the Python side, providing the same 3-tier fallback:
+on the Python side, providing a 4-tier fallback:
 
-1. LangWatch API  (if LANGWATCH_API_KEY is set)
-2. Local YAML file in ``prompts/``
-3. Hardcoded default safety-net
+1. Langfuse API   (if ``LANGFUSE_PUBLIC_KEY`` + ``LANGFUSE_SECRET_KEY`` are set)
+2. LangWatch API  (legacy fallback, if ``LANGWATCH_API_KEY`` is set)
+3. Local YAML file in ``prompts/``
+4. Hardcoded default safety-net
+
+Langfuse is preferred because its free Hobby plan supports an unlimited
+number of prompts, whereas LangWatch's free plan is capped at 3 prompts
+per project.
 
 Usage::
 
@@ -42,12 +47,54 @@ _PROMPTS_DIR = Path(
 _LANGWATCH_API_KEY = os.environ.get("LANGWATCH_API_KEY", "")
 _LANGWATCH_ENDPOINT = os.environ.get("LANGWATCH_ENDPOINT", "https://app.langwatch.ai")
 
+# Langfuse config
+_LANGFUSE_PUBLIC_KEY = os.environ.get("LANGFUSE_PUBLIC_KEY", "")
+_LANGFUSE_SECRET_KEY = os.environ.get("LANGFUSE_SECRET_KEY", "")
+_LANGFUSE_ENABLED = (
+    bool(_LANGFUSE_PUBLIC_KEY)
+    and bool(_LANGFUSE_SECRET_KEY)
+    and os.environ.get("LANGFUSE_ENABLED", "true").lower() not in ("0", "false", "no", "off")
+)
+
 # Cache for loaded prompts to avoid redundant I/O
 _prompt_cache: Dict[str, Optional[str]] = {}
 
 
 # ---------------------------------------------------------------------------
-# LangWatch integration
+# Langfuse integration (preferred — unlimited prompts on free plan)
+# ---------------------------------------------------------------------------
+
+
+def _load_from_langfuse(handle: str) -> Optional[str]:
+    """Attempt to load a prompt from the Langfuse API.
+
+    Returns the system message content if found, ``None`` otherwise.
+    Silently returns ``None`` on any error (network, auth, missing prompt).
+    """
+    if not _LANGFUSE_ENABLED:
+        return None
+
+    try:
+        from integrations.langfuse_integration import langfuse_tracker
+
+        result = langfuse_tracker.get_prompt(
+            name=handle,
+            label="production",
+            fallback=None,
+        )
+        if result:
+            logger.debug("Prompt '%s' loaded from Langfuse API", handle)
+        return result
+    except ImportError:
+        logger.debug("langfuse_integration module not available, skipping Langfuse lookup")
+        return None
+    except Exception as exc:
+        logger.debug("Langfuse lookup failed for '%s': %s", handle, exc)
+        return None
+
+
+# ---------------------------------------------------------------------------
+# LangWatch integration (legacy fallback)
 # ---------------------------------------------------------------------------
 
 
@@ -195,14 +242,17 @@ _FALLBACK_PROMPT = (
 
 
 def get_system_prompt(handle: str) -> str:
-    """Load a system prompt by handle, with 3-tier fallback.
+    """Load a system prompt by handle, with 4-tier fallback.
 
     Resolution order:
         1. In-memory cache (prevents redundant I/O and API calls)
-        2. LangWatch API (if ``LANGWATCH_API_KEY`` is configured)
-        3. Local YAML file in ``prompts/``
-        4. Fallback agent prompt (``fallback_agent``)
-        5. Hardcoded safety-net default
+        2. Langfuse API (if ``LANGFUSE_PUBLIC_KEY`` + ``LANGFUSE_SECRET_KEY``
+           are configured) — preferred, supports unlimited prompts on the
+           free Hobby plan
+        3. LangWatch API (legacy fallback, if ``LANGWATCH_API_KEY`` is set)
+        4. Local YAML file in ``prompts/``
+        5. Fallback agent prompt (``fallback_agent``)
+        6. Hardcoded safety-net default
 
     Parameters
     ----------
@@ -219,7 +269,15 @@ def get_system_prompt(handle: str) -> str:
     if handle in _prompt_cache:
         return _prompt_cache[handle] or _FALLBACK_PROMPT
 
-    # Tier 1: LangWatch API
+    # Tier 1: Langfuse API (preferred)
+    if os.environ.get("DEPLOYMENT_VERIFICATION") != "true":
+        result = _load_from_langfuse(handle)
+        if result:
+            _prompt_cache[handle] = result
+            logger.info("Prompt '%s' loaded from Langfuse API", handle)
+            return result
+
+    # Tier 2: LangWatch API (legacy fallback)
     if os.environ.get("DEPLOYMENT_VERIFICATION") != "true":
         result = _load_from_langwatch(handle)
         if result:
@@ -227,14 +285,14 @@ def get_system_prompt(handle: str) -> str:
             logger.info("Prompt '%s' loaded from LangWatch API", handle)
             return result
 
-    # Tier 2: Local YAML file
+    # Tier 3: Local YAML file
     result = _load_from_yaml(handle)
     if result:
         _prompt_cache[handle] = result
         logger.info("Prompt '%s' loaded from local YAML", handle)
         return result
 
-    # Tier 3: Fallback agent prompt
+    # Tier 4: Fallback agent prompt
     if handle != "fallback_agent":
         result = _load_from_yaml("fallback_agent")
         if result:
@@ -242,7 +300,7 @@ def get_system_prompt(handle: str) -> str:
             logger.warning("Prompt '%s' not found, using fallback_agent prompt", handle)
             return result
 
-    # Tier 4: Hardcoded safety-net
+    # Tier 5: Hardcoded safety-net
     _prompt_cache[handle] = None
     logger.warning("Prompt '%s' not found anywhere, using hardcoded fallback", handle)
     return _FALLBACK_PROMPT

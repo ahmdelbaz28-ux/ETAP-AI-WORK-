@@ -6,6 +6,18 @@ Patterns drawn from open-telemetry/opentelemetry-python:
 - Span creation via decorators and context managers
 - Trace-context propagation (inject/extract)
 - Graceful degradation when exporters are unavailable
+
+Supported exporter types (``OTEL_EXPORTER_TYPE`` env var):
+- ``console``       — print spans to stdout (default)
+- ``otlp``          — OTLP/gRPC to any collector (Jaeger, Tempo, …)
+- ``langfuse``      — OTLP/HTTP to Langfuse Cloud (or self-hosted Langfuse)
+                      which renders the spans in the Langfuse dashboard
+                      alongside LLM traces sent via the Langfuse SDK.
+                      Required env vars:
+                        LANGFUSE_PUBLIC_KEY
+                        LANGFUSE_SECRET_KEY
+                      Optional env var:
+                        LANGFUSE_BASE_URL (default: https://cloud.langfuse.com)
 """
 
 from __future__ import annotations
@@ -63,10 +75,16 @@ def setup_tracing(
     service_version : str
         Version label for the ``service.version`` resource attribute.
     exporter_type : str
-        ``"console"`` (default) or ``"otlp"``.
+        One of:
+        - ``"console"`` (default) — print spans to stdout
+        - ``"otlp"``              — OTLP/gRPC to any collector (Jaeger, …)
+        - ``"langfuse"``          — OTLP/HTTP to Langfuse (uses
+                                    ``LANGFUSE_PUBLIC_KEY`` /
+                                    ``LANGFUSE_SECRET_KEY`` /
+                                    ``LANGFUSE_BASE_URL`` env vars)
     otlp_endpoint : str, optional
-        gRPC endpoint for the OTLP exporter (required if *exporter_type* is
-        ``"otlp"``).
+        gRPC endpoint for the OTLP exporter (required if *exporter_type*
+        is ``"otlp"``).
     environment : str
         Deployment environment label (e.g. ``"production"``).
 
@@ -89,6 +107,7 @@ def setup_tracing(
     if exporter_type == "console":
         exporter = ConsoleSpanExporter()
         processor: Any = SimpleSpanProcessor(exporter)
+
     elif exporter_type == "otlp" and otlp_endpoint:
         try:
             from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import (
@@ -101,6 +120,52 @@ def setup_tracing(
             logger.warning("OTLP exporter unavailable — falling back to console")
             exporter = ConsoleSpanExporter()
             processor = SimpleSpanProcessor(exporter)
+
+    elif exporter_type == "langfuse":
+        # Langfuse exposes an OTLP/HTTP endpoint at /api/public/otel/v1/traces
+        # which authenticates via Basic auth (public_key:secret_key).
+        # The OTLP/HTTP exporter sends spans there, and Langfuse renders
+        # them as regular traces in its dashboard.
+        try:
+            from opentelemetry.exporter.otlp.proto.http.trace_exporter import (
+                OTLPSpanExporter as HTTPSpanExporter,
+            )
+
+            langfuse_base = _os.environ.get(
+                "LANGFUSE_BASE_URL", "https://cloud.langfuse.com"
+            ).rstrip("/")
+            langfuse_url = f"{langfuse_base}/api/public/otel/v1/traces"
+            # The OTLP/HTTP exporter accepts headers for authentication.
+            # Langfuse expects Basic auth with public_key:secret_key.
+            import base64 as _b64
+
+            public_key = _os.environ.get("LANGFUSE_PUBLIC_KEY", "")
+            secret_key = _os.environ.get("LANGFUSE_SECRET_KEY", "")
+            if not public_key or not secret_key:
+                logger.warning(
+                    "Langfuse exporter requires LANGFUSE_PUBLIC_KEY and "
+                    "LANGFUSE_SECRET_KEY — falling back to console"
+                )
+                exporter = ConsoleSpanExporter()
+                processor = SimpleSpanProcessor(exporter)
+            else:
+                basic_auth = _b64.b64encode(
+                    f"{public_key}:{secret_key}".encode()
+                ).decode()
+                exporter = HTTPSpanExporter(
+                    endpoint=langfuse_url,
+                    headers={"Authorization": f"Basic {basic_auth}"},
+                )
+                processor = BatchSpanProcessor(exporter)
+                logger.info("Langfuse OTLP/HTTP exporter → %s", langfuse_url)
+        except ImportError:
+            logger.warning(
+                "OTLP/HTTP exporter unavailable (install "
+                "opentelemetry-exporter-otlp-proto-http) — falling back to console"
+            )
+            exporter = ConsoleSpanExporter()
+            processor = SimpleSpanProcessor(exporter)
+
     else:
         exporter = ConsoleSpanExporter()
         processor = SimpleSpanProcessor(exporter)
