@@ -69,7 +69,7 @@ jobs:
         run: npx tsc --noEmit 2>&1 || echo "::warning::TypeScript check failed but continuing"
 
       - name: Install pnpm
-        uses: pnpm/action-setup@v3
+        uses: pnpm/action-setup@v6
         with:
           version: 8
 
