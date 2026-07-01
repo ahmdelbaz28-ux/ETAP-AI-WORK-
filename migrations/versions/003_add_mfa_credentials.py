@@ -67,7 +67,7 @@ def upgrade() -> None:
             "verified",
             sa.Boolean(),
             nullable=False,
-            server_default=sa.text("0"),
+            server_default=sa.text("false"),
             comment="Whether the user has completed MFA setup verification",
         ),
         sa.Column(

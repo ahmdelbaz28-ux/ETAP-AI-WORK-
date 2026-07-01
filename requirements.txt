@@ -24,6 +24,11 @@ langfuse~=2.51.0
 openai~=1.50.0
 anthropic~=0.39.0
 
+# Supabase (managed Postgres + Storage + Auth) — used by integrations/supabase_*.py
+# Required when deploying to HF Space (where the filesystem is wiped on restart)
+# or when using Supabase Storage for PDFs/reports/screenshots.
+supabase~=2.31.0
+
 # Metrics - Prometheus
 prometheus-client~=0.19.0
 

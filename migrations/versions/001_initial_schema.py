@@ -76,13 +76,13 @@ def upgrade() -> None:
             "mfa_enabled",
             sa.Boolean(),
             nullable=False,
-            server_default=sa.text("0"),
+            server_default=sa.text("false"),
         ),
         sa.Column(
             "is_active",
             sa.Boolean(),
             nullable=False,
-            server_default=sa.text("1"),
+            server_default=sa.text("true"),
         ),
         sa.Column(
             "reset_token",
@@ -286,7 +286,7 @@ def upgrade() -> None:
             "is_revoked",
             sa.Boolean(),
             nullable=False,
-            server_default=sa.text("0"),
+            server_default=sa.text("false"),
         ),
     )
 
@@ -384,7 +384,7 @@ def upgrade() -> None:
             "acknowledged",
             sa.Boolean(),
             nullable=False,
-            server_default=sa.text("0"),
+            server_default=sa.text("false"),
         ),
     )
 
