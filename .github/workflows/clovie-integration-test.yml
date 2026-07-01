@@ -40,6 +40,7 @@ jobs:
         run: |
           pip install --quiet httpx
           echo "✅ httpx installed"
+          python3 -c "import httpx; print(f'httpx version: {httpx.__version__}')"
 
       # ─────────────────────────────────────────────────────────────────────
       - name: Test 1 — Verify all 3 Clovie secrets are present
@@ -82,21 +83,25 @@ jobs:
           echo "║  Test 2: Python Module Import Validation                    ║"
           echo "╚══════════════════════════════════════════════════════════════╝"
           python3 << 'PYEOF'
-          import sys
-          sys.path.insert(0, '.')
-          from integrations.clovie_integration import (
-              ClovieClient,
-              ClovieChatResult,
-              ClovieError,
-              ClovieAuthError,
-              ClovieModelError,
-              ClovieInsufficientCreditsError,
-              CLOVIE_SUPPORTED_MODELS,
-              CLOVIE_DEFAULT_BASE_URL,
-              CLOVIE_DEFAULT_MODEL,
-              get_clovie_client,
-              chat_completion,
-          )
+          import sys, importlib.util
+          # Load clovie_integration.py directly (bypass integrations/__init__.py
+          # which has heavy deps like starlette/langfuse we don't need here)
+          spec = importlib.util.spec_from_file_location(
+              'clovie_integration', 'integrations/clovie_integration.py')
+          mod = importlib.util.module_from_spec(spec)
+          sys.modules["clovie_integration"] = mod  # required for @dataclass
+          spec.loader.exec_module(mod)
+          ClovieClient = mod.ClovieClient
+          ClovieChatResult = mod.ClovieChatResult
+          ClovieError = mod.ClovieError
+          ClovieAuthError = mod.ClovieAuthError
+          ClovieModelError = mod.ClovieModelError
+          ClovieInsufficientCreditsError = mod.ClovieInsufficientCreditsError
+          CLOVIE_SUPPORTED_MODELS = mod.CLOVIE_SUPPORTED_MODELS
+          CLOVIE_DEFAULT_BASE_URL = mod.CLOVIE_DEFAULT_BASE_URL
+          CLOVIE_DEFAULT_MODEL = mod.CLOVIE_DEFAULT_MODEL
+          get_clovie_client = mod.get_clovie_client
+          chat_completion = mod.chat_completion
           print('  ✅ All 11 public symbols imported successfully')
           print(f'  ✅ CLOVIE_DEFAULT_BASE_URL = {CLOVIE_DEFAULT_BASE_URL}')
           print(f'  ✅ CLOVIE_DEFAULT_MODEL    = {CLOVIE_DEFAULT_MODEL}')
@@ -137,9 +142,14 @@ jobs:
           echo "║  Test 3: ClovieClient Instantiation                         ║"
           echo "╚══════════════════════════════════════════════════════════════╝"
           python3 << 'PYEOF'
-          import sys, os
-          sys.path.insert(0, '.')
-          from integrations.clovie_integration import ClovieClient, CLOVIE_SUPPORTED_MODELS
+          import os, sys, importlib.util
+          spec = importlib.util.spec_from_file_location(
+              'clovie_integration', 'integrations/clovie_integration.py')
+          mod = importlib.util.module_from_spec(spec)
+          sys.modules["clovie_integration"] = mod  # required for @dataclass
+          spec.loader.exec_module(mod)
+          ClovieClient = mod.ClovieClient
+          CLOVIE_SUPPORTED_MODELS = mod.CLOVIE_SUPPORTED_MODELS
 
           client = ClovieClient()
           assert client.is_available(), 'Client should be available with API key set'
@@ -161,7 +171,7 @@ jobs:
           print('  ✅ Context manager protocol works (__enter__/__exit__/close)')
 
           # Test singleton
-          from integrations.clovie_integration import get_clovie_client
+          get_clovie_client = mod.get_clovie_client
           c3 = get_clovie_client()
           c4 = get_clovie_client()
           assert c3 is c4, 'get_clovie_client() should return the same singleton'
@@ -253,9 +263,13 @@ jobs:
           echo "║  Test 6: Python ping() Method                                ║"
           echo "╚══════════════════════════════════════════════════════════════╝"
           python3 << 'PYEOF'
-          import sys
-          sys.path.insert(0, '.')
-          from integrations.clovie_integration import ClovieClient
+          import sys, importlib.util
+          spec = importlib.util.spec_from_file_location(
+              'clovie_integration', 'integrations/clovie_integration.py')
+          mod = importlib.util.module_from_spec(spec)
+          sys.modules["clovie_integration"] = mod  # required for @dataclass
+          spec.loader.exec_module(mod)
+          ClovieClient = mod.ClovieClient
           client = ClovieClient()
           ok, msg = client.ping()
           print(f'  ping() returned: ok={ok}, msg={msg}')
@@ -351,12 +365,17 @@ jobs:
           echo "║  Test 8: Python Exception Handling                           ║"
           echo "╚══════════════════════════════════════════════════════════════╝"
           python3 << 'PYEOF'
-          import sys
-          sys.path.insert(0, '.')
-          from integrations.clovie_integration import (
-              ClovieClient, ClovieError, ClovieInsufficientCreditsError,
-              ClovieAuthError, ClovieModelError
-          )
+          import sys, importlib.util
+          spec = importlib.util.spec_from_file_location(
+              'clovie_integration', 'integrations/clovie_integration.py')
+          mod = importlib.util.module_from_spec(spec)
+          sys.modules["clovie_integration"] = mod  # required for @dataclass
+          spec.loader.exec_module(mod)
+          ClovieClient = mod.ClovieClient
+          ClovieError = mod.ClovieError
+          ClovieInsufficientCreditsError = mod.ClovieInsufficientCreditsError
+          ClovieAuthError = mod.ClovieAuthError
+          ClovieModelError = mod.ClovieModelError
 
           client = ClovieClient()
           try:
@@ -395,9 +414,13 @@ jobs:
           echo "║  Test 9: MiMo Models Recognition                             ║"
           echo "╚══════════════════════════════════════════════════════════════╝"
           python3 << 'PYEOF'
-          import sys
-          sys.path.insert(0, '.')
-          from integrations.clovie_integration import CLOVIE_SUPPORTED_MODELS
+          import sys, importlib.util
+          spec = importlib.util.spec_from_file_location(
+              'clovie_integration', 'integrations/clovie_integration.py')
+          mod = importlib.util.module_from_spec(spec)
+          sys.modules["clovie_integration"] = mod  # required for @dataclass
+          spec.loader.exec_module(mod)
+          CLOVIE_SUPPORTED_MODELS = mod.CLOVIE_SUPPORTED_MODELS
           expected = {
               'mimo-v2.5-pro',   # Latest flagship
               'mimo-v2.5',       # Latest balanced
