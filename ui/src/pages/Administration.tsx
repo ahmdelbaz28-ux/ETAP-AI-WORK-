@@ -8,7 +8,7 @@ import { cn } from '../utils/helpers'
 
 import { ContextHelpButton } from '../components/help/ContextHelpButton'
 export default function Administration() {
-  const [metrics, setMetrics] = useState<MetricsResponse | null>(null)
+  const [metrics, setMetrics] = useState<any | null>(null)
   const [agents, setAgents] = useState<AgentMeta[]>([])
   const [loading, setLoading] = useState(true)
   const { notify } = useNotify()
@@ -33,9 +33,10 @@ export default function Administration() {
     load()
   }, [load])
 
-  const totalCalls = metrics ? Object.values(metrics.api as Record<string, number>).reduce((a: number, b: number) => a + b, 0) : 0
-  const activeKeys = metrics ? Object.keys(metrics.perKey).length : 0
-  const errors = (metrics?.api as Record<string, number>)?.errors ?? 0
+  // Handle both backend metrics formats gracefully
+  const totalCalls = metrics?.requests_total ?? (metrics ? Object.values((metrics.api as Record<string, number>) || {}).reduce((a: number, b: number) => a + b, 0) : 0)
+  const activeKeys = metrics?.requests_success ?? (metrics ? Object.keys(metrics.perKey || {}).length : 0)
+  const errors = metrics?.requests_failed ?? ((metrics?.api as Record<string, number>)?.errors ?? 0)
 
   const statCards = [
     {
@@ -121,56 +122,82 @@ export default function Administration() {
                 icon={<Activity className="w-4 h-4" />}
               />
               <div className="grid grid-cols-2 gap-3">
-                {Object.entries(metrics.api as Record<string, number>).map(([k, v]) => (
-                  <div key={k} className="p-3 bg-[var(--bg-primary)] rounded-lg border border-[var(--border-primary)]">
-                    <p className="text-xs text-[var(--text-muted)] capitalize">{k.replace(/([A-Z])/g, ' $1').trim()}</p>
-                    <p className="text-lg font-bold text-[var(--text-primary)] mono-engineering mt-1">{v}</p>
-                  </div>
-                ))}
+                {/* Render metrics depending on which format we get */}
+                {metrics.requests_total !== undefined ? (
+                  <>
+                    <div className="p-3 bg-[var(--bg-primary)] rounded-lg border border-[var(--border-primary)]">
+                      <p className="text-xs text-[var(--text-muted)]">Total Requests</p>
+                      <p className="text-lg font-bold text-[var(--text-primary)] mono-engineering mt-1">{metrics.requests_total}</p>
+                    </div>
+                    <div className="p-3 bg-[var(--bg-primary)] rounded-lg border border-[var(--border-primary)]">
+                      <p className="text-xs text-[var(--text-muted)]">Success</p>
+                      <p className="text-lg font-bold text-[var(--text-primary)] mono-engineering mt-1">{metrics.requests_success}</p>
+                    </div>
+                    <div className="p-3 bg-[var(--bg-primary)] rounded-lg border border-[var(--border-primary)]">
+                      <p className="text-xs text-[var(--text-muted)]">Failed</p>
+                      <p className="text-lg font-bold text-[var(--text-primary)] mono-engineering mt-1">{metrics.requests_failed}</p>
+                    </div>
+                    <div className="p-3 bg-[var(--bg-primary)] rounded-lg border border-[var(--border-primary)]">
+                      <p className="text-xs text-[var(--text-muted)]">Avg Execution</p>
+                      <p className="text-lg font-bold text-[var(--text-primary)] mono-engineering mt-1">{metrics.avg_execution_time_ms}ms</p>
+                    </div>
+                  </>
+                ) : (
+                  Object.entries((metrics.api as Record<string, number>) || {}).map(([k, v]) => (
+                    <div key={k} className="p-3 bg-[var(--bg-primary)] rounded-lg border border-[var(--border-primary)]">
+                      <p className="text-xs text-[var(--text-muted)] capitalize">{k.replace(/([A-Z])/g, ' $1').trim()}</p>
+                      <p className="text-lg font-bold text-[var(--text-primary)] mono-engineering mt-1">{v}</p>
+                    </div>
+                  ))
+                )}
               </div>
             </Card>
           </motion.div>
         )}
 
-        {/* Provider Latency */}
+        {/* Provider Latency / Agent List */}
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
           <Card padding="md">
             <CardHeader
-              title="Provider Latency"
-              subtitle="Response time & failure rates"
+              title="Provider Latency / Agent Registry"
+              subtitle="Response time & agents"
               icon={<Zap className="w-4 h-4" />}
             />
             <div className="space-y-3">
-              {metrics ? Object.entries(metrics.providers as Record<string, { count: number; avgMs: number; failureRate: number }>).map(([name, p]) => {
-                const latencyColor = p.avgMs < 500 ? 'bg-green-500' : p.avgMs < 1000 ? 'bg-amber-500' : 'bg-red-500'
-                const latencyPercent = Math.min(100, (p.avgMs / 2000) * 100)
-                return (
-                  <div key={name} className="p-3 bg-[var(--bg-primary)] rounded-lg border border-[var(--border-primary)]">
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-sm font-medium text-[var(--text-primary)] capitalize">{name}</span>
-                      <div className="flex items-center gap-2">
-                        <Badge variant={p.failureRate > 0.05 ? 'warning' : 'success'} size="sm">
-                          {(p.failureRate * 100).toFixed(1)}% fail
-                        </Badge>
+              {metrics && metrics.providers ? (
+                Object.entries(metrics.providers as Record<string, { count: number; avgMs: number; failureRate: number }>).map(([name, p]) => {
+                  const latencyColor = p.avgMs < 500 ? 'bg-green-500' : p.avgMs < 1000 ? 'bg-amber-500' : 'bg-red-500'
+                  const latencyPercent = Math.min(100, (p.avgMs / 2000) * 100)
+                  return (
+                    <div key={name} className="p-3 bg-[var(--bg-primary)] rounded-lg border border-[var(--border-primary)]">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-sm font-medium text-[var(--text-primary)] capitalize">{name}</span>
+                        <div className="flex items-center gap-2">
+                          <Badge variant={p.failureRate > 0.05 ? 'warning' : 'success'} size="sm">
+                            {(p.failureRate * 100).toFixed(1)}% fail
+                          </Badge>
+                        </div>
                       </div>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <div className="flex-1 h-1.5 bg-[var(--bg-elevated)] rounded-full overflow-hidden">
-                        <div className={cn('h-full rounded-full transition-all', latencyColor)} style={{ width: `${latencyPercent}%` }} />
+                      <div className="flex items-center gap-3">
+                        <div className="flex-1 h-1.5 bg-[var(--bg-elevated)] rounded-full overflow-hidden">
+                          <div className={cn('h-full rounded-full transition-all', latencyColor)} style={{ width: `${latencyPercent}%` }} />
+                        </div>
+                        <span className="text-xs text-[var(--text-muted)] mono-engineering w-16 text-right">{p.avgMs}ms</span>
                       </div>
-                      <span className="text-xs text-[var(--text-muted)] mono-engineering w-16 text-right">{p.avgMs}ms</span>
+                      <p className="text-xs text-[var(--text-muted)] mt-1.5">{p.count} calls</p>
                     </div>
-                    <p className="text-xs text-[var(--text-muted)] mt-1.5">{p.count} calls</p>
+                  )
+                })
+              ) : (
+                agents.slice(0, 4).map(a => (
+                  <div key={a.id} className="p-3 bg-[var(--bg-primary)] rounded-lg border border-[var(--border-primary)]">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-medium text-[var(--text-primary)]">{a.name}</span>
+                      <span className="text-xs text-[var(--text-muted)]">{(a.capabilities ?? []).slice(0, 3).join(', ')}</span>
+                    </div>
                   </div>
-                )
-              }) : agents.slice(0, 4).map(a => (
-                <div key={a.id} className="p-3 bg-[var(--bg-primary)] rounded-lg border border-[var(--border-primary)]">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium text-[var(--text-primary)]">{a.name}</span>
-                    <span className="text-xs text-[var(--text-muted)]">{(a.capabilities ?? []).slice(0, 3).join(', ')}</span>
-                  </div>
-                </div>
-              ))}
+                ))
+              )}
             </div>
           </Card>
         </motion.div>
