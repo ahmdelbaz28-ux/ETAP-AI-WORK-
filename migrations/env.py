@@ -123,12 +123,16 @@ def _do_run_migrations(connection: Connection) -> None:
         connection: A synchronous :class:`~sqlalchemy.engine.Connection`
             obtained from the async engine via ``run_sync``.
     """
+    # Detect backend — SQLite needs batch mode (no ALTER TABLE); Postgres
+    # supports ALTER natively and batch mode would be unnecessary overhead.
+    _is_sqlite = _database_url.startswith("sqlite")
     context.configure(
         connection=connection,
         target_metadata=target_metadata,
         # SQLite does not support ALTER TABLE directly; Alembic's batch
         # mode recreates the table behind the scenes when ALTER is needed.
-        render_as_batch=True,
+        # For PostgreSQL we disable batch mode (it's unnecessary and slower).
+        render_as_batch=_is_sqlite,
         # Compare types so that column-type changes are detected by
         # ``autogenerate``.
         compare_type=True,
