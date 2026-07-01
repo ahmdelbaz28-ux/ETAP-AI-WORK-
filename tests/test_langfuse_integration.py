@@ -571,4 +571,4 @@ class TestHashFunction:
 
         h = _hash_prompt("test")
         assert len(h) == 64
-        assert all(c in "0123456789abcdef" for c in h)
+        assert all(c in "0123456789abcdef" for c in h)  # pragma: allowlist secret
