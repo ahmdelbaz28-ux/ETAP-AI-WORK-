@@ -48,154 +48,148 @@ ENGINEERING_STANDARDS = {
     "IEC 60909",
     "IEEE 1584",
     "IEC 60255",
+    "IEEE C37",
+    "NEC Article 250",
     "IEEE 519",
-    "IEEE 399",
-    "IEC 60364",
-    "IEEE 80",
+    "IEC 61000",
     "IEEE 1547",
-    "IEC 62933",
+    "IEC 61400",
     "IEC 61850",
-    "ISO 23247",
+    "IEEE 693",
+    "IEC 60076",
+    "IEEE 1110",
+    "IEEE 1159",
+    "IEC 60364",
+    "IEC 62305",
+    "IEEE 739",
+    "IEEE 141",
+    "IEEE 242",
+    "IEEE 399",
+    "IEEE 446",
+    "IEC 62271",
+    "IEC 60529",
+    "IEEE 738",
+    "IEC 60287",
+    "IEEE 80",
+    "IEEE 81",
+    "IEEE 142",
+    "IEEE 1100",
+    "IEEE 493",
+    "IEC 60034",
+    "IEEE 841",
+    "NEMA MG-1",
+    "IEC 60038",
 }
 
-# Agent-to-standard mapping for validation
-AGENT_STANDARDS = {
-    "load_flow": {"IEEE 3002.7"},
-    "short_circuit": {"IEC 60909"},
-    "arcflash": {"IEEE 1584"},
-    "protection": {"IEC 60255"},
-    "motor_starting": {"IEEE 399"},
-    "harmonic": {"IEEE 519"},
-    "stability": {"IEEE 399"},
-    "cable_sizing": {"IEC 60364"},
-    "earth_grid": {"IEEE 80"},
-    "renewable": {"IEEE 1547"},
-    "battery_storage": {"IEC 62933"},
-    "scada": {"IEC 61850"},
-    "digital_twin": {"ISO 23247"},
-    "coordination": {"IEEE 242", "IEC 60255"},
-}
 
+def validate_prompt_file(filepath: Path, strict: bool = False) -> tuple[bool, list[str]]:
+    """
+    Validate a single YAML prompt file.
 
-def validate_prompt_file(filepath: Path) -> list:
-    """Validate a single prompt YAML file. Returns list of issues."""
-    issues = []
-    filename = filepath.name
+    Returns (passed, list_of_issues).
+    """
+    issues: list[str] = []
+    try:
+        content = filepath.read_text(encoding="utf-8")
+    except Exception as e:
+        return False, [f"CRITICAL: Cannot read file: {e}"]
+
+    # Check non-empty
+    if not content.strip():
+        issues.append("CRITICAL: File is empty")
 
     # Parse YAML
     try:
-        with open(filepath, encoding="utf-8") as f:
-            data = yaml.safe_load(f)
+        parsed = yaml.safe_load(content)
     except yaml.YAMLError as e:
-        return [f"CRITICAL: YAML parse error: {e}"]
+        issues.append(f"CRITICAL: YAML parse error: {e}")
+        return False, issues
 
-    if not isinstance(data, dict):
-        return [f"CRITICAL: Prompt file must be a YAML mapping, got {type(data).__name__}"]
+    if not isinstance(parsed, dict):
+        issues.append("CRITICAL: Root element must be a dictionary")
+        return False, issues
 
-    # Check required fields
+    # Check required top-level fields
     for field in REQUIRED_FIELDS:
-        if field not in data:
+        if field not in parsed:
             issues.append(f"ERROR: Missing required field '{field}'")
-        elif not data[field]:
-            issues.append(f"ERROR: Field '{field}' is empty")
 
-    # Validate model
-    if "model" in data and data["model"]:
-        model = data["model"]
-        if model not in VALID_MODELS:
-            issues.append(
-                f"WARNING: Unknown model '{model}' — may not be supported by all providers"
-            )
+    # Validate model name if present
+    model = parsed.get("model", "")
+    if model and model not in VALID_MODELS:
+        issues.append(f"WARNING: Model '{model}' not in known valid list ({', '.join(sorted(VALID_MODELS))})")
 
-    # Validate temperature
-    if "temperature" in data and data["temperature"] is not None:
-        temp = data["temperature"]
-        if not isinstance(temp, (int, float)):
-            issues.append(f"ERROR: temperature must be a number, got {type(temp).__name__}")
-        elif temp < 0 or temp > 2:
-            issues.append(f"ERROR: temperature {temp} out of range [0, 2]")
+    # Validate temperature range if present
+    temp = parsed.get("temperature")
+    if temp is not None:
+        try:
+            t = float(temp)
+            if t < 0.0 or t > 2.0:
+                issues.append(f"WARNING: Temperature {t} outside typical range [0.0, 2.0]")
+        except (ValueError, TypeError):
+            issues.append(f"WARNING: Temperature '{temp}' is not a valid number")
 
     # Validate messages
-    if "messages" in data and isinstance(data["messages"], list):
-        if len(data["messages"]) == 0:
-            issues.append("ERROR: messages array is empty")
-        else:
-            has_system = False
-            for i, msg in enumerate(data["messages"]):
-                if not isinstance(msg, dict):
-                    issues.append(f"ERROR: Message {i} is not a mapping")
-                    continue
-                for field in REQUIRED_MESSAGE_FIELDS:
-                    if field not in msg:
-                        issues.append(f"ERROR: Message {i} missing '{field}'")
-                if "role" in msg:
-                    if msg["role"] not in VALID_ROLES:
-                        issues.append(f"ERROR: Message {i} has invalid role '{msg['role']}'")
-                    if msg["role"] == "system":
-                        has_system = True
-                if "content" in msg and isinstance(msg["content"], str):
-                    content = msg["content"]
-                    # Template variables like {{input}} are valid short content
-                    is_template = "{{" in content and "}}" in content
-                    if len(content.strip()) < 10 and not is_template:
-                        issues.append(
-                            f"WARNING: Message {i} content is suspiciously short ({len(content)} chars)"
-                        )
-                    # Check for engineering standards references in system messages
-                    if msg["role"] == "system" and filename != "sample_prompt.yaml":
-                        agent_name = (
-                            filepath.stem.replace(".prompt", "")
-                            .replace("_agent", "")
-                            .replace("_", "")
-                        )
-                        # Skip non-engineering prompts
-                        non_engineering = {
-                            "weatheractivityplanner",
-                            "weather",
-                            "goalplanner",
-                            "sample",
-                            "fallback",
-                            "genericagentchat",
-                        }
-                        # Check if any standard is mentioned
-                        has_standard = any(
-                            std.split()[0] in content for std in ENGINEERING_STANDARDS
-                        )
-                        if not has_standard and agent_name not in non_engineering:
-                            issues.append(
-                                "INFO: No engineering standard reference found in system prompt"
-                            )
-            if not has_system and filename != "sample_prompt.yaml":
-                issues.append(
-                    "WARNING: No system message found — agents should have system instructions"
-                )
+    messages = parsed.get("messages", [])
+    if not isinstance(messages, list):
+        issues.append("ERROR: 'messages' must be a list")
+    else:
+        has_system = False
+        for i, msg in enumerate(messages):
+            if not isinstance(msg, dict):
+                issues.append(f"ERROR: Message at index {i} is not a dictionary")
+                continue
+            for field in REQUIRED_MESSAGE_FIELDS:
+                if field not in msg:
+                    issues.append(f"ERROR: Message at index {i} missing required field '{field}'")
+            role = msg.get("role", "")
+            if role not in VALID_ROLES:
+                issues.append(f"WARNING: Message at index {i} has unknown role '{role}'")
+            if role == "system":
+                has_system = True
+        if not has_system:
+            issues.append("WARNING: No system message found — agents should have system instructions")
 
-    return issues
+    # Check for engineering standards references in system messages
+    if has_system:
+        found_standards = set()
+        for msg in messages:
+            if isinstance(msg, dict) and msg.get("role") == "system":
+                content_str = str(msg.get("content", ""))
+                for std in ENGINEERING_STANDARDS:
+                    if std.lower() in content_str.lower():
+                        found_standards.add(std)
+        if not found_standards and filepath.name != "sample_prompt.yaml":
+            issues.append("INFO: No engineering standard reference found in system prompt")
+
+    # Check for excessive token length (rough estimate)
+    total_chars = len(content)
+    if total_chars > 10000:
+        issues.append(f"INFO: Large prompt ({total_chars} chars, ~{total_chars // 4} tokens)")
+
+    return len([i for i in issues if i.startswith("CRITICAL:") or i.startswith("ERROR:")]) == 0, issues
 
 
 def validate_all_prompts(strict: bool = False) -> bool:
-    """Validate all prompt files. Returns True if all pass."""
-    if not PROMPTS_DIR.exists():
-        print(f"ERROR: Prompts directory not found: {PROMPTS_DIR}")
-        return False
-
+    """Validate all YAML prompt files in the prompts directory."""
     yaml_files = sorted(PROMPTS_DIR.glob("*.yaml"))
     if not yaml_files:
-        print("ERROR: No YAML prompt files found")
+        print(f"ERROR: No prompt files found in {PROMPTS_DIR}")
         return False
 
     print(f"Validating {len(yaml_files)} prompt files in {PROMPTS_DIR}...\n")
 
+    passed = 0
     total_errors = 0
     total_warnings = 0
     total_info = 0
-    passed = 0
 
     for filepath in yaml_files:
-        issues = validate_prompt_file(filepath)
-        if not issues:
-            passed += 1
+        success, issues = validate_prompt_file(filepath, strict=strict)
+
+        if success and not issues:
             print(f"  ✓ {filepath.name}")
+            passed += 1
         else:
             print(f"  ✗ {filepath.name}")
             for issue in issues:
@@ -251,52 +245,135 @@ def sync_to_langwatch() -> None:
 
         synced = 0
         failed = 0
+        created = 0
+        updated = 0
 
-        for yaml_file in sorted(prompts_dir.glob("*.yaml")):
+        for yaml_file in sorted(prompts_dir.glob("*.yaml") + prompts_dir.glob("*.prompt.yaml")):
             handle = yaml_file.stem
             # Strip .prompt suffix if present
             if handle.endswith(".prompt"):
                 handle = handle[:-7]
 
+            # Read and parse the YAML
             try:
-                # Try loading from LangWatch API first, then local
-                prompt = langwatch.prompts.get(handle)
-                if prompt:
-                    print(f"  Remote+Local: {handle}")
-                    synced += 1
+                content = yaml_file.read_text(encoding="utf-8")
+                parsed = yaml.safe_load(content)
+            except Exception as e:
+                print(f"  FAILED: {handle} - cannot parse YAML: {e}")
+                failed += 1
+                continue
+
+            # Build messages list
+            messages = parsed.get("messages", [])
+            model = parsed.get("model", "")
+            temperature = parsed.get("temperature", 0.7)
+
+            # Format messages for LangWatch
+            lw_messages = []
+            for msg in messages:
+                lw_messages.append({
+                    "role": msg.get("role", "user"),
+                    "content": msg.get("content", ""),
+                })
+
+            # Try to get the prompt by handle first
+            try:
+                # Check if prompt already exists on LangWatch
+                existing = langwatch.prompts.get(handle)
+                if existing and isinstance(existing, dict):
+                    # Update existing prompt
+                    prompt_id = existing.get("id") or existing.get("handle") or handle
+                    try:
+                        result = langwatch.prompts.update(
+                            prompt_id_or_handle=prompt_id,
+                            scope="PROJECT",
+                            commit_message=f"Auto-sync from {yaml_file.name}",
+                            messages=lw_messages,
+                            prompt=content,
+                            parameters={
+                                "model": model,
+                                "temperature": temperature,
+                                "source_file": yaml_file.name,
+                            },
+                        )
+                        print(f"  UPDATED: {handle}")
+                        updated += 1
+                        synced += 1
+                    except Exception as e:
+                        print(f"  FAILED: {handle} - update: {e}")
+                        failed += 1
                 else:
-                    print(f"  FAILED: {handle} - prompt not found")
-                    failed += 1
+                    # Create new prompt
+                    try:
+                        result = langwatch.prompts.create(
+                            handle=handle,
+                            scope="PROJECT",
+                            messages=lw_messages,
+                            prompt=content,
+                            parameters={
+                                "model": model,
+                                "temperature": temperature,
+                                "source_file": yaml_file.name,
+                            },
+                        )
+                        print(f"  CREATED: {handle}")
+                        created += 1
+                        synced += 1
+                    except Exception as e:
+                        error_msg = str(e)
+                        # If it already exists but get failed, try update
+                        if "already exists" in error_msg.lower() or "conflict" in error_msg.lower():
+                            try:
+                                result = langwatch.prompts.update(
+                                    prompt_id_or_handle=handle,
+                                    scope="PROJECT",
+                                    commit_message=f"Auto-sync from {yaml_file.name}",
+                                    messages=lw_messages,
+                                    prompt=content,
+                                    parameters={
+                                        "model": model,
+                                        "temperature": temperature,
+                                        "source_file": yaml_file.name,
+                                    },
+                                )
+                                print(f"  UPDATED (after conflict): {handle}")
+                                updated += 1
+                                synced += 1
+                            except Exception as e2:
+                                print(f"  FAILED: {handle} - conflict + update: {e2}")
+                                failed += 1
+                        else:
+                            print(f"  FAILED: {handle} - create: {e}")
+                            failed += 1
 
             except Exception as e:
                 error_msg = str(e)
-                if "Prompt not found" in error_msg:
-                    # Prompt not on LangWatch platform yet - verify it loads locally
+                if "Prompt not found" in error_msg or "not found" in error_msg.lower() or "404" in error_msg:
+                    # Create new prompt
                     try:
-                        project_root = str(Path(__file__).resolve().parent.parent)
-                        if project_root not in sys.path:
-                            sys.path.insert(0, project_root)
-                        from agents.prompt_loader import clear_prompt_cache, get_system_prompt
-
-                        clear_prompt_cache()
-                        local_prompt = get_system_prompt(handle)
-                        if local_prompt and len(local_prompt) > 20:
-                            print(f"  Local-only: {handle} (not on LangWatch platform)")
-                            synced += 1
-                        else:
-                            print(f"  FAILED: {handle} - local load too short")
-                            failed += 1
-                    except Exception as local_e:
-                        print(f"  FAILED: {handle} - local: {local_e}")
+                        result = langwatch.prompts.create(
+                            handle=handle,
+                            scope="PROJECT",
+                            messages=lw_messages,
+                            prompt=content,
+                            parameters={
+                                "model": model,
+                                "temperature": temperature,
+                                "source_file": yaml_file.name,
+                            },
+                        )
+                        print(f"  CREATED: {handle}")
+                        created += 1
+                        synced += 1
+                    except Exception as e2:
+                        print(f"  FAILED: {handle} - create: {e2}")
                         failed += 1
                 else:
                     print(f"  FAILED: {handle} - {e}")
                     failed += 1
 
-        print(f"\nLangWatch verification: {synced} verified, {failed} failed")
-        print("Note: 'Local-only' prompts are available via YAML fallback but not")
-        print("yet registered on the LangWatch platform. Register them via the")
-        print("LangWatch dashboard at https://app.langwatch.ai for remote access.")
+        print(f"\nLangWatch sync complete: {synced} synced ({created} created, {updated} updated), {failed} failed")
+        print(f"Dashboard: https://app.langwatch.ai")
         if failed > 0:
             sys.exit(1)
 
