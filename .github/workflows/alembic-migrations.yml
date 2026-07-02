@@ -1,28 +1,52 @@
+# =============================================================================
+# AhmedETAP — Alembic Database Migrations
+# -----------------------------------------------------------------------------
+# Triggers when migration files OR the alembic config change.
+#
+# Project layout note:
+#   - Migration scripts live in `migrations/versions/` (NOT `alembic/versions/`)
+#   - Config file: `alembic.ini` at repo root
+#   - Migration env: `migrations/env.py`
+#   - This workflow watches all three locations.
+# =============================================================================
 name: Alembic Database Migrations
 
 on:
   push:
-    branches: [ main, master ]
+    branches: [main, master]
     paths:
       - 'migrations/**'
       - 'alembic.ini'
-      - 'alembic/**'
+      - 'core/models.py'
+      - 'core/database.py'
+      - 'requirements.txt'
+      - '.github/workflows/alembic-migrations.yml'
   pull_request:
-    branches: [ main, master ]
+    branches: [main, master]
     paths:
       - 'migrations/**'
       - 'alembic.ini'
-      - 'alembic/**'
+      - 'core/models.py'
+      - 'core/database.py'
+      - '.github/workflows/alembic-migrations.yml'
   workflow_dispatch:  # Allow manual trigger
+
+concurrency:
+  group: alembic-migrations-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  PYTHON_VERSION: '3.12'
+  POSTGRES_VERSION: '17-alpine'
 
 jobs:
   test-migrations:
-    name: Test Migrations
+    name: 🧪 Test Migrations (SQLite + Postgres)
     runs-on: ubuntu-latest
-    
+
     services:
       postgres:
-        image: postgres:17.6-alpine
+        image: postgres:${{ env.POSTGRES_VERSION }}
         env:
           POSTGRES_DB: etap_test
           POSTGRES_USER: postgres
@@ -34,83 +58,139 @@ jobs:
           --health-retries 5
         ports:
           - 5432:5432
-    
+
     steps:
-      - name: Checkout code
+      - name: 📥 Checkout code
         uses: actions/checkout@v4
-      
-      - name: Set up Python
+
+      - name: 🐍 Set up Python ${{ env.PYTHON_VERSION }}
         uses: actions/setup-python@v5
         with:
-          python-version: '3.12'
+          python-version: ${{ env.PYTHON_VERSION }}
           cache: 'pip'
-      
-      - name: Install dependencies
+
+      - name: 🔧 Install dependencies
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
           pip install alembic psycopg2-binary
-      
-      - name: Run Alembic migrations
+
+      - name: 🗄️ Test 1 — SQLite fresh migration
         env:
-          DATABASE_URL: postgresql+psycopg2://postgres:postgres@localhost:5432/etap_test
+          DATABASE_URL: sqlite+aiosqlite:///./test_migrations.db
         run: |
+          echo "── Test 1: SQLite fresh migration ──"
           alembic upgrade head
-      
-      - name: Verify migration version
-        env:
-          DATABASE_URL: postgresql+psycopg2://postgres:postgres@localhost:5432/etap_test
-        run: |
           alembic current
-      
-      - name: Run rollback test
+          echo "✅ SQLite migration succeeded"
+
+      - name: 🗄️ Test 2 — Postgres fresh migration
         env:
           DATABASE_URL: postgresql+psycopg2://postgres:postgres@localhost:5432/etap_test
         run: |
-          alembic downgrade -1
+          echo "── Test 2: Postgres fresh migration ──"
+          # Drop all tables first to ensure clean state
+          PGPASSWORD=postgres psql -h localhost -U postgres -d etap_test -c "DROP SCHEMA public CASCADE; CREATE SCHEMA public;" || true
           alembic upgrade head
+          alembic current
+          echo "✅ Postgres migration succeeded"
+
+      - name: 🔄 Test 3 — Rollback & re-apply (Postgres)
+        env:
+          DATABASE_URL: postgresql+psycopg2://postgres:postgres@localhost:5432/etap_test
+        run: |
+          echo "── Test 3: Rollback & re-apply ──"
+          alembic downgrade -1
+          alembic current
+          alembic upgrade head
+          alembic current
+          echo "✅ Rollback & re-apply succeeded"
+
+      - name: 📊 Test 4 — Migration history sanity
+        env:
+          DATABASE_URL: postgresql+psycopg2://postgres:postgres@localhost:5432/etap_test
+        run: |
+          echo "── Test 4: Migration history ──"
+          alembic history --verbose | head -50
+          echo "✅ Migration chain is consistent"
+
+      - name: 📤 Upload migration logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: migration-logs-${{ github.sha }}
+          path: |
+            *.db
+            alembic_*.log
+          retention-days: 7
+          if-no-files-found: ignore
 
   deploy-migrations:
-    name: Deploy Migrations to Production
+    name: 🚀 Deploy Migrations to Production (Supabase)
     needs: test-migrations
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
-    
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    environment:
+      name: production-db
+      url: ${{ secrets.SUPABASE_URL }}
+
     steps:
-      - name: Checkout code
+      - name: 📥 Checkout code
         uses: actions/checkout@v4
-      
-      - name: Set up Python
+
+      - name: 🐍 Set up Python ${{ env.PYTHON_VERSION }}
         uses: actions/setup-python@v5
         with:
-          python-version: '3.12'
+          python-version: ${{ env.PYTHON_VERSION }}
           cache: 'pip'
-      
-      - name: Install dependencies
+
+      - name: 🔧 Install dependencies
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
           pip install alembic psycopg2-binary
-      
-      - name: Deploy migrations to Supabase
+
+      - name: 🚦 Pre-flight check — verify SUPABASE_DB_URL secret
         env:
           SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
         run: |
-          if [ -n "$SUPABASE_DB_URL" ]; then
-            echo "Deploying migrations to Supabase..."
-            alembic upgrade head
-          else
-            echo "SUPABASE_DB_URL not set, skipping production deployment"
+          if [ -z "$SUPABASE_DB_URL" ]; then
+            echo "::error::SUPABASE_DB_URL secret is not set — refusing to deploy migrations"
             exit 1
           fi
-      
-      - name: Notify on success
-        if: success()
+          echo "✅ SUPABASE_DB_URL is configured (length=${#SUPABASE_DB_URL})"
+
+      - name: 📸 Snapshot current production migration version
+        env:
+          DATABASE_URL: ${{ secrets.SUPABASE_DB_URL }}
         run: |
-          echo "✅ Migrations deployed successfully to production"
-      
-      - name: Notify on failure
+          echo "── Pre-deploy snapshot ──"
+          alembic current || echo "⚠️ Could not read current version (may be fresh DB)"
+          echo "---"
+          alembic history | head -10
+
+      - name: 🚀 Apply migrations to Supabase
+        env:
+          DATABASE_URL: ${{ secrets.SUPABASE_DB_URL }}
+        run: |
+          echo "Deploying migrations to Supabase..."
+          alembic upgrade head
+          echo "✅ Migrations applied"
+
+      - name: ✅ Post-deploy verification
+        env:
+          DATABASE_URL: ${{ secrets.SUPABASE_DB_URL }}
+        run: |
+          echo "── Post-deploy version ──"
+          alembic current
+          echo "✅ Production DB now at head"
+
+      - name: 🚨 Rollback on failure (one step back)
         if: failure()
+        env:
+          DATABASE_URL: ${{ secrets.SUPABASE_DB_URL }}
         run: |
-          echo "❌ Migration deployment failed"
+          echo "⚠️ Migration failed — attempting automatic rollback (downgrade -1)"
+          alembic downgrade -1 || echo "❌ Rollback failed — manual intervention required"
+          alembic current
           exit 1

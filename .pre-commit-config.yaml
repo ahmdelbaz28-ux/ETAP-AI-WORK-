@@ -6,11 +6,63 @@ repos:
       - id: trailing-whitespace
       - id: end-of-file-fixer
       - id: check-yaml
-        files: ^prompts/.*\.yaml$
+        # Validate ALL yaml files (workflows + prompts + config)
+        files: \.(yaml|yml)$
+        # Allow files with multi-doc YAML (like CI configs sometimes use)
+        args: [--allow-multiple-documents]
       - id: check-added-large-files
+        args: [--maxkb=1024]  # Block files >1MB
       - id: check-merge-conflict
       - id: detect-private-key
+      - id: check-toml
+      - id: check-json
+        # Skip known-broken JSON files (e.g., search indexes)
+        exclude: |
+          (?x)^(
+            ui/src/components/command/search-index-data.json|
+            ui/src/help/search-index.json|
+            qgis_complete_documentation_index.json|
+            qgis_scada_layer.py|
+            arcgis_pro_sdk_repositories_analysis.json|
+            etap_user_guide/extraction_summary.json|
+            zenon_user_guide/extraction_summary.json|
+            benchmarks/benchmark-report.json|
+            benchmarks/zbus_lu_comparison.json
+          )$
+      - id: check-case-conflict
+      - id: check-shebang-scripts-are-executable
 
+  # ── Stage 2: Secret Detection (CRITICAL — must run before push) ───
+  - repo: https://github.com/trufflesecurity/trufflehog
+    rev: v3.83.6
+    hooks:
+      - id: trufflehog
+        name: 🔍 TruffleHog secret scan (verified)
+        # Only fail on VERIFIED secrets (real, reachable credentials)
+        # Unverified secrets produce warnings, not failures
+        args: ['--no-update', '--only-verified', '--results=verified,unknown,verified_api']
+        # Scan only the diff (the changed lines), not the entire repo
+        pass_filenames: false
+        always_run: true
+
+  - repo: https://github.com/Yelp/detect-secrets
+    rev: v1.5.0
+    hooks:
+      - id: detect-secrets
+        name: 🔍 detect-secrets (baseline + new)
+        args: ['--baseline', '.secrets.baseline']
+        # Generate baseline: detect-secrets scan > .secrets.baseline
+        # (run once to establish known-safe state)
+        exclude: |
+          (?x)^(
+            \.git/.*|
+            package-lock\.json|
+            pnpm-lock\.yaml|
+            ui/package-lock\.json|
+            \.secrets\.baseline
+          )$
+
+  # ── Stage 3: Python Linting ────────────────────────────────────────
   - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: v0.6.0
     hooks:
@@ -18,7 +70,29 @@ repos:
         args: [--fix]
       - id: ruff-format
 
-  # ── Stage 2: Type Checking (manual only — requires pyright installed) ──
+  # ── Stage 4: Python Security (Bandit) ─────────────────────────────
+  - repo: https://github.com/PyCQA/bandit
+    rev: 1.7.10
+    hooks:
+      - id: bandit
+        name: 🛡️ Bandit SAST scan
+        args:
+          - --ini
+          - .bandit
+          - -ll  # Medium+High severity only
+          - -ii  # Medium+High confidence only
+        # Skip tests + benchmarks + virtualenvs
+        exclude: |
+          (?x)^(
+            tests/.*|
+            benchmarks/.*|
+            acp_runtime/acp_tests/.*|
+            testsprite_tests/.*|
+            \.venv/.*|
+            venv/.*
+          )$
+
+  # ── Stage 5: Type Checking (manual only — requires pyright installed) ──
   - repo: local
     hooks:
       - id: type-check
@@ -29,7 +103,7 @@ repos:
         pass_filenames: false
         stages: [manual]
 
-  # ── Stage 3: Fast Tests ────────────────────────────────────────────
+  # ── Stage 6: Fast Tests ────────────────────────────────────────────
   - repo: local
     hooks:
       - id: fast-tests
@@ -40,7 +114,7 @@ repos:
         pass_filenames: false
         stages: [push]
 
-  # ── Stage 4: Skill Schema Validation ────────────────────────────────
+  # ── Stage 7: Skill Schema Validation ────────────────────────────────
   - repo: local
     hooks:
       - id: validate-skill-schema
@@ -50,7 +124,7 @@ repos:
         pass_filenames: false
         files: ^skills/.*\.py$
 
-  # ── Stage 5: Prompt Validation ─────────────────────────────────────
+  # ── Stage 8: Prompt Validation ─────────────────────────────────────
   - repo: local
     hooks:
       - id: validate-prompts
@@ -60,7 +134,7 @@ repos:
         files: ^prompts/.*\.yaml$
         pass_filenames: false
 
-  # ── Stage 6: Security Scan ────────────────────────────────────────
+  # ── Stage 9: Custom Security Scan ──────────────────────────────────
   - repo: local
     hooks:
       - id: security-scan

@@ -138,6 +138,9 @@ System Volume Information/
 .env
 .env.local
 .env.*.local
+.env.production
+.env.staging
+.env.development
 !.env.example
 
 # Secrets
@@ -146,12 +149,28 @@ System Volume Information/
 *.cert
 secrets/
 credentials/
+.secrets/
+**/.secrets/
 
 # API Keys (never commit)
 api_keys.json
 service-account.json
 *.secret
 jwt_key.txt
+**/github_pat.txt
+**/hf_token.txt
+**/supabase_key.txt
+
+# Local DB dumps / backups
+*.db
+*.sqlite
+*.sqlite3
+*.db-journal
+*.db-shm
+*.db-wal
+backups/
+*.bak
+
 
 # ==========================================
 # Logs

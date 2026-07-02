@@ -69,9 +69,9 @@ jobs:
         run: npx tsc --noEmit 2>&1 || echo "::warning::TypeScript check failed but continuing"
 
       - name: Install pnpm
-        uses: pnpm/action-setup@v3
+        uses: pnpm/action-setup@v4
         with:
-          version: 8
+          version: 9
 
       - name: Install root dependencies
         run: pnpm install --no-frozen-lockfile
@@ -359,12 +359,16 @@ jobs:
       - name: Deploy to Vercel Production
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-          VERCEL_ORG_ID: team_eeEYqzXI8zkrTo62cUOTMVmS
-          VERCEL_PROJECT_ID: prj_WucHqc3lQDwYe0i3ykgWz7UR5E3I
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
         run: |
           if [ -z "$VERCEL_TOKEN" ]; then
             echo "⚠️ VERCEL_TOKEN secret not set — skipping Vercel deployment"
             exit 0
+          fi
+          if [ -z "$VERCEL_ORG_ID" ] || [ -z "$VERCEL_PROJECT_ID" ]; then
+            echo "::error::VERCEL_ORG_ID and VERCEL_PROJECT_ID secrets are required but missing"
+            exit 1
           fi
           echo "🚀 Deploying to Vercel Production..."
           vercel --prod --token "$VERCEL_TOKEN" --yes
@@ -476,39 +480,37 @@ jobs:
           echo "   Branch:    ${{ github.ref_name }}"
 
   # ── 10. AUTO-UPDATE PROJECT INDEX ─────────────────────────────────────────────
+  # NOTE: The dedicated `.github/workflows/auto-index.yml` workflow handles this
+  # task with better path filtering and concurrency control. We keep a thin
+  # gate here so the CI/CD pipeline visibly reports index freshness, but the
+  # actual commit + push is delegated to auto-index.yml to avoid duplicate
+  # commits racing on the same branch.
   update-index:
-    name: 📋 Update Project Index
+    name: 📋 Verify Project Index Freshness
     runs-on: ubuntu-latest
     needs: health-check
     if: github.ref == 'refs/heads/main'
     permissions:
-      contents: write
+      contents: read
 
     steps:
       - uses: actions/checkout@v4
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
 
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ env.PYTHON_VERSION }}
 
-      - name: Regenerate project index
+      - name: Regenerate project index (in-place, no commit)
         run: python indexer.py
 
-      - name: Commit updated index
+      - name: Check for drift (non-blocking)
         run: |
-          git config user.name  "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
           if [ -f PROJECT_INDEX.json ] || [ -f PROJECT_INDEX.md ]; then
-            git add PROJECT_INDEX.json PROJECT_INDEX.md 2>/dev/null || true
-            if ! git diff --cached --quiet; then
-              git commit -m "chore(index): auto-update @ ${{ github.sha }} [skip ci]"
-              git push 2>&1 || echo "::warning::Index push failed (may be race condition)"
-              echo "Index updated and pushed."
+            if ! git diff --quiet -- PROJECT_INDEX.json PROJECT_INDEX.md 2>/dev/null; then
+              echo "::warning::Project index is stale — auto-index.yml workflow will commit it on the next run"
             else
-              echo "No index changes detected — skipping commit."
+              echo "✅ Project index is fresh"
             fi
           else
-            echo "::warning::Index files not found — skipping commit."
+            echo "::warning::Index files not found"
           fi

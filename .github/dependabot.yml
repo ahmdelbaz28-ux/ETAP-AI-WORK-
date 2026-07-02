@@ -19,6 +19,12 @@ updates:
     commit-message:
       prefix: "deps(pip)"
       include: "scope"
+    # Auto-merge ONLY patch updates (semver-safe) after CI passes.
+    # Minor/major updates require manual review.
+    auto-merge:
+      enabled: true
+      allow:
+        - update-type: "patch"
     # Group related updates into single PRs for easier review
     groups:
       scientific:
@@ -71,6 +77,10 @@ updates:
     commit-message:
       prefix: "deps(npm)"
       include: "scope"
+    auto-merge:
+      enabled: true
+      allow:
+        - update-type: "patch"
     groups:
       mastra:
         patterns:
@@ -123,6 +133,10 @@ updates:
     commit-message:
       prefix: "deps(ui)"
       include: "scope"
+    auto-merge:
+      enabled: true
+      allow:
+        - update-type: "patch"
     groups:
       react-ecosystem:
         patterns:
@@ -165,6 +179,10 @@ updates:
       - "docker"
     reviewers:
       - "ahmdelbaz28"
+    auto-merge:
+      enabled: true
+      allow:
+        - update-type: "patch"
 
   # ───────────────────────────────────────────────────────────
   # GitHub Actions
@@ -185,3 +203,7 @@ updates:
     commit-message:
       prefix: "ci(deps)"
       include: "scope"
+    auto-merge:
+      enabled: true
+      allow:
+        - update-type: "patch"
