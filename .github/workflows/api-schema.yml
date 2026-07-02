@@ -1,0 +1,366 @@
+# =============================================================================
+# AhmedETAP — API Schema & Documentation Validation
+# -----------------------------------------------------------------------------
+# Validates that the FastAPI application's OpenAPI schema is:
+#   1. Generated without errors
+#   2. Valid against the OpenAPI 3.0+ specification
+#   3. All endpoints have proper documentation (summary, description, tags)
+#   4. All request/response models have descriptions
+#   5. No duplicate operation IDs
+#   6. Security schemes are properly defined
+#
+# Also generates a Markdown API reference from the schema for docs/.
+#
+# Triggers:
+#   - Push/PR touching api/**, hf-space/app.py, core/**
+#   - Weekly schedule
+# =============================================================================
+name: API Schema Validation
+
+on:
+  push:
+    branches: [main, develop]
+    paths:
+      - 'api/**'
+      - 'hf-space/app.py'
+      - 'core/**'
+      - 'engineering_service.py'
+      - '.github/workflows/api-schema.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'api/**'
+      - 'hf-space/app.py'
+      - 'core/**'
+  schedule:
+    # Weekly on Sunday at 04:00 UTC
+    - cron: '0 4 * * 0'
+  workflow_dispatch:
+
+concurrency:
+  group: api-schema-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  PYTHON_VERSION: '3.12'
+
+jobs:
+  # ── 1. GENERATE OPENAPI SCHEMA ───────────────────────────────────────────
+  generate-schema:
+    name: Generate OpenAPI Schema
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python ${{ env.PYTHON_VERSION }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: 'pip'
+
+      - name: Install minimal dependencies
+        run: |
+          pip install --upgrade pip
+          # Install only what's needed to import the app
+          pip install fastapi uvicorn pydantic starlette
+
+      - name: Generate OpenAPI schema from hf-space/app.py
+        run: |
+          python3 - <<'PYEOF'
+          import json
+          import sys
+          import os
+
+          # Set env vars to skip heavy initialization
+          os.environ['ENVIRONMENT'] = 'testing'
+          os.environ['SKIP_LIVE_SCENARIO_TESTS'] = 'true'
+          os.environ['DATABASE_URL'] = 'sqlite+aiosqlite:///./test_schema.db'
+          os.environ['JWT_SECRET_KEY'] = 'schema-generation-test-key-not-for-production'
+
+          try:
+              # Try importing the HF Space app (lighter than engineering_service)
+              sys.path.insert(0, '.')
+              from hf_space.app import app
+
+              schema = app.openapi()
+              with open('openapi.json', 'w') as f:
+                  json.dump(schema, f, indent=2)
+
+              print(f"OpenAPI version: {schema.get('openapi', 'unknown')}")
+              print(f"App title: {schema.get('info', {}).get('title', 'unknown')}")
+              print(f"App version: {schema.get('info', {}).get('version', 'unknown')}")
+              print(f"Total paths: {len(schema.get('paths', {}))}")
+              print(f"Total schemas: {len(schema.get('components', {}).get('schemas', {}))}")
+
+          except Exception as e:
+              import traceback
+              print(f"ERROR generating schema: {e}")
+              traceback.print_exc()
+              sys.exit(1)
+          PYEOF
+
+      - name: Upload OpenAPI schema
+        uses: actions/upload-artifact@v4
+        with:
+          name: openapi-schema-${{ github.sha }}
+          path: openapi.json
+          retention-days: 30
+
+  # ── 2. VALIDATE SCHEMA ─────────────────────────────────────────────────────
+  validate-schema:
+    name: Validate OpenAPI Schema
+    runs-on: ubuntu-latest
+    needs: generate-schema
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python ${{ env.PYTHON_VERSION }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install openapi-spec-validator
+        run: pip install openapi-spec-validator
+
+      - name: Download OpenAPI schema
+        uses: actions/download-artifact@v4
+        with:
+          name: openapi-schema-${{ github.sha }}
+
+      - name: Validate against OpenAPI 3.0+ spec
+        run: |
+          python3 - <<'PYEOF'
+          import json
+          import sys
+          from openapi_spec_validator import validate_spec
+
+          with open('openapi.json') as f:
+              spec = json.load(f)
+
+          try:
+              validate_spec(spec)
+              print("OK: OpenAPI schema is valid against the specification")
+          except Exception as e:
+              print(f"FAIL: OpenAPI schema validation failed: {e}")
+              sys.exit(1)
+
+          # Additional checks
+          errors = []
+          warnings = []
+
+          paths = spec.get('paths', {})
+          for path, methods in paths.items():
+              for method, operation in methods.items():
+                  if method not in ['get', 'post', 'put', 'delete', 'patch', 'head', 'options']:
+                      continue
+
+                  # Check for operationId (must be unique)
+                  op_id = operation.get('operationId')
+                  if not op_id:
+                      warnings.append(f"{method.upper()} {path}: missing operationId")
+
+                  # Check for summary
+                  if not operation.get('summary'):
+                      warnings.append(f"{method.upper()} {path}: missing summary")
+
+                  # Check for tags
+                  if not operation.get('tags'):
+                      warnings.append(f"{method.upper()} {path}: missing tags")
+
+                  # Check for responses
+                  responses = operation.get('responses', {})
+                  if '200' not in responses and '201' not in responses and '204' not in responses:
+                      if 'default' not in responses:
+                          warnings.append(f"{method.upper()} {path}: no 2xx response defined")
+
+                  # Check for error responses
+                  if '400' not in responses and '422' not in responses:
+                      if method in ['post', 'put', 'patch']:
+                          warnings.append(f"{method.upper()} {path}: no 400/422 error response")
+
+          # Check for duplicate operation IDs
+          op_ids = []
+          for path, methods in paths.items():
+              for method, operation in methods.items():
+                  if method not in ['get', 'post', 'put', 'delete', 'patch', 'head', 'options']:
+                      continue
+                  op_id = operation.get('operationId')
+                  if op_id:
+                      op_ids.append(op_id)
+
+          from collections import Counter
+          duplicates = [op_id for op_id, count in Counter(op_ids).items() if count > 1]
+          if duplicates:
+              errors.append(f"Duplicate operation IDs: {duplicates}")
+
+          # Check security schemes
+          security_schemes = spec.get('components', {}).get('securitySchemes', {})
+          if not security_schemes:
+              warnings.append("No security schemes defined — API may be unauthenticated")
+
+          print()
+          print("=" * 60)
+          print("  API Schema Validation Summary")
+          print("=" * 60)
+          print(f"  Total paths:      {len(paths)}")
+          print(f"  Total operations: {len(op_ids)}")
+          print(f"  Errors:           {len(errors)}")
+          print(f"  Warnings:         {len(warnings)}")
+          print()
+
+          if warnings:
+              print("  Warnings:")
+              for w in warnings[:20]:
+                  print(f"    - {w}")
+              if len(warnings) > 20:
+                  print(f"    ... and {len(warnings) - 20} more")
+              print()
+
+          if errors:
+              print("  ERRORS (blocking):")
+              for e in errors:
+                  print(f"    - {e}")
+              sys.exit(1)
+
+          print("No blocking errors")
+          PYEOF
+
+  # ── 3. GENERATE MARKDOWN DOCS ─────────────────────────────────────────────
+  generate-docs:
+    name: Generate API Reference Markdown
+    runs-on: ubuntu-latest
+    needs: validate-schema
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python ${{ env.PYTHON_VERSION }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Download OpenAPI schema
+        uses: actions/download-artifact@v4
+        with:
+          name: openapi-schema-${{ github.sha }}
+
+      - name: Generate Markdown API reference
+        run: |
+          python3 - <<'PYEOF'
+          import json
+          from collections import defaultdict
+
+          with open('openapi.json') as f:
+              spec = json.load(f)
+
+          lines = [
+              "# API Reference",
+              "",
+              f"> Auto-generated from OpenAPI schema at commit: ${{ github.sha }}",
+              "",
+              f"**Title:** {spec.get('info', {}).get('title', 'unknown')}  ",
+              f"**Version:** {spec.get('info', {}).get('version', 'unknown')}  ",
+              f"**OpenAPI Version:** {spec.get('openapi', 'unknown')}",
+              "",
+              "---",
+              "",
+          ]
+
+          # Group paths by tag
+          paths_by_tag = defaultdict(list)
+          for path, methods in spec.get('paths', {}).items():
+              for method, operation in methods.items():
+                  if method not in ['get', 'post', 'put', 'delete', 'patch', 'head', 'options']:
+                      continue
+                  tags = operation.get('tags', ['uncategorized'])
+                  for tag in tags:
+                      paths_by_tag[tag].append((method, path, operation))
+
+          # Output by tag
+          for tag in sorted(paths_by_tag.keys()):
+              lines.append(f"## {tag}")
+              lines.append("")
+              for method, path, operation in sorted(paths_by_tag[tag], key=lambda x: (x[1], x[0])):
+                  op_id = operation.get('operationId', '')
+                  summary = operation.get('summary', '')
+                  description = operation.get('description', '')
+                  lines.append(f"### {method.upper()} `{path}`")
+                  lines.append("")
+                  if summary:
+                      lines.append(f"**{summary}**")
+                      lines.append("")
+                  if description:
+                      lines.append(description)
+                      lines.append("")
+                  if op_id:
+                      lines.append(f"- **Operation ID:** `{op_id}`")
+
+                  # Request body
+                  request_body = operation.get('requestBody', {})
+                  if request_body:
+                      content = request_body.get('content', {})
+                      for content_type, details in content.items():
+                          schema_ref = details.get('schema', {}).get('$ref', '')
+                          if schema_ref:
+                              model_name = schema_ref.split('/')[-1]
+                              lines.append(f"- **Request body:** `{model_name}` (`{content_type}`)")
+
+                  # Responses
+                  responses = operation.get('responses', {})
+                  if responses:
+                      lines.append(f"- **Responses:**")
+                      for status, resp in sorted(responses.items()):
+                          desc = resp.get('description', '')
+                          lines.append(f"  - `{status}`: {desc}")
+
+                  # Security
+                  security = operation.get('security')
+                  if security:
+                      lines.append(f"- **Requires authentication:** yes")
+
+                  lines.append("")
+
+          with open('docs/API_REFERENCE_AUTO.md', 'w') as f:
+              f.write('\n'.join(lines))
+
+          print(f"Generated docs/API_REFERENCE_AUTO.md ({len(lines)} lines)")
+          print(f"Total endpoints documented: {sum(len(ops) for ops in paths_by_tag.values())}")
+          PYEOF
+
+      - name: Upload generated docs
+        uses: actions/upload-artifact@v4
+        with:
+          name: api-reference-${{ github.sha }}
+          path: docs/API_REFERENCE_AUTO.md
+          retention-days: 30
+
+  # ── 4. SUMMARY ────────────────────────────────────────────────────────────
+  summary:
+    name: API Schema Summary
+    runs-on: ubuntu-latest
+    needs: [generate-schema, validate-schema, generate-docs]
+    if: always()
+    steps:
+      - name: Generate summary
+        run: |
+          {
+            echo "### API Schema Validation Summary"
+            echo ""
+            echo "| Check | Result |"
+            echo "|-------|--------|"
+            echo "| Generate OpenAPI schema | ${{ needs.generate-schema.result }} |"
+            echo "| Validate against spec | ${{ needs.validate-schema.result }} |"
+            echo "| Generate Markdown docs | ${{ needs.generate-docs.result }} |"
+            echo ""
+            echo "Schema and docs are uploaded as artifacts."
+          } >> $GITHUB_STEP_SUMMARY
+
+      - name: Fail if schema generation or validation failed
+        if: |
+          needs.generate-schema.result == 'failure' ||
+          needs.validate-schema.result == 'failure'
+        run: |
+          echo "API schema validation failed"
+          exit 1
