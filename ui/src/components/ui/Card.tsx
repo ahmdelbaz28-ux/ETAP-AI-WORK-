@@ -36,9 +36,9 @@ export function Card({ variant = 'default', padding = 'md', className, children,
   )
 }
 
-interface CardHeaderProps extends HTMLAttributes<HTMLDivElement> {
-  title: string
-  subtitle?: string
+interface CardHeaderProps extends Omit<HTMLAttributes<HTMLDivElement>, 'title'> {
+  title: ReactNode
+  subtitle?: ReactNode
   icon?: ReactNode
   action?: ReactNode
 }
