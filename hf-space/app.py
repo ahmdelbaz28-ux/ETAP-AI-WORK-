@@ -16,7 +16,7 @@ import time
 from contextlib import asynccontextmanager
 
 import uvicorn
-from fastapi import FastAPI, Request, WebSocket
+from fastapi import FastAPI, HTTPException, Request, WebSocket
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse, JSONResponse
 
@@ -157,7 +157,19 @@ async def auth_and_rate_limit(request: Request, call_next):
         # Alias the canonical key so verify_api_key (which reads HF_API_KEY
         # by default) picks it up without needing a separate secret.
         os.environ["HF_API_KEY"] = _eng_key
-    verify_api_key(request)
+    # NOTE: verify_api_key() raises HTTPException(401) when auth fails.
+    # FastAPI's @app.middleware("http") does NOT automatically convert
+    # HTTPException into proper JSON responses — it lets the exception
+    # propagate to Starlette's error handler which returns HTTP 500.
+    # We must catch it here and return the correct JSONResponse ourselves.
+    try:
+        verify_api_key(request)
+    except HTTPException as exc:
+        return JSONResponse(
+            status_code=exc.status_code,
+            content={"detail": exc.detail},
+            headers=getattr(exc, "headers", None),
+        )
     # Rate limit (skip health/docs)
     if request.url.path not in PUBLIC_PATHS:
         client_id = request.client.host if request.client else "unknown"
