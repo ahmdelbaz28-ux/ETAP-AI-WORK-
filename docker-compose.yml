@@ -5,6 +5,16 @@ services:
       dockerfile: Dockerfile.engineering-service
     ports:
       - "8000:8000"
+    restart: unless-stopped
+    # Security: run as non-root, drop all capabilities, read-only root FS
+    user: "1000:1000"
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    read_only: false  # /tmp needs to be writable for SQLite
+    tmpfs:
+      - /tmp:size=256m
     environment:
       - REDIS_URL=redis://:${REDIS_PASSWORD:?REDIS_PASSWORD is required}@redis:6379/0
       - USE_ETAP=${USE_ETAP:-false}
@@ -19,20 +29,32 @@ services:
         condition: service_healthy
     volumes:
       - etap_data:/data
-      - ./engineering_service.py:/app/engineering_service.py
-      - ./core:/app/core
-      - ./services:/app/services
-      - ./api:/app/api
-      - ./etap_integration:/app/etap_integration
-      - ./worker:/app/worker
+      - ./engineering_service.py:/app/engineering_service.py:ro
+      - ./core:/app/core:ro
+      - ./services:/app/services:ro
+      - ./api:/app/api:ro
+      - ./etap_integration:/app/etap_integration:ro
+      - ./worker:/app/worker:ro
     networks:
       - etap_network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/healthz"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
 
   celery-worker:
     build:
       context: .
       dockerfile: Dockerfile.engineering-service
     command: celery -A worker.celery_app worker --loglevel=info
+    restart: unless-stopped
+    user: "1000:1000"
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
     environment:
       - REDIS_URL=redis://:${REDIS_PASSWORD:?REDIS_PASSWORD is required}@redis:6379/0
       - USE_ETAP=${USE_ETAP:-false}
@@ -45,18 +67,22 @@ services:
       engineering-service:
         condition: service_started
     volumes:
-      - ./worker:/app/worker
-      - ./core:/app/core
-      - ./services:/app/services
-      - ./api:/app/api
-      - ./etap_integration:/app/etap_integration
+      - ./worker:/app/worker:ro
+      - ./core:/app/core:ro
+      - ./services:/app/services:ro
+      - ./api:/app/api:ro
+      - ./etap_integration:/app/etap_integration:ro
     networks:
       - etap_network
 
   redis:
     image: redis:7-alpine
-    ports:
-      - "6379:6379"
+    restart: unless-stopped
+    # SECURITY: Do NOT expose Redis on the host in production.
+    # The 'ports' mapping is commented out — services on the etap_network
+    # can still reach Redis via 'redis:6379'. Uncomment ONLY for local dev.
+    # ports:
+    #   - "127.0.0.1:6379:6379"
     volumes:
       - redis_data:/data
     command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD:?REDIS_PASSWORD is required}
@@ -75,8 +101,11 @@ services:
       POSTGRES_DB: ${POSTGRES_DB:-etap_db}
       POSTGRES_USER: ${POSTGRES_USER:-etap}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
-    ports:
-      - "5432:5432"
+    # SECURITY: Do NOT expose Postgres on the host in production.
+    # The 'ports' mapping is commented out — services on the etap_network
+    # can still reach Postgres via 'postgres:5432'. Uncomment ONLY for local dev.
+    # ports:
+    #   - "127.0.0.1:5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
@@ -89,10 +118,16 @@ services:
 
   grafana:
     image: grafana/grafana-enterprise
+    restart: unless-stopped
+    # SECURITY: Bind to localhost only — use a reverse proxy (nginx) for
+    # remote access with TLS + auth. Uncomment for local dev if needed.
     ports:
-      - "3000:3000"
+      - "127.0.0.1:3000:3000"
     environment:
       - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD:?GRAFANA_ADMIN_PASSWORD is required}
+      - GF_USERS_ALLOW_SIGN_UP=false
+      - GF_SECURITY_DISABLE_GRAVATAR=true
+      - GF_AUTH_ANONYMOUS_ENABLED=false
     volumes:
       - grafana_storage:/var/lib/grafana
     networks:
@@ -104,9 +139,11 @@ services:
     image: qdrant/qdrant:latest
     container_name: etap-qdrant
     restart: always
+    # SECURITY: Bind to localhost only — Qdrant has no built-in auth UI
+    # and should not be exposed publicly.
     ports:
-      - "6333:6333"
-      - "6334:6334"
+      - "127.0.0.1:6333:6333"
+      - "127.0.0.1:6334:6334"
     volumes:
       - qdrant_storage:/qdrant/storage
     networks:
@@ -120,9 +157,12 @@ services:
     restart: always
     environment:
       - NEO4J_AUTH=neo4j/${NEO4J_PASSWORD:?NEO4J_PASSWORD is required}
+    # SECURITY: Bind to localhost only — use a reverse proxy for remote
+    # access. Neo4j's web UI (7474) and Bolt protocol (7687) should not
+    # be exposed publicly without TLS + auth proxy.
     ports:
-      - "7474:7474"
-      - "7687:7687"
+      - "127.0.0.1:7474:7474"
+      - "127.0.0.1:7687:7687"
     volumes:
       - neo4j_data:/data
       - neo4j_logs:/logs
