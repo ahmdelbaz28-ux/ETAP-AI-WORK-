@@ -48,13 +48,11 @@ export const CONFIG = {
  * dependency" followup below. To re-enable, add a new entry here and
  * set the corresponding wrangler secret.
  *
- * Clovie Router added 2026-07-01: OpenAI-compatible gateway that exposes
- * the MiMo model family (mimo-v2.5-pro, mimo-v2.5, mimo-v2-omni,
- * mimo-v2-pro, mimo-v2-flash). Compatible with Hermes, OpenClaw, Cline,
- * and Claude Code agent frameworks. Set CLOVIE_API_KEY + CLOVIE_BASE_URL
- * env vars to enable.
+ * NVIDIA NIM added 2026-07-01: Free-tier NVIDIA API for Llama, Mistral,
+ * and other open-source models. Set NVIDIA_API_KEY env var to enable.
+ * Default model: meta/llama-3.1-8b-instruct.
  */
-export const BUILTIN_PROVIDERS = ['nvidia', 'openai', 'clovie'] as const;
+export const BUILTIN_PROVIDERS = ['nvidia', 'openai'] as const;
 export type BuiltinProviderName = (typeof BUILTIN_PROVIDERS)[number];
 
 /**
@@ -64,7 +62,6 @@ export type BuiltinProviderName = (typeof BUILTIN_PROVIDERS)[number];
 export const BUILTIN_BASE_URLS: Readonly<Record<string, string>> = Object.freeze({
   nvidia: 'https://integrate.api.nvidia.com/v1',
   openai: 'https://api.openai.com/v1',
-  clovie: 'https://clovievalen-clovie-router.hf.space/v1',
 });
 
 /**
@@ -74,22 +71,7 @@ export const BUILTIN_BASE_URLS: Readonly<Record<string, string>> = Object.freeze
 export const BUILTIN_MODELS: Readonly<Record<string, string>> = Object.freeze({
   nvidia: 'meta/llama-3.1-8b-instruct',
   openai: 'gpt-4o-mini',
-  // MiMo v2-flash is the cheapest model — good default for cost-sensitive
-  // scenarios. Override with CLOVIE_MODEL env var to switch to a stronger one.
-  clovie: 'mimo-v2-flash',
 });
-
-/**
- * All MiMo models available via the Clovie Router gateway.
- * Use these when constructing user-facing model pickers.
- */
-export const CLOVIE_MIMO_MODELS = [
-  'mimo-v2.5-pro',   // Latest flagship — strongest reasoning
-  'mimo-v2.5',       // Latest balanced
-  'mimo-v2-omni',    // Multimodal (vision + text)
-  'mimo-v2-pro',     // Previous-gen pro
-  'mimo-v2-flash',   // Fastest, cheapest — default
-] as const;
 
 /**
  * API key scopes.
