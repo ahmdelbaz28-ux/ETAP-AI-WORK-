@@ -186,8 +186,13 @@ def test_hf_space_app_py_imports_cleanly():
 # ---------------------------------------------------------------------------
 
 
-def test_hf_space_chat_endpoint_returns_format_a():
+def test_hf_space_chat_endpoint_returns_format_a(monkeypatch):
     """HF Space chat endpoint must return Format A for a complete cable-sizing question."""
+    # Auth is now enforced — set ENGINEERING_SERVICE_API_KEY so the middleware
+    # accepts our requests. Without this, verify_api_key() returns 401.
+    monkeypatch.setenv("ENGINEERING_SERVICE_API_KEY", "test-key-for-ci")
+    monkeypatch.setenv("HF_API_KEY", "test-key-for-ci")
+
     try:
         mod = _load_hf_app_module()
     except ImportError as e:
@@ -200,6 +205,7 @@ def test_hf_space_chat_endpoint_returns_format_a():
     r = client.post(
         "/api/v1/agents/etap-expert/chat",
         json={"question": "What cable size for 200A load, 300ft, 480V?"},
+        headers={"X-API-Key": "test-key-for-ci"},
     )
     assert r.status_code == 200, f"HTTP {r.status_code}: {r.text}"
     body = r.json()
@@ -209,8 +215,11 @@ def test_hf_space_chat_endpoint_returns_format_a():
     assert "✅ REQUEST ANALYSIS: COMPLETE" in body["data"]["response"]
 
 
-def test_hf_space_study_endpoint_returns_format_a():
+def test_hf_space_study_endpoint_returns_format_a(monkeypatch):
     """HF Space /api/v1/studies/run with study_type=etap_expert must return Format A."""
+    monkeypatch.setenv("ENGINEERING_SERVICE_API_KEY", "test-key-for-ci")
+    monkeypatch.setenv("HF_API_KEY", "test-key-for-ci")
+
     try:
         mod = _load_hf_app_module()
     except ImportError as e:
@@ -227,6 +236,7 @@ def test_hf_space_study_endpoint_returns_format_a():
             "parameters": {"question": "What cable size for 200A load, 300ft, 480V?"},
             "use_etap": False,
         },
+        headers={"X-API-Key": "test-key-for-ci"},
     )
     assert r.status_code == 200, f"HTTP {r.status_code}: {r.text}"
     body = r.json()
@@ -234,8 +244,11 @@ def test_hf_space_study_endpoint_returns_format_a():
     assert body["data"]["format"] == "A"
 
 
-def test_hf_space_study_endpoint_rejects_missing_question():
+def test_hf_space_study_endpoint_rejects_missing_question(monkeypatch):
     """HF Space /api/v1/studies/run must reject missing question with HTTP 400."""
+    monkeypatch.setenv("ENGINEERING_SERVICE_API_KEY", "test-key-for-ci")
+    monkeypatch.setenv("HF_API_KEY", "test-key-for-ci")
+
     try:
         mod = _load_hf_app_module()
     except ImportError as e:
@@ -248,6 +261,7 @@ def test_hf_space_study_endpoint_rejects_missing_question():
     r = client.post(
         "/api/v1/studies/run",
         json={"study_type": "etap_expert", "parameters": {}, "use_etap": False},
+        headers={"X-API-Key": "test-key-for-ci"},
     )
     assert r.status_code == 400
     assert "question" in r.json()["error"].lower()
