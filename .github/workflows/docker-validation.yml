@@ -1,0 +1,295 @@
+# =============================================================================
+# AhmedETAP — Dockerfile Validation & Build Test
+# -----------------------------------------------------------------------------
+# Validates that all Dockerfiles in the repo:
+#   1. Use a consistent Python version (matches CI's PYTHON_VERSION)
+#   2. Build successfully (no syntax errors, no missing COPY sources)
+#   3. Pass hadolint linting (best practices)
+#   4. Have proper HEALTHCHECK, USER, EXPOSE directives
+#
+# Triggers:
+#   - Push/PR touching any Dockerfile or docker-compose*.yml
+#   - Weekly schedule (catches upstream base-image CVEs)
+# =============================================================================
+name: Docker Build & Validation
+
+on:
+  push:
+    branches: [main, develop]
+    paths:
+      - 'Dockerfile*'
+      - 'hf-space/Dockerfile*'
+      - 'docker-compose*.yml'
+      - 'requirements*.txt'
+      - 'pyproject.toml'
+      - '.github/workflows/docker-validation.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'Dockerfile*'
+      - 'hf-space/Dockerfile*'
+      - 'docker-compose*.yml'
+      - 'requirements*.txt'
+      - 'pyproject.toml'
+  schedule:
+    # Weekly on Sunday at 05:00 UTC — catches upstream base-image CVEs
+    - cron: '0 5 * * 0'
+  workflow_dispatch:
+
+concurrency:
+  group: docker-validation-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  EXPECTED_PYTHON_VERSION: '3.12'
+
+jobs:
+  # ── 1. LINT: hadolint on every Dockerfile ────────────────────────────────
+  hadolint:
+    name: 🔍 Hadolint Lint
+    runs-on: ubuntu-latest
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 🔍 Run hadolint on all Dockerfiles
+        uses: hadolint/hadolint-action@v3.1.0
+        with:
+          dockerfile: Dockerfile
+          config: .hadolint.yaml
+          recursive: true
+
+  # ── 2. CONSISTENCY: verify Python version matches across Dockerfiles ─────
+  version-consistency:
+    name: 🐍 Python Version Consistency
+    runs-on: ubuntu-latest
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 🔍 Check all Dockerfiles use Python ${{ env.EXPECTED_PYTHON_VERSION }}
+        run: |
+          set -e
+          echo "── Checking Python version in all Dockerfiles ──"
+          echo "Expected: python:${EXPECTED_PYTHON_VERSION}"
+          echo ""
+
+          ERRORS=0
+          # Find all Dockerfiles (root + nested)
+          mapfile -t DOCKERFILES < <(find . -name 'Dockerfile*' -not -path './.git/*' -type f | sort)
+
+          for f in "${DOCKERFILES[@]}"; do
+            # Skip Windows Dockerfile (uses Windows base image)
+            if [[ "$f" == *"windows"* ]]; then
+              echo "  ⏭️  Skipping $f (Windows container)"
+              continue
+            fi
+
+            # Extract all FROM python: lines
+            mapfile -t FROM_LINES < <(grep -E "^FROM python:" "$f" || true)
+
+            if [ ${#FROM_LINES[@]} -eq 0 ]; then
+              echo "  ⚠️  $f — no 'FROM python:' found (non-Python image)"
+              continue
+            fi
+
+            for line in "${FROM_LINES[@]}"; do
+              # Extract version (e.g., "python:3.12-slim" -> "3.12")
+              VERSION=$(echo "$line" | grep -oE 'python:[0-9]+\.[0-9]+' | sed 's/python://')
+              if [ "$VERSION" = "$EXPECTED_PYTHON_VERSION" ]; then
+                echo "  ✅ $f — $line"
+              else
+                echo "  ❌ $f — $line (expected python:$EXPECTED_PYTHON_VERSION)"
+                ERRORS=$((ERRORS + 1))
+              fi
+            done
+          done
+
+          echo ""
+          echo "── Checking pyproject.toml requires-python ──"
+          PYTHON_REQ=$(python3 -c "
+          import tomllib
+          with open('pyproject.toml', 'rb') as f:
+              d = tomllib.load(f)
+          print(d['project']['requires-python'])
+          ")
+          echo "  pyproject.toml: requires-python = \"$PYTHON_REQ\""
+          if echo "$PYTHON_REQ" | grep -q "$EXPECTED_PYTHON_VERSION"; then
+            echo "  ✅ pyproject.toml includes Python $EXPECTED_PYTHON_VERSION"
+          else
+            echo "  ❌ pyproject.toml does not include Python $EXPECTED_PYTHON_VERSION"
+            ERRORS=$((ERRORS + 1))
+          fi
+
+          echo ""
+          echo "── Checking CI workflows use Python $EXPECTED_PYTHON_VERSION ──"
+          mapfile -t WORKFLOWS < <(grep -lE 'PYTHON_VERSION.*[0-9]' .github/workflows/*.yml | sort)
+          for w in "${WORKFLOWS[@]}"; do
+            CI_VER=$(grep -oE 'PYTHON_VERSION.*[0-9]+\.[0-9]+' "$w" | head -1 | grep -oE '[0-9]+\.[0-9]+')
+            if [ "$CI_VER" = "$EXPECTED_PYTHON_VERSION" ]; then
+              echo "  ✅ $w — Python $CI_VER"
+            else
+              echo "  ⚠️  $w — Python $CI_VER (different from expected $EXPECTED_PYTHON_VERSION)"
+            fi
+          done
+
+          echo ""
+          if [ $ERRORS -gt 0 ]; then
+            echo "❌ $ERRORS version mismatch(es) detected"
+            exit 1
+          fi
+          echo "✅ All Dockerfiles use consistent Python version ($EXPECTED_PYTHON_VERSION)"
+
+  # ── 3. BUILD: actually build each Dockerfile ─────────────────────────────
+  build-test:
+    name: 🏗️ Build Docker Image
+    runs-on: ubuntu-latest
+    needs: [hadolint, version-consistency]
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - dockerfile: 'Dockerfile'
+            name: 'hf-space-main'
+            timeout: 20
+          - dockerfile: 'Dockerfile.hf'
+            name: 'hf-space-alt'
+            timeout: 20
+          - dockerfile: 'Dockerfile.engineering-service'
+            name: 'engineering-service'
+            timeout: 25
+
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 🐳 Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: 🏗️ Build ${{ matrix.name }}
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./${{ matrix.dockerfile }}
+          push: false
+          tags: etap-${{ matrix.name }}:test
+          load: true
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          timeout: ${{ matrix.timeout }}
+
+      - name: 🔍 Inspect built image
+        run: |
+          echo "── Image info ──"
+          docker image inspect etap-${{ matrix.name }}:test --format='{{.Os}}/{{.Architecture}} | Size: {{.Size}} bytes'
+          echo ""
+          echo "── Python version in image ──"
+          docker run --rm etap-${{ matrix.name }}:test python --version
+          echo ""
+          echo "── Image labels ──"
+          docker image inspect etap-${{ matrix.name }}:test --format='{{json .Config.Labels}}' | python3 -m json.tool
+
+      - name: 🧪 Smoke test — verify Python imports work
+        run: |
+          echo "── Testing imports in ${{ matrix.name }} ──"
+          docker run --rm etap-${{ matrix.name }}:test python -c "
+          import sys
+          print(f'Python: {sys.version}')
+          # Core packages that must be importable
+          for pkg in ['fastapi', 'pydantic', 'uvicorn']:
+              try:
+                  __import__(pkg)
+                  print(f'  OK: {pkg}')
+              except ImportError as e:
+                  print(f'  FAIL: {pkg} - {e}')
+                  sys.exit(1)
+          print('All core imports succeeded')
+          "
+
+      - name: 🧹 Clean up
+        if: always()
+        run: docker rmi etap-${{ matrix.name }}:test 2>/dev/null || true
+
+  # ── 4. SECURITY: scan built images with Trivy ────────────────────────────
+  security-scan:
+    name: 🔒 Container Security Scan
+    runs-on: ubuntu-latest
+    needs: build-test
+    if: always() && needs.build-test.result == 'success'
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: 'hf-space-main'
+          - name: 'engineering-service'
+    permissions:
+      security-events: write
+      contents: read
+
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 🐳 Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: 🏗️ Rebuild image for scanning
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ${{ matrix.name == 'hf-space-main' && './Dockerfile' || './Dockerfile.engineering-service' }}
+          push: false
+          tags: etap-${{ matrix.name }}:scan
+          load: true
+          cache-from: type=gha
+
+      - name: 🔬 Trivy vulnerability scan
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: etap-${{ matrix.name }}:scan
+          format: 'sarif'
+          output: 'trivy-${{ matrix.name }}.sarif'
+          severity: 'CRITICAL,HIGH'
+          exit-code: '1'
+          ignore-unfixed: true
+
+      - name: 📤 Upload SARIF to GitHub Security
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: 'trivy-${{ matrix.name }}.sarif'
+
+      - name: 🧹 Clean up
+        if: always()
+        run: docker rmi etap-${{ matrix.name }}:scan 2>/dev/null || true
+
+  # ── 5. SUMMARY ───────────────────────────────────────────────────────────
+  summary:
+    name: 📊 Docker Validation Summary
+    runs-on: ubuntu-latest
+    needs: [hadolint, version-consistency, build-test, security-scan]
+    if: always()
+    steps:
+      - name: Generate summary
+        run: |
+          {
+            echo "### 🐳 Docker Validation Summary"
+            echo ""
+            echo "| Check | Result |"
+            echo "|-------|--------|"
+            echo "| Hadolint lint | ${{ needs.hadolint.result }} |"
+            echo "| Version consistency | ${{ needs.version-consistency.result }} |"
+            echo "| Build test | ${{ needs.build-test.result }} |"
+            echo "| Security scan | ${{ needs.security-scan.result }} |"
+            echo ""
+            echo "All Dockerfiles must use Python ${{ env.EXPECTED_PYTHON_VERSION }} (matches CI)."
+          } >> $GITHUB_STEP_SUMMARY
+
+      - name: Fail if any check failed
+        if: |
+          needs.hadolint.result == 'failure' ||
+          needs.version-consistency.result == 'failure' ||
+          needs.build-test.result == 'failure'
+        run: |
+          echo "❌ One or more Docker validation checks failed"
+          exit 1

@@ -1,0 +1,33 @@
+# Hadolint configuration — AhmedETAP
+# https://github.com/hadolint/hadolint#configure
+#
+# Rules we intentionally relax:
+#   DL3008 (pin versions in apt-get install) — we use --no-install-recommends
+#         and pin system packages via the base image; pinning every apt package
+#         would make the Dockerfile unreadable and break on every base image
+#         update. Base image pinning (python:3.12-slim) covers our needs.
+#   DL3013 (pin versions in pip install) — requirements.txt handles pinning.
+#   DL3007 (using latest) — we don't use 'latest' anywhere, but hadolint
+#         sometimes false-positives on multi-stage FROMs.
+#   DL3059 (multiple consecutive RUN instructions) — we use them deliberately
+#         for readability in some places; consolidating every RUN makes the
+#         Dockerfile harder to maintain.
+
+failure-threshold: warning
+
+# Rules to ignore (with reasons)
+ignoredRules:
+  - DL3008  # Don't require pinning apt packages (base image pinning is enough)
+  - DL3013  # Don't require pinning pip packages (requirements.txt handles it)
+  - DL3059  # Allow multiple consecutive RUN instructions for readability
+
+# Trust specific registries (so hadolint doesn't warn about them)
+trustedRegistries:
+  - docker.io
+  - ghcr.io
+  - mcr.microsoft.com
+
+# Override specific rules with milder severity
+overrideRules:
+  - id: DL3007
+    severity: info  # 'latest' tag warning — info only, not blocking

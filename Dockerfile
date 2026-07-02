@@ -12,7 +12,7 @@
 #   - HEAD / must return 200
 # =============================================================================
 
-FROM python:3.13-slim
+FROM python:3.12-slim
 
 LABEL maintainer="Eng. Ahmed Elbaz <ahmdelbaz28@gmail.com>"
 LABEL description="AhmedETAP — Enterprise Engineering Intelligence Platform (HF Space)"
