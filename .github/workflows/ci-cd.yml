@@ -239,7 +239,10 @@ jobs:
 
       - name: Install UI dependencies
         working-directory: ui
-        run: npm install --ignore-scripts --no-optional
+        # IMPORTANT: --no-optional breaks rollup (needs @rollup/rollup-linux-x64-gnu
+        # which is an optional dependency). Use --include=optional to ensure
+        # platform-specific rollup native bindings are installed.
+        run: npm install --ignore-scripts --include=optional
 
       - name: Build UI
         working-directory: ui
@@ -281,6 +284,11 @@ jobs:
             type=sha
             type=ref,event=branch
             type=semver,pattern={{version}}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+        # Required for GHA cache backend — the default 'docker' driver
+        # does not support cache export (--cache-to type=gha).
 
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
@@ -403,12 +411,62 @@ jobs:
             exit 0
           fi
 
-          git config user.email "ci@github.com"
-          git config user.name  "GitHub Actions"
+          # IMPORTANT: We previously used 'git push --force' to sync GitHub → HF.
+          # This fails when the GitHub repo contains LFS files (PNG/JPG screenshots)
+          # because HF rejects LFS pointer files. Use huggingface_hub's upload_folder
+          # instead, which uploads the actual file contents (not LFS pointers).
+          #
+          # We also exclude docs/ and screenshots (not needed on HF Space — the
+          # Space only needs the app code, not the GitHub README screenshots).
 
-          echo "🚀 Syncing to HF Space: ahmdelbaz28/AHMEDETAP"
-          git push https://user:${HF_TOKEN}@huggingface.co/spaces/ahmdelbaz28/AHMEDETAP main --force
-          echo "✅ HF Sync complete"
+          # README.hf.md has the HF YAML frontmatter — copy it to README.md so
+          # HF reads the Space metadata (title, emoji, sdk: docker, app_port).
+          cp README.hf.md README.md
+
+          python3 << 'PYEOF'
+          import os
+          from huggingface_hub import HfApi
+
+          api = HfApi(token=os.environ["HF_TOKEN"])
+
+          # Files/dirs to exclude from HF Space sync (not needed for runtime).
+          # Note: README.md is NOT excluded (HF needs it for Space metadata).
+          ignore_patterns = [
+              "docs/**",
+              "doc/**",
+              "README.hf.md",   # the source — README.md (copy) is uploaded instead
+              "CHANGELOG.md",
+              "CONTRIBUTING.md",
+              "SECURITY.md",
+              "SUPPORT.md",
+              "CODE_OF_CONDUCT.md",
+              "RELEASE.md",
+              "TODO*.md",
+              "tests/**",
+              "test_*.py",
+              "testsprite_tests/**",
+              ".github/**",
+              "helm/**",
+              "terraform/**",
+              "node_modules/**",
+              ".venv/**",
+              "ui/**",          # UI is deployed to Vercel, not HF Space
+              "PROJECT_INDEX.*",
+              ".agents/**",
+              ".testsprite/**",
+          ]
+
+          print("🚀 Uploading to HF Space: ahmdelbaz28/AHMEDETAP")
+          result = api.upload_folder(
+              folder_id="ahmdelbaz28/AHMEDETAP",
+              folder_path=".",
+              repo_type="space",
+              ignore_patterns=ignore_patterns,
+              commit_message=f"Auto-sync from GitHub {os.environ.get('GITHUB_SHA', '?')[:12]}",
+              delete_patterns=["*"],  # remove files on HF that no longer exist on GitHub
+          )
+          print(f"✅ HF Sync complete: {result}")
+          PYEOF
 
       - name: Update HF Space Secrets
         env:
