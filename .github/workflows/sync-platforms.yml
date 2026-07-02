@@ -114,6 +114,10 @@ jobs:
           fi
 
       # ── 1c. Sync to HuggingFace Space ───────────────────────────────────────
+      # Security note: we use git credential helper to inject the HF token
+      # temporarily, instead of embedding it in the remote URL. This prevents
+      # the token from leaking via `git config --get remote.origin.url` or
+      # error messages from git when push fails.
       - name: 🤗 Sync to HuggingFace Space
         env:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
@@ -127,7 +131,12 @@ jobs:
           test -f hf-space/app.py || { echo "hf-space/app.py missing"; exit 1; }
           test -f README.hf.md || { echo "README.hf.md (HF YAML frontmatter) missing"; exit 1; }
 
-          git clone https://user:$HF_TOKEN@huggingface.co/spaces/ahmdelbaz28/AHMEDETAP hf-space-repo 2>&1 | tail -5
+          # Use credential helper (token never appears in remote URL)
+          git config --global credential.helper store
+          echo "https://user:${HF_TOKEN}@huggingface.co" > ~/.git-credentials
+          chmod 600 ~/.git-credentials
+
+          git clone https://huggingface.co/spaces/ahmdelbaz28/AHMEDETAP hf-space-repo 2>&1 | tail -5
           cd hf-space-repo
           find . -mindepth 1 -maxdepth 1 -not -name '.git' -not -name '.gitattributes' -exec rm -rf {} +
           # README.hf.md is the HF frontmatter README; rename to README.md on the Space
@@ -146,8 +155,11 @@ jobs:
             echo "ℹ️ No changes — HF Space already in sync"
             exit 0
           }
-          git push https://user:$HF_TOKEN@huggingface.co/spaces/ahmdelbaz28/AHMEDETAP main 2>&1 | tail -5
+          git push origin main 2>&1 | tail -5
           echo "✅ HF Space synced"
+
+          # Cleanup credentials
+          rm -f ~/.git-credentials
 
       # ── 1d. Notify LangWatch of new deployment version ──────────────────────
       - name: 📊 Notify LangWatch of new deployment

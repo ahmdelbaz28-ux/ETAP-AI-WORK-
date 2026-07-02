@@ -2,13 +2,25 @@ name: HF Space Production Smoke Tests
 
 on:
   workflow_run:
-    workflows: ["Sync to HuggingFace Space"]
+    # IMPORTANT: this name must EXACTLY match the `name:` field of the
+    # workflow that triggers it. The HF sync happens in TWO workflows:
+    #   1. ci-cd.yml (deploy-hf job) — name: "AhmedETAP CI/CD"
+    #   2. sync-platforms.yml (forward-sync job) — name: "Cross-Platform Sync"
+    # We trigger on both so smoke tests run after either sync path.
+    workflows:
+      - "AhmedETAP CI/CD"
+      - "Cross-Platform Sync"
     types:
       - completed
+    branches: [main]
   workflow_dispatch:
   schedule:
     # Run daily at 06:00 UTC to catch HF Space drift
     - cron: '0 6 * * *'
+
+concurrency:
+  group: hf-production-tests-${{ github.ref }}
+  cancel-in-progress: false
 
 jobs:
   production-smoke:
@@ -16,6 +28,7 @@ jobs:
     runs-on: ubuntu-latest
     # Only run if the sync workflow succeeded (or manual/schedule trigger)
     if: ${{ github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success' }}
+    timeout-minutes: 15
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -26,29 +39,45 @@ jobs:
           python-version: '3.12'
 
       - name: Install pytest + pydantic + fastapi
-        run: pip install pytest pydantic fastapi
+        run: pip install pytest pydantic fastapi httpx
 
       - name: Wait for HF Space to finish rebuilding
         run: |
-          # The sync workflow triggers a rebuild on HF Space. Wait up to 5 min
+          # The sync workflow triggers a rebuild on HF Space. Wait up to 10 min
           # for the Space to reach RUNNING state before running smoke tests.
-          for i in $(seq 1 30); do
-            STAGE=$(curl -s https://huggingface.co/api/spaces/ahmdelbaz28/AHMEDETAP | \
-                    python3 -c "import sys, json; print(json.load(sys.stdin).get('runtime',{}).get('stage','UNKNOWN'))")
-            echo "Attempt $i: HF Space stage = $STAGE"
+          # (Increased from 5 min — HF cold starts sometimes take longer.)
+          for i in $(seq 1 60); do
+            STAGE=$(curl -s --max-time 10 https://huggingface.co/api/spaces/ahmdelbaz28/AHMEDETAP | \
+                    python3 -c "import sys, json; print(json.load(sys.stdin).get('runtime',{}).get('stage','UNKNOWN'))" 2>/dev/null || echo "FETCH_ERROR")
+            echo "Attempt $i/60: HF Space stage = $STAGE"
             if [ "$STAGE" = "RUNNING" ]; then
               echo "✅ HF Space is RUNNING — proceeding with smoke tests"
               exit 0
             fi
             sleep 10
           done
-          echo "❌ HF Space did not reach RUNNING state in 5 minutes"
+          echo "❌ HF Space did not reach RUNNING state in 10 minutes"
+          echo "   Last stage: $STAGE"
+          echo "   Check: https://huggingface.co/spaces/ahmdelbaz28/AHMEDETAP"
           exit 1
 
       - name: Run production smoke tests
         env:
           HF_SPACE_PRODUCTION_TESTS: 'true'
+          HF_SPACE_URL: 'https://ahmdelbaz28-ahmedetap.hf.space'
         run: |
           # Use --noconftest to bypass tests/conftest.py which requires heavy deps.
           # The production tests only need urllib + json (stdlib) + pytest.
           python -m pytest tests/test_hf_space_production.py -v --tb=short --noconftest
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: hf-smoke-test-results-${{ github.sha }}
+          path: |
+            **/pytest-output.xml
+            **/.pytest_cache/
+          retention-days: 14
+          if-no-files-found: ignore
+

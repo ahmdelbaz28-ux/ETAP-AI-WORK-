@@ -410,9 +410,17 @@ jobs:
           git config user.email "ci@github.com"
           git config user.name  "GitHub Actions"
 
+          # Security: use credential helper instead of embedding token in URL
+          git config --global credential.helper store
+          echo "https://user:${HF_TOKEN}@huggingface.co" > ~/.git-credentials
+          chmod 600 ~/.git-credentials
+
           echo "🚀 Syncing to HF Space: ahmdelbaz28/AHMEDETAP"
-          git push https://user:${HF_TOKEN}@huggingface.co/spaces/ahmdelbaz28/AHMEDETAP main --force
+          git push https://huggingface.co/spaces/ahmdelbaz28/AHMEDETAP main --force
           echo "✅ HF Sync complete"
+
+          # Cleanup credentials
+          rm -f ~/.git-credentials
 
       - name: Update HF Space Secrets
         env:
