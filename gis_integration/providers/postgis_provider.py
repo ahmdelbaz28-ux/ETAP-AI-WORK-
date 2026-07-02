@@ -109,6 +109,19 @@ class PostGISProvider:
         pool_max: int = 10,
     ):
         self.dsn = dsn or DEFAULT_DSN
+        # Security: validate schema name BEFORE assignment. This is the only
+        # place the schema enters the object — every later use of self.schema
+        # in f-strings is now safe because we know it matches the strict
+        # Postgres identifier regex. (Direct f-string interpolation is still
+        # not best practice, but the validation here closes the injection
+        # vector. The _ensure_schema() method also uses psycopg2.sql.Identifier
+        # for defense-in-depth.)
+        import re
+        if not re.match(r'^[a-zA-Z_][a-zA-Z0-9_]{0,62}$', schema):
+            raise ValueError(
+                f"Invalid schema name '{schema}'. Must match "
+                f"^[a-zA-Z_][a-zA-Z0-9_]{{0,62}}$ (Postgres identifier rules)."
+            )
         self.schema = schema
         self._pool: Any = None
         self._connected = False
@@ -144,34 +157,73 @@ class PostGISProvider:
             logger.warning("PostGIS connection failed (%s) — using file fallback", exc)
 
     def _ensure_schema(self) -> None:
-        """Create schema and extension tables if they don't exist."""
+        """Create schema and extension tables if they don't exist.
+
+        Security: schema name is validated and quoted via psycopg2.sql.Identifier
+        to prevent SQL injection. The schema name comes from an env var
+        (POSTGIS_SCHEMA) which could be tampered with — never interpolate it
+        directly into a SQL string.
+        """
+        # Validate schema name (only alphanumeric + underscore, max 63 chars
+        # — Postgres identifier limit)
+        import re
+        if not re.match(r'^[a-zA-Z_][a-zA-Z0-9_]{0,62}$', self.schema):
+            raise ValueError(
+                f"Invalid schema name '{self.schema}'. Must match "
+                f"^[a-zA-Z_][a-zA-Z0-9_]{{0,62}}$ (Postgres identifier rules)."
+            )
+
+        # Use psycopg2.sql for safe identifier quoting
+        try:
+            from psycopg2 import sql  # type: ignore
+        except ImportError:
+            # If psycopg2 isn't installed (e.g., PostGIS optional), skip
+            logger.warning("psycopg2 not available — skipping schema creation")
+            return
+
         with self._conn() as conn:
             with conn.cursor() as cur:
                 cur.execute("CREATE EXTENSION IF NOT EXISTS postgis")
-                cur.execute(f"CREATE SCHEMA IF NOT EXISTS {self.schema}")
-                cur.execute(f"""
-                    CREATE TABLE IF NOT EXISTS {self.schema}.spatial_assets (
-                        asset_id TEXT PRIMARY KEY,
-                        asset_type TEXT NOT NULL,
-                        geometry GEOMETRY({_SPATIAL_REF_SYS}),
-                        properties JSONB DEFAULT '{{}}'::jsonb,
-                        electrical_id TEXT,
-                        created_at TIMESTAMPTZ DEFAULT NOW(),
-                        updated_at TIMESTAMPTZ DEFAULT NOW()
+                # Safe: schema name is validated + quoted via Identifier
+                cur.execute(
+                    sql.SQL("CREATE SCHEMA IF NOT EXISTS {}").format(
+                        sql.Identifier(self.schema)
                     )
-                """)
-                cur.execute(f"""
-                    CREATE INDEX IF NOT EXISTS idx_spatial_assets_type
-                    ON {self.schema}.spatial_assets (asset_type)
-                """)
-                cur.execute(f"""
-                    CREATE INDEX IF NOT EXISTS idx_spatial_assets_geom
-                    ON {self.schema}.spatial_assets USING GIST (geometry)
-                """)
-                cur.execute(f"""
-                    CREATE INDEX IF NOT EXISTS idx_spatial_assets_electrical
-                    ON {self.schema}.spatial_assets (electrical_id)
-                """)
+                )
+                cur.execute(
+                    sql.SQL("""
+                        CREATE TABLE IF NOT EXISTS {}.spatial_assets (
+                            asset_id TEXT PRIMARY KEY,
+                            asset_type TEXT NOT NULL,
+                            geometry GEOMETRY(%s),
+                            properties JSONB DEFAULT '{}'::jsonb,
+                            electrical_id TEXT,
+                            created_at TIMESTAMPTZ DEFAULT NOW(),
+                            updated_at TIMESTAMPTZ DEFAULT NOW()
+                        )
+                    """).format(
+                        sql.Identifier(self.schema)
+                    ),
+                    [_SPATIAL_REF_SYS],
+                )
+                cur.execute(
+                    sql.SQL("""
+                        CREATE INDEX IF NOT EXISTS idx_spatial_assets_type
+                        ON {}.spatial_assets (asset_type)
+                    """).format(sql.Identifier(self.schema))
+                )
+                cur.execute(
+                    sql.SQL("""
+                        CREATE INDEX IF NOT EXISTS idx_spatial_assets_geom
+                        ON {}.spatial_assets USING GIST (geometry)
+                    """).format(sql.Identifier(self.schema))
+                )
+                cur.execute(
+                    sql.SQL("""
+                        CREATE INDEX IF NOT EXISTS idx_spatial_assets_electrical
+                        ON {}.spatial_assets (electrical_id)
+                    """).format(sql.Identifier(self.schema))
+                )
             conn.commit()
 
     @contextmanager
