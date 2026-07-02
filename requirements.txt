@@ -102,7 +102,7 @@ nltk~=3.8.0
 # Document processing
 python-docx~=1.1.0
 openpyxl~=3.1.0
-reportlab~=4.0.0
+reportlab>=4.0,<5.1
 
 # Additional utilities
 tqdm~=4.66.0
