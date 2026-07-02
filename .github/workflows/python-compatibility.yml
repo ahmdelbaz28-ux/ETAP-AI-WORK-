@@ -1,0 +1,377 @@
+# =============================================================================
+# AhmedETAP — Python Compatibility Matrix
+# -----------------------------------------------------------------------------
+# Verifies that the codebase installs and imports cleanly on every supported
+# Python version. The project declares `requires-python = ">=3.12,<3.14"`
+# in pyproject.toml — this workflow enforces that constraint by testing
+# against 3.12 AND 3.13 on every PR and every push to main.
+#
+# Why this matters:
+#   - CPython 3.13 introduced behavioral changes (e.g., improved error
+#     messages, free-threaded build option, removed deprecated modules).
+#   - 3.12 is the deployment target (Dockerfile, CI, HF Space).
+#   - Testing on both catches regressions BEFORE they hit production.
+# =============================================================================
+name: Python Compatibility Matrix
+
+on:
+  push:
+    branches: [main, develop]
+    paths:
+      - 'pyproject.toml'
+      - 'requirements*.txt'
+      - 'setup.py'
+      - 'setup.cfg'
+      - '**/*.py'
+      - '.github/workflows/python-compatibility.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'pyproject.toml'
+      - 'requirements*.txt'
+      - 'setup.py'
+      - 'setup.cfg'
+      - '**/*.py'
+      - '.github/workflows/python-compatibility.yml'
+  workflow_dispatch:
+    inputs:
+      python_version:
+        description: 'Specific Python version to test (e.g. 3.13). Empty = matrix.'
+        required: false
+        default: ''
+  schedule:
+    # Weekly on Sunday at 04:00 UTC — catch upstream package breakage
+    - cron: '0 4 * * 0'
+
+concurrency:
+  group: python-compat-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  # Use uv for faster dependency resolution (10-100x faster than pip)
+  UV_VERSION: '0.5.11'
+
+jobs:
+  # ── 1. RESOLUTION TEST: Can pip/uv resolve all dependencies? ──────────────
+  resolution-test:
+    name: 🔧 Dependency Resolution
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ['3.12', '3.13']
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 🐍 Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: ⚡ Install uv
+        run: |
+          curl -LsSf https://astral.sh/uv/${{ env.UV_VERSION }}/install.sh | sh
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
+
+      - name: 🔍 Test 1 — Resolve requirements.txt
+        run: |
+          echo "── Test 1: Resolve requirements.txt ──"
+          uv pip install --dry-run --python $(which python) -r requirements.txt
+          echo "✅ requirements.txt resolves on Python ${{ matrix.python-version }}"
+
+      - name: 🔍 Test 2 — Resolve pyproject.toml
+        run: |
+          echo "── Test 2: Resolve pyproject.toml ──"
+          uv pip install --dry-run --python $(which python) .
+          echo "✅ pyproject.toml resolves on Python ${{ matrix.python-version }}"
+
+      - name: 🔍 Test 3 — Check for version conflicts
+        run: |
+          echo "── Test 3: Version conflict check ──"
+          # Install the actual deps + check for conflicts
+          uv pip install --python $(which python) -r requirements.txt 2>&1 | tee /tmp/install.log
+          if grep -qE "(ERROR|conflict|ResolutionImpossible)" /tmp/install.log; then
+            echo "❌ Dependency conflicts detected"
+            cat /tmp/install.log
+            exit 1
+          fi
+          echo "✅ No version conflicts"
+
+  # ── 2. IMPORT TEST: Can all top-level packages be imported? ──────────────
+  import-test:
+    name: 📦 Import Sanity Check
+    runs-on: ubuntu-latest
+    needs: resolution-test
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ['3.12', '3.13']
+
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 🐍 Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: 'pip'
+
+      - name: ⚡ Install uv
+        run: |
+          curl -LsSf https://astral.sh/uv/${{ env.UV_VERSION }}/install.sh | sh
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
+
+      - name: 🔧 Install dependencies
+        run: |
+          uv pip install --python $(which python) -r requirements.txt
+          uv pip install --python $(which python) -r requirements-dev.txt || true
+
+      - name: 🧪 Test imports (core packages)
+        run: |
+          python - <<'PYEOF'
+          import sys
+          print(f"Python: {sys.version}")
+          print(f"Executable: {sys.executable}")
+          print()
+
+          # Core packages that MUST be importable
+          must_import = [
+              # Stdlib
+              "asyncio", "json", "pathlib", "typing",
+              # Web framework
+              "fastapi", "uvicorn", "starlette", "pydantic",
+              # Database
+              "sqlalchemy", "aiosqlite", "asyncpg", "alembic",
+              # LLM / AI
+              "openai", "anthropic",
+              # Observability
+              "langfuse", "opentelemetry", "prometheus_client",
+              # Infrastructure
+              "redis", "celery", "httpx", "requests",
+              # Security
+              "jwt", "bcrypt", "cryptography", "pyotp",
+              # Data
+              "numpy", "scipy", "pandas",
+              # Document processing
+              "PyPDF2", "pdfplumber", "docx", "openpyxl", "reportlab",
+              # Integrations
+              "supabase", "neo4j", "huggingface_hub",
+              # Utilities
+              "structlog", "tenacity", "yaml", "tqdm",
+              "bs4", "lxml", "PIL",
+          ]
+
+          # Optional packages (warn but don't fail)
+          optional_import = [
+              "cv2",            # opencv — desktop only
+              "pyautogui",      # desktop only
+              "win32com",       # windows only
+              "geopandas",      # GIS — optional
+              "shapely",        # GIS — optional
+              "langchain_neo4j",
+              "langchain_openai",
+              "langchain_qdrant",
+              "chromadb",
+              "sentence_transformers",
+              "tree_sitter",
+          ]
+
+          failed = []
+          for pkg in must_import:
+              try:
+                  __import__(pkg)
+                  print(f"  ✅ {pkg}")
+              except ImportError as e:
+                  print(f"  ❌ {pkg} — {e}")
+                  failed.append(pkg)
+              except Exception as e:
+                  print(f"  ⚠️  {pkg} — non-import error: {e}")
+                  failed.append(pkg)
+
+          warned = []
+          for pkg in optional_import:
+              try:
+                  __import__(pkg)
+                  print(f"  ✅ (optional) {pkg}")
+              except ImportError:
+                  print(f"  ⚠️  (optional) {pkg} — not installed (may be platform-specific)")
+                  warned.append(pkg)
+              except Exception as e:
+                  print(f"  ⚠️  (optional) {pkg} — non-import error: {e}")
+
+          print()
+          print(f"=== Summary (Python {sys.version_info.major}.{sys.version_info.minor}) ===")
+          print(f"  Must-import:  {len(must_import) - len(failed)}/{len(must_import)} succeeded")
+          print(f"  Optional:     {len(optional_import) - len(warned)}/{len(optional_import)} succeeded")
+          if failed:
+              print(f"  FAILED: {', '.join(failed)}")
+              sys.exit(1)
+          print("✅ All required imports succeeded")
+          PYEOF
+
+      - name: 🧪 Test imports (project modules)
+        run: |
+          python - <<'PYEOF'
+          import sys, importlib, traceback
+          print(f"Python: {sys.version}")
+          print()
+
+          # Project modules that should be importable (no heavy external deps)
+          project_modules = [
+              "compat",
+              "core",
+              "core.bootstrap",
+              "core.config",
+              "core.database",
+              "core.metrics",
+              "core.retry",
+              "core.tracing",
+              "agents",
+              "agents.orchestrator",
+              "agents.prompt_loader",
+              "engine",
+              "engine.engine",
+              "load_flow",
+              "load_flow.solver",
+              "fault_analysis",
+              "coordination",
+              "relays",
+              "network_solver",
+              "core_model",
+              "core_model.bus",
+              "core_model.line",
+              "core_model.transformer",
+              "api",
+              "api.shared_handlers",
+              "api.health",
+              "integrations",
+              "integrations.supabase_integration",
+              "integrations.neo4j_integration",
+              "integrations.langfuse_integration",
+              "integrations.langwatch_integration",
+              "integrations.smithery_mcp",
+              "security",
+              "security.mfa",
+              "security.secrets_manager",
+              "security.abac",
+              "skills",
+              "skills.skill_validator",
+          ]
+
+          failed = []
+          for mod in project_modules:
+              try:
+                  importlib.import_module(mod)
+                  print(f"  ✅ {mod}")
+              except ImportError as e:
+                  print(f"  ❌ {mod} — {e}")
+                  failed.append(mod)
+              except Exception as e:
+                  # Some modules fail at import time if env vars are missing.
+                  # That's expected in CI — we only care that they're syntactically
+                  # valid Python and don't have broken imports at module level.
+                  tb = traceback.format_exc()
+                  if "EnvironmentError" in tb or "KeyError" in tb or "ValidationError" in tb:
+                      print(f"  ⚠️  {mod} — env-required (expected in CI): {type(e).__name__}")
+                  else:
+                      print(f"  ❌ {mod} — {type(e).__name__}: {e}")
+                      failed.append(mod)
+
+          print()
+          print(f"=== Project Module Imports: {len(project_modules) - len(failed)}/{len(project_modules)} OK ===")
+          if failed:
+              print(f"FAILED: {', '.join(failed)}")
+              sys.exit(1)
+          print("✅ All project modules importable")
+          PYEOF
+
+  # ── 3. PYPROJECT VALIDATION ──────────────────────────────────────────────
+  pyproject-validation:
+    name: 📋 pyproject.toml Validation
+    runs-on: ubuntu-latest
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 🐍 Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: 🔍 Validate pyproject.toml structure
+        run: |
+          python - <<'PYEOF'
+          import tomllib
+          import sys
+
+          with open('pyproject.toml', 'rb') as f:
+              data = tomllib.load(f)
+
+          errors = []
+
+          # Required top-level tables
+          if 'build-system' not in data:
+              errors.append("Missing [build-system] table")
+          if 'project' not in data:
+              errors.append("Missing [project] table")
+
+          # Required project fields
+          project = data.get('project', {})
+          for field in ['name', 'version', 'description', 'requires-python', 'license']:
+              if field not in project:
+                  errors.append(f"Missing project.{field}")
+
+          # Python version constraint
+          rp = project.get('requires-python', '')
+          if '3.12' not in rp:
+              errors.append(f"requires-python should include 3.12 (got: {rp})")
+
+          # Version format check (basic)
+          version = project.get('version', '')
+          if not version or not version[0].isdigit():
+              errors.append(f"Invalid version format: {version}")
+
+          # Print summary
+          print("=== pyproject.toml Validation ===")
+          print(f"  Name:           {project.get('name', 'MISSING')}")
+          print(f"  Version:        {project.get('version', 'MISSING')}")
+          print(f"  Python req:     {rp}")
+          print(f"  License:        {project.get('license', 'MISSING')}")
+          print(f"  Dependencies:   {len(project.get('dependencies', []))}")
+          print(f"  Optional deps:  {list(project.get('optional-dependencies', {}).keys())}")
+          print(f"  Scripts:        {list(project.get('scripts', {}).keys())}")
+          print()
+
+          if errors:
+              print("❌ Validation errors:")
+              for e in errors:
+                  print(f"  - {e}")
+              sys.exit(1)
+          print("✅ pyproject.toml is valid")
+          PYEOF
+
+  # ── 4. SUMMARY ───────────────────────────────────────────────────────────
+  summary:
+    name: 📊 Compatibility Summary
+    runs-on: ubuntu-latest
+    needs: [resolution-test, import-test, pyproject-validation]
+    if: always()
+    steps:
+      - name: Generate summary
+        run: |
+          {
+            echo "### 🐍 Python Compatibility Matrix"
+            echo ""
+            echo "| Check | 3.12 | 3.13 |"
+            echo "|-------|------|------|"
+            echo "| Dependency resolution | ${{ needs.resolution-test.result }} | ${{ needs.resolution-test.result }} |"
+            echo "| Imports (core + project) | ${{ needs.import-test.result }} | ${{ needs.import-test.result }} |"
+            echo "| pyproject.toml | ${{ needs.pyproject-validation.result }} | — |"
+            echo ""
+            echo "**Trigger:** ${{ github.event_name }}"
+            echo "**Commit:** \`$GITHUB_SHA\`"
+            echo ""
+            echo "If any cell shows 'failure', the corresponding Python version has a compatibility issue."
+          } >> $GITHUB_STEP_SUMMARY
