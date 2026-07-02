@@ -84,20 +84,6 @@ function _getProviderConfig(env: Env, name: string): ProviderConfig | null {
         model: env.NVIDIA_MODEL || BUILTIN_MODELS.nvidia,
       };
     }
-    case 'clovie': {
-      // Clovie Router — OpenAI-compatible gateway for MiMo models.
-      // Compatible with Hermes, OpenClaw, Cline, Claude Code agent frameworks.
-      // Default model: mimo-v2-flash (cheapest). Override via CLOVIE_MODEL.
-      // Other models: mimo-v2.5-pro, mimo-v2.5, mimo-v2-omni, mimo-v2-pro.
-      const apiKey = env.CLOVIE_API_KEY;
-      if (!apiKey) return null;
-      return {
-        name: 'clovie',
-        apiKey,
-        baseURL: env.CLOVIE_BASE_URL || BUILTIN_BASE_URLS.clovie,
-        model: env.CLOVIE_MODEL || BUILTIN_MODELS.clovie,
-      };
-    }
     default:
       return null;
   }
