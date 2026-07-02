@@ -104,7 +104,10 @@ redis:
   enabled: true
   architecture: standalone
   auth:
-    enabled: false
+    # SECURITY: must be true in production. Set redis.auth.password via
+    # `--set redis.auth.password=<strong-password>` or via a sealed Secret.
+    enabled: true
+    password: ""
   master:
     persistence:
       enabled: true
@@ -124,7 +127,10 @@ env:
   REDIS_URL: redis://etap-ai-redis-master:6379/0
   USE_ETAP: "false"
   PRIVACY_MODE: "true"
-  ENGINEERING_SERVICE_API_KEY: "CHANGE-ME-IN-PRODUCTION"
+  # SECURITY: empty by default — operator MUST override with
+  # `--set env.ENGINEERING_SERVICE_API_KEY=<real-key>` (or via a custom values file).
+  # The deployment will fail-fast at startup if this is empty.
+  ENGINEERING_SERVICE_API_KEY: ""
   LOG_LEVEL: "INFO"
 
 # Database Configuration

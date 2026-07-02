@@ -204,7 +204,7 @@ services:
   # Grafana (visualization)
   # =========================================================================
   grafana:
-    image: grafana/grafana:latest
+    image: grafana/grafana:11.3.0
     container_name: etap-grafana
     profiles: ["copilot", "full", "monitoring"]
     ports:

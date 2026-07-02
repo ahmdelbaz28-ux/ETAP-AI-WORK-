@@ -101,7 +101,7 @@ services:
       - postgres
 
   qdrant:
-    image: qdrant/qdrant:latest
+    image: qdrant/qdrant:1.12.4
     container_name: etap-qdrant
     restart: always
     ports:

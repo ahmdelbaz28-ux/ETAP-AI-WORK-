@@ -1,7 +1,6 @@
 import { Mastra } from '@mastra/core/mastra';
 import { PinoLogger } from '@mastra/loggers';
 import { LibSQLStore } from '@mastra/libsql';
-import { DuckDBStore } from "@mastra/duckdb";
 import { MastraCompositeStore } from '@mastra/core/storage';
 import { Observability, MastraStorageExporter, MastraPlatformExporter, SensitiveDataFilter } from '@mastra/observability';
 import { weatherWorkflow } from './workflows/weather-workflow';
@@ -17,7 +16,11 @@ import { protectionAgent } from './agents/protection-agent';
 import { powerSystemCoordinatorAgent } from './agents/power-system-coordinator-agent';
 import { codeGuardAgent } from './agents/code-guard-agent';
 
-// Lazy-initialized observability store to avoid blocking startup with DuckDB
+// Lazy-initialized observability store to avoid blocking startup with DuckDB.
+// IMPORTANT: @mastra/duckdb is imported DYNAMICALLY (not at top-level) so that
+// `mastra build` (rollup) does not try to parse the native `.node` binary
+// bindings that ship with @duckdb/node-bindings. DuckDB is optional at runtime
+// (the lazy init falls back to an empty store if it fails).
 let _observabilityStore: any = null;
 let _observabilityStoreInitialized = false;
 
@@ -28,6 +31,12 @@ async function getObservabilityStore(): Promise<any> {
   _observabilityStoreInitialized = true;
   const start = Date.now();
   try {
+    // Use a variable + @vite-ignore so rollup/mastra-build cannot statically
+    // analyze this import (which would pull in the native .node bindings and
+    // break `mastra build`). The module is loaded at runtime only.
+    const moduleName = '@mastra/duckdb';
+    const mod = await import(/* @vite-ignore */ /* webpackIgnore: true */ moduleName);
+    const DuckDBStore = mod.DuckDBStore;
     const store = await new DuckDBStore().getStore('observability');
     _observabilityStore = store;
     console.log(`[Mastra] DuckDB observability store initialized in ${Date.now() - start}ms`);
