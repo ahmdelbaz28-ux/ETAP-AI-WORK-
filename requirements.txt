@@ -31,7 +31,9 @@ supabase~=2.31.0
 
 # Neo4j (graph database) — used by integrations/neo4j_integration.py
 # Required for network topology modeling and knowledge graph operations.
-neo4j~=5.20.0
+# Pin: must be >=5.25.0 because langchain-neo4j requires it.
+# The previous pin `~=5.20.0` (i.e. >=5.20.0,<5.21.0) caused ResolutionImpossible.
+neo4j>=5.25.0,<7.0.0
 
 # Metrics - Prometheus
 prometheus-client~=0.19.0
@@ -70,10 +72,16 @@ hvac~=2.1.0
 bcrypt~=4.1.0
 
 # JWT token signing
-PyJWT~=2.8.0
+# Pin: must be >=2.12.0 because supabase-auth 2.31+ requires it.
+# The previous pin `~=2.8.0` (i.e. >=2.8.0,<2.9.0) caused ResolutionImpossible.
+PyJWT>=2.12.0,<3.0.0
 
 # Data validation
-pydantic~=2.5.0
+# Pin: pydantic must be >=2.11.7 because supabase's `realtime` transitive
+# dependency requires pydantic>=2.11.7. The previous pin `~=2.5.0`
+# (i.e. >=2.5.0,<2.6.0) caused a ResolutionImpossible error during
+# `pip install`. Allow any 2.x >= 2.11.7 (compatible with all current deps).
+pydantic>=2.11.7,<3.0.0
 email-validator~=2.1.0
 
 # Database ORM (async PostgreSQL + SQLite support)
