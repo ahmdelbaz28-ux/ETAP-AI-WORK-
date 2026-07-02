@@ -40,8 +40,10 @@ export default function Reports() {
           </div>
           <div>
             <h2 className="text-2xl font-bold text-[var(--text-primary)]">Reports</h2>
-          <ContextHelpButton contextId="reports.generate" />
-            <p className="text-sm text-[var(--text-tertiary)]">{generatedCount} generated · {pendingCount} pending</p>
+            <div className="flex items-center gap-2">
+              <p className="text-sm text-[var(--text-tertiary)]">{generatedCount} generated · {pendingCount} pending</p>
+              <ContextHelpButton contextId="reports.generate" />
+            </div>
           </div>
         </div>
       </motion.div>

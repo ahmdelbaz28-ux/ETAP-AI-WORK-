@@ -29,8 +29,10 @@ export default function EtapIntegration() {
           </div>
           <div>
             <h2 className="text-2xl font-bold text-[var(--text-primary)]">ETAP Integration</h2>
-          <ContextHelpButton contextId="etap-integration.overview" />
-            <p className="text-sm text-[var(--text-tertiary)]">Connect to ETAP engineering platform</p>
+            <div className="flex items-center gap-2">
+              <p className="text-sm text-[var(--text-tertiary)]">Connect to ETAP engineering platform</p>
+              <ContextHelpButton contextId="etap-integration.overview" />
+            </div>
           </div>
         </div>
       </motion.div>

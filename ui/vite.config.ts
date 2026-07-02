@@ -7,6 +7,15 @@ export default defineConfig({
   base: './',
   server: {
     port: 5173,
+    fs: { strict: true },
+    watch: {
+      ignored: [
+        '**/skills/**',
+        '**/docs/**',
+        '**/.git/**',
+        '**/node_modules/**',
+      ],
+    },
     proxy: {
       '/api': 'http://localhost:8000',
       '/health': 'http://localhost:8000',

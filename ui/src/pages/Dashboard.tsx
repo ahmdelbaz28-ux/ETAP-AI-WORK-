@@ -160,8 +160,10 @@ export default function Dashboard() {
       <motion.div {...fadeIn} className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-bold text-[var(--text-primary)]">{t('dashboard.title')}</h2>
-          <ContextHelpButton contextId="dashboard.overview" />
-          <p className="text-[var(--text-tertiary)] mt-0.5">{t('dashboard.subtitle')}</p>
+          <div className="flex items-center gap-2 mt-0.5">
+            <p className="text-[var(--text-tertiary)]">{t('dashboard.subtitle')}</p>
+            <ContextHelpButton contextId="dashboard.overview" />
+          </div>
         </div>
         <div className="flex items-center gap-2">
           <Badge variant={health?.ok ? 'success' : 'danger'} dot>

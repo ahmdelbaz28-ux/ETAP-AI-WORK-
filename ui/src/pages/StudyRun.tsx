@@ -175,8 +175,10 @@ export default function StudyRun() {
           </div>
           <div className="flex-1">
             <h2 className="text-2xl font-bold text-[var(--text-primary)]">{category.name}</h2>
-          <ContextHelpButton contextId="studies.overview" />
-            <p className="text-[var(--text-tertiary)] text-sm">{category.description}</p>
+            <div className="flex items-center gap-2">
+              <p className="text-[var(--text-tertiary)] text-sm">{category.description}</p>
+              <ContextHelpButton contextId="studies.overview" />
+            </div>
           </div>
           {category.standard && (
             <Badge variant="brand">{category.standard}</Badge>

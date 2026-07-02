@@ -5,7 +5,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter, useLocation } from 'react-router-dom'
-import { Login } from '../Login'
+import Login from '../Login'
 import { AuthProvider } from '../../hooks/useAuth'
 
 // ── Mocks ──────────────────────────────────────────────────────────────────────

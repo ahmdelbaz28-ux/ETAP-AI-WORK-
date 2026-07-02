@@ -17,6 +17,7 @@ const routeLabels: Record<string, string> = {
   admin: 'sidebar.administration',
   diagnostics: 'sidebar.diagnostics',
   logs: 'sidebar.logs',
+  'code-guard': 'sidebar.codeGuard',
 }
 
 export function Breadcrumbs({ path }: { path: string }) {

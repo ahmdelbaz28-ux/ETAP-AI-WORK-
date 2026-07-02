@@ -98,8 +98,10 @@ export default function Logs() {
           </div>
           <div>
             <h2 className="text-2xl font-bold text-[var(--text-primary)]">Logs</h2>
-          <ContextHelpButton contextId="logs.overview" />
-            <p className="text-sm text-[var(--text-tertiary)]">{logs.length} entries · Real-time activity</p>
+            <div className="flex items-center gap-2">
+              <p className="text-sm text-[var(--text-tertiary)]">{logs.length} entries · Real-time activity</p>
+              <ContextHelpButton contextId="logs.overview" />
+            </div>
           </div>
         </div>
         <div className="flex items-center gap-3">

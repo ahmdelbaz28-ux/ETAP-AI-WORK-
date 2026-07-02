@@ -45,6 +45,8 @@ const DataImportPage = lazy(() => import('./pages/DataImport'))
 const DataExportPage = lazy(() => import('./pages/DataExport'))
 const LogsPage = lazy(() => import('./pages/Logs'))
 const CodeGuardPage = lazy(() => import('./pages/CodeGuard'))
+const LoginPage = lazy(() => import('./pages/Login'))
+const RegisterPage = lazy(() => import('./pages/Register'))
 
 // Inner component that activates keyboard shortcuts inside the Router context
 function KeyboardShortcutsHandler() {
@@ -151,6 +153,11 @@ export default function App() {
       <NotificationProvider>
         <BrowserRouter>
           <Routes>
+            {/* Auth routes - no Layout */}
+            <Route path="/login" element={<LazyPage><LoginPage /></LazyPage>} />
+            <Route path="/register" element={<LazyPage><RegisterPage /></LazyPage>} />
+
+            {/* App routes - with Layout */}
             <Route element={<Layout />}>
               <Route path="/" element={<Navigate to="/dashboard" replace />} />
               <Route path="/dashboard" element={<LazyPage><DashboardPage /></LazyPage>} />
@@ -170,6 +177,8 @@ export default function App() {
               <Route path="/data-export" element={<LazyPage><DataExportPage /></LazyPage>} />
               <Route path="/logs" element={<LazyPage><LogsPage /></LazyPage>} />
               <Route path="/code-guard" element={<LazyPage><CodeGuardPage /></LazyPage>} />
+              {/* Fallback */}
+              <Route path="*" element={<Navigate to="/dashboard" replace />} />
             </Route>
           </Routes>
 

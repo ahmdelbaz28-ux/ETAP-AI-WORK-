@@ -25,8 +25,10 @@ export default function DataImport() {
           </div>
           <div>
             <h2 className="text-2xl font-bold text-[var(--text-primary)]">Data Import</h2>
-          <ContextHelpButton contextId="data-import.overview" />
-            <p className="text-sm text-[var(--text-tertiary)]">Import power system models and data</p>
+            <div className="flex items-center gap-2">
+              <p className="text-sm text-[var(--text-tertiary)]">Import power system models and data</p>
+              <ContextHelpButton contextId="data-import.overview" />
+            </div>
           </div>
         </div>
       </motion.div>

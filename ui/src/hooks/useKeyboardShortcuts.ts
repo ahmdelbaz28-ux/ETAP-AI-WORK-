@@ -76,11 +76,11 @@ export function useKeyboardShortcuts() {
 
       // ─── Direct Shortcuts ───────────────────────────────────────────
       switch (combo) {
-        // Command palette
+        // Command palette - handled by CommandPalette's own listener
         case 'ctrl+k':
-          e.preventDefault()
-          // Toggle the command palette via the existing global event
-          window.dispatchEvent(new KeyboardEvent('keydown', { key: 'k', ctrlKey: true, metaKey: true }))
+          // Do nothing here — CommandPalette.tsx has its own Ctrl+K listener
+          // that toggles its open state. Dispatching a synthetic keydown here
+          // would cause an infinite loop (stack overflow).
           break
 
         // Help

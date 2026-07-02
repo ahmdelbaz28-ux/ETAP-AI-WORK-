@@ -1488,8 +1488,10 @@ export default function Settings() {
   return (
     <div className="space-y-6">
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold text-[var(--text-primary)]">Settings</h2>
+        <div className="flex items-center gap-2">
+          <h2 className="text-2xl font-bold text-[var(--text-primary)]">Settings</h2>
           <ContextHelpButton contextId="settings.backend" />
+        </div>
         <div className="flex items-center gap-2">
           <Button variant="ghost" size="sm" icon={Upload} onClick={handleImport}>Import</Button>
           <Button variant="ghost" size="sm" icon={Download} onClick={handleExport}>Export</Button>

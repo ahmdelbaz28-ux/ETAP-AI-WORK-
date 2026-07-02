@@ -113,8 +113,10 @@ export default function Diagnostics() {
           </div>
           <div>
             <h2 className="text-2xl font-bold text-[var(--text-primary)]">Diagnostics</h2>
-          <ContextHelpButton contextId="diagnostics.overview" />
-            <p className="text-sm text-[var(--text-tertiary)]">System health checks & status</p>
+            <div className="flex items-center gap-2">
+              <p className="text-sm text-[var(--text-tertiary)]">System health checks & status</p>
+              <ContextHelpButton contextId="diagnostics.overview" />
+            </div>
           </div>
         </div>
         <Button variant="primary" size="sm" icon={RefreshCw} loading={running} onClick={runDiagnostics}>

@@ -53,7 +53,6 @@ export default function CodeGuard() {
 
   return (
     <div className="space-y-6">
-      <ContextHelpButton contextId="code-guard.overview" className="absolute top-0 right-0" />
       {/* Header */}
       <motion.div {...fadeIn}>
         <div className="flex items-center gap-3">
@@ -61,9 +60,12 @@ export default function CodeGuard() {
             <Shield className="w-6 h-6 text-purple-500" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-              {t('codeGuard.title', 'Code Guard')}
-            </h1>
+            <div className="flex items-center gap-2">
+              <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+                {t('codeGuard.title', 'Code Guard')}
+              </h1>
+              <ContextHelpButton contextId="code-guard.overview" />
+            </div>
             <p className="text-sm text-gray-500 dark:text-gray-400">
               {t('codeGuard.subtitle', 'AI-powered code quality review — 14 failure modes + 23 clean-code rules + 9 test rules + 10 docs rules')}
             </p>

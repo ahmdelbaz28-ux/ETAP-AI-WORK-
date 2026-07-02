@@ -50,8 +50,10 @@ export default function DataExport() {
           </div>
           <div>
             <h2 className="text-2xl font-bold text-[var(--text-primary)]">Data Export</h2>
-          <ContextHelpButton contextId="data-export.overview" />
-            <p className="text-sm text-[var(--text-tertiary)]">Export study results and system data</p>
+            <div className="flex items-center gap-2">
+              <p className="text-sm text-[var(--text-tertiary)]">Export study results and system data</p>
+              <ContextHelpButton contextId="data-export.overview" />
+            </div>
           </div>
         </div>
       </motion.div>

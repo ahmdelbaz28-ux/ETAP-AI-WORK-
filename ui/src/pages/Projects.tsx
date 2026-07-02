@@ -48,10 +48,12 @@ export default function Projects() {
           </div>
           <div>
             <h2 className="text-2xl font-bold text-[var(--text-primary)]">Projects</h2>
-          <ContextHelpButton contextId="projects.manage" />
-            <p className="text-sm text-[var(--text-tertiary)]">
-              {activeCount} active · {archivedCount} archived
-            </p>
+            <div className="flex items-center gap-2">
+              <p className="text-sm text-[var(--text-tertiary)]">
+                {activeCount} active · {archivedCount} archived
+              </p>
+              <ContextHelpButton contextId="projects.manage" />
+            </div>
           </div>
         </div>
         <Button variant="primary" size="sm" icon={Plus} onClick={() => notify('info', 'Project creation coming soon')}>

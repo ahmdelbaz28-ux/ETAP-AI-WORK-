@@ -35,8 +35,10 @@ export default function GisIntegration() {
           </div>
           <div>
             <h2 className="text-2xl font-bold text-[var(--text-primary)]">GIS Integration</h2>
-          <ContextHelpButton contextId="gis-integration.overview" />
-            <p className="text-sm text-[var(--text-tertiary)]">Geographic information system connectivity</p>
+            <div className="flex items-center gap-2">
+              <p className="text-sm text-[var(--text-tertiary)]">Geographic information system connectivity</p>
+              <ContextHelpButton contextId="gis-integration.overview" />
+            </div>
           </div>
         </div>
       </motion.div>

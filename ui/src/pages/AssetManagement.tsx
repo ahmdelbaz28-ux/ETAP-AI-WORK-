@@ -76,8 +76,10 @@ export default function AssetManagement() {
           </div>
           <div>
             <h2 className="text-2xl font-bold text-[var(--text-primary)]">Asset Management</h2>
-          <ContextHelpButton contextId="asset-management.overview" />
-            <p className="text-sm text-[var(--text-tertiary)]">{assets.length} assets in inventory</p>
+            <div className="flex items-center gap-2">
+              <p className="text-sm text-[var(--text-tertiary)]">{assets.length} assets in inventory</p>
+              <ContextHelpButton contextId="asset-management.overview" />
+            </div>
           </div>
         </div>
       </motion.div>

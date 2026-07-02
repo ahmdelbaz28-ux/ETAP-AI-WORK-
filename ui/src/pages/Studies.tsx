@@ -31,8 +31,10 @@ export default function Studies() {
           </div>
           <div>
             <h2 className="text-2xl font-bold text-[var(--text-primary)]">{t('studies.title')}</h2>
-          <ContextHelpButton contextId="studies.overview" />
-            <p className="text-[var(--text-tertiary)] mt-0.5">{t('studies.subtitle')}</p>
+            <div className="flex items-center gap-2 mt-0.5">
+              <p className="text-[var(--text-tertiary)]">{t('studies.subtitle')}</p>
+              <ContextHelpButton contextId="studies.overview" />
+            </div>
           </div>
         </div>
       </motion.div>

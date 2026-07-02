@@ -1,138 +1,172 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Card, CardHeader, CardSection } from '../components/ui/Card';
-import { Button } from '../components/ui/Button';
-import { useAuth } from '../hooks/useAuth.tsx';
+import { useState } from 'react'
+import { useNavigate, Link } from 'react-router-dom'
+import { motion } from 'framer-motion'
+import { Zap, User, Mail, Lock, ArrowRight, Eye, EyeOff, CheckCircle } from 'lucide-react'
+import { useNotify } from '../context/NotificationContext'
 
-export function Register() {
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
-  
-  const navigate = useNavigate();
-  const { register } = useAuth();
-  
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    
+export default function Register() {
+  const navigate = useNavigate()
+  const { notify } = useNotify()
+  const [name, setName] = useState('')
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
+  const [loading, setLoading] = useState(false)
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!name || !email || !password) {
+      notify('error', 'Please fill in all fields')
+      return
+    }
     if (password !== confirmPassword) {
-      setError('Passwords do not match');
-      return;
+      notify('error', 'Passwords do not match')
+      return
     }
-    
-    setError('');
-    setLoading(true);
-    
-    try {
-      await register(email, password, name);
-      navigate('/login', { state: { from: { pathname: '/' } }, replace: true });
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Registration failed');
-    } finally {
-      setLoading(false);
+    if (password.length < 6) {
+      notify('error', 'Password must be at least 6 characters')
+      return
     }
-  };
+    setLoading(true)
+    await new Promise(r => setTimeout(r, 1000))
+    localStorage.setItem('authToken', 'demo-token-' + Date.now())
+    localStorage.setItem('etap-user', JSON.stringify({
+      id: '1', email, name, role: 'Engineer',
+    }))
+    notify('success', `Welcome to AhmedETAP, ${name}!`)
+    navigate('/dashboard')
+    setLoading(false)
+  }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
-      <Card className="w-full max-w-md">
-        <CardHeader
-          title="Create an account"
-          subtitle="Enter your details to get started with the engineering platform"
-          className="space-y-1"
-        />
+    <div className="min-h-screen flex items-center justify-center bg-[var(--bg-primary)] p-4 relative overflow-hidden">
+      <div className="fixed inset-0 pointer-events-none overflow-hidden" aria-hidden="true">
+        <div className="absolute -top-40 -left-40 w-[500px] h-[500px] bg-gradient-to-br from-brand-500/10 via-transparent to-transparent rounded-full blur-3xl animate-aurora" />
+        <div className="absolute -bottom-60 -right-40 w-[600px] h-[600px] bg-gradient-to-tl from-purple-500/8 via-transparent to-transparent rounded-full blur-3xl animate-aurora" style={{ animationDelay: '-7s', animationDirection: 'reverse' }} />
+      </div>
+
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="relative z-10 w-full max-w-md bg-[var(--bg-card)] rounded-2xl border border-[var(--border-primary)] p-8 shadow-2xl shadow-black/40"
+      >
+        <div className="flex items-center gap-3 mb-6">
+          <div className="w-10 h-10 bg-gradient-to-br from-brand-500 to-brand-700 rounded-xl flex items-center justify-center">
+            <Zap className="w-5 h-5 text-white" />
+          </div>
+          <h1 className="text-xl font-bold text-[var(--text-primary)]">Create Account</h1>
+        </div>
+
+        <h2 className="text-2xl font-bold text-[var(--text-primary)] mb-1">Join AhmedETAP</h2>
+        <p className="text-sm text-[var(--text-tertiary)] mb-6">Start your power systems engineering journey</p>
+
         <form onSubmit={handleSubmit} className="space-y-4">
-          <CardSection>
-            {error && (
-              <div className="bg-red-50 text-red-700 p-3 rounded-md text-sm">
-                {error}
-              </div>
-            )}
-
-            <div className="space-y-2 mt-3">
-              <label htmlFor="name" className="text-sm font-medium text-[var(--text-primary)]">
-                Full Name
-              </label>
+          <div>
+            <label className="block text-xs font-medium text-[var(--text-secondary)] mb-1.5">Full Name</label>
+            <div className="relative">
+              <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)]" />
               <input
-                id="name"
                 type="text"
-                placeholder="John Doe"
                 value={name}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setName(e.target.value)}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="Eng. Ahmed Elbaz"
                 required
-                className="w-full rounded-md border border-[var(--border-primary)] px-3 py-2 text-sm bg-transparent"
+                className="w-full pl-9 pr-3 py-2.5 bg-[var(--bg-input)] border border-[var(--border-primary)] rounded-lg text-sm text-[var(--text-primary)] placeholder-[var(--text-muted)] focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 transition-all"
               />
             </div>
+          </div>
 
-            <div className="space-y-2 mt-3">
-              <label htmlFor="email" className="text-sm font-medium text-[var(--text-primary)]">
-                Email
-              </label>
+          <div>
+            <label className="block text-xs font-medium text-[var(--text-secondary)] mb-1.5">Email Address</label>
+            <div className="relative">
+              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)]" />
               <input
-                id="email"
                 type="email"
-                placeholder="name@company.com"
                 value={email}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="name@company.com"
                 required
-                className="w-full rounded-md border border-[var(--border-primary)] px-3 py-2 text-sm bg-transparent"
+                className="w-full pl-9 pr-3 py-2.5 bg-[var(--bg-input)] border border-[var(--border-primary)] rounded-lg text-sm text-[var(--text-primary)] placeholder-[var(--text-muted)] focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 transition-all"
               />
             </div>
+          </div>
 
-            <div className="space-y-2 mt-3">
-              <label htmlFor="password" className="text-sm font-medium text-[var(--text-primary)]">
-                Password
-              </label>
+          <div>
+            <label className="block text-xs font-medium text-[var(--text-secondary)] mb-1.5">Password</label>
+            <div className="relative">
+              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)]" />
               <input
-                id="password"
-                type="password"
+                type={showPassword ? 'text' : 'password'}
                 value={password}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPassword(e.target.value)}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="At least 6 characters"
                 required
-                className="w-full rounded-md border border-[var(--border-primary)] px-3 py-2 text-sm bg-transparent"
+                className="w-full pl-9 pr-10 py-2.5 bg-[var(--bg-input)] border border-[var(--border-primary)] rounded-lg text-sm text-[var(--text-primary)] placeholder-[var(--text-muted)] focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 transition-all"
               />
-            </div>
-
-            <div className="space-y-2 mt-3">
-              <label
-                htmlFor="confirmPassword"
-                className="text-sm font-medium text-[var(--text-primary)]"
+              <button
+                type="button"
+                onClick={() => setShowPassword(p => !p)}
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 p-1 rounded text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors"
               >
-                Confirm Password
-              </label>
+                {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+              </button>
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-xs font-medium text-[var(--text-secondary)] mb-1.5">Confirm Password</label>
+            <div className="relative">
+              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)]" />
               <input
-                id="confirmPassword"
-                type="password"
+                type={showPassword ? 'text' : 'password'}
                 value={confirmPassword}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                  setConfirmPassword(e.target.value)
-                }
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                placeholder="Re-enter password"
                 required
-                className="w-full rounded-md border border-[var(--border-primary)] px-3 py-2 text-sm bg-transparent"
+                className="w-full pl-9 pr-3 py-2.5 bg-[var(--bg-input)] border border-[var(--border-primary)] rounded-lg text-sm text-[var(--text-primary)] placeholder-[var(--text-muted)] focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 transition-all"
               />
             </div>
-          </CardSection>
+            {confirmPassword && password === confirmPassword && (
+              <p className="mt-1.5 text-xs text-green-400 flex items-center gap-1">
+                <CheckCircle className="w-3 h-3" /> Passwords match
+              </p>
+            )}
+          </div>
 
-          <CardSection className="pt-0 flex flex-col border-t-0">
-            <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? 'Creating account...' : 'Create account'}
-            </Button>
-
-            <p className="mt-4 text-center text-sm text-gray-600">
-              Already have an account?{' '}
-              <a
-                href="/login"
-                className="font-medium text-blue-600 hover:text-blue-500"
-              >
-                Sign in
-              </a>
-            </p>
-          </CardSection>
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-gradient-to-r from-brand-600 to-brand-700 hover:from-brand-500 hover:to-brand-600 text-white rounded-lg font-medium text-sm shadow-lg shadow-brand-600/20 hover:shadow-brand-500/30 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {loading ? (
+              <>
+                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                Creating account...
+              </>
+            ) : (
+              <>
+                Create Account
+                <ArrowRight className="w-4 h-4" />
+              </>
+            )}
+          </button>
         </form>
-      </Card>
+
+        <p className="mt-6 text-center text-sm text-[var(--text-tertiary)]">
+          Already have an account?{' '}
+          <Link to="/login" className="text-brand-400 hover:text-brand-300 font-medium transition-colors">
+            Sign in
+          </Link>
+        </p>
+
+        <div className="mt-6 pt-4 border-t border-[var(--border-primary)] text-center">
+          <p className="text-[10px] text-[var(--text-muted)] font-mono">
+            AhmedETAP v2.1.0 · Demo Build · 2026
+          </p>
+        </div>
+      </motion.div>
     </div>
-  );
+  )
 }

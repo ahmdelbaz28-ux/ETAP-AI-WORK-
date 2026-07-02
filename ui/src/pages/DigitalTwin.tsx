@@ -159,8 +159,10 @@ export default function DigitalTwin() {
           </div>
           <div>
             <h2 className="text-2xl font-bold text-[var(--text-primary)]">Digital Twin</h2>
-          <ContextHelpButton contextId="digital-twin.overview" />
-            <p className="text-sm text-[var(--text-tertiary)]">Real-time power system topology & synchronization</p>
+            <div className="flex items-center gap-2">
+              <p className="text-sm text-[var(--text-tertiary)]">Real-time power system topology & synchronization</p>
+              <ContextHelpButton contextId="digital-twin.overview" />
+            </div>
           </div>
         </div>
         <Button variant="secondary" size="sm" icon={RefreshCw} loading={syncing} onClick={handleSync}>

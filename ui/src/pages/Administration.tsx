@@ -82,8 +82,10 @@ export default function Administration() {
           </div>
           <div>
             <h2 className="text-2xl font-bold text-[var(--text-primary)]">Administration</h2>
-          <ContextHelpButton contextId="administration.overview" />
-            <p className="text-sm text-[var(--text-tertiary)]">Platform monitoring & management</p>
+            <div className="flex items-center gap-2">
+              <p className="text-sm text-[var(--text-tertiary)]">Platform monitoring & management</p>
+              <ContextHelpButton contextId="administration.overview" />
+            </div>
           </div>
         </div>
         <Button variant="secondary" size="sm" icon={RefreshCw} loading={loading} onClick={load}>

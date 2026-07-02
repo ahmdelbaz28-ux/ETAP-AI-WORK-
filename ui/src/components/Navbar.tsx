@@ -1,20 +1,57 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import {
   Search, Bell, X, Globe, Clock, Command, Maximize2, Minimize2,
   Sparkles, HelpCircle, Keyboard, ChevronDown, User as UserIcon,
-  Settings, LogOut, ShieldCheck,
+  Settings, LogOut, ShieldCheck, CheckCircle2, AlertCircle, Info, AlertTriangle,
 } from 'lucide-react'
 import { useAppStore } from '../store'
 import { cn } from '../utils/helpers'
 
+interface NotificationItem {
+  id: string
+  type: 'success' | 'error' | 'warning' | 'info'
+  title: string
+  message: string
+  time: string
+  read: boolean
+}
+
+const DEMO_NOTIFICATIONS: NotificationItem[] = [
+  { id: '1', type: 'info', title: 'Welcome to AhmedETAP', message: 'Demo mode is active — explore all features without a backend.', time: '2m ago', read: false },
+  { id: '2', type: 'success', title: 'Load Flow Completed', message: 'Industrial Plant study finished in 245ms', time: '1h ago', read: false },
+  { id: '3', type: 'warning', title: 'ETAP Worker Offline', message: 'Connect to ETAP worker to enable live studies', time: '3h ago', read: true },
+  { id: '4', type: 'info', title: 'New Agent Available', message: 'Harmonic Analysis Agent v2.0 deployed', time: '5h ago', read: true },
+]
+
+const notifIcon = {
+  success: CheckCircle2,
+  error: AlertCircle,
+  warning: AlertTriangle,
+  info: Info,
+}
+
+const notifColor = {
+  success: 'text-green-400',
+  error: 'text-red-400',
+  warning: 'text-amber-400',
+  info: 'text-brand-400',
+}
+
 export function Navbar() {
   const { t, i18n } = useTranslation()
+  const navigate = useNavigate()
   const { searchQuery, setSearchQuery } = useAppStore()
   const [showSearch, setShowSearch] = useState(false)
   const [currentTime, setCurrentTime] = useState(new Date())
   const [isFullscreen, setIsFullscreen] = useState(false)
   const [showUserMenu, setShowUserMenu] = useState(false)
+  const [showNotifications, setShowNotifications] = useState(false)
+  const [notifications, setNotifications] = useState<NotificationItem[]>(DEMO_NOTIFICATIONS)
+
+  const userMenuRef = useRef<HTMLDivElement>(null)
+  const notifRef = useRef<HTMLDivElement>(null)
 
   const isRtl = i18n.language === 'ar'
 
@@ -37,13 +74,20 @@ export function Navbar() {
     return () => document.removeEventListener('fullscreenchange', handleFsChange)
   }, [])
 
-  // Close user menu on outside click
+  // Close menus on outside click
   useEffect(() => {
-    if (!showUserMenu) return
-    const handler = () => setShowUserMenu(false)
+    if (!showUserMenu && !showNotifications) return
+    const handler = (e: MouseEvent) => {
+      if (userMenuRef.current && !userMenuRef.current.contains(e.target as Node)) {
+        setShowUserMenu(false)
+      }
+      if (notifRef.current && !notifRef.current.contains(e.target as Node)) {
+        setShowNotifications(false)
+      }
+    }
     setTimeout(() => document.addEventListener('click', handler), 0)
     return () => document.removeEventListener('click', handler)
-  }, [showUserMenu])
+  }, [showUserMenu, showNotifications])
 
   const toggleLanguage = () => {
     const newLang = i18n.language === 'ar' ? 'en' : 'ar'
@@ -59,6 +103,23 @@ export function Navbar() {
       document.documentElement.requestFullscreen()
     }
   }
+
+  const handleSignOut = () => {
+    setShowUserMenu(false)
+    localStorage.removeItem('authToken')
+    localStorage.removeItem('etap-user')
+    navigate('/login')
+  }
+
+  const markAllRead = () => {
+    setNotifications(prev => prev.map(n => ({ ...n, read: true })))
+  }
+
+  const dismissNotification = (id: string) => {
+    setNotifications(prev => prev.filter(n => n.id !== id))
+  }
+
+  const unreadCount = notifications.filter(n => !n.read).length
 
   const formatTime = () => {
     return currentTime.toLocaleTimeString(isRtl ? 'ar-EG' : 'en-US', {
@@ -101,8 +162,10 @@ export function Navbar() {
       )}
     >
       <Icon className="w-[18px] h-[18px]" />
-      {badge && (
-        <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-brand-500 animate-pulse ring-2 ring-[var(--bg-secondary)]" />
+      {badge && unreadCount > 0 && (
+        <span className="absolute -top-0.5 -right-0.5 min-w-[16px] h-4 px-1 rounded-full bg-red-500 text-white text-[9px] font-bold flex items-center justify-center ring-2 ring-[var(--bg-secondary)]">
+          {unreadCount > 9 ? '9+' : unreadCount}
+        </span>
       )}
       {/* Tooltip */}
       <span className="absolute top-full mt-2 left-1/2 -translate-x-1/2 px-2 py-1 rounded-md bg-[var(--bg-elevated)] border border-[var(--border-primary)] text-[10px] text-[var(--text-secondary)] whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 shadow-lg">
@@ -200,7 +263,7 @@ export function Navbar() {
           title="Smart Help (F1)"
         />
 
-        {/* Keyboard Shortcuts — the new professional icon */}
+        {/* Keyboard Shortcuts */}
         <ToolButton
           onClick={openShortcuts}
           icon={Keyboard}
@@ -208,19 +271,112 @@ export function Navbar() {
           active
         />
 
-        {/* Notifications */}
-        <ToolButton
-          onClick={() => {}}
-          icon={Bell}
-          title="Notifications"
-          badge
-        />
+        {/* Notifications — with dropdown */}
+        <div className="relative" ref={notifRef}>
+          <button
+            onClick={(e) => { e.stopPropagation(); setShowNotifications(prev => !prev) }}
+            title="Notifications"
+            aria-label="Notifications"
+            className={cn(
+              'relative p-2 rounded-lg transition-all duration-150 group',
+              showNotifications
+                ? 'bg-brand-500/15 text-brand-400'
+                : 'text-[var(--text-muted)] hover:bg-[var(--bg-elevated)] hover:text-[var(--text-primary)]'
+            )}
+          >
+            <Bell className="w-[18px] h-[18px]" />
+            {unreadCount > 0 && (
+              <span className="absolute -top-0.5 -right-0.5 min-w-[16px] h-4 px-1 rounded-full bg-red-500 text-white text-[9px] font-bold flex items-center justify-center ring-2 ring-[var(--bg-secondary)] animate-pulse">
+                {unreadCount > 9 ? '9+' : unreadCount}
+              </span>
+            )}
+            <span className="absolute top-full mt-2 left-1/2 -translate-x-1/2 px-2 py-1 rounded-md bg-[var(--bg-elevated)] border border-[var(--border-primary)] text-[10px] text-[var(--text-secondary)] whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 shadow-lg">
+              Notifications
+            </span>
+          </button>
+
+          {showNotifications && (
+            <div
+              className="absolute right-0 top-full mt-2 w-96 bg-[var(--bg-secondary)] border border-[var(--border-secondary)] rounded-xl shadow-2xl shadow-black/40 overflow-hidden z-50"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Header */}
+              <div className="flex items-center justify-between px-4 py-3 border-b border-[var(--border-primary)] bg-[var(--bg-primary)]/50">
+                <div className="flex items-center gap-2">
+                  <Bell className="w-4 h-4 text-brand-400" />
+                  <span className="text-sm font-semibold text-[var(--text-primary)]">Notifications</span>
+                  {unreadCount > 0 && (
+                    <span className="px-1.5 py-0.5 text-[9px] rounded-full bg-red-500/20 text-red-400 font-bold">
+                      {unreadCount} new
+                    </span>
+                  )}
+                </div>
+                {unreadCount > 0 && (
+                  <button
+                    onClick={markAllRead}
+                    className="text-[10px] text-brand-400 hover:text-brand-300 font-medium transition-colors"
+                  >
+                    Mark all read
+                  </button>
+                )}
+              </div>
+
+              {/* Notifications list */}
+              <div className="max-h-96 overflow-y-auto">
+                {notifications.length > 0 ? (
+                  notifications.map(n => {
+                    const Icon = notifIcon[n.type]
+                    return (
+                      <div
+                        key={n.id}
+                        className={cn(
+                          'flex items-start gap-3 px-4 py-3 border-b border-[var(--border-primary)]/50 hover:bg-[var(--bg-elevated)]/50 transition-colors group',
+                          !n.read && 'bg-brand-500/5'
+                        )}
+                      >
+                        <Icon className={cn('w-4 h-4 mt-0.5 shrink-0', notifColor[n.type])} />
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2">
+                            <p className="text-xs font-semibold text-[var(--text-primary)] truncate">{n.title}</p>
+                            {!n.read && <span className="w-1.5 h-1.5 rounded-full bg-brand-500 shrink-0" />}
+                          </div>
+                          <p className="text-[11px] text-[var(--text-secondary)] mt-0.5 line-clamp-2">{n.message}</p>
+                          <p className="text-[9px] text-[var(--text-muted)] mt-1 font-mono">{n.time}</p>
+                        </div>
+                        <button
+                          onClick={() => dismissNotification(n.id)}
+                          className="p-1 rounded text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-elevated)] transition-colors opacity-0 group-hover:opacity-100"
+                          aria-label="Dismiss"
+                        >
+                          <X className="w-3 h-3" />
+                        </button>
+                      </div>
+                    )
+                  })
+                ) : (
+                  <div className="py-12 text-center">
+                    <Bell className="w-8 h-8 text-[var(--text-muted)] mx-auto mb-2 opacity-50" />
+                    <p className="text-sm text-[var(--text-tertiary)]">No notifications</p>
+                    <p className="text-xs text-[var(--text-muted)] mt-1">You're all caught up!</p>
+                  </div>
+                )}
+              </div>
+
+              {/* Footer */}
+              <div className="px-4 py-2 bg-[var(--bg-primary)]/50 border-t border-[var(--border-primary)] text-center">
+                <span className="text-[10px] text-[var(--text-muted)]">
+                  Notification center · {notifications.length} total
+                </span>
+              </div>
+            </div>
+          )}
+        </div>
 
         {/* Separator */}
         <div className="w-px h-5 bg-[var(--border-primary)] mx-1" />
 
         {/* ─── User Avatar + Dropdown ─────────────────────────────── */}
-        <div className="relative">
+        <div className="relative" ref={userMenuRef}>
           <button
             onClick={(e) => { e.stopPropagation(); setShowUserMenu(prev => !prev) }}
             className="flex items-center gap-2 pl-1 pr-2 py-1 rounded-lg hover:bg-[var(--bg-elevated)] transition-colors group"
@@ -282,7 +438,7 @@ export function Navbar() {
               {/* Menu items */}
               <div className="py-1.5">
                 <button
-                  onClick={() => { setShowUserMenu(false); window.location.hash = '#/settings' }}
+                  onClick={() => { setShowUserMenu(false); navigate('/settings') }}
                   className="w-full flex items-center gap-3 px-4 py-2 text-sm text-[var(--text-secondary)] hover:bg-[var(--bg-elevated)] hover:text-[var(--text-primary)] transition-colors"
                 >
                   <Settings className="w-4 h-4 text-[var(--text-muted)]" />
@@ -291,7 +447,7 @@ export function Navbar() {
                 </button>
 
                 <button
-                  onClick={() => { setShowUserMenu(false); window.location.hash = '#/diagnostics' }}
+                  onClick={() => { setShowUserMenu(false); navigate('/diagnostics') }}
                   className="w-full flex items-center gap-3 px-4 py-2 text-sm text-[var(--text-secondary)] hover:bg-[var(--bg-elevated)] hover:text-[var(--text-primary)] transition-colors"
                 >
                   <ShieldCheck className="w-4 h-4 text-[var(--text-muted)]" />
@@ -302,7 +458,7 @@ export function Navbar() {
                 <div className="h-px bg-[var(--border-primary)] my-1.5" />
 
                 <button
-                  onClick={() => setShowUserMenu(false)}
+                  onClick={handleSignOut}
                   className="w-full flex items-center gap-3 px-4 py-2 text-sm text-red-400 hover:bg-red-500/10 transition-colors"
                 >
                   <LogOut className="w-4 h-4" />
@@ -313,7 +469,7 @@ export function Navbar() {
               {/* Footer */}
               <div className="px-4 py-2 bg-[var(--bg-primary)]/50 border-t border-[var(--border-primary)]">
                 <div className="text-[9px] text-[var(--text-muted)] font-mono text-center">
-                  AhmedETAP v2.1.0 · Build 2026.06.27
+                  AhmedETAP v2.1.0 · Build 2026.07.03
                 </div>
               </div>
             </div>
