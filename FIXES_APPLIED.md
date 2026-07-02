@@ -269,7 +269,7 @@ Single source of truth for version number: `2.1.0`
 | `api/__init__.py` | Removed eager imports |
 | `.github/workflows/sync-ahmedetap-space.yml` | Fixed sync logic |
 | `Dockerfile` | Fixed COPY directives, version |
-| `hf-space/Dockerfile` | Non-root user, Python 3.13 |
+| `hf-space/Dockerfile` | Non-root user, Python 3.12 |
 | `hf-space/requirements.hf.txt` | Added missing dependencies |
 | `hf-space/app.py` | Fixed CORS, removed redundant code |
 | `.dockerignore` | Enhanced exclusions |

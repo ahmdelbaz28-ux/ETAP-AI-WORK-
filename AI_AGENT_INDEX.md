@@ -13,7 +13,7 @@
 | Name | AhmedETAP |
 | Type | Enterprise Engineering Intelligence Platform |
 | Domain | Power Systems Engineering, ETAP Automation, GIS |
-| Language | Python 3.13+ (backend), TypeScript 6+ (frontend) |
+| Language | Python 3.12+ (backend), TypeScript 5.7+ (frontend) |
 | License | MIT |
 | Entry Point (Backend) | `engineering_service.py` → `main()` |
 | Entry Point (Frontend) | `ui/src/main.tsx` → `App.tsx` |

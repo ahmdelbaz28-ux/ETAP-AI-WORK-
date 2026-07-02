@@ -34,7 +34,7 @@ Out of scope for this plan: manual ETAP GUI interaction, customer-specific data 
 
 ### Runtime versions
 
-- Python 3.13
+- Python 3.12
 - Node.js 22
 - pnpm 9+
 - Docker 24+ and Docker Compose v2+
@@ -89,7 +89,7 @@ Out of scope for this plan: manual ETAP GUI interaction, customer-specific data 
 - Repository source is accessible to the CI runner
 - All required secrets and environment variables are configured
 - Docker daemon is available for build and security stages
-- Python 3.13, Node.js 22, and pnpm are installed
+- Python 3.12, Node.js 22, and pnpm are installed
 - No active deployment freeze blocking pipeline execution
 
 ### Exit criteria

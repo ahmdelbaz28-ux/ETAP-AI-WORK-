@@ -1,5 +1,5 @@
 # =============================================================================
-# ETAP AI Engineering Service - Linux Container (Python 3.13+)
+# ETAP AI Engineering Service - Linux Container (Python 3.12+)
 # =============================================================================
 # Standalone FastAPI service that the Cloudflare Worker calls to run
 # real engineering studies (load flow, short circuit, arc flash, etc.).

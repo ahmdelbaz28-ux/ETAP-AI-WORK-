@@ -9,7 +9,7 @@ AhmedETAP is an enterprise-grade autonomous engineering intelligence platform de
 - **Platform**: AhmedETAP (formerly ETAP-AI-WORK)
 - **Developer**: Eng. Ahmed Elbaz
 - **Purpose**: Enterprise-grade power systems engineering platform
-- **Technology Stack**: Python 3.13+, FastAPI, React 19+, TypeScript, Docker, Kubernetes
+- **Technology Stack**: Python 3.12+, FastAPI, React 19+, TypeScript, Docker, Kubernetes
 - **Standards Compliance**: IEEE 3002.7, IEC 60909, IEEE 1584-2018, IEEE 519-2022, IEC 60255, IEEE 399, IEEE 80
 
 ## Current Architecture Strengths

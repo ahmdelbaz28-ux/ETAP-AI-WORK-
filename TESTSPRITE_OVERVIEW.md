@@ -22,7 +22,7 @@ Engineering Engine (Python solvers) → Integration Layer (ETAP COM, GIS, SCADA)
 
 | Layer | Technology | Key Files/Dirs |
 |-------|-----------|----------------|
-| **Backend API** | Python 3.13+, FastAPI | `engineering_service.py` |
+| **Backend API** | Python 3.12+, FastAPI | `engineering_service.py` |
 | **Frontend** | React 19, TypeScript 5.7, Tailwind CSS 4 | `ui/src/pages/*.tsx` |
 | **AI Agents** | Mastra framework, 9 specialized agents | `src/mastra/agents/*.ts`, `agents/*.py` |
 | **Engineering** | NumPy, SciPy, custom solvers | `engine/`, `load_flow/`, `fault_analysis/` |

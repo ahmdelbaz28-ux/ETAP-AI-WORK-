@@ -12,7 +12,7 @@ graph TB
 
     subgraph "Application Tier"
         FE[React 19 UI<br/>TypeScript + Tailwind]
-        BE[FastAPI Engineering Service<br/>Python 3.13]
+        BE[FastAPI Engineering Service<br/>Python 3.12]
         WS[WebSocket<br/>Real-time Updates]
     end
 

@@ -31,7 +31,7 @@ foreach ($step in $workflowConfig.steps) {
 Write-Host "`nChecking for Python..." -ForegroundColor Magenta
 $pythonCmd = Get-Command python -ErrorAction SilentlyContinue
 if ($null -eq $pythonCmd) {
-    Write-Host "Python not found! Please install Python 3.13+ to run the workflow." -ForegroundColor Red
+    Write-Host "Python not found! Please install Python 3.12+ to run the workflow." -ForegroundColor Red
     exit 1
 }
 

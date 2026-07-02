@@ -67,7 +67,7 @@
 
 | الطبقة | التقنية |
 |--------|---------|
-| **الخلفية** | Python 3.13+، FastAPI، Pydantic v2 |
+| **الخلفية** | Python 3.12+، FastAPI، Pydantic v2 |
 | **الواجهة** | React 19+، TypeScript 5.7+، Mastra، Tailwind CSS 4 |
 | **الذكاء الاصطناعي** | LangChain، RAG، ١٥ وكيل متخصص |
 | **قاعدة البيانات** | PostgreSQL، Redis (التخزين المؤقت)، Redis Queue |
