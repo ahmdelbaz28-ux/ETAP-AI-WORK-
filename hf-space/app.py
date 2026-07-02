@@ -146,7 +146,17 @@ async def add_security_headers(request: Request, call_next):
 # -- Auth + Rate-limit middleware ---------------------------------------------
 @app.middleware("http")
 async def auth_and_rate_limit(request: Request, call_next):
-    # API key check (uses shared verify_api_key with HF_API_KEY env var)
+    # API key check — prefer ENGINEERING_SERVICE_API_KEY (the canonical name
+    # used everywhere else in the platform), fall back to HF_API_KEY for
+    # backward compatibility with older Space secrets. If NEITHER is set,
+    # verify_api_key() returns early and auth is DISABLED — which is
+    # acceptable only in development, NOT in production.
+    _eng_key = os.environ.get("ENGINEERING_SERVICE_API_KEY", "")
+    _hf_key = os.environ.get("HF_API_KEY", "")
+    if _eng_key and not _hf_key:
+        # Alias the canonical key so verify_api_key (which reads HF_API_KEY
+        # by default) picks it up without needing a separate secret.
+        os.environ["HF_API_KEY"] = _eng_key
     verify_api_key(request)
     # Rate limit (skip health/docs)
     if request.url.path not in PUBLIC_PATHS:
