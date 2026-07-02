@@ -108,6 +108,11 @@ check_login() {
 }
 
 # Prompt for a secret (hidden input)
+# SECURITY: The value is read via `read -rsp` (silent, no echo to terminal).
+# It is returned via stdout to the caller, which captures it in a variable.
+# The value is NEVER logged, NEVER echoed with print_info/print_error.
+# If the script is run with `set -x`, the value WILL appear in the trace
+# output — so do not run this script with -x in CI/shared environments.
 prompt_secret() {
   local name="$1"
   local description="$2"
@@ -117,9 +122,13 @@ prompt_secret() {
   print_info "${name}"
   echo "   ${description}"
   echo ""
+  # -r: don't interpret backslashes
+  # -s: silent (don't echo input)
+  # -p: prompt string
   read -rsp "   Enter ${name} (or press Enter to skip): " value
-  echo ""
-  echo "${value}"
+  echo ""  # Newline after the silent read
+  # Return the value via stdout (captured by caller via $())
+  printf '%s' "${value}"
 }
 
 # Set a single secret via wrangler — shows errors on failure

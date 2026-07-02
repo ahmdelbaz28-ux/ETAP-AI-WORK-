@@ -104,7 +104,12 @@ redis:
   enabled: true
   architecture: standalone
   auth:
-    enabled: false
+    # SECURITY: Redis auth MUST be enabled in production.
+    # The default password is empty — set a strong password via:
+    #   --set redis.auth.password=$(openssl rand -base64 24)
+    # or via values-production.yaml override.
+    enabled: true
+    password: ""  # Override in production with a strong password
   master:
     persistence:
       enabled: true
@@ -118,14 +123,23 @@ redis:
       memory: 256Mi
 
 # Environment Variables
+# SECURITY: All sensitive values (API keys, JWT secrets, database URLs) MUST
+# be set via Kubernetes Secrets, not via these plain-text env vars. Use
+# `--set env.existingSecret=name-of-secret` to reference a pre-created secret.
+# See helm/etap-ai/templates/secret.yaml for the expected secret keys.
 env:
   ENVIRONMENT: production
   PORT: 8000
   REDIS_URL: redis://etap-ai-redis-master:6379/0
   USE_ETAP: "false"
   PRIVACY_MODE: "true"
-  ENGINEERING_SERVICE_API_KEY: "CHANGE-ME-IN-PRODUCTION"
+  # SECURITY: This is a placeholder. The real value MUST come from a
+  # Kubernetes Secret (env.existingSecret). The Helm chart will fail
+  # to install if this value is not overridden.
+  ENGINEERING_SERVICE_API_KEY: "REPLACE-VIA-SECRET"
   LOG_LEVEL: "INFO"
+  # Reference to an existing Secret for sensitive env vars
+  existingSecret: ""  # Set to secret name in production
 
 # Database Configuration
 database:

@@ -1,0 +1,265 @@
+# =============================================================================
+# AhmedETAP — Infrastructure as Code Validation (Helm + Terraform)
+# -----------------------------------------------------------------------------
+# Validates all infrastructure-as-code files:
+#   - Helm charts: lint, template render, kubeconform schema validation
+#   - Terraform: fmt, validate, tflint, tfsec (security scan)
+#
+# Triggers:
+#   - Push/PR touching helm/**, terraform/**, or related files
+#   - Weekly schedule
+# =============================================================================
+name: IaC Validation (Helm + Terraform)
+
+on:
+  push:
+    branches: [main, develop]
+    paths:
+      - 'helm/**'
+      - 'terraform/**'
+      - '.github/workflows/iac-validation.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'helm/**'
+      - 'terraform/**'
+  schedule:
+    # Weekly on Sunday at 05:00 UTC
+    - cron: '0 5 * * 0'
+  workflow_dispatch:
+
+concurrency:
+  group: iac-validation-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  HELM_VERSION: 'v3.15.0'
+  TERRAFORM_VERSION: '1.9.5'
+  TFLINT_VERSION: 'v0.53.0'
+  TFSEC_VERSION: 'v1.28.1'
+
+jobs:
+  # ── 1. HELM VALIDATION ────────────────────────────────────────────────────
+  helm:
+    name: Helm Chart Validation
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Helm
+        uses: azure/setup-helm@v4
+        with:
+          version: ${{ env.HELM_VERSION }}
+
+      - name: Set up Kubernetes tools
+        run: |
+          # Install kubeconform for schema validation
+          curl -sL https://github.com/yannh/kubeconform/releases/latest/download/kubeconform-linux-amd64.tar.gz | tar xz
+          sudo mv kubeconform /usr/local/bin/
+          kubeconform --version
+
+      - name: Helm dependency update
+        working-directory: ./helm/etap-ai
+        run: helm dependency update
+
+      - name: Helm lint (default values)
+        run: helm lint ./helm/etap-ai/
+
+      - name: Helm lint (strict mode)
+        run: helm lint ./helm/etap-ai/ --strict
+
+      - name: Helm template render (default values)
+        run: |
+          helm template etap-ai ./helm/etap-ai/ > /tmp/rendered-default.yaml
+          echo "Rendered manifest size: $(wc -l < /tmp/rendered-default.yaml) lines"
+
+      - name: Helm template render (production values)
+        run: |
+          # Render with production-like values (override insecure defaults)
+          helm template etap-ai ./helm/etap-ai/ \
+            --set redis.auth.password=test-password-12345 \
+            --set env.ENGINEERING_SERVICE_API_KEY=test-api-key \
+            --set env.existingSecret=etap-secrets \
+            > /tmp/rendered-prod.yaml
+          echo "Rendered manifest size: $(wc -l < /tmp/rendered-prod.yaml) lines"
+
+      - name: Kubeconform schema validation
+        run: |
+          # Validate rendered manifests against Kubernetes schema
+          kubeconform \
+            --strict \
+            --ignore-missing-schemas \
+            --kubernetes-version 1.29.0 \
+            /tmp/rendered-default.yaml /tmp/rendered-prod.yaml
+
+      - name: Security check — no secrets in rendered manifests
+        run: |
+          # Check that rendered manifests don't contain obvious secret patterns
+          python3 - <<'PYEOF'
+          import re
+          import sys
+
+          secret_patterns = [
+              (r'password:\s*["\']?[^"\']{8,}["\']?$', 'plaintext password'),
+              (r'api[_-]?key:\s*["\']?[a-zA-Z0-9_-]{20,}["\']?$', 'api key'),
+              (r'token:\s*["\']?[a-zA-Z0-9_-]{20,}["\']?$', 'token'),
+              (r'sk-[a-zA-Z0-9]{20,}', 'OpenAI key pattern'),
+              (r'ghp_[a-zA-Z0-9]{36}', 'GitHub PAT pattern'),
+              (r'sb_secret_[a-zA-Z0-9_-]+', 'Supabase secret pattern'),
+              (r'hf_[a-zA-Z0-9]{30,}', 'HuggingFace token pattern'),
+          ]
+
+          errors = 0
+          for fname in ['/tmp/rendered-default.yaml', '/tmp/rendered-prod.yaml']:
+              with open(fname) as f:
+                  for i, line in enumerate(f, 1):
+                      for pattern, desc in secret_patterns:
+                          if re.search(pattern, line, re.IGNORECASE):
+                              # Skip known-safe test values
+                              if 'test-' in line or 'CHANGE-ME' in line or 'REPLACE-' in line:
+                                  continue
+                              print(f"  FAIL: {fname}:{i} — {desc}: {line.strip()[:80]}")
+                              errors += 1
+
+          if errors > 0:
+              print(f"\n{errors} potential secrets found in rendered manifests")
+              sys.exit(1)
+          print("No secrets found in rendered manifests")
+          PYEOF
+
+      - name: Upload rendered manifests
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: helm-rendered-${{ github.sha }}
+          path: |
+            /tmp/rendered-default.yaml
+            /tmp/rendered-prod.yaml
+          retention-days: 7
+
+  # ── 2. TERRAFORM VALIDATION ───────────────────────────────────────────────
+  terraform:
+    name: Terraform Validation
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: terraform
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TERRAFORM_VERSION }}
+          terraform_wrapper: false
+
+      - name: Terraform fmt check
+        run: |
+          terraform fmt -check -recursive -diff
+          if [ $? -ne 0 ]; then
+            echo "::error::Terraform files are not properly formatted. Run 'terraform fmt -recursive'"
+            exit 1
+          fi
+          echo "Terraform formatting OK"
+
+      - name: Terraform init (backend disabled for CI)
+        run: |
+          # Use a local backend for CI (don't connect to remote state)
+          cat > backend.ci.tf <<'EOF'
+          terraform {
+            backend "local" {
+              path = "/tmp/terraform.tfstate"
+            }
+          }
+          EOF
+          terraform init -backend-config=/dev/null -input=false -no-color || \
+            terraform init -input=false -no-color
+
+      - name: Terraform validate
+        run: terraform validate -no-color
+
+      - name: Install tflint
+        run: |
+          curl -sL -o /tmp/tflint.zip \
+            "https://github.com/terraform-linters/tflint/releases/download/${{ env.TFLINT_VERSION }}/tflint_linux_amd64.zip"
+          unzip /tmp/tflint.zip -d /tmp
+          sudo mv /tmp/tflint /usr/local/bin/
+          tflint --version
+
+      - name: Run tflint
+        run: |
+          tflint --version
+          tflint --init
+          tflint -f compact
+        continue-on-error: true  # Warnings, not blocking
+
+      - name: Install tfsec
+        run: |
+          curl -sL -o /tmp/tfsec \
+            "https://github.com/aquasecurity/tfsec/releases/download/${{ env.TFSEC_VERSION }}/tfsec-linux-amd64"
+          chmod +x /tmp/tfsec
+          sudo mv /tmp/tfsec /usr/local/bin/
+          tfsec --version
+
+      - name: Run tfsec security scan
+        run: |
+          tfsec . \
+            --format sarif \
+            --out /tmp/tfsec-results.sarif \
+            --severity high,critical \
+            --soft-fail=false
+        continue-on-error: true
+
+      - name: Upload tfsec SARIF to GitHub Security
+        uses: github/codeql-action/upload-sarif@v3
+        if: always() && hashFiles('/tmp/tfsec-results.sarif') != ''
+        with:
+          sarif_file: /tmp/tfsec-results.sarif
+
+      - name: Terraform plan (dev environment)
+        env:
+          TF_VAR_supabase_url: ${{ secrets.SUPABASE_URL }}
+          TF_VAR_supabase_anon_key: ${{ secrets.SUPABASE_ANON_KEY }}
+          TF_VAR_supabase_service_role_key: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: |
+          # Only plan if secrets are available
+          if [ -z "$TF_VAR_supabase_url" ]; then
+            echo "Supabase secrets not set — skipping terraform plan"
+            exit 0
+          fi
+          terraform plan \
+            -var-file=environments/dev/terraform.tfvars \
+            -input=false \
+            -no-color \
+            -out=/tmp/tfplan
+        continue-on-error: true  # Plan may fail due to missing provider creds
+
+  # ── 3. SUMMARY ────────────────────────────────────────────────────────────
+  summary:
+    name: IaC Validation Summary
+    runs-on: ubuntu-latest
+    needs: [helm, terraform]
+    if: always()
+    steps:
+      - name: Generate summary
+        run: |
+          {
+            echo "### Infrastructure as Code Validation Summary"
+            echo ""
+            echo "| Check | Result |"
+            echo "|-------|--------|"
+            echo "| Helm lint + template + kubeconform | ${{ needs.helm.result }} |"
+            echo "| Terraform fmt + validate + tflint + tfsec | ${{ needs.terraform.result }} |"
+            echo ""
+            echo "**Helm version:** ${{ env.HELM_VERSION }}"
+            echo "**Terraform version:** ${{ env.TERRAFORM_VERSION }}"
+          } >> $GITHUB_STEP_SUMMARY
+
+      - name: Fail if Helm validation failed
+        if: needs.helm.result == 'failure'
+        run: |
+          echo "Helm validation failed"
+          exit 1
