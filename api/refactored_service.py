@@ -1276,7 +1276,7 @@ async def metrics(request: Request):
         "total": state.request_count,
         "success": state.success_count,
         "failed": state.failed_count,
-        "errors": state.failed_count
+        "errors": state.failed_count,
     }
     return MetricsResponse(
         requests_total=state.request_count,
@@ -1287,7 +1287,7 @@ async def metrics(request: Request):
         api=api_metrics,
         providers={},
         perKey={},
-        circuits={}
+        circuits={},
     )
 
 
