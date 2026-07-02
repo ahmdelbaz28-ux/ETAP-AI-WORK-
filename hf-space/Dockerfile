@@ -37,8 +37,11 @@ ENV NUMBA_CACHE_DIR=/tmp/cache
 ENV TRANSFORMERS_CACHE=/tmp/cache
 ENV TORCH_HOME=/tmp/cache
 
-# Database path (use /tmp for writable location)
-ENV DATABASE_URL=sqlite+aiosqlite:////tmp/data/etap_platform.db
+# Database path — default to SQLite in /tmp (writable on HF Spaces).
+# IMPORTANT: this is only a fallback. If the HF Space has a DATABASE_URL secret
+# set (e.g. pointing to Neon/Supabase Postgres), that secret OVERRIDES this
+# default because HF Space secrets are injected at runtime, not build time.
+ENV DATABASE_URL=${DATABASE_URL:-sqlite+aiosqlite:////tmp/data/etap_platform.db}
 
 # JWT secret (set as HF Space secret in production)
 ENV JWT_SECRET_KEY=${JWT_SECRET_KEY:-}
