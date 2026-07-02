@@ -1,0 +1,230 @@
+# =============================================================================
+# AhmedETAP — Custom Semgrep Rules
+# -----------------------------------------------------------------------------
+# Project-specific security rules that catch patterns unique to this codebase.
+# These rules run alongside the official Semgrep rulesets in .github/workflows/semgrep.yml
+#
+# Rule naming convention:
+#   etap.<category>.<specific-issue>
+# =============================================================================
+
+rules:
+  # ─── API Key / Secret Leakage ─────────────────────────────────────────────
+  - id: etap.secrets.hardcoded-api-key-fallback
+    languages: [python]
+    severity: ERROR
+    message: >-
+      Hardcoded API key fallback detected. Never use a real key as the
+      fallback value in `os.environ.get()`. Use an empty string and let
+      the provider fail to initialize if the env var is missing.
+      Previous incident: a real OpenAI key was committed in src/mastra/lib/model-config.ts.
+    patterns:
+      - pattern: os.environ.get("...", "..._KEY...", "...")
+      - pattern-not: os.environ.get("...", "")
+      - pattern-not: os.environ.get("...", "your-...-here")
+      - metavariable-regex:
+          metavariable: $ARG
+          regex: '^(sk-|hf_|ghp_|sb_|github_pat_|vcp_|prj_|team_)'
+
+  - id: etap.secrets.jwt-secret-default
+    languages: [python]
+    severity: ERROR
+    message: >-
+      JWT_SECRET_KEY has a hardcoded default value. In production, this
+      must come from an environment variable. A weak default JWT secret
+      allows token forgery.
+    pattern: JWT_SECRET_KEY = "..."
+    fix: 'JWT_SECRET_KEY = os.environ.get("JWT_SECRET_KEY", "")'
+
+  # ─── SQL Injection (project-specific) ─────────────────────────────────────
+  - id: etap.sqli.f-string-sql-execute
+    languages: [python]
+    severity: ERROR
+    message: >-
+      SQL query built with f-string passed to cursor.execute(). Even if
+      the interpolated value looks safe, use parameterized queries (%s)
+      or psycopg2.sql.Identifier for table/schema names.
+      Previous incident: gis_integration/providers/postgis_provider.py
+      had self.schema interpolated via f-string in 10+ locations.
+    pattern: |
+      $CUR.execute(f"...{$VAR}...")
+    fix: |
+      # Use psycopg2.sql.Identifier for identifiers, %s for values
+      # See: https://www.psycopg.org/docs/sql.html
+
+  - id: etap.sqli.format-sql-execute
+    languages: [python]
+    severity: ERROR
+    message: >-
+      SQL query built with .format() passed to cursor.execute(). This is
+      SQL injection. Use parameterized queries (%s) or psycopg2.sql.Identifier.
+    pattern: |
+      $CUR.execute("...{}...".format(...))
+
+  # ─── SSRF (project-specific) ──────────────────────────────────────────────
+  - id: etap.ssrf.requests-without-ssrf-check
+    languages: [python]
+    severity: WARNING
+    message: >-
+      Direct requests.get(url) without SSRF validation. If 'url' comes
+      from user input, this can be used to access internal services
+      (169.254.169.254, localhost, etc.). Use the RASP engine to
+      validate the URL first.
+    pattern: requests.get($URL, ...)
+    paths:
+      exclude:
+        - tests/**
+        - benchmarks/**
+
+  # ─── Path Traversal (project-specific) ────────────────────────────────────
+  - id: etap.path-traversal.open-user-input
+    languages: [python]
+    severity: ERROR
+    message: >-
+      open($PATH) where $PATH may come from user input without path
+      traversal validation. Validate that the resolved path stays within
+      an allowed directory.
+    pattern: |
+      $PATH = $USER_INPUT
+      ...
+      open($PATH, ...)
+
+  # ─── FastAPI Security ─────────────────────────────────────────────────────
+  - id: etap.fastapi.missing-api-key-decorator
+    languages: [python]
+    severity: WARNING
+    message: >-
+      FastAPI route without API key dependency. All non-public routes
+      should require verify_api_key or get_current_user_from_header.
+      Public routes (health, docs) should be added to PUBLIC_PATHS.
+    pattern: |
+      @$APP.$METHOD("...")
+      async def $FUNC(...):
+          ...
+    paths:
+      include:
+        - api/*.py
+        - hf-space/app.py
+      exclude:
+        - tests/**
+
+  # ─── Logging Security ─────────────────────────────────────────────────────
+  - id: etap.logging.secret-in-log
+    languages: [python]
+    severity: ERROR
+    message: >-
+      Logging a variable that may contain a secret. Never log API keys,
+      tokens, passwords, or JWT secrets. If you must log a credential
+      for debugging, mask it first (e.g., f"{key[:4]}...{key[-4:]}").
+    pattern-either:
+      - pattern: logger.$LEVEL($SECRET_VAR)
+      - pattern: print($SECRET_VAR)
+    metavariable-regex:
+      metavariable: $SECRET_VAR
+      regex: '.*(api_key|apikey|API_KEY|secret|SECRET|password|PASSWORD|token|TOKEN|jwt|JWT|fernet|FERNET).*'
+
+  # ─── Cryptography ─────────────────────────────────────────────────────────
+  - id: etap.crypto.weak-hash-md5
+    languages: [python]
+    severity: ERROR
+    message: >-
+      MD5 is cryptographically broken. Use hashlib.sha256 or
+      hashlib.sha512 for security-sensitive hashing. For password
+      hashing, use bcrypt or argon2.
+    pattern: hashlib.md5($DATA)
+
+  - id: etap.crypto.weak-hash-sha1
+    languages: [python]
+    severity: WARNING
+    message: >-
+      SHA1 is deprecated for security-sensitive uses. Use SHA256 or
+      SHA512 instead. (SHA1 is still OK for non-security uses like
+      git object hashing.)
+    pattern: hashlib.sha1($DATA)
+
+  - id: etap.crypto.weak-random
+    languages: [python]
+    severity: ERROR
+    message: >-
+      random.random() is not cryptographically secure. For security
+      tokens (API keys, session IDs, password reset tokens), use
+      secrets.token_hex() or secrets.token_urlsafe().
+    pattern: random.$FUNC(...)
+    paths:
+      include:
+        - api/*.py
+        - security/*.py
+        - integrations/*.py
+
+  # ─── Deserialization ──────────────────────────────────────────────────────
+  - id: etap.deserialization.pickle-load
+    languages: [python]
+    severity: ERROR
+    message: >-
+      pickle.load/loads is unsafe — it can execute arbitrary code.
+      Use json.loads() for untrusted data. If you must use pickle,
+      only unpickle data you created yourself.
+    pattern-either:
+      - pattern: pickle.load(...)
+      - pattern: pickle.loads(...)
+
+  - id: etap.deserialization.yaml-unsafe-load
+    languages: [python]
+    severity: ERROR
+    message: >-
+      yaml.load() without Loader argument uses the unsafe Loader which
+      can execute arbitrary code. Use yaml.safe_load() or
+      yaml.load(data, Loader=yaml.SafeLoader).
+    pattern: yaml.load($DATA)
+
+  # ─── Command Injection ────────────────────────────────────────────────────
+  - id: etap.cmdi.subprocess-shell-true
+    languages: [python]
+    severity: ERROR
+    message: >-
+      subprocess.run with shell=True is command injection if any part
+      of the command comes from user input. Pass the command as a list
+      (shell=False, the default).
+    pattern: subprocess.$FUNC(..., shell=True, ...)
+
+  - id: etap.cmdi.os-system
+    languages: [python]
+    severity: ERROR
+    message: >-
+      os.system() is command injection if the argument comes from user
+      input. Use subprocess.run with a list argument instead.
+    pattern: os.system($CMD)
+
+  # ─── TypeScript / Frontend Security ───────────────────────────────────────
+  - id: etap.ts.dangerouslysetinnerhtml
+    languages: [typescript, javascript]
+    severity: ERROR
+    message: >-
+      dangerouslySetInnerHTML can lead to XSS if the HTML comes from
+      user input. Sanitize with DOMPurify first.
+    pattern: dangerouslySetInnerHTML={$EXPR}
+
+  - id: etap.ts.eval-usage
+    languages: [typescript, javascript]
+    severity: ERROR
+    message: >-
+      eval() executes arbitrary code. Avoid it entirely; if you need
+      dynamic code execution, use Function() with strict input validation.
+    pattern: eval($EXPR)
+
+  # ─── Dependency Security ──────────────────────────────────────────────────
+  - id: etap.deps.unpinned-requirements
+    languages: [python]
+    severity: INFO
+    message: >-
+      Requirement without version pin. Use ~=X.Y.Z for patch updates,
+      >=X.Y.Z,<X+1.0.0 for minor updates, or pin exact versions for
+      production. Unpinned deps make builds non-reproducible.
+    pattern: |
+      $PKG
+    paths:
+      include:
+        - requirements*.txt
+    metavariable-regex:
+      metavariable: $PKG
+      regex: '^[a-zA-Z0-9_-]+$'

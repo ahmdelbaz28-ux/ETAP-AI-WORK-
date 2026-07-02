@@ -147,9 +147,44 @@ _DEFAULT_RULES: List[RASPRule] = [
     RASPRule(
         name="ssrf_basic",
         pattern=re.compile(
-            r"(?i)(http://(169\.254\.|10\.\d+\.\d+\.\d+|172\.(1[6-9]|2\d|3[01])\.\d+\.\d+|"
-            r"192\.168\.\d+\.\d+|127\.0\.0\.1|0\.0\.0\.0|localhost|metadata\.google\.internal|"
-            r"100\.100\.100\.200)|file://|gopher://|dict://)",
+            # Block dangerous URL schemes entirely (file://, gopher://, etc.)
+            # AND block http(s):// targeting internal/private/loopback IPs.
+            #
+            # The previous version only matched 'http://' (case-insensitive),
+            # missing 'https://' which is the actual scheme used by AWS
+            # metadata endpoint (https://169.254.169.254/latest/meta-data/).
+            #
+            # Layout:
+            #   1. Dangerous schemes — always block regardless of host
+            #   2. http(s):// + internal/private/loopback host — block
+            #   3. Bare internal host reference (no scheme) — block
+            r"(?i)("
+            # 1. Dangerous schemes (always block)
+            r"(?:ftp|ftps|scp|sftp|tftp|file|gopher|dict|ldap|ldaps|jar|netdoc)://"
+            r"|"
+            # 2. http(s):// targeting internal/private/loopback addresses
+            r"https?://(?:"
+            r"169\.254\.|"
+            r"10\.\d+\.\d+\.\d+|"
+            r"172\.(?:1[6-9]|2\d|3[01])\.\d+\.\d+|"
+            r"192\.168\.\d+\.\d+|"
+            r"127\.\d+\.\d+\.\d+|"
+            r"0\.0\.0\.0|"
+            r"localhost|"
+            r"metadata\.google\.internal|"
+            r"metadata\.azure\.com|"
+            r"100\.100\.100\.200|"
+            r"\[?:?:?fd00::|fe80::"
+            r")"
+            r"|"
+            # 3. Bare internal host reference (no scheme — catches
+            #    '169.254.169.254' in fields where a URL is expected)
+            r"(?:^|[^a-zA-Z0-9.-])("
+            r"169\.254\.169\.254|"
+            r"metadata\.google\.internal|"
+            r"metadata\.azure\.com"
+            r")"
+            r")",
             re.IGNORECASE,
         ),
         action=RASPAction.BLOCK,

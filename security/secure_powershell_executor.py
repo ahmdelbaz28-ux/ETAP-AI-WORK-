@@ -106,10 +106,20 @@ def main():
 
         if result.returncode != 0:
             err_message = result.stderr or f"Process exited with code {result.returncode}"
-            # Sanitize paths from error messages
+            # Sanitize Windows paths from error messages to prevent information
+            # leakage. The regex matches drive-letter paths like C:\Users\foo
+            # and UNC paths like \\server\share. The previous regex
+            # r"[A-Z]:\[^\s]+" was buggy: the single backslash before [^\s]
+            # was interpreted as an escape for '[', not a literal backslash,
+            # so it never matched any real Windows path.
             import re
 
-            err_message = re.sub(r"[A-Z]:\[^\s]+", "[path]", err_message)
+            # Match: drive letter, colon, backslash, non-whitespace chars
+            # Also match UNC paths: \\server\share
+            path_pattern = re.compile(
+                r'(?:[A-Za-z]:\\[^\s"\']+|\\\\[^\s"\\]+\\[^\s"\']+)'
+            )
+            err_message = path_pattern.sub("[path]", err_message)
             print(json.dumps({"success": False, "output": None, "error": err_message}))
         else:
             print(json.dumps({"success": True, "output": output, "error": None}))

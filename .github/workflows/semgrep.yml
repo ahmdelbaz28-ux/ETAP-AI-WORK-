@@ -1,0 +1,172 @@
+# =============================================================================
+# AhmedETAP — Deep Security Scan (Semgrep + Bandit + Custom Rules)
+# -----------------------------------------------------------------------------
+# Runs Semgrep with the official Python + security rulesets, plus custom
+# project-specific rules. This catches:
+#   - SQL injection (in addition to bandit)
+#   - XSS, SSRF, path traversal
+#   - Hardcoded credentials
+#   - Insecure deserialization
+#   - Weak crypto
+#   - Logger injection
+#   - FastAPI/SQLAlchemy-specific issues
+#
+# Triggers:
+#   - Push/PR to main
+#   - Weekly schedule (catches new rule additions)
+# =============================================================================
+name: Deep Security Scan (Semgrep)
+
+on:
+  push:
+    branches: [main, develop]
+    paths:
+      - '**/*.py'
+      - '**/*.ts'
+      - '**/*.tsx'
+      - '**/*.js'
+      - '.github/workflows/semgrep.yml'
+      - 'semgrep.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - '**/*.py'
+      - '**/*.ts'
+      - '**/*.tsx'
+      - '**/*.js'
+  schedule:
+    # Weekly on Saturday at 03:00 UTC — catches new rule additions
+    - cron: '0 3 * * 6'
+  workflow_dispatch:
+
+concurrency:
+  group: semgrep-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  security-events: write  # Required to upload SARIF to GitHub Security tab
+
+jobs:
+  semgrep:
+    name: Semgrep SAST Scan
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    container:
+      # Pin to a specific Semgrep version for reproducibility
+      image: returntocorp/semgrep:1.96.0
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run Semgrep with security rulesets
+        run: |
+          echo "Running Semgrep with security rulesets..."
+          semgrep ci \
+            --config p/python \
+            --config p/security-audit \
+            --config p/secrets \
+            --config p/owasp-top-ten \
+            --config p/bandit \
+            --config p/insecure-transport \
+            --config p/sql-injection \
+            --config p/xss \
+            --config p/command-injection \
+            --config p/path-traversal \
+            --config p/ssrf \
+            --config p/ldap-injection \
+            --config p/secure-defaults \
+            --config semgrep.yml \
+            --sarif --output semgrep-results.sarif \
+            --json --output semgrep-results.json \
+            --error \
+            --exclude 'tests/**' \
+            --exclude 'testsprite_tests/**' \
+            --exclude 'acp_runtime/acp_tests/**' \
+            --exclude 'benchmarks/**' \
+            --exclude 'node_modules/**' \
+            --exclude 'ui/node_modules/**' \
+            --exclude '.venv/**' \
+            --exclude 'venv/**' \
+            --exclude '__pycache__/**' \
+            --exclude '.git/**' \
+            --exclude 'docs/**' \
+            --exclude '*.md' \
+            --metrics off
+        continue-on-error: true  # We process results separately
+
+      - name: Generate summary report
+        if: always()
+        run: |
+          if [ ! -f semgrep-results.json ]; then
+            echo "Semgrep did not produce a JSON report"
+            exit 0
+          fi
+          python3 - <<'PYEOF'
+          import json
+          with open('semgrep-results.json') as f:
+              data = json.load(f)
+
+          results = data.get('results', [])
+          errors = data.get('errors', [])
+
+          # Group by severity
+          by_severity = {}
+          for r in results:
+              sev = r.get('extra', {}).get('severity', 'UNKNOWN')
+              by_severity.setdefault(sev, []).append(r)
+
+          print("=" * 60)
+          print("  Semgrep Scan Summary")
+          print("=" * 60)
+          print(f"  Total findings: {len(results)}")
+          print(f"  Errors:         {len(errors)}")
+          print()
+          print("  By severity:")
+          for sev in ['ERROR', 'WARNING', 'INFO']:
+              count = len(by_severity.get(sev, []))
+              if count > 0:
+                  print(f"    {sev:10s}: {count}")
+
+          print()
+          print("  Top 10 findings:")
+          for i, r in enumerate(results[:10], 1):
+              rule_id = r.get('check_id', '?').split('.')[-1]
+              path = r.get('path', '?')
+              line = r.get('start', {}).get('line', '?')
+              sev = r.get('extra', {}).get('severity', '?')
+              message = r.get('extra', {}).get('message', '')[:80]
+              print(f"    {i}. [{sev}] {rule_id}")
+              print(f"       {path}:{line}")
+              print(f"       {message}")
+              print()
+
+          error_count = len(by_severity.get('ERROR', []))
+          warning_count = len(by_severity.get('WARNING', []))
+          if error_count > 0 or warning_count > 0:
+              print(f"Blocking findings: {error_count} ERROR, {warning_count} WARNING")
+              # Exit non-zero only on ERROR severity
+              if error_count > 0:
+                  import sys
+                  sys.exit(1)
+          else:
+              print("No blocking findings")
+          PYEOF
+
+      - name: Upload SARIF to GitHub Security tab
+        uses: github/codeql-action/upload-sarif@v3
+        if: always() && hashFiles('semgrep-results.sarif') != ''
+        with:
+          sarif_file: semgrep-results.sarif
+
+      - name: Upload Semgrep results artifact
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: semgrep-results-${{ github.sha }}
+          path: |
+            semgrep-results.json
+            semgrep-results.sarif
+          retention-days: 30
+          if-no-files-found: ignore
