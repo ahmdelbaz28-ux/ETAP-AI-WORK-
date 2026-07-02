@@ -14,7 +14,6 @@ from __future__ import annotations
 
 import base64
 import os
-import sys
 from pathlib import Path
 
 import httpx
@@ -95,7 +94,7 @@ if lf_public and lf_secret:
     try:
         r = httpx.get(f"{lf_base}/api/public/health", headers=lf_headers, timeout=10)
         if r.status_code == 200:
-            ok(f"Health endpoint: 200")
+            ok("Health endpoint: 200")
         else:
             fail(f"Health: HTTP {r.status_code}")
     except Exception as e:
@@ -231,7 +230,7 @@ try:
             data = r.json()
             ok(f"Live /health: 200 — status={data.get('status')}, uptime={data.get('uptime_seconds', 0):.0f}s")
         except Exception:
-            ok(f"Live /health: 200")
+            ok("Live /health: 200")
     else:
         warn(f"Live /health: HTTP {r.status_code}")
 except Exception as e:

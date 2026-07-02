@@ -148,7 +148,7 @@ async def get_agents_list(request: Request):
                 "provider": "openai"
             }
         ]
-        
+
         return JSONResponse(
             content={
                 "success": True,
