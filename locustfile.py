@@ -6,6 +6,7 @@
 
 import json
 import logging
+import os
 
 from locust import HttpUser, between, events, task
 from locust.runners import MasterRunner, WorkerRunner
@@ -140,9 +141,11 @@ class AuthenticatedUser(HttpUser):
     # Wait between 1 and 3 seconds between tasks (realistic user behavior)
     wait_time = between(1, 3)
 
-    # Default credentials for load testing (should be created in test DB)
-    _TEST_USERNAME = "loadtest_user"
-    _TEST_PASSWORD = "LoadTest123!@#"
+    # Load-test credentials — read from env vars so no secret is hardcoded.
+    # Set LOCUST_TEST_USERNAME / LOCUST_TEST_PASSWORD before running load tests.
+    # Defaults are intentionally invalid so tests fail loudly if env is not set.
+    _TEST_USERNAME = os.environ.get("LOCUST_TEST_USERNAME", "loadtest_user")
+    _TEST_PASSWORD = os.environ.get("LOCUST_TEST_PASSWORD", "")
 
     def on_start(self):
         """Authenticate on user start."""

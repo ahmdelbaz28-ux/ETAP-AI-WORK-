@@ -12,7 +12,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.windows-worker
-    image: etap-windows-worker:latest
+    image: etap-windows-worker:2.1.0
     container_name: etap-windows-worker
     platform: windows
     ports:

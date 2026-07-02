@@ -107,7 +107,7 @@ services:
   # UI available at http://localhost:3001
   # ===========================================================================
   grafana:
-    image: grafana/grafana:latest
+    image: grafana/grafana:11.3.0
     container_name: etap-grafana
     ports:
       - "${GRAFANA_PORT:-3001}:3000"
@@ -156,7 +156,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.engineering-service
-    image: etap-engineering-service:latest
+    image: etap-engineering-service:2.1.0
     container_name: etap-engineering-service
     ports:
       - "${ENGINEERING_SERVICE_PORT:-8000}:8000"
