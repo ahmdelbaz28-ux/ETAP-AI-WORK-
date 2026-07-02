@@ -399,6 +399,10 @@ jobs:
           pkill -f "engineering_service.py" 2>/dev/null || true
 
   # ── 3. COMMENT ON PR ───────────────────────────────────────────────────────
+  # NOTE: On `push` events, `github.event.pull_request` is always null.
+  # The previous condition `github.event.pull_request != null` made this job
+  # skip silently. We now use the GitHub API to find the PR associated with
+  # the pushed commit, and only post a comment if one exists.
   comment-on-pr:
     name: "💬 Post Load Test Results"
     runs-on: ubuntu-latest
@@ -406,28 +410,64 @@ jobs:
     if: >
       always() &&
       needs.k6-load-test.result != 'skipped' &&
-      needs.locust-stress-test.result != 'skipped' &&
-      github.event_name == 'push' &&
-      github.event.pull_request != null
+      needs.locust-stress-test.result != 'skipped'
     permissions:
       pull-requests: write
+      contents: read
 
     steps:
-      - name: Download k6 results
+      - name: 📥 Checkout code (for GH CLI context)
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: 🔍 Find PR for current commit
+        id: find-pr
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Try to find the PR that matches this commit
+          PR_NUMBER=$(gh pr list \
+            --state all \
+            --head "${GITHUB_REF_NAME}" \
+            --json number,headRefName \
+            --jq '.[0].number' 2>/dev/null || echo "")
+
+          if [ -z "$PR_NUMBER" ]; then
+            # Fallback: search by commit SHA
+            PR_NUMBER=$(gh pr list \
+              --state all \
+              --search "${GITHUB_SHA}" \
+              --json number \
+              --jq '.[0].number' 2>/dev/null || echo "")
+          fi
+
+          if [ -n "$PR_NUMBER" ]; then
+            echo "PR found: #$PR_NUMBER"
+            echo "pr_number=$PR_NUMBER" >> $GITHUB_OUTPUT
+          else
+            echo "No PR found for commit $GITHUB_SHA — skipping comment"
+            echo "pr_number=" >> $GITHUB_OUTPUT
+          fi
+
+      - name: 📥 Download k6 results
+        if: steps.find-pr.outputs.pr_number != ''
         uses: actions/download-artifact@v4
         with:
           name: k6-load-test-results-${{ github.sha }}
           path: k6-results
         continue-on-error: true
 
-      - name: Download Locust results
+      - name: 📥 Download Locust results
+        if: steps.find-pr.outputs.pr_number != ''
         uses: actions/download-artifact@v4
         with:
           name: locust-stress-test-results-${{ github.sha }}
           path: locust-results
         continue-on-error: true
 
-      - name: Build PR comment
+      - name: 📝 Build PR comment
+        if: steps.find-pr.outputs.pr_number != ''
         run: |
           python - <<'PYEOF'
           import json, os
@@ -488,18 +528,14 @@ jobs:
               f.write(f"LOAD_TEST_COMMENT<<EOF_MARKER\n{comment}\nEOF_MARKER\n")
           PYEOF
 
-      - name: Post comment on PR
-        if: env.LOAD_TEST_COMMENT != ''
+      - name: 💬 Post comment on PR
+        if: steps.find-pr.outputs.pr_number != '' && env.LOAD_TEST_COMMENT != ''
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          PR_NUMBER=$(gh pr view --json number -q .number 2>/dev/null || echo "")
-          if [ -n "$PR_NUMBER" ]; then
-            echo "$LOAD_TEST_COMMENT" | gh pr comment "$PR_NUMBER" --body-file -
-            echo "✅ Comment posted on PR #$PR_NUMBER"
-          else
-            echo "⚠️ No associated PR found — skipping comment"
-          fi
+          PR_NUMBER="${{ steps.find-pr.outputs.pr_number }}"
+          echo "$LOAD_TEST_COMMENT" | gh pr comment "$PR_NUMBER" --body-file -
+          echo "✅ Comment posted on PR #$PR_NUMBER"
 
   # ── 4. GATE — Fail pipeline if any test didn't pass ────────────────────────
   load-test-gate:

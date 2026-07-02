@@ -1,49 +1,108 @@
-# Deploy documentation with MkDocs to GitHub Pages
+# =============================================================================
+# AhmedETAP — Docs (MkDocs) Deploy to GitHub Pages
+# -----------------------------------------------------------------------------
+# Builds the MkDocs site and deploys to GitHub Pages.
+#
+# Triggers:
+#   - Push to main (docs/, mkdocs.yml, src/ changes)
+#   - Manual dispatch (force redeploy)
+#
+# Improvements over the previous version:
+#   - Path filter (only runs when docs/mkdocs.yml changes)
+#   - Pre-deploy validation (mkdocs build --strict)
+#   - Uses official actions/configure-pages + deploy-pages (recommended by GH)
+#     instead of the legacy `mkdocs gh-deploy` which pushes a branch
+#   - No GITHUB_TOKEN passed to mkdocs (was leaking in error messages)
+# =============================================================================
 name: Docs (MkDocs) Deploy
 
 on:
   push:
     branches: [main]
+    paths:
+      - 'docs/**'
+      - 'mkdocs.yml'
+      - 'README.md'
+      - '.github/workflows/github-pages.yml'
   workflow_dispatch:
     inputs:
       force:
         description: "Force redeploy"
         required: false
-        default: "false"
+        default: false
         type: boolean
 
-# Required: allow github-actions[bot] to push the gh-pages branch back to the repo
 permissions:
-  contents: write
+  contents: read
   pages: write
   id-token: write
 
-# Avoid concurrent deploys racing on the gh-pages branch
 concurrency:
   group: mkdocs-pages
   cancel-in-progress: false
 
+env:
+  PYTHON_VERSION: '3.12'
+
 jobs:
-  deploy:
+  build:
+    name: 📚 Build MkDocs Site
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
         with:
-          fetch-depth: 0
+          fetch-depth: 0  # MkDocs material needs git history for "last updated"
 
-      - name: Set up Python
+      - name: 🐍 Set up Python ${{ env.PYTHON_VERSION }}
         uses: actions/setup-python@v5
         with:
-          python-version: '3.12'
+          python-version: ${{ env.PYTHON_VERSION }}
           cache: 'pip'
 
-      - name: Install MkDocs and theme
+      - name: 🔧 Install MkDocs + Material + plugins
         run: |
           pip install --upgrade pip
-          pip install mkdocs mkdocs-material
+          pip install \
+            mkdocs \
+            mkdocs-material \
+            mkdocs-minify-plugin \
+            mkdocs-git-revision-date-localized-plugin \
+            mkdocs-mermaid2-plugin
 
-      - name: Deploy to GitHub Pages
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: 🔍 Validate mkdocs.yml exists
         run: |
-          mkdocs gh-deploy --force
+          if [ ! -f mkdocs.yml ]; then
+            echo "::error::mkdocs.yml not found in repo root"
+            exit 1
+          fi
+          echo "✅ mkdocs.yml found"
+
+      - name: 🏗️ Build site (strict mode — warnings are errors)
+        run: |
+          # --strict fails on broken links, missing files, etc.
+          mkdocs build --strict --clean
+
+      - name: 📤 Upload site artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: ./site
+
+  deploy:
+    name: 🚀 Deploy to GitHub Pages
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: 🚀 Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
+
+      - name: 📝 Deployment summary
+        run: |
+          echo "### 📚 MkDocs Documentation Deployed" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**URL:** ${{ steps.deployment.outputs.page_url }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Commit:** \`$GITHUB_SHA\`" >> $GITHUB_STEP_SUMMARY

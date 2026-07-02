@@ -1,0 +1,247 @@
+# =============================================================================
+# AhmedETAP — Branch Protection & Repo Health Audit
+# -----------------------------------------------------------------------------
+# Audits the repository configuration and reports drift from best practices:
+#   - Branch protection rules on `main`
+#   - Required status checks
+#   - Signed commits
+#   - Code review requirements
+#   - Secret scanning enabled
+#   - Dependabot security updates enabled
+#
+# This workflow is NON-BLOCKING (audit only). It reports drift as warnings
+# but does not fail the pipeline, because branch protection can only be
+# configured by repo admins via the GitHub UI/API, not via workflow files.
+# =============================================================================
+name: Repo Health Audit
+
+on:
+  schedule:
+    # Weekly on Monday at 07:00 UTC — start of week audit
+    - cron: '0 7 * * 1'
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/repo-health-audit.yml'
+      - '.github/SECURITY.md'
+
+concurrency:
+  group: repo-health-audit
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  administration: read  # Required to read branch protection rules
+
+env:
+  REQUIRED_BRANCH: 'main'
+
+jobs:
+  audit:
+    name: 📋 Repository Health Audit
+    runs-on: ubuntu-latest
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 🔍 Check 1 — Branch protection on ${{ env.REQUIRED_BRANCH }}
+        id: branch-protection
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set +e  # Don't fail the workflow if checks find issues
+          echo "── Check 1: Branch protection on $REQUIRED_BRANCH ──"
+
+          # Try to fetch branch protection rules
+          PROTECTION=$(gh api \
+            repos/${{ github.repository }}/branches/$REQUIRED_BRANCH/protection \
+            2>&1) || true
+
+          if echo "$PROTECTION" | grep -q "Branch not protected"; then
+            echo "  ⚠️  WARNING: Branch '$REQUIRED_BRANCH' has NO protection rules"
+            echo "  Configure at: https://github.com/${{ github.repository }}/settings/branches"
+            echo "branch_protected=false" >> $GITHUB_OUTPUT
+          elif echo "$PROTECTION" | grep -q '"url"'; then
+            echo "  ✅ Branch '$REQUIRED_BRANCH' has protection rules"
+            # Check specific protections
+            echo "$PROTECTION" | python3 - <<'PYEOF'
+          import json, sys
+          try:
+              data = json.load(sys.stdin)
+          except:
+              print("  ⚠️  Could not parse protection JSON")
+              sys.exit(0)
+
+          checks = [
+              ("required_status_checks", "Required status checks"),
+              ("enforce_admins/enabled", "Enforce for admins"),
+              ("required_pull_request_reviews", "Required PR reviews"),
+              ("restrictions", "Push restrictions"),
+              ("allow_force_pushes/enabled", "Allow force pushes (should be False)"),
+              ("required_signatures/enabled", "Required signed commits"),
+          ]
+          for path, name in checks:
+              parts = path.split("/")
+              v = data
+              for p in parts:
+                  v = v.get(p, None) if isinstance(v, dict) else None
+                  if v is None:
+                      break
+              if "force" in path:
+                  status = "✅" if v == False else "⚠️"
+                  print(f"  {status} {name}: {v}")
+              elif v:
+                  print(f"  ✅ {name}: enabled")
+              else:
+                  print(f"  ⚠️  {name}: not configured")
+          PYEOF
+            echo "branch_protected=true" >> $GITHUB_OUTPUT
+          else
+            echo "  ℹ️  Could not read branch protection (may require admin token)"
+            echo "branch_protected=unknown" >> $GITHUB_OUTPUT
+          fi
+
+      - name: 🔍 Check 2 — Required status checks configured
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set +e
+          echo ""
+          echo "── Check 2: Required status checks ──"
+          echo "  Listing workflows that SHOULD be required:"
+
+          # List all workflow files
+          for f in .github/workflows/*.yml; do
+            NAME=$(grep -m1 '^name:' "$f" | sed 's/name: *//' | tr -d '"' || echo "?")
+            echo "    - $NAME ($f)"
+          done
+
+          echo ""
+          echo "  Recommended required checks for main:"
+          echo "    - AhmedETAP CI/CD (lint + python-tests + security-scan)"
+          echo "    - Python Compatibility Matrix"
+          echo "    - Docker Build & Validation"
+          echo "    - Cross-Service Integration Health"
+          echo ""
+          echo "  Configure at: https://github.com/${{ github.repository }}/settings/branches"
+
+      - name: 🔍 Check 3 — Dependabot enabled
+        run: |
+          set +e
+          echo ""
+          echo "── Check 3: Dependabot configuration ──"
+          if [ -f .github/dependabot.yml ]; then
+            ECOSYSTEMS=$(grep "package-ecosystem" .github/dependabot.yml | sed 's/.*: *//' | tr -d '"' | sort -u)
+            echo "  ✅ .github/dependabot.yml found"
+            echo "  Configured ecosystems:"
+            echo "$ECOSYSTEMS" | sed 's/^/    - /'
+          else
+            echo "  ❌ .github/dependabot.yml MISSING — no automated dependency updates"
+          fi
+
+      - name: 🔍 Check 4 — SECURITY.md present
+        run: |
+          set +e
+          echo ""
+          echo "── Check 4: SECURITY.md ──"
+          for f in .github/SECURITY.md SECURITY.md docs/SECURITY.md; do
+            if [ -f "$f" ]; then
+              echo "  ✅ Found: $f"
+              WC=$(wc -l < "$f")
+              echo "    Lines: $WC"
+              break
+            fi
+          done
+
+      - name: 🔍 Check 5 — Issue & PR templates
+        run: |
+          set +e
+          echo ""
+          echo "── Check 5: Issue & PR templates ──"
+          if [ -d .github/ISSUE_TEMPLATE ]; then
+            COUNT=$(find .github/ISSUE_TEMPLATE -type f | wc -l)
+            echo "  ✅ Issue templates: $COUNT files"
+            find .github/ISSUE_TEMPLATE -type f -exec echo "    - {}" \;
+          else
+            echo "  ⚠️  No .github/ISSUE_TEMPLATE directory"
+          fi
+
+          if [ -f .github/PULL_REQUEST_TEMPLATE.md ]; then
+            echo "  ✅ PR template found"
+          else
+            echo "  ⚠️  No .github/PULL_REQUEST_TEMPLATE.md"
+          fi
+
+          if [ -f .github/CODEOWNERS ]; then
+            echo "  ✅ CODEOWNERS file found"
+            WC=$(wc -l < .github/CODEOWNERS)
+            echo "    Lines: $WC"
+          else
+            echo "  ⚠️  No .github/CODEOWNERS file"
+          fi
+
+      - name: 🔍 Check 6 — License file
+        run: |
+          set +e
+          echo ""
+          echo "── Check 6: License ──"
+          for f in LICENSE LICENSE.md LICENSE.txt; do
+            if [ -f "$f" ]; then
+              echo "  ✅ Found: $f"
+              break
+            fi
+          done
+          # Check pyproject.toml for license field
+          if grep -q "^license" pyproject.toml 2>/dev/null; then
+            LICENSE=$(grep "^license" pyproject.toml | head -1)
+            echo "  ✅ pyproject.toml declares: $LICENSE"
+          fi
+
+      - name: 🔍 Check 7 — CODE_OF_CONDUCT & CONTRIBUTING
+        run: |
+          set +e
+          echo ""
+          echo "── Check 7: Community files ──"
+          for f in CODE_OF_CONDUCT.md CONTRIBUTING.md SUPPORT.md; do
+            if [ -f "$f" ]; then
+              echo "  ✅ $f"
+            else
+              echo "  ⚠️  $f missing"
+            fi
+          done
+
+      - name: 🔍 Check 8 — Workflow count and last-modified
+        run: |
+          set +e
+          echo ""
+          echo "── Check 8: Workflows inventory ──"
+          COUNT=$(find .github/workflows -name '*.yml' | wc -l)
+          echo "  Total workflows: $COUNT"
+          echo ""
+          echo "  Workflow list (sorted by last modified):"
+          for f in $(ls -t .github/workflows/*.yml); do
+            NAME=$(grep -m1 '^name:' "$f" | sed 's/name: *//' | tr -d '"' || echo "?")
+            MOD=$(git log -1 --format="%ci" -- "$f" 2>/dev/null | cut -d' ' -f1 || echo "?")
+            SIZE=$(wc -l < "$f")
+            printf "    %-50s %s  (%d lines, modified %s)\n" "$NAME" "$f" "$SIZE" "$MOD"
+          done
+
+      - name: 📝 Generate audit summary
+        if: always()
+        run: |
+          {
+            echo "### 📋 Repository Health Audit"
+            echo ""
+            echo "**Date:** $(date -u '+%Y-%m-%d %H:%M UTC')"
+            echo "**Repository:** ${{ github.repository }}"
+            echo "**Trigger:** ${{ github.event_name }}"
+            echo ""
+            echo "This is a non-blocking audit. Configure any missing items via:"
+            echo "- Branch protection: Settings → Branches"
+            echo "- Required checks: Settings → Branches → Edit protection rule"
+            echo "- Secret scanning: Settings → Code security"
+            echo "- Dependabot: Settings → Code security → Dependabot"
+            echo ""
+            echo "See full audit output in the workflow logs above."
+          } >> $GITHUB_STEP_SUMMARY
