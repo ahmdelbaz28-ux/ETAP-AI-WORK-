@@ -117,7 +117,8 @@ class PostGISProvider:
         # vector. The _ensure_schema() method also uses psycopg2.sql.Identifier
         # for defense-in-depth.)
         import re
-        if not re.match(r'^[a-zA-Z_][a-zA-Z0-9_]{0,62}$', schema):
+
+        if not re.match(r"^[a-zA-Z_][a-zA-Z0-9_]{0,62}$", schema):
             raise ValueError(
                 f"Invalid schema name '{schema}'. Must match "
                 f"^[a-zA-Z_][a-zA-Z0-9_]{{0,62}}$ (Postgres identifier rules)."
@@ -167,7 +168,8 @@ class PostGISProvider:
         # Validate schema name (only alphanumeric + underscore, max 63 chars
         # — Postgres identifier limit)
         import re
-        if not re.match(r'^[a-zA-Z_][a-zA-Z0-9_]{0,62}$', self.schema):
+
+        if not re.match(r"^[a-zA-Z_][a-zA-Z0-9_]{0,62}$", self.schema):
             raise ValueError(
                 f"Invalid schema name '{self.schema}'. Must match "
                 f"^[a-zA-Z_][a-zA-Z0-9_]{{0,62}}$ (Postgres identifier rules)."
@@ -186,9 +188,7 @@ class PostGISProvider:
                 cur.execute("CREATE EXTENSION IF NOT EXISTS postgis")
                 # Safe: schema name is validated + quoted via Identifier
                 cur.execute(
-                    sql.SQL("CREATE SCHEMA IF NOT EXISTS {}").format(
-                        sql.Identifier(self.schema)
-                    )
+                    sql.SQL("CREATE SCHEMA IF NOT EXISTS {}").format(sql.Identifier(self.schema))
                 )
                 cur.execute(
                     sql.SQL("""
@@ -201,9 +201,7 @@ class PostGISProvider:
                             created_at TIMESTAMPTZ DEFAULT NOW(),
                             updated_at TIMESTAMPTZ DEFAULT NOW()
                         )
-                    """).format(
-                        sql.Identifier(self.schema)
-                    ),
+                    """).format(sql.Identifier(self.schema)),
                     [_SPATIAL_REF_SYS],
                 )
                 cur.execute(

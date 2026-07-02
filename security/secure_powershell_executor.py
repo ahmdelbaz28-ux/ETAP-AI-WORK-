@@ -116,9 +116,7 @@ def main():
 
             # Match: drive letter, colon, backslash, non-whitespace chars
             # Also match UNC paths: \\server\share
-            path_pattern = re.compile(
-                r'(?:[A-Za-z]:\\[^\s"\']+|\\\\[^\s"\\]+\\[^\s"\']+)'
-            )
+            path_pattern = re.compile(r'(?:[A-Za-z]:\\[^\s"\']+|\\\\[^\s"\\]+\\[^\s"\']+)')
             err_message = path_pattern.sub("[path]", err_message)
             print(json.dumps({"success": False, "output": None, "error": err_message}))
         else:

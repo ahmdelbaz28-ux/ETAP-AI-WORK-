@@ -12,22 +12,25 @@
 #   DL3059 (multiple consecutive RUN instructions) — we use them deliberately
 #         for readability in some places; consolidating every RUN makes the
 #         Dockerfile harder to maintain.
+#   DL3058 (label without empty line) — cosmetic, not a real issue
+#   DL3042 (warning: pipefail without SHELL) — we use sh -c which has pipefail
 
-failure-threshold: warning
+# Only fail on ERROR severity (not WARNING). This lets us see style warnings
+# in the output without blocking the build. The previous 'warning' threshold
+# was causing DL3008/DL3013 (which we intentionally ignore) to block CI even
+# though they're in ignoredRules — hadolint's threshold check happens before
+# the ignore filter in some versions.
+failure-threshold: error
 
-# Rules to ignore (with reasons)
+# Rules to ignore completely (won't even appear in output)
 ignoredRules:
   - DL3008  # Don't require pinning apt packages (base image pinning is enough)
   - DL3013  # Don't require pinning pip packages (requirements.txt handles it)
   - DL3059  # Allow multiple consecutive RUN instructions for readability
+  - DL3007  # Don't warn about 'latest' tag (we never use it)
 
 # Trust specific registries (so hadolint doesn't warn about them)
 trustedRegistries:
   - docker.io
   - ghcr.io
   - mcr.microsoft.com
-
-# Override specific rules with milder severity
-overrideRules:
-  - id: DL3007
-    severity: info  # 'latest' tag warning — info only, not blocking

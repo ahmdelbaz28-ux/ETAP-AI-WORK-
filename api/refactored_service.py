@@ -119,6 +119,8 @@ from fastapi.responses import JSONResponse
 from pydantic import AliasChoices, BaseModel, ConfigDict, Field, field_validator, model_validator
 from starlette.middleware.base import BaseHTTPMiddleware
 
+from api.agents import router as agents_router
+
 # Import existing modular routers
 from api.auth import router as auth_router
 from api.database import init_db
@@ -128,7 +130,6 @@ from api.error_debugger import (
     StudyExecutionError,
 )
 from api.projects import router as projects_router
-from api.agents import router as agents_router
 
 # ---------------------------------------------------------------------------
 # Structured logging with trace IDs
@@ -1275,7 +1276,7 @@ async def metrics(request: Request):
         "total": state.request_count,
         "success": state.success_count,
         "failed": state.failed_count,
-        "errors": state.failed_count
+        "errors": state.failed_count,
     }
     return MetricsResponse(
         requests_total=state.request_count,
@@ -1286,7 +1287,7 @@ async def metrics(request: Request):
         api=api_metrics,
         providers={},
         perKey={},
-        circuits={}
+        circuits={},
     )
 
 

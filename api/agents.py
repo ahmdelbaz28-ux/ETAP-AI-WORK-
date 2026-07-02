@@ -39,9 +39,15 @@ async def get_agents_list(request: Request):
                 "id": "etap-expert",
                 "name": "ETAP Expert",
                 "description": "ETAP power systems engineering expert",
-                "capabilities": ["load_flow", "short_circuit", "arc_flash", "protection", "motor_starting"],
+                "capabilities": [
+                    "load_flow",
+                    "short_circuit",
+                    "arc_flash",
+                    "protection",
+                    "motor_starting",
+                ],
                 "model": "gemini-2.0-flash-exp",
-                "provider": "google"
+                "provider": "google",
             },
             {
                 "id": "etap-gui",
@@ -49,7 +55,7 @@ async def get_agents_list(request: Request):
                 "description": "ETAP GUI automation and computer use agent",
                 "capabilities": ["gui_automation", "cua", "screenshot_analysis"],
                 "model": "gemini-2.0-flash-exp",
-                "provider": "google"
+                "provider": "google",
             },
             {
                 "id": "load-flow",
@@ -57,7 +63,7 @@ async def get_agents_list(request: Request):
                 "description": "Load flow and voltage analysis",
                 "capabilities": ["load_flow", "voltage_profile", "power_losses"],
                 "model": "gpt-4o",
-                "provider": "openai"
+                "provider": "openai",
             },
             {
                 "id": "short-circuit",
@@ -65,7 +71,7 @@ async def get_agents_list(request: Request):
                 "description": "Fault current analysis",
                 "capabilities": ["short_circuit", "iec_60909", "equipment_rating"],
                 "model": "gpt-4o",
-                "provider": "openai"
+                "provider": "openai",
             },
             {
                 "id": "arc-flash",
@@ -73,7 +79,7 @@ async def get_agents_list(request: Request):
                 "description": "Incident energy and arc flash boundary calculations",
                 "capabilities": ["arc_flash", "ieee_1584", "ppe_category"],
                 "model": "gpt-4o",
-                "provider": "openai"
+                "provider": "openai",
             },
             {
                 "id": "protection",
@@ -81,7 +87,7 @@ async def get_agents_list(request: Request):
                 "description": "Relay coordination and protection studies",
                 "capabilities": ["protection", "relay_coordination", "time_current_curves"],
                 "model": "gpt-4o",
-                "provider": "openai"
+                "provider": "openai",
             },
             {
                 "id": "motor-starting",
@@ -89,7 +95,7 @@ async def get_agents_list(request: Request):
                 "description": "Motor starting current and voltage dip analysis",
                 "capabilities": ["motor_starting", "voltage_dip", "acceleration"],
                 "model": "gpt-4o",
-                "provider": "openai"
+                "provider": "openai",
             },
             {
                 "id": "stability",
@@ -97,7 +103,7 @@ async def get_agents_list(request: Request):
                 "description": "Transient and steady-state stability analysis",
                 "capabilities": ["stability", "swing_equation", "critical_clearing_time"],
                 "model": "gpt-4o",
-                "provider": "openai"
+                "provider": "openai",
             },
             {
                 "id": "cable-sizing",
@@ -105,7 +111,7 @@ async def get_agents_list(request: Request):
                 "description": "Cable ampacity and voltage drop calculations",
                 "capabilities": ["cable_sizing", "iec_60364", "voltage_drop"],
                 "model": "gpt-4o",
-                "provider": "openai"
+                "provider": "openai",
             },
             {
                 "id": "earth-grid",
@@ -113,7 +119,7 @@ async def get_agents_list(request: Request):
                 "description": "Grounding system and earth grid design",
                 "capabilities": ["earth_grid", "ieee_80", "step_touch_voltage"],
                 "model": "gpt-4o",
-                "provider": "openai"
+                "provider": "openai",
             },
             {
                 "id": "renewable",
@@ -121,7 +127,7 @@ async def get_agents_list(request: Request):
                 "description": "Solar and wind integration analysis",
                 "capabilities": ["renewable", "solar", "wind", "ieee_1547"],
                 "model": "gpt-4o",
-                "provider": "openai"
+                "provider": "openai",
             },
             {
                 "id": "battery-storage",
@@ -129,7 +135,7 @@ async def get_agents_list(request: Request):
                 "description": "Battery energy storage system analysis",
                 "capabilities": ["battery_storage", "bess", "dispatch_optimization"],
                 "model": "gpt-4o",
-                "provider": "openai"
+                "provider": "openai",
             },
             {
                 "id": "harmonic",
@@ -137,7 +143,7 @@ async def get_agents_list(request: Request):
                 "description": "Harmonic distortion and filter design",
                 "capabilities": ["harmonic", "ieee_519", "filter_design"],
                 "model": "gpt-4o",
-                "provider": "openai"
+                "provider": "openai",
             },
             {
                 "id": "optimal-power-flow",
@@ -145,29 +151,19 @@ async def get_agents_list(request: Request):
                 "description": "Optimal power flow and economic dispatch",
                 "capabilities": ["opf", "economic_dispatch", "optimal_power_flow"],
                 "model": "gpt-4o",
-                "provider": "openai"
-            }
+                "provider": "openai",
+            },
         ]
-        
-        return JSONResponse(
-            content={
-                "success": True,
-                "agents": agents_list,
-                "trace_id": trace_id
-            }
-        )
+
+        return JSONResponse(content={"success": True, "agents": agents_list, "trace_id": trace_id})
     except Exception as e:
         from logging import getLogger
+
         logger = getLogger("engineering_service")
         logger.error("agents_list_failed error=%s", str(e), extra={"trace_id": trace_id})
         # Return an empty list as fallback
         return JSONResponse(
-            content={
-                "success": False,
-                "agents": [],
-                "trace_id": trace_id
-            },
-            status_code=500
+            content={"success": False, "agents": [], "trace_id": trace_id}, status_code=500
         )
 
 

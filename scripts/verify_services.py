@@ -14,7 +14,6 @@ from __future__ import annotations
 
 import base64
 import os
-import sys
 from pathlib import Path
 
 import httpx
@@ -22,6 +21,7 @@ import httpx
 # Load .env if available
 try:
     from dotenv import load_dotenv
+
     env_path = Path(__file__).resolve().parent.parent / ".env"
     if env_path.exists():
         load_dotenv(env_path, override=False)
@@ -30,13 +30,28 @@ except ImportError:
 
 
 class R:
-    OK = "\033[92m"; FAIL = "\033[91m"; WARN = "\033[93m"; INFO = "\033[96m"; BOLD = "\033[1m"; END = "\033[0m"
+    OK = "\033[92m"
+    FAIL = "\033[91m"
+    WARN = "\033[93m"
+    INFO = "\033[96m"
+    BOLD = "\033[1m"
+    END = "\033[0m"
 
 
-def ok(msg: str) -> None:   print(f"  {R.OK}[OK]{R.END}   {msg}")
-def fail(msg: str) -> None: print(f"  {R.FAIL}[FAIL]{R.END} {msg}")
-def warn(msg: str) -> None: print(f"  {R.WARN}[WARN]{R.END} {msg}")
-def info(msg: str) -> None: print(f"  {R.INFO}[INFO]{R.END} {msg}")
+def ok(msg: str) -> None:
+    print(f"  {R.OK}[OK]{R.END}   {msg}")
+
+
+def fail(msg: str) -> None:
+    print(f"  {R.FAIL}[FAIL]{R.END} {msg}")
+
+
+def warn(msg: str) -> None:
+    print(f"  {R.WARN}[WARN]{R.END} {msg}")
+
+
+def info(msg: str) -> None:
+    print(f"  {R.INFO}[INFO]{R.END} {msg}")
 
 
 print("=" * 60)
@@ -95,15 +110,19 @@ if lf_public and lf_secret:
     try:
         r = httpx.get(f"{lf_base}/api/public/health", headers=lf_headers, timeout=10)
         if r.status_code == 200:
-            ok(f"Health endpoint: 200")
+            ok("Health endpoint: 200")
         else:
             fail(f"Health: HTTP {r.status_code}")
     except Exception as e:
         fail(f"Health failed: {e}")
 
     try:
-        r = httpx.get(f"{lf_base}/api/public/v2/prompts",
-                      headers=lf_headers, params={"page": 1, "limit": 100}, timeout=15)
+        r = httpx.get(
+            f"{lf_base}/api/public/v2/prompts",
+            headers=lf_headers,
+            params={"page": 1, "limit": 100},
+            timeout=15,
+        )
         if r.status_code == 200:
             prompts = r.json().get("data", [])
             ok(f"Prompts (v2 API): {len(prompts)} prompts")
@@ -156,7 +175,9 @@ if sb_url and sb_service:
 
     # Check projects table
     try:
-        r = httpx.get(f"{sb_url}/rest/v1/projects?select=*&limit=10", headers=sb_headers, timeout=10)
+        r = httpx.get(
+            f"{sb_url}/rest/v1/projects?select=*&limit=10", headers=sb_headers, timeout=10
+        )
         if r.status_code == 200:
             projects = r.json()
             ok(f"projects table: {len(projects)} row(s)")
@@ -176,6 +197,7 @@ neo4j_pwd = os.environ.get("NEO4J_PASSWORD", "")
 if neo4j_uri and neo4j_pwd:
     try:
         from neo4j import GraphDatabase
+
         driver = GraphDatabase.driver(neo4j_uri, auth=(neo4j_user, neo4j_pwd))
         with driver.session() as session:
             result = session.run("RETURN 1 AS ok").single()
@@ -225,13 +247,17 @@ except Exception as e:
 
 # Live URL
 try:
-    r = httpx.get("https://ahmdelbaz28-ahmedetap.hf.space/health", timeout=15, follow_redirects=True)
+    r = httpx.get(
+        "https://ahmdelbaz28-ahmedetap.hf.space/health", timeout=15, follow_redirects=True
+    )
     if r.status_code == 200:
         try:
             data = r.json()
-            ok(f"Live /health: 200 — status={data.get('status')}, uptime={data.get('uptime_seconds', 0):.0f}s")
+            ok(
+                f"Live /health: 200 — status={data.get('status')}, uptime={data.get('uptime_seconds', 0):.0f}s"
+            )
         except Exception:
-            ok(f"Live /health: 200")
+            ok("Live /health: 200")
     else:
         warn(f"Live /health: HTTP {r.status_code}")
 except Exception as e:
@@ -239,7 +265,9 @@ except Exception as e:
 
 # Agents endpoint
 try:
-    r = httpx.get("https://ahmdelbaz28-ahmedetap.hf.space/api/v1/agents", timeout=15, follow_redirects=True)
+    r = httpx.get(
+        "https://ahmdelbaz28-ahmedetap.hf.space/api/v1/agents", timeout=15, follow_redirects=True
+    )
     if r.status_code == 200:
         data = r.json()
         count = data.get("count", 0) if isinstance(data, dict) else len(data)
@@ -252,10 +280,16 @@ except Exception as e:
 # ─── 7. GitHub Repo ───────────────────────────────────────────────────────
 print(f"\n{R.BOLD}--- GitHub Repo ---{R.END}")
 gh_token = os.environ.get("GITHUB_TOKEN", "")
-gh_headers = {"Authorization": f"Bearer {gh_token}", "Accept": "application/vnd.github+json"} if gh_token else {}
+gh_headers = (
+    {"Authorization": f"Bearer {gh_token}", "Accept": "application/vnd.github+json"}
+    if gh_token
+    else {}
+)
 
 try:
-    r = httpx.get("https://api.github.com/repos/ahmdelbaz28-ux/ETAP-AI-WORK-", headers=gh_headers, timeout=10)
+    r = httpx.get(
+        "https://api.github.com/repos/ahmdelbaz28-ux/ETAP-AI-WORK-", headers=gh_headers, timeout=10
+    )
     print(f"  Repo API: {r.status_code}")
     if r.status_code == 200:
         data = r.json()
@@ -271,7 +305,8 @@ except Exception as e:
 try:
     r = httpx.get(
         "https://api.github.com/repos/ahmdelbaz28-ux/ETAP-AI-WORK-/actions/runs?per_page=1",
-        headers=gh_headers, timeout=10,
+        headers=gh_headers,
+        timeout=10,
     )
     if r.status_code == 200:
         runs = r.json().get("workflow_runs", [])
