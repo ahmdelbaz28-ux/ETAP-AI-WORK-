@@ -41,7 +41,7 @@ fi
 print_success "Docker and Docker Compose found"
 
 # Check if .env file exists
-if [ ! -f .env ]; then
+if [[ ! -f .env ]]; then
     print_info "Creating .env file from template..."
     cp .env.example .env
     print_success ".env file created. Please edit it with your configuration."
@@ -58,21 +58,21 @@ docker-compose up -d
 # `engineering` profile. Set START_ENGINEERING_SERVICE=1 in the environment
 # to opt in non-interactively; otherwise prompt if stdin is a TTY.
 START_ENG="${START_ENGINEERING_SERVICE:-}"
-if [ -z "$START_ENG" ]; then
-  if [ -t 0 ]; then
+if [[ -z "$START_ENG" ]]; then
+  if [[ -t 0 ]]; then
     read -rp "Start the Engineering Service too? [y/N]: " START_ENG
     START_ENG="$(printf '%s' "${START_ENG:-n}" | tr '[:upper:]' '[:lower:]')"
   else
     START_ENG="n"
   fi
 fi
-if [ "$START_ENG" = "y" ] || [ "$START_ENG" = "yes" ] || [ "$START_ENG" = "1" ]; then
+if [[ "$START_ENG" = "y" ]] || [[ "$START_ENG" = "yes" ]] || [[ "$START_ENG" = "1" ]]; then
   print_info "Starting Engineering Service (profile: engineering)..."
   docker-compose --profile engineering up -d engineering-service
   print_info "Waiting for Engineering Service /health..."
   for i in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15; do
     code=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8000/health 2>/dev/null || echo 000)
-    if [ "$code" = "200" ]; then
+    if [[ "$code" = "200" ]]; then
       print_success "Engineering Service is running and healthy (port 8000)"
       break
     fi

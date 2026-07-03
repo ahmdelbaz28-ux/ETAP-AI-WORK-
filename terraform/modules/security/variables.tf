@@ -14,6 +14,12 @@ variable "acr_name" {
   type = string
 }
 
+variable "acr_public_network_access_enabled" {
+  description = "Whether public network access is allowed for the ACR. Defaults to false (private-endpoint only) to satisfy SonarCloud S6329. Set to true only for break-glass maintenance in non-prod."
+  type        = bool
+  default     = false
+}
+
 variable "tenant_id" {
   type = string
 }

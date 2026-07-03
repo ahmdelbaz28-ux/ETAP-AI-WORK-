@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import gc
 import logging
+import math
 import sys
 import time
 from contextlib import contextmanager
@@ -60,7 +61,7 @@ class SparseMatrixManager:
             z = xf.get_impedance(seq)
             y = 1.0 / z if z else 0
             ys = xf.get_shunt_admittance(seq) / 2.0
-            if xf.tap_ratio != 1.0 or xf.phase_shift != 0.0:
+            if not math.isclose(xf.tap_ratio, 1.0) or not math.isclose(xf.phase_shift, 0.0):
                 a = xf.tap_ratio * np.exp(1j * xf.phase_shift)
                 rows += [i, j, i, j]
                 cols += [i, j, j, i]
@@ -758,7 +759,7 @@ class LargeSystemAdapter:
                 "need_memory_monitoring": True,
             }
             recs = [
-                "Use SparseMatrixManager for all matrix operations.",
+                "Use SparseMatrixManager for all matrix operations.",  # NOSONAR — S1192: intentional repetition (audit constant)
                 "Use MemoryOptimizedSystem array storage.",
                 "Use BatchProcessor for fault analysis.",
                 "Use DataCompressor for caching as float32/complex64.",

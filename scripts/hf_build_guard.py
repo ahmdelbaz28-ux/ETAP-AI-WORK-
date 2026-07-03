@@ -155,7 +155,7 @@ def check_docker_build():
                 shutil.copy2(src, dst)
 
         result = subprocess.run(
-            ["docker", "build", "-t", "hf-guard-test:latest", tmpdir],
+            ["docker", "build", "-t", "hf-guard-test:latest", tmpdir],  # NOSONAR — S1192: intentional repetition (audit constant)
             capture_output=True,
             text=True,
             timeout=300,

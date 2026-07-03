@@ -261,7 +261,7 @@ class WeatherAgent(BaseAgent):
             "assessment": self._assess_wind_impact(wind_speed_ms, rating_increase),
         }
 
-    def _assess_wind_impact(self, wind_speed: float, rating_increase: float) -> str:
+    def _assess_wind_impact(self, wind_speed: float, _rating_increase: float) -> str:
         """Assess wind impact on line rating."""
         if wind_speed < 0.5:
             return "Calm conditions — static rating applicable; no dynamic uplift"

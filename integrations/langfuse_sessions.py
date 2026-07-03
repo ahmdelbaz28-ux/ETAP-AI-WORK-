@@ -58,6 +58,7 @@ from __future__ import annotations
 
 import json
 import logging
+import math
 import os
 import time
 import uuid
@@ -230,7 +231,7 @@ def record_user_feedback(
 
     # Alert on negative feedback on safety-critical traces
     # (we look up the trace's metadata via the SDK if possible)
-    if value == 0.0:
+    if math.isclose(value, 0.0):
         try:
             alert_on_unsafe_trace(
                 trace_id=trace_id,

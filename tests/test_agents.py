@@ -21,7 +21,7 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
-async def create_test_system() -> Any:
+async def create_test_system() -> Any:  # NOSONAR — S7503: async function uses sync I/O for compatibility reasons
     """
     Create a minimal test system for agent testing.
     This creates a simple power system with minimal components to allow
@@ -100,7 +100,7 @@ async def test_individual_agents():
                 results[agent_name] = {"status": "EXECUTION_ERROR", "error": str(e)}
 
         except Exception as e:
-            logger.error("✗ %s failed to instantiate: %s", agent_name, str(e))
+            logger.exception("✗ %s failed to instantiate: %s", agent_name, str(e))
             results[agent_name] = {"status": "INSTANTIATION_ERROR", "error": str(e)}
 
     return results
@@ -156,7 +156,7 @@ async def test_orchestrator():
         return orchestrator_result
 
     except Exception as e:
-        logger.error("✗ Orchestrator test failed: %s", str(e))
+        logger.exception("✗ Orchestrator test failed: %s", str(e))
         return {"status": "ERROR", "error": str(e)}
 
 

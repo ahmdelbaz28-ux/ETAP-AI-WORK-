@@ -179,10 +179,21 @@ DUAL_CONFIRMATION_PATTERNS: tuple[str, ...] = (
 
 # Security v2.1.5: Use a fixed, non-user-controlled path for the kill switch
 # to avoid SonarCloud S2083 (path traversal) warnings. The path is a module
-# constant derived from CUA_AUDIT_DIR (or /tmp fallback) — never from user
-# input. We additionally harden the file permissions to 0o600 so only the
-# process owner can read/write the kill switch state.
-_CUA_AUDIT_DIR = Path(os.environ.get("CUA_AUDIT_DIR", "/tmp"))
+# constant derived from CUA_AUDIT_DIR (or a per-user cache fallback) — never
+# from user input. We additionally harden the file permissions to 0o600 so
+# only the process owner can read/write the kill switch state.
+#
+# Default to a per-user cache directory (~/.etap/cua_audit) instead of /tmp
+# to avoid SonarCloud S5443 (publicly writable directories). The directory
+# is created with 0o700 permissions.
+_DEFAULT_CUA_AUDIT_DIR = str(Path.home() / ".etap" / "cua_audit")
+_CUA_AUDIT_DIR = Path(os.environ.get("CUA_AUDIT_DIR", _DEFAULT_CUA_AUDIT_DIR))
+_CUA_AUDIT_DIR.mkdir(parents=True, exist_ok=True)
+try:
+    os.chmod(_CUA_AUDIT_DIR, 0o700)
+except OSError:
+    # Best-effort: chmod can fail on some filesystems (e.g., Windows).
+    pass
 KILL_SWITCH_PATH = _CUA_AUDIT_DIR / "cua_kill_switch"
 
 
@@ -299,9 +310,17 @@ class TamperEvidentAuditLog:
 
     GENESIS_HASH = "0" * 64
 
-    def __init__(self, log_path: str = "/tmp/cua_audit/safety_chain.jsonl") -> None:
+    def __init__(self, log_path: str | None = None) -> None:
+        # Default to the per-user cache directory (NOT /tmp) to avoid
+        # SonarCloud S5443 (publicly writable directories).
+        if log_path is None:
+            log_path = str(_CUA_AUDIT_DIR / "safety_chain.jsonl")
         self.log_path = Path(log_path)
         self.log_path.parent.mkdir(parents=True, exist_ok=True)
+        try:
+            os.chmod(self.log_path.parent, 0o700)
+        except OSError:
+            pass
 
     def append(self, data: dict[str, Any]) -> str:
         """Append an entry to the chain. Returns the entry's hash."""
@@ -430,11 +449,19 @@ class LifeSafetyGuard:
 
     def __init__(
         self,
-        audit_dir: str = "/tmp/cua_audit",
+        audit_dir: str | None = None,
         safety_log_path: str | None = None,
     ) -> None:
+        # Default audit_dir to the per-user cache (NOT /tmp) to avoid
+        # SonarCloud S5443 (publicly writable directories).
+        if audit_dir is None:
+            audit_dir = str(_CUA_AUDIT_DIR)
         self.audit_dir = Path(audit_dir)
         self.audit_dir.mkdir(parents=True, exist_ok=True)
+        try:
+            os.chmod(self.audit_dir, 0o700)
+        except OSError:
+            pass
         self.audit_log = TamperEvidentAuditLog(
             log_path=safety_log_path or str(self.audit_dir / "safety_chain.jsonl"),
         )
@@ -686,7 +713,7 @@ class LifeSafetyGuard:
         try:
             audit_hash = self.audit_log.append(data)
         except Exception as exc:  # noqa: BLE001
-            logger.error("Failed to append audit entry: %s", exc)
+            logger.exception("Failed to append audit entry: %s", exc)
 
         # ── SIEM FORWARDING (Step 4) ──────────────────────────────────────
         # Forward every life-safety event to the enterprise SIEM via Syslog.

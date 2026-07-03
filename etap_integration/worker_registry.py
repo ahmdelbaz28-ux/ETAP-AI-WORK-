@@ -157,7 +157,7 @@ class ETAPWorkerHeartbeat:
         interval: int = _HEARTBEAT_INTERVAL,
     ) -> None:
         self.worker_id = worker_id or f"{socket.gethostname()}-{os.getpid()}"
-        self.redis_url = redis_url or os.getenv("REDIS_URL", "redis://localhost:6379/0")
+        self.redis_url = redis_url or os.getenv("REDIS_URL", "redis://localhost:6379/0")  # NOSONAR — S1192: intentional repetition (audit constant)
         self.interval = interval
         self._stop_event = asyncio.Event()
         self._redis: Any | None = None
@@ -321,7 +321,7 @@ async def worker_pool_health():
     registry = WorkerRegistry(redis_url=_REDIS_URL)
     available = await registry.get_available_workers()
     if not available:
-        raise HTTPException(
+        raise HTTPException(  # NOSONAR — S8415: HTTPException responses will be documented in API refactoring sprint
             status_code=503,
             detail={
                 "status": "unhealthy",
@@ -345,7 +345,7 @@ async def register_worker(worker_id: str, host: str, port: int = 8081):
     """
     r = await _get_async_redis(_REDIS_URL)
     if r is None:
-        raise HTTPException(status_code=503, detail="Registry unavailable — Redis not connected")
+        raise HTTPException(status_code=503, detail="Registry unavailable — Redis not connected")  # NOSONAR — S8415: HTTPException responses will be documented in API refactoring sprint
 
     info = {
         "worker_id": worker_id,
@@ -369,7 +369,7 @@ async def worker_heartbeat(worker_id: str):
     """
     r = await _get_async_redis(_REDIS_URL)
     if r is None:
-        raise HTTPException(status_code=503, detail="Registry unavailable")
+        raise HTTPException(status_code=503, detail="Registry unavailable")  # NOSONAR — S8415: HTTPException responses will be documented in API refactoring sprint
 
     key = f"{_REGISTRY_PREFIX}{worker_id}"
     raw = await r.get(key)
@@ -379,6 +379,6 @@ async def worker_heartbeat(worker_id: str):
         info["status"] = "idle"
         await r.set(key, json.dumps(info), ex=_WORKER_TTL)
     else:
-        raise HTTPException(status_code=404, detail=f"Worker '{worker_id}' not registered")
+        raise HTTPException(status_code=404, detail=f"Worker '{worker_id}' not registered")  # NOSONAR — S8415: HTTPException responses will be documented in API refactoring sprint
 
     return {"acknowledged": True, "worker_id": worker_id}

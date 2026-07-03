@@ -133,7 +133,7 @@ class Tracer:
     Subclasses must implement ``start_span``, ``finish_span``, and ``record_span``.
     """
 
-    def start_span(self, name: str, context: TraceContext | None = None) -> TraceContext:
+    def start_span(self, _name: str, context: TraceContext | None = None) -> TraceContext:
         """Start a new span and return its context.
 
         The default implementation generates a span_id, creates a child

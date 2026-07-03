@@ -55,7 +55,7 @@ async def test_deadline_data_carries_deadline_ms():
 
 
 def test_zero_deadline_raises():
-    async def noop() -> None:
+    async def noop() -> None:  # NOSONAR — S7503: async function uses sync I/O for compatibility reasons
         return None
 
     with pytest.raises(ValueError):
@@ -63,7 +63,7 @@ def test_zero_deadline_raises():
 
 
 def test_negative_deadline_raises():
-    async def noop() -> None:
+    async def noop() -> None:  # NOSONAR — S7503: async function uses sync I/O for compatibility reasons
         return None
 
     with pytest.raises(ValueError):
@@ -71,7 +71,7 @@ def test_negative_deadline_raises():
 
 
 def test_excessive_deadline_raises():
-    async def noop() -> None:
+    async def noop() -> None:  # NOSONAR — S7503: async function uses sync I/O for compatibility reasons
         return None
 
     with pytest.raises(ValueError):

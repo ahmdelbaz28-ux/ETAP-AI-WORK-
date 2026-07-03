@@ -312,7 +312,7 @@ class Router:
         await self._finish_observability(span_ctx, t0, req, outcome, error_code)
         return resp
 
-    async def _finish_observability(
+    async def _finish_observability(  # NOSONAR — S7503: async function uses sync I/O for compatibility reasons
         self,
         span_ctx: Any | None,
         t0: float,

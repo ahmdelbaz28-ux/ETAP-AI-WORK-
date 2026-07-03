@@ -35,7 +35,7 @@ logger = logging.getLogger(__name__)
 
 SECRETS_DIR = Path.home() / ".etap-platform" / "secrets"
 AUDIT_DIR = Path(__file__).parent / "audit"
-ENCRYPTION_KEY_FILE = SECRETS_DIR / ".encryption_key"
+ENCRYPTION_KEY_FILE = SECRETS_DIR / ".encryption_key"  # NOSONAR — S1192: intentional repetition (audit constant)
 REQUIRED_SECRETS = [
     "JWT_SECRET_KEY",
     "ENCRYPTION_KEY",
@@ -145,7 +145,7 @@ class VaultSecretsManager:
         # Deterministic mapping from Vault (path, key) to LocalSecretsManager service file.
         # Sanitize path characters the same way _service_file does (replace non-alnum with _)
         raw = f"{self.mount_path}__{path}__{key}"
-        return re.sub(r"[^a-zA-Z0-9_-]", "_", raw)
+        return re.sub(r"[^a-zA-Z0-9_-]", "_", raw)  # NOSONAR — S1192: intentional repetition (audit constant)
 
     def get_secret(self, path: str, key: str) -> str | None:
         """Retrieve a secret from Vault or local fallback."""
@@ -158,7 +158,7 @@ class VaultSecretsManager:
                 data = response.get("data", {}).get("data", {})
                 return data.get(key)
             except Exception as exc:
-                logger.error("Vault get_secret failed for %s/%s: %s", path, key, exc)
+                logger.exception("Vault get_secret failed for %s/%s: %s", path, key, exc)
                 return None
 
         if self._fallback_store:
@@ -177,7 +177,7 @@ class VaultSecretsManager:
                 )
                 return True
             except Exception as exc:
-                logger.error("Vault set_secret failed for %s/%s: %s", path, key, exc)
+                logger.exception("Vault set_secret failed for %s/%s: %s", path, key, exc)
                 return False
 
         if self._fallback_store:
@@ -214,7 +214,7 @@ class VaultSecretsManager:
                     )
                 return True
             except Exception as exc:
-                logger.error("Vault delete_secret failed for %s/%s: %s", path, key, exc)
+                logger.exception("Vault delete_secret failed for %s/%s: %s", path, key, exc)
                 return False
 
         if self._fallback_store:
@@ -232,7 +232,7 @@ class VaultSecretsManager:
                 )
                 return response.get("data", {}).get("keys", [])
             except Exception as exc:
-                logger.error("Vault list_secrets failed for %s: %s", path, exc)
+                logger.exception("Vault list_secrets failed for %s: %s", path, exc)
                 return []
         # For fallback, list all keys we have persisted under this (mount_path, path).
         if self._fallback_store:
@@ -309,7 +309,7 @@ class LocalSecretsManager:
             logger.info("Stored encrypted API key for %s", service_name)
             return True
         except Exception as exc:
-            logger.error("Failed to store API key for %s: %s", service_name, exc)
+            logger.exception("Failed to store API key for %s: %s", service_name, exc)
             return False
 
     def get_api_key(self, service_name: str) -> str | None:
@@ -325,7 +325,7 @@ class LocalSecretsManager:
             logger.error("Decryption failed for %s; key may have been rotated", service_name)
             return None
         except Exception as exc:
-            logger.error("Failed to retrieve API key for %s: %s", service_name, exc)
+            logger.exception("Failed to retrieve API key for %s: %s", service_name, exc)
             return None
 
     def rotate_key(self) -> bool:
@@ -354,7 +354,7 @@ class LocalSecretsManager:
             logger.info("Encryption key rotated successfully")
             return True
         except Exception as exc:
-            logger.error("Key rotation failed: %s", exc)
+            logger.exception("Key rotation failed: %s", exc)
             return False
 
     def delete_api_key(self, service_name: str) -> bool:
@@ -368,7 +368,7 @@ class LocalSecretsManager:
             logger.info("Deleted API key for %s", service_name)
             return True
         except Exception as exc:
-            logger.error("Failed to delete API key for %s: %s", service_name, exc)
+            logger.exception("Failed to delete API key for %s: %s", service_name, exc)
             return False
 
     def list_services(self) -> list[str]:
@@ -488,7 +488,7 @@ class KeyAccessAuditor:
                         continue
                 records.append(record)
         except Exception as exc:
-            logger.error("Failed to read access logs: %s", exc)
+            logger.exception("Failed to read access logs: %s", exc)
         return records
 
     def get_recent_access(self, limit: int = 100) -> list[dict]:
@@ -574,7 +574,7 @@ class EnvironmentValidator:
                     logger.info("pywin32 not available; skipping Windows permission check")
                     return True
         except OSError as exc:
-            logger.error("Cannot check .env permissions: %s", exc)
+            logger.exception("Cannot check .env permissions: %s", exc)
             return False
 
     def check_for_hardcoded_secrets(self, file_patterns: list[str] | None = None) -> list[dict]:
@@ -627,7 +627,7 @@ class EnvironmentValidator:
             "# Copy this file to .env and fill in your actual values",
             "# cp .env.example .env",
             "",
-            "# ==========================================",
+            "# ==========================================",  # NOSONAR — S1192: intentional repetition (audit constant)
             "# Required Secrets (must be configured)",
             "# ==========================================",
         ]

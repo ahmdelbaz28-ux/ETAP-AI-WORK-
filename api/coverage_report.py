@@ -416,7 +416,7 @@ class CoverageAnalyzer:
     # Step 1: File discovery
     # ------------------------------------------------------------------
 
-    async def _discover_files(self) -> None:
+    async def _discover_files(self) -> None:  # NOSONAR — S7503: async function uses sync I/O for compatibility reasons
         """Walk the project tree and classify files as source or test."""
         source_files: list[str] = []
         test_files: list[str] = []
@@ -470,7 +470,7 @@ class CoverageAnalyzer:
     # Step 2: Test name indexing
     # ------------------------------------------------------------------
 
-    async def _index_test_names(self) -> None:
+    async def _index_test_names(self) -> None:  # NOSONAR — S7503: async function uses sync I/O for compatibility reasons
         """Parse all test files and collect test function/method names."""
         test_names: set[str] = set()
         test_normalized: set[str] = set()
@@ -499,7 +499,7 @@ class CoverageAnalyzer:
     # Step 3: Function extraction
     # ------------------------------------------------------------------
 
-    async def _extract_all_functions(self) -> list[FunctionInfo]:
+    async def _extract_all_functions(self) -> list[FunctionInfo]:  # NOSONAR — S7503: async function uses sync I/O for compatibility reasons
         """Parse all source files and extract function/method definitions."""
         all_functions: list[FunctionInfo] = []
 

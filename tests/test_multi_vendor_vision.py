@@ -119,7 +119,7 @@ def test_hybrid_vision_router_chain_built():
     for entry in hybrid_vision.chain:
         assert isinstance(entry, tuple)
         assert len(entry) == 2
-        name, backend = entry
+        name, _ = entry
         assert name in ("gemini", "openai", "anthropic", "opencv")
 
 

@@ -167,7 +167,7 @@ class GISSyncBridge:
                 )
                 logger.info("GIS sync: Ybus rebuilt after %d assets", len(all_assets))
             except Exception as exc:
-                logger.error("GIS sync: Ybus rebuild failed: %s", exc)
+                logger.exception("GIS sync: Ybus rebuild failed: %s", exc)
 
         self._sync_log.extend(records)
         return records
@@ -215,7 +215,7 @@ class GISSyncBridge:
                 details={"electrical_type": electrical_type, "electrical_id": electrical_id},
             )
         except Exception as exc:
-            logger.error("GIS sync failed for %s: %s", asset.asset_id, exc)
+            logger.exception("GIS sync failed for %s: %s", asset.asset_id, exc)
             return SyncRecord(
                 direction="gis_to_dt",
                 asset_id=asset.asset_id,
@@ -225,7 +225,7 @@ class GISSyncBridge:
                 details={"error": str(exc)},
             )
 
-    def _upsert_bus(self, bus_id: str, coords: tuple | None) -> None:
+    def _upsert_bus(self, bus_id: str, _coords: tuple | None) -> None:
         """Create or update a bus in the electrical model."""
         from core_model.bus import Bus
 
@@ -244,7 +244,7 @@ class GISSyncBridge:
             )
             self.dt_state.system.add_bus(bus)
 
-    def _upsert_transformer(self, xf_id: str, coords: tuple | None) -> None:
+    def _upsert_transformer(self, xf_id: str, _coords: tuple | None) -> None:
         """Create or update a transformer in the electrical model."""
         from core_model.transformer import Transformer
 
@@ -264,7 +264,7 @@ class GISSyncBridge:
                 )
                 self.dt_state.system.add_transformer(xf)
 
-    def _upsert_line(self, line_id: str, coords: tuple | None, geometry: dict) -> None:
+    def _upsert_line(self, line_id: str, _coords: tuple | None, _geometry: dict) -> None:
         """Create or update a line in the electrical model."""
         from core_model.line import Line
 
@@ -289,7 +289,7 @@ class GISSyncBridge:
                 )
                 self.dt_state.system.add_line(line)
 
-    def _upsert_switch(self, switch_id: str, coords: tuple | None) -> None:
+    def _upsert_switch(self, switch_id: str, _coords: tuple | None) -> None:
         """Register a switch in the digital twin."""
         if self.dt_state.adms is not None:
             if hasattr(self.dt_state.adms, "topology") and hasattr(
@@ -301,7 +301,7 @@ class GISSyncBridge:
                     bus2 = str(buses[-1])
                     self.dt_state.adms.topology.switches[switch_id] = (bus1, bus2)
 
-    def _upsert_load(self, load_id: str, coords: tuple | None, props: dict) -> None:
+    def _upsert_load(self, load_id: str, _coords: tuple | None, props: dict) -> None:
         """Create or update a load in the electrical model."""
         from core_model.load import Load
 
@@ -327,7 +327,7 @@ class GISSyncBridge:
             )
             self.dt_state.system.add_load(load)
 
-    def _upsert_generator(self, gen_id: str, coords: tuple | None, props: dict) -> None:
+    def _upsert_generator(self, gen_id: str, _coords: tuple | None, _props: dict) -> None:
         """Create or update a generator in the electrical model."""
         from core_model.generator import Generator
 

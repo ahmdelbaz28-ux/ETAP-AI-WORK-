@@ -53,7 +53,7 @@ class FailureMode:
 AI_FAILURE_MODES: list[FailureMode] = [
     FailureMode(
         id="FM-01",
-        name="Catch-all error swallowing",
+        name="Catch-all error swallowing",  # NOSONAR — S1192: intentional repetition (audit constant)
         severity=GuardSeverity.MUST_FIX,
         description="Bare except or overly broad exception handler that catches "
         "everything and silently discards errors, hiding real failures.",
@@ -69,7 +69,7 @@ AI_FAILURE_MODES: list[FailureMode] = [
     ),
     FailureMode(
         id="FM-03",
-        name="Hallucinated API or package",
+        name="Hallucinated API or package",  # NOSONAR — S1192: intentional repetition (audit constant)
         severity=GuardSeverity.MUST_FIX,
         description="Import of a package or call of an API that does not exist "
         "or is not installed. 19.6% of AI-generated imports are hallucinated.",
@@ -434,7 +434,7 @@ class AIFailureModeDetector:
     # ------------------------------------------------------------------
     # FM-05: Re-derive instead of reuse
     # ------------------------------------------------------------------
-    def _detect_rederive(self, tree: ast.AST | None, source: str) -> list[GuardViolation]:
+    def _detect_rederive(self, tree: ast.AST | None, _source: str) -> list[GuardViolation]:
         """Heuristic: same expression computed twice in the same function."""
         violations: list[GuardViolation] = []
         if tree is None:
@@ -471,7 +471,7 @@ class AIFailureModeDetector:
     # ------------------------------------------------------------------
     # FM-07: Dead code — unused imports
     # ------------------------------------------------------------------
-    def _detect_unused_imports(self, tree: ast.AST | None, source: str) -> list[GuardViolation]:
+    def _detect_unused_imports(self, tree: ast.AST | None, _source: str) -> list[GuardViolation]:
         violations: list[GuardViolation] = []
         if tree is None:
             return violations
@@ -934,7 +934,7 @@ class AIFailureModeDetector:
     # ------------------------------------------------------------------
     # FM-06: Enum boundary not enumerated first
     # ------------------------------------------------------------------
-    def _detect_enum_boundary(self, tree: ast.AST | None, source: str) -> list[GuardViolation]:
+    def _detect_enum_boundary(self, tree: ast.AST | None, _source: str) -> list[GuardViolation]:
         """Detect if/elif chains over a closed set that lack an else clause.
 
         When code branches over a known, closed set of values (e.g., enum
@@ -1104,7 +1104,7 @@ class AIFailureModeDetector:
     # ------------------------------------------------------------------
     # FM-14: Test asserts on mock behavior, not system behavior
     # ------------------------------------------------------------------
-    def _detect_mock_assert(self, tree: ast.AST | None, source: str) -> list[GuardViolation]:
+    def _detect_mock_assert(self, _tree: ast.AST | None, source: str) -> list[GuardViolation]:
         """Heuristic: assert_called_with / assert_any_call / assert_called_once in test functions."""
         violations: list[GuardViolation] = []
         # Match both direct and chained attribute access: mock.assert_called_with, mock.method.assert_called

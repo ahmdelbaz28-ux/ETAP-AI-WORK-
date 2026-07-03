@@ -340,7 +340,7 @@ class PostGISProvider:
                 conn.commit()
             return True
         except Exception as exc:
-            logger.error("PostGIS upsert failed: %s", exc)
+            logger.exception("PostGIS upsert failed: %s", exc)
             return False
 
     def get_asset(self, asset_id: str) -> SpatialAsset | None:
@@ -372,7 +372,7 @@ class PostGISProvider:
                     electrical_id=row[4],
                 )
         except Exception as exc:
-            logger.error("PostGIS get failed: %s", exc)
+            logger.exception("PostGIS get failed: %s", exc)
             return None
 
     def query_by_type(self, asset_type: str) -> list[SpatialAsset]:
@@ -406,7 +406,7 @@ class PostGISProvider:
                     )
                 return results
         except Exception as exc:
-            logger.error("PostGIS query_by_type failed: %s", exc)
+            logger.exception("PostGIS query_by_type failed: %s", exc)
             return []
 
     def query_within_radius(self, lat: float, lon: float, radius_m: float) -> list[SpatialAsset]:
@@ -449,7 +449,7 @@ class PostGISProvider:
                     )
                 return results
         except Exception as exc:
-            logger.error("PostGIS radius query failed: %s", exc)
+            logger.exception("PostGIS radius query failed: %s", exc)
             return []
 
     def query_in_bbox(
@@ -485,7 +485,7 @@ class PostGISProvider:
                     )
                 return results
         except Exception as exc:
-            logger.error("PostGIS bbox query failed: %s", exc)
+            logger.exception("PostGIS bbox query failed: %s", exc)
             return []
 
     def delete_asset(self, asset_id: str) -> bool:
@@ -504,7 +504,7 @@ class PostGISProvider:
                 conn.commit()
             return True
         except Exception as exc:
-            logger.error("PostGIS delete failed: %s", exc)
+            logger.exception("PostGIS delete failed: %s", exc)
             return False
 
     def get_all_assets(self) -> list[SpatialAsset]:
@@ -537,7 +537,7 @@ class PostGISProvider:
                     )
                 return results
         except Exception as exc:
-            logger.error("PostGIS get_all failed: %s", exc)
+            logger.exception("PostGIS get_all failed: %s", exc)
             return []
 
     # ------------------------------------------------------------------
@@ -587,7 +587,7 @@ class PostGISProvider:
                             }
                     return result
         except Exception as exc:
-            logger.error("PostGIS electrical mapping failed: %s", exc)
+            logger.exception("PostGIS electrical mapping failed: %s", exc)
             return {}
 
     def import_geojson_collection(self, geojson: dict[str, Any]) -> int:
@@ -653,7 +653,7 @@ class PostGISProvider:
                 )
             return True
         except Exception as exc:
-            logger.error("Fallback upsert failed: %s", exc)
+            logger.exception("Fallback upsert failed: %s", exc)
             return False
 
     def _fallback_get(self, asset_id: str) -> SpatialAsset | None:

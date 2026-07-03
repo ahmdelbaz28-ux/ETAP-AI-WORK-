@@ -23,13 +23,13 @@ NC='\033[0m'
 
 # Worker name: env var > wrangler.jsonc > fallback
 detect_worker_name() {
-  if [ -n "${WRANGLER_WORKER_NAME:-}" ]; then
+  if [[ -n "${WRANGLER_WORKER_NAME:-}" ]]; then
     echo "${WRANGLER_WORKER_NAME}"
     return
   fi
   local detected
   detected=$(grep -oP '"name"\s*:\s*"\K[^"]+' "${PROJECT_DIR}/wrangler.jsonc" 2>/dev/null | head -1)
-  if [ -n "${detected}" ]; then
+  if [[ -n "${detected}" ]]; then
     echo "${detected}"
     return
   fi
@@ -81,7 +81,7 @@ done
 
 echo ""
 
-if [ ${#MISSING[@]} -eq 0 ]; then
+if [[ ${#MISSING[@]} -eq 0 ]]; then
     echo "═══════════════════════════════════════════════════════════════════════════════"
     echo -e "${GREEN}All ${#SECRETS[@]} secrets are set.${NC}"
     echo "═══════════════════════════════════════════════════════════════════════════════"

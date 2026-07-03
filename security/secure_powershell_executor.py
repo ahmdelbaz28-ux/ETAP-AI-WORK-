@@ -32,7 +32,7 @@ def _read_command_from_stdin():
             return None
         return command.strip()
     except Exception as e:
-        logger.error("Failed to read command from stdin: %s", e)
+        logger.exception("Failed to read command from stdin: %s", e)
         return None
 
 

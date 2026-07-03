@@ -33,9 +33,9 @@ export function MagicHelpInspector() {
       document.body.style.cursor = 'help'
     }
 
-    window.addEventListener('start-magic-help-inspect', startInspect)
+    globalThis.addEventListener('start-magic-help-inspect', startInspect)
     return () => {
-      window.removeEventListener('start-magic-help-inspect', startInspect)
+      globalThis.removeEventListener('start-magic-help-inspect', startInspect)
     }
   }, [])
 
@@ -163,7 +163,7 @@ export function MagicHelpInspector() {
 
       // 4. URL-path fallback (ultimate fallback)
       if (!contextId) {
-        const path = window.location.hash || window.location.pathname
+        const path = globalThis.location.hash || globalThis.location.pathname
         if (path.includes('dashboard')) contextId = 'dashboard.overview'
         else if (path.includes('projects')) contextId = 'projects.create'
         else if (path.includes('studies')) contextId = 'studies.overview'
@@ -195,7 +195,7 @@ export function MagicHelpInspector() {
       }
 
       // 6. Open the help drawer with this context
-      window.dispatchEvent(
+      globalThis.dispatchEvent(
         new CustomEvent('open-smart-help', {
           detail: { contextId },
         })
@@ -211,15 +211,15 @@ export function MagicHelpInspector() {
       document.body.style.cursor = 'default'
     }
 
-    window.addEventListener('mousemove', handleMouseMove)
+    globalThis.addEventListener('mousemove', handleMouseMove)
     // capture: true so we catch the event before any button's onClick fires
-    window.addEventListener('click', handleClick, true)
-    window.addEventListener('keydown', handleKeyDown)
+    globalThis.addEventListener('click', handleClick, true)
+    globalThis.addEventListener('keydown', handleKeyDown)
 
     return () => {
-      window.removeEventListener('mousemove', handleMouseMove)
-      window.removeEventListener('click', handleClick, true)
-      window.removeEventListener('keydown', handleKeyDown)
+      globalThis.removeEventListener('mousemove', handleMouseMove)
+      globalThis.removeEventListener('click', handleClick, true)
+      globalThis.removeEventListener('keydown', handleKeyDown)
       document.body.style.cursor = 'default'
     }
   }, [isActive])

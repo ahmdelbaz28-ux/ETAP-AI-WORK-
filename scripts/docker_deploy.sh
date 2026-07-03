@@ -59,7 +59,7 @@ done
 # ---------------------------------------------------------------------------
 command -v docker >/dev/null 2>&1 || { echo "Error: docker is not installed"; exit 1; }
 
-if [ ! -f "${ENV_FILE}" ]; then
+if [[ ! -f "${ENV_FILE}" ]]; then
   echo "Error: Environment file not found: ${ENV_FILE}"
   echo "Create it from .env.example: cp .env.example ${ENV_FILE}"
   exit 1
@@ -120,12 +120,12 @@ echo "  ✓ Backup created"
 # ---------------------------------------------------------------------------
 # Deploy
 # ---------------------------------------------------------------------------
-if [ "${ROLLBACK}" = "true" ]; then
+if [[ "${ROLLBACK}" = "true" ]]; then
   echo ""
   echo "[4/4] Performing rollback to previous version..."
   # Restore previous docker-compose
   PREVIOUS=$(ls -t "${PROJECT_DIR}/backups/" | head -2 | tail -1)
-  if [ -n "${PREVIOUS}" ]; then
+  if [[ -n "${PREVIOUS}" ]]; then
     cp "${PROJECT_DIR}/backups/${PREVIOUS}/docker-compose.yml.backup" "${PROJECT_DIR}/docker-compose.yml"
     echo "  Restored compose config from ${PREVIOUS}"
   fi

@@ -126,7 +126,7 @@ class TestCodeIndexer:
         # Verify upsert was called if collection exists
         if mock_indexer.collection:
             mock_indexer.collection.upsert.assert_called_once()
-            args, kwargs = mock_indexer.collection.upsert.call_args
+            _, kwargs = mock_indexer.collection.upsert.call_args
             assert len(kwargs["ids"]) == 1
             assert len(kwargs["documents"]) == 1
             assert len(kwargs["metadatas"]) == 1

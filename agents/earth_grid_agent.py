@@ -581,7 +581,7 @@ class EarthGridAgent(BaseAgent):
 
         # Linear regression in log-log space
         A = np.vstack([np.ones_like(log_a), log_a]).T
-        coeffs, residuals, _, _ = np.linalg.lstsq(A, log_rho, rcond=None)
+        coeffs, _, _, _ = np.linalg.lstsq(A, log_rho, rcond=None)
 
         rho_1_est = float(np.exp(coeffs[0]))  # Estimated top layer resistivity
 

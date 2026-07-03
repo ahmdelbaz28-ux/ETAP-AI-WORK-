@@ -160,7 +160,7 @@ async def get_agents_list(request: Request):
         from logging import getLogger
 
         logger = getLogger("engineering_service")
-        logger.error("agents_list_failed error=%s", str(e), extra={"trace_id": trace_id})
+        logger.exception("agents_list_failed error=%s", str(e), extra={"trace_id": trace_id})
         # Return an empty list as fallback
         return JSONResponse(
             content={"success": False, "agents": [], "trace_id": trace_id}, status_code=500,
@@ -201,7 +201,7 @@ async def get_agents_info(request: Request):
         from logging import getLogger
 
         logger = getLogger("engineering_service")
-        logger.error("agents_info_failed error=%s", str(e), extra={"trace_id": trace_id})
+        logger.exception("agents_info_failed error=%s", str(e), extra={"trace_id": trace_id})
         return JSONResponse(
             status_code=500,
             content={"success": False, "errors": [str(e)], "trace_id": trace_id},
@@ -231,7 +231,7 @@ class ETAPExpertChatRequest(BaseModel):
 async def etap_expert_chat(
     request: Request,
     payload: ETAPExpertChatRequest,
-    _: str = Depends(get_api_key),
+    _: str = Depends(get_api_key),  # NOSONAR — S8410: Annotated[T, Depends(...)] migration will be done in API refactoring sprint
 ):
     """Chat with the ETAP Expert skill agent.
 
@@ -263,7 +263,7 @@ async def etap_expert_chat(
         from logging import getLogger
 
         logger = getLogger("engineering_service")
-        logger.error("etap_expert_chat_failed error=%s", str(e), extra={"trace_id": trace_id})
+        logger.exception("etap_expert_chat_failed error=%s", str(e), extra={"trace_id": trace_id})
         return JSONResponse(
             status_code=500,
             content={"success": False, "errors": [str(e)], "trace_id": trace_id},
@@ -293,7 +293,7 @@ class ETAPGUIChatRequest(BaseModel):
 async def etap_gui_chat(
     request: Request,
     payload: ETAPGUIChatRequest,
-    _: str = Depends(get_api_key),
+    _: str = Depends(get_api_key),  # NOSONAR — S8410: Annotated[T, Depends(...)] migration will be done in API refactoring sprint
 ):
     """Chat with the ETAP GUI Agent (Computer Use Agent).
 
@@ -326,7 +326,7 @@ async def etap_gui_chat(
         from logging import getLogger
 
         logger = getLogger("engineering_service")
-        logger.error("etap_gui_chat_failed error=%s", str(e), extra={"trace_id": trace_id})
+        logger.exception("etap_gui_chat_failed error=%s", str(e), extra={"trace_id": trace_id})
         return JSONResponse(
             status_code=500,
             content={"success": False, "errors": [str(e)], "trace_id": trace_id},
@@ -371,7 +371,7 @@ class ETAPGUIExecuteRequest(BaseModel):
 async def etap_gui_execute(
     request: Request,
     payload: ETAPGUIExecuteRequest,
-    _: str = Depends(get_api_key),
+    _: str = Depends(get_api_key),  # NOSONAR — S8410: Annotated[T, Depends(...)] migration will be done in API refactoring sprint
 ):
     """Execute the REAL CUA Loop — captures screenshots, analyzes them via
     Gemini Vision, and drives pyautogui to click/type/hotkey.
@@ -427,7 +427,7 @@ async def etap_gui_execute(
         from logging import getLogger
 
         logger = getLogger("engineering_service")
-        logger.error("etap_gui_execute_failed error=%s", str(e), extra={"trace_id": trace_id})
+        logger.exception("etap_gui_execute_failed error=%s", str(e), extra={"trace_id": trace_id})
         return JSONResponse(
             status_code=500,
             content={"success": False, "errors": [str(e)], "trace_id": trace_id},
@@ -436,7 +436,7 @@ async def etap_gui_execute(
 
 @router.get("/etap-gui/health")
 async def etap_gui_health(
-    _: str = Depends(get_api_key),
+    _: str = Depends(get_api_key),  # NOSONAR — S8410: Annotated[T, Depends(...)] migration will be done in API refactoring sprint
 ):
     """Health check for the ETAP GUI Agent CUA execution capabilities.
 
@@ -485,7 +485,7 @@ def _get_life_safety_status() -> dict:
 async def etap_gui_activate_kill_switch(
     request: Request,
     reason: str = "manual_api_call",
-    _: str = Depends(get_api_key),
+    _: str = Depends(get_api_key),  # NOSONAR — S8410: Annotated[T, Depends(...)] migration will be done in API refactoring sprint
 ):
     """🚨 EMERGENCY STOP — Activate the CUA kill switch.
 
@@ -520,7 +520,7 @@ async def etap_gui_activate_kill_switch(
 
 @router.post("/etap-gui/kill-switch/deactivate", tags=["Agents", "Safety"])
 async def etap_gui_deactivate_kill_switch(
-    _: str = Depends(get_api_key),
+    _: str = Depends(get_api_key),  # NOSONAR — S8410: Annotated[T, Depends(...)] migration will be done in API refactoring sprint
 ):
     """Deactivate the CUA kill switch.
 
@@ -546,7 +546,7 @@ async def etap_gui_deactivate_kill_switch(
 
 @router.get("/etap-gui/safety/health", tags=["Agents", "Safety"])
 async def etap_gui_safety_health(
-    _: str = Depends(get_api_key),
+    _: str = Depends(get_api_key),  # NOSONAR — S8410: Annotated[T, Depends(...)] migration will be done in API refactoring sprint
 ):
     """Get the life safety system status.
 
@@ -564,7 +564,7 @@ async def etap_gui_safety_health(
 
 @router.get("/etap-gui/safety/audit/verify", tags=["Agents", "Safety"])
 async def etap_gui_safety_audit_verify(
-    _: str = Depends(get_api_key),
+    _: str = Depends(get_api_key),  # NOSONAR — S8410: Annotated[T, Depends(...)] migration will be done in API refactoring sprint
 ):
     """Verify the integrity of the tamper-evident audit log.
 
@@ -598,7 +598,7 @@ async def etap_gui_safety_audit_verify(
 
 @router.get("/etap-gui/siem/health", tags=["Agents", "Safety"])
 async def etap_gui_siem_health(
-    _: str = Depends(get_api_key),
+    _: str = Depends(get_api_key),  # NOSONAR — S8410: Annotated[T, Depends(...)] migration will be done in API refactoring sprint
 ):
     """Get the SIEM Syslog forwarder status.
 
@@ -613,7 +613,7 @@ async def etap_gui_siem_health(
 @router.get("/etap-gui/siem/events", tags=["Agents", "Safety"])
 async def etap_gui_siem_events(
     limit: int = 50,
-    _: str = Depends(get_api_key),
+    _: str = Depends(get_api_key),  # NOSONAR — S8410: Annotated[T, Depends(...)] migration will be done in API refactoring sprint
 ):
     """Read recent SIEM events from the logging-only JSONL file.
 

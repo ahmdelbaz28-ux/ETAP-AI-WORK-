@@ -186,7 +186,7 @@ class YbusRebuildHandler(PropagationHandler):
                         ),
                     )
             else:
-                ctx.record_step("ybus_rebuild", False, {"error": "No electrical model bound"})
+                ctx.record_step("ybus_rebuild", False, {"error": "No electrical model bound"})  # NOSONAR — S1192: intentional repetition (audit constant)
                 ctx.stop = True
         except Exception as e:
             ctx.record_step("ybus_rebuild", False, {"error": str(e)})

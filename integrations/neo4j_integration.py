@@ -55,7 +55,7 @@ class Neo4jClient:
                     session.run("RETURN 1")
                 logger.info("✅ Neo4j initialized — URI: %s", self.uri)
             except Exception as e:
-                logger.error("Neo4j connection failed: %s", e)
+                logger.exception("Neo4j connection failed: %s", e)
                 self.driver = None
                 self.enabled = False
         else:
@@ -84,7 +84,7 @@ class Neo4jClient:
                 data = [record.data() for record in result]
                 return {"success": True, "data": data, "error": None}
         except Exception as e:
-            logger.error("Neo4j query error: %s", e)
+            logger.exception("Neo4j query error: %s", e)
             return {"success": False, "data": [], "error": str(e)}
 
     def health_check(self) -> dict[str, Any]:

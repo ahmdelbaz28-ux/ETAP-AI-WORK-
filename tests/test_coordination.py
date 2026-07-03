@@ -70,8 +70,8 @@ class TestCoordinationEngine:
         assert "margin" in result
         assert "required_margin" in result
         assert "fault_current" in result
-        assert result["required_margin"] == 0.2
-        assert result["fault_current"] == 5.0
+        assert result["required_margin"] == pytest.approx(0.2)
+        assert result["fault_current"] == pytest.approx(5.0)
 
     def test_suggest_tms_adjustment_finds_solution(self):
         up, down = self.make_relays(upstream_TMS=0.1, downstream_TMS=0.2)
@@ -149,16 +149,16 @@ class TestCoordinationEngine:
 
     def test_default_margin_setting(self):
         engine = CoordinationEngine(default_margin_sec=0.3)
-        assert engine.default_margin_sec == 0.3
+        assert engine.default_margin_sec == pytest.approx(0.3)
 
     def test_tms_search_defaults(self):
         engine = CoordinationEngine()
-        assert engine.tms_search_min == 0.1
-        assert engine.tms_search_max == 10.0
+        assert engine.tms_search_min == pytest.approx(0.1)
+        assert engine.tms_search_max == pytest.approx(10.0)
         assert engine.tms_search_steps == 100
 
     def test_tms_search_custom(self):
         engine = CoordinationEngine(tms_search_min=0.05, tms_search_max=5.0, tms_search_steps=50)
-        assert engine.tms_search_min == 0.05
-        assert engine.tms_search_max == 5.0
+        assert engine.tms_search_min == pytest.approx(0.05)
+        assert engine.tms_search_max == pytest.approx(5.0)
         assert engine.tms_search_steps == 50

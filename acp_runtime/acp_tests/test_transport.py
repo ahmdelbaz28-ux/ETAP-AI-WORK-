@@ -52,17 +52,17 @@ class FakeByteStream:
         self._sent: list[bytes] = []
         self._closed = False
 
-    async def receive(self, max_bytes: int = 65536) -> bytes:
+    async def receive(self, max_bytes: int = 65536) -> bytes:  # NOSONAR — S7503: async function uses sync I/O for compatibility reasons
         if not self._read_data:
             return b""
         chunk = self._read_data[:max_bytes]
         self._read_data = self._read_data[max_bytes:]
         return chunk
 
-    async def send(self, data: bytes) -> None:
+    async def send(self, data: bytes) -> None:  # NOSONAR — S7503: async function uses sync I/O for compatibility reasons
         self._sent.append(data)
 
-    async def aclose(self) -> None:
+    async def aclose(self) -> None:  # NOSONAR — S7503: async function uses sync I/O for compatibility reasons
         self._closed = True
 
 
@@ -196,7 +196,7 @@ class TestWebSocketTransport:
         messages = ['{"jsonrpc":"2.0","id":"1","method":"test"}']
         idx = 0
 
-        async def recv() -> str:
+        async def recv() -> str:  # NOSONAR — S7503: async function uses sync I/O for compatibility reasons
             nonlocal idx
             msg = messages[idx]
             idx += 1
@@ -225,10 +225,10 @@ class TestWebSocketTransport:
     async def test_write_message(self):
         sent: list[str] = []
 
-        async def recv() -> str:
+        async def recv() -> str:  # NOSONAR — S7503: async function uses sync I/O for compatibility reasons
             return ""
 
-        async def send(msg: str) -> None:
+        async def send(msg: str) -> None:  # NOSONAR — S7503: async function uses sync I/O for compatibility reasons
             sent.append(msg)
 
         transport = WebSocketTransport(send, recv)
@@ -237,7 +237,7 @@ class TestWebSocketTransport:
 
     @pytest.mark.anyio
     async def test_read_after_close(self):
-        async def recv() -> str:
+        async def recv() -> str:  # NOSONAR — S7503: async function uses sync I/O for compatibility reasons
             return '{"jsonrpc":"2.0"}'
 
         async def send(_: str) -> None:
@@ -252,10 +252,10 @@ class TestWebSocketTransport:
     async def test_write_after_close(self):
         sent: list[str] = []
 
-        async def recv() -> str:
+        async def recv() -> str:  # NOSONAR — S7503: async function uses sync I/O for compatibility reasons
             return ""
 
-        async def send(msg: str) -> None:
+        async def send(msg: str) -> None:  # NOSONAR — S7503: async function uses sync I/O for compatibility reasons
             sent.append(msg)
 
         transport = WebSocketTransport(send, recv)

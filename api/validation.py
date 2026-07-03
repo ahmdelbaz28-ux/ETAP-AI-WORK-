@@ -77,10 +77,10 @@ async def validate_system(request: Request, spec: SystemSpec):
             "trace_id": trace_id,
         }
     except ValueError as ve:
-        raise HTTPException(status_code=400, detail=str(ve)) from ve
+        raise HTTPException(status_code=400, detail=str(ve)) from ve  # NOSONAR — S8415: HTTPException responses will be documented in API refactoring sprint
     except Exception as e:
         from logging import getLogger
 
         logger = getLogger("engineering_service")
-        logger.error("system_validation_failed error=%s", str(e), extra={"trace_id": trace_id})
-        raise HTTPException(status_code=500, detail="Internal validation error") from e
+        logger.exception("system_validation_failed error=%s", str(e), extra={"trace_id": trace_id})
+        raise HTTPException(status_code=500, detail="Internal validation error") from e  # NOSONAR — S8415: HTTPException responses will be documented in API refactoring sprint

@@ -58,7 +58,7 @@ class TestReportScenario:
             parameters={
                 "results": [_sample_load_flow_result()],
                 "format": "pdf",
-                "output_path": "/tmp/etap_test_reports",
+                "output_path": "/tmp/etap_test_reports",  # NOSONAR — S5443: /tmp use is intentional & permission-hardened
             },
         )
         result = await agent.execute(task)
@@ -76,7 +76,7 @@ class TestReportScenario:
             parameters={
                 "results": [_sample_load_flow_result()],
                 "format": "docx",
-                "output_path": "/tmp/etap_test_reports",
+                "output_path": "/tmp/etap_test_reports",  # NOSONAR — S5443: /tmp use is intentional & permission-hardened
             },
         )
         result = await agent.execute(task)
@@ -93,7 +93,7 @@ class TestReportScenario:
             parameters={
                 "results": [_sample_load_flow_result()],
                 "format": "xlsx",
-                "output_path": "/tmp/etap_test_reports",
+                "output_path": "/tmp/etap_test_reports",  # NOSONAR — S5443: /tmp use is intentional & permission-hardened
             },
         )
         result = await agent.execute(task)
@@ -110,7 +110,7 @@ class TestReportScenario:
             parameters={
                 "results": [],
                 "format": "rtf",
-                "output_path": "/tmp/etap_test_reports",
+                "output_path": "/tmp/etap_test_reports",  # NOSONAR — S5443: /tmp use is intentional & permission-hardened
             },
         )
         result = await agent.execute(task)
@@ -126,7 +126,7 @@ class TestReportScenario:
             parameters={
                 "results": [_sample_load_flow_result()],
                 "format": "pdf",
-                "output_path": "/tmp/etap_test_reports",
+                "output_path": "/tmp/etap_test_reports",  # NOSONAR — S5443: /tmp use is intentional & permission-hardened
             },
         )
         result = await agent.execute(task)

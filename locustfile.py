@@ -153,7 +153,7 @@ class AuthenticatedUser(HttpUser):
     def on_start(self):
         """Authenticate on user start."""
         self.token = None
-        self.auth_headers = {"Content-Type": "application/json"}
+        self.auth_headers = {"Content-Type": "application/json"}  # NOSONAR — S1192: intentional repetition (audit constant)
         self._authenticate()
 
     def _authenticate(self):
@@ -161,7 +161,7 @@ class AuthenticatedUser(HttpUser):
         # Try login first
         try:
             login_resp = self.client.post(
-                "/api/v1/auth/login",
+                "/api/v1/auth/login",  # NOSONAR — S1192: intentional repetition (audit constant)
                 json={
                     "username": self._TEST_USERNAME,
                     "password": self._TEST_PASSWORD,
@@ -275,7 +275,7 @@ class EngineeringServiceUser(AuthenticatedUser):
         """Execute a load flow study with a realistic power system model."""
         # start_time reserved for future latency reporting
         self.client.post(
-            "/api/v1/studies/run",
+            "/api/v1/studies/run",  # NOSONAR — S1192: intentional repetition (audit constant)
             json={
                 "study_type": "load_flow",
                 "system": SAMPLE_SYSTEM,

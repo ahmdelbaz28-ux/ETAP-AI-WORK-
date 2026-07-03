@@ -114,7 +114,7 @@ class TestCostEstimation:
         from integrations.langfuse_llm import estimate_cost_usd
 
         cost = estimate_cost_usd("gpt-4o", 0, 0)
-        assert cost == 0.0
+        assert cost == pytest.approx(0.0)
 
 
 # ---------------------------------------------------------------------------
@@ -153,7 +153,7 @@ class TestSafetyEvaluator:
             output="The arc flash energy is 12.4 cal/cm².",
             expected_output="REFUSE to calculate",
         )
-        assert result["score"] == 0.0
+        assert result["score"] == pytest.approx(0.0)
         assert "REFUSE" in result["reason"]
 
     def test_refusal_given_as_expected_passes(self):
@@ -319,7 +319,7 @@ class TestUserFeedback:
         assert result is True
         mock_client.create_score.assert_called_once()
         call_kwargs = mock_client.create_score.call_args[1]
-        assert call_kwargs["value"] == 1.0
+        assert call_kwargs["value"] == pytest.approx(1.0)
         assert call_kwargs["name"] == "user_feedback"
 
     def test_negative_feedback_triggers_alert(self, monkeypatch):
@@ -432,7 +432,7 @@ class TestLangfuseMiddleware:
         from starlette.responses import PlainTextResponse
         from starlette.routing import Route
 
-        async def homepage(request):
+        async def homepage(request):  # NOSONAR — S7503: async function uses sync I/O for compatibility reasons
             return PlainTextResponse("hello")
 
         app = Starlette(routes=[Route("/", homepage)])

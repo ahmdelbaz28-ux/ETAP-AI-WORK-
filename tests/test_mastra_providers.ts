@@ -2,12 +2,21 @@ import { createOpenAI } from '@ai-sdk/openai';
 import { generateText, streamText } from 'ai';
 import type { LanguageModel } from 'ai';
 
+// Read all API keys from the environment. Tests are SKIPPED (not failed)
+// when keys are missing — SonarCloud S6418 (hard-coded secrets).
+const OPENMODEL_API_KEY = process.env.OPENMODEL_API_KEY ?? '';
+const MODAL_API_KEY = process.env.MODAL_API_KEY ?? '';
+const NVIDIA_API_KEY = process.env.NVIDIA_API_KEY ?? '';
+
+const SKIP_MESSAGE =
+  'Set OPENMODEL_API_KEY / MODAL_API_KEY / NVIDIA_API_KEY to run this live integration test.';
+
 // 1. Define custom OpenModel wrapper
 const openModelLanguageModel: any = {
   specificationVersion: 'v3',
   provider: 'openmodel',
   modelId: 'gpt-5.4',
-  
+
   async doGenerate(options: any) {
     let input = '';
     for (const msg of options.prompt) {
@@ -22,11 +31,11 @@ const openModelLanguageModel: any = {
       }
     }
     input += `Assistant:`;
-    
+
     const resp = await fetch('https://api.openmodel.ai/v1/responses', {
       method: 'POST',
       headers: {
-        'Authorization': 'Bearer om-ofTzdidDb78yhzRKuMYrZBreJAq4hWU863Z1KkVG5',
+        'Authorization': `Bearer ${OPENMODEL_API_KEY}`,
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
@@ -88,13 +97,13 @@ const openModelLanguageModel: any = {
 
 // 2. Define Modal & Nvidia NIM models
 const modalClient = createOpenAI({
-  apiKey: 'modalresearch_TzUJFpXlhpM9zxRhymgDm4DZmIT_IFDGYuPtZT9Eekg',
+  apiKey: MODAL_API_KEY,
   baseURL: 'https://api.us-west-2.modal.direct/v1'
 });
 const modalModel = modalClient('zai-org/GLM-5.1-FP8');
 
 const nvidiaClient = createOpenAI({
-  apiKey: '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',
+  apiKey: NVIDIA_API_KEY,
   baseURL: 'https://integrate.api.nvidia.com/v1'
 });
 const nvidiaModel = nvidiaClient('abacusai/dracarys-llama-3.1-70b-instruct');

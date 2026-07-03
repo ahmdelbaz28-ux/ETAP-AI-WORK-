@@ -300,7 +300,7 @@ def safe_openai_chat(
         return response
     except Exception as exc:
         elapsed = time.monotonic() - start
-        logger.error(
+        logger.exception(
             "OpenAI call FAILED: model=%s, agent=%s, latency=%.2fs, error=%s: %s",
             model,
             (metadata or {}).get("agent", "unknown"),
@@ -361,7 +361,7 @@ def safe_anthropic_message(
         return response
     except Exception as exc:
         elapsed = time.monotonic() - start
-        logger.error(
+        logger.exception(
             "Anthropic call FAILED: model=%s, agent=%s, latency=%.2fs, error=%s: %s",
             model,
             (metadata or {}).get("agent", "unknown"),

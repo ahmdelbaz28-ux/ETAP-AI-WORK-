@@ -51,8 +51,8 @@ export function CommandPalette() {
     // Actions
     { id: 'act-import', label: lang === 'ar' ? 'استيراد البيانات' : 'Import Data', icon: Upload, section: lang === 'ar' ? 'إجراءات' : 'Actions', action: () => navigate('/data-import') },
     { id: 'act-export', label: lang === 'ar' ? 'تصدير البيانات' : 'Export Data', icon: Download, section: lang === 'ar' ? 'إجراءات' : 'Actions', action: () => navigate('/data-export') },
-    { id: 'act-help', label: lang === 'ar' ? 'المساعدة الذكية' : 'Smart Help', icon: HelpCircle, shortcut: 'F1', section: lang === 'ar' ? 'إجراءات' : 'Actions', action: () => window.dispatchEvent(new CustomEvent('toggle-smart-help')) },
-    { id: 'act-magic-help', label: lang === 'ar' ? '✨ فاحص المساعدة' : '✨ Magic Help Inspector', icon: Zap, section: lang === 'ar' ? 'إجراءات' : 'Actions', action: () => window.dispatchEvent(new CustomEvent('start-magic-help-inspect')) },
+    { id: 'act-help', label: lang === 'ar' ? 'المساعدة الذكية' : 'Smart Help', icon: HelpCircle, shortcut: 'F1', section: lang === 'ar' ? 'إجراءات' : 'Actions', action: () => globalThis.dispatchEvent(new CustomEvent('toggle-smart-help')) },
+    { id: 'act-magic-help', label: lang === 'ar' ? '✨ فاحص المساعدة' : '✨ Magic Help Inspector', icon: Zap, section: lang === 'ar' ? 'إجراءات' : 'Actions', action: () => globalThis.dispatchEvent(new CustomEvent('start-magic-help-inspect')) },
   ], [lang, navigate])
 
   // ─── Filter by query ────────────────────────────────────────────────
@@ -86,8 +86,8 @@ export function CommandPalette() {
         setOpen(prev => !prev)
       }
     }
-    window.addEventListener('keydown', handleKeyDown)
-    return () => window.removeEventListener('keydown', handleKeyDown)
+    globalThis.addEventListener('keydown', handleKeyDown)
+    return () => globalThis.removeEventListener('keydown', handleKeyDown)
   }, [])
 
   // Focus input on open
@@ -122,8 +122,8 @@ export function CommandPalette() {
         setQuery('')
       }
     }
-    window.addEventListener('keydown', handleKeyDown)
-    return () => window.removeEventListener('keydown', handleKeyDown)
+    globalThis.addEventListener('keydown', handleKeyDown)
+    return () => globalThis.removeEventListener('keydown', handleKeyDown)
   }, [open, filtered, selectedIndex, executeCommand])
 
   // Scroll selected item into view

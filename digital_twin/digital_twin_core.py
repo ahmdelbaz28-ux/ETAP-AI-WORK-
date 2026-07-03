@@ -556,7 +556,7 @@ class ChangePropagationEngine:
                 "bus_voltages": bus_voltages,
             }
         except Exception as e:
-            logger.error("Load flow failed: %s", e)
+            logger.exception("Load flow failed: %s", e)
             return {"converged": False, "error": str(e)}
 
     def _run_state_estimation(self) -> dict[str, Any]:
@@ -1028,7 +1028,7 @@ class TimeSteppedSimulator:
                     self.event_bus.publish(event)
                     events_processed += 1
             except Exception as e:
-                logger.error("SCADA injection error at t=%s: %s", self.current_time, e)
+                logger.exception("SCADA injection error at t=%s: %s", self.current_time, e)
 
         # Process scheduled events
         due_events = [e for e in self._event_queue if e["scheduled_time"] <= self.current_time]
@@ -1193,7 +1193,7 @@ class LivePowerSystemEngine:
 
         # Run load flow
         if self._base_engine is None:
-            return {"converged": False, "error": "No base engine available"}
+            return {"converged": False, "error": "No base engine available"}  # NOSONAR — S1192: intentional repetition (audit constant)
 
         try:
             result = self._base_engine.run_load_flow()

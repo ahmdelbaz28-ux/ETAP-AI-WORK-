@@ -46,7 +46,7 @@ class Relay:
         # For time-overcurrent relays, trip logic is separate.
         return self.trip
 
-    def trip_time(self, value):
+    def trip_time(self, _value):
         """
         Calculate trip time for time-overcurrent relays.
         Returns time in seconds, or infinity if not picked up.

@@ -81,7 +81,7 @@ def test_fallback_when_deps_unavailable():
     This is the CRITICAL safety guarantee — the agent never crashes."""
     from agents.etap_gui_agent import ETAPGUIAgent, _check_gui_deps
 
-    ok, missing = _check_gui_deps()
+    ok, _ = _check_gui_deps()
     agent = ETAPGUIAgent()
     result = agent.answer("Open ETAP and run Load Flow")
     if not ok:

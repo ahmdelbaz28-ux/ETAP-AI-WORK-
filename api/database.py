@@ -184,7 +184,7 @@ async def check_db_health() -> dict:
             await session.execute(text("SELECT 1"))
         return {"status": "healthy", "backend": "postgresql" if _IS_POSTGRES else "sqlite"}
     except Exception as exc:
-        logger.error("Database health check failed: %s", exc)
+        logger.exception("Database health check failed: %s", exc)
         return {"status": "unhealthy", "error": "Database connection failed"}
 
 

@@ -228,7 +228,6 @@ class TestSparseSolver:
         """Test 6: Fill percentage decreases for larger systems."""
         solver_3 = SparseYBus()
         buses_3, branches_3 = _make_3bus_data()
-        mem_3 = solver_3.compare_memory(buses_3, branches_3)
 
         solver_14 = SparseYBus()
         buses_14, branches_14 = _make_14bus_data()

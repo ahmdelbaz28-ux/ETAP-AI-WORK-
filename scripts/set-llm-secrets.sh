@@ -56,13 +56,13 @@ print_info()    { echo -e "${BLUE}ℹ️${NC} $1"; }
 # Worker name: env var > wrangler.jsonc > fallback
 # ---------------------------------------------------------------------------
 detect_worker_name() {
-  if [ -n "${WRANGLER_WORKER_NAME:-}" ]; then
+  if [[ -n "${WRANGLER_WORKER_NAME:-}" ]]; then
     echo "${WRANGLER_WORKER_NAME}"
     return
   fi
   local detected
   detected=$(grep -oP '"name"\s*:\s*"\K[^"]+' "${PROJECT_DIR}/wrangler.jsonc" 2>/dev/null | head -1)
-  if [ -n "${detected}" ]; then
+  if [[ -n "${detected}" ]]; then
     echo "${detected}"
     return
   fi
@@ -127,7 +127,7 @@ set_secret() {
   local name="$1"
   local value="$2"
 
-  if [ -z "${value}" ]; then
+  if [[ -z "${value}" ]]; then
     print_warn "Skipping ${name} — no value provided"
     return 0
   fi

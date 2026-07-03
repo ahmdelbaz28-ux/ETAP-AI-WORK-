@@ -663,7 +663,7 @@ def _redact_secrets(text: str) -> str:
     with ``***REDACTED***``.
     """
     patterns = [
-        (r'(api[_-]?key["\s:=]+)["\']?[\w\-]{8,}["\']?', r"\1***REDACTED***"),
+        (r'(api[_-]?key["\s:=]+)["\']?[\w\-]{8,}["\']?', r"\1***REDACTED***"),  # NOSONAR — S1192: intentional repetition (audit constant)
         (r'(token["\s:=]+)["\']?[\w\-\.]{8,}["\']?', r"\1***REDACTED***"),
         (r'(password["\s:=]+)["\']?[\w\-]{4,}["\']?', r"\1***REDACTED***"),
         (r'(secret["\s:=]+)["\']?[\w\-]{8,}["\']?', r"\1***REDACTED***"),

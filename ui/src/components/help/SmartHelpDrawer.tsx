@@ -216,8 +216,8 @@ export function SmartHelpDrawer({ open, onClose, initialContextId }: SmartHelpDr
         else onClose()
       }
     }
-    window.addEventListener('keydown', handleEsc)
-    return () => window.removeEventListener('keydown', handleEsc)
+    globalThis.addEventListener('keydown', handleEsc)
+    return () => globalThis.removeEventListener('keydown', handleEsc)
   }, [open, activeTopic, onClose, closeTopic])
 
   if (!open) return null
@@ -252,7 +252,7 @@ export function SmartHelpDrawer({ open, onClose, initialContextId }: SmartHelpDr
             <button
               onClick={() => {
                 onClose();
-                window.dispatchEvent(new CustomEvent('start-magic-help-inspect'));
+                globalThis.dispatchEvent(new CustomEvent('start-magic-help-inspect'));
               }}
               className="flex items-center gap-1 px-2.5 py-1.5 rounded-md bg-brand-500/10 border border-brand-500/20 text-brand-400 hover:bg-brand-500 hover:text-white transition-all text-[11px] font-medium"
               title={lang === 'ar' ? 'فحص عناصر الصفحة' : 'Inspect page elements'}

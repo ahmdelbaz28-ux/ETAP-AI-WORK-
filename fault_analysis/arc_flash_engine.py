@@ -284,7 +284,7 @@ class ArcFlashEngine:
         enc = str(raw_enclosure).strip().upper()
         enclosure_key = EnclosureType.OPEN.value if "OPEN" in enc else EnclosureType.BOX.value
 
-        k1, k2, k3, x_factor = INCIDENT_ENERGY_COEFFICIENTS[electrode_key][enclosure_key]
+        k1, k2, k3, _ = INCIDENT_ENERGY_COEFFICIENTS[electrode_key][enclosure_key]
 
         # IEEE 1584-2018: in this project’s coefficient table x_factor is 1.0.
         # Hard-disable any possibility of Enum/non-numeric leaking into exponentiation.

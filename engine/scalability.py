@@ -64,7 +64,7 @@ class LoadBalancer:
         with self._lock:
             self._workers.pop(worker_id, None)
 
-    def get_next_worker(self, task_size: float | None = None) -> str | None:
+    def get_next_worker(self, _task_size: float | None = None) -> str | None:
         with self._lock:
             healthy = {wid: w for wid, w in self._workers.items() if w.healthy}
             if not healthy:
@@ -212,7 +212,7 @@ class DistributedTaskQueue:
                     return {"task_id": item.task_id, "task_data": item.task_data}
             return None
 
-    def acknowledge(self, task_id: str, worker_id: str) -> bool:
+    def acknowledge(self, task_id: str, _worker_id: str) -> bool:
         with self._lock:
             item = self._tasks.get(task_id)
             if item is None or item.status != "in_progress":

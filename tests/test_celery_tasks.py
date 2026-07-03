@@ -436,7 +436,6 @@ class TestTaskResultRetrieval:
         data["trace_id"] = "custom-trace-999"
 
         async_result = execute_engineering_study_task.apply_async(args=(data,))
-        result = async_result.get(timeout=5)
 
         # The mock returns _fake_study_result; we verify the trace_id was
         # extracted from study_data and passed to execute_study_logic.

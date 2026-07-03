@@ -102,7 +102,7 @@ class CodeRetriever:
                     name="code_context", embedding_function=embedding_function,
                 )
             except Exception as e:
-                logger.error("Failed to load Chroma collection: %s", e)
+                logger.exception("Failed to load Chroma collection: %s", e)
 
     def retrieve(self, query: str, top_k: int = 5) -> list[dict]:
         """Query ChromaDB and return raw matching code chunks."""
@@ -131,7 +131,7 @@ class CodeRetriever:
                     )
             return chunks
         except Exception as e:
-            logger.error("Error querying index: %s", e)
+            logger.exception("Error querying index: %s", e)
             return []
 
     def retrieve_and_compress(

@@ -121,7 +121,7 @@ export function OnboardingTour() {
 
   // Expose restart function globally
   useEffect(() => {
-    const w = window as unknown as Record<string, unknown>
+    const w = globalThis as unknown as Record<string, unknown>
     w.__restartOnboarding = handleRestart
     return () => { delete (w as Record<string, unknown>).__restartOnboarding }
   }, [])

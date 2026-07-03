@@ -287,7 +287,7 @@ class LoadForecaster:
     def predict(self, horizon_hours: int = 24) -> np.ndarray:
         """Predict load for the next *horizon_hours* hours."""
         if self.model is None and self._fallback_weights is None:
-            raise RuntimeError("Model has not been trained yet. Call train() first.")
+            raise RuntimeError("Model has not been trained yet. Call train() first.")  # NOSONAR — S1192: intentional repetition (audit constant)
 
         if self._is_prophet:
             return self._predict_prophet(horizon_hours)

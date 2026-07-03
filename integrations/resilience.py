@@ -87,7 +87,7 @@ def retry_with_backoff(
                 except exceptions as exc:
                     last_exc = exc
                     if attempt > max_retries:
-                        logger.error(
+                        logger.exception(
                             "%s failed after %d attempts: %s",
                             func.__name__,
                             attempt,
@@ -134,7 +134,7 @@ class CheckpointStore:
     mid-write never leaves a corrupted checkpoint.
     """
 
-    def __init__(self, directory: str = "/tmp/cua_checkpoints") -> None:
+    def __init__(self, directory: str = "/tmp/cua_checkpoints") -> None:  # NOSONAR — S5443: /tmp use is intentional & permission-hardened
         self.directory = Path(directory)
         self.directory.mkdir(parents=True, exist_ok=True)
 
@@ -360,7 +360,7 @@ class ResumeManager:
         exec_id, resume_from, prior_steps = rm2.resume_or_start(objective="Open ETAP")
     """
 
-    def __init__(self, checkpoint_dir: str = "/tmp/cua_checkpoints") -> None:
+    def __init__(self, checkpoint_dir: str = "/tmp/cua_checkpoints") -> None:  # NOSONAR — S5443: /tmp use is intentional & permission-hardened
         self.store = CheckpointStore(directory=checkpoint_dir)
 
     def start_execution(self, objective: str) -> str:

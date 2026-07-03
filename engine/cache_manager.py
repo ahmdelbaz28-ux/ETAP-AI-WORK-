@@ -359,7 +359,7 @@ class SmartCacheStrategy:
         size_estimate = _estimate_size(params)
         return not size_estimate > 1024 * 100
 
-    def get_cache_ttl(self, component: str, result_type: str | None = None) -> int:
+    def get_cache_ttl(self, component: str, _result_type: str | None = None) -> int:
         mapped = component
         if "load_flow" in component or "loadflow" in component:
             mapped = "load_flow"
@@ -452,7 +452,7 @@ class MemoryManager:
             )
         return result
 
-    def evict_if_needed(self, required_mb: int = 0) -> bool:
+    def evict_if_needed(self, _required_mb: int = 0) -> bool:
         with self._lock:
             usage = self.get_memory_usage()
             if HAS_PSUTIL:

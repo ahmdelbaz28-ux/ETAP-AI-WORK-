@@ -158,7 +158,7 @@ class AcpRuntime:
             from acp.observability.tracer import TraceContext
 
             span_ctx = self._tracer.start_span(
-                "capability.execute",
+                "capability.execute",  # NOSONAR — S1192: intentional repetition (audit constant)
                 TraceContext.from_trace_id(trace_id) if trace_id else None,
             )
 

@@ -47,7 +47,7 @@ export function ContextHelpButton({
   const handleClick = () => {
     // Dispatch a global event that App.tsx listens for; this opens the
     // SmartHelpDrawer with the resolved topic for this contextId.
-    window.dispatchEvent(
+    globalThis.dispatchEvent(
       new CustomEvent('open-smart-help', {
         detail: { contextId },
       })

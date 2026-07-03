@@ -42,9 +42,9 @@ class TestLoadFlowScenario:
         """Test 1: Agent initializes with correct defaults."""
         assert agent.agent_name == "LoadFlowAgent"
         assert agent.status == AgentStatus.IDLE
-        assert agent.convergence_tolerance == 1e-6
-        assert agent.voltage_limits["min"] == 0.95
-        assert agent.voltage_limits["max"] == 1.05
+        assert agent.convergence_tolerance == pytest.approx(1e-6)
+        assert agent.voltage_limits["min"] == pytest.approx(0.95)
+        assert agent.voltage_limits["max"] == pytest.approx(1.05)
 
     @pytest.mark.asyncio
     async def test_load_flow_missing_system_data(self, agent):

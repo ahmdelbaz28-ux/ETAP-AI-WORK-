@@ -43,7 +43,6 @@ class TestArcFlashScenario:
 
     def test_arc_flash_boundary(self):
         """Test 3: Arc flash boundary is calculated."""
-        engine = ArcFlashEngine()
         # Calculate boundary directly
         boundary = ArcFlashEngine.calculate_arc_flash_boundary(
             voltage_kv=0.48,
@@ -57,7 +56,7 @@ class TestArcFlashScenario:
     def test_high_voltage_scenario(self):
         """Test 4: Arc flash analysis works at MV levels."""
         engine = ArcFlashEngine()
-        E_final, E_full, E_reduced = engine.calculate_incident_energy(
+        E_final, _, _ = engine.calculate_incident_energy(
             voltage_kv=13.8,
             bolted_fault_current_ka=20.0,
             arc_duration_sec=0.3,

@@ -118,7 +118,7 @@ class IntentParser:
             "mdb",
             "distribution panel",
             "lighting panel",
-            "power panel",
+            "power panel",  # NOSONAR — S1192: intentional repetition (audit constant)
         ],
         EngineeringIntentType.CREATE_SLD: [
             "single line diagram",

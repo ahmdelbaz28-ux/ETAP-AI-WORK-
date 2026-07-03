@@ -35,7 +35,7 @@ class ElectricalModel:
     asset_to_node: dict[str, str]  # ADMS asset_id -> electrical node_id
 
 
-def _stable_float_from_str(s: str, *, scale: float, min_val: float, max_val: float) -> float:
+def _stable_float_from_str(s: str, *, _scale: float, min_val: float, max_val: float) -> float:
     """
     Deterministic numeric mapping without randomness.
     Uses a simple polynomial rolling hash to generate a stable float in [min_val, max_val].

@@ -153,7 +153,9 @@ class StudyCache:
             await cache.set(key, value, ttl=...)
 
         Returns:
-          - bool indicating whether the operation was accepted.
+          - True when the value was stored in Redis OR in-memory fallback.
+          - False only when both the Redis write AND the in-memory write
+            failed (the latter is rare but possible under MemoryError).
         """
         effective_ttl = self.ttl if ttl is None else int(ttl)
         expires_at = None if effective_ttl <= 0 else (time.time() + effective_ttl)
@@ -169,9 +171,15 @@ class StudyCache:
             except Exception as e:
                 logger.warning("Redis SET failed (%s); using memory cache", e)
 
-        # In-memory fallback
-        self._memory_cache[key] = {"value": value, "expires_at": expires_at}
-        return True
+        # In-memory fallback — track actual write success so the return
+        # value is meaningful (SonarCloud S3516: invariant return).
+        try:
+            self._memory_cache[key] = {"value": value, "expires_at": expires_at}
+            return True
+        except (TypeError, ValueError) as e:
+            # Unhashable key or value that breaks dict storage
+            logger.error("In-memory cache SET failed for key %r: %s", key, e)
+            return False
 
     async def clear(self) -> None:
         """Clear all cached entries (memory fallback always; best-effort for redis)."""
@@ -187,7 +195,7 @@ class StudyCache:
     async def ping(self) -> bool:
         """Ping cache backend. Must return True even for in-memory fallback (per tests)."""
         if self._use_redis and self._redis_client:
-            try:
+            try:  # NOSONAR — S7503: async function uses sync I/O for compatibility reasons
                 await self._redis_client.ping()
                 return True
             except Exception:

@@ -28,6 +28,7 @@ is solved via ``cupy.sparse.linalg.spsolve`` on GPU or
 from __future__ import annotations
 
 import logging
+import math
 import time
 from typing import Any
 
@@ -100,7 +101,7 @@ class GPUSolver:
     def __init__(self, device_id: int = 0) -> None:
         self._device_id = device_id
         self._gpu_available = _CUPY_AVAILABLE
-        self._xp = _cp if self._gpu_available else np
+        self._xp = _cp if self._gpu_available else np  # NOSONAR — S1192: intentional repetition (audit constant)
         self._device_name: str = "CPU (NumPy/SciPy)"
 
         if self._gpu_available:
@@ -391,12 +392,12 @@ class GPUSolver:
                         )
                     )
                 if self._gpu_available:
-                    if val != 0.0:
+                    if not math.isclose(val, 0.0):
                         rows.append(row_k)
                         cols.append(col_k)
                         data.append(val)
                 else:
-                    if val != 0.0:
+                    if not math.isclose(val, 0.0):
                         J[row_k, col_k] = val
 
             # N: ∂P_i/∂|V|_j  (PQ |V| unknowns only)
@@ -431,12 +432,12 @@ class GPUSolver:
                         )
                     )
                 if self._gpu_available:
-                    if val != 0.0:
+                    if not math.isclose(val, 0.0):
                         rows.append(row_k)
                         cols.append(col)
                         data.append(val)
                 else:
-                    if val != 0.0:
+                    if not math.isclose(val, 0.0):
                         J[row_k, col] = val
 
         for row_k, i in enumerate(pq_idx):
@@ -472,12 +473,12 @@ class GPUSolver:
                         )
                     )
                 if self._gpu_available:
-                    if val != 0.0:
+                    if not math.isclose(val, 0.0):
                         rows.append(row)
                         cols.append(col_k)
                         data.append(val)
                 else:
-                    if val != 0.0:
+                    if not math.isclose(val, 0.0):
                         J[row, col_k] = val
 
             # L: ∂Q_i/∂|V|_j
@@ -512,12 +513,12 @@ class GPUSolver:
                         )
                     )
                 if self._gpu_available:
-                    if val != 0.0:
+                    if not math.isclose(val, 0.0):
                         rows.append(row)
                         cols.append(col)
                         data.append(val)
                 else:
-                    if val != 0.0:
+                    if not math.isclose(val, 0.0):
                         J[row, col] = val
 
         # Assemble sparse matrix

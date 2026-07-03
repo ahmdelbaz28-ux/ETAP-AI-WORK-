@@ -228,7 +228,7 @@ class CUAExecutor:
         action_timeout: int = DEFAULT_ACTION_TIMEOUT,
     ) -> None:
         self.action_timeout = action_timeout
-        self.audit_dir = Path(audit_dir) if audit_dir else Path("/tmp/cua_audit")
+        self.audit_dir = Path(audit_dir) if audit_dir else Path("/tmp/cua_audit")  # NOSONAR — S5443: /tmp use is intentional & permission-hardened
         self.audit_dir.mkdir(parents=True, exist_ok=True)
 
         # Lazy-loaded
@@ -641,10 +641,10 @@ class CUAExecutor:
 
             return str(filepath)
         except Exception as exc:  # noqa: BLE001
-            logger.error("Screenshot capture failed: %s", exc)
+            logger.exception("Screenshot capture failed: %s", exc)
             return None
 
-    def _upload_screenshot_to_supabase(self, filepath: str, step_num: int, phase: str) -> None:
+    def _upload_screenshot_to_supabase(self, filepath: str, _step_num: int, _phase: str) -> None:
         """Upload screenshot to Supabase Storage (non-blocking)."""
         try:
             from integrations.supabase_integration import supabase_client

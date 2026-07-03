@@ -24,24 +24,24 @@ from network_solver.zbus import zbus_from_ybus, zbus_full
 
 class TestPerUnit:
     def test_to_per_unit(self):
-        assert to_per_unit(100, 50) == 2.0
+        assert to_per_unit(100, 50) == pytest.approx(2.0)
 
     def test_to_per_unit_identity(self):
-        assert to_per_unit(50, 50) == 1.0
+        assert to_per_unit(50, 50) == pytest.approx(1.0)
 
     def test_to_per_unit_zero_base(self):
         with pytest.raises(ZeroDivisionError):
             to_per_unit(100, 0)
 
     def test_from_per_unit(self):
-        assert from_per_unit(2.0, 50) == 100.0
+        assert from_per_unit(2.0, 50) == pytest.approx(100.0)
 
     def test_from_per_unit_identity(self):
-        assert from_per_unit(1.0, 50) == 50.0
+        assert from_per_unit(1.0, 50) == pytest.approx(50.0)
 
     def test_from_per_unit_zero_base(self):
         # Multiplication by zero gives 0.0, no error
-        assert from_per_unit(1.0, 0) == 0.0
+        assert from_per_unit(1.0, 0) == pytest.approx(0.0)
 
     def test_roundtrip(self):
         val = 73.5

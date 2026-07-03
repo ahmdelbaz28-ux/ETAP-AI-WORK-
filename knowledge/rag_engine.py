@@ -114,7 +114,7 @@ class EmbeddingModel:
             else:
                 raise ValueError("OPENAI_API_KEY not set")
         except Exception as e:
-            logger.error("Failed to setup cloud API: %s", e)
+            logger.exception("Failed to setup cloud API: %s", e)
             self.model = None
 
     def encode(self, texts: list[str]) -> np.ndarray:
@@ -146,7 +146,7 @@ class EmbeddingModel:
             embeddings = [item["embedding"] for item in response["data"]]
             return np.array(embeddings)
         except Exception as e:
-            logger.error("Cloud embedding failed: %s", e)
+            logger.exception("Cloud embedding failed: %s", e)
             return self._fallback_embedding(texts)
 
     def _fallback_embedding(self, texts: list[str]) -> np.ndarray:

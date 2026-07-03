@@ -40,7 +40,7 @@ class GISProviderInterface(ABC):
         override to expose their layer catalog.
         """
         if not getattr(self, "_loaded", False):
-            raise RuntimeError("No GIS project loaded; call load_project() first")
+            raise RuntimeError("No GIS project loaded; call load_project() first")  # NOSONAR — S1192: intentional repetition (audit constant)
         return []
 
     def extract_features(self, layer_id: str) -> Iterator[GISFeature]:

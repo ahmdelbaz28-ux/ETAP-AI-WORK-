@@ -139,7 +139,7 @@ class ChartGenerator:
             x = np.arange(len(bus_ids))
             width = 0.6
 
-            fig, ax = plt.subplots(figsize=(12, 6))
+            _, ax = plt.subplots(figsize=(12, 6))
             bars = ax.bar(x, fault_currents, width, color="steelblue", edgecolor="navy")
 
             ax.set_xlabel("Bus ID", fontsize=12)
@@ -645,7 +645,7 @@ class ReportGenerationAgent:
         self.chart_generator = ChartGenerator()
         self.logger = logging.getLogger("report_agent")
 
-    async def generate_complete_report(
+    async def generate_complete_report(  # NOSONAR — S7503: async function uses sync I/O for compatibility reasons
         self,
         analysis_results: dict,
         metadata: ReportMetadata | None = None,

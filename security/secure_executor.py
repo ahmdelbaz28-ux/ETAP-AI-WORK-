@@ -47,7 +47,7 @@ def _read_code_from_stdin() -> Optional[str]:
             return None
         return code
     except Exception as e:
-        logger.error("Failed to read code from stdin: %s", e)
+        logger.exception("Failed to read code from stdin: %s", e)
         return None
 
 

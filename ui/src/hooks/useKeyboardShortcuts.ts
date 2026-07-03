@@ -54,7 +54,7 @@ export function useKeyboardShortcuts() {
       if (combo === 'g' && !isTyping) {
         e.preventDefault()
         // Set a flag that we're waiting for the next key
-        window.dispatchEvent(new CustomEvent('shortcut-g-sequence'))
+        globalThis.dispatchEvent(new CustomEvent('shortcut-g-sequence'))
         const sequenceHandler = (ev: KeyboardEvent) => {
           const seqKey = ev.key.toLowerCase()
           const routes: Record<string, string> = {
@@ -66,11 +66,11 @@ export function useKeyboardShortcuts() {
             ev.preventDefault()
             navigate(routes[seqKey])
           }
-          window.removeEventListener('keydown', sequenceHandler)
+          globalThis.removeEventListener('keydown', sequenceHandler)
         }
         // Listen for the next key within 1.5 seconds
-        setTimeout(() => window.removeEventListener('keydown', sequenceHandler), 1500)
-        window.addEventListener('keydown', sequenceHandler, { once: true })
+        setTimeout(() => globalThis.removeEventListener('keydown', sequenceHandler), 1500)
+        globalThis.addEventListener('keydown', sequenceHandler, { once: true })
         return
       }
 
@@ -86,17 +86,17 @@ export function useKeyboardShortcuts() {
         // Help
         case 'f1':
           e.preventDefault()
-          window.dispatchEvent(new CustomEvent('toggle-smart-help'))
+          globalThis.dispatchEvent(new CustomEvent('toggle-smart-help'))
           break
         case 'ctrl+h':
           e.preventDefault()
-          window.dispatchEvent(new CustomEvent('toggle-smart-help'))
+          globalThis.dispatchEvent(new CustomEvent('toggle-smart-help'))
           break
 
         // Magic Help Inspector
         case 'ctrl+shift+h':
           e.preventDefault()
-          window.dispatchEvent(new CustomEvent('start-magic-help-inspect'))
+          globalThis.dispatchEvent(new CustomEvent('start-magic-help-inspect'))
           break
 
         // Shortcuts panel
@@ -120,20 +120,20 @@ export function useKeyboardShortcuts() {
         // Save (dispatches a global event that pages can listen for)
         case 'ctrl+s':
           e.preventDefault()
-          window.dispatchEvent(new CustomEvent('shortcut-save'))
+          globalThis.dispatchEvent(new CustomEvent('shortcut-save'))
           break
 
         // Export
         case 'ctrl+e':
           e.preventDefault()
-          window.dispatchEvent(new CustomEvent('shortcut-export'))
+          globalThis.dispatchEvent(new CustomEvent('shortcut-export'))
           break
 
         // Close any open modal/drawer
         case 'escape':
           // Only dispatch if not already handled by a modal
           if (!isTyping) {
-            window.dispatchEvent(new CustomEvent('shortcut-escape'))
+            globalThis.dispatchEvent(new CustomEvent('shortcut-escape'))
           }
           break
 
@@ -150,19 +150,19 @@ export function useKeyboardShortcuts() {
         // Toggle theme (Ctrl+Shift+L)
         case 'ctrl+shift+l':
           e.preventDefault()
-          window.dispatchEvent(new CustomEvent('toggle-theme'))
+          globalThis.dispatchEvent(new CustomEvent('toggle-theme'))
           break
 
         // Toggle language (Ctrl+Shift+G)
         case 'ctrl+shift+g':
           e.preventDefault()
-          window.dispatchEvent(new CustomEvent('toggle-language'))
+          globalThis.dispatchEvent(new CustomEvent('toggle-language'))
           break
       }
     }
 
-    window.addEventListener('keydown', handleKeyDown)
-    return () => window.removeEventListener('keydown', handleKeyDown)
+    globalThis.addEventListener('keydown', handleKeyDown)
+    return () => globalThis.removeEventListener('keydown', handleKeyDown)
   }, [navigate])
 
   return { shortcutsPanelOpen, openShortcutsPanel, closeShortcutsPanel }

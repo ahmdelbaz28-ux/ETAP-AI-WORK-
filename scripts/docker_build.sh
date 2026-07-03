@@ -115,20 +115,20 @@ docker buildx version >/dev/null 2>&1 || { echo "Error: docker buildx is require
 # ---------------------------------------------------------------------------
 # Resolve GHCR_REPOSITORY (used for image naming + labels)
 # ---------------------------------------------------------------------------
-if [ -n "${GHCR_REPOSITORY:-}" ]; then
+if [[ -n "${GHCR_REPOSITORY:-}" ]]; then
   : # already set
-elif [ -n "${GITHUB_REPOSITORY:-}" ]; then
+elif [[ -n "${GITHUB_REPOSITORY:-}" ]]; then
   GHCR_REPOSITORY="${GITHUB_REPOSITORY}"
 else
   remote="$(git -C "${PROJECT_DIR}" remote get-url origin 2>/dev/null || true)"
-  if [ -n "${remote}" ]; then
+  if [[ -n "${remote}" ]]; then
     # SSH: git@github.com:owner/repo(.git) ; HTTPS: https://github.com/owner/repo(.git)
     GHCR_REPOSITORY="$(echo "${remote}" | sed -E 's#^.*github\.com[:/]([^/]+/[^/]+?)(\.git)?$#\1#')"
   fi
 fi
 
 # If --registry wasn't passed but --push is set, try to default to GHCR
-if [ -z "${REGISTRY}" ] && [ "${PUSH}" = "true" ] && [ -n "${GHCR_REPOSITORY}" ]; then
+if [[ -z "${REGISTRY}" ]] && [[ "${PUSH}" = "true" ]] && [[ -n "${GHCR_REPOSITORY}" ]]; then
   REGISTRY="ghcr.io/${GHCR_REPOSITORY}/"
   echo "  → Auto-derived registry: ${REGISTRY}"
 fi
@@ -136,7 +136,7 @@ fi
 # Normalize trailing slash on registry
 REGISTRY="${REGISTRY%/}/"
 # Re-render "registry/  " as "registry" when registry is empty
-if [ "${REGISTRY}" = "/" ]; then REGISTRY=""; fi
+if [[ "${REGISTRY}" = "/" ]]; then REGISTRY=""; fi
 
 # ---------------------------------------------------------------------------
 # GHCR login
@@ -146,7 +146,7 @@ login_ghcr() {
     *ghcr.io*) ;;
     *) return 0 ;;
   esac
-  if [ -z "${GITHUB_TOKEN:-}" ]; then
+  if [[ -z "${GITHUB_TOKEN:-}" ]]; then
     echo "Error: GITHUB_TOKEN env var required to push to GHCR" >&2
     echo "  Create a PAT with 'write:packages' scope:" >&2
     echo "    https://github.com/settings/tokens/new?scopes=write:packages" >&2
@@ -158,10 +158,10 @@ login_ghcr() {
 }
 
 warn_qemu() {
-  if [ "${MULTIARCH}" != "true" ]; then return 0; fi
+  if [[ "${MULTIARCH}" != "true" ]]; then return 0; fi
   local driver
   driver="$(docker buildx inspect 2>/dev/null | awk -F': ' '/Driver:/ {print $2; exit}' || true)"
-  if [ -z "${driver}" ] || { [ "${driver}" != "docker-container" ] && [ "${driver}" != "remote" ] && [ "${driver}" != "kubernetes" ]; }; then
+  if [[ -z "${driver}" ]] || { [[ "${driver}" != "docker-container" ]] && [[ "${driver}" != "remote" ]] && [[ "${driver}" != "kubernetes" ]]; }; then
     cat <<EOF >&2
 ⚠️  Multi-arch build requested, but current buildx driver is '${driver:-default}'.
    For best results, run once:
@@ -182,8 +182,8 @@ SERVICES=(
 )
 
 should_build() {
-  if [ -z "${SERVICE}" ]; then return 0; fi
-  [ "${SERVICE}" = "$1" ] && return 0 || return 1
+  if [[ -z "${SERVICE}" ]]; then return 0; fi
+  [[ "${SERVICE}" = "$1" ]] && return 0 || return 1
 }
 
 # ---------------------------------------------------------------------------
@@ -200,7 +200,7 @@ build_service() {
   local output_flag
   local target_args=()
 
-  if [ "${MULTIARCH}" = "true" ]; then
+  if [[ "${MULTIARCH}" = "true" ]]; then
     platforms="${PLATFORM}"
     platform_label="${PLATFORM}"
   else
@@ -209,14 +209,14 @@ build_service() {
   fi
 
   # Decide --load vs --push
-  if [ "${MULTIARCH}" = "true" ]; then
-    if [ "${PUSH}" != "true" ]; then
+  if [[ "${MULTIARCH}" = "true" ]]; then
+    if [[ "${PUSH}" != "true" ]]; then
       echo "  ! Multi-arch build requires --push. Auto-enabling --push." >&2
       PUSH="true"
     fi
     output_flag="--push"
   else
-    if [ "${PUSH}" = "true" ]; then
+    if [[ "${PUSH}" = "true" ]]; then
       output_flag="--push"
     else
       output_flag="--load"
@@ -224,7 +224,7 @@ build_service() {
   fi
 
   # Also tag with the short SHA when pushing (traceability)
-  if [ "${PUSH}" = "true" ] && [ "${TAG}" = "latest" ] && [ "${GIT_SHA}" != "unknown" ]; then
+  if [[ "${PUSH}" = "true" ]] && [[ "${TAG}" = "latest" ]] && [[ "${GIT_SHA}" != "unknown" ]]; then
     extra_tag="${REGISTRY}${name}:sha-${GIT_SHA}"
   fi
 
@@ -240,7 +240,7 @@ build_service() {
   echo "    Dockerfile:   ${dockerfile}"
   echo "    Platforms:    ${platform_label}"
   echo "    Image:        ${image}"
-  [ -n "${extra_tag}" ] && echo "    Extra tag:    ${extra_tag}"
+  [[ -n "${extra_tag}" ]] && echo "    Extra tag:    ${extra_tag}"
   echo "    Output:       ${output_flag}"
 
   local cmd=(
@@ -254,7 +254,7 @@ build_service() {
     --label "org.opencontainers.image.created=${BUILD_DATE}"
   )
   cmd+=("${target_args[@]}" "${output_flag}" -t "${image}")
-  if [ -n "${extra_tag}" ]; then
+  if [[ -n "${extra_tag}" ]]; then
     cmd+=(-t "${extra_tag}")
   fi
   cmd+=("${PROJECT_DIR}")

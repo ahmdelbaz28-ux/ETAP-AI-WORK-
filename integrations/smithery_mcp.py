@@ -30,7 +30,9 @@ class SmitheryClient:
     def __init__(self):
         self.api_key = os.getenv("SMITHERY_API_KEY", "")
         self.enabled = bool(self.api_key)
-        self.base_url = os.getenv("SMITHERY_BASE_URL", self.BASE_URL)
+        # Instance attribute renamed to `endpoint` to avoid the SonarCloud S1845
+        # clash with the class constant `BASE_URL` (differ only by case).
+        self.endpoint = os.getenv("SMITHERY_BASE_URL", self.BASE_URL)
 
         if self.enabled:
             logger.info("✅ Smithery MCP client initialized")
@@ -53,7 +55,7 @@ class SmitheryClient:
             async with httpx.AsyncClient(timeout=10) as client:
                 params = {"q": query} if query else {}
                 resp = await client.get(
-                    f"{self.base_url}/servers",
+                    f"{self.endpoint}/servers",
                     headers=self._headers,
                     params=params,
                 )
@@ -90,7 +92,7 @@ class SmitheryClient:
                     "arguments": arguments,
                 }
                 resp = await client.post(
-                    f"{self.base_url}/call",
+                    f"{self.endpoint}/call",
                     headers=self._headers,
                     json=payload,
                 )
@@ -107,7 +109,7 @@ class SmitheryClient:
         """Return Smithery integration status."""
         return {
             "enabled": self.enabled,
-            "base_url": self.base_url,
+            "base_url": self.endpoint,
             "dashboard": "https://smithery.ai/console",
         }
 

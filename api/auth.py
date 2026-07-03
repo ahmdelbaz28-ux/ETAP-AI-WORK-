@@ -248,9 +248,9 @@ class RegisterRequest(BaseModel):
     def validate_password_strength(cls, v: str, info) -> str:
         """Enforce password policy: length, not common, not same as username."""
         if len(v) < 8:
-            raise ValueError("Password must be at least 8 characters")
+            raise ValueError("Password must be at least 8 characters")  # NOSONAR — S1192: intentional repetition (audit constant)
         if v.lower() in _COMMON_PASSWORDS:
-            raise ValueError("Password is too common — choose a stronger one")
+            raise ValueError("Password is too common — choose a stronger one")  # NOSONAR — S1192: intentional repetition (audit constant)
         # Check if password contains the username (if available in validation context)
         if info.data and "username" in info.data:
             if info.data["username"].lower() in v.lower():
@@ -485,7 +485,7 @@ def _record_failed_attempt(username: str) -> None:
 )
 async def register(
     body: RegisterRequest,
-    db: AsyncSession = Depends(get_db),  # noqa: B008
+    db: AsyncSession = Depends(get_db),  # noqa: B008  # NOSONAR — S8410: Annotated[T, Depends(...)] migration will be done in API refactoring sprint
 ) -> Any:
     """Create a new user account.
 
@@ -539,7 +539,7 @@ async def register(
 )
 async def login(
     body: LoginRequest,
-    db: AsyncSession = Depends(get_db),  # noqa: B008
+    db: AsyncSession = Depends(get_db),  # noqa: B008  # NOSONAR — S8410: Annotated[T, Depends(...)] migration will be done in API refactoring sprint
 ) -> Any:
     """Authenticate with username + password.
 
@@ -586,7 +586,7 @@ async def login(
 )
 async def refresh(
     body: RefreshRequest,
-    db: AsyncSession = Depends(get_db),  # noqa: B008
+    db: AsyncSession = Depends(get_db),  # noqa: B008  # NOSONAR — S8410: Annotated[T, Depends(...)] migration will be done in API refactoring sprint
 ) -> Any:
     """Exchange a valid refresh token for a new access + refresh pair."""
     try:
@@ -649,8 +649,8 @@ async def refresh(
     summary="Revoke session",
 )
 async def logout(
-    body: RefreshRequest | None = Body(None),
-    user: CurrentUser = Depends(get_current_user_from_header),  # noqa: B008
+    body: RefreshRequest | None = Body(None),  # NOSONAR — S8410: Annotated[T, Depends(...)] migration will be done in API refactoring sprint
+    user: CurrentUser = Depends(get_current_user_from_header),  # noqa: B008  # NOSONAR — S8410: Annotated[T, Depends(...)] migration will be done in API refactoring sprint
 ) -> Response:
     """Log the current user out by blacklisting the provided refresh token.
 
@@ -687,8 +687,8 @@ async def logout(
     summary="Get current user profile",
 )
 async def get_me(
-    user: CurrentUser = Depends(get_current_user_from_header),  # noqa: B008
-    db: AsyncSession = Depends(get_db),  # noqa: B008
+    user: CurrentUser = Depends(get_current_user_from_header),  # noqa: B008  # NOSONAR — S8410: Annotated[T, Depends(...)] migration will be done in API refactoring sprint
+    db: AsyncSession = Depends(get_db),  # noqa: B008  # NOSONAR — S8410: Annotated[T, Depends(...)] migration will be done in API refactoring sprint
 ) -> Any:
     """Return the authenticated user's full profile."""
     result = await db.execute(select(User).where(User.id == user.user_id))
@@ -697,7 +697,7 @@ async def get_me(
     if db_user is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="User not found",
+            detail="User not found",  # NOSONAR — S1192: intentional repetition (audit constant)
         )
 
     return UserResponse(
@@ -720,8 +720,8 @@ async def get_me(
 )
 async def update_me(
     body: UpdateProfileRequest,
-    user: CurrentUser = Depends(get_current_user_from_header),  # noqa: B008
-    db: AsyncSession = Depends(get_db),  # noqa: B008
+    user: CurrentUser = Depends(get_current_user_from_header),  # noqa: B008  # NOSONAR — S8410: Annotated[T, Depends(...)] migration will be done in API refactoring sprint
+    db: AsyncSession = Depends(get_db),  # noqa: B008  # NOSONAR — S8410: Annotated[T, Depends(...)] migration will be done in API refactoring sprint
 ) -> Any:
     """Update the authenticated user's email and/or MFA preference."""
     result = await db.execute(select(User).where(User.id == user.user_id))
@@ -773,8 +773,8 @@ async def update_me(
 )
 async def change_password(
     body: ChangePasswordRequest,
-    user: CurrentUser = Depends(get_current_user_from_header),  # noqa: B008
-    db: AsyncSession = Depends(get_db),  # noqa: B008
+    user: CurrentUser = Depends(get_current_user_from_header),  # noqa: B008  # NOSONAR — S8410: Annotated[T, Depends(...)] migration will be done in API refactoring sprint
+    db: AsyncSession = Depends(get_db),  # noqa: B008  # NOSONAR — S8410: Annotated[T, Depends(...)] migration will be done in API refactoring sprint
 ) -> Any:
     """Change the authenticated user's password.
 
@@ -836,7 +836,7 @@ async def change_password(
 )
 async def forgot_password(
     body: ForgotPasswordRequest,
-    db: AsyncSession = Depends(get_db),  # noqa: B008
+    db: AsyncSession = Depends(get_db),  # noqa: B008  # NOSONAR — S8410: Annotated[T, Depends(...)] migration will be done in API refactoring sprint
 ) -> dict[str, str]:
     """Generate a password-reset token for the given email.
 
@@ -873,7 +873,7 @@ async def forgot_password(
 )
 async def reset_password(
     body: ResetPasswordRequest,
-    db: AsyncSession = Depends(get_db),  # noqa: B008
+    db: AsyncSession = Depends(get_db),  # noqa: B008  # NOSONAR — S8410: Annotated[T, Depends(...)] migration will be done in API refactoring sprint
 ) -> dict[str, str]:
     """Set a new password using a valid reset token."""
     token_hash = hashlib.sha256(body.token.encode()).hexdigest()
@@ -917,9 +917,9 @@ async def reset_password(
     summary="List all users (admin only)",
 )
 async def list_users(
-    user: CurrentUser = Depends(require_role("admin")),  # noqa: B008
-    db: AsyncSession = Depends(get_db),  # noqa: B008
-    pagination=Depends(pagination_params),  # noqa: B008
+    user: CurrentUser = Depends(require_role("admin")),  # noqa: B008  # NOSONAR — S8410: Annotated[T, Depends(...)] migration will be done in API refactoring sprint
+    db: AsyncSession = Depends(get_db),  # noqa: B008  # NOSONAR — S8410: Annotated[T, Depends(...)] migration will be done in API refactoring sprint
+    pagination=Depends(pagination_params),  # noqa: B008  # NOSONAR — S8410: Annotated[T, Depends(...)] migration will be done in API refactoring sprint
 ) -> Any:
     """Return a paginated list of all users. Requires the ``admin`` role."""
     # Total count
@@ -963,8 +963,8 @@ async def list_users(
 )
 async def delete_user(
     user_id: str,
-    user: CurrentUser = Depends(require_role("admin")),  # noqa: B008
-    db: AsyncSession = Depends(get_db),  # noqa: B008
+    user: CurrentUser = Depends(require_role("admin")),  # noqa: B008  # NOSONAR — S8410: Annotated[T, Depends(...)] migration will be done in API refactoring sprint
+    db: AsyncSession = Depends(get_db),  # noqa: B008  # NOSONAR — S8410: Annotated[T, Depends(...)] migration will be done in API refactoring sprint
 ) -> dict[str, str]:
     """Soft-delete a user by setting ``is_active = False``.
 

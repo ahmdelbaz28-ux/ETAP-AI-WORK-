@@ -31,6 +31,7 @@ Linear system
 from __future__ import annotations
 
 import logging
+import math
 import time
 from dataclasses import dataclass, field
 from typing import Any
@@ -270,7 +271,7 @@ class SparseYBus:
             tap = br.tap_ratio
             phase_shift = br.phase_shift
 
-            if tap != 1.0 or phase_shift != 0.0:
+            if not math.isclose(tap, 1.0) or not math.isclose(phase_shift, 0.0):
                 a = tap * np.exp(1j * phase_shift)
                 a_abs2 = abs(a) ** 2
                 Y[i, i] += y / a_abs2 + ys

@@ -12,6 +12,12 @@ resource "azurerm_container_registry" "this" {
   sku                 = "Premium"
   admin_enabled       = false
 
+  # Public network access is disabled by default (SonarCloud S6329).
+  # ACR is reached via Private Endpoint from the AKS VNet.
+  # Set `var.acr_public_network_access_enabled` to true only for break-glass
+  # maintenance scenarios in non-production environments.
+  public_network_access_enabled = var.acr_public_network_access_enabled
+
   # Geo-replication for production
   dynamic "georeplications" {
     for_each = var.tags["environment"] == "prod" ? [

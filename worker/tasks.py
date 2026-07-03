@@ -55,7 +55,7 @@ def execute_engineering_study_task(self, study_data: dict):
 
         return result.model_dump()
     except Exception as exc:
-        logger.error("Error executing engineering study: %s", str(exc))
+        logger.exception("Error executing engineering study: %s", str(exc))
         self.update_state(
             state="FAILURE",
             meta={
@@ -119,7 +119,7 @@ def execute_etap_integration_task(self, etap_command: dict):
 
         return result
     except Exception as exc:
-        logger.error("Error executing ETAP integration: %s", str(exc))
+        logger.exception("Error executing ETAP integration: %s", str(exc))
         self.update_state(
             state="FAILURE",
             meta={
@@ -183,7 +183,7 @@ def process_large_calculation_task(self, calculation_data: dict):
 
         return result
     except Exception as exc:
-        logger.error("Error processing large calculation: %s", str(exc))
+        logger.exception("Error processing large calculation: %s", str(exc))
         self.update_state(
             state="FAILURE",
             meta={

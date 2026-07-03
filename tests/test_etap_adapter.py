@@ -50,7 +50,7 @@ class TestETAPResult:
         assert r.data == {"v": 1}
         assert r.warnings == []
         assert r.errors == []
-        assert r.execution_time == 0.0
+        assert r.execution_time == pytest.approx(0.0)
 
     def test_with_errors_and_warnings(self):
         r = ETAPResult(
@@ -62,7 +62,7 @@ class TestETAPResult:
         )
         assert r.warnings == ["W1"]
         assert r.errors == ["E1"]
-        assert r.execution_time == 1.5
+        assert r.execution_time == pytest.approx(1.5)
 
 
 # ─── MockETAPAdapter ────────────────────────────────────────────────────────

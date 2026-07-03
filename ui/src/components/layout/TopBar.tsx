@@ -57,7 +57,7 @@ export function TopBar({ onHelpOpen }: TopBarProps) {
           className="p-2 rounded-lg text-brand-400 hover:bg-brand-500/10 hover:text-brand-300 transition-colors relative"
           title="Magic Help Inspector / فاحص المساعدة الذكي"
           onClick={() => {
-            window.dispatchEvent(new CustomEvent('start-magic-help-inspect'));
+            globalThis.dispatchEvent(new CustomEvent('start-magic-help-inspect'));
           }}
         >
           <Sparkles className="w-4 h-4" />

@@ -338,7 +338,7 @@ async def test_http_concurrent_requests():
         results = []
 
         async def fetch():
-            status, body, ct = await _http_get("127.0.0.1", port, "/health")
+            status, body, _ = await _http_get("127.0.0.1", port, "/health")
             results.append((status, body))
 
         tg.start_soon(fetch)

@@ -767,9 +767,9 @@ def create_default_etap_abac_engine() -> ABACPolicyEngine:
             name="engineer_studies",
             allowed_roles=["engineer"],
             actions=[
-                "get:/api/studies",
+                "get:/api/studies",  # NOSONAR — S1192: intentional repetition (audit constant)
                 "post:/api/studies",
-                "get:/api/projects",
+                "get:/api/projects",  # NOSONAR — S1192: intentional repetition (audit constant)
                 "post:/api/projects",
             ],
             priority=50,

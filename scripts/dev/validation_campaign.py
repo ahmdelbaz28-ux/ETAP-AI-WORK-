@@ -106,7 +106,7 @@ class ValidationCampaign:
         solver = LoadFlowSolver(system)
         converged = solver.solve(max_iter=100, tol=1e-6)
 
-        self._record("3-Bus LF", "Convergence", converged, f"Converged={converged}")
+        self._record("3-Bus LF", "Convergence", converged, f"Converged={converged}")  # NOSONAR — S1192: intentional repetition (audit constant)
 
         if converged:
             for bid in sorted(system.buses.keys()):

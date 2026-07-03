@@ -93,7 +93,7 @@ class CodeGuard(BaseGuard):
     # ------------------------------------------------------------------
     # CC-01: Functions should be ≤ 20 lines
     # ------------------------------------------------------------------
-    def _check_function_length(self, tree: ast.AST, source: str) -> list[GuardViolation]:
+    def _check_function_length(self, tree: ast.AST, _source: str) -> list[GuardViolation]:
         violations: list[GuardViolation] = []
         for node in ast.walk(tree):
             if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
@@ -117,7 +117,7 @@ class CodeGuard(BaseGuard):
     # ------------------------------------------------------------------
     # CC-02: Parameter count ≤ 4
     # ------------------------------------------------------------------
-    def _check_parameter_count(self, tree: ast.AST, source: str) -> list[GuardViolation]:
+    def _check_parameter_count(self, tree: ast.AST, _source: str) -> list[GuardViolation]:
         violations: list[GuardViolation] = []
         for node in ast.walk(tree):
             if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
@@ -145,7 +145,7 @@ class CodeGuard(BaseGuard):
     # ------------------------------------------------------------------
     # CC-03: Intent-revealing names (heuristic: single-letter vars outside loops)
     # ------------------------------------------------------------------
-    def _check_intent_revealing_names(self, tree: ast.AST, source: str) -> list[GuardViolation]:
+    def _check_intent_revealing_names(self, tree: ast.AST, _source: str) -> list[GuardViolation]:
         violations: list[GuardViolation] = []
         loop_vars: set = set()
         # Collect loop variables (exempt)
@@ -216,7 +216,7 @@ class CodeGuard(BaseGuard):
     # ------------------------------------------------------------------
     # CC-09: SRP — too many responsibilities in one class
     # ------------------------------------------------------------------
-    def _check_srp_violations(self, tree: ast.AST, source: str) -> list[GuardViolation]:
+    def _check_srp_violations(self, tree: ast.AST, _source: str) -> list[GuardViolation]:
         violations: list[GuardViolation] = []
         for node in ast.walk(tree):
             if isinstance(node, ast.ClassDef):
@@ -244,7 +244,7 @@ class CodeGuard(BaseGuard):
     # ------------------------------------------------------------------
     # CC-17: Cyclomatic complexity (simplified McCabe)
     # ------------------------------------------------------------------
-    def _check_complexity(self, tree: ast.AST, source: str) -> list[GuardViolation]:
+    def _check_complexity(self, tree: ast.AST, _source: str) -> list[GuardViolation]:
         violations: list[GuardViolation] = []
         for node in ast.walk(tree):
             if not isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
@@ -278,7 +278,7 @@ class CodeGuard(BaseGuard):
     # ------------------------------------------------------------------
     # CC-04: Boolean flag arguments
     # ------------------------------------------------------------------
-    def _check_boolean_flags(self, tree: ast.AST, source: str) -> list[GuardViolation]:
+    def _check_boolean_flags(self, tree: ast.AST, _source: str) -> list[GuardViolation]:
         """Flag boolean positional parameters — they usually indicate the
         function does two different things and should be split."""
         violations: list[GuardViolation] = []
@@ -322,7 +322,7 @@ class CodeGuard(BaseGuard):
     # ------------------------------------------------------------------
     # CC-06: CQS violation — function returns value AND mutates state
     # ------------------------------------------------------------------
-    def _check_cqs_violations(self, tree: ast.AST, source: str) -> list[GuardViolation]:
+    def _check_cqs_violations(self, tree: ast.AST, _source: str) -> list[GuardViolation]:
         """Heuristic: functions that both return a value and call mutating
         methods (append, extend, update, remove, pop, clear, sort) on
         non-local objects."""

@@ -347,7 +347,7 @@ def _format_a_analyze(question: str, app: str) -> str:
             "",
             "**REQUIRES:** Human confirmation to proceed with screen capture.",
             "",
-            "**REFERENCES:**",
+            "**REFERENCES:**",  # NOSONAR — S1192: intentional repetition (audit constant)
             "  - skills/etap-gui-agent.md (knowledge base)",
             "  - Safety rule: read-only by default",
         ],
@@ -565,7 +565,7 @@ class ETAPGUIAgent(BaseAgent):
         try:
             from agents.browser_cua_executor import BrowserCUAExecutor
 
-            browser_executor = BrowserCUAExecutor(audit_dir=audit_dir or "/tmp/cua_audit")
+            browser_executor = BrowserCUAExecutor(audit_dir=audit_dir or "/tmp/cua_audit")  # NOSONAR — S5443: /tmp use is intentional & permission-hardened
             browser_deps = browser_executor.check_dependencies()
         except Exception as exc:  # noqa: BLE001
             logger.debug("BrowserCUAExecutor init failed: %s", exc)
@@ -576,7 +576,7 @@ class ETAPGUIAgent(BaseAgent):
             from agents.cua_executor import CUAExecutor
 
             executor = CUAExecutor(
-                audit_dir=audit_dir or "/tmp/cua_audit",
+                audit_dir=audit_dir or "/tmp/cua_audit",  # NOSONAR — S5443: /tmp use is intentional & permission-hardened
                 action_timeout=60,
             )
             executor_type = "desktop"

@@ -404,7 +404,7 @@ def get_system_prompt(handle: str) -> str:
     with _cache_lock:
         cached = _prompt_cache.get(handle)
         if cached is not None:
-            content, fetched_at, source = cached
+            content, fetched_at, _ = cached
             # SAFETY: cache only valid within TTL
             if time.monotonic() - fetched_at < _CACHE_TTL_SECONDS:
                 return content or _FALLBACK_PROMPT
@@ -470,7 +470,7 @@ async def get_system_prompt_async(handle: str) -> str:
     with _cache_lock:
         cached = _prompt_cache.get(handle)
         if cached is not None:
-            content, fetched_at, source = cached
+            content, fetched_at, _ = cached
             if time.monotonic() - fetched_at < _CACHE_TTL_SECONDS:
                 return content or _FALLBACK_PROMPT
 

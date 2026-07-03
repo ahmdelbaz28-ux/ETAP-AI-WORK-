@@ -312,7 +312,7 @@ class LoadFlowSolver:
             self.V[bus_i] = Vmag_i * np.exp(1j * theta_i)
 
     def _check_q_limits(self, V):
-        P, Q = self._calculate_power(V)
+        _, Q = self._calculate_power(V)
         switched = False
 
         for bus_i in self.original_pv_indices:

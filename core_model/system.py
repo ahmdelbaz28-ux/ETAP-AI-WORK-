@@ -1,3 +1,5 @@
+import math
+
 import numpy as np
 
 
@@ -99,7 +101,7 @@ class System:
             tap = xf.tap_ratio
             phase_shift = xf.phase_shift
 
-            if tap != 1.0 or phase_shift != 0.0:
+            if not math.isclose(tap, 1.0) or not math.isclose(phase_shift, 0.0):
                 # Off-nominal tap ratio transformer model
                 # Complex tap ratio: a = tap * exp(j * phase_shift)
                 a = tap * np.exp(1j * phase_shift)

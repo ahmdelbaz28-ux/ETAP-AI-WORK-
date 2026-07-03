@@ -55,7 +55,7 @@ class Visualizer:
 
         plt = self._plt()
         if ax is None:
-            fig, ax = plt.subplots()
+            _, ax = plt.subplots()
         Ip = relay.Ip
         I_multiples = np.linspace(current_range[0], current_range[1], points)
         currents = I_multiples * Ip
@@ -149,7 +149,7 @@ class Visualizer:
         """
         plt = self._plt()
         if ax is None:
-            fig, ax = plt.subplots()
+            _, ax = plt.subplots()
         for relay in relays:
             times = [relay.trip_time(If) for If in fault_currents]
             ax.semilogx(fault_currents, times, label=relay.name)

@@ -425,7 +425,7 @@ class AutoCADConnector:
     # Unified Model → AutoCAD Mapping
     # ------------------------------------------------------------------
 
-    def draw_bus(self, bus: Bus, layer: str = "E-BUS") -> dict:
+    def draw_bus(self, bus: Bus, _layer: str = "E-BUS") -> dict:
         """Draw a bus as an AutoCAD block."""
         x = bus.coordinates.x if bus.coordinates else 0.0
         y = bus.coordinates.y if bus.coordinates else 0.0
@@ -445,7 +445,7 @@ class AutoCADConnector:
             attributes=attrs,
         )
 
-    def draw_transformer(self, transformer: Transformer, layer: str = "E-XFMR") -> dict:
+    def draw_transformer(self, transformer: Transformer, _layer: str = "E-XFMR") -> dict:
         """Draw a transformer as a dynamic AutoCAD block."""
         x = transformer.coordinates.x if transformer.coordinates else 0.0
         y = transformer.coordinates.y if transformer.coordinates else 0.0
@@ -484,7 +484,7 @@ class AutoCADConnector:
             layer=layer,
         )
 
-    def draw_breaker(self, breaker: Breaker, layer: str = "E-BREAKER") -> dict:
+    def draw_breaker(self, breaker: Breaker, _layer: str = "E-BREAKER") -> dict:
         """Draw a breaker as an AutoCAD block."""
         x = breaker.coordinates.x if breaker.coordinates else 0.0
         y = breaker.coordinates.y if breaker.coordinates else 0.0
@@ -504,7 +504,7 @@ class AutoCADConnector:
             attributes=attrs,
         )
 
-    def draw_panel(self, panel: Panel, layer: str = "E-PANEL") -> dict:
+    def draw_panel(self, panel: Panel, _layer: str = "E-PANEL") -> dict:
         """Draw a panel as an AutoCAD block with schedule."""
         x = panel.coordinates.x if panel.coordinates else 0.0
         y = panel.coordinates.y if panel.coordinates else 0.0
@@ -526,7 +526,7 @@ class AutoCADConnector:
             attributes=attrs,
         )
 
-    def draw_load(self, load: Load, layer: str = "E-LOAD") -> dict:
+    def draw_load(self, load: Load, _layer: str = "E-LOAD") -> dict:
         """Draw a load as an AutoCAD block."""
         x = load.coordinates.x if load.coordinates else 0.0
         y = load.coordinates.y if load.coordinates else 0.0
@@ -546,7 +546,7 @@ class AutoCADConnector:
             attributes=attrs,
         )
 
-    def draw_equipment(self, equipment: Equipment, layer: str = "E-EQUIP") -> dict:
+    def draw_equipment(self, equipment: Equipment, _layer: str = "E-EQUIP") -> dict:
         """Draw general equipment as an AutoCAD block."""
         x = equipment.coordinates.x if equipment.coordinates else 0.0
         y = equipment.coordinates.y if equipment.coordinates else 0.0

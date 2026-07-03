@@ -240,7 +240,7 @@ class ETAPErrorRecovery:
             finally:
                 pythoncom.CoUninitialize()
         except Exception as e:
-            logger.error("Failed to restart ETAP: %s", e)
+            logger.exception("Failed to restart ETAP: %s", e)
         return False
 
     def is_etap_responsive(self) -> bool:

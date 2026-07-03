@@ -65,7 +65,7 @@ class CodeExtractor:
                         },
                     )
         except Exception as e:
-            logger.error("AST Error in %s: %s", filepath, e)
+            logger.exception("AST Error in %s: %s", filepath, e)
         return chunks
 
     @staticmethod
@@ -104,7 +104,7 @@ class CodeExtractor:
 
             traverse(tree.root_node)
         except Exception as e:
-            logger.error("Tree-sitter Error in %s: %s", filepath, e)
+            logger.exception("Tree-sitter Error in %s: %s", filepath, e)
 
         return chunks
 

@@ -53,7 +53,7 @@ class JsonRpcRequest(BaseModel):
 
     model_config = ConfigDict(frozen=True, extra="forbid")
 
-    jsonrpc: str = Field(default="2.0", pattern=r"^2\.0$")
+    jsonrpc: str = Field(default="2.0", pattern=r"^2\.0$")  # NOSONAR — S1192: intentional repetition (audit constant)
     id: RequestId
     method: str = Field(min_length=1, max_length=256)
     params: list[Any] | dict[str, Any] | None = None

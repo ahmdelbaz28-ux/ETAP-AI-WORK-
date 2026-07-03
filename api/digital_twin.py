@@ -59,7 +59,7 @@ async def get_digital_twin_status(request: Request):
         from logging import getLogger
 
         logger = getLogger("engineering_service")
-        logger.error("digital_twin_status_failed error=%s", str(e), extra={"trace_id": trace_id})
+        logger.exception("digital_twin_status_failed error=%s", str(e), extra={"trace_id": trace_id})
         return JSONResponse(
             status_code=500, content={"success": False, "errors": [str(e)], "trace_id": trace_id},
         )

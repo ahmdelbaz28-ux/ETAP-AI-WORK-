@@ -460,7 +460,7 @@ class MatrixStabilizer:
             self.log.warning("Matrix inversion failed — falling back to pseudo-inverse")
             return lstsq(mat, eye, rcond=self.default_tolerance)[0]
 
-    def safe_solve(self, A: np.ndarray, b: np.ndarray, method: str = "lu") -> np.ndarray:
+    def safe_solve(self, A: np.ndarray, b: np.ndarray, _method: str = "lu") -> np.ndarray:
         """Solve Ax = b with fallback to least-squares on singular systems."""
         A_arr = np.asarray(A, dtype=float)
         b_arr = np.asarray(b, dtype=float)

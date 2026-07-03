@@ -1,3 +1,4 @@
+import pytest  # added for S1244 float-equality fix
 """Tests for core/models.py — Universal Data Model core dataclasses."""
 
 import uuid
@@ -19,13 +20,13 @@ from core.models import (
 class TestPoint3D:
     def test_creation(self):
         p = Point3D(1.0, 2.0, 3.0)
-        assert p.x == 1.0
-        assert p.y == 2.0
-        assert p.z == 3.0
+        assert p.x == pytest.approx(1.0)
+        assert p.y == pytest.approx(2.0)
+        assert p.z == pytest.approx(3.0)
 
     def test_default_z(self):
         p = Point3D(1.0, 2.0)
-        assert p.z == 0.0
+        assert p.z == pytest.approx(0.0)
 
     def test_to_dict(self):
         p = Point3D(1.0, 2.0, 3.0)
@@ -44,14 +45,14 @@ class TestGeometry:
         points = [Point3D(0, 0), Point3D(4, 0), Point3D(0, 3)]
         g = Geometry(points=points)
         area = g.calculate_area()
-        assert area == 6.0
-        assert g.area == 6.0
+        assert area == pytest.approx(6.0)
+        assert g.area == pytest.approx(6.0)
 
     def test_calculate_area_less_than_3_points(self):
         points = [Point3D(0, 0), Point3D(4, 0)]
         g = Geometry(points=points)
         area = g.calculate_area()
-        assert area == 0.0
+        assert area == pytest.approx(0.0)
 
     def test_to_dict(self):
         points = [Point3D(0, 0), Point3D(4, 0), Point3D(0, 3)]

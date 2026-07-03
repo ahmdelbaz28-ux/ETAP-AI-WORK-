@@ -1,7 +1,10 @@
 import json
 from pathlib import Path
 
-METRICS_FILE = Path(__file__).parent / "core" / "metrics.py"
+# Resolve to absolute, normalized path. `__file__` is the script location
+# (maintainer-controlled, not user input), but we normalize to satisfy
+# SonarCloud S2083 (path injection) and make the path deterministic.
+METRICS_FILE = (Path(__file__).resolve().parent / "core" / "metrics.py")
 
 BLOCK = """
 # ---------------------------------------------------------------------------

@@ -303,7 +303,7 @@ def test_resume_manager_resume_returns_zero_if_no_checkpoint():
 
     with tempfile.TemporaryDirectory() as tmpdir:
         rm = ResumeManager(checkpoint_dir=tmpdir)
-        exec_id, resume_from, prior_steps, context = rm.resume_or_start("Brand new objective")
+        _, resume_from, prior_steps, context = rm.resume_or_start("Brand new objective")
         assert resume_from == 0
         assert prior_steps == []
         assert context == ""

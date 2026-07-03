@@ -570,7 +570,7 @@ async def test_router_audit_disabled():
 async def test_router_auth_async_validator():
     runtime = AcpRuntime([MathHandler()])
 
-    async def async_validator(token: str) -> CallerIdentity:
+    async def async_validator(token: str) -> CallerIdentity:  # NOSONAR — S7503: async function uses sync I/O for compatibility reasons
         if token == "async-token":
             return CallerIdentity("async-user", {"math.read"})
         raise AuthenticationRequired("Bad async token")

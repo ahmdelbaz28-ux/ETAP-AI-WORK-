@@ -450,7 +450,7 @@ class HarmonicAnalysisEngine:
                 result = self.solve_harmonic_power_flow(h)
                 harmonic_results.append(result)
             except Exception as e:
-                logger.error("Failed to solve harmonic %s: %s", h, e)
+                logger.exception("Failed to solve harmonic %s: %s", h, e)
                 continue
 
         # Calculate THD

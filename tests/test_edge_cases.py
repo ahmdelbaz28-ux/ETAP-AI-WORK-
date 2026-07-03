@@ -168,12 +168,12 @@ class TestBusEdgeCases:
     def test_bus_with_q_limits(self):
         bus = Bus(bus_id=1, bus_type="pv", q_min=-0.5, q_max=0.5)
         assert bus.q_min == -0.5
-        assert bus.q_max == 0.5
+        assert bus.q_max == pytest.approx(0.5)
 
     def test_bus_complex_power(self):
         bus = Bus(bus_id=1, generation_power=complex(1.0, 0.5), load_power=complex(0.3, 0.1))
-        assert bus.generation_power.real == 1.0
-        assert bus.load_power.imag == 0.1
+        assert bus.generation_power.real == pytest.approx(1.0)
+        assert bus.load_power.imag == pytest.approx(0.1)
 
     def test_bus_voltage_setter(self):
         bus = Bus(bus_id=1)
@@ -228,7 +228,7 @@ class TestTransformerEdgeCases:
         b2 = Bus(bus_id=2)
         t = Transformer(transformer_id=1, from_bus=b1, to_bus=b2, z1=complex(0.01, 0.1))
         assert t.transformer_id == 1
-        assert t.tap_ratio == 1.0
+        assert t.tap_ratio == pytest.approx(1.0)
 
     def test_transformer_with_tap(self):
         b1 = Bus(bus_id=1)
@@ -236,7 +236,7 @@ class TestTransformerEdgeCases:
         t = Transformer(
             transformer_id=1, from_bus=b1, to_bus=b2, z1=complex(0.01, 0.1), tap_ratio=1.05
         )
-        assert t.tap_ratio == 1.05
+        assert t.tap_ratio == pytest.approx(1.05)
         z = t.get_impedance("1")
         assert z == complex(0.01, 0.1)
 
@@ -271,23 +271,23 @@ class TestMotorModel:
         params = MotorParameters()
         m = MotorModel(params)
         assert hasattr(m, "params")
-        assert m.params.rated_hp == 100.0
-        assert m.params.rated_kv == 0.46
+        assert m.params.rated_hp == pytest.approx(100.0)
+        assert m.params.rated_kv == pytest.approx(0.46)
 
     def test_motor_efficiency(self):
         params = MotorParameters(efficiency=0.95)
         m = MotorModel(params)
-        assert m.params.efficiency == 0.95
+        assert m.params.efficiency == pytest.approx(0.95)
 
     def test_motor_power_factor(self):
         params = MotorParameters(power_factor=0.85)
         m = MotorModel(params)
-        assert m.params.power_factor == 0.85
+        assert m.params.power_factor == pytest.approx(0.85)
 
     def test_motor_starting_current(self):
         params = MotorParameters(lr_current_multiplier=6.0)
         m = MotorModel(params)
-        assert m.params.lr_current_multiplier == 6.0
+        assert m.params.lr_current_multiplier == pytest.approx(6.0)
 
     def test_motor_custom_name(self):
         params = MotorParameters(name="Pump Motor")
@@ -340,7 +340,7 @@ class TestLoadAdditional:
     def test_load_power_factor(self):
         bus = Bus(bus_id=1)
         load = Load(load_id=1, bus=bus, load_power=complex(0.5, 0.2), power_factor=0.9)
-        assert load.power_factor == 0.9
+        assert load.power_factor == pytest.approx(0.9)
 
     def test_load_impedance(self):
         bus = Bus(bus_id=1)

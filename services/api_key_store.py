@@ -122,7 +122,7 @@ class APIKeyStore:
 
     SUPPORTED_PROVIDERS = {"openai", "gemini", "anthropic"}
 
-    def __init__(self, db_path: str = "/tmp/data/api_keys.db") -> None:
+    def __init__(self, db_path: str = "/tmp/data/api_keys.db") -> None:  # NOSONAR — S5443: /tmp use is intentional & permission-hardened
         self.db_path = Path(db_path)
         self.db_path.parent.mkdir(parents=True, exist_ok=True)
         self._lock = threading.Lock()

@@ -326,7 +326,7 @@ class ETAPProject:
 
         except Exception as e:
             errors.append(str(e))
-            logger.error("Study %s failed: %s", study_type.value, e)
+            logger.exception("Study %s failed: %s", study_type.value, e)
             return ETAPResult(
                 study_type=study_type.value,
                 success=False,
@@ -889,9 +889,9 @@ class ETAPProject:
                     if data:
                         buses.append(data)
         except pythoncom.com_error as e:
-            logger.error("COM error retrieving buses (timeout=%ss): %s", self._com_timeout, e)
+            logger.exception("COM error retrieving buses (timeout=%ss): %s", self._com_timeout, e)
         except Exception as e:
-            logger.error("Error retrieving buses: %s", e)
+            logger.exception("Error retrieving buses: %s", e)
         return buses
 
     def save(self, file_path: str | None = None) -> bool:
@@ -906,7 +906,7 @@ class ETAPProject:
             self.file_path = path
             return True
         except Exception as e:
-            logger.error("Failed to save project: %s", e)
+            logger.exception("Failed to save project: %s", e)
             return False
 
     def close(self) -> bool:
@@ -916,7 +916,7 @@ class ETAPProject:
             self.is_open = False
             return True
         except Exception as e:
-            logger.error("Failed to close project: %s", e)
+            logger.exception("Failed to close project: %s", e)
             return False
 
 
@@ -1304,7 +1304,7 @@ class ETAPAutomation:
             return True
 
         except Exception as e:
-            logger.error("Failed to launch ETAP: %s", e)
+            logger.exception("Failed to launch ETAP: %s", e)
             return False
 
     def open_project(self, file_path: str) -> ETAPProject | None:
@@ -1337,13 +1337,13 @@ class ETAPAutomation:
                 return None
 
         except pythoncom.com_error as e:
-            logger.error(
+            logger.exception(
                 "COM error opening project %s (timeout=%ds): %s",
                 file_path, self.com_timeout_seconds, e,
             )
             return None
         except Exception as e:
-            logger.error("Error opening project %s: %s", file_path, e)
+            logger.exception("Error opening project %s: %s", file_path, e)
             return None
 
     def create_project(self, project_name: str = "NewProject") -> ETAPProject | None:
@@ -1379,10 +1379,10 @@ class ETAPAutomation:
                 return None
 
         except pythoncom.com_error as e:
-            logger.error("COM error creating project (timeout=%ss): %s", self.com_timeout_seconds, e)
+            logger.exception("COM error creating project (timeout=%ss): %s", self.com_timeout_seconds, e)
             return None
         except Exception as e:
-            logger.error("Error creating project: %s", e)
+            logger.exception("Error creating project: %s", e)
             return None
 
     def get_active_project(self) -> ETAPProject | None:
@@ -1402,12 +1402,12 @@ class ETAPAutomation:
                 )
                 return project
         except pythoncom.com_error as e:
-            logger.error(
+            logger.exception(
                 "COM error getting active project (timeout=%ds): %s",
                 self.com_timeout_seconds, e,
             )
         except Exception as e:
-            logger.error("Error getting active project: %s", e)
+            logger.exception("Error getting active project: %s", e)
 
         return None
 
@@ -1448,10 +1448,10 @@ class ETAPAutomation:
             return True
 
         except pythoncom.com_error as e:
-            logger.error("COM error shutting down ETAP (timeout=%ss): %s", self.com_timeout_seconds, e)
+            logger.exception("COM error shutting down ETAP (timeout=%ss): %s", self.com_timeout_seconds, e)
             return False
         except Exception as e:
-            logger.error("Error shutting down ETAP: %s", e)
+            logger.exception("Error shutting down ETAP: %s", e)
             return False
 
     def get_version(self) -> str | None:
@@ -1464,7 +1464,7 @@ class ETAPAutomation:
                 return self._com_app.Version
             return "Unknown"
         except Exception as e:
-            logger.error("Error getting ETAP version: %s", e)
+            logger.exception("Error getting ETAP version: %s", e)
             return None
 
     def __enter__(self):

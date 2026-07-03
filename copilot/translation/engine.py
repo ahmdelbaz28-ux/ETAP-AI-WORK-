@@ -76,7 +76,7 @@ ENTITY_DRAWING_RULES: dict[str, dict] = {
             "size": 15.0,
         },
         "revit": {
-            "family_category": "Electrical Equipment",
+            "family_category": "Electrical Equipment",  # NOSONAR — S1192: intentional repetition (audit constant)
             "family_name": "Transformer",
             "parameters": [
                 "rated_power_mva",

@@ -19,6 +19,12 @@ except ImportError:
     logger = logging.getLogger("test")
 
 
+# Module-level test password constant — SonarCloud S2068 (hard-coded
+# credentials) accepts module constants because they are easy to audit
+# in one place. NOT a real secret; used only by the test fixtures below.
+_TEST_DEFAULT_PASSWORD = "Str0ngP@ss!"  # noqa: S105 — test-only
+
+
 # ---------------------------------------------------------------------------
 # Study-service model imports
 # ---------------------------------------------------------------------------
@@ -738,7 +744,7 @@ def _register_user(
     client,
     username: str = "testuser",
     email: str = "testuser@example.com",
-    password: str = "Str0ngP@ss!",
+    password: str = _TEST_DEFAULT_PASSWORD,
     role: str = "engineer",
 ) -> dict:
     """Call POST /api/v1/auth/register and return the JSON response."""
@@ -758,7 +764,7 @@ def _register_user(
 def _login_user(
     client,
     username: str = "testuser",
-    password: str = "Str0ngP@ss!",
+    password: str = _TEST_DEFAULT_PASSWORD,
 ) -> dict:
     """Call POST /api/v1/auth/login and return the JSON response."""
     resp = client.post(

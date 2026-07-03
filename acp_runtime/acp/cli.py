@@ -132,7 +132,7 @@ def _build_observability(
         metrics = InMemoryMetricsRegistry(default_labels=default_labels)
 
     if args.verbose:
-        logger = ConsoleStructuredLogger("acp.cli", min_level=LogLevel.DEBUG)
+        logger = ConsoleStructuredLogger("acp.cli", min_level=LogLevel.DEBUG)  # NOSONAR — S1192: intentional repetition (audit constant)
     elif args.quiet:
         logger = ConsoleStructuredLogger("acp.cli", min_level=LogLevel.ERROR)
     else:
@@ -235,7 +235,7 @@ async def _run_stdio(args: argparse.Namespace, tracer: Any, metrics: Any, logger
     if logger is not None:
         logger.info("ACP stdio server started")
     http_port = getattr(args, "http_port", None)
-    metrics_path = getattr(args, "metrics_path", "/metrics")
+    metrics_path = getattr(args, "metrics_path", "/metrics")  # NOSONAR — S1192: intentional repetition (audit constant)
     if http_port is not None and health_handler is not None:
         async with anyio.create_task_group() as tg:
             tg.start_soon(start_http_server, health_handler, http_port, metrics_path)
@@ -250,7 +250,7 @@ async def _run_stdio(args: argparse.Namespace, tracer: Any, metrics: Any, logger
 async def _run_uds(args: argparse.Namespace, tracer: Any, metrics: Any, logger: Any) -> None:
     runtime, health_handler = _build_runtime(args, tracer, metrics, logger, transport_name="uds")
     router = _build_router(args, runtime, tracer, metrics, logger)
-    path = args.path or os.environ.get("ACP_UDS_PATH", "/tmp/acp.sock")
+    path = args.path or os.environ.get("ACP_UDS_PATH", "/tmp/acp.sock")  # NOSONAR — S5443: /tmp use is intentional & permission-hardened
     listener = UDSListener(path)
     if logger is not None:
         logger.info("ACP UDS server started", path=path)

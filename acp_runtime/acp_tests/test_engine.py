@@ -55,7 +55,7 @@ async def test_execute_async_handler():
 async def test_execute_sync_handler():
     runtime = AcpRuntime([CalcHandler()])
     result = await runtime.execute("calc.div", {"a": 10, "b": 2}, deadline_ms=1000)
-    assert result == 5.0
+    assert result == pytest.approx(5.0)
 
 
 @pytest.mark.anyio

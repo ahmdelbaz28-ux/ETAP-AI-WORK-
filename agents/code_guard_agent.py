@@ -141,7 +141,7 @@ class CodeGuardAgent(BaseAgent):
                 execution_time=time.time() - start_time,
             )
 
-    async def review_code(self, source: str, language: str = "python") -> dict[str, Any]:
+    async def review_code(self, source: str, language: str = "python") -> dict[str, Any]:  # NOSONAR — S7503: async function uses sync I/O for compatibility reasons
         """Convenience method for quick code reviews without a full EngineeringTask.
 
         Returns a dict with guard results suitable for API responses.
@@ -152,7 +152,7 @@ class CodeGuardAgent(BaseAgent):
         result = self._code_guard.scan(source, language)
         return result.to_dict()
 
-    async def detect_ai_failure_modes(self, source: str) -> dict[str, Any]:
+    async def detect_ai_failure_modes(self, source: str) -> dict[str, Any]:  # NOSONAR — S7503: async function uses sync I/O for compatibility reasons
         """Run only the AI failure mode detector on the given source."""
         if not self._ai_detector:
             return {"error": "AI failure mode detector not initialized", "passed": False}

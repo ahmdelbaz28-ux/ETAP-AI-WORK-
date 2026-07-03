@@ -68,7 +68,7 @@ done
 # ---------------------------------------------------------------------------
 # Ensure .env file exists
 # ---------------------------------------------------------------------------
-if [ ! -f "${PROJECT_DIR}/.env" ]; then
+if [[ ! -f "${PROJECT_DIR}/.env" ]]; then
   echo "Creating .env from .env.example..."
   cp "${PROJECT_DIR}/.env.example" "${PROJECT_DIR}/.env"
   echo "  ✓ .env created. Edit it with your API keys before proceeding."
@@ -96,13 +96,13 @@ case "${ACTION}" in
     )
 
     # If not using worker, skip its profile
-    if [ "${NO_WORKER}" = "true" ]; then
+    if [[ "${NO_WORKER}" = "true" ]]; then
       EXTRA_ARGS+=(--profile development)
     else
       EXTRA_ARGS+=(--profile "development,windows")
     fi
 
-    if [ "${BUILD}" = "true" ]; then
+    if [[ "${BUILD}" = "true" ]]; then
       echo "[1/3] Building images..."
       docker compose "${COMPOSE_ARGS[@]}" build
     fi
@@ -119,7 +119,7 @@ case "${ACTION}" in
     echo "  Redis CLI:  docker exec -it etap-redis redis-cli"
     echo ""
 
-    if [ "${FOLLOW_LOGS}" = "true" ]; then
+    if [[ "${FOLLOW_LOGS}" = "true" ]]; then
       echo "Tailing logs (Ctrl+C to stop)..."
       docker compose "${COMPOSE_ARGS[@]}" logs -f
     fi

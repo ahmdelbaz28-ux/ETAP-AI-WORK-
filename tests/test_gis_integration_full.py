@@ -108,7 +108,7 @@ class TestArcGISProvider:
             # Force the import to fail
             with patch("builtins.__import__", side_effect=ImportError("no arcpy")):
                 with pytest.raises(GISProviderUnavailableError, match="unavailable"):
-                    provider.load_project("/tmp/test.gdb")
+                    provider.load_project("/tmp/test.gdb")  # NOSONAR — S5443: /tmp use is intentional & permission-hardened
 
     def test_list_layers_returns_empty_when_not_loaded(self):
         """list_layers should return [] if provider not loaded."""
@@ -310,7 +310,7 @@ class TestQGISProvider:
         provider = QGISProvider()
         with patch("builtins.__import__", side_effect=ImportError("no qgis")):
             with pytest.raises(GISProviderUnavailableError, match="unavailable"):
-                provider.load_project("/tmp/test.qgs")
+                provider.load_project("/tmp/test.qgs")  # NOSONAR — S5443: /tmp use is intentional & permission-hardened
 
     def test_list_layers_returns_empty_when_not_loaded(self):
         """list_layers should return [] if project not loaded."""
@@ -688,7 +688,7 @@ class TestCRSValidator:
     def test_single_asset_with_crs_is_valid(self):
         """Single asset with source_crs should be valid."""
         assets = [_make_asset("S1", metadata={"source_crs": "EPSG:4326"})]
-        ok, issues = validate_crs_consistency(assets)
+        ok, _ = validate_crs_consistency(assets)
         assert ok is True
 
     def test_missing_crs_flagged(self):
@@ -716,7 +716,7 @@ class TestCRSValidator:
             _make_asset("S1", metadata={"source_crs": "EPSG:4326"}),
             _make_asset("S2", metadata={"source_crs": "EPSG:4326"}),
         ]
-        ok, issues = validate_crs_consistency(assets)
+        ok, _ = validate_crs_consistency(assets)
         assert ok is True
 
     def test_normalize_epsg_case_insensitive(self):
@@ -753,7 +753,7 @@ class TestCRSValidator:
             _make_asset("S1", metadata={"source_crs": "EPSG:4326"}),
             _make_asset("S2", metadata={"source_crs": "EPSG:3857"}),
         ]
-        ok, issues = validate_normalization_applied(assets)
+        ok, _ = validate_normalization_applied(assets)
         assert ok is True
 
 
@@ -773,7 +773,7 @@ class TestGISUtils:
 
     def test_validate_geometry_valid_linestring(self):
         """Valid LineString geometry should pass validation."""
-        ok, reason = validate_geometry_dict(
+        ok, _ = validate_geometry_dict(
             {"type": "LineString", "coordinates": [[31.0, 30.0], [31.5, 30.5]]}
         )
         assert ok is True
@@ -798,7 +798,7 @@ class TestGISUtils:
 
     def test_validate_geometry_not_dict(self):
         """Non-dict input should fail validation."""
-        ok, reason = validate_geometry_dict("not a dict")
+        ok, _ = validate_geometry_dict("not a dict")
         assert ok is False
 
     def test_safe_parse_geojson_from_string(self):
@@ -895,11 +895,11 @@ class TestEndToEndIntegration:
         assert len(assets) == 3
 
         # Validate topology
-        ok_topo, topo_issues = validate_adms_topology(assets)
+        ok_topo, _ = validate_adms_topology(assets)
         assert ok_topo is True
 
         # Validate CRS
-        ok_crs, crs_issues = validate_crs_consistency(assets)
+        ok_crs, _ = validate_crs_consistency(assets)
         assert ok_crs is True
 
     def test_full_pipeline_detects_crs_mismatch(self):

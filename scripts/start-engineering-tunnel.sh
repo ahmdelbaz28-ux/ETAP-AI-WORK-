@@ -54,7 +54,7 @@ fi
 echo "Waiting for /health to return 200..."
 for i in $(seq 1 30); do
   code=$(curl -s -o /dev/null -w "%{http_code}" "http://localhost:${PORT}/health" || echo 000)
-  if [ "${code}" = "200" ]; then echo "  Ready after ${i}s"; break; fi
+  if [[ "${code}" = "200" ]]; then echo "  Ready after ${i}s"; break; fi
   sleep 1
 done
 

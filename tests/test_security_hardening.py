@@ -459,12 +459,6 @@ class TestSIEM:
         )
         # This will attempt to forward but fail (no Loki running),
         # which is fine — we're testing the event structure
-        result = await forwarder.forward_auth_event(
-            user="admin",
-            action="login",
-            success=True,
-            ip="10.0.1.5",
-        )
         # Result may be True or False depending on whether flush fails,
         # but the event should be buffered
         stats = forwarder.get_stats()

@@ -327,7 +327,7 @@ class TestConfigCliIntegration:
 
         from acp.cli import main
 
-        async def _noop_run_stdio(args, tracer, metrics, logger):
+        async def _noop_run_stdio(args, tracer, metrics, logger):  # NOSONAR — S7503: async function uses sync I/O for compatibility reasons
             assert args.handlers == "tests.test_cli"
             assert args.scopes == "math.read"
             return

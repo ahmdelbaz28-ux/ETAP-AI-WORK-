@@ -125,7 +125,7 @@ def run_validation_suite():
     """Run engineering validation suite."""
     print_header("Running Engineering Validation Suite")
 
-    success, output = run_command(
+    success, _ = run_command(
         [sys.executable, "scripts/dev/validation_suite.py"],
         "Engineering Validation Suite",
         timeout=120,
@@ -144,7 +144,7 @@ def run_unit_tests():
     """Run unit tests with coverage."""
     print_header("Running Unit Tests")
 
-    success, output = run_command(
+    success, _ = run_command(
         [sys.executable, "-m", "pytest", "tests/unit_tests.py", "-v", "--tb=short"],
         "Unit Tests",
         timeout=180,
@@ -201,7 +201,7 @@ else:
     print("Load Flow Test: FAILED")
 """
 
-    success, output = run_command([sys.executable, "-c", test_code], "Load Flow Test", timeout=30)
+    success, _ = run_command([sys.executable, "-c", test_code], "Load Flow Test", timeout=30)
 
     return success
 
@@ -248,7 +248,7 @@ print(f"Three-phase fault current: {abs(result['fault_current']):.2f} kA")
 print("Short Circuit Test: PASSED")
 """
 
-    success, output = run_command(
+    success, _ = run_command(
         [sys.executable, "-c", test_code], "Short Circuit Test", timeout=30,
     )
 
@@ -277,7 +277,7 @@ print(f"PPE Level: {result.ppe_level}")
 print("Arc Flash Test: PASSED")
 """
 
-    success, output = run_command([sys.executable, "-c", test_code], "Arc Flash Test", timeout=30)
+    success, _ = run_command([sys.executable, "-c", test_code], "Arc Flash Test", timeout=30)
 
     return success
 
@@ -315,7 +315,7 @@ print("Harmonic Analysis Engine: Initialized")
 print("Harmonic Analysis Test: PASSED")
 """
 
-    success, output = run_command(
+    success, _ = run_command(
         [sys.executable, "-c", test_code], "Harmonic Analysis Test", timeout=30,
     )
 
@@ -358,7 +358,7 @@ if result.success:
 print("OPF Test: PASSED")
 """
 
-    success, output = run_command([sys.executable, "-c", test_code], "OPF Test", timeout=30)
+    success, _ = run_command([sys.executable, "-c", test_code], "OPF Test", timeout=30)
 
     return success
 
@@ -398,7 +398,7 @@ else:
     print("User creation: FAILED")
 """
 
-    success, output = run_command(
+    success, _ = run_command(
         [sys.executable, "-c", test_code], "Security Framework Test", timeout=30,
     )
 
@@ -446,7 +446,7 @@ async def test_report():
 result = asyncio.run(test_report())
 """
 
-    success, output = run_command(
+    success, _ = run_command(
         [sys.executable, "-c", test_code], "Report Generation Test", timeout=60,
     )
 

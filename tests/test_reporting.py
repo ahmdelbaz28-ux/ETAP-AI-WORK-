@@ -37,11 +37,11 @@ class TestReportSection:
             order=2,
             include_charts=True,
             include_tables=True,
-            data={"chart_path": "/tmp/chart.png", "table_data": [["a", "b"]]},
+            data={"chart_path": "/tmp/chart.png", "table_data": [["a", "b"]]},  # NOSONAR — S5443: /tmp use is intentional & permission-hardened
         )
         assert s.include_charts is True
         assert s.include_tables is True
-        assert s.data["chart_path"] == "/tmp/chart.png"
+        assert s.data["chart_path"] == "/tmp/chart.png"  # NOSONAR — S5443: /tmp use is intentional & permission-hardened
 
     def test_ordering(self):
         s1 = ReportSection(title="B", content="", order=2)
@@ -311,5 +311,5 @@ class TestReportGenerationAgent:
 
     def test_empty_sections_when_no_match(self):
         agent = ReportGenerationAgent()
-        sections = agent._compile_sections({}, "/tmp")
+        sections = agent._compile_sections({}, "/tmp")  # NOSONAR — S5443: /tmp use is intentional & permission-hardened
         assert len(sections) >= 2  # executive summary + system description

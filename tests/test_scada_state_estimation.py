@@ -31,9 +31,9 @@ class TestMeasurement:
             value=1.05,
         )
         assert m.measurement_id == "V_BUS1"
-        assert m.value == 1.05
+        assert m.value == pytest.approx(1.05)
         assert m.quality == QualityFlag.GOOD
-        assert m.confidence == 1.0
+        assert m.confidence == pytest.approx(1.0)
 
     def test_is_valid_good(self):
         m = Measurement("m1", MeasurementType.VOLTAGE_MAGNITUDE, "BUS1", 1.0)
@@ -66,8 +66,8 @@ class TestMeasurement:
         d = m.to_dict()
         assert d["measurement_id"] == "m1"
         assert d["measurement_type"] == "voltage_magnitude"
-        assert d["value"] == 1.05
-        assert d["confidence"] == 0.95
+        assert d["value"] == pytest.approx(1.05)
+        assert d["confidence"] == pytest.approx(0.95)
 
 
 # ===========================================================================
@@ -168,7 +168,7 @@ class TestSCADADatabase:
     def test_get_latest_voltage(self):
         db = SCADADatabase()
         db.add_measurement(Measurement("V1", MeasurementType.VOLTAGE_MAGNITUDE, "BUS1", 1.05))
-        assert db.get_latest_voltage("BUS1") == 1.05
+        assert db.get_latest_voltage("BUS1") == pytest.approx(1.05)
 
     def test_get_latest_voltage_expired(self):
         db = SCADADatabase(measurement_ttl_seconds=0)
@@ -182,8 +182,8 @@ class TestSCADADatabase:
         db.add_measurement(Measurement("Q1", MeasurementType.REACTIVE_POWER, "BUS1", 20.0))
         result = db.get_latest_power("BUS1")
         assert result is not None
-        assert result[0] == 50.0
-        assert result[1] == 20.0
+        assert result[0] == pytest.approx(50.0)
+        assert result[1] == pytest.approx(20.0)
 
     def test_get_latest_power_missing(self):
         db = SCADADatabase()
@@ -369,7 +369,6 @@ class TestWLSEstimator:
         assert result.status == StateEstimationStatus.NOT_CONVERGED
 
     def test_check_redundancy_sufficient(self):
-        Ybus = np.eye(3, dtype=complex)
         # Need redundancy >= 1.5: with n=3, need m >= 8 for 2*3-1=5 states
         measurements = {
             "voltage_mag": {0: (1.0, 0.01), 1: (1.0, 0.01), 2: (1.0, 0.01)},

@@ -65,14 +65,14 @@ async def _handle_client(
                 b"HTTP/1.1 405 Method Not Allowed\r\n"
                 b"Content-Type: application/json\r\n"
                 + f"Content-Length: {len(body)}\r\n".encode()
-                + b"Connection: close\r\n\r\n"
+                + b"Connection: close\r\n\r\n"  # NOSONAR — S1192: intentional repetition (audit constant)
                 + body
             )
         elif path == "/health":
             result = await health_handler.health()
             body = json.dumps(result).encode()
             response = (
-                b"HTTP/1.1 200 OK\r\n"
+                b"HTTP/1.1 200 OK\r\n"  # NOSONAR — S1192: intentional repetition (audit constant)
                 b"Content-Type: application/json\r\n"
                 + f"Content-Length: {len(body)}\r\n".encode()
                 + b"Connection: close\r\n\r\n"

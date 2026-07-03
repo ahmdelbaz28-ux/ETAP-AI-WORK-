@@ -33,8 +33,8 @@ class TestValidationScenario:
         """Test 1: Agent initializes with standards configuration."""
         assert agent.agent_name == "ValidationAgent"
         assert "voltage_limits" in agent.standards
-        assert agent.standards["voltage_limits"]["min"] == 0.95
-        assert agent.standards["voltage_limits"]["max"] == 1.05
+        assert agent.standards["voltage_limits"]["min"] == pytest.approx(0.95)
+        assert agent.standards["voltage_limits"]["max"] == pytest.approx(1.05)
 
     @pytest.mark.asyncio
     async def test_validate_converged_load_flow(self, agent):

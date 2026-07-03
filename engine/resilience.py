@@ -685,7 +685,7 @@ class MultiLevelRecovery:
                         level,
                     )
                 except Exception as strategy_exc:
-                    logger.error(
+                    logger.exception(
                         "Recovery strategy '%s' at level %d failed: %s",
                         fn.__name__,
                         level,

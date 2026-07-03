@@ -186,7 +186,7 @@ class StudyCache:
         if HAS_REDIS:
             self._init_redis()
 
-    async def _get_stats_lock(self) -> asyncio.Lock:
+    async def _get_stats_lock(self) -> asyncio.Lock:  # NOSONAR — S7503: async function uses sync I/O for compatibility reasons
         if self._stats_lock is None:
             self._stats_lock = asyncio.Lock()
         return self._stats_lock

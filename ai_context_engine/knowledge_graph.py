@@ -152,7 +152,7 @@ class KnowledgeGraph:
                     self.add_relationship(file_node_id, "defines", func_node_id)
 
         except Exception as e:
-            logger.error("Failed to scan %s for KG: %s", filepath, e)
+            logger.exception("Failed to scan %s for KG: %s", filepath, e)
 
     def resolve_references(self) -> None:
         """Resolve module imports and class references to their actual file and class nodes."""

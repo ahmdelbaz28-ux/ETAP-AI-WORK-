@@ -343,7 +343,7 @@ class ADMSControlEngine:
 
         return True
 
-    def _rollback_action(self, action: SwitchingAction, scada_db=None) -> None:
+    def _rollback_action(self, action: SwitchingAction, _scada_db=None) -> None:
         """Rollback a single switching action."""
         device_id = action.device_id
         if device_id not in self.topology.switches:

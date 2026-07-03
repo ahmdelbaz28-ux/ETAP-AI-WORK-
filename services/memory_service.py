@@ -104,7 +104,7 @@ class AIMemoryService:
         # Neo4j Settings
         self.neo4j_uri = os.environ.get("NEO4J_URI", "bolt://localhost:7687")
         self.neo4j_username = os.environ.get("NEO4J_USER", "neo4j")
-        self.neo4j_password = os.environ.get("NEO4J_PASSWORD", "etap_password")
+        self.neo4j_password = os.environ.get("NEO4J_PASSWORD", "")  # no S2068: default empty; required from env in production
 
         # Qdrant Settings
         self.qdrant_url = os.environ.get("QDRANT_URL", "")
@@ -142,7 +142,7 @@ class AIMemoryService:
             self._initialized_neo4j = True
             return True
         except Exception as exc:
-            logger.error("Failed to connect to Neo4j Graph DB: %s", exc)
+            logger.exception("Failed to connect to Neo4j Graph DB: %s", exc)
             self._initialized_neo4j = False
             return False
 
@@ -164,7 +164,7 @@ class AIMemoryService:
             self._initialized_qdrant = True
             return True
         except Exception as exc:
-            logger.error("Failed to connect to Qdrant: %s", exc)
+            logger.exception("Failed to connect to Qdrant: %s", exc)
             self._initialized_qdrant = False
             return False
 
@@ -218,7 +218,7 @@ class AIMemoryService:
             logger.info("Successfully loaded relations into Neo4j graph.")
             return True
         except Exception as exc:
-            logger.error("Failed to populate graph: %s", exc)
+            logger.exception("Failed to populate graph: %s", exc)
             return False
 
     def query_graph(self, query: str) -> str:
@@ -230,7 +230,7 @@ class AIMemoryService:
             chain = GraphCypherQAChain.from_llm(llm=llm, graph=self._graph, verbose=True)
             return chain.run(query)
         except Exception as exc:
-            logger.error("Cypher query execution failed: %s", exc)
+            logger.exception("Cypher query execution failed: %s", exc)
             return f"Error querying graph database: {exc}"
 
     def save_to_vector_memory(self, fact_text: str, index_name: str = "ai_memory_index") -> bool:
@@ -264,7 +264,7 @@ class AIMemoryService:
             logger.info("Successfully added fact to Qdrant collection '%s'", index_name)
             return True
         except Exception as exc:
-            logger.error("Failed to save fact to Qdrant vector memory: %s", exc)
+            logger.exception("Failed to save fact to Qdrant vector memory: %s", exc)
             return False
 
     def query_vector_memory(self, question: str, index_name: str = "ai_memory_index") -> str:
@@ -292,5 +292,5 @@ class AIMemoryService:
             response = llm.predict(prompt)
             return response
         except Exception as exc:
-            logger.error("Vector retrieval query failed: %s", exc)
+            logger.exception("Vector retrieval query failed: %s", exc)
             return f"Error searching vector memory: {exc}"

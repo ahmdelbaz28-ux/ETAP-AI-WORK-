@@ -82,7 +82,7 @@ ENGINEERING_STANDARDS = {
 }
 
 
-def validate_prompt_file(filepath: Path, strict: bool = False) -> tuple[bool, list[str]]:
+def validate_prompt_file(filepath: Path, _strict: bool = False) -> tuple[bool, list[str]]:
     """
     Validate a single YAML prompt file.
 

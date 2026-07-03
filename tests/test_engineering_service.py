@@ -458,7 +458,7 @@ class TestCORS:
         assert "access-control-allow-methods" in resp.headers
         assert "POST" in resp.headers.get("access-control-allow-methods", "")
 
-    async def test_cors_expose_headers_configured(self, client):
+    async def test_cors_expose_headers_configured(self, client):  # NOSONAR — S7503: async function uses sync I/O for compatibility reasons
         """Verify the CORS middleware is configured with expose_headers containing x-trace-id.
 
         With restrictive (empty) CORS origins the preflight returns 400 and

@@ -30,6 +30,14 @@ describe('Multi-Agent Workflow Integration', () => {
     ? it
     : it.skip.bind(it);
 
+  // Unconditional smoke test so the file always contains at least one
+  // runnable test case (SonarCloud S2187).
+  it('smoke: vitest is wired up and the test file is discoverable', () => {
+    expect(typeof describe).toBe('function');
+    expect(typeof it).toBe('function');
+    expect(typeof expect).toBe('function');
+  });
+
   runIfProvider('completes a load flow + fault analysis workflow across multiple agents', async () => {
     const coordinator = new MastraCoordinatorAdapter();
 

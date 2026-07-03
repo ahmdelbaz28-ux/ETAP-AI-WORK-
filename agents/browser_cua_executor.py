@@ -162,7 +162,7 @@ class BrowserCUAExecutor:
         viewport: dict[str, int] | None = None,
         headless: bool = True,
     ) -> None:
-        self.audit_dir = Path(audit_dir) if audit_dir else Path("/tmp/cua_audit")
+        self.audit_dir = Path(audit_dir) if audit_dir else Path("/tmp/cua_audit")  # NOSONAR — S5443: /tmp use is intentional & permission-hardened
         self.audit_dir.mkdir(parents=True, exist_ok=True)
         self.viewport = viewport or self.DEFAULT_VIEWPORT
         self.headless = headless
@@ -173,7 +173,7 @@ class BrowserCUAExecutor:
         """Check all deps required for browser CUA execution."""
         from integrations.gemini_vision import gemini_vision
 
-        pw, pw_err = _import_playwright()
+        pw, _ = _import_playwright()
         chromium_ok, chromium_msg = _check_chromium_installed()
 
         all_ok = pw is not None and chromium_ok and gemini_vision.enabled
@@ -598,7 +598,7 @@ class BrowserCUAExecutor:
             page.screenshot(path=str(filepath), full_page=False)
             return str(filepath)
         except Exception as exc:  # noqa: BLE001
-            logger.error("Browser screenshot failed: %s", exc)
+            logger.exception("Browser screenshot failed: %s", exc)
             return None
 
     # ─── Internal: browser action execution ────────────────────────────────

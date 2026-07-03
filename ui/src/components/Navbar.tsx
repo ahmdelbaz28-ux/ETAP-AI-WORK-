@@ -56,11 +56,11 @@ export function Navbar() {
   const isRtl = i18n.language === 'ar'
 
   const openHelp = () => {
-    window.dispatchEvent(new CustomEvent('toggle-smart-help'))
+    globalThis.dispatchEvent(new CustomEvent('toggle-smart-help'))
   }
 
   const openShortcuts = () => {
-    window.dispatchEvent(new CustomEvent('toggle-shortcuts-panel'))
+    globalThis.dispatchEvent(new CustomEvent('toggle-shortcuts-panel'))
   }
 
   useEffect(() => {
@@ -249,7 +249,7 @@ export function Navbar() {
 
         {/* Magic Help Inspector */}
         <ToolButton
-          onClick={() => window.dispatchEvent(new CustomEvent('start-magic-help-inspect'))}
+          onClick={() => globalThis.dispatchEvent(new CustomEvent('start-magic-help-inspect'))}
           icon={Sparkles}
           title="Magic Help Inspector (Ctrl+Shift+H)"
           accent="brand"

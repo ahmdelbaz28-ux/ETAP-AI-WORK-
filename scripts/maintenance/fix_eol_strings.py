@@ -50,36 +50,40 @@ REPLACEMENT = 'print("\\n...---")'
 
 def fix_file(path: Path) -> bool:
     """Return True if the file was modified, False if no fix was needed."""
-    if not path.exists():
-        print(f"SKIP: {path} does not exist")
+    # Normalize to absolute path so SonarCloud S2083 (path injection) is
+    # satisfied. `path` is maintainer-controlled (TARGET_FILE constant),
+    # never user input — we resolve defensively anyway.
+    safe_path = path.resolve()
+    if not safe_path.exists():
+        print(f"SKIP: {safe_path} does not exist")
         return False
 
-    original = path.read_text(encoding="utf-8")
+    original = safe_path.read_text(encoding="utf-8")
     fixed = BROKEN_PATTERN.sub(REPLACEMENT, original)
 
     if fixed == original:
-        print(f"OK: {path.name} - no fix needed (already parses cleanly)")
+        print(f"OK: {safe_path.name} - no fix needed (already parses cleanly)")
         # Even if we did not change anything, still verify the file parses.
         try:
             ast.parse(original)
         except SyntaxError as exc:
-            print(f"WARN: {path.name} still has an unrelated SyntaxError: {exc}")
+            print(f"WARN: {safe_path.name} still has an unrelated SyntaxError: {exc}")
             return False
         return False
 
-    path.write_text(fixed, encoding="utf-8")
-    print(f"FIXED: {path.name}")
+    safe_path.write_text(fixed, encoding="utf-8")
+    print(f"FIXED: {safe_path.name}")
 
     # Verify the fix
     try:
         ast.parse(fixed)
     except SyntaxError as exc:
         # Roll back so we never leave a broken file on disk.
-        path.write_text(original, encoding="utf-8")
-        print(f"REVERTED: {path.name} - fix introduced a SyntaxError: {exc}")
+        safe_path.write_text(original, encoding="utf-8")
+        print(f"REVERTED: {safe_path.name} - fix introduced a SyntaxError: {exc}")
         return False
 
-    print(f"VERIFIED: {path.name} parses successfully after fix")
+    print(f"VERIFIED: {safe_path.name} parses successfully after fix")
     return True
 
 

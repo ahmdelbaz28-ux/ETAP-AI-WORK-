@@ -27,8 +27,8 @@ function write(level: LogLevel, source: string, message: string, data?: Record<s
     default: console.log(formatted)
   }
 
-  if (typeof window !== 'undefined') {
-    const w = window as unknown as { __etapTelemetry?: (entry: LogEntry) => void }
+  if (typeof globalThis !== 'undefined') {
+    const w = globalThis as unknown as { __etapTelemetry?: (entry: LogEntry) => void }
     if (w.__etapTelemetry) {
       w.__etapTelemetry(entry)
     }
@@ -45,5 +45,5 @@ export const logger = {
 }
 
 export function installTelemetry(handler: (entry: LogEntry) => void) {
-  (window as unknown as { __etapTelemetry: (entry: LogEntry) => void }).__etapTelemetry = handler
+  (globalThis as unknown as { __etapTelemetry: (entry: LogEntry) => void }).__etapTelemetry = handler
 }

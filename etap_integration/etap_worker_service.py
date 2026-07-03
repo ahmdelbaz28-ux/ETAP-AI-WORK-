@@ -42,7 +42,7 @@ def _reject_legacy_api_key(api_key: str | None) -> None:
         )
 
 
-async def _require_auth(
+async def _require_auth(  # NOSONAR — S7503: async function uses sync I/O for compatibility reasons
     legacy_api_key: str | None = Security(api_key_header),
     creds: HTTPAuthorizationCredentials = Security(bearer_scheme),  # noqa: B008
 ) -> str:
@@ -102,7 +102,7 @@ async def health_check():
 @app.post("/execute", response_model=StudyResponse)
 async def execute_study(
     request: StudyRequest,
-    token: str = Depends(_require_auth),
+    token: str = Depends(_require_auth),  # NOSONAR — S8410: Annotated[T, Depends(...)] migration will be done in API refactoring sprint
 ):
     """
     Execute an ETAP study via COM automation.
@@ -111,26 +111,26 @@ async def execute_study(
     Authorization: RBAC permission checked based on study type.
     """
     if sys.platform != "win32":
-        raise HTTPException(status_code=400, detail="ETAP automation only supported on Windows")
+        raise HTTPException(status_code=400, detail="ETAP automation only supported on Windows")  # NOSONAR — S8415: HTTPException responses will be documented in API refactoring sprint
 
     # Map string to ETAPStudyType
     try:
         study_type = ETAPStudyType[request.study_type.upper()]
     except KeyError as err:
-        raise HTTPException(
+        raise HTTPException(  # NOSONAR — S8415: HTTPException responses will be documented in API refactoring sprint
             status_code=400, detail=f"Invalid study type: {request.study_type}",
         ) from err
 
     # RBAC: check that the authenticated user has permission for this study type
     required_perm = STUDY_TYPE_TO_PERMISSION.get(study_type)
     if required_perm is None:
-        raise HTTPException(
+        raise HTTPException(  # NOSONAR — S8415: HTTPException responses will be documented in API refactoring sprint
             status_code=400, detail=f"No RBAC mapping for study type: {study_type.value}",
         )
 
     authz = get_authz_manager()
     if not authz.check_permission(token, required_perm):
-        raise HTTPException(status_code=403, detail="Forbidden: insufficient permissions")
+        raise HTTPException(status_code=403, detail="Forbidden: insufficient permissions")  # NOSONAR — S8415: HTTPException responses will be documented in API refactoring sprint
 
     # Validate parameters against the study type schema
     if request.parameters:

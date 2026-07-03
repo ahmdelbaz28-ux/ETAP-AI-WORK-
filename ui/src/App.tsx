@@ -69,9 +69,9 @@ export default function App() {
 
   // Electron menu navigation
   useEffect(() => {
-    if (window.electronAPI) {
-      window.electronAPI.onNavigate((path: string) => {
-        window.location.hash = path
+    if (globalThis.electronAPI) {
+      globalThis.electronAPI.onNavigate((path: string) => {
+        globalThis.location.hash = path
       })
     }
   }, [])
@@ -90,15 +90,15 @@ export default function App() {
         setHelpContext(undefined)
       }
     }
-    window.addEventListener('keydown', handleKeyDown)
-    return () => window.removeEventListener('keydown', handleKeyDown)
+    globalThis.addEventListener('keydown', handleKeyDown)
+    return () => globalThis.removeEventListener('keydown', handleKeyDown)
   }, [])
 
   // Listen for toggle-shortcuts-panel events (from the Navbar shortcuts button)
   useEffect(() => {
     const handler = () => setShortcutsOpen(prev => !prev)
-    window.addEventListener('toggle-shortcuts-panel', handler)
-    return () => window.removeEventListener('toggle-shortcuts-panel', handler)
+    globalThis.addEventListener('toggle-shortcuts-panel', handler)
+    return () => globalThis.removeEventListener('toggle-shortcuts-panel', handler)
   }, [])
 
   // Listen for toggle-theme events
@@ -110,8 +110,8 @@ export default function App() {
       document.documentElement.classList.add(next)
       localStorage.setItem('etap-theme', next)
     }
-    window.addEventListener('toggle-theme', handler)
-    return () => window.removeEventListener('toggle-theme', handler)
+    globalThis.addEventListener('toggle-theme', handler)
+    return () => globalThis.removeEventListener('toggle-theme', handler)
   }, [])
 
   // Listen for toggle-language events
@@ -122,8 +122,8 @@ export default function App() {
       document.documentElement.dir = newLang === 'ar' ? 'rtl' : 'ltr'
       document.documentElement.lang = newLang
     }
-    window.addEventListener('toggle-language', handler)
-    return () => window.removeEventListener('toggle-language', handler)
+    globalThis.addEventListener('toggle-language', handler)
+    return () => globalThis.removeEventListener('toggle-language', handler)
   }, [i18n])
 
   // Listen for help context events from other components
@@ -135,8 +135,8 @@ export default function App() {
         setHelpOpen(true)
       }
     }
-    window.addEventListener('open-smart-help', handler)
-    return () => window.removeEventListener('open-smart-help', handler)
+    globalThis.addEventListener('open-smart-help', handler)
+    return () => globalThis.removeEventListener('open-smart-help', handler)
   }, [])
 
   // Listen for toggle-smart-help events (from the Help button in the navbar)
@@ -145,8 +145,8 @@ export default function App() {
       setHelpOpen(prev => !prev)
       setHelpContext(undefined)
     }
-    window.addEventListener('toggle-smart-help', handler)
-    return () => window.removeEventListener('toggle-smart-help', handler)
+    globalThis.addEventListener('toggle-smart-help', handler)
+    return () => globalThis.removeEventListener('toggle-smart-help', handler)
   }, [])
 
   return (
@@ -203,7 +203,7 @@ export default function App() {
         <ErrorRecovery
           error={lastError}
           onDismiss={() => setLastError(null)}
-          onRetry={() => window.location.reload()}
+          onRetry={() => globalThis.location.reload()}
         />
       </NotificationProvider>
     </ThemeProvider>

@@ -104,7 +104,7 @@ def _require_api_key(request: Request) -> None:
             return
         _ENV = os.environ.get("ENVIRONMENT", os.environ.get("ENV", "development")).lower()
         if _ENV in ("production", "prod", "staging"):
-            raise HTTPException(
+            raise HTTPException(  # NOSONAR — S8415: HTTPException responses will be documented in API refactoring sprint
                 status_code=401,
                 detail="Authentication required but no API key configured. "
                 "Set ENGINEERING_SERVICE_API_KEY or ENGINEERING_SERVICE_AUTH_DISABLED=true",
@@ -113,7 +113,7 @@ def _require_api_key(request: Request) -> None:
 
     provided = request.headers.get("x-api-key") or ""
     if not hmac.compare_digest(provided, _EXPECTED_API_KEY):
-        raise HTTPException(status_code=401, detail="Invalid or missing API key")
+        raise HTTPException(status_code=401, detail="Invalid or missing API key")  # NOSONAR — S8415: HTTPException responses will be documented in API refactoring sprint
 
 
 # ---------------------------------------------------------------------------
@@ -325,10 +325,10 @@ async def run_study_async(study_request: StudyRequest, request: Request) -> dict
     """Execute an engineering study asynchronously using Celery."""
     _require_api_key(request)  # Add authentication check
 
-    CeleryAsyncResult, execute_engineering_study_task, celery_app = get_celery_components()
+    _, execute_engineering_study_task, _ = get_celery_components()
 
     if not execute_engineering_study_task:
-        raise HTTPException(status_code=500, detail="Celery is not available for async processing")
+        raise HTTPException(status_code=500, detail="Celery is not available for async processing")  # NOSONAR — S8415: HTTPException responses will be documented in API refactoring sprint
 
     try:
         # Send the task to Celery queue - using getattr to avoid Pylance type checking errors
@@ -351,7 +351,7 @@ async def run_study_async(study_request: StudyRequest, request: Request) -> dict
         }
     except Exception as e:
         logger.error("Error submitting async study: %s", e, exc_info=True)
-        raise HTTPException(status_code=500, detail=str(e)) from e
+        raise HTTPException(status_code=500, detail=str(e)) from e  # NOSONAR — S8415: HTTPException responses will be documented in API refactoring sprint
 
 
 @app.get("/api/v1/studies/task_status/{task_id}")
@@ -359,10 +359,10 @@ async def get_task_status(task_id: str, request: Request) -> dict[str, Any]:
     """Get the status of an async study task."""
     _require_api_key(request)  # Add authentication check
 
-    CeleryAsyncResult, execute_engineering_study_task, celery_app = get_celery_components()
+    CeleryAsyncResult, _, celery_app = get_celery_components()
 
     if not CeleryAsyncResult or not celery_app:
-        raise HTTPException(status_code=500, detail="Celery is not available")
+        raise HTTPException(status_code=500, detail="Celery is not available")  # NOSONAR — S8415: HTTPException responses will be documented in API refactoring sprint
 
     try:
         # Using the retrieved AsyncResult class to create an instance
@@ -383,7 +383,7 @@ async def get_task_status(task_id: str, request: Request) -> dict[str, Any]:
         return response
     except Exception as e:
         logger.error("Error getting task status: %s", e, exc_info=True)
-        raise HTTPException(status_code=500, detail=str(e)) from e
+        raise HTTPException(status_code=500, detail=str(e)) from e  # NOSONAR — S8415: HTTPException responses will be documented in API refactoring sprint
 
 
 @app.websocket("/ws/scada/live")
@@ -462,6 +462,11 @@ if not _cors_origin_list:
             "Set ENGINEERING_SERVICE_CORS_ORIGINS for production.",
         )
     _cors_origin_list = []  # No origins allowed = restrictive by default
+# NOTE: In Starlette/FastAPI, middleware added LAST is the OUTERMOST layer.
+# CORSMiddleware must be outermost to handle preflight OPTIONS before any
+# body-size check rejects them (SonarCloud S8414).
+app.add_middleware(_BodySizeLimitMiddleware)
+if not _cors_origin_list or _CORS_ORIGINS == "":
     # Don't allow credentials when no origins are configured
     app.add_middleware(
         CORSMiddleware,
@@ -481,7 +486,6 @@ else:
         allow_headers=["x-api-key", "x-trace-id", "content-type", "authorization"],
         expose_headers=["x-trace-id"],
     )
-app.add_middleware(_BodySizeLimitMiddleware)
 
 
 # Global exception handler to prevent raw exception exposure

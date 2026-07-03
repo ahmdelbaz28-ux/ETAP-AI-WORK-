@@ -435,7 +435,6 @@ class TestBatteryStorageAgent:
             annual_revenue_usd=80000,
         )
         assert isinstance(result, dict)
-        npv = result.get("npv", result.get("net_present_value", None))
         payback = result.get("payback_years", result.get("simple_payback", None))
         if payback is not None:
             assert payback > 0

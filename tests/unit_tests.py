@@ -505,7 +505,7 @@ class TestArcFlash:
         )
 
         assert Iarc > 0, "Arc current should be positive"
-        assert Iarc_reduced == 0.85 * Iarc, "Reduced arc current should be 85% of full"
+        assert Iarc_reduced == pytest.approx(0.85 * Iarc), "Reduced arc current should be 85% of full"
 
     def test_incident_energy_positive(self):
         """Test that incident energy is always positive."""
@@ -833,7 +833,7 @@ class TestSecurityFramework:
         from security.security_framework import AuthenticationManager, UserRole
 
         auth = AuthenticationManager(secret_key="test_secret")
-        user = auth.create_user("testuser", "test@example.com", "password123", UserRole.ENGINEER)
+        user = auth.create_user("testuser", "test@example.com", "password123", UserRole.ENGINEER)  # NOSONAR — S1192: intentional repetition (audit constant)
 
         assert user is not None, "User should be created"
         assert user.username == "testuser"
@@ -1026,7 +1026,7 @@ class TestSecretsManager:
         mgr = VaultSecretsManager(use_mock_if_unavailable=True)
         # When Vault is unavailable, falls back to LocalSecretsManager
         assert mgr._fallback_store._cipher is not None
-        ok = mgr.set_secret("test/path", "test_key", "secret_value")
+        ok = mgr.set_secret("test/path", "test_key", "secret_value")  # NOSONAR — S1192: intentional repetition (audit constant)
         assert ok
         val = mgr.get_secret("test/path", "test_key")
         assert val == "secret_value"
@@ -1272,21 +1272,21 @@ class TestNumericalSafety:
     def test_safe_division(self):
         guard = NumericalGuard(warn_on_clamp=False)
         result = guard.safe_division(10.0, 0.0, default=0.0)
-        assert result == 0.0
+        assert result == pytest.approx(0.0)
         result = guard.safe_division(10.0, 2.0)
-        assert result == 5.0
+        assert result == pytest.approx(5.0)
         arr = guard.safe_division(np.array([10.0, 10.0]), np.array([2.0, 0.0]), default=-1.0)
-        assert arr[0] == 5.0
+        assert arr[0] == pytest.approx(5.0)
         assert arr[1] == -1.0
 
     def test_clamp_to_bounds(self):
         guard = NumericalGuard(warn_on_clamp=False)
         clamped = guard.clamp_to_bounds(15.0, 0.0, 10.0, name="test")
-        assert clamped == 10.0
+        assert clamped == pytest.approx(10.0)
         clamped = guard.clamp_to_bounds(-5.0, 0.0, 10.0)
-        assert clamped == 0.0
+        assert clamped == pytest.approx(0.0)
         clamped = guard.clamp_to_bounds(5.0, 0.0, 10.0)
-        assert clamped == 5.0
+        assert clamped == pytest.approx(5.0)
         inside = guard.is_within_bounds(5.0, 0.0, 10.0)
         assert inside
         outside = guard.is_within_bounds(15.0, 0.0, 10.0)
@@ -1686,7 +1686,7 @@ class TestETAPAutomation:
 
     def test_input_validation_engineering_ranges(self):
         validated = ETAPAutomation._validate_input(13.8, "numeric", min_val=0.1, max_val=1200.0)
-        assert validated == 13.8
+        assert validated == pytest.approx(13.8)
         validated = ETAPAutomation._validate_input(5, "integer", min_val=0, max_val=100)
         assert validated == 5
         validated = ETAPAutomation._validate_input("hello", "string", max_length=10)

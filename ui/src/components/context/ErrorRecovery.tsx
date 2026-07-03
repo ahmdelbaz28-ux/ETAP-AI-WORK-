@@ -138,16 +138,16 @@ export function ErrorRecovery({ error, onDismiss, onRetry }: ErrorRecoveryProps)
       case 'check_status':
       case 'check_api_key':
       case 'check_connectivity':
-        window.location.hash = '/diagnostics'
+        globalThis.location.hash = '/diagnostics'
         break
       case 'browse_projects':
-        window.location.hash = '/projects'
+        globalThis.location.hash = '/projects'
         break
       case 'create_project':
-        window.location.hash = '/projects'
+        globalThis.location.hash = '/projects'
         break
       case 'run_study':
-        window.location.hash = '/studies'
+        globalThis.location.hash = '/studies'
         break
       case 'retry':
       case 'retry_study':

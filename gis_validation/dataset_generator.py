@@ -136,7 +136,6 @@ def generate_mixed_crs_assets(
     """
     assets = generate_synthetic_grid(grid_type="hybrid", seed=seed, crs=crs_a)
     # contaminate half of lines
-    contaminated = 0
     for i, a in enumerate(list(assets)):
         if a.asset_type in (ADMSAssetType.LINE, ADMSAssetType.FEEDER) and i % 2 == 0:
             assets[i] = ADMSAsset(
@@ -145,5 +144,4 @@ def generate_mixed_crs_assets(
                 geometry=a.geometry,
                 metadata={**a.metadata, "source_crs": crs_b},
             )
-            contaminated += 1
     return assets

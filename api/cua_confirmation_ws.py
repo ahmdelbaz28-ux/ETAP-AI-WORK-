@@ -244,7 +244,7 @@ class ConfirmationBroker:
             )
         except Exception as exc:  # noqa: BLE001
             result = False
-            logger.error("Confirmation request %s failed: %s", request_id, exc)
+            logger.exception("Confirmation request %s failed: %s", request_id, exc)
 
         # Clean up
         self._pending.pop(request_id, None)
@@ -372,7 +372,7 @@ async def cua_confirmation_ws(websocket: WebSocket) -> None:
     except WebSocketDisconnect:
         confirmation_broker.disconnect(websocket)
     except Exception as exc:  # noqa: BLE001
-        logger.error("Confirmation WS error: %s", exc)
+        logger.exception("Confirmation WS error: %s", exc)
         confirmation_broker.disconnect(websocket)
 
 

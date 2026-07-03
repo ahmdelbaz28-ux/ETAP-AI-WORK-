@@ -48,17 +48,33 @@ ZENON_GUIDE_COUNT: int = 4
 # Engineering standards supported by the platform — single source of truth.
 # Used by build_platform_info() and by the homepage stat card. Adding a new
 # standard here automatically updates both places.
+#
+# Each standard is defined as a module-level constant (SonarCloud S1192:
+# string literals should not be duplicated) and aggregated into
+# SUPPORTED_STANDARDS below. Importing code should reference these
+# constants rather than re-typing the string.
+STD_IEEE_3002_7 = "IEEE 3002.7"
+STD_IEC_60909 = "IEC 60909"
+STD_IEEE_1584 = "IEEE 1584"
+STD_IEC_60255 = "IEC 60255"
+STD_IEEE_519 = "IEEE 519"
+STD_IEC_61850 = "IEC 61850"
+STD_IEEE_80 = "IEEE 80"
+STD_IEC_60364 = "IEC 60364"
+STD_IEEE_399 = "IEEE 399"
+STD_IEC_62933 = "IEC 62933"
+
 SUPPORTED_STANDARDS: list[str] = [
-    "IEEE 3002.7",
-    "IEC 60909",
-    "IEEE 1584",
-    "IEC 60255",
-    "IEEE 519",
-    "IEC 61850",
-    "IEEE 80",
-    "IEC 60364",
-    "IEEE 399",
-    "IEC 62933",
+    STD_IEEE_3002_7,
+    STD_IEC_60909,
+    STD_IEEE_1584,
+    STD_IEC_60255,
+    STD_IEEE_519,
+    STD_IEC_61850,
+    STD_IEEE_80,
+    STD_IEC_60364,
+    STD_IEEE_399,
+    STD_IEC_62933,
 ]
 
 START_TIME: float = time.time()
@@ -94,61 +110,61 @@ AGENTS: list[dict[str, str]] = [
     {
         "id": "load-flow-agent",
         "name": "Load Flow Agent",
-        "standard": "IEEE 3002.7",
+        "standard": STD_IEEE_3002_7,
         "status": "active",
     },
     {
         "id": "short-circuit-agent",
         "name": "Short Circuit Agent",
-        "standard": "IEC 60909",
+        "standard": STD_IEC_60909,
         "status": "active",
     },
     {
         "id": "arcflash-agent",
         "name": "Arc Flash Agent",
-        "standard": "IEEE 1584",
+        "standard": STD_IEEE_1584,
         "status": "active",
     },
     {
         "id": "protection-agent",
         "name": "Protection Agent",
-        "standard": "IEC 60255",
+        "standard": STD_IEC_60255,
         "status": "active",
     },
     {
         "id": "motorstarting-agent",
         "name": "Motor Starting Agent",
-        "standard": "IEEE 399",
+        "standard": STD_IEEE_399,
         "status": "active",
     },
     {
         "id": "stability-agent",
         "name": "Stability Agent",
-        "standard": "IEEE 399",
+        "standard": STD_IEEE_399,
         "status": "active",
     },
     {
         "id": "harmonic-agent",
         "name": "Harmonic Analysis Agent",
-        "standard": "IEEE 519",
+        "standard": STD_IEEE_519,
         "status": "active",
     },
     {
         "id": "cable-sizing-agent",
         "name": "Cable Sizing Agent",
-        "standard": "IEC 60364",
+        "standard": STD_IEC_60364,
         "status": "active",
     },
     {
         "id": "earth-grid-agent",
         "name": "Earth Grid Agent",
-        "standard": "IEEE 80",
+        "standard": STD_IEEE_80,
         "status": "active",
     },
     {
         "id": "opf-agent",
         "name": "Optimal Power Flow Agent",
-        "standard": "IEEE 3002.7",
+        "standard": STD_IEEE_3002_7,
         "status": "active",
     },
     {
@@ -160,10 +176,10 @@ AGENTS: list[dict[str, str]] = [
     {
         "id": "battery-storage-agent",
         "name": "Battery Storage Agent",
-        "standard": "IEC 62933",
+        "standard": STD_IEC_62933,
         "status": "active",
     },
-    {"id": "scada-agent", "name": "SCADA Agent", "standard": "IEC 61850", "status": "active"},
+    {"id": "scada-agent", "name": "SCADA Agent", "standard": STD_IEC_61850, "status": "active"},
     {
         "id": "digital-twin-agent",
         "name": "Digital Twin Agent",
@@ -185,13 +201,13 @@ AGENTS: list[dict[str, str]] = [
     {
         "id": "coordination-agent",
         "name": "Coordination Agent",
-        "standard": "IEC 60255",
+        "standard": STD_IEC_60255,
         "status": "active",
     },
     {
         "id": "report-agent",
         "name": "Report Generation Agent",
-        "standard": "IEEE 3002.7",
+        "standard": STD_IEEE_3002_7,
         "status": "active",
     },
     {
@@ -499,7 +515,7 @@ def build_knowledge_info() -> dict[str, Any]:
                 "ETAP Solutions Overview",
                 "eTrax Rail",
             ],
-            "standards": ["IEEE 3002.7", "IEC 60909", "IEEE 1584", "IEC 60255", "IEEE 519"],
+            "standards": [STD_IEEE_3002_7, STD_IEC_60909, STD_IEEE_1584, STD_IEC_60255, STD_IEEE_519],
         },
         "zenon": {
             "guides": ZENON_GUIDE_COUNT,
@@ -509,7 +525,7 @@ def build_knowledge_info() -> dict[str, Any]:
                 "Zenon IEC 61850 Module 1",
                 "Zenon IEC 61850 Module 2",
             ],
-            "standards": ["IEC 61850", "IEC 61968", "IEC 61970"],
+            "standards": [STD_IEC_61850, "IEC 61968", "IEC 61970"],
         },
     }
 

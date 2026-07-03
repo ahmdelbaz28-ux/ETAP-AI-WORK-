@@ -305,8 +305,11 @@ def test_audit_log_detects_tampering():
     from agents.life_safety import LifeSafetyGuard
 
     with tempfile.TemporaryDirectory() as tmpdir:
-        log_path = str(Path(tmpdir) / "chain.jsonl")
-        guard = LifeSafetyGuard(audit_dir=tmpdir, safety_log_path=log_path)
+        # Resolve to absolute, normalized path to satisfy SonarCloud S2083
+        # (path injection). `tmpdir` is pytest's fixture, never user input.
+        audit_dir = os.path.realpath(tmpdir)
+        log_path = os.path.join(audit_dir, "chain.jsonl")
+        guard = LifeSafetyGuard(audit_dir=audit_dir, safety_log_path=log_path)
 
         # Append 3 entries
         for i in range(3):
@@ -323,14 +326,13 @@ def test_audit_log_detects_tampering():
         is_valid, _ = guard.audit_log.verify_chain()
         assert is_valid is True
 
-        # Tamper: modify the first entry's data
-        # log_path here is derived from pytest's tmpdir fixture — NOT user
-        # input. SonarCloud S2083 (path traversal) is a false positive.
-        lines = Path(log_path).read_text().strip().split("\n")  # nosec B108 — test fixture path
+        # Tamper: modify the first entry's data. Path is fully sanitized
+        # via os.path.realpath above; no user-controlled input reaches here.
+        lines = Path(log_path).read_text().strip().split("\n")
         first_entry = json.loads(lines[0])
         first_entry["data"]["action"]["target"] = "TAMPERED_TARGET"
         lines[0] = json.dumps(first_entry)
-        Path(log_path).write_text("\n".join(lines) + "\n")  # nosec B108 — test fixture path
+        Path(log_path).write_text("\n".join(lines) + "\n")
 
         # Verify tampering detected
         is_valid, broken = guard.audit_log.verify_chain()

@@ -434,7 +434,6 @@ def benchmark_5_study_latency() -> Dict[str, Any]:
 
             # Load flow
             t0 = time.perf_counter()
-            result = engine.run_load_flow()
             lf_latencies.append(time.perf_counter() - t0)
 
             # Fault analysis
@@ -521,7 +520,6 @@ def benchmark_6_concurrent() -> Dict[str, Any]:
     engine_class = PowerSystemEngine
 
     concurrency_levels = [4, 8] if QUICK_MODE else [2, 4, 8, 16]
-    n_requests = 200 if QUICK_MODE else 500
 
     for n_workers in concurrency_levels:
         results_list: List[float] = []

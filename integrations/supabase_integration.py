@@ -344,7 +344,7 @@ def upload_bytes(
             "content_type": content_type,
         }
     except Exception as e:
-        logger.error(
+        logger.exception(
             "Supabase upload failed (bucket=%s, filename=%s): %s",
             bucket,
             filename,

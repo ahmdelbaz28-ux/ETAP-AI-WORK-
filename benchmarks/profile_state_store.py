@@ -126,7 +126,7 @@ def get_rss_mb():
     except ImportError:
         return 0.0
 
-def measure_size(obj, label=""):
+def measure_size(obj, _label=""):
     """Rough size estimate using sys.getsizeof recursively."""
     seen = set()
     def _size(o):

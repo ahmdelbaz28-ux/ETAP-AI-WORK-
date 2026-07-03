@@ -227,7 +227,7 @@ class TestValidateADMSTopology:
                 },
             ),
         ]
-        ok, issues = validate_adms_topology(assets)
+        ok, _ = validate_adms_topology(assets)
         assert ok is True
 
     def test_disconnected_components_detected(self):
@@ -270,7 +270,7 @@ class TestCRSValidator:
 
     def test_single_asset_with_crs(self):
         assets = [_make_asset("S1", metadata={"source_crs": "EPSG:4326"})]
-        ok, issues = validate_crs_consistency(assets)
+        ok, _ = validate_crs_consistency(assets)
         assert ok is True
 
     def test_missing_crs(self):
@@ -295,14 +295,14 @@ class TestCRSValidator:
             _make_asset("S1", metadata={"source_crs": "EPSG:4326"}),
             _make_asset("S2", metadata={"source_crs": "EPSG:4326"}),
         ]
-        ok, issues = validate_crs_consistency(assets)
+        ok, _ = validate_crs_consistency(assets)
         assert ok is True
 
     def test_crs_case_insensitive(self):
         assets = [
             _make_asset("S1", metadata={"source_crs": "epsg:4326"}),
         ]
-        ok, issues = validate_crs_consistency(assets)
+        ok, _ = validate_crs_consistency(assets)
         assert ok is True
 
     def test_missing_and_present_crs(self):
@@ -322,7 +322,7 @@ class TestNormalizationApplied:
             _make_asset("S1", metadata={"source_crs": "EPSG:4326"}),
             _make_asset("S2", metadata={"source_crs": "EPSG:3857"}),
         ]
-        ok, issues = validate_normalization_applied(assets)
+        ok, _ = validate_normalization_applied(assets)
         assert ok is True
 
     def test_some_not_normalized(self):
@@ -344,7 +344,7 @@ class TestNormalizationApplied:
         assets = [
             _make_asset("S1", metadata={"other_field": "value"}),
         ]
-        ok, issues = validate_normalization_applied(assets)
+        ok, _ = validate_normalization_applied(assets)
         assert ok is False
 
 
