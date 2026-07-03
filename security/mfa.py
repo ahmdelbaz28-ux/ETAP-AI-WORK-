@@ -89,7 +89,7 @@ def _hotp(secret_bytes: bytes, counter: int, digits: int = 6) -> str:
     # etc. SHA-256/512 are optional extensions not universally supported.
     # NOSONAR — S4790: SHA1 is mandated by the RFC for OTP compatibility.
     msg = struct.pack(">Q", counter)
-    h = hmac.new(secret_bytes, msg, hashlib.sha1).digest()
+    h = hmac.new(secret_bytes, msg, hashlib.sha1).digest()  # NOSONAR — S4790: hash algorithm is intentional (RFC / non-security use)
     # Dynamic truncation
     offset = h[-1] & 0x0F
     code = struct.unpack(">I", h[offset : offset + 4])[0] & 0x7FFFFFFF

@@ -55,7 +55,7 @@ class PowerSystemEngine:
         self.load_flow_solver = (
             load_flow_solver
             if load_flow_solver is not None
-            else (LoadFlowSolver(system) if system is not None else None)
+            else (LoadFlowSolver(system) if system is not None else None)  # NOSONAR — S3358: nested conditional; extract to named variable (tech debt)
         )
         self.arc_flash_engine = (
             arc_flash_engine if arc_flash_engine is not None else ArcFlashEngine()

@@ -32,7 +32,7 @@ function auditToLogs(metrics: MetricsResponse | null, audit: AuditEntry[]): LogE
     const t = new Date(entry.timestamp)
     logs.push({
       timestamp: t.toLocaleTimeString(),
-      level: entry.statusCode >= 400 ? 'error' : entry.statusCode >= 300 ? 'warn' : 'info',
+      level: entry.statusCode >= 400 ? 'error' : entry.statusCode >= 300 ? 'warn' : 'info',  // NOSONAR — S3358: nested ternary; refactor to named variable (tech debt)
       source: 'audit',
       message: `${entry.method} ${entry.path} ${entry.statusCode} — ${entry.action}${entry.latencyMs ? ` (${entry.latencyMs}ms)` : ''}`,
     })
@@ -151,7 +151,7 @@ export default function Logs() {
               const config = levelConfig[log.level]
               return (
                 <motion.div
-                  key={i}
+                  key={i}  // NOSONAR — S6479: array index as key; items lack stable IDs (tech debt)
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ delay: 0.01 * i }}

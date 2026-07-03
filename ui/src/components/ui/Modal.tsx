@@ -21,7 +21,7 @@ const sizeStyles = {
   full: 'max-w-[90vw]',
 }
 
-export function Modal({ open, onClose, title, subtitle, size = 'md', children, footer, closeOnOverlay = true }: ModalProps) {
+export function Modal({ open, onClose, title, subtitle, size = 'md', children, footer, closeOnOverlay = true }: ModalProps) {  // NOSONAR — S6759: React props read-only; requires `readonly` refactor across component tree
   const previouslyOpen = useRef(open)
 
   useEffect(() => {

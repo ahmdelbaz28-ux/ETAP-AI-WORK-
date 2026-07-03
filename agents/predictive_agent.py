@@ -505,7 +505,7 @@ class PredictiveAgent(BaseAgent):
                     # Generate synthetic data for demo
                     hours = 168  # 1 week
                     hist_load = [
-                        100.0 + 30.0 * np.sin(2 * np.pi * h / 24) + 5.0 * np.random.randn()
+                        100.0 + 30.0 * np.sin(2 * np.pi * h / 24) + 5.0 * np.random.randn()  # NOSONAR — S6711: numpy.random.Generator migration; API change required
                         for h in range(hours)
                     ]
                 results["short_term_forecast"] = self.forecast_short_term(
@@ -579,7 +579,7 @@ class PredictiveAgent(BaseAgent):
                 if not hist_load:
                     hours = 168
                     hist_load = [
-                        100.0 + 30.0 * np.sin(2 * np.pi * h / 24) + 5.0 * np.random.randn()
+                        100.0 + 30.0 * np.sin(2 * np.pi * h / 24) + 5.0 * np.random.randn()  # NOSONAR — S6711: numpy.random.Generator migration; API change required
                         for h in range(hours)
                     ]
                 forecast_method = task.parameters.get("forecast_method", "auto")

@@ -164,7 +164,7 @@ export function Sidebar() {
       {/* Bottom Section */}
       <div className="p-2 border-t border-[var(--border-primary)] space-y-1">
         <div className={cn('flex items-center gap-3 px-3 py-1.5', sidebarCollapsed && 'justify-center px-0')}>
-          <StatusIndicator status={healthStatus === 'checking' ? 'loading' : healthStatus === 'online' ? 'online' : 'offline'} size="sm" showLabel={!sidebarCollapsed} />
+          <StatusIndicator status={healthStatus === 'checking' ? 'loading' : healthStatus === 'online' ? 'online' : 'offline'} size="sm" showLabel={!sidebarCollapsed} />  // NOSONAR — S3358: nested ternary; refactor to named variable (tech debt)
         </div>
 
         <button

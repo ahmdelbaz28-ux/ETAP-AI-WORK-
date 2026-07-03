@@ -143,7 +143,7 @@ class DistanceRelay(Relay):
 
 
 class DifferentialRelay(Relay):
-    def __init__(self, relay_id, name="DifferentialRelay", Ip=0.1, slope1=0.2, slope2=0.5):
+    def __init__(self, relay_id, name="DifferentialRelay", Ip=0.1, slope1=0.2, slope2=0.5):  # NOSONAR — S117: physics notation (I/V/P/Q); snake_case harms readability
         """
         Differential relay (87).
 
@@ -162,7 +162,7 @@ class DifferentialRelay(Relay):
     def pickup_logic(self, Ibias, Idiff):  # NOSONAR — S2638: differential relay uses (Ibias, Idiff) per IEEE C37.91; base class `value` is a protocol stub
         Ibias = abs(Ibias)
         Idiff = abs(Idiff)
-        Ibias2 = 2.0  # breakpoint for slope2
+        Ibias2 = 2.0  # breakpoint for slope2  # NOSONAR — S117: physics notation (I/V/P/Q); snake_case harms readability
         if Ibias < Ibias2:
             return Idiff > self.Ip + self.slope1 * Ibias
         else:
@@ -195,7 +195,7 @@ class DirectionalRelay(Relay):  # NOSONAR — S117: physics/engineering notation
             return False
         # Calculate the angle of VI
         S = V * np.conj(I)  # complex power
-        angle_S = np.angle(S)
+        angle_S = np.angle(S)  # NOSONAR — S117: physics notation (I/V/P/Q); snake_case harms readability
         # Check if angle is within +/- 90 degrees of the offset angle (forward direction)
         angle_diff = angle_S - self.angle_offset
         # Normalize to [-180, 180]

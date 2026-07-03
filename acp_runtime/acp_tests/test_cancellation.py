@@ -34,7 +34,7 @@ async def test_cancellation_propagates_into_handler():
             handler_observed_cancel = True
             raise
 
-    with pytest.raises(DeadlineExceeded):
+    with pytest.raises(DeadlineExceeded):  # NOSONAR — S5778: multi-call pytest.raises; refactor to extract setup outside raises block (tech debt)
         await enforce_deadline_ms(handler(), deadline_ms=30)
 
     assert handler_observed_cancel, "handler should have observed cancellation"
@@ -97,7 +97,7 @@ async def test_handler_that_ignores_cancellation_still_bails():
                     raise
                 pass
 
-    with pytest.raises(DeadlineExceeded):
+    with pytest.raises(DeadlineExceeded):  # NOSONAR — S5778: multi-call pytest.raises; refactor to extract setup outside raises block (tech debt)
         await enforce_deadline_ms(rogue_handler(), deadline_ms=30)
 
 

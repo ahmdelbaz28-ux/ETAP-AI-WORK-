@@ -129,11 +129,11 @@ export class MockEtapProvider {
         data: {
           converged: true, iterations: 4,
           buses: {
-            BUS001: { voltage_magnitude_pu: 1.02, voltage_angle_deg: -2.1, active_power_mw: 50.0, reactive_power_mvar: 15.0 },
-            BUS002: { voltage_magnitude_pu: 0.98, voltage_angle_deg: -3.5, active_power_mw: -30.0, reactive_power_mvar: -10.0 },
-            BUS003: { voltage_magnitude_pu: 1.01, voltage_angle_deg: -1.8, active_power_mw: 20.0, reactive_power_mvar: 5.0 },
+            BUS001: { voltage_magnitude_pu: 1.02, voltage_angle_deg: -2.1, active_power_mw: 50.0, reactive_power_mvar: 15.0 },  // NOSONAR — S7748: number literal trailing zero; cosmetic
+            BUS002: { voltage_magnitude_pu: 0.98, voltage_angle_deg: -3.5, active_power_mw: -30.0, reactive_power_mvar: -10.0 },  // NOSONAR — S7748: number literal trailing zero; cosmetic
+            BUS003: { voltage_magnitude_pu: 1.01, voltage_angle_deg: -1.8, active_power_mw: 20.0, reactive_power_mvar: 5.0 },  // NOSONAR — S7748: number literal trailing zero; cosmetic
           },
-          total_generation_mw: 70.0, total_load_mw: 68.5, total_losses_mw: 1.5, method: 'Newton-Raphson',
+          total_generation_mw: 70.0, total_load_mw: 68.5, total_losses_mw: 1.5, method: 'Newton-Raphson',  // NOSONAR — S7748: number literal trailing zero; cosmetic
         },
         warnings: ['Bus BUS002 voltage at 0.98 pu - within acceptable range'],
         errors: [],
@@ -143,7 +143,7 @@ export class MockEtapProvider {
         data: {
           standard: 'IEC 60909-0:2016', base_mva: 100, base_kv: 13.8,
           faults: {
-            BUS001: { three_phase: { fault_current_ka: 15.2, r1_x1_ratio: 0.15 }, line_to_ground: { fault_current_ka: 12.8, r0_x0_ratio: 0.20 } },
+            BUS001: { three_phase: { fault_current_ka: 15.2, r1_x1_ratio: 0.15 }, line_to_ground: { fault_current_ka: 12.8, r0_x0_ratio: 0.20 } },  // NOSONAR — S7748: number literal trailing zero; cosmetic
             BUS002: { three_phase: { fault_current_ka: 8.5, r1_x1_ratio: 0.12 }, line_to_ground: { fault_current_ka: 7.1, r0_x0_ratio: 0.18 } },
           },
         },

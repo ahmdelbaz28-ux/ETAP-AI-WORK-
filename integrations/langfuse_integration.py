@@ -189,8 +189,8 @@ class LangfuseTracker:
         metadata: dict | None = None,
         model: str | None = None,
         agent: str | None = None,
-        user_id: str | None = None,
-        session_id: str | None = None,
+        user_id: str | None = None,  # NOSONAR — S1172: unused param kept for API compatibility
+        session_id: str | None = None,  # NOSONAR — S1172: unused param kept for API compatibility
     ) -> None:
         """Manually log a single LLM interaction as a Langfuse trace."""
         client = self._get_client()

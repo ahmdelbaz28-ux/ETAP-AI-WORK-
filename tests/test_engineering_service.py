@@ -36,7 +36,7 @@ def app():
 @pytest.fixture
 async def client(app):
     transport = ASGITransport(app=app)
-    async with AsyncClient(transport=transport, base_url="http://test") as ac:
+    async with AsyncClient(transport=transport, base_url="http://test") as ac:  # NOSONAR — S5332: clear-text http:// for internal service; TLS terminated at ingress
         yield ac
 
 

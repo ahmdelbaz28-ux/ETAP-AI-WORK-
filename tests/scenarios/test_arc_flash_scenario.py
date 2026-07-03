@@ -31,7 +31,7 @@ class TestArcFlashScenario:
         """Test 2: Incident energy is calculated with valid parameters."""
         engine = ArcFlashEngine()  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         # IEEE 1584 calculation with typical LV parameters
-        E_final, E_full, E_reduced = engine.calculate_incident_energy(
+        E_final, E_full, E_reduced = engine.calculate_incident_energy(  # NOSONAR — S117: physics notation (I/V/P/Q); snake_case harms readability
             voltage_kv=0.48,
             bolted_fault_current_ka=30.0,
             arc_duration_sec=0.5,
@@ -58,7 +58,7 @@ class TestArcFlashScenario:
     def test_high_voltage_scenario(self):
         """Test 4: Arc flash analysis works at MV levels."""
         engine = ArcFlashEngine()  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-        E_final, _, _ = engine.calculate_incident_energy(
+        E_final, _, _ = engine.calculate_incident_energy(  # NOSONAR — S117: physics notation (I/V/P/Q); snake_case harms readability
             voltage_kv=13.8,
             bolted_fault_current_ka=20.0,
             arc_duration_sec=0.3,
@@ -78,7 +78,7 @@ class TestArcFlashScenario:
         ]
         engine = ArcFlashEngine()
         for config in configs:  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-            E_final, _, _ = engine.calculate_incident_energy(
+            E_final, _, _ = engine.calculate_incident_energy(  # NOSONAR — S117: physics notation (I/V/P/Q); snake_case harms readability
                 voltage_kv=0.48,
                 bolted_fault_current_ka=25.0,
                 arc_duration_sec=0.2,
@@ -90,14 +90,14 @@ class TestArcFlashScenario:
     def test_longer_duration_higher_energy(self):
         """Test 6: Longer arc duration produces higher incident energy."""
         engine = ArcFlashEngine()  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-        _, E_short, _ = engine.calculate_incident_energy(
+        _, E_short, _ = engine.calculate_incident_energy(  # NOSONAR — S117: physics notation (I/V/P/Q); snake_case harms readability
             voltage_kv=0.48,
             bolted_fault_current_ka=30.0,
             arc_duration_sec=0.1,
             working_distance_mm=610,
             electrode_config=ElectrodeConfig.VCB,
         )  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-        _, E_long, _ = engine.calculate_incident_energy(
+        _, E_long, _ = engine.calculate_incident_energy(  # NOSONAR — S117: physics notation (I/V/P/Q); snake_case harms readability
             voltage_kv=0.48,
             bolted_fault_current_ka=30.0,
             arc_duration_sec=1.0,

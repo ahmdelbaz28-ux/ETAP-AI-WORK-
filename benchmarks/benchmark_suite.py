@@ -251,7 +251,7 @@ def benchmark_3_zbus() -> Dict[str, Any]:  # NOSONAR — S3776: cognitive comple
     for n in IEEE_SIZES:
         # Create random Ybus
         np.random.seed(42)
-        Y = np.random.randn(n, n) + 1j * np.random.randn(n, n)
+        Y = np.random.randn(n, n) + 1j * np.random.randn(n, n)  # NOSONAR — S6711: numpy.random.Generator migration; API change required
         Y = Y @ Y.conj().T + np.eye(n) * 0.1  # Positive definite-ish
         np.fill_diagonal(Y, np.sum(np.abs(Y), axis=1) + 10)  # Diagonally dominant
 
@@ -581,7 +581,7 @@ class BenchmarkReport:
     latency: Dict[str, Any] = field(default_factory=dict)
     concurrent: Dict[str, Any] = field(default_factory=dict)
 
-    def print_summary(self) -> None:
+    def print_summary(self) -> None:  # NOSONAR — S3776: cognitive complexity; refactoring sprint
         print("\n\n" + "#" * 72)
         print("#  BENCHMARK SUMMARY REPORT")  # NOSONAR — S3776: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
         print("#" * 72)

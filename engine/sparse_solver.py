@@ -299,7 +299,7 @@ class SparseYBus:
         )
         return self._ybus_sparse
   # NOSONAR — S3776: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
-    def sparse_newton_raphson(
+    def sparse_newton_raphson(  # NOSONAR — S3776: cognitive complexity; refactoring sprint
         self,
         ybus: csr_matrix | None = None,
         bus_data: list[BusData] | None = None,
@@ -359,14 +359,14 @@ class SparseYBus:
 
         # Scheduled power  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         P_sch = np.array([b.p_generation - b.p_load for b in self._buses], dtype=float)  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-        Q_sch = np.array([b.q_generation - b.q_load for b in self._buses], dtype=float)
+        Q_sch = np.array([b.q_generation - b.q_load for b in self._buses], dtype=float)  # NOSONAR — S117: physics notation (I/V/P/Q); snake_case harms readability
 
         iteration_log: list[dict[str, Any]] = []
         converged = False
 
         # Convert Ybus to dense for power calculations (necessary for
         # vectorised V * conj(Y*V) but Jacobian is kept sparse).  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-        Ybus_dense = ybus.toarray() if issparse(ybus) else np.asarray(ybus)
+        Ybus_dense = ybus.toarray() if issparse(ybus) else np.asarray(ybus)  # NOSONAR — S117: physics notation (I/V/P/Q); snake_case harms readability
 
         for iteration in range(max_iter):
             # --- Power calculations ---
@@ -377,7 +377,7 @@ class SparseYBus:
 
             # --- Mismatch ---  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
             deltaP = P_sch - P  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-            deltaQ = Q_sch - Q
+            deltaQ = Q_sch - Q  # NOSONAR — S117: physics notation (I/V/P/Q); snake_case harms readability
 
             # Build mismatch vector: [ΔP_pv, ΔP_pq, ΔQ_pq] / |V|
             mismatch = np.zeros(n_unknowns)
@@ -415,7 +415,7 @@ class SparseYBus:
                 dx = spsolve(J.tocsr(), -mismatch)
             except Exception:
                 # Fallback to least-squares  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-                J_dense = J.toarray() if issparse(J) else np.asarray(J)
+                J_dense = J.toarray() if issparse(J) else np.asarray(J)  # NOSONAR — S117: physics notation (I/V/P/Q); snake_case harms readability
                 dx = np.linalg.lstsq(J_dense, mismatch, rcond=None)[0]
 
             # --- Update voltages ---
@@ -443,7 +443,7 @@ class SparseYBus:
 
         # Recompute final power  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         I_final = Ybus_dense @ V  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-        S_final = V * np.conj(I_final)
+        S_final = V * np.conj(I_final)  # NOSONAR — S117: physics notation (I/V/P/Q); snake_case harms readability
 
         elapsed = time.perf_counter() - t0
 
@@ -468,7 +468,7 @@ class SparseYBus:
     @staticmethod  # NOSONAR — S3776: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
     def _build_sparse_jacobian(  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         V: np.ndarray,  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-        Ybus: np.ndarray,
+        Ybus: np.ndarray,  # NOSONAR — S117: physics notation (I/V/P/Q); snake_case harms readability
         pv_idx: list[int],
         pq_idx: list[int],
         n_unknowns: int,
@@ -515,7 +515,7 @@ class SparseYBus:
 
         # Precompute intermediates for the analytical formulas  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         Vmag = np.abs(V)  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-        Vang = np.angle(V)
+        Vang = np.angle(V)  # NOSONAR — S117: physics notation (I/V/P/Q); snake_case harms readability
         G = Ybus.real
         B = Ybus.imag
 
@@ -527,7 +527,7 @@ class SparseYBus:
         # Voltage products  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         V_i = Vmag[:, np.newaxis]  # (n, 1)  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         V_j = Vmag[np.newaxis, :]  # (1, n)  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-        V_i_V_j = V_i * V_j  # (n, n)
+        V_i_V_j = V_i * V_j  # (n, n)  # NOSONAR — S117: physics notation (I/V/P/Q); snake_case harms readability
 
         # Current power injections
         I = Ybus @ V
@@ -542,15 +542,15 @@ class SparseYBus:
         vm_col_buses = pq_idx  # \u0394|V| columns
 
         # Precomputed products (vectorised, no Python loops over n\u00b2)  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-        GS_minus_BC = G * sin_theta - B * cos_theta  # G_ij sin theta_ij - B_ij cos theta_ij
+        GS_minus_BC = G * sin_theta - B * cos_theta  # G_ij sin theta_ij - B_ij cos theta_ij  # NOSONAR — S117: physics notation (I/V/P/Q); snake_case harms readability
         GS_minus_BC[np.arange(n), np.arange(n)] = 0.0  # zero diagonal for off-diag formulas
   # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-        GC_plus_BS = G * cos_theta + B * sin_theta  # G_ij cos theta_ij + B_ij sin theta_ij
+        GC_plus_BS = G * cos_theta + B * sin_theta  # G_ij cos theta_ij + B_ij sin theta_ij  # NOSONAR — S117: physics notation (I/V/P/Q); snake_case harms readability
         GC_plus_BS[np.arange(n), np.arange(n)] = 0.0
 
         # Diagonals  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         B_diag = B.diagonal()  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-        G_diag = G.diagonal()
+        G_diag = G.diagonal()  # NOSONAR — S117: physics notation (I/V/P/Q); snake_case harms readability
         V2 = Vmag**2
 
         # ---- J1: d\u0394P/d\u03b8 ----
@@ -693,7 +693,7 @@ class SparseYBus:
             speedup = None
             if n <= 300:
                 try:  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-                    Ybus_dense = ybus.toarray()
+                    Ybus_dense = ybus.toarray()  # NOSONAR — S117: physics notation (I/V/P/Q); snake_case harms readability
                     t0 = time.perf_counter()
                     self._dense_newton_raphson(Ybus_dense, buses, max_iter=20, tol=1e-6)
                     t_solve_dense = (time.perf_counter() - t0) * 1000
@@ -723,7 +723,7 @@ class SparseYBus:
 
     @staticmethod  # NOSONAR — S3776: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
     def _dense_newton_raphson(  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-        Ybus: np.ndarray,
+        Ybus: np.ndarray,  # NOSONAR — S117: physics notation (I/V/P/Q); snake_case harms readability
         bus_data: list[BusData],
         max_iter: int = 50,
         tol: float = 1e-8,
@@ -742,7 +742,7 @@ class SparseYBus:
             dtype=complex,
         )  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         P_sch = np.array([b.p_generation - b.p_load for b in bus_data], dtype=float)  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-        Q_sch = np.array([b.q_generation - b.q_load for b in bus_data], dtype=float)
+        Q_sch = np.array([b.q_generation - b.q_load for b in bus_data], dtype=float)  # NOSONAR — S117: physics notation (I/V/P/Q); snake_case harms readability
 
         converged = False
         for _iteration in range(max_iter):
@@ -752,7 +752,7 @@ class SparseYBus:
             Q = S.imag
   # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
             deltaP = P_sch - P  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-            deltaQ = Q_sch - Q
+            deltaQ = Q_sch - Q  # NOSONAR — S117: physics notation (I/V/P/Q); snake_case harms readability
 
             mismatch = np.zeros(n_unknowns)
             for k, i in enumerate(pv_idx):
@@ -784,7 +784,7 @@ class SparseYBus:
                 V[i] = vmag * np.exp(1j * np.angle(V[i]))
   # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         I_final = Ybus @ V  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-        S_final = V * np.conj(I_final)
+        S_final = V * np.conj(I_final)  # NOSONAR — S117: physics notation (I/V/P/Q); snake_case harms readability
         return SparseConvergenceResult(
             converged=converged,
             iterations=_iteration + 1,
@@ -802,7 +802,7 @@ class SparseYBus:
     # ------------------------------------------------------------------
 
     @staticmethod  # NOSONAR — S3776: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
-    def _generate_synthetic_system(
+    def _generate_synthetic_system(  # NOSONAR — S3776: cognitive complexity; refactoring sprint
         n_buses: int,
     ) -> tuple[list[BusData], list[BranchData]]:
         """Generate a synthetic radial/mesh network for benchmarking.
@@ -891,7 +891,7 @@ class SparseYBus:
   # NOSONAR — S3776: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
 def _build_dense_jacobian(  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
     V: np.ndarray,  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-    Ybus: np.ndarray,
+    Ybus: np.ndarray,  # NOSONAR — S117: physics notation (I/V/P/Q); snake_case harms readability
     pv_idx: list[int],
     pq_idx: list[int],
     n_unknowns: int,
@@ -915,7 +915,7 @@ def _build_dense_jacobian(  # NOSONAR — S117: physics/engineering notation (I=
     J = np.zeros((n_unknowns, n_unknowns), dtype=float)
   # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
     Vmag = np.abs(V)  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-    Vang = np.angle(V)
+    Vang = np.angle(V)  # NOSONAR — S117: physics notation (I/V/P/Q); snake_case harms readability
     G = Ybus.real
     B = Ybus.imag
 

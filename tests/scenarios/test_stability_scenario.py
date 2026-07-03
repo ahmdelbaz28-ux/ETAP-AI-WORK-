@@ -47,9 +47,9 @@ def multimachine_data():
     """3-machine test system data for transient stability."""
     n_gen = 3
     np.random.seed(42)
-    G = np.random.uniform(2.0, 8.0, (n_gen, n_gen))
+    G = np.random.uniform(2.0, 8.0, (n_gen, n_gen))  # NOSONAR — S6711: numpy.random.Generator migration; API change required
     G = (G + G.T) / 2.0
-    B = np.random.uniform(-12.0, -3.0, (n_gen, n_gen))
+    B = np.random.uniform(-12.0, -3.0, (n_gen, n_gen))  # NOSONAR — S6711: numpy.random.Generator migration; API change required
     B = (B + B.T) / 2.0
     np.fill_diagonal(G, np.sum(G, axis=1) - np.diag(G) + 1.0)
     np.fill_diagonal(B, -np.sum(np.abs(B), axis=1))

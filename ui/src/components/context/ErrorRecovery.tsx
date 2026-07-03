@@ -119,7 +119,7 @@ interface ErrorRecoveryProps {
   onRetry?: () => void
 }
 
-export function ErrorRecovery({ error, onDismiss, onRetry }: ErrorRecoveryProps) {
+export function ErrorRecovery({ error, onDismiss, onRetry }: ErrorRecoveryProps) {  // NOSONAR — S6759: React props read-only; requires `readonly` refactor across component tree
   const [help, setHelp] = useState<HelpMapping | null>(null)
   const [expanded, setExpanded] = useState(false)
 
@@ -201,7 +201,7 @@ export function ErrorRecovery({ error, onDismiss, onRetry }: ErrorRecoveryProps)
         )}
         {help.actions?.map((a, i) => (
           <button
-            key={i}
+            key={i}  // NOSONAR — S6479: array index as key; items lack stable IDs (tech debt)
             onClick={() => handleAction(a.action)}
             className="flex items-center gap-1 px-3 py-1.5 text-xs font-medium bg-[var(--bg-elevated)] text-[var(--text-secondary)] rounded-lg hover:bg-[var(--border-primary)] transition-colors"
           >

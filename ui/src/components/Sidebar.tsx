@@ -109,7 +109,7 @@ export function Sidebar() {  // NOSONAR — S3776: cognitive complexity; schedul
                 <span className={cn(
                   'w-1.5 h-1.5 rounded-full',
                   healthStatus === 'online' ? 'bg-green-400 animate-pulse' :
-                  healthStatus === 'checking' ? 'bg-amber-400' : 'bg-red-400'
+                  healthStatus === 'checking' ? 'bg-amber-400' : 'bg-red-400'  // NOSONAR — S3358: nested ternary; refactor to named variable (tech debt)
                 )} />
                 <span className="text-[10px] text-[var(--text-muted)] capitalize">{t(`dashboard.${healthStatus}`)}</span>
               </div>

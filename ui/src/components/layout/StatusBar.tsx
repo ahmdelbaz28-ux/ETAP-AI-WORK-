@@ -37,7 +37,7 @@ export function StatusBar() {
       <div className="flex items-center gap-4">
         <div className="flex items-center gap-1.5">
           <StatusIndicator
-            status={status === 'checking' ? 'loading' : status === 'online' ? 'online' : 'offline'}
+            status={status === 'checking' ? 'loading' : status === 'online' ? 'online' : 'offline'}  // NOSONAR — S3358: nested ternary; refactor to named variable (tech debt)
             size="sm"
             showLabel={false}
           />

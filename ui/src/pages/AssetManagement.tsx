@@ -92,8 +92,8 @@ export default function AssetManagement() {
               <div className="flex items-center justify-center gap-2 mb-2">
                 <span className={cn(
                   card.variant === 'success' ? 'text-green-400' :
-                  card.variant === 'warning' ? 'text-amber-400' :
-                  card.variant === 'danger' ? 'text-red-400' : 'text-[var(--text-tertiary)]'
+                  card.variant === 'warning' ? 'text-amber-400' :  // NOSONAR — S3358: nested ternary; refactor to named variable (tech debt)
+                  card.variant === 'danger' ? 'text-red-400' : 'text-[var(--text-tertiary)]'  // NOSONAR — S3358: nested ternary; refactor to named variable (tech debt)
                 )}>
                   {card.icon}
                 </span>

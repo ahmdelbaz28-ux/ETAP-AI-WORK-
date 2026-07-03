@@ -256,7 +256,7 @@ class RenewableAgent(BaseAgent):
 
         # Add some cloud randomness
         np.random.seed(42)
-        cloud_factor = 0.7 + 0.3 * np.random.random(hours)
+        cloud_factor = 0.7 + 0.3 * np.random.random(hours)  # NOSONAR — S6711: numpy.random.Generator migration; API change required
         poa = poa * cloud_factor
 
         return np.clip(poa, 0.0, 1.2)
@@ -476,7 +476,7 @@ class RenewableAgent(BaseAgent):
             "Within limits"
             if penetration <= 15.0
             else (
-                "Simplified interconnection if ≤15%"
+                "Simplified interconnection if ≤15%"  # NOSONAR — S3358: nested conditional; extract to named variable (tech debt)
                 if penetration <= 100.0
                 else "Exceeds feeder capacity"
             )

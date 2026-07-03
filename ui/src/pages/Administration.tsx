@@ -168,7 +168,7 @@ export default function Administration() {
             <div className="space-y-3">
               {metrics && metrics.providers ? (
                 Object.entries(metrics.providers as Record<string, { count: number; avgMs: number; failureRate: number }>).map(([name, p]) => {
-                  const latencyColor = p.avgMs < 500 ? 'bg-green-500' : p.avgMs < 1000 ? 'bg-amber-500' : 'bg-red-500'
+                  const latencyColor = p.avgMs < 500 ? 'bg-green-500' : p.avgMs < 1000 ? 'bg-amber-500' : 'bg-red-500'  // NOSONAR — S3358: nested ternary; refactor to named variable (tech debt)
                   const latencyPercent = Math.min(100, (p.avgMs / 2000) * 100)
                   return (
                     <div key={name} className="p-3 bg-[var(--bg-primary)] rounded-lg border border-[var(--border-primary)]">

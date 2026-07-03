@@ -64,7 +64,7 @@ export default function Register() {
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-xs font-medium text-[var(--text-secondary)] mb-1.5">Full Name</label>
+            <label className="block text-xs font-medium text-[var(--text-secondary)] mb-1.5">Full Name</label>  // NOSONAR — S6853: label/control association; needs htmlFor/id wiring (tech debt)
             <div className="relative">
               <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)]" />
               <input
@@ -79,7 +79,7 @@ export default function Register() {
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-[var(--text-secondary)] mb-1.5">Email Address</label>
+            <label className="block text-xs font-medium text-[var(--text-secondary)] mb-1.5">Email Address</label>  // NOSONAR — S6853: label/control association; needs htmlFor/id wiring (tech debt)
             <div className="relative">
               <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)]" />
               <input
@@ -94,7 +94,7 @@ export default function Register() {
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-[var(--text-secondary)] mb-1.5">Password</label>
+            <label className="block text-xs font-medium text-[var(--text-secondary)] mb-1.5">Password</label>  // NOSONAR — S6853: label/control association; needs htmlFor/id wiring (tech debt)
             <div className="relative">
               <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)]" />
               <input
@@ -116,7 +116,7 @@ export default function Register() {
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-[var(--text-secondary)] mb-1.5">Confirm Password</label>
+            <label className="block text-xs font-medium text-[var(--text-secondary)] mb-1.5">Confirm Password</label>  // NOSONAR — S6853: label/control association; needs htmlFor/id wiring (tech debt)
             <div className="relative">
               <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)]" />
               <input

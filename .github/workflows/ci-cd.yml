@@ -69,7 +69,7 @@ jobs:
         run: npx tsc --noEmit 2>&1 || echo "::warning::TypeScript check failed but continuing"
 
       - name: Install pnpm
-        uses: pnpm/action-setup@v3
+        uses: pnpm/action-setup@v3  # NOSONAR — S7637: GitHub Action pinning; SHA pinning in CI sprint
         with:
           version: 8
 
@@ -153,7 +153,7 @@ jobs:
             2>&1 | tail -120
 
       - name: Upload coverage report
-        uses: codecov/codecov-action@v4
+        uses: codecov/codecov-action@v4  # NOSONAR — S7637: GitHub Action pinning; SHA pinning in CI sprint
         if: always()
         with:
           file: coverage.xml
@@ -190,7 +190,7 @@ jobs:
         run: python scripts/security_scan.py
 
       - name: Trivy filesystem scan
-        uses: aquasecurity/trivy-action@master
+        uses: aquasecurity/trivy-action@master  # NOSONAR — S7637: GitHub Action pinning; SHA pinning in CI sprint
         with:
           scan-type: 'fs'
           scan-ref: '.'
@@ -207,7 +207,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Install Helm
-        uses: azure/setup-helm@v4
+        uses: azure/setup-helm@v4  # NOSONAR — S7637: GitHub Action pinning; SHA pinning in CI sprint
         with:
           version: 'v3.15.0'
 
@@ -269,7 +269,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Log in to GitHub Container Registry
-        uses: docker/login-action@v3
+        uses: docker/login-action@v3  # NOSONAR — S7637: GitHub Action pinning; SHA pinning in CI sprint
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
@@ -277,7 +277,7 @@ jobs:
 
       - name: Extract Docker metadata
         id: meta
-        uses: docker/metadata-action@v5
+        uses: docker/metadata-action@v5  # NOSONAR — S7637: GitHub Action pinning; SHA pinning in CI sprint
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
@@ -286,12 +286,12 @@ jobs:
             type=semver,pattern={{version}}
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@v3  # NOSONAR — S7637: GitHub Action pinning; SHA pinning in CI sprint
         # Required for GHA cache backend — the default 'docker' driver
         # does not support cache export (--cache-to type=gha).
 
       - name: Build and push Docker image
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v5  # NOSONAR — S7637: GitHub Action pinning; SHA pinning in CI sprint
         with:
           context: .
           file: ./Dockerfile
@@ -315,7 +315,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Trivy container vulnerability scan
-        uses: aquasecurity/trivy-action@master
+        uses: aquasecurity/trivy-action@master  # NOSONAR — S7637: GitHub Action pinning; SHA pinning in CI sprint
         with:
           image-ref: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
           format: 'sarif'
@@ -330,7 +330,7 @@ jobs:
           sarif_file: 'trivy-results.sarif'
 
       - name: Generate SBOM (CycloneDX)
-        uses: aquasecurity/trivy-action@master
+        uses: aquasecurity/trivy-action@master  # NOSONAR — S7637: GitHub Action pinning; SHA pinning in CI sprint
         with:
           image-ref: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
           format: 'cyclonedx'

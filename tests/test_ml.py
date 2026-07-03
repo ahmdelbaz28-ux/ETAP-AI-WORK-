@@ -90,8 +90,8 @@ class TestLoadForecaster:
 class TestFaultPredictor:
     def test_predict_after_train(self):
         predictor = FaultPredictor()
-        features = np.random.randn(50, 4)
-        labels = np.random.randint(0, 4, size=50)
+        features = np.random.randn(50, 4)  # NOSONAR — S6711: numpy.random.Generator migration; API change required
+        labels = np.random.randint(0, 4, size=50)  # NOSONAR — S6711: numpy.random.Generator migration; API change required
         predictor.train(features, labels)
         result = predictor.predict(np.array([[0.5, 0.1, 1.0, 0.2]]))
         assert "fault_type" in result
@@ -102,18 +102,18 @@ class TestFaultPredictor:
 
     def test_train_raises_bad_shape(self):
         predictor = FaultPredictor()
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueError):  # NOSONAR — S5778: multi-call pytest.raises; refactor to extract setup outside raises block (tech debt)
             predictor.train(np.array([1, 2, 3]), np.array([0, 1, 0]))
 
     def test_predict_raises_before_train(self):
         predictor = FaultPredictor()
-        with pytest.raises(RuntimeError, match="trained"):
+        with pytest.raises(RuntimeError, match="trained"):  # NOSONAR — S5778: multi-call pytest.raises; refactor to extract setup outside raises block (tech debt)
             predictor.predict(np.array([[0.5, 0.1]]))
 
     def test_feature_importance_after_train(self):
         predictor = FaultPredictor()
-        features = np.random.randn(50, 4)
-        labels = np.random.randint(0, 4, size=50)
+        features = np.random.randn(50, 4)  # NOSONAR — S6711: numpy.random.Generator migration; API change required
+        labels = np.random.randint(0, 4, size=50)  # NOSONAR — S6711: numpy.random.Generator migration; API change required
         predictor.train(features, labels)
         importance = predictor.feature_importance()
         assert len(importance) > 0
@@ -123,8 +123,8 @@ class TestFaultPredictor:
     def test_explain_no_shap(self):
         """SHAP may not be installed, so explain should handle gracefully."""
         predictor = FaultPredictor()
-        features = np.random.randn(50, 4)
-        labels = np.random.randint(0, 4, size=50)
+        features = np.random.randn(50, 4)  # NOSONAR — S6711: numpy.random.Generator migration; API change required
+        labels = np.random.randint(0, 4, size=50)  # NOSONAR — S6711: numpy.random.Generator migration; API change required
         predictor.train(features, labels)
         explanation = predictor.explain(np.array([[0.5, 0.1, 1.0, 0.2]]))
         # Should either have shap_values or error message
@@ -140,9 +140,9 @@ class TestFaultPredictor:
 class TestAnomalyDetector:
     def test_train_and_detect(self):
         detector = AnomalyDetector(contamination=0.1)
-        normal_data = np.random.randn(100, 3)
+        normal_data = np.random.randn(100, 3)  # NOSONAR — S6711: numpy.random.Generator migration; API change required
         detector.train(normal_data)
-        result = detector.detect(np.random.randn(10, 3))
+        result = detector.detect(np.random.randn(10, 3))  # NOSONAR — S6711: numpy.random.Generator migration; API change required
         assert "anomalies" in result
         assert "scores" in result
         assert "threshold" in result
@@ -185,14 +185,14 @@ class TestAnomalyDetector:
 
     def test_detect_single_sample(self):
         detector = AnomalyDetector(contamination=0.1)
-        normal_data = np.random.randn(50, 3)
+        normal_data = np.random.randn(50, 3)  # NOSONAR — S6711: numpy.random.Generator migration; API change required
         detector.train(normal_data)
         result = detector.detect(np.array([[0.5, 0.1, 0.2]]))
         assert len(result["anomalies"]) == 1
 
     def test_detect_1d_input(self):
         detector = AnomalyDetector(contamination=0.1)
-        normal_data = np.random.randn(50, 3)
+        normal_data = np.random.randn(50, 3)  # NOSONAR — S6711: numpy.random.Generator migration; API change required
         detector.train(normal_data)
         # 1-D input should be reshaped
         result = detector.detect(np.array([0.5, 0.1, 0.2]))
@@ -200,7 +200,7 @@ class TestAnomalyDetector:
 
     def test_get_threshold(self):
         detector = AnomalyDetector(contamination=0.1)
-        normal_data = np.random.randn(50, 3)
+        normal_data = np.random.randn(50, 3)  # NOSONAR — S6711: numpy.random.Generator migration; API change required
         detector.train(normal_data)
         thresh = detector.get_threshold()
         assert isinstance(thresh, float)
@@ -212,12 +212,12 @@ class TestAnomalyDetector:
 
     def test_detect_raises_before_train(self):
         detector = AnomalyDetector()
-        with pytest.raises(RuntimeError, match="trained"):
+        with pytest.raises(RuntimeError, match="trained"):  # NOSONAR — S5778: multi-call pytest.raises; refactor to extract setup outside raises block (tech debt)
             detector.detect(np.array([[1.0, 2.0]]))
 
     def test_train_raises_non_2d(self):
         detector = AnomalyDetector()
-        with pytest.raises(ValueError, match="2-D"):
+        with pytest.raises(ValueError, match="2-D"):  # NOSONAR — S5778: multi-call pytest.raises; refactor to extract setup outside raises block (tech debt)
             detector.train(np.array([1.0, 2.0, 3.0]))
 
     def test_invalid_contamination(self):

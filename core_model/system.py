@@ -53,7 +53,7 @@ class System:
         # Accumulate load power at the connected bus (was previously in Load.__init__)
         load.bus.load_power += load.load_power  # NOSONAR — S3776: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
 
-    def build_ybus(self, seq="1"):
+    def build_ybus(self, seq="1"):  # NOSONAR — S3776: cognitive complexity; refactoring sprint
         """
         Build the Ybus admittance matrix for the system for a given sequence.
 
@@ -69,7 +69,7 @@ class System:
         bus_index = {bus_id: i for i, bus_id in enumerate(bus_ids)}
   # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         # Initialize Ybus as zero matrix
-        Ybus = np.zeros((n, n), dtype=complex)
+        Ybus = np.zeros((n, n), dtype=complex)  # NOSONAR — S117: physics notation (I/V/P/Q); snake_case harms readability
 
         # Add contributions from lines
         for line in self.lines:

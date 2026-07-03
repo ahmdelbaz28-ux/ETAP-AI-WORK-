@@ -328,11 +328,13 @@ def test_audit_log_detects_tampering():
 
         # Tamper: modify the first entry's data. Path is fully sanitized
         # via os.path.realpath above; no user-controlled input reaches here.
-        lines = Path(log_path).read_text().strip().split("\n")
+        # `log_path` is derived from tempfile.TemporaryDirectory() — never
+        # from user input. nosec B108 marks the test-fixture path as safe.
+        lines = Path(log_path).read_text().strip().split("\n")  # nosec B108 — test fixture path
         first_entry = json.loads(lines[0])
         first_entry["data"]["action"]["target"] = "TAMPERED_TARGET"
         lines[0] = json.dumps(first_entry)
-        Path(log_path).write_text("\n".join(lines) + "\n")
+        Path(log_path).write_text("\n".join(lines) + "\n")  # nosec B108 — test fixture path  # NOSONAR — S2083: path derived from tempfile fixture, not user input
 
         # Verify tampering detected
         is_valid, broken = guard.audit_log.verify_chain()

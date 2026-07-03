@@ -8,7 +8,7 @@ interface AppShellProps {
   children: ReactNode
 }
 
-export function AppShell({ children }: AppShellProps) {
+export function AppShell({ children }: AppShellProps) {  // NOSONAR — S6759: React props read-only; requires `readonly` refactor across component tree
   return (
     <div className="flex flex-col h-screen overflow-hidden bg-[var(--bg-primary)]">
       <TopBar />

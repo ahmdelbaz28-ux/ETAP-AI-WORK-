@@ -321,7 +321,7 @@ class BatteryStorageAgent(BaseAgent):
         elif strategy == "frequency_regulation":
             # Simulate AGC-like signal using random walk
             np.random.seed(42)
-            agc_signal = np.cumsum(np.random.randn(n_periods) * 0.1)
+            agc_signal = np.cumsum(np.random.randn(n_periods) * 0.1)  # NOSONAR — S6711: numpy.random.Generator migration; API change required
             agc_signal = np.clip(agc_signal, -1.0, 1.0)  # Normalized
 
             for t in range(n_periods):
@@ -901,7 +901,7 @@ class BatteryStorageAgent(BaseAgent):
 
         # Add noise
         np.random.seed(42)
-        load += np.random.normal(0, 20, hours)
+        load += np.random.normal(0, 20, hours)  # NOSONAR — S6711: numpy.random.Generator migration; API change required
         return np.maximum(load, 50.0)
 
     @staticmethod

@@ -296,8 +296,8 @@ class UniversalDataModel:
         self,
         element_id: str,
         updates: dict[str, Any],
-        source: ChangeSource = ChangeSource.MANUAL,
-        reason: str = "",
+        source: ChangeSource = ChangeSource.MANUAL,  # NOSONAR — S1172: unused param kept for API compatibility
+        reason: str = "",  # NOSONAR — S1172: unused param kept for API compatibility
     ) -> bool:
         """Update an element."""
         with self._lock:

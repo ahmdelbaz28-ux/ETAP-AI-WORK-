@@ -8,7 +8,7 @@ interface TabsProps {
   className?: string
 }
 
-export function Tabs({ tabs, activeTab, onChange, className }: TabsProps) {
+export function Tabs({ tabs, activeTab, onChange, className }: TabsProps) {  // NOSONAR — S6759: React props read-only; requires `readonly` refactor across component tree
   return (
     <div className={cn('flex items-center gap-1 bg-[var(--bg-elevated)] rounded-lg p-1', className)}>
       {tabs.map(tab => (
@@ -43,7 +43,7 @@ interface TabPanelsProps {
   className?: string
 }
 
-export function TabPanels({ children, className }: TabPanelsProps) {
+export function TabPanels({ children, className }: TabPanelsProps) {  // NOSONAR — S6759: React props read-only; requires `readonly` refactor across component tree
   return <div className={cn('mt-4', className)}>{children}</div>
 }
 

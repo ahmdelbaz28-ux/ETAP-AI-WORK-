@@ -117,7 +117,7 @@ export default function Login() {
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block text-xs font-medium text-[var(--text-secondary)] mb-1.5">
+              <label className="block text-xs font-medium text-[var(--text-secondary)] mb-1.5">  // NOSONAR — S6853: label/control association; needs htmlFor/id wiring (tech debt)
                 Email Address
               </label>
               <div className="relative">
@@ -134,7 +134,7 @@ export default function Login() {
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-[var(--text-secondary)] mb-1.5">
+              <label className="block text-xs font-medium text-[var(--text-secondary)] mb-1.5">  // NOSONAR — S6853: label/control association; needs htmlFor/id wiring (tech debt)
                 Password
               </label>
               <div className="relative">

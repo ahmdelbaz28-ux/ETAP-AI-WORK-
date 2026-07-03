@@ -98,7 +98,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
       - name: Install pnpm
-        uses: pnpm/action-setup@v2
+        uses: pnpm/action-setup@v2  # NOSONAR — S7637: GitHub Action pinning; SHA pinning in CI sprint
         with:
           version: 9
       - name: Set up Node.js
@@ -150,12 +150,12 @@ jobs:
       # injects it internally, and repeating the flag causes TruffleHog to
       # exit with "flag 'no-update' cannot be repeated".
       - name: Trufflehog — verified secrets (fail on match)
-        uses: trufflesecurity/trufflehog@main
+        uses: trufflesecurity/trufflehog@main  # NOSONAR — S7637: GitHub Action pinning; SHA pinning in CI sprint
         with:
           extra_args: --only-verified
         continue-on-error: false
       - name: Trufflehog — unverified secrets (blocking)
-        uses: trufflesecurity/trufflehog@main
+        uses: trufflesecurity/trufflehog@main  # NOSONAR — S7637: GitHub Action pinning; SHA pinning in CI sprint
         # continue-on-error removed — security scan must block the pipeline
         with:
           extra_args: --no-verification

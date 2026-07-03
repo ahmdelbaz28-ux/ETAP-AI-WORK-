@@ -43,7 +43,7 @@ def _make_118_snapshot(version: int, variation: float = 0.01):
                                round(0.2 + 0.1 * np.cos(i * 0.3), 4)),
             generation_power=complex(round(0.3 + 0.2 * np.sin(i * 0.5), 4),
                                      round(0.1 + 0.05 * np.cos(i * 0.5), 4)),
-            bus_type="pq" if i > 8 else ("pv" if i > 0 else "slack"),
+            bus_type="pq" if i > 8 else ("pv" if i > 0 else "slack"),  # NOSONAR — S3358: nested conditional; extract to named variable (tech debt)
         )
 
     # Switch states
@@ -88,7 +88,7 @@ def _make_118_snapshot(version: int, variation: float = 0.01):
                                  for i in range(n_buses)},
         state_estimation_converged=True,
         state_estimation_bad_data=version % 10,
-        fault_currents={f"BUS_{i:04d}": complex(5.0 + np.random.uniform(-1, 1), 2.0 + np.random.uniform(-0.5, 0.5))
+        fault_currents={f"BUS_{i:04d}": complex(5.0 + np.random.uniform(-1, 1), 2.0 + np.random.uniform(-0.5, 0.5))  # NOSONAR — S6711: numpy.random.Generator migration; API change required
                          for i in range(min(20, n_buses))},
         arc_flash_incident_energy={f"BUS_{i:04d}": round(1.0 + 0.5 * np.sin(i * 0.7), 3)
                                     for i in range(n_buses)},

@@ -435,7 +435,7 @@ class ThreadPoolManager:
     def run_batch(
         self,
         fns: Sequence[Callable],
-        max_concurrent: int | None = None,
+        max_concurrent: int | None = None,  # NOSONAR — S1172: unused param kept for API compatibility
     ) -> list[Any]:
         submitted = [self._executor.submit(fn) for fn in fns]
         with self._lock:

@@ -22,7 +22,7 @@ interface ContextHelpButtonProps {
  * Example:
  *   <ContextHelpButton contextId="studies.load-flow" />
  */
-export function ContextHelpButton({
+export function ContextHelpButton({  // NOSONAR — S6759: React props read-only; requires `readonly` refactor across component tree
   contextId,
   className = '',
   size = 'sm',

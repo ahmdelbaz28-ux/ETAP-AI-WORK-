@@ -239,7 +239,7 @@ class ETAPCompatibilityChecker:
 
         for pkg, avail in self.check_dependencies().items():
             required = pkg in REQUIRED_PACKAGES
-            sev = "error" if (required and not avail) else "warning" if not avail else "info"
+            sev = "error" if (required and not avail) else "warning" if not avail else "info"  # NOSONAR — S3358: nested conditional; extract to named variable (tech debt)
             checks.append(
                 CheckResult(
                     f"Package: {pkg}",

@@ -374,7 +374,7 @@ class HarmonicAnalysisEngine:
         return resonance_detected, resonance_freqs
 
     def check_ieee_519_compliance(
-        self, thd_voltage: dict[str, float], tdd_current: dict[str, float], voltage_kv: float,
+        self, thd_voltage: dict[str, float], tdd_current: dict[str, float], voltage_kv: float,  # NOSONAR — S1172: unused param kept for API compatibility
     ) -> dict[str, bool]:
         """
         Check compliance with IEEE 519-2022 limits.

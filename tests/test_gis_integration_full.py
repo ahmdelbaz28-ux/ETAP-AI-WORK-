@@ -122,7 +122,7 @@ class TestArcGISProvider:
         from gis_integration.providers.arcgis_provider import ArcGISProvider
 
         provider = ArcGISProvider()
-        with pytest.raises(GISDataExtractionError, match="not loaded"):
+        with pytest.raises(GISDataExtractionError, match="not loaded"):  # NOSONAR — S5778: multi-call pytest.raises; refactor to extract setup outside raises block (tech debt)
             list(provider.extract_features("layer-1"))
 
     def test_export_geojson_raises_on_failure(self):
@@ -324,7 +324,7 @@ class TestQGISProvider:
         from gis_integration.providers.qgis_provider import QGISProvider
 
         provider = QGISProvider()
-        with pytest.raises(GISDataExtractionError, match="not loaded"):
+        with pytest.raises(GISDataExtractionError, match="not loaded"):  # NOSONAR — S5778: multi-call pytest.raises; refactor to extract setup outside raises block (tech debt)
             list(provider.extract_features("layer-1"))
 
     def test_get_crs_returns_default(self):
@@ -1046,7 +1046,7 @@ class TestProviderErrorHandling:
                     "gis_integration.providers.arcgis_provider.validate_geometry_dict"
                 ) as mock_val:
                     mock_val.return_value = (False, "unsupported geometry type: InvalidType")
-                    with pytest.raises(GISDataExtractionError, match="Invalid geometry"):
+                    with pytest.raises(GISDataExtractionError, match="Invalid geometry"):  # NOSONAR — S5778: multi-call pytest.raises; refactor to extract setup outside raises block (tech debt)
                         list(provider.extract_features("bad_layer"))
 
     def test_qgis_export_geojson_failure(self):

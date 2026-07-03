@@ -35,7 +35,7 @@ class ElectricalModel:
     asset_to_node: dict[str, str]  # ADMS asset_id -> electrical node_id
 
 
-def _stable_float_from_str(s: str, *, _scale: float, min_val: float, max_val: float) -> float:
+def _stable_float_from_str(s: str, *, min_val: float, max_val: float) -> float:
     """
     Deterministic numeric mapping without randomness.
     Uses a simple polynomial rolling hash to generate a stable float in [min_val, max_val].
@@ -110,7 +110,7 @@ def build_electrical_model(assets: list[ADMSAsset]) -> ElectricalModel:  # NOSON
         to_node = sub_coords[b_ep]
 
         # Deterministic impedance parameters
-        base_imp = _stable_float_from_str(asset.asset_id, scale=1.0, min_val=0.1, max_val=5.0)
+        base_imp = _stable_float_from_str(asset.asset_id, min_val=0.1, max_val=5.0)
         impedance_ohm = base_imp * impedance_scale
         resistance_ohm = impedance_ohm * 0.6
 

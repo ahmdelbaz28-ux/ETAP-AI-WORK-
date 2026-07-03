@@ -82,7 +82,7 @@ ENGINEERING_STANDARDS = {
 }
 
 
-def validate_prompt_file(filepath: Path, _strict: bool = False) -> tuple[bool, list[str]]:  # NOSONAR — S3776: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
+def validate_prompt_file(filepath: Path) -> tuple[bool, list[str]]:  # NOSONAR — S3776: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
     """
     Validate a single YAML prompt file.
 
@@ -191,7 +191,7 @@ def validate_all_prompts(strict: bool = False) -> bool:  # NOSONAR — S3776: co
     total_info = 0
 
     for filepath in yaml_files:
-        success, issues = validate_prompt_file(filepath, strict=strict)
+        success, issues = validate_prompt_file(filepath)
 
         if success and not issues:
             print(f"  ✓ {filepath.name}")

@@ -746,7 +746,7 @@ class EngineeringKnowledgeBase:
         return compliance_result
 
     def _check_specific_compliance(
-        self, calc_type: str, params: dict, doc: EngineeringDocument,
+        self, calc_type: str, params: dict, doc: EngineeringDocument,  # NOSONAR — S1172: unused param kept for API compatibility
     ) -> list[str]:
         """Check specific compliance rules."""
         violations = []

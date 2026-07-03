@@ -259,7 +259,7 @@ class TestSparseSolver:
             Y = ybus.toarray()
             V = result.voltages
             S = V * np.conj(Y @ V)
-            P_gen = sum(b.p_generation for b in buses)
+            P_gen = sum(b.p_generation for b in buses)  # NOSONAR — S117: physics notation (I/V/P/Q); snake_case harms readability
             P_load = sum(b.p_load for b in buses)  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
             P_loss = S.real.sum()  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
             # Power balance: generation - load ≈ losses  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability

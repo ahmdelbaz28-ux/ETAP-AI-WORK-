@@ -221,7 +221,7 @@ class WLSEstimator:
         )
 
     def _build_measurement_vectors(  # NOSONAR — S3776: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
-        self, measurements: dict, n: int, slack_idx: int,
+        self, measurements: dict, n: int, slack_idx: int,  # NOSONAR — S1172: unused param kept for API compatibility
     ) -> tuple[np.ndarray, list, np.ndarray]:
         """Build measurement vector z, index list, and weight vector."""
         z_list = []

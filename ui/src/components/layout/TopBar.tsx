@@ -9,7 +9,7 @@ interface TopBarProps {
   onHelpOpen?: () => void
 }
 
-export function TopBar({ onHelpOpen }: TopBarProps) {
+export function TopBar({ onHelpOpen }: TopBarProps) {  // NOSONAR — S6759: React props read-only; requires `readonly` refactor across component tree
   const { t } = useTranslation()
   const navigate = useNavigate()
   const { toggleHelpPanel } = useAppStore()

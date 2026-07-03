@@ -33,7 +33,7 @@ class ValidationCampaign:
         self.warnings = 0
 
     def _record(self, category, test_name, passed, detail="", warning=False):
-        status = "PASS" if passed else ("WARN" if warning else "FAIL")
+        status = "PASS" if passed else ("WARN" if warning else "FAIL")  # NOSONAR — S3358: nested conditional; extract to named variable (tech debt)
         if passed and not warning:
             self.passed += 1
         elif warning:

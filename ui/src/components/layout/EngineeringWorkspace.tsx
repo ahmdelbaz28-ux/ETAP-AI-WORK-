@@ -13,7 +13,7 @@ interface EngineeringWorkspaceProps {
   minPanelWidth?: number
 }
 
-export function EngineeringWorkspace({
+export function EngineeringWorkspace({  // NOSONAR — S6759: React props read-only; requires `readonly` refactor across component tree
   leftPanel,
   centerPanel,
   rightPanel,

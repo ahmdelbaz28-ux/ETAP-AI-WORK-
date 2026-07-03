@@ -181,7 +181,7 @@ class TestZbus:
         """Inverse of a Hermitian matrix should be Hermitian (Z == Z^H)."""
         n = 5
         np.random.seed(42)
-        Y = np.random.randn(n, n) + 1j * np.random.randn(n, n)
+        Y = np.random.randn(n, n) + 1j * np.random.randn(n, n)  # NOSONAR — S6711: numpy.random.Generator migration; API change required
         Y = Y @ Y.conj().T  # Make Hermitian (positive semidefinite)
         np.fill_diagonal(Y, np.sum(np.abs(Y), axis=1) + 10)
         Z = zbus_full(Y)
@@ -253,7 +253,7 @@ class TestZbus:
     def test_zbus_large_values(self):
         n = 10
         np.random.seed(123)
-        Y = np.random.randn(n, n) + 1j * np.random.randn(n, n)
+        Y = np.random.randn(n, n) + 1j * np.random.randn(n, n)  # NOSONAR — S6711: numpy.random.Generator migration; API change required
         Y = Y @ Y.conj().T + np.eye(n) * 100
         Z = zbus_full(Y)
         assert Z.shape == (n, n)

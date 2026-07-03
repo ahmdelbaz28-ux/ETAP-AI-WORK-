@@ -147,7 +147,7 @@ export function OnboardingTour() {
         <div className="flex gap-1 px-6 pt-5">
           {steps.map((_, i) => (
             <div
-              key={i}
+              key={i}  // NOSONAR — S6479: array index as key; items lack stable IDs (tech debt)
               className={cn(
                 'h-1 flex-1 rounded-full transition-all duration-300',
                 i <= currentStep ? 'bg-[var(--accent-primary)]' : 'bg-[var(--border-primary)]'

@@ -27,7 +27,7 @@ def on_test_start(environment, **kwargs):
     runner_type = (
         "master"
         if isinstance(environment.runner, MasterRunner)
-        else "worker"
+        else "worker"  # NOSONAR — S3358: nested conditional; extract to named variable (tech debt)
         if isinstance(environment.runner, WorkerRunner)
         else "standalone"
     )

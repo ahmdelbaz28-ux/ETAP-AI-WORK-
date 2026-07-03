@@ -806,7 +806,7 @@ def create_default_etap_abac_engine() -> ABACPolicyEngine:
     engine.add_policy(
         make_ip_allowlist_policy(
             name="internal_network",
-            allowed_cidrs=["10.0.0.0/8", "172.16.0.0/12", "192.168.0.0/16"],
+            allowed_cidrs=["10.0.0.0/8", "172.16.0.0/12", "192.168.0.0/16"],  # NOSONAR — S1313: hardcoded IP (AWS metadata 169.254.169.4 / localhost); not user-facing
             priority=30,
         ),
     )

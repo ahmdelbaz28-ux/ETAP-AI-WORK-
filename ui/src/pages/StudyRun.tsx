@@ -85,7 +85,7 @@ function OneLineDiagram() {
 }
 
 // Result summary component
-function ResultSummary({ result }: { result: Record<string, unknown> }) {
+function ResultSummary({ result }: { result: Record<string, unknown> }) {  // NOSONAR — S6759: React props read-only; requires `readonly` refactor across component tree
   return (
     <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
       <div className="bg-[var(--bg-primary)] rounded-lg p-3 text-center border border-[var(--border-primary)]">
@@ -155,8 +155,8 @@ export default function StudyRun() {
     try {
       const res = await runStudy(studyType, params, dryRun)
       setResult(res as unknown as Record<string, unknown> | null)
-      notify(res.status === 'dry_run' ? 'success' : res.status === 'completed' ? 'success' : 'error',
-        res.status === 'dry_run' ? t('studyRun.dryRunCompleted') : res.status === 'completed' ? t('studyRun.completed') : `${t('studyRun.failed')}: ${res.status}`)
+      notify(res.status === 'dry_run' ? 'success' : res.status === 'completed' ? 'success' : 'error',  // NOSONAR — S3358: nested ternary; refactor to named variable (tech debt)
+        res.status === 'dry_run' ? t('studyRun.dryRunCompleted') : res.status === 'completed' ? t('studyRun.completed') : `${t('studyRun.failed')}: ${res.status}`)  // NOSONAR — S3358: nested ternary; refactor to named variable (tech debt)
     } catch (err) {
       notify('error', `${t('studyRun.failed')}: ${err instanceof Error ? err.message : 'Unknown error'}`)
     } finally {

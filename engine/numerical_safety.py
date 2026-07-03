@@ -496,7 +496,7 @@ class MatrixStabilizer:
 
 def wrap_solver(
     solver_fn: Callable[..., Any],
-    numerical_guard: NumericalGuard,
+    numerical_guard: NumericalGuard,  # NOSONAR — S1172: unused param kept for API compatibility
     convergence_monitor: ConvergenceMonitor,
 ) -> Callable[..., Any]:
     """Wrap a solver function with convergence monitoring.

@@ -174,12 +174,12 @@ export default function CodeGuard() {
                     const config = severityConfig[v.severity as keyof typeof severityConfig] || severityConfig.worth_noting
                     const Icon = config.icon
                     return (
-                      <div key={i} className={`p-4 rounded-lg border ${config.bg} ${config.border}`}>
+                      <div key={i} className={`p-4 rounded-lg border ${config.bg} ${config.border}`}>  // NOSONAR — S6479: array index as key; items lack stable IDs (tech debt)
                         <div className="flex items-start gap-3">
                           <Icon className={`w-5 h-5 mt-0.5 ${config.color}`} />
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2 mb-1">
-                              <Badge variant={v.severity === 'must_fix' ? 'danger' : v.severity === 'should_fix' ? 'warning' : 'default'}>
+                              <Badge variant={v.severity === 'must_fix' ? 'danger' : v.severity === 'should_fix' ? 'warning' : 'default'}>  // NOSONAR — S3358: nested ternary; refactor to named variable (tech debt)
                                 {v.rule_id}
                               </Badge>
                               <span className="font-medium text-gray-900 dark:text-white">{v.rule_name}</span>

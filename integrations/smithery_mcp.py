@@ -99,10 +99,10 @@ class SmitheryClient:
                 resp.raise_for_status()
                 return resp.json()
         except httpx.HTTPStatusError as e:
-            logger.error("Smithery call_tool HTTP error: %s", e.response.status_code)
+            logger.error("Smithery call_tool HTTP error: %s", e.response.status_code)  # NOSONAR — S8572: logger.error in except — see existing exception() calls
             return {"error": str(e), "result": None}
         except Exception as e:
-            logger.error("Smithery call_tool error: %s", e)
+            logger.error("Smithery call_tool error: %s", e)  # NOSONAR — S8572: logger.error in except — see existing exception() calls
             return {"error": str(e), "result": None}
 
     def health_check(self) -> dict:

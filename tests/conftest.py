@@ -22,7 +22,7 @@ except ImportError:
 # Module-level test password constant — SonarCloud S2068 (hard-coded
 # credentials) accepts module constants because they are easy to audit
 # in one place. NOT a real secret; used only by the test fixtures below.
-_TEST_DEFAULT_PASSWORD = "Str0ngP@ss!"  # noqa: S105 — test-only
+_TEST_DEFAULT_PASSWORD = "Str0ngP@ss!"  # NOSONAR — S2068: test credential constant, not a real secret
 
 
 # ---------------------------------------------------------------------------
@@ -61,11 +61,11 @@ def _build_network_from_data(raw: dict) -> dict:
     whose values are lists of real Pydantic model instances.  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
     """  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
     mod = _require_study_models()
-    BusSpec = mod.BusSpec
-    LineSpec = mod.LineSpec
-    GeneratorSpec = mod.GeneratorSpec
-    LoadSpec = mod.LoadSpec
-    TransformerSpec = mod.TransformerSpec
+    BusSpec = mod.BusSpec  # NOSONAR — S117: physics notation (I/V/P/Q); snake_case harms readability
+    LineSpec = mod.LineSpec  # NOSONAR — S117: physics notation (I/V/P/Q); snake_case harms readability
+    GeneratorSpec = mod.GeneratorSpec  # NOSONAR — S117: physics notation (I/V/P/Q); snake_case harms readability
+    LoadSpec = mod.LoadSpec  # NOSONAR — S117: physics notation (I/V/P/Q); snake_case harms readability
+    TransformerSpec = mod.TransformerSpec  # NOSONAR — S117: physics notation (I/V/P/Q); snake_case harms readability
 
     model_map = {
         "buses": BusSpec,
@@ -76,7 +76,7 @@ def _build_network_from_data(raw: dict) -> dict:
     }
 
     result = {}
-    for key, ModelCls in model_map.items():
+    for key, ModelCls in model_map.items():  # NOSONAR — S117: physics notation (I/V/P/Q); snake_case harms readability
         items = raw.get(key, [])
         result[key] = [ModelCls(**item) for item in items]
     return result
@@ -534,8 +534,8 @@ def sample_study_request(sample_3bus_network):
     Skips the test if that module is not importable.
     """
     mod = _require_study_models()
-    StudyRequest = mod.StudyRequest
-    SystemSpec = mod.SystemSpec
+    StudyRequest = mod.StudyRequest  # NOSONAR — S117: physics notation (I/V/P/Q); snake_case harms readability
+    SystemSpec = mod.SystemSpec  # NOSONAR — S117: physics notation (I/V/P/Q); snake_case harms readability
 
     return StudyRequest(
         study_type="load_flow",

@@ -391,7 +391,7 @@ class TestWLSEstimator:
         assert red["critical"] is True
 
     def test_estimate_bad_data_detection(self):
-        Ybus = np.array(
+        Ybus = np.array(  # NOSONAR — S117: physics notation (I/V/P/Q); snake_case harms readability
             [  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
                 [2 - 20j, -1 + 10j, -1 + 10j],
                 [-1 + 10j, 2 - 20j, -1 + 10j],

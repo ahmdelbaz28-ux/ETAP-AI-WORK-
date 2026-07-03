@@ -576,7 +576,7 @@ def sanitize_result(obj: Any) -> Any:
 # ---------------------------------------------------------------------------
 
 
-def run_study_lightweight(
+def run_study_lightweight(  # NOSONAR — S3776: cognitive complexity; refactoring sprint
     study_type: str, system: dict[str, Any], parameters: dict[str, Any],
 ) -> dict[str, Any]:
     """Execute an engineering study with **no** external service dependencies.

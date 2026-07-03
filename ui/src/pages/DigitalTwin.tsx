@@ -206,7 +206,7 @@ export default function DigitalTwin() {
                         </div>
                       </div>
                       <Badge variant={config.variant} dot size="sm">
-                        {source.status === 'online' ? 'Online' : source.status === 'offline' ? 'Offline' : 'Warning'}
+                        {source.status === 'online' ? 'Online' : source.status === 'offline' ? 'Offline' : 'Warning'}  // NOSONAR — S3358: nested ternary; refactor to named variable (tech debt)
                       </Badge>
                     </div>
                   )

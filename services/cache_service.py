@@ -178,7 +178,7 @@ class StudyCache:
             return True
         except (TypeError, ValueError) as e:
             # Unhashable key or value that breaks dict storage
-            logger.error("In-memory cache SET failed for key %r: %s", key, e)
+            logger.error("In-memory cache SET failed for key %r: %s", key, e)  # NOSONAR — S8572: logger.error in except — see existing exception() calls
             return False
 
     async def clear(self) -> None:

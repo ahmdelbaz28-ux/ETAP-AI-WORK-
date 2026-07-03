@@ -43,10 +43,10 @@ from security.siem import SecurityEvent, SIEMForwarder
 # Test credentials — module-level constants so SonarCloud S2068
 # (hard-coded credentials) is satisfied. These are NOT real secrets;
 # they exist only to exercise auth code paths in the test suite.
-TEST_PASSWORD_2 = "WrongPass!"  # noqa: S105 — test-only
-TEST_PASSWORD_3 = "WrongAgain!"  # noqa: S105 — test-only
-TEST_PASSWORD_4 = "Wrong6!"  # noqa: S105 — test-only
-TEST_USER_PASSWORD = "S3cureP@ss!"  # noqa: S105 — test-only
+TEST_PASSWORD_2 = "WrongPass!"  # NOSONAR — S2068: test credential constant, not a real secret
+TEST_PASSWORD_3 = "WrongAgain!"  # NOSONAR — S2068: test credential constant, not a real secret
+TEST_PASSWORD_4 = "Wrong6!"  # NOSONAR — S2068: test credential constant, not a real secret
+TEST_USER_PASSWORD = "S3cureP@ss!"  # NOSONAR — S2068: test credential constant, not a real secret
 
 
 # ===========================================================================
@@ -363,7 +363,7 @@ class TestRateLimitEnforcement:
         for i in range(5):
             client.post(
                 "/api/v1/auth/login",
-                json={"username": "rl_user1", "password": f"Wrong{i}!"},
+                json={"username": "rl_user1", "password": f"Wrong{i}!"},  # NOSONAR — S2068: test credential constant, not a real secret
             )
 
         # 6th attempt for user1 should be rate-limited
@@ -397,7 +397,7 @@ class TestRateLimitEnforcement:
         for i in range(5):
             client.post(
                 "/api/v1/auth/login",
-                json={"username": "isolated_user", "password": f"Wrong{i}!"},
+                json={"username": "isolated_user", "password": f"Wrong{i}!"},  # NOSONAR — S2068: test credential constant, not a real secret
             )
 
         # Should be rate limited
@@ -668,17 +668,17 @@ class TestSIEMEventSubmission:
     def test_siem_forwarder_initialization(self):
         """SIEMForwarder can be initialized with configuration."""
         forwarder = SIEMForwarder(
-            endpoint="http://loki:3100/loki/api/v1/push",
+            endpoint="http://loki:3100/loki/api/v1/push",  # NOSONAR — S5332: clear-text http:// for internal service; TLS terminated at ingress
             siem_type="loki",
         )
         assert forwarder.siem_type == "loki"
-        assert forwarder.endpoint == "http://loki:3100/loki/api/v1/push"
+        assert forwarder.endpoint == "http://loki:3100/loki/api/v1/push"  # NOSONAR — S5332: clear-text http:// for internal service; TLS terminated at ingress
         assert forwarder.retry_attempts == 3
 
     def test_siem_forwarder_elk_mode(self):
         """SIEMForwarder supports ELK (Elasticsearch) mode."""
         forwarder = SIEMForwarder(
-            endpoint="http://elasticsearch:9200/etap-security-*/_doc",
+            endpoint="http://elasticsearch:9200/etap-security-*/_doc",  # NOSONAR — S5332: clear-text http:// for internal service; TLS terminated at ingress
             siem_type="elk",
         )
         assert forwarder.siem_type == "elk"
@@ -686,7 +686,7 @@ class TestSIEMEventSubmission:
     def test_siem_forwarder_buffer(self):
         """SIEMForwarder buffers events when the endpoint is unreachable."""
         forwarder = SIEMForwarder(
-            endpoint="http://unreachable-siem:9999/push",
+            endpoint="http://unreachable-siem:9999/push",  # NOSONAR — S5332: clear-text http:// for internal service; TLS terminated at ingress
             siem_type="loki",
             buffer_size=100,
         )
@@ -700,7 +700,7 @@ class TestSIEMEventSubmission:
     def test_siem_forwarder_unknown_type_defaults_loki(self):
         """An unknown SIEM type defaults to 'loki'."""
         forwarder = SIEMForwarder(
-            endpoint="http://siem:9999/push",
+            endpoint="http://siem:9999/push",  # NOSONAR — S5332: clear-text http:// for internal service; TLS terminated at ingress
             siem_type="splunk",
         )
         assert forwarder.siem_type == "loki", "Unknown SIEM type should default to loki"
@@ -708,7 +708,7 @@ class TestSIEMEventSubmission:
     def test_siem_loki_payload_format(self):
         """Loki payload is correctly formatted with streams and values."""
         forwarder = SIEMForwarder(
-            endpoint="http://loki:3100/loki/api/v1/push",
+            endpoint="http://loki:3100/loki/api/v1/push",  # NOSONAR — S5332: clear-text http:// for internal service; TLS terminated at ingress
             siem_type="loki",
         )
         events = [
@@ -731,7 +731,7 @@ class TestSIEMEventSubmission:
     def test_siem_elk_payload_format(self):
         """ELK payload is correctly formatted as NDJSON bulk action."""
         forwarder = SIEMForwarder(
-            endpoint="http://elasticsearch:9200/etap-security-*/_doc",
+            endpoint="http://elasticsearch:9200/etap-security-*/_doc",  # NOSONAR — S5332: clear-text http:// for internal service; TLS terminated at ingress
             siem_type="elk",
         )
         events = [

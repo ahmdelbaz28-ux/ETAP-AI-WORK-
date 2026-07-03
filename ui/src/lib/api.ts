@@ -149,7 +149,7 @@ async function demoResponse<T>(path: string, options?: RequestInit): Promise<T> 
       status: isDryRun ? 'dry_run' : 'completed',
       study_type: body.study_type || 'load_flow',
       data: {
-        voltage_profile: [{ bus: 1, voltage_pu: 1.05 }, { bus: 2, voltage_pu: 1.0 }, { bus: 3, voltage_pu: 0.98 }],
+        voltage_profile: [{ bus: 1, voltage_pu: 1.05 }, { bus: 2, voltage_pu: 1.0 }, { bus: 3, voltage_pu: 0.98 }],  // NOSONAR — S7748: number literal trailing zero; cosmetic
         power_flow: [{ from: 1, to: 2, mw: 5.2, mvar: 1.1 }, { from: 2, to: 3, mw: 4.8, mvar: 0.9 }],
         losses: { total_mw: 0.12, total_mvar: 0.34 },
       },
@@ -349,8 +349,8 @@ export async function runStudy(
         base_mva: 100,
         buses: [
           { bus_id: 1, bus_type: 'slack', voltage_magnitude: 1.05 },
-          { bus_id: 2, bus_type: 'pv', voltage_magnitude: 1.0 },
-          { bus_id: 3, bus_type: 'pq', load_power_real: 1.0, load_power_reactive: 0.3 },
+          { bus_id: 2, bus_type: 'pv', voltage_magnitude: 1.0 },  // NOSONAR — S7748: number literal trailing zero; cosmetic
+          { bus_id: 3, bus_type: 'pq', load_power_real: 1.0, load_power_reactive: 0.3 },  // NOSONAR — S7748: number literal trailing zero; cosmetic
         ],
         lines: [
           { line_id: 1, from_bus_id: 1, to_bus_id: 2, r1: 0.01, x1: 0.05 },

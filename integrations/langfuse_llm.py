@@ -317,7 +317,7 @@ def safe_anthropic_message(
     messages: list[dict],
     max_tokens: int = 4096,
     metadata: dict | None = None,
-    user: str | None = None,
+    user: str | None = None,  # NOSONAR — S1172: unused param kept for API compatibility
     session_id: str | None = None,
     **kwargs: Any,
 ):

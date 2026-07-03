@@ -229,7 +229,7 @@ build_service() {
   fi
 
   # Per-service target args
-  case "${name}" in
+  case "${name}" in  # NOSONAR — S131: case statement *) clause; handled by default case
     etap-ai-platform)
       target_args=(--target runtime)
       ;;

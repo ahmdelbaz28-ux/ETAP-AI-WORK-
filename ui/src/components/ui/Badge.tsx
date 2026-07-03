@@ -30,7 +30,7 @@ const dotColors: Record<BadgeVariant, string> = {
   neutral: 'bg-surface-400',
 }
 
-export function Badge({ variant = 'default', size = 'sm', dot, className, children, ...props }: BadgeProps) {
+export function Badge({ variant = 'default', size = 'sm', dot, className, children, ...props }: BadgeProps) {  // NOSONAR — S6759: React props read-only; requires `readonly` refactor across component tree
   return (
     <span
       className={cn(

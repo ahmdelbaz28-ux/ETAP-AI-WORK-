@@ -368,7 +368,7 @@ class PostGISProvider:
                     geometry=json.loads(row[2]) if row[2] else None,
                     properties=row[3]
                     if isinstance(row[3], dict)
-                    else (json.loads(row[3]) if row[3] else {}),
+                    else (json.loads(row[3]) if row[3] else {}),  # NOSONAR — S3358: nested conditional; extract to named variable (tech debt)
                     electrical_id=row[4],
                 )
         except Exception as exc:
@@ -400,7 +400,7 @@ class PostGISProvider:
                             geometry=json.loads(row[2]) if row[2] else None,
                             properties=row[3]
                             if isinstance(row[3], dict)
-                            else (json.loads(row[3]) if row[3] else {}),
+                            else (json.loads(row[3]) if row[3] else {}),  # NOSONAR — S3358: nested conditional; extract to named variable (tech debt)
                             electrical_id=row[4],
                         ),
                     )
@@ -443,7 +443,7 @@ class PostGISProvider:
                             geometry=json.loads(row[2]) if row[2] else None,
                             properties=row[3]
                             if isinstance(row[3], dict)
-                            else (json.loads(row[3]) if row[3] else {}),
+                            else (json.loads(row[3]) if row[3] else {}),  # NOSONAR — S3358: nested conditional; extract to named variable (tech debt)
                             electrical_id=row[4],
                         ),
                     )
@@ -479,7 +479,7 @@ class PostGISProvider:
                             geometry=json.loads(row[2]) if row[2] else None,
                             properties=row[3]
                             if isinstance(row[3], dict)
-                            else (json.loads(row[3]) if row[3] else {}),
+                            else (json.loads(row[3]) if row[3] else {}),  # NOSONAR — S3358: nested conditional; extract to named variable (tech debt)
                             electrical_id=row[4],
                         ),
                     )
@@ -531,7 +531,7 @@ class PostGISProvider:
                             geometry=json.loads(row[2]) if row[2] else None,
                             properties=row[3]
                             if isinstance(row[3], dict)
-                            else (json.loads(row[3]) if row[3] else {}),
+                            else (json.loads(row[3]) if row[3] else {}),  # NOSONAR — S3358: nested conditional; extract to named variable (tech debt)
                             electrical_id=row[4],
                         ),
                     )

@@ -156,7 +156,7 @@ export function Navbar() {
         'relative p-2 rounded-lg transition-all duration-150 group',
         active
           ? 'bg-brand-500/15 text-brand-400'
-          : accent === 'brand'
+          : accent === 'brand'  // NOSONAR — S3358: nested ternary; refactor to named variable (tech debt)
             ? 'text-brand-400 hover:bg-brand-500/10 hover:text-brand-300'
             : 'text-[var(--text-muted)] hover:bg-[var(--bg-elevated)] hover:text-[var(--text-primary)]'
       )}

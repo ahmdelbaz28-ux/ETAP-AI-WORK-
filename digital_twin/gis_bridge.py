@@ -248,7 +248,7 @@ class GISSyncBridge:
         """Create or update a transformer in the electrical model."""
         from core_model.transformer import Transformer
 
-        xid = int(xf_id.split("_")[-1]) if "_" in xf_id else int(xf_id) if xf_id.isdigit() else 1
+        xid = int(xf_id.split("_")[-1]) if "_" in xf_id else int(xf_id) if xf_id.isdigit() else 1  # NOSONAR — S3358: nested conditional; extract to named variable (tech debt)
         # Ensure the transformer exists — default to unit transformer if buses not yet present
         existing = [t for t in self.dt_state.system.transformers if t.transformer_id == xid]
         if not existing:
@@ -271,7 +271,7 @@ class GISSyncBridge:
         lid = (
             int(line_id.split("_")[-1])
             if "_" in line_id
-            else int(line_id)
+            else int(line_id)  # NOSONAR — S3358: nested conditional; extract to named variable (tech debt)
             if line_id.isdigit()
             else 1
         )
@@ -308,7 +308,7 @@ class GISSyncBridge:
         lid = (
             int(load_id.split("_")[-1])
             if "_" in load_id
-            else int(load_id)
+            else int(load_id)  # NOSONAR — S3358: nested conditional; extract to named variable (tech debt)
             if load_id.isdigit()
             else 1
         )
@@ -332,7 +332,7 @@ class GISSyncBridge:
         from core_model.generator import Generator
 
         gid = (
-            int(gen_id.split("_")[-1]) if "_" in gen_id else int(gen_id) if gen_id.isdigit() else 1
+            int(gen_id.split("_")[-1]) if "_" in gen_id else int(gen_id) if gen_id.isdigit() else 1  # NOSONAR — S3358: nested conditional; extract to named variable (tech debt)
         )
         existing = [g for g in self.dt_state.system.generators if g.generator_id == gid]
         if not existing and self.dt_state.system.buses:

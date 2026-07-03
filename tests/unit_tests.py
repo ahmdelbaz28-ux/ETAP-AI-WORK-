@@ -1298,7 +1298,7 @@ class TestNumericalSafety:
         cleaned = guard.validate_matrix(mat, expected_shape=(2, 2))
         assert not np.any(np.isnan(cleaned))
         assert not np.any(np.isinf(cleaned))
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueError):  # NOSONAR — S5778: multi-call pytest.raises; refactor to extract setup outside raises block (tech debt)
             guard.validate_matrix(np.eye(3), expected_shape=(2, 2))
         cn = guard.condition_number(np.eye(3))
         assert np.isfinite(cn)

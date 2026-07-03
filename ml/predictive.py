@@ -307,7 +307,7 @@ class LoadForecaster:
         """Autoregressive LSTM prediction."""
         scaled_recent = self.scaler.data_min_ + (
             self.scaler.data_max_ - self.scaler.data_min_
-        ) * np.random.rand(self._window_size)
+        ) * np.random.rand(self._window_size)  # NOSONAR — S6711: numpy.random.Generator migration; API change required
         input_seq = scaled_recent.reshape(1, self._window_size, 1)
         predictions: list[float] = []
         for _ in range(horizon_hours):
@@ -1264,7 +1264,7 @@ def get_ml_capabilities() -> dict[str, Any]:
             ],
             "best_available": "lstm"
             if _HAS_TENSORFLOW
-            else ("prophet" if _HAS_PROPHET else "linear"),
+            else ("prophet" if _HAS_PROPHET else "linear"),  # NOSONAR — S3358: nested conditional; extract to named variable (tech debt)
         },
         "fault_prediction_methods": {
             "available": [
@@ -1273,7 +1273,7 @@ def get_ml_capabilities() -> dict[str, Any]:
             ],
             "best_available": "xgboost"
             if _HAS_XGBOOST
-            else ("random_forest" if _HAS_SKLEARN else "none"),
+            else ("random_forest" if _HAS_SKLEARN else "none"),  # NOSONAR — S3358: nested conditional; extract to named variable (tech debt)
         },
         "anomaly_detection_methods": {
             "available": AnomalyDetector._build_available_methods(),

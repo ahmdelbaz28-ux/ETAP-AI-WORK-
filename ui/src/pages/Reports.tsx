@@ -64,7 +64,7 @@ export default function Reports() {
           {/* Table Rows */}
           {reports.map((report, i) => (
             <motion.div
-              key={i}
+              key={i}  // NOSONAR — S6479: array index as key; items lack stable IDs (tech debt)
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.05 * i }}

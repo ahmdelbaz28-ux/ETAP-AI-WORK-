@@ -9,7 +9,7 @@ interface ThemeContextType {
 
 const ThemeContext = createContext<ThemeContextType>({ theme: 'dark', toggleTheme: () => {} })
 
-export function ThemeProvider({ children }: { children: ReactNode }) {
+export function ThemeProvider({ children }: { children: ReactNode }) {  // NOSONAR — S6759: React props read-only; requires `readonly` refactor across component tree
   const [theme, setTheme] = useState<Theme>(() => {
     const stored = localStorage.getItem('etap-theme')
     return (stored === 'light' ? 'light' : 'dark')

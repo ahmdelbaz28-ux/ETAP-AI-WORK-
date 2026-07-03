@@ -344,7 +344,7 @@ class AIFailureModeDetector:
     # FM-02: Defensive guard for impossible case
     # ------------------------------------------------------------------
     def _detect_impossible_guard(
-        self, tree: ast.AST | None, source: str,
+        self, tree: ast.AST | None, source: str,  # NOSONAR — S1172: unused param kept for API compatibility
     ) -> list[GuardViolation]:
         """Heuristic: 'if x is None' checks on values that cannot be None by construction."""
         violations: list[GuardViolation] = []
@@ -376,7 +376,7 @@ class AIFailureModeDetector:
     # FM-04: Hardcoded success return
     # ------------------------------------------------------------------
     def _detect_hardcoded_success(  # NOSONAR — S3776: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
-        self, tree: ast.AST | None, source: str,
+        self, tree: ast.AST | None, source: str,  # NOSONAR — S1172: unused param kept for API compatibility
     ) -> list[GuardViolation]:
         violations: list[GuardViolation] = []
         if tree is None:
@@ -517,7 +517,7 @@ class AIFailureModeDetector:
     # FM-08: Write before read (overwrite input)
     # ------------------------------------------------------------------
     def _detect_write_before_read(  # NOSONAR — S3776: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
-        self, tree: ast.AST | None, source: str,
+        self, tree: ast.AST | None, source: str,  # NOSONAR — S1172: unused param kept for API compatibility
     ) -> list[GuardViolation]:
         """Heuristic: function parameter immediately reassigned without reading."""
         violations: list[GuardViolation] = []
@@ -583,7 +583,7 @@ class AIFailureModeDetector:
     # FM-09: Speculative feature (oversized functions as proxy)
     # ------------------------------------------------------------------
     def _detect_speculative_feature(
-        self, tree: ast.AST | None, source: str,
+        self, tree: ast.AST | None, source: str,  # NOSONAR — S1172: unused param kept for API compatibility
     ) -> list[GuardViolation]:
         """Heuristic: functions over 50 lines are likely doing more than specified."""
         violations: list[GuardViolation] = []
@@ -650,7 +650,7 @@ class AIFailureModeDetector:
     # FM-11: Over-engineered abstraction for single use
     # ------------------------------------------------------------------
     def _detect_over_engineering(  # NOSONAR — S3776: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
-        self, tree: ast.AST | None, source: str,
+        self, tree: ast.AST | None, source: str,  # NOSONAR — S1172: unused param kept for API compatibility
     ) -> list[GuardViolation]:
         """Heuristic: abstract base class with only one concrete subclass."""
         violations: list[GuardViolation] = []
@@ -733,7 +733,7 @@ class AIFailureModeDetector:
     # FM-03: Hallucinated API or package
     # ------------------------------------------------------------------
     def _detect_hallucinated_api(  # NOSONAR — S3776: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
-        self, tree: ast.AST | None, source: str, context: dict[str, Any] | None,
+        self, tree: ast.AST | None, source: str, context: dict[str, Any] | None,  # NOSONAR — S1172: unused param kept for API compatibility
     ) -> list[GuardViolation]:
         """Detect imports of packages that are not in the known-packages set.
 

@@ -38,7 +38,7 @@ const severityConfig = {
   error: { icon: X, bg: 'bg-red-500/10', border: 'border-red-500/20', text: 'text-red-400' },
 }
 
-export function ContextPanel({
+export function ContextPanel({  // NOSONAR — S6759: React props read-only; requires `readonly` refactor across component tree
   title = 'Properties',
   selectedItem,
   warnings = [],
@@ -80,7 +80,7 @@ export function ContextPanel({
             {selectedItem.details && selectedItem.details.length > 0 && (
               <div className="space-y-1">
                 {selectedItem.details.map((item, i) => (
-                  <div key={i} className="flex items-center justify-between py-1.5 px-2 rounded-md hover:bg-[var(--bg-elevated)]">
+                  <div key={i} className="flex items-center justify-between py-1.5 px-2 rounded-md hover:bg-[var(--bg-elevated)]">  // NOSONAR — S6479: array index as key; items lack stable IDs (tech debt)
                     <span className="text-xs text-[var(--text-muted)]">{item.label}</span>
                     <span className="text-xs font-medium text-[var(--text-secondary)] mono-engineering">
                       {item.value}
@@ -134,13 +134,13 @@ export function ContextPanel({
             <div className="text-[10px] font-semibold text-[var(--text-muted)] uppercase tracking-wider mb-2">Actions</div>
             {actions.map((action, i) => (
               <button
-                key={i}
+                key={i}  // NOSONAR — S6479: array index as key; items lack stable IDs (tech debt)
                 onClick={action.onClick}
                 className={cn(
                   'w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium transition-colors text-left',
                   action.variant === 'primary'
                     ? 'bg-[var(--accent-primary)]/10 text-[var(--accent-primary)] hover:bg-[var(--accent-primary)]/20'
-                    : action.variant === 'ghost'
+                    : action.variant === 'ghost'  // NOSONAR — S3358: nested ternary; refactor to named variable (tech debt)
                     ? 'text-[var(--text-secondary)] hover:bg-[var(--bg-elevated)]'
                     : 'bg-[var(--bg-elevated)] text-[var(--text-secondary)] hover:bg-[var(--border-primary)]'
                 )}

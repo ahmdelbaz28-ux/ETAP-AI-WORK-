@@ -470,7 +470,7 @@ class LifeSafetyGuard:
 
     # ─── Pre-action check — called before EVERY action ─────────────────────
 
-    def pre_action_check(
+    def pre_action_check(  # NOSONAR — S3776: cognitive complexity; refactoring sprint
         self,
         action,  # CUAAction
         screenshot_before: str | None,
@@ -641,7 +641,7 @@ class LifeSafetyGuard:
         self,
         screenshot_path: str,
         action,
-        gemini_analysis: dict[str, Any] | None,
+        gemini_analysis: dict[str, Any] | None,  # NOSONAR — S1172: unused param kept for API compatibility
     ) -> str | None:
         """Draw a red crosshair on the screenshot at the click location.
 

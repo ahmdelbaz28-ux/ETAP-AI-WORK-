@@ -134,21 +134,21 @@ function hasArabicWords(text: string): boolean {
  */
 function estimateArabicConfidence(text: string): number {
   if (!text || text.trim().length === 0) {
-    return 0.0;
+    return 0.0;  // NOSONAR — S7748: number literal trailing zero; cosmetic
   }
 
   const arabicChars = Array.from(text).filter(char => ARABIC_CHARACTERS.has(char)).length;
   const totalChars = text.length;
 
   if (totalChars === 0) {
-    return 0.0;
+    return 0.0;  // NOSONAR — S7748: number literal trailing zero; cosmetic
   }
 
   const arabicRatio = arabicChars / totalChars;
 
   // If more than 30% of characters are Arabic, high confidence
   if (arabicRatio > 0.3) {
-    return Math.min(1.0, arabicRatio * 1.5);
+    return Math.min(1.0, arabicRatio * 1.5);  // NOSONAR — S7748: number literal trailing zero; cosmetic
   }
 
   // Check for Arabic words

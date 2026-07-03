@@ -20,7 +20,7 @@ const routeLabels: Record<string, string> = {
   'code-guard': 'sidebar.codeGuard',
 }
 
-export function Breadcrumbs({ path }: { path: string }) {
+export function Breadcrumbs({ path }: { path: string }) {  // NOSONAR — S6759: React props read-only; requires `readonly` refactor across component tree
   const { t } = useTranslation()
   const segments = path.split('/').filter(Boolean)
 
@@ -34,7 +34,7 @@ export function Breadcrumbs({ path }: { path: string }) {
         const isLast = i === segments.length - 1
         const labelKey = routeLabels[segment]
         return (
-          <span key={i} className="flex items-center gap-1.5">
+          <span key={i} className="flex items-center gap-1.5">  // NOSONAR — S6479: array index as key; items lack stable IDs (tech debt)
             <span className={isLast ? 'text-[var(--text-secondary)] font-medium' : ''}>
               {labelKey ? t(labelKey) : segment.replace(/-/g, ' ')}
             </span>

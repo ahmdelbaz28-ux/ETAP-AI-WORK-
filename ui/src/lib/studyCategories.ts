@@ -80,7 +80,7 @@ export const studyCategories: StudyCategory[] = [
     params: [
       { name: 'upstream_relay_tms', type: 'number', default: 0.1, label: 'Upstream TMS' },
       { name: 'downstream_relay_tms', type: 'number', default: 0.2, label: 'Downstream TMS' },
-      { name: 'pickup_current', type: 'number', default: 1.0, label: 'Pickup Current (pu)' },
+      { name: 'pickup_current', type: 'number', default: 1.0, label: 'Pickup Current (pu)' },  // NOSONAR — S7748: number literal trailing zero; cosmetic
     ],
   },
   {

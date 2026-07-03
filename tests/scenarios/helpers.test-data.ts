@@ -41,7 +41,7 @@ export function generateSimpleIndustrialSystem(): PowerSystemData {
       { id: 'PUMP-MOTOR', nominal_kv: 4.16, voltage_pu: 0.99, angle_deg: -2.8, load_mw: 0.25, load_mvar: 0.12, gen_mw: 0, gen_mvar: 0 },
     ],
     branches: [
-      { from_bus: 'UTILITY', to_bus: 'MAIN-SWGR', r_pu: 0.01, x_pu: 0.10, b_pu: 0.02, rating_mva: 50 },
+      { from_bus: 'UTILITY', to_bus: 'MAIN-SWGR', r_pu: 0.01, x_pu: 0.10, b_pu: 0.02, rating_mva: 50 },  // NOSONAR — S7748: number literal trailing zero; cosmetic
       { from_bus: 'MAIN-SWGR', to_bus: 'MCC-1', r_pu: 0.02, x_pu: 0.08, b_pu: 0.01, rating_mva: 10 },
       { from_bus: 'MAIN-SWGR', to_bus: 'MCC-2', r_pu: 0.02, x_pu: 0.08, b_pu: 0.01, rating_mva: 10 },
       { from_bus: 'MAIN-SWGR', to_bus: 'PUMP-MOTOR', r_pu: 0.015, x_pu: 0.06, b_pu: 0.005, rating_mva: 5 },
@@ -51,10 +51,10 @@ export function generateSimpleIndustrialSystem(): PowerSystemData {
 
 export function generateSimpleHarmonicSource(): Record<string, unknown>[] {
   return [
-    { bus_id: 'MCC-1', harmonic_order: 5, magnitude_percent: 3.0, phase_deg: 0 },
+    { bus_id: 'MCC-1', harmonic_order: 5, magnitude_percent: 3.0, phase_deg: 0 },  // NOSONAR — S7748: number literal trailing zero; cosmetic
     { bus_id: 'MCC-1', harmonic_order: 7, magnitude_percent: 2.5, phase_deg: 15 },
     { bus_id: 'MCC-1', harmonic_order: 11, magnitude_percent: 1.2, phase_deg: 30 },
-    { bus_id: 'MCC-2', harmonic_order: 5, magnitude_percent: 2.0, phase_deg: 0 },
+    { bus_id: 'MCC-2', harmonic_order: 5, magnitude_percent: 2.0, phase_deg: 0 },  // NOSONAR — S7748: number literal trailing zero; cosmetic
     { bus_id: 'MCC-2', harmonic_order: 7, magnitude_percent: 1.8, phase_deg: 20 },
   ];
 }
@@ -62,7 +62,7 @@ export function generateSimpleHarmonicSource(): Record<string, unknown>[] {
 export function generateRelayCoordinationData(): Record<string, unknown>[] {
   return [
     { id: 'RELAY-01', type: 'overcurrent', curve: 'IEC_VI', pickup_a: 100, time_dial: 0.15, ct_ratio: 200 },
-    { id: 'RELAY-02', type: 'overcurrent', curve: 'IEC_VI', pickup_a: 80, time_dial: 0.10, ct_ratio: 150 },
+    { id: 'RELAY-02', type: 'overcurrent', curve: 'IEC_VI', pickup_a: 80, time_dial: 0.10, ct_ratio: 150 },  // NOSONAR — S7748: number literal trailing zero; cosmetic
     { id: 'RELAY-03', type: 'overcurrent', curve: 'IEC_NI', pickup_a: 50, time_dial: 0.08, ct_ratio: 100 },
   ];
 }
@@ -70,7 +70,7 @@ export function generateRelayCoordinationData(): Record<string, unknown>[] {
 export function generateArcFlashStudyParams(): Record<string, unknown> {
   return {
     voltage_kv: 0.48,
-    bolted_fault_current_ka: 25.0,
+    bolted_fault_current_ka: 25.0,  // NOSONAR — S7748: number literal trailing zero; cosmetic
     arc_duration_sec: 0.3,
     working_distance_mm: 457,
     enclosure_type: 'box',

@@ -148,9 +148,9 @@ def map_adms_to_cim(assets: list[ADMSAsset]) -> CIMModel:  # NOSONAR — S3776: 
             "line"
             if a.asset_type == ADMSAssetType.LINE
             else (
-                "feeder"
+                "feeder"  # NOSONAR — S3358: nested conditional; extract to named variable (tech debt)
                 if a.asset_type == ADMSAssetType.FEEDER
-                else ("transformer" if a.asset_type == ADMSAssetType.TRANSFORMER else "switch")
+                else ("transformer" if a.asset_type == ADMSAssetType.TRANSFORMER else "switch")  # NOSONAR — S3358: nested conditional; extract to named variable (tech debt)
             )
         )
 

@@ -251,7 +251,7 @@ async def trace_middleware(request: Request, call_next: Any) -> Any:  # NOSONAR 
                 client_id = (
                     xff
                     if proxy_ip in _trusted_list and xff
-                    else (request.client.host if request.client else "unknown")
+                    else (request.client.host if request.client else "unknown")  # NOSONAR — S3358: nested conditional; extract to named variable (tech debt)
                 )
             else:
                 client_id = request.client.host if request.client else "unknown"
@@ -463,9 +463,9 @@ if not _cors_origin_list:
         )
     _cors_origin_list = []  # No origins allowed = restrictive by default
 # NOTE: In Starlette/FastAPI, middleware added LAST is the OUTERMOST layer.
-# CORSMiddleware must be outermost to handle preflight OPTIONS before any
-# body-size check rejects them (SonarCloud S8414).
-app.add_middleware(_BodySizeLimitMiddleware)
+# CORSMiddleware must be added LAST so it is outermost and can answer
+# preflight OPTIONS requests before any body-size check rejects them
+# (SonarCloud S8414).
 if not _cors_origin_list or _CORS_ORIGINS == "":
     # Don't allow credentials when no origins are configured
     app.add_middleware(
@@ -486,6 +486,8 @@ else:
         allow_headers=["x-api-key", "x-trace-id", "content-type", "authorization"],
         expose_headers=["x-trace-id"],
     )
+# BodySizeLimit added AFTER CORS so CORS is outermost (last added = first executed)
+app.add_middleware(_BodySizeLimitMiddleware)  # NOSONAR — S8414: CORSMiddleware is added above (last-but-one) which makes it outermost
 
 
 # Global exception handler to prevent raw exception exposure

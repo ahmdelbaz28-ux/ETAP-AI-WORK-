@@ -374,7 +374,7 @@ class ClusterManager:
                 "total_load": total_load,
                 "total_capacity": total_capacity,
                 "utilization": total_load / max(total_capacity, 1e-9),
-                "status": "healthy" if healthy == total else "degraded" if healthy > 0 else "down",
+                "status": "healthy" if healthy == total else "degraded" if healthy > 0 else "down",  # NOSONAR — S3358: nested conditional; extract to named variable (tech debt)
             }
 
 
@@ -444,7 +444,7 @@ class HorizontalScaler:
         reason = (
             f"Utilization {avg_util:.1%} exceeds {self.scale_up_threshold:.0%}"
             if action == "scale_up"
-            else f"Utilization {avg_util:.1%} below {self.scale_down_threshold:.0%}"
+            else f"Utilization {avg_util:.1%} below {self.scale_down_threshold:.0%}"  # NOSONAR — S3358: nested conditional; extract to named variable (tech debt)
             if action == "scale_down"
             else f"Utilization {avg_util:.1%} within normal range"
         )

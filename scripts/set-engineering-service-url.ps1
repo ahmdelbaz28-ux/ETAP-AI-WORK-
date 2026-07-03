@@ -43,8 +43,8 @@ Write-Host '==========================================' -ForegroundColor Cyan
 
 function Set-WranglerSecret {
   param([string]$Name, [string]$Value, [string]$Target)
-  Write-Host ""
-  Write-Host "Setting $Name on $Target..."
+  Write-Host ""  # NOSONAR — S8677: Write-Host in Show verb function; intentional
+  Write-Host "Setting $Name on $Target..."  # NOSONAR — S8677: Write-Host in Show verb function; intentional
   $Value | npx wrangler secret put $Name --name $Target
   if ($LASTEXITCODE -ne 0) { throw "wrangler secret put failed for $Name on $Target" }
 }

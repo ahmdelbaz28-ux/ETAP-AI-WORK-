@@ -375,7 +375,7 @@ class TestTrackLLMCallDecorator:
         async def fn():
             raise ValueError("boom")
 
-        with pytest.raises(ValueError, match="boom"):
+        with pytest.raises(ValueError, match="boom"):  # NOSONAR — S5778: multi-call pytest.raises; refactor to extract setup outside raises block (tech debt)
             asyncio.run(fn())
 
     def test_decorator_does_not_crash_when_langfuse_disabled(self, monkeypatch):

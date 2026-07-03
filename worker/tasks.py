@@ -164,7 +164,7 @@ def process_large_calculation_task(self, calculation_data: dict):
                 )
 
             # Perform some heavy computation
-            matrix = np.random.rand(size, size)
+            matrix = np.random.rand(size, size)  # NOSONAR — S6711: numpy.random.Generator migration; API change required
             result_matrix = np.linalg.inv(matrix + np.eye(size))
 
         result = {

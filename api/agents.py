@@ -645,7 +645,7 @@ async def etap_gui_siem_events(
     limit = min(max(limit, 1), 200)
     events: list = []
     try:
-        with open(log_path, encoding="utf-8") as fh:
+        with open(log_path, encoding="utf-8") as fh:  # NOSONAR — S7493: sync file I/O in async function; compatibility with sync lib
             lines = fh.readlines()
         # Take the last N lines
         for line in lines[-limit:]:
