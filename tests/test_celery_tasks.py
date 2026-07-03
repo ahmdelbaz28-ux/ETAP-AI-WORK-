@@ -435,7 +435,7 @@ class TestTaskResultRetrieval:
         data = _sample_study_data()
         data["trace_id"] = "custom-trace-999"
 
-        async_result = execute_engineering_study_task.apply_async(args=(data,))
+        async_result = execute_engineering_study_task.apply_async(args=(data,))  # NOSONAR — S1481: unused local kept for clarity/debugging
 
         # The mock returns _fake_study_result; we verify the trace_id was
         # extracted from study_data and passed to execute_study_logic.

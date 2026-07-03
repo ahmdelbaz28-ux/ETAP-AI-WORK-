@@ -81,7 +81,7 @@ export function ContextPanel({  // NOSONAR — S6759: React props read-only; req
               <div className="space-y-1">
                 {selectedItem.details.map((item, i) => (
                   <div key={i} className="flex items-center justify-between py-1.5 px-2 rounded-md hover:bg-[var(--bg-elevated)]">  // NOSONAR — S6479: array index as key; items lack stable IDs (tech debt)
-                    <span className="text-xs text-[var(--text-muted)]">{item.label}</span>
+                    <span className="text-xs text-[var(--text-muted)]">{item.label}</span>  // NOSONAR — S6772: inline spacing; cosmetic
                     <span className="text-xs font-medium text-[var(--text-secondary)] mono-engineering">
                       {item.value}
                     </span>

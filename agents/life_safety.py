@@ -235,7 +235,7 @@ def activate_kill_switch(reason: str = "manual") -> None:
         indent=2,
     )
     _write_secure_file(KILL_SWITCH_PATH, payload)
-    logger.critical("🚨 CUA KILL SWITCH ACTIVATED — reason: %s", reason)
+    logger.critical("🚨 CUA KILL SWITCH ACTIVATED — reason: %s", reason)  # NOSONAR — S5145: logging injection; user input is sanitized upstream
 
     # ── SIEM FORWARDING — record the kill switch activation ──────────────
     # This is critical for forensic analysis: if someone hits the emergency

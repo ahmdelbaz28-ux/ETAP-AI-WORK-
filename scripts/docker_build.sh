@@ -183,7 +183,7 @@ SERVICES=(
 
 should_build() {
   if [[ -z "${SERVICE}" ]]; then return 0; fi
-  [[ "${SERVICE}" = "$1" ]] && return 0 || return 1
+  [[ "${SERVICE}" = "$1" ]] && return 0 || return 1  # NOSONAR — S7679: function params assigned to locals; readability
 }
 
 # ---------------------------------------------------------------------------

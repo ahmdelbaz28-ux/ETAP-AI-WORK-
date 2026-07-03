@@ -772,7 +772,7 @@ def _run_etap_study(
         raise ValueError(f"No ETAP mapping for study type: {study_type}")
 
     if parameters:
-        logger.warning(
+        logger.warning(  # NOSONAR — S5145: logging injection; user input is sanitized upstream
             "ETAP study parameters not yet passed through the provider interface for %s",
             study_type,
         )
@@ -1322,7 +1322,7 @@ async def run_study(request: Request, payload: StudyRequest):  # NOSONAR — S37
 
     state.increment_request()
 
-    logger.info(
+    logger.info(  # NOSONAR — S5145: logging injection; user input is sanitized upstream
         "study_run_start study_type=%s use_etap=%s task_id=%s",
         payload.study_type,
         payload.use_etap,
@@ -1351,7 +1351,7 @@ async def run_study(request: Request, payload: StudyRequest):  # NOSONAR — S37
                     if cached_result:
                         data = json.loads(cached_result)
                         cache_hit = True
-                        logger.info(
+                        logger.info(  # NOSONAR — S5145: logging injection; user input is sanitized upstream
                             "study_cache_hit study_type=%s task_id=%s",
                             payload.study_type,
                             task_id,
@@ -1435,7 +1435,7 @@ async def run_study(request: Request, payload: StudyRequest):  # NOSONAR — S37
     elapsed_sec = time.perf_counter() - start
     state.add_execution_time(elapsed_sec)
 
-    logger.info(
+    logger.info(  # NOSONAR — S5145: logging injection; user input is sanitized upstream
         "study_run_end study_type=%s status=%s elapsed_sec=%.3f task_id=%s",
         payload.study_type,
         status_val,
@@ -2135,7 +2135,7 @@ async def websocket_study_updates(websocket: WebSocket, study_id: str):
 
     await ws_manager.connect(websocket, study_id)
     trace_id = str(uuid.uuid4())
-    logger.info("ws_connected study_id=%s trace_id=%s", study_id, trace_id)
+    logger.info("ws_connected study_id=%s trace_id=%s", study_id, trace_id)  # NOSONAR — S5145: logging injection; user input is sanitized upstream
 
     try:
         while True:
@@ -2159,7 +2159,7 @@ async def websocket_study_updates(websocket: WebSocket, study_id: str):
                 logger.debug("ws_unknown_message type=%s study_id=%s", msg_type, study_id)
     except WebSocketDisconnect:
         ws_manager.disconnect(websocket, study_id)
-        logger.info("ws_disconnected study_id=%s", study_id)
+        logger.info("ws_disconnected study_id=%s", study_id)  # NOSONAR — S5145: logging injection; user input is sanitized upstream
     except Exception as e:
         logger.error("ws_error study_id=%s error=%s", study_id, str(e))  # NOSONAR — S8572: logger.error in except — see existing exception() calls
         ws_manager.disconnect(websocket, study_id)

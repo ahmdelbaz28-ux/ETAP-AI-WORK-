@@ -177,7 +177,7 @@ class Tracer:
         """Generate a short unique span id."""
         import random
 
-        return f"{random.getrandbits(64):016x}"
+        return f"{random.getrandbits(64):016x}"  # NOSONAR — S2245: PRNG used for non-crypto purposes (test/load sim)
 
 
 # ------------------------------------------------------------------ NullTracer

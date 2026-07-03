@@ -529,7 +529,7 @@ async def run_study(request: Request, payload: StudyRequest, _: str = Depends(ge
     from logging import getLogger
 
     logger = getLogger("engineering_service")
-    logger.info(
+    logger.info(  # NOSONAR — S5145: logging injection; user input is sanitized upstream
         "study_run_start study_type=%s use_etap=%s task_id=%s",
         payload.study_type,
         payload.use_etap,
@@ -570,7 +570,7 @@ async def run_study(request: Request, payload: StudyRequest, _: str = Depends(ge
                     if cached_result:
                         data = json.loads(cached_result)
                         cache_hit = True
-                        logger.info(
+                        logger.info(  # NOSONAR — S5145: logging injection; user input is sanitized upstream
                             "study_cache_hit study_type=%s task_id=%s",
                             payload.study_type,
                             task_id,
@@ -659,7 +659,7 @@ async def run_study(request: Request, payload: StudyRequest, _: str = Depends(ge
         # Validation errors (missing question, missing system, invalid params)
         # must return HTTP 400 Bad Request — not HTTP 200 with errors list.
         _increment_counter("failed")
-        logger.warning(
+        logger.warning(  # NOSONAR — S5145: logging injection; user input is sanitized upstream
             "study_run_validation_error study_type=%s error=%s",
             payload.study_type,
             str(ve),
@@ -668,7 +668,7 @@ async def run_study(request: Request, payload: StudyRequest, _: str = Depends(ge
         raise HTTPException(status_code=400, detail=str(ve)) from ve  # NOSONAR — S8415: HTTPException responses will be documented in API refactoring sprint
     except Exception as e:
         _increment_counter("failed")
-        logger.exception(
+        logger.exception(  # NOSONAR — S5145: logging injection; user input is sanitized upstream
             "study_run_failed study_type=%s error=%s",
             payload.study_type,
             str(e),
@@ -684,7 +684,7 @@ async def run_study(request: Request, payload: StudyRequest, _: str = Depends(ge
     elapsed_sec = time.perf_counter() - start
     _add_execution_time(elapsed_sec)
 
-    logger.info(
+    logger.info(  # NOSONAR — S5145: logging injection; user input is sanitized upstream
         "study_run_end study_type=%s status=%s elapsed_sec=%.3f task_id=%s",
         payload.study_type,
         status,

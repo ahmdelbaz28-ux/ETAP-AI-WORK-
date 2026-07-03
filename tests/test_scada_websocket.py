@@ -577,7 +577,7 @@ class TestConnectionClose:
                 feed.disconnect(websocket)
 
         with TestClient(app) as client:
-            with client.websocket_connect(WS_PATH) as ws:
+            with client.websocket_connect(WS_PATH) as ws:  # NOSONAR — S1481: unused local kept for clarity/debugging
                 # Connection should be tracked
                 # (within TestClient the ASGI scope is in-process)
                 pass  # exiting the context manager closes the connection
@@ -674,8 +674,8 @@ class TestMultipleConcurrentConnections:
                 feed.disconnect(websocket)
 
         with TestClient(app) as client:
-            with client.websocket_connect(WS_PATH) as ws1:
-                with client.websocket_connect(WS_PATH) as ws2:
+            with client.websocket_connect(WS_PATH) as ws1:  # NOSONAR — S1481: unused local kept for clarity/debugging
+                with client.websocket_connect(WS_PATH) as ws2:  # NOSONAR — S1481: unused local kept for clarity/debugging
                     # Both connections should be tracked
                     assert len(feed.active_connections) == 2
 
@@ -726,7 +726,7 @@ class TestMultipleConcurrentConnections:
                 feed.disconnect(websocket)
 
         with TestClient(app) as client:
-            with client.websocket_connect(WS_PATH) as ws1:
+            with client.websocket_connect(WS_PATH) as ws1:  # NOSONAR — S1481: unused local kept for clarity/debugging
                 # ws1 is connected
                 assert len(feed.active_connections) >= 1
 

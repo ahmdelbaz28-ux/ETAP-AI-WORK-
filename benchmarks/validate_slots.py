@@ -127,7 +127,7 @@ def measure_memory(n=10000):
 
     # Measure Bus
     gc.collect()
-    t0 = time.perf_counter()
+    t0 = time.perf_counter()  # NOSONAR — S1481: unused local kept for clarity/debugging
     buses = [Bus(i) for i in range(n)]
     gc.collect()
     # Use sys.getsizeof for one

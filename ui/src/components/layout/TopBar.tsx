@@ -23,7 +23,7 @@ export function TopBar({ onHelpOpen }: TopBarProps) {  // NOSONAR — S6759: Rea
     <header className="h-12 flex items-center justify-between px-4 bg-[var(--bg-secondary)] border-b border-[var(--border-primary)] shrink-0">
       {/* Left: Logo */}
       <div className="flex items-center gap-3">
-        <div className="flex items-center gap-2 cursor-pointer" onClick={() => navigate('/dashboard')}>
+        <div className="flex items-center gap-2 cursor-pointer" onClick={() => navigate('/dashboard')}>  // NOSONAR — S6848: non-interactive DOM role; intentional
           <div className="w-7 h-7 bg-gradient-to-br from-orange-500 to-red-600 rounded-lg flex items-center justify-center shadow-lg shadow-orange-500/20">
             <Zap className="w-4 h-4 text-white" />
           </div>

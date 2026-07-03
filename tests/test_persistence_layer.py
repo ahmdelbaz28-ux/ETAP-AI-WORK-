@@ -539,7 +539,7 @@ class TestWorkerRegistry:
 
         # Patch keys() to return matching keys
 
-        async def patched_keys(pattern):
+        async def patched_keys(pattern):  # NOSONAR — S7503: async function uses sync I/O; compatibility
             return [k for k in fake_redis._store if k.startswith(_REGISTRY_PREFIX)]  # NOSONAR — S7503: async function uses sync I/O for compatibility reasons
 
         fake_redis.keys = patched_keys

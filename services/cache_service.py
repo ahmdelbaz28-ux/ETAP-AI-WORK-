@@ -203,7 +203,7 @@ class StudyCache:
         return True
 
 
-async def get_study_cache() -> StudyCache:
+async def get_study_cache() -> StudyCache:  # NOSONAR — S7503: async function uses sync I/O; compatibility
     """
     Async factory expected by tests.
 

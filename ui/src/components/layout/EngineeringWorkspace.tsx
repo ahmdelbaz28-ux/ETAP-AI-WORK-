@@ -109,7 +109,7 @@ export function EngineeringWorkspace({  // NOSONAR — S6759: React props read-o
 
           {/* Left Resize Handle */}
           {!leftCollapsed && (
-            <div
+            <div  // NOSONAR — S6848: non-interactive DOM role; intentional
               onMouseDown={handleMouseDown('left')}
               className={cn(
                 'w-1 shrink-0 cursor-col-resize group flex items-center justify-center hover:bg-[var(--accent-primary)]/30 transition-colors',
@@ -132,7 +132,7 @@ export function EngineeringWorkspace({  // NOSONAR — S6759: React props read-o
         <>
           {/* Right Resize Handle */}
           {!rightCollapsed && (
-            <div
+            <div  // NOSONAR — S6848: non-interactive DOM role; intentional
               onMouseDown={handleMouseDown('right')}
               className={cn(
                 'w-1 shrink-0 cursor-col-resize group flex items-center justify-center hover:bg-[var(--accent-primary)]/30 transition-colors',

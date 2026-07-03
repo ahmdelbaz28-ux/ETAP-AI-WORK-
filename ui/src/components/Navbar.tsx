@@ -296,7 +296,7 @@ export function Navbar() {
           </button>
 
           {showNotifications && (
-            <div
+            <div  // NOSONAR — S6848: non-interactive DOM role; intentional
               className="absolute right-0 top-full mt-2 w-96 bg-[var(--bg-secondary)] border border-[var(--border-secondary)] rounded-xl shadow-2xl shadow-black/40 overflow-hidden z-50"
               onClick={(e) => e.stopPropagation()}
             >
@@ -411,7 +411,7 @@ export function Navbar() {
 
           {/* User dropdown menu */}
           {showUserMenu && (
-            <div
+            <div  // NOSONAR — S6848: non-interactive DOM role; intentional
               className="absolute right-0 top-full mt-2 w-64 bg-[var(--bg-secondary)] border border-[var(--border-secondary)] rounded-xl shadow-2xl shadow-black/40 overflow-hidden z-50"
               onClick={(e) => e.stopPropagation()}
             >

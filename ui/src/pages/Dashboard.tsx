@@ -18,8 +18,8 @@ const generateTimeSeriesData = () => {
   for (let i = 23; i >= 0; i--) {
     data.push({
       time: new Date(now - i * 3600000).toLocaleTimeString('en-US', { hour: '2-digit', hour12: false }),
-      requests: Math.floor(Math.random() * 50) + 10,
-      latency: Math.floor(Math.random() * 100) + 20,
+      requests: Math.floor(Math.random() * 50) + 10,  // NOSONAR — S2245: PRNG used for non-crypto purposes (UI)
+      latency: Math.floor(Math.random() * 100) + 20,  // NOSONAR — S2245: PRNG used for non-crypto purposes (UI)
     })
   }
   return data

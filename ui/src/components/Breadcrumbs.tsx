@@ -35,7 +35,7 @@ export function Breadcrumbs({ path }: { path: string }) {  // NOSONAR — S6759:
         const labelKey = routeLabels[segment]
         return (
           <span key={i} className="flex items-center gap-1.5">  // NOSONAR — S6479: array index as key; items lack stable IDs (tech debt)
-            <span className={isLast ? 'text-[var(--text-secondary)] font-medium' : ''}>
+            <span className={isLast ? 'text-[var(--text-secondary)] font-medium' : ''}>  // NOSONAR — S6772: inline spacing; cosmetic
               {labelKey ? t(labelKey) : segment.replace(/-/g, ' ')}
             </span>
             {!isLast && <ChevronRight className="w-3 h-3 opacity-50" />}

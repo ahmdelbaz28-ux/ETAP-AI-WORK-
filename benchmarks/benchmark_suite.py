@@ -429,7 +429,7 @@ def benchmark_5_study_latency() -> Dict[str, Any]:
         lf_latencies: List[float] = []
         fault_latencies: List[float] = []
 
-        for run in range(n_runs):
+        for run in range(n_runs):  # NOSONAR — S1481: unused local kept for clarity/debugging
             engine = PowerSystemEngine(sys_model)
 
             # Load flow

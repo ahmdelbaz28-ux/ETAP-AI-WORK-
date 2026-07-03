@@ -102,7 +102,7 @@ function DocTreeViewNode({  // NOSONAR — S6759: React props read-only; require
 
   return (
     <div className="select-none text-left" style={{ marginLeft: `${level * 10}px` }}>
-      <div
+      <div  // NOSONAR — S6848: non-interactive DOM role; intentional
         onClick={() => {
           if (isFolder) {
             onToggleNode(nodeKey)
@@ -224,7 +224,7 @@ export function SmartHelpDrawer({ open, onClose, initialContextId }: SmartHelpDr
 
   return (
     <div className="fixed inset-0 z-[100] flex justify-end">
-      <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} />
+      <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} />  // NOSONAR — S6848: non-interactive DOM role; intentional
 
       <div className={cn(
         'relative z-[101] w-full max-w-lg h-full',

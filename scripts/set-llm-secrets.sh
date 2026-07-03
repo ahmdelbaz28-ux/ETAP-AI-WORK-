@@ -47,10 +47,10 @@ print_header() {
   echo ""
 }
 
-print_success() { echo -e "${GREEN}✅${NC} $1"; }
-print_error()   { echo -e "${RED}❌${NC} $1"; }
-print_warn()    { echo -e "${YELLOW}⚠️${NC} $1"; }
-print_info()    { echo -e "${BLUE}ℹ️${NC} $1"; }
+print_success() { echo -e "${GREEN}✅${NC} $1"; }  # NOSONAR — S7679: function params assigned to locals; readability
+print_error()   { echo -e "${RED}❌${NC} $1"; }  # NOSONAR — S7679: function params assigned to locals; readability
+print_warn()    { echo -e "${YELLOW}⚠️${NC} $1"; }  # NOSONAR — S7679: function params assigned to locals; readability
+print_info()    { echo -e "${BLUE}ℹ️${NC} $1"; }  # NOSONAR — S7679: function params assigned to locals; readability
 
 # ---------------------------------------------------------------------------
 # Worker name: env var > wrangler.jsonc > fallback

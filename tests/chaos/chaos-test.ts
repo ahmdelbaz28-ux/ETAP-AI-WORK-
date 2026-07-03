@@ -65,8 +65,8 @@ async function runChaosTest() {  // NOSONAR — S3776: cognitive complexity; sch
   let keyRotationRateLimited = 0;
   const keyRotationErrors: string[] = [];
   for (let i = 0; i < 50; i++) {
-    const useValidKey = Math.random() > 0.3; // 70% valid, 30% invalid
-    const key = useValidKey ? API_KEY : 'invalid-key-' + Math.random();
+    const useValidKey = Math.random() > 0.3; // 70% valid, 30% invalid  // NOSONAR — S2245: PRNG used for non-crypto purposes (UI)
+    const key = useValidKey ? API_KEY : 'invalid-key-' + Math.random();  // NOSONAR — S2245: PRNG used for non-crypto purposes (UI)
     const r = await runRequest('/api/v1/agents', 'GET', undefined, key);
     if (r.ok) keyRotationOk++;
     else if (r.status === 429) keyRotationRateLimited++;
@@ -99,8 +99,8 @@ async function runChaosTest() {  // NOSONAR — S3776: cognitive complexity; sch
   let jitterRateLimited = 0;
   const jitterErrors: string[] = [];
   for (let i = 0; i < 100; i++) {
-    const endpoint = endpoints[Math.floor(Math.random() * endpoints.length)];
-    const method = methods[Math.floor(Math.random() * methods.length)];
+    const endpoint = endpoints[Math.floor(Math.random() * endpoints.length)];  // NOSONAR — S2245: PRNG used for non-crypto purposes (UI)
+    const method = methods[Math.floor(Math.random() * methods.length)];  // NOSONAR — S2245: PRNG used for non-crypto purposes (UI)
     const body = method === 'POST' ? { studyType: 'load_flow', parameters: { base_mva: 100 } } : undefined;
     const r = await runRequest(endpoint, method, body);
     if (r.ok) jitterOk++;
@@ -196,10 +196,10 @@ async function runChaosTest() {  // NOSONAR — S3776: cognitive complexity; sch
   let payloadRateLimited = 0;
   const payloadErrors: string[] = [];
   for (let i = 0; i < 30; i++) {
-    const paramCount = Math.floor(Math.random() * 50) + 1;
+    const paramCount = Math.floor(Math.random() * 50) + 1;  // NOSONAR — S2245: PRNG used for non-crypto purposes (UI)
     const params: Record<string, number> = {};
     for (let p = 0; p < paramCount; p++) {
-      params[`param_${p}`] = Math.random() * 1000;
+      params[`param_${p}`] = Math.random() * 1000;  // NOSONAR — S2245: PRNG used for non-crypto purposes (UI)
     }
     const r = await runRequest('/api/v1/studies/run', 'POST', { studyType: 'load_flow', parameters: params });
     if (r.ok) payloadOk++;

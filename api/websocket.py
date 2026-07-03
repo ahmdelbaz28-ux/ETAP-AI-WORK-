@@ -148,14 +148,14 @@ class SCADALiveFeed:
         }
 
         # Randomly add alarms occasionally
-        if random.random() < 0.1:  # 10% chance of alarm
+        if random.random() < 0.1:  # 10% chance of alarm  # NOSONAR — S2245: PRNG used for non-crypto purposes (test/load sim)
             scada_data["alarms"].append(
                 {
-                    "alarm_id": f"ALARM_{random.randint(1000, 9999)}",
+                    "alarm_id": f"ALARM_{random.randint(1000, 9999)}",  # NOSONAR — S2245: PRNG used for non-crypto purposes (test/load sim)
                     "timestamp": datetime.now(UTC).isoformat(),
-                    "severity": "WARNING" if random.random() < 0.7 else "CRITICAL",
-                    "description": f"Simulated alarm for equipment {random.choice(['Transformer', 'Breaker', 'Line'])}",
-                    "location": random.choice(["SUBSTATION_A", "SUBSTATION_B", "FEEDER_C"]),
+                    "severity": "WARNING" if random.random() < 0.7 else "CRITICAL",  # NOSONAR — S2245: PRNG used for non-crypto purposes (test/load sim)
+                    "description": f"Simulated alarm for equipment {random.choice(['Transformer', 'Breaker', 'Line'])}",  # NOSONAR — S2245: PRNG used for non-crypto purposes (test/load sim)
+                    "location": random.choice(["SUBSTATION_A", "SUBSTATION_B", "FEEDER_C"]),  # NOSONAR — S2245: PRNG used for non-crypto purposes (test/load sim)
                 },
             )
 

@@ -331,7 +331,7 @@ class EngineeringServiceUser(AuthenticatedUser):
         """Chat with the ETAP Expert AI assistant."""
         import random
 
-        question = random.choice(AI_QUESTIONS)
+        question = random.choice(AI_QUESTIONS)  # NOSONAR — S2245: PRNG used for non-crypto purposes (test/load sim)
         self.client.post(
             "/api/v1/agents/etap-expert/chat",
             json={
@@ -346,7 +346,7 @@ class EngineeringServiceUser(AuthenticatedUser):
         """Chat with the ETAP GUI Agent."""
         import random
 
-        question = random.choice(AI_QUESTIONS[:5])  # Shorter questions for GUI agent
+        question = random.choice(AI_QUESTIONS[:5])  # Shorter questions for GUI agent  # NOSONAR — S2245: PRNG used for non-crypto purposes (test/load sim)
         self.client.post(
             "/api/v1/agents/etap-gui/chat",
             json={

@@ -265,7 +265,7 @@ class TestCircuitBreaker:
         # Call N+1 times — first N record failures, the N+1th fast-fails
         # Note: the circuit breaker logic is inside _load_from_langfuse_async,
         # but here we mocked that function, so we test the breaker directly.
-        for i in range(5):
+        for i in range(5):  # NOSONAR — S1481: unused local kept for clarity/debugging
             prompt_loader._langfuse_cb.record_failure()
 
         assert prompt_loader._langfuse_cb.is_open

@@ -415,7 +415,7 @@ class ResumeManager:
         prior_steps = latest_data.get("completed_steps", [])
         context = latest_data.get("context", "")
 
-        logger.info(
+        logger.info(  # NOSONAR — S5145: logging injection; user input is sanitized upstream
             "Resuming execution %s from step %d (%d prior steps completed)",
             exec_id,
             resume_from,

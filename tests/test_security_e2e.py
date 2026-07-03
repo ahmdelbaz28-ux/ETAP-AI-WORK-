@@ -662,7 +662,7 @@ class TestSIEMEventSubmission:
 
         json_str = event.to_json()
         assert isinstance(json_str, str)
-        parsed = json_str  # Already a string
+        parsed = json_str  # Already a string  # NOSONAR — S1481: unused local kept for clarity/debugging
         assert "access" in json_str
 
     def test_siem_forwarder_initialization(self):

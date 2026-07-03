@@ -34,10 +34,10 @@ def inject_corrupted_geometries(
         return out
 
     k = max(1, int(n * corruption_ratio))
-    for idx in rng.sample(range(n), k):
+    for idx in rng.sample(range(n), k):  # NOSONAR — S2245: PRNG used for non-crypto purposes (test/load sim)
         a = out[idx]
         geom = dict(a.geometry)
-        mode = rng.choice(["missing_type", "missing_coordinates"])
+        mode = rng.choice(["missing_type", "missing_coordinates"])  # NOSONAR — S2245: PRNG used for non-crypto purposes (test/load sim)
         if mode == "missing_type":
             geom.pop("type", None)
         else:
@@ -66,7 +66,7 @@ def inject_broken_crs_metadata(
         return out
 
     k = max(1, int(n * contamination_ratio))
-    for idx in rng.sample(range(n), k):
+    for idx in rng.sample(range(n), k):  # NOSONAR — S2245: PRNG used for non-crypto purposes (test/load sim)
         a = out[idx]
         md = dict(a.metadata)
         md["source_crs"] = broken_value
@@ -96,7 +96,7 @@ def inject_missing_layers_simulation(
         return [], []
 
     k = max(1, int(n * missing_layer_ratio))
-    missing = set(rng.sample(layers, min(k, n)))
+    missing = set(rng.sample(layers, min(k, n)))  # NOSONAR — S2245: PRNG used for non-crypto purposes (test/load sim)
     present = [l for l in layers if l not in missing]
     return present, sorted(missing)
 

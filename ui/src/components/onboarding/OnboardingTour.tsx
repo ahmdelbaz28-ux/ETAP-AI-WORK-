@@ -134,7 +134,7 @@ export function OnboardingTour() {
 
   return (
     <div className="fixed inset-0 z-[200] flex items-center justify-center">
-      <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={handleSkip} />
+      <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={handleSkip} />  // NOSONAR — S6848: non-interactive DOM role; intentional
 
       <div className={cn(
         'relative z-[201] w-full max-w-md mx-4',

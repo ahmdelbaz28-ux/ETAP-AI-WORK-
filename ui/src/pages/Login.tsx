@@ -160,7 +160,7 @@ export default function Login() {
 
             <div className="flex items-center justify-between text-xs">
               <label className="flex items-center gap-1.5 text-[var(--text-tertiary)] cursor-pointer">
-                <input type="checkbox" defaultChecked className="rounded border-[var(--border-primary)] bg-[var(--bg-input)] text-brand-500 focus:ring-brand-500/20" />
+                <input type="checkbox" defaultChecked className="rounded border-[var(--border-primary)] bg-[var(--bg-input)] text-brand-500 focus:ring-brand-500/20" />  // NOSONAR — S6772: inline spacing; cosmetic
                 Remember me
               </label>
               <button type="button" className="text-brand-400 hover:text-brand-300 transition-colors">

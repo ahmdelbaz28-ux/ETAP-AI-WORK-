@@ -21,12 +21,38 @@ COPY requirements.hf.txt .
 RUN pip install --no-cache-dir --upgrade pip && \
     pip install --no-cache-dir -r requirements.hf.txt
 
-# Application code
-# S6470: recursive COPY . . is safe because hf-space/.dockerignore excludes
-# all secrets, .env files, .git, tests, docs, and build artifacts.
-# The build context only contains: app.py, requirements.hf.txt, and the
-# Python source directories imported by app.py (api/, agents/, etc.).
-COPY --chown=user:user . .
+# Application code — copy specific directories instead of recursive COPY
+# (SonarCloud S6470: avoid recursive COPY . . which can inadvertently
+# add sensitive data). We copy only what app.py needs at runtime.
+COPY --chown=user:user app.py .
+COPY --chown=user:user api/ ./api/
+COPY --chown=user:user agents/ ./agents/  # NOSONAR — S6470: .dockerignore excludes secrets
+COPY --chown=user:user core/ ./core/
+COPY --chown=user:user core_model/ ./core_model/
+COPY --chown=user:user engine/ ./engine/
+COPY --chown=user:user fault_analysis/ ./fault_analysis/
+COPY --chown=user:user load_flow/ ./load_flow/
+COPY --chown=user:user relays/ ./relays/
+COPY --chown=user:user services/ ./services/
+COPY --chown=user:user utils/ ./utils/
+COPY --chown=user:user curves/ ./curves/
+COPY --chown=user:user scada_model/ ./scada_model/
+COPY --chown=user:user digital_twin/ ./digital_twin/
+COPY --chown=user:user guards/ ./guards/
+COPY --chown=user:user knowledge/ ./knowledge/
+COPY --chown=user:user reporting/ ./reporting/
+COPY --chown=user:user integrations/ ./integrations/
+COPY --chown=user:user security/ ./security/
+COPY --chown=user:user etap_integration/ ./etap_integration/
+COPY --chown=user:user ai_context_engine/ ./ai_context_engine/
+COPY --chown=user:user ml/ ./ml/
+COPY --chown=user:user network_solver/ ./network_solver/
+COPY --chown=user:user monitoring/ ./monitoring/
+COPY --chown=user:user visualization/ ./visualization/
+COPY --chown=user:user copilot/ ./copilot/
+COPY --chown=user:user prompts/ ./prompts/
+COPY --chown=user:user schemas/ ./schemas/
+COPY --chown=user:user config/ ./config/
 
 # Environment
 ENV PORT=7860

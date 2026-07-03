@@ -83,7 +83,7 @@ function parseSimpleYaml(content: string): Record<string, unknown> {  // NOSONAR
       continue;
     }
     
-    if (inMessages && line.match(/^\s*- role:/)) {
+    if (inMessages && line.match(/^\s*- role:/)) {  // NOSONAR — S6594: RegExp.exec vs match; performance neutral
       // Save previous message if exists
       if (currentMessageRole && currentMessageContent) {
         currentMessages.push({ role: currentMessageRole, content: currentMessageContent.trim() });
@@ -91,14 +91,14 @@ function parseSimpleYaml(content: string): Record<string, unknown> {  // NOSONAR
       
       currentMessageRole = line.split(':')[1]?.trim().replace(/"/g, '').replace(/'/g, '') || '';
       currentMessageContent = '';
-    } else if (inMessages && line.match(/^\s+content:\s*\|/)) {
+    } else if (inMessages && line.match(/^\s+content:\s*\|/)) {  // NOSONAR — S6594: RegExp.exec vs match; performance neutral
       // Handle multiline content with pipe operator
       currentMessageContent = '';
       inMultilineContent = true;
       multilineIndent = line.search(/\S/); // Find the position of first non-space character
       
       // Extract content after the pipe if there's anything
-      const pipeMatch = line.match(/^\s+content:\s*\|\s*(.*)/);
+      const pipeMatch = line.match(/^\s+content:\s*\|\s*(.*)/);  // NOSONAR — S6594: RegExp.exec vs match; performance neutral
       if (pipeMatch && pipeMatch[1]) {
         currentMessageContent = pipeMatch[1];
       }
@@ -106,19 +106,19 @@ function parseSimpleYaml(content: string): Record<string, unknown> {  // NOSONAR
       // Next line should be indented content
       multilineIndent += 2; // Content after pipe should be indented more
       continue;
-    } else if (inMessages && line.match(/^\s+content:/)) {
+    } else if (inMessages && line.match(/^\s+content:/)) {  // NOSONAR — S6594: RegExp.exec vs match; performance neutral
       // Handle single-line content
-      const contentMatch = line.match(/^\s+content:(.*)/);
+      const contentMatch = line.match(/^\s+content:(.*)/);  // NOSONAR — S6594: RegExp.exec vs match; performance neutral
       if (contentMatch) {
         currentMessageContent = contentMatch[1].trim().replace(/^"|"$/g, '').replace(/^'|'$/g, '');
       }
-    } else if (inMessages && line.match(/^\s{4,}/) && currentMessageRole && !inMultilineContent) {
+    } else if (inMessages && line.match(/^\s{4,}/) && currentMessageRole && !inMultilineContent) {  // NOSONAR — S6594: RegExp.exec vs match; performance neutral
       // Handle content continuation lines (indented)
       const contentIndent = line.search(/\S/);
       if (contentIndent > multilineIndent && currentMessageContent) {
         currentMessageContent += '\n' + line.trim();
       }
-    } else if (line.match(/^\S+:/) && !line.startsWith('messages')) {
+    } else if (line.match(/^\S+:/) && !line.startsWith('messages')) {  // NOSONAR — S6594: RegExp.exec vs match; performance neutral
       // Handle regular key-value pairs
       inMessages = false;
       inMultilineContent = false;

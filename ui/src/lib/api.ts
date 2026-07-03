@@ -116,7 +116,7 @@ const DEMO_METRICS = {
 }
 
 async function demoResponse<T>(path: string, options?: RequestInit): Promise<T> {  // NOSONAR — S3776: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
-  await sleep(DEMO_MODE_TIMEOUT_MS * (0.3 + Math.random() * 0.4))
+  await sleep(DEMO_MODE_TIMEOUT_MS * (0.3 + Math.random() * 0.4))  // NOSONAR — S2245: PRNG used for non-crypto purposes (UI)
 
   const method = options?.method || 'GET'
 

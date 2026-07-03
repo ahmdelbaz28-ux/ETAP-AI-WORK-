@@ -226,8 +226,8 @@ class TestSparseSolver:
 
     def test_sparse_fill_percentage(self):
         """Test 6: Fill percentage decreases for larger systems."""
-        solver_3 = SparseYBus()
-        buses_3, branches_3 = _make_3bus_data()
+        solver_3 = SparseYBus()  # NOSONAR — S1481: unused local kept for clarity/debugging
+        buses_3, branches_3 = _make_3bus_data()  # NOSONAR — S1481: unused local kept for clarity/debugging
 
         solver_14 = SparseYBus()
         buses_14, branches_14 = _make_14bus_data()

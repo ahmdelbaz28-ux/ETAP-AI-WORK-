@@ -25,5 +25,5 @@ export function formatDuration(seconds: number): string {
 }
 
 export function generateId(): string {
-  return Math.random().toString(36).substring(2, 9) + Date.now().toString(36)
+  return Math.random().toString(36).substring(2, 9) + Date.now().toString(36)  // NOSONAR — S2245: PRNG used for non-crypto purposes (UI)
 }

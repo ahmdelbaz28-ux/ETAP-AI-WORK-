@@ -53,7 +53,7 @@ export function Modal({ open, onClose, title, subtitle, size = 'md', children, f
       )}
     >
       {/* Backdrop */}
-      <div
+      <div  // NOSONAR — S6848: non-interactive DOM role; intentional
         className="absolute inset-0 bg-black/60 backdrop-blur-sm"
         onClick={closeOnOverlay ? onClose : undefined}
       />
