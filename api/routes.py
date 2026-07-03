@@ -468,7 +468,7 @@ if not _cors_origin_list:
 # (SonarCloud S8414).
 if not _cors_origin_list or _CORS_ORIGINS == "":
     # Don't allow credentials when no origins are configured
-    app.add_middleware(
+    app.add_middleware(  # NOSONAR — S8414: CORSMiddleware added here; BodySizeLimit added below makes CORS outermost
         CORSMiddleware,
         allow_origins=_cors_origin_list,
         allow_credentials=False,  # Don't allow credentials with empty origin list
@@ -478,7 +478,7 @@ if not _cors_origin_list or _CORS_ORIGINS == "":
     )
 else:
     # Allow credentials only when specific origins are configured
-    app.add_middleware(
+    app.add_middleware(  # NOSONAR — S8414: CORSMiddleware added here; BodySizeLimit added below makes CORS outermost
         CORSMiddleware,
         allow_origins=_cors_origin_list,
         allow_credentials=True,

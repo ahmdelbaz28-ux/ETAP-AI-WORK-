@@ -22,7 +22,7 @@ RUN pip install --no-cache-dir --upgrade pip && \
     pip install --no-cache-dir -r requirements.hf.txt
 
 # Application code
-COPY --chown=user:user . .  # NOSONAR — S6470: Dockerfile recursive copy; build context is trusted
+COPY --chown=user:user . . # NOSONAR
 
 # Environment
 ENV PORT=7860

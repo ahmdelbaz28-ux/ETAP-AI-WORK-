@@ -591,17 +591,17 @@ class TestResetPassword:
         # the API, we test with a completely bogus token.
         # NOTE: token value uses FAKE_TEST_TOKEN prefix so SonarCloud S6418
         # does not flag it as a hard-coded secret.
-        resp = client.post(  # NOSONAR — S2068: test credential constant, not a real secret
+        resp = client.post(
             "/api/v1/auth/reset-password",
-            json={"token": "FAKE_TEST_TOKEN_expired_12345", "new_password": "Br4ndN3wP@ss!"},
+            json={"token": "FAKE_TEST_TOKEN_expired_12345", "new_password": "Br4ndN3wP@ss!"},  # NOSONAR — S6418: fake test token, not a real secret
         )
         assert resp.status_code == 400, f"Expected 400 for expired token, got {resp.status_code}"
 
     def test_reset_password_invalid_token(self, client):
         """A completely invalid token returns 400."""
-        resp = client.post(  # NOSONAR — S2068: test credential constant, not a real secret
+        resp = client.post(
             "/api/v1/auth/reset-password",
-            json={"token": "FAKE_TEST_TOKEN_invalid_xyz", "new_password": "Br4ndN3wP@ss!"},
+            json={"token": "FAKE_TEST_TOKEN_invalid_xyz", "new_password": "Br4ndN3wP@ss!"},  # NOSONAR — S6418: fake test token, not a real secret
         )
         assert resp.status_code == 400, f"Expected 400 for invalid token, got {resp.status_code}"
 
