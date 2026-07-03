@@ -187,3 +187,71 @@ Stage Summary:
 - All previous build, path, and version-related test blockages are completely resolved.
 - Committed and pushed to GitHub.
 
+
+---
+Task ID: sonarcloud-remediation-v2.3
+Agent: Super Z (Main Agent)
+Task: SonarCloud error discovery and remediation — sync GitHub/HuggingFace/Vercel
+
+Work Log:
+- Accessed SonarCloud public API for project ahmdelbaz28-ux_ETAP-AI-WORK-
+- Identified 2,803 total issues reported (but 2,385 already FIXED in prior commits)
+- Found 418 OPEN issues remaining; categorized by rule, file, severity
+- Discovered critical bug in sonar-project.properties: the
+  `sonar.issue.ignore.multicriteria` property only listed ONE exclusion ID
+  (S7637GHActions) instead of all 11 defined exclusions. This meant
+  documented false-positive exclusions for S117/S116/S1192/S2068/S5332/
+  S6418/S5443/S2245/S5149 were silently ignored — causing ~1000 false
+  positives to be reported as real issues. Fixed by listing all IDs
+  comma-separated.
+- Fixed real bugs in production code:
+  * engine/data_optimizer.py: dead dict.get() call (S2201)
+  * fault_analysis/arc_flash_engine.py: dead assignment to enclosure_key (S1854)
+  * src/index.ts: regex test → String.startsWith (S6557), export...from (S7763)
+  * benchmarks/benchmark_suite.py: list(...)[0] → next(iter(...)) (S8519)
+  * acp_runtime/acp_tests/test_cancellation.py: redundant pass, unused
+    function, missing checkpoint in cancellation scope (S2772/S5603/S7490/S108)
+  * src/mastra/prompts.ts: duplicate if/else-if branches (S1871)
+- Fixed security/vulnerability issues:
+  * security/log_redaction.py: \w instead of [A-Za-z0-9_] (S6353),
+    removed duplicate A-Z/a-z under re.IGNORECASE (S5869)
+  * etap_integration/etap_com.py: \W instead of [^a-zA-Z0-9_] (S6353),
+    tuple form for chained startswith (S8513)
+  * helm/etap-ai/templates/deployment.yaml: sizeLimit on emptyDir volumes
+    (S6870/S6897), automountServiceAccountToken: false (S6865)
+  * Dockerfile: merged consecutive RUN instructions (S7031)
+  * scripts/docker_deploy.sh: error messages → stderr (S7677)
+- Fixed code quality issues across Python/TS/JS:
+  * tests/test_app_startup.py: removed try/except wrappers (S8714) x4
+  * tests/test_security_fixes.py: specific exception types (S5958) x4
+  * tests/test_knowledge.py: redundant Exception in tuple (S5713)
+  * ai_context_engine/knowledge_graph.py: unnecessary list() calls (S7504) x4
+  * indexer.py: simplified regex patterns (S8786/S6019/S5843)
+  * tests/setup.ts, tests/scenarios/e2e-workflow.test.ts: node: prefix (S7772)
+  * src/core/circuitBreaker.ts: replaceAll (S7781)
+  * k6-load-test.js: Number.parseInt (S7773)
+  * ui/src/pages/Settings.tsx: replaceAll (S7781)
+  * ui/src/pages/CodeGuard.tsx: extracted nested ternary (S3358)
+  * ui/src/components/onboarding/OnboardingTour.tsx: deduplicated handleSkip (S4144)
+  * ui/src/components/help/MagicHelpInspector.tsx: String.raw (S7780)
+- Committed all changes as v2.3.0 (commit 3e38a4a3)
+- Pushed to GitHub main branch successfully
+
+Stage Summary:
+- 68 files changed, 364 insertions, 298 deletions
+- Cross-Platform Sync workflow SUCCEEDED (auto-sync to Vercel + HuggingFace)
+- Vercel deployment READY for main branch (commit 3e38a4a3)
+  URL: https://etap-ai-work-4kyayc0ll-ahmdelbaz28-uxs-projects.vercel.app
+- HuggingFace Space RUNNING with latest changes
+  URL: https://ahmdelbaz28-AHMEDETAP.hf.space
+- SonarCloud automatically triggered new analysis at 2026-07-03T22:36:06
+  (right after push) — results pending
+- Pre-existing CI/CD (ci-cd.yml) failure NOT caused by this commit (was
+  failing for previous 4 commits too — separate issue needs investigation)
+- All 3 platforms (GitHub/HuggingFace/Vercel) are now synchronized on
+  commit 3e38a4a3
+
+Security Note for User:
+- All tokens shared in chat (GitHub PAT, HF, Vercel, Supabase, Langfuse,
+  LangWatch, Smithery, Neo4j) are now COMPROMISED and should be REVOKED
+  immediately and regenerated.
