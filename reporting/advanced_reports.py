@@ -510,7 +510,7 @@ class DOCXReportGenerator:
     def __init__(self):
         self.logger = logging.getLogger("docx_generator")
 
-    def generate_report(
+    def generate_report(  # NOSONAR — S3776: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
         self, metadata: ReportMetadata, sections: list[ReportSection], output_path: str,
     ) -> str:
         """Generate DOCX report."""

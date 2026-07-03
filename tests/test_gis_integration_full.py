@@ -798,7 +798,7 @@ class TestGISUtils:
 
     def test_validate_geometry_not_dict(self):
         """Non-dict input should fail validation."""
-        ok, _ = validate_geometry_dict("not a dict")
+        ok, _ = validate_geometry_dict("not a dict")  # NOSONAR — S5655: intentional wrong-type arg to verify validation rejects it
         assert ok is False
 
     def test_safe_parse_geojson_from_string(self):

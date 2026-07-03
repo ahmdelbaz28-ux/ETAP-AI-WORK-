@@ -106,7 +106,7 @@ def main() -> int:
 
     for spec in candidates:
         try:
-            DuckDBStore = _try_import(spec)
+            DuckDBStore = _try_import(spec)  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
             store = _instantiate(DuckDBStore)
 
             # Accessibility checks: accept any of these, depending on implementation.

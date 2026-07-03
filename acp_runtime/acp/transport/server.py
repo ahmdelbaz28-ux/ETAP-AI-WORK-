@@ -59,7 +59,7 @@ class Server:
         self._logger = logger
         self._log = logging.getLogger("acp.server")
 
-    async def run(self) -> None:
+    async def run(self) -> None:  # NOSONAR — S3776: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
         """Run the read → parse → dispatch → write loop.
 
         The loop exits when the transport returns ``None`` (EOF) or when

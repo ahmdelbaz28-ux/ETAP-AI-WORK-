@@ -27,7 +27,7 @@ class CodeCompressor:
         return len(text) // 4
 
     @classmethod
-    def compress_chunks(cls, chunks: list[dict], query: str, max_tokens: int = 2000) -> list[dict]:
+    def compress_chunks(cls, chunks: list[dict], query: str, max_tokens: int = 2000) -> list[dict]:  # NOSONAR — S3776: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
         """
         Compresses chunks using Jaccard lexical overlap ranking and token budget enforcement.
         Keeps highest-scoring code snippets within the max_tokens limit.

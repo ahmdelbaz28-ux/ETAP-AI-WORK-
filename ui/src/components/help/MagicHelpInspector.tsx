@@ -76,7 +76,7 @@ export function MagicHelpInspector() {
       }
     }
 
-    const handleClick = (e: MouseEvent) => {
+    const handleClick = (e: MouseEvent) => {  // NOSONAR — S3776: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
       // ALWAYS prevent the default action and stop propagation — we want
       // the click to be interpreted as "show me docs for this element",
       // not as a normal button press.

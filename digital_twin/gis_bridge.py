@@ -366,7 +366,7 @@ class GISSyncBridge:
                     asset.properties["is_closed"] = is_closed
                     self.postgis.upsert_asset(asset)
 
-    def sync_digital_twin_to_gis(self) -> list[SyncRecord]:
+    def sync_digital_twin_to_gis(self) -> list[SyncRecord]:  # NOSONAR — S3776: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
         """Push digital twin state changes back to PostGIS/QGIS.
 
         Captures a current snapshot and writes bus states, switch states,

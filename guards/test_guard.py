@@ -175,7 +175,7 @@ class TestGuard(BaseGuard):
     # ------------------------------------------------------------------
     # T-03: One scenario per test
     # ------------------------------------------------------------------
-    def _check_multi_scenario(self, tree: ast.AST, source: str) -> list[GuardViolation]:
+    def _check_multi_scenario(self, tree: ast.AST, source: str) -> list[GuardViolation]:  # NOSONAR — S3776: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
         """Heuristic: multiple assert statements in a single test function."""
         violations: list[GuardViolation] = []
         for node in ast.walk(tree):

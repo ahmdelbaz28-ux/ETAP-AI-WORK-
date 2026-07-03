@@ -1,7 +1,7 @@
 import numpy as np
 
 
-def zbus_from_ybus(Ybus, reference_bus=0):
+def zbus_from_ybus(Ybus, reference_bus=0):  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
     """
     Compute Zbus matrix from Ybus by inverting the reduced Ybus matrix.
 
@@ -13,10 +13,10 @@ def zbus_from_ybus(Ybus, reference_bus=0):
     numpy.ndarray: Complex impedance matrix (Zbus) of size (n-1 x n-1).
     """
     # Remove the reference bus row and column
-    Y_reduced = np.delete(np.delete(Ybus, reference_bus, axis=0), reference_bus, axis=1)
+    Y_reduced = np.delete(np.delete(Ybus, reference_bus, axis=0), reference_bus, axis=1)  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
     # Compute the inverse
     try:
-        Z_reduced = np.linalg.inv(Y_reduced)
+        Z_reduced = np.linalg.inv(Y_reduced)  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
     except np.linalg.LinAlgError:
         # If singular, use pseudo-inverse
         Z_reduced = np.linalg.pinv(Y_reduced)
@@ -24,7 +24,7 @@ def zbus_from_ybus(Ybus, reference_bus=0):
     return Z_reduced
 
 
-def zbus_full(Ybus):
+def zbus_full(Ybus):  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
     """
     Compute Zbus by inverting the full Ybus matrix.
     Note: This may fail if Ybus is singular (which it is if there is no reference).

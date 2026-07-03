@@ -111,10 +111,10 @@ class _NoOpContext:
         return self
 
     def __exit__(self, *args):
-        pass
+        pass  # NOSONAR — S1186: intentional no-op (protocol stub / test fixture)
 
     def update(self, **kwargs):
-        pass
+        pass  # NOSONAR — S1186: intentional no-op (protocol stub / test fixture)
 
     def send(self):
         pass

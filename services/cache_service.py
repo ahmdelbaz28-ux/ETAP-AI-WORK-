@@ -88,7 +88,7 @@ class StudyCache:
         if expires_at is not None and time.time() >= float(expires_at):
             self._memory_cache.pop(key, None)
 
-    async def get(self, key: str, *args: Any, **kwargs: Any) -> dict[str, Any] | None:
+    async def get(self, key: str, *args: Any, **kwargs: Any) -> dict[str, Any] | None:  # NOSONAR — S3776: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
         """
         Get cached value by key.
 

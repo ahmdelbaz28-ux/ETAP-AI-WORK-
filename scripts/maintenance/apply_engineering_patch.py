@@ -3,7 +3,7 @@ import os
 import sys
 
 
-def main():
+def main():  # NOSONAR — S3776: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
     # Path to the target file relative to script location
     script_dir = os.path.dirname(os.path.abspath(__file__))
     target_path = os.path.join(script_dir, "engineering_service.py")

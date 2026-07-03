@@ -370,7 +370,7 @@ class ETAPErrorRecovery:
     def _raise_study_retryable(error: Exception, study_type: str) -> None:
         raise RuntimeError(f"Study {study_type} failed after retry: {error}")
 
-    def _kill_etap_processes(self) -> int:
+    def _kill_etap_processes(self) -> int:  # NOSONAR — S3776: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
         killed = 0
         if PSUTIL_AVAILABLE:
             for proc in psutil.process_iter(["pid", "name"]):

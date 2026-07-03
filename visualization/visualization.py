@@ -56,8 +56,8 @@ class Visualizer:
         plt = self._plt()
         if ax is None:
             _, ax = plt.subplots()
-        Ip = relay.Ip
-        I_multiples = np.linspace(current_range[0], current_range[1], points)
+        Ip = relay.Ip  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        I_multiples = np.linspace(current_range[0], current_range[1], points)  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         currents = I_multiples * Ip
         times = []
         for I in currents:
@@ -119,7 +119,7 @@ class Visualizer:
         else:
             fig = ax.get_figure()
         margins = []
-        for If in fault_currents:
+        for If in fault_currents:  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
             t_up = upstream_relay.trip_time(If)
             t_down = downstream_relay.trip_time(If)
             margin = t_up - t_down

@@ -160,7 +160,7 @@ class GoalPlannerAgent(BaseAgent):
             "total_estimated_hours": round(total_hours, 1),
         }
 
-    def prioritize_tasks(
+    def prioritize_tasks(  # NOSONAR — S3776: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
         self,
         tasks: list[dict[str, Any]],
         available_hours: float = 8.0,

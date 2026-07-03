@@ -133,7 +133,7 @@ class CodeIndexer:
     def hash_code(self, code: str) -> str:
         return hashlib.sha256(code.encode("utf-8")).hexdigest()
 
-    def index_repo(self, repo_path: str):
+    def index_repo(self, repo_path: str):  # NOSONAR — S3776: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
         repo_dir = Path(repo_path)
         total_chunks = 0
 

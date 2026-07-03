@@ -52,7 +52,7 @@ const sectionIcons: Record<string, React.ElementType> = {
   system: Wrench,
 }
 
-export function Sidebar() {
+export function Sidebar() {  // NOSONAR — S3776: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
   const { t, i18n } = useTranslation()
   const { theme, toggleTheme } = useTheme()
   const location = useLocation()

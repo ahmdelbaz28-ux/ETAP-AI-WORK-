@@ -47,7 +47,7 @@ export async function handleListAgents(
   );
 }
 
-export async function handleChat(
+export async function handleChat(  // NOSONAR — S3776: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
   request: Request,
   env: Env,
   ctx: ExecutionContext,

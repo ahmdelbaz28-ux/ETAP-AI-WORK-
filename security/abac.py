@@ -213,7 +213,7 @@ class ABACPolicyEngine:
     # -- rule evaluation -----------------------------------------------------
 
     @staticmethod
-    def _evaluate_rule(
+    def _evaluate_rule(  # NOSONAR — S3776: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
         rule: ABACRule, subject: dict, action: str, resource: dict, environment: dict,
     ) -> bool:
         """Evaluate a single rule against the request context.

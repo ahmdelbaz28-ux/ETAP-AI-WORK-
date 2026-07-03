@@ -203,7 +203,7 @@ class ETAPGuideRAG:
         results.sort(key=lambda x: x["score"], reverse=True)
         return results[:top_k]
 
-    def get_etap_procedure(self, operation: str) -> dict:
+    def get_etap_procedure(self, operation: str) -> dict:  # NOSONAR — S3776: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
         """
         Get the official ETAP procedure for a specific operation.
 

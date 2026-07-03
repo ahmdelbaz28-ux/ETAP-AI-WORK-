@@ -24,7 +24,7 @@ export function useKeyboardShortcuts() {
   const closeShortcutsPanel = useCallback(() => setShortcutsPanelOpen(false), [])
 
   useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
+    const handleKeyDown = (e: KeyboardEvent) => {  // NOSONAR — S3776: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
       // Don't intercept if the user is typing in an input/textarea AND the
       // shortcut isn't explicitly global. Exception: Ctrl/Cmd combos and F-keys
       // always work (they don't conflict with normal typing).

@@ -105,7 +105,7 @@ class KnowledgeGraph:
 
         return {"nodes": impacted_nodes, "edges": impacted_edges}
 
-    def scan_file_for_relations(self, filepath: Path, repo_root: Path) -> None:
+    def scan_file_for_relations(self, filepath: Path, repo_root: Path) -> None:  # NOSONAR — S3776: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
         """Parse file imports and class structure using AST to populate the graph."""
         try:
             with open(filepath, encoding="utf-8") as f:
@@ -154,7 +154,7 @@ class KnowledgeGraph:
         except Exception as e:
             logger.exception("Failed to scan %s for KG: %s", filepath, e)
 
-    def resolve_references(self) -> None:
+    def resolve_references(self) -> None:  # NOSONAR — S3776: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
         """Resolve module imports and class references to their actual file and class nodes."""
         # 1. Map class name to class node ID
         class_name_to_id = {}

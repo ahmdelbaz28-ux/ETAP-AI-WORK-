@@ -51,7 +51,7 @@ def _read_code_from_stdin() -> Optional[str]:
         return None
 
 
-def main() -> None:
+def main() -> None:  # NOSONAR — S3776: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
     code = _read_code_from_stdin()
     if code is None:
         print(json.dumps({"error": "No code provided via stdin", "success": False}))

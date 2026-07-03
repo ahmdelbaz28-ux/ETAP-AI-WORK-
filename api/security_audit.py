@@ -1163,7 +1163,7 @@ class SecurityAuditor:
 # ---------------------------------------------------------------------------
 
 
-async def _main() -> None:
+async def _main() -> None:  # NOSONAR — S3776: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
     """CLI entrypoint for running the security auditor."""
     import argparse
 

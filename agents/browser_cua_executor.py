@@ -197,7 +197,7 @@ class BrowserCUAExecutor:
 
     # ─── Public: execute the full CUA loop ─────────────────────────────────
 
-    def execute_loop(
+    def execute_loop(  # NOSONAR — S3776: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
         self,
         objective: str,
         start_url: str | None = None,
@@ -604,7 +604,7 @@ class BrowserCUAExecutor:
     # ─── Internal: browser action execution ────────────────────────────────
 
     @staticmethod
-    def _execute_browser_action(page, action: CUAAction) -> str | None:
+    def _execute_browser_action(page, action: CUAAction) -> str | None:  # NOSONAR — S3776: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
         """Execute a single browser action. Returns error string or None."""
         try:
             if action.type == "click":

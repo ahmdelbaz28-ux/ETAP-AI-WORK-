@@ -720,7 +720,7 @@ async def _execute_study(  # NOSONAR — S7503: async function uses sync I/O for
         }
 
 
-def _sanitize_result(obj: Any) -> Any:
+def _sanitize_result(obj: Any) -> Any:  # NOSONAR — S3776: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
     """Recursively convert numpy types and other non-JSON-serializable
     objects into native Python primitives.
     """

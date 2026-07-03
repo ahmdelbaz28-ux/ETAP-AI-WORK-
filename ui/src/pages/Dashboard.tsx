@@ -123,7 +123,7 @@ function MiniGauge({ label, value, max, color }: { label: string; value: number;
   )
 }
 
-export default function Dashboard() {
+export default function Dashboard() {  // NOSONAR — S3776: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
   const { t } = useTranslation()
   const [health, setHealth] = useState<HealthResponse | null>(null)
   const [agents, setAgents] = useState<AgentMeta[]>([])

@@ -32,7 +32,7 @@ import anyio
 __all__ = ["start_http_server"]
 
 
-async def _handle_client(
+async def _handle_client(  # NOSONAR — S3776: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
     health_handler: Any, client: anyio.abc.ByteStream, metrics_path: str = "/metrics",
 ) -> None:
     """Parse a minimal HTTP request and dispatch to the health handler."""

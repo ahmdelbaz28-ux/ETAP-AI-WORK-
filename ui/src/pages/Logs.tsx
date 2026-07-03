@@ -14,7 +14,7 @@ interface LogEntry {
   message: string
 }
 
-function auditToLogs(metrics: MetricsResponse | null, audit: AuditEntry[]): LogEntry[] {
+function auditToLogs(metrics: MetricsResponse | null, audit: AuditEntry[]): LogEntry[] {  // NOSONAR — S3776: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
   const logs: LogEntry[] = []
   if (metrics) {
     const apiEntries = metrics.api as Record<string, number>

@@ -106,7 +106,7 @@ class AnomalyAgent(BaseAgent):
         lcl = mu - sigma_threshold * sigma
 
         anomaly_mask = (data > ucl) | (data < lcl)
-        anomaly_indices = np.where(anomaly_mask)[0].tolist()
+        anomaly_indices = np.nonzero(anomaly_mask)[0].tolist()
         anomaly_values = data[anomaly_mask].tolist()
 
         anomaly_pct = (len(anomaly_indices) / len(data) * 100.0) if len(data) > 0 else 0.0
@@ -181,8 +181,8 @@ class AnomalyAgent(BaseAgent):
             s_hi[i] = max(0.0, s_hi[i - 1] + (data[i] - target) - k_val)
             s_lo[i] = max(0.0, s_lo[i - 1] - (data[i] - target) - k_val)
 
-        hi_shifts = np.where(s_hi > h_val)[0].tolist()
-        lo_shifts = np.where(s_lo > h_val)[0].tolist()
+        hi_shifts = np.nonzero(s_hi > h_val)[0].tolist()
+        lo_shifts = np.nonzero(s_lo > h_val)[0].tolist()
 
         shift_detected = len(hi_shifts) > 0 or len(lo_shifts) > 0
         shift_direction = "none"
@@ -259,7 +259,7 @@ class AnomalyAgent(BaseAgent):
             lcl[i] = mu0 - limit_factor
 
         anomaly_mask = (z > ucl) | (z < lcl)
-        anomaly_indices = np.where(anomaly_mask)[0].tolist()
+        anomaly_indices = np.nonzero(anomaly_mask)[0].tolist()
 
         return {
             "ewma_values": z.tolist(),
@@ -304,7 +304,7 @@ class AnomalyAgent(BaseAgent):
         under_mask = data < lower_limit
         violation_mask = over_mask | under_mask
 
-        violation_indices = np.where(violation_mask)[0].tolist()
+        violation_indices = np.nonzero(violation_mask)[0].tolist()
         violation_values = data[violation_mask].tolist()
 
         violation_pct = (len(violation_indices) / len(data) * 100.0) if len(data) > 0 else 0.0
@@ -459,7 +459,7 @@ class AnomalyAgent(BaseAgent):
     # Agent execute method
     # ------------------------------------------------------------------
 
-    async def execute(self, task: EngineeringTask) -> AgentResult:
+    async def execute(self, task: EngineeringTask) -> AgentResult:  # NOSONAR — S3776: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
         """
         Execute anomaly detection task.
 

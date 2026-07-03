@@ -286,7 +286,7 @@ async def test_notification_callback():
             "params": {"percent": 75},
         }
     )
-    assert called_with is not None
+    assert called_with is not None  # NOSONAR — S5727: Sonar can't track nonlocal assignment in async callback; this verifies on_notification was actually invoked
     # Direct dict access after None-check; SonarCloud S5644 narrows correctly
     # when assertions operate on the original Optional variable.
     assert called_with["method"] == "progress.update"

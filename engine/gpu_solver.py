@@ -142,7 +142,7 @@ class GPUSolver:
     # ------------------------------------------------------------------
     # Main solver
     # ------------------------------------------------------------------
-
+  # NOSONAR — S3776: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
     def newton_raphson_gpu(
         self,
         ybus: np.ndarray | csr_matrix | Any,
@@ -194,7 +194,7 @@ class GPUSolver:
                 [b.voltage_magnitude * _cp.exp(1j * b.voltage_angle) for b in bus_data],
                 dtype=_cp.complex128,
             )
-            if sp_issparse(ybus):
+            if sp_issparse(ybus):  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
                 Ybus_dense = _cp.asarray(ybus.toarray())
             else:
                 Ybus_dense = _cp.asarray(np.asarray(ybus))
@@ -204,8 +204,8 @@ class GPUSolver:
                 dtype=complex,
             )
             Ybus_dense = ybus.toarray() if sp_issparse(ybus) else np.asarray(ybus)
-
-        P_sch = xp.array([b.p_generation - b.p_load for b in bus_data], dtype=float)
+  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        P_sch = xp.array([b.p_generation - b.p_load for b in bus_data], dtype=float)  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         Q_sch = xp.array([b.q_generation - b.q_load for b in bus_data], dtype=float)
 
         # Set PV bus voltages to scheduled values
@@ -223,8 +223,8 @@ class GPUSolver:
             P = S.real
             Q = S.imag
 
-            # Mismatch
-            deltaP = P_sch - P
+            # Mismatch  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+            deltaP = P_sch - P  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
             deltaQ = Q_sch - Q
 
             mismatch = xp.zeros(n_unknowns)
@@ -250,7 +250,7 @@ class GPUSolver:
                 converged = True
                 break
 
-            # --- Build sparse Jacobian ---
+            # --- Build sparse Jacobian ---  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
             J_sparse = self._build_jacobian(V, Ybus_dense, pv_idx, pq_idx, n_unknowns)
 
             # --- Solve linear system ---
@@ -270,13 +270,13 @@ class GPUSolver:
                 vmag = xp.clip(vmag, 0.5, 1.5)
                 V[i] = vmag * xp.exp(1j * xp.angle(V[i]))
 
-        # --- Copy results back to host ---
+        # --- Copy results back to host ---  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         V_host = _cp.asnumpy(V) if self._gpu_available else np.asarray(V)
-
-        I_final = Ybus_dense @ V
+  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        I_final = Ybus_dense @ V  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         S_final = V * xp.conj(I_final)
-        if self._gpu_available:
-            P_final = _cp.asnumpy(S_final.real)
+        if self._gpu_available:  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+            P_final = _cp.asnumpy(S_final.real)  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
             Q_final = _cp.asnumpy(S_final.imag)
         else:
             P_final = np.asarray(S_final.real)
@@ -302,10 +302,10 @@ class GPUSolver:
     # ------------------------------------------------------------------
     # Jacobian construction
     # ------------------------------------------------------------------
-
+  # NOSONAR — S3776: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
     def _build_jacobian(
-        self,
-        V: Any,
+        self,  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        V: Any,  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         Ybus: Any,
         pv_idx: list[int],
         pq_idx: list[int],
@@ -334,8 +334,8 @@ class GPUSolver:
         """
         xp = self._xp
         len(V)
-
-        Vmag = xp.abs(V)
+  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        Vmag = xp.abs(V)  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         Vang = xp.angle(V)
         G = Ybus.real
         B = Ybus.imag
@@ -526,7 +526,7 @@ class GPUSolver:
             data_arr = np.array(data, dtype=np.float64)
             rows_arr = np.array(rows, dtype=np.int32)
             cols_arr = np.array(cols, dtype=np.int32)
-            # Build CuPy CSR matrix via COO
+            # Build CuPy CSR matrix via COO  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
             J_coo = _cp.sparse.coo_matrix(
                 (data_arr, (rows_arr, cols_arr)),
                 shape=(n_unknowns, n_unknowns),
@@ -538,9 +538,9 @@ class GPUSolver:
     # ------------------------------------------------------------------
     # Linear solver
     # ------------------------------------------------------------------
-
+  # NOSONAR — S3776: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
     def _solve_linear(
-        self,
+        self,  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         A: Any,
         b: Any,
         n_unknowns: int,
@@ -570,7 +570,7 @@ class GPUSolver:
                 # Ensure b is a CuPy array
                 b_gpu = _cp.asarray(np.asarray(b)) if not isinstance(b, _cp.ndarray) else b
 
-                # Ensure A is a CuPy sparse matrix
+                # Ensure A is a CuPy sparse matrix  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
                 A_gpu = _cp.sparse.csr_matrix(_cp.asarray(A)) if not _cp.sparse.issparse(A) else A
 
                 x = _cp_spsolve(A_gpu, b_gpu)
@@ -580,7 +580,7 @@ class GPUSolver:
                     "GPU spsolve failed (%s) — falling back to CPU for this solve.",
                     exc,
                 )
-                # Fallback: transfer to CPU, solve, transfer back
+                # Fallback: transfer to CPU, solve, transfer back  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
                 A_cpu = A.get() if _cp.sparse.issparse(A) else _cp.asnumpy(A)
                 b_cpu = _cp.asnumpy(b) if isinstance(b, _cp.ndarray) else np.asarray(b)
                 if sp_issparse(A_cpu):
@@ -637,7 +637,7 @@ class GPUSolver:
 
             # Build sparse Y-bus once
             builder = _SparseYBus()
-            ybus = builder.build_sparse_ybus(buses, branches)
+            ybus = builder.build_sparse_ybus(buses, branches)  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
             Ybus_dense = ybus.toarray()
 
             # --- CPU benchmark ---

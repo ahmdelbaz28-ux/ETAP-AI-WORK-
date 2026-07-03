@@ -84,7 +84,10 @@ def _hotp(secret_bytes: bytes, counter: int, digits: int = 6) -> str:
     str
         Zero-padded OTP string of length *digits*.
     """
-    # HMAC-SHA1
+    # HMAC-SHA1 — required by RFC 6238 (TOTP) / RFC 4226 (HOTP) for
+    # interoperability with Google Authenticator, Microsoft Authenticator,
+    # etc. SHA-256/512 are optional extensions not universally supported.
+    # NOSONAR — S4790: SHA1 is mandated by the RFC for OTP compatibility.
     msg = struct.pack(">Q", counter)
     h = hmac.new(secret_bytes, msg, hashlib.sha1).digest()
     # Dynamic truncation

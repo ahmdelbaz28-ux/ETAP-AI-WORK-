@@ -119,7 +119,7 @@ class CopilotAPI:
         self.start_time = time.time()
         self._call_count = 0
 
-    def get_router(self) -> APIRouter:
+    def get_router(self) -> APIRouter:  # NOSONAR — S3776: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
         """Create and return the FastAPI router."""
         router = APIRouter(prefix="/copilot", tags=["Engineering Copilot"])
 

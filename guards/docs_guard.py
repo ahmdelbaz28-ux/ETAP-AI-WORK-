@@ -382,7 +382,7 @@ class DocsGuard(BaseGuard):
     # ------------------------------------------------------------------
     # D-10: Navigation tells the truth
     # ------------------------------------------------------------------
-    def _check_navigation_truth(self, source: str) -> list[GuardViolation]:
+    def _check_navigation_truth(self, source: str) -> list[GuardViolation]:  # NOSONAR — S3776: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
         """Heuristic: check markdown links for common broken patterns."""
         violations: list[GuardViolation] = []
         # Check for relative links to files that likely don't exist

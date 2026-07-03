@@ -166,7 +166,7 @@ class Router:
 
     # ----------------------------------------------------------- request path
 
-    async def _handle_request(self, req: JsonRpcRequest) -> dict:
+    async def _handle_request(self, req: JsonRpcRequest) -> dict:  # NOSONAR — S3776: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
         """Validate, authenticate, authorize, dispatch, audit, and wrap the result."""
         t0 = time.perf_counter()
         caller_id = ""

@@ -47,7 +47,7 @@ def _stable_float_from_str(s: str, *, _scale: float, min_val: float, max_val: fl
     return min_val + (h % 100000) / 100000.0 * span
 
 
-def build_electrical_model(assets: list[ADMSAsset]) -> ElectricalModel:
+def build_electrical_model(assets: list[ADMSAsset]) -> ElectricalModel:  # NOSONAR — S3776: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
     """
     Build a simplified deterministic electrical model derived from ADMS assets.
 

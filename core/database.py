@@ -292,7 +292,7 @@ class UniversalDataModel:
         with self._lock:
             return [e for e in self.elements.values() if not e.is_deleted]
 
-    def update_element(
+    def update_element(  # NOSONAR — S3776: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
         self,
         element_id: str,
         updates: dict[str, Any],

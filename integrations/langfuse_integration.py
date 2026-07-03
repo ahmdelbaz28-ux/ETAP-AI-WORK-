@@ -82,10 +82,10 @@ class _NoOpContext:
         return self
 
     def end(self, *args, **kwargs):
-        pass
+        pass  # NOSONAR — S1186: intentional no-op (protocol stub / test fixture)
 
     def record_exception(self, exc):
-        pass
+        pass  # NOSONAR — S1186: intentional no-op (protocol stub / test fixture)
 
 
 def _env_truthy(var: str, default: bool = False) -> bool:
@@ -242,7 +242,7 @@ class LangfuseTracker:
 
     # ─── Prompt Management ───────────────────────────────────────────────
 
-    def get_prompt(
+    def get_prompt(  # NOSONAR — S3776: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
         self,
         name: str,
         label: str = "production",
@@ -378,7 +378,7 @@ atexit.register(_atexit_flush)
 # ─── Decorator: track_llm_call ────────────────────────────────────────────
 
 
-def track_llm_call(
+def track_llm_call(  # NOSONAR — S3776: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
     name: str,
     agent: str | None = None,
     model: str | None = None,

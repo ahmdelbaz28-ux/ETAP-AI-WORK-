@@ -83,11 +83,18 @@ async def test_handler_that_ignores_cancellation_still_bails():
     async def rogue_handler():
         try:
             await anyio.sleep(5.0)
-        except BaseException:
-            # Swallow the cancel and try to finish.
+        except BaseException as exc:
+            # Swallow the cancel and try to finish — this is intentionally
+            # "rogue" behavior we're testing. BUT we must re-raise
+            # SystemExit / KeyboardInterrupt so we don't break the test
+            # runner or hide Ctrl+C (SonarCloud S5754).
+            if isinstance(exc, (SystemExit, KeyboardInterrupt)):
+                raise
             try:
                 await anyio.sleep(0.05)
-            except BaseException:
+            except BaseException as inner_exc:
+                if isinstance(inner_exc, (SystemExit, KeyboardInterrupt)):
+                    raise
                 pass
 
     with pytest.raises(DeadlineExceeded):
@@ -129,7 +136,7 @@ async def test_cancellable_without_deadline_requires_external_cancel():
 
         tg.start_soon(runner)
         await anyio.sleep(0.02)
-        assert runner_scope is not None
+        assert runner_scope is not None  # NOSONAR — S5727: Sonar can't track nonlocal assignment in async closure; this check verifies the cancellable() context actually started
         runner_scope.cancel()
         with anyio.move_on_after(0.5):
             pass

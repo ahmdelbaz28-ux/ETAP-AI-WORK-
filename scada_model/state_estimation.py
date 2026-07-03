@@ -80,7 +80,7 @@ class WLSEstimator:
         self.bad_data_threshold = bad_data_threshold
 
     def estimate(
-        self, Ybus: np.ndarray, measurements: dict, bus_ids: list[str], slack_bus_idx: int = 0,
+        self, Ybus: np.ndarray, measurements: dict, bus_ids: list[str], slack_bus_idx: int = 0,  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
     ) -> StateEstimationResult:
         """
         Run WLS state estimation.
@@ -144,12 +144,12 @@ class WLSEstimator:
             r = z - h_x
 
             # Remove slack bus theta column from H to avoid singular gain matrix
-            H_reduced = H[:, keep_cols]
+            H_reduced = H[:, keep_cols]  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
 
             # Gain matrix G = H^T W H
             try:
                 G = H_reduced.T @ W @ H_reduced
-                G_inv = np.linalg.inv(G)
+                G_inv = np.linalg.inv(G)  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
             except np.linalg.LinAlgError:
                 return StateEstimationResult(
                     status=StateEstimationStatus.SINGULAR_MATRIX,
@@ -182,15 +182,15 @@ class WLSEstimator:
 
         # Compute final residuals and bad data detection
         h_x_final = self._compute_h(x, Ybus, h_indices, n)
-        H_final = self._compute_jacobian(x, Ybus, h_indices, n)
+        H_final = self._compute_jacobian(x, Ybus, h_indices, n)  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         r_final = z - h_x_final
         objective = float(r_final.T @ W @ r_final)
 
         # Covariance matrix (use reduced Jacobian to avoid singularity)
         try:
-            H_final_reduced = H_final[:, keep_cols]
-            G_final = H_final_reduced.T @ W @ H_final_reduced
-            G_inv_final = np.linalg.inv(G_final)
+            H_final_reduced = H_final[:, keep_cols]  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+            G_final = H_final_reduced.T @ W @ H_final_reduced  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+            G_inv_final = np.linalg.inv(G_final)  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
             covariance = G_inv_final
         except np.linalg.LinAlgError:
             covariance = None
@@ -200,9 +200,9 @@ class WLSEstimator:
         norm_residuals = None
         if covariance is not None:
             S = H_final_reduced @ G_inv_final @ H_final_reduced.T @ W
-            Omega = np.eye(m) - S
+            Omega = np.eye(m) - S  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
             try:
-                Omega_inv = np.linalg.inv(np.diag(np.diag(Omega)) + np.eye(m) * 1e-10)
+                Omega_inv = np.linalg.inv(np.diag(np.diag(Omega)) + np.eye(m) * 1e-10)  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
                 norm_residuals = np.abs(Omega_inv @ r_final) / (np.sqrt(np.diag(Omega_inv)) + 1e-10)
                 bad_data = [int(i) for i in range(m) if norm_residuals[i] > self.bad_data_threshold]
             except np.linalg.LinAlgError:
@@ -220,7 +220,7 @@ class WLSEstimator:
             covariance_matrix=covariance,
         )
 
-    def _build_measurement_vectors(
+    def _build_measurement_vectors(  # NOSONAR — S3776: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
         self, measurements: dict, n: int, slack_idx: int,
     ) -> tuple[np.ndarray, list, np.ndarray]:
         """Build measurement vector z, index list, and weight vector."""
@@ -235,7 +235,7 @@ class WLSEstimator:
             w_list.append(1.0 / (sigma**2) if sigma > 0 else 1e6)
 
         # Power injection measurements
-        for bus_idx, (P, Q, sigma_P, sigma_Q) in measurements.get("power_injection", {}).items():
+        for bus_idx, (P, Q, sigma_P, sigma_Q) in measurements.get("power_injection", {}).items():  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
             if bus_idx != slack_idx:
                 z_list.append(P)
                 h_indices.append(("P", bus_idx))
@@ -255,7 +255,7 @@ class WLSEstimator:
 
         return np.array(z_list), h_indices, np.array(w_list)
 
-    def _compute_h(self, x: np.ndarray, Ybus: np.ndarray, h_indices: list, n: int) -> np.ndarray:
+    def _compute_h(self, x: np.ndarray, Ybus: np.ndarray, h_indices: list, n: int) -> np.ndarray:  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         """Compute estimated measurement vector h(x)."""
         theta = x[:n]
         V = x[n:]
@@ -267,7 +267,7 @@ class WLSEstimator:
                 h[k] = V[bus_idx]
             elif idx_info[0] == "P":
                 _, i = idx_info
-                Pi = 0.0
+                Pi = 0.0  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
                 for j in range(n):
                     Pi += (
                         V[i]
@@ -280,7 +280,7 @@ class WLSEstimator:
                 h[k] = Pi
             elif idx_info[0] == "Q":
                 _, i = idx_info
-                Qi = 0.0
+                Qi = 0.0  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
                 for j in range(n):
                     Qi += (
                         V[i]
@@ -293,9 +293,9 @@ class WLSEstimator:
                 h[k] = Qi
             elif idx_info[0] == "Pij":
                 _, i, j = idx_info
-                Gij = Ybus[i, j].real
-                Bij = Ybus[i, j].imag
-                Pij = V[i] ** 2 * Gij - V[i] * V[j] * (
+                Gij = Ybus[i, j].real  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+                Bij = Ybus[i, j].imag  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+                Pij = V[i] ** 2 * Gij - V[i] * V[j] * (  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
                     Gij * np.cos(theta[i] - theta[j]) + Bij * np.sin(theta[i] - theta[j])
                 )
                 h[k] = Pij
@@ -303,14 +303,14 @@ class WLSEstimator:
                 _, i, j = idx_info
                 Gij = Ybus[i, j].real
                 Bij = Ybus[i, j].imag
-                Qij = -(V[i] ** 2) * Bij - V[i] * V[j] * (
+                Qij = -(V[i] ** 2) * Bij - V[i] * V[j] * (  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
                     Gij * np.sin(theta[i] - theta[j]) - Bij * np.cos(theta[i] - theta[j])
                 )
                 h[k] = Qij
         return h
 
-    def _compute_jacobian(
-        self, x: np.ndarray, Ybus: np.ndarray, h_indices: list, n: int,
+    def _compute_jacobian(  # NOSONAR — S3776: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
+        self, x: np.ndarray, Ybus: np.ndarray, h_indices: list, n: int,  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
     ) -> np.ndarray:
         """Compute Jacobian matrix H = dh/dx."""
         m = len(h_indices)
@@ -328,8 +328,8 @@ class WLSEstimator:
                 for j in range(n):
                     if i == j:
                         continue
-                    Gij = Ybus[i, j].real
-                    Bij = Ybus[i, j].imag
+                    Gij = Ybus[i, j].real  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+                    Bij = Ybus[i, j].imag  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
                     # dPi/dtheta_j
                     H[k, j] = (
                         V[i]
@@ -502,9 +502,9 @@ class GNNStateEstimator:
         self._wls_estimator = WLSEstimator()
         self._is_trained = False
 
-    def estimate_with_gnn(
+    def estimate_with_gnn(  # NOSONAR — S3776: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
         self,
-        Ybus: np.ndarray,
+        Ybus: np.ndarray,  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         measurements: dict,
         bus_ids: list[str],
         edge_list: list[tuple[int, int]] | None = None,

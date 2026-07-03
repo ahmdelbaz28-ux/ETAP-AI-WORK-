@@ -18,7 +18,7 @@ def _deterministic_rng(seed: int) -> random.Random:
     return random.Random(seed)
 
 
-def generate_synthetic_grid(
+def generate_synthetic_grid(  # NOSONAR — S3776: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
     *,
     grid_type: str,
     seed: int = 1337,

@@ -73,7 +73,7 @@ def _bool_from_metadata(value: Any, *, default: bool = False) -> bool:
     return default
 
 
-def map_adms_to_cim(assets: list[ADMSAsset]) -> CIMModel:
+def map_adms_to_cim(assets: list[ADMSAsset]) -> CIMModel:  # NOSONAR — S3776: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
     """
     Deterministic CIM-like mapping for validation traceability.
 

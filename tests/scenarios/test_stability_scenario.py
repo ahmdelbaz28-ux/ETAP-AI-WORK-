@@ -53,7 +53,7 @@ def multimachine_data():
     B = (B + B.T) / 2.0
     np.fill_diagonal(G, np.sum(G, axis=1) - np.diag(G) + 1.0)
     np.fill_diagonal(B, -np.sum(np.abs(B), axis=1))
-    Ybus_red = G + 1j * B
+    Ybus_red = G + 1j * B  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
 
     return {
         "H": np.array([3.0, 4.0, 5.0]),
@@ -76,10 +76,10 @@ class TestStabilityScenario:
     def test_transient_stability_analysis(self, agent, multimachine_data):
         """Test 2: Transient stability via RK4 swing equation integration."""
         d = multimachine_data
-        fault_Ybus = d["Ybus_red"].copy()
+        fault_Ybus = d["Ybus_red"].copy()  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         fault_Ybus[0, 0] += 1.0 / 1e-6  # Three-phase fault at bus 0
 
-        post_fault_Ybus = d["Ybus_red"].copy()
+        post_fault_Ybus = d["Ybus_red"].copy()  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
 
         result = agent.analyze_transient_stability(
             H=d["H"],

@@ -203,7 +203,7 @@ class TestWebSocketTransport:
             return msg
 
         async def send(_: str) -> None:
-            pass
+            pass  # NOSONAR — S1186: intentional no-op (protocol stub / test fixture)
 
         transport = WebSocketTransport(send, recv)
         msg = await transport.read_message()
@@ -215,7 +215,7 @@ class TestWebSocketTransport:
             raise ConnectionError("closed")
 
         async def send(_: str) -> None:
-            pass
+            pass  # NOSONAR — S1186: intentional no-op (protocol stub / test fixture)
 
         transport = WebSocketTransport(send, recv)
         msg = await transport.read_message()
@@ -241,7 +241,7 @@ class TestWebSocketTransport:
             return '{"jsonrpc":"2.0"}'
 
         async def send(_: str) -> None:
-            pass
+            pass  # NOSONAR — S1186: intentional no-op (protocol stub / test fixture)
 
         transport = WebSocketTransport(send, recv)
         await transport.close()

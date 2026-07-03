@@ -9,4 +9,4 @@ class BadHandler:
 
     @capability("bad.cap", scopes=())
     async def run(self) -> None:
-        pass
+        pass  # NOSONAR — S1186: intentional no-op (protocol stub / test fixture)

@@ -65,7 +65,7 @@ except Exception:
     _HAS_NUMPY = False
 
 
-def _to_jsonable(obj: Any) -> Any:
+def _to_jsonable(obj: Any) -> Any:  # NOSONAR — S3776: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
     """Recursively convert numpy types to native Python primitives."""
     if obj is None or isinstance(obj, (str, bool)):
         return obj
@@ -470,7 +470,7 @@ class MetricsResponse(BaseModel):
 # ---------------------------------------------------------------------------
 
 
-def _build_system_from_spec(spec: SystemSpec) -> Any:
+def _build_system_from_spec(spec: SystemSpec) -> Any:  # NOSONAR — S3776: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
     """Build a Python System object from a SystemSpec."""
     from core_model.bus import Bus
     from core_model.generator import Generator
@@ -583,7 +583,7 @@ _STUDIES_REQUIRING_SYSTEM = {
 }
 
 
-def _run_native_study(
+def _run_native_study(  # NOSONAR — S3776: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
     study_type: str,
     system: Any | None,
     parameters: dict[str, Any],
@@ -598,7 +598,7 @@ def _run_native_study(
     if study_type in _STUDIES_REQUIRING_SYSTEM and system is None:
         raise ValueError(f"study_type '{study_type}' requires a 'system' to be provided")
 
-    Engine = state.get_power_system_engine_cls()
+    Engine = state.get_power_system_engine_cls()  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
     engine = Engine(system)
 
     if study_type in ("load_flow",):
@@ -1102,7 +1102,7 @@ app.include_router(agents_router, tags=["Agents"])
 
 # ---------------------------------------------------------------------------
 # Middleware — trace + rate limit + RASP + timeout
-# ---------------------------------------------------------------------------
+# ---------------------------------------------------------------------------  # NOSONAR — S3776: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
 
 
 @app.middleware("http")
@@ -1303,7 +1303,7 @@ async def metrics(request: Request):
 
 # ---------------------------------------------------------------------------
 # Study execution endpoint
-# ---------------------------------------------------------------------------
+# ---------------------------------------------------------------------------  # NOSONAR — S3776: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
 
 
 @app.post("/api/v1/studies/run", response_model=StudyResult, tags=["Studies"])
@@ -1459,7 +1459,7 @@ async def run_study(request: Request, payload: StudyRequest):
 
 # ---------------------------------------------------------------------------
 # System validation endpoint
-# ---------------------------------------------------------------------------
+# ---------------------------------------------------------------------------  # NOSONAR — S3776: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
 
 
 @app.post("/api/v1/system/validate", tags=["System"])

@@ -174,7 +174,7 @@ def auth_client(auth_app: FastAPI) -> TestClient:
 # ---------------------------------------------------------------------------
 
 
-def _create_state_estimation_app() -> FastAPI:
+def _create_state_estimation_app() -> FastAPI:  # NOSONAR — S3776: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
     """App that runs WLS state estimation on incoming SCADA data and
     returns the estimation result back to the client.
 
@@ -286,7 +286,7 @@ def _create_state_estimation_app() -> FastAPI:
                         continue
 
                     # Simple 3-bus admittance matrix for testing
-                    Ybus = np.array(
+                    Ybus = np.array(  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
                         [
                             [2 - 20j, -1 + 10j, -1 + 10j],
                             [-1 + 10j, 2 - 20j, -1 + 10j],
@@ -827,7 +827,7 @@ class TestWLSWithSCADAData:
     def test_estimate_from_scada_format(self):
         """Translate a SCADA-style payload into estimator inputs and
         verify convergence."""
-        Ybus = np.array(
+        Ybus = np.array(  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
             [
                 [2 - 20j, -1 + 10j, -1 + 10j],
                 [-1 + 10j, 2 - 20j, -1 + 10j],
@@ -865,7 +865,7 @@ class TestWLSWithSCADAData:
 
     def test_insufficient_measurements_scenario(self):
         """A payload with too few measurements returns INSUFFICIENT_MEASUREMENTS."""
-        Ybus = np.array(
+        Ybus = np.array(  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
             [[1 - 10j, -1 + 10j], [-1 + 10j, 1 - 10j]],
             dtype=complex,
         )

@@ -176,7 +176,7 @@ try {
 /**
  * Detect the language of the input text
  */
-export function detectLanguage(text: string): string | null {
+export function detectLanguage(text: string): string | null {  // NOSONAR — S3776: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
   if (!text || text.trim().length === 0) {
     return null;
   }

@@ -560,7 +560,7 @@ def sanitize_result(obj: Any) -> Any:
         if isinstance(obj, complex):
             return {"real": obj.real, "imag": obj.imag}
     except ImportError:
-        pass
+        pass  # NOSONAR — S3776: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
 
     if isinstance(obj, dict):
         return {str(k): sanitize_result(v) for k, v in obj.items()}

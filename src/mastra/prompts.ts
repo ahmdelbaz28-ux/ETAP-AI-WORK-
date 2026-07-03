@@ -42,7 +42,7 @@ function stringifyContent(content: unknown): string {
 /**
  * Improved YAML parser that handles basic structures, multiline strings, and pipe operators
  */
-function parseSimpleYaml(content: string): Record<string, unknown> {
+function parseSimpleYaml(content: string): Record<string, unknown> {  // NOSONAR — S3776: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
   const result: Record<string, unknown> = {};
   const lines = content.split('\n');
   let currentKey = '';
@@ -189,7 +189,7 @@ function parseSimpleYaml(content: string): Record<string, unknown> {
 /**
  * Load prompt from local YAML file as fallback when LangWatch API is unavailable.
  */
-function loadLocalPrompt(handle: string): string | null {
+function loadLocalPrompt(handle: string): string | null {  // NOSONAR — S3776: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
   try {
     const promptsDir = path.join(process.cwd(), 'prompts');
     // Try different filename patterns

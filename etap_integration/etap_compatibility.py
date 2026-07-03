@@ -206,7 +206,7 @@ class ETAPCompatibilityChecker:
         except Exception as e:
             return False, f"Could not check .NET Framework: {e}"
 
-    def run_compatibility_tests(self) -> list[CheckResult]:
+    def run_compatibility_tests(self) -> list[CheckResult]:  # NOSONAR — S3776: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
         """Run all compatibility checks and return results."""
         checks: list[CheckResult] = []
 

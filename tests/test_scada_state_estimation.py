@@ -302,7 +302,7 @@ class TestWLSEstimator:
         """3-bus system — needs 3+ buses for WLS observability since the
         estimator doesn't remove the slack bus column from the Jacobian
         before inverting the gain matrix (causing theta collinearity in 2-bus)."""
-        Ybus = np.array(
+        Ybus = np.array(  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
             [
                 [2 - 20j, -1 + 10j, -1 + 10j],
                 [-1 + 10j, 2 - 20j, -1 + 10j],
@@ -320,7 +320,7 @@ class TestWLSEstimator:
         assert len(result.voltage_magnitudes) == 3
 
     def test_estimate_with_voltage_and_power_flow(self):
-        Ybus = np.array(
+        Ybus = np.array(  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
             [
                 [2 - 20j, -1 + 10j, -1 + 10j],
                 [-1 + 10j, 2 - 20j, -1 + 10j],
@@ -337,14 +337,14 @@ class TestWLSEstimator:
         assert result.status == StateEstimationStatus.CONVERGED
 
     def test_estimate_insufficient_measurements(self):
-        Ybus = np.array([[1 - 10j, -1 + 10j], [-1 + 10j, 1 - 10j]], dtype=complex)
+        Ybus = np.array([[1 - 10j, -1 + 10j], [-1 + 10j, 1 - 10j]], dtype=complex)  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         measurements = {}
         estimator = WLSEstimator()
         result = estimator.estimate(Ybus, measurements, bus_ids=["B1", "B2"])
         assert result.status == StateEstimationStatus.INSUFFICIENT_MEASUREMENTS
 
     def test_estimate_empty_bus_list(self):
-        Ybus = np.array([])
+        Ybus = np.array([])  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         measurements = {}
         estimator = WLSEstimator()
         result = estimator.estimate(Ybus, measurements, bus_ids=[])
@@ -352,7 +352,7 @@ class TestWLSEstimator:
 
     def test_estimate_not_converged(self):
         """3-bus system with extreme values and tight tolerance should NOT converge."""
-        Ybus = np.array(
+        Ybus = np.array(  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
             [
                 [2 - 20j, -1 + 10j, -1 + 10j],
                 [-1 + 10j, 2 - 20j, -1 + 10j],
@@ -369,7 +369,7 @@ class TestWLSEstimator:
         assert result.status == StateEstimationStatus.NOT_CONVERGED
 
     def test_check_redundancy_sufficient(self):
-        # Need redundancy >= 1.5: with n=3, need m >= 8 for 2*3-1=5 states
+        # Need redundancy >= 1.5: with n=3, need m >= 8 for 2*3-1=5 states  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         measurements = {
             "voltage_mag": {0: (1.0, 0.01), 1: (1.0, 0.01), 2: (1.0, 0.01)},
             "power_injection": {1: (0.3, 0.1, 0.02, 0.02), 2: (0.2, 0.05, 0.02, 0.02)},
@@ -392,7 +392,7 @@ class TestWLSEstimator:
 
     def test_estimate_bad_data_detection(self):
         Ybus = np.array(
-            [
+            [  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
                 [2 - 20j, -1 + 10j, -1 + 10j],
                 [-1 + 10j, 2 - 20j, -1 + 10j],
                 [-1 + 10j, -1 + 10j, 2 - 20j],

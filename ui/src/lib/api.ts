@@ -115,7 +115,7 @@ const DEMO_METRICS = {
   circuits: { 'provider-anthropic': { state: 'closed', consecutiveFailures: 0 }, 'provider-openai': { state: 'closed', consecutiveFailures: 0 } },
 }
 
-async function demoResponse<T>(path: string, options?: RequestInit): Promise<T> {
+async function demoResponse<T>(path: string, options?: RequestInit): Promise<T> {  // NOSONAR — S3776: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
   await sleep(DEMO_MODE_TIMEOUT_MS * (0.3 + Math.random() * 0.4))
 
   const method = options?.method || 'GET'

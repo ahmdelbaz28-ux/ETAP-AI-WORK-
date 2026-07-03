@@ -100,7 +100,7 @@ class AcpRuntime:
 
     # -------------------------------------------------------------- execution
 
-    async def execute(
+    async def execute(  # NOSONAR — S3776: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
         self,
         capability: str,
         input: dict[str, Any] | None = None,

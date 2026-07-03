@@ -81,7 +81,7 @@ class _FakeRedis:
         return True
 
     async def aclose(self):
-        pass
+        pass  # NOSONAR — S1186: intentional no-op (protocol stub / test fixture)
 
     async def setex(self, key, ttl, value):  # NOSONAR — S7503: async function uses sync I/O for compatibility reasons
         self._store[key] = value

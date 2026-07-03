@@ -48,7 +48,7 @@ async function runRequest(endpoint: string, method: 'GET' | 'POST' = 'GET', body
   }
 }
 
-async function runChaosTest() {
+async function runChaosTest() {  // NOSONAR — S3776: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
   console.log('╔══════════════════════════════════════════════════════════════════╗');
   console.log('║         AhmedETAP Platform — Chaos Testing Suite                  ║');
   console.log('╚══════════════════════════════════════════════════════════════════╝');

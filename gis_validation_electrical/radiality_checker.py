@@ -43,7 +43,7 @@ def _find_components(adj: dict[str, set[str]]) -> list[set[str]]:
     return comps
 
 
-def _has_undirected_loop(adj: dict[str, set[str]]) -> tuple[bool, list[str]]:
+def _has_undirected_loop(adj: dict[str, set[str]]) -> tuple[bool, list[str]]:  # NOSONAR — S3776: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
     """
     Detect cycles in an undirected graph.
     Returns (has_loop, one_cycle_nodes_best_effort).

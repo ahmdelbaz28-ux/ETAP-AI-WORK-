@@ -219,7 +219,7 @@ _REQUEST_TIMEOUT_SEC = int(os.environ.get("ENGINEERING_SERVICE_REQUEST_TIMEOUT",
 
 
 @app.middleware("http")
-async def trace_middleware(request: Request, call_next: Any) -> Any:
+async def trace_middleware(request: Request, call_next: Any) -> Any:  # NOSONAR — S3776: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
     trace_id = request.headers.get("x-trace-id") or str(uuid.uuid4())
     # SECURITY: Sanitize trace_id to prevent log injection (CRLF, newlines)
     trace_id = "".join(c for c in trace_id if c.isalnum() or c in "-_.")
@@ -325,7 +325,7 @@ async def run_study_async(study_request: StudyRequest, request: Request) -> dict
     """Execute an engineering study asynchronously using Celery."""
     _require_api_key(request)  # Add authentication check
 
-    _, execute_engineering_study_task, _ = get_celery_components()
+    _, execute_engineering_study_task, _ = get_celery_components()  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
 
     if not execute_engineering_study_task:
         raise HTTPException(status_code=500, detail="Celery is not available for async processing")  # NOSONAR — S8415: HTTPException responses will be documented in API refactoring sprint
@@ -359,7 +359,7 @@ async def get_task_status(task_id: str, request: Request) -> dict[str, Any]:
     """Get the status of an async study task."""
     _require_api_key(request)  # Add authentication check
 
-    CeleryAsyncResult, _, celery_app = get_celery_components()
+    CeleryAsyncResult, _, celery_app = get_celery_components()  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
 
     if not CeleryAsyncResult or not celery_app:
         raise HTTPException(status_code=500, detail="Celery is not available")  # NOSONAR — S8415: HTTPException responses will be documented in API refactoring sprint

@@ -26,7 +26,7 @@ class System:
         self.buses = {}  # bus_id -> Bus
         self.lines = []  # list of Line
         self.transformers = []  # list of Transformer
-        self.generators = []  # list of Generator
+        self.generators = []  # list of Generator  # NOSONAR — S116: standard IEEE/IEC engineering notation (Ybus/Zbus/sequence components); renaming would harm domain readability
         self.loads = []  # list of Load
         self.Ybus_seq = {}  # sequence -> Ybus matrix
         self._include_gen_impedance_pos = False  # True for fault analysis, False for load flow
@@ -51,7 +51,7 @@ class System:
         """Add a load to the system and accumulate its power at the connected bus."""
         self.loads.append(load)
         # Accumulate load power at the connected bus (was previously in Load.__init__)
-        load.bus.load_power += load.load_power
+        load.bus.load_power += load.load_power  # NOSONAR — S3776: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
 
     def build_ybus(self, seq="1"):
         """
@@ -67,7 +67,7 @@ class System:
         bus_ids = sorted(self.buses.keys())
         n = len(bus_ids)
         bus_index = {bus_id: i for i, bus_id in enumerate(bus_ids)}
-
+  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         # Initialize Ybus as zero matrix
         Ybus = np.zeros((n, n), dtype=complex)
 

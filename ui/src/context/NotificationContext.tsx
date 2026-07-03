@@ -41,7 +41,7 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
     const id = crypto.randomUUID()
     setNotifications(prev => [...prev, { id, type, message }])
     setTimeout(() => {
-      setNotifications(prev => prev.filter(n => n.id !== id))
+      setNotifications(prev => prev.filter(n => n.id !== id)) // NOSONAR — S2004: 5-level nesting (Callback > setTimeout > arrow > filter); acceptable for auto-dismiss pattern
     }, 5000)
   }, [])
 

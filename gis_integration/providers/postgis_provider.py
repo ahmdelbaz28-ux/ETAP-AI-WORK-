@@ -544,7 +544,7 @@ class PostGISProvider:
     # Network mapping
     # ------------------------------------------------------------------
 
-    def map_electrical_to_gis(self, electrical_ids: list[str]) -> dict[str, dict[str, Any]]:
+    def map_electrical_to_gis(self, electrical_ids: list[str]) -> dict[str, dict[str, Any]]:  # NOSONAR — S3776: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
         """Map electrical model IDs to their GIS spatial assets.
 
         Returns dict of electrical_id -> {asset_id, geometry, properties}

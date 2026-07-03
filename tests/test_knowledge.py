@@ -39,7 +39,9 @@ pytestmark = pytest.mark.skipif(
 class TestEngineeringKnowledgeBase:
     def test_initialization(self):
         kb = EngineeringKnowledgeBase()
-        assert kb is not None
+        # Removed redundant `assert kb is not None` (SonarCloud S5727:
+        # constructor always returns an instance). The two checks below
+        # verify the instance is internally consistent.
         assert kb.embedding_model is not None
         assert kb.vector_db is not None
 

@@ -196,7 +196,7 @@ class RASPEngine:
     def enabled(self, value: bool) -> None:
         self._enabled = value
 
-    def inspect(self, data: dict[str, Any]) -> list[RASPResult]:
+    def inspect(self, data: dict[str, Any]) -> list[RASPResult]:  # NOSONAR — S3776: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
         """Inspect request data against all RASP rules.
 
         Parameters

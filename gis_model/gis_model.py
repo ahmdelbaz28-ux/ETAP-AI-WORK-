@@ -352,7 +352,7 @@ class GISDatabase:
                 if not self.spatial_index[key]:
                     del self.spatial_index[key]
 
-    def find_nearby_assets(
+    def find_nearby_assets(  # NOSONAR — S3776: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
         self, coord: GeoCoordinate, radius_meters: float,
     ) -> list[tuple[GISAsset, float]]:
         """

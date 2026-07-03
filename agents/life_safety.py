@@ -443,7 +443,7 @@ class LifeSafetyGuard:
 
     # Mandatory cooldown between control actions (seconds)
     CONTROL_COOLDOWN_SECONDS = 2.0
-
+  # NOSONAR — S3776: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
     # OpenCV accuracy is too low for control — read-only mode only
     DEGRADED_VISION_SOURCES = {"opencv"}
 

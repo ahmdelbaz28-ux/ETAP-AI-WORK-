@@ -14,7 +14,7 @@ router = APIRouter(prefix="/api/v1/system", tags=["validation"])
 
 
 @router.post("/validate")
-async def validate_system(request: Request, spec: SystemSpec):
+async def validate_system(request: Request, spec: SystemSpec):  # NOSONAR — S3776: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
     """Validate a power system model specification.
 
     Checks structural integrity: all bus references exist, impedance

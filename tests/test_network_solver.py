@@ -112,7 +112,7 @@ class TestPerUnit:
 class TestZbus:
     def test_zbus_from_ybus_3bus(self):
         # Simple 3-bus system Ybus
-        Ybus = np.array(
+        Ybus = np.array(  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
             [
                 [10 - 20j, -5 + 10j, -5 + 10j],
                 [-5 + 10j, 10 - 20j, -5 + 10j],
@@ -126,7 +126,7 @@ class TestZbus:
 
     def test_zbus_full_3bus(self):
         # Non-singular Ybus (diagonally dominant, each row != 0)
-        Ybus = np.array(
+        Ybus = np.array(  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
             [
                 [10 - 20j, -3 + 6j, -2 + 5j],
                 [-3 + 6j, 8 - 15j, 0],
@@ -139,7 +139,7 @@ class TestZbus:
         assert np.allclose(Z @ Ybus, np.eye(3), atol=1e-10)
 
     def test_zbus_invertibility(self):
-        Ybus = np.array(
+        Ybus = np.array(  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
             [
                 [10 - 20j, -2 + 5j, 0],
                 [-2 + 5j, 8 - 15j, -3 + 6j],
@@ -147,13 +147,13 @@ class TestZbus:
             ]
         )
         Z = zbus_from_ybus(Ybus, reference_bus=0)
-        Z_full = zbus_full(Ybus)
+        Z_full = zbus_full(Ybus)  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         assert Z.shape == (2, 2)
         assert Z_full.shape == (3, 3)
 
     def test_zbus_singular_fallback(self):
         # Singular Ybus (all rows identical)
-        Ybus = np.array(
+        Ybus = np.array(  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
             [
                 [1 + 1j, 2 + 2j],
                 [1 + 1j, 2 + 2j],
@@ -163,7 +163,7 @@ class TestZbus:
         assert Z.shape == (2, 2)
 
     def test_zbus_singular_reduced_fallback(self):
-        Ybus = np.array(
+        Ybus = np.array(  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
             [
                 [1 + 1j, 2 + 2j],
                 [1 + 1j, 2 + 2j],
@@ -173,7 +173,7 @@ class TestZbus:
         assert Z.shape == (1, 1)
 
     def test_zbus_full_identity(self):
-        Ybus = np.eye(3, dtype=complex)
+        Ybus = np.eye(3, dtype=complex)  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         Z = zbus_full(Ybus)
         assert np.allclose(Z, np.eye(3))
 
@@ -191,7 +191,7 @@ class TestZbus:
     def test_zbus_different_ref_bus(self):
         """Different reference bus should produce different reduced Zbus."""
         # Use a non-uniform Ybus so reference bus selection matters
-        Ybus = np.array(
+        Ybus = np.array(  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
             [
                 [15 - 25j, -5 + 10j, -3 + 6j],
                 [-5 + 10j, 12 - 22j, -7 + 14j],
@@ -213,7 +213,7 @@ class TestZbus:
             assert np.all(np.isfinite(Z))
 
     def test_zbus_2bus(self):
-        Ybus = np.array(
+        Ybus = np.array(  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
             [
                 [5 - 10j, -5 + 10j],
                 [-5 + 10j, 5 - 10j],
@@ -227,7 +227,7 @@ class TestZbus:
 
     def test_zbus_full_vs_reduced_valid(self):
         """Full Zbus and reduced Zbus should both be valid."""
-        Ybus = np.array(
+        Ybus = np.array(  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
             [
                 [10 - 20j, -3 + 6j, -2 + 5j],
                 [-3 + 6j, 8 - 15j, 0],
@@ -235,18 +235,18 @@ class TestZbus:
             ]
         )
         # Full Zbus: Z @ Y should be identity
-        Z_full = zbus_full(Ybus)
+        Z_full = zbus_full(Ybus)  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         assert np.allclose(Z_full @ Ybus, np.eye(3), atol=1e-10)
         # Reduced Zbus: reduced Z @ reduced Y should be identity
         for ref in range(3):
-            Z_red = zbus_from_ybus(Ybus, reference_bus=ref)
+            Z_red = zbus_from_ybus(Ybus, reference_bus=ref)  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
             # Remove reference bus row/col from Ybus
             mask = [i for i in range(3) if i != ref]
-            Y_red = Ybus[np.ix_(mask, mask)]
+            Y_red = Ybus[np.ix_(mask, mask)]  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
             assert np.allclose(Z_red @ Y_red, np.eye(2), atol=1e-10)
 
     def test_zbus_zero_off_diagonal(self):
-        Ybus = np.diag([1 + 1j, 2 + 2j, 3 + 3j])
+        Ybus = np.diag([1 + 1j, 2 + 2j, 3 + 3j])  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         Z = zbus_full(Ybus)
         assert np.allclose(Z @ Ybus, np.eye(3), atol=1e-10)
 

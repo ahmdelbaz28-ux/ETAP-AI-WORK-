@@ -447,7 +447,7 @@ class OpenCVVisionClient:
         return ". ".join(parts) + "."
 
     @staticmethod
-    def _decide_action(
+    def _decide_action(  # NOSONAR — S3776: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
         objective: str,
         elements: list[dict[str, Any]],
         ocr_text: str,

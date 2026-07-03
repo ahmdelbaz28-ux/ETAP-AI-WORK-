@@ -174,7 +174,7 @@ export async function generateOnce(
  * Bounded failover: try up to MAX_PROVIDERS_PER_REQUEST providers,
  * skipping open circuits, with MAX_RETRIES=1 per provider.
  */
-export async function generateWithFailover(
+export async function generateWithFailover(  // NOSONAR — S3776: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
   env: Env,
   system: string,
   messages: ModelMessage[],

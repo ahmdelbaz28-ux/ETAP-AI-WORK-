@@ -37,7 +37,7 @@ class TestEarthGridScenario:
 
     def test_surface_derating_factor(self, agent):
         """Test 2: Surface derating factor Cs is computed per IEEE 80."""
-        Cs = agent._surface_derating_factor(
+        Cs = agent._surface_derating_factor(  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
             rho_s=2000.0,
             rho_b=100.0,
             hs=0.1,

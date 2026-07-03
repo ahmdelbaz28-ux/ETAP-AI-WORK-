@@ -791,7 +791,7 @@ class ETAPProject:
         ETAPAutomation._check_result_size(result)
         return result
 
-    def _run_protection_coordination(self, **kwargs) -> dict[str, Any]:
+    def _run_protection_coordination(self, **kwargs) -> dict[str, Any]:  # NOSONAR — S3776: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
         """
         Run protection coordination study via ETAP COM.
 
@@ -958,7 +958,7 @@ class ETAPAutomation:
     # -------------------------------------------------------------------------
 
     @staticmethod
-    def _validate_input(
+    def _validate_input(  # NOSONAR — S3776: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
         value,
         value_type: str,
         min_val: float | None = None,
@@ -1046,7 +1046,7 @@ class ETAPAutomation:
         return sanitized
 
     @staticmethod
-    def _validate_study_parameters(
+    def _validate_study_parameters(  # NOSONAR — S3776: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
         study_type: ETAPStudyType, params: dict[str, Any],
     ) -> dict[str, Any]:
         """

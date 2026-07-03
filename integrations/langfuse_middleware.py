@@ -118,7 +118,7 @@ class LangfuseMiddleware(BaseHTTPMiddleware):
         else:
             logger.info("LangfuseMiddleware disabled (LANGFUSE_ENABLED or keys missing)")
 
-    async def dispatch(
+    async def dispatch(  # NOSONAR — S3776: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
         self,
         request: Request,
         call_next: Callable[[Request], Awaitable[Response]],

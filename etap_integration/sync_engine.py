@@ -254,7 +254,7 @@ class ETAPSyncEngine:
     # Direction: AhmedETAP -> ETAP (Export)
     # ------------------------------------------------------------------
 
-    def export_to_etap(self, project_path: str | None = None) -> dict[str, Any]:
+    def export_to_etap(self, project_path: str | None = None) -> dict[str, Any]:  # NOSONAR — S3776: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
         """Export the AhmedETAP model to an ETAP project.
 
         Parameters

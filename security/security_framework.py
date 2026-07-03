@@ -450,7 +450,7 @@ class InputValidator:
     FORBIDDEN_ATTRS = {"__import__", "__builtins__"}
 
     @staticmethod
-    def validate_python_code(code: str, allowed_imports: set[str] = None) -> bool:
+    def validate_python_code(code: str, allowed_imports: set[str] = None) -> bool:  # NOSONAR — S3776: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
         """
         Validate Python code for safety using AST parsing.
 

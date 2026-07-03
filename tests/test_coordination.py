@@ -12,7 +12,7 @@ from relays.relay import OvercurrentRelay
 
 
 class TestCoordinationEngine:
-    def make_relays(self, upstream_TMS=1.0, downstream_TMS=0.2, upstream_Ip=1.0, downstream_Ip=1.0):
+    def make_relays(self, upstream_TMS=1.0, downstream_TMS=0.2, upstream_Ip=1.0, downstream_Ip=1.0):  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         upstream = OvercurrentRelay(
             relay_id=1,
             name="Upstream",

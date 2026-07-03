@@ -205,7 +205,7 @@ class GISVisualizer:
     # Load Flow Visualization
     # ------------------------------------------------------------------
 
-    def visualize_load_flow(
+    def visualize_load_flow(  # NOSONAR — S3776: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
         self,
         buses: dict[str, dict[str, Any]],
         lines: list[dict[str, Any]] | None = None,
@@ -647,7 +647,7 @@ class GISVisualizer:
     # Combined Dashboard Map
     # ------------------------------------------------------------------
 
-    def create_dashboard_map(
+    def create_dashboard_map(  # NOSONAR — S3776: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
         self,
         load_flow_buses: dict | None = None,
         fault_currents: dict | None = None,

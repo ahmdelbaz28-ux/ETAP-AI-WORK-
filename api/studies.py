@@ -307,7 +307,7 @@ class StudyResult(BaseModel):
         return data
 
 
-def _to_jsonable(obj: Any) -> Any:
+def _to_jsonable(obj: Any) -> Any:  # NOSONAR — S3776: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
     """Recursively convert numpy types (and other engine outputs) to native
     Python primitives that FastAPI / Pydantic can serialize as JSON."""
     import numpy as np
@@ -347,7 +347,7 @@ def _to_jsonable(obj: Any) -> Any:
         return str(obj)
 
 
-def _build_system_from_spec(spec: SystemSpec) -> Any:
+def _build_system_from_spec(spec: SystemSpec) -> Any:  # NOSONAR — S3776: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
     """Build a Python System object from a SystemSpec."""
     system = System(base_mva=spec.base_mva)
     bus_map: dict[int, Any] = {}
@@ -441,7 +441,7 @@ _STUDIES_REQUIRING_SYSTEM = {
 }
 
 
-def _run_native_study(
+def _run_native_study(  # NOSONAR — S3776: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
     study_type: str, system: Any | None, parameters: dict[str, Any],
 ) -> dict[str, Any]:
     """Execute a study using the native PowerSystemEngine."""
@@ -639,8 +639,12 @@ async def run_study(request: Request, payload: StudyRequest, _: str = Depends(ge
                     )
                     cache_params["system_hash"] = _hashlib.sha256(system_json.encode()).hexdigest()
                 if study_cache:
+                    # StudyCache.set(study_type, params, result) expects
+                    # `result` as a dict — it serializes internally.
+                    # Previously we passed a pre-serialized JSON string
+                    # (SonarCloud S5655: type mismatch). Pass the raw dict.
                     await study_cache.set(
-                        payload.study_type, cache_params, json.dumps(data, default=str),
+                        payload.study_type, cache_params, data,
                     )
             except Exception as cache_err:
                 logger.debug(

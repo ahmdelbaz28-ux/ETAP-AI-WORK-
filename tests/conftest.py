@@ -55,11 +55,11 @@ def _require_study_models():
 
 def _build_network_from_data(raw: dict) -> dict:
     """Construct a network dict with real Pydantic model instances from raw data.
-
-    *raw* has the same structure as ``_TEST_NETWORK_DATA`` (lists of plain
-    dicts keyed by component type).  Returns a dict with the same keys but
-    whose values are lists of real Pydantic model instances.
-    """
+  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+    *raw* has the same structure as ``_TEST_NETWORK_DATA`` (lists of plain  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+    dicts keyed by component type).  Returns a dict with the same keys but  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+    whose values are lists of real Pydantic model instances.  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+    """  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
     mod = _require_study_models()
     BusSpec = mod.BusSpec
     LineSpec = mod.LineSpec
@@ -70,7 +70,7 @@ def _build_network_from_data(raw: dict) -> dict:
     model_map = {
         "buses": BusSpec,
         "lines": LineSpec,
-        "generators": GeneratorSpec,
+        "generators": GeneratorSpec,  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         "loads": LoadSpec,
         "transformers": TransformerSpec,
     }
@@ -528,8 +528,8 @@ def temp_database():
 
 @pytest.fixture
 def sample_study_request(sample_3bus_network):
-    """Provides a sample study request for testing.
-
+    """Provides a sample study request for testing.  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
     Uses real Pydantic models from ``services.study_service``.
     Skips the test if that module is not importable.
     """

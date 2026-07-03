@@ -71,7 +71,7 @@ export function isEngineeringServiceConfigured(env: Env): boolean {
  * Returns the study result on success, or throws on failure.
  * Integrates with the circuit breaker for the 'engineering-service' provider.
  */
-export async function callEngineeringService(
+export async function callEngineeringService(  // NOSONAR — S3776: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
   env: Env,
   request: EngineeringServiceRequest,
   traceId: string,

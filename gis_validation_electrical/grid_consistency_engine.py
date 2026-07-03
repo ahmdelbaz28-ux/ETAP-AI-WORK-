@@ -27,7 +27,7 @@ class GridConsistencyReport:
     cim_model: CIMModel | None = None
 
 
-def grid_consistency_engine(assets: list[ADMSAsset]) -> GridConsistencyReport:
+def grid_consistency_engine(assets: list[ADMSAsset]) -> GridConsistencyReport:  # NOSONAR — S3776: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
     """
     Final electrical grid consistency validation layer.
 

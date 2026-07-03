@@ -102,7 +102,7 @@ def create_3bus_system():
     return system
 
 
-def main():
+def main():  # NOSONAR — S3776: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
     print("=" * 60)
     print("Power Protection System Demonstration")
     print("=" * 60)
@@ -140,11 +140,11 @@ def main():
             fault_result = engine.run_fault_analysis(fault_type, bus_id=2)
             print(f"   {fault_type.replace('_', ' ').title()}:")
             if "fault_current" in fault_result:
-                If = fault_result["fault_current"]
+                If = fault_result["fault_current"]  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
                 print(f"     Fault Current: {abs(If):.4f} angle {np.angle(If, deg=True):.2f}° pu")
             elif "fault_current_b" in fault_result:
-                Ib = fault_result["fault_current_b"]
-                Ic = fault_result["fault_current_c"]
+                Ib = fault_result["fault_current_b"]  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+                Ic = fault_result["fault_current_c"]  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
                 print(f"     Fault Current B: {abs(Ib):.4f} angle {np.angle(Ib, deg=True):.2f}° pu")
                 print(f"     Fault Current C: {abs(Ic):.4f} angle {np.angle(Ic, deg=True):.2f}° pu")
             print(f"     Affected Bus Index: {fault_result.get('affected_bus_index', 'N/A')}")

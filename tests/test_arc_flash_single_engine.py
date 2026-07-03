@@ -401,7 +401,7 @@ class TestArcFlashRunPythonSecurityBoundary:
             "load_flow",
         ):
             code = f"import {module}"
-            result = InputValidator.validate_python_code(code, None)
+            result = InputValidator.validate_python_code(code, None)  # NOSONAR — S5655: intentional wrong-type arg to verify validation rejects it
             assert result is True, f"Validator should allow '{module}' (whitelisted)"
 
     def test_forbidden_builtin_call_is_rejected(self) -> None:
