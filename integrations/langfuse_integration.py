@@ -45,11 +45,13 @@ Environment variables:
 from __future__ import annotations
 
 import atexit
+import contextlib
 import functools
 import logging
 import os
 import threading
-from typing import Any, Callable, Optional
+from collections.abc import Callable
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -93,7 +95,7 @@ def _env_truthy(var: str, default: bool = False) -> bool:
     return val.strip().lower() in ("1", "true", "yes", "on")
 
 
-def _truncate_for_capture(text: Any, max_chars: int) -> Optional[str]:
+def _truncate_for_capture(text: Any, max_chars: int) -> str | None:
     """Truncate text to ``max_chars`` chars. Return ``None`` if capture disabled."""
     if max_chars <= 0:
         return None
@@ -133,7 +135,7 @@ class LangfuseTracker:
         # LAZY init: client is created on first use, not at construction.
         # This allows env vars loaded later (e.g., by python-dotenv) to
         # take effect, and it prevents network errors at import time.
-        self._client: Optional[Langfuse] = None
+        self._client: Langfuse | None = None
         self._client_lock = threading.Lock()
         self._client_init_attempted = False
 
@@ -147,7 +149,7 @@ class LangfuseTracker:
 
     # ─── Lazy client init ────────────────────────────────────────────────
 
-    def _get_client(self) -> Optional[Langfuse]:
+    def _get_client(self) -> Langfuse | None:
         """Lazily create the Langfuse client on first use (thread-safe)."""
         if not self.enabled:
             return None
@@ -182,13 +184,13 @@ class LangfuseTracker:
     def track(
         self,
         name: str,
-        input_text: Optional[str] = None,
-        output_text: Optional[str] = None,
-        metadata: Optional[dict] = None,
-        model: Optional[str] = None,
-        agent: Optional[str] = None,
-        user_id: Optional[str] = None,
-        session_id: Optional[str] = None,
+        input_text: str | None = None,
+        output_text: str | None = None,
+        metadata: dict | None = None,
+        model: str | None = None,
+        agent: str | None = None,
+        user_id: str | None = None,
+        session_id: str | None = None,
     ) -> None:
         """Manually log a single LLM interaction as a Langfuse trace."""
         client = self._get_client()
@@ -216,9 +218,9 @@ class LangfuseTracker:
     def get_context_manager(
         self,
         name: str,
-        metadata: Optional[dict] = None,
-        user_id: Optional[str] = None,
-        session_id: Optional[str] = None,
+        metadata: dict | None = None,
+        user_id: str | None = None,
+        session_id: str | None = None,
     ):
         """Return a Langfuse observation context manager (or no-op)."""
         client = self._get_client()
@@ -244,8 +246,8 @@ class LangfuseTracker:
         self,
         name: str,
         label: str = "production",
-        fallback: Optional[str] = None,
-    ) -> Optional[str]:
+        fallback: str | None = None,
+    ) -> str | None:
         """Fetch a production prompt from Langfuse.
 
         This is a SYNCHRONOUS call and may block for up to ``self.timeout``
@@ -376,12 +378,12 @@ atexit.register(_atexit_flush)
 
 def track_llm_call(
     name: str,
-    agent: Optional[str] = None,
-    model: Optional[str] = None,
+    agent: str | None = None,
+    model: str | None = None,
     capture_input: bool = True,
     capture_output: bool = True,
-    user_id: Optional[str] = None,
-    session_id: Optional[str] = None,
+    user_id: str | None = None,
+    session_id: str | None = None,
 ) -> Callable:
     """
     Decorator to automatically track LLM calls via Langfuse.
@@ -422,7 +424,7 @@ def track_llm_call(
                     try:
                         result = await func(*args, **kwargs)
                         captured_input = _truncate_for_capture(
-                            input_text, langfuse_tracker.max_capture_chars
+                            input_text, langfuse_tracker.max_capture_chars,
                         )
                         captured_output = _truncate_for_capture(
                             result if capture_output else None,
@@ -437,12 +439,10 @@ def track_llm_call(
                         # Record the exception on the observation so it
                         # shows up as an error in the Langfuse dashboard.
                         if hasattr(obs, "record_exception"):
-                            try:
+                            with contextlib.suppress(Exception):
                                 obs.record_exception(exc)
-                            except Exception:
-                                pass
                         if hasattr(obs, "update"):
-                            try:
+                            with contextlib.suppress(Exception):
                                 obs.update(
                                     level="ERROR",
                                     metadata={
@@ -450,15 +450,11 @@ def track_llm_call(
                                         "exception_message": str(exc)[:500],
                                     },
                                 )
-                            except Exception:
-                                pass
                         raise
                     finally:
                         if hasattr(obs, "end"):
-                            try:
+                            with contextlib.suppress(Exception):
                                 obs.end()
-                            except Exception:
-                                pass
 
             return async_wrapper
 
@@ -478,7 +474,7 @@ def track_llm_call(
                 try:
                     result = func(*args, **kwargs)
                     captured_input = _truncate_for_capture(
-                        input_text, langfuse_tracker.max_capture_chars
+                        input_text, langfuse_tracker.max_capture_chars,
                     )
                     captured_output = _truncate_for_capture(
                         result if capture_output else None,
@@ -491,12 +487,10 @@ def track_llm_call(
                     return result
                 except Exception as exc:
                     if hasattr(obs, "record_exception"):
-                        try:
+                        with contextlib.suppress(Exception):
                             obs.record_exception(exc)
-                        except Exception:
-                            pass
                     if hasattr(obs, "update"):
-                        try:
+                        with contextlib.suppress(Exception):
                             obs.update(
                                 level="ERROR",
                                 metadata={
@@ -504,15 +498,11 @@ def track_llm_call(
                                     "exception_message": str(exc)[:500],
                                 },
                             )
-                        except Exception:
-                            pass
                     raise
                 finally:
                     if hasattr(obs, "end"):
-                        try:
+                        with contextlib.suppress(Exception):
                             obs.end()
-                        except Exception:
-                            pass
 
         return sync_wrapper
 
@@ -524,9 +514,9 @@ def track_llm_call(
 
 def get_prompt_from_langfuse(
     name: str,
-    fallback: Optional[str] = None,
+    fallback: str | None = None,
     label: str = "production",
-) -> Optional[str]:
+) -> str | None:
     """Module-level helper around ``LangfuseTracker.get_prompt``."""
     return langfuse_tracker.get_prompt(name=name, label=label, fallback=fallback)
 

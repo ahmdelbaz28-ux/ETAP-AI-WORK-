@@ -20,7 +20,7 @@ import logging
 from datetime import datetime, timezone
 
 UTC = timezone.utc  # noqa: UP017
-from typing import Any, Dict, List
+from typing import Any
 
 import numpy as np
 
@@ -136,7 +136,7 @@ class ArcFlashAgent(BaseAgent):
         bolted_fault_current_ka: float,
         electrode_config: str = "VCB",
         gap_mm: float = 32.0,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Calculate the arcing current per IEEE 1584-2018.
 
@@ -197,7 +197,7 @@ class ArcFlashAgent(BaseAgent):
         working_distance_mm: float,
         electrode_config: str = "VCB",
         gap_mm: float = 32.0,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Calculate incident energy (cal/cm²) per IEEE 1584-2018.
 
@@ -270,7 +270,7 @@ class ArcFlashAgent(BaseAgent):
         arc_current_ka: float,
         voltage_kv: float,
         method: str,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Format incident energy result with boundary and PPE classification."""
         # Arc flash boundary: distance where E = 1.2 cal/cm²
         if E_cal_cm2 > 0 and working_distance_mm > 0:
@@ -334,7 +334,7 @@ class ArcFlashAgent(BaseAgent):
             self.log_execution(f"Starting arc flash analysis for task {task.task_id}")
 
             analysis_type = task.parameters.get("analysis_type", "full")
-            results: Dict[str, Any] = {}
+            results: dict[str, Any] = {}
 
             voltage_kv = float(task.parameters.get("voltage_kv", 0.48))
             bolted_fault_ka = float(task.parameters.get("bolted_fault_current_ka", 20.0))
@@ -353,7 +353,7 @@ class ArcFlashAgent(BaseAgent):
             # --- Incident energy calculation ---
             if analysis_type in ("incident_energy", "full"):
                 arc_current_ka = float(
-                    task.parameters.get("arc_current_ka", arc_result["arc_current_ka"])
+                    task.parameters.get("arc_current_ka", arc_result["arc_current_ka"]),
                 )
                 arc_duration_s = float(task.parameters.get("arc_duration_s", 0.2))
                 working_distance_mm = float(task.parameters.get("working_distance_mm", 457.0))
@@ -421,7 +421,7 @@ class ArcFlashAgent(BaseAgent):
         - PPE category is valid (0-4 or -1 for danger)
         - Voltage is within IEEE 1584 range
         """
-        errors: List[str] = []
+        errors: list[str] = []
 
         ie_data = result.data.get("incident_energy")
         if ie_data is not None:

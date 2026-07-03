@@ -22,7 +22,7 @@ import uuid
 from datetime import datetime, timezone
 
 UTC = timezone.utc  # noqa: UP017
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from fastapi import APIRouter, Depends, Header, HTTPException, status
 from pydantic import BaseModel, ConfigDict, Field, field_validator
@@ -129,8 +129,8 @@ class Project(Base):
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     name: Mapped[str] = mapped_column(String(255), nullable=False)
-    description: Mapped[Optional[str]] = mapped_column(String(2000), nullable=True)
-    system_config: Mapped[Optional[dict]] = mapped_column(JSON, nullable=True)
+    description: Mapped[str | None] = mapped_column(String(2000), nullable=True)
+    system_config: Mapped[dict | None] = mapped_column(JSON, nullable=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         default=lambda: datetime.now(UTC),
@@ -153,14 +153,14 @@ class StudyResult(Base):
     project_id: Mapped[str] = mapped_column(String(36), index=True, nullable=False)
     study_type: Mapped[str] = mapped_column(String(64), nullable=False)
     status: Mapped[str] = mapped_column(String(32), default=StudyStatus.PENDING.value)
-    config: Mapped[Optional[dict]] = mapped_column(JSON, nullable=True)
-    results: Mapped[Optional[dict]] = mapped_column(JSON, nullable=True)
-    error_message: Mapped[Optional[str]] = mapped_column(String(2000), nullable=True)
+    config: Mapped[dict | None] = mapped_column(JSON, nullable=True)
+    results: Mapped[dict | None] = mapped_column(JSON, nullable=True)
+    error_message: Mapped[str | None] = mapped_column(String(2000), nullable=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         default=lambda: datetime.now(UTC),
     )
-    completed_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
+    completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     created_by: Mapped[str] = mapped_column(String(36), nullable=False)
 
 
@@ -175,8 +175,8 @@ class ProjectCreateRequest(BaseModel):
     model_config = ConfigDict(strict=False)
 
     name: str = Field(min_length=1, max_length=255)
-    description: Optional[str] = Field(default=None, max_length=2000)
-    system_config: Optional[Dict[str, Any]] = None
+    description: str | None = Field(default=None, max_length=2000)
+    system_config: dict[str, Any] | None = None
 
 
 class ProjectUpdateRequest(BaseModel):
@@ -184,14 +184,14 @@ class ProjectUpdateRequest(BaseModel):
 
     model_config = ConfigDict(strict=False)
 
-    name: Optional[str] = Field(default=None, min_length=1, max_length=255)
-    description: Optional[str] = Field(default=None, max_length=2000)
-    system_config: Optional[Dict[str, Any]] = None
-    status: Optional[ProjectStatus] = None
+    name: str | None = Field(default=None, min_length=1, max_length=255)
+    description: str | None = Field(default=None, max_length=2000)
+    system_config: dict[str, Any] | None = None
+    status: ProjectStatus | None = None
 
     @field_validator("status")
     @classmethod
-    def reject_deleted_status(cls, v: Optional[ProjectStatus]) -> Optional[ProjectStatus]:
+    def reject_deleted_status(cls, v: ProjectStatus | None) -> ProjectStatus | None:
         """Prevent setting status to 'deleted' via the update endpoint."""
         if v == ProjectStatus.DELETED:
             raise ValueError("Use DELETE endpoint to soft-delete a project")
@@ -205,10 +205,10 @@ class ProjectResponse(BaseModel):
 
     id: str
     name: str
-    description: Optional[str] = None
-    system_config: Optional[Dict[str, Any]] = None
-    created_at: Optional[datetime] = None
-    updated_at: Optional[datetime] = None
+    description: str | None = None
+    system_config: dict[str, Any] | None = None
+    created_at: datetime | None = None
+    updated_at: datetime | None = None
     created_by: str
     status: str
 
@@ -218,7 +218,7 @@ class ProjectListResponse(BaseModel):
 
     model_config = ConfigDict(from_attributes=True)
 
-    projects: List[ProjectResponse]
+    projects: list[ProjectResponse]
     total: int
     page: int
     page_size: int
@@ -235,7 +235,7 @@ class StudyRunRequest(BaseModel):
     model_config = ConfigDict(strict=False)
 
     study_type: StudyType
-    config: Optional[Dict[str, Any]] = None
+    config: dict[str, Any] | None = None
 
 
 class StudyResultResponse(BaseModel):
@@ -247,11 +247,11 @@ class StudyResultResponse(BaseModel):
     project_id: str
     study_type: str
     status: str
-    config: Optional[Dict[str, Any]] = None
-    results: Optional[Dict[str, Any]] = None
-    error_message: Optional[str] = None
-    created_at: Optional[datetime] = None
-    completed_at: Optional[datetime] = None
+    config: dict[str, Any] | None = None
+    results: dict[str, Any] | None = None
+    error_message: str | None = None
+    created_at: datetime | None = None
+    completed_at: datetime | None = None
     created_by: str
 
 
@@ -260,7 +260,7 @@ class StudyListResponse(BaseModel):
 
     model_config = ConfigDict(from_attributes=True)
 
-    studies: List[StudyResultResponse]
+    studies: list[StudyResultResponse]
     total: int
     page: int
     page_size: int
@@ -325,7 +325,7 @@ async def create_project(
     dependencies=[Depends(get_api_key)],  # enforce X-API-Key when API_KEY is configured
 )
 async def list_projects(
-    status_filter: Optional[ProjectStatus] = None,
+    status_filter: ProjectStatus | None = None,
     pagination: PaginationParams = Depends(pagination_params),  # noqa: B008
     db: AsyncSession = Depends(get_db),  # noqa: B008
     auth: str = Depends(_require_api_key_or_jwt),
@@ -352,7 +352,7 @@ async def list_projects(
     result = await db.execute(
         base_query.order_by(Project.updated_at.desc())
         .offset(pagination.offset)
-        .limit(pagination.page_size)
+        .limit(pagination.page_size),
     )
     projects = result.scalars().all()
 
@@ -480,7 +480,7 @@ async def delete_project(
     project_id: str,
     user: CurrentUser = Depends(get_current_user_from_header),  # noqa: B008
     db: AsyncSession = Depends(get_db),  # noqa: B008
-) -> Dict[str, str]:
+) -> dict[str, str]:
     """Soft-delete a project by setting its status to ``deleted``."""
     result = await db.execute(select(Project).where(Project.id == project_id))
     project = result.scalar_one_or_none()
@@ -546,7 +546,7 @@ async def run_study(
         )
 
     # Merge project config with per-study config overrides
-    merged_config: Dict[str, Any] = {}
+    merged_config: dict[str, Any] = {}
     if project.system_config:
         merged_config.update(project.system_config)
     if body.config:
@@ -625,7 +625,7 @@ async def list_studies(
 
     # Total count
     count_query = select(func.count()).select_from(
-        select(StudyResult).where(StudyResult.project_id == project_id).subquery()
+        select(StudyResult).where(StudyResult.project_id == project_id).subquery(),
     )
     count_result = await db.execute(count_query)
     total = count_result.scalar_one()
@@ -636,7 +636,7 @@ async def list_studies(
         .where(StudyResult.project_id == project_id)
         .order_by(StudyResult.created_at.desc())
         .offset(pagination.offset)
-        .limit(pagination.page_size)
+        .limit(pagination.page_size),
     )
     studies = result.scalars().all()
 
@@ -669,8 +669,8 @@ async def list_studies(
 
 async def _execute_study(
     study_type: str,
-    config: Dict[str, Any],
-) -> Dict[str, Any]:
+    config: dict[str, Any],
+) -> dict[str, Any]:
     """Execute a power-system study using the PowerSystemEngine.
 
     This is a lightweight wrapper that attempts to load and run the

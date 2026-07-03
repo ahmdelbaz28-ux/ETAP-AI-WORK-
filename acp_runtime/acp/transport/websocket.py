@@ -21,7 +21,7 @@ from __future__ import annotations
 
 import logging
 from collections.abc import Callable, Coroutine
-from typing import Any, Optional
+from typing import Any
 
 import anyio
 
@@ -50,7 +50,7 @@ class WebSocketTransport(Transport):
         self._closed = False
         self._log = logging.getLogger("acp.transport.websocket")
 
-    async def read_message(self) -> Optional[str]:
+    async def read_message(self) -> str | None:
         if self._closed:
             return None
         try:
@@ -95,7 +95,7 @@ class WebSocketListener:
         except ImportError as exc:
             raise ImportError(
                 "WebSocketListener requires the 'websockets' package. "
-                "Install it:  pip install websockets>=12.0"
+                "Install it:  pip install websockets>=12.0",
             ) from exc
 
         async def handler(ws: Any) -> None:

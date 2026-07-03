@@ -21,7 +21,7 @@ import logging
 from datetime import datetime, timezone
 
 UTC = timezone.utc  # noqa: UP017
-from typing import Any, Dict, List
+from typing import Any
 
 import numpy as np
 
@@ -36,7 +36,7 @@ logger = logging.getLogger(__name__)
 
 # Base ampacity for Cu cables in air at 30 °C, 0.6/1 kV, single-core
 # Key: cross-section in mm² -> current in A
-_CU_XLPE_AIR_30C: Dict[float, float] = {
+_CU_XLPE_AIR_30C: dict[float, float] = {
     1.5: 24,
     2.5: 33,
     4: 45,
@@ -57,7 +57,7 @@ _CU_XLPE_AIR_30C: Dict[float, float] = {
 }
 
 # Base ampacity for Al cables in air at 30 °C, 0.6/1 kV, single-core
-_AL_XLPE_AIR_30C: Dict[float, float] = {
+_AL_XLPE_AIR_30C: dict[float, float] = {
     2.5: 26,
     4: 35,
     6: 46,
@@ -77,7 +77,7 @@ _AL_XLPE_AIR_30C: Dict[float, float] = {
 }
 
 # Resistance at 20 °C in Ω/km (copper)
-_R20_CU: Dict[float, float] = {
+_R20_CU: dict[float, float] = {
     1.5: 12.1,
     2.5: 7.41,
     4: 4.61,
@@ -98,7 +98,7 @@ _R20_CU: Dict[float, float] = {
 }
 
 # Resistance at 20 °C in Ω/km (aluminium)
-_R20_AL: Dict[float, float] = {
+_R20_AL: dict[float, float] = {
     2.5: 12.1,
     4: 7.41,
     6: 4.61,
@@ -118,7 +118,7 @@ _R20_AL: Dict[float, float] = {
 }
 
 # Standard cross-sections in mm² sorted ascending
-_STANDARD_XSECTIONS: List[float] = sorted(_CU_XLPE_AIR_30C.keys())
+_STANDARD_XSECTIONS: list[float] = sorted(_CU_XLPE_AIR_30C.keys())
 
 
 class CableSizingAgent(BaseAgent):
@@ -156,7 +156,7 @@ class CableSizingAgent(BaseAgent):
         ambient_temp_C: float = 30.0,
         n_circuits: int = 1,
         soil_resistivity_KmW: float = 1.0,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Calculate cable ampacity with derating factors per IEC 60364-5-52.
 
@@ -188,10 +188,7 @@ class CableSizingAgent(BaseAgent):
             Ampacity result with all derating factors applied.
         """
         # Select base table
-        if conductor_material == "Al":
-            base_table = _AL_XLPE_AIR_30C
-        else:
-            base_table = _CU_XLPE_AIR_30C
+        base_table = _AL_XLPE_AIR_30C if conductor_material == "Al" else _CU_XLPE_AIR_30C
 
         if cross_section_mm2 not in base_table:
             available = sorted(base_table.keys())
@@ -283,7 +280,7 @@ class CableSizingAgent(BaseAgent):
         power_factor: float = 0.85,
         n_phases: int = 3,
         frequency_Hz: float = 50.0,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Calculate voltage drop per IEC 60364-5-52 Annex G.
 
@@ -384,7 +381,7 @@ class CableSizingAgent(BaseAgent):
         insulation: str = "XLPE",
         fault_current_kA: float = 25.0,
         fault_duration_s: float = 1.0,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Verify cable short-circuit temperature rating per IEC 60949.
 
@@ -484,7 +481,7 @@ class CableSizingAgent(BaseAgent):
         fault_duration_s: float = 1.0,
         max_vdrop_percent: float = 5.0,
         n_phases: int = 3,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Recommend the smallest standard cable cross-section that satisfies
         all three criteria: ampacity, voltage drop, and short-circuit rating.
@@ -527,7 +524,7 @@ class CableSizingAgent(BaseAgent):
         available_xsections = sorted(base_table.keys())
 
         candidate = None
-        candidates_evaluated: List[Dict[str, Any]] = []
+        candidates_evaluated: list[dict[str, Any]] = []
 
         for xsec in available_xsections:
             # 1. Ampacity check
@@ -623,7 +620,7 @@ class CableSizingAgent(BaseAgent):
             self.log_execution(f"Starting cable sizing analysis for task {task.task_id}")
 
             analysis_type = task.parameters.get("analysis_type", "full")
-            results: Dict[str, Any] = {}
+            results: dict[str, Any] = {}
             p = task.parameters  # shorthand
 
             if analysis_type in ("ampacity", "full"):
@@ -709,27 +706,24 @@ class CableSizingAgent(BaseAgent):
 
     def validate_result(self, result: AgentResult) -> bool:
         """Validate cable sizing results against IEC criteria."""
-        errors: List[str] = []
+        errors: list[str] = []
 
         amp = result.data.get("ampacity")
-        if amp is not None:
-            if amp.get("derated_ampacity_A", 0) <= 0:
-                errors.append("Derated ampacity is zero or negative")
+        if amp is not None and amp.get("derated_ampacity_A", 0) <= 0:
+            errors.append("Derated ampacity is zero or negative")
 
         vd = result.data.get("voltage_drop")
-        if vd is not None:
-            if not vd.get("compliant_5pct", True):
-                errors.append(
-                    f"Voltage drop {vd.get('voltage_drop_percent', 0):.2f}% exceeds 5% limit"
-                )
+        if vd is not None and not vd.get("compliant_5pct", True):
+            errors.append(
+                f"Voltage drop {vd.get('voltage_drop_percent', 0):.2f}% exceeds 5% limit",
+            )
 
         sc = result.data.get("short_circuit")
-        if sc is not None:
-            if not sc.get("adequate", True):
-                errors.append(
-                    f"Short-circuit rating inadequate: utilization ratio "
-                    f"{sc.get('utilization_ratio', 0):.2f}"
-                )
+        if sc is not None and not sc.get("adequate", True):
+            errors.append(
+                f"Short-circuit rating inadequate: utilization ratio "
+                f"{sc.get('utilization_ratio', 0):.2f}",
+            )
 
         rec = result.data.get("recommendation")
         if rec is not None and "No standard cable" in rec.get("recommendation", ""):

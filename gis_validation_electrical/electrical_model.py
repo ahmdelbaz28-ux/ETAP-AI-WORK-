@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 from gis_integration.models import ADMSAsset, ADMSAssetType
 
@@ -9,8 +9,8 @@ from gis_integration.models import ADMSAsset, ADMSAssetType
 @dataclass(frozen=True)
 class ElectricalNode:
     node_id: str  # typically substation asset_id
-    voltage_level_kv: Optional[float] = None
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    voltage_level_kv: float | None = None
+    metadata: dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass(frozen=True)
@@ -22,17 +22,17 @@ class ElectricalEdge:
     edge_id: str
     from_node: str
     to_node: str
-    asset_ids: Tuple[str, ...]
+    asset_ids: tuple[str, ...]
     resistance_ohm: float
     impedance_ohm: float
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    metadata: dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass(frozen=True)
 class ElectricalModel:
-    nodes: Dict[str, ElectricalNode]
-    edges: Dict[str, ElectricalEdge]
-    asset_to_node: Dict[str, str]  # ADMS asset_id -> electrical node_id
+    nodes: dict[str, ElectricalNode]
+    edges: dict[str, ElectricalEdge]
+    asset_to_node: dict[str, str]  # ADMS asset_id -> electrical node_id
 
 
 def _stable_float_from_str(s: str, *, scale: float, min_val: float, max_val: float) -> float:
@@ -47,7 +47,7 @@ def _stable_float_from_str(s: str, *, scale: float, min_val: float, max_val: flo
     return min_val + (h % 100000) / 100000.0 * span
 
 
-def build_electrical_model(assets: List[ADMSAsset]) -> ElectricalModel:
+def build_electrical_model(assets: list[ADMSAsset]) -> ElectricalModel:
     """
     Build a simplified deterministic electrical model derived from ADMS assets.
 
@@ -68,9 +68,9 @@ def build_electrical_model(assets: List[ADMSAsset]) -> ElectricalModel:
         return ElectricalModel(nodes={}, edges={}, asset_to_node={})
 
     # Map substation coordinate -> node_id
-    sub_coords: Dict[Tuple[float, float], str] = {}
-    nodes: Dict[str, ElectricalNode] = {}
-    asset_to_node: Dict[str, str] = {}
+    sub_coords: dict[tuple[float, float], str] = {}
+    nodes: dict[str, ElectricalNode] = {}
+    asset_to_node: dict[str, str] = {}
 
     for s in substations:
         geom = s.geometry
@@ -79,15 +79,15 @@ def build_electrical_model(assets: List[ADMSAsset]) -> ElectricalModel:
             key = (float(coords[0]), float(coords[1]))
             sub_coords[key] = s.asset_id
             nodes[s.asset_id] = ElectricalNode(
-                node_id=s.asset_id, voltage_level_kv=None, metadata=dict(s.metadata)
+                node_id=s.asset_id, voltage_level_kv=None, metadata=dict(s.metadata),
             )
             asset_to_node[s.asset_id] = s.asset_id
 
-    edges: Dict[str, ElectricalEdge] = {}
+    edges: dict[str, ElectricalEdge] = {}
 
     def endpoints_from_linestring(
-        geom: Dict[str, Any],
-    ) -> Optional[Tuple[Tuple[float, float], Tuple[float, float]]]:
+        geom: dict[str, Any],
+    ) -> tuple[tuple[float, float], tuple[float, float]] | None:
         if geom.get("type") != "LineString":
             return None
         coords = geom.get("coordinates")

@@ -350,9 +350,7 @@ class LoadFlowSolver:
             return False
         recent = mismatch_history[-self.oscillation_window :]
         prev = mismatch_history[-2 * self.oscillation_window : -self.oscillation_window]
-        if np.mean(recent) > self.oscillation_threshold * np.mean(prev):
-            return True
-        return False
+        return np.mean(recent) > self.oscillation_threshold * np.mean(prev)
 
     def solve(self, max_iter=100, tol=1e-6, mode="engineering"):
         if mode == "high_accuracy":
@@ -375,7 +373,7 @@ class LoadFlowSolver:
                 logger.info(
                     f"[LoadFlow] iter={iteration} max_mismatch={max_mismatch:.6e} "
                     f"n_pv={len(self.pv_indices)} n_pq={len(self.pq_indices)} "
-                    f"damping={self.damping_factor:.3f}"
+                    f"damping={self.damping_factor:.3f}",
                 )
                 try:
                     J_dbg = self._build_jacobian(self.V)
@@ -384,11 +382,11 @@ class LoadFlowSolver:
                     finite_all = bool(np.isfinite(J_dbg).all())
                     logger.info(
                         f"[LoadFlow] iter={iteration} Jacobian finite_all={finite_all} "
-                        f"nan_count={nan_count} inf_count={inf_count} shape={J_dbg.shape}"
+                        f"nan_count={nan_count} inf_count={inf_count} shape={J_dbg.shape}",
                     )
                 except Exception as e:
                     logger.exception(
-                        f"[LoadFlow] iter={iteration} Jacobian build debug failed: {e}"
+                        f"[LoadFlow] iter={iteration} Jacobian build debug failed: {e}",
                     )
 
             self.iteration_log.append(
@@ -397,7 +395,7 @@ class LoadFlowSolver:
                     "max_mismatch": max_mismatch,
                     "n_pv": len(self.pv_indices),
                     "n_pq": len(self.pq_indices),
-                }
+                },
             )
 
             if max_mismatch < tol:
@@ -414,7 +412,7 @@ class LoadFlowSolver:
                     bus.voltage = self.V[i]
                     # generation_power = injected power + load (since P_inj = P_gen - P_load)
                     bus.generation_power = complex(
-                        P[i] + bus.load_power.real, Q[i] + bus.load_power.imag
+                        P[i] + bus.load_power.real, Q[i] + bus.load_power.imag,
                     )
                 return True
 
@@ -506,12 +504,12 @@ class LoadFlowSolver:
             if self._detect_oscillation(mismatch_history):
                 self.damping_factor = max(0.3, self.damping_factor * 0.7)
                 logger.warning(
-                    f"Oscillation detected at iteration {iteration}, reducing damping to {self.damping_factor:.3f}"
+                    f"Oscillation detected at iteration {iteration}, reducing damping to {self.damping_factor:.3f}",
                 )
 
             if max_mismatch > 1e4:
                 logger.error(
-                    f"Divergence detected at iteration {iteration} (mismatch={max_mismatch:.2e})"
+                    f"Divergence detected at iteration {iteration} (mismatch={max_mismatch:.2e})",
                 )
                 break
 

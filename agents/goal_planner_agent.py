@@ -23,7 +23,7 @@ import logging
 from datetime import datetime, timezone
 
 UTC = timezone.utc  # noqa: UP017
-from typing import Any, Dict, List
+from typing import Any
 
 from agents.orchestrator import AgentResult, AgentStatus, BaseAgent, EngineeringTask, StudyType
 
@@ -100,8 +100,8 @@ class GoalPlannerAgent(BaseAgent):
     def extract_tasks(
         self,
         raw_input: str,
-        known_tasks: List[Dict[str, Any]] | None = None,
-    ) -> Dict[str, Any]:
+        known_tasks: list[dict[str, Any]] | None = None,
+    ) -> dict[str, Any]:
         """
         Extract and structure tasks from free-form input text.
 
@@ -162,9 +162,9 @@ class GoalPlannerAgent(BaseAgent):
 
     def prioritize_tasks(
         self,
-        tasks: List[Dict[str, Any]],
+        tasks: list[dict[str, Any]],
         available_hours: float = 8.0,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Prioritize tasks using composite scoring and dependency
         resolution.
@@ -282,16 +282,16 @@ class GoalPlannerAgent(BaseAgent):
             },
         }
 
-    def _find_critical_path(self, tasks: List[Dict[str, Any]]) -> List[str]:
+    def _find_critical_path(self, tasks: list[dict[str, Any]]) -> list[str]:
         """
         Find the critical path (longest dependency chain) through tasks.
 
         Returns a list of task names forming the critical path.
         """
         task_map = {t["name"]: t for t in tasks}
-        memo: Dict[str, List[str]] = {}
+        memo: dict[str, list[str]] = {}
 
-        def longest_chain(name: str) -> List[str]:
+        def longest_chain(name: str) -> list[str]:
             if name in memo:
                 return memo[name]
             task = task_map.get(name)
@@ -320,10 +320,10 @@ class GoalPlannerAgent(BaseAgent):
 
     def assess_risks(
         self,
-        scheduled_tasks: List[Dict[str, Any]],
-        deferred_tasks: List[Dict[str, Any]],
+        scheduled_tasks: list[dict[str, Any]],
+        deferred_tasks: list[dict[str, Any]],
         available_hours: float = 8.0,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Assess risks in the planned schedule.
 
@@ -352,7 +352,7 @@ class GoalPlannerAgent(BaseAgent):
             risks.append(
                 f"Scheduled tasks total {total_hours:.1f}h, "
                 f"close to or exceeding available {available_hours:.1f}h. "
-                "High risk of schedule overrun."
+                "High risk of schedule overrun.",
             )
 
         # Risk: high-importance tasks deferred
@@ -360,7 +360,7 @@ class GoalPlannerAgent(BaseAgent):
             if task.get("importance") in ("critical", "high"):
                 risks.append(
                     f"High-importance task '{task['name']}' is deferred — "
-                    "may cause downstream delays."
+                    "may cause downstream delays.",
                 )
 
         # Risk: dependency chains
@@ -368,7 +368,7 @@ class GoalPlannerAgent(BaseAgent):
             deps = task.get("dependencies", [])
             if len(deps) > 2:
                 risks.append(
-                    f"Task '{task['name']}' has {len(deps)} dependencies — high coupling risk."
+                    f"Task '{task['name']}' has {len(deps)} dependencies — high coupling risk.",
                 )
 
         # Assumptions
@@ -455,7 +455,7 @@ class GoalPlannerAgent(BaseAgent):
             self.log_execution(
                 f"Goal planning completed in {execution_time:.2f}s "
                 f"({extraction['total_tasks']} tasks, "
-                f"{len(prioritization['scheduled_tasks'])} scheduled)"
+                f"{len(prioritization['scheduled_tasks'])} scheduled)",
             )
             return result
 
@@ -483,12 +483,11 @@ class GoalPlannerAgent(BaseAgent):
         - Composite scores are between 0 and 1
         - No duplicate task names in scheduled list
         """
-        errors: List[str] = []
+        errors: list[str] = []
 
         extraction = result.data.get("task_extraction")
-        if extraction is not None:
-            if extraction.get("total_tasks", 0) < 0:
-                errors.append("Negative task count")
+        if extraction is not None and extraction.get("total_tasks", 0) < 0:
+            errors.append("Negative task count")
 
         prioritization = result.data.get("prioritization")
         if prioritization is not None:

@@ -31,7 +31,7 @@ import os
 import re
 import sys
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 from compat import StrEnum
 
@@ -74,14 +74,14 @@ class SecurityFinding:
     severity: Severity
     title: str
     description: str
-    file_path: Optional[str] = None
-    line_number: Optional[int] = None
-    endpoint: Optional[str] = None
+    file_path: str | None = None
+    line_number: int | None = None
+    endpoint: str | None = None
     remediation: str = ""
-    references: List[str] = field(default_factory=list)
-    cwe_id: Optional[str] = None  # CWE identifier, e.g. "CWE-306"
+    references: list[str] = field(default_factory=list)
+    cwe_id: str | None = None  # CWE identifier, e.g. "CWE-306"
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert to a JSON-serializable dictionary."""
         return {
             "id": self.id,
@@ -111,11 +111,11 @@ class SecurityAuditReport:
     medium_count: int = 0
     low_count: int = 0
     info_count: int = 0
-    findings: List[SecurityFinding] = field(default_factory=list)
-    remediation_priority: List[Dict[str, Any]] = field(default_factory=list)
-    scan_metadata: Dict[str, Any] = field(default_factory=dict)
+    findings: list[SecurityFinding] = field(default_factory=list)
+    remediation_priority: list[dict[str, Any]] = field(default_factory=list)
+    scan_metadata: dict[str, Any] = field(default_factory=dict)
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert to a JSON-serializable dictionary."""
         return {
             "project_root": self.project_root,
@@ -137,7 +137,7 @@ class SecurityAuditReport:
 # Secret patterns for hardcoded-secret scanning
 # ---------------------------------------------------------------------------
 
-_SECRET_PATTERNS: List[Tuple[str, str, Severity]] = [
+_SECRET_PATTERNS: list[tuple[str, str, Severity]] = [
     # (pattern, description, severity)
     (
         r'(?:api[_-]?key|apikey)\s*[=:]\s*["\'][A-Za-z0-9\-_]{16,}["\']',
@@ -213,7 +213,7 @@ _SAFE_CONTEXT_PATTERNS = [
 # Insecure dependency patterns
 # ---------------------------------------------------------------------------
 
-_INSECURE_PACKAGES: Dict[str, List[str]] = {
+_INSECURE_PACKAGES: dict[str, list[str]] = {
     # package: list of known-vulnerable version patterns (simplified)
     "pickle": ["*"],  # Never use pickle for untrusted data
     "yaml": [">=5.0,<5.4"],  # PyYAML unsafe load
@@ -221,7 +221,7 @@ _INSECURE_PACKAGES: Dict[str, List[str]] = {
 }
 
 # Functions that indicate insecure patterns
-_INSECURE_FUNCTION_PATTERNS: List[Tuple[str, str, Severity]] = [
+_INSECURE_FUNCTION_PATTERNS: list[tuple[str, str, Severity]] = [
     (r"\beval\s*\(", "Use of eval() — potential code injection", Severity.HIGH),
     (r"\bexec\s*\(", "Use of exec() — potential code injection", Severity.HIGH),
     (r"\b__import__\s*\(", "Dynamic import — potential code injection", Severity.MEDIUM),
@@ -269,7 +269,7 @@ class SecurityAuditor:
         print(f"Security Score: {report.security_score}/100 ({report.grade})")
     """
 
-    def __init__(self, project_root: Optional[str] = None) -> None:
+    def __init__(self, project_root: str | None = None) -> None:
         """Initialize the auditor.
 
         Args:
@@ -279,7 +279,7 @@ class SecurityAuditor:
         if project_root is None:
             project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
         self.project_root = os.path.abspath(project_root)
-        self._findings: List[SecurityFinding] = []
+        self._findings: list[SecurityFinding] = []
         self._finding_counter: int = 0
 
     # ------------------------------------------------------------------
@@ -353,12 +353,12 @@ class SecurityAuditor:
         severity: Severity,
         title: str,
         description: str,
-        file_path: Optional[str] = None,
-        line_number: Optional[int] = None,
-        endpoint: Optional[str] = None,
+        file_path: str | None = None,
+        line_number: int | None = None,
+        endpoint: str | None = None,
         remediation: str = "",
-        references: Optional[List[str]] = None,
-        cwe_id: Optional[str] = None,
+        references: list[str] | None = None,
+        cwe_id: str | None = None,
     ) -> None:
         """Create and register a security finding."""
         self._finding_counter += 1
@@ -402,8 +402,8 @@ class SecurityAuditor:
                 lines = fh.readlines()
 
             # Parse to find endpoint definitions
-            current_endpoint: Optional[str] = None
-            endpoint_line: Optional[int] = None
+            current_endpoint: str | None = None
+            endpoint_line: int | None = None
             has_auth_check = False
 
             for i, line in enumerate(lines, 1):
@@ -441,17 +441,16 @@ class SecurityAuditor:
                     has_auth_check = False
 
                 # Detect auth check in function body
-                if current_endpoint and not has_auth_check:
-                    if any(
-                        kw in line
-                        for kw in (
-                            "_require_api_key",
-                            "get_api_key",
-                            "Depends(get_api_key)",
-                            "get_current_user",
-                        )
-                    ):
-                        has_auth_check = True
+                if current_endpoint and not has_auth_check and any(
+                    kw in line
+                    for kw in (
+                        "_require_api_key",
+                        "get_api_key",
+                        "Depends(get_api_key)",
+                        "get_current_user",
+                    )
+                ):
+                    has_auth_check = True
 
             # Check last endpoint
             if current_endpoint and not has_auth_check:
@@ -605,7 +604,7 @@ class SecurityAuditor:
                                     "and use it as a typed parameter in the endpoint function."
                                 ),
                                 references=[
-                                    "OWASP API3:2023 Broken Object Property Level Authorization"
+                                    "OWASP API3:2023 Broken Object Property Level Authorization",
                                 ],
                                 cwe_id="CWE-20",
                             )
@@ -1055,7 +1054,7 @@ class SecurityAuditor:
     # Score computation
     # ------------------------------------------------------------------
 
-    def _compute_security_score(self) -> Tuple[int, str]:
+    def _compute_security_score(self) -> tuple[int, str]:
         """Compute the security score (0-100) and grade.
 
         Scoring:
@@ -1097,12 +1096,12 @@ class SecurityAuditor:
     # Remediation priority
     # ------------------------------------------------------------------
 
-    def _build_remediation_priority(self) -> List[Dict[str, Any]]:
+    def _build_remediation_priority(self) -> list[dict[str, Any]]:
         """Build a prioritized list of remediation actions."""
-        priority: List[Dict[str, Any]] = []
+        priority: list[dict[str, Any]] = []
 
         # Group findings by category
-        by_category: Dict[FindingCategory, List[SecurityFinding]] = {}
+        by_category: dict[FindingCategory, list[SecurityFinding]] = {}
         for f in self._findings:
             by_category.setdefault(f.category, []).append(f)
 
@@ -1136,14 +1135,14 @@ class SecurityAuditor:
                     "top_remediation": findings[0].remediation if findings else "",
                     "affected_endpoints": list({f.endpoint for f in findings if f.endpoint}),
                     "affected_files": list({f.file_path for f in findings if f.file_path}),
-                }
+                },
             )
 
         return priority
 
-    def _count_severities(self) -> Dict[Severity, int]:
+    def _count_severities(self) -> dict[Severity, int]:
         """Count findings by severity level."""
-        counts: Dict[Severity, int] = {}
+        counts: dict[Severity, int] = {}
         for f in self._findings:
             counts[f.severity] = counts.get(f.severity, 0) + 1
         return counts
@@ -1192,10 +1191,7 @@ async def _main() -> None:
     auditor = SecurityAuditor(project_root=args.project_root)
     report = await auditor.run()
 
-    if args.output == "-":
-        out = sys.stdout
-    else:
-        out = open(args.output, "w", encoding="utf-8")
+    out = sys.stdout if args.output == "-" else open(args.output, "w", encoding="utf-8")
 
     try:
         if not args.json_only:
@@ -1204,7 +1200,7 @@ async def _main() -> None:
             print("=" * 72, file=out)
             print(f"Project Root:       {report.project_root}", file=out)
             print(
-                f"Security Score:     {report.security_score}/100 (Grade: {report.grade})", file=out
+                f"Security Score:     {report.security_score}/100 (Grade: {report.grade})", file=out,
             )
             print(f"Total Findings:     {report.total_findings}", file=out)
             print(f"  Critical:         {report.critical_count}", file=out)

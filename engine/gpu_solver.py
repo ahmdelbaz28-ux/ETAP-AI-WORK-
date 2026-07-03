@@ -29,7 +29,7 @@ from __future__ import annotations
 
 import logging
 import time
-from typing import Any, Dict, List, Union
+from typing import Any
 
 import numpy as np
 from scipy.sparse import csr_matrix, lil_matrix
@@ -144,8 +144,8 @@ class GPUSolver:
 
     def newton_raphson_gpu(
         self,
-        ybus: Union[np.ndarray, csr_matrix, Any],
-        bus_data: List[BusData],
+        ybus: np.ndarray | csr_matrix | Any,
+        bus_data: list[BusData],
         max_iter: int = 50,
         tol: float = 1e-8,
     ) -> SparseConvergenceResult:
@@ -202,10 +202,7 @@ class GPUSolver:
                 [b.voltage_magnitude * np.exp(1j * b.voltage_angle) for b in bus_data],
                 dtype=complex,
             )
-            if sp_issparse(ybus):
-                Ybus_dense = ybus.toarray()
-            else:
-                Ybus_dense = np.asarray(ybus)
+            Ybus_dense = ybus.toarray() if sp_issparse(ybus) else np.asarray(ybus)
 
         P_sch = xp.array([b.p_generation - b.p_load for b in bus_data], dtype=float)
         Q_sch = xp.array([b.q_generation - b.q_load for b in bus_data], dtype=float)
@@ -214,7 +211,7 @@ class GPUSolver:
         for i in pv_idx:
             V[i] = bus_data[i].v_scheduled * xp.exp(1j * xp.angle(V[i]))
 
-        iteration_log: List[Dict[str, Any]] = []
+        iteration_log: list[dict[str, Any]] = []
         converged = False
         max_mismatch = 0.0
 
@@ -245,7 +242,7 @@ class GPUSolver:
                     "max_mismatch": max_mismatch,
                     "n_pv": n_pv,
                     "n_pq": n_pq,
-                }
+                },
             )
 
             if max_mismatch < tol:
@@ -273,10 +270,7 @@ class GPUSolver:
                 V[i] = vmag * xp.exp(1j * xp.angle(V[i]))
 
         # --- Copy results back to host ---
-        if self._gpu_available:
-            V_host = _cp.asnumpy(V)
-        else:
-            V_host = np.asarray(V)
+        V_host = _cp.asnumpy(V) if self._gpu_available else np.asarray(V)
 
         I_final = Ybus_dense @ V
         S_final = V * xp.conj(I_final)
@@ -312,8 +306,8 @@ class GPUSolver:
         self,
         V: Any,
         Ybus: Any,
-        pv_idx: List[int],
-        pq_idx: List[int],
+        pv_idx: list[int],
+        pq_idx: list[int],
         n_unknowns: int,
     ) -> Any:
         """Build the Jacobian in sparse format on the active device.
@@ -382,7 +376,7 @@ class GPUSolver:
                             * (
                                 G[i, j] * xp.sin(Vang[i] - Vang[j])
                                 - B[i, j] * xp.cos(Vang[i] - Vang[j])
-                            )
+                            ),
                         )
                         if not self._gpu_available
                         else float(
@@ -392,8 +386,8 @@ class GPUSolver:
                                 * (
                                     G[i, j] * xp.sin(Vang[i] - Vang[j])
                                     - B[i, j] * xp.cos(Vang[i] - Vang[j])
-                                )
-                            )
+                                ),
+                            ),
                         )
                     )
                 if self._gpu_available:
@@ -422,7 +416,7 @@ class GPUSolver:
                             * (
                                 G[i, j] * xp.cos(Vang[i] - Vang[j])
                                 + B[i, j] * xp.sin(Vang[i] - Vang[j])
-                            )
+                            ),
                         )
                         if not self._gpu_available
                         else float(
@@ -432,8 +426,8 @@ class GPUSolver:
                                 * (
                                     G[i, j] * xp.cos(Vang[i] - Vang[j])
                                     + B[i, j] * xp.sin(Vang[i] - Vang[j])
-                                )
-                            )
+                                ),
+                            ),
                         )
                     )
                 if self._gpu_available:
@@ -463,7 +457,7 @@ class GPUSolver:
                             * (
                                 G[i, j] * xp.cos(Vang[i] - Vang[j])
                                 + B[i, j] * xp.sin(Vang[i] - Vang[j])
-                            )
+                            ),
                         )
                         if not self._gpu_available
                         else float(
@@ -473,8 +467,8 @@ class GPUSolver:
                                 * (
                                     G[i, j] * xp.cos(Vang[i] - Vang[j])
                                     + B[i, j] * xp.sin(Vang[i] - Vang[j])
-                                )
-                            )
+                                ),
+                            ),
                         )
                     )
                 if self._gpu_available:
@@ -503,7 +497,7 @@ class GPUSolver:
                             * (
                                 G[i, j] * xp.sin(Vang[i] - Vang[j])
                                 - B[i, j] * xp.cos(Vang[i] - Vang[j])
-                            )
+                            ),
                         )
                         if not self._gpu_available
                         else float(
@@ -513,8 +507,8 @@ class GPUSolver:
                                 * (
                                     G[i, j] * xp.sin(Vang[i] - Vang[j])
                                     - B[i, j] * xp.cos(Vang[i] - Vang[j])
-                                )
-                            )
+                                ),
+                            ),
                         )
                     )
                 if self._gpu_available:
@@ -573,16 +567,10 @@ class GPUSolver:
         if self._gpu_available:
             try:
                 # Ensure b is a CuPy array
-                if not isinstance(b, _cp.ndarray):
-                    b_gpu = _cp.asarray(np.asarray(b))
-                else:
-                    b_gpu = b
+                b_gpu = _cp.asarray(np.asarray(b)) if not isinstance(b, _cp.ndarray) else b
 
                 # Ensure A is a CuPy sparse matrix
-                if not _cp.sparse.issparse(A):
-                    A_gpu = _cp.sparse.csr_matrix(_cp.asarray(A))
-                else:
-                    A_gpu = A
+                A_gpu = _cp.sparse.csr_matrix(_cp.asarray(A)) if not _cp.sparse.issparse(A) else A
 
                 x = _cp_spsolve(A_gpu, b_gpu)
                 return x
@@ -618,8 +606,8 @@ class GPUSolver:
 
     def benchmark_cpu_vs_gpu(
         self,
-        sizes: List[int] | None = None,
-    ) -> Dict[str, Any]:
+        sizes: list[int] | None = None,
+    ) -> dict[str, Any]:
         """Benchmark CPU vs GPU solver performance for various system sizes.
 
         Generates synthetic systems and runs the Newton-Raphson solver
@@ -639,7 +627,7 @@ class GPUSolver:
         if sizes is None:
             sizes = [100, 500, 1000]
 
-        results: Dict[str, Any] = {"device": self._device_name, "sizes": []}
+        results: dict[str, Any] = {"device": self._device_name, "sizes": []}
 
         from engine.sparse_solver import SparseYBus as _SparseYBus
 

@@ -110,10 +110,7 @@ class FaultAnalyzer:
         """
         Vpre = complex(1.0, 0.0)
         Zth = self._z(bus_index, "pos")
-        if abs(Zth) < 1e-12:
-            If = complex(float("inf"), 0)
-        else:
-            If = Vpre / Zth
+        If = complex(float("inf"), 0) if abs(Zth) < 1e-12 else Vpre / Zth
         return {
             "fault_current": If,
             "fault_current_magnitude": np.abs(If),
@@ -138,10 +135,7 @@ class FaultAnalyzer:
         Z2 = self._z(bus_index, "neg")
         Z0 = self._z(bus_index, "zero")
         denominator = Z1 + Z2 + Z0
-        if abs(denominator) < 1e-12:
-            If = complex(float("inf"), 0)
-        else:
-            If = 3 * Vpre / denominator
+        If = complex(float("inf"), 0) if abs(denominator) < 1e-12 else 3 * Vpre / denominator
         return {
             "fault_current": If,
             "fault_current_magnitude": np.abs(If),
@@ -199,10 +193,7 @@ class FaultAnalyzer:
             # near zero — this is a short circuit, not an open circuit.
             Z20 = complex(0, 0)
         If1 = Vpre / (Z1 + Z20)
-        if abs(Z2 + Z0) > 1e-12:
-            If0 = -If1 * (Z2 / (Z2 + Z0))
-        else:
-            If0 = complex(0, 0)
+        If0 = -If1 * (Z2 / (Z2 + Z0)) if abs(Z2 + Z0) > 1e-12 else complex(0, 0)
         If2 = -If1 - If0
         a = complex(-0.5, np.sqrt(3) / 2)
         a2 = complex(-0.5, -np.sqrt(3) / 2)

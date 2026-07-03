@@ -9,6 +9,7 @@ import { CommandPalette } from './components/command/CommandPalette'
 import { ShortcutsPanel } from './components/command/ShortcutsPanel'
 import { OnboardingTour } from './components/onboarding/OnboardingTour'
 import { ErrorRecovery } from './components/context/ErrorRecovery'
+import { DemoModeBanner } from './components/DemoModeBanner'
 import { useAppStore } from './store'
 import { MagicHelpInspector } from './components/help/MagicHelpInspector'
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts'
@@ -151,6 +152,7 @@ export default function App() {
   return (
     <ThemeProvider>
       <NotificationProvider>
+        <DemoModeBanner />
         <BrowserRouter>
           <Routes>
             {/* Auth routes - no Layout */}

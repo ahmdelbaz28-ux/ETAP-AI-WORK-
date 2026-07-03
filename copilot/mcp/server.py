@@ -25,7 +25,6 @@ Tools exposed:
 from __future__ import annotations
 
 import logging
-from typing import Dict, List
 
 from autodesk_connector.autocad.connector import AutoCADConnector
 from autodesk_connector.revit.connector import RevitConnector
@@ -47,7 +46,7 @@ logger = logging.getLogger(__name__)
 # Tool Definitions (MCP-compatible tool schema)
 # ---------------------------------------------------------------------------
 
-MCP_TOOL_DEFINITIONS: List[dict] = [
+MCP_TOOL_DEFINITIONS: list[dict] = [
     {
         "name": "create_drawing",
         "description": "Create a new AutoCAD DWG drawing file with optional template",
@@ -328,7 +327,7 @@ class CopilotMCPServer:
     # Tool registry
     # ------------------------------------------------------------------
 
-    def _build_tool_registry(self) -> Dict[str, callable]:
+    def _build_tool_registry(self) -> dict[str, callable]:
         """Build the mapping of tool names to handler methods."""
         return {
             "create_drawing": self._handle_create_drawing,
@@ -348,7 +347,7 @@ class CopilotMCPServer:
             "run_engineering_checks": self._handle_run_engineering_checks,
         }
 
-    def list_tools(self) -> List[dict]:
+    def list_tools(self) -> list[dict]:
         """List all available MCP tools with their schemas."""
         return MCP_TOOL_DEFINITIONS
 
@@ -374,7 +373,7 @@ class CopilotMCPServer:
         try:
             return handler(arguments)
         except Exception as e:
-            logger.exception(f"Tool {tool_name} failed")
+            logger.exception("Tool %s failed", tool_name)
             return {"success": False, "error": str(e)}
 
     # ------------------------------------------------------------------
@@ -574,7 +573,7 @@ class CopilotMCPServer:
     def _handle_validate_design(self, args: dict) -> dict:
         """Run validation checks on the current model."""
         check_types = args.get(
-            "check_types", ["overcurrent", "voltage", "coordination", "cable_sizing"]
+            "check_types", ["overcurrent", "voltage", "coordination", "cable_sizing"],
         )
         results: dict = {}
 
@@ -625,7 +624,7 @@ class CopilotMCPServer:
                 if panel.main_breaker_a > panel.bus_rating_a:
                     issues.append(
                         f"Panel {panel.name}: main breaker ({panel.main_breaker_a}A) "
-                        f"> bus rating ({panel.bus_rating_a}A)"
+                        f"> bus rating ({panel.bus_rating_a}A)",
                     )
         return {"passed": len(issues) == 0, "issues": issues}
 
@@ -636,7 +635,7 @@ class CopilotMCPServer:
                 if panel.main_breaker_a and feeder.rated_current_a >= panel.main_breaker_a:
                     issues.append(
                         f"Panel {panel.name}: feeder {feeder.load_name} "
-                        f"({feeder.rated_current_a}A) >= main breaker ({panel.main_breaker_a}A)"
+                        f"({feeder.rated_current_a}A) >= main breaker ({panel.main_breaker_a}A)",
                     )
         return {"passed": len(issues) == 0, "issues": issues}
 

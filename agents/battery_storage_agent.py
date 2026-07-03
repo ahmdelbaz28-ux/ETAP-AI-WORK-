@@ -21,7 +21,7 @@ import logging
 from datetime import datetime, timezone
 
 UTC = timezone.utc  # noqa: UP017
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 import numpy as np
 
@@ -70,14 +70,14 @@ class BatteryStorageAgent(BaseAgent):
     def size_bess(
         self,
         load_profile_kw: np.ndarray,
-        target_peak_kw: Optional[float] = None,
+        target_peak_kw: float | None = None,
         max_power_kw: float = 1000.0,
-        usable_soc_range: Tuple[float, float] = (0.10, 0.90),
+        usable_soc_range: tuple[float, float] = (0.10, 0.90),
         round_trip_efficiency: float = 0.87,
         dod_max: float = 0.90,
         discharge_duration_hours: float = 4.0,
         reserve_margin_pct: float = 10.0,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Size BESS power and energy capacity for peak shaving.
 
@@ -196,7 +196,7 @@ class BatteryStorageAgent(BaseAgent):
         max_soc: float = 0.90,
         max_daily_cycles: float = 1.5,
         strategy: str = "arbitrage",
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Optimize BESS dispatch schedule.
 
@@ -294,7 +294,7 @@ class BatteryStorageAgent(BaseAgent):
                 if load_profile_kw[t] > peak_threshold and available_energy > 0:
                     # Discharge to reduce peak
                     P = min(
-                        bess_power_kw, load_profile_kw[t] - peak_threshold, available_energy / dt
+                        bess_power_kw, load_profile_kw[t] - peak_threshold, available_energy / dt,
                     )
                     P_discharge[t] = P
                     soc[t + 1] = current_soc - (P * dt) / (bess_energy_kwh * sqrt_efficiency)
@@ -402,7 +402,7 @@ class BatteryStorageAgent(BaseAgent):
         tax_rate: float = 0.21,
         itc_pct: float = 30.0,
         salvage_pct: float = 10.0,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Calculate BESS return on investment.
 
@@ -479,7 +479,7 @@ class BatteryStorageAgent(BaseAgent):
 
         # NPV
         discount_factors = np.array(
-            [(1.0 / (1.0 + discount_rate) ** t) for t in range(project_life_years + 1)]
+            [(1.0 / (1.0 + discount_rate) ** t) for t in range(project_life_years + 1)],
         )
         npv = float(np.sum(cash_flows * discount_factors))
 
@@ -533,8 +533,8 @@ class BatteryStorageAgent(BaseAgent):
 
     @staticmethod
     def _compute_irr(
-        cash_flows: np.ndarray, max_iter: int = 100, tol: float = 1e-8
-    ) -> Optional[float]:
+        cash_flows: np.ndarray, max_iter: int = 100, tol: float = 1e-8,
+    ) -> float | None:
         """Compute IRR using Newton-Raphson method."""
         x = 0.10  # Initial guess: 10%
         for _ in range(max_iter):
@@ -566,7 +566,7 @@ class BatteryStorageAgent(BaseAgent):
         temperature_C: float = 25.0,
         c_rate: float = 0.25,
         calendar_life_years: float = 15.0,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Analyze battery cycle life using rainflow counting and
         degradation modeling.
@@ -621,7 +621,7 @@ class BatteryStorageAgent(BaseAgent):
         # Convert cycles to equivalent full cycles using Whittaker-DOD factor
         # N_equiv = N_actual × (DoD / DoD_nominal)^1.8
         total_equivalent_cycles = 0.0
-        cycle_histogram: Dict[str, int] = {}
+        cycle_histogram: dict[str, int] = {}
 
         for dod, count in cycles.items():
             _dod_ratio = dod / nominal_dod if nominal_dod > 0 else 1.0
@@ -689,7 +689,7 @@ class BatteryStorageAgent(BaseAgent):
         }
 
     @staticmethod
-    def _rainflow_count(signal: np.ndarray) -> Dict[float, float]:
+    def _rainflow_count(signal: np.ndarray) -> dict[float, float]:
         """
         Simplified rainflow cycle counting.
 
@@ -708,7 +708,7 @@ class BatteryStorageAgent(BaseAgent):
         """
         # Bin DoD ranges
         dod_bins = np.arange(0.05, 1.05, 0.10)
-        cycles: Dict[float, float] = {}
+        cycles: dict[float, float] = {}
 
         # Find local extrema
         diff = np.diff(signal)
@@ -757,7 +757,7 @@ class BatteryStorageAgent(BaseAgent):
             self.log_execution(f"Starting battery storage analysis for task {task.task_id}")
 
             analysis_type = task.parameters.get("analysis_type", "full")
-            results: Dict[str, Any] = {}
+            results: dict[str, Any] = {}
             p = task.parameters
 
             # Default load profile: synthetic commercial building
@@ -787,13 +787,13 @@ class BatteryStorageAgent(BaseAgent):
 
                 strategy = p.get("dispatch_strategy", "arbitrage")
                 bess_power = float(
-                    p.get("bess_power_kw", results.get("sizing", {}).get("power_capacity_kw", 500))
+                    p.get("bess_power_kw", results.get("sizing", {}).get("power_capacity_kw", 500)),
                 )
                 bess_energy = float(
                     p.get(
                         "bess_energy_kwh",
                         results.get("sizing", {}).get("energy_capacity_kwh", 2000),
-                    )
+                    ),
                 )
 
                 results["dispatch"] = self.optimize_dispatch(
@@ -813,7 +813,7 @@ class BatteryStorageAgent(BaseAgent):
                         .get("financial", {})
                         .get("daily_net_revenue_$", 200)
                         * 365,
-                    )
+                    ),
                 )
                 bess_power = float(p.get("bess_power_kw", 500))
                 bess_energy = float(p.get("bess_energy_kwh", 2000))
@@ -924,7 +924,7 @@ class BatteryStorageAgent(BaseAgent):
 
     def validate_result(self, result: AgentResult) -> bool:
         """Validate battery storage analysis results."""
-        errors: List[str] = []
+        errors: list[str] = []
 
         sizing = result.data.get("sizing")
         if sizing is not None:
@@ -936,14 +936,12 @@ class BatteryStorageAgent(BaseAgent):
                 errors.append("Round-trip efficiency exceeds 1.0")
 
         roi = result.data.get("roi")
-        if roi is not None:
-            if roi.get("npv_$", 0) < -1e9:
-                errors.append("NPV is extremely negative — check financial inputs")
+        if roi is not None and roi.get("npv_$", 0) < -1e9:
+            errors.append("NPV is extremely negative — check financial inputs")
 
         cycle = result.data.get("cycle_life")
-        if cycle is not None:
-            if cycle.get("cycle_utilization_pct", 0) > 100:
-                errors.append("Cycle utilization exceeds 100% — battery end of life")
+        if cycle is not None and cycle.get("cycle_utilization_pct", 0) > 100:
+            errors.append("Cycle utilization exceeds 100% — battery end of life")
 
         result.validation_errors.extend(errors)
         return len(errors) == 0

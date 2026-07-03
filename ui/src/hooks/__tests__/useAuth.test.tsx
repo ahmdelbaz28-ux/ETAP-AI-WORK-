@@ -229,16 +229,19 @@ describe('useAuth', () => {
     })
 
     // Call refreshToken and catch the error
-    let refreshError: Error | null = null
+    // QUALITY v2.1.1: typed refreshError as Error | undefined and used non-null
+    // assertion in expect() to satisfy strict mode's control-flow narrowing.
+    let refreshError: Error | undefined
     await act(async () => {
       try {
         await result.current.refreshToken()
-      } catch (e) {
+        refreshError = undefined
+      } catch (e: unknown) {
         refreshError = e instanceof Error ? e : new Error(String(e))
       }
     })
 
-    expect(refreshError?.message).toBe('Refresh token failed')
+    expect(refreshError!.message).toBe('Refresh token failed')
 
     // After refresh failure, logout is called which clears user
     expect(result.current.user).toBeNull()

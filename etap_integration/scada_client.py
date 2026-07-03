@@ -34,7 +34,7 @@ import logging
 import os
 import time
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -67,11 +67,11 @@ class SCADAReading:
 class SCADATelemetry:
     """Aggregated SCADA telemetry snapshot."""
 
-    voltages: List[SCADAReading] = field(default_factory=list)
-    currents: List[SCADAReading] = field(default_factory=list)
-    frequencies: List[SCADAReading] = field(default_factory=list)
-    active_power: List[SCADAReading] = field(default_factory=list)
-    reactive_power: List[SCADAReading] = field(default_factory=list)
+    voltages: list[SCADAReading] = field(default_factory=list)
+    currents: list[SCADAReading] = field(default_factory=list)
+    frequencies: list[SCADAReading] = field(default_factory=list)
+    active_power: list[SCADAReading] = field(default_factory=list)
+    reactive_power: list[SCADAReading] = field(default_factory=list)
     timestamp: float = field(default_factory=time.time)
     source: str = "simulation"  # simulation, iec61850, mock
 
@@ -98,7 +98,7 @@ except ImportError:
     except ImportError:
         logger.info(
             "No IEC 61850 library installed — SCADA client will use simulated data. "
-            "Install iec61850datamodel or py61850 for real SCADA integration."
+            "Install iec61850datamodel or py61850 for real SCADA integration.",
         )
 
 
@@ -138,7 +138,7 @@ class SimulatedSCADA:
                     tag=f"{bus_name}/Voltage",
                     value=round(v_base + v_noise, 4),
                     unit="p.u.",
-                )
+                ),
             )
 
             # Current: 0.5-0.9 p.u. with load pattern
@@ -149,7 +149,7 @@ class SimulatedSCADA:
                     tag=f"{bus_name}/Current",
                     value=round(i_base + i_noise, 4),
                     unit="p.u.",
-                )
+                ),
             )
 
             # Frequency: 50 Hz ± 0.05 Hz
@@ -160,7 +160,7 @@ class SimulatedSCADA:
                     tag=f"{bus_name}/Frequency",
                     value=round(f_base + f_noise, 4),
                     unit="Hz",
-                )
+                ),
             )
 
             # Active power
@@ -170,7 +170,7 @@ class SimulatedSCADA:
                     tag=f"{bus_name}/ActivePower",
                     value=round(p_val, 4),
                     unit="p.u.",
-                )
+                ),
             )
 
             # Reactive power
@@ -180,7 +180,7 @@ class SimulatedSCADA:
                     tag=f"{bus_name}/ReactivePower",
                     value=round(q_val, 4),
                     unit="p.u.",
-                )
+                ),
             )
 
         return telemetry
@@ -219,7 +219,7 @@ class SCADAClient:
             poll_interval_sec if poll_interval_sec is not None else _SCADA_POLL_SEC
         )
         self._connected = False
-        self._last_telemetry: Optional[SCADATelemetry] = None
+        self._last_telemetry: SCADATelemetry | None = None
         self._simulated = SimulatedSCADA()
         self._client: Any = None
 
@@ -255,7 +255,7 @@ class SCADAClient:
             )
             self._connected = False
 
-    async def get_live_data(self) -> Dict[str, Any]:
+    async def get_live_data(self) -> dict[str, Any]:
         """Fetch current SCADA telemetry data.
 
         Returns
@@ -268,7 +268,7 @@ class SCADAClient:
             return await self._read_from_server()
         return self._read_from_simulation()
 
-    async def _read_from_server(self) -> Dict[str, Any]:
+    async def _read_from_server(self) -> dict[str, Any]:
         """Read data from the IEC 61850 server."""
         try:
             telemetry = SCADATelemetry(source="iec61850", timestamp=time.time())
@@ -287,7 +287,7 @@ class SCADAClient:
                             tag=f"BUS{i + 1}/Voltage",
                             value=float(val) if val else 0.0,
                             unit="p.u.",
-                        )
+                        ),
                     )
                 except Exception:
                     telemetry.voltages.append(
@@ -296,7 +296,7 @@ class SCADAClient:
                             value=0.0,
                             unit="p.u.",
                             quality="bad",
-                        )
+                        ),
                     )
 
             self._last_telemetry = telemetry
@@ -307,17 +307,17 @@ class SCADAClient:
             self._connected = False
             return self._read_from_simulation()
 
-    def _read_from_simulation(self) -> Dict[str, Any]:
+    def _read_from_simulation(self) -> dict[str, Any]:
         """Read data from the simulated SCADA source."""
         telemetry = self._simulated.generate_telemetry()
         self._last_telemetry = telemetry
         return self._telemetry_to_dict(telemetry)
 
     @staticmethod
-    def _telemetry_to_dict(telemetry: SCADATelemetry) -> Dict[str, Any]:
+    def _telemetry_to_dict(telemetry: SCADATelemetry) -> dict[str, Any]:
         """Convert SCADATelemetry to a JSON-serializable dictionary."""
 
-        def readings_to_list(readings: List[SCADAReading]) -> List[Dict[str, Any]]:
+        def readings_to_list(readings: list[SCADAReading]) -> list[dict[str, Any]]:
             return [
                 {
                     "tag": r.tag,
@@ -353,7 +353,7 @@ class SCADAClient:
         return "simulation"
 
     @property
-    def last_telemetry(self) -> Optional[SCADATelemetry]:
+    def last_telemetry(self) -> SCADATelemetry | None:
         """The most recent telemetry snapshot."""
         return self._last_telemetry
 
@@ -364,7 +364,7 @@ class SCADAClient:
 
 
 async def stream_scada_data(
-    client: Optional[SCADAClient] = None,
+    client: SCADAClient | None = None,
     interval_sec: int = 5,
 ):
     """Async generator that yields SCADA telemetry at the configured interval.

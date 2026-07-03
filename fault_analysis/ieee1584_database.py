@@ -260,7 +260,7 @@ class IEEE1584Database:
 
     @staticmethod
     def calculate_working_distance_correction(
-        working_distance_mm, electrode_config, enclosure_type
+        working_distance_mm, electrode_config, enclosure_type,
     ):
         """
         Calculate working distance correction based on electrode configuration.
@@ -313,18 +313,18 @@ class IEEE1584Database:
         """
         # Calculate arc current
         Iarc = IEEE1584Database.calculate_arc_current(
-            voltage_kv, bolted_fault_current_ka, electrode_config
+            voltage_kv, bolted_fault_current_ka, electrode_config,
         )
         Iarc_reduced = IEEE1584Database.calculate_reduced_arc_current(Iarc)
 
         # Get coefficients
         k1, k2, k3, x_factor = IEEE1584Database.get_incident_energy_coefficients(
-            voltage_kv, electrode_config, enclosure_type
+            voltage_kv, electrode_config, enclosure_type,
         )
 
         # Enclosure correction
         CF = IEEE1584Database.calculate_enclosure_correction(
-            enclosure_type, enclosure_width_mm, enclosure_height_mm, enclosure_depth_mm
+            enclosure_type, enclosure_width_mm, enclosure_height_mm, enclosure_depth_mm,
         )
 
         # Calculate at full arc current
@@ -355,16 +355,16 @@ class IEEE1584Database:
         Calculate arc flash boundary (distance where E = 1.2 cal/cm^2).
         """
         Iarc = IEEE1584Database.calculate_arc_current(
-            voltage_kv, bolted_fault_current_ka, electrode_config
+            voltage_kv, bolted_fault_current_ka, electrode_config,
         )
         Iarc_reduced = IEEE1584Database.calculate_reduced_arc_current(Iarc)
 
         k1, k2, k3, x_factor = IEEE1584Database.get_boundary_coefficients(
-            voltage_kv, electrode_config, enclosure_type
+            voltage_kv, electrode_config, enclosure_type,
         )
 
         CF = IEEE1584Database.calculate_enclosure_correction(
-            enclosure_type, enclosure_width_mm, enclosure_height_mm, enclosure_depth_mm
+            enclosure_type, enclosure_width_mm, enclosure_height_mm, enclosure_depth_mm,
         )
 
         # Boundary at full arc current
@@ -429,7 +429,7 @@ class IEEE1584Database:
 
         # Arc current
         Iarc = IEEE1584Database.calculate_arc_current(
-            voltage_kv, bolted_fault_current_ka, electrode_config
+            voltage_kv, bolted_fault_current_ka, electrode_config,
         )
         Iarc_reduced = IEEE1584Database.calculate_reduced_arc_current(Iarc)
 

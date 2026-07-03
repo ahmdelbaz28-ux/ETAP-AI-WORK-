@@ -98,7 +98,7 @@ def install_dependencies():
     print_header("Installing Dependencies")
 
     packages = [
-        "PyPDF2>=3.0.0",
+        "pypdf>=6.13.0",  # SECURITY: replaces deprecated PyPDF2
         "pdfplumber>=0.7.0",
         "sentence-transformers>=2.2.0",
         "chromadb>=0.4.0",

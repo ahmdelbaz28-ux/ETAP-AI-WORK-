@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Dict, List, Tuple
 
 from gis_validation_electrical.electrical_model import ElectricalModel
 
@@ -9,11 +8,11 @@ from gis_validation_electrical.electrical_model import ElectricalModel
 @dataclass(frozen=True)
 class LoadFlowIssue:
     issue_type: str  # e.g. "voltage_propagation_inconsistent"
-    affected_assets: List[str]
-    details: Dict[str, object]
+    affected_assets: list[str]
+    details: dict[str, object]
 
 
-def _compute_deterministic_voltages(model: ElectricalModel) -> Dict[str, float]:
+def _compute_deterministic_voltages(model: ElectricalModel) -> dict[str, float]:
     """
     Simplified deterministic "voltage propagation" model:
     - Substation node voltage initialized deterministically (based on node_id)
@@ -32,13 +31,13 @@ def _compute_deterministic_voltages(model: ElectricalModel) -> Dict[str, float]:
         return pu
 
     # BFS from each node (graph may be disconnected). For each node, compute best-effort.
-    volt: Dict[str, float] = {}
-    for nid in model.nodes.keys():
+    volt: dict[str, float] = {}
+    for nid in model.nodes:
         if nid in volt:
             continue
         volt[nid] = init_voltage(nid)
 
-        frontier: List[str] = [nid]
+        frontier: list[str] = [nid]
         while frontier:
             cur = frontier.pop(0)
             cur_v = volt[cur]
@@ -56,7 +55,7 @@ def _compute_deterministic_voltages(model: ElectricalModel) -> Dict[str, float]:
     return volt
 
 
-def validate_load_flow(model: ElectricalModel) -> Tuple[bool, List[LoadFlowIssue]]:
+def validate_load_flow(model: ElectricalModel) -> tuple[bool, list[LoadFlowIssue]]:
     """
     Deterministic simplified load-flow validation:
     - Voltage propagation consistency: edge endpoints must not violate bounded drop constraints.
@@ -68,7 +67,7 @@ def validate_load_flow(model: ElectricalModel) -> Tuple[bool, List[LoadFlowIssue
 
     volt = _compute_deterministic_voltages(model)
 
-    issues: List[LoadFlowIssue] = []
+    issues: list[LoadFlowIssue] = []
 
     for e in model.edges.values():
         v_from = volt.get(e.from_node)
@@ -85,7 +84,7 @@ def validate_load_flow(model: ElectricalModel) -> Tuple[bool, List[LoadFlowIssue
                     issue_type="voltage_propagation_direction_inconsistent",
                     affected_assets=list(e.asset_ids),
                     details={"edge_id": e.edge_id, "v_from": v_from, "v_to": v_to},
-                )
+                ),
             )
             continue
 
@@ -99,7 +98,7 @@ def validate_load_flow(model: ElectricalModel) -> Tuple[bool, List[LoadFlowIssue
                         "impedance_ohm": e.impedance_ohm,
                         "drop_pu": drop,
                     },
-                )
+                ),
             )
 
         # Voltage plausibility bounds
@@ -109,7 +108,7 @@ def validate_load_flow(model: ElectricalModel) -> Tuple[bool, List[LoadFlowIssue
                     issue_type="voltage_out_of_bounds",
                     affected_assets=list(e.asset_ids),
                     details={"node_id": e.to_node, "v_pu": v_to},
-                )
+                ),
             )
 
     ok = len(issues) == 0

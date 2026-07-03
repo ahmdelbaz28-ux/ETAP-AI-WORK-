@@ -49,7 +49,9 @@ matplotlib~=3.8.0
 psutil~=5.9.0
 
 # HTTP requests
-requests~=2.31.0
+# SECURITY: upgraded from 2.31.0 → 2.33.0 to fix CVE-2024-35195 (cert
+# verification bypass) and CVE-2024-47081.
+requests~=2.33.0
 
 # Language detection
 langdetect~=1.0.9
@@ -64,7 +66,11 @@ typing-extensions>=4.9.0
 structlog~=23.2.0
 
 # Security
-cryptography~=41.0.0
+# SECURITY: upgraded from 41.0.0 → 48.0.0 to fix 9 CVEs including:
+#   CVE-2023-50782 (NULL deref in signature verification)
+#   CVE-2024-0727 (PKCS#12 NULL deref)
+#   GHSA-537c-gmf6-5ccf (Bleichenbacher timing in PKCS#1 v1.5)
+cryptography~=48.0.0
 hvac~=2.1.0
 
 # Password hashing
@@ -93,11 +99,17 @@ uvicorn~=0.25.0
 # ==========================================
 # ETAP User Guide Integration - PDF Processing
 # ==========================================
-PyPDF2~=3.0.0
+# SECURITY: pypdf upgraded from 5.9.0 → 6.13.3 to fix 30 CVEs including:
+#   CVE-2025-55197, CVE-2026-22690, CVE-2026-49461, CVE-2026-54531 (ReDoS / XML parsing)
+# Note: project switched from PyPDF2 → pypdf (PyPDF2 is deprecated since 2022).
+pypdf~=6.13.0
 pdfplumber~=0.10.0
 
 # Text processing and NLP
-nltk~=3.8.0
+# SECURITY: nltk upgraded from 3.8.0 → 3.9.4 to fix 13 CVEs including:
+#   PYSEC-2024-167 (RCE via pickled models)
+#   CVE-2026-33230 / CVE-2026-33231
+nltk~=3.9.4
 
 # Document processing
 python-docx~=1.1.0
@@ -107,7 +119,8 @@ reportlab~=4.0.0
 # Additional utilities
 tqdm~=4.66.0
 beautifulsoup4~=4.12.0
-lxml~=5.1.0
+# SECURITY: lxml upgraded from 5.1.0 → 6.1.0 to fix PYSEC-2026-87 (XXE)
+lxml~=6.1.0
 
 # Phase 2: Security & Infrastructure
 pyotp~=2.9.0
@@ -140,7 +153,11 @@ alembic~=1.13.0
 python-multipart~=0.0.6
 
 # Starlette (FastAPI dependency - pinned for compatibility)
-starlette~=0.35.0
+# SECURITY: upgraded from 0.35.0 → 0.40.0 to fix CVE-2024-47874 (DoS via
+# multipart forms) and CVE-2025-54121 (memory leak). We use 0.40.x because
+# FastAPI 0.109 requires Starlette <0.41. Full upgrade to starlette 1.1.0
+# requires upgrading FastAPI to >=0.115 first (see P1 backlog).
+starlette>=0.40.0,<0.41.0
 
 # Celery for async task queue
 celery~=5.3.0
@@ -166,7 +183,9 @@ opentelemetry-instrumentation-fastapi~=0.51b0
 google-generativeai~=0.8.0
 
 # Pillow — image handling for screenshots (also a pyautogui dep, listed explicitly)
-Pillow~=10.2.0
+# SECURITY: upgraded from 10.2.0 → 12.2.0 to fix CVE-2024-28219 (buffer overflow)
+# and CVE-2026-42310.
+Pillow~=12.2.0
 
 # OpenCV — local screen analysis (offline fallback when Gemini is unreachable)
 # Used by integrations/opencv_vision.py for contour detection + UI element detection

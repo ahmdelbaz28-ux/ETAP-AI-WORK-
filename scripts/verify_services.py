@@ -176,7 +176,7 @@ if sb_url and sb_service:
     # Check projects table
     try:
         r = httpx.get(
-            f"{sb_url}/rest/v1/projects?select=*&limit=10", headers=sb_headers, timeout=10
+            f"{sb_url}/rest/v1/projects?select=*&limit=10", headers=sb_headers, timeout=10,
         )
         if r.status_code == 200:
             projects = r.json()
@@ -248,13 +248,13 @@ except Exception as e:
 # Live URL
 try:
     r = httpx.get(
-        "https://ahmdelbaz28-ahmedetap.hf.space/health", timeout=15, follow_redirects=True
+        "https://ahmdelbaz28-ahmedetap.hf.space/health", timeout=15, follow_redirects=True,
     )
     if r.status_code == 200:
         try:
             data = r.json()
             ok(
-                f"Live /health: 200 — status={data.get('status')}, uptime={data.get('uptime_seconds', 0):.0f}s"
+                f"Live /health: 200 — status={data.get('status')}, uptime={data.get('uptime_seconds', 0):.0f}s",
             )
         except Exception:
             ok("Live /health: 200")
@@ -266,7 +266,7 @@ except Exception as e:
 # Agents endpoint
 try:
     r = httpx.get(
-        "https://ahmdelbaz28-ahmedetap.hf.space/api/v1/agents", timeout=15, follow_redirects=True
+        "https://ahmdelbaz28-ahmedetap.hf.space/api/v1/agents", timeout=15, follow_redirects=True,
     )
     if r.status_code == 200:
         data = r.json()
@@ -288,7 +288,7 @@ gh_headers = (
 
 try:
     r = httpx.get(
-        "https://api.github.com/repos/ahmdelbaz28-ux/ETAP-AI-WORK-", headers=gh_headers, timeout=10
+        "https://api.github.com/repos/ahmdelbaz28-ux/ETAP-AI-WORK-", headers=gh_headers, timeout=10,
     )
     print(f"  Repo API: {r.status_code}")
     if r.status_code == 200:

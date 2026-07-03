@@ -13,7 +13,6 @@ from __future__ import annotations
 
 import logging
 from collections.abc import Callable
-from typing import Type, Union
 
 from tenacity import (
     after_log,
@@ -102,7 +101,7 @@ def skill_retry(
 def bounded_retry(
     max_attempts: int = 3,
     max_delay_seconds: float = 30.0,
-    exceptions: Union[Type[Exception], tuple[Type[Exception], ...]] = Exception,
+    exceptions: type[Exception] | tuple[type[Exception], ...] = Exception,
     reraise: bool = True,
 ) -> Callable:
     """General-purpose bounded retry decorator.

@@ -31,11 +31,12 @@ Usage
 
 from __future__ import annotations
 
+import contextlib
 import json
 import logging
 import os
 import time
-from typing import Any, Optional
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -55,10 +56,10 @@ except ImportError:
 # Singleton client
 # ---------------------------------------------------------------------------
 
-_client: Optional[Any] = None
+_client: Any | None = None
 
 
-async def get_redis_state_client() -> Optional[Any]:
+async def get_redis_state_client() -> Any | None:
     """Return the shared async Redis client, or None if Redis is unavailable."""
     global _client
     if not REDIS_AVAILABLE or not _REDIS_URL:
@@ -85,10 +86,8 @@ async def close_redis_state_client() -> None:
     """Close the shared Redis connection (call during app shutdown)."""
     global _client
     if _client is not None:
-        try:
+        with contextlib.suppress(Exception):
             await _client.aclose()
-        except Exception:
-            pass
         _client = None
 
 
@@ -192,7 +191,7 @@ class RedisDistributedLock:
         self._client = client
         self._key = f"{_LOCK_PREFIX}{resource}"
         self._ttl_ms = ttl_seconds * 1000
-        self._token: Optional[str] = None
+        self._token: str | None = None
 
     async def acquire(self, timeout_ms: int = 0) -> bool:
         """Attempt to acquire the lock.
@@ -259,7 +258,7 @@ _WF_TTL = 24 * 3600  # 24 hours
 async def save_workflow_state(
     task_id: str,
     state: dict,
-    client: Optional[Any] = None,
+    client: Any | None = None,
     ttl: int = _WF_TTL,
 ) -> None:
     """Persist agent workflow state to Redis.
@@ -287,8 +286,8 @@ async def save_workflow_state(
 
 async def load_workflow_state(
     task_id: str,
-    client: Optional[Any] = None,
-) -> Optional[dict]:
+    client: Any | None = None,
+) -> dict | None:
     """Load agent workflow state from Redis.
 
     Returns the state dict or None if no state was saved.
@@ -308,7 +307,7 @@ async def load_workflow_state(
 
 async def delete_workflow_state(
     task_id: str,
-    client: Optional[Any] = None,
+    client: Any | None = None,
 ) -> None:
     """Remove a workflow state entry from Redis."""
     r = client or await get_redis_state_client()

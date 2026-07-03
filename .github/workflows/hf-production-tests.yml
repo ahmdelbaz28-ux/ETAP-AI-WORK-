@@ -30,19 +30,36 @@ jobs:
 
       - name: Wait for HF Space to finish rebuilding
         run: |
-          # The sync workflow triggers a rebuild on HF Space. Wait up to 5 min
-          # for the Space to reach RUNNING state before running smoke tests.
+          # SECURITY: download to a temp file first, then parse.
+          # Avoids curl|bash pattern that could execute malicious JSON
+          # if the endpoint is compromised or DNS-hijacked.
+          HF_STATUS_URL="https://huggingface.co/api/spaces/ahmdelbaz28/AHMEDETAP"
           for i in $(seq 1 30); do
-            STAGE=$(curl -s https://huggingface.co/api/spaces/ahmdelbaz28/AHMEDETAP | \
-                    python3 -c "import sys, json; print(json.load(sys.stdin).get('runtime',{}).get('stage','UNKNOWN'))")
+            # Download to temp file with -f (fail on HTTP errors) and -m (max-time 15s)
+            if curl -sf -m 15 -o /tmp/hf-status.json "$HF_STATUS_URL"; then
+              # Validate JSON is parseable before extracting stage
+              STAGE=$(python3 -c "
+          import sys, json
+          try:
+              data = json.load(open('/tmp/hf-status.json'))
+              print(data.get('runtime', {}).get('stage', 'UNKNOWN'))
+          except (json.JSONDecodeError, IOError) as e:
+              print('PARSE_ERROR')
+              sys.exit(1)
+          " || echo "PARSE_ERROR")
+            else
+              STAGE="CURL_FAILED"
+            fi
             echo "Attempt $i: HF Space stage = $STAGE"
             if [ "$STAGE" = "RUNNING" ]; then
               echo "✅ HF Space is RUNNING — proceeding with smoke tests"
+              rm -f /tmp/hf-status.json
               exit 0
             fi
             sleep 10
           done
           echo "❌ HF Space did not reach RUNNING state in 5 minutes"
+          rm -f /tmp/hf-status.json
           exit 1
 
       - name: Run production smoke tests

@@ -16,17 +16,18 @@ import json
 import sys
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple
 
 # PDF processing libraries
+# SECURITY: migrated from deprecated PyPDF2 (30+ CVEs) to pypdf (maintained successor).
+# pypdf has a drop-in PdfReader API identical to PyPDF2's.
 try:
-    import PyPDF2  # noqa: F401
-    from PyPDF2 import PdfReader
+    import pypdf  # noqa: F401
+    from pypdf import PdfReader
 
     PDF_AVAILABLE = True
 except ImportError:
     PDF_AVAILABLE = False
-    print("Warning: PyPDF2 not installed. Install with: pip install PyPDF2")
+    print("Warning: pypdf not installed. Install with: pip install pypdf")
 
 try:
     import pdfplumber
@@ -66,7 +67,7 @@ class ETAPGuideExtractor:
             "files": [],
         }
 
-    def extract_text_from_pdf(self, pdf_path: Path) -> Tuple[Optional[str], int]:
+    def extract_text_from_pdf(self, pdf_path: Path) -> tuple[str | None, int]:
         """
         Extract text from a single PDF file.
 
@@ -94,7 +95,7 @@ class ETAPGuideExtractor:
                     full_text = "\n\n".join(text_parts)
                     return full_text, page_count
 
-            # Fallback to PyPDF2
+            # Fallback to pypdf
             with open(pdf_path, "rb") as file:
                 reader = PdfReader(file)
                 page_count = len(reader.pages)
@@ -158,8 +159,8 @@ class ETAPGuideExtractor:
         return text.strip()
 
     def create_text_chunks(
-        self, text: str, chunk_size: int = 1000, overlap: int = 100
-    ) -> List[str]:
+        self, text: str, chunk_size: int = 1000, overlap: int = 100,
+    ) -> list[str]:
         """
         Split text into overlapping chunks for RAG.
 
@@ -202,7 +203,7 @@ class ETAPGuideExtractor:
 
         return chunks
 
-    def extract_all_pdfs(self) -> Dict:
+    def extract_all_pdfs(self) -> dict:
         """
         Extract text from all PDF files in the guide directory.
 
@@ -271,11 +272,11 @@ class ETAPGuideExtractor:
                         "characters": len(cleaned_text),
                         "chunks": len(chunks),
                         "status": "success",
-                    }
+                    },
                 )
 
                 print(
-                    f"  ✓ Extracted {page_count} pages, {len(cleaned_text)} chars, {len(chunks)} chunks"
+                    f"  ✓ Extracted {page_count} pages, {len(cleaned_text)} chars, {len(chunks)} chunks",
                 )
             else:
                 self.extraction_results["failed"] += 1
@@ -284,7 +285,7 @@ class ETAPGuideExtractor:
                         "filename": pdf_path.name,
                         "status": "failed",
                         "error": "No text extracted or too short",
-                    }
+                    },
                 )
                 print("  ✗ Failed to extract meaningful text")
 
@@ -306,7 +307,7 @@ class ETAPGuideExtractor:
 
         return self.extraction_results
 
-    def create_master_index(self) -> Dict:
+    def create_master_index(self) -> dict:
         """
         Create a master index of all extracted content.
 
@@ -350,7 +351,7 @@ class ETAPGuideExtractor:
             json.dump(master_index, f, indent=2, ensure_ascii=False)
 
         print(
-            f"Master index created: {master_index['total_documents']} documents, {master_index['total_chunks']} chunks"
+            f"Master index created: {master_index['total_documents']} documents, {master_index['total_chunks']} chunks",
         )
 
         return master_index

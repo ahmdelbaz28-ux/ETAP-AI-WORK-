@@ -12,7 +12,7 @@ Mapping Architecture:
 from __future__ import annotations
 
 import logging
-from typing import Any, Dict, List
+from typing import Any
 
 from autodesk_connector.shared.models import (
     Breaker,
@@ -47,7 +47,7 @@ class MappingDirection(StrEnum):
 # Drawing Element Definitions
 # ---------------------------------------------------------------------------
 
-ENTITY_DRAWING_RULES: Dict[str, dict] = {
+ENTITY_DRAWING_RULES: dict[str, dict] = {
     "Bus": {
         "autocad": {
             "entity_type": "block",
@@ -268,7 +268,7 @@ class TranslationEngine:
     """
 
     def __init__(self):
-        self._translation_log: List[dict] = []
+        self._translation_log: list[dict] = []
 
     # ------------------------------------------------------------------
     # Mapping rules
@@ -279,7 +279,7 @@ class TranslationEngine:
         rules = ENTITY_DRAWING_RULES.get(entity_type, {})
         return rules.get(target_system, {})
 
-    def get_all_mapping_rules(self) -> Dict[str, dict]:
+    def get_all_mapping_rules(self) -> dict[str, dict]:
         """Get all mapping rules."""
         return ENTITY_DRAWING_RULES
 
@@ -301,13 +301,13 @@ class TranslationEngine:
         dict
             Unified Engineering Model compatible dictionary.
         """
-        buses: List[Bus] = []
-        transformers: List[Transformer] = []
-        cables: List[Cable] = []
-        generators: List[Generator] = []
-        loads: List[Load] = []
-        breakers: List[Breaker] = []
-        panels: List[Panel] = []
+        buses: list[Bus] = []
+        transformers: list[Transformer] = []
+        cables: list[Cable] = []
+        generators: list[Generator] = []
+        loads: list[Load] = []
+        breakers: list[Breaker] = []
+        panels: list[Panel] = []
 
         # Translate buses
         for bid, bus_data in etap_data.get("buses", {}).items():
@@ -400,13 +400,13 @@ class TranslationEngine:
     # Unified Model → AutoCAD
     # ------------------------------------------------------------------
 
-    def unified_to_autocad_commands(self, unified_data: dict) -> List[dict]:
+    def unified_to_autocad_commands(self, unified_data: dict) -> list[dict]:
         """Generate AutoCAD drawing commands from Unified Model data.
 
         Returns a list of command dicts that can be sent to the
         AutoCAD Plugin client in sequence.
         """
-        commands: List[dict] = []
+        commands: list[dict] = []
         options = {
             "start_x": 50,
             "start_y": 200,
@@ -429,7 +429,7 @@ class TranslationEngine:
                 {
                     "command": "create_layer",
                     "params": {"name": layer_name, "color": "1", "linetype": "Continuous"},
-                }
+                },
             )
 
         # Draw buses
@@ -448,7 +448,7 @@ class TranslationEngine:
                             "VMAG": f"{bus_data.get('voltage_magnitude_pu', 1.0):.3f}",
                         },
                     },
-                }
+                },
             )
 
         # Draw cables
@@ -487,7 +487,7 @@ class TranslationEngine:
                             "vertices": [[fx, options["start_y"], 0], [tx, options["start_y"], 0]],
                             "layer": "E-CABLE",
                         },
-                    }
+                    },
                 )
 
         # Draw transformers
@@ -504,7 +504,7 @@ class TranslationEngine:
                             "Z_PCT": str(xf_data.get("impedance_percent", "")),
                         },
                     },
-                }
+                },
             )
 
         return commands
@@ -513,7 +513,7 @@ class TranslationEngine:
     # ETAP ↔ AutoCAD (via Unified Model)
     # ------------------------------------------------------------------
 
-    def etap_to_autocad(self, etap_data: dict) -> List[dict]:
+    def etap_to_autocad(self, etap_data: dict) -> list[dict]:
         """Translate ETAP data directly to AutoCAD commands."""
         unified = self.etap_to_unified(etap_data)
         return self.unified_to_autocad_commands(unified)
@@ -543,7 +543,7 @@ class TranslationEngine:
                     "id": level_data.get("id", ""),
                     "name": level_data.get("name", ""),
                     "elevation_m": level_data.get("elevation", 0.0),
-                }
+                },
             )
 
         # Translate rooms
@@ -554,7 +554,7 @@ class TranslationEngine:
                     "name": room_data.get("name", ""),
                     "area_sqm": room_data.get("area", 0.0),
                     "level_id": room_data.get("level_id", ""),
-                }
+                },
             )
 
         # Translate MEP elements to unified model
@@ -571,9 +571,9 @@ class TranslationEngine:
 
         return unified
 
-    def unified_to_revit_commands(self, unified_data: dict) -> List[dict]:
+    def unified_to_revit_commands(self, unified_data: dict) -> list[dict]:
         """Generate Revit API commands from Unified Model data."""
-        commands: List[dict] = []
+        commands: list[dict] = []
 
         # Create levels
         for level_data in unified_data.get("levels", []):
@@ -584,7 +584,7 @@ class TranslationEngine:
                         "name": level_data.get("name", "Level 1"),
                         "elevation": level_data.get("elevation_m", 0.0),
                     },
-                }
+                },
             )
 
         # Create panels
@@ -599,7 +599,7 @@ class TranslationEngine:
                             "parameters": panel_data,
                         },
                     },
-                }
+                },
             )
 
         return commands
@@ -638,7 +638,7 @@ class TranslationEngine:
         elif source_system == "unified" and target_system == "revit":
             return self.unified_to_revit_commands(data)
         else:
-            logger.warning(f"Unsupported translation: {source_system} → {target_system}")
+            logger.warning("Unsupported translation: %s → %s", source_system, target_system)
             return data
 
     # ------------------------------------------------------------------
@@ -655,7 +655,7 @@ class TranslationEngine:
         return mapping.get(etap_type.lower(), "pq")
 
     def _log_translation(
-        self, direction: str, entity_type: str, source_id: str, target_id: str
+        self, direction: str, entity_type: str, source_id: str, target_id: str,
     ) -> None:
         self._translation_log.append(
             {
@@ -664,10 +664,10 @@ class TranslationEngine:
                 "source_id": source_id,
                 "target_id": target_id,
                 "timestamp": __import__("time").time(),
-            }
+            },
         )
 
-    def get_translation_log(self, limit: int = 100) -> List[dict]:
+    def get_translation_log(self, limit: int = 100) -> list[dict]:
         return self._translation_log[-limit:]
 
     def get_statistics(self) -> dict:

@@ -10,7 +10,6 @@ from __future__ import annotations
 import logging
 import time
 import uuid
-from typing import Dict, List, Optional
 
 import requests
 
@@ -71,9 +70,9 @@ class AutoCADDrawingContext:
 
     def __init__(self, file_path: str):
         self.file_path = file_path
-        self.layers: Dict[str, dict] = {}
-        self.blocks: Dict[str, dict] = {}
-        self.entities: List[dict] = []
+        self.layers: dict[str, dict] = {}
+        self.blocks: dict[str, dict] = {}
+        self.entities: list[dict] = []
         self.modified: bool = False
         self.locked: bool = False
         self.transaction_count: int = 0
@@ -100,9 +99,9 @@ class AutoCADPluginClient:
             {
                 "Content-Type": "application/json",
                 "X-API-Key": api_key,
-            }
+            },
         )
-        self._available: Optional[bool] = None
+        self._available: bool | None = None
 
     def is_available(self) -> bool:
         """Check if the AutoCAD plugin is reachable."""
@@ -126,7 +125,7 @@ class AutoCADPluginClient:
         """Open a DWG file in AutoCAD."""
         return self.send_command("open_drawing", {"file_path": file_path})
 
-    def save_drawing(self, file_path: Optional[str] = None) -> dict:
+    def save_drawing(self, file_path: str | None = None) -> dict:
         """Save the current drawing."""
         return self.send_command("save_drawing", {"file_path": file_path or ""})
 
@@ -141,7 +140,7 @@ class AutoCADPluginClient:
         )
 
     def create_layer(
-        self, name: str, color: str = "7", linetype: str = "Continuous", lineweight: str = "Default"
+        self, name: str, color: str = "7", linetype: str = "Continuous", lineweight: str = "Default",
     ) -> dict:
         """Create a new layer."""
         return self.send_command(
@@ -155,7 +154,7 @@ class AutoCADPluginClient:
         )
 
     def create_block(
-        self, name: str, entities: List[dict], base_point: Optional[List[float]] = None
+        self, name: str, entities: list[dict], base_point: list[float] | None = None,
     ) -> dict:
         """Create a block definition."""
         return self.send_command(
@@ -170,7 +169,7 @@ class AutoCADPluginClient:
     def insert_block(
         self,
         block_name: str,
-        insertion_point: List[float],
+        insertion_point: list[float],
         scale: float = 1.0,
         rotation: float = 0.0,
     ) -> dict:
@@ -185,7 +184,7 @@ class AutoCADPluginClient:
             },
         )
 
-    def draw_line(self, start: List[float], end: List[float], layer: str = "0") -> dict:
+    def draw_line(self, start: list[float], end: list[float], layer: str = "0") -> dict:
         """Draw a line entity."""
         return self.send_command(
             "draw_line",
@@ -197,7 +196,7 @@ class AutoCADPluginClient:
         )
 
     def draw_polyline(
-        self, vertices: List[List[float]], closed: bool = False, layer: str = "0"
+        self, vertices: list[list[float]], closed: bool = False, layer: str = "0",
     ) -> dict:
         """Draw a polyline."""
         return self.send_command(
@@ -209,7 +208,7 @@ class AutoCADPluginClient:
             },
         )
 
-    def draw_circle(self, center: List[float], radius: float, layer: str = "0") -> dict:
+    def draw_circle(self, center: list[float], radius: float, layer: str = "0") -> dict:
         """Draw a circle."""
         return self.send_command(
             "draw_circle",
@@ -222,7 +221,7 @@ class AutoCADPluginClient:
 
     def draw_arc(
         self,
-        center: List[float],
+        center: list[float],
         radius: float,
         start_angle: float,
         end_angle: float,
@@ -243,7 +242,7 @@ class AutoCADPluginClient:
     def draw_text(
         self,
         text: str,
-        insertion_point: List[float],
+        insertion_point: list[float],
         height: float = 2.5,
         rotation: float = 0.0,
         layer: str = "0",
@@ -263,8 +262,8 @@ class AutoCADPluginClient:
     def draw_dimension(
         self,
         type_: str,
-        def_point: List[float],
-        text_point: List[float],
+        def_point: list[float],
+        text_point: list[float],
         text: str = "",
         layer: str = "0",
     ) -> dict:
@@ -324,7 +323,7 @@ class AutoCADPluginClient:
         """Rollback the active transaction."""
         return self.send_command("rollback_transaction", {})
 
-    def batch_operation(self, operations: List[dict]) -> List[dict]:
+    def batch_operation(self, operations: list[dict]) -> list[dict]:
         """Execute multiple operations in a single transaction."""
         return self.send_command("batch", {"operations": operations})
 
@@ -342,10 +341,10 @@ class AutoCADPluginClient:
     def draw_electrical_symbol(
         self,
         symbol_type: str,
-        insertion_point: List[float],
+        insertion_point: list[float],
         scale: float = 1.0,
         rotation: float = 0.0,
-        attributes: Optional[dict] = None,
+        attributes: dict | None = None,
     ) -> dict:
         """Draw an electrical component symbol."""
         return self.send_command(
@@ -360,7 +359,7 @@ class AutoCADPluginClient:
         )
 
     def draw_single_line_diagram(
-        self, buses: List[dict], branches: List[dict], options: Optional[dict] = None
+        self, buses: list[dict], branches: list[dict], options: dict | None = None,
     ) -> dict:
         """Generate a single-line diagram from bus/branch data."""
         return self.send_command(
@@ -387,8 +386,8 @@ class AutoCADConnector:
 
     def __init__(self, plugin_url: str = "http://localhost:4820", api_key: str = ""):
         self.plugin = AutoCADPluginClient(plugin_url, api_key=api_key)
-        self._current_drawing: Optional[AutoCADDrawingContext] = None
-        self._operation_log: List[dict] = []
+        self._current_drawing: AutoCADDrawingContext | None = None
+        self._operation_log: list[dict] = []
 
     @property
     def is_connected(self) -> bool:
@@ -406,7 +405,7 @@ class AutoCADConnector:
             self._log_operation("open_drawing", file_path, True)
         return result
 
-    def save_drawing(self, file_path: Optional[str] = None) -> dict:
+    def save_drawing(self, file_path: str | None = None) -> dict:
         result = self.plugin.save_drawing(file_path)
         if result.get("success") and self._current_drawing:
             self._current_drawing.modified = False
@@ -597,13 +596,13 @@ class AutoCADConnector:
 
     def generate_single_line_diagram(
         self,
-        buses: List[Bus],
-        transformers: List[Transformer],
-        cables: List[Cable],
-        breakers: List[Breaker],
-        loads: List[Load],
+        buses: list[Bus],
+        transformers: list[Transformer],
+        cables: list[Cable],
+        breakers: list[Breaker],
+        loads: list[Load],
         output_path: str,
-        options: Optional[dict] = None,
+        options: dict | None = None,
     ) -> dict:
         """Generate a complete single-line diagram from the unified model.
 
@@ -704,14 +703,14 @@ class AutoCADConnector:
             try:
                 self.plugin.create_layer(name, color=color, linetype=lt, lineweight=lw)
             except Exception:
-                logger.debug(f"Layer {name} may already exist")
+                logger.debug("Layer %s may already exist", name)
 
     # ------------------------------------------------------------------
     # Operations Log
     # ------------------------------------------------------------------
 
     def _log_operation(
-        self, operation: str, target: str, success: bool, details: Optional[dict] = None
+        self, operation: str, target: str, success: bool, details: dict | None = None,
     ) -> None:
         self._operation_log.append(
             {
@@ -720,10 +719,10 @@ class AutoCADConnector:
                 "success": success,
                 "details": details or {},
                 "timestamp": time.time(),
-            }
+            },
         )
 
-    def get_operation_log(self, limit: int = 100) -> List[dict]:
+    def get_operation_log(self, limit: int = 100) -> list[dict]:
         return self._operation_log[-limit:]
 
     def get_statistics(self) -> dict:

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, Dict, List
+from typing import Any
 
 from gis_integration.exceptions import GISDataExtractionError, GISTransformationError
 from gis_integration.models import ADMSAsset, ADMSAssetType, GISFeature
@@ -38,7 +38,7 @@ class GIS_TO_ADMS_Transformer:
         # Geometry integrity: keep as provided (GeoJSON dict), no mutation besides traceability.
         geometry = feature.geometry
 
-        metadata: Dict[str, Any] = {
+        metadata: dict[str, Any] = {
             "source_feature_id": feature.id,
             "source_layer": feature.layer_name,
             "source_crs": feature.crs,
@@ -53,8 +53,8 @@ class GIS_TO_ADMS_Transformer:
             metadata=metadata,
         )
 
-    def transform(self, features: List[GISFeature]) -> List[ADMSAsset]:
-        assets: List[ADMSAsset] = []
+    def transform(self, features: list[GISFeature]) -> list[ADMSAsset]:
+        assets: list[ADMSAsset] = []
         # Deterministic processing order: sort by (layer_name, id)
         for f in sorted(features, key=lambda x: (x.layer_name or "", x.id or "")):
             assets.append(self.transform_feature(f))
@@ -72,7 +72,7 @@ class GIS_TO_ADMS_Transformer:
             # Point -> SWITCH or SUBSTATION:
             # Use explicit metadata hints; never silently guess if absent.
             meta_type = self._string_meta(
-                feature.properties.get("asset_role") or feature.properties.get("role")
+                feature.properties.get("asset_role") or feature.properties.get("role"),
             )
             if meta_type in ("switch", "switching_device"):
                 return ADMSAssetType.SWITCH
@@ -86,7 +86,7 @@ class GIS_TO_ADMS_Transformer:
         if gtype == "LineString":
             # Line -> FEEDER or LINE
             meta_kind = self._string_meta(
-                feature.properties.get("line_kind") or feature.properties.get("kind")
+                feature.properties.get("line_kind") or feature.properties.get("kind"),
             )
             if meta_kind in ("feeder", "primary_feeder"):
                 return ADMSAssetType.FEEDER

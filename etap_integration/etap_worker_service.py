@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import os
 import sys
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 import uvicorn
 from fastapi import Depends, FastAPI, HTTPException, Security
@@ -35,15 +35,15 @@ API_KEY_NAME = "X-ETAP-Worker-Key"
 api_key_header = APIKeyHeader(name=API_KEY_NAME, auto_error=False)
 
 
-def _reject_legacy_api_key(api_key: Optional[str]) -> None:
+def _reject_legacy_api_key(api_key: str | None) -> None:
     if api_key:
         raise HTTPException(
-            status_code=401, detail="Legacy API key auth is not supported. Use JWT Bearer token."
+            status_code=401, detail="Legacy API key auth is not supported. Use JWT Bearer token.",
         )
 
 
 async def _require_auth(
-    legacy_api_key: Optional[str] = Security(api_key_header),
+    legacy_api_key: str | None = Security(api_key_header),
     creds: HTTPAuthorizationCredentials = Security(bearer_scheme),  # noqa: B008
 ) -> str:
     """
@@ -57,7 +57,7 @@ async def _require_auth(
 
 
 # Map ETAP study types to RBAC permissions.
-STUDY_TYPE_TO_PERMISSION: Dict[ETAPStudyType, Permission] = {
+STUDY_TYPE_TO_PERMISSION: dict[ETAPStudyType, Permission] = {
     ETAPStudyType.LOAD_FLOW: Permission.CALC_LOAD_FLOW,
     ETAPStudyType.SHORT_CIRCUIT: Permission.CALC_SHORT_CIRCUIT,
     ETAPStudyType.ARC_FLASH: Permission.CALC_ARC_FLASH,
@@ -77,14 +77,14 @@ class StudyRequest(BaseModel):
     project_path: str
     study_type: str
     visible: bool = False
-    parameters: Optional[Dict[str, Any]] = None
+    parameters: dict[str, Any] | None = None
 
 
 class StudyResponse(BaseModel):
     success: bool
-    data: Dict[str, Any]
-    warnings: List[str]
-    errors: List[str]
+    data: dict[str, Any]
+    warnings: list[str]
+    errors: list[str]
     execution_time: float
 
 
@@ -118,14 +118,14 @@ async def execute_study(
         study_type = ETAPStudyType[request.study_type.upper()]
     except KeyError as err:
         raise HTTPException(
-            status_code=400, detail=f"Invalid study type: {request.study_type}"
+            status_code=400, detail=f"Invalid study type: {request.study_type}",
         ) from err
 
     # RBAC: check that the authenticated user has permission for this study type
     required_perm = STUDY_TYPE_TO_PERMISSION.get(study_type)
     if required_perm is None:
         raise HTTPException(
-            status_code=400, detail=f"No RBAC mapping for study type: {study_type.value}"
+            status_code=400, detail=f"No RBAC mapping for study type: {study_type.value}",
         )
 
     authz = get_authz_manager()

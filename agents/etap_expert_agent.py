@@ -31,7 +31,7 @@ import math
 import re
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Dict, List, Literal, Optional, Tuple
+from typing import Any, Literal
 
 from agents.orchestrator import AgentResult, AgentStatus, BaseAgent, EngineeringTask, StudyType
 
@@ -46,8 +46,8 @@ _SYSTEM_PROMPT_PATH = (
     Path(__file__).resolve().parent.parent / "skills" / "etap-ai-agent-system-prompt.md"
 )
 
-_skill_cache: Optional[str] = None
-_system_prompt_cache: Optional[str] = None
+_skill_cache: str | None = None
+_system_prompt_cache: str | None = None
 
 
 def _load_skill() -> str:
@@ -81,7 +81,7 @@ def _load_system_prompt() -> str:
 Classification = Literal["complete", "incomplete", "wrong", "adms"]
 
 # ADMS / DER trigger words (from skill Section 5 + 11)
-_ADMS_KEYWORDS: Tuple[str, ...] = (
+_ADMS_KEYWORDS: tuple[str, ...] = (
     "flisr",
     "fdir",
     "vvo",
@@ -108,7 +108,7 @@ _ADMS_KEYWORDS: Tuple[str, ...] = (
 )
 
 # Wrong-study patterns (from skill Section 14 — Mistake Category 1)
-_WRONG_STUDY_PATTERNS: List[Tuple[str, str, str]] = [
+_WRONG_STUDY_PATTERNS: list[tuple[str, str, str]] = [
     (
         r"load\s*flow.*fault\s*current|fault\s*current.*load\s*flow",
         "Load Flow calculates steady-state power flow, not fault currents",
@@ -153,7 +153,7 @@ _WRONG_STUDY_PATTERNS: List[Tuple[str, str, str]] = [
 
 # Missing-data patterns (from skill Section 14 — Mistake Category 2)
 # Each entry: (regex, missing_data_description, clarifying_question)
-_INCOMPLETE_PATTERNS: List[Tuple[str, str, str]] = [
+_INCOMPLETE_PATTERNS: list[tuple[str, str, str]] = [
     (
         r"size\s+transformer.*?(\d+)\s*kw|transformer.*?for\s+(\d+)\s*kw",
         "Voltage, power factor, load type, future growth factor",
@@ -232,7 +232,7 @@ class CableSizingResult:
     recommended_awg: str = ""
     voltage_drop_v: float = 0.0
     voltage_drop_pct: float = 0.0
-    assumption_notes: List[str] = field(default_factory=list)
+    assumption_notes: list[str] = field(default_factory=list)
 
 
 # NEC Table 310.16 (75°C copper) — ampacity by AWG
@@ -264,7 +264,7 @@ _CABLE_RX = {
 }
 
 
-def _select_cable(load_current: float) -> Tuple[str, float]:
+def _select_cable(load_current: float) -> tuple[str, float]:
     """Select smallest cable whose ampacity >= load_current."""
     for awg, amp in _NEC_AMPACITY.items():
         if amp >= load_current:
@@ -317,7 +317,7 @@ def simulate_cable_sizing(
 _SEP = "━" * 60
 
 
-def _format_a_complete(question: str, simulation: Dict[str, Any]) -> str:
+def _format_a_complete(question: str, simulation: dict[str, Any]) -> str:
     """Format A — COMPLETE request → expert answer with internal simulation."""
     sim_lines = simulation.get("simulation_steps", ["(no simulation available)"])
     result_line = simulation.get("result", "")
@@ -345,14 +345,14 @@ def _format_a_complete(question: str, simulation: Dict[str, Any]) -> str:
             f"**RESULT:** {result_line}",
             "",
             "**ETAP IMPLEMENTATION STEPS:**",
-        ]
+        ],
     )
     for i, step in enumerate(etap_steps, 1):
         lines.append(f"  {i}. {step}")
     lines.append("")
     lines.append("**VALIDATION:**")
     lines.append(
-        f"  {simulation.get('validation', 'Result is physically reasonable and within typical engineering limits.')}"
+        f"  {simulation.get('validation', 'Result is physically reasonable and within typical engineering limits.')}",
     )
     if assumptions:
         lines.append("")
@@ -394,7 +394,7 @@ def _format_b_incomplete(question: str, missing: str, clarifying_q: str) -> str:
             "  1. Run the complete analysis with step-by-step calculations",
             "  2. Give you exact ETAP implementation steps",
             "  3. Validate the results against applicable standards",
-        ]
+        ],
     )
 
 
@@ -437,7 +437,7 @@ def _format_c_wrong(question: str, problem: str, correct: str) -> str:
             "  B) Explain the theory behind this?",
             "  C) Show you an example with sample data?",
             "  D) Generate the correct ETAP settings for your case?",
-        ]
+        ],
     )
 
 
@@ -480,7 +480,7 @@ def _format_d_adms(question: str) -> str:
             "  - skills/etap-expert.md Section 5 (ADMS architecture)",
             "  - IEEE 1547-2018 (DER interconnection)",
             "  - IEC 61850 (substation automation)",
-        ]
+        ],
     )
 
 
@@ -494,7 +494,7 @@ _CABLE_SIZING_RE = re.compile(
 )
 
 
-def _try_cable_sizing_simulation(question: str) -> Optional[Dict[str, Any]]:
+def _try_cable_sizing_simulation(question: str) -> dict[str, Any] | None:
     """Detect cable-sizing question and run the simulation."""
     m = _CABLE_SIZING_RE.search(question)
     if not m:
@@ -546,7 +546,7 @@ def _try_cable_sizing_simulation(question: str) -> Optional[Dict[str, Any]]:
     }
 
 
-def _generic_complete_response(question: str) -> Dict[str, Any]:
+def _generic_complete_response(question: str) -> dict[str, Any]:
     """Default simulation block when no specific pattern matches."""
     return {
         "study_type": "General ETAP consultation",
@@ -596,14 +596,14 @@ class ETAPExpertAgent(BaseAgent):
         skill_text = _load_skill()
         if not skill_text:
             logger.warning(
-                "ETAP Expert skill knowledge base is empty — agent will operate in degraded mode"
+                "ETAP Expert skill knowledge base is empty — agent will operate in degraded mode",
             )
         # Also load the system prompt for reference (used by Mastra side)
         _load_system_prompt()
 
     # ----- Public API -----
 
-    def answer(self, question: str) -> Dict[str, Any]:
+    def answer(self, question: str) -> dict[str, Any]:
         """Answer a question using the 6-step workflow.
 
         Returns a dict with keys: classification, response (Format A/B/C/D text),
@@ -668,7 +668,7 @@ class ETAPExpertAgent(BaseAgent):
     # ----- Helpers -----
 
     @staticmethod
-    def _find_wrong_pattern(question: str) -> Tuple[str, str]:
+    def _find_wrong_pattern(question: str) -> tuple[str, str]:
         q = question.lower()
         for pattern, problem, correct in _WRONG_STUDY_PATTERNS:
             if re.search(pattern, q):
@@ -679,7 +679,7 @@ class ETAPExpertAgent(BaseAgent):
         )
 
     @staticmethod
-    def _find_incomplete_pattern(question: str) -> Tuple[str, str]:
+    def _find_incomplete_pattern(question: str) -> tuple[str, str]:
         q = question.lower()
         for pattern, missing, clarifying in _INCOMPLETE_PATTERNS:
             if re.search(pattern, q):
@@ -689,7 +689,7 @@ class ETAPExpertAgent(BaseAgent):
             "Please provide the specific numerical parameters (voltage, current, length, etc.)",
         )
 
-    def get_agent_info(self) -> Dict[str, Any]:
+    def get_agent_info(self) -> dict[str, Any]:
         """Return metadata about this agent."""
         return {
             "name": self.agent_name,

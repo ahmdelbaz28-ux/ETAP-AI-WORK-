@@ -20,7 +20,7 @@ import logging
 from datetime import datetime, timezone
 
 UTC = timezone.utc  # noqa: UP017
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 import numpy as np
 
@@ -60,8 +60,8 @@ class RenewableAgent(BaseAgent):
         self,
         dc_capacity_kw: float,
         ac_capacity_kw: float,
-        irradiance_kw_m2: Optional[np.ndarray] = None,
-        temperature_C: Optional[np.ndarray] = None,
+        irradiance_kw_m2: np.ndarray | None = None,
+        temperature_C: np.ndarray | None = None,
         noct_C: float = 45.0,
         temp_coeff_power_pctK: float = -0.40,
         soiling_loss_pct: float = 2.0,
@@ -72,7 +72,7 @@ class RenewableAgent(BaseAgent):
         tilt_deg: float = 25.0,
         azimuth_deg: float = 180.0,
         latitude_deg: float = 33.0,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Perform solar PV integration analysis.
 
@@ -127,7 +127,7 @@ class RenewableAgent(BaseAgent):
         hours = 8760
         if irradiance_kw_m2 is None:
             irradiance_kw_m2 = self._generate_synthetic_irradiance(
-                hours, tilt_deg, azimuth_deg, latitude_deg
+                hours, tilt_deg, azimuth_deg, latitude_deg,
             )
         else:
             irradiance_kw_m2 = np.asarray(irradiance_kw_m2, dtype=float)
@@ -193,7 +193,7 @@ class RenewableAgent(BaseAgent):
             "hours_at_peak": int(np.sum(P_ac_final >= 0.99 * np.max(P_ac_final))),
             "losses": {
                 "temperature_loss_kwh": float(
-                    total_dc_energy - np.sum(dc_capacity_kw * (irradiance_kw_m2 / G_stc))
+                    total_dc_energy - np.sum(dc_capacity_kw * (irradiance_kw_m2 / G_stc)),
                 ),
                 "inverter_loss_kwh": float(inverter_loss),
                 "clipping_loss_kwh": float(clipping_energy),
@@ -211,7 +211,7 @@ class RenewableAgent(BaseAgent):
 
     @staticmethod
     def _generate_synthetic_irradiance(
-        hours: int, tilt_deg: float, azimuth_deg: float, latitude_deg: float
+        hours: int, tilt_deg: float, azimuth_deg: float, latitude_deg: float,
     ) -> np.ndarray:
         """Generate a synthetic clear-sky irradiance profile (kW/m²)."""
         day_of_year = np.arange(hours) // 24
@@ -229,7 +229,7 @@ class RenewableAgent(BaseAgent):
         ha_rad = np.radians(hour_angle)
 
         sin_elev = np.sin(lat_rad) * np.sin(dec_rad) + np.cos(lat_rad) * np.cos(dec_rad) * np.cos(
-            ha_rad
+            ha_rad,
         )
         elevation = np.arcsin(np.clip(sin_elev, -1, 1))
 
@@ -278,7 +278,7 @@ class RenewableAgent(BaseAgent):
         air_density_kgm3: float = 1.225,
         availability_pct: float = 97.0,
         losses_pct: float = 10.0,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Perform wind turbine integration analysis.
 
@@ -422,9 +422,9 @@ class RenewableAgent(BaseAgent):
         frequency_response_Hz: float,
         has_ride_through: bool = True,
         has_anti_islanding: bool = True,
-        power_factor_range: Tuple[float, float] = (0.9, 1.0),
+        power_factor_range: tuple[float, float] = (0.9, 1.0),
         der_category: str = "II",
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Verify DER interconnection compliance per IEEE 1547-2018.
 
@@ -467,7 +467,7 @@ class RenewableAgent(BaseAgent):
         Dict[str, Any]
             Compliance verification results.
         """
-        checks: List[Dict[str, Any]] = []
+        checks: list[dict[str, Any]] = []
 
         # 1. Penetration level
         penetration = der_capacity_kw / feeder_capacity_kva * 100.0
@@ -488,7 +488,7 @@ class RenewableAgent(BaseAgent):
                 "limit": "≤100% of feeder capacity",
                 "compliant": penetration_ok,
                 "note": penetration_note,
-            }
+            },
         )
 
         # 2. Voltage regulation
@@ -501,7 +501,7 @@ class RenewableAgent(BaseAgent):
                 "limit": f"≤±{v_reg_limit}%",
                 "compliant": v_reg_ok,
                 "note": "Per ANSI C84.5 Range A",
-            }
+            },
         )
 
         # 3. Frequency response (IEEE 1547 Table 15)
@@ -522,7 +522,7 @@ class RenewableAgent(BaseAgent):
                 f"OF≤{freq_limits['over_freq_Hz']} Hz",
                 "compliant": freq_ok,
                 "note": f"Clearing time ≤{freq_limits['clear_time_s']}s",
-            }
+            },
         )
 
         # 4. Ride-through
@@ -535,7 +535,7 @@ class RenewableAgent(BaseAgent):
                 "limit": f"Required for Category {cat}",
                 "compliant": ride_through_ok,
                 "note": "Mandatory for Cat II/III per IEEE 1547-2018 §6",
-            }
+            },
         )
 
         # 5. Anti-islanding
@@ -546,7 +546,7 @@ class RenewableAgent(BaseAgent):
                 "limit": "Required for all categories",
                 "compliant": has_anti_islanding,
                 "note": "Must trip within 2.0 s per IEEE 1547.1",
-            }
+            },
         )
 
         # 6. Power factor capability
@@ -559,7 +559,7 @@ class RenewableAgent(BaseAgent):
                 "limit": "≥0.90 leading/lagging",
                 "compliant": pf_ok,
                 "note": "DER must be capable of operating at PF=0.90",
-            }
+            },
         )
 
         # 7. PCC voltage level
@@ -582,7 +582,7 @@ class RenewableAgent(BaseAgent):
                 "limit": "Standard nominal voltage",
                 "compliant": pcc_ok,
                 "note": "Must match utility nominal voltage",
-            }
+            },
         )
 
         all_compliant = all(c["compliant"] for c in checks)
@@ -614,7 +614,7 @@ class RenewableAgent(BaseAgent):
         current_loading_pct: float = 60.0,
         reverse_power_allowed: bool = False,
         pf_der: float = 1.0,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Calculate DER hosting capacity of the feeder.
 
@@ -715,7 +715,7 @@ class RenewableAgent(BaseAgent):
             self.log_execution(f"Starting renewable analysis for task {task.task_id}")
 
             analysis_type = task.parameters.get("analysis_type", "full")
-            results: Dict[str, Any] = {}
+            results: dict[str, Any] = {}
             p = task.parameters
 
             if analysis_type in ("solar_pv", "full"):
@@ -810,7 +810,7 @@ class RenewableAgent(BaseAgent):
 
     def validate_result(self, result: AgentResult) -> bool:
         """Validate renewable analysis results."""
-        errors: List[str] = []
+        errors: list[str] = []
 
         pv = result.data.get("solar_pv")
         if pv is not None:
@@ -818,15 +818,14 @@ class RenewableAgent(BaseAgent):
                 errors.append("Solar PV annual energy is zero or negative")
             if pv.get("capacity_factor_pct", 0) > 35:
                 errors.append(
-                    f"Suspiciously high PV capacity factor: {pv['capacity_factor_pct']:.1f}%"
+                    f"Suspiciously high PV capacity factor: {pv['capacity_factor_pct']:.1f}%",
                 )
 
         wind = result.data.get("wind")
-        if wind is not None:
-            if wind.get("capacity_factor_pct", 0) > 60:
-                errors.append(
-                    f"Suspiciously high wind capacity factor: {wind['capacity_factor_pct']:.1f}%"
-                )
+        if wind is not None and wind.get("capacity_factor_pct", 0) > 60:
+            errors.append(
+                f"Suspiciously high wind capacity factor: {wind['capacity_factor_pct']:.1f}%",
+            )
 
         compliance = result.data.get("ieee1547_compliance")
         if compliance is not None and not compliance.get("overall_compliant", True):

@@ -2,16 +2,26 @@
  * Ahmed etap Platform — API Client
  * Centralized API layer for all backend communication.
  *
- * Supports DEMO MODE: when the backend is unreachable, all API calls
- * resolve to canned demo data so the UI is fully explorable without
- * a running server. This makes the front-end publishable as a static
- * site (e.g. Vercel / HF Space) with zero backend dependency.
+ * Demo Mode behavior (v2.1.1+ — security-hardened):
+ * - In DEVELOPMENT (import.meta.env.DEV): auto-fallback to demo data on
+ *   network errors, so the UI stays explorable without a running backend.
+ * - In PRODUCTION (import.meta.env.PROD): NO silent fallback. A network
+ *   error throws a real error so the user sees that the backend is down,
+ *   rather than being misled into thinking canned demo data is live.
+ *   Demo Mode is only entered if VITE_API_URL is empty (static-site deploy
+ *   on Vercel/HF Spaces without backend).
+ *
+ * Components can check `isDemoMode()` to render a banner informing the
+ * user that they are viewing canned data.
  */
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || ''
 const DEMO_MODE_TIMEOUT_MS = 1500
 
 // ---------- Demo Mode Detection ----------
+// demoMode is initially true ONLY when no API URL is configured (static-site
+// deploy). In production with a real backend, demoMode stays false and
+// network errors propagate instead of silently switching to demo data.
 let demoMode = !API_BASE_URL
 
 function sleep(ms: number) { return new Promise(r => setTimeout(r, ms)) }
@@ -47,8 +57,19 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
 
     return response.json()
   } catch (err) {
-    // Auto-fallback to demo mode on network errors
-    if (err instanceof TypeError && err.message.includes('fetch')) {
+    // SECURITY (v2.1.1): only auto-fallback to demo mode in DEVELOPMENT.
+    // In production, surface the network error so the user/QA notices the
+    // backend is down. Silent fallback in prod was a security smell because
+    // operators could miss backend outages.
+    if (
+      err instanceof TypeError &&
+      err.message.includes('fetch') &&
+      import.meta.env.DEV  // Vite injects this; true only in `vite dev`
+    ) {
+      console.warn(
+        '[api] Network error in development — falling back to demo mode. ' +
+        'This will NOT happen in production (import.meta.env.PROD).'
+      )
       demoMode = true
       return demoResponse<T>(path, options)
     }
@@ -177,7 +198,7 @@ async function demoResponse<T>(path: string, options?: RequestInit): Promise<T> 
 
   // Guard review
   if (path === '/api/v1/guards/review' && method === 'POST') {
-    const body = options?.body ? JSON.parse(options.body as string) : {}
+    // QUALITY v2.1.1: body was unused — remove the dead assignment
     return {
       success: true,
       guard_results: {

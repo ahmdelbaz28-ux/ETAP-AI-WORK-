@@ -26,7 +26,7 @@ from datetime import datetime, timezone
 
 UTC = timezone.utc  # noqa: UP017
 from enum import Enum
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 import numpy as np
 
@@ -65,9 +65,9 @@ class AgentResult:
     agent_name: str
     study_type: StudyType
     status: AgentStatus
-    data: Dict[str, Any]
+    data: dict[str, Any]
     validation_status: bool = False
-    validation_errors: List[str] = field(default_factory=list)
+    validation_errors: list[str] = field(default_factory=list)
     execution_time: float = 0.0
     timestamp: datetime = field(default_factory=lambda: datetime.now(UTC))
 
@@ -78,12 +78,12 @@ class EngineeringTask:
 
     task_id: str
     description: str
-    study_types: List[StudyType]
-    parameters: Dict[str, Any]
+    study_types: list[StudyType]
+    parameters: dict[str, Any]
     priority: int = 1
     created_at: datetime = field(default_factory=lambda: datetime.now(UTC))
     status: AgentStatus = AgentStatus.IDLE
-    results: List[AgentResult] = field(default_factory=list)
+    results: list[AgentResult] = field(default_factory=list)
 
 
 class BaseAgent:
@@ -106,15 +106,15 @@ class BaseAgent:
         self.agent_name = agent_name
         self.status = AgentStatus.IDLE
         self.logger = logging.getLogger(f"agent.{agent_name}")
-        self.execution_log: List[Dict] = []
+        self.execution_log: list[dict] = []
 
         # Derive prompt handle from class name if not explicitly set
         if not self.prompt_handle:
             self.prompt_handle = self._derive_prompt_handle()
 
         # Load prompt-driven metadata (description, standards, guidance)
-        self._system_prompt: Optional[str] = None
-        self._prompt_metadata: Dict[str, Any] = {}
+        self._system_prompt: str | None = None
+        self._prompt_metadata: dict[str, Any] = {}
         self._load_prompt()
 
     def _derive_prompt_handle(self) -> str:
@@ -182,7 +182,7 @@ class BaseAgent:
         """Return the temperature from the prompt metadata, if available."""
         return float(self._prompt_metadata.get("temperature", 0.2))
 
-    def get_agent_info(self) -> Dict[str, Any]:
+    def get_agent_info(self) -> dict[str, Any]:
         """Return agent metadata including prompt-derived information.
 
         This is useful for API responses, logging, and debugging.
@@ -218,7 +218,7 @@ class BaseAgent:
             data={},
             validation_errors=[
                 f"Agent '{self.agent_name}' does not implement execute(); "
-                "override BaseAgent.execute in the concrete subclass."
+                "override BaseAgent.execute in the concrete subclass.",
             ],
         )
 
@@ -234,15 +234,13 @@ class BaseAgent:
         """
         if result.status != AgentStatus.COMPLETED:
             result.validation_errors.append(
-                f"Result status is {result.status.value}, expected completed"
+                f"Result status is {result.status.value}, expected completed",
             )
             return False
         if not result.data:
             result.validation_errors.append("Result data is empty")
             return False
-        if result.validation_errors:
-            return False
-        return True
+        return not result.validation_errors
 
     def log_execution(self, message: str, level: str = "INFO"):
         """Log execution details."""
@@ -280,7 +278,7 @@ class LoadFlowAgent(BaseAgent):
         self.convergence_tolerance = 1e-6
 
     @trace_operation(
-        "LoadFlowAgent.execute", attributes={"component": "orchestrator", "study_type": "load_flow"}
+        "LoadFlowAgent.execute", attributes={"component": "orchestrator", "study_type": "load_flow"},
     )
     async def execute(self, task: EngineeringTask) -> AgentResult:
         """Execute load flow analysis."""
@@ -302,13 +300,13 @@ class LoadFlowAgent(BaseAgent):
             # LoadFlowSolver requires a System object, not a dictionary
             if isinstance(system_data, dict):
                 raise TypeError(
-                    "system_data must be a System object instance, not a dictionary. Ensure a valid System object is passed in task parameters."
+                    "system_data must be a System object instance, not a dictionary. Ensure a valid System object is passed in task parameters.",
                 )
 
             # Run load flow
             solver = LoadFlowSolver(system_data)
             converged = solver.solve(
-                max_iter=task.parameters.get("max_iterations", 100), tol=self.convergence_tolerance
+                max_iter=task.parameters.get("max_iterations", 100), tol=self.convergence_tolerance,
             )
 
             # Extract results
@@ -340,7 +338,7 @@ class LoadFlowAgent(BaseAgent):
             result.execution_time = execution_time
 
             self.log_execution(
-                f"Load flow completed in {execution_time:.2f}s, converged={converged}"
+                f"Load flow completed in {execution_time:.2f}s, converged={converged}",
             )
 
             return result
@@ -368,7 +366,7 @@ class LoadFlowAgent(BaseAgent):
             if v_mag < self.voltage_limits["min"] or v_mag > self.voltage_limits["max"]:
                 result.validation_errors.append(
                     f"Bus {bus_id} voltage {v_mag:.4f} pu outside limits "
-                    f"[{self.voltage_limits['min']}, {self.voltage_limits['max']}]"
+                    f"[{self.voltage_limits['min']}, {self.voltage_limits['max']}]",
                 )
 
         return len(result.validation_errors) == 0
@@ -430,7 +428,7 @@ class ShortCircuitAgent(BaseAgent):
             base_kv = task.parameters.get("base_kv", 115.0)
 
             analyzer = FaultAnalyzer(
-                Ybus_pos, Ybus_neg, Ybus_zero, base_mva=base_mva, base_kv=base_kv
+                Ybus_pos, Ybus_neg, Ybus_zero, base_mva=base_mva, base_kv=base_kv,
             )
 
             # Execute all fault types at specified buses
@@ -493,7 +491,7 @@ class ShortCircuitAgent(BaseAgent):
                     current = abs(fault_data["fault_current"])
                     if current <= 0:
                         result.validation_errors.append(
-                            f"Bus {bus_id} {fault_type}: Invalid fault current {current}"
+                            f"Bus {bus_id} {fault_type}: Invalid fault current {current}",
                         )
 
         return len(result.validation_errors) == 0
@@ -538,7 +536,7 @@ class HarmonicAnalysisAgent(BaseAgent):
             system_data = task.parameters.get("system")
             if not system_data:
                 raise ValueError("System data not provided")
-            assert system_data is not None
+            # system_data is now guaranteed non-None (else ValueError above)
             harmonic_sources = task.parameters.get("harmonic_sources", [])
             voltage_kv = task.parameters.get("voltage_kv", 13.8)
 
@@ -645,7 +643,7 @@ class OptimalPowerFlowAgent(BaseAgent):
             system_data = task.parameters.get("system")
             if not system_data:
                 raise ValueError("System data not provided")
-            assert system_data is not None
+            # system_data is now guaranteed non-None (else ValueError above)
             generator_costs = task.parameters.get("generator_costs", [])
             method = task.parameters.get("method", "dc")
 
@@ -775,7 +773,7 @@ class ProtectionCoordinationAgent(BaseAgent):
             for i in range(len(relays) - 1):
                 for fault_current in [3.0, 5.0, 10.0, 20.0]:
                     result = coordination_engine.check_coordination(
-                        relays[i], relays[i + 1], fault_current
+                        relays[i], relays[i + 1], fault_current,
                     )
                     coordination_results.append(result)
 
@@ -852,7 +850,7 @@ class ETAPExecutionAgent(BaseAgent):
             self.logger.warning("No ETAP provider is currently available.")
 
     @trace_operation(
-        "ETAPExecutionAgent.execute", attributes={"component": "orchestrator", "study_type": "etap"}
+        "ETAPExecutionAgent.execute", attributes={"component": "orchestrator", "study_type": "etap"},
     )
     async def execute(self, task: EngineeringTask) -> AgentResult:
         """Execute ETAP automation task using the configured provider."""
@@ -872,7 +870,7 @@ class ETAPExecutionAgent(BaseAgent):
             from etap_integration.etap_provider import ETAPStudyType
 
             self.log_execution(
-                f"Executing ETAP task {task.task_id} via {type(self.provider).__name__}"
+                f"Executing ETAP task {task.task_id} via {type(self.provider).__name__}",
             )
 
             project_path = task.parameters.get("project_path", "")
@@ -1010,7 +1008,7 @@ class ValidationAgent(BaseAgent):
             result.execution_time = execution_time
 
             self.log_execution(
-                f"Validation completed: {validation_summary['passed']}/{validation_summary['total_checks']} passed"
+                f"Validation completed: {validation_summary['passed']}/{validation_summary['total_checks']} passed",
             )
             return result
 
@@ -1024,7 +1022,7 @@ class ValidationAgent(BaseAgent):
                 validation_errors=[str(e)],
             )
 
-    def _validate_load_flow(self, result: AgentResult) -> Dict:
+    def _validate_load_flow(self, result: AgentResult) -> dict:
         """Validate load flow results."""
         issues = []
 
@@ -1043,7 +1041,7 @@ class ValidationAgent(BaseAgent):
 
         return {"status": "pass" if not issues else "fail", "issues": issues}
 
-    def _validate_short_circuit(self, result: AgentResult) -> Dict:
+    def _validate_short_circuit(self, result: AgentResult) -> dict:
         """Validate short circuit results."""
         issues = []
 
@@ -1055,12 +1053,12 @@ class ValidationAgent(BaseAgent):
                     current = abs(fault_data["fault_current"])
                     if current > 100:  # Example: 100 kA threshold
                         issues.append(
-                            f"Bus {bus_id} {fault_type}: Very high fault current {current:.2f} kA"
+                            f"Bus {bus_id} {fault_type}: Very high fault current {current:.2f} kA",
                         )
 
         return {"status": "pass" if not issues else "fail", "issues": issues}
 
-    def _validate_harmonic(self, result: AgentResult) -> Dict:
+    def _validate_harmonic(self, result: AgentResult) -> dict:
         """Validate harmonic analysis results."""
         issues = []
 
@@ -1074,7 +1072,7 @@ class ValidationAgent(BaseAgent):
 
         return {"status": "pass" if not issues else "fail", "issues": issues}
 
-    def _validate_opf(self, result: AgentResult) -> Dict:
+    def _validate_opf(self, result: AgentResult) -> dict:
         """Validate OPF results."""
         issues = []
 
@@ -1162,7 +1160,7 @@ class ReportGenerationAgent(BaseAgent):
                 validation_errors=[str(e)],
             )
 
-    def _compile_report(self, results: List[AgentResult]) -> Dict:
+    def _compile_report(self, results: list[AgentResult]) -> dict:
         """Compile report content from agent results."""
         report = {
             "title": "Power System Engineering Analysis Report",
@@ -1194,7 +1192,7 @@ class ReportGenerationAgent(BaseAgent):
 
         return report
 
-    def _generate_executive_summary(self, report: Dict) -> str:
+    def _generate_executive_summary(self, report: dict) -> str:
         """Generate executive summary text."""
         summary_lines = [
             "EXECUTIVE SUMMARY",
@@ -1209,7 +1207,7 @@ class ReportGenerationAgent(BaseAgent):
         if lf:
             converged = lf.get("converged", False)
             summary_lines.append(
-                f"Load Flow Analysis: {'Converged' if converged else 'Did Not Converge'}"
+                f"Load Flow Analysis: {'Converged' if converged else 'Did Not Converge'}",
             )
 
         # Short circuit summary
@@ -1225,7 +1223,7 @@ class ReportGenerationAgent(BaseAgent):
 
         return "\n".join(summary_lines)
 
-    def _generate_recommendations(self, report: Dict) -> List[str]:
+    def _generate_recommendations(self, report: dict) -> list[str]:
         """Generate engineering recommendations."""
         recommendations = []
 
@@ -1236,7 +1234,7 @@ class ReportGenerationAgent(BaseAgent):
             v_mag = bus_data.get("voltage_magnitude_pu", 1.0)
             if v_mag < 0.95:
                 recommendations.append(
-                    f"Bus {bus_id}: Consider adding reactive compensation to improve voltage"
+                    f"Bus {bus_id}: Consider adding reactive compensation to improve voltage",
                 )
 
         # Check for harmonic violations
@@ -1249,7 +1247,7 @@ class ReportGenerationAgent(BaseAgent):
 
         return recommendations
 
-    def _export_pdf(self, content: Dict, output_path: str) -> str:
+    def _export_pdf(self, content: dict, output_path: str) -> str:
         """Export report as PDF using the reporting module."""
         try:
             from reporting.advanced_reports import PDFReportGenerator, ReportMetadata, ReportSection
@@ -1267,14 +1265,14 @@ class ReportGenerationAgent(BaseAgent):
             return file_path
         except ImportError:
             self.log_execution(
-                "PDF generator unavailable (reportlab not installed) — using placeholder", "WARNING"
+                "PDF generator unavailable (reportlab not installed) — using placeholder", "WARNING",
             )
             return ""  # No file generated
         except Exception as e:
             self.log_execution(f"PDF generation failed: {e}", "ERROR")
             return ""  # Indicate failure
 
-    def _export_docx(self, content: Dict, output_path: str) -> str:
+    def _export_docx(self, content: dict, output_path: str) -> str:
         """Export report as DOCX using the reporting module."""
         try:
             from reporting.advanced_reports import (
@@ -1304,7 +1302,7 @@ class ReportGenerationAgent(BaseAgent):
             self.log_execution(f"DOCX generation failed: {e}", "ERROR")
             return ""  # Indicate failure
 
-    def _export_xlsx(self, content: Dict, output_path: str) -> str:
+    def _export_xlsx(self, content: dict, output_path: str) -> str:
         """Export report as XLSX using the reporting module."""
         try:
             from reporting.advanced_reports import (
@@ -1326,7 +1324,7 @@ class ReportGenerationAgent(BaseAgent):
             return file_path
         except ImportError:
             self.log_execution(
-                "XLSX generator unavailable (openpyxl not installed) — using placeholder", "WARNING"
+                "XLSX generator unavailable (openpyxl not installed) — using placeholder", "WARNING",
             )
             return ""  # No file generated
         except Exception as e:
@@ -1403,12 +1401,12 @@ class ChiefEngineeringOrchestrator:
             self._etap_gui_agent = None
             self.logger.warning("ETAPGUIAgent not available — skill disabled: %s", exc)
 
-        self.task_queue: List[EngineeringTask] = []
-        self.completed_tasks: Dict[str, EngineeringTask] = {}
+        self.task_queue: list[EngineeringTask] = []
+        self.completed_tasks: dict[str, EngineeringTask] = {}
         self.logger = logging.getLogger("orchestrator")
 
         # Load orchestrator's own prompt for coordination guidance
-        self._system_prompt: Optional[str] = None
+        self._system_prompt: str | None = None
         self._load_prompt()
 
     def _load_prompt(self) -> None:
@@ -1428,7 +1426,7 @@ class ChiefEngineeringOrchestrator:
                 exc,
             )
 
-    def get_agents_info(self) -> Dict[str, Any]:
+    def get_agents_info(self) -> dict[str, Any]:
         """Return metadata for all registered agents including prompt info."""
         return {
             "orchestrator": {
@@ -1441,12 +1439,12 @@ class ChiefEngineeringOrchestrator:
     async def submit_task(self, task: EngineeringTask):
         """Submit engineering task for execution."""
         self.task_queue.append(task)
-        self.logger.info(f"Task submitted: {task.task_id} - {task.description}")
+        self.logger.info("Task submitted: %s - %s", task.task_id, task.description)
 
     @trace_operation("execute_autonomous_workflow", attributes={"component": "orchestrator"})
     async def execute_autonomous_workflow(
-        self, user_goal: str, system_data: Any, parameters: Optional[Dict] = None
-    ) -> Dict[str, Any]:
+        self, user_goal: str, system_data: Any, parameters: dict | None = None,
+    ) -> dict[str, Any]:
         """
         Execute complete autonomous engineering workflow based on user goal.
 
@@ -1458,7 +1456,7 @@ class ChiefEngineeringOrchestrator:
         Returns:
         Complete workflow results
         """
-        self.logger.info(f"Starting autonomous workflow for goal: {user_goal}")
+        self.logger.info("Starting autonomous workflow for goal: %s", user_goal)
 
         # Parse user goal and determine required studies
         required_studies = self._parse_user_goal(user_goal)
@@ -1479,7 +1477,7 @@ class ChiefEngineeringOrchestrator:
         task.status = AgentStatus.COMPLETED
         self.completed_tasks[task.task_id] = task
 
-        self.logger.info(f"Workflow completed: {task.task_id}")
+        self.logger.info("Workflow completed: %s", task.task_id)
 
         return {
             "task_id": task.task_id,
@@ -1489,7 +1487,7 @@ class ChiefEngineeringOrchestrator:
             "all_validated": all(r.validation_status for r in results),
         }
 
-    def _parse_user_goal(self, goal: str) -> List[StudyType]:
+    def _parse_user_goal(self, goal: str) -> list[StudyType]:
         """Parse user goal to determine required studies."""
         goal_lower = goal.lower()
         studies = []
@@ -1517,7 +1515,7 @@ class ChiefEngineeringOrchestrator:
         return studies
 
     @trace_operation("_execute_workflow", attributes={"component": "orchestrator"})
-    async def _execute_workflow(self, task: EngineeringTask) -> List[AgentResult]:
+    async def _execute_workflow(self, task: EngineeringTask) -> list[AgentResult]:
         """Execute workflow by coordinating agents with parallel execution."""
         results = []
 
@@ -1538,12 +1536,12 @@ class ChiefEngineeringOrchestrator:
         for study_type in dependent_studies:
             agent = self._get_agent_for_study(study_type)
             if agent:
-                self.logger.info(f"Executing {study_type.value} via {agent.agent_name}")
+                self.logger.info("Executing %s via %s", study_type.value, agent.agent_name)
                 result = await agent.execute(task)
                 results.append(result)
                 if not result.validation_status:
                     self.logger.warning(
-                        f"Validation failed for {study_type.value}: {result.validation_errors}"
+                        f"Validation failed for {study_type.value}: {result.validation_errors}",
                     )
 
         # Phase 2: Run independent studies in parallel
@@ -1552,7 +1550,7 @@ class ChiefEngineeringOrchestrator:
             for study_type in independent_studies:
                 agent = self._get_agent_for_study(study_type)
                 if agent:
-                    self.logger.info(f"Executing {study_type.value} via {agent.agent_name}")
+                    self.logger.info("Executing %s via %s", study_type.value, agent.agent_name)
                     parallel_tasks.append(agent.execute(task))
 
             if parallel_tasks:
@@ -1616,7 +1614,7 @@ class ChiefEngineeringOrchestrator:
 
         return results
 
-    def _determine_execution_order(self, study_types: List[StudyType]) -> List[StudyType]:
+    def _determine_execution_order(self, study_types: list[StudyType]) -> list[StudyType]:
         """Determine optimal execution order based on dependencies."""
         # Load flow should run first (provides base case)
         # Then fault analysis, harmonics, OPF
@@ -1631,7 +1629,7 @@ class ChiefEngineeringOrchestrator:
 
         return sorted(study_types, key=lambda x: priority_order.get(x, 99))
 
-    def _get_agent_for_study(self, study_type: StudyType) -> Optional[BaseAgent]:
+    def _get_agent_for_study(self, study_type: StudyType) -> BaseAgent | None:
         """Get appropriate agent for study type."""
         agent_mapping = {
             StudyType.LOAD_FLOW: "load_flow",
@@ -1646,7 +1644,7 @@ class ChiefEngineeringOrchestrator:
             return None
         return self.agents.get(agent_key)
 
-    def get_study_type_mapping(self) -> Dict[str, str]:
+    def get_study_type_mapping(self) -> dict[str, str]:
         """Return mapping of study type strings to agent keys.
 
         Provides a convenience lookup for external callers that identify
@@ -1674,12 +1672,12 @@ class ChiefEngineeringOrchestrator:
     @trace_operation("execute_parallel_studies", attributes={"component": "orchestrator"})
     async def execute_parallel_studies(
         self,
-        study_types: List[str],
+        study_types: list[str],
         system_data: Any,
-        parameters: Optional[Dict[str, Any]] = None,
+        parameters: dict[str, Any] | None = None,
         max_workers: int = 4,
         benchmark: bool = False,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Execute multiple independent studies in parallel.
 
         Accepts a list of study type strings, resolves each to the
@@ -1723,7 +1721,7 @@ class ChiefEngineeringOrchestrator:
         # -----------------------------------------------------------
         # Resolve study type strings → (agent_key, agent) pairs
         # -----------------------------------------------------------
-        resolved: List[tuple] = []  # [(study_str, agent_key, agent)]
+        resolved: list[tuple] = []  # [(study_str, agent_key, agent)]
         for study_str in study_types:
             agent_key = study_type_map.get(study_str)
             if agent_key is None:
@@ -1770,7 +1768,7 @@ class ChiefEngineeringOrchestrator:
         semaphore = asyncio.Semaphore(max_workers)
 
         async def _run_with_semaphore(
-            study_str: str, agent: BaseAgent, task: EngineeringTask
+            study_str: str, agent: BaseAgent, task: EngineeringTask,
         ) -> tuple:
             """Run a single agent.execute, bounded by the semaphore."""
             async with semaphore:
@@ -1822,16 +1820,17 @@ class ChiefEngineeringOrchestrator:
 
         parallel_time = time.perf_counter() - parallel_start
 
-        parallel_results: Dict[str, AgentResult] = {}
+        parallel_results: dict[str, AgentResult] = {}
         for item in parallel_raw:
             if isinstance(item, BaseException):
                 self.logger.error("[parallel] Unexpected exception: %s", item)
                 continue
             study_str, result = item
-            assert isinstance(result, AgentResult)
+            if not isinstance(result, AgentResult):
+                raise TypeError(f"Expected AgentResult, got {type(result).__name__}")
             parallel_results[study_str] = result
 
-        result: Dict[str, Any] = {
+        result: dict[str, Any] = {
             "task_id": task_id,
             "study_types": [s for s, _, _ in resolved],
             "parallel_results": parallel_results,
@@ -1846,7 +1845,7 @@ class ChiefEngineeringOrchestrator:
             self.logger.info("Benchmark: running studies sequentially for comparison")
             sequential_start = time.perf_counter()
 
-            sequential_results: Dict[str, AgentResult] = {}
+            sequential_results: dict[str, AgentResult] = {}
             for study_str, agent_key, agent in resolved:
                 task = _make_task(study_str, agent_key)
                 self.logger.info(
@@ -1892,7 +1891,7 @@ class ChiefEngineeringOrchestrator:
 
         return result
 
-    async def get_task_status(self, task_id: str) -> Optional[EngineeringTask]:
+    async def get_task_status(self, task_id: str) -> EngineeringTask | None:
         """Get status of a task."""
         return self.completed_tasks.get(task_id)
 

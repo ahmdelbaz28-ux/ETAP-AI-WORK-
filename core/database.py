@@ -15,7 +15,7 @@ import uuid
 from datetime import datetime, timezone
 
 UTC = timezone.utc  # noqa: UP017
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from core.models import (
     ChangeSource,
@@ -38,10 +38,10 @@ class UniversalDataModel:
     def __init__(self, db_path: str = "udm_elements.db") -> None:
         self._db_path = db_path
         self._lock = threading.RLock()
-        self._conn: Optional[sqlite3.Connection] = None
+        self._conn: sqlite3.Connection | None = None
         self._local = threading.local()
-        self.elements: Dict[str, UniversalElement] = {}
-        self.conflicts: Dict[str, Conflict] = {}
+        self.elements: dict[str, UniversalElement] = {}
+        self.conflicts: dict[str, Conflict] = {}
         self._init_db()
         self._load_elements()
 
@@ -144,7 +144,7 @@ class UniversalDataModel:
                 if conflict:
                     self.conflicts[conflict.conflict_id] = conflict
 
-    def _row_to_element(self, row: Dict[str, Any]) -> Optional[UniversalElement]:
+    def _row_to_element(self, row: dict[str, Any]) -> UniversalElement | None:
         """Convert database row to UniversalElement."""
         try:
             geometry = None
@@ -184,7 +184,7 @@ class UniversalDataModel:
                             is_parametric=r.get("is_parametric", False),
                             metadata=r.get("metadata"),
                             connection_id=r.get("connection_id"),
-                        )
+                        ),
                     )
 
             return UniversalElement(
@@ -209,7 +209,7 @@ class UniversalDataModel:
             logger.error("Error converting row to element: %s", e, exc_info=True)
             return None
 
-    def _row_to_conflict(self, row: Dict[str, Any]) -> Optional[Conflict]:
+    def _row_to_conflict(self, row: dict[str, Any]) -> Conflict | None:
         """Convert database row to Conflict."""
         try:
             return Conflict(
@@ -282,12 +282,12 @@ class UniversalDataModel:
                 logger.error("Error adding element: %s", e, exc_info=True)
                 return False
 
-    def get_element(self, element_id: str) -> Optional[UniversalElement]:
+    def get_element(self, element_id: str) -> UniversalElement | None:
         """Get an element by ID."""
         with self._lock:
             return self.elements.get(element_id)
 
-    def get_all_elements(self) -> List[UniversalElement]:
+    def get_all_elements(self) -> list[UniversalElement]:
         """Get all non-deleted elements."""
         with self._lock:
             return [e for e in self.elements.values() if not e.is_deleted]
@@ -295,7 +295,7 @@ class UniversalDataModel:
     def update_element(
         self,
         element_id: str,
-        updates: Dict[str, Any],
+        updates: dict[str, Any],
         source: ChangeSource = ChangeSource.MANUAL,
         reason: str = "",
     ) -> bool:
@@ -389,7 +389,7 @@ class UniversalDataModel:
         """Soft-delete an element."""
         return self.update_element(element_id, {"is_deleted": True}, source=source)
 
-    def detect_conflicts(self) -> List[Conflict]:
+    def detect_conflicts(self) -> list[Conflict]:
         """Detect conflicts between elements."""
         with self._lock:
             conflicts = []
@@ -430,7 +430,7 @@ class UniversalDataModel:
                 logger.error("Error resolving conflict: %s", e, exc_info=True)
                 return False
 
-    def get_statistics(self) -> Dict[str, Any]:
+    def get_statistics(self) -> dict[str, Any]:
         """Get database statistics."""
         with self._lock:
             total = len(self.elements)

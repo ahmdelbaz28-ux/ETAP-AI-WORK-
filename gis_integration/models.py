@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Any, Dict
+from typing import Any
 
 from compat import StrEnum
 
@@ -9,7 +9,7 @@ from compat import StrEnum
 # Geometry & Feature Model
 # -----------------------------
 
-GeoJSONGeometry = Dict[str, Any]
+GeoJSONGeometry = dict[str, Any]
 
 
 @dataclass(frozen=True)
@@ -25,7 +25,7 @@ class GISFeature:
 
     id: str
     geometry: GeoJSONGeometry
-    properties: Dict[str, Any] = field(default_factory=dict)
+    properties: dict[str, Any] = field(default_factory=dict)
     layer_name: str = ""
     crs: str = "EPSG:4326"
 
@@ -52,7 +52,7 @@ class ADMSAsset:
     asset_id: str
     asset_type: ADMSAssetType
     geometry: GeoJSONGeometry
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    metadata: dict[str, Any] = field(default_factory=dict)
 
 
 # -----------------------------

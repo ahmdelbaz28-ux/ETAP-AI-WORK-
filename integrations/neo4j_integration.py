@@ -17,7 +17,7 @@ Usage:
 
 import logging
 import os
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -53,9 +53,9 @@ class Neo4jClient:
                 # Test connection
                 with self.driver.session() as session:
                     session.run("RETURN 1")
-                logger.info(f"✅ Neo4j initialized — URI: {self.uri}")
+                logger.info("✅ Neo4j initialized — URI: %s", self.uri)
             except Exception as e:
-                logger.error(f"Neo4j connection failed: {e}")
+                logger.error("Neo4j connection failed: %s", e)
                 self.driver = None
                 self.enabled = False
         else:
@@ -73,8 +73,8 @@ class Neo4jClient:
             self.driver.close()
 
     def execute_query(
-        self, query: str, parameters: Optional[Dict[str, Any]] = None
-    ) -> Dict[str, Any]:
+        self, query: str, parameters: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
         """Execute a Cypher query."""
         if not self.enabled or not self.driver:
             return {"error": "Neo4j is not enabled", "data": []}
@@ -84,10 +84,10 @@ class Neo4jClient:
                 data = [record.data() for record in result]
                 return {"success": True, "data": data, "error": None}
         except Exception as e:
-            logger.error(f"Neo4j query error: {e}")
+            logger.error("Neo4j query error: %s", e)
             return {"success": False, "data": [], "error": str(e)}
 
-    def health_check(self) -> Dict[str, Any]:
+    def health_check(self) -> dict[str, Any]:
         """Return Neo4j integration status."""
         return {
             "enabled": self.enabled,
@@ -115,23 +115,23 @@ class Neo4jDB:
     def __init__(self, client: Neo4jClient):
         self.client = client
 
-    def get_all_buses(self) -> List[Dict[str, Any]]:
+    def get_all_buses(self) -> list[dict[str, Any]]:
         """Get all buses from the power system graph."""
         result = self.client.execute_query("MATCH (b:Bus) RETURN b")
         return result.get("data", [])
 
-    def get_all_lines(self) -> List[Dict[str, Any]]:
+    def get_all_lines(self) -> list[dict[str, Any]]:
         """Get all transmission lines from the graph."""
         result = self.client.execute_query("MATCH (l:Line) RETURN l")
         return result.get("data", [])
 
-    def get_topology(self) -> Dict[str, Any]:
+    def get_topology(self) -> dict[str, Any]:
         """Get the complete network topology."""
         buses = self.get_all_buses()
         lines = self.get_all_lines()
         return {"buses": buses, "lines": lines}
 
-    def create_bus(self, bus_id: str, voltage_kv: float, bus_type: str = "bus") -> Dict[str, Any]:
+    def create_bus(self, bus_id: str, voltage_kv: float, bus_type: str = "bus") -> dict[str, Any]:
         """Create a new bus node."""
         query = """
         CREATE (b:Bus {id: $bus_id, voltage_kv: $voltage_kv, type: $bus_type})
@@ -147,8 +147,8 @@ class Neo4jDB:
         )
 
     def create_line(
-        self, line_id: str, from_bus: str, to_bus: str, impedance: float
-    ) -> Dict[str, Any]:
+        self, line_id: str, from_bus: str, to_bus: str, impedance: float,
+    ) -> dict[str, Any]:
         """Create a new transmission line."""
         query = """
         MATCH (from:Bus {id: $from_bus})
@@ -166,7 +166,7 @@ class Neo4jDB:
             },
         )
 
-    def get_shortest_path(self, from_bus: str, to_bus: str) -> Optional[List[Dict[str, Any]]]:
+    def get_shortest_path(self, from_bus: str, to_bus: str) -> list[dict[str, Any]] | None:
         """Find the shortest path between two buses."""
         query = """
         MATCH (from:Bus {id: $from_bus}), (to:Bus {id: $to_bus})

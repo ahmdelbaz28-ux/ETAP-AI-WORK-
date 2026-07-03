@@ -16,6 +16,7 @@ Security Measures:
 - Audit logging
 """
 
+import contextlib
 import json
 import logging
 import os
@@ -23,6 +24,7 @@ import sys
 import traceback
 from concurrent.futures import ThreadPoolExecutor
 from concurrent.futures import TimeoutError as FutureTimeoutError
+from typing import Any, Dict, Optional
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
@@ -38,18 +40,18 @@ MAX_EXECUTION_TIME_SECONDS = 30
 MAX_OUTPUT_LENGTH = 10000
 
 
-def _read_code_from_stdin():
+def _read_code_from_stdin() -> Optional[str]:
     try:
         code = sys.stdin.read()
         if not code or not code.strip():
             return None
         return code
     except Exception as e:
-        logger.error(f"Failed to read code from stdin: {e}")
+        logger.error("Failed to read code from stdin: %s", e)
         return None
 
 
-def main():
+def main() -> None:
     code = _read_code_from_stdin()
     if code is None:
         print(json.dumps({"error": "No code provided via stdin", "success": False}))
@@ -63,8 +65,8 @@ def main():
                 {
                     "error": f"Code exceeds maximum length of {MAX_CODE_LENGTH} characters",
                     "success": False,
-                }
-            )
+                },
+            ),
         )
         sys.exit(1)
 
@@ -82,8 +84,8 @@ def main():
                 {
                     "error": "Security Violation: Forbidden code pattern or unauthorized import detected.",
                     "success": False,
-                }
-            )
+                },
+            ),
         )
         sys.exit(1)
 
@@ -116,8 +118,8 @@ def main():
                             f"{_details}",
                             "success": False,
                             "guard_violations": _ai_result.to_dict(),
-                        }
-                    )
+                        },
+                    ),
                 )
                 sys.exit(1)
             else:
@@ -138,7 +140,7 @@ def main():
 
     import math
 
-    def _deep_freeze_module(mod):
+    def _deep_freeze_module(mod: Any) -> None:
         """Deep-freeze a module by nullifying dangerous attributes at all levels.
 
         This prevents sandbox escape via paths like:
@@ -167,7 +169,7 @@ def main():
         }
         _processed = set()
 
-        def _nullify(obj, depth=0):
+        def _nullify(obj: Any, depth: int = 0) -> None:
             if depth > 5 or id(obj) in _processed:
                 return
             _processed.add(id(obj))
@@ -179,10 +181,8 @@ def main():
                 if attr_name.startswith("_") and attr_name not in ("__builtins__", "__import__"):
                     continue
                 if attr_name in DANGEROUS_NAMES:
-                    try:
+                    with contextlib.suppress(AttributeError, TypeError):
                         object.__setattr__(obj, attr_name, None)
-                    except (AttributeError, TypeError):
-                        pass
                 elif depth < 3:
                     try:
                         child = getattr(obj, attr_name, None)
@@ -268,7 +268,7 @@ def main():
         if mod is not None:
             _deep_freeze_module(mod)
 
-    def _exec_target(_code: str, _globals: dict):
+    def _exec_target(_code: str, _globals: dict) -> Dict[str, Any]:
         import io
         from contextlib import redirect_stdout
 
@@ -298,8 +298,8 @@ def main():
                     "output": None,
                     "error": f"Execution exceeded {MAX_EXECUTION_TIME_SECONDS} seconds",
                     "traceback": None,
-                }
-            )
+                },
+            ),
         )
         return
 
@@ -316,8 +316,8 @@ def main():
                     "output": None,
                     "error": result.get("error"),
                     "traceback": result.get("traceback"),
-                }
-            )
+                },
+            ),
         )
 
 

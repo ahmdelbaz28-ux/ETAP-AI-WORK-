@@ -24,7 +24,7 @@ import logging
 from datetime import datetime, timezone
 
 UTC = timezone.utc  # noqa: UP017
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 import numpy as np
 
@@ -78,7 +78,7 @@ class AnomalyAgent(BaseAgent):
         self,
         data: np.ndarray,
         sigma_threshold: float = 3.0,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Detect anomalies using Statistical Process Control (3-sigma rule).
 
@@ -138,10 +138,10 @@ class AnomalyAgent(BaseAgent):
     def detect_cusum(
         self,
         data: np.ndarray,
-        target: Optional[float] = None,
+        target: float | None = None,
         k: float = 0.5,
         h: float = 5.0,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Detect mean shifts using the CUSUM (Cumulative Sum) method.
 
@@ -210,7 +210,7 @@ class AnomalyAgent(BaseAgent):
         data: np.ndarray,
         lam: float = 0.1,
         l_factor: float = 2.7,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Detect small persistent shifts using EWMA (Exponentially Weighted
         Moving Average) control chart.
@@ -277,7 +277,7 @@ class AnomalyAgent(BaseAgent):
         data: np.ndarray,
         upper_limit: float,
         lower_limit: float,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Detect violations of hard operational limits.
 
@@ -345,7 +345,7 @@ class AnomalyAgent(BaseAgent):
         data_a: np.ndarray,
         data_b: np.ndarray,
         correlation_threshold: float = 0.7,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Detect anomalies via cross-correlation between related measurements.
 
@@ -408,7 +408,7 @@ class AnomalyAgent(BaseAgent):
         data: np.ndarray,
         method: str = "iforest",
         contamination: float = 0.05,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         ML-based anomaly detection using Isolation Forest / PyOD.
 
@@ -475,7 +475,7 @@ class AnomalyAgent(BaseAgent):
             self.log_execution(f"Starting anomaly detection for task {task.task_id}")
 
             method = task.parameters.get("detection_method", "full")
-            results: Dict[str, Any] = {}
+            results: dict[str, Any] = {}
 
             measurements = task.parameters.get("measurements")
             if measurements is None:
@@ -544,7 +544,7 @@ class AnomalyAgent(BaseAgent):
                 secondary = task.parameters.get("secondary_measurements")
                 if secondary is None:
                     raise ValueError(
-                        "'secondary_measurements' required for cross_correlation method"
+                        "'secondary_measurements' required for cross_correlation method",
                     )
                 data_b = np.array(secondary, dtype=float)
                 corr_threshold = float(task.parameters.get("correlation_threshold", 0.7))
@@ -558,10 +558,7 @@ class AnomalyAgent(BaseAgent):
             if method in ("ml", "full"):
                 ml_method = task.parameters.get("ml_method", "iforest")
                 contamination = float(task.parameters.get("contamination", 0.05))
-                if data.ndim == 1:
-                    ml_data = data.reshape(-1, 1)
-                else:
-                    ml_data = data
+                ml_data = data.reshape(-1, 1) if data.ndim == 1 else data
                 results["ml_anomaly"] = self.detect_ml_anomaly(
                     data=ml_data,
                     method=ml_method,
@@ -595,7 +592,7 @@ class AnomalyAgent(BaseAgent):
 
             self.log_execution(
                 f"Anomaly detection completed in {execution_time:.2f}s "
-                f"(severity={overall_severity})"
+                f"(severity={overall_severity})",
             )
             return result
 
@@ -622,7 +619,7 @@ class AnomalyAgent(BaseAgent):
         - Anomaly counts are non-negative integers
         - Severity classification is valid
         """
-        errors: List[str] = []
+        errors: list[str] = []
 
         if not result.data:
             errors.append("No anomaly detection results produced")

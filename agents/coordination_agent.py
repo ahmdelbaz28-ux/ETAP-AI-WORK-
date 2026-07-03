@@ -24,7 +24,7 @@ import logging
 from datetime import datetime, timezone
 
 UTC = timezone.utc  # noqa: UP017
-from typing import Any, Dict, List
+from typing import Any
 
 import numpy as np
 
@@ -37,7 +37,7 @@ logger = logging.getLogger(__name__)
 # IEC 60255 relay characteristic curve parameters
 # ---------------------------------------------------------------------------
 
-_IEC60255_CURVES: Dict[str, Dict[str, float]] = {
+_IEC60255_CURVES: dict[str, dict[str, float]] = {
     # Standard inverse-time characteristics: t = TMS × (k / ((I/Ips)ⁿ - 1))
     # where TMS = time multiplier setting, I = fault current,
     # Ips = pickup setting, k and n are curve constants
@@ -117,7 +117,7 @@ class CoordinationAgent(BaseAgent):
         pickup_current_a: float,
         curve_type: str = "standard_inverse",
         time_multiplier: float = 1.0,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Calculate relay operating time per IEC 60255 or IEEE C37.112.
 
@@ -164,19 +164,13 @@ class CoordinationAgent(BaseAgent):
             B = curve_params["B"]
             p = curve_params["p"]
             denominator = M**p - 1.0
-            if denominator <= 0:
-                op_time = float("inf")
-            else:
-                op_time = time_multiplier * (A / denominator + B)
+            op_time = float("inf") if denominator <= 0 else time_multiplier * (A / denominator + B)
         else:
             # IEC 60255: t = TMS × k / (M^n - 1)
             k = curve_params["k"]
             n = curve_params["n"]
             denominator = M**n - 1.0
-            if denominator <= 0:
-                op_time = float("inf")
-            else:
-                op_time = time_multiplier * k / denominator
+            op_time = float("inf") if denominator <= 0 else time_multiplier * k / denominator
 
         return {
             "operating_time_s": round(float(op_time), 4),
@@ -190,10 +184,10 @@ class CoordinationAgent(BaseAgent):
 
     def verify_coordination(
         self,
-        upstream_relay: Dict[str, Any],
-        downstream_relay: Dict[str, Any],
+        upstream_relay: dict[str, Any],
+        downstream_relay: dict[str, Any],
         fault_current_a: float,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Verify coordination between upstream and downstream relays.
 
@@ -273,7 +267,7 @@ class CoordinationAgent(BaseAgent):
         min_multiplier: float = 1.5,
         max_multiplier: float = 40.0,
         num_points: int = 50,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Generate time-current curve (TCC) data points for plotting.
 
@@ -327,9 +321,9 @@ class CoordinationAgent(BaseAgent):
 
     def analyze_selectivity(
         self,
-        relay_chain: List[Dict[str, Any]],
-        fault_currents_a: List[float],
-    ) -> Dict[str, Any]:
+        relay_chain: list[dict[str, Any]],
+        fault_currents_a: list[float],
+    ) -> dict[str, Any]:
         """
         Analyze selectivity across a chain of coordinated relays.
 
@@ -381,7 +375,7 @@ class CoordinationAgent(BaseAgent):
                         "downstream": downstream.get("name", f"relay_{i}"),
                         "upstream": upstream.get("name", f"relay_{i + 1}"),
                         "interval_s": check["coordination_interval_s"],
-                    }
+                    },
                 )
 
         return {
@@ -411,7 +405,7 @@ class CoordinationAgent(BaseAgent):
             self.log_execution(f"Starting coordination analysis for task {task.task_id}")
 
             analysis_type = task.parameters.get("analysis_type", "full")
-            results: Dict[str, Any] = {}
+            results: dict[str, Any] = {}
 
             # --- Relay operating time ---
             if analysis_type in ("relay_time", "full"):
@@ -491,7 +485,7 @@ class CoordinationAgent(BaseAgent):
                     ],
                 )
                 fault_currents = task.parameters.get(
-                    "fault_currents_a", [10000.0, 15000.0, 20000.0]
+                    "fault_currents_a", [10000.0, 15000.0, 20000.0],
                 )
 
                 results["selectivity"] = self.analyze_selectivity(
@@ -540,7 +534,7 @@ class CoordinationAgent(BaseAgent):
         - Coordination intervals meet minimum (0.2s)
         - TCC data has consistent lengths
         """
-        errors: List[str] = []
+        errors: list[str] = []
 
         rt_data = result.data.get("relay_operating_time")
         if rt_data is not None:

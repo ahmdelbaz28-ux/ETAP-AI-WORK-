@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any, Dict, List, Optional, Set, Tuple
+from typing import Any
 
 from gis_integration.models import ADMSAsset
 
@@ -9,11 +9,11 @@ from gis_integration.models import ADMSAsset
 @dataclass(frozen=True)
 class CRSIssue:
     issue_type: str
-    affected_assets: List[str]
-    details: Dict[str, Any]
+    affected_assets: list[str]
+    details: dict[str, Any]
 
 
-def _asset_source_crs(asset: ADMSAsset) -> Optional[str]:
+def _asset_source_crs(asset: ADMSAsset) -> str | None:
     # Deterministic: transformer stores source_crs in metadata.
     try:
         return asset.metadata.get("source_crs")
@@ -21,7 +21,7 @@ def _asset_source_crs(asset: ADMSAsset) -> Optional[str]:
         return None
 
 
-def _normalize_epsg(crs: Optional[str]) -> Optional[str]:
+def _normalize_epsg(crs: str | None) -> str | None:
     if not crs or not isinstance(crs, str):
         return None
     s = crs.strip().upper()
@@ -31,7 +31,7 @@ def _normalize_epsg(crs: Optional[str]) -> Optional[str]:
     return s
 
 
-def validate_crs_consistency(assets: List[ADMSAsset]) -> Tuple[bool, List[CRSIssue]]:
+def validate_crs_consistency(assets: list[ADMSAsset]) -> tuple[bool, list[CRSIssue]]:
     """
     CRS rules (deterministic, no external libs):
     - All assets must declare a consistent source CRS (metadata.source_crs).
@@ -40,8 +40,8 @@ def validate_crs_consistency(assets: List[ADMSAsset]) -> Tuple[bool, List[CRSIss
     if not assets:
         return False, [CRSIssue("empty_assets", [], {"reason": "No assets provided"})]
 
-    crs_values: Set[str] = set()
-    missing: List[str] = []
+    crs_values: set[str] = set()
+    missing: list[str] = []
     for a in assets:
         crs = _normalize_epsg(_asset_source_crs(a))
         if not crs:
@@ -49,7 +49,7 @@ def validate_crs_consistency(assets: List[ADMSAsset]) -> Tuple[bool, List[CRSIss
         else:
             crs_values.add(crs)
 
-    issues: List[CRSIssue] = []
+    issues: list[CRSIssue] = []
     if missing:
         issues.append(CRSIssue("missing_crs_metadata", missing, {}))
 
@@ -60,21 +60,21 @@ def validate_crs_consistency(assets: List[ADMSAsset]) -> Tuple[bool, List[CRSIss
                 "mixed_crs_contamination",
                 sorted([a.asset_id for a in assets]),
                 {"crs_values": sorted(crs_values)},
-            )
+            ),
         )
 
     ok = len(issues) == 0
     return ok, issues
 
 
-def validate_normalization_applied(assets: List[ADMSAsset]) -> Tuple[bool, List[CRSIssue]]:
+def validate_normalization_applied(assets: list[ADMSAsset]) -> tuple[bool, list[CRSIssue]]:
     """
     Ensure metadata has source_crs; this subsystem assumes transformer already normalized.
     """
     if not assets:
         return False, [CRSIssue("empty_assets", [], {"reason": "No assets provided"})]
 
-    issues: List[CRSIssue] = []
+    issues: list[CRSIssue] = []
     missing_any = [a.asset_id for a in assets if not _asset_source_crs(a)]
     if missing_any:
         issues.append(CRSIssue("normalization_not_applied", missing_any, {}))

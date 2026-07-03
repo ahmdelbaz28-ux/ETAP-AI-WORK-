@@ -33,7 +33,7 @@ import uuid
 from datetime import datetime, timedelta, timezone
 
 UTC = timezone.utc  # noqa: UP017
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 import bcrypt
 import jwt
@@ -65,7 +65,7 @@ RESET_TOKEN_EXPIRE_MINUTES: int = int(os.getenv("RESET_TOKEN_EXPIRE_MINUTES", "3
 # Rate-limiting (Redis-backed, per username, with in-memory fallback)
 # ---------------------------------------------------------------------------
 
-_LOGIN_ATTEMPTS: Dict[str, List[float]] = {}
+_LOGIN_ATTEMPTS: dict[str, list[float]] = {}
 _RATE_LIMIT_MAX_ATTEMPTS: int = int(os.getenv("LOGIN_RATE_LIMIT_MAX_ATTEMPTS", "5"))
 _RATE_LIMIT_WINDOW_SEC: int = int(os.getenv("LOGIN_RATE_LIMIT_WINDOW_SEC", "900"))  # 15 minutes
 
@@ -87,7 +87,7 @@ _TOKEN_BLACKLIST_PREFIX = os.getenv("TOKEN_BLACKLIST_PREFIX", "auth:blacklist:")
 _redis_client = None
 
 
-def _get_redis_client() -> Optional[redis_async.Redis]:
+def _get_redis_client() -> redis_async.Redis | None:
     global _redis_client
     if not _REDIS_URL or not REDIS_AVAILABLE:
         return None
@@ -96,7 +96,7 @@ def _get_redis_client() -> Optional[redis_async.Redis]:
     return _redis_client
 
 
-async def _blacklist_token(jti: str, ttl_seconds: Optional[int] = None) -> None:
+async def _blacklist_token(jti: str, ttl_seconds: int | None = None) -> None:
     """Blacklist a refresh token JTI using Redis (with TTL)."""
     r = _get_redis_client()
     if r is None:
@@ -220,11 +220,11 @@ class User(Base):
         default=lambda: datetime.now(UTC),
         onupdate=lambda: datetime.now(UTC),
     )
-    last_login: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
+    last_login: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
-    reset_token: Mapped[Optional[str]] = mapped_column(String(128), nullable=True)
-    reset_token_expires: Mapped[Optional[datetime]] = mapped_column(
-        DateTime(timezone=True), nullable=True
+    reset_token: Mapped[str | None] = mapped_column(String(128), nullable=True)
+    reset_token_expires: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True,
     )
 
 
@@ -336,8 +336,8 @@ class UpdateProfileRequest(BaseModel):
 
     model_config = ConfigDict(strict=False)
 
-    email: Optional[EmailStr] = None
-    mfa_enabled: Optional[bool] = None
+    email: EmailStr | None = None
+    mfa_enabled: bool | None = None
 
 
 class UserResponse(BaseModel):
@@ -351,9 +351,9 @@ class UserResponse(BaseModel):
     role: str
     mfa_enabled: bool
     is_active: bool
-    created_at: Optional[datetime] = None
-    updated_at: Optional[datetime] = None
-    last_login: Optional[datetime] = None
+    created_at: datetime | None = None
+    updated_at: datetime | None = None
+    last_login: datetime | None = None
 
 
 class UserListResponse(BaseModel):
@@ -361,7 +361,7 @@ class UserListResponse(BaseModel):
 
     model_config = ConfigDict(from_attributes=True)
 
-    users: List[UserResponse]
+    users: list[UserResponse]
     total: int
     page: int
     page_size: int
@@ -608,14 +608,13 @@ async def refresh(
 
     # Check if the refresh token has been blacklisted (logged out)
     jti = payload.get("jti")
-    if jti:
-        if await _is_token_blacklisted(jti):
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Refresh token has been revoked",
-            )
+    if jti and await _is_token_blacklisted(jti):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Refresh token has been revoked",
+        )
 
-    user_id: Optional[str] = payload.get("sub")
+    user_id: str | None = payload.get("sub")
     if user_id is None:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -648,7 +647,7 @@ async def refresh(
     summary="Revoke session",
 )
 async def logout(
-    body: Optional[RefreshRequest] = Body(None),
+    body: RefreshRequest | None = Body(None),
     user: CurrentUser = Depends(get_current_user_from_header),  # noqa: B008
 ) -> Response:
     """Log the current user out by blacklisting the provided refresh token.
@@ -667,7 +666,7 @@ async def logout(
             )
             jti = payload.get("jti")
             exp = payload.get("exp")  # epoch seconds
-            ttl_seconds: Optional[int] = None
+            ttl_seconds: int | None = None
             if isinstance(exp, (int, float)):
                 now_epoch = datetime.now(tz=UTC).timestamp()
                 ttl_seconds = int(exp - now_epoch)
@@ -735,7 +734,7 @@ async def update_me(
     if body.email is not None:
         # Check email uniqueness
         existing = await db.execute(
-            select(User).where(User.email == body.email, User.id != user.user_id)
+            select(User).where(User.email == body.email, User.id != user.user_id),
         )
         if existing.scalar_one_or_none() is not None:
             raise HTTPException(
@@ -836,7 +835,7 @@ async def change_password(
 async def forgot_password(
     body: ForgotPasswordRequest,
     db: AsyncSession = Depends(get_db),  # noqa: B008
-) -> Dict[str, str]:
+) -> dict[str, str]:
     """Generate a password-reset token for the given email.
 
     Always returns a success message to prevent email-enumeration attacks,
@@ -873,7 +872,7 @@ async def forgot_password(
 async def reset_password(
     body: ResetPasswordRequest,
     db: AsyncSession = Depends(get_db),  # noqa: B008
-) -> Dict[str, str]:
+) -> dict[str, str]:
     """Set a new password using a valid reset token."""
     token_hash = hashlib.sha256(body.token.encode()).hexdigest()
     result = await db.execute(select(User).where(User.reset_token == token_hash))
@@ -930,7 +929,7 @@ async def list_users(
         select(User)
         .order_by(User.created_at.desc())
         .offset(pagination.offset)
-        .limit(pagination.page_size)
+        .limit(pagination.page_size),
     )
     users = result.scalars().all()
 
@@ -964,7 +963,7 @@ async def delete_user(
     user_id: str,
     user: CurrentUser = Depends(require_role("admin")),  # noqa: B008
     db: AsyncSession = Depends(get_db),  # noqa: B008
-) -> Dict[str, str]:
+) -> dict[str, str]:
     """Soft-delete a user by setting ``is_active = False``.
 
     Admins cannot delete themselves.

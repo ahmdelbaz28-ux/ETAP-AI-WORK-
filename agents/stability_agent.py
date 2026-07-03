@@ -21,7 +21,7 @@ import logging
 from datetime import datetime, timezone
 
 UTC = timezone.utc  # noqa: UP017
-from typing import Any, Dict, List, Tuple
+from typing import Any
 
 import numpy as np
 
@@ -80,7 +80,7 @@ class StabilityAgent(BaseAgent):
         t_clear: float,
         t_total: float,
         dt: float = 0.01,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Perform transient stability analysis using the swing equation.
 
@@ -159,8 +159,8 @@ class StabilityAgent(BaseAgent):
 
             # RK4 integration
             def derivatives(
-                d: np.ndarray, w: np.ndarray, _Y: np.ndarray = Y
-            ) -> Tuple[np.ndarray, np.ndarray]:
+                d: np.ndarray, w: np.ndarray, _Y: np.ndarray = Y,
+            ) -> tuple[np.ndarray, np.ndarray]:
                 Pe = electrical_power(d, _Y)
                 ddelta = w - self.omega_synchronous
                 domega = (self.omega_synchronous / (2.0 * H)) * (Pm - Pe - D * ddelta)
@@ -179,7 +179,7 @@ class StabilityAgent(BaseAgent):
 
         # Stability criterion: max angle spread < 360 degrees (practical: 180 deg)
         max_angle_spread = np.max(np.degrees(delta_history[-1])) - np.min(
-            np.degrees(delta_history[-1])
+            np.degrees(delta_history[-1]),
         )
         stable = max_angle_spread < 180.0
 
@@ -200,7 +200,7 @@ class StabilityAgent(BaseAgent):
         Ybus_red: np.ndarray,
         E: np.ndarray,
         delta0: np.ndarray,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Perform small-signal stability analysis via eigenvalue method.
 
@@ -313,7 +313,7 @@ class StabilityAgent(BaseAgent):
                         "damping_ratio": float(zeta),
                         "frequency_hz": float(freq),
                         "type": "unstable" if sigma > 0 else "poorly_damped",
-                    }
+                    },
                 )
 
         # Participation factor analysis (reuse eigenvectors from same call)
@@ -350,7 +350,7 @@ class StabilityAgent(BaseAgent):
         X_total: float,
         X_faulted: float,
         delta0: float,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Compute critical clearing time using the equal area criterion.
 
@@ -471,7 +471,7 @@ class StabilityAgent(BaseAgent):
             self.log_execution(f"Starting stability analysis for task {task.task_id}")
 
             analysis_type = task.parameters.get("analysis_type", "full")
-            results: Dict[str, Any] = {}
+            results: dict[str, Any] = {}
 
             # --- Transient stability ---
             if analysis_type in ("transient", "full"):
@@ -558,7 +558,7 @@ class StabilityAgent(BaseAgent):
                 E = E_mag * np.exp(1j * delta0)
 
                 ss_result = self.analyze_small_signal_stability(
-                    H=H, D=D, Pm=Pm, Ybus_red=Ybus_red, E=E, delta0=delta0
+                    H=H, D=D, Pm=Pm, Ybus_red=Ybus_red, E=E, delta0=delta0,
                 )
                 results["small_signal_stability"] = ss_result
 
@@ -616,15 +616,14 @@ class StabilityAgent(BaseAgent):
         - Small-signal: all eigenvalues have negative real parts
         - CCT: critical clearing time is positive
         """
-        errors: List[str] = []
+        errors: list[str] = []
 
         ts_data = result.data.get("transient_stability")
-        if ts_data is not None:
-            if not ts_data.get("stable", False):
-                errors.append(
-                    f"Transient instability: max angle spread "
-                    f"{ts_data.get('max_angle_spread_deg', 0):.1f}°"
-                )
+        if ts_data is not None and not ts_data.get("stable", False):
+            errors.append(
+                f"Transient instability: max angle spread "
+                f"{ts_data.get('max_angle_spread_deg', 0):.1f}°",
+            )
 
         ss_data = result.data.get("small_signal_stability")
         if ss_data is not None:
@@ -634,16 +633,15 @@ class StabilityAgent(BaseAgent):
                         ev = mode["eigenvalue"]
                         errors.append(
                             f"Unstable mode: eigenvalue={ev.real:.4f}{ev.imag:+.4f}j, "
-                            f"ζ={mode['damping_ratio']:.4f}"
+                            f"ζ={mode['damping_ratio']:.4f}",
                         )
             min_zeta = ss_data.get("min_damping_ratio", 0.0)
             if min_zeta < 0.03:
                 errors.append(f"Very low damping ratio: ζ_min={min_zeta:.4f} (< 0.03 threshold)")
 
         cct_data = result.data.get("critical_clearing_time")
-        if cct_data is not None:
-            if not cct_data.get("stable", True):
-                errors.append("CCT analysis indicates system cannot be stabilised")
+        if cct_data is not None and not cct_data.get("stable", True):
+            errors.append("CCT analysis indicates system cannot be stabilised")
 
         result.validation_errors.extend(errors)
         return len(errors) == 0

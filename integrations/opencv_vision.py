@@ -52,7 +52,7 @@ import io
 import logging
 import re
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -74,7 +74,7 @@ def _check_opencv_available() -> bool:
         return False
 
 
-def _check_tesseract_available() -> Tuple[bool, str]:
+def _check_tesseract_available() -> tuple[bool, str]:
     """Check if pytesseract + tesseract binary are available."""
     try:
         import shutil
@@ -171,7 +171,7 @@ class OpenCVVisionClient:
             if not self.ocr_enabled:
                 logger.warning("Tesseract unavailable: %s — OCR disabled", self.tesseract_msg)
         else:
-            missing: List[str] = []
+            missing: list[str] = []
             if not self.cv2_available:
                 missing.append("opencv-python")
             if not self.pil_available:
@@ -184,8 +184,8 @@ class OpenCVVisionClient:
         self,
         image: Any,
         objective: str,
-        context: Optional[str] = None,
-    ) -> Optional[Dict[str, Any]]:
+        context: str | None = None,
+    ) -> dict[str, Any] | None:
         """Analyze a screenshot locally via OpenCV + OCR.
 
         Returns a dict compatible with Gemini Vision's output schema:
@@ -255,7 +255,7 @@ class OpenCVVisionClient:
         self,
         image: Any,
         target_text: str,
-    ) -> Optional[Dict[str, Any]]:
+    ) -> dict[str, Any] | None:
         """Find a UI element by its text label (OCR-based).
 
         Returns {"found": True, "x", "y", "confidence", "method": "ocr"}
@@ -306,7 +306,7 @@ class OpenCVVisionClient:
             logger.warning("find_element_by_text failed: %s", exc)
             return {"found": False, "reason": str(exc), "method": "ocr"}
 
-    def health_check(self) -> Dict[str, Any]:
+    def health_check(self) -> dict[str, Any]:
         """Return status for /health endpoints."""
         return {
             "enabled": self.enabled,
@@ -335,7 +335,7 @@ class OpenCVVisionClient:
         return None
 
     @staticmethod
-    def _detect_ui_elements(img_array, gray) -> List[Dict[str, Any]]:
+    def _detect_ui_elements(img_array, gray) -> list[dict[str, Any]]:
         """Detect UI elements via edge detection + contour analysis.
 
         Looks for rectangular regions that could be buttons, inputs, or dialogs.
@@ -344,7 +344,7 @@ class OpenCVVisionClient:
             import cv2
             import numpy as np
 
-            elements: List[Dict[str, Any]] = []
+            elements: list[dict[str, Any]] = []
 
             # Edge detection
             edges = cv2.Canny(gray, 50, 150)
@@ -377,7 +377,7 @@ class OpenCVVisionClient:
                             "height": int(h),
                             "confidence": min(0.6, area / 10000),  # rough confidence
                             "method": "contour",
-                        }
+                        },
                     )
 
             return elements[:50]  # cap
@@ -398,14 +398,14 @@ class OpenCVVisionClient:
             return ""
 
     @staticmethod
-    def _ocr_to_elements(ocr_text: str, image_size: tuple) -> List[Dict[str, Any]]:
+    def _ocr_to_elements(ocr_text: str, image_size: tuple) -> list[dict[str, Any]]:
         """Convert OCR text into pseudo-elements by matching common button labels.
 
         This is a heuristic — we don't have bounding boxes here, so we just
         note that the label was found. The caller should use find_element_by_text
         to get exact coordinates.
         """
-        elements: List[Dict[str, Any]] = []
+        elements: list[dict[str, Any]] = []
         if not ocr_text:
             return elements
         ocr_lower = ocr_text.lower()
@@ -419,13 +419,13 @@ class OpenCVVisionClient:
                         "y": None,
                         "confidence": 0.5,
                         "method": "ocr-keyword",
-                    }
+                    },
                 )
         return elements
 
     @staticmethod
     def _build_description(
-        elements: List[Dict[str, Any]],
+        elements: list[dict[str, Any]],
         ocr_text: str,
         width: int,
         height: int,
@@ -436,7 +436,7 @@ class OpenCVVisionClient:
             button_count = sum(1 for e in elements if e.get("type") == "button")
             input_count = sum(1 for e in elements if e.get("type") == "input")
             parts.append(
-                f"Detected {button_count} button-like and {input_count} input-like regions"
+                f"Detected {button_count} button-like and {input_count} input-like regions",
             )
         if ocr_text:
             # First 200 chars of OCR text
@@ -449,9 +449,9 @@ class OpenCVVisionClient:
     @staticmethod
     def _decide_action(
         objective: str,
-        elements: List[Dict[str, Any]],
+        elements: list[dict[str, Any]],
         ocr_text: str,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Decide the next action based on objective + detected elements.
 
         Heuristic approach:
@@ -496,7 +496,7 @@ class OpenCVVisionClient:
 
         # Check for hotkey patterns (e.g., "press Ctrl+S")
         hotkey_match = re.search(
-            r"press\s+(ctrl|control|alt|shift|cmd|command)\s*[\+\s]\s*(\w+)", obj_lower
+            r"press\s+(ctrl|control|alt|shift|cmd|command)\s*[\+\s]\s*(\w+)", obj_lower,
         )
         if hotkey_match:
             modifier = hotkey_match.group(1)
@@ -525,7 +525,7 @@ class OpenCVVisionClient:
         }
 
     @staticmethod
-    def _estimate_confidence(elements: List[Dict[str, Any]], next_action: Dict[str, Any]) -> float:
+    def _estimate_confidence(elements: list[dict[str, Any]], next_action: dict[str, Any]) -> float:
         """Estimate confidence in the analysis (0.0-1.0)."""
         if next_action.get("type") in ("click", "type", "hotkey"):
             # If we found a specific action, moderate confidence

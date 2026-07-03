@@ -5,7 +5,6 @@ Implements Phase 2: Semantic retrieval from ChromaDB + Lexical & Semantic Compre
 
 import logging
 from pathlib import Path
-from typing import Dict, List
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("ai_context_engine_retriever")
@@ -16,7 +15,7 @@ try:
     CHROMA_AVAILABLE = True
 except (ImportError, RuntimeError) as e:
     CHROMA_AVAILABLE = False
-    logger.warning(f"chromadb not available ({e}).")
+    logger.warning("chromadb not available (%s).", e)
 
 
 class CodeCompressor:
@@ -28,7 +27,7 @@ class CodeCompressor:
         return len(text) // 4
 
     @classmethod
-    def compress_chunks(cls, chunks: List[Dict], query: str, max_tokens: int = 2000) -> List[Dict]:
+    def compress_chunks(cls, chunks: list[dict], query: str, max_tokens: int = 2000) -> list[dict]:
         """
         Compresses chunks using Jaccard lexical overlap ranking and token budget enforcement.
         Keeps highest-scoring code snippets within the max_tokens limit.
@@ -50,7 +49,7 @@ class CodeCompressor:
                     **chunk,
                     "jaccard_score": jaccard_score,
                     "estimated_tokens": cls.get_token_estimate(code),
-                }
+                },
             )
 
         # Sort by Jaccard score (highest first) to prioritize chunks containing query terms
@@ -100,12 +99,12 @@ class CodeRetriever:
             try:
                 self.client = chromadb.PersistentClient(path=str(self.index_dir))
                 self.collection = self.client.get_collection(
-                    name="code_context", embedding_function=embedding_function
+                    name="code_context", embedding_function=embedding_function,
                 )
             except Exception as e:
-                logger.error(f"Failed to load Chroma collection: {e}")
+                logger.error("Failed to load Chroma collection: %s", e)
 
-    def retrieve(self, query: str, top_k: int = 5) -> List[Dict]:
+    def retrieve(self, query: str, top_k: int = 5) -> list[dict]:
         """Query ChromaDB and return raw matching code chunks."""
         if not CHROMA_AVAILABLE or not self.collection:
             logger.warning("ChromaDB not initialized or code_context collection missing.")
@@ -128,16 +127,16 @@ class CodeRetriever:
                             "name": metadatas[idx].get("name", ""),
                             "type": metadatas[idx].get("type", ""),
                             "filepath": metadatas[idx].get("filepath", ""),
-                        }
+                        },
                     )
             return chunks
         except Exception as e:
-            logger.error(f"Error querying index: {e}")
+            logger.error("Error querying index: %s", e)
             return []
 
     def retrieve_and_compress(
-        self, query: str, top_k: int = 5, max_tokens: int = 2000
-    ) -> List[Dict]:
+        self, query: str, top_k: int = 5, max_tokens: int = 2000,
+    ) -> list[dict]:
         """Fetches raw chunks and compresses them using Jaccard pruning."""
         raw_chunks = self.retrieve(query, top_k=top_k)
         return CodeCompressor.compress_chunks(raw_chunks, query, max_tokens=max_tokens)

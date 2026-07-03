@@ -118,7 +118,7 @@ def validate_prompt_file(filepath: Path, strict: bool = False) -> tuple[bool, li
     model = parsed.get("model", "")
     if model and model not in VALID_MODELS:
         issues.append(
-            f"WARNING: Model '{model}' not in known valid list ({', '.join(sorted(VALID_MODELS))})"
+            f"WARNING: Model '{model}' not in known valid list ({', '.join(sorted(VALID_MODELS))})",
         )
 
     # Validate temperature range if present
@@ -151,7 +151,7 @@ def validate_prompt_file(filepath: Path, strict: bool = False) -> tuple[bool, li
                 has_system = True
         if not has_system:
             issues.append(
-                "WARNING: No system message found — agents should have system instructions"
+                "WARNING: No system message found — agents should have system instructions",
             )
 
     # Check for engineering standards references in system messages
@@ -172,7 +172,7 @@ def validate_prompt_file(filepath: Path, strict: bool = False) -> tuple[bool, li
         issues.append(f"INFO: Large prompt ({total_chars} chars, ~{total_chars // 4} tokens)")
 
     return len(
-        [i for i in issues if i.startswith("CRITICAL:") or i.startswith("ERROR:")]
+        [i for i in issues if i.startswith("CRITICAL:") or i.startswith("ERROR:")],
     ) == 0, issues
 
 

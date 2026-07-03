@@ -30,7 +30,7 @@ from dataclasses import dataclass, field
 from datetime import datetime, timezone
 
 UTC = timezone.utc  # noqa: UP017
-from typing import Any, Dict, List
+from typing import Any
 
 from compat import StrEnum
 
@@ -40,7 +40,7 @@ logger = logging.getLogger(__name__)
 # Operator mapping for declarative rule conditions
 # ---------------------------------------------------------------------------
 
-_OPS: Dict[str, Callable[[Any, Any], bool]] = {
+_OPS: dict[str, Callable[[Any, Any], bool]] = {
     "==": operator.eq,
     "!=": operator.ne,
     "<": operator.lt,
@@ -119,7 +119,7 @@ class ABACPolicy:
     """
 
     name: str
-    rules: List[ABACRule] = field(default_factory=list)
+    rules: list[ABACRule] = field(default_factory=list)
     priority: int = 0
     effect: str = "allow"
     description: str = ""
@@ -130,17 +130,14 @@ class ABACPolicy:
 # ---------------------------------------------------------------------------
 
 
-def _resolve_path(context: Dict[str, Any], path: str) -> Any:
+def _resolve_path(context: dict[str, Any], path: str) -> Any:
     """Walk *path* (e.g. ``"resource.clearance_level"``) on *context*.
 
     Returns ``None`` if any segment is missing.
     """
     current: Any = context
     for part in path.split("."):
-        if isinstance(current, dict):
-            current = current.get(part)
-        else:
-            current = getattr(current, part, None)
+        current = current.get(part) if isinstance(current, dict) else getattr(current, part, None)
         if current is None:
             return None
     return current
@@ -164,12 +161,12 @@ class ABACPolicyEngine:
     5. If no policy matches → DENY (default-deny).
     """
 
-    def __init__(self, policies: List[ABACPolicy] | None = None) -> None:
-        self._policies: List[ABACPolicy] = policies or []
+    def __init__(self, policies: list[ABACPolicy] | None = None) -> None:
+        self._policies: list[ABACPolicy] = policies or []
 
     # -- policy management ---------------------------------------------------
 
-    def add_policy(self, policy: ABACPolicy | List[ABACPolicy]) -> None:
+    def add_policy(self, policy: ABACPolicy | list[ABACPolicy]) -> None:
         """Add one or more policies to the engine.
 
         If a list is passed (e.g. the return value of
@@ -204,7 +201,7 @@ class ABACPolicyEngine:
             logger.info("ABAC policy removed: %s", name)
         return removed
 
-    def list_policies(self) -> List[str]:
+    def list_policies(self) -> list[str]:
         """Return names of all registered policies in priority order."""
         return [p.name for p in self._policies]
 
@@ -212,7 +209,7 @@ class ABACPolicyEngine:
 
     @staticmethod
     def _evaluate_rule(
-        rule: ABACRule, subject: dict, action: str, resource: dict, environment: dict
+        rule: ABACRule, subject: dict, action: str, resource: dict, environment: dict,
     ) -> bool:
         """Evaluate a single rule against the request context.
 
@@ -221,14 +218,12 @@ class ABACPolicyEngine:
         """
         # Select the context dict based on rule type
         if rule.rule_type == RuleType.ROLE:
-            context: Dict[str, Any] = {"role": subject.get("role", ""), **subject}
+            context: dict[str, Any] = {"role": subject.get("role", ""), **subject}
         elif rule.rule_type == RuleType.ATTRIBUTE:
             context = subject
         elif rule.rule_type == RuleType.RESOURCE:
             context = {"resource": resource, **resource}
-        elif rule.rule_type == RuleType.TIME:
-            context = environment
-        elif rule.rule_type == RuleType.IP:
+        elif rule.rule_type == RuleType.TIME or rule.rule_type == RuleType.IP:
             context = environment
         else:
             logger.warning("Unknown ABAC rule type: %s", rule.rule_type)
@@ -443,9 +438,9 @@ if _HAS_STARLETTE:
         def __init__(
             self,
             app: Any,
-            policies: List[ABACPolicy] | None = None,
+            policies: list[ABACPolicy] | None = None,
             jwt_decode_fn: Callable[..., Any] | None = None,
-            public_paths: List[str] | None = None,
+            public_paths: list[str] | None = None,
         ) -> None:
             super().__init__(app)
             self.engine = ABACPolicyEngine(policies or [])
@@ -456,7 +451,7 @@ if _HAS_STARLETTE:
             """Add a policy at runtime."""
             self.engine.add_policy(policy)
 
-        async def _decode_jwt(self, token: str) -> Dict[str, Any]:
+        async def _decode_jwt(self, token: str) -> dict[str, Any]:
             """Decode a JWT token into claims dict."""
             if self._jwt_decode_fn is not None:
                 return await self._jwt_decode_fn(token)
@@ -499,7 +494,7 @@ if _HAS_STARLETTE:
                 )
 
             # Build ABAC context
-            subject: Dict[str, Any] = {
+            subject: dict[str, Any] = {
                 "user_id": claims.get("user_id", ""),
                 "role": claims.get("role", "guest"),
                 "department": claims.get("department", ""),
@@ -511,7 +506,7 @@ if _HAS_STARLETTE:
             action = f"{request.method.lower()}:{path}"
 
             # Resource: query params + path info
-            resource: Dict[str, Any] = {
+            resource: dict[str, Any] = {
                 "path": path,
                 "method": request.method,
                 "clearance_level": 0,  # default; override per-route as needed
@@ -519,7 +514,7 @@ if _HAS_STARLETTE:
 
             # Environment
             client_ip = request.client.host if request.client else "0.0.0.0"
-            environment: Dict[str, Any] = {
+            environment: dict[str, Any] = {
                 "time": datetime.now(UTC),
                 "ip": client_ip,
                 "source": "abac_middleware",
@@ -556,8 +551,8 @@ else:
 
 def make_role_policy(
     name: str,
-    allowed_roles: List[str],
-    actions: List[str] | None = None,
+    allowed_roles: list[str],
+    actions: list[str] | None = None,
     priority: int = 10,
 ) -> ABACPolicy:
     """Create a policy that allows subjects with a role in *allowed_roles*.
@@ -578,7 +573,7 @@ def make_role_policy(
     -------
     ABACPolicy
     """
-    rules: List[ABACRule] = [
+    rules: list[ABACRule] = [
         ABACRule(
             rule_type=RuleType.ROLE,
             field_path="role",
@@ -605,7 +600,7 @@ def make_business_hours_policy(
     start_hour: int = 8,
     end_hour: int = 18,
     priority: int = 5,
-) -> List[ABACPolicy]:
+) -> list[ABACPolicy]:
     """Create deny policies that block access outside business hours.
 
     Parameters
@@ -660,7 +655,7 @@ def make_business_hours_policy(
 
 def make_ip_allowlist_policy(
     name: str,
-    allowed_cidrs: List[str],
+    allowed_cidrs: list[str],
     priority: int = 20,
 ) -> ABACPolicy:
     """Create an allow policy restricted to IP CIDR ranges.
@@ -758,7 +753,7 @@ def create_default_etap_abac_engine() -> ABACPolicyEngine:
             name="admin_full_access",
             allowed_roles=["admin"],
             priority=100,
-        )
+        ),
     )
 
     # Engineer can run studies
@@ -773,7 +768,7 @@ def create_default_etap_abac_engine() -> ABACPolicyEngine:
                 "post:/api/projects",
             ],
             priority=50,
-        )
+        ),
     )
 
     # Analyst read
@@ -786,7 +781,7 @@ def create_default_etap_abac_engine() -> ABACPolicyEngine:
                 "get:/api/projects",
             ],
             priority=50,
-        )
+        ),
     )
 
     # Viewer read
@@ -799,7 +794,7 @@ def create_default_etap_abac_engine() -> ABACPolicyEngine:
                 "get:/api/projects",
             ],
             priority=40,
-        )
+        ),
     )
 
     # Internal network allow
@@ -808,7 +803,7 @@ def create_default_etap_abac_engine() -> ABACPolicyEngine:
             name="internal_network",
             allowed_cidrs=["10.0.0.0/8", "172.16.0.0/12", "192.168.0.0/16"],
             priority=30,
-        )
+        ),
     )
 
     # Business hours deny

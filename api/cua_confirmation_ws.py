@@ -47,7 +47,7 @@ import logging
 import uuid
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
-from typing import Any, Dict, Optional
+from typing import Any
 
 from fastapi import WebSocket, WebSocketDisconnect
 
@@ -64,9 +64,9 @@ class ConfirmationRequest:
     request_id: str
     action_type: str
     action_target: str
-    action_x: Optional[int] = None
-    action_y: Optional[int] = None
-    action_text: Optional[str] = None
+    action_x: int | None = None
+    action_y: int | None = None
+    action_text: str | None = None
     action_keys: list = field(default_factory=list)
     requires_dual_confirmation: bool = True
     timestamp: str = field(default_factory=lambda: datetime.now(UTC).isoformat())
@@ -75,9 +75,9 @@ class ConfirmationRequest:
     rejections: list = field(default_factory=list)
     # Internal
     _event: asyncio.Event = field(default_factory=asyncio.Event, repr=False)
-    _result: Optional[bool] = None
+    _result: bool | None = None
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "request_id": self.request_id,
             "action": {
@@ -108,7 +108,7 @@ class ConfirmationBroker:
     """
 
     def __init__(self) -> None:
-        self._pending: Dict[str, ConfirmationRequest] = {}
+        self._pending: dict[str, ConfirmationRequest] = {}
         self._connected_clients: set[WebSocket] = set()
         self._lock = asyncio.Lock()
         # Default: 2 humans required for dual-confirmation actions
@@ -135,7 +135,7 @@ class ConfirmationBroker:
 
     # ─── Broadcast a request to all connected clients ─────────────────────
 
-    async def _broadcast(self, message: Dict[str, Any]) -> None:
+    async def _broadcast(self, message: dict[str, Any]) -> None:
         """Send a message to all connected WebSocket clients."""
         dead: list[WebSocket] = []
         for ws in self._connected_clients:
@@ -181,13 +181,13 @@ class ConfirmationBroker:
         try:
             loop = asyncio.get_event_loop()
             loop.create_task(
-                self._broadcast({"type": "confirmation_request", "data": req.to_dict()})
+                self._broadcast({"type": "confirmation_request", "data": req.to_dict()}),
             )
         except RuntimeError:
             # No event loop running (sync context) — use asyncio.run for broadcast
             try:
                 asyncio.run(
-                    self._broadcast({"type": "confirmation_request", "data": req.to_dict()})
+                    self._broadcast({"type": "confirmation_request", "data": req.to_dict()}),
                 )
             except Exception:  # noqa: BLE001
                 pass
@@ -211,12 +211,12 @@ class ConfirmationBroker:
                     # Workaround: use a thread to wait for the event.
                     import threading
 
-                    result_holder: Dict[str, Optional[bool]] = {"result": None}
+                    result_holder: dict[str, bool | None] = {"result": None}
 
                     def wait_in_thread():
                         try:
                             asyncio.run(
-                                asyncio.wait_for(req._event.wait(), timeout=timeout_seconds)
+                                asyncio.wait_for(req._event.wait(), timeout=timeout_seconds),
                             )
                             result_holder["result"] = req._result
                         except TimeoutError:
@@ -237,7 +237,7 @@ class ConfirmationBroker:
         except TimeoutError:
             result = False
             logger.warning(
-                "Confirmation request %s TIMED OUT after %ds", request_id, timeout_seconds
+                "Confirmation request %s TIMED OUT after %ds", request_id, timeout_seconds,
             )
         except Exception as exc:  # noqa: BLE001
             result = False
@@ -249,7 +249,7 @@ class ConfirmationBroker:
 
     # ─── WebSocket client side: confirm / reject ──────────────────────────
 
-    async def confirm(self, request_id: str, session_id: str) -> Dict[str, Any]:
+    async def confirm(self, request_id: str, session_id: str) -> dict[str, Any]:
         """A WebSocket client confirms a request.
 
         Returns the updated request state. If enough confirmations are
@@ -276,15 +276,15 @@ class ConfirmationBroker:
                 req._event.set()
                 # Broadcast resolution
                 await self._broadcast(
-                    {"type": "confirmation_resolved", "data": req.to_dict(), "approved": True}
+                    {"type": "confirmation_resolved", "data": req.to_dict(), "approved": True},
                 )
                 logger.info(
-                    "Confirmation %s APPROVED by %d humans", request_id, len(req.confirmations)
+                    "Confirmation %s APPROVED by %d humans", request_id, len(req.confirmations),
                 )
 
             return {"success": True, "data": req.to_dict()}
 
-    async def reject(self, request_id: str, session_id: str, reason: str = "") -> Dict[str, Any]:
+    async def reject(self, request_id: str, session_id: str, reason: str = "") -> dict[str, Any]:
         """A WebSocket client rejects a request. Immediately fails the request."""
         async with self._lock:
             req = self._pending.get(request_id)
@@ -302,14 +302,14 @@ class ConfirmationBroker:
                     "approved": False,
                     "rejected_by": session_id,
                     "reason": reason,
-                }
+                },
             )
             logger.warning("Confirmation %s REJECTED by %s: %s", request_id, session_id, reason)
             return {"success": True, "data": req.to_dict()}
 
     # ─── Health / status ─────────────────────────────────────────────────
 
-    def health_check(self) -> Dict[str, Any]:
+    def health_check(self) -> dict[str, Any]:
         return {
             "connected_clients": len(self._connected_clients),
             "pending_requests": len(self._pending),

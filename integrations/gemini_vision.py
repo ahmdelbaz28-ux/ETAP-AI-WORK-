@@ -35,7 +35,7 @@ import logging
 import os
 import time
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -165,7 +165,7 @@ class GeminiVisionClient:
                 self.enabled = False
                 logger.warning("Gemini Vision init failed: %s", exc)
         else:
-            missing: List[str] = []
+            missing: list[str] = []
             if not self.api_key:
                 missing.append("GEMINI_API_KEY")
             if not GEMINI_AVAILABLE:
@@ -180,8 +180,8 @@ class GeminiVisionClient:
         self,
         image: Any,
         objective: str,
-        context: Optional[str] = None,
-    ) -> Optional[Dict[str, Any]]:
+        context: str | None = None,
+    ) -> dict[str, Any] | None:
         """Analyze a screenshot and return structured UI description + next action.
 
         Args:
@@ -202,7 +202,7 @@ class GeminiVisionClient:
 
         prompt = self._build_prompt(objective, context, pil_image.size)
 
-        last_error: Optional[str] = None
+        last_error: str | None = None
         for attempt in range(1, self.max_retries + 1):
             try:
                 response = self.model.generate_content(
@@ -226,7 +226,7 @@ class GeminiVisionClient:
             "message": f"All {self.max_retries} attempts failed. Last: {last_error}",
         }
 
-    def health_check(self) -> Dict[str, Any]:
+    def health_check(self) -> dict[str, Any]:
         """Return client status for /health endpoints."""
         return {
             "enabled": self.enabled,
@@ -259,7 +259,7 @@ class GeminiVisionClient:
         return None
 
     @staticmethod
-    def _build_prompt(objective: str, context: Optional[str], image_size: tuple[int, int]) -> str:
+    def _build_prompt(objective: str, context: str | None, image_size: tuple[int, int]) -> str:
         width, height = image_size
         parts = [
             f"OBJECTIVE: {objective}",
@@ -270,12 +270,12 @@ class GeminiVisionClient:
         parts.append(
             "Analyze the screenshot and respond with the JSON object described in the system "
             "instructions. Remember: coordinates must be integers within the screenshot bounds, "
-            "and you MUST return valid JSON only."
+            "and you MUST return valid JSON only.",
         )
         return "\n".join(parts)
 
     @staticmethod
-    def _parse_response(response: Any) -> Dict[str, Any]:
+    def _parse_response(response: Any) -> dict[str, Any]:
         """Parse Gemini response into a dict. Tries multiple extraction strategies."""
         # Strategy 1: response.text (most reliable when response_mime_type=json)
         try:

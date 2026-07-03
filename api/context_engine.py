@@ -23,7 +23,7 @@ async def retrieve_context(request: SharedContextRetrieveRequest):
     Uses ChromaDB for vector retrieval and Jaccard pruning for compression.
     """
     result = handle_context_retrieval(
-        query=request.query, top_k=request.top_k, max_tokens=request.max_tokens
+        query=request.query, top_k=request.top_k, max_tokens=request.max_tokens,
     )
     status = result.pop("_status", None)
     if status:

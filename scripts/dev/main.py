@@ -157,7 +157,7 @@ def main():
     # We'll simulate fault currents for a range of values.
     fault_currents = [2.0, 5.0, 10.0, 20.0, 50.0]  # in per unit (must be > Ip=1.0)
     coord_result = engine.run_protection_coordination(
-        upstream_relay_id=1, downstream_relay_id=2, fault_currents=fault_currents
+        upstream_relay_id=1, downstream_relay_id=2, fault_currents=fault_currents,
     )
     print(f"   All faults coordinated: {coord_result['all_coordinated']}")
     for i, res in enumerate(coord_result["results"]):
@@ -166,7 +166,7 @@ def main():
             f"Upstream={res['upstream_time']:.3f}s, "
             f"Downstream={res['downstream_time']:.3f}s, "
             f"Margin={res['margin']:.3f}s, "
-            f"Coordinated={res['coordinated']}"
+            f"Coordinated={res['coordinated']}",
         )
 
     # 4. Generate a simple report
@@ -194,7 +194,7 @@ def main():
             if "fault_current" in fault_result:
                 If = fault_result["fault_current"]
                 report_lines.append(
-                    f"  {fault_type.replace('_', ' ').title()}: {abs(If):.4f} angle {np.angle(If, deg=True):.2f}° pu"
+                    f"  {fault_type.replace('_', ' ').title()}: {abs(If):.4f} angle {np.angle(If, deg=True):.2f}° pu",
                 )
             else:
                 report_lines.append(f"  {fault_type.replace('_', ' ').title()}: See details above")
@@ -205,7 +205,7 @@ def main():
     report_lines.append(f"  All Faults Coordinated: {coord_result['all_coordinated']}")
     for i, res in enumerate(coord_result["results"]):
         report_lines.append(
-            f"  If={fault_currents[i]:.1f} pu: T_up={res['upstream_time']:.3f}s, T_down={res['downstream_time']:.3f}s, Margin={res['margin']:.3f}s"
+            f"  If={fault_currents[i]:.1f} pu: T_up={res['upstream_time']:.3f}s, T_down={res['downstream_time']:.3f}s, Margin={res['margin']:.3f}s",
         )
 
     report_text = "\n".join(report_lines)

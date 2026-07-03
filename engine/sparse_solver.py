@@ -33,7 +33,7 @@ from __future__ import annotations
 import logging
 import time
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 import numpy as np
 from scipy.sparse import csr_matrix, issparse, lil_matrix
@@ -136,7 +136,7 @@ class SparseConvergenceResult:
     magnitudes: np.ndarray = field(default_factory=lambda: np.array([], dtype=float))
     active_power: np.ndarray = field(default_factory=lambda: np.array([], dtype=float))
     reactive_power: np.ndarray = field(default_factory=lambda: np.array([], dtype=float))
-    iteration_log: List[Dict[str, Any]] = field(default_factory=list)
+    iteration_log: list[dict[str, Any]] = field(default_factory=list)
     solver_type: str = "sparse"
     solve_time_seconds: float = 0.0
 
@@ -162,10 +162,10 @@ class SparseYBus:
 
     def __init__(self, system: Any = None) -> None:
         self._system = system
-        self._ybus_sparse: Optional[csr_matrix] = None
-        self._buses: List[BusData] = []
-        self._branches: List[BranchData] = []
-        self._bus_index: Dict[int, int] = {}
+        self._ybus_sparse: csr_matrix | None = None
+        self._buses: list[BusData] = []
+        self._branches: list[BranchData] = []
+        self._bus_index: dict[int, int] = {}
 
         if system is not None:
             self._import_system(system)
@@ -198,7 +198,7 @@ class SparseYBus:
                     q_min=getattr(b, "q_min", -999.0),
                     q_max=getattr(b, "q_max", 999.0),
                     v_scheduled=b.voltage_magnitude if b.bus_type == "pv" else 1.0,
-                )
+                ),
             )
 
         self._branches = []
@@ -209,7 +209,7 @@ class SparseYBus:
                     to_bus=self._bus_index[line.to_bus.bus_id],
                     impedance=line.get_impedance("1"),
                     shunt_admittance=line.get_shunt_admittance("1"),
-                )
+                ),
             )
         for xf in getattr(system, "transformers", []):
             self._branches.append(
@@ -220,7 +220,7 @@ class SparseYBus:
                     shunt_admittance=xf.get_shunt_admittance("1"),
                     tap_ratio=xf.tap_ratio,
                     phase_shift=xf.phase_shift,
-                )
+                ),
             )
 
     # ------------------------------------------------------------------
@@ -229,8 +229,8 @@ class SparseYBus:
 
     def build_sparse_ybus(
         self,
-        buses: Optional[List[BusData]] = None,
-        branches: Optional[List[BranchData]] = None,
+        buses: list[BusData] | None = None,
+        branches: list[BranchData] | None = None,
     ) -> csr_matrix:
         """Build the Y-bus admittance matrix as a sparse CSR matrix.
 
@@ -300,8 +300,8 @@ class SparseYBus:
 
     def sparse_newton_raphson(
         self,
-        ybus: Optional[csr_matrix] = None,
-        bus_data: Optional[List[BusData]] = None,
+        ybus: csr_matrix | None = None,
+        bus_data: list[BusData] | None = None,
         max_iter: int = 50,
         tol: float = 1e-8,
     ) -> SparseConvergenceResult:
@@ -360,7 +360,7 @@ class SparseYBus:
         P_sch = np.array([b.p_generation - b.p_load for b in self._buses], dtype=float)
         Q_sch = np.array([b.q_generation - b.q_load for b in self._buses], dtype=float)
 
-        iteration_log: List[Dict[str, Any]] = []
+        iteration_log: list[dict[str, Any]] = []
         converged = False
 
         # Convert Ybus to dense for power calculations (necessary for
@@ -395,7 +395,7 @@ class SparseYBus:
                     "max_mismatch": float(max_mismatch),
                     "n_pv": n_pv,
                     "n_pq": n_pq,
-                }
+                },
             )
 
             if max_mismatch < tol:
@@ -468,8 +468,8 @@ class SparseYBus:
     def _build_sparse_jacobian(
         V: np.ndarray,
         Ybus: np.ndarray,
-        pv_idx: List[int],
-        pq_idx: List[int],
+        pv_idx: list[int],
+        pq_idx: list[int],
         n_unknowns: int,
     ) -> lil_matrix:
         """Construct the sparse Jacobian matrix analytically.
@@ -601,9 +601,9 @@ class SparseYBus:
 
     def compare_memory(
         self,
-        buses: Optional[List[BusData]] = None,
-        branches: Optional[List[BranchData]] = None,
-    ) -> Dict[str, Any]:
+        buses: list[BusData] | None = None,
+        branches: list[BranchData] | None = None,
+    ) -> dict[str, Any]:
         """Compare memory usage of dense vs sparse Y-bus storage.
 
         Parameters
@@ -651,7 +651,7 @@ class SparseYBus:
     # Benchmark
     # ------------------------------------------------------------------
 
-    def benchmark(self, system_size: int = 0) -> Dict[str, Any]:
+    def benchmark(self, system_size: int = 0) -> dict[str, Any]:
         """Run timing benchmarks for different system sizes.
 
         Generates synthetic radial/mesh networks of the requested size
@@ -672,7 +672,7 @@ class SparseYBus:
             ``speedup``.
         """
         sizes = [system_size] if system_size > 0 else [14, 30, 118, 300, 500, 1000]
-        results: Dict[str, Any] = {"sizes": []}
+        results: dict[str, Any] = {"sizes": []}
 
         for n in sizes:
             buses, branches = self._generate_synthetic_system(n)
@@ -723,7 +723,7 @@ class SparseYBus:
     @staticmethod
     def _dense_newton_raphson(
         Ybus: np.ndarray,
-        bus_data: List[BusData],
+        bus_data: list[BusData],
         max_iter: int = 50,
         tol: float = 1e-8,
     ) -> SparseConvergenceResult:
@@ -803,7 +803,7 @@ class SparseYBus:
     @staticmethod
     def _generate_synthetic_system(
         n_buses: int,
-    ) -> Tuple[List[BusData], List[BranchData]]:
+    ) -> tuple[list[BusData], list[BranchData]]:
         """Generate a synthetic radial/mesh network for benchmarking.
 
         Creates a ring topology with additional radial spurs to mimic a
@@ -818,8 +818,8 @@ class SparseYBus:
         -------
         tuple[list[BusData], list[BranchData]]
         """
-        buses: List[BusData] = []
-        branches: List[BranchData] = []
+        buses: list[BusData] = []
+        branches: list[BranchData] = []
 
         # Bus 0 = slack
         buses.append(BusData(bus_id=0, bus_type="slack", voltage_magnitude=1.05))
@@ -829,7 +829,7 @@ class SparseYBus:
         pv_set = set(range(1, 1 + n_pv))
 
         # First create PQ buses to compute total load, then assign generation
-        pq_buses: List[BusData] = []
+        pq_buses: list[BusData] = []
         for i in range(1, n_buses):
             if i not in pv_set:
                 pq_buses.append(
@@ -838,7 +838,7 @@ class SparseYBus:
                         bus_type="pq",
                         p_load=0.3 + 0.05 * (i % 10),
                         q_load=0.1 + 0.02 * (i % 10),
-                    )
+                    ),
                 )
 
         total_p_load = sum(b.p_load for b in pq_buses)
@@ -856,7 +856,7 @@ class SparseYBus:
                         v_scheduled=1.02,
                         p_generation=p_gen_per_pv + 0.01 * (i % 3),
                         q_generation=q_gen_per_pv * 0.3,
-                    )
+                    ),
                 )
             else:
                 # Find the matching PQ bus
@@ -870,7 +870,7 @@ class SparseYBus:
             j = (i + 1) % n_buses
             z = complex(0.01 + 0.001 * (i % 5), 0.05 + 0.01 * (i % 3))
             branches.append(
-                BranchData(from_bus=i, to_bus=j, impedance=z, shunt_admittance=complex(0, 0.02))
+                BranchData(from_bus=i, to_bus=j, impedance=z, shunt_admittance=complex(0, 0.02)),
             )
 
         # Additional radial spurs: connect every 3rd bus to bus+5
@@ -891,8 +891,8 @@ class SparseYBus:
 def _build_dense_jacobian(
     V: np.ndarray,
     Ybus: np.ndarray,
-    pv_idx: List[int],
-    pq_idx: List[int],
+    pv_idx: list[int],
+    pq_idx: list[int],
     n_unknowns: int,
 ) -> np.ndarray:
     """Analytical dense Jacobian for standard NR load flow.
@@ -984,7 +984,7 @@ def _build_dense_jacobian(
 # ---------------------------------------------------------------------------
 
 
-def create_ieee_test_system(case: int = 14) -> Tuple[List[BusData], List[BranchData]]:
+def create_ieee_test_system(case: int = 14) -> tuple[list[BusData], list[BranchData]]:
     """Create simplified IEEE test-case data for benchmarking.
 
     This generates a synthetic system with the correct bus count and

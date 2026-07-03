@@ -29,7 +29,7 @@ import hashlib
 import logging
 import time
 from collections.abc import Callable
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 import numpy as np
 
@@ -121,7 +121,7 @@ class DigitalTwinState:
     def capture_snapshot(self, source_event: str = "", correlation_id: str = "") -> StateSnapshot:
         """Capture current state of all layers into a snapshot."""
         snapshot = StateSnapshot(
-            timestamp=time.time(), source_event=source_event, correlation_id=correlation_id
+            timestamp=time.time(), source_event=source_event, correlation_id=correlation_id,
         )
 
         # Capture GIS state
@@ -189,7 +189,7 @@ class DigitalTwinState:
         """Commit a snapshot to the state store."""
         return self.state_store.commit(snapshot)
 
-    def validate(self) -> List[ValidationResult]:
+    def validate(self) -> list[ValidationResult]:
         """Run full validation across all layers."""
         return self._validation_gateway.validate_all(
             gis_db=self._gis_db,
@@ -198,7 +198,7 @@ class DigitalTwinState:
             adms_engine=self._adms_engine,
         )
 
-    def get_current_snapshot(self) -> Optional[StateSnapshot]:
+    def get_current_snapshot(self) -> StateSnapshot | None:
         """Get the latest committed snapshot."""
         return self.state_store.get_current()
 
@@ -246,14 +246,14 @@ class SynchronizationEngine:
     """
 
     def __init__(
-        self, dt_state: DigitalTwinState, event_bus: EventBus, validation_gateway: ValidationGateway
+        self, dt_state: DigitalTwinState, event_bus: EventBus, validation_gateway: ValidationGateway,
     ):
         self.dt_state = dt_state
         self.event_bus = event_bus
         self.validation_gateway = validation_gateway
-        self._sync_log: List[Dict[str, Any]] = []
+        self._sync_log: list[dict[str, Any]] = []
 
-    def synchronize_gis_to_electrical(self) -> List[str]:
+    def synchronize_gis_to_electrical(self) -> list[str]:
         """
         Synchronize GIS references to the electrical model.
         Ensures every GIS asset with electrical_id resolves to an
@@ -290,7 +290,7 @@ class SynchronizationEngine:
 
         return errors
 
-    def synchronize_adms_to_electrical(self) -> List[str]:
+    def synchronize_adms_to_electrical(self) -> list[str]:
         """
         Synchronize ADMS switching states to the electrical model.
         Ensures the topology processor reflects current switch states.
@@ -313,17 +313,17 @@ class SynchronizationEngine:
                 if did in self.dt_state.adms.topology.switches:
                     bus1, bus2 = self.dt_state.adms.topology.switches[did]
                     is_connected = bus2 in self.dt_state.adms.topology.bus_connections.get(
-                        bus1, set()
+                        bus1, set(),
                     )
                     if dev.is_conducting() != is_connected:
                         errors.append(
                             f"Switch '{did}' SCADA status ({dev.status.value}) "
-                            f"does not match topology connection state ({is_connected})"
+                            f"does not match topology connection state ({is_connected})",
                         )
 
         return errors
 
-    def synchronize_gis_to_adms(self) -> List[str]:
+    def synchronize_gis_to_adms(self) -> list[str]:
         """
         Synchronize GIS positions with ADMS switch devices.
         Every switch device should have a GIS position.
@@ -343,7 +343,7 @@ class SynchronizationEngine:
 
         return errors
 
-    def full_synchronization(self) -> Dict[str, List[str]]:
+    def full_synchronization(self) -> dict[str, list[str]]:
         """
         Run full synchronization across all layer pairs.
 
@@ -361,12 +361,12 @@ class SynchronizationEngine:
                 "timestamp": time.time(),
                 "results": {k: len(v) for k, v in result.items()},
                 "total_errors": sum(len(v) for v in result.values()),
-            }
+            },
         )
 
         return result
 
-    def get_sync_log(self) -> List[Dict[str, Any]]:
+    def get_sync_log(self) -> list[dict[str, Any]]:
         """Get synchronization history."""
         return self._sync_log
 
@@ -416,7 +416,7 @@ class ChangePropagationEngine:
         self.event_bus = event_bus
         self.sync_engine = sync_engine
         self.validation_gateway = validation_gateway
-        self._propagation_log: List[Dict[str, Any]] = []
+        self._propagation_log: list[dict[str, Any]] = []
         self._load_flow_solver = None
         self._state_estimator = None
 
@@ -436,8 +436,8 @@ class ChangePropagationEngine:
         self._state_estimator = estimator
 
     def propagate_switch_change(
-        self, switch_id: str, is_opening: bool, reason: str = ""
-    ) -> Dict[str, Any]:
+        self, switch_id: str, is_opening: bool, reason: str = "",
+    ) -> dict[str, Any]:
         """
         Propagate a switch change through the entire workflow.
 
@@ -478,7 +478,7 @@ class ChangePropagationEngine:
 
         return propagation_record
 
-    def propagate_load_change(self, bus_id: str, new_power: complex) -> Dict[str, Any]:
+    def propagate_load_change(self, bus_id: str, new_power: complex) -> dict[str, Any]:
         """Propagate a load change through the workflow."""
         propagation_id = f"prop_{int(time.time() * 1000)}"
         start_time = time.time()
@@ -505,7 +505,7 @@ class ChangePropagationEngine:
 
                 # Update digital twin state
                 snapshot = self.dt_state.capture_snapshot(
-                    source_event="load_changed", correlation_id=propagation_id
+                    source_event="load_changed", correlation_id=propagation_id,
                 )
                 validation_results = self.dt_state.validate()
                 snapshot.validation_passed = all(r.passed for r in validation_results)
@@ -518,7 +518,7 @@ class ChangePropagationEngine:
                         validation_passed=snapshot.validation_passed,
                         source="change_propagation",
                         correlation_id=propagation_id,
-                    )
+                    ),
                 )
 
                 return {
@@ -535,7 +535,7 @@ class ChangePropagationEngine:
             "error": "Electrical model not bound or bus not found",
         }
 
-    def _run_load_flow(self) -> Dict[str, Any]:
+    def _run_load_flow(self) -> dict[str, Any]:
         """Run load flow on the bound system."""
         if self.dt_state.system is None:
             return {"converged": False, "error": "No system bound"}
@@ -556,10 +556,10 @@ class ChangePropagationEngine:
                 "bus_voltages": bus_voltages,
             }
         except Exception as e:
-            logger.error(f"Load flow failed: {e}")
+            logger.error("Load flow failed: %s", e)
             return {"converged": False, "error": str(e)}
 
-    def _run_state_estimation(self) -> Dict[str, Any]:
+    def _run_state_estimation(self) -> dict[str, Any]:
         """Run state estimation if measurements are available."""
         if self.dt_state.system is None or self.dt_state.scada is None:
             return {"converged": False, "error": "System or SCADA not bound"}
@@ -591,10 +591,10 @@ class ChangePropagationEngine:
                 "max_residual": result.max_residual,
             }
         except Exception as e:
-            logger.warning(f"State estimation failed: {e}")
+            logger.warning("State estimation failed: %s", e)
             return {"converged": False, "error": str(e)}
 
-    def _refresh_short_circuit(self) -> Dict[str, Any]:
+    def _refresh_short_circuit(self) -> dict[str, Any]:
         """Refresh short circuit analysis."""
         if self.dt_state.system is None:
             return {"error": "No system bound"}
@@ -604,7 +604,7 @@ class ChangePropagationEngine:
         except Exception as e:
             return {"error": str(e)}
 
-    def _refresh_arc_flash(self) -> Dict[str, Any]:
+    def _refresh_arc_flash(self) -> dict[str, Any]:
         """Refresh arc flash analysis using current fault current data.
 
         Builds sequence networks from the current topology, computes fault
@@ -624,10 +624,10 @@ class ChangePropagationEngine:
             Ybus_zero = self.dt_state.system.get_ybus(seq="0")
 
             analyzer = FaultAnalyzer(
-                Ybus_pos, Ybus_neg, Ybus_zero, base_mva=self.dt_state.system.base_mva
+                Ybus_pos, Ybus_neg, Ybus_zero, base_mva=self.dt_state.system.base_mva,
             )
 
-            results: Dict[str, Any] = {}
+            results: dict[str, Any] = {}
             bus_ids = sorted(self.dt_state.system.buses.keys())
             bus_index = {bid: idx for idx, bid in enumerate(bus_ids)}
             for bus_id in bus_ids:
@@ -670,10 +670,10 @@ class ChangePropagationEngine:
 
             return {"status": "refreshed", "bus_count": len(results), "results": results}
         except Exception as e:
-            logger.warning(f"Arc flash refresh failed: {e}")
+            logger.warning("Arc flash refresh failed: %s", e)
             return {"status": "error", "error": str(e)}
 
-    def _refresh_protection(self) -> Dict[str, Any]:
+    def _refresh_protection(self) -> dict[str, Any]:
         """Refresh protection coordination using current fault current data.
 
         Builds sequence networks, computes fault currents, and verifies
@@ -693,11 +693,11 @@ class ChangePropagationEngine:
             Ybus_zero = self.dt_state.system.get_ybus(seq="0")
 
             analyzer = FaultAnalyzer(
-                Ybus_pos, Ybus_neg, Ybus_zero, base_mva=self.dt_state.system.base_mva
+                Ybus_pos, Ybus_neg, Ybus_zero, base_mva=self.dt_state.system.base_mva,
             )
 
             # Calculate fault currents at all buses
-            fault_currents: List[float] = []
+            fault_currents: list[float] = []
             bus_ids = sorted(self.dt_state.system.buses.keys())
             bus_index = {bid: idx for idx, bid in enumerate(bus_ids)}
             for bus_id in bus_ids:
@@ -724,7 +724,7 @@ class ChangePropagationEngine:
             relay2 = OvercurrentRelay(relay_id=2, name="Downstream", TMS=0.2, Ip=1.0)
 
             coord_results = coord_engine.check_coordination_range(
-                relay1, relay2, representative_faults
+                relay1, relay2, representative_faults,
             )
             all_coordinated = all(r["coordinated"] for r in coord_results)
             min_margin = min(r["margin"] for r in coord_results) if coord_results else 0.0
@@ -737,10 +737,10 @@ class ChangePropagationEngine:
                 "coordination_standard": "IEC 60255",
             }
         except Exception as e:
-            logger.warning(f"Protection refresh failed: {e}")
+            logger.warning("Protection refresh failed: %s", e)
             return {"status": "error", "error": str(e)}
 
-    def get_propagation_log(self) -> List[Dict[str, Any]]:
+    def get_propagation_log(self) -> list[dict[str, Any]]:
         """Get propagation history."""
         return self._propagation_log
 
@@ -776,7 +776,7 @@ class EventProcessor:
         self.dt_state = dt_state
         self.event_bus = event_bus
         self.propagation = propagation_engine
-        self._processed_events: List[Dict[str, Any]] = []
+        self._processed_events: list[dict[str, Any]] = []
         self._subscribe_to_events()
 
     def _subscribe_to_events(self) -> None:
@@ -788,7 +788,7 @@ class EventProcessor:
         self.event_bus.subscribe(EventType.PV_CHANGED, self._on_pv_changed, priority=10)
         self.event_bus.subscribe(EventType.BATTERY_DISPATCH, self._on_battery_dispatch, priority=10)
         self.event_bus.subscribe(
-            EventType.SCADA_UPDATE_RECEIVED, self._on_scada_update, priority=10
+            EventType.SCADA_UPDATE_RECEIVED, self._on_scada_update, priority=10,
         )
 
     def _on_switch_opened(self, event: DomainEvent) -> None:
@@ -796,7 +796,7 @@ class EventProcessor:
         if not isinstance(event, SwitchOpened):
             return
         result = self.propagation.propagate_switch_change(
-            switch_id=event.switch_id, is_opening=True, reason=event.reason
+            switch_id=event.switch_id, is_opening=True, reason=event.reason,
         )
         self._processed_events.append(
             {
@@ -804,7 +804,7 @@ class EventProcessor:
                 "event_type": "switch_opened",
                 "switch_id": event.switch_id,
                 "result": result,
-            }
+            },
         )
 
     def _on_switch_closed(self, event: DomainEvent) -> None:
@@ -812,7 +812,7 @@ class EventProcessor:
         if not isinstance(event, SwitchClosed):
             return
         result = self.propagation.propagate_switch_change(
-            switch_id=event.switch_id, is_opening=False, reason=event.reason
+            switch_id=event.switch_id, is_opening=False, reason=event.reason,
         )
         self._processed_events.append(
             {
@@ -820,7 +820,7 @@ class EventProcessor:
                 "event_type": "switch_closed",
                 "switch_id": event.switch_id,
                 "result": result,
-            }
+            },
         )
 
     def _on_fault_detected(self, event: DomainEvent) -> None:
@@ -831,7 +831,7 @@ class EventProcessor:
         if self.dt_state.adms is not None:
             try:
                 flisr_result = self.dt_state.adms.execute_flisr(
-                    tripped_switch_ids=event.tripped_switches, scada_db=self.dt_state.scada
+                    tripped_switch_ids=event.tripped_switches, scada_db=self.dt_state.scada,
                 )
                 result = {
                     "flisr_executed": True,
@@ -850,7 +850,7 @@ class EventProcessor:
                 result = {"flisr_executed": False, "error": str(e)}
 
         self._processed_events.append(
-            {"event_id": event.event_id, "event_type": "fault_detected", "result": result}
+            {"event_id": event.event_id, "event_type": "fault_detected", "result": result},
         )
 
     def _on_load_changed(self, event: DomainEvent) -> None:
@@ -858,7 +858,7 @@ class EventProcessor:
         if not isinstance(event, LoadChanged):
             return
         result = self.propagation.propagate_load_change(
-            bus_id=event.bus_id, new_power=event.new_power
+            bus_id=event.bus_id, new_power=event.new_power,
         )
         self._processed_events.append(
             {
@@ -866,7 +866,7 @@ class EventProcessor:
                 "event_type": "load_changed",
                 "bus_id": event.bus_id,
                 "result": result,
-            }
+            },
         )
 
     def _on_pv_changed(self, event: DomainEvent) -> None:
@@ -883,7 +883,7 @@ class EventProcessor:
                 "event_type": "pv_changed",
                 "bus_id": event.bus_id,
                 "result": result,
-            }
+            },
         )
 
     def _on_battery_dispatch(self, event: DomainEvent) -> None:
@@ -900,7 +900,7 @@ class EventProcessor:
                 "event_type": "battery_dispatch",
                 "bus_id": event.bus_id,
                 "result": result,
-            }
+            },
         )
 
     def _on_scada_update(self, event: DomainEvent) -> None:
@@ -925,7 +925,7 @@ class EventProcessor:
                     )
                     self.dt_state.scada.add_measurement(meas)
                 except Exception as e:
-                    logger.warning(f"Failed to add SCADA measurement: {e}")
+                    logger.warning("Failed to add SCADA measurement: %s", e)
 
             # Update switch statuses
             for switch_id, status_str in event.switch_statuses.items():
@@ -935,7 +935,7 @@ class EventProcessor:
                     new_status = SwitchStatus(status_str)
                     self.dt_state.scada.operate_switch(switch_id, new_status)
                 except Exception as e:
-                    logger.warning(f"Failed to update switch {switch_id}: {e}")
+                    logger.warning("Failed to update switch %s: %s", switch_id, e)
 
         self._processed_events.append(
             {
@@ -943,10 +943,10 @@ class EventProcessor:
                 "event_type": "scada_update",
                 "measurement_count": len(event.measurements),
                 "switch_update_count": len(event.switch_statuses),
-            }
+            },
         )
 
-    def get_processed_events(self, limit: int = 100) -> List[Dict[str, Any]]:
+    def get_processed_events(self, limit: int = 100) -> list[dict[str, Any]]:
         """Get history of processed events."""
         return self._processed_events[-limit:]
 
@@ -983,15 +983,15 @@ class TimeSteppedSimulator:
         self.time_step = 1.0  # seconds
         self.current_time = 0.0
         self.running = False
-        self._event_queue: List[Dict[str, Any]] = []
-        self._step_log: List[Dict[str, Any]] = []
-        self._scada_injector: Optional[Callable[[float], List[DomainEvent]]] = None
+        self._event_queue: list[dict[str, Any]] = []
+        self._step_log: list[dict[str, Any]] = []
+        self._scada_injector: Callable[[float], list[DomainEvent]] | None = None
 
     def set_time_step(self, dt: float) -> None:
         """Set simulation time step in seconds."""
         self.time_step = dt
 
-    def set_scada_injector(self, injector: Callable[[float], List[DomainEvent]]) -> None:
+    def set_scada_injector(self, injector: Callable[[float], list[DomainEvent]]) -> None:
         """
         Set a SCADA data injector function.
 
@@ -1005,7 +1005,7 @@ class TimeSteppedSimulator:
         self._event_queue.append({"event": event, "scheduled_time": at_time})
         self._event_queue.sort(key=lambda x: x["scheduled_time"])
 
-    def step(self) -> Dict[str, Any]:
+    def step(self) -> dict[str, Any]:
         """
         Execute a single simulation time step.
 
@@ -1028,7 +1028,7 @@ class TimeSteppedSimulator:
                     self.event_bus.publish(event)
                     events_processed += 1
             except Exception as e:
-                logger.error(f"SCADA injection error at t={self.current_time}: {e}")
+                logger.error("SCADA injection error at t=%s: %s", self.current_time, e)
 
         # Process scheduled events
         due_events = [e for e in self._event_queue if e["scheduled_time"] <= self.current_time]
@@ -1042,7 +1042,7 @@ class TimeSteppedSimulator:
 
         # Capture state snapshot
         snapshot = self.dt_state.capture_snapshot(
-            source_event="time_step", correlation_id=f"step_{self.current_time}"
+            source_event="time_step", correlation_id=f"step_{self.current_time}",
         )
         snapshot.simulation_time = self.current_time
         version = self.dt_state.commit_snapshot(snapshot)
@@ -1057,7 +1057,7 @@ class TimeSteppedSimulator:
                     "state_version": version,
                     "events_processed": events_processed,
                 },
-            )
+            ),
         )
 
         step_record = {
@@ -1070,7 +1070,7 @@ class TimeSteppedSimulator:
 
         return step_record
 
-    def run(self, duration: float, time_step: float = None) -> List[Dict[str, Any]]:
+    def run(self, duration: float, time_step: float = None) -> list[dict[str, Any]]:
         """
         Run simulation for a given duration.
 
@@ -1090,7 +1090,7 @@ class TimeSteppedSimulator:
                 event_type=EventType.SIMULATION_STARTED,
                 source="time_stepped_simulator",
                 metadata={"duration": duration, "time_step": self.time_step},
-            )
+            ),
         )
 
         results = []
@@ -1106,7 +1106,7 @@ class TimeSteppedSimulator:
                 event_type=EventType.SIMULATION_STOPPED,
                 source="time_stepped_simulator",
                 metadata={"final_time": self.current_time, "steps": len(results)},
-            )
+            ),
         )
 
         return results
@@ -1115,7 +1115,7 @@ class TimeSteppedSimulator:
         """Stop the running simulation."""
         self.running = False
 
-    def get_step_log(self) -> List[Dict[str, Any]]:
+    def get_step_log(self) -> list[dict[str, Any]]:
         """Get simulation step history."""
         return self._step_log
 
@@ -1150,7 +1150,7 @@ class LivePowerSystemEngine:
         """
         self.dt_state = dt_state
         self.event_bus = event_bus
-        self._operation_log: List[Dict[str, Any]] = []
+        self._operation_log: list[dict[str, Any]] = []
 
         # Import and create the base engine if system is bound
         self._base_engine = None
@@ -1160,7 +1160,7 @@ class LivePowerSystemEngine:
 
                 self._base_engine = PowerSystemEngine(dt_state.system)
             except Exception as e:
-                logger.warning(f"Could not create base PowerSystemEngine: {e}")
+                logger.warning("Could not create base PowerSystemEngine: %s", e)
 
     def _ensure_ybus_current(self) -> None:
         """Ensure Ybus reflects current topology by forcing rebuild."""
@@ -1176,9 +1176,9 @@ class LivePowerSystemEngine:
 
                 self._base_engine = PowerSystemEngine(self.dt_state.system)
             except Exception as e:
-                logger.warning(f"Could not rebuild base engine: {e}")
+                logger.warning("Could not rebuild base engine: %s", e)
 
-    def run_load_flow(self) -> Dict[str, Any]:
+    def run_load_flow(self) -> dict[str, Any]:
         """
         Run load flow with current live topology.
 
@@ -1220,7 +1220,7 @@ class LivePowerSystemEngine:
                 iterations=result.get("iterations", 0),
                 bus_voltages=result.get("bus_voltages", {}),
                 source="live_engine",
-            )
+            ),
         )
 
         operation_record = {
@@ -1233,7 +1233,7 @@ class LivePowerSystemEngine:
 
         return {**result, "state_version": version}
 
-    def run_fault_analysis(self, fault_type: str, bus_id) -> Dict[str, Any]:
+    def run_fault_analysis(self, fault_type: str, bus_id) -> dict[str, Any]:
         """
         Run fault analysis with current live topology.
         """
@@ -1255,7 +1255,7 @@ class LivePowerSystemEngine:
         # Update digital twin
         snapshot = self.dt_state.capture_snapshot(source_event="fault_analysis")
         snapshot.simulation_results.fault_currents = {
-            str(bus_id): result.get("fault_current", complex(0, 0))
+            str(bus_id): result.get("fault_current", complex(0, 0)),
         }
         version = self.dt_state.commit_snapshot(snapshot)
 
@@ -1265,14 +1265,14 @@ class LivePowerSystemEngine:
                 fault_bus=str(bus_id),
                 fault_current_pu=abs(result.get("fault_current", complex(0, 0))),
                 source="live_engine",
-            )
+            ),
         )
 
         return {**result, "state_version": version}
 
     def run_protection_coordination(
-        self, upstream_relay_id: int, downstream_relay_id: int, fault_currents: list
-    ) -> Dict[str, Any]:
+        self, upstream_relay_id: int, downstream_relay_id: int, fault_currents: list,
+    ) -> dict[str, Any]:
         """
         Run protection coordination with current live topology.
         """
@@ -1283,7 +1283,7 @@ class LivePowerSystemEngine:
 
         try:
             result = self._base_engine.run_protection_coordination(
-                upstream_relay_id, downstream_relay_id, fault_currents
+                upstream_relay_id, downstream_relay_id, fault_currents,
             )
         except Exception as e:
             return {"error": str(e)}
@@ -1291,7 +1291,7 @@ class LivePowerSystemEngine:
         # Update digital twin
         snapshot = self.dt_state.capture_snapshot(source_event="protection_coordination")
         snapshot.simulation_results.protection_coordination_ok = result.get(
-            "all_coordinated", False
+            "all_coordinated", False,
         )
         version = self.dt_state.commit_snapshot(snapshot)
 
@@ -1299,12 +1299,12 @@ class LivePowerSystemEngine:
             ProtectionRefreshed(
                 coordination_issues=0 if result.get("all_coordinated", False) else 1,
                 source="live_engine",
-            )
+            ),
         )
 
         return {**result, "state_version": version}
 
-    def open_switch(self, switch_id: str, reason: str = "") -> Dict[str, Any]:
+    def open_switch(self, switch_id: str, reason: str = "") -> dict[str, Any]:
         """
         Open a switch and propagate through the entire workflow.
 
@@ -1320,7 +1320,7 @@ class LivePowerSystemEngine:
 
         # Publish event -> EventProcessor -> ChangePropagationEngine
         event = SwitchOpened(
-            switch_id=switch_id, bus1=bus1, bus2=bus2, reason=reason, source="live_engine"
+            switch_id=switch_id, bus1=bus1, bus2=bus2, reason=reason, source="live_engine",
         )
         self.event_bus.publish(event)
 
@@ -1333,7 +1333,7 @@ class LivePowerSystemEngine:
             "validation_passed": snapshot.validation_passed if snapshot else False,
         }
 
-    def close_switch(self, switch_id: str, reason: str = "") -> Dict[str, Any]:
+    def close_switch(self, switch_id: str, reason: str = "") -> dict[str, Any]:
         """
         Close a switch and propagate through the entire workflow.
         """
@@ -1342,7 +1342,7 @@ class LivePowerSystemEngine:
             bus1, bus2 = self.dt_state.adms.topology.switches[switch_id]
 
         event = SwitchClosed(
-            switch_id=switch_id, bus1=bus1, bus2=bus2, reason=reason, source="live_engine"
+            switch_id=switch_id, bus1=bus1, bus2=bus2, reason=reason, source="live_engine",
         )
         self.event_bus.publish(event)
 
@@ -1354,7 +1354,7 @@ class LivePowerSystemEngine:
             "validation_passed": snapshot.validation_passed if snapshot else False,
         }
 
-    def change_load(self, bus_id: str, new_power: complex) -> Dict[str, Any]:
+    def change_load(self, bus_id: str, new_power: complex) -> dict[str, Any]:
         """
         Change load at a bus and propagate through the workflow.
         """
@@ -1369,8 +1369,8 @@ class LivePowerSystemEngine:
         }
 
     def detect_fault(
-        self, fault_type: str, bus_id: str, tripped_switches: List[str] = None
-    ) -> Dict[str, Any]:
+        self, fault_type: str, bus_id: str, tripped_switches: list[str] = None,
+    ) -> dict[str, Any]:
         """
         Detect a fault and trigger FLISR workflow.
         """
@@ -1391,8 +1391,8 @@ class LivePowerSystemEngine:
         }
 
     def inject_scada_update(
-        self, measurements: List[Dict[str, Any]] = None, switch_statuses: Dict[str, str] = None
-    ) -> Dict[str, Any]:
+        self, measurements: list[dict[str, Any]] = None, switch_statuses: dict[str, str] = None,
+    ) -> dict[str, Any]:
         """
         Inject SCADA update and process.
         """
@@ -1411,11 +1411,11 @@ class LivePowerSystemEngine:
             "state_version": snapshot.version if snapshot else 0,
         }
 
-    def get_operation_log(self) -> List[Dict[str, Any]]:
+    def get_operation_log(self) -> list[dict[str, Any]]:
         """Get history of operations performed."""
         return self._operation_log
 
-    def get_system_status(self) -> Dict[str, Any]:
+    def get_system_status(self) -> dict[str, Any]:
         """Get current system status summary."""
         snapshot = self.dt_state.get_current_snapshot()
         return {

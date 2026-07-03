@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 from gis_integration.models import ADMSAsset, ADMSAssetType
 
@@ -11,15 +11,15 @@ class CIMConductingEquipment:
     cim_id: str
     name: str
     kind: str  # FEEDER/LINE/TRANSFORMER/SWITCH/SUBSTATION
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    metadata: dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass(frozen=True)
 class CIMConnectivityNode:
     cim_id: str
     label: str
-    voltage_level_kv: Optional[float] = None
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    voltage_level_kv: float | None = None
+    metadata: dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass(frozen=True)
@@ -28,7 +28,7 @@ class CIMTerminal:
     equipment_id: str
     connectivity_node_id: str
     terminal_role: str  # from/to for edges, hub for substations
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    metadata: dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass(frozen=True)
@@ -36,7 +36,7 @@ class CIMPowerTransformer:
     cim_id: str
     equipment_id: str
     transformer_type: str
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    metadata: dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass(frozen=True)
@@ -44,17 +44,17 @@ class CIMBreaker:
     cim_id: str
     equipment_id: str
     open_state: bool
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    metadata: dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass(frozen=True)
 class CIMModel:
-    conducting_equipment: Dict[str, CIMConductingEquipment]
-    connectivity_nodes: Dict[str, CIMConnectivityNode]
-    terminals: Dict[str, CIMTerminal]
-    power_transformers: Dict[str, CIMPowerTransformer]
-    breakers: Dict[str, CIMBreaker]
-    traceability: Dict[str, str]  # cim_id -> adms_asset_id
+    conducting_equipment: dict[str, CIMConductingEquipment]
+    connectivity_nodes: dict[str, CIMConnectivityNode]
+    terminals: dict[str, CIMTerminal]
+    power_transformers: dict[str, CIMPowerTransformer]
+    breakers: dict[str, CIMBreaker]
+    traceability: dict[str, str]  # cim_id -> adms_asset_id
 
 
 def _bool_from_metadata(value: Any, *, default: bool = False) -> bool:
@@ -73,7 +73,7 @@ def _bool_from_metadata(value: Any, *, default: bool = False) -> bool:
     return default
 
 
-def map_adms_to_cim(assets: List[ADMSAsset]) -> CIMModel:
+def map_adms_to_cim(assets: list[ADMSAsset]) -> CIMModel:
     """
     Deterministic CIM-like mapping for validation traceability.
 
@@ -88,14 +88,14 @@ def map_adms_to_cim(assets: List[ADMSAsset]) -> CIMModel:
     """
     # Coordinate helpers: match endpoints to substations by exact coordinate tuple.
     substations = [a for a in assets if a.asset_type == ADMSAssetType.SUBSTATION]
-    sub_coords_to_node: Dict[Tuple[float, float], str] = {}
+    sub_coords_to_node: dict[tuple[float, float], str] = {}
 
-    conducting_equipment: Dict[str, CIMConductingEquipment] = {}
-    connectivity_nodes: Dict[str, CIMConnectivityNode] = {}
-    terminals: Dict[str, CIMTerminal] = {}
-    power_transformers: Dict[str, CIMPowerTransformer] = {}
-    breakers: Dict[str, CIMBreaker] = {}
-    traceability: Dict[str, str] = {}
+    conducting_equipment: dict[str, CIMConductingEquipment] = {}
+    connectivity_nodes: dict[str, CIMConnectivityNode] = {}
+    terminals: dict[str, CIMTerminal] = {}
+    power_transformers: dict[str, CIMPowerTransformer] = {}
+    breakers: dict[str, CIMBreaker] = {}
+    traceability: dict[str, str] = {}
 
     for s in substations:
         geom = s.geometry or {}
@@ -122,8 +122,8 @@ def map_adms_to_cim(assets: List[ADMSAsset]) -> CIMModel:
         traceability[eq.cim_id] = s.asset_id
 
     def endpoints_from_linestring(
-        geom: Dict[str, Any],
-    ) -> Optional[Tuple[Tuple[float, float], Tuple[float, float]]]:
+        geom: dict[str, Any],
+    ) -> tuple[tuple[float, float], tuple[float, float]] | None:
         if (geom or {}).get("type") != "LineString":
             return None
         coords = geom.get("coordinates")
@@ -194,7 +194,7 @@ def map_adms_to_cim(assets: List[ADMSAsset]) -> CIMModel:
                 cim_id=pt_id,
                 equipment_id=ce_id,
                 transformer_type=str(
-                    a.metadata.get("transformer_type", "deterministic_transformer")
+                    a.metadata.get("transformer_type", "deterministic_transformer"),
                 ),
                 metadata=dict(a.metadata),
             )

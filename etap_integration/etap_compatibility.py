@@ -12,7 +12,6 @@ import logging
 import platform
 import sys
 from dataclasses import dataclass, field
-from typing import Dict, List, Optional, Tuple
 
 logger = logging.getLogger(__name__)
 
@@ -28,7 +27,7 @@ if sys.platform == "win32":
     except ImportError:
         WIN32_AVAILABLE = False
 
-SUPPORTED_ETAP_VERSIONS: List[str] = [
+SUPPORTED_ETAP_VERSIONS: list[str] = [
     "12.0.0",
     "12.5.0",
     "12.6.0",
@@ -72,18 +71,18 @@ class CheckResult:
 
 @dataclass
 class CompatibilityReport:
-    etap_version: Optional[str]
+    etap_version: str | None
     version_supported: bool
     windows_ok: bool
     dotnet_ok: bool
     dependencies_ok: bool
-    com_modules_available: List[str]
-    com_modules_missing: List[str]
-    checks: List[CheckResult] = field(default_factory=list)
+    com_modules_available: list[str]
+    com_modules_missing: list[str]
+    checks: list[CheckResult] = field(default_factory=list)
     overall_pass: bool = False
 
 
-def _parse_version(v: str) -> Tuple[int, ...]:
+def _parse_version(v: str) -> tuple[int, ...]:
     try:
         return tuple(int(p) for p in v.strip().split("."))
     except (ValueError, AttributeError):
@@ -101,10 +100,10 @@ class ETAPCompatibilityChecker:
 
     def __init__(self, etap_prog_id: str = "ETAP.Application") -> None:
         self._etap_prog_id = etap_prog_id
-        self._cached_version: Optional[str] = None
-        self._cached_com_modules: Optional[Dict[str, bool]] = None
+        self._cached_version: str | None = None
+        self._cached_com_modules: dict[str, bool] | None = None
 
-    def check_version(self) -> Optional[str]:
+    def check_version(self) -> str | None:
         """Detect the installed ETAP version via COM."""
         if self._cached_version is not None:
             return self._cached_version
@@ -125,7 +124,7 @@ class ETAPCompatibilityChecker:
             logger.debug("Could not get ETAP version: %s", e)
             return None
 
-    def is_version_supported(self, version: Optional[str] = None) -> bool:
+    def is_version_supported(self, version: str | None = None) -> bool:
         """Check whether the given (or installed) version is supported."""
         if version is None:
             version = self.check_version()
@@ -138,7 +137,7 @@ class ETAPCompatibilityChecker:
             version.startswith(v) for v in SUPPORTED_ETAP_VERSIONS
         )
 
-    def get_supported_versions(self) -> List[str]:
+    def get_supported_versions(self) -> list[str]:
         return list(SUPPORTED_ETAP_VERSIONS)
 
     def check_module_availability(self, module_name: str) -> bool:
@@ -165,7 +164,7 @@ class ETAPCompatibilityChecker:
             logger.debug("Module check failed for '%s': %s", module_name, e)
             return False
 
-    def check_windows_version(self) -> Tuple[bool, str]:
+    def check_windows_version(self) -> tuple[bool, str]:
         """Verify Windows meets ETAP requirements (10+ x64)."""
         if sys.platform != "win32":
             return False, "Not running on Windows."
@@ -183,17 +182,17 @@ class ETAPCompatibilityChecker:
         except Exception as e:
             return False, f"Could not determine Windows version: {e}"
 
-    def check_dependencies(self) -> Dict[str, bool]:
+    def check_dependencies(self) -> dict[str, bool]:
         """Verify required and optional Python packages."""
         return {
             pkg: self._is_package_available(pkg) for pkg in REQUIRED_PACKAGES + OPTIONAL_PACKAGES
         }
 
-    def check_dotnet_version(self) -> Tuple[bool, str]:
+    def check_dotnet_version(self) -> tuple[bool, str]:
         """Check .NET Framework 4.8+ via registry."""
         try:
             key = winreg.OpenKey(
-                winreg.HKEY_LOCAL_MACHINE, r"SOFTWARE\Microsoft\NET Framework Setup\NDP\v4\Full"
+                winreg.HKEY_LOCAL_MACHINE, r"SOFTWARE\Microsoft\NET Framework Setup\NDP\v4\Full",
             )
             release = winreg.QueryValueEx(key, "Release")[0]
             winreg.CloseKey(key)
@@ -207,9 +206,9 @@ class ETAPCompatibilityChecker:
         except Exception as e:
             return False, f"Could not check .NET Framework: {e}"
 
-    def run_compatibility_tests(self) -> List[CheckResult]:
+    def run_compatibility_tests(self) -> list[CheckResult]:
         """Run all compatibility checks and return results."""
-        checks: List[CheckResult] = []
+        checks: list[CheckResult] = []
 
         version = self.check_version()
         if version:
@@ -220,7 +219,7 @@ class ETAPCompatibilityChecker:
                     supported,
                     f"Installed: {version}, Supported: {supported}",
                     "error" if not supported else "info",
-                )
+                ),
             )
         else:
             checks.append(
@@ -229,7 +228,7 @@ class ETAPCompatibilityChecker:
                     False,
                     "Could not detect ETAP version. Is ETAP installed?",
                     "error",
-                )
+                ),
             )
 
         w_ok, w_msg = self.check_windows_version()
@@ -247,7 +246,7 @@ class ETAPCompatibilityChecker:
                     avail,
                     f"{'Required' if required else 'Optional'}: {'OK' if avail else 'missing'}",
                     sev,
-                )
+                ),
             )
 
         for mod in COM_MODULES:
@@ -258,7 +257,7 @@ class ETAPCompatibilityChecker:
                     avail,
                     "Available" if avail else "Not available",
                     "warning" if not avail else "info",
-                )
+                ),
             )
 
         return checks

@@ -39,7 +39,7 @@ Usage:
 from __future__ import annotations
 
 import logging
-from typing import Any, Dict, Optional
+from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import JSONResponse
@@ -65,12 +65,12 @@ class SaveKeyRequest(BaseModel):
         max_length=500,
         description="The API key (will be encrypted before storage)",
     )
-    base_url: Optional[str] = Field(
+    base_url: str | None = Field(
         default=None,
         max_length=500,
         description="Custom endpoint URL (e.g., https://api.openai.com/v1)",
     )
-    model_name: Optional[str] = Field(
+    model_name: str | None = Field(
         default=None,
         max_length=100,
         description="Model name override (e.g., gpt-4o)",
@@ -100,7 +100,7 @@ async def list_keys(_: str = Depends(get_api_key)) -> JSONResponse:
                 "success": True,
                 "data": keys,
                 "providers": list(keys.keys()),
-            }
+            },
         )
     except Exception as exc:  # noqa: BLE001
         logger.exception("Failed to list API keys")
@@ -127,7 +127,7 @@ async def get_key(provider: str, _: str = Depends(get_api_key)) -> JSONResponse:
                 "success": True,
                 "data": None,
                 "message": f"No key stored for provider '{provider}'",
-            }
+            },
         )
 
     return JSONResponse(content={"success": True, "data": config.to_masked_dict()})
@@ -163,7 +163,7 @@ async def save_key(
                 "success": True,
                 "data": masked,
                 "message": f"API key for '{provider}' saved successfully (encrypted)",
-            }
+            },
         )
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
@@ -192,7 +192,7 @@ async def delete_key(provider: str, _: str = Depends(get_api_key)) -> JSONRespon
             "message": f"API key for '{provider}' deleted"
             if deleted
             else f"No key found for provider '{provider}'",
-        }
+        },
     )
 
 
@@ -215,7 +215,7 @@ async def activate_key(
         content={
             "success": updated,
             "message": f"Key for '{provider}' {'activated' if request.is_active else 'deactivated'}",
-        }
+        },
     )
 
 
@@ -274,7 +274,7 @@ async def settings_health(_: str = Depends(get_api_key)) -> JSONResponse:
 # ─── Internal: key testing functions ───────────────────────────────────────
 
 
-def _test_openai_key(config) -> Dict[str, Any]:
+def _test_openai_key(config) -> dict[str, Any]:
     """Test an OpenAI-compatible API key by listing models."""
     import httpx
 
@@ -303,7 +303,7 @@ def _test_openai_key(config) -> Dict[str, Any]:
         }
 
 
-def _test_gemini_key(config) -> Dict[str, Any]:
+def _test_gemini_key(config) -> dict[str, Any]:
     """Test a Gemini API key by listing models."""
     import httpx
 
@@ -329,7 +329,7 @@ def _test_gemini_key(config) -> Dict[str, Any]:
         }
 
 
-def _test_anthropic_key(config) -> Dict[str, Any]:
+def _test_anthropic_key(config) -> dict[str, Any]:
     """Test an Anthropic API key by making a minimal messages call."""
     import httpx
 

@@ -36,7 +36,7 @@ from datetime import UTC, datetime
 
 UTC = UTC
 from pathlib import Path
-from typing import Any, Dict, List, Literal, Optional
+from typing import Any, Literal
 
 logger = logging.getLogger("agent.cua_executor")
 
@@ -72,7 +72,7 @@ def _import_pytesseract():
 # ─── Data classes ──────────────────────────────────────────────────────────
 
 ActionType = Literal[
-    "click", "double_click", "right_click", "type", "hotkey", "wait", "done", "unknown"
+    "click", "double_click", "right_click", "type", "hotkey", "wait", "done", "unknown",
 ]
 
 
@@ -81,17 +81,17 @@ class CUAAction:
     """A single action decided by Gemini Vision and executed by the CUA."""
 
     type: ActionType
-    x: Optional[int] = None
-    y: Optional[int] = None
-    text: Optional[str] = None
-    keys: List[str] = field(default_factory=list)
-    target: Optional[str] = None
-    seconds: Optional[float] = None
-    summary: Optional[str] = None
-    reason: Optional[str] = None
+    x: int | None = None
+    y: int | None = None
+    text: str | None = None
+    keys: list[str] = field(default_factory=list)
+    target: str | None = None
+    seconds: float | None = None
+    summary: str | None = None
+    reason: str | None = None
 
     @classmethod
-    def from_gemini(cls, action_dict: Dict[str, Any]) -> CUAAction:
+    def from_gemini(cls, action_dict: dict[str, Any]) -> CUAAction:
         """Build a CUAAction from Gemini's next_action JSON."""
         action_type = action_dict.get("type", "unknown")
         # Map Gemini's "click" to our ActionType
@@ -135,9 +135,7 @@ class CUAAction:
             return True
         # Hotkeys like Alt+F4, Delete, Ctrl+D are destructive
         destructive_keys = {"delete", "f4", "backspace"}
-        if self.type == "hotkey" and any(k.lower() in destructive_keys for k in self.keys):
-            return True
-        return False
+        return bool(self.type == "hotkey" and any(k.lower() in destructive_keys for k in self.keys))
 
 
 @dataclass
@@ -147,13 +145,13 @@ class CUAStepResult:
     step_number: int
     action: CUAAction
     success: bool
-    screenshot_before: Optional[str] = None  # path
-    screenshot_after: Optional[str] = None  # path
-    gemini_analysis: Optional[Dict[str, Any]] = None
+    screenshot_before: str | None = None  # path
+    screenshot_after: str | None = None  # path
+    gemini_analysis: dict[str, Any] | None = None
     duration_ms: int = 0
-    error: Optional[str] = None
+    error: str | None = None
 
-    def to_audit_dict(self) -> Dict[str, Any]:
+    def to_audit_dict(self) -> dict[str, Any]:
         return {
             "step": self.step_number,
             "action": {
@@ -178,16 +176,16 @@ class CUAExecutionResult:
     """Top-level result returned by CUAExecutor.execute_loop()."""
 
     success: bool
-    steps: List[CUAStepResult] = field(default_factory=list)
+    steps: list[CUAStepResult] = field(default_factory=list)
     final_summary: str = ""
     objective_complete: bool = False
-    aborted_reason: Optional[str] = None
+    aborted_reason: str | None = None
     total_duration_ms: int = 0
-    execution_id: Optional[str] = None
+    execution_id: str | None = None
     resumed_from_step: int = 0
-    vision_source: Optional[str] = None  # "gemini" | "opencv" | "hybrid"
+    vision_source: str | None = None  # "gemini" | "opencv" | "hybrid"
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "success": self.success,
             "objective_complete": self.objective_complete,
@@ -225,7 +223,7 @@ class CUAExecutor:
 
     def __init__(
         self,
-        audit_dir: Optional[str] = None,
+        audit_dir: str | None = None,
         action_timeout: int = DEFAULT_ACTION_TIMEOUT,
     ) -> None:
         self.action_timeout = action_timeout
@@ -238,7 +236,7 @@ class CUAExecutor:
 
     # ─── Dependency checks ────────────────────────────────────────────────
 
-    def check_dependencies(self) -> Dict[str, Any]:
+    def check_dependencies(self) -> dict[str, Any]:
         """Check all deps required for real CUA execution."""
         self._pyautogui = self._pyautogui or _import_pyautogui()
         self._pytesseract = self._pytesseract or _import_pytesseract()
@@ -283,7 +281,7 @@ class CUAExecutor:
         max_steps: int = DEFAULT_MAX_STEPS,
         require_confirmation: bool = True,
         on_confirmation_request=None,
-        context: Optional[str] = None,
+        context: str | None = None,
         mode: str = "control",
     ) -> CUAExecutionResult:
         """Run the CUA loop until objective is complete or max_steps reached.
@@ -312,7 +310,7 @@ class CUAExecutor:
 
         # ─── RESILIENCE: resume from checkpoint if available ────────────────
         exec_id, resume_from, prior_steps, prior_context = resume_manager.resume_or_start(objective)
-        steps: List[CUAStepResult] = []
+        steps: list[CUAStepResult] = []
         # Reconstruct prior step results from checkpoint (simplified — audit-only)
         for ps in prior_steps:
             try:
@@ -337,7 +335,7 @@ class CUAExecutor:
                 pass  # skip malformed prior steps
 
         current_context = context or prior_context or "Starting fresh"
-        last_analysis: Optional[Dict[str, Any]] = None
+        last_analysis: dict[str, Any] | None = None
         vision_sources_used: set = set()
         checkpoint_store = CheckpointStore()
 
@@ -628,7 +626,7 @@ class CUAExecutor:
 
     # ─── Internal: screenshot capture ──────────────────────────────────────
 
-    def _capture_screenshot(self, step_num: int, phase: str) -> Optional[str]:
+    def _capture_screenshot(self, step_num: int, phase: str) -> str | None:
         """Capture a screenshot and save it to the audit dir. Returns path."""
         if not self._pyautogui:
             return None
@@ -668,15 +666,15 @@ class CUAExecutor:
             )
 
             if result.get("success"):
-                logger.debug(f"Screenshot uploaded to Supabase: {filename}")
+                logger.debug("Screenshot uploaded to Supabase: %s", filename)
             else:
                 logger.debug(f"Supabase screenshot upload failed: {result.get('error')}")
         except Exception as exc:  # noqa: BLE001
-            logger.debug(f"Supabase screenshot upload failed (non-critical): {exc}")
+            logger.debug("Supabase screenshot upload failed (non-critical): %s", exc)
 
     # ─── Internal: action execution ────────────────────────────────────────
 
-    def _execute_action(self, action: CUAAction) -> Optional[str]:
+    def _execute_action(self, action: CUAAction) -> str | None:
         """Execute a single pyautogui action. Returns error string or None."""
         if not self._pyautogui:
             return "pyautogui not available"

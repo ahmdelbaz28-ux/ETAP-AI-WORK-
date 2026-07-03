@@ -37,15 +37,17 @@ References:
 
 from __future__ import annotations
 
+import contextlib
 import functools
 import json
 import logging
 import os
 import time
 import uuid
+from collections.abc import Callable
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -58,7 +60,7 @@ def retry_with_backoff(
     base_delay: float = 2.0,
     max_delay: float = 30.0,
     exceptions: tuple = (Exception,),
-    on_retry: Optional[Callable[[int, Exception], None]] = None,
+    on_retry: Callable[[int, Exception], None] | None = None,
 ):
     """Decorator: retry a function on transient failures with exponential backoff.
 
@@ -78,7 +80,7 @@ def retry_with_backoff(
     def decorator(func: Callable) -> Callable:
         @functools.wraps(func)
         def wrapper(*args, **kwargs):
-            last_exc: Optional[Exception] = None
+            last_exc: Exception | None = None
             for attempt in range(1, max_retries + 2):  # +1 for initial attempt
                 try:
                     return func(*args, **kwargs)
@@ -143,9 +145,9 @@ class CheckpointStore:
         execution_id: str,
         step_num: int,
         objective: str,
-        completed_steps: List[Dict[str, Any]],
+        completed_steps: list[dict[str, Any]],
         context: str = "",
-        extra: Optional[Dict[str, Any]] = None,
+        extra: dict[str, Any] | None = None,
     ) -> Path:
         """Save a checkpoint. Returns the path to the checkpoint file."""
         checkpoint = {
@@ -169,7 +171,7 @@ class CheckpointStore:
         logger.debug("Checkpoint saved: %s (step %d)", filepath, step_num)
         return filepath
 
-    def load_latest(self, execution_id: str) -> Optional[Dict[str, Any]]:
+    def load_latest(self, execution_id: str) -> dict[str, Any] | None:
         """Load the latest checkpoint for a given execution_id.
 
         Returns None if no checkpoints exist.
@@ -186,7 +188,7 @@ class CheckpointStore:
             logger.warning("Failed to load checkpoint %s: %s", latest_file, exc)
             return None
 
-    def list_checkpoints(self, execution_id: str) -> List[Path]:
+    def list_checkpoints(self, execution_id: str) -> list[Path]:
         """List all checkpoint files for an execution_id, sorted by step."""
         pattern = f"{execution_id}_step*.json"
         return sorted(self.directory.glob(pattern))
@@ -201,20 +203,16 @@ class CheckpointStore:
             return 0
         to_delete = files[:-keep_last]
         for f in to_delete:
-            try:
+            with contextlib.suppress(OSError):
                 f.unlink()
-            except OSError:
-                pass
         return len(to_delete)
 
     def clear_all(self, execution_id: str) -> int:
         """Delete ALL checkpoints for an execution_id. Returns count deleted."""
         files = self.list_checkpoints(execution_id)
         for f in files:
-            try:
+            with contextlib.suppress(OSError):
                 f.unlink()
-            except OSError:
-                pass
         return len(files)
 
 
@@ -262,7 +260,7 @@ class HybridVisionRouter:
         self.opencv = opencv_vision
 
         # Build the chain in priority order
-        self.chain: List[tuple[str, Any]] = []
+        self.chain: list[tuple[str, Any]] = []
         if self.gemini.enabled:
             self.chain.append(("gemini", self.gemini))
         if self.openai.enabled:
@@ -291,8 +289,8 @@ class HybridVisionRouter:
         self,
         image: Any,
         objective: str,
-        context: Optional[str] = None,
-    ) -> Optional[Dict[str, Any]]:
+        context: str | None = None,
+    ) -> dict[str, Any] | None:
         """Analyze a screenshot, trying each backend in the chain.
 
         Returns the analysis dict, with a "source" field indicating which
@@ -304,14 +302,14 @@ class HybridVisionRouter:
                 "message": "No vision backends available (Gemini, OpenAI, Anthropic, OpenCV all disabled)",
             }
 
-        last_error: Optional[Dict[str, Any]] = None
+        last_error: dict[str, Any] | None = None
 
         for name, backend in self.chain:
             try:
                 # OpenCV doesn't need retry (it's local, no network)
                 if name == "opencv":
                     result = backend.analyze_screenshot(
-                        image=image, objective=objective, context=context
+                        image=image, objective=objective, context=context,
                     )
                 else:
                     result = self._call_backend(backend, image, objective, context)
@@ -333,7 +331,7 @@ class HybridVisionRouter:
             "message": "All vision backends failed",
         }
 
-    def health_check(self) -> Dict[str, Any]:
+    def health_check(self) -> dict[str, Any]:
         """Return combined health status for all backends."""
         return {
             "primary": self.primary,
@@ -378,7 +376,7 @@ class ResumeManager:
     def resume_or_start(
         self,
         objective: str,
-    ) -> tuple[str, int, List[Dict[str, Any]], str]:
+    ) -> tuple[str, int, list[dict[str, Any]], str]:
         """Either resume an existing execution or start a new one.
 
         Returns (execution_id, resume_from_step, prior_steps, context).

@@ -160,7 +160,7 @@ def process_large_calculation_task(self, calculation_data: dict):
             if i % 10 == 0:
                 progress = (i / iterations) * 100
                 self.update_state(
-                    state="PROGRESS", meta={"status": f"Calculation in progress: {progress:.1f}%"}
+                    state="PROGRESS", meta={"status": f"Calculation in progress: {progress:.1f}%"},
                 )
 
             # Perform some heavy computation
@@ -178,7 +178,7 @@ def process_large_calculation_task(self, calculation_data: dict):
         logger.info(f"Completed large calculation: {calculation_data.get('type', 'Unknown')}")
 
         self.update_state(
-            state="SUCCESS", meta={"status": "Calculation completed successfully", "result": result}
+            state="SUCCESS", meta={"status": "Calculation completed successfully", "result": result},
         )
 
         return result

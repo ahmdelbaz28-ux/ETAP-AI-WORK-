@@ -34,8 +34,8 @@ import os
 import sys
 import time
 import uuid
-from contextlib import asynccontextmanager
-from typing import Any, Dict, List, Optional
+from contextlib import asynccontextmanager, suppress
+from typing import Any
 
 # ---------------------------------------------------------------------------
 # Cache directories — redirect to /tmp for HF Spaces (read-only filesystem)
@@ -165,7 +165,7 @@ class AppState:
         self.total_execution_time_sec: float = 0.0
 
         # Rate limiting
-        self.rate_limit_store: Dict[str, List[float]] = {}
+        self.rate_limit_store: dict[str, list[float]] = {}
 
         # RASP engine (singleton)
         self.rasp_engine: Any = None
@@ -231,33 +231,33 @@ class BusSpec(BaseModel):
 
     bus_id: int
     voltage_magnitude: float = Field(
-        default=1.0, validation_alias=AliasChoices("voltage_magnitude", "vm")
+        default=1.0, validation_alias=AliasChoices("voltage_magnitude", "vm"),
     )
     voltage_angle: float = Field(default=0.0, validation_alias=AliasChoices("voltage_angle", "va"))
     load_power_real: float = Field(
-        default=0.0, validation_alias=AliasChoices("load_power_real", "p_load", "pd")
+        default=0.0, validation_alias=AliasChoices("load_power_real", "p_load", "pd"),
     )
     load_power_imag: float = Field(
         default=0.0,
         validation_alias=AliasChoices("load_power_imag", "load_power_reactive", "q_load", "qd"),
     )
     generation_power_real: float = Field(
-        default=0.0, validation_alias=AliasChoices("generation_power_real", "power_real", "pg")
+        default=0.0, validation_alias=AliasChoices("generation_power_real", "power_real", "pg"),
     )
     generation_power_imag: float = Field(
-        default=0.0, validation_alias=AliasChoices("generation_power_imag", "power_reactive", "qg")
+        default=0.0, validation_alias=AliasChoices("generation_power_imag", "power_reactive", "qg"),
     )
     bus_type: str = "pq"
-    base_kv: Optional[float] = None
+    base_kv: float | None = None
     q_min: float = Field(
-        default=-999.0, validation_alias=AliasChoices("q_min", "min_power_reactive", "min_q")
+        default=-999.0, validation_alias=AliasChoices("q_min", "min_power_reactive", "min_q"),
     )
     q_max: float = Field(
-        default=999.0, validation_alias=AliasChoices("q_max", "max_power_reactive", "max_q")
+        default=999.0, validation_alias=AliasChoices("q_max", "max_power_reactive", "max_q"),
     )
-    area: Optional[int] = None
-    zone: Optional[int] = None
-    voltage_setpoint: Optional[float] = Field(
+    area: int | None = None
+    zone: int | None = None
+    voltage_setpoint: float | None = Field(
         default=None,
         validation_alias=AliasChoices("voltage_setpoint", "voltage_magnitude_setpoint"),
     )
@@ -279,13 +279,13 @@ class LineSpec(BaseModel):
     to_bus_id: int = Field(validation_alias=AliasChoices("to_bus_id", "to"))
     r1: float = Field(default=0.01, validation_alias=AliasChoices("r1", "resistance"))
     x1: float = Field(default=0.05, validation_alias=AliasChoices("x1", "reactance"))
-    r0: Optional[float] = None
-    x0: Optional[float] = None
+    r0: float | None = None
+    x0: float | None = None
     bshunt1: float = Field(
-        default=0.02, validation_alias=AliasChoices("bshunt1", "b1", "bshunt", "susceptance")
+        default=0.02, validation_alias=AliasChoices("bshunt1", "b1", "bshunt", "susceptance"),
     )
-    bshunt0: Optional[float] = Field(default=None, validation_alias=AliasChoices("bshunt0", "b0"))
-    rating_mva: Optional[float] = None
+    bshunt0: float | None = Field(default=None, validation_alias=AliasChoices("bshunt0", "b0"))
+    rating_mva: float | None = None
 
 
 class TransformerSpec(BaseModel):
@@ -298,7 +298,7 @@ class TransformerSpec(BaseModel):
     x1: float = 0.05
     tap_ratio: float = Field(default=1.0, validation_alias=AliasChoices("tap_ratio", "tap"))
     phase_shift_deg: float = Field(
-        default=0.0, validation_alias=AliasChoices("phase_shift_deg", "phase_shift")
+        default=0.0, validation_alias=AliasChoices("phase_shift_deg", "phase_shift"),
     )
 
 
@@ -309,28 +309,28 @@ class GeneratorSpec(BaseModel):
     bus_id: int
     r1: float = 0.0
     x1: float = Field(default=0.2, validation_alias=AliasChoices("x1", "xd_pu", "xdash"))
-    r2: Optional[float] = None
-    x2: Optional[float] = None
-    r0: Optional[float] = None
-    x0: Optional[float] = None
+    r2: float | None = None
+    x2: float | None = None
+    r0: float | None = None
+    x0: float | None = None
     internal_voltage_mag: float = Field(
         default=1.05,
         validation_alias=AliasChoices("internal_voltage_mag", "voltage_setpoint", "v_setpoint"),
     )
     internal_voltage_ang_deg: float = Field(
-        default=0.0, validation_alias=AliasChoices("internal_voltage_ang_deg", "voltage_angle")
+        default=0.0, validation_alias=AliasChoices("internal_voltage_ang_deg", "voltage_angle"),
     )
-    power_real: Optional[float] = Field(
-        default=None, validation_alias=AliasChoices("power_real", "pg")
+    power_real: float | None = Field(
+        default=None, validation_alias=AliasChoices("power_real", "pg"),
     )
-    power_reactive: Optional[float] = Field(
-        default=None, validation_alias=AliasChoices("power_reactive", "qg")
+    power_reactive: float | None = Field(
+        default=None, validation_alias=AliasChoices("power_reactive", "qg"),
     )
-    max_power_reactive: Optional[float] = Field(
-        default=None, validation_alias=AliasChoices("max_power_reactive", "q_max")
+    max_power_reactive: float | None = Field(
+        default=None, validation_alias=AliasChoices("max_power_reactive", "q_max"),
     )
-    min_power_reactive: Optional[float] = Field(
-        default=None, validation_alias=AliasChoices("min_power_reactive", "q_min")
+    min_power_reactive: float | None = Field(
+        default=None, validation_alias=AliasChoices("min_power_reactive", "q_min"),
     )
 
 
@@ -340,7 +340,7 @@ class LoadSpec(BaseModel):
     load_id: int
     bus_id: int
     p_mw: float = Field(
-        default=0.0, validation_alias=AliasChoices("p_mw", "power_real", "load_power_real")
+        default=0.0, validation_alias=AliasChoices("p_mw", "power_real", "load_power_real"),
     )
     q_mvar: float = Field(
         default=0.0,
@@ -353,30 +353,30 @@ class SystemSpec(BaseModel):
     model_config = ConfigDict(extra="ignore")
 
     base_mva: float = Field(
-        default=100.0, validation_alias=AliasChoices("base_mva", "sbase", "base_mva")
+        default=100.0, validation_alias=AliasChoices("base_mva", "sbase", "base_mva"),
     )
-    buses: List[BusSpec] = Field(default_factory=list)
-    lines: List[LineSpec] = Field(
-        default_factory=list, validation_alias=AliasChoices("lines", "branches")
+    buses: list[BusSpec] = Field(default_factory=list)
+    lines: list[LineSpec] = Field(
+        default_factory=list, validation_alias=AliasChoices("lines", "branches"),
     )
-    transformers: List[TransformerSpec] = Field(default_factory=list)
-    generators: List[GeneratorSpec] = Field(default_factory=list)
-    loads: List[LoadSpec] = Field(default_factory=list)
+    transformers: list[TransformerSpec] = Field(default_factory=list)
+    generators: list[GeneratorSpec] = Field(default_factory=list)
+    loads: list[LoadSpec] = Field(default_factory=list)
 
 
 class StudyRequest(BaseModel):
     model_config = ConfigDict(extra="ignore")
 
     study_type: str = Field(..., description="Type of study to run")
-    system: Optional[SystemSpec] = Field(
-        default=None, validation_alias=AliasChoices("system", "system_spec")
+    system: SystemSpec | None = Field(
+        default=None, validation_alias=AliasChoices("system", "system_spec"),
     )
-    parameters: Dict[str, Any] = Field(default_factory=dict)
-    task_id: Optional[str] = None
+    parameters: dict[str, Any] = Field(default_factory=dict)
+    task_id: str | None = None
     use_etap: bool = Field(
-        default=False, description="If True, route to ETAP provider instead of native engine"
+        default=False, description="If True, route to ETAP provider instead of native engine",
     )
-    etap_project_path: Optional[str] = None
+    etap_project_path: str | None = None
 
     @field_validator("study_type")
     @classmethod
@@ -407,13 +407,13 @@ class StudyRequest(BaseModel):
 
 class StudyResult(BaseModel):
     success: bool
-    data: Dict[str, Any] = Field(default_factory=dict)
-    results: Dict[str, Any] = Field(default_factory=dict)
-    warnings: List[str] = Field(default_factory=list)
-    errors: List[str] = Field(default_factory=list)
+    data: dict[str, Any] = Field(default_factory=dict)
+    results: dict[str, Any] = Field(default_factory=dict)
+    warnings: list[str] = Field(default_factory=list)
+    errors: list[str] = Field(default_factory=list)
     execution_time_sec: float = 0.0
     trace_id: str = ""
-    task_id: Optional[str] = None
+    task_id: str | None = None
     study_type: str = ""
     provider: str = "native"
 
@@ -472,7 +472,7 @@ def _build_system_from_spec(spec: SystemSpec) -> Any:
     from core_model.transformer import Transformer
 
     system = System(base_mva=spec.base_mva)
-    bus_map: Dict[int, Any] = {}
+    bus_map: dict[int, Any] = {}
 
     for b in spec.buses:
         bus = Bus(
@@ -577,10 +577,10 @@ _STUDIES_REQUIRING_SYSTEM = {
 
 def _run_native_study(
     study_type: str,
-    system: Optional[Any],
-    parameters: Dict[str, Any],
+    system: Any | None,
+    parameters: dict[str, Any],
     state: AppState,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Execute a study using the native PowerSystemEngine.
 
     FIXED: Now includes motor_starting, harmonic_analysis, and
@@ -613,7 +613,7 @@ def _run_native_study(
         missing = [k for k in required if k not in parameters]
         if missing:
             raise ValueError(
-                f"arc_flash requires: {', '.join(required)} (missing: {', '.join(missing)})"
+                f"arc_flash requires: {', '.join(required)} (missing: {', '.join(missing)})",
             )
         return engine.run_arc_flash(
             voltage_kv=float(parameters["voltage_kv"]),
@@ -656,7 +656,7 @@ def _run_native_study(
                     "power_factor": parameters.get("power_factor", 0.85),
                     "efficiency": parameters.get("efficiency", 0.93),
                     "starting_current_multiplier": parameters.get(
-                        "starting_current_multiplier", 6.0
+                        "starting_current_multiplier", 6.0,
                     ),
                 }
                 return {
@@ -672,7 +672,7 @@ def _run_native_study(
                     message="Motor starting analysis is not implemented in the engine",
                     study_type="motor_starting",
                     error_code=__import__(
-                        "api.error_debugger", fromlist=["ERR_STUDY_006"]
+                        "api.error_debugger", fromlist=["ERR_STUDY_006"],
                     ).ERR_STUDY_006,
                 ) from err
         return engine.run_motor_starting(motor_id, starting_method, **parameters)
@@ -699,7 +699,7 @@ def _run_native_study(
                     message="Harmonic analysis is not implemented in the engine",
                     study_type="harmonic_analysis",
                     error_code=__import__(
-                        "api.error_debugger", fromlist=["ERR_STUDY_007"]
+                        "api.error_debugger", fromlist=["ERR_STUDY_007"],
                     ).ERR_STUDY_007,
                 ) from err
         return engine.run_harmonic_analysis(max_harmonic_order=max_harmonic_order, **parameters)
@@ -726,7 +726,7 @@ def _run_native_study(
                     message="Optimal power flow is not implemented in the engine",
                     study_type="optimal_power_flow",
                     error_code=__import__(
-                        "api.error_debugger", fromlist=["ERR_STUDY_008"]
+                        "api.error_debugger", fromlist=["ERR_STUDY_008"],
                     ).ERR_STUDY_008,
                 ) from err
         return engine.run_optimal_power_flow(objective=objective, **parameters)
@@ -738,9 +738,9 @@ def _run_native_study(
 def _run_etap_study(
     study_type: str,
     project_path: str,
-    parameters: Dict[str, Any],
+    parameters: dict[str, Any],
     state: AppState,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Execute a study via the ETAP provider."""
     provider_factory = state.get_etap_provider_factory()
     provider = provider_factory()
@@ -937,7 +937,7 @@ class ConnectionManager:
     """
 
     def __init__(self) -> None:
-        self.active_connections: Dict[str, List[WebSocket]] = {}
+        self.active_connections: dict[str, list[WebSocket]] = {}
 
     async def connect(self, websocket: WebSocket, study_id: str) -> None:
         """Accept and register a WebSocket connection for a given study."""
@@ -957,10 +957,8 @@ class ConnectionManager:
         """Broadcast a JSON message to all connections subscribed to a study."""
         if study_id in self.active_connections:
             for connection in self.active_connections[study_id]:
-                try:
+                with suppress(Exception):
                     await connection.send_json(message)
-                except Exception:
-                    pass
 
 
 # ---------------------------------------------------------------------------
@@ -982,14 +980,14 @@ async def lifespan(app: FastAPI):
         if _AUTH_DISABLED:
             logger.warning(
                 "SECURITY: Authentication is EXPLICITLY DISABLED via "
-                "ENGINEERING_SERVICE_AUTH_DISABLED=true."
+                "ENGINEERING_SERVICE_AUTH_DISABLED=true.",
             )
         else:
             _ENV = os.environ.get("ENVIRONMENT", os.environ.get("ENV", "development")).lower()
             if _ENV not in ("production", "prod", "staging"):
                 logger.warning(
                     "SECURITY WARNING: ENGINEERING_SERVICE_API_KEY is not set. "
-                    "All endpoints are accessible without authentication in development."
+                    "All endpoints are accessible without authentication in development.",
                 )
 
     # Initialize singleton StudyCache
@@ -1070,7 +1068,7 @@ _cors_origin_list = (
 )
 if not _cors_origin_list:
     logger.warning(
-        "CORS: No origins configured. Set ENGINEERING_SERVICE_CORS_ORIGINS in production."
+        "CORS: No origins configured. Set ENGINEERING_SERVICE_CORS_ORIGINS in production.",
     )
 
 app.add_middleware(
@@ -1114,7 +1112,7 @@ async def trace_middleware(request: Request, call_next):
 
     # RASP — Runtime Application Self-Protection
     if not request.url.path.startswith(
-        ("/health", "/ready", "/healthz", "/readyz", "/", "/docs", "/openapi")
+        ("/health", "/ready", "/healthz", "/readyz", "/", "/docs", "/openapi"),
     ):
         try:
             from security.rasp import create_default_rasp_engine
@@ -1140,7 +1138,7 @@ async def trace_middleware(request: Request, call_next):
                     "path": path_str,
                     "body": body_str,
                     "headers": header_str,
-                }
+                },
             )
             blocked = [r for r in rasp_results if r.action.value == "block"]
             if blocked:
@@ -1320,9 +1318,9 @@ async def run_study(request: Request, payload: StudyRequest):
         extra={"trace_id": trace_id},
     )
 
-    warnings: List[str] = []
-    errors: List[str] = []
-    data: Dict[str, Any] = {}
+    warnings: list[str] = []
+    errors: list[str] = []
+    data: dict[str, Any] = {}
     provider_name = "native"
     cache_hit = False
 
@@ -1333,7 +1331,7 @@ async def run_study(request: Request, payload: StudyRequest):
                 cache_params = {"study_type": payload.study_type, "parameters": payload.parameters}
                 if payload.system:
                     system_json = json.dumps(
-                        payload.system.model_dump(), sort_keys=True, default=str
+                        payload.system.model_dump(), sort_keys=True, default=str,
                     )
                     cache_params["system_hash"] = hashlib.sha256(system_json.encode()).hexdigest()
                 if state.study_cache:
@@ -1349,7 +1347,7 @@ async def run_study(request: Request, payload: StudyRequest):
                         )
             except Exception as cache_err:
                 logger.debug(
-                    "Cache lookup failed (non-fatal): %s", cache_err, extra={"trace_id": trace_id}
+                    "Cache lookup failed (non-fatal): %s", cache_err, extra={"trace_id": trace_id},
                 )
 
         if cache_hit:
@@ -1359,7 +1357,7 @@ async def run_study(request: Request, payload: StudyRequest):
                 raise ValueError("etap_project_path is required when use_etap=True")
             provider_name = "etap"
             data = _run_etap_study(
-                payload.study_type, payload.etap_project_path, payload.parameters, state
+                payload.study_type, payload.etap_project_path, payload.parameters, state,
             )
             warnings = data.pop("warnings", [])
             errors = data.pop("errors", [])
@@ -1380,7 +1378,7 @@ async def run_study(request: Request, payload: StudyRequest):
                 cache_params = {"study_type": payload.study_type, "parameters": payload.parameters}
                 if payload.system:
                     system_json = json.dumps(
-                        payload.system.model_dump(), sort_keys=True, default=str
+                        payload.system.model_dump(), sort_keys=True, default=str,
                     )
                     cache_params["system_hash"] = hashlib.sha256(system_json.encode()).hexdigest()
                 if state.study_cache:
@@ -1391,7 +1389,7 @@ async def run_study(request: Request, payload: StudyRequest):
                     )
             except Exception as cache_err:
                 logger.debug(
-                    "Cache store failed (non-fatal): %s", cache_err, extra={"trace_id": trace_id}
+                    "Cache store failed (non-fatal): %s", cache_err, extra={"trace_id": trace_id},
                 )
 
         state.increment_success()
@@ -1457,8 +1455,8 @@ async def validate_system(request: Request, spec: SystemSpec):
     """Validate a power system model specification."""
     await _require_api_key(request)
     trace_id = request.state.trace_id
-    warnings: List[str] = []
-    errors: List[str] = []
+    warnings: list[str] = []
+    errors: list[str] = []
 
     try:
         if not spec.buses:
@@ -1470,21 +1468,21 @@ async def validate_system(request: Request, spec: SystemSpec):
             errors.append("System must have at least one slack bus")
         if len(slack_buses) > 1:
             warnings.append(
-                f"System has {len(slack_buses)} slack buses; typically only one is expected"
+                f"System has {len(slack_buses)} slack buses; typically only one is expected",
             )
 
         bus_ids = {b.bus_id for b in spec.buses}
         for line in spec.lines:
             if line.from_bus_id not in bus_ids:
                 errors.append(
-                    f"Line {line.line_id} references unknown from_bus_id {line.from_bus_id}"
+                    f"Line {line.line_id} references unknown from_bus_id {line.from_bus_id}",
                 )
             if line.to_bus_id not in bus_ids:
                 errors.append(f"Line {line.line_id} references unknown to_bus_id {line.to_bus_id}")
         for gen in spec.generators:
             if gen.bus_id not in bus_ids:
                 errors.append(
-                    f"Generator {gen.generator_id} references unknown bus_id {gen.bus_id}"
+                    f"Generator {gen.generator_id} references unknown bus_id {gen.bus_id}",
                 )
         for ld in spec.loads:
             if ld.bus_id not in bus_ids:
@@ -1539,12 +1537,12 @@ async def get_agents_info(request: Request):
                     "prompt_count": len(available_prompts),
                 },
                 "trace_id": trace_id,
-            }
+            },
         )
     except Exception as e:
         logger.error("agents_info_failed error=%s", str(e), extra={"trace_id": trace_id})
         return JSONResponse(
-            status_code=500, content={"success": False, "errors": [str(e)], "trace_id": trace_id}
+            status_code=500, content={"success": False, "errors": [str(e)], "trace_id": trace_id},
         )
 
 
@@ -1569,7 +1567,7 @@ async def predict_load(request: Request):
             raise HTTPException(status_code=400, detail="historical_data must be an array")
         if len(historical) > 10000:
             raise HTTPException(
-                status_code=400, detail="historical_data array too large (max 10000 points)"
+                status_code=400, detail="historical_data array too large (max 10000 points)",
             )
         if not isinstance(horizon, int) or horizon < 1 or horizon > 168:
             raise HTTPException(status_code=400, detail="horizon_hours must be between 1 and 168")
@@ -1596,14 +1594,14 @@ async def predict_load(request: Request):
                     "metrics": metrics,
                 },
                 "trace_id": trace_id,
-            }
+            },
         )
     except HTTPException:
         raise
     except Exception as e:
         logger.error("predict_load_failed error=%s", str(e), extra={"trace_id": trace_id})
         return JSONResponse(
-            status_code=500, content={"success": False, "errors": [str(e)], "trace_id": trace_id}
+            status_code=500, content={"success": False, "errors": [str(e)], "trace_id": trace_id},
         )
 
 
@@ -1622,7 +1620,7 @@ async def predict_fault(request: Request):
             raise HTTPException(status_code=400, detail="features must be an array")
         if len(features) > 1000:
             raise HTTPException(
-                status_code=400, detail="features array too large (max 1000 elements)"
+                status_code=400, detail="features array too large (max 1000 elements)",
             )
 
         import numpy as np_inner
@@ -1640,14 +1638,14 @@ async def predict_fault(request: Request):
                 "success": True,
                 "data": prediction if isinstance(prediction, dict) else {"prediction": prediction},
                 "trace_id": trace_id,
-            }
+            },
         )
     except HTTPException:
         raise
     except Exception as e:
         logger.error("predict_fault_failed error=%s", str(e), extra={"trace_id": trace_id})
         return JSONResponse(
-            status_code=500, content={"success": False, "errors": [str(e)], "trace_id": trace_id}
+            status_code=500, content={"success": False, "errors": [str(e)], "trace_id": trace_id},
         )
 
 
@@ -1682,14 +1680,14 @@ async def detect_anomalies(request: Request):
                 "success": True,
                 "data": result,
                 "trace_id": trace_id,
-            }
+            },
         )
     except HTTPException:
         raise
     except Exception as e:
         logger.error("anomaly_detection_failed error=%s", str(e), extra={"trace_id": trace_id})
         return JSONResponse(
-            status_code=500, content={"success": False, "errors": [str(e)], "trace_id": trace_id}
+            status_code=500, content={"success": False, "errors": [str(e)], "trace_id": trace_id},
         )
 
 
@@ -1730,14 +1728,14 @@ async def rag_query(request: Request):
                     ],
                 },
                 "trace_id": trace_id,
-            }
+            },
         )
     except HTTPException:
         raise
     except Exception as e:
         logger.error("rag_query_failed error=%s", str(e), extra={"trace_id": trace_id})
         return JSONResponse(
-            status_code=500, content={"success": False, "errors": [str(e)], "trace_id": trace_id}
+            status_code=500, content={"success": False, "errors": [str(e)], "trace_id": trace_id},
         )
 
 
@@ -1775,12 +1773,12 @@ async def get_scada_live_data(request: Request):
                     "supported_protocols": ["IEC 61850", "IEC 60870-5-104", "Modbus TCP"],
                 },
                 "trace_id": trace_id,
-            }
+            },
         )
     except Exception as e:
         logger.error("scada_live_failed error=%s", str(e), extra={"trace_id": trace_id})
         return JSONResponse(
-            status_code=500, content={"success": False, "errors": [str(e)], "trace_id": trace_id}
+            status_code=500, content={"success": False, "errors": [str(e)], "trace_id": trace_id},
         )
 
 
@@ -1803,7 +1801,7 @@ async def get_digital_twin_status(request: Request):
         EventBus()
         ValidationGateway()
 
-        state_info: Dict[str, Any] = {}
+        state_info: dict[str, Any] = {}
         if hasattr(store, "get_state"):
             state_val = store.get_state()
             state_info = {"entities": len(state_val) if isinstance(state_val, dict) else 0}
@@ -1823,12 +1821,12 @@ async def get_digital_twin_status(request: Request):
                     "supported_models": ["Substation", "Bus", "Line", "Transformer", "Generator"],
                 },
                 "trace_id": trace_id,
-            }
+            },
         )
     except Exception as e:
         logger.error("digital_twin_status_failed error=%s", str(e), extra={"trace_id": trace_id})
         return JSONResponse(
-            status_code=500, content={"success": False, "errors": [str(e)], "trace_id": trace_id}
+            status_code=500, content={"success": False, "errors": [str(e)], "trace_id": trace_id},
         )
 
 
@@ -1860,14 +1858,14 @@ async def setup_totp(request: Request):
                 "success": True,
                 "data": {"qr_code_uri": qr_uri},
                 "trace_id": trace_id,
-            }
+            },
         )
     except HTTPException:
         raise
     except Exception as e:
         logger.error("totp_setup_failed error=%s", str(e), extra={"trace_id": trace_id})
         return JSONResponse(
-            status_code=500, content={"success": False, "errors": [str(e)], "trace_id": trace_id}
+            status_code=500, content={"success": False, "errors": [str(e)], "trace_id": trace_id},
         )
 
 
@@ -1893,14 +1891,14 @@ async def verify_totp(request: Request):
                 "success": True,
                 "data": {"verified": verified, "user_id": user_id},
                 "trace_id": trace_id,
-            }
+            },
         )
     except HTTPException:
         raise
     except Exception as e:
         logger.error("totp_verify_failed error=%s", str(e), extra={"trace_id": trace_id})
         return JSONResponse(
-            status_code=500, content={"success": False, "errors": [str(e)], "trace_id": trace_id}
+            status_code=500, content={"success": False, "errors": [str(e)], "trace_id": trace_id},
         )
 
 
@@ -1939,14 +1937,14 @@ async def check_abac(request: Request):
                     "action": action,
                 },
                 "trace_id": trace_id,
-            }
+            },
         )
     except HTTPException:
         raise
     except Exception as e:
         logger.error("abac_check_failed error=%s", str(e), extra={"trace_id": trace_id})
         return JSONResponse(
-            status_code=500, content={"success": False, "errors": [str(e)], "trace_id": trace_id}
+            status_code=500, content={"success": False, "errors": [str(e)], "trace_id": trace_id},
         )
 
 
@@ -1969,7 +1967,7 @@ async def get_rasp_stats(request: Request):
         return JSONResponse(content={"success": True, "data": stats, "trace_id": trace_id})
     except Exception as e:
         return JSONResponse(
-            status_code=500, content={"success": False, "errors": [str(e)], "trace_id": trace_id}
+            status_code=500, content={"success": False, "errors": [str(e)], "trace_id": trace_id},
         )
 
 
@@ -2000,7 +1998,7 @@ async def submit_siem_event(request: Request):
         event_type = body.get("event_type", "custom")
         if not event_type or len(event_type) > 100:
             raise HTTPException(
-                status_code=400, detail="event_type must be a non-empty string (max 100 chars)"
+                status_code=400, detail="event_type must be a non-empty string (max 100 chars)",
             )
 
         event = SecurityEvent(
@@ -2021,14 +2019,14 @@ async def submit_siem_event(request: Request):
                 "success": True,
                 "data": {"event_id": event.event_id, "forwarded": forwarder is not None},
                 "trace_id": trace_id,
-            }
+            },
         )
     except HTTPException:
         raise
     except Exception as e:
         logger.error("siem_event_failed error=%s", str(e), extra={"trace_id": trace_id})
         return JSONResponse(
-            status_code=500, content={"success": False, "errors": [str(e)], "trace_id": trace_id}
+            status_code=500, content={"success": False, "errors": [str(e)], "trace_id": trace_id},
         )
 
 
@@ -2042,7 +2040,7 @@ async def benchmark_solvers(request: Request):
     """Run solver benchmarks comparing CPU/GPU, sparse/dense, and sequential/parallel."""
     trace_id = getattr(request.state, "trace_id", "unknown")
     try:
-        results: Dict[str, Any] = {}
+        results: dict[str, Any] = {}
 
         try:
             from engine.gpu_solver import GPUSolver
@@ -2074,7 +2072,7 @@ async def benchmark_solvers(request: Request):
                         "dense_bytes": dense_bytes,
                         "sparse_bytes": sparse_bytes,
                         "savings_pct": round((1 - sparse_bytes / dense_bytes) * 100, 1),
-                    }
+                    },
                 )
             results["sparse_matrix"] = sparse_results
         except Exception as e:
@@ -2093,7 +2091,7 @@ async def benchmark_solvers(request: Request):
     except Exception as e:
         logger.error("benchmark_failed error=%s", str(e), extra={"trace_id": trace_id})
         return JSONResponse(
-            status_code=500, content={"success": False, "errors": [str(e)], "trace_id": trace_id}
+            status_code=500, content={"success": False, "errors": [str(e)], "trace_id": trace_id},
         )
 
 
@@ -2143,7 +2141,7 @@ async def websocket_study_updates(websocket: WebSocket, study_id: str):
                         "type": "subscribed",
                         "study_id": study_id,
                         "trace_id": trace_id,
-                    }
+                    },
                 )
             else:
                 logger.debug("ws_unknown_message type=%s study_id=%s", msg_type, study_id)
@@ -2208,7 +2206,7 @@ def main() -> None:
         description="AhmedETAP Engineering Service (Refactored) - FastAPI server",
     )
     parser.add_argument(
-        "--host", type=str, default=os.environ.get("ENGINEERING_SERVICE_HOST", "0.0.0.0")
+        "--host", type=str, default=os.environ.get("ENGINEERING_SERVICE_HOST", "0.0.0.0"),
     )
     parser.add_argument(
         "--port",

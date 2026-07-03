@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { motion } from 'framer-motion'
 import { Shield, Users, Key, Activity, Clock, RefreshCw, Zap, TrendingUp } from 'lucide-react'
-import { fetchMetrics, fetchAgents, type MetricsResponse, type AgentMeta } from '../lib/api'
+import { fetchMetrics, fetchAgents, type AgentMeta } from '../lib/api'  // QUALITY v2.1.1: removed unused MetricsResponse type
 import { useNotify } from '../context/NotificationContext'
 import { Card, CardHeader, Badge, Button } from '../components/ui'
 import { cn } from '../utils/helpers'

@@ -30,7 +30,7 @@ import logging
 import time
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-from typing import Any, Dict, List
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -67,17 +67,17 @@ class PropagationContext:
     state_estimator: Any = None
 
     # --- Accumulated results ---
-    steps: List[Dict[str, Any]] = field(default_factory=list)
+    steps: list[dict[str, Any]] = field(default_factory=list)
     success: bool = True
     stop: bool = False  # Set to True to abort the chain
     start_time: float = field(default_factory=time.time)
     elapsed_seconds: float = 0.0
 
     # --- Short-circuit cache (set by YbusRebuildHandler, read by LoadFlowHandler etc.) ---
-    ybus_sequences: Dict[str, Any] = field(default_factory=dict)
+    ybus_sequences: dict[str, Any] = field(default_factory=dict)
 
     def record_step(
-        self, step_name: str, step_success: bool, details: Dict[str, Any] | None = None
+        self, step_name: str, step_success: bool, details: dict[str, Any] | None = None,
     ) -> None:
         self.steps.append(
             {
@@ -85,7 +85,7 @@ class PropagationContext:
                 "success": step_success,
                 "timestamp": time.time(),
                 "details": details or {},
-            }
+            },
         )
         if not step_success:
             self.success = False
@@ -141,7 +141,7 @@ class TopologyUpdateHandler(PropagationHandler):
                 ctx.dt_state.adms.topology.identify_sections()
 
             ctx.record_step(
-                "topology_update", True, {"switch_id": ctx.switch_id, "opened": ctx.is_opening}
+                "topology_update", True, {"switch_id": ctx.switch_id, "opened": ctx.is_opening},
             )
 
             if ctx.event_bus is not None:
@@ -155,7 +155,7 @@ class TopologyUpdateHandler(PropagationHandler):
                         affected_switches=[ctx.switch_id],
                         source="change_propagation",
                         correlation_id=ctx.propagation_id,
-                    )
+                    ),
                 )
         except Exception as e:
             ctx.record_step("topology_update", False, {"error": str(e)})
@@ -183,7 +183,7 @@ class YbusRebuildHandler(PropagationHandler):
                             sequences_rebuilt=["1"],
                             source="change_propagation",
                             correlation_id=ctx.propagation_id,
-                        )
+                        ),
                     )
             else:
                 ctx.record_step("ybus_rebuild", False, {"error": "No electrical model bound"})
@@ -236,7 +236,7 @@ class LoadFlowHandler(PropagationHandler):
                         bus_voltages=bus_voltages,
                         source="change_propagation",
                         correlation_id=ctx.propagation_id,
-                    )
+                    ),
                 )
 
             if not converged:
@@ -267,7 +267,7 @@ class StateEstimationHandler(PropagationHandler):
             estimator = ctx.state_estimator if ctx.state_estimator is not None else WLSEstimator()
             bus_ids = sorted(ctx.dt_state.system.buses.keys())
 
-            measurements: Dict[str, Any] = {
+            measurements: dict[str, Any] = {
                 "voltage_mag": {},
                 "power_injection": {},
                 "power_flow": {},
@@ -302,7 +302,7 @@ class StateEstimationHandler(PropagationHandler):
                         max_residual=result.max_residual,
                         source="change_propagation",
                         correlation_id=ctx.propagation_id,
-                    )
+                    ),
                 )
         except Exception as e:
             logger.warning("State estimation failed (non-fatal): %s", e)
@@ -318,13 +318,13 @@ class ShortCircuitRefreshHandler(PropagationHandler):
     def handle(self, ctx: PropagationContext) -> PropagationContext:
         if ctx.dt_state is None or ctx.dt_state.system is None:
             ctx.record_step(
-                "short_circuit_refresh", True, {"status": "skipped", "reason": "No system bound"}
+                "short_circuit_refresh", True, {"status": "skipped", "reason": "No system bound"},
             )
             return ctx
         try:
             ctx.dt_state.system.build_sequence_networks()
             ctx.record_step(
-                "short_circuit_refresh", True, {"status": "refreshed", "sequences_built": True}
+                "short_circuit_refresh", True, {"status": "refreshed", "sequences_built": True},
             )
             if ctx.event_bus is not None:
                 from .event_bus import FaultAnalysisCompleted
@@ -333,7 +333,7 @@ class ShortCircuitRefreshHandler(PropagationHandler):
                     FaultAnalysisCompleted(
                         source="change_propagation",
                         correlation_id=ctx.propagation_id,
-                    )
+                    ),
                 )
         except Exception as e:
             logger.warning("Short-circuit refresh failed (non-fatal): %s", e)
@@ -374,11 +374,11 @@ class ArcFlashRefreshHandler(PropagationHandler):
             Ybus_zero = ctx.dt_state.system.get_ybus(seq="0")
 
             analyzer = FaultAnalyzer(
-                Ybus_pos, Ybus_neg, Ybus_zero, base_mva=ctx.dt_state.system.base_mva
+                Ybus_pos, Ybus_neg, Ybus_zero, base_mva=ctx.dt_state.system.base_mva,
             )
 
             af_engine = ArcFlashEngine()
-            results: Dict[str, Any] = {}
+            results: dict[str, Any] = {}
             bus_ids = sorted(ctx.dt_state.system.buses.keys())
             bus_index = {bid: idx for idx, bid in enumerate(ctx.dt_state.system.buses.keys())}
             system_base_kv = getattr(ctx.dt_state.system, "base_kv", None) or 115.0  # kV
@@ -394,10 +394,7 @@ class ArcFlashRefreshHandler(PropagationHandler):
                 # Compute the bus voltage in kV.  bus.voltage is in per-unit,
                 # system.base_kv is the system-wide kV base (e.g. 115 kV).
                 bus = ctx.dt_state.system.buses.get(bus_id)
-                if bus is not None:
-                    bus_kv = abs(bus.voltage) * system_base_kv
-                else:
-                    bus_kv = system_base_kv
+                bus_kv = abs(bus.voltage) * system_base_kv if bus is not None else system_base_kv
 
                 # IEEE 1584-2018 valid range: 0.208–15 kV.
                 # Buses above 15 kV (transmission) use Ralph Lee fallback.
@@ -480,7 +477,7 @@ class ArcFlashRefreshHandler(PropagationHandler):
                     ArcFlashRefreshed(
                         source="change_propagation",
                         correlation_id=ctx.propagation_id,
-                    )
+                    ),
                 )
         except Exception as e:
             logger.warning("Arc flash refresh failed (non-fatal): %s", e)
@@ -512,10 +509,10 @@ class ProtectionRefreshHandler(PropagationHandler):
             Ybus_zero = ctx.dt_state.system.get_ybus(seq="0")
 
             analyzer = FaultAnalyzer(
-                Ybus_pos, Ybus_neg, Ybus_zero, base_mva=ctx.dt_state.system.base_mva
+                Ybus_pos, Ybus_neg, Ybus_zero, base_mva=ctx.dt_state.system.base_mva,
             )
 
-            fault_currents: List[float] = []
+            fault_currents: list[float] = []
             bus_ids = sorted(ctx.dt_state.system.buses.keys())
             bus_index = {bid: idx for idx, bid in enumerate(ctx.dt_state.system.buses.keys())}
             for bus_id in bus_ids:
@@ -534,7 +531,7 @@ class ProtectionRefreshHandler(PropagationHandler):
             relay2 = OvercurrentRelay(relay_id=2, name="Downstream", TMS=0.2, Ip=1.0)
 
             coord_results = coord_engine.check_coordination_range(
-                relay1, relay2, representative_faults
+                relay1, relay2, representative_faults,
             )
             all_coordinated = all(r["coordinated"] for r in coord_results)
             min_margin = min(r["margin"] for r in coord_results) if coord_results else 0.0
@@ -555,7 +552,7 @@ class ProtectionRefreshHandler(PropagationHandler):
                     ProtectionRefreshed(
                         source="change_propagation",
                         correlation_id=ctx.propagation_id,
-                    )
+                    ),
                 )
         except Exception as e:
             logger.warning("Protection refresh failed (non-fatal): %s", e)
@@ -604,7 +601,7 @@ class DigitalTwinUpdateHandler(PropagationHandler):
                         validation_passed=snapshot.validation_passed,
                         source="change_propagation",
                         correlation_id=ctx.propagation_id,
-                    )
+                    ),
                 )
         except Exception as e:
             ctx.record_step("digital_twin_update", False, {"error": str(e)})
@@ -624,7 +621,7 @@ class PropagationChain:
     recorded and a ``ValidationErrorEvent`` is published if any step failed.
     """
 
-    def __init__(self, handlers: List[PropagationHandler] | None = None):
+    def __init__(self, handlers: list[PropagationHandler] | None = None):
         self.handlers = list(handlers) if handlers is not None else list(_DEFAULT_HANDLERS)
 
     def execute(self, ctx: PropagationContext) -> PropagationContext:
@@ -649,7 +646,7 @@ class PropagationChain:
                     layer="propagation",
                     source="change_propagation",
                     correlation_id=ctx.propagation_id,
-                )
+                ),
             )
 
         return ctx
@@ -659,7 +656,7 @@ class PropagationChain:
 # Default chain — used by ChangePropagationEngine when no custom chain given
 # ============================================================================
 
-_DEFAULT_HANDLERS: List[PropagationHandler] = [
+_DEFAULT_HANDLERS: list[PropagationHandler] = [
     TopologyUpdateHandler(),
     YbusRebuildHandler(),
     LoadFlowHandler(),

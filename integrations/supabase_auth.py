@@ -42,7 +42,7 @@ from __future__ import annotations
 import logging
 import os
 import secrets
-from typing import Any, Optional
+from typing import Any
 
 import httpx
 
@@ -68,7 +68,7 @@ def _check_enabled() -> None:
     """Raise if Supabase Auth is disabled."""
     if not SUPABASE_AUTH_ENABLED:
         raise SupabaseAuthError(
-            "Supabase Auth is disabled. Set SUPABASE_AUTH_ENABLED=true to enable."
+            "Supabase Auth is disabled. Set SUPABASE_AUTH_ENABLED=true to enable.",
         )
     if not SUPABASE_URL or not SUPABASE_ANON_KEY:
         raise SupabaseAuthError("SUPABASE_URL and SUPABASE_ANON_KEY must be set for Supabase Auth.")
@@ -107,7 +107,7 @@ def verify_supabase_token(access_token: str) -> dict[str, Any]:
         )
         if r.status_code != 200:
             raise SupabaseAuthError(
-                f"Invalid Supabase token (status {r.status_code}): {r.text[:200]}"
+                f"Invalid Supabase token (status {r.status_code}): {r.text[:200]}",
             )
         return r.json()
     except httpx.HTTPError as e:
@@ -121,7 +121,7 @@ def get_oauth_url(
     *,
     provider: str,
     redirect_to: str,
-    scopes: Optional[list[str]] = None,
+    scopes: list[str] | None = None,
 ) -> str:
     """Return the URL to redirect the user to for OAuth login.
 
@@ -200,7 +200,7 @@ def send_magic_link(*, email: str, redirect_to: str) -> bool:
 def link_or_create_local_user(
     supabase_user: dict[str, Any],
     *,
-    local_user_creator: Optional[callable] = None,
+    local_user_creator: callable | None = None,
 ) -> dict[str, Any]:
     """Link a Supabase user to a local user, creating one if needed.
 

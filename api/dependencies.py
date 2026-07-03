@@ -14,7 +14,6 @@ from __future__ import annotations
 import hmac
 import logging
 import os
-from typing import Optional
 
 import jwt
 from fastapi import Depends, Header, HTTPException, Query, status
@@ -36,7 +35,7 @@ if not _jwt_key:
     if _env in ("production", "prod", "staging"):
         raise RuntimeError(
             "JWT_SECRET_KEY must be set in production/staging. "
-            "Refusing to start with a default secret."
+            "Refusing to start with a default secret.",
         )
     import logging as _logging
     import secrets as _secrets
@@ -44,7 +43,7 @@ if not _jwt_key:
     _jwt_key = _secrets.token_hex(32)
     _logging.getLogger(__name__).warning(
         "JWT_SECRET_KEY not set; using random key. "
-        "Tokens will NOT survive restarts. Set JWT_SECRET_KEY in production."
+        "Tokens will NOT survive restarts. Set JWT_SECRET_KEY in production.",
     )
 JWT_SECRET_KEY: str = _jwt_key
 JWT_ALGORITHM: str = "HS256"
@@ -59,7 +58,7 @@ if not API_KEY:
     if _env in ("production", "prod", "staging"):
         raise RuntimeError(
             "ENGINEERING_SERVICE_API_KEY must be set in production/staging. "
-            "Refusing to start with no API key."
+            "Refusing to start with no API key.",
         )
     logger.warning("ENGINEERING_SERVICE_API_KEY not set — API key auth disabled in development")
 
@@ -118,7 +117,7 @@ class CurrentUser(BaseModel):
 
 async def get_current_user(
     db: AsyncSession = Depends(get_db),  # noqa: B008
-    authorization: Optional[str] = None,  # injected by FastAPI header param
+    authorization: str | None = None,  # injected by FastAPI header param
 ) -> CurrentUser:
     """Validate the JWT from the ``Authorization: Bearer <token>`` header.
 
@@ -159,8 +158,8 @@ async def get_current_user(
             detail="Invalid token",
         ) from err
 
-    user_id: Optional[str] = payload.get("sub")
-    token_type: Optional[str] = payload.get("type")
+    user_id: str | None = payload.get("sub")
+    token_type: str | None = payload.get("type")
 
     if user_id is None or token_type != "access":
         raise HTTPException(

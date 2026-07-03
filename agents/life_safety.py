@@ -69,7 +69,7 @@ import time
 from dataclasses import asdict, dataclass, field
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 logger = logging.getLogger("agent.life_safety")
 
@@ -221,7 +221,7 @@ def activate_kill_switch(reason: str = "manual") -> None:
                     "activated_at": datetime.now(UTC).isoformat(),
                     "pid": os.getpid(),
                     "hostname": os.uname().nodename if hasattr(os, "uname") else "unknown",
-                }
+                },
             )
     except Exception as exc:  # noqa: BLE001
         logger.debug("SIEM forward of kill_switch activation failed: %s", exc)
@@ -254,14 +254,14 @@ class SafetyCheckResult:
     blocked: bool
     reason: str = ""
     requires_dual_confirmation: bool = False
-    matched_pattern: Optional[str] = None
+    matched_pattern: str | None = None
     safety_level: str = "ok"  # ok | blocked | dual_confirmation | degraded
-    annotated_screenshot: Optional[str] = None
-    state_snapshot_id: Optional[str] = None
-    audit_entry_hash: Optional[str] = None  # tamper-evident chain
+    annotated_screenshot: str | None = None
+    state_snapshot_id: str | None = None
+    audit_entry_hash: str | None = None  # tamper-evident chain
     timestamp: str = field(default_factory=lambda: datetime.now(UTC).isoformat())
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return asdict(self)
 
 
@@ -284,7 +284,7 @@ class TamperEvidentAuditLog:
         self.log_path = Path(log_path)
         self.log_path.parent.mkdir(parents=True, exist_ok=True)
 
-    def append(self, data: Dict[str, Any]) -> str:
+    def append(self, data: dict[str, Any]) -> str:
         """Append an entry to the chain. Returns the entry's hash."""
         # Read previous hash
         prev_hash = self._get_last_hash()
@@ -310,7 +310,7 @@ class TamperEvidentAuditLog:
 
         return entry_hash
 
-    def verify_chain(self) -> tuple[bool, List[str]]:
+    def verify_chain(self) -> tuple[bool, list[str]]:
         """Verify the integrity of the entire chain.
 
         Returns (is_valid, list_of_broken_entry_ids).
@@ -318,7 +318,7 @@ class TamperEvidentAuditLog:
         if not self.log_path.exists():
             return True, []
 
-        broken: List[str] = []
+        broken: list[str] = []
         prev_hash = self.GENESIS_HASH
 
         with open(self.log_path, encoding="utf-8") as fh:
@@ -412,7 +412,7 @@ class LifeSafetyGuard:
     def __init__(
         self,
         audit_dir: str = "/tmp/cua_audit",
-        safety_log_path: Optional[str] = None,
+        safety_log_path: str | None = None,
     ) -> None:
         self.audit_dir = Path(audit_dir)
         self.audit_dir.mkdir(parents=True, exist_ok=True)
@@ -420,15 +420,15 @@ class LifeSafetyGuard:
             log_path=safety_log_path or str(self.audit_dir / "safety_chain.jsonl"),
         )
         self._last_control_action_time: float = 0.0
-        self._last_safety_check: Optional[SafetyCheckResult] = None
+        self._last_safety_check: SafetyCheckResult | None = None
 
     # ─── Pre-action check — called before EVERY action ─────────────────────
 
     def pre_action_check(
         self,
         action,  # CUAAction
-        screenshot_before: Optional[str],
-        gemini_analysis: Optional[Dict[str, Any]],
+        screenshot_before: str | None,
+        gemini_analysis: dict[str, Any] | None,
         vision_source: str = "gemini",
         mode: str = "analyze",
     ) -> SafetyCheckResult:
@@ -491,7 +491,7 @@ class LifeSafetyGuard:
 
         # ── LAYER 3: Dual confirmation for protection settings ───────────
         requires_dual = False
-        matched_dual_pattern: Optional[str] = None
+        matched_dual_pattern: str | None = None
         for pattern in DUAL_CONFIRMATION_PATTERNS:
             if pattern in target_text or pattern in action_text:
                 requires_dual = True
@@ -522,7 +522,7 @@ class LifeSafetyGuard:
             return result
 
         # ── LAYER 5: Pre-action screenshot annotation ────────────────────
-        annotated_path: Optional[str] = None
+        annotated_path: str | None = None
         if screenshot_before and action.type in ("click", "double_click", "right_click"):
             annotated_path = self._annotate_screenshot(
                 screenshot_before,
@@ -567,9 +567,9 @@ class LifeSafetyGuard:
     def post_action_record(
         self,
         action,
-        screenshot_after: Optional[str],
+        screenshot_after: str | None,
         pre_check: SafetyCheckResult,
-        exec_error: Optional[str] = None,
+        exec_error: str | None = None,
     ) -> None:
         """Record the post-action state for rollback and audit."""
         self._last_control_action_time = time.monotonic()
@@ -595,8 +595,8 @@ class LifeSafetyGuard:
         self,
         screenshot_path: str,
         action,
-        gemini_analysis: Optional[Dict[str, Any]],
-    ) -> Optional[str]:
+        gemini_analysis: dict[str, Any] | None,
+    ) -> str | None:
         """Draw a red crosshair on the screenshot at the click location.
 
         This creates a VISUAL RECORD of intent — investigators can see
@@ -621,7 +621,7 @@ class LifeSafetyGuard:
             draw.text((x + 35, y - 10), label, fill="red")
 
             annotated_path = str(
-                Path(screenshot_path).with_name(Path(screenshot_path).stem + "_annotated.png")
+                Path(screenshot_path).with_name(Path(screenshot_path).stem + "_annotated.png"),
             )
             img.save(annotated_path)
             return annotated_path
@@ -636,8 +636,8 @@ class LifeSafetyGuard:
         event_type: str,
         action,
         result: SafetyCheckResult,
-        analysis: Optional[Dict[str, Any]] = None,
-        extra: Optional[Dict[str, Any]] = None,
+        analysis: dict[str, Any] | None = None,
+        extra: dict[str, Any] | None = None,
     ) -> str:
         """Append an entry to the tamper-evident audit chain.
 
@@ -706,7 +706,7 @@ class LifeSafetyGuard:
 
     # ─── Public: health check ──────────────────────────────────────────────
 
-    def health_check(self) -> Dict[str, Any]:
+    def health_check(self) -> dict[str, Any]:
         """Return safety system status for /health endpoints."""
         chain_valid, broken = self.audit_log.verify_chain()
         return {

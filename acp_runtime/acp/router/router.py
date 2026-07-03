@@ -12,7 +12,8 @@ from __future__ import annotations
 
 import logging
 import time
-from typing import Any, Callable, Coroutine, Optional
+from collections.abc import Callable, Coroutine
+from typing import Any, Optional
 
 from pydantic import ValidationError
 
@@ -78,15 +79,15 @@ class RouterConfig:
 
     def __init__(
         self,
-        caller_scopes: Optional[set[str]] = None,
+        caller_scopes: set[str] | None = None,
         *,
         on_notification: NotificationHandler = None,
-        auth_validator: Optional[AuthValidator] = None,
-        audit_logger: Optional[AuditLogger] = None,
+        auth_validator: AuthValidator | None = None,
+        audit_logger: AuditLogger | None = None,
         require_auth_for_public: bool = False,
-        tracer: Optional[Any] = None,
-        metrics: Optional[Any] = None,
-        logger: Optional[Any] = None,
+        tracer: Any | None = None,
+        metrics: Any | None = None,
+        logger: Any | None = None,
     ) -> None:
         self.caller_scopes = set(caller_scopes or ())
         self.on_notification = on_notification
@@ -111,7 +112,7 @@ class Router:
         response_dict = await router.handle(incoming_dict)
     """
 
-    def __init__(self, runtime: AcpRuntime, config: Optional[RouterConfig] = None) -> None:
+    def __init__(self, runtime: AcpRuntime, config: RouterConfig | None = None) -> None:
         self._runtime = runtime
         self._config = config or RouterConfig()
         self._scope_validator = ScopeValidator(self._config.caller_scopes)
@@ -119,7 +120,7 @@ class Router:
 
     # ------------------------------------------------------------- public API
 
-    async def handle(self, envelope: dict) -> Optional[dict]:
+    async def handle(self, envelope: dict) -> dict | None:
         """Accept a JSON-RPC envelope dict, return a response dict (or None).
 
         Args:
@@ -140,7 +141,7 @@ class Router:
         # Observability: record request count
         if self._config.metrics is not None:
             self._config.metrics.get_or_create_counter(
-                "acp.router.requests.total", "Total requests"
+                "acp.router.requests.total", "Total requests",
             ).inc()
 
         # 1. Try request shape
@@ -154,10 +155,10 @@ class Router:
                 # 3. Neither — invalid envelope
                 if self._config.metrics is not None:
                     self._config.metrics.get_or_create_counter(
-                        "acp.router.requests.invalid", "Invalid requests"
+                        "acp.router.requests.invalid", "Invalid requests",
                     ).inc()
                 return self._error_response(
-                    None, JSONRPC_INVALID_REQUEST, "Invalid JSON-RPC envelope"
+                    None, JSONRPC_INVALID_REQUEST, "Invalid JSON-RPC envelope",
                 )
             return await self._handle_notification(notif)
 
@@ -249,7 +250,7 @@ class Router:
                 {"capability": req.capability, "available": self._runtime.capability_names},
             )
             await self._audit(
-                req, caller_id, outcome, error_code, int((time.perf_counter() - t0) * 1000)
+                req, caller_id, outcome, error_code, int((time.perf_counter() - t0) * 1000),
             )
             await self._finish_observability(span_ctx, t0, req, "error", error_code)
             return resp
@@ -264,7 +265,7 @@ class Router:
                 "Authentication required for all capabilities",
             )
             await self._audit(
-                req, caller_id, outcome, error_code, int((time.perf_counter() - t0) * 1000)
+                req, caller_id, outcome, error_code, int((time.perf_counter() - t0) * 1000),
             )
             await self._finish_observability(span_ctx, t0, req, "denied", error_code)
             return resp
@@ -280,7 +281,7 @@ class Router:
                 {"capability": req.capability, "required_scopes": meta.scopes},
             )
             await self._audit(
-                req, caller_id, outcome, error_code, int((time.perf_counter() - t0) * 1000)
+                req, caller_id, outcome, error_code, int((time.perf_counter() - t0) * 1000),
             )
             await self._finish_observability(span_ctx, t0, req, "denied", error_code)
             return resp
@@ -306,14 +307,14 @@ class Router:
             resp = self._error_response(req.id, JSONRPC_INTERNAL_ERROR, f"Internal error: {e}")
 
         await self._audit(
-            req, caller_id, outcome, error_code, int((time.perf_counter() - t0) * 1000)
+            req, caller_id, outcome, error_code, int((time.perf_counter() - t0) * 1000),
         )
         await self._finish_observability(span_ctx, t0, req, outcome, error_code)
         return resp
 
     async def _finish_observability(
         self,
-        span_ctx: Optional[Any],
+        span_ctx: Any | None,
         t0: float,
         req: JsonRpcRequest,
         outcome: str,
@@ -328,7 +329,7 @@ class Router:
             ).observe(duration_ms)
             if outcome != "success":
                 self._config.metrics.get_or_create_counter(
-                    "acp.router.requests.errors", "Request errors"
+                    "acp.router.requests.errors", "Request errors",
                 ).inc()
         if self._config.tracer is not None and span_ctx is not None:
             from acp.observability.tracer import SpanStatus
@@ -409,7 +410,7 @@ class Router:
         req_id: Any,
         code: int,
         message: str,
-        data: Optional[dict] = None,
+        data: dict | None = None,
     ) -> dict:
         return JsonRpcResponse(
             id=req_id,

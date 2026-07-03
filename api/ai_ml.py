@@ -48,7 +48,7 @@ async def predict_load(request: Request):
             raise HTTPException(status_code=400, detail="historical_data must be an array")
         if len(historical) > 10000:
             raise HTTPException(
-                status_code=400, detail="historical_data array too large (max 10000 points)"
+                status_code=400, detail="historical_data array too large (max 10000 points)",
             )
         if not isinstance(horizon, int) or horizon < 1 or horizon > 168:
             raise HTTPException(status_code=400, detail="horizon_hours must be between 1 and 168")
@@ -74,7 +74,7 @@ async def predict_load(request: Request):
                     "metrics": metrics,
                 },
                 "trace_id": trace_id,
-            }
+            },
         )
     except HTTPException:
         raise
@@ -84,7 +84,7 @@ async def predict_load(request: Request):
         logger = getLogger("engineering_service")
         logger.error("predict_load_failed error=%s", str(e), extra={"trace_id": trace_id})
         return JSONResponse(
-            status_code=500, content={"success": False, "errors": [str(e)], "trace_id": trace_id}
+            status_code=500, content={"success": False, "errors": [str(e)], "trace_id": trace_id},
         )
 
 
@@ -127,7 +127,7 @@ async def predict_fault(request: Request):
                 "success": True,
                 "data": result,
                 "trace_id": trace_id,
-            }
+            },
         )
     except HTTPException:
         raise
@@ -137,7 +137,7 @@ async def predict_fault(request: Request):
         logger = getLogger("engineering_service")
         logger.error("predict_fault_failed error=%s", str(e), extra={"trace_id": trace_id})
         return JSONResponse(
-            status_code=500, content={"success": False, "errors": [str(e)], "trace_id": trace_id}
+            status_code=500, content={"success": False, "errors": [str(e)], "trace_id": trace_id},
         )
 
 
@@ -173,7 +173,7 @@ async def train_fault_predictor(request: Request):
                 "success": True,
                 "data": result,
                 "trace_id": trace_id,
-            }
+            },
         )
     except HTTPException:
         raise
@@ -183,7 +183,7 @@ async def train_fault_predictor(request: Request):
         logger = getLogger("engineering_service")
         logger.error("train_fault_failed error=%s", str(e), extra={"trace_id": trace_id})
         return JSONResponse(
-            status_code=500, content={"success": False, "errors": [str(e)], "trace_id": trace_id}
+            status_code=500, content={"success": False, "errors": [str(e)], "trace_id": trace_id},
         )
 
 
@@ -220,7 +220,7 @@ async def detect_anomalies(request: Request):
                 "success": True,
                 "data": result,
                 "trace_id": trace_id,
-            }
+            },
         )
     except HTTPException:
         raise
@@ -230,7 +230,7 @@ async def detect_anomalies(request: Request):
         logger = getLogger("engineering_service")
         logger.error("anomaly_detection_failed error=%s", str(e), extra={"trace_id": trace_id})
         return JSONResponse(
-            status_code=500, content={"success": False, "errors": [str(e)], "trace_id": trace_id}
+            status_code=500, content={"success": False, "errors": [str(e)], "trace_id": trace_id},
         )
 
 
@@ -247,7 +247,7 @@ async def gnn_predict(request: Request):
                     "success": False,
                     "error": "GNN requires PyTorch and PyTorch Geometric",
                     "trace_id": trace_id,
-                }
+                },
             )
 
         body = await request.json()
@@ -259,7 +259,7 @@ async def gnn_predict(request: Request):
 
         if not node_features or not edge_index or not targets:
             raise HTTPException(
-                status_code=400, detail="node_features, edge_index, and targets are required"
+                status_code=400, detail="node_features, edge_index, and targets are required",
             )
 
         from ml.predictive import PowerGridGNN
@@ -277,7 +277,7 @@ async def gnn_predict(request: Request):
                 "success": True,
                 "data": result,
                 "trace_id": trace_id,
-            }
+            },
         )
     except HTTPException:
         raise
@@ -287,7 +287,7 @@ async def gnn_predict(request: Request):
         logger = getLogger("engineering_service")
         logger.error("gnn_predict_failed error=%s", str(e), extra={"trace_id": trace_id})
         return JSONResponse(
-            status_code=500, content={"success": False, "errors": [str(e)], "trace_id": trace_id}
+            status_code=500, content={"success": False, "errors": [str(e)], "trace_id": trace_id},
         )
 
 
@@ -330,7 +330,7 @@ async def rag_query(request: Request):
                     ],
                 },
                 "trace_id": trace_id,
-            }
+            },
         )
     except HTTPException:
         raise
@@ -340,5 +340,5 @@ async def rag_query(request: Request):
         logger = getLogger("engineering_service")
         logger.error("rag_query_failed error=%s", str(e), extra={"trace_id": trace_id})
         return JSONResponse(
-            status_code=500, content={"success": False, "errors": [str(e)], "trace_id": trace_id}
+            status_code=500, content={"success": False, "errors": [str(e)], "trace_id": trace_id},
         )

@@ -53,7 +53,7 @@ async def get_digital_twin_status(request: Request):
                     "supported_models": ["Substation", "Bus", "Line", "Transformer", "Generator"],
                 },
                 "trace_id": trace_id,
-            }
+            },
         )
     except Exception as e:
         from logging import getLogger
@@ -61,5 +61,5 @@ async def get_digital_twin_status(request: Request):
         logger = getLogger("engineering_service")
         logger.error("digital_twin_status_failed error=%s", str(e), extra={"trace_id": trace_id})
         return JSONResponse(
-            status_code=500, content={"success": False, "errors": [str(e)], "trace_id": trace_id}
+            status_code=500, content={"success": False, "errors": [str(e)], "trace_id": trace_id},
         )

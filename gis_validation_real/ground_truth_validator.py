@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any, Dict, List, Tuple
+from typing import Any
 
 from gis_integration.models import GISFeature
 from gis_integration.transformer import GIS_TO_ADMS_Transformer
@@ -12,18 +12,18 @@ from gis_validation.topology_validator import validate_adms_topology as topo_val
 @dataclass(frozen=True)
 class GroundTruthMismatch:
     mismatch_type: str
-    affected_assets: List[str]
-    details: Dict[str, Any]
+    affected_assets: list[str]
+    details: dict[str, Any]
 
 
-def _feature_count(assets: List[Any]) -> int:
+def _feature_count(assets: list[Any]) -> int:
     return len(assets)
 
 
 def validate_real_gis_to_adms(
     *,
-    extracted_features: List[GISFeature],
-) -> Tuple[bool, Dict[str, Any]]:
+    extracted_features: list[GISFeature],
+) -> tuple[bool, dict[str, Any]]:
     """
     Ground truth validator compares:
     - GIS extracted features (source of truth)
@@ -45,7 +45,7 @@ def validate_real_gis_to_adms(
     # Topology/graph checks (geometry endpoint-based)
     ok_topo, issues_topo = topo_validate(adms_assets)
 
-    mismatches: List[GroundTruthMismatch] = []
+    mismatches: list[GroundTruthMismatch] = []
 
     # Feature count vs asset count (best-effort expectation: 1 feature -> 1 asset)
     if _feature_count(extracted_features) != _feature_count(adms_assets):
@@ -57,7 +57,7 @@ def validate_real_gis_to_adms(
                     "gis_feature_count": _feature_count(extracted_features),
                     "adms_asset_count": _feature_count(adms_assets),
                 },
-            )
+            ),
         )
 
     # Classification:

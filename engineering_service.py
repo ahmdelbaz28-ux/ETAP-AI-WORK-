@@ -15,6 +15,20 @@ from uvicorn import run
 
 from core.bootstrap import logger
 
+# SECURITY: install secret-redaction filter on the root logger BEFORE any
+# application code runs. This catches accidental logging of credentials
+# (API keys, JWT tokens, TOTP secrets, connection-string passwords) and
+# replaces them with [REDACTED-*] markers before they reach log handlers.
+# Filter is enabled by default; disable via AUDIT_LOG_REDACT_SECRETS=false.
+try:
+    from security.log_redaction import install_globally as _install_redaction
+
+    _install_redaction()
+except ImportError:
+    # security module may not be importable in stripped-down deployments
+    # (e.g. HF Space minimal requirements). Skip silently.
+    pass
+
 
 def main():
     """
@@ -36,7 +50,7 @@ def main():
     port = int(os.environ.get("ENGINEERING_SERVICE_PORT", os.environ.get("PORT", 8000)))
     host = os.environ.get("ENGINEERING_SERVICE_HOST", os.environ.get("HOST", "0.0.0.0"))
 
-    logger.info(f"Starting Engineering Service on {host}:{port}")
+    logger.info("Starting Engineering Service on %s:%s", host, port)
 
     # Run the application
     run(

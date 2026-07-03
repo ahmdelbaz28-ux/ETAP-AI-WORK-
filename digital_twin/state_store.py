@@ -19,7 +19,7 @@ import threading
 import time
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 import numpy as np
 
@@ -85,10 +85,10 @@ class SwitchState:
 class TopologyState:
     """Current topology state derived from switching."""
 
-    connected_components: List[List[str]] = field(default_factory=list)
-    energized_buses: List[str] = field(default_factory=list)
-    de_energized_buses: List[str] = field(default_factory=list)
-    section_buses: Dict[str, List[str]] = field(default_factory=dict)
+    connected_components: list[list[str]] = field(default_factory=list)
+    energized_buses: list[str] = field(default_factory=list)
+    de_energized_buses: list[str] = field(default_factory=list)
+    section_buses: dict[str, list[str]] = field(default_factory=dict)
 
     def to_dict(self) -> dict:
         return {
@@ -127,11 +127,11 @@ class SimulationResults:
 
     load_flow_converged: bool = False
     load_flow_iterations: int = 0
-    load_flow_bus_voltages: Dict[str, complex] = field(default_factory=dict)
+    load_flow_bus_voltages: dict[str, complex] = field(default_factory=dict)
     state_estimation_converged: bool = False
     state_estimation_bad_data: int = 0
-    fault_currents: Dict[str, complex] = field(default_factory=dict)
-    arc_flash_incident_energy: Dict[str, float] = field(default_factory=dict)
+    fault_currents: dict[str, complex] = field(default_factory=dict)
+    arc_flash_incident_energy: dict[str, float] = field(default_factory=dict)
     protection_coordination_ok: bool = False
 
     def to_dict(self) -> dict:
@@ -164,16 +164,16 @@ class StateSnapshot:
     simulation_time: float = 0.0
 
     # GIS Layer State
-    gis_assets: Dict[str, GISAssetState] = field(default_factory=dict)
-    gis_zones: Dict[str, str] = field(default_factory=dict)
+    gis_assets: dict[str, GISAssetState] = field(default_factory=dict)
+    gis_zones: dict[str, str] = field(default_factory=dict)
 
     # Electrical Layer State
-    bus_states: Dict[str, BusState] = field(default_factory=dict)
-    ybus_shape: Tuple[int, int] = (0, 0)
+    bus_states: dict[str, BusState] = field(default_factory=dict)
+    ybus_shape: tuple[int, int] = (0, 0)
     ybus_checksum: int = 0  # Hash of Ybus for change detection
 
     # ADMS Layer State
-    switch_states: Dict[str, SwitchState] = field(default_factory=dict)
+    switch_states: dict[str, SwitchState] = field(default_factory=dict)
     topology: TopologyState = field(default_factory=TopologyState)
     scada_measurement_count: int = 0
 
@@ -182,7 +182,7 @@ class StateSnapshot:
 
     # Validation
     validation_passed: bool = True
-    validation_errors: List[str] = field(default_factory=list)
+    validation_errors: list[str] = field(default_factory=list)
 
     # Metadata
     source_event: str = ""
@@ -241,7 +241,7 @@ class StateStore:
     """
 
     def __init__(self, max_versions: int = 1000):
-        self._snapshots: List[StateSnapshot] = []
+        self._snapshots: list[StateSnapshot] = []
         self._max_versions = max_versions
         self._current_version = 0
         self._lock = threading.Lock()
@@ -264,7 +264,7 @@ class StateStore:
 
             return self._current_version
 
-    def get_current(self) -> Optional[StateSnapshot]:
+    def get_current(self) -> StateSnapshot | None:
         """Get the current (latest) state snapshot."""
         with self._lock:
             if not self._snapshots:
@@ -272,7 +272,7 @@ class StateStore:
             ref = self._snapshots[-1]
         return copy.deepcopy(ref)
 
-    def get_version(self, version: int) -> Optional[StateSnapshot]:
+    def get_version(self, version: int) -> StateSnapshot | None:
         """Get a specific version of the state."""
         with self._lock:
             for s in self._snapshots:
@@ -288,7 +288,7 @@ class StateStore:
         with self._lock:
             return self._current_version
 
-    def rollback(self, version: int) -> Optional[StateSnapshot]:
+    def rollback(self, version: int) -> StateSnapshot | None:
         """
         Rollback state to a specific version.
         Removes all snapshots after the target version.
@@ -313,7 +313,7 @@ class StateStore:
             ref = self._snapshots[-1]
         return copy.deepcopy(ref)
 
-    def diff(self, version_a: int, version_b: int) -> Optional[Dict[str, Any]]:
+    def diff(self, version_a: int, version_b: int) -> dict[str, Any] | None:
         """
         Compute the diff between two state versions.
 
@@ -397,7 +397,7 @@ class StateStore:
 
         return changes
 
-    def get_history(self, limit: int = 100) -> List[Dict[str, Any]]:
+    def get_history(self, limit: int = 100) -> list[dict[str, Any]]:
         """Get summary of recent state versions."""
         with self._lock:
             recent = self._snapshots[-limit:]
@@ -434,7 +434,7 @@ class StateStore:
             self._snapshots.clear()
             self._current_version = 0
 
-    def _get_version_unlocked(self, version: int) -> Optional[StateSnapshot]:
+    def _get_version_unlocked(self, version: int) -> StateSnapshot | None:
         """Get a specific version without acquiring lock (caller must hold lock)."""
         for s in self._snapshots:
             if s.version == version:

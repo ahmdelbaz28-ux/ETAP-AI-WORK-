@@ -85,25 +85,41 @@ def create_scada_tags_geojson():
 
 def validate_geojson_structure(geojson_path):
     """
-    Validate the structure of the generated GeoJSON
+    Validate the structure of the generated GeoJSON.
+
+    SECURITY/QUALITY v2.1.1: replaced 9 `assert` statements with explicit
+    `ValueError` raises. `assert` is stripped when Python runs with -O flag,
+    so it must NEVER be used for input validation in production code —
+    an attacker could disable all validation by running with `python -O`.
     """
     try:
         with open(geojson_path) as f:
             data = json.load(f)
 
-        # Basic validation
-        assert data["type"] == "FeatureCollection"
-        assert "features" in data
-        assert len(data["features"]) > 0
+        # Basic validation — use explicit ValueError (not assert) so the
+        # checks remain active even under `python -O` optimization.
+        if data.get("type") != "FeatureCollection":
+            raise ValueError(f"Expected type=FeatureCollection, got {data.get('type')!r}")
+        if "features" not in data:
+            raise ValueError("Missing 'features' key in GeoJSON")
+        if len(data["features"]) == 0:
+            raise ValueError("GeoJSON 'features' array is empty")
 
         # Validate each feature
         for _i, feature in enumerate(data["features"]):
-            assert "type" in feature
-            assert feature["type"] == "Feature"
-            assert "geometry" in feature
-            assert "properties" in feature
-            assert "coordinates" in feature["geometry"]
-            assert len(feature["geometry"]["coordinates"]) == 2  # [lon, lat]
+            if "type" not in feature:
+                raise ValueError(f"Feature {_i}: missing 'type'")
+            if feature["type"] != "Feature":
+                raise ValueError(f"Feature {_i}: expected type=Feature, got {feature['type']!r}")
+            if "geometry" not in feature:
+                raise ValueError(f"Feature {_i}: missing 'geometry'")
+            if "properties" not in feature:
+                raise ValueError(f"Feature {_i}: missing 'properties'")
+            if "coordinates" not in feature["geometry"]:
+                raise ValueError(f"Feature {_i}: missing 'coordinates' in geometry")
+            coords = feature["geometry"]["coordinates"]
+            if len(coords) != 2:
+                raise ValueError(f"Feature {_i}: expected 2 coords [lon, lat], got {len(coords)}")
 
         print(f"GeoJSON validation passed for {len(data['features'])} features")
         return True

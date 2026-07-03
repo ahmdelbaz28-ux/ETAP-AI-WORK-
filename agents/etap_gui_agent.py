@@ -34,7 +34,7 @@ from __future__ import annotations
 import logging
 import os
 from pathlib import Path
-from typing import Any, Dict, List, Literal, Optional, Tuple
+from typing import Any, Literal
 
 from agents.orchestrator import AgentResult, AgentStatus, BaseAgent, EngineeringTask, StudyType
 
@@ -46,7 +46,7 @@ logger = logging.getLogger("agent.etap_gui")
 
 _SKILL_PATH = Path(__file__).resolve().parent.parent / "skills" / "etap-gui-agent.md"
 
-_skill_cache: Optional[str] = None
+_skill_cache: str | None = None
 
 
 def _load_skill() -> str:
@@ -67,7 +67,7 @@ def _load_skill() -> str:
 # ---------------------------------------------------------------------------
 
 
-def _check_gui_deps() -> Tuple[bool, List[str]]:
+def _check_gui_deps() -> tuple[bool, list[str]]:
     """Check whether the GUI automation dependencies are available.
 
     Returns (all_available, missing_list).
@@ -81,7 +81,7 @@ def _check_gui_deps() -> Tuple[bool, List[str]]:
     Optional (fallback OCR if Gemini is unavailable):
       - pytesseract + tesseract binary
     """
-    missing: List[str] = []
+    missing: list[str] = []
 
     # pyautogui imports succeed even without a display, but screenshot() will fail.
     # We detect the actual display server here.
@@ -138,7 +138,7 @@ def _check_gui_deps() -> Tuple[bool, List[str]]:
 Classification = Literal["analyze", "monitor", "control", "solve", "unavailable"]
 
 # CONTROL triggers — actions that modify application state
-_CONTROL_KEYWORDS: Tuple[str, ...] = (
+_CONTROL_KEYWORDS: tuple[str, ...] = (
     "click",
     "open etap",
     "launch etap",
@@ -168,7 +168,7 @@ _CONTROL_KEYWORDS: Tuple[str, ...] = (
 )
 
 # SOLVE triggers — multi-step problem-solving workflows
-_SOLVE_KEYWORDS: Tuple[str, ...] = (
+_SOLVE_KEYWORDS: tuple[str, ...] = (
     "solve ",
     "fix ",
     "troubleshoot",
@@ -183,7 +183,7 @@ _SOLVE_KEYWORDS: Tuple[str, ...] = (
 )
 
 # MONITOR triggers — passive observation
-_MONITOR_KEYWORDS: Tuple[str, ...] = (
+_MONITOR_KEYWORDS: tuple[str, ...] = (
     "monitor ",
     "watch ",
     "observe ",
@@ -196,7 +196,7 @@ _MONITOR_KEYWORDS: Tuple[str, ...] = (
 )
 
 # ANALYZE triggers — read-only inspection (default)
-_ANALYZE_KEYWORDS: Tuple[str, ...] = (
+_ANALYZE_KEYWORDS: tuple[str, ...] = (
     "analyze ",
     "inspect ",
     "read ",
@@ -245,7 +245,7 @@ def classify(question: str) -> Classification:
 # Target app detection
 # ---------------------------------------------------------------------------
 
-_APP_KEYWORDS: List[Tuple[str, str]] = [
+_APP_KEYWORDS: list[tuple[str, str]] = [
     ("etap", "ETAP"),
     ("revit", "Revit"),
     ("autocad", "AutoCAD"),
@@ -272,7 +272,7 @@ def detect_target_app(question: str) -> str:
 _SEP = "━" * 60
 
 
-def _format_unavailable(missing: List[str]) -> str:
+def _format_unavailable(missing: list[str]) -> str:
     """Format U — GUI deps unavailable (graceful fallback).
 
     Lists both options to enable CUA:
@@ -299,7 +299,7 @@ def _format_unavailable(missing: List[str]) -> str:
                 "  • Set GEMINI_API_KEY env var (get one at https://aistudio.google.com/app/apikey)",
                 "  • pip install google-generativeai",
                 "",
-            ]
+            ],
         )
 
     lines.extend(
@@ -320,7 +320,7 @@ def _format_unavailable(missing: List[str]) -> str:
             "(study_type='etap_expert') for knowledge-based analysis.",
             "",
             "**Safety:** The GUI Agent never crashes — it always falls back gracefully.",
-        ]
+        ],
     )
     return "\n".join(lines)
 
@@ -350,7 +350,7 @@ def _format_a_analyze(question: str, app: str) -> str:
             "**REFERENCES:**",
             "  - skills/etap-gui-agent.md (knowledge base)",
             "  - Safety rule: read-only by default",
-        ]
+        ],
     )
 
 
@@ -375,7 +375,7 @@ def _format_b_monitor(question: str, app: str) -> str:
             "**SAFETY:** Passive observation only — no actions taken.",
             "",
             "**REQUIRES:** Human confirmation to start monitoring.",
-        ]
+        ],
     )
 
 
@@ -408,7 +408,7 @@ def _format_c_control(question: str, app: str) -> str:
             "",
             "**REFERENCES:**",
             "  - skills/etap-gui-agent.md (Safety Rules section)",
-        ]
+        ],
     )
 
 
@@ -445,7 +445,7 @@ def _format_d_solve(question: str, app: str) -> str:
             "",
             "**REFERENCES:**",
             "  - skills/etap-gui-agent.md (CUA Loop + Safety Rules)",
-        ]
+        ],
     )
 
 
@@ -470,12 +470,12 @@ class ETAPGUIAgent(BaseAgent):
         skill_text = _load_skill()
         if not skill_text:
             logger.warning(
-                "ETAP GUI skill knowledge base is empty — agent will operate in degraded mode"
+                "ETAP GUI skill knowledge base is empty — agent will operate in degraded mode",
             )
 
     # ----- Public API -----
 
-    def answer(self, question: str) -> Dict[str, Any]:
+    def answer(self, question: str) -> dict[str, Any]:
         """Answer a question using the CUA workflow.
 
         Returns a dict with keys: classification, format, response,
@@ -530,9 +530,9 @@ class ETAPGUIAgent(BaseAgent):
         max_steps: int = 15,
         require_confirmation: bool = True,
         on_confirmation_request=None,
-        audit_dir: Optional[str] = None,
-        start_url: Optional[str] = None,
-    ) -> Dict[str, Any]:
+        audit_dir: str | None = None,
+        start_url: str | None = None,
+    ) -> dict[str, Any]:
         """Run the actual CUA Loop — captures screenshots, analyzes them
         via Gemini Vision, and drives the appropriate executor to click/type/hotkey.
 
@@ -561,7 +561,7 @@ class ETAPGUIAgent(BaseAgent):
         desktop_deps_ok, desktop_missing = _check_gui_deps()
         # Check Browser CUA (Playwright + Chromium)
         browser_executor = None
-        browser_deps: Dict[str, Any] = {"all_available": False, "missing": ["not-checked"]}
+        browser_deps: dict[str, Any] = {"all_available": False, "missing": ["not-checked"]}
         try:
             from agents.browser_cua_executor import BrowserCUAExecutor
 
@@ -590,7 +590,9 @@ class ETAPGUIAgent(BaseAgent):
             )
         elif browser_deps["all_available"]:
             # Headless environment with Playwright — control a browser instead
-            assert browser_executor is not None  # for type checker
+            # SECURITY v2.1.1: assert → explicit None-check (assert is stripped by -O)
+            if browser_executor is None:
+                raise RuntimeError("browser_executor must be non-None when all_available is True")
             executor_type = "browser"
             result = browser_executor.execute_loop(
                 objective=question,
@@ -659,7 +661,7 @@ class ETAPGUIAgent(BaseAgent):
             elif step.action.x is not None:
                 action_desc += f" ({step.action.x},{step.action.y})"
             lines.append(
-                f"  {status} Step {step.step_number}: {action_desc} — {step.duration_ms}ms"
+                f"  {status} Step {step.step_number}: {action_desc} — {step.duration_ms}ms",
             )
             if step.error:
                 lines.append(f"      error: {step.error}")
@@ -698,7 +700,7 @@ class ETAPGUIAgent(BaseAgent):
                 validation_errors=[str(exc)],
             )
 
-    def get_agent_info(self) -> Dict[str, Any]:
+    def get_agent_info(self) -> dict[str, Any]:
         """Return metadata about this agent."""
         deps_ok, missing = _check_gui_deps()
         return {

@@ -48,7 +48,7 @@ async def get_scada_live_data(request: Request):
                     "supported_protocols": ["IEC 61850", "IEC 60870-5-104", "Modbus TCP"],
                 },
                 "trace_id": trace_id,
-            }
+            },
         )
     except Exception as e:
         from logging import getLogger
@@ -56,5 +56,5 @@ async def get_scada_live_data(request: Request):
         logger = getLogger("engineering_service")
         logger.error("scada_live_failed error=%s", str(e), extra={"trace_id": trace_id})
         return JSONResponse(
-            status_code=500, content={"success": False, "errors": [str(e)], "trace_id": trace_id}
+            status_code=500, content={"success": False, "errors": [str(e)], "trace_id": trace_id},
         )

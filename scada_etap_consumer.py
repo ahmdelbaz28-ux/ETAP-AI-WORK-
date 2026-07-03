@@ -124,12 +124,12 @@ class SCADAETAPConsumer:
         if data.get("id") == "ups_001":
             print(
                 f"UPS Status: {data.get('status')}, Voltage: {data.get('voltage')}V, "
-                f"Current: {data.get('current')}A"
+                f"Current: {data.get('current')}A",
             )
         elif data.get("id") == "redundancy_001":
             print(
                 f"Redundancy Status: {data.get('status')}, "
-                f"Load: {data.get('load_percentage')}%, Capacity: {data.get('capacity')}"
+                f"Load: {data.get('load_percentage')}%, Capacity: {data.get('capacity')}",
             )
 
         # Store in memory cache

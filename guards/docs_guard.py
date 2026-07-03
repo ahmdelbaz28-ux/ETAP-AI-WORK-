@@ -21,7 +21,7 @@ from __future__ import annotations
 
 import logging
 import re
-from typing import Any, Dict, List
+from typing import Any
 
 from guards.base import BaseGuard, GuardResult, GuardSeverity, GuardViolation
 
@@ -40,9 +40,9 @@ class DocsGuard(BaseGuard):
     name: str = "docs_guard"
 
     def scan(
-        self, source: str, language: str = "markdown", context: Dict[str, Any] | None = None
+        self, source: str, language: str = "markdown", context: dict[str, Any] | None = None,
     ) -> GuardResult:
-        violations: List[GuardViolation] = []
+        violations: list[GuardViolation] = []
         context = context or {}
 
         # D-01: Referenced symbols must exist (if Python source provided)
@@ -90,9 +90,9 @@ class DocsGuard(BaseGuard):
     # ------------------------------------------------------------------
     # D-01: Referenced symbols must exist
     # ------------------------------------------------------------------
-    def _check_symbol_references(self, docs: str, python_source: str) -> List[GuardViolation]:
+    def _check_symbol_references(self, docs: str, python_source: str) -> list[GuardViolation]:
         """Check that Python symbols referenced in docs actually exist in code."""
-        violations: List[GuardViolation] = []
+        violations: list[GuardViolation] = []
 
         # Extract class and function names from Python source
         import ast
@@ -101,9 +101,7 @@ class DocsGuard(BaseGuard):
         try:
             tree = ast.parse(python_source)
             for node in ast.walk(tree):
-                if isinstance(node, ast.ClassDef):
-                    defined_symbols.add(node.name)
-                elif isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
+                if isinstance(node, (ast.ClassDef, ast.FunctionDef, ast.AsyncFunctionDef)):
                     defined_symbols.add(node.name)
         except SyntaxError:
             return violations
@@ -127,16 +125,16 @@ class DocsGuard(BaseGuard):
                         location=f"line {line_num}",
                         suggestion="Add the symbol to the source code, or remove/update the reference.",
                         evidence=f"symbol: {symbol}",
-                    )
+                    ),
                 )
         return violations
 
     # ------------------------------------------------------------------
     # D-04: No unverifiable claims
     # ------------------------------------------------------------------
-    def _check_unverifiable_claims(self, source: str) -> List[GuardViolation]:
+    def _check_unverifiable_claims(self, source: str) -> list[GuardViolation]:
         """Heuristic: phrases that suggest claims without evidence."""
-        violations: List[GuardViolation] = []
+        violations: list[GuardViolation] = []
         unverifiable_patterns = [
             (
                 r"(?i)(?:it\s+is\s+)?(?:well\s*-?known|obvious|clearly|everyone\s+knows|undoubtedly)\s+that",
@@ -165,16 +163,16 @@ class DocsGuard(BaseGuard):
                         suggestion="Provide evidence (measurement, citation, code reference) or "
                         "qualify the claim (e.g., 'typically', 'in our testing').",
                         evidence=match.group(0)[:80],
-                    )
+                    ),
                 )
         return violations
 
     # ------------------------------------------------------------------
     # D-05: Versions are explicit
     # ------------------------------------------------------------------
-    def _check_version_clarity(self, source: str) -> List[GuardViolation]:
+    def _check_version_clarity(self, source: str) -> list[GuardViolation]:
         """Check that version references are explicit, not relative."""
-        violations: List[GuardViolation] = []
+        violations: list[GuardViolation] = []
         # Pattern: "latest", "current version", "new" without a specific version number
         vague_version_patterns = [
             r"(?i)(?:the\s+)?(?:latest|current|new|recent|stable)\s+(?:version|release)\s+(?:of\s+)?",
@@ -192,16 +190,16 @@ class DocsGuard(BaseGuard):
                         location=f"line {line_num}",
                         suggestion="Specify the exact version number (e.g., 'v2.1.0' or 'as of 2025-06').",
                         evidence=match.group(0)[:80],
-                    )
+                    ),
                 )
         return violations
 
     # ------------------------------------------------------------------
     # D-07: No filler, no slop
     # ------------------------------------------------------------------
-    def _check_filler(self, source: str) -> List[GuardViolation]:
+    def _check_filler(self, source: str) -> list[GuardViolation]:
         """Heuristic: paragraphs that add no information."""
-        violations: List[GuardViolation] = []
+        violations: list[GuardViolation] = []
         filler_phrases = [
             r"(?i)in\s+(?:this\s+)?(?:section|chapter|document),\s+we\s+will\s+(?:discuss|cover|explore|look\s+at)",
             r"(?i)it\s+is\s+important\s+to\s+note\s+that",
@@ -221,16 +219,16 @@ class DocsGuard(BaseGuard):
                         location=f"line {line_num}",
                         suggestion="Remove the filler phrase and get directly to the point.",
                         evidence=match.group(0)[:80],
-                    )
+                    ),
                 )
         return violations
 
     # ------------------------------------------------------------------
     # D-09: Examples cover the failure path too
     # ------------------------------------------------------------------
-    def _check_failure_paths(self, source: str) -> List[GuardViolation]:
+    def _check_failure_paths(self, source: str) -> list[GuardViolation]:
         """Check that code examples include error handling."""
-        violations: List[GuardViolation] = []
+        violations: list[GuardViolation] = []
         # Find code blocks
         code_blocks = re.findall(r"```(?:python)?\n(.*?)```", source, re.DOTALL)
         for i, block in enumerate(code_blocks):
@@ -249,16 +247,16 @@ class DocsGuard(BaseGuard):
                         location=f"code block {i + 1}",
                         suggestion="Add a try/except block showing how to handle the expected failure.",
                         evidence="I/O call without error handling",
-                    )
+                    ),
                 )
         return violations
 
     # ------------------------------------------------------------------
     # D-08: Don't paraphrase upstream docs — link
     # ------------------------------------------------------------------
-    def _check_paraphrased_docs(self, source: str) -> List[GuardViolation]:
+    def _check_paraphrased_docs(self, source: str) -> list[GuardViolation]:
         """Heuristic: patterns that suggest paraphrasing official docs."""
-        violations: List[GuardViolation] = []
+        violations: list[GuardViolation] = []
         paraphrase_patterns = [
             r"(?i)according\s+to\s+the\s+(?:official\s+)?(?:documentation|docs|spec|standard|RFC)",
             r"(?i)the\s+(?:official\s+)?(?:documentation|docs|spec)\s+(?:says|states|recommends)",
@@ -281,16 +279,16 @@ class DocsGuard(BaseGuard):
                             suggestion="Replace the paraphrase with a direct link to the upstream "
                             "documentation section.",
                             evidence=match.group(0)[:80],
-                        )
+                        ),
                     )
         return violations
 
     # ------------------------------------------------------------------
     # D-02: Every code sample must work
     # ------------------------------------------------------------------
-    def _check_code_samples(self, source: str) -> List[GuardViolation]:
+    def _check_code_samples(self, source: str) -> list[GuardViolation]:
         """Heuristic: check Python code blocks for syntax errors."""
-        violations: List[GuardViolation] = []
+        violations: list[GuardViolation] = []
         import ast as _ast
 
         code_blocks = re.findall(r"```(?:python)?\n(.*?)```", source, re.DOTALL)
@@ -311,16 +309,16 @@ class DocsGuard(BaseGuard):
                         suggestion="Fix the syntax error in the code sample. Consider running "
                         "the sample through a linter before committing.",
                         evidence=f"SyntaxError: {e.msg}",
-                    )
+                    ),
                 )
         return violations
 
     # ------------------------------------------------------------------
     # D-03: Document actual behavior, not intended
     # ------------------------------------------------------------------
-    def _check_actual_vs_intended(self, source: str) -> List[GuardViolation]:
+    def _check_actual_vs_intended(self, source: str) -> list[GuardViolation]:
         """Heuristic: phrases that describe intended rather than actual behavior."""
-        violations: List[GuardViolation] = []
+        violations: list[GuardViolation] = []
         intended_patterns = [
             (
                 r"(?i)(?:should|will|is\s+going\s+to|supposed\s+to)\s+(?:return|compute|calculate|generate|produce)",
@@ -346,17 +344,17 @@ class DocsGuard(BaseGuard):
                         suggestion="Rewrite to describe current behavior. If the code doesn't "
                         "match the docs, fix the code or update the docs to match.",
                         evidence=match.group(0)[:80],
-                    )
+                    ),
                 )
         return violations
 
     # ------------------------------------------------------------------
     # D-06: A code change owes a docs change
     # ------------------------------------------------------------------
-    def _check_docs_owed(self, source: str, context: Dict[str, Any] | None) -> List[GuardViolation]:
+    def _check_docs_owed(self, source: str, context: dict[str, Any] | None) -> list[GuardViolation]:
         """Heuristic: if context provides changed_symbols, check that docs
         mention those symbols."""
-        violations: List[GuardViolation] = []
+        violations: list[GuardViolation] = []
         if not context or "changed_symbols" not in context:
             return violations
 
@@ -377,16 +375,16 @@ class DocsGuard(BaseGuard):
                         suggestion=f"Add documentation for the changed symbol '{symbol}'. If the "
                         f"change is breaking, document the migration path.",
                         evidence=f"'{symbol}' not in docs",
-                    )
+                    ),
                 )
         return violations
 
     # ------------------------------------------------------------------
     # D-10: Navigation tells the truth
     # ------------------------------------------------------------------
-    def _check_navigation_truth(self, source: str) -> List[GuardViolation]:
+    def _check_navigation_truth(self, source: str) -> list[GuardViolation]:
         """Heuristic: check markdown links for common broken patterns."""
-        violations: List[GuardViolation] = []
+        violations: list[GuardViolation] = []
         # Check for relative links to files that likely don't exist
         # (local-only check — can't verify HTTP links without network)
         link_pattern = r"\[([^\]]+)\]\(([^)]+)\)"
@@ -425,7 +423,7 @@ class DocsGuard(BaseGuard):
                             "headings using the markdown convention (lowercase, hyphens "
                             "for spaces, no punctuation).",
                             evidence=f"[{link_text}](#{link_target[1:]})",
-                        )
+                        ),
                     )
             elif link_target.endswith(".md") or link_target.endswith(".py"):
                 # Relative file link — check if it looks like a placeholder
@@ -440,6 +438,6 @@ class DocsGuard(BaseGuard):
                             location=f"line {line_num}",
                             suggestion="Replace the placeholder with a real file path or URL.",
                             evidence=f"[{link_text}]({link_target})",
-                        )
+                        ),
                     )
         return violations

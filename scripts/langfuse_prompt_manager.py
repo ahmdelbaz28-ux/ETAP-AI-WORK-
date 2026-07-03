@@ -189,7 +189,7 @@ def cmd_demote(args: argparse.Namespace) -> None:
 
 def main() -> None:
     parser = argparse.ArgumentParser(
-        description="Manage Langfuse prompt versions and labels for AhmedETAP"
+        description="Manage Langfuse prompt versions and labels for AhmedETAP",
     )
     sub = parser.add_subparsers(dest="command", required=True)
 
@@ -206,14 +206,14 @@ def main() -> None:
     p_promote = sub.add_parser("promote", help="Promote latest version to a label")
     p_promote.add_argument("name", help="Prompt name")
     p_promote.add_argument(
-        "label", choices=["production", "staging", "experimental"], help="Label to assign"
+        "label", choices=["production", "staging", "experimental"], help="Label to assign",
     )
     p_promote.set_defaults(func=cmd_promote)
 
     p_demote = sub.add_parser("demote", help="Remove a label from all versions")
     p_demote.add_argument("name", help="Prompt name")
     p_demote.add_argument(
-        "label", choices=["production", "staging", "experimental"], help="Label to remove"
+        "label", choices=["production", "staging", "experimental"], help="Label to remove",
     )
     p_demote.set_defaults(func=cmd_demote)
 

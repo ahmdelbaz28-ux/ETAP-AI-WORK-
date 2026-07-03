@@ -66,7 +66,7 @@ logger = logging.getLogger("etap-ai")
 async def lifespan(app: FastAPI):
     logger.info("AhmedETAP v%s started on Hugging Face Spaces", VERSION)
     logger.info(
-        "Knowledge base: %d ETAP manuals + %d Zenon guides", ETAP_MANUAL_COUNT, ZENON_GUIDE_COUNT
+        "Knowledge base: %d ETAP manuals + %d Zenon guides", ETAP_MANUAL_COUNT, ZENON_GUIDE_COUNT,
     )
     logger.info("Active agents: %d", AGENT_COUNT)
     yield
@@ -594,7 +594,7 @@ async def run_study(request: SharedStudyRequest):
 async def retrieve_context(request: SharedContextRetrieveRequest):
     """Retrieve and compress matching code snippets for a given query."""
     result = handle_context_retrieval(
-        query=request.query, top_k=request.top_k, max_tokens=request.max_tokens
+        query=request.query, top_k=request.top_k, max_tokens=request.max_tokens,
     )
     status = result.pop("_status", None)
     if status:

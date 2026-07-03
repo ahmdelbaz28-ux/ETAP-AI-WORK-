@@ -27,7 +27,7 @@ import logging
 import os as _os
 from collections.abc import Callable
 from functools import wraps
-from typing import Any, Optional
+from typing import Any
 
 from opentelemetry import trace
 from opentelemetry.context import Context
@@ -51,7 +51,7 @@ logger = logging.getLogger(__name__)
 # Module-level state
 # ---------------------------------------------------------------------------
 
-_tracer: Optional[trace.Tracer] = None
+_tracer: trace.Tracer | None = None
 _propagator: TextMapPropagator = TraceContextTextMapPropagator()
 
 # ---------------------------------------------------------------------------
@@ -63,7 +63,7 @@ def setup_tracing(
     service_name: str = "ahmedetap",
     service_version: str = "1.0.0",
     exporter_type: str = "console",
-    otlp_endpoint: Optional[str] = None,
+    otlp_endpoint: str | None = None,
     environment: str = "development",
 ) -> trace.Tracer:
     """Initialise the global TracerProvider and return a named tracer.
@@ -99,7 +99,7 @@ def setup_tracing(
             SERVICE_NAME: service_name,
             SERVICE_VERSION: service_version,
             "deployment.environment": environment,
-        }
+        },
     )
 
     provider = TracerProvider(resource=resource)
@@ -132,7 +132,7 @@ def setup_tracing(
             )
 
             langfuse_base = _os.environ.get(
-                "LANGFUSE_BASE_URL", "https://cloud.langfuse.com"
+                "LANGFUSE_BASE_URL", "https://cloud.langfuse.com",
             ).rstrip("/")
             langfuse_url = f"{langfuse_base}/api/public/otel/v1/traces"
             # The OTLP/HTTP exporter accepts headers for authentication.
@@ -144,7 +144,7 @@ def setup_tracing(
             if not public_key or not secret_key:
                 logger.warning(
                     "Langfuse exporter requires LANGFUSE_PUBLIC_KEY and "
-                    "LANGFUSE_SECRET_KEY — falling back to console"
+                    "LANGFUSE_SECRET_KEY — falling back to console",
                 )
                 exporter = ConsoleSpanExporter()
                 processor = SimpleSpanProcessor(exporter)
@@ -159,7 +159,7 @@ def setup_tracing(
         except ImportError:
             logger.warning(
                 "OTLP/HTTP exporter unavailable (install "
-                "opentelemetry-exporter-otlp-proto-http) — falling back to console"
+                "opentelemetry-exporter-otlp-proto-http) — falling back to console",
             )
             exporter = ConsoleSpanExporter()
             processor = SimpleSpanProcessor(exporter)
@@ -253,7 +253,7 @@ def get_tracer() -> trace.Tracer:
 
 def create_span(
     name: str,
-    attributes: Optional[dict[str, Any]] = None,
+    attributes: dict[str, Any] | None = None,
     kind: SpanKind = SpanKind.INTERNAL,
 ) -> trace.Span:
     """Create and start a standalone span (caller must end it)."""
@@ -263,7 +263,7 @@ def create_span(
 
 def trace_operation(
     operation_name: str,
-    attributes: Optional[dict[str, Any]] = None,
+    attributes: dict[str, Any] | None = None,
     record_exception: bool = True,
 ) -> Callable:
     """Decorator: wrap a function in an active span.

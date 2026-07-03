@@ -13,7 +13,7 @@ import threading
 import time
 from collections.abc import Callable, Sequence
 from functools import wraps
-from typing import Any, Dict, List, Optional, Tuple, Type
+from typing import Any
 
 import numpy as np
 
@@ -24,7 +24,7 @@ logger = logging.getLogger(__name__)
 # Global circuit breaker registry
 # ---------------------------------------------------------------------------
 
-_circuit_breaker_registry: Dict[str, CircuitBreaker] = {}
+_circuit_breaker_registry: dict[str, CircuitBreaker] = {}
 _registry_lock = threading.Lock()
 
 
@@ -34,13 +34,13 @@ def register_circuit_breaker(cb: CircuitBreaker) -> None:
         _circuit_breaker_registry[cb.name] = cb
 
 
-def get_circuit_breaker(name: str) -> Optional[CircuitBreaker]:
+def get_circuit_breaker(name: str) -> CircuitBreaker | None:
     """Look up a registered circuit breaker by name."""
     with _registry_lock:
         return _circuit_breaker_registry.get(name)
 
 
-def get_all_circuit_breakers() -> Dict[str, CircuitBreaker]:
+def get_all_circuit_breakers() -> dict[str, CircuitBreaker]:
     """Return a copy of all registered circuit breakers."""
     with _registry_lock:
         return dict(_circuit_breaker_registry)
@@ -112,7 +112,7 @@ class RetryHandler:
         self,
         fn: Callable[..., Any],
         *args: Any,
-        retryable_exceptions: Optional[Sequence[Type[BaseException]]] = None,
+        retryable_exceptions: Sequence[type[BaseException]] | None = None,
         **kwargs: Any,
     ) -> Any:
         """Execute a callable with retry logic.
@@ -139,7 +139,7 @@ class RetryHandler:
         Exception
             The last exception raised if all retries are exhausted.
         """
-        last_exc: Optional[BaseException] = None
+        last_exc: BaseException | None = None
 
         with self._lock:
             self._total_calls += 1
@@ -178,7 +178,7 @@ class RetryHandler:
         self,
         fn: Callable[..., Any],
         *args: Any,
-        retryable_exceptions: Optional[Sequence[Type[BaseException]]] = None,
+        retryable_exceptions: Sequence[type[BaseException]] | None = None,
         **kwargs: Any,
     ) -> Any:
         """Execute an async callable with retry logic.
@@ -188,7 +188,7 @@ class RetryHandler:
         """
         import asyncio
 
-        last_exc: Optional[BaseException] = None
+        last_exc: BaseException | None = None
 
         with self._lock:
             self._total_calls += 1
@@ -226,7 +226,7 @@ class RetryHandler:
     def _is_retryable(
         self,
         exc: BaseException,
-        retryable_exceptions: Optional[Sequence[Type[BaseException]]],
+        retryable_exceptions: Sequence[type[BaseException]] | None,
     ) -> bool:
         if retryable_exceptions is not None:
             return isinstance(exc, tuple(retryable_exceptions))
@@ -239,7 +239,7 @@ def with_retry(
     max_delay: float = 60.0,
     exponential_base: float = 2.0,
     jitter: bool = True,
-    retryable_exceptions: Optional[Sequence[Type[BaseException]]] = None,
+    retryable_exceptions: Sequence[type[BaseException]] | None = None,
 ) -> Callable[[Callable[..., Any]], Callable[..., Any]]:
     """Decorator that wraps a function with :class:`RetryHandler`.
 
@@ -346,7 +346,7 @@ class CircuitBreaker:
         self._failure_count = 0
         self._total_calls = 0
         self._failed_calls = 0
-        self._last_failure_time: Optional[float] = None
+        self._last_failure_time: float | None = None
         self._state_changes = 0
         self._half_open_calls = 0
         self._lock = threading.Lock()
@@ -364,7 +364,7 @@ class CircuitBreaker:
         return self._failed_calls
 
     @property
-    def last_failure_time(self) -> Optional[float]:
+    def last_failure_time(self) -> float | None:
         return self._last_failure_time
 
     @property
@@ -390,7 +390,7 @@ class CircuitBreaker:
         self,
         fn: Callable[..., Any],
         *args: Any,
-        fallback: Optional[Callable[..., Any]] = None,
+        fallback: Callable[..., Any] | None = None,
         **kwargs: Any,
     ) -> Any:
         """Execute *fn* through the circuit breaker.
@@ -435,7 +435,7 @@ class CircuitBreaker:
                     raise CircuitBreakerOpenError(
                         f"Circuit breaker '{self.name}' is HALF_OPEN "
                         f"and at capacity ({self.half_open_max_calls}). "
-                        "Call rejected."
+                        "Call rejected.",
                     )
                 self._half_open_calls += 1
 
@@ -458,7 +458,7 @@ class CircuitBreaker:
         self,
         fn: Callable[..., Any],
         *args: Any,
-        fallback: Optional[Callable[..., Any]] = None,
+        fallback: Callable[..., Any] | None = None,
         **kwargs: Any,
     ) -> Any:
         """Async variant of :meth:`call`.
@@ -476,7 +476,7 @@ class CircuitBreaker:
                 logger.info("Circuit '%s' is OPEN. Invoking async fallback.", self.name)
                 return await fallback(*args, **kwargs)
             raise CircuitBreakerOpenError(
-                f"Circuit breaker '{self.name}' is OPEN. Async call rejected."
+                f"Circuit breaker '{self.name}' is OPEN. Async call rejected.",
             )
 
         if state == CircuitBreakerState.HALF_OPEN:
@@ -485,7 +485,7 @@ class CircuitBreaker:
                     raise CircuitBreakerOpenError(
                         f"Circuit breaker '{self.name}' is HALF_OPEN "
                         f"and at capacity ({self.half_open_max_calls}). "
-                        "Async call rejected."
+                        "Async call rejected.",
                     )
                 self._half_open_calls += 1
 
@@ -560,9 +560,9 @@ class RecoveryResult:
         self,
         success: bool,
         level_used: int,
-        actions_taken: List[str],
+        actions_taken: list[str],
         duration: float,
-        error: Optional[BaseException] = None,
+        error: BaseException | None = None,
     ) -> None:
         self.success = success
         self.level_used = level_used
@@ -595,7 +595,7 @@ class MultiLevelRecovery:
 
     def __init__(self, name: str) -> None:
         self.name = name
-        self._strategies: Dict[int, List[Tuple[Callable, Optional[Callable]]]] = {
+        self._strategies: dict[int, list[tuple[Callable, Callable | None]]] = {
             1: [],
             2: [],
             3: [],
@@ -616,7 +616,7 @@ class MultiLevelRecovery:
         self,
         level: int,
         fn: Callable[[Any], Any],
-        condition_fn: Optional[Callable[[Any], bool]] = None,
+        condition_fn: Callable[[Any], bool] | None = None,
     ) -> None:
         """Register a recovery strategy at the given level.
 
@@ -634,7 +634,7 @@ class MultiLevelRecovery:
             raise ValueError(f"Invalid recovery level: {level}. Use 1, 2, or 3.")
         self._strategies[level].append((fn, condition_fn))
 
-    def recover(self, error: BaseException, context: Optional[Any] = None) -> RecoveryResult:
+    def recover(self, error: BaseException, context: Any | None = None) -> RecoveryResult:
         """Execute recovery strategies from level 1 upward.
 
         Returns as soon as a level produces a result considered successful
@@ -653,13 +653,13 @@ class MultiLevelRecovery:
             Outcome of the recovery attempt.
         """
         start = time.monotonic()
-        actions_taken: List[str] = []
+        actions_taken: list[str] = []
 
         with self._lock:
             self._total_recoveries += 1
 
         for level in sorted(self._strategies):
-            level_actions: List[str] = []
+            level_actions: list[str] = []
             level_ok = True
             for fn, condition_fn in self._strategies[level]:
                 if condition_fn is not None:
@@ -880,7 +880,7 @@ class StabilityEnforcer:
     @staticmethod
     def validate_numerical_result(
         result: float,
-        expected_range: Tuple[float, float],
+        expected_range: tuple[float, float],
     ) -> bool:
         """Validate whether *result* falls within the expected range.
 
@@ -908,7 +908,7 @@ class StabilityEnforcer:
 # ---------------------------------------------------------------------------
 
 
-def get_resilience_stats() -> Dict[str, Any]:
+def get_resilience_stats() -> dict[str, Any]:
     """Return aggregate resilience statistics for the entire platform.
 
     Collects data from all registered circuit breakers, as well as overall

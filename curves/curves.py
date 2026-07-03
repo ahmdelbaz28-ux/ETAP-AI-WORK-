@@ -9,7 +9,7 @@ class IEC60255Curves:
         Standard inverse curve.
         t = TMS * (0.14 / ((I/Ip)^0.02 - 1))
         """
-        if I <= Ip:
+        if Ip >= I:
             return float("inf")
         return TMS * (0.14 / ((I / Ip) ** 0.02 - 1))
 
@@ -19,7 +19,7 @@ class IEC60255Curves:
         Very inverse curve.
         t = TMS * (13.5 / ((I/Ip) - 1))
         """
-        if I <= Ip:
+        if Ip >= I:
             return float("inf")
         return TMS * (13.5 / ((I / Ip) - 1))
 
@@ -29,7 +29,7 @@ class IEC60255Curves:
         Extremely inverse curve.
         t = TMS * (80 / ((I/Ip)^2 - 1))
         """
-        if I <= Ip:
+        if Ip >= I:
             return float("inf")
         return TMS * (80 / ((I / Ip) ** 2 - 1))
 
@@ -39,6 +39,6 @@ class IEC60255Curves:
         Long inverse curve (UK).
         t = TMS * (120 / ((I/Ip) - 1))
         """
-        if I <= Ip:
+        if Ip >= I:
             return float("inf")
         return TMS * (120 / ((I / Ip) - 1))

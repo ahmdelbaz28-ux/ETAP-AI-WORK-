@@ -23,7 +23,7 @@ import logging
 from datetime import datetime, timezone
 
 UTC = timezone.utc  # noqa: UP017
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 import numpy as np
 
@@ -154,7 +154,7 @@ class SCADAMeasurement:
         self.iec61850_ref = iec61850_ref
         self.unit = unit
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "tag": self.tag,
             "value": self.value,
@@ -173,7 +173,7 @@ class SCADAConnection:
         self.port = port
         self.protocol = protocol
         self.connected = False
-        self.last_poll_time: Optional[datetime] = None
+        self.last_poll_time: datetime | None = None
 
     def connect(self) -> bool:
         """Simulate establishing a SCADA connection."""
@@ -210,8 +210,8 @@ class SCADAAgent(BaseAgent):
     def __init__(self) -> None:
         super().__init__("SCADAAgent")
         self.standards = ["IEC 61850", "IEC 60870-5-104"]
-        self.connections: Dict[str, SCADAConnection] = {}
-        self.measurement_cache: Dict[str, List[SCADAMeasurement]] = {}
+        self.connections: dict[str, SCADAConnection] = {}
+        self.measurement_cache: dict[str, list[SCADAMeasurement]] = {}
 
     # ------------------------------------------------------------------
     # Connection management
@@ -223,7 +223,7 @@ class SCADAAgent(BaseAgent):
         port: int = 102,
         protocol: str = "IEC61850",
         timeout_ms: int = 5000,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Establish connection to SCADA server.
 
@@ -278,9 +278,9 @@ class SCADAAgent(BaseAgent):
     def read_measurements(
         self,
         connection_id: str,
-        measurement_tags: Optional[List[str]] = None,
-        iec61850_refs: Optional[List[str]] = None,
-    ) -> Dict[str, Any]:
+        measurement_tags: list[str] | None = None,
+        iec61850_refs: list[str] | None = None,
+    ) -> dict[str, Any]:
         """
         Read measurements from SCADA server.
 
@@ -340,7 +340,7 @@ class SCADAAgent(BaseAgent):
                     quality=m.quality,
                     iec61850_ref=m.iec61850_ref,
                     unit=m.unit,
-                )
+                ),
             )
             conn.last_poll_time = now
 
@@ -358,11 +358,11 @@ class SCADAAgent(BaseAgent):
 
     def map_to_bus_data(
         self,
-        measurements: List[Dict[str, Any]],
-        bus_mapping: Dict[str, Dict[str, str]],
+        measurements: list[dict[str, Any]],
+        bus_mapping: dict[str, dict[str, str]],
         nominal_kv: float = 13.8,
         base_mva: float = 100.0,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Map SCADA measurements to power system bus data.
 
@@ -402,17 +402,17 @@ class SCADAAgent(BaseAgent):
             Bus data suitable for load flow / state estimation input.
         """
         # Index measurements by tag
-        meas_by_tag: Dict[str, Dict[str, Any]] = {}
+        meas_by_tag: dict[str, dict[str, Any]] = {}
         for m in measurements:
             tag = m.get("tag", "")
             meas_by_tag[tag] = m
 
-        bus_data: Dict[str, Dict[str, Any]] = {}
-        mapping_issues: List[str] = []
+        bus_data: dict[str, dict[str, Any]] = {}
+        mapping_issues: list[str] = []
         base_kv = nominal_kv
 
         for bus_id, tag_map in bus_mapping.items():
-            bus_entry: Dict[str, Any] = {"bus_id": bus_id}
+            bus_entry: dict[str, Any] = {"bus_id": bus_id}
 
             # Voltage magnitude
             v_tag = tag_map.get("voltage_tag")
@@ -468,7 +468,7 @@ class SCADAAgent(BaseAgent):
             bus_entry["P_net_mw"] = P_gen - P_load
             bus_entry["Q_net_mvar"] = Q_gen - Q_load
             bus_entry["S_net_pu"] = complex(
-                (P_gen - P_load) / base_mva, (Q_gen - Q_load) / base_mva
+                (P_gen - P_load) / base_mva, (Q_gen - Q_load) / base_mva,
             )
 
             # Quality assessment
@@ -491,7 +491,7 @@ class SCADAAgent(BaseAgent):
                     b.get("voltage_pu", 1.0) * np.sin(np.radians(b.get("angle_deg", 0))),
                 )
                 for b in bus_data.values()
-            ]
+            ],
         )
 
         return {
@@ -510,12 +510,12 @@ class SCADAAgent(BaseAgent):
 
     def process_realtime_data(
         self,
-        measurements: List[Dict[str, Any]],
-        validation_rules: Optional[Dict[str, Dict[str, Any]]] = None,
+        measurements: list[dict[str, Any]],
+        validation_rules: dict[str, dict[str, Any]] | None = None,
         filter_type: str = "moving_average",
         filter_window: int = 5,
         anomaly_threshold_sigma: float = 3.0,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Process real-time SCADA measurements.
 
@@ -551,7 +551,7 @@ class SCADAAgent(BaseAgent):
             validation_rules = {}
 
         # 1. Validate measurements
-        validated: List[Dict[str, Any]] = []
+        validated: list[dict[str, Any]] = []
         for m in measurements:
             tag = m.get("tag", "")
             value = m.get("value", 0.0)
@@ -571,7 +571,7 @@ class SCADAAgent(BaseAgent):
                     **m,
                     "quality": quality,
                     "original_value": value,
-                }
+                },
             )
 
         # 2. Apply filtering
@@ -607,7 +607,7 @@ class SCADAAgent(BaseAgent):
         mean_val = np.mean(values_arr)
         std_val = np.std(values_arr, ddof=1) if len(values_arr) > 1 else 0.0
 
-        anomalies: List[Dict[str, Any]] = []
+        anomalies: list[dict[str, Any]] = []
         for _i, m in enumerate(validated):
             if std_val > 0:
                 z_score = abs(m["value"] - mean_val) / std_val
@@ -622,7 +622,7 @@ class SCADAAgent(BaseAgent):
                             ],
                             "z_score": float(z_score),
                             "timestamp": m.get("timestamp", ""),
-                        }
+                        },
                     )
                     m["quality"] = "questionable"
 
@@ -657,7 +657,7 @@ class SCADAAgent(BaseAgent):
     def get_iec61850_model(
         self,
         logical_device: str = "LD0",
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Return the IEC 61850 data model mapping for the configured
         logical device.
@@ -701,7 +701,7 @@ class SCADAAgent(BaseAgent):
     @staticmethod
     def _generate_simulated_measurements(
         timestamp: datetime,
-    ) -> List[SCADAMeasurement]:
+    ) -> list[SCADAMeasurement]:
         """Generate a set of simulated SCADA measurements for a substation."""
         np.random.seed(42)
         measurements = []
@@ -719,7 +719,7 @@ class SCADAAgent(BaseAgent):
                     quality="good",
                     iec61850_ref=f"LD0/{bus_id}.MMXU$Vol$mag$f",
                     unit="kV",
-                )
+                ),
             )
             measurements.append(
                 SCADAMeasurement(
@@ -729,7 +729,7 @@ class SCADAAgent(BaseAgent):
                     quality="good",
                     iec61850_ref=f"LD0/{bus_id}.MMXU$A$mag$f",
                     unit="A",
-                )
+                ),
             )
             measurements.append(
                 SCADAMeasurement(
@@ -739,7 +739,7 @@ class SCADAAgent(BaseAgent):
                     quality="good",
                     iec61850_ref=f"LD0/{bus_id}.MMXU$W$mag$f",
                     unit="MW",
-                )
+                ),
             )
             measurements.append(
                 SCADAMeasurement(
@@ -749,7 +749,7 @@ class SCADAAgent(BaseAgent):
                     quality="good",
                     iec61850_ref=f"LD0/{bus_id}.MMXU$var$mag$f",
                     unit="MVAR",
-                )
+                ),
             )
             measurements.append(
                 SCADAMeasurement(
@@ -759,7 +759,7 @@ class SCADAAgent(BaseAgent):
                     quality="good",
                     iec61850_ref=f"LD0/{bus_id}.MMXU$PF$mag$f",
                     unit="pu",
-                )
+                ),
             )
 
         # Frequency (system-wide)
@@ -771,7 +771,7 @@ class SCADAAgent(BaseAgent):
                 quality="good",
                 iec61850_ref="LD0/LLN0.MMXU$Hz$mag$f",
                 unit="Hz",
-            )
+            ),
         )
 
         # Breaker status
@@ -784,7 +784,7 @@ class SCADAAgent(BaseAgent):
                     quality="good",
                     iec61850_ref=f"LD0/{bk_id}.XCBR$Pos$stVal",
                     unit="bool",
-                )
+                ),
             )
 
         return measurements
@@ -812,7 +812,7 @@ class SCADAAgent(BaseAgent):
             self.log_execution(f"Starting SCADA integration for task {task.task_id}")
 
             analysis_type = task.parameters.get("analysis_type", "full")
-            results: Dict[str, Any] = {}
+            results: dict[str, Any] = {}
             p = task.parameters
 
             if analysis_type in ("connect", "full"):
@@ -920,7 +920,7 @@ class SCADAAgent(BaseAgent):
 
     def validate_result(self, result: AgentResult) -> bool:
         """Validate SCADA integration results."""
-        errors: List[str] = []
+        errors: list[str] = []
 
         conn = result.data.get("connection")
         if conn is not None and conn.get("status") == "failed":

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, Optional
+from typing import Any
 
 from coordination.coordination import CoordinationEngine
 from core_model.system import System
@@ -42,12 +42,12 @@ class PowerSystemEngine:
 
     def __init__(
         self,
-        system: Optional[System] = None,
+        system: System | None = None,
         *,
-        load_flow_solver: Optional[LoadFlowSolverProtocol] = None,
-        arc_flash_engine: Optional[ArcFlashEngineProtocol] = None,
-        coordination_engine: Optional[CoordinationEngineProtocol] = None,
-        visualizer: Optional[VisualizerProtocol] = None,
+        load_flow_solver: LoadFlowSolverProtocol | None = None,
+        arc_flash_engine: ArcFlashEngineProtocol | None = None,
+        coordination_engine: CoordinationEngineProtocol | None = None,
+        visualizer: VisualizerProtocol | None = None,
     ) -> None:
         self.system = system
 
@@ -202,7 +202,7 @@ class PowerSystemEngine:
         }
 
     def run_protection_coordination(
-        self, upstream_relay_id: int, downstream_relay_id: int, fault_currents: list[float]
+        self, upstream_relay_id: int, downstream_relay_id: int, fault_currents: list[float],
     ) -> dict[str, Any]:
         """
         Run protection coordination check between two relays.
@@ -223,14 +223,14 @@ class PowerSystemEngine:
         # In a real system, we would fetch the relay objects from a protection database.
         # For now, we create example relays.
         upstream_relay = OvercurrentRelay(
-            relay_id=upstream_relay_id, name=f"Upstream_{upstream_relay_id}", TMS=0.5, Ip=1.0
+            relay_id=upstream_relay_id, name=f"Upstream_{upstream_relay_id}", TMS=0.5, Ip=1.0,
         )
         downstream_relay = OvercurrentRelay(
-            relay_id=downstream_relay_id, name=f"Downstream_{downstream_relay_id}", TMS=0.2, Ip=1.0
+            relay_id=downstream_relay_id, name=f"Downstream_{downstream_relay_id}", TMS=0.2, Ip=1.0,
         )
         # Check coordination
         results = self.coordination_engine.check_coordination_range(
-            upstream_relay, downstream_relay, fault_currents
+            upstream_relay, downstream_relay, fault_currents,
         )
         # Determine if coordinated for all faults
         all_coordinated = all(r["coordinated"] for r in results)
@@ -266,10 +266,10 @@ class PowerSystemEngine:
             fault_currents = kwargs.get("fault_currents")
             if upstream_relay_id is None or downstream_relay_id is None or fault_currents is None:
                 raise ValueError(
-                    "upstream_relay_id, downstream_relay_id, and fault_currents must be provided"
+                    "upstream_relay_id, downstream_relay_id, and fault_currents must be provided",
                 )
             return self.run_protection_coordination(
-                upstream_relay_id, downstream_relay_id, fault_currents
+                upstream_relay_id, downstream_relay_id, fault_currents,
             )
         elif study_type == "arc_flash":
             required = (
@@ -281,7 +281,7 @@ class PowerSystemEngine:
             missing = [k for k in required if k not in kwargs]
             if missing:
                 raise ValueError(
-                    f"arc_flash requires: {', '.join(required)} (missing: {', '.join(missing)})"
+                    f"arc_flash requires: {', '.join(required)} (missing: {', '.join(missing)})",
                 )
             return self.run_arc_flash(
                 voltage_kv=kwargs["voltage_kv"],
@@ -341,6 +341,6 @@ class PowerSystemEngine:
 
         fig, ax = plt.subplots()
         self.visualizer.plot_coordination_margin(
-            upstream_relay, downstream_relay, fault_currents, ax=ax
+            upstream_relay, downstream_relay, fault_currents, ax=ax,
         )
         return fig

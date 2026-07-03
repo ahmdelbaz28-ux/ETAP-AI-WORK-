@@ -8,7 +8,7 @@ import time
 from collections.abc import Callable
 from enum import Enum
 from functools import wraps
-from typing import Any, Dict, List, Optional, Set, Tuple
+from typing import Any
 
 try:
     from cachetools import LRUCache, TLRUCache
@@ -47,7 +47,7 @@ class _CacheEntry:
     )
 
     def __init__(
-        self, value: Any, expires_at: Optional[float] = None, tags: Optional[List[str]] = None
+        self, value: Any, expires_at: float | None = None, tags: list[str] | None = None,
     ):
         self.value = value
         self.expires_at = expires_at
@@ -77,9 +77,9 @@ class CalculationCache:
         self._strategy = strategy
         self._default_ttl = default_ttl_seconds
         self._lock = threading.Lock()
-        self._entries: Dict[str, _CacheEntry] = {}
-        self._tag_index: Dict[str, Set[str]] = {}
-        self._access_order: List[str] = []
+        self._entries: dict[str, _CacheEntry] = {}
+        self._tag_index: dict[str, set[str]] = {}
+        self._access_order: list[str] = []
         self._hits = 0
         self._misses = 0
         self._current_size_bytes = 0
@@ -88,15 +88,15 @@ class CalculationCache:
             maxsize = max(1, int(max_size_mb * 1024 * 1024 / 512))
             if strategy == CacheStrategy.TTL:
                 self._cachetools_cache = TLRUCache(
-                    maxsize=maxsize, ttu=lambda k, v, now: now + (v.ttl or default_ttl_seconds)
+                    maxsize=maxsize, ttu=lambda k, v, now: now + (v.ttl or default_ttl_seconds),
                 )  # type: ignore
             else:
                 self._cachetools_cache = LRUCache(maxsize=maxsize)
-            self._cachetools_data: Dict[str, Tuple[Any, Optional[float], List[str]]] = {}
+            self._cachetools_data: dict[str, tuple[Any, float | None, list[str]]] = {}
         else:
             self._cachetools_cache = None
 
-    def get(self, cache_key: str) -> Optional[Any]:
+    def get(self, cache_key: str) -> Any | None:
         with self._lock:
             entry = self._entries.get(cache_key)
             if entry is None:
@@ -124,8 +124,8 @@ class CalculationCache:
         self,
         cache_key: str,
         value: Any,
-        ttl_seconds: Optional[int] = None,
-        tags: Optional[List[str]] = None,
+        ttl_seconds: int | None = None,
+        tags: list[str] | None = None,
     ) -> None:
         ttl = ttl_seconds if ttl_seconds is not None else self._default_ttl
         expires_at = time.time() + ttl if ttl > 0 else None
@@ -151,7 +151,7 @@ class CalculationCache:
                     self._cachetools_data[cache_key] = (value, expires_at, tags or [])
                 except ValueError:
                     logger.debug(
-                        "Cachetools cache set skipped for key %s (value too large)", cache_key
+                        "Cachetools cache set skipped for key %s (value too large)", cache_key,
                     )
 
     def invalidate(self, cache_key: str) -> bool:
@@ -190,7 +190,7 @@ class CalculationCache:
                 self._cachetools_cache.clear()
                 self._cachetools_data.clear()
 
-    def get_stats(self) -> Dict[str, Any]:
+    def get_stats(self) -> dict[str, Any]:
         with self._lock:
             total = self._hits + self._misses
             hit_rate = (self._hits / total * 100) if total > 0 else 0.0
@@ -208,7 +208,7 @@ class CalculationCache:
                 "strategy": self._strategy.value,
             }
 
-    def get_cache_keys(self, pattern: Optional[str] = None) -> List[str]:
+    def get_cache_keys(self, pattern: str | None = None) -> list[str]:
         with self._lock:
             if pattern is None:
                 return list(self._entries.keys())
@@ -236,7 +236,7 @@ class CalculationCache:
         if cache_key in self._access_order:
             self._access_order.remove(cache_key)
 
-    def _remove_from_tag_index(self, cache_key: str, tags: List[str]) -> None:
+    def _remove_from_tag_index(self, cache_key: str, tags: list[str]) -> None:
         for tag in tags:
             key_set = self._tag_index.get(tag)
             if key_set:
@@ -258,7 +258,7 @@ class CalculationCache:
                 victim = next(iter(self._entries))
                 self._remove_entry(victim)
 
-    def _get_lfu_victim(self) -> Optional[str]:
+    def _get_lfu_victim(self) -> str | None:
         if not self._entries:
             return None
         min_count = float("inf")
@@ -324,7 +324,7 @@ class CacheKeyBuilder:
         return hasher.hexdigest()
 
 
-TTL_RECOMMENDATIONS: Dict[str, int] = {
+TTL_RECOMMENDATIONS: dict[str, int] = {
     "load_flow": 300,
     "fault_analysis": 600,
     "harmonic_analysis": 600,
@@ -342,8 +342,8 @@ class SmartCacheStrategy:
     def should_cache(
         self,
         component: str,
-        params: Dict[str, Any],
-        frequency_estimate: Optional[float] = None,
+        params: dict[str, Any],
+        frequency_estimate: float | None = None,
     ) -> bool:
         if frequency_estimate is not None and frequency_estimate < 0.01:
             return False
@@ -357,11 +357,9 @@ class SmartCacheStrategy:
         if expensive:
             return True
         size_estimate = _estimate_size(params)
-        if size_estimate > 1024 * 100:
-            return False
-        return True
+        return not size_estimate > 1024 * 100
 
-    def get_cache_ttl(self, component: str, result_type: Optional[str] = None) -> int:
+    def get_cache_ttl(self, component: str, result_type: str | None = None) -> int:
         mapped = component
         if "load_flow" in component or "loadflow" in component:
             mapped = "load_flow"
@@ -377,7 +375,7 @@ class SmartCacheStrategy:
             mapped = "system_build"
         return TTL_RECOMMENDATIONS.get(mapped, self._cache._default_ttl)
 
-    def pre_warm(self, system: Any, study_types: List[str]) -> int:
+    def pre_warm(self, system: Any, study_types: list[str]) -> int:
         pre_warmed = 0
         builder = CacheKeyBuilder()
         for study in study_types:
@@ -393,7 +391,7 @@ class SmartCacheStrategy:
                     pre_warmed += 1
             elif study == "fault_analysis":
                 key = builder.build_key(
-                    "fault_analysis", "analyze", builder.hash_system_state(system)
+                    "fault_analysis", "analyze", builder.hash_system_state(system),
                 )
                 if not self._cache.exists(key):
                     self._cache.set(
@@ -405,7 +403,7 @@ class SmartCacheStrategy:
                     pre_warmed += 1
             elif study == "coordination":
                 key = builder.build_key(
-                    "coordination", "evaluate", builder.hash_system_state(system)
+                    "coordination", "evaluate", builder.hash_system_state(system),
                 )
                 if not self._cache.exists(key):
                     self._cache.set(
@@ -424,8 +422,8 @@ class MemoryManager:
         self._max_memory_percent = max_memory_percent
         self._lock = threading.Lock()
 
-    def get_memory_usage(self) -> Dict[str, Any]:
-        result: Dict[str, Any] = {
+    def get_memory_usage(self) -> dict[str, Any]:
+        result: dict[str, Any] = {
             "cache_size_mb": round(self._cache._current_size_bytes / (1024 * 1024), 2),
             "max_cache_mb": round(self._cache._max_size_bytes / (1024 * 1024), 2),
             "cache_utilization": 0.0,
@@ -489,7 +487,7 @@ class MemoryManager:
                     evicted += 1
             return evicted > 0
 
-    def optimize(self) -> Dict[str, int]:
+    def optimize(self) -> dict[str, int]:
         removed_expired = 0
         removed_orphaned = 0
         with self._lock:
@@ -507,7 +505,7 @@ class MemoryManager:
                 self._cache._tag_index.pop(t, None)
         return {"expired_removed": removed_expired, "orphaned_tags_removed": removed_orphaned}
 
-    def get_memory_report(self) -> Dict[str, Any]:
+    def get_memory_report(self) -> dict[str, Any]:
         usage = self.get_memory_usage()
         stats = self._cache.get_stats()
         return {
@@ -516,17 +514,17 @@ class MemoryManager:
             "recommendations": self._generate_recommendations(usage, stats),
         }
 
-    def _generate_recommendations(self, usage: Dict[str, Any], stats: Dict[str, Any]) -> List[str]:
-        recs: List[str] = []
+    def _generate_recommendations(self, usage: dict[str, Any], stats: dict[str, Any]) -> list[str]:
+        recs: list[str] = []
         if usage.get("cache_utilization", 0) > 90:
             recs.append("Cache utilization exceeds 90%. Consider increasing max_size_mb.")
         if stats.get("hit_rate", 100) < 50:
             recs.append(
-                f"Low hit rate ({stats['hit_rate']}%). Review TTL values or caching strategy."
+                f"Low hit rate ({stats['hit_rate']}%). Review TTL values or caching strategy.",
             )
         if usage.get("system_percent", 0) > self._max_memory_percent:
             recs.append(
-                f"System memory at {usage['system_percent']}% (limit: {self._max_memory_percent}%). Aggressive eviction recommended."
+                f"System memory at {usage['system_percent']}% (limit: {self._max_memory_percent}%). Aggressive eviction recommended.",
             )
         if not recs:
             recs.append("Cache health is good.")
@@ -534,9 +532,9 @@ class MemoryManager:
 
 
 _singleton_lock = threading.Lock()
-_calculation_cache_instance: Optional[CalculationCache] = None
-_smart_strategy_instance: Optional[SmartCacheStrategy] = None
-_memory_manager_instance: Optional[MemoryManager] = None
+_calculation_cache_instance: CalculationCache | None = None
+_smart_strategy_instance: SmartCacheStrategy | None = None
+_memory_manager_instance: MemoryManager | None = None
 
 
 def get_calculation_cache(
@@ -579,8 +577,8 @@ def get_memory_manager(max_memory_percent: float = 80.0) -> MemoryManager:
 
 def cached(
     component: str,
-    ttl_seconds: Optional[int] = None,
-    tags: Optional[List[str]] = None,
+    ttl_seconds: int | None = None,
+    tags: list[str] | None = None,
 ) -> Callable[[Callable[..., Any]], Callable[..., Any]]:
     def decorator(func: Callable[..., Any]) -> Callable[..., Any]:
         @wraps(func)

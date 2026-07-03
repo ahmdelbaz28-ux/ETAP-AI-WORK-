@@ -34,7 +34,6 @@ from datetime import datetime, timezone
 UTC = timezone.utc  # noqa: UP017
 
 UTC = UTC
-from typing import Dict, List, Optional
 
 import numpy as np
 
@@ -48,10 +47,10 @@ class EngineeringDocument:
     doc_id: str
     title: str
     source: str  # IEEE, IEC, NFPA, etc.
-    standard_number: Optional[str] = None
+    standard_number: str | None = None
     content: str = ""
-    metadata: Dict = field(default_factory=dict)
-    embedding: Optional[np.ndarray] = None
+    metadata: dict = field(default_factory=dict)
+    embedding: np.ndarray | None = None
     created_at: datetime = field(default_factory=lambda: datetime.now(UTC))
 
 
@@ -62,7 +61,7 @@ class RetrievalResult:
     document: EngineeringDocument
     relevance_score: float
     excerpt: str
-    page_reference: Optional[str] = None
+    page_reference: str | None = None
 
 
 class EmbeddingModel:
@@ -98,7 +97,7 @@ class EmbeddingModel:
             from sentence_transformers import SentenceTransformer
 
             self.model = SentenceTransformer(self.model_name)
-            logger.info(f"Loaded local embedding model: {self.model_name}")
+            logger.info("Loaded local embedding model: %s", self.model_name)
         except ImportError:
             logger.warning("sentence-transformers not installed. Using fallback.")
             self.model = None
@@ -116,10 +115,10 @@ class EmbeddingModel:
             else:
                 raise ValueError("OPENAI_API_KEY not set")
         except Exception as e:
-            logger.error(f"Failed to setup cloud API: {e}")
+            logger.error("Failed to setup cloud API: %s", e)
             self.model = None
 
-    def encode(self, texts: List[str]) -> np.ndarray:
+    def encode(self, texts: list[str]) -> np.ndarray:
         """
         Encode texts to embeddings.
 
@@ -141,17 +140,17 @@ class EmbeddingModel:
             # Cloud API call
             return self._cloud_encode(texts)
 
-    def _cloud_encode(self, texts: List[str]) -> np.ndarray:
+    def _cloud_encode(self, texts: list[str]) -> np.ndarray:
         """Encode using cloud API."""
         try:
             response = self.model.Embedding.create(model="text-embedding-ada-002", input=texts)
             embeddings = [item["embedding"] for item in response["data"]]
             return np.array(embeddings)
         except Exception as e:
-            logger.error(f"Cloud embedding failed: {e}")
+            logger.error("Cloud embedding failed: %s", e)
             return self._fallback_embedding(texts)
 
-    def _fallback_embedding(self, texts: List[str]) -> np.ndarray:
+    def _fallback_embedding(self, texts: list[str]) -> np.ndarray:
         """
         Fallback embedding when cloud embedding is unavailable.
 
@@ -182,7 +181,7 @@ class EmbeddingModel:
             logger.warning(
                 "Using SHA-256 hash fallback for embeddings — "
                 "semantic similarity will NOT be meaningful. "
-                "Configure a real embedding provider for production."
+                "Configure a real embedding provider for production.",
             )
             return np.array(embeddings)
 
@@ -191,7 +190,7 @@ class EmbeddingModel:
             "disabled because it produces meaningless vectors. Please configure "
             "a valid embedding provider (e.g., set OPENAI_API_KEY or run a local "
             "sentence-transformers model). To enable the hash fallback for testing, "
-            "set RAG_ALLOW_HASH_FALLBACK=1."
+            "set RAG_ALLOW_HASH_FALLBACK=1.",
         )
 
 
@@ -215,8 +214,8 @@ class VectorDatabase:
         """
         self.db_type = db_type
         self.db_path = db_path
-        self.documents: Dict[str, EngineeringDocument] = {}
-        self.embeddings: Dict[str, np.ndarray] = {}
+        self.documents: dict[str, EngineeringDocument] = {}
+        self.embeddings: dict[str, np.ndarray] = {}
         self.index = None
 
         self._initialize_db()
@@ -252,7 +251,7 @@ class VectorDatabase:
 
             dimension = 384  # Embedding dimension — must match embedding model output
             self.index = faiss.IndexFlatL2(dimension)
-            self._faiss_id_map: List[str] = []
+            self._faiss_id_map: list[str] = []
             logger.info("Initialized FAISS vector database")
         except ImportError:
             logger.warning("FAISS not available. Using memory storage.")
@@ -286,7 +285,7 @@ class VectorDatabase:
                         "title": doc.title,
                         "source": doc.source,
                         "standard_number": doc.standard_number,
-                    }
+                    },
                 ],
                 documents=[doc.content],
             )
@@ -294,7 +293,7 @@ class VectorDatabase:
             self.index.add(embedding.reshape(1, -1))
             self._faiss_id_map.append(doc_id)
 
-    def search(self, query_embedding: np.ndarray, top_k: int = 5) -> List[RetrievalResult]:
+    def search(self, query_embedding: np.ndarray, top_k: int = 5) -> list[RetrievalResult]:
         """
         Search for similar documents.
 
@@ -312,10 +311,10 @@ class VectorDatabase:
         else:
             return self._search_memory(query_embedding, top_k)
 
-    def _search_chroma(self, query_embedding: np.ndarray, top_k: int) -> List[RetrievalResult]:
+    def _search_chroma(self, query_embedding: np.ndarray, top_k: int) -> list[RetrievalResult]:
         """Search using ChromaDB."""
         results = self.collection.query(
-            query_embeddings=[query_embedding.tolist()], n_results=top_k
+            query_embeddings=[query_embedding.tolist()], n_results=top_k,
         )
 
         retrieval_results = []
@@ -330,12 +329,12 @@ class VectorDatabase:
                         document=doc,
                         relevance_score=relevance_score,
                         excerpt=doc.content[:500],  # First 500 chars
-                    )
+                    ),
                 )
 
         return retrieval_results
 
-    def _search_faiss(self, query_embedding: np.ndarray, top_k: int) -> List[RetrievalResult]:
+    def _search_faiss(self, query_embedding: np.ndarray, top_k: int) -> list[RetrievalResult]:
         """Search using FAISS."""
         distances, indices = self.index.search(query_embedding.reshape(1, -1), top_k)
 
@@ -349,13 +348,13 @@ class VectorDatabase:
                     relevance_score = 1.0 / (1.0 + distance)
                     retrieval_results.append(
                         RetrievalResult(
-                            document=doc, relevance_score=relevance_score, excerpt=doc.content[:500]
-                        )
+                            document=doc, relevance_score=relevance_score, excerpt=doc.content[:500],
+                        ),
                     )
 
         return retrieval_results
 
-    def _search_memory(self, query_embedding: np.ndarray, top_k: int) -> List[RetrievalResult]:
+    def _search_memory(self, query_embedding: np.ndarray, top_k: int) -> list[RetrievalResult]:
         """Search using in-memory cosine similarity."""
         if not self.embeddings:
             return []
@@ -380,8 +379,8 @@ class VectorDatabase:
             doc = self.documents[doc_id]
             retrieval_results.append(
                 RetrievalResult(
-                    document=doc, relevance_score=float(score), excerpt=doc.content[:500]
-                )
+                    document=doc, relevance_score=float(score), excerpt=doc.content[:500],
+                ),
             )
 
         return retrieval_results
@@ -400,8 +399,8 @@ class EngineeringKnowledgeBase:
 
     def __init__(
         self,
-        embedding_model: Optional[EmbeddingModel] = None,
-        vector_db: Optional[VectorDatabase] = None,
+        embedding_model: EmbeddingModel | None = None,
+        vector_db: VectorDatabase | None = None,
     ):
         """
         Initialize knowledge base.
@@ -421,7 +420,7 @@ class EngineeringKnowledgeBase:
                 faiss_dim = self.vector_db.index.d
                 if actual_dim != faiss_dim:
                     logger.warning(
-                        f"Embedding dimension ({actual_dim}) doesn't match FAISS index ({faiss_dim}). Reinitializing FAISS."
+                        f"Embedding dimension ({actual_dim}) doesn't match FAISS index ({faiss_dim}). Reinitializing FAISS.",
                     )
                     import faiss
 
@@ -452,7 +451,7 @@ class EngineeringKnowledgeBase:
 
         self.logger.info(f"Loaded {len(standards)} default engineering standards")
 
-    def _get_default_standards_content(self) -> List[Dict]:
+    def _get_default_standards_content(self) -> list[dict]:
         """Get default engineering standards content."""
         return [
             {
@@ -675,9 +674,9 @@ class EngineeringKnowledgeBase:
         # Add to vector database
         self.vector_db.add_document(doc, embedding)
 
-        self.logger.info(f"Ingested document: {doc.doc_id}")
+        self.logger.info("Ingested document: %s", doc.doc_id)
 
-    def retrieve_knowledge(self, query: str, top_k: int = 5) -> List[RetrievalResult]:
+    def retrieve_knowledge(self, query: str, top_k: int = 5) -> list[RetrievalResult]:
         """
         Retrieve relevant engineering knowledge for a query.
 
@@ -698,7 +697,7 @@ class EngineeringKnowledgeBase:
 
         return results
 
-    def check_compliance(self, calculation_type: str, parameters: Dict) -> Dict:
+    def check_compliance(self, calculation_type: str, parameters: dict) -> dict:
         """
         Check if calculation parameters comply with standards.
 
@@ -734,7 +733,7 @@ class EngineeringKnowledgeBase:
                     "source": doc.source,
                     "standard_number": doc.standard_number,
                     "relevance_score": result.relevance_score,
-                }
+                },
             )
 
             # Perform specific checks based on document content
@@ -747,8 +746,8 @@ class EngineeringKnowledgeBase:
         return compliance_result
 
     def _check_specific_compliance(
-        self, calc_type: str, params: Dict, doc: EngineeringDocument
-    ) -> List[str]:
+        self, calc_type: str, params: dict, doc: EngineeringDocument,
+    ) -> list[str]:
         """Check specific compliance rules."""
         violations = []
 
@@ -769,7 +768,7 @@ class EngineeringKnowledgeBase:
 
         return violations
 
-    def generate_citation(self, results: List[RetrievalResult]) -> str:
+    def generate_citation(self, results: list[RetrievalResult]) -> str:
         """
         Generate formatted citation for retrieved documents.
 

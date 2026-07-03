@@ -7,7 +7,7 @@ Supports Arabic-to-English keyboard layout conversion for non-English input.
 """
 
 import os
-from typing import TYPE_CHECKING, Dict
+from typing import TYPE_CHECKING
 
 # Try to import langdetect for better language detection
 try:
@@ -18,7 +18,7 @@ except ImportError:
     HAS_LANGDETECT = False
     detect = None  # type: ignore
     print(
-        "Warning: langdetect not installed. Install with 'pip install langdetect' for better language detection."
+        "Warning: langdetect not installed. Install with 'pip install langdetect' for better language detection.",
     )
 
 if TYPE_CHECKING or HAS_LANGDETECT and detect is not None:
@@ -34,7 +34,7 @@ AUTO_CORRECT_LANGUAGE = os.getenv("AUTO_CORRECT_LANGUAGE", "true").lower() == "t
 # ---------------------------------------------------------------------------
 # This mapping converts Arabic keyboard layout characters to their
 # corresponding English QWERTY equivalents
-ARABIC_TO_ENGLISH_KEYBOARD_MAP: Dict[str, str] = {
+ARABIC_TO_ENGLISH_KEYBOARD_MAP: dict[str, str] = {
     # Arabic letters that map to English letters when typed on Arabic keyboard
     "ض": "q",
     "ص": "w",

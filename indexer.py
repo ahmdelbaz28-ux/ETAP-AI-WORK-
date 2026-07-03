@@ -25,9 +25,15 @@ import ast
 import datetime
 import hashlib
 import json
+import logging
 import os
 import re
 from pathlib import Path
+
+# SECURITY/QUALITY: added logger to replace silent except: pass below.
+# indexer.py is run by CI (auto-index.yml) — silent failures would mask
+# real bugs in the indexing logic.
+logger = logging.getLogger(__name__)
 
 PROJECT_ROOT = Path(".")
 OUTPUT_DIR = PROJECT_ROOT
@@ -190,7 +196,7 @@ def extract_python_metadata(path: Path) -> dict:
                     "line": node.lineno,
                     "public_methods": methods[:20],
                     "docstring": ast.get_docstring(node) or "",
-                }
+                },
             )
 
     functions = []
@@ -204,7 +210,7 @@ def extract_python_metadata(path: Path) -> dict:
                         "line": node.lineno,
                         "async": is_async,
                         "docstring": ast.get_docstring(node) or "",
-                    }
+                    },
                 )
 
     imports = []
@@ -212,9 +218,8 @@ def extract_python_metadata(path: Path) -> dict:
         if isinstance(node, ast.Import):
             for alias in node.names:
                 imports.append(alias.name)
-        elif isinstance(node, ast.ImportFrom):
-            if node.module:
-                imports.append(node.module)
+        elif isinstance(node, ast.ImportFrom) and node.module:
+            imports.append(node.module)
 
     module_doc = ast.get_docstring(tree) or ""
     return {
@@ -236,10 +241,13 @@ def extract_api_routes(path: Path) -> list:
                 {
                     "method": m.group(1).upper(),
                     "path": m.group(2),
-                }
+                },
             )
-    except Exception:
-        pass
+    except Exception as exc:
+        # QUALITY: was `except Exception: pass` — silently swallowed real bugs
+        # in the route-extraction regex. Now logged at DEBUG level so the
+        # indexer keeps running but failures are visible in verbose mode.
+        logger.debug("Failed to extract API routes from %s: %s", path, exc)
     return routes
 
 
@@ -295,7 +303,7 @@ def scan_ui() -> dict:
                 content = fpath.read_text(encoding="utf-8", errors="ignore")
                 # Extract exported components/functions
                 exports = re.findall(
-                    r"export\s+(?:default\s+)?(?:function|class|const)\s+(\w+)", content
+                    r"export\s+(?:default\s+)?(?:function|class|const)\s+(\w+)", content,
                 )
                 props_interfaces = re.findall(r"interface\s+(\w+Props)", content)
                 ui_index[section][rel] = {
@@ -365,7 +373,7 @@ def collect_all_api_routes(modules: dict) -> list:
                         "method": route["method"],
                         "path": route["path"],
                         "file": file_path,
-                    }
+                    },
                 )
     return sorted(all_routes, key=lambda r: r["path"])
 
@@ -453,20 +461,20 @@ def scan_help_topics() -> dict:
                 "tags": tags,
                 "navigateTo": navigate_to,
                 "relatedTopics": related,
-            }
+            },
         )
 
     # Extract categories list
     categories = []
     cat_pattern = re.compile(
-        r"id:\s*'([a-z-]+)'\s+as\s+const,\s+label:\s*\{\s*en:\s*'([^']+)'\s*,\s*ar:\s*'([^']+)'\s*\}"
+        r"id:\s*'([a-z-]+)'\s+as\s+const,\s+label:\s*\{\s*en:\s*'([^']+)'\s*,\s*ar:\s*'([^']+)'\s*\}",
     )
     for m in cat_pattern.finditer(content):
         categories.append(
             {
                 "id": m.group(1),
                 "label": {"en": m.group(2), "ar": m.group(3)},
-            }
+            },
         )
 
     return {
@@ -496,7 +504,7 @@ def scan_context_registry() -> dict:
                 "contextId": m.group(1),
                 "topicId": m.group(2),
                 "priority": int(m.group(3)) if m.group(3) else 1,
-            }
+            },
         )
 
     return {"mappings": mappings, "total": len(mappings)}
@@ -546,7 +554,7 @@ def scan_env_variables() -> dict:
                     continue
                 # Find all os.getenv("VAR") and os.environ.get("VAR")
                 for m in re.finditer(
-                    r'os\.(?:getenv|environ\.get)\(\s*["\']([A-Z_][A-Z0-9_]*)["\']', content
+                    r'os\.(?:getenv|environ\.get)\(\s*["\']([A-Z_][A-Z0-9_]*)["\']', content,
                 ):
                     var_name = m.group(1)
                     if var_name not in env_vars:
@@ -736,7 +744,7 @@ def build_ui_search_index(help_data: dict, modules: dict, ui: dict, api_routes: 
                 "description": topic["description"],
                 "tags": topic["tags"],
                 "navigateTo": topic["navigateTo"],
-            }
+            },
         )
 
     # 2. API routes
@@ -755,7 +763,7 @@ def build_ui_search_index(help_data: dict, modules: dict, ui: dict, api_routes: 
                 },
                 "tags": ["api", "endpoint", route["method"].lower()],
                 "navigateTo": None,
-            }
+            },
         )
 
     # 3. UI pages
@@ -770,7 +778,7 @@ def build_ui_search_index(help_data: dict, modules: dict, ui: dict, api_routes: 
                 "tags": ["page", "ui", page_name.lower()],
                 "navigateTo": f"/{page_name.lower()}",
                 "exports": file_data.get("exports", []),
-            }
+            },
         )
 
     # 4. UI components
@@ -793,11 +801,11 @@ def build_ui_search_index(help_data: dict, modules: dict, ui: dict, api_routes: 
                         },
                         "tags": ["component", "ui", section, export.lower()],
                         "navigateTo": None,
-                    }
+                    },
                 )
 
     # 5. Python modules (top-level packages)
-    for pkg_name in modules.keys():
+    for pkg_name in modules:
         entries.append(
             {
                 "type": "python-module",
@@ -809,7 +817,7 @@ def build_ui_search_index(help_data: dict, modules: dict, ui: dict, api_routes: 
                 },
                 "tags": ["python", "module", "package", pkg_name],
                 "navigateTo": None,
-            }
+            },
         )
 
     return {
@@ -900,7 +908,7 @@ def generate_markdown(index: dict) -> str:
     for t in index.get("help_topics", {}).get("topics", []):
         tags = ", ".join(f"`{tag}`" for tag in t.get("tags", [])[:5])
         lines.append(
-            f"| `{t['id']}` | {t['category']} | {t['title']['en']} | {t['title']['ar']} | {tags} |"
+            f"| `{t['id']}` | {t['category']} | {t['title']['en']} | {t['title']['ar']} | {tags} |",
         )
 
     lines += [
@@ -1039,7 +1047,7 @@ def generate_markdown(index: dict) -> str:
     for path, t in index["tests"].items():
         fname = path.split("/")[-1]
         lines.append(
-            f"| `{fname}` | {len(t['test_functions'])} | {len(t['test_classes'])} | **{t['total_tests']}** |"
+            f"| `{fname}` | {len(t['test_functions'])} | {len(t['test_classes'])} | **{t['total_tests']}** |",
         )
 
     lines += [
@@ -1184,7 +1192,7 @@ def main():
     with open(UI_SEARCH_INDEX, "w", encoding="utf-8") as f:
         json.dump(ui_search_index, f, indent=2, ensure_ascii=False)
     print(
-        f"[OK] UI search index written to: {UI_SEARCH_INDEX} ({UI_SEARCH_INDEX.stat().st_size // 1024} KB)"
+        f"[OK] UI search index written to: {UI_SEARCH_INDEX} ({UI_SEARCH_INDEX.stat().st_size // 1024} KB)",
     )
 
     # Write Markdown index

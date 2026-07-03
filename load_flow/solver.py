@@ -14,7 +14,7 @@ solve_load_flow_sparse(buses, branches, options)
 from __future__ import annotations
 
 import logging
-from typing import Any, Dict, List, Union
+from typing import Any, Union
 
 import numpy as np
 
@@ -30,11 +30,11 @@ logger = logging.getLogger(__name__)
 
 # A bus can be provided as a BusData object, a core_model.Bus object,
 # or a plain dict with the required keys.
-BusInput = Union[Dict[str, Any], Any]
+BusInput = Union[dict[str, Any], Any]
 
 # A branch can be provided as a BranchData object, a core_model.Line /
 # Transformer object, or a plain dict.
-BranchInput = Union[Dict[str, Any], Any]
+BranchInput = Union[dict[str, Any], Any]
 
 
 # ---------------------------------------------------------------------------
@@ -42,7 +42,7 @@ BranchInput = Union[Dict[str, Any], Any]
 # ---------------------------------------------------------------------------
 
 
-def _bus_to_bus_data(bus: BusInput, index_map: Dict[int, int]) -> Any:
+def _bus_to_bus_data(bus: BusInput, index_map: dict[int, int]) -> Any:
     """Convert various bus representations to ``BusData``.
 
     Parameters
@@ -107,7 +107,7 @@ def _bus_to_bus_data(bus: BusInput, index_map: Dict[int, int]) -> Any:
 
 def _branch_to_branch_data(
     branch: BranchInput,
-    index_map: Dict[int, int],
+    index_map: dict[int, int],
 ) -> Any:
     """Convert various branch representations to ``BranchData``.
 
@@ -171,10 +171,10 @@ def _branch_to_branch_data(
 
 
 def solve_load_flow_sparse(
-    buses: List[BusInput],
-    branches: List[BranchInput],
-    options: Dict[str, Any] | None = None,
-) -> Dict[str, Any]:
+    buses: list[BusInput],
+    branches: list[BranchInput],
+    options: dict[str, Any] | None = None,
+) -> dict[str, Any]:
     """Solve load flow using the sparse Y-bus Newton-Raphson solver.
 
     This is the primary integration point for the sparse solver.  It
@@ -230,8 +230,8 @@ def solve_load_flow_sparse(
 
     # --- Convert inputs to standard BusData / BranchData ---
     # First pass: build bus_id → sequential index mapping
-    bus_id_to_idx: Dict[int, int] = {}
-    bus_data_list: List[BusData] = []
+    bus_id_to_idx: dict[int, int] = {}
+    bus_data_list: list[BusData] = []
 
     for idx, bus in enumerate(buses):
         bd = _bus_to_bus_data(bus, bus_id_to_idx)
@@ -241,7 +241,7 @@ def solve_load_flow_sparse(
     # Re-assign indices now that mapping is complete
     bus_id_to_idx = {bd.bus_id: i for i, bd in enumerate(bus_data_list)}
 
-    branch_data_list: List[BranchData] = []
+    branch_data_list: list[BranchData] = []
     for branch in branches:
         bd = _branch_to_branch_data(branch, bus_id_to_idx)
         branch_data_list.append(bd)
@@ -281,11 +281,11 @@ def solve_load_flow_sparse(
         )
 
     # --- Format results ---
-    voltages_dict: Dict[int, complex] = {}
-    magnitudes_dict: Dict[int, float] = {}
-    angles_deg_dict: Dict[int, float] = {}
-    p_dict: Dict[int, float] = {}
-    q_dict: Dict[int, float] = {}
+    voltages_dict: dict[int, complex] = {}
+    magnitudes_dict: dict[int, float] = {}
+    angles_deg_dict: dict[int, float] = {}
+    p_dict: dict[int, float] = {}
+    q_dict: dict[int, float] = {}
 
     for i, bd in enumerate(bus_data_list):
         if i < len(result.voltages):

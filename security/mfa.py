@@ -23,7 +23,7 @@ import secrets
 import struct
 import time
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -96,7 +96,7 @@ def _hotp(secret_bytes: bytes, counter: int, digits: int = 6) -> str:
 def _totp_code(
     secret_b32: str,
     time_step: int = 30,
-    t: Optional[float] = None,
+    t: float | None = None,
     digits: int = 6,
 ) -> str:
     """Compute a TOTP code from a Base32-encoded secret.
@@ -141,7 +141,7 @@ class TOTPSecret:
     secret: str  # Base32-encoded
     verified: bool = False
     created_at: float = field(default_factory=time.time)
-    backup_codes: List[str] = field(default_factory=list)
+    backup_codes: list[str] = field(default_factory=list)
 
 
 class TOTPProvider:
@@ -169,7 +169,7 @@ class TOTPProvider:
         self.time_step = time_step
         self.digits = digits
         self.window = window  # ±1 window for clock drift
-        self._secrets: Dict[str, TOTPSecret] = {}
+        self._secrets: dict[str, TOTPSecret] = {}
 
     # -- secret generation ---------------------------------------------------
 
@@ -264,7 +264,7 @@ class TOTPProvider:
 
     # -- backup codes --------------------------------------------------------
 
-    def generate_backup_codes(self, user_id: str, count: int = 10) -> List[str]:
+    def generate_backup_codes(self, user_id: str, count: int = 10) -> list[str]:
         """Generate one-time backup codes for a user.
 
         Parameters
@@ -307,14 +307,14 @@ class TOTPProvider:
         if entry and code in entry.backup_codes:
             entry.backup_codes.remove(code)
             logger.info(
-                "Backup code used for user %s (%d remaining)", user_id, len(entry.backup_codes)
+                "Backup code used for user %s (%d remaining)", user_id, len(entry.backup_codes),
             )
             return True
         return False
 
     # -- user management helpers ---------------------------------------------
 
-    def enable_totp(self, user_id: str) -> Dict[str, str]:
+    def enable_totp(self, user_id: str) -> dict[str, str]:
         """Enable TOTP for a user.  Returns secret and QR URI.
 
         Parameters
@@ -336,7 +336,7 @@ class TOTPProvider:
             "backup_codes": backup_codes,
         }
 
-    def get_secret(self, user_id: str) -> Optional[str]:
+    def get_secret(self, user_id: str) -> str | None:
         """Return the stored Base32 secret for a user, or ``None``."""
         entry = self._secrets.get(user_id)
         return entry.secret if entry else None
@@ -369,7 +369,7 @@ class WebAuthnCredential:
     user_id: str
     public_key: bytes
     sign_count: int = 0
-    transports: List[str] = field(default_factory=list)
+    transports: list[str] = field(default_factory=list)
     created_at: float = field(default_factory=time.time)
 
 
@@ -404,12 +404,12 @@ class WebAuthnProvider:
         self.rp_id = rp_id
         self.rp_name = rp_name
         self.origin = origin
-        self._credentials: Dict[str, List[WebAuthnCredential]] = {}
-        self._challenges: Dict[str, str] = {}  # user_id -> challenge
+        self._credentials: dict[str, list[WebAuthnCredential]] = {}
+        self._challenges: dict[str, str] = {}  # user_id -> challenge
 
     # -- registration --------------------------------------------------------
 
-    def generate_registration_options(self, user_id: str) -> Dict[str, Any]:
+    def generate_registration_options(self, user_id: str) -> dict[str, Any]:
         """Generate WebAuthn registration challenge.
 
         Parameters
@@ -464,7 +464,7 @@ class WebAuthnProvider:
             },
         }
 
-    def verify_registration(self, user_id: str, response: dict) -> Dict[str, Any]:
+    def verify_registration(self, user_id: str, response: dict) -> dict[str, Any]:
         """Verify WebAuthn registration response from the client.
 
         Parameters
@@ -510,28 +510,34 @@ class WebAuthnProvider:
                 logger.warning("WebAuthn registration verification failed: %s", exc)
                 return {"success": False, "error": str(exc)}
 
-        # Fallback: store credential without full crypto verification
-        cred_id = response.get("id", secrets.token_hex(16))
-        public_key_b64 = response.get("response", {}).get("publicKey", "")
-        try:
-            public_key = base64.urlsafe_b64decode(public_key_b64 + "==")
-        except Exception:
-            public_key = b""
-
-        credential = WebAuthnCredential(
-            credential_id=cred_id,
-            user_id=user_id,
-            public_key=public_key,
-            sign_count=0,
-            transports=response.get("transports", []),
+        # SECURITY: Reject WebAuthn registration when the 'webauthn' library is
+        # not installed. Storing a credential without cryptographic verification
+        # of the authenticator's attestation would allow a malicious client to
+        # register an arbitrary credential_id and potentially bypass MFA later
+        # if the verification path is ever weakened. The authentication path
+        # (verify_authentication_response below) already rejects in fallback
+        # mode — registering a credential that can never be authenticated is
+        # both useless and a security smell.
+        #
+        # In production, ALWAYS install the 'webauthn' package:
+        #   pip install webauthn
+        logger.error(
+            "WebAuthn registration REJECTED (no webauthn library installed): "
+            "user=%s. The 'webauthn' package is REQUIRED for production MFA. "
+            "Install it with: pip install webauthn",
+            user_id,
         )
-        self._credentials.setdefault(user_id, []).append(credential)
-        logger.info("WebAuthn credential registered (fallback) for user %s", user_id)
-        return {"credential_id": cred_id, "success": True}
+        return {
+            "success": False,
+            "error": (
+                "WebAuthn registration is disabled because the 'webauthn' "
+                "library is not installed. Install it with: pip install webauthn"
+            ),
+        }
 
     # -- authentication ------------------------------------------------------
 
-    def generate_authentication_options(self, user_id: str) -> Dict[str, Any]:
+    def generate_authentication_options(self, user_id: str) -> dict[str, Any]:
         """Generate WebAuthn authentication challenge.
 
         Parameters
@@ -596,8 +602,8 @@ class WebAuthnProvider:
             ``True`` if authentication succeeded.
         """
         # Find the credential
-        stored_cred: Optional[WebAuthnCredential] = None
-        owner_id: Optional[str] = None
+        stored_cred: WebAuthnCredential | None = None
+        owner_id: str | None = None
         for uid, creds in self._credentials.items():
             for c in creds:
                 if c.credential_id == credential_id:
@@ -628,7 +634,7 @@ class WebAuthnProvider:
                 )
                 # Update sign count
                 stored_cred.sign_count = response.get("response", {}).get(
-                    "signCount", stored_cred.sign_count + 1
+                    "signCount", stored_cred.sign_count + 1,
                 )
                 logger.info("WebAuthn authentication succeeded for user %s", owner_id)
                 return True
@@ -650,7 +656,7 @@ class WebAuthnProvider:
 
     # -- credential management -----------------------------------------------
 
-    def get_credentials(self, user_id: str) -> List[Dict[str, Any]]:
+    def get_credentials(self, user_id: str) -> list[dict[str, Any]]:
         """Return all registered credentials for a user.
 
         Parameters
@@ -722,14 +728,14 @@ class MFAOrchestrator:
 
     def __init__(
         self,
-        totp_provider: Optional[TOTPProvider] = None,
-        webauthn_provider: Optional[WebAuthnProvider] = None,
-        require_mfa_for_roles: Optional[List[str]] = None,
+        totp_provider: TOTPProvider | None = None,
+        webauthn_provider: WebAuthnProvider | None = None,
+        require_mfa_for_roles: list[str] | None = None,
     ) -> None:
         self.totp = totp_provider or TOTPProvider()
         self.webauthn = webauthn_provider or WebAuthnProvider()
         self.require_mfa_for_roles = require_mfa_for_roles or ["admin", "engineer"]
-        self._mfa_verified_sessions: Dict[str, float] = {}  # session_id -> expiry
+        self._mfa_verified_sessions: dict[str, float] = {}  # session_id -> expiry
 
     def is_mfa_required(self, role: str) -> bool:
         """Check whether a given role requires MFA.
@@ -841,7 +847,7 @@ class MFAOrchestrator:
         self._mfa_verified_sessions.pop(session_id, None)
         logger.info("MFA verification revoked for session %s", session_id)
 
-    def get_status(self, user_id: str) -> Dict[str, Any]:
+    def get_status(self, user_id: str) -> dict[str, Any]:
         """Get MFA enrollment status for a user.
 
         Parameters

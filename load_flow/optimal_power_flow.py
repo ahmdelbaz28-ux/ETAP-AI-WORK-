@@ -24,7 +24,6 @@ from __future__ import annotations
 import logging
 from dataclasses import dataclass
 from enum import Enum
-from typing import Dict, List, Optional, Tuple
 
 import numpy as np
 from scipy.optimize import linprog, minimize
@@ -46,12 +45,12 @@ class GeneratorCost:
     """Generator cost characteristics."""
 
     generator_id: int
-    cost_coefficients: List[float]  # [c0, c1, c2] for quadratic: c0 + c1*P + c2*P^2
+    cost_coefficients: list[float]  # [c0, c1, c2] for quadratic: c0 + c1*P + c2*P^2
     p_min: float  # Minimum active power (MW)
     p_max: float  # Maximum active power (MW)
     q_min: float  # Minimum reactive power (MVAR)
     q_max: float  # Maximum reactive power (MVAR)
-    ramp_rate: Optional[float] = None  # MW/min (optional)
+    ramp_rate: float | None = None  # MW/min (optional)
 
     def cost(self, p_mw: float) -> float:
         """Calculate generation cost for given power output."""
@@ -71,13 +70,13 @@ class OPFResult:
 
     success: bool
     objective_value: float  # Total cost or objective value
-    generator_dispatch: Dict[int, complex]  # gen_id -> P + jQ (MW + jMVAR)
-    bus_voltages: Dict[int, complex]  # bus_id -> V (pu)
-    branch_flows: Dict[Tuple[int, int], complex]  # (from, to) -> S (MVA)
+    generator_dispatch: dict[int, complex]  # gen_id -> P + jQ (MW + jMVAR)
+    bus_voltages: dict[int, complex]  # bus_id -> V (pu)
+    branch_flows: dict[tuple[int, int], complex]  # (from, to) -> S (MVA)
     total_generation: float  # Total generation (MW)
     total_load: float  # Total load (MW)
     total_losses: float  # Total system losses (MW)
-    constraint_violations: List[str]
+    constraint_violations: list[str]
     iterations: int
     method_used: str
     convergence_status: str
@@ -96,7 +95,7 @@ class OptimalPowerFlowEngine:
       - Line flow limits (inequality constraints)
     """
 
-    def __init__(self, Ybus: np.ndarray, bus_ids: List[int], generator_costs: List[GeneratorCost]):
+    def __init__(self, Ybus: np.ndarray, bus_ids: list[int], generator_costs: list[GeneratorCost]):
         """
         Initialize OPF engine.
 
@@ -112,30 +111,30 @@ class OptimalPowerFlowEngine:
         self.bus_index = {bid: idx for idx, bid in enumerate(bus_ids)}
 
         # Load and generation data (to be set)
-        self.load_data: Dict[int, complex] = {}  # bus_id -> S_load (MW + jMVAR)
-        self.gen_buses: Dict[int, int] = {}  # gen_id -> bus_id
+        self.load_data: dict[int, complex] = {}  # bus_id -> S_load (MW + jMVAR)
+        self.gen_buses: dict[int, int] = {}  # gen_id -> bus_id
 
         # Limits
-        self.voltage_limits: Dict[int, Tuple[float, float]] = {}  # bus_id -> (Vmin, Vmax)
-        self.branch_limits: Dict[Tuple[int, int], float] = {}  # (from, to) -> S_max (MVA)
+        self.voltage_limits: dict[int, tuple[float, float]] = {}  # bus_id -> (Vmin, Vmax)
+        self.branch_limits: dict[tuple[int, int], float] = {}  # (from, to) -> S_max (MVA)
 
-    def set_load_data(self, load_data: Dict[int, complex]):
+    def set_load_data(self, load_data: dict[int, complex]):
         """Set load data for each bus."""
         self.load_data = load_data
 
-    def set_generator_locations(self, gen_buses: Dict[int, int]):
+    def set_generator_locations(self, gen_buses: dict[int, int]):
         """Map generators to buses."""
         self.gen_buses = gen_buses
 
-    def set_voltage_limits(self, limits: Dict[int, Tuple[float, float]]):
+    def set_voltage_limits(self, limits: dict[int, tuple[float, float]]):
         """Set voltage magnitude limits per bus."""
         self.voltage_limits = limits
 
-    def set_branch_limits(self, limits: Dict[Tuple[int, int], float]):
+    def set_branch_limits(self, limits: dict[tuple[int, int], float]):
         """Set thermal limits for branches."""
         self.branch_limits = limits
 
-    def _build_dc_approximation(self) -> Tuple[np.ndarray, np.ndarray]:
+    def _build_dc_approximation(self) -> tuple[np.ndarray, np.ndarray]:
         """
         Build DC power flow approximation matrices.
 
@@ -193,7 +192,7 @@ class OptimalPowerFlowEngine:
                 if len(self.generator_costs[gid].cost_coefficients) >= 2
                 else 0
                 for gid in gen_ids
-            ]
+            ],
         )
 
         # Inequality constraints: A_ub * x <= b_ub
@@ -293,7 +292,7 @@ class OptimalPowerFlowEngine:
                 )
 
         except Exception as e:
-            logger.error(f"DC-OPF failed: {e}")
+            logger.error("DC-OPF failed: %s", e)
             return OPFResult(
                 success=False,
                 objective_value=0,
@@ -452,7 +451,7 @@ class OptimalPowerFlowEngine:
                 )
 
         except Exception as e:
-            logger.error(f"AC-OPF failed: {e}")
+            logger.error("AC-OPF failed: %s", e)
             return OPFResult(
                 success=False,
                 objective_value=0,
@@ -517,7 +516,7 @@ class OptimalPowerFlowEngine:
         lines.append(f"Total Load: {result.total_load:.2f} MW")
         lines.append(f"Total Losses: {result.total_losses:.2f} MW")
         lines.append(
-            f"Loss Percentage: {(result.total_losses / result.total_generation * 100) if result.total_generation > 0 else 0:.2f}%"
+            f"Loss Percentage: {(result.total_losses / result.total_generation * 100) if result.total_generation > 0 else 0:.2f}%",
         )
         lines.append("")
 

@@ -70,7 +70,7 @@ def capability(
     """
     if not is_valid_capability_name(name):
         raise ValueError(
-            f"Invalid capability name: {name!r} (must match ^[a-z][a-z0-9_.-]{{0,127}}$)"
+            f"Invalid capability name: {name!r} (must match ^[a-z][a-z0-9_.-]{{0,127}}$)",
         )
     scopes_t = tuple(scopes)
     for s in scopes_t:

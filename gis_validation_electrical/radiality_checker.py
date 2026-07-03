@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Dict, List, Optional, Set, Tuple
 
 from gis_validation_electrical.electrical_model import ElectricalModel
 
@@ -9,13 +8,13 @@ from gis_validation_electrical.electrical_model import ElectricalModel
 @dataclass(frozen=True)
 class RadialityIssue:
     issue_type: str  # e.g. "loop_detected", "island_detected"
-    affected_nodes: List[str]
-    affected_edges: List[str]
-    details: Dict[str, object]
+    affected_nodes: list[str]
+    affected_edges: list[str]
+    details: dict[str, object]
 
 
-def _undirected_adjacency(model: ElectricalModel) -> Dict[str, Set[str]]:
-    adj: Dict[str, Set[str]] = {nid: set() for nid in model.nodes.keys()}
+def _undirected_adjacency(model: ElectricalModel) -> dict[str, set[str]]:
+    adj: dict[str, set[str]] = {nid: set() for nid in model.nodes}
     for e in model.edges.values():
         if e.from_node in adj and e.to_node in adj:
             adj[e.from_node].add(e.to_node)
@@ -23,14 +22,14 @@ def _undirected_adjacency(model: ElectricalModel) -> Dict[str, Set[str]]:
     return adj
 
 
-def _find_components(adj: Dict[str, Set[str]]) -> List[Set[str]]:
-    visited: Set[str] = set()
-    comps: List[Set[str]] = []
-    for start in adj.keys():
+def _find_components(adj: dict[str, set[str]]) -> list[set[str]]:
+    visited: set[str] = set()
+    comps: list[set[str]] = []
+    for start in adj:
         if start in visited:
             continue
         stack = [start]
-        comp: Set[str] = set()
+        comp: set[str] = set()
         while stack:
             n = stack.pop()
             if n in visited:
@@ -44,18 +43,18 @@ def _find_components(adj: Dict[str, Set[str]]) -> List[Set[str]]:
     return comps
 
 
-def _has_undirected_loop(adj: Dict[str, Set[str]]) -> Tuple[bool, List[str]]:
+def _has_undirected_loop(adj: dict[str, set[str]]) -> tuple[bool, list[str]]:
     """
     Detect cycles in an undirected graph.
     Returns (has_loop, one_cycle_nodes_best_effort).
 
     Deterministic and bounded: uses DFS with parent tracking.
     """
-    visited: Set[str] = set()
-    parent: Dict[str, Optional[str]] = {}
-    stack: List[Tuple[str, Optional[str]]] = []
+    visited: set[str] = set()
+    parent: dict[str, str | None] = {}
+    stack: list[tuple[str, str | None]] = []
 
-    for root in adj.keys():
+    for root in adj:
         if root in visited:
             continue
         parent[root] = None
@@ -78,7 +77,7 @@ def _has_undirected_loop(adj: Dict[str, Set[str]]) -> Tuple[bool, List[str]]:
     return False, []
 
 
-def validate_radiality(model: ElectricalModel) -> Tuple[bool, List[RadialityIssue]]:
+def validate_radiality(model: ElectricalModel) -> tuple[bool, list[RadialityIssue]]:
     """
     Radiality validation:
     - No loops in the electrical graph (undirected cycle check)
@@ -86,7 +85,7 @@ def validate_radiality(model: ElectricalModel) -> Tuple[bool, List[RadialityIssu
 
     Note: This is electrical-graph radiality only (not GIS topology validation).
     """
-    issues: List[RadialityIssue] = []
+    issues: list[RadialityIssue] = []
 
     if not model.nodes:
         return True, issues
@@ -109,7 +108,7 @@ def validate_radiality(model: ElectricalModel) -> Tuple[bool, List[RadialityIssu
                 affected_nodes=sorted(smallest),
                 affected_edges=sorted(affected_edges),
                 details={"component_count": len(comps)},
-            )
+            ),
         )
 
     # Loop detection.
@@ -126,7 +125,7 @@ def validate_radiality(model: ElectricalModel) -> Tuple[bool, List[RadialityIssu
                 affected_nodes=sorted(set(cycle_nodes)),
                 affected_edges=sorted(affected_edges),
                 details={},
-            )
+            ),
         )
 
     ok = len(issues) == 0

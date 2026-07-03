@@ -13,7 +13,7 @@ Patterns drawn from pydantic/pydantic (v2):
 from __future__ import annotations
 
 import re
-from typing import Any, Dict, Generic, List, Optional, TypeVar
+from typing import Any, Generic, TypeVar
 
 from pydantic import BaseModel, Field, field_validator, model_validator
 
@@ -38,9 +38,9 @@ class SkillResponse(BaseModel, Generic[T]):  # noqa: UP046
 
     data: T
     status: str = "ok"
-    message: Optional[str] = None
+    message: str | None = None
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return self.model_dump(mode="json")
 
 
@@ -69,7 +69,7 @@ class SkillMetadata(BaseModel):
         max_length=30,
         description="Semantic version string (MAJOR.MINOR.PATCH)",
     )
-    requires: Dict[str, str] = Field(
+    requires: dict[str, str] = Field(
         default_factory=dict,
         description="Map of dependency names to version specifiers",
     )
@@ -122,7 +122,7 @@ class SkillDescription(BaseModel):
         max_length=2000,
         description="Long-form explanation of what the skill does",
     )
-    trigger_words: List[str] = Field(
+    trigger_words: list[str] = Field(
         min_length=1,
         max_length=50,
         description="Phrases that cause the agent to activate this skill",
@@ -171,8 +171,8 @@ class ExecutionResult(BaseModel):
     """
 
     success: bool
-    data: Optional[Dict[str, Any]] = None
-    error: Optional[Dict[str, str]] = None
+    data: dict[str, Any] | None = None
+    error: dict[str, str] | None = None
 
     @model_validator(mode="after")
     def mutually_exclusive_data_and_error(self) -> ExecutionResult:

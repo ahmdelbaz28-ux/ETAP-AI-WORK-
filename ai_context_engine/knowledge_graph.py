@@ -8,7 +8,6 @@ import json
 import logging
 import os
 from pathlib import Path
-from typing import List, Tuple
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("ai_context_engine_kg")
@@ -29,7 +28,7 @@ class KnowledgeGraph:
             self.adj[node_id] = []
 
     def add_relationship(
-        self, source: str, relationship: str, target: str, properties: dict = None
+        self, source: str, relationship: str, target: str, properties: dict = None,
     ) -> None:
         """Add a directed relationship between two components."""
         # Ensure nodes exist
@@ -47,11 +46,11 @@ class KnowledgeGraph:
         self.edges.append(edge)
         self.adj[source].append((target, relationship))
 
-    def get_neighbors(self, node_id: str) -> List[Tuple[str, str]]:
+    def get_neighbors(self, node_id: str) -> list[tuple[str, str]]:
         """Returns adjacent nodes and their relationship types."""
         return self.adj.get(node_id, [])
 
-    def find_path(self, start: str, end: str, max_depth: int = 5) -> List[List[Tuple[str, str]]]:
+    def find_path(self, start: str, end: str, max_depth: int = 5) -> list[list[tuple[str, str]]]:
         """Find paths between two nodes up to max_depth."""
         if start not in self.nodes or end not in self.nodes:
             return []
@@ -148,12 +147,12 @@ class KnowledgeGraph:
                 elif isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
                     func_node_id = f"{rel_path}::{node.name}"
                     self.add_node(
-                        func_node_id, "function", {"name": node.name, "filepath": rel_path}
+                        func_node_id, "function", {"name": node.name, "filepath": rel_path},
                     )
                     self.add_relationship(file_node_id, "defines", func_node_id)
 
         except Exception as e:
-            logger.error(f"Failed to scan {filepath} for KG: {e}")
+            logger.error("Failed to scan %s for KG: %s", filepath, e)
 
     def resolve_references(self) -> None:
         """Resolve module imports and class references to their actual file and class nodes."""

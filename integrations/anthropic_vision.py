@@ -46,7 +46,7 @@ import logging
 import os
 import time
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -167,7 +167,7 @@ class AnthropicVisionClient:
                 self.timeout,
             )
         else:
-            missing: List[str] = []
+            missing: list[str] = []
             if not self.api_key:
                 missing.append("ANTHROPIC_API_KEY")
             if not PIL_AVAILABLE:
@@ -180,8 +180,8 @@ class AnthropicVisionClient:
         self,
         image: Any,
         objective: str,
-        context: Optional[str] = None,
-    ) -> Optional[Dict[str, Any]]:
+        context: str | None = None,
+    ) -> dict[str, Any] | None:
         """Analyze a screenshot using Anthropic Claude Vision API."""
         if not self.enabled:
             return None
@@ -220,7 +220,7 @@ class AnthropicVisionClient:
                     },
                     {"type": "text", "text": user_text},
                 ],
-            }
+            },
         ]
 
         # Build request payload (Anthropic format)
@@ -242,7 +242,7 @@ class AnthropicVisionClient:
         url = f"{self.base_url}/v1/messages"
 
         # Retry loop
-        last_error: Optional[str] = None
+        last_error: str | None = None
         for attempt in range(1, self.max_retries + 1):
             try:
                 response = self._make_request(url, headers, payload)
@@ -263,7 +263,7 @@ class AnthropicVisionClient:
             "message": f"All {self.max_retries} attempts failed. Last: {last_error}",
         }
 
-    def health_check(self) -> Dict[str, Any]:
+    def health_check(self) -> dict[str, Any]:
         """Return client status for /health endpoints."""
         return {
             "enabled": self.enabled,
@@ -295,7 +295,7 @@ class AnthropicVisionClient:
         return None
 
     @staticmethod
-    def _image_to_base64(pil_image) -> Optional[str]:
+    def _image_to_base64(pil_image) -> str | None:
         """Convert PIL Image to base64 string (no data URL prefix)."""
         try:
             buffer = io.BytesIO()
@@ -313,16 +313,16 @@ class AnthropicVisionClient:
             return None
 
     def _make_request(
-        self, url: str, headers: Dict[str, str], payload: Dict[str, Any]
-    ) -> Dict[str, Any]:
+        self, url: str, headers: dict[str, str], payload: dict[str, Any],
+    ) -> dict[str, Any]:
         """Make the HTTP request to the Anthropic endpoint."""
         if HTTPX_AVAILABLE:
             return self._make_request_httpx(url, headers, payload)
         return self._make_request_urllib(url, headers, payload)
 
     def _make_request_httpx(
-        self, url: str, headers: Dict[str, str], payload: Dict[str, Any]
-    ) -> Dict[str, Any]:
+        self, url: str, headers: dict[str, str], payload: dict[str, Any],
+    ) -> dict[str, Any]:
         """Make request using httpx."""
         import httpx
 
@@ -332,8 +332,8 @@ class AnthropicVisionClient:
             return response.json()
 
     def _make_request_urllib(
-        self, url: str, headers: Dict[str, str], payload: Dict[str, Any]
-    ) -> Dict[str, Any]:
+        self, url: str, headers: dict[str, str], payload: dict[str, Any],
+    ) -> dict[str, Any]:
         """Fallback: make request using urllib."""
         import urllib.request
 
@@ -344,7 +344,7 @@ class AnthropicVisionClient:
             return json.loads(body)
 
     @staticmethod
-    def _parse_response(response: Dict[str, Any]) -> Dict[str, Any]:
+    def _parse_response(response: dict[str, Any]) -> dict[str, Any]:
         """Parse the Anthropic Messages API response.
 
         Expected structure:

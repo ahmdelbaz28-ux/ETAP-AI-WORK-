@@ -59,7 +59,7 @@ def clean_sensitive_files(repo_path, files_to_remove):
     success, output = run_git_command(["git", "branch"], repo_path)
     if "backup-pre-cleanup" not in output:
         success, output = run_git_command(
-            ["git", "checkout", "-b", "backup-pre-cleanup"], repo_path
+            ["git", "checkout", "-b", "backup-pre-cleanup"], repo_path,
         )
         if not success:
             print(f"Failed to create backup branch: {output}")

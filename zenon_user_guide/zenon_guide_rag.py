@@ -16,7 +16,6 @@ MANDATORY RULE:
 
 import json
 from pathlib import Path
-from typing import Dict, List
 
 
 class ZenonGuideRAG:
@@ -60,9 +59,9 @@ class ZenonGuideRAG:
         self.chunks_dir = self.guide_path / "chunks"
         self.index_dir = self.guide_path / "index"
 
-        self.documents: List[Dict] = []
-        self.chunks: List[str] = []
-        self.chunk_metadata: List[Dict] = []
+        self.documents: list[dict] = []
+        self.chunks: list[str] = []
+        self.chunk_metadata: list[dict] = []
 
         self._load_guide()
 
@@ -81,7 +80,7 @@ class ZenonGuideRAG:
                             "source": doc["source"],
                             "pages": doc["pages"],
                             "characters": doc["characters"],
-                        }
+                        },
                     )
 
                     for idx, chunk in enumerate(doc.get("chunks", [])):
@@ -91,14 +90,14 @@ class ZenonGuideRAG:
                                 "document": doc["filename"],
                                 "chunk_index": idx,
                                 "source": doc["source"],
-                            }
+                            },
                         )
             except Exception as e:
                 print(f"Error loading Zenon master index: {e}")
         else:
             print("Warning: Zenon master index not found.")
 
-    def search(self, query: str, top_k: int = 5) -> List[Dict]:
+    def search(self, query: str, top_k: int = 5) -> list[dict]:
         """Search the Zenon guide for relevant information."""
         if not self.chunks:
             return []
@@ -115,13 +114,13 @@ class ZenonGuideRAG:
 
             if score > 0:
                 results.append(
-                    {"chunk": chunk, "score": score, "metadata": self.chunk_metadata[idx]}
+                    {"chunk": chunk, "score": score, "metadata": self.chunk_metadata[idx]},
                 )
 
         results.sort(key=lambda x: x["score"], reverse=True)
         return results[:top_k]
 
-    def get_zenon_procedure(self, operation: str) -> Dict:
+    def get_zenon_procedure(self, operation: str) -> dict:
         """Get the official Zenon procedure for a specific operation."""
         results = self.search(operation, top_k=5)
 
@@ -147,7 +146,7 @@ class ZenonGuideRAG:
             metadata = result["metadata"]
 
             procedure["sources"].append(
-                {"document": metadata["document"], "relevance": result["score"]}
+                {"document": metadata["document"], "relevance": result["score"]},
             )
 
             lines = chunk.split("\n")
@@ -168,7 +167,7 @@ class ZenonGuideRAG:
 
         return procedure
 
-    def validate_zenon_operation(self, operation: str, proposed_steps: List[str]) -> Dict:
+    def validate_zenon_operation(self, operation: str, proposed_steps: list[str]) -> dict:
         """Validate proposed Zenon SCADA steps against the official guide."""
         official = self.get_zenon_procedure(operation)
 
@@ -198,11 +197,11 @@ class ZenonGuideRAG:
 
             if overlap > 0:
                 validation["compliance"].append(
-                    {"step": step, "matches": overlap, "status": "compliant"}
+                    {"step": step, "matches": overlap, "status": "compliant"},
                 )
             else:
                 validation["compliance"].append(
-                    {"step": step, "matches": 0, "status": "not_found_in_guide"}
+                    {"step": step, "matches": 0, "status": "not_found_in_guide"},
                 )
                 validation["issues"].append(f"Step not found in guide: {step}")
 
@@ -214,7 +213,7 @@ class ZenonGuideRAG:
     def get_mandatory_instructions(self) -> str:
         return self.MANDATORY_INSTRUCTIONS
 
-    def query(self, question: str) -> Dict:
+    def query(self, question: str) -> dict:
         """Answer a question about Zenon using the official guide."""
         results = self.search(question, top_k=5)
 

@@ -18,7 +18,6 @@ Dynamic Performance Analysis", IEEE Trans. Power Systems, 1993.
 """
 
 from dataclasses import dataclass
-from typing import Tuple
 
 import numpy as np
 
@@ -66,7 +65,7 @@ class ZIPLoadModel:
     """
 
     def __init__(
-        self, P0: float, Q0: float, coefficients: ZIPCoefficients = None, preset: str = None
+        self, P0: float, Q0: float, coefficients: ZIPCoefficients = None, preset: str = None,
     ):
         """
         Initialize ZIP load model.
@@ -87,7 +86,7 @@ class ZIPLoadModel:
         else:
             self.coefficients = ZIP_PRESETS["constant_power"]
 
-    def calculate_power(self, V: float) -> Tuple[float, float]:
+    def calculate_power(self, V: float) -> tuple[float, float]:
         """
         Calculate load power at a given voltage.
 
@@ -146,7 +145,7 @@ class ZIPLoadModel:
             return complex(0, 0)
         return complex(P_z, -Q_z)  # V² cancels: (P_z - jQ_z) / V² * V² = P_z - jQ_z
 
-    def voltage_sensitivity(self, V: float) -> Tuple[float, float]:
+    def voltage_sensitivity(self, V: float) -> tuple[float, float]:
         """
         Calculate voltage sensitivity of load power.
 

@@ -16,7 +16,6 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import List, Optional, Tuple
 
 import numpy as np
 
@@ -48,9 +47,9 @@ class StateEstimationResult:
     iterations: int = 0
     max_residual: float = 0.0
     objective_value: float = 0.0
-    bad_data_detected: List[int] = field(default_factory=list)
-    measurement_residuals: Optional[np.ndarray] = None
-    covariance_matrix: Optional[np.ndarray] = None
+    bad_data_detected: list[int] = field(default_factory=list)
+    measurement_residuals: np.ndarray | None = None
+    covariance_matrix: np.ndarray | None = None
 
 
 class WLSEstimator:
@@ -66,7 +65,7 @@ class WLSEstimator:
     """
 
     def __init__(
-        self, tolerance: float = 1e-6, max_iterations: int = 50, bad_data_threshold: float = 3.0
+        self, tolerance: float = 1e-6, max_iterations: int = 50, bad_data_threshold: float = 3.0,
     ):
         """
         Initialize WLS estimator.
@@ -81,7 +80,7 @@ class WLSEstimator:
         self.bad_data_threshold = bad_data_threshold
 
     def estimate(
-        self, Ybus: np.ndarray, measurements: dict, bus_ids: List[str], slack_bus_idx: int = 0
+        self, Ybus: np.ndarray, measurements: dict, bus_ids: list[str], slack_bus_idx: int = 0,
     ) -> StateEstimationResult:
         """
         Run WLS state estimation.
@@ -222,8 +221,8 @@ class WLSEstimator:
         )
 
     def _build_measurement_vectors(
-        self, measurements: dict, n: int, slack_idx: int
-    ) -> Tuple[np.ndarray, list, np.ndarray]:
+        self, measurements: dict, n: int, slack_idx: int,
+    ) -> tuple[np.ndarray, list, np.ndarray]:
         """Build measurement vector z, index list, and weight vector."""
         z_list = []
         h_indices = []
@@ -311,7 +310,7 @@ class WLSEstimator:
         return h
 
     def _compute_jacobian(
-        self, x: np.ndarray, Ybus: np.ndarray, h_indices: list, n: int
+        self, x: np.ndarray, Ybus: np.ndarray, h_indices: list, n: int,
     ) -> np.ndarray:
         """Compute Jacobian matrix H = dh/dx."""
         m = len(h_indices)
@@ -507,8 +506,8 @@ class GNNStateEstimator:
         self,
         Ybus: np.ndarray,
         measurements: dict,
-        bus_ids: List[str],
-        edge_list: Optional[List[Tuple[int, int]]] = None,
+        bus_ids: list[str],
+        edge_list: list[tuple[int, int]] | None = None,
         slack_bus_idx: int = 0,
     ) -> StateEstimationResult:
         """
@@ -560,7 +559,7 @@ class GNNStateEstimator:
                 [
                     wls_result.voltage_magnitudes,
                     wls_result.voltage_angles,
-                ]
+                ],
             )
 
             # Build edge index
@@ -574,7 +573,7 @@ class GNNStateEstimator:
             from ml.predictive import PowerGridGNN
 
             gnn = PowerGridGNN(
-                model_type="gcn", hidden_dim=self.hidden_dim, num_layers=self.num_layers
+                model_type="gcn", hidden_dim=self.hidden_dim, num_layers=self.num_layers,
             )
             refined = gnn.predict(node_features, edge_index)
 

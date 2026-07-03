@@ -37,7 +37,7 @@ async def setup_totp(request: Request):
                     # to prevent credential leakage. They are stored server-side only.
                 },
                 "trace_id": trace_id,
-            }
+            },
         )
     except HTTPException:
         raise
@@ -47,7 +47,7 @@ async def setup_totp(request: Request):
         logger = getLogger("engineering_service")
         logger.error("totp_setup_failed error=%s", str(e), extra={"trace_id": trace_id})
         return JSONResponse(
-            status_code=500, content={"success": False, "errors": [str(e)], "trace_id": trace_id}
+            status_code=500, content={"success": False, "errors": [str(e)], "trace_id": trace_id},
         )
 
 
@@ -77,7 +77,7 @@ async def verify_totp(request: Request):
                     "valid": is_valid,
                 },
                 "trace_id": trace_id,
-            }
+            },
         )
     except HTTPException:
         raise
@@ -87,5 +87,5 @@ async def verify_totp(request: Request):
         logger = getLogger("engineering_service")
         logger.error("totp_verify_failed error=%s", str(e), extra={"trace_id": trace_id})
         return JSONResponse(
-            status_code=500, content={"success": False, "errors": [str(e)], "trace_id": trace_id}
+            status_code=500, content={"success": False, "errors": [str(e)], "trace_id": trace_id},
         )

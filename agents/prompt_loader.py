@@ -72,7 +72,7 @@ import os
 import threading
 import time
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 import yaml
 
@@ -86,7 +86,7 @@ _PROMPTS_DIR = Path(
     os.environ.get(
         "ETAP_PROMPTS_DIR",
         str(Path(__file__).resolve().parent.parent / "prompts"),
-    )
+    ),
 )
 
 # Langfuse config
@@ -126,7 +126,7 @@ _CB_FAILURE_THRESHOLD = int(os.environ.get("PROMPT_CB_FAILURE_THRESHOLD", "5"))
 _CB_RESET_SECONDS = float(os.environ.get("PROMPT_CB_RESET_SECONDS", "60"))
 
 # Cache: handle -> (content, fetched_at, source)
-_prompt_cache: Dict[str, Tuple[Optional[str], float, str]] = {}
+_prompt_cache: dict[str, tuple[str | None, float, str]] = {}
 _cache_lock = threading.Lock()
 
 
@@ -148,7 +148,7 @@ class _CircuitBreaker:
         self.failure_threshold = failure_threshold
         self.reset_seconds = reset_seconds
         self._failures = 0
-        self._opened_at: Optional[float] = None
+        self._opened_at: float | None = None
         self._lock = threading.Lock()
 
     @property
@@ -200,7 +200,7 @@ def _hash_prompt(text: str) -> str:
 # ---------------------------------------------------------------------------
 
 
-def _extract_system_message(parsed: Any) -> Optional[str]:
+def _extract_system_message(parsed: Any) -> str | None:
     """Extract the system message from a parsed YAML prompt structure."""
     if not isinstance(parsed, dict):
         return None
@@ -220,7 +220,7 @@ def _extract_system_message(parsed: Any) -> Optional[str]:
     return None
 
 
-def _load_from_yaml(handle: str) -> Optional[str]:
+def _load_from_yaml(handle: str) -> str | None:
     """Load a prompt from a local YAML file in the prompts/ directory.
 
     Tries several filename patterns to locate the file.
@@ -270,7 +270,7 @@ def _load_from_yaml(handle: str) -> Optional[str]:
 # ---------------------------------------------------------------------------
 
 
-async def _load_from_langfuse_async(handle: str) -> Optional[str]:
+async def _load_from_langfuse_async(handle: str) -> str | None:
     """Asynchronously attempt to load a prompt from Langfuse.
 
     Returns ``None`` on any error, timeout, or when the circuit breaker
@@ -324,7 +324,7 @@ async def _load_from_langfuse_async(handle: str) -> Optional[str]:
 # ---------------------------------------------------------------------------
 
 
-async def _load_from_langwatch_async(handle: str) -> Optional[str]:
+async def _load_from_langwatch_async(handle: str) -> str | None:
     """Asynchronously attempt to load a prompt from LangWatch (legacy)."""
     if not _LANGWATCH_API_KEY or not _LANGWATCH_OVERRIDE_MODE:
         return None
@@ -579,7 +579,7 @@ async def get_system_prompt_async(handle: str) -> str:
     return _FALLBACK_PROMPT
 
 
-def get_prompt_metadata(handle: str) -> Dict[str, Any]:
+def get_prompt_metadata(handle: str) -> dict[str, Any]:
     """Load full prompt metadata (model, temperature, messages) from YAML."""
     possible_files = [
         f"{handle}.yaml",
@@ -606,7 +606,7 @@ def clear_prompt_cache() -> None:
         _prompt_cache.clear()
 
 
-def get_prompt_cache_info() -> Dict[str, Any]:
+def get_prompt_cache_info() -> dict[str, Any]:
     """Return cache + circuit-breaker state for observability."""
     with _cache_lock:
         cache_size = len(_prompt_cache)
@@ -626,9 +626,9 @@ def get_prompt_cache_info() -> Dict[str, Any]:
     }
 
 
-def list_available_prompts() -> List[str]:
+def list_available_prompts() -> list[str]:
     """List all prompt handles available in the prompts/ directory."""
-    handles: List[str] = []
+    handles: list[str] = []
     if not _PROMPTS_DIR.is_dir():
         return handles
 

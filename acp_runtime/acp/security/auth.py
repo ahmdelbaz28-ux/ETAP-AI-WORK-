@@ -21,7 +21,7 @@ import hmac
 import json
 import time
 from collections.abc import Callable, Coroutine
-from typing import Any, Optional
+from typing import Any
 
 from acp.errors import AuthenticationRequired
 from acp.schema.capability import is_valid_scope
@@ -50,9 +50,9 @@ class CallerIdentity:
     def __init__(
         self,
         caller_id: str,
-        scopes: Optional[set[str]] = None,
+        scopes: set[str] | None = None,
         *,
-        metadata: Optional[dict[str, Any]] = None,
+        metadata: dict[str, Any] | None = None,
     ) -> None:
         self.caller_id = caller_id
         self.scopes = set(scopes or ())
@@ -87,8 +87,8 @@ class AuthConfig:
         secret_key: str | bytes,
         *,
         token_ttl_seconds: int = 3_600,
-        issuer: Optional[str] = None,
-        audience: Optional[str] = None,
+        issuer: str | None = None,
+        audience: str | None = None,
     ) -> None:
         self.secret_key = secret_key if isinstance(secret_key, bytes) else secret_key.encode()
         self.token_ttl_seconds = token_ttl_seconds
@@ -224,9 +224,8 @@ class HmacTokenValidator:
             if time.time() > exp:
                 raise AuthenticationRequired("Token expired")
 
-        if self._config.issuer is not None:
-            if payload.get("iss") != self._config.issuer:
-                raise AuthenticationRequired("Token issuer mismatch")
+        if self._config.issuer is not None and payload.get("iss") != self._config.issuer:
+            raise AuthenticationRequired("Token issuer mismatch")
 
         if self._config.audience is not None:
             aud = payload.get("aud")
@@ -241,9 +240,9 @@ class HmacTokenValidator:
 
 
 def validate_bearer_token(
-    header_value: Optional[str],
-    validator: Optional[AuthValidator],
-) -> Optional[CallerIdentity]:
+    header_value: str | None,
+    validator: AuthValidator | None,
+) -> CallerIdentity | None:
     """Extract a Bearer token from an HTTP-style header and validate it.
 
     Parameters:
@@ -271,12 +270,12 @@ def validate_bearer_token(
     result = validator(token)
     if isinstance(result, Coroutine):
         raise AuthenticationRequired(
-            "Async validators are not supported by validate_bearer_token; await the validator directly"
+            "Async validators are not supported by validate_bearer_token; await the validator directly",
         )
     return result
 
 
-def extract_token_from_header(header_value: Optional[str]) -> Optional[str]:
+def extract_token_from_header(header_value: str | None) -> str | None:
     """Extract the raw token string from a ``Bearer <token>`` header.
 
     Returns ``None`` if the header is missing or not a Bearer token.

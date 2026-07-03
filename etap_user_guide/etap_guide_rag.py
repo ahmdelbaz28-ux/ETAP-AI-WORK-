@@ -18,7 +18,6 @@ MANDATORY RULE:
 
 import json
 from pathlib import Path
-from typing import Dict, List
 
 # Try to import vector database libraries
 try:
@@ -96,9 +95,9 @@ class ETAPGuideRAG:
         self.index_dir = self.guide_path / "index"
 
         # Storage for loaded content
-        self.documents: List[Dict] = []
-        self.chunks: List[str] = []
-        self.chunk_metadata: List[Dict] = []
+        self.documents: list[dict] = []
+        self.chunks: list[str] = []
+        self.chunk_metadata: list[dict] = []
         self.embeddings = None
         self.vector_db = None
 
@@ -122,7 +121,7 @@ class ETAPGuideRAG:
                             "source": doc["source"],
                             "pages": doc["pages"],
                             "characters": doc["characters"],
-                        }
+                        },
                     )
 
                     for idx, chunk in enumerate(doc["chunks"]):
@@ -132,7 +131,7 @@ class ETAPGuideRAG:
                                 "document": doc["filename"],
                                 "chunk_index": idx,
                                 "source": doc["source"],
-                            }
+                            },
                         )
 
                 print(f"✓ Loaded {len(self.documents)} documents")
@@ -167,7 +166,7 @@ class ETAPGuideRAG:
         except Exception as e:
             print(f"Error creating embeddings: {e}")
 
-    def search(self, query: str, top_k: int = 5) -> List[Dict]:
+    def search(self, query: str, top_k: int = 5) -> list[dict]:
         """
         Search the ETAP guide for relevant information.
 
@@ -197,14 +196,14 @@ class ETAPGuideRAG:
 
             if score > 0:
                 results.append(
-                    {"chunk": chunk, "score": score, "metadata": self.chunk_metadata[idx]}
+                    {"chunk": chunk, "score": score, "metadata": self.chunk_metadata[idx]},
                 )
 
         # Sort by score and return top_k
         results.sort(key=lambda x: x["score"], reverse=True)
         return results[:top_k]
 
-    def get_etap_procedure(self, operation: str) -> Dict:
+    def get_etap_procedure(self, operation: str) -> dict:
         """
         Get the official ETAP procedure for a specific operation.
 
@@ -242,7 +241,7 @@ class ETAPGuideRAG:
             metadata = result["metadata"]
 
             procedure["sources"].append(
-                {"document": metadata["document"], "relevance": result["score"]}
+                {"document": metadata["document"], "relevance": result["score"]},
             )
 
             # Extract steps (lines starting with numbers or bullets)
@@ -262,7 +261,7 @@ class ETAPGuideRAG:
 
         return procedure
 
-    def validate_etap_operation(self, operation: str, proposed_steps: List[str]) -> Dict:
+    def validate_etap_operation(self, operation: str, proposed_steps: list[str]) -> dict:
         """
         Validate proposed ETAP operation steps against the official guide.
 
@@ -305,11 +304,11 @@ class ETAPGuideRAG:
 
             if overlap > 0:
                 validation["compliance"].append(
-                    {"step": step, "matches": overlap, "status": "compliant"}
+                    {"step": step, "matches": overlap, "status": "compliant"},
                 )
             else:
                 validation["compliance"].append(
-                    {"step": step, "matches": 0, "status": "not_found_in_guide"}
+                    {"step": step, "matches": 0, "status": "not_found_in_guide"},
                 )
                 validation["issues"].append(f"Step not found in guide: {step}")
 
@@ -322,7 +321,7 @@ class ETAPGuideRAG:
         """Get the mandatory instructions that must be followed by all agents."""
         return self.MANDATORY_INSTRUCTIONS
 
-    def query(self, question: str) -> Dict:
+    def query(self, question: str) -> dict:
         """
         Answer a question about ETAP using the official guide.
 

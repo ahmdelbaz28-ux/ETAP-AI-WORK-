@@ -33,7 +33,7 @@ __all__ = ["start_http_server"]
 
 
 async def _handle_client(
-    health_handler: Any, client: anyio.abc.ByteStream, metrics_path: str = "/metrics"
+    health_handler: Any, client: anyio.abc.ByteStream, metrics_path: str = "/metrics",
 ) -> None:
     """Parse a minimal HTTP request and dispatch to the health handler."""
     log = logging.getLogger("acp.http_server")

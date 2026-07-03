@@ -16,7 +16,7 @@ import uuid
 from collections import defaultdict
 from collections.abc import Callable
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 from compat import StrEnum
 
@@ -50,21 +50,21 @@ class WorkerNode:
 class LoadBalancer:
     def __init__(self, strategy: str = "round_robin") -> None:
         self._strategy = LoadBalancingStrategy(strategy)
-        self._workers: Dict[str, WorkerNode] = {}
+        self._workers: dict[str, WorkerNode] = {}
         self._lock = threading.Lock()
         self._rr_index: int = 0
 
     def register_worker(self, worker_id: str, capacity: float, weight: float = 1.0) -> None:
         with self._lock:
             self._workers[worker_id] = WorkerNode(
-                worker_id=worker_id, capacity=capacity, weight=max(weight, 0.1)
+                worker_id=worker_id, capacity=capacity, weight=max(weight, 0.1),
             )
 
     def unregister_worker(self, worker_id: str) -> None:
         with self._lock:
             self._workers.pop(worker_id, None)
 
-    def get_next_worker(self, task_size: Optional[float] = None) -> Optional[str]:
+    def get_next_worker(self, task_size: float | None = None) -> str | None:
         with self._lock:
             healthy = {wid: w for wid, w in self._workers.items() if w.healthy}
             if not healthy:
@@ -92,7 +92,7 @@ class LoadBalancer:
                 return list(healthy.keys())[-1]
             return list(healthy.keys())[0]
 
-    def get_worker_status(self, worker_id: str) -> Optional[Dict[str, Any]]:
+    def get_worker_status(self, worker_id: str) -> dict[str, Any] | None:
         with self._lock:
             w = self._workers.get(worker_id)
             if w is None:
@@ -108,7 +108,7 @@ class LoadBalancer:
                 "weight": w.weight,
             }
 
-    def get_all_workers_status(self) -> List[Dict[str, Any]]:
+    def get_all_workers_status(self) -> list[dict[str, Any]]:
         with self._lock:
             results = []
             for _wid, w in self._workers.items():
@@ -122,7 +122,7 @@ class LoadBalancer:
                         "tasks_completed": w.tasks_completed,
                         "tasks_failed": w.tasks_failed,
                         "weight": w.weight,
-                    }
+                    },
                 )
             return results
 
@@ -159,7 +159,7 @@ class TaskItem:
     task_id: str = field(compare=False)
     task_data: Any = field(compare=False)
     status: str = field(default="queued", compare=False)
-    assigned_worker: Optional[str] = field(default=None, compare=False)
+    assigned_worker: str | None = field(default=None, compare=False)
     retries: int = field(default=0, compare=False)
 
 
@@ -170,10 +170,10 @@ class DistributedTaskQueue:
         # hold the lock call other methods that also acquire it (e.g.
         # get_queue_statistics → get_queue_depth).
         self._lock = threading.RLock()
-        self._queue: List[TaskItem] = []
-        self._tasks: Dict[str, TaskItem] = {}
-        self._completed: Dict[str, TaskItem] = {}
-        self._failed: Dict[str, TaskItem] = {}
+        self._queue: list[TaskItem] = []
+        self._tasks: dict[str, TaskItem] = {}
+        self._completed: dict[str, TaskItem] = {}
+        self._failed: dict[str, TaskItem] = {}
         if queue_type == "redis":
             try:
                 from redis import Redis
@@ -195,14 +195,14 @@ class DistributedTaskQueue:
         task_id = str(uuid.uuid4())
         prio = _PRIORITY_MAP.get(TaskPriority(priority), _PRIORITY_MAP[TaskPriority.NORMAL])
         item = TaskItem(
-            priority=prio, enqueued_at=time.time(), task_id=task_id, task_data=task_data
+            priority=prio, enqueued_at=time.time(), task_id=task_id, task_data=task_data,
         )
         with self._lock:
             heapq.heappush(self._queue, item)
             self._tasks[task_id] = item
         return task_id
 
-    def dequeue(self, worker_id: str) -> Optional[Dict[str, Any]]:
+    def dequeue(self, worker_id: str) -> dict[str, Any] | None:
         with self._lock:
             while self._queue:
                 item = heapq.heappop(self._queue)
@@ -237,7 +237,7 @@ class DistributedTaskQueue:
         with self._lock:
             return len(self._queue)
 
-    def get_queue_statistics(self) -> Dict[str, Any]:
+    def get_queue_statistics(self) -> dict[str, Any]:
         with self._lock:
             queued = self.get_queue_depth()
             in_progress = sum(1 for t in self._tasks.values() if t.status == "in_progress")
@@ -265,30 +265,30 @@ class ClusterNode:
     node_id: str
     host: str
     port: int
-    capabilities: Dict[str, Any]
+    capabilities: dict[str, Any]
     healthy: bool = True
     registered_at: float = field(default_factory=time.time)
     last_heartbeat: float = field(default_factory=time.time)
     current_load: float = 0.0
-    active_studies: List[str] = field(default_factory=list)
+    active_studies: list[str] = field(default_factory=list)
 
 
 class ClusterManager:
     def __init__(self, cluster_name: str = "etap-platform") -> None:
         self.cluster_name = cluster_name
-        self._nodes: Dict[str, ClusterNode] = {}
+        self._nodes: dict[str, ClusterNode] = {}
         self._lock = threading.Lock()
-        self._failure_handlers: List[Callable[[str], None]] = []
+        self._failure_handlers: list[Callable[[str], None]] = []
 
     def register_node(
-        self, node_id: str, host: str, port: int, capabilities: Dict[str, Any]
+        self, node_id: str, host: str, port: int, capabilities: dict[str, Any],
     ) -> None:
         with self._lock:
             self._nodes[node_id] = ClusterNode(
-                node_id=node_id, host=host, port=port, capabilities=capabilities
+                node_id=node_id, host=host, port=port, capabilities=capabilities,
             )
 
-    def discover_nodes(self) -> List[Dict[str, Any]]:
+    def discover_nodes(self) -> list[dict[str, Any]]:
         with self._lock:
             return [
                 {
@@ -301,7 +301,7 @@ class ClusterManager:
                 for n in self._nodes.values()
             ]
 
-    def get_active_nodes(self) -> List[Dict[str, Any]]:
+    def get_active_nodes(self) -> list[dict[str, Any]]:
         with self._lock:
             return [
                 {
@@ -315,12 +315,12 @@ class ClusterManager:
                 if n.healthy
             ]
 
-    def get_node_capabilities(self, node_id: str) -> Optional[Dict[str, Any]]:
+    def get_node_capabilities(self, node_id: str) -> dict[str, Any] | None:
         with self._lock:
             node = self._nodes.get(node_id)
             return node.capabilities if node else None
 
-    def assign_study(self, study_type: str, system_size: float) -> Optional[Dict[str, Any]]:
+    def assign_study(self, study_type: str, system_size: float) -> dict[str, Any] | None:
         with self._lock:
             candidates = [
                 n
@@ -339,7 +339,7 @@ class ClusterManager:
                 "capabilities": best.capabilities,
             }
 
-    def handle_node_failure(self, node_id: str) -> List[str]:
+    def handle_node_failure(self, node_id: str) -> list[str]:
         with self._lock:
             node = self._nodes.get(node_id)
             if node is None:
@@ -358,7 +358,7 @@ class ClusterManager:
     def register_failure_handler(self, handler: Callable[[str], None]) -> None:
         self._failure_handlers.append(handler)
 
-    def get_cluster_health(self) -> Dict[str, Any]:
+    def get_cluster_health(self) -> dict[str, Any]:
         with self._lock:
             total = len(self._nodes)
             healthy = sum(1 for n in self._nodes.values() if n.healthy)
@@ -396,11 +396,11 @@ class HorizontalScaler:
         self.scale_up_threshold = scale_up_threshold
         self.scale_down_threshold = scale_down_threshold
         self._current_nodes = self.min_nodes
-        self._scale_up_cbs: List[Callable[[int], None]] = []
-        self._scale_down_cbs: List[Callable[[int], None]] = []
+        self._scale_up_cbs: list[Callable[[int], None]] = []
+        self._scale_down_cbs: list[Callable[[int], None]] = []
         self._lock = threading.Lock()
 
-    def evaluate_scaling(self, current_load: float) -> Optional[str]:
+    def evaluate_scaling(self, current_load: float) -> str | None:
         if current_load >= self.scale_up_threshold and self._current_nodes < self.max_nodes:
             return "scale_up"
         if current_load <= self.scale_down_threshold and self._current_nodes > self.min_nodes:
@@ -433,7 +433,7 @@ class HorizontalScaler:
                     logger.exception("Scale-down callback error")
             return self._current_nodes
 
-    def get_scaling_recommendation(self, metrics: Dict[str, float]) -> Dict[str, Any]:
+    def get_scaling_recommendation(self, metrics: dict[str, float]) -> dict[str, Any]:
         avg_util = sum(metrics.values()) / max(len(metrics), 1)
         action = self.evaluate_scaling(avg_util)
         suggested = self._current_nodes
@@ -480,18 +480,18 @@ class PartitionType(StrEnum):
 @dataclass
 class Partition:
     partition_id: str
-    buses: List[int]
-    boundary_buses: List[int]
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    buses: list[int]
+    boundary_buses: list[int]
+    metadata: dict[str, Any] = field(default_factory=dict)
 
 
 class PartitionManager:
     def __init__(self, partition_type: str = "bus_based") -> None:
         self.partition_type = PartitionType(partition_type)
-        self._partitions: Dict[str, Partition] = {}
-        self._original_buses: List[int] = []
+        self._partitions: dict[str, Partition] = {}
+        self._original_buses: list[int] = []
 
-    def partition_system(self, system: Any, num_partitions: int) -> List[Dict[str, Any]]:
+    def partition_system(self, system: Any, num_partitions: int) -> list[dict[str, Any]]:
         bus_ids = self._extract_bus_ids(system)
         self._original_buses = list(bus_ids)
         self._partitions.clear()
@@ -520,11 +520,11 @@ class PartitionManager:
                     "buses": buses,
                     "boundary_buses": boundaries,
                     "num_buses": len(buses),
-                }
+                },
             )
         return results
 
-    def get_partition(self, partition_id: str) -> Optional[Dict[str, Any]]:
+    def get_partition(self, partition_id: str) -> dict[str, Any] | None:
         p = self._partitions.get(partition_id)
         if p is None:
             return None
@@ -535,8 +535,8 @@ class PartitionManager:
             "metadata": p.metadata,
         }
 
-    def merge_results(self, partition_results: Dict[str, Any]) -> Dict[str, Any]:
-        merged: Dict[str, Any] = {"partitions_merged": len(partition_results), "status": "success"}
+    def merge_results(self, partition_results: dict[str, Any]) -> dict[str, Any]:
+        merged: dict[str, Any] = {"partitions_merged": len(partition_results), "status": "success"}
         for pid, result in partition_results.items():
             if isinstance(result, dict):
                 for key, value in result.items():
@@ -548,14 +548,14 @@ class PartitionManager:
                         merged.setdefault(f"partition_{pid}", result)
         return merged
 
-    def get_boundary_buses(self) -> List[int]:
+    def get_boundary_buses(self) -> list[int]:
         boundary_set: set[int] = set()
         for p in self._partitions.values():
             boundary_set.update(p.boundary_buses)
         return sorted(boundary_set)
 
     def verify_partition_integrity(self) -> bool:
-        all_buses: List[int] = []
+        all_buses: list[int] = []
         for p in self._partitions.values():
             all_buses.extend(p.buses)
         restored = set(all_buses)
@@ -572,14 +572,14 @@ class PartitionManager:
             return False
         return True
 
-    def _extract_bus_ids(self, system: Any) -> List[int]:
+    def _extract_bus_ids(self, system: Any) -> list[int]:
         if hasattr(system, "buses"):
             return [b.id if hasattr(b, "id") else b for b in system.buses]
         if hasattr(system, "bus_ids"):
             return list(system.bus_ids)
         return list(range(100))
 
-    def _bus_based(self, bus_ids: List[int], num: int) -> List[Tuple[str, List[int], List[int]]]:
+    def _bus_based(self, bus_ids: list[int], num: int) -> list[tuple[str, list[int], list[int]]]:
         num = max(1, min(num, len(bus_ids)))
         chunks = [bus_ids[i::num] for i in range(num)]
         results = []
@@ -589,13 +589,13 @@ class PartitionManager:
             results.append((pid, chunk, boundaries))
         return results
 
-    def _zone_based(self, bus_ids: List[int], num: int) -> List[Tuple[str, List[int], List[int]]]:
+    def _zone_based(self, bus_ids: list[int], num: int) -> list[tuple[str, list[int], list[int]]]:
         return self._bus_based(sorted(bus_ids), num)
 
     def _voltage_level(
-        self, bus_ids: List[int], num: int, system: Any
-    ) -> List[Tuple[str, List[int], List[int]]]:
-        kv_groups: Dict[float, List[int]] = defaultdict(list)
+        self, bus_ids: list[int], num: int, system: Any,
+    ) -> list[tuple[str, list[int], list[int]]]:
+        kv_groups: dict[float, list[int]] = defaultdict(list)
         for bid in bus_ids:
             kv = 13.8
             if hasattr(system, "get_bus_voltage"):
@@ -623,7 +623,7 @@ class PartitionManager:
         return results
 
     @staticmethod
-    def _compute_boundaries(chunk: List[int], all_chunks: List[List[int]]) -> List[int]:
+    def _compute_boundaries(chunk: list[int], all_chunks: list[list[int]]) -> list[int]:
         chunk_set = set(chunk)
         boundaries: set[int] = set()
         for other in all_chunks:
@@ -653,7 +653,7 @@ class ExecutionPlan:
     num_partitions: int
     estimated_duration: float
     partition_strategy: str
-    steps: List[Dict[str, Any]] = field(default_factory=list)
+    steps: list[dict[str, Any]] = field(default_factory=list)
 
 
 @dataclass
@@ -663,26 +663,26 @@ class Execution:
     status: ExecutionStatus
     plan: ExecutionPlan
     started_at: float = field(default_factory=time.time)
-    completed_at: Optional[float] = None
-    error: Optional[str] = None
-    partial_results: Dict[str, Any] = field(default_factory=dict)
+    completed_at: float | None = None
+    error: str | None = None
+    partial_results: dict[str, Any] = field(default_factory=dict)
 
 
 class DistributedOrchestrator:
     def __init__(self, cluster_manager: ClusterManager, task_queue: DistributedTaskQueue) -> None:
         self.cluster_manager = cluster_manager
         self.task_queue = task_queue
-        self._executions: Dict[str, Execution] = {}
+        self._executions: dict[str, Execution] = {}
         self._lock = threading.Lock()
 
     def execute_distributed_study(
-        self, study_type: str, system: Any, params: Dict[str, Any]
+        self, study_type: str, system: Any, params: dict[str, Any],
     ) -> str:
         system_size = self._estimate_system_size(system)
         plan = self._build_plan(study_type, system_size, params)
         task_id = str(uuid.uuid4())
         execution = Execution(
-            task_id=task_id, study_type=study_type, status=ExecutionStatus.RUNNING, plan=plan
+            task_id=task_id, study_type=study_type, status=ExecutionStatus.RUNNING, plan=plan,
         )
         with self._lock:
             self._executions[task_id] = execution
@@ -701,7 +701,7 @@ class DistributedOrchestrator:
     def get_execution_plan(self, study_type: str, system_size: float) -> ExecutionPlan:
         return self._build_plan(study_type, system_size, {})
 
-    def monitor_execution(self, task_id: str) -> Optional[Dict[str, Any]]:
+    def monitor_execution(self, task_id: str) -> dict[str, Any] | None:
         with self._lock:
             execution = self._executions.get(task_id)
             if execution is None:
@@ -734,7 +734,7 @@ class DistributedOrchestrator:
             return True
 
     def _build_plan(
-        self, study_type: str, system_size: float, params: Dict[str, Any]
+        self, study_type: str, system_size: float, params: dict[str, Any],
     ) -> ExecutionPlan:
         num_nodes = params.get("num_nodes", 2)
         num_partitions = params.get("num_partitions", min(int(system_size / 10) + 1, 8))

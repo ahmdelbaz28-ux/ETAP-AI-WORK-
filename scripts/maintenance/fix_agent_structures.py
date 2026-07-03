@@ -7,13 +7,12 @@ This focuses on structural problems that could cause agents to fail.
 import ast
 import os
 import sys
-from typing import List
 
 # Add the project root to the Python path
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 
-def check_agent_file_structure(filepath: str) -> List[str]:
+def check_agent_file_structure(filepath: str) -> list[str]:
     """Check an agent file for structural issues."""
     issues = []
 
@@ -27,9 +26,7 @@ def check_agent_file_structure(filepath: str) -> List[str]:
         # Check for common issues
         for node in ast.walk(tree):
             # Check for numpy imports without proper handling
-            if isinstance(node, ast.ImportFrom) and node.module == "numpy":
-                issues.append(f"Direct import of numpy: {ast.unparse(node)}")
-            elif isinstance(node, ast.Import) and any(
+            if isinstance(node, ast.ImportFrom) and node.module == "numpy" or isinstance(node, ast.Import) and any(
                 alias.name == "numpy" for alias in node.names
             ):
                 issues.append(f"Direct import of numpy: {ast.unparse(node)}")
@@ -60,7 +57,7 @@ def check_agent_file_structure(filepath: str) -> List[str]:
                 # Check if there's proper error handling
                 # For now, just warn about the issue
                 issues.append(
-                    f"File {filepath} uses numpy without proper error handling in some contexts"
+                    f"File {filepath} uses numpy without proper error handling in some contexts",
                 )
 
         return issues
@@ -120,7 +117,7 @@ def fix_prompt_handles():
                             handle_value = parts[1].strip().strip("\"'")
                             if handle_value not in available_handles:
                                 print(
-                                    f"⚠️  {agent_file} has prompt_handle '{handle_value}' which is not available"
+                                    f"⚠️  {agent_file} has prompt_handle '{handle_value}' which is not available",
                                 )
                             else:
                                 print(f"✅ {agent_file} has valid prompt_handle '{handle_value}'")

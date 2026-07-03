@@ -9,7 +9,6 @@ import logging
 from datetime import datetime, timezone
 
 UTC = timezone.utc  # noqa: UP017
-from typing import List
 
 from fastapi import WebSocket, WebSocketDisconnect
 from starlette.websockets import WebSocketState
@@ -17,14 +16,14 @@ from starlette.websockets import WebSocketState
 logger = logging.getLogger(__name__)
 
 # Global list to store active WebSocket connections
-active_connections: List[WebSocket] = []
+active_connections: list[WebSocket] = []
 
 
 class SCADALiveFeed:
     """Manages real-time SCADA data broadcasting to WebSocket clients."""
 
     def __init__(self):
-        self.active_connections: List[WebSocket] = []
+        self.active_connections: list[WebSocket] = []
         self.is_broadcasting = False
         self.broadcast_task = None
 
@@ -33,7 +32,7 @@ class SCADALiveFeed:
         await websocket.accept()
         self.active_connections.append(websocket)
         logger.info(
-            f"New WebSocket connection established. Total connections: {len(self.active_connections)}"
+            f"New WebSocket connection established. Total connections: {len(self.active_connections)}",
         )
 
         # Start broadcasting if not already running
@@ -46,7 +45,7 @@ class SCADALiveFeed:
         if websocket in self.active_connections:
             self.active_connections.remove(websocket)
             logger.info(
-                f"WebSocket connection closed. Total connections: {len(self.active_connections)}"
+                f"WebSocket connection closed. Total connections: {len(self.active_connections)}",
             )
 
         # Stop broadcasting if no active connections
@@ -155,7 +154,7 @@ class SCADALiveFeed:
                     "severity": "WARNING" if random.random() < 0.7 else "CRITICAL",
                     "description": f"Simulated alarm for equipment {random.choice(['Transformer', 'Breaker', 'Line'])}",
                     "location": random.choice(["SUBSTATION_A", "SUBSTATION_B", "FEEDER_C"]),
-                }
+                },
             )
 
         return scada_data

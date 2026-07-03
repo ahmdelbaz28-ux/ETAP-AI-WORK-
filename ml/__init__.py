@@ -20,7 +20,7 @@ except ImportError as _exc:
         "ml.predictive could not be imported — most likely numpy or another "
         "core dependency is missing. Install requirements with: "
         "pip install numpy scipy pandas scikit-learn. "
-        f"Original error: {_exc}"
+        f"Original error: {_exc}",
     ) from _exc
 
 __all__ = ["LoadForecaster", "FaultPredictor", "AnomalyDetector"]

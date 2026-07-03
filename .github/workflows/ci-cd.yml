@@ -514,24 +514,35 @@ jobs:
         run: sleep 60
 
       - name: Health endpoint
+        env:
+          HF_SPACE_URL: ${{ env.HF_SPACE_URL }}
         run: |
-          HTTP=$(curl -sf -o /dev/null -w "%{http_code}" ${{ env.HF_SPACE_URL }}/health || echo "000")
+          # SECURITY: use $HF_SPACE_URL env var instead of ${{ }} interpolation
+          HTTP=$(curl -sf -o /dev/null -w "%{http_code}" "$HF_SPACE_URL"/health || echo "000")
           echo "Health: $HTTP"
           [ "$HTTP" != "000" ] && [ "$HTTP" -lt 500 ] || exit 1
 
       - name: Readiness endpoint
+        env:
+          HF_SPACE_URL: ${{ env.HF_SPACE_URL }}
         run: |
-          HTTP=$(curl -sf -o /dev/null -w "%{http_code}" ${{ env.HF_SPACE_URL }}/ready || echo "000")
+          # SECURITY: use $HF_SPACE_URL env var instead of ${{ }} interpolation
+          HTTP=$(curl -sf -o /dev/null -w "%{http_code}" "$HF_SPACE_URL"/ready || echo "000")
           echo "Ready: $HTTP"
           [ "$HTTP" != "000" ] && [ "$HTTP" -lt 500 ] || exit 1
 
       - name: Notify deployment success
+        env:
+          HF_SPACE_URL: ${{ env.HF_SPACE_URL }}
+          GIT_COMMIT_SHA: ${{ github.sha }}
+          GIT_BRANCH_NAME: ${{ github.ref_name }}
         run: |
+          # SECURITY: all interpolated values come from env vars
           echo "🎉 AhmedETAP deployed successfully!"
-          echo "   HF Space:  ${{ env.HF_SPACE_URL }}"
+          echo "   HF Space:  $HF_SPACE_URL"
           echo "   Vercel:    https://vercel.com/ahmdelbaz28-uxs-projects/etap-ai-work"
-          echo "   Commit:    ${{ github.sha }}"
-          echo "   Branch:    ${{ github.ref_name }}"
+          echo "   Commit:    $GIT_COMMIT_SHA"
+          echo "   Branch:    $GIT_BRANCH_NAME"
 
   # ── 10. AUTO-UPDATE PROJECT INDEX ─────────────────────────────────────────────
   update-index:

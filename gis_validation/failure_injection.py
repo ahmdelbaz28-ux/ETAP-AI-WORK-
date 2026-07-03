@@ -4,7 +4,7 @@ import copy
 import random
 from collections.abc import Callable
 from dataclasses import dataclass
-from typing import Any, Dict, List, Tuple
+from typing import Any
 
 from gis_integration.models import ADMSAsset
 
@@ -13,15 +13,15 @@ from gis_integration.models import ADMSAsset
 class FailureScenario:
     scenario_id: str
     name: str
-    details: Dict[str, Any]
+    details: dict[str, Any]
 
 
 def inject_corrupted_geometries(
-    assets: List[ADMSAsset],
+    assets: list[ADMSAsset],
     *,
     seed: int = 1337,
     corruption_ratio: float = 0.01,
-) -> List[ADMSAsset]:
+) -> list[ADMSAsset]:
     """
     Corrupt a subset of geometries deterministically:
     - remove geometry.type
@@ -53,12 +53,12 @@ def inject_corrupted_geometries(
 
 
 def inject_broken_crs_metadata(
-    assets: List[ADMSAsset],
+    assets: list[ADMSAsset],
     *,
     seed: int = 1337,
     contamination_ratio: float = 0.1,
     broken_value: str = "INVALID_EPSG",
-) -> List[ADMSAsset]:
+) -> list[ADMSAsset]:
     rng = random.Random(seed)
     out = copy.deepcopy(assets)
     n = len(out)
@@ -80,11 +80,11 @@ def inject_broken_crs_metadata(
 
 
 def inject_missing_layers_simulation(
-    required_layer_ids: List[str],
+    required_layer_ids: list[str],
     *,
     missing_layer_ratio: float = 0.2,
     seed: int = 1337,
-) -> Tuple[List[str], List[str]]:
+) -> tuple[list[str], list[str]]:
     """
     Pure helper: choose which layer_ids are 'missing' in a provider extraction simulation.
     Returns: (present_layers, missing_layers)

@@ -71,7 +71,7 @@ import logging
 import os
 import uuid
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -110,7 +110,7 @@ _ALLOWED_MIME_TYPES = frozenset(
         "image/webp",
         "image/tiff",
         "application/zip",
-    }
+    },
 )
 
 # Max upload size: 50 MB (safety: prevent resource exhaustion)
@@ -144,7 +144,7 @@ def _get_client():
     except ImportError:
         logger.warning(
             "supabase package not installed. Run: pip install supabase. "
-            "Supabase features will be disabled."
+            "Supabase features will be disabled.",
         )
         return None
     except Exception as e:
@@ -210,11 +210,11 @@ def _validate_upload(content: bytes, content_type: str) -> None:
     if len(content) > _MAX_UPLOAD_BYTES:
         raise SupabaseUploadError(
             f"Upload too large: {len(content)} bytes > {_MAX_UPLOAD_BYTES} limit "
-            f"({len(content) // (1024 * 1024)} MB > {_MAX_UPLOAD_BYTES // (1024 * 1024)} MB)"
+            f"({len(content) // (1024 * 1024)} MB > {_MAX_UPLOAD_BYTES // (1024 * 1024)} MB)",
         )
     if content_type not in _ALLOWED_MIME_TYPES:
         raise SupabaseUploadError(
-            f"Disallowed MIME type: '{content_type}'. Allowed: {sorted(_ALLOWED_MIME_TYPES)}"
+            f"Disallowed MIME type: '{content_type}'. Allowed: {sorted(_ALLOWED_MIME_TYPES)}",
         )
 
 
@@ -253,8 +253,8 @@ def upload_bytes(
     filename: str,
     content: bytes,
     content_type: str,
-    user_id: Optional[str] = None,
-    metadata: Optional[dict] = None,
+    user_id: str | None = None,
+    metadata: dict | None = None,
     upsert: bool = False,
 ) -> dict[str, Any]:
     """Upload bytes to a Supabase Storage bucket.
@@ -293,7 +293,7 @@ def upload_bytes(
     if client is None:
         raise RuntimeError(
             "Supabase client not available. Set SUPABASE_URL and "
-            "SUPABASE_SERVICE_ROLE_KEY env vars."
+            "SUPABASE_SERVICE_ROLE_KEY env vars.",
         )
 
     safe_path = _sanitise_filename(filename)
@@ -332,7 +332,7 @@ def upload_bytes(
         except Exception:
             # If we can't fetch the bucket info, assume private (safer)
             is_public = False
-        public_url: Optional[str] = None
+        public_url: str | None = None
         if is_public:
             public_url = client.storage.from_(bucket).get_public_url(safe_path)
 
@@ -358,8 +358,8 @@ def upload_file(
     bucket: str,
     file_path: str | Path,
     content_type: str,
-    user_id: Optional[str] = None,
-    metadata: Optional[dict] = None,
+    user_id: str | None = None,
+    metadata: dict | None = None,
 ) -> dict[str, Any]:
     """Upload a file from disk. See ``upload_bytes`` for parameter docs."""
     path = Path(file_path)
@@ -374,7 +374,7 @@ def upload_file(
     )
 
 
-def get_public_url(bucket: str, path: str) -> Optional[str]:
+def get_public_url(bucket: str, path: str) -> str | None:
     """Return the public URL for a file in a public bucket.
 
     Returns ``None`` if the bucket is private.
@@ -397,7 +397,7 @@ def get_public_url(bucket: str, path: str) -> Optional[str]:
         return None
 
 
-def get_signed_url(*, bucket: str, path: str, expires_in: int = 3600) -> Optional[str]:
+def get_signed_url(*, bucket: str, path: str, expires_in: int = 3600) -> str | None:
     """Return a signed URL for a private file.
 
     Parameters

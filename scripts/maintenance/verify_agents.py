@@ -7,13 +7,12 @@ This runs static analysis to verify agents are correctly implemented.
 import ast
 import os
 import sys
-from typing import List
 
 # Add the project root to the Python path
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 
-def check_agent_class_structure(filepath: str) -> List[str]:
+def check_agent_class_structure(filepath: str) -> list[str]:
     """Check if an agent file has a properly structured agent class."""
     issues = []
 
@@ -26,9 +25,8 @@ def check_agent_class_structure(filepath: str) -> List[str]:
         # Find all class definitions that end with 'Agent'
         agent_classes = []
         for node in ast.walk(tree):
-            if isinstance(node, ast.ClassDef):
-                if node.name.endswith("Agent"):
-                    agent_classes.append(node)
+            if isinstance(node, ast.ClassDef) and node.name.endswith("Agent"):
+                agent_classes.append(node)
 
         if not agent_classes:
             issues.append(f"No class ending with 'Agent' found in {filepath}")
@@ -38,14 +36,12 @@ def check_agent_class_structure(filepath: str) -> List[str]:
             # Check if the class inherits from BaseAgent
             inherits_from_base = False
             for base in agent_class.bases:
-                if isinstance(base, ast.Name) and base.id == "BaseAgent":
-                    inherits_from_base = True
-                elif isinstance(base, ast.Attribute) and base.attr == "BaseAgent":
+                if isinstance(base, ast.Name) and base.id == "BaseAgent" or isinstance(base, ast.Attribute) and base.attr == "BaseAgent":
                     inherits_from_base = True
 
             if not inherits_from_base:
                 issues.append(
-                    f"Class {agent_class.name} in {filepath} doesn't inherit from BaseAgent"
+                    f"Class {agent_class.name} in {filepath} doesn't inherit from BaseAgent",
                 )
 
             # Check for prompt_handle assignment
@@ -66,7 +62,7 @@ def check_agent_class_structure(filepath: str) -> List[str]:
 
             if not prompt_handle_found:
                 issues.append(
-                    f"Class {agent_class.name} in {filepath} doesn't have prompt_handle attribute"
+                    f"Class {agent_class.name} in {filepath} doesn't have prompt_handle attribute",
                 )
 
             # Check for __init__ method
@@ -82,7 +78,7 @@ def check_agent_class_structure(filepath: str) -> List[str]:
 
             if not init_method_found:
                 issues.append(
-                    f"Class {agent_class.name} in {filepath} doesn't have __init__ method"
+                    f"Class {agent_class.name} in {filepath} doesn't have __init__ method",
                 )
 
             if not execute_method_found:

@@ -49,7 +49,7 @@ def check_imports():
                         # Absolute import - check if it's a local module
                         parts = node.module.split(".")
                         if os.path.exists(
-                            os.path.join(".", *parts[:-1] or parts, "__init__.py")
+                            os.path.join(".", *parts[:-1] or parts, "__init__.py"),
                         ) or os.path.exists(os.path.join(".", *parts) + ".py"):
                             results.append(("LOCAL_IMPORT", path, node.module))
         except Exception as e:

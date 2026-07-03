@@ -17,11 +17,23 @@
     "resolveJsonModule": true,
     "esModuleInterop": true,
 
-    /* Linting */
-    "noUnusedLocals": false,
-    "noUnusedParameters": false,
-    
-    "noFallthroughCasesInSwitch": true
+    /* Linting — SECURITY/QUALITY: strict mode enabled in v2.1.1.
+       Was previously disabled (noUnusedLocals: false, noUnusedParameters: false,
+       no strict: true) which masked type errors and unused variables.
+       The flags below are now ON. Existing code that violates them will be
+       flagged by `tsc --noEmit`; fix incrementally by either:
+         1. Removing unused imports/vars (preferred)
+         2. Prefixing intentionally-unused args with underscore (e.g. _event)
+         3. Adding `// eslint-disable-next-line @typescript-eslint/no-explicit-any`
+            where `any` is genuinely needed (e.g. third-party JSON payloads) */
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUncheckedIndexedAccess": false,
+    "forceConsistentCasingInFileNames": true,
+    "allowUnreachableCode": false
   },
   "include": ["src"]
 }

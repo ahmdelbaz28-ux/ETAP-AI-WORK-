@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from collections.abc import Iterator
-from typing import Dict, List, Optional
 
 from gis_integration.base import GISProviderInterface
 from gis_integration.exceptions import GISDataExtractionError, GISProviderUnavailableError
@@ -38,7 +37,7 @@ class ArcGISProvider(GISProviderInterface):
         except Exception as exc:
             raise GISDataExtractionError(f"Failed to load ArcGIS project: {exc}") from exc
 
-    def list_layers(self) -> List[str]:
+    def list_layers(self) -> list[str]:
         # ArcGIS layer listing is non-trivial without a concrete project/workspace.
         # Degrade gracefully: return empty list if not loaded.
         if not self._loaded:
@@ -47,7 +46,7 @@ class ArcGISProvider(GISProviderInterface):
             import arcpy  # type: ignore
 
             # Best-effort: list layers from the default workspace if set.
-            layers: List[str] = []
+            layers: list[str] = []
             try:
                 desc = arcpy.Describe(arcpy.env.workspace)  # type: ignore
                 _ = desc
@@ -83,7 +82,7 @@ class ArcGISProvider(GISProviderInterface):
                 _ = lyr
             except Exception as exc:
                 raise GISDataExtractionError(
-                    f"Invalid ArcGIS layer_id '{layer_id}': {exc}"
+                    f"Invalid ArcGIS layer_id '{layer_id}': {exc}",
                 ) from exc
 
             # Fallback cursor approach: attempt to iterate without strict schema.
@@ -98,7 +97,7 @@ class ArcGISProvider(GISProviderInterface):
                     geom_dict = safe_parse_geojson(geojson_geom_str)
                 except Exception as err:
                     raise GISDataExtractionError(
-                        "Unable to convert ArcGIS geometry to GeoJSON"
+                        "Unable to convert ArcGIS geometry to GeoJSON",
                     ) from err
 
                 ok, reason = validate_geometry_dict(geom_dict)
@@ -119,7 +118,7 @@ class ArcGISProvider(GISProviderInterface):
         except Exception as exc:
             raise GISDataExtractionError(f"Failed to extract features from ArcGIS: {exc}") from exc
 
-    def export_geojson(self, layer_id: str) -> Dict:
+    def export_geojson(self, layer_id: str) -> dict:
         try:
             features = list(self.extract_features(layer_id))
             return {
@@ -137,7 +136,7 @@ class ArcGISProvider(GISProviderInterface):
         except Exception as exc:
             raise GISDataExtractionError(f"Failed to export GeoJSON from ArcGIS: {exc}") from exc
 
-    def get_crs(self, layer_id: Optional[str] = None) -> GeoCRSInfo:
+    def get_crs(self, layer_id: str | None = None) -> GeoCRSInfo:
         return self._crs
 
     def health_check(self) -> bool:

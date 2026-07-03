@@ -83,6 +83,7 @@ export function OnboardingTour() {
       const timer = setTimeout(() => setShow(true), 1000)
       return () => clearTimeout(timer)
     }
+    return undefined  // QUALITY v2.1.1: explicit return for TS7030 (strict mode)
   }, [])
 
   const handleNext = () => {

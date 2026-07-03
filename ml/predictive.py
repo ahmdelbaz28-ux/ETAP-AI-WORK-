@@ -27,7 +27,7 @@ from __future__ import annotations
 
 import logging
 from datetime import datetime, timedelta
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 import numpy as np
 
@@ -147,22 +147,22 @@ class LoadForecaster:
             'auto' selects the best available: lstm > prophet > linear.
         """
         self.model: Any = None
-        self.scaler: Optional[Any] = None
+        self.scaler: Any | None = None
         self._is_lstm: bool = False
         self._is_prophet: bool = False
         self._window_size: int = 24
-        self._fallback_weights: Optional[np.ndarray] = None
+        self._fallback_weights: np.ndarray | None = None
         self._fallback_bias: float = 0.0
         self._fallback_mean: float = 0.0
         self._fallback_std: float = 1.0
         self._method = method
-        self._training_data: Optional[np.ndarray] = None
+        self._training_data: np.ndarray | None = None
 
     # ------------------------------------------------------------------
     # Training
     # ------------------------------------------------------------------
 
-    def train(self, historical_data: np.ndarray, epochs: int = 50) -> Dict[str, Any]:
+    def train(self, historical_data: np.ndarray, epochs: int = 50) -> dict[str, Any]:
         """Train the forecasting model on historical load data.
 
         Parameters
@@ -182,7 +182,7 @@ class LoadForecaster:
 
         if len(historical_data) < self._window_size * 2:
             raise ValueError(
-                f"Need at least {self._window_size * 2} data points, got {len(historical_data)}"
+                f"Need at least {self._window_size * 2} data points, got {len(historical_data)}",
             )
 
         self._training_data = historical_data.copy()
@@ -203,7 +203,7 @@ class LoadForecaster:
         else:
             return self._train_linear(historical_data)
 
-    def _train_prophet(self, data: np.ndarray) -> Dict[str, Any]:
+    def _train_prophet(self, data: np.ndarray) -> dict[str, Any]:
         """Train a Prophet model for load forecasting."""
         self.model = _Prophet(
             yearly_seasonality=True,
@@ -223,7 +223,7 @@ class LoadForecaster:
         self._is_lstm = False
         return {"method": "prophet", "epochs": 0, "samples": len(data)}
 
-    def _train_lstm(self, data: np.ndarray, epochs: int) -> Dict[str, Any]:
+    def _train_lstm(self, data: np.ndarray, epochs: int) -> dict[str, Any]:
         """Train an LSTM model using Keras."""
         self.scaler = MinMaxScaler(feature_range=(0, 1))
         scaled = self.scaler.fit_transform(data.reshape(-1, 1)).flatten()
@@ -237,7 +237,7 @@ class LoadForecaster:
                 keras.layers.LSTM(32),
                 keras.layers.Dropout(0.2),
                 keras.layers.Dense(1),
-            ]
+            ],
         )
         model.compile(optimizer="adam", loss="mse")
         model.fit(X, y, epochs=epochs, batch_size=32, verbose=0)
@@ -246,7 +246,7 @@ class LoadForecaster:
         self._is_lstm = True
         return {"method": "lstm", "epochs": epochs, "samples": len(data)}
 
-    def _train_linear(self, data: np.ndarray) -> Dict[str, Any]:
+    def _train_linear(self, data: np.ndarray) -> dict[str, Any]:
         """Fallback: train an autoregressive linear model (least-squares)."""
         self._fallback_mean = float(np.mean(data))
         self._fallback_std = float(np.std(data)) if np.std(data) > 0 else 1.0
@@ -267,10 +267,10 @@ class LoadForecaster:
 
         return {"method": "linear_regression", "epochs": 0, "samples": len(data)}
 
-    def _create_sequences(self, data: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
+    def _create_sequences(self, data: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
         """Create sliding-window sequences for supervised learning."""
-        X: List[np.ndarray] = []
-        y: List[float] = []
+        X: list[np.ndarray] = []
+        y: list[float] = []
         for i in range(len(data) - self._window_size):
             X.append(data[i : i + self._window_size])
             y.append(data[i + self._window_size])
@@ -309,7 +309,7 @@ class LoadForecaster:
             self.scaler.data_max_ - self.scaler.data_min_
         ) * np.random.rand(self._window_size)
         input_seq = scaled_recent.reshape(1, self._window_size, 1)
-        predictions: List[float] = []
+        predictions: list[float] = []
         for _ in range(horizon_hours):
             pred = float(self.model.predict(input_seq, verbose=0)[0, 0])
             predictions.append(pred)
@@ -321,7 +321,7 @@ class LoadForecaster:
     def _predict_linear(self, horizon_hours: int) -> np.ndarray:
         """Autoregressive linear regression prediction."""
         window = np.zeros(self._window_size)
-        predictions: List[float] = []
+        predictions: list[float] = []
         for _ in range(horizon_hours):
             next_val = float(window @ self._fallback_weights + self._fallback_bias)
             predictions.append(next_val)
@@ -334,13 +334,13 @@ class LoadForecaster:
     # Evaluation
     # ------------------------------------------------------------------
 
-    def evaluate(self, test_data: np.ndarray) -> Dict[str, float]:
+    def evaluate(self, test_data: np.ndarray) -> dict[str, float]:
         """Evaluate model accuracy on test data."""
         if len(test_data) < self._window_size + 1:
             raise ValueError(f"Need at least {self._window_size + 1} test data points")
 
-        actuals: List[float] = []
-        preds: List[float] = []
+        actuals: list[float] = []
+        preds: list[float] = []
 
         for i in range(self._window_size, len(test_data)):
             actuals.append(float(test_data[i]))
@@ -372,10 +372,10 @@ class LoadForecaster:
                 np.mean(
                     np.abs(
                         (actuals_arr[nonzero_mask] - preds_arr[nonzero_mask])
-                        / actuals_arr[nonzero_mask]
-                    )
+                        / actuals_arr[nonzero_mask],
+                    ),
                 )
-                * 100
+                * 100,
             )
         else:
             mape = float("inf")
@@ -398,14 +398,14 @@ class FaultPredictor:
     - 3: Open circuit
     """
 
-    FAULT_LABELS: Dict[int, str] = {
+    FAULT_LABELS: dict[int, str] = {
         0: "none",
         1: "short_circuit",
         2: "ground_fault",
         3: "open_circuit",
     }
 
-    FEATURE_NAMES: List[str] = [
+    FEATURE_NAMES: list[str] = [
         "voltage",
         "current",
         "temperature",
@@ -429,9 +429,9 @@ class FaultPredictor:
         self._optimize = optimize and _HAS_OPTUNA
         self._use_shap = _HAS_SHAP
         self._explainer: Any = None
-        self._last_training_features: Optional[np.ndarray] = None
+        self._last_training_features: np.ndarray | None = None
 
-    def train(self, features: np.ndarray, labels: np.ndarray) -> Dict[str, Any]:
+    def train(self, features: np.ndarray, labels: np.ndarray) -> dict[str, Any]:
         """Train fault classifier on fault features.
 
         Parameters
@@ -478,7 +478,7 @@ class FaultPredictor:
                         "use_label_encoder": False,
                         "eval_metric": "mlogloss",
                     }
-                )
+                ),
             )
             self.model.fit(features, labels)
             method = "xgboost"
@@ -497,7 +497,7 @@ class FaultPredictor:
                         "random_state": 42,
                         "n_jobs": -1,
                     }
-                )
+                ),
             )
             self.model.fit(features, labels)
             method = "random_forest"
@@ -512,7 +512,7 @@ class FaultPredictor:
                 else:
                     self._explainer = shap.TreeExplainer(self.model)
             except Exception as e:
-                logger.warning(f"Could not initialize SHAP explainer: {e}")
+                logger.warning("Could not initialize SHAP explainer: %s", e)
 
         result = {
             "n_samples": int(features.shape[0]),
@@ -524,7 +524,7 @@ class FaultPredictor:
             result["best_params"] = best_params
         return result
 
-    def _optimize_xgboost(self, features: np.ndarray, labels: np.ndarray) -> Dict[str, Any]:
+    def _optimize_xgboost(self, features: np.ndarray, labels: np.ndarray) -> dict[str, Any]:
         """Optuna-based XGBoost hyperparameter optimization."""
         if not _HAS_OPTUNA:
             return {}
@@ -550,7 +550,7 @@ class FaultPredictor:
         study.optimize(objective, n_trials=20, show_progress_bar=False)
         return study.best_params
 
-    def _optimize_rf(self, features: np.ndarray, labels: np.ndarray) -> Dict[str, Any]:
+    def _optimize_rf(self, features: np.ndarray, labels: np.ndarray) -> dict[str, Any]:
         """Optuna-based Random Forest hyperparameter optimization."""
         if not _HAS_OPTUNA:
             return {}
@@ -573,7 +573,7 @@ class FaultPredictor:
         study.optimize(objective, n_trials=20, show_progress_bar=False)
         return study.best_params
 
-    def predict(self, features: np.ndarray) -> Dict[str, Any]:
+    def predict(self, features: np.ndarray) -> dict[str, Any]:
         """Predict fault probability and type."""
         if not self._is_trained or self.model is None:
             raise RuntimeError("Model has not been trained yet. Call train() first.")
@@ -584,7 +584,7 @@ class FaultPredictor:
         predictions = self.model.predict(features)
         probabilities = self.model.predict_proba(features)
 
-        results: Dict[str, Any] = {
+        results: dict[str, Any] = {
             "fault_type": int(predictions[0]),
             "fault_label": self.FAULT_LABELS.get(int(predictions[0]), "unknown"),
             "probabilities": {
@@ -595,7 +595,7 @@ class FaultPredictor:
         }
         return results
 
-    def explain(self, features: np.ndarray) -> Dict[str, Any]:
+    def explain(self, features: np.ndarray) -> dict[str, Any]:
         """Provide SHAP-based explanation for a prediction.
 
         Parameters
@@ -658,7 +658,7 @@ class FaultPredictor:
             "method": "shap_tree_explainer",
         }
 
-    def feature_importance(self) -> Dict[str, float]:
+    def feature_importance(self) -> dict[str, float]:
         """Return feature importance scores."""
         if not self._is_trained or self.model is None:
             raise RuntimeError("Model has not been trained yet. Call train() first.")
@@ -669,7 +669,7 @@ class FaultPredictor:
             importances = self.model.feature_importances_
 
         n_features = min(len(self.FEATURE_NAMES), len(importances))
-        result: Dict[str, float] = {}
+        result: dict[str, float] = {}
         for i in range(n_features):
             result[self.FEATURE_NAMES[i]] = float(importances[i])
         for i in range(n_features, len(importances)):
@@ -725,7 +725,7 @@ class AnomalyDetector:
         # Remap "iforest" to "statistical" when sklearn is missing
         if method == "iforest" and not _HAS_SKLEARN:
             logger.warning(
-                "scikit-learn not available — falling back to 'statistical' anomaly detection"
+                "scikit-learn not available — falling back to 'statistical' anomaly detection",
             )
             method = "statistical"
 
@@ -736,12 +736,12 @@ class AnomalyDetector:
         self.model: Any = None
         self.contamination = contamination
         self.method = method
-        self._threshold: Optional[float] = None
+        self._threshold: float | None = None
         self._is_trained: bool = False
-        self._train_mean: Optional[float] = None
-        self._train_std: Optional[float] = None
+        self._train_mean: float | None = None
+        self._train_std: float | None = None
 
-    def train(self, normal_data: np.ndarray) -> Dict[str, Any]:
+    def train(self, normal_data: np.ndarray) -> dict[str, Any]:
         """Train on normal operating data.
 
         Parameters
@@ -809,7 +809,7 @@ class AnomalyDetector:
             "method": self.method,
         }
 
-    def detect(self, data: np.ndarray) -> Dict[str, Any]:
+    def detect(self, data: np.ndarray) -> dict[str, Any]:
         """Detect anomalies in real-time data.
 
         Parameters
@@ -904,8 +904,8 @@ class PowerGridGNN:
         self.num_layers = num_layers
         self.model: Any = None
         self._is_trained: bool = False
-        self._input_dim: Optional[int] = None
-        self._output_dim: Optional[int] = None
+        self._input_dim: int | None = None
+        self._output_dim: int | None = None
 
     def _build_model(self, input_dim: int, output_dim: int) -> None:
         """Build the GNN model architecture."""
@@ -962,7 +962,7 @@ class PowerGridGNN:
         targets: np.ndarray,
         epochs: int = 100,
         lr: float = 0.01,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Train the GNN model.
 
         Parameters
@@ -1063,7 +1063,7 @@ class ModelRegistry:
     - Model artifact storage
     """
 
-    def __init__(self, tracking_uri: Optional[str] = None) -> None:
+    def __init__(self, tracking_uri: str | None = None) -> None:
         """Initialize ModelRegistry.
 
         Parameters
@@ -1127,12 +1127,12 @@ class ModelRegistry:
         self._active_run = mlflow.start_run(run_name=run_name)
         return self._active_run
 
-    def log_params(self, params: Dict[str, Any]) -> None:
+    def log_params(self, params: dict[str, Any]) -> None:
         """Log parameters for the current run."""
         if self._active_run:
             mlflow.log_params(params)
 
-    def log_metrics(self, metrics: Dict[str, float]) -> None:
+    def log_metrics(self, metrics: dict[str, float]) -> None:
         """Log metrics for the current run."""
         if self._active_run:
             mlflow.log_metrics(metrics)
@@ -1147,7 +1147,7 @@ class ModelRegistry:
                 try:
                     mlflow.pyfunc.log_model(artifact_path, python_model=model)
                 except Exception as e:
-                    logger.warning(f"Could not log model: {e}")
+                    logger.warning("Could not log model: %s", e)
 
     def end_run(self) -> None:
         """End the current MLflow run."""
@@ -1156,8 +1156,8 @@ class ModelRegistry:
             self._active_run = None
 
     def get_best_run(
-        self, experiment_name: str, metric: str = "accuracy", ascending: bool = False
-    ) -> Optional[Dict[str, Any]]:
+        self, experiment_name: str, metric: str = "accuracy", ascending: bool = False,
+    ) -> dict[str, Any] | None:
         """Get the best run for an experiment based on a metric.
 
         Parameters
@@ -1202,7 +1202,7 @@ class ModelRegistry:
 # ===========================================================================
 
 
-def get_ml_capabilities() -> Dict[str, Any]:
+def get_ml_capabilities() -> dict[str, Any]:
     """Return a summary of available ML capabilities.
 
     Returns

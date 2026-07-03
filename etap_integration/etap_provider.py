@@ -11,7 +11,7 @@ import sys
 import time
 from abc import ABC, abstractmethod
 from enum import Enum
-from typing import Any, Dict, List
+from typing import Any
 
 import requests
 
@@ -32,9 +32,9 @@ class ETAPResult:
     def __init__(
         self,
         success: bool,
-        data: Dict[str, Any],
-        warnings: List[str],
-        errors: List[str],
+        data: dict[str, Any],
+        warnings: list[str],
+        errors: list[str],
         execution_time: float = 0.0,
     ):
         self.success = success
@@ -47,7 +47,7 @@ class ETAPResult:
 class IEtapProvider(ABC):
     @abstractmethod
     def execute_study(
-        self, project_path: str, study_type: ETAPStudyType, visible: bool = False
+        self, project_path: str, study_type: ETAPStudyType, visible: bool = False,
     ) -> ETAPResult:
         """
         Execute a study on the configured ETAP backend.
@@ -90,11 +90,11 @@ class LocalEtapProvider(IEtapProvider):
         return self._available
 
     def execute_study(
-        self, project_path: str, study_type: ETAPStudyType, visible: bool = False
+        self, project_path: str, study_type: ETAPStudyType, visible: bool = False,
     ) -> ETAPResult:
         if not self._available:
             return ETAPResult(
-                False, {}, [], ["Local ETAP automation not available or disabled"], 0.0
+                False, {}, [], ["Local ETAP automation not available or disabled"], 0.0,
             )
 
         import time
@@ -200,7 +200,7 @@ class RemoteEtapProvider(IEtapProvider):
             return False
 
     def execute_study(
-        self, project_path: str, study_type: ETAPStudyType, visible: bool = False
+        self, project_path: str, study_type: ETAPStudyType, visible: bool = False,
     ) -> ETAPResult:
         if not self.use_etap:
             return ETAPResult(
@@ -219,7 +219,7 @@ class RemoteEtapProvider(IEtapProvider):
                 [],
                 [
                     f"ETAP Worker circuit breaker is OPEN after {self._consecutive_failures} consecutive failures. "
-                    f"Retry after {int(self._circuit_open_until - time.time())}s."
+                    f"Retry after {int(self._circuit_open_until - time.time())}s.",
                 ],
                 0.0,
             )
@@ -231,7 +231,7 @@ class RemoteEtapProvider(IEtapProvider):
         for attempt in range(self.MAX_RETRIES):
             try:
                 response = requests.post(
-                    f"{self.worker_url}/execute", json=payload, headers=headers, timeout=300
+                    f"{self.worker_url}/execute", json=payload, headers=headers, timeout=300,
                 )
                 if response.status_code == 200:
                     data = response.json()
@@ -423,7 +423,7 @@ class MockEtapProvider(IEtapProvider):
         return self.use_etap
 
     def execute_study(
-        self, project_path: str, study_type: ETAPStudyType, visible: bool = False
+        self, project_path: str, study_type: ETAPStudyType, visible: bool = False,
     ) -> ETAPResult:
         if not self.use_etap:
             return ETAPResult(
@@ -461,7 +461,7 @@ class NullEtapProvider(IEtapProvider):
         return False
 
     def execute_study(
-        self, project_path: str, study_type: ETAPStudyType, visible: bool = False
+        self, project_path: str, study_type: ETAPStudyType, visible: bool = False,
     ) -> ETAPResult:
         if not self.use_etap:
             return ETAPResult(

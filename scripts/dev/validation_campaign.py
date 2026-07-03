@@ -387,7 +387,7 @@ class ValidationCampaign:
         ]
         for lid, (fb, tb, z1) in enumerate(line_data, 1):
             system.add_line(
-                Line(line_id=lid, from_bus=system.buses[fb], to_bus=system.buses[tb], z1=z1)
+                Line(line_id=lid, from_bus=system.buses[fb], to_bus=system.buses[tb], z1=z1),
             )
 
         # Connect remaining isolated buses directly to PV bus 6 to make the system connected without voltage collapse
@@ -405,7 +405,7 @@ class ValidationCampaign:
                         from_bus=system.buses[6],
                         to_bus=system.buses[bid],
                         z1=complex(0.01, 0.04),
-                    )
+                    ),
                 )
                 connected_buses.add(bid)
                 next_line_id += 1
@@ -506,7 +506,7 @@ class ValidationCampaign:
         kappa = 1.8
         ip = kappa * np.sqrt(2) * If_3ph
         self._record(
-            "SC", "Peak Current Calculation", ip > If_3ph, f"ip={ip:.4f} pu (kappa={kappa})"
+            "SC", "Peak Current Calculation", ip > If_3ph, f"ip={ip:.4f} pu (kappa={kappa})",
         )
 
         # Thermal current Ith = Ik'' (simplified, assuming m=1 for far-from-generator)
@@ -536,7 +536,7 @@ class ValidationCampaign:
         Ib = abs(result_dlg["fault_current_b"])
         Ic = abs(result_dlg["fault_current_c"])
         self._record(
-            "SC", "DLG Fault Currents > 0", Ib > 0 and Ic > 0, f"Ib={Ib:.4f}, Ic={Ic:.4f} pu"
+            "SC", "DLG Fault Currents > 0", Ib > 0 and Ic > 0, f"Ib={Ib:.4f}, Ic={Ic:.4f} pu",
         )
 
     # =========================================================================
@@ -575,7 +575,7 @@ class ValidationCampaign:
         # Test Case 2: Incident Energy
         try:
             E_final, E_full, E_red = engine.calculate_incident_energy(
-                4.16, 20.0, 0.5, 610.0, ElectrodeConfig.VCB, EnclosureType.BOX
+                4.16, 20.0, 0.5, 610.0, ElectrodeConfig.VCB, EnclosureType.BOX,
             )
             self._record("ArcFlash", "Incident Energy > 0", E_final > 0, f"E={E_final:.4f} cal/cm2")
             self._record(
@@ -590,7 +590,7 @@ class ValidationCampaign:
         # Test Case 3: Arc Flash Boundary
         try:
             D_boundary = engine.calculate_arc_flash_boundary(
-                4.16, 20.0, 0.5, ElectrodeConfig.VCB, EnclosureType.BOX
+                4.16, 20.0, 0.5, ElectrodeConfig.VCB, EnclosureType.BOX,
             )
             self._record(
                 "ArcFlash",
@@ -604,7 +604,7 @@ class ValidationCampaign:
         # Test Case 4: Complete analysis
         try:
             result = engine.calculate(
-                4.16, 20.0, 0.5, 610.0, ElectrodeConfig.VCB, EnclosureType.BOX
+                4.16, 20.0, 0.5, 610.0, ElectrodeConfig.VCB, EnclosureType.BOX,
             )
             self._record(
                 "ArcFlash",
@@ -632,7 +632,7 @@ class ValidationCampaign:
             try:
                 Iarc, _ = engine.calculate_arc_current(4.16, 20.0, config)
                 self._record(
-                    "ArcFlash", f"Arc Current {config.value}", Iarc > 0, f"Iarc={Iarc:.4f} kA"
+                    "ArcFlash", f"Arc Current {config.value}", Iarc > 0, f"Iarc={Iarc:.4f} kA",
                 )
             except Exception as e:
                 self._record("ArcFlash", f"Arc Current {config.value}", False, f"Error: {e}")
@@ -656,7 +656,7 @@ class ValidationCampaign:
         curves = IEC60255Curves()
         t_si = curves.standard_inverse(1.0, 10.0, 1.0)
         self._record(
-            "ProtCoord", "IEC 60255 SI Curve", t_si > 0, f"t={t_si:.4f}s at TMS=1.0, I/Ip=10"
+            "ProtCoord", "IEC 60255 SI Curve", t_si > 0, f"t={t_si:.4f}s at TMS=1.0, I/Ip=10",
         )
 
         t_vi = curves.very_inverse(1.0, 10.0, 1.0)
@@ -678,7 +678,7 @@ class ValidationCampaign:
         # Coordination check
         fault_currents = [2.0, 5.0, 10.0, 20.0]
         results = coord_engine.check_coordination_range(
-            relay_upstream, relay_downstream, fault_currents
+            relay_upstream, relay_downstream, fault_currents,
         )
 
         all_coordinated = all(r["coordinated"] for r in results)
@@ -709,7 +709,7 @@ class ValidationCampaign:
 
         # TMS adjustment suggestion
         suggested_tms = coord_engine.suggest_tms_adjustment(
-            relay_upstream, relay_downstream, fault_currents
+            relay_upstream, relay_downstream, fault_currents,
         )
         self._record(
             "ProtCoord",
@@ -722,7 +722,7 @@ class ValidationCampaign:
         from relays.relay import DirectionalRelay
 
         dir_relay = DirectionalRelay(
-            relay_id=3, name="Dir-67", voltage_threshold=0.1, angle_offset=30
+            relay_id=3, name="Dir-67", voltage_threshold=0.1, angle_offset=30,
         )
         V_forward = complex(1.0, 0) * np.exp(1j * 0)
         I_forward = complex(0.5, 0) * np.exp(1j * np.radians(-30))
@@ -800,7 +800,7 @@ class ValidationCampaign:
         solver = LoadFlowSolver(system)
         converged = solver.solve(max_iter=200, tol=1e-6)
         self._record(
-            "Stability", "High R/X Convergence", converged, f"R/X=5.0, Converged={converged}"
+            "Stability", "High R/X Convergence", converged, f"R/X=5.0, Converged={converged}",
         )
 
         # Test 2: Weak grid (high impedance)
@@ -818,7 +818,7 @@ class ValidationCampaign:
         solver2 = LoadFlowSolver(system2)
         converged2 = solver2.solve(max_iter=200, tol=1e-6)
         self._record(
-            "Stability", "Weak Grid Convergence", converged2, f"Z=0.5+j1.0, Converged={converged2}"
+            "Stability", "Weak Grid Convergence", converged2, f"Z=0.5+j1.0, Converged={converged2}",
         )
 
         # Test 3: Large radial system (10 buses)
@@ -843,7 +843,7 @@ class ValidationCampaign:
                     from_bus=system3.buses[lid],
                     to_bus=system3.buses[lid + 1],
                     z1=complex(0.01, 0.05),
-                )
+                ),
             )
 
         for bid in range(2, 11):
@@ -853,7 +853,7 @@ class ValidationCampaign:
         solver3 = LoadFlowSolver(system3)
         converged3 = solver3.solve(max_iter=300, tol=1e-6)
         self._record(
-            "Stability", "10-Bus Radial Convergence", converged3, f"Converged={converged3}"
+            "Stability", "10-Bus Radial Convergence", converged3, f"Converged={converged3}",
         )
 
         if converged3:
@@ -861,7 +861,7 @@ class ValidationCampaign:
             v1 = abs(system3.buses[1].voltage)
             v10 = abs(system3.buses[10].voltage)
             self._record(
-                "Stability", "Radial Voltage Drop", v10 < v1, f"V1={v1:.4f}, V10={v10:.4f} pu"
+                "Stability", "Radial Voltage Drop", v10 < v1, f"V1={v1:.4f}, V10={v10:.4f} pu",
             )
 
         # Test 4: Meshed system
@@ -909,7 +909,7 @@ class ValidationCampaign:
                     from_bus=system4.buses[fb],
                     to_bus=system4.buses[tb],
                     z1=complex(0.02, 0.06),
-                )
+                ),
             )
 
         for bid in [3, 4, 5]:
@@ -1031,7 +1031,7 @@ class ValidationCampaign:
         print(
             f"  Pass Rate: {self.passed / total_tests * 100:.1f}%"
             if total_tests > 0
-            else "  No tests run"
+            else "  No tests run",
         )
         print("=" * 70)
 

@@ -13,7 +13,7 @@ from __future__ import annotations
 import json
 import logging
 import time
-from typing import Any, Dict, Optional
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -43,7 +43,7 @@ class StudyCache:
 
         # In-memory fallback store.
         # Maps key -> {"value": <Any>, "expires_at": <Optional[float]>}
-        self._memory_cache: Dict[str, Dict[str, Any]] = {}
+        self._memory_cache: dict[str, dict[str, Any]] = {}
 
         if _is_redis_url(redis_url):
             try:
@@ -66,10 +66,10 @@ class StudyCache:
         return self._redis_client
 
     @property
-    def cache(self) -> Dict[str, Any]:
+    def cache(self) -> dict[str, Any]:
         return self._memory_cache
 
-    def _generate_key(self, study_type: str, params: Dict[str, Any]) -> str:
+    def _generate_key(self, study_type: str, params: dict[str, Any]) -> str:
         """
         Best-effort key generator used by legacy callers:
         await cache.get(study_type: str, params: Dict[str, Any])
@@ -88,7 +88,7 @@ class StudyCache:
         if expires_at is not None and time.time() >= float(expires_at):
             self._memory_cache.pop(key, None)
 
-    async def get(self, key: str, *args: Any, **kwargs: Any) -> Optional[Dict[str, Any]]:
+    async def get(self, key: str, *args: Any, **kwargs: Any) -> dict[str, Any] | None:
         """
         Get cached value by key.
 
@@ -142,7 +142,7 @@ class StudyCache:
         self,
         key: str,
         value: Any,
-        ttl: Optional[int] = None,
+        ttl: int | None = None,
         *args: Any,
         **kwargs: Any,
     ) -> bool:
@@ -163,7 +163,7 @@ class StudyCache:
             try:
                 payload = json.dumps(value)
                 await self._redis_client.set(
-                    key, payload, ex=effective_ttl if effective_ttl > 0 else None
+                    key, payload, ex=effective_ttl if effective_ttl > 0 else None,
                 )
                 return True
             except Exception as e:

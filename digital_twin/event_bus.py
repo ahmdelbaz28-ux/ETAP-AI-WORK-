@@ -20,7 +20,7 @@ from collections import defaultdict
 from collections.abc import Callable
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 # ============================================================
 # EVENT TYPES
@@ -71,8 +71,8 @@ class DomainEvent:
     timestamp: float = field(default_factory=time.time)
     event_id: str = field(default_factory=lambda: str(uuid.uuid4()))
     source: str = "unknown"
-    correlation_id: Optional[str] = None  # Links related events
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    correlation_id: str | None = None  # Links related events
+    metadata: dict[str, Any] = field(default_factory=dict)
 
     def to_dict(self) -> dict:
         return {
@@ -123,7 +123,7 @@ class FaultDetected(DomainEvent):
     fault_type: str = ""  # three_phase, line_to_ground, etc.
     bus_id: str = ""
     fault_current_pu: float = 0.0
-    tripped_switches: List[str] = field(default_factory=list)
+    tripped_switches: list[str] = field(default_factory=list)
 
     def __post_init__(self):
         if self.event_type != EventType.FAULT_DETECTED:
@@ -179,8 +179,8 @@ class SCADAUpdateReceived(DomainEvent):
     """Event: SCADA measurement update received."""
 
     event_type: EventType = field(default=EventType.SCADA_UPDATE_RECEIVED, init=False)
-    measurements: List[Dict[str, Any]] = field(default_factory=list)
-    switch_statuses: Dict[str, str] = field(default_factory=dict)
+    measurements: list[dict[str, Any]] = field(default_factory=list)
+    switch_statuses: dict[str, str] = field(default_factory=dict)
 
     def __post_init__(self):
         if self.event_type != EventType.SCADA_UPDATE_RECEIVED:
@@ -193,8 +193,8 @@ class TopologyChanged(DomainEvent):
 
     event_type: EventType = field(default=EventType.TOPOLOGY_CHANGED, init=False)
     change_description: str = ""
-    affected_buses: List[str] = field(default_factory=list)
-    affected_switches: List[str] = field(default_factory=list)
+    affected_buses: list[str] = field(default_factory=list)
+    affected_switches: list[str] = field(default_factory=list)
 
     def __post_init__(self):
         if self.event_type != EventType.TOPOLOGY_CHANGED:
@@ -207,7 +207,7 @@ class YbusRebuilt(DomainEvent):
 
     event_type: EventType = field(default=EventType.YBUS_REBUILT, init=False)
     matrix_size: int = 0
-    sequences_rebuilt: List[str] = field(default_factory=lambda: ["1"])
+    sequences_rebuilt: list[str] = field(default_factory=lambda: ["1"])
 
     def __post_init__(self):
         if self.event_type != EventType.YBUS_REBUILT:
@@ -221,7 +221,7 @@ class LoadFlowCompleted(DomainEvent):
     event_type: EventType = field(default=EventType.LOAD_FLOW_COMPLETED, init=False)
     converged: bool = False
     iterations: int = 0
-    bus_voltages: Dict[str, complex] = field(default_factory=dict)
+    bus_voltages: dict[str, complex] = field(default_factory=dict)
 
     def __post_init__(self):
         if self.event_type != EventType.LOAD_FLOW_COMPLETED:
@@ -301,7 +301,7 @@ class ValidationErrorEvent(DomainEvent):
     """Event: Validation error detected in the digital twin."""
 
     event_type: EventType = field(default=EventType.VALIDATION_ERROR, init=False)
-    errors: List[str] = field(default_factory=list)
+    errors: list[str] = field(default_factory=list)
     layer: str = ""  # gis, electrical, adms
 
     def __post_init__(self):
@@ -328,17 +328,17 @@ class EventBus:
     """
 
     def __init__(self, max_history: int = 10000):
-        self._subscribers: Dict[EventType, List[tuple]] = defaultdict(list)
-        self._wildcard_subscribers: List[tuple] = []
-        self._history: List[DomainEvent] = []
+        self._subscribers: dict[EventType, list[tuple]] = defaultdict(list)
+        self._wildcard_subscribers: list[tuple] = []
+        self._history: list[DomainEvent] = []
         self._max_history = max_history
-        self._handler_errors: List[Dict[str, Any]] = []
+        self._handler_errors: list[dict[str, Any]] = []
         self._publishing = False
-        self._event_queue: List[DomainEvent] = []
+        self._event_queue: list[DomainEvent] = []
         self._lock = threading.Lock()
 
     def subscribe(
-        self, event_type: EventType, handler: Callable[[DomainEvent], None], priority: int = 0
+        self, event_type: EventType, handler: Callable[[DomainEvent], None], priority: int = 0,
     ) -> str:
         """
         Subscribe a handler to an event type.
@@ -381,7 +381,7 @@ class EventBus:
                     return True
             return False
 
-    def publish(self, event: DomainEvent) -> List[Exception]:
+    def publish(self, event: DomainEvent) -> list[Exception]:
         """
         Publish an event to all subscribers.
 
@@ -413,7 +413,7 @@ class EventBus:
                             "handler": str(handler),
                             "error": str(e),
                             "timestamp": time.time(),
-                        }
+                        },
                     )
 
         # Call type-specific subscribers
@@ -430,7 +430,7 @@ class EventBus:
                             "handler": str(handler),
                             "error": str(e),
                             "timestamp": time.time(),
-                        }
+                        },
                     )
 
         return errors
@@ -442,7 +442,7 @@ class EventBus:
             # Use slice assignment instead of list replacement for efficiency
             del self._history[: len(self._history) - self._max_history]
 
-    def get_history(self, event_type: EventType = None, limit: int = 100) -> List[DomainEvent]:
+    def get_history(self, event_type: EventType = None, limit: int = 100) -> list[DomainEvent]:
         """Get event history, optionally filtered by type."""
         with self._lock:
             if event_type:
@@ -451,7 +451,7 @@ class EventBus:
                 filtered = list(self._history)
         return filtered[-limit:]
 
-    def get_handler_errors(self, limit: int = 100) -> List[Dict[str, Any]]:
+    def get_handler_errors(self, limit: int = 100) -> list[dict[str, Any]]:
         """Get handler error history."""
         with self._lock:
             return list(self._handler_errors[-limit:])

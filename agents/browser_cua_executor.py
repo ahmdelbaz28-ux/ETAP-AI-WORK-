@@ -55,7 +55,7 @@ import os
 import time
 import uuid
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 # Reuse the dataclasses from the desktop executor — same contract
 from agents.cua_executor import CUAAction, CUAExecutionResult, CUAStepResult
@@ -108,7 +108,7 @@ def _check_chromium_installed() -> tuple[bool, str]:
                 Path("/root/.cache/ms-playwright"),
                 Path("/app/.cache/ms-playwright"),  # HF Space non-root
                 Path("/home/user/.cache/ms-playwright"),  # HF Space default user
-            ]
+            ],
         )
 
         for p in candidates:
@@ -157,8 +157,8 @@ class BrowserCUAExecutor:
 
     def __init__(
         self,
-        audit_dir: Optional[str] = None,
-        viewport: Optional[Dict[str, int]] = None,
+        audit_dir: str | None = None,
+        viewport: dict[str, int] | None = None,
         headless: bool = True,
     ) -> None:
         self.audit_dir = Path(audit_dir) if audit_dir else Path("/tmp/cua_audit")
@@ -168,7 +168,7 @@ class BrowserCUAExecutor:
 
     # ─── Dependency checks ────────────────────────────────────────────────
 
-    def check_dependencies(self) -> Dict[str, Any]:
+    def check_dependencies(self) -> dict[str, Any]:
         """Check all deps required for browser CUA execution."""
         from integrations.gemini_vision import gemini_vision
 
@@ -177,7 +177,7 @@ class BrowserCUAExecutor:
 
         all_ok = pw is not None and chromium_ok and gemini_vision.enabled
 
-        missing: List[str] = []
+        missing: list[str] = []
         if pw is None:
             missing.append("playwright")
         if not chromium_ok:
@@ -199,11 +199,11 @@ class BrowserCUAExecutor:
     def execute_loop(
         self,
         objective: str,
-        start_url: Optional[str] = None,
+        start_url: str | None = None,
         max_steps: int = 15,
         require_confirmation: bool = True,
         on_confirmation_request=None,
-        context: Optional[str] = None,
+        context: str | None = None,
         mode: str = "control",
     ) -> CUAExecutionResult:
         """Run the CUA Loop against a headless browser.
@@ -232,7 +232,7 @@ class BrowserCUAExecutor:
 
         # ─── RESILIENCE: resume from checkpoint if available ────────────────
         exec_id, resume_from, prior_steps, prior_context = resume_manager.resume_or_start(objective)
-        steps: List[CUAStepResult] = []
+        steps: list[CUAStepResult] = []
         # Reconstruct prior steps from checkpoint
         for ps in prior_steps:
             try:
@@ -257,7 +257,7 @@ class BrowserCUAExecutor:
                 pass
 
         current_context = context or prior_context or "Starting browser CUA"
-        last_analysis: Optional[Dict[str, Any]] = None
+        last_analysis: dict[str, Any] | None = None
         vision_sources_used: set = set()
         checkpoint_store = CheckpointStore()
         start_step = max(1, resume_from + 1)
@@ -589,7 +589,7 @@ class BrowserCUAExecutor:
 
     # ─── Internal: screenshot capture ──────────────────────────────────────
 
-    def _capture_screenshot(self, page, step_num: int, phase: str) -> Optional[str]:
+    def _capture_screenshot(self, page, step_num: int, phase: str) -> str | None:
         """Capture a screenshot from the browser page. Returns path."""
         try:
             filename = f"browser_step{step_num:03d}_{phase}_{uuid.uuid4().hex[:8]}.png"
@@ -603,7 +603,7 @@ class BrowserCUAExecutor:
     # ─── Internal: browser action execution ────────────────────────────────
 
     @staticmethod
-    def _execute_browser_action(page, action: CUAAction) -> Optional[str]:
+    def _execute_browser_action(page, action: CUAAction) -> str | None:
         """Execute a single browser action. Returns error string or None."""
         try:
             if action.type == "click":
@@ -675,10 +675,10 @@ class BrowserCUAExecutor:
 
 async def execute_browser_cua_loop_async(
     objective: str,
-    start_url: Optional[str] = None,
+    start_url: str | None = None,
     max_steps: int = 15,
     require_confirmation: bool = True,
-    audit_dir: Optional[str] = None,
+    audit_dir: str | None = None,
 ) -> CUAExecutionResult:
     """Async wrapper — runs the browser CUA loop in a thread pool.
 

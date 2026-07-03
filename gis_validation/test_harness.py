@@ -3,7 +3,7 @@ from __future__ import annotations
 import importlib
 import time
 from dataclasses import dataclass
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from gis_integration.models import ADMSAsset
 from gis_validation.crs_validator import validate_crs_consistency, validate_normalization_applied
@@ -20,8 +20,8 @@ from gis_validation.topology_validator import validate_adms_topology
 class ValidationReport:
     status: str  # PASS/FAIL
     classification: str
-    details: Dict[str, Any]
-    metrics: Dict[str, Any]
+    details: dict[str, Any]
+    metrics: dict[str, Any]
 
 
 def _provider_available(provider: str) -> bool:
@@ -43,12 +43,12 @@ def _provider_available(provider: str) -> bool:
     return False
 
 
-def _run_provider_smoke_tests() -> Dict[str, Any]:
+def _run_provider_smoke_tests() -> dict[str, Any]:
     """
     Conditional provider runtime tests.
     Must not falsely fail when GIS binaries are missing.
     """
-    results: Dict[str, Any] = {}
+    results: dict[str, Any] = {}
     qgis_ok = _provider_available("qgis")
     arc_ok = _provider_available("arcgis")
 
@@ -81,8 +81,8 @@ def _run_provider_smoke_tests() -> Dict[str, Any]:
     return results
 
 
-def run_crs_validation_tests(assets: List[ADMSAsset]) -> List[ValidationReport]:
-    reports: List[ValidationReport] = []
+def run_crs_validation_tests(assets: list[ADMSAsset]) -> list[ValidationReport]:
+    reports: list[ValidationReport] = []
 
     ok_norm, issues_norm = validate_normalization_applied(assets)
     reports.append(
@@ -91,7 +91,7 @@ def run_crs_validation_tests(assets: List[ADMSAsset]) -> List[ValidationReport]:
             classification="crs.normalization_applied" if ok_norm else "crs.normalization_missing",
             details={"issues": [i.__dict__ for i in issues_norm]},
             metrics={},
-        )
+        ),
     )
 
     ok_crs, issues_crs = validate_crs_consistency(assets)
@@ -101,12 +101,12 @@ def run_crs_validation_tests(assets: List[ADMSAsset]) -> List[ValidationReport]:
             classification="crs.consistency" if ok_crs else "crs.mixed_or_missing",
             details={"issues": [i.__dict__ for i in issues_crs]},
             metrics={},
-        )
+        ),
     )
     return reports
 
 
-def run_topology_validation_tests(assets: List[ADMSAsset]) -> List[ValidationReport]:
+def run_topology_validation_tests(assets: list[ADMSAsset]) -> list[ValidationReport]:
     ok, issues = validate_adms_topology(assets)
     return [
         ValidationReport(
@@ -114,14 +114,14 @@ def run_topology_validation_tests(assets: List[ADMSAsset]) -> List[ValidationRep
             classification="adms.topology" if ok else "adms.topology_inconsistent",
             details={"issues": [i.__dict__ for i in issues]},
             metrics={},
-        )
+        ),
     ]
 
 
-def run_failure_injection_tests() -> List[ValidationReport]:
+def run_failure_injection_tests() -> list[ValidationReport]:
     base_assets = generate_synthetic_grid(grid_type="urban", seed=1, crs="EPSG:4326")
 
-    results: List[ValidationReport] = []
+    results: list[ValidationReport] = []
 
     # Corrupted geometries should fail CRS normalization/transform or topology validation deterministically.
     corrupted = inject_corrupted_geometries(base_assets, seed=2, corruption_ratio=0.05)
@@ -132,7 +132,7 @@ def run_failure_injection_tests() -> List[ValidationReport]:
             classification="failure_injection.corrupted_geometry_detected",
             details={"topology_issues": [i.__dict__ for i in issues_topo]},
             metrics={},
-        )
+        ),
     )
 
     # Broken CRS metadata must be detected.
@@ -144,7 +144,7 @@ def run_failure_injection_tests() -> List[ValidationReport]:
             classification="failure_injection.broken_crs_metadata_detected",
             details={"crs_issues": [i.__dict__ for i in issues_crs]},
             metrics={},
-        )
+        ),
     )
 
     return results
@@ -161,9 +161,9 @@ def run_stress_validation_tests() -> ValidationReport:
 
 
 def production_readiness_gate(
-    qgis_project_path: Optional[str] = None,
-    arcgis_project_path: Optional[str] = None,
-    adms_output_path: Optional[str] = None,
+    qgis_project_path: str | None = None,
+    arcgis_project_path: str | None = None,
+    adms_output_path: str | None = None,
 ) -> bool:
     """
     Single authoritative production validation entry point.

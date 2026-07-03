@@ -32,7 +32,7 @@ def _read_command_from_stdin():
             return None
         return command.strip()
     except Exception as e:
-        logger.error(f"Failed to read command from stdin: {e}")
+        logger.error("Failed to read command from stdin: %s", e)
         return None
 
 
@@ -50,8 +50,8 @@ def main():
                 {
                     "error": f"Command exceeds maximum length of {MAX_COMMAND_LENGTH} characters",
                     "success": False,
-                }
-            )
+                },
+            ),
         )
         sys.exit(1)
 
@@ -61,15 +61,15 @@ def main():
     # P0 Validation - must pass before any execution
     if not validator.validate_powershell_command(command):
         audit.log_security_violation(
-            "agent_tool", "Forbidden PowerShell pattern detected", {"command_length": len(command)}
+            "agent_tool", "Forbidden PowerShell pattern detected", {"command_length": len(command)},
         )
         print(
             json.dumps(
                 {
                     "error": "Security Violation: Forbidden PowerShell pattern or unauthorized command detected.",
                     "success": False,
-                }
-            )
+                },
+            ),
         )
         sys.exit(1)
 
@@ -117,8 +117,8 @@ def main():
     except subprocess.TimeoutExpired:
         print(
             json.dumps(
-                {"success": False, "output": None, "error": "PowerShell execution timed out"}
-            )
+                {"success": False, "output": None, "error": "PowerShell execution timed out"},
+            ),
         )
 
     except Exception as e:

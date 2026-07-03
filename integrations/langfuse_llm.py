@@ -63,7 +63,7 @@ from __future__ import annotations
 import logging
 import os
 import time
-from typing import Any, Optional
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -101,7 +101,7 @@ class SafetyValidationError(ValueError):
     """Raised when an LLM call violates a safety guardrail."""
 
 
-def _validate_input(messages: list[dict], metadata: Optional[dict]) -> None:
+def _validate_input(messages: list[dict], metadata: dict | None) -> None:
     """Run safety guardrails before the LLM call is made.
 
     Raises ``SafetyValidationError`` on violation.
@@ -120,17 +120,16 @@ def _validate_input(messages: list[dict], metadata: Optional[dict]) -> None:
         raise SafetyValidationError(
             f"Input too long: {total_chars} chars > {_LLM_MAX_INPUT_CHARS} limit. "
             "This guardrail prevents prompt-injection and token-bomb attacks on "
-            "safety-critical engineering agents."
+            "safety-critical engineering agents.",
         )
 
     # 2. Required agent tag (helps trace accountability)
-    if _LLM_REQUIRE_AGENT_TAG:
-        if not metadata or not metadata.get("agent"):
-            raise SafetyValidationError(
-                "LLM call missing required 'agent' metadata. Every call from a "
-                "safety-critical engineering agent must tag itself for audit "
-                "traceability. Pass metadata={'agent': 'AgentName'} to the call."
-            )
+    if _LLM_REQUIRE_AGENT_TAG and (not metadata or not metadata.get("agent")):
+        raise SafetyValidationError(
+            "LLM call missing required 'agent' metadata. Every call from a "
+            "safety-critical engineering agent must tag itself for audit "
+            "traceability. Pass metadata={'agent': 'AgentName'} to the call.",
+        )
 
 
 def _validate_model(model: str) -> None:
@@ -142,7 +141,7 @@ def _validate_model(model: str) -> None:
             f"Model '{model}' is not in the approved-models allowlist. "
             "Using unapproved models for safety-critical engineering work "
             "could produce wrong calculations. To allow this model, add it "
-            "to LLM_APPROVED_MODELS or set LLM_ALLOW_UNKNOWN_MODELS=true."
+            "to LLM_APPROVED_MODELS or set LLM_ALLOW_UNKNOWN_MODELS=true.",
         )
 
 
@@ -220,9 +219,9 @@ def safe_openai_chat(
     *,
     model: str,
     messages: list[dict],
-    metadata: Optional[dict] = None,
-    user: Optional[str] = None,
-    session_id: Optional[str] = None,
+    metadata: dict | None = None,
+    user: str | None = None,
+    session_id: str | None = None,
     **kwargs: Any,
 ):
     """Call ``openai.chat.completions.create`` with safety guardrails + tracing.
@@ -317,9 +316,9 @@ def safe_anthropic_message(
     model: str,
     messages: list[dict],
     max_tokens: int = 4096,
-    metadata: Optional[dict] = None,
-    user: Optional[str] = None,
-    session_id: Optional[str] = None,
+    metadata: dict | None = None,
+    user: str | None = None,
+    session_id: str | None = None,
     **kwargs: Any,
 ):
     """Call ``anthropic.messages.create`` with safety guardrails + tracing.
@@ -390,7 +389,7 @@ _PRICING_USD_PER_1K = {
 }
 
 
-def estimate_cost_usd(model: str, input_tokens: int, output_tokens: int) -> Optional[float]:
+def estimate_cost_usd(model: str, input_tokens: int, output_tokens: int) -> float | None:
     """Estimate the USD cost of an LLM call.
 
     Returns ``None`` if the model is not in the pricing table.

@@ -52,7 +52,6 @@ import threading
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import Dict, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -65,7 +64,7 @@ try:
 except ImportError:
     CRYPTO_AVAILABLE = False
     logger.warning(
-        "cryptography not installed — API keys will be stored with basic obfuscation only"
+        "cryptography not installed — API keys will be stored with basic obfuscation only",
     )
 
 
@@ -78,13 +77,13 @@ class APIKeyConfig:
 
     provider: str
     api_key: str  # decrypted
-    base_url: Optional[str] = None
-    model_name: Optional[str] = None
+    base_url: str | None = None
+    model_name: str | None = None
     is_active: bool = True
-    created_at: Optional[str] = None
-    updated_at: Optional[str] = None
+    created_at: str | None = None
+    updated_at: str | None = None
 
-    def to_masked_dict(self) -> Dict:
+    def to_masked_dict(self) -> dict:
         """Return a dict with the API key masked (for frontend display)."""
         masked = self._mask_key(self.api_key)
         return {
@@ -149,7 +148,7 @@ class APIKeyStore:
                 return Fernet(fernet_key)
             except Exception as exc:  # noqa: BLE001
                 logger.warning(
-                    "Failed to init cipher from env var: %s — generating random key", exc
+                    "Failed to init cipher from env var: %s — generating random key", exc,
                 )
 
         # Generate a random key (persists in memory only — keys lost on restart)
@@ -157,7 +156,7 @@ class APIKeyStore:
         logger.warning(
             "API_KEY_ENCRYPTION_KEY not set — generating random key. "
             "Stored API keys will be LOST on process restart. "
-            "Set API_KEY_ENCRYPTION_KEY env var for persistence."
+            "Set API_KEY_ENCRYPTION_KEY env var for persistence.",
         )
         return Fernet(Fernet.generate_key())
 
@@ -200,7 +199,7 @@ class APIKeyStore:
                     created_at TEXT NOT NULL,
                     updated_at TEXT NOT NULL
                 )
-                """
+                """,
             )
             conn.commit()
             conn.close()
@@ -211,8 +210,8 @@ class APIKeyStore:
         self,
         provider: str,
         api_key: str,
-        base_url: Optional[str] = None,
-        model_name: Optional[str] = None,
+        base_url: str | None = None,
+        model_name: str | None = None,
         is_active: bool = True,
     ) -> bool:
         """Save or update an API key.
@@ -230,7 +229,7 @@ class APIKeyStore:
         provider = provider.lower().strip()
         if provider not in self.SUPPORTED_PROVIDERS:
             raise ValueError(
-                f"Unsupported provider '{provider}'. Must be one of: {self.SUPPORTED_PROVIDERS}"
+                f"Unsupported provider '{provider}'. Must be one of: {self.SUPPORTED_PROVIDERS}",
             )
 
         encrypted = self._encrypt(api_key)
@@ -257,7 +256,7 @@ class APIKeyStore:
         logger.info("API key saved for provider '%s' (active=%s)", provider, is_active)
         return True
 
-    def get_key(self, provider: str) -> Optional[APIKeyConfig]:
+    def get_key(self, provider: str) -> APIKeyConfig | None:
         """Retrieve a decrypted API key configuration.
 
         Args:
@@ -294,12 +293,12 @@ class APIKeyStore:
             updated_at=row["updated_at"],
         )
 
-    def get_all_keys(self) -> Dict[str, Dict]:
+    def get_all_keys(self) -> dict[str, dict]:
         """Get all stored API keys (masked, for frontend display).
 
         Returns dict keyed by provider name, with masked keys.
         """
-        result: Dict[str, Dict] = {}
+        result: dict[str, dict] = {}
         with self._lock:
             conn = sqlite3.connect(str(self.db_path))
             conn.row_factory = sqlite3.Row
@@ -359,7 +358,7 @@ class APIKeyStore:
             conn.close()
         return updated
 
-    def health_check(self) -> Dict:
+    def health_check(self) -> dict:
         """Return storage status."""
         all_keys = self.get_all_keys()
         return {

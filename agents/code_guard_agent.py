@@ -12,7 +12,7 @@ Integration point: agents/orchestrator.py → ChiefEngineeringOrchestrator
 
 import logging
 import time
-from typing import Any, Dict
+from typing import Any
 
 from agents.orchestrator import AgentResult, AgentStatus, BaseAgent, EngineeringTask, StudyType
 
@@ -56,7 +56,7 @@ class CodeGuardAgent(BaseAgent):
             self.logger.info("Guard skills initialized successfully")
         except ImportError as e:
             self.logger.warning(
-                "Guards module not available: %s. Agent will operate in fallback mode.", e
+                "Guards module not available: %s. Agent will operate in fallback mode.", e,
             )
 
     async def execute(self, task: EngineeringTask) -> AgentResult:
@@ -84,7 +84,7 @@ class CodeGuardAgent(BaseAgent):
                     execution_time=time.time() - start_time,
                 )
 
-            results: Dict[str, Any] = {}
+            results: dict[str, Any] = {}
 
             if guard_type in ("all", "code") and self._code_guard:
                 code_result = self._code_guard.scan(source, language)
@@ -141,7 +141,7 @@ class CodeGuardAgent(BaseAgent):
                 execution_time=time.time() - start_time,
             )
 
-    async def review_code(self, source: str, language: str = "python") -> Dict[str, Any]:
+    async def review_code(self, source: str, language: str = "python") -> dict[str, Any]:
         """Convenience method for quick code reviews without a full EngineeringTask.
 
         Returns a dict with guard results suitable for API responses.
@@ -152,7 +152,7 @@ class CodeGuardAgent(BaseAgent):
         result = self._code_guard.scan(source, language)
         return result.to_dict()
 
-    async def detect_ai_failure_modes(self, source: str) -> Dict[str, Any]:
+    async def detect_ai_failure_modes(self, source: str) -> dict[str, Any]:
         """Run only the AI failure mode detector on the given source."""
         if not self._ai_detector:
             return {"error": "AI failure mode detector not initialized", "passed": False}

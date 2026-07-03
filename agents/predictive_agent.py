@@ -25,7 +25,7 @@ import logging
 from datetime import datetime, timezone
 
 UTC = timezone.utc  # noqa: UP017
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 import numpy as np
 
@@ -88,14 +88,14 @@ class PredictiveAgent(BaseAgent):
 
     def forecast_short_term(
         self,
-        historical_load: List[float],
+        historical_load: list[float],
         horizon_hours: int = 24,
         alpha: float = 0.3,
         beta: float = 0.1,
         gamma: float = 0.2,
         season_length: int = 24,
         confidence_level: float = 0.95,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Short-term load forecasting using Holt-Winters exponential
         smoothing with additive seasonality.
@@ -203,7 +203,7 @@ class PredictiveAgent(BaseAgent):
         horizon: int,
         alpha: float,
         confidence: float,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Fallback: simple exponential smoothing when data is limited."""
         L = y[0]
         for t in range(1, len(y)):
@@ -229,12 +229,12 @@ class PredictiveAgent(BaseAgent):
 
     def forecast_long_term(
         self,
-        peak_loads_mw: List[float],
-        years: List[int],
+        peak_loads_mw: list[float],
+        years: list[int],
         forecast_years: int = 10,
         growth_rate_annual: float = 0.03,
         confidence_level: float = 0.95,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Long-term load forecasting using compound growth rate model.
 
@@ -310,7 +310,7 @@ class PredictiveAgent(BaseAgent):
         weibull_shape: float = 2.0,
         weibull_scale: float = 30.0,
         condition_score: float = 0.8,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Predict equipment failure probability using Weibull distribution
         adjusted for condition monitoring score.
@@ -344,10 +344,7 @@ class PredictiveAgent(BaseAgent):
         adjusted_failure_prob = float(1.0 - np.exp(-((effective_age / eta) ** beta)))
 
         # Hazard rate: h(t) = (β/η) × (t/η)^(β-1)
-        if age_years > 0:
-            hazard_rate = float((beta / eta) * (age_years / eta) ** (beta - 1))
-        else:
-            hazard_rate = 0.0
+        hazard_rate = float(beta / eta * (age_years / eta) ** (beta - 1)) if age_years > 0 else 0.0
 
         # Median remaining useful life (time to F(t) = 0.5)
         median_life = eta * (np.log(2)) ** (1.0 / beta)
@@ -378,8 +375,8 @@ class PredictiveAgent(BaseAgent):
 
     def compute_maintenance_schedule(
         self,
-        equipment_list: List[Dict[str, Any]],
-    ) -> Dict[str, Any]:
+        equipment_list: list[dict[str, Any]],
+    ) -> dict[str, Any]:
         """
         Compute optimal predictive maintenance schedule based on
         failure probabilities.
@@ -421,7 +418,7 @@ class PredictiveAgent(BaseAgent):
                     "maintenance_priority": fp["maintenance_priority"],
                     "criticality": criticality,
                     "risk_score": round(risk_score, 4),
-                }
+                },
             )
 
         # Sort by risk score descending
@@ -438,8 +435,8 @@ class PredictiveAgent(BaseAgent):
         }
 
     def forecast_short_term_ml(
-        self, historical_load: List[float], horizon_hours: int = 24, method: str = "auto"
-    ) -> Dict[str, Any]:
+        self, historical_load: list[float], horizon_hours: int = 24, method: str = "auto",
+    ) -> dict[str, Any]:
         """Short-term load forecasting using Prophet/LSTM/Linear from ml.predictive."""
         from ml.predictive import LoadForecaster
 
@@ -460,10 +457,10 @@ class PredictiveAgent(BaseAgent):
     def predict_fault_ml(
         self,
         features: np.ndarray,
-        labels: Optional[np.ndarray] = None,
+        labels: np.ndarray | None = None,
         use_xgboost: bool = True,
         explain: bool = False,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Fault prediction using XGBoost/RandomForest with SHAP explanations."""
         from ml.predictive import FaultPredictor
 
@@ -499,7 +496,7 @@ class PredictiveAgent(BaseAgent):
             self.log_execution(f"Starting predictive analytics for task {task.task_id}")
 
             analysis_type = task.parameters.get("analysis_type", "full")
-            results: Dict[str, Any] = {}
+            results: dict[str, Any] = {}
 
             # --- Short-term load forecast ---
             if analysis_type in ("short_term_forecast", "full"):
@@ -522,7 +519,7 @@ class PredictiveAgent(BaseAgent):
             # --- Long-term load forecast ---
             if analysis_type in ("long_term_forecast", "full"):
                 peaks = task.parameters.get(
-                    "peak_loads_mw", [100.0, 103.0, 107.0, 110.0, 114.0, 117.0, 121.0, 125.0]
+                    "peak_loads_mw", [100.0, 103.0, 107.0, 110.0, 114.0, 117.0, 121.0, 125.0],
                 )
                 yrs = task.parameters.get("years", list(range(2016, 2024)))
                 results["long_term_forecast"] = self.forecast_long_term(
@@ -605,7 +602,7 @@ class PredictiveAgent(BaseAgent):
                     )
                 else:
                     results["ml_fault_prediction"] = {
-                        "error": "fault_features and fault_labels required"
+                        "error": "fault_features and fault_labels required",
                     }
 
             result = AgentResult(
@@ -650,7 +647,7 @@ class PredictiveAgent(BaseAgent):
         - Failure probabilities are between 0 and 1
         - Maintenance priorities are valid
         """
-        errors: List[str] = []
+        errors: list[str] = []
 
         stf_data = result.data.get("short_term_forecast")
         if stf_data is not None:

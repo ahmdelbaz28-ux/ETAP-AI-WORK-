@@ -8,9 +8,10 @@ the caller's hot path beyond the (very fast) ``send`` callback.
 
 from __future__ import annotations
 
+import contextlib
 import time
+from collections.abc import Awaitable, Callable
 from dataclasses import dataclass, field
-from typing import Awaitable, Callable, Optional
 
 __all__ = ["ProgressEmitter", "ProgressEvent"]
 
@@ -67,9 +68,9 @@ class ProgressEmitter:
     def __init__(
         self,
         trace_id: str,
-        send: Optional[ProgressSink] = None,
+        send: ProgressSink | None = None,
         *,
-        on_drop: Optional[Callable[[ProgressEvent], None]] = None,
+        on_drop: Callable[[ProgressEvent], None] | None = None,
     ) -> None:
         self._trace_id = trace_id
         self._send = send
@@ -109,7 +110,5 @@ class ProgressEmitter:
             # Progress is best-effort: never break the handler over a
             # failed notification. Optionally notify a drop observer.
             if self._on_drop is not None:
-                try:
+                with contextlib.suppress(Exception):
                     self._on_drop(event)
-                except Exception:
-                    pass

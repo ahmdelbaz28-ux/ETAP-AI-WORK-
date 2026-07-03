@@ -13,9 +13,10 @@ AF_UNIX support). On older Windows versions UDS is not available.
 
 from __future__ import annotations
 
+import contextlib
 import logging
 import os
-from typing import Any, Optional
+from typing import Any
 
 import anyio
 from anyio.abc import ByteStream
@@ -64,7 +65,7 @@ class UDSTransport(Transport):
         self._closed = False
         self._log = logging.getLogger("acp.transport.uds")
 
-    async def read_message(self) -> Optional[str]:
+    async def read_message(self) -> str | None:
         if self._closed:
             return None
         try:
@@ -106,10 +107,8 @@ class UDSListener:
     async def serve(self, router: Any) -> None:
         """Accept connections and spawn a ``Server`` per client."""
         # Remove stale socket file
-        try:
+        with contextlib.suppress(FileNotFoundError):
             os.unlink(self.path)
-        except FileNotFoundError:
-            pass
 
         listener = await anyio.create_unix_listener(self.path)
         async with listener:

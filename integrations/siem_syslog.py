@@ -62,7 +62,7 @@ import socket
 import ssl
 import threading
 from datetime import UTC
-from typing import Any, Dict, Optional
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -169,7 +169,7 @@ class SIEMSyslogForwarder:
         self._facility_code = SYSLOG_FACILITY[self.facility_name]
 
         # TLS context (lazy init)
-        self._tls_context: Optional[ssl.SSLContext] = None
+        self._tls_context: ssl.SSLContext | None = None
 
         # Ensure log file directory exists (for logging-only mode)
         if self.logging_only and self.log_file:
@@ -202,12 +202,12 @@ class SIEMSyslogForwarder:
             if not os.getenv("SIEM_LOG_FILE"):
                 missing.append("SIEM_LOG_FILE")
             logger.info(
-                "SIEM Syslog disabled — missing: %s", ", ".join(missing) or "SIEM_ENABLED=false"
+                "SIEM Syslog disabled — missing: %s", ", ".join(missing) or "SIEM_ENABLED=false",
             )
 
     # ─── Public API ───────────────────────────────────────────────────────
 
-    def forward(self, event: Dict[str, Any]) -> bool:
+    def forward(self, event: dict[str, Any]) -> bool:
         """Forward a single event dict to the SIEM.
 
         Args:
@@ -234,7 +234,7 @@ class SIEMSyslogForwarder:
 
         return self._send(message)
 
-    def forward_audit_entry(self, chain_entry: Dict[str, Any]) -> bool:
+    def forward_audit_entry(self, chain_entry: dict[str, Any]) -> bool:
         """Forward an entry from the tamper-evident audit chain.
 
         Args:
@@ -278,7 +278,7 @@ class SIEMSyslogForwarder:
 
         return self._send(message)
 
-    def health_check(self) -> Dict[str, Any]:
+    def health_check(self) -> dict[str, Any]:
         """Return forwarder status."""
         return {
             "enabled": self.enabled,
@@ -301,7 +301,7 @@ class SIEMSyslogForwarder:
         facility: int,
         severity: int,
         msg_id: str,
-        structured_data: Dict[str, Any],
+        structured_data: dict[str, Any],
         message: str,
     ) -> bytes:
         """Format a message according to RFC 5424.
@@ -330,7 +330,7 @@ class SIEMSyslogForwarder:
         return full_message.encode("utf-8")
 
     @staticmethod
-    def _format_structured_data(data: Dict[str, Any]) -> str:
+    def _format_structured_data(data: dict[str, Any]) -> str:
         """Format structured data per RFC 5424 §6.3.
 
         Format: [name@enterprise param="value" param2="value2"]
@@ -364,7 +364,7 @@ class SIEMSyslogForwarder:
         return f"[{sd_id} {' '.join(params)}]"
 
     @staticmethod
-    def _build_human_message(event: Dict[str, Any]) -> str:
+    def _build_human_message(event: dict[str, Any]) -> str:
         """Build a human-readable summary of the event."""
         event_type = event.get("event_type", "unknown")
         action = event.get("action", {})
@@ -395,7 +395,7 @@ class SIEMSyslogForwarder:
             return False
 
         # Run in a daemon thread to avoid blocking
-        result: Dict[str, bool] = {"sent": False}
+        result: dict[str, bool] = {"sent": False}
 
         def _send_thread():
             try:
@@ -427,7 +427,7 @@ class SIEMSyslogForwarder:
             # UDP messages should be < 65,507 bytes
             if len(message) > 65000:
                 logger.warning(
-                    "Syslog message too large for UDP (%d bytes) — truncating", len(message)
+                    "Syslog message too large for UDP (%d bytes) — truncating", len(message),
                 )
                 message = message[:65000]
             sock.sendto(message, (self.host, self.port))

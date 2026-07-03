@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import json
-from typing import Any, Dict, Tuple
+from typing import Any
 
 from gis_integration.exceptions import GISDataExtractionError
 
@@ -14,7 +14,7 @@ def is_json_serializable(value: Any) -> bool:
         return False
 
 
-def validate_geometry_dict(geometry: Dict[str, Any]) -> Tuple[bool, str]:
+def validate_geometry_dict(geometry: dict[str, Any]) -> tuple[bool, str]:
     """
     Minimal GeoJSON geometry validation:
     - must be a dict
@@ -45,7 +45,7 @@ def validate_geometry_dict(geometry: Dict[str, Any]) -> Tuple[bool, str]:
     return True, "ok"
 
 
-def safe_parse_geojson(geojson: Any) -> Dict[str, Any]:
+def safe_parse_geojson(geojson: Any) -> dict[str, Any]:
     """
     Ensure external GIS data payload is parseable as JSON dict.
     """

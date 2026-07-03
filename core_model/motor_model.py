@@ -13,7 +13,6 @@ Commercial Power Systems Analysis" (Brown Book)
 """
 
 from dataclasses import dataclass
-from typing import Tuple
 
 import numpy as np
 
@@ -151,7 +150,7 @@ class MotorModel:
         return I_running
 
     def acceleration_time(
-        self, load_torque_fraction: float = 0.3, voltage_fraction: float = 1.0
+        self, load_torque_fraction: float = 0.3, voltage_fraction: float = 1.0,
     ) -> float:
         """
         Estimate motor acceleration time.
@@ -188,8 +187,8 @@ class MotorModel:
         return t_acc
 
     def voltage_dip_contribution(
-        self, source_impedance: complex, system_kv: float = None
-    ) -> Tuple[float, float]:
+        self, source_impedance: complex, system_kv: float = None,
+    ) -> tuple[float, float]:
         """
         Calculate voltage dip during motor starting.
 
@@ -209,10 +208,7 @@ class MotorModel:
         # Voltage divider
         V_source = 1.0  # per-unit
         Z_total = source_impedance + Z_motor
-        if abs(Z_total) > 0:
-            V_motor = V_source * Z_motor / Z_total
-        else:
-            V_motor = V_source
+        V_motor = V_source * Z_motor / Z_total if abs(Z_total) > 0 else V_source
 
         V_motor_mag = abs(V_motor)
         dip_percent = (1.0 - V_motor_mag) * 100.0
@@ -220,7 +216,7 @@ class MotorModel:
         return dip_percent, V_motor_mag
 
     def short_circuit_contribution(
-        self, fault_type: str = "three_phase", t: float = 0.0
+        self, fault_type: str = "three_phase", t: float = 0.0,
     ) -> complex:
         """
         Calculate motor contribution to short-circuit current.
@@ -255,7 +251,7 @@ class MotorModel:
             I_motor = I_double_prime * self.mva_ratio
         else:
             I_ac = (I_double_prime - I_prime) * np.exp(-t / T_double_prime) + I_prime * np.exp(
-                -t / T_prime
+                -t / T_prime,
             )
             I_dc = np.sqrt(2) * abs(I_double_prime) * np.exp(-t / T_dc)
             # Asymmetrical current magnitude = sqrt(I_ac_rms^2 + I_dc^2)

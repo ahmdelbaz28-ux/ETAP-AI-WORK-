@@ -165,7 +165,7 @@ for handle, yaml_file in sorted(handles.items()):
 print(f"\n{'=' * 70}")
 print(
     f"Langfuse sync complete: {synced} synced "
-    f"({created} created, {updated} updated), {failed} failed"
+    f"({created} created, {updated} updated), {failed} failed",
 )
 print(f"Dashboard: {BASE_URL}")
 

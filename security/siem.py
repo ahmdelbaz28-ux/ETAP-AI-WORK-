@@ -27,7 +27,7 @@ from dataclasses import dataclass, field
 from datetime import datetime, timezone
 
 UTC = timezone.utc  # noqa: UP017
-from typing import Any, Deque, Dict, List, Optional
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -83,9 +83,9 @@ class SecurityEvent:
     event_type: str = ""
     severity: str = "info"
     source: str = "etap-ai-platform"
-    details: Dict[str, Any] = field(default_factory=dict)
+    details: dict[str, Any] = field(default_factory=dict)
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Serialise to a plain dict suitable for JSON encoding."""
         return {
             "event_id": self.event_id,
@@ -139,7 +139,7 @@ class SIEMForwarder:
         endpoint: str,
         api_key: str = "",
         siem_type: str = "loki",
-        labels: Optional[Dict[str, str]] = None,
+        labels: dict[str, str] | None = None,
         buffer_size: int = 10_000,
         retry_attempts: int = 3,
         retry_delay_seconds: float = 1.0,
@@ -156,7 +156,7 @@ class SIEMForwarder:
         self.batch_size = batch_size
         self.flush_interval_seconds = flush_interval_seconds
 
-        self._buffer: Deque[SecurityEvent] = deque(maxlen=buffer_size)
+        self._buffer: deque[SecurityEvent] = deque(maxlen=buffer_size)
         self._lock = threading.Lock()
         self._stats = {
             "forwarded": 0,
@@ -213,7 +213,7 @@ class SIEMForwarder:
         action: str,
         success: bool,
         ip: str,
-        extra: Optional[dict] = None,
+        extra: dict | None = None,
     ) -> bool:
         """Forward an authentication event.
 
@@ -234,7 +234,7 @@ class SIEMForwarder:
         -------
         bool
         """
-        details: Dict[str, Any] = {
+        details: dict[str, Any] = {
             "category": "auth",
             "user": user,
             "action": action,
@@ -252,7 +252,7 @@ class SIEMForwarder:
         resource: str,
         action: str,
         allowed: bool,
-        extra: Optional[dict] = None,
+        extra: dict | None = None,
     ) -> bool:
         """Forward an access-control event.
 
@@ -273,7 +273,7 @@ class SIEMForwarder:
         -------
         bool
         """
-        details: Dict[str, Any] = {
+        details: dict[str, Any] = {
             "category": "access",
             "user": user,
             "resource": resource,
@@ -290,7 +290,7 @@ class SIEMForwarder:
         anomaly_type: str,
         description: str,
         severity: str = "warning",
-        extra: Optional[dict] = None,
+        extra: dict | None = None,
     ) -> bool:
         """Forward a security anomaly event.
 
@@ -309,7 +309,7 @@ class SIEMForwarder:
         -------
         bool
         """
-        details: Dict[str, Any] = {
+        details: dict[str, Any] = {
             "category": "anomaly",
             "anomaly_type": anomaly_type,
             "description": description,
@@ -325,7 +325,7 @@ class SIEMForwarder:
         data_type: str,
         action: str,
         record_count: int = 0,
-        extra: Optional[dict] = None,
+        extra: dict | None = None,
     ) -> bool:
         """Forward a data access / mutation event.
 
@@ -346,7 +346,7 @@ class SIEMForwarder:
         -------
         bool
         """
-        details: Dict[str, Any] = {
+        details: dict[str, Any] = {
             "category": "data",
             "user": user,
             "data_type": data_type,
@@ -395,7 +395,7 @@ class SIEMForwarder:
 
         return success
 
-    async def _send_with_retry(self, events: List[SecurityEvent]) -> bool:
+    async def _send_with_retry(self, events: list[SecurityEvent]) -> bool:
         """Send a batch of events with exponential back-off retry.
 
         Parameters
@@ -434,11 +434,11 @@ class SIEMForwarder:
         with self._lock:
             self._stats["failed"] += len(events)
         logger.error(
-            "SIEM forward failed after %d attempts for %d events", self.retry_attempts, len(events)
+            "SIEM forward failed after %d attempts for %d events", self.retry_attempts, len(events),
         )
         return False
 
-    async def _send_batch(self, events: List[SecurityEvent]) -> None:
+    async def _send_batch(self, events: list[SecurityEvent]) -> None:
         """Send a batch of events to the SIEM endpoint.
 
         Formats the payload according to the configured *siem_type* and
@@ -467,13 +467,13 @@ class SIEMForwarder:
 
     # -- HTTP clients --------------------------------------------------------
 
-    async def _send_httpx(self, payload: bytes, headers: Dict[str, str]) -> None:
+    async def _send_httpx(self, payload: bytes, headers: dict[str, str]) -> None:
         """Send using ``httpx.AsyncClient``."""
         async with httpx.AsyncClient(timeout=10.0) as client:
             response = await client.post(self.endpoint, content=payload, headers=headers)
             response.raise_for_status()
 
-    async def _send_aiohttp(self, payload: bytes, headers: Dict[str, str]) -> None:
+    async def _send_aiohttp(self, payload: bytes, headers: dict[str, str]) -> None:
         """Send using ``aiohttp.ClientSession``."""
         async with aiohttp.ClientSession() as session:
             async with session.post(self.endpoint, data=payload, headers=headers) as response:
@@ -481,7 +481,7 @@ class SIEMForwarder:
                     text = await response.text()
                     raise RuntimeError(f"SIEM returned {response.status}: {text}")
 
-    async def _send_urllib(self, payload: bytes, headers: Dict[str, str]) -> None:
+    async def _send_urllib(self, payload: bytes, headers: dict[str, str]) -> None:
         """Fallback: send using stdlib ``urllib`` in a thread.
 
         This is blocking, so we offload it via :func:`asyncio.to_thread`.
@@ -491,7 +491,7 @@ class SIEMForwarder:
 
         def _blocking_post() -> None:
             req = urllib.request.Request(
-                self.endpoint, data=payload, headers=headers, method="POST"
+                self.endpoint, data=payload, headers=headers, method="POST",
             )
             with urllib.request.urlopen(req, timeout=10) as resp:
                 if resp.status >= 400:
@@ -501,7 +501,7 @@ class SIEMForwarder:
 
     # -- Payload builders ----------------------------------------------------
 
-    def _build_loki_payload(self, events: List[SecurityEvent]) -> bytes:
+    def _build_loki_payload(self, events: list[SecurityEvent]) -> bytes:
         """Build a Grafana Loki push payload.
 
         Each event becomes a log entry under a common set of labels.
@@ -517,7 +517,7 @@ class SIEMForwarder:
                 {
                     "ts": event.timestamp,
                     "line": event.to_json(),
-                }
+                },
             )
 
         payload = {
@@ -525,20 +525,20 @@ class SIEMForwarder:
                 {
                     "stream": labels_dict,
                     "values": [[e["ts"], e["line"]] for e in entries],
-                }
-            ]
+                },
+            ],
         }
         return json.dumps(payload, default=str).encode("utf-8")
 
-    def _build_elk_payload(self, events: List[SecurityEvent]) -> bytes:
+    def _build_elk_payload(self, events: list[SecurityEvent]) -> bytes:
         """Build an Elasticsearch bulk-index payload.
 
         Each event is prefixed with an ``index`` action line.
         """
-        lines: List[str] = []
+        lines: list[str] = []
         for event in events:
             action = {
-                "index": {"_index": f"etap-security-{datetime.now(UTC).strftime('%Y.%m.%d')}"}
+                "index": {"_index": f"etap-security-{datetime.now(UTC).strftime('%Y.%m.%d')}"},
             }
             lines.append(json.dumps(action))
             lines.append(event.to_json())
@@ -547,7 +547,7 @@ class SIEMForwarder:
 
     # -- Stats / management --------------------------------------------------
 
-    def get_stats(self) -> Dict[str, Any]:
+    def get_stats(self) -> dict[str, Any]:
         """Return forwarding statistics.
 
         Returns
@@ -567,7 +567,7 @@ class SIEMForwarder:
                 "endpoint": self.endpoint,
             }
 
-    async def health_check(self) -> Dict[str, Any]:
+    async def health_check(self) -> dict[str, Any]:
         """Perform a lightweight health check against the SIEM endpoint.
 
         Returns
@@ -583,12 +583,11 @@ class SIEMForwarder:
                     resp = await client.get(self.endpoint.rsplit("/", 1)[0] + "/ready", timeout=5.0)
                     healthy = resp.status_code < 400
             elif _HAS_AIOHTTP:
-                async with aiohttp.ClientSession() as session:
-                    async with session.get(
-                        self.endpoint.rsplit("/", 1)[0] + "/ready",
-                        timeout=aiohttp.ClientTimeout(total=5),
-                    ) as resp:
-                        healthy = resp.status < 400
+                async with aiohttp.ClientSession() as session, session.get(
+                    self.endpoint.rsplit("/", 1)[0] + "/ready",
+                    timeout=aiohttp.ClientTimeout(total=5),
+                ) as resp:
+                    healthy = resp.status < 400
             else:
                 healthy = True  # no way to check; assume OK
         except Exception:
@@ -606,11 +605,11 @@ class SIEMForwarder:
 # Singleton helpers
 # ---------------------------------------------------------------------------
 
-_forwarder_instance: Optional[SIEMForwarder] = None
+_forwarder_instance: SIEMForwarder | None = None
 _forwarder_lock = threading.Lock()
 
 
-def get_siem_forwarder() -> Optional[SIEMForwarder]:
+def get_siem_forwarder() -> SIEMForwarder | None:
     """Get or create the global :class:`SIEMForwarder` singleton.
 
     Configuration is read from environment variables:

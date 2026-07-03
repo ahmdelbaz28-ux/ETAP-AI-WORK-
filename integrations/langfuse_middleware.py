@@ -33,10 +33,12 @@ The middleware is a no-op when Langfuse is disabled (env var
 
 from __future__ import annotations
 
+import contextlib
 import logging
 import os
 import time
-from typing import Any, Awaitable, Callable, Optional
+from collections.abc import Awaitable, Callable
+from typing import Any
 
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.requests import Request
@@ -71,7 +73,7 @@ def _is_safety_critical(path: str) -> bool:
     return any(path.startswith(p) for p in _SAFETY_CRITICAL_PATHS)
 
 
-def _truncate_body(body: bytes, max_chars: int = _MAX_BODY_CAPTURE) -> Optional[str]:
+def _truncate_body(body: bytes, max_chars: int = _MAX_BODY_CAPTURE) -> str | None:
     """Truncate a request/response body for safe capture."""
     if not body:
         return None
@@ -179,10 +181,8 @@ class LangfuseMiddleware(BaseHTTPMiddleware):
             # Capture input
             input_text = _truncate_body(body_bytes)
             if input_text:
-                try:
+                with contextlib.suppress(Exception):
                     obs.update(input=input_text)
-                except Exception:
-                    pass
         except Exception as e:
             logger.debug("Langfuse trace start failed (non-critical): %s", e)
             return await call_next(request)
@@ -234,15 +234,13 @@ class LangfuseMiddleware(BaseHTTPMiddleware):
 
             # Alert on safety-critical 5xx
             if safety_critical:
-                try:
+                with contextlib.suppress(Exception):
                     alert_on_unsafe_trace(
                         trace_id=str(getattr(obs, "id", "")),
                         reason=f"Exception in safety-critical route {method} {path}: {exc}",
                         user_id=user_id,
                         severity="critical",
                     )
-                except Exception:
-                    pass
             raise
         else:
             elapsed = time.monotonic() - start
@@ -256,19 +254,17 @@ class LangfuseMiddleware(BaseHTTPMiddleware):
                     metadata={
                         "http.status_code": status_code,
                         "latency_seconds": round(elapsed, 3),
-                    }
+                    },
                 )
                 if status_code >= 500 and safety_critical:
                     obs.update(level="ERROR")
-                    try:
+                    with contextlib.suppress(Exception):
                         alert_on_unsafe_trace(
                             trace_id=str(getattr(obs, "id", "")),
                             reason=f"5xx error on safety-critical route {method} {path}: HTTP {status_code}",
                             user_id=user_id,
                             severity="high",
                         )
-                    except Exception:
-                        pass
                 elif status_code >= 400:
                     obs.update(level="WARNING")
             except Exception:
@@ -284,17 +280,13 @@ class LangfuseMiddleware(BaseHTTPMiddleware):
                 pass
 
             # End the observation
-            try:
+            with contextlib.suppress(Exception):
                 obs.end()
-            except Exception:
-                pass
 
             # Add the trace URL to the response headers
             if trace_url:
-                try:
+                with contextlib.suppress(Exception):
                     new_response.headers["X-Langfuse-Trace-URL"] = trace_url
-                except Exception:
-                    pass
 
             return new_response
         finally:

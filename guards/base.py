@@ -16,7 +16,7 @@ from __future__ import annotations
 import logging
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, Dict, List
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -94,8 +94,8 @@ class GuardResult:
 
     guard_name: str
     mode: GuardMode
-    violations: List[GuardViolation] = field(default_factory=list)
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    violations: list[GuardViolation] = field(default_factory=list)
+    metadata: dict[str, Any] = field(default_factory=dict)
 
     @property
     def passed(self) -> bool:
@@ -114,7 +114,7 @@ class GuardResult:
     def worth_noting_count(self) -> int:
         return sum(1 for v in self.violations if v.severity == GuardSeverity.WORTH_NOTING)
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Serialize for API responses and audit logs."""
         return {
             "guard_name": self.guard_name,
@@ -152,7 +152,7 @@ class BaseGuard:
         self.mode = mode
 
     def scan(
-        self, source: str, language: str = "python", context: Dict[str, Any] | None = None
+        self, source: str, language: str = "python", context: dict[str, Any] | None = None,
     ) -> GuardResult:
         """Run the guard against *source* text.
 
@@ -172,7 +172,7 @@ class BaseGuard:
         raise NotImplementedError("Subclasses must implement scan()")
 
     def _make_result(
-        self, violations: List[GuardViolation] | None = None, **meta: Any
+        self, violations: list[GuardViolation] | None = None, **meta: Any,
     ) -> GuardResult:
         """Convenience to build a GuardResult with the current guard name/mode."""
         return GuardResult(

@@ -26,7 +26,7 @@ import time
 from datetime import UTC, datetime
 
 UTC = UTC
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from fastapi import HTTPException, Request
 from pydantic import BaseModel
@@ -48,7 +48,7 @@ ZENON_GUIDE_COUNT: int = 4
 # Engineering standards supported by the platform — single source of truth.
 # Used by build_platform_info() and by the homepage stat card. Adding a new
 # standard here automatically updates both places.
-SUPPORTED_STANDARDS: List[str] = [
+SUPPORTED_STANDARDS: list[str] = [
     "IEEE 3002.7",
     "IEC 60909",
     "IEEE 1584",
@@ -68,7 +68,7 @@ BUILD_TIME: str = datetime.now(UTC).isoformat()
 # Study types
 # ---------------------------------------------------------------------------
 
-STUDY_TYPES: List[str] = [
+STUDY_TYPES: list[str] = [
     "load_flow",
     "short_circuit",
     "arc_flash",
@@ -90,7 +90,7 @@ STUDY_TYPES: List[str] = [
 # Agents list
 # ---------------------------------------------------------------------------
 
-AGENTS: List[Dict[str, str]] = [
+AGENTS: list[dict[str, str]] = [
     {
         "id": "load-flow-agent",
         "name": "Load Flow Agent",
@@ -249,9 +249,9 @@ class SharedStudyRequest(BaseModel):
     """Lightweight study request used by both HF Space and main API."""
 
     study_type: str
-    system: Dict[str, Any] = {}
-    options: Dict[str, Any] = {}
-    parameters: Dict[str, Any] = {}
+    system: dict[str, Any] = {}
+    options: dict[str, Any] = {}
+    parameters: dict[str, Any] = {}
     use_etap: bool = False
 
 
@@ -259,14 +259,14 @@ class SharedETAPExpertChatRequest(BaseModel):
     """Request body for ETAP Expert chat."""
 
     question: str
-    context: Dict[str, Any] = {}
+    context: dict[str, Any] = {}
 
 
 class SharedETAPGUIChatRequest(BaseModel):
     """Request body for ETAP GUI Agent chat."""
 
     question: str
-    context: Dict[str, Any] = {}
+    context: dict[str, Any] = {}
 
 
 class SharedContextRetrieveRequest(BaseModel):
@@ -299,7 +299,7 @@ PUBLIC_PATHS: frozenset[str] = frozenset(
         "/redoc",
         "/openapi.json",
         "/metrics",
-    }
+    },
 )
 
 # ---------------------------------------------------------------------------
@@ -365,7 +365,7 @@ class InMemoryRateLimiter:
         self.window = window_seconds or int(os.environ.get("RATE_LIMIT_WINDOW", "60"))
         self.max_requests = max_requests or int(os.environ.get("RATE_LIMIT_MAX", "120"))
         self.max_entries = max_entries
-        self._store: Dict[str, List[float]] = {}
+        self._store: dict[str, list[float]] = {}
         self._lock = threading.Lock()
 
     def is_allowed(self, client_id: str) -> bool:
@@ -403,7 +403,7 @@ rate_limiter = InMemoryRateLimiter()
 # ---------------------------------------------------------------------------
 
 
-def build_health_response(platform: str = "huggingface-spaces") -> Dict[str, Any]:
+def build_health_response(platform: str = "huggingface-spaces") -> dict[str, Any]:
     """Return a health-status dictionary."""
     uptime = round(time.time() - START_TIME, 2)
     return {
@@ -418,12 +418,12 @@ def build_health_response(platform: str = "huggingface-spaces") -> Dict[str, Any
     }
 
 
-def build_ready_response() -> Dict[str, Any]:
+def build_ready_response() -> dict[str, Any]:
     """Return a readiness-status dictionary."""
     return {"status": "ready", "uptime": round(time.time() - START_TIME, 2)}
 
 
-def build_metrics_response(platform: str = "huggingface-spaces") -> Dict[str, Any]:
+def build_metrics_response(platform: str = "huggingface-spaces") -> dict[str, Any]:
     """Return a metrics dictionary."""
     return {
         "uptime_seconds": round(time.time() - START_TIME, 2),
@@ -437,7 +437,7 @@ def build_metrics_response(platform: str = "huggingface-spaces") -> Dict[str, An
 # ---------------------------------------------------------------------------
 
 
-def build_platform_info() -> Dict[str, Any]:
+def build_platform_info() -> dict[str, Any]:
     """Return platform metadata."""
     return {
         "name": "AhmedETAP",
@@ -460,7 +460,7 @@ def build_platform_info() -> Dict[str, Any]:
     }
 
 
-def build_knowledge_info() -> Dict[str, Any]:
+def build_knowledge_info() -> dict[str, Any]:
     """Return knowledge-base metadata."""
     return {
         "etap": {
@@ -561,8 +561,8 @@ def sanitize_result(obj: Any) -> Any:
 
 
 def run_study_lightweight(
-    study_type: str, system: Dict[str, Any], parameters: Dict[str, Any]
-) -> Dict[str, Any]:
+    study_type: str, system: dict[str, Any], parameters: dict[str, Any],
+) -> dict[str, Any]:
     """Execute an engineering study with **no** external service dependencies.
 
     This is the lightweight counterpart of the full study runner in
@@ -635,7 +635,7 @@ def run_study_lightweight(
 
     # -- Load Flow (native engine) ------------------------------------------
     result_data: Any = None
-    engine_error: Optional[str] = None
+    engine_error: str | None = None
 
     if study_type == "load_flow" and system:
         try:
@@ -644,7 +644,7 @@ def run_study_lightweight(
             from core_model.system import System  # type: ignore
 
             sys_model = System(base_mva=system.get("base_mva", 100.0))
-            bus_map: Dict[int, Any] = {}
+            bus_map: dict[int, Any] = {}
             for b in system.get("buses", []):
                 bus = Bus(
                     bus_id=b["bus_id"],
@@ -689,7 +689,7 @@ def run_study_lightweight(
             engine_error = str(exc)
 
     # -- Build response -----------------------------------------------------
-    response: Dict[str, Any] = {
+    response: dict[str, Any] = {
         "study_type": study_type,
         "reference": f"STUDY-{int(time.time())}",
     }
@@ -712,7 +712,7 @@ def run_study_lightweight(
 # ---------------------------------------------------------------------------
 
 
-def handle_etap_expert_chat(question: str) -> Dict[str, Any]:
+def handle_etap_expert_chat(question: str) -> dict[str, Any]:
     """Run the ETAP Expert agent and return a response dict.
 
     Returns a dict with ``success`` / ``data`` or ``error`` / ``_status``.
@@ -731,7 +731,7 @@ def handle_etap_expert_chat(question: str) -> Dict[str, Any]:
         return {"error": f"ETAP Expert agent error: {exc}", "_status": 500}
 
 
-def handle_etap_gui_chat(question: str) -> Dict[str, Any]:
+def handle_etap_gui_chat(question: str) -> dict[str, Any]:
     """Run the ETAP GUI agent and return a response dict.
 
     Returns a dict with ``success`` / ``data`` or ``error`` / ``_status``.
@@ -755,7 +755,7 @@ def handle_etap_gui_chat(question: str) -> Dict[str, Any]:
 # ---------------------------------------------------------------------------
 
 
-def handle_ml_capabilities() -> Dict[str, Any]:
+def handle_ml_capabilities() -> dict[str, Any]:
     """Discover available ML/AI capabilities and their status."""
     try:
         from ml.predictive import get_ml_capabilities  # type: ignore
@@ -793,7 +793,7 @@ def handle_ml_capabilities() -> Dict[str, Any]:
         return {"success": False, "errors": [str(e)], "_status": 500}
 
 
-def handle_predict_load(body: Dict[str, Any]) -> Dict[str, Any]:
+def handle_predict_load(body: dict[str, Any]) -> dict[str, Any]:
     """Predict future load using Prophet/LSTM/Linear LoadForecaster."""
     try:
         import numpy as np  # type: ignore
@@ -826,7 +826,7 @@ def handle_predict_load(body: Dict[str, Any]) -> Dict[str, Any]:
         return {"success": False, "errors": [str(e)], "_status": 500}
 
 
-def handle_detect_anomalies(body: Dict[str, Any]) -> Dict[str, Any]:
+def handle_detect_anomalies(body: dict[str, Any]) -> dict[str, Any]:
     """Detect anomalies using Isolation Forest / PyOD."""
     try:
         import numpy as np  # type: ignore
@@ -852,7 +852,7 @@ def handle_detect_anomalies(body: Dict[str, Any]) -> Dict[str, Any]:
         return {"success": False, "errors": [str(e)], "_status": 500}
 
 
-def handle_context_retrieval(query: str, top_k: int = 5, max_tokens: int = 2000) -> Dict[str, Any]:
+def handle_context_retrieval(query: str, top_k: int = 5, max_tokens: int = 2000) -> dict[str, Any]:
     """Retrieve and compress relevant code chunks based on semantic search."""
     try:
         from ai_context_engine.retriever import CHROMA_AVAILABLE, CodeRetriever
@@ -863,7 +863,7 @@ def handle_context_retrieval(query: str, top_k: int = 5, max_tokens: int = 2000)
         retriever = CodeRetriever(index_dir=index_dir)
         compressed = retriever.retrieve_and_compress(query, top_k=top_k, max_tokens=max_tokens)
 
-        response: Dict[str, Any] = {
+        response: dict[str, Any] = {
             "success": True,
             "query": query,
             "count": len(compressed),
@@ -894,7 +894,7 @@ def handle_context_retrieval(query: str, top_k: int = 5, max_tokens: int = 2000)
         return {"success": False, "errors": [str(e)], "_status": 500}
 
 
-def handle_impact_analysis(component: str, max_depth: int = 2) -> Dict[str, Any]:
+def handle_impact_analysis(component: str, max_depth: int = 2) -> dict[str, Any]:
     """Perform impact analysis on a component using the Code Property Graph."""
     try:
         from ai_context_engine.knowledge_graph import KnowledgeGraph

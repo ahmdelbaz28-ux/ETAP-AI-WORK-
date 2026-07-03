@@ -138,7 +138,7 @@ def check_docker_build():
 
     if not check_docker_available():
         warnings.append(
-            "Docker not available locally - skipping build check (will be validated on GitHub Actions)"
+            "Docker not available locally - skipping build check (will be validated on GitHub Actions)",
         )
         return None  # None = warning, not failure
 
@@ -175,7 +175,7 @@ def check_health_endpoint():
 
     if not check_docker_available():
         warnings.append(
-            "Docker not available locally - skipping health check (will be validated on GitHub Actions)"
+            "Docker not available locally - skipping health check (will be validated on GitHub Actions)",
         )
         return None  # None = warning, not failure
 
@@ -230,7 +230,7 @@ def check_health_endpoint():
 
         # Test root endpoint
         result = subprocess.run(
-            ["curl", "-s", "http://localhost:7861/"], capture_output=True, text=True, timeout=10
+            ["curl", "-s", "http://localhost:7861/"], capture_output=True, text=True, timeout=10,
         )
 
         if "AhmedETAP" not in result.stdout:
@@ -263,7 +263,7 @@ def check_no_secrets():
                 for pattern in secret_patterns:
                     if re.search(pattern, content, re.IGNORECASE):
                         raise ValueError(
-                            f"Potential secret found in {os.path.relpath(filepath, HF_DIR)}"
+                            f"Potential secret found in {os.path.relpath(filepath, HF_DIR)}",
                         )
             except (UnicodeDecodeError, PermissionError):
                 pass
@@ -274,7 +274,7 @@ def check_no_secrets():
 def cleanup():
     """Clean up Docker test artifacts."""
     subprocess.run(
-        ["docker", "rm", "-f", "hf-guard-test-container"], capture_output=True, timeout=10
+        ["docker", "rm", "-f", "hf-guard-test-container"], capture_output=True, timeout=10,
     )
     subprocess.run(["docker", "rmi", "hf-guard-test:latest"], capture_output=True, timeout=10)
 

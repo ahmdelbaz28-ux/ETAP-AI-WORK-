@@ -9,7 +9,6 @@ import hashlib
 import logging
 import os
 from pathlib import Path
-from typing import Dict, List
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("ai_context_engine")
@@ -23,7 +22,7 @@ try:
     CHROMA_AVAILABLE = True
 except (ImportError, RuntimeError) as e:
     CHROMA_AVAILABLE = False
-    logger.warning(f"chromadb not available ({e}). Vector storage disabled.")
+    logger.warning("chromadb not available (%s). Vector storage disabled.", e)
 
 try:
     import tree_sitter  # noqa: F401 — imported for the side-effect of being available
@@ -40,7 +39,7 @@ class CodeExtractor:
     """Extracts classes and functions from Python code using Tree-sitter or AST."""
 
     @staticmethod
-    def extract_with_ast(filepath: Path) -> List[Dict]:
+    def extract_with_ast(filepath: Path) -> list[dict]:
         """Fallback extractor using standard library AST (100% reliable for Python)."""
         chunks = []
         try:
@@ -63,14 +62,14 @@ class CodeExtractor:
                             "type": "class" if isinstance(node, ast.ClassDef) else "function",
                             "filepath": str(filepath),
                             "code": chunk_code,
-                        }
+                        },
                     )
         except Exception as e:
-            logger.error(f"AST Error in {filepath}: {e}")
+            logger.error("AST Error in %s: %s", filepath, e)
         return chunks
 
     @staticmethod
-    def extract_with_tree_sitter(filepath: Path) -> List[Dict]:
+    def extract_with_tree_sitter(filepath: Path) -> list[dict]:
         """Primary extractor using Tree-sitter."""
         chunks = []
         try:
@@ -98,19 +97,19 @@ class CodeExtractor:
                             "type": "class" if node.type == "class_definition" else "function",
                             "filepath": str(filepath),
                             "code": code,
-                        }
+                        },
                     )
                 for child in node.children:
                     traverse(child)
 
             traverse(tree.root_node)
         except Exception as e:
-            logger.error(f"Tree-sitter Error in {filepath}: {e}")
+            logger.error("Tree-sitter Error in %s: %s", filepath, e)
 
         return chunks
 
     @classmethod
-    def extract(cls, filepath: Path) -> List[Dict]:
+    def extract(cls, filepath: Path) -> list[dict]:
         """Extract chunks using the best available method."""
         if TREE_SITTER_AVAILABLE:
             return cls.extract_with_tree_sitter(filepath)
@@ -128,7 +127,7 @@ class CodeIndexer:
         if CHROMA_AVAILABLE:
             self.client = chromadb.PersistentClient(path=str(self.output_dir))
             self.collection = self.client.get_or_create_collection(
-                name="code_context", embedding_function=embedding_function
+                name="code_context", embedding_function=embedding_function,
             )
 
     def hash_code(self, code: str) -> str:
@@ -171,21 +170,21 @@ class CodeIndexer:
                                     "type": chunk["type"],
                                     "filepath": chunk["filepath"],
                                     "hash": chunk_hash,
-                                }
+                                },
                             )
 
                         # Upsert automatically handles inserts and updates
                         self.collection.upsert(ids=ids, documents=documents, metadatas=metadatas)
                     total_chunks += len(chunks)
 
-        logger.info(f"Indexing complete. Extracted {total_chunks} code chunks.")
+        logger.info("Indexing complete. Extracted %s code chunks.", total_chunks)
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="AI Context Engine - Indexer")
     parser.add_argument("--repo", type=str, default=".", help="Path to the repository to index")
     parser.add_argument(
-        "--output", type=str, default="./index/", help="Path to save the ChromaDB index"
+        "--output", type=str, default="./index/", help="Path to save the ChromaDB index",
     )
     args = parser.parse_args()
 

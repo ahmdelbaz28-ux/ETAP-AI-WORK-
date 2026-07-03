@@ -25,10 +25,10 @@ import importlib
 import json
 import os
 import traceback
-from typing import Any, Optional, Tuple
+from typing import Any
 
 
-def _parse_import_path(spec: str) -> Tuple[str, str]:
+def _parse_import_path(spec: str) -> tuple[str, str]:
     """
     Supports:
       "pkg.mod:DuckDBStore"
@@ -99,10 +99,10 @@ def main() -> int:
             "storage.stores.duckdb_store:DuckDBStore",
             "stores.duckdb_store:DuckDBStore",
             "persistence.duckdb_store:DuckDBStore",
-        ]
+        ],
     )
 
-    last_err: Optional[BaseException] = None
+    last_err: BaseException | None = None
 
     for spec in candidates:
         try:
@@ -128,7 +128,7 @@ def main() -> int:
                         "error": None,
                     },
                     ensure_ascii=False,
-                )
+                ),
             )
             return 0
         except Exception as e:
@@ -143,7 +143,7 @@ def main() -> int:
                 "traceback": traceback.format_exc(),
             },
             ensure_ascii=False,
-        )
+        ),
     )
     return 1
 

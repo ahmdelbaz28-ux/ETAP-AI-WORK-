@@ -8,7 +8,7 @@ Separated from main engineering service for better modularity.
 import json
 import os
 from datetime import UTC, datetime
-from typing import Any, Dict, Optional
+from typing import Any
 
 from fastapi import APIRouter, Depends, Request
 from fastapi.responses import JSONResponse
@@ -163,7 +163,7 @@ async def get_agents_list(request: Request):
         logger.error("agents_list_failed error=%s", str(e), extra={"trace_id": trace_id})
         # Return an empty list as fallback
         return JSONResponse(
-            content={"success": False, "agents": [], "trace_id": trace_id}, status_code=500
+            content={"success": False, "agents": [], "trace_id": trace_id}, status_code=500,
         )
 
 
@@ -195,7 +195,7 @@ async def get_agents_info(request: Request):
                     "prompt_count": len(available_prompts),
                 },
                 "trace_id": trace_id,
-            }
+            },
         )
     except Exception as e:
         from logging import getLogger
@@ -222,8 +222,8 @@ class ETAPExpertChatRequest(BaseModel):
         max_length=4000,
         description="The ETAP-related question to ask the expert agent",
     )
-    context: Optional[Dict[str, Any]] = Field(
-        default=None, description="Optional additional context (voltages, currents, etc.)"
+    context: dict[str, Any] | None = Field(
+        default=None, description="Optional additional context (voltages, currents, etc.)",
     )
 
 
@@ -257,7 +257,7 @@ async def etap_expert_chat(
                 "success": True,
                 "data": result,
                 "trace_id": trace_id,
-            }
+            },
         )
     except Exception as e:
         from logging import getLogger
@@ -284,8 +284,8 @@ class ETAPGUIChatRequest(BaseModel):
         max_length=4000,
         description="The GUI automation question to ask the agent",
     )
-    context: Optional[Dict[str, Any]] = Field(
-        default=None, description="Optional additional context (app name, etc.)"
+    context: dict[str, Any] | None = Field(
+        default=None, description="Optional additional context (app name, etc.)",
     )
 
 
@@ -320,7 +320,7 @@ async def etap_gui_chat(
                 "success": True,
                 "data": result,
                 "trace_id": trace_id,
-            }
+            },
         )
     except Exception as e:
         from logging import getLogger
@@ -352,11 +352,11 @@ class ETAPGUIExecuteRequest(BaseModel):
         default=True,
         description="If True, CONTROL/SOLVE actions pause for human approval",
     )
-    audit_dir: Optional[str] = Field(
+    audit_dir: str | None = Field(
         default=None,
         description="Directory for before/after screenshots (default: /tmp/cua_audit)",
     )
-    start_url: Optional[str] = Field(
+    start_url: str | None = Field(
         default=None,
         description=(
             "URL to navigate to before starting the CUA loop (Browser CUA only). "
@@ -421,7 +421,7 @@ async def etap_gui_execute(
                 "success": True,
                 "data": result,
                 "trace_id": trace_id,
-            }
+            },
         )
     except Exception as e:
         from logging import getLogger
@@ -465,7 +465,7 @@ async def etap_gui_health(
                 # Life safety status — non-bypassable safety layer
                 "life_safety": _get_life_safety_status(),
             },
-        }
+        },
     )
 
 
@@ -514,7 +514,7 @@ async def etap_gui_activate_kill_switch(
                 "activated_at": datetime.now(UTC).isoformat(),
                 "message": "CUA Loop will abort on next action. Call /deactivate to resume.",
             },
-        }
+        },
     )
 
 
@@ -540,7 +540,7 @@ async def etap_gui_deactivate_kill_switch(
                 if was_active
                 else "Kill switch was not active.",
             },
-        }
+        },
     )
 
 
@@ -589,7 +589,7 @@ async def etap_gui_safety_audit_verify(
                 if is_valid
                 else f"Audit chain has {len(broken)} broken entries — possible tampering!",
             },
-        }
+        },
     )
 
 
@@ -638,7 +638,7 @@ async def etap_gui_siem_events(
             content={
                 "success": True,
                 "data": {"events": [], "total": 0, "message": "No events yet"},
-            }
+            },
         )
 
     # Read last N lines (efficient for large files)
@@ -670,5 +670,5 @@ async def etap_gui_siem_events(
                 "total": len(events),
                 "log_file": log_path,
             },
-        }
+        },
     )

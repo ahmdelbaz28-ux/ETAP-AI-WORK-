@@ -12,7 +12,7 @@ import numpy as np
 
 logger = logging.getLogger(__name__)
 from collections.abc import Callable
-from typing import Any, Dict, List, Optional, Union
+from typing import Any
 
 from scipy.sparse import coo_matrix, csc_matrix, csr_matrix, issparse
 from scipy.sparse.linalg import splu
@@ -93,7 +93,7 @@ class SparseMatrixManager:
     def sparse_factored_solve(self, A_factor: Any, b: np.ndarray) -> np.ndarray:
         return A_factor.solve(b)
 
-    def estimate_memory_savings(self, dense_size: int, sparse_size: int) -> Dict[str, Any]:
+    def estimate_memory_savings(self, dense_size: int, sparse_size: int) -> dict[str, Any]:
         if dense_size == 0:
             return {
                 "dense_bytes": 0,
@@ -128,7 +128,7 @@ BUS_DTYPE = np.dtype(
         ("qmin", np.float64),
         ("qmax", np.float64),
         ("vms", np.float64),
-    ]
+    ],
 )
 BTYPE_MAP = {"slack": 0, "pv": 1, "pq": 2}
 BTYPE_REV = {0: "slack", 1: "pv", 2: "pq"}
@@ -164,7 +164,7 @@ class MemoryOptimizedSystem:
     )
     THRESH = 100
 
-    def __init__(self, original: Optional[System] = None):
+    def __init__(self, original: System | None = None):
         self.base_mva = 100.0
         self.bus_count = 0
         self.lines = []
@@ -243,7 +243,7 @@ class MemoryOptimizedSystem:
             raise KeyError(f"Bus {bid} not found")
         return int(idx[0])
 
-    def get_bus_data(self, bus_id: int) -> Dict[str, Any]:
+    def get_bus_data(self, bus_id: int) -> dict[str, Any]:
         if not self._use_arr:
             b = self._buses[bus_id]
             return {
@@ -320,7 +320,7 @@ class MemoryOptimizedSystem:
     def get_bus_count(self) -> int:
         return self.bus_count
 
-    def estimate_memory_usage(self) -> Dict[str, Any]:
+    def estimate_memory_usage(self) -> dict[str, Any]:
         base = sys.getsizeof(self)
         if self._use_arr:
             bus_mem = sum(
@@ -377,21 +377,21 @@ class BatchProcessor:
             "total_time": 0.0,
         }
 
-    def process_buses(self, buses: Union[Dict, List], fn: Callable) -> List[Any]:
+    def process_buses(self, buses: dict | list, fn: Callable) -> list[Any]:
         return self._batch_process(
-            list(buses.items()) if isinstance(buses, dict) else list(buses), fn
+            list(buses.items()) if isinstance(buses, dict) else list(buses), fn,
         )
 
-    def process_lines(self, lines: List, fn: Callable) -> List[Any]:
+    def process_lines(self, lines: list, fn: Callable) -> list[Any]:
         return self._batch_process(list(lines), fn)
 
     def process_faults(
-        self, buses: Union[Dict, List], ftypes: List[str], fn: Callable
-    ) -> List[Any]:
+        self, buses: dict | list, ftypes: list[str], fn: Callable,
+    ) -> list[Any]:
         items = list(buses.items()) if isinstance(buses, dict) else list(buses)
         return self._batch_process([(b, ft) for b in items for ft in ftypes], fn)
 
-    def _batch_process(self, items: List, fn: Callable) -> List[Any]:
+    def _batch_process(self, items: list, fn: Callable) -> list[Any]:
         results, n = [], len(items)
         s = self._stats
         s.update(total_items=n, num_batches=0)
@@ -409,7 +409,7 @@ class BatchProcessor:
         s["total_time"] = time.perf_counter() - t0
         return results
 
-    def get_batch_statistics(self) -> Dict[str, Any]:
+    def get_batch_statistics(self) -> dict[str, Any]:
         s = dict(self._stats)
         t, sz = s["batch_times"], s["batch_sizes"]
         s.update(
@@ -428,7 +428,7 @@ class DataCompressor:
     def __init__(self):
         self._orig = self._comp = 0
 
-    def compress_results(self, results: Dict[str, Any], precision: int = 6) -> Dict[str, Any]:
+    def compress_results(self, results: dict[str, Any], precision: int = 6) -> dict[str, Any]:
         comp = {}
         self._orig = self._comp = 0
         for key, value in results.items():
@@ -450,7 +450,7 @@ class DataCompressor:
         comp["_precision"] = precision
         return comp
 
-    def decompress_results(self, compressed: Dict[str, Any]) -> Dict[str, Any]:
+    def decompress_results(self, compressed: dict[str, Any]) -> dict[str, Any]:
         compressed.get("_precision", 6)
         restored = {}
         for k, v in compressed.items():
@@ -467,7 +467,7 @@ class DataCompressor:
                 restored[k] = v.copy() if isinstance(v, np.ndarray) else v
         return restored
 
-    def compress_system_state(self, system: Union[System, MemoryOptimizedSystem]) -> Dict[str, Any]:
+    def compress_system_state(self, system: System | MemoryOptimizedSystem) -> dict[str, Any]:
         s = system.to_system() if isinstance(system, MemoryOptimizedSystem) else system
         bids = sorted(s.buses.keys())
         vmag = np.array([s.buses[b].voltage_magnitude for b in bids], dtype=np.float32)
@@ -516,7 +516,7 @@ class DataCompressor:
         self._comp = int(vmag.nbytes + vang.nbytes + sys.getsizeof(btypes))
         return comp
 
-    def decompress_system_state(self, compressed: Dict[str, Any]) -> System:
+    def decompress_system_state(self, compressed: dict[str, Any]) -> System:
         s = System(base_mva=float(compressed["base_mva"]))
         for i, bid in enumerate(compressed["bus_ids"]):
             s.add_bus(
@@ -525,7 +525,7 @@ class DataCompressor:
                     voltage_magnitude=float(compressed["bus_vmag"][i]),
                     voltage_angle=float(compressed["bus_vang"][i]),
                     bus_type=str(compressed["bus_types"][i]),
-                )
+                ),
             )
         from core_model.generator import Generator
         from core_model.line import Line
@@ -534,8 +534,8 @@ class DataCompressor:
         for ld in compressed.get("lines", []):
             s.add_line(
                 Line(
-                    ld["id"], s.buses[ld["fr"]], s.buses[ld["to"]], z1=complex(ld["z1r"], ld["z1i"])
-                )
+                    ld["id"], s.buses[ld["fr"]], s.buses[ld["to"]], z1=complex(ld["z1r"], ld["z1i"]),
+                ),
             )
         for td in compressed.get("transformers", []):
             s.add_transformer(
@@ -546,7 +546,7 @@ class DataCompressor:
                     z1=complex(td["z1r"], td["z1i"]),
                     tap_ratio=td["tap"],
                     phase_shift=td["ph"],
-                )
+                ),
             )
         for gd in compressed.get("generators", []):
             s.add_generator(
@@ -554,11 +554,11 @@ class DataCompressor:
                     gd["id"],
                     s.buses[gd["bus"]],
                     internal_voltage={"1": complex(gd["v1r"], gd["v1i"]), "2": 0j, "0": 0j},
-                )
+                ),
             )
         return s
 
-    def get_compression_ratio(self) -> Dict[str, Any]:
+    def get_compression_ratio(self) -> dict[str, Any]:
         if self._orig == 0:
             return {"original_bytes": 0, "compressed_bytes": 0, "ratio": 1.0, "percent_saved": 0.0}
         return {
@@ -576,7 +576,7 @@ class PerformanceProfiler:
     def __init__(self):
         self._profiles = []
 
-    def profile_function(self, fn: Callable, *args: Any, **kwargs: Any) -> Dict[str, Any]:
+    def profile_function(self, fn: Callable, *args: Any, **kwargs: Any) -> dict[str, Any]:
         gc_was = gc.isenabled()
         gc.disable()
         has_tm = False
@@ -638,7 +638,7 @@ class PerformanceProfiler:
                     "memory_after_mb": after,
                     "memory_delta_mb": after - before,
                     "tracemalloc_top": details,
-                }
+                },
             )
 
     def _get_mem(self) -> float:
@@ -655,10 +655,10 @@ class PerformanceProfiler:
         except Exception:
             return 0.0
 
-    def get_profile_report(self) -> List[Dict[str, Any]]:
+    def get_profile_report(self) -> list[dict[str, Any]]:
         return list(self._profiles)
 
-    def suggest_optimizations(self, profile_data: Optional[Dict[str, Any]] = None) -> List[str]:
+    def suggest_optimizations(self, profile_data: dict[str, Any] | None = None) -> list[str]:
         d = profile_data or (self._profiles[-1] if self._profiles else {})
         sug = []
         e, m = d.get("elapsed_seconds", 0), d.get("memory_delta_mb", 0)
@@ -676,7 +676,7 @@ class PerformanceProfiler:
 class LargeSystemAdapter:
     """Adapts calculation engines for large power system models."""
 
-    def __init__(self, system: Union[System, MemoryOptimizedSystem], memory_limit_mb: int = 1024):
+    def __init__(self, system: System | MemoryOptimizedSystem, memory_limit_mb: int = 1024):
         self.memory_limit_mb = memory_limit_mb
         self.optimized_system = (
             MemoryOptimizedSystem(system) if isinstance(system, System) else system
@@ -686,10 +686,10 @@ class LargeSystemAdapter:
         self._n = self.optimized_system.get_bus_count()
         self._large, self._xl = self._n >= 1000, self._n >= 10000
 
-    def run_load_flow_optimized(self, params: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+    def run_load_flow_optimized(self, params: dict[str, Any] | None = None) -> dict[str, Any]:
         p = params or {}
         Y = self.sparse_manager.build_sparse_ybus(
-            self.optimized_system.to_system(), p.get("seq", "1")
+            self.optimized_system.to_system(), p.get("seq", "1"),
         )
         r = {
             "Ybus": Y,
@@ -711,8 +711,8 @@ class LargeSystemAdapter:
         return r
 
     def run_fault_analysis_optimized(
-        self, params: Optional[Dict[str, Any]] = None
-    ) -> Dict[str, Any]:
+        self, params: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
         p = params or {}
         sys_o = self.optimized_system.to_system()
         sys_o.build_sequence_networks(for_fault=True)
@@ -747,7 +747,7 @@ class LargeSystemAdapter:
             )
         return r
 
-    def get_optimization_strategy(self) -> Dict[str, Any]:
+    def get_optimization_strategy(self) -> dict[str, Any]:
         n = self._n
         if n >= 10000:
             flags = {

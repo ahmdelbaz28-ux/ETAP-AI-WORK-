@@ -13,7 +13,7 @@ Usage:
 import functools
 import logging
 import os
-from typing import Callable, Optional
+from collections.abc import Callable
 
 logger = logging.getLogger(__name__)
 
@@ -42,7 +42,7 @@ class LangWatchTracker:
         if self.enabled:
             langwatch.api_key = self.api_key
             langwatch.endpoint = os.getenv("LANGWATCH_ENDPOINT", "https://app.langwatch.ai")
-            logger.info(f"✅ LangWatch initialized — project: {self.project}")
+            logger.info("✅ LangWatch initialized — project: %s", self.project)
         else:
             if not self.api_key:
                 logger.info("LangWatch disabled: LANGWATCH_API_KEY not set")
@@ -52,11 +52,11 @@ class LangWatchTracker:
     def track(
         self,
         name: str,
-        input_text: Optional[str] = None,
-        output_text: Optional[str] = None,
-        metadata: Optional[dict] = None,
-        model: Optional[str] = None,
-        agent: Optional[str] = None,
+        input_text: str | None = None,
+        output_text: str | None = None,
+        metadata: dict | None = None,
+        model: str | None = None,
+        agent: str | None = None,
     ) -> None:
         """Manually log a single LLM interaction."""
         if not self.enabled:
@@ -77,7 +77,7 @@ class LangWatchTracker:
                 trace.update(output=output_text)
             trace.send()
         except Exception as e:
-            logger.warning(f"LangWatch track error (non-critical): {e}")
+            logger.warning("LangWatch track error (non-critical): %s", e)
 
     def get_context_manager(self, name: str, **kwargs):
         """Return a LangWatch trace context manager."""
@@ -86,7 +86,7 @@ class LangWatchTracker:
         try:
             return langwatch.trace(name=name, **kwargs)
         except Exception as e:
-            logger.warning(f"LangWatch context error (non-critical): {e}")
+            logger.warning("LangWatch context error (non-critical): %s", e)
             return _NoOpContext()
 
     @property
@@ -126,8 +126,8 @@ langwatch_tracker = LangWatchTracker()
 
 def track_llm_call(
     name: str,
-    agent: Optional[str] = None,
-    model: Optional[str] = None,
+    agent: str | None = None,
+    model: str | None = None,
     capture_input: bool = True,
     capture_output: bool = True,
 ) -> Callable:

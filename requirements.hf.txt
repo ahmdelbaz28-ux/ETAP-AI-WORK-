@@ -47,7 +47,8 @@ tenacity>=8.2.0
 email-validator>=2.0.0
 
 # Document processing
-PyPDF2>=3.0.0
+# SECURITY: pypdf replaces deprecated PyPDF2
+pypdf>=6.13.0
 pdfplumber>=0.7.0
 python-docx>=0.8.11
 openpyxl>=3.0.0

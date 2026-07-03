@@ -8,7 +8,7 @@ graph-based relationship retrieval (Neo4j GraphRAG).
 import hashlib
 import logging
 import os
-from typing import Any, List, Optional
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -20,7 +20,7 @@ try:
 
     QDRANT_AVAILABLE = True
 except ImportError as err:
-    logger.warning(f"Qdrant dependencies not fully available: {err}")
+    logger.warning("Qdrant dependencies not fully available: %s", err)
     QDRANT_AVAILABLE = False
 
     class QdrantClient:
@@ -49,7 +49,7 @@ try:
 
     LANGCHAIN_CORE_AVAILABLE = True
 except ImportError as err:
-    logger.warning(f"LangChain core/openai dependencies not fully available: {err}")
+    logger.warning("LangChain core/openai dependencies not fully available: %s", err)
     LANGCHAIN_CORE_AVAILABLE = False
 
     class Neo4jGraph:
@@ -77,13 +77,13 @@ class DeterministicFallbackEmbeddings(Embeddings):
     def __init__(self, dimension: int = 1536):
         self.dimension = dimension
 
-    def embed_documents(self, texts: List[str]) -> List[List[float]]:
+    def embed_documents(self, texts: list[str]) -> list[list[float]]:
         return [self._embed(text) for text in texts]
 
-    def embed_query(self, text: str) -> List[float]:
+    def embed_query(self, text: str) -> list[float]:
         return self._embed(text)
 
-    def _embed(self, text: str) -> List[float]:
+    def _embed(self, text: str) -> list[float]:
         h = hashlib.sha256(text.encode("utf-8")).digest()
         vector = []
         for i in range(self.dimension):
@@ -142,7 +142,7 @@ class AIMemoryService:
             self._initialized_neo4j = True
             return True
         except Exception as exc:
-            logger.error(f"Failed to connect to Neo4j Graph DB: {exc}")
+            logger.error("Failed to connect to Neo4j Graph DB: %s", exc)
             self._initialized_neo4j = False
             return False
 
@@ -153,18 +153,18 @@ class AIMemoryService:
             return False
         try:
             if self.qdrant_url:
-                logger.info(f"Connecting to Qdrant Cloud at {self.qdrant_url}")
+                logger.info("Connecting to Qdrant Cloud at %s", self.qdrant_url)
                 self._qdrant_client = QdrantClient(
                     url=self.qdrant_url,
                     api_key=self.qdrant_api_key if self.qdrant_api_key else None,
                 )
             else:
-                logger.info(f"Connecting to local Qdrant at {self.qdrant_host}:{self.qdrant_port}")
+                logger.info("Connecting to local Qdrant at %s:%s", self.qdrant_host, self.qdrant_port)
                 self._qdrant_client = QdrantClient(host=self.qdrant_host, port=self.qdrant_port)
             self._initialized_qdrant = True
             return True
         except Exception as exc:
-            logger.error(f"Failed to connect to Qdrant: {exc}")
+            logger.error("Failed to connect to Qdrant: %s", exc)
             self._initialized_qdrant = False
             return False
 
@@ -176,7 +176,7 @@ class AIMemoryService:
         # If no API key is specified and we're using default settings, fallback immediately
         if not self.embedding_api_key or "your-openai-key" in self.embedding_api_key.lower():
             logger.info(
-                "No embedding API key provided. Using deterministic offline fallback embeddings."
+                "No embedding API key provided. Using deterministic offline fallback embeddings.",
             )
             return DeterministicFallbackEmbeddings()
 
@@ -188,7 +188,7 @@ class AIMemoryService:
             )
         except Exception as exc:
             logger.warning(
-                f"Failed to initialize OpenAIEmbeddings ({exc}). Using offline fallback."
+                f"Failed to initialize OpenAIEmbeddings ({exc}). Using offline fallback.",
             )
             return DeterministicFallbackEmbeddings()
 
@@ -200,10 +200,10 @@ class AIMemoryService:
         # Ensure we have some API key for ChatOpenAI compatibility
         api_key = self.openai_api_key if self.openai_api_key else "dummy-api-key"
         return ChatOpenAI(
-            model=self.llm_model, base_url=self.openai_base_url, api_key=api_key, temperature=0
+            model=self.llm_model, base_url=self.openai_base_url, api_key=api_key, temperature=0,
         )
 
-    def add_knowledge_to_graph(self, text: str, allowed_nodes: Optional[List[str]] = None) -> bool:
+    def add_knowledge_to_graph(self, text: str, allowed_nodes: list[str] | None = None) -> bool:
         """Parse text, extract entities and relationships, and save them to Neo4j graph."""
         if not self._initialized_neo4j and not self.initialize_neo4j():
             logger.error("Neo4j not initialized.")
@@ -217,7 +217,7 @@ class AIMemoryService:
             logger.info("Successfully loaded relations into Neo4j graph.")
             return True
         except Exception as exc:
-            logger.error(f"Failed to populate graph: {exc}")
+            logger.error("Failed to populate graph: %s", exc)
             return False
 
     def query_graph(self, query: str) -> str:
@@ -229,7 +229,7 @@ class AIMemoryService:
             chain = GraphCypherQAChain.from_llm(llm=llm, graph=self._graph, verbose=True)
             return chain.run(query)
         except Exception as exc:
-            logger.error(f"Cypher query execution failed: {exc}")
+            logger.error("Cypher query execution failed: %s", exc)
             return f"Error querying graph database: {exc}"
 
     def save_to_vector_memory(self, fact_text: str, index_name: str = "ai_memory_index") -> bool:
@@ -247,23 +247,23 @@ class AIMemoryService:
                 dimension = 3072
 
             if not self._qdrant_client.collection_exists(collection_name=index_name):
-                logger.info(f"Creating Qdrant collection: {index_name}")
+                logger.info("Creating Qdrant collection: %s", index_name)
                 self._qdrant_client.create_collection(
                     collection_name=index_name,
                     vectors_config=qdrant_models.VectorParams(
-                        size=dimension, distance=qdrant_models.Distance.COSINE
+                        size=dimension, distance=qdrant_models.Distance.COSINE,
                     ),
                 )
 
             # Store using QdrantVectorStore wrapper
             vector_db = QdrantVectorStore(
-                client=self._qdrant_client, collection_name=index_name, embedding=embeddings
+                client=self._qdrant_client, collection_name=index_name, embedding=embeddings,
             )
             vector_db.add_texts([fact_text])
-            logger.info(f"Successfully added fact to Qdrant collection '{index_name}'")
+            logger.info("Successfully added fact to Qdrant collection '%s'", index_name)
             return True
         except Exception as exc:
-            logger.error(f"Failed to save fact to Qdrant vector memory: {exc}")
+            logger.error("Failed to save fact to Qdrant vector memory: %s", exc)
             return False
 
     def query_vector_memory(self, question: str, index_name: str = "ai_memory_index") -> str:
@@ -277,7 +277,7 @@ class AIMemoryService:
                 return "Vector memory collection does not exist."
 
             vector_db = QdrantVectorStore(
-                client=self._qdrant_client, collection_name=index_name, embedding=embeddings
+                client=self._qdrant_client, collection_name=index_name, embedding=embeddings,
             )
             retriever = vector_db.as_retriever()
             docs = retriever.get_relevant_documents(question)
@@ -291,5 +291,5 @@ class AIMemoryService:
             response = llm.predict(prompt)
             return response
         except Exception as exc:
-            logger.error(f"Vector retrieval query failed: {exc}")
+            logger.error("Vector retrieval query failed: %s", exc)
             return f"Error searching vector memory: {exc}"

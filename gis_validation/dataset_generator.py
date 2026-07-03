@@ -1,16 +1,16 @@
 from __future__ import annotations
 
 import random
-from typing import Any, Dict, List, Tuple
+from typing import Any
 
 from gis_integration.models import ADMSAsset, ADMSAssetType
 
 
-def _point(lon: float, lat: float) -> Dict[str, Any]:
+def _point(lon: float, lat: float) -> dict[str, Any]:
     return {"type": "Point", "coordinates": [lon, lat]}
 
 
-def _linestring(coords: List[List[float]]) -> Dict[str, Any]:
+def _linestring(coords: list[list[float]]) -> dict[str, Any]:
     return {"type": "LineString", "coordinates": coords}
 
 
@@ -23,7 +23,7 @@ def generate_synthetic_grid(
     grid_type: str,
     seed: int = 1337,
     crs: str = "EPSG:4326",
-) -> List[ADMSAsset]:
+) -> list[ADMSAsset]:
     """
     Generate a deterministic synthetic ADMS asset list.
 
@@ -34,7 +34,7 @@ def generate_synthetic_grid(
     """
     rng = _deterministic_rng(seed)
 
-    assets: List[ADMSAsset] = []
+    assets: list[ADMSAsset] = []
 
     # Deterministic layout parameters
     if grid_type == "urban":
@@ -53,7 +53,7 @@ def generate_synthetic_grid(
         raise ValueError(f"Unknown grid_type: {grid_type}")
 
     # Create substations as points on a grid.
-    substations: List[Tuple[float, float]] = []
+    substations: list[tuple[float, float]] = []
     for i in range(n_substations):
         lon = -122.0 + (i % 4) * 0.01
         lat = 37.0 + (i // 4) * 0.01
@@ -65,7 +65,7 @@ def generate_synthetic_grid(
                 asset_type=ADMSAssetType.SUBSTATION,
                 geometry=_point(lon, lat),
                 metadata={"source_crs": crs, "source_layer": "substations"},
-            )
+            ),
         )
 
     # Create feeders/lines connecting substations deterministically with exact endpoint matches.
@@ -83,7 +83,7 @@ def generate_synthetic_grid(
         # Build a deterministic chain: a -> m1 -> m2 -> ... -> b
         chain_len = max(2, n_lines_per_feeder + 1)  # number of substation nodes in chain
         # choose intermediate substations (excluding ends where possible)
-        chain: List[int] = [a]
+        chain: list[int] = [a]
         for _ in range(chain_len - 2):
             mid = rng.randrange(0, n_substations)
             if mid == chain[-1]:
@@ -119,7 +119,7 @@ def generate_synthetic_grid(
                         # Explicit hint used by transformer; harmless in validation.
                         "asset_role": "switch" if a_type == ADMSAssetType.SWITCH else None,
                     },
-                )
+                ),
             )
 
     return assets
@@ -130,7 +130,7 @@ def generate_mixed_crs_assets(
     seed: int = 1337,
     crs_a: str = "EPSG:4326",
     crs_b: str = "EPSG:3857",
-) -> List[ADMSAsset]:
+) -> list[ADMSAsset]:
     """
     Generate assets with mixed CRS contamination to exercise CRS validator.
     """

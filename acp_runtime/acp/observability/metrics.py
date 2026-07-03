@@ -148,7 +148,7 @@ class Histogram:
         self.name = name
         self.description = description
         self._buckets = sorted(
-            buckets or [1, 5, 10, 25, 50, 100, 250, 500, 1000, 2500, 5000, 10000]
+            buckets or [1, 5, 10, 25, 50, 100, 250, 500, 1000, 2500, 5000, 10000],
         )
         # Each label key gets its own bucket counts, sum, and count.
         self._values: dict[frozenset, dict[str, Any]] = {}
@@ -202,7 +202,7 @@ class Histogram:
                     + [{"le": "+Inf", "count": entry["counts"][-1]}],
                     "sum": entry["sum"],
                     "count": entry["count"],
-                }
+                },
             )
         return {
             "name": self.name,
@@ -302,7 +302,7 @@ class MetricsRegistry:
         raise NotImplementedError
 
     def get_or_create_histogram(
-        self, name: str, description: str = "", *, buckets: list[float] | None = None
+        self, name: str, description: str = "", *, buckets: list[float] | None = None,
     ) -> Histogram:
         raise NotImplementedError
 
@@ -441,7 +441,7 @@ class InMemoryMetricsRegistry(MetricsRegistry):
             return self._counters[name]
 
     def get_or_create_histogram(
-        self, name: str, description: str = "", *, buckets: list[float] | None = None
+        self, name: str, description: str = "", *, buckets: list[float] | None = None,
     ) -> Histogram:
         with self._lock:
             if name not in self._histograms:

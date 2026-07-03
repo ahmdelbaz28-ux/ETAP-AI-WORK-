@@ -18,7 +18,7 @@ import threading
 import time
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 __all__ = [
     "TraceContext",
@@ -133,7 +133,7 @@ class Tracer:
     Subclasses must implement ``start_span``, ``finish_span``, and ``record_span``.
     """
 
-    def start_span(self, name: str, context: Optional[TraceContext] = None) -> TraceContext:
+    def start_span(self, name: str, context: TraceContext | None = None) -> TraceContext:
         """Start a new span and return its context.
 
         The default implementation generates a span_id, creates a child
@@ -151,7 +151,7 @@ class Tracer:
         name: str,
         start_time: float,
         status: str = SpanStatus.OK,
-        tags: Optional[dict[str, Any]] = None,
+        tags: dict[str, Any] | None = None,
         events: list[tuple[float, str, dict[str, Any]]] | None = None,
     ) -> None:
         """Finish a span and record it."""

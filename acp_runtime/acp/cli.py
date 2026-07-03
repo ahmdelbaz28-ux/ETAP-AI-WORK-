@@ -31,7 +31,7 @@ import argparse
 import importlib
 import os
 import sys
-from typing import Any, Optional
+from typing import Any
 
 import anyio
 
@@ -63,13 +63,13 @@ from acp.transport import (
 __all__ = ["main"]
 
 
-def _split_scopes(text: Optional[str]) -> set[str]:
+def _split_scopes(text: str | None) -> set[str]:
     if not text:
         return set()
     return {s.strip() for s in text.split(",") if s.strip()}
 
 
-def _parse_labels(text: Optional[str]) -> dict[str, str]:
+def _parse_labels(text: str | None) -> dict[str, str]:
     """Parse a comma-separated ``key=value`` string into a dict.
 
     Example: ``"transport=stdio,env=prod"`` → ``{"transport": "stdio", "env": "prod"}``
@@ -106,7 +106,7 @@ def _load_handlers(module_path: str) -> list[Any]:
                     instances.append(obj())
                 except TypeError as e:
                     raise SystemExit(
-                        f"Handler class {obj.__name__!r} requires constructor arguments: {e}"
+                        f"Handler class {obj.__name__!r} requires constructor arguments: {e}",
                     ) from e
     return instances
 
@@ -147,7 +147,7 @@ def _build_runtime(
     metrics: Any,
     logger: Any,
     transport_name: str = "unknown",
-) -> tuple[AcpRuntime, Optional[HealthHandler]]:
+) -> tuple[AcpRuntime, HealthHandler | None]:
     """Build an AcpRuntime from CLI args / env.
 
     Returns the runtime and the optional ``HealthHandler`` so callers
@@ -162,7 +162,7 @@ def _build_runtime(
         raise SystemExit(f"Module {handler_module!r} contains no @capability classes.")
 
     # Auto-register built-in health handler unless opted out
-    health_handler: Optional[HealthHandler] = None
+    health_handler: HealthHandler | None = None
     if not getattr(args, "no_health", False):
         health_handler = HealthHandler(
             transport_name=transport_name,
@@ -187,7 +187,7 @@ def _build_runtime(
 
 
 def _build_router(
-    args: argparse.Namespace, runtime: AcpRuntime, tracer: Any, metrics: Any, logger: Any
+    args: argparse.Namespace, runtime: AcpRuntime, tracer: Any, metrics: Any, logger: Any,
 ) -> Router:
     """Build a Router from CLI args / env."""
     scopes = _split_scopes(args.scopes) or _split_scopes(os.environ.get("ACP_SCOPES"))
@@ -272,7 +272,7 @@ async def _run_uds(args: argparse.Namespace, tracer: Any, metrics: Any, logger: 
 
 async def _run_websocket(args: argparse.Namespace, tracer: Any, metrics: Any, logger: Any) -> None:
     runtime, health_handler = _build_runtime(
-        args, tracer, metrics, logger, transport_name="websocket"
+        args, tracer, metrics, logger, transport_name="websocket",
     )
     router = _build_router(args, runtime, tracer, metrics, logger)
     host = args.host or os.environ.get("ACP_WS_HOST", "localhost")
@@ -291,7 +291,7 @@ async def _run_websocket(args: argparse.Namespace, tracer: Any, metrics: Any, lo
             await listener.serve(router)
     except ImportError as e:
         raise SystemExit(
-            f"Cannot start WebSocket listener: {e}. Install the optional dependency: pip install acp-runtime[websocket]"
+            f"Cannot start WebSocket listener: {e}. Install the optional dependency: pip install acp-runtime[websocket]",
         ) from e
 
 
@@ -387,7 +387,7 @@ def _build_parser() -> argparse.ArgumentParser:
 
     # uds
     uds_parser = sub.add_parser(
-        "uds", help="Run the Unix Domain Socket transport", parents=[common]
+        "uds", help="Run the Unix Domain Socket transport", parents=[common],
     )
     uds_parser.add_argument(
         "--path",
@@ -409,7 +409,7 @@ def _build_parser() -> argparse.ArgumentParser:
     return parser
 
 
-def main(argv: Optional[list[str]] = None) -> None:
+def main(argv: list[str] | None = None) -> None:
     """CLI entrypoint."""
     parser = _build_parser()
     args = parser.parse_args(argv)

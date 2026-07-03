@@ -4,7 +4,7 @@ import hashlib
 import json
 import logging
 from datetime import datetime
-from typing import Any, Dict, List, Optional
+from typing import Any
 from urllib.parse import urlparse
 
 try:
@@ -44,7 +44,7 @@ class ArcGISProIndexingWorkflow:
         self.transformer_model = None
         self.elastic_client = None
 
-    def fetch_data(self) -> List[Dict[str, Any]]:
+    def fetch_data(self) -> list[dict[str, Any]]:
         """
         Step 1: Fetch documentation data from ArcGIS Pro documentation site.
         """
@@ -66,8 +66,8 @@ class ArcGISProIndexingWorkflow:
         return docs_to_process
 
     def _extract_doc_items(
-        self, section: Dict[str, Any], base_url: str, parent: Optional[str] = None
-    ) -> List[Dict[str, Any]]:
+        self, section: dict[str, Any], base_url: str, parent: str | None = None,
+    ) -> list[dict[str, Any]]:
         """
         Recursively extract documentation items from nested sections.
         """
@@ -90,7 +90,7 @@ class ArcGISProIndexingWorkflow:
 
         return items
 
-    def clean_data(self, raw_data: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    def clean_data(self, raw_data: list[dict[str, Any]]) -> list[dict[str, Any]]:
         """
         Step 2: Clean and validate the fetched data.
         """
@@ -144,7 +144,7 @@ class ArcGISProIndexingWorkflow:
         except Exception:
             return False
 
-    def transform_data(self, cleaned_data: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    def transform_data(self, cleaned_data: list[dict[str, Any]]) -> list[dict[str, Any]]:
         """
         Step 3: Transform data by generating embeddings.
         """
@@ -163,7 +163,8 @@ class ArcGISProIndexingWorkflow:
             text_for_embedding = f"{item['title']} {item['content']}".strip()
 
             # Generate embedding
-            assert self.transformer_model is not None
+            if self.transformer_model is None:
+                raise RuntimeError("Transformer model not initialized")
             embedding = self.transformer_model.encode(text_for_embedding).tolist()
 
             # Add embedding to item
@@ -173,7 +174,7 @@ class ArcGISProIndexingWorkflow:
         self.logger.info(f"Transformed {len(transformed_data)} items with embeddings")
         return transformed_data
 
-    def index_data(self, transformed_data: List[Dict[str, Any]]):
+    def index_data(self, transformed_data: list[dict[str, Any]]):
         """
         Step 4: Index the transformed data into Elasticsearch/MCP Server.
         """
@@ -187,7 +188,8 @@ class ArcGISProIndexingWorkflow:
                 raise RuntimeError("Elasticsearch client could not be initialized")
 
         # Create index if it doesn't exist
-        assert self.elastic_client is not None
+        if self.elastic_client is None:
+            raise RuntimeError("Elasticsearch client not initialized")
         index_name = self.config["steps"][3]["options"]["index_name"]
         if not self.elastic_client.indices.exists(index=index_name):
             mappings = self.config["steps"][3]["options"]["mappings"]
@@ -200,7 +202,8 @@ class ArcGISProIndexingWorkflow:
             doc_id = hashlib.md5(item["url"].encode()).hexdigest()  # nosec B324 — non-security doc ID
 
             try:
-                assert self.elastic_client is not None
+                if self.elastic_client is None:
+                    raise RuntimeError("Elasticsearch client not initialized")
                 self.elastic_client.index(index=index_name, id=doc_id, body=item)
 
                 if (i + 1) % 100 == 0:  # Log progress every 100 items
@@ -211,7 +214,7 @@ class ArcGISProIndexingWorkflow:
 
         self.logger.info(f"Successfully indexed {len(transformed_data)} documents")
 
-    def post_process(self, stats: Dict[str, Any]):
+    def post_process(self, stats: dict[str, Any]):
         """
         Step 5: Post-processing activities like reporting.
         """
@@ -235,7 +238,7 @@ class ArcGISProIndexingWorkflow:
         with open(report_filename, "w", encoding="utf-8") as f:
             json.dump(report, f, indent=2)
 
-        self.logger.info(f"Report saved to {report_filename}")
+        self.logger.info("Report saved to %s", report_filename)
 
     def run(self):
         """

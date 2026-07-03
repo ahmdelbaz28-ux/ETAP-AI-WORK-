@@ -24,10 +24,10 @@ import re
 import stat
 import threading
 from datetime import datetime, timezone
+from typing import Any, Optional
 
 UTC = timezone.utc  # noqa: UP017
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple
 
 from cryptography.fernet import Fernet, InvalidToken
 
@@ -52,7 +52,7 @@ def _ensure_dir(path: Path) -> Path:
     return path
 
 
-def _get_cipher(key: Optional[bytes] = None) -> Tuple[Fernet, bytes]:
+def _get_cipher(key: bytes | None = None) -> tuple[Fernet, bytes]:
     if key:
         return Fernet(key), key
     key = Fernet.generate_key()
@@ -92,7 +92,7 @@ class VaultSecretsManager:
 
         # Disk-backed fallback (no in-memory secret loss on restart).
         # We reuse LocalSecretsManager (Fernet-encrypted files under SECRETS_DIR).
-        self._fallback_store: Optional[LocalSecretsManager] = None
+        self._fallback_store: LocalSecretsManager | None = None
 
         self._init_vault_client()
 
@@ -105,7 +105,7 @@ class VaultSecretsManager:
         masked = self._vault_token[:4] + "****" if len(self._vault_token) > 4 else "****"
         return f"VaultSecretsManager(addr={self.vault_addr!r}, token={masked!r})"
 
-    def _init_vault_client(self):
+    def _init_vault_client(self) -> None:
         try:
             import hvac
 
@@ -132,7 +132,7 @@ class VaultSecretsManager:
             else:
                 raise RuntimeError(
                     f"Cannot connect to Vault at {self.vault_addr} "
-                    "and use_mock_if_unavailable is False"
+                    "and use_mock_if_unavailable is False",
                 )
 
     def _fallback_service_name(self, path: str, key: str) -> str:
@@ -141,7 +141,7 @@ class VaultSecretsManager:
         raw = f"{self.mount_path}__{path}__{key}"
         return re.sub(r"[^a-zA-Z0-9_-]", "_", raw)
 
-    def get_secret(self, path: str, key: str) -> Optional[str]:
+    def get_secret(self, path: str, key: str) -> str | None:
         if self._connected and self._client:
             try:
                 response = self._client.secrets.kv.v2.read_secret_version(
@@ -213,7 +213,7 @@ class VaultSecretsManager:
 
         return False
 
-    def list_secrets(self, path: str) -> List[str]:
+    def list_secrets(self, path: str) -> list[str]:
         if self._connected and self._client:
             try:
                 response = self._client.secrets.kv.v2.list_secrets(
@@ -228,7 +228,7 @@ class VaultSecretsManager:
         if self._fallback_store:
             prefix = re.sub(r"[^a-zA-Z0-9_-]", "_", f"{self.mount_path}__{path}__")
             services = self._fallback_store.list_services()
-            keys: List[str] = []
+            keys: list[str] = []
             for svc in services:
                 if svc.startswith(prefix):
                     keys.append(svc[len(prefix) :])
@@ -248,7 +248,7 @@ class LocalSecretsManager:
     but maintains its own independent key for isolation.
     """
 
-    def __init__(self, encryption_key: Optional[bytes] = None):
+    def __init__(self, encryption_key: bytes | None = None):
         _ensure_dir(SECRETS_DIR)
         self._key: bytes
         self._cipher: Fernet
@@ -301,7 +301,7 @@ class LocalSecretsManager:
             logger.error("Failed to store API key for %s: %s", service_name, exc)
             return False
 
-    def get_api_key(self, service_name: str) -> Optional[str]:
+    def get_api_key(self, service_name: str) -> str | None:
         path = self._service_file(service_name)
         if not path.exists():
             logger.warning("No stored API key for %s", service_name)
@@ -357,7 +357,7 @@ class LocalSecretsManager:
             logger.error("Failed to delete API key for %s: %s", service_name, exc)
             return False
 
-    def list_services(self) -> List[str]:
+    def list_services(self) -> list[str]:
         return [f.stem for f in SECRETS_DIR.glob("*.enc") if f.name != ".encryption_key"]
 
 
@@ -378,10 +378,10 @@ class KeyAccessAuditor:
     ACTION_ROTATE = "rotate"
     ACTION_LIST = "list"
 
-    def __init__(self, audit_logger=None):
+    def __init__(self, audit_logger: Optional[Any] = None):
         _ensure_dir(AUDIT_DIR)
         self._log_file = AUDIT_DIR / "key_access.log"
-        self._log_handler: Optional[logging.Handler] = None
+        self._log_handler: logging.Handler | None = None
         self._setup_logger()
         if audit_logger is None:
             try:
@@ -393,7 +393,7 @@ class KeyAccessAuditor:
         else:
             self._framework_audit = audit_logger
 
-    def _setup_logger(self):
+    def _setup_logger(self) -> None:
         self._logger = logging.getLogger("key_access_audit")
         self._logger.setLevel(logging.INFO)
         self._logger.propagate = False
@@ -416,7 +416,7 @@ class KeyAccessAuditor:
         key_name: str,
         action: str,
         success: bool,
-        details: Optional[Dict] = None,
+        details: dict | None = None,
     ):
         entry = {
             "timestamp": datetime.now(UTC).isoformat(),
@@ -440,14 +440,14 @@ class KeyAccessAuditor:
 
     def get_access_logs(
         self,
-        key_name: Optional[str] = None,
-        user_id: Optional[str] = None,
-        start_time: Optional[datetime] = None,
-        end_time: Optional[datetime] = None,
-    ) -> List[Dict]:
+        key_name: str | None = None,
+        user_id: str | None = None,
+        start_time: datetime | None = None,
+        end_time: datetime | None = None,
+    ) -> list[dict]:
         if not self._log_file.exists():
             return []
-        records: List[Dict] = []
+        records: list[dict] = []
         try:
             raw = self._log_file.read_text(encoding="utf-8").strip().splitlines()
             for line in raw:
@@ -474,7 +474,7 @@ class KeyAccessAuditor:
             logger.error("Failed to read access logs: %s", exc)
         return records
 
-    def get_recent_access(self, limit: int = 100) -> List[Dict]:
+    def get_recent_access(self, limit: int = 100) -> list[dict]:
         records = self.get_access_logs()
         records.sort(key=lambda r: r.get("timestamp", ""), reverse=True)
         return records[:limit]
@@ -492,13 +492,13 @@ class EnvironmentValidator:
     """
 
     def __init__(
-        self, env_path: Optional[Path] = None, required_secrets: Optional[List[str]] = None
+        self, env_path: Path | None = None, required_secrets: list[str] | None = None,
     ):
         self.env_path = env_path or Path.cwd() / ".env"
         self.required_secrets = required_secrets or REQUIRED_SECRETS
 
-    def check_missing_secrets(self) -> List[str]:
-        missing: List[str] = []
+    def check_missing_secrets(self) -> list[str]:
+        missing: list[str] = []
         for secret in self.required_secrets:
             value = os.environ.get(secret, "")
             if not value or value.startswith("generate-") or "your-" in value.lower():
@@ -540,7 +540,7 @@ class EnvironmentValidator:
                     import win32security
 
                     sd = win32security.GetFileSecurity(
-                        str(env_path), win32security.OWNER_SECURITY_INFORMATION
+                        str(env_path), win32security.OWNER_SECURITY_INFORMATION,
                     )
                     owner_sid = sd.GetSecurityDescriptorOwner()
                     owner_name, _, _ = win32security.LookupAccountSid(None, owner_sid)
@@ -557,7 +557,7 @@ class EnvironmentValidator:
             logger.error("Cannot check .env permissions: %s", exc)
             return False
 
-    def check_for_hardcoded_secrets(self, file_patterns: Optional[List[str]] = None) -> List[Dict]:
+    def check_for_hardcoded_secrets(self, file_patterns: list[str] | None = None) -> list[dict]:
         if file_patterns is None:
             file_patterns = ["*.py", "*.ts", "*.js", "*.tsx", "*.jsx", "*.yaml", "*.yml"]
         patterns = [
@@ -568,7 +568,7 @@ class EnvironmentValidator:
             (r"(?i)(BEGIN\s+(RSA\s+)?PRIVATE\s+KEY)", "Private Key"),
         ]
         root = Path.cwd()
-        findings: List[Dict] = []
+        findings: list[dict] = []
         for pattern in file_patterns:
             for fpath in root.rglob(pattern):
                 if (
@@ -587,7 +587,7 @@ class EnvironmentValidator:
                                     "line": content[: match.start()].count("\n") + 1,
                                     "type": label,
                                     "match_preview": match.group(0)[:60],
-                                }
+                                },
                             )
                 except (OSError, UnicodeDecodeError):
                     continue
@@ -598,7 +598,7 @@ class EnvironmentValidator:
             logger.info("No hardcoded secrets detected")
         return findings
 
-    def generate_env_template(self, output_path: Optional[Path] = None) -> str:
+    def generate_env_template(self, output_path: Path | None = None) -> str:
         out = output_path or Path.cwd() / ".env.example"
         lines = [
             "# AhmedETAP - Environment Configuration",
@@ -623,7 +623,7 @@ class EnvironmentValidator:
                 "ENVIRONMENT=development",
                 "LOG_LEVEL=INFO",
                 "DEBUG=false",
-            ]
+            ],
         )
         content = "\n".join(lines) + "\n"
         out.write_text(content, encoding="utf-8")

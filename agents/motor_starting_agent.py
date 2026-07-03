@@ -24,7 +24,7 @@ import logging
 from datetime import datetime, timezone
 
 UTC = timezone.utc  # noqa: UP017
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 import numpy as np
 
@@ -37,7 +37,7 @@ logger = logging.getLogger(__name__)
 # NEMA starting code letters — locked-rotor kVA/hp ranges
 # ---------------------------------------------------------------------------
 
-_NEMA_CODE_LETTERS: Dict[str, tuple] = {
+_NEMA_CODE_LETTERS: dict[str, tuple] = {
     "A": (0.0, 3.15),
     "B": (3.15, 3.55),
     "C": (3.55, 4.0),
@@ -60,7 +60,7 @@ _NEMA_CODE_LETTERS: Dict[str, tuple] = {
 }
 
 # Typical locked-rotor current multiplier (LRA/FLA) by starting method
-_LR_MULTIPLIERS: Dict[str, float] = {
+_LR_MULTIPLIERS: dict[str, float] = {
     "DOL": 6.0,  # Direct-On-Line
     "star_delta": 2.0,  # Star-Delta (current = 1/3 of DOL)
     "autotransformer_80": 3.84,  # Auto-transformer 80% tap
@@ -119,8 +119,8 @@ class MotorStartingAgent(BaseAgent):
         voltage_v: float,
         nema_code: str = "F",
         starting_method: str = "DOL",
-        fla_a: Optional[float] = None,
-    ) -> Dict[str, Any]:
+        fla_a: float | None = None,
+    ) -> dict[str, Any]:
         """
         Calculate motor starting (locked-rotor) current.
 
@@ -163,7 +163,7 @@ class MotorStartingAgent(BaseAgent):
 
         # Apply starting method reduction factor
         # All methods scale from the DOL LRA computed above
-        method_current_ratios: Dict[str, float] = {
+        method_current_ratios: dict[str, float] = {
             "DOL": 1.0,
             "star_delta": 1.0 / 3.0,  # Current = 1/3 of DOL line current
             "autotransformer_80": 0.64,  # 0.8² × DOL (tap ratio squared)
@@ -176,7 +176,9 @@ class MotorStartingAgent(BaseAgent):
         current_ratio = method_current_ratios.get(starting_method, 1.0)
         lra_actual = lra_dol * current_ratio
 
-        assert fla_a is not None
+        # SECURITY v2.1.1: assert → explicit None-check (assert stripped by -O)
+        if fla_a is None:
+            raise ValueError("FLA (full-load amps) must be provided for motor starting analysis")
         lra_per_fla = lra_actual / fla_a if fla_a > 0 else 0.0
 
         return {
@@ -199,7 +201,7 @@ class MotorStartingAgent(BaseAgent):
         motor_rated_voltage_v: float,
         motor_rated_mva: float,
         system_base_mva: float = 100.0,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Calculate voltage dip during motor starting.
 
@@ -271,7 +273,7 @@ class MotorStartingAgent(BaseAgent):
         lra_per_fla: float,
         starting_method: str = "DOL",
         motor_bus_voltage_pu: float = 1.0,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Calculate starting torque considering voltage dip and method.
 
@@ -297,7 +299,7 @@ class MotorStartingAgent(BaseAgent):
         """
         # For star-delta and autotransformer, voltage reduces proportionally
         # but torque reduces as voltage squared
-        method_voltage_ratios: Dict[str, float] = {
+        method_voltage_ratios: dict[str, float] = {
             "DOL": 1.0,
             "star_delta": 1.0 / np.sqrt(3),  # Voltage reduced to 1/√3
             "autotransformer_80": 0.80,
@@ -333,7 +335,7 @@ class MotorStartingAgent(BaseAgent):
         j_total_kgm2: float,
         rated_speed_rpm: float,
         avg_accelerating_torque_nm: float,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Estimate motor acceleration time from standstill to rated speed.
 
@@ -386,7 +388,7 @@ class MotorStartingAgent(BaseAgent):
             self.log_execution(f"Starting motor starting analysis for task {task.task_id}")
 
             analysis_type = task.parameters.get("analysis_type", "full")
-            results: Dict[str, Any] = {}
+            results: dict[str, Any] = {}
 
             # Common parameters
             motor_hp = float(task.parameters.get("motor_hp", 100.0))
@@ -452,7 +454,7 @@ class MotorStartingAgent(BaseAgent):
                 rated_torque = float(task.parameters.get("rated_torque_nm", rated_torque))
                 j_total = float(task.parameters.get("j_total_kgm2", 10.0))
                 avg_torque = results.get("starting_torque", {}).get(
-                    "starting_torque_nm", rated_torque * 0.5
+                    "starting_torque_nm", rated_torque * 0.5,
                 )
 
                 acc_result = self.calculate_acceleration_time(
@@ -504,7 +506,7 @@ class MotorStartingAgent(BaseAgent):
         - Motor bus voltage is positive
         - Acceleration time is positive (or infinite for stall)
         """
-        errors: List[str] = []
+        errors: list[str] = []
 
         sc_data = result.data.get("starting_current")
         if sc_data is not None:

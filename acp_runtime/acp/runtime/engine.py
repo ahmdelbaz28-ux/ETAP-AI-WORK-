@@ -22,7 +22,7 @@ import time
 from collections import defaultdict
 from collections.abc import Iterable
 from functools import partial
-from typing import Any, Optional
+from typing import Any
 
 import anyio
 
@@ -58,9 +58,9 @@ class AcpRuntime:
         self,
         handlers: Iterable[Any],
         *,
-        tracer: Optional[Any] = None,
-        metrics: Optional[Any] = None,
-        logger: Optional[Any] = None,
+        tracer: Any | None = None,
+        metrics: Any | None = None,
+        logger: Any | None = None,
     ) -> None:
         self._handlers: list[Any] = list(handlers)
         self._registry: dict[str, tuple[Any, CapabilityMeta]] = {}
@@ -82,7 +82,7 @@ class AcpRuntime:
                     raise ValueError(
                         f"Duplicate capability {cap_name!r}: "
                         f"registered on {self._registry[cap_name][0]!r}, "
-                        f"also exposed by {class_name!r}"
+                        f"also exposed by {class_name!r}",
                     )
                 getattr(handler, meta.method_name)
                 self._registry[cap_name] = (handler, meta)
@@ -93,7 +93,7 @@ class AcpRuntime:
         """Sorted list of all registered capability names."""
         return sorted(self._registry.keys())
 
-    def get_meta(self, name: str) -> Optional[CapabilityMeta]:
+    def get_meta(self, name: str) -> CapabilityMeta | None:
         """Return the metadata for a capability, or None if not registered."""
         entry = self._registry.get(name)
         return entry[1] if entry is not None else None
@@ -103,7 +103,7 @@ class AcpRuntime:
     async def execute(
         self,
         capability: str,
-        input: Optional[dict[str, Any]] = None,
+        input: dict[str, Any] | None = None,
         *,
         trace_id: str = "",
         deadline_ms: int = 30_000,
@@ -231,7 +231,7 @@ class AcpRuntime:
         if self._metrics is None:
             return
         self._metrics.get_or_create_counter(
-            "acp.runtime.calls.total", "Total capability calls"
+            "acp.runtime.calls.total", "Total capability calls",
         ).inc()
         self._metrics.get_or_create_histogram(
             "acp.runtime.calls.duration_ms",
@@ -239,7 +239,7 @@ class AcpRuntime:
         ).observe(duration_ms)
         if not success:
             self._metrics.get_or_create_counter(
-                "acp.runtime.calls.errors", "Total capability errors"
+                "acp.runtime.calls.errors", "Total capability errors",
             ).inc()
         self._metrics.get_or_create_counter(
             f"acp.runtime.calls.per_capability.{capability}",

@@ -75,6 +75,14 @@ htmlcov/
 .coverage
 coverage.xml
 
+# SECURITY: dev/debug/maintenance scripts must never ship in production images.
+# These scripts contain hardcoded test secrets, debug endpoints, and untested
+# code paths that attackers could exploit if they reached the container.
+scripts/dev/
+scripts/maintenance/
+*.debug.py
+debug_*.py
+
 # Node modules (will be installed in container)
 node_modules/
 ui/

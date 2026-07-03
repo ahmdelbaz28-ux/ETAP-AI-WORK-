@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
-import { Bot, Send, User, Sparkles, Cpu, Copy, RotateCcw, MessageSquare, Check, ChevronDown } from 'lucide-react'
+import { motion } from 'framer-motion'  // QUALITY v2.1.1: removed unused AnimatePresence
+import { Bot, Send, Sparkles, Cpu, Copy, RotateCcw, Check, ChevronDown } from 'lucide-react'  // removed User, MessageSquare
 import { useNotify } from '../context/NotificationContext'
 import { chatWithAgent, fetchAgents, type AgentMeta } from '../lib/api'
 import { cn } from '../utils/helpers'

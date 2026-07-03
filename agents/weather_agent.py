@@ -21,7 +21,7 @@ import logging
 from datetime import datetime, timezone
 
 UTC = timezone.utc  # noqa: UP017
-from typing import Any, Dict, List
+from typing import Any
 
 import numpy as np
 
@@ -85,7 +85,7 @@ class WeatherAgent(BaseAgent):
         reference_temp_c: float = 25.0,
         max_hotspot_temp_c: float = 110.0,
         equipment_type: str = "transformer",
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Calculate equipment derating factor due to ambient temperature.
 
@@ -110,9 +110,7 @@ class WeatherAgent(BaseAgent):
         delta_max = max_hotspot_temp_c - ambient_temp_c
         delta_ref = max_hotspot_temp_c - reference_temp_c
 
-        if delta_ref <= 0:
-            rating_factor = 0.0
-        elif delta_max <= 0:
+        if delta_ref <= 0 or delta_max <= 0:
             rating_factor = 0.0
         else:
             rating_factor = float(np.sqrt(delta_max / delta_ref))
@@ -154,7 +152,7 @@ class WeatherAgent(BaseAgent):
         emissivity: float = 0.5,
         static_rating_a: float = 1000.0,
         static_rating_ambient_c: float = 40.0,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Calculate dynamic line rating based on wind conditions per
         IEEE 738.
@@ -234,10 +232,7 @@ class WeatherAgent(BaseAgent):
         # I²R = q_loss - q_solar
         q_joule = q_loss - q_solar
 
-        if q_joule > 0 and R > 0:
-            I_dynamic = float(np.sqrt(q_joule / R))
-        else:
-            I_dynamic = 0.0
+        I_dynamic = float(np.sqrt(q_joule / R)) if q_joule > 0 and R > 0 else 0.0
 
         # Rating increase vs static
         rating_increase = (
@@ -247,7 +242,7 @@ class WeatherAgent(BaseAgent):
         # Simple DLR as cross-check: I ∝ sqrt((T_max - T_amb) / (T_max - T_static_amb))
         dlr_factor = np.sqrt(
             max(0, (conductor_max_temp_c - ambient_temp_c))
-            / max(1, (conductor_max_temp_c - static_rating_ambient_c))
+            / max(1, (conductor_max_temp_c - static_rating_ambient_c)),
         )
         I_dlr_simple = static_rating_a * dlr_factor
 
@@ -284,7 +279,7 @@ class WeatherAgent(BaseAgent):
         description: str,
         affected_area: str = "",
         duration_hours: float = 0.0,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Process a severe weather alert and assess power system impact.
 
@@ -308,7 +303,7 @@ class WeatherAgent(BaseAgent):
             Dictionary with 'alert_type', 'severity', 'power_system_impact',
             'recommended_actions', 'risk_level'.
         """
-        impact_map: Dict[str, str] = {
+        impact_map: dict[str, str] = {
             "thunderstorm": "Lightning-induced surges, protection misoperation risk, "
             "potential equipment damage from direct strikes",
             "ice_storm": "Conductor galloping, ice loading on lines and structures, "
@@ -325,7 +320,7 @@ class WeatherAgent(BaseAgent):
             "widespread infrastructure damage, extended restoration",
         }
 
-        action_map: Dict[str, List[str]] = {
+        action_map: dict[str, list[str]] = {
             "thunderstorm": [
                 "Verify surge arrester condition",
                 "Review protection relay settings for lightning coordination",
@@ -373,10 +368,10 @@ class WeatherAgent(BaseAgent):
             "affected_area": affected_area,
             "duration_hours": duration_hours,
             "power_system_impact": impact_map.get(
-                alert_type, "Assess impact based on local conditions"
+                alert_type, "Assess impact based on local conditions",
             ),
             "recommended_actions": action_map.get(
-                alert_type, ["Monitor conditions and follow standard procedures"]
+                alert_type, ["Monitor conditions and follow standard procedures"],
             ),
             "risk_level": risk_level,
         }
@@ -400,7 +395,7 @@ class WeatherAgent(BaseAgent):
             self.log_execution(f"Starting weather impact analysis for task {task.task_id}")
 
             analysis_type = task.parameters.get("analysis_type", "full")
-            results: Dict[str, Any] = {}
+            results: dict[str, Any] = {}
 
             # --- Temperature derating ---
             if analysis_type in ("temperature_derating", "full"):
@@ -479,7 +474,7 @@ class WeatherAgent(BaseAgent):
         - Dynamic ratings are non-negative
         - Weather alert risk levels are valid
         """
-        errors: List[str] = []
+        errors: list[str] = []
 
         td_data = result.data.get("temperature_derating")
         if td_data is not None:

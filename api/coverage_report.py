@@ -34,7 +34,7 @@ import os
 import re
 import sys
 from dataclasses import asdict, dataclass, field
-from typing import Any, Dict, List, Optional, Set
+from typing import Any
 
 from compat import StrEnum
 
@@ -65,13 +65,13 @@ class FunctionInfo:
     line_number: int
     is_async: bool = False
     is_method: bool = False
-    class_name: Optional[str] = None
-    decorators: List[str] = field(default_factory=list)
+    class_name: str | None = None
+    decorators: list[str] = field(default_factory=list)
     has_test: bool = False
-    test_names: List[str] = field(default_factory=list)
-    suggested_tests: List[str] = field(default_factory=list)
+    test_names: list[str] = field(default_factory=list)
+    suggested_tests: list[str] = field(default_factory=list)
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert to a JSON-serializable dictionary."""
         return asdict(self)
 
@@ -87,9 +87,9 @@ class ModuleCoverage:
     untested_functions: int = 0
     coverage_percent: float = 0.0
     level: CoverageLevel = CoverageLevel.NONE
-    functions: List[FunctionInfo] = field(default_factory=list)
+    functions: list[FunctionInfo] = field(default_factory=list)
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert to a JSON-serializable dictionary."""
         result = {
             "module": self.module,
@@ -115,11 +115,11 @@ class CoverageReport:
     untested_functions: int = 0
     overall_coverage_percent: float = 0.0
     overall_level: CoverageLevel = CoverageLevel.NONE
-    modules: List[ModuleCoverage] = field(default_factory=list)
-    critical_gaps: List[Dict[str, Any]] = field(default_factory=list)
-    suggestions: List[Dict[str, Any]] = field(default_factory=list)
+    modules: list[ModuleCoverage] = field(default_factory=list)
+    critical_gaps: list[dict[str, Any]] = field(default_factory=list)
+    suggestions: list[dict[str, Any]] = field(default_factory=list)
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert to a JSON-serializable dictionary."""
         return {
             "project_root": self.project_root,
@@ -139,7 +139,7 @@ class CoverageReport:
 # Known low-coverage areas — explicit watch list
 # ---------------------------------------------------------------------------
 
-_KNOWN_LOW_COVERAGE: Dict[str, List[str]] = {
+_KNOWN_LOW_COVERAGE: dict[str, list[str]] = {
     "engineering_service": [
         "predict_load",
         "predict_fault",
@@ -195,7 +195,7 @@ _KNOWN_LOW_COVERAGE: Dict[str, List[str]] = {
 # Test-suggestion templates
 # ---------------------------------------------------------------------------
 
-_SUGGESTION_TEMPLATES: Dict[str, List[str]] = {
+_SUGGESTION_TEMPLATES: dict[str, list[str]] = {
     "endpoint": [
         "test_{name}_success — happy-path request returns 200 with valid payload",
         "test_{name}_missing_api_key — request without X-API-Key returns 401",
@@ -234,8 +234,8 @@ class _FunctionExtractor(ast.NodeVisitor):
     def __init__(self, module_name: str, file_path: str) -> None:
         self.module_name = module_name
         self.file_path = file_path
-        self.functions: List[FunctionInfo] = []
-        self._class_stack: List[str] = []
+        self.functions: list[FunctionInfo] = []
+        self._class_stack: list[str] = []
 
     def visit_ClassDef(self, node: ast.ClassDef) -> None:  # noqa: N802
         """Visit a class definition and track it for qualified names."""
@@ -254,7 +254,7 @@ class _FunctionExtractor(ast.NodeVisitor):
         self.generic_visit(node)
 
     def _add_function(
-        self, node: ast.FunctionDef | ast.AsyncFunctionDef, *, is_async: bool
+        self, node: ast.FunctionDef | ast.AsyncFunctionDef, *, is_async: bool,
     ) -> None:
         """Record a function/method from the AST."""
         # Skip dunder methods (they are typically infrastructure)
@@ -266,13 +266,13 @@ class _FunctionExtractor(ast.NodeVisitor):
             # Still include them but mark appropriately
             pass
 
-        class_name: Optional[str] = None
+        class_name: str | None = None
         if self._class_stack:
             class_name = self._class_stack[-1]
 
         qualname = f"{'.'.join(self._class_stack)}.{node.name}" if self._class_stack else node.name
 
-        decorators: List[str] = []
+        decorators: list[str] = []
         for dec in node.decorator_list:
             if isinstance(dec, ast.Name):
                 decorators.append(dec.id)
@@ -312,7 +312,7 @@ def _normalize_name(name: str) -> str:
     return re.sub(r"[_\-\s]", "", name).lower()
 
 
-def _generate_test_patterns(func: FunctionInfo) -> List[str]:
+def _generate_test_patterns(func: FunctionInfo) -> list[str]:
     """Generate possible test-name patterns that would test *func*.
 
     Common conventions:
@@ -321,7 +321,7 @@ def _generate_test_patterns(func: FunctionInfo) -> List[str]:
       - ``test_<module>_<function_name>``
       - ``Test<class_name>.test_<method_name>``
     """
-    patterns: List[str] = []
+    patterns: list[str] = []
     name = func.name
 
     # Direct function name
@@ -363,7 +363,7 @@ class CoverageAnalyzer:
         print(json.dumps(report.to_dict(), indent=2))
     """
 
-    def __init__(self, project_root: Optional[str] = None) -> None:
+    def __init__(self, project_root: str | None = None) -> None:
         """Initialize the analyzer.
 
         Args:
@@ -373,10 +373,10 @@ class CoverageAnalyzer:
         if project_root is None:
             project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
         self.project_root = os.path.abspath(project_root)
-        self._source_files: List[str] = []
-        self._test_files: List[str] = []
-        self._test_names: Set[str] = set()
-        self._test_normalized: Set[str] = set()
+        self._source_files: list[str] = []
+        self._test_files: list[str] = []
+        self._test_names: set[str] = set()
+        self._test_normalized: set[str] = set()
 
     # ------------------------------------------------------------------
     # Public API
@@ -417,8 +417,8 @@ class CoverageAnalyzer:
 
     async def _discover_files(self) -> None:
         """Walk the project tree and classify files as source or test."""
-        source_files: List[str] = []
-        test_files: List[str] = []
+        source_files: list[str] = []
+        test_files: list[str] = []
 
         # Directories to skip
         skip_dirs = {
@@ -471,8 +471,8 @@ class CoverageAnalyzer:
 
     async def _index_test_names(self) -> None:
         """Parse all test files and collect test function/method names."""
-        test_names: Set[str] = set()
-        test_normalized: Set[str] = set()
+        test_names: set[str] = set()
+        test_normalized: set[str] = set()
 
         for test_file in self._test_files:
             try:
@@ -498,9 +498,9 @@ class CoverageAnalyzer:
     # Step 3: Function extraction
     # ------------------------------------------------------------------
 
-    async def _extract_all_functions(self) -> List[FunctionInfo]:
+    async def _extract_all_functions(self) -> list[FunctionInfo]:
         """Parse all source files and extract function/method definitions."""
-        all_functions: List[FunctionInfo] = []
+        all_functions: list[FunctionInfo] = []
 
         for src_file in self._source_files:
             rel_path = os.path.relpath(src_file, self.project_root)
@@ -529,11 +529,11 @@ class CoverageAnalyzer:
     # Step 4: Test matching
     # ------------------------------------------------------------------
 
-    def _match_functions_to_tests(self, functions: List[FunctionInfo]) -> None:
+    def _match_functions_to_tests(self, functions: list[FunctionInfo]) -> None:
         """Cross-reference each function against the test-name index."""
         for func in functions:
             patterns = _generate_test_patterns(func)
-            matched_tests: List[str] = []
+            matched_tests: list[str] = []
 
             for pattern in patterns:
                 norm = _normalize_name(pattern)
@@ -554,13 +554,13 @@ class CoverageAnalyzer:
     # Step 5: Module coverage
     # ------------------------------------------------------------------
 
-    def _build_module_coverages(self, functions: List[FunctionInfo]) -> List[ModuleCoverage]:
+    def _build_module_coverages(self, functions: list[FunctionInfo]) -> list[ModuleCoverage]:
         """Group functions by module and compute per-module coverage."""
-        by_module: Dict[str, List[FunctionInfo]] = {}
+        by_module: dict[str, list[FunctionInfo]] = {}
         for func in functions:
             by_module.setdefault(func.module, []).append(func)
 
-        module_coverages: List[ModuleCoverage] = []
+        module_coverages: list[ModuleCoverage] = []
         for module_name, funcs in sorted(by_module.items()):
             total = len(funcs)
             tested = sum(1 for f in funcs if f.has_test)
@@ -604,16 +604,16 @@ class CoverageAnalyzer:
     # Step 6: Suggestion generation
     # ------------------------------------------------------------------
 
-    def _generate_suggestions(self, modules: List[ModuleCoverage]) -> None:
+    def _generate_suggestions(self, modules: list[ModuleCoverage]) -> None:
         """Generate test-case suggestions for untested functions."""
         for mc in modules:
             for func in mc.functions:
                 if not func.has_test:
                     func.suggested_tests = self._suggest_tests_for(func)
 
-    def _suggest_tests_for(self, func: FunctionInfo) -> List[str]:
+    def _suggest_tests_for(self, func: FunctionInfo) -> list[str]:
         """Generate specific test-case suggestions for an untested function."""
-        suggestions: List[str] = []
+        suggestions: list[str] = []
 
         # Determine the suggestion category
         category = self._categorize_function(func)
@@ -630,7 +630,7 @@ class CoverageAnalyzer:
             if known_base == module_base or func.module == known_module:
                 if func.name in known_funcs or (func.class_name and func.class_name in known_funcs):
                     suggestions.append(
-                        f"⚠ KNOWN GAP: {func.qualname} is on the explicit low-coverage watch list"
+                        f"⚠ KNOWN GAP: {func.qualname} is on the explicit low-coverage watch list",
                     )
 
         return suggestions
@@ -642,12 +642,11 @@ class CoverageAnalyzer:
             return "endpoint"
 
         # If the function is in engineering_service and its name suggests an endpoint
-        if "engineering_service" in func.module:
-            if any(
-                kw in func.name
-                for kw in ("predict", "query", "get_", "submit_", "run_", "validate_")
-            ):
-                return "endpoint"
+        if "engineering_service" in func.module and any(
+            kw in func.name
+            for kw in ("predict", "query", "get_", "submit_", "run_", "validate_")
+        ):
+            return "endpoint"
 
         # Integration module functions
         if any(kw in func.module for kw in ("etap_integration", "gis_integration", "scada_model")):
@@ -663,7 +662,7 @@ class CoverageAnalyzer:
     # Step 7: Report assembly
     # ------------------------------------------------------------------
 
-    def _assemble_report(self, modules: List[ModuleCoverage]) -> CoverageReport:
+    def _assemble_report(self, modules: list[ModuleCoverage]) -> CoverageReport:
         """Assemble the final coverage report."""
         total_functions = sum(m.total_functions for m in modules)
         tested_functions = sum(m.tested_functions for m in modules)
@@ -691,9 +690,9 @@ class CoverageAnalyzer:
             suggestions=suggestions,
         )
 
-    def _identify_critical_gaps(self, modules: List[ModuleCoverage]) -> List[Dict[str, Any]]:
+    def _identify_critical_gaps(self, modules: list[ModuleCoverage]) -> list[dict[str, Any]]:
         """Identify modules/functions on the known low-coverage watch list."""
-        gaps: List[Dict[str, Any]] = []
+        gaps: list[dict[str, Any]] = []
 
         for mc in modules:
             for known_module, known_funcs in _KNOWN_LOW_COVERAGE.items():
@@ -718,7 +717,7 @@ class CoverageAnalyzer:
                                 "issue": "NOT IMPLEMENTED — function/class not found in source",
                                 "severity": "critical",
                                 "recommendation": f"Implement {func_name} in {known_module} and add corresponding tests",
-                            }
+                            },
                         )
                     else:
                         for func in matching:
@@ -730,14 +729,14 @@ class CoverageAnalyzer:
                                         "issue": "NO TEST COVERAGE",
                                         "severity": "high",
                                         "recommendation": f"Add tests for {func.qualname} — it is on the explicit low-coverage watch list",
-                                    }
+                                    },
                                 )
 
         return gaps
 
-    def _top_suggestions(self, modules: List[ModuleCoverage]) -> List[Dict[str, Any]]:
+    def _top_suggestions(self, modules: list[ModuleCoverage]) -> list[dict[str, Any]]:
         """Generate top-priority suggestions for improving coverage."""
-        suggestions: List[Dict[str, Any]] = []
+        suggestions: list[dict[str, Any]] = []
 
         # Sort modules by coverage (lowest first)
         sorted_modules = sorted(modules, key=lambda m: m.coverage_percent)
@@ -763,7 +762,7 @@ class CoverageAnalyzer:
                         if mc.coverage_percent == 0
                         else f"Expand existing tests for {mc.module}",
                     ],
-                }
+                },
             )
 
         return suggestions
@@ -803,10 +802,7 @@ async def _main() -> None:
     analyzer = CoverageAnalyzer(project_root=args.project_root)
     report = await analyzer.run()
 
-    if args.output == "-":
-        out = sys.stdout
-    else:
-        out = open(args.output, "w", encoding="utf-8")
+    out = sys.stdout if args.output == "-" else open(args.output, "w", encoding="utf-8")
 
     try:
         report_dict = report.to_dict()

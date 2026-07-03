@@ -18,7 +18,7 @@ import logging
 from datetime import datetime, timezone
 
 UTC = timezone.utc  # noqa: UP017
-from typing import Any, Dict, List
+from typing import Any
 
 import numpy as np
 
@@ -98,7 +98,7 @@ class EarthGridAgent(BaseAgent):
         hs: float,
         fault_duration_s: float,
         body_weight_kg: float = 70.0,
-    ) -> Dict[str, float]:
+    ) -> dict[str, float]:
         """
         Calculate allowable touch and step voltages per IEEE 80.
 
@@ -164,7 +164,7 @@ class EarthGridAgent(BaseAgent):
         conductor_diameter_m: float = 0.01,
         depth_m: float = 0.5,
         n_parallel: int = 0,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Calculate mesh voltage per IEEE 80 Section 16.5.
 
@@ -256,7 +256,7 @@ class EarthGridAgent(BaseAgent):
         rod_length_m: float,
         conductor_diameter_m: float = 0.01,
         depth_m: float = 0.5,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Calculate step voltage per IEEE 80 Section 16.6.
 
@@ -337,7 +337,7 @@ class EarthGridAgent(BaseAgent):
         rod_length_m: float,
         conductor_diameter_m: float = 0.01,
         depth_m: float = 0.5,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Calculate touch voltage at grid perimeter per IEEE 80.
 
@@ -386,7 +386,7 @@ class EarthGridAgent(BaseAgent):
         E_mesh = mesh_result["E_mesh_V"]
 
         # Touch voltage at perimeter ≈ GPR - E_mesh (conservative)
-        E_touch_perimeter = GPR - E_mesh if GPR > E_mesh else E_mesh
+        E_touch_perimeter = GPR - E_mesh if E_mesh < GPR else E_mesh
 
         return {
             "E_touch_perimeter_V": float(E_touch_perimeter),
@@ -415,7 +415,7 @@ class EarthGridAgent(BaseAgent):
         conductor_diameter_m: float = 0.01,
         depth_m: float = 0.5,
         body_weight_kg: float = 70.0,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Perform complete ground grid design and safety verification.
 
@@ -542,7 +542,7 @@ class EarthGridAgent(BaseAgent):
         self,
         probe_spacings_m: np.ndarray,
         measured_resistances_ohm: np.ndarray,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Analyze soil resistivity from Wenner 4-pin test data.
 
@@ -626,7 +626,7 @@ class EarthGridAgent(BaseAgent):
         hs: float,
         fault_duration_s: float,
         body_weight_kg: float = 70.0,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Verify ground grid safety against IEEE 80 allowable limits.
 
@@ -709,7 +709,7 @@ class EarthGridAgent(BaseAgent):
             self.log_execution(f"Starting earth grid analysis for task {task.task_id}")
 
             analysis_type = task.parameters.get("analysis_type", "full")
-            results: Dict[str, Any] = {}
+            results: dict[str, Any] = {}
             p = task.parameters
 
             if analysis_type in ("design", "full"):
@@ -761,7 +761,7 @@ class EarthGridAgent(BaseAgent):
             if analysis_type in ("soil_resistivity",):
                 spacings = np.array(p.get("probe_spacings_m", [1, 2, 5, 10, 20, 40]))
                 resistances = np.array(
-                    p.get("measured_resistances_ohm", [5.0, 3.0, 1.5, 0.8, 0.4, 0.25])
+                    p.get("measured_resistances_ohm", [5.0, 3.0, 1.5, 0.8, 0.4, 0.25]),
                 )
                 results["soil_resistivity"] = self.analyze_soil_resistivity(spacings, resistances)
 
@@ -823,7 +823,7 @@ class EarthGridAgent(BaseAgent):
 
     def validate_result(self, result: AgentResult) -> bool:
         """Validate earth grid analysis results per IEEE 80 criteria."""
-        errors: List[str] = []
+        errors: list[str] = []
 
         gd = result.data.get("grid_design")
         if gd is not None:
@@ -832,12 +832,12 @@ class EarthGridAgent(BaseAgent):
                 if not safety.get("E_mesh_safe", True):
                     errors.append(
                         f"Mesh voltage exceeds allowable: "
-                        f"utilization={safety.get('mesh_utilization', 0):.2f}"
+                        f"utilization={safety.get('mesh_utilization', 0):.2f}",
                     )
                 if not safety.get("E_step_safe", True):
                     errors.append(
                         f"Step voltage exceeds allowable: "
-                        f"utilization={safety.get('step_utilization', 0):.2f}"
+                        f"utilization={safety.get('step_utilization', 0):.2f}",
                     )
                 if not safety.get("E_touch_safe", True):
                     errors.append("Touch voltage at perimeter exceeds allowable limit")
@@ -845,7 +845,7 @@ class EarthGridAgent(BaseAgent):
         sv = result.data.get("safety_verification")
         if sv is not None and not sv.get("all_safe", True):
             errors.append(
-                "Safety verification failed: one or more voltages exceed allowable limits"
+                "Safety verification failed: one or more voltages exceed allowable limits",
             )
 
         result.validation_errors.extend(errors)

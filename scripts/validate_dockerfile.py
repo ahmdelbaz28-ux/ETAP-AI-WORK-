@@ -69,7 +69,7 @@ def validate_ml_is_copied(instructions: list) -> list[str]:
     if not ml_copied:
         errors.append(
             "REGRESSION: ml/ directory is NOT copied in the Dockerfile. "
-            "This causes 'No module named ml' on HF Space."
+            "This causes 'No module named ml' on HF Space.",
         )
     return errors
 

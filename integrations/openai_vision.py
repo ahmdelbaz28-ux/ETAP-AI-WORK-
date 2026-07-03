@@ -51,7 +51,7 @@ import logging
 import os
 import time
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -180,7 +180,7 @@ class OpenAIVisionClient:
                 self.timeout,
             )
         else:
-            missing: List[str] = []
+            missing: list[str] = []
             if not self.api_key:
                 missing.append("OPENAI_API_KEY")
             if not PIL_AVAILABLE:
@@ -193,8 +193,8 @@ class OpenAIVisionClient:
         self,
         image: Any,
         objective: str,
-        context: Optional[str] = None,
-    ) -> Optional[Dict[str, Any]]:
+        context: str | None = None,
+    ) -> dict[str, Any] | None:
         """Analyze a screenshot using OpenAI-compatible Vision API.
 
         Args:
@@ -245,7 +245,7 @@ class OpenAIVisionClient:
         url = f"{self.base_url}/chat/completions"
 
         # Retry loop — first try WITHOUT response_format, then try WITH it
-        last_error: Optional[str] = None
+        last_error: str | None = None
         for attempt in range(1, self.max_retries + 1):
             try:
                 response = self._make_request(url, headers, payload)
@@ -266,7 +266,7 @@ class OpenAIVisionClient:
             "message": f"All {self.max_retries} attempts failed. Last: {last_error}",
         }
 
-    def health_check(self) -> Dict[str, Any]:
+    def health_check(self) -> dict[str, Any]:
         """Return client status for /health endpoints."""
         return {
             "enabled": self.enabled,
@@ -298,7 +298,7 @@ class OpenAIVisionClient:
         return None
 
     @staticmethod
-    def _image_to_data_url(pil_image) -> Optional[str]:
+    def _image_to_data_url(pil_image) -> str | None:
         """Convert PIL Image to base64 data URL.
 
         Returns: data:image/png;base64,<base64-encoded-png>
@@ -322,10 +322,10 @@ class OpenAIVisionClient:
     @staticmethod
     def _build_user_content(
         objective: str,
-        context: Optional[str],
+        context: str | None,
         image_size: tuple[int, int],
         image_data_url: str,
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """Build the user message content with text + image_url.
 
         Args:
@@ -335,7 +335,7 @@ class OpenAIVisionClient:
             image_data_url: the actual data:image/png;base64,... URL
         """
         width, height = image_size
-        parts: List[Dict[str, Any]] = [
+        parts: list[dict[str, Any]] = [
             {
                 "type": "text",
                 "text": (
@@ -358,8 +358,8 @@ class OpenAIVisionClient:
         return parts
 
     def _make_request(
-        self, url: str, headers: Dict[str, str], payload: Dict[str, Any]
-    ) -> Dict[str, Any]:
+        self, url: str, headers: dict[str, str], payload: dict[str, Any],
+    ) -> dict[str, Any]:
         """Make the HTTP request to the OpenAI-compatible endpoint.
 
         Uses httpx if available, otherwise falls back to urllib.
@@ -371,8 +371,8 @@ class OpenAIVisionClient:
         return self._make_request_urllib(url, headers, payload)
 
     def _make_request_httpx(
-        self, url: str, headers: Dict[str, str], payload: Dict[str, Any]
-    ) -> Dict[str, Any]:
+        self, url: str, headers: dict[str, str], payload: dict[str, Any],
+    ) -> dict[str, Any]:
         """Make request using httpx."""
         # Re-encode image (the PLACEHOLDER needs to be replaced with actual data)
         # We re-build the payload here with the real image
@@ -384,8 +384,8 @@ class OpenAIVisionClient:
             return response.json()
 
     def _make_request_urllib(
-        self, url: str, headers: Dict[str, str], payload: Dict[str, Any]
-    ) -> Dict[str, Any]:
+        self, url: str, headers: dict[str, str], payload: dict[str, Any],
+    ) -> dict[str, Any]:
         """Fallback: make request using urllib (no external deps)."""
         import urllib.error
         import urllib.request
@@ -397,7 +397,7 @@ class OpenAIVisionClient:
             return json.loads(body)
 
     @staticmethod
-    def _parse_response(response: Dict[str, Any]) -> Dict[str, Any]:
+    def _parse_response(response: dict[str, Any]) -> dict[str, Any]:
         """Parse the OpenAI chat completion response into our standard format.
 
         Expected response structure:

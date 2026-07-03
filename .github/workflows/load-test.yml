@@ -130,13 +130,19 @@ jobs:
         run: |
           mkdir -p load-test-results/k6
 
+          # SECURITY: pass user-controlled inputs via env vars (not ${{ }} interpolation)
+          # to prevent shell injection from malicious workflow_dispatch inputs
           k6 run \
             --out json=load-test-results/k6/summary.json \
-            --env BASE_URL=${{ env.BASE_URL }} \
-            --env K6_VUS=${{ github.event.inputs.k6_vus || '100' }} \
-            --env K6_DURATION=${{ github.event.inputs.k6_duration || '2m' }} \
+            --env BASE_URL="$K6_BASE_URL" \
+            --env K6_VUS="$K6_VUS" \
+            --env K6_DURATION="$K6_DURATION" \
             --summary-export=load-test-results/k6/summary-export.json \
             k6-load-test.js 2>&1 | tee load-test-results/k6/console-output.txt
+        env:
+          K6_BASE_URL: ${{ env.BASE_URL }}
+          K6_VUS: ${{ github.event.inputs.k6_vus || '100' }}
+          K6_DURATION: ${{ github.event.inputs.k6_duration || '2m' }}
 
       - name: Parse k6 results
         if: always()
@@ -289,19 +295,21 @@ jobs:
 
       # ── Run Locust stress test ─────────────────────────────────────────────
       - name: Run Locust stress test
+        env:
+          LOCUST_USERS: ${{ github.event.inputs.locust_users || '100' }}
+          LOCUST_SPAWN_RATE: ${{ github.event.inputs.locust_spawn_rate || '10' }}
+          LOCUST_DURATION: ${{ github.event.inputs.locust_duration || '2m' }}
+          LOCUST_HOST: ${{ env.BASE_URL }}
         run: |
           mkdir -p load-test-results/locust
 
-          LOCUST_USERS=${{ github.event.inputs.locust_users || '100' }}
-          LOCUST_SPAWN_RATE=${{ github.event.inputs.locust_spawn_rate || '10' }}
-          LOCUST_DURATION=${{ github.event.inputs.locust_duration || '2m' }}
-
+          # SECURITY: all user inputs come from env vars (not ${{ }} interpolation)
           locust \
             -f locustfile.py \
-            --host=${{ env.BASE_URL }} \
-            --users=$LOCUST_USERS \
-            --spawn-rate=$LOCUST_SPAWN_RATE \
-            --run-time=$LOCUST_DURATION \
+            --host="$LOCUST_HOST" \
+            --users="$LOCUST_USERS" \
+            --spawn-rate="$LOCUST_SPAWN_RATE" \
+            --run-time="$LOCUST_DURATION" \
             --headless \
             --csv=load-test-results/locust/locust \
             --html=load-test-results/locust/locust-report.html \

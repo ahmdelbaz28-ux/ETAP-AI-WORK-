@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from collections.abc import Iterator
-from typing import Dict, List, Optional
 
 from gis_integration.models import GeoCRSInfo, GISFeature
 
@@ -33,7 +32,7 @@ class GISProviderInterface(ABC):
         self._project_path = path
         self._loaded = True
 
-    def list_layers(self) -> List[str]:
+    def list_layers(self) -> list[str]:
         """
         List layer identifiers available in the currently loaded project.
 
@@ -57,7 +56,7 @@ class GISProviderInterface(ABC):
             raise ValueError("layer_id must be a non-empty string")
         return iter(())
 
-    def export_geojson(self, layer_id: str) -> Dict:
+    def export_geojson(self, layer_id: str) -> dict:
         """
         Export the specified layer as GeoJSON FeatureCollection or geometry dicts.
 
@@ -76,7 +75,7 @@ class GISProviderInterface(ABC):
             },
         }
 
-    def get_crs(self, layer_id: Optional[str] = None) -> GeoCRSInfo:
+    def get_crs(self, layer_id: str | None = None) -> GeoCRSInfo:
         """
         Return CRS information for the given layer (or project default).
 

@@ -16,7 +16,6 @@ import sys
 import time
 from dataclasses import dataclass
 from enum import Enum
-from typing import Optional
 
 logger = logging.getLogger(__name__)
 
@@ -73,7 +72,7 @@ class RecoveryAttempt:
     success: bool
     action: str
     duration: float
-    error: Optional[str] = None
+    error: str | None = None
 
 
 class ETAPErrorRecovery:
@@ -113,7 +112,7 @@ class ETAPErrorRecovery:
 
         if diag.category != ErrorCategory.COM_CONNECTION_LOST:
             return RecoveryAttempt(
-                False, "skip", time.monotonic() - start, f"Not a COM error: {diag.category.value}"
+                False, "skip", time.monotonic() - start, f"Not a COM error: {diag.category.value}",
             )
 
         logger.warning("Attempting COM recovery: %s", diag.message)
@@ -138,7 +137,7 @@ class ETAPErrorRecovery:
             return RecoveryAttempt(True, "auto_restart", time.monotonic() - start)
 
         return RecoveryAttempt(
-            False, "failed", time.monotonic() - start, "No recovery method succeeded"
+            False, "failed", time.monotonic() - start, "No recovery method succeeded",
         )
 
     def recover_from_study_error(self, error: Exception, study_type: str) -> RecoveryAttempt:
@@ -181,7 +180,7 @@ class ETAPErrorRecovery:
                 return RecoveryAttempt(False, "retry_exhausted", time.monotonic() - start, str(e))
 
         return RecoveryAttempt(
-            False, "no_retry", time.monotonic() - start, "RetryHandler not available"
+            False, "no_retry", time.monotonic() - start, "RetryHandler not available",
         )
 
     def recover_from_project_error(self, error: Exception, project_path: str) -> RecoveryAttempt:
@@ -199,7 +198,7 @@ class ETAPErrorRecovery:
 
         if not os.path.exists(project_path):
             return RecoveryAttempt(
-                False, "file_not_found", time.monotonic() - start, f"File not found: {project_path}"
+                False, "file_not_found", time.monotonic() - start, f"File not found: {project_path}",
             )
         if not os.access(project_path, os.R_OK):
             return RecoveryAttempt(
@@ -334,7 +333,7 @@ class ETAPErrorRecovery:
             )
 
         return ErrorDiagnosis(
-            ErrorCategory.UNKNOWN, str(error), "Check application logs for detailed context.", False
+            ErrorCategory.UNKNOWN, str(error), "Check application logs for detailed context.", False,
         )
 
     @property
@@ -395,7 +394,7 @@ class ETAPErrorRecovery:
                 logger.warning("taskkill timed out while killing %s", ETAP_PROCESS_NAME)
             except FileNotFoundError:
                 logger.warning(
-                    "taskkill executable not found on PATH; cannot kill %s", ETAP_PROCESS_NAME
+                    "taskkill executable not found on PATH; cannot kill %s", ETAP_PROCESS_NAME,
                 )
             except OSError as os_err:
                 logger.warning("OS error while running taskkill: %s", os_err)

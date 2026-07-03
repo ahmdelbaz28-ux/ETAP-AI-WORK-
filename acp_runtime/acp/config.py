@@ -76,7 +76,7 @@ def _load_yaml(text: str) -> dict[str, Any]:
         import yaml
     except ImportError as exc:
         raise SystemExit(
-            "YAML config files require PyYAML. Install it:  pip install pyyaml"
+            "YAML config files require PyYAML. Install it:  pip install pyyaml",
         ) from exc
     parsed = yaml.safe_load(text)
     if not isinstance(parsed, dict):

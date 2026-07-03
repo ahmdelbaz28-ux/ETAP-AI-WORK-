@@ -86,7 +86,7 @@ class CoordinationEngine:
         return results
 
     def suggest_tms_adjustment(
-        self, upstream_relay, downstream_relay, fault_currents, target_margin=0.2
+        self, upstream_relay, downstream_relay, fault_currents, target_margin=0.2,
     ):
         """
         Suggest TMS adjustment for upstream relay to achieve coordination.
@@ -128,7 +128,7 @@ class CoordinationEngine:
         UNCOORDINATED_PENALTY = 100.0
 
         for TMS_candidate in np.linspace(
-            self.tms_search_min, self.tms_search_max, self.tms_search_steps
+            self.tms_search_min, self.tms_search_max, self.tms_search_steps,
         ):
             violations = []
             for If in fault_currents:

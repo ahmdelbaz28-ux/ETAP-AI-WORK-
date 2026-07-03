@@ -4,7 +4,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { MemoryRouter, useLocation } from 'react-router-dom'
+import { MemoryRouter } from 'react-router-dom'  // QUALITY v2.1.1: removed unused useLocation
 import Login from '../Login'
 import { AuthProvider } from '../../hooks/useAuth'
 

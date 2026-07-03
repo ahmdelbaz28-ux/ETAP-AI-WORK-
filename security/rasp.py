@@ -27,7 +27,7 @@ import logging
 import re
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, Dict, List
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -58,7 +58,7 @@ class RASPRule:
     action: RASPAction = RASPAction.BLOCK
     severity: RASPSeverity = RASPSeverity.HIGH
     description: str = ""
-    check_fields: List[str] = field(default_factory=lambda: ["query", "body", "path", "headers"])
+    check_fields: list[str] = field(default_factory=lambda: ["query", "body", "path", "headers"])
 
 
 @dataclass
@@ -77,7 +77,7 @@ class RASPResult:
 # Default RASP rules
 # ---------------------------------------------------------------------------
 
-_DEFAULT_RULES: List[RASPRule] = [
+_DEFAULT_RULES: list[RASPRule] = [
     RASPRule(
         name="sqli_basic",
         pattern=re.compile(
@@ -175,12 +175,12 @@ class RASPEngine:
 
     def __init__(
         self,
-        rules: List[RASPRule] | None = None,
+        rules: list[RASPRule] | None = None,
         enabled: bool = True,
     ) -> None:
         self._rules = rules or _DEFAULT_RULES
         self._enabled = enabled
-        self._stats: Dict[str, int] = {
+        self._stats: dict[str, int] = {
             "total_inspections": 0,
             "attacks_detected": 0,
             "attacks_blocked": 0,
@@ -196,7 +196,7 @@ class RASPEngine:
     def enabled(self, value: bool) -> None:
         self._enabled = value
 
-    def inspect(self, data: Dict[str, Any]) -> List[RASPResult]:
+    def inspect(self, data: dict[str, Any]) -> list[RASPResult]:
         """Inspect request data against all RASP rules.
 
         Parameters
@@ -213,7 +213,7 @@ class RASPEngine:
             return []
 
         self._stats["total_inspections"] += 1
-        results: List[RASPResult] = []
+        results: list[RASPResult] = []
 
         for rule in self._rules:
             for field_name in rule.check_fields:
@@ -260,7 +260,7 @@ class RASPEngine:
 
         return results
 
-    def get_stats(self) -> Dict[str, int]:
+    def get_stats(self) -> dict[str, int]:
         """Return RASP inspection statistics."""
         return dict(self._stats)
 

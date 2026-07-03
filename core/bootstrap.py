@@ -280,7 +280,7 @@ try:  # pragma: no cover
         ),
     )
     _active_requests = Gauge(
-        "active_requests", "Number of active requests", labelnames=["endpoint", "method"]
+        "active_requests", "Number of active requests", labelnames=["endpoint", "method"],
     )
     _service_info = Info("service", "Service information")
 except Exception:  # pragma: no cover
@@ -393,7 +393,7 @@ async def _initialize_cache_with_retry(max_retries: int = 3) -> Any:
     # that occurs when Redis is unavailable.
     if os.environ.get("ENGINEERING_SERVICE_CACHE_DISABLED", "").lower() == "true":
         logger.info(
-            "Cache disabled via ENGINEERING_SERVICE_CACHE_DISABLED — using in-memory fallback"
+            "Cache disabled via ENGINEERING_SERVICE_CACHE_DISABLED — using in-memory fallback",
         )
         return StudyCache(redis_url="memory://fallback", ttl=3600)
 
@@ -413,7 +413,7 @@ async def _initialize_cache_with_retry(max_retries: int = 3) -> Any:
                 return cache
         except Exception as e:
             logger.warning(
-                "Cache initialization failed (attempt %s): %s", attempt + 1, e, exc_info=True
+                "Cache initialization failed (attempt %s): %s", attempt + 1, e, exc_info=True,
             )
             if attempt == max_retries - 1:
                 logger.error("Failed to initialize cache after all retries, using fallback")

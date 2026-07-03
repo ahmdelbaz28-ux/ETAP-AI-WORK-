@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import logging
 import time
-from typing import Any, List, Optional
+from typing import Any
 
 import requests
 
@@ -81,7 +81,7 @@ class RevitPluginClient:
             {
                 "Content-Type": "application/json",
                 "X-API-Key": api_key,
-            }
+            },
         )
 
     def is_available(self) -> bool:
@@ -91,7 +91,7 @@ class RevitPluginClient:
         except requests.RequestException:
             return False
 
-    def _call(self, endpoint: str, payload: Optional[dict] = None) -> dict:
+    def _call(self, endpoint: str, payload: dict | None = None) -> dict:
         """Make an API call to the Revit plugin."""
         url = f"{self.base_url}/api{endpoint}"
         resp = self.session.post(url, json=payload or {}, timeout=self.timeout)
@@ -101,7 +101,7 @@ class RevitPluginClient:
     def open_model(self, file_path: str) -> dict:
         return self._call("/model/open", {"file_path": file_path})
 
-    def save_model(self, file_path: Optional[str] = None) -> dict:
+    def save_model(self, file_path: str | None = None) -> dict:
         return self._call("/model/save", {"file_path": file_path or ""})
 
     def create_model(self, file_path: str, template: str = "") -> dict:
@@ -134,7 +134,7 @@ class RevitPluginClient:
         return self._call("/family/load", {"family_path": family_path})
 
     def place_family(
-        self, family_symbol: str, insertion_point: List[float], level_id: str = ""
+        self, family_symbol: str, insertion_point: list[float], level_id: str = "",
     ) -> dict:
         return self._call(
             "/family/place",
@@ -175,7 +175,7 @@ class RevitPluginClient:
     def list_levels(self) -> dict:
         return self._call("/level/list", {})
 
-    def create_room(self, name: str, level_id: str, bounding_box: Optional[dict] = None) -> dict:
+    def create_room(self, name: str, level_id: str, bounding_box: dict | None = None) -> dict:
         return self._call(
             "/room/create",
             {
@@ -199,7 +199,7 @@ class RevitPluginClient:
         return self._call("/mep/data", {})
 
     def create_circuit(
-        self, panel_id: str, device_ids: List[str], circuit_number: Optional[int] = None
+        self, panel_id: str, device_ids: list[str], circuit_number: int | None = None,
     ) -> dict:
         return self._call(
             "/mep/create_circuit",
@@ -241,8 +241,8 @@ class RevitConnector:
 
     def __init__(self, plugin_url: str = "http://localhost:4830", api_key: str = ""):
         self.plugin = RevitPluginClient(plugin_url, api_key=api_key)
-        self._current_model_path: Optional[str] = None
-        self._operation_log: List[dict] = []
+        self._current_model_path: str | None = None
+        self._operation_log: list[dict] = []
 
     @property
     def is_connected(self) -> bool:
@@ -455,7 +455,7 @@ class RevitConnector:
     # ------------------------------------------------------------------
 
     def _log_operation(
-        self, operation: str, target: str, success: bool, details: Optional[dict] = None
+        self, operation: str, target: str, success: bool, details: dict | None = None,
     ) -> None:
         self._operation_log.append(
             {
@@ -464,10 +464,10 @@ class RevitConnector:
                 "success": success,
                 "details": details or {},
                 "timestamp": time.time(),
-            }
+            },
         )
 
-    def get_operation_log(self, limit: int = 100) -> List[dict]:
+    def get_operation_log(self, limit: int = 100) -> list[dict]:
         return self._operation_log[-limit:]
 
     def get_statistics(self) -> dict:

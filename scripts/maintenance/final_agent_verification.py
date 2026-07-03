@@ -61,7 +61,7 @@ def verify_agent_imports():
 
         # Check if agents __init__ can be loaded
         agents_init_spec = importlib.util.spec_from_file_location(
-            "agents_init", "agents/__init__.py"
+            "agents_init", "agents/__init__.py",
         )
         if agents_init_spec and agents_init_spec.loader:
             importlib.util.module_from_spec(agents_init_spec)

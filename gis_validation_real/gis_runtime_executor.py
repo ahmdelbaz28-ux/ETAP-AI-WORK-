@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any, Dict, List
+from typing import Any
 
 from gis_integration.models import GISFeature
 from gis_integration.transformer import GIS_TO_ADMS_Transformer
@@ -13,15 +13,15 @@ from gis_validation.topology_validator import validate_adms_topology
 class RuntimeExtractionResult:
     provider_name: str
     project_path: str
-    extracted_layers: Dict[str, List[GISFeature]]
+    extracted_layers: dict[str, list[GISFeature]]
 
 
 @dataclass(frozen=True)
 class RuntimeTransformationResult:
-    adms_assets: List[Any]
+    adms_assets: list[Any]
 
 
-def validate_real_assets_runtime(*, extracted_assets: List[GISFeature]) -> Dict[str, Any]:
+def validate_real_assets_runtime(*, extracted_assets: list[GISFeature]) -> dict[str, Any]:
     """
     Runtime validation for real assets:
     - transform using gis_integration.GIS_TO_ADMS_Transformer

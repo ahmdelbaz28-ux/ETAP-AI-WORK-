@@ -55,7 +55,7 @@ def on_test_stop(environment, **kwargs):
             f"  Min time:         {min_time:.1f} ms\n"
             f"  Max time:         {max_time:.1f} ms\n"
             f"  P95 time:         {p95_time:.1f} ms\n"
-            f"{'=' * 60}"
+            f"{'=' * 60}",
         )
 
 

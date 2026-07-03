@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from gis_integration.models import ADMSAsset
 from gis_validation_electrical.cim_mapper import CIMModel, map_adms_to_cim
@@ -14,20 +14,20 @@ from gis_validation_electrical.radiality_checker import validate_radiality
 @dataclass(frozen=True)
 class ElectricalFailure:
     failure_classification: str  # GEOMETRIC_ERROR, TOPOLOGY_ERROR, ELECTRICAL_ERROR, CIM_MISMATCH, LOADFLOW_INCONSISTENCY
-    asset_ids: List[str]
+    asset_ids: list[str]
     root_cause: str
-    details: Dict[str, Any]
+    details: dict[str, Any]
 
 
 @dataclass(frozen=True)
 class GridConsistencyReport:
     ok: bool
-    failures: List[ElectricalFailure]
-    electrical_model: Optional[ElectricalModel] = None
-    cim_model: Optional[CIMModel] = None
+    failures: list[ElectricalFailure]
+    electrical_model: ElectricalModel | None = None
+    cim_model: CIMModel | None = None
 
 
-def grid_consistency_engine(assets: List[ADMSAsset]) -> GridConsistencyReport:
+def grid_consistency_engine(assets: list[ADMSAsset]) -> GridConsistencyReport:
     """
     Final electrical grid consistency validation layer.
 
@@ -39,7 +39,7 @@ def grid_consistency_engine(assets: List[ADMSAsset]) -> GridConsistencyReport:
 
     Returns a report with explicit, traceable failure classification.
     """
-    failures: List[ElectricalFailure] = []
+    failures: list[ElectricalFailure] = []
 
     # Core electrical model build (deterministic from ADMS assets)
     model = build_electrical_model(assets)
@@ -51,10 +51,10 @@ def grid_consistency_engine(assets: List[ADMSAsset]) -> GridConsistencyReport:
                 asset_ids=[a.asset_id for a in assets],
                 root_cause="electrical_model_empty",
                 details={},
-            )
+            ),
         )
         return GridConsistencyReport(
-            ok=False, failures=failures, electrical_model=model, cim_model=None
+            ok=False, failures=failures, electrical_model=model, cim_model=None,
         )
 
     # Radiality compliance (electrical graph theory)
@@ -67,7 +67,7 @@ def grid_consistency_engine(assets: List[ADMSAsset]) -> GridConsistencyReport:
                     asset_ids=list(set(i.affected_edges)) if i.affected_edges else [],
                     root_cause=i.issue_type,
                     details=dict(i.details),
-                )
+                ),
             )
 
     # Impedance consistency
@@ -80,7 +80,7 @@ def grid_consistency_engine(assets: List[ADMSAsset]) -> GridConsistencyReport:
                     asset_ids=list(set(i.affected_edges)) if i.affected_edges else [],
                     root_cause=i.issue_type,
                     details=dict(i.details),
-                )
+                ),
             )
 
     # Load-flow simplified validation (deterministic invariants)
@@ -93,7 +93,7 @@ def grid_consistency_engine(assets: List[ADMSAsset]) -> GridConsistencyReport:
                     asset_ids=list(set(i.affected_assets)) if i.affected_assets else [],
                     root_cause=i.issue_type,
                     details=dict(i.details),
-                )
+                ),
             )
 
     # CIM mapping consistency (traceability + node coverage)
@@ -107,11 +107,11 @@ def grid_consistency_engine(assets: List[ADMSAsset]) -> GridConsistencyReport:
                 asset_ids=[a.asset_id for a in assets],
                 root_cause="cim_traceability_empty",
                 details={},
-            )
+            ),
         )
     else:
         # ConnectivityNode coverage: all electrical model nodes must have CIM connectivity nodes
-        for node_id in model.nodes.keys():
+        for node_id in model.nodes:
             cn_id = f"CN::{node_id}"
             if cn_id not in cim.connectivity_nodes:
                 failures.append(
@@ -120,7 +120,7 @@ def grid_consistency_engine(assets: List[ADMSAsset]) -> GridConsistencyReport:
                         asset_ids=[node_id],
                         root_cause="missing_connectivity_node_in_cim",
                         details={"connectivity_node_id": cn_id},
-                    )
+                    ),
                 )
 
     ok = len(failures) == 0

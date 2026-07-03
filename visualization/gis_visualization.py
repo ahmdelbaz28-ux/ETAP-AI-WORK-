@@ -22,9 +22,10 @@ Supported Visualizations:
 
 from __future__ import annotations
 
+import contextlib
 import logging
 import os
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -41,7 +42,7 @@ try:
 except ImportError:
     logger.warning(
         "folium not installed. GIS visualization will return GeoJSON/HTML "
-        "templates instead. Install: pip install folium"
+        "templates instead. Install: pip install folium",
     )
 
 
@@ -155,7 +156,7 @@ class GISVisualizer:
     def _add_bus_marker(
         self,
         m: Any,
-        coord: Tuple[float, float],
+        coord: tuple[float, float],
         label: str,
         color: str,
         popup_text: str,
@@ -180,7 +181,7 @@ class GISVisualizer:
     def _add_line_feature(
         self,
         m: Any,
-        coords: List[Tuple[float, float]],
+        coords: list[tuple[float, float]],
         color: str,
         weight: int = 2,
         popup_text: str = "",
@@ -206,11 +207,11 @@ class GISVisualizer:
 
     def visualize_load_flow(
         self,
-        buses: Dict[str, Dict[str, Any]],
-        lines: Optional[List[Dict[str, Any]]] = None,
-        bus_coords: Optional[Dict[str, Tuple[float, float]]] = None,
+        buses: dict[str, dict[str, Any]],
+        lines: list[dict[str, Any]] | None = None,
+        bus_coords: dict[str, tuple[float, float]] | None = None,
         title: str = "Load Flow Results",
-        output_path: Optional[str] = None,
+        output_path: str | None = None,
     ) -> Any:
         """Visualize load flow results on a geographic map.
 
@@ -245,15 +246,12 @@ class GISVisualizer:
             coord = bus_coords.get(str(bid)) if bus_coords else None
             if coord is None:
                 coord = self._assign_coordinates(
-                    bid, list(buses.keys()).index(str(bid)) if str(bid) in buses else 0, len(buses)
+                    bid, list(buses.keys()).index(str(bid)) if str(bid) in buses else 0, len(buses),
                 )
 
             color = self._voltage_color(vm)
             va_deg = bus_data.get("voltage_angle", 0.0)
-            if isinstance(va_deg, (int, float)):
-                va_deg = float(va_deg)
-            else:
-                va_deg = 0.0
+            va_deg = float(va_deg) if isinstance(va_deg, (int, float)) else 0.0
 
             popup = (
                 f"<b>Bus: {bid}</b><br>"
@@ -299,10 +297,8 @@ class GISVisualizer:
         self._add_voltage_legend(m)
 
         # Add marker cluster for dense networks
-        try:
+        with contextlib.suppress(Exception):
             MarkerCluster().add_to(m)
-        except Exception:
-            pass
 
         return self._save_or_return(m, output_path)
 
@@ -312,10 +308,10 @@ class GISVisualizer:
 
     def visualize_voltage_profile(
         self,
-        buses: Dict[str, Dict[str, Any]],
-        bus_coords: Optional[Dict[str, Tuple[float, float]]] = None,
+        buses: dict[str, dict[str, Any]],
+        bus_coords: dict[str, tuple[float, float]] | None = None,
         title: str = "Voltage Profile Map",
-        output_path: Optional[str] = None,
+        output_path: str | None = None,
     ) -> Any:
         """Visualize voltage profile with color-coded buses and contour overlay."""
         m = self._create_base_map()
@@ -340,14 +336,14 @@ class GISVisualizer:
             )
 
             self._add_bus_marker(
-                m, coord, f"{bid} ({vm:.3f})", color, popup, radius=10 - abs(vm - 1.0) * 5 + 5
+                m, coord, f"{bid} ({vm:.3f})", color, popup, radius=10 - abs(vm - 1.0) * 5 + 5,
             )
             voltage_values.append(
                 {
                     "lat": coord[1],
                     "lon": coord[0],
                     "voltage": vm,
-                }
+                },
             )
 
         # Add heatmap layer for voltage distribution
@@ -378,11 +374,11 @@ class GISVisualizer:
 
     def visualize_fault_analysis(
         self,
-        fault_currents: Dict[str, Dict[str, Any]],
-        bus_coords: Optional[Dict[str, Tuple[float, float]]] = None,
+        fault_currents: dict[str, dict[str, Any]],
+        bus_coords: dict[str, tuple[float, float]] | None = None,
         fault_type: str = "Three Phase",
         title: str = "Fault Analysis Results",
-        output_path: Optional[str] = None,
+        output_path: str | None = None,
     ) -> Any:
         """Visualize fault current magnitudes at each bus.
 
@@ -420,7 +416,7 @@ class GISVisualizer:
             )
 
             self._add_bus_marker(
-                m, coord, f"{bid}: {fc_ka:.1f} kA", color, popup, radius=int(radius)
+                m, coord, f"{bid}: {fc_ka:.1f} kA", color, popup, radius=int(radius),
             )
 
         # Add fault legend
@@ -444,10 +440,10 @@ class GISVisualizer:
 
     def visualize_arc_flash(
         self,
-        arc_flash_results: Dict[str, Dict[str, Any]],
-        bus_coords: Optional[Dict[str, Tuple[float, float]]] = None,
+        arc_flash_results: dict[str, dict[str, Any]],
+        bus_coords: dict[str, tuple[float, float]] | None = None,
         title: str = "Arc Flash Risk Assessment",
-        output_path: Optional[str] = None,
+        output_path: str | None = None,
     ) -> Any:
         """Visualize arc flash incident energy at each bus.
 
@@ -487,7 +483,7 @@ class GISVisualizer:
             )
 
             self._add_bus_marker(
-                m, coord, f"{bid}: {ie:.1f} cal/cm²", color, popup, radius=int(radius)
+                m, coord, f"{bid}: {ie:.1f} cal/cm²", color, popup, radius=int(radius),
             )
 
             # Collect for heatmap
@@ -535,10 +531,10 @@ class GISVisualizer:
 
     def visualize_protection_coordination(
         self,
-        relay_data: Dict[str, Dict[str, Any]],
-        bus_coords: Optional[Dict[str, Tuple[float, float]]] = None,
+        relay_data: dict[str, dict[str, Any]],
+        bus_coords: dict[str, tuple[float, float]] | None = None,
         title: str = "Protection Coordination View",
-        output_path: Optional[str] = None,
+        output_path: str | None = None,
     ) -> Any:
         """Visualize protection relay coverage and coordination status."""
         m = self._create_base_map()
@@ -567,7 +563,7 @@ class GISVisualizer:
                 from folium import Icon
 
                 icon = Icon(
-                    color="green" if all_coordinated else "red", icon=icon_type, prefix="glyphicon"
+                    color="green" if all_coordinated else "red", icon=icon_type, prefix="glyphicon",
                 )
                 folium.Marker(
                     location=[coord[1], coord[0]],
@@ -584,9 +580,9 @@ class GISVisualizer:
 
     def visualize_network_map(
         self,
-        network_geojson: Dict[str, Any],
+        network_geojson: dict[str, Any],
         title: str = "Electrical Network Map",
-        output_path: Optional[str] = None,
+        output_path: str | None = None,
     ) -> Any:
         """Visualize the complete electrical network from a GeoJSON FeatureCollection."""
         m = self._create_base_map()
@@ -653,13 +649,13 @@ class GISVisualizer:
 
     def create_dashboard_map(
         self,
-        load_flow_buses: Optional[Dict] = None,
-        fault_currents: Optional[Dict] = None,
-        arc_flash_results: Optional[Dict] = None,
-        network_geojson: Optional[Dict] = None,
-        bus_coords: Optional[Dict[str, Tuple[float, float]]] = None,
+        load_flow_buses: dict | None = None,
+        fault_currents: dict | None = None,
+        arc_flash_results: dict | None = None,
+        network_geojson: dict | None = None,
+        bus_coords: dict[str, tuple[float, float]] | None = None,
         title: str = "AhmedETAP Engineering Dashboard",
-        output_path: Optional[str] = None,
+        output_path: str | None = None,
     ) -> Any:
         """Create a combined dashboard with multiple data layers.
 
@@ -829,7 +825,7 @@ class GISVisualizer:
         return colors.get(asset_type, "#666666")
 
     @staticmethod
-    def _build_asset_popup(asset_type: str, props: Dict) -> str:
+    def _build_asset_popup(asset_type: str, props: dict) -> str:
         lines = [f"<b>Type: {asset_type.capitalize()}</b>"]
         for k, v in props.items():
             if k == "asset_type":
@@ -841,7 +837,7 @@ class GISVisualizer:
         return "<br>".join(lines)
 
     @staticmethod
-    def _assign_coordinates(asset_id: str, idx: int, total: int) -> Tuple[float, float]:
+    def _assign_coordinates(asset_id: str, idx: int, total: int) -> tuple[float, float]:
         """Assign coordinates in a ring pattern when coordinates are unknown."""
         import math
 
@@ -871,7 +867,7 @@ class GISVisualizer:
         m.get_root().html.add_child(folium.Element(title_html))
 
     @staticmethod
-    def _add_legend(m: Any, items: List[Tuple[str, str]], title: str = "Legend") -> None:
+    def _add_legend(m: Any, items: list[tuple[str, str]], title: str = "Legend") -> None:
         """Add a color legend to the map."""
         if not _HAS_FOLIUM:
             return
@@ -906,7 +902,7 @@ class GISVisualizer:
     # Output
     # ------------------------------------------------------------------
 
-    def _save_or_return(self, m: Any, output_path: Optional[str] = None) -> Any:
+    def _save_or_return(self, m: Any, output_path: str | None = None) -> Any:
         """Save map to HTML or return the map object."""
         if output_path:
             os.makedirs(os.path.dirname(output_path) or ".", exist_ok=True)
@@ -916,7 +912,7 @@ class GISVisualizer:
         self._last_map = m
         return m
 
-    def _fallback_geojson(self, viz_type: str, data: Dict) -> Dict[str, Any]:
+    def _fallback_geojson(self, viz_type: str, data: dict) -> dict[str, Any]:
         """Return GeoJSON when folium is unavailable."""
         return {
             "visualization_type": viz_type,

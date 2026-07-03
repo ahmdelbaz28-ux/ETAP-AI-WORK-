@@ -24,7 +24,6 @@ from __future__ import annotations
 import json
 import logging
 import time
-from typing import List, Optional
 
 from fastapi import APIRouter, FastAPI, HTTPException, Query
 from pydantic import BaseModel, Field
@@ -85,12 +84,12 @@ class ToolCallRequest(BaseModel):
 class SyncRequest(BaseModel):
     project_path: str = Field("", description="Path to project file")
     direction: str = Field("full", description="import, export, or full")
-    systems: List[str] = Field(default_factory=lambda: ["etap", "autocad", "revit"])
+    systems: list[str] = Field(default_factory=lambda: ["etap", "autocad", "revit"])
 
 
 class ValidateRequest(BaseModel):
-    model_json: Optional[str] = Field(None, description="Optional model JSON to validate")
-    checks: List[str] = Field(default_factory=lambda: ["voltage", "overcurrent", "coordination"])
+    model_json: str | None = Field(None, description="Optional model JSON to validate")
+    checks: list[str] = Field(default_factory=lambda: ["voltage", "overcurrent", "coordination"])
 
 
 # ---------------------------------------------------------------------------
@@ -187,7 +186,7 @@ class CopilotAPI:
             self._call_count += 1
             if not request.project_path:
                 raise HTTPException(
-                    status_code=400, detail="project_path is required for ETAP sync"
+                    status_code=400, detail="project_path is required for ETAP sync",
                 )
             result = self.mcp.call_tool(
                 "sync_etap",
@@ -204,7 +203,7 @@ class CopilotAPI:
             self._call_count += 1
             if not request.project_path:
                 raise HTTPException(
-                    status_code=400, detail="project_path is required for AutoCAD sync"
+                    status_code=400, detail="project_path is required for AutoCAD sync",
                 )
             result = self.mcp.call_tool(
                 "sync_autocad",
@@ -221,7 +220,7 @@ class CopilotAPI:
             self._call_count += 1
             if not request.project_path:
                 raise HTTPException(
-                    status_code=400, detail="project_path is required for Revit sync"
+                    status_code=400, detail="project_path is required for Revit sync",
                 )
             result = self.mcp.call_tool(
                 "sync_revit",

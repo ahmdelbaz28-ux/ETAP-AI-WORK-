@@ -13,7 +13,6 @@ import time
 from collections import deque
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Dict, List, Optional, Set, Tuple
 
 # ============================================================
 # ADMS CONTROL TYPES
@@ -53,7 +52,7 @@ class SwitchingAction:
     timestamp: float = field(default_factory=time.time)
     status: ControlCommandStatus = ControlCommandStatus.PENDING
     reason: str = ""
-    rollback_action_id: Optional[str] = None
+    rollback_action_id: str | None = None
 
     def to_dict(self) -> dict:
         return {
@@ -73,7 +72,7 @@ class SwitchingSequence:
     """Ordered sequence of switching actions."""
 
     sequence_id: str
-    actions: List[SwitchingAction] = field(default_factory=list)
+    actions: list[SwitchingAction] = field(default_factory=list)
     description: str = ""
     estimated_duration_s: float = 0.0
     created_at: float = field(default_factory=time.time)
@@ -94,11 +93,11 @@ class SwitchingSequence:
 class FLISRResult:
     """Result of FLISR operation."""
 
-    fault_section: Optional[str] = None
-    isolated_sections: List[str] = field(default_factory=list)
-    restored_sections: List[str] = field(default_factory=list)
-    unrestored_sections: List[str] = field(default_factory=list)
-    switching_sequence: Optional[SwitchingSequence] = None
+    fault_section: str | None = None
+    isolated_sections: list[str] = field(default_factory=list)
+    restored_sections: list[str] = field(default_factory=list)
+    unrestored_sections: list[str] = field(default_factory=list)
+    switching_sequence: SwitchingSequence | None = None
     stage: FLISRStage = FLISRStage.FAULT_DETECTION
     customers_restored: int = 0
     customers_affected: int = 0
@@ -129,10 +128,10 @@ class TopologyProcessor:
     """
 
     def __init__(self):
-        self.bus_connections: Dict[str, Set[str]] = {}  # bus -> connected buses
-        self.section_buses: Dict[str, Set[str]] = {}  # section -> bus IDs
-        self.bus_section: Dict[str, str] = {}  # bus -> section ID
-        self.switches: Dict[str, Tuple[str, str]] = {}  # switch_id -> (bus1, bus2)
+        self.bus_connections: dict[str, set[str]] = {}  # bus -> connected buses
+        self.section_buses: dict[str, set[str]] = {}  # section -> bus IDs
+        self.bus_section: dict[str, str] = {}  # bus -> section ID
+        self.switches: dict[str, tuple[str, str]] = {}  # switch_id -> (bus1, bus2)
 
     def add_connection(self, bus1: str, bus2: str, switch_id: str = None) -> None:
         """Add a connection between two buses."""
@@ -164,7 +163,7 @@ class TopologyProcessor:
             bus1, bus2 = self.switches[switch_id]
             self.add_connection(bus1, bus2, switch_id)
 
-    def find_connected_components(self) -> List[Set[str]]:
+    def find_connected_components(self) -> list[set[str]]:
         """Find all connected components using BFS with O(1) deque.popleft()."""
         visited = set()
         components = []
@@ -184,7 +183,7 @@ class TopologyProcessor:
                 components.append(component)
         return components
 
-    def find_path(self, start: str, end: str) -> Optional[List[str]]:
+    def find_path(self, start: str, end: str) -> list[str] | None:
         """Find shortest path between two buses using BFS with O(1) deque.popleft()."""
         if start not in self.bus_connections or end not in self.bus_connections:
             return None
@@ -200,7 +199,7 @@ class TopologyProcessor:
                     queue.append((neighbor, path + [neighbor]))
         return None
 
-    def get_switches_on_path(self, path: List[str]) -> List[str]:
+    def get_switches_on_path(self, path: list[str]) -> list[str]:
         """Get all switches along a path."""
         switches = []
         for i in range(len(path) - 1):
@@ -210,7 +209,7 @@ class TopologyProcessor:
                     switches.append(sid)
         return switches
 
-    def identify_sections(self) -> Dict[str, Set[str]]:
+    def identify_sections(self) -> dict[str, set[str]]:
         """Identify network sections (connected components)."""
         components = self.find_connected_components()
         self.section_buses = {}
@@ -241,12 +240,12 @@ class ADMSControlEngine:
 
     def __init__(self, topology: TopologyProcessor = None):
         self.topology = topology or TopologyProcessor()
-        self.switching_history: List[SwitchingSequence] = []
-        self.active_flisr: Optional[FLISRResult] = None
-        self.source_buses: Set[str] = set()  # Buses with generation/source
-        self.feeder_roots: Dict[str, str] = {}  # feeder_id -> root_bus
-        self.section_loads: Dict[str, float] = {}  # section_id -> load MW
-        self.section_customers: Dict[str, int] = {}  # section_id -> customer count
+        self.switching_history: list[SwitchingSequence] = []
+        self.active_flisr: FLISRResult | None = None
+        self.source_buses: set[str] = set()  # Buses with generation/source
+        self.feeder_roots: dict[str, str] = {}  # feeder_id -> root_bus
+        self.section_loads: dict[str, float] = {}  # section_id -> load MW
+        self.section_customers: dict[str, int] = {}  # section_id -> customer count
 
     def register_source_bus(self, bus_id: str) -> None:
         """Register a bus as a source (substation feed point)."""
@@ -265,7 +264,7 @@ class ADMSControlEngine:
     # --- Feeder Switching ---
 
     def create_switching_sequence(
-        self, actions: List[Tuple[str, SwitchingActionType, str]], description: str = ""
+        self, actions: list[tuple[str, SwitchingActionType, str]], description: str = "",
     ) -> SwitchingSequence:
         """
         Create a switching sequence from a list of actions.
@@ -278,7 +277,7 @@ class ADMSControlEngine:
         SwitchingSequence
         """
         seq = SwitchingSequence(
-            sequence_id=f"seq_{int(time.time() * 1000)}", description=description
+            sequence_id=f"seq_{int(time.time() * 1000)}", description=description,
         )
         for i, (device_id, action_type, reason) in enumerate(actions):
             action = SwitchingAction(
@@ -357,8 +356,8 @@ class ADMSControlEngine:
     # --- Load Transfer ---
 
     def plan_load_transfer(
-        self, from_feeder: str, to_feeder: str, section_id: str
-    ) -> Optional[SwitchingSequence]:
+        self, from_feeder: str, to_feeder: str, section_id: str,
+    ) -> SwitchingSequence | None:
         """
         Plan a load transfer from one feeder to another.
 
@@ -397,7 +396,7 @@ class ADMSControlEngine:
 
     # --- FLISR ---
 
-    def detect_fault_section(self, tripped_switch_ids: List[str]) -> Optional[str]:
+    def detect_fault_section(self, tripped_switch_ids: list[str]) -> str | None:
         """
         Identify the faulted section based on tripped switches.
 
@@ -421,7 +420,7 @@ class ADMSControlEngine:
                 return section_id
         return None
 
-    def isolate_fault(self, fault_section: str) -> Optional[SwitchingSequence]:
+    def isolate_fault(self, fault_section: str) -> SwitchingSequence | None:
         """
         Create switching sequence to isolate the faulted section.
 
@@ -439,19 +438,19 @@ class ADMSControlEngine:
                         switch_id,
                         SwitchingActionType.OPEN,
                         f"Fault isolation: open boundary switch for section {fault_section}",
-                    )
+                    ),
                 )
 
         if not actions:
             return None
 
         return self.create_switching_sequence(
-            actions, description=f"Fault isolation for section {fault_section}"
+            actions, description=f"Fault isolation for section {fault_section}",
         )
 
     def plan_restoration(
-        self, fault_section: str, de_energized_sections: List[str] = None
-    ) -> Optional[SwitchingSequence]:
+        self, fault_section: str, de_energized_sections: list[str] = None,
+    ) -> SwitchingSequence | None:
         """
         Plan service restoration for de-energized sections after fault isolation.
 
@@ -489,7 +488,7 @@ class ADMSControlEngine:
                                     switch_id,
                                     SwitchingActionType.CLOSE,
                                     f"Restoration: close tie switch for section {section_id}",
-                                )
+                                ),
                             )
                             restored.append(section_id)
                             break
@@ -498,10 +497,10 @@ class ADMSControlEngine:
             return None
 
         return self.create_switching_sequence(
-            actions, description=f"Service restoration for sections: {restored}"
+            actions, description=f"Service restoration for sections: {restored}",
         )
 
-    def execute_flisr(self, tripped_switch_ids: List[str], scada_db=None) -> FLISRResult:
+    def execute_flisr(self, tripped_switch_ids: list[str], scada_db=None) -> FLISRResult:
         """
         Execute full FLISR sequence:
         1. Detect fault section
@@ -576,7 +575,7 @@ class ADMSControlEngine:
 
     # --- Topology Analysis ---
 
-    def get_energized_sections(self) -> List[str]:
+    def get_energized_sections(self) -> list[str]:
         """Get list of currently energized sections."""
         self.topology.identify_sections()
         energized = []
@@ -585,12 +584,12 @@ class ADMSControlEngine:
                 energized.append(section_id)
         return energized
 
-    def get_de_energized_sections(self) -> List[str]:
+    def get_de_energized_sections(self) -> list[str]:
         """Get list of currently de-energized sections."""
         all_sections = set(self.topology.section_buses.keys())
         return list(all_sections - set(self.get_energized_sections()))
 
-    def get_feeder_loading(self) -> Dict[str, float]:
+    def get_feeder_loading(self) -> dict[str, float]:
         """Get total loading per feeder in MW."""
         loading = {}
         for feeder_id, root_bus in self.feeder_roots.items():

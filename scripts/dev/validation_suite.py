@@ -457,13 +457,13 @@ class ValidationSuite:
         afb1 = result1.arc_flash_boundary_mm
         passed_afb1 = afb1 > 0
         self._record(
-            "Arc Flash 4.16kV/20kA Boundary", passed_afb1, f"AFB={afb1:.1f} mm (expected > 0)"
+            "Arc Flash 4.16kV/20kA Boundary", passed_afb1, f"AFB={afb1:.1f} mm (expected > 0)",
         )
 
         # PPE level should be assigned
         passed_ppe1 = result1.ppe_level in ["0", "1", "2", "3", "4", "DANGER"]
         self._record(
-            "Arc Flash 4.16kV/20kA PPE Level", passed_ppe1, f"PPE Level={result1.ppe_level}"
+            "Arc Flash 4.16kV/20kA PPE Level", passed_ppe1, f"PPE Level={result1.ppe_level}",
         )
 
         # Test Case 2: 0.48 kV system, 30 kA fault current
@@ -487,7 +487,7 @@ class ValidationSuite:
         # Test Case 3: Higher voltage should generally produce different results
         # than lower voltage for same fault current
         self._record(
-            "Arc Flash Voltage Sensitivity", ie1 != ie2, f"E_4.16kV={ie1:.4f}, E_0.48kV={ie2:.4f}"
+            "Arc Flash Voltage Sensitivity", ie1 != ie2, f"E_4.16kV={ie1:.4f}, E_0.48kV={ie2:.4f}",
         )
 
     # =========================================================================
@@ -500,7 +500,7 @@ class ValidationSuite:
 
         # Test IEC 60255 Standard Inverse curve
         relay = OvercurrentRelay(
-            relay_id=1, name="Test Relay", curve_type="standard_inverse", TMS=1.0, Ip=1.0
+            relay_id=1, name="Test Relay", curve_type="standard_inverse", TMS=1.0, Ip=1.0,
         )
 
         # At I/Ip = 10, standard inverse: t = 1.0 * 0.14 / (10^0.02 - 1) = 0.14 / 0.04713 ~ 2.971 s
@@ -525,7 +525,7 @@ class ValidationSuite:
 
         # Test Very Inverse curve
         relay_vi = OvercurrentRelay(
-            relay_id=2, name="VI Relay", curve_type="very_inverse", TMS=1.0, Ip=1.0
+            relay_id=2, name="VI Relay", curve_type="very_inverse", TMS=1.0, Ip=1.0,
         )
         t_vi = relay_vi.trip_time(10.0)
         expected_tvi = 1.0 * 13.5 / (10.0 - 1.0)
@@ -538,7 +538,7 @@ class ValidationSuite:
 
         # Test Extremely Inverse curve
         relay_ei = OvercurrentRelay(
-            relay_id=3, name="EI Relay", curve_type="extremely_inverse", TMS=1.0, Ip=1.0
+            relay_id=3, name="EI Relay", curve_type="extremely_inverse", TMS=1.0, Ip=1.0,
         )
         t_ei = relay_ei.trip_time(10.0)
         expected_tei = 1.0 * 80.0 / (10.0**2 - 1.0)

@@ -12,7 +12,7 @@ from __future__ import annotations
 
 import logging
 import os
-from typing import Any, Optional
+from typing import Any
 
 import httpx
 
@@ -45,7 +45,7 @@ class SmitheryClient:
             "User-Agent": "AhmedETAP/1.0.0",
         }
 
-    async def list_servers(self, query: Optional[str] = None) -> list[dict]:
+    async def list_servers(self, query: str | None = None) -> list[dict]:
         """List available MCP servers from Smithery registry."""
         if not self.enabled:
             return []
@@ -60,7 +60,7 @@ class SmitheryClient:
                 resp.raise_for_status()
                 return resp.json().get("servers", [])
         except Exception as e:
-            logger.warning(f"Smithery list_servers error (non-critical): {e}")
+            logger.warning("Smithery list_servers error (non-critical): %s", e)
             return []
 
     async def call_tool(
@@ -97,10 +97,10 @@ class SmitheryClient:
                 resp.raise_for_status()
                 return resp.json()
         except httpx.HTTPStatusError as e:
-            logger.error(f"Smithery call_tool HTTP error: {e.response.status_code}")
+            logger.error("Smithery call_tool HTTP error: %s", e.response.status_code)
             return {"error": str(e), "result": None}
         except Exception as e:
-            logger.error(f"Smithery call_tool error: {e}")
+            logger.error("Smithery call_tool error: %s", e)
             return {"error": str(e), "result": None}
 
     def health_check(self) -> dict:

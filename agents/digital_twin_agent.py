@@ -25,7 +25,7 @@ import logging
 from datetime import datetime, timezone
 
 UTC = timezone.utc  # noqa: UP017
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 import numpy as np
 
@@ -88,8 +88,8 @@ class DigitalTwinAgent(BaseAgent):
         self,
         predicted: np.ndarray,
         measured: np.ndarray,
-        covariance: Optional[np.ndarray] = None,
-    ) -> Dict[str, Any]:
+        covariance: np.ndarray | None = None,
+    ) -> dict[str, Any]:
         """
         Compute Model Deviation Index (MDI) between predicted and
         measured values.
@@ -141,11 +141,11 @@ class DigitalTwinAgent(BaseAgent):
                         "index": i,
                         "absolute": float(abs_diff[i]),
                         "percent": float(abs_diff[i] / abs(measured[i]) * 100.0),
-                    }
+                    },
                 )
             else:
                 deviation_per_var.append(
-                    {"index": i, "absolute": float(abs_diff[i]), "percent": None}
+                    {"index": i, "absolute": float(abs_diff[i]), "percent": None},
                 )
 
         # Status classification
@@ -171,8 +171,8 @@ class DigitalTwinAgent(BaseAgent):
 
     def compute_data_quality_index(
         self,
-        measurements: List[Dict[str, Any]],
-    ) -> Dict[str, Any]:
+        measurements: list[dict[str, Any]],
+    ) -> dict[str, Any]:
         """
         Compute Data Quality Index (DQI) for SCADA measurements.
 
@@ -204,7 +204,7 @@ class DigitalTwinAgent(BaseAgent):
 
         now = datetime.now(UTC)
         good_count = 0
-        bad_tags: List[str] = []
+        bad_tags: list[str] = []
         timely_count = 0
         valid_count = 0
 
@@ -256,9 +256,9 @@ class DigitalTwinAgent(BaseAgent):
 
     def compute_predictive_confidence(
         self,
-        historical_mdi: List[float],
+        historical_mdi: list[float],
         recent_window: int = 10,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Compute Predictive Confidence Level (PCL) based on historical
         model deviation trends.
@@ -346,7 +346,7 @@ class DigitalTwinAgent(BaseAgent):
             self.log_execution(f"Starting digital twin synchronization for task {task.task_id}")
 
             analysis_type = task.parameters.get("analysis_type", "full")
-            results: Dict[str, Any] = {}
+            results: dict[str, Any] = {}
 
             # --- Model Deviation Index ---
             if analysis_type in ("model_deviation", "full"):
@@ -355,7 +355,7 @@ class DigitalTwinAgent(BaseAgent):
                 if predicted is None or measured is None:
                     raise ValueError(
                         "'predicted_values' and 'measured_values' required "
-                        "for model deviation analysis"
+                        "for model deviation analysis",
                     )
                 pred_arr = np.array(predicted, dtype=float)
                 meas_arr = np.array(measured, dtype=float)
@@ -426,7 +426,7 @@ class DigitalTwinAgent(BaseAgent):
         - PCL is between 0 and 100
         - Synchronization status is valid
         """
-        errors: List[str] = []
+        errors: list[str] = []
 
         md_data = result.data.get("model_deviation")
         if md_data is not None:

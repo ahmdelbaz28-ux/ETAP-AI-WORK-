@@ -64,7 +64,7 @@ class TestAgentCountConsistency:
     def test_agent_count_equals_len_agents(self):
         from api.shared_handlers import AGENT_COUNT, AGENTS
 
-        assert AGENT_COUNT == len(AGENTS), (
+        assert len(AGENTS) == AGENT_COUNT, (
             f"AGENT_COUNT ({AGENT_COUNT}) != len(AGENTS) ({len(AGENTS)}). "
             "Do not hardcode AGENT_COUNT — it is derived from len(AGENTS)."
         )

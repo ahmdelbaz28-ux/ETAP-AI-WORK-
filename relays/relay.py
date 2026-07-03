@@ -56,7 +56,7 @@ class Relay:
 
 class OvercurrentRelay(Relay):
     def __init__(
-        self, relay_id, name="OvercurrentRelay", curve_type="standard_inverse", TMS=1.0, Ip=1.0
+        self, relay_id, name="OvercurrentRelay", curve_type="standard_inverse", TMS=1.0, Ip=1.0,
     ):
         """
         Overcurrent relay (50/51).

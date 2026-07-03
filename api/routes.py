@@ -11,7 +11,7 @@ import sys
 import threading as _threading
 import time
 import uuid
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 from fastapi import FastAPI, HTTPException, Request, WebSocket
 from fastapi.middleware.cors import CORSMiddleware
@@ -149,7 +149,7 @@ _RATE_LIMIT_MAX_REQUESTS = int(os.environ.get("ENGINEERING_SERVICE_RATE_LIMIT_MA
 _REDIS_URL = os.environ.get("REDIS_URL", "").strip()
 _RATE_LIMIT_PREFIX = os.environ.get("RATE_LIMIT_PREFIX", "rate-limit:")
 
-_rate_limit_fallback_store: Dict[str, List[float]] = {}
+_rate_limit_fallback_store: dict[str, list[float]] = {}
 _rate_limit_fallback_lock = _threading.Lock()
 _RATE_LIMIT_MAX_ENTRIES = int(os.environ.get("ENGINEERING_SERVICE_RATE_LIMIT_MAX_ENTRIES", "10000"))
 
@@ -161,7 +161,7 @@ except Exception:  # pragma: no cover
 _redis_client = None
 
 
-def _get_rate_limit_redis() -> Optional[Any]:
+def _get_rate_limit_redis() -> Any | None:
     global _redis_client
     if not _REDIS_URL or redis_async is None:
         return None
@@ -296,7 +296,7 @@ class ReadyResponse(BaseModel):
 _celery_cache: tuple = ()  # empty tuple = not yet loaded
 
 
-def get_celery_components() -> Tuple[Optional[Any], Optional[Any], Optional[Any]]:
+def get_celery_components() -> tuple[Any | None, Any | None, Any | None]:
     """Lazy loading of Celery components to avoid import errors during startup.
 
     Uses a module-level cache so that imports are performed only once;
@@ -321,7 +321,7 @@ def get_celery_components() -> Tuple[Optional[Any], Optional[Any], Optional[Any]
 
 
 @app.post("/api/v1/studies/run_async")
-async def run_study_async(study_request: StudyRequest, request: Request) -> Dict[str, Any]:
+async def run_study_async(study_request: StudyRequest, request: Request) -> dict[str, Any]:
     """Execute an engineering study asynchronously using Celery."""
     _require_api_key(request)  # Add authentication check
 
@@ -338,7 +338,7 @@ async def run_study_async(study_request: StudyRequest, request: Request) -> Dict
                 "study_type": study_request.study_type,
                 "data": study_request.model_dump(),
                 "request_timestamp": str(time.time()),
-            }
+            },
         )
 
         logger.info(f"Started async study execution with task_id: {task.id}")
@@ -355,7 +355,7 @@ async def run_study_async(study_request: StudyRequest, request: Request) -> Dict
 
 
 @app.get("/api/v1/studies/task_status/{task_id}")
-async def get_task_status(task_id: str, request: Request) -> Dict[str, Any]:
+async def get_task_status(task_id: str, request: Request) -> dict[str, Any]:
     """Get the status of an async study task."""
     _require_api_key(request)  # Add authentication check
 
@@ -434,7 +434,7 @@ if not _PRIVACY_MODE:
             logger.warning("langwatch_not_installed", extra={"trace_id": "startup"})
         except Exception as lw_exc:
             logger.warning(
-                "langwatch_init_failed", extra={"trace_id": "startup", "error": str(lw_exc)}
+                "langwatch_init_failed", extra={"trace_id": "startup", "error": str(lw_exc)},
             )
 else:
     logger.info("Privacy mode enabled - external telemetry disabled", extra={"trace_id": "startup"})
@@ -459,7 +459,7 @@ if not _cors_origin_list:
     else:
         logger.info(
             "CORS: No origins configured (development mode). "
-            "Set ENGINEERING_SERVICE_CORS_ORIGINS for production."
+            "Set ENGINEERING_SERVICE_CORS_ORIGINS for production.",
         )
     _cors_origin_list = []  # No origins allowed = restrictive by default
     # Don't allow credentials when no origins are configured
