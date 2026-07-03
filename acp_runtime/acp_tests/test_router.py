@@ -287,8 +287,11 @@ async def test_notification_callback():
         }
     )
     assert called_with is not None
-    assert called_with["method"] == "progress.update"
-    assert called_with["params"]["percent"] == 75
+    # Bind to a non-Optional local so static type checkers (and SonarCloud S5644)
+    # accept __getitem__ access without flagging a phantom None access.
+    received: dict = called_with
+    assert received["method"] == "progress.update"
+    assert received["params"]["percent"] == 75
 
 
 # ------------------------------------------------------- scope validator

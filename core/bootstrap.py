@@ -8,6 +8,7 @@ from __future__ import annotations
 import asyncio
 import json
 import logging
+import math
 import os
 import threading
 
@@ -81,8 +82,9 @@ def _to_jsonable(obj: Any) -> Any:
     if obj is None or isinstance(obj, (str, bool)):
         return obj
     if isinstance(obj, (int, float)):
-        # Reject nan/inf which are not valid JSON
-        if isinstance(obj, float) and (obj != obj or obj in (float("inf"), float("-inf"))):
+        # Reject NaN/inf which are not valid JSON. math.isnan/isinf is
+        # clearer than the `obj != obj` trick (SonarCloud S1764).
+        if isinstance(obj, float) and (math.isnan(obj) or math.isinf(obj)):
             return None
         return obj
     if isinstance(obj, complex):
@@ -102,7 +104,7 @@ def _to_jsonable(obj: Any) -> Any:
             return int(obj.item())
         if isinstance(obj, (np.floating,)):
             v = float(obj.item())
-            if v != v or v in (float("inf"), float("-inf")):
+            if math.isnan(v) or math.isinf(v):
                 return None
             return v
         if isinstance(obj, (np.bool_,)):

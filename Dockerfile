@@ -91,13 +91,20 @@ ENV NUMBA_CACHE_DIR=/tmp/cache
 # Database path (writable /tmp)
 ENV DATABASE_URL=sqlite+aiosqlite:////tmp/data/etap_platform.db
 
-# JWT secret (set as HF Space secret in production)
-ENV JWT_SECRET_KEY=${JWT_SECRET_KEY:-}
+# Security v2.1.5 (SonarCloud S6472): Secrets MUST NOT be baked into the
+# image via ENV with build-arg substitution. Doing so leaks them into the
+# image layers (visible via `docker history` and `docker inspect`).
+#
+# Instead, secrets are injected at RUNTIME via:
+#   - Hugging Face Spaces "Secrets" UI
+#   - Docker `--secret` mounts (Docker 19.03+)
+#   - Kubernetes Secrets as env vars
+#   - Vault sidecar injection
+#
+# We only declare the NON-secret env vars here. JWT_SECRET_KEY and
+# ENGINEERING_SERVICE_API_KEY are expected to be provided at runtime.
 
-# API key (set as HF Space secret in production)
-ENV ENGINEERING_SERVICE_API_KEY=${ENGINEERING_SERVICE_API_KEY:-}
-
-# Environment mode
+# Environment mode (not a secret)
 ENV ENVIRONMENT=${ENVIRONMENT:-production}
 
 # Redis URL (empty = use in-memory fallback)

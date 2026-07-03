@@ -19,7 +19,6 @@ from datetime import datetime, timezone
 
 UTC = timezone.utc  # noqa: UP017
 
-UTC = UTC
 
 import numpy as np
 import pytest

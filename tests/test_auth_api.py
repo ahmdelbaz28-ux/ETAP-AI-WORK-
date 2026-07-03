@@ -28,7 +28,6 @@ from datetime import datetime, timedelta, timezone
 
 UTC = timezone.utc  # noqa: UP017
 
-UTC = UTC
 
 import jwt
 import pytest

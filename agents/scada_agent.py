@@ -176,8 +176,20 @@ class SCADAConnection:
         self.last_poll_time: datetime | None = None
 
     def connect(self) -> bool:
-        """Simulate establishing a SCADA connection."""
-        # In production, this would open a real MMS/IEC 61850 connection
+        """Simulate establishing a SCADA connection.
+
+        Returns False when the server/port combination is obviously invalid
+        (empty server, port 0, port > 65535). Otherwise returns True.
+
+        In production this would open a real MMS/IEC 61850 connection and
+        could fail for network reasons.
+        """
+        # Basic validation — without this, SonarCloud S2583 correctly
+        # identifies that `success` is always True and the else-branches
+        # in callers are unreachable.
+        if not self.server or self.port <= 0 or self.port > 65535:
+            self.connected = False
+            return False
         self.connected = True
         return True
 

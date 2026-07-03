@@ -27,7 +27,6 @@ from datetime import datetime, timedelta, timezone
 
 UTC = timezone.utc  # noqa: UP017
 
-UTC = UTC
 from unittest.mock import patch
 
 import jwt

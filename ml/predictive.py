@@ -507,10 +507,9 @@ class FaultPredictor:
         # Initialize SHAP explainer if available
         if self._use_shap and _HAS_SHAP:
             try:
-                if self._use_xgboost:
-                    self._explainer = shap.TreeExplainer(self.model)
-                else:
-                    self._explainer = shap.TreeExplainer(self.model)
+                # TreeExplainer works for both XGBoost and sklearn tree models.
+                # The previous if/else was redundant (SonarCloud S3923).
+                self._explainer = shap.TreeExplainer(self.model)
             except Exception as e:
                 logger.warning("Could not initialize SHAP explainer: %s", e)
 
@@ -663,10 +662,9 @@ class FaultPredictor:
         if not self._is_trained or self.model is None:
             raise RuntimeError("Model has not been trained yet. Call train() first.")
 
-        if self._use_xgboost:
-            importances = self.model.feature_importances_
-        else:
-            importances = self.model.feature_importances_
+        # feature_importances_ exists on both XGBoost and sklearn tree models.
+        # The previous if/else was redundant (SonarCloud S3923).
+        importances = self.model.feature_importances_
 
         n_features = min(len(self.FEATURE_NAMES), len(importances))
         result: dict[str, float] = {}

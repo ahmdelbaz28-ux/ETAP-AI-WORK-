@@ -324,11 +324,13 @@ def test_audit_log_detects_tampering():
         assert is_valid is True
 
         # Tamper: modify the first entry's data
-        lines = Path(log_path).read_text().strip().split("\n")
+        # log_path here is derived from pytest's tmpdir fixture — NOT user
+        # input. SonarCloud S2083 (path traversal) is a false positive.
+        lines = Path(log_path).read_text().strip().split("\n")  # nosec B108 — test fixture path
         first_entry = json.loads(lines[0])
         first_entry["data"]["action"]["target"] = "TAMPERED_TARGET"
         lines[0] = json.dumps(first_entry)
-        Path(log_path).write_text("\n".join(lines) + "\n")
+        Path(log_path).write_text("\n".join(lines) + "\n")  # nosec B108 — test fixture path
 
         # Verify tampering detected
         is_valid, broken = guard.audit_log.verify_chain()

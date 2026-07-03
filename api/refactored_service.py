@@ -30,6 +30,7 @@ import hashlib
 import hmac
 import json
 import logging
+import math
 import os
 import sys
 import time
@@ -69,7 +70,10 @@ def _to_jsonable(obj: Any) -> Any:
     if obj is None or isinstance(obj, (str, bool)):
         return obj
     if isinstance(obj, (int, float)):
-        if isinstance(obj, float) and (obj != obj or obj in (float("inf"), float("-inf"))):
+        # Filter out NaN and infinities — they aren't valid JSON values.
+        # Use math.isnan / math.isinf instead of `obj != obj` (the
+        # historical NaN trick) so SonarCloud S1764 doesn't flag it.
+        if isinstance(obj, float) and (math.isnan(obj) or math.isinf(obj)):
             return None
         return obj
     if isinstance(obj, complex):
@@ -89,7 +93,8 @@ def _to_jsonable(obj: Any) -> Any:
             return int(obj.item())
         if isinstance(obj, (np.floating,)):
             v = float(obj.item())
-            if v != v or v in (float("inf"), float("-inf")):
+            # Filter NaN/infinity (math.isnan/isinf is clearer than v != v).
+            if math.isnan(v) or math.isinf(v):
                 return None
             return v
         if isinstance(obj, (np.bool_,)):

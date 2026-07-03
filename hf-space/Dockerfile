@@ -43,13 +43,12 @@ ENV TORCH_HOME=/tmp/cache
 # default because HF Space secrets are injected at runtime, not build time.
 ENV DATABASE_URL=${DATABASE_URL:-sqlite+aiosqlite:////tmp/data/etap_platform.db}
 
-# JWT secret (set as HF Space secret in production)
-ENV JWT_SECRET_KEY=${JWT_SECRET_KEY:-}
+# Security v2.1.5 (SonarCloud S6472): Secrets (JWT_SECRET_KEY,
+# ENGINEERING_SERVICE_API_KEY) are NOT declared as ENV here — baking them
+# into image layers leaks them via `docker history`. They are injected at
+# RUNTIME via HF Space Secrets, Docker --secret, or Kubernetes Secrets.
 
-# API key (set as HF Space secret in production)
-ENV ENGINEERING_SERVICE_API_KEY=${ENGINEERING_SERVICE_API_KEY:-}
-
-# Environment mode
+# Environment mode (not a secret)
 ENV ENVIRONMENT=${ENVIRONMENT:-production}
 
 # Redis URL (empty = use in-memory fallback)

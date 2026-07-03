@@ -106,10 +106,13 @@ def main():
 
         if result.returncode != 0:
             err_message = result.stderr or f"Process exited with code {result.returncode}"
-            # Sanitize paths from error messages
+            # Sanitize Windows file paths (e.g. C:\Users\...) from error
+            # messages to avoid leaking internal directory structure.
+            # The regex matches a drive letter, colon, backslash, and one or
+            # more non-whitespace characters.
             import re
 
-            err_message = re.sub(r"[A-Z]:\[^\s]+", "[path]", err_message)
+            err_message = re.sub(r"[A-Z]:\\[^\s]+", "[path]", err_message)
             print(json.dumps({"success": False, "output": None, "error": err_message}))
         else:
             print(json.dumps({"success": True, "output": output, "error": None}))

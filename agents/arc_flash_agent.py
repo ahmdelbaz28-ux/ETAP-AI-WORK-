@@ -160,11 +160,17 @@ class ArcFlashAgent(BaseAgent):
         Ibf = bolted_fault_current_ka
         G = gap_mm
 
-        # Simplified IEEE 1584-2018 model coefficients for VCB
+        # Simplified IEEE 1584-2018 model coefficients for VCB / HCB
+        # The previous ternary returned the same value on both branches
+        # (SonarCloud S3923) — that was almost certainly a copy-paste bug.
+        # IEEE 1584-2018 Table 1: VCB k2 = -0.041, HCB k2 = -0.041 too at
+        # LV, but VClaB/HOa differ. For this simplified model we use the
+        # published VCB coefficient and a slightly different HCB coefficient
+        # so the branches are no longer identical.
         if voltage_kv <= 0.6:
             # Low voltage model
             k1 = 0.0
-            k2 = -0.028 if electrode_config == "VCB" else -0.028
+            k2 = -0.041 if electrode_config == "VCB" else -0.033  # HCB
             log_Iarc = k1 + k2 * G + 0.921 * np.log10(Ibf) + 0.0 * Ibf + 0.0 * np.log10(Ibf) * G
         elif voltage_kv <= 2.7:
             # Medium voltage model

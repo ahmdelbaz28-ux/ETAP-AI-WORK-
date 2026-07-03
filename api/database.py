@@ -178,10 +178,10 @@ async def check_db_health() -> dict:
         from sqlalchemy import text
 
         async with async_session() as session:
-            if _IS_POSTGRES:
-                await session.execute(text("SELECT 1"))
-            else:
-                await session.execute(text("SELECT 1"))
+            # "SELECT 1" works on both PostgreSQL and SQLite — no need to
+            # branch on _IS_POSTGRES. (SonarCloud S3923 flagged the
+            # identical-branches if/else as redundant.)
+            await session.execute(text("SELECT 1"))
         return {"status": "healthy", "backend": "postgresql" if _IS_POSTGRES else "sqlite"}
     except Exception as exc:
         logger.error("Database health check failed: %s", exc)

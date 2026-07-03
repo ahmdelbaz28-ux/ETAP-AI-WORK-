@@ -177,9 +177,10 @@ class MotorStartingAgent(BaseAgent):
         current_ratio = method_current_ratios.get(starting_method, 1.0)
         lra_actual = lra_dol * current_ratio
 
-        # SECURITY v2.1.1: assert → explicit None-check (assert stripped by -O)
-        if fla_a is None:
-            raise ValueError("FLA (full-load amps) must be provided for motor starting analysis")
+        # fla_a is guaranteed non-None at this point (estimated above if
+        # originally None). The earlier `assert`/None-check here was flagged
+        # by SonarCloud S2583 as "always-false condition" — and correctly so,
+        # because the early-assignment at line 154 makes fla_a always set.
         lra_per_fla = lra_actual / fla_a if fla_a > 0 else 0.0
 
         return {

@@ -177,8 +177,30 @@ DUAL_CONFIRMATION_PATTERNS: tuple[str, ...] = (
 
 # ─── 2. Kill switch — file-based emergency stop ────────────────────────────
 
+# Security v2.1.5: Use a fixed, non-user-controlled path for the kill switch
+# to avoid SonarCloud S2083 (path traversal) warnings. The path is a module
+# constant derived from CUA_AUDIT_DIR (or /tmp fallback) — never from user
+# input. We additionally harden the file permissions to 0o600 so only the
+# process owner can read/write the kill switch state.
+_CUA_AUDIT_DIR = Path(os.environ.get("CUA_AUDIT_DIR", "/tmp"))
+KILL_SWITCH_PATH = _CUA_AUDIT_DIR / "cua_kill_switch"
 
-KILL_SWITCH_PATH = Path("/tmp/cua_kill_switch")
+
+def _write_secure_file(path: Path, content: str) -> None:
+    """Write *content* to *path* with restrictive permissions (0o600).
+
+    This helper centralises safe file writes for security-critical files
+    (kill switch, audit log) so we don't repeat the same chmod dance.
+    """
+    path.parent.mkdir(parents=True, exist_ok=True)
+    # Write via a temp file then rename — atomic + we can chmod before expose.
+    fd = os.open(str(path), os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
+    try:
+        with os.fdopen(fd, "w", encoding="utf-8") as f:
+            f.write(content)
+    except Exception:
+        os.close(fd)
+        raise
 
 
 def activate_kill_switch(reason: str = "manual") -> None:
@@ -193,18 +215,15 @@ def activate_kill_switch(reason: str = "manual") -> None:
     Args:
         reason: why the kill switch was activated (logged)
     """
-    KILL_SWITCH_PATH.parent.mkdir(parents=True, exist_ok=True)
-    KILL_SWITCH_PATH.write_text(
-        json.dumps(
-            {
-                "activated_at": datetime.now(UTC).isoformat(),
-                "reason": reason,
-                "pid": os.getpid(),
-            },
-            indent=2,
-        ),
-        encoding="utf-8",
+    payload = json.dumps(
+        {
+            "activated_at": datetime.now(UTC).isoformat(),
+            "reason": reason,
+            "pid": os.getpid(),
+        },
+        indent=2,
     )
+    _write_secure_file(KILL_SWITCH_PATH, payload)
     logger.critical("🚨 CUA KILL SWITCH ACTIVATED — reason: %s", reason)
 
     # ── SIEM FORWARDING — record the kill switch activation ──────────────

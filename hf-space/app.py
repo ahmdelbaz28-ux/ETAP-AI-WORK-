@@ -783,10 +783,15 @@ async def detect_anomalies(request: Request):
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 7860))
-    logger.info("Starting server on port %d", port)
+    # Bind to 0.0.0.0 — REQUIRED on Hugging Face Spaces (and most container
+    # platforms). The container's ingress proxy handles the public-facing
+    # interface; binding to 127.0.0.1 would prevent HF Spaces from reaching
+    # the app at all. SonarCloud S8392 flags this, but it's intentional.
+    host = os.environ.get("HOST", "0.0.0.0")
+    logger.info("Starting server on %s:%d", host, port)
     uvicorn.run(
         app,
-        host="0.0.0.0",
+        host=host,
         port=port,
         log_level="info",
         access_log=True,

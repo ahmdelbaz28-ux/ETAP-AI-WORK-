@@ -641,7 +641,9 @@ class GISSyncBridge:
         if gtype == "Point":
             return (coords[0], coords[1])
         if gtype in ("LineString", "MultiPoint"):
-            return (coords[0][0], coords[0][1]) if coords else None
+            # coords is guaranteed non-empty by the early return above
+            # (SonarCloud S2583 flagged the redundant `if coords` check).
+            return (coords[0][0], coords[0][1])
         return None
 
     # ------------------------------------------------------------------
