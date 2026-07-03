@@ -1147,12 +1147,16 @@ def main():
     stats["integrations"] = integrations["total"]
     stats["ui_search_index_entries"] = ui_search_index["total"]
 
+    # Quality v2.1.3: SIM115 — read VERSION via context manager (was leaking fd)
+    _version_str = "unknown"
+    if Path("VERSION").exists():
+        with open("VERSION", encoding="utf-8") as _vf:
+            _version_str = _vf.read().strip()
+
     index = {
         "meta": {
             "project": "AhmedETAP — Power Systems Engineering AI Platform",
-            "version": open("VERSION", encoding="utf-8").read().strip()
-            if Path("VERSION").exists()
-            else "unknown",
+            "version": _version_str,
             "generated_at": datetime.datetime.now(datetime.UTC).isoformat(),
             "indexer_version": "2.0.0",
             "total_api_routes": len(all_routes),

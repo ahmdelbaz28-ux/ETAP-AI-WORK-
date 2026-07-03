@@ -152,10 +152,8 @@ class MotorStartingAgent(BaseAgent):
 
         # Get locked-rotor kVA/hp from NEMA code
         code = nema_code.upper()
-        if code in _NEMA_CODE_LETTERS:
-            lr_kva_per_hp = _NEMA_CODE_LETTERS[code][1]  # Use upper bound
-        else:
-            lr_kva_per_hp = 5.6  # Default to code F
+        # Quality v2.1.3: SIM108 — use ternary instead of if-else for single assignment
+        lr_kva_per_hp = _NEMA_CODE_LETTERS[code][1] if code in _NEMA_CODE_LETTERS else 5.6  # noqa: PLR2004 — default NEMA code F value
 
         # DOL locked-rotor current (from NEMA code)
         lr_kva = lr_kva_per_hp * motor_hp

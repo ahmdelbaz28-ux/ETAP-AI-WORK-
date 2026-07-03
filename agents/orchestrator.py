@@ -242,7 +242,7 @@ class BaseAgent:
             return False
         return not result.validation_errors
 
-    def log_execution(self, message: str, level: str = "INFO"):
+    def log_execution(self, message: str, level: str = "INFO") -> None:
         """Log execution details."""
         entry = {
             "timestamp": datetime.now(UTC).isoformat(),
@@ -1436,7 +1436,7 @@ class ChiefEngineeringOrchestrator:
             "agents": {key: agent.get_agent_info() for key, agent in self.agents.items()},
         }
 
-    async def submit_task(self, task: EngineeringTask):
+    async def submit_task(self, task: EngineeringTask) -> None:
         """Submit engineering task for execution."""
         self.task_queue.append(task)
         self.logger.info("Task submitted: %s - %s", task.task_id, task.description)

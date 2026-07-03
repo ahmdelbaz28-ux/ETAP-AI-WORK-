@@ -68,6 +68,7 @@ class BusSpec(BaseModel):
     @field_validator("bus_type")
     @classmethod
     def validate_bus_type(cls, v: str) -> str:
+        """Normalize and validate a bus type string (slack/pv/pq)."""
         v = v.lower().strip()
         if v not in ("slack", "pv", "pq"):
             raise ValueError("bus_type must be slack, pv, or pq")
@@ -252,6 +253,7 @@ class StudyRequest(BaseModel):
     @field_validator("study_type")
     @classmethod
     def validate_study_type(cls, v: str) -> str:
+        """Normalize and validate a study type string (load_flow/short_circuit/etc)."""
         allowed = {
             "load_flow",
             "short_circuit",
@@ -295,6 +297,7 @@ class StudyResult(BaseModel):
     @model_validator(mode="before")
     @classmethod
     def sync_data_and_results(cls, data: Any) -> Any:
+        """Pydantic validator: coerce arbitrary data into JSON-safe form for storage."""
         if isinstance(data, dict):
             if "data" in data and "results" not in data:
                 data["results"] = data["data"]

@@ -159,10 +159,9 @@ class IEC60909Engine:
         Per IEC 60909, the R/X ratio determines the peak factor kappa.
         """
         z_pos = self.Zbus_pos[bus_index, bus_index]
-        if z_pos.imag != 0:
-            rx_ratio = z_pos.real / abs(z_pos.imag)
-        else:
-            rx_ratio = 10.0  # default high R/X for pure resistance
+        # Quality v2.1.3: SIM108 — ternary for single-assignment if-else
+        # (default high R/X for pure resistance)
+        rx_ratio = z_pos.real / abs(z_pos.imag) if z_pos.imag != 0 else 10.0  # noqa: PLR2004 — IEEE 60909 default R/X ratio
         return rx_ratio
 
     def _calculate_kappa(self, bus_index: int) -> float:

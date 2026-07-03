@@ -397,11 +397,8 @@ class ArcFlashEngine:
 
         # Normalize enclosure_key ONLY for dict lookup
         enc_up = str(enclosure_type).strip().upper()
-        if "OPEN" in enc_up:
-            enclosure_key = EnclosureType.OPEN.value
-        else:
-            # default to BOX for anything else (including "BOX")
-            enclosure_key = EnclosureType.BOX.value
+        # Quality v2.1.3: SIM108 — ternary (default to BOX for anything else)
+        enclosure_key = EnclosureType.OPEN.value if "OPEN" in enc_up else EnclosureType.BOX.value
 
         # Use numeric x exponent (IEEE 1584-2018 coefficients expected to be numeric)
         _, _, _, x_factor = INCIDENT_ENERGY_COEFFICIENTS[electrode_key][enclosure_key]

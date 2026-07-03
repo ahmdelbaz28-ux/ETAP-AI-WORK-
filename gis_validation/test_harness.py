@@ -212,11 +212,9 @@ def production_readiness_gate(
         # adms_output_path comparisons are intentionally not implemented without a
         # concrete ADMS output schema. In production, this must be wired to the real
         # ADMS export format.
-        if adms_output_path:
-            # Comparison schema is not implemented; fail-closed to avoid silent approval.
-            return False
-
-        return True
+        # Quality v2.1.3: SIM103 — return the negated condition directly
+        # (fail-closed: return False when adms_output_path is truthy, True otherwise)
+        return not adms_output_path
 
     # If an ADMS output path is provided without real GIS inputs, fail closed as well.
     if adms_output_path is not None:

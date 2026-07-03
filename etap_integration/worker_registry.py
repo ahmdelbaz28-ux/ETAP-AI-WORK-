@@ -208,7 +208,7 @@ class ETAPWorkerHeartbeat:
         try:
             while not self._stop_event.is_set():
                 await self.register(status="idle")
-                try:
+                try:  # noqa: SIM105 — intentional suppress for cleanup
                     await asyncio.wait_for(self._stop_event.wait(), timeout=self.interval)
                 except TimeoutError:
                     pass  # normal — just heartbeat interval elapsed

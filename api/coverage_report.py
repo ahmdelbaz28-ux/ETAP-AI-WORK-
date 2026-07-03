@@ -802,7 +802,7 @@ async def _main() -> None:
     analyzer = CoverageAnalyzer(project_root=args.project_root)
     report = await analyzer.run()
 
-    out = sys.stdout if args.output == "-" else open(args.output, "w", encoding="utf-8")
+    out = sys.stdout if args.output == "-" else open(args.output, "w", encoding="utf-8")  # noqa: SIM115 — used in try/finally below
 
     try:
         report_dict = report.to_dict()

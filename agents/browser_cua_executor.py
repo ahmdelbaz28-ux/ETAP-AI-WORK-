@@ -352,7 +352,7 @@ class BrowserCUAExecutor:
                         )
                         steps.append(step_result)
                         browser.close()
-                        try:
+                        try:  # noqa: SIM105 — intentional suppress for cleanup
                             checkpoint_store.cleanup(exec_id, keep_last=0)
                         except Exception:  # noqa: BLE001
                             pass
@@ -459,7 +459,7 @@ class BrowserCUAExecutor:
                             duration_ms=int((time.monotonic() - step_start) * 1000),
                         )
                         steps.append(step_result)
-                        try:
+                        try:  # noqa: SIM105 — intentional suppress for cleanup
                             checkpoint_store.save(
                                 execution_id=exec_id,
                                 step_num=step_num,

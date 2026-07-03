@@ -67,6 +67,20 @@ ignore = [
     "SIM102",  # nested if — often clearer than collapsed form
     "SIM117",  # nested with — explicitly separate resource lifetimes
     "SIM105",  # contextlib.suppress — sometimes less clear than try/except/pass
+    # QUALITY v2.1.3: TRY003, EM101, EM102 — these rules require extracting
+    # exception messages into custom exception classes. For a domain-heavy
+    # codebase like ETAP-AI-WORK, the cost (300+ custom exception classes)
+    # outweighs the benefit (slightly cleaner raise statements). We accept
+    # inline exception messages as a deliberate trade-off.
+    "TRY003",  # long messages outside exception class
+    "EM101",   # string literal in exception
+    "EM102",   # f-string in exception
+    # QUALITY v2.1.3: ANN401 (typing.Any disallowed) — many functions in this
+    # codebase accept arbitrary JSON/dict payloads (LLM responses, plugin
+    # configs, external API data). `Any` is the correct type for these cases;
+    # forcing `object` or a TypedDict would require 200+ type definitions for
+    # external schemas we don't control.
+    "ANN401",
     # QUALITY v2.1.1: PLC0415 (import not at top of file) is intentionally
     # allowed for two patterns common in this codebase:
     #   1. Optional dependencies — modules like `jwt`, `hvac`, `redis` are

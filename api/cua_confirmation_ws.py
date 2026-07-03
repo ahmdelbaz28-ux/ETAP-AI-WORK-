@@ -78,6 +78,7 @@ class ConfirmationRequest:
     _result: bool | None = None
 
     def to_dict(self) -> dict[str, Any]:
+        """Serialize the confirmation request to a JSON-encodable dict."""
         return {
             "request_id": self.request_id,
             "action": {
@@ -117,6 +118,7 @@ class ConfirmationBroker:
     # ─── WebSocket client management ──────────────────────────────────────
 
     async def connect(self, websocket: WebSocket) -> None:
+        """Accept a new WebSocket connection and register it for confirmation events."""
         await websocket.accept()
         self._connected_clients.add(websocket)
         logger.info("Confirmation WS client connected (total: %d)", len(self._connected_clients))
@@ -124,12 +126,13 @@ class ConfirmationBroker:
         # Send any pending requests to the new client
         async with self._lock:
             for req in self._pending.values():
-                try:
+                try:  # noqa: SIM105 — intentional suppress for cleanup
                     await websocket.send_json({"type": "pending_request", "data": req.to_dict()})
                 except Exception:  # noqa: BLE001
                     pass
 
     def disconnect(self, websocket: WebSocket) -> None:
+        """Remove a WebSocket connection from the active set."""
         self._connected_clients.discard(websocket)
         logger.info("Confirmation WS client disconnected (total: %d)", len(self._connected_clients))
 
@@ -185,7 +188,7 @@ class ConfirmationBroker:
             )
         except RuntimeError:
             # No event loop running (sync context) — use asyncio.run for broadcast
-            try:
+            try:  # noqa: SIM105 — intentional suppress for cleanup
                 asyncio.run(
                     self._broadcast({"type": "confirmation_request", "data": req.to_dict()}),
                 )
@@ -310,6 +313,7 @@ class ConfirmationBroker:
     # ─── Health / status ─────────────────────────────────────────────────
 
     def health_check(self) -> dict[str, Any]:
+        """Return a health snapshot for the CUA confirmation WebSocket manager."""
         return {
             "connected_clients": len(self._connected_clients),
             "pending_requests": len(self._pending),

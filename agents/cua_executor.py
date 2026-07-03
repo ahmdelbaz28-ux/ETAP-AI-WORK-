@@ -403,7 +403,7 @@ class CUAExecutor:
                 )
                 steps.append(step_result)
                 # Clean up checkpoints on success
-                try:
+                try:  # noqa: SIM105 — intentional suppress for cleanup
                     checkpoint_store.cleanup(exec_id, keep_last=0)
                 except Exception:  # noqa: BLE001
                     pass
@@ -508,7 +508,7 @@ class CUAExecutor:
                 )
                 steps.append(step_result)
                 # Save checkpoint so we can resume after the safety issue is resolved
-                try:
+                try:  # noqa: SIM105 — intentional suppress for cleanup
                     checkpoint_store.save(
                         execution_id=exec_id,
                         step_num=step_num,

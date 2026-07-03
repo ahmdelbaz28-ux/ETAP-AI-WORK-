@@ -130,10 +130,8 @@ class MotorModel:
         p = self.params
         # Locked rotor impedance (simplified)
         Z_lr = complex(p.r_stator, p.x_d_double_prime)
-        if abs(Z_lr) > 0:
-            I_lr = 1.0 / Z_lr  # at rated voltage
-        else:
-            I_lr = complex(0, 0)
+        # Quality v2.1.3: SIM108 — ternary for single-assignment if-else
+        I_lr = 1.0 / Z_lr if abs(Z_lr) > 0 else complex(0, 0)
         return I_lr * self.mva_ratio
 
     def running_current_pu(self) -> complex:

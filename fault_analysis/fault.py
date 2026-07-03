@@ -186,12 +186,10 @@ class FaultAnalyzer:
         Z1 = self._z(bus_index, "pos")
         Z2 = self._z(bus_index, "neg")
         Z0 = self._z(bus_index, "zero")
-        if abs(Z2 + Z0) > 1e-12:
-            Z20 = (Z2 * Z0) / (Z2 + Z0)
-        else:
-            # When both Z2 and Z0 are near zero, their parallel is also
-            # near zero — this is a short circuit, not an open circuit.
-            Z20 = complex(0, 0)
+        # Quality v2.1.3: SIM108 — ternary for single-assignment if-else.
+        # When both Z2 and Z0 are near zero, their parallel is also near zero
+        # — this is a short circuit, not an open circuit.
+        Z20 = (Z2 * Z0) / (Z2 + Z0) if abs(Z2 + Z0) > 1e-12 else complex(0, 0)
         If1 = Vpre / (Z1 + Z20)
         If0 = -If1 * (Z2 / (Z2 + Z0)) if abs(Z2 + Z0) > 1e-12 else complex(0, 0)
         If2 = -If1 - If0

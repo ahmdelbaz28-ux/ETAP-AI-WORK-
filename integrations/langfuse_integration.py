@@ -363,7 +363,7 @@ langfuse_tracker = LangfuseTracker()
 
 def _atexit_flush() -> None:
     """Flush Langfuse events on interpreter shutdown."""
-    try:
+    try:  # noqa: SIM105 — intentional suppress for cleanup
         langfuse_tracker.flush()
     except Exception:
         # atexit handlers must never raise

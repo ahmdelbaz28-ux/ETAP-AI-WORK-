@@ -217,7 +217,7 @@ async def init_db() -> None:
     import api.projects  # noqa: F401  — registers Project & StudyResult models
 
     # StudyJob table for persistent task queue
-    try:
+    try:  # noqa: SIM105 — intentional suppress for cleanup
         from core import models as _models  # noqa: F401
     except ImportError:
         pass

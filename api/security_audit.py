@@ -1191,7 +1191,7 @@ async def _main() -> None:
     auditor = SecurityAuditor(project_root=args.project_root)
     report = await auditor.run()
 
-    out = sys.stdout if args.output == "-" else open(args.output, "w", encoding="utf-8")
+    out = sys.stdout if args.output == "-" else open(args.output, "w", encoding="utf-8")  # noqa: SIM115 — used in try/finally below
 
     try:
         if not args.json_only:

@@ -87,8 +87,8 @@ class ArcGISProvider(GISProviderInterface):
 
             # Fallback cursor approach: attempt to iterate without strict schema.
             cursor = arcpy.da.SearchCursor(layer_id, ["OID@", "SHAPE@"])  # type: ignore
-            idx = 0
-            for row in cursor:
+            # Quality v2.1.3: SIM113 — use enumerate instead of manual idx counter
+            for idx, row in enumerate(cursor):
                 oid = row[0]
                 geom = row[1]
                 # Convert geometry to GeoJSON-like dict via arcpy geometry JSON (if available).
@@ -112,7 +112,6 @@ class ArcGISProvider(GISProviderInterface):
                     crs=self._crs.crs,
                 )
                 yield feature
-                idx += 1
         except GISDataExtractionError:
             raise
         except Exception as exc:
