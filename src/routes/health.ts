@@ -3,9 +3,9 @@
  */
 import type { Env, ExecutionContext } from '../core/types.js';
 import { jsonResponse, corsHeaders } from '../utils/response.js';
-import { listConfiguredProviders, getProviderLatency } from '../core/providers.js';
+import { listConfiguredProviders } from '../core/providers.js';
 import { getAllCircuitHealth } from '../core/circuitBreaker.js';
-import { composeMetrics, getApiMetrics, getPerKeyMetrics, getPerRouteMetrics, getTaskCount } from '../utils/metrics.js';
+import { composeMetrics } from '../utils/metrics.js';
 import { getAuditBufferLength } from '../utils/audit.js';
 import { checkEngineeringServiceHealth } from '../core/engineeringService.js';
 

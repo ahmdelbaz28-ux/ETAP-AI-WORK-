@@ -236,9 +236,13 @@ async function runChaosTest() {  // NOSONAR — S3776: cognitive complexity; sch
   console.log('╚══════════════════════════════════════════════════════════════════╝');
 
   const report = { timestamp: new Date().toISOString(), target: DEPLOYED_URL, results, overallSurvived: totalSurvived, totalScenarios };
-  const fs = await import('fs/promises');
+  const fs = await import('node:fs/promises');
   await fs.writeFile('tests/chaos/chaos-test-report.json', JSON.stringify(report, null, 2));
   console.log('\n📄 Report saved to: tests/chaos/chaos-test-report.json');
 }
 
-runChaosTest().catch(console.error);
+try {
+  await runChaosTest()
+} catch (e) {
+  console.error(e);
+}

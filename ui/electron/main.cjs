@@ -1,5 +1,5 @@
 const { app, BrowserWindow, Menu, Tray, nativeImage, ipcMain, dialog, shell, screen } = require('electron')
-const path = require('path')
+const path = require('node:path')
 
 let mainWindow = null
 let tray = null

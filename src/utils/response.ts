@@ -2,7 +2,6 @@
  * Response helpers: JSON responses, CORS, request size guard.
  */
 import { CONFIG } from '../core/config.js';
-import type { ApiKeyScope } from '../core/config.js';
 
 export type Json = Record<string, unknown>;
 
@@ -45,7 +44,7 @@ export function errorResponse(status: number, message: string, traceId: string, 
 export async function checkBodySize(request: Request): Promise<Response | null> {
   const contentLength = request.headers.get('content-length');
   if (contentLength) {
-    const n = parseInt(contentLength, 10);
+    const n = Number.parseInt(contentLength, 10);
     if (!Number.isNaN(n) && n > CONFIG.MAX_BODY_SIZE) {
       return errorResponse(413, `Request body exceeds maximum size of ${CONFIG.MAX_BODY_SIZE} bytes`, crypto.randomUUID());
     }

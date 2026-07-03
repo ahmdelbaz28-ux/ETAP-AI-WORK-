@@ -60,8 +60,8 @@ done
 command -v docker >/dev/null 2>&1 || { echo "Error: docker is not installed"; exit 1; }
 
 if [[ ! -f "${ENV_FILE}" ]]; then
-  echo "Error: Environment file not found: ${ENV_FILE}"
-  echo "Create it from .env.example: cp .env.example ${ENV_FILE}"
+  echo "Error: Environment file not found: ${ENV_FILE}" >&2
+  echo "Create it from .env.example: cp .env.example ${ENV_FILE}" >&2
   exit 1
 fi
 

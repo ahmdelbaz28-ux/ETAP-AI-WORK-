@@ -27,7 +27,7 @@ try:
         )
 
         _HAS_KNOWLEDGE_DEPS = True
-except (ImportError, ModuleNotFoundError, RuntimeError, Exception):
+except (ImportError, ModuleNotFoundError, RuntimeError):
     _HAS_KNOWLEDGE_DEPS = False
 
 pytestmark = pytest.mark.skipif(

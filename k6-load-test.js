@@ -20,7 +20,7 @@ const failedStudyRequests = new Counter('study_requests_failed');
 // ─── Configuration ───────────────────────────────────────────────────────────
 
 const BASE_URL = __ENV.BASE_URL || 'http://localhost:8000';
-const K6_VUS = parseInt(__ENV.K6_VUS || '100', 10);
+const K6_VUS = Number.parseInt(__ENV.K6_VUS || '100', 10);
 const K6_DURATION = __ENV.K6_DURATION || '2m';
 
 const API_HEADERS = {
@@ -32,11 +32,11 @@ const API_HEADERS = {
 
 const STUDY_TYPES = ['load_flow', 'short_circuit', 'arc_flash', 'protection_coordination'];
 const SAMPLE_SYSTEM = {
-  base_mva: 100.0,
+  base_mva: 100,
   buses: [
-    { bus_id: 1, voltage_magnitude: 1.05, bus_type: 'slack', base_kv: 138.0, generation_power_real: 0, generation_power_imag: 0 },
-    { bus_id: 2, voltage_magnitude: 1.0, bus_type: 'pq', base_kv: 13.8, load_power_real: 50, load_power_imag: 20 },
-    { bus_id: 3, voltage_magnitude: 1.0, bus_type: 'pv', base_kv: 4.16, generation_power_real: 30, voltage_setpoint: 1.02 },
+    { bus_id: 1, voltage_magnitude: 1.05, bus_type: 'slack', base_kv: 138, generation_power_real: 0, generation_power_imag: 0 },
+    { bus_id: 2, voltage_magnitude: 1, bus_type: 'pq', base_kv: 13.8, load_power_real: 50, load_power_imag: 20 },
+    { bus_id: 3, voltage_magnitude: 1, bus_type: 'pv', base_kv: 4.16, generation_power_real: 30, voltage_setpoint: 1.02 },
   ],
   lines: [
     { line_id: 1, from_bus_id: 1, to_bus_id: 2, r1: 0.01, x1: 0.05, bshunt1: 0.02 },
@@ -237,7 +237,7 @@ export function studyScenario() {
         parameters: {
           upstream_relay_id: 1,
           downstream_relay_id: 2,
-          fault_currents: [2.0, 5.0, 10.0, 20.0],
+          fault_currents: [2, 5, 10, 20],
         },
       });
     }

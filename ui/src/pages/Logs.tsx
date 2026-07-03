@@ -171,11 +171,11 @@ export default function Logs() {
                 <EmptyState
                   icon={<Terminal className="w-10 h-10" />}
                   title="No logs found"
-                  description={filter !== 'all' ? `No ${filter} level log entries` : 'No log data available'}
+                  description={filter === 'all' ? 'No log data available' : `No ${filter} level log entries`}
                   action={
-                    filter !== 'all' ? (
+                    filter === 'all' ? undefined : (
                       <Button variant="ghost" size="sm" onClick={() => setFilter('all')}>Clear filter</Button>
-                    ) : undefined
+                    )
                   }
                 />
               </div>

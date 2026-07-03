@@ -92,8 +92,8 @@ export default function DataExport() {
             icon={<Clock className="w-4 h-4" />}
           />
           <div className="space-y-3">
-            {recentExports.map((file, i) => (
-              <div key={i} className="flex items-center justify-between p-3 bg-[var(--bg-primary)] rounded-lg border border-[var(--border-primary)]">  // NOSONAR — S6479: array index as key; items lack stable IDs (tech debt)
+            {recentExports.map((file) => (
+              <div key={file.name} className="flex items-center justify-between p-3 bg-[var(--bg-primary)] rounded-lg border border-[var(--border-primary)]">
                 <div className="flex items-center gap-3">
                   <div className="p-1.5 rounded-md bg-brand-500/10">
                     <HardDrive className="w-3.5 h-3.5 text-brand-400" />

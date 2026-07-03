@@ -174,9 +174,13 @@ async function runStressTest() {
   console.log('╚══════════════════════════════════════════════════════════════════╝');
 
   const report = { timestamp: new Date().toISOString(), target: DEPLOYED_URL, results };
-  const fs = await import('fs/promises');
+  const fs = await import('node:fs/promises');
   await fs.writeFile('tests/stress/stress-test-report.json', JSON.stringify(report, null, 2));
   console.log('\n📄 Report saved to: tests/stress/stress-test-report.json');
 }
 
-runStressTest().catch(console.error);
+try {
+  await runStressTest()
+} catch (e) {
+  console.error(e);
+}

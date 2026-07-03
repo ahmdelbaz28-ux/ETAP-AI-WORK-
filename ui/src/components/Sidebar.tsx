@@ -76,11 +76,11 @@ export function Sidebar() {  // NOSONAR — S3776: cognitive complexity; schedul
   const groupedItems: Record<string, NavItem[]> = {}
   const topLevel: NavItem[] = []
   navItems.forEach(item => {
-    if (!item.section) {
-      topLevel.push(item)
-    } else {
+    if (item.section) {
       if (!groupedItems[item.section]) groupedItems[item.section] = []
       groupedItems[item.section].push(item)
+    } else {
+      topLevel.push(item)
     }
   })
 

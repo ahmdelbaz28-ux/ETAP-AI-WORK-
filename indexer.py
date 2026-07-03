@@ -523,7 +523,7 @@ def scan_env_variables() -> dict:  # NOSONAR — S3776: cognitive complexity; sc
             if not line or line.startswith("#"):
                 # Capture section headers (lines of # === Text ===)
                 if line.startswith("# ===") and "===" in line[5:]:
-                    section_match = re.search(r"#\s*=+\s*(.+?)\s*=", line)
+                    section_match = re.search(r"#\s*=+\s*([^=]+?)\s*=", line)
                     if section_match:
                         current_section = section_match.group(1).strip()
                 continue
@@ -603,7 +603,7 @@ def scan_scripts() -> dict:  # NOSONAR — S3776: cognitive complexity; schedule
                     if m:
                         desc = m.group(1).strip().split("\n")[0][:120]
                 elif fname.endswith((".sh", ".mjs", ".js")):
-                    m = re.search(r"^#\s*(.+?)$", content, re.MULTILINE)
+                    m = re.search(r"^#\s*(.+)$", content, re.MULTILINE)
                     if m:
                         desc = m.group(1).strip()[:120]
             except Exception:
@@ -643,7 +643,7 @@ def scan_ai_agents() -> dict:
         desc = doc.split("\n\n")[0].strip()[:200] if doc else ""
 
         # Look for standard identifiers in the docstring (ETAP, IEEE, IEC)
-        standards = re.findall(r"(IEEE\s*\d+(?:\.\d+)*|IEC\s*\d+(?:-\d+)*(?:-\d+)?)", doc)
+        standards = re.findall(r"((?:IEEE|IEC)\s*\d+(?:[.-]\d+)*)", doc)
 
         agents[fname] = {
             "file": rel,

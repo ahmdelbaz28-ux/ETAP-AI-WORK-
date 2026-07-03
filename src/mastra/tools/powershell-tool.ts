@@ -1,5 +1,5 @@
 import { createTool } from '@mastra/core/tools';
-import { spawn } from 'child_process';
+import { spawn } from 'node:child_process';
 import { z } from 'zod';
 
 const POWERSHELL_TIMEOUT_MS = 30000; // 30 second timeout
@@ -57,7 +57,7 @@ export const run_powershell = createTool({
             reject(new Error(response.error || 'Execution failed without specific error message'));
           }
         } catch (parseError) {
-          reject(new Error(`Failed to parse executor response: ${stdout}`));
+          reject(new Error(`Failed to parse executor response: ${stdout}${parseError instanceof Error ? ` (${parseError.message})` : ''}`));
         }
       });
 

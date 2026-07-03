@@ -437,7 +437,7 @@ def benchmark_5_study_latency() -> Dict[str, Any]:
             lf_latencies.append(time.perf_counter() - t0)
 
             # Fault analysis
-            fault_bus = list(sys_model.buses.keys())[0]
+            fault_bus = next(iter(sys_model.buses.keys()))
             t0 = time.perf_counter()
             engine.run_fault_analysis("three_phase", fault_bus)
             fault_latencies.append(time.perf_counter() - t0)

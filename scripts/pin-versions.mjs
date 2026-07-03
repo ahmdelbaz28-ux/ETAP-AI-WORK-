@@ -1,4 +1,4 @@
-import { readFileSync, writeFileSync } from 'fs';
+import { readFileSync, writeFileSync } from 'node:fs';
 
 // Read lockfile
 const lock = readFileSync('pnpm-lock.yaml', 'utf-8');

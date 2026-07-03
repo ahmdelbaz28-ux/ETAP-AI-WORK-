@@ -10,45 +10,33 @@ import pytest
 
 def test_main_imports_correctly():
     """Test that the main module can be imported without errors."""
-    try:
-        import engineering_service
+    import engineering_service
 
-        assert hasattr(engineering_service, "main")
-    except ImportError as e:
-        pytest.fail(f"Failed to import engineering_service: {e}")
+    assert hasattr(engineering_service, "main")
 
 
 def test_core_bootstrap_imports():
     """Test that core bootstrap module imports correctly."""
-    try:
-        from core.bootstrap import lifespan, logger
+    from core.bootstrap import lifespan, logger
 
-        assert logger is not None
-        assert lifespan is not None
-    except ImportError as e:
-        pytest.fail(f"Failed to import from core.bootstrap: {e}")
+    assert logger is not None
+    assert lifespan is not None
 
 
 def test_services_imports():
     """Test that service modules import correctly."""
-    try:
-        from services.cache_service import get_study_cache
-        from services.study_service import execute_study_logic
+    from services.cache_service import get_study_cache
+    from services.study_service import execute_study_logic
 
-        assert execute_study_logic is not None
-        assert get_study_cache is not None
-    except ImportError as e:
-        pytest.fail(f"Failed to import from services: {e}")
+    assert execute_study_logic is not None
+    assert get_study_cache is not None
 
 
 def test_api_routes_imports():
     """Test that API routes module imports correctly."""
-    try:
-        from api.routes import app
+    from api.routes import app
 
-        assert app is not None
-    except ImportError as e:
-        pytest.fail(f"Failed to import from api.routes: {e}")
+    assert app is not None
 
 
 def test_etap_adapter_imports():

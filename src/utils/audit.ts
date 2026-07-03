@@ -39,7 +39,7 @@ export function recordAudit(entry: AuditLogEntry): void {
   // (ctx.waitUntil(flushAuditLog)) still sends entries to KV; this
   // guard just prevents an OOM from a flood of rapid audit events.
   if (_auditBuffer.length >= CONFIG.AUDIT_FLUSH_THRESHOLD * 2) {
-    const overflow = _auditBuffer.splice(0, CONFIG.AUDIT_FLUSH_THRESHOLD);
+    _auditBuffer.splice(0, CONFIG.AUDIT_FLUSH_THRESHOLD);
     _lastFlush = Date.now();
     // overflow entries are dropped — this is bounded loss (at most
     // AUDIT_FLUSH_THRESHOLD entries) and only happens under extreme load

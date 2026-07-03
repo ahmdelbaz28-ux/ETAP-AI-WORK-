@@ -224,7 +224,14 @@ export function SmartHelpDrawer({ open, onClose, initialContextId }: SmartHelpDr
 
   return (
     <div className="fixed inset-0 z-[100] flex justify-end">
-      <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} />  // NOSONAR — S6848: non-interactive DOM role; intentional
+      <div
+        className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+        role="button"
+        tabIndex={0}
+        aria-label="Close help drawer"
+        onClick={onClose}
+        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') onClose() }}
+      />
 
       <div className={cn(
         'relative z-[101] w-full max-w-lg h-full',

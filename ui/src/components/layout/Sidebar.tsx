@@ -76,11 +76,11 @@ export function Sidebar() {
   const groupedItems: Record<string, NavItem[]> = {}
   const topLevel: NavItem[] = []
   navItems.forEach(item => {
-    if (!item.section) {
-      topLevel.push(item)
-    } else {
+    if (item.section) {
       if (!groupedItems[item.section]) groupedItems[item.section] = []
       groupedItems[item.section].push(item)
+    } else {
+      topLevel.push(item)
     }
   })
 
@@ -164,7 +164,7 @@ export function Sidebar() {
       {/* Bottom Section */}
       <div className="p-2 border-t border-[var(--border-primary)] space-y-1">
         <div className={cn('flex items-center gap-3 px-3 py-1.5', sidebarCollapsed && 'justify-center px-0')}>
-          <StatusIndicator status={healthStatus === 'checking' ? 'loading' : healthStatus === 'online' ? 'online' : 'offline'} size="sm" showLabel={!sidebarCollapsed} />  // NOSONAR — S3358: nested ternary; refactor to named variable (tech debt)
+          <StatusIndicator status={healthStatus === 'checking' ? 'loading' : healthStatus === 'online' ? 'online' : 'offline'} size="sm" showLabel={!sidebarCollapsed} />
         </div>
 
         <button

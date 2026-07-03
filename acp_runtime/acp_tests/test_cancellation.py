@@ -95,7 +95,6 @@ async def test_handler_that_ignores_cancellation_still_bails():
             except BaseException as inner_exc:
                 if isinstance(inner_exc, (SystemExit, KeyboardInterrupt)):
                     raise
-                pass
 
     with pytest.raises(DeadlineExceeded):  # NOSONAR — S5778: multi-call pytest.raises; refactor to extract setup outside raises block (tech debt)
         await enforce_deadline_ms(rogue_handler(), deadline_ms=30)
@@ -121,10 +120,6 @@ async def test_cancellable_with_deadline_fires():
 
 @pytest.mark.anyio
 async def test_cancellable_without_deadline_requires_external_cancel():
-    async def block():
-        await anyio.sleep(2.0)
-        return "should not return"
-
     async with anyio.create_task_group() as tg:
         runner_scope = None
 
@@ -138,8 +133,10 @@ async def test_cancellable_without_deadline_requires_external_cancel():
         await anyio.sleep(0.02)
         assert runner_scope is not None  # NOSONAR — S5727: Sonar can't track nonlocal assignment in async closure; this check verifies the cancellable() context actually started
         runner_scope.cancel()
+        # Give the cancellation scope time to propagate; move_on_after ensures
+        # we don't hang indefinitely if cancellation is broken.
         with anyio.move_on_after(0.5):
-            pass
+            await anyio.sleep(0.4)
 
 
 # --------------------------------------------------- is_cancelled_exception

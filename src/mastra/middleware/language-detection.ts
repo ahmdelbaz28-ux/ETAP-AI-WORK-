@@ -14,7 +14,7 @@ type AgentContext = {
   messages?: unknown;
   [key: string]: unknown;
 };
-type NextFunction = () => Promise<unknown> | unknown;
+type NextFunction = () => Promise<unknown>;
 
 // ===========================================================================
 // Configuration

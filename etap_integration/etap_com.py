@@ -1171,7 +1171,7 @@ class ETAPAutomation:
         Sanitized project name safe for file system and ETAP
         """
         sanitized = ETAPAutomation._sanitize_string_input(name, max_length=256)
-        sanitized = re.sub(r"[^a-zA-Z0-9_]", "_", sanitized)
+        sanitized = re.sub(r"[^\w]", "_", sanitized)
         if not sanitized:
             raise ValueError("Project name is empty after sanitization")
         return sanitized
@@ -1265,7 +1265,7 @@ class ETAPAutomation:
             return False
 
         # Detect UNC paths cross-platform (Windows \\server\share or //server/share)
-        if file_path.startswith("\\\\") or file_path.startswith("//"):
+        if file_path.startswith(("\\\\", "//")):
             logger.warning("UNC path not allowed (SMB relay risk): %s", file_path)  # NOSONAR — S5145: logging injection; user input is sanitized upstream
             return False
 

@@ -64,10 +64,11 @@ export default function Register() {
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-xs font-medium text-[var(--text-secondary)] mb-1.5">Full Name</label>  // NOSONAR — S6853: label/control association; needs htmlFor/id wiring (tech debt)
+            <label htmlFor="register-name" className="block text-xs font-medium text-[var(--text-secondary)] mb-1.5">Full Name</label>
             <div className="relative">
               <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)]" />
               <input
+                id="register-name"
                 type="text"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
@@ -79,10 +80,11 @@ export default function Register() {
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-[var(--text-secondary)] mb-1.5">Email Address</label>  // NOSONAR — S6853: label/control association; needs htmlFor/id wiring (tech debt)
+            <label htmlFor="register-email" className="block text-xs font-medium text-[var(--text-secondary)] mb-1.5">Email Address</label>
             <div className="relative">
               <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)]" />
               <input
+                id="register-email"
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -94,10 +96,11 @@ export default function Register() {
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-[var(--text-secondary)] mb-1.5">Password</label>  // NOSONAR — S6853: label/control association; needs htmlFor/id wiring (tech debt)
+            <label htmlFor="register-password" className="block text-xs font-medium text-[var(--text-secondary)] mb-1.5">Password</label>
             <div className="relative">
               <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)]" />
               <input
+                id="register-password"
                 type={showPassword ? 'text' : 'password'}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
@@ -116,10 +119,11 @@ export default function Register() {
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-[var(--text-secondary)] mb-1.5">Confirm Password</label>  // NOSONAR — S6853: label/control association; needs htmlFor/id wiring (tech debt)
+            <label htmlFor="register-confirm-password" className="block text-xs font-medium text-[var(--text-secondary)] mb-1.5">Confirm Password</label>
             <div className="relative">
               <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)]" />
               <input
+                id="register-confirm-password"
                 type={showPassword ? 'text' : 'password'}
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}

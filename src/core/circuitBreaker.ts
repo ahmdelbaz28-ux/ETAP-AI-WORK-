@@ -56,7 +56,7 @@ export async function loadCircuitBreakers(env: Env): Promise<void> {
     for (const key of list.keys) {
       const raw = await env.METRICS_KV.get(key.name, { type: 'json' }) as BreakerState | null;
       if (raw) {
-        const name = key.name.replace('circuit:', '');
+        const name = key.name.replaceAll('circuit:', '');
         _breakers.set(name, raw);
       }
     }

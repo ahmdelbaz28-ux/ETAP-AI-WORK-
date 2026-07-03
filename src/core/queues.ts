@@ -57,7 +57,7 @@ export async function handleStudyQueueMessage(
     createdAt: Date.now(),
     startedAt: Date.now(),
     completedAt: undefined as number | undefined,
-    result: undefined as unknown | undefined,
+    result: undefined as unknown,
   };
   await setTask(env, taskId, task);
 

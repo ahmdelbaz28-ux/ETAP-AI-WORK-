@@ -81,10 +81,10 @@ async function runConcurrentBatch(concurrency: number, endpoint: string, method:
 
   const avgLatencyMs = latencies.length > 0 ? Math.round(latencies.reduce((a, b) => a + b, 0) / latencies.length) : 0;
   const p50LatencyMs = latencies.length > 0 ? latencies[Math.floor(latencies.length * 0.5)] : 0;
-  const p95LatencyMs = latencies.length > 0 ? latencies[Math.floor(latencies.length * 0.95)] || latencies[latencies.length - 1] : 0;
-  const p99LatencyMs = latencies.length > 0 ? latencies[Math.floor(latencies.length * 0.99)] || latencies[latencies.length - 1] : 0;
-  const minLatencyMs = latencies.length > 0 ? latencies[0] : 0;
-  const maxLatencyMs = latencies.length > 0 ? latencies[latencies.length - 1] : 0;
+  const p95LatencyMs = latencies.length > 0 ? latencies[Math.floor(latencies.length * 0.95)] ?? latencies.at(-1) ?? 0 : 0;
+  const p99LatencyMs = latencies.length > 0 ? latencies[Math.floor(latencies.length * 0.99)] ?? latencies.at(-1) ?? 0 : 0;
+  const minLatencyMs = latencies.length > 0 ? latencies.at(0) ?? 0 : 0;
+  const maxLatencyMs = latencies.length > 0 ? latencies.at(-1) ?? 0 : 0;
   const throughputRps = totalDurationMs > 0 ? Math.round((totalRequests / totalDurationMs) * 1000) : 0;
   const errors = results.filter(r => r.error).map(r => r.error!).slice(0, 5);
 
@@ -159,9 +159,13 @@ async function runLoadTest() {
     target: DEPLOYED_URL,
     results,
   };
-  const fs = await import('fs/promises');
+  const fs = await import('node:fs/promises');
   await fs.writeFile('tests/load/load-test-report.json', JSON.stringify(report, null, 2));
   console.log('\n📄 Report saved to: tests/load/load-test-report.json');
 }
 
-runLoadTest().catch(console.error);
+try {
+  await runLoadTest()
+} catch (e) {
+  console.error(e);
+}

@@ -55,7 +55,7 @@ function getConfig(): HealthCheckConfig {
   return {
     apiUrl: process.env.HEALTH_CHECK_API_URL?.replace(/\/$/, ''),
     apiKey: process.env.HEALTH_CHECK_API_KEY,
-    timeoutMs: parseInt(process.env.HEALTH_CHECK_TIMEOUT_MS || '10000', 10),
+    timeoutMs: Number.parseInt(process.env.HEALTH_CHECK_TIMEOUT_MS || '10000', 10),
   };
 }
 
@@ -147,7 +147,7 @@ async function runDailyChecks(config: HealthCheckConfig): Promise<CheckResult[]>
       name: 'Health endpoint responsive',
       category: 'daily',
       status,
-      message: status === 'pass' ? `Health OK (${res.latencyMs}ms)` : `Health check failed: ${res.body?.error || res.status}`,
+      message: status === 'pass' ? `Health OK (${res.latencyMs}ms)` : `Health check failed: ${res.body?.error ?? res.status}`,
       latencyMs: res.latencyMs,
       details: { statusCode: res.status, body: res.body },
     });
@@ -161,7 +161,7 @@ async function runDailyChecks(config: HealthCheckConfig): Promise<CheckResult[]>
       name: 'Metrics endpoint accessible',
       category: 'daily',
       status,
-      message: status === 'pass' ? `Metrics accessible (${res.latencyMs}ms)` : `Metrics endpoint issue: ${res.body?.error || res.status}`,
+      message: status === 'pass' ? `Metrics accessible (${res.latencyMs}ms)` : `Metrics endpoint issue: ${res.body?.error ?? res.status}`,
       latencyMs: res.latencyMs,
       details: { statusCode: res.status, hasApiMetrics: !!res.body?.metrics?.api },
     });
@@ -175,7 +175,7 @@ async function runDailyChecks(config: HealthCheckConfig): Promise<CheckResult[]>
       name: 'Authenticated API (agents list)',
       category: 'daily',
       status,
-      message: status === 'pass' ? `Agents list OK — ${res.body?.agents?.length || 0} agents (${res.latencyMs}ms)` : `Agents list failed: ${res.body?.error || res.status}`,
+      message: status === 'pass' ? `Agents list OK — ${res.body?.agents?.length || 0} agents (${res.latencyMs}ms)` : `Agents list failed: ${res.body?.error ?? res.status}`,
       latencyMs: res.latencyMs,
       details: { statusCode: res.status, agentCount: res.body?.agents?.length },
     });
@@ -205,7 +205,7 @@ async function runDailyChecks(config: HealthCheckConfig): Promise<CheckResult[]>
       name: 'LLM provider health',
       category: 'daily',
       status,
-      message: status === 'pass' ? `${healthyProviders.length}/${providers.length} providers healthy (${res.latencyMs}ms)` : `Provider health issue: ${res.body?.error || res.status}`,
+      message: status === 'pass' ? `${healthyProviders.length}/${providers.length} providers healthy (${res.latencyMs}ms)` : `Provider health issue: ${res.body?.error ?? res.status}`,
       latencyMs: res.latencyMs,
       details: { statusCode: res.status, providers: providers.map((p: any) => ({ id: p.id, healthy: p.healthy })) },
     });
@@ -219,7 +219,7 @@ async function runDailyChecks(config: HealthCheckConfig): Promise<CheckResult[]>
       name: 'Audit logging operational',
       category: 'daily',
       status,
-      message: status === 'pass' ? `Audit logs accessible — ${res.body?.logs?.length || 0} entries (${res.latencyMs}ms)` : `Audit logs issue: ${res.body?.error || res.status}`,
+      message: status === 'pass' ? `Audit logs accessible — ${res.body?.logs?.length || 0} entries (${res.latencyMs}ms)` : `Audit logs issue: ${res.body?.error ?? res.status}`,
       latencyMs: res.latencyMs,
       details: { statusCode: res.status, logCount: res.body?.logs?.length },
     });
@@ -384,19 +384,17 @@ async function runMonthlyChecks(config: HealthCheckConfig): Promise<CheckResult[
 
   // 1. Full capacity planning review — simulate a study run
   {
-    const start = Date.now();
     const res = await httpPost('/api/v1/studies/run', config, {
       studyType: 'load_flow',
       parameters: { base_mva: 100, test: true },
       dryRun: true,
     }, { 'x-api-key': config.apiKey });
-    const end = Date.now();
     const status: CheckResult['status'] = res.ok ? 'pass' : 'warn';
     results.push({
       name: 'Study execution capacity test',
       category: 'monthly',
       status,
-      message: res.ok ? `Study queued successfully (${res.latencyMs}ms)` : `Study execution issue: ${res.body?.error || res.status}`,
+      message: res.ok ? `Study queued successfully (${res.latencyMs}ms)` : `Study execution issue: ${res.body?.error ?? res.status}`,
       latencyMs: res.latencyMs,
       details: { statusCode: res.status, taskId: res.body?.taskId },
     });
@@ -412,7 +410,7 @@ async function runMonthlyChecks(config: HealthCheckConfig): Promise<CheckResult[
     }
     const sorted = latencies.sort((a, b) => a - b);
     const p95Index = Math.min(Math.floor(sorted.length * 0.95), sorted.length - 1);
-    const p95 = Math.ceil(sorted[p95Index] || sorted[sorted.length - 1] || 0);
+    const p95 = Math.ceil(sorted.at(p95Index) ?? sorted.at(-1) ?? 0);
     const status: CheckResult['status'] = p95 < 2000 ? 'pass' : p95 < 5000 ? 'warn' : 'fail';  // NOSONAR — S3358: nested ternary; refactor to named variable (tech debt)
     results.push({
       name: 'SLA/SLO latency compliance (p95)',
@@ -652,7 +650,7 @@ Environment:
   }
 
   // Write report to file for CI artifacts
-  const fs = await import('fs');
+  const fs = await import('node:fs');
   const reportPath = 'health-check-report.json';
   fs.writeFileSync(reportPath, JSON.stringify(report, null, 2));
   console.log(`\nReport saved to: ${reportPath}`);
@@ -665,7 +663,9 @@ Environment:
   process.exit(0);
 }
 
-main().catch((e) => {
-  console.error('Health check failed:', e);
+try {
+  await main()
+} catch (e: unknown) {
+  console.error('Health check failed:', e instanceof Error ? e.message : String(e));
   process.exit(2);
-});
+}

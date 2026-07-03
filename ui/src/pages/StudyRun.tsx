@@ -112,7 +112,7 @@ function ResultSummary({ result }: { result: Record<string, unknown> }) {  // NO
       <div className="bg-[var(--bg-primary)] rounded-lg p-3 text-center border border-[var(--border-primary)]">
         <Clock className="w-4 h-4 text-[var(--color-engine-impedance)] mx-auto mb-1" />
         <p className="text-lg font-bold text-[var(--text-primary)] mono-engineering">
-          {result.duration_ms ? `${result.duration_ms}ms` : 'N/A'}
+          {result.duration_ms ? `${Number(result.duration_ms)}ms` : 'N/A'}
         </p>
         <p className="text-[10px] text-[var(--text-muted)]">Duration</p>
       </div>
@@ -209,7 +209,7 @@ export default function StudyRun() {
               {category.params.map(p => (
                 <div key={p.name}>
                   <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1.5 capitalize">
-                    {p.label || p.name.replace(/_/g, ' ')}
+                    {p.label || p.name.replaceAll('_', ' ')}
                   </label>
                   {p.type === 'select' ? (
                     <select name={p.name} defaultValue={p.default}

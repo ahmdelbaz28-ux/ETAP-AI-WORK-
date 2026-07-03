@@ -82,7 +82,7 @@ describe('AIAssistant', () => {
     const select = screen.getByRole('combobox')
     expect(select).toBeTruthy()
     const options = select.querySelectorAll('option')
-    expect(options.length).toBe(2)
+    expect(options).toHaveLength(2)
     expect(options[0].textContent).toBe('Power System Coordinator')
     expect(options[1].textContent).toBe('Protection Agent')
   })

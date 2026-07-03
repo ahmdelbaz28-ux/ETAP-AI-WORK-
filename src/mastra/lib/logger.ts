@@ -9,7 +9,7 @@
  */
 
 import pino from 'pino';
-import { createHash } from 'crypto';
+import { createHash } from 'node:crypto';
 
 // Define log levels (pino uses numeric levels)
 export const LOG_LEVELS = {
@@ -49,7 +49,8 @@ function sanitizeLogMeta(meta: Record<string, unknown>): Record<string, unknown>
 
   for (const key of sensitiveKeys) {
     if (sanitized[key]) {
-      const hash = createHash('sha256').update(String(sanitized[key])).digest('hex');
+      const valueStr = typeof sanitized[key] === 'object' ? JSON.stringify(sanitized[key]) : String(sanitized[key]);
+      const hash = createHash('sha256').update(valueStr).digest('hex');
       sanitized[key] = `***REDACTED*** (hash: ${hash.substring(0, 8)}...)`;
     }
   }

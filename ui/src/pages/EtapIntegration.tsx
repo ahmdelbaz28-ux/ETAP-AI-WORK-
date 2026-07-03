@@ -82,8 +82,8 @@ export default function EtapIntegration() {
               icon={<Activity className="w-4 h-4" />}
             />
             <div className="space-y-3">
-              {recentStudies.map((study, i) => (
-                <div key={i} className="flex items-center justify-between p-3 bg-[var(--bg-primary)] rounded-lg border border-[var(--border-primary)]">  // NOSONAR — S6479: array index as key; items lack stable IDs (tech debt)
+              {recentStudies.map((study) => (
+                <div key={study.name} className="flex items-center justify-between p-3 bg-[var(--bg-primary)] rounded-lg border border-[var(--border-primary)]">
                   <div className="flex items-center gap-2.5">
                     <div className="p-1.5 rounded-md bg-green-500/10">
                       <FileText className="w-3.5 h-3.5 text-green-400" />

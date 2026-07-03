@@ -66,7 +66,7 @@ _REDACTION_PATTERNS: list[tuple[Pattern[str], str]] = [
     # --- AWS Secret Access Key (40 chars base64-ish, preceded by aws_secret) ---
     (
         re.compile(
-            r"(aws_secret_access_key|aws_secret)\s*[=:]\s*['\"]?[A-Za-z0-9/+=]{40}",
+            r"(aws_secret_access_key|aws_secret)\s*[=:]\s*['\"]?[A-Z0-9/+=]{40}",
             re.IGNORECASE,
         ),
         r"\1=[REDACTED-AWS-SECRET]",
@@ -82,13 +82,13 @@ _REDACTION_PATTERNS: list[tuple[Pattern[str], str]] = [
     (re.compile(r"\bghu_[A-Za-z0-9]{36}"), r"[REDACTED-GHU]"),
     (re.compile(r"\bghs_[A-Za-z0-9]{36}"), r"[REDACTED-GHS]"),
     (re.compile(r"\bghr_[A-Za-z0-9]{76}"), r"[REDACTED-GHR]"),
-    (re.compile(r"\bgithub_pat_[A-Za-z0-9_]{22,}"), r"[REDACTED-GITHUB-PAT]"),
+    (re.compile(r"\bgithub_pat_[\w]{22,}"), r"[REDACTED-GITHUB-PAT]"),
     # --- Slack tokens ---
     (re.compile(r"\bxox[abprs]-[A-Za-z0-9\-]{10,}"), r"[REDACTED-SLACK]"),
     # --- Generic "Bearer <token>" header value ---
-    (re.compile(r"(?i)\bBearer\s+[A-Za-z0-9_\-\.=]+"), r"Bearer [REDACTED]"),
+    (re.compile(r"(?i)\bBearer\s+[A-Z0-9_\-\.=]+"), r"Bearer [REDACTED]"),
     # --- Authorization header value ---
-    (re.compile(r"(?i)(Authorization)\s*:\s*[A-Za-z0-9_\-\.=]+"), r"\1: [REDACTED]"),
+    (re.compile(r"(?i)(Authorization)\s*:\s*[A-Z0-9_\-\.=]+"), r"\1: [REDACTED]"),
     # --- JWT tokens (three base64 segments separated by dots) ---
     (
         re.compile(r"\beyJ[A-Za-z0-9_\-]{10,}\.eyJ[A-Za-z0-9_\-]{10,}\.[A-Za-z0-9_\-]{10,}\b"),

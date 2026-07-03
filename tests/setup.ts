@@ -1,4 +1,4 @@
-import { existsSync, unlinkSync } from 'fs';
+import { existsSync, unlinkSync } from 'node:fs';
 
 // Clean up any orphaned duckdb lock files and stale db from previous test runs
 const files = ['mastra.duckdb-shm', 'mastra.duckdb-wal', 'mastra.duckdb'];

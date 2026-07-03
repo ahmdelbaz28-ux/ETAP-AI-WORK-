@@ -102,7 +102,7 @@ function checkRateLimitMap(
  */
 function resolveKeyLimit(env: Env): number {
   if (env.RATE_LIMIT_REQUESTS_PER_MINUTE) {
-    const n = parseInt(env.RATE_LIMIT_REQUESTS_PER_MINUTE, 10);
+    const n = Number.parseInt(env.RATE_LIMIT_REQUESTS_PER_MINUTE, 10);
     if (!Number.isNaN(n) && n > 0) return n;
   }
   return CONFIG.RATE_LIMIT_PER_KEY_PER_MINUTE;

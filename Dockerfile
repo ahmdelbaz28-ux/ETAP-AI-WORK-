@@ -50,9 +50,8 @@ RUN pip install --no-cache-dir --upgrade pip && \
 ENV PLAYWRIGHT_BROWSERS_PATH=/ms-playwright
 RUN playwright install chromium --with-deps 2>&1 || \
     playwright install chromium 2>&1 || \
-    echo "⚠️ Playwright Chromium install failed — BrowserCUA will fall back to Format U"
-# Make Chromium accessible to the non-root user
-RUN chmod -R 755 /ms-playwright 2>/dev/null || true
+    echo "⚠️ Playwright Chromium install failed — BrowserCUA will fall back to Format U" ; \
+    chmod -R 755 /ms-playwright 2>/dev/null || true
 
 # Application code — copy only what hf-space/app.py needs
 COPY --chown=user:user hf-space/app.py /app/app.py

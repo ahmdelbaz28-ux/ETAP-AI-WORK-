@@ -219,7 +219,7 @@ class ArcFlashEngine:
         else:
             k1, k2, k3 = coeffs["high"]
 
-        # Iarc = 10^(k1 + k2 * log10(Ibf) + k3 * Ibf)
+        # Iarc formula: 10^(k1 + k2 * log10(Ibf) + k3 * Ibf)
         log_Iarc = k1 + k2 * np.log10(Ibf) + k3 * Ibf  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         Iarc = 10**log_Iarc  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
 
@@ -363,9 +363,6 @@ class ArcFlashEngine:
         # Incident energy exponent x (normalize to string keys)
         electrode_key = (
             electrode_config.value if isinstance(electrode_config, Enum) else str(electrode_config)
-        )
-        enclosure_key = (
-            enclosure_type.value if isinstance(enclosure_type, Enum) else str(enclosure_type)
         )
 
         electrode_key = str(electrode_key).strip().upper()

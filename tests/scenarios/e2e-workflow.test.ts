@@ -1,9 +1,9 @@
 import { describe, expect, it, beforeEach, afterEach } from 'vitest';
 import { MockEtapProvider, createMockEtapScenario, type StudyTypeStr } from './helpers.mock-etap';
 import { generateSimpleIndustrialSystem, generateStudyParameters } from './helpers.test-data';
-import { execFile } from 'child_process';
-import { promisify } from 'util';
-import { writeFile, unlink } from 'fs/promises';
+import { execFile } from 'node:child_process';
+import { promisify } from 'node:util';
+import { writeFile, unlink } from 'node:fs/promises';
 const execFileAsync = promisify(execFile);
 
 describe('E2E Full Workflow — Create → Import → Study → Report → Export', () => {

@@ -15,11 +15,11 @@
  *   - No silent audit-log drops
  */
 import type { Env, ExecutionContext } from './core/types.js';
-import { jsonResponse, errorResponse, corsHeaders, checkBodySize } from './utils/response.js';
+import { errorResponse, corsHeaders, checkBodySize } from './utils/response.js';
 import { validateApiKey, scopePermitsRoute, type RouteCategory } from './core/auth.js';
 import { checkRateLimit } from './core/rateLimit.js';
 import { recordAudit, flushAuditLog } from './utils/audit.js';
-import { bumpApiMetric, bumpPerKey, loadMetrics, saveMetrics } from './utils/metrics.js';
+import { bumpApiMetric, loadMetrics, saveMetrics } from './utils/metrics.js';
 import { loadCircuitBreakers } from './core/circuitBreaker.js';
 import { CONFIG } from './core/config.js';
 
@@ -32,7 +32,7 @@ import { handleAuditLogs } from './routes/audit.js';
 let _metricsLoaded = false;
 let _circuitsLoaded = false;
 
-export { CONFIG };
+export { CONFIG } from './core/config.js';
 export type { Env, ExecutionContext };
 
 export default {
@@ -250,7 +250,7 @@ function categorize(path: string, method: string): RouteCategory {
   if (path === '/api/v1/agents' && method === 'GET') return 'agents-list';
   if (path === '/api/v1/providers' && method === 'GET') return 'providers-list';
   if (/^\/api\/v1\/agents\/[^/]+\/chat$/.test(path) && method === 'POST') return 'chat';
-  if (/^\/api\/v1\/studies\//.test(path)) return 'studies';
+  if (path.startsWith('/api/v1/studies/')) return 'studies';
   if (path === '/api/v1/audit/logs') return 'audit';
   return 'health';
 }

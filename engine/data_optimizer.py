@@ -452,7 +452,8 @@ class DataCompressor:
         return comp
 
     def decompress_results(self, compressed: dict[str, Any]) -> dict[str, Any]:
-        compressed.get("_precision", 6)
+        # _precision is intentionally stripped from the restored dict (it's
+        # metadata about the compression, not a restorable array).
         restored = {}
         for k, v in compressed.items():
             if k == "_precision":

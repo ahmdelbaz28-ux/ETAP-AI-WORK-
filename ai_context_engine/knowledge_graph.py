@@ -158,7 +158,7 @@ class KnowledgeGraph:
         """Resolve module imports and class references to their actual file and class nodes."""
         # 1. Map class name to class node ID
         class_name_to_id = {}
-        for node_id, node_data in list(self.nodes.items()):
+        for node_id, node_data in self.nodes.items():
             if node_data.get("label") == "class":
                 class_name = node_data.get("properties", {}).get("name")
                 if class_name:
@@ -166,7 +166,7 @@ class KnowledgeGraph:
 
         # 2. Map module name to file path/node ID
         module_to_file_id = {}
-        for node_id, node_data in list(self.nodes.items()):
+        for node_id, node_data in self.nodes.items():
             if node_data.get("label") == "file":
                 filepath_str = node_data.get("properties", {}).get("path", "")
                 if filepath_str.endswith(".py"):
@@ -178,7 +178,7 @@ class KnowledgeGraph:
                     module_to_file_id[simple_name] = node_id
 
         # 3. Resolve class_reference nodes
-        for node_id, node_data in list(self.nodes.items()):
+        for node_id, node_data in self.nodes.items():
             if node_data.get("label") == "class_reference":
                 # ID is "class_ref:ClassName"
                 class_name = node_id.split(":", 1)[1] if ":" in node_id else node_id
@@ -187,7 +187,7 @@ class KnowledgeGraph:
                     self.add_relationship(node_id, "resolves_to", target_id)
 
         # 4. Resolve module nodes
-        for node_id, node_data in list(self.nodes.items()):
+        for node_id, node_data in self.nodes.items():
             if node_data.get("label") == "module":
                 # ID is "module:mod_name"
                 mod_name = node_id.split(":", 1)[1] if ":" in node_id else node_id

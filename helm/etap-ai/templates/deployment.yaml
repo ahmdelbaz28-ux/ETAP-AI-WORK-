@@ -28,6 +28,7 @@ spec:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       serviceAccountName: {{ include "etap-ai.serviceAccountName" . }}
+      automountServiceAccountToken: false
       {{- with .Values.podSecurityContext }}
       securityContext:
         {{- toYaml . | nindent 8 }}
@@ -84,11 +85,14 @@ spec:
             {{- toYaml .Values.api.resources | nindent 12 }}
       volumes:
         - name: app-logs
-          emptyDir: {}
+          emptyDir:
+            sizeLimit: 1Gi
         - name: app-reports
-          emptyDir: {}
+          emptyDir:
+            sizeLimit: 5Gi
         - name: tmp-data
-          emptyDir: {}
+          emptyDir:
+            sizeLimit: 1Gi
       {{- with .Values.api.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
@@ -132,6 +136,7 @@ spec:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       serviceAccountName: {{ include "etap-ai.serviceAccountName" . }}
+      automountServiceAccountToken: false
       {{- with .Values.podSecurityContext }}
       securityContext:
         {{- toYaml . | nindent 8 }}
@@ -173,9 +178,11 @@ spec:
             {{- toYaml .Values.worker.resources | nindent 12 }}
       volumes:
         - name: app-logs
-          emptyDir: {}
+          emptyDir:
+            sizeLimit: 1Gi
         - name: tmp-data
-          emptyDir: {}
+          emptyDir:
+            sizeLimit: 1Gi
       {{- with .Values.worker.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}

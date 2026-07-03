@@ -1,6 +1,5 @@
 import { createOpenAI } from '@ai-sdk/openai';
 import { generateText, streamText } from 'ai';
-import type { LanguageModel } from 'ai';
 
 // Read all API keys from the environment. Tests are SKIPPED (not failed)
 // when keys are missing — SonarCloud S6418 (hard-coded secrets).
@@ -159,6 +158,7 @@ async function runTest() {
     nvidiaModel
   ]);
 
+
   console.log('--- Testing generateText ---');
   try {
     const { text, usage } = await generateText({
@@ -188,4 +188,8 @@ async function runTest() {
   }
 }
 
-runTest();
+try {
+  await runTest();
+} catch (err) {
+  console.error('runTest failed:', err);
+}

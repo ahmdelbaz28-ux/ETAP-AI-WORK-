@@ -39,6 +39,46 @@ const notifColor = {
   info: 'text-brand-400',
 }
 
+interface ToolButtonProps {
+  onClick: () => void
+  icon: React.ElementType
+  title: string
+  badge?: boolean
+  active?: boolean
+  accent?: 'brand' | 'default'
+  unreadCount?: number
+}
+
+function ToolButton({ onClick, icon: Icon, title, badge, active, accent, unreadCount = 0 }: ToolButtonProps) {
+  const toolButtonClass = active
+    ? 'bg-brand-500/15 text-brand-400'
+    : accent === 'brand'
+      ? 'text-brand-400 hover:bg-brand-500/10 hover:text-brand-300'
+      : 'text-[var(--text-muted)] hover:bg-[var(--bg-elevated)] hover:text-[var(--text-primary)]'
+  return (
+    <button
+      onClick={onClick}
+      title={title}
+      aria-label={title}
+      className={cn(
+        'relative p-2 rounded-lg transition-all duration-150 group',
+        toolButtonClass
+      )}
+    >
+      <Icon className="w-[18px] h-[18px]" />
+      {badge && unreadCount > 0 && (
+        <span className="absolute -top-0.5 -right-0.5 min-w-[16px] h-4 px-1 rounded-full bg-red-500 text-white text-[9px] font-bold flex items-center justify-center ring-2 ring-[var(--bg-secondary)]">
+          {unreadCount > 9 ? '9+' : unreadCount}
+        </span>
+      )}
+      {/* Tooltip */}
+      <span className="absolute top-full mt-2 left-1/2 -translate-x-1/2 px-2 py-1 rounded-md bg-[var(--bg-elevated)] border border-[var(--border-primary)] text-[10px] text-[var(--text-secondary)] whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 shadow-lg">
+        {title}
+      </span>
+    </button>
+  )
+}
+
 export function Navbar() {
   const { t, i18n } = useTranslation()
   const navigate = useNavigate()
@@ -138,41 +178,7 @@ export function Navbar() {
   }
 
   // ─── Toolbar button component ──────────────────────────────────────────
-  const ToolButton = ({
-    onClick, icon: Icon, title, badge, active, accent,
-  }: {
-    onClick: () => void
-    icon: React.ElementType
-    title: string
-    badge?: boolean
-    active?: boolean
-    accent?: 'brand' | 'default'
-  }) => (
-    <button
-      onClick={onClick}
-      title={title}
-      aria-label={title}
-      className={cn(
-        'relative p-2 rounded-lg transition-all duration-150 group',
-        active
-          ? 'bg-brand-500/15 text-brand-400'
-          : accent === 'brand'  // NOSONAR — S3358: nested ternary; refactor to named variable (tech debt)
-            ? 'text-brand-400 hover:bg-brand-500/10 hover:text-brand-300'
-            : 'text-[var(--text-muted)] hover:bg-[var(--bg-elevated)] hover:text-[var(--text-primary)]'
-      )}
-    >
-      <Icon className="w-[18px] h-[18px]" />
-      {badge && unreadCount > 0 && (
-        <span className="absolute -top-0.5 -right-0.5 min-w-[16px] h-4 px-1 rounded-full bg-red-500 text-white text-[9px] font-bold flex items-center justify-center ring-2 ring-[var(--bg-secondary)]">
-          {unreadCount > 9 ? '9+' : unreadCount}
-        </span>
-      )}
-      {/* Tooltip */}
-      <span className="absolute top-full mt-2 left-1/2 -translate-x-1/2 px-2 py-1 rounded-md bg-[var(--bg-elevated)] border border-[var(--border-primary)] text-[10px] text-[var(--text-secondary)] whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 shadow-lg">
-        {title}
-      </span>
-    </button>
-  )
+  // (ToolButton moved to module scope to avoid re-creating on each render)
 
   return (
     <header className="flex items-center justify-between px-4 py-2 bg-[var(--bg-secondary)]/80 backdrop-blur-xl border-b border-[var(--border-primary)]/50 shrink-0 z-[var(--z-navbar)] relative">
@@ -254,6 +260,7 @@ export function Navbar() {
           title="Magic Help Inspector (Ctrl+Shift+H)"
           accent="brand"
           badge
+          unreadCount={unreadCount}
         />
 
         {/* Help */}

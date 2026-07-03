@@ -31,7 +31,6 @@ export async function getCachedResponse(
   idempotencyKey: string
 ): Promise<CachedResponse | null> {
   const key = makeKey(apiKeyId, route, idempotencyKey);
-  const ttlSeconds = Math.ceil(CONFIG.IDEMPOTENCY_TTL_MS / 1000);
 
   if (env.RATE_LIMIT_KV) {
     try {

@@ -54,13 +54,13 @@ export function MagicHelpInspector() {
 
       if (
         interactiveEl &&
-        !interactiveEl.closest('.fixed.z-\\[100\\]') &&
+        !interactiveEl.closest(String.raw`.fixed.z-\[100\]`) &&
         !interactiveEl.closest('.magic-inspector-overlay') &&
         !interactiveEl.closest('.magic-inspector-banner')
       ) {
         setHoveredRect(interactiveEl.getBoundingClientRect())
         // Build a label for the floating tooltip
-        const ctx = interactiveEl.getAttribute('data-help-context')
+        const ctx = interactiveEl.dataset.helpContext ?? null
         const text = (interactiveEl.textContent || '').trim().slice(0, 40)
         const tag = interactiveEl.tagName.toLowerCase()
         setHoveredLabel(ctx ? `📋 ${ctx}` : `🔍 <${tag}> "${text}"`)
@@ -97,14 +97,14 @@ export function MagicHelpInspector() {
       let contextId: string | null = null
 
       if (interactiveEl) {
-        contextId = interactiveEl.getAttribute('data-help-context')
+        contextId = interactiveEl.dataset.helpContext ?? null
 
         // 2. Walk up the DOM tree looking for a data-help-context on an ancestor
         if (!contextId) {
           let parent: HTMLElement | null = interactiveEl.parentElement
           let depth = 0
           while (parent && depth < 5) {
-            const attr = parent.getAttribute('data-help-context')
+            const attr = parent.dataset.helpContext
             if (attr) {
               contextId = attr
               break

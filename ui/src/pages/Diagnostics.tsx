@@ -77,7 +77,7 @@ export default function Diagnostics() {
       results.push({
         name: 'AI Providers',
         status: providerCount > 0 ? 'pass' : 'warn',
-        message: `${providerCount} provider${providerCount !== 1 ? 's' : ''} configured`,
+        message: `${providerCount} provider${providerCount === 1 ? '' : 's'} configured`,
       })
     } catch {
       results.push({ name: 'API Gateway', status: 'fail', message: 'Unreachable' })

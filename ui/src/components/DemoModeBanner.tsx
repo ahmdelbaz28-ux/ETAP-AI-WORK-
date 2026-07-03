@@ -43,7 +43,7 @@ export function DemoModeBanner() {
       }}
     >
       ⚠ DEMO MODE — Backend غير متصل. البيانات المعروضة تجريبية ولن تُحفظ.
-      <span style={{ opacity: 0.85, marginRight: '8px', fontWeight: 400 }}>  // NOSONAR — S6772: inline spacing; cosmetic
+      <span style={{ opacity: 0.85, marginRight: '8px', fontWeight: 400 }}>
         {' '}.Configure VITE_API_URL to enable the live backend.
       </span>
     </div>

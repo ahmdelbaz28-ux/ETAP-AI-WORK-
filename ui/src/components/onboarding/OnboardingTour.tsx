@@ -106,11 +106,10 @@ export function OnboardingTour() {
     setTimeout(() => setShow(false), 300)
   }
 
-  const handleSkip = () => {
-    localStorage.setItem(ONBOARDING_KEY, 'true')
-    setCompleted(true)
-    setTimeout(() => setShow(false), 300)
-  }
+  // handleSkip is intentionally identical to handleComplete — both dismiss
+  // the tour and mark it as seen. Kept as a separate name for call-site
+  // readability (Skip vs Complete convey different user intents).
+  const handleSkip = handleComplete
 
   const handleRestart = () => {
     localStorage.removeItem(ONBOARDING_KEY)
@@ -134,7 +133,14 @@ export function OnboardingTour() {
 
   return (
     <div className="fixed inset-0 z-[200] flex items-center justify-center">
-      <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={handleSkip} />  // NOSONAR — S6848: non-interactive DOM role; intentional
+      <div
+        className="absolute inset-0 bg-black/70 backdrop-blur-sm"
+        role="button"
+        tabIndex={0}
+        aria-label="Skip onboarding tour"
+        onClick={handleSkip}
+        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') handleSkip() }}
+      />
 
       <div className={cn(
         'relative z-[201] w-full max-w-md mx-4',

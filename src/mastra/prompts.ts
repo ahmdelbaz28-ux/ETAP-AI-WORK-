@@ -1,6 +1,6 @@
 import { LangWatch } from 'langwatch';
-import fs from 'fs';
-import path from 'path';
+import fs from 'node:fs';
+import path from 'node:path';
 
 const langwatch = new LangWatch({
   apiKey: process.env.LANGWATCH_API_KEY,
@@ -61,11 +61,7 @@ function parseSimpleYaml(content: string): Record<string, unknown> {  // NOSONAR
       const trimmedLine = line.trim();
       if (line.startsWith(' '.repeat(multilineIndent)) || trimmedLine === '') {
         // This line is part of the multiline content
-        if (line.trim() !== '') {
-          currentMessageContent += '\n' + line.substring(multilineIndent);
-        } else {
-          currentMessageContent += '\n' + line.substring(multilineIndent);
-        }
+        currentMessageContent += '\n' + line.substring(multilineIndent);
       } else {
         // End of multiline content
         inMultilineContent = false;
@@ -89,7 +85,7 @@ function parseSimpleYaml(content: string): Record<string, unknown> {  // NOSONAR
         currentMessages.push({ role: currentMessageRole, content: currentMessageContent.trim() });
       }
       
-      currentMessageRole = line.split(':')[1]?.trim().replace(/"/g, '').replace(/'/g, '') || '';
+      currentMessageRole = line.split(':')[1]?.trim().replaceAll('"', '').replaceAll("'", '') || '';
       currentMessageContent = '';
     } else if (inMessages && line.match(/^\s+content:\s*\|/)) {  // NOSONAR — S6594: RegExp.exec vs match; performance neutral
       // Handle multiline content with pipe operator
@@ -99,7 +95,7 @@ function parseSimpleYaml(content: string): Record<string, unknown> {  // NOSONAR
       
       // Extract content after the pipe if there's anything
       const pipeMatch = line.match(/^\s+content:\s*\|\s*(.*)/);  // NOSONAR — S6594: RegExp.exec vs match; performance neutral
-      if (pipeMatch && pipeMatch[1]) {
+      if (pipeMatch?.[1]) {
         currentMessageContent = pipeMatch[1];
       }
       
@@ -161,7 +157,7 @@ function parseSimpleYaml(content: string): Record<string, unknown> {  // NOSONAR
         } else if (value.toLowerCase() === 'true' || value.toLowerCase() === 'false') {
           // Handle boolean values
           result[currentKey] = value.toLowerCase() === 'true';
-        } else if (!isNaN(Number(value))) {
+        } else if (!Number.isNaN(Number(value))) {
           // Handle numeric values
           result[currentKey] = Number(value);
         } else if (value !== '') {
@@ -172,10 +168,10 @@ function parseSimpleYaml(content: string): Record<string, unknown> {  // NOSONAR
     }
   }
   
-  // Handle remaining content after loop ends
-  if (inMultilineContent && currentMessageRole && currentMessageContent) {
-    currentMessages.push({ role: currentMessageRole, content: currentMessageContent.trim() });
-  } else if (currentMessageRole && currentMessageContent) {
+  // Handle remaining content after loop ends. Both the multiline and
+  // single-line cases push the same shape, so the inMultilineContent
+  // branch is not needed (SonarCloud S1871).
+  if (currentMessageRole && currentMessageContent) {
     currentMessages.push({ role: currentMessageRole, content: currentMessageContent.trim() });
   }
   
@@ -196,7 +192,7 @@ function loadLocalPrompt(handle: string): string | null {  // NOSONAR — S3776:
     const possibleFiles = [
       `${handle}.yaml`,
       `${handle}.prompt.yaml`,
-      `${handle.replace(/_/g, '_')}_agent.prompt.yaml`,
+      `${handle}_agent.prompt.yaml`,
     ];
     
     for (const filename of possibleFiles) {
@@ -270,7 +266,7 @@ export async function getSystemPrompt(handle: string): Promise<string> {
       }
     } catch (e) {
       // LangWatch API unavailable, fall back to local prompt
-      console.warn(`[Prompts] LangWatch API unavailable, using local fallback for "${handle}"`);
+      console.warn(`[Prompts] LangWatch API unavailable, using local fallback for "${handle}":`, e instanceof Error ? e.message : String(e));
     }
   }
   

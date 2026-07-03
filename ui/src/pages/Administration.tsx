@@ -8,7 +8,7 @@ import { cn } from '../utils/helpers'
 
 import { ContextHelpButton } from '../components/help/ContextHelpButton'
 export default function Administration() {
-  const [metrics, setMetrics] = useState<any | null>(null)
+  const [metrics, setMetrics] = useState<any>(null)
   const [agents, setAgents] = useState<AgentMeta[]>([])
   const [loading, setLoading] = useState(true)
   const { notify } = useNotify()
@@ -125,7 +125,14 @@ export default function Administration() {
               />
               <div className="grid grid-cols-2 gap-3">
                 {/* Render metrics depending on which format we get */}
-                {metrics.requests_total !== undefined ? (
+                {metrics.requests_total === undefined ? (
+                  Object.entries((metrics.api as Record<string, number>) || {}).map(([k, v]) => (
+                    <div key={k} className="p-3 bg-[var(--bg-primary)] rounded-lg border border-[var(--border-primary)]">
+                      <p className="text-xs text-[var(--text-muted)] capitalize">{k.replace(/([A-Z])/g, ' $1').trim()}</p>
+                      <p className="text-lg font-bold text-[var(--text-primary)] mono-engineering mt-1">{v}</p>
+                    </div>
+                  ))
+                ) : (
                   <>
                     <div className="p-3 bg-[var(--bg-primary)] rounded-lg border border-[var(--border-primary)]">
                       <p className="text-xs text-[var(--text-muted)]">Total Requests</p>
@@ -144,13 +151,6 @@ export default function Administration() {
                       <p className="text-lg font-bold text-[var(--text-primary)] mono-engineering mt-1">{metrics.avg_execution_time_ms}ms</p>
                     </div>
                   </>
-                ) : (
-                  Object.entries((metrics.api as Record<string, number>) || {}).map(([k, v]) => (
-                    <div key={k} className="p-3 bg-[var(--bg-primary)] rounded-lg border border-[var(--border-primary)]">
-                      <p className="text-xs text-[var(--text-muted)] capitalize">{k.replace(/([A-Z])/g, ' $1').trim()}</p>
-                      <p className="text-lg font-bold text-[var(--text-primary)] mono-engineering mt-1">{v}</p>
-                    </div>
-                  ))
                 )}
               </div>
             </Card>
@@ -166,7 +166,7 @@ export default function Administration() {
               icon={<Zap className="w-4 h-4" />}
             />
             <div className="space-y-3">
-              {metrics && metrics.providers ? (
+              {metrics?.providers ? (
                 Object.entries(metrics.providers as Record<string, { count: number; avgMs: number; failureRate: number }>).map(([name, p]) => {
                   const latencyColor = p.avgMs < 500 ? 'bg-green-500' : p.avgMs < 1000 ? 'bg-amber-500' : 'bg-red-500'  // NOSONAR — S3358: nested ternary; refactor to named variable (tech debt)
                   const latencyPercent = Math.min(100, (p.avgMs / 2000) * 100)

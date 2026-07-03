@@ -138,7 +138,14 @@ export function CommandPalette() {
 
   return (
     <div className="fixed inset-0 z-[100] flex items-start justify-center pt-[15vh]">
-      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => { setOpen(false); setQuery('') }} />  // NOSONAR — S6848: non-interactive DOM role; intentional
+      <div
+        className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+        role="button"
+        tabIndex={0}
+        aria-label="Close command palette"
+        onClick={() => { setOpen(false); setQuery('') }}
+        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { setOpen(false); setQuery('') } }}
+      />
 
       <div className="relative z-[101] w-full max-w-xl mx-4 bg-[var(--bg-secondary)] border border-[var(--border-secondary)] rounded-xl shadow-2xl overflow-hidden">
         {/* Search Input */}

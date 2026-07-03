@@ -1,6 +1,6 @@
-const { execSync } = require('child_process');
-const fs = require('fs');
-const path = require('path');
+const { execSync } = require('node:child_process');
+const fs = require('node:fs');
+const path = require('node:path');
 
 const BASE_URL = 'http://localhost:5173';
 const OUTPUT_DIR = path.join(__dirname, '..', 'docs', 'screenshots', 'ui');

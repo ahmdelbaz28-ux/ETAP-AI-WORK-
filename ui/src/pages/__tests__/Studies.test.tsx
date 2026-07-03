@@ -93,7 +93,7 @@ describe('Studies', () => {
     renderStudies()
     // The text "4 Parameters" etc. is split across elements, so use a function matcher
     const paramElements = screen.getAllByText(/Parameters/)
-    expect(paramElements.length).toBe(8)
+    expect(paramElements).toHaveLength(8)
   })
 
   it('navigates to the study run page when a card is clicked', async () => {
@@ -114,6 +114,6 @@ describe('Studies', () => {
   it('renders the "Run Study" label on each card', () => {
     renderStudies()
     const runStudyLabels = screen.getAllByText('Run Study')
-    expect(runStudyLabels.length).toBe(8)
+    expect(runStudyLabels).toHaveLength(8)
   })
 })

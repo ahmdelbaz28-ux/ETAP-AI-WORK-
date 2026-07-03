@@ -38,7 +38,7 @@ function KeySequence({ keys }: { keys: readonly string[] }) {  // NOSONAR — S6
   return (
     <div className="flex items-center gap-1">
       {keys.map((key, i) => (
-        <span key={i} className="flex items-center gap-1">  // NOSONAR — S6479: array index as key; items lack stable IDs (tech debt)
+        <span key={`${key}-${i}`} className="flex items-center gap-1">
           <KeyCap>{key}</KeyCap>
           {i < keys.length - 1 && (
             <span className="text-[var(--text-muted)] text-xs">

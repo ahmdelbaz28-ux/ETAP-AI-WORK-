@@ -107,25 +107,25 @@ class TestStudyValidators:
     def test_bus_spec_rejects_bad_voltage(self):
         from api.studies import BusSpec
 
-        with pytest.raises(Exception):
+        with pytest.raises((ValueError, TypeError)):
             BusSpec(bus_id=1, voltage_magnitude=3.0, voltage_angle=0.0, bus_type="pq")
 
     def test_line_spec_rejects_negative_impedance(self):
         from api.studies import LineSpec
 
-        with pytest.raises(Exception):
+        with pytest.raises((ValueError, TypeError)):
             LineSpec(line_id=1, from_bus_id=1, to_bus_id=2, r1=-0.01, x1=0.05)
 
     def test_transformer_rejects_bad_tap_ratio(self):
         from api.studies import TransformerSpec
 
-        with pytest.raises(Exception):
+        with pytest.raises((ValueError, TypeError)):
             TransformerSpec(transformer_id=1, from_bus_id=1, to_bus_id=2, tap_ratio=3.0)
 
     def test_system_spec_rejects_invalid_base_mva(self):
         from api.studies import SystemSpec
 
-        with pytest.raises(Exception):
+        with pytest.raises((ValueError, TypeError)):
             SystemSpec(base_mva=-50.0)
 
 

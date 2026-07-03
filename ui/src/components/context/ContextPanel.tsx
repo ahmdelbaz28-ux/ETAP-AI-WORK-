@@ -79,9 +79,9 @@ export function ContextPanel({  // NOSONAR — S6759: React props read-only; req
             {/* Properties List */}
             {selectedItem.details && selectedItem.details.length > 0 && (
               <div className="space-y-1">
-                {selectedItem.details.map((item, i) => (
-                  <div key={i} className="flex items-center justify-between py-1.5 px-2 rounded-md hover:bg-[var(--bg-elevated)]">  // NOSONAR — S6479: array index as key; items lack stable IDs (tech debt)
-                    <span className="text-xs text-[var(--text-muted)]">{item.label}</span>  // NOSONAR — S6772: inline spacing; cosmetic
+                {selectedItem.details.map((item) => (
+                  <div key={item.label} className="flex items-center justify-between py-1.5 px-2 rounded-md hover:bg-[var(--bg-elevated)]">
+                    <span className="text-xs text-[var(--text-muted)]">{item.label}</span>
                     <span className="text-xs font-medium text-[var(--text-secondary)] mono-engineering">
                       {item.value}
                     </span>
@@ -132,24 +132,28 @@ export function ContextPanel({  // NOSONAR — S6759: React props read-only; req
         {actions.length > 0 && (
           <div className="px-4 pb-3 space-y-1">
             <div className="text-[10px] font-semibold text-[var(--text-muted)] uppercase tracking-wider mb-2">Actions</div>
-            {actions.map((action, i) => (
+            {actions.map((action) => {
+              const actionClass =
+                action.variant === 'primary'
+                  ? 'bg-[var(--accent-primary)]/10 text-[var(--accent-primary)] hover:bg-[var(--accent-primary)]/20'
+                  : action.variant === 'ghost'
+                    ? 'text-[var(--text-secondary)] hover:bg-[var(--bg-elevated)]'
+                    : 'bg-[var(--bg-elevated)] text-[var(--text-secondary)] hover:bg-[var(--border-primary)]'
+              return (
               <button
-                key={i}  // NOSONAR — S6479: array index as key; items lack stable IDs (tech debt)
+                key={action.label}
                 onClick={action.onClick}
                 className={cn(
                   'w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium transition-colors text-left',
-                  action.variant === 'primary'
-                    ? 'bg-[var(--accent-primary)]/10 text-[var(--accent-primary)] hover:bg-[var(--accent-primary)]/20'
-                    : action.variant === 'ghost'  // NOSONAR — S3358: nested ternary; refactor to named variable (tech debt)
-                    ? 'text-[var(--text-secondary)] hover:bg-[var(--bg-elevated)]'
-                    : 'bg-[var(--bg-elevated)] text-[var(--text-secondary)] hover:bg-[var(--border-primary)]'
+                  actionClass
                 )}
               >
                 {action.icon && <action.icon className="w-3.5 h-3.5" />}
                 <span className="flex-1">{action.label}</span>
                 <ChevronRight className="w-3 h-3 text-[var(--text-muted)]" />
               </button>
-            ))}
+              )
+            })}
           </div>
         )}
 

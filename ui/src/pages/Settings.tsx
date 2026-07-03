@@ -19,7 +19,7 @@ const OBFUSCATION_KEY = 'ETAP-SEC-2024-OBFUSCATION'
 function obfuscate(value: string): string {
   let result = ''
   for (let i = 0; i < value.length; i++) {
-    result += String.fromCharCode(value.charCodeAt(i) ^ OBFUSCATION_KEY.charCodeAt(i % OBFUSCATION_KEY.length))
+    result += String.fromCodePoint(value.codePointAt(i)! ^ OBFUSCATION_KEY.codePointAt(i % OBFUSCATION_KEY.length)!)
   }
   return btoa(result)
 }
@@ -28,7 +28,7 @@ function deobfuscate(value: string): string {
     const decoded = atob(value)
     let result = ''
     for (let i = 0; i < decoded.length; i++) {
-      result += String.fromCharCode(decoded.charCodeAt(i) ^ OBFUSCATION_KEY.charCodeAt(i % OBFUSCATION_KEY.length))
+      result += String.fromCodePoint(decoded.codePointAt(i)! ^ OBFUSCATION_KEY.codePointAt(i % OBFUSCATION_KEY.length)!)
     }
     return result
   } catch {
@@ -410,8 +410,9 @@ function AISettingsPanel({ settings, setSettings, notify }: AISettingsPanelProps
 
                 <div className="space-y-2">
                   <div>
-                    <label className="block text-[9px] text-[var(--text-tertiary)] mb-1">API Key</label>  // NOSONAR — S6853: label/control association; needs htmlFor/id wiring (tech debt)
-                    <input  // NOSONAR — S6772: inline spacing; cosmetic
+                    <label htmlFor={`prov-${p.id}-key`} className="block text-[9px] text-[var(--text-tertiary)] mb-1">API Key</label>
+                    <input
+                      id={`prov-${p.id}-key`}
                       type="password"
                       placeholder="Paste API Key"
                       value={settings[keyName] || ''}
@@ -421,8 +422,9 @@ function AISettingsPanel({ settings, setSettings, notify }: AISettingsPanelProps
                   </div>
 
                   <div>
-                    <label className="block text-[9px] text-[var(--text-tertiary)] mb-1">Select Model</label>  // NOSONAR — S6853: label/control association; needs htmlFor/id wiring (tech debt)
-                    <select  // NOSONAR — S6772: inline spacing; cosmetic
+                    <label htmlFor={`prov-${p.id}-model`} className="block text-[9px] text-[var(--text-tertiary)] mb-1">Select Model</label>
+                    <select
+                      id={`prov-${p.id}-model`}
                       value={settings[modelName] || p.defaultModel}
                       onChange={e => setSettings(prev => ({ ...prev, [modelName]: e.target.value }))}
                       className="w-full px-2 py-1 bg-[var(--bg-primary)] border border-[var(--border-primary)] rounded-lg text-[11px] text-[var(--text-primary)] focus:border-brand-500 outline-none transition-colors"
@@ -486,7 +488,9 @@ function AISettingsPanel({ settings, setSettings, notify }: AISettingsPanelProps
 
         {/* Sub Tabs Selector */}
         <div className="flex border-b border-[var(--border-primary)] mb-4">
-          {(['json', 'curl', 'openai'] as const).map(tab => (
+          {(['json', 'curl', 'openai'] as const).map(tab => {
+            const tabLabel = tab === 'json' ? 'JSON Config' : tab === 'curl' ? 'CURL Command' : 'OpenAI-Compatible Endpoint'
+            return (
             <button
               key={tab}
               onClick={() => setCustomTab(tab)}
@@ -496,9 +500,10 @@ function AISettingsPanel({ settings, setSettings, notify }: AISettingsPanelProps
                   : 'border-transparent text-[var(--text-muted)] hover:text-[var(--text-primary)]'
               }`}
             >
-              {tab === 'json' ? 'JSON Config' : tab === 'curl' ? 'CURL Command' : 'OpenAI-Compatible Endpoint'}  // NOSONAR — S3358: nested ternary; refactor to named variable (tech debt)
+              {tabLabel}
             </button>
-          ))}
+            )
+          })}
         </div>
 
         {/* Sub Tabs Contents */}
@@ -507,8 +512,9 @@ function AISettingsPanel({ settings, setSettings, notify }: AISettingsPanelProps
             <div className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-medium text-[var(--text-tertiary)] mb-1.5">Base URL</label>  // NOSONAR — S6853: label/control association; needs htmlFor/id wiring (tech debt)
-                  <input  // NOSONAR — S6772: inline spacing; cosmetic
+                  <label htmlFor="custom-base-url" className="block text-xs font-medium text-[var(--text-tertiary)] mb-1.5">Base URL</label>
+                  <input
+                    id="custom-base-url"
                     type="text"
                     placeholder="https://api.yourproxy.com/v1"
                     value={settings.CUSTOM_BASE_URL || ''}
@@ -517,8 +523,9 @@ function AISettingsPanel({ settings, setSettings, notify }: AISettingsPanelProps
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-[var(--text-tertiary)] mb-1.5">Model ID</label>  // NOSONAR — S6853: label/control association; needs htmlFor/id wiring (tech debt)
-                  <input  // NOSONAR — S6772: inline spacing; cosmetic
+                  <label htmlFor="custom-model-id" className="block text-xs font-medium text-[var(--text-tertiary)] mb-1.5">Model ID</label>
+                  <input
+                    id="custom-model-id"
                     type="text"
                     placeholder="e.g., deepseek-coder"
                     value={settings.CUSTOM_MODEL_ID || ''}
@@ -530,8 +537,9 @@ function AISettingsPanel({ settings, setSettings, notify }: AISettingsPanelProps
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-end">
                 <div>
-                  <label className="block text-xs font-medium text-[var(--text-tertiary)] mb-1.5">API Key</label>  // NOSONAR — S6853: label/control association; needs htmlFor/id wiring (tech debt)
-                  <input  // NOSONAR — S6772: inline spacing; cosmetic
+                  <label htmlFor="custom-api-key" className="block text-xs font-medium text-[var(--text-tertiary)] mb-1.5">API Key</label>
+                  <input
+                    id="custom-api-key"
                     type="password"
                     placeholder="Enter your API key"
                     value={settings.CUSTOM_API_KEY || ''}
@@ -554,8 +562,9 @@ function AISettingsPanel({ settings, setSettings, notify }: AISettingsPanelProps
           {customTab === 'curl' && (
             <div className="space-y-4">
               <div>
-                <label className="block text-xs font-medium text-[var(--text-tertiary)] mb-1.5">Paste Curl Command</label>  // NOSONAR — S6853: label/control association; needs htmlFor/id wiring (tech debt)
-                <textarea  // NOSONAR — S6772: inline spacing; cosmetic
+                <label htmlFor="custom-curl" className="block text-xs font-medium text-[var(--text-tertiary)] mb-1.5">Paste Curl Command</label>
+                <textarea
+                  id="custom-curl"
                   placeholder="Paste raw curl command here, e.g. curl https://api.deepseek.com/v1/chat/completions -H 'Authorization: Bearer sk-...' -d '{'model': 'deepseek-coder'}'"
                   value={curlContent}
                   onChange={e => setCurlContent(e.target.value)}
@@ -583,8 +592,9 @@ function AISettingsPanel({ settings, setSettings, notify }: AISettingsPanelProps
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
-                  <label className="block text-xs font-medium text-[var(--text-tertiary)] mb-1.5">Base URL</label>  // NOSONAR — S6853: label/control association; needs htmlFor/id wiring (tech debt)
-                  <input  // NOSONAR — S6772: inline spacing; cosmetic
+                  <label htmlFor="openai-base-url" className="block text-xs font-medium text-[var(--text-tertiary)] mb-1.5">Base URL</label>
+                  <input
+                    id="openai-base-url"
                     type="text"
                     placeholder="http://localhost:11434/v1"
                     value={settings.CUSTOM_BASE_URL || ''}
@@ -593,8 +603,9 @@ function AISettingsPanel({ settings, setSettings, notify }: AISettingsPanelProps
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-[var(--text-tertiary)] mb-1.5">Model ID</label>  // NOSONAR — S6853: label/control association; needs htmlFor/id wiring (tech debt)
-                  <input  // NOSONAR — S6772: inline spacing; cosmetic
+                  <label htmlFor="openai-model-id" className="block text-xs font-medium text-[var(--text-tertiary)] mb-1.5">Model ID</label>
+                  <input
+                    id="openai-model-id"
                     type="text"
                     placeholder="e.g., llama3.2"
                     value={settings.CUSTOM_MODEL_ID || ''}
@@ -603,8 +614,9 @@ function AISettingsPanel({ settings, setSettings, notify }: AISettingsPanelProps
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-[var(--text-tertiary)] mb-1.5">API Key (Optional)</label>  // NOSONAR — S6853: label/control association; needs htmlFor/id wiring (tech debt)
-                  <input  // NOSONAR — S6772: inline spacing; cosmetic
+                  <label htmlFor="openai-api-key" className="block text-xs font-medium text-[var(--text-tertiary)] mb-1.5">API Key (Optional)</label>
+                  <input
+                    id="openai-api-key"
                     type="password"
                     placeholder="None / Optional"
                     value={settings.CUSTOM_API_KEY || ''}
@@ -923,7 +935,7 @@ function ExternalServicesPanel({  // NOSONAR — S6759: React props read-only; r
                     className={`text-[10px] mb-2 px-2 py-1 rounded ${
                       st.state === 'ok'
                         ? 'bg-green-500/10 text-green-400'
-                        : st.state === 'fail'  // NOSONAR — S3358: nested ternary; refactor to named variable (tech debt)
+                        : st.state === 'fail'
                         ? 'bg-red-500/10 text-red-400'
                         : 'bg-yellow-500/10 text-yellow-400'
                     }`}
@@ -973,14 +985,15 @@ function SettingsField({ field, value, onChange }: { field: string; value: strin
   const isSecret = field.includes('KEY') || field.includes('SECRET')
   const isFeatureFlag = field.startsWith('ENABLE_') || field.endsWith('_ENABLED')
   const isNumber = field.includes('_MS') || field.includes('PORT') || field.includes('SIZE') || field.includes('TTL') || field.includes('RATE') || field.includes('THRESHOLD') || field.includes('MAX_')
+  const inputType = isSecret ? 'password' : isNumber ? 'number' : 'text'
 
   if (isFeatureFlag) {
     return (
       <Toggle
         checked={value === 'true'}
         onChange={(checked) => onChange(checked ? 'true' : 'false')}
-        label={field.replace(/_/g, ' ').replace(/ENABLE /, '').replace(/ ENABLED/, '')}
-        description={`Toggle ${field.replace(/_/g, ' ').toLowerCase()}`}
+        label={field.replaceAll('_', ' ').replaceAll('ENABLE ', '').replaceAll(' ENABLED', '')}
+        description={`Toggle ${field.replaceAll('_', ' ').toLowerCase()}`}
         size="sm"
       />
     )
@@ -988,11 +1001,12 @@ function SettingsField({ field, value, onChange }: { field: string; value: strin
 
   return (
     <div>
-      <label className="block text-xs font-medium text-[var(--text-tertiary)] mb-1.5">
-        {field.replace(/_/g, ' ').toLowerCase().replace(/\b\w/g, c => c.toUpperCase())}
+      <label htmlFor={`field-${field}`} className="block text-xs font-medium text-[var(--text-tertiary)] mb-1.5">
+        {field.replaceAll('_', ' ').toLowerCase().replace(/\b\w/g, c => c.toUpperCase())}
       </label>
       <input
-        type={isSecret ? 'password' : isNumber ? 'number' : 'text'}  // NOSONAR — S3358: nested ternary; refactor to named variable (tech debt)
+        id={`field-${field}`}
+        type={inputType}
         value={value || ''}
         onChange={e => onChange(e.target.value)}
         className="w-full px-3 py-2 bg-[var(--bg-input)] border border-[var(--border-primary)] rounded-lg text-[var(--text-primary)] text-sm focus:border-[var(--color-brand-500)] focus:ring-1 focus:ring-[var(--color-brand-500)]/30 outline-none font-mono transition-colors"
@@ -1079,7 +1093,7 @@ function VisionApiKeysPanel({ notify }: { notify: (type: 'success' | 'error' | '
 
   const handleSave = async (providerId: string) => {
     const edit = editing[providerId]
-    if (!edit || !edit.apiKey.trim()) {
+    if (!edit?.apiKey?.trim()) {
       notify('error', 'Please enter an API key')
       return
     }
@@ -1236,14 +1250,14 @@ function VisionApiKeysPanel({ notify }: { notify: (type: 'success' | 'error' | '
                 <div className="space-y-3">
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                     <div>
-                      <label className="text-xs text-[var(--text-muted)]">API Key</label>  // NOSONAR — S6853: label/control association; needs htmlFor/id wiring (tech debt)
+                      <span className="text-xs text-[var(--text-muted)]">API Key</span>
                       <div className="font-mono text-sm text-[var(--text-secondary)] bg-[var(--bg-secondary)] px-3 py-2 rounded-md border border-[var(--border-primary)]">
                         {existing.api_key_masked}
                       </div>
                     </div>
                     {existing.base_url && (
                       <div>
-                        <label className="text-xs text-[var(--text-muted)]">Base URL</label>  // NOSONAR — S6853: label/control association; needs htmlFor/id wiring (tech debt)
+                        <span className="text-xs text-[var(--text-muted)]">Base URL</span>
                         <div className="text-sm text-[var(--text-secondary)] bg-[var(--bg-secondary)] px-3 py-2 rounded-md border border-[var(--border-primary)] truncate">
                           {existing.base_url}
                         </div>
@@ -1251,7 +1265,7 @@ function VisionApiKeysPanel({ notify }: { notify: (type: 'success' | 'error' | '
                     )}
                     {existing.model_name && (
                       <div>
-                        <label className="text-xs text-[var(--text-muted)]">Model</label>  // NOSONAR — S6853: label/control association; needs htmlFor/id wiring (tech debt)
+                        <span className="text-xs text-[var(--text-muted)]">Model</span>
                         <div className="text-sm text-[var(--text-secondary)] bg-[var(--bg-secondary)] px-3 py-2 rounded-md border border-[var(--border-primary)] truncate">
                           {existing.model_name}
                         </div>
@@ -1312,8 +1326,9 @@ function VisionApiKeysPanel({ notify }: { notify: (type: 'success' | 'error' | '
               {(isEditing || !existing) && edit && (
                 <div className="space-y-3">
                   <div>
-                    <label className="text-xs text-[var(--text-muted)] mb-1 block">API Key</label>  // NOSONAR — S6853: label/control association; needs htmlFor/id wiring (tech debt)
-                    <input  // NOSONAR — S6772: inline spacing; cosmetic
+                    <label htmlFor={`vision-${provider.id}-key`} className="text-xs text-[var(--text-muted)] mb-1 block">API Key</label>
+                    <input
+                      id={`vision-${provider.id}-key`}
                       type="password"
                       value={edit.apiKey}
                       onChange={e => setEditing(prev => ({
@@ -1327,8 +1342,9 @@ function VisionApiKeysPanel({ notify }: { notify: (type: 'success' | 'error' | '
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                     <div>
-                      <label className="text-xs text-[var(--text-muted)] mb-1 block">Base URL (optional)</label>  // NOSONAR — S6853: label/control association; needs htmlFor/id wiring (tech debt)
-                      <input  // NOSONAR — S6772: inline spacing; cosmetic
+                      <label htmlFor={`vision-${provider.id}-base`} className="text-xs text-[var(--text-muted)] mb-1 block">Base URL (optional)</label>
+                      <input
+                        id={`vision-${provider.id}-base`}
                         type="text"
                         value={edit.baseUrl}
                         onChange={e => setEditing(prev => ({
@@ -1340,8 +1356,9 @@ function VisionApiKeysPanel({ notify }: { notify: (type: 'success' | 'error' | '
                       />
                     </div>
                     <div>
-                      <label className="text-xs text-[var(--text-muted)] mb-1 block">Model (optional)</label>  // NOSONAR — S6853: label/control association; needs htmlFor/id wiring (tech debt)
-                      <input  // NOSONAR — S6772: inline spacing; cosmetic
+                      <label htmlFor={`vision-${provider.id}-model`} className="text-xs text-[var(--text-muted)] mb-1 block">Model (optional)</label>
+                      <input
+                        id={`vision-${provider.id}-model`}
                         type="text"
                         value={edit.modelName}
                         onChange={e => setEditing(prev => ({
@@ -1517,9 +1534,9 @@ export default function Settings() {
         >
           {activeTab === 'ai' ? (
             <AISettingsPanel settings={settings} setSettings={setSettings} notify={notify} />
-          ) : activeTab === 'external' ? (  // NOSONAR — S3358: nested ternary; refactor to named variable (tech debt)
+          ) : activeTab === 'external' ? (
             <ExternalServicesPanel settings={settings} setSettings={setSettings} notify={notify} />
-          ) : activeTab === 'vision' ? (  // NOSONAR — S3358: nested ternary; refactor to named variable (tech debt)
+          ) : activeTab === 'vision' ? (
             <VisionApiKeysPanel notify={notify} />
           ) : (
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -1527,7 +1544,7 @@ export default function Settings() {
                 <Card key={section.title} padding="md">
                   <CardHeader
                     title={section.title}
-                    subtitle={`${section.fields.length} field${section.fields.length !== 1 ? 's' : ''}`}
+                    subtitle={`${section.fields.length} field${section.fields.length === 1 ? '' : 's'}`}
                     icon={TAB_SECTIONS[activeTab]?.icon}
                   />
                   <div className="space-y-4">

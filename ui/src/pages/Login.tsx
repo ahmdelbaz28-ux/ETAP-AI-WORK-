@@ -117,12 +117,13 @@ export default function Login() {
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block text-xs font-medium text-[var(--text-secondary)] mb-1.5">  // NOSONAR — S6853: label/control association; needs htmlFor/id wiring (tech debt)
+              <label htmlFor="login-email" className="block text-xs font-medium text-[var(--text-secondary)] mb-1.5">
                 Email Address
               </label>
               <div className="relative">
                 <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)]" />
                 <input
+                  id="login-email"
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
@@ -134,12 +135,13 @@ export default function Login() {
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-[var(--text-secondary)] mb-1.5">  // NOSONAR — S6853: label/control association; needs htmlFor/id wiring (tech debt)
+              <label htmlFor="login-password" className="block text-xs font-medium text-[var(--text-secondary)] mb-1.5">
                 Password
               </label>
               <div className="relative">
                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)]" />
                 <input
+                  id="login-password"
                   type={showPassword ? 'text' : 'password'}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
@@ -160,7 +162,7 @@ export default function Login() {
 
             <div className="flex items-center justify-between text-xs">
               <label className="flex items-center gap-1.5 text-[var(--text-tertiary)] cursor-pointer">
-                <input type="checkbox" defaultChecked className="rounded border-[var(--border-primary)] bg-[var(--bg-input)] text-brand-500 focus:ring-brand-500/20" />  // NOSONAR — S6772: inline spacing; cosmetic
+                <input id="login-remember-me" type="checkbox" defaultChecked className="rounded border-[var(--border-primary)] bg-[var(--bg-input)] text-brand-500 focus:ring-brand-500/20" />
                 Remember me
               </label>
               <button type="button" className="text-brand-400 hover:text-brand-300 transition-colors">
