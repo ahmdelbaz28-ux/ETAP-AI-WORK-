@@ -130,7 +130,7 @@ class _TraceFilter:
     def __init__(self):
         self.local = threading.local()
 
-    def filter(self, record):
+    def filter(self, record: logging.LogRecord) -> bool:
         trace_id = getattr(self.local, "current_trace_id", "unknown")
         record.trace_id = trace_id
         return True
@@ -139,7 +139,7 @@ class _TraceFilter:
 _trace_filter = _TraceFilter()
 
 
-def _structlog_processor_wrapper(logger, method_name, event_dict):
+def _structlog_processor_wrapper(logger: Any, method_name: str, event_dict: dict[str, Any]) -> dict[str, Any]:
     """Wrapper to add trace_id from thread-local storage to structlog events."""
     trace_id = getattr(_trace_filter.local, "current_trace_id", "unknown")
     event_dict["trace_id"] = trace_id
@@ -345,7 +345,7 @@ def _validate_environment() -> None:
 
 
 @asynccontextmanager
-async def lifespan(app):
+async def lifespan(app: Any):  # noqa: ANN201 - asynccontextmanager signature
     """
     Lifespan context manager for application startup and shutdown events.
     """
@@ -404,12 +404,12 @@ async def _initialize_cache_with_retry(max_retries: int = 3) -> Any:
             if hasattr(cache, "ping"):
                 ping_result = await cache.ping()
                 if ping_result:
-                    logger.info(f"Cache connection established (attempt {attempt + 1})")
+                    logger.info("Cache connection established (attempt %s)", attempt + 1)
                     return cache
                 else:
                     logger.warning("Cache connection failed (attempt %s)", attempt + 1)
             else:
-                logger.info(f"Cache initialized without ping (attempt {attempt + 1})")
+                logger.info("Cache initialized without ping (attempt %s)", attempt + 1)
                 return cache
         except Exception as e:
             logger.warning(
@@ -427,11 +427,11 @@ async def _initialize_cache_with_retry(max_retries: int = 3) -> Any:
 _study_cache: Any = None
 
 
-def get_study_cache():
+def get_study_cache() -> Any:
     """Get the global study cache instance."""
     return _study_cache
 
 
-def get_logger():
+def get_logger() -> Any:
     """Get the configured logger instance."""
     return logger

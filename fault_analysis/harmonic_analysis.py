@@ -119,8 +119,8 @@ class HarmonicAnalysisEngine:
         """Add a harmonic current/voltage source."""
         self.harmonic_sources.append(source)
         logger.info(
-            f"Added harmonic source: order={source.harmonic_order}, "
-            f"magnitude={source.magnitude_pu} pu",
+            "Added harmonic source: order=%d, magnitude=%s pu",
+            source.harmonic_order, source.magnitude_pu,
         )
 
     def calculate_harmonic_impedance(
@@ -366,8 +366,8 @@ class HarmonicAnalysisEngine:
             if max_voltage > threshold_factor:
                 resonance_freqs.append(result.frequency_hz)
                 logger.warning(
-                    f"Potential resonance detected at {result.frequency_hz} Hz "
-                    f"(harmonic {result.harmonic_order})",
+                    "Potential resonance detected at %s Hz (harmonic %d)",
+                    result.frequency_hz, result.harmonic_order,
                 )
 
         resonance_detected = len(resonance_freqs) > 0
@@ -412,8 +412,8 @@ class HarmonicAnalysisEngine:
 
             if not compliant:
                 logger.warning(
-                    f"IEEE 519 violation at bus {bus_id}: "
-                    f"THD={thd:.2f}% exceeds limit {vthd_limit}%",
+                    "IEEE 519 violation at bus %s: THD=%.2f%% exceeds limit %s%%",
+                    bus_id, thd, vthd_limit,
                 )
 
         return compliance
@@ -488,8 +488,8 @@ class HarmonicAnalysisEngine:
         )
 
         logger.info(
-            f"Harmonic analysis complete. Resonance: {resonance_detected}, "
-            f"Violations: {len(violations)}",
+            "Harmonic analysis complete. Resonance: %s, Violations: %d",
+            resonance_detected, len(violations),
         )
 
         return result
@@ -549,8 +549,8 @@ class HarmonicAnalysisEngine:
         }
 
         logger.info(
-            f"Passive filter designed for harmonic {h_target}: "
-            f"C={C * 1e6:.2f} uF, L={L * 1e3:.2f} mH, R={R:.3f} ohm",
+            "Passive filter designed for harmonic %d: C=%.2f uF, L=%.2f mH, R=%.3f ohm",
+            h_target, C * 1e6, L * 1e3, R,
         )
 
         return filter_design

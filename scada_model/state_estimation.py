@@ -594,5 +594,5 @@ class GNNStateEstimator:
         except Exception as e:
             import logging
 
-            logging.getLogger(__name__).warning(f"GNN refinement failed, using WLS only: {e}")
+            logging.getLogger(__name__).warning("GNN refinement failed, using WLS only: %s", e)
             return wls_result

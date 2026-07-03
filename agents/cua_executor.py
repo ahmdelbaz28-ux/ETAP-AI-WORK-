@@ -668,7 +668,7 @@ class CUAExecutor:
             if result.get("success"):
                 logger.debug("Screenshot uploaded to Supabase: %s", filename)
             else:
-                logger.debug(f"Supabase screenshot upload failed: {result.get('error')}")
+                logger.debug("Supabase screenshot upload failed: %s", result.get('error'))
         except Exception as exc:  # noqa: BLE001
             logger.debug("Supabase screenshot upload failed (non-critical): %s", exc)
 

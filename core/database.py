@@ -205,8 +205,8 @@ class UniversalDataModel:
                 autocad_handle=row.get("autocad_handle"),
                 revit_element_id=row.get("revit_element_id"),
             )
-        except Exception as e:
-            logger.error("Error converting row to element: %s", e, exc_info=True)
+        except Exception:
+            logger.error.exception("Error converting row to element: ")
             return None
 
     def _row_to_conflict(self, row: dict[str, Any]) -> Conflict | None:
@@ -226,8 +226,8 @@ class UniversalDataModel:
                 resolution=json.loads(row["resolution"]) if row.get("resolution") else None,
                 resolved=bool(row.get("resolved", 0)),
             )
-        except Exception as e:
-            logger.error("Error converting row to conflict: %s", e, exc_info=True)
+        except Exception:
+            logger.error.exception("Error converting row to conflict: ")
             return None
 
     def add_element(self, element: UniversalElement) -> bool:
@@ -278,8 +278,8 @@ class UniversalDataModel:
                 conn.commit()
                 self.elements[element.element_id] = element
                 return True
-            except Exception as e:
-                logger.error("Error adding element: %s", e, exc_info=True)
+            except Exception:
+                logger.error.exception("Error adding element: ")
                 return False
 
     def get_element(self, element_id: str) -> UniversalElement | None:
@@ -381,8 +381,8 @@ class UniversalDataModel:
                 )
                 conn.commit()
                 return True
-            except Exception as e:
-                logger.error("Error updating element: %s", e, exc_info=True)
+            except Exception:
+                logger.error.exception("Error updating element: ")
                 return False
 
     def delete_element(self, element_id: str, source: ChangeSource = ChangeSource.MANUAL) -> bool:
@@ -426,8 +426,8 @@ class UniversalDataModel:
                 )
                 conn.commit()
                 return True
-            except Exception as e:
-                logger.error("Error resolving conflict: %s", e, exc_info=True)
+            except Exception:
+                logger.error.exception("Error resolving conflict: ")
                 return False
 
     def get_statistics(self) -> dict[str, Any]:

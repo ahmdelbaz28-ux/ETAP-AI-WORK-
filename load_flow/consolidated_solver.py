@@ -371,9 +371,8 @@ class LoadFlowSolver:
             # Lightweight debug: first few iterations and when oscillation triggers later.
             if iteration < 5:
                 logger.info(
-                    f"[LoadFlow] iter={iteration} max_mismatch={max_mismatch:.6e} "
-                    f"n_pv={len(self.pv_indices)} n_pq={len(self.pq_indices)} "
-                    f"damping={self.damping_factor:.3f}",
+                    "[LoadFlow] iter=%d max_mismatch=%.6e n_pv=%d n_pq=%d damping=%.3f",
+                    iteration, max_mismatch, len(self.pv_indices), len(self.pq_indices), self.damping_factor,
                 )
                 try:
                     J_dbg = self._build_jacobian(self.V)
@@ -381,12 +380,12 @@ class LoadFlowSolver:
                     inf_count = int(np.isinf(J_dbg).sum())
                     finite_all = bool(np.isfinite(J_dbg).all())
                     logger.info(
-                        f"[LoadFlow] iter={iteration} Jacobian finite_all={finite_all} "
-                        f"nan_count={nan_count} inf_count={inf_count} shape={J_dbg.shape}",
+                        "[LoadFlow] iter=%d Jacobian finite_all=%s nan_count=%d inf_count=%d shape=%s",
+                        iteration, finite_all, nan_count, inf_count, J_dbg.shape,
                     )
                 except Exception as e:
                     logger.exception(
-                        f"[LoadFlow] iter={iteration} Jacobian build debug failed: {e}",
+                        "[LoadFlow] iter=%d Jacobian build debug failed: %s", iteration, e,
                     )
 
             self.iteration_log.append(
@@ -504,12 +503,14 @@ class LoadFlowSolver:
             if self._detect_oscillation(mismatch_history):
                 self.damping_factor = max(0.3, self.damping_factor * 0.7)
                 logger.warning(
-                    f"Oscillation detected at iteration {iteration}, reducing damping to {self.damping_factor:.3f}",
+                    "Oscillation detected at iteration %d, reducing damping to %.3f",
+                    iteration, self.damping_factor,
                 )
 
             if max_mismatch > 1e4:
                 logger.error(
-                    f"Divergence detected at iteration {iteration} (mismatch={max_mismatch:.2e})",
+                    "Divergence detected at iteration %d (mismatch=%.2e)",
+                    iteration, max_mismatch,
                 )
                 break
 

@@ -27,12 +27,13 @@ class SCADALiveFeed:
         self.is_broadcasting = False
         self.broadcast_task = None
 
-    async def connect(self, websocket: WebSocket):
+    async def connect(self, websocket: WebSocket) -> None:
         """Add a new WebSocket connection to the active connections list."""
         await websocket.accept()
         self.active_connections.append(websocket)
         logger.info(
-            f"New WebSocket connection established. Total connections: {len(self.active_connections)}",
+            "New WebSocket connection established. Total connections: %d",
+            len(self.active_connections),
         )
 
         # Start broadcasting if not already running
@@ -40,12 +41,13 @@ class SCADALiveFeed:
             self.is_broadcasting = True
             self.broadcast_task = asyncio.create_task(self._broadcast_loop())
 
-    def disconnect(self, websocket: WebSocket):
+    def disconnect(self, websocket: WebSocket) -> None:
         """Remove a WebSocket connection from the active connections list."""
         if websocket in self.active_connections:
             self.active_connections.remove(websocket)
             logger.info(
-                f"WebSocket connection closed. Total connections: {len(self.active_connections)}",
+                "WebSocket connection closed. Total connections: %d",
+                len(self.active_connections),
             )
 
         # Stop broadcasting if no active connections
@@ -54,12 +56,12 @@ class SCADALiveFeed:
             if self.broadcast_task:
                 self.broadcast_task.cancel()
 
-    async def send_personal_message(self, message: str, websocket: WebSocket):
+    async def send_personal_message(self, message: str, websocket: WebSocket) -> None:
         """Send a personal message to a specific WebSocket client."""
         if websocket.application_state == WebSocketState.CONNECTED:
             await websocket.send_text(message)
 
-    async def broadcast_message(self, message: str):
+    async def broadcast_message(self, message: str) -> None:
         """Broadcast a message to all active WebSocket connections."""
         disconnected_clients = []
 
@@ -69,8 +71,8 @@ class SCADALiveFeed:
                     await connection.send_text(message)
                 else:
                     disconnected_clients.append(connection)
-            except Exception as e:
-                logger.error("Error sending message to WebSocket: %s", e, exc_info=True)
+            except Exception:
+                logger.error.exception("Error sending message to WebSocket: ")
                 disconnected_clients.append(connection)
 
         # Remove disconnected clients
@@ -177,8 +179,8 @@ class SCADALiveFeed:
             except asyncio.CancelledError:
                 logger.info("SCADA broadcast loop cancelled")
                 break
-            except Exception as e:
-                logger.error("Error in SCADA broadcast loop: %s", e, exc_info=True)
+            except Exception:
+                logger.error.exception("Error in SCADA broadcast loop: ")
                 await asyncio.sleep(5)  # Wait 5 seconds before retrying
 
 
@@ -186,7 +188,7 @@ class SCADALiveFeed:
 scada_feed = SCADALiveFeed()
 
 
-async def scada_websocket_endpoint(websocket: WebSocket):
+async def scada_websocket_endpoint(websocket: WebSocket) -> None:
     """WebSocket endpoint for real-time SCADA data."""
     await scada_feed.connect(websocket)
     try:
@@ -199,6 +201,6 @@ async def scada_websocket_endpoint(websocket: WebSocket):
             await scada_feed.send_personal_message(f"Ack: {data}", websocket)
     except WebSocketDisconnect:
         scada_feed.disconnect(websocket)
-    except Exception as e:
-        logger.error("WebSocket error: %s", e, exc_info=True)
+    except Exception:
+        logger.error.exception("WebSocket error: ")
         scada_feed.disconnect(websocket)

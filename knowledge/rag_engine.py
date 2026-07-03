@@ -420,7 +420,8 @@ class EngineeringKnowledgeBase:
                 faiss_dim = self.vector_db.index.d
                 if actual_dim != faiss_dim:
                     logger.warning(
-                        f"Embedding dimension ({actual_dim}) doesn't match FAISS index ({faiss_dim}). Reinitializing FAISS.",
+                        "Embedding dimension (%d) doesn't match FAISS index (%d). Reinitializing FAISS.",
+                        actual_dim, faiss_dim,
                     )
                     import faiss
 
@@ -449,7 +450,7 @@ class EngineeringKnowledgeBase:
             # Add to database
             self.vector_db.add_document(doc, embedding)
 
-        self.logger.info(f"Loaded {len(standards)} default engineering standards")
+        self.logger.info("Loaded %d default engineering standards", len(standards))
 
     def _get_default_standards_content(self) -> list[dict]:
         """Get default engineering standards content."""
@@ -693,7 +694,7 @@ class EngineeringKnowledgeBase:
         # Search vector database
         results = self.vector_db.search(query_embedding, top_k)
 
-        self.logger.info(f"Retrieved {len(results)} documents for query: {query[:50]}...")
+        self.logger.info("Retrieved %d documents for query: %s...", len(results), query[:50])
 
         return results
 

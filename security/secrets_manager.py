@@ -102,7 +102,13 @@ class VaultSecretsManager:
         return self._vault_token
 
     def __repr__(self) -> str:
-        masked = self._vault_token[:4] + "****" if len(self._vault_token) > 4 else "****"
+        # Quality v2.1.1: extract magic numbers as named constants (PLR2004)
+        _VAULT_TOKEN_PREVIEW_LEN = 4
+        masked = (
+            self._vault_token[:_VAULT_TOKEN_PREVIEW_LEN] + "****"
+            if len(self._vault_token) > _VAULT_TOKEN_PREVIEW_LEN
+            else "****"
+        )
         return f"VaultSecretsManager(addr={self.vault_addr!r}, token={masked!r})"
 
     def _init_vault_client(self) -> None:
@@ -142,6 +148,7 @@ class VaultSecretsManager:
         return re.sub(r"[^a-zA-Z0-9_-]", "_", raw)
 
     def get_secret(self, path: str, key: str) -> str | None:
+        """Retrieve a secret from Vault or local fallback."""
         if self._connected and self._client:
             try:
                 response = self._client.secrets.kv.v2.read_secret_version(
@@ -160,6 +167,7 @@ class VaultSecretsManager:
         return None
 
     def set_secret(self, path: str, key: str, value: str) -> bool:
+        """Store a secret in Vault (or local fallback)."""
         if self._connected and self._client:
             try:
                 self._client.secrets.kv.v2.create_or_update_secret(
@@ -181,6 +189,7 @@ class VaultSecretsManager:
         return False
 
     def delete_secret(self, path: str, key: str) -> bool:
+        """Delete a secret from Vault (or local fallback)."""
         if self._connected and self._client:
             try:
                 response = self._client.secrets.kv.v2.read_secret_version(
@@ -214,6 +223,7 @@ class VaultSecretsManager:
         return False
 
     def list_secrets(self, path: str) -> list[str]:
+        """List all secret keys under a Vault path."""
         if self._connected and self._client:
             try:
                 response = self._client.secrets.kv.v2.list_secrets(
@@ -292,6 +302,7 @@ class LocalSecretsManager:
         return SECRETS_DIR / f"{safe_name}.enc"
 
     def set_api_key(self, service_name: str, api_key: str) -> bool:
+        """Encrypt and store an API key for *service_name*."""
         try:
             encrypted = self._cipher.encrypt(api_key.encode())
             self._service_file(service_name).write_bytes(encrypted)
@@ -302,6 +313,7 @@ class LocalSecretsManager:
             return False
 
     def get_api_key(self, service_name: str) -> str | None:
+        """Retrieve a stored API key for *service_name*."""
         path = self._service_file(service_name)
         if not path.exists():
             logger.warning("No stored API key for %s", service_name)
@@ -317,6 +329,7 @@ class LocalSecretsManager:
             return None
 
     def rotate_key(self) -> bool:
+        """Rotate the local Fernet encryption key (re-encrypts all stored keys)."""
         try:
             old_cipher = self._cipher
             new_key = Fernet.generate_key()
@@ -345,6 +358,7 @@ class LocalSecretsManager:
             return False
 
     def delete_api_key(self, service_name: str) -> bool:
+        """Delete a stored API key for *service_name*."""
         path = self._service_file(service_name)
         if not path.exists():
             logger.warning("No API key to delete for %s", service_name)
@@ -358,6 +372,7 @@ class LocalSecretsManager:
             return False
 
     def list_services(self) -> list[str]:
+        """Return a list of service names that have stored API keys."""
         return [f.stem for f in SECRETS_DIR.glob("*.enc") if f.name != ".encryption_key"]
 
 
@@ -417,7 +432,8 @@ class KeyAccessAuditor:
         action: str,
         success: bool,
         details: dict | None = None,
-    ):
+    ) -> None:
+        """Log a key access event to the audit log."""
         entry = {
             "timestamp": datetime.now(UTC).isoformat(),
             "user_id": user_id,
@@ -445,6 +461,7 @@ class KeyAccessAuditor:
         start_time: datetime | None = None,
         end_time: datetime | None = None,
     ) -> list[dict]:
+        """Return filtered key access log entries."""
         if not self._log_file.exists():
             return []
         records: list[dict] = []
@@ -475,6 +492,7 @@ class KeyAccessAuditor:
         return records
 
     def get_recent_access(self, limit: int = 100) -> list[dict]:
+        """Return the most recent *limit* key access log entries."""
         records = self.get_access_logs()
         records.sort(key=lambda r: r.get("timestamp", ""), reverse=True)
         return records[:limit]
@@ -498,6 +516,7 @@ class EnvironmentValidator:
         self.required_secrets = required_secrets or REQUIRED_SECRETS
 
     def check_missing_secrets(self) -> list[str]:
+        """Return a list of required secret names that are not configured."""
         missing: list[str] = []
         for secret in self.required_secrets:
             value = os.environ.get(secret, "")
@@ -510,6 +529,7 @@ class EnvironmentValidator:
         return missing
 
     def check_file_permissions(self) -> bool:
+        """Verify that the secrets file has restrictive permissions (0o600)."""
         env_path = self.env_path
         if not env_path.exists():
             logger.warning(".env file not found at %s", env_path)
@@ -558,6 +578,7 @@ class EnvironmentValidator:
             return False
 
     def check_for_hardcoded_secrets(self, file_patterns: list[str] | None = None) -> list[dict]:
+        """Scan source files for hardcoded secret patterns (sk-, hf_, ghp_, etc.)."""
         if file_patterns is None:
             file_patterns = ["*.py", "*.ts", "*.js", "*.tsx", "*.jsx", "*.yaml", "*.yml"]
         patterns = [
@@ -599,6 +620,7 @@ class EnvironmentValidator:
         return findings
 
     def generate_env_template(self, output_path: Path | None = None) -> str:
+        """Generate a .env.example template listing all required environment variables."""
         out = output_path or Path.cwd() / ".env.example"
         lines = [
             "# AhmedETAP - Environment Configuration",

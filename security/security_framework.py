@@ -241,13 +241,16 @@ class AuthenticationManager:
     def create_user(
         self, username: str, email: str, password: str, role: UserRole = UserRole.VIEWER,
     ) -> User | None:
+        """Create a new user (returns User on success, None on duplicate username)."""
         if username in self.username_to_id:
             logger.warning("Username '%s' already exists", username)
             return None
 
         # Password strength validation
-        if len(password) < 8:
-            logger.warning("Password too short (minimum 8 characters)")
+        # Quality v2.1.1: PLR2004 — extract magic number as named constant
+        _MIN_PASSWORD_LENGTH = 8
+        if len(password) < _MIN_PASSWORD_LENGTH:
+            logger.warning("Password too short (minimum %d characters)", _MIN_PASSWORD_LENGTH)
             return None
         _common_passwords = ("password", "12345678", "qwerty123")
         if password.lower() in _common_passwords or password.lower() == username.lower():
@@ -268,6 +271,7 @@ class AuthenticationManager:
         return user
 
     def authenticate(self, username: str, password: str) -> str | None:
+        """Authenticate a user and return a token (or None on failure)."""
         user_id = self.username_to_id.get(username)
         if not user_id:
             logger.warning("Authentication failed: invalid credentials")
@@ -322,6 +326,7 @@ class AuthenticationManager:
         return token
 
     def validate_token(self, token: str) -> User | None:
+        """Validate a session token and return the User (or None if invalid)."""
         if isinstance(token, bytes):
             token = token.decode("utf-8")
         session = self.token_to_session.get(token)
@@ -345,6 +350,7 @@ class AuthenticationManager:
         return user
 
     def logout(self, token: str) -> bool:
+        """Invalidate a session token. Returns True if the token was active."""
         if isinstance(token, bytes):
             token = token.decode("utf-8")
         session = self.token_to_session.pop(token, None)
@@ -395,6 +401,7 @@ class AuthorizationManager:
         self.auth_manager = auth_manager
 
     def check_permission(self, token: str, permission: Permission) -> bool:
+        """Check whether the user behind *token* has *permission*."""
         user = self.auth_manager.validate_token(token)
         if not user:
             return False
@@ -478,7 +485,7 @@ class InputValidator:
 
         for node in ast.walk(tree):
             if isinstance(node, InputValidator.FORBIDDEN_AST_NODES):
-                logger.warning(f"Forbidden AST node type: {type(node).__name__}")
+                logger.warning("Forbidden AST node type: %s", type(node).__name__)
                 return False
 
             if isinstance(node, (ast.Import, ast.ImportFrom)):
@@ -673,6 +680,7 @@ class RateLimiter:
                 del self.requests[cid]
 
     def is_allowed(self, client_id: str) -> bool:
+        """Check whether *client_id* is currently within rate limits."""
         now = time.time()
 
         if client_id not in self.requests:
@@ -717,7 +725,8 @@ class AuditLogger:
 
     def log_event(
         self, event_type: str, user_id: str, action: str, details: dict = None, success: bool = True,
-    ):
+    ) -> None:
+        """Append a structured security audit event to the audit log."""
         log_entry = {
             "timestamp": datetime.now(UTC).isoformat(),
             "event_type": event_type,

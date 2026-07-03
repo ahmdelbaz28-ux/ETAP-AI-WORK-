@@ -188,7 +188,8 @@ class AIMemoryService:
             )
         except Exception as exc:
             logger.warning(
-                f"Failed to initialize OpenAIEmbeddings ({exc}). Using offline fallback.",
+                "Failed to initialize OpenAIEmbeddings (%s). Using offline fallback.",
+                exc,
             )
             return DeterministicFallbackEmbeddings()
 

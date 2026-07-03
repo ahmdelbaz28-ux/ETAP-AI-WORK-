@@ -137,7 +137,7 @@ class CodeIndexer:
         repo_dir = Path(repo_path)
         total_chunks = 0
 
-        logger.info(f"Scanning repository: {repo_dir.absolute()}")
+        logger.info("Scanning repository: %s", repo_dir.absolute())
         for root, dirs, files in os.walk(repo_dir):
             # Prune hidden dirs, venvs, and node_modules
             dirs[:] = [

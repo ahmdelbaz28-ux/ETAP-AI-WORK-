@@ -372,7 +372,8 @@ class PDFReportGenerator:
                         )
                     else:
                         self.logger.warning(
-                            f"Failed to upload PDF to Supabase: {result.get('error')}",
+                            "Failed to upload PDF to Supabase: %s",
+                            result.get('error'),
                         )
             except Exception as e:
                 self.logger.warning("Supabase upload failed (non-critical): %s", e)
@@ -698,7 +699,7 @@ class ReportGenerationAgent:
             if xlsx_path:
                 generated_files["xlsx"] = xlsx_path
 
-        self.logger.info(f"Report generation complete. Files: {list(generated_files.keys())}")
+        self.logger.info("Report generation complete. Files: %s", list(generated_files.keys()))
 
         return generated_files
 

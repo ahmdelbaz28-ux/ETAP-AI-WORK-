@@ -31,7 +31,7 @@ def on_test_start(environment, **kwargs):
         if isinstance(environment.runner, WorkerRunner)
         else "standalone"
     )
-    logger.info(f"Locust test starting — runner: {runner_type}")
+    logger.info("Locust test starting — runner: %s", runner_type)
 
 
 @events.test_stop.add_listener
@@ -45,17 +45,20 @@ def on_test_stop(environment, **kwargs):
         sorted_times = sorted(_study_execution_times)
         p95_time = sorted_times[min(p95_idx, len(sorted_times) - 1)]
         logger.info(
-            f"\n{'=' * 60}\n"
-            f"  Study Execution Metrics (Custom)\n"
-            f"{'=' * 60}\n"
-            f"  Total studies:    {len(_study_execution_times)}\n"
-            f"  Successful:       {_study_success_count}\n"
-            f"  Failed:           {_study_failure_count}\n"
-            f"  Avg time:         {avg_time:.1f} ms\n"
-            f"  Min time:         {min_time:.1f} ms\n"
-            f"  Max time:         {max_time:.1f} ms\n"
-            f"  P95 time:         {p95_time:.1f} ms\n"
-            f"{'=' * 60}",
+            "\n%s\n  Study Execution Metrics (Custom)\n%s\n"
+            "  Total studies:    %d\n"
+            "  Successful:       %d\n"
+            "  Failed:           %d\n"
+            "  Avg time:         %.1f ms\n"
+            "  Min time:         %.1f ms\n"
+            "  Max time:         %.1f ms\n"
+            "  P95 time:         %.1f ms\n%s",
+            "=" * 60, "=" * 60,
+            len(_study_execution_times),
+            _study_success_count,
+            _study_failure_count,
+            avg_time, min_time, max_time, p95_time,
+            "=" * 60,
         )
 
 
@@ -191,7 +194,7 @@ class AuthenticatedUser(HttpUser):
             # If auth is disabled, the endpoint might not exist or return unexpected status
             login_resp.success()
         except Exception as e:
-            logger.debug(f"Auth attempt failed (non-fatal): {e}")
+            logger.debug("Auth attempt failed (non-fatal): %s", e)
 
     def _register_test_user(self):
         """Register the test user if they don't exist yet."""

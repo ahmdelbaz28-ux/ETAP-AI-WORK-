@@ -1,6 +1,4 @@
-"""
-security/log_redaction.py — Credential & Secret Redaction Filter
-================================================================
+"""Credential & Secret Redaction Filter.
 
 A Python logging filter that scans every log message (and exception
 traceback) for known secret patterns and replaces them with the literal
@@ -161,6 +159,7 @@ class SecretRedactionFilter(logging.Filter):
     """
 
     def __init__(self, name: str = "secret_redaction") -> None:
+        """Initialize the filter with an optional logging filter name."""
         super().__init__(name)
 
     def filter(self, record: logging.LogRecord) -> bool:

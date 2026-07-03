@@ -32,6 +32,12 @@ from datetime import datetime, timezone
 UTC = timezone.utc  # noqa: UP017
 from typing import Any
 
+# Quality v2.1.1: extract magic numbers used in business-hours comparison
+# (PLR2004 rule). These are deliberately module-level constants so they
+# can be tuned without code changes and are documented.
+BUSINESS_HOURS_START = 8   # 8 AM local time
+BUSINESS_HOURS_END = 18    # 6 PM local time
+
 from compat import StrEnum
 
 logger = logging.getLogger(__name__)
@@ -327,7 +333,7 @@ class ABACPolicyEngine:
             t: datetime = env["time"]
             env.setdefault("hour", t.hour)
             env.setdefault("day_of_week", t.weekday())
-            env.setdefault("is_business_hours", 8 <= t.hour <= 18)
+            env.setdefault("is_business_hours", BUSINESS_HOURS_START <= t.hour <= BUSINESS_HOURS_END)
 
         # Evaluate policies in priority order
         allow_matched = False

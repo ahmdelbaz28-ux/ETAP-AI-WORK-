@@ -31,6 +31,10 @@ from typing import Any
 
 logger = logging.getLogger(__name__)
 
+# Quality v2.1.1: HTTP status threshold constant (PLR2004). Responses with
+# status >= 400 are considered errors for SIEM forwarding health checks.
+HTTP_ERROR_THRESHOLD = 400
+
 # ---------------------------------------------------------------------------
 # Optional async HTTP libraries
 # ---------------------------------------------------------------------------
@@ -477,7 +481,7 @@ class SIEMForwarder:
         """Send using ``aiohttp.ClientSession``."""
         async with aiohttp.ClientSession() as session:
             async with session.post(self.endpoint, data=payload, headers=headers) as response:
-                if response.status >= 400:
+                if response.status >= HTTP_ERROR_THRESHOLD:
                     text = await response.text()
                     raise RuntimeError(f"SIEM returned {response.status}: {text}")
 
@@ -494,7 +498,7 @@ class SIEMForwarder:
                 self.endpoint, data=payload, headers=headers, method="POST",
             )
             with urllib.request.urlopen(req, timeout=10) as resp:
-                if resp.status >= 400:
+                if resp.status >= HTTP_ERROR_THRESHOLD:
                     raise RuntimeError(f"SIEM returned {resp.status}")
 
         await asyncio.to_thread(_blocking_post)
@@ -581,13 +585,13 @@ class SIEMForwarder:
             if _HAS_HTTPX:
                 async with httpx.AsyncClient(timeout=5.0) as client:
                     resp = await client.get(self.endpoint.rsplit("/", 1)[0] + "/ready", timeout=5.0)
-                    healthy = resp.status_code < 400
+                    healthy = resp.status_code < HTTP_ERROR_THRESHOLD
             elif _HAS_AIOHTTP:
                 async with aiohttp.ClientSession() as session, session.get(
                     self.endpoint.rsplit("/", 1)[0] + "/ready",
                     timeout=aiohttp.ClientTimeout(total=5),
                 ) as resp:
-                    healthy = resp.status < 400
+                    healthy = resp.status < HTTP_ERROR_THRESHOLD
             else:
                 healthy = True  # no way to check; assume OK
         except Exception:

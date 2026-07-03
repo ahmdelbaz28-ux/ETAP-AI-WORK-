@@ -845,7 +845,7 @@ class ETAPExecutionAgent(BaseAgent):
         self.provider = get_etap_provider()
 
         if self.provider.is_available():
-            self.logger.info(f"ETAP Provider initialized: {type(self.provider).__name__}")
+            self.logger.info("ETAP Provider initialized: %s", type(self.provider).__name__)
         else:
             self.logger.warning("No ETAP provider is currently available.")
 
@@ -1541,7 +1541,8 @@ class ChiefEngineeringOrchestrator:
                 results.append(result)
                 if not result.validation_status:
                     self.logger.warning(
-                        f"Validation failed for {study_type.value}: {result.validation_errors}",
+                        "Validation failed for %s: %s",
+                        study_type.value, result.validation_errors,
                     )
 
         # Phase 2: Run independent studies in parallel

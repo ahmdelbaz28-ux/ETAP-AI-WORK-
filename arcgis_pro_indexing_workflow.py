@@ -62,7 +62,7 @@ class ArcGISProIndexingWorkflow:
         for section in indexed_docs.get("documentation_sections", []):
             docs_to_process.extend(self._extract_doc_items(section, base_url))
 
-        self.logger.info(f"Fetched {len(docs_to_process)} documentation items")
+        self.logger.info("Fetched %s documentation items", len(docs_to_process))
         return docs_to_process
 
     def _extract_doc_items(
@@ -100,7 +100,7 @@ class ArcGISProIndexingWorkflow:
         for item in raw_data:
             # Validate URL
             if not self._is_valid_url(item["url"]):
-                self.logger.warning(f"Invalid URL skipped: {item['url']}")
+                self.logger.warning("Invalid URL skipped: %s", item['url'])
                 continue
 
             # Clean title
@@ -118,7 +118,7 @@ class ArcGISProIndexingWorkflow:
 
             cleaned_data.append(cleaned_item)
 
-        self.logger.info(f"Cleaned {len(cleaned_data)} items")
+        self.logger.info("Cleaned %s items", len(cleaned_data))
         return cleaned_data
 
     def _clean_text(self, text: str) -> str:
@@ -171,7 +171,7 @@ class ArcGISProIndexingWorkflow:
             item["embedding_vector"] = embedding
             transformed_data.append(item)
 
-        self.logger.info(f"Transformed {len(transformed_data)} items with embeddings")
+        self.logger.info("Transformed %s items with embeddings", len(transformed_data))
         return transformed_data
 
     def index_data(self, transformed_data: list[dict[str, Any]]):
@@ -207,12 +207,12 @@ class ArcGISProIndexingWorkflow:
                 self.elastic_client.index(index=index_name, id=doc_id, body=item)
 
                 if (i + 1) % 100 == 0:  # Log progress every 100 items
-                    self.logger.info(f"Indexed {i + 1}/{len(transformed_data)} items")
+                    self.logger.info("Indexed %s/%s items", i + 1, len(transformed_data))
 
             except Exception as e:
-                self.logger.error(f"Failed to index document {item['url']}: {str(e)}")
+                self.logger.error("Failed to index document %s: %s", item['url'], str(e))
 
-        self.logger.info(f"Successfully indexed {len(transformed_data)} documents")
+        self.logger.info("Successfully indexed %s documents", len(transformed_data))
 
     def post_process(self, stats: dict[str, Any]):
         """
@@ -231,7 +231,7 @@ class ArcGISProIndexingWorkflow:
 
         # In a real implementation, this would send an email report
         # For now, we'll just log the report
-        self.logger.info(f"Execution report: {json.dumps(report, indent=2)}")
+        self.logger.info("Execution report: %s", json.dumps(report, indent=2))
 
         # Save report to file
         report_filename = f"report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
@@ -244,7 +244,7 @@ class ArcGISProIndexingWorkflow:
         """
         Execute the complete workflow.
         """
-        self.logger.info(f"Starting workflow: {self.config['workflow_name']}")
+        self.logger.info("Starting workflow: %s", self.config['workflow_name'])
         start_time = time.time()
 
         try:
@@ -269,10 +269,10 @@ class ArcGISProIndexingWorkflow:
             self.post_process(stats)
 
             total_time = time.time() - start_time
-            self.logger.info(f"Workflow completed successfully in {total_time:.2f} seconds")
+            self.logger.info("Workflow completed successfully in %.2f seconds", total_time)
 
         except Exception as e:
-            self.logger.error(f"Workflow failed with error: {str(e)}")
+            self.logger.error("Workflow failed with error: %s", str(e))
             raise
 
 

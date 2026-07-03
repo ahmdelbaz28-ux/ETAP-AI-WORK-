@@ -168,9 +168,12 @@ def main() -> None:
             "sys",
         }
         _processed = set()
+        # Quality v2.1.1: extract magic number (PLR2004) — depth limit prevents
+        # infinite recursion on cyclic object graphs.
+        _MAX_DEPTH = 5
 
         def _nullify(obj: Any, depth: int = 0) -> None:
-            if depth > 5 or id(obj) in _processed:
+            if depth > _MAX_DEPTH or id(obj) in _processed:
                 return
             _processed.add(id(obj))
             if not hasattr(obj, "__dict__") and not (
@@ -183,7 +186,7 @@ def main() -> None:
                 if attr_name in DANGEROUS_NAMES:
                     with contextlib.suppress(AttributeError, TypeError):
                         object.__setattr__(obj, attr_name, None)
-                elif depth < 3:
+                elif depth < 3:  # noqa: PLR2004 — depth-3 attr traversal limit
                     try:
                         child = getattr(obj, attr_name, None)
                         if child is not None and hasattr(child, "__name__"):

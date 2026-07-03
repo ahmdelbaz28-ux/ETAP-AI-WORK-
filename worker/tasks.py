@@ -86,7 +86,7 @@ def execute_etap_integration_task(self, etap_command: dict):
         if not use_etap:
             return {"error": "ETAP integration is disabled", "result": None}
 
-        logger.info(f"Starting ETAP integration: {etap_command.get('command', 'Unknown')}")
+        logger.info("Starting ETAP integration: %s", etap_command.get('command', 'Unknown'))
 
         from etap_integration.etap_provider import get_etap_provider
 
@@ -110,7 +110,7 @@ def execute_etap_integration_task(self, etap_command: dict):
                 "errors": res.errors,
             }
 
-        logger.info(f"Completed ETAP integration: {etap_command.get('command', 'Unknown')}")
+        logger.info("Completed ETAP integration: %s", etap_command.get('command', 'Unknown'))
 
         self.update_state(
             state="SUCCESS",
@@ -119,7 +119,7 @@ def execute_etap_integration_task(self, etap_command: dict):
 
         return result
     except Exception as exc:
-        logger.error(f"Error executing ETAP integration: {str(exc)}")
+        logger.error("Error executing ETAP integration: %s", str(exc))
         self.update_state(
             state="FAILURE",
             meta={
@@ -145,7 +145,7 @@ def process_large_calculation_task(self, calculation_data: dict):
         # Update task progress
         self.update_state(state="PROGRESS", meta={"status": "Starting large calculation..."})
 
-        logger.info(f"Starting large calculation: {calculation_data.get('type', 'Unknown')}")
+        logger.info("Starting large calculation: %s", calculation_data.get('type', 'Unknown'))
 
         # Simulate a heavy calculation
         # In real implementation, this would contain the actual computational logic
@@ -175,7 +175,7 @@ def process_large_calculation_task(self, calculation_data: dict):
             "message": "Large calculation completed successfully",
         }
 
-        logger.info(f"Completed large calculation: {calculation_data.get('type', 'Unknown')}")
+        logger.info("Completed large calculation: %s", calculation_data.get('type', 'Unknown'))
 
         self.update_state(
             state="SUCCESS", meta={"status": "Calculation completed successfully", "result": result},
@@ -183,7 +183,7 @@ def process_large_calculation_task(self, calculation_data: dict):
 
         return result
     except Exception as exc:
-        logger.error(f"Error processing large calculation: {str(exc)}")
+        logger.error("Error processing large calculation: %s", str(exc))
         self.update_state(
             state="FAILURE",
             meta={

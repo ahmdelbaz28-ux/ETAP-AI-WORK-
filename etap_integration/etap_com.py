@@ -1249,7 +1249,8 @@ class ETAPAutomation:
 
         if len(file_path) > MAX_PROJECT_PATH_LENGTH:
             logger.warning(
-                f"Project path length {len(file_path)} exceeds maximum {MAX_PROJECT_PATH_LENGTH}",
+                "Project path length %d exceeds maximum %d",
+                len(file_path), MAX_PROJECT_PATH_LENGTH,
             )
             return False
 
@@ -1337,7 +1338,8 @@ class ETAPAutomation:
 
         except pythoncom.com_error as e:
             logger.error(
-                f"COM error opening project {file_path} (timeout={self.com_timeout_seconds}s): {e}",
+                "COM error opening project %s (timeout=%ds): %s",
+                file_path, self.com_timeout_seconds, e,
             )
             return None
         except Exception as e:
@@ -1401,7 +1403,8 @@ class ETAPAutomation:
                 return project
         except pythoncom.com_error as e:
             logger.error(
-                f"COM error getting active project (timeout={self.com_timeout_seconds}s): {e}",
+                "COM error getting active project (timeout=%ds): %s",
+                self.com_timeout_seconds, e,
             )
         except Exception as e:
             logger.error("Error getting active project: %s", e)

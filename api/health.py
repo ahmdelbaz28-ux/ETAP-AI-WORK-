@@ -6,6 +6,7 @@ Separated from main engineering service for better modularity.
 """
 
 import time
+from typing import Any
 
 from fastapi import APIRouter, Request
 from fastapi.responses import Response
@@ -64,21 +65,21 @@ class MetricsResponse:
 
 @router.head("/")
 @router.get("/")
-async def root():
+async def root() -> dict[str, str]:
     """Root endpoint — also handles HEAD / for HF Spaces health checks."""
     return {"message": "Ahmed etap Engineering Platform", "version": "1.0.0"}
 
 
 @router.head("/healthz")
 @router.get("/healthz")
-async def healthz():
+async def healthz() -> dict[str, str]:
     """Lightweight liveness probe (no heavy initialization)."""
     return {"status": "alive"}
 
 
 @router.head("/readyz")
 @router.get("/readyz")
-async def readyz():
+async def readyz() -> dict[str, bool | dict[str, bool]]:
     """Readiness probe — checks critical dependencies."""
     checks = {"python": True, "imports": True}
     all_ready = all(checks.values())
@@ -87,7 +88,7 @@ async def readyz():
 
 @router.head("/health")
 @router.get("/health")
-async def health_check(request: Request):
+async def health_check(request: Request) -> HealthResponse:
     return HealthResponse(
         status="healthy",
         version="1.0.0",
@@ -98,7 +99,7 @@ async def health_check(request: Request):
 
 @router.head("/ready")
 @router.get("/ready")
-async def readiness_check(request: Request):
+async def readiness_check(request: Request) -> dict[str, Any]:
     native_ok = False
     etap_ok = False
     try:
@@ -128,7 +129,7 @@ async def readiness_check(request: Request):
 
 
 @router.get("/metrics")
-async def metrics(request: Request):
+async def metrics(request: Request) -> dict[str, Any]:
     with _metrics_lock:
         req_count = _request_count
         suc_count = _success_count
@@ -145,7 +146,7 @@ async def metrics(request: Request):
 
 
 @router.get("/prometheus/metrics")
-async def prometheus_metrics():
+async def prometheus_metrics() -> str:
     """Prometheus metrics endpoint exposing counters, histograms, and gauges
     from ``core.metrics`` in the standard Prometheus exposition format.
 
