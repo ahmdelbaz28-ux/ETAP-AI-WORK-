@@ -31,8 +31,8 @@ from typing import Any
 
 logger = logging.getLogger(__name__)
 
-# Quality v2.1.1: HTTP status threshold constant (PLR2004). Responses with
-# status >= 400 are considered errors for SIEM forwarding health checks.
+# HTTP responses with status >= 400 are treated as errors for SIEM
+# forwarding health checks.
 HTTP_ERROR_THRESHOLD = 400
 
 # ---------------------------------------------------------------------------

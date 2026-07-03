@@ -104,10 +104,8 @@ def retry_with_backoff(
                         delay,
                     )
                     if on_retry:
-                        try:  # noqa: SIM105 — intentional suppress for cleanup
+                        with contextlib.suppress(Exception):
                             on_retry(attempt, exc)
-                        except Exception:  # noqa: BLE001
-                            pass
                     time.sleep(delay)
             # Should never reach here, but defensive
             if last_exc:

@@ -362,12 +362,14 @@ langfuse_tracker = LangfuseTracker()
 
 
 def _atexit_flush() -> None:
-    """Flush Langfuse events on interpreter shutdown."""
-    try:  # noqa: SIM105 — intentional suppress for cleanup
+    """Flush Langfuse events on interpreter shutdown.
+
+    Uses contextlib.suppress because atexit handlers must never raise —
+    any exception during interpreter shutdown would be printed to stderr
+    and could mask other shutdown errors.
+    """
+    with contextlib.suppress(Exception):
         langfuse_tracker.flush()
-    except Exception:
-        # atexit handlers must never raise
-        pass
 
 
 atexit.register(_atexit_flush)

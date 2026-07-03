@@ -168,12 +168,15 @@ def main() -> None:
             "sys",
         }
         _processed = set()
-        # Quality v2.1.1: extract magic number (PLR2004) — depth limit prevents
-        # infinite recursion on cyclic object graphs.
-        _MAX_DEPTH = 5
+        # Depth limit for the _nullify recursion — prevents infinite recursion
+        # on cyclic object graphs (e.g. numpy.sys.modules['os'].system).
+        _MAX_RECURSION_DEPTH = 5
+        # Attribute-traversal depth limit — beyond this depth we stop walking
+        # child attributes (prevents deep walks into large module trees).
+        _MAX_ATTR_TRAVERSAL_DEPTH = 3
 
         def _nullify(obj: Any, depth: int = 0) -> None:
-            if depth > _MAX_DEPTH or id(obj) in _processed:
+            if depth > _MAX_RECURSION_DEPTH or id(obj) in _processed:
                 return
             _processed.add(id(obj))
             if not hasattr(obj, "__dict__") and not (
@@ -186,7 +189,7 @@ def main() -> None:
                 if attr_name in DANGEROUS_NAMES:
                     with contextlib.suppress(AttributeError, TypeError):
                         object.__setattr__(obj, attr_name, None)
-                elif depth < 3:  # noqa: PLR2004 — depth-3 attr traversal limit
+                elif depth < _MAX_ATTR_TRAVERSAL_DEPTH:
                     try:
                         child = getattr(obj, attr_name, None)
                         if child is not None and hasattr(child, "__name__"):

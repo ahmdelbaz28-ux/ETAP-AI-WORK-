@@ -26,6 +26,7 @@ Usage (programmatic)::
 from __future__ import annotations
 
 import asyncio
+import contextlib
 import json
 import os
 import re
@@ -1191,9 +1192,14 @@ async def _main() -> None:
     auditor = SecurityAuditor(project_root=args.project_root)
     report = await auditor.run()
 
-    out = sys.stdout if args.output == "-" else open(args.output, "w", encoding="utf-8")  # noqa: SIM115 — used in try/finally below
+    # Use ExitStack so the output file (when not stdout) is always closed
+    # via a context manager, even on exception. Replaces the previous
+    # try/finally + manual out.close() pattern.
+    with contextlib.ExitStack() as stack:
+        out = sys.stdout if args.output == "-" else stack.enter_context(
+            open(args.output, "w", encoding="utf-8")
+        )
 
-    try:
         if not args.json_only:
             print("=" * 72, file=out)
             print("AhmedETAP — Security Audit Report", file=out)
@@ -1253,9 +1259,7 @@ async def _main() -> None:
 
         json.dump(report.to_dict(), out, indent=2, default=str)
         print(file=out)
-    finally:
-        if args.output != "-":
-            out.close()
+    # ExitStack closes the file automatically when leaving the `with` block.
 
 
 if __name__ == "__main__":

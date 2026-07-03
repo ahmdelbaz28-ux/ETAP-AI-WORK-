@@ -32,9 +32,8 @@ from datetime import datetime, timezone
 UTC = timezone.utc  # noqa: UP017
 from typing import Any
 
-# Quality v2.1.1: extract magic numbers used in business-hours comparison
-# (PLR2004 rule). These are deliberately module-level constants so they
-# can be tuned without code changes and are documented.
+# Business-hours window (local time) used by ABAC policies.
+# Module-level so they can be tuned without code changes.
 BUSINESS_HOURS_START = 8   # 8 AM local time
 BUSINESS_HOURS_END = 18    # 6 PM local time
 

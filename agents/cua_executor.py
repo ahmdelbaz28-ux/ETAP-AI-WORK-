@@ -27,6 +27,7 @@ lazily inside the executor methods, so importing this module never crashes.
 
 from __future__ import annotations
 
+import contextlib
 import logging
 import os
 import time
@@ -402,11 +403,10 @@ class CUAExecutor:
                     duration_ms=int((time.monotonic() - step_start) * 1000),
                 )
                 steps.append(step_result)
-                # Clean up checkpoints on success
-                try:  # noqa: SIM105 — intentional suppress for cleanup
+                # Clean up checkpoints on success — best effort, never fail
+                # the CUA execution because of a checkpoint cleanup error.
+                with contextlib.suppress(Exception):
                     checkpoint_store.cleanup(exec_id, keep_last=0)
-                except Exception:  # noqa: BLE001
-                    pass
                 return CUAExecutionResult(
                     success=True,
                     steps=steps,
@@ -507,8 +507,10 @@ class CUAExecutor:
                     duration_ms=int((time.monotonic() - step_start) * 1000),
                 )
                 steps.append(step_result)
-                # Save checkpoint so we can resume after the safety issue is resolved
-                try:  # noqa: SIM105 — intentional suppress for cleanup
+                # Save checkpoint so we can resume after the safety issue is
+                # resolved — best effort, never fail the CUA execution because
+                # of a checkpoint save error.
+                with contextlib.suppress(Exception):
                     checkpoint_store.save(
                         execution_id=exec_id,
                         step_num=step_num,
@@ -516,8 +518,6 @@ class CUAExecutor:
                         completed_steps=[s.to_audit_dict() for s in steps],
                         context=f"Step {step_num}: SAFETY BLOCKED — {safety_check.reason}",
                     )
-                except Exception:  # noqa: BLE001
-                    pass
                 return CUAExecutionResult(
                     success=False,
                     steps=steps,

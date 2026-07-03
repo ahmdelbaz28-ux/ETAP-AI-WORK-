@@ -247,7 +247,6 @@ class AuthenticationManager:
             return None
 
         # Password strength validation
-        # Quality v2.1.1: PLR2004 — extract magic number as named constant
         _MIN_PASSWORD_LENGTH = 8
         if len(password) < _MIN_PASSWORD_LENGTH:
             logger.warning("Password too short (minimum %d characters)", _MIN_PASSWORD_LENGTH)

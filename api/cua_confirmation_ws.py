@@ -42,6 +42,7 @@ References:
 from __future__ import annotations
 
 import asyncio
+import contextlib
 import json
 import logging
 import uuid
@@ -123,13 +124,12 @@ class ConfirmationBroker:
         self._connected_clients.add(websocket)
         logger.info("Confirmation WS client connected (total: %d)", len(self._connected_clients))
 
-        # Send any pending requests to the new client
+        # Send any pending requests to the new client — best effort, never
+        # fail the connect() because a single send failed.
         async with self._lock:
             for req in self._pending.values():
-                try:  # noqa: SIM105 — intentional suppress for cleanup
+                with contextlib.suppress(Exception):
                     await websocket.send_json({"type": "pending_request", "data": req.to_dict()})
-                except Exception:  # noqa: BLE001
-                    pass
 
     def disconnect(self, websocket: WebSocket) -> None:
         """Remove a WebSocket connection from the active set."""
@@ -187,13 +187,13 @@ class ConfirmationBroker:
                 self._broadcast({"type": "confirmation_request", "data": req.to_dict()}),
             )
         except RuntimeError:
-            # No event loop running (sync context) — use asyncio.run for broadcast
-            try:  # noqa: SIM105 — intentional suppress for cleanup
+            # No event loop running (sync context) — use asyncio.run for
+            # broadcast. Best effort: never fail the request_confirmation
+            # call because the broadcast failed (the request is still logged).
+            with contextlib.suppress(Exception):
                 asyncio.run(
                     self._broadcast({"type": "confirmation_request", "data": req.to_dict()}),
                 )
-            except Exception:  # noqa: BLE001
-                pass
 
         logger.info(
             "Confirmation request %s: %s on %s (need %d humans)",

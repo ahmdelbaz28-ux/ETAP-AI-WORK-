@@ -27,7 +27,7 @@ def incremental_validate(
     """
     Streaming validator: must not collect all items.
     """
-    # Quality v2.1.3: SIM113 — use enumerate instead of manual count counter
+    # Stream-validate items; stop early if max_items is reached.
     for count, it in enumerate(items, start=1):
         validate_fn(it)
         if max_items is not None and count >= max_items:

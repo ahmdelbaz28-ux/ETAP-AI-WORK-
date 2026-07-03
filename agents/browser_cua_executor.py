@@ -50,6 +50,7 @@ References:
 from __future__ import annotations
 
 import asyncio
+import contextlib
 import logging
 import os
 import time
@@ -352,10 +353,10 @@ class BrowserCUAExecutor:
                         )
                         steps.append(step_result)
                         browser.close()
-                        try:  # noqa: SIM105 — intentional suppress for cleanup
+                        # Cleanup is best effort — never fail the success path
+                        # because of a checkpoint cleanup error.
+                        with contextlib.suppress(Exception):
                             checkpoint_store.cleanup(exec_id, keep_last=0)
-                        except Exception:  # noqa: BLE001
-                            pass
                         return CUAExecutionResult(
                             success=True,
                             steps=steps,
@@ -459,7 +460,9 @@ class BrowserCUAExecutor:
                             duration_ms=int((time.monotonic() - step_start) * 1000),
                         )
                         steps.append(step_result)
-                        try:  # noqa: SIM105 — intentional suppress for cleanup
+                        # Save checkpoint (best effort) so we can resume after
+                        # the safety issue is resolved.
+                        with contextlib.suppress(Exception):
                             checkpoint_store.save(
                                 execution_id=exec_id,
                                 step_num=step_num,
@@ -467,8 +470,6 @@ class BrowserCUAExecutor:
                                 completed_steps=[s.to_audit_dict() for s in steps],
                                 context=f"Step {step_num}: SAFETY BLOCKED — {safety_check.reason}",
                             )
-                        except Exception:  # noqa: BLE001
-                            pass
                         browser.close()
                         return CUAExecutionResult(
                             success=False,

@@ -395,9 +395,8 @@ class ArcFlashEngine:
             else:
                 electrode_key = ElectrodeConfig.VCB.value
 
-        # Normalize enclosure_key ONLY for dict lookup
+        # Normalize enclosure_key ONLY for dict lookup (default to BOX).
         enc_up = str(enclosure_type).strip().upper()
-        # Quality v2.1.3: SIM108 — ternary (default to BOX for anything else)
         enclosure_key = EnclosureType.OPEN.value if "OPEN" in enc_up else EnclosureType.BOX.value
 
         # Use numeric x exponent (IEEE 1584-2018 coefficients expected to be numeric)

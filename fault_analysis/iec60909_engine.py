@@ -68,6 +68,12 @@ class ShortCircuitResult:
     Ic: complex = complex(0, 0)
 
 
+# Default R/X ratio when the bus impedance is purely resistive (imaginary
+# part near zero). IEC 60909-0:2016 Section 4.3.1.2 recommends a high R/X
+# value (typically 10.0) for this edge case to avoid division by zero.
+_DEFAULT_RX_RATIO = 10.0
+
+
 class IEC60909Engine:
     """
     IEC 60909 Short Circuit Calculation Engine.
@@ -159,9 +165,7 @@ class IEC60909Engine:
         Per IEC 60909, the R/X ratio determines the peak factor kappa.
         """
         z_pos = self.Zbus_pos[bus_index, bus_index]
-        # Quality v2.1.3: SIM108 — ternary for single-assignment if-else
-        # (default high R/X for pure resistance)
-        rx_ratio = z_pos.real / abs(z_pos.imag) if z_pos.imag != 0 else 10.0  # noqa: PLR2004 — IEEE 60909 default R/X ratio
+        rx_ratio = z_pos.real / abs(z_pos.imag) if z_pos.imag != 0 else _DEFAULT_RX_RATIO
         return rx_ratio
 
     def _calculate_kappa(self, bus_index: int) -> float:

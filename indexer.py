@@ -1147,7 +1147,7 @@ def main():
     stats["integrations"] = integrations["total"]
     stats["ui_search_index_entries"] = ui_search_index["total"]
 
-    # Quality v2.1.3: SIM115 — read VERSION via context manager (was leaking fd)
+    # Read VERSION file via context manager (avoids file-descriptor leak).
     _version_str = "unknown"
     if Path("VERSION").exists():
         with open("VERSION", encoding="utf-8") as _vf:

@@ -102,7 +102,7 @@ class VaultSecretsManager:
         return self._vault_token
 
     def __repr__(self) -> str:
-        # Quality v2.1.1: extract magic numbers as named constants (PLR2004)
+        # Show only first 4 chars of the token for debugging (mask the rest).
         _VAULT_TOKEN_PREVIEW_LEN = 4
         masked = (
             self._vault_token[:_VAULT_TOKEN_PREVIEW_LEN] + "****"

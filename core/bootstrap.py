@@ -10,11 +10,12 @@ import json
 import logging
 import os
 import threading
-from contextlib import asynccontextmanager
 
 # Prometheus metrics are optional for dev tooling / local environments.
 # If prometheus_client isn't installed (or the interpreter isn't wired),
 # fall back to no-op metric objects to prevent import-time failures.
+from collections.abc import AsyncIterator
+from contextlib import asynccontextmanager
 from importlib import import_module
 from typing import Any
 
@@ -345,7 +346,7 @@ def _validate_environment() -> None:
 
 
 @asynccontextmanager
-async def lifespan(app: Any):  # noqa: ANN201 - asynccontextmanager signature
+async def lifespan(app: Any) -> AsyncIterator[None]:
     """
     Lifespan context manager for application startup and shutdown events.
     """

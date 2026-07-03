@@ -24,6 +24,7 @@ DB_ECHO               set to "true" to log all SQL statements
 
 from __future__ import annotations
 
+import contextlib
 import logging
 import os
 from collections.abc import AsyncGenerator
@@ -216,11 +217,10 @@ async def init_db() -> None:
     import api.auth  # noqa: F401  — registers User model
     import api.projects  # noqa: F401  — registers Project & StudyResult models
 
-    # StudyJob table for persistent task queue
-    try:  # noqa: SIM105 — intentional suppress for cleanup
+    # StudyJob table for persistent task queue — optional import (core.models
+    # may not be available in stripped-down deployments).
+    with contextlib.suppress(ImportError):
         from core import models as _models  # noqa: F401
-    except ImportError:
-        pass
 
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)

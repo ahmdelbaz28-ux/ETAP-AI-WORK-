@@ -87,7 +87,6 @@ class ArcGISProvider(GISProviderInterface):
 
             # Fallback cursor approach: attempt to iterate without strict schema.
             cursor = arcpy.da.SearchCursor(layer_id, ["OID@", "SHAPE@"])  # type: ignore
-            # Quality v2.1.3: SIM113 — use enumerate instead of manual idx counter
             for idx, row in enumerate(cursor):
                 oid = row[0]
                 geom = row[1]

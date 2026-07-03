@@ -70,6 +70,10 @@ _LR_MULTIPLIERS: dict[str, float] = {
     "VFD": 1.5,  # Variable Frequency Drive
 }
 
+# Default locked-rotor kVA/hp when NEMA code is unknown (NEMA code F = 5.0-5.6).
+# Reference: NEMA MG 1-2016, Section 12.32.
+_DEFAULT_LR_KVA_PER_HP = 5.6
+
 
 class MotorStartingAgent(BaseAgent):
     """
@@ -152,8 +156,7 @@ class MotorStartingAgent(BaseAgent):
 
         # Get locked-rotor kVA/hp from NEMA code
         code = nema_code.upper()
-        # Quality v2.1.3: SIM108 — use ternary instead of if-else for single assignment
-        lr_kva_per_hp = _NEMA_CODE_LETTERS[code][1] if code in _NEMA_CODE_LETTERS else 5.6  # noqa: PLR2004 — default NEMA code F value
+        lr_kva_per_hp = _NEMA_CODE_LETTERS[code][1] if code in _NEMA_CODE_LETTERS else _DEFAULT_LR_KVA_PER_HP
 
         # DOL locked-rotor current (from NEMA code)
         lr_kva = lr_kva_per_hp * motor_hp

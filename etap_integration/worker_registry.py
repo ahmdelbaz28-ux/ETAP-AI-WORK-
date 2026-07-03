@@ -58,6 +58,7 @@ Usage (on Linux gateway)
 from __future__ import annotations
 
 import asyncio
+import contextlib
 import json
 import logging
 import os
@@ -208,10 +209,10 @@ class ETAPWorkerHeartbeat:
         try:
             while not self._stop_event.is_set():
                 await self.register(status="idle")
-                try:  # noqa: SIM105 — intentional suppress for cleanup
+                # Wait for either the stop event or the heartbeat interval
+                # to elapse (timeout is normal — it just means "beat again").
+                with contextlib.suppress(TimeoutError):
                     await asyncio.wait_for(self._stop_event.wait(), timeout=self.interval)
-                except TimeoutError:
-                    pass  # normal — just heartbeat interval elapsed
         finally:
             await self.deregister()
             logger.info("ETAP worker heartbeat stopped: %s", self.worker_id)
