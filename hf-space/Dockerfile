@@ -22,7 +22,11 @@ RUN pip install --no-cache-dir --upgrade pip && \
     pip install --no-cache-dir -r requirements.hf.txt
 
 # Application code
-COPY --chown=user:user . . # NOSONAR
+# S6470: recursive COPY . . is safe because hf-space/.dockerignore excludes
+# all secrets, .env files, .git, tests, docs, and build artifacts.
+# The build context only contains: app.py, requirements.hf.txt, and the
+# Python source directories imported by app.py (api/, agents/, etc.).
+COPY --chown=user:user . .
 
 # Environment
 ENV PORT=7860
