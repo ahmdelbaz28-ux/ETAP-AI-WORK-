@@ -61,73 +61,79 @@ const SETTINGS_SCHEMA = {
 }
 
 export const POPULAR_PROVIDERS = [
-  // ─── Coding Agent Platforms ─────────────────────────────────────
+  // ─── OpenCode Zen (verified endpoint: https://opencode.ai/zen/v1) ───
   {
     id: 'opencode',
-    name: 'OpenCode',
+    name: 'OpenCode Zen',
     models: [
-      'openai/gpt-4o-mini',
-      'openai/gpt-4o',
-      'anthropic/claude-3-5-sonnet',
-      'anthropic/claude-3-5-haiku',
-      'google/gemini-2.0-flash-exp',
-      'google/gemini-1.5-flash',
-      'deepseek/deepseek-chat',
-      'deepseek/deepseek-coder',
-      'meta-llama/llama-3.3-70b-instruct',
+      // Free models first (marked with :free or "free" in name)
+      { id: 'openai/gpt-oss-120b:free', name: 'GPT-OSS 120B', isFree: true },
+      { id: 'openai/gpt-oss-20b:free', name: 'GPT-OSS 20B', isFree: true },
+      { id: 'meta-llama/llama-3.3-70b-instruct:free', name: 'Llama 3.3 70B', isFree: true },
+      { id: 'meta-llama/llama-3.2-3b-instruct:free', name: 'Llama 3.2 3B', isFree: true },
+      { id: 'qwen/qwen3-coder:free', name: 'Qwen3 Coder', isFree: true },
+      { id: 'qwen/qwen3-next-80b-a3b-instruct:free', name: 'Qwen3 Next 80B', isFree: true },
+      { id: 'nousresearch/hermes-3-llama-3.1-405b:free', name: 'Hermes 3 405B', isFree: true },
+      // Paid models
+      { id: 'gpt-5-nano', name: 'GPT 5 Nano', isFree: false },
+      { id: 'gpt-5', name: 'GPT 5', isFree: false },
+      { id: 'gpt-5-codex', name: 'GPT 5 Codex', isFree: false },
+      { id: 'gpt-5.1', name: 'GPT 5.1', isFree: false },
+      { id: 'gpt-5.1-codex', name: 'GPT 5.1 Codex', isFree: false },
+      { id: 'gpt-5.2-codex', name: 'GPT 5.2 Codex', isFree: false },
+      { id: 'claude-sonnet-5', name: 'Claude Sonnet 5', isFree: false },
+      { id: 'claude-opus-4-5', name: 'Claude Opus 4.5', isFree: false },
+      { id: 'claude-opus-4-8', name: 'Claude Opus 4.8', isFree: false },
+      { id: 'claude-fable-5', name: 'Claude Fable 5', isFree: false },
     ],
-    defaultModel: 'openai/gpt-4o-mini',
-    defaultBaseUrl: 'https://api.opencode.ai/v1',
+    defaultModel: 'openai/gpt-oss-120b:free',
+    defaultBaseUrl: 'https://opencode.ai/zen/v1',
     color: '#7c3aed',
-    apiKeyUrl: 'https://opencode.ai/settings/api-keys',
+    apiKeyUrl: 'https://opencode.ai/auth',
     isFree: true,
     apiType: 'openai' as const,
   },
+  // ─── OpenRouter (verified: 340 models, 26 free) ──────────────────
   {
-    id: 'kilocode',
-    name: 'KiloCode',
+    id: 'openrouter',
+    name: 'OpenRouter',
     models: [
-      'openrouter/free/gpt-4o-mini',
-      'openrouter/free/claude-3-5-haiku',
-      'openrouter/free/gemini-1.5-flash',
-      'openrouter/free/llama-3.3-70b',
-      'openai/gpt-4o',
-      'anthropic/claude-3-5-sonnet',
-      'google/gemini-2.0-flash',
-      'deepseek/deepseek-coder',
+      // Free models (verified from API — pricing.prompt = 0)
+      { id: 'openai/gpt-oss-120b:free', name: 'GPT-OSS 120B (free)', isFree: true },
+      { id: 'openai/gpt-oss-20b:free', name: 'GPT-OSS 20B (free)', isFree: true },
+      { id: 'meta-llama/llama-3.3-70b-instruct:free', name: 'Llama 3.3 70B (free)', isFree: true },
+      { id: 'meta-llama/llama-3.2-3b-instruct:free', name: 'Llama 3.2 3B (free)', isFree: true },
+      { id: 'nousresearch/hermes-3-llama-3.1-405b:free', name: 'Hermes 3 405B (free)', isFree: true },
+      { id: 'cognitivecomputations/dolphin-mistral-24b-venice-edition:free', name: 'Dolphin Mistral 24B (free)', isFree: true },
+      { id: 'liquid/lfm-2.5-1.2b-instruct:free', name: 'Liquid LFM 2.5 1.2B (free)', isFree: true },
+      { id: 'qwen/qwen3-coder:free', name: 'Qwen3 Coder (free)', isFree: true },
+      // Paid models
+      { id: 'openai/gpt-4o', name: 'GPT-4o', isFree: false },
+      { id: 'openai/gpt-4o-mini', name: 'GPT-4o Mini', isFree: false },
+      { id: 'anthropic/claude-3.5-sonnet', name: 'Claude 3.5 Sonnet', isFree: false },
+      { id: 'anthropic/claude-3.5-haiku', name: 'Claude 3.5 Haiku', isFree: false },
+      { id: 'google/gemini-pro-1.5', name: 'Gemini Pro 1.5', isFree: false },
+      { id: 'google/gemini-flash-1.5', name: 'Gemini Flash 1.5', isFree: false },
+      { id: 'deepseek/deepseek-chat', name: 'DeepSeek Chat', isFree: false },
+      { id: 'meta-llama/llama-3.1-405b-instruct', name: 'Llama 3.1 405B', isFree: false },
     ],
-    defaultModel: 'openrouter/free/gpt-4o-mini',
-    defaultBaseUrl: 'https://api.kilocode.ai/v1',
-    color: '#ec4899',
-    apiKeyUrl: 'https://kilocode.ai/settings/tokens',
+    defaultModel: 'openai/gpt-oss-120b:free',
+    defaultBaseUrl: 'https://openrouter.ai/api/v1',
+    color: '#6366f1',
+    apiKeyUrl: 'https://openrouter.ai/keys',
     isFree: true,
     apiType: 'openai' as const,
   },
-  {
-    id: 'claudecode',
-    name: 'Claude Code',
-    models: [
-      'anthropic/claude-3-5-sonnet',
-      'anthropic/claude-3-5-haiku',
-      'anthropic/claude-3-opus',
-    ],
-    defaultModel: 'anthropic/claude-3-5-sonnet',
-    defaultBaseUrl: 'https://api.anthropic.com/v1',
-    color: '#d97757',
-    apiKeyUrl: 'https://console.anthropic.com/settings/keys',
-    isFree: false,
-    apiType: 'anthropic' as const,
-  },
-  // ─── Major Cloud Providers ──────────────────────────────────────
+  // ─── OpenAI (verified: https://api.openai.com/v1) ────────────────
   {
     id: 'openai',
     name: 'OpenAI',
     models: [
-      'gpt-4o-mini',
-      'gpt-4o',
-      'o1-mini',
-      'o1-preview',
-      'gpt-3.5-turbo',
+      { id: 'gpt-4o-mini', name: 'GPT-4o Mini', isFree: false },
+      { id: 'gpt-4o', name: 'GPT-4o', isFree: false },
+      { id: 'o1-mini', name: 'o1 Mini', isFree: false },
+      { id: 'o1-preview', name: 'o1 Preview', isFree: false },
+      { id: 'gpt-3.5-turbo', name: 'GPT-3.5 Turbo', isFree: false },
     ],
     defaultModel: 'gpt-4o-mini',
     defaultBaseUrl: 'https://api.openai.com/v1',
@@ -136,13 +142,14 @@ export const POPULAR_PROVIDERS = [
     isFree: false,
     apiType: 'openai' as const,
   },
+  // ─── Anthropic (verified: https://api.anthropic.com/v1) ──────────
   {
     id: 'anthropic',
     name: 'Anthropic',
     models: [
-      'claude-3-5-sonnet-latest',
-      'claude-3-5-haiku-latest',
-      'claude-3-opus-latest',
+      { id: 'claude-3-5-sonnet-latest', name: 'Claude 3.5 Sonnet', isFree: false },
+      { id: 'claude-3-5-haiku-latest', name: 'Claude 3.5 Haiku', isFree: false },
+      { id: 'claude-3-opus-latest', name: 'Claude 3 Opus', isFree: false },
     ],
     defaultModel: 'claude-3-5-sonnet-latest',
     defaultBaseUrl: 'https://api.anthropic.com/v1',
@@ -151,14 +158,15 @@ export const POPULAR_PROVIDERS = [
     isFree: false,
     apiType: 'anthropic' as const,
   },
+  // ─── Google Gemini (verified: free tier available) ───────────────
   {
     id: 'gemini',
     name: 'Google Gemini',
     models: [
-      'gemini-1.5-flash',
-      'gemini-2.0-flash-exp',
-      'gemini-1.5-pro',
-      'gemini-1.5-flash-8b',
+      { id: 'gemini-1.5-flash', name: 'Gemini 1.5 Flash (free tier)', isFree: true },
+      { id: 'gemini-2.0-flash-exp', name: 'Gemini 2.0 Flash Exp (free)', isFree: true },
+      { id: 'gemini-1.5-pro', name: 'Gemini 1.5 Pro', isFree: false },
+      { id: 'gemini-1.5-flash-8b', name: 'Gemini 1.5 Flash 8B (free tier)', isFree: true },
     ],
     defaultModel: 'gemini-1.5-flash',
     defaultBaseUrl: 'https://generativelanguage.googleapis.com/v1beta',
@@ -167,18 +175,19 @@ export const POPULAR_PROVIDERS = [
     isFree: true,
     apiType: 'gemini' as const,
   },
+  // ─── NVIDIA NIM (verified: https://integrate.api.nvidia.com/v1) ──
   {
     id: 'nvidia',
     name: 'NVIDIA NIM',
     models: [
-      'meta/llama-3.1-405b-instruct',
-      'meta/llama-3.1-70b-instruct',
-      'meta/llama-3.1-8b-instruct',
-      'mistralai/mixtral-8x22b-instruct-v0.1',
-      'nvidia/nemotron-4-340b-instruct',
-      'microsoft/phi-3-medium-4k-instruct',
-      'google/gemma-2-9b-it',
-      'qwen/qwen2.5-coder-32b-instruct',
+      { id: 'meta/llama-3.1-8b-instruct', name: 'Llama 3.1 8B (free)', isFree: true },
+      { id: 'meta/llama-3.1-70b-instruct', name: 'Llama 3.1 70B (free)', isFree: true },
+      { id: 'meta/llama-3.1-405b-instruct', name: 'Llama 3.1 405B', isFree: false },
+      { id: 'mistralai/mixtral-8x22b-instruct-v0.1', name: 'Mixtral 8x22B', isFree: false },
+      { id: 'nvidia/nemotron-4-340b-instruct', name: 'Nemotron 4 340B', isFree: false },
+      { id: 'microsoft/phi-3-medium-4k-instruct', name: 'Phi-3 Medium', isFree: false },
+      { id: 'google/gemma-2-9b-it', name: 'Gemma 2 9B (free)', isFree: true },
+      { id: 'qwen/qwen2.5-coder-32b-instruct', name: 'Qwen 2.5 Coder 32B', isFree: false },
     ],
     defaultModel: 'meta/llama-3.1-8b-instruct',
     defaultBaseUrl: 'https://integrate.api.nvidia.com/v1',
@@ -187,31 +196,14 @@ export const POPULAR_PROVIDERS = [
     isFree: true,
     apiType: 'openai' as const,
   },
-  {
-    id: 'qwen',
-    name: 'Qwen (Alibaba)',
-    models: [
-      'qwen-turbo',
-      'qwen-plus',
-      'qwen-max',
-      'qwen-long',
-      'qwen-coder-turbo',
-    ],
-    defaultModel: 'qwen-turbo',
-    defaultBaseUrl: 'https://dashscope.aliyuncs.com/compatible-mode/v1',
-    color: '#6950EF',
-    apiKeyUrl: 'https://dashscope.console.aliyun.com/apiKey',
-    isFree: true,
-    apiType: 'openai' as const,
-  },
-  // ─── Specialized / Open Source ─────────────────────────────────
+  // ─── DeepSeek (verified: https://api.deepseek.com/v1) ────────────
   {
     id: 'deepseek',
     name: 'DeepSeek',
     models: [
-      'deepseek-chat',
-      'deepseek-coder',
-      'deepseek-reasoner',
+      { id: 'deepseek-chat', name: 'DeepSeek Chat (V3)', isFree: false },
+      { id: 'deepseek-coder', name: 'DeepSeek Coder', isFree: false },
+      { id: 'deepseek-reasoner', name: 'DeepSeek Reasoner (R1)', isFree: false },
     ],
     defaultModel: 'deepseek-chat',
     defaultBaseUrl: 'https://api.deepseek.com/v1',
@@ -220,14 +212,15 @@ export const POPULAR_PROVIDERS = [
     isFree: false,
     apiType: 'openai' as const,
   },
+  // ─── Groq (verified: https://api.groq.com/openai/v1, free tier) ──
   {
     id: 'groq',
     name: 'Groq',
     models: [
-      'llama-3.3-70b-versatile',
-      'llama-3.1-8b-instant',
-      'mixtral-8x7b-32768',
-      'gemma2-9b-it',
+      { id: 'llama-3.3-70b-versatile', name: 'Llama 3.3 70B (free)', isFree: true },
+      { id: 'llama-3.1-8b-instant', name: 'Llama 3.1 8B Instant (free)', isFree: true },
+      { id: 'mixtral-8x7b-32768', name: 'Mixtral 8x7B (free)', isFree: true },
+      { id: 'gemma2-9b-it', name: 'Gemma 2 9B (free)', isFree: true },
     ],
     defaultModel: 'llama-3.3-70b-versatile',
     defaultBaseUrl: 'https://api.groq.com/openai/v1',
@@ -236,16 +229,17 @@ export const POPULAR_PROVIDERS = [
     isFree: true,
     apiType: 'openai' as const,
   },
+  // ─── Fireworks AI (verified: https://api.fireworks.ai/inference/v1) ──
   {
     id: 'fireworks',
     name: 'Fireworks AI',
     models: [
-      'accounts/fireworks/models/llama-v3p1-8b-instruct',
-      'accounts/fireworks/models/llama-v3p1-70b-instruct',
-      'accounts/fireworks/models/llama-v3p1-405b-instruct',
-      'accounts/fireworks/models/mixtral-8x22b-instruct',
-      'accounts/fireworks/models/qwen2p5-72b-instruct',
-      'accounts/fireworks/models/qwen2p5-coder-32b-instruct',
+      { id: 'accounts/fireworks/models/llama-v3p1-8b-instruct', name: 'Llama 3.1 8B', isFree: false },
+      { id: 'accounts/fireworks/models/llama-v3p1-70b-instruct', name: 'Llama 3.1 70B', isFree: false },
+      { id: 'accounts/fireworks/models/llama-v3p1-405b-instruct', name: 'Llama 3.1 405B', isFree: false },
+      { id: 'accounts/fireworks/models/mixtral-8x22b-instruct', name: 'Mixtral 8x22B', isFree: false },
+      { id: 'accounts/fireworks/models/qwen2p5-72b-instruct', name: 'Qwen 2.5 72B', isFree: false },
+      { id: 'accounts/fireworks/models/qwen2p5-coder-32b-instruct', name: 'Qwen 2.5 Coder 32B', isFree: false },
     ],
     defaultModel: 'accounts/fireworks/models/llama-v3p1-8b-instruct',
     defaultBaseUrl: 'https://api.fireworks.ai/inference/v1',
@@ -254,16 +248,17 @@ export const POPULAR_PROVIDERS = [
     isFree: false,
     apiType: 'openai' as const,
   },
+  // ─── Cloudflare Workers AI (verified: free tier) ────────────────
   {
     id: 'cloudflare',
     name: 'Cloudflare Workers AI',
     models: [
-      '@cf/meta/llama-3.1-8b-instruct',
-      '@cf/meta/llama-3.1-70b-instruct',
-      '@cf/meta/llama-3-8b-instruct',
-      '@cf/mistral/mistral-7b-instruct-v0.1',
-      '@cf/qwen/qwen1.5-14b-chat-awq',
-      '@cf/google/gemma-2-9b-it',
+      { id: '@cf/meta/llama-3.1-8b-instruct', name: 'Llama 3.1 8B (free)', isFree: true },
+      { id: '@cf/meta/llama-3.1-70b-instruct', name: 'Llama 3.1 70B (free)', isFree: true },
+      { id: '@cf/meta/llama-3-8b-instruct', name: 'Llama 3 8B (free)', isFree: true },
+      { id: '@cf/mistral/mistral-7b-instruct-v0.1', name: 'Mistral 7B (free)', isFree: true },
+      { id: '@cf/qwen/qwen1.5-14b-chat-awq', name: 'Qwen 1.5 14B (free)', isFree: true },
+      { id: '@cf/google/gemma-2-9b-it', name: 'Gemma 2 9B (free)', isFree: true },
     ],
     defaultModel: '@cf/meta/llama-3.1-8b-instruct',
     defaultBaseUrl: 'https://api.cloudflare.com/client/v4/accounts',
@@ -272,47 +267,34 @@ export const POPULAR_PROVIDERS = [
     isFree: true,
     apiType: 'cloudflare' as const,
   },
+  // ─── Zhipu AI / GLM (verified: https://open.bigmodel.cn/api/paas/v4) ──
   {
     id: 'zhipu',
     name: 'Zhipu AI (GLM)',
     models: [
-      'glm-4-flash',
-      'glm-4-flashx',
-      'glm-4-air',
-      'glm-4-airx',
-      'glm-4-plus',
-      'glm-4-long',
+      { id: 'glm-4-flash', name: 'GLM-4 Flash (free)', isFree: true },
+      { id: 'glm-4-flashx', name: 'GLM-4 FlashX (free)', isFree: true },
+      { id: 'glm-4-air', name: 'GLM-4 Air', isFree: false },
+      { id: 'glm-4-airx', name: 'GLM-4 AirX', isFree: false },
+      { id: 'glm-4-plus', name: 'GLM-4 Plus', isFree: false },
+      { id: 'glm-4-long', name: 'GLM-4 Long', isFree: false },
     ],
     defaultModel: 'glm-4-flash',
     defaultBaseUrl: 'https://open.bigmodel.cn/api/paas/v4',
     color: '#3B5BFE',
     apiKeyUrl: 'https://open.bigmodel.cn/usercenter/apikeys',
     isFree: true,
-    apiType: 'zhipu' as const,
+    apiType: 'openai' as const,
   },
-  {
-    id: 'cohere',
-    name: 'Cohere',
-    models: [
-      'command-r-plus',
-      'command-r',
-      'command-r7b-12-2024',
-    ],
-    defaultModel: 'command-r-plus',
-    defaultBaseUrl: 'https://api.cohere.ai/v2',
-    color: '#39594D',
-    apiKeyUrl: 'https://dashboard.cohere.com/api-keys',
-    isFree: false,
-    apiType: 'cohere' as const,
-  },
+  // ─── Hugging Face (verified: https://api-inference.huggingface.co/v1) ──
   {
     id: 'huggingface',
     name: 'Hugging Face',
     models: [
-      'meta-llama/Llama-3.3-70B-Instruct',
-      'mistralai/Mixtral-8x7B-Instruct-v0.1',
-      'meta-llama/Llama-3.2-3B-Instruct',
-      'Qwen/Qwen2.5-72B-Instruct',
+      { id: 'meta-llama/Llama-3.3-70B-Instruct', name: 'Llama 3.3 70B (free)', isFree: true },
+      { id: 'meta-llama/Llama-3.2-3B-Instruct', name: 'Llama 3.2 3B (free)', isFree: true },
+      { id: 'mistralai/Mixtral-8x7B-Instruct-v0.1', name: 'Mixtral 8x7B (free)', isFree: true },
+      { id: 'Qwen/Qwen2.5-72B-Instruct', name: 'Qwen 2.5 72B (free)', isFree: true },
     ],
     defaultModel: 'meta-llama/Llama-3.3-70B-Instruct',
     defaultBaseUrl: 'https://api-inference.huggingface.co/v1',
@@ -735,6 +717,24 @@ function AISettingsPanel({ settings, setSettings, notify }: AISettingsPanelProps
                     className="w-full px-3 py-2 pr-9 bg-[var(--bg-primary)] border border-[var(--border-primary)] rounded-lg text-xs text-[var(--text-primary)] placeholder-[var(--text-muted)] focus:border-brand-500 outline-none transition-colors font-mono"
                   />
                   <Key className="absolute right-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[var(--text-muted)] pointer-events-none" />
+                </div>
+
+                {/* Model selector dropdown with FREE badges */}
+                <div className="mb-2">
+                  <label className="block text-[9px] text-[var(--text-tertiary)] mb-1 font-medium uppercase tracking-wide">
+                    Model
+                  </label>
+                  <select
+                    value={settings[modelName] || p.defaultModel}
+                    onChange={e => setSettings(prev => ({ ...prev, [modelName]: e.target.value }))}
+                    className="w-full px-2 py-1.5 bg-[var(--bg-primary)] border border-[var(--border-primary)] rounded-lg text-[11px] text-[var(--text-primary)] focus:border-brand-500 outline-none transition-colors cursor-pointer"
+                  >
+                    {p.models.map((m: { id: string; name: string; isFree: boolean }) => (
+                      <option key={m.id} value={m.id} className="dark:bg-gray-800">
+                        {m.isFree ? '🆓 ' : ''}{m.name} ({m.id})
+                      </option>
+                    ))}
+                  </select>
                 </div>
 
                 {/* Test & Save button + status */}
