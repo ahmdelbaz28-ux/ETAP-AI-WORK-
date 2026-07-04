@@ -548,7 +548,11 @@ def sanitize_result(obj: Any) -> Any:
         if isinstance(obj, (list, tuple)):
             return [sanitize_result(x) for x in obj]
         if isinstance(obj, np.ndarray):
-            return obj.tolist()
+            # Recursively sanitize each element after tolist() conversion.
+            # np.ndarray.tolist() on a complex128 array returns Python
+            # complex objects (not dicts), so we must sanitize each element
+            # to convert complex -> {"real": ..., "imag": ...} for JSON.
+            return [sanitize_result(x) for x in obj.tolist()]
         if isinstance(obj, (np.integer,)):
             return int(obj)
         if isinstance(obj, (np.floating,)):
