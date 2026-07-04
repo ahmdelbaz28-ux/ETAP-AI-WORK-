@@ -454,7 +454,8 @@ def _run_native_study(  # NOSONAR — S3776: cognitive complexity; scheduled for
         from agents.etap_expert_agent import ETAPExpertAgent
 
         agent = ETAPExpertAgent()
-        question = str(parameters.get("question", "")).strip()
+        # Accept 'query' as an alias for 'question' (Postman compatibility)
+        question = str(parameters.get("question") or parameters.get("query") or "").strip()
         if not question:
             raise ValueError("'question' field is required for study_type='etap_expert'")
         return agent.answer(question)
@@ -465,7 +466,8 @@ def _run_native_study(  # NOSONAR — S3776: cognitive complexity; scheduled for
         from agents.etap_gui_agent import ETAPGUIAgent
 
         agent = ETAPGUIAgent()
-        question = str(parameters.get("question", "")).strip()
+        # Accept 'query' as an alias for 'question' (Postman compatibility)
+        question = str(parameters.get("question") or parameters.get("query") or "").strip()
         if not question:
             raise ValueError("'question' field is required for study_type='etap_gui'")
         return agent.answer(question)

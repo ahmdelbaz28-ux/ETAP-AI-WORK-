@@ -17,7 +17,7 @@ import time
 from contextlib import asynccontextmanager
 
 import uvicorn
-from fastapi import FastAPI, HTTPException, Request, WebSocket
+from fastapi import Body, FastAPI, HTTPException, Request, WebSocket
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse, JSONResponse
 
@@ -337,11 +337,12 @@ async def etap_gui_chat(request: SharedETAPGUIChatRequest):
 
 @app.post("/api/v1/agents/etap-gui/execute", tags=["Agents"])
 async def etap_gui_execute(
-    question: str,
+    question: str | None = None,
     max_steps: int = 15,
     require_confirmation: bool = True,
     audit_dir: str | None = None,
     start_url: str | None = None,
+    body: dict[str, Any] | None = Body(None),
 ):
     """Execute the REAL CUA Loop (Computer Use Agent).
 
@@ -358,7 +359,28 @@ async def etap_gui_execute(
       - GEMINI_API_KEY (for visual perception via Gemini Vision)
 
     See: agents/browser_cua_executor.py and integrations/gemini_vision.py
+
+    ``question`` can be provided as a query parameter OR inside a JSON
+    body (e.g. ``{"command": "...", "params": {...}, "message": "..."}``).
+    This maintains backward compatibility with older Postman collections
+    that send JSON bodies instead of query parameters.
     """
+    # Postman compatibility: accept question/message/command from JSON body
+    if not question and body:
+        question = (
+            body.get("question")
+            or body.get("message")
+            or body.get("command")
+        )
+        if body.get("params") and isinstance(body["params"], dict):
+            start_url = start_url or body["params"].get("start_url") or body["params"].get("study_id")
+
+    if not question:
+        raise HTTPException(
+            status_code=422,
+            detail="'question' is required (as query param or in JSON body)",
+        )
+
     from agents.etap_gui_agent import ETAPGUIAgent
 
     agent = ETAPGUIAgent()
@@ -588,7 +610,11 @@ async def websocket_cua_confirmation(websocket: WebSocket):
 
 @app.post("/api/v1/studies/run", tags=["Studies"])
 async def run_study(request: SharedStudyRequest):
-    result = run_study_lightweight(request.study_type, request.system, request.parameters)
+    # Use merged_parameters() so top-level question/query (Postman compat)
+    # are passed to the study runner.
+    result = run_study_lightweight(
+        request.study_type, request.system, request.merged_parameters(),
+    )
     status = result.pop("_status", None)
     if status:
         return JSONResponse(status_code=status, content=result)

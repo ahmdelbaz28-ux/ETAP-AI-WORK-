@@ -29,7 +29,7 @@ UTC = UTC
 from typing import Any
 
 from fastapi import HTTPException, Request
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 logger = logging.getLogger("etap-ai")
 
@@ -262,27 +262,56 @@ AGENT_COUNT: int = len(AGENTS)
 
 
 class SharedStudyRequest(BaseModel):
-    """Lightweight study request used by both HF Space and main API."""
+    """Lightweight study request used by both HF Space and main API.
+
+    For etap_expert / etap_gui study types, ``question`` or ``query`` can
+    be provided either in the top-level or inside ``parameters``. This
+    maintains backward compatibility with older Postman collections.
+    """
 
     study_type: str
     system: dict[str, Any] = {}
     options: dict[str, Any] = {}
     parameters: dict[str, Any] = {}
     use_etap: bool = False
+    # Top-level aliases for Postman compatibility (etap_expert/etap_gui)
+    question: str | None = None
+    query: str | None = None
+
+    def merged_parameters(self) -> dict[str, Any]:
+        """Return parameters dict with top-level question/query merged in."""
+        merged = dict(self.parameters)
+        if self.question and "question" not in merged:
+            merged["question"] = self.question
+        if self.query and "query" not in merged and "question" not in merged:
+            merged["query"] = self.query
+        return merged
 
 
 class SharedETAPExpertChatRequest(BaseModel):
-    """Request body for ETAP Expert chat."""
+    """Request body for ETAP Expert chat.
 
-    question: str
+    Accepts both ``question`` (canonical) and ``message`` (alias) for
+    backward compatibility with older Postman collections.
+    """
+
+    question: str = Field(alias="message")
     context: dict[str, Any] = {}
+
+    model_config = {"populate_by_name": True}
 
 
 class SharedETAPGUIChatRequest(BaseModel):
-    """Request body for ETAP GUI Agent chat."""
+    """Request body for ETAP GUI Agent chat.
 
-    question: str
+    Accepts both ``question`` (canonical) and ``message`` (alias) for
+    backward compatibility with older Postman collections.
+    """
+
+    question: str = Field(alias="message")
     context: dict[str, Any] = {}
+
+    model_config = {"populate_by_name": True}
 
 
 class SharedContextRetrieveRequest(BaseModel):
@@ -294,10 +323,16 @@ class SharedContextRetrieveRequest(BaseModel):
 
 
 class SharedImpactAnalysisRequest(BaseModel):
-    """Request body for AI Context Engine impact endpoint."""
+    """Request body for AI Context Engine impact endpoint.
 
-    component: str
+    Accepts both ``component`` (canonical) and ``change`` (alias) for
+    backward compatibility with older Postman collections.
+    """
+
+    component: str = Field(alias="change")
     max_depth: int = 2
+
+    model_config = {"populate_by_name": True}
 
 
 # ---------------------------------------------------------------------------
@@ -607,7 +642,8 @@ def run_study_lightweight(  # NOSONAR — S3776: cognitive complexity; refactori
 
     # -- ETAP Expert skill --------------------------------------------------
     if study_type == "etap_expert":
-        question = str(parameters.get("question", "")).strip()
+        # Accept 'query' as an alias for 'question' (Postman compatibility)
+        question = str(parameters.get("question") or parameters.get("query") or "").strip()
         if not question:
             return {
                 "error": "'question' field is required for study_type='etap_expert'",
@@ -631,7 +667,8 @@ def run_study_lightweight(  # NOSONAR — S3776: cognitive complexity; refactori
 
     # -- ETAP GUI Agent -----------------------------------------------------
     if study_type == "etap_gui":
-        question = str(parameters.get("question", "")).strip()
+        # Accept 'query' as an alias for 'question' (Postman compatibility)
+        question = str(parameters.get("question") or parameters.get("query") or "").strip()
         if not question:
             return {
                 "error": "'question' field is required for study_type='etap_gui'",
