@@ -517,7 +517,7 @@ def _run_native_study(  # NOSONAR — S3776: cognitive complexity; scheduled for
 @router.post("/run", response_model=StudyResult, responses={400: {"description": "Invalid system spec or validation error"}})
 @count_executions(skill_name="study")
 @track_skill_operation("study")
-async def run_study(request: Request, payload: StudyRequest, _: str = Depends(get_api_key)):  # NOSONAR — S8410: Annotated[T, Depends(...)] migration will be done in API refactoring sprint
+async def run_study(request: Request, payload: StudyRequest, _: str = Depends(get_api_key)):
     trace_id = getattr(request.state, "trace_id", "unknown")
     task_id = payload.task_id or str(uuid.uuid4())
     start = time.perf_counter()
@@ -624,7 +624,7 @@ async def run_study(request: Request, payload: StudyRequest, _: str = Depends(ge
                 try:
                     system = _build_system_from_spec(payload.system)
                 except ValueError as ve:
-                    raise HTTPException(status_code=400, detail=f"System spec error: {ve}") from ve  # NOSONAR — S8415: HTTPException responses will be documented in API refactoring sprint
+                    raise HTTPException(status_code=400, detail=f"System spec error: {ve}") from ve
             data = _run_native_study(payload.study_type, system, payload.parameters)
             provider_name = "native"
 
@@ -665,7 +665,7 @@ async def run_study(request: Request, payload: StudyRequest, _: str = Depends(ge
             str(ve),
             extra={"trace_id": trace_id},
         )
-        raise HTTPException(status_code=400, detail=str(ve)) from ve  # NOSONAR — S8415: HTTPException responses will be documented in API refactoring sprint
+        raise HTTPException(status_code=400, detail=str(ve)) from ve
     except Exception as e:
         _increment_counter("failed")
         logger.exception(  # NOSONAR — S5145: logging injection; user input is sanitized upstream

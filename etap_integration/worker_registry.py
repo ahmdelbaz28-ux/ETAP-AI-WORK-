@@ -321,7 +321,7 @@ async def worker_pool_health():
     registry = WorkerRegistry(redis_url=_REDIS_URL)
     available = await registry.get_available_workers()
     if not available:
-        raise HTTPException(  # NOSONAR — S8415: HTTPException responses will be documented in API refactoring sprint
+        raise HTTPException(
             status_code=503,
             detail={
                 "status": "unhealthy",
@@ -345,7 +345,7 @@ async def register_worker(worker_id: str, host: str, port: int = 8081):
     """
     r = await _get_async_redis(_REDIS_URL)
     if r is None:
-        raise HTTPException(status_code=503, detail="Registry unavailable — Redis not connected")  # NOSONAR — S8415: HTTPException responses will be documented in API refactoring sprint
+        raise HTTPException(status_code=503, detail="Registry unavailable — Redis not connected")
 
     info = {
         "worker_id": worker_id,
@@ -369,7 +369,7 @@ async def worker_heartbeat(worker_id: str):
     """
     r = await _get_async_redis(_REDIS_URL)
     if r is None:
-        raise HTTPException(status_code=503, detail="Registry unavailable")  # NOSONAR — S8415: HTTPException responses will be documented in API refactoring sprint
+        raise HTTPException(status_code=503, detail="Registry unavailable")
 
     key = f"{_REGISTRY_PREFIX}{worker_id}"
     raw = await r.get(key)
@@ -379,6 +379,6 @@ async def worker_heartbeat(worker_id: str):
         info["status"] = "idle"
         await r.set(key, json.dumps(info), ex=_WORKER_TTL)
     else:
-        raise HTTPException(status_code=404, detail=f"Worker '{worker_id}' not registered")  # NOSONAR — S8415: HTTPException responses will be documented in API refactoring sprint
+        raise HTTPException(status_code=404, detail=f"Worker '{worker_id}' not registered")
 
     return {"acknowledged": True, "worker_id": worker_id}

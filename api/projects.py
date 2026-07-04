@@ -287,8 +287,8 @@ router = APIRouter(prefix="/api/v1/projects", tags=["Projects"])
 )
 async def create_project(
     body: ProjectCreateRequest,
-    user: CurrentUser = Depends(get_current_user_from_header),  # noqa: B008  # NOSONAR — S8410: Annotated[T, Depends(...)] migration will be done in API refactoring sprint
-    db: AsyncSession = Depends(get_db),  # noqa: B008  # NOSONAR — S8410: Annotated[T, Depends(...)] migration will be done in API refactoring sprint
+    user: CurrentUser = Depends(get_current_user_from_header),  # noqa: B008
+    db: AsyncSession = Depends(get_db),  # noqa: B008
 ) -> Any:
     """Create a new power-system project.
 
@@ -326,9 +326,9 @@ async def create_project(
 )
 async def list_projects(
     status_filter: ProjectStatus | None = None,
-    pagination: PaginationParams = Depends(pagination_params),  # noqa: B008  # NOSONAR — S8410: Annotated[T, Depends(...)] migration will be done in API refactoring sprint
-    db: AsyncSession = Depends(get_db),  # noqa: B008  # NOSONAR — S8410: Annotated[T, Depends(...)] migration will be done in API refactoring sprint
-    auth: str = Depends(_require_api_key_or_jwt),  # NOSONAR — S8410: Annotated[T, Depends(...)] migration will be done in API refactoring sprint
+    pagination: PaginationParams = Depends(pagination_params),  # noqa: B008
+    db: AsyncSession = Depends(get_db),  # noqa: B008
+    auth: str = Depends(_require_api_key_or_jwt),
 ) -> Any:
     """Return a paginated list of projects.
 
@@ -384,8 +384,8 @@ async def list_projects(
 )
 async def get_project(
     project_id: str,
-    db: AsyncSession = Depends(get_db),  # noqa: B008  # NOSONAR — S8410: Annotated[T, Depends(...)] migration will be done in API refactoring sprint
-    auth: str = Depends(_require_api_key_or_jwt),  # NOSONAR — S8410: Annotated[T, Depends(...)] migration will be done in API refactoring sprint
+    db: AsyncSession = Depends(get_db),  # noqa: B008
+    auth: str = Depends(_require_api_key_or_jwt),
 ) -> Any:
     """Retrieve a single project by its UUID."""
     result = await db.execute(select(Project).where(Project.id == project_id))
@@ -424,8 +424,8 @@ async def get_project(
 async def update_project(
     project_id: str,
     body: ProjectUpdateRequest,
-    user: CurrentUser = Depends(get_current_user_from_header),  # noqa: B008  # NOSONAR — S8410: Annotated[T, Depends(...)] migration will be done in API refactoring sprint
-    db: AsyncSession = Depends(get_db),  # noqa: B008  # NOSONAR — S8410: Annotated[T, Depends(...)] migration will be done in API refactoring sprint
+    user: CurrentUser = Depends(get_current_user_from_header),  # noqa: B008
+    db: AsyncSession = Depends(get_db),  # noqa: B008
 ) -> Any:
     """Update one or more fields of an existing project."""
     result = await db.execute(select(Project).where(Project.id == project_id))
@@ -478,8 +478,8 @@ async def update_project(
 )
 async def delete_project(
     project_id: str,
-    user: CurrentUser = Depends(get_current_user_from_header),  # noqa: B008  # NOSONAR — S8410: Annotated[T, Depends(...)] migration will be done in API refactoring sprint
-    db: AsyncSession = Depends(get_db),  # noqa: B008  # NOSONAR — S8410: Annotated[T, Depends(...)] migration will be done in API refactoring sprint
+    user: CurrentUser = Depends(get_current_user_from_header),  # noqa: B008
+    db: AsyncSession = Depends(get_db),  # noqa: B008
 ) -> dict[str, str]:
     """Soft-delete a project by setting its status to ``deleted``."""
     result = await db.execute(select(Project).where(Project.id == project_id))
@@ -520,8 +520,8 @@ async def delete_project(
 async def run_study(
     project_id: str,
     body: StudyRunRequest,
-    user: CurrentUser = Depends(get_current_user_from_header),  # noqa: B008  # NOSONAR — S8410: Annotated[T, Depends(...)] migration will be done in API refactoring sprint
-    db: AsyncSession = Depends(get_db),  # noqa: B008  # NOSONAR — S8410: Annotated[T, Depends(...)] migration will be done in API refactoring sprint
+    user: CurrentUser = Depends(get_current_user_from_header),  # noqa: B008
+    db: AsyncSession = Depends(get_db),  # noqa: B008
 ) -> Any:
     """Queue a study run against the project's saved configuration.
 
@@ -570,7 +570,7 @@ async def run_study(
     await db.flush()
 
     try:
-        study_results = await _execute_study(
+        study_results = _execute_study(
             study_type=body.study_type.value,
             config=merged_config,
         )
@@ -608,9 +608,9 @@ async def run_study(
 )
 async def list_studies(
     project_id: str,
-    pagination: PaginationParams = Depends(pagination_params),  # noqa: B008  # NOSONAR — S8410: Annotated[T, Depends(...)] migration will be done in API refactoring sprint
-    db: AsyncSession = Depends(get_db),  # noqa: B008  # NOSONAR — S8410: Annotated[T, Depends(...)] migration will be done in API refactoring sprint
-    user: CurrentUser = Depends(get_current_user_from_header),  # noqa: B008  # NOSONAR — S8410: Annotated[T, Depends(...)] migration will be done in API refactoring sprint
+    pagination: PaginationParams = Depends(pagination_params),  # noqa: B008
+    db: AsyncSession = Depends(get_db),  # noqa: B008
+    user: CurrentUser = Depends(get_current_user_from_header),  # noqa: B008
 ) -> Any:
     """Return a paginated list of study results associated with the given project."""
     # Verify project exists
@@ -667,7 +667,7 @@ async def list_studies(
 # ---------------------------------------------------------------------------
 
 
-async def _execute_study(  # NOSONAR — S7503: async function uses sync I/O for compatibility reasons
+def _execute_study(
     study_type: str,
     config: dict[str, Any],
 ) -> dict[str, Any]:

@@ -123,11 +123,8 @@ gc.collect()
 
 def measure_memory(n=10000):
     """Create n instances and measure per-object overhead."""
-    import time
-
     # Measure Bus
     gc.collect()
-    t0 = time.perf_counter()  # NOSONAR — S1481: unused local kept for clarity/debugging
     buses = [Bus(i) for i in range(n)]
     gc.collect()
     # Use sys.getsizeof for one

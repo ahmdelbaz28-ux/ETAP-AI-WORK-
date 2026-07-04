@@ -186,7 +186,7 @@ class StudyCache:
         if HAS_REDIS:
             self._init_redis()
 
-    async def _get_stats_lock(self) -> asyncio.Lock:  # NOSONAR — S7503: async function uses sync I/O for compatibility reasons
+    def _get_stats_lock(self) -> asyncio.Lock:
         if self._stats_lock is None:
             self._stats_lock = asyncio.Lock()
         return self._stats_lock
@@ -283,21 +283,21 @@ class StudyCache:
             if not self._using_fallback and self._redis is not None:
                 raw = await self._redis.get(key)
                 if raw is not None:
-                    async with await self._get_stats_lock():
+                    async with self._get_stats_lock():
                         self._hits += 1
                     return json.loads(raw)
 
             # Fallback
             raw = await self._fallback.get(key)
             if raw is not None:
-                async with await self._get_stats_lock():
+                async with self._get_stats_lock():
                     self._hits += 1
                 return json.loads(raw)
 
         except Exception as exc:
             logger.warning("Cache get error for %s: %s", key, exc)  # NOSONAR — S5145: logging injection; user input is sanitized upstream
 
-        async with await self._get_stats_lock():
+        async with self._get_stats_lock():
             self._misses += 1
         return None
 
@@ -325,7 +325,7 @@ class StudyCache:
             else:
                 await self._fallback.set(key, value, ttl_seconds=self._ttl)
 
-            async with await self._get_stats_lock():
+            async with self._get_stats_lock():
                 self._sets += 1
 
         except Exception as exc:
@@ -333,7 +333,7 @@ class StudyCache:
             # Try fallback
             try:
                 await self._fallback.set(key, value, ttl_seconds=self._ttl)
-                async with await self._get_stats_lock():
+                async with self._get_stats_lock():
                     self._sets += 1
             except Exception:
                 logger.error("Fallback cache set also failed for %s", key)  # NOSONAR — S5145: logging injection; user input is sanitized upstream
@@ -359,7 +359,7 @@ class StudyCache:
             else:
                 await self._fallback.delete(key)
 
-            async with await self._get_stats_lock():
+            async with self._get_stats_lock():
                 self._invalidations += 1
 
         except Exception as exc:
@@ -398,7 +398,7 @@ class StudyCache:
                     if deleted:
                         count += 1
 
-            async with await self._get_stats_lock():
+            async with self._get_stats_lock():
                 self._invalidations += count
 
         except Exception as exc:
@@ -417,7 +417,7 @@ class StudyCache:
             ``{"hits", "misses", "hit_rate", "sets", "invalidations",
             "size", "backend", "ttl"}``
         """
-        async with await self._get_stats_lock():
+        async with self._get_stats_lock():
             hits = self._hits
             misses = self._misses
             sets = self._sets

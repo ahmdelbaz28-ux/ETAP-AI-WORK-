@@ -102,7 +102,7 @@ async def health_check():
 @app.post("/execute", response_model=StudyResponse)
 async def execute_study(
     request: StudyRequest,
-    token: str = Depends(_require_auth),  # NOSONAR — S8410: Annotated[T, Depends(...)] migration will be done in API refactoring sprint
+    token: str = Depends(_require_auth),
 ):
     """
     Execute an ETAP study via COM automation.

@@ -79,7 +79,7 @@ class SCADALiveFeed:
         for client in disconnected_clients:
             self.disconnect(client)
 
-    async def _generate_scada_data(self) -> dict:  # NOSONAR — S7503: async function uses sync I/O for compatibility reasons
+    def _generate_scada_data(self) -> dict:
         """Generate mock SCADA data for demonstration purposes.
 
         In a real implementation, this would connect to actual SCADA systems.
@@ -166,8 +166,8 @@ class SCADALiveFeed:
         logger.info("Starting SCADA data broadcast loop")
         while self.is_broadcasting:
             try:
-                # Generate fresh SCADA data
-                scada_data = await self._generate_scada_data()
+                # Generate fresh SCADA data (sync call — no await needed)
+                scada_data = self._generate_scada_data()
 
                 # Broadcast to all clients
                 message = json.dumps(scada_data, separators=(",", ":"))

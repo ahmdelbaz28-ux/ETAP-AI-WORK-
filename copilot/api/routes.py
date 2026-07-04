@@ -232,7 +232,7 @@ class CopilotAPI:
             return result
 
         @router.post("/autocad/draw")
-        async def draw_in_autocad(entity_type: str = Query(...), params: dict = None):  # NOSONAR — S8410: Annotated[T, Depends(...)] migration will be done in API refactoring sprint
+        async def draw_in_autocad(entity_type: str = Query(...), params: dict = None):
             """Draw a specific entity in AutoCAD.
 
             Entity types: bus, transformer, cable, breaker, panel, load, equipment

@@ -19,7 +19,7 @@ async def setup_totp(request: Request):
         body = await request.json()
         user_id = body.get("user_id")
         if not user_id:
-            raise HTTPException(status_code=400, detail="user_id is required")  # NOSONAR — S8415: HTTPException responses will be documented in API refactoring sprint
+            raise HTTPException(status_code=400, detail="user_id is required")
 
         from security.mfa import TOTPProvider
 
@@ -61,9 +61,9 @@ async def verify_totp(request: Request):
         code = body.get("code")
 
         if not user_id:
-            raise HTTPException(status_code=400, detail="user_id is required")  # NOSONAR — S8415: HTTPException responses will be documented in API refactoring sprint
+            raise HTTPException(status_code=400, detail="user_id is required")
         if not code:
-            raise HTTPException(status_code=400, detail="code is required")  # NOSONAR — S8415: HTTPException responses will be documented in API refactoring sprint
+            raise HTTPException(status_code=400, detail="code is required")
 
         from security.mfa import TOTPProvider
 
