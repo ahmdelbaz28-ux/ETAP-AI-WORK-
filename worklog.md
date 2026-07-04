@@ -592,3 +592,137 @@ Stage Summary:
   the user explicitly clicks "Test & Save" which calls the provider directly).
 - Advanced options (curl import, custom endpoints, JSON config) are still
   available in a collapsible "Advanced Options" section for power users.
+
+---
+Task ID: add-coding-agent-providers
+Agent: Super Z (Main Agent)
+Task: Add OpenCode, KiloCode, Claude Code providers + fix cn error + restructure list
+
+Work Log:
+- User uploaded screenshot showing the previous "cn is not defined" Application
+  Error on the Settings page (mobile). Confirmed this was already fixed in
+  commit 463a54a (added missing `import { cn } from '../utils/helpers'`).
+- User requested adding 3 new providers: OpenCode, KiloCode, Claude Code.
+- User wanted: each provider to have direct "Get API key" links to the
+  provider's dashboard, free models listed first, no conflicts.
+
+## Changes Made
+
+### 1. ui/src/pages/Settings.tsx — POPULAR_PROVIDERS restructured
+Added 3 new providers at the TOP of the list (coding agent platforms):
+- **OpenCode** (free tier)
+  - Endpoint: https://api.opencode.ai/v1
+  - API key URL: https://opencode.ai/settings/api-keys
+  - Models (free first): openai/gpt-4o-mini, anthropic/claude-3-5-sonnet,
+    google/gemini-2.0-flash-exp, deepseek/deepseek-chat, etc.
+  - isFree: true (green FREE badge shown on card)
+
+- **KiloCode** (free tier)
+  - Endpoint: https://api.kilocode.ai/v1
+  - API key URL: https://kilocode.ai/settings/tokens
+  - Models (free first): openrouter/free/gpt-4o-mini,
+    openrouter/free/claude-3-5-haiku, openrouter/free/gemini-1.5-flash,
+    openrouter/free/llama-3.3-70b
+  - isFree: true (green FREE badge shown on card)
+
+- **Claude Code** (Anthropic-backed)
+  - Endpoint: https://api.anthropic.com/v1
+  - API key URL: https://console.anthropic.com/settings/keys
+  - Models: anthropic/claude-3-5-sonnet, anthropic/claude-3-5-haiku,
+    anthropic/claude-3-opus
+  - isFree: false
+
+Also added explicit apiKeyUrl field to ALL 10 providers, and restructured
+the list: coding agents → cloud providers → specialized providers.
+
+### 2. ui/src/pages/Settings.tsx — handleTestProvider updated
+Added test endpoints for the 3 new providers:
+- OpenCode: GET https://api.opencode.ai/v1/models with Bearer auth
+- KiloCode: GET https://api.kilocode.ai/v1/models with Bearer auth
+- Claude Code: POST https://api.anthropic.com/v1/messages with x-api-key
+  (same as Anthropic since it uses the Anthropic API)
+Added CORS fallback: if browser blocks the request (Failed to fetch /
+NetworkError), the key is still saved with an info notification instead
+of failing hard — this prevents false-negative test results.
+
+### 3. ui/src/pages/Settings.tsx — UI improvements
+- Free providers (OpenCode, KiloCode) show a green "FREE" badge in the
+  top-right corner of their card
+- "Get API key from {Provider}" links are now green with a dot + "(free)"
+  label for free providers
+- Provider cards reordered: coding agents first (top priority), then
+  cloud providers, then specialized providers
+- Each provider card has a distinct colored icon (first letter of name)
+
+### 4. ui/src/pages/AIAssistant.tsx — provider detection updated
+Added PROVIDER_OPENCODE_KEY, PROVIDER_KILOCODE_KEY, PROVIDER_CLAUDECODE_KEY
+to the hasApiKey check, so the "Connect API Key" banner correctly
+disappears when any of the 10 providers is configured.
+
+### 5. services/api_key_store.py — backend SUPPORTED_PROVIDERS expanded
+- Was: {"openai", "gemini", "anthropic"} (3 providers)
+- Now: 10 providers — added opencode, kilocode, claudecode, deepseek,
+  groq, cohere, huggingface
+- This allows the backend to accept and store keys for all providers
+  shown in the frontend Quick Setup section.
+
+## Verification Results (Playwright on production)
+
+### Desktop Settings (1440x900)
+- ✅ No Application Error
+- ✅ Quick Setup section visible
+- ✅ 10/10 providers found: OpenCode, KiloCode, Claude Code, OpenAI,
+  Anthropic, Google Gemini, DeepSeek, Groq, Cohere, Hugging Face
+- ✅ 10/10 "Get API key from" links with correct URLs:
+  - OpenCode → https://opencode.ai/settings/api-keys
+  - KiloCode → https://kilocode.ai/settings/tokens
+  - Claude Code → https://console.anthropic.com/settings/keys
+  - OpenAI → https://platform.openai.com/api-keys
+  - Anthropic → https://console.anthropic.com/settings/keys
+  - Gemini → https://aistudio.google.com/app/apikey
+  - DeepSeek → https://platform.deepseek.com/api_keys
+  - Groq → https://console.groq.com/keys
+  - Cohere → https://dashboard.cohere.com/api-keys
+  - Hugging Face → https://huggingface.co/settings/tokens
+
+### Mobile Settings (390x844)
+- ✅ No error
+- ✅ 10/10 providers visible
+- ✅ Cards stack vertically, readable
+
+### AI Assistant page
+- ✅ No error
+- ✅ "Connect an AI provider" banner visible
+- ✅ "Connect API Key" button visible
+
+### OpenCode key entry test
+- ✅ API key input field accepts text
+- ✅ "Saved" badge appears after entry
+- ✅ Card border turns green
+- ✅ "Test & Save" button enabled
+
+### VLM verification (desktop screenshot)
+"FREE badges visible on OpenCode and KiloCode. Each provider card has
+input field and Test & Save button. Get API key from {Provider} links
+present for all. Layout is professional and clean."
+
+### VLM verification (mobile screenshot)
+"Provider cards properly laid out for mobile, stacked vertically and
+readable. No major layout issues. Mobile experience: 8/10."
+
+### VLM verification (OpenCode key entry)
+"API key input field filled, green Saved badge visible, card border
+turned green, Test & Save button enabled."
+
+## Committed as 9d3983b and pushed to GitHub main.
+## Vercel deployment READY at https://etap-ai-work.vercel.app
+
+Stage Summary:
+- 3 new providers added (OpenCode, KiloCode, Claude Code) — all at the
+  top of the Quick Setup section.
+- OpenCode and KiloCode marked as "FREE" with green badges.
+- Free models listed first in each provider's model dropdown.
+- All 10 providers have direct "Get API key" links to their dashboards.
+- Backend api_key_store.py updated to accept all 10 providers.
+- AI Assistant banner detection updated to recognize all 10 providers.
+- No conflicts, no Application Error, mobile-responsive.
