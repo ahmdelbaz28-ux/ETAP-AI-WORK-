@@ -124,12 +124,15 @@ class APIKeyStore:
     # api_keys SQLite table. The frontend Quick Setup section in
     # Settings.tsx (POPULAR_PROVIDERS) MUST stay in sync with this set.
     SUPPORTED_PROVIDERS = {
-        # Coding agent platforms (new — added 2026-07)
+        # Coding agent platforms
         "opencode", "kilocode", "claudecode",
         # Major cloud providers
         "openai", "anthropic", "gemini",
-        # Specialized / free-friendly providers
-        "deepseek", "groq", "cohere", "huggingface",
+        "nvidia", "qwen",
+        # Specialized / open source providers
+        "deepseek", "groq", "fireworks",
+        "cloudflare", "zhipu",
+        "cohere", "huggingface",
     }
 
     def __init__(self, db_path: str = "/tmp/data/api_keys.db") -> None:  # NOSONAR — S5443: /tmp use is intentional & permission-hardened

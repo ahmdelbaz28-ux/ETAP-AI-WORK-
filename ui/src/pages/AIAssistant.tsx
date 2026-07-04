@@ -1,9 +1,11 @@
 import { useState, useRef, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { motion } from 'framer-motion'  // QUALITY v2.1.1: removed unused AnimatePresence
-import { Bot, Send, Sparkles, Cpu, Copy, RotateCcw, Check, ChevronDown, AlertCircle, Key, Settings as SettingsIcon } from 'lucide-react'  // removed User, MessageSquare
+import { motion } from 'framer-motion'
+import { Bot, Send, Sparkles, Cpu, Copy, RotateCcw, Check, ChevronDown, AlertCircle, Key, Settings as SettingsIcon, Loader2 } from 'lucide-react'
 import { useNotify } from '../context/NotificationContext'
-import { chatWithAgent, fetchAgents, type AgentMeta } from '../lib/api'
+import { fetchAgents, type AgentMeta } from '../lib/api'
+import { chatWithLLM, getActiveProvider, getConfiguredProviders, type ChatMessage } from '../lib/llm-chat'
+import { ProviderLogo } from '../components/ProviderLogo'
 import { cn } from '../utils/helpers'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
@@ -78,19 +80,48 @@ export default function AIAssistant() {
 
   const handleSend = async () => {
     if (!input.trim() || loading) return
+
+    // Check if a provider is configured
+    const provider = getActiveProvider()
+    if (!provider) {
+      notify('error', 'No API key configured. Go to Settings → AI Providers to connect a provider.')
+      navigate('/settings')
+      return
+    }
+
     const userMsg: Message = { id: Date.now().toString(), role: 'user', content: input.trim(), timestamp: Date.now() }
     setMessages(prev => [...prev, userMsg])
     setInput('')
     setLoading(true)
 
     try {
-      const reply = await chatWithAgent(
-        selectedAgent,
-        [...messages, userMsg].map(m => m.content).join('\n')
-      )
-      setMessages(prev => [...prev, { id: Date.now().toString(), role: 'assistant', content: reply.response, timestamp: Date.now() }])
+      // Build chat messages with a system prompt
+      const chatMessages: ChatMessage[] = [
+        {
+          role: 'system',
+          content: 'You are AhmedETAP AI Assistant, an enterprise-grade engineering intelligence assistant for power systems. You help with load flow analysis, short circuit calculations, arc flash analysis, protective relay coordination, and ETAP integrations. Provide accurate, technically correct answers with proper engineering notation. Use markdown for formatting code and equations.',
+        },
+        ...messages.map(m => ({ role: m.role, content: m.content }) as ChatMessage),
+        { role: 'user', content: userMsg.content },
+      ]
+
+      const result = await chatWithLLM(chatMessages)
+      setMessages(prev => [...prev, {
+        id: Date.now().toString(),
+        role: 'assistant',
+        content: result.content || '(empty response)',
+        timestamp: Date.now(),
+      }])
     } catch (err) {
-      notify('error', `Chat failed: ${err instanceof Error ? err.message : 'Unknown error'}`)
+      const errMsg = err instanceof Error ? err.message : 'Unknown error'
+      notify('error', `Chat failed: ${errMsg}`)
+      // Add error message to chat so user can see what went wrong
+      setMessages(prev => [...prev, {
+        id: Date.now().toString(),
+        role: 'assistant',
+        content: `⚠️ **Error:** ${errMsg}\n\nPlease check your API key in Settings or try a different provider.`,
+        timestamp: Date.now(),
+      }])
     } finally {
       setLoading(false)
       setTimeout(() => inputRef.current?.focus(), 50)
@@ -111,31 +142,52 @@ export default function AIAssistant() {
   }
 
   const selectedAgentData = agents.find(a => a.id === selectedAgent)
+  const activeProvider = getActiveProvider()
+  const configuredProviders = getConfiguredProviders()
 
   return (
     <div className="flex flex-col h-[calc(100vh-64px)] bg-[#fdfdfc] dark:bg-[#1a1b1e] text-[#1f2937] dark:text-[#e5e7eb] font-sans -mx-4 -my-4 sm:-mx-8 sm:-my-6">
-      {/* Top Header / Model Selector */}
-      <header className="flex items-center justify-between px-4 sm:px-8 py-4 border-b border-gray-200 dark:border-gray-800/50 bg-white/50 dark:bg-black/20 backdrop-blur-md sticky top-0 z-10">
+      {/* Top Header / Provider Selector */}
+      <header className="flex items-center justify-between px-4 sm:px-8 py-3 border-b border-gray-200 dark:border-gray-800/50 bg-white/50 dark:bg-black/20 backdrop-blur-md sticky top-0 z-10">
         <div className="flex items-center gap-3">
-          <div className="relative group cursor-pointer flex items-center gap-2 px-3 py-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
-            <Sparkles className="w-4 h-4 text-brand-500" />
-            <select
-              value={selectedAgent}
-              onChange={e => setSelectedAgent(e.target.value)}
-              className="appearance-none bg-transparent font-medium text-sm text-gray-800 dark:text-gray-200 outline-none cursor-pointer pr-6"
-            >
-              {agents.length > 0 ? (
-                agents.map(a => <option key={a.id} value={a.id} className="dark:bg-gray-800">{a.name}</option>)
-              ) : (
-                <option value="default" className="dark:bg-gray-800">Claude 3.5 Sonnet</option>
+          {/* Active provider badge with real logo */}
+          {activeProvider ? (
+            <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-gray-100 dark:bg-gray-800/80 border border-gray-200 dark:border-gray-700">
+              <ProviderLogo providerId={activeProvider.id} size={24} />
+              <div className="flex flex-col">
+                <span className="text-xs font-semibold text-gray-800 dark:text-gray-200 leading-tight">
+                  {activeProvider.name}
+                </span>
+                <span className="text-[10px] text-gray-500 dark:text-gray-400 leading-tight">
+                  {activeProvider.model}
+                </span>
+              </div>
+              {/* Provider switcher dropdown */}
+              {configuredProviders.length > 1 && (
+                <select
+                  value={activeProvider.id}
+                  onChange={e => {
+                    const settings = JSON.parse(localStorage.getItem('etap-settings') || '{}')
+                    settings.PROVIDER_ACTIVE_PROVIDER_ID = e.target.value
+                    localStorage.setItem('etap-settings', JSON.stringify(settings))
+                    window.location.reload()
+                  }}
+                  className="ml-1 appearance-none bg-transparent text-[10px] text-gray-500 dark:text-gray-400 outline-none cursor-pointer"
+                  title="Switch provider"
+                >
+                  {configuredProviders.map(p => (
+                    <option key={p.id} value={p.id} className="dark:bg-gray-800">
+                      {p.name}
+                    </option>
+                  ))}
+                </select>
               )}
-            </select>
-            <ChevronDown className="w-4 h-4 text-gray-500 absolute right-2 pointer-events-none" />
-          </div>
-          {selectedAgentData && (
-            <span className="hidden sm:inline-block px-2 py-0.5 rounded-full bg-gray-100 dark:bg-gray-800 text-[10px] font-medium text-gray-500 dark:text-gray-400 border border-gray-200 dark:border-gray-700">
-              {selectedAgentData.provider || 'Anthropic'}
-            </span>
+            </div>
+          ) : (
+            <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800">
+              <AlertCircle className="w-4 h-4 text-amber-500" />
+              <span className="text-xs font-medium text-amber-700 dark:text-amber-400">No provider connected</span>
+            </div>
           )}
         </div>
         <div className="flex items-center gap-2">

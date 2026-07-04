@@ -4,6 +4,7 @@ import { Save, Download, Upload, Trash2, Bot, Wrench, Database, Shield, Link2, G
 import { useNotify } from '../context/NotificationContext'
 import { Card, CardHeader, Button, Tabs, TabPanels, useTabState, Toggle } from '../components/ui'
 import { cn } from '../utils/helpers'
+import { ProviderLogo } from '../components/ProviderLogo'
 
 import { ContextHelpButton } from '../components/help/ContextHelpButton'
 import {
@@ -58,13 +59,12 @@ const SETTINGS_SCHEMA = {
   maxValueLength: 1000,
 }
 
-const POPULAR_PROVIDERS = [
-  // ─── Coding Agent Platforms (new — top priority) ────────────────
+export const POPULAR_PROVIDERS = [
+  // ─── Coding Agent Platforms ─────────────────────────────────────
   {
     id: 'opencode',
     name: 'OpenCode',
     models: [
-      // Free tier first
       'openai/gpt-4o-mini',
       'openai/gpt-4o',
       'anthropic/claude-3-5-sonnet',
@@ -78,15 +78,14 @@ const POPULAR_PROVIDERS = [
     defaultModel: 'openai/gpt-4o-mini',
     defaultBaseUrl: 'https://api.opencode.ai/v1',
     color: '#7c3aed',
-    docsUrl: 'https://opencode.ai',
     apiKeyUrl: 'https://opencode.ai/settings/api-keys',
     isFree: true,
+    apiType: 'openai' as const,
   },
   {
     id: 'kilocode',
     name: 'KiloCode',
     models: [
-      // Free tier first (KiloCode offers free OpenRouter-based access)
       'openrouter/free/gpt-4o-mini',
       'openrouter/free/claude-3-5-haiku',
       'openrouter/free/gemini-1.5-flash',
@@ -99,9 +98,9 @@ const POPULAR_PROVIDERS = [
     defaultModel: 'openrouter/free/gpt-4o-mini',
     defaultBaseUrl: 'https://api.kilocode.ai/v1',
     color: '#ec4899',
-    docsUrl: 'https://kilocode.ai',
     apiKeyUrl: 'https://kilocode.ai/settings/tokens',
     isFree: true,
+    apiType: 'openai' as const,
   },
   {
     id: 'claudecode',
@@ -110,14 +109,13 @@ const POPULAR_PROVIDERS = [
       'anthropic/claude-3-5-sonnet',
       'anthropic/claude-3-5-haiku',
       'anthropic/claude-3-opus',
-      // Claude Code also works via Anthropic API directly
     ],
     defaultModel: 'anthropic/claude-3-5-sonnet',
     defaultBaseUrl: 'https://api.anthropic.com/v1',
-    color: '#d97706',
-    docsUrl: 'https://docs.anthropic.com/claude-code',
+    color: '#d97757',
     apiKeyUrl: 'https://console.anthropic.com/settings/keys',
     isFree: false,
+    apiType: 'anthropic' as const,
   },
   // ─── Major Cloud Providers ──────────────────────────────────────
   {
@@ -134,6 +132,8 @@ const POPULAR_PROVIDERS = [
     defaultBaseUrl: 'https://api.openai.com/v1',
     color: '#10a37f',
     apiKeyUrl: 'https://platform.openai.com/api-keys',
+    isFree: false,
+    apiType: 'openai' as const,
   },
   {
     id: 'anthropic',
@@ -145,8 +145,10 @@ const POPULAR_PROVIDERS = [
     ],
     defaultModel: 'claude-3-5-sonnet-latest',
     defaultBaseUrl: 'https://api.anthropic.com/v1',
-    color: '#d97706',
+    color: '#d97757',
     apiKeyUrl: 'https://console.anthropic.com/settings/keys',
+    isFree: false,
+    apiType: 'anthropic' as const,
   },
   {
     id: 'gemini',
@@ -161,8 +163,47 @@ const POPULAR_PROVIDERS = [
     defaultBaseUrl: 'https://generativelanguage.googleapis.com/v1beta',
     color: '#1a73e8',
     apiKeyUrl: 'https://aistudio.google.com/app/apikey',
+    isFree: true,
+    apiType: 'gemini' as const,
   },
-  // ─── Specialized / Free-friendly providers ─────────────────────
+  {
+    id: 'nvidia',
+    name: 'NVIDIA NIM',
+    models: [
+      'meta/llama-3.1-405b-instruct',
+      'meta/llama-3.1-70b-instruct',
+      'meta/llama-3.1-8b-instruct',
+      'mistralai/mixtral-8x22b-instruct-v0.1',
+      'nvidia/nemotron-4-340b-instruct',
+      'microsoft/phi-3-medium-4k-instruct',
+      'google/gemma-2-9b-it',
+      'qwen/qwen2.5-coder-32b-instruct',
+    ],
+    defaultModel: 'meta/llama-3.1-8b-instruct',
+    defaultBaseUrl: 'https://integrate.api.nvidia.com/v1',
+    color: '#76B900',
+    apiKeyUrl: 'https://build.nvidia.com',
+    isFree: true,
+    apiType: 'openai' as const,
+  },
+  {
+    id: 'qwen',
+    name: 'Qwen (Alibaba)',
+    models: [
+      'qwen-turbo',
+      'qwen-plus',
+      'qwen-max',
+      'qwen-long',
+      'qwen-coder-turbo',
+    ],
+    defaultModel: 'qwen-turbo',
+    defaultBaseUrl: 'https://dashscope.aliyuncs.com/compatible-mode/v1',
+    color: '#6950EF',
+    apiKeyUrl: 'https://dashscope.console.aliyun.com/apiKey',
+    isFree: true,
+    apiType: 'openai' as const,
+  },
+  // ─── Specialized / Open Source ─────────────────────────────────
   {
     id: 'deepseek',
     name: 'DeepSeek',
@@ -173,8 +214,10 @@ const POPULAR_PROVIDERS = [
     ],
     defaultModel: 'deepseek-chat',
     defaultBaseUrl: 'https://api.deepseek.com/v1',
-    color: '#0052cc',
+    color: '#5786FE',
     apiKeyUrl: 'https://platform.deepseek.com/api_keys',
+    isFree: false,
+    apiType: 'openai' as const,
   },
   {
     id: 'groq',
@@ -187,8 +230,64 @@ const POPULAR_PROVIDERS = [
     ],
     defaultModel: 'llama-3.3-70b-versatile',
     defaultBaseUrl: 'https://api.groq.com/openai/v1',
-    color: '#f55036',
+    color: '#F55036',
     apiKeyUrl: 'https://console.groq.com/keys',
+    isFree: true,
+    apiType: 'openai' as const,
+  },
+  {
+    id: 'fireworks',
+    name: 'Fireworks AI',
+    models: [
+      'accounts/fireworks/models/llama-v3p1-8b-instruct',
+      'accounts/fireworks/models/llama-v3p1-70b-instruct',
+      'accounts/fireworks/models/llama-v3p1-405b-instruct',
+      'accounts/fireworks/models/mixtral-8x22b-instruct',
+      'accounts/fireworks/models/qwen2p5-72b-instruct',
+      'accounts/fireworks/models/qwen2p5-coder-32b-instruct',
+    ],
+    defaultModel: 'accounts/fireworks/models/llama-v3p1-8b-instruct',
+    defaultBaseUrl: 'https://api.fireworks.ai/inference/v1',
+    color: '#FF6B35',
+    apiKeyUrl: 'https://fireworks.ai/api-keys',
+    isFree: false,
+    apiType: 'openai' as const,
+  },
+  {
+    id: 'cloudflare',
+    name: 'Cloudflare Workers AI',
+    models: [
+      '@cf/meta/llama-3.1-8b-instruct',
+      '@cf/meta/llama-3.1-70b-instruct',
+      '@cf/meta/llama-3-8b-instruct',
+      '@cf/mistral/mistral-7b-instruct-v0.1',
+      '@cf/qwen/qwen1.5-14b-chat-awq',
+      '@cf/google/gemma-2-9b-it',
+    ],
+    defaultModel: '@cf/meta/llama-3.1-8b-instruct',
+    defaultBaseUrl: 'https://api.cloudflare.com/client/v4/accounts',
+    color: '#F38020',
+    apiKeyUrl: 'https://dash.cloudflare.com/profile/api-tokens',
+    isFree: true,
+    apiType: 'cloudflare' as const,
+  },
+  {
+    id: 'zhipu',
+    name: 'Zhipu AI (GLM)',
+    models: [
+      'glm-4-flash',
+      'glm-4-flashx',
+      'glm-4-air',
+      'glm-4-airx',
+      'glm-4-plus',
+      'glm-4-long',
+    ],
+    defaultModel: 'glm-4-flash',
+    defaultBaseUrl: 'https://open.bigmodel.cn/api/paas/v4',
+    color: '#3B5BFE',
+    apiKeyUrl: 'https://open.bigmodel.cn/usercenter/apikeys',
+    isFree: true,
+    apiType: 'zhipu' as const,
   },
   {
     id: 'cohere',
@@ -200,8 +299,10 @@ const POPULAR_PROVIDERS = [
     ],
     defaultModel: 'command-r-plus',
     defaultBaseUrl: 'https://api.cohere.ai/v2',
-    color: '#6b50df',
+    color: '#39594D',
     apiKeyUrl: 'https://dashboard.cohere.com/api-keys',
+    isFree: false,
+    apiType: 'cohere' as const,
   },
   {
     id: 'huggingface',
@@ -214,8 +315,10 @@ const POPULAR_PROVIDERS = [
     ],
     defaultModel: 'meta-llama/Llama-3.3-70B-Instruct',
     defaultBaseUrl: 'https://api-inference.huggingface.co/v1',
-    color: '#ffc107',
+    color: '#FFD21E',
     apiKeyUrl: 'https://huggingface.co/settings/tokens',
+    isFree: true,
+    apiType: 'openai' as const,
   },
 ]
 
@@ -629,16 +732,11 @@ function AISettingsPanel({ settings, setSettings, notify }: AISettingsPanelProps
                     Free
                   </span>
                 )}
-                {/* Header: icon + name + status badge */}
+                {/* Header: real brand logo + name + status badge */}
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center gap-2.5">
-                    {/* Provider icon — colored dot with first letter */}
-                    <div
-                      className="w-9 h-9 rounded-lg flex items-center justify-center text-white font-bold text-sm shadow-sm"
-                      style={{ backgroundColor: p.color }}
-                    >
-                      {p.name.charAt(0)}
-                    </div>
+                    {/* Real provider brand logo (SVG) */}
+                    <ProviderLogo providerId={p.id} size={40} />
                     <div>
                       <div className="text-sm font-semibold text-[var(--text-primary)]">{p.name}</div>
                       <div className="text-[10px] text-[var(--text-muted)]">{p.defaultModel}</div>
