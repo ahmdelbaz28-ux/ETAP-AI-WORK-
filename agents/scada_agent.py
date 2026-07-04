@@ -29,6 +29,15 @@ import numpy as np
 
 from agents.orchestrator import AgentResult, AgentStatus, BaseAgent, EngineeringTask, StudyType
 
+# SonarCloud S6711: use numpy.random.Generator (modern API) instead of the
+# legacy np.random.* functions. The legacy API uses a global RNG that is
+# not thread-safe and is scheduled for deprecation. The Generator API is
+# faster, thread-safe, and the recommended replacement.
+# This RNG is used ONLY for non-security purposes (simulating measurement
+# noise, demo data generation). It is NEVER used for tokens, secrets, or
+# cryptographic operations.
+_RNG = np.random.default_rng()
+
 logger = logging.getLogger(__name__)
 
 
@@ -339,10 +348,11 @@ class SCADAAgent(BaseAgent):
 
         # Update values with slight random variation (simulate real-time)
         # Copy cached objects to avoid mutating the cache
-        np.random.seed(int(now.timestamp()) % 2**31)
+        # Use the modern numpy.random.Generator API (SonarCloud S6711).
+        _rng = np.random.default_rng(int(now.timestamp()) % 2**31)
         result_measurements = []
         for m in filtered:
-            noise = np.random.normal(0, 0.005)  # 0.5% noise  # NOSONAR — S6711: numpy.random.Generator migration; API change required
+            noise = _rng.normal(0, 0.005)  # 0.5% noise
             new_value = m.value * (1.0 + noise)
             result_measurements.append(
                 SCADAMeasurement(
@@ -715,13 +725,15 @@ class SCADAAgent(BaseAgent):
         timestamp: datetime,
     ) -> list[SCADAMeasurement]:
         """Generate a set of simulated SCADA measurements for a substation."""
-        np.random.seed(42)
         measurements = []
+
+        # Use the modern numpy.random.Generator API (SonarCloud S6711).
+        _demo_rng = np.random.default_rng(42)
 
         # Bus measurements (3 buses)
         for bus_id in ["BUS1", "BUS2", "BUS3"]:
             v_nom = 13.8  # kV
-            v_kv = v_nom * (1.0 + np.random.normal(0, 0.02))  # NOSONAR — S6711: numpy.random.Generator migration; API change required
+            v_kv = v_nom * (1.0 + _demo_rng.normal(0, 0.02))
 
             measurements.append(
                 SCADAMeasurement(
@@ -736,7 +748,7 @@ class SCADAAgent(BaseAgent):
             measurements.append(
                 SCADAMeasurement(
                     tag=f"A_{bus_id}_A",
-                    value=500 + np.random.normal(0, 10),  # NOSONAR — S6711: numpy.random.Generator migration; API change required
+                    value=500 + _demo_rng.normal(0, 10),
                     timestamp=timestamp,
                     quality="good",
                     iec61850_ref=f"LD0/{bus_id}.MMXU$A$mag$f",
@@ -746,7 +758,7 @@ class SCADAAgent(BaseAgent):
             measurements.append(
                 SCADAMeasurement(
                     tag=f"P_{bus_id}_MW",
-                    value=5.0 + np.random.normal(0, 0.1),  # NOSONAR — S6711: numpy.random.Generator migration; API change required
+                    value=5.0 + _demo_rng.normal(0, 0.1),
                     timestamp=timestamp,
                     quality="good",
                     iec61850_ref=f"LD0/{bus_id}.MMXU$W$mag$f",
@@ -756,7 +768,7 @@ class SCADAAgent(BaseAgent):
             measurements.append(
                 SCADAMeasurement(
                     tag=f"Q_{bus_id}_MVAR",
-                    value=1.0 + np.random.normal(0, 0.05),  # NOSONAR — S6711: numpy.random.Generator migration; API change required
+                    value=1.0 + _demo_rng.normal(0, 0.05),
                     timestamp=timestamp,
                     quality="good",
                     iec61850_ref=f"LD0/{bus_id}.MMXU$var$mag$f",
@@ -766,7 +778,7 @@ class SCADAAgent(BaseAgent):
             measurements.append(
                 SCADAMeasurement(
                     tag=f"PF_{bus_id}",
-                    value=0.95 + np.random.normal(0, 0.01),  # NOSONAR — S6711: numpy.random.Generator migration; API change required
+                    value=0.95 + _demo_rng.normal(0, 0.01),
                     timestamp=timestamp,
                     quality="good",
                     iec61850_ref=f"LD0/{bus_id}.MMXU$PF$mag$f",
@@ -778,7 +790,7 @@ class SCADAAgent(BaseAgent):
         measurements.append(
             SCADAMeasurement(
                 tag="FREQ_HZ",
-                value=60.0 + np.random.normal(0, 0.01),  # NOSONAR — S6711: numpy.random.Generator migration; API change required
+                value=60.0 + _demo_rng.normal(0, 0.01),
                 timestamp=timestamp,
                 quality="good",
                 iec61850_ref="LD0/LLN0.MMXU$Hz$mag$f",

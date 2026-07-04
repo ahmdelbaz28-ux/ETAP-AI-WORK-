@@ -70,7 +70,9 @@ def benchmark_1_jacobian() -> Dict[str, Any]:  # NOSONAR — S3776: cognitive co
         for _ in range(n_trials):
             J_ana = _build_dense_jacobian(V, ybus, pv, pq, n_uk)  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
             # Trigger PV→PQ switching simulation by adding a small perturbation
-            V_test = V * (1.0 + 1e-8 * np.random.randn(len(V)))  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+            # Use modern numpy.random.Generator API (SonarCloud S6711).
+            _rng_perturb = np.random.default_rng()
+            V_test = V * (1.0 + 1e-8 * _rng_perturb.standard_normal(len(V)))  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
             _ = _build_dense_jacobian(V_test, ybus, pv, pq, n_uk)
         t_ana = (time.perf_counter() - t0) / (n_trials * 2) * 1000  # ms
 
@@ -249,9 +251,9 @@ def benchmark_3_zbus() -> Dict[str, Any]:  # NOSONAR — S3776: cognitive comple
         print("  [scipy not available — LU benchmark skipped]")
 
     for n in IEEE_SIZES:
-        # Create random Ybus
-        np.random.seed(42)
-        Y = np.random.randn(n, n) + 1j * np.random.randn(n, n)  # NOSONAR — S6711: numpy.random.Generator migration; API change required
+        # Create random Ybus (use modern numpy.random.Generator API — S6711).
+        _rng_ybus = np.random.default_rng(42)
+        Y = _rng_ybus.standard_normal((n, n)) + 1j * _rng_ybus.standard_normal((n, n))  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         Y = Y @ Y.conj().T + np.eye(n) * 0.1  # Positive definite-ish
         np.fill_diagonal(Y, np.sum(np.abs(Y), axis=1) + 10)  # Diagonally dominant
 

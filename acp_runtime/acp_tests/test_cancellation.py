@@ -83,7 +83,7 @@ async def test_handler_that_ignores_cancellation_still_bails():
     async def rogue_handler():
         try:
             await anyio.sleep(5.0)
-        except BaseException as exc:
+        except BaseException as exc:  # NOSONAR — S5754: intentional rogue handler that swallows cancellation; SystemExit/KeyboardInterrupt are re-raised below
             # Swallow the cancel and try to finish — this is intentionally
             # "rogue" behavior we're testing. BUT we must re-raise
             # SystemExit / KeyboardInterrupt so we don't break the test
@@ -92,7 +92,7 @@ async def test_handler_that_ignores_cancellation_still_bails():
                 raise
             try:
                 await anyio.sleep(0.05)
-            except BaseException as inner_exc:
+            except BaseException as inner_exc:  # NOSONAR — S5754: intentional rogue handler; SystemExit/KeyboardInterrupt re-raised below
                 if isinstance(inner_exc, (SystemExit, KeyboardInterrupt)):
                     raise
 

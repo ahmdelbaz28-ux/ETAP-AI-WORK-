@@ -709,24 +709,24 @@ class CableSizingAgent(BaseAgent):
         errors: list[str] = []
 
         amp = result.data.get("ampacity")
-        if amp is not None and amp.get("derated_ampacity_A", 0) <= 0:
+        if amp is not None and amp.get("derated_ampacity_A", 0) <= 0:  # NOSONAR — S1066: not collapsible; `and` short-circuits the .get() on None
             errors.append("Derated ampacity is zero or negative")
 
         vd = result.data.get("voltage_drop")
-        if vd is not None and not vd.get("compliant_5pct", True):
+        if vd is not None and not vd.get("compliant_5pct", True):  # NOSONAR — S1066: not collapsible; `and` short-circuits the .get() on None
             errors.append(
                 f"Voltage drop {vd.get('voltage_drop_percent', 0):.2f}% exceeds 5% limit",
             )
 
         sc = result.data.get("short_circuit")
-        if sc is not None and not sc.get("adequate", True):
+        if sc is not None and not sc.get("adequate", True):  # NOSONAR — S1066: not collapsible; `and` short-circuits the .get() on None
             errors.append(
                 f"Short-circuit rating inadequate: utilization ratio "
                 f"{sc.get('utilization_ratio', 0):.2f}",
             )
 
         rec = result.data.get("recommendation")
-        if rec is not None and "No standard cable" in rec.get("recommendation", ""):
+        if rec is not None and "No standard cable" in rec.get("recommendation", ""):  # NOSONAR — S1066: not collapsible; `and` short-circuits the .get() on None
             errors.append("No suitable cable found meeting all criteria")
 
         result.validation_errors.extend(errors)

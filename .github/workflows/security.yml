@@ -9,14 +9,20 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+# SonarCloud S8233: write permission moved from workflow level to job level
+# so each job only gets the permissions it actually needs (least privilege).
+# `contents: read` stays at workflow level because every job needs to checkout.
+
 permissions:
   contents: read
-  security-events: write
 
 jobs:
   codeql:
     name: CodeQL Analysis
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -62,6 +68,9 @@ jobs:
   trivy:
     name: Trivy Security Scan
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
     steps:
       - name: Checkout code
         uses: actions/checkout@v4

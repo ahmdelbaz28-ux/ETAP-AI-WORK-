@@ -10,6 +10,7 @@ Covers:
 
 from __future__ import annotations
 
+import asyncio
 import io
 import json
 import time
@@ -49,7 +50,8 @@ class TestHealthHandler:
     async def test_health_uptime_increases(self):
         t0 = time.time()
         handler = HealthHandler(transport_name="uds", start_time=t0)
-        time.sleep(0.02)
+        # Use async sleep instead of blocking time.sleep (SonarCloud S7488).
+        await asyncio.sleep(0.02)
         result = await handler.health()
         assert result["uptime_seconds"] > 0
 

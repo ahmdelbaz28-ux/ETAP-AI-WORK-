@@ -320,8 +320,9 @@ class BatteryStorageAgent(BaseAgent):
 
         elif strategy == "frequency_regulation":
             # Simulate AGC-like signal using random walk
-            np.random.seed(42)
-            agc_signal = np.cumsum(np.random.randn(n_periods) * 0.1)  # NOSONAR — S6711: numpy.random.Generator migration; API change required
+            # Use modern numpy.random.Generator API (SonarCloud S6711).
+            _rng = np.random.default_rng(42)
+            agc_signal = np.cumsum(_rng.standard_normal(n_periods) * 0.1)
             agc_signal = np.clip(agc_signal, -1.0, 1.0)  # Normalized
 
             for t in range(n_periods):
@@ -899,9 +900,9 @@ class BatteryStorageAgent(BaseAgent):
         seasonal = 1.0 + 0.15 * np.sin(2 * np.pi * (day_of_year - 180) / 365)
         load = load * seasonal
 
-        # Add noise
-        np.random.seed(42)
-        load += np.random.normal(0, 20, hours)  # NOSONAR — S6711: numpy.random.Generator migration; API change required
+        # Add noise (use modern numpy.random.Generator API — SonarCloud S6711).
+        _rng = np.random.default_rng(42)
+        load += _rng.normal(0, 20, hours)
         return np.maximum(load, 50.0)
 
     @staticmethod
@@ -936,11 +937,11 @@ class BatteryStorageAgent(BaseAgent):
                 errors.append("Round-trip efficiency exceeds 1.0")
 
         roi = result.data.get("roi")
-        if roi is not None and roi.get("npv_$", 0) < -1e9:
+        if roi is not None and roi.get("npv_$", 0) < -1e9:  # NOSONAR — S1066: not collapsible; `and` short-circuits the .get() on None
             errors.append("NPV is extremely negative — check financial inputs")
 
         cycle = result.data.get("cycle_life")
-        if cycle is not None and cycle.get("cycle_utilization_pct", 0) > 100:
+        if cycle is not None and cycle.get("cycle_utilization_pct", 0) > 100:  # NOSONAR — S1066: not collapsible; `and` short-circuits the .get() on None
             errors.append("Cycle utilization exceeds 100% — battery end of life")
 
         result.validation_errors.extend(errors)

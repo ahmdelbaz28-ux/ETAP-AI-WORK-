@@ -80,7 +80,8 @@ def _make_118_snapshot(version: int, variation: float = 0.01):
             zone_id=f"ZONE_{(i // 50) + 1}",
         )
 
-    # Simulation results
+    # Simulation results (use modern numpy.random.Generator API — S6711).
+    _rng = np.random.default_rng()
     sim_results = SimulationResults(
         load_flow_converged=True,
         load_flow_iterations=4 + (version % 3),
@@ -88,7 +89,7 @@ def _make_118_snapshot(version: int, variation: float = 0.01):
                                  for i in range(n_buses)},
         state_estimation_converged=True,
         state_estimation_bad_data=version % 10,
-        fault_currents={f"BUS_{i:04d}": complex(5.0 + np.random.uniform(-1, 1), 2.0 + np.random.uniform(-0.5, 0.5))  # NOSONAR — S6711: numpy.random.Generator migration; API change required
+        fault_currents={f"BUS_{i:04d}": complex(5.0 + _rng.uniform(-1, 1), 2.0 + _rng.uniform(-0.5, 0.5))
                          for i in range(min(20, n_buses))},
         arc_flash_incident_energy={f"BUS_{i:04d}": round(1.0 + 0.5 * np.sin(i * 0.7), 3)
                                     for i in range(n_buses)},

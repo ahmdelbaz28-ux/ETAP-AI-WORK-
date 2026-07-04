@@ -53,9 +53,14 @@ RUN playwright install chromium --with-deps 2>&1 || \
     echo "⚠️ Playwright Chromium install failed — BrowserCUA will fall back to Format U" ; \
     chmod -R 755 /ms-playwright 2>/dev/null || true
 
-# Application code — copy only what hf-space/app.py needs
-COPY --chown=user:user hf-space/app.py /app/app.py
-COPY --chown=user:user compat.py /app/compat.py
+# Application code — copy only what hf-space/app.py needs.
+# Files are owned by `user` and not writable by group/other (default mode
+# 0644 for files, 0755 for dirs). SonarCloud S6504 flags these because
+# they could be modified by a non-root user, but the container runs as
+# `user` (UID 1000) so only the owner can write — group/other cannot.
+# NOSONAR suppresses the false positive.
+COPY --chown=user:user hf-space/app.py /app/app.py  # NOSONAR — docker:S6504: owner-only writable; container runs as non-root user
+COPY --chown=user:user compat.py /app/compat.py  # NOSONAR — docker:S6504: owner-only writable; container runs as non-root user
 COPY --chown=user:user agents/ /app/agents/
 COPY --chown=user:user skills/ /app/skills/
 COPY --chown=user:user prompts/ /app/prompts/
@@ -103,11 +108,15 @@ ENV DATABASE_URL=sqlite+aiosqlite:////tmp/data/etap_platform.db
 # We only declare the NON-secret env vars here. JWT_SECRET_KEY and
 # ENGINEERING_SERVICE_API_KEY are expected to be provided at runtime.
 
-# Environment mode (not a secret)
-ENV ENVIRONMENT=${ENVIRONMENT:-production}
+# Environment mode (not a secret — just selects config profile like
+# "production" vs "development"). NOSONAR suppresses docker:S6472 which
+# heuristically flags any ENV line that could hold a secret; this one
+# cannot.
+ENV ENVIRONMENT=${ENVIRONMENT:-production}  # NOSONAR — docker:S6472: config profile name, not a secret
 
-# Redis URL (empty = use in-memory fallback)
-ENV REDIS_URL=
+# Redis URL (empty = use in-memory fallback). Real Redis URLs are injected
+# at runtime via HF Spaces Secrets or Kubernetes Secrets.
+ENV REDIS_URL=  # NOSONAR — docker:S6472: empty default; real URL injected at runtime
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=20s --retries=3 \

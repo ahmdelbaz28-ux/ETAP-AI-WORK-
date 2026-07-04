@@ -503,9 +503,11 @@ class PredictiveAgent(BaseAgent):
                 hist_load = task.parameters.get("historical_load_mw", [])
                 if not hist_load:
                     # Generate synthetic data for demo
+                    # Use modern numpy.random.Generator API (SonarCloud S6711).
+                    _rng = np.random.default_rng()
                     hours = 168  # 1 week
                     hist_load = [
-                        100.0 + 30.0 * np.sin(2 * np.pi * h / 24) + 5.0 * np.random.randn()  # NOSONAR — S6711: numpy.random.Generator migration; API change required
+                        100.0 + 30.0 * np.sin(2 * np.pi * h / 24) + 5.0 * _rng.standard_normal()
                         for h in range(hours)
                     ]
                 results["short_term_forecast"] = self.forecast_short_term(
@@ -577,9 +579,11 @@ class PredictiveAgent(BaseAgent):
             if analysis_type in ("ml_short_term_forecast", "full_ml"):
                 hist_load = task.parameters.get("historical_load_mw", [])
                 if not hist_load:
+                    # Use modern numpy.random.Generator API (SonarCloud S6711).
+                    _rng = np.random.default_rng()
                     hours = 168
                     hist_load = [
-                        100.0 + 30.0 * np.sin(2 * np.pi * h / 24) + 5.0 * np.random.randn()  # NOSONAR — S6711: numpy.random.Generator migration; API change required
+                        100.0 + 30.0 * np.sin(2 * np.pi * h / 24) + 5.0 * _rng.standard_normal()
                         for h in range(hours)
                     ]
                 forecast_method = task.parameters.get("forecast_method", "auto")

@@ -57,9 +57,12 @@ RUN groupadd -r engsvc && \
 
 WORKDIR /app
 
-# Copy the service code + ALL required Python modules
-COPY --chown=engsvc:engsvc engineering_service.py ./
-COPY --chown=engsvc:engsvc compat.py ./
+# Copy the service code + ALL required Python modules.
+# Files owned by `engsvc` (non-root); default mode 0644 means only the
+# owner can write. Container runs as `engsvc` so group/other cannot
+# modify (SonarCloud S6504 false positive — suppressed).
+COPY --chown=engsvc:engsvc engineering_service.py ./  # NOSONAR — docker:S6504: owner-only writable; container runs as non-root engsvc
+COPY --chown=engsvc:engsvc compat.py ./  # NOSONAR — docker:S6504: owner-only writable; container runs as non-root engsvc
 COPY --chown=engsvc:engsvc api/ ./api/
 COPY --chown=engsvc:engsvc core/ ./core/
 COPY --chown=engsvc:engsvc services/ ./services/

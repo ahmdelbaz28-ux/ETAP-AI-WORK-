@@ -254,9 +254,10 @@ class RenewableAgent(BaseAgent):
         poa = ghi * tilt_factor * 0.85  # Plane-of-array with diffuse contribution
         poa = np.clip(poa, 0.0, 1.2)  # kW/m²
 
-        # Add some cloud randomness
-        np.random.seed(42)
-        cloud_factor = 0.7 + 0.3 * np.random.random(hours)  # NOSONAR — S6711: numpy.random.Generator migration; API change required
+        # Add some cloud randomness (use modern numpy.random.Generator API —
+        # SonarCloud S6711).
+        _rng = np.random.default_rng(42)
+        cloud_factor = 0.7 + 0.3 * _rng.random(hours)
         poa = poa * cloud_factor
 
         return np.clip(poa, 0.0, 1.2)

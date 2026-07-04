@@ -78,11 +78,11 @@ ENV DATABASE_URL=${DATABASE_URL:-sqlite+aiosqlite:////tmp/data/etap_platform.db}
 # into image layers leaks them via `docker history`. They are injected at
 # RUNTIME via HF Space Secrets, Docker --secret, or Kubernetes Secrets.
 
-# Environment mode (not a secret)
-ENV ENVIRONMENT=${ENVIRONMENT:-production}
+# Environment mode (not a secret — selects config profile).
+ENV ENVIRONMENT=${ENVIRONMENT:-production}  # NOSONAR — docker:S6472: config profile name, not a secret
 
-# Redis URL (empty = use in-memory fallback)
-ENV REDIS_URL=
+# Redis URL (empty default; real URL injected at runtime via HF Secrets).
+ENV REDIS_URL=  # NOSONAR — docker:S6472: empty default; real URL injected at runtime
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=20s --retries=3 \

@@ -60,7 +60,11 @@ class TestEngineeringKnowledgeBase:
     def test_retrieve_no_match(self):
         kb = EngineeringKnowledgeBase()
         results = kb.retrieve_knowledge("xyznonexistent")
-        assert len(results) >= 0
+        # The fallback retriever may return results even for non-matching
+        # queries (SHA-256 hash fallback). Just verify the call doesn't
+        # crash and returns a list (SonarCloud S3981: avoid redundant
+        # `len(x) >= 0` check which is always true).
+        assert isinstance(results, list)
 
     def test_ingest_new_document(self):
         kb = EngineeringKnowledgeBase()

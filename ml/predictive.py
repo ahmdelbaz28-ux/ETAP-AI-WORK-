@@ -305,9 +305,11 @@ class LoadForecaster:
 
     def _predict_lstm(self, horizon_hours: int) -> np.ndarray:
         """Autoregressive LSTM prediction."""
+        # Use modern numpy.random.Generator API (SonarCloud S6711).
+        _rng = np.random.default_rng()
         scaled_recent = self.scaler.data_min_ + (
             self.scaler.data_max_ - self.scaler.data_min_
-        ) * np.random.rand(self._window_size)  # NOSONAR — S6711: numpy.random.Generator migration; API change required
+        ) * _rng.random(self._window_size)
         input_seq = scaled_recent.reshape(1, self._window_size, 1)
         predictions: list[float] = []
         for _ in range(horizon_hours):
