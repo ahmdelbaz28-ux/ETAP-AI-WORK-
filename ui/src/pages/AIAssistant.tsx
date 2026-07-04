@@ -145,7 +145,8 @@ export default function AIAssistant() {
               : m
           ))
         } else {
-          // No content at all, try non-streaming
+          // No content from streaming — try non-streaming ONCE
+          // This is the ONLY fallback. No double API calls.
           try {
             const result = await chatWithLLM(chatMessages)
             setMessages(prev => prev.map(m =>
@@ -154,7 +155,14 @@ export default function AIAssistant() {
                 : m
             ))
           } catch (fallbackErr) {
-            throw fallbackErr
+            // Both streaming and non-streaming failed.
+            // Update the placeholder with the error, DON'T add a new message.
+            const errMsg = fallbackErr instanceof Error ? fallbackErr.message : 'Unknown error'
+            setMessages(prev => prev.map(m =>
+              m.id === assistantMsgId
+                ? { ...m, content: `⚠️ **Error:** ${errMsg}`, streaming: false }
+                : m
+            ))
           }
         }
       }

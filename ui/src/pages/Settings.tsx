@@ -66,8 +66,9 @@ export const POPULAR_PROVIDERS = [
     id: 'opencode',
     name: 'OpenCode Zen',
     models: [
-      // FREE models (verified from GET /zen/v1/models — 4 free models)
+      // FREE models (verified from GET /zen/v1/models — 5 free models, tested with real API key)
       { id: 'deepseek-v4-flash-free', name: 'DeepSeek V4 Flash', isFree: true },
+      { id: 'big-pickle', name: 'Big Pickle', isFree: true },
       { id: 'mimo-v2.5-free', name: 'Xiaomi MiMo v2.5', isFree: true },
       { id: 'nemotron-3-ultra-free', name: 'NVIDIA Nemotron 3 Ultra', isFree: true },
       { id: 'north-mini-code-free', name: 'Cohere North Mini Code', isFree: true },

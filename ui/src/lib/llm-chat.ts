@@ -732,15 +732,13 @@ export async function* chatWithLLMStream(
           if (parsed.error) {
             throw new Error(parsed.message || parsed.error?.message || 'Stream error')
           }
-          // OpenAI-style streaming
+          // OpenAI-style streaming — ONLY yield delta.content (not message.content)
+          // This prevents duplicate content from providers that send both
           if (parsed.choices?.[0]?.delta?.content) {
             gotAnyContent = true
             yield parsed.choices[0].delta.content
-          }
-          // Some providers return content in different format
-          if (parsed.choices?.[0]?.message?.content && !gotAnyContent) {
-            gotAnyContent = true
-            yield parsed.choices[0].message.content
+            // Small delay for smooth typewriter effect (30ms)
+            await new Promise(r => setTimeout(r, 30))
           }
         } catch (e) {
           // If it's our thrown error, re-throw
@@ -753,9 +751,10 @@ export async function* chatWithLLMStream(
     }
   }
 
-  // If no content was streamed, fall back to non-streaming
+  // If no content was streamed, throw — the AI Assistant will handle the fallback.
+  // DO NOT call chatWithLLM here — that would make a SECOND API call and could
+  // cause duplicate responses.
   if (!gotAnyContent) {
-    const result = await chatWithLLM(messages, provider)
-    yield result.content
+    throw new Error('STREAM_NO_CONTENT')
   }
 }
