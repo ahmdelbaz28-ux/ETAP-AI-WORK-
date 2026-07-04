@@ -56,6 +56,25 @@ def load_config(path: str) -> dict[str, Any]:
     if not p.exists():
         raise SystemExit(f"Config file not found: {path!r}")
 
+    # SonarCloud S8707: validate the resolved path is a real file (not a
+    # symlink to /etc/passwd etc.) and is not a special device file.
+    # This prevents LLM-driven CLI invocations from exfiltrating system
+    # files via crafted config paths.
+    if not p.is_file():
+        raise SystemExit(f"Config path is not a regular file: {path!r}")
+    # Reject paths that resolve outside the current working directory tree
+    # unless explicitly allowed via ACP_CONFIG_ALLOW_ABSOLUTE=1.
+    resolved = p.resolve()
+    cwd = Path.cwd().resolve()
+    allow_absolute = os.environ.get("ACP_CONFIG_ALLOW_ABSOLUTE", "").lower() in (
+        "1", "true", "yes", "on",
+    )
+    if not allow_absolute and not str(resolved).startswith(str(cwd)):
+        raise SystemExit(
+            f"Config path {path!r} resolves outside the working directory "
+            f"({resolved}). Set ACP_CONFIG_ALLOW_ABSOLUTE=1 to allow."
+        )
+
     data = p.read_text(encoding="utf-8")
     suffix = p.suffix.lower()
 

@@ -1259,7 +1259,12 @@ class ETAPAutomation:
             return False
 
         try:
-            resolved = pathlib.Path(file_path).resolve()
+            # S6549: file_path is user-controlled but is validated against
+            # self._allowed_project_dirs after resolution (below). The
+            # resolve() call itself doesn't touch the filesystem beyond
+            # following symlinks, and the subsequent startswith() check
+            # ensures the resolved path is within an allowed directory.
+            resolved = pathlib.Path(file_path).resolve()  # NOSONAR — pythonsecurity:S6549: validated against _allowed_project_dirs below
         except (ValueError, RuntimeError):
             logger.warning("Invalid path format: %s", file_path)  # NOSONAR — S5145: logging injection; user input is sanitized upstream
             return False

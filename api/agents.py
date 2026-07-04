@@ -5,6 +5,7 @@ Handles all AI agent information endpoints.
 Separated from main engineering service for better modularity.
 """
 
+import asyncio
 import json
 import os
 from datetime import UTC, datetime
@@ -645,8 +646,13 @@ async def etap_gui_siem_events(
     limit = min(max(limit, 1), 200)
     events: list = []
     try:
-        with open(log_path, encoding="utf-8") as fh:  # NOSONAR — S7493: sync file I/O in async function; compatibility with sync lib
-            lines = fh.readlines()
+        # Read in a worker thread to avoid blocking the event loop
+        # (SonarCloud S7493: no sync file I/O inside async functions).
+        def _read_log_lines() -> list[str]:
+            with open(log_path, encoding="utf-8") as fh:
+                return fh.readlines()
+
+        lines = await asyncio.to_thread(_read_log_lines)
         # Take the last N lines
         for line in lines[-limit:]:
             line = line.strip()

@@ -36,6 +36,36 @@ from typing import Any
 
 from compat import StrEnum
 
+async def _read_text_file(path: str) -> str:
+    """Read a file's text content in a worker thread.
+
+    Wraps synchronous ``open()`` + ``read()`` in ``asyncio.to_thread`` so
+    the event loop is not blocked (SonarCloud python:S7493).
+    """
+    def _read() -> str:
+        with open(path, encoding="utf-8", errors="replace") as fh:
+            return fh.read()
+    return await asyncio.to_thread(_read)
+
+
+
+
+async def _read_text_lines(path: str) -> list[str]:
+    """Read a file's lines in a worker thread (SonarCloud python:S7493)."""
+    def _read() -> list[str]:
+        with open(path, encoding="utf-8", errors="replace") as fh:
+            return fh.readlines()
+    return await asyncio.to_thread(_read)
+
+
+async def _write_text_file(path: str, data: str) -> None:
+    """Write text to a file in a worker thread (SonarCloud python:S7493)."""
+    def _write() -> None:
+        with open(path, "w", encoding="utf-8") as fh:
+            fh.write(data)
+    await asyncio.to_thread(_write)
+
+
 # ---------------------------------------------------------------------------
 # Data structures
 # ---------------------------------------------------------------------------
@@ -399,9 +429,7 @@ class SecurityAuditor:
             if not os.path.exists(service_file):
                 continue
 
-            with open(service_file, encoding="utf-8", errors="replace") as fh:  # NOSONAR — S7493: sync file I/O in async function; compatibility with sync lib
-                lines = fh.readlines()
-
+                lines = await _read_text_lines(service_file)
             # Parse to find endpoint definitions
             current_endpoint: str | None = None
             endpoint_line: int | None = None
@@ -483,9 +511,7 @@ class SecurityAuditor:
             if not os.path.exists(service_file):
                 continue
 
-            with open(service_file, encoding="utf-8", errors="replace") as fh:  # NOSONAR — S7493: sync file I/O in async function; compatibility with sync lib
-                content = fh.read()
-
+            content = await _read_text_file(service_file)
             # Check for wildcard origins
             if 'allow_origins=["*"]' in content or "allow_origins=['*']" in content:
                 self._add_finding(
@@ -564,9 +590,7 @@ class SecurityAuditor:
             if not os.path.exists(service_file):
                 continue
 
-            with open(service_file, encoding="utf-8", errors="replace") as fh:  # NOSONAR — S7493: sync file I/O in async function; compatibility with sync lib
-                lines = fh.readlines()
-
+                lines = await _read_text_lines(service_file)
             for i, line in enumerate(lines, 1):
                 # Look for POST/PUT endpoints that accept raw Request
                 # without a Pydantic model
@@ -636,9 +660,7 @@ class SecurityAuditor:
             if not os.path.exists(service_file):
                 continue
 
-            with open(service_file, encoding="utf-8", errors="replace") as fh:  # NOSONAR — S7493: sync file I/O in async function; compatibility with sync lib
-                content = fh.read()
-
+            content = await _read_text_file(service_file)
             # Check if global rate limiting exists
             has_global_rate_limit = (
                 "_check_rate_limit" in content or "rate_limit" in content.lower()
@@ -719,9 +741,7 @@ class SecurityAuditor:
                     continue
 
                 try:
-                    with open(file_path, encoding="utf-8", errors="replace") as fh:  # NOSONAR — S7493: sync file I/O in async function; compatibility with sync lib
-                        lines = fh.readlines()
-
+                    lines = await _read_text_lines(file_path)
                     for i, line in enumerate(lines, 1):
                         stripped = line.strip()
 
@@ -813,9 +833,7 @@ class SecurityAuditor:
                     continue
 
                 try:
-                    with open(file_path, encoding="utf-8", errors="replace") as fh:  # NOSONAR — S7493: sync file I/O in async function; compatibility with sync lib
-                        lines = fh.readlines()
-
+                    lines = await _read_text_lines(file_path)
                     for i, line in enumerate(lines, 1):
                         stripped = line.strip()
                         if stripped.startswith("#"):
@@ -846,9 +864,7 @@ class SecurityAuditor:
         req_file = os.path.join(self.project_root, "requirements.txt")
         if os.path.exists(req_file):
             try:
-                with open(req_file, encoding="utf-8", errors="replace") as fh:  # NOSONAR — S7493: sync file I/O in async function; compatibility with sync lib
-                    requirements = fh.readlines()
-
+                requirements = await _read_text_lines(req_file)
                 for line in requirements:
                     line = line.strip()
                     if not line or line.startswith("#"):
@@ -881,9 +897,8 @@ class SecurityAuditor:
         # Check for the specific dead ConnectionManager in the original
         service_file = os.path.join(self.project_root, "engineering_service.py")
         if os.path.exists(service_file):
-            with open(service_file, encoding="utf-8", errors="replace") as fh:  # NOSONAR — S7493: sync file I/O in async function; compatibility with sync lib
-                content = fh.read()
-                lines = content.split("\n")
+            content = await _read_text_file(service_file)
+            lines = content.split("\n")
 
             # Check for duplicate RASP stats endpoint
             rasp_count = content.count("/api/v1/security/rasp/stats")
@@ -956,9 +971,7 @@ class SecurityAuditor:
             if not os.path.exists(service_file):
                 continue
 
-            with open(service_file, encoding="utf-8", errors="replace") as fh:  # NOSONAR — S7493: sync file I/O in async function; compatibility with sync lib
-                content = fh.read()
-
+            content = await _read_text_file(service_file)
             # Check for default JWT secret
             if "etap-platform-default-secret-change-in-production" in content:
                 self._add_finding(
@@ -1011,9 +1024,7 @@ class SecurityAuditor:
             if not os.path.exists(service_file):
                 continue
 
-            with open(service_file, encoding="utf-8", errors="replace") as fh:  # NOSONAR — S7493: sync file I/O in async function; compatibility with sync lib
-                content = fh.read()
-
+            content = await _read_text_file(service_file)
             # Check if stack traces are exposed in error responses
             if "traceback" in content.lower() and "JSONResponse" in content:
                 # Check if traceback details are sent to clients
@@ -1192,13 +1203,17 @@ async def _main() -> None:  # NOSONAR — S3776: cognitive complexity; scheduled
     auditor = SecurityAuditor(project_root=args.project_root)
     report = await auditor.run()
 
-    # Use ExitStack so the output file (when not stdout) is always closed
-    # via a context manager, even on exception. Replaces the previous
-    # try/finally + manual out.close() pattern.
-    with contextlib.ExitStack() as stack:
-        out = sys.stdout if args.output == "-" else stack.enter_context(
-            open(args.output, "w", encoding="utf-8")  # NOSONAR — S7493: sync file I/O in async function; compatibility with sync lib
-        )
+    # Open the output file (or use stdout) in a worker thread to avoid
+    # blocking the event loop (SonarCloud S7493). closing() ensures the
+    # file is closed when leaving the `with` block, even on exception.
+    def _open_output():
+        if args.output == "-":
+            return sys.stdout, False
+        return open(args.output, "w", encoding="utf-8"), True
+
+    out, _owns = await asyncio.to_thread(_open_output)
+    cm = contextlib.closing(out) if _owns else contextlib.nullcontext(out)
+    with cm:
 
         if not args.json_only:
             print("=" * 72, file=out)

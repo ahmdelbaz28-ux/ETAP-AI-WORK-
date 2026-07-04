@@ -32,7 +32,9 @@ except Exception:  # pragma: no cover
 
     class _PromStub:
         def __init__(self, *args, **kwargs):
-            pass  # NOSONAR — S1186: intentional no-op (protocol stub / test fixture)
+            """No-op constructor. Prometheus client is unavailable; this
+            stub accepts any args so callers don't crash when metrics
+            collection is disabled."""
 
         def labels(self, *args, **kwargs):
             return self

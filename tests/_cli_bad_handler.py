@@ -19,4 +19,10 @@ class BadHandler:
 
     @capability("bad.cap", scopes=())
     async def run(self) -> None:
-        pass  # NOSONAR — S1186: intentional no-op (protocol stub / test fixture)
+        """Intentional no-op.
+
+        This handler exists only to verify that the CLI surfaces a clear
+        error when a handler class cannot be instantiated with no
+        arguments (``required_arg`` has no default). The body never
+        executes because construction fails first.
+        """

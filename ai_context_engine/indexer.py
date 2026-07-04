@@ -120,6 +120,18 @@ class CodeExtractor:
 class CodeIndexer:
     def __init__(self, output_dir: str, embedding_function=None):
         self.output_dir = Path(output_dir)
+        # SonarCloud S8707: validate the output dir resolves to a safe path
+        # (no traversal outside the project tree or to system directories).
+        resolved = self.output_dir.resolve()
+        cwd = Path.cwd().resolve()
+        # Allowed roots: current working directory, /tmp (HF Spaces), and
+        # the user's home directory (for local dev).
+        allowed_roots = [cwd, Path("/tmp"), Path("/var/tmp"), Path.home().resolve()]
+        if not any(str(resolved).startswith(str(r)) for r in allowed_roots):
+            raise ValueError(
+                f"output_dir {output_dir!r} resolves to {resolved} which is "
+                f"outside allowed roots. Refusing to create indexer."
+            )
         self.output_dir.mkdir(parents=True, exist_ok=True)
         self.client = None
         self.collection = None

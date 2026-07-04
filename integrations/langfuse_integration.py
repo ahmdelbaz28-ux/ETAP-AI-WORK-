@@ -82,10 +82,13 @@ class _NoOpContext:
         return self
 
     def end(self, *args, **kwargs):
-        pass  # NOSONAR — S1186: intentional no-op (protocol stub / test fixture)
+        """No-op stub. Real Langfuse spans end on context exit; this stub
+        exists so test fixtures don't crash when Langfuse is unavailable."""
 
     def record_exception(self, exc):
-        pass  # NOSONAR — S1186: intentional no-op (protocol stub / test fixture)
+        """No-op stub. Exceptions are already logged via the standard
+        logger; recording them in Langfuse is optional and skipped when
+        Langfuse is unavailable."""
 
 
 def _env_truthy(var: str, default: bool = False) -> bool:

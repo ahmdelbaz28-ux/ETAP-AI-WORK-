@@ -108,11 +108,13 @@ def main():
             err_message = result.stderr or f"Process exited with code {result.returncode}"
             # Sanitize Windows file paths (e.g. C:\Users\...) from error
             # messages to avoid leaking internal directory structure.
-            # The regex matches a drive letter, colon, backslash, and one or
-            # more non-whitespace characters.
+            # The regex matches a drive letter, colon, backslash, and zero or
+            # more non-whitespace characters (using \S* so that a bare "C:\"
+            # also matches — SonarCloud S5996: previously `[^\s]+` after
+            # mandatory `\\` was flagged; `\S*` removes the boundary concern).
             import re
 
-            err_message = re.sub(r"[A-Z]:\\[^\s]+", "[path]", err_message)
+            err_message = re.sub(r"[A-Z]:\\\S*", "[path]", err_message)
             print(json.dumps({"success": False, "output": None, "error": err_message}))
         else:
             print(json.dumps({"success": True, "output": output, "error": None}))

@@ -477,8 +477,13 @@ class CoverageAnalyzer:
 
         for test_file in self._test_files:
             try:
-                with open(test_file, encoding="utf-8", errors="replace") as fh:  # NOSONAR — S7493: sync file I/O in async function; compatibility with sync lib
-                    source = fh.read()
+                # Read in a worker thread to avoid blocking the event loop
+                # (SonarCloud S7493: no sync file I/O inside async functions).
+                def _read_test_file(_f: str = test_file) -> str:
+                    with open(_f, encoding="utf-8", errors="replace") as fh:
+                        return fh.read()
+
+                source = await asyncio.to_thread(_read_test_file)
                 tree = ast.parse(source, filename=test_file)
 
                 for node in ast.walk(tree):
@@ -512,8 +517,13 @@ class CoverageAnalyzer:
                 continue
 
             try:
-                with open(src_file, encoding="utf-8", errors="replace") as fh:  # NOSONAR — S7493: sync file I/O in async function; compatibility with sync lib
-                    source = fh.read()
+                # Read in a worker thread to avoid blocking the event loop
+                # (SonarCloud S7493: no sync file I/O inside async functions).
+                def _read_src_file(_f: str = src_file) -> str:
+                    with open(_f, encoding="utf-8", errors="replace") as fh:
+                        return fh.read()
+
+                source = await asyncio.to_thread(_read_src_file)
                 tree = ast.parse(source, filename=src_file)
 
                 extractor = _FunctionExtractor(module_name, src_file)
@@ -803,14 +813,18 @@ async def _main() -> None:  # NOSONAR — S3776: cognitive complexity; scheduled
     analyzer = CoverageAnalyzer(project_root=args.project_root)
     report = await analyzer.run()
 
-    # Use ExitStack so the output file (when not stdout) is always closed
-    # via a context manager, even on exception. This replaces the previous
-    # try/finally + manual out.close() pattern.
-    with contextlib.ExitStack() as stack:
-        out = sys.stdout if args.output == "-" else stack.enter_context(
-            open(args.output, "w", encoding="utf-8")  # NOSONAR — S7493: sync file I/O in async function; compatibility with sync lib
-        )
+    # Use a context manager so the output file (when not stdout) is always
+    # closed, even on exception. The file is opened in a worker thread to
+    # avoid blocking the event loop (SonarCloud S7493: no sync file I/O
+    # inside async functions).
+    def _open_output():
+        if args.output == "-":
+            return sys.stdout, False
+        return open(args.output, "w", encoding="utf-8"), True
 
+    out, _owns = await asyncio.to_thread(_open_output)
+    cm = contextlib.closing(out) if _owns else contextlib.nullcontext(out)
+    with cm:
         report_dict = report.to_dict()
 
         if not args.json_only:
@@ -870,7 +884,7 @@ async def _main() -> None:  # NOSONAR — S3776: cognitive complexity; scheduled
 
         json.dump(report_dict, out, indent=2, default=str)
         print(file=out)
-    # ExitStack closes the file automatically when leaving the `with` block.
+    # closing() closes the file automatically when leaving the `with` block.
 
 
 if __name__ == "__main__":

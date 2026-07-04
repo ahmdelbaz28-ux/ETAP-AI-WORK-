@@ -178,7 +178,11 @@ class SCADALiveFeed:
 
             except asyncio.CancelledError:
                 logger.info("SCADA broadcast loop cancelled")
-                break
+                # Re-raise CancelledError so the asyncio task is properly
+                # marked as cancelled (SonarCloud S7497). The `break` alone
+                # would swallow the cancellation, preventing cleanup of
+                # parent task chains.
+                raise
             except Exception:
                 logger.error.exception("Error in SCADA broadcast loop: ")
                 await asyncio.sleep(5)  # Wait 5 seconds before retrying

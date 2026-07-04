@@ -8,6 +8,13 @@
 # Run:   docker run -d --isolation=process -p 8081:8081 etap-windows-worker
 
 FROM mcr.microsoft.com/windows/servercore:ltsc2022
+# SonarCloud S6471: Windows containers default to ContainerAdministrator
+# (the Windows equivalent of root). This is intentional because ETAP COM
+# automation requires launching the ETAP GUI process, which writes to
+# per-machine COM registrations (HKLM registry hive) and needs admin-level
+# access to the out-of-process COM server. Running as ContainerUser would
+# break ETAP integration. The container is isolated via --isolation=process
+# and runs on a dedicated Windows host with no internet egress.
 
 LABEL maintainer="ETAP AI Platform Team"
 LABEL description="ETAP Windows Worker - COM Automation Service"

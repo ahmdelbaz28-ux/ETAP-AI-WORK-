@@ -465,10 +465,12 @@ if not _cors_origin_list:
 # NOTE: In Starlette/FastAPI, middleware added LAST is the OUTERMOST layer.
 # CORSMiddleware must be added LAST so it is outermost and can answer
 # preflight OPTIONS requests before any body-size check rejects them
-# (SonarCloud S8414).
+# (SonarCloud S8414). BodySizeLimit is added FIRST so it sits inside CORS.
+app.add_middleware(_BodySizeLimitMiddleware)
 if not _cors_origin_list or _CORS_ORIGINS == "":
-    # Don't allow credentials when no origins are configured
-    app.add_middleware(  # NOSONAR — S8414: CORSMiddleware added here; BodySizeLimit added below makes CORS outermost
+    # Don't allow credentials when no origins are configured.
+    # CORSMiddleware added LAST => outermost (handles preflight OPTIONS first).
+    app.add_middleware(
         CORSMiddleware,
         allow_origins=_cors_origin_list,
         allow_credentials=False,  # Don't allow credentials with empty origin list
@@ -477,8 +479,9 @@ if not _cors_origin_list or _CORS_ORIGINS == "":
         expose_headers=["x-trace-id"],
     )
 else:
-    # Allow credentials only when specific origins are configured
-    app.add_middleware(  # NOSONAR — S8414: CORSMiddleware added here; BodySizeLimit added below makes CORS outermost
+    # Allow credentials only when specific origins are configured.
+    # CORSMiddleware added LAST => outermost (handles preflight OPTIONS first).
+    app.add_middleware(
         CORSMiddleware,
         allow_origins=_cors_origin_list,
         allow_credentials=True,
@@ -486,8 +489,6 @@ else:
         allow_headers=["x-api-key", "x-trace-id", "content-type", "authorization"],
         expose_headers=["x-trace-id"],
     )
-# BodySizeLimit added AFTER CORS so CORS is outermost (last added = first executed)
-app.add_middleware(_BodySizeLimitMiddleware)  # NOSONAR — S8414: CORSMiddleware is added above (last-but-one) which makes it outermost
 
 
 # Global exception handler to prevent raw exception exposure

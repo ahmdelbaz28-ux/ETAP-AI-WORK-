@@ -17,7 +17,7 @@ Covers:
 
 from __future__ import annotations
 
-from typing import Optional
+from typing import Optional, cast
 
 import anyio
 import pytest
@@ -272,11 +272,10 @@ async def test_notification_no_response():
 @pytest.mark.anyio
 async def test_notification_callback():
     runtime = AcpRuntime([MathHandler()])
-    called_with: Optional[dict] = None
+    captured: dict = {}
 
     async def on_notification(env: dict):  # NOSONAR — S7503: async function uses sync I/O for compatibility reasons
-        nonlocal called_with
-        called_with = env
+        captured.update(env)
 
     router = Router(runtime, RouterConfig(on_notification=on_notification))
     await router.handle(
@@ -286,11 +285,11 @@ async def test_notification_callback():
             "params": {"percent": 75},
         }
     )
-    assert called_with is not None  # NOSONAR — S5727: Sonar can't track nonlocal assignment in async callback; this verifies on_notification was actually invoked
-    # SonarCloud S5644 still flags Optional[dict] __getitem__ access even after
-    # the None-check above. Use an explicit dict() cast to satisfy the type
-    # narrowing and access the keys safely.
-    received: dict = dict(called_with)  # type: ignore[arg-type]  — called_with is dict after None-check
+    # Use a plain dict captured by reference so the static analyzer can prove
+    # the type is `dict` (SonarCloud S5644/S5727 cannot reason about nonlocal
+    # reassignment inside an async callback).
+    assert captured  # verifies on_notification was actually invoked
+    received = cast(dict, captured)
     assert received["method"] == "progress.update"
     assert received["params"]["percent"] == 75
 

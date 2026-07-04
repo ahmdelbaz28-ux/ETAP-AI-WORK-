@@ -1083,15 +1083,11 @@ if not _cors_origin_list:
 # is the OUTERMOST layer (runs first on request, last on response).
 # CORSMiddleware must be outermost so it can answer preflight OPTIONS
 # requests before any auth/body-size logic rejects them (SonarCloud S8414).
+# Therefore BodySizeLimit and RequestLoggingMiddleware are added FIRST,
+# then trace_middleware is added via the @app.middleware decorator,
+# and finally CORSMiddleware is added LAST below (after trace_middleware).
 app.add_middleware(_BodySizeLimitMiddleware)
 app.add_middleware(_RequestLoggingMiddleware)
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=_cors_origin_list,
-    allow_methods=["GET", "POST", "HEAD", "OPTIONS", "PUT", "DELETE"],
-    allow_headers=["x-api-key", "x-trace-id", "content-type", "authorization"],
-    expose_headers=["x-trace-id"],
-)
 
 
 # Mount existing routers
@@ -1206,6 +1202,19 @@ async def trace_middleware(request: Request, call_next):  # NOSONAR — S3776: c
             elapsed_ms,
             extra={"trace_id": trace_id},
         )
+
+
+# CORSMiddleware added LAST (after the @app.middleware("http") trace_middleware
+# decorator above) so it is the OUTERMOST layer. This satisfies SonarCloud
+# python:S8414: preflight OPTIONS requests are handled by CORS before any
+# rate-limit / RASP / body-size logic can reject them.
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=_cors_origin_list,
+    allow_methods=["GET", "POST", "HEAD", "OPTIONS", "PUT", "DELETE"],
+    allow_headers=["x-api-key", "x-trace-id", "content-type", "authorization"],
+    expose_headers=["x-trace-id"],
+)
 
 
 # ---------------------------------------------------------------------------

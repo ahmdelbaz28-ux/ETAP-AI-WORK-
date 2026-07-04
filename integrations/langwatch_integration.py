@@ -111,13 +111,14 @@ class _NoOpContext:
         return self
 
     def __exit__(self, *args):
-        pass  # NOSONAR — S1186: intentional no-op (protocol stub / test fixture)
+        """No-op exit. Context manager cleanup is implicit when disabled."""
 
     def update(self, **kwargs):
-        pass  # NOSONAR — S1186: intentional no-op (protocol stub / test fixture)
+        """No-op update. Span updates are silently dropped when LangWatch
+        is unavailable."""
 
     def send(self):
-        pass
+        """No-op send. Spans are not transmitted when LangWatch is disabled."""
 
 
 # ─── Module-level singleton ───────────────────────────────────────────────────

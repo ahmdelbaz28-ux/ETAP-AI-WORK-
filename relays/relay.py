@@ -10,7 +10,7 @@ class Relay:
         self.pickup = False
         self.trip = False
 
-    def pickup_logic(self, value):
+    def pickup_logic(self, *args, **kwargs):
         """
         Determine if the relay picks up based on input value.
 
@@ -19,12 +19,10 @@ class Relay:
         DifferentialRelay, DirectionalRelay) overrides this with
         its own characteristic and signature.
 
-        Parameters
-        ----------
-        value : float | complex
-            Measured quantity (current, voltage, impedance, etc.).
-            The base class does not interpret ``value``; subclasses
-            document the expected quantity.
+        The base signature accepts ``*args, **kwargs`` so subclasses
+        are free to use domain-specific parameter names (``I``,
+        ``V``, ``Ibias``, ``Idiff``, ...) without violating LSP
+        (SonarCloud python:S2638).
 
         Returns
         -------
@@ -36,17 +34,21 @@ class Relay:
         # pickup_logic for its specific measurement quantity.
         return False
 
-    def operate(self, value):
+    def operate(self, *args, **kwargs):
         """
         Operate the relay: update pickup and trip status.
         Returns True if the relay trips.
+
+        Accepts ``*args, **kwargs`` so subclasses can use
+        domain-specific signatures (V, I) or (Ibias, Idiff)
+        without violating LSP (python:S2638).
         """
-        self.pickup = self.pickup_logic(value)
+        self.pickup = self.pickup_logic(*args, **kwargs)
         # For instantaneous relays, trip if picked up.
         # For time-overcurrent relays, trip logic is separate.
         return self.trip
 
-    def trip_time(self, _value):
+    def trip_time(self, *args, **kwargs):
         """
         Calculate trip time for time-overcurrent relays.
         Returns time in seconds, or infinity if not picked up.

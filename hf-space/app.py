@@ -10,6 +10,7 @@ are defined in one place and reused by both the HF Space and the main API.
 
 from __future__ import annotations
 
+import asyncio
 import logging
 import os
 import time
@@ -534,8 +535,13 @@ async def etap_gui_siem_events(limit: int = 50):
     limit = min(max(limit, 1), 200)
     events = []
     try:
-        with open(log_path, encoding="utf-8") as fh:  # NOSONAR — S7493: sync file I/O in async function; compatibility with sync lib
-            lines = fh.readlines()
+        # Read the file in a worker thread to avoid blocking the event loop
+        # (SonarCloud S7493: synchronous file I/O inside an async function).
+        def _read_log_lines() -> list[str]:
+            with open(log_path, encoding="utf-8") as fh:
+                return fh.readlines()
+
+        lines = await asyncio.to_thread(_read_log_lines)
         for line in lines[-limit:]:
             line = line.strip()
             if not line:
@@ -787,7 +793,7 @@ if __name__ == "__main__":
     # platforms). The container's ingress proxy handles the public-facing
     # interface; binding to 127.0.0.1 would prevent HF Spaces from reaching
     # the app at all. SonarCloud S8392 flags this, but it's intentional.
-    host = os.environ.get("HOST", "0.0.0.0")
+    host = os.environ.get("HOST", "0.0.0.0")  # NOSONAR — S8392: HF Spaces requires 0.0.0.0 binding; ingress proxy handles public exposure
     logger.info("Starting server on %s:%d", host, port)
     uvicorn.run(
         app,

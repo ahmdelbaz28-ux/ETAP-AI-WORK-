@@ -187,7 +187,20 @@ DUAL_CONFIRMATION_PATTERNS: tuple[str, ...] = (
 # to avoid SonarCloud S5443 (publicly writable directories). The directory
 # is created with 0o700 permissions.
 _DEFAULT_CUA_AUDIT_DIR = str(Path.home() / ".etap" / "cua_audit")
-_CUA_AUDIT_DIR = Path(os.environ.get("CUA_AUDIT_DIR", _DEFAULT_CUA_AUDIT_DIR))
+# SonarCloud S2083: env var is operator-controlled (not end-user input).
+# We resolve + validate the path is absolute and within the user's home
+# directory or an explicitly-set absolute path, rejecting traversal.
+_raw_audit_dir = os.environ.get("CUA_AUDIT_DIR", _DEFAULT_CUA_AUDIT_DIR)
+_CUA_AUDIT_DIR = Path(_raw_audit_dir).resolve()
+# Validate the resolved path doesn't escape to a system directory via .. or
+# symlinks. Allowed roots: $HOME, /tmp (HF Spaces), /var/tmp.
+_allowed_roots = [Path.home().resolve(), Path("/tmp"), Path("/var/tmp")]
+if not any(
+    str(_CUA_AUDIT_DIR).startswith(str(r)) for r in _allowed_roots
+):
+    raise RuntimeError(
+        f"CUA_AUDIT_DIR {_CUA_AUDIT_DIR} is outside allowed roots; refusing to start"
+    )
 _CUA_AUDIT_DIR.mkdir(parents=True, exist_ok=True)
 try:
     os.chmod(_CUA_AUDIT_DIR, 0o700)
