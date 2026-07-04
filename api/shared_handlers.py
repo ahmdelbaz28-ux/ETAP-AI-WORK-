@@ -851,7 +851,12 @@ def handle_ml_capabilities() -> dict[str, Any]:
 
 
 def handle_predict_load(body: dict[str, Any]) -> dict[str, Any]:
-    """Predict future load using Prophet/LSTM/Linear LoadForecaster."""
+    """Predict future load using Prophet/LSTM/Linear LoadForecaster.
+
+    If the historical data is insufficient for the LSTM/Prophet models
+    (which require at least 48 points), falls back to a simple moving-
+    average forecast so the endpoint still returns a useful response.
+    """
     try:
         import numpy as np  # type: ignore
 
@@ -864,8 +869,35 @@ def handle_predict_load(body: dict[str, Any]) -> dict[str, Any]:
         if not historical:
             return {"error": "historical_data is required", "_status": 400}
 
-        lf = LoadForecaster(method=method)
         data = np.array(historical, dtype=float)
+
+        # If data is too small for LoadForecaster (needs >= 48 points),
+        # fall back to a simple moving-average forecast.
+        MIN_POINTS_FOR_ML = 48
+        if len(data) < MIN_POINTS_FOR_ML:
+            # Simple forecast: use the mean of the last min(len, 5) points
+            # repeated for the horizon, with a small linear trend.
+            window = data[-min(len(data), 5):]
+            base = float(np.mean(window))
+            # Simple linear trend from the window
+            if len(window) >= 2:
+                trend = (window[-1] - window[0]) / max(len(window) - 1, 1)
+            else:
+                trend = 0.0
+            predictions = [max(0.0, base + trend * (i + 1)) for i in range(horizon)]
+            return {
+                "success": True,
+                "data": {
+                    "predictions": predictions,
+                    "horizon_hours": horizon,
+                    "method": "moving_average_fallback",
+                    "note": f"Only {len(data)} data points provided; "
+                    f"need {MIN_POINTS_FOR_ML} for ML models. Used "
+                    "moving-average fallback.",
+                },
+            }
+
+        lf = LoadForecaster(method=method)
         train_result = lf.train(data)
         predictions = lf.predict(horizon_hours=horizon)
 

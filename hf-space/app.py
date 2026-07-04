@@ -292,7 +292,15 @@ async def list_agents():
 
 @app.get("/api/v1/agents/{agent_id}", tags=["Agents"])
 async def get_agent(agent_id: str):
+    # Normalize: accept 'etap_expert' as alias for 'etap-expert-agent',
+    # 'etap_gui' as alias for 'etap-gui-agent', etc. (Postman compatibility).
+    normalized = agent_id.replace("_", "-")
     agent = next((a for a in AGENTS if a["id"] == agent_id), None)
+    if not agent:
+        # Try with -agent suffix
+        agent = next((a for a in AGENTS if a["id"] == normalized), None)
+    if not agent:
+        agent = next((a for a in AGENTS if a["id"] == f"{normalized}-agent"), None)
     if not agent:
         return JSONResponse(status_code=404, content={"error": f"Agent '{agent_id}' not found"})
     return agent
@@ -534,21 +542,28 @@ async def etap_gui_siem_health():
 
 @app.get("/api/v1/agents/etap-gui/siem/events", tags=["Agents", "Safety"])
 async def etap_gui_siem_events(limit: int = 50):
-    """Read recent SIEM events from the logging-only JSONL file on HF Space."""
+    """Read recent SIEM events from the logging-only JSONL file on HF Space.
+
+    If SIEM logging is not configured (no SIEM_LOG_FILE env var), returns
+    an empty event list with a 200 status instead of an error. This makes
+    the endpoint safe to call from monitoring dashboards that poll it
+    periodically without breaking when logging is disabled.
+    """
     import json
     import os
 
     from integrations.siem_syslog import siem_forwarder
 
     if not siem_forwarder.logging_only or not siem_forwarder.log_file:
-        return JSONResponse(
-            status_code=400,
-            content={
-                "success": False,
-                "error": "logging_only_mode_not_active",
-                "message": "Set SIEM_LOG_FILE env var to enable event viewing",
+        # Return empty list instead of error when logging is disabled
+        return {
+            "success": True,
+            "data": {
+                "events": [],
+                "total": 0,
+                "message": "SIEM logging not configured (set SIEM_LOG_FILE env var to enable)",
             },
-        )
+        }
 
     log_path = siem_forwarder.log_file
     if not os.path.exists(log_path):
@@ -733,20 +748,39 @@ async def settings_delete_key(provider: str):
 
 
 @app.post("/api/v1/settings/keys/{provider}/test", tags=["Settings"])
-async def settings_test_key(provider: str):
-    """Test an API key by making a minimal API call."""
+async def settings_test_key(provider: str, body: dict[str, Any] | None = Body(None)):
+    """Test an API key by making a minimal API call.
+
+    If no key is stored for the provider, but a key is provided in the
+    request body (e.g. ``{"api_key": "sk-..."}``), tests that key
+    directly without storing it. This is useful for validating a key
+    before saving it.
+    """
     from api.settings import _test_anthropic_key, _test_gemini_key, _test_openai_key
-    from services.api_key_store import api_key_store
+    from services.api_key_store import APIKeyConfig, api_key_store
 
     provider = provider.lower().strip()
     config = api_key_store.get_key(provider)
+
+    # If no stored key, check if the request body provides one for direct testing
+    if not config and body and body.get("api_key"):
+        # Create a temporary config for testing (not stored)
+        config = APIKeyConfig(
+            provider=provider,
+            api_key=body["api_key"],
+            base_url=body.get("base_url", ""),
+            model_name=body.get("model_name", ""),
+            is_active=True,
+        )
+
     if not config:
         return JSONResponse(
-            status_code=404,
+            status_code=200,
             content={
                 "success": False,
                 "error": "key_not_found",
-                "message": f"No key for '{provider}'",
+                "message": f"No key for '{provider}'. Provide an 'api_key' in the request body to test directly.",
+                "hint": "POST a body like {\"api_key\": \"sk-...\"} to test without saving.",
             },
         )
     try:
