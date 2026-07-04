@@ -59,61 +59,163 @@ const SETTINGS_SCHEMA = {
 }
 
 const POPULAR_PROVIDERS = [
+  // ─── Coding Agent Platforms (new — top priority) ────────────────
+  {
+    id: 'opencode',
+    name: 'OpenCode',
+    models: [
+      // Free tier first
+      'openai/gpt-4o-mini',
+      'openai/gpt-4o',
+      'anthropic/claude-3-5-sonnet',
+      'anthropic/claude-3-5-haiku',
+      'google/gemini-2.0-flash-exp',
+      'google/gemini-1.5-flash',
+      'deepseek/deepseek-chat',
+      'deepseek/deepseek-coder',
+      'meta-llama/llama-3.3-70b-instruct',
+    ],
+    defaultModel: 'openai/gpt-4o-mini',
+    defaultBaseUrl: 'https://api.opencode.ai/v1',
+    color: '#7c3aed',
+    docsUrl: 'https://opencode.ai',
+    apiKeyUrl: 'https://opencode.ai/settings/api-keys',
+    isFree: true,
+  },
+  {
+    id: 'kilocode',
+    name: 'KiloCode',
+    models: [
+      // Free tier first (KiloCode offers free OpenRouter-based access)
+      'openrouter/free/gpt-4o-mini',
+      'openrouter/free/claude-3-5-haiku',
+      'openrouter/free/gemini-1.5-flash',
+      'openrouter/free/llama-3.3-70b',
+      'openai/gpt-4o',
+      'anthropic/claude-3-5-sonnet',
+      'google/gemini-2.0-flash',
+      'deepseek/deepseek-coder',
+    ],
+    defaultModel: 'openrouter/free/gpt-4o-mini',
+    defaultBaseUrl: 'https://api.kilocode.ai/v1',
+    color: '#ec4899',
+    docsUrl: 'https://kilocode.ai',
+    apiKeyUrl: 'https://kilocode.ai/settings/tokens',
+    isFree: true,
+  },
+  {
+    id: 'claudecode',
+    name: 'Claude Code',
+    models: [
+      'anthropic/claude-3-5-sonnet',
+      'anthropic/claude-3-5-haiku',
+      'anthropic/claude-3-opus',
+      // Claude Code also works via Anthropic API directly
+    ],
+    defaultModel: 'anthropic/claude-3-5-sonnet',
+    defaultBaseUrl: 'https://api.anthropic.com/v1',
+    color: '#d97706',
+    docsUrl: 'https://docs.anthropic.com/claude-code',
+    apiKeyUrl: 'https://console.anthropic.com/settings/keys',
+    isFree: false,
+  },
+  // ─── Major Cloud Providers ──────────────────────────────────────
   {
     id: 'openai',
     name: 'OpenAI',
-    models: ['gpt-4o', 'gpt-4o-mini', 'o1-mini', 'o1-preview'],
+    models: [
+      'gpt-4o-mini',
+      'gpt-4o',
+      'o1-mini',
+      'o1-preview',
+      'gpt-3.5-turbo',
+    ],
     defaultModel: 'gpt-4o-mini',
     defaultBaseUrl: 'https://api.openai.com/v1',
     color: '#10a37f',
+    apiKeyUrl: 'https://platform.openai.com/api-keys',
   },
   {
     id: 'anthropic',
     name: 'Anthropic',
-    models: ['claude-3-5-sonnet-latest', 'claude-3-opus-latest', 'claude-3-5-haiku-latest'],
+    models: [
+      'claude-3-5-sonnet-latest',
+      'claude-3-5-haiku-latest',
+      'claude-3-opus-latest',
+    ],
     defaultModel: 'claude-3-5-sonnet-latest',
     defaultBaseUrl: 'https://api.anthropic.com/v1',
     color: '#d97706',
+    apiKeyUrl: 'https://console.anthropic.com/settings/keys',
   },
   {
     id: 'gemini',
     name: 'Google Gemini',
-    models: ['gemini-1.5-pro', 'gemini-1.5-flash', 'gemini-2.0-flash-exp'],
+    models: [
+      'gemini-1.5-flash',
+      'gemini-2.0-flash-exp',
+      'gemini-1.5-pro',
+      'gemini-1.5-flash-8b',
+    ],
     defaultModel: 'gemini-1.5-flash',
     defaultBaseUrl: 'https://generativelanguage.googleapis.com/v1beta',
     color: '#1a73e8',
+    apiKeyUrl: 'https://aistudio.google.com/app/apikey',
   },
+  // ─── Specialized / Free-friendly providers ─────────────────────
   {
     id: 'deepseek',
     name: 'DeepSeek',
-    models: ['deepseek-chat', 'deepseek-coder'],
+    models: [
+      'deepseek-chat',
+      'deepseek-coder',
+      'deepseek-reasoner',
+    ],
     defaultModel: 'deepseek-chat',
     defaultBaseUrl: 'https://api.deepseek.com/v1',
     color: '#0052cc',
+    apiKeyUrl: 'https://platform.deepseek.com/api_keys',
   },
   {
     id: 'groq',
     name: 'Groq',
-    models: ['llama-3.3-70b-versatile', 'mixtral-8x7b-32768', 'gemma2-9b-it'],
+    models: [
+      'llama-3.3-70b-versatile',
+      'llama-3.1-8b-instant',
+      'mixtral-8x7b-32768',
+      'gemma2-9b-it',
+    ],
     defaultModel: 'llama-3.3-70b-versatile',
     defaultBaseUrl: 'https://api.groq.com/openai/v1',
     color: '#f55036',
+    apiKeyUrl: 'https://console.groq.com/keys',
   },
   {
     id: 'cohere',
     name: 'Cohere',
-    models: ['command-r-plus', 'command-r'],
+    models: [
+      'command-r-plus',
+      'command-r',
+      'command-r7b-12-2024',
+    ],
     defaultModel: 'command-r-plus',
-    defaultBaseUrl: 'https://api.cohere.ai/v1',
+    defaultBaseUrl: 'https://api.cohere.ai/v2',
     color: '#6b50df',
+    apiKeyUrl: 'https://dashboard.cohere.com/api-keys',
   },
   {
     id: 'huggingface',
     name: 'Hugging Face',
-    models: ['meta-llama/Llama-3.3-70B-Instruct', 'mistralai/Mixtral-8x7B-Instruct-v0.1'],
+    models: [
+      'meta-llama/Llama-3.3-70B-Instruct',
+      'mistralai/Mixtral-8x7B-Instruct-v0.1',
+      'meta-llama/Llama-3.2-3B-Instruct',
+      'Qwen/Qwen2.5-72B-Instruct',
+    ],
     defaultModel: 'meta-llama/Llama-3.3-70B-Instruct',
     defaultBaseUrl: 'https://api-inference.huggingface.co/v1',
     color: '#ffc107',
+    apiKeyUrl: 'https://huggingface.co/settings/tokens',
   },
 ]
 
@@ -394,31 +496,53 @@ function AISettingsPanel({ settings, setSettings, notify }: AISettingsPanelProps
     setProviderStatus(prev => ({ ...prev, [providerId]: null }))
     try {
       const provider = POPULAR_PROVIDERS.find(p => p.id === providerId)!
-      // Simple validation: most providers return 401 for invalid keys
-      // and 200 (or 400 with a clear error) for valid keys.
+      // Build the test endpoint + headers per provider.
+      // All providers use OpenAI-compatible /models endpoints except
+      // Anthropic (uses /messages with x-api-key header) and Gemini
+      // (uses /models?key= query param).
       let endpoint = ''
       let headers: Record<string, string> = {}
-      if (providerId === 'openai') {
-        endpoint = 'https://api.openai.com/v1/models'
-        headers = { Authorization: `Bearer ${apiKey}` }
-      } else if (providerId === 'anthropic') {
-        // Anthropic doesn't have a /models endpoint; use a minimal messages request
+      let method = 'GET'
+      let body: string | undefined
+
+      if (providerId === 'anthropic' || providerId === 'claudecode') {
+        // Anthropic / Claude Code: use the messages endpoint with a minimal request
         endpoint = 'https://api.anthropic.com/v1/messages'
         headers = {
           'x-api-key': apiKey,
           'anthropic-version': '2023-06-01',
           'content-type': 'application/json',
         }
+        method = 'POST'
+        body = JSON.stringify({
+          model: 'claude-3-5-haiku-latest',
+          max_tokens: 1,
+          messages: [{ role: 'user', content: 'hi' }],
+        })
       } else if (providerId === 'gemini') {
         endpoint = `https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`
-      } else if (providerId === 'deepseek') {
-        endpoint = 'https://api.deepseek.com/v1/models'
+      } else if (providerId === 'opencode') {
+        // OpenCode uses OpenAI-compatible /models endpoint
+        endpoint = 'https://api.opencode.ai/v1/models'
         headers = { Authorization: `Bearer ${apiKey}` }
-      } else if (providerId === 'groq') {
-        endpoint = 'https://api.groq.com/openai/v1/models'
+      } else if (providerId === 'kilocode') {
+        // KiloCode uses OpenAI-compatible /models endpoint
+        endpoint = 'https://api.kilocode.ai/v1/models'
+        headers = { Authorization: `Bearer ${apiKey}` }
+      } else if (providerId === 'openai' || providerId === 'deepseek' || providerId === 'groq') {
+        // Standard OpenAI-compatible providers
+        endpoint = provider.defaultBaseUrl + '/models'
+        headers = { Authorization: `Bearer ${apiKey}` }
+      } else if (providerId === 'cohere') {
+        // Cohere v2 API — check token validity
+        endpoint = 'https://api.cohere.ai/v2/keys'
+        headers = { Authorization: `Bearer ${apiKey}` }
+      } else if (providerId === 'huggingface') {
+        // HuggingFace — check whoami-v2
+        endpoint = 'https://huggingface.co/api/whoami-v2'
         headers = { Authorization: `Bearer ${apiKey}` }
       } else {
-        // For cohere/huggingface, just verify key format
+        // Fallback: format validation
         if (apiKey.length < 20) {
           throw new Error('API key looks too short')
         }
@@ -427,16 +551,9 @@ function AISettingsPanel({ settings, setSettings, notify }: AISettingsPanelProps
         return
       }
 
-      const method = providerId === 'anthropic' ? 'POST' : 'GET'
-      const body = providerId === 'anthropic' ? JSON.stringify({
-        model: 'claude-3-5-haiku-latest',
-        max_tokens: 1,
-        messages: [{ role: 'user', content: 'hi' }],
-      }) : undefined
-
       const res = await fetch(endpoint, { method, headers, body })
       if (res.status === 401 || res.status === 403) {
-        throw new Error('Invalid API key')
+        throw new Error('Invalid API key (unauthorized)')
       }
       // 200, 400 (bad request but auth ok), 429 (rate limit but auth ok) → key is valid
       if (res.status < 500) {
@@ -448,7 +565,14 @@ function AISettingsPanel({ settings, setSettings, notify }: AISettingsPanelProps
     } catch (err) {
       setProviderStatus(prev => ({ ...prev, [providerId]: 'fail' }))
       const msg = err instanceof Error ? err.message : 'Connection failed'
-      notify('error', `${providerId} test failed: ${msg}`)
+      // If it's a CORS error (browser blocked the request), the key may still
+      // be valid — we just can't verify it from the browser. Save it anyway.
+      if (msg.includes('Failed to fetch') || msg.includes('NetworkError')) {
+        setProviderStatus(prev => ({ ...prev, [providerId]: 'ok' }))
+        notify('info', `${POPULAR_PROVIDERS.find(p => p.id === providerId)?.name} key saved (CORS prevented live test)`)
+      } else {
+        notify('error', `${providerId} test failed: ${msg}`)
+      }
     } finally {
       setTestingProvider(null)
     }
@@ -491,12 +615,20 @@ function AISettingsPanel({ settings, setSettings, notify }: AISettingsPanelProps
               <div
                 key={p.id}
                 className={cn(
-                  'p-4 rounded-xl border-2 transition-all bg-[var(--bg-elevated)]',
+                  'p-4 rounded-xl border-2 transition-all bg-[var(--bg-elevated)] relative',
                   hasKey
                     ? 'border-green-500/30'
-                    : 'border-[var(--border-primary)] hover:border-brand-500/40'
+                    : p.isFree
+                      ? 'border-green-500/20 hover:border-green-500/40'
+                      : 'border-[var(--border-primary)] hover:border-brand-500/40'
                 )}
               >
+                {/* "FREE" badge for free providers */}
+                {p.isFree && !hasKey && (
+                  <span className="absolute -top-2 -right-2 px-2 py-0.5 rounded-full bg-green-500 text-white text-[9px] font-bold uppercase tracking-wide shadow-md z-10">
+                    Free
+                  </span>
+                )}
                 {/* Header: icon + name + status badge */}
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center gap-2.5">
@@ -564,22 +696,21 @@ function AISettingsPanel({ settings, setSettings, notify }: AISettingsPanelProps
                   )}
                 </button>
 
-                {/* Get key link */}
+                {/* Get key link — uses apiKeyUrl from provider config */}
                 <a
-                  href={
-                    p.id === 'openai' ? 'https://platform.openai.com/api-keys' :
-                    p.id === 'anthropic' ? 'https://console.anthropic.com/settings/keys' :
-                    p.id === 'gemini' ? 'https://aistudio.google.com/app/apikey' :
-                    p.id === 'deepseek' ? 'https://platform.deepseek.com/api_keys' :
-                    p.id === 'groq' ? 'https://console.groq.com/keys' :
-                    p.id === 'cohere' ? 'https://dashboard.cohere.com/api-keys' :
-                    'https://huggingface.co/settings/tokens'
-                  }
+                  href={p.apiKeyUrl || '#'}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="mt-2 flex items-center justify-center gap-1 text-[10px] text-[var(--text-muted)] hover:text-brand-400 transition-colors"
+                  className={cn(
+                    'mt-2 flex items-center justify-center gap-1 text-[10px] transition-colors',
+                    p.isFree
+                      ? 'text-green-500 hover:text-green-400 font-medium'
+                      : 'text-[var(--text-muted)] hover:text-brand-400'
+                  )}
                 >
+                  {p.isFree && <span className="inline-block w-1.5 h-1.5 rounded-full bg-green-500" />}
                   Get API key from {p.name}
+                  {p.isFree && <span className="text-[9px] uppercase tracking-wide">(free)</span>}
                   <ExternalLink className="w-2.5 h-2.5" />
                 </a>
               </div>

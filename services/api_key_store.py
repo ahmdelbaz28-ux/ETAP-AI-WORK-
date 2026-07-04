@@ -120,7 +120,17 @@ class APIKeyStore:
     install cryptography: pip install cryptography).
     """
 
-    SUPPORTED_PROVIDERS = {"openai", "gemini", "anthropic"}
+    # All supported AI providers. Keys are stored per-provider in the
+    # api_keys SQLite table. The frontend Quick Setup section in
+    # Settings.tsx (POPULAR_PROVIDERS) MUST stay in sync with this set.
+    SUPPORTED_PROVIDERS = {
+        # Coding agent platforms (new — added 2026-07)
+        "opencode", "kilocode", "claudecode",
+        # Major cloud providers
+        "openai", "anthropic", "gemini",
+        # Specialized / free-friendly providers
+        "deepseek", "groq", "cohere", "huggingface",
+    }
 
     def __init__(self, db_path: str = "/tmp/data/api_keys.db") -> None:  # NOSONAR — S5443: /tmp use is intentional & permission-hardened
         self.db_path = Path(db_path)

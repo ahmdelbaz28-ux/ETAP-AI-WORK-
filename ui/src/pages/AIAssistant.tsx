@@ -39,6 +39,11 @@ export default function AIAssistant() {
         }
         const parsed = JSON.parse(stored)
         const hasAnyKey = [
+          // Coding agent platforms (new)
+          'PROVIDER_OPENCODE_KEY',
+          'PROVIDER_KILOCODE_KEY',
+          'PROVIDER_CLAUDECODE_KEY',
+          // Major cloud providers
           'PROVIDER_OPENAI_KEY',
           'PROVIDER_ANTHROPIC_KEY',
           'PROVIDER_GEMINI_KEY',
@@ -46,6 +51,7 @@ export default function AIAssistant() {
           'PROVIDER_GROQ_KEY',
           'PROVIDER_COHERE_KEY',
           'PROVIDER_HUGGINGFACE_KEY',
+          // Custom
           'CUSTOM_API_KEY',
         ].some(k => !!parsed[k])
         setHasApiKey(hasAnyKey)
