@@ -125,6 +125,25 @@ export function OnboardingTour() {
     return () => { delete (w as Record<string, unknown>).__restartOnboarding }
   }, [])
 
+  // Keyboard shortcuts: Esc = skip, Enter = next, Backspace = prev
+  useEffect(() => {
+    if (!show) return
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        e.preventDefault()
+        handleSkip()
+      } else if (e.key === 'Enter') {
+        e.preventDefault()
+        handleNext()
+      } else if (e.key === 'Backspace' && currentStep > 0) {
+        e.preventDefault()
+        handlePrev()
+      }
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [show, currentStep])
+
   if (!show) return null
 
   const step = steps[currentStep]
@@ -132,68 +151,122 @@ export function OnboardingTour() {
   const isLast = currentStep === steps.length - 1
 
   return (
-    <div className="fixed inset-0 z-[200] flex items-center justify-center">
+    <div
+      className="fixed inset-0 z-[200] flex items-center justify-center p-4"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="onboarding-title"
+    >
+      {/* Backdrop */}
       <div
-        className="absolute inset-0 bg-black/70 backdrop-blur-sm"
-        role="button"
-        tabIndex={0}
-        aria-label="Skip onboarding tour"
+        className="absolute inset-0 bg-black/80 backdrop-blur-md"
         onClick={handleSkip}
-        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') handleSkip() }}
       />
 
-      <div className={cn(
-        'relative z-[201] w-full max-w-md mx-4',
-        'bg-[var(--bg-secondary)] border border-[var(--border-secondary)] rounded-2xl',
-        'shadow-2xl shadow-black/50',
-        'transition-all duration-300',
-        completed ? 'opacity-0 scale-95' : 'opacity-100 scale-100'
-      )}>
-        {/* Progress */}
-        <div className="flex gap-1 px-6 pt-5">
-          {steps.map((_, i) => (
-            <div
-              key={i}  // NOSONAR — S6479: array index as key; items lack stable IDs (tech debt)
-              className={cn(
-                'h-1 flex-1 rounded-full transition-all duration-300',
-                i <= currentStep ? 'bg-[var(--accent-primary)]' : 'bg-[var(--border-primary)]'
-              )}
-            />
-          ))}
-        </div>
-
-        {/* Close button */}
-        <button
-          onClick={handleSkip}
-          className="absolute top-4 right-4 p-1.5 rounded-lg hover:bg-[var(--bg-elevated)] text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors"
-        >
-          <X className="w-4 h-4" />
-        </button>
-
-        {/* Content */}
-        <div className="px-6 py-6">
-          <div className={cn(
-            'w-14 h-14 rounded-2xl flex items-center justify-center mb-4',
+      {/* Modal card */}
+      <div
+        className={cn(
+          'relative z-[201] w-full max-w-[520px]',
+          'bg-[var(--bg-secondary)] border border-[var(--border-secondary)]',
+          'rounded-2xl overflow-hidden',
+          'shadow-[0_24px_80px_-12px_rgba(0,0,0,0.7)]',
+          'ring-1 ring-white/5',
+          'transition-all duration-300 ease-out',
+          completed ? 'opacity-0 scale-95 translate-y-2' : 'opacity-100 scale-100 translate-y-0'
+        )}
+      >
+        {/* Decorative top accent gradient */}
+        <div
+          className={cn(
+            'absolute top-0 left-0 right-0 h-[3px]',
             isLast
-              ? 'bg-green-500/10 text-green-400'
-              : 'bg-[var(--accent-glow)] text-[var(--accent-primary)]'
-          )}>
-            <StepIcon className="w-7 h-7" />
+              ? 'bg-gradient-to-r from-emerald-500 via-green-400 to-emerald-500'
+              : 'bg-gradient-to-r from-[var(--accent-primary)] via-cyan-400 to-[var(--accent-primary)]'
+          )}
+          aria-hidden="true"
+        />
+
+        {/* Subtle glow halo behind icon area */}
+        <div
+          className="absolute -top-20 -left-20 w-64 h-64 rounded-full opacity-20 blur-3xl pointer-events-none"
+          style={{ background: isLast ? '#22c55e' : 'var(--accent-primary)' }}
+          aria-hidden="true"
+        />
+
+        {/* Header: step indicator + close */}
+        <div className="relative flex items-center justify-between px-7 pt-6 pb-2">
+          <div className="flex items-center gap-2.5">
+            {/* Step counter pill */}
+            <span className={cn(
+              'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold tracking-wide uppercase',
+              isLast
+                ? 'bg-green-500/15 text-green-400'
+                : 'bg-[var(--accent-glow)] text-[var(--accent-primary)]'
+            )}>
+              <span className="w-1.5 h-1.5 rounded-full bg-current animate-pulse" />
+              Step {currentStep + 1} / {steps.length}
+            </span>
           </div>
-
-          <h3 className="text-lg font-semibold text-[var(--text-primary)] mb-2">
-            {step.title}
-          </h3>
-          <p className="text-sm text-[var(--text-secondary)] leading-relaxed">
-            {step.description}
-          </p>
-        </div>
-
-        {/* Navigation */}
-        <div className="flex items-center justify-between px-6 pb-5">
           <button
             onClick={handleSkip}
-            className="text-xs text-[var(--text-muted)] hover:text-[var(--text-secondary)] transition-colors"
+            aria-label="Close tour"
+            className="p-1.5 rounded-lg text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-elevated)] transition-colors"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+
+        {/* Progress bar — discrete segments, not thin bars */}
+        <div className="relative px-7 pb-1">
+          <div className="flex gap-1.5">
+            {steps.map((s, i) => (
+              <div
+                key={s.id}
+                className={cn(
+                  'h-1 flex-1 rounded-full transition-all duration-500',
+                  i < currentStep && 'bg-[var(--accent-primary)]',
+                  i === currentStep && (isLast ? 'bg-green-400' : 'bg-[var(--accent-primary)]'),
+                  i > currentStep && 'bg-[var(--border-primary)]'
+                )}
+              />
+            ))}
+          </div>
+        </div>
+
+        {/* Body: icon + content */}
+        <div className="relative px-7 pt-6 pb-5">
+          <div className="flex items-start gap-5">
+            {/* Icon tile */}
+            <div className={cn(
+              'shrink-0 w-16 h-16 rounded-2xl flex items-center justify-center',
+              'ring-1 ring-inset transition-colors',
+              isLast
+                ? 'bg-green-500/10 text-green-400 ring-green-500/20'
+                : 'bg-[var(--accent-glow)] text-[var(--accent-primary)] ring-[var(--accent-primary)]/20'
+            )}>
+              <StepIcon className="w-8 h-8" strokeWidth={1.75} />
+            </div>
+
+            {/* Title + description */}
+            <div className="flex-1 min-w-0 pt-1">
+              <h3
+                id="onboarding-title"
+                className="text-xl font-semibold text-[var(--text-primary)] leading-tight mb-2 tracking-tight"
+              >
+                {step.title}
+              </h3>
+              <p className="text-[13.5px] text-[var(--text-secondary)] leading-relaxed">
+                {step.description}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Footer: actions */}
+        <div className="relative flex items-center justify-between px-7 py-4 border-t border-[var(--border-primary)] bg-[var(--bg-tertiary)]/40">
+          <button
+            onClick={handleSkip}
+            className="text-xs font-medium text-[var(--text-muted)] hover:text-[var(--text-secondary)] transition-colors px-2 py-1.5 -ml-2"
           >
             Skip tour
           </button>
@@ -202,30 +275,34 @@ export function OnboardingTour() {
             {currentStep > 0 && (
               <button
                 onClick={handlePrev}
-                className="flex items-center gap-1 px-3 py-1.5 text-xs text-[var(--text-secondary)] hover:bg-[var(--bg-elevated)] rounded-lg transition-colors"
+                className="flex items-center gap-1 px-3.5 py-2 text-xs font-medium text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-elevated)] rounded-lg transition-colors"
               >
-                <ChevronLeft className="w-3.5 h-3.5" />
+                <ChevronLeft className="w-3.5 h-3.5" strokeWidth={2.5} />
                 Back
               </button>
             )}
             <button
               onClick={handleNext}
               className={cn(
-                'flex items-center gap-1.5 px-4 py-2 text-sm font-medium rounded-lg transition-all',
+                'flex items-center gap-1.5 px-5 py-2 text-[13px] font-semibold rounded-lg transition-all',
+                'shadow-lg active:scale-95',
                 isLast
-                  ? 'bg-green-600 hover:bg-green-500 text-white'
-                  : 'bg-[var(--accent-primary)] hover:opacity-90 text-black'
+                  ? 'bg-green-600 hover:bg-green-500 text-white shadow-green-900/30'
+                  : 'bg-[var(--accent-primary)] hover:brightness-110 text-black shadow-cyan-900/30'
               )}
             >
               {isLast ? 'Get Started' : 'Next'}
-              {!isLast && <ChevronRight className="w-3.5 h-3.5" />}
+              {isLast
+                ? <CheckCircle className="w-4 h-4" strokeWidth={2.5} />
+                : <ChevronRight className="w-4 h-4" strokeWidth={2.5} />
+              }
             </button>
           </div>
         </div>
 
-        {/* Step counter */}
-        <div className="text-center pb-4 text-[10px] text-[var(--text-muted)]">
-          {currentStep + 1} of {steps.length}
+        {/* Keyboard hint */}
+        <div className="relative px-7 pb-3 -mt-1 text-[10px] text-[var(--text-muted)] text-center">
+          Press <kbd className="px-1.5 py-0.5 rounded bg-[var(--bg-elevated)] border border-[var(--border-primary)] font-mono text-[10px]">Esc</kbd> to skip · <kbd className="px-1.5 py-0.5 rounded bg-[var(--bg-elevated)] border border-[var(--border-primary)] font-mono text-[10px]">↵</kbd> to continue
         </div>
       </div>
     </div>
