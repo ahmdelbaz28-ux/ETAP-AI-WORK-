@@ -6,22 +6,22 @@
  * users don't mistake demo data for live production data.
  */
 
-import { useEffect, useState } from 'react'
-import { isDemoMode } from '../lib/api'
+import { useEffect, useState } from 'react';
+import { isDemoMode } from '../lib/api';
 
 export function DemoModeBanner() {
-  const [demo, setDemo] = useState<boolean>(isDemoMode())
+  const [demo, setDemo] = useState<boolean>(isDemoMode());
 
   // Re-check on mount and on window focus (in case the API client flipped
   // into demo mode due to a transient network failure in development).
   useEffect(() => {
-    const check = () => setDemo(isDemoMode())
-    check()
-    window.addEventListener('focus', check)
-    return () => window.removeEventListener('focus', check)
-  }, [])
+    const check = () => setDemo(isDemoMode());
+    check();
+    window.addEventListener('focus', check);
+    return () => window.removeEventListener('focus', check);
+  }, []);
 
-  if (!demo) return null
+  if (!demo) return null;
 
   return (
     <div
@@ -44,8 +44,9 @@ export function DemoModeBanner() {
     >
       ⚠ DEMO MODE — Backend غير متصل. البيانات المعروضة تجريبية ولن تُحفظ.
       <span style={{ opacity: 0.85, marginRight: '8px', fontWeight: 400 }}>
-        {' '}.Configure VITE_API_URL to enable the live backend.
+        {' '}
+        .Configure VITE_API_URL to enable the live backend.
       </span>
     </div>
-  )
+  );
 }

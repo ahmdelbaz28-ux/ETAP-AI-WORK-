@@ -1,6 +1,6 @@
-import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react'
-import tailwindcss from '@tailwindcss/vite'
+import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react';
+import tailwindcss from '@tailwindcss/vite';
 
 export default defineConfig({
   plugins: [tailwindcss(), react()],
@@ -9,12 +9,7 @@ export default defineConfig({
     port: 5173,
     fs: { strict: true },
     watch: {
-      ignored: [
-        '**/skills/**',
-        '**/docs/**',
-        '**/.git/**',
-        '**/node_modules/**',
-      ],
+      ignored: ['**/skills/**', '**/docs/**', '**/.git/**', '**/node_modules/**'],
     },
     proxy: {
       '/api': 'http://localhost:8000',
@@ -44,4 +39,4 @@ export default defineConfig({
       },
     },
   },
-})
+});

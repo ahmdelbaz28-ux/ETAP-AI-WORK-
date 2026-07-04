@@ -1,45 +1,54 @@
-import { useState } from 'react'
-import { useNavigate, Link } from 'react-router-dom'
-import { motion } from 'framer-motion'
-import { Zap, Mail, Lock, ArrowRight, Eye, EyeOff, ShieldCheck, Activity, Cpu } from 'lucide-react'
-import { useNotify } from '../context/NotificationContext'
+import { useState } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
+import { motion } from 'framer-motion';
+import { Zap, Mail, Lock, ArrowRight, Eye, EyeOff, ShieldCheck, Activity, Cpu } from 'lucide-react';
+import { useNotify } from '../context/NotificationContext';
 
 export default function Login() {
-  const navigate = useNavigate()
-  const { notify } = useNotify()
-  const [email, setEmail] = useState('ahmed.elbaz@etap.ai')
-  const [password, setPassword] = useState('demo1234')
-  const [showPassword, setShowPassword] = useState(false)
-  const [loading, setLoading] = useState(false)
+  const navigate = useNavigate();
+  const { notify } = useNotify();
+  const [email, setEmail] = useState('ahmed.elbaz@etap.ai');
+  const [password, setPassword] = useState('demo1234');
+  const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
     if (!email || !password) {
-      notify('error', 'Please enter email and password')
-      return
+      notify('error', 'Please enter email and password');
+      return;
     }
-    setLoading(true)
+    setLoading(true);
     // Demo mode: accept any credentials
-    await new Promise(r => setTimeout(r, 800))
-    localStorage.setItem('authToken', 'demo-token-' + Date.now())
-    localStorage.setItem('etap-user', JSON.stringify({
-      id: '1',
-      email,
-      name: 'Eng. Ahmed Elbaz',
-      role: 'Administrator',
-    }))
-    notify('success', 'Welcome back, Eng. Ahmed!')
-    navigate('/dashboard')
-    setLoading(false)
-  }
+    await new Promise((r) => setTimeout(r, 800));
+    localStorage.setItem('authToken', `demo-token-${Date.now()}`);
+    localStorage.setItem(
+      'etap-user',
+      JSON.stringify({
+        id: '1',
+        email,
+        name: 'Eng. Ahmed Elbaz',
+        role: 'Administrator',
+      }),
+    );
+    notify('success', 'Welcome back, Eng. Ahmed!');
+    navigate('/dashboard');
+    setLoading(false);
+  };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-[var(--bg-primary)] p-4 relative overflow-hidden">
       {/* Animated background */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden" aria-hidden="true">
         <div className="absolute -top-40 -left-40 w-[500px] h-[500px] bg-gradient-to-br from-brand-500/10 via-transparent to-transparent rounded-full blur-3xl animate-aurora" />
-        <div className="absolute -bottom-60 -right-40 w-[600px] h-[600px] bg-gradient-to-tl from-purple-500/8 via-transparent to-transparent rounded-full blur-3xl animate-aurora" style={{ animationDelay: '-7s', animationDirection: 'reverse' }} />
-        <div className="absolute top-1/2 left-1/3 w-[400px] h-[400px] bg-gradient-to-r from-cyan-500/6 via-transparent to-transparent rounded-full blur-3xl animate-aurora" style={{ animationDelay: '-14s' }} />
+        <div
+          className="absolute -bottom-60 -right-40 w-[600px] h-[600px] bg-gradient-to-tl from-purple-500/8 via-transparent to-transparent rounded-full blur-3xl animate-aurora"
+          style={{ animationDelay: '-7s', animationDirection: 'reverse' }}
+        />
+        <div
+          className="absolute top-1/2 left-1/3 w-[400px] h-[400px] bg-gradient-to-r from-cyan-500/6 via-transparent to-transparent rounded-full blur-3xl animate-aurora"
+          style={{ animationDelay: '-14s' }}
+        />
       </div>
 
       <div className="relative z-10 w-full max-w-5xl grid lg:grid-cols-2 gap-8 items-center">
@@ -61,14 +70,15 @@ export default function Login() {
           </div>
 
           <h2 className="text-4xl font-bold text-[var(--text-primary)] leading-tight">
-            Enterprise-grade autonomous<br />
+            Enterprise-grade autonomous
+            <br />
             <span className="bg-gradient-to-r from-brand-400 to-cyan-400 bg-clip-text text-transparent">
               engineering intelligence
             </span>
           </h2>
           <p className="text-base text-[var(--text-secondary)] leading-relaxed">
-            Run real engineering computations: Load Flow, Short Circuit, Arc Flash,
-            Harmonic Analysis, and more — powered by AI agents and the Python engine.
+            Run real engineering computations: Load Flow, Short Circuit, Arc Flash, Harmonic
+            Analysis, and more — powered by AI agents and the Python engine.
           </p>
 
           <div className="grid grid-cols-3 gap-3 mt-4">
@@ -105,19 +115,23 @@ export default function Login() {
           </div>
 
           <h2 className="text-2xl font-bold text-[var(--text-primary)] mb-1">Welcome back</h2>
-          <p className="text-sm text-[var(--text-tertiary)] mb-6">Sign in to your engineering account</p>
+          <p className="text-sm text-[var(--text-tertiary)] mb-6">
+            Sign in to your engineering account
+          </p>
 
           <div className="bg-brand-500/10 border border-brand-500/20 rounded-lg p-3 mb-6">
             <p className="text-xs text-brand-400 font-medium mb-1">Demo Mode Active</p>
             <p className="text-xs text-[var(--text-secondary)]">
-              Use the pre-filled credentials or any email/password to sign in.
-              No backend required.
+              Use the pre-filled credentials or any email/password to sign in. No backend required.
             </p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label htmlFor="login-email" className="block text-xs font-medium text-[var(--text-secondary)] mb-1.5">
+              <label
+                htmlFor="login-email"
+                className="block text-xs font-medium text-[var(--text-secondary)] mb-1.5"
+              >
                 Email Address
               </label>
               <div className="relative">
@@ -135,7 +149,10 @@ export default function Login() {
             </div>
 
             <div>
-              <label htmlFor="login-password" className="block text-xs font-medium text-[var(--text-secondary)] mb-1.5">
+              <label
+                htmlFor="login-password"
+                className="block text-xs font-medium text-[var(--text-secondary)] mb-1.5"
+              >
                 Password
               </label>
               <div className="relative">
@@ -151,7 +168,7 @@ export default function Login() {
                 />
                 <button
                   type="button"
-                  onClick={() => setShowPassword(p => !p)}
+                  onClick={() => setShowPassword((p) => !p)}
                   className="absolute right-2.5 top-1/2 -translate-y-1/2 p-1 rounded text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors"
                   aria-label={showPassword ? 'Hide password' : 'Show password'}
                 >
@@ -162,10 +179,18 @@ export default function Login() {
 
             <div className="flex items-center justify-between text-xs">
               <label className="flex items-center gap-1.5 text-[var(--text-tertiary)] cursor-pointer">
-                <input id="login-remember-me" type="checkbox" defaultChecked className="rounded border-[var(--border-primary)] bg-[var(--bg-input)] text-brand-500 focus:ring-brand-500/20" />
+                <input
+                  id="login-remember-me"
+                  type="checkbox"
+                  defaultChecked
+                  className="rounded border-[var(--border-primary)] bg-[var(--bg-input)] text-brand-500 focus:ring-brand-500/20"
+                />
                 Remember me
               </label>
-              <button type="button" className="text-brand-400 hover:text-brand-300 transition-colors">
+              <button
+                type="button"
+                className="text-brand-400 hover:text-brand-300 transition-colors"
+              >
                 Forgot password?
               </button>
             </div>
@@ -191,7 +216,10 @@ export default function Login() {
 
           <p className="mt-6 text-center text-sm text-[var(--text-tertiary)]">
             Don't have an account?{' '}
-            <Link to="/register" className="text-brand-400 hover:text-brand-300 font-medium transition-colors">
+            <Link
+              to="/register"
+              className="text-brand-400 hover:text-brand-300 font-medium transition-colors"
+            >
               Sign up
             </Link>
           </p>
@@ -204,5 +232,5 @@ export default function Login() {
         </motion.div>
       </div>
     </div>
-  )
+  );
 }

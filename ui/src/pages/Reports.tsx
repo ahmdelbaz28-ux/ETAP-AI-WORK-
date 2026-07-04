@@ -1,35 +1,59 @@
-import { motion } from 'framer-motion'
-import { FileText, Table, Download, Calendar } from 'lucide-react'
-import { useNotify } from '../context/NotificationContext'
-import { Card, Badge, Button } from '../components/ui'
+import { motion } from 'framer-motion';
+import { FileText, Table, Download, Calendar } from 'lucide-react';
+import { useNotify } from '../context/NotificationContext';
+import { Card, Badge, Button } from '../components/ui';
 
-import { ContextHelpButton } from '../components/help/ContextHelpButton'
+import { ContextHelpButton } from '../components/help/ContextHelpButton';
 interface Report {
-  name: string
-  type: string
-  format: string
-  date: string
-  status: string
+  name: string;
+  type: string;
+  format: string;
+  date: string;
+  status: string;
 }
 
 const reports: Report[] = [
-  { name: 'Load Flow Report - Industrial Plant', type: 'Load Flow', format: 'PDF', date: '2026-06-10', status: 'generated' },
-  { name: 'Short Circuit Report - Substation B', type: 'Short Circuit', format: 'XLSX', date: '2026-06-09', status: 'generated' },
-  { name: 'Arc Flash Study - MCC Panel', type: 'Arc Flash', format: 'PDF', date: '2026-06-08', status: 'generated' },
-  { name: 'Harmonic Analysis - Solar Farm', type: 'Harmonic', format: 'PDF', date: '2026-06-07', status: 'pending' },
-]
+  {
+    name: 'Load Flow Report - Industrial Plant',
+    type: 'Load Flow',
+    format: 'PDF',
+    date: '2026-06-10',
+    status: 'generated',
+  },
+  {
+    name: 'Short Circuit Report - Substation B',
+    type: 'Short Circuit',
+    format: 'XLSX',
+    date: '2026-06-09',
+    status: 'generated',
+  },
+  {
+    name: 'Arc Flash Study - MCC Panel',
+    type: 'Arc Flash',
+    format: 'PDF',
+    date: '2026-06-08',
+    status: 'generated',
+  },
+  {
+    name: 'Harmonic Analysis - Solar Farm',
+    type: 'Harmonic',
+    format: 'PDF',
+    date: '2026-06-07',
+    status: 'pending',
+  },
+];
 
 const formatIcons: Record<string, React.ReactNode> = {
   PDF: <FileText className="w-4 h-4 text-red-400" />,
   XLSX: <Table className="w-4 h-4 text-green-400" />,
   CSV: <Table className="w-4 h-4 text-amber-400" />,
-}
+};
 
 export default function Reports() {
-  const { notify } = useNotify()
+  const { notify } = useNotify();
 
-  const generatedCount = reports.filter(r => r.status === 'generated').length
-  const pendingCount = reports.filter(r => r.status === 'pending').length
+  const generatedCount = reports.filter((r) => r.status === 'generated').length;
+  const pendingCount = reports.filter((r) => r.status === 'pending').length;
 
   return (
     <div className="space-y-6">
@@ -41,7 +65,9 @@ export default function Reports() {
           <div>
             <h2 className="text-2xl font-bold text-[var(--text-primary)]">Reports</h2>
             <div className="flex items-center gap-2">
-              <p className="text-sm text-[var(--text-tertiary)]">{generatedCount} generated · {pendingCount} pending</p>
+              <p className="text-sm text-[var(--text-tertiary)]">
+                {generatedCount} generated · {pendingCount} pending
+              </p>
               <ContextHelpButton contextId="reports.generate" />
             </div>
           </div>
@@ -49,22 +75,36 @@ export default function Reports() {
       </motion.div>
 
       {/* Reports Table */}
-      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.1 }}
+      >
         <Card padding="none">
           {/* Table Header */}
           <div className="grid grid-cols-12 gap-4 px-5 py-3 border-b border-[var(--border-primary)] bg-[var(--bg-elevated)]">
-            <div className="col-span-4 text-xs font-medium text-[var(--text-muted)] uppercase tracking-wider">Report</div>
-            <div className="col-span-2 text-xs font-medium text-[var(--text-muted)] uppercase tracking-wider">Type</div>
-            <div className="col-span-1 text-xs font-medium text-[var(--text-muted)] uppercase tracking-wider">Format</div>
-            <div className="col-span-2 text-xs font-medium text-[var(--text-muted)] uppercase tracking-wider">Date</div>
-            <div className="col-span-2 text-xs font-medium text-[var(--text-muted)] uppercase tracking-wider">Status</div>
+            <div className="col-span-4 text-xs font-medium text-[var(--text-muted)] uppercase tracking-wider">
+              Report
+            </div>
+            <div className="col-span-2 text-xs font-medium text-[var(--text-muted)] uppercase tracking-wider">
+              Type
+            </div>
+            <div className="col-span-1 text-xs font-medium text-[var(--text-muted)] uppercase tracking-wider">
+              Format
+            </div>
+            <div className="col-span-2 text-xs font-medium text-[var(--text-muted)] uppercase tracking-wider">
+              Date
+            </div>
+            <div className="col-span-2 text-xs font-medium text-[var(--text-muted)] uppercase tracking-wider">
+              Status
+            </div>
             <div className="col-span-1 text-xs font-medium text-[var(--text-muted)] uppercase tracking-wider"></div>
           </div>
 
           {/* Table Rows */}
           {reports.map((report, i) => (
             <motion.div
-              key={i}  // NOSONAR — S6479: array index as key; items lack stable IDs (tech debt)
+              key={i} // NOSONAR — S6479: array index as key; items lack stable IDs (tech debt)
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.05 * i }}
@@ -74,11 +114,15 @@ export default function Reports() {
                 <p className="text-sm font-medium text-[var(--text-primary)]">{report.name}</p>
               </div>
               <div className="col-span-2">
-                <Badge variant="brand" size="sm">{report.type}</Badge>
+                <Badge variant="brand" size="sm">
+                  {report.type}
+                </Badge>
               </div>
               <div className="col-span-1">
                 <div className="flex items-center gap-1.5">
-                  {formatIcons[report.format] || <FileText className="w-4 h-4 text-[var(--text-muted)]" />}
+                  {formatIcons[report.format] || (
+                    <FileText className="w-4 h-4 text-[var(--text-muted)]" />
+                  )}
                   <span className="text-xs text-[var(--text-muted)]">{report.format}</span>
                 </div>
               </div>
@@ -89,7 +133,11 @@ export default function Reports() {
                 </div>
               </div>
               <div className="col-span-2">
-                <Badge variant={report.status === 'generated' ? 'success' : 'warning'} dot size="sm">
+                <Badge
+                  variant={report.status === 'generated' ? 'success' : 'warning'}
+                  dot
+                  size="sm"
+                >
                   {report.status}
                 </Badge>
               </div>
@@ -107,5 +155,5 @@ export default function Reports() {
         </Card>
       </motion.div>
     </div>
-  )
+  );
 }

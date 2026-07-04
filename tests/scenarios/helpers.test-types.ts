@@ -57,8 +57,22 @@ export function isRealProviderAvailable(): boolean {
     if (!key || key.trim().length < 20) return false;
     const lower = key.toLowerCase().trim();
     // Reject only exact placeholder strings
-    const exactPlaceholders = ['test', 'dummy', 'placeholder', 'your-key', 'your_key', 'example', 'changeme', 'secret', 'token', 'key_here', 'your-api-key', 'api-key', 'xoxb'];
-    if (exactPlaceholders.some(p => lower === p)) return false;
+    const exactPlaceholders = [
+      'test',
+      'dummy',
+      'placeholder',
+      'your-key',
+      'your_key',
+      'example',
+      'changeme',
+      'secret',
+      'token',
+      'key_here',
+      'your-api-key',
+      'api-key',
+      'xoxb',
+    ];
+    if (exactPlaceholders.some((p) => lower === p)) return false;
     // Reject keys that are purely numeric or purely alphabetic (not real API keys)
     if (/^[0-9]+$/.test(key) || /^[a-zA-Z]+$/.test(key)) return false;
     return true;

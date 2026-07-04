@@ -1,9 +1,17 @@
-import { motion } from 'framer-motion'
-import { Upload, CloudUpload, FileJson, FileSpreadsheet, FileText, Database, Cable } from 'lucide-react'
-import { useNotify } from '../context/NotificationContext'
-import { Card, CardHeader } from '../components/ui'
+import { motion } from 'framer-motion';
+import {
+  Upload,
+  CloudUpload,
+  FileJson,
+  FileSpreadsheet,
+  FileText,
+  Database,
+  Cable,
+} from 'lucide-react';
+import { useNotify } from '../context/NotificationContext';
+import { Card, CardHeader } from '../components/ui';
 
-import { ContextHelpButton } from '../components/help/ContextHelpButton'
+import { ContextHelpButton } from '../components/help/ContextHelpButton';
 const supportedFormats = [
   { name: 'CIM/XML', icon: <FileText className="w-5 h-5" />, desc: 'IEC Common Information Model' },
   { name: 'PSS/E RAW', icon: <Database className="w-5 h-5" />, desc: 'Siemens PSS/E format' },
@@ -11,10 +19,10 @@ const supportedFormats = [
   { name: 'ETAP Project', icon: <Cable className="w-5 h-5" />, desc: 'ETAP native format' },
   { name: 'JSON', icon: <FileJson className="w-5 h-5" />, desc: 'Structured data import' },
   { name: 'CSV', icon: <FileSpreadsheet className="w-5 h-5" />, desc: 'Comma-separated values' },
-]
+];
 
 export default function DataImport() {
-  const { notify } = useNotify()
+  const { notify } = useNotify();
 
   return (
     <div className="space-y-6">
@@ -26,7 +34,9 @@ export default function DataImport() {
           <div>
             <h2 className="text-2xl font-bold text-[var(--text-primary)]">Data Import</h2>
             <div className="flex items-center gap-2">
-              <p className="text-sm text-[var(--text-tertiary)]">Import power system models and data</p>
+              <p className="text-sm text-[var(--text-tertiary)]">
+                Import power system models and data
+              </p>
               <ContextHelpButton contextId="data-import.overview" />
             </div>
           </div>
@@ -34,7 +44,11 @@ export default function DataImport() {
       </motion.div>
 
       {/* Upload Drop Zone */}
-      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.1 }}
+      >
         <Card
           padding="lg"
           className="border-dashed border-2 border-[var(--border-secondary)] hover:border-[var(--color-brand-500)]/50 cursor-pointer transition-colors"
@@ -44,16 +58,22 @@ export default function DataImport() {
             <div className="w-16 h-16 rounded-full bg-[var(--bg-elevated)] flex items-center justify-center mx-auto mb-4">
               <CloudUpload className="w-8 h-8 text-[var(--text-muted)]" />
             </div>
-            <h3 className="text-base font-medium text-[var(--text-primary)]">Drop files here or click to browse</h3>
+            <h3 className="text-base font-medium text-[var(--text-primary)]">
+              Drop files here or click to browse
+            </h3>
             <p className="text-sm text-[var(--text-muted)] mt-1">
-              Supported: {supportedFormats.map(f => f.name).join(', ')}
+              Supported: {supportedFormats.map((f) => f.name).join(', ')}
             </p>
           </div>
         </Card>
       </motion.div>
 
       {/* Supported Formats */}
-      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.2 }}
+      >
         <Card padding="md">
           <CardHeader
             title="Supported Formats"
@@ -73,7 +93,9 @@ export default function DataImport() {
                 <div className="text-brand-400 flex items-center justify-center mb-2">
                   {format.icon}
                 </div>
-                <p className="text-xs font-medium text-[var(--text-primary)] font-mono">{format.name}</p>
+                <p className="text-xs font-medium text-[var(--text-primary)] font-mono">
+                  {format.name}
+                </p>
                 <p className="text-[10px] text-[var(--text-muted)] mt-0.5">{format.desc}</p>
               </motion.div>
             ))}
@@ -81,5 +103,5 @@ export default function DataImport() {
         </Card>
       </motion.div>
     </div>
-  )
+  );
 }

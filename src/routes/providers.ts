@@ -10,10 +10,10 @@ import { recordAudit } from '../utils/audit.js';
 export async function handleListProviders(
   request: Request,
   env: Env,
-  ctx: ExecutionContext,
+  _ctx: ExecutionContext,
   apiKeyId: string,
   scope: string,
-  traceId: string
+  traceId: string,
 ): Promise<Response> {
   const origin = request.headers.get('origin') || '*';
   const configured = listConfiguredProviders(env);
@@ -73,11 +73,11 @@ export async function handleListProviders(
  */
 export async function handleRegisterProvider(
   request: Request,
-  env: Env,
-  ctx: ExecutionContext,
+  _env: Env,
+  _ctx: ExecutionContext,
   apiKeyId: string,
   scope: string,
-  traceId: string
+  traceId: string,
 ): Promise<Response> {
   const origin = request.headers.get('origin') || '*';
   recordAudit({
@@ -98,6 +98,6 @@ export async function handleRegisterProvider(
     410,
     'Dynamic provider registration is disabled in this build. Use wrangler secrets to add a provider.',
     traceId,
-    corsHeaders(origin)
+    corsHeaders(origin),
   );
 }

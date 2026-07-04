@@ -23,9 +23,9 @@ const apiClient = {
     const headers: HeadersInit = {
       'Content-Type': 'application/json',
     };
-    
+
     if (token) {
-      headers['Authorization'] = `Bearer ${token}`;
+      headers.Authorization = `Bearer ${token}`;
     }
 
     const response = await fetch(`${API_BASE_URL}${endpoint}`, {
@@ -37,7 +37,7 @@ const apiClient = {
       const errorText = await response.text().catch(() => 'Unknown error');
       const error: ApiError = {
         status: response.status,
-        message: `API ${response.status}: ${errorText}`
+        message: `API ${response.status}: ${errorText}`,
       };
       throw error;
     }
@@ -50,9 +50,9 @@ const apiClient = {
     const headers: HeadersInit = {
       'Content-Type': 'application/json',
     };
-    
+
     if (token) {
-      headers['Authorization'] = `Bearer ${token}`;
+      headers.Authorization = `Bearer ${token}`;
     }
 
     const response = await fetch(`${API_BASE_URL}${endpoint}`, {
@@ -66,7 +66,7 @@ const apiClient = {
       const errorText = await response.text().catch(() => 'Unknown error');
       const error: ApiError = {
         status: response.status,
-        message: `API ${response.status}: ${errorText}`
+        message: `API ${response.status}: ${errorText}`,
       };
       throw error;
     }
@@ -79,9 +79,9 @@ const apiClient = {
     const headers: HeadersInit = {
       'Content-Type': 'application/json',
     };
-    
+
     if (token) {
-      headers['Authorization'] = `Bearer ${token}`;
+      headers.Authorization = `Bearer ${token}`;
     }
 
     const response = await fetch(`${API_BASE_URL}${endpoint}`, {
@@ -95,7 +95,7 @@ const apiClient = {
       const errorText = await response.text().catch(() => 'Unknown error');
       const error: ApiError = {
         status: response.status,
-        message: `API ${response.status}: ${errorText}`
+        message: `API ${response.status}: ${errorText}`,
       };
       throw error;
     }
@@ -108,9 +108,9 @@ const apiClient = {
     const headers: HeadersInit = {
       'Content-Type': 'application/json',
     };
-    
+
     if (token) {
-      headers['Authorization'] = `Bearer ${token}`;
+      headers.Authorization = `Bearer ${token}`;
     }
 
     const response = await fetch(`${API_BASE_URL}${endpoint}`, {
@@ -123,7 +123,7 @@ const apiClient = {
       const errorText = await response.text().catch(() => 'Unknown error');
       const error: ApiError = {
         status: response.status,
-        message: `API ${response.status}: ${errorText}`
+        message: `API ${response.status}: ${errorText}`,
       };
       throw error;
     }
@@ -137,11 +137,7 @@ export const useApi = () => {
   const queryClient = useQueryClient();
 
   // Generic GET query hook
-  const useGet = <T>(
-    queryKey: string[],
-    endpoint: string,
-    options: any = {}
-  ) => {
+  const useGet = <T>(queryKey: string[], endpoint: string, options: any = {}) => {
     return useQuery<T, Error>({
       queryKey,
       queryFn: () => apiClient.get<T>(endpoint),
@@ -152,11 +148,7 @@ export const useApi = () => {
   };
 
   // Generic POST mutation hook
-  const usePost = <T, U = unknown>(
-    mutationKey: string[],
-    endpoint: string,
-    options: any = {}
-  ) => {
+  const usePost = <T, U = unknown>(mutationKey: string[], endpoint: string, options: any = {}) => {
     return useMutation<ApiResponse<T>, { status: number; message: string }, U>({
       mutationKey,
       mutationFn: (data: U) => apiClient.post<T, U>(endpoint, data),
@@ -169,11 +161,7 @@ export const useApi = () => {
   };
 
   // Generic PUT mutation hook
-  const usePut = <T, U = unknown>(
-    mutationKey: string[],
-    endpoint: string,
-    options: any = {}
-  ) => {
+  const usePut = <T, U = unknown>(mutationKey: string[], endpoint: string, options: any = {}) => {
     return useMutation<ApiResponse<T>, { status: number; message: string }, U>({
       mutationKey,
       mutationFn: (data: U) => apiClient.put<T, U>(endpoint, data),
@@ -185,11 +173,7 @@ export const useApi = () => {
   };
 
   // Generic DELETE mutation hook
-  const useDelete = <T>(
-    mutationKey: string[],
-    endpoint: string,
-    options: any = {}
-  ) => {
+  const useDelete = <T>(mutationKey: string[], endpoint: string, options: any = {}) => {
     return useMutation<ApiResponse<T>, { status: number; message: string }, void>({
       mutationKey,
       mutationFn: () => apiClient.delete<T>(endpoint),
@@ -257,10 +241,14 @@ export const useApi = () => {
 
   // Guard-specific hooks
   const useGuardReview = (options: any = {}) => {
-    return usePost<any, { source: string; guard_type: string; language: string }>(['guard-review'], '/api/v1/guards/review', {
-      retry: 0, // Don't retry guard reviews as they can be expensive
-      ...options,
-    });
+    return usePost<any, { source: string; guard_type: string; language: string }>(
+      ['guard-review'],
+      '/api/v1/guards/review',
+      {
+        retry: 0, // Don't retry guard reviews as they can be expensive
+        ...options,
+      },
+    );
   };
 
   const useGuardInfo = (options: any = {}) => {
@@ -276,7 +264,7 @@ export const useApi = () => {
     usePost,
     usePut,
     useDelete,
-    
+
     // Specific API hooks
     useHealth,
     useAgents,
@@ -288,7 +276,7 @@ export const useApi = () => {
     useAuditLogs,
     useGuardReview,
     useGuardInfo,
-    
+
     // Direct API access
     apiClient,
   };

@@ -8,10 +8,10 @@ import { getAuditLogs } from '../utils/audit.js';
 export async function handleAuditLogs(
   request: Request,
   env: Env,
-  ctx: ExecutionContext,
-  apiKeyId: string,
-  scope: string,
-  traceId: string
+  _ctx: ExecutionContext,
+  _apiKeyId: string,
+  _scope: string,
+  traceId: string,
 ): Promise<Response> {
   const origin = request.headers.get('origin') || '*';
   const date = new URL(request.url).searchParams.get('date') || undefined;
@@ -24,6 +24,6 @@ export async function handleAuditLogs(
       date: date || new Date().toISOString().split('T')[0],
       traceId,
     },
-    corsHeaders(origin)
+    corsHeaders(origin),
   );
 }

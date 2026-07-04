@@ -70,7 +70,11 @@ interface ApiResponse {
   ok: boolean;
 }
 
-async function httpGet(path: string, config: HealthCheckConfig, headers?: Record<string, string>): Promise<ApiResponse> {
+async function httpGet(
+  path: string,
+  config: HealthCheckConfig,
+  headers?: Record<string, string>,
+): Promise<ApiResponse> {
   const url = `${config.apiUrl}${path}`;
   const start = Date.now();
   try {
@@ -100,7 +104,12 @@ async function httpGet(path: string, config: HealthCheckConfig, headers?: Record
   }
 }
 
-async function httpPost(path: string, config: HealthCheckConfig, payload: unknown, headers?: Record<string, string>): Promise<ApiResponse> {
+async function httpPost(
+  path: string,
+  config: HealthCheckConfig,
+  payload: unknown,
+  headers?: Record<string, string>,
+): Promise<ApiResponse> {
   const url = `${config.apiUrl}${path}`;
   const start = Date.now();
   try {
@@ -136,7 +145,8 @@ async function httpPost(path: string, config: HealthCheckConfig, payload: unknow
 // Daily checks
 // ---------------------------------------------------------------------------
 
-async function runDailyChecks(config: HealthCheckConfig): Promise<CheckResult[]> {  // NOSONAR — S3776: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
+async function runDailyChecks(config: HealthCheckConfig): Promise<CheckResult[]> {
+  // NOSONAR — S3776: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
   const results: CheckResult[] = [];
 
   // 1. Check /health endpoint on all environments
@@ -147,7 +157,10 @@ async function runDailyChecks(config: HealthCheckConfig): Promise<CheckResult[]>
       name: 'Health endpoint responsive',
       category: 'daily',
       status,
-      message: status === 'pass' ? `Health OK (${res.latencyMs}ms)` : `Health check failed: ${res.body?.error ?? res.status}`,
+      message:
+        status === 'pass'
+          ? `Health OK (${res.latencyMs}ms)`
+          : `Health check failed: ${res.body?.error ?? res.status}`,
       latencyMs: res.latencyMs,
       details: { statusCode: res.status, body: res.body },
     });
@@ -161,7 +174,10 @@ async function runDailyChecks(config: HealthCheckConfig): Promise<CheckResult[]>
       name: 'Metrics endpoint accessible',
       category: 'daily',
       status,
-      message: status === 'pass' ? `Metrics accessible (${res.latencyMs}ms)` : `Metrics endpoint issue: ${res.body?.error ?? res.status}`,
+      message:
+        status === 'pass'
+          ? `Metrics accessible (${res.latencyMs}ms)`
+          : `Metrics endpoint issue: ${res.body?.error ?? res.status}`,
       latencyMs: res.latencyMs,
       details: { statusCode: res.status, hasApiMetrics: !!res.body?.metrics?.api },
     });
@@ -170,12 +186,16 @@ async function runDailyChecks(config: HealthCheckConfig): Promise<CheckResult[]>
   // 3. Check authenticated endpoints (simulates "Cloudflare Workers dashboard for errors")
   {
     const res = await httpGet('/api/v1/agents', config, { 'x-api-key': config.apiKey });
-    const status: CheckResult['status'] = res.ok && Array.isArray(res.body?.agents) ? 'pass' : 'fail';
+    const status: CheckResult['status'] =
+      res.ok && Array.isArray(res.body?.agents) ? 'pass' : 'fail';
     results.push({
       name: 'Authenticated API (agents list)',
       category: 'daily',
       status,
-      message: status === 'pass' ? `Agents list OK — ${res.body?.agents?.length || 0} agents (${res.latencyMs}ms)` : `Agents list failed: ${res.body?.error ?? res.status}`,
+      message:
+        status === 'pass'
+          ? `Agents list OK — ${res.body?.agents?.length || 0} agents (${res.latencyMs}ms)`
+          : `Agents list failed: ${res.body?.error ?? res.status}`,
       latencyMs: res.latencyMs,
       details: { statusCode: res.status, agentCount: res.body?.agents?.length },
     });
@@ -189,7 +209,10 @@ async function runDailyChecks(config: HealthCheckConfig): Promise<CheckResult[]>
       name: 'Rate limiting / auth rejection active',
       category: 'daily',
       status,
-      message: status === 'pass' ? `Auth rejection active (${res.latencyMs}ms)` : `Unexpected auth response: ${res.status}`,
+      message:
+        status === 'pass'
+          ? `Auth rejection active (${res.latencyMs}ms)`
+          : `Unexpected auth response: ${res.status}`,
       latencyMs: res.latencyMs,
       details: { statusCode: res.status },
     });
@@ -205,9 +228,15 @@ async function runDailyChecks(config: HealthCheckConfig): Promise<CheckResult[]>
       name: 'LLM provider health',
       category: 'daily',
       status,
-      message: status === 'pass' ? `${healthyProviders.length}/${providers.length} providers healthy (${res.latencyMs}ms)` : `Provider health issue: ${res.body?.error ?? res.status}`,
+      message:
+        status === 'pass'
+          ? `${healthyProviders.length}/${providers.length} providers healthy (${res.latencyMs}ms)`
+          : `Provider health issue: ${res.body?.error ?? res.status}`,
       latencyMs: res.latencyMs,
-      details: { statusCode: res.status, providers: providers.map((p: any) => ({ id: p.id, healthy: p.healthy })) },
+      details: {
+        statusCode: res.status,
+        providers: providers.map((p: any) => ({ id: p.id, healthy: p.healthy })),
+      },
     });
   }
 
@@ -219,7 +248,10 @@ async function runDailyChecks(config: HealthCheckConfig): Promise<CheckResult[]>
       name: 'Audit logging operational',
       category: 'daily',
       status,
-      message: status === 'pass' ? `Audit logs accessible — ${res.body?.logs?.length || 0} entries (${res.latencyMs}ms)` : `Audit logs issue: ${res.body?.error ?? res.status}`,
+      message:
+        status === 'pass'
+          ? `Audit logs accessible — ${res.body?.logs?.length || 0} entries (${res.latencyMs}ms)`
+          : `Audit logs issue: ${res.body?.error ?? res.status}`,
       latencyMs: res.latencyMs,
       details: { statusCode: res.status, logCount: res.body?.logs?.length },
     });
@@ -229,7 +261,7 @@ async function runDailyChecks(config: HealthCheckConfig): Promise<CheckResult[]>
   {
     const res = await httpGet('/metrics', config);
     const errors = res.body?.metrics?.api?.errors || 0;
-    const status: CheckResult['status'] = errors === 0 ? 'pass' : errors < 5 ? 'warn' : 'fail';  // NOSONAR — S3358: nested ternary; refactor to named variable (tech debt)
+    const status: CheckResult['status'] = errors === 0 ? 'pass' : errors < 5 ? 'warn' : 'fail'; // NOSONAR — S3358: nested ternary; refactor to named variable (tech debt)
     results.push({
       name: 'Error count check',
       category: 'daily',
@@ -247,7 +279,8 @@ async function runDailyChecks(config: HealthCheckConfig): Promise<CheckResult[]>
 // Weekly checks
 // ---------------------------------------------------------------------------
 
-async function runWeeklyChecks(config: HealthCheckConfig): Promise<CheckResult[]> {  // NOSONAR — S3776: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
+async function runWeeklyChecks(config: HealthCheckConfig): Promise<CheckResult[]> {
+  // NOSONAR — S3776: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
   const results: CheckResult[] = [];
 
   // 1. Review API latency trends (p95 from metrics)
@@ -255,15 +288,25 @@ async function runWeeklyChecks(config: HealthCheckConfig): Promise<CheckResult[]
     const res = await httpGet('/metrics', config);
     const providerMetrics = res.body?.metrics?.providers || [];
     const avgLatencies = providerMetrics.map((p: any) => p.avgLatencyMs).filter((v: any) => v > 0);
-    const avgLatency = avgLatencies.length > 0 ? Math.round(avgLatencies.reduce((a: number, b: number) => a + b, 0) / avgLatencies.length) : 0;
-    const status: CheckResult['status'] = avgLatency < 2000 ? 'pass' : avgLatency < 5000 ? 'warn' : 'fail';  // NOSONAR — S3358: nested ternary; refactor to named variable (tech debt)
+    const avgLatency =
+      avgLatencies.length > 0
+        ? Math.round(avgLatencies.reduce((a: number, b: number) => a + b, 0) / avgLatencies.length)
+        : 0;
+    const status: CheckResult['status'] =
+      avgLatency < 2000 ? 'pass' : avgLatency < 5000 ? 'warn' : 'fail'; // NOSONAR — S3358: nested ternary; refactor to named variable (tech debt)
     results.push({
       name: 'API latency trend (providers avg)',
       category: 'weekly',
       status,
       message: `Average provider latency: ${avgLatency}ms`,
       latencyMs: res.latencyMs,
-      details: { avgLatencyMs: avgLatency, providerLatencies: providerMetrics.map((p: any) => ({ name: p.name, avgLatencyMs: p.avgLatencyMs })) },
+      details: {
+        avgLatencyMs: avgLatency,
+        providerLatencies: providerMetrics.map((p: any) => ({
+          name: p.name,
+          avgLatencyMs: p.avgLatencyMs,
+        })),
+      },
     });
   }
 
@@ -273,7 +316,7 @@ async function runWeeklyChecks(config: HealthCheckConfig): Promise<CheckResult[]
     const totalReqs = res.body?.metrics?.api?.totalRequests || 0;
     const errors = res.body?.metrics?.api?.errors || 0;
     const errorRate = totalReqs > 0 ? (errors / totalReqs) * 100 : 0;
-    const status: CheckResult['status'] = errorRate < 1 ? 'pass' : errorRate < 5 ? 'warn' : 'fail';  // NOSONAR — S3358: nested ternary; refactor to named variable (tech debt)
+    const status: CheckResult['status'] = errorRate < 1 ? 'pass' : errorRate < 5 ? 'warn' : 'fail'; // NOSONAR — S3358: nested ternary; refactor to named variable (tech debt)
     results.push({
       name: 'Error rate trend',
       category: 'weekly',
@@ -289,12 +332,14 @@ async function runWeeklyChecks(config: HealthCheckConfig): Promise<CheckResult[]
     const res = await httpGet('/metrics', config);
     const providers = res.body?.metrics?.providers || [];
     const failovers = providers.filter((p: any) => p.circuitOpen).length;
-    const status: CheckResult['status'] = failovers === 0 ? 'pass' : failovers < 2 ? 'warn' : 'fail';  // NOSONAR — S3358: nested ternary; refactor to named variable (tech debt)
+    const status: CheckResult['status'] =
+      failovers === 0 ? 'pass' : failovers < 2 ? 'warn' : 'fail'; // NOSONAR — S3358: nested ternary; refactor to named variable (tech debt)
     results.push({
       name: 'Provider circuit breaker status',
       category: 'weekly',
       status,
-      message: failovers === 0 ? 'All provider circuits closed' : `${failovers} provider circuits open`,
+      message:
+        failovers === 0 ? 'All provider circuits closed' : `${failovers} provider circuits open`,
       latencyMs: res.latencyMs,
       details: { openCircuits: failovers, providers },
     });
@@ -323,7 +368,8 @@ async function runWeeklyChecks(config: HealthCheckConfig): Promise<CheckResult[]
     const taskStoreSize = res.body?.metrics?.tasks?.total || 0;
     const maxSize = res.body?.metrics?.tasks?.maxSize || 1000;
     const utilization = maxSize > 0 ? (taskStoreSize / maxSize) * 100 : 0;
-    const status: CheckResult['status'] = utilization < 50 ? 'pass' : utilization < 80 ? 'warn' : 'fail';  // NOSONAR — S3358: nested ternary; refactor to named variable (tech debt)
+    const status: CheckResult['status'] =
+      utilization < 50 ? 'pass' : utilization < 80 ? 'warn' : 'fail'; // NOSONAR — S3358: nested ternary; refactor to named variable (tech debt)
     results.push({
       name: 'Task store capacity',
       category: 'weekly',
@@ -360,9 +406,10 @@ async function runWeeklyChecks(config: HealthCheckConfig): Promise<CheckResult[]
       name: 'Mastra backend connectivity',
       category: 'weekly',
       status,
-      message: mastra?.configured === true
-        ? 'Mastra backend configured'
-        : 'Mastra not running — start with `pnpm dev` (optional for core engineering)',
+      message:
+        mastra?.configured === true
+          ? 'Mastra backend configured'
+          : 'Mastra not running — start with `pnpm dev` (optional for core engineering)',
       latencyMs: res.latencyMs,
       details: {
         mastraConfigured: mastra?.configured || false,
@@ -384,17 +431,24 @@ async function runMonthlyChecks(config: HealthCheckConfig): Promise<CheckResult[
 
   // 1. Full capacity planning review — simulate a study run
   {
-    const res = await httpPost('/api/v1/studies/run', config, {
-      studyType: 'load_flow',
-      parameters: { base_mva: 100, test: true },
-      dryRun: true,
-    }, { 'x-api-key': config.apiKey });
+    const res = await httpPost(
+      '/api/v1/studies/run',
+      config,
+      {
+        studyType: 'load_flow',
+        parameters: { base_mva: 100, test: true },
+        dryRun: true,
+      },
+      { 'x-api-key': config.apiKey },
+    );
     const status: CheckResult['status'] = res.ok ? 'pass' : 'warn';
     results.push({
       name: 'Study execution capacity test',
       category: 'monthly',
       status,
-      message: res.ok ? `Study queued successfully (${res.latencyMs}ms)` : `Study execution issue: ${res.body?.error ?? res.status}`,
+      message: res.ok
+        ? `Study queued successfully (${res.latencyMs}ms)`
+        : `Study execution issue: ${res.body?.error ?? res.status}`,
       latencyMs: res.latencyMs,
       details: { statusCode: res.status, taskId: res.body?.taskId },
     });
@@ -405,13 +459,17 @@ async function runMonthlyChecks(config: HealthCheckConfig): Promise<CheckResult[
     const paths = ['/health', '/metrics', '/api/v1/agents', '/api/v1/providers'];
     const latencies: number[] = [];
     for (const path of paths) {
-      const res = await httpGet(path, config, path.startsWith('/api') ? { 'x-api-key': config.apiKey } : undefined);
+      const res = await httpGet(
+        path,
+        config,
+        path.startsWith('/api') ? { 'x-api-key': config.apiKey } : undefined,
+      );
       latencies.push(res.latencyMs);
     }
     const sorted = latencies.sort((a, b) => a - b);
     const p95Index = Math.min(Math.floor(sorted.length * 0.95), sorted.length - 1);
     const p95 = Math.ceil(sorted.at(p95Index) ?? sorted.at(-1) ?? 0);
-    const status: CheckResult['status'] = p95 < 2000 ? 'pass' : p95 < 5000 ? 'warn' : 'fail';  // NOSONAR — S3358: nested ternary; refactor to named variable (tech debt)
+    const status: CheckResult['status'] = p95 < 2000 ? 'pass' : p95 < 5000 ? 'warn' : 'fail'; // NOSONAR — S3358: nested ternary; refactor to named variable (tech debt)
     results.push({
       name: 'SLA/SLO latency compliance (p95)',
       category: 'monthly',
@@ -432,7 +490,10 @@ async function runMonthlyChecks(config: HealthCheckConfig): Promise<CheckResult[
       name: 'Cost optimization (unused providers)',
       category: 'monthly',
       status,
-      message: unusedProviders.length === 0 ? 'All configured providers have been used' : `${unusedProviders.length} configured providers with 0 calls`,
+      message:
+        unusedProviders.length === 0
+          ? 'All configured providers have been used'
+          : `${unusedProviders.length} configured providers with 0 calls`,
       latencyMs: res.latencyMs,
       details: { unusedProviders: unusedProviders.map((p: any) => p.name) },
     });
@@ -451,7 +512,9 @@ async function runMonthlyChecks(config: HealthCheckConfig): Promise<CheckResult[
       name: 'Audit log retention (24h recency)',
       category: 'monthly',
       status,
-      message: hasRecentLogs ? 'Recent audit logs found within 24h' : 'No audit logs within 24h — possible retention issue',
+      message: hasRecentLogs
+        ? 'Recent audit logs found within 24h'
+        : 'No audit logs within 24h — possible retention issue',
       latencyMs: res.latencyMs,
       details: { hasRecentLogs, totalLogs: logs.length },
     });
@@ -459,7 +522,16 @@ async function runMonthlyChecks(config: HealthCheckConfig): Promise<CheckResult[
 
   // 5. Disaster recovery readiness — verify all endpoints are documented
   {
-    const documentedPaths = ['/health', '/metrics', '/api/v1/agents', '/api/v1/agents/:agentId/chat', '/api/v1/studies/run', '/api/v1/studies/status/:taskId', '/api/v1/providers', '/api/v1/audit/logs'];
+    const documentedPaths = [
+      '/health',
+      '/metrics',
+      '/api/v1/agents',
+      '/api/v1/agents/:agentId/chat',
+      '/api/v1/studies/run',
+      '/api/v1/studies/status/:taskId',
+      '/api/v1/providers',
+      '/api/v1/audit/logs',
+    ];
     const status: CheckResult['status'] = 'pass';
     results.push({
       name: 'Disaster recovery endpoint documentation',
@@ -529,24 +601,33 @@ async function runMonthlyChecks(config: HealthCheckConfig): Promise<CheckResult[
 // Report generation
 // ---------------------------------------------------------------------------
 
-function generateReport(daily: CheckResult[], weekly: CheckResult[], monthly: CheckResult[], startTime: number): HealthReport {
+function generateReport(
+  daily: CheckResult[],
+  weekly: CheckResult[],
+  monthly: CheckResult[],
+  startTime: number,
+): HealthReport {
   const all = [...daily, ...weekly, ...monthly];
-  const pass = all.filter(r => r.status === 'pass').length;
-  const warn = all.filter(r => r.status === 'warn').length;
-  const fail = all.filter(r => r.status === 'fail').length;
+  const pass = all.filter((r) => r.status === 'pass').length;
+  const warn = all.filter((r) => r.status === 'warn').length;
+  const fail = all.filter((r) => r.status === 'fail').length;
 
   const recommendations: string[] = [];
   if (warn > 0) recommendations.push(`${warn} warning(s) detected — review weekly check results`);
   if (fail > 0) recommendations.push(`${fail} failure(s) detected — immediate attention required`);
 
-  const highLatencyChecks = all.filter(r => r.latencyMs > 5000);
+  const highLatencyChecks = all.filter((r) => r.latencyMs > 5000);
   if (highLatencyChecks.length > 0) {
-    recommendations.push(`${highLatencyChecks.length} endpoint(s) with latency > 5000ms — investigate performance`);
+    recommendations.push(
+      `${highLatencyChecks.length} endpoint(s) with latency > 5000ms — investigate performance`,
+    );
   }
 
-  const openCircuits = all.find(r => r.name === 'Provider circuit breaker status');
+  const openCircuits = all.find((r) => r.name === 'Provider circuit breaker status');
   if (openCircuits && openCircuits.status !== 'pass') {
-    recommendations.push('LLM provider circuit breaker(s) open — verify provider API keys and status');
+    recommendations.push(
+      'LLM provider circuit breaker(s) open — verify provider API keys and status',
+    );
   }
 
   return {
@@ -567,14 +648,16 @@ function printReport(report: HealthReport): void {
   console.log(`║ Timestamp: ${report.timestamp.padEnd(67)} ║`);
   console.log(`║ Duration:  ${String(report.durationMs).padStart(5)}ms${''.padEnd(60)} ║`);
   console.log('╠══════════════════════════════════════════════════════════════════════════════╣');
-  console.log(`║ TOTAL: ${String(report.summary.total).padStart(2)}  |  PASS: ${String(report.summary.pass).padStart(2)}  |  WARN: ${String(report.summary.warn).padStart(2)}  |  FAIL: ${String(report.summary.fail).padStart(2)}${''.padEnd(28)} ║`);
+  console.log(
+    `║ TOTAL: ${String(report.summary.total).padStart(2)}  |  PASS: ${String(report.summary.pass).padStart(2)}  |  WARN: ${String(report.summary.warn).padStart(2)}  |  FAIL: ${String(report.summary.fail).padStart(2)}${''.padEnd(28)} ║`,
+  );
   console.log('╠══════════════════════════════════════════════════════════════════════════════╣');
 
   const printSection = (title: string, results: CheckResult[]) => {
     console.log(`║ ${title.toUpperCase()} CHECKS${''.padEnd(67 - title.length)} ║`);
     console.log('╠══════════════════════════════════════════════════════════════════════════════╣');
     for (const r of results) {
-      const icon = r.status === 'pass' ? '✅' : r.status === 'warn' ? '⚠️' : '❌';  // NOSONAR — S3358: nested ternary; refactor to named variable (tech debt)
+      const icon = r.status === 'pass' ? '✅' : r.status === 'warn' ? '⚠️' : '❌'; // NOSONAR — S3358: nested ternary; refactor to named variable (tech debt)
       console.log(`║ ${icon} ${r.name.padEnd(64)} ${String(r.latencyMs).padStart(5)}ms ║`);
       console.log(`║    ${r.message.substring(0, 74).padEnd(74)} ║`);
     }
@@ -664,7 +747,7 @@ Environment:
 }
 
 try {
-  await main()
+  await main();
 } catch (e: unknown) {
   console.error('Health check failed:', e instanceof Error ? e.message : String(e));
   process.exit(2);

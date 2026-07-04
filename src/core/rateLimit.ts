@@ -61,7 +61,7 @@ function evaluateLimit(state: RateLimitState | null, now: number, limit: number)
 async function checkRateLimitKV(
   env: Env,
   key: string,
-  limit: number
+  limit: number,
 ): Promise<{ allowed: boolean; retryAfter?: number } | null> {
   if (!env.RATE_LIMIT_KV) return null;
   const now = Date.now();
@@ -78,10 +78,7 @@ async function checkRateLimitKV(
   }
 }
 
-function checkRateLimitMap(
-  key: string,
-  limit: number
-): { allowed: boolean; retryAfter?: number } {
+function checkRateLimitMap(key: string, limit: number): { allowed: boolean; retryAfter?: number } {
   const now = Date.now();
   // Periodic cleanup of stale entries to prevent unbounded memory growth
   if (now - _lastMapCleanup > _MAP_CLEANUP_INTERVAL_MS) {
@@ -118,7 +115,7 @@ function resolveKeyLimit(env: Env): number {
 export async function checkRateLimit(
   env: Env,
   apiKeyId: string,
-  agentId?: string
+  agentId?: string,
 ): Promise<{ allowed: boolean; retryAfter?: number; dimension?: 'key' | 'agent' }> {
   const baseKey = `rl:key:${apiKeyId}`;
   const keyLimit = resolveKeyLimit(env);
@@ -128,8 +125,13 @@ export async function checkRateLimit(
 
   if (agentId) {
     const agentKey = `rl:key:${apiKeyId}:agent:${agentId}`;
-    const kvAgent = await checkRateLimitKV(env, agentKey, CONFIG.RATE_LIMIT_PER_KEY_PER_AGENT_PER_MINUTE);
-    const agentResult = kvAgent ?? checkRateLimitMap(agentKey, CONFIG.RATE_LIMIT_PER_KEY_PER_AGENT_PER_MINUTE);
+    const kvAgent = await checkRateLimitKV(
+      env,
+      agentKey,
+      CONFIG.RATE_LIMIT_PER_KEY_PER_AGENT_PER_MINUTE,
+    );
+    const agentResult =
+      kvAgent ?? checkRateLimitMap(agentKey, CONFIG.RATE_LIMIT_PER_KEY_PER_AGENT_PER_MINUTE);
     if (!agentResult.allowed) return { ...agentResult, dimension: 'agent' };
   }
 

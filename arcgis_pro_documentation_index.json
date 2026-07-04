@@ -85,7 +85,16 @@
               "url": "https://doc.esri.com/en/arcgis-pro/latest/sdk/api-reference/conceptdocs/docs/Home.html#extensions-assemblies",
               "level": 3,
               "parent": "ArcGIS Pro API",
-              "tags": ["extensions", "assemblies", "catalog", "core", "editing", "geoprocessing", "layouts", "mapping"]
+              "tags": [
+                "extensions",
+                "assemblies",
+                "catalog",
+                "core",
+                "editing",
+                "geoprocessing",
+                "layouts",
+                "mapping"
+              ]
             },
             {
               "title": "Extension Assemblies with no public API",
@@ -2100,10 +2109,7 @@
       "name": "arcpy.mp (Mapping)",
       "description": "Module for manipulating the contents of existing project files (*.aprx) or layer files (*.lyrx). Available to all licenses.",
       "url": "https://doc.esri.com/en/arcgis-pro/latest/arcpy/mapping/introduction-to-arcpy-mp.html",
-      "components": [
-        "Classes",
-        "Functions"
-      ],
+      "components": ["Classes", "Functions"],
       "category": "python_mapping",
       "tags": ["mapping", "projects", "layers", "automation", "python"]
     },
@@ -2111,9 +2117,7 @@
       "name": "arcpy.un (Utility Network)",
       "description": "Module for managing subnetwork controller assignment and associations between network features. Available with ArcGIS Utility Network extension license.",
       "url": "https://doc.esri.com/en/arcgis-pro/latest/arcpy/utility-network/what-is-the-utility-network-module.html",
-      "components": [
-        "UtilityNetwork class"
-      ],
+      "components": ["UtilityNetwork class"],
       "category": "python_utility_network",
       "tags": ["utility-network", "infrastructure", "python", "associations"]
     },
@@ -2121,12 +2125,7 @@
       "name": "arcpy.sa (Spatial Analyst)",
       "description": "Module for analyzing raster and vector data with the functionality provided by the ArcGIS Spatial Analyst extension.",
       "url": "https://doc.esri.com/en/arcgis-pro/latest/arcpy/spatial-analyst/what-is-the-spatial-analyst-module.html",
-      "components": [
-        "Classes",
-        "Functions",
-        "Geoprocessing functions",
-        "Operators"
-      ],
+      "components": ["Classes", "Functions", "Geoprocessing functions", "Operators"],
       "category": "python_spatial_analyst",
       "tags": ["spatial-analyst", "raster", "analysis", "python", "geoprocessing"]
     },
@@ -2147,9 +2146,7 @@
       "name": "arcpy.metadata",
       "description": "Module for accessing and managing an item's metadata. Automate workflows for managing standards-compliant geospatial metadata.",
       "url": "https://doc.esri.com/en/arcgis-pro/latest/arcpy/metadata/what-is-the-metadata-module.html",
-      "components": [
-        "Metadata class"
-      ],
+      "components": ["Metadata class"],
       "category": "python_metadata",
       "tags": ["metadata", "standards", "python", "documentation"]
     }

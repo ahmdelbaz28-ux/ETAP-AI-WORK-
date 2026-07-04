@@ -1,23 +1,22 @@
-import { useTranslation } from 'react-i18next'
-import { useNavigate } from 'react-router-dom'
-import {
-  Search, HelpCircle, Settings, Zap, ChevronDown, Sparkles,
-} from 'lucide-react'
-import { useAppStore } from '../../store'
+import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router-dom';
+import { Search, HelpCircle, Settings, Zap, ChevronDown, Sparkles } from 'lucide-react';
+import { useAppStore } from '../../store';
 
 interface TopBarProps {
-  onHelpOpen?: () => void
+  onHelpOpen?: () => void;
 }
 
-export function TopBar({ onHelpOpen }: TopBarProps) {  // NOSONAR — S6759: React props read-only; requires `readonly` refactor across component tree
-  const { t } = useTranslation()
-  const navigate = useNavigate()
-  const { toggleHelpPanel } = useAppStore()
+export function TopBar({ onHelpOpen }: TopBarProps) {
+  // NOSONAR — S6759: React props read-only; requires `readonly` refactor across component tree
+  const { t } = useTranslation();
+  const navigate = useNavigate();
+  const { toggleHelpPanel } = useAppStore();
 
   const handleHelp = () => {
-    if (onHelpOpen) onHelpOpen()
-    else toggleHelpPanel()
-  }
+    if (onHelpOpen) onHelpOpen();
+    else toggleHelpPanel();
+  };
 
   return (
     <header className="h-12 flex items-center justify-between px-4 bg-[var(--bg-secondary)] border-b border-[var(--border-primary)] shrink-0">
@@ -29,7 +28,9 @@ export function TopBar({ onHelpOpen }: TopBarProps) {  // NOSONAR — S6759: Rea
           tabIndex={0}
           aria-label="Go to dashboard"
           onClick={() => navigate('/dashboard')}
-          onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') navigate('/dashboard') }}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') navigate('/dashboard');
+          }}
         >
           <div className="w-7 h-7 bg-gradient-to-br from-orange-500 to-red-600 rounded-lg flex items-center justify-center shadow-lg shadow-orange-500/20">
             <Zap className="w-4 h-4 text-white" />
@@ -86,5 +87,5 @@ export function TopBar({ onHelpOpen }: TopBarProps) {  // NOSONAR — S6759: Rea
         </button>
       </div>
     </header>
-  )
+  );
 }

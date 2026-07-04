@@ -1,4 +1,4 @@
-import type { ContextMapping } from './types'
+import type { ContextMapping } from './types';
 
 // ============================================================================
 // Context Registry
@@ -142,11 +142,11 @@ export const contextRegistry: ContextMapping[] = [
   { contextId: 'action.configure-scada', topicId: 'integration.scada', priority: 1 },
   { contextId: 'action.test-connection', topicId: 'settings.external-services', priority: 1 },
   { contextId: 'action.open-help', topicId: 'magic-help.inspector', priority: 1 },
-]
+];
 
 export function resolveContext(contextId: string): string | null {
   const match = contextRegistry
-    .filter(c => c.contextId === contextId)
-    .sort((a, b) => (b.priority ?? 0) - (a.priority ?? 0))[0]
-  return match?.topicId ?? null
+    .filter((c) => c.contextId === contextId)
+    .sort((a, b) => (b.priority ?? 0) - (a.priority ?? 0))[0];
+  return match?.topicId ?? null;
 }

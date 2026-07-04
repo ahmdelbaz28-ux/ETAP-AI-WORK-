@@ -1,42 +1,50 @@
-import { useState, useEffect, useCallback } from 'react'
-import { motion } from 'framer-motion'
-import { Shield, Users, Key, Activity, Clock, RefreshCw, Zap, TrendingUp } from 'lucide-react'
-import { fetchMetrics, fetchAgents, type AgentMeta } from '../lib/api'  // QUALITY v2.1.1: removed unused MetricsResponse type
-import { useNotify } from '../context/NotificationContext'
-import { Card, CardHeader, Badge, Button } from '../components/ui'
-import { cn } from '../utils/helpers'
+import { useState, useEffect, useCallback } from 'react';
+import { motion } from 'framer-motion';
+import { Shield, Users, Key, Activity, Clock, RefreshCw, Zap, TrendingUp } from 'lucide-react';
+import { fetchMetrics, fetchAgents, type AgentMeta } from '../lib/api'; // QUALITY v2.1.1: removed unused MetricsResponse type
+import { useNotify } from '../context/NotificationContext';
+import { Card, CardHeader, Badge, Button } from '../components/ui';
+import { cn } from '../utils/helpers';
 
-import { ContextHelpButton } from '../components/help/ContextHelpButton'
+import { ContextHelpButton } from '../components/help/ContextHelpButton';
 export default function Administration() {
-  const [metrics, setMetrics] = useState<any>(null)
-  const [agents, setAgents] = useState<AgentMeta[]>([])
-  const [loading, setLoading] = useState(true)
-  const { notify } = useNotify()
+  const [metrics, setMetrics] = useState<any>(null);
+  const [agents, setAgents] = useState<AgentMeta[]>([]);
+  const [loading, setLoading] = useState(true);
+  const { notify } = useNotify();
 
   const load = useCallback(async () => {
-    setLoading(true)
+    setLoading(true);
     try {
       const [m, a] = await Promise.all([
         fetchMetrics().catch(() => null),
         fetchAgents().catch(() => []),
-      ])
-      setMetrics(m)
-      setAgents(a)
+      ]);
+      setMetrics(m);
+      setAgents(a);
     } catch {
-      notify('error', 'Failed to load admin data')
+      notify('error', 'Failed to load admin data');
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }, [notify])
+  }, [notify]);
 
   useEffect(() => {
-    load()
-  }, [load])
+    load();
+  }, [load]);
 
   // Handle both backend metrics formats gracefully
-  const totalCalls = metrics?.requests_total ?? (metrics ? Object.values((metrics.api as Record<string, number>) || {}).reduce((a: number, b: number) => a + b, 0) : 0)
-  const activeKeys = metrics?.requests_success ?? (metrics ? Object.keys(metrics.perKey || {}).length : 0)
-  const errors = metrics?.requests_failed ?? ((metrics?.api as Record<string, number>)?.errors ?? 0)
+  const totalCalls =
+    metrics?.requests_total ??
+    (metrics
+      ? Object.values((metrics.api as Record<string, number>) || {}).reduce(
+          (a: number, b: number) => a + b,
+          0,
+        )
+      : 0);
+  const activeKeys =
+    metrics?.requests_success ?? (metrics ? Object.keys(metrics.perKey || {}).length : 0);
+  const errors = metrics?.requests_failed ?? (metrics?.api as Record<string, number>)?.errors ?? 0;
 
   const statCards = [
     {
@@ -71,11 +79,15 @@ export default function Administration() {
       color: 'text-[var(--color-engine-voltage)]',
       bgColor: 'bg-[var(--color-brand-500)]/10',
     },
-  ]
+  ];
 
   return (
     <div className="space-y-6">
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="flex items-center justify-between">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="flex items-center justify-between"
+      >
         <div className="flex items-center gap-3">
           <div className="p-2.5 rounded-xl bg-brand-500/10 border border-brand-500/20">
             <Shield className="w-5 h-5 text-brand-400" />
@@ -83,7 +95,9 @@ export default function Administration() {
           <div>
             <h2 className="text-2xl font-bold text-[var(--text-primary)]">Administration</h2>
             <div className="flex items-center gap-2">
-              <p className="text-sm text-[var(--text-tertiary)]">Platform monitoring & management</p>
+              <p className="text-sm text-[var(--text-tertiary)]">
+                Platform monitoring & management
+              </p>
               <ContextHelpButton contextId="administration.overview" />
             </div>
           </div>
@@ -96,15 +110,20 @@ export default function Administration() {
       {/* Stat Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {statCards.map((card, i) => (
-          <motion.div key={card.title} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 * i }}>
+          <motion.div
+            key={card.title}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.05 * i }}
+          >
             <Card padding="md">
               <div className="flex items-center justify-between mb-3">
-                <div className={cn('p-2 rounded-lg', card.bgColor, card.color)}>
-                  {card.icon}
-                </div>
+                <div className={cn('p-2 rounded-lg', card.bgColor, card.color)}>{card.icon}</div>
                 <TrendingUp className="w-3.5 h-3.5 text-green-400" />
               </div>
-              <p className="text-2xl font-bold text-[var(--text-primary)] mono-engineering">{card.value}</p>
+              <p className="text-2xl font-bold text-[var(--text-primary)] mono-engineering">
+                {card.value}
+              </p>
               <p className="text-xs text-[var(--text-muted)] mt-1">{card.subtitle}</p>
               <p className="text-xs text-[var(--text-tertiary)] mt-2 font-medium">{card.title}</p>
             </Card>
@@ -116,7 +135,11 @@ export default function Administration() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* API Metrics */}
         {metrics && (
-          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+          >
             <Card padding="md">
               <CardHeader
                 title="API Metrics"
@@ -127,28 +150,43 @@ export default function Administration() {
                 {/* Render metrics depending on which format we get */}
                 {metrics.requests_total === undefined ? (
                   Object.entries((metrics.api as Record<string, number>) || {}).map(([k, v]) => (
-                    <div key={k} className="p-3 bg-[var(--bg-primary)] rounded-lg border border-[var(--border-primary)]">
-                      <p className="text-xs text-[var(--text-muted)] capitalize">{k.replace(/([A-Z])/g, ' $1').trim()}</p>
-                      <p className="text-lg font-bold text-[var(--text-primary)] mono-engineering mt-1">{v}</p>
+                    <div
+                      key={k}
+                      className="p-3 bg-[var(--bg-primary)] rounded-lg border border-[var(--border-primary)]"
+                    >
+                      <p className="text-xs text-[var(--text-muted)] capitalize">
+                        {k.replace(/([A-Z])/g, ' $1').trim()}
+                      </p>
+                      <p className="text-lg font-bold text-[var(--text-primary)] mono-engineering mt-1">
+                        {v}
+                      </p>
                     </div>
                   ))
                 ) : (
                   <>
                     <div className="p-3 bg-[var(--bg-primary)] rounded-lg border border-[var(--border-primary)]">
                       <p className="text-xs text-[var(--text-muted)]">Total Requests</p>
-                      <p className="text-lg font-bold text-[var(--text-primary)] mono-engineering mt-1">{metrics.requests_total}</p>
+                      <p className="text-lg font-bold text-[var(--text-primary)] mono-engineering mt-1">
+                        {metrics.requests_total}
+                      </p>
                     </div>
                     <div className="p-3 bg-[var(--bg-primary)] rounded-lg border border-[var(--border-primary)]">
                       <p className="text-xs text-[var(--text-muted)]">Success</p>
-                      <p className="text-lg font-bold text-[var(--text-primary)] mono-engineering mt-1">{metrics.requests_success}</p>
+                      <p className="text-lg font-bold text-[var(--text-primary)] mono-engineering mt-1">
+                        {metrics.requests_success}
+                      </p>
                     </div>
                     <div className="p-3 bg-[var(--bg-primary)] rounded-lg border border-[var(--border-primary)]">
                       <p className="text-xs text-[var(--text-muted)]">Failed</p>
-                      <p className="text-lg font-bold text-[var(--text-primary)] mono-engineering mt-1">{metrics.requests_failed}</p>
+                      <p className="text-lg font-bold text-[var(--text-primary)] mono-engineering mt-1">
+                        {metrics.requests_failed}
+                      </p>
                     </div>
                     <div className="p-3 bg-[var(--bg-primary)] rounded-lg border border-[var(--border-primary)]">
                       <p className="text-xs text-[var(--text-muted)]">Avg Execution</p>
-                      <p className="text-lg font-bold text-[var(--text-primary)] mono-engineering mt-1">{metrics.avg_execution_time_ms}ms</p>
+                      <p className="text-lg font-bold text-[var(--text-primary)] mono-engineering mt-1">
+                        {metrics.avg_execution_time_ms}ms
+                      </p>
                     </div>
                   </>
                 )}
@@ -158,7 +196,11 @@ export default function Administration() {
         )}
 
         {/* Provider Latency / Agent List */}
-        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3 }}
+        >
           <Card padding="md">
             <CardHeader
               title="Provider Latency / Agent Registry"
@@ -166,40 +208,65 @@ export default function Administration() {
               icon={<Zap className="w-4 h-4" />}
             />
             <div className="space-y-3">
-              {metrics?.providers ? (
-                Object.entries(metrics.providers as Record<string, { count: number; avgMs: number; failureRate: number }>).map(([name, p]) => {
-                  const latencyColor = p.avgMs < 500 ? 'bg-green-500' : p.avgMs < 1000 ? 'bg-amber-500' : 'bg-red-500'  // NOSONAR — S3358: nested ternary; refactor to named variable (tech debt)
-                  const latencyPercent = Math.min(100, (p.avgMs / 2000) * 100)
-                  return (
-                    <div key={name} className="p-3 bg-[var(--bg-primary)] rounded-lg border border-[var(--border-primary)]">
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="text-sm font-medium text-[var(--text-primary)] capitalize">{name}</span>
-                        <div className="flex items-center gap-2">
-                          <Badge variant={p.failureRate > 0.05 ? 'warning' : 'success'} size="sm">
-                            {(p.failureRate * 100).toFixed(1)}% fail
-                          </Badge>
+              {metrics?.providers
+                ? Object.entries(
+                    metrics.providers as Record<
+                      string,
+                      { count: number; avgMs: number; failureRate: number }
+                    >,
+                  ).map(([name, p]) => {
+                    const latencyColor =
+                      p.avgMs < 500
+                        ? 'bg-green-500'
+                        : p.avgMs < 1000
+                          ? 'bg-amber-500'
+                          : 'bg-red-500'; // NOSONAR — S3358: nested ternary; refactor to named variable (tech debt)
+                    const latencyPercent = Math.min(100, (p.avgMs / 2000) * 100);
+                    return (
+                      <div
+                        key={name}
+                        className="p-3 bg-[var(--bg-primary)] rounded-lg border border-[var(--border-primary)]"
+                      >
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="text-sm font-medium text-[var(--text-primary)] capitalize">
+                            {name}
+                          </span>
+                          <div className="flex items-center gap-2">
+                            <Badge variant={p.failureRate > 0.05 ? 'warning' : 'success'} size="sm">
+                              {(p.failureRate * 100).toFixed(1)}% fail
+                            </Badge>
+                          </div>
                         </div>
-                      </div>
-                      <div className="flex items-center gap-3">
-                        <div className="flex-1 h-1.5 bg-[var(--bg-elevated)] rounded-full overflow-hidden">
-                          <div className={cn('h-full rounded-full transition-all', latencyColor)} style={{ width: `${latencyPercent}%` }} />
+                        <div className="flex items-center gap-3">
+                          <div className="flex-1 h-1.5 bg-[var(--bg-elevated)] rounded-full overflow-hidden">
+                            <div
+                              className={cn('h-full rounded-full transition-all', latencyColor)}
+                              style={{ width: `${latencyPercent}%` }}
+                            />
+                          </div>
+                          <span className="text-xs text-[var(--text-muted)] mono-engineering w-16 text-right">
+                            {p.avgMs}ms
+                          </span>
                         </div>
-                        <span className="text-xs text-[var(--text-muted)] mono-engineering w-16 text-right">{p.avgMs}ms</span>
+                        <p className="text-xs text-[var(--text-muted)] mt-1.5">{p.count} calls</p>
                       </div>
-                      <p className="text-xs text-[var(--text-muted)] mt-1.5">{p.count} calls</p>
+                    );
+                  })
+                : agents.slice(0, 4).map((a) => (
+                    <div
+                      key={a.id}
+                      className="p-3 bg-[var(--bg-primary)] rounded-lg border border-[var(--border-primary)]"
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm font-medium text-[var(--text-primary)]">
+                          {a.name}
+                        </span>
+                        <span className="text-xs text-[var(--text-muted)]">
+                          {(a.capabilities ?? []).slice(0, 3).join(', ')}
+                        </span>
+                      </div>
                     </div>
-                  )
-                })
-              ) : (
-                agents.slice(0, 4).map(a => (
-                  <div key={a.id} className="p-3 bg-[var(--bg-primary)] rounded-lg border border-[var(--border-primary)]">
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm font-medium text-[var(--text-primary)]">{a.name}</span>
-                      <span className="text-xs text-[var(--text-muted)]">{(a.capabilities ?? []).slice(0, 3).join(', ')}</span>
-                    </div>
-                  </div>
-                ))
-              )}
+                  ))}
             </div>
           </Card>
         </motion.div>
@@ -207,7 +274,11 @@ export default function Administration() {
 
       {/* Agent Registry */}
       {agents.length > 0 && (
-        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}>
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.4 }}
+        >
           <Card padding="md">
             <CardHeader
               title="Agent Registry"
@@ -215,23 +286,32 @@ export default function Administration() {
               icon={<Users className="w-4 h-4" />}
             />
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-              {agents.map(agent => (
-                <div key={agent.id} className="p-3 bg-[var(--bg-primary)] rounded-lg border border-[var(--border-primary)]">
+              {agents.map((agent) => (
+                <div
+                  key={agent.id}
+                  className="p-3 bg-[var(--bg-primary)] rounded-lg border border-[var(--border-primary)]"
+                >
                   <div className="flex items-center gap-2.5 mb-2">
                     <div className="p-1.5 rounded-md bg-brand-500/10">
                       <Zap className="w-3.5 h-3.5 text-brand-400" />
                     </div>
                     <div>
                       <p className="text-sm font-medium text-[var(--text-primary)]">{agent.name}</p>
-                      {agent.model && <p className="text-xs text-[var(--text-muted)]">{agent.model}</p>}
+                      {agent.model && (
+                        <p className="text-xs text-[var(--text-muted)]">{agent.model}</p>
+                      )}
                     </div>
                   </div>
                   <div className="flex flex-wrap gap-1 mt-2">
-                    {(agent.capabilities ?? []).slice(0, 3).map(cap => (
-                      <Badge key={cap} variant="neutral" size="sm">{cap}</Badge>
+                    {(agent.capabilities ?? []).slice(0, 3).map((cap) => (
+                      <Badge key={cap} variant="neutral" size="sm">
+                        {cap}
+                      </Badge>
                     ))}
                     {(agent.capabilities?.length ?? 0) > 3 && (
-                      <Badge variant="neutral" size="sm">+{(agent.capabilities?.length ?? 0) - 3}</Badge>
+                      <Badge variant="neutral" size="sm">
+                        +{(agent.capabilities?.length ?? 0) - 3}
+                      </Badge>
                     )}
                   </div>
                 </div>
@@ -241,5 +321,5 @@ export default function Administration() {
         </motion.div>
       )}
     </div>
-  )
+  );
 }

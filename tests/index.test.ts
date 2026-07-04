@@ -8,7 +8,11 @@ declare global {
     get(key: string, opts?: { type?: string }): Promise<unknown | null>;
     put(key: string, value: string, opts?: { expirationTtl?: number }): Promise<void>;
     delete(key: string): Promise<void>;
-    list(opts?: { prefix?: string; limit?: number; cursor?: string }): Promise<{ keys: { name: string }[]; list_complete: boolean; cursor?: string }>;
+    list(opts?: {
+      prefix?: string;
+      limit?: number;
+      cursor?: string;
+    }): Promise<{ keys: { name: string }[]; list_complete: boolean; cursor?: string }>;
   }
 }
 
@@ -30,7 +34,9 @@ describe('Cloudflare Worker API Gateway', () => {
       put: async (key: string, value: string, opts?: { expirationTtl?: number }) => {
         store.set(key, { value, ttl: opts?.expirationTtl });
       },
-      delete: async (key: string) => { store.delete(key); },
+      delete: async (key: string) => {
+        store.delete(key);
+      },
       list: async (opts?: { prefix?: string; limit?: number; cursor?: string }) => {
         const keys: { name: string }[] = [];
         for (const key of store.keys()) {
@@ -100,9 +106,13 @@ describe('Cloudflare Worker API Gateway', () => {
   });
 
   it('returns 401 when API_KEY_SECRET is not configured', async () => {
-    const res = await makeRequest('/api/v1/agents', {
-      headers: { 'x-api-key': 'some-key' },
-    }, {});
+    const res = await makeRequest(
+      '/api/v1/agents',
+      {
+        headers: { 'x-api-key': 'some-key' },
+      },
+      {},
+    );
     expect(res.status).toBe(401);
     const body = (await res.json()) as Record<string, unknown>;
     expect(body.message).toMatch(/API_KEY_SECRET is not configured/i);
@@ -119,7 +129,10 @@ describe('Cloudflare Worker API Gateway', () => {
 
   it('returns 200 and agent list with valid API key (KV-backed)', async () => {
     const kv = mockKV();
-    await kv.put('api-key:kv-test-key', JSON.stringify({ createdAt: Date.now(), name: 'test-key' }));
+    await kv.put(
+      'api-key:kv-test-key',
+      JSON.stringify({ createdAt: Date.now(), name: 'test-key' }),
+    );
     const env = {
       API_KEY_SECRET: 'test-secret',
       RATE_LIMIT_KV: kv,
@@ -127,9 +140,13 @@ describe('Cloudflare Worker API Gateway', () => {
       METRICS_KV: kv,
       API_KEYS_KV: kv,
     };
-    const res = await makeRequest('/api/v1/agents', {
-      headers: { 'x-api-key': 'kv-test-key' },
-    }, env);
+    const res = await makeRequest(
+      '/api/v1/agents',
+      {
+        headers: { 'x-api-key': 'kv-test-key' },
+      },
+      env,
+    );
     expect(res.status).toBe(200);
     const body = (await res.json()) as Record<string, unknown>;
     expect(Array.isArray(body.agents)).toBe(true);
@@ -137,7 +154,10 @@ describe('Cloudflare Worker API Gateway', () => {
 
   it('returns 401 with revoked KV-backed API key', async () => {
     const kv = mockKV();
-    await kv.put('api-key:revoked-key', JSON.stringify({ createdAt: Date.now(), revoked: true, name: 'revoked' }));
+    await kv.put(
+      'api-key:revoked-key',
+      JSON.stringify({ createdAt: Date.now(), revoked: true, name: 'revoked' }),
+    );
     const env = {
       API_KEY_SECRET: 'test-secret',
       RATE_LIMIT_KV: kv,
@@ -145,9 +165,13 @@ describe('Cloudflare Worker API Gateway', () => {
       METRICS_KV: kv,
       API_KEYS_KV: kv,
     };
-    const res = await makeRequest('/api/v1/agents', {
-      headers: { 'x-api-key': 'revoked-key' },
-    }, env);
+    const res = await makeRequest(
+      '/api/v1/agents',
+      {
+        headers: { 'x-api-key': 'revoked-key' },
+      },
+      env,
+    );
     expect(res.status).toBe(401);
     const body = (await res.json()) as Record<string, unknown>;
     expect(body.message).toMatch(/revoked/i);
@@ -228,14 +252,18 @@ describe('Cloudflare Worker API Gateway', () => {
       METRICS_KV: kv,
       API_KEYS_KV: kv,
     };
-    const res = await makeRequest('/api/v1/studies/run', {
-      method: 'POST',
-      headers: {
-        'content-type': 'application/json',
-        'x-api-key': 'test-secret',
+    const res = await makeRequest(
+      '/api/v1/studies/run',
+      {
+        method: 'POST',
+        headers: {
+          'content-type': 'application/json',
+          'x-api-key': 'test-secret',
+        },
+        body: JSON.stringify({ studyType: 'load_flow', parameters: {}, dryRun: true }),
       },
-      body: JSON.stringify({ studyType: 'load_flow', parameters: {}, dryRun: true }),
-    }, env);
+      env,
+    );
     expect(res.status).toBe(200);
     const body = (await res.json()) as Record<string, unknown>;
     expect(body.status).toBe('dry_run');
@@ -243,9 +271,13 @@ describe('Cloudflare Worker API Gateway', () => {
     const taskId = body.taskId as string;
 
     // Verify task is persisted in KV
-    const statusRes = await makeRequest(`/api/v1/studies/status/${taskId}`, {
-      headers: { 'x-api-key': 'test-secret' },
-    }, env);
+    const statusRes = await makeRequest(
+      `/api/v1/studies/status/${taskId}`,
+      {
+        headers: { 'x-api-key': 'test-secret' },
+      },
+      env,
+    );
     expect(statusRes.status).toBe(200);
     const statusBody = (await statusRes.json()) as Record<string, unknown>;
     expect(statusBody.status).toBe('dry_run');
@@ -254,18 +286,30 @@ describe('Cloudflare Worker API Gateway', () => {
 
   it('enforces rate limiting via mock KV', async () => {
     const kv = mockKV();
-    const env = { API_KEY_SECRET: 'test-secret', RATE_LIMIT_KV: kv, RATE_LIMIT_REQUESTS_PER_MINUTE: '3' };
+    const env = {
+      API_KEY_SECRET: 'test-secret',
+      RATE_LIMIT_KV: kv,
+      RATE_LIMIT_REQUESTS_PER_MINUTE: '3',
+    };
     // 3 requests within the limit should succeed
     for (let i = 0; i < 3; i++) {
-      const res = await makeRequest('/api/v1/agents', {
-        headers: { 'x-api-key': 'test-secret' },
-      }, env);
+      const res = await makeRequest(
+        '/api/v1/agents',
+        {
+          headers: { 'x-api-key': 'test-secret' },
+        },
+        env,
+      );
       expect(res.status).toBe(200);
     }
     // 4th request should be rate limited
-    const blocked = await makeRequest('/api/v1/agents', {
-      headers: { 'x-api-key': 'test-secret' },
-    }, env);
+    const blocked = await makeRequest(
+      '/api/v1/agents',
+      {
+        headers: { 'x-api-key': 'test-secret' },
+      },
+      env,
+    );
     expect(blocked.status).toBe(429);
     const body = (await blocked.json()) as Record<string, unknown>;
     expect(body.message).toMatch(/Rate limit exceeded/i);

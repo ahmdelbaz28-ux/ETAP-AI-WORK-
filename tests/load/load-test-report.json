@@ -64,13 +64,7 @@
       "maxLatencyMs": 16581,
       "throughputRps": 23,
       "totalDurationMs": 22027,
-      "errors": [
-        "fetch failed",
-        "fetch failed",
-        "fetch failed",
-        "fetch failed",
-        "fetch failed"
-      ]
+      "errors": ["fetch failed", "fetch failed", "fetch failed", "fetch failed", "fetch failed"]
     },
     {
       "concurrency": 10,

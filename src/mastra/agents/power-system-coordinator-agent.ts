@@ -30,7 +30,8 @@ export const powerSystemCoordinatorAgent = new Agent({
   defaultNetworkOptions: {
     maxSteps: 10,
     routing: {
-      additionalInstructions: 'Prefer the narrowest specialist agent that can safely answer the user request.',
+      additionalInstructions:
+        'Prefer the narrowest specialist agent that can safely answer the user request.',
     },
   },
 });

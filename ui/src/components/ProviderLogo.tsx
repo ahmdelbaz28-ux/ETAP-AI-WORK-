@@ -17,7 +17,7 @@
  * - Hugging Face: https://huggingface.co/front/assets/huggingface_logo-noborder.svg
  */
 
-import { cn } from '../utils/helpers'
+import { cn } from '../utils/helpers';
 
 // ─── Verified brand SVG paths ─────────────────────────────────────
 // Each path is extracted from the official provider website.
@@ -27,10 +27,7 @@ const BRAND_ICONS: Record<string, { paths: string[]; viewBox: string; hex: strin
   // OpenCode Zen — from https://opencode.ai/favicon.svg
   // viewBox="0 0 512 512", 2 paths, fill #131010
   opencode: {
-    paths: [
-      'M320 224V352H192V224H320Z',
-      'M384 416H128V96H384V416ZM320 160H192V352H320V160Z',
-    ],
+    paths: ['M320 224V352H192V224H320Z', 'M384 416H128V96H384V416ZM320 160H192V352H320V160Z'],
     viewBox: '0 0 512 512',
     hex: '131010',
   },
@@ -108,9 +105,7 @@ const BRAND_ICONS: Record<string, { paths: string[]; viewBox: string; hex: strin
   // Groq — official brand color #F55036 (orange-red)
   // Lightning bolt shape representing speed
   groq: {
-    paths: [
-      'M13 2L3 14h7l-1 8 10-12h-7l1-8z',
-    ],
+    paths: ['M13 2L3 14h7l-1 8 10-12h-7l1-8z'],
     viewBox: '0 0 24 24',
     hex: 'F55036',
   },
@@ -138,9 +133,7 @@ const BRAND_ICONS: Record<string, { paths: string[]; viewBox: string; hex: strin
   // Zhipu AI / GLM — official brand color #3B5BFE (blue)
   // Hexagonal shape representing "big model"
   zhipu: {
-    paths: [
-      'M12 2L22 7.5V16.5L12 22L2 16.5V7.5L12 2Z',
-    ],
+    paths: ['M12 2L22 7.5V16.5L12 22L2 16.5V7.5L12 2Z'],
     viewBox: '0 0 24 24',
     hex: '3B5BFE',
   },
@@ -164,22 +157,22 @@ const BRAND_ICONS: Record<string, { paths: string[]; viewBox: string; hex: strin
     viewBox: '0 0 24 24',
     hex: 'FFD21E',
   },
-}
+};
 
 // ─── Fallback for unknown providers ──────────────────────────────
 const FALLBACK_COLORS: Record<string, { hex: string; label: string }> = {
   custom_openai: { hex: '8B5CF6', label: '{ }' },
-}
+};
 
 interface ProviderLogoProps {
-  providerId: string
-  size?: number
-  className?: string
+  providerId: string;
+  size?: number;
+  className?: string;
 }
 
 export function ProviderLogo({ providerId, size = 40, className }: ProviderLogoProps) {
-  const brand = BRAND_ICONS[providerId]
-  const fallback = FALLBACK_COLORS[providerId]
+  const brand = BRAND_ICONS[providerId];
+  const fallback = FALLBACK_COLORS[providerId];
 
   if (brand) {
     // Render real brand SVG logo
@@ -187,7 +180,7 @@ export function ProviderLogo({ providerId, size = 40, className }: ProviderLogoP
       <div
         className={cn(
           'flex items-center justify-center rounded-xl shrink-0 transition-all',
-          className
+          className,
         )}
         style={{
           width: size,
@@ -209,17 +202,17 @@ export function ProviderLogo({ providerId, size = 40, className }: ProviderLogoP
           ))}
         </svg>
       </div>
-    )
+    );
   }
 
   // Fallback: polished colored avatar with brand initial
-  const color = fallback?.hex || '6B7280'
-  const label = fallback?.label || providerId.charAt(0).toUpperCase()
+  const color = fallback?.hex || '6B7280';
+  const label = fallback?.label || providerId.charAt(0).toUpperCase();
   return (
     <div
       className={cn(
         'flex items-center justify-center rounded-xl shrink-0 font-bold text-white shadow-sm',
-        className
+        className,
       )}
       style={{
         width: size,
@@ -230,7 +223,7 @@ export function ProviderLogo({ providerId, size = 40, className }: ProviderLogoP
     >
       {label}
     </div>
-  )
+  );
 }
 
-export default ProviderLogo
+export default ProviderLogo;

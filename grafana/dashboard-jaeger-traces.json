@@ -583,10 +583,7 @@
         "defaults": {
           "color": { "mode": "thresholds" },
           "thresholds": {
-            "steps": [
-              { "color": "red", "value": null },
-              { "color": "green", "value": 1 }
-            ]
+            "steps": [{ "color": "red", "value": null }, { "color": "green", "value": 1 }]
           }
         }
       },
@@ -616,7 +613,12 @@
           "id": "organize",
           "options": {
             "excludeByName": { "Time": true, "__name__": true, "instance": true, "job": true },
-            "renameByName": { "name": "Service", "version": "Version", "environment": "Environment", "Value": "Status" }
+            "renameByName": {
+              "name": "Service",
+              "version": "Version",
+              "environment": "Environment",
+              "Value": "Status"
+            }
           }
         }
       ]
@@ -704,7 +706,11 @@
   "templating": {
     "list": [
       {
-        "current": { "selected": false, "text": "engineering-service", "value": "engineering-service" },
+        "current": {
+          "selected": false,
+          "text": "engineering-service",
+          "value": "engineering-service"
+        },
         "datasource": { "type": "jaeger", "uid": "${DS_JAEGER}" },
         "definition": "",
         "hide": 0,

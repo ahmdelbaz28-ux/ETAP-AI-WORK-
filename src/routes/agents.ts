@@ -2,7 +2,7 @@
  * Agent listing + chat routes.
  */
 import type { Env, ExecutionContext } from '../core/types.js';
-import { type ModelMessage } from 'ai';
+import type { ModelMessage } from 'ai';
 import { jsonResponse, errorResponse, corsHeaders, getIdempotencyKey } from '../utils/response.js';
 import { getAgent, AGENT_REGISTRY } from '../core/agents.js';
 import { generateWithFailover, hasAnyProviderConfigured } from '../core/providers.js';
@@ -12,11 +12,11 @@ import { getCachedResponse, cacheResponse } from '../core/idempotency.js';
 
 export async function handleListAgents(
   request: Request,
-  env: Env,
+  _env: Env,
   ctx: ExecutionContext,
   apiKeyId: string,
   scope: string,
-  traceId: string
+  traceId: string,
 ): Promise<Response> {
   const origin = request.headers.get('origin') || '*';
   bumpApiMetric('totalRequests');
@@ -36,25 +36,30 @@ export async function handleListAgents(
     apiKeyId,
     scope,
   });
-  ctx.waitUntil((async () => { /* flush handled by index */ })());
+  ctx.waitUntil(
+    (async () => {
+      /* flush handled by index */
+    })(),
+  );
   return jsonResponse(
     200,
     {
       agents: Object.values(AGENT_REGISTRY),
       traceId,
     },
-    corsHeaders(origin)
+    corsHeaders(origin),
   );
 }
 
-export async function handleChat(  // NOSONAR — S3776: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
+export async function handleChat(
+  // NOSONAR — S3776: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
   request: Request,
   env: Env,
   ctx: ExecutionContext,
   apiKeyId: string,
   scope: string,
   agentId: string,
-  traceId: string
+  traceId: string,
 ): Promise<Response> {
   const origin = request.headers.get('origin') || '*';
 
@@ -151,7 +156,17 @@ export async function handleChat(  // NOSONAR — S3776: cognitive complexity; s
           details: { agentId },
         });
         if (idempotencyKey) {
-          ctx.waitUntil(cacheResponse(env, apiKeyId, route, idempotencyKey, 200, body, 'application/json; charset=utf-8'));
+          ctx.waitUntil(
+            cacheResponse(
+              env,
+              apiKeyId,
+              route,
+              idempotencyKey,
+              200,
+              body,
+              'application/json; charset=utf-8',
+            ),
+          );
         }
         return new Response(body, {
           status: 200,
@@ -221,7 +236,17 @@ export async function handleChat(  // NOSONAR — S3776: cognitive complexity; s
       details: { agentId, provider: result.provider },
     });
     if (idempotencyKey) {
-      ctx.waitUntil(cacheResponse(env, apiKeyId, route, idempotencyKey, 200, responseBody, 'application/json; charset=utf-8'));
+      ctx.waitUntil(
+        cacheResponse(
+          env,
+          apiKeyId,
+          route,
+          idempotencyKey,
+          200,
+          responseBody,
+          'application/json; charset=utf-8',
+        ),
+      );
     }
     return new Response(responseBody, {
       status: 200,

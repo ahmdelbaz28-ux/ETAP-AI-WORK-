@@ -3,20 +3,20 @@
  */
 
 export interface StudyParam {
-  name: string
-  type: 'number' | 'text' | 'select'
-  default: string | number
-  label?: string
-  description?: string
+  name: string;
+  type: 'number' | 'text' | 'select';
+  default: string | number;
+  label?: string;
+  description?: string;
 }
 
 export interface StudyCategory {
-  id: string
-  name: string
-  icon: string
-  description: string
-  standard?: string
-  params: StudyParam[]
+  id: string;
+  name: string;
+  icon: string;
+  description: string;
+  standard?: string;
+  params: StudyParam[];
 }
 
 export const studyCategories: StudyCategory[] = [
@@ -24,7 +24,8 @@ export const studyCategories: StudyCategory[] = [
     id: 'load_flow',
     name: 'Load Flow Analysis',
     icon: '⚡',
-    description: 'Newton-Raphson power flow solver with voltage regulation and power loss analysis.',
+    description:
+      'Newton-Raphson power flow solver with voltage regulation and power loss analysis.',
     standard: 'IEEE',
     params: [
       { name: 'method', type: 'select', default: 'newton-raphson', label: 'Solution Method' },
@@ -80,7 +81,7 @@ export const studyCategories: StudyCategory[] = [
     params: [
       { name: 'upstream_relay_tms', type: 'number', default: 0.1, label: 'Upstream TMS' },
       { name: 'downstream_relay_tms', type: 'number', default: 0.2, label: 'Downstream TMS' },
-      { name: 'pickup_current', type: 'number', default: 1.0, label: 'Pickup Current (pu)' },  // NOSONAR — S7748: number literal trailing zero; cosmetic
+      { name: 'pickup_current', type: 'number', default: 1.0, label: 'Pickup Current (pu)' }, // NOSONAR — S7748: number literal trailing zero; cosmetic
     ],
   },
   {
@@ -91,8 +92,18 @@ export const studyCategories: StudyCategory[] = [
     standard: 'IEEE',
     params: [
       { name: 'motor_hp', type: 'number', default: 500, label: 'Motor HP' },
-      { name: 'starting_method', type: 'select', default: 'across_the_line', label: 'Starting Method' },
-      { name: 'voltage_drop_limit_pct', type: 'number', default: 15, label: 'Voltage Drop Limit (%)' },
+      {
+        name: 'starting_method',
+        type: 'select',
+        default: 'across_the_line',
+        label: 'Starting Method',
+      },
+      {
+        name: 'voltage_drop_limit_pct',
+        type: 'number',
+        default: 15,
+        label: 'Voltage Drop Limit (%)',
+      },
     ],
   },
   {
@@ -114,7 +125,12 @@ export const studyCategories: StudyCategory[] = [
     params: [
       { name: 'simulation_time_s', type: 'number', default: 5, label: 'Simulation Time (s)' },
       { name: 'time_step_ms', type: 'number', default: 10, label: 'Time Step (ms)' },
-      { name: 'fault_clearing_time_ms', type: 'number', default: 100, label: 'Fault Clearing Time (ms)' },
+      {
+        name: 'fault_clearing_time_ms',
+        type: 'number',
+        default: 100,
+        label: 'Fault Clearing Time (ms)',
+      },
     ],
   },
-]
+];

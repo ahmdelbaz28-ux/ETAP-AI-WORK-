@@ -42,13 +42,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     } else {
       setIsLoading(false);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const validateTokenAndSetUser = async (token: string) => {
     try {
       const response = await fetch('/api/v1/auth/me', {
         headers: {
-          'Authorization': `Bearer ${token}`,
+          Authorization: `Bearer ${token}`,
           'Content-Type': 'application/json',
         },
       });
@@ -83,11 +84,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
 
     const data = await response.json();
-    
+
     // Save tokens
     localStorage.setItem('authToken', data.access_token);
     localStorage.setItem('refreshToken', data.refresh_token);
-    
+
     // Set user
     setUser(data.user);
   };
@@ -113,11 +114,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
 
     const data = await response.json();
-    
+
     // Save tokens
     localStorage.setItem('authToken', data.access_token);
     localStorage.setItem('refreshToken', data.refresh_token);
-    
+
     // Set user
     setUser(data.user);
   };
@@ -133,7 +134,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${refreshToken}`,
+          Authorization: `Bearer ${refreshToken}`,
         },
       });
 
@@ -142,7 +143,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
 
       const data = await response.json();
-      
+
       // Update access token
       localStorage.setItem('authToken', data.access_token);
     } catch (error) {

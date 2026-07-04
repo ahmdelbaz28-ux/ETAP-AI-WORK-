@@ -34,7 +34,9 @@ export async function validateApiKey(env: Env, apiKey: string | null): Promise<A
   // 1. KV-backed key with optional scope record
   if (env.API_KEYS_KV) {
     try {
-      const record = (await env.API_KEYS_KV.get(`api-key:${apiKey}`, { type: 'json' })) as ApiKeyRecord | null;
+      const record = (await env.API_KEYS_KV.get(`api-key:${apiKey}`, {
+        type: 'json',
+      })) as ApiKeyRecord | null;
       if (record) {
         if (record.revoked) return { valid: false, error: 'API key has been revoked' };
         // Look up scope

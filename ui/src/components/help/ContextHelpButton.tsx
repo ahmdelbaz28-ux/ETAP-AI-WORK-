@@ -1,15 +1,15 @@
-import { HelpCircle } from 'lucide-react'
-import { useTranslation } from 'react-i18next'
+import { HelpCircle } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 interface ContextHelpButtonProps {
   /** The context ID to look up in the contextRegistry. */
-  contextId: string
+  contextId: string;
   /** Optional CSS class for custom positioning. */
-  className?: string
+  className?: string;
   /** Optional size variant. */
-  size?: 'sm' | 'md' | 'lg'
+  size?: 'sm' | 'md' | 'lg';
   /** Optional label override (defaults to localized "Help"). */
-  label?: string
+  label?: string;
 }
 
 /**
@@ -22,27 +22,28 @@ interface ContextHelpButtonProps {
  * Example:
  *   <ContextHelpButton contextId="studies.load-flow" />
  */
-export function ContextHelpButton({  // NOSONAR — S6759: React props read-only; requires `readonly` refactor across component tree
+export function ContextHelpButton({
+  // NOSONAR — S6759: React props read-only; requires `readonly` refactor across component tree
   contextId,
   className = '',
   size = 'sm',
   label,
 }: ContextHelpButtonProps) {
-  const { i18n } = useTranslation()
-  const lang = i18n.language === 'ar' ? 'ar' : 'en'
-  const displayLabel = label ?? (lang === 'ar' ? 'مساعدة' : 'Help')
+  const { i18n } = useTranslation();
+  const lang = i18n.language === 'ar' ? 'ar' : 'en';
+  const displayLabel = label ?? (lang === 'ar' ? 'مساعدة' : 'Help');
 
   const sizeClasses = {
     sm: 'w-7 h-7',
     md: 'w-8 h-8',
     lg: 'w-9 h-9',
-  }
+  };
 
   const iconSizes = {
     sm: 'w-3.5 h-3.5',
     md: 'w-4 h-4',
     lg: 'w-4.5 h-4.5',
-  }
+  };
 
   const handleClick = () => {
     // Dispatch a global event that App.tsx listens for; this opens the
@@ -50,9 +51,9 @@ export function ContextHelpButton({  // NOSONAR — S6759: React props read-only
     globalThis.dispatchEvent(
       new CustomEvent('open-smart-help', {
         detail: { contextId },
-      })
-    )
-  }
+      }),
+    );
+  };
 
   return (
     <button
@@ -66,5 +67,5 @@ export function ContextHelpButton({  // NOSONAR — S6759: React props read-only
       <HelpCircle className={iconSizes[size]} />
       <span className="sr-only">{displayLabel}</span>
     </button>
-  )
+  );
 }

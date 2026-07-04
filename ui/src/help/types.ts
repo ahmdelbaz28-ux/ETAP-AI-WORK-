@@ -1,18 +1,18 @@
 export interface HelpContent {
-  en: string
-  ar: string
+  en: string;
+  ar: string;
 }
 
 export interface HelpTopic {
-  id: string
-  category: HelpCategory
-  title: HelpContent
-  description: HelpContent
-  content: HelpContent
-  tags: string[]
-  navigateTo?: string
-  relatedTopics?: string[]
-  icon?: string
+  id: string;
+  category: HelpCategory;
+  title: HelpContent;
+  description: HelpContent;
+  content: HelpContent;
+  tags: string[];
+  navigateTo?: string;
+  relatedTopics?: string[];
+  icon?: string;
 }
 
 export type HelpCategory =
@@ -24,17 +24,17 @@ export type HelpCategory =
   | 'digital-twin'
   | 'settings'
   | 'troubleshooting'
-  | 'keyboard-shortcuts'
+  | 'keyboard-shortcuts';
 
 export interface ContextMapping {
-  contextId: string
-  topicId: string
-  priority?: number
+  contextId: string;
+  topicId: string;
+  priority?: number;
 }
 
 export interface SmartHelpState {
-  isOpen: boolean
-  activeTopic: string | null
-  searchQuery: string
-  selectedCategory: HelpCategory | 'all'
+  isOpen: boolean;
+  activeTopic: string | null;
+  searchQuery: string;
+  selectedCategory: HelpCategory | 'all';
 }

@@ -83,7 +83,9 @@ export async function getAuditLogs(env: Env, date?: string): Promise<AuditLogEnt
   try {
     const listResult = await env.RATE_LIMIT_KV.list({ prefix });
     for (const key of listResult.keys) {
-      const raw = (await env.RATE_LIMIT_KV.get(key.name, { type: 'json' })) as AuditLogEntry[] | null;
+      const raw = (await env.RATE_LIMIT_KV.get(key.name, { type: 'json' })) as
+        | AuditLogEntry[]
+        | null;
       if (Array.isArray(raw)) logs.push(...raw);
     }
   } catch {

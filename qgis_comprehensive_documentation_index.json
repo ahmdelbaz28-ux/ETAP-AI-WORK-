@@ -266,52 +266,37 @@
       "category": "introduction",
       "title": "Introduction to QGIS",
       "description": "Basic information about QGIS and Geographic Information Systems",
-      "documents": [
-        "QGIS-3.44-AboutQGIS-en.pdf",
-        "QGIS-3.44-GentleGISIntroduction-en.pdf"
-      ]
+      "documents": ["QGIS-3.44-AboutQGIS-en.pdf", "QGIS-3.44-GentleGISIntroduction-en.pdf"]
     },
     {
       "category": "user_guide",
       "title": "User Guides",
       "description": "Comprehensive guides for using QGIS desktop application",
-      "documents": [
-        "QGIS-3.44-DesktopUserGuide-en.pdf",
-        "QGIS-3.44-TrainingManual-en.pdf"
-      ]
+      "documents": ["QGIS-3.44-DesktopUserGuide-en.pdf", "QGIS-3.44-TrainingManual-en.pdf"]
     },
     {
       "category": "development",
       "title": "Development Resources",
       "description": "Resources for developing with PyQGIS and QGIS APIs",
-      "documents": [
-        "QGIS-3.44-PyQGISDeveloperCookbook-en.pdf",
-        "PyQGIS API Documentation"
-      ]
+      "documents": ["QGIS-3.44-PyQGISDeveloperCookbook-en.pdf", "PyQGIS API Documentation"]
     },
     {
       "category": "server",
       "title": "Server Documentation",
       "description": "Documentation for QGIS Server setup and configuration",
-      "documents": [
-        "QGIS-3.44-ServerUserGuide-en.pdf"
-      ]
+      "documents": ["QGIS-3.44-ServerUserGuide-en.pdf"]
     },
     {
       "category": "training",
       "title": "Training Materials",
       "description": "Comprehensive training resources for QGIS users",
-      "documents": [
-        "QGIS-3.44-TrainingManual-en.pdf"
-      ]
+      "documents": ["QGIS-3.44-TrainingManual-en.pdf"]
     },
     {
       "category": "guidelines",
       "title": "Documentation Guidelines",
       "description": "Guidelines for contributing to QGIS documentation",
-      "documents": [
-        "QGIS-3.44-DocumentationGuidelines-en.pdf"
-      ]
+      "documents": ["QGIS-3.44-DocumentationGuidelines-en.pdf"]
     }
   ],
   "ai_accessibility_features": {

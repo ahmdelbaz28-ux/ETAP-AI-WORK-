@@ -1,23 +1,43 @@
-import { NavLink, useLocation } from 'react-router-dom'
-import { useTranslation } from 'react-i18next'
-import { useTheme } from '../context/ThemeContext'
-import { useAppStore } from '../store'
-import { fetchHealth, type HealthResponse } from '../lib/api'
-import { useEffect, useState } from 'react'
+import { NavLink, useLocation } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
+import { useTheme } from '../context/ThemeContext';
+import { useAppStore } from '../store';
+import { fetchHealth, type HealthResponse } from '../lib/api';
+import { useEffect, useState } from 'react';
 import {
-  LayoutDashboard, FlaskConical, Bot, FolderKanban, Settings,
-  ShieldCheck, Bug, Map, FileText, Upload, Download, ScrollText,
-  ChevronLeft, ChevronRight, Sun, Moon, Zap, Plug, Layers, Network,
-  Cpu, Wrench, Shield, X
-} from 'lucide-react'
-import { cn } from '../utils/helpers'
+  LayoutDashboard,
+  FlaskConical,
+  Bot,
+  FolderKanban,
+  Settings,
+  ShieldCheck,
+  Bug,
+  Map,
+  FileText,
+  Upload,
+  Download,
+  ScrollText,
+  ChevronLeft,
+  ChevronRight,
+  Sun,
+  Moon,
+  Zap,
+  Plug,
+  Layers,
+  Network,
+  Cpu,
+  Wrench,
+  Shield,
+  X,
+} from 'lucide-react';
+import { cn } from '../utils/helpers';
 
 interface NavItem {
-  to: string
-  icon: React.ElementType
-  labelKey: string
-  section?: string
-  badge?: string | number
+  to: string;
+  icon: React.ElementType;
+  labelKey: string;
+  section?: string;
+  badge?: string | number;
 }
 
 const navItems: NavItem[] = [
@@ -25,7 +45,12 @@ const navItems: NavItem[] = [
   { to: '/studies', icon: FlaskConical, labelKey: 'sidebar.studies' },
   { to: '/assistant', icon: Bot, labelKey: 'sidebar.assistant' },
   { to: '/projects', icon: FolderKanban, labelKey: 'sidebar.projects', section: 'engineering' },
-  { to: '/asset-management', icon: Network, labelKey: 'sidebar.assetManagement', section: 'engineering' },
+  {
+    to: '/asset-management',
+    icon: Network,
+    labelKey: 'sidebar.assetManagement',
+    section: 'engineering',
+  },
   { to: '/etap', icon: Plug, labelKey: 'sidebar.etapIntegration', section: 'integration' },
   { to: '/gis', icon: Map, labelKey: 'sidebar.gisIntegration', section: 'integration' },
   { to: '/digital-twin', icon: Layers, labelKey: 'sidebar.digitalTwin', section: 'integration' },
@@ -37,77 +62,78 @@ const navItems: NavItem[] = [
   { to: '/diagnostics', icon: Bug, labelKey: 'sidebar.diagnostics', section: 'system' },
   { to: '/code-guard', icon: Shield, labelKey: 'sidebar.codeGuard', section: 'system' },
   { to: '/logs', icon: ScrollText, labelKey: 'sidebar.logs', section: 'system' },
-]
+];
 
-const sectionOrder = ['engineering', 'integration', 'system'] as const
+const sectionOrder = ['engineering', 'integration', 'system'] as const;
 const sectionLabels: Record<string, string> = {
   engineering: 'sidebar.engineering',
   integration: 'sidebar.integration',
   system: 'sidebar.system',
-}
+};
 
 const sectionIcons: Record<string, React.ElementType> = {
   engineering: Cpu,
   integration: Plug,
   system: Wrench,
-}
+};
 
-export function Sidebar() {  // NOSONAR — S3776: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
-  const { t, i18n } = useTranslation()
-  const { theme, toggleTheme } = useTheme()
-  const location = useLocation()
-  const { sidebarCollapsed, toggleSidebar, mobileSidebarOpen, setMobileSidebarOpen } = useAppStore()
-  const [healthStatus, setHealthStatus] = useState<'online' | 'offline' | 'checking'>('checking')
+export function Sidebar() {
+  // NOSONAR — S3776: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
+  const { t, i18n } = useTranslation();
+  const { theme, toggleTheme } = useTheme();
+  const location = useLocation();
+  const { sidebarCollapsed, toggleSidebar, mobileSidebarOpen, setMobileSidebarOpen } =
+    useAppStore();
+  const [healthStatus, setHealthStatus] = useState<'online' | 'offline' | 'checking'>('checking');
 
-  const isRtl = i18n.language === 'ar'
+  const isRtl = i18n.language === 'ar';
 
   // Close mobile drawer on route change
   useEffect(() => {
-    setMobileSidebarOpen(false)
-  }, [location.pathname, setMobileSidebarOpen])
+    setMobileSidebarOpen(false);
+  }, [location.pathname, setMobileSidebarOpen]);
 
   // Close mobile drawer on Escape
   useEffect(() => {
-    if (!mobileSidebarOpen) return
+    if (!mobileSidebarOpen) return;
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setMobileSidebarOpen(false)
-    }
-    window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
-  }, [mobileSidebarOpen, setMobileSidebarOpen])
+      if (e.key === 'Escape') setMobileSidebarOpen(false);
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [mobileSidebarOpen, setMobileSidebarOpen]);
 
   useEffect(() => {
     fetchHealth()
       .then((h: HealthResponse) => setHealthStatus(h.ok ? 'online' : 'offline'))
-      .catch(() => setHealthStatus('offline'))
+      .catch(() => setHealthStatus('offline'));
     const interval = setInterval(() => {
       fetchHealth()
         .then((h: HealthResponse) => setHealthStatus(h.ok ? 'online' : 'offline'))
-        .catch(() => setHealthStatus('offline'))
-    }, 30000)
-    return () => clearInterval(interval)
-  }, [])
+        .catch(() => setHealthStatus('offline'));
+    }, 30000);
+    return () => clearInterval(interval);
+  }, []);
 
-  const groupedItems: Record<string, NavItem[]> = {}
-  const topLevel: NavItem[] = []
-  navItems.forEach(item => {
+  const groupedItems: Record<string, NavItem[]> = {};
+  const topLevel: NavItem[] = [];
+  navItems.forEach((item) => {
     if (item.section) {
-      if (!groupedItems[item.section]) groupedItems[item.section] = []
-      groupedItems[item.section].push(item)
+      if (!groupedItems[item.section]) groupedItems[item.section] = [];
+      groupedItems[item.section].push(item);
     } else {
-      topLevel.push(item)
+      topLevel.push(item);
     }
-  })
+  });
 
   return (
     <>
       {/* ─── Desktop Sidebar (lg and up) ─────────────────────────────── */}
       <aside
-        role="complementary"
         aria-label="Sidebar Navigation"
         className={cn(
           'hidden lg:flex h-full flex-col bg-[var(--bg-secondary)] border-r border-[var(--border-primary)] shrink-0 transition-all duration-300 overflow-hidden z-[var(--z-sidebar)]',
-          sidebarCollapsed ? 'w-[68px]' : 'w-64'
+          sidebarCollapsed ? 'w-[68px]' : 'w-64',
         )}
       >
         {/* Logo Section */}
@@ -121,14 +147,23 @@ export function Sidebar() {  // NOSONAR — S3776: cognitive complexity; schedul
             </div>
             {!sidebarCollapsed && (
               <div className="min-w-0">
-                <h1 className="text-sm font-bold text-[var(--text-primary)] truncate tracking-tight">{t('app.name')}</h1>
+                <h1 className="text-sm font-bold text-[var(--text-primary)] truncate tracking-tight">
+                  {t('app.name')}
+                </h1>
                 <div className="flex items-center gap-1.5 mt-0.5">
-                  <span className={cn(
-                    'w-1.5 h-1.5 rounded-full',
-                    healthStatus === 'online' ? 'bg-green-400 animate-pulse' :
-                    healthStatus === 'checking' ? 'bg-amber-400' : 'bg-red-400'  // NOSONAR — S3358: nested ternary; refactor to named variable (tech debt)
-                  )} />
-                  <span className="text-[10px] text-[var(--text-muted)] capitalize">{t(`dashboard.${healthStatus}`)}</span>
+                  <span
+                    className={cn(
+                      'w-1.5 h-1.5 rounded-full',
+                      healthStatus === 'online'
+                        ? 'bg-green-400 animate-pulse'
+                        : healthStatus === 'checking'
+                          ? 'bg-amber-400'
+                          : 'bg-red-400', // NOSONAR — S3358: nested ternary; refactor to named variable (tech debt)
+                    )}
+                  />
+                  <span className="text-[10px] text-[var(--text-muted)] capitalize">
+                    {t(`dashboard.${healthStatus}`)}
+                  </span>
                 </div>
               </div>
             )}
@@ -137,7 +172,7 @@ export function Sidebar() {  // NOSONAR — S3776: cognitive complexity; schedul
 
         {/* Navigation */}
         <nav className="flex-1 overflow-y-auto py-2 px-2 space-y-0.5">
-          {topLevel.map(item => (
+          {topLevel.map((item) => (
             <NavLink
               key={item.to}
               to={item.to}
@@ -149,7 +184,7 @@ export function Sidebar() {  // NOSONAR — S3776: cognitive complexity; schedul
                   isActive && !sidebarCollapsed && 'active',
                   isActive
                     ? 'bg-brand-600/80 text-white font-medium shadow-sm shadow-brand-600/30 ring-1 ring-brand-500/30'
-                    : 'text-[var(--text-secondary)] hover:bg-[var(--bg-elevated)] hover:text-[var(--text-primary)]'
+                    : 'text-[var(--text-secondary)] hover:bg-[var(--bg-elevated)] hover:text-[var(--text-primary)]',
                 )
               }
             >
@@ -164,10 +199,10 @@ export function Sidebar() {  // NOSONAR — S3776: cognitive complexity; schedul
           ))}
 
           {/* Grouped sections */}
-          {sectionOrder.map(section => {
-            const items = groupedItems[section]
-            if (!items?.length) return null
-            const SectionIcon = sectionIcons[section]
+          {sectionOrder.map((section) => {
+            const items = groupedItems[section];
+            if (!items?.length) return null;
+            const SectionIcon = sectionIcons[section];
             return (
               <div key={section} className="pt-4">
                 {!sidebarCollapsed && (
@@ -177,8 +212,8 @@ export function Sidebar() {  // NOSONAR — S3776: cognitive complexity; schedul
                   </div>
                 )}
                 {sidebarCollapsed && <hr className="border-[var(--border-primary)] mx-2" />}
-                {items.map(item => {
-                  const isActive = location.pathname === item.to
+                {items.map((item) => {
+                  const isActive = location.pathname === item.to;
                   return (
                     <NavLink
                       key={item.to}
@@ -189,7 +224,7 @@ export function Sidebar() {  // NOSONAR — S3776: cognitive complexity; schedul
                           sidebarCollapsed && 'justify-center px-0',
                           isActive
                             ? 'bg-brand-600 text-white font-medium shadow-sm shadow-brand-600/30'
-                            : 'text-[var(--text-secondary)] hover:bg-[var(--bg-elevated)] hover:text-[var(--text-primary)]'
+                            : 'text-[var(--text-secondary)] hover:bg-[var(--bg-elevated)] hover:text-[var(--text-primary)]',
                         )
                       }
                     >
@@ -201,10 +236,10 @@ export function Sidebar() {  // NOSONAR — S3776: cognitive complexity; schedul
                         </div>
                       )}
                     </NavLink>
-                  )
+                  );
                 })}
               </div>
-            )
+            );
           })}
         </nav>
 
@@ -214,27 +249,41 @@ export function Sidebar() {  // NOSONAR — S3776: cognitive complexity; schedul
             onClick={toggleTheme}
             className={cn(
               'w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-[var(--text-secondary)] hover:bg-[var(--bg-elevated)] hover:text-[var(--text-primary)] transition-colors',
-              sidebarCollapsed && 'justify-center px-0'
+              sidebarCollapsed && 'justify-center px-0',
             )}
             aria-label={theme === 'dark' ? t('sidebar.lightMode') : t('sidebar.darkMode')}
           >
-            {theme === 'dark' ? <Sun className="w-[18px] h-[18px] shrink-0" /> : <Moon className="w-[18px] h-[18px] shrink-0" />}
-            {!sidebarCollapsed && <span>{theme === 'dark' ? t('sidebar.lightMode') : t('sidebar.darkMode')}</span>}
+            {theme === 'dark' ? (
+              <Sun className="w-[18px] h-[18px] shrink-0" />
+            ) : (
+              <Moon className="w-[18px] h-[18px] shrink-0" />
+            )}
+            {!sidebarCollapsed && (
+              <span>{theme === 'dark' ? t('sidebar.lightMode') : t('sidebar.darkMode')}</span>
+            )}
           </button>
 
           <button
             onClick={toggleSidebar}
             className={cn(
               'w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-[var(--text-muted)] hover:bg-[var(--bg-elevated)] hover:text-[var(--text-secondary)] transition-colors',
-              sidebarCollapsed && 'justify-center px-0'
+              sidebarCollapsed && 'justify-center px-0',
             )}
             title={sidebarCollapsed ? t('sidebar.expand') : t('sidebar.collapse')}
             aria-label={sidebarCollapsed ? t('sidebar.expand') : t('sidebar.collapse')}
           >
-            {sidebarCollapsed
-              ? <ChevronRight className={`w-[18px] h-[18px] shrink-0 ${isRtl ? 'rotate-180' : ''}`} />
-              : <>{isRtl ? <ChevronRight className="w-[18px] h-[18px] shrink-0" /> : <ChevronLeft className="w-[18px] h-[18px] shrink-0" />}<span>{t('sidebar.collapse')}</span></>
-            }
+            {sidebarCollapsed ? (
+              <ChevronRight className={`w-[18px] h-[18px] shrink-0 ${isRtl ? 'rotate-180' : ''}`} />
+            ) : (
+              <>
+                {isRtl ? (
+                  <ChevronRight className="w-[18px] h-[18px] shrink-0" />
+                ) : (
+                  <ChevronLeft className="w-[18px] h-[18px] shrink-0" />
+                )}
+                <span>{t('sidebar.collapse')}</span>
+              </>
+            )}
           </button>
 
           {!sidebarCollapsed && (
@@ -257,7 +306,6 @@ export function Sidebar() {  // NOSONAR — S3776: cognitive complexity; schedul
 
       {/* Drawer */}
       <aside
-        role="complementary"
         aria-label="Mobile Sidebar Navigation"
         aria-hidden={!mobileSidebarOpen}
         className={cn(
@@ -265,7 +313,7 @@ export function Sidebar() {  // NOSONAR — S3776: cognitive complexity; schedul
           'bg-[var(--bg-secondary)] border-r border-[var(--border-primary)]',
           'flex flex-col overflow-hidden shadow-2xl',
           'transition-transform duration-300 ease-out z-[100]',
-          mobileSidebarOpen ? 'translate-x-0' : '-translate-x-full'
+          mobileSidebarOpen ? 'translate-x-0' : '-translate-x-full',
         )}
       >
         {/* Header with logo + close button */}
@@ -278,14 +326,23 @@ export function Sidebar() {  // NOSONAR — S3776: cognitive complexity; schedul
               )}
             </div>
             <div className="min-w-0">
-              <h1 className="text-sm font-bold text-[var(--text-primary)] truncate tracking-tight">{t('app.name')}</h1>
+              <h1 className="text-sm font-bold text-[var(--text-primary)] truncate tracking-tight">
+                {t('app.name')}
+              </h1>
               <div className="flex items-center gap-1.5 mt-0.5">
-                <span className={cn(
-                  'w-1.5 h-1.5 rounded-full',
-                  healthStatus === 'online' ? 'bg-green-400 animate-pulse' :
-                  healthStatus === 'checking' ? 'bg-amber-400' : 'bg-red-400'
-                )} />
-                <span className="text-[10px] text-[var(--text-muted)] capitalize">{t(`dashboard.${healthStatus}`)}</span>
+                <span
+                  className={cn(
+                    'w-1.5 h-1.5 rounded-full',
+                    healthStatus === 'online'
+                      ? 'bg-green-400 animate-pulse'
+                      : healthStatus === 'checking'
+                        ? 'bg-amber-400'
+                        : 'bg-red-400',
+                  )}
+                />
+                <span className="text-[10px] text-[var(--text-muted)] capitalize">
+                  {t(`dashboard.${healthStatus}`)}
+                </span>
               </div>
             </div>
           </div>
@@ -300,7 +357,7 @@ export function Sidebar() {  // NOSONAR — S3776: cognitive complexity; schedul
 
         {/* Navigation */}
         <nav className="flex-1 overflow-y-auto py-2 px-2 space-y-0.5">
-          {topLevel.map(item => (
+          {topLevel.map((item) => (
             <NavLink
               key={item.to}
               to={item.to}
@@ -309,7 +366,7 @@ export function Sidebar() {  // NOSONAR — S3776: cognitive complexity; schedul
                   'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all duration-150',
                   isActive
                     ? 'bg-brand-600/80 text-white font-medium shadow-sm shadow-brand-600/30 ring-1 ring-brand-500/30'
-                    : 'text-[var(--text-secondary)] hover:bg-[var(--bg-elevated)] hover:text-[var(--text-primary)]'
+                    : 'text-[var(--text-secondary)] hover:bg-[var(--bg-elevated)] hover:text-[var(--text-primary)]',
                 )
               }
             >
@@ -318,18 +375,18 @@ export function Sidebar() {  // NOSONAR — S3776: cognitive complexity; schedul
             </NavLink>
           ))}
 
-          {sectionOrder.map(section => {
-            const items = groupedItems[section]
-            if (!items?.length) return null
-            const SectionIcon = sectionIcons[section]
+          {sectionOrder.map((section) => {
+            const items = groupedItems[section];
+            if (!items?.length) return null;
+            const SectionIcon = sectionIcons[section];
             return (
               <div key={section} className="pt-4">
                 <div className="flex items-center gap-1.5 px-3 mb-1.5 text-[10px] font-semibold text-[var(--text-muted)] uppercase tracking-wider">
                   {SectionIcon && <SectionIcon className="w-3 h-3" />}
                   {t(sectionLabels[section])}
                 </div>
-                {items.map(item => {
-                  const isActive = location.pathname === item.to
+                {items.map((item) => {
+                  const isActive = location.pathname === item.to;
                   return (
                     <NavLink
                       key={item.to}
@@ -339,17 +396,17 @@ export function Sidebar() {  // NOSONAR — S3776: cognitive complexity; schedul
                           'flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-all duration-150 mt-0.5',
                           isActive
                             ? 'bg-brand-600 text-white font-medium shadow-sm shadow-brand-600/30'
-                            : 'text-[var(--text-secondary)] hover:bg-[var(--bg-elevated)] hover:text-[var(--text-primary)]'
+                            : 'text-[var(--text-secondary)] hover:bg-[var(--bg-elevated)] hover:text-[var(--text-primary)]',
                         )
                       }
                     >
                       <item.icon className="w-[18px] h-[18px] shrink-0" />
                       <span className="truncate">{t(item.labelKey)}</span>
                     </NavLink>
-                  )
+                  );
                 })}
               </div>
-            )
+            );
           })}
         </nav>
 
@@ -360,7 +417,11 @@ export function Sidebar() {  // NOSONAR — S3776: cognitive complexity; schedul
             className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-[var(--text-secondary)] hover:bg-[var(--bg-elevated)] hover:text-[var(--text-primary)] transition-colors"
             aria-label={theme === 'dark' ? t('sidebar.lightMode') : t('sidebar.darkMode')}
           >
-            {theme === 'dark' ? <Sun className="w-[18px] h-[18px] shrink-0" /> : <Moon className="w-[18px] h-[18px] shrink-0" />}
+            {theme === 'dark' ? (
+              <Sun className="w-[18px] h-[18px] shrink-0" />
+            ) : (
+              <Moon className="w-[18px] h-[18px] shrink-0" />
+            )}
             <span>{theme === 'dark' ? t('sidebar.lightMode') : t('sidebar.darkMode')}</span>
           </button>
 
@@ -370,5 +431,5 @@ export function Sidebar() {  // NOSONAR — S3776: cognitive complexity; schedul
         </div>
       </aside>
     </>
-  )
+  );
 }

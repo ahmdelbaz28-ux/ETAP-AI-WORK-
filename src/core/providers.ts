@@ -9,7 +9,7 @@
  *   - Circuit breaker filters out open providers at runtime
  *   - MAX_RETRIES=1 (was 2)
  */
-import { type ModelMessage } from 'ai';
+import type { ModelMessage } from 'ai';
 import type { Env } from './types.js';
 import { CONFIG, BUILTIN_BASE_URLS, BUILTIN_MODELS, BUILTIN_PROVIDERS } from './config.js';
 import { isCircuitOpen, recordProviderFailure, recordProviderSuccess } from './circuitBreaker.js';
@@ -50,7 +50,10 @@ function recordLatency(name: string, ms: number, failed: boolean): void {
   if (failed) b.failures++;
 }
 
-export function getProviderLatency(): Record<string, { avgMs: number; failureRate: number; count: number }> {
+export function getProviderLatency(): Record<
+  string,
+  { avgMs: number; failureRate: number; count: number }
+> {
   const out: Record<string, { avgMs: number; failureRate: number; count: number }> = {};
   for (const [name, b] of _providerLatency.entries()) {
     out[name] = {
@@ -114,11 +117,14 @@ export async function generateOnce(
   provider: ProviderConfig,
   system: string,
   messages: ModelMessage[],
-  signal?: AbortSignal
+  signal?: AbortSignal,
 ): Promise<ChatResult> {
   const start = Date.now();
   const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(new Error('provider-timeout')), CONFIG.PROVIDER_TIMEOUT_MS);
+  const timeoutId = setTimeout(
+    () => controller.abort(new Error('provider-timeout')),
+    CONFIG.PROVIDER_TIMEOUT_MS,
+  );
 
   // Link external signal if provided
   if (signal) {
@@ -151,7 +157,9 @@ export async function generateOnce(
     }
 
     const data = (await res.json()) as Record<string, unknown>;
-    const choices = data.choices as Array<{ message?: { content?: string }; finish_reason?: string }> | undefined;
+    const choices = data.choices as
+      | Array<{ message?: { content?: string }; finish_reason?: string }>
+      | undefined;
     const text = choices?.[0]?.message?.content || '';
     const finishReason = choices?.[0]?.finish_reason || 'stop';
     const usage = data.usage as { prompt_tokens?: number; completion_tokens?: number } | undefined;
@@ -174,11 +182,12 @@ export async function generateOnce(
  * Bounded failover: try up to MAX_PROVIDERS_PER_REQUEST providers,
  * skipping open circuits, with MAX_RETRIES=1 per provider.
  */
-export async function generateWithFailover(  // NOSONAR — S3776: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
+export async function generateWithFailover(
+  // NOSONAR — S3776: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
   env: Env,
   system: string,
   messages: ModelMessage[],
-  signal?: AbortSignal
+  signal?: AbortSignal,
 ): Promise<ChatResult> {
   const candidates = _listConfiguredProviders(env).filter((p) => !isCircuitOpen(p.name));
 

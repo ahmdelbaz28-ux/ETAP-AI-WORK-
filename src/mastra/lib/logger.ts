@@ -49,23 +49,19 @@ function sanitizeLogMeta(meta: Record<string, unknown>): Record<string, unknown>
 
   for (const key of sensitiveKeys) {
     if (sanitized[key]) {
-      const valueStr = typeof sanitized[key] === 'object' ? JSON.stringify(sanitized[key]) : String(sanitized[key]);
+      const valueStr =
+        typeof sanitized[key] === 'object'
+          ? JSON.stringify(sanitized[key])
+          : String(sanitized[key]);
       const hash = createHash('sha256').update(valueStr).digest('hex');
       sanitized[key] = `***REDACTED*** (hash: ${hash.substring(0, 8)}...)`;
     }
   }
 
-  const sensitivePatterns = [
-    /pass/i,
-    /auth/i,
-    /token/i,
-    /secret/i,
-    /key/i,
-    /credential/i,
-  ];
+  const sensitivePatterns = [/pass/i, /auth/i, /token/i, /secret/i, /key/i, /credential/i];
 
   for (const prop in sanitized) {
-    if (sensitivePatterns.some(pattern => pattern.test(prop))) {
+    if (sensitivePatterns.some((pattern) => pattern.test(prop))) {
       const hash = createHash('sha256').update(String(sanitized[prop])).digest('hex');
       sanitized[prop] = `***REDACTED*** (hash: ${hash.substring(0, 8)}...)`;
     }
@@ -106,12 +102,15 @@ export function logSecurityEvent(
   action: string,
   details?: Record<string, unknown>,
 ): void {
-  logger.warn({
-    type: LOG_TYPES.SECURITY,
-    riskLevel,
-    action,
-    ...details,
-  }, message);
+  logger.warn(
+    {
+      type: LOG_TYPES.SECURITY,
+      riskLevel,
+      action,
+      ...details,
+    },
+    message,
+  );
 }
 
 /**
@@ -128,15 +127,18 @@ export function logApiEvent(
 ): void {
   const level = statusCode >= 400 ? 'error' : 'info';
   const fn = level === 'error' ? logger.error.bind(logger) : logger.info.bind(logger);
-  fn({
-    type: LOG_TYPES.API,
-    endpoint,
-    method,
-    statusCode,
-    duration,
-    userId,
-    ...details,
-  }, `API ${method} ${endpoint} ${statusCode} (${duration}ms)`);
+  fn(
+    {
+      type: LOG_TYPES.API,
+      endpoint,
+      method,
+      statusCode,
+      duration,
+      userId,
+      ...details,
+    },
+    `API ${method} ${endpoint} ${statusCode} (${duration}ms)`,
+  );
 }
 
 /**
@@ -151,12 +153,15 @@ export function logAuditEvent(
   details?: Record<string, unknown>,
 ): void {
   const fn = result === 'success' ? logger.info.bind(logger) : logger.warn.bind(logger);
-  fn({
-    type: LOG_TYPES.AUDIT,
-    action,
-    resource,
-    userId,
-    result,
-    ...details,
-  }, `Audit: ${action} on ${resource} - ${result}`);
+  fn(
+    {
+      type: LOG_TYPES.AUDIT,
+      action,
+      resource,
+      userId,
+      result,
+      ...details,
+    },
+    `Audit: ${action} on ${resource} - ${result}`,
+  );
 }

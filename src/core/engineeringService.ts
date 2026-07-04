@@ -71,11 +71,12 @@ export function isEngineeringServiceConfigured(env: Env): boolean {
  * Returns the study result on success, or throws on failure.
  * Integrates with the circuit breaker for the 'engineering-service' provider.
  */
-export async function callEngineeringService(  // NOSONAR — S3776: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
+export async function callEngineeringService(
+  // NOSONAR — S3776: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
   env: Env,
   request: EngineeringServiceRequest,
   traceId: string,
-  signal?: AbortSignal
+  signal?: AbortSignal,
 ): Promise<EngineeringServiceResult> {
   const url = _getServiceUrl(env);
   if (!url) {
@@ -95,7 +96,10 @@ export async function callEngineeringService(  // NOSONAR — S3776: cognitive c
 
   for (let attempt = 0; attempt <= maxRetries; attempt++) {
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(new Error('engineering-service-timeout')), timeoutMs);
+    const timeoutId = setTimeout(
+      () => controller.abort(new Error('engineering-service-timeout')),
+      timeoutMs,
+    );
 
     if (signal) {
       if (signal.aborted) controller.abort(signal.reason);
@@ -144,7 +148,7 @@ export async function callEngineeringService(  // NOSONAR — S3776: cognitive c
         throw err; // re-throw without circuit breaker impact
       }
       if (attempt < maxRetries) {
-        await _delay(500 * Math.pow(2, attempt)); // 500ms, 1000ms, 2000ms
+        await _delay(500 * 2 ** attempt); // 500ms, 1000ms, 2000ms
       }
     }
   }
@@ -157,7 +161,9 @@ export async function callEngineeringService(  // NOSONAR — S3776: cognitive c
 /**
  * Health check the Engineering Service.
  */
-export async function checkEngineeringServiceHealth(env: Env): Promise<{ healthy: boolean; latencyMs: number; error?: string }> {
+export async function checkEngineeringServiceHealth(
+  env: Env,
+): Promise<{ healthy: boolean; latencyMs: number; error?: string }> {
   const url = _getServiceUrl(env);
   if (!url) {
     return { healthy: false, latencyMs: 0, error: 'Not configured' };
@@ -174,6 +180,10 @@ export async function checkEngineeringServiceHealth(env: Env): Promise<{ healthy
     clearTimeout(timeoutId);
     return { healthy: res.ok, latencyMs: Date.now() - start };
   } catch (e) {
-    return { healthy: false, latencyMs: Date.now() - start, error: e instanceof Error ? e.message : String(e) };
+    return {
+      healthy: false,
+      latencyMs: Date.now() - start,
+      error: e instanceof Error ? e.message : String(e),
+    };
   }
 }

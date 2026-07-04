@@ -27,13 +27,13 @@ for (const p of pages) {
   try {
     execSync(
       `"${EDGE}" --headless=new --disable-gpu --screenshot="${filePath}" --window-size=1400,900 --hide-scrollbars --virtual-time-budget=5000 "${url}"`,
-      { timeout: 30000, stdio: 'pipe' }
+      { timeout: 30000, stdio: 'pipe' },
     );
     if (fs.existsSync(filePath)) {
       const size = fs.statSync(filePath).size;
-      console.log(`${p.name}.png — ${Math.round(size/1024)}KB`);
+      console.log(`${p.name}.png — ${Math.round(size / 1024)}KB`);
     }
-  } catch (e) {
+  } catch (_e) {
     console.log(`Failed: ${p.name}`);
   }
 }

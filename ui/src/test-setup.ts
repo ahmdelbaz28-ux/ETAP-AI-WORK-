@@ -1,4 +1,4 @@
-import '@testing-library/jest-dom'
+import '@testing-library/jest-dom';
 
 // Polyfill ResizeObserver for jsdom (required by recharts)
 // Methods are intentionally empty — this is a no-op mock so chart components
@@ -14,4 +14,4 @@ class ResizeObserverMock {
     // no-op
   }
 }
-globalThis.ResizeObserver = ResizeObserverMock as unknown as typeof globalThis.ResizeObserver
+globalThis.ResizeObserver = ResizeObserverMock as unknown as typeof globalThis.ResizeObserver;

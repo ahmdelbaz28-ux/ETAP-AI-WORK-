@@ -94,7 +94,9 @@ export async function saveMetrics(env: Env): Promise<void> {
   if (now - _lastMetricsSave < CONFIG.METRICS_SAVE_INTERVAL_MS) return;
   _lastMetricsSave = now;
   try {
-    await env.METRICS_KV.put('metrics:api', JSON.stringify(_apiMetrics), { expirationTtl: 7 * 24 * 60 * 60 });
+    await env.METRICS_KV.put('metrics:api', JSON.stringify(_apiMetrics), {
+      expirationTtl: 7 * 24 * 60 * 60,
+    });
   } catch {
     // silent
   }

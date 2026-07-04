@@ -1,49 +1,58 @@
-import { useState } from 'react'
-import { useNavigate, Link } from 'react-router-dom'
-import { motion } from 'framer-motion'
-import { Zap, User, Mail, Lock, ArrowRight, Eye, EyeOff, CheckCircle } from 'lucide-react'
-import { useNotify } from '../context/NotificationContext'
+import { useState } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
+import { motion } from 'framer-motion';
+import { Zap, User, Mail, Lock, ArrowRight, Eye, EyeOff, CheckCircle } from 'lucide-react';
+import { useNotify } from '../context/NotificationContext';
 
 export default function Register() {
-  const navigate = useNavigate()
-  const { notify } = useNotify()
-  const [name, setName] = useState('')
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [confirmPassword, setConfirmPassword] = useState('')
-  const [showPassword, setShowPassword] = useState(false)
-  const [loading, setLoading] = useState(false)
+  const navigate = useNavigate();
+  const { notify } = useNotify();
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
     if (!name || !email || !password) {
-      notify('error', 'Please fill in all fields')
-      return
+      notify('error', 'Please fill in all fields');
+      return;
     }
     if (password !== confirmPassword) {
-      notify('error', 'Passwords do not match')
-      return
+      notify('error', 'Passwords do not match');
+      return;
     }
     if (password.length < 6) {
-      notify('error', 'Password must be at least 6 characters')
-      return
+      notify('error', 'Password must be at least 6 characters');
+      return;
     }
-    setLoading(true)
-    await new Promise(r => setTimeout(r, 1000))
-    localStorage.setItem('authToken', 'demo-token-' + Date.now())
-    localStorage.setItem('etap-user', JSON.stringify({
-      id: '1', email, name, role: 'Engineer',
-    }))
-    notify('success', `Welcome to AhmedETAP, ${name}!`)
-    navigate('/dashboard')
-    setLoading(false)
-  }
+    setLoading(true);
+    await new Promise((r) => setTimeout(r, 1000));
+    localStorage.setItem('authToken', `demo-token-${Date.now()}`);
+    localStorage.setItem(
+      'etap-user',
+      JSON.stringify({
+        id: '1',
+        email,
+        name,
+        role: 'Engineer',
+      }),
+    );
+    notify('success', `Welcome to AhmedETAP, ${name}!`);
+    navigate('/dashboard');
+    setLoading(false);
+  };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-[var(--bg-primary)] p-4 relative overflow-hidden">
       <div className="fixed inset-0 pointer-events-none overflow-hidden" aria-hidden="true">
         <div className="absolute -top-40 -left-40 w-[500px] h-[500px] bg-gradient-to-br from-brand-500/10 via-transparent to-transparent rounded-full blur-3xl animate-aurora" />
-        <div className="absolute -bottom-60 -right-40 w-[600px] h-[600px] bg-gradient-to-tl from-purple-500/8 via-transparent to-transparent rounded-full blur-3xl animate-aurora" style={{ animationDelay: '-7s', animationDirection: 'reverse' }} />
+        <div
+          className="absolute -bottom-60 -right-40 w-[600px] h-[600px] bg-gradient-to-tl from-purple-500/8 via-transparent to-transparent rounded-full blur-3xl animate-aurora"
+          style={{ animationDelay: '-7s', animationDirection: 'reverse' }}
+        />
       </div>
 
       <motion.div
@@ -60,11 +69,18 @@ export default function Register() {
         </div>
 
         <h2 className="text-2xl font-bold text-[var(--text-primary)] mb-1">Join AhmedETAP</h2>
-        <p className="text-sm text-[var(--text-tertiary)] mb-6">Start your power systems engineering journey</p>
+        <p className="text-sm text-[var(--text-tertiary)] mb-6">
+          Start your power systems engineering journey
+        </p>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label htmlFor="register-name" className="block text-xs font-medium text-[var(--text-secondary)] mb-1.5">Full Name</label>
+            <label
+              htmlFor="register-name"
+              className="block text-xs font-medium text-[var(--text-secondary)] mb-1.5"
+            >
+              Full Name
+            </label>
             <div className="relative">
               <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)]" />
               <input
@@ -80,7 +96,12 @@ export default function Register() {
           </div>
 
           <div>
-            <label htmlFor="register-email" className="block text-xs font-medium text-[var(--text-secondary)] mb-1.5">Email Address</label>
+            <label
+              htmlFor="register-email"
+              className="block text-xs font-medium text-[var(--text-secondary)] mb-1.5"
+            >
+              Email Address
+            </label>
             <div className="relative">
               <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)]" />
               <input
@@ -96,7 +117,12 @@ export default function Register() {
           </div>
 
           <div>
-            <label htmlFor="register-password" className="block text-xs font-medium text-[var(--text-secondary)] mb-1.5">Password</label>
+            <label
+              htmlFor="register-password"
+              className="block text-xs font-medium text-[var(--text-secondary)] mb-1.5"
+            >
+              Password
+            </label>
             <div className="relative">
               <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)]" />
               <input
@@ -110,7 +136,7 @@ export default function Register() {
               />
               <button
                 type="button"
-                onClick={() => setShowPassword(p => !p)}
+                onClick={() => setShowPassword((p) => !p)}
                 className="absolute right-2.5 top-1/2 -translate-y-1/2 p-1 rounded text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors"
               >
                 {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
@@ -119,7 +145,12 @@ export default function Register() {
           </div>
 
           <div>
-            <label htmlFor="register-confirm-password" className="block text-xs font-medium text-[var(--text-secondary)] mb-1.5">Confirm Password</label>
+            <label
+              htmlFor="register-confirm-password"
+              className="block text-xs font-medium text-[var(--text-secondary)] mb-1.5"
+            >
+              Confirm Password
+            </label>
             <div className="relative">
               <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)]" />
               <input
@@ -160,7 +191,10 @@ export default function Register() {
 
         <p className="mt-6 text-center text-sm text-[var(--text-tertiary)]">
           Already have an account?{' '}
-          <Link to="/login" className="text-brand-400 hover:text-brand-300 font-medium transition-colors">
+          <Link
+            to="/login"
+            className="text-brand-400 hover:text-brand-300 font-medium transition-colors"
+          >
             Sign in
           </Link>
         </p>
@@ -172,5 +206,5 @@ export default function Register() {
         </div>
       </motion.div>
     </div>
-  )
+  );
 }

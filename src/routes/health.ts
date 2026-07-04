@@ -9,7 +9,11 @@ import { composeMetrics } from '../utils/metrics.js';
 import { getAuditBufferLength } from '../utils/audit.js';
 import { checkEngineeringServiceHealth } from '../core/engineeringService.js';
 
-export async function handleRoot(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
+export async function handleRoot(
+  request: Request,
+  _env: Env,
+  _ctx: ExecutionContext,
+): Promise<Response> {
   const origin = request.headers.get('origin') || '*';
   return jsonResponse(
     200,
@@ -20,11 +24,15 @@ export async function handleRoot(request: Request, env: Env, ctx: ExecutionConte
       health: '/health',
       traceId: crypto.randomUUID(),
     },
-    corsHeaders(origin)
+    corsHeaders(origin),
   );
 }
 
-export async function handleHealth(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
+export async function handleHealth(
+  request: Request,
+  env: Env,
+  _ctx: ExecutionContext,
+): Promise<Response> {
   const origin = request.headers.get('origin') || '*';
   const providers = listConfiguredProviders(env).map((p) => p.name);
   const circuits = getAllCircuitHealth();
@@ -50,11 +58,15 @@ export async function handleHealth(request: Request, env: Env, ctx: ExecutionCon
         error: engHealth.error,
       },
     },
-    corsHeaders(origin)
+    corsHeaders(origin),
   );
 }
 
-export async function handleMetrics(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
+export async function handleMetrics(
+  request: Request,
+  env: Env,
+  _ctx: ExecutionContext,
+): Promise<Response> {
   const origin = request.headers.get('origin') || '*';
   return jsonResponse(
     200,
@@ -66,6 +78,6 @@ export async function handleMetrics(request: Request, env: Env, ctx: ExecutionCo
       metrics: await composeMetrics(env),
       audit: { bufferSize: getAuditBufferLength() },
     },
-    corsHeaders(origin)
+    corsHeaders(origin),
   );
 }

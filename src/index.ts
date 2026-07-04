@@ -21,7 +21,6 @@ import { checkRateLimit } from './core/rateLimit.js';
 import { recordAudit, flushAuditLog } from './utils/audit.js';
 import { bumpApiMetric, loadMetrics, saveMetrics } from './utils/metrics.js';
 import { loadCircuitBreakers } from './core/circuitBreaker.js';
-import { CONFIG } from './core/config.js';
 
 import { handleRoot, handleHealth, handleMetrics } from './routes/health.js';
 import { handleListAgents, handleChat } from './routes/agents.js';
@@ -36,7 +35,8 @@ export { CONFIG } from './core/config.js';
 export type { Env, ExecutionContext };
 
 export default {
-  async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {  // NOSONAR — S3776: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
+  async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
+    // NOSONAR — S3776: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
     const url = new URL(request.url);
     const method = request.method.toUpperCase();
     const path = url.pathname;
@@ -140,7 +140,12 @@ export default {
         details: { category },
       });
       ctx.waitUntil(Promise.all([flushAuditLog(env), saveMetrics(env)]));
-      return errorResponse(403, `API key scope "${auth.scope}" is not permitted for this route`, traceId, cors);
+      return errorResponse(
+        403,
+        `API key scope "${auth.scope}" is not permitted for this route`,
+        traceId,
+        cors,
+      );
     }
 
     // 3d) Per-API-key rate limit (plus per-agent for chat)
@@ -195,7 +200,15 @@ export default {
       }
       const studyStatusMatch = path.match(/^\/api\/v1\/studies\/status\/([^/]+)$/);
       if (studyStatusMatch && method === 'GET') {
-        return handleStudyStatus(request, env, ctx, auth.keyId, auth.scope, traceId, studyStatusMatch[1]);
+        return handleStudyStatus(
+          request,
+          env,
+          ctx,
+          auth.keyId,
+          auth.scope,
+          traceId,
+          studyStatusMatch[1],
+        );
       }
 
       // Audit

@@ -1,59 +1,64 @@
-import { motion, AnimatePresence } from 'framer-motion'
-import {
-  X, Command, Navigation, Zap, HelpCircle, Eye,
-  CornerDownLeft, Plus,
-} from 'lucide-react'
-import { SHORTCUT_DEFINITIONS, type ShortcutCategory } from '../../hooks/useKeyboardShortcuts'
-import { cn } from '../../utils/helpers'
+import { motion, AnimatePresence } from 'framer-motion';
+import { X, Command, Navigation, Zap, HelpCircle, Eye, CornerDownLeft, Plus } from 'lucide-react';
+import { SHORTCUT_DEFINITIONS, type ShortcutCategory } from '../../hooks/useKeyboardShortcuts';
+import { cn } from '../../utils/helpers';
 
 interface ShortcutsPanelProps {
-  open: boolean
-  onClose: () => void
+  open: boolean;
+  onClose: () => void;
 }
 
-const CATEGORY_CONFIG: Record<ShortcutCategory, { icon: React.ElementType; label: string; color: string }> = {
+const CATEGORY_CONFIG: Record<
+  ShortcutCategory,
+  { icon: React.ElementType; label: string; color: string }
+> = {
   navigation: { icon: Navigation, label: 'Navigation', color: 'text-blue-400' },
   actions: { icon: Zap, label: 'Actions', color: 'text-amber-400' },
   help: { icon: HelpCircle, label: 'Help', color: 'text-brand-400' },
   view: { icon: Eye, label: 'View', color: 'text-green-400' },
-}
+};
 
 // Keyboard key component — renders a styled key cap
-function KeyCap({ children }: { children: React.ReactNode }) {  // NOSONAR — S6759: React props read-only; requires `readonly` refactor across component tree
+function KeyCap({ children }: { children: React.ReactNode }) {
+  // NOSONAR — S6759: React props read-only; requires `readonly` refactor across component tree
   return (
-    <kbd className={cn(
-      'inline-flex items-center justify-center min-w-[28px] h-7 px-2',
-      'bg-[var(--bg-elevated)] border border-[var(--border-secondary)]',
-      'rounded-md text-xs font-mono font-medium text-[var(--text-secondary)]',
-      'shadow-[0_2px_0_0_var(--border-primary)]',
-      'transition-all'
-    )}>
+    <kbd
+      className={cn(
+        'inline-flex items-center justify-center min-w-[28px] h-7 px-2',
+        'bg-[var(--bg-elevated)] border border-[var(--border-secondary)]',
+        'rounded-md text-xs font-mono font-medium text-[var(--text-secondary)]',
+        'shadow-[0_2px_0_0_var(--border-primary)]',
+        'transition-all',
+      )}
+    >
       {children}
     </kbd>
-  )
+  );
 }
 
 // Render a sequence of keys (e.g. ["Ctrl", "K"] or ["G", "D"])
-function KeySequence({ keys }: { keys: readonly string[] }) {  // NOSONAR — S6759: React props read-only; requires `readonly` refactor across component tree
+function KeySequence({ keys }: { keys: readonly string[] }) {
+  // NOSONAR — S6759: React props read-only; requires `readonly` refactor across component tree
   return (
     <div className="flex items-center gap-1">
       {keys.map((key, i) => (
         <span key={`${key}-${i}`} className="flex items-center gap-1">
           <KeyCap>{key}</KeyCap>
           {i < keys.length - 1 && (
-            <span className="text-[var(--text-muted)] text-xs">
-              {keys[i] === 'G' ? '→' : '+'}
-            </span>
+            <span className="text-[var(--text-muted)] text-xs">{keys[i] === 'G' ? '→' : '+'}</span>
           )}
         </span>
       ))}
     </div>
-  )
+  );
 }
 
-export function ShortcutsPanel({ open, onClose }: ShortcutsPanelProps) {  // NOSONAR — S6759: React props read-only; requires `readonly` refactor across component tree
+export function ShortcutsPanel({ open, onClose }: ShortcutsPanelProps) {
+  // NOSONAR — S6759: React props read-only; requires `readonly` refactor across component tree
   // Group shortcuts by category
-  const categories = Array.from(new Set(SHORTCUT_DEFINITIONS.map(s => s.category))) as ShortcutCategory[]
+  const categories = Array.from(
+    new Set(SHORTCUT_DEFINITIONS.map((s) => s.category)),
+  ) as ShortcutCategory[];
 
   return (
     <AnimatePresence>
@@ -88,10 +93,15 @@ export function ShortcutsPanel({ open, onClose }: ShortcutsPanelProps) {  // NOS
                       Keyboard Shortcuts
                     </h2>
                     <p className="text-xs text-[var(--text-muted)]">
-                      Press <kbd className="px-1 py-0.5 rounded bg-[var(--bg-elevated)] border border-[var(--border-primary)] text-[10px] font-mono">Ctrl</kbd>
+                      Press{' '}
+                      <kbd className="px-1 py-0.5 rounded bg-[var(--bg-elevated)] border border-[var(--border-primary)] text-[10px] font-mono">
+                        Ctrl
+                      </kbd>
                       {' + '}
-                      <kbd className="px-1 py-0.5 rounded bg-[var(--bg-elevated)] border border-[var(--border-primary)] text-[10px] font-mono">/</kbd>
-                      {' '}anytime to toggle this panel
+                      <kbd className="px-1 py-0.5 rounded bg-[var(--bg-elevated)] border border-[var(--border-primary)] text-[10px] font-mono">
+                        /
+                      </kbd>{' '}
+                      anytime to toggle this panel
                     </p>
                   </div>
                 </div>
@@ -106,9 +116,9 @@ export function ShortcutsPanel({ open, onClose }: ShortcutsPanelProps) {  // NOS
               {/* Shortcuts grid */}
               <div className="max-h-[60vh] overflow-y-auto p-6">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-6">
-                  {categories.map(cat => {
-                    const config = CATEGORY_CONFIG[cat]
-                    const catShortcuts = SHORTCUT_DEFINITIONS.filter(s => s.category === cat)
+                  {categories.map((cat) => {
+                    const config = CATEGORY_CONFIG[cat];
+                    const catShortcuts = SHORTCUT_DEFINITIONS.filter((s) => s.category === cat);
                     return (
                       <div key={cat}>
                         {/* Category header */}
@@ -124,7 +134,7 @@ export function ShortcutsPanel({ open, onClose }: ShortcutsPanelProps) {  // NOS
                         <div className="space-y-2">
                           {catShortcuts.map((shortcut, i) => (
                             <div
-                              key={i}  // NOSONAR — S6479: array index as key; items lack stable IDs (tech debt)
+                              key={i} // NOSONAR — S6479: array index as key; items lack stable IDs (tech debt)
                               className="flex items-center justify-between gap-3 py-1.5 px-2 rounded-lg hover:bg-[var(--bg-elevated)] transition-colors group"
                             >
                               <span className="text-xs text-[var(--text-secondary)] group-hover:text-[var(--text-primary)] transition-colors">
@@ -135,7 +145,7 @@ export function ShortcutsPanel({ open, onClose }: ShortcutsPanelProps) {  // NOS
                           ))}
                         </div>
                       </div>
-                    )
+                    );
                   })}
                 </div>
               </div>
@@ -158,5 +168,5 @@ export function ShortcutsPanel({ open, onClose }: ShortcutsPanelProps) {  // NOS
         </>
       )}
     </AnimatePresence>
-  )
+  );
 }

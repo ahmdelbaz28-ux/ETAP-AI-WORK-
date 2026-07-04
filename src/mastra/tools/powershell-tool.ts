@@ -7,7 +7,8 @@ const MAX_OUTPUT_LENGTH = 10000; // Maximum output length in characters
 
 export const run_powershell = createTool({
   id: 'run-powershell',
-  description: 'Run safe PowerShell commands for engineering data retrieval and system queries. Only read-only and data-processing commands are permitted. All commands are validated against security policies before execution.',
+  description:
+    'Run safe PowerShell commands for engineering data retrieval and system queries. Only read-only and data-processing commands are permitted. All commands are validated against security policies before execution.',
   inputSchema: z.object({
     command: z.string().describe('The PowerShell command to execute (read-only commands only)'),
   }),
@@ -49,7 +50,7 @@ export const run_powershell = createTool({
           if (response.success) {
             const output = response.output || '';
             if (output.length > MAX_OUTPUT_LENGTH) {
-              resolve(output.substring(0, MAX_OUTPUT_LENGTH) + '\n... [output truncated]');
+              resolve(`${output.substring(0, MAX_OUTPUT_LENGTH)}\n... [output truncated]`);
             } else {
               resolve(output);
             }
@@ -57,7 +58,11 @@ export const run_powershell = createTool({
             reject(new Error(response.error || 'Execution failed without specific error message'));
           }
         } catch (parseError) {
-          reject(new Error(`Failed to parse executor response: ${stdout}${parseError instanceof Error ? ` (${parseError.message})` : ''}`));
+          reject(
+            new Error(
+              `Failed to parse executor response: ${stdout}${parseError instanceof Error ? ` (${parseError.message})` : ''}`,
+            ),
+          );
         }
       });
 
@@ -65,5 +70,5 @@ export const run_powershell = createTool({
       child.stdin.write(command);
       child.stdin.end();
     });
-  }
+  },
 });

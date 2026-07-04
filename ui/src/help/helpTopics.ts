@@ -1,4 +1,4 @@
-import type { HelpTopic } from './types'
+import type { HelpTopic } from './types';
 
 export const helpTopics: HelpTopic[] = [
   // ─── Getting Started ──────────────────────────────────────────────
@@ -6,7 +6,10 @@ export const helpTopics: HelpTopic[] = [
     id: 'dashboard.overview',
     category: 'getting-started',
     title: { en: 'Dashboard Overview', ar: 'نظرة عامة على لوحة التحكم' },
-    description: { en: 'Navigate the main dashboard and understand system status', ar: 'التنقل في لوحة التحكم الرئيسية وفهم حالة النظام' },
+    description: {
+      en: 'Navigate the main dashboard and understand system status',
+      ar: 'التنقل في لوحة التحكم الرئيسية وفهم حالة النظام',
+    },
     content: {
       en: `The Dashboard is your central hub for monitoring the AhmedETAP Platform.
 
@@ -55,7 +58,10 @@ export const helpTopics: HelpTopic[] = [
     id: 'keyboard-shortcuts',
     category: 'getting-started',
     title: { en: 'Keyboard Shortcuts', ar: 'اختصارات لوحة المفاتيح' },
-    description: { en: 'Essential keyboard shortcuts for faster workflow', ar: 'اختصارات لوحة المفاتيح الأساسية لسرعة العمل' },
+    description: {
+      en: 'Essential keyboard shortcuts for faster workflow',
+      ar: 'اختصارات لوحة المفاتيح الأساسية لسرعة العمل',
+    },
     content: {
       en: `**Global Shortcuts:**
 - \`F1\` — Open Smart Help (context-aware)
@@ -103,7 +109,10 @@ export const helpTopics: HelpTopic[] = [
     id: 'magic-help.inspector',
     category: 'getting-started',
     title: { en: 'Magic Help Inspector', ar: 'فاحص المساعدة السحرية' },
-    description: { en: 'Click any element to instantly see its documentation', ar: 'انقر على أي عنصر لرؤية شرحه فوراً' },
+    description: {
+      en: 'Click any element to instantly see its documentation',
+      ar: 'انقر على أي عنصر لرؤية شرحه فوراً',
+    },
     content: {
       en: `**What is Magic Help?**
 Magic Help is an interactive inspector that lets you click on ANY element in the application and instantly see its documentation.
@@ -169,7 +178,10 @@ Magic Help is an interactive inspector that lets you click on ANY element in the
     id: 'projects.create',
     category: 'projects',
     title: { en: 'Creating a Project', ar: 'إنشاء مشروع' },
-    description: { en: 'How to create and configure a new engineering project', ar: 'كيفية إنشاء وتكوين مشروع هندسي جديد' },
+    description: {
+      en: 'How to create and configure a new engineering project',
+      ar: 'كيفية إنشاء وتكوين مشروع هندسي جديد',
+    },
     content: {
       en: `**Steps to Create a Project:**
 1. Navigate to **Projects** from the sidebar
@@ -218,7 +230,10 @@ Magic Help is an interactive inspector that lets you click on ANY element in the
     id: 'projects.manage',
     category: 'projects',
     title: { en: 'Managing Projects', ar: 'إدارة المشاريع' },
-    description: { en: 'Open, edit, archive, and delete projects', ar: 'فتح وتعديل وأرشفة وحذف المشاريع' },
+    description: {
+      en: 'Open, edit, archive, and delete projects',
+      ar: 'فتح وتعديل وأرشفة وحذف المشاريع',
+    },
     content: {
       en: `**Project Management Actions:**
 
@@ -275,7 +290,18 @@ Magic Help is an interactive inspector that lets you click on ANY element in the
 - استخدم فلتر الحالة (نشط/مؤرشف/محذوف) لتضييق القائمة
 - رتّب حسب تاريخ الإنشاء أو الاسم أو آخر نشاط`,
     },
-    tags: ['project', 'manage', 'open', 'edit', 'archive', 'delete', 'مشروع', 'إدارة', 'فتح', 'تعديل'],
+    tags: [
+      'project',
+      'manage',
+      'open',
+      'edit',
+      'archive',
+      'delete',
+      'مشروع',
+      'إدارة',
+      'فتح',
+      'تعديل',
+    ],
     navigateTo: '/projects',
     relatedTopics: ['projects.create', 'studies.load-flow'],
   },
@@ -285,7 +311,10 @@ Magic Help is an interactive inspector that lets you click on ANY element in the
     id: 'studies.overview',
     category: 'engineering',
     title: { en: 'Studies Overview', ar: 'نظرة عامة على الدراسات' },
-    description: { en: 'All available engineering study types and how to run them', ar: 'جميع أنواع الدراسات الهندسية المتاحة وكيفية تشغيلها' },
+    description: {
+      en: 'All available engineering study types and how to run them',
+      ar: 'جميع أنواع الدراسات الهندسية المتاحة وكيفية تشغيلها',
+    },
     content: {
       en: `**Available Study Types:**
 
@@ -350,7 +379,10 @@ Magic Help is an interactive inspector that lets you click on ANY element in the
     id: 'studies.load-flow',
     category: 'engineering',
     title: { en: 'Load Flow Study', ar: 'دراسة تدفق الحمل' },
-    description: { en: 'Newton-Raphson power flow analysis per IEEE 3002.7', ar: 'تحليل تدفق القدرة بطريقة نيوتن-رافسون حسب IEEE 3002.7' },
+    description: {
+      en: 'Newton-Raphson power flow analysis per IEEE 3002.7',
+      ar: 'تحليل تدفق القدرة بطريقة نيوتن-رافسون حسب IEEE 3002.7',
+    },
     content: {
       en: `**What it does:**
 Calculates bus voltages, branch power flows, and system losses under steady-state conditions.
@@ -470,7 +502,10 @@ Calculates three-phase, line-to-ground, line-to-line, and double-line-to-ground 
     id: 'studies.arc-flash',
     category: 'engineering',
     title: { en: 'Arc Flash Study', ar: 'دراسة شرارة القوس' },
-    description: { en: 'IEEE 1584-2018 incident energy analysis', ar: 'تحليل طاقة الحادث حسب IEEE 1584-2018' },
+    description: {
+      en: 'IEEE 1584-2018 incident energy analysis',
+      ar: 'تحليل طاقة الحادث حسب IEEE 1584-2018',
+    },
     content: {
       en: `**What it does:**
 Calculates incident energy (cal/cm²) and arc-flash boundary at each bus, used to specify PPE (Personal Protective Equipment) levels.
@@ -676,7 +711,10 @@ Simulates the voltage dip and recovery during motor starting, ensuring the dip s
     id: 'studies.cable-sizing',
     category: 'engineering',
     title: { en: 'Cable Sizing', ar: 'تحديد مقاس الكابلات' },
-    description: { en: 'IEC 60364 current-carrying capacity', ar: 'القدرة على حمل التيار IEC 60364' },
+    description: {
+      en: 'IEC 60364 current-carrying capacity',
+      ar: 'القدرة على حمل التيار IEC 60364',
+    },
     content: {
       en: `**What it does:**
 Determines the minimum cable cross-section based on load current, installation method, ambient temperature, and voltage drop constraints.
@@ -786,7 +824,10 @@ Designs a substation grounding grid that limits touch and step voltages to safe 
     id: 'studies.stability',
     category: 'engineering',
     title: { en: 'Transient Stability', ar: 'الاستقرار العابر' },
-    description: { en: 'Power system transient stability analysis', ar: 'تحليل الاستقرار العابر لنظام القدرة' },
+    description: {
+      en: 'Power system transient stability analysis',
+      ar: 'تحليل الاستقرار العابر لنظام القدرة',
+    },
     content: {
       en: `**What it does:**
 Simulates the dynamic response of generators and loads to large disturbances (3-phase faults, line trips, generator outages) to verify the system remains stable.
@@ -882,7 +923,10 @@ Finds the optimal generation dispatch that minimizes total generation cost while
     id: 'ai-assistant.overview',
     category: 'getting-started',
     title: { en: 'AI Assistant', ar: 'المساعد الذكي' },
-    description: { en: 'Chat with the ETAP Expert AI agent for engineering guidance', ar: 'تحدث مع وكيل ETAP Expert الذكي للحصول على إرشادات هندسية' },
+    description: {
+      en: 'Chat with the ETAP Expert AI agent for engineering guidance',
+      ar: 'تحدث مع وكيل ETAP Expert الذكي للحصول على إرشادات هندسية',
+    },
     content: {
       en: `**What it does:**
 The AI Assistant page lets you chat with specialized AI agents (ETAP Expert, ETAP GUI, Load Flow Agent, etc.) to get engineering guidance, code suggestions, and step-by-step instructions.
@@ -943,7 +987,10 @@ The AI Assistant page lets you chat with specialized AI agents (ETAP Expert, ETA
     id: 'asset-management.overview',
     category: 'engineering',
     title: { en: 'Asset Management', ar: 'إدارة الأصول' },
-    description: { en: 'Track physical equipment across your power system', ar: 'تتبع المعدات الفيزيائية في نظام القدرة' },
+    description: {
+      en: 'Track physical equipment across your power system',
+      ar: 'تتبع المعدات الفيزيائية في نظام القدرة',
+    },
     content: {
       en: `**What it does:**
 The Asset Management page tracks physical equipment (transformers, breakers, cables, generators) across your power system. Each asset has metadata (manufacturer, model, install date), maintenance history, and links to the engineering model.
@@ -990,7 +1037,10 @@ The Asset Management page tracks physical equipment (transformers, breakers, cab
     id: 'etap-integration.overview',
     category: 'engineering',
     title: { en: 'ETAP Integration', ar: 'تكامل ETAP' },
-    description: { en: 'Connect to ETAP desktop software for native study execution', ar: 'اتصل ببرنامج ETAP المكتبي لتنفيذ الدراسات الأصلية' },
+    description: {
+      en: 'Connect to ETAP desktop software for native study execution',
+      ar: 'اتصل ببرنامج ETAP المكتبي لتنفيذ الدراسات الأصلية',
+    },
     content: {
       en: `**What it does:**
 The ETAP Integration page configures the connection between AhmedETAP and the ETAP desktop software running on Windows. This allows running studies using the real ETAP engine instead of the native Python engine.
@@ -1047,7 +1097,10 @@ The ETAP Integration page configures the connection between AhmedETAP and the ET
     id: 'gis-integration.overview',
     category: 'engineering',
     title: { en: 'GIS Integration', ar: 'تكامل GIS' },
-    description: { en: 'Connect to ArcGIS / QGIS / PostGIS for geospatial power system data', ar: 'اتصل بـ ArcGIS / QGIS / PostGIS لبيانات نظام القدرة الجغرافية' },
+    description: {
+      en: 'Connect to ArcGIS / QGIS / PostGIS for geospatial power system data',
+      ar: 'اتصل بـ ArcGIS / QGIS / PostGIS لبيانات نظام القدرة الجغرافية',
+    },
     content: {
       en: `**What it does:**
 The GIS Integration page connects AhmedETAP to Geographic Information Systems (ArcGIS, QGIS, PostGIS) to import geospatial data for power system assets (lines, substations, transformers with coordinates).
@@ -1116,7 +1169,10 @@ The GIS Integration page connects AhmedETAP to Geographic Information Systems (A
     id: 'reports.generate',
     category: 'reports',
     title: { en: 'Generating Reports', ar: 'إنشاء التقارير' },
-    description: { en: 'How to generate and customize engineering reports', ar: 'كيفية إنشاء وتخصيص التقارير الهندسية' },
+    description: {
+      en: 'How to generate and customize engineering reports',
+      ar: 'كيفية إنشاء وتخصيص التقارير الهندسية',
+    },
     content: {
       en: `**Report Types:**
 - **Compliance Report** — Standards verification (IEEE 1584, IEC 60909, etc.)
@@ -1187,7 +1243,10 @@ The GIS Integration page connects AhmedETAP to Geographic Information Systems (A
     id: 'digital-twin.overview',
     category: 'digital-twin',
     title: { en: 'Digital Twin Overview', ar: 'نظرة عامة على التوأم الرقمي' },
-    description: { en: 'Real-time virtual replica of your physical power system', ar: 'نسخة افتراضية في الوقت الفعلي من نظام القدرة الفيزيائي' },
+    description: {
+      en: 'Real-time virtual replica of your physical power system',
+      ar: 'نسخة افتراضية في الوقت الفعلي من نظام القدرة الفيزيائي',
+    },
     content: {
       en: `**What is a Digital Twin?**
 A digital twin is a real-time virtual replica of your physical power system. It syncs with SCADA, BMS, and IoT sensors to provide a live view of system state.
@@ -1256,7 +1315,10 @@ A digital twin is a real-time virtual replica of your physical power system. It 
     id: 'settings.backend',
     category: 'settings',
     title: { en: 'Backend Configuration', ar: 'تكوين الخادم' },
-    description: { en: 'Configure the engineering service backend connection', ar: 'تكوين اتصال خادم الخدمة الهندسية' },
+    description: {
+      en: 'Configure the engineering service backend connection',
+      ar: 'تكوين اتصال خادم الخدمة الهندسية',
+    },
     content: {
       en: `**Backend Settings (Engineering Service tab):**
 - **Service URL** — URL of the FastAPI engineering service (default: http://localhost:8000)
@@ -1312,8 +1374,14 @@ A digital twin is a real-time virtual replica of your physical power system. It 
   {
     id: 'settings.external-services',
     category: 'settings',
-    title: { en: 'External Services (LangWatch, Smithery, HF, GitHub, Vercel)', ar: 'الخدمات الخارجية (LangWatch, Smithery, HF, GitHub, Vercel)' },
-    description: { en: 'Configure and test third-party integrations', ar: 'تكوين واختبار التكاملات الخارجية' },
+    title: {
+      en: 'External Services (LangWatch, Smithery, HF, GitHub, Vercel)',
+      ar: 'الخدمات الخارجية (LangWatch, Smithery, HF, GitHub, Vercel)',
+    },
+    description: {
+      en: 'Configure and test third-party integrations',
+      ar: 'تكوين واختبار التكاملات الخارجية',
+    },
     content: {
       en: `**The External Services tab lets you configure 5 third-party integrations:**
 
@@ -1384,7 +1452,19 @@ A digital twin is a real-time virtual replica of your physical power system. It 
 - لا يتم إرسالها أبداً إلى الخادم
 - للاستخدام في الخادم، انسخها إلى .env أو أسرار HF Space`,
     },
-    tags: ['settings', 'external', 'services', 'langwatch', 'smithery', 'huggingface', 'github', 'vercel', 'إعدادات', 'خدمات', 'خارجية'],
+    tags: [
+      'settings',
+      'external',
+      'services',
+      'langwatch',
+      'smithery',
+      'huggingface',
+      'github',
+      'vercel',
+      'إعدادات',
+      'خدمات',
+      'خارجية',
+    ],
     navigateTo: '/settings',
     relatedTopics: ['settings.backend', 'integration.scada'],
   },
@@ -1392,7 +1472,10 @@ A digital twin is a real-time virtual replica of your physical power system. It 
     id: 'settings.ai-providers',
     category: 'settings',
     title: { en: 'AI Providers Configuration', ar: 'تكوين مزودي الذكاء الاصطناعي' },
-    description: { en: 'Connect to OpenAI, Anthropic, Gemini, DeepSeek, Groq, Cohere, Hugging Face', ar: 'اتصل بـ OpenAI، Anthropic، Gemini، DeepSeek، Groq، Cohere، Hugging Face' },
+    description: {
+      en: 'Connect to OpenAI, Anthropic, Gemini, DeepSeek, Groq, Cohere, Hugging Face',
+      ar: 'اتصل بـ OpenAI، Anthropic، Gemini، DeepSeek، Groq، Cohere، Hugging Face',
+    },
     content: {
       en: `**The AI Providers tab lets you connect to 7 popular LLM providers:**
 
@@ -1449,7 +1532,18 @@ A digital twin is a real-time virtual replica of your physical power system. It 
 - يمكنك تكوين مزودين متعددين في نفس الوقت
 - تتيح لك صفحة المساعد الذكي اختيار المزود المستخدم لكل دردشة`,
     },
-    tags: ['ai', 'provider', 'openai', 'anthropic', 'gemini', 'deepseek', 'groq', 'cohere', 'مزود', 'ذكاء'],
+    tags: [
+      'ai',
+      'provider',
+      'openai',
+      'anthropic',
+      'gemini',
+      'deepseek',
+      'groq',
+      'cohere',
+      'مزود',
+      'ذكاء',
+    ],
     navigateTo: '/settings',
     relatedTopics: ['ai-assistant.overview', 'settings.backend'],
   },
@@ -1459,7 +1553,10 @@ A digital twin is a real-time virtual replica of your physical power system. It 
     id: 'code-guard.overview',
     category: 'engineering',
     title: { en: 'Code Guard', ar: 'حارس الكود' },
-    description: { en: 'AI-powered code review for engineering calculations', ar: 'مراجعة أكواد بالذكاء الاصطناعي للحسابات الهندسية' },
+    description: {
+      en: 'AI-powered code review for engineering calculations',
+      ar: 'مراجعة أكواد بالذكاء الاصطناعي للحسابات الهندسية',
+    },
     content: {
       en: `**What it does:**
 Code Guard reviews your engineering Python/code for correctness, safety, and compliance with IEEE/IEC standards. It catches common bugs (unit conversion errors, missing factors, wrong formulas) before they cause real-world failures.
@@ -1522,7 +1619,10 @@ Code Guard reviews your engineering Python/code for correctness, safety, and com
     id: 'data-import.overview',
     category: 'engineering',
     title: { en: 'Data Import', ar: 'استيراد البيانات' },
-    description: { en: 'Import engineering data from CSV, JSON, Excel, ETAP files', ar: 'استيراد بيانات هندسية من CSV، JSON، Excel، ملفات ETAP' },
+    description: {
+      en: 'Import engineering data from CSV, JSON, Excel, ETAP files',
+      ar: 'استيراد بيانات هندسية من CSV، JSON، Excel، ملفات ETAP',
+    },
     content: {
       en: `**What it does:**
 The Data Import page lets you bulk-import engineering data (buses, lines, generators, loads, assets) from external files.
@@ -1591,7 +1691,10 @@ The Data Import page lets you bulk-import engineering data (buses, lines, genera
     id: 'data-export.overview',
     category: 'engineering',
     title: { en: 'Data Export', ar: 'تصدير البيانات' },
-    description: { en: 'Export engineering data to CSV, JSON, Excel, PDF', ar: 'تصدير بيانات هندسية إلى CSV، JSON، Excel، PDF' },
+    description: {
+      en: 'Export engineering data to CSV, JSON, Excel, PDF',
+      ar: 'تصدير بيانات هندسية إلى CSV، JSON، Excel، PDF',
+    },
     content: {
       en: `**What it does:**
 The Data Export page lets you export your engineering data and study results to various formats for sharing, archiving, or importing into other tools.
@@ -1658,7 +1761,10 @@ The Data Export page lets you export your engineering data and study results to 
     id: 'administration.overview',
     category: 'settings',
     title: { en: 'Administration', ar: 'الإدارة' },
-    description: { en: 'User management, roles, and system administration', ar: 'إدارة المستخدمين والأدوار وإدارة النظام' },
+    description: {
+      en: 'User management, roles, and system administration',
+      ar: 'إدارة المستخدمين والأدوار وإدارة النظام',
+    },
     content: {
       en: `**What it does:**
 The Administration page (admin-only) lets you manage users, roles, and system-wide settings.
@@ -1727,7 +1833,10 @@ The Administration page (admin-only) lets you manage users, roles, and system-wi
     id: 'diagnostics.overview',
     category: 'troubleshooting',
     title: { en: 'Diagnostics', ar: 'التشخيص' },
-    description: { en: 'System health checks, logs, and performance metrics', ar: 'فحوصات صحة النظام والسجلات ومقاييس الأداء' },
+    description: {
+      en: 'System health checks, logs, and performance metrics',
+      ar: 'فحوصات صحة النظام والسجلات ومقاييس الأداء',
+    },
     content: {
       en: `**What it does:**
 The Diagnostics page provides real-time system health monitoring, log viewing, and performance metrics for troubleshooting.
@@ -1800,7 +1909,10 @@ The Diagnostics page provides real-time system health monitoring, log viewing, a
     id: 'logs.overview',
     category: 'troubleshooting',
     title: { en: 'Logs', ar: 'السجلات' },
-    description: { en: 'Real-time application logs with filtering', ar: 'سجلات التطبيق المباشرة مع الفلترة' },
+    description: {
+      en: 'Real-time application logs with filtering',
+      ar: 'سجلات التطبيق المباشرة مع الفلترة',
+    },
     content: {
       en: `**What it does:**
 The Logs page shows a real-time stream of application logs with powerful filtering.
@@ -1859,7 +1971,10 @@ The Logs page shows a real-time stream of application logs with powerful filteri
     id: 'troubleshooting.backend',
     category: 'troubleshooting',
     title: { en: 'Backend Unavailable', ar: 'الخادم غير متاح' },
-    description: { en: 'The engineering service is not responding', ar: 'خدمة الخدمة الهندسية لا تستجيب' },
+    description: {
+      en: 'The engineering service is not responding',
+      ar: 'خدمة الخدمة الهندسية لا تستجيب',
+    },
     content: {
       en: `**Symptoms:**
 - "Backend Unavailable" error in the UI
@@ -1952,7 +2067,10 @@ docker compose logs api
     id: 'troubleshooting.api',
     category: 'troubleshooting',
     title: { en: 'API Errors', ar: 'أخطاء API' },
-    description: { en: 'Common API error codes and their solutions', ar: 'أكواد أخطاء API الشائعة وحلولها' },
+    description: {
+      en: 'Common API error codes and their solutions',
+      ar: 'أكواد أخطاء API الشائعة وحلولها',
+    },
     content: {
       en: `**Common Error Codes:**
 
@@ -2113,7 +2231,10 @@ docker compose logs api
     id: 'integration.scada',
     category: 'settings',
     title: { en: 'SCADA System Integration (zenon)', ar: 'ربط نظام الإسكادا (زينون)' },
-    description: { en: 'Configure and monitor Copa-Data zenon SCADA system connection', ar: 'تكوين ومراقبة اتصال نظام إسكادا زينون (zenon)' },
+    description: {
+      en: 'Configure and monitor Copa-Data zenon SCADA system connection',
+      ar: 'تكوين ومراقبة اتصال نظام إسكادا زينون (zenon)',
+    },
     content: {
       en: `**zenon SCADA Connectivity:**
 Copa-Data zenon SCADA is integrated directly with the AhmedETAP platform via the SCADA Agent, facilitating real-time status monitoring, state estimation, and IEC 61850 data model mapping.
@@ -2172,7 +2293,7 @@ Copa-Data zenon SCADA is integrated directly with the AhmedETAP platform via the
     navigateTo: '/settings',
     relatedTopics: ['digital-twin.overview', 'settings.backend'],
   },
-]
+];
 
 export const helpCategories = [
   { id: 'all' as const, label: { en: 'All Topics', ar: 'جميع المواضيع' } },
@@ -2184,5 +2305,8 @@ export const helpCategories = [
   { id: 'digital-twin' as const, label: { en: 'Digital Twin', ar: 'التوأم الرقمي' } },
   { id: 'settings' as const, label: { en: 'Settings', ar: 'الإعدادات' } },
   { id: 'troubleshooting' as const, label: { en: 'Troubleshooting', ar: 'استكشاف الأخطاء' } },
-  { id: 'keyboard-shortcuts' as const, label: { en: 'Keyboard Shortcuts', ar: 'اختصارات لوحة المفاتيح' } },
-] as const
+  {
+    id: 'keyboard-shortcuts' as const,
+    label: { en: 'Keyboard Shortcuts', ar: 'اختصارات لوحة المفاتيح' },
+  },
+] as const;

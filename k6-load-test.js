@@ -34,9 +34,30 @@ const STUDY_TYPES = ['load_flow', 'short_circuit', 'arc_flash', 'protection_coor
 const SAMPLE_SYSTEM = {
   base_mva: 100,
   buses: [
-    { bus_id: 1, voltage_magnitude: 1.05, bus_type: 'slack', base_kv: 138, generation_power_real: 0, generation_power_imag: 0 },
-    { bus_id: 2, voltage_magnitude: 1, bus_type: 'pq', base_kv: 13.8, load_power_real: 50, load_power_imag: 20 },
-    { bus_id: 3, voltage_magnitude: 1, bus_type: 'pv', base_kv: 4.16, generation_power_real: 30, voltage_setpoint: 1.02 },
+    {
+      bus_id: 1,
+      voltage_magnitude: 1.05,
+      bus_type: 'slack',
+      base_kv: 138,
+      generation_power_real: 0,
+      generation_power_imag: 0,
+    },
+    {
+      bus_id: 2,
+      voltage_magnitude: 1,
+      bus_type: 'pq',
+      base_kv: 13.8,
+      load_power_real: 50,
+      load_power_imag: 20,
+    },
+    {
+      bus_id: 3,
+      voltage_magnitude: 1,
+      bus_type: 'pv',
+      base_kv: 4.16,
+      generation_power_real: 30,
+      voltage_setpoint: 1.02,
+    },
   ],
   lines: [
     { line_id: 1, from_bus_id: 1, to_bus_id: 2, r1: 0.01, x1: 0.05, bshunt1: 0.02 },
@@ -46,9 +67,7 @@ const SAMPLE_SYSTEM = {
     { generator_id: 1, bus_id: 1, x1: 0.2, internal_voltage_mag: 1.05 },
     { generator_id: 2, bus_id: 3, x1: 0.15, internal_voltage_mag: 1.02, power_real: 30 },
   ],
-  loads: [
-    { load_id: 1, bus_id: 2, p_mw: 50, q_mvar: 20 },
-  ],
+  loads: [{ load_id: 1, bus_id: 2, p_mw: 50, q_mvar: 20 }],
 };
 
 // ─── Scenarios & Thresholds ─────────────────────────────────────────────────
@@ -117,33 +136,28 @@ export const options = {
   thresholds: {
     // Overall HTTP request duration
     http_req_duration: [
-      'p(95)<500',   // 95th percentile < 500 ms
-      'p(99)<1000',  // 99th percentile < 1000 ms
+      'p(95)<500', // 95th percentile < 500 ms
+      'p(99)<1000', // 99th percentile < 1000 ms
     ],
 
     // Custom error rate
     errors: [
-      'rate<0.01',   // Error rate < 1%
+      'rate<0.01', // Error rate < 1%
     ],
 
     // Per-scenario thresholds
     health_response_time: [
-      'p(95)<200',   // Health checks should be very fast
+      'p(95)<200', // Health checks should be very fast
       'p(99)<500',
     ],
     study_execution_time: [
-      'p(95)<3000',  // Study execution can be slower
+      'p(95)<3000', // Study execution can be slower
       'p(99)<5000',
     ],
-    concurrent_study_time: [
-      'p(95)<5000',
-      'p(99)<8000',
-    ],
+    concurrent_study_time: ['p(95)<5000', 'p(99)<8000'],
 
     // HTTP failures must stay under 1%
-    http_req_failed: [
-      'rate<0.01',
-    ],
+    http_req_failed: ['rate<0.01'],
   },
 
   // Summary output for CI parsing
@@ -162,7 +176,11 @@ export function healthScenario() {
     check(resp, {
       'health status 200': (r) => r.status === 200,
       'health body has status': (r) => {
-        try { return r.json('status') === 'healthy'; } catch { return false; }
+        try {
+          return r.json('status') === 'healthy';
+        } catch {
+          return false;
+        }
       },
     });
     errorRate.add(resp.status !== 200);
@@ -176,7 +194,11 @@ export function healthScenario() {
     check(resp, {
       'ready status 200': (r) => r.status === 200,
       'ready body is ready': (r) => {
-        try { return r.json('ready') === true; } catch { return false; }
+        try {
+          return r.json('ready') === true;
+        } catch {
+          return false;
+        }
       },
     });
     errorRate.add(resp.status !== 200);
@@ -206,7 +228,7 @@ export function studyScenario() {
 
   group(`Study: ${studyType}`, () => {
     let payload;
-    let params = { headers: API_HEADERS, tags: { endpoint: 'study_run', study_type: studyType } };
+    const params = { headers: API_HEADERS, tags: { endpoint: 'study_run', study_type: studyType } };
 
     if (studyType === 'load_flow') {
       payload = JSON.stringify({
@@ -246,7 +268,11 @@ export function studyScenario() {
     const success = check(resp, {
       'study status 200': (r) => r.status === 200,
       'study has result': (r) => {
-        try { return r.json('success') === true; } catch { return false; }
+        try {
+          return r.json('success') === true;
+        } catch {
+          return false;
+        }
       },
     });
 
@@ -297,7 +323,7 @@ export function concurrentStudyScenario() {
     const responses = http.batch(requests);
 
     responses.forEach((resp, i) => {
-      const success = check(resp, {
+      const _success = check(resp, {
         [`batch ${i} status ok`]: (r) => r.status === 200 || r.status === 400, // 400 = validation issue, not crash
       });
       errorRate.add(resp.status >= 500);
@@ -442,7 +468,7 @@ export function handleSummary(data) {
   }
 
   return {
-    'stdout': textSummary(data, { indent: ' ', enableColors: true }),
+    stdout: textSummary(data, { indent: ' ', enableColors: true }),
     'load-test-results/k6/summary.json': JSON.stringify(data, null, 2),
   };
 }

@@ -1,4 +1,4 @@
-const { contextBridge, ipcRenderer } = require('electron')
+const { contextBridge, ipcRenderer } = require('electron');
 
 contextBridge.exposeInMainWorld('electronAPI', {
   // Window controls
@@ -24,4 +24,4 @@ contextBridge.exposeInMainWorld('electronAPI', {
   onOpenProject: (callback) => ipcRenderer.on('menu:open-project', () => callback()),
   onSave: (callback) => ipcRenderer.on('menu:save', () => callback()),
   onExport: (callback) => ipcRenderer.on('menu:export', () => callback()),
-})
+});

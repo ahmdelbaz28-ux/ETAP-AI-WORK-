@@ -19,7 +19,9 @@ function mockKV() {
     put: async (key: string, value: string, opts?: { expirationTtl?: number }) => {
       store.set(key, { value, ttl: opts?.expirationTtl });
     },
-    delete: async (key: string) => { store.delete(key); },
+    delete: async (key: string) => {
+      store.delete(key);
+    },
     list: async (opts?: { prefix?: string; limit?: number; cursor?: string }) => {
       const keys: { name: string }[] = [];
       for (const key of store.keys()) {
@@ -32,11 +34,7 @@ function mockKV() {
   } as unknown as Env['RATE_LIMIT_KV'];
 }
 
-function makeRequest(
-  path: string,
-  init?: RequestInit,
-  env?: Partial<Env>
-): Promise<Response> {
+function makeRequest(path: string, init?: RequestInit, env?: Partial<Env>): Promise<Response> {
   const url = new URL(path, 'http://localhost');
   const kv = mockKV();
   const testEnv: Partial<Env> = env ?? {
@@ -165,21 +163,29 @@ describe('Engineering Service Integration', () => {
       METRICS_KV: kv,
       API_KEYS_KV: kv,
     };
-    const res = await makeRequest('/api/v1/studies/run', {
-      method: 'POST',
-      headers: {
-        'content-type': 'application/json',
-        'x-api-key': 'test-secret',
+    const res = await makeRequest(
+      '/api/v1/studies/run',
+      {
+        method: 'POST',
+        headers: {
+          'content-type': 'application/json',
+          'x-api-key': 'test-secret',
+        },
+        body: JSON.stringify({ studyType: 'load_flow', parameters: {}, dryRun: true }),
       },
-      body: JSON.stringify({ studyType: 'load_flow', parameters: {}, dryRun: true }),
-    }, env);
+      env,
+    );
     expect(res.status).toBe(200);
     const body = (await res.json()) as Record<string, unknown>;
     const taskId = body.taskId as string;
 
-    const statusRes = await makeRequest(`/api/v1/studies/status/${taskId}`, {
-      headers: { 'x-api-key': 'test-secret' },
-    }, env);
+    const statusRes = await makeRequest(
+      `/api/v1/studies/status/${taskId}`,
+      {
+        headers: { 'x-api-key': 'test-secret' },
+      },
+      env,
+    );
     expect(statusRes.status).toBe(200);
     const statusBody = (await statusRes.json()) as Record<string, unknown>;
     expect(statusBody.status).toBe('dry_run');

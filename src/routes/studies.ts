@@ -29,7 +29,9 @@ interface TaskRecord {
 export async function getTask(env: Env, taskId: string): Promise<TaskRecord | null> {
   if (!env.TASK_STORE_KV) return null;
   try {
-    const raw = (await env.TASK_STORE_KV.get(`task:${taskId}`, { type: 'json' })) as TaskRecord | null;
+    const raw = (await env.TASK_STORE_KV.get(`task:${taskId}`, {
+      type: 'json',
+    })) as TaskRecord | null;
     if (raw && typeof raw === 'object' && 'studyType' in raw) return raw;
   } catch {
     // silent
@@ -40,7 +42,9 @@ export async function getTask(env: Env, taskId: string): Promise<TaskRecord | nu
 export async function setTask(env: Env, taskId: string, task: TaskRecord): Promise<void> {
   if (!env.TASK_STORE_KV) return;
   try {
-    await env.TASK_STORE_KV.put(`task:${taskId}`, JSON.stringify(task), { expirationTtl: CONFIG.TASK_TTL_SECONDS });
+    await env.TASK_STORE_KV.put(`task:${taskId}`, JSON.stringify(task), {
+      expirationTtl: CONFIG.TASK_TTL_SECONDS,
+    });
   } catch {
     // silent
   }
@@ -68,10 +72,10 @@ const VALID_STUDY_TYPES = [
 export async function handleStudyRun(
   request: Request,
   env: Env,
-  ctx: ExecutionContext,
+  _ctx: ExecutionContext,
   apiKeyId: string,
   scope: string,
-  traceId: string
+  traceId: string,
 ): Promise<Response> {
   const origin = request.headers.get('origin') || '*';
 
@@ -99,7 +103,7 @@ export async function handleStudyRun(
       400,
       `Invalid studyType. Must be one of: ${VALID_STUDY_TYPES.join(', ')}`,
       traceId,
-      corsHeaders(origin)
+      corsHeaders(origin),
     );
   }
 
@@ -146,7 +150,7 @@ export async function handleStudyRun(
         statusUrl: `/api/v1/studies/status/${taskId}`,
         traceId,
       },
-      corsHeaders(origin)
+      corsHeaders(origin),
     );
   }
 
@@ -175,7 +179,7 @@ export async function handleStudyRun(
       503,
       'Engineering Service is not configured. Set ENGINEERING_SERVICE_URL to enable real computation.',
       traceId,
-      corsHeaders(origin)
+      corsHeaders(origin),
     );
   }
 
@@ -239,7 +243,7 @@ export async function handleStudyRun(
         502,
         `Engineering computation failed: ${result.errors.join('; ') || 'Unknown error'}`,
         traceId,
-        corsHeaders(origin)
+        corsHeaders(origin),
       );
     }
 
@@ -260,7 +264,7 @@ export async function handleStudyRun(
         statusUrl: `/api/v1/studies/status/${taskId}`,
         traceId,
       },
-      corsHeaders(origin)
+      corsHeaders(origin),
     );
   } catch (err) {
     const msg = err instanceof Error ? err.message : 'Engineering Service call failed';
@@ -294,11 +298,11 @@ export async function handleStudyRun(
 export async function handleStudyStatus(
   request: Request,
   env: Env,
-  ctx: ExecutionContext,
-  apiKeyId: string,
-  scope: string,
+  _ctx: ExecutionContext,
+  _apiKeyId: string,
+  _scope: string,
   traceId: string,
-  taskId: string
+  taskId: string,
 ): Promise<Response> {
   const origin = request.headers.get('origin') || '*';
   const task = await getTask(env, taskId);
@@ -318,6 +322,6 @@ export async function handleStudyStatus(
       taskId,
       traceId,
     },
-    corsHeaders(origin)
+    corsHeaders(origin),
   );
 }

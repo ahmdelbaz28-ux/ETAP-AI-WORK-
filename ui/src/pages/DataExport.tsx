@@ -1,10 +1,10 @@
-import { motion } from 'framer-motion'
-import { Download, FileText, FileSpreadsheet, FileJson, Clock, HardDrive } from 'lucide-react'
-import { useNotify } from '../context/NotificationContext'
-import { Card, CardHeader, Button } from '../components/ui'
-import { cn } from '../utils/helpers'
+import { motion } from 'framer-motion';
+import { Download, FileText, FileSpreadsheet, FileJson, Clock, HardDrive } from 'lucide-react';
+import { useNotify } from '../context/NotificationContext';
+import { Card, CardHeader, Button } from '../components/ui';
+import { cn } from '../utils/helpers';
 
-import { ContextHelpButton } from '../components/help/ContextHelpButton'
+import { ContextHelpButton } from '../components/help/ContextHelpButton';
 const exportFormats = [
   {
     id: 'pdf',
@@ -30,16 +30,16 @@ const exportFormats = [
     color: 'text-amber-400',
     bgColor: 'bg-amber-500/10',
   },
-]
+];
 
 const recentExports = [
   { name: 'load_flow_results.pdf', size: '2.4 MB', date: '2026-06-10' },
   { name: 'short_circuit_analysis.xlsx', size: '1.1 MB', date: '2026-06-09' },
   { name: 'system_model.json', size: '456 KB', date: '2026-06-08' },
-]
+];
 
 export default function DataExport() {
-  const { notify } = useNotify()
+  const { notify } = useNotify();
 
   return (
     <div className="space-y-6">
@@ -51,7 +51,9 @@ export default function DataExport() {
           <div>
             <h2 className="text-2xl font-bold text-[var(--text-primary)]">Data Export</h2>
             <div className="flex items-center gap-2">
-              <p className="text-sm text-[var(--text-tertiary)]">Export study results and system data</p>
+              <p className="text-sm text-[var(--text-tertiary)]">
+                Export study results and system data
+              </p>
               <ContextHelpButton contextId="data-export.overview" />
             </div>
           </div>
@@ -61,7 +63,12 @@ export default function DataExport() {
       {/* Export Format Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {exportFormats.map((format, i) => (
-          <motion.div key={format.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 * i }}>
+          <motion.div
+            key={format.id}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.05 * i }}
+          >
             <Card
               variant="bordered"
               padding="lg"
@@ -84,7 +91,11 @@ export default function DataExport() {
       </div>
 
       {/* Recent Exports */}
-      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.2 }}
+      >
         <Card padding="md">
           <CardHeader
             title="Recent Exports"
@@ -93,13 +104,18 @@ export default function DataExport() {
           />
           <div className="space-y-3">
             {recentExports.map((file) => (
-              <div key={file.name} className="flex items-center justify-between p-3 bg-[var(--bg-primary)] rounded-lg border border-[var(--border-primary)]">
+              <div
+                key={file.name}
+                className="flex items-center justify-between p-3 bg-[var(--bg-primary)] rounded-lg border border-[var(--border-primary)]"
+              >
                 <div className="flex items-center gap-3">
                   <div className="p-1.5 rounded-md bg-brand-500/10">
                     <HardDrive className="w-3.5 h-3.5 text-brand-400" />
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-[var(--text-primary)] font-mono">{file.name}</p>
+                    <p className="text-sm font-medium text-[var(--text-primary)] font-mono">
+                      {file.name}
+                    </p>
                     <div className="flex items-center gap-2 text-xs text-[var(--text-muted)] mt-0.5">
                       <span>{file.size}</span>
                       <span>·</span>
@@ -120,5 +136,5 @@ export default function DataExport() {
         </Card>
       </motion.div>
     </div>
-  )
+  );
 }

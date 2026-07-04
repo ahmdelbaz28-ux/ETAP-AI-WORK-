@@ -1,12 +1,14 @@
 import { createTool } from '@mastra/core/tools';
 import { z } from 'zod';
-import { getProviderStatus, testProviderById, ProviderConfig } from '../lib/model-config';
+import { getProviderStatus, testProviderById, type ProviderConfig } from '../lib/model-config';
 
 export const providerSettingsTool = createTool({
   id: 'provider-settings',
   description: 'Get and test all LLM provider settings',
   inputSchema: z.object({
-    action: z.enum(['list', 'test']).describe('Action to perform: list providers or test all providers'),
+    action: z
+      .enum(['list', 'test'])
+      .describe('Action to perform: list providers or test all providers'),
   }),
   execute: async ({ action }) => {
     if (action === 'list') {
@@ -31,7 +33,9 @@ export function getAllProviders(): ProviderConfig[] {
  * Returns an array of test results for each provider.
  * This function is exported as testAllProviders to match the expected import.
  */
-export async function testAllProviders(): Promise<Array<{ name: string; success: boolean; error?: string }>> {
+export async function testAllProviders(): Promise<
+  Array<{ name: string; success: boolean; error?: string }>
+> {
   const providers = getProviderStatus();
   const results = await Promise.all(
     providers.map(async (provider) => {
@@ -41,7 +45,7 @@ export async function testAllProviders(): Promise<Array<{ name: string; success:
         success: result.success,
         error: result.error,
       };
-    })
+    }),
   );
   return results;
 }

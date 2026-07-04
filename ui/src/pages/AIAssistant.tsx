@@ -1,47 +1,65 @@
-import { useState, useRef, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { motion } from 'framer-motion'
-import { Bot, Send, Sparkles, Cpu, Copy, RotateCcw, Check, ChevronDown, AlertCircle, Key, Settings as SettingsIcon, Loader2 } from 'lucide-react'
-import { useNotify } from '../context/NotificationContext'
-import { fetchAgents, type AgentMeta } from '../lib/api'
-import { chatWithLLM, chatWithLLMStream, getActiveProvider, getConfiguredProviders, type ChatMessage } from '../lib/llm-chat'
-import { POPULAR_PROVIDERS } from './Settings'
-import { ProviderLogo } from '../components/ProviderLogo'
-import { cn } from '../utils/helpers'
-import ReactMarkdown from 'react-markdown'
-import remarkGfm from 'remark-gfm'
+import { useState, useRef, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
+import {
+  Bot,
+  Send,
+  Sparkles,
+  Cpu,
+  Copy,
+  RotateCcw,
+  Check,
+  AlertCircle,
+  Key,
+  Settings as SettingsIcon,
+  Loader2,
+} from 'lucide-react';
+import { useNotify } from '../context/NotificationContext';
+import { fetchAgents, type AgentMeta } from '../lib/api';
+import {
+  chatWithLLM,
+  chatWithLLMStream,
+  getActiveProvider,
+  getConfiguredProviders,
+  type ChatMessage,
+} from '../lib/llm-chat';
+import { POPULAR_PROVIDERS } from './Settings';
+import { ProviderLogo } from '../components/ProviderLogo';
+import { cn } from '../utils/helpers';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 
 interface Message {
-  id: string
-  role: 'user' | 'assistant'
-  content: string
-  timestamp: number
-  streaming?: boolean
+  id: string;
+  role: 'user' | 'assistant';
+  content: string;
+  timestamp: number;
+  streaming?: boolean;
 }
 
 export default function AIAssistant() {
-  const [agents, setAgents] = useState<AgentMeta[]>([])
-  const [selectedAgent, setSelectedAgent] = useState<string>('power-system-coordinator-agent')
-  const [messages, setMessages] = useState<Message[]>([])
-  const [input, setInput] = useState('')
-  const [loading, setLoading] = useState(false)
-  const [copiedId, setCopiedId] = useState<string | null>(null)
-  const [hasApiKey, setHasApiKey] = useState<boolean | null>(null)  // null = not checked yet
-  const { notify } = useNotify()
-  const navigate = useNavigate()
-  const messagesEndRef = useRef<HTMLDivElement>(null)
-  const inputRef = useRef<HTMLTextAreaElement>(null)
+  const [agents, setAgents] = useState<AgentMeta[]>([]);
+  const [selectedAgent, _setSelectedAgent] = useState<string>('power-system-coordinator-agent');
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [input, setInput] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [hasApiKey, setHasApiKey] = useState<boolean | null>(null); // null = not checked yet
+  const { notify } = useNotify();
+  const navigate = useNavigate();
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
 
   // Check if any provider API key is configured in localStorage settings
   useEffect(() => {
     const checkApiKey = () => {
       try {
-        const stored = localStorage.getItem('etap-settings')
+        const stored = localStorage.getItem('etap-settings');
         if (!stored) {
-          setHasApiKey(false)
-          return
+          setHasApiKey(false);
+          return;
         }
-        const parsed = JSON.parse(stored)
+        const parsed = JSON.parse(stored);
         const hasAnyKey = [
           // Coding agent platforms (new)
           'PROVIDER_OPENCODE_KEY',
@@ -57,113 +75,131 @@ export default function AIAssistant() {
           'PROVIDER_HUGGINGFACE_KEY',
           // Custom
           'CUSTOM_API_KEY',
-        ].some(k => !!parsed[k])
-        setHasApiKey(hasAnyKey)
+        ].some((k) => !!parsed[k]);
+        setHasApiKey(hasAnyKey);
       } catch {
-        setHasApiKey(false)
+        setHasApiKey(false);
       }
-    }
-    checkApiKey()
+    };
+    checkApiKey();
     // Re-check when window regains focus (e.g. after returning from Settings)
-    window.addEventListener('focus', checkApiKey)
-    return () => window.removeEventListener('focus', checkApiKey)
-  }, [])
+    window.addEventListener('focus', checkApiKey);
+    return () => window.removeEventListener('focus', checkApiKey);
+  }, []);
 
   useEffect(() => {
-    fetchAgents().then(setAgents).catch(() => notify('error', 'Failed to load agents'))
+    fetchAgents()
+      .then(setAgents)
+      .catch(() => notify('error', 'Failed to load agents'));
     // focus input on mount
-    setTimeout(() => inputRef.current?.focus(), 100)
+    setTimeout(() => inputRef.current?.focus(), 100);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  }, [notify]);
 
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
-  }, [messages, loading])
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, []);
 
   const handleSend = async () => {
-    if (!input.trim() || loading) return
+    if (!input.trim() || loading) return;
 
     // Check if a provider is configured
-    const provider = getActiveProvider()
+    const provider = getActiveProvider();
     if (!provider) {
-      notify('error', 'No API key configured. Go to Settings → AI Providers to connect a provider.')
-      navigate('/settings')
-      return
+      notify(
+        'error',
+        'No API key configured. Go to Settings → AI Providers to connect a provider.',
+      );
+      navigate('/settings');
+      return;
     }
 
-    const userMsgId = `user-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
-    const assistantMsgId = `assistant-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
-    const userMsg: Message = { id: userMsgId, role: 'user', content: input.trim(), timestamp: Date.now() }
-    setMessages(prev => [...prev, userMsg])
-    setInput('')
-    setLoading(true)
+    const userMsgId = `user-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+    const assistantMsgId = `assistant-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+    const userMsg: Message = {
+      id: userMsgId,
+      role: 'user',
+      content: input.trim(),
+      timestamp: Date.now(),
+    };
+    setMessages((prev) => [...prev, userMsg]);
+    setInput('');
+    setLoading(true);
 
     try {
       // Build chat messages with a system prompt
       const chatMessages: ChatMessage[] = [
         {
           role: 'system',
-          content: 'You are AhmedETAP AI Assistant, an enterprise-grade engineering intelligence assistant for power systems. You help with load flow analysis, short circuit calculations, arc flash analysis, protective relay coordination, and ETAP integrations. Provide accurate, technically correct answers with proper engineering notation. Use markdown for formatting code and equations.',
+          content:
+            'You are AhmedETAP AI Assistant, an enterprise-grade engineering intelligence assistant for power systems. You help with load flow analysis, short circuit calculations, arc flash analysis, protective relay coordination, and ETAP integrations. Provide accurate, technically correct answers with proper engineering notation. Use markdown for formatting code and equations.',
         },
-        ...messages.map(m => ({ role: m.role, content: m.content }) as ChatMessage),
+        ...messages.map((m) => ({ role: m.role, content: m.content }) as ChatMessage),
         { role: 'user', content: userMsg.content },
-      ]
+      ];
 
       // Create a placeholder message for streaming
-      setMessages(prev => [...prev, {
-        id: assistantMsgId,
-        role: 'assistant',
-        content: '',
-        timestamp: Date.now(),
-        streaming: true,
-      }])
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: assistantMsgId,
+          role: 'assistant',
+          content: '',
+          timestamp: Date.now(),
+          streaming: true,
+        },
+      ]);
 
       // Stream the response token-by-token
-      let accumulatedContent = ''
+      let accumulatedContent = '';
       try {
         for await (const chunk of chatWithLLMStream(chatMessages)) {
-          accumulatedContent += chunk
+          accumulatedContent += chunk;
           // Update the message progressively
-          setMessages(prev => prev.map(m =>
-            m.id === assistantMsgId
-              ? { ...m, content: accumulatedContent }
-              : m
-          ))
+          setMessages((prev) =>
+            prev.map((m) => (m.id === assistantMsgId ? { ...m, content: accumulatedContent } : m)),
+          );
         }
         // Mark streaming as complete
-        setMessages(prev => prev.map(m =>
-          m.id === assistantMsgId
-            ? { ...m, content: accumulatedContent || '(empty response)', streaming: false }
-            : m
-        ))
-      } catch (streamErr) {
+        setMessages((prev) =>
+          prev.map((m) =>
+            m.id === assistantMsgId
+              ? { ...m, content: accumulatedContent || '(empty response)', streaming: false }
+              : m,
+          ),
+        );
+      } catch (_streamErr) {
         // If streaming fails, fall back to non-streaming
         if (accumulatedContent) {
           // We got partial content, keep it
-          setMessages(prev => prev.map(m =>
-            m.id === assistantMsgId
-              ? { ...m, content: accumulatedContent, streaming: false }
-              : m
-          ))
+          setMessages((prev) =>
+            prev.map((m) =>
+              m.id === assistantMsgId ? { ...m, content: accumulatedContent, streaming: false } : m,
+            ),
+          );
         } else {
           // No content from streaming — try non-streaming ONCE
           // This is the ONLY fallback. No double API calls.
           try {
-            const result = await chatWithLLM(chatMessages)
-            setMessages(prev => prev.map(m =>
-              m.id === assistantMsgId
-                ? { ...m, content: result.content || '(empty response)', streaming: false }
-                : m
-            ))
+            const result = await chatWithLLM(chatMessages);
+            setMessages((prev) =>
+              prev.map((m) =>
+                m.id === assistantMsgId
+                  ? { ...m, content: result.content || '(empty response)', streaming: false }
+                  : m,
+              ),
+            );
           } catch (fallbackErr) {
             // Both streaming and non-streaming failed.
             // Update the placeholder with the error, DON'T add a new message.
-            const errMsg = fallbackErr instanceof Error ? fallbackErr.message : 'Unknown error'
-            setMessages(prev => prev.map(m =>
-              m.id === assistantMsgId
-                ? { ...m, content: `⚠️ **Error:** ${errMsg}`, streaming: false }
-                : m
-            ))
+            const errMsg = fallbackErr instanceof Error ? fallbackErr.message : 'Unknown error';
+            setMessages((prev) =>
+              prev.map((m) =>
+                m.id === assistantMsgId
+                  ? { ...m, content: `⚠️ **Error:** ${errMsg}`, streaming: false }
+                  : m,
+              ),
+            );
           }
         }
       }
@@ -172,30 +208,30 @@ export default function AIAssistant() {
       // (e.g., building the chat messages, creating the placeholder).
       // The streaming and fallback errors are already handled by the inner catch.
       // DO NOT add a new message here — that causes duplicate error messages.
-      const errMsg = err instanceof Error ? err.message : 'Unknown error'
-      notify('error', `Chat failed: ${errMsg}`)
+      const errMsg = err instanceof Error ? err.message : 'Unknown error';
+      notify('error', `Chat failed: ${errMsg}`);
     } finally {
-      setLoading(false)
-      setTimeout(() => inputRef.current?.focus(), 50)
+      setLoading(false);
+      setTimeout(() => inputRef.current?.focus(), 50);
     }
-  }
+  };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault()
-      handleSend()
+      e.preventDefault();
+      handleSend();
     }
-  }
+  };
 
   const handleCopy = (id: string, content: string) => {
-    navigator.clipboard.writeText(content)
-    setCopiedId(id)
-    setTimeout(() => setCopiedId(null), 2000)
-  }
+    navigator.clipboard.writeText(content);
+    setCopiedId(id);
+    setTimeout(() => setCopiedId(null), 2000);
+  };
 
-  const selectedAgentData = agents.find(a => a.id === selectedAgent)
-  const activeProvider = getActiveProvider()
-  const configuredProviders = getConfiguredProviders()
+  const _selectedAgentData = agents.find((a) => a.id === selectedAgent);
+  const activeProvider = getActiveProvider();
+  const configuredProviders = getConfiguredProviders();
 
   return (
     <div className="flex flex-col h-[calc(100vh-64px)] bg-[#fdfdfc] dark:bg-[#1a1b1e] text-[#1f2937] dark:text-[#e5e7eb] font-sans -mx-4 -my-4 sm:-mx-8 sm:-my-6">
@@ -213,36 +249,39 @@ export default function AIAssistant() {
                 {/* Model selector dropdown — lets user change model on the fly */}
                 <select
                   value={activeProvider.model}
-                  onChange={e => {
-                    const settings = JSON.parse(localStorage.getItem('etap-settings') || '{}')
-                    settings[`PROVIDER_${activeProvider.id.toUpperCase()}_MODEL`] = e.target.value
-                    localStorage.setItem('etap-settings', JSON.stringify(settings))
-                    window.location.reload()
+                  onChange={(e) => {
+                    const settings = JSON.parse(localStorage.getItem('etap-settings') || '{}');
+                    settings[`PROVIDER_${activeProvider.id.toUpperCase()}_MODEL`] = e.target.value;
+                    localStorage.setItem('etap-settings', JSON.stringify(settings));
+                    window.location.reload();
                   }}
                   className="text-[10px] text-gray-500 dark:text-gray-400 leading-tight bg-transparent outline-none cursor-pointer border-none p-0 m-0 max-w-[180px] sm:max-w-[250px]"
                   title="Change model"
                 >
-                  {(POPULAR_PROVIDERS.find(p => p.id === activeProvider.id)?.models || []).map((m: { id: string; name: string; isFree: boolean }) => (
-                    <option key={m.id} value={m.id} className="dark:bg-gray-800">
-                      {m.isFree ? '🆓 ' : ''}{m.name} ({m.id})
-                    </option>
-                  ))}
+                  {(POPULAR_PROVIDERS.find((p) => p.id === activeProvider.id)?.models || []).map(
+                    (m: { id: string; name: string; isFree: boolean }) => (
+                      <option key={m.id} value={m.id} className="dark:bg-gray-800">
+                        {m.isFree ? '🆓 ' : ''}
+                        {m.name} ({m.id})
+                      </option>
+                    ),
+                  )}
                 </select>
               </div>
               {/* Provider switcher dropdown */}
               {configuredProviders.length > 1 && (
                 <select
                   value={activeProvider.id}
-                  onChange={e => {
-                    const settings = JSON.parse(localStorage.getItem('etap-settings') || '{}')
-                    settings.PROVIDER_ACTIVE_PROVIDER_ID = e.target.value
-                    localStorage.setItem('etap-settings', JSON.stringify(settings))
-                    window.location.reload()
+                  onChange={(e) => {
+                    const settings = JSON.parse(localStorage.getItem('etap-settings') || '{}');
+                    settings.PROVIDER_ACTIVE_PROVIDER_ID = e.target.value;
+                    localStorage.setItem('etap-settings', JSON.stringify(settings));
+                    window.location.reload();
                   }}
                   className="ml-1 appearance-none bg-transparent text-[10px] text-gray-500 dark:text-gray-400 outline-none cursor-pointer"
                   title="Switch provider"
                 >
-                  {configuredProviders.map(p => (
+                  {configuredProviders.map((p) => (
                     <option key={p.id} value={p.id} className="dark:bg-gray-800">
                       {p.name}
                     </option>
@@ -253,7 +292,9 @@ export default function AIAssistant() {
           ) : (
             <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800">
               <AlertCircle className="w-4 h-4 text-amber-500" />
-              <span className="text-xs font-medium text-amber-700 dark:text-amber-400">No provider connected</span>
+              <span className="text-xs font-medium text-amber-700 dark:text-amber-400">
+                No provider connected
+              </span>
             </div>
           )}
         </div>
@@ -286,7 +327,8 @@ export default function AIAssistant() {
                       Connect an AI provider to get started
                     </h3>
                     <p className="text-xs text-amber-700/80 dark:text-amber-400/80">
-                      You need an API key from OpenAI, Anthropic, Gemini, or other supported provider to use the AI Assistant.
+                      You need an API key from OpenAI, Anthropic, Gemini, or other supported
+                      provider to use the AI Assistant.
                     </p>
                   </div>
                   <button
@@ -306,7 +348,8 @@ export default function AIAssistant() {
                 How can I help you today?
               </h1>
               <p className="text-gray-500 dark:text-gray-400 max-w-md mx-auto text-sm">
-                I can write code, analyze power systems, solve short circuits, and help with ETAP integrations.
+                I can write code, analyze power systems, solve short circuits, and help with ETAP
+                integrations.
               </p>
 
               {/* Provider status indicator */}
@@ -318,7 +361,12 @@ export default function AIAssistant() {
               )}
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-8 w-full max-w-2xl">
-                {['Run a Newton-Raphson load flow', 'Calculate arc flash incident energy', 'Write a Python script for GIS', 'Explain protective relay coordination'].map(q => (
+                {[
+                  'Run a Newton-Raphson load flow',
+                  'Calculate arc flash incident energy',
+                  'Write a Python script for GIS',
+                  'Explain protective relay coordination',
+                ].map((q) => (
                   <button
                     key={q}
                     onClick={() => setInput(q)}
@@ -362,7 +410,7 @@ export default function AIAssistant() {
                           remarkPlugins={[remarkGfm]}
                           components={{
                             code({ node, inline, className, children, ...props }: any) {
-                              const match = /language-(\w+)/.exec(className || '')
+                              const match = /language-(\w+)/.exec(className || '');
                               return !inline && match ? (
                                 <div className="rounded-xl overflow-hidden border border-gray-200 dark:border-gray-700 my-4 shadow-sm bg-[#1e1e1e]">
                                   <div className="flex items-center justify-between px-4 py-2 bg-[#2d2d2d] text-gray-400 text-xs font-mono border-b border-gray-700">
@@ -371,23 +419,33 @@ export default function AIAssistant() {
                                       onClick={() => handleCopy(m.id + children, String(children))}
                                       className="hover:text-white transition-colors flex items-center gap-1.5"
                                     >
-                                      {copiedId === m.id + children ? <Check className="w-3.5 h-3.5 text-green-400" /> : <Copy className="w-3.5 h-3.5" />}
+                                      {copiedId === m.id + children ? (
+                                        <Check className="w-3.5 h-3.5 text-green-400" />
+                                      ) : (
+                                        <Copy className="w-3.5 h-3.5" />
+                                      )}
                                       {copiedId === m.id + children ? 'Copied' : 'Copy'}
                                     </button>
                                   </div>
                                   <pre
                                     className="p-4 overflow-x-auto text-sm font-mono text-gray-200 dark:text-gray-300"
-                    {...props}
-                  >
-                    {String(children).replace(/\n$/, '')}
-                  </pre>
+                                    {...props}
+                                  >
+                                    {String(children).replace(/\n$/, '')}
+                                  </pre>
                                 </div>
                               ) : (
-                                <code className={cn('bg-gray-100 dark:bg-gray-800 text-[#d97706] dark:text-[#fbbf24] px-1.5 py-0.5 rounded-md text-[0.9em] font-mono', className)} {...props}>
+                                <code
+                                  className={cn(
+                                    'bg-gray-100 dark:bg-gray-800 text-[#d97706] dark:text-[#fbbf24] px-1.5 py-0.5 rounded-md text-[0.9em] font-mono',
+                                    className,
+                                  )}
+                                  {...props}
+                                >
                                   {children}
                                 </code>
-                              )
-                            }
+                              );
+                            },
                           }}
                         >
                           {m.content}
@@ -409,7 +467,11 @@ export default function AIAssistant() {
                           onClick={() => handleCopy(m.id, m.content)}
                           className="p-1.5 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors flex items-center gap-1.5 text-xs font-medium"
                         >
-                          {copiedId === m.id ? <Check className="w-3.5 h-3.5 text-green-500" /> : <Copy className="w-3.5 h-3.5" />}
+                          {copiedId === m.id ? (
+                            <Check className="w-3.5 h-3.5 text-green-500" />
+                          ) : (
+                            <Copy className="w-3.5 h-3.5" />
+                          )}
                           {copiedId === m.id ? 'Copied!' : 'Copy text'}
                         </button>
                       </div>
@@ -420,7 +482,7 @@ export default function AIAssistant() {
             ))
           )}
 
-          {loading && !messages.some(m => m.streaming) && (
+          {loading && !messages.some((m) => m.streaming) && (
             <motion.div
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
@@ -451,13 +513,16 @@ export default function AIAssistant() {
       <div className="absolute bottom-0 left-0 w-full bg-gradient-to-t from-white via-white to-transparent dark:from-[#1a1b1e] dark:via-[#1a1b1e] dark:to-transparent pt-10 pb-6 px-4 sm:px-8 z-10">
         <div className="max-w-3xl mx-auto w-full relative">
           <form
-            onSubmit={e => { e.preventDefault(); handleSend() }}
+            onSubmit={(e) => {
+              e.preventDefault();
+              handleSend();
+            }}
             className="relative flex flex-col bg-white dark:bg-[#27272a] border border-gray-300 dark:border-gray-700 rounded-2xl shadow-sm focus-within:border-[#d97706] focus-within:ring-1 focus-within:ring-[#d97706] transition-all overflow-hidden"
           >
             <textarea
               ref={inputRef}
               value={input}
-              onChange={e => setInput(e.target.value)}
+              onChange={(e) => setInput(e.target.value)}
               onKeyDown={handleKeyDown}
               disabled={loading}
               placeholder="Message AI Assistant..."
@@ -473,10 +538,10 @@ export default function AIAssistant() {
                 type="submit"
                 disabled={loading || !input.trim()}
                 className={cn(
-                  "p-2 rounded-xl transition-all duration-200 flex items-center justify-center",
+                  'p-2 rounded-xl transition-all duration-200 flex items-center justify-center',
                   loading || !input.trim()
-                    ? "bg-gray-100 dark:bg-gray-800 text-gray-400 cursor-not-allowed"
-                    : "bg-[#d97706] hover:bg-[#b45309] text-white shadow-md shadow-amber-500/20"
+                    ? 'bg-gray-100 dark:bg-gray-800 text-gray-400 cursor-not-allowed'
+                    : 'bg-[#d97706] hover:bg-[#b45309] text-white shadow-md shadow-amber-500/20',
                 )}
               >
                 <Send className="w-4 h-4" />
@@ -491,13 +556,24 @@ export default function AIAssistant() {
         </div>
       </div>
     </div>
-  )
+  );
 }
 
 function LoaderIcon(props: React.SVGProps<SVGSVGElement>) {
   return (
-    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width="24"
+      height="24"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      {...props}
+    >
       <path d="M21 12a9 9 0 1 1-6.219-8.56" />
     </svg>
-  )
+  );
 }
