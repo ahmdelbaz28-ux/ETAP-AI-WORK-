@@ -17,6 +17,10 @@ interface AppState {
   sidebarCollapsed: boolean
   toggleSidebar: () => void
   setSidebarCollapsed: (collapsed: boolean) => void
+  // Mobile sidebar (drawer overlay)
+  mobileSidebarOpen: boolean
+  toggleMobileSidebar: () => void
+  setMobileSidebarOpen: (open: boolean) => void
 
   // Language
   language: 'en' | 'ar'
@@ -52,6 +56,10 @@ export const useAppStore = create<AppState>((set) => ({
   sidebarCollapsed: false,
   toggleSidebar: () => set((state) => ({ sidebarCollapsed: !state.sidebarCollapsed })),
   setSidebarCollapsed: (collapsed) => set({ sidebarCollapsed: collapsed }),
+  // Mobile sidebar (drawer overlay) — separate from desktop collapse state
+  mobileSidebarOpen: false,
+  toggleMobileSidebar: () => set((state) => ({ mobileSidebarOpen: !state.mobileSidebarOpen })),
+  setMobileSidebarOpen: (open) => set({ mobileSidebarOpen: open }),
 
   // Language
   language: (localStorage.getItem('i18nextLng') as 'en' | 'ar') || 'en',

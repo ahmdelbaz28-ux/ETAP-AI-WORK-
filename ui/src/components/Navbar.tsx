@@ -5,6 +5,7 @@ import {
   Search, Bell, X, Globe, Clock, Command, Maximize2, Minimize2,
   Sparkles, HelpCircle, Keyboard, ChevronDown, User as UserIcon,
   Settings, LogOut, ShieldCheck, CheckCircle2, AlertCircle, Info, AlertTriangle,
+  Menu, Zap,
 } from 'lucide-react'
 import { useAppStore } from '../store'
 import { cn } from '../utils/helpers'
@@ -82,7 +83,7 @@ function ToolButton({ onClick, icon: Icon, title, badge, active, accent, unreadC
 export function Navbar() {
   const { t, i18n } = useTranslation()
   const navigate = useNavigate()
-  const { searchQuery, setSearchQuery } = useAppStore()
+  const { searchQuery, setSearchQuery, toggleMobileSidebar } = useAppStore()
   const [showSearch, setShowSearch] = useState(false)
   const [currentTime, setCurrentTime] = useState(new Date())
   const [isFullscreen, setIsFullscreen] = useState(false)
@@ -181,10 +182,26 @@ export function Navbar() {
   // (ToolButton moved to module scope to avoid re-creating on each render)
 
   return (
-    <header className="flex items-center justify-between px-4 py-2 bg-[var(--bg-secondary)]/80 backdrop-blur-xl border-b border-[var(--border-primary)]/50 shrink-0 z-[var(--z-navbar)] relative">
-      {/* ─── Left: Search ──────────────────────────────────────────── */}
-      <div className="flex items-center gap-2 flex-1 max-w-md">
-        {/* Search input (expandable) */}
+    <header className="flex items-center justify-between px-3 sm:px-4 py-2 bg-[var(--bg-secondary)]/80 backdrop-blur-xl border-b border-[var(--border-primary)]/50 shrink-0 z-[var(--z-navbar)] relative">
+      {/* ─── Left: Hamburger (mobile only) + Brand + Search ────────── */}
+      <div className="flex items-center gap-2 flex-1 min-w-0">
+        {/* Hamburger menu — mobile only */}
+        <button
+          onClick={toggleMobileSidebar}
+          aria-label="Open menu"
+          className="lg:hidden p-2 -ml-1 rounded-lg text-[var(--text-secondary)] hover:bg-[var(--bg-elevated)] hover:text-[var(--text-primary)] transition-colors shrink-0"
+        >
+          <Menu className="w-5 h-5" />
+        </button>
+
+        {/* Brand logo — mobile only (desktop uses sidebar logo) */}
+        <div className="lg:hidden flex items-center gap-1.5 shrink-0">
+          <div className="w-7 h-7 bg-gradient-to-br from-brand-500 to-brand-700 rounded-lg flex items-center justify-center shadow-sm">
+            <Zap className="w-4 h-4 text-white" />
+          </div>
+        </div>
+
+        {/* Search input (expandable) — hidden on mobile when collapsed */}
         <div className={cn(
           'relative transition-all duration-300 ease-out',
           showSearch ? 'w-full opacity-100' : 'w-9 opacity-0 pointer-events-none'
@@ -208,11 +225,11 @@ export function Navbar() {
           )}
         </div>
 
-        {/* Search toggle button (when collapsed) */}
+        {/* Search toggle button (when collapsed) — hidden on mobile */}
         {!showSearch && (
           <button
             onClick={() => setShowSearch(true)}
-            className="flex items-center gap-2 px-3 py-2 rounded-lg bg-[var(--bg-input)]/50 border border-[var(--border-primary)]/50 hover:bg-[var(--bg-input)] hover:border-[var(--border-primary)] text-[var(--text-muted)] hover:text-[var(--text-secondary)] transition-all text-sm group"
+            className="hidden sm:flex items-center gap-2 px-3 py-2 rounded-lg bg-[var(--bg-input)]/50 border border-[var(--border-primary)]/50 hover:bg-[var(--bg-input)] hover:border-[var(--border-primary)] text-[var(--text-muted)] hover:text-[var(--text-secondary)] transition-all text-sm group"
             aria-label="Search"
           >
             <Search className="w-4 h-4" />
@@ -222,10 +239,21 @@ export function Navbar() {
             </kbd>
           </button>
         )}
+
+        {/* Mobile search icon button (when not expanded) */}
+        {!showSearch && (
+          <button
+            onClick={() => setShowSearch(true)}
+            aria-label="Search"
+            className="sm:hidden p-2 rounded-lg text-[var(--text-muted)] hover:bg-[var(--bg-elevated)] hover:text-[var(--text-primary)] transition-colors shrink-0"
+          >
+            <Search className="w-5 h-5" />
+          </button>
+        )}
       </div>
 
       {/* ─── Center: Brand (hidden on mobile) ──────────────────────── */}
-      <div className="hidden md:flex items-center gap-2 absolute left-1/2 -translate-x-1/2">
+      <div className="hidden lg:flex items-center gap-2 absolute left-1/2 -translate-x-1/2">
         <div className="flex items-center gap-2 px-3 py-1 rounded-lg bg-[var(--bg-primary)]/40 border border-[var(--border-primary)]/30">
           <div className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" />
           <span className="text-[10px] font-mono text-[var(--text-muted)] uppercase tracking-wider">
@@ -235,48 +263,58 @@ export function Navbar() {
       </div>
 
       {/* ─── Right: Tools ──────────────────────────────────────────── */}
-      <div className="flex items-center gap-0.5">
-        {/* Language Toggle */}
-        <ToolButton
-          onClick={toggleLanguage}
-          icon={Globe}
-          title={isRtl ? 'Switch to English' : 'التبديل للعربية'}
-        />
+      <div className="flex items-center gap-0.5 shrink-0">
+        {/* Language Toggle — hidden on mobile (in sidebar drawer instead) */}
+        <div className="hidden sm:block">
+          <ToolButton
+            onClick={toggleLanguage}
+            icon={Globe}
+            title={isRtl ? 'Switch to English' : 'التبديل للعربية'}
+          />
+        </div>
 
-        {/* Fullscreen Toggle */}
-        <ToolButton
-          onClick={toggleFullscreen}
-          icon={isFullscreen ? Minimize2 : Maximize2}
-          title={isFullscreen ? 'Exit Fullscreen (F11)' : 'Fullscreen (F11)'}
-        />
+        {/* Fullscreen Toggle — hidden on mobile */}
+        <div className="hidden sm:block">
+          <ToolButton
+            onClick={toggleFullscreen}
+            icon={isFullscreen ? Minimize2 : Maximize2}
+            title={isFullscreen ? 'Exit Fullscreen (F11)' : 'Fullscreen (F11)'}
+          />
+        </div>
 
-        {/* Separator */}
-        <div className="w-px h-5 bg-[var(--border-primary)] mx-1" />
+        {/* Separator — hidden on mobile */}
+        <div className="hidden sm:block w-px h-5 bg-[var(--border-primary)] mx-1" />
 
-        {/* Magic Help Inspector */}
-        <ToolButton
-          onClick={() => globalThis.dispatchEvent(new CustomEvent('start-magic-help-inspect'))}
-          icon={Sparkles}
-          title="Magic Help Inspector (Ctrl+Shift+H)"
-          accent="brand"
-          badge
-          unreadCount={unreadCount}
-        />
+        {/* Magic Help Inspector — hidden on mobile */}
+        <div className="hidden md:block">
+          <ToolButton
+            onClick={() => globalThis.dispatchEvent(new CustomEvent('start-magic-help-inspect'))}
+            icon={Sparkles}
+            title="Magic Help Inspector (Ctrl+Shift+H)"
+            accent="brand"
+            badge
+            unreadCount={unreadCount}
+          />
+        </div>
 
-        {/* Help */}
-        <ToolButton
-          onClick={openHelp}
-          icon={HelpCircle}
-          title="Smart Help (F1)"
-        />
+        {/* Help — hidden on mobile */}
+        <div className="hidden md:block">
+          <ToolButton
+            onClick={openHelp}
+            icon={HelpCircle}
+            title="Smart Help (F1)"
+          />
+        </div>
 
-        {/* Keyboard Shortcuts */}
-        <ToolButton
-          onClick={openShortcuts}
-          icon={Keyboard}
-          title="Keyboard Shortcuts (Ctrl+/)"
-          active
-        />
+        {/* Keyboard Shortcuts — hidden on mobile */}
+        <div className="hidden md:block">
+          <ToolButton
+            onClick={openShortcuts}
+            icon={Keyboard}
+            title="Keyboard Shortcuts (Ctrl+/)"
+            active
+          />
+        </div>
 
         {/* Notifications — with dropdown */}
         <div className="relative" ref={notifRef}>
