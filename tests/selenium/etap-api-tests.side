@@ -1,0 +1,523 @@
+{
+  "id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+  "version": "4.0.13",
+  "name": "ETAP-AI-WORK API Tests",
+  "url": "http://127.0.0.1:7860",
+  "tests": [
+    {
+      "id": "test-001-healthz",
+      "name": "GET /healthz returns ok",
+      "commands": [
+        {
+          "id": "cmd-001",
+          "command": "open",
+          "target": "/healthz",
+          "value": ""
+        },
+        {
+          "id": "cmd-002-exec",
+          "command": "executeScript",
+          "target": "return document.body.innerText.includes('ok')",
+          "value": "result"
+        },
+        {
+          "id": "cmd-002-assert",
+          "command": "assert",
+          "target": "result",
+          "value": "true"
+        }
+      ]
+    },
+    {
+      "id": "test-002-health",
+      "name": "GET /health returns healthy",
+      "commands": [
+        {
+          "id": "cmd-003",
+          "command": "open",
+          "target": "/health",
+          "value": ""
+        },
+        {
+          "id": "cmd-004-exec",
+          "command": "executeScript",
+          "target": "return document.body.innerText.includes('healthy')",
+          "value": "result"
+        },
+        {
+          "id": "cmd-004-assert",
+          "command": "assert",
+          "target": "result",
+          "value": "true"
+        }
+      ]
+    },
+    {
+      "id": "test-003-ready",
+      "name": "GET /ready returns ready",
+      "commands": [
+        {
+          "id": "cmd-005",
+          "command": "open",
+          "target": "/ready",
+          "value": ""
+        },
+        {
+          "id": "cmd-006-exec",
+          "command": "executeScript",
+          "target": "return document.body.innerText.includes('ready')",
+          "value": "result"
+        },
+        {
+          "id": "cmd-006-assert",
+          "command": "assert",
+          "target": "result",
+          "value": "true"
+        }
+      ]
+    },
+    {
+      "id": "test-004-readyz",
+      "name": "GET /readyz returns ready",
+      "commands": [
+        {
+          "id": "cmd-007",
+          "command": "open",
+          "target": "/readyz",
+          "value": ""
+        },
+        {
+          "id": "cmd-008-exec",
+          "command": "executeScript",
+          "target": "return document.body.innerText.includes('ready')",
+          "value": "result"
+        },
+        {
+          "id": "cmd-008-assert",
+          "command": "assert",
+          "target": "result",
+          "value": "true"
+        }
+      ]
+    },
+    {
+      "id": "test-005-metrics",
+      "name": "GET /metrics returns uptime",
+      "commands": [
+        {
+          "id": "cmd-009",
+          "command": "open",
+          "target": "/metrics",
+          "value": ""
+        },
+        {
+          "id": "cmd-010-exec",
+          "command": "executeScript",
+          "target": "return document.body.innerText.includes('uptime_seconds')",
+          "value": "result"
+        },
+        {
+          "id": "cmd-010-assert",
+          "command": "assert",
+          "target": "result",
+          "value": "true"
+        }
+      ]
+    },
+    {
+      "id": "test-006-root",
+      "name": "GET / returns HTML",
+      "commands": [
+        {
+          "id": "cmd-011",
+          "command": "open",
+          "target": "/",
+          "value": ""
+        },
+        {
+          "id": "cmd-012-exec",
+          "command": "executeScript",
+          "target": "return document.body.innerText.includes('AhmedETAP')",
+          "value": "result"
+        },
+        {
+          "id": "cmd-012-assert",
+          "command": "assert",
+          "target": "result",
+          "value": "true"
+        }
+      ]
+    },
+    {
+      "id": "test-007-info",
+      "name": "GET /api/v1/info returns AhmedETAP",
+      "commands": [
+        {
+          "id": "cmd-013",
+          "command": "open",
+          "target": "/api/v1/info",
+          "value": ""
+        },
+        {
+          "id": "cmd-014-exec",
+          "command": "executeScript",
+          "target": "return document.body.innerText.includes('AhmedETAP')",
+          "value": "result"
+        },
+        {
+          "id": "cmd-014-assert",
+          "command": "assert",
+          "target": "result",
+          "value": "true"
+        }
+      ]
+    },
+    {
+      "id": "test-008-agents-list",
+      "name": "GET /api/v1/agents returns list",
+      "commands": [
+        {
+          "id": "cmd-015",
+          "command": "open",
+          "target": "/api/v1/agents",
+          "value": ""
+        },
+        {
+          "id": "cmd-016-exec",
+          "command": "executeScript",
+          "target": "return document.body.innerText.includes('agents')",
+          "value": "result"
+        },
+        {
+          "id": "cmd-016-assert",
+          "command": "assert",
+          "target": "result",
+          "value": "true"
+        }
+      ]
+    },
+    {
+      "id": "test-009-agent-expert",
+      "name": "GET /api/v1/agents/etap_expert returns ETAP",
+      "commands": [
+        {
+          "id": "cmd-017",
+          "command": "open",
+          "target": "/api/v1/agents/etap_expert",
+          "value": ""
+        },
+        {
+          "id": "cmd-018-exec",
+          "command": "executeScript",
+          "target": "return document.body.innerText.includes('ETAP')",
+          "value": "result"
+        },
+        {
+          "id": "cmd-018-assert",
+          "command": "assert",
+          "target": "result",
+          "value": "true"
+        }
+      ]
+    },
+    {
+      "id": "test-010-gui-health",
+      "name": "GET /api/v1/agents/etap-gui/health",
+      "commands": [
+        {
+          "id": "cmd-019",
+          "command": "open",
+          "target": "/api/v1/agents/etap-gui/health",
+          "value": ""
+        },
+        {
+          "id": "cmd-020-exec",
+          "command": "executeScript",
+          "target": "return document.body.innerText.includes('success')",
+          "value": "result"
+        },
+        {
+          "id": "cmd-020-assert",
+          "command": "assert",
+          "target": "result",
+          "value": "true"
+        }
+      ]
+    },
+    {
+      "id": "test-011-safety-health",
+      "name": "GET /api/v1/agents/etap-gui/safety/health",
+      "commands": [
+        {
+          "id": "cmd-021",
+          "command": "open",
+          "target": "/api/v1/agents/etap-gui/safety/health",
+          "value": ""
+        },
+        {
+          "id": "cmd-022-exec",
+          "command": "executeScript",
+          "target": "return document.body.innerText.includes('kill_switch')",
+          "value": "result"
+        },
+        {
+          "id": "cmd-022-assert",
+          "command": "assert",
+          "target": "result",
+          "value": "true"
+        }
+      ]
+    },
+    {
+      "id": "test-012-audit-verify",
+      "name": "GET /api/v1/agents/etap-gui/safety/audit/verify",
+      "commands": [
+        {
+          "id": "cmd-023",
+          "command": "open",
+          "target": "/api/v1/agents/etap-gui/safety/audit/verify",
+          "value": ""
+        },
+        {
+          "id": "cmd-024-exec",
+          "command": "executeScript",
+          "target": "return document.body.innerText.includes('is_valid')",
+          "value": "result"
+        },
+        {
+          "id": "cmd-024-assert",
+          "command": "assert",
+          "target": "result",
+          "value": "true"
+        }
+      ]
+    },
+    {
+      "id": "test-013-siem-health",
+      "name": "GET /api/v1/agents/etap-gui/siem/health",
+      "commands": [
+        {
+          "id": "cmd-025",
+          "command": "open",
+          "target": "/api/v1/agents/etap-gui/siem/health",
+          "value": ""
+        },
+        {
+          "id": "cmd-026-exec",
+          "command": "executeScript",
+          "target": "return document.body.innerText.includes('enabled')",
+          "value": "result"
+        },
+        {
+          "id": "cmd-026-assert",
+          "command": "assert",
+          "target": "result",
+          "value": "true"
+        }
+      ]
+    },
+    {
+      "id": "test-014-siem-events",
+      "name": "GET /api/v1/agents/etap-gui/siem/events",
+      "commands": [
+        {
+          "id": "cmd-027",
+          "command": "open",
+          "target": "/api/v1/agents/etap-gui/siem/events",
+          "value": ""
+        },
+        {
+          "id": "cmd-028-exec",
+          "command": "executeScript",
+          "target": "return document.body.innerText.includes('events')",
+          "value": "result"
+        },
+        {
+          "id": "cmd-028-assert",
+          "command": "assert",
+          "target": "result",
+          "value": "true"
+        }
+      ]
+    },
+    {
+      "id": "test-015-study-types",
+      "name": "GET /api/v1/studies/types",
+      "commands": [
+        {
+          "id": "cmd-029",
+          "command": "open",
+          "target": "/api/v1/studies/types",
+          "value": ""
+        },
+        {
+          "id": "cmd-030-exec",
+          "command": "executeScript",
+          "target": "return document.body.innerText.includes('study_types')",
+          "value": "result"
+        },
+        {
+          "id": "cmd-030-assert",
+          "command": "assert",
+          "target": "result",
+          "value": "true"
+        }
+      ]
+    },
+    {
+      "id": "test-016-knowledge",
+      "name": "GET /api/v1/knowledge",
+      "commands": [
+        {
+          "id": "cmd-031",
+          "command": "open",
+          "target": "/api/v1/knowledge",
+          "value": ""
+        },
+        {
+          "id": "cmd-032-exec",
+          "command": "executeScript",
+          "target": "return document.body.innerText.includes('etap')",
+          "value": "result"
+        },
+        {
+          "id": "cmd-032-assert",
+          "command": "assert",
+          "target": "result",
+          "value": "true"
+        }
+      ]
+    },
+    {
+      "id": "test-017-ml-capabilities",
+      "name": "GET /api/v1/ml/capabilities",
+      "commands": [
+        {
+          "id": "cmd-033",
+          "command": "open",
+          "target": "/api/v1/ml/capabilities",
+          "value": ""
+        },
+        {
+          "id": "cmd-034-exec",
+          "command": "executeScript",
+          "target": "return document.body.innerText.includes('sklearn')",
+          "value": "result"
+        },
+        {
+          "id": "cmd-034-assert",
+          "command": "assert",
+          "target": "result",
+          "value": "true"
+        }
+      ]
+    },
+    {
+      "id": "test-018-settings-health",
+      "name": "GET /api/v1/settings/health",
+      "commands": [
+        {
+          "id": "cmd-035",
+          "command": "open",
+          "target": "/api/v1/settings/health",
+          "value": ""
+        },
+        {
+          "id": "cmd-036-exec",
+          "command": "executeScript",
+          "target": "return document.body.innerText.includes('crypto_available')",
+          "value": "result"
+        },
+        {
+          "id": "cmd-036-assert",
+          "command": "assert",
+          "target": "result",
+          "value": "true"
+        }
+      ]
+    },
+    {
+      "id": "test-019-settings-keys",
+      "name": "GET /api/v1/settings/keys",
+      "commands": [
+        {
+          "id": "cmd-037",
+          "command": "open",
+          "target": "/api/v1/settings/keys",
+          "value": ""
+        },
+        {
+          "id": "cmd-038-exec",
+          "command": "executeScript",
+          "target": "return document.body.innerText.includes('providers')",
+          "value": "result"
+        },
+        {
+          "id": "cmd-038-assert",
+          "command": "assert",
+          "target": "result",
+          "value": "true"
+        }
+      ]
+    },
+    {
+      "id": "test-020-settings-keys-openai",
+      "name": "GET /api/v1/settings/keys/openai",
+      "commands": [
+        {
+          "id": "cmd-039",
+          "command": "open",
+          "target": "/api/v1/settings/keys/openai",
+          "value": ""
+        },
+        {
+          "id": "cmd-040-exec",
+          "command": "executeScript",
+          "target": "return document.body.innerText.includes('openai')",
+          "value": "result"
+        },
+        {
+          "id": "cmd-040-assert",
+          "command": "assert",
+          "target": "result",
+          "value": "true"
+        }
+      ]
+    }
+  ],
+  "suites": [
+    {
+      "id": "suite-001",
+      "name": "ETAP API Test Suite",
+      "persistSession": false,
+      "parallel": false,
+      "timeout": 300,
+      "tests": [
+        "test-001-healthz",
+        "test-002-health",
+        "test-003-ready",
+        "test-004-readyz",
+        "test-005-metrics",
+        "test-006-root",
+        "test-007-info",
+        "test-008-agents-list",
+        "test-009-agent-expert",
+        "test-010-gui-health",
+        "test-011-safety-health",
+        "test-012-audit-verify",
+        "test-013-siem-health",
+        "test-014-siem-events",
+        "test-015-study-types",
+        "test-016-knowledge",
+        "test-017-ml-capabilities",
+        "test-018-settings-health",
+        "test-019-settings-keys",
+        "test-020-settings-keys-openai"
+      ]
+    }
+  ],
+  "urls": [
+    "http://127.0.0.1:7860"
+  ],
+  "plugins": []
+}
