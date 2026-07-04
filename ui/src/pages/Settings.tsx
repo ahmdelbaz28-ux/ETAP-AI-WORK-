@@ -3,6 +3,7 @@ import { motion } from 'framer-motion'
 import { Save, Download, Upload, Trash2, Bot, Wrench, Database, Shield, Link2, Gauge, Sparkles, Info, Code, CheckCircle2, XCircle, Loader2, ExternalLink, Eye, Key, Zap } from 'lucide-react'  // QUALITY v2.1.1: removed unused Terminal
 import { useNotify } from '../context/NotificationContext'
 import { Card, CardHeader, Button, Tabs, TabPanels, useTabState, Toggle } from '../components/ui'
+import { cn } from '../utils/helpers'
 
 import { ContextHelpButton } from '../components/help/ContextHelpButton'
 import {
