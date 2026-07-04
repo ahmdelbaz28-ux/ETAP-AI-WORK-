@@ -69,6 +69,7 @@
     "react-router-dom": "7.18.1",
     "recharts": "2.15.0",
     "remark-gfm": "^4.0.1",
+    "simple-icons": "^16.24.1",
     "tailwind-merge": "2.6.0",
     "tailwindcss": "4.0.0",
     "zustand": "5.0.2"
