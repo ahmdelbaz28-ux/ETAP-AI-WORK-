@@ -4,7 +4,8 @@ import { motion } from 'framer-motion'
 import { Bot, Send, Sparkles, Cpu, Copy, RotateCcw, Check, ChevronDown, AlertCircle, Key, Settings as SettingsIcon, Loader2 } from 'lucide-react'
 import { useNotify } from '../context/NotificationContext'
 import { fetchAgents, type AgentMeta } from '../lib/api'
-import { chatWithLLM, getActiveProvider, getConfiguredProviders, type ChatMessage } from '../lib/llm-chat'
+import { chatWithLLM, chatWithLLMStream, getActiveProvider, getConfiguredProviders, type ChatMessage } from '../lib/llm-chat'
+import { POPULAR_PROVIDERS } from './Settings'
 import { ProviderLogo } from '../components/ProviderLogo'
 import { cn } from '../utils/helpers'
 import ReactMarkdown from 'react-markdown'
@@ -15,6 +16,7 @@ interface Message {
   role: 'user' | 'assistant'
   content: string
   timestamp: number
+  streaming?: boolean
 }
 
 export default function AIAssistant() {
@@ -105,13 +107,57 @@ export default function AIAssistant() {
         { role: 'user', content: userMsg.content },
       ]
 
-      const result = await chatWithLLM(chatMessages)
+      // Create a placeholder message for streaming
+      const assistantMsgId = Date.now().toString()
       setMessages(prev => [...prev, {
-        id: Date.now().toString(),
+        id: assistantMsgId,
         role: 'assistant',
-        content: result.content || '(empty response)',
+        content: '',
         timestamp: Date.now(),
+        streaming: true,
       }])
+
+      // Stream the response token-by-token
+      let accumulatedContent = ''
+      try {
+        for await (const chunk of chatWithLLMStream(chatMessages)) {
+          accumulatedContent += chunk
+          // Update the message progressively
+          setMessages(prev => prev.map(m =>
+            m.id === assistantMsgId
+              ? { ...m, content: accumulatedContent }
+              : m
+          ))
+        }
+        // Mark streaming as complete
+        setMessages(prev => prev.map(m =>
+          m.id === assistantMsgId
+            ? { ...m, content: accumulatedContent || '(empty response)', streaming: false }
+            : m
+        ))
+      } catch (streamErr) {
+        // If streaming fails, fall back to non-streaming
+        if (accumulatedContent) {
+          // We got partial content, keep it
+          setMessages(prev => prev.map(m =>
+            m.id === assistantMsgId
+              ? { ...m, content: accumulatedContent, streaming: false }
+              : m
+          ))
+        } else {
+          // No content at all, try non-streaming
+          try {
+            const result = await chatWithLLM(chatMessages)
+            setMessages(prev => prev.map(m =>
+              m.id === assistantMsgId
+                ? { ...m, content: result.content || '(empty response)', streaming: false }
+                : m
+            ))
+          } catch (fallbackErr) {
+            throw fallbackErr
+          }
+        }
+      }
     } catch (err) {
       const errMsg = err instanceof Error ? err.message : 'Unknown error'
       notify('error', `Chat failed: ${errMsg}`)
@@ -149,7 +195,7 @@ export default function AIAssistant() {
     <div className="flex flex-col h-[calc(100vh-64px)] bg-[#fdfdfc] dark:bg-[#1a1b1e] text-[#1f2937] dark:text-[#e5e7eb] font-sans -mx-4 -my-4 sm:-mx-8 sm:-my-6">
       {/* Top Header / Provider Selector */}
       <header className="flex items-center justify-between px-4 sm:px-8 py-3 border-b border-gray-200 dark:border-gray-800/50 bg-white/50 dark:bg-black/20 backdrop-blur-md sticky top-0 z-10">
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 flex-wrap">
           {/* Active provider badge with real logo */}
           {activeProvider ? (
             <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-gray-100 dark:bg-gray-800/80 border border-gray-200 dark:border-gray-700">
@@ -158,9 +204,24 @@ export default function AIAssistant() {
                 <span className="text-xs font-semibold text-gray-800 dark:text-gray-200 leading-tight">
                   {activeProvider.name}
                 </span>
-                <span className="text-[10px] text-gray-500 dark:text-gray-400 leading-tight">
-                  {activeProvider.model}
-                </span>
+                {/* Model selector dropdown — lets user change model on the fly */}
+                <select
+                  value={activeProvider.model}
+                  onChange={e => {
+                    const settings = JSON.parse(localStorage.getItem('etap-settings') || '{}')
+                    settings[`PROVIDER_${activeProvider.id.toUpperCase()}_MODEL`] = e.target.value
+                    localStorage.setItem('etap-settings', JSON.stringify(settings))
+                    window.location.reload()
+                  }}
+                  className="text-[10px] text-gray-500 dark:text-gray-400 leading-tight bg-transparent outline-none cursor-pointer border-none p-0 m-0 max-w-[180px] sm:max-w-[250px]"
+                  title="Change model"
+                >
+                  {(POPULAR_PROVIDERS.find(p => p.id === activeProvider.id)?.models || []).map((m: { id: string; name: string; isFree: boolean }) => (
+                    <option key={m.id} value={m.id} className="dark:bg-gray-800">
+                      {m.isFree ? '🆓 ' : ''}{m.name} ({m.id})
+                    </option>
+                  ))}
+                </select>
               </div>
               {/* Provider switcher dropdown */}
               {configuredProviders.length > 1 && (
@@ -325,6 +386,10 @@ export default function AIAssistant() {
                         >
                           {m.content}
                         </ReactMarkdown>
+                        {/* Blinking cursor while streaming */}
+                        {m.streaming && (
+                          <span className="inline-block w-2 h-4 bg-amber-500 dark:bg-amber-400 animate-pulse ml-0.5 align-middle rounded-sm" />
+                        )}
                       </div>
                       <div className="flex items-center gap-2 pt-1 opacity-0 hover:opacity-100 transition-opacity">
                         <button
@@ -342,7 +407,7 @@ export default function AIAssistant() {
             ))
           )}
 
-          {loading && (
+          {loading && !messages.some(m => m.streaming) && (
             <motion.div
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}

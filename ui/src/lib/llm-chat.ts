@@ -574,3 +574,188 @@ async function diagnoseHttpError(
     details: errorBody.slice(0, 300),
   }
 }
+
+// ─── Streaming support ───────────────────────────────────────────
+// Streams the response token-by-token for a typewriter effect.
+
+export async function* chatWithLLMStream(
+  messages: ChatMessage[],
+  config?: Partial<ProviderConfig>
+): AsyncGenerator<string, void, unknown> {
+  const provider = config
+    ? { ...getActiveProvider()!, ...config }
+    : getActiveProvider()
+
+  if (!provider || !provider.apiKey) {
+    throw new Error('No API key configured. Go to Settings → AI Providers to connect a provider.')
+  }
+
+  // For Anthropic, use the messages API with streaming
+  if (provider.apiType === 'anthropic') {
+    const endpoint = `${provider.baseUrl}/messages`
+    const systemMsg = messages.find(m => m.role === 'system')?.content || ''
+    const chatMessages = messages.filter(m => m.role !== 'system')
+
+    const res = await fetch('/api/llm-proxy?stream=true', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        endpoint,
+        apiKey: provider.apiKey,
+        body: {
+          model: provider.model.replace('anthropic/', ''),
+          max_tokens: 4096,
+          system: systemMsg,
+          messages: chatMessages,
+          stream: true,
+        },
+        headers: {
+          'x-api-key': provider.apiKey,
+          'anthropic-version': '2023-06-01',
+        },
+        stream: true,
+      }),
+    })
+
+    if (!res.ok) {
+      const text = await res.text().catch(() => 'Unknown error')
+      throw new Error(`${provider.name} API error ${res.status}: ${text.slice(0, 200)}`)
+    }
+
+    const reader = res.body!.getReader()
+    const decoder = new TextDecoder()
+    let buffer = ''
+
+    while (true) {
+      const { done, value } = await reader.read()
+      if (done) break
+      buffer += decoder.decode(value, { stream: true })
+      const lines = buffer.split('\n')
+      buffer = lines.pop() || ''
+      for (const line of lines) {
+        if (line.startsWith('data: ')) {
+          const data = line.slice(6).trim()
+          if (data === '[DONE]') return
+          try {
+            const parsed = JSON.parse(data)
+            // Anthropic streaming format
+            if (parsed.type === 'content_block_delta' && parsed.delta?.text) {
+              yield parsed.delta.text
+            }
+            // OpenAI streaming format (some providers use this)
+            if (parsed.choices?.[0]?.delta?.content) {
+              yield parsed.choices[0].delta.content
+            }
+            // Error
+            if (parsed.error) {
+              throw new Error(parsed.message || parsed.error.message || 'Stream error')
+            }
+          } catch (e) {
+            // Skip non-JSON lines
+          }
+        }
+      }
+    }
+    return
+  }
+
+  // For Gemini, streaming is different — fall back to non-streaming
+  if (provider.apiType === 'gemini') {
+    const result = await chatWithLLM(messages, provider)
+    // Simulate streaming by yielding word by word
+    const words = result.content.split(/(\s+)/)
+    for (const word of words) {
+      yield word
+      await new Promise(r => setTimeout(r, 20))
+    }
+    return
+  }
+
+  // Default: OpenAI-compatible streaming (OpenCode Zen, OpenAI, DeepSeek, Groq, etc.)
+  const endpoint = `${provider.baseUrl}/chat/completions`
+  const res = await fetch('/api/llm-proxy?stream=true', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      endpoint,
+      apiKey: provider.apiKey,
+      body: {
+        model: provider.model,
+        messages,
+        max_tokens: 4096,
+        temperature: 0.7,
+        stream: true,
+      },
+      stream: true,
+    }),
+  })
+
+  if (!res.ok) {
+    const text = await res.text().catch(() => 'Unknown error')
+    // Check if it's a non-streaming error (e.g., CreditsError, ModelError)
+    try {
+      const errorData = JSON.parse(text)
+      if (errorData.error?.type === 'CreditsError') {
+        throw new Error('Your API key is valid but your account has no payment method. Use a FREE model (🆓) instead.')
+      }
+      if (errorData.error?.type === 'ModelError') {
+        throw new Error(`Model "${provider.model}" is not supported. Select a different model from the dropdown.`)
+      }
+      if (errorData.error?.message) {
+        throw new Error(errorData.error.message)
+      }
+    } catch (parseErr) {
+      if (parseErr instanceof Error && parseErr.message.includes('is not supported')) throw parseErr
+      if (parseErr instanceof Error && parseErr.message.includes('payment method')) throw parseErr
+    }
+    throw new Error(`${provider.name} API error ${res.status}: ${text.slice(0, 200)}`)
+  }
+
+  const reader = res.body!.getReader()
+  const decoder = new TextDecoder()
+  let buffer = ''
+  let gotAnyContent = false
+
+  while (true) {
+    const { done, value } = await reader.read()
+    if (done) break
+    buffer += decoder.decode(value, { stream: true })
+    const lines = buffer.split('\n')
+    buffer = lines.pop() || ''
+    for (const line of lines) {
+      if (line.startsWith('data: ')) {
+        const data = line.slice(6).trim()
+        if (data === '[DONE]') return
+        try {
+          const parsed = JSON.parse(data)
+          // Error in stream
+          if (parsed.error) {
+            throw new Error(parsed.message || parsed.error?.message || 'Stream error')
+          }
+          // OpenAI-style streaming
+          if (parsed.choices?.[0]?.delta?.content) {
+            gotAnyContent = true
+            yield parsed.choices[0].delta.content
+          }
+          // Some providers return content in different format
+          if (parsed.choices?.[0]?.message?.content && !gotAnyContent) {
+            gotAnyContent = true
+            yield parsed.choices[0].message.content
+          }
+        } catch (e) {
+          // If it's our thrown error, re-throw
+          if (e instanceof Error && (e.message.includes('not supported') || e.message.includes('payment method'))) {
+            throw e
+          }
+          // Skip non-JSON lines
+        }
+      }
+    }
+  }
+
+  // If no content was streamed, fall back to non-streaming
+  if (!gotAnyContent) {
+    const result = await chatWithLLM(messages, provider)
+    yield result.content
+  }
+}
