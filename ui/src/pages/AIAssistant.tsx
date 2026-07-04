@@ -167,15 +167,12 @@ export default function AIAssistant() {
         }
       }
     } catch (err) {
+      // This catch only fires if something OUTSIDE the streaming/fallback fails
+      // (e.g., building the chat messages, creating the placeholder).
+      // The streaming and fallback errors are already handled by the inner catch.
+      // DO NOT add a new message here — that causes duplicate error messages.
       const errMsg = err instanceof Error ? err.message : 'Unknown error'
       notify('error', `Chat failed: ${errMsg}`)
-      // Add error message to chat so user can see what went wrong
-      setMessages(prev => [...prev, {
-        id: Date.now().toString(),
-        role: 'assistant',
-        content: `⚠️ **Error:** ${errMsg}\n\nPlease check your API key in Settings or try a different provider.`,
-        timestamp: Date.now(),
-      }])
     } finally {
       setLoading(false)
       setTimeout(() => inputRef.current?.focus(), 50)
