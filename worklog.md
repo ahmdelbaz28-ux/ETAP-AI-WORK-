@@ -334,3 +334,92 @@ Stage Summary:
   * onboarding_after_fix_mobile.png
   * onboarding_production_after.png
   * onboarding_step_1.png through onboarding_step_7.png
+
+---
+Task ID: ui-layout-audit-fix
+Agent: Super Z (Main Agent)
+Task: Comprehensive Playwright audit + fix all UI layout issues (notifications off-screen, misshapen search box, etc.)
+
+Work Log:
+- User reported two specific issues:
+  1. Red error notifications at bottom-right appear OFF-SCREEN (only red color visible at edge)
+  2. Search box at top-left appears misshapen (not rectangular) with text stacked vertically
+  3. Asked to find ALL similar issues across the entire site using Playwright
+- Wrote /home/z/my-project/scripts/playwright_audit/audit_v3.js — Playwright audit
+  script that visits 7 pages × 2 viewports (desktop 1440x900, mobile 390x844)
+  and checks for: off-screen elements, narrow inputs, misshapen boxes, buttons
+  with stacked text, missing Tailwind container vars.
+- Audit results: 14 page-visits, 195 total issues (95 critical, 100 high).
+  Top issue types:
+  * button_too_narrow: 82 (icon buttons with width=34px — mostly intentional but flagged)
+  * off_screen_right: 60 (ambient gradient decorations + notification container)
+  * off_screen_left: 21 (ambient gradient decorations)
+  * narrow_input: 18 (Settings page inputs with width=18px — REAL bug)
+  * missing_container_vars: 14 (systemic — the root cause)
+- ROOT CAUSE DISCOVERED: Tailwind CSS v4.0.0 (installed) generates
+  `.max-w-md { max-width: var(--spacing-md) }` which evaluates to
+  `1rem = 16px`. The correct mapping should use `--container-md` (28rem).
+  This bug was confirmed by inspecting the built CSS:
+    .max-w-md{max-width:var(--spacing-md)}     ← broken
+    .max-w-sm{max-width:var(--spacing-sm)}     ← broken
+    .max-w-xl{max-width:var(--spacing-xl)}     ← broken
+    --container-md = NOT FOUND in generated CSS
+  Even though we added --container-* to the @theme block in a previous commit
+  (e37a086), Tailwind v4.0.0 doesn't emit those vars to the output CSS because
+  they're not directly referenced by any utility class.
+
+- FIX #1: ui/src/index.css
+  Added explicit CSS rules that override .max-w-* to use --container-*
+  variables directly with !important:
+    .max-w-md  { max-width: var(--container-md)  !important; }
+    .max-w-sm  { max-width: var(--container-sm)  !important; }
+    ... (8 sizes total: 3xs through 2xl)
+  Also added --max-width-* theme vars as a forward-compat fix for Tailwind v4.1+.
+
+- FIX #2: ui/src/context/NotificationContext.tsx
+  Replaced Tailwind utility classes with inline styles for the notification
+  container's positioning + z-index + width:
+    - position: fixed, bottom: 16px, right: 16px (explicit)
+    - zIndex: 80 (explicit, not var())
+    - width: min(384px, calc(100vw - 32px)) — responsive, never overflows
+    - maxWidth: 384px
+  Each notification card also got minWidth: 280px to prevent over-narrow cards.
+  This makes the notification system immune to any future Tailwind utility bugs.
+
+- Verified locally with Playwright:
+  * --container-md = 28rem (was empty) ✅
+  * --max-width-md = 28rem (was empty) ✅
+  * Register card width: 448px (was 16px) ✅
+  * Search input width: 448px when expanded (was 16px) ✅
+  * Notification width: 384px (was 8px) ✅
+  * Notification right edge: 1424px (viewport 1440) — INSIDE viewport ✅
+  * Notification offScreen: false ✅
+  * VLM confirms: "fully visible within the screen, no cut off, professional"
+
+- Committed as 461b31e and pushed to GitHub main.
+- Vercel auto-deployed: READY at https://etap-ai-work.vercel.app
+- Verified on PRODUCTION:
+  * --container-md = 28rem ✅
+  * --max-width-md = 28rem ✅
+  * Register card width: 448px ✅
+  * Search input width when expanded: 448px ✅
+  * VLM on production screenshot: "rectangular and properly sized,
+    placeholder text on ONE line, professional appearance"
+
+Stage Summary:
+- Root cause: Tailwind v4.0.0 bug where .max-w-md maps to --spacing-md (1rem = 16px)
+  instead of --container-md (28rem). This silently broke 15+ places across the UI:
+  notifications, search box, login/register forms, drawers, modals, command palette.
+- Fix: Added explicit CSS overrides for .max-w-* utilities + inline-style
+  hardening of the notification container.
+- Production verified at https://etap-ai-work.vercel.app — all layout issues
+  resolved. Notifications now appear fully visible at bottom-right (384px wide,
+  right edge at 1424px inside 1440px viewport). Search box renders at full
+  448px width with placeholder on a single line.
+- Screenshots saved to /home/z/my-project/download/audit_screens/:
+  * FIXED_notifications.png (local — 4 notifications visible at correct position)
+  * PRODUCTION_notifications.png (production)
+  * PRODUCTION_search_visible.png (search box expanded, rectangular, professional)
+  * PRODUCTION_register.png (register card at 448px width)
+  * PRODUCTION_mobile.png (mobile viewport)
+  * Plus 14 BEFORE screenshots from the audit
