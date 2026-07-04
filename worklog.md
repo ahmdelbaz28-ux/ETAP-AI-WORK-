@@ -255,3 +255,82 @@ Security Note for User:
 - All tokens shared in chat (GitHub PAT, HF, Vercel, Supabase, Langfuse,
   LangWatch, Smithery, Neo4j) are now COMPROMISED and should be REVOKED
   immediately and regenerated.
+
+---
+Task ID: onboarding-tour-fix
+Agent: Super Z (Main Agent)
+Task: Fix OnboardingTour text appearing vertical/stacked — professional redesign
+
+Work Log:
+- User reported that the welcome/onboarding tour page had text displayed
+  vertically in an unprofessional way (screenshot from Android Chrome).
+- Analyzed the Administration.png screenshot from previous Puppeteer run
+  with VLM — confirmed the modal was narrow (25-30% screen width) with
+  each word of the title on its own line, looking like vertical text.
+- Wrote inspect_modal.js to walk the DOM ancestor chain of the modal:
+  * Modal className: "relative z-[201] w-full max-w-md mx-4 ..."
+  * Computed width: 16px (should be 448px = 28rem for max-w-md)
+  * Computed max-width: 16px (should be 28rem)
+  * Parent container was correct (fixed inset-0 flex items-center
+    justify-center).
+- Wrote inspect_css_vars.js to check CSS variables:
+  * --spacing-md: 1rem (16px) — defined in @theme block
+  * --container-md: "" (empty!) — NOT defined in @theme block
+- Root cause identified: In Tailwind CSS v4, `max-w-md` resolves to
+  `var(--container-md, var(--spacing-md))`. The project's @theme block in
+  ui/src/index.css defined `--spacing-md: 1rem` but did NOT define
+  `--container-md`, so max-w-md fell back to 1rem = 16px. This silently
+  broke 15 other places in the UI (modals, drawers, command palette,
+  registration form, AI Assistant, etc.).
+- Fix #1 (root cause): Added explicit --container-* variables (3xs
+  through 7xl) to the @theme block in ui/src/index.css. This restores
+  the expected max-w-* scale app-wide.
+- Fix #2 (professional redesign): Completely redesigned the
+  OnboardingTour component for a polished, professional appearance:
+  * Increased modal width from max-w-md (28rem) to explicit 520px so
+    the title fits on one line.
+  * Switched from stacked (icon-above-content) to horizontal
+    (icon-beside-content) layout for better information density.
+  * Replaced thin progress bars with a step counter pill ("STEP 1 / 7")
+    + discrete progress segments with current-step highlight.
+  * Added top accent gradient line and subtle glow halo behind icon.
+  * Added proper dialog semantics: role="dialog" aria-modal="true"
+    aria-labelledby="onboarding-title".
+  * Stronger shadow + ring-1 for depth.
+  * Active state on primary button (active:scale-95).
+  * Added keyboard shortcuts: Esc = skip, Enter = next, Backspace =
+    previous. Hint footer with <kbd> styled keys.
+  * Added p-4 wrapper to prevent modal from touching screen edges on
+    mobile.
+- Verified locally with `vite build` (success in 6.85s) and Puppeteer:
+  * Desktop modal: 520px wide, 308px tall, centered (was 16px wide
+    before fix).
+  * Mobile modal (390x844 viewport): 358px wide, 377px tall, fits in
+    viewport with 16px margins.
+- VLM verification on local screenshots confirmed: "text is horizontal
+  and readable, modal is centered, layout is professional, design
+  quality is high and intentional".
+- Committed as e37a086 and pushed to GitHub main.
+- Vercel auto-deployed: READY at https://etap-ai-work.vercel.app
+- Verified on production: modal is 520px wide, centered, text readable.
+- VLM rating on production screenshot: 8/10 — "strong visual hierarchy,
+  polished aesthetics, and functional clarity".
+
+Stage Summary:
+- Root cause: Tailwind v4 missing --container-* variables in @theme
+  block caused max-w-md (and siblings) to fall back to --spacing-md
+  (1rem = 16px), collapsing the OnboardingTour modal to a 16px-wide
+  column. This affected 15 other places app-wide.
+- Fix: Added 13 --container-* variables (16rem through 80rem) to
+  restore the expected Tailwind max-w-* scale.
+- Bonus: Complete professional redesign of OnboardingTour component
+  with horizontal icon+content layout, step pill, progress segments,
+  keyboard shortcuts, dialog semantics, and mobile-friendly padding.
+- Production verified at https://etap-ai-work.vercel.app — modal is
+  centered, 520px wide on desktop, 358px on mobile, text horizontal
+  and readable.
+- Screenshots saved to /home/z/my-project/download/:
+  * onboarding_after_fix_desktop.png
+  * onboarding_after_fix_mobile.png
+  * onboarding_production_after.png
+  * onboarding_step_1.png through onboarding_step_7.png
