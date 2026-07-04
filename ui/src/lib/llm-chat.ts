@@ -74,9 +74,8 @@ export function getActiveProvider(): ProviderConfig | null {
   const provider = selected || providersWithKeys[0]
 
   const keyName = `PROVIDER_${provider.id.toUpperCase()}_KEY`
-  const modelName = `PROVIDER_${provider.id.toUpperCase()}_MODEL`
   const apiKey = settings[keyName] || ''
-  const model = settings[modelName] || provider.defaultModel
+  const model = settings[`PROVIDER_${provider.id.toUpperCase()}_MODEL`] || provider.defaultModel
 
   return {
     id: provider.id,
@@ -94,11 +93,11 @@ export function getConfiguredProviders(): { id: string; name: string; model: str
     const keyName = `PROVIDER_${p.id.toUpperCase()}_KEY`
     return !!settings[keyName]
   }).map(p => {
-    const modelName = `PROVIDER_${p.id.toUpperCase()}_MODEL`
+    // model key computed inline
     return {
       id: p.id,
       name: p.name,
-      model: settings[modelName] || p.defaultModel,
+      model: settings[`PROVIDER_${p.id.toUpperCase()}_MODEL`] || p.defaultModel,
     }
   })
 }
@@ -179,9 +178,8 @@ export async function testProviderConnection(
   }
 
   const keyName = `PROVIDER_${providerId.toUpperCase()}_KEY`
-  const modelName = `PROVIDER_${providerId.toUpperCase()}_MODEL`
   const apiKey = settings[keyName]
-  const model = settings[modelName] || providerDef.defaultModel
+  const model = settings[`PROVIDER_${providerId.toUpperCase()}_MODEL`] || providerDef.defaultModel
 
   if (!apiKey) {
     return {

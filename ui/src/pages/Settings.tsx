@@ -725,8 +725,8 @@ function AISettingsPanel({ settings, setSettings, notify }: AISettingsPanelProps
                     Model
                   </label>
                   <select
-                    value={settings[modelName] || p.defaultModel}
-                    onChange={e => setSettings(prev => ({ ...prev, [modelName]: e.target.value }))}
+                    value={settings[`PROVIDER_${p.id.toUpperCase()}_MODEL`] || p.defaultModel}
+                    onChange={e => setSettings(prev => ({ ...prev, [`PROVIDER_${p.id.toUpperCase()}_MODEL`]: e.target.value }))}
                     className="w-full px-2 py-1.5 bg-[var(--bg-primary)] border border-[var(--border-primary)] rounded-lg text-[11px] text-[var(--text-primary)] focus:border-brand-500 outline-none transition-colors cursor-pointer"
                   >
                     {p.models.map((m: { id: string; name: string; isFree: boolean }) => (
@@ -966,7 +966,7 @@ function AISettingsPanel({ settings, setSettings, notify }: AISettingsPanelProps
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
           {POPULAR_PROVIDERS.map(p => {
             const keyName = `PROVIDER_${p.id.toUpperCase()}_KEY`
-            const modelName = `PROVIDER_${p.id.toUpperCase()}_MODEL`
+            // model key computed inline to avoid minifier bug with bracket notation
             const hasKey = !!settings[keyName]
 
             return (
@@ -1000,12 +1000,14 @@ function AISettingsPanel({ settings, setSettings, notify }: AISettingsPanelProps
                     <label htmlFor={`prov-${p.id}-model`} className="block text-[9px] text-[var(--text-tertiary)] mb-1">Select Model</label>
                     <select
                       id={`prov-${p.id}-model`}
-                      value={settings[modelName] || p.defaultModel}
-                      onChange={e => setSettings(prev => ({ ...prev, [modelName]: e.target.value }))}
+                      value={settings[`PROVIDER_${p.id.toUpperCase()}_MODEL`] || p.defaultModel}
+                      onChange={e => setSettings(prev => ({ ...prev, [`PROVIDER_${p.id.toUpperCase()}_MODEL`]: e.target.value }))}
                       className="w-full px-2 py-1 bg-[var(--bg-primary)] border border-[var(--border-primary)] rounded-lg text-[11px] text-[var(--text-primary)] focus:border-brand-500 outline-none transition-colors"
                     >
-                      {p.models.map(m => (
-                        <option key={m} value={m}>{m}</option>
+                      {p.models.map((m: { id: string; name: string; isFree: boolean }) => (
+                        <option key={m.id} value={m.id} className="dark:bg-gray-800">
+                          {m.isFree ? '🆓 ' : ''}{m.name} ({m.id})
+                        </option>
                       ))}
                     </select>
                   </div>
