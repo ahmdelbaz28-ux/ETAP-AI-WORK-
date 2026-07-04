@@ -91,7 +91,9 @@ export default function AIAssistant() {
       return
     }
 
-    const userMsg: Message = { id: Date.now().toString(), role: 'user', content: input.trim(), timestamp: Date.now() }
+    const userMsgId = `user-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
+    const assistantMsgId = `assistant-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
+    const userMsg: Message = { id: userMsgId, role: 'user', content: input.trim(), timestamp: Date.now() }
     setMessages(prev => [...prev, userMsg])
     setInput('')
     setLoading(true)
@@ -108,7 +110,6 @@ export default function AIAssistant() {
       ]
 
       // Create a placeholder message for streaming
-      const assistantMsgId = Date.now().toString()
       setMessages(prev => [...prev, {
         id: assistantMsgId,
         role: 'assistant',
