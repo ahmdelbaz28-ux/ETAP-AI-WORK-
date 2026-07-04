@@ -5,6 +5,7 @@ import { useNotify } from '../context/NotificationContext'
 import { Card, CardHeader, Button, Tabs, TabPanels, useTabState, Toggle } from '../components/ui'
 import { cn } from '../utils/helpers'
 import { ProviderLogo } from '../components/ProviderLogo'
+import { testProviderConnection } from '../lib/llm-chat'
 
 import { ContextHelpButton } from '../components/help/ContextHelpButton'
 import {
@@ -585,104 +586,72 @@ function AISettingsPanel({ settings, setSettings, notify }: AISettingsPanelProps
     notify('success', `Custom provider connected successfully using ${customTab.toUpperCase()} Config (${customScope} scope)!`)
   }
 
-  // Quick Setup: test a provider API key by making a lightweight HTTP request
-  // directly from the browser to the provider's endpoint. This gives the
-  // user immediate feedback without needing the backend.
-  const handleTestProvider = async (providerId: string) => {
-    const keyName = `PROVIDER_${providerId.toUpperCase()}_KEY`
-    const apiKey = (settings[keyName] || '').trim()
-    if (!apiKey) {
-      notify('error', 'Please enter an API key first')
-      return
-    }
-    setTestingProvider(providerId)
-    setProviderStatus(prev => ({ ...prev, [providerId]: null }))
-    try {
-      const provider = POPULAR_PROVIDERS.find(p => p.id === providerId)!
-      // Build the test endpoint + headers per provider.
-      // All providers use OpenAI-compatible /models endpoints except
-      // Anthropic (uses /messages with x-api-key header) and Gemini
-      // (uses /models?key= query param).
-      let endpoint = ''
-      let headers: Record<string, string> = {}
-      let method = 'GET'
-      let body: string | undefined
+  // Quick Setup: test a provider API key by making a REAL chat completion
+  // request to the provider's endpoint. Returns detailed error info.
+  // Uses the testProviderConnection() function from llm-chat.ts which
+  // performs an actual /chat/completions call (not just /models).
+  const [testResults, setTestResults] = useState<Record<string, { message: string; details?: string; suggestion?: string; latencyMs?: number } | null>>({})
 
-      if (providerId === 'anthropic' || providerId === 'claudecode') {
-        // Anthropic / Claude Code: use the messages endpoint with a minimal request
-        endpoint = 'https://api.anthropic.com/v1/messages'
-        headers = {
-          'x-api-key': apiKey,
-          'anthropic-version': '2023-06-01',
-          'content-type': 'application/json',
-        }
-        method = 'POST'
-        body = JSON.stringify({
-          model: 'claude-3-5-haiku-latest',
-          max_tokens: 1,
-          messages: [{ role: 'user', content: 'hi' }],
-        })
-      } else if (providerId === 'gemini') {
-        endpoint = `https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`
-      } else if (providerId === 'opencode') {
-        // OpenCode uses OpenAI-compatible /models endpoint
-        endpoint = 'https://api.opencode.ai/v1/models'
-        headers = { Authorization: `Bearer ${apiKey}` }
-      } else if (providerId === 'kilocode') {
-        // KiloCode uses OpenAI-compatible /models endpoint
-        endpoint = 'https://api.kilocode.ai/v1/models'
-        headers = { Authorization: `Bearer ${apiKey}` }
-      } else if (providerId === 'openai' || providerId === 'deepseek' || providerId === 'groq') {
-        // Standard OpenAI-compatible providers
-        endpoint = provider.defaultBaseUrl + '/models'
-        headers = { Authorization: `Bearer ${apiKey}` }
-      } else if (providerId === 'cohere') {
-        // Cohere v2 API — check token validity
-        endpoint = 'https://api.cohere.ai/v2/keys'
-        headers = { Authorization: `Bearer ${apiKey}` }
-      } else if (providerId === 'huggingface') {
-        // HuggingFace — check whoami-v2
-        endpoint = 'https://huggingface.co/api/whoami-v2'
-        headers = { Authorization: `Bearer ${apiKey}` }
-      } else {
-        // Fallback: format validation
-        if (apiKey.length < 20) {
-          throw new Error('API key looks too short')
-        }
-        setProviderStatus(prev => ({ ...prev, [providerId]: 'ok' }))
-        notify('success', `${provider.name} key saved locally`)
+  const handleTestProvider = async (providerId: string) => {
+    // For built-in providers, require key first
+    if (providerId !== 'custom_openai') {
+      const keyName = `PROVIDER_${providerId.toUpperCase()}_KEY`
+      if (!settings[keyName]) {
+        notify('error', 'Please enter an API key first')
         return
       }
-
-      const res = await fetch(endpoint, { method, headers, body })
-      if (res.status === 401 || res.status === 403) {
-        throw new Error('Invalid API key (unauthorized)')
+    } else {
+      // For custom provider, require all 3 fields
+      if (!settings.CUSTOM_OPENAI_API_KEY || !settings.CUSTOM_OPENAI_BASE_URL || !settings.CUSTOM_OPENAI_MODEL_ID) {
+        notify('error', 'Please fill in all 3 fields: Endpoint URL, API Key, Model ID')
+        return
       }
-      // 200, 400 (bad request but auth ok), 429 (rate limit but auth ok) → key is valid
-      if (res.status < 500) {
-        setProviderStatus(prev => ({ ...prev, [providerId]: 'ok' }))
-        notify('success', `${provider.name} API key is valid ✓`)
+    }
+
+    setTestingProvider(providerId)
+    setProviderStatus(prev => ({ ...prev, [providerId]: null }))
+    setTestResults(prev => ({ ...prev, [providerId]: null }))
+
+    try {
+      // Save settings to localStorage BEFORE testing so testProviderConnection can read them.
+      // We store the raw values (the llm-chat.ts getSettings() reads them directly).
+      localStorage.setItem('etap-settings', JSON.stringify(settings))
+
+      // Call the real test function from llm-chat.ts
+      const result = await testProviderConnection(providerId)
+
+      setProviderStatus(prev => ({ ...prev, [providerId]: result.success ? 'ok' : 'fail' }))
+      setTestResults(prev => ({
+        ...prev,
+        [providerId]: {
+          message: result.message,
+          details: result.details,
+          suggestion: result.suggestion,
+          latencyMs: result.latencyMs,
+        },
+      }))
+
+      if (result.success) {
+        notify('success', result.message)
       } else {
-        throw new Error(`Server error: ${res.status}`)
+        notify('error', result.message)
       }
     } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Unknown error'
       setProviderStatus(prev => ({ ...prev, [providerId]: 'fail' }))
-      const msg = err instanceof Error ? err.message : 'Connection failed'
-      // If it's a CORS error (browser blocked the request), the key may still
-      // be valid — we just can't verify it from the browser. Save it anyway.
-      if (msg.includes('Failed to fetch') || msg.includes('NetworkError')) {
-        setProviderStatus(prev => ({ ...prev, [providerId]: 'ok' }))
-        notify('info', `${POPULAR_PROVIDERS.find(p => p.id === providerId)?.name} key saved (CORS prevented live test)`)
-      } else {
-        notify('error', `${providerId} test failed: ${msg}`)
-      }
+      setTestResults(prev => ({
+        ...prev,
+        [providerId]: { message: `Test failed: ${msg}` },
+      }))
+      notify('error', `Test failed: ${msg}`)
     } finally {
       setTestingProvider(null)
     }
   }
 
   // Quick Setup: check which providers have keys
-  const connectedCount = POPULAR_PROVIDERS.filter(p => !!settings[`PROVIDER_${p.id.toUpperCase()}_KEY`]).length
+  const connectedCount = POPULAR_PROVIDERS.filter(p => !!settings[`PROVIDER_${p.id.toUpperCase()}_KEY`]).length +
+    (settings.CUSTOM_OPENAI_API_KEY ? 1 : 0)
 
   return (
     <div className="space-y-6 col-span-2">
@@ -825,6 +794,157 @@ function AISettingsPanel({ settings, setSettings, notify }: AISettingsPanelProps
             No key is ever sent to our servers unless you explicitly test it.
           </p>
         </div>
+      </Card>
+
+      {/* ─── Custom OpenAI-Compatible Provider ──────────────────────── */}
+      <Card padding="md" className="border-2 border-purple-500/30 shadow-lg shadow-purple-500/5 bg-gradient-to-br from-purple-500/[0.03] to-transparent">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5 pb-4 border-b border-[var(--border-primary)]">
+          <div className="flex items-start gap-3">
+            <div className="w-10 h-10 rounded-xl bg-purple-500/15 flex items-center justify-center shrink-0">
+              <Code className="w-5 h-5 text-purple-400" />
+            </div>
+            <div>
+              <h3 className="text-base font-semibold text-[var(--text-primary)]">Custom OpenAI-Compatible Provider</h3>
+              <p className="text-xs text-[var(--text-secondary)] mt-0.5">
+                Connect any provider that uses the OpenAI API format (e.g., Ollama, vLLM, LocalAI, Together AI, OpenRouter).
+                Enter your endpoint URL, API key, and model ID below.
+              </p>
+            </div>
+          </div>
+          {settings.CUSTOM_OPENAI_API_KEY && (
+            <div className="shrink-0 px-3 py-1.5 rounded-lg bg-green-500/15 border border-green-500/25 text-green-400 text-xs font-medium">
+              ✓ Configured
+            </div>
+          )}
+        </div>
+
+        {/* 3-column grid for the 3 required fields */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {/* Endpoint URL */}
+          <div>
+            <label htmlFor="custom-openai-url" className="block text-xs font-semibold text-[var(--text-secondary)] mb-1.5">
+              Endpoint URL
+            </label>
+            <input
+              id="custom-openai-url"
+              type="url"
+              placeholder="https://api.example.com/v1"
+              value={settings.CUSTOM_OPENAI_BASE_URL || ''}
+              onChange={e => setSettings(prev => ({ ...prev, CUSTOM_OPENAI_BASE_URL: e.target.value }))}
+              className="w-full px-3 py-2 bg-[var(--bg-primary)] border border-[var(--border-primary)] rounded-lg text-xs text-[var(--text-primary)] placeholder-[var(--text-muted)] focus:border-purple-500 outline-none transition-colors font-mono"
+            />
+            <p className="text-[10px] text-[var(--text-muted)] mt-1">
+              Base URL without /chat/completions
+            </p>
+          </div>
+
+          {/* API Key */}
+          <div>
+            <label htmlFor="custom-openai-key" className="block text-xs font-semibold text-[var(--text-secondary)] mb-1.5">
+              API Key
+            </label>
+            <div className="relative">
+              <input
+                id="custom-openai-key"
+                type="password"
+                placeholder="sk-..."
+                value={settings.CUSTOM_OPENAI_API_KEY || ''}
+                onChange={e => setSettings(prev => ({ ...prev, CUSTOM_OPENAI_API_KEY: e.target.value }))}
+                className="w-full px-3 py-2 pr-9 bg-[var(--bg-primary)] border border-[var(--border-primary)] rounded-lg text-xs text-[var(--text-primary)] placeholder-[var(--text-muted)] focus:border-purple-500 outline-none transition-colors font-mono"
+              />
+              <Key className="absolute right-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[var(--text-muted)] pointer-events-none" />
+            </div>
+            <p className="text-[10px] text-[var(--text-muted)] mt-1">
+              Your API key from the provider
+            </p>
+          </div>
+
+          {/* Model ID */}
+          <div>
+            <label htmlFor="custom-openai-model" className="block text-xs font-semibold text-[var(--text-secondary)] mb-1.5">
+              Model ID
+            </label>
+            <input
+              id="custom-openai-model"
+              type="text"
+              placeholder="gpt-4o-mini / llama-3.1-8b / custom-model"
+              value={settings.CUSTOM_OPENAI_MODEL_ID || ''}
+              onChange={e => setSettings(prev => ({ ...prev, CUSTOM_OPENAI_MODEL_ID: e.target.value }))}
+              className="w-full px-3 py-2 bg-[var(--bg-primary)] border border-[var(--border-primary)] rounded-lg text-xs text-[var(--text-primary)] placeholder-[var(--text-muted)] focus:border-purple-500 outline-none transition-colors font-mono"
+            />
+            <p className="text-[10px] text-[var(--text-muted)] mt-1">
+              Exact model name from provider's docs
+            </p>
+          </div>
+        </div>
+
+        {/* Test button + result display */}
+        <div className="mt-4 flex flex-col sm:flex-row items-start sm:items-center gap-3">
+          <button
+            onClick={() => handleTestProvider('custom_openai')}
+            disabled={testingProvider === 'custom_openai' || !settings.CUSTOM_OPENAI_API_KEY || !settings.CUSTOM_OPENAI_BASE_URL || !settings.CUSTOM_OPENAI_MODEL_ID}
+            className={cn(
+              'flex items-center gap-1.5 px-5 py-2 rounded-lg text-xs font-semibold transition-all shrink-0',
+              'disabled:bg-[var(--bg-primary)] disabled:text-[var(--text-muted)] disabled:cursor-not-allowed disabled:border disabled:border-[var(--border-primary)]',
+              providerStatus.custom_openai === 'ok'
+                ? 'bg-green-600 hover:bg-green-500 text-white'
+                : providerStatus.custom_openai === 'fail'
+                  ? 'bg-red-600 hover:bg-red-500 text-white'
+                  : 'bg-purple-600 hover:bg-purple-500 text-white'
+            )}
+          >
+            {testingProvider === 'custom_openai' ? (
+              <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Testing...</>
+            ) : providerStatus.custom_openai === 'ok' ? (
+              <><CheckCircle2 className="w-3.5 h-3.5" /> Valid ✓</>
+            ) : providerStatus.custom_openai === 'fail' ? (
+              <><XCircle className="w-3.5 h-3.5" /> Failed — Retry</>
+            ) : (
+              <><Zap className="w-3.5 h-3.5" /> Test Connection</>
+            )}
+          </button>
+
+          {/* Test result display */}
+          {testResults.custom_openai && (
+            <div className={cn(
+              'flex-1 min-w-0 p-3 rounded-lg border text-xs',
+              providerStatus.custom_openai === 'ok'
+                ? 'bg-green-500/10 border-green-500/30 text-green-400'
+                : 'bg-red-500/10 border-red-500/30 text-red-400'
+            )}>
+              <div className="font-semibold mb-1">{testResults.custom_openai.message}</div>
+              {testResults.custom_openai.latencyMs && (
+                <div className="text-[10px] opacity-80 mb-1">Latency: {testResults.custom_openai.latencyMs}ms</div>
+              )}
+              {testResults.custom_openai.suggestion && (
+                <div className="text-[10px] opacity-80 mt-1.5 p-2 bg-black/20 rounded">
+                  💡 {testResults.custom_openai.suggestion}
+                </div>
+              )}
+              {testResults.custom_openai.details && (
+                <details className="mt-1.5">
+                  <summary className="text-[10px] opacity-60 cursor-pointer hover:opacity-100">Show technical details</summary>
+                  <pre className="text-[9px] opacity-60 mt-1 whitespace-pre-wrap break-all">{testResults.custom_openai.details}</pre>
+                </details>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* Example providers help */}
+        <details className="mt-3">
+          <summary className="text-[10px] text-[var(--text-muted)] hover:text-purple-400 cursor-pointer transition-colors">
+            📋 Example endpoints for popular self-hosted / OpenAI-compatible services
+          </summary>
+          <div className="mt-2 p-3 rounded-lg bg-[var(--bg-primary)] border border-[var(--border-primary)] text-[10px] space-y-1.5 font-mono">
+            <div><span className="text-purple-400">Ollama (local):</span> http://localhost:11434/v1 · model: llama3.2</div>
+            <div><span className="text-purple-400">vLLM (local):</span> http://localhost:8000/v1 · model: meta-llama/Llama-3.1-8B-Instruct</div>
+            <div><span className="text-purple-400">Together AI:</span> https://api.together.xyz/v1 · model: meta-llama/Llama-3.3-70B-Instruct-Turbo</div>
+            <div><span className="text-purple-400">OpenRouter:</span> https://openrouter.ai/api/v1 · model: openai/gpt-4o-mini</div>
+            <div><span className="text-purple-400">Groq:</span> https://api.groq.com/openai/v1 · model: llama-3.3-70b-versatile</div>
+            <div><span className="text-purple-400">LM Studio (local):</span> http://localhost:1234/v1 · model: loaded-model-name</div>
+          </div>
+        </details>
       </Card>
 
       {/* ─── Advanced: Popular Models (Fast Connect) — kept for power users ─── */}
