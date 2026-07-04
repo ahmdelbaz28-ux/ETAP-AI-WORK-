@@ -423,3 +423,101 @@ Stage Summary:
   * PRODUCTION_register.png (register card at 448px width)
   * PRODUCTION_mobile.png (mobile viewport)
   * Plus 14 BEFORE screenshots from the audit
+
+---
+Task ID: mobile-responsive-fix
+Agent: Super Z (Main Agent)
+Task: Fix AI Assistant vertical text + mobile icon overlap — radical responsive redesign
+
+Work Log:
+- User reported two specific issues via mobile screenshot:
+  1. AI Assistant page: text "I can write code, analyze power systems..."
+     stacked word-by-word (vertical) in the middle of the screen
+  2. Mobile view: all navbar icons overlapping/cramped
+- Used VLM to analyze the screenshot — confirmed the AI Assistant text
+  is stacked vertically, and the layout is broken on mobile.
+- Used Playwright to inspect the live DOM on production:
+  * Mobile viewport (390x844): Sidebar <aside> width=256px, visible=true
+  * Main content width: 134px (only 34% of viewport!)
+  * Navbar: 10 buttons crammed into 134px header
+  * AI Assistant <p> text element: width=89px, causing word-by-word wrapping
+- ROOT CAUSE: The Sidebar component was ALWAYS visible at 256px width,
+  even on mobile viewports. This left only 134px for the main content
+  area, causing all text to wrap vertically and all navbar buttons to
+  overlap. This was NOT a Tailwind bug — it was a missing responsive
+  design in the Sidebar and Navbar components.
+
+- FIX #1: ui/src/store/index.ts
+  Added new state for mobile drawer:
+    - mobileSidebarOpen: boolean
+    - toggleMobileSidebar()
+    - setMobileSidebarOpen(open)
+
+- FIX #2: ui/src/components/Sidebar.tsx — Complete redesign
+  The Sidebar now renders TWO separate <aside> elements:
+  1. Desktop sidebar (hidden lg:flex) — static, collapsible as before
+  2. Mobile drawer (lg:hidden fixed) — hidden by default, slides in
+     from the left when mobileSidebarOpen=true. Features:
+     - Backdrop overlay (z-90, click to close)
+     - Drawer panel (z-100, w-72 max-w-85vw)
+     - Close button (X) in header
+     - Auto-close on route change (useEffect on location.pathname)
+     - Auto-close on Escape key
+     - Full navigation with all 16 nav items + theme toggle
+
+- FIX #3: ui/src/components/Navbar.tsx — Mobile-responsive toolbar
+  - Added hamburger menu button (lg:hidden) on the far left
+  - Added mobile brand logo (lg:hidden) — Zap icon in brand gradient
+  - Made search toggle hidden on mobile (sm:flex), replaced with a
+    mobile-only search icon button (sm:hidden)
+  - Wrapped non-essential toolbar buttons in responsive containers:
+    * Language toggle: hidden sm:block (available in mobile drawer)
+    * Fullscreen toggle: hidden sm:block
+    * Magic Help Inspector: hidden md:block
+    * Smart Help: hidden md:block
+    * Keyboard Shortcuts: hidden md:block
+    * Notifications: ALWAYS visible (essential)
+  - Centered brand badge: hidden lg:flex (was hidden md:flex)
+  - Reduced padding on mobile (px-3 sm:px-4)
+
+- VERIFICATION (Playwright on production https://etap-ai-work.vercel.app):
+
+  Mobile (390x844) — BEFORE vs AFTER:
+  ┌──────────────────────┬──────────────┬──────────────┐
+  │ Metric               │ Before       │ After        │
+  ├──────────────────────┼──────────────┼──────────────┤
+  │ Sidebar visible      │ ✓ (256px)    │ ✗ hidden     │
+  │ Main content width   │ 134px (34%)  │ 390px (100%) │
+  │ Navbar buttons       │ 10 (all)     │ 4 (essential)│
+  │ Hamburger menu       │ ✗ none       │ ✓ visible    │
+  │ AI Assistant text    │ ✗ vertical   │ ✓ horizontal │
+  │ Drawer when open     │ ✗ N/A        │ ✓ 288px      │
+  └──────────────────────┴──────────────┴──────────────┘
+
+  Desktop (1440x900) — UNCHANGED:
+  - Sidebar: 256px visible
+  - Main content: 1184px
+  - Navbar: 8 buttons visible
+  - Hamburger: hidden
+
+- VLM verification on production screenshots:
+  * Mobile AI Assistant: "Text displayed horizontally, not stacked.
+    Main content uses full screen width. No overlapping icons.
+    Rating: 9/10"
+  * Mobile Dashboard: "No sidebar visible. Hamburger menu in top-left.
+    Navbar icons properly spaced, not overlapping. Rating: 8/10"
+
+- Committed as ffe5158 and pushed to GitHub main.
+- Vercel auto-deployed: READY at https://etap-ai-work.vercel.app
+
+Stage Summary:
+- Root cause: Sidebar was always visible at 256px even on mobile, leaving
+  only 134px for main content. This caused ALL text to wrap vertically
+  and ALL navbar buttons to overlap on mobile.
+- Fix: Implemented proper responsive design with:
+  1. Mobile drawer pattern for sidebar (overlay, slides in from left)
+  2. Progressive disclosure for navbar buttons (hide non-essential on mobile)
+  3. Hamburger menu button to toggle the mobile drawer
+- Production verified: mobile layout now uses full screen width, text is
+  horizontal, icons are properly spaced, drawer works correctly.
+- Desktop layout is 100% unchanged.
