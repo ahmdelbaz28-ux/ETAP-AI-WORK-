@@ -1,22 +1,17 @@
 /**
- * LLM Chat Module — Direct provider API calls from the browser
- * ============================================================
+ * LLM Chat Module — Client-side LLM integration with CORS proxy
  *
- * This module reads the user's configured API key from localStorage
- * and calls the AI provider's API directly. No backend required —
- * this is a client-side-only LLM integration (like KiloCode/OpenCode).
+ * Browser requests to LLM APIs are blocked by CORS. This module routes
+ * ALL requests through our Vercel serverless function at /api/llm-proxy
+ * which forwards them server-to-server (no CORS restriction).
  *
  * Supported API types:
- *   - openai:      OpenAI-compatible /v1/chat/completions (OpenAI, DeepSeek, Groq, NVIDIA, Fireworks, Qwen, HuggingFace, OpenCode, KiloCode)
+ *   - openai:      OpenAI-compatible /v1/chat/completions
  *   - anthropic:   Anthropic /v1/messages with x-api-key header
  *   - gemini:      Google Gemini /v1beta/models/{model}:generateContent
  *   - cloudflare:  Cloudflare Workers AI /accounts/{account_id}/ai/run/{model}
  *   - zhipu:       Zhipu AI (GLM) OpenAI-compatible /chat/completions
  *   - cohere:      Cohere /v2/chat
- *
- * The active provider is selected via the PROVIDER_ACTIVE_PROVIDER_ID
- * setting in localStorage. If not set, the first provider with a key
- * is used.
  */
 
 import { POPULAR_PROVIDERS } from '../pages/Settings'
@@ -42,11 +37,37 @@ export interface ProviderConfig {
   apiType: 'openai' | 'anthropic' | 'gemini' | 'cloudflare' | 'zhipu' | 'cohere'
 }
 
+// ─── Proxy helper ────────────────────────────────────────────────
+// Routes the request through our Vercel serverless function to bypass CORS.
+async function proxyFetch(
+  endpoint: string,
+  apiKey: string,
+  body: Record<string, unknown>,
+  customHeaders?: Record<string, string>
+): Promise<Response> {
+  const proxyUrl = '/api/llm-proxy'
+  const proxyBody = {
+    endpoint,
+    apiKey,
+    body,
+    headers: customHeaders,
+  }
+  
+  const res = await fetch(proxyUrl, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(proxyBody),
+  })
+  
+  return res
+}
+
 // ─── Settings helpers ────────────────────────────────────────────
 function getSettings(): Record<string, string> {
   try {
     const stored = localStorage.getItem('etap-settings')
     if (!stored) return {}
+    // Parse directly — settings are stored as raw JSON
     return JSON.parse(stored)
   } catch {
     return {}
@@ -56,10 +77,8 @@ function getSettings(): Record<string, string> {
 export function getActiveProvider(): ProviderConfig | null {
   const settings = getSettings()
 
-  // Check if user explicitly selected an active provider
   const activeId = settings.PROVIDER_ACTIVE_PROVIDER_ID || ''
 
-  // Build list of providers with keys
   const providersWithKeys = POPULAR_PROVIDERS.filter(p => {
     const keyName = `PROVIDER_${p.id.toUpperCase()}_KEY`
     return !!settings[keyName]
@@ -67,15 +86,14 @@ export function getActiveProvider(): ProviderConfig | null {
 
   if (providersWithKeys.length === 0) return null
 
-  // Use explicitly selected provider if it has a key, else first available
   const selected = activeId
     ? providersWithKeys.find(p => p.id === activeId)
     : null
   const provider = selected || providersWithKeys[0]
 
   const keyName = `PROVIDER_${provider.id.toUpperCase()}_KEY`
-  const apiKey = settings[keyName] || ''
   const model = settings[`PROVIDER_${provider.id.toUpperCase()}_MODEL`] || provider.defaultModel
+  const apiKey = settings[keyName] || ''
 
   return {
     id: provider.id,
@@ -93,7 +111,6 @@ export function getConfiguredProviders(): { id: string; name: string; model: str
     const keyName = `PROVIDER_${p.id.toUpperCase()}_KEY`
     return !!settings[keyName]
   }).map(p => {
-    // model key computed inline
     return {
       id: p.id,
       name: p.name,
@@ -102,7 +119,7 @@ export function getConfiguredProviders(): { id: string; name: string; model: str
   })
 }
 
-// ─── LLM API calls ───────────────────────────────────────────────
+// ─── LLM API calls (all through proxy) ───────────────────────────
 
 export async function chatWithLLM(
   messages: ChatMessage[],
@@ -134,9 +151,173 @@ export async function chatWithLLM(
   }
 }
 
-// ─── Provider Connection Test ────────────────────────────────────
-// Performs a real chat completion request to verify the API key works.
-// Returns detailed error information to help the user diagnose issues.
+// ─── OpenAI-compatible (uses proxy for CORS) ────────────────────
+async function callOpenAICompatible(
+  messages: ChatMessage[],
+  provider: ProviderConfig
+): Promise<ChatResult> {
+  const endpoint = `${provider.baseUrl}/chat/completions`
+  const res = await proxyFetch(endpoint, provider.apiKey, {
+    model: provider.model,
+    messages,
+    max_tokens: 4096,
+    temperature: 0.7,
+  })
+
+  if (!res.ok) {
+    const text = await res.text().catch(() => 'Unknown error')
+    throw new Error(`${provider.name} API error ${res.status}: ${text.slice(0, 200)}`)
+  }
+
+  const data = await res.json()
+  const content = data.choices?.[0]?.message?.content || ''
+  return { content, provider: provider.name, model: provider.model }
+}
+
+// ─── Anthropic (uses proxy for CORS) ─────────────────────────────
+async function callAnthropic(
+  messages: ChatMessage[],
+  provider: ProviderConfig
+): Promise<ChatResult> {
+  const endpoint = `${provider.baseUrl}/messages`
+  const systemMsg = messages.find(m => m.role === 'system')?.content || ''
+  const chatMessages = messages.filter(m => m.role !== 'system')
+
+  const res = await proxyFetch(endpoint, provider.apiKey, {
+    model: provider.model.replace('anthropic/', ''),
+    max_tokens: 4096,
+    system: systemMsg,
+    messages: chatMessages,
+  }, {
+    'x-api-key': provider.apiKey,
+    'anthropic-version': '2023-06-01',
+  })
+
+  if (!res.ok) {
+    const text = await res.text().catch(() => 'Unknown error')
+    throw new Error(`${provider.name} API error ${res.status}: ${text.slice(0, 200)}`)
+  }
+
+  const data = await res.json()
+  const content = data.content?.[0]?.text || ''
+  return { content, provider: provider.name, model: provider.model }
+}
+
+// ─── Google Gemini (uses proxy for CORS) ────────────────────────
+async function callGemini(
+  messages: ChatMessage[],
+  provider: ProviderConfig
+): Promise<ChatResult> {
+  const model = provider.model.replace('google/', '')
+  const endpoint = `${provider.baseUrl}/models/${model}:generateContent?key=${provider.apiKey}`
+
+  const contents = messages
+    .filter(m => m.role !== 'system')
+    .map(m => ({
+      role: m.role === 'assistant' ? 'model' : 'user',
+      parts: [{ text: m.content }],
+    }))
+
+  const systemInstruction = messages.find(m => m.role === 'system')
+  const body: Record<string, unknown> = {
+    contents,
+    generationConfig: { temperature: 0.7, maxOutputTokens: 4096 },
+  }
+  if (systemInstruction) {
+    body.systemInstruction = { parts: [{ text: systemInstruction.content }] }
+  }
+
+  // Gemini uses API key in URL, not in Authorization header
+  const res = await fetch('/api/llm-proxy', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      endpoint,
+      apiKey: 'gemini-no-auth-header', // Gemini uses ?key= not Bearer
+      body,
+      headers: {},
+    }),
+  })
+
+  if (!res.ok) {
+    const text = await res.text().catch(() => 'Unknown error')
+    throw new Error(`${provider.name} API error ${res.status}: ${text.slice(0, 200)}`)
+  }
+
+  const data = await res.json()
+  const content = data.candidates?.[0]?.content?.parts?.[0]?.text || ''
+  return { content, provider: provider.name, model: provider.model }
+}
+
+// ─── Cloudflare Workers AI (uses proxy for CORS) ────────────────
+async function callCloudflare(
+  messages: ChatMessage[],
+  provider: ProviderConfig
+): Promise<ChatResult> {
+  const settings = getSettings()
+  const accountId = settings.PROVIDER_CLOUDFLARE_ACCOUNT_ID || ''
+  if (!accountId) {
+    throw new Error('Cloudflare requires an Account ID. Please add it in Settings.')
+  }
+
+  const url = `${provider.baseUrl}/${accountId}/ai/run/${provider.model}`
+  const res = await proxyFetch(url, provider.apiKey, { messages })
+
+  if (!res.ok) {
+    const text = await res.text().catch(() => 'Unknown error')
+    throw new Error(`${provider.name} API error ${res.status}: ${text.slice(0, 200)}`)
+  }
+
+  const data = await res.json()
+  const content = data.result?.response || ''
+  return { content, provider: provider.name, model: provider.model }
+}
+
+// ─── Zhipu AI (uses proxy for CORS) ─────────────────────────────
+async function callZhipu(
+  messages: ChatMessage[],
+  provider: ProviderConfig
+): Promise<ChatResult> {
+  const endpoint = `${provider.baseUrl}/chat/completions`
+  const res = await proxyFetch(endpoint, provider.apiKey, {
+    model: provider.model,
+    messages,
+    max_tokens: 4096,
+    temperature: 0.7,
+  })
+
+  if (!res.ok) {
+    const text = await res.text().catch(() => 'Unknown error')
+    throw new Error(`${provider.name} API error ${res.status}: ${text.slice(0, 200)}`)
+  }
+
+  const data = await res.json()
+  const content = data.choices?.[0]?.message?.content || ''
+  return { content, provider: provider.name, model: provider.model }
+}
+
+// ─── Cohere (uses proxy for CORS) ───────────────────────────────
+async function callCohere(
+  messages: ChatMessage[],
+  provider: ProviderConfig
+): Promise<ChatResult> {
+  const endpoint = `${provider.baseUrl}/chat`
+  const res = await proxyFetch(endpoint, provider.apiKey, {
+    model: provider.model,
+    messages,
+  })
+
+  if (!res.ok) {
+    const text = await res.text().catch(() => 'Unknown error')
+    throw new Error(`${provider.name} API error ${res.status}: ${text.slice(0, 200)}`)
+  }
+
+  const data = await res.json()
+  const content = data.message?.content?.[0]?.text || ''
+  return { content, provider: provider.name, model: provider.model }
+}
+
+// ─── Provider Connection Test (uses proxy for CORS) ─────────────
 
 export interface TestResult {
   success: boolean
@@ -178,8 +359,8 @@ export async function testProviderConnection(
   }
 
   const keyName = `PROVIDER_${providerId.toUpperCase()}_KEY`
-  const apiKey = settings[keyName]
   const model = settings[`PROVIDER_${providerId.toUpperCase()}_MODEL`] || providerDef.defaultModel
+  const apiKey = settings[keyName]
 
   if (!apiKey) {
     return {
@@ -204,38 +385,28 @@ async function performChatTest(provider: ProviderConfig): Promise<TestResult> {
   const startTime = Date.now()
 
   try {
-    // Send a minimal chat request to verify the key works for actual chat
     const testMessages: ChatMessage[] = [
       { role: 'user', content: 'Say "OK" in one word.' },
     ]
 
-    // For Anthropic, we need to use the messages API directly
+    // For Anthropic
     if (provider.apiType === 'anthropic') {
-      const url = `${provider.baseUrl}/messages`
-      const res = await fetch(url, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-api-key': provider.apiKey,
-          'anthropic-version': '2023-06-01',
-        },
-        body: JSON.stringify({
-          model: provider.model.replace('anthropic/', ''),
-          max_tokens: 5,
-          messages: testMessages,
-        }),
+      const endpoint = `${provider.baseUrl}/messages`
+      const res = await proxyFetch(endpoint, provider.apiKey, {
+        model: provider.model.replace('anthropic/', ''),
+        max_tokens: 100,
+        messages: testMessages,
+      }, {
+        'x-api-key': provider.apiKey,
+        'anthropic-version': '2023-06-01',
       })
       const latencyMs = Date.now() - startTime
-
-      if (!res.ok) {
-        return diagnoseHttpError(res, provider, latencyMs)
-      }
-
+      if (!res.ok) return await diagnoseHttpError(res, provider, latencyMs)
       const data = await res.json()
       const content = data.content?.[0]?.text || ''
       return {
         success: true,
-        message: `✓ Connection successful! Response: "${content.slice(0, 50)}"`,
+        message: `Connection successful! Response: "${content.slice(0, 50)}"`,
         latencyMs,
         details: `Provider: ${provider.name} | Model: ${provider.model} | Latency: ${latencyMs}ms`,
       }
@@ -244,113 +415,51 @@ async function performChatTest(provider: ProviderConfig): Promise<TestResult> {
     // For Gemini
     if (provider.apiType === 'gemini') {
       const model = provider.model.replace('google/', '')
-      const url = `${provider.baseUrl}/models/${model}:generateContent?key=${provider.apiKey}`
-      const res = await fetch(url, {
+      const endpoint = `${provider.baseUrl}/models/${model}:generateContent?key=${provider.apiKey}`
+      const res = await fetch('/api/llm-proxy', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          contents: [{ role: 'user', parts: [{ text: 'Say OK' }] }],
-          generationConfig: { maxOutputTokens: 5 },
+          endpoint,
+          apiKey: 'gemini',
+          body: {
+            contents: [{ role: 'user', parts: [{ text: 'Say OK' }] }],
+            generationConfig: { maxOutputTokens: 100 },
+          },
+          headers: {},
         }),
       })
       const latencyMs = Date.now() - startTime
-
-      if (!res.ok) {
-        return diagnoseHttpError(res, provider, latencyMs)
-      }
-
+      if (!res.ok) return await diagnoseHttpError(res, provider, latencyMs)
       return {
         success: true,
-        message: '✓ Connection successful! Gemini API responded correctly.',
-        latencyMs,
-        details: `Model: ${provider.model} | Latency: ${latencyMs}ms`,
-      }
-    }
-
-    // For Cloudflare Workers AI — needs account ID
-    if (provider.apiType === 'cloudflare') {
-      const accountId = settings.PROVIDER_CLOUDFLARE_ACCOUNT_ID || ''
-      if (!accountId) {
-        return {
-          success: false,
-          message: 'Cloudflare requires an Account ID. Please add it in Settings.',
-          errorCode: 'MISSING_ACCOUNT_ID',
-          suggestion: 'Find your Account ID at https://dash.cloudflare.com → Workers & Pages',
-        }
-      }
-      const url = `${provider.baseUrl}/${accountId}/ai/run/${provider.model}`
-      const res = await fetch(url, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${provider.apiKey}`,
-        },
-        body: JSON.stringify({ messages: testMessages }),
-      })
-      const latencyMs = Date.now() - startTime
-
-      if (!res.ok) {
-        return diagnoseHttpError(res, provider, latencyMs)
-      }
-      return {
-        success: true,
-        message: '✓ Connection successful! Cloudflare Workers AI responded.',
+        message: 'Connection successful! Gemini API responded correctly.',
         latencyMs,
       }
     }
 
-    // Default: OpenAI-compatible
-    const url = `${provider.baseUrl}/chat/completions`
-    const res = await fetch(url, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${provider.apiKey}`,
-      },
-      body: JSON.stringify({
-        model: provider.model,
-        messages: testMessages,
-        max_tokens: 5,
-      }),
+    // Default: OpenAI-compatible (through proxy)
+    const endpoint = `${provider.baseUrl}/chat/completions`
+    const res = await proxyFetch(endpoint, provider.apiKey, {
+      model: provider.model,
+      messages: testMessages,
+      max_tokens: 100,
     })
     const latencyMs = Date.now() - startTime
 
-    if (!res.ok) {
-      return diagnoseHttpError(res, provider, latencyMs)
-    }
+    if (!res.ok) return await diagnoseHttpError(res, provider, latencyMs)
 
     const data = await res.json()
-    const content = data.choices?.[0]?.message?.content || ''
+    const content = data.choices?.[0]?.message?.content || '(empty response - model may use reasoning tokens)'
     return {
       success: true,
-      message: `✓ Connection successful! Response: "${content.slice(0, 50)}"`,
+      message: `Connection successful! Response: "${content.slice(0, 80)}"`,
       latencyMs,
       details: `Provider: ${provider.name} | Model: ${provider.model} | Latency: ${latencyMs}ms`,
     }
   } catch (err) {
     const latencyMs = Date.now() - startTime
     const errMsg = err instanceof Error ? err.message : String(err)
-
-    // Diagnose network/CORS errors
-    if (errMsg.includes('Failed to fetch') || errMsg.includes('NetworkError')) {
-      return {
-        success: false,
-        message: 'Cannot reach the API endpoint. This may be due to:',
-        errorCode: 'NETWORK_ERROR',
-        latencyMs,
-        details: errMsg,
-        suggestion: '1) Check your internet connection. 2) Verify the endpoint URL is correct. 3) The provider may not allow browser-based requests (CORS) — this is normal for some providers. Your key is still saved and will work when used from a backend.',
-      }
-    }
-    if (errMsg.includes('CORS')) {
-      return {
-        success: false,
-        message: 'CORS error: The provider blocked this browser request.',
-        errorCode: 'CORS_ERROR',
-        latencyMs,
-        suggestion: 'This is a browser security restriction, not a key issue. Your API key is still saved. To use this provider, you may need to route requests through a backend proxy.',
-      }
-    }
     return {
       success: false,
       message: `Unexpected error: ${errMsg}`,
@@ -360,7 +469,6 @@ async function performChatTest(provider: ProviderConfig): Promise<TestResult> {
   }
 }
 
-// Helper: diagnose HTTP error responses with specific, helpful messages
 async function diagnoseHttpError(
   res: Response,
   provider: ProviderConfig,
@@ -371,295 +479,98 @@ async function diagnoseHttpError(
     errorBody = await res.text()
   } catch {}
 
-  const status = res.status
+  let errorData: { error?: { message?: string; type?: string } } = {}
+  try {
+    errorData = JSON.parse(errorBody)
+  } catch {}
 
-  // 401 Unauthorized — invalid API key
+  const status = res.status
+  const errMsg = errorData.error?.message || errorBody.slice(0, 200)
+  const errType = errorData.error?.type || ''
+
+  // OpenCode Zen CreditsError
+  if (errType === 'CreditsError' || errMsg.includes('No payment method')) {
+    return {
+      success: false,
+      message: 'Your API key is valid but your account has no payment method.',
+      errorCode: 'CREDITS_ERROR',
+      latencyMs,
+      details: errMsg,
+      suggestion: 'Add a payment method at the provider\'s billing page, or use a FREE model (look for 🆓 badge in the model dropdown).',
+    }
+  }
+
+  // Model not supported
+  if (errType === 'ModelError' || errMsg.includes('not supported')) {
+    return {
+      success: false,
+      message: `Model "${provider.model}" is not supported by this provider.`,
+      errorCode: 'MODEL_NOT_SUPPORTED',
+      latencyMs,
+      details: errMsg,
+      suggestion: 'Select a different model from the dropdown. Look for models with 🆓 badge — those are free.',
+    }
+  }
+
   if (status === 401) {
     return {
       success: false,
-      message: `Invalid API key (HTTP 401). The provider rejected your API key.`,
+      message: 'Invalid API key (HTTP 401). The provider rejected your API key.',
       errorCode: 'INVALID_KEY',
       latencyMs,
-      details: errorBody.slice(0, 300),
-      suggestion: `Double-check that you copied the entire key. Get a new key from the provider's dashboard.`,
+      details: errMsg,
+      suggestion: 'Double-check that you copied the entire key. Get a new key from the provider\'s dashboard.',
     }
   }
 
-  // 403 Forbidden — key valid but no permission
   if (status === 403) {
     return {
       success: false,
-      message: `Access forbidden (HTTP 403). Your API key is valid but lacks permission for this model.`,
+      message: 'Access forbidden (HTTP 403). Your API key is valid but lacks permission.',
       errorCode: 'FORBIDDEN',
       latencyMs,
-      details: errorBody.slice(0, 300),
-      suggestion: 'Check that your account has access to this model. Some models require separate enrollment or payment.',
+      details: errMsg,
     }
   }
 
-  // 429 Rate limit / Quota exceeded
   if (status === 429) {
-    const isQuota = errorBody.toLowerCase().includes('quota') ||
-                    errorBody.toLowerCase().includes('limit') ||
-                    errorBody.toLowerCase().includes('exceeded') ||
-                    errorBody.toLowerCase().includes('billing')
+    const isQuota = errMsg.toLowerCase().includes('quota') || errMsg.toLowerCase().includes('billing')
     return {
       success: false,
-      message: isQuota
-        ? 'Quota exceeded (HTTP 429). Your API key has run out of credits or hit its rate limit.'
-        : 'Rate limited (HTTP 429). Too many requests in a short time.',
+      message: isQuota ? 'Quota exceeded (HTTP 429). Out of credits.' : 'Rate limited (HTTP 429).',
       errorCode: isQuota ? 'QUOTA_EXCEEDED' : 'RATE_LIMITED',
       latencyMs,
-      details: errorBody.slice(0, 300),
-      suggestion: isQuota
-        ? 'Add billing credits at the provider\'s dashboard, or switch to a free-tier provider like Groq, Gemini, or NVIDIA NIM.'
-        : 'Wait 30 seconds and try again. If this keeps happening, upgrade your plan.',
+      details: errMsg,
+      suggestion: isQuota ? 'Add billing credits or use a FREE model.' : 'Wait 30 seconds and try again.',
     }
   }
 
-  // 404 Not Found — wrong endpoint or model
   if (status === 404) {
     return {
       success: false,
-      message: `Not found (HTTP 404). The endpoint URL or model ID is incorrect.`,
+      message: 'Not found (HTTP 404). Endpoint URL or model ID is incorrect.',
       errorCode: 'NOT_FOUND',
       latencyMs,
-      details: errorBody.slice(0, 300),
-      suggestion: `Verify:
-1. The endpoint URL is correct (e.g., https://api.openai.com/v1)
-2. The model ID is spelled correctly (e.g., "gpt-4o-mini", not "gpt4o-mini")
-3. The model exists in your account`,
+      details: errMsg,
     }
   }
 
-  // 400 Bad Request — usually model not found or malformed
-  if (status === 400) {
-    return {
-      success: false,
-      message: `Bad request (HTTP 400). The provider rejected the request.`,
-      errorCode: 'BAD_REQUEST',
-      latencyMs,
-      details: errorBody.slice(0, 300),
-      suggestion: 'This usually means the model ID is wrong or not supported. Check the model name spelling.',
-    }
-  }
-
-  // 5xx Server errors
   if (status >= 500) {
     return {
       success: false,
-      message: `Provider server error (HTTP ${status}). The provider is having issues.`,
+      message: `Provider server error (HTTP ${status}).`,
       errorCode: 'SERVER_ERROR',
       latencyMs,
-      details: errorBody.slice(0, 300),
-      suggestion: 'Try again in a few minutes. The provider is temporarily unavailable.',
+      details: errMsg,
+      suggestion: 'Try again in a few minutes.',
     }
   }
 
-  // Generic fallback
   return {
     success: false,
-    message: `API request failed (HTTP ${status}).`,
+    message: `API request failed (HTTP ${status}). ${errMsg}`,
     errorCode: 'HTTP_ERROR',
     latencyMs,
     details: errorBody.slice(0, 300),
   }
-}
-
-// ─── OpenAI-compatible (OpenAI, DeepSeek, Groq, NVIDIA, Fireworks, Qwen, HF, OpenCode, KiloCode) ───
-async function callOpenAICompatible(
-  messages: ChatMessage[],
-  provider: ProviderConfig
-): Promise<ChatResult> {
-  const url = `${provider.baseUrl}/chat/completions`
-  const res = await fetch(url, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${provider.apiKey}`,
-    },
-    body: JSON.stringify({
-      model: provider.model,
-      messages,
-      max_tokens: 4096,
-      temperature: 0.7,
-    }),
-  })
-
-  if (!res.ok) {
-    const text = await res.text().catch(() => 'Unknown error')
-    throw new Error(`${provider.name} API error ${res.status}: ${text.slice(0, 200)}`)
-  }
-
-  const data = await res.json()
-  const content = data.choices?.[0]?.message?.content || ''
-  return { content, provider: provider.name, model: provider.model }
-}
-
-// ─── Anthropic (Claude) ──────────────────────────────────────────
-async function callAnthropic(
-  messages: ChatMessage[],
-  provider: ProviderConfig
-): Promise<ChatResult> {
-  const url = `${provider.baseUrl}/messages`
-  // Anthropic requires system message to be separate
-  const systemMsg = messages.find(m => m.role === 'system')?.content || ''
-  const chatMessages = messages.filter(m => m.role !== 'system')
-
-  const res = await fetch(url, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'x-api-key': provider.apiKey,
-      'anthropic-version': '2023-06-01',
-    },
-    body: JSON.stringify({
-      model: provider.model.replace('anthropic/', ''),
-      max_tokens: 4096,
-      system: systemMsg,
-      messages: chatMessages,
-    }),
-  })
-
-  if (!res.ok) {
-    const text = await res.text().catch(() => 'Unknown error')
-    throw new Error(`${provider.name} API error ${res.status}: ${text.slice(0, 200)}`)
-  }
-
-  const data = await res.json()
-  const content = data.content?.[0]?.text || ''
-  return { content, provider: provider.name, model: provider.model }
-}
-
-// ─── Google Gemini ───────────────────────────────────────────────
-async function callGemini(
-  messages: ChatMessage[],
-  provider: ProviderConfig
-): Promise<ChatResult> {
-  const model = provider.model.replace('google/', '')
-  const url = `${provider.baseUrl}/models/${model}:generateContent?key=${provider.apiKey}`
-
-  const contents = messages
-    .filter(m => m.role !== 'system')
-    .map(m => ({
-      role: m.role === 'assistant' ? 'model' : 'user',
-      parts: [{ text: m.content }],
-    }))
-
-  const systemInstruction = messages.find(m => m.role === 'system')
-  const body: Record<string, unknown> = {
-    contents,
-    generationConfig: { temperature: 0.7, maxOutputTokens: 4096 },
-  }
-  if (systemInstruction) {
-    body.systemInstruction = { parts: [{ text: systemInstruction.content }] }
-  }
-
-  const res = await fetch(url, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body),
-  })
-
-  if (!res.ok) {
-    const text = await res.text().catch(() => 'Unknown error')
-    throw new Error(`${provider.name} API error ${res.status}: ${text.slice(0, 200)}`)
-  }
-
-  const data = await res.json()
-  const content = data.candidates?.[0]?.content?.parts?.[0]?.text || ''
-  return { content, provider: provider.name, model: provider.model }
-}
-
-// ─── Cloudflare Workers AI ───────────────────────────────────────
-async function callCloudflare(
-  messages: ChatMessage[],
-  provider: ProviderConfig
-): Promise<ChatResult> {
-  // Cloudflare requires account_id in the URL. The user stores their
-  // account_id in PROVIDER_CLOUDFLARE_ACCOUNT_ID.
-  const settings = getSettings()
-  const accountId = settings.PROVIDER_CLOUDFLARE_ACCOUNT_ID || ''
-  if (!accountId) {
-    throw new Error('Cloudflare requires an Account ID. Please set it in Settings.')
-  }
-
-  const url = `${provider.baseUrl}/${accountId}/ai/run/${provider.model}`
-  const res = await fetch(url, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${provider.apiKey}`,
-    },
-    body: JSON.stringify({
-      messages,
-    }),
-  })
-
-  if (!res.ok) {
-    const text = await res.text().catch(() => 'Unknown error')
-    throw new Error(`${provider.name} API error ${res.status}: ${text.slice(0, 200)}`)
-  }
-
-  const data = await res.json()
-  const content = data.result?.response || ''
-  return { content, provider: provider.name, model: provider.model }
-}
-
-// ─── Zhipu AI (GLM) — OpenAI-compatible ─────────────────────────
-async function callZhipu(
-  messages: ChatMessage[],
-  provider: ProviderConfig
-): Promise<ChatResult> {
-  const url = `${provider.baseUrl}/chat/completions`
-  const res = await fetch(url, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${provider.apiKey}`,
-    },
-    body: JSON.stringify({
-      model: provider.model,
-      messages,
-      max_tokens: 4096,
-      temperature: 0.7,
-    }),
-  })
-
-  if (!res.ok) {
-    const text = await res.text().catch(() => 'Unknown error')
-    throw new Error(`${provider.name} API error ${res.status}: ${text.slice(0, 200)}`)
-  }
-
-  const data = await res.json()
-  const content = data.choices?.[0]?.message?.content || ''
-  return { content, provider: provider.name, model: provider.model }
-}
-
-// ─── Cohere ──────────────────────────────────────────────────────
-async function callCohere(
-  messages: ChatMessage[],
-  provider: ProviderConfig
-): Promise<ChatResult> {
-  const url = `${provider.baseUrl}/chat`
-  const res = await fetch(url, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${provider.apiKey}`,
-    },
-    body: JSON.stringify({
-      model: provider.model,
-      messages,
-    }),
-  })
-
-  if (!res.ok) {
-    const text = await res.text().catch(() => 'Unknown error')
-    throw new Error(`${provider.name} API error ${res.status}: ${text.slice(0, 200)}`)
-  }
-
-  const data = await res.json()
-  const content = data.message?.content?.[0]?.text || ''
-  return { content, provider: provider.name, model: provider.model }
 }
