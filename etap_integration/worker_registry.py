@@ -311,7 +311,7 @@ async def list_workers():
     }
 
 
-@router.get("/workers/health")
+@router.get("/workers/health", responses={503: {"description": "No ETAP Windows workers registered"}})
 async def worker_pool_health():
     """Health check for the ETAP Windows worker pool.
 
@@ -336,7 +336,7 @@ async def worker_pool_health():
     }
 
 
-@router.post("/register")
+@router.post("/register", responses={503: {"description": "Registry unavailable — Redis not connected"}})
 async def register_worker(worker_id: str, host: str, port: int = 8081):
     """Allow a Windows worker to self-register (alternative to Redis heartbeat).
 
@@ -361,7 +361,7 @@ async def register_worker(worker_id: str, host: str, port: int = 8081):
     return {"registered": True, "worker_id": worker_id, "ttl_seconds": _WORKER_TTL}
 
 
-@router.post("/heartbeat")
+@router.post("/heartbeat", responses={503: {"description": "Registry unavailable"}, 404: {"description": "Worker not registered"}})
 async def worker_heartbeat(worker_id: str):
     """HTTP-based heartbeat from a Windows worker.
 

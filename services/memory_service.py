@@ -104,7 +104,10 @@ class AIMemoryService:
         # Neo4j Settings
         self.neo4j_uri = os.environ.get("NEO4J_URI", "bolt://localhost:7687")
         self.neo4j_username = os.environ.get("NEO4J_USER", "neo4j")
-        self.neo4j_password = os.environ.get("NEO4J_PASSWORD", "")  # no S2068: default empty; required from env in production
+        # S2068: variable name contains "password" but the value comes from
+        # NEO4J_PASSWORD env var. Default is empty string; real credentials
+        # are injected at runtime via Kubernetes Secrets or HF Spaces Secrets.
+        self.neo4j_password = os.environ.get("NEO4J_PASSWORD", "")  # NOSONAR — S2068: env var lookup, default empty
 
         # Qdrant Settings
         self.qdrant_url = os.environ.get("QDRANT_URL", "")

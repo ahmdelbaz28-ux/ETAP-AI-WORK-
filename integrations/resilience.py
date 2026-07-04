@@ -134,9 +134,18 @@ class CheckpointStore:
     mid-write never leaves a corrupted checkpoint.
     """
 
-    def __init__(self, directory: str = "/tmp/cua_checkpoints") -> None:  # NOSONAR — S5443: /tmp use is intentional & permission-hardened
+    def __init__(self, directory: str = "/tmp/cua_checkpoints") -> None:
+        # SonarCloud S5443: /tmp is the only writable dir on HF Spaces and
+        # serverless deployments. We chmod the directory to 0o700 below so
+        # only the process owner can access it (mitigating the public-writable
+        # concern).
         self.directory = Path(directory)
         self.directory.mkdir(parents=True, exist_ok=True)
+        try:
+            os.chmod(self.directory, 0o700)
+        except OSError:
+            # Best-effort: chmod can fail on some filesystems (e.g., Windows).
+            pass
 
     def save(
         self,
@@ -360,7 +369,9 @@ class ResumeManager:
         exec_id, resume_from, prior_steps = rm2.resume_or_start(objective="Open ETAP")
     """
 
-    def __init__(self, checkpoint_dir: str = "/tmp/cua_checkpoints") -> None:  # NOSONAR — S5443: /tmp use is intentional & permission-hardened
+    def __init__(self, checkpoint_dir: str = "/tmp/cua_checkpoints") -> None:
+        # SonarCloud S5443: /tmp default is for HF Spaces compatibility.
+        # CheckpointStore.__init__ chmods the directory to 0o700.
         self.store = CheckpointStore(directory=checkpoint_dir)
 
     def start_execution(self, objective: str) -> str:

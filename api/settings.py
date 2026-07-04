@@ -110,7 +110,7 @@ async def list_keys(_: str = Depends(get_api_key)) -> JSONResponse:  # NOSONAR �
         )
 
 
-@router.get("/keys/{provider}")
+@router.get("/keys/{provider}", responses={400: {"description": "Unsupported provider"}})
 async def get_key(provider: str, _: str = Depends(get_api_key)) -> JSONResponse:  # NOSONAR — S8410: Annotated[T, Depends(...)] migration will be done in API refactoring sprint
     """Get a single API key (masked — never returns plaintext)."""
     provider = provider.lower().strip()
@@ -133,7 +133,7 @@ async def get_key(provider: str, _: str = Depends(get_api_key)) -> JSONResponse:
     return JSONResponse(content={"success": True, "data": config.to_masked_dict()})
 
 
-@router.post("/keys/{provider}")
+@router.post("/keys/{provider}", responses={400: {"description": "Unsupported provider or invalid value"}})
 async def save_key(
     provider: str,
     request: SaveKeyRequest,
@@ -175,7 +175,7 @@ async def save_key(
         )
 
 
-@router.delete("/keys/{provider}")
+@router.delete("/keys/{provider}", responses={400: {"description": "Unsupported provider"}})
 async def delete_key(provider: str, _: str = Depends(get_api_key)) -> JSONResponse:  # NOSONAR — S8410: Annotated[T, Depends(...)] migration will be done in API refactoring sprint
     """Delete an API key permanently."""
     provider = provider.lower().strip()
@@ -196,7 +196,7 @@ async def delete_key(provider: str, _: str = Depends(get_api_key)) -> JSONRespon
     )
 
 
-@router.post("/keys/{provider}/activate")
+@router.post("/keys/{provider}/activate", responses={400: {"description": "Unsupported provider"}})
 async def activate_key(
     provider: str,
     request: ActivateKeyRequest,
@@ -219,7 +219,7 @@ async def activate_key(
     )
 
 
-@router.post("/keys/{provider}/test")
+@router.post("/keys/{provider}/test", responses={400: {"description": "Unsupported provider"}, 404: {"description": "Key not found"}})
 async def test_key(provider: str, _: str = Depends(get_api_key)) -> JSONResponse:  # NOSONAR — S8410: Annotated[T, Depends(...)] migration will be done in API refactoring sprint
     """Test an API key by making a minimal API call.
 

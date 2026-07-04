@@ -13,7 +13,7 @@ from api.studies import SystemSpec, _build_system_from_spec
 router = APIRouter(prefix="/api/v1/system", tags=["validation"])
 
 
-@router.post("/validate")
+@router.post("/validate", responses={400: {"description": "Invalid system specification"}, 500: {"description": "Internal validation error"}})
 async def validate_system(request: Request, spec: SystemSpec):  # NOSONAR — S3776: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
     """Validate a power system model specification.
 

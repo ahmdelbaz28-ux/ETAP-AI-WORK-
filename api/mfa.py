@@ -11,7 +11,7 @@ from fastapi.responses import JSONResponse
 router = APIRouter(prefix="/api/v1/auth/mfa", tags=["mfa"])
 
 
-@router.post("/totp/setup")
+@router.post("/totp/setup", responses={400: {"description": "user_id is required"}})
 async def setup_totp(request: Request):
     """Set up TOTP-based MFA for a user."""
     trace_id = getattr(request.state, "trace_id", "unknown")
@@ -51,7 +51,7 @@ async def setup_totp(request: Request):
         )
 
 
-@router.post("/totp/verify")
+@router.post("/totp/verify", responses={400: {"description": "user_id or code is required"}})
 async def verify_totp(request: Request):
     """Verify a TOTP code for MFA."""
     trace_id = getattr(request.state, "trace_id", "unknown")

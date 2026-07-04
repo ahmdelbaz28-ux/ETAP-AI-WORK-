@@ -39,19 +39,31 @@ from contextlib import asynccontextmanager, suppress
 from typing import Any
 
 # ---------------------------------------------------------------------------
-# Cache directories — redirect to /tmp for HF Spaces (read-only filesystem)
+# Cache directories — redirect to /tmp for HF Spaces (read-only filesystem).
+# SonarCloud S5443: /tmp is the only writable directory on HF Spaces and
+# serverless deployments. We chmod created directories to 0o700 below so
+# only the process owner can read/write (mitigating the public-writable
+# concern). The list comprehension is split into a plain loop so NOSONAR
+# suppressions on individual assignments take effect.
 # ---------------------------------------------------------------------------
-for _env_key, _env_val in [
-    ("NUMBA_CACHE_DIR", "/tmp/numba_cache"),  # NOSONAR — S5443: /tmp use is intentional & permission-hardened
-    ("MPLCONFIGDIR", "/tmp/matplotlib_cache"),  # NOSONAR — S5443: /tmp use is intentional & permission-hardened
-    ("XDG_CACHE_HOME", "/tmp/hf_cache"),  # NOSONAR — S5443: /tmp use is intentional & permission-hardened
-    ("HF_HOME", "/tmp/hf_cache"),  # NOSONAR — S5443: /tmp use is intentional & permission-hardened
-    ("TRANSFORMERS_CACHE", "/tmp/hf_cache/transformers"),  # NOSONAR — S5443: /tmp use is intentional & permission-hardened
-    ("TORCH_HOME", "/tmp/hf_cache/torch"),  # NOSONAR — S5443: /tmp use is intentional & permission-hardened
-]:
+_TMP_CACHE_DIRS = [  # NOSONAR — S5443: /tmp is the only writable dir on HF Spaces; dirs are chmod 0o700 below
+    ("NUMBA_CACHE_DIR", "/tmp/numba_cache"),
+    ("MPLCONFIGDIR", "/tmp/matplotlib_cache"),
+    ("XDG_CACHE_HOME", "/tmp/hf_cache"),
+    ("HF_HOME", "/tmp/hf_cache"),
+    ("TRANSFORMERS_CACHE", "/tmp/hf_cache/transformers"),
+    ("TORCH_HOME", "/tmp/hf_cache/torch"),
+]
+for _env_key, _env_val in _TMP_CACHE_DIRS:
     if _env_key not in os.environ:
         os.environ[_env_key] = _env_val
     os.makedirs(os.environ[_env_key], exist_ok=True)
+    # Harden permissions: 0o700 so only the process owner can access the
+    # cache directory (SonarCloud S5443 mitigation).
+    try:
+        os.chmod(os.environ[_env_key], 0o700)
+    except OSError:
+        pass
 
 # ---------------------------------------------------------------------------
 # numpy-aware JSON sanitizer
