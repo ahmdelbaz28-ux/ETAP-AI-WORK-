@@ -732,14 +732,17 @@ export async function* chatWithLLMStream(
           if (parsed.error) {
             throw new Error(parsed.message || parsed.error?.message || 'Stream error')
           }
-          // OpenAI-style streaming — ONLY yield delta.content (not message.content)
-          // This prevents duplicate content from providers that send both
-          if (parsed.choices?.[0]?.delta?.content) {
+          // OpenAI-style streaming — yield delta.content
+          // Note: Some models (deepseek-v4-flash-free, big-pickle) send
+          // reasoning_content chunks FIRST (with content:null), then
+          // actual content chunks. We skip reasoning and only yield content.
+          const delta = parsed.choices?.[0]?.delta
+          if (delta?.content) {
             gotAnyContent = true
-            yield parsed.choices[0].delta.content
-            // Small delay for smooth typewriter effect (30ms)
-            await new Promise(r => setTimeout(r, 30))
+            yield delta.content
           }
+          // If we see reasoning_content but no content yet, don't error —
+          // the content will come after reasoning finishes.
         } catch (e) {
           // If it's our thrown error, re-throw
           if (e instanceof Error && (e.message.includes('not supported') || e.message.includes('payment method'))) {

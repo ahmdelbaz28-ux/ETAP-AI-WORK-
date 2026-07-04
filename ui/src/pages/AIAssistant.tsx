@@ -391,8 +391,15 @@ export default function AIAssistant() {
                         >
                           {m.content}
                         </ReactMarkdown>
-                        {/* Blinking cursor while streaming */}
-                        {m.streaming && (
+                        {/* Show "Thinking..." when streaming but no content yet */}
+                        {m.streaming && !m.content && (
+                          <span className="text-xs text-gray-400 dark:text-gray-500 italic flex items-center gap-1.5">
+                            <Loader2 className="w-3 h-3 animate-spin" />
+                            Thinking...
+                          </span>
+                        )}
+                        {/* Blinking cursor while streaming with content */}
+                        {m.streaming && m.content && (
                           <span className="inline-block w-2 h-4 bg-amber-500 dark:bg-amber-400 animate-pulse ml-0.5 align-middle rounded-sm" />
                         )}
                       </div>
