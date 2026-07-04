@@ -194,7 +194,12 @@ export async function handleChat(
     return errorResponse(503, 'No AI provider is configured', traceId, corsHeaders(origin));
   }
 
-  const agent = getAgent(agentId)!;
+  const agent = getAgent(agentId);
+  if (!agent) {
+    // Defensive: should be unreachable because L66 already checked, but
+    // satisfies the type checker without a non-null assertion.
+    return errorResponse(404, `Agent '${agentId}' not found`, traceId, corsHeaders(origin));
+  }
   // Load generic chat prompt from YAML with dynamic agent name/description interpolation
   const genericPromptSuffix = `\nRespond with professional engineering analysis. Be concise, accurate, and cite relevant standards when applicable.`;
   const systemPrompt = `You are the ${agent.name}. ${agent.description}.${genericPromptSuffix}`;

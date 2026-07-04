@@ -123,7 +123,10 @@ export async function chatWithLLM(
   messages: ChatMessage[],
   config?: Partial<ProviderConfig>,
 ): Promise<ChatResult> {
-  const provider = config ? { ...getActiveProvider()!, ...config } : getActiveProvider();
+  const activeProvider = getActiveProvider();
+  const provider = config && activeProvider
+    ? { ...activeProvider, ...config }
+    : activeProvider;
 
   if (!provider?.apiKey) {
     throw new Error('No API key configured. Go to Settings → AI Providers to connect a provider.');
@@ -589,7 +592,10 @@ export async function* chatWithLLMStream(
   messages: ChatMessage[],
   config?: Partial<ProviderConfig>,
 ): AsyncGenerator<string, void, unknown> {
-  const provider = config ? { ...getActiveProvider()!, ...config } : getActiveProvider();
+  const activeProvider = getActiveProvider();
+  const provider = config && activeProvider
+    ? { ...activeProvider, ...config }
+    : activeProvider;
 
   if (!provider?.apiKey) {
     throw new Error('No API key configured. Go to Settings → AI Providers to connect a provider.');
@@ -627,7 +633,10 @@ export async function* chatWithLLMStream(
       throw new Error(`${provider.name} API error ${res.status}: ${text.slice(0, 200)}`);
     }
 
-    const reader = res.body!.getReader();
+    if (!res.body) {
+      throw new Error(`${provider.name} API returned no body for streaming response`);
+    }
+    const reader = res.body.getReader();
     const decoder = new TextDecoder();
     let buffer = '';
 
@@ -721,7 +730,10 @@ export async function* chatWithLLMStream(
     throw new Error(`${provider.name} API error ${res.status}: ${text.slice(0, 200)}`);
   }
 
-  const reader = res.body!.getReader();
+  if (!res.body) {
+    throw new Error(`${provider.name} API returned no body for streaming response`);
+  }
+  const reader = res.body.getReader();
   const decoder = new TextDecoder();
   let buffer = '';
   let gotAnyContent = false;

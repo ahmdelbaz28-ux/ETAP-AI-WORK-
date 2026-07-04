@@ -405,8 +405,11 @@ export function SmartHelpDrawer({ open, onClose, initialContextId }: SmartHelpDr
               {activeTopic.navigateTo && (
                 <button
                   onClick={() => {
-                    navigate(activeTopic.navigateTo!);
-                    onClose();
+                    const target = activeTopic.navigateTo;
+                    if (target) {
+                      navigate(target);
+                      onClose();
+                    }
                   }}
                   className="w-full flex items-center gap-2 px-4 py-2.5 text-sm font-medium bg-[var(--accent-primary)]/10 text-[var(--accent-primary)] rounded-lg hover:bg-[var(--accent-primary)]/20 transition-colors"
                 >

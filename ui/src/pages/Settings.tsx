@@ -43,9 +43,11 @@ const OBFUSCATION_KEY = 'ETAP-SEC-2024-OBFUSCATION';
 function obfuscate(value: string): string {
   let result = '';
   for (let i = 0; i < value.length; i++) {
-    result += String.fromCodePoint(
-      value.codePointAt(i)! ^ OBFUSCATION_KEY.codePointAt(i % OBFUSCATION_KEY.length)!,
-    );
+    // codePointAt can return undefined for surrogate pairs at the wrong index;
+    // default to 0 (XOR with 0 = identity, safe no-op for those bytes).
+    const cp = value.codePointAt(i) ?? 0;
+    const keyCp = OBFUSCATION_KEY.codePointAt(i % OBFUSCATION_KEY.length) ?? 0;
+    result += String.fromCodePoint(cp ^ keyCp);
   }
   return btoa(result);
 }
@@ -54,9 +56,9 @@ function deobfuscate(value: string): string {
     const decoded = atob(value);
     let result = '';
     for (let i = 0; i < decoded.length; i++) {
-      result += String.fromCodePoint(
-        decoded.codePointAt(i)! ^ OBFUSCATION_KEY.codePointAt(i % OBFUSCATION_KEY.length)!,
-      );
+      const cp = decoded.codePointAt(i) ?? 0;
+      const keyCp = OBFUSCATION_KEY.codePointAt(i % OBFUSCATION_KEY.length) ?? 0;
+      result += String.fromCodePoint(cp ^ keyCp);
     }
     return result;
   } catch {
