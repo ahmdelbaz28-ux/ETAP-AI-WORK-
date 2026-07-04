@@ -76,6 +76,25 @@
   --container-6xl: 72rem;
   --container-7xl: 80rem;
 
+  /* Override Tailwind v4.0.0 broken max-w-* mappings.
+     In v4.0.0, .max-w-md generates `max-width: var(--spacing-md)` (1rem = 16px)
+     instead of the expected `var(--container-md)` (28rem). This breaks every
+     modal, drawer, and form panel that uses max-w-*. We override each utility
+     here to point at the correct --container-* variable. */
+  --max-width-3xs: var(--container-3xs);
+  --max-width-2xs: var(--container-2xs);
+  --max-width-xs: var(--container-xs);
+  --max-width-sm: var(--container-sm);
+  --max-width-md: var(--container-md);
+  --max-width-lg: var(--container-lg);
+  --max-width-xl: var(--container-xl);
+  --max-width-2xl: var(--container-2xl);
+  --max-width-3xl: var(--container-3xl);
+  --max-width-4xl: var(--container-4xl);
+  --max-width-5xl: var(--container-5xl);
+  --max-width-6xl: var(--container-6xl);
+  --max-width-7xl: var(--container-7xl);
+
   /* Border Radius */
   --radius-sm: 0.375rem;
   --radius-md: 0.5rem;
@@ -104,6 +123,24 @@
   --z-notification: 80;
   --z-tooltip: 90;
 }
+
+/* ============================
+   TAILWIND v4.0.0 BUG WORKAROUND
+   ============================
+   Tailwind v4.0.0 (installed) generates `.max-w-md { max-width: var(--spacing-md) }`
+   which evaluates to 1rem = 16px (broken). The correct mapping should use
+   `--container-md` (28rem). Tailwind v4.1+ fixes this, but we're on v4.0.0.
+   These explicit rules override the broken utility classes to use the correct
+   --container-* variables defined above. */
+.max-w-3xs { max-width: var(--container-3xs) !important; }
+.max-w-2xs { max-width: var(--container-2xs) !important; }
+.max-w-xs  { max-width: var(--container-xs)  !important; }
+.max-w-sm  { max-width: var(--container-sm)  !important; }
+.max-w-md  { max-width: var(--container-md)  !important; }
+.max-w-lg  { max-width: var(--container-lg)  !important; }
+.max-w-xl  { max-width: var(--container-xl)  !important; }
+.max-w-2xl { max-width: var(--container-2xl) !important; }
+/* max-w-3xl/4xl/5xl already work correctly in v4.0.0 */
 
 /* ============================
    DARK MODE (Default)

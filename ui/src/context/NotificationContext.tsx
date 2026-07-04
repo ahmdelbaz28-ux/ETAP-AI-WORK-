@@ -52,7 +52,23 @@ export function NotificationProvider({ children }: { children: ReactNode }) {  /
   return (
     <NotificationContext.Provider value={{ notifications, notify, dismiss }}>
       {children}
-      <div className="fixed bottom-4 right-4 z-[var(--z-notification)] flex flex-col gap-2 max-w-sm pointer-events-none">
+      {/* Notification container — bottom-right of viewport.
+          Uses inline styles for positioning + z-index to avoid Tailwind v4
+          utility fallback issues (max-w-sm / z-[var()] bugs). */}
+      <div
+        style={{
+          position: 'fixed',
+          bottom: '16px',
+          right: '16px',
+          zIndex: 80,
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '8px',
+          width: 'min(384px, calc(100vw - 32px))',
+          maxWidth: '384px',
+          pointerEvents: 'none',
+        }}
+      >
         <AnimatePresence mode="popLayout">
           {notifications.map(n => {
             const Icon = iconMap[n.type]
@@ -66,6 +82,7 @@ export function NotificationProvider({ children }: { children: ReactNode }) {  /
                 transition={{ type: 'spring', damping: 20, stiffness: 300 }}
                 onClick={() => dismiss(n.id)}
                 className={`pointer-events-auto px-4 py-3 rounded-xl shadow-lg text-sm font-medium flex items-center gap-3 cursor-pointer border backdrop-blur-md ${colorMap[n.type]}`}
+                style={{ minWidth: '280px' }}
               >
                 <Icon className="w-5 h-5 shrink-0 text-white" />
                 <span className="flex-1 text-white">{n.message}</span>
