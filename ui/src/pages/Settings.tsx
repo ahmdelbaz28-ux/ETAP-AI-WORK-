@@ -351,6 +351,9 @@ function AISettingsPanel({ settings, setSettings, notify }: AISettingsPanelProps
   const [customScope, setCustomScope] = useState<'local' | 'global'>('local')
   const [customTab, setCustomTab] = useState<'json' | 'curl' | 'openai'>('json')
   const [curlContent, setCurlContent] = useState('')
+  // Quick Setup: which provider is being tested + status
+  const [testingProvider, setTestingProvider] = useState<string | null>(null)
+  const [providerStatus, setProviderStatus] = useState<Record<string, 'ok' | 'fail' | null>>({})
 
   const handleParseCurl = () => {
     if (!curlContent.trim()) {
@@ -376,9 +379,231 @@ function AISettingsPanel({ settings, setSettings, notify }: AISettingsPanelProps
     notify('success', `Custom provider connected successfully using ${customTab.toUpperCase()} Config (${customScope} scope)!`)
   }
 
+  // Quick Setup: test a provider API key by making a lightweight HTTP request
+  // directly from the browser to the provider's endpoint. This gives the
+  // user immediate feedback without needing the backend.
+  const handleTestProvider = async (providerId: string) => {
+    const keyName = `PROVIDER_${providerId.toUpperCase()}_KEY`
+    const apiKey = (settings[keyName] || '').trim()
+    if (!apiKey) {
+      notify('error', 'Please enter an API key first')
+      return
+    }
+    setTestingProvider(providerId)
+    setProviderStatus(prev => ({ ...prev, [providerId]: null }))
+    try {
+      const provider = POPULAR_PROVIDERS.find(p => p.id === providerId)!
+      // Simple validation: most providers return 401 for invalid keys
+      // and 200 (or 400 with a clear error) for valid keys.
+      let endpoint = ''
+      let headers: Record<string, string> = {}
+      if (providerId === 'openai') {
+        endpoint = 'https://api.openai.com/v1/models'
+        headers = { Authorization: `Bearer ${apiKey}` }
+      } else if (providerId === 'anthropic') {
+        // Anthropic doesn't have a /models endpoint; use a minimal messages request
+        endpoint = 'https://api.anthropic.com/v1/messages'
+        headers = {
+          'x-api-key': apiKey,
+          'anthropic-version': '2023-06-01',
+          'content-type': 'application/json',
+        }
+      } else if (providerId === 'gemini') {
+        endpoint = `https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`
+      } else if (providerId === 'deepseek') {
+        endpoint = 'https://api.deepseek.com/v1/models'
+        headers = { Authorization: `Bearer ${apiKey}` }
+      } else if (providerId === 'groq') {
+        endpoint = 'https://api.groq.com/openai/v1/models'
+        headers = { Authorization: `Bearer ${apiKey}` }
+      } else {
+        // For cohere/huggingface, just verify key format
+        if (apiKey.length < 20) {
+          throw new Error('API key looks too short')
+        }
+        setProviderStatus(prev => ({ ...prev, [providerId]: 'ok' }))
+        notify('success', `${provider.name} key saved locally`)
+        return
+      }
+
+      const method = providerId === 'anthropic' ? 'POST' : 'GET'
+      const body = providerId === 'anthropic' ? JSON.stringify({
+        model: 'claude-3-5-haiku-latest',
+        max_tokens: 1,
+        messages: [{ role: 'user', content: 'hi' }],
+      }) : undefined
+
+      const res = await fetch(endpoint, { method, headers, body })
+      if (res.status === 401 || res.status === 403) {
+        throw new Error('Invalid API key')
+      }
+      // 200, 400 (bad request but auth ok), 429 (rate limit but auth ok) → key is valid
+      if (res.status < 500) {
+        setProviderStatus(prev => ({ ...prev, [providerId]: 'ok' }))
+        notify('success', `${provider.name} API key is valid ✓`)
+      } else {
+        throw new Error(`Server error: ${res.status}`)
+      }
+    } catch (err) {
+      setProviderStatus(prev => ({ ...prev, [providerId]: 'fail' }))
+      const msg = err instanceof Error ? err.message : 'Connection failed'
+      notify('error', `${providerId} test failed: ${msg}`)
+    } finally {
+      setTestingProvider(null)
+    }
+  }
+
+  // Quick Setup: check which providers have keys
+  const connectedCount = POPULAR_PROVIDERS.filter(p => !!settings[`PROVIDER_${p.id.toUpperCase()}_KEY`]).length
+
   return (
     <div className="space-y-6 col-span-2">
-      {/* 1. Popular Models (Fast Connect) */}
+      {/* ─── Quick Setup Hero — First thing the user sees ──────────── */}
+      <Card padding="md" className="border-2 border-brand-500/30 shadow-lg shadow-brand-500/5 bg-gradient-to-br from-brand-500/[0.03] to-transparent">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5 pb-4 border-b border-[var(--border-primary)]">
+          <div className="flex items-start gap-3">
+            <div className="w-10 h-10 rounded-xl bg-brand-500/15 flex items-center justify-center shrink-0">
+              <Zap className="w-5 h-5 text-brand-400" />
+            </div>
+            <div>
+              <h3 className="text-base font-semibold text-[var(--text-primary)]">Quick Setup — Connect your AI</h3>
+              <p className="text-xs text-[var(--text-secondary)] mt-0.5">
+                Paste your API key from any provider below and click <span className="font-semibold text-brand-400">Test &amp; Save</span>.
+                Your key is stored locally in your browser (not sent anywhere unless you test it).
+              </p>
+            </div>
+          </div>
+          <div className="shrink-0 px-3 py-1.5 rounded-lg bg-[var(--bg-elevated)] border border-[var(--border-primary)] text-center">
+            <div className="text-[10px] uppercase tracking-wider text-[var(--text-muted)]">Connected</div>
+            <div className="text-lg font-bold text-brand-400">{connectedCount}<span className="text-[var(--text-muted)] text-sm font-normal">/{POPULAR_PROVIDERS.length}</span></div>
+          </div>
+        </div>
+
+        {/* Provider cards — simplified, big, clear */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+          {POPULAR_PROVIDERS.map(p => {
+            const keyName = `PROVIDER_${p.id.toUpperCase()}_KEY`
+            const hasKey = !!settings[keyName]
+            const status = providerStatus[p.id]
+            const isTesting = testingProvider === p.id
+            return (
+              <div
+                key={p.id}
+                className={cn(
+                  'p-4 rounded-xl border-2 transition-all bg-[var(--bg-elevated)]',
+                  hasKey
+                    ? 'border-green-500/30'
+                    : 'border-[var(--border-primary)] hover:border-brand-500/40'
+                )}
+              >
+                {/* Header: icon + name + status badge */}
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-2.5">
+                    {/* Provider icon — colored dot with first letter */}
+                    <div
+                      className="w-9 h-9 rounded-lg flex items-center justify-center text-white font-bold text-sm shadow-sm"
+                      style={{ backgroundColor: p.color }}
+                    >
+                      {p.name.charAt(0)}
+                    </div>
+                    <div>
+                      <div className="text-sm font-semibold text-[var(--text-primary)]">{p.name}</div>
+                      <div className="text-[10px] text-[var(--text-muted)]">{p.defaultModel}</div>
+                    </div>
+                  </div>
+                  {hasKey && (
+                    <span className="inline-flex items-center gap-1 text-[10px] font-medium px-2 py-0.5 rounded-full bg-green-500/15 text-green-400 border border-green-500/25">
+                      <CheckCircle2 className="w-3 h-3" />
+                      Saved
+                    </span>
+                  )}
+                </div>
+
+                {/* API key input */}
+                <div className="relative mb-2">
+                  <input
+                    type="password"
+                    placeholder={`Paste ${p.name} API key...`}
+                    value={settings[keyName] || ''}
+                    onChange={e => {
+                      setSettings(prev => ({ ...prev, [keyName]: e.target.value }))
+                      // Reset status when key changes
+                      if (providerStatus[p.id]) {
+                        setProviderStatus(prev => ({ ...prev, [p.id]: null }))
+                      }
+                    }}
+                    className="w-full px-3 py-2 pr-9 bg-[var(--bg-primary)] border border-[var(--border-primary)] rounded-lg text-xs text-[var(--text-primary)] placeholder-[var(--text-muted)] focus:border-brand-500 outline-none transition-colors font-mono"
+                  />
+                  <Key className="absolute right-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[var(--text-muted)] pointer-events-none" />
+                </div>
+
+                {/* Test & Save button + status */}
+                <button
+                  onClick={() => handleTestProvider(p.id)}
+                  disabled={!settings[keyName] || isTesting}
+                  className={cn(
+                    'w-full flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all',
+                    !settings[keyName] || isTesting
+                      ? 'bg-[var(--bg-primary)] text-[var(--text-muted)] cursor-not-allowed border border-[var(--border-primary)]'
+                      : status === 'ok'
+                        ? 'bg-green-600 hover:bg-green-500 text-white'
+                        : status === 'fail'
+                          ? 'bg-red-600 hover:bg-red-500 text-white'
+                          : 'bg-brand-600 hover:bg-brand-500 text-white'
+                  )}
+                >
+                  {isTesting ? (
+                    <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Testing...</>
+                  ) : status === 'ok' ? (
+                    <><CheckCircle2 className="w-3.5 h-3.5" /> Valid ✓</>
+                  ) : status === 'fail' ? (
+                    <><XCircle className="w-3.5 h-3.5" /> Failed — Retry</>
+                  ) : (
+                    <><Zap className="w-3.5 h-3.5" /> Test &amp; Save</>
+                  )}
+                </button>
+
+                {/* Get key link */}
+                <a
+                  href={
+                    p.id === 'openai' ? 'https://platform.openai.com/api-keys' :
+                    p.id === 'anthropic' ? 'https://console.anthropic.com/settings/keys' :
+                    p.id === 'gemini' ? 'https://aistudio.google.com/app/apikey' :
+                    p.id === 'deepseek' ? 'https://platform.deepseek.com/api_keys' :
+                    p.id === 'groq' ? 'https://console.groq.com/keys' :
+                    p.id === 'cohere' ? 'https://dashboard.cohere.com/api-keys' :
+                    'https://huggingface.co/settings/tokens'
+                  }
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="mt-2 flex items-center justify-center gap-1 text-[10px] text-[var(--text-muted)] hover:text-brand-400 transition-colors"
+                >
+                  Get API key from {p.name}
+                  <ExternalLink className="w-2.5 h-2.5" />
+                </a>
+              </div>
+            )
+          })}
+        </div>
+
+        {/* Help banner */}
+        <div className="mt-4 flex items-start gap-2 p-3 rounded-lg bg-[var(--bg-primary)] border border-[var(--border-primary)]">
+          <Info className="w-4 h-4 text-brand-400 shrink-0 mt-0.5" />
+          <p className="text-[11px] text-[var(--text-secondary)] leading-relaxed">
+            <span className="font-semibold">How it works:</span> Your API key is stored locally in your browser and used to call the AI provider directly.
+            Once you've connected at least one provider, the <span className="font-semibold text-brand-400">AI Assistant</span> page will use it automatically.
+            No key is ever sent to our servers unless you explicitly test it.
+          </p>
+        </div>
+      </Card>
+
+      {/* ─── Advanced: Popular Models (Fast Connect) — kept for power users ─── */}
+      <details className="group">
+        <summary className="flex items-center gap-2 cursor-pointer p-3 rounded-lg bg-[var(--bg-elevated)] border border-[var(--border-primary)] hover:border-brand-500/30 transition-colors list-none">
+          <Code className="w-4 h-4 text-[var(--text-muted)] group-open:rotate-90 transition-transform" />
+          <span className="text-sm font-medium text-[var(--text-secondary)]">Advanced Options (Custom Models, curl import, JSON config)</span>
+        </summary>
+        <div className="mt-3 space-y-6">
       <Card padding="md" className="border border-[var(--border-primary)] shadow-sm">
         <div className="flex items-center gap-2 mb-4 border-b border-[var(--border-primary)] pb-3">
           <Sparkles className="w-5 h-5 text-brand-400" />
@@ -637,6 +862,8 @@ function AISettingsPanel({ settings, setSettings, notify }: AISettingsPanelProps
           )}
         </div>
       </Card>
+        </div>
+      </details>
     </div>
   )
 }

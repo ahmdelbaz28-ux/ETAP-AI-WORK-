@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'  // QUALITY v2.1.1: removed unused AnimatePresence
-import { Bot, Send, Sparkles, Cpu, Copy, RotateCcw, Check, ChevronDown } from 'lucide-react'  // removed User, MessageSquare
+import { Bot, Send, Sparkles, Cpu, Copy, RotateCcw, Check, ChevronDown, AlertCircle, Key, Settings as SettingsIcon } from 'lucide-react'  // removed User, MessageSquare
 import { useNotify } from '../context/NotificationContext'
 import { chatWithAgent, fetchAgents, type AgentMeta } from '../lib/api'
 import { cn } from '../utils/helpers'
@@ -21,9 +22,42 @@ export default function AIAssistant() {
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
   const [copiedId, setCopiedId] = useState<string | null>(null)
+  const [hasApiKey, setHasApiKey] = useState<boolean | null>(null)  // null = not checked yet
   const { notify } = useNotify()
+  const navigate = useNavigate()
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
+
+  // Check if any provider API key is configured in localStorage settings
+  useEffect(() => {
+    const checkApiKey = () => {
+      try {
+        const stored = localStorage.getItem('etap-settings')
+        if (!stored) {
+          setHasApiKey(false)
+          return
+        }
+        const parsed = JSON.parse(stored)
+        const hasAnyKey = [
+          'PROVIDER_OPENAI_KEY',
+          'PROVIDER_ANTHROPIC_KEY',
+          'PROVIDER_GEMINI_KEY',
+          'PROVIDER_DEEPSEEK_KEY',
+          'PROVIDER_GROQ_KEY',
+          'PROVIDER_COHERE_KEY',
+          'PROVIDER_HUGGINGFACE_KEY',
+          'CUSTOM_API_KEY',
+        ].some(k => !!parsed[k])
+        setHasApiKey(hasAnyKey)
+      } catch {
+        setHasApiKey(false)
+      }
+    }
+    checkApiKey()
+    // Re-check when window regains focus (e.g. after returning from Settings)
+    window.addEventListener('focus', checkApiKey)
+    return () => window.removeEventListener('focus', checkApiKey)
+  }, [])
 
   useEffect(() => {
     fetchAgents().then(setAgents).catch(() => notify('error', 'Failed to load agents'))
@@ -115,17 +149,50 @@ export default function AIAssistant() {
       <main className="flex-1 overflow-y-auto px-4 sm:px-8 py-8 w-full">
         <div className="max-w-3xl mx-auto w-full space-y-8 pb-32">
           {messages.length === 0 ? (
-            <div className="flex flex-col items-center justify-center h-full pt-16 sm:pt-32 text-center animate-in fade-in slide-in-from-bottom-4 duration-700">
+            <div className="flex flex-col items-center justify-center h-full pt-8 sm:pt-16 text-center animate-in fade-in slide-in-from-bottom-4 duration-700">
+              {/* API Key Warning Banner — shown if no key configured */}
+              {hasApiKey === false && (
+                <div className="mb-8 w-full max-w-2xl p-4 rounded-2xl border-2 border-amber-500/40 bg-amber-500/[0.07] flex flex-col sm:flex-row items-start sm:items-center gap-3 text-left">
+                  <div className="w-10 h-10 rounded-xl bg-amber-500/20 flex items-center justify-center shrink-0">
+                    <AlertCircle className="w-5 h-5 text-amber-500" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <h3 className="text-sm font-semibold text-amber-700 dark:text-amber-400 mb-0.5">
+                      Connect an AI provider to get started
+                    </h3>
+                    <p className="text-xs text-amber-700/80 dark:text-amber-400/80">
+                      You need an API key from OpenAI, Anthropic, Gemini, or other supported provider to use the AI Assistant.
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => navigate('/settings')}
+                    className="shrink-0 inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-amber-600 hover:bg-amber-500 text-white text-xs font-semibold transition-colors shadow-md shadow-amber-600/20"
+                  >
+                    <Key className="w-3.5 h-3.5" />
+                    Connect API Key
+                  </button>
+                </div>
+              )}
+
               <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-[#d97706] to-[#f59e0b] flex items-center justify-center mb-6 shadow-xl shadow-amber-500/20">
                 <Sparkles className="w-8 h-8 text-white" />
               </div>
-              <h1 className="text-3xl font-semibold tracking-tight text-gray-900 dark:text-white mb-3">
+              <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight text-gray-900 dark:text-white mb-3">
                 How can I help you today?
               </h1>
               <p className="text-gray-500 dark:text-gray-400 max-w-md mx-auto text-sm">
                 I can write code, analyze power systems, solve short circuits, and help with ETAP integrations.
               </p>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-10 w-full max-w-2xl">
+
+              {/* Provider status indicator */}
+              {hasApiKey === true && (
+                <div className="mt-4 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-green-500/10 text-green-600 dark:text-green-400 text-xs font-medium border border-green-500/20">
+                  <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
+                  AI provider connected
+                </div>
+              )}
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-8 w-full max-w-2xl">
                 {['Run a Newton-Raphson load flow', 'Calculate arc flash incident energy', 'Write a Python script for GIS', 'Explain protective relay coordination'].map(q => (
                   <button
                     key={q}
@@ -136,6 +203,15 @@ export default function AIAssistant() {
                   </button>
                 ))}
               </div>
+
+              {/* Quick link to settings */}
+              <button
+                onClick={() => navigate('/settings')}
+                className="mt-6 inline-flex items-center gap-1.5 text-xs text-gray-500 dark:text-gray-400 hover:text-brand-500 dark:hover:text-brand-400 transition-colors"
+              >
+                <SettingsIcon className="w-3.5 h-3.5" />
+                Manage API keys in Settings
+              </button>
             </div>
           ) : (
             messages.map((m) => (
