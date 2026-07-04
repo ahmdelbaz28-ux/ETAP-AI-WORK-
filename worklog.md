@@ -521,3 +521,74 @@ Stage Summary:
 - Production verified: mobile layout now uses full screen width, text is
   horizontal, icons are properly spaced, drawer works correctly.
 - Desktop layout is 100% unchanged.
+
+---
+Task ID: api-key-quick-setup
+Agent: Super Z (Main Agent)
+Task: Simplify API key entry for end users — Quick Setup + AI Assistant banner
+
+Work Log:
+- User asked how to enter API keys for the AI Assistant, where the settings page is, and whether there's an OpenAI icon to click. The user wanted the design to be simple enough for any client to use.
+- Explored the codebase:
+  * AI Assistant page (pages/AIAssistant.tsx) calls chatWithAgent() which hits /api/v1/agents/chat
+  * Settings page (pages/Settings.tsx) already had 7 providers (OpenAI, Anthropic, Gemini, DeepSeek, Groq, Cohere, HF) but the UI was complex — each provider had multiple options (key + model + base URL) crammed together
+  * API keys are stored in localStorage (etap-settings key) with XOR obfuscation
+  * Backend api_key_store.py only supports {openai, gemini, anthropic} but the UI shows 7
+  * AI Assistant had NO indication when no API key was configured
+
+- FIX #1: ui/src/pages/Settings.tsx — Added Quick Setup hero section
+  Added a prominent "Quick Setup — Connect your AI" card at the TOP of the
+  AISettingsPanel. Each of the 7 providers now has a simplified card with:
+  * Colored icon with provider initial (O, A, G, D, G, C, H)
+  * Provider name + default model
+  * Single API key input field (password type, with key icon)
+  * "Test & Save" button that:
+    - Tests the key by calling the provider's /models endpoint (OpenAI, DeepSeek, Groq)
+    - Uses /messages endpoint for Anthropic
+    - Uses /models?key= for Gemini
+    - Format validation for Cohere/HF
+    - Shows green ✓ on success, red ✗ on failure, spinner while testing
+  * "Get API key from {Provider}" link to the provider's dashboard URL
+  * "Saved" badge when a key is stored
+  * "Connected X/7" counter at the top
+  * Help banner: "Your key is stored locally. Once connected, AI Assistant uses it automatically."
+  All advanced options (custom models, curl import, JSON config) moved into
+  a collapsible <details> "Advanced Options" section.
+
+- FIX #2: ui/src/pages/AIAssistant.tsx — API key detection + warning banner
+  * Added hasApiKey state that checks localStorage for any PROVIDER_*_KEY
+    on mount and when window regains focus (so it updates when user returns
+    from Settings)
+  * When hasApiKey === false, shows prominent amber warning banner:
+    "Connect an AI provider to get started" + "Connect API Key" button
+    that navigates to /settings
+  * When hasApiKey === true, shows green "AI provider connected" badge
+  * Always shows "Manage API keys in Settings" link at bottom of empty state
+
+- FIX #3: ui/src/pages/Settings.tsx — Bug fix: missing cn import
+  The Quick Setup section uses cn() for conditional classNames but the
+  import was missing, causing "cn is not defined" Application Error.
+  Added: import { cn } from '../utils/helpers'
+
+- VERIFICATION (Playwright on production https://etap-ai-work.vercel.app):
+  * AI Assistant (no key): banner ✓, Connect button ✓, Manage link ✓
+  * Settings AI Providers tab: Quick Setup ✓, "Connect your AI" ✓,
+    Test & Save ✓, OpenAI/Anthropic/Gemini cards ✓,
+    7 "Get API key from" links ✓, "CONNECTED 0/7" counter ✓
+  * VLM confirmed all elements visible and properly laid out
+
+- Committed as f24cf2a (Quick Setup) + 463a54a (cn import fix).
+- Vercel deployment READY at https://etap-ai-work.vercel.app
+
+Stage Summary:
+- The user can now connect an AI provider in 3 simple steps:
+  1. Open AI Assistant → sees amber banner "Connect an AI provider"
+  2. Click "Connect API Key" → goes to Settings → sees Quick Setup
+  3. Paste API key → click "Test & Save" → see green ✓
+- 7 providers supported: OpenAI, Anthropic, Google Gemini, DeepSeek, Groq,
+  Cohere, Hugging Face. Each has a "Get API key" link to the provider's
+  dashboard for easy signup.
+- Keys are stored locally in the browser (not sent to our servers unless
+  the user explicitly clicks "Test & Save" which calls the provider directly).
+- Advanced options (curl import, custom endpoints, JSON config) are still
+  available in a collapsible "Advanced Options" section for power users.
