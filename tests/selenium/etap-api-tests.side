@@ -483,6 +483,366 @@
           "value": "true"
         }
       ]
+    },
+    {
+      "id": "test-021-chat-expert",
+      "name": "POST /api/v1/agents/etap-expert/chat",
+      "commands": [
+        {
+          "id": "cmd-021-open",
+          "command": "open",
+          "target": "/healthz",
+          "value": ""
+        },
+        {
+          "id": "cmd-021-exec",
+          "command": "executeScript",
+          "target": "const resp = await fetch('/api/v1/agents/etap-expert/chat', {\n                    method: 'POST',\n                    headers: {'Content-Type': 'application/json'},\n                    body: JSON.stringify({message: 'What is the cable size for a 100A load?', context: {}})\n                });\n                const data = await resp.json();\n                return resp.status === 200 && data.success === true;",
+          "value": "result"
+        },
+        {
+          "id": "cmd-021-assert",
+          "command": "assert",
+          "target": "result",
+          "value": "true"
+        }
+      ]
+    },
+    {
+      "id": "test-022-chat-gui",
+      "name": "POST /api/v1/agents/etap-gui/chat",
+      "commands": [
+        {
+          "id": "cmd-022-open",
+          "command": "open",
+          "target": "/healthz",
+          "value": ""
+        },
+        {
+          "id": "cmd-022-exec",
+          "command": "executeScript",
+          "target": "const resp = await fetch('/api/v1/agents/etap-gui/chat', {\n                    method: 'POST',\n                    headers: {'Content-Type': 'application/json'},\n                    body: JSON.stringify({message: 'Open load flow study', safety_mode: true})\n                });\n                const data = await resp.json();\n                return resp.status === 200 && data.success === true;",
+          "value": "result"
+        },
+        {
+          "id": "cmd-022-assert",
+          "command": "assert",
+          "target": "result",
+          "value": "true"
+        }
+      ]
+    },
+    {
+      "id": "test-023-execute",
+      "name": "POST /api/v1/agents/etap-gui/execute",
+      "commands": [
+        {
+          "id": "cmd-023-open",
+          "command": "open",
+          "target": "/healthz",
+          "value": ""
+        },
+        {
+          "id": "cmd-023-exec",
+          "command": "executeScript",
+          "target": "const resp = await fetch('/api/v1/agents/etap-gui/execute', {\n                    method: 'POST',\n                    headers: {'Content-Type': 'application/json'},\n                    body: JSON.stringify({command: 'open_study', params: {study_id: 'demo'}})\n                });\n                const data = await resp.json();\n                return resp.status === 200 && data.success === true;",
+          "value": "result"
+        },
+        {
+          "id": "cmd-023-assert",
+          "command": "assert",
+          "target": "result",
+          "value": "true"
+        }
+      ]
+    },
+    {
+      "id": "test-024-kill-activate",
+      "name": "POST /api/v1/agents/etap-gui/kill-switch/activate",
+      "commands": [
+        {
+          "id": "cmd-024-open",
+          "command": "open",
+          "target": "/healthz",
+          "value": ""
+        },
+        {
+          "id": "cmd-024-exec",
+          "command": "executeScript",
+          "target": "const resp = await fetch('/api/v1/agents/etap-gui/kill-switch/activate', {\n                    method: 'POST',\n                    headers: {'Content-Type': 'application/json'},\n                    body: JSON.stringify({reason: 'Postman automated test'})\n                });\n                const data = await resp.json();\n                return resp.status === 200 && data.success === true;",
+          "value": "result"
+        },
+        {
+          "id": "cmd-024-assert",
+          "command": "assert",
+          "target": "result",
+          "value": "true"
+        }
+      ]
+    },
+    {
+      "id": "test-025-kill-deactivate",
+      "name": "POST /api/v1/agents/etap-gui/kill-switch/deactivate",
+      "commands": [
+        {
+          "id": "cmd-025-open",
+          "command": "open",
+          "target": "/healthz",
+          "value": ""
+        },
+        {
+          "id": "cmd-025-exec",
+          "command": "executeScript",
+          "target": "// First activate, then deactivate\n                await fetch('/api/v1/agents/etap-gui/kill-switch/activate', {\n                    method: 'POST',\n                    headers: {'Content-Type': 'application/json'},\n                    body: JSON.stringify({reason: 'setup'})\n                });\n                const resp = await fetch('/api/v1/agents/etap-gui/kill-switch/deactivate', {\n                    method: 'POST',\n                    headers: {'Content-Type': 'application/json'},\n                    body: JSON.stringify({})\n                });\n                const data = await resp.json();\n                return resp.status === 200 && data.success === true;",
+          "value": "result"
+        },
+        {
+          "id": "cmd-025-assert",
+          "command": "assert",
+          "target": "result",
+          "value": "true"
+        }
+      ]
+    },
+    {
+      "id": "test-026-study-loadflow",
+      "name": "POST /api/v1/studies/run load_flow",
+      "commands": [
+        {
+          "id": "cmd-026-open",
+          "command": "open",
+          "target": "/healthz",
+          "value": ""
+        },
+        {
+          "id": "cmd-026-exec",
+          "command": "executeScript",
+          "target": "const resp = await fetch('/api/v1/studies/run', {\n                    method: 'POST',\n                    headers: {'Content-Type': 'application/json'},\n                    body: JSON.stringify({\n                        study_type: 'load_flow',\n                        system: {base_mva: 100.0, buses: [{id: 1, type: 'slack', voltage: 1.0}], lines: []},\n                        parameters: {}\n                    })\n                });\n                const data = await resp.json();\n                return resp.status === 200 && (data.study_type === 'load_flow' || data.status !== undefined);",
+          "value": "result"
+        },
+        {
+          "id": "cmd-026-assert",
+          "command": "assert",
+          "target": "result",
+          "value": "true"
+        }
+      ]
+    },
+    {
+      "id": "test-027-study-shortcircuit",
+      "name": "POST /api/v1/studies/run short_circuit",
+      "commands": [
+        {
+          "id": "cmd-027-open",
+          "command": "open",
+          "target": "/healthz",
+          "value": ""
+        },
+        {
+          "id": "cmd-027-exec",
+          "command": "executeScript",
+          "target": "const resp = await fetch('/api/v1/studies/run', {\n                    method: 'POST',\n                    headers: {'Content-Type': 'application/json'},\n                    body: JSON.stringify({\n                        study_type: 'short_circuit',\n                        system: {base_mva: 100.0, buses: [{id: 1, type: 'slack', voltage: 1.0}], lines: []},\n                        parameters: {fault_type: 'three_phase', bus_id: 1}\n                    })\n                });\n                const data = await resp.json();\n                return resp.status === 200;",
+          "value": "result"
+        },
+        {
+          "id": "cmd-027-assert",
+          "command": "assert",
+          "target": "result",
+          "value": "true"
+        }
+      ]
+    },
+    {
+      "id": "test-028-study-arcflash",
+      "name": "POST /api/v1/studies/run arc_flash",
+      "commands": [
+        {
+          "id": "cmd-028-open",
+          "command": "open",
+          "target": "/healthz",
+          "value": ""
+        },
+        {
+          "id": "cmd-028-exec",
+          "command": "executeScript",
+          "target": "const resp = await fetch('/api/v1/studies/run', {\n                    method: 'POST',\n                    headers: {'Content-Type': 'application/json'},\n                    body: JSON.stringify({\n                        study_type: 'arc_flash',\n                        system: {base_mva: 100.0, buses: [{id: 1, type: 'slack', voltage: 1.0}], lines: []},\n                        parameters: {}\n                    })\n                });\n                const data = await resp.json();\n                return resp.status === 200;",
+          "value": "result"
+        },
+        {
+          "id": "cmd-028-assert",
+          "command": "assert",
+          "target": "result",
+          "value": "true"
+        }
+      ]
+    },
+    {
+      "id": "test-029-study-etap-expert",
+      "name": "POST /api/v1/studies/run etap_expert",
+      "commands": [
+        {
+          "id": "cmd-029-open",
+          "command": "open",
+          "target": "/healthz",
+          "value": ""
+        },
+        {
+          "id": "cmd-029-exec",
+          "command": "executeScript",
+          "target": "const resp = await fetch('/api/v1/studies/run', {\n                    method: 'POST',\n                    headers: {'Content-Type': 'application/json'},\n                    body: JSON.stringify({\n                        study_type: 'etap_expert',\n                        query: 'Cable size for 200A load'\n                    })\n                });\n                const data = await resp.json();\n                return resp.status === 200;",
+          "value": "result"
+        },
+        {
+          "id": "cmd-029-assert",
+          "command": "assert",
+          "target": "result",
+          "value": "true"
+        }
+      ]
+    },
+    {
+      "id": "test-030-context-retrieve",
+      "name": "POST /api/v1/context/retrieve",
+      "commands": [
+        {
+          "id": "cmd-030-open",
+          "command": "open",
+          "target": "/healthz",
+          "value": ""
+        },
+        {
+          "id": "cmd-030-exec",
+          "command": "executeScript",
+          "target": "const resp = await fetch('/api/v1/context/retrieve', {\n                    method: 'POST',\n                    headers: {'Content-Type': 'application/json'},\n                    body: JSON.stringify({query: 'load flow analysis', top_k: 5})\n                });\n                const data = await resp.json();\n                return resp.status === 200 && data.success === true;",
+          "value": "result"
+        },
+        {
+          "id": "cmd-030-assert",
+          "command": "assert",
+          "target": "result",
+          "value": "true"
+        }
+      ]
+    },
+    {
+      "id": "test-031-context-impact",
+      "name": "POST /api/v1/context/impact",
+      "commands": [
+        {
+          "id": "cmd-031-open",
+          "command": "open",
+          "target": "/healthz",
+          "value": ""
+        },
+        {
+          "id": "cmd-031-exec",
+          "command": "executeScript",
+          "target": "const resp = await fetch('/api/v1/context/impact', {\n                    method: 'POST',\n                    headers: {'Content-Type': 'application/json'},\n                    body: JSON.stringify({change: 'Increase transformer capacity', scope: 'system'})\n                });\n                const data = await resp.json();\n                return resp.status === 200;",
+          "value": "result"
+        },
+        {
+          "id": "cmd-031-assert",
+          "command": "assert",
+          "target": "result",
+          "value": "true"
+        }
+      ]
+    },
+    {
+      "id": "test-032-predict-load",
+      "name": "POST /api/v1/predict/load",
+      "commands": [
+        {
+          "id": "cmd-032-open",
+          "command": "open",
+          "target": "/healthz",
+          "value": ""
+        },
+        {
+          "id": "cmd-032-exec",
+          "command": "executeScript",
+          "target": "const resp = await fetch('/api/v1/predict/load', {\n                    method: 'POST',\n                    headers: {'Content-Type': 'application/json'},\n                    body: JSON.stringify({historical_data: [100, 110, 105, 115, 120], horizon: 24})\n                });\n                const data = await resp.json();\n                return resp.status === 200 && data.success === true;",
+          "value": "result"
+        },
+        {
+          "id": "cmd-032-assert",
+          "command": "assert",
+          "target": "result",
+          "value": "true"
+        }
+      ]
+    },
+    {
+      "id": "test-033-predict-anomaly",
+      "name": "POST /api/v1/predict/anomaly",
+      "commands": [
+        {
+          "id": "cmd-033-open",
+          "command": "open",
+          "target": "/healthz",
+          "value": ""
+        },
+        {
+          "id": "cmd-033-exec",
+          "command": "executeScript",
+          "target": "const resp = await fetch('/api/v1/predict/anomaly', {\n                    method: 'POST',\n                    headers: {'Content-Type': 'application/json'},\n                    body: JSON.stringify({data: [100, 105, 110, 500, 115, 120], threshold: 3.0})\n                });\n                const data = await resp.json();\n                return resp.status === 200 && data.success === true;",
+          "value": "result"
+        },
+        {
+          "id": "cmd-033-assert",
+          "command": "assert",
+          "target": "result",
+          "value": "true"
+        }
+      ]
+    },
+    {
+      "id": "test-034-settings-test-key",
+      "name": "POST /api/v1/settings/keys/openai/test",
+      "commands": [
+        {
+          "id": "cmd-034-open",
+          "command": "open",
+          "target": "/healthz",
+          "value": ""
+        },
+        {
+          "id": "cmd-034-exec",
+          "command": "executeScript",
+          "target": "const resp = await fetch('/api/v1/settings/keys/openai/test', {\n                    method: 'POST',\n                    headers: {'Content-Type': 'application/json'},\n                    body: JSON.stringify({api_key: 'sk-test-placeholder'})\n                });\n                const data = await resp.json();\n                return resp.status === 200;",
+          "value": "result"
+        },
+        {
+          "id": "cmd-034-assert",
+          "command": "assert",
+          "target": "result",
+          "value": "true"
+        }
+      ]
+    },
+    {
+      "id": "test-035-delete-key",
+      "name": "DELETE /api/v1/settings/keys/openai",
+      "commands": [
+        {
+          "id": "cmd-035-open",
+          "command": "open",
+          "target": "/healthz",
+          "value": ""
+        },
+        {
+          "id": "cmd-035-exec",
+          "command": "executeScript",
+          "target": "const resp = await fetch('/api/v1/settings/keys/openai', {\n                    method: 'DELETE'\n                });\n                const data = await resp.json();\n                return resp.status === 200;",
+          "value": "result"
+        },
+        {
+          "id": "cmd-035-assert",
+          "command": "assert",
+          "target": "result",
+          "value": "true"
+        }
+      ]
     }
   ],
   "suites": [
@@ -512,7 +872,22 @@
         "test-017-ml-capabilities",
         "test-018-settings-health",
         "test-019-settings-keys",
-        "test-020-settings-keys-openai"
+        "test-020-settings-keys-openai",
+        "test-021-chat-expert",
+        "test-022-chat-gui",
+        "test-023-execute",
+        "test-024-kill-activate",
+        "test-025-kill-deactivate",
+        "test-026-study-loadflow",
+        "test-027-study-shortcircuit",
+        "test-028-study-arcflash",
+        "test-029-study-etap-expert",
+        "test-030-context-retrieve",
+        "test-031-context-impact",
+        "test-032-predict-load",
+        "test-033-predict-anomaly",
+        "test-034-settings-test-key",
+        "test-035-delete-key"
       ]
     }
   ],

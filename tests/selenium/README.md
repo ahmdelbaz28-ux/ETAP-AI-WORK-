@@ -53,7 +53,8 @@ selenium-side-runner tests/selenium/etap-api-tests.side \
 
 ### Test Structure
 
-The `.side` file contains 20 tests organized in one suite:
+The `.side` file contains 35 tests organized in one suite covering all
+GET, POST, and DELETE endpoints from the Postman collection:
 
 | # | Test | Endpoint | Expected Content |
 |---|------|----------|------------------|
@@ -77,12 +78,32 @@ The `.side` file contains 20 tests organized in one suite:
 | 18 | GET /api/v1/settings/health | `/api/v1/settings/health` | `crypto_available` |
 | 19 | GET /api/v1/settings/keys | `/api/v1/settings/keys` | `providers` |
 | 20 | GET /api/v1/settings/keys/openai | `/api/v1/settings/keys/openai` | `openai` |
+| 21 | POST /api/v1/agents/etap-expert/chat | POST with message body | `success: true` |
+| 22 | POST /api/v1/agents/etap-gui/chat | POST with message body | `success: true` |
+| 23 | POST /api/v1/agents/etap-gui/execute | POST with command body | `success: true` |
+| 24 | POST kill-switch/activate | POST with reason | `success: true` |
+| 25 | POST kill-switch/deactivate | POST (activate then deactivate) | `success: true` |
+| 26 | POST /studies/run load_flow | POST with system spec | HTTP 200 |
+| 27 | POST /studies/run short_circuit | POST with fault params | HTTP 200 |
+| 28 | POST /studies/run arc_flash | POST with system spec | HTTP 200 |
+| 29 | POST /studies/run etap_expert | POST with query | HTTP 200 |
+| 30 | POST /context/retrieve | POST with query + top_k | `success: true` |
+| 31 | POST /context/impact | POST with change + scope | HTTP 200 |
+| 32 | POST /predict/load | POST with historical_data | `success: true` |
+| 33 | POST /predict/anomaly | POST with data + threshold | `success: true` |
+| 34 | POST /settings/keys/openai/test | POST with api_key | HTTP 200 |
+| 35 | DELETE /settings/keys/openai | DELETE | HTTP 200 |
 
 ### Test Method
 
-Each test uses `executeScript` with JavaScript to verify the response:
+**GET tests** use `executeScript` with JavaScript to verify the response:
 1. `open` — Opens the API endpoint URL
 2. `executeScript` — Runs `document.body.innerText.includes('expected_text')` and stores result
+3. `assert` — Asserts the result is `true`
+
+**POST/DELETE tests** use `executeScript` with `fetch()` API:
+1. `open` — Opens a base URL (for session context)
+2. `executeScript` — Runs `fetch('/api/endpoint', {method: 'POST', body: ...})` and checks status + response
 3. `assert` — Asserts the result is `true`
 
 This approach works reliably with JSON API responses rendered in Chrome's `<pre>` tags.
@@ -91,4 +112,4 @@ This approach works reliably with JSON API responses rendered in Chrome's `<pre>
 
 Test results are written to the `--output-directory` as JSON files with timestamps.
 
-**Last run: 20/20 passed (100%)**
+**Last run: 35/35 passed (100%)**
