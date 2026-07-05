@@ -811,6 +811,10 @@ def handle_ml_capabilities() -> dict[str, Any]:
 
 def handle_predict_load(body: dict[str, Any]) -> dict[str, Any]:
     """Predict future load using Prophet/LSTM/Linear LoadForecaster."""
+    # CRITICAL #5 fix (AhmedETAP_Error_Report_AR.pdf):
+    # ValueError / TypeError / KeyError are CLIENT errors (bad input) and MUST
+    # return HTTP 400, not 500. Only genuine server-side surprises (ImportError,
+    # AttributeError, RuntimeError from the ML backend) should be 500.
     try:
         import numpy as np  # type: ignore
 
@@ -822,6 +826,27 @@ def handle_predict_load(body: dict[str, Any]) -> dict[str, Any]:
 
         if not historical:
             return {"error": "historical_data is required", "_status": 400}
+
+        # Validate types before passing to ML backend so we control the
+        # status code (the ML backend raises ValueError on bad input, but
+        # we want a clearer message + 400 here, not a 500).
+        if not isinstance(historical, list) or not all(
+            isinstance(x, (int, float)) for x in historical
+        ):
+            return {
+                "error": "historical_data must be a list of numbers",
+                "_status": 400,
+            }
+        if not isinstance(horizon, int) or horizon <= 0:
+            return {
+                "error": "horizon_hours must be a positive integer",
+                "_status": 400,
+            }
+        if not isinstance(method, str) or method not in ("auto", "prophet", "lstm", "linear"):
+            return {
+                "error": "method must be one of: auto, prophet, lstm, linear",
+                "_status": 400,
+            }
 
         lf = LoadForecaster(method=method)
         data = np.array(historical, dtype=float)
@@ -838,7 +863,11 @@ def handle_predict_load(body: dict[str, Any]) -> dict[str, Any]:
                 "method": train_result.get("method", method),
             },
         }
+    except (ValueError, TypeError, KeyError) as e:
+        # Client-side input problem — return 400 Bad Request.
+        return {"success": False, "errors": [str(e)], "_status": 400}
     except Exception as e:
+        # Genuine server-side failure (ImportError, ML backend crash, etc.).
         return {"success": False, "errors": [str(e)], "_status": 500}
 
 

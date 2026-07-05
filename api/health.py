@@ -10,6 +10,7 @@ from typing import Any
 
 from fastapi import APIRouter, Request
 from fastapi.responses import Response
+from pydantic import BaseModel
 
 from core.bootstrap import (
     _failed_count,
@@ -23,44 +24,32 @@ from core.metrics import generate_metrics, get_metrics_content_type
 router = APIRouter(prefix="", tags=["health"])
 
 
-class HealthResponse:
-    def __init__(self, status: str, version: str, timestamp: str, trace_id: str):
-        self.status = status
-        self.version = version
-        self.timestamp = timestamp
-        self.trace_id = trace_id
+# Fix for CRITICAL #1 (AhmedETAP_Error_Report_AR.pdf):
+# These response models MUST inherit from pydantic.BaseModel so FastAPI can
+# generate a valid response_model schema. Plain Python classes cause
+# `fastapi.exceptions.FastAPIError: Invalid args for response field!` at
+# router decoration time, which crashes the entire app on import.
+class HealthResponse(BaseModel):
+    status: str
+    version: str
+    timestamp: str
+    trace_id: str
 
 
-class ReadyResponse:
-    def __init__(
-        self,
-        ready: bool,
-        native_engine_available: bool,
-        etap_available: bool,
-        timestamp: str,
-        trace_id: str,
-    ):
-        self.ready = ready
-        self.native_engine_available = native_engine_available
-        self.etap_available = etap_available
-        self.timestamp = timestamp
-        self.trace_id = trace_id
+class ReadyResponse(BaseModel):
+    ready: bool
+    native_engine_available: bool
+    etap_available: bool
+    timestamp: str
+    trace_id: str
 
 
-class MetricsResponse:
-    def __init__(
-        self,
-        requests_total: int,
-        requests_success: int,
-        requests_failed: int,
-        avg_execution_time_ms: float,
-        trace_id: str,
-    ):
-        self.requests_total = requests_total
-        self.requests_success = requests_success
-        self.requests_failed = requests_failed
-        self.avg_execution_time_ms = avg_execution_time_ms
-        self.trace_id = trace_id
+class MetricsResponse(BaseModel):
+    requests_total: int
+    requests_success: int
+    requests_failed: int
+    avg_execution_time_ms: float
+    trace_id: str
 
 
 @router.head("/")
@@ -99,7 +88,7 @@ async def health_check(request: Request) -> HealthResponse:
 
 @router.head("/ready")
 @router.get("/ready")
-async def readiness_check(request: Request) -> dict[str, Any]:
+async def readiness_check(request: Request) -> ReadyResponse:
     native_ok = False
     etap_ok = False
     try:
@@ -129,7 +118,7 @@ async def readiness_check(request: Request) -> dict[str, Any]:
 
 
 @router.get("/metrics")
-async def metrics(request: Request) -> dict[str, Any]:
+async def metrics(request: Request) -> MetricsResponse:
     with _metrics_lock:
         req_count = _request_count
         suc_count = _success_count

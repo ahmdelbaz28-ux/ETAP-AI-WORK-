@@ -231,7 +231,7 @@ class TestWorkerRBAC:
             UserRole,
         )
 
-        auth = AuthenticationManager(secret_key="test-rbac-secret")
+        auth = AuthenticationManager(secret_key="test-rbac-secret_bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb")  # 49 bytes — RFC 7518 §3.2 (HIGH #6)
         authz = AuthorizationManager(auth)
 
         auth.create_user("engineer", "eng@test.com", "password123", UserRole.ENGINEER)
@@ -252,7 +252,7 @@ class TestWorkerRBAC:
             UserRole,
         )
 
-        auth = AuthenticationManager(secret_key="test-viewer-secret")
+        auth = AuthenticationManager(secret_key="test-viewer-secret_cccccccccccccccccccccccccccccccc")  # 51 bytes — RFC 7518 §3.2 (HIGH #6)
         authz = AuthorizationManager(auth)
 
         auth.create_user("viewer", "viewer@test.com", "password123", UserRole.VIEWER)
@@ -273,7 +273,7 @@ class TestWorkerRBAC:
             UserRole,
         )
 
-        auth = AuthenticationManager(secret_key="test-guest-secret")
+        auth = AuthenticationManager(secret_key="test-guest-secret_dddddddddddddddddddddddddddddddd")  # 50 bytes — RFC 7518 §3.2 (HIGH #6)
         authz = AuthorizationManager(auth)
 
         auth.create_user("guest", "guest@test.com", "password123", UserRole.GUEST)
@@ -288,7 +288,7 @@ class TestWorkerRBAC:
         from etap_integration.etap_worker_service import STUDY_TYPE_TO_PERMISSION
         from security.security_framework import AuthenticationManager, AuthorizationManager
 
-        auth = AuthenticationManager(secret_key="test-invalid-secret")
+        auth = AuthenticationManager(secret_key="test-invalid-secret_eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee")  # 52 bytes — RFC 7518 §3.2 (HIGH #6)
         authz = AuthorizationManager(auth)
 
         fake_token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.fake.fake"
@@ -306,7 +306,7 @@ class TestWorkerRBAC:
             UserRole,
         )
 
-        auth = AuthenticationManager(secret_key="test-logout-secret")
+        auth = AuthenticationManager(secret_key="test-logout-secret_ffffffffffffffffffffffffffffffff")  # 51 bytes — RFC 7518 §3.2 (HIGH #6)
         authz = AuthorizationManager(auth)
 
         auth.create_user("temp_user", "temp@test.com", "password123", UserRole.ENGINEER)
@@ -832,7 +832,7 @@ class TestSecurityFramework:
         """Test user account creation."""
         from security.security_framework import AuthenticationManager, UserRole
 
-        auth = AuthenticationManager(secret_key="test_secret")
+        auth = AuthenticationManager(secret_key="test_secret_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")  # 44 bytes — RFC 7518 §3.2 requires ≥32 for HS256 (HIGH #6)
         user = auth.create_user("testuser", "test@example.com", "password123", UserRole.ENGINEER)  # NOSONAR — S1192: intentional repetition (audit constant)
 
         assert user is not None, "User should be created"
@@ -843,7 +843,7 @@ class TestSecurityFramework:
         """Test successful authentication."""
         from security.security_framework import AuthenticationManager, UserRole
 
-        auth = AuthenticationManager(secret_key="test_secret")
+        auth = AuthenticationManager(secret_key="test_secret_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")  # 44 bytes — RFC 7518 §3.2 requires ≥32 for HS256 (HIGH #6)
         auth.create_user("testuser", "test@example.com", "password123", UserRole.ENGINEER)
 
         token = auth.authenticate("testuser", "password123")
@@ -854,7 +854,7 @@ class TestSecurityFramework:
         """Test failed authentication."""
         from security.security_framework import AuthenticationManager
 
-        auth = AuthenticationManager(secret_key="test_secret")
+        auth = AuthenticationManager(secret_key="test_secret_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")  # 44 bytes — RFC 7518 §3.2 requires ≥32 for HS256 (HIGH #6)
         auth.create_user("testuser", "test@example.com", "password123")
 
         token = auth.authenticate("testuser", "wrong_password")
@@ -870,7 +870,7 @@ class TestSecurityFramework:
             UserRole,
         )
 
-        auth = AuthenticationManager(secret_key="test_secret")
+        auth = AuthenticationManager(secret_key="test_secret_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")  # 44 bytes — RFC 7518 §3.2 requires ≥32 for HS256 (HIGH #6)
         authz = AuthorizationManager(auth)
 
         auth.create_user("engineer", "eng@example.com", "password123", UserRole.ENGINEER)
