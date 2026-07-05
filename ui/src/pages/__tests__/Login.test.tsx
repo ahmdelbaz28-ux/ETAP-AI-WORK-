@@ -126,7 +126,7 @@ describe('Login', () => {
       expect(mockLogin).toHaveBeenCalledWith('engineer@etap.com', 'securePassword123')
     })
     await waitFor(() => {
-      expect(mockNavigate).toHaveBeenCalledWith('/dashboard')
+      expect(mockNavigate).toHaveBeenCalledWith('/dashboard', { replace: true })
     })
   })
 

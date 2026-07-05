@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useNavigate, Link } from 'react-router-dom'
+import { useNavigate, Link, useSearchParams } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { Mail, Lock, ArrowRight, Eye, EyeOff, ShieldCheck, Activity, Cpu, AlertCircle } from 'lucide-react'
 import { useNotify } from '../context/NotificationContext'
@@ -10,22 +10,17 @@ import { BrandLogo } from '../components/BrandLogo'
  * Login — AhmedETAP sign-in page.
  *
  * Visual theme: "Power Grid Awakening"
- *   The background is a live power-grid SVG with buses that pulse and energy
- *   pulses that travel along transmission lines, reinforcing the platform's
- *   power-systems identity. Aurora blobs, a vertical scanline, and rising
- *   electron particles add cinematic depth.
  *
- * Auth mode: Production (with Demo fallback).
- *   1. Attempts real authentication via `useAuth().login()` → POST /api/v1/auth/login
- *      (JWT + bcrypt + MFA on the backend).
- *   2. On network error (backend unreachable, e.g. local dev without server),
- *      falls back to Demo Mode: writes a fake token to localStorage and
- *      navigates to /dashboard. A visible warning banner explains this.
- *   3. On real auth failure (401/400 with detail), shows the backend error
- *      message and does NOT fall back to demo.
+ * Auth behavior: REAL backend only.
+ *   - Calls useAuth().login(email, password) → POST /api/v1/auth/login
+ *   - On success: navigates to the `from` search param (if present, set by
+ *     ProtectedRoute when redirecting) or /dashboard by default.
+ *   - On failure: shows the backend error message in a red banner.
+ *   - NO demo mode, NO fake tokens, NO silent fallback.
  */
 export default function Login() {
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
   const { notify } = useNotify()
   const { login } = useAuth()
   const [email, setEmail] = useState('')
@@ -45,7 +40,11 @@ export default function Login() {
     try {
       await login(email, password)
       notify('success', 'Welcome back!')
-      navigate('/dashboard')
+      // Redirect to the originally requested page, or /dashboard by default.
+      // ProtectedRoute sets ?from=/path when it redirects an unauthenticated
+      // user; sending them back there after login is standard UX.
+      const from = searchParams.get('from') || '/dashboard'
+      navigate(from, { replace: true })
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Unknown error'
       setAuthError(message)
