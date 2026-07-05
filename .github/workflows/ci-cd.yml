@@ -440,8 +440,8 @@ jobs:
         continue-on-error: true
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-          VERCEL_ORG_ID: team_eeEYqzXI8zkrTo62cUOTMVmS
-          VERCEL_PROJECT_ID: prj_WucHqc3lQDwYe0i3ykgWz7UR5E3I
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
         run: |
           if [ -z "$VERCEL_TOKEN" ]; then
             echo "⚠️ VERCEL_TOKEN secret not set — skipping Vercel deployment"
@@ -550,6 +550,16 @@ jobs:
           LANGWATCH_API_KEY: ${{ secrets.LANGWATCH_API_KEY }}
           SMITHERY_API_KEY: ${{ secrets.SMITHERY_API_KEY }}
           JWT_SECRET_KEY: ${{ secrets.JWT_SECRET_KEY }}
+          LANGFUSE_SECRET_KEY: ${{ secrets.LANGFUSE_SECRET_KEY }}
+          LANGFUSE_PUBLIC_KEY: ${{ secrets.LANGFUSE_PUBLIC_KEY }}
+          LANGFUSE_BASE_URL: ${{ secrets.LANGFUSE_BASE_URL }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          NEO4J_URI: ${{ secrets.NEO4J_URI }}
+          NEO4J_USER: ${{ secrets.NEO4J_USER }}
+          NEO4J_PASSWORD: ${{ secrets.NEO4J_PASSWORD }}
         run: |
           python - <<'EOF'
           import os
@@ -564,10 +574,20 @@ jobs:
           repo = "ahmdelbaz28/AHMEDETAP"
 
           secrets_to_set = {
-              "LANGWATCH_API_KEY": os.environ.get("LANGWATCH_API_KEY", ""),
-              "SMITHERY_API_KEY":  os.environ.get("SMITHERY_API_KEY",  ""),
-              "JWT_SECRET_KEY":    os.environ.get("JWT_SECRET_KEY",    ""),
-              "ENVIRONMENT":       "production",
+              "LANGWATCH_API_KEY":     os.environ.get("LANGWATCH_API_KEY", ""),
+              "SMITHERY_API_KEY":      os.environ.get("SMITHERY_API_KEY",  ""),
+              "JWT_SECRET_KEY":        os.environ.get("JWT_SECRET_KEY",    ""),
+              "LANGFUSE_SECRET_KEY":   os.environ.get("LANGFUSE_SECRET_KEY", ""),
+              "LANGFUSE_PUBLIC_KEY":   os.environ.get("LANGFUSE_PUBLIC_KEY", ""),
+              "LANGFUSE_BASE_URL":     os.environ.get("LANGFUSE_BASE_URL", ""),
+              "SUPABASE_URL":          os.environ.get("SUPABASE_URL", ""),
+              "SUPABASE_ANON_KEY":     os.environ.get("SUPABASE_ANON_KEY", ""),
+              "SUPABASE_SERVICE_ROLE_KEY": os.environ.get("SUPABASE_SERVICE_ROLE_KEY", ""),
+              "DATABASE_URL":          os.environ.get("DATABASE_URL", ""),
+              "NEO4J_URI":             os.environ.get("NEO4J_URI", ""),
+              "NEO4J_USER":            os.environ.get("NEO4J_USER", ""),
+              "NEO4J_PASSWORD":        os.environ.get("NEO4J_PASSWORD", ""),
+              "ENVIRONMENT":           "production",
           }
 
           for key, value in secrets_to_set.items():
