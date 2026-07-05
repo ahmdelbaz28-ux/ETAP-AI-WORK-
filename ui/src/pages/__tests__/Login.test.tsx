@@ -1,10 +1,20 @@
 /**
  * @vitest-environment jsdom
+ *
+ * Tests for the Login page component.
+ *
+ * Auth behavior (post-PR #86):
+ *   - Login.tsx calls useAuth().login(email, password) first.
+ *   - If login resolves → navigates to /dashboard.
+ *   - If login rejects with a network error → falls back to Demo Mode
+ *     (writes fake token to localStorage, navigates to /dashboard).
+ *   - If login rejects with a real auth error (e.g. "Invalid credentials")
+ *     → shows the error message in a red banner and does NOT navigate.
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { MemoryRouter } from 'react-router-dom'  // QUALITY v2.1.1: removed unused useLocation
+import { MemoryRouter } from 'react-router-dom'
 import Login from '../Login'
 import { AuthProvider } from '../../hooks/useAuth'
 
@@ -38,7 +48,7 @@ vi.mock('react-router-dom', async () => {
   }
 })
 
-// Mock fetch for AuthProvider
+// Mock fetch for AuthProvider (returns 401 so it doesn't crash on mount)
 const mockFetch = vi.fn()
 vi.stubGlobal('fetch', mockFetch)
 
@@ -59,6 +69,7 @@ function renderLogin() {
 describe('Login', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    vi.useRealTimers()
     mockFetch.mockResolvedValue({
       ok: false,
       json: () => Promise.resolve({ detail: 'Not authenticated' }),
@@ -68,8 +79,6 @@ describe('Login', () => {
   it('renders the login form with email and password fields', () => {
     renderLogin()
     expect(screen.getByLabelText(/Email/i)).toBeTruthy()
-    // Use getByRole for the password input to disambiguate from the
-    // "Show password"/"Hide password" aria-labels on the toggle button.
     expect(screen.getByPlaceholderText(/^•+$/)).toBeTruthy()
     expect(screen.getByRole('button', { name: /Sign in/i })).toBeTruthy()
   })
@@ -80,28 +89,34 @@ describe('Login', () => {
   })
 
   it('shows validation error when submitting empty required fields', async () => {
-    const user = userEvent.setup()
-    renderLogin()
-
-    // HTML5 required validation: clicking submit on empty form
-    const submitBtn = screen.getByRole('button', { name: /Sign in/i })
-    await user.click(submitBtn)
-
-    // The form should not call login since fields are required
-    expect(mockLogin).not.toHaveBeenCalled()
-  })
-
-  it('calls login and navigates on successful login', async () => {
-    // Login.tsx runs in demo mode: it accepts any credentials, writes a
-    // demo token + user to localStorage, then navigates to /dashboard.
-    // It does NOT call useAuth().login — the mock above is retained for
-    // AuthProvider initialization only.
+    // jsdom does not enforce HTML5 `required` validation, so the form submits
+    // even with empty fields. We verify instead that Login.tsx's own guard
+    // (`if (!email || !password) { notify('error', ...); return }`) fires
+    // and blocks the call to useAuth().login.
     const user = userEvent.setup()
     renderLogin()
 
     const emailInput = screen.getByLabelText(/Email/i) as HTMLInputElement
     const passwordInput = screen.getByPlaceholderText(/^•+$/) as HTMLInputElement
-    // Clear the demo-prefilled values before typing.
+    await user.clear(emailInput)
+    await user.clear(passwordInput)
+    // Both fields now empty — the handleSubmit guard should short-circuit.
+
+    const submitBtn = screen.getByRole('button', { name: /Sign in/i })
+    await user.click(submitBtn)
+
+    // The component's own guard should have prevented the login call.
+    expect(mockLogin).not.toHaveBeenCalled()
+  })
+
+  it('calls useAuth().login and navigates on successful backend auth', async () => {
+    // Real backend auth path: login resolves, navigate to /dashboard.
+    mockLogin.mockResolvedValue(undefined)
+    const user = userEvent.setup()
+    renderLogin()
+
+    const emailInput = screen.getByLabelText(/Email/i) as HTMLInputElement
+    const passwordInput = screen.getByPlaceholderText(/^•+$/) as HTMLInputElement
     await user.clear(emailInput)
     await user.clear(passwordInput)
     await user.type(emailInput, 'engineer@etap.com')
@@ -111,15 +126,17 @@ describe('Login', () => {
     await user.click(submitBtn)
 
     await waitFor(() => {
+      expect(mockLogin).toHaveBeenCalledWith('engineer@etap.com', 'securePassword123')
+    })
+    await waitFor(() => {
       expect(mockNavigate).toHaveBeenCalledWith('/dashboard')
     })
-    expect(localStorage.getItem('authToken')).toMatch(/^demo-token-\d+$/)
   })
 
-  it('displays error message when login fails', async () => {
-    // Login.tsx is in demo mode and accepts any credentials — there is no
-    // server-side failure path in the current implementation. We verify
-    // instead that the demo flow always succeeds and navigates.
+  it('shows error message in red banner when backend rejects with auth error', async () => {
+    // Real auth failure (401): backend returns "Invalid credentials".
+    // Login should show the error message and NOT navigate.
+    mockLogin.mockRejectedValue(new Error('Invalid credentials'))
     const user = userEvent.setup()
     renderLogin()
 
@@ -133,12 +150,50 @@ describe('Login', () => {
     const submitBtn = screen.getByRole('button', { name: /Sign in/i })
     await user.click(submitBtn)
 
+    // The error message should be visible in the alert banner
+    await waitFor(() => {
+      expect(screen.getByText('Invalid credentials')).toBeTruthy()
+    })
+
+    // Should NOT have navigated (real auth failure blocks the demo fallback)
+    expect(mockNavigate).not.toHaveBeenCalled()
+  })
+
+  it('falls back to Demo Mode when backend is unreachable (network error)', async () => {
+    // Network error path: login rejects with "Failed to fetch" → demo fallback.
+    mockLogin.mockRejectedValue(new Error('Failed to fetch'))
+    const user = userEvent.setup()
+    renderLogin()
+
+    const emailInput = screen.getByLabelText(/Email/i) as HTMLInputElement
+    const passwordInput = screen.getByPlaceholderText(/^•+$/) as HTMLInputElement
+    await user.clear(emailInput)
+    await user.clear(passwordInput)
+    await user.type(emailInput, 'test@example.com')
+    await user.type(passwordInput, 'password123')
+
+    const submitBtn = screen.getByRole('button', { name: /Sign in/i })
+    await user.click(submitBtn)
+
+    // Demo-mode fallback warning should be visible
+    await waitFor(() => {
+      expect(screen.getByText(/Backend unreachable/i)).toBeTruthy()
+    })
+
+    // A demo token should have been written to localStorage
+    await waitFor(() => {
+      expect(localStorage.getItem('authToken')).toMatch(/^demo-token-\d+$/)
+    })
+
+    // Should navigate to /dashboard (after the 1.2s demo-mode delay)
     await waitFor(() => {
       expect(mockNavigate).toHaveBeenCalledWith('/dashboard')
-    })
+    }, { timeout: 3000 })
   })
 
   it('shows loading state during login submission', async () => {
+    // Make login hang so we can observe the loading state
+    mockLogin.mockReturnValue(new Promise(() => {}))
     const user = userEvent.setup()
     renderLogin()
 
@@ -152,8 +207,6 @@ describe('Login', () => {
     const submitBtn = screen.getByRole('button', { name: /Sign in/i })
     await user.click(submitBtn)
 
-    // Login.tsx renders the loading label as "Signing in..." alongside
-    // a spinner, so we look for the text node directly.
     await waitFor(() => {
       expect(screen.getByText('Signing in...')).toBeTruthy()
     })
