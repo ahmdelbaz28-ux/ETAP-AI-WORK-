@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { Bot, Send, Sparkles, Cpu, Copy, RotateCcw, Check, ChevronDown, AlertCircle, Key, Settings as SettingsIcon, Loader2 } from 'lucide-react'
+import { Bot, Send, Sparkles, Cpu, Copy, RotateCcw, Check, AlertCircle, Key, Settings as SettingsIcon, Loader2 } from 'lucide-react'
 import { useNotify } from '../context/NotificationContext'
 import { fetchAgents, type AgentMeta } from '../lib/api'
 import { chatWithLLM, chatWithLLMStream, getActiveProvider, getConfiguredProviders, type ChatMessage } from '../lib/llm-chat'
@@ -20,8 +20,7 @@ interface Message {
 }
 
 export default function AIAssistant() {
-  const [agents, setAgents] = useState<AgentMeta[]>([])
-  const [selectedAgent, setSelectedAgent] = useState<string>('power-system-coordinator-agent')
+  const [, setAgents] = useState<AgentMeta[]>([])
   const [messages, setMessages] = useState<Message[]>([])
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
@@ -191,7 +190,6 @@ export default function AIAssistant() {
     setTimeout(() => setCopiedId(null), 2000)
   }
 
-  const selectedAgentData = agents.find(a => a.id === selectedAgent)
   const activeProvider = getActiveProvider()
   const configuredProviders = getConfiguredProviders()
 

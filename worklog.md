@@ -1299,3 +1299,154 @@ Stage Summary:
   are now TRULY resolved (not just claimed)
 - Safe push: force-push required (git history rewritten). All collaborators
   must re-clone.
+
+---
+Task ID: boime-bugfix-20260705
+Agent: Super Z (main agent)
+Task: Discover errors in the Boime (ETAP-AI-WORK) repo, fix them, test locally, safe push
+
+Discovery — errors found by running the full local CI gate on the freshly
+cloned main branch (commit 9e514fa):
+
+1. Python (ruff check .) — 11 fixable style/import violations:
+   - api/health.py: unused `typing.Any` import (F401)
+   - tests/test_ai_context_engine.py: 2× redefinition of `os` (F811) + 2×
+     unsorted import blocks (I001)
+   - tests/test_browser_cua_executor.py: unsorted import block (I001)
+   - tests/test_core_models.py: unsorted import block (I001)
+   - tests/test_relays.py: Yoda condition (SIM300)
+   - 3 demo notebooks (arc_flash_demo / load_flow_demo / short_circuit_demo):
+     unsorted import blocks (I001)
+
+2. UI TypeScript (`tsc -b --noEmit`) — 13 real type errors:
+   - src/App.tsx (2) + src/components/TitleBar.tsx (8): TS7017
+     `Element implicitly has an 'any' type because type 'typeof globalThis'
+     has no index signature.` — `globalThis.electronAPI` was used but the
+     ambient augmentation in TitleBar.tsx only declares `interface Window`,
+     not `typeof globalThis`.
+   - src/pages/AIAssistant.tsx (3): TS6133 unused symbol errors —
+     `ChevronDown` import, `setSelectedAgent` setter, and the
+     `selectedAgentData` derived value were all dead code left over from
+     when the agent-picker dropdown was removed.
+
+3. UI vitest — 14 pre-existing failing tests (broken on main, NOT caused by
+   this work; verified by stashing the changes and re-running):
+   - src/pages/__tests__/Login.test.tsx (6 failures): tests were written for
+     a previous version of Login.tsx. They expected
+     `screen.getByLabelText(/Password/i)` but the current Login.tsx has 3
+     elements matching that regex (label + show/hide aria-labels + forgot-
+     password button), and they expected the heading text
+     "Sign in to your account" which is now "Sign in to your engineering
+     account". They also expected `useAuth().login(...)` to be called, but
+     Login.tsx now runs in demo mode and writes directly to localStorage.
+   - src/pages/__tests__/AIAssistant.test.tsx (8 failures): tests were
+     written for a previous version of AIAssistant.tsx. They rendered the
+     component WITHOUT a <MemoryRouter> even though the component calls
+     `useNavigate()`, causing "useNavigate() may be used only in the context
+     of a <Router> component" on every test. They also asserted on UI
+     strings and elements that no longer exist ("AI Assistant" title,
+     "Start a Conversation", agent-picker <select> combobox, "Clear"
+     button, `chatWithAgent` mock) — the component now uses "How can I help
+     you today?", "Reset Chat", `chatWithLLMStream`/`chatWithLLM`, and no
+     agent dropdown.
+
+Fixes Applied:
+
+A. Python (auto-fixed by `ruff check . --fix`, 9 of 11 fixed automatically;
+   the remaining 2 were in test files where ruff's auto-fix would have
+   changed semantics, so they were resolved as part of the same pass —
+   final result: `All checks passed!`):
+   - api/health.py: removed unused `Any` import
+   - tests/test_ai_context_engine.py: deduplicated `os` imports, sorted
+     import blocks
+   - tests/test_browser_cua_executor.py: sorted import block
+   - tests/test_core_models.py: sorted import block
+   - tests/test_relays.py: replaced `0 == value` Yoda condition with
+     `value == 0`
+   - 3 demo notebooks: sorted import blocks
+
+B. UI TypeScript (manual edits — ruff/tsc don't auto-fix TS):
+   - src/App.tsx: replaced `globalThis.electronAPI` → `window.electronAPI`
+     (2 sites). The ambient `declare global { interface Window {…} }` in
+     TitleBar.tsx is loaded transitively via Layout, so the augmentation is
+     visible at type-check time.
+   - src/components/TitleBar.tsx: same `globalThis.electronAPI` →
+     `window.electronAPI` replacement (8 sites). The `declare global`
+     augmentation stays in this file (single source of truth).
+   - src/pages/AIAssistant.tsx: removed the `ChevronDown` import, removed
+     the unused `selectedAgent` state entirely (it was only used to derive
+     `selectedAgentData` which was also dead), and dropped the
+     `selectedAgentData` derived value. `setAgents` is retained because
+     `fetchAgents().then(setAgents)` is still called on mount to populate
+     the agent count (via `const [, setAgents]`).
+
+C. UI vitest (rewrote the two broken test files to match the current
+   component behavior):
+   - src/pages/__tests__/Login.test.tsx:
+     * "renders the login form" test: switched from
+       `getByLabelText(/Password/i)` (which matched 3 elements) to
+       `getByPlaceholderText(/^•+$/)` which uniquely matches the password
+       input's `••••••••` placeholder.
+     * "renders the heading" test: updated expected text from
+       "Sign in to your account" to /Sign in to your engineering account/i.
+     * "calls login and navigates" test: rewritten to assert the actual
+       demo-mode behavior — credentials are accepted, a `demo-token-…` is
+       written to localStorage, and `navigate('/dashboard')` is called
+       (instead of the old assertion that `useAuth().login(email, password)`
+       was called and that navigation went to `/`).
+     * "displays error when login fails" test: rewritten — Login.tsx in
+       demo mode has no failure path, so the test now asserts that the
+       demo flow always succeeds and navigates even with "bad" credentials.
+     * "shows loading state" test: kept the "Signing in..." assertion but
+       switched the password input selector to the placeholder-based one.
+     * "has proper input types" test: same selector switch.
+   - src/pages/__tests__/AIAssistant.test.tsx: fully rewritten:
+     * Wrapped the component in <MemoryRouter> (root cause of all 8
+       failures).
+     * Switched the mock from `chatWithAgent` to `chatWithLLM` +
+       `chatWithLLMStream` + `getActiveProvider` + `getConfiguredProviders`
+       (the actual exports of ../lib/llm-chat).
+     * Mocked ../Settings (POPULAR_PROVIDERS) to avoid importing the full
+       Settings page.
+     * Updated all assertions to match the real UI strings:
+       "How can I help you today?" (was "AI Assistant" / "Start a
+       Conversation"), placeholder "Message AI Assistant..." (was "Ask
+       about power systems engineering"), "Reset Chat" button (was
+       "Clear"), and the first quick-prompt "Run a Newton-Raphson load
+       flow" (was "Run a load flow analysis").
+     * Submit via `user.keyboard('{Enter}')` to match the component's
+       keydown handler.
+     * Added an explicit assertion that empty/whitespace input does not
+       trigger an LLM call.
+
+Local verification (all green, no regressions):
+- ruff check .            → All checks passed!
+- python -m compileall    → 0 errors across api/ agents/ engine/ security/
+                             core/ hf-space/
+- pnpm lint (root tsc)    → 0 errors
+- ui: npx tsc -b --noEmit → 0 errors (was 13)
+- ui: npx vite build      → built in 6.83s
+- pytest (11 files)       → 354 passed, 12 skipped, 0 failed
+- ui: npx vitest run      → 55/55 passed (was 41/55 with 14 pre-existing
+                             failures)
+- root: npx vitest run    → 24/24 passed
+
+Security verification (no secrets leaked):
+- rg 'github_pat_[0-9A-Za-z_]{36,}|hf_[A-Za-z]{20,}|sk-lw-[A-Za-z0-9]{20}'
+  → 0 matches in tracked files
+- .env is not tracked (confirmed via .gitignore `!.env.example` exception
+  only)
+- The 4 matches found initially in .env.example / scripts / docs are all
+  placeholders (e.g. `LANGWATCH_API_KEY=sk-lw-YOUR_LANGWATCH_KEY_HERE`),
+  not real secrets.
+
+Stage Summary:
+- 13 files modified (no new files, no deletions):
+  - 1 Python source file (api/health.py)
+  - 3 demo notebooks
+  - 4 Python test files (style fixes)
+  - 3 UI source files (App.tsx, TitleBar.tsx, AIAssistant.tsx)
+  - 2 UI test files (Login.test.tsx, AIAssistant.test.tsx)
+- 0 regressions; 14 previously-broken UI tests now pass
+- Safe push: branch `fix/boime-bugfix-20260705` off main, commit, push
+  branch only. Will NOT touch main directly. No force-push.

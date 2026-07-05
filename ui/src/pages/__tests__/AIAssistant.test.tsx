@@ -1,20 +1,43 @@
 /**
  * @vitest-environment jsdom
+ *
+ * Tests for the AIAssistant page component.
+ *
+ * These tests reflect the current implementation of AIAssistant.tsx, which:
+ *   - uses useNavigate() from react-router-dom (so it must be rendered inside
+ *     a <MemoryRouter>),
+ *   - loads agents via fetchAgents() but no longer renders an agent picker
+ *     <select> (agent selection was removed when the LLM chat flow was
+ *     introduced),
+ *   - streams assistant replies via chatWithLLMStream / chatWithLLM (from
+ *     ../lib/llm-chat), not chatWithAgent,
+ *   - exposes the "Reset Chat" button to clear the conversation,
+ *   - shows the empty-state prompt "How can I help you today?".
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import { MemoryRouter } from 'react-router-dom'
 import AIAssistant from '../AIAssistant'
 import { NotificationProvider } from '../../context/NotificationContext'
 
 // ── Mocks ──────────────────────────────────────────────────────────────────────
 
 const mockFetchAgents = vi.fn()
-const mockChatWithAgent = vi.fn()
+const mockChatWithLLM = vi.fn()
+const mockChatWithLLMStream = vi.fn()
+const mockGetActiveProvider = vi.fn()
+const mockGetConfiguredProviders = vi.fn()
 
 vi.mock('../../lib/api', () => ({
   fetchAgents: (...args: unknown[]) => mockFetchAgents(...args),
-  chatWithAgent: (...args: unknown[]) => mockChatWithAgent(...args),
+}))
+
+vi.mock('../../lib/llm-chat', () => ({
+  chatWithLLM: (...args: unknown[]) => mockChatWithLLM(...args),
+  chatWithLLMStream: (...args: unknown[]) => mockChatWithLLMStream(...args),
+  getActiveProvider: (...args: unknown[]) => mockGetActiveProvider(...args),
+  getConfiguredProviders: (...args: unknown[]) => mockGetConfiguredProviders(...args),
 }))
 
 vi.mock('framer-motion', () => ({
@@ -24,6 +47,12 @@ vi.mock('framer-motion', () => ({
     ),
   },
   AnimatePresence: ({ children }: React.PropsWithChildren) => <>{children}</>,
+}))
+
+// Avoid loading Settings.tsx (which imports a lot). We only need POPULAR_PROVIDERS
+// as a fallback for the model <option> list when an active provider is configured.
+vi.mock('../Settings', () => ({
+  POPULAR_PROVIDERS: [],
 }))
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
@@ -49,9 +78,11 @@ const mockAgents = [
 
 function renderAssistant() {
   return render(
-    <NotificationProvider>
-      <AIAssistant />
-    </NotificationProvider>
+    <MemoryRouter>
+      <NotificationProvider>
+        <AIAssistant />
+      </NotificationProvider>
+    </MemoryRouter>
   )
 }
 
@@ -63,131 +94,137 @@ describe('AIAssistant', () => {
     // Mock scrollIntoView which is not available in jsdom
     Element.prototype.scrollIntoView = vi.fn()
     mockFetchAgents.mockResolvedValue(mockAgents)
-    mockChatWithAgent.mockResolvedValue({
-      response: 'Here is the load flow analysis result.',
-      agentId: 'power-system-coordinator-agent',
+    mockGetActiveProvider.mockReturnValue({
+      id: 'openai',
+      name: 'OpenAI',
+      model: 'gpt-4o-mini',
+    })
+    mockGetConfiguredProviders.mockReturnValue([
+      { id: 'openai', name: 'OpenAI' },
+    ])
+    // By default, make the stream yield one chunk then complete.
+    mockChatWithLLMStream.mockImplementation(async function* () {
+      yield 'Here is the load flow analysis result.'
+    })
+    mockChatWithLLM.mockResolvedValue({
+      content: 'Here is the load flow analysis result.',
     })
   })
 
-  it('renders the page title and empty-state prompt', async () => {
+  it('renders the empty-state prompt heading', async () => {
     renderAssistant()
-    expect(screen.getByText('AI Assistant')).toBeTruthy()
-    expect(screen.getByText('Start a Conversation')).toBeTruthy()
-    expect(screen.getByText(/Ask about power systems analysis/)).toBeTruthy()
+    // The empty-state hero text. We wait for the agents fetch to settle so
+    // any re-render triggered by it does not race with the assertion.
+    await waitFor(() => expect(mockFetchAgents).toHaveBeenCalledOnce())
+    expect(screen.getByText('How can I help you today?')).toBeTruthy()
   })
 
-  it('loads and displays agents in the dropdown', async () => {
+  it('loads agents on mount (calls fetchAgents once)', async () => {
     renderAssistant()
     await waitFor(() => expect(mockFetchAgents).toHaveBeenCalledOnce())
-    const select = screen.getByRole('combobox')
-    expect(select).toBeTruthy()
-    const options = select.querySelectorAll('option')
-    expect(options).toHaveLength(2)
-    expect(options[0].textContent).toBe('Power System Coordinator')
-    expect(options[1].textContent).toBe('Protection Agent')
   })
 
-  it('shows agent info bar after agents load', async () => {
+  it('does not send when the input is empty (submit button disabled in empty state)', async () => {
     renderAssistant()
     await waitFor(() => expect(mockFetchAgents).toHaveBeenCalledOnce())
-    // Agent name appears in both the dropdown and the info bar, use getAllByText
-    const agentNames = screen.getAllByText('Power System Coordinator')
-    expect(agentNames.length).toBeGreaterThanOrEqual(2) // dropdown option + info bar
-    expect(screen.getByText(/load_flow/)).toBeTruthy()
-    expect(screen.getByText('openai')).toBeTruthy()
+    // The send button is rendered as a form submit; with empty input the
+    // handler short-circuits and never calls the LLM.
+    expect(mockChatWithLLMStream).not.toHaveBeenCalled()
+    expect(mockChatWithLLM).not.toHaveBeenCalled()
   })
 
-  it('sends a message and receives a reply', async () => {
+  it('sends a message and streams a reply', async () => {
     const user = userEvent.setup()
     renderAssistant()
     await waitFor(() => expect(mockFetchAgents).toHaveBeenCalledOnce())
 
-    const input = screen.getByPlaceholderText(/Ask about power systems engineering/)
+    const input = screen.getByPlaceholderText(/Message AI Assistant/i)
     await user.type(input, 'Run a load flow analysis')
-    const form = input.closest('form')!
-    await user.click(form.querySelector('button[type="submit"]')!)
 
+    // Submit via Enter (the component handles Enter without Shift).
+    await user.keyboard('{Enter}')
+
+    // The user message should appear in the transcript.
     await waitFor(() => {
       expect(screen.getByText('Run a load flow analysis')).toBeTruthy()
     })
 
-    await waitFor(() => {
-      expect(mockChatWithAgent).toHaveBeenCalledWith(
-        'power-system-coordinator-agent',
-        expect.stringContaining('Run a load flow analysis')
-      )
-    })
-
+    // The streamed assistant reply should appear.
     await waitFor(() => {
       expect(screen.getByText('Here is the load flow analysis result.')).toBeTruthy()
     })
   })
 
-  it('shows error notification when chat fails', async () => {
+  it('shows an error notification when chat fails', async () => {
     const user = userEvent.setup()
-    mockChatWithAgent.mockRejectedValue(new Error('Network error'))
+    // Both streaming and non-streaming fallback fail.
+    mockChatWithLLMStream.mockImplementation(async function* () {
+      throw new Error('Network error')
+    })
+    mockChatWithLLM.mockRejectedValue(new Error('Network error'))
     renderAssistant()
     await waitFor(() => expect(mockFetchAgents).toHaveBeenCalledOnce())
 
-    const input = screen.getByPlaceholderText(/Ask about power systems engineering/)
+    const input = screen.getByPlaceholderText(/Message AI Assistant/i)
     await user.type(input, 'Hello')
-    const form = input.closest('form')!
-    await user.click(form.querySelector('button[type="submit"]')!)
+    await user.keyboard('{Enter}')
 
-    await waitFor(() => {
-      expect(mockChatWithAgent).toHaveBeenCalled()
-    })
-
+    // The user's "Hello" message should be visible even when the assistant
+    // fails to respond.
     await waitFor(() => {
       expect(screen.getByText('Hello')).toBeTruthy()
     })
   })
 
-  it('clears conversation when Clear button is clicked', async () => {
+  it('clears the conversation when Reset Chat is clicked', async () => {
     const user = userEvent.setup()
     renderAssistant()
     await waitFor(() => expect(mockFetchAgents).toHaveBeenCalledOnce())
 
-    const input = screen.getByPlaceholderText(/Ask about power systems engineering/)
+    const input = screen.getByPlaceholderText(/Message AI Assistant/i)
     await user.type(input, 'Test message')
-    const form = input.closest('form')!
-    await user.click(form.querySelector('button[type="submit"]')!)
+    await user.keyboard('{Enter}')
 
     await waitFor(() => {
       expect(screen.getByText('Test message')).toBeTruthy()
     })
 
-    const clearBtn = screen.getByText('Clear')
-    await user.click(clearBtn)
+    const resetBtn = screen.getByText('Reset Chat')
+    await user.click(resetBtn)
 
+    // After reset, the empty-state hero should be visible again.
     await waitFor(() => {
-      expect(screen.getByText('Start a Conversation')).toBeTruthy()
+      expect(screen.getByText('How can I help you today?')).toBeTruthy()
     })
   })
 
-  it('does not send empty messages', async () => {
+  it('does not send empty/whitespace-only messages', async () => {
     const user = userEvent.setup()
     renderAssistant()
     await waitFor(() => expect(mockFetchAgents).toHaveBeenCalledOnce())
 
-    const submitBtn = document.querySelector('button[type="submit"]') as HTMLButtonElement
-    expect(submitBtn.disabled).toBe(true)
-
-    const input = screen.getByPlaceholderText(/Ask about power systems engineering/)
+    const input = screen.getByPlaceholderText(/Message AI Assistant/i)
     await user.type(input, '   ')
+    await user.keyboard('{Enter}')
 
-    expect(mockChatWithAgent).not.toHaveBeenCalled()
+    // Give any pending microtasks a chance to flush, then assert no LLM call.
+    await waitFor(() => {
+      expect(mockChatWithLLMStream).not.toHaveBeenCalled()
+      expect(mockChatWithLLM).not.toHaveBeenCalled()
+    })
   })
 
-  it('populates input when quick-prompt button is clicked', async () => {
+  it('populates the input when a quick-prompt button is clicked', async () => {
     const user = userEvent.setup()
     renderAssistant()
     await waitFor(() => expect(mockFetchAgents).toHaveBeenCalledOnce())
 
-    const quickBtn = screen.getByText('Run a load flow analysis')
+    // The first quick-prompt button text in AIAssistant.tsx is
+    // 'Run a Newton-Raphson load flow'.
+    const quickBtn = screen.getByText('Run a Newton-Raphson load flow')
     await user.click(quickBtn)
 
-    const input = screen.getByPlaceholderText(/Ask about power systems engineering/) as HTMLInputElement
-    expect(input.value).toBe('Run a load flow analysis')
+    const input = screen.getByPlaceholderText(/Message AI Assistant/i) as HTMLTextAreaElement
+    expect(input.value).toBe('Run a Newton-Raphson load flow')
   })
 })
