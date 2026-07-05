@@ -468,6 +468,7 @@ class OpenCVVisionClient:
         target_match = re.search(
             # NOSONAR — python:S8786: regex is bounded by short user input
             # strings (UI objective text, max ~200 chars); no ReDoS risk.
+            # NOSONAR — python:S6395: non-capturing groups are intentional for readability
             r"(?:click|press|tap|hit)\s+(?:the\s+)?['\"]?(\w[\w\s]*?)['\"]?\s+(?:button|link|tab|menu|item)",
             obj_lower,
         )

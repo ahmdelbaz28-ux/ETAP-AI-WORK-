@@ -65,7 +65,7 @@ export const run_python = createTool({
           if (response.success) {
             const output = response.output || '';
             if (output.length > MAX_OUTPUT_LENGTH) {
-              resolve(output.substring(0, MAX_OUTPUT_LENGTH) + '\n... [output truncated]');
+              resolve(output.substring(0, MAX_OUTPUT_LENGTH) + '\n... [output truncated]');  // NOSONAR — typescript:S4624: false positive — string concatenation, not nested template literal
             } else {
               resolve(output);
             }

@@ -20,7 +20,8 @@ LABEL version="2.1.0"
 
 WORKDIR /app
 
-# System dependencies
+# System dependencies + create non-root user in a single RUN
+# SonarCloud docker:S7031: merged consecutive RUN instructions to reduce layers
 RUN apt-get update && apt-get install -y --no-install-recommends \
     gcc g++ curl \
     # Playwright Chromium runtime deps (libnss3, libnspr4, libatk1.0, etc.)
@@ -31,12 +32,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     # Tesseract OCR — for offline vision fallback (integrations/opencv_vision.py)
     # Used when Gemini Vision is unreachable (network down, API quota exceeded)
     tesseract-ocr tesseract-ocr-eng \
-    && rm -rf /var/lib/apt/lists/*
-
-# Create non-root user (UID 1000 as required by HF Spaces)
-RUN useradd -m -u 1000 user && \
-    mkdir -p /app /tmp/cache /tmp/logs /tmp/data /tmp/cua_audit && \
-    chown -R user:user /app /tmp
+    && rm -rf /var/lib/apt/lists/* \
+    # Create non-root user (UID 1000 as required by HF Spaces)
+    && useradd -m -u 1000 user \
+    && mkdir -p /app /tmp/cache /tmp/logs /tmp/data /tmp/cua_audit \
+    && chown -R user:user /app /tmp
 
 # Python dependencies — lightweight subset (no ML, no Celery, no Redis)
 COPY hf-space/requirements.hf.txt /tmp/requirements.hf.txt
