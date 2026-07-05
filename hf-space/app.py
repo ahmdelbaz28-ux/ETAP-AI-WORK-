@@ -423,7 +423,24 @@ async def etap_gui_health():
     Returns whether the CUA Loop can run in the current environment.
     Reports BOTH Desktop CUA (pyautogui) and Browser CUA (Playwright)
     availability — the agent auto-detects which to use.
+
+    Performance: dependency checks (Playwright + Gemini Vision) are
+    cached for 60 seconds. Without caching, this endpoint took 4.3
+    seconds because each call re-imported Playwright + Gemini and
+    re-probed the system. Load balancer health checks (timeout 2-3s)
+    were timing out. See Bug #6.3 in API test report.
     """
+    import time as _time
+
+    # Cache the (timestamp, result) tuple in a function attribute so it
+    # survives across requests within the same process. Cache TTL = 60s.
+    cache_ttl = 60
+    now = _time.time()
+    cached = getattr(etap_gui_health, "_cache", None)
+    if cached and (now - cached[0]) < cache_ttl:
+        # Return cached result with a marker so callers can tell
+        return {**cached[1], "_cached": True, "_cache_age_sec": round(now - cached[0], 1)}
+
     from agents.etap_gui_agent import ETAPGUIAgent, _check_gui_deps
     from agents.life_safety import life_safety_guard
     from integrations.gemini_vision import gemini_vision
@@ -446,7 +463,7 @@ async def etap_gui_health():
 
     agent = ETAPGUIAgent()
     info = agent.get_agent_info()
-    return {
+    result = {
         "success": True,
         "data": {
             "cua_loop_available": cua_loop_available,
@@ -459,6 +476,9 @@ async def etap_gui_health():
             "life_safety": life_safety_guard.health_check(),
         },
     }
+    # Save in cache (function attribute, persists across requests in same process)
+    etap_gui_health._cache = (now, result)
+    return {**result, "_cached": False, "_cache_age_sec": 0.0}
 
 
 # -- Life Safety endpoints (mirrored from api/agents.py) --------------------

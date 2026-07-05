@@ -548,7 +548,14 @@ def sanitize_result(obj: Any) -> Any:
         if isinstance(obj, (list, tuple)):
             return [sanitize_result(x) for x in obj]
         if isinstance(obj, np.ndarray):
-            return obj.tolist()
+            # CRITICAL: .tolist() converts numpy scalars to Python scalars
+            # (e.g. numpy.complex128 → complex), but does NOT recurse into
+            # dicts-of-complex. We must call sanitize_result on each element
+            # to convert complex → {real, imag} for JSON serialisation.
+            # Bug #21 root cause: previously returned obj.tolist() directly,
+            # leaving complex numbers un-serialised → HTTP 500 from FastAPI
+            # jsonable_encoder when returning load_flow results.
+            return [sanitize_result(x) for x in obj.tolist()]
         if isinstance(obj, (np.integer,)):
             return int(obj)
         if isinstance(obj, (np.floating,)):
