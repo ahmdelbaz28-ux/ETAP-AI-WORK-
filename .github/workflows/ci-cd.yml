@@ -432,6 +432,12 @@ jobs:
         run: npm install -g vercel@latest
 
       - name: Deploy to Vercel Production
+        # Non-blocking: Vercel free tier limits deployments to 100/day.
+        # When the quota is exceeded, the deploy fails with
+        # "api-deployments-free-per-day" but the CI pipeline should still
+        # pass (the HF Space deployment is the canonical deployment).
+        # The Vercel deploy will succeed again when the quota resets.
+        continue-on-error: true
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           VERCEL_ORG_ID: team_eeEYqzXI8zkrTo62cUOTMVmS
@@ -576,8 +582,10 @@ jobs:
   health-check:
     name: 🩺 Production Health Check
     runs-on: ubuntu-latest
+    # Vercel deploy uses continue-on-error, so it always "succeeds" from
+    # the needs perspective. The HF Space is the canonical deployment.
     needs: [deploy-hf, deploy-vercel]
-    if: github.ref == 'refs/heads/main'
+    if: always() && github.ref == 'refs/heads/main' && needs.deploy-hf.result == 'success'
 
     steps:
       - name: Wait for HF Space to restart
