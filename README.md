@@ -10,7 +10,13 @@ app_port: 7860
 ---
 
 <div align="center">
-  <img src="docs/assets/banner.png" alt="AhmedETAP Banner" width="100%"/>
+
+<img src="docs/assets/logo.svg" alt="AhmedETAP Logo" width="140" height="140"/>
+
+# AhmedETAP — Power Systems Engineering Platform
+
+**Enterprise-grade autonomous engineering intelligence**
+
 </div>
 
 <div align="center">
