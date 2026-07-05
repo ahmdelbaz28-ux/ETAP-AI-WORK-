@@ -24,7 +24,7 @@ Engineering Engine (Python solvers) → Integration Layer (ETAP COM, GIS, SCADA)
 |-------|-----------|----------------|
 | **Backend API** | Python 3.13+, FastAPI | `engineering_service.py` |
 | **Frontend** | React 19, TypeScript 5.7, Tailwind CSS 4 | `ui/src/pages/*.tsx` |
-| **AI Agents** | Mastra framework, 9 specialized agents | `src/mastra/agents/*.ts`, `agents/*.py` |
+| **AI Agents** | Mastra framework, 25 specialized agents | `src/mastra/agents/*.ts`, `agents/*.py` |
 | **Engineering** | NumPy, SciPy, custom solvers | `engine/`, `load_flow/`, `fault_analysis/` |
 | **Database** | DuckDB, PostgreSQL (optional) | `mastra.duckdb` |
 | **Deployment** | Docker, Docker Compose, Hugging Face Spaces | `Dockerfile`, `Dockerfile.hf` |

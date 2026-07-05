@@ -317,7 +317,7 @@ Focus: **Enterprise Features, Marketplace, Emerging Technologies**
 
 ### Phase 3 — Production Platform (v1.0.0, June 2026)
 
-- 23 AI agents with task planning and RAG context
+- 25 AI agents with task planning and RAG context
 - ETAP COM automation integration
 - GIS integration (ArcGIS, QGIS)
 - SCADA data model (IEC 61850)

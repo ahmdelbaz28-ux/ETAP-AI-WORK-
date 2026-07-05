@@ -124,6 +124,9 @@ lxml~=6.1.0
 
 # Phase 2: Security & Infrastructure
 pyotp~=2.9.0
+# WebAuthn / FIDO2 — required for production MFA (HIGH #8 from AhmedETAP_Error_Report_AR.pdf).
+# Without this, security/mfa.py rejects all WebAuthn registrations/assertions.
+webauthn~=2.0.0
 redis~=5.0.0
 httpx~=0.27.0
 

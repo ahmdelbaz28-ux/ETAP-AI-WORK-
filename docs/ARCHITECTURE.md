@@ -6,7 +6,7 @@ The **AhmedETAP** is a production-ready, multi-agent autonomous engineering syst
 
 ### Core Capabilities
 
-✅ **Autonomous Multi-Agent System** - 9 specialized engineering agents  
+✅ **Autonomous Multi-Agent System** - 25 specialized engineering agents  
 ✅ **Complete Power System Studies** - Load Flow, Fault, Harmonics, OPF, Protection  
 ✅ **ETAP COM Automation** - Direct integration with ETAP software  
 ✅ **RAG-Based Knowledge Base** - IEEE/IEC/NFPA standards compliance  

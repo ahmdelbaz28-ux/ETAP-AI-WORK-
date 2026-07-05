@@ -12,7 +12,7 @@
 
 ### الإنجازات الرئيسية
 
-✅ **نظام Multi-Agent متكامل** - 9 وكلاء هندسيون متخصصون  
+✅ **نظام Multi-Agent متكامل** - 25 وكلاء هندسيون متخصصون  
 ✅ **محركات حسابية متقدمة** - Load Flow, Fault, Harmonics, OPF, Protection  
 ✅ **تكامل مباشر مع ETAP** - أتمتة كاملة عبر COM API  
 ✅ **قاعدة معرفية RAG** - امتثال للمعايير الدولية  
@@ -756,7 +756,7 @@ print(f"Reports generated: {list(generated_files.keys())}")
 
 تم بنجاح تصميم وتنفيذ **منصة AhmedETAP للهندسة الكهربائية** كنظام متكامل ومتقدم يفي بجميع المتطلبات المحددة:
 
-✅ **نظام Multi-Agent مستقل** - 9 وكلاء متخصصون  
+✅ **نظام Multi-Agent مستقل** - 25 وكلاء متخصصون  
 ✅ **محركات حسابية شاملة** - Load Flow, Fault, Harmonics, OPF, Protection  
 ✅ **تكامل ETAP كامل** - أتمتة عبر COM API  
 ✅ **قاعدة معرفة RAG** - امتثال IEEE/IEC/NFPA  

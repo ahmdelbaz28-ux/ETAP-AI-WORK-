@@ -123,6 +123,19 @@ jobs:
       - name: Validate Python syntax
         run: python -c "import ast; ast.parse(open('engineering_service.py').read()); print('✅ Syntax OK')"
 
+      # MEDIUM #18 (AhmedETAP_Error_Report_AR.pdf): smoke-test that the
+      # canonical FastAPI entry point imports cleanly BEFORE running the
+      # full pytest suite. This catches import-time errors (missing deps,
+      # Pydantic schema issues like CRITICAL #1, router wiring) in seconds
+      # instead of letting pytest discover them one file at a time.
+      - name: Smoke test — api.routes:app imports
+        env:
+          ENVIRONMENT: testing
+          JWT_SECRET_KEY: ci-test-secret-key-for-github-actions
+          DATABASE_URL: sqlite+aiosqlite:///./test.db
+        run: |
+          python -c "from api.routes import app; assert app is not None; print('✅ api.routes:app imports OK —', len(app.routes), 'routes registered')"
+
       - name: Run test suite with coverage gate
         # Excluded directories:
         #   - tests/scenarios, tests/load, tests/stress, tests/chaos — these
