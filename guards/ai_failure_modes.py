@@ -914,21 +914,21 @@ class AIFailureModeDetector:
                             ),
                         )
             elif isinstance(node, ast.ImportFrom):
-                if node.module:
-                    top_level = node.module.split(".")[0]
-                    if top_level not in known:
-                        violations.append(
-                            GuardViolation(
-                                rule_id="FM-03",
-                                rule_name="Hallucinated API or package",
-                                severity=GuardSeverity.MUST_FIX,
-                                description=f"From-import from '{node.module}' is not in the known-packages list. "
-                                "This may be a hallucinated package.",
-                                location=f"line {node.lineno}",
-                                suggestion="Verify the package exists. If legitimate, add to 'known_packages'.",
-                                evidence=f"from {node.module} import ...",
-                            ),
-                        )
+                # SonarCloud python:S1066: merged nested ifs into single
+                # `and` condition to reduce indentation depth.
+                if node.module and node.module.split(".")[0] not in known:
+                    violations.append(
+                        GuardViolation(
+                            rule_id="FM-03",
+                            rule_name="Hallucinated API or package",
+                            severity=GuardSeverity.MUST_FIX,
+                            description=f"From-import from '{node.module}' is not in the known-packages list. "
+                            "This may be a hallucinated package.",
+                            location=f"line {node.lineno}",
+                            suggestion="Verify the package exists. If legitimate, add to 'known_packages'.",
+                            evidence=f"from {node.module} import ...",
+                        ),
+                    )
         return violations
 
     # ------------------------------------------------------------------

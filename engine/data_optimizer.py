@@ -232,6 +232,8 @@ class MemoryOptimizedSystem:
             ("_vms", "vms"),
         ]:
             setattr(self, attr, a[f])
+        # NOSONAR — python:S7504: list() is intentional — creates a snapshot
+        # so we can safely mutate self.Ybus_seq inside the loop if needed.
         for k in list(self.Ybus_seq.keys()):
             yb = self.Ybus_seq[k]
             if isinstance(yb, np.ndarray) and yb.shape[0] >= self.THRESH:

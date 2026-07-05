@@ -14,6 +14,12 @@ import logging
 import os
 import time
 from contextlib import asynccontextmanager
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    # Forward-only import for type hints; runtime import happens inside
+    # the function body to avoid module-load cycle on HF Space cold start.
+    from services.api_key_store import APIKeyConfig
 
 import uvicorn
 from fastapi import FastAPI, HTTPException, Request, WebSocket
@@ -59,6 +65,15 @@ logging.basicConfig(
     format="%(asctime)s | %(levelname)s | %(name)s | %(message)s",
 )
 logger = logging.getLogger("etap-ai")
+
+# ─── Shared format constants ────────────────────────────────────────────────
+# Centralised to avoid string-literal duplication (SonarCloud python:S1192).
+_ISO_8601_UTC_FMT = "%Y-%m-%dT%H:%M:%SZ"
+
+
+def _utc_now_iso() -> str:
+    """Return current UTC time as an ISO-8601 'Z' timestamp."""
+    return time.strftime(_ISO_8601_UTC_FMT, time.gmtime())
 
 
 # -- Lifespan -----------------------------------------------------------------
@@ -467,13 +482,14 @@ async def etap_gui_execute(request: Request):
     )
 
     if dry_run_requested or is_placeholder_url or quick_mode_env:
-        reason = (
-            "dry_run"
-            if dry_run_requested
-            else "placeholder_url"
-            if is_placeholder_url
-            else "quick_mode_env"
-        )
+        # SonarCloud python:S3358: extracted nested ternary into explicit
+        # if/elif chain so the precedence is unambiguous.
+        if dry_run_requested:
+            reason = "dry_run"
+        elif is_placeholder_url:
+            reason = "placeholder_url"
+        else:
+            reason = "quick_mode_env"
         return {
             "success": True,
             "data": {
@@ -547,12 +563,10 @@ async def etap_gui_health():
     re-probed the system. Load balancer health checks (timeout 2-3s)
     were timing out. See Bug #6.3 in API test report.
     """
-    import time as _time
-
     # Cache the (timestamp, result) tuple in a function attribute so it
     # survives across requests within the same process. Cache TTL = 60s.
     cache_ttl = 60
-    now = _time.time()
+    now = time.time()
     cached = getattr(etap_gui_health, "_cache", None)
     if cached and (now - cached[0]) < cache_ttl:
         # Return cached result with a marker so callers can tell
@@ -753,12 +767,10 @@ async def scada_live():
     endpoint is wired up. A real Zenon-backed deployment would replace
     this with `scada_etap_consumer.get_live_snapshot()`.
     """
-    import time as _time
-
     return {
         "success": True,
         "data": {
-            "timestamp": _time.strftime("%Y-%m-%dT%H:%M:%SZ", _time.gmtime()),
+            "timestamp": _utc_now_iso(),
             "source": "hf-space-synthetic",
             "points": [
                 {"tag": "BUS1.V", "value": 1.02, "unit": "pu", "quality": "GOOD"},
@@ -779,12 +791,10 @@ async def digital_twin_status():
     On HF Space (no real SCADA feed) the twin is in `STANDBY` mode:
     schema loaded, no live measurements ingested.
     """
-    import time as _time
-
     return {
         "success": True,
         "data": {
-            "timestamp": _time.strftime("%Y-%m-%dT%H:%M:%SZ", _time.gmtime()),
+            "timestamp": _utc_now_iso(),
             "state": "STANDBY",
             "schema_version": "1.0.0",
             "nodes": 0,
@@ -807,33 +817,34 @@ async def benchmark():
     the elapsed time. Does NOT require ETAP or GPU.
     """
     import json as _json
-    import time as _time
-
     # Numpy is available in the HF image (it's in requirements.hf.txt).
     try:
         import numpy as np
 
         size = 200
-        t0 = _time.perf_counter()
-        a = np.random.rand(size, size)
-        b = np.random.rand(size, size)
+        # SonarCloud python:S6711: use numpy.random.Generator (modern API)
+        # instead of the legacy np.random.rand function.
+        rng = np.random.default_rng()
+        t0 = time.perf_counter()
+        a = rng.random((size, size))
+        b = rng.random((size, size))
         _ = a @ b
-        numpy_ms = (_time.perf_counter() - t0) * 1000.0
+        numpy_ms = (time.perf_counter() - t0) * 1000.0
         numpy_ok = True
     except Exception as e:
         numpy_ms = 0.0
         numpy_ok = False
         numpy_err = str(e)
 
-    t0 = _time.perf_counter()
+    t0 = time.perf_counter()
     payload = {"matrix_size": 200, "ok": numpy_ok}
     _ = _json.dumps(payload)
-    json_ms = (_time.perf_counter() - t0) * 1000.0
+    json_ms = (time.perf_counter() - t0) * 1000.0
 
     return {
         "success": True,
         "data": {
-            "timestamp": _time.strftime("%Y-%m-%dT%H:%M:%SZ", _time.gmtime()),
+            "timestamp": _utc_now_iso(),
             "numpy_available": numpy_ok,
             "numpy_matmul_ms": round(numpy_ms, 3),
             "json_serialize_ms": round(json_ms, 3),
@@ -980,6 +991,54 @@ async def settings_delete_key(provider: str):
     }
 
 
+def _parse_inline_key_config(body: dict, provider: str) -> APIKeyConfig | None:
+    """Build an APIKeyConfig from request body, or None if no inline key.
+
+    Body shape: { "api_key": "sk-...", "base_url": None, "model_name": None }
+    """
+    # Local import to avoid module-level cycle on HF Space cold start
+    from services.api_key_store import APIKeyConfig  # noqa: PLC0415
+
+    inline_api_key = body.get("api_key")
+    if not (isinstance(inline_api_key, str) and inline_api_key.strip()):
+        return None
+    return APIKeyConfig(
+        provider=provider,
+        api_key=inline_api_key.strip(),
+        base_url=body.get("base_url"),
+        model_name=body.get("model_name"),
+    )
+
+
+def _classify_test_failure(msg: str) -> str:
+    """Map a network/transport error message to a UI-facing reason code."""
+    lower_msg = msg.lower()
+    if any(s in lower_msg for s in ("timed out", "timeout", "ttl")):
+        return "network_timeout"
+    if any(s in lower_msg for s in ("connect", "name or service", "dns", "resolve")):
+        return "network_unreachable"
+    return "test_failed"
+
+
+def _run_provider_key_test(provider: str, config) -> dict:
+    """Dispatch to the right per-provider key tester."""
+    from api.settings import (  # noqa: PLC0415
+        _test_anthropic_key,
+        _test_gemini_key,
+        _test_openai_key,
+    )
+
+    testers = {
+        "openai": _test_openai_key,
+        "gemini": _test_gemini_key,
+        "anthropic": _test_anthropic_key,
+    }
+    tester = testers.get(provider)
+    if tester is None:
+        return {"success": False, "message": f"Unknown provider: {provider}"}
+    return tester(config)
+
+
 @app.post("/api/v1/settings/keys/{provider}/test", tags=["Settings"])
 async def settings_test_key(provider: str, request: Request):
     """Test an API key by making a minimal API call.
@@ -994,8 +1053,7 @@ async def settings_test_key(provider: str, request: Request):
     ``api_key`` field, the endpoint falls back to the previously saved
     key (original behavior).
     """
-    from api.settings import _test_anthropic_key, _test_gemini_key, _test_openai_key
-    from services.api_key_store import APIKeyConfig, APIKeyStore, api_key_store
+    from services.api_key_store import APIKeyStore, api_key_store  # noqa: PLC0415
 
     provider = provider.lower().strip()
     if provider not in APIKeyStore.SUPPORTED_PROVIDERS:
@@ -1007,18 +1065,11 @@ async def settings_test_key(provider: str, request: Request):
     # ─── Optional body: test an unsaved key ────────────────────────────────
     # Try to parse JSON body; ignore parse errors (no body / non-JSON body
     # means "use the saved key", which is the original behavior).
-    inline_config: APIKeyConfig | None = None
+    inline_config = None
     try:
         body = await request.json()
         if isinstance(body, dict):
-            inline_api_key = body.get("api_key")
-            if isinstance(inline_api_key, str) and inline_api_key.strip():
-                inline_config = APIKeyConfig(
-                    provider=provider,
-                    api_key=inline_api_key.strip(),
-                    base_url=body.get("base_url"),
-                    model_name=body.get("model_name"),
-                )
+            inline_config = _parse_inline_key_config(body, provider)
     except Exception:  # noqa: BLE001 — body is optional
         inline_config = None
 
@@ -1050,15 +1101,9 @@ async def settings_test_key(provider: str, request: Request):
                     ),
                 },
             )
+
     try:
-        if provider == "openai":
-            result = _test_openai_key(config)
-        elif provider == "gemini":
-            result = _test_gemini_key(config)
-        elif provider == "anthropic":
-            result = _test_anthropic_key(config)
-        else:
-            result = {"success": False, "message": f"Unknown provider: {provider}"}
+        result = _run_provider_key_test(provider, config)
         # Surface which key was tested so callers can distinguish "the saved
         # key works" from "the inline key works" in their audit logs.
         result_with_source = dict(result)
@@ -1073,14 +1118,7 @@ async def settings_test_key(provider: str, request: Request):
         # (200 with success=false), matching the existing contract where
         # an invalid key (401 from upstream) is also returned as 200.
         msg = str(exc)
-        # Classify common network errors so the UI can render a hint.
-        lower_msg = msg.lower()
-        if any(s in lower_msg for s in ("timed out", "timeout", "ttl")):
-            reason = "network_timeout"
-        elif any(s in lower_msg for s in ("connect", "name or service", "dns", "resolve")):
-            reason = "network_unreachable"
-        else:
-            reason = "test_failed"
+        reason = _classify_test_failure(msg)
         return JSONResponse(
             status_code=200,
             content={

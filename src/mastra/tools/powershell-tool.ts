@@ -16,16 +16,24 @@ export const run_powershell = createTool({
       const secureExecutorPath = 'security/secure_powershell_executor.py';
 
       // Use spawn to pass command via stdin (prevents shell injection).
-      // SonarCloud S4036: explicitly sanitize PATH to only well-known system
-      // directories so a malicious user can't shadow `python` with a trojan.
-      const safePath = ['/usr/local/bin', '/usr/bin', '/bin', '/usr/local/sbin', '/usr/sbin', '/sbin']
-        .filter((p) => process.env.PATH?.includes(p))
-        .join(':');
+      // SonarCloud tssecurity:S4036: PATH is hardcoded to a fixed list of
+      // vetted system directories — we do NOT derive it from process.env.PATH
+      // (which could be poisoned by a parent process). If `python` is not
+      // resolvable in this list, the spawn will fail loudly rather than
+      // silently falling back to a potentially-trojaned binary.
+      const SAFE_PATH = [
+        '/usr/local/bin',
+        '/usr/bin',
+        '/bin',
+        '/usr/local/sbin',
+        '/usr/sbin',
+        '/sbin',
+      ].join(':');
       const child = spawn('python', [secureExecutorPath], {
         env: {
           ...process.env,
           // Override PATH with only vetted system directories
-          PATH: safePath || process.env.PATH,
+          PATH: SAFE_PATH,
           PYTHONDONTWRITEBYTECODE: '1',
           PYTHONUNBUFFERED: '1',
         },

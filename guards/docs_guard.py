@@ -425,7 +425,7 @@ class DocsGuard(BaseGuard):
                             evidence=f"[{link_text}](#{link_target[1:]})",
                         ),
                     )
-            elif link_target.endswith(".md") or link_target.endswith(".py"):
+            elif link_target.endswith(".md", ".py"):
                 # Relative file link — check if it looks like a placeholder
                 if "TODO" in link_target or "PLACEHOLDER" in link_target:
                     violations.append(

@@ -134,7 +134,7 @@ async def metrics(request: Request) -> MetricsResponse:
 
 
 @router.get("/prometheus/metrics")
-async def prometheus_metrics() -> str:
+async def prometheus_metrics() -> Response:
     """Prometheus metrics endpoint exposing counters, histograms, and gauges
     from ``core.metrics`` in the standard Prometheus exposition format.
 

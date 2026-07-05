@@ -727,9 +727,7 @@ class SecurityAuditor:
 
                         # Skip comments and docstrings
                         if (
-                            stripped.startswith("#")
-                            or stripped.startswith('"""')
-                            or stripped.startswith("'''")
+                            stripped.startswith("#", '"""', "'''")
                         ):
                             continue
 

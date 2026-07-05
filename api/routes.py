@@ -39,6 +39,16 @@ from services.study_service import (
     StudyRequest,
 )
 
+# ─── Shared format constants ────────────────────────────────────────────────
+# Centralised to avoid string-literal duplication (SonarCloud python:S1192).
+_ISO_8601_UTC_FMT = "%Y-%m-%dT%H:%M:%SZ"
+
+
+def _utc_now_iso() -> str:
+    """Return the current UTC time as an ISO-8601 'Z' timestamp."""
+    return time.strftime(_ISO_8601_UTC_FMT, time.gmtime())
+
+
 # Create FastAPI app instance
 _ENV = os.environ.get("ENVIRONMENT", os.environ.get("ENV", "development")).lower()
 app = FastAPI(
@@ -555,12 +565,10 @@ async def scada_live():
     endpoint is wired up. A real Zenon-backed deployment would replace
     this with `scada_etap_consumer.get_live_snapshot()`.
     """
-    import time as _time
-
     return {
         "success": True,
         "data": {
-            "timestamp": _time.strftime("%Y-%m-%dT%H:%M:%SZ", _time.gmtime()),
+            "timestamp": _utc_now_iso(),
             "source": "synthetic" if os.environ.get("ENVIRONMENT") != "production" else "zenon",
             "points": [
                 {"tag": "BUS1.V", "value": 1.02, "unit": "pu", "quality": "GOOD"},
@@ -581,12 +589,10 @@ async def digital_twin_status():
     Without a real SCADA feed the twin is in `STANDBY` mode: schema loaded,
     no live measurements ingested.
     """
-    import time as _time
-
     return {
         "success": True,
         "data": {
-            "timestamp": _time.strftime("%Y-%m-%dT%H:%M:%SZ", _time.gmtime()),
+            "timestamp": _utc_now_iso(),
             "state": "STANDBY",
             "schema_version": "1.0.0",
             "nodes": 0,
@@ -614,9 +620,12 @@ async def benchmark():
         import numpy as np
 
         size = 200
+        # SonarCloud python:S6711: use numpy.random.Generator (modern API)
+        # instead of the legacy np.random.rand function.
+        rng = np.random.default_rng()
         t0 = _time.perf_counter()
-        a = np.random.rand(size, size)
-        b = np.random.rand(size, size)
+        a = rng.random((size, size))
+        b = rng.random((size, size))
         _ = a @ b
         numpy_ms = (_time.perf_counter() - t0) * 1000.0
         numpy_ok = True
@@ -634,7 +643,7 @@ async def benchmark():
     result = {
         "success": True,
         "data": {
-            "timestamp": _time.strftime("%Y-%m-%dT%H:%M:%SZ", _time.gmtime()),
+            "timestamp": _utc_now_iso(),
             "numpy_available": numpy_ok,
             "numpy_matmul_ms": round(numpy_ms, 3),
             "json_serialize_ms": round(json_ms, 3),

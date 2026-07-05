@@ -139,8 +139,11 @@ async def _handle_client(  # NOSONAR — S3776: cognitive complexity; scheduled 
             )
 
         await client.send(response)
-    except (anyio.EndOfStream, OSError, ConnectionError, BrokenPipeError, ConnectionResetError):
+    except (anyio.EndOfStream, OSError):
         # Expected when a client disconnects abruptly.
+        # SonarCloud python:S5713: ConnectionError, BrokenPipeError, and
+        # ConnectionResetError are all subclasses of OSError, so listing
+        # them explicitly is redundant.
         pass
     except Exception:
         log.debug("HTTP client handler error", exc_info=True)

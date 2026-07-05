@@ -592,8 +592,11 @@ async def run_study(request: Request, payload: StudyRequest, _: str = Depends(ge
             # block the async event loop (ETAP COM calls can take 5-60 sec).
             from etap_integration.etap_provider import get_etap_provider
 
-            provider_factory = get_etap_provider()
-            provider = provider_factory()
+            # SonarCloud python:S5864: get_etap_provider() returns a ready
+            # IEtapProvider instance; the previous code stored it in a
+            # variable named "provider_factory" and then CALLED it, which
+            # raised TypeError at runtime.
+            provider = get_etap_provider()
 
             from etap_integration.etap_provider import ETAPStudyType
 

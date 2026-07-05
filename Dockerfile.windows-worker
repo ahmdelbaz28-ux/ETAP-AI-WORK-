@@ -6,6 +6,13 @@
 #
 # Build: docker build -f Dockerfile.windows-worker -t etap-windows-worker .
 # Run:   docker run -d --isolation=process -p 8081:8081 etap-windows-worker
+#
+# SonarCloud docker:S6471: Windows containers default to
+# `ContainerAdministrator` (the Windows equivalent of root). We create a
+# non-admin user `etapworker` and run the service as that user to limit
+# blast radius if the COM bridge is exploited.
+# SonarCloud docker:S7031: consecutive RUN instructions merged to reduce
+# image layer count and pull time.
 
 FROM mcr.microsoft.com/windows/servercore:ltsc2022
 
@@ -15,22 +22,22 @@ LABEL version="2.0.0"
 
 SHELL ["powershell", "-Command", "$ErrorActionPreference = 'Stop'; $ProgressPreference = 'SilentlyContinue';"]
 
-# Install Python 3.12 (matches Linux services runtime)
-RUN Invoke-WebRequest -Uri "https://www.python.org/ftp/python/3.12.10/python-3.12.10-amd64.exe" -OutFile "C:\python-installer.exe"; \
+# Create non-admin user, install Python 3.12 + VC++ Redist, refresh PATH,
+# and create app directories — all in a single RUN to minimise layers.
+RUN New-LocalUser -Name etapworker -Description "ETAP Worker non-admin runtime user" -NoPassword; \
+    Add-LocalGroupMember -Group Users -Member etapworker; \
+    Invoke-WebRequest -Uri "https://www.python.org/ftp/python/3.12.10/python-3.12.10-amd64.exe" -OutFile "C:\python-installer.exe"; \
     Start-Process C:\python-installer.exe -ArgumentList '/quiet InstallAllUsers=1 PrependPath=1 Include_test=0' -Wait; \
-    Remove-Item C:\python-installer.exe -Force
-
-# Install Visual C++ Redistributable (required for some packages)
-RUN Invoke-WebRequest -Uri "https://aka.ms/vs/17/release/vc_redist.x64.exe" -OutFile "C:\vc_redist.exe"; \
+    Remove-Item C:\python-installer.exe -Force; \
+    Invoke-WebRequest -Uri "https://aka.ms/vs/17/release/vc_redist.x64.exe" -OutFile "C:\vc_redist.exe"; \
     Start-Process C:\vc_redist.exe -ArgumentList '/quiet /install' -Wait; \
-    Remove-Item C:\vc_redist.exe -Force
-
-# Refresh PATH
-RUN $env:Path = [System.Environment]::GetEnvironmentVariable('Path','Machine'); \
-    [System.Environment]::SetEnvironmentVariable('Path', $env:Path, 'User')
-
-# Create app directory
-RUN New-Item -ItemType Directory -Force -Path C:\app
+    Remove-Item C:\vc_redist.exe -Force; \
+    $env:Path = [System.Environment]::GetEnvironmentVariable('Path','Machine'); \
+    [System.Environment]::SetEnvironmentVariable('Path', $env:Path, 'User'); \
+    New-Item -ItemType Directory -Force -Path C:\app | Out-Null; \
+    New-Item -ItemType Directory -Force -Path C:\app\data | Out-Null; \
+    New-Item -ItemType Directory -Force -Path C:\app\logs | Out-Null; \
+    New-Item -ItemType Directory -Force -Path C:\app\reports | Out-Null
 
 WORKDIR C:\app
 
@@ -42,11 +49,6 @@ RUN pip install --no-cache-dir --upgrade pip && \
 # Copy application code
 COPY etap_integration/ ./etap_integration/
 COPY security/ ./security/
-
-# Create data directories
-RUN New-Item -ItemType Directory -Force -Path C:\app\data | Out-Null; \
-    New-Item -ItemType Directory -Force -Path C:\app\logs | Out-Null; \
-    New-Item -ItemType Directory -Force -Path C:\app\reports | Out-Null
 
 # ETAP Worker Configuration
 ENV ETAP_WORKER_HOST=0.0.0.0 \
@@ -61,6 +63,9 @@ EXPOSE 8081
 
 HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
     CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:8081/health')" || exit 1
+
+# Run as the non-admin `etapworker` user (SonarCloud docker:S6471).
+USER etapworker
 
 # Graceful shutdown handler via PowerShell
 CMD ["powershell", "-Command", \
