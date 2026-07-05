@@ -172,12 +172,12 @@ const FALLBACK_COLORS: Record<string, { hex: string; label: string }> = {
 }
 
 interface ProviderLogoProps {
-  providerId: string
-  size?: number
-  className?: string
+  readonly providerId: string
+  readonly size?: number
+  readonly className?: string
 }
 
-export function ProviderLogo({ providerId, size = 40, className }: ProviderLogoProps) {  // NOSONAR — typescript:S6759: props read-only; refactor deferred
+export function ProviderLogo({ providerId, size = 40, className }: ProviderLogoProps) {
   const brand = BRAND_ICONS[providerId]
   const fallback = FALLBACK_COLORS[providerId]
 

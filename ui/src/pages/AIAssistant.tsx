@@ -41,7 +41,8 @@ function _safeRandomSuffix(): string {
 }
 
 export default function AIAssistant() {
-  // NOSONAR — typescript:S6754: value is intentionally unused (we only need the setter)
+  // setAgents is used but the agents value is never read — we only need the
+  // setter to trigger re-renders after fetchAgents() resolves.
   const [, setAgents] = useState<AgentMeta[]>([])
   const [messages, setMessages] = useState<Message[]>([])
   const [input, setInput] = useState('')
@@ -80,7 +81,8 @@ export default function AIAssistant() {
           'CUSTOM_API_KEY',
         ].some(k => !!parsed[k])
         setHasApiKey(hasAnyKey)
-      } catch {
+      } catch (err) {
+        console.warn('Failed to check API key status:', err instanceof Error ? err.message : String(err))
         setHasApiKey(false)
       }
     }

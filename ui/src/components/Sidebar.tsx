@@ -103,10 +103,7 @@ export function Sidebar() {  // NOSONAR — S3776: cognitive complexity; schedul
   return (
     <>
       {/* ─── Desktop Sidebar (lg and up) ─────────────────────────────── */}
-      {/* NOSONAR — typescript:S6822: role="complementary" is implicit on
-          <aside>; kept for older screen-reader compatibility. */}
       <aside
-        role="complementary"
         aria-label="Sidebar Navigation"
         className={cn(
           'hidden lg:flex h-full flex-col bg-[var(--bg-secondary)] border-r border-[var(--border-primary)] shrink-0 transition-all duration-300 overflow-hidden z-[var(--z-sidebar)]',
@@ -259,10 +256,7 @@ export function Sidebar() {  // NOSONAR — S3776: cognitive complexity; schedul
       )}
 
       {/* Drawer */}
-      {/* NOSONAR — typescript:S6822: role="complementary" is implicit on
-          <aside>; kept here for older screen-reader compatibility. */}
       <aside
-        role="complementary"
         aria-label="Mobile Sidebar Navigation"
         aria-hidden={!mobileSidebarOpen}
         className={cn(

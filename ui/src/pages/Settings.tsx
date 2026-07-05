@@ -611,17 +611,17 @@ function AISettingsPanel({ settings, setSettings, notify }: AISettingsPanelProps
   const [testResults, setTestResults] = useState<Record<string, { message: string; details?: string; suggestion?: string; latencyMs?: number } | null>>({})
 
   const handleTestProvider = async (providerId: string) => {
-    // For built-in providers, require key first.
-    if (providerId !== 'custom_openai') {  // NOSONAR — typescript:S7735: negated condition reads naturally ("if not custom → built-in")
+    if (providerId === 'custom_openai') {
+      // Custom provider requires all 3 fields
+      if (!settings.CUSTOM_OPENAI_API_KEY || !settings.CUSTOM_OPENAI_BASE_URL || !settings.CUSTOM_OPENAI_MODEL_ID) {
+        notify('error', 'Please fill in all 3 fields: Endpoint URL, API Key, Model ID')
+        return
+      }
+    } else {
+      // Built-in providers require just the API key
       const keyName = `PROVIDER_${providerId.toUpperCase()}_KEY`
       if (!settings[keyName]) {
         notify('error', 'Please enter an API key first')
-        return
-      }
-    } else {  // NOSONAR — typescript:S6660: single-statement else — natural validation ladder
-      // For custom provider, require all 3 fields.
-      if (!settings.CUSTOM_OPENAI_API_KEY || !settings.CUSTOM_OPENAI_BASE_URL || !settings.CUSTOM_OPENAI_MODEL_ID) {
-        notify('error', 'Please fill in all 3 fields: Endpoint URL, API Key, Model ID')
         return
       }
     }

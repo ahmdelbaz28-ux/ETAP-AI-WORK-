@@ -42,16 +42,16 @@ const notifColor = {
 }
 
 interface ToolButtonProps {
-  onClick: () => void
-  icon: React.ElementType
-  title: string
-  badge?: boolean
-  active?: boolean
-  accent?: 'brand' | 'default'
-  unreadCount?: number
+  readonly onClick: () => void
+  readonly icon: React.ElementType
+  readonly title: string
+  readonly badge?: boolean
+  readonly active?: boolean
+  readonly accent?: 'brand' | 'default'
+  readonly unreadCount?: number
 }
 
-function ToolButton({ onClick, icon: Icon, title, badge, active, accent, unreadCount = 0 }: ToolButtonProps) {  // NOSONAR — typescript:S6759: props read-only; refactor deferred
+function ToolButton({ onClick, icon: Icon, title, badge, active, accent, unreadCount = 0 }: ToolButtonProps) {
   const toolButtonClass = active
     ? 'bg-brand-500/15 text-brand-400'
     : accent === 'brand'
