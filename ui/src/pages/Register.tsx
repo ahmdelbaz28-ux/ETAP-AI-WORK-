@@ -1,8 +1,9 @@
 import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { Zap, User, Mail, Lock, ArrowRight, Eye, EyeOff, CheckCircle } from 'lucide-react'
+import { User, Mail, Lock, ArrowRight, Eye, EyeOff, CheckCircle } from 'lucide-react'
 import { useNotify } from '../context/NotificationContext'
+import { BrandLogo } from '../components/BrandLogo'
 
 export default function Register() {
   const navigate = useNavigate()
@@ -53,9 +54,7 @@ export default function Register() {
         className="relative z-10 w-full max-w-md bg-[var(--bg-card)] rounded-2xl border border-[var(--border-primary)] p-8 shadow-2xl shadow-black/40"
       >
         <div className="flex items-center gap-3 mb-6">
-          <div className="w-10 h-10 bg-gradient-to-br from-brand-500 to-brand-700 rounded-xl flex items-center justify-center">
-            <Zap className="w-5 h-5 text-white" />
-          </div>
+          <BrandLogo size={40} />
           <h1 className="text-xl font-bold text-[var(--text-primary)]">Create Account</h1>
         </div>
 

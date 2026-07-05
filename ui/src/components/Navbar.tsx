@@ -5,10 +5,11 @@ import {
   Search, Bell, X, Globe, Clock, Command, Maximize2, Minimize2,
   Sparkles, HelpCircle, Keyboard, ChevronDown, User as UserIcon,
   Settings, LogOut, ShieldCheck, CheckCircle2, AlertCircle, Info, AlertTriangle,
-  Menu, Zap,
+  Menu,
 } from 'lucide-react'
 import { useAppStore } from '../store'
 import { cn } from '../utils/helpers'
+import { BrandLogo } from './BrandLogo'
 
 interface NotificationItem {
   id: string
@@ -196,9 +197,7 @@ export function Navbar() {
 
         {/* Brand logo — mobile only (desktop uses sidebar logo) */}
         <div className="lg:hidden flex items-center gap-1.5 shrink-0">
-          <div className="w-7 h-7 bg-gradient-to-br from-brand-500 to-brand-700 rounded-lg flex items-center justify-center shadow-sm">
-            <Zap className="w-4 h-4 text-white" />
-          </div>
+          <BrandLogo size={28} />
         </div>
 
         {/* Search input (expandable) — hidden on mobile when collapsed */}

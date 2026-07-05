@@ -7,10 +7,11 @@ import { useEffect, useState } from 'react'
 import {
   LayoutDashboard, FlaskConical, Bot, FolderKanban, Settings,
   ShieldCheck, Bug, Map, FileText, Upload, Download, ScrollText,
-  ChevronLeft, ChevronRight, Sun, Moon, Zap, Plug, Layers, Network,
+  ChevronLeft, ChevronRight, Sun, Moon, Plug, Layers, Network,
   Cpu, Wrench, Shield, X
 } from 'lucide-react'
 import { cn } from '../utils/helpers'
+import { BrandLogo } from './BrandLogo'
 
 interface NavItem {
   to: string
@@ -113,8 +114,8 @@ export function Sidebar() {  // NOSONAR — S3776: cognitive complexity; schedul
         {/* Logo Section */}
         <div className="p-4 border-b border-[var(--border-primary)]">
           <div className={cn('flex items-center gap-2.5', sidebarCollapsed && 'justify-center')}>
-            <div className="w-9 h-9 bg-gradient-to-br from-brand-500 to-brand-700 rounded-xl flex items-center justify-center shrink-0 shadow-lg shadow-brand-500/25 relative">
-              <Zap className="w-5 h-5 text-white" />
+            <div className="shrink-0 relative">
+              <BrandLogo size={36} />
               {healthStatus === 'online' && (
                 <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 bg-green-400 rounded-full border-2 border-[var(--bg-secondary)]" />
               )}
@@ -271,8 +272,8 @@ export function Sidebar() {  // NOSONAR — S3776: cognitive complexity; schedul
         {/* Header with logo + close button */}
         <div className="p-4 border-b border-[var(--border-primary)] flex items-center justify-between">
           <div className="flex items-center gap-2.5 min-w-0">
-            <div className="w-9 h-9 bg-gradient-to-br from-brand-500 to-brand-700 rounded-xl flex items-center justify-center shrink-0 shadow-lg shadow-brand-500/25 relative">
-              <Zap className="w-5 h-5 text-white" />
+            <div className="shrink-0 relative">
+              <BrandLogo size={36} />
               {healthStatus === 'online' && (
                 <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 bg-green-400 rounded-full border-2 border-[var(--bg-secondary)]" />
               )}
