@@ -2031,3 +2031,42 @@ VERIFICATION RESULTS:
 - S5864 bug fix verified: no get_etap_provider()() double-call in etap_adapter.py or studies.py
 - CSS BLOCKER fix verified: no invalid // comments in index.css
 - Branch is 8 commits ahead of main, 0 behind (fully up to date)
+
+---
+Task ID: hf-space-305-restart-final
+Agent: Super Z (main agent)
+Task: Final verification + fix remaining .dockerignore issues
+
+SELF-CRITIQUE — found 3 MORE root causes after initial PR #101:
+
+1. .dockerignore had `*.md` rule that EXCLUDED skills/*.md files:
+   - skills/etap-expert.md (4,400+ lines) — ETAP expert knowledge base
+   - skills/etap-ai-agent-system-prompt.md — system prompt
+   - skills/etap-gui-agent.md — GUI agent instructions
+   FIX: Added `!skills/*.md` exception after `*.md` rule
+
+2. .dockerignore had `*.yaml` rule that EXCLUDED prompts/*.yaml files:
+   - 25 agent prompt definitions (anomaly_agent.prompt.yaml, arcflash_agent.prompt.yaml, etc.)
+   Without these, agents/prompt_loader.py cannot load ANY agent prompts.
+   FIX: Added `!prompts/*.yaml` and `!prompts/*.prompt.yaml` exceptions
+
+3. sync-platforms.yml was NOT copying .dockerignore to HF Space:
+   Without .dockerignore, the Docker build on HF copies EVERYTHING
+   (including .git, tests, docs, __pycache__) → can exceed disk limit
+   and cause build failure.
+   FIX: Added `.dockerignore` to the cp command
+
+4. Dockerfile: /ms-playwright was owned by root but app runs as 'user'
+   FIX: Added `chown -R user:user /ms-playwright` after Playwright install
+
+VERIFICATION:
+- Dockerfile syntax validated (124 lines, 3 RUN, 22 COPY, 13 ENV)
+- All module-level imports traced — all present in Dockerfile COPY list
+- .dockerignore exceptions verified: skills/*.md and prompts/*.yaml included
+- sync-platforms.yml now copies .dockerignore
+- CI/CD: Helm ✓, Code Quality ✓, Security ✓, Python tests running
+- HF Space: still PAUSED (will rebuild after PR #101 merges)
+
+STATUS: PR #101 is mergeable=True, mergeable_state=blocked (CI running).
+After merge, sync-platforms.yml will push all fixes to HF Space and it
+will rebuild with the corrected Dockerfile + .dockerignore.
