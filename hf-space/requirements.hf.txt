@@ -25,6 +25,12 @@ python-dotenv>=1.0.0
 sqlalchemy[asyncio]>=2.0.0
 aiosqlite>=0.19.0
 alembic>=1.13.0
+# asyncpg: required when DATABASE_URL points to PostgreSQL (e.g. Supabase
+# Postgres set as HF Secret). Without it, api/database.py raises
+# ModuleNotFoundError on import → cascades to api.dependencies, api.settings,
+# api.auth, api.projects — and breaks every endpoint that imports any of
+# those modules. SQLite path (aiosqlite) doesn't need this.
+asyncpg>=0.29.0
 
 # ─── Security ─────────────────────────────────────────────────────────────────
 bcrypt>=4.0.0
