@@ -1,20 +1,6 @@
 /* eslint-disable react-refresh/only-export-components */
 import { useState, useEffect, createContext, useContext, createElement } from 'react';
-
-// Resolve the API base URL the same way api.ts does, so auth requests
-// hit the real backend regardless of where the UI is hosted.
-function resolveApiBaseUrl(): string {
-  const env = (import.meta as unknown as { env?: Record<string, string> }).env
-  if (env?.VITE_API_URL) return env.VITE_API_URL
-
-  if (typeof window !== 'undefined' && window.location.hostname.endsWith('.hf.space')) {
-    return ''  // same-origin on HF Space
-  }
-
-  return 'https://ahmdelbaz28-ahmedetap.hf.space'
-}
-
-const API_BASE_URL = resolveApiBaseUrl()
+import { API_BASE_URL } from '../lib/api-config';
 
 interface User {
   id: string;

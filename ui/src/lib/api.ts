@@ -3,45 +3,12 @@
  *
  * REAL backend only. No demo mode, no mock data, no silent fallback.
  *
- * The API base URL is determined in this order:
- *   1. VITE_API_URL environment variable (set at build time)
- *   2. Same origin as the UI (when the UI is served from the HF Space
- *      container that also runs the FastAPI backend)
- *   3. The HF Space production URL (https://ahmdelbaz28-ahmedetap.hf.space)
- *      as a last-resort default for Vercel deploys where the UI and API
- *      are on different origins.
- *
- * If the backend is unreachable, requests throw real errors. The UI is
- * responsible for showing those errors to the user — NOT for hiding them
- * behind fake "demo" data.
+ * The API base URL is resolved centrally in ./api-config.ts.
+ * See that file for configuration options (VITE_API_URL env var).
  */
 
-// Resolve the API base URL once at module load time.
-function resolveApiBaseUrl(): string {
-  // 1. Explicit env var wins
-  const env = (import.meta as unknown as { env?: Record<string, string> }).env
-  if (env?.VITE_API_URL) return env.VITE_API_URL
+import { API_BASE_URL } from './api-config'
 
-  // 2. On the HF Space, the UI is served from the same origin as the API
-  //    (api/routes.py + hf-space/app.py serve both /api/v1/* and the UI).
-  //    Detect this by checking if we're on *.hf.space.
-  if (typeof window !== 'undefined' && window.location.hostname.endsWith('.hf.space')) {
-    return ''  // same-origin
-  }
-
-  // 3. On Vercel (or any other static host), point at the HF Space backend.
-  //    This is the canonical production API.
-  return 'https://ahmdelbaz28-ahmedetap.hf.space'
-}
-
-const API_BASE_URL = resolveApiBaseUrl()
-
-/**
- * Perform an authenticated API request.
- *
- * Throws an Error on any failure (network, non-2xx, JSON parse). Never
- * returns fake/demo data.
- */
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
   const url = `${API_BASE_URL}${path}`
   const token = localStorage.getItem('authToken')

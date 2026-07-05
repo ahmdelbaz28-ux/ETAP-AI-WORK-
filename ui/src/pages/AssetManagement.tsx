@@ -3,6 +3,7 @@ import { motion } from 'framer-motion'
 import { Cpu, Zap, Cable, Settings2, Activity, Wrench, Search, Filter } from 'lucide-react'
 import { Card, CardSection, Badge, Button, EmptyState } from '../components/ui'
 import { cn } from '../utils/helpers'
+import { API_BASE_URL } from '../lib/api-config'
 
 import { ContextHelpButton } from '../components/help/ContextHelpButton'
 interface Asset {
@@ -36,14 +37,6 @@ export default function AssetManagement() {
   const [assets, setAssets] = useState<Asset[]>([])
   const [search, setSearch] = useState('')
   const [filterStatus, setFilterStatus] = useState<string>('all')
-
-  // Resolve API base URL the same way api.ts / useAuth do.
-  const API_BASE_URL = (() => {
-    const env = (import.meta as unknown as { env?: Record<string, string> }).env
-    if (env?.VITE_API_URL) return env.VITE_API_URL
-    if (typeof window !== 'undefined' && window.location.hostname.endsWith('.hf.space')) return ''
-    return 'https://ahmdelbaz28-ahmedetap.hf.space'
-  })()
 
   const fetchAssets = useCallback(async () => {
     setLoading(true)
