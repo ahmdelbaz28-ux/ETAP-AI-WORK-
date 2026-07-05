@@ -1,9 +1,10 @@
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
 import {
-  Search, HelpCircle, Settings, Zap, ChevronDown, Sparkles,
+  Search, HelpCircle, Settings, ChevronDown, Sparkles,
 } from 'lucide-react'
 import { useAppStore } from '../../store'
+import { BrandLogo } from '../BrandLogo'
 
 interface TopBarProps {
   onHelpOpen?: () => void
@@ -31,9 +32,7 @@ export function TopBar({ onHelpOpen }: TopBarProps) {  // NOSONAR — S6759: Rea
           onClick={() => navigate('/dashboard')}
           onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') navigate('/dashboard') }}
         >
-          <div className="w-7 h-7 bg-gradient-to-br from-orange-500 to-red-600 rounded-lg flex items-center justify-center shadow-lg shadow-orange-500/20">
-            <Zap className="w-4 h-4 text-white" />
-          </div>
+          <BrandLogo size={28} />
           <span className="text-sm font-bold text-[var(--text-primary)] tracking-tight hidden sm:block">
             Ahmed etap
           </span>
