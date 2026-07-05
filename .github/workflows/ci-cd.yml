@@ -535,7 +535,7 @@ jobs:
         env:
           HF_SPACE_URL: ${{ env.HF_SPACE_URL }}
         run: |
-          # SECURITY: use $HF_SPACE_URL env var instead of ${{ }} interpolation
+          # SECURITY: use $HF_SPACE_URL env var instead of GitHub Actions expression interpolation
           HTTP=$(curl -sf -o /dev/null -w "%{http_code}" "$HF_SPACE_URL"/health || echo "000")
           echo "Health: $HTTP"
           [ "$HTTP" != "000" ] && [ "$HTTP" -lt 500 ] || exit 1
@@ -544,7 +544,7 @@ jobs:
         env:
           HF_SPACE_URL: ${{ env.HF_SPACE_URL }}
         run: |
-          # SECURITY: use $HF_SPACE_URL env var instead of ${{ }} interpolation
+          # SECURITY: use $HF_SPACE_URL env var instead of GitHub Actions expression interpolation
           HTTP=$(curl -sf -o /dev/null -w "%{http_code}" "$HF_SPACE_URL"/ready || echo "000")
           echo "Ready: $HTTP"
           [ "$HTTP" != "000" ] && [ "$HTTP" -lt 500 ] || exit 1
