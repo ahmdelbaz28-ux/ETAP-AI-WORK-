@@ -1,6 +1,15 @@
 """
 Main entry point for the Engineering Service.
 This file now serves as the main application runner, delegating to the modular components.
+
+MEDIUM #17 (AhmedETAP_Error_Report_AR.pdf):
+`api/routes.py` is the CANONICAL FastAPI entry point for this service.
+This file (`engineering_service.py`) is a thin runner that imports
+`api.routes:app` and runs it via uvicorn. The historical duplicate
+FastAPI app in `api/refactored_service.py` is kept ONLY as a fallback
+for the `engineering-service` Docker image (Dockerfile.engineering-service)
+which still references it directly. New code should never create another
+FastAPI() instance — extend `api/routes.py` or attach routers to it.
 """
 
 import logging

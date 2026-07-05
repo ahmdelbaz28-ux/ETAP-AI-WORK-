@@ -81,7 +81,7 @@ app = FastAPI(
         "Covers Load Flow (IEEE 3002.7), Short Circuit (IEC 60909), Arc Flash (IEEE 1584), "
         "Protection Coordination (IEC 60255), Motor Starting (IEEE 399), Harmonics (IEEE 519), "
         "Transient Stability, Cable Sizing (IEC 60364), Ground Grid (IEEE 80), OPF, "
-        "SCADA (IEC 61850 via Zenon), and more - powered by 23+ specialized AI agents."
+        "SCADA (IEC 61850 via Zenon), and more - powered by 25 specialized AI agents."
     ),
     version=VERSION,
     contact={"name": "Eng. Ahmed Elbaz", "email": "ahmdelbaz28@gmail.com"},
@@ -335,13 +335,7 @@ async def etap_gui_chat(request: SharedETAPGUIChatRequest):
 
 
 @app.post("/api/v1/agents/etap-gui/execute", tags=["Agents"])
-async def etap_gui_execute(
-    question: str,
-    max_steps: int = 15,
-    require_confirmation: bool = True,
-    audit_dir: str | None = None,
-    start_url: str | None = None,
-):
+async def etap_gui_execute(request: Request):
     """Execute the REAL CUA Loop (Computer Use Agent).
 
     AUTO-DETECTS THE ENVIRONMENT:
@@ -356,8 +350,53 @@ async def etap_gui_execute(
     Required env vars:
       - GEMINI_API_KEY (for visual perception via Gemini Vision)
 
+    Request body (JSON):
+      {
+        "question": "Open ETAP and run load flow on the demo project",
+        "max_steps": 15,
+        "require_confirmation": true,
+        "audit_dir": null,
+        "start_url": "https://etap.com/login"
+      }
+
     See: agents/browser_cua_executor.py and integrations/gemini_vision.py
     """
+    # CRITICAL #4 fix (AhmedETAP_Error_Report_AR.pdf):
+    # Previously these were declared as function parameters, which made FastAPI
+    # treat them as query-string params (?question=...&max_steps=...) instead of
+    # a JSON request body. Callers sending a JSON body got 422 Unprocessable
+    # Entity. We now read the body explicitly so the OpenAPI schema documents
+    # the request as a JSON body, matching the README.hf.md examples.
+    try:
+        body = await request.json()
+    except Exception:
+        return JSONResponse(
+            status_code=400,
+            content={
+                "success": False,
+                "error": "Request body must be valid JSON.",
+                "expected_body": {
+                    "question": "string (required)",
+                    "max_steps": "int (default 15)",
+                    "require_confirmation": "bool (default true)",
+                    "audit_dir": "string | null",
+                    "start_url": "string | null",
+                },
+            },
+        )
+
+    question = body.get("question")
+    if not isinstance(question, str) or not question.strip():
+        return JSONResponse(
+            status_code=400,
+            content={"success": False, "error": "Field 'question' is required and must be a non-empty string."},
+        )
+
+    max_steps = int(body.get("max_steps", 15))
+    require_confirmation = bool(body.get("require_confirmation", True))
+    audit_dir = body.get("audit_dir")
+    start_url = body.get("start_url")
+
     from agents.etap_gui_agent import ETAPGUIAgent
 
     agent = ETAPGUIAgent()
@@ -560,6 +599,110 @@ async def etap_gui_siem_events(limit: int = 50):
 @app.get("/api/v1/studies/types", tags=["Studies"])
 async def study_types():
     return {"study_types": STUDY_TYPES}
+
+
+# -- CRITICAL #2 fix (AhmedETAP_Error_Report_AR.pdf):
+# These three endpoints were documented (TESTSPRITE_OVERVIEW.md, PROJECT_INDEX.md,
+# curl examples in README.hf.md) but missing from hf-space/app.py, causing HTTP 404
+# on HF Space. They delegate to shared handlers / lightweight in-process logic so
+# they work on cpu-basic HF hardware without external dependencies.
+
+@app.get("/api/v1/scada/live", tags=["SCADA"])
+async def scada_live():
+    """Return a snapshot of the latest SCADA telemetry.
+
+    On HF Space (cpu-basic, no Zenon runtime) this returns a deterministic
+    synthetic snapshot so dashboards and curl smoke tests can verify the
+    endpoint is wired up. A real Zenon-backed deployment would replace
+    this with `scada_etap_consumer.get_live_snapshot()`.
+    """
+    import time as _time
+
+    return {
+        "success": True,
+        "data": {
+            "timestamp": _time.strftime("%Y-%m-%dT%H:%M:%SZ", _time.gmtime()),
+            "source": "hf-space-synthetic",
+            "points": [
+                {"tag": "BUS1.V", "value": 1.02, "unit": "pu", "quality": "GOOD"},
+                {"tag": "BUS1.F", "value": 50.0, "unit": "Hz", "quality": "GOOD"},
+                {"tag": "FEEDER1.I", "value": 412.5, "unit": "A", "quality": "GOOD"},
+                {"tag": "XF1.P", "value": 2.8, "unit": "MW", "quality": "GOOD"},
+                {"tag": "XF1.Q", "value": 0.9, "unit": "MVAR", "quality": "GOOD"},
+            ],
+        },
+    }
+
+
+@app.get("/api/v1/digital-twin/status", tags=["Digital Twin"])
+async def digital_twin_status():
+    """Return the digital-twin sync status.
+
+    The digital twin is a logical mirror of the physical SCADA network.
+    On HF Space (no real SCADA feed) the twin is in `STANDBY` mode:
+    schema loaded, no live measurements ingested.
+    """
+    import time as _time
+
+    return {
+        "success": True,
+        "data": {
+            "timestamp": _time.strftime("%Y-%m-%dT%H:%M:%SZ", _time.gmtime()),
+            "state": "STANDBY",
+            "schema_version": "1.0.0",
+            "nodes": 0,
+            "edges": 0,
+            "last_sync": None,
+            "deployment_note": (
+                "Digital-twin live sync requires a real SCADA feed (Zenon / IEC 61850). "
+                "On HF Space the twin schema is loaded but no measurements are ingested."
+            ),
+        },
+    }
+
+
+@app.get("/api/v1/benchmark", tags=["Benchmark"])
+async def benchmark():
+    """Run a lightweight in-process benchmark and return timing metrics.
+
+    Useful for HF Space health/performance dashboards. Runs a small
+    NumPy matrix multiply + a JSON serialization round-trip and reports
+    the elapsed time. Does NOT require ETAP or GPU.
+    """
+    import json as _json
+    import time as _time
+
+    # Numpy is available in the HF image (it's in requirements.hf.txt).
+    try:
+        import numpy as np
+
+        size = 200
+        t0 = _time.perf_counter()
+        a = np.random.rand(size, size)
+        b = np.random.rand(size, size)
+        _ = a @ b
+        numpy_ms = (_time.perf_counter() - t0) * 1000.0
+        numpy_ok = True
+    except Exception as e:
+        numpy_ms = 0.0
+        numpy_ok = False
+        numpy_err = str(e)
+
+    t0 = _time.perf_counter()
+    payload = {"matrix_size": 200, "ok": numpy_ok}
+    _ = _json.dumps(payload)
+    json_ms = (_time.perf_counter() - t0) * 1000.0
+
+    return {
+        "success": True,
+        "data": {
+            "timestamp": _time.strftime("%Y-%m-%dT%H:%M:%SZ", _time.gmtime()),
+            "numpy_available": numpy_ok,
+            "numpy_matmul_ms": round(numpy_ms, 3),
+            "json_serialize_ms": round(json_ms, 3),
+            **({"numpy_error": numpy_err} if not numpy_ok else {}),
+        },
+    }
 
 
 @app.websocket("/ws/cua/confirmation")
