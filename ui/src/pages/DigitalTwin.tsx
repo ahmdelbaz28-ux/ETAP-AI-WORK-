@@ -4,6 +4,7 @@ import { Layers, RefreshCw, Activity, Box, HardDrive, Cpu, Wifi, WifiOff, AlertT
 import { Card, CardHeader, Badge, Button } from '../components/ui'
 import { cn } from '../utils/helpers'
 import { useNotify } from '../context/NotificationContext'
+import { API_BASE_URL } from '../lib/api-config'
 
 import { ContextHelpButton } from '../components/help/ContextHelpButton'
 interface SyncSource {
@@ -141,14 +142,6 @@ export default function DigitalTwin() {
   const [status, setStatus] = useState<DigitalTwinStatus | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-
-  // Resolve API base URL the same way api.ts / useAuth do.
-  const API_BASE_URL = (() => {
-    const env = (import.meta as unknown as { env?: Record<string, string> }).env
-    if (env?.VITE_API_URL) return env.VITE_API_URL
-    if (typeof window !== 'undefined' && window.location.hostname.endsWith('.hf.space')) return ''
-    return 'https://ahmdelbaz28-ahmedetap.hf.space'
-  })()
 
   const fetchStatus = useCallback(async () => {
     setLoading(true)
