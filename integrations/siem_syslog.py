@@ -313,7 +313,7 @@ class SIEMSyslogForwarder:
             <165>1 2026-06-30T12:34:56Z host01 AhmedETAP-CUA - lethal_block
             [AhmedETAP@1 action="click" target="disable protection"] LETHAL BLOCK
         """
-        # PRI = facility * 8 + severity
+        # PRI is computed as facility * 8 + severity (RFC 5424 §6.2.1)
         pri = facility * 8 + severity
         version = 1
         timestamp = datetime.datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ")

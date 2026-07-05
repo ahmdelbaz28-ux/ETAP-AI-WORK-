@@ -170,8 +170,8 @@ class TestDatabaseEngineCreation:
 
         # Force-import every module that registers a model with Base so
         # create_all() actually creates the tables.
-        import api.auth  # noqa: F401 — registers User
-        import api.projects  # noqa: F401 — registers Project, StudyResult
+        import api.auth  # noqa: F401  (registers User model)
+        import api.projects  # noqa: F401  (registers Project, StudyResult models)
         from api.database import Base
 
         # Build a standalone engine for this test — we don't touch the

@@ -90,7 +90,7 @@ class LoadBalancer:
                     if r <= cumulative:
                         return wid
                 return list(healthy.keys())[-1]
-            return list(healthy.keys())[0]
+            return next(iter(healthy.keys()))
 
     def get_worker_status(self, worker_id: str) -> dict[str, Any] | None:
         with self._lock:

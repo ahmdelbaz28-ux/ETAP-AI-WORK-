@@ -172,7 +172,7 @@ def validate_prompt_file(filepath: Path) -> tuple[bool, list[str]]:  # NOSONAR �
         issues.append(f"INFO: Large prompt ({total_chars} chars, ~{total_chars // 4} tokens)")
 
     return len(
-        [i for i in issues if i.startswith("CRITICAL:") or i.startswith("ERROR:")],
+        [i for i in issues if i.startswith("CRITICAL:", "ERROR:")],
     ) == 0, issues
 
 
@@ -200,7 +200,7 @@ def validate_all_prompts(strict: bool = False) -> bool:  # NOSONAR — S3776: co
             print(f"  ✗ {filepath.name}")
             for issue in issues:
                 prefix = "    "
-                if issue.startswith("CRITICAL:") or issue.startswith("ERROR:"):
+                if issue.startswith("CRITICAL:", "ERROR:"):
                     total_errors += 1
                     print(f"{prefix}❌ {issue}")
                 elif issue.startswith("WARNING:"):

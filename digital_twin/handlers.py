@@ -579,6 +579,8 @@ class DigitalTwinUpdateHandler(PropagationHandler):
             snapshot.validation_errors = [r.message for r in validation_results if not r.passed]
 
             if ctx.dt_state.system is not None and ctx.load_flow_solver is not None:
+                # NOSONAR — python:S7504: list() is intentional — creates a
+                # snapshot so we can mutate snapshot.bus_states during iteration.
                 for bid_str in list(snapshot.bus_states.keys()):
                     try:
                         bid_int = int(bid_str)

@@ -13,6 +13,7 @@ Commercial Power Systems Analysis" (Brown Book)
 """
 
 from dataclasses import dataclass
+from typing import Optional
 
 import numpy as np
 
@@ -36,7 +37,7 @@ class MotorParameters:
     r_rotor: float = 0.02  # Rotor resistance (per-unit)
     slip_rated: float = 0.03  # Rated slip
     base_mva: float = 100.0  # System base MVA
-    torque_speed_curve: dict = None  # Optional: {slip: torque_pu}
+    torque_speed_curve: Optional[dict] = None  # Optional: {slip: torque_pu}
 
     def __post_init__(self):
         """Calculate derived parameters."""

@@ -128,7 +128,9 @@ _DEFAULT_RULES: list[RASPRule] = [
     RASPRule(
         name="ldap_injection",
         pattern=re.compile(
-            r"(?i)(\*\)|\(\|\(|\(\&\(|\)omiconj|\)(\||&)\()",
+            # SonarCloud python:S6035: character class `[|&]` instead of
+            # alternation `(\||&)` for single-char alternatives.
+            r"(?i)(\*\)|\(\|\(|\(\&\(|\)omiconj|\)[|&]\()",
             re.IGNORECASE,
         ),
         action=RASPAction.BLOCK,

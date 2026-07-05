@@ -377,7 +377,7 @@ class ADMSControlEngine:
         # Find path from target feeder to section
         path = self.topology.find_path(
             to_root,
-            list(self.topology.section_buses.get(section_id, set()))[0]
+            next(iter(self.topology.section_buses.get(section_id, set())))
             if section_id in self.topology.section_buses
             else to_root,
         )

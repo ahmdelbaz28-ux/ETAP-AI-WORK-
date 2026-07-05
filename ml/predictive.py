@@ -556,6 +556,11 @@ class FaultPredictor:
                     else {
                         "n_estimators": 100,
                         "max_depth": 10,
+                        # SonarCloud python:S6973 + S6709: explicit values for
+                        # min_samples_leaf and max_features (recommended), and
+                        # an explicit random_state seed for reproducibility.
+                        "min_samples_leaf": 1,
+                        "max_features": "sqrt",
                         "random_state": 42,
                         "n_jobs": -1,
                     }
@@ -621,6 +626,10 @@ class FaultPredictor:
                 "n_estimators": trial.suggest_int("n_estimators", 50, 300),
                 "max_depth": trial.suggest_int("max_depth", 3, 20),
                 "min_samples_split": trial.suggest_int("min_samples_split", 2, 10),
+                # SonarCloud python:S6973 + S6709: explicit values for
+                # min_samples_leaf and max_features, and explicit random_state.
+                "min_samples_leaf": trial.suggest_int("min_samples_leaf", 1, 4),
+                "max_features": trial.suggest_categorical("max_features", ["sqrt", "log2"]),
                 "random_state": 42,
                 "n_jobs": -1,
             }
@@ -1057,7 +1066,14 @@ class PowerGridGNN:
         edge_idx = torch.LongTensor(edge_index)
         y = torch.FloatTensor(targets.reshape(-1, output_dim))
 
-        optimizer = torch.optim.Adam(self.model.parameters(), lr=lr)
+        optimizer = torch.optim.Adam(
+            self.model.parameters(),
+            lr=lr,
+            # SonarCloud python:S6973: explicit weight_decay (L2 reg) — the
+            # PyTorch default of 0 means no regularisation, which can cause
+            # overfitting on small graph datasets.
+            weight_decay=1e-4,
+        )
         criterion = torch.nn.MSELoss()
 
         self.model.train()

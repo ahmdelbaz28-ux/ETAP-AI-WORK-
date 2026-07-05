@@ -463,8 +463,10 @@ class OpenCVVisionClient:
         obj_lower = objective.lower()
 
         # Extract target text from objective (e.g., "click the Run button" → "Run")
+        # SonarCloud python:S6395: removed unnecessary non-capturing group
+        # around the trailing alternation.
         target_match = re.search(
-            r"(?:click|press|tap|hit)\s+(?:the\s+)?(?:['\"]?(\w[\w\s]*?)['\"]?\s+(?:button|link|tab|menu|item))",
+            r"(?:click|press|tap|hit)\s+(?:the\s+)?['\"]?(\w[\w\s]*?)['\"]?\s+(?:button|link|tab|menu|item)",
             obj_lower,
         )
         if target_match:

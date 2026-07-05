@@ -24,9 +24,9 @@ RUN pip install --no-cache-dir --upgrade pip && \
 # Application code — copy specific directories instead of recursive COPY
 # (SonarCloud S6470: avoid recursive COPY . . which can inadvertently
 # add sensitive data). We copy only what app.py needs at runtime.
-# SonarCloud S6504: --chmod=go-w makes files read-only for group/others
-# so a non-root user in the container can't tamper with the app code.
-COPY --chown=user:user --chmod=go-w app.py .
+# SonarCloud S6504: Files are owned by root (not the non-root `user`) so
+# the runtime container user can read+execute but CANNOT modify them.
+COPY --chown=root:root --chmod=go-w app.py .
 COPY --chown=user:user --chmod=go-w api/ ./api/
 COPY --chown=user:user --chmod=go-w agents/ ./agents/  # NOSONAR — S6470: .dockerignore excludes secrets
 COPY --chown=user:user core/ ./core/

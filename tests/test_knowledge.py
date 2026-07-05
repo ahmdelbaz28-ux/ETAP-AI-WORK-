@@ -27,7 +27,9 @@ try:
         )
 
         _HAS_KNOWLEDGE_DEPS = True
-except (ImportError, ModuleNotFoundError, RuntimeError):
+except (ImportError, RuntimeError):
+    # SonarCloud python:S5713: ModuleNotFoundError is a subclass of
+    # ImportError, so listing both is redundant.
     _HAS_KNOWLEDGE_DEPS = False
 
 pytestmark = pytest.mark.skipif(

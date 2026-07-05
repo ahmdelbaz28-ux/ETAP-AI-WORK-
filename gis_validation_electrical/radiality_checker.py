@@ -96,7 +96,8 @@ def validate_radiality(model: ElectricalModel) -> tuple[bool, list[RadialityIssu
     # Island detection: more than one component means electrical isolation exists.
     if len(comps) > 1:
         # Best-effort: treat the smallest component as isolated.
-        smallest = sorted(comps, key=lambda c: len(c))[0]
+        # SonarCloud python:S8517: min() instead of sort()[0] — O(n) vs O(n log n).
+        smallest = min(comps, key=lambda c: len(c))
         affected_edges = [
             e.edge_id
             for e in model.edges.values()

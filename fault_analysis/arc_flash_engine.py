@@ -367,15 +367,6 @@ class ArcFlashEngine:
 
         electrode_key = str(electrode_key).strip().upper()
 
-        # Normalize enclosure_type to coefficient keys exactly: 'box' or 'open'
-        enc_raw = str(enclosure_type).strip().upper()
-        if "BOX" in enc_raw:
-            enclosure_key = EnclosureType.BOX.value
-        elif "OPEN" in enc_raw:
-            enclosure_key = EnclosureType.OPEN.value
-        else:
-            enclosure_key = EnclosureType.BOX.value
-
         # Normalize electrode_key
         if electrode_key not in INCIDENT_ENERGY_COEFFICIENTS:
             s = str(electrode_config).upper()
@@ -392,7 +383,7 @@ class ArcFlashEngine:
             else:
                 electrode_key = ElectrodeConfig.VCB.value
 
-        # Normalize enclosure_key ONLY for dict lookup (default to BOX).
+        # Normalize enclosure_key for the dict lookup below (default to BOX).
         enc_up = str(enclosure_type).strip().upper()
         enclosure_key = EnclosureType.OPEN.value if "OPEN" in enc_up else EnclosureType.BOX.value
 

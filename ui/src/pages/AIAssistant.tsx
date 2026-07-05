@@ -19,6 +19,27 @@ interface Message {
   streaming?: boolean
 }
 
+/**
+ * Generate a short random suffix for React-key IDs.
+ *
+ * Uses the Web Crypto API (`crypto.getRandomValues`) when available — this is
+ * a CSPRNG and is what SonarCloud typescript:S2245 wants to see instead of
+ * `Math.random()`. Falls back to `Math.random()` ONLY in legacy environments
+ * (older than 2017 browsers / Node < 19) where the Web Crypto API is absent.
+ *
+ * These IDs are NOT used for security: they are React list keys + UI labels.
+ */
+function _safeRandomSuffix(): string {
+  const cryptoObj = globalThis.crypto as Crypto | undefined
+  if (cryptoObj?.getRandomValues) {
+    const buf = new Uint8Array(4)
+    cryptoObj.getRandomValues(buf)
+    return Array.from(buf, (b) => b.toString(16).padStart(2, '0')).join('').slice(0, 8)
+  }
+  // NOSONAR — typescript:S2245: legacy fallback only; IDs are UI-only
+  return Math.random().toString(36).slice(2, 10)
+}
+
 export default function AIAssistant() {
   const [, setAgents] = useState<AgentMeta[]>([])
   const [messages, setMessages] = useState<Message[]>([])
@@ -136,8 +157,8 @@ export default function AIAssistant() {
       return
     }
 
-    const userMsgId = `user-${Date.now()}-${(globalThis.crypto?.randomUUID?.() ?? Math.random().toString(36).slice(2, 8)).slice(-8)}`
-    const assistantMsgId = `assistant-${Date.now()}-${(globalThis.crypto?.randomUUID?.() ?? Math.random().toString(36).slice(2, 8)).slice(-8)}`
+    const userMsgId = `user-${Date.now()}-${_safeRandomSuffix()}`
+    const assistantMsgId = `assistant-${Date.now()}-${_safeRandomSuffix()}`
     const userMsg: Message = { id: userMsgId, role: 'user', content: input.trim(), timestamp: Date.now() }
     setMessages(prev => [...prev, userMsg])
     setInput('')
