@@ -47,10 +47,12 @@ RUN pip install --no-cache-dir --upgrade pip && \
 # On HF Spaces cpu-basic hardware, `--with-deps` can fail or exhaust disk.
 # We install WITHOUT deps (the apt-get deps were already installed above:
 # libnss3, libnspr4, libatk1.0-0, etc.) and make the install non-fatal.
+# The chmod + chown ensure the non-root 'user' can read the browser binaries.
 ENV PLAYWRIGHT_BROWSERS_PATH=/ms-playwright
 RUN playwright install chromium 2>&1 || \
     echo "⚠️ Playwright Chromium install failed — BrowserCUA will fall back to Format U" ; \
-    chmod -R 755 /ms-playwright 2>/dev/null || true
+    chmod -R 755 /ms-playwright 2>/dev/null || true ; \
+    chown -R user:user /ms-playwright 2>/dev/null || true
 
 # Application code — copy only what hf-space/app.py needs
 # SonarCloud S6504: Files are owned by root (not the non-root `user`) so the

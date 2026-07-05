@@ -66,6 +66,10 @@ data/
 docs/
 *.md
 !README.md
+# IMPORTANT: skills/*.md files ARE needed at runtime — they contain the
+# ETAP expert knowledge base, system prompts, and GUI agent instructions.
+# Loaded by agents/etap_expert_agent.py and agents/etap_gui_agent.py.
+!skills/*.md
 
 # Tests
 tests/
@@ -160,6 +164,10 @@ k6-load-test.js
 !pyproject.toml
 *.yml
 *.yaml
+# IMPORTANT: prompts/*.yaml files ARE needed at runtime — they contain
+# the 25 agent prompt definitions loaded by agents/prompt_loader.py.
+!prompts/*.yaml
+!prompts/*.prompt.yaml
 !docker-compose*.yml
 *.toml
 !pyproject.toml
