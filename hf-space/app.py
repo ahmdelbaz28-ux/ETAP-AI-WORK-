@@ -544,10 +544,10 @@ async def etap_gui_siem_health():
 async def etap_gui_siem_events(limit: int = 50):
     """Read recent SIEM events from the logging-only JSONL file on HF Space.
 
-    If SIEM logging is not configured (no SIEM_LOG_FILE env var), returns
-    an empty event list with a 200 status instead of an error. This makes
-    the endpoint safe to call from monitoring dashboards that poll it
-    periodically without breaking when logging is disabled.
+    Returns 400 if SIEM logging is not configured (SIEM_LOG_FILE env var
+    not set). This is the correct REST behavior — the resource (event log)
+    does not exist because logging was never enabled. Returning 200 with
+    an empty list would mask the misconfiguration from operators.
     """
     import json
     import os
@@ -555,15 +555,14 @@ async def etap_gui_siem_events(limit: int = 50):
     from integrations.siem_syslog import siem_forwarder
 
     if not siem_forwarder.logging_only or not siem_forwarder.log_file:
-        # Return empty list instead of error when logging is disabled
-        return {
-            "success": True,
-            "data": {
-                "events": [],
-                "total": 0,
-                "message": "SIEM logging not configured (set SIEM_LOG_FILE env var to enable)",
+        return JSONResponse(
+            status_code=400,
+            content={
+                "success": False,
+                "error": "logging_only_mode_not_active",
+                "message": "Set SIEM_LOG_FILE env var to enable event viewing",
             },
-        }
+        )
 
     log_path = siem_forwarder.log_file
     if not os.path.exists(log_path):
@@ -774,13 +773,17 @@ async def settings_test_key(provider: str, body: dict[str, Any] | None = Body(No
         )
 
     if not config:
+        # 404 is the correct REST response: the resource (stored key) does
+        # not exist. Returning 200 would mask the missing key from the
+        # caller. If they want to test a key without saving, they must
+        # provide it in the body (handled above).
+        hint = 'To test a key without saving, provide it in the request body: {"api_key": "sk-..."}'
         return JSONResponse(
-            status_code=200,
+            status_code=404,
             content={
                 "success": False,
                 "error": "key_not_found",
-                "message": f"No key for '{provider}'. Provide an 'api_key' in the request body to test directly.",
-                "hint": "POST a body like {\"api_key\": \"sk-...\"} to test without saving.",
+                "message": f"No key stored for '{provider}'. {hint}",
             },
         )
     try:
