@@ -1,8 +1,9 @@
-import { useState } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { motion } from 'framer-motion'
 import { Layers, RefreshCw, Activity, Box, HardDrive, Cpu, Wifi, WifiOff, AlertTriangle } from 'lucide-react'
 import { Card, CardHeader, Badge, Button } from '../components/ui'
 import { cn } from '../utils/helpers'
+import { useNotify } from '../context/NotificationContext'
 
 import { ContextHelpButton } from '../components/help/ContextHelpButton'
 interface SyncSource {
@@ -19,18 +20,16 @@ interface SystemStat {
   color: string
 }
 
-const syncSources: SyncSource[] = [
-  { name: 'SCADA Feed', status: 'offline', lastSync: '2h ago', records: 0 },
-  { name: 'GIS Feed', status: 'warning', lastSync: 'Never', records: 0 },
-  { name: 'ETAP Model', status: 'offline', lastSync: 'Not synced', records: 0 },
-]
-
-const systemStats: SystemStat[] = [
-  { label: 'Buses', value: 0, icon: <Box className="w-4 h-4" />, color: 'text-[var(--color-engine-voltage)]' },
-  { label: 'Lines', value: 0, icon: <Activity className="w-4 h-4" />, color: 'text-[var(--color-engine-impedance)]' },
-  { label: 'Loads', value: 0, icon: <HardDrive className="w-4 h-4" />, color: 'text-[var(--color-engine-current)]' },
-  { label: 'Generators', value: 0, icon: <Cpu className="w-4 h-4" />, color: 'text-[var(--color-engine-power)]' },
-]
+interface DigitalTwinStatus {
+  status: string
+  buses?: number
+  lines?: number
+  generators?: number
+  loads?: number
+  transformers?: number
+  sync_sources?: SyncSource[]
+  last_updated?: string
+}
 
 function DigitalTwinDiagram() {
   return (
@@ -137,17 +136,105 @@ function DigitalTwinDiagram() {
 }
 
 export default function DigitalTwin() {
+  const { notify } = useNotify()
   const [syncing, setSyncing] = useState(false)
+  const [status, setStatus] = useState<DigitalTwinStatus | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
-  const handleSync = () => {
+  // Resolve API base URL the same way api.ts / useAuth do.
+  const API_BASE_URL = (() => {
+    const env = (import.meta as unknown as { env?: Record<string, string> }).env
+    if (env?.VITE_API_URL) return env.VITE_API_URL
+    if (typeof window !== 'undefined' && window.location.hostname.endsWith('.hf.space')) return ''
+    return 'https://ahmdelbaz28-ahmedetap.hf.space'
+  })()
+
+  const fetchStatus = useCallback(async () => {
+    setLoading(true)
+    setError(null)
+    try {
+      const token = localStorage.getItem('authToken')
+      const r = await fetch(`${API_BASE_URL}/api/v1/digital-twin/status`, {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+        signal: AbortSignal.timeout(8000),
+      })
+      if (!r.ok) {
+        const text = await r.text().catch(() => 'Unknown error')
+        throw new Error(`API ${r.status}: ${text.substring(0, 100)}`)
+      }
+      const data = await r.json()
+      setStatus(data)
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : 'Unknown error'
+      setError(msg)
+    } finally {
+      setLoading(false)
+    }
+  }, [API_BASE_URL])
+
+  useEffect(() => {
+    fetchStatus()
+  }, [fetchStatus])
+
+  const handleSync = async () => {
     setSyncing(true)
-    setTimeout(() => setSyncing(false), 2000)
+    try {
+      // Re-fetch status as the sync operation. The backend digital-twin
+      // endpoint returns the current sync state; calling it again is the
+      // real refresh operation (no fake setTimeout).
+      await fetchStatus()
+      notify('success', 'Digital twin status refreshed')
+    } catch {
+      notify('error', 'Failed to sync digital twin')
+    } finally {
+      setSyncing(false)
+    }
   }
+
+  // Derive sync sources + system stats from the real API response.
+  // If the API returns no data (e.g. no system loaded), show empty/zero
+  // values rather than fake hardcoded sample data.
+  const syncSources: SyncSource[] = status?.sync_sources ?? []
+  const systemStats: SystemStat[] = [
+    { label: 'Buses', value: status?.buses ?? 0, icon: <Box className="w-4 h-4" />, color: 'text-[var(--color-engine-voltage)]' },
+    { label: 'Lines', value: status?.lines ?? 0, icon: <Activity className="w-4 h-4" />, color: 'text-[var(--color-engine-impedance)]' },
+    { label: 'Loads', value: status?.loads ?? 0, icon: <HardDrive className="w-4 h-4" />, color: 'text-[var(--color-engine-current)]' },
+    { label: 'Generators', value: status?.generators ?? 0, icon: <Cpu className="w-4 h-4" />, color: 'text-[var(--color-engine-power)]' },
+  ]
 
   const statusConfig = {
     online: { variant: 'success' as const, icon: <Wifi className="w-3 h-3" /> },
     offline: { variant: 'danger' as const, icon: <WifiOff className="w-3 h-3" /> },
     warning: { variant: 'warning' as const, icon: <AlertTriangle className="w-3 h-3" /> },
+  }
+
+  // Show loading state while fetching
+  if (loading && !status) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="flex flex-col items-center gap-3">
+          <div className="w-8 h-8 border-2 border-[var(--accent-primary)] border-t-transparent rounded-full animate-spin" />
+          <span className="text-sm text-[var(--text-muted)]">Loading digital twin status…</span>
+        </div>
+      </div>
+    )
+  }
+
+  // Show error state if fetch failed
+  if (error && !status) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-center max-w-md">
+          <AlertTriangle className="w-8 h-8 text-red-400 mx-auto mb-3" />
+          <p className="text-sm text-[var(--text-secondary)] mb-2">Failed to load digital twin status</p>
+          <p className="text-xs text-[var(--text-muted)] mb-4 font-mono">{error}</p>
+          <Button variant="secondary" size="sm" icon={RefreshCw} onClick={fetchStatus}>
+            Retry
+          </Button>
+        </div>
+      </div>
+    )
   }
 
   return (
