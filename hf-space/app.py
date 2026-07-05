@@ -81,7 +81,7 @@ def _utc_now_iso() -> str:
 
 # -- Lifespan -----------------------------------------------------------------
 @asynccontextmanager
-async def lifespan(app: FastAPI):
+async def lifespan(_app: FastAPI):
     logger.info("AhmedETAP v%s started on Hugging Face Spaces", VERSION)
     logger.info(
         "Knowledge base: %d ETAP manuals + %d Zenon guides", ETAP_MANUAL_COUNT, ZENON_GUIDE_COUNT,

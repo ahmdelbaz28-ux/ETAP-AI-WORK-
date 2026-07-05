@@ -115,7 +115,7 @@ class ChartGenerator:
             return chart_path
 
         except Exception as e:
-            self.logger.error("Failed to generate voltage chart: %s", e)
+            self.logger.exception("Failed to generate voltage chart: %s", e)
             return ""
 
     def generate_fault_current_bar_chart(self, fault_data: dict, output_path: str) -> str:
@@ -170,7 +170,7 @@ class ChartGenerator:
             return chart_path
 
         except Exception as e:
-            self.logger.error("Failed to generate fault chart: %s", e)
+            self.logger.exception("Failed to generate fault chart: %s", e)
             return ""
 
     def generate_harmonic_spectrum_chart(self, harmonic_data: dict, output_path: str) -> str:
@@ -198,7 +198,7 @@ class ChartGenerator:
             return chart_path
 
         except Exception as e:
-            self.logger.error("Failed to generate harmonic chart: %s", e)
+            self.logger.exception("Failed to generate harmonic chart: %s", e)
             return ""
 
 

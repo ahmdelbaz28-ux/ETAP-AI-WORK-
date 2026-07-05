@@ -84,8 +84,8 @@ class ETAPProviderAdapter(ETAPAdapter):
             except ImportError as e:
                 logger.warning(f"ETAP provider not available: {e}")
                 self._available = False
-            except Exception:
-                logger.exception("Error initializing ETAP provider: ")
+            except Exception as e:
+                logger.exception(f"Error initializing ETAP provider: {e}")
                 self._available = False
         else:
             logger.info("ETAP functionality disabled via USE_ETAP environment variable")
@@ -119,7 +119,7 @@ class ETAPProviderAdapter(ETAPAdapter):
             result = self._provider.execute_study(project_path, study_type)
             return result
         except Exception as e:
-            logger.exception("Error executing ETAP study: ")
+            logger.exception(f"Error executing ETAP study: {e}")
             return ETAPResult(success=False, data={}, errors=[str(e)], execution_time=0.0)
 
 

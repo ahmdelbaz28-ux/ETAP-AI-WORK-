@@ -348,7 +348,7 @@ def _validate_environment() -> None:
 
 
 @asynccontextmanager
-async def lifespan(app: Any) -> AsyncIterator[None]:
+async def lifespan(_app: Any) -> AsyncIterator[None]:
     """
     Lifespan context manager for application startup and shutdown events.
     """
