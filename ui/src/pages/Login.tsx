@@ -194,9 +194,9 @@ export default function Login() {
       <div className="etap-corner etap-corner-bl" aria-hidden="true" />
       <div className="etap-corner etap-corner-br" aria-hidden="true" />
 
-      {/* Top status bar */}
+      {/* Top status bar — hidden on mobile (too cramped at 375px) */}
       <motion.div
-        className="etap-topbar"
+        className="etap-topbar hidden md:flex"
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, delay: 1.2 }}
@@ -210,7 +210,7 @@ export default function Login() {
       </motion.div>
 
       {/* ============ MAIN LAYOUT ============ */}
-      <div className="relative z-10 w-full max-w-5xl grid lg:grid-cols-2 gap-8 items-center">
+      <div className="relative z-10 w-full max-w-5xl grid lg:grid-cols-2 gap-4 lg:gap-8 items-center">
 
         {/* LEFT: BRANDING */}
         <motion.div
@@ -279,7 +279,7 @@ export default function Login() {
           initial={{ opacity: 0, x: 30 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1], delay: 0.5 }}
-          className="etap-card-border bg-[var(--bg-card)] rounded-2xl border border-[var(--border-strong)] p-8 shadow-2xl shadow-black/40 backdrop-blur-xl relative"
+          className="etap-card-border bg-[var(--bg-card)] rounded-2xl border border-[var(--border-strong)] p-5 sm:p-6 md:p-8 shadow-2xl shadow-black/40 backdrop-blur-xl relative"
         >
           {/* Mobile logo */}
           <div className="lg:hidden flex items-center gap-3 mb-6">

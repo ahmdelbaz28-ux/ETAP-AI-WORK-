@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useLocation } from 'react-router-dom'
 import { X, ChevronRight, ChevronLeft, Zap, LayoutDashboard, FolderPlus, HelpCircle, Activity, CheckCircle } from 'lucide-react'
 import { cn } from '../../utils/helpers'
 
@@ -20,6 +20,7 @@ export function OnboardingTour() {
   const [currentStep, setCurrentStep] = useState(0)
   const [completed, setCompleted] = useState(false)
   const navigate = useNavigate()
+  const location = useLocation()
 
   const steps: TourStep[] = [
     {
@@ -78,13 +79,20 @@ export function OnboardingTour() {
   ]
 
   useEffect(() => {
+    // Don't show onboarding on auth pages (login/register) — users haven't
+    // seen the app yet, and the modal covers the login form on mobile.
+    const isAuthPage = location.pathname === '/login' || location.pathname === '/register'
+    if (isAuthPage) {
+      setShow(false)
+      return undefined
+    }
     const hasCompleted = localStorage.getItem(ONBOARDING_KEY)
     if (!hasCompleted) {
       const timer = setTimeout(() => setShow(true), 1000)
       return () => clearTimeout(timer)
     }
     return undefined  // QUALITY v2.1.1: explicit return for TS7030 (strict mode)
-  }, [])
+  }, [location.pathname])
 
   const handleNext = () => {
     if (currentStep < steps.length - 1) {
