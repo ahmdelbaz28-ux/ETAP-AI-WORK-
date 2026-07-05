@@ -6,7 +6,6 @@ Separated from main engineering service for better modularity.
 """
 
 import time
-from typing import Any
 
 from fastapi import APIRouter, Request
 from fastapi.responses import Response

@@ -36,9 +36,6 @@ def test_browser_cua_module_imports_cleanly():
 def test_browser_cua_reuses_cua_action_dataclass():
     """BrowserCUAExecutor must use the same CUAAction class as DesktopCUAExecutor
     so the contract is identical."""
-    from agents.browser_cua_executor import BrowserCUAExecutor
-    from agents.cua_executor import CUAAction
-
     # The browser executor imports CUAAction from the desktop executor
     # This guarantees the same parsing logic is shared.
     # NOTE: replaced `is not None` identity checks (SonarCloud S5727:
@@ -46,6 +43,8 @@ def test_browser_cua_reuses_cua_action_dataclass():
     # assertions that exercise the actual import path.
     import agents.browser_cua_executor as _bce_mod
     import agents.cua_executor as _ce_mod
+    from agents.browser_cua_executor import BrowserCUAExecutor
+    from agents.cua_executor import CUAAction
     assert hasattr(_bce_mod, "BrowserCUAExecutor")
     assert hasattr(_ce_mod, "CUAAction")
 

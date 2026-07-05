@@ -1,4 +1,5 @@
 import pytest  # added for S1244 float-equality fix
+
 """Tests for core/models.py — Universal Data Model core dataclasses."""
 
 import uuid
