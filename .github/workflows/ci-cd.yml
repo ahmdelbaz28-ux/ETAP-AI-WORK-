@@ -366,13 +366,20 @@ jobs:
           REPO=$(echo "$LOWER" | cut -d'/' -f2-)
           CLEAN_REPO=$(echo "$REPO" | sed -E 's/[-_.]+$//')
           IMAGE="${OWNER}/${CLEAN_REPO}"
+          # docker/metadata-action with type=sha produces tags like "sha-<short7>"
+          # (NOT the raw github.sha). We must use the same tag format here so
+          # Trivy can find the image that docker-build pushed.
+          SHORT_SHA=$(echo "${{ github.sha }}" | cut -c1-7)
+          TAG="sha-${SHORT_SHA}"
           echo "Sanitized: $RAW -> $IMAGE"
+          echo "Tag: $TAG (from github.sha=${{ github.sha }})"
           echo "image_name=$IMAGE" >> "$GITHUB_OUTPUT"
+          echo "image_tag=$TAG" >> "$GITHUB_OUTPUT"
 
       - name: Trivy container vulnerability scan
         uses: aquasecurity/trivy-action@master  # NOSONAR — S7637: GitHub Action pinning; SHA pinning in CI sprint
         with:
-          image-ref: ${{ env.REGISTRY }}/${{ steps.sanitize.outputs.image_name }}:${{ github.sha }}
+          image-ref: ${{ env.REGISTRY }}/${{ steps.sanitize.outputs.image_name }}:${{ steps.sanitize.outputs.image_tag }}
           format: 'sarif'
           output: 'trivy-results.sarif'
           severity: 'CRITICAL,HIGH'
@@ -387,7 +394,7 @@ jobs:
       - name: Generate SBOM (CycloneDX)
         uses: aquasecurity/trivy-action@master  # NOSONAR — S7637: GitHub Action pinning; SHA pinning in CI sprint
         with:
-          image-ref: ${{ env.REGISTRY }}/${{ steps.sanitize.outputs.image_name }}:${{ github.sha }}
+          image-ref: ${{ env.REGISTRY }}/${{ steps.sanitize.outputs.image_name }}:${{ steps.sanitize.outputs.image_tag }}
           format: 'cyclonedx'
           output: 'sbom.json'
 

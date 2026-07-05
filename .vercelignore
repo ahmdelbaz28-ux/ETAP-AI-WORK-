@@ -1,0 +1,119 @@
+# Vercel ignore file — excludes files NOT needed for the UI build.
+# Vercel only builds the UI (vite framework, output to ui/dist/).
+# Without this file, Vercel tries to upload the ENTIRE repo (5.3 GB)
+# including Python packages, ML models, and test data — exceeding the
+# 500 MB serverless function limit.
+
+# Python code (deployed to HF Space / Docker, not Vercel)
+api/
+agents/
+core/
+core_model/
+engine/
+load_flow/
+fault_analysis/
+coordination/
+relays/
+network_solver/
+services/
+utils/
+ai_context_engine/
+ml/
+integrations/
+security/
+guards/
+knowledge/
+reporting/
+visualization/
+copilot/
+monitoring/
+digital_twin/
+scada_model/
+curves/
+etap_integration/
+acp_runtime/
+adms_control/
+schemas/
+config/
+helm/
+terraform/
+docker/
+benchmark/
+worker/
+backend/
+tests/
+testsprite_tests/
+scripts/
+migrations/
+prompts/
+
+# Python environments and caches
+.venv/
+venv/
+env/
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+htmlcov/
+coverage/
+.coverage
+coverage.xml
+
+# Node (only ui/ is needed — already handled by installCommand)
+node_modules/
+
+# Data and ML models
+data/
+*.db
+*.sqlite
+*.h5
+*.pkl
+*.pt
+*.onnx
+*.ckpt
+
+# Documentation (not needed for UI build)
+docs/
+*.md
+!ui/README.md
+
+# CI/CD and config
+.github/
+.agents/
+.testsprite/
+.vercel/
+*.yml
+*.yaml
+!vercel.json
+
+# Large binary files
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.pdf
+*.zip
+*.tar
+*.gz
+*.whl
+
+# Project index (large JSON files)
+PROJECT_INDEX.*
+*.json
+!vercel.json
+!ui/package.json
+
+# Misc
+.git/
+.gitignore
+.bandit
+.trivyignore
+.pre-commit-config.yaml
+Dockerfile*
+docker-compose*
+Makefile
+pnpm-lock.yaml
