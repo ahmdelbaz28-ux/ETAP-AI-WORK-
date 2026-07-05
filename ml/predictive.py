@@ -150,7 +150,12 @@ class LoadForecaster:
         self.scaler: Any | None = None
         self._is_lstm: bool = False
         self._is_prophet: bool = False
-        self._window_size: int = 24
+        self._window_size: int = 24  # default sliding window for sequences
+        # When train() runs on a short sample we shrink the window for that
+        # training run. We persist the trained window here so predict() can
+        # use the same window the model was actually fit on. ``_window_size``
+        # stays at its default (24) for the next train() call.
+        self._trained_window_size: int | None = None
         self._fallback_weights: np.ndarray | None = None
         self._fallback_bias: float = 0.0
         self._fallback_mean: float = 0.0
@@ -176,13 +181,29 @@ class LoadForecaster:
         -------
         dict
             Training summary with ``method``, ``epochs``, and ``samples`` keys.
+
+        Notes
+        -----
+        The default sliding window is 24 timesteps, so the LSTM/Prophet paths
+        need at least ``2 * window_size = 48`` points to build supervised
+        sequences. When fewer points are provided we DO NOT reject the
+        request outright — instead we shrink the window to ``max(1, n // 2)``
+        and force the lightweight linear-regression backend, which can train
+        on as few as 4 points. This keeps the API usable for short samples
+        (e.g. 5-point smoke-test payloads) without breaking the LSTM path
+        for real workloads. A 4-point floor is enforced so the linear
+        solver has at least 2 sequences to fit (otherwise the normal
+        equations are degenerate).
         """
         if historical_data.ndim != 1:
             raise ValueError("historical_data must be a 1-D array")
 
-        if len(historical_data) < self._window_size * 2:
+        # 4-point floor: linear regression needs ≥ 2 sliding-window sequences
+        # to fit meaningfully. With window_size = max(1, n // 2), n=4 ⇒
+        # window_size = 2 ⇒ 2 sequences. Anything smaller raises ValueError.
+        if len(historical_data) < 4:
             raise ValueError(
-                f"Need at least {self._window_size * 2} data points, got {len(historical_data)}",
+                f"Need at least 4 data points, got {len(historical_data)}",
             )
 
         self._training_data = historical_data.copy()
@@ -195,6 +216,33 @@ class LoadForecaster:
                 method = "prophet"
             else:
                 method = "linear"
+
+        # ─── Short-sample handling ────────────────────────────────────────
+        # If the caller supplied fewer than 2 * window_size points, the
+        # LSTM/Prophet paths cannot build supervised sequences. Rather than
+        # reject (which forces clients to fabricate dummy data), shrink the
+        # window and downgrade to linear regression. We persist the trained
+        # window in ``_trained_window_size`` so ``predict()`` can use the
+        # same window the model was fit on, without mutating the default
+        # ``_window_size`` (which would leak into the next train() call).
+        effective_window = self._window_size
+        if len(historical_data) < self._window_size * 2:
+            # Shrink window to max(1, n // 2) and force linear method.
+            effective_window = max(1, len(historical_data) // 2)
+            method = "linear"
+            try:
+                import logging as _logging
+                _logging.getLogger(__name__).info(
+                    "LoadForecaster.train: short sample (%d points) — "
+                    "shrinking window to %d and forcing linear method",
+                    len(historical_data),
+                    effective_window,
+                )
+            except Exception:  # noqa: BLE001 — logging must never break training
+                pass
+
+        # Persist the trained window so predict() / _create_sequences() use it.
+        self._trained_window_size = effective_window
 
         if method == "lstm" and _HAS_TENSORFLOW:
             return self._train_lstm(historical_data, epochs)
@@ -268,12 +316,18 @@ class LoadForecaster:
         return {"method": "linear_regression", "epochs": 0, "samples": len(data)}
 
     def _create_sequences(self, data: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
-        """Create sliding-window sequences for supervised learning."""
+        """Create sliding-window sequences for supervised learning.
+
+        Uses ``self._trained_window_size`` when set (i.e. train() has been
+        called and may have shrunk the window for a short sample), otherwise
+        falls back to the default ``self._window_size``.
+        """
+        w = self._trained_window_size or self._window_size
         X: list[np.ndarray] = []
         y: list[float] = []
-        for i in range(len(data) - self._window_size):
-            X.append(data[i : i + self._window_size])
-            y.append(data[i + self._window_size])
+        for i in range(len(data) - w):
+            X.append(data[i : i + w])
+            y.append(data[i + w])
         X_arr = np.array(X)  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         y_arr = np.array(y)
         if self._is_lstm or (_HAS_TENSORFLOW and not self._is_prophet):
@@ -319,8 +373,15 @@ class LoadForecaster:
         return result
 
     def _predict_linear(self, horizon_hours: int) -> np.ndarray:
-        """Autoregressive linear regression prediction."""
-        window = np.zeros(self._window_size)
+        """Autoregressive linear regression prediction.
+
+        The window length MUST match the length of ``_fallback_weights``
+        (i.e. the window the model was actually trained on). When train()
+        shrank the window for a short sample, ``_trained_window_size`` holds
+        that smaller value; otherwise we use the default ``_window_size``.
+        """
+        w = self._trained_window_size or self._window_size
+        window = np.zeros(w)
         predictions: list[float] = []
         for _ in range(horizon_hours):
             next_val = float(window @ self._fallback_weights + self._fallback_bias)
@@ -336,8 +397,9 @@ class LoadForecaster:
 
     def evaluate(self, test_data: np.ndarray) -> dict[str, float]:
         """Evaluate model accuracy on test data."""
-        if len(test_data) < self._window_size + 1:
-            raise ValueError(f"Need at least {self._window_size + 1} test data points")
+        w = self._trained_window_size or self._window_size
+        if len(test_data) < w + 1:
+            raise ValueError(f"Need at least {w + 1} test data points")
 
         actuals: list[float] = []
         preds: list[float] = []
