@@ -130,7 +130,7 @@ jobs:
         run: |
           mkdir -p load-test-results/k6
 
-          # SECURITY: pass user-controlled inputs via env vars (not ${{ }} interpolation)
+          # SECURITY: pass user-controlled inputs via env vars (not GitHub Actions expression interpolation)
           # to prevent shell injection from malicious workflow_dispatch inputs
           k6 run \
             --out json=load-test-results/k6/summary.json \
@@ -303,7 +303,7 @@ jobs:
         run: |
           mkdir -p load-test-results/locust
 
-          # SECURITY: all user inputs come from env vars (not ${{ }} interpolation)
+          # SECURITY: all user inputs come from env vars (not GitHub Actions expression interpolation)
           locust \
             -f locustfile.py \
             --host="$LOCUST_HOST" \
