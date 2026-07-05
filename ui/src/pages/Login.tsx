@@ -28,8 +28,8 @@ export default function Login() {
   const navigate = useNavigate()
   const { notify } = useNotify()
   const { login } = useAuth()
-  const [email, setEmail] = useState('ahmed.elbaz@etap.ai')
-  const [password, setPassword] = useState('demo1234')
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
   const [authError, setAuthError] = useState<string | null>(null)
@@ -43,36 +43,13 @@ export default function Login() {
     setLoading(true)
     setAuthError(null)
     try {
-      // 1. Try real backend authentication first
       await login(email, password)
       notify('success', 'Welcome back!')
       navigate('/dashboard')
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Unknown error'
-      // 2. Detect network errors (backend unreachable) — fall back to demo mode
-      const isNetworkError =
-        message.toLowerCase().includes('failed to fetch') ||
-        message.toLowerCase().includes('network') ||
-        message.toLowerCase().includes('load failed')
-      if (isNetworkError) {
-        // Demo fallback — backend is not reachable (local dev / preview env)
-        await new Promise(r => setTimeout(r, 600))
-        localStorage.setItem('authToken', 'demo-token-' + Date.now())
-        localStorage.setItem('etap-user', JSON.stringify({
-          id: '1',
-          email,
-          name: 'Eng. Ahmed Elbaz',
-          role: 'Administrator',
-        }))
-        setAuthError('Backend unreachable — signed in via Demo Mode. Backend authentication will be used when the API is available.')
-        notify('warning', 'Backend unreachable — using Demo Mode')
-        // Brief delay so the user sees the warning, then navigate
-        setTimeout(() => navigate('/dashboard'), 1200)
-      } else {
-        // 3. Real auth failure (401, 400, etc.) — show the backend error
-        setAuthError(message)
-        notify('error', `Login failed: ${message}`)
-      }
+      setAuthError(message)
+      notify('error', `Login failed: ${message}`)
     } finally {
       setLoading(false)
     }
@@ -295,35 +272,16 @@ export default function Login() {
             <p className="text-sm text-[var(--text-tertiary)] mt-1">Sign in to your engineering account</p>
           </div>
 
-          {/* Demo banner */}
-          <div className="etap-shine relative overflow-hidden bg-brand-500/10 border border-brand-500/20 rounded-lg p-3 mb-4 flex items-start gap-3">
-            <span className="inline-block w-2 h-2 rounded-full bg-amber-500 shadow-[0_0_10px_#f59e0b] mt-1.5 animate-pulse flex-shrink-0" />
-            <div className="text-xs">
-              <p className="text-brand-400 font-semibold mb-0.5">Demo Mode Active</p>
-              <p className="text-[var(--text-secondary)]">
-                Use the pre-filled credentials or any email/password to sign in. Real backend auth is attempted first; Demo Mode is the fallback when the API is unreachable.
-              </p>
-            </div>
-          </div>
-
-          {/* Auth error / warning banner */}
+          {/* Auth error banner */}
           {authError && (
             <motion.div
               initial={{ opacity: 0, y: -8 }}
               animate={{ opacity: 1, y: 0 }}
-              className={`relative overflow-hidden rounded-lg p-3 mb-4 flex items-start gap-3 ${
-                authError.includes('Demo Mode')
-                  ? 'bg-amber-500/10 border border-amber-500/30'
-                  : 'bg-red-500/10 border border-red-500/30'
-              }`}
+              className="relative overflow-hidden rounded-lg p-3 mb-4 flex items-start gap-3 bg-red-500/10 border border-red-500/30"
               role="alert"
             >
-              <AlertCircle className={`w-4 h-4 mt-0.5 flex-shrink-0 ${
-                authError.includes('Demo Mode') ? 'text-amber-400' : 'text-red-400'
-              }`} />
-              <p className={`text-xs ${
-                authError.includes('Demo Mode') ? 'text-amber-300' : 'text-red-300'
-              }`}>
+              <AlertCircle className="w-4 h-4 mt-0.5 flex-shrink-0 text-red-400" />
+              <p className="text-xs text-red-300">
                 {authError}
               </p>
             </motion.div>
@@ -419,7 +377,7 @@ export default function Login() {
           {/* Version */}
           <div className="mt-6 pt-4 border-t border-[var(--border-primary)] text-center">
             <p className="text-[10px] text-[var(--text-muted)] font-mono tracking-wider">
-              AhmedETAP v2.1.0 · Demo Build · 2026
+              AhmedETAP v2.1.0 · 2026
             </p>
           </div>
         </motion.div>
