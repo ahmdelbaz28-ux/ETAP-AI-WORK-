@@ -19,7 +19,7 @@ concurrency:
 env:
   PYTHON_VERSION: '3.12'
   NODE_VERSION: '20'
-  HF_SPACE_URL: https://ahmdelbaz28-ahmedetap.hf.space
+  HF_SPACE_URL: https://ahmdelbaz28-ahmedetap-platform.hf.space
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
 
@@ -459,7 +459,7 @@ jobs:
     if: github.ref == 'refs/heads/main'
     environment:
       name: production-hf
-      url: https://huggingface.co/spaces/ahmdelbaz28/AHMEDETAP
+      url: https://huggingface.co/spaces/ahmdelbaz28/AhmedETAP-Platform
 
     steps:
       - uses: actions/checkout@v4
@@ -529,12 +529,12 @@ jobs:
               ".testsprite/**",
           ]
 
-          print("🚀 Uploading to HF Space: ahmdelbaz28/AHMEDETAP")
+          print("🚀 Uploading to HF Space: ahmdelbaz28/AhmedETAP-Platform")
           # NOTE: huggingface_hub renamed `folder_id` → `repo_id` in v0.12+
           # (the old name was deprecated and removed in newer versions).
           # Using `repo_id` is forward-compatible with all current releases.
           result = api.upload_folder(
-              repo_id="ahmdelbaz28/AHMEDETAP",
+              repo_id="ahmdelbaz28/AhmedETAP-Platform",
               folder_path=".",
               repo_type="space",
               ignore_patterns=ignore_patterns,
@@ -571,7 +571,7 @@ jobs:
               exit(0)
 
           api  = HfApi(token=hf_token)
-          repo = "ahmdelbaz28/AHMEDETAP"
+          repo = "ahmdelbaz28/AhmedETAP-Platform"
 
           secrets_to_set = {
               "LANGWATCH_API_KEY":     os.environ.get("LANGWATCH_API_KEY", ""),

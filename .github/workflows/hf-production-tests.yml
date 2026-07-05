@@ -33,7 +33,7 @@ jobs:
           # SECURITY: download to a temp file first, then parse.
           # Avoids curl|bash pattern that could execute malicious JSON
           # if the endpoint is compromised or DNS-hijacked.
-          HF_STATUS_URL="https://huggingface.co/api/spaces/ahmdelbaz28/AHMEDETAP"
+          HF_STATUS_URL="https://huggingface.co/api/spaces/ahmdelbaz28/AhmedETAP-Platform"
           for i in $(seq 1 30); do
             # Download to temp file with -f (fail on HTTP errors) and -m (max-time 15s)
             if curl -sf -m 15 -o /tmp/hf-status.json "$HF_STATUS_URL"; then
