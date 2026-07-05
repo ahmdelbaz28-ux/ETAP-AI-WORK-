@@ -483,7 +483,7 @@ jobs:
 
           print("🚀 Uploading to HF Space: ahmdelbaz28/AHMEDETAP")
           result = api.upload_folder(
-              folder_id="ahmdelbaz28/AHMEDETAP",
+              repo_id="ahmdelbaz28/AHMEDETAP",
               folder_path=".",
               repo_type="space",
               ignore_patterns=ignore_patterns,
