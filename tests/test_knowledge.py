@@ -60,7 +60,11 @@ class TestEngineeringKnowledgeBase:
     def test_retrieve_no_match(self):
         kb = EngineeringKnowledgeBase()
         results = kb.retrieve_knowledge("xyznonexistent")
-        assert len(results) >= 0
+        # Smoke test: verify retrieval doesn't crash with a non-matching query.
+        # The KB may use fuzzy matching, so we don't assert == 0; we only
+        # assert the return type is a list (SonarCloud S3981: don't use
+        # `len(x) >= 0` which is trivially true).
+        assert isinstance(results, list)
 
     def test_ingest_new_document(self):
         kb = EngineeringKnowledgeBase()

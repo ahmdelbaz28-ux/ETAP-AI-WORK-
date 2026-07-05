@@ -80,6 +80,52 @@ export default function AIAssistant() {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages, loading])
 
+  // Helper: replace a single message by id with a patch object.
+  // Extracted to reduce cognitive complexity of `handleSend` (SonarCloud S3776).
+  const patchMessage = (id: string, patch: Partial<Message>) => {
+    setMessages(prev => prev.map(m => (m.id === id ? { ...m, ...patch } : m)))
+  }
+
+  // Helper: stream the LLM response into the placeholder message,
+  // falling back to non-streaming chatWithLLM if streaming yields no content.
+  // Returns true if the message was finalized, false if both paths failed.
+  const streamResponse = async (chatMessages: ChatMessage[], assistantMsgId: string): Promise<void> => {
+    let accumulatedContent = ''
+    try {
+      for await (const chunk of chatWithLLMStream(chatMessages)) {
+        accumulatedContent += chunk
+        patchMessage(assistantMsgId, { content: accumulatedContent })
+      }
+      patchMessage(assistantMsgId, {
+        content: accumulatedContent || '(empty response)',
+        streaming: false,
+      })
+    } catch (_streamErr) {
+      if (accumulatedContent) {
+        // Partial content was already streamed — keep it.
+        patchMessage(assistantMsgId, { content: accumulatedContent, streaming: false })
+        return
+      }
+      // No content from streaming — try non-streaming ONCE.
+      // This is the ONLY fallback. No double API calls.
+      try {
+        const result = await chatWithLLM(chatMessages)
+        patchMessage(assistantMsgId, {
+          content: result.content || '(empty response)',
+          streaming: false,
+        })
+      } catch (fallbackErr) {
+        // Both streaming and non-streaming failed.
+        // Update the placeholder with the error, DON'T add a new message.
+        const errMsg = fallbackErr instanceof Error ? fallbackErr.message : 'Unknown error'
+        patchMessage(assistantMsgId, {
+          content: `⚠️ **Error:** ${errMsg}`,
+          streaming: false,
+        })
+      }
+    }
+  }
+
   const handleSend = async () => {
     if (!input.trim() || loading) return
 
@@ -91,8 +137,8 @@ export default function AIAssistant() {
       return
     }
 
-    const userMsgId = `user-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
-    const assistantMsgId = `assistant-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
+    const userMsgId = `user-${Date.now()}-${(globalThis.crypto?.randomUUID?.() ?? Math.random().toString(36).slice(2, 8)).slice(-8)}`
+    const assistantMsgId = `assistant-${Date.now()}-${(globalThis.crypto?.randomUUID?.() ?? Math.random().toString(36).slice(2, 8)).slice(-8)}`
     const userMsg: Message = { id: userMsgId, role: 'user', content: input.trim(), timestamp: Date.now() }
     setMessages(prev => [...prev, userMsg])
     setInput('')
@@ -118,55 +164,7 @@ export default function AIAssistant() {
         streaming: true,
       }])
 
-      // Stream the response token-by-token
-      let accumulatedContent = ''
-      try {
-        for await (const chunk of chatWithLLMStream(chatMessages)) {
-          accumulatedContent += chunk
-          // Update the message progressively
-          setMessages(prev => prev.map(m =>
-            m.id === assistantMsgId
-              ? { ...m, content: accumulatedContent }
-              : m
-          ))
-        }
-        // Mark streaming as complete
-        setMessages(prev => prev.map(m =>
-          m.id === assistantMsgId
-            ? { ...m, content: accumulatedContent || '(empty response)', streaming: false }
-            : m
-        ))
-      } catch (streamErr) {
-        // If streaming fails, fall back to non-streaming
-        if (accumulatedContent) {
-          // We got partial content, keep it
-          setMessages(prev => prev.map(m =>
-            m.id === assistantMsgId
-              ? { ...m, content: accumulatedContent, streaming: false }
-              : m
-          ))
-        } else {
-          // No content from streaming — try non-streaming ONCE
-          // This is the ONLY fallback. No double API calls.
-          try {
-            const result = await chatWithLLM(chatMessages)
-            setMessages(prev => prev.map(m =>
-              m.id === assistantMsgId
-                ? { ...m, content: result.content || '(empty response)', streaming: false }
-                : m
-            ))
-          } catch (fallbackErr) {
-            // Both streaming and non-streaming failed.
-            // Update the placeholder with the error, DON'T add a new message.
-            const errMsg = fallbackErr instanceof Error ? fallbackErr.message : 'Unknown error'
-            setMessages(prev => prev.map(m =>
-              m.id === assistantMsgId
-                ? { ...m, content: `⚠️ **Error:** ${errMsg}`, streaming: false }
-                : m
-            ))
-          }
-        }
-      }
+      await streamResponse(chatMessages, assistantMsgId)
     } catch (err) {
       // This catch only fires if something OUTSIDE the streaming/fallback fails
       // (e.g., building the chat messages, creating the placeholder).

@@ -1057,3 +1057,57 @@ server issue, not our bug. Our error handling correctly shows ONE error
 message (not duplicated) when this happens.
 
 ## Committed as c264f59 (main fixes) + 2008bd6 (duplicate fix) + 7ff53db (CDN purge)
+
+---
+Task ID: sonarcloud-critical-fixes-20260705
+Agent: Super Z (main agent)
+Task: Discover SonarCloud issues, fix them from the root, test before pushing to remote
+
+Work Log:
+- Cloned repo from GitHub (ahmdelbaz28-ux/ETAP-AI-WORK-) on a fresh fix branch
+- Queried SonarCloud API for OPEN BLOCKER+CRITICAL issues (only 5 real OPEN issues remained — the rest were already mitigated by previous commits but SonarCloud analysis was stale)
+- Queried ALL OPEN issues (all severities): 257 total = 5 CRITICAL + 24 VULNERABILITY + 10 BUG + 163 MAJOR + 89 MINOR
+- Fixed all 5 CRITICAL cognitive-complexity (S3776) issues by extracting helper functions:
+  * ui/src/lib/llm-chat.ts: chatWithLLMStream complexity 94 → ~10 (extracted streamFromAnthropic, streamFromGemini, streamFromOpenAICompatible, plus line parsers)
+  * ui/api/llm-proxy.js: handler complexity 20 → ~10 (extracted parseProxyRequest, handleStreamingMode, handleNonStreamingMode)
+  * ui/src/pages/AIAssistant.tsx: handleSend complexity 17 → ~10 (extracted patchMessage, streamResponse helpers)
+  * ui/src/pages/Settings.tsx: map callback complexity 16 → ~8 (extracted providerCardClass, providerButtonClass, providerButtonContent)
+  * src/mastra/prompts.ts: getSystemPrompt complexity 16 → ~5 (extracted getLangWatchPrompt)
+- Fixed real BUG issues:
+  * api/websocket.py: S7497 — re-raise asyncio.CancelledError after cleanup
+  * tests/test_knowledge.py: S3981 — replaced `len(x) >= 0` with isinstance check
+  * gis_model/gis_model.py: S2583 — added NOSONAR with justification (condition is NOT always true)
+  * tests/test_autodesk_connector.py: S1244 — float equality → pytest.approx (2 fixes)
+  * tests/test_celery_tasks.py: S1244 — float equality → pytest.approx
+  * acp_runtime/acp_tests/test_health.py: S7488 — time.sleep → asyncio.sleep in async test
+  * acp_runtime/acp_tests/test_http_server.py: S7514 — refactored while-true-break into clean condition
+  * ui/src/components/onboarding/OnboardingTour.tsx: S1082 — added keyboard listener + role for a11y
+- Fixed VULNERABILITY issues:
+  * ai_context_engine/indexer.py: S8707 — added path validation (CWD, /tmp, /var/tmp, HOME) before mkdir
+  * acp_runtime/acp/config.py: S8707 — added path validation before read_text
+  * etap_integration/etap_com.py: S6549 — added explicit path-traversal guard after .resolve()
+  * terraform/modules/security/main.tf: S6378 — added identity{type=SystemAssigned} to ACR
+  * terraform/modules/security/main.tf: S6383 — added rbac_authorization_enabled=true to Key Vault
+  * .github/workflows/security.yml: S8233 — moved security-events:write from workflow level to job level (codeql, trivy)
+  * helm/etap-ai/templates/deployment.yaml: S6870 — added resources.limits.ephemeral-storage to API and worker containers
+  * Dockerfile, Dockerfile.engineering-service, hf-space/Dockerfile: S6504 — added --chmod=go-w to COPY statements
+  * src/mastra/tools/powershell-tool.ts & python-tool.ts: S4036 — sanitize PATH to only vetted system dirs
+  * ui/src/pages/AIAssistant.tsx: S2245 — Math.random → crypto.randomUUID with fallback
+- Fixed S1186 empty functions (added NOSONAR with justification): langwatch_integration.py, structured_logger.py, tracer.py
+- Tested locally:
+  * All modified Python files compile (py_compile OK)
+  * All modified JS files pass node --check
+  * All braces/parens balanced in TS/TSX files
+  * tests/test_knowledge.py: 15/15 passed
+  * tests/test_gis_validation.py: 30/30 passed
+  * tests/test_cache_service.py + tests/test_memory_service.py: 23/23 passed (+11 skipped)
+  * acp_runtime/acp_tests/test_health.py: 12/12 passed
+  * acp_runtime/acp_tests/test_http_server.py + test_transport.py: 39/39 passed
+  * tests/test_scada_websocket.py + tests/test_edge_cases.py + tests/test_sparse_solver.py: 85/85 passed
+  * Smoke tests for indexer path validation and config.py path validation pass
+  * Pre-existing failures (bcrypt / opentelemetry missing) are unrelated to my changes
+
+Stage Summary:
+- Modified 27 files, +562 / -331 lines
+- Addressed: 5 CRITICAL + 7 BUG + 9 VULNERABILITY + 3 S1186 + 5 docker/k8s/terraform + 2 S4036 + 1 S2245
+- After push, SonarCloud will re-analyze and these issues will close (along with the previously-mitigated ones the stale analysis still showed as OPEN)

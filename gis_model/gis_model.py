@@ -139,7 +139,7 @@ class PolylineGeometry:
             return GeoCoordinate(0, 0)
         if fraction <= 0:
             return self.coordinates[0]
-        if fraction >= 1:
+        if fraction >= 1:  # NOSONAR — pythonbugs:S2583: not always true; fraction is in (0, +inf) at this point, this branch catches [1, +inf)
             return self.coordinates[-1]
         total = self.total_length_meters()
         target = fraction * total

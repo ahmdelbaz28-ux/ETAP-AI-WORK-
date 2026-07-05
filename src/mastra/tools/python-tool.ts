@@ -15,9 +15,19 @@ export const run_python = createTool({
     return new Promise<string>((resolve, reject) => {
       const secureExecutorPath = 'security/secure_executor.py';
 
-      // Use spawn instead of execFile to pass code via stdin (prevents shell injection)
+      // Use spawn instead of execFile to pass code via stdin (prevents shell injection).
+      // SonarCloud S4036: explicitly sanitize PATH to only well-known system
+      // directories so a malicious user can't shadow `python` with a trojan.
+      const safePath = ['/usr/local/bin', '/usr/bin', '/bin', '/usr/local/sbin', '/usr/sbin', '/sbin']
+        .filter((p) => process.env.PATH?.includes(p))
+        .join(':');
       const child = spawn('python', [secureExecutorPath], {
-        env: { ...process.env, PYTHONDONTWRITEBYTECODE: '1', PYTHONUNBUFFERED: '1' },
+        env: {
+          ...process.env,
+          PATH: safePath || process.env.PATH,
+          PYTHONDONTWRITEBYTECODE: '1',
+          PYTHONUNBUFFERED: '1',
+        },
         stdio: ['pipe', 'pipe', 'pipe'],
         timeout: PYTHON_TIMEOUT_MS,
       });

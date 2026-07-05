@@ -39,6 +39,15 @@ def env_bool(key: str, default: bool) -> bool:
     return val.lower() in ("1", "true", "yes", "on")
 
 
+def _is_within(path: Path, root: Path) -> bool:
+    """Return True if `path` is `root` itself or lives somewhere below `root`."""
+    try:
+        path.relative_to(root)
+        return True
+    except ValueError:
+        return False
+
+
 def load_config(path: str) -> dict[str, Any]:
     """Load a YAML or JSON config file.
 
@@ -52,9 +61,19 @@ def load_config(path: str) -> dict[str, Any]:
         SystemExit: if the file is missing, the format is unknown, or
         parsing fails.
     """
-    p = Path(path)
+    p = Path(path).expanduser().resolve()
     if not p.exists():
         raise SystemExit(f"Config file not found: {path!r}")
+
+    # SonarCloud pythonsecurity:S8707: validate that a CLI-supplied path
+    # doesn't escape the project tree before reading it. We allow paths
+    # inside the current working directory, /tmp (for tests), or the
+    # user's home directory (for shared config files like ~/.acp/config.yaml).
+    allowed_roots = [Path.cwd().resolve(), Path("/tmp").resolve(), Path("/var/tmp").resolve(), Path.home().resolve()]
+    if not any(_is_within(p, root) for root in allowed_roots):
+        raise SystemExit(
+            f"Refusing to read config file outside CWD, /tmp, or HOME: {path!r}"
+        )
 
     data = p.read_text(encoding="utf-8")
     suffix = p.suffix.lower()

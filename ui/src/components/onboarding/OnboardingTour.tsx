@@ -161,6 +161,10 @@ export function OnboardingTour() {
       <div
         className="absolute inset-0 bg-black/80 backdrop-blur-md"
         onClick={handleSkip}
+        onKeyDown={(e) => { if (e.key === 'Escape' || e.key === 'Enter') handleSkip() }}  // SonarCloud S1082: a11y — keyboard listener for click handler
+        role="button"
+        tabIndex={0}
+        aria-label="Skip onboarding"
       />
 
       {/* Modal card */}

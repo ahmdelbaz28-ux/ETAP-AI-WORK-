@@ -82,6 +82,12 @@ spec:
             - name: tmp-data
               mountPath: /tmp/data
           resources:
+            # SonarCloud kubernetes:S6870: explicit ephemeral-storage limit
+            # so a runaway log writer can't fill the node's writable layer.
+            limits:
+              ephemeral-storage: "2Gi"
+            requests:
+              ephemeral-storage: "512Mi"
             {{- toYaml .Values.api.resources | nindent 12 }}
       volumes:
         - name: app-logs
@@ -175,6 +181,12 @@ spec:
             - name: tmp-data
               mountPath: /tmp/data
           resources:
+            # SonarCloud kubernetes:S6870: explicit ephemeral-storage limit
+            # so a runaway worker can't fill the node's writable layer.
+            limits:
+              ephemeral-storage: "5Gi"
+            requests:
+              ephemeral-storage: "1Gi"
             {{- toYaml .Values.worker.resources | nindent 12 }}
       volumes:
         - name: app-logs

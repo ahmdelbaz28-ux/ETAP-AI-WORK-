@@ -303,14 +303,16 @@ async def test_http_405():
             ).encode()
             await client.send(request)
             response = b""
-            while True:
+            # Read until EOF or empty chunk. Refactored to use a single
+            # loop condition instead of `while True` + `break` (SonarCloud S7514).
+            chunk = b"init"
+            while chunk:
                 try:
                     chunk = await client.receive(4096)
                 except anyio.EndOfStream:
-                    break
-                if not chunk:
-                    break
-                response += chunk
+                    chunk = b""
+                if chunk:
+                    response += chunk
         finally:
             await client.aclose()
 

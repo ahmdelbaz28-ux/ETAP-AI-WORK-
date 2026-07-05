@@ -577,101 +577,123 @@ async function diagnoseHttpError(
 
 // ─── Streaming support ───────────────────────────────────────────
 // Streams the response token-by-token for a typewriter effect.
+//
+// The main `chatWithLLMStream` is a thin dispatcher that picks the right
+// provider-specific streaming helper. Each helper is a small, focused
+// async generator so SonarCloud cognitive complexity stays under 15
+// (S3776). The original monolithic function was at complexity 94.
 
-export async function* chatWithLLMStream(
+async function* streamFromAnthropic(
+  provider: ProviderConfig,
   messages: ChatMessage[],
-  config?: Partial<ProviderConfig>
 ): AsyncGenerator<string, void, unknown> {
-  const provider = config
-    ? { ...getActiveProvider()!, ...config }
-    : getActiveProvider()
+  const endpoint = `${provider.baseUrl}/messages`
+  const systemMsg = messages.find(m => m.role === 'system')?.content || ''
+  const chatMessages = messages.filter(m => m.role !== 'system')
 
-  if (!provider || !provider.apiKey) {
-    throw new Error('No API key configured. Go to Settings → AI Providers to connect a provider.')
-  }
-
-  // For Anthropic, use the messages API with streaming
-  if (provider.apiType === 'anthropic') {
-    const endpoint = `${provider.baseUrl}/messages`
-    const systemMsg = messages.find(m => m.role === 'system')?.content || ''
-    const chatMessages = messages.filter(m => m.role !== 'system')
-
-    const res = await fetch('/api/llm-proxy?stream=true', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        endpoint,
-        apiKey: provider.apiKey,
-        body: {
-          model: provider.model.replace('anthropic/', ''),
-          max_tokens: 4096,
-          system: systemMsg,
-          messages: chatMessages,
-          stream: true,
-        },
-        headers: {
-          'x-api-key': provider.apiKey,
-          'anthropic-version': '2023-06-01',
-        },
+  const res = await fetch('/api/llm-proxy?stream=true', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      endpoint,
+      apiKey: provider.apiKey,
+      body: {
+        model: provider.model.replace('anthropic/', ''),
+        max_tokens: 4096,
+        system: systemMsg,
+        messages: chatMessages,
         stream: true,
-      }),
-    })
+      },
+      headers: {
+        'x-api-key': provider.apiKey,
+        'anthropic-version': '2023-06-01',
+      },
+      stream: true,
+    }),
+  })
 
-    if (!res.ok) {
-      const text = await res.text().catch(() => 'Unknown error')
-      throw new Error(`${provider.name} API error ${res.status}: ${text.slice(0, 200)}`)
-    }
-
-    const reader = res.body!.getReader()
-    const decoder = new TextDecoder()
-    let buffer = ''
-
-    while (true) {
-      const { done, value } = await reader.read()
-      if (done) break
-      buffer += decoder.decode(value, { stream: true })
-      const lines = buffer.split('\n')
-      buffer = lines.pop() || ''
-      for (const line of lines) {
-        if (line.startsWith('data: ')) {
-          const data = line.slice(6).trim()
-          if (data === '[DONE]') return
-          try {
-            const parsed = JSON.parse(data)
-            // Anthropic streaming format
-            if (parsed.type === 'content_block_delta' && parsed.delta?.text) {
-              yield parsed.delta.text
-            }
-            // OpenAI streaming format (some providers use this)
-            if (parsed.choices?.[0]?.delta?.content) {
-              yield parsed.choices[0].delta.content
-            }
-            // Error
-            if (parsed.error) {
-              throw new Error(parsed.message || parsed.error.message || 'Stream error')
-            }
-          } catch (e) {
-            // Skip non-JSON lines
-          }
-        }
-      }
-    }
-    return
+  if (!res.ok) {
+    const text = await res.text().catch(() => 'Unknown error')
+    throw new Error(`${provider.name} API error ${res.status}: ${text.slice(0, 200)}`)
   }
 
-  // For Gemini, streaming is different — fall back to non-streaming
-  if (provider.apiType === 'gemini') {
-    const result = await chatWithLLM(messages, provider)
-    // Simulate streaming by yielding word by word
-    const words = result.content.split(/(\s+)/)
-    for (const word of words) {
-      yield word
-      await new Promise(r => setTimeout(r, 20))
-    }
-    return
-  }
+  const reader = res.body!.getReader()
+  const decoder = new TextDecoder()
+  let buffer = ''
 
-  // Default: OpenAI-compatible streaming (OpenCode Zen, OpenAI, DeepSeek, Groq, etc.)
+  while (true) {
+    const { done, value } = await reader.read()
+    if (done) break
+    buffer += decoder.decode(value, { stream: true })
+    const lines = buffer.split('\n')
+    buffer = lines.pop() || ''
+    for (const line of lines) {
+      const yielded = yieldFromAnthropicLine(line)
+      if (yielded !== undefined) yield yielded
+      if (line.startsWith('data: ') && line.slice(6).trim() === '[DONE]') return
+    }
+  }
+}
+
+function yieldFromAnthropicLine(line: string): string | undefined {
+  if (!line.startsWith('data: ')) return undefined
+  const data = line.slice(6).trim()
+  if (data === '[DONE]') return undefined
+  try {
+    const parsed = JSON.parse(data)
+    if (parsed.type === 'content_block_delta' && parsed.delta?.text) {
+      return parsed.delta.text
+    }
+    if (parsed.choices?.[0]?.delta?.content) {
+      return parsed.choices[0].delta.content
+    }
+    if (parsed.error) {
+      throw new Error(parsed.message || parsed.error.message || 'Stream error')
+    }
+  } catch {
+    // Skip non-JSON lines
+  }
+  return undefined
+}
+
+async function* streamFromGemini(
+  provider: ProviderConfig,
+  messages: ChatMessage[],
+): AsyncGenerator<string, void, unknown> {
+  // Gemini streaming is different — fall back to non-streaming and
+  // simulate streaming by yielding word by word.
+  const result = await chatWithLLM(messages, provider)
+  const words = result.content.split(/(\s+)/)
+  for (const word of words) {
+    yield word
+    await new Promise(r => setTimeout(r, 20))
+  }
+}
+
+function buildOpenAIError(provider: ProviderConfig, status: number, text: string): Error {
+  try {
+    const errorData = JSON.parse(text)
+    if (errorData.error?.type === 'CreditsError') {
+      return new Error('Your API key is valid but your account has no payment method. Use a FREE model (🆓) instead.')
+    }
+    if (errorData.error?.type === 'ModelError') {
+      return new Error(`Model "${provider.model}" is not supported. Select a different model from the dropdown.`)
+    }
+    if (errorData.error?.message) {
+      return new Error(errorData.error.message)
+    }
+  } catch (parseErr) {
+    if (parseErr instanceof Error && (parseErr.message.includes('is not supported') || parseErr.message.includes('payment method'))) {
+      return parseErr
+    }
+  }
+  return new Error(`${provider.name} API error ${status}: ${text.slice(0, 200)}`)
+}
+
+async function* streamFromOpenAICompatible(
+  provider: ProviderConfig,
+  messages: ChatMessage[],
+): AsyncGenerator<string, void, unknown> {
   const endpoint = `${provider.baseUrl}/chat/completions`
   const res = await fetch('/api/llm-proxy?stream=true', {
     method: 'POST',
@@ -692,23 +714,7 @@ export async function* chatWithLLMStream(
 
   if (!res.ok) {
     const text = await res.text().catch(() => 'Unknown error')
-    // Check if it's a non-streaming error (e.g., CreditsError, ModelError)
-    try {
-      const errorData = JSON.parse(text)
-      if (errorData.error?.type === 'CreditsError') {
-        throw new Error('Your API key is valid but your account has no payment method. Use a FREE model (🆓) instead.')
-      }
-      if (errorData.error?.type === 'ModelError') {
-        throw new Error(`Model "${provider.model}" is not supported. Select a different model from the dropdown.`)
-      }
-      if (errorData.error?.message) {
-        throw new Error(errorData.error.message)
-      }
-    } catch (parseErr) {
-      if (parseErr instanceof Error && parseErr.message.includes('is not supported')) throw parseErr
-      if (parseErr instanceof Error && parseErr.message.includes('payment method')) throw parseErr
-    }
-    throw new Error(`${provider.name} API error ${res.status}: ${text.slice(0, 200)}`)
+    throw buildOpenAIError(provider, res.status, text)
   }
 
   const reader = res.body!.getReader()
@@ -723,33 +729,12 @@ export async function* chatWithLLMStream(
     const lines = buffer.split('\n')
     buffer = lines.pop() || ''
     for (const line of lines) {
-      if (line.startsWith('data: ')) {
-        const data = line.slice(6).trim()
-        if (data === '[DONE]') return
-        try {
-          const parsed = JSON.parse(data)
-          // Error in stream
-          if (parsed.error) {
-            throw new Error(parsed.message || parsed.error?.message || 'Stream error')
-          }
-          // OpenAI-style streaming — yield delta.content
-          // Note: Some models (deepseek-v4-flash-free, big-pickle) send
-          // reasoning_content chunks FIRST (with content:null), then
-          // actual content chunks. We skip reasoning and only yield content.
-          const delta = parsed.choices?.[0]?.delta
-          if (delta?.content) {
-            gotAnyContent = true
-            yield delta.content
-          }
-          // If we see reasoning_content but no content yet, don't error —
-          // the content will come after reasoning finishes.
-        } catch (e) {
-          // If it's our thrown error, re-throw
-          if (e instanceof Error && (e.message.includes('not supported') || e.message.includes('payment method'))) {
-            throw e
-          }
-          // Skip non-JSON lines
-        }
+      const result = consumeOpenAILine(line)
+      if (result === 'DONE') return
+      if (result instanceof Error) throw result
+      if (typeof result === 'string') {
+        gotAnyContent = true
+        yield result
       }
     }
   }
@@ -760,4 +745,65 @@ export async function* chatWithLLMStream(
   if (!gotAnyContent) {
     throw new Error('STREAM_NO_CONTENT')
   }
+}
+
+/**
+ * Parse one SSE line from an OpenAI-compatible stream.
+ * Returns:
+ *   - 'DONE' if the line is the [DONE] sentinel
+ *   - a string if the line yielded content
+ *   - an Error if the line signalled an error
+ *   - undefined if the line should be skipped (non-data, non-JSON, etc.)
+ *
+ * Note: Some models (deepseek-v4-flash-free, big-pickle) send
+ * reasoning_content chunks FIRST (with content:null), then
+ * actual content chunks. We skip reasoning and only yield content.
+ */
+function consumeOpenAILine(line: string): 'DONE' | string | Error | undefined {
+  if (!line.startsWith('data: ')) return undefined
+  const data = line.slice(6).trim()
+  if (data === '[DONE]') return 'DONE'
+  try {
+    const parsed = JSON.parse(data)
+    if (parsed.error) {
+      return new Error(parsed.message || parsed.error?.message || 'Stream error')
+    }
+    const delta = parsed.choices?.[0]?.delta
+    if (delta?.content) {
+      return delta.content
+    }
+    // reasoning_content with content:null — skip, content will come later.
+    return undefined
+  } catch (e) {
+    if (e instanceof Error && (e.message.includes('not supported') || e.message.includes('payment method'))) {
+      return e
+    }
+    return undefined
+  }
+}
+
+export async function* chatWithLLMStream(
+  messages: ChatMessage[],
+  config?: Partial<ProviderConfig>
+): AsyncGenerator<string, void, unknown> {
+  const provider = config
+    ? { ...getActiveProvider()!, ...config }
+    : getActiveProvider()
+
+  if (!provider || !provider.apiKey) {
+    throw new Error('No API key configured. Go to Settings → AI Providers to connect a provider.')
+  }
+
+  if (provider.apiType === 'anthropic') {
+    yield* streamFromAnthropic(provider, messages)
+    return
+  }
+
+  if (provider.apiType === 'gemini') {
+    yield* streamFromGemini(provider, messages)
+    return
+  }
+
+  // Default: OpenAI-compatible streaming (OpenCode Zen, OpenAI, DeepSeek, Groq, etc.)
+  yield* streamFromOpenAICompatible(provider, messages)
 }
