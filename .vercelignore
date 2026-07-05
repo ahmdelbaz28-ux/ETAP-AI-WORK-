@@ -106,6 +106,12 @@ PROJECT_INDEX.*
 *.json
 !vercel.json
 !ui/package.json
+# UI locale JSON files are needed by src/i18n.ts at build time
+!ui/src/locales/
+!ui/src/locales/**
+!ui/tsconfig.json
+!ui/vite.config.ts
+!ui/vitest.config.ts
 
 # Misc
 .git/
