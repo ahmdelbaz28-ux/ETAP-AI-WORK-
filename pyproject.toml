@@ -116,9 +116,20 @@ etap = [
     "pywin32>=303; sys_platform == 'win32'",  # Required for ETAP COM automation on Windows
 ]
 
-arcgis = [
-    "arcpy>=2.8.0",  # ArcGIS Python API
-]
+# ArcGIS integration extra.
+# IMPORTANT: `arcpy` is ESRI's proprietary package — it is NOT on PyPI.
+# It is bundled with ArcGIS Pro's Python on Windows only. Listing it as a
+# pip dependency makes `pip install` / `uv lock` fail on every platform
+# that doesn't have ArcGIS Pro installed (including Vercel, CI, HF Space,
+# Docker).
+# The codebase uses lazy imports (`import arcpy` inside functions) with
+# graceful fallback (raises GISProviderUnavailableError), so the package
+# is only needed at runtime on machines that actually have ArcGIS Pro.
+# Users who have ArcGIS Pro will have `arcpy` available in their Python
+# environment already — it does not need to be pip-installed.
+# The [arcgis] extra is kept as a metadata placeholder for discoverability
+# (so users know the integration exists) but installs no extra packages.
+arcgis = []
 
 # Combined optional dependencies
 full = [
