@@ -17,25 +17,25 @@ declare global {
 export function TitleBar() {
   const { t } = useTranslation()
   const [isMaximized, setIsMaximized] = useState(false)
-  const isElectron = !!window.electronAPI
+  const isElectron = !!globalThis.electronAPI
 
   useEffect(() => {
     if (!isElectron) return
-    window.electronAPI!.isMaximized().then(setIsMaximized)
+    globalThis.electronAPI!.isMaximized().then(setIsMaximized)
     const interval = setInterval(async () => {
-      if (window.electronAPI) setIsMaximized(await window.electronAPI.isMaximized())
+      if (globalThis.electronAPI) setIsMaximized(await globalThis.electronAPI.isMaximized())
     }, 1000)
     return () => clearInterval(interval)
   }, [isElectron])
 
   if (!isElectron) return null
 
-  const handleMinimize = () => window.electronAPI?.minimize()
+  const handleMinimize = () => globalThis.electronAPI?.minimize()
   const handleMaximize = async () => {
-    await window.electronAPI?.maximize()
-    setIsMaximized(await window.electronAPI!.isMaximized())
+    await globalThis.electronAPI?.maximize()
+    setIsMaximized(await globalThis.electronAPI!.isMaximized())
   }
-  const handleClose = () => window.electronAPI?.close()
+  const handleClose = () => globalThis.electronAPI?.close()
 
   return (
     <div className="h-9 flex items-center justify-between bg-[var(--bg-secondary)] border-b border-[var(--border-primary)] select-none"

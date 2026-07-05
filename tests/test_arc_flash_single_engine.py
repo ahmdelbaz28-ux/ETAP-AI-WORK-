@@ -154,6 +154,8 @@ def _run_via_run_python(params: dict, *, timeout: int = 30) -> dict:
             f"{proc.returncode}.\nSTDOUT:\n{proc.stdout}\nSTDERR:\n{proc.stderr}"
         )
 
+    # NOSONAR — python:S8714: try/except converts JSONDecodeError into a
+    # pytest.fail() with full stdout/stderr context for debugging.
     try:
         wrapper = json.loads(proc.stdout.strip())
     except json.JSONDecodeError as exc:
@@ -169,6 +171,8 @@ def _run_via_run_python(params: dict, *, timeout: int = 30) -> dict:
 
     # The inner print(json.dumps(result)) lives in the 'output' field as a
     # JSON-encoded string. Parse it back into a dict.
+    # NOSONAR — python:S8714: try/except converts parse errors into a
+    # pytest.fail() with the wrapper dict for debugging.
     try:
         return json.loads(wrapper["output"])
     except (KeyError, TypeError, json.JSONDecodeError) as exc:

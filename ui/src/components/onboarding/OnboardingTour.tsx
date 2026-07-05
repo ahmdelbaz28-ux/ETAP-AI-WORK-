@@ -140,8 +140,8 @@ export function OnboardingTour() {
         handlePrev()
       }
     }
-    window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
+    globalThis.addEventListener('keydown', onKey)
+    return () => globalThis.removeEventListener('keydown', onKey)
   }, [show, currentStep])
 
   if (!show) return null
@@ -151,6 +151,9 @@ export function OnboardingTour() {
   const isLast = currentStep === steps.length - 1
 
   return (
+    // NOSONAR — typescript:S6819: <dialog> element requires showModal()/close()
+    // APIs and has cross-browser quirks; we use role="dialog" + aria-modal
+    // intentionally for compatibility with our framer-motion overlay system.
     <div
       className="fixed inset-0 z-[200] flex items-center justify-center p-4"
       role="dialog"
@@ -158,12 +161,12 @@ export function OnboardingTour() {
       aria-labelledby="onboarding-title"
     >
       {/* Backdrop */}
-      <div
-        className="absolute inset-0 bg-black/80 backdrop-blur-md"
+      {/* NOSONAR — typescript:S6819: rendered as <button> instead of div+role="button" for native a11y */}
+      <button
+        type="button"
+        className="absolute inset-0 bg-black/80 backdrop-blur-md cursor-default border-0 p-0"
         onClick={handleSkip}
-        onKeyDown={(e) => { if (e.key === 'Escape' || e.key === 'Enter') handleSkip() }}  // SonarCloud S1082: a11y — keyboard listener for click handler
-        role="button"
-        tabIndex={0}
+        onKeyDown={(e) => { if (e.key === 'Escape' || e.key === 'Enter') handleSkip() }}
         aria-label="Skip onboarding"
       />
 

@@ -67,7 +67,8 @@ export async function flushAuditLog(env: Env): Promise<number> {
   } catch {
     // Best-effort: re-add to the front of the buffer (loss bounded
     // by next flush), but cap the in-memory buffer to MAX_AUDIT_BUFFER.
-    for (const entry of batch.reverse()) {
+    // SonarCloud typescript:S4043: reverse() mutates in place — copy first.
+    for (const entry of [...batch].reverse()) {
       _auditBuffer.unshift(entry);
       if (_auditBuffer.length > CONFIG.MAX_AUDIT_BUFFER) _auditBuffer.shift();
     }

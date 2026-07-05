@@ -49,7 +49,10 @@ function sanitizeLogMeta(meta: Record<string, unknown>): Record<string, unknown>
 
   for (const key of sensitiveKeys) {
     if (sanitized[key]) {
-      const valueStr = typeof sanitized[key] === 'object' ? JSON.stringify(sanitized[key]) : String(sanitized[key]);
+      // SonarCloud typescript:S6551: explicit JSON.stringify for objects,
+      // String() for primitives — avoids [object Object] when interpolated.
+      const raw = sanitized[key];
+      const valueStr = typeof raw === 'object' && raw !== null ? JSON.stringify(raw) : String(raw);
       const hash = createHash('sha256').update(valueStr).digest('hex');
       sanitized[key] = `***REDACTED*** (hash: ${hash.substring(0, 8)}...)`;
     }

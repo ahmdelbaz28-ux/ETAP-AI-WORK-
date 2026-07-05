@@ -69,9 +69,9 @@ export default function App() {
 
   // Electron menu navigation
   useEffect(() => {
-    if (window.electronAPI) {
-      window.electronAPI.onNavigate((path: string) => {
-        window.location.hash = path
+    if (globalThis.electronAPI) {
+      globalThis.electronAPI.onNavigate((path: string) => {
+        globalThis.location.hash = path
       })
     }
   }, [])

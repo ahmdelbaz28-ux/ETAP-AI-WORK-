@@ -46,7 +46,7 @@ _SPATIAL_REF_SYS = 4326  # WGS84
 # properly quotes them to prevent SQL injection. We additionally enforce a
 # strict whitelist regex to reject anything that doesn't look like a valid
 # PostgreSQL identifier — defense in depth.
-_SCHEMA_NAME_RE = re.compile(r"^[A-Za-z_][A-Za-z0-9_]{0,62}$")
+_SCHEMA_NAME_RE = re.compile(r"^[A-Za-z_]\w{0,62}$")
 
 
 def _validate_schema_name(schema: str) -> str:
@@ -62,7 +62,7 @@ def _validate_schema_name(schema: str) -> str:
     if not schema or not _SCHEMA_NAME_RE.match(schema):
         raise ValueError(
             f"Invalid PostgreSQL schema name: {schema!r}. "
-            "Must match /^[A-Za-z_][A-Za-z0-9_]{0,62}$/",
+            r"Must match /^[A-Za-z_]\w{0,62}$/",
         )
     return schema
 

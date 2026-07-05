@@ -636,9 +636,9 @@ iframe[src*="vercel.com"] {
   opacity: 0 !important;
   pointer-events: none !important;
 }
-// trigger rebuild
-// cache bust
-// v2 - cache bust Sat Jul  4 04:19:40 UTC 2026
+/* trigger rebuild */
+/* cache bust */
+/* v2 - cache bust Sat Jul  4 04:19:40 UTC 2026 */
 
 /* ============================================================
    AhmedETAP — Login Page Cinematic Animation

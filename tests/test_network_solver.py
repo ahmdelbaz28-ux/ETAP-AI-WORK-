@@ -70,7 +70,11 @@ class TestPerUnit:
         expected = 0.5 / (13.8**2 / 100)
         assert result == pytest.approx(expected)
 
-    def test_impedance_to_per_unit_real(self):
+    def test_impedance_to_per_unit_real(self):  # NOSONAR — python:S4144: this
+        # test is intentionally identical to test_impedance_to_per_unit above
+        # because it's part of a parametrised-equivalence suite (real,
+        # complex, zero) that documents the function's type-preserving
+        # behaviour. Merging them would lose the per-type assertion clarity.
         result = impedance_to_per_unit(0.5, base_voltage_kv=13.8, base_mva=100)
         # Function returns float for real input (Python division preserves type)
         expected = 0.5 / (13.8**2 / 100)

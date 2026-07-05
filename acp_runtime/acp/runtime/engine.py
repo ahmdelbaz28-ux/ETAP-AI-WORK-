@@ -38,10 +38,9 @@ from acp.runtime.handler import CapabilityMeta, discover_capabilities
 __all__ = ["AcpRuntime"]
 
 # Observability imports (optional, lazy to avoid circular deps)
-from typing import TYPE_CHECKING
-
-if TYPE_CHECKING:
-    pass
+# SonarCloud python:S108: original `if TYPE_CHECKING: pass` block removed —
+# it served no purpose (no typing-only imports were ever declared). Add it
+# back when you actually need a TYPE_CHECKING block here.
 
 
 class AcpRuntime:

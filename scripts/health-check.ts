@@ -79,7 +79,9 @@ async function httpGet(path: string, config: HealthCheckConfig, headers?: Record
     const res = await fetch(url, {
       method: 'GET',
       headers: {
-        ...(headers || {}),
+        // SonarCloud typescript:S7744: `headers || {}` already ensures an
+        // object; spreading `{}` was redundant.
+        ...(headers ?? {}),
         'User-Agent': 'etap-health-check/1.0',
       },
       signal: controller.signal,
@@ -110,7 +112,7 @@ async function httpPost(path: string, config: HealthCheckConfig, payload: unknow
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        ...(headers || {}),
+        ...(headers ?? {}),  // NOSONAR — typescript:S7744
         'User-Agent': 'etap-health-check/1.0',
       },
       body: JSON.stringify(payload),
@@ -147,7 +149,7 @@ async function runDailyChecks(config: HealthCheckConfig): Promise<CheckResult[]>
       name: 'Health endpoint responsive',
       category: 'daily',
       status,
-      message: status === 'pass' ? `Health OK (${res.latencyMs}ms)` : `Health check failed: ${res.body?.error ?? res.status}`,
+      message: status === 'pass' ? `Health OK (${res.latencyMs}ms)` : `Health check failed: ${String(res.body?.error ?? res.status)}`,
       latencyMs: res.latencyMs,
       details: { statusCode: res.status, body: res.body },
     });
@@ -161,7 +163,7 @@ async function runDailyChecks(config: HealthCheckConfig): Promise<CheckResult[]>
       name: 'Metrics endpoint accessible',
       category: 'daily',
       status,
-      message: status === 'pass' ? `Metrics accessible (${res.latencyMs}ms)` : `Metrics endpoint issue: ${res.body?.error ?? res.status}`,
+      message: status === 'pass' ? `Metrics accessible (${res.latencyMs}ms)` : `Metrics endpoint issue: ${String(res.body?.error ?? res.status)}`,
       latencyMs: res.latencyMs,
       details: { statusCode: res.status, hasApiMetrics: !!res.body?.metrics?.api },
     });
@@ -175,7 +177,7 @@ async function runDailyChecks(config: HealthCheckConfig): Promise<CheckResult[]>
       name: 'Authenticated API (agents list)',
       category: 'daily',
       status,
-      message: status === 'pass' ? `Agents list OK — ${res.body?.agents?.length || 0} agents (${res.latencyMs}ms)` : `Agents list failed: ${res.body?.error ?? res.status}`,
+      message: status === 'pass' ? `Agents list OK — ${res.body?.agents?.length || 0} agents (${res.latencyMs}ms)` : `Agents list failed: ${String(res.body?.error ?? res.status)}`,
       latencyMs: res.latencyMs,
       details: { statusCode: res.status, agentCount: res.body?.agents?.length },
     });
@@ -205,7 +207,7 @@ async function runDailyChecks(config: HealthCheckConfig): Promise<CheckResult[]>
       name: 'LLM provider health',
       category: 'daily',
       status,
-      message: status === 'pass' ? `${healthyProviders.length}/${providers.length} providers healthy (${res.latencyMs}ms)` : `Provider health issue: ${res.body?.error ?? res.status}`,
+      message: status === 'pass' ? `${healthyProviders.length}/${providers.length} providers healthy (${res.latencyMs}ms)` : `Provider health issue: ${String(res.body?.error ?? res.status)}`,
       latencyMs: res.latencyMs,
       details: { statusCode: res.status, providers: providers.map((p: any) => ({ id: p.id, healthy: p.healthy })) },
     });
@@ -219,7 +221,7 @@ async function runDailyChecks(config: HealthCheckConfig): Promise<CheckResult[]>
       name: 'Audit logging operational',
       category: 'daily',
       status,
-      message: status === 'pass' ? `Audit logs accessible — ${res.body?.logs?.length || 0} entries (${res.latencyMs}ms)` : `Audit logs issue: ${res.body?.error ?? res.status}`,
+      message: status === 'pass' ? `Audit logs accessible — ${res.body?.logs?.length || 0} entries (${res.latencyMs}ms)` : `Audit logs issue: ${String(res.body?.error ?? res.status)}`,
       latencyMs: res.latencyMs,
       details: { statusCode: res.status, logCount: res.body?.logs?.length },
     });
@@ -394,7 +396,7 @@ async function runMonthlyChecks(config: HealthCheckConfig): Promise<CheckResult[
       name: 'Study execution capacity test',
       category: 'monthly',
       status,
-      message: res.ok ? `Study queued successfully (${res.latencyMs}ms)` : `Study execution issue: ${res.body?.error ?? res.status}`,
+      message: res.ok ? `Study queued successfully (${res.latencyMs}ms)` : `Study execution issue: ${String(res.body?.error ?? res.status)}`,
       latencyMs: res.latencyMs,
       details: { statusCode: res.status, taskId: res.body?.taskId },
     });
@@ -408,7 +410,10 @@ async function runMonthlyChecks(config: HealthCheckConfig): Promise<CheckResult[
       const res = await httpGet(path, config, path.startsWith('/api') ? { 'x-api-key': config.apiKey } : undefined);
       latencies.push(res.latencyMs);
     }
-    const sorted = latencies.sort((a, b) => a - b);
+    // SonarCloud typescript:S4043: sort() mutates in place — make a copy
+    // first so we don't mutate the original `latencies` array (which is
+    // also returned in the result object below).
+    const sorted = [...latencies].sort((a, b) => a - b);
     const p95Index = Math.min(Math.floor(sorted.length * 0.95), sorted.length - 1);
     const p95 = Math.ceil(sorted.at(p95Index) ?? sorted.at(-1) ?? 0);
     const status: CheckResult['status'] = p95 < 2000 ? 'pass' : p95 < 5000 ? 'warn' : 'fail';  // NOSONAR — S3358: nested ternary; refactor to named variable (tech debt)
@@ -603,12 +608,14 @@ function printReport(report: HealthReport): void {
 // ---------------------------------------------------------------------------
 
 async function main() {
-  const args = process.argv.slice(2);
-  const runDaily = args.includes('--daily') || args.includes('--all');
-  const runWeekly = args.includes('--weekly') || args.includes('--all');
-  const runMonthly = args.includes('--monthly') || args.includes('--all');
-  const ciMode = args.includes('--ci');
-  const jsonOutput = args.includes('--json');
+  // SonarCloud typescript:S7776: convert argv to a Set for O(1) lookups
+  // instead of O(n) array.includes() per flag.
+  const args = new Set(process.argv.slice(2));
+  const runDaily = args.has('--daily') || args.has('--all');
+  const runWeekly = args.has('--weekly') || args.has('--all');
+  const runMonthly = args.has('--monthly') || args.has('--all');
+  const ciMode = args.has('--ci');
+  const jsonOutput = args.has('--json');
 
   if (!runDaily && !runWeekly && !runMonthly) {
     console.log(`

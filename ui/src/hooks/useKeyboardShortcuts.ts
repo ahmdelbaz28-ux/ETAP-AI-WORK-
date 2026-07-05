@@ -84,10 +84,9 @@ export function useKeyboardShortcuts() {
           break
 
         // Help
+        // SonarCloud typescript:S1871: 'f1' and 'ctrl+h' share the same
+        // body — fall through intentionally.
         case 'f1':
-          e.preventDefault()
-          globalThis.dispatchEvent(new CustomEvent('toggle-smart-help'))
-          break
         case 'ctrl+h':
           e.preventDefault()
           globalThis.dispatchEvent(new CustomEvent('toggle-smart-help'))

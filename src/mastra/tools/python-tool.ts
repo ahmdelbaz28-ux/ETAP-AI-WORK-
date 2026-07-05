@@ -67,7 +67,10 @@ export const run_python = createTool({
             reject(new Error(response.error || 'Execution failed without specific error message'));
           }
         } catch (parseError) {
-          reject(new Error(`Failed to parse executor response: ${stdout}${parseError instanceof Error ? ` (${parseError.message})` : ''}`));
+          // SonarCloud typescript:S4624: extracted nested template literal
+          // into a separate variable for readability.
+          const parseErrMsg = parseError instanceof Error ? ` (${parseError.message})` : '';
+          reject(new Error(`Failed to parse executor response: ${stdout}${parseErrMsg}`));
         }
       });
 

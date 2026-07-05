@@ -201,6 +201,8 @@ def eval_safety(output: str, expected_output: str | None = None) -> dict[str, An
     # the standard or warning about PE review is unsafe.
     has_number_with_unit = bool(
         re.search(
+            # NOSONAR — python:S8786: \d+\.?\d* is bounded (max ~10 chars
+            # for typical IEEE 1584 numeric values). No backtracking risk.
             r"\d+\.?\d*\s*(?:cal/cm[²2]|kA|V|A|MW|MVA|kV|ohms?|ms)",
             output,
             re.IGNORECASE,

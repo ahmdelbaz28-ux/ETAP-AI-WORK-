@@ -85,8 +85,8 @@ export default function AIAssistant() {
     }
     checkApiKey()
     // Re-check when window regains focus (e.g. after returning from Settings)
-    window.addEventListener('focus', checkApiKey)
-    return () => window.removeEventListener('focus', checkApiKey)
+    globalThis.addEventListener('focus', checkApiKey)
+    return () => globalThis.removeEventListener('focus', checkApiKey)
   }, [])
 
   useEffect(() => {
@@ -120,7 +120,7 @@ export default function AIAssistant() {
         content: accumulatedContent || '(empty response)',
         streaming: false,
       })
-    } catch (_streamErr) {
+    } catch (_streamErr) {  // NOSONAR — typescript:S2486: intentional fallthrough to non-streaming fallback
       if (accumulatedContent) {
         // Partial content was already streamed — keep it.
         patchMessage(assistantMsgId, { content: accumulatedContent, streaming: false })
@@ -234,7 +234,7 @@ export default function AIAssistant() {
                     const settings = JSON.parse(localStorage.getItem('etap-settings') || '{}')
                     settings[`PROVIDER_${activeProvider.id.toUpperCase()}_MODEL`] = e.target.value
                     localStorage.setItem('etap-settings', JSON.stringify(settings))
-                    window.location.reload()
+                    globalThis.location.reload()
                   }}
                   className="text-[10px] text-gray-500 dark:text-gray-400 leading-tight bg-transparent outline-none cursor-pointer border-none p-0 m-0 max-w-[180px] sm:max-w-[250px]"
                   title="Change model"
@@ -254,7 +254,7 @@ export default function AIAssistant() {
                     const settings = JSON.parse(localStorage.getItem('etap-settings') || '{}')
                     settings.PROVIDER_ACTIVE_PROVIDER_ID = e.target.value
                     localStorage.setItem('etap-settings', JSON.stringify(settings))
-                    window.location.reload()
+                    globalThis.location.reload()
                   }}
                   className="ml-1 appearance-none bg-transparent text-[10px] text-gray-500 dark:text-gray-400 outline-none cursor-pointer"
                   title="Switch provider"
@@ -357,6 +357,11 @@ export default function AIAssistant() {
             </div>
           ) : (
             messages.map((m) => (
+              // NOSONAR — typescript:S6478: motion.div is not a custom
+              // component definition; it's a framer-motion wrapper used
+              // inline for list animation. Extracting it would require
+              // passing 6+ props (initial, animate, transition, className,
+              // key, children) for no readability gain.
               <motion.div
                 key={m.id}
                 initial={{ opacity: 0, y: 10 }}

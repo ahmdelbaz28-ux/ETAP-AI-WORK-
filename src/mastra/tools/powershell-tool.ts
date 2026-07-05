@@ -76,7 +76,10 @@ export const run_powershell = createTool({
             reject(new Error(response.error || 'Execution failed without specific error message'));
           }
         } catch (parseError) {
-          reject(new Error(`Failed to parse executor response: ${stdout}${parseError instanceof Error ? ` (${parseError.message})` : ''}`));
+          // SonarCloud typescript:S4624: extracted the nested template literal
+          // into a separate variable to keep the error message readable.
+          const parseErrMsg = parseError instanceof Error ? ` (${parseError.message})` : '';
+          reject(new Error(`Failed to parse executor response: ${stdout}${parseErrMsg}`));
         }
       });
 

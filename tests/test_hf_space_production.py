@@ -67,6 +67,9 @@ def _get(path: str, timeout: int = 15) -> dict:
 
 def test_production_root_returns_200():
     """The HF Space root endpoint must be reachable."""
+    # NOSONAR — python:S8714: try/except is intentional — HTTPError is the
+    # expected failure mode and we convert it to pytest.fail() with a
+    # useful diagnostic message (vs the raw exception).
     try:
         with urllib.request.urlopen(PRODUCTION_URL + "/", timeout=15) as resp:
             assert resp.status == 200
@@ -76,6 +79,9 @@ def test_production_root_returns_200():
 
 def test_production_health_endpoint():
     """The /health endpoint must return 200."""
+    # NOSONAR — python:S8714: try/except is intentional — HTTPError is the
+    # expected failure mode and we convert it to pytest.fail() with a
+    # useful diagnostic message (vs the raw exception).
     try:
         with urllib.request.urlopen(PRODUCTION_URL + "/health", timeout=15) as resp:
             assert resp.status == 200

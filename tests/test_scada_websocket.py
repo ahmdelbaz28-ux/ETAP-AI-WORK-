@@ -627,7 +627,11 @@ class TestConnectionClose:
                 feed.disconnect(websocket)
 
         with TestClient(app) as client:
-            # Open two connections sequentially
+            # Open two connections sequentially.
+            # NOSONAR — python:S108: empty `with` blocks are intentional —
+            # we're verifying that the WS endpoint accepts a 2nd connection
+            # after the 1st closes (no leftover state in the connection
+            # manager). The `with` statement itself is the assertion.
             with client.websocket_connect(WS_PATH):
                 pass
             with client.websocket_connect(WS_PATH):

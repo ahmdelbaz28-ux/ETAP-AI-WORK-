@@ -58,9 +58,11 @@ export function isRealProviderAvailable(): boolean {
     const lower = key.toLowerCase().trim();
     // Reject only exact placeholder strings
     const exactPlaceholders = ['test', 'dummy', 'placeholder', 'your-key', 'your_key', 'example', 'changeme', 'secret', 'token', 'key_here', 'your-api-key', 'api-key', 'xoxb'];
-    if (exactPlaceholders.some(p => lower === p)) return false;
+    // SonarCloud typescript:S7765: use .includes() for value existence
+    if (exactPlaceholders.includes(lower)) return false;
     // Reject keys that are purely numeric or purely alphabetic (not real API keys)
-    if (/^[0-9]+$/.test(key) || /^[a-zA-Z]+$/.test(key)) return false;
+    // SonarCloud typescript:S6353: \d is the concise equivalent of [0-9]
+    if (/^\d+$/.test(key) || /^[a-zA-Z]+$/.test(key)) return false;
     return true;
   };
 

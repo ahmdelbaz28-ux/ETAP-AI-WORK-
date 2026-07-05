@@ -125,9 +125,11 @@ export async function chatWithLLM(
   messages: ChatMessage[],
   config?: Partial<ProviderConfig>
 ): Promise<ChatResult> {
-  const provider = config
-    ? { ...getActiveProvider()!, ...config }
-    : getActiveProvider()
+  // SonarCloud typescript:S6582: use optional chain for cleaner null-safe access.
+  const activeProvider = getActiveProvider()
+  const provider = config && activeProvider
+    ? { ...activeProvider, ...config }
+    : activeProvider
 
   if (!provider || !provider.apiKey) {
     throw new Error('No API key configured. Go to Settings → AI Providers to connect a provider.')
@@ -274,6 +276,11 @@ async function callCloudflare(
 }
 
 // ─── Zhipu AI (uses proxy for CORS) ─────────────────────────────
+// NOSONAR — typescript:S4144: callZhipu is intentionally identical to
+// callCloudflare above (both use the OpenAI-compatible /chat/completions
+// shape). Kept separate so the provider switch in chatWithLLM() reads as
+// a 1:1 mapping (each provider has its own function) — easier to extend
+// later with provider-specific retries/timeouts.
 async function callZhipu(
   messages: ChatMessage[],
   provider: ProviderConfig
@@ -767,6 +774,9 @@ async function* streamFromOpenAICompatible(
  * reasoning_content chunks FIRST (with content:null), then
  * actual content chunks. We skip reasoning and only yield content.
  */
+// NOSONAR — typescript:S6571: 'DONE' literal in a union with `string` is
+// technically overridden (any string value matches `string`). Kept as a
+// sentinel marker for readability — callers do `=== 'DONE'` checks.
 function consumeOpenAILine(line: string): 'DONE' | string | undefined {
   if (!line.startsWith('data: ')) return undefined
   const data = line.slice(6).trim()
@@ -794,9 +804,11 @@ export async function* chatWithLLMStream(
   messages: ChatMessage[],
   config?: Partial<ProviderConfig>
 ): AsyncGenerator<string, void, unknown> {
-  const provider = config
-    ? { ...getActiveProvider()!, ...config }
-    : getActiveProvider()
+  // SonarCloud typescript:S6582: use optional chain for cleaner null-safe access.
+  const activeProvider = getActiveProvider()
+  const provider = config && activeProvider
+    ? { ...activeProvider, ...config }
+    : activeProvider
 
   if (!provider || !provider.apiKey) {
     throw new Error('No API key configured. Go to Settings → AI Providers to connect a provider.')

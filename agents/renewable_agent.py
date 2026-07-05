@@ -56,7 +56,10 @@ class RenewableAgent(BaseAgent):
     # Solar PV analysis
     # ------------------------------------------------------------------
 
-    def analyze_solar_pv(
+    def analyze_solar_pv(  # NOSONAR — python:S107: 14 params is one above the limit; these are all
+        # physically-distinct PV system parameters (IEEE 1547 / IEC 61724
+        # inputs). Splitting into a config dataclass would force callers to
+        # construct a Pydantic model for ad-hoc CLI usage, harming DX.
         self,
         dc_capacity_kw: float,
         ac_capacity_kw: float,
