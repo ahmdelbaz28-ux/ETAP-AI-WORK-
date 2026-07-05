@@ -14,25 +14,19 @@ interface LogEntry {
   message: string
 }
 
-function auditToLogs(metrics: MetricsResponse | null, audit: AuditEntry[]): LogEntry[] {  // NOSONAR — S3776: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
+function auditToLogs(metrics: MetricsResponse | null, audit: AuditEntry[]): LogEntry[] {
   const logs: LogEntry[] = []
   if (metrics) {
-    const apiEntries = metrics.api as Record<string, number>
-    logs.push({ timestamp: new Date().toLocaleTimeString(), level: 'info', source: 'metrics', message: `API requests: ${Object.values(apiEntries).reduce((a: number, b: number) => a + b, 0)} total` })
-    const providerEntries = metrics.providers as Record<string, { count: number; avgMs: number; failureRate: number }>
-    for (const [name, p] of Object.entries(providerEntries)) {
-      logs.push({ timestamp: new Date().toLocaleTimeString(), level: 'info', source: 'provider', message: `${name}: ${p.count} calls, avg ${p.avgMs}ms, ${(p.failureRate * 100).toFixed(1)}% failures` })
-    }
-    const circuitEntries = metrics.circuits as Record<string, { state: string; consecutiveFailures: number }>
-    for (const [name, c] of Object.entries(circuitEntries)) {
-      if (c.state !== 'closed') logs.push({ timestamp: new Date().toLocaleTimeString(), level: 'warn', source: 'circuit', message: `Breaker ${name}: ${c.state} (${c.consecutiveFailures} failures)` })
+    logs.push({ timestamp: new Date().toLocaleTimeString(), level: 'info', source: 'metrics', message: `API requests: ${metrics.requests_total} total (${metrics.requests_per_minute}/min)` })
+    for (const [name, p] of Object.entries(metrics.providers)) {
+      logs.push({ timestamp: new Date().toLocaleTimeString(), level: 'info', source: 'provider', message: `${name}: ${p.requests} calls, ${p.errors} errors, avg ${p.latency_ms}ms` })
     }
   }
   for (const entry of audit.slice(0, 50)) {
     const t = new Date(entry.timestamp)
     logs.push({
       timestamp: t.toLocaleTimeString(),
-      level: entry.statusCode >= 400 ? 'error' : entry.statusCode >= 300 ? 'warn' : 'info',  // NOSONAR — S3358: nested ternary; refactor to named variable (tech debt)
+      level: entry.statusCode >= 400 ? 'error' : entry.statusCode >= 300 ? 'warn' : 'info',
       source: 'audit',
       // SonarCloud typescript:S4624: extracted nested template literal
       message: (() => {

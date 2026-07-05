@@ -1,12 +1,26 @@
 /* eslint-disable react-refresh/only-export-components */
 import { useState, useEffect, createContext, useContext, createElement } from 'react';
 
+// Resolve the API base URL the same way api.ts does, so auth requests
+// hit the real backend regardless of where the UI is hosted.
+function resolveApiBaseUrl(): string {
+  const env = (import.meta as unknown as { env?: Record<string, string> }).env
+  if (env?.VITE_API_URL) return env.VITE_API_URL
+
+  if (typeof window !== 'undefined' && window.location.hostname.endsWith('.hf.space')) {
+    return ''  // same-origin on HF Space
+  }
+
+  return 'https://ahmdelbaz28-ahmedetap.hf.space'
+}
+
+const API_BASE_URL = resolveApiBaseUrl()
+
 interface User {
   id: string;
   email: string;
   name: string;
   role: string;
-  // Add other user properties as needed
 }
 
 interface AuthContextType {
@@ -37,7 +51,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     const token = localStorage.getItem('authToken');
     if (token) {
-      // Validate token and get user info
       validateTokenAndSetUser(token);
     } else {
       setIsLoading(false);
@@ -46,7 +59,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const validateTokenAndSetUser = async (token: string) => {
     try {
-      const response = await fetch('/api/v1/auth/me', {
+      const response = await fetch(`${API_BASE_URL}/api/v1/auth/me`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
@@ -59,17 +72,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       } else {
         // Token is invalid, clear it
         localStorage.removeItem('authToken');
+        localStorage.removeItem('refreshToken');
       }
     } catch (error) {
       console.error('Error validating token:', error);
       localStorage.removeItem('authToken');
+      localStorage.removeItem('refreshToken');
     } finally {
       setIsLoading(false);
     }
   };
 
   const login = async (email: string, password: string) => {
-    const response = await fetch('/api/v1/auth/login', {
+    const response = await fetch(`${API_BASE_URL}/api/v1/auth/login`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -83,11 +98,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
 
     const data = await response.json();
-    
+
     // Save tokens
     localStorage.setItem('authToken', data.access_token);
     localStorage.setItem('refreshToken', data.refresh_token);
-    
+
     // Set user
     setUser(data.user);
   };
@@ -99,7 +114,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const register = async (email: string, password: string, name: string) => {
-    const response = await fetch('/api/v1/auth/register', {
+    const response = await fetch(`${API_BASE_URL}/api/v1/auth/register`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -113,11 +128,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
 
     const data = await response.json();
-    
+
     // Save tokens
     localStorage.setItem('authToken', data.access_token);
     localStorage.setItem('refreshToken', data.refresh_token);
-    
+
     // Set user
     setUser(data.user);
   };
@@ -129,7 +144,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         throw new Error('No refresh token available');
       }
 
-      const response = await fetch('/api/v1/auth/refresh', {
+      const response = await fetch(`${API_BASE_URL}/api/v1/auth/refresh`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -142,7 +157,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
 
       const data = await response.json();
-      
+
       // Update access token
       localStorage.setItem('authToken', data.access_token);
     } catch (error) {

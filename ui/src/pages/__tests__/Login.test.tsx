@@ -3,13 +3,12 @@
  *
  * Tests for the Login page component.
  *
- * Auth behavior (post-PR #86):
- *   - Login.tsx calls useAuth().login(email, password) first.
- *   - If login resolves → navigates to /dashboard.
- *   - If login rejects with a network error → falls back to Demo Mode
- *     (writes fake token to localStorage, navigates to /dashboard).
- *   - If login rejects with a real auth error (e.g. "Invalid credentials")
- *     → shows the error message in a red banner and does NOT navigate.
+ * Auth behavior (post demo-mode removal):
+ *   - Login.tsx calls useAuth().login(email, password) which hits the real
+ *     backend at POST /api/v1/auth/login.
+ *   - On success → navigate to /dashboard.
+ *   - On failure (network OR auth error) → show the error in a red banner.
+ *     NO demo fallback, NO fake token, NO silent navigation.
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, waitFor } from '@testing-library/react'
@@ -88,19 +87,20 @@ describe('Login', () => {
     expect(screen.getByText(/Sign in to your engineering account/i)).toBeTruthy()
   })
 
-  it('shows validation error when submitting empty required fields', async () => {
-    // jsdom does not enforce HTML5 `required` validation, so the form submits
-    // even with empty fields. We verify instead that Login.tsx's own guard
-    // (`if (!email || !password) { notify('error', ...); return }`) fires
-    // and blocks the call to useAuth().login.
-    const user = userEvent.setup()
+  it('does NOT render any Demo Mode banner', () => {
     renderLogin()
-
+    // The old demo banner said "Demo Mode Active" — it must be gone.
+    expect(screen.queryByText(/Demo Mode Active/i)).toBeNull()
+    // The pre-filled credentials must also be gone (fields start empty).
     const emailInput = screen.getByLabelText(/Email/i) as HTMLInputElement
     const passwordInput = screen.getByPlaceholderText(/^•+$/) as HTMLInputElement
-    await user.clear(emailInput)
-    await user.clear(passwordInput)
-    // Both fields now empty — the handleSubmit guard should short-circuit.
+    expect(emailInput.value).toBe('')
+    expect(passwordInput.value).toBe('')
+  })
+
+  it('shows validation error when submitting empty required fields', async () => {
+    const user = userEvent.setup()
+    renderLogin()
 
     const submitBtn = screen.getByRole('button', { name: /Sign in/i })
     await user.click(submitBtn)
@@ -110,15 +110,12 @@ describe('Login', () => {
   })
 
   it('calls useAuth().login and navigates on successful backend auth', async () => {
-    // Real backend auth path: login resolves, navigate to /dashboard.
     mockLogin.mockResolvedValue(undefined)
     const user = userEvent.setup()
     renderLogin()
 
     const emailInput = screen.getByLabelText(/Email/i) as HTMLInputElement
     const passwordInput = screen.getByPlaceholderText(/^•+$/) as HTMLInputElement
-    await user.clear(emailInput)
-    await user.clear(passwordInput)
     await user.type(emailInput, 'engineer@etap.com')
     await user.type(passwordInput, 'securePassword123')
 
@@ -134,61 +131,51 @@ describe('Login', () => {
   })
 
   it('shows error message in red banner when backend rejects with auth error', async () => {
-    // Real auth failure (401): backend returns "Invalid credentials".
-    // Login should show the error message and NOT navigate.
     mockLogin.mockRejectedValue(new Error('Invalid credentials'))
     const user = userEvent.setup()
     renderLogin()
 
     const emailInput = screen.getByLabelText(/Email/i) as HTMLInputElement
     const passwordInput = screen.getByPlaceholderText(/^•+$/) as HTMLInputElement
-    await user.clear(emailInput)
-    await user.clear(passwordInput)
     await user.type(emailInput, 'bad@example.com')
     await user.type(passwordInput, 'wrongpassword')
 
     const submitBtn = screen.getByRole('button', { name: /Sign in/i })
     await user.click(submitBtn)
 
-    // The error message should be visible in the alert banner
     await waitFor(() => {
       expect(screen.getByText('Invalid credentials')).toBeTruthy()
     })
 
-    // Should NOT have navigated (real auth failure blocks the demo fallback)
+    // Should NOT have navigated
     expect(mockNavigate).not.toHaveBeenCalled()
   })
 
-  it('falls back to Demo Mode when backend is unreachable (network error)', async () => {
-    // Network error path: login rejects with "Failed to fetch" → demo fallback.
+  it('shows error message when backend is unreachable (network error) — NO demo fallback', async () => {
+    // Network error path: login rejects with "Failed to fetch".
+    // Login should show the error and NOT fall back to demo mode.
     mockLogin.mockRejectedValue(new Error('Failed to fetch'))
     const user = userEvent.setup()
     renderLogin()
 
     const emailInput = screen.getByLabelText(/Email/i) as HTMLInputElement
     const passwordInput = screen.getByPlaceholderText(/^•+$/) as HTMLInputElement
-    await user.clear(emailInput)
-    await user.clear(passwordInput)
     await user.type(emailInput, 'test@example.com')
     await user.type(passwordInput, 'password123')
 
     const submitBtn = screen.getByRole('button', { name: /Sign in/i })
     await user.click(submitBtn)
 
-    // Demo-mode fallback warning should be visible
+    // The network error message should be visible in the alert banner
     await waitFor(() => {
-      expect(screen.getByText(/Backend unreachable/i)).toBeTruthy()
+      expect(screen.getByText('Failed to fetch')).toBeTruthy()
     })
 
-    // A demo token should have been written to localStorage
-    await waitFor(() => {
-      expect(localStorage.getItem('authToken')).toMatch(/^demo-token-\d+$/)
-    })
+    // NO demo token should have been written to localStorage
+    expect(localStorage.getItem('authToken')).toBeNull()
 
-    // Should navigate to /dashboard (after the 1.2s demo-mode delay)
-    await waitFor(() => {
-      expect(mockNavigate).toHaveBeenCalledWith('/dashboard')
-    }, { timeout: 3000 })
+    // Should NOT have navigated
+    expect(mockNavigate).not.toHaveBeenCalled()
   })
 
   it('shows loading state during login submission', async () => {
@@ -199,8 +186,6 @@ describe('Login', () => {
 
     const emailInput = screen.getByLabelText(/Email/i) as HTMLInputElement
     const passwordInput = screen.getByPlaceholderText(/^•+$/) as HTMLInputElement
-    await user.clear(emailInput)
-    await user.clear(passwordInput)
     await user.type(emailInput, 'test@etap.com')
     await user.type(passwordInput, 'password123')
 

@@ -1,19 +1,22 @@
 import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { User, Mail, Lock, ArrowRight, Eye, EyeOff, CheckCircle } from 'lucide-react'
+import { User, Mail, Lock, ArrowRight, Eye, EyeOff, CheckCircle, AlertCircle } from 'lucide-react'
 import { useNotify } from '../context/NotificationContext'
+import { useAuth } from '../hooks/useAuth'
 import { BrandLogo } from '../components/BrandLogo'
 
 export default function Register() {
   const navigate = useNavigate()
   const { notify } = useNotify()
+  const { register } = useAuth()
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [authError, setAuthError] = useState<string | null>(null)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -30,14 +33,18 @@ export default function Register() {
       return
     }
     setLoading(true)
-    await new Promise(r => setTimeout(r, 1000))
-    localStorage.setItem('authToken', 'demo-token-' + Date.now())
-    localStorage.setItem('etap-user', JSON.stringify({
-      id: '1', email, name, role: 'Engineer',
-    }))
-    notify('success', `Welcome to AhmedETAP, ${name}!`)
-    navigate('/dashboard')
-    setLoading(false)
+    setAuthError(null)
+    try {
+      await register(email, password, name)
+      notify('success', `Welcome to AhmedETAP, ${name}!`)
+      navigate('/dashboard')
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Unknown error'
+      setAuthError(message)
+      notify('error', `Registration failed: ${message}`)
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
@@ -60,6 +67,13 @@ export default function Register() {
 
         <h2 className="text-2xl font-bold text-[var(--text-primary)] mb-1">Join AhmedETAP</h2>
         <p className="text-sm text-[var(--text-tertiary)] mb-6">Start your power systems engineering journey</p>
+
+        {authError && (
+          <div className="mb-4 p-3 rounded-lg bg-red-500/10 border border-red-500/30 flex items-start gap-3" role="alert">
+            <AlertCircle className="w-4 h-4 mt-0.5 flex-shrink-0 text-red-400" />
+            <p className="text-xs text-red-300">{authError}</p>
+          </div>
+        )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
