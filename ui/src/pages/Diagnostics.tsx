@@ -87,9 +87,6 @@ export default function Diagnostics() {
     results.push({ name: 'Total Diagnostic Time', status: 'pass', message: `${Math.round(performance.now() - start)}ms` })
     setProgress(100)
 
-    // Small delay so user sees 100%
-    await new Promise(r => setTimeout(r, 300))
-
     setChecks(results)
     setRunning(false)
     setProgress(0)

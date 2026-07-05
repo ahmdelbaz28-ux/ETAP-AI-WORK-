@@ -2039,7 +2039,10 @@ export default function Settings() {
     if (settings.API_KEY_SECRET) {
       localStorage.setItem('etap-api-key', obfuscate(settings.API_KEY_SECRET))
     }
-    setTimeout(() => { setSaving(false); notify('success', 'Settings saved successfully') }, 400)
+    // localStorage.setItem is synchronous — the save is already complete.
+    // Show success immediately (no fake setTimeout delay).
+    setSaving(false)
+    notify('success', 'Settings saved successfully')
   }
 
   const handleReset = () => {
