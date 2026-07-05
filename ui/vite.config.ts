@@ -4,7 +4,14 @@ import tailwindcss from '@tailwindcss/vite'
 
 export default defineConfig({
   plugins: [tailwindcss(), react()],
-  base: './',
+  // Use absolute base ('/') so that asset URLs resolve correctly regardless
+  // of the route depth. With base: './', visiting /studies/load_flow would
+  // make the browser request /studies/assets/index-*.js instead of
+  // /assets/index-*.js, breaking the page on any route deeper than /.
+  // Vercel's SPA fallback rewrite (vercel.json) serves index.html for all
+  // non-asset paths, and the absolute base ensures assets always resolve
+  // to the correct /assets/* location.
+  base: '/',
   server: {
     port: 5173,
     fs: { strict: true },
