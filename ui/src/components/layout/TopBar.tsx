@@ -22,7 +22,23 @@ export function TopBar({ onHelpOpen }: TopBarProps) {  // NOSONAR — S6759: Rea
 
   return (
     <header className="h-12 flex items-center justify-between px-4 bg-[var(--bg-secondary)] border-b border-[var(--border-primary)] shrink-0">
-      {/* Left: Logo */}
+      {/* Left: Logo
+       *
+       * Brand color note (PR #85, reviewed PR #88):
+       * Prior to PR #85, this TopBar logo used a warm `from-orange-500 to-red-600`
+       * gradient, while the Sidebar and Navbar used the brand blue
+       * `from-brand-500 to-brand-700`. This was the only place in the app
+       * where orange/red was used as a brand color (all other orange/red
+       * usages are semantic — error notifications, danger buttons, and
+       * high-risk study-type indicators like arc_flash).
+       *
+       * PR #85 unified the TopBar to use the BrandLogo component (brand blue
+       * gradient) for consistency with the rest of the app. If the original
+       * orange-red was an intentional brand-differentiation signal (e.g. to
+       * distinguish the engineering workspace from the marketing site),
+       * this decision can be reverted by replacing `<BrandLogo size={28} />`
+       * below with an orange-red gradient tile. See PR #85 review thread.
+       */}
       <div className="flex items-center gap-3">
         <div
           className="flex items-center gap-2 cursor-pointer"
