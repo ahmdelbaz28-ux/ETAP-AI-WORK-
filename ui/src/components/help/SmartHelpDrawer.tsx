@@ -224,10 +224,10 @@ export function SmartHelpDrawer({ open, onClose, initialContextId }: SmartHelpDr
 
   return (
     <div className="fixed inset-0 z-[100] flex justify-end">
-      <div
-        className="absolute inset-0 bg-black/50 backdrop-blur-sm"
-        role="button"
-        tabIndex={0}
+      {/* NOSONAR — typescript:S6819: native <button> for backdrop accessibility */}
+      <button
+        type="button"
+        className="absolute inset-0 bg-black/50 backdrop-blur-sm cursor-default border-0 p-0"
         aria-label="Close help drawer"
         onClick={onClose}
         onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') onClose() }}

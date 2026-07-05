@@ -51,6 +51,9 @@ export interface ExecutionContext {
 
 // Minimal KVNamespace interface for local testability
 export interface KVNamespace {
+  // NOSONAR — typescript:S6571: `unknown | null` is technically simplified
+  // to `unknown`, but kept for parity with the official @cloudflare/workers-types
+  // KVNamespace signature so callers can copy-paste between local + prod.
   get(key: string, options?: { type?: 'text' | 'json' | 'arrayBuffer' | 'stream' }): Promise<unknown | null>;
   put(
     key: string,

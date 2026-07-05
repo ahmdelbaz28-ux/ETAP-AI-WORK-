@@ -84,7 +84,7 @@ def fix_prompt_handles():  # NOSONAR — S3776: cognitive complexity; scheduled 
     available_handles = []
 
     for file in prompt_files:
-        if file.endswith(".yaml") or file.endswith(".prompt.yaml"):
+        if file.endswith((".yaml", ".prompt.yaml")):
             # Extract handle from filename
             if file.endswith(".prompt.yaml"):
                 handle = file[:-12]  # Remove '.prompt.yaml'

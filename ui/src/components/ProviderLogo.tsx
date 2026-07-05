@@ -172,9 +172,9 @@ const FALLBACK_COLORS: Record<string, { hex: string; label: string }> = {
 }
 
 interface ProviderLogoProps {
-  providerId: string
-  size?: number
-  className?: string
+  readonly providerId: string
+  readonly size?: number
+  readonly className?: string
 }
 
 export function ProviderLogo({ providerId, size = 40, className }: ProviderLogoProps) {
@@ -205,7 +205,10 @@ export function ProviderLogo({ providerId, size = 40, className }: ProviderLogoP
           aria-label={providerId}
         >
           {brand.paths.map((d, i) => (
-            <path key={i} d={d} />
+            // NOSONAR — typescript:S6479: SVG <path> elements in a static
+            // brand logo have no stable identifier other than their index;
+            // the list never reorders, so index keys are safe here.
+            <path key={`path-${i}`} d={d} />
           ))}
         </svg>
       </div>

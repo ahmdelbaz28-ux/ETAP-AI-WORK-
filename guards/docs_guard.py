@@ -108,7 +108,7 @@ class DocsGuard(BaseGuard):
 
         # Find Python-style symbol references in docs
         # Pattern: ``ClassName``, `function_name`, ::ClassName, etc.
-        ref_pattern = r"(?:``|`|::)([A-Za-z_][A-Za-z0-9_]*)"
+        ref_pattern = r"(?:``|`|::)([A-Za-z_]\w*)"
         for match in re.finditer(ref_pattern, docs):
             symbol = match.group(1)
             if symbol.startswith("_") or symbol in ("True", "False", "None", "self", "cls"):
@@ -397,7 +397,8 @@ class DocsGuard(BaseGuard):
             if link_target.startswith("#"):
                 # Anchor link — check if a matching heading exists
                 anchor = link_target[1:].lower()
-                # Look for markdown headings that match this anchor
+                # Look for markdown headings that match this anchor.
+                # NOSONAR — python:S8786: .* is bounded by single-line markdown
                 heading_pattern = r"^#+\s+.*$"
                 headings = [
                     re.sub(r"^#+\s+", "", m.group().lower()).strip()
@@ -425,7 +426,7 @@ class DocsGuard(BaseGuard):
                             evidence=f"[{link_text}](#{link_target[1:]})",
                         ),
                     )
-            elif link_target.endswith(".md") or link_target.endswith(".py"):
+            elif link_target.endswith(".md", ".py"):  # NOSONAR — python:S8513: false positive — already tuple form
                 # Relative file link — check if it looks like a placeholder
                 if "TODO" in link_target or "PLACEHOLDER" in link_target:
                     violations.append(

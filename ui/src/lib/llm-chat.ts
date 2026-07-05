@@ -125,9 +125,11 @@ export async function chatWithLLM(
   messages: ChatMessage[],
   config?: Partial<ProviderConfig>
 ): Promise<ChatResult> {
-  const provider = config
-    ? { ...getActiveProvider()!, ...config }
-    : getActiveProvider()
+  // SonarCloud typescript:S6582: use optional chain for cleaner null-safe access.
+  const activeProvider = getActiveProvider()
+  const provider = config && activeProvider
+    ? { ...activeProvider, ...config }
+    : activeProvider
 
   if (!provider || !provider.apiKey) {
     throw new Error('No API key configured. Go to Settings → AI Providers to connect a provider.')
@@ -274,26 +276,12 @@ async function callCloudflare(
 }
 
 // ─── Zhipu AI (uses proxy for CORS) ─────────────────────────────
+// Zhipu uses the same OpenAI-compatible /chat/completions API shape.
 async function callZhipu(
   messages: ChatMessage[],
   provider: ProviderConfig
 ): Promise<ChatResult> {
-  const endpoint = `${provider.baseUrl}/chat/completions`
-  const res = await proxyFetch(endpoint, provider.apiKey, {
-    model: provider.model,
-    messages,
-    max_tokens: 4096,
-    temperature: 0.7,
-  })
-
-  if (!res.ok) {
-    const text = await res.text().catch(() => 'Unknown error')
-    throw new Error(`${provider.name} API error ${res.status}: ${text.slice(0, 200)}`)
-  }
-
-  const data = await res.json()
-  const content = data.choices?.[0]?.message?.content || ''
-  return { content, provider: provider.name, model: provider.model }
+  return callOpenAICompatible(messages, provider)
 }
 
 // ─── Cohere (uses proxy for CORS) ───────────────────────────────
@@ -735,12 +723,10 @@ async function* streamFromOpenAICompatible(
     buffer = lines.pop() || ''
     for (const line of lines) {
       const result = consumeOpenAILine(line)
-      if (result === 'DONE') return
-      if (typeof result === 'string') {
-        gotAnyContent = true
-        yield result
-      }
-      // Errors are thrown by consumeOpenAILine directly; null = skip line.
+      if (!result) continue           // undefined = skip line
+      if (result.done) return          // 'DONE' sentinel
+      gotAnyContent = true
+      yield result.content
     }
   }
 
@@ -767,10 +753,14 @@ async function* streamFromOpenAICompatible(
  * reasoning_content chunks FIRST (with content:null), then
  * actual content chunks. We skip reasoning and only yield content.
  */
-function consumeOpenAILine(line: string): 'DONE' | string | undefined {
+/** Result of consuming one SSE line: either the 'DONE' sentinel, a content
+ * string, or undefined if the line is not a data line. */
+type ConsumeResult = { done: true } | { done: false; content: string } | undefined
+
+function consumeOpenAILine(line: string): ConsumeResult {
   if (!line.startsWith('data: ')) return undefined
   const data = line.slice(6).trim()
-  if (data === '[DONE]') return 'DONE'
+  if (data === '[DONE]') return { done: true }
   try {
     const parsed = JSON.parse(data)
     if (parsed.error) {
@@ -778,7 +768,7 @@ function consumeOpenAILine(line: string): 'DONE' | string | undefined {
     }
     const delta = parsed.choices?.[0]?.delta
     if (delta?.content) {
-      return delta.content
+      return { done: false, content: delta.content }
     }
     // reasoning_content with content:null — skip, content will come later.
     return undefined
@@ -794,9 +784,11 @@ export async function* chatWithLLMStream(
   messages: ChatMessage[],
   config?: Partial<ProviderConfig>
 ): AsyncGenerator<string, void, unknown> {
-  const provider = config
-    ? { ...getActiveProvider()!, ...config }
-    : getActiveProvider()
+  // SonarCloud typescript:S6582: use optional chain for cleaner null-safe access.
+  const activeProvider = getActiveProvider()
+  const provider = config && activeProvider
+    ? { ...activeProvider, ...config }
+    : activeProvider
 
   if (!provider || !provider.apiKey) {
     throw new Error('No API key configured. Go to Settings → AI Providers to connect a provider.')

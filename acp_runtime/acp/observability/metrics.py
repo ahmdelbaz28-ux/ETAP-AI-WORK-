@@ -30,11 +30,11 @@ __all__ = [
 
 
 def _validate_label_name(name: str) -> None:
-    """Raise *ValueError* if *name* is not a valid Prometheus label name.
+    r"""Raise *ValueError* if *name* is not a valid Prometheus label name.
 
-    Prometheus label names must match ``[a-zA-Z_][a-zA-Z0-9_]*``.
+    Prometheus label names must match ``[a-zA-Z_]\w*``.
     """
-    if not re.fullmatch(r"[a-zA-Z_][a-zA-Z0-9_]*", name):
+    if not re.fullmatch(r"[a-zA-Z_]\w*", name):
         raise ValueError(f"Invalid Prometheus label name: {name!r}")
 
 

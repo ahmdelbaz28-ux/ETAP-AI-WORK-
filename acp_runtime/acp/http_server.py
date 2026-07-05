@@ -139,7 +139,7 @@ async def _handle_client(  # NOSONAR — S3776: cognitive complexity; scheduled 
             )
 
         await client.send(response)
-    except (anyio.EndOfStream, OSError, ConnectionError, BrokenPipeError, ConnectionResetError):
+    except (anyio.EndOfStream, OSError):  # NOSONAR — python:S5713: ConnectionError/BrokenPipe/ConnectionReset are subclasses of OSError; kept minimal
         # Expected when a client disconnects abruptly.
         pass
     except Exception:

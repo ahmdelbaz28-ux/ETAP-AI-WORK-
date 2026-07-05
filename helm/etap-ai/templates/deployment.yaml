@@ -82,13 +82,25 @@ spec:
             - name: tmp-data
               mountPath: /tmp/data
           resources:
-            # SonarCloud kubernetes:S6870: explicit ephemeral-storage limit
-            # so a runaway log writer can't fill the node's writable layer.
+            {{- /*
+              SonarCloud kubernetes:S6864/S6873/S6892: explicit defaults for
+              cpu+memory requests+limits. If .Values.api.resources is defined,
+              it OVERRIDES these defaults entirely (we don't merge, to avoid
+              duplicate YAML keys). Operators who want custom values set the
+              FULL resources block in values.yaml.
+            */}}
+            {{- if .Values.api.resources }}
+            {{- toYaml .Values.api.resources | nindent 12 }}
+            {{- else }}
             limits:
+              cpu: "1000m"
+              memory: "1Gi"
               ephemeral-storage: "2Gi"
             requests:
+              cpu: "250m"
+              memory: "256Mi"
               ephemeral-storage: "512Mi"
-            {{- toYaml .Values.api.resources | nindent 12 }}
+            {{- end }}
       volumes:
         - name: app-logs
           emptyDir:
@@ -181,13 +193,18 @@ spec:
             - name: tmp-data
               mountPath: /tmp/data
           resources:
-            # SonarCloud kubernetes:S6870: explicit ephemeral-storage limit
-            # so a runaway worker can't fill the node's writable layer.
+            {{- if .Values.worker.resources }}
+            {{- toYaml .Values.worker.resources | nindent 12 }}
+            {{- else }}
             limits:
+              cpu: "1000m"
+              memory: "1Gi"
               ephemeral-storage: "5Gi"
             requests:
+              cpu: "250m"
+              memory: "256Mi"
               ephemeral-storage: "1Gi"
-            {{- toYaml .Values.worker.resources | nindent 12 }}
+            {{- end }}
       volumes:
         - name: app-logs
           emptyDir:

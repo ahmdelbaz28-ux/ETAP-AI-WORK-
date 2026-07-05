@@ -20,7 +20,8 @@ LABEL version="2.1.0"
 
 WORKDIR /app
 
-# System dependencies
+# System dependencies + create non-root user in a single RUN
+# SonarCloud docker:S7031: merged consecutive RUN instructions to reduce layers
 RUN apt-get update && apt-get install -y --no-install-recommends \
     gcc g++ curl \
     # Playwright Chromium runtime deps (libnss3, libnspr4, libatk1.0, etc.)
@@ -31,33 +32,34 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     # Tesseract OCR — for offline vision fallback (integrations/opencv_vision.py)
     # Used when Gemini Vision is unreachable (network down, API quota exceeded)
     tesseract-ocr tesseract-ocr-eng \
-    && rm -rf /var/lib/apt/lists/*
-
-# Create non-root user (UID 1000 as required by HF Spaces)
-RUN useradd -m -u 1000 user && \
-    mkdir -p /app /tmp/cache /tmp/logs /tmp/data /tmp/cua_audit && \
-    chown -R user:user /app /tmp
+    && rm -rf /var/lib/apt/lists/* \
+    # Create non-root user (UID 1000 as required by HF Spaces)
+    && useradd -m -u 1000 user \
+    && mkdir -p /app /tmp/cache /tmp/logs /tmp/data /tmp/cua_audit \
+    && chown -R user:user /app /tmp
 
 # Python dependencies — lightweight subset (no ML, no Celery, no Redis)
 COPY hf-space/requirements.hf.txt /tmp/requirements.hf.txt
 RUN pip install --no-cache-dir --upgrade pip && \
     pip install --no-cache-dir -r /tmp/requirements.hf.txt
 
-# Install Chromium for Playwright (BrowserCUAExecutor — headless CUA on HF Space)
-# This downloads ~150MB but enables the CUA Loop to work without a display server.
-# Install as the non-root user so the browser is accessible to the app.
-# Set PLAYWRIGHT_BROWSERS_PATH to a shared location both root and user can access.
+# Install Chromium for Playwright (BrowserCUAExecutor — headless CUA on HF Space).
+# On HF Spaces cpu-basic hardware, `--with-deps` can fail or exhaust disk.
+# We install WITHOUT deps (the apt-get deps were already installed above:
+# libnss3, libnspr4, libatk1.0-0, etc.) and make the install non-fatal.
+# The chmod + chown ensure the non-root 'user' can read the browser binaries.
 ENV PLAYWRIGHT_BROWSERS_PATH=/ms-playwright
-RUN playwright install chromium --with-deps 2>&1 || \
-    playwright install chromium 2>&1 || \
+RUN playwright install chromium 2>&1 || \
     echo "⚠️ Playwright Chromium install failed — BrowserCUA will fall back to Format U" ; \
-    chmod -R 755 /ms-playwright 2>/dev/null || true
+    chmod -R 755 /ms-playwright 2>/dev/null || true ; \
+    chown -R user:user /ms-playwright 2>/dev/null || true
 
 # Application code — copy only what hf-space/app.py needs
-# SonarCloud S6504: --chmod=go-w makes files read-only for group/others
-# so a non-root user in the container can't tamper with the app code.
-COPY --chown=user:user --chmod=go-w hf-space/app.py /app/app.py
-COPY --chown=user:user --chmod=go-w compat.py /app/compat.py
+# SonarCloud S6504: Files are owned by root (not the non-root `user`) so the
+# runtime container user can read+execute them but CANNOT modify them. This
+# prevents a compromised app process from rewriting its own source code.
+COPY --chown=root:root --chmod=go-w hf-space/app.py /app/app.py
+COPY --chown=root:root --chmod=go-w compat.py /app/compat.py
 COPY --chown=user:user agents/ /app/agents/
 COPY --chown=user:user skills/ /app/skills/
 COPY --chown=user:user prompts/ /app/prompts/

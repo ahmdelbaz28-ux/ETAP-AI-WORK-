@@ -6,7 +6,7 @@ from gis_integration.exceptions import GISDataExtractionError, GISTransformation
 from gis_integration.models import ADMSAsset, ADMSAssetType, GISFeature
 
 
-class GIS_TO_ADMS_Transformer:
+class GisToAdmsTransformer:
     """
     Deterministic transformer from normalized GISFeature -> ADMSAsset.
 
@@ -105,3 +105,10 @@ class GIS_TO_ADMS_Transformer:
         if isinstance(value, str):
             return value.strip().lower()
         return str(value).strip().lower()
+
+
+# Backward-compatible alias — DO NOT USE IN NEW CODE.
+# Kept so the legacy `from gis_integration.transformer import GIS_TO_ADMS_Transformer`
+# imports in tests + gis_validation_real/* keep working without churn.
+# SonarCloud python:S101: the canonical class name is now CamelCase.
+GIS_TO_ADMS_Transformer = GisToAdmsTransformer

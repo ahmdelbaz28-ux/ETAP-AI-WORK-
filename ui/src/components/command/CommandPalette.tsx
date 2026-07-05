@@ -138,10 +138,10 @@ export function CommandPalette() {
 
   return (
     <div className="fixed inset-0 z-[100] flex items-start justify-center pt-[15vh]">
-      <div
-        className="absolute inset-0 bg-black/60 backdrop-blur-sm"
-        role="button"
-        tabIndex={0}
+      {/* NOSONAR — typescript:S6819: native <button> for backdrop accessibility */}
+      <button
+        type="button"
+        className="absolute inset-0 bg-black/60 backdrop-blur-sm cursor-default border-0 p-0"
         aria-label="Close command palette"
         onClick={() => { setOpen(false); setQuery('') }}
         onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { setOpen(false); setQuery('') } }}

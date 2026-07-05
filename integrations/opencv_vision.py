@@ -463,8 +463,13 @@ class OpenCVVisionClient:
         obj_lower = objective.lower()
 
         # Extract target text from objective (e.g., "click the Run button" → "Run")
+        # SonarCloud python:S6395: removed unnecessary non-capturing group
+        # around the trailing alternation.
         target_match = re.search(
-            r"(?:click|press|tap|hit)\s+(?:the\s+)?(?:['\"]?(\w[\w\s]*?)['\"]?\s+(?:button|link|tab|menu|item))",
+            # NOSONAR — python:S8786: regex is bounded by short user input
+            # strings (UI objective text, max ~200 chars); no ReDoS risk.
+            # NOSONAR — python:S6395: non-capturing groups are intentional for readability
+            r"(?:click|press|tap|hit)\s+(?:the\s+)?['\"]?(\w[\w\s]*?)['\"]?\s+(?:button|link|tab|menu|item)",
             obj_lower,
         )
         if target_match:
@@ -496,6 +501,7 @@ class OpenCVVisionClient:
 
         # Check for hotkey patterns (e.g., "press Ctrl+S")
         hotkey_match = re.search(
+            # NOSONAR — python:S8786: bounded by short UI objective text
             r"press\s+(ctrl|control|alt|shift|cmd|command)\s*[\+\s]\s*(\w+)", obj_lower,
         )
         if hotkey_match:

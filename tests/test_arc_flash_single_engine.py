@@ -154,7 +154,7 @@ def _run_via_run_python(params: dict, *, timeout: int = 30) -> dict:
             f"{proc.returncode}.\nSTDOUT:\n{proc.stdout}\nSTDERR:\n{proc.stderr}"
         )
 
-    try:
+    try:  # NOSONAR — python:S8714: JSONDecodeError → pytest.fail conversion
         wrapper = json.loads(proc.stdout.strip())
     except json.JSONDecodeError as exc:
         pytest.fail(
@@ -169,7 +169,7 @@ def _run_via_run_python(params: dict, *, timeout: int = 30) -> dict:
 
     # The inner print(json.dumps(result)) lives in the 'output' field as a
     # JSON-encoded string. Parse it back into a dict.
-    try:
+    try:  # NOSONAR — python:S8714: parse error → pytest.fail conversion
         return json.loads(wrapper["output"])
     except (KeyError, TypeError, json.JSONDecodeError) as exc:
         pytest.fail(f"Could not parse agent-path output as JSON: {exc}\nwrapper: {wrapper!r}")

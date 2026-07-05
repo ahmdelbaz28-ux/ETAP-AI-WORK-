@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useCallback, type ReactNode } from 'react'
+import { createContext, useContext, useState, useCallback, useMemo, type ReactNode } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { CheckCircle, XCircle, AlertTriangle, Info, X } from 'lucide-react'
 
@@ -49,8 +49,16 @@ export function NotificationProvider({ children }: { children: ReactNode }) {  /
     setNotifications(prev => prev.filter(n => n.id !== id))
   }, [])
 
+  // SonarCloud typescript:S6481: memoise the context value so it doesn't
+  // change identity on every render (which would force all consumers to
+  // re-render unnecessarily).
+  const contextValue = useMemo(
+    () => ({ notifications, notify, dismiss }),
+    [notifications, notify, dismiss],
+  )
+
   return (
-    <NotificationContext.Provider value={{ notifications, notify, dismiss }}>
+    <NotificationContext.Provider value={contextValue}>
       {children}
       {/* Notification container — bottom-right of viewport.
           Uses inline styles for positioning + z-index to avoid Tailwind v4

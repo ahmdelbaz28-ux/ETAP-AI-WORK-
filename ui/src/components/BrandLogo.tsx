@@ -27,10 +27,10 @@
 import { motion } from 'framer-motion'
 
 interface BrandLogoProps {
-  size?: number
-  withWordmark?: boolean
-  animated?: boolean
-  className?: string
+  readonly size?: number
+  readonly withWordmark?: boolean
+  readonly animated?: boolean
+  readonly className?: string
 }
 
 export function BrandLogo({

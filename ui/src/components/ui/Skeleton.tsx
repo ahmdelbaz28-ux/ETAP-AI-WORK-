@@ -1,15 +1,23 @@
 import { cn } from '../../utils/helpers'
 
 interface SkeletonProps {
-  className?: string
-  lines?: number
+  readonly className?: string
 }
 
-export function Skeleton({ className }: SkeletonProps) {  // NOSONAR — S6759: React props read-only; requires `readonly` refactor across component tree
+interface SkeletonCardProps {
+  readonly lines?: number
+}
+
+interface SkeletonTableProps {
+  readonly rows?: number
+  readonly cols?: number
+}
+
+export function Skeleton({ className }: SkeletonProps) {
   return <div className={cn('skeleton h-4', className)} />
 }
 
-export function SkeletonCard({ lines = 3 }: SkeletonProps) {  // NOSONAR — S6759: React props read-only; requires `readonly` refactor across component tree
+export function SkeletonCard({ lines = 3 }: SkeletonCardProps) {
   return (
     <div className="bg-[var(--bg-card)] rounded-xl p-5 border border-[var(--border-primary)] space-y-3">
       <Skeleton className="w-1/3 h-5" />
@@ -20,7 +28,7 @@ export function SkeletonCard({ lines = 3 }: SkeletonProps) {  // NOSONAR — S67
   )
 }
 
-export function SkeletonTable({ rows = 5, cols = 4 }: { rows?: number; cols?: number }) {  // NOSONAR — S6759: React props read-only; requires `readonly` refactor across component tree
+export function SkeletonTable({ rows = 5, cols = 4 }: SkeletonTableProps) {
   return (
     <div className="bg-[var(--bg-card)] rounded-xl border border-[var(--border-primary)] overflow-hidden">
       <div className="grid gap-4 p-4 border-b border-[var(--border-primary)]" style={{ gridTemplateColumns: `repeat(${cols}, 1fr)` }}>

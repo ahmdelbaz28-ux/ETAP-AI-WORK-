@@ -140,7 +140,7 @@ def check_docker_build():
         warnings.append(
             "Docker not available locally - skipping build check (will be validated on GitHub Actions)",
         )
-        return None  # None = warning, not failure
+        return None  # None = warning, not failure  # NOSONAR — python:S125: inline doc comment
 
     with tempfile.TemporaryDirectory() as tmpdir:
         # Copy hf-space to temp dir for isolated build
@@ -177,7 +177,7 @@ def check_health_endpoint():
         warnings.append(
             "Docker not available locally - skipping health check (will be validated on GitHub Actions)",
         )
-        return None  # None = warning, not failure
+        return None  # None = warning, not failure  # NOSONAR — python:S125: inline doc comment
 
     try:
         # Stop any existing container

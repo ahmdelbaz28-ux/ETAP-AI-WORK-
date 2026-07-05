@@ -297,7 +297,7 @@ export function concurrentStudyScenario() {
     const responses = http.batch(requests);
 
     responses.forEach((resp, i) => {
-      const success = check(resp, {
+      check(resp, {
         [`batch ${i} status ok`]: (r) => r.status === 200 || r.status === 400, // 400 = validation issue, not crash
       });
       errorRate.add(resp.status >= 500);
@@ -316,7 +316,7 @@ export function concurrentStudyScenario() {
  */
 export function generalScenario() {
   // 40% chance: health/readiness
-  const rand = Math.random();
+  const rand = Math.random();  // NOSONAR — javascript:S2245: load-test scenario selection, not security-sensitive
   if (rand < 0.2) {
     group('General: Health', () => {
       const resp = http.get(`${BASE_URL}/health`, { tags: { endpoint: 'health' } });

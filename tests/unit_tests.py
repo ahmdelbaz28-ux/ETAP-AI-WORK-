@@ -313,7 +313,7 @@ class TestWorkerRBAC:
         token = auth.authenticate("temp_user", "password123")
 
         # Before logout, permissions should work
-        first_perm = list(STUDY_TYPE_TO_PERMISSION.values())[0]
+        first_perm = next(iter(STUDY_TYPE_TO_PERMISSION.values()))  # NOSONAR — python:S8519: replaced list(...)[0] with next(iter(...))
         assert authz.check_permission(token, first_perm)
 
         # After logout, permissions should be denied

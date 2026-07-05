@@ -19,7 +19,30 @@ interface Message {
   streaming?: boolean
 }
 
+/**
+ * Generate a short random suffix for React-key IDs.
+ *
+ * Uses the Web Crypto API (`crypto.getRandomValues`) when available — this is
+ * a CSPRNG and is what SonarCloud typescript:S2245 wants to see instead of
+ * `Math.random()`. Falls back to `Math.random()` ONLY in legacy environments
+ * (older than 2017 browsers / Node < 19) where the Web Crypto API is absent.
+ *
+ * These IDs are NOT used for security: they are React list keys + UI labels.
+ */
+function _safeRandomSuffix(): string {
+  const cryptoObj = globalThis.crypto as Crypto | undefined
+  if (cryptoObj?.getRandomValues) {
+    const buf = new Uint8Array(4)
+    cryptoObj.getRandomValues(buf)
+    return Array.from(buf, (b) => b.toString(16).padStart(2, '0')).join('').slice(0, 8)
+  }
+  // NOSONAR — typescript:S2245: legacy fallback only; IDs are UI-only
+  return Math.random().toString(36).slice(2, 10)
+}
+
 export default function AIAssistant() {
+  // setAgents is used but the agents value is never read — we only need the
+  // setter to trigger re-renders after fetchAgents() resolves.
   const [, setAgents] = useState<AgentMeta[]>([])
   const [messages, setMessages] = useState<Message[]>([])
   const [input, setInput] = useState('')
@@ -58,14 +81,15 @@ export default function AIAssistant() {
           'CUSTOM_API_KEY',
         ].some(k => !!parsed[k])
         setHasApiKey(hasAnyKey)
-      } catch {
+      } catch (err) {
+        console.warn('Failed to check API key status:', err instanceof Error ? err.message : String(err))
         setHasApiKey(false)
       }
     }
     checkApiKey()
     // Re-check when window regains focus (e.g. after returning from Settings)
-    window.addEventListener('focus', checkApiKey)
-    return () => window.removeEventListener('focus', checkApiKey)
+    globalThis.addEventListener('focus', checkApiKey)
+    return () => globalThis.removeEventListener('focus', checkApiKey)
   }, [])
 
   useEffect(() => {
@@ -99,7 +123,7 @@ export default function AIAssistant() {
         content: accumulatedContent || '(empty response)',
         streaming: false,
       })
-    } catch (_streamErr) {
+    } catch (_streamErr) {  // NOSONAR — typescript:S2486: intentional fallthrough to non-streaming fallback
       if (accumulatedContent) {
         // Partial content was already streamed — keep it.
         patchMessage(assistantMsgId, { content: accumulatedContent, streaming: false })
@@ -136,8 +160,8 @@ export default function AIAssistant() {
       return
     }
 
-    const userMsgId = `user-${Date.now()}-${(globalThis.crypto?.randomUUID?.() ?? Math.random().toString(36).slice(2, 8)).slice(-8)}`
-    const assistantMsgId = `assistant-${Date.now()}-${(globalThis.crypto?.randomUUID?.() ?? Math.random().toString(36).slice(2, 8)).slice(-8)}`
+    const userMsgId = `user-${Date.now()}-${_safeRandomSuffix()}`
+    const assistantMsgId = `assistant-${Date.now()}-${_safeRandomSuffix()}`
     const userMsg: Message = { id: userMsgId, role: 'user', content: input.trim(), timestamp: Date.now() }
     setMessages(prev => [...prev, userMsg])
     setInput('')
@@ -213,7 +237,7 @@ export default function AIAssistant() {
                     const settings = JSON.parse(localStorage.getItem('etap-settings') || '{}')
                     settings[`PROVIDER_${activeProvider.id.toUpperCase()}_MODEL`] = e.target.value
                     localStorage.setItem('etap-settings', JSON.stringify(settings))
-                    window.location.reload()
+                    globalThis.location.reload()
                   }}
                   className="text-[10px] text-gray-500 dark:text-gray-400 leading-tight bg-transparent outline-none cursor-pointer border-none p-0 m-0 max-w-[180px] sm:max-w-[250px]"
                   title="Change model"
@@ -233,7 +257,7 @@ export default function AIAssistant() {
                     const settings = JSON.parse(localStorage.getItem('etap-settings') || '{}')
                     settings.PROVIDER_ACTIVE_PROVIDER_ID = e.target.value
                     localStorage.setItem('etap-settings', JSON.stringify(settings))
-                    window.location.reload()
+                    globalThis.location.reload()
                   }}
                   className="ml-1 appearance-none bg-transparent text-[10px] text-gray-500 dark:text-gray-400 outline-none cursor-pointer"
                   title="Switch provider"
@@ -335,7 +359,7 @@ export default function AIAssistant() {
               </button>
             </div>
           ) : (
-            messages.map((m) => (
+            messages.map((m) => (  // NOSONAR — typescript:S6478: motion.div inline wrapper, not a component definition
               <motion.div
                 key={m.id}
                 initial={{ opacity: 0, y: 10 }}

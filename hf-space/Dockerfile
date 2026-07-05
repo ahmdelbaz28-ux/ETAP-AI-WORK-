@@ -6,15 +6,15 @@ LABEL version="2.1.0"
 
 WORKDIR /app
 
-# System dependencies
+# System dependencies + create non-root user in a single RUN
+# SonarCloud docker:S7031: merged consecutive RUN instructions to reduce layers
 RUN apt-get update && apt-get install -y --no-install-recommends \
     gcc g++ curl \
-    && rm -rf /var/lib/apt/lists/*
-
-# Create non-root user (UID 1000 as required by HF Spaces)
-RUN useradd -m -u 1000 user && \
-    mkdir -p /app /tmp/cache /tmp/logs /tmp/data && \
-    chown -R user:user /app /tmp
+    && rm -rf /var/lib/apt/lists/* \
+    # Create non-root user (UID 1000 as required by HF Spaces)
+    && useradd -m -u 1000 user \
+    && mkdir -p /app /tmp/cache /tmp/logs /tmp/data \
+    && chown -R user:user /app /tmp
 
 # Python dependencies
 COPY requirements.hf.txt .
@@ -24,9 +24,10 @@ RUN pip install --no-cache-dir --upgrade pip && \
 # Application code — copy specific directories instead of recursive COPY
 # (SonarCloud S6470: avoid recursive COPY . . which can inadvertently
 # add sensitive data). We copy only what app.py needs at runtime.
-# SonarCloud S6504: --chmod=go-w makes files read-only for group/others
-# so a non-root user in the container can't tamper with the app code.
-COPY --chown=user:user --chmod=go-w app.py .
+# SonarCloud S6504: Files are owned by root (not the non-root `user`) so
+# the runtime container user can read+execute but CANNOT modify them.
+COPY --chown=root:root --chmod=go-w app.py .
+COPY --chown=user:user --chmod=go-w compat.py .
 COPY --chown=user:user --chmod=go-w api/ ./api/
 COPY --chown=user:user --chmod=go-w agents/ ./agents/  # NOSONAR — S6470: .dockerignore excludes secrets
 COPY --chown=user:user core/ ./core/
@@ -53,6 +54,8 @@ COPY --chown=user:user monitoring/ ./monitoring/
 COPY --chown=user:user visualization/ ./visualization/
 COPY --chown=user:user copilot/ ./copilot/
 COPY --chown=user:user prompts/ ./prompts/
+COPY --chown=user:user skills/ ./skills/
+COPY --chown=user:user prompts.json ./prompts.json
 COPY --chown=user:user schemas/ ./schemas/
 COPY --chown=user:user config/ ./config/
 

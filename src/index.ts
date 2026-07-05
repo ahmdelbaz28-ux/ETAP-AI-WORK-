@@ -21,7 +21,6 @@ import { checkRateLimit } from './core/rateLimit.js';
 import { recordAudit, flushAuditLog } from './utils/audit.js';
 import { bumpApiMetric, loadMetrics, saveMetrics } from './utils/metrics.js';
 import { loadCircuitBreakers } from './core/circuitBreaker.js';
-import { CONFIG } from './core/config.js';
 
 import { handleRoot, handleHealth, handleMetrics } from './routes/health.js';
 import { handleListAgents, handleChat } from './routes/agents.js';

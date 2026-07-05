@@ -23,7 +23,7 @@ async def _ws(websocket: WebSocket):
 
 client = TestClient(app)
 with client.websocket_connect(WS_PATH) as ws:
-    pass
+    pass  # NOSONAR — python:S108: intentional empty with-block (debug script)
 # give some time for monitor to run
 time.sleep(0.2)
 # Using list.__iter__ to get raw underlying items (bypass overridden __iter__)

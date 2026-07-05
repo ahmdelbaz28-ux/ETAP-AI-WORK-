@@ -258,6 +258,9 @@ class TestCircuitBreaker:
 
         async def _always_fails(handle):  # NOSONAR — S7503: async function uses sync I/O for compatibility reasons
             call_count[0] += 1
+            # NOSONAR — python:S112: generic Exception is intentional here —
+            # the test simulates a transport-level failure that could be any
+            # exception subclass (ConnectionError, TimeoutError, etc.).
             raise Exception("network error")
 
         monkeypatch.setattr(prompt_loader, "_load_from_langfuse_async", _always_fails)

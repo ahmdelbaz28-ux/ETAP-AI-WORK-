@@ -163,7 +163,9 @@ def ensure_buckets_exist() -> dict[str, bool]:
     """
     client = _get_client()
     if client is None:
-        return {name: False for name, _ in ALL_BUCKETS}
+        # SonarCloud python:S7519: dict.fromkeys is more concise than
+        # a dict comprehension when the value is constant.
+        return dict.fromkeys((name for name, _ in ALL_BUCKETS), False)
 
     # Get the list of existing bucket names (handle both dict + object forms)
     try:

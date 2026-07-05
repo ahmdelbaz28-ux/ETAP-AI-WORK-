@@ -18,7 +18,9 @@ export type FailureMode = 'none' | 'connection' | 'execution' | 'validation';
 
 export class MockEtapProvider {
   private connectionState: 'disconnected' | 'connecting' | 'connected' = 'disconnected';
-  private openProjects: Map<string, ProjectInfo> = new Map();
+  // SonarCloud typescript:S2933: `openProjects` is never reassigned
+  // (only its contents are mutated via .set/.delete). Mark as readonly.
+  private readonly openProjects: Map<string, ProjectInfo> = new Map();
   private executionLog: Array<{ action: string; timestamp: number; params: unknown }> = [];
   private failureMode: FailureMode = 'none';
 

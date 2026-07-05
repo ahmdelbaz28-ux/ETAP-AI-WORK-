@@ -218,8 +218,9 @@ function createTray() {
 
     tray.setContextMenu(contextMenu)
     tray.on('double-click', () => mainWindow?.show())
-  } catch (e) {
+  } catch (e) {  // NOSONAR — javascript:S2486: tray creation is non-fatal
     // Tray creation can fail on some systems — non-fatal
+    console.warn('Tray creation failed:', e instanceof Error ? e.message : String(e));
   }
 }
 

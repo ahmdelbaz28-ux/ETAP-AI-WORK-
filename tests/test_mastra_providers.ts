@@ -165,7 +165,7 @@ async function runTest() {
       model: failoverModel as any,
       prompt: 'Say "hello, verification successful!"'
     });
-    console.log('Result text:', text);
+    console.log('Result text:', text);  // NOSONAR — tssecurity:S5145: text is model output in a test, not user input
     console.log('Result usage:', usage);
   } catch (err) {
     console.error('generateText completely failed:', err);

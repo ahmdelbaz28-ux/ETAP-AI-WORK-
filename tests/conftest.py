@@ -637,11 +637,11 @@ async def db_engine() -> AsyncGenerator[AsyncEngine, None]:
     so the in-memory SQLite DB is completely fresh — no rows from
     previous tests can leak in.
     """
-    import api.auth  # noqa: F401 — registers User
-    import api.projects  # noqa: F401 — registers Project, StudyResult
+    import api.auth  # noqa: F401
+    import api.projects  # noqa: F401
 
     try:
-        import api.mfa  # noqa: F401 — registers MFACredential (if present)
+        import api.mfa  # noqa: F401
     except Exception:
         pass
 
@@ -701,9 +701,9 @@ def app(db_engine: AsyncEngine):
     # Force import of every module that registers a model with Base, so
     # that Base.metadata.create_all() in db_engine actually creates the
     # users / projects / study_results tables (and any future tables).
-    import api.auth  # noqa: F401 — registers User model
-    import api.projects  # noqa: F401 — registers Project, StudyResult models
-    import api.mfa  # noqa: F401 — registers MFACredential model if present
+    import api.auth  # noqa: F401
+    import api.projects  # noqa: F401
+    import api.mfa  # noqa: F401
 
     # The db_engine fixture (which this fixture depends on) drops and
     # recreates all tables before each test, so we don't need to truncate

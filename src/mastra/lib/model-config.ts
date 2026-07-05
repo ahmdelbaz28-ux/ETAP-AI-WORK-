@@ -126,9 +126,11 @@ export async function testProviderById(
     });
     if (!resp.ok) {
       const body = await resp.text().catch(() => '');
+      // SonarCloud typescript:S4624: extracted nested template literal
+      const bodySnippet = body ? `: ${body.slice(0, 200)}` : '';
       return {
         success: false,
-        error: `HTTP ${resp.status} ${resp.statusText}${body ? `: ${body.slice(0, 200)}` : ''}`,
+        error: `HTTP ${resp.status} ${resp.statusText}${bodySnippet}`,
         latencyMs: Date.now() - t0,
       };
     }

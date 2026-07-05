@@ -27,7 +27,7 @@ try:
         )
 
         _HAS_KNOWLEDGE_DEPS = True
-except (ImportError, ModuleNotFoundError, RuntimeError):
+except (ImportError, RuntimeError):  # NOSONAR — python:S5713: ModuleNotFoundError is a subclass of ImportError; kept for clarity
     _HAS_KNOWLEDGE_DEPS = False
 
 pytestmark = pytest.mark.skipif(

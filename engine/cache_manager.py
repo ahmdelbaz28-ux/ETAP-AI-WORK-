@@ -169,7 +169,7 @@ class CalculationCache:
         with self._lock:
             keys = self._tag_index.pop(tag, set())
             count = 0
-            for key in list(keys):
+            for key in keys:
                 if key in self._entries:
                     self._remove_entry(key)
                     count += 1
@@ -357,7 +357,7 @@ class SmartCacheStrategy:
         if expensive:
             return True
         size_estimate = _estimate_size(params)
-        return not size_estimate > 1024 * 100
+        return size_estimate <= 1024 * 100
 
     def get_cache_ttl(self, component: str, _result_type: str | None = None) -> int:
         mapped = component

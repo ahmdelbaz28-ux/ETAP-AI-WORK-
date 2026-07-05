@@ -525,14 +525,18 @@ def benchmark_6_concurrent() -> Dict[str, Any]:
         results_list: List[float] = []
         lock = threading.Lock()
 
-        def worker():
+        # SonarCloud python:S1515: pass lock + results_list as default args
+        # so each worker captures them by VALUE at function-definition time,
+        # not by reference (which would be a late-binding bug if the loop
+        # reassigned them — it doesn't here, but explicit is safer).
+        def worker(_lock: threading.Lock = lock, _results: List[float] = results_list):
             # Each thread creates its own engine
             engine = engine_class(sys_model)
             t0 = time.perf_counter()
             engine.run_load_flow()
             elapsed = time.perf_counter() - t0
-            with lock:
-                results_list.append(elapsed)
+            with _lock:
+                _results.append(elapsed)
 
         t0 = time.perf_counter()
         threads = []
@@ -664,7 +668,7 @@ class BenchmarkReport:
 
         ca = self.cache.get("scenarios", [])
         if ca:
-            best_hit = max(s["hit_rate_pct"] for s in ca)
+            best_hit = max(s["hit_rate_pct"] for s in ca)  # NOSONAR — python:S125: false positive — actual code, not a comment
             print(f"  • Cache hit rate: {best_hit:.1f}% best case (Zipfian workload)")
 
 

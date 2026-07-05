@@ -73,8 +73,8 @@ export function Sidebar() {  // NOSONAR — S3776: cognitive complexity; schedul
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') setMobileSidebarOpen(false)
     }
-    window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
+    globalThis.addEventListener('keydown', onKey)
+    return () => globalThis.removeEventListener('keydown', onKey)
   }, [mobileSidebarOpen, setMobileSidebarOpen])
 
   useEffect(() => {
@@ -104,7 +104,6 @@ export function Sidebar() {  // NOSONAR — S3776: cognitive complexity; schedul
     <>
       {/* ─── Desktop Sidebar (lg and up) ─────────────────────────────── */}
       <aside
-        role="complementary"
         aria-label="Sidebar Navigation"
         className={cn(
           'hidden lg:flex h-full flex-col bg-[var(--bg-secondary)] border-r border-[var(--border-primary)] shrink-0 transition-all duration-300 overflow-hidden z-[var(--z-sidebar)]',
@@ -258,7 +257,6 @@ export function Sidebar() {  // NOSONAR — S3776: cognitive complexity; schedul
 
       {/* Drawer */}
       <aside
-        role="complementary"
         aria-label="Mobile Sidebar Navigation"
         aria-hidden={!mobileSidebarOpen}
         className={cn(

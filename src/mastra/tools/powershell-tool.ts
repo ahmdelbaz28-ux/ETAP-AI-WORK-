@@ -16,16 +16,24 @@ export const run_powershell = createTool({
       const secureExecutorPath = 'security/secure_powershell_executor.py';
 
       // Use spawn to pass command via stdin (prevents shell injection).
-      // SonarCloud S4036: explicitly sanitize PATH to only well-known system
-      // directories so a malicious user can't shadow `python` with a trojan.
-      const safePath = ['/usr/local/bin', '/usr/bin', '/bin', '/usr/local/sbin', '/usr/sbin', '/sbin']
-        .filter((p) => process.env.PATH?.includes(p))
-        .join(':');
+      // SonarCloud tssecurity:S4036: PATH is hardcoded to a fixed list of
+      // vetted system directories — we do NOT derive it from process.env.PATH
+      // (which could be poisoned by a parent process). If `python` is not
+      // resolvable in this list, the spawn will fail loudly rather than
+      // silently falling back to a potentially-trojaned binary.
+      const SAFE_PATH = [
+        '/usr/local/bin',
+        '/usr/bin',
+        '/bin',
+        '/usr/local/sbin',
+        '/usr/sbin',
+        '/sbin',
+      ].join(':');
       const child = spawn('python', [secureExecutorPath], {
         env: {
           ...process.env,
           // Override PATH with only vetted system directories
-          PATH: safePath || process.env.PATH,
+          PATH: SAFE_PATH,
           PYTHONDONTWRITEBYTECODE: '1',
           PYTHONUNBUFFERED: '1',
         },
@@ -60,7 +68,7 @@ export const run_powershell = createTool({
           if (response.success) {
             const output = response.output || '';
             if (output.length > MAX_OUTPUT_LENGTH) {
-              resolve(output.substring(0, MAX_OUTPUT_LENGTH) + '\n... [output truncated]');
+              resolve(output.substring(0, MAX_OUTPUT_LENGTH) + '\n... [output truncated]');  // NOSONAR — typescript:S4624: false positive — string concatenation, not nested template literal
             } else {
               resolve(output);
             }
@@ -68,7 +76,10 @@ export const run_powershell = createTool({
             reject(new Error(response.error || 'Execution failed without specific error message'));
           }
         } catch (parseError) {
-          reject(new Error(`Failed to parse executor response: ${stdout}${parseError instanceof Error ? ` (${parseError.message})` : ''}`));
+          // SonarCloud typescript:S4624: extracted the nested template literal
+          // into a separate variable to keep the error message readable.
+          const parseErrMsg = parseError instanceof Error ? ` (${parseError.message})` : '';
+          reject(new Error(`Failed to parse executor response: ${stdout}${parseErrMsg}`));
         }
       });
 

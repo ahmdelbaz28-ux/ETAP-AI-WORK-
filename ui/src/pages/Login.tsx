@@ -223,9 +223,9 @@ export default function Login() {
               { icon: <Cpu className="w-5 h-5 text-brand-400 mb-1.5" />, label: 'AI Agents', value: '8+ Specialized', delay: 0.6 },
               { icon: <Activity className="w-5 h-5 text-green-400 mb-1.5" />, label: 'Studies', value: '8 Types', delay: 0.72 },
               { icon: <ShieldCheck className="w-5 h-5 text-amber-400 mb-1.5" />, label: 'Standards', value: 'IEEE / IEC', delay: 0.84 },
-            ].map((s, i) => (
+            ].map((s) => (
               <motion.div
-                key={i}
+                key={s.label}
                 initial={{ opacity: 0, y: 20, scale: 0.95 }}
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1], delay: s.delay }}

@@ -40,10 +40,10 @@ export function TopBar({ onHelpOpen }: TopBarProps) {  // NOSONAR — S6759: Rea
        * below with an orange-red gradient tile. See PR #85 review thread.
        */}
       <div className="flex items-center gap-3">
-        <div
-          className="flex items-center gap-2 cursor-pointer"
-          role="button"
-          tabIndex={0}
+        {/* NOSONAR — typescript:S6819: native <button> for keyboard-accessible nav */}
+        <button
+          type="button"
+          className="flex items-center gap-2 cursor-pointer bg-transparent border-0 p-0"
           aria-label="Go to dashboard"
           onClick={() => navigate('/dashboard')}
           onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') navigate('/dashboard') }}
@@ -52,7 +52,7 @@ export function TopBar({ onHelpOpen }: TopBarProps) {  // NOSONAR — S6759: Rea
           <span className="text-sm font-bold text-[var(--text-primary)] tracking-tight hidden sm:block">
             Ahmed etap
           </span>
-        </div>
+        </button>
 
         {/* Project context placeholder */}
         <div className="hidden md:flex items-center gap-1.5 ml-3 px-2.5 py-1 rounded-md bg-[var(--bg-primary)] border border-[var(--border-primary)] text-xs text-[var(--text-muted)]">

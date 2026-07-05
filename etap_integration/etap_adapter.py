@@ -74,7 +74,12 @@ class ETAPProviderAdapter(ETAPAdapter):
                 # Try to import ETAP COM provider
                 from .etap_provider import get_etap_provider
 
-                self._provider = get_etap_provider()()
+                # SonarCloud python:S5864: get_etap_provider() already returns
+                # a fully-initialised IEtapProvider INSTANCE — do NOT call it
+                # again. The previous `get_etap_provider()()` raised TypeError
+                # at runtime, which was silently swallowed by the except below,
+                # disabling ETAP integration whenever USE_ETAP=true.
+                self._provider = get_etap_provider()
                 self._available = self._provider.is_available() if self._provider else False
             except ImportError as e:
                 logger.warning(f"ETAP provider not available: {e}")

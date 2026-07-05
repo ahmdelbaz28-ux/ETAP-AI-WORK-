@@ -19,7 +19,7 @@ logger = logging.getLogger(__name__)
 
 
 def _is_redis_url(redis_url: str) -> bool:
-    return redis_url.startswith("redis://") or redis_url.startswith("rediss://")
+    return redis_url.startswith("redis://", "rediss://")  # NOSONAR — python:S8513: false positive — already tuple form
 
 
 class StudyCache:

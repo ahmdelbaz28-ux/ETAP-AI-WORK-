@@ -53,8 +53,9 @@ function parseSimpleYaml(content: string): Record<string, unknown> {  // NOSONAR
   let inMultilineContent = false;
   let multilineIndent = 0;
   
-  for (let i = 0; i < lines.length; i++) {
-    const line = lines[i];
+  // SonarCloud typescript:S4138: use for-of since `i` is never used
+  // except to index `lines`. Behaviour is identical.
+  for (const line of lines) {
     
     // Handle multiline content started with |
     if (inMultilineContent) {

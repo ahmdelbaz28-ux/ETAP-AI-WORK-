@@ -4,8 +4,9 @@ import { readFileSync, writeFileSync } from 'node:fs';
 const lock = readFileSync('pnpm-lock.yaml', 'utf-8');
 
 function extractVersion(name) {
-  const esc = name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  const regex = new RegExp("'" + esc + "@([0-9]+\\.[0-9]+\\.[0-9]+[^'\\n:]*?)'", 'i');
+  // SonarCloud javascript:S7780: use String.raw for regex patterns
+  const esc = name.replace(/[.*+?^${}()|[\]\\]/g, String.raw`\$&`);
+  const regex = new RegExp("'" + esc + String.raw`@([0-9]+\.[0-9]+\.[0-9]+[^'\n:]*?)'`, 'i');
   const match = lock.match(regex);
   if (match) {
     let v = match[1];

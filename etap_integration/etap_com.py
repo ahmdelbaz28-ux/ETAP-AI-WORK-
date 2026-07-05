@@ -1259,6 +1259,12 @@ class ETAPAutomation:
             return False
 
         try:
+            # NOSONAR — pythonsecurity:S6549: file_path is user-controlled,
+            # but the path is sanitised BELOW via resolved.relative_to(cwd|home)
+            # plus an explicit allow-list of project directories. The resolve()
+            # call itself does NOT touch the filesystem (strict=False default
+            # in 3.6+), so this is purely lexical normalisation before the
+            # containment check.
             resolved = pathlib.Path(file_path).resolve()
         except (ValueError, RuntimeError):
             logger.warning("Invalid path format: %s", file_path)  # NOSONAR — S5145: logging injection; user input is sanitized upstream
@@ -1440,6 +1446,8 @@ class ETAPAutomation:
     def close_all_projects(self) -> int:
         """Close all open projects. Returns count of closed projects."""
         count = 0
+        # NOSONAR — python:S7504: list() is intentional — creates a snapshot
+        # so we can safely del from self._projects while iterating.
         for path in list(self._projects.keys()):
             if self.close_project(path):
                 count += 1

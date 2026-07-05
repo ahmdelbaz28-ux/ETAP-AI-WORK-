@@ -120,6 +120,8 @@ async def test_cancellable_with_deadline_fires():
 
 @pytest.mark.anyio
 async def test_cancellable_without_deadline_requires_external_cancel():
+    # NOSONAR — python:S7513: TaskGroup with one task is intentional —
+    # we need the task group to test cancellation propagation semantics.
     async with anyio.create_task_group() as tg:
         runner_scope = None
 

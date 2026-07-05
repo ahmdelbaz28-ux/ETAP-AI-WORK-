@@ -28,7 +28,11 @@ function auditToLogs(metrics: MetricsResponse | null, audit: AuditEntry[]): LogE
       timestamp: t.toLocaleTimeString(),
       level: entry.statusCode >= 400 ? 'error' : entry.statusCode >= 300 ? 'warn' : 'info',
       source: 'audit',
-      message: `${entry.method} ${entry.path} ${entry.statusCode} — ${entry.action}${entry.latencyMs ? ` (${entry.latencyMs}ms)` : ''}`,
+      // SonarCloud typescript:S4624: extracted nested template literal
+      message: (() => {
+        const latencySnippet = entry.latencyMs ? ` (${entry.latencyMs}ms)` : '';
+        return `${entry.method} ${entry.path} ${entry.statusCode} — ${entry.action}${latencySnippet}`;
+      })(),
     })
   }
   return logs.length ? logs : [{ timestamp: '--', level: 'info' as const, source: 'system', message: 'No log data available. Run a study or chat to generate activity.' }]

@@ -132,7 +132,10 @@ jobs:
           find . -mindepth 1 -maxdepth 1 -not -name '.git' -not -name '.gitattributes' -exec rm -rf {} +
           # README.hf.md is the HF frontmatter README; rename to README.md on the Space
           cp ../README.hf.md ./README.md
-          cp -r ../Dockerfile ../VERSION ../prompts.json ../compat.py ./
+          # .dockerignore is CRITICAL — without it, the Docker build copies
+          # everything (including .git, tests, docs, __pycache__) which can
+          # exceed the HF Space disk limit and cause build failures.
+          cp -r ../Dockerfile ../.dockerignore ../VERSION ../prompts.json ../compat.py ./
           cp -r ../hf-space ./
           cp -r ../agents ../skills ../prompts ../core_model ../core ../engine ./
           cp -r ../load_flow ../fault_analysis ../coordination ../relays ./
