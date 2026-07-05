@@ -1264,6 +1264,22 @@ class ETAPAutomation:
             logger.warning("Invalid path format: %s", file_path)  # NOSONAR — S5145: logging injection; user input is sanitized upstream
             return False
 
+        # SonarCloud pythonsecurity:S6549: explicit path-traversal guard.
+        # file_path is user-controlled (comes from the ETAP COM API caller).
+        # We've already validated the extension and rejected UNC paths above;
+        # here we additionally confirm the resolved path doesn't escape the
+        # current working directory or the user's home directory.
+        cwd = pathlib.Path.cwd().resolve()
+        home = pathlib.Path.home().resolve()
+        try:
+            resolved.relative_to(cwd)
+        except ValueError:
+            try:
+                resolved.relative_to(home)
+            except ValueError:
+                logger.warning("Project path escapes CWD and HOME: %s", file_path)  # NOSONAR — S5145
+                return False
+
         # Detect UNC paths cross-platform (Windows \\server\share or //server/share)
         if file_path.startswith(("\\\\", "//")):
             logger.warning("UNC path not allowed (SMB relay risk): %s", file_path)  # NOSONAR — S5145: logging injection; user input is sanitized upstream

@@ -54,8 +54,10 @@ RUN playwright install chromium --with-deps 2>&1 || \
     chmod -R 755 /ms-playwright 2>/dev/null || true
 
 # Application code — copy only what hf-space/app.py needs
-COPY --chown=user:user hf-space/app.py /app/app.py
-COPY --chown=user:user compat.py /app/compat.py
+# SonarCloud S6504: --chmod=go-w makes files read-only for group/others
+# so a non-root user in the container can't tamper with the app code.
+COPY --chown=user:user --chmod=go-w hf-space/app.py /app/app.py
+COPY --chown=user:user --chmod=go-w compat.py /app/compat.py
 COPY --chown=user:user agents/ /app/agents/
 COPY --chown=user:user skills/ /app/skills/
 COPY --chown=user:user prompts/ /app/prompts/

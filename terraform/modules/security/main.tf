@@ -18,6 +18,14 @@ resource "azurerm_container_registry" "this" {
   # maintenance scenarios in non-production environments.
   public_network_access_enabled = var.acr_public_network_access_enabled
 
+  # SonarCloud S6378: enable Azure Managed Identity so the ACR can
+  # authenticate to other Azure services (Key Vault, Storage) without
+  # storing credentials. We use a SystemAssigned identity which is
+  # managed by Azure and tied to the resource's lifecycle.
+  identity {
+    type = "SystemAssigned"
+  }
+
   # Geo-replication for production
   dynamic "georeplications" {
     for_each = var.tags["environment"] == "prod" ? [
@@ -54,6 +62,12 @@ resource "azurerm_key_vault" "this" {
   resource_group_name = var.resource_group_name
   tenant_id           = var.tenant_id
   sku_name            = "standard"
+
+  # SonarCloud S6383: enable RBAC authorization so access is controlled via
+  # Azure RBAC role assignments (Key Vault Administrator, Reader, etc.)
+  # instead of access policies. This is the recommended approach for new
+  # Key Vaults per Azure security baseline.
+  rbac_authorization_enabled = true
 
   enabled_for_deployment          = true
   enabled_for_disk_encryption     = true

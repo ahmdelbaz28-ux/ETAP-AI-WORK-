@@ -778,7 +778,7 @@ class TestDataModelValidation:
     def test_coordinates_defaults_z_to_zero(self):
         """Coordinates should default z to 0.0."""
         c = Coordinates(x=1.0, y=2.0)
-        assert c.z == 0.0
+        assert c.z == pytest.approx(0.0)  # SonarCloud S1244: float equality
 
     def test_panel_requires_voltage(self):
         """Panel should require voltage_nominal_v."""
@@ -907,7 +907,7 @@ class TestDataTransformation:
             payload = mock_post.call_args[1]["json"]
             params = payload["params"]["parameters"]
             assert params["panel_type"] == "MDP"
-            assert params["voltage_v"] == 480.0
+            assert params["voltage_v"] == pytest.approx(480.0)  # SonarCloud S1244: float equality
             assert params["phase_count"] == pytest.approx(3)
 
     def test_bus_to_autocad_attributes(self):

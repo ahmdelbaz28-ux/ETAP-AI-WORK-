@@ -249,27 +249,41 @@ function loadLocalPrompt(handle: string): string | null {  // NOSONAR — S3776:
   }
 }
 
+/**
+ * Try to fetch the system prompt from LangWatch.
+ * Returns the trimmed prompt string, or null if unavailable / empty.
+ *
+ * Extracted from `getSystemPrompt` to keep the main function's
+ * cognitive complexity under 15 (SonarCloud S3776).
+ */
+async function getLangWatchPrompt(handle: string): Promise<string | null> {
+  if (process.env.DEPLOYMENT_VERIFICATION === 'true') {
+    return null;
+  }
+  try {
+    const prompt = (await langwatch.prompts.get(handle)) as LangWatchPrompt | null | undefined;
+    if (!prompt) return null;
+
+    if (prompt.prompt?.trim()) {
+      return prompt.prompt.trim();
+    }
+    const systemMessage = prompt.messages?.find((message) => message.role === 'system');
+    const systemContent = stringifyContent(systemMessage?.content).trim();
+    return systemContent || null;
+  } catch (e) {
+    // LangWatch API unavailable, fall back to local prompt
+    console.warn(`[Prompts] LangWatch API unavailable, using local fallback for "${handle}":`, e instanceof Error ? e.message : String(e));
+    return null;
+  }
+}
+
 export async function getSystemPrompt(handle: string): Promise<string> {
   // Try LangWatch first (unless we're in deployment verification mode)
-  if (process.env.DEPLOYMENT_VERIFICATION !== 'true') {
-    try {
-      const prompt = (await langwatch.prompts.get(handle)) as LangWatchPrompt | null | undefined;
-      if (prompt) {
-        if (prompt.prompt?.trim()) {
-          return prompt.prompt.trim();
-        }
-        const systemMessage = prompt.messages?.find((message) => message.role === 'system');
-        const systemContent = stringifyContent(systemMessage?.content).trim();
-        if (systemContent) {
-          return systemContent;
-        }
-      }
-    } catch (e) {
-      // LangWatch API unavailable, fall back to local prompt
-      console.warn(`[Prompts] LangWatch API unavailable, using local fallback for "${handle}":`, e instanceof Error ? e.message : String(e));
-    }
+  const langwatchPrompt = await getLangWatchPrompt(handle);
+  if (langwatchPrompt) {
+    return langwatchPrompt;
   }
-  
+
   // Fall back to local YAML file
   const localPrompt = loadLocalPrompt(handle);
   if (localPrompt) {

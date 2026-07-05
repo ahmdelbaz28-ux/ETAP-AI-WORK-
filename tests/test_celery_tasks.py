@@ -623,7 +623,7 @@ class TestTaskTimeout:
 
         assert async_result.successful() is True
         result = async_result.get(timeout=5)
-        assert result["execution_time_sec"] == 5.0
+        assert result["execution_time_sec"] == pytest.approx(5.0)  # SonarCloud S1244: float equality
 
     @patch("worker.tasks.current_task")
     @patch("worker.tasks.np", create=True)

@@ -15,6 +15,38 @@ import {
   testVisionKey,
   type VisionKeyConfig,
 } from '../lib/api'
+
+// ─── Provider card helpers ─────────────────────────────────────────
+// Extracted from the inline `POPULAR_PROVIDERS.map(...)` callback in
+// <Settings/> to keep the callback's cognitive complexity under 15
+// (SonarCloud S3776). Each helper is a small, flat function.
+
+type ProviderStatus = 'ok' | 'fail' | null | undefined
+
+function providerCardClass(hasKey: boolean, isFree: boolean): string {
+  const base = 'p-4 rounded-xl border-2 transition-all bg-[var(--bg-elevated)] relative'
+  if (hasKey) return cn(base, 'border-green-500/30')
+  if (isFree) return cn(base, 'border-green-500/20 hover:border-green-500/40')
+  return cn(base, 'border-[var(--border-primary)] hover:border-brand-500/40')
+}
+
+function providerButtonClass(hasKey: boolean, isTesting: boolean, status: ProviderStatus): string {
+  const base = 'w-full flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all'
+  if (!hasKey || isTesting) {
+    return cn(base, 'bg-[var(--bg-primary)] text-[var(--text-muted)] cursor-not-allowed border border-[var(--border-primary)]')
+  }
+  if (status === 'ok') return cn(base, 'bg-green-600 hover:bg-green-500 text-white')
+  if (status === 'fail') return cn(base, 'bg-red-600 hover:bg-red-500 text-white')
+  return cn(base, 'bg-brand-600 hover:bg-brand-500 text-white')
+}
+
+function providerButtonContent(isTesting: boolean, status: ProviderStatus): React.ReactNode {
+  if (isTesting) return (<><Loader2 className="w-3.5 h-3.5 animate-spin" /> Testing...</>)
+  if (status === 'ok') return (<><CheckCircle2 className="w-3.5 h-3.5" /> Valid ✓</>)
+  if (status === 'fail') return (<><XCircle className="w-3.5 h-3.5" /> Failed — Retry</>)
+  return (<><Zap className="w-3.5 h-3.5" /> Test &amp; Save</>)
+}
+
 // Simple XOR-based obfuscation for localStorage storage.
 // NOT a substitute for server-side encryption — but prevents
 // plaintext secrets from being readable via DevTools at a glance.
@@ -667,18 +699,11 @@ function AISettingsPanel({ settings, setSettings, notify }: AISettingsPanelProps
             const hasKey = !!settings[keyName]
             const status = providerStatus[p.id]
             const isTesting = testingProvider === p.id
+            const cardClass = providerCardClass(hasKey, p.isFree)
+            const buttonClass = providerButtonClass(!!settings[keyName], isTesting, status)
+            const buttonContent = providerButtonContent(isTesting, status)
             return (
-              <div
-                key={p.id}
-                className={cn(
-                  'p-4 rounded-xl border-2 transition-all bg-[var(--bg-elevated)] relative',
-                  hasKey
-                    ? 'border-green-500/30'
-                    : p.isFree
-                      ? 'border-green-500/20 hover:border-green-500/40'
-                      : 'border-[var(--border-primary)] hover:border-brand-500/40'
-                )}
-              >
+              <div key={p.id} className={cardClass}>
                 {/* "FREE" badge for free providers */}
                 {p.isFree && !hasKey && (
                   <span className="absolute -top-2 -right-2 px-2 py-0.5 rounded-full bg-green-500 text-white text-[9px] font-bold uppercase tracking-wide shadow-md z-10">
@@ -743,26 +768,9 @@ function AISettingsPanel({ settings, setSettings, notify }: AISettingsPanelProps
                 <button
                   onClick={() => handleTestProvider(p.id)}
                   disabled={!settings[keyName] || isTesting}
-                  className={cn(
-                    'w-full flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all',
-                    !settings[keyName] || isTesting
-                      ? 'bg-[var(--bg-primary)] text-[var(--text-muted)] cursor-not-allowed border border-[var(--border-primary)]'
-                      : status === 'ok'
-                        ? 'bg-green-600 hover:bg-green-500 text-white'
-                        : status === 'fail'
-                          ? 'bg-red-600 hover:bg-red-500 text-white'
-                          : 'bg-brand-600 hover:bg-brand-500 text-white'
-                  )}
+                  className={buttonClass}
                 >
-                  {isTesting ? (
-                    <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Testing...</>
-                  ) : status === 'ok' ? (
-                    <><CheckCircle2 className="w-3.5 h-3.5" /> Valid ✓</>
-                  ) : status === 'fail' ? (
-                    <><XCircle className="w-3.5 h-3.5" /> Failed — Retry</>
-                  ) : (
-                    <><Zap className="w-3.5 h-3.5" /> Test &amp; Save</>
-                  )}
+                  {buttonContent}
                 </button>
 
                 {/* Get key link — uses apiKeyUrl from provider config */}

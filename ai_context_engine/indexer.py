@@ -117,9 +117,36 @@ class CodeExtractor:
             return cls.extract_with_ast(filepath)
 
 
+def _is_within(path: Path, root: Path) -> bool:
+    """Return True if `path` is `root` itself or lives somewhere below `root`."""
+    try:
+        path.relative_to(root)
+        return True
+    except ValueError:
+        return False
+
+
 class CodeIndexer:
     def __init__(self, output_dir: str, embedding_function=None):
-        self.output_dir = Path(output_dir)
+        # SonarCloud pythonsecurity:S8707: validate the path before creating
+        # the directory so an LLM-supplied CLI argument can't be tricked into
+        # writing outside the project tree (e.g. via ../ escapes or absolute
+        # paths). We resolve the path and confirm it stays within an allowed
+        # root: the current working directory, /tmp (for tests), or the
+        # user's home directory.
+        candidate = Path(output_dir).expanduser().resolve()
+        allowed_roots = [
+            Path.cwd().resolve(),
+            Path("/tmp").resolve(),
+            Path("/var/tmp").resolve(),
+            Path.home().resolve(),
+        ]
+        if not any(_is_within(candidate, root) for root in allowed_roots):
+            raise ValueError(
+                f"Refusing to create index directory outside allowed roots "
+                f"(CWD, /tmp, /var/tmp, HOME): {output_dir!r}"
+            )
+        self.output_dir = candidate
         self.output_dir.mkdir(parents=True, exist_ok=True)
         self.client = None
         self.collection = None

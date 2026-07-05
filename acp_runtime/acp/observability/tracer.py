@@ -187,7 +187,7 @@ class NullTracer(Tracer):
     """No-op tracer."""
 
     def record_span(self, span: Span) -> None:
-        pass
+        pass  # NOSONAR — S1186: intentional no-op (Null Object pattern)
 
 
 # ------------------------------------------------------------------ InMemoryTracer

@@ -58,8 +58,10 @@ RUN groupadd -r engsvc && \
 WORKDIR /app
 
 # Copy the service code + ALL required Python modules
-COPY --chown=engsvc:engsvc engineering_service.py ./
-COPY --chown=engsvc:engsvc compat.py ./
+# SonarCloud S6504: --chmod=go-w makes files read-only for group/others
+# so a non-root user in the container can't tamper with the app code.
+COPY --chown=engsvc:engsvc --chmod=go-w engineering_service.py ./
+COPY --chown=engsvc:engsvc --chmod=go-w compat.py ./
 COPY --chown=engsvc:engsvc api/ ./api/
 COPY --chown=engsvc:engsvc core/ ./core/
 COPY --chown=engsvc:engsvc services/ ./services/

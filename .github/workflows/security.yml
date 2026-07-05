@@ -9,14 +9,19 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+# SonarCloud S8233: workflow-level permissions are limited to read-only.
+# Jobs that need to upload security findings declare their own
+# `permissions:` block with `security-events: write`.
 permissions:
   contents: read
-  security-events: write
 
 jobs:
   codeql:
     name: CodeQL Analysis
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write  # SonarCloud S8233: scoped to this job only
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -62,6 +67,9 @@ jobs:
   trivy:
     name: Trivy Security Scan
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write  # SonarCloud S8233: scoped to this job only (uploads SARIF)
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
