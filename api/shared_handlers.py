@@ -828,7 +828,12 @@ def handle_predict_load(body: dict[str, Any]) -> dict[str, Any]:
         from ml.predictive import LoadForecaster  # type: ignore
 
         historical = body.get("historical_data", [])
-        horizon = body.get("horizon_hours", 24)
+        # Accept both `horizon_hours` (canonical) and `horizon` (alias used
+        # by the Newman/Postman smoke-test collection and several SDK clients).
+        # If both are present, `horizon_hours` wins.
+        horizon = body.get("horizon_hours")
+        if horizon is None:
+            horizon = body.get("horizon", 24)
         method = body.get("method", "auto")
 
         if not historical:
