@@ -152,7 +152,11 @@ locustfile.py
 k6-load-test.js
 
 # Root-level config files (not needed in container)
+# IMPORTANT: prompts.json IS needed at runtime (loaded by agents/prompt_loader.py).
+# package.json is needed by the UI build. Keep both un-ignored.
 *.json
+!prompts.json
+!package.json
 !pyproject.toml
 *.yml
 *.yaml
