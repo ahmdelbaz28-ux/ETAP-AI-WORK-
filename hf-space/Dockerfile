@@ -83,8 +83,17 @@ ENV DATABASE_URL=${DATABASE_URL:-sqlite+aiosqlite:////tmp/data/etap_platform.db}
 # Environment mode (not a secret)
 ENV ENVIRONMENT=${ENVIRONMENT:-production}
 
-# Redis URL (empty = use in-memory fallback)
-ENV REDIS_URL=
+# Redis URL — HIGH #9 fix (AhmedETAP_Error_Report_AR.pdf):
+# Previously hardcoded to empty string, which disabled Redis-backed token
+# blacklist and rate limiting on HF Space (falling back to in-memory that
+# resets on every container restart — token revocation didn't survive reboot).
+# Now we read from the HF Space Secret `REDIS_URL` at runtime. If the secret
+# is not set, the app falls back to in-memory (development mode).
+# To enable Redis-backed security on HF Space:
+#   1. Deploy a Redis instance (Redis Cloud, Upstash, etc.)
+#   2. Add the connection string as a Space Secret named `REDIS_URL`
+#   3. Restart the Space
+ENV REDIS_URL=${REDIS_URL:-}
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=20s --retries=3 \

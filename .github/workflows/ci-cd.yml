@@ -88,7 +88,11 @@ jobs:
     needs: lint
     env:
       ENVIRONMENT: testing
-      JWT_SECRET_KEY: ci-test-secret-key-for-github-actions
+      # HIGH #11 (AhmedETAP_Error_Report_AR.pdf): use a 32+ byte test key
+      # (RFC 7518 §3.2) instead of the short 'ci-test-secret-key-for-github-actions'.
+      # This is NOT a real secret — it's only used in CI test runs. Static secret
+      # scanners won't flag it because it's clearly a test value (prefix + padding).
+      JWT_SECRET_KEY: ci-test-jwt-secret-key-for-github-actions-32-bytes-min
       DATABASE_URL: sqlite+aiosqlite:///./test.db
       REDIS_URL: redis://localhost:6379/0
       LANGWATCH_API_KEY: ${{ secrets.LANGWATCH_API_KEY }}
@@ -131,7 +135,8 @@ jobs:
       - name: Smoke test — api.routes:app imports
         env:
           ENVIRONMENT: testing
-          JWT_SECRET_KEY: ci-test-secret-key-for-github-actions
+          # HIGH #11: 32+ byte test key (RFC 7518 §3.2)
+          JWT_SECRET_KEY: ci-test-jwt-secret-key-for-github-actions-32-bytes-min
           DATABASE_URL: sqlite+aiosqlite:///./test.db
         run: |
           python -c "from api.routes import app; assert app is not None; print('✅ api.routes:app imports OK —', len(app.routes), 'routes registered')"
