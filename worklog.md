@@ -1188,7 +1188,7 @@ Self-Critique of Previous Work (commit dece8da):
 Fixes Applied in This Round:
 1. HIGH #8 complete: added webauthn>=2.0.0 to requirements.hf.txt (was missing)
 2. HIGH #9 complete: hf-space/Dockerfile REDIS_URL changed from hardcoded empty to ${REDIS_URL:-} (reads from HF Space Secret at runtime)
-3. HIGH #10 EXECUTED: ran git-filter-repo --invert-paths --path .mcp.json on the actual repo. Verified 'sk-user-yzgoyjQR...' is purged from ALL commits. Origin remote re-added. HEAD intact.
+3. HIGH #10 EXECUTED: ran git-filter-repo --invert-paths --path .mcp.json on the actual repo. Verified the leaked TestSprite API key is purged from ALL commits. Origin remote re-added. HEAD intact.
 4. MEDIUM #17 complete: replaced 2237-line api/refactored_service.py with a 40-line deprecated stub that re-exports api.routes.app + emits DeprecationWarning. No code imports refactored_service (verified via grep), so this is safe.
 5. HIGH #11 complete: replaced both occurrences of 'ci-test-secret-key-for-github-actions' in .github/workflows/ci-cd.yml with 'ci-test-jwt-secret-key-for-github-actions-32-bytes-min' (44 bytes, RFC 7518 compliant)
 

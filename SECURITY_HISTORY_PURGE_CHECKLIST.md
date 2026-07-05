@@ -18,7 +18,7 @@ git log --all -p -- .mcp.json | grep -E "^\+.*API_KEY"
 Output (redacted):
 
 ```
-+        "API_KEY": "sk-user-yzgoyjQR2p9whikAhJVlSil2Vn94qdE7ISwCxt3-..."
++        "API_KEY": "sk-user-***REDACTED***"
 ```
 
 The key is **already rotated** at TestSprite (the `.mcp.json.example`
@@ -48,7 +48,7 @@ git clone --mirror https://github.com/ahmdelbaz28-ux/ETAP-AI-WORK-.git etap-mirr
 # 2. Create a secrets.txt file with the literal strings to remove
 #    (one per line; BFG replaces them with `***REMOVED***`)
 cat > secrets.txt <<'EOF'
-sk-user-yzgoyjQR2p9whikAhJVlSil2Vn94qdE7ISwCxt3-TpXfkPKAC-eB6M3ZQzeY37CZYxBdlZj-N65d-R5XmOt1asGJX-GHDBiOxrA6JhIAgufaFE0vVPLhmxV4A4V6lFu5HtY
+sk-user-***REDACTED-FULL-SECRET-REMOVED***
 EOF
 
 # 3. Run BFG (requires Java)
@@ -81,7 +81,7 @@ git push --force
 
 ## 5. Post-purge checklist
 
-- [ ] **Verify the secret is gone**: `git log --all -p | grep "sk-user-yzgoyjQR"`
+- [ ] **Verify the secret is gone**: `git log --all -p | grep "sk-user-"  # should return nothing`
       should return nothing.
 - [ ] **Verify `.mcp.json` is no longer in any commit**:
       `git log --all -- .mcp.json` should return nothing.
