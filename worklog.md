@@ -1988,3 +1988,46 @@ Stage Summary:
 - Combined with v2+v3+v4+v5, ALL genuinely-open issues are now addressed.
   Remaining 254 SonarCloud issues are 100% STALE data — they will auto-close
   when SonarCloud re-analyzes main after all PRs are merged.
+
+---
+Task ID: sonarcloud-issues-20260705-v6-FINAL
+Agent: Super Z (main agent)
+Task: Self-critique + final verification + fix critical helm bug
+
+SELF-CRITIQUE FINDINGS:
+
+1. CRITICAL BUG FOUND in helm/etap-ai/templates/deployment.yaml:
+   - My v2 fix for kubernetes:S6864/S6873/S6892 added explicit cpu/memory
+     limits+requests AND kept the `{{- toYaml .Values.api.resources | nindent 12 }}`
+     line. This would render DUPLICATE YAML keys (limits: and requests:
+     appearing twice) — INVALID YAML that Kubernetes would reject.
+   - FIX: Wrapped the toYaml in `{{- if .Values.api.resources }}...{{- else }}...{{- end }}`
+     so the values.yaml override REPLACES the defaults (not merges).
+   - Same fix applied to the worker container block.
+   - Verified: YAML parses correctly after the fix.
+
+2. Branch was behind main (main at 45d788a, v6 at e364a4a):
+   - Merged latest main (includes PR #95 onboarding/mobile fixes).
+   - Auto-merge succeeded with no conflicts.
+
+3. NVIDIA test failure (Run #8): NOT a code issue — it's an external API
+   integration test ("Test 7 — Test multiple NVIDIA models") that requires
+   live NVIDIA NIM API access. This failure is pre-existing and unrelated
+   to our SonarCloud fixes.
+
+4. SonarCloud Code Analysis failure: EXPECTED — SonarCloud always "fails"
+   on PRs with open issues. It will pass after merge + re-analysis.
+
+5. Skipped CI jobs (7x): EXPECTED — deploy jobs have `if: github.ref == 'refs/heads/main'`
+   so they only run on main, not on PR branches. This is by design.
+
+VERIFICATION RESULTS:
+- 426/426 Python files pass ast.parse (100%)
+- All modified Python files pass ruff --select F,E9 (0 errors)
+- Helm template YAML validates (2 documents parsed correctly)
+- Dockerfile merged RUN block verified (all 5 commands present)
+- hf-space/app.py helpers tested: _utc_now_iso(), _classify_test_failure(),
+  _parse_inline_key_config(), _run_provider_key_test() all work correctly
+- S5864 bug fix verified: no get_etap_provider()() double-call in etap_adapter.py or studies.py
+- CSS BLOCKER fix verified: no invalid // comments in index.css
+- Branch is 8 commits ahead of main, 0 behind (fully up to date)

@@ -82,10 +82,16 @@ spec:
             - name: tmp-data
               mountPath: /tmp/data
           resources:
-            # SonarCloud kubernetes:S6864/S6873/S6892: explicit defaults
-            # for cpu+memory requests/limits. Operators can override via
-            # .Values.api.resources (merged below) without removing these
-            # safe defaults.
+            {{- /*
+              SonarCloud kubernetes:S6864/S6873/S6892: explicit defaults for
+              cpu+memory requests+limits. If .Values.api.resources is defined,
+              it OVERRIDES these defaults entirely (we don't merge, to avoid
+              duplicate YAML keys). Operators who want custom values set the
+              FULL resources block in values.yaml.
+            */}}
+            {{- if .Values.api.resources }}
+            {{- toYaml .Values.api.resources | nindent 12 }}
+            {{- else }}
             limits:
               cpu: "1000m"
               memory: "1Gi"
@@ -94,7 +100,7 @@ spec:
               cpu: "250m"
               memory: "256Mi"
               ephemeral-storage: "512Mi"
-            {{- toYaml .Values.api.resources | nindent 12 }}
+            {{- end }}
       volumes:
         - name: app-logs
           emptyDir:
@@ -187,10 +193,9 @@ spec:
             - name: tmp-data
               mountPath: /tmp/data
           resources:
-            # SonarCloud kubernetes:S6864/S6873/S6892: explicit defaults
-            # for cpu+memory requests/limits. Operators can override via
-            # .Values.worker.resources (merged below) without removing these
-            # safe defaults.
+            {{- if .Values.worker.resources }}
+            {{- toYaml .Values.worker.resources | nindent 12 }}
+            {{- else }}
             limits:
               cpu: "1000m"
               memory: "1Gi"
@@ -199,7 +204,7 @@ spec:
               cpu: "250m"
               memory: "256Mi"
               ephemeral-storage: "1Gi"
-            {{- toYaml .Values.worker.resources | nindent 12 }}
+            {{- end }}
       volumes:
         - name: app-logs
           emptyDir:
