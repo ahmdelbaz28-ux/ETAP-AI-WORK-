@@ -5,6 +5,7 @@ import { ThemeProvider } from './context/ThemeContext'
 import { NotificationProvider } from './context/NotificationContext'
 import { AuthProvider } from './hooks/useAuth'
 import { Layout } from './components/Layout'
+import { ProtectedRoute } from './components/ProtectedRoute'
 import { SmartHelpDrawer } from './components/help/SmartHelpDrawer'
 import { CommandPalette } from './components/command/CommandPalette'
 import { ShortcutsPanel } from './components/command/ShortcutsPanel'
@@ -159,8 +160,8 @@ export default function App() {
             <Route path="/login" element={<LazyPage><LoginPage /></LazyPage>} />
             <Route path="/register" element={<LazyPage><RegisterPage /></LazyPage>} />
 
-            {/* App routes - with Layout */}
-            <Route element={<Layout />}>
+            {/* App routes - protected (require login) - with Layout */}
+            <Route element={<ProtectedRoute><Layout /></ProtectedRoute>}>
               <Route path="/" element={<Navigate to="/dashboard" replace />} />
               <Route path="/dashboard" element={<LazyPage><DashboardPage /></LazyPage>} />
               <Route path="/studies" element={<LazyPage><StudiesPage /></LazyPage>} />
