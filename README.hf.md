@@ -49,16 +49,30 @@ Enterprise-grade autonomous engineering intelligence for power-system analysis, 
 ## Quick Test
 
 ```bash
-# Health check
+# Health check (public — no API key required)
 curl https://ahmdelbaz28-ahmedetap.hf.space/healthz
 
-# List agents
+# List agents (public — no API key required)
 curl https://ahmdelbaz28-ahmedetap.hf.space/api/v1/agents
+
+# SCADA live snapshot (public)
+curl https://ahmdelbaz28-ahmedetap.hf.space/api/v1/scada/live
+
+# Digital-twin status (public)
+curl https://ahmdelbaz28-ahmedetap.hf.space/api/v1/digital-twin/status
+
+# Lightweight in-process benchmark (public)
+curl https://ahmdelbaz28-ahmedetap.hf.space/api/v1/benchmark
 
 # Chat with ETAP Expert (cable sizing — needs ft + V format)
 curl -X POST https://ahmdelbaz28-ahmedetap.hf.space/api/v1/agents/etap-expert/chat \
   -H "Content-Type: application/json" \
   -d '{"question":"cable sizing for 200A load, 250 ft run, 480V system"}'
+
+# If you've set HF_API_KEY in the Space settings, all non-public endpoints
+# (everything except /, /healthz, /readyz, /health, /ready, /docs, /redoc,
+# /openapi.json, /metrics) require this header:
+curl -H "x-api-key: $HF_API_KEY" https://ahmdelbaz28-ahmedetap.hf.space/api/v1/agents
 ```
 
 ## Platform Stats

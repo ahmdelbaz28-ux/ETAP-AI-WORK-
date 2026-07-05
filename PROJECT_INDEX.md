@@ -359,7 +359,7 @@ Total: **125** variables
 #### 📄 `agents/__init__.py` _3.9 KB_
 > AI Agents - Multi-agent engineering orchestration system.
 
-Provides 15 specialized engineering agents and a ChiefEngineeringOrchestrator
+Provides 25 specialized engineering agents and a ChiefEngineeringOrchestrator
 that coordina
 
 

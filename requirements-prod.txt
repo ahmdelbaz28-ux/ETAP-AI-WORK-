@@ -76,6 +76,12 @@ lxml>=4.6.0
 
 # Phase 2: Security & Infrastructure
 pyotp>=2.9.0
+# WebAuthn / FIDO2 — REQUIRED for production MFA (HIGH #8 from AhmedETAP_Error_Report_AR.pdf).
+# Without this package, security/mfa.py refuses to register or verify WebAuthn
+# credentials (graceful but useless fallback). Install it in every production
+# deployment so users can register hardware security keys (YubiKey, Titan, etc.)
+# as a second factor.
+webauthn>=2.0.0
 redis>=5.0.0
 
 # Retry and fault tolerance (used by core/retry.py)

@@ -37,7 +37,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Protection Coordination (IEC 60255)
 - Optimal Power Flow (AC/DC)
 - Motor Starting analysis
-- 23 AI agents with task planning and RAG context
+- 25 AI agents with task planning and RAG context
 - ETAP COM automation integration
 - GIS integration (ArcGIS, QGIS)
 - SCADA data model (IEC 61850)
