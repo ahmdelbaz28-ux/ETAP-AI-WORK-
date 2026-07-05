@@ -184,7 +184,6 @@ class TestContextRetrievalAPI:
         # Setting it via os.environ keeps it out of the source tree so static
         # secret scanners (detect-secrets, gitleaks, SonarCloud S6418) don't
         # flag it.
-        import os
 
         _TEST_API_KEY = os.environ.get(
             "TEST_CI_API_KEY",
@@ -327,7 +326,6 @@ class TestImpactAnalysisAPI:
 
         # HIGH #11 (AhmedETAP_Error_Report_AR.pdf): use env-var-backed key
         # instead of a hardcoded literal so secret scanners don't flag it.
-        import os
 
         _TEST_API_KEY = os.environ.get(
             "TEST_CI_API_KEY",
