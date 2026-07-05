@@ -9,11 +9,19 @@ license: mit
 app_port: 7860
 ---
 
+<div align="center">
+
+<img src="docs/assets/logo.svg" alt="AhmedETAP Logo" width="120" height="120"/>
+
 # AhmedETAP — Enterprise Engineering Intelligence Platform
 
 **Developed by Eng. Ahmed Elbaz** | v2.1.0
 
-Enterprise-grade autonomous engineering intelligence for power-system analysis, ETAP automation, and AI-powered engineering decision support.
+*Enterprise-grade autonomous engineering intelligence for power-system analysis, ETAP automation, and AI-powered engineering decision support.*
+
+</div>
+
+---
 
 ## Features
 
