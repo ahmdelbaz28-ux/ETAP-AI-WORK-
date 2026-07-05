@@ -872,12 +872,18 @@ async def settings_test_key(provider: str):
     provider = provider.lower().strip()
     config = api_key_store.get_key(provider)
     if not config:
+        # Bug #34 fix: missing key is a client state error, not "Not Found".
+        # The endpoint itself exists; the resource under test (the stored key)
+        # is simply absent. RESTful semantics: 404 is for unknown routes,
+        # 400 (or 409 Conflict) is for known routes with client-state issues.
+        # Returning 404 here made it impossible for clients to distinguish
+        # "this endpoint doesn't exist" from "you haven't saved a key yet".
         return JSONResponse(
-            status_code=404,
+            status_code=400,
             content={
                 "success": False,
                 "error": "key_not_found",
-                "message": f"No key for '{provider}'",
+                "message": f"No key for '{provider}' — save one first via POST /api/v1/settings/keys/{provider}",
             },
         )
     try:
