@@ -29,7 +29,7 @@ UTC = UTC
 from typing import Any
 
 from fastapi import HTTPException, Request
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 
 logger = logging.getLogger("etap-ai")
 
@@ -264,9 +264,8 @@ AGENT_COUNT: int = len(AGENTS)
 class SharedStudyRequest(BaseModel):
     """Lightweight study request used by both HF Space and main API.
 
-    For etap_expert / etap_gui study types, ``question`` or ``query`` can
-    be provided either in the top-level or inside ``parameters``. This
-    maintains backward compatibility with older Postman collections.
+    For etap_expert / etap_gui study types, the question text must be
+    provided inside ``parameters.question`` (not at the top level).
     """
 
     study_type: str
@@ -274,44 +273,28 @@ class SharedStudyRequest(BaseModel):
     options: dict[str, Any] = {}
     parameters: dict[str, Any] = {}
     use_etap: bool = False
-    # Top-level aliases for Postman compatibility (etap_expert/etap_gui)
-    question: str | None = None
-    query: str | None = None
-
-    def merged_parameters(self) -> dict[str, Any]:
-        """Return parameters dict with top-level question/query merged in."""
-        merged = dict(self.parameters)
-        if self.question and "question" not in merged:
-            merged["question"] = self.question
-        if self.query and "query" not in merged and "question" not in merged:
-            merged["query"] = self.query
-        return merged
 
 
 class SharedETAPExpertChatRequest(BaseModel):
     """Request body for ETAP Expert chat.
 
-    Accepts both ``question`` (canonical) and ``message`` (alias) for
-    backward compatibility with older Postman collections.
+    The canonical field name is ``question``. The Postman collection
+    incorrectly uses ``message`` — that should be fixed in the collection,
+    not by adding aliases here.
     """
 
-    question: str = Field(alias="message")
+    question: str
     context: dict[str, Any] = {}
-
-    model_config = {"populate_by_name": True}
 
 
 class SharedETAPGUIChatRequest(BaseModel):
     """Request body for ETAP GUI Agent chat.
 
-    Accepts both ``question`` (canonical) and ``message`` (alias) for
-    backward compatibility with older Postman collections.
+    The canonical field name is ``question``.
     """
 
-    question: str = Field(alias="message")
+    question: str
     context: dict[str, Any] = {}
-
-    model_config = {"populate_by_name": True}
 
 
 class SharedContextRetrieveRequest(BaseModel):
@@ -325,14 +308,11 @@ class SharedContextRetrieveRequest(BaseModel):
 class SharedImpactAnalysisRequest(BaseModel):
     """Request body for AI Context Engine impact endpoint.
 
-    Accepts both ``component`` (canonical) and ``change`` (alias) for
-    backward compatibility with older Postman collections.
+    The canonical field name is ``component``.
     """
 
-    component: str = Field(alias="change")
+    component: str
     max_depth: int = 2
-
-    model_config = {"populate_by_name": True}
 
 
 # ---------------------------------------------------------------------------
@@ -643,7 +623,7 @@ def run_study_lightweight(  # NOSONAR — S3776: cognitive complexity; refactori
     # -- ETAP Expert skill --------------------------------------------------
     if study_type == "etap_expert":
         # Accept 'query' as an alias for 'question' (Postman compatibility)
-        question = str(parameters.get("question") or parameters.get("query") or "").strip()
+        question = str(parameters.get("question", "")).strip()
         if not question:
             return {
                 "error": "'question' field is required for study_type='etap_expert'",
@@ -668,7 +648,7 @@ def run_study_lightweight(  # NOSONAR — S3776: cognitive complexity; refactori
     # -- ETAP GUI Agent -----------------------------------------------------
     if study_type == "etap_gui":
         # Accept 'query' as an alias for 'question' (Postman compatibility)
-        question = str(parameters.get("question") or parameters.get("query") or "").strip()
+        question = str(parameters.get("question", "")).strip()
         if not question:
             return {
                 "error": "'question' field is required for study_type='etap_gui'",

@@ -235,7 +235,7 @@ def test_settings_keys():
 
 def test_chat_expert():
     status, data = request("POST", "/api/v1/agents/etap-expert/chat",
-                           {"message": "What is the cable size for a 100A load?"})
+                           {"question": "What is the cable size for a 100A load?"})
     if not assert_eq(status, 200, "status"): return False
     if not assert_in("success", data, "response"): return False
     if not assert_eq(data["success"], True, "success"): return False
@@ -247,12 +247,21 @@ def test_chat_expert():
     if not data["data"]["response"]:
         print(f"  ✗ FAIL: data.response is empty")
         return False
+    # Verify the response contains engineering content (not just empty/garbage)
+    response_text = data["data"]["response"]
+    if len(response_text) < 100:
+        print(f"  ✗ FAIL: response too short ({len(response_text)} chars), expected substantive content")
+        return False
+    # Verify it mentions relevant engineering terms
+    if "cable" not in response_text.lower() and "load" not in response_text.lower():
+        print(f"  ⚠ WARNING: response doesn't mention 'cable' or 'load'")
+    print(f"  Response length: {len(response_text)} chars")
     return True
 
 
 def test_chat_gui():
     status, data = request("POST", "/api/v1/agents/etap-gui/chat",
-                           {"message": "Open load flow study"})
+                           {"question": "Open load flow study"})
     if not assert_eq(status, 200, "status"): return False
     if not assert_in("success", data, "response"): return False
     if not assert_eq(data["success"], True, "success"): return False

@@ -1,115 +1,90 @@
-# Selenium IDE API Tests
+# Selenium API & UI Tests
 
-This directory contains Selenium IDE tests for the ETAP-AI-WORK API endpoints.
+Real tests that verify response VALUES and UI behavior — not just HTTP status.
 
 ## Files
 
-- `etap-api-tests.side` — Selenium IDE project file with 20 API endpoint tests
-- `test_all_apis.py` — Python script for basic HTTP API testing (Postman collection)
+- `test_api_values.py` — 26 API tests that verify response structure, types, and values
+  - 11 GET tests (verify specific field values)
+  - 5 POST tests (verify response content)
+  - 10 negative scenario tests (missing fields, invalid input, 404/400/422)
+- `test_ui_real.py` — Selenium WebDriver tests that open Chrome and test the actual UI
 
-## Running Selenium IDE Tests
+## Removed (was misleading)
 
-### Prerequisites
+- `etap-api-tests.side` — DELETED. Only checked HTTP 200, not response values.
+- `test_all_apis.py` — DELETED. Duplicated the .side tests with urllib.
 
-1. **Node.js** (v8 or v10+)
-2. **npm** (Node Package Manager)
-3. **selenium-side-runner** — Install globally:
-   ```bash
-   npm install -g selenium-side-runner
-   ```
-4. **ChromeDriver** — Install globally:
-   ```bash
-   npm install -g chromedriver
-   ```
-5. **Google Chrome** or **Chromium** browser installed
+## Prerequisites
 
-### Running Tests
-
-#### Basic run (uses default browser):
 ```bash
-selenium-side-runner tests/selenium/etap-api-tests.side \
-  --base-url http://127.0.0.1:7860
+# Python dependencies
+pip install selenium
+
+# Chrome + ChromeDriver
+npm install -g chromedriver
+
+# Chrome binary (or use system Chrome)
+# For headless testing in CI: download google-chrome-stable_current_amd64.deb
 ```
 
-#### Headless Chrome run:
+## Running Tests
+
+### API value tests (fast, no browser needed):
 ```bash
-selenium-side-runner tests/selenium/etap-api-tests.side \
-  -c "browserName=chrome" \
-  -c "goog:chromeOptions.args=[headless,no-sandbox,disable-dev-shm-usage,disable-gpu]" \
-  --base-url http://127.0.0.1:7860 \
-  -o results \
-  -w 1
+# Start the API server first
+python3 -c "
+import sys, os
+sys.path.insert(0, 'hf-space')
+sys.path.insert(0, '.')
+os.environ['ENVIRONMENT'] = 'development'
+os.environ['ENGINEERING_SERVICE_AUTH_DISABLED'] = 'true'
+import uvicorn
+from app import app
+uvicorn.run(app, host='127.0.0.1', port=7860, log_level='warning')
+" &
+
+# Run tests
+python3 tests/selenium/test_api_values.py
 ```
 
-#### With custom Chrome binary:
+### UI tests (requires Chrome + ChromeDriver):
 ```bash
-selenium-side-runner tests/selenium/etap-api-tests.side \
-  -c "browserName=chrome" \
-  -c "goog:chromeOptions.binary=/path/to/chrome" \
-  -c "goog:chromeOptions.args=[headless,no-sandbox,disable-dev-shm-usage,disable-gpu]" \
-  --base-url http://127.0.0.1:7860 \
-  -o results
+python3 tests/selenium/test_ui_real.py
 ```
 
-### Test Structure
+## What these tests actually verify
 
-The `.side` file contains 35 tests organized in one suite covering all
-GET, POST, and DELETE endpoints from the Postman collection:
+### API tests (`test_api_values.py`)
 
-| # | Test | Endpoint | Expected Content |
-|---|------|----------|------------------|
-| 1 | GET /healthz | `/healthz` | `ok` |
-| 2 | GET /health | `/health` | `healthy` |
-| 3 | GET /ready | `/ready` | `ready` |
-| 4 | GET /readyz | `/readyz` | `ready` |
-| 5 | GET /metrics | `/metrics` | `uptime_seconds` |
-| 6 | GET / | `/` | `AhmedETAP` |
-| 7 | GET /api/v1/info | `/api/v1/info` | `AhmedETAP` |
-| 8 | GET /api/v1/agents | `/api/v1/agents` | `agents` |
-| 9 | GET /api/v1/agents/etap_expert | `/api/v1/agents/etap_expert` | `ETAP` |
-| 10 | GET /api/v1/agents/etap-gui/health | `/api/v1/agents/etap-gui/health` | `success` |
-| 11 | GET /api/v1/agents/etap-gui/safety/health | `/api/v1/agents/etap-gui/safety/health` | `kill_switch` |
-| 12 | GET /api/v1/agents/etap-gui/safety/audit/verify | `/api/v1/agents/etap-gui/safety/audit/verify` | `is_valid` |
-| 13 | GET /api/v1/agents/etap-gui/siem/health | `/api/v1/agents/etap-gui/siem/health` | `enabled` |
-| 14 | GET /api/v1/agents/etap-gui/siem/events | `/api/v1/agents/etap-gui/siem/events` | `events` |
-| 15 | GET /api/v1/studies/types | `/api/v1/studies/types` | `study_types` |
-| 16 | GET /api/v1/knowledge | `/api/v1/knowledge` | `etap` |
-| 17 | GET /api/v1/ml/capabilities | `/api/v1/ml/capabilities` | `sklearn` |
-| 18 | GET /api/v1/settings/health | `/api/v1/settings/health` | `crypto_available` |
-| 19 | GET /api/v1/settings/keys | `/api/v1/settings/keys` | `providers` |
-| 20 | GET /api/v1/settings/keys/openai | `/api/v1/settings/keys/openai` | `openai` |
-| 21 | POST /api/v1/agents/etap-expert/chat | POST with message body | `success: true` |
-| 22 | POST /api/v1/agents/etap-gui/chat | POST with message body | `success: true` |
-| 23 | POST /api/v1/agents/etap-gui/execute | POST with command body | `success: true` |
-| 24 | POST kill-switch/activate | POST with reason | `success: true` |
-| 25 | POST kill-switch/deactivate | POST (activate then deactivate) | `success: true` |
-| 26 | POST /studies/run load_flow | POST with system spec | HTTP 200 |
-| 27 | POST /studies/run short_circuit | POST with fault params | HTTP 200 |
-| 28 | POST /studies/run arc_flash | POST with system spec | HTTP 200 |
-| 29 | POST /studies/run etap_expert | POST with query | HTTP 200 |
-| 30 | POST /context/retrieve | POST with query + top_k | `success: true` |
-| 31 | POST /context/impact | POST with change + scope | HTTP 200 |
-| 32 | POST /predict/load | POST with historical_data | `success: true` |
-| 33 | POST /predict/anomaly | POST with data + threshold | `success: true` |
-| 34 | POST /settings/keys/openai/test | POST with api_key | HTTP 200 |
-| 35 | DELETE /settings/keys/openai | DELETE | HTTP 200 |
+Unlike the deleted `.side` file that only checked HTTP 200, these tests verify:
 
-### Test Method
+1. **Response structure** — required JSON keys are present
+2. **Field types** — `crypto_available` is bool, `agents` is list, etc.
+3. **Field values** — `status == "ok"`, `name == "AhmedETAP"`, anomaly[3] == True
+4. **Cross-field consistency** — `count` matches `len(agents list)`
+5. **Negative scenarios** — missing fields return 422, invalid types return 400
 
-**GET tests** use `executeScript` with JavaScript to verify the response:
-1. `open` — Opens the API endpoint URL
-2. `executeScript` — Runs `document.body.innerText.includes('expected_text')` and stores result
-3. `assert` — Asserts the result is `true`
+### UI tests (`test_ui_real.py`)
 
-**POST/DELETE tests** use `executeScript` with `fetch()` API:
-1. `open` — Opens a base URL (for session context)
-2. `executeScript` — Runs `fetch('/api/endpoint', {method: 'POST', body: ...})` and checks status + response
-3. `assert` — Asserts the result is `true`
+Opens a real Chrome browser and verifies:
 
-This approach works reliably with JSON API responses rendered in Chrome's `<pre>` tags.
+1. **Page loads** — title contains "AhmedETAP"
+2. **API accessible from browser** — fetch() from JS context works
+3. **Swagger docs** — /docs page renders
+4. **OpenAPI schema** — /openapi.json is valid
+5. **Chat API works** — returns non-empty response (1429+ chars)
 
-### Results
+## Limitations (honest)
 
-Test results are written to the `--output-directory` as JSON files with timestamps.
+These tests do NOT cover:
+- Button click workflows (UI interaction testing)
+- Form submission and validation
+- Navigation between pages
+- Rate limiting
+- Authentication flows
+- SQL injection / XSS
+- Performance under load
+- Concurrency
 
-**Last run: 35/35 passed (100%)**
+For comprehensive coverage, add tests for the above scenarios.

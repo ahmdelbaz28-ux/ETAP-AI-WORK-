@@ -17,7 +17,7 @@ import time
 from contextlib import asynccontextmanager
 
 import uvicorn
-from fastapi import Body, FastAPI, HTTPException, Request, WebSocket
+from fastapi import FastAPI, HTTPException, Request, WebSocket
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse, JSONResponse
 
@@ -292,15 +292,7 @@ async def list_agents():
 
 @app.get("/api/v1/agents/{agent_id}", tags=["Agents"])
 async def get_agent(agent_id: str):
-    # Normalize: accept 'etap_expert' as alias for 'etap-expert-agent',
-    # 'etap_gui' as alias for 'etap-gui-agent', etc. (Postman compatibility).
-    normalized = agent_id.replace("_", "-")
     agent = next((a for a in AGENTS if a["id"] == agent_id), None)
-    if not agent:
-        # Try with -agent suffix
-        agent = next((a for a in AGENTS if a["id"] == normalized), None)
-    if not agent:
-        agent = next((a for a in AGENTS if a["id"] == f"{normalized}-agent"), None)
     if not agent:
         return JSONResponse(status_code=404, content={"error": f"Agent '{agent_id}' not found"})
     return agent
@@ -345,12 +337,11 @@ async def etap_gui_chat(request: SharedETAPGUIChatRequest):
 
 @app.post("/api/v1/agents/etap-gui/execute", tags=["Agents"])
 async def etap_gui_execute(
-    question: str | None = None,
+    question: str,
     max_steps: int = 15,
     require_confirmation: bool = True,
     audit_dir: str | None = None,
     start_url: str | None = None,
-    body: dict[str, Any] | None = Body(None),
 ):
     """Execute the REAL CUA Loop (Computer Use Agent).
 
@@ -368,26 +359,8 @@ async def etap_gui_execute(
 
     See: agents/browser_cua_executor.py and integrations/gemini_vision.py
 
-    ``question`` can be provided as a query parameter OR inside a JSON
-    body (e.g. ``{"command": "...", "params": {...}, "message": "..."}``).
-    This maintains backward compatibility with older Postman collections
-    that send JSON bodies instead of query parameters.
+    ``question`` must be provided as a query parameter.
     """
-    # Postman compatibility: accept question/message/command from JSON body
-    if not question and body:
-        question = (
-            body.get("question")
-            or body.get("message")
-            or body.get("command")
-        )
-        if body.get("params") and isinstance(body["params"], dict):
-            start_url = start_url or body["params"].get("start_url") or body["params"].get("study_id")
-
-    if not question:
-        raise HTTPException(
-            status_code=422,
-            detail="'question' is required (as query param or in JSON body)",
-        )
 
     from agents.etap_gui_agent import ETAPGUIAgent
 
@@ -624,10 +597,8 @@ async def websocket_cua_confirmation(websocket: WebSocket):
 
 @app.post("/api/v1/studies/run", tags=["Studies"])
 async def run_study(request: SharedStudyRequest):
-    # Use merged_parameters() so top-level question/query (Postman compat)
-    # are passed to the study runner.
     result = run_study_lightweight(
-        request.study_type, request.system, request.merged_parameters(),
+        request.study_type, request.system, request.parameters,
     )
     status = result.pop("_status", None)
     if status:
@@ -747,43 +718,25 @@ async def settings_delete_key(provider: str):
 
 
 @app.post("/api/v1/settings/keys/{provider}/test", tags=["Settings"])
-async def settings_test_key(provider: str, body: dict[str, Any] | None = Body(None)):
+async def settings_test_key(provider: str):
     """Test an API key by making a minimal API call.
 
-    If no key is stored for the provider, but a key is provided in the
-    request body (e.g. ``{"api_key": "sk-..."}``), tests that key
-    directly without storing it. This is useful for validating a key
-    before saving it.
+    Returns 404 if no key is stored for the provider. This is the correct
+    REST response — the resource (stored key) does not exist.
     """
     from api.settings import _test_anthropic_key, _test_gemini_key, _test_openai_key
-    from services.api_key_store import APIKeyConfig, api_key_store
+    from services.api_key_store import api_key_store
 
     provider = provider.lower().strip()
     config = api_key_store.get_key(provider)
 
-    # If no stored key, check if the request body provides one for direct testing
-    if not config and body and body.get("api_key"):
-        # Create a temporary config for testing (not stored)
-        config = APIKeyConfig(
-            provider=provider,
-            api_key=body["api_key"],
-            base_url=body.get("base_url", ""),
-            model_name=body.get("model_name", ""),
-            is_active=True,
-        )
-
     if not config:
-        # 404 is the correct REST response: the resource (stored key) does
-        # not exist. Returning 200 would mask the missing key from the
-        # caller. If they want to test a key without saving, they must
-        # provide it in the body (handled above).
-        hint = 'To test a key without saving, provide it in the request body: {"api_key": "sk-..."}'
         return JSONResponse(
             status_code=404,
             content={
                 "success": False,
                 "error": "key_not_found",
-                "message": f"No key stored for '{provider}'. {hint}",
+                "message": f"No key stored for '{provider}'",
             },
         )
     try:
