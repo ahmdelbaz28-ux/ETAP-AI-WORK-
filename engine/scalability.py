@@ -90,7 +90,7 @@ class LoadBalancer:
                     if r <= cumulative:
                         return wid
                 return list(healthy.keys())[-1]
-            return next(iter(healthy.keys()))
+            return next(iter(healthy.keys()))  # NOSONAR — python:S8519: false positive — already uses next(iter(...))
 
     def get_worker_status(self, worker_id: str) -> dict[str, Any] | None:
         with self._lock:

@@ -631,10 +631,10 @@ class TestConnectionClose:
             # intentional — we're verifying that the WS endpoint accepts a
             # 2nd connection after the 1st closes (no leftover state in the
             # connection manager). The `with` statement itself is the assertion.
-            with client.websocket_connect(WS_PATH):
-                pass  # NOSONAR — python:S108: intentional empty with-block
-            with client.websocket_connect(WS_PATH):
-                pass  # NOSONAR — python:S108: intentional empty with-block
+            with client.websocket_connect(WS_PATH):  # NOSONAR — python:S108: intentional empty with-block
+                pass
+            with client.websocket_connect(WS_PATH):  # NOSONAR — python:S108: intentional empty with-block
+                pass
 
         assert len(feed.active_connections) == 0
         assert feed.is_broadcasting is False

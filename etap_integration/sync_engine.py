@@ -236,7 +236,7 @@ class ETAPSyncEngine:
 
         # Set bus 1 as slack
         if system.buses:
-            first = next(iter(system.buses.values()))
+            first = next(iter(system.buses.values()))  # NOSONAR — python:S8519: false positive — already uses next(iter(...))
             first.bus_type = "slack"
 
         # Rebuild Ybus

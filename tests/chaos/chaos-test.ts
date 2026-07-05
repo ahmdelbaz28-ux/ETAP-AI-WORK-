@@ -66,8 +66,8 @@ async function runChaosTest() {  // NOSONAR — S3776: cognitive complexity; sch
   const keyRotationErrors: string[] = [];
   for (let i = 0; i < 50; i++) {
     // 70% valid, 30% invalid key selection for chaos test
-    const useValidKey = Math.random() > 0.3;  // NOSONAR — S2245: PRNG used for non-crypto purposes (chaos test)
-    const key = useValidKey ? API_KEY : 'invalid-key-' + Math.random();  // NOSONAR — S2245: PRNG used for non-crypto purposes (chaos test)
+    const useValidKey = Math.random() > 0.3;  // NOSONAR — S2245: PRNG for chaos test, not crypto
+    const key = useValidKey ? API_KEY : 'invalid-key-' + Math.random();  // NOSONAR — S2245: PRNG for chaos test, not crypto
     const r = await runRequest('/api/v1/agents', 'GET', undefined, key);
     if (r.ok) keyRotationOk++;
     else if (r.status === 429) keyRotationRateLimited++;

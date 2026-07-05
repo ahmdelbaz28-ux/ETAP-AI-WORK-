@@ -316,10 +316,7 @@ export function concurrentStudyScenario() {
  */
 export function generalScenario() {
   // 40% chance: health/readiness
-  // NOSONAR — javascript:S2245: load-test scenario selection is NOT
-  // security-sensitive; using crypto.random would skew distribution
-  // statistics and is unnecessary in a synthetic load generator.
-  const rand = Math.random();
+  const rand = Math.random();  // NOSONAR — javascript:S2245: load-test scenario selection, not security-sensitive
   if (rand < 0.2) {
     group('General: Health', () => {
       const resp = http.get(`${BASE_URL}/health`, { tags: { endpoint: 'health' } });

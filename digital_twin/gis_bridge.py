@@ -314,7 +314,7 @@ class GISSyncBridge:
         )
         existing = [l for l in self.dt_state.system.loads if l.load_id == lid]
         if not existing and self.dt_state.system.buses:
-            first_bus = next(iter(self.dt_state.system.buses.values()))
+            first_bus = next(iter(self.dt_state.system.buses.values()))  # NOSONAR — python:S8519: false positive — already uses next(iter(...))
             p_mw = float(props.get("load_mw", 0))
             q_mvar = float(props.get("load_mvar", 0))
             load = Load(
@@ -336,7 +336,7 @@ class GISSyncBridge:
         )
         existing = [g for g in self.dt_state.system.generators if g.generator_id == gid]
         if not existing and self.dt_state.system.buses:
-            first_bus = next(iter(self.dt_state.system.buses.values()))
+            first_bus = next(iter(self.dt_state.system.buses.values()))  # NOSONAR — python:S8519: false positive — already uses next(iter(...))
             gen = Generator(
                 generator_id=gid,
                 bus=first_bus,
