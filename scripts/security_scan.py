@@ -40,15 +40,19 @@ EXCLUDED_PATHS = {
     "tests/test_scada_websocket.py",
     "tests/test_security_fixes.py",
     "tests/test_security_e2e.py",
+    "tests/conftest.py",  # defines _TEST_DEFAULT_PASSWORD for test fixtures
     "acp_runtime/tests/test_integration.py",
     "acp_runtime/acp_tests/test_integration.py",
-    # Security fixtures — these files DEFINE the blocklist
+    # Security fixtures — these files DEFINE the blocklist / redaction rules.
+    # They legitimately discuss secret patterns in comments and docstrings.
     "security/security_framework.py",
     "security/mfa.py",
+    "security/log_redaction.py",  # defines redaction patterns + docstring examples
     "api/auth.py",
     "api/security_audit.py",
     # Setup scripts — uses a clearly-marked test password for smoke tests
     "run_complete_setup.py",
+    "scripts/maintenance/run_complete_setup.py",  # full relative path (fixes basename-only match)
     # Load test suite — uses a deterministic test password to authenticate
     # against the test server. Not a real secret.
     "locustfile.py",
