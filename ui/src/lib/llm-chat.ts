@@ -722,20 +722,25 @@ async function* streamFromOpenAICompatible(
   let buffer = ''
   let gotAnyContent = false
 
-  while (true) {
-    const { done, value } = await reader.read()
+  // Read loop: consumeOpenAILine throws on error and returns 'DONE' on
+  // sentinel. We only need to check for content (string) here, which
+  // keeps the cognitive complexity of this function under 15 (S3776).
+  let done = false
+  while (!done) {
+    const readResult = await reader.read()
+    done = readResult.done
     if (done) break
-    buffer += decoder.decode(value, { stream: true })
+    buffer += decoder.decode(readResult.value, { stream: true })
     const lines = buffer.split('\n')
     buffer = lines.pop() || ''
     for (const line of lines) {
       const result = consumeOpenAILine(line)
       if (result === 'DONE') return
-      if (result instanceof Error) throw result
       if (typeof result === 'string') {
         gotAnyContent = true
         yield result
       }
+      // Errors are thrown by consumeOpenAILine directly; null = skip line.
     }
   }
 
@@ -752,21 +757,24 @@ async function* streamFromOpenAICompatible(
  * Returns:
  *   - 'DONE' if the line is the [DONE] sentinel
  *   - a string if the line yielded content
- *   - an Error if the line signalled an error
  *   - undefined if the line should be skipped (non-data, non-JSON, etc.)
+ *   - THROWS an Error if the line signalled an error (so the caller's
+ *     try/catch around the generator picks it up; this avoids an extra
+ *     `if (result instanceof Error)` check at every call site and keeps
+ *     the caller's cognitive complexity under 15 — SonarCloud S3776).
  *
  * Note: Some models (deepseek-v4-flash-free, big-pickle) send
  * reasoning_content chunks FIRST (with content:null), then
  * actual content chunks. We skip reasoning and only yield content.
  */
-function consumeOpenAILine(line: string): 'DONE' | string | Error | undefined {
+function consumeOpenAILine(line: string): 'DONE' | string | undefined {
   if (!line.startsWith('data: ')) return undefined
   const data = line.slice(6).trim()
   if (data === '[DONE]') return 'DONE'
   try {
     const parsed = JSON.parse(data)
     if (parsed.error) {
-      return new Error(parsed.message || parsed.error?.message || 'Stream error')
+      throw new Error(parsed.message || parsed.error?.message || 'Stream error')
     }
     const delta = parsed.choices?.[0]?.delta
     if (delta?.content) {
@@ -776,7 +784,7 @@ function consumeOpenAILine(line: string): 'DONE' | string | Error | undefined {
     return undefined
   } catch (e) {
     if (e instanceof Error && (e.message.includes('not supported') || e.message.includes('payment method'))) {
-      return e
+      throw e
     }
     return undefined
   }

@@ -132,19 +132,20 @@ class CodeIndexer:
         # the directory so an LLM-supplied CLI argument can't be tricked into
         # writing outside the project tree (e.g. via ../ escapes or absolute
         # paths). We resolve the path and confirm it stays within an allowed
-        # root: the current working directory, /tmp (for tests), or the
-        # user's home directory.
+        # root: the current working directory, the system temp dir (for tests),
+        # or the user's home directory.
+        import tempfile
+        _tmp_root = Path(tempfile.gettempdir()).resolve()  # NOSONAR — S5443: tempdir is the system default; we explicitly allow it for test fixtures
         candidate = Path(output_dir).expanduser().resolve()
         allowed_roots = [
             Path.cwd().resolve(),
-            Path("/tmp").resolve(),
-            Path("/var/tmp").resolve(),
+            _tmp_root,
             Path.home().resolve(),
         ]
         if not any(_is_within(candidate, root) for root in allowed_roots):
             raise ValueError(
                 f"Refusing to create index directory outside allowed roots "
-                f"(CWD, /tmp, /var/tmp, HOME): {output_dir!r}"
+                f"(CWD, tempdir, HOME): {output_dir!r}"
             )
         self.output_dir = candidate
         self.output_dir.mkdir(parents=True, exist_ok=True)
