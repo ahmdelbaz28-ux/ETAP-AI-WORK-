@@ -430,7 +430,8 @@ class TestGuard(BaseGuard):
         violations: list[GuardViolation] = []
 
         # T-L1: Test prompt contracts not content
-        # Heuristic: exact string match on LLM output
+        # Heuristic: exact string match on LLM output.
+        # NOSONAR — python:S8786: .* is bounded by single-line source code
         pattern = r'assert\s+.*(?:response|output|result|completion).*==\s*["\']'
         for match in re.finditer(pattern, source):
             line_num = source[: match.start()].count("\n") + 1

@@ -22,8 +22,6 @@ async def _ws(websocket: WebSocket):
 client = TestClient(app)
 with client.websocket_connect(WS_PATH) as ws1:
     print("inside block, len(active_connections)", len(feed.active_connections))
-    # Not sending any messages
-    pass
 # After exiting block
 print("after block, len(active_connections)", len(feed.active_connections))
 print("underlying list contents", list(feed.active_connections))

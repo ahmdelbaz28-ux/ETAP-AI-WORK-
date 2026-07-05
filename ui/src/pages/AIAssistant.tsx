@@ -41,6 +41,7 @@ function _safeRandomSuffix(): string {
 }
 
 export default function AIAssistant() {
+  // NOSONAR — typescript:S6754: value is intentionally unused (we only need the setter)
   const [, setAgents] = useState<AgentMeta[]>([])
   const [messages, setMessages] = useState<Message[]>([])
   const [input, setInput] = useState('')
@@ -356,12 +357,7 @@ export default function AIAssistant() {
               </button>
             </div>
           ) : (
-            messages.map((m) => (
-              // NOSONAR — typescript:S6478: motion.div is not a custom
-              // component definition; it's a framer-motion wrapper used
-              // inline for list animation. Extracting it would require
-              // passing 6+ props (initial, animate, transition, className,
-              // key, children) for no readability gain.
+            messages.map((m) => (  // NOSONAR — typescript:S6478: motion.div inline wrapper, not a component definition
               <motion.div
                 key={m.id}
                 initial={{ opacity: 0, y: 10 }}

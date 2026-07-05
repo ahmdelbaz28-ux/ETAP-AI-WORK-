@@ -22,6 +22,6 @@ async def _ws(websocket: WebSocket):
 
 client = TestClient(app)
 with client.websocket_connect(WS_PATH) as ws:
-    pass
+    pass  # NOSONAR — python:S108: intentional empty with-block (debug script)
 print("After context block, feed.active_connections length:", len(feed.active_connections))
 print("Feed active connections list:", feed.active_connections)

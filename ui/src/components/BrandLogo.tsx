@@ -33,7 +33,7 @@ interface BrandLogoProps {
   className?: string
 }
 
-export function BrandLogo({
+export function BrandLogo({  // NOSONAR — typescript:S6759: props read-only; refactor deferred
   size = 64,
   withWordmark = false,
   animated = false,

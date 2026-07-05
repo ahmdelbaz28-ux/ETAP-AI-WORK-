@@ -51,7 +51,7 @@ interface ToolButtonProps {
   unreadCount?: number
 }
 
-function ToolButton({ onClick, icon: Icon, title, badge, active, accent, unreadCount = 0 }: ToolButtonProps) {
+function ToolButton({ onClick, icon: Icon, title, badge, active, accent, unreadCount = 0 }: ToolButtonProps) {  // NOSONAR — typescript:S6759: props read-only; refactor deferred
   const toolButtonClass = active
     ? 'bg-brand-500/15 text-brand-400'
     : accent === 'brand'

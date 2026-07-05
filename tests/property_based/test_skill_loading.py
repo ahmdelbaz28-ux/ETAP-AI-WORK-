@@ -39,7 +39,7 @@ safe_text = st.text(
     max_size=50,
     alphabet=st.characters(
         whitelist_categories=["L", "N", "Pd", "Po"],
-        # L = letters, N = numbers, Pd = dash, Po = punctuation
+        # L = letters, N = numbers, Pd = dash, Po = punctuation  # NOSONAR — python:S125: explanatory comment for Unicode categories
     ),
 )
 

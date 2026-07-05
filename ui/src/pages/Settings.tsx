@@ -564,10 +564,12 @@ const TAB_SECTIONS: Record<string, { label: string; icon: React.ReactNode; secti
   },
 }
 
+type NotifyType = 'success' | 'error' | 'info' | 'warning'
+
 interface AISettingsPanelProps {
   settings: Record<string, string>
   setSettings: React.Dispatch<React.SetStateAction<Record<string, string>>>
-  notify: (type: 'success' | 'error' | 'info' | 'warning', message: string) => void
+  notify: (type: NotifyType, message: string) => void
 }
 
 function AISettingsPanel({ settings, setSettings, notify }: AISettingsPanelProps) {  // NOSONAR — S6759: React props read-only; requires `readonly` refactor across component tree
@@ -610,18 +612,14 @@ function AISettingsPanel({ settings, setSettings, notify }: AISettingsPanelProps
 
   const handleTestProvider = async (providerId: string) => {
     // For built-in providers, require key first.
-    // NOSONAR — typescript:S7735: negated condition reads naturally here
-    // ("if not custom_openai" → built-in branch).
-    if (providerId !== 'custom_openai') {
+    if (providerId !== 'custom_openai') {  // NOSONAR — typescript:S7735: negated condition reads naturally ("if not custom → built-in")
       const keyName = `PROVIDER_${providerId.toUpperCase()}_KEY`
       if (!settings[keyName]) {
         notify('error', 'Please enter an API key first')
         return
       }
-    } else {
+    } else {  // NOSONAR — typescript:S6660: single-statement else — natural validation ladder
       // For custom provider, require all 3 fields.
-      // NOSONAR — typescript:S6660: single-statement else block; this is
-      // the natural shape of an input-validation ladder.
       if (!settings.CUSTOM_OPENAI_API_KEY || !settings.CUSTOM_OPENAI_BASE_URL || !settings.CUSTOM_OPENAI_MODEL_ID) {
         notify('error', 'Please fill in all 3 fields: Endpoint URL, API Key, Model ID')
         return
@@ -752,13 +750,11 @@ function AISettingsPanel({ settings, setSettings, notify }: AISettingsPanelProps
 
                 {/* Model selector dropdown with FREE badges */}
                 <div className="mb-2">
-                  {/* NOSONAR — typescript:S6853: <label> here is a visual
-                      caption; the <select> below has its own aria-label
-                      via the surrounding fieldset legend for SR users. */}
-                  <label className="block text-[9px] text-[var(--text-tertiary)] mb-1 font-medium uppercase tracking-wide">
+                  <label className="block text-[9px] text-[var(--text-tertiary)] mb-1 font-medium uppercase tracking-wide" htmlFor={`model-${p.id}`}>
                     Model
                   </label>
                   <select
+                    id={`model-${p.id}`}
                     value={settings[`PROVIDER_${p.id.toUpperCase()}_MODEL`] || p.defaultModel}
                     onChange={e => setSettings(prev => ({ ...prev, [`PROVIDER_${p.id.toUpperCase()}_MODEL`]: e.target.value }))}
                     className="w-full px-2 py-1.5 bg-[var(--bg-primary)] border border-[var(--border-primary)] rounded-lg text-[11px] text-[var(--text-primary)] focus:border-brand-500 outline-none transition-colors cursor-pointer"
@@ -1443,7 +1439,7 @@ function ExternalServicesPanel({  // NOSONAR — S6759: React props read-only; r
 }: {
   settings: Record<string, string>
   setSettings: React.Dispatch<React.SetStateAction<Record<string, string>>>
-  notify: (type: 'success' | 'error' | 'info' | 'warning', message: string) => void
+  notify: (type: NotifyType, message: string) => void
 }) {
   // status[id] = { state, detail }
   const [status, setStatus] = useState<Record<string, { state: TestStatus; detail: string }>>({})
@@ -1663,7 +1659,7 @@ const VISION_PROVIDERS = [
   },
 ]
 
-function VisionApiKeysPanel({ notify }: { notify: (type: 'success' | 'error' | 'info' | 'warning', message: string) => void }) {  // NOSONAR — S6759: React props read-only; requires `readonly` refactor across component tree
+function VisionApiKeysPanel({ notify }: { notify: (type: NotifyType, message: string) => void }) {  // NOSONAR — S6759: React props read-only; requires `readonly` refactor across component tree
   const [keys, setKeys] = useState<Record<string, VisionKeyConfig>>({})
   const [loading, setLoading] = useState(true)
   const [editing, setEditing] = useState<Record<string, { apiKey: string; baseUrl: string; modelName: string }>>({})

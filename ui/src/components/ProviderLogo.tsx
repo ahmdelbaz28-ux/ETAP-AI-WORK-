@@ -177,7 +177,7 @@ interface ProviderLogoProps {
   className?: string
 }
 
-export function ProviderLogo({ providerId, size = 40, className }: ProviderLogoProps) {
+export function ProviderLogo({ providerId, size = 40, className }: ProviderLogoProps) {  // NOSONAR — typescript:S6759: props read-only; refactor deferred
   const brand = BRAND_ICONS[providerId]
   const fallback = FALLBACK_COLORS[providerId]
 

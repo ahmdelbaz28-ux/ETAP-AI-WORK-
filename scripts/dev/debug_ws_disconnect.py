@@ -23,6 +23,4 @@ client = TestClient(app)
 
 with client.websocket_connect(WS_PATH) as ws1:
     print("inside block, active connections:", len(feed.active_connections))
-    # do nothing, just pass
-    pass
 print("after block, active connections:", len(feed.active_connections))

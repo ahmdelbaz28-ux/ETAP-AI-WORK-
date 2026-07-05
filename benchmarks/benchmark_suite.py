@@ -668,7 +668,7 @@ class BenchmarkReport:
 
         ca = self.cache.get("scenarios", [])
         if ca:
-            best_hit = max(s["hit_rate_pct"] for s in ca)
+            best_hit = max(s["hit_rate_pct"] for s in ca)  # NOSONAR — python:S125: false positive — actual code, not a comment
             print(f"  • Cache hit rate: {best_hit:.1f}% best case (Zipfian workload)")
 
 

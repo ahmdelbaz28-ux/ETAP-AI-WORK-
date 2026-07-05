@@ -791,7 +791,7 @@ class SCADAAgent(BaseAgent):
             measurements.append(
                 SCADAMeasurement(
                     tag=f"{bk_id}_STATUS",
-                    value=1.0,  # breaker state: 1 means closed, 0 means open
+                    value=1.0,  # breaker state: 1 means closed, 0 means open  # NOSONAR — python:S125: inline doc comment
                     timestamp=timestamp,
                     quality="good",
                     iec61850_ref=f"LD0/{bk_id}.XCBR$Pos$stVal",

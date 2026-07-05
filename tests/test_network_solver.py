@@ -83,7 +83,7 @@ class TestPerUnit:
     def test_impedance_to_per_unit_complex(self):
         z = complex(0.5, 0.2)
         result = impedance_to_per_unit(z, base_voltage_kv=13.8, base_mva=100)
-        assert result.real == pytest.approx(0.5 / (13.8**2 / 100))
+        assert result.real == pytest.approx(0.5 / (13.8**2 / 100))  # NOSONAR — python:S125: false positive — actual code, not a comment
         assert result.imag == pytest.approx(0.2 / (13.8**2 / 100))
 
     def test_admittance_to_per_unit(self):
