@@ -3,6 +3,7 @@ import { Suspense, lazy, useEffect, useState, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import { ThemeProvider } from './context/ThemeContext'
 import { NotificationProvider } from './context/NotificationContext'
+import { AuthProvider } from './hooks/useAuth'
 import { Layout } from './components/Layout'
 import { SmartHelpDrawer } from './components/help/SmartHelpDrawer'
 import { CommandPalette } from './components/command/CommandPalette'
@@ -152,6 +153,7 @@ export default function App() {
   return (
     <ThemeProvider>
       <NotificationProvider>
+        <AuthProvider>
         <DemoModeBanner />
         <BrowserRouter>
           <Routes>
@@ -205,6 +207,7 @@ export default function App() {
           onDismiss={() => setLastError(null)}
           onRetry={() => globalThis.location.reload()}
         />
+        </AuthProvider>
       </NotificationProvider>
     </ThemeProvider>
   )
