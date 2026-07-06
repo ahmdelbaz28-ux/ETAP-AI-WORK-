@@ -210,7 +210,7 @@ class ArcGISProIndexingWorkflow:
                     self.logger.info("Indexed %s/%s items", i + 1, len(transformed_data))
 
             except Exception as e:
-                self.logger.error("Failed to index document %s: %s", item['url'], str(e))
+                self.logger.exception("Failed to index document %s: " + str(item['url']))
 
         self.logger.info("Successfully indexed %s documents", len(transformed_data))
 
