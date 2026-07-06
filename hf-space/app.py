@@ -1199,22 +1199,11 @@ async def detect_anomalies(request: Request):
     return result
 
 
-if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 7860))
-    host = os.environ.get("HOST", "0.0.0.0")
-    logger.info("Starting server on %s:%d", host, port)
-    uvicorn.run(
-        app,
-        host=host,
-        port=port,
-        log_level="info",
-        access_log=True,
-    )
-
-
-# -- UI catch-all route (MUST be at the very end, after all API routes) --------
+# -- UI catch-all route (MUST be BEFORE if __name__ == "__main__") -------------
 # Serves the Vite-built React app. Static files (JS/CSS/assets/icons) are
 # served directly; all other paths fall back to index.html for React Router.
+# IMPORTANT: This MUST be defined BEFORE the `if __name__ == "__main__"` block
+# because uvicorn.run() is a blocking call — any code after it never executes.
 _UI_DIST = Path(__file__).parent / "ui-dist"
 _UI_INDEX = _UI_DIST / "index.html"
 
@@ -1236,3 +1225,16 @@ async def ui_catch_all(full_path: str):
         return HTMLResponse(content=_UI_INDEX.read_text(encoding="utf-8"))
 
     return HTMLResponse(content="<h1>UI not built</h1>", status_code=503)
+
+
+if __name__ == "__main__":
+    port = int(os.environ.get("PORT", 7860))
+    host = os.environ.get("HOST", "0.0.0.0")
+    logger.info("Starting server on %s:%d", host, port)
+    uvicorn.run(
+        app,
+        host=host,
+        port=port,
+        log_level="info",
+        access_log=True,
+    )
