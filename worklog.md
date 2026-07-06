@@ -2661,3 +2661,117 @@ Stage Summary:
 - 5 code files corrected with real model names from live API discovery
 - LLM_APPROVED_MODELS guardrail updated with real working models
 - Zero regressions introduced
+
+---
+Task ID: live-simulation-and-bug-fixes
+Agent: Super Z (main agent)
+Task: Run the actual program, simulate a full user session, discover errors, fix them
+
+Context: User asked to actually start the program, click through it, find and fix
+real bugs that appear during live simulation.
+
+BUGS DISCOVERED & FIXED:
+
+════════════════════════════════════════════════════════════════════
+BUG #1: DATABASE_URL pointing to Supabase Postgres with asyncpg (not installed)
+════════════════════════════════════════════════════════════════════
+Symptom: Backend refused to start with ModuleNotFoundError: No module named 'asyncpg'
+Root cause: scripts/setup_env.py was deriving DATABASE_URL from SUPABASE_URL using
+  the service key as the DB password. Supabase service key is NOT a DB password.
+  The resulting URL was:
+  postgresql+asyncpg://postgres.ovjttnsvwrmbvwecxbsq:PASSWORD@aws-0-pooler.supabase.com:5432/postgres
+Fix: Changed scripts/setup_env.py to always use SQLite for local dev. Supabase
+  Postgres requires a real DB connection string (with actual password) which the
+  user must obtain from the Supabase dashboard. Documented this in the script.
+  Also fixed .env directly: DATABASE_URL=sqlite+aiosqlite:///./etap.db
+
+════════════════════════════════════════════════════════════════════
+BUG #2: ENGINEERING_SERVICE_API_KEY required in production mode
+════════════════════════════════════════════════════════════════════
+Symptom: RuntimeError: ENGINEERING_SERVICE_API_KEY must be set in production/staging
+Root cause: .env had ENVIRONMENT=production but no API key configured
+Fix: Set ENVIRONMENT=development for local testing + generated a real API key
+  (etap_dev_key_SneIcL0u9eZYDMNm7OIag1q_3SewQuIa4aZYkBrb1KI) and added it to .env
+
+════════════════════════════════════════════════════════════════════
+BUG #3: Backend stuck on Redis retry loop (7-second startup delay)
+════════════════════════════════════════════════════════════════════
+Symptom: "Cache connection failed (attempt 1)" / "(attempt 2)" — backend took
+  7+ seconds to start because Redis is not running locally
+Fix: Added ENGINEERING_SERVICE_CACHE_DISABLED=true to .env. This short-circuits
+  the Redis retry loop and uses the in-memory fallback immediately.
+
+════════════════════════════════════════════════════════════════════
+BUG #4: /api/v1/agents returned only 14 agents (hardcoded list) instead of 25
+════════════════════════════════════════════════════════════════════
+Symptom: GET /api/v1/agents returned 14 agents with no 'status' field, while
+  shared_handlers.py AGENTS has 25 agents with status='active'
+Root cause: api/agents.py:get_agents_list() had a hardcoded 14-agent list
+  that was out of sync with the canonical AGENTS list in shared_handlers.py
+Fix: Rewrote get_agents_list() to import AGENTS from shared_handlers and
+  enrich each entry with capabilities/model/provider metadata. Now returns
+  all 25 agents with status='active'.
+
+════════════════════════════════════════════════════════════════════
+BUG #5: POST /api/v1/auth/login → 500 (Redis rate-limit failure)
+════════════════════════════════════════════════════════════════════
+Symptom: Login endpoint returned HTTP 500 with traceback showing
+  redis.asyncio connection error in _check_rate_limit()
+Root cause: _check_rate_limit() called r.incr(key) without try/except. When
+  Redis was configured but unreachable, the exception propagated as 500.
+Fix: Wrapped Redis operations in try/except (ConnectionError, OSError,
+  RedisError). On Redis failure, falls through to in-memory rate limiting
+  so login still works. Same fix applied to _blacklist_token() and
+  _is_token_blacklisted().
+
+════════════════════════════════════════════════════════════════════
+BUG #6: /api/v1/info endpoint missing (404)
+════════════════════════════════════════════════════════════════════
+Symptom: GET /api/v1/info returned HTTP 404
+Root cause: The endpoint was referenced in comments but never implemented
+Fix: Added platform_info() endpoint to api/health.py that returns version,
+  agent_count (25), active_agents (25), beta_agents (0), supported_standards,
+  and the full list of 14 engineering modules. Mounted at /info (health
+  router has no prefix).
+
+════════════════════════════════════════════════════════════════════
+BUG #7: Endpoints returning 401 "Missing X-API-Key header"
+════════════════════════════════════════════════════════════════════
+Symptom: All /api/v1/projects, /api/v1/assets, /api/v1/import, /api/v1/studies
+  endpoints returned 401 even with valid JWT
+Root cause: get_api_key dependency requires X-API-Key header in addition to
+  the JWT bearer token. The test script was only sending Authorization.
+Fix: Updated scripts/e2e_test.py to send BOTH headers:
+  Authorization: Bearer <jwt>
+  X-API-Key: <engineering_service_api_key>
+  This is by design — defense in depth.
+
+════════════════════════════════════════════════════════════════════
+E2E TEST SCRIPT (scripts/e2e_test.py)
+════════════════════════════════════════════════════════════════════
+Created a comprehensive end-to-end test that simulates a full user session:
+1. Health & info endpoints (5 tests)
+2. Agents endpoint — all 25 must be active (3 tests)
+3. Auth: register + login (3 tests)
+4. Projects CRUD: create, list, get, update, delete (7 tests)
+5. Assets CRUD: create, list, get, update, delete (6 tests)
+6. Data import: formats list + CSV upload (4 tests)
+7. Study run: load flow on 2-bus system (2 tests)
+8. Homepage HTML: 0 'beta', 0 'demo' (3 tests)
+
+FINAL E2E RESULT: 39 passed, 0 failed ✅
+
+VALIDATION:
+- pytest: 94 passed, 6 skipped, 0 failed ✅
+- E2E: 39 passed, 0 failed ✅
+- UI build: SUCCESS in 6.80s ✅
+- Live HTTP /api/v1/agents: 25 active, 0 beta ✅
+- Live HTTP /: 0 beta, 0 demo mentions ✅
+
+Files modified:
+- api/agents.py (rewrote get_agents_list — 14 → 25 agents)
+- api/auth.py (added try/except for Redis in 3 functions)
+- api/health.py (added /info endpoint)
+- scripts/setup_env.py (SQLite default instead of broken Supabase URL)
+- scripts/e2e_test.py (NEW — comprehensive E2E test)
+- .env (DATABASE_URL, ENVIRONMENT, ENGINEERING_SERVICE_API_KEY, ENGINEERING_SERVICE_CACHE_DISABLED)

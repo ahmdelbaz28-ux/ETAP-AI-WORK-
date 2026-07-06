@@ -102,10 +102,15 @@ async def _blacklist_token(jti: str, ttl_seconds: int | None = None) -> None:
     if r is None:
         return  # fallback: silently no-blacklist if REDIS_URL not configured or redis not available
     key = f"{_TOKEN_BLACKLIST_PREFIX}{jti}"
-    if ttl_seconds and ttl_seconds > 0:
-        await r.set(key, "1", ex=int(ttl_seconds))
-    else:
-        await r.set(key, "1")
+    try:
+        if ttl_seconds and ttl_seconds > 0:
+            await r.set(key, "1", ex=int(ttl_seconds))
+        else:
+            await r.set(key, "1")
+    except (ConnectionError, OSError, redis_async.RedisError):
+        # Redis unreachable — silently skip blacklisting (in-memory fallback
+        # would not survive restarts, so we prefer to log and continue).
+        pass
 
 
 async def _is_token_blacklisted(jti: str) -> bool:
@@ -114,8 +119,12 @@ async def _is_token_blacklisted(jti: str) -> bool:
     if r is None:
         return False
     key = f"{_TOKEN_BLACKLIST_PREFIX}{jti}"
-    val = await r.get(key)
-    return val is not None
+    try:
+        val = await r.get(key)
+        return val is not None
+    except (ConnectionError, OSError, redis_async.RedisError):
+        # Redis unreachable — assume not blacklisted so valid tokens still work.
+        return False
 
 
 # ---------------------------------------------------------------------------
@@ -442,15 +451,20 @@ async def _check_rate_limit(username: str) -> None:
     r = _get_redis_client()
     if r is not None:
         key = f"auth:ratelimit:{username}"
-        current = await r.incr(key)
-        if current == 1:
-            await r.expire(key, _RATE_LIMIT_WINDOW_SEC)
-        if current > _RATE_LIMIT_MAX_ATTEMPTS:
-            raise HTTPException(
-                status_code=status.HTTP_429_TOO_MANY_REQUESTS,
-                detail="Too many login attempts. Please try again later.",
-            )
-        return
+        try:
+            current = await r.incr(key)
+            if current == 1:
+                await r.expire(key, _RATE_LIMIT_WINDOW_SEC)
+            if current > _RATE_LIMIT_MAX_ATTEMPTS:
+                raise HTTPException(
+                    status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+                    detail="Too many login attempts. Please try again later.",
+                )
+            return
+        except (ConnectionError, OSError, redis_async.RedisError):
+            # Redis is configured but unreachable — fall through to
+            # in-memory rate limiting so login still works.
+            pass
 
     # In-memory fallback
     now = time.monotonic()

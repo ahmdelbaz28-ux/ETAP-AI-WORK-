@@ -120,15 +120,12 @@ def _get_optional(name: str, default: str = "") -> str:
 
 def _env_block(c: dict[str, str]) -> str:
     """Build the full .env file content from a credential dict."""
-    supabase_url = c.get("supabase_url", "")
-    # Derive the DATABASE_URL from Supabase URL when available
-    if supabase_url and supabase_url.startswith("http"):
-        # https://ovjttnsvwrmbvwecxbsq.supabase.co → host
-        host = supabase_url.replace("https://", "").replace("http://", "").split("/")[0].split(".")[0]
-        # Use Supabase session-mode pooler
-        database_url = f"postgresql+asyncpg://postgres.{host}:{c.get('supabase_service_key', 'PASSWORD')}@aws-0-pooler.supabase.com:5432/postgres"
-    else:
-        database_url = "sqlite+aiosqlite:///./etap.db"
+    # Always use SQLite for local development. Supabase Postgres requires a
+    # direct connection string (with real DB password, NOT the service key).
+    # The SUPABASE_URL we store is the REST API endpoint, not a DB pooler URL.
+    # To switch to Supabase Postgres in production, set DATABASE_URL manually
+    # in .env to: postgresql+asyncpg://postgres.PROJECT_REF:DB_PASSWORD@aws-0-pooler.supabase.com:5432/postgres
+    database_url = "sqlite+aiosqlite:///./etap.db"
 
     return f"""# =============================================================================
 # AhmedETAP — Production Environment Configuration

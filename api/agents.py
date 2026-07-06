@@ -30,130 +30,57 @@ class AgentMetaResponse(BaseModel):
 
 @router.get("")
 async def get_agents_list(request: Request):
-    """Return simple list of agents for frontend administration."""
+    """Return the full list of all 25 agents for frontend administration.
+
+    Uses the canonical AGENTS list from api.shared_handlers so that every
+    endpoint (this one, /api/v1/info, the HF Space homepage) reports the
+    same 25 agents with their standards and status fields.
+    """
     trace_id = getattr(request.state, "trace_id", "unknown")
     try:
-        # Return a predefined list of available agents for the frontend
-        agents_list = [
-            {
-                "id": "etap-expert",
-                "name": "ETAP Expert",
-                "description": "ETAP power systems engineering expert",
-                "capabilities": [
-                    "load_flow",
-                    "short_circuit",
-                    "arc_flash",
-                    "protection",
-                    "motor_starting",
-                ],
-                "model": "gemini-2.0-flash-exp",
-                "provider": "google",
-            },
-            {
-                "id": "etap-gui",
-                "name": "ETAP GUI Agent",
-                "description": "ETAP GUI automation and computer use agent",
-                "capabilities": ["gui_automation", "cua", "screenshot_analysis"],
-                "model": "gemini-2.0-flash-exp",
-                "provider": "google",
-            },
-            {
-                "id": "load-flow",
-                "name": "Load Flow Agent",
-                "description": "Load flow and voltage analysis",
-                "capabilities": ["load_flow", "voltage_profile", "power_losses"],
+        from api.shared_handlers import AGENTS
+
+        # Enrich the shared AGENTS list with capabilities + model + provider
+        # metadata so the frontend administration panel can display it.
+        capability_map = {
+            "load-flow-agent": ["load_flow", "voltage_profile", "power_losses"],
+            "short-circuit-agent": ["short_circuit", "iec_60909", "equipment_rating"],
+            "arcflash-agent": ["arc_flash", "ieee_1584", "ppe_category"],
+            "protection-agent": ["protection", "relay_coordination", "time_current_curves"],
+            "motorstarting-agent": ["motor_starting", "voltage_dip", "acceleration"],
+            "stability-agent": ["stability", "swing_equation", "critical_clearing_time"],
+            "harmonic-agent": ["harmonic", "ieee_519", "filter_design"],
+            "cable-sizing-agent": ["cable_sizing", "iec_60364", "voltage_drop"],
+            "earth-grid-agent": ["earth_grid", "ieee_80", "step_touch_voltage"],
+            "opf-agent": ["opf", "economic_dispatch", "optimal_power_flow"],
+            "renewable-agent": ["renewable", "solar", "wind", "ieee_1547"],
+            "battery-storage-agent": ["battery_storage", "bess", "dispatch_optimization"],
+            "scada-agent": ["scada", "iec_61850", "real_time_monitoring"],
+            "digital-twin-agent": ["digital_twin", "iec_61970", "state_estimation"],
+            "predictive-agent": ["predictive_maintenance", "iso_13381", "failure_prediction"],
+            "anomaly-agent": ["anomaly_detection", "ieee_1159", "pattern_recognition"],
+            "coordination-agent": ["coordination", "iec_60255", "relay_coordination"],
+            "report-agent": ["report_generation", "ieee_3002_7", "documentation"],
+            "validation-agent": ["validation", "iec_60038", "compliance_checking"],
+            "etap-engineer-agent": ["etap_engineering", "etap_manual", "study_setup"],
+            "goal-planner-agent": ["goal_planning", "task_decomposition", "workflow"],
+            "weather-agent": ["weather", "iec_60721", "environmental_analysis"],
+            "power-system-coordinator": ["coordination", "orchestration", "all_studies"],
+            "etap-expert-agent": ["etap_expert", "format_a_b_c_d", "6_step_workflow"],
+            "etap-gui-agent": ["gui_automation", "cua", "screenshot_analysis"],
+        }
+        agents_list = []
+        for a in AGENTS:
+            agents_list.append({
+                "id": a["id"],
+                "name": a["name"],
+                "description": a.get("description", ""),
+                "standard": a.get("standard", ""),
+                "status": a.get("status", "active"),
+                "capabilities": capability_map.get(a["id"], []),
                 "model": "gpt-4o",
                 "provider": "openai",
-            },
-            {
-                "id": "short-circuit",
-                "name": "Short Circuit Agent",
-                "description": "Fault current analysis",
-                "capabilities": ["short_circuit", "iec_60909", "equipment_rating"],
-                "model": "gpt-4o",
-                "provider": "openai",
-            },
-            {
-                "id": "arc-flash",
-                "name": "Arc Flash Agent",
-                "description": "Incident energy and arc flash boundary calculations",
-                "capabilities": ["arc_flash", "ieee_1584", "ppe_category"],
-                "model": "gpt-4o",
-                "provider": "openai",
-            },
-            {
-                "id": "protection",
-                "name": "Protection Agent",
-                "description": "Relay coordination and protection studies",
-                "capabilities": ["protection", "relay_coordination", "time_current_curves"],
-                "model": "gpt-4o",
-                "provider": "openai",
-            },
-            {
-                "id": "motor-starting",
-                "name": "Motor Starting Agent",
-                "description": "Motor starting current and voltage dip analysis",
-                "capabilities": ["motor_starting", "voltage_dip", "acceleration"],
-                "model": "gpt-4o",
-                "provider": "openai",
-            },
-            {
-                "id": "stability",
-                "name": "Stability Agent",
-                "description": "Transient and steady-state stability analysis",
-                "capabilities": ["stability", "swing_equation", "critical_clearing_time"],
-                "model": "gpt-4o",
-                "provider": "openai",
-            },
-            {
-                "id": "cable-sizing",
-                "name": "Cable Sizing Agent",
-                "description": "Cable ampacity and voltage drop calculations",
-                "capabilities": ["cable_sizing", "iec_60364", "voltage_drop"],
-                "model": "gpt-4o",
-                "provider": "openai",
-            },
-            {
-                "id": "earth-grid",
-                "name": "Earth Grid Agent",
-                "description": "Grounding system and earth grid design",
-                "capabilities": ["earth_grid", "ieee_80", "step_touch_voltage"],
-                "model": "gpt-4o",
-                "provider": "openai",
-            },
-            {
-                "id": "renewable",
-                "name": "Renewable Agent",
-                "description": "Solar and wind integration analysis",
-                "capabilities": ["renewable", "solar", "wind", "ieee_1547"],
-                "model": "gpt-4o",
-                "provider": "openai",
-            },
-            {
-                "id": "battery-storage",
-                "name": "BESS Agent",
-                "description": "Battery energy storage system analysis",
-                "capabilities": ["battery_storage", "bess", "dispatch_optimization"],
-                "model": "gpt-4o",
-                "provider": "openai",
-            },
-            {
-                "id": "harmonic",
-                "name": "Harmonic Agent",
-                "description": "Harmonic distortion and filter design",
-                "capabilities": ["harmonic", "ieee_519", "filter_design"],
-                "model": "gpt-4o",
-                "provider": "openai",
-            },
-            {
-                "id": "optimal-power-flow",
-                "name": "OPF Agent",
-                "description": "Optimal power flow and economic dispatch",
-                "capabilities": ["opf", "economic_dispatch", "optimal_power_flow"],
-                "model": "gpt-4o",
-                "provider": "openai",
-            },
-        ]
+            })
 
         return JSONResponse(content={"success": True, "agents": agents_list, "trace_id": trace_id})
     except Exception as e:

@@ -85,6 +85,33 @@ async def health_check(request: Request) -> HealthResponse:
     )
 
 
+@router.get("/info")
+async def platform_info(request: Request) -> dict:
+    """Platform information endpoint — returns version, agent count, and module list.
+
+    Provides a single endpoint for dashboards and monitoring tools to discover
+    what this platform is and what it supports.
+    """
+    from api.shared_handlers import AGENTS, AGENT_COUNT, SUPPORTED_STANDARDS
+
+    return {
+        "version": "1.0.0",
+        "name": "AhmedETAP Engineering Platform",
+        "status": "healthy",
+        "agent_count": AGENT_COUNT,
+        "active_agents": sum(1 for a in AGENTS if a.get("status") == "active"),
+        "beta_agents": sum(1 for a in AGENTS if a.get("status") == "beta"),
+        "supported_standards": list(SUPPORTED_STANDARDS) if hasattr(SUPPORTED_STANDARDS, "__iter__") else SUPPORTED_STANDARDS,
+        "modules": [
+            "arcflash", "motorstarting", "stability", "cable-sizing",
+            "earth-grid", "renewable", "battery-storage", "scada",
+            "digital-twin", "predictive", "anomaly", "coordination",
+            "goal-planner", "weather",
+        ],
+        "trace_id": request.state.trace_id,
+    }
+
+
 @router.head("/ready")
 @router.get("/ready")
 async def readiness_check(request: Request) -> ReadyResponse:
