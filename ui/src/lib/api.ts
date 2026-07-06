@@ -298,4 +298,70 @@ export async function testVisionKey(provider: string): Promise<{ success: boolea
   })
 }
 
+// ============ Projects ============
+
+export interface Project {
+  id: string
+  name: string
+  description: string
+  system_config: Record<string, unknown> | null
+  created_at: string
+  updated_at: string
+  created_by: string | null
+  status: 'active' | 'archived' | 'deleted'
+}
+
+export interface ProjectListResponse {
+  projects: Project[]
+  total: number
+  page: number
+  page_size: number
+}
+
+export interface ProjectCreateInput {
+  name: string
+  description: string
+  system_config?: Record<string, unknown>
+}
+
+export async function listProjects(
+  statusFilter?: 'active' | 'archived',
+  page: number = 1,
+  pageSize: number = 50,
+): Promise<ProjectListResponse> {
+  const params = new URLSearchParams({
+    page: String(page),
+    page_size: String(pageSize),
+  })
+  if (statusFilter) params.set('status', statusFilter)
+  return request(`/api/v1/projects/?${params.toString()}`)
+}
+
+export async function getProject(projectId: string): Promise<Project> {
+  return request(`/api/v1/projects/${encodeURIComponent(projectId)}`)
+}
+
+export async function createProject(input: ProjectCreateInput): Promise<Project> {
+  return request('/api/v1/projects/', {
+    method: 'POST',
+    body: JSON.stringify(input),
+  })
+}
+
+export async function updateProject(
+  projectId: string,
+  input: Partial<ProjectCreateInput> & { status?: 'active' | 'archived' },
+): Promise<Project> {
+  return request(`/api/v1/projects/${encodeURIComponent(projectId)}`, {
+    method: 'PUT',
+    body: JSON.stringify(input),
+  })
+}
+
+export async function deleteProject(projectId: string): Promise<void> {
+  await request(`/api/v1/projects/${encodeURIComponent(projectId)}`, {
+    method: 'DELETE',
+  })
+}
+
 // ============ End of API client ============

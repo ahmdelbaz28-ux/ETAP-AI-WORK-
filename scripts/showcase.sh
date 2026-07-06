@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
-# ETAP AI Engineering Platform - Terminal Demo
-# Run with: bash scripts/demo.sh
-# Record with: asciinema rec --overwrite docs/demo.cast -c "bash scripts/demo.sh"
+# ETAP AI Engineering Platform - Terminal Showcase
+# Run with: bash scripts/showcase.sh
+# Record with: asciinema rec --overwrite docs/showcase.cast -c "bash scripts/showcase.sh"
 
 set -e
 
@@ -31,9 +31,9 @@ cmd() {
   pause 1
 }
 
-# ─── Demo ───────────────────────────────────────────────────────────
+# ─── Showcase ───────────────────────────────────────────────────────────
 
-header "ETAP AI Engineering Platform - Terminal Demo"
+header "ETAP AI Engineering Platform - Terminal Showcase"
 
 header "1. Project Overview"
 cmd "python3 -c \"print('ETAP AI Engineering Platform v1.0.0')\""
@@ -101,4 +101,4 @@ echo -e '${GREEN}✓ Service starts and responds${NC}'
 echo -e '${GREEN}✓ Docker images build cleanly${NC}'
 echo -e '${GREEN}✓ CI/CD pipeline configured${NC}'"
 
-echo -e "\n${BOLD}${CYAN}Demo complete! 🚀${NC}\n"
+echo -e "\n${BOLD}${CYAN}Showcase complete! 🚀${NC}\n"

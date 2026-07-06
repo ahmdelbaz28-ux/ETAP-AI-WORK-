@@ -55,7 +55,7 @@ app_port: 7860
 
 <br/>
 
-**[🚀 Live Demo على Hugging Face](https://huggingface.co/spaces/ahmdelbaz28/AhmedETAP-Platform)** &nbsp;•&nbsp;
+**[🚀 Live Platform على Hugging Face](https://huggingface.co/spaces/ahmdelbaz28/AhmedETAP-Platform)** &nbsp;•&nbsp;
 **[💻 لوحة التحكم على Vercel](https://vercel.com/ahmdelbaz28-uxs-projects/etap-ai-work)** &nbsp;•&nbsp;
 **[📚 التوثيق الكامل](docs/)** &nbsp;•&nbsp;
 **[🌐 API Reference](docs/API_REFERENCE.md)** &nbsp;•&nbsp;
@@ -782,7 +782,7 @@ git push origin feat/your-feature-name
 <br/>
 
 [![GitHub](https://img.shields.io/badge/GitHub-ahmdelbaz28--ux-black?style=for-the-badge&logo=github)](https://github.com/ahmdelbaz28-ux)
-[![Hugging Face](https://img.shields.io/badge/🤗_Live_Demo-Hugging_Face-yellow?style=for-the-badge)](https://huggingface.co/spaces/ahmdelbaz28/AhmedETAP-Platform)
+[![Hugging Face](https://img.shields.io/badge/🤗_Live_Platform-Hugging_Face-yellow?style=for-the-badge)](https://huggingface.co/spaces/ahmdelbaz28/AhmedETAP-Platform)
 [![LinkedIn](https://img.shields.io/badge/LinkedIn-Connect-0077B5?style=for-the-badge&logo=linkedin&logoColor=white)](https://linkedin.com)
 
 <br/>

@@ -502,7 +502,11 @@ class PredictiveAgent(BaseAgent):
             if analysis_type in ("short_term_forecast", "full"):
                 hist_load = task.parameters.get("historical_load_mw", [])
                 if not hist_load:
-                    # Generate synthetic data for demo
+                    # No historical load provided — generate a synthetic 1-week
+                    # profile (sinusoidal daily pattern + noise) so the forecast
+                    # algorithm still produces a result. In production, callers
+                    # should always supply real SCADA historical data via the
+                    # task parameters.
                     hours = 168  # 1 week
                     hist_load = [
                         100.0 + 30.0 * np.sin(2 * np.pi * h / 24) + 5.0 * np.random.randn()  # NOSONAR — S6711: numpy.random.Generator migration; API change required
