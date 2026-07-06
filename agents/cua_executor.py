@@ -645,31 +645,51 @@ class CUAExecutor:
             return None
 
     def _upload_screenshot_to_supabase(self, filepath: str, _step_num: int, _phase: str) -> None:
-        """Upload screenshot to Supabase Storage (non-blocking)."""
-        try:
-            from integrations.supabase_integration import supabase_client
+        """Upload screenshot to Supabase Storage (non-blocking).
 
-            if not supabase_client.enabled:
-                return
+        Uses the public API from integrations.supabase_integration:
+          - upload_bytes(bucket=, filename=, content=, content_type=)
+
+        The previous code had 3 bugs:
+        1. Imported 'supabase_client' which doesn't exist (module has
+           _get_client() function, not a global client object)
+        2. Checked 'supabase_client.enabled' (no such attribute)
+        3. Called upload_bytes with path= and data= kwargs (the function
+           uses filename= and content= instead)
+        """
+        try:
+            from integrations.supabase_integration import upload_bytes
 
             # Read file bytes
             with open(filepath, "rb") as f:
                 file_bytes = f.read()
 
             # Upload to Supabase Storage
+            # upload_bytes() uses filename= (not path=) and content= (not data=)
+            # It handles path sanitization + UUID prefixing internally.
             filename = os.path.basename(filepath)
-            result = supabase_client.upload_bytes(
+            result = upload_bytes(
                 bucket="screenshots",
-                path=f"cua/{datetime.now(UTC).strftime('%Y%m%d')}/{filename}",
-                data=file_bytes,
+                filename=filename,
+                content=file_bytes,
                 content_type="image/png",
+                user_id="cua-executor",
             )
 
-            if result.get("success"):
-                logger.debug("Screenshot uploaded to Supabase: %s", filename)
+            # upload_bytes returns a dict with "path", "bucket", "public_url"
+            # on success, or raises SupabaseUploadError/RuntimeError on failure.
+            if result and result.get("path"):
+                logger.debug(
+                    "Screenshot uploaded to Supabase: %s → %s",
+                    filename, result.get("path"),
+                )
             else:
-                logger.debug("Supabase screenshot upload failed: %s", result.get('error'))
+                logger.debug(
+                    "Supabase screenshot upload returned no path: %s", filename
+                )
         except Exception as exc:  # noqa: BLE001
+            # Non-critical: screenshot upload failure should not break
+            # the CUA execution flow. Log at debug level.
             logger.debug("Supabase screenshot upload failed (non-critical): %s", exc)
 
     # ─── Internal: action execution ────────────────────────────────────────
