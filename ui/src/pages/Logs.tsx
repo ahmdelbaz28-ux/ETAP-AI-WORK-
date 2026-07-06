@@ -24,9 +24,15 @@ function auditToLogs(metrics: MetricsResponse | null, audit: AuditEntry[]): LogE
   }
   for (const entry of audit.slice(0, 50)) {
     const t = new Date(entry.timestamp)
+    // SonarCloud typescript:S3358: extract nested ternary into a helper.
+    const _logLevel = (code: number): 'error' | 'warn' | 'info' => {
+      if (code >= 400) return 'error';
+      if (code >= 300) return 'warn';
+      return 'info';
+    };
     logs.push({
       timestamp: t.toLocaleTimeString(),
-      level: entry.statusCode >= 400 ? 'error' : entry.statusCode >= 300 ? 'warn' : 'info',
+      level: _logLevel(entry.statusCode),
       source: 'audit',
       // SonarCloud typescript:S4624: extracted nested template literal
       message: (() => {

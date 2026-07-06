@@ -45,11 +45,13 @@ interface ToolButtonProps {
 }
 
 function ToolButton({ onClick, icon: Icon, title, badge, active, accent, unreadCount = 0 }: ToolButtonProps) {
-  const toolButtonClass = active
-    ? 'bg-brand-500/15 text-brand-400'
-    : accent === 'brand'
-      ? 'text-brand-400 hover:bg-brand-500/10 hover:text-brand-300'
-      : 'text-[var(--text-muted)] hover:bg-[var(--bg-elevated)] hover:text-[var(--text-primary)]'
+  // SonarCloud typescript:S3358: extract nested ternary into a helper.
+  const _toolButtonClass = (): string => {
+    if (active) return 'bg-brand-500/15 text-brand-400';
+    if (accent === 'brand') return 'text-brand-400 hover:bg-brand-500/10 hover:text-brand-300';
+    return 'text-[var(--text-muted)] hover:bg-[var(--bg-elevated)] hover:text-[var(--text-primary)]';
+  };
+  const toolButtonClass = _toolButtonClass();
   return (
     <button
       onClick={onClick}
