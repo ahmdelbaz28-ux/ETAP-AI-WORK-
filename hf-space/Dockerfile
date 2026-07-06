@@ -27,7 +27,7 @@ RUN pip install --no-cache-dir --upgrade pip && \
 # SonarCloud S6504: Files are owned by root (not the non-root `user`) so
 # the runtime container user can read+execute but CANNOT modify them.
 COPY --chown=root:root --chmod=go-w app.py .
-COPY --chown=user:user --chmod=go-w compat.py .
+COPY --chown=root:root --chmod=go-w compat.py .
 COPY --chown=user:user --chmod=go-w api/ ./api/
 COPY --chown=user:user --chmod=go-w agents/ ./agents/  # NOSONAR — S6470: .dockerignore excludes secrets
 COPY --chown=user:user core/ ./core/

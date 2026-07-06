@@ -47,7 +47,7 @@ echo "Staging:     ${STAGING_NAME}"
 echo "=========================================="
 
 # Make sure wrangler is available
-command -v npx >/dev/null 2>&1 || { echo "ERROR: npx not found"; exit 1; }
+command -v npx >/dev/null 2>&1 || { echo "ERROR: npx not found" >&2; exit 1; }
 
 echo
 echo "[1/4] Setting ENGINEERING_SERVICE_URL on production Worker..."

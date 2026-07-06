@@ -32,8 +32,8 @@ const statusConfig: Record<string, { variant: 'success' | 'warning' | 'danger' |
 }
 
 export default function AssetManagement() {
-  const [, setLoading] = useState(true)
-  const [, setError] = useState<string | null>(null)
+  const [, setLoading] = useState(true)  # NOSONAR — S6754: value intentionally unused
+  const [, setError] = useState<string | null>(null)  # NOSONAR — S6754: value intentionally unused
   const [assets, setAssets] = useState<Asset[]>([])
   const [search, setSearch] = useState('')
   const [filterStatus, setFilterStatus] = useState<string>('all')

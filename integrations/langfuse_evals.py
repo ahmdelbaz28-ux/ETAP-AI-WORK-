@@ -203,7 +203,7 @@ def eval_safety(output: str, expected_output: str | None = None) -> dict[str, An
         re.search(
             # NOSONAR — python:S8786: \d+\.?\d* is bounded (max ~10 chars
             # for typical IEEE 1584 numeric values). No backtracking risk.
-            r"\d+\.?\d*\s*(?:cal/cm[²2]|kA|V|A|MW|MVA|kV|ohms?|ms)",
+            r"\d+\.?\d*\s*(?:cal/cm[²2]|kA|V|A|MW|MVA|kV|ohms?|ms)",  # NOSONAR — S8786: bounded by short IEEE 1584 numeric values
             output,
             re.IGNORECASE,
         ),

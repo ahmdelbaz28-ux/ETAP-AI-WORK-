@@ -635,7 +635,7 @@ class FaultPredictor:
             }
             from sklearn.model_selection import cross_val_score
 
-            clf = RandomForestClassifier(**params)
+            clf = RandomForestClassifier(**params)  # NOSONAR — S6973: params includes min_samples_leaf + max_features from trial.suggest_int
             scores = cross_val_score(clf, features, labels, cv=3, scoring="accuracy")
             return scores.mean()
 

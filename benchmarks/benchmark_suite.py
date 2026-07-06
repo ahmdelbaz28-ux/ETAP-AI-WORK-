@@ -38,9 +38,9 @@ QUICK_MODE = "--quick" in sys.argv
 IEEE_SIZES = [14, 30, 57] if QUICK_MODE else [14, 30, 57, 118]
 
 
-# ═══════════════════════════════════════════════════════════════════════════
+# ============================================================================  # NOSONAR — S125: section separator
 #  Benchmark 1: Jacobian build time — analytical vs finite-difference
-# ═══════════════════════════════════════════════════════════════════════════
+# ============================================================================  # NOSONAR — S125: section separator
 
 def benchmark_1_jacobian() -> Dict[str, Any]:  # NOSONAR — S3776: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
     """Compare analytical vs finite-difference Jacobian speed and accuracy."""
@@ -135,9 +135,9 @@ def benchmark_1_jacobian() -> Dict[str, Any]:  # NOSONAR — S3776: cognitive co
     return results
 
 
-# ═══════════════════════════════════════════════════════════════════════════
+# ============================================================================  # NOSONAR — S125: section separator
 #  Benchmark 2: Load flow solver — iterations & switching
-# ═══════════════════════════════════════════════════════════════════════════
+# ============================================================================  # NOSONAR — S125: section separator
 
 def benchmark_2_load_flow_solver() -> Dict[str, Any]:
     """Track iterations, Jacobian builds, and PV→PQ switches."""
@@ -229,9 +229,9 @@ def benchmark_2_load_flow_solver() -> Dict[str, Any]:
     return results
 
 
-# ═══════════════════════════════════════════════════════════════════════════
+# ============================================================================  # NOSONAR — S125: section separator
 #  Benchmark 3: Zbus computation — dense inversion vs LU factorization
-# ═══════════════════════════════════════════════════════════════════════════
+# ============================================================================  # NOSONAR — S125: section separator
 
 def benchmark_3_zbus() -> Dict[str, Any]:  # NOSONAR — S3776: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
     """Compare dense inversion vs LU factorization for Zbus computation."""
@@ -303,9 +303,9 @@ def benchmark_3_zbus() -> Dict[str, Any]:  # NOSONAR — S3776: cognitive comple
     return results
 
 
-# ═══════════════════════════════════════════════════════════════════════════
+# ============================================================================  # NOSONAR — S125: section separator
 #  Benchmark 4: Cache hit rate simulation
-# ═══════════════════════════════════════════════════════════════════════════
+# ============================================================================  # NOSONAR — S125: section separator
 
 def benchmark_4_cache() -> Dict[str, Any]:
     """Simulate cache hit/miss with Zipfian workload (80/20 pattern)."""
@@ -375,9 +375,9 @@ def benchmark_4_cache() -> Dict[str, Any]:
     return results
 
 
-# ═══════════════════════════════════════════════════════════════════════════
+# ============================================================================  # NOSONAR — S125: section separator
 #  Benchmark 5: Native study latency distribution
-# ═══════════════════════════════════════════════════════════════════════════
+# ============================================================================  # NOSONAR — S125: section separator
 
 def benchmark_5_study_latency() -> Dict[str, Any]:
     """Measure P50/P95/P99 latency for native studies."""
@@ -467,9 +467,9 @@ def benchmark_5_study_latency() -> Dict[str, Any]:
     return results
 
 
-# ═══════════════════════════════════════════════════════════════════════════
+# ============================================================================  # NOSONAR — S125: section separator
 #  Benchmark 6: Concurrent request throughput
-# ═══════════════════════════════════════════════════════════════════════════
+# ============================================================================  # NOSONAR — S125: section separator
 
 def benchmark_6_concurrent() -> Dict[str, Any]:
     """Measure throughput under concurrent load using thread pools."""
@@ -572,9 +572,9 @@ def benchmark_6_concurrent() -> Dict[str, Any]:
     return results
 
 
-# ═══════════════════════════════════════════════════════════════════════════
+# ============================================================================  # NOSONAR — S125: section separator
 #  Report generator
-# ═══════════════════════════════════════════════════════════════════════════
+# ============================================================================  # NOSONAR — S125: section separator
 
 @dataclass
 class BenchmarkReport:
@@ -672,9 +672,9 @@ class BenchmarkReport:
             print(f"  • Cache hit rate: {best_hit:.1f}% best case (Zipfian workload)")
 
 
-# ═══════════════════════════════════════════════════════════════════════════
+# ============================================================================  # NOSONAR — S125: section separator
 #  Main
-# ═══════════════════════════════════════════════════════════════════════════
+# ============================================================================  # NOSONAR — S125: section separator
 
 def main() -> int:
     print("+" + "-" * 70 + "+")

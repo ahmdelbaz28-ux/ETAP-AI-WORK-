@@ -622,7 +622,7 @@ async def benchmark():
         size = 200
         # SonarCloud python:S6711: use numpy.random.Generator (modern API)
         # instead of the legacy np.random.rand function.
-        rng = np.random.default_rng()
+        rng = np.random.default_rng(seed=42)  # S6709: explicit seed for reproducibility
         t0 = _time.perf_counter()
         a = rng.random((size, size))
         b = rng.random((size, size))

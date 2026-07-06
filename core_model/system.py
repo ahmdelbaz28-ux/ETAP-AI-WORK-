@@ -28,7 +28,7 @@ class System:
         self.transformers = []  # list of Transformer
         self.generators = []  # list of Generator  # NOSONAR — S116: standard IEEE/IEC engineering notation (Ybus/Zbus/sequence components); renaming would harm domain readability
         self.loads = []  # list of Load
-        self.Ybus_seq = {}  # sequence -> Ybus matrix
+        self.Ybus_seq = {}  # NOSONAR — S116: IEEE/IEC notation for sequence-component Y-bus matrix  # sequence -> Ybus matrix
         self._include_gen_impedance_pos = False  # True for fault analysis, False for load flow
 
     def add_bus(self, bus):

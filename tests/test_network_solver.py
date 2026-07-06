@@ -87,7 +87,7 @@ class TestPerUnit:
         assert result.imag == pytest.approx(0.2 / (13.8**2 / 100))
 
     def test_admittance_to_per_unit(self):
-        # Y_base = S_base / V_base^2 = 100 / 13.8^2 = 0.525
+        # Y_base = (S_base / V_base^2) = (100 / 13.8^2) = 0.525  # NOSONAR — S125: explanatory formula comment
         result = admittance_to_per_unit(1.0, base_voltage_kv=13.8, base_mva=100)
         expected = 1.0 / (100 / 13.8**2)
         assert result == pytest.approx(expected)

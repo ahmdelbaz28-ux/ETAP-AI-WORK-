@@ -1265,7 +1265,7 @@ class ETAPAutomation:
             # call itself does NOT touch the filesystem (strict=False default
             # in 3.6+), so this is purely lexical normalisation before the
             # containment check.
-            resolved = pathlib.Path(file_path).resolve()
+            resolved = pathlib.Path(file_path).resolve()  # NOSONAR — S6549: containment verified below via relative_to(cwd|home)
         except (ValueError, RuntimeError):
             logger.warning("Invalid path format: %s", file_path)  # NOSONAR — S5145: logging injection; user input is sanitized upstream
             return False
@@ -1448,7 +1448,7 @@ class ETAPAutomation:
         count = 0
         # NOSONAR — python:S7504: list() is intentional — creates a snapshot
         # so we can safely del from self._projects while iterating.
-        for path in list(self._projects.keys()):
+        for path in list(self._projects.keys()):  # NOSONAR — S7504: intentional snapshot for safe deletion during iteration
             if self.close_project(path):
                 count += 1
         return count

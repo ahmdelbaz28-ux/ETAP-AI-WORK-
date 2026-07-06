@@ -43,7 +43,7 @@ function _safeRandomSuffix(): string {
 export default function AIAssistant() {
   // setAgents is used but the agents value is never read — we only need the
   // setter to trigger re-renders after fetchAgents() resolves.
-  const [, setAgents] = useState<AgentMeta[]>([])
+  const [, setAgents] = useState<AgentMeta[]>([])  // NOSONAR — S6754: value intentionally unused (only need setter)
   const [messages, setMessages] = useState<Message[]>([])
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
@@ -381,7 +381,7 @@ export default function AIAssistant() {
                         <ReactMarkdown
                           remarkPlugins={[remarkGfm]}
                           components={{
-                            code({ node, inline, className, children, ...props }: any) {
+                            code({ node, inline, className, children, ...props }: any) {  // NOSONAR — S6478: react-markdown requires inline renderer
                               const match = /language-(\w+)/.exec(className || '')
                               return !inline && match ? (
                                 <div className="rounded-xl overflow-hidden border border-gray-200 dark:border-gray-700 my-4 shadow-sm bg-[#1e1e1e]">

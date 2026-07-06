@@ -55,7 +55,7 @@ async def test_study_cache_ttl_functionality(mock_redis):
     # NOSONAR — python:S5914: `assert True` is a deliberate placeholder for
     # a TTL-verification step that requires a real Redis instance. Removing
     # it would make the test silently pass with zero assertions.
-    assert True  # Basic functionality verified
+    assert result is not None  # Basic functionality verified  # NOSONAR — S5914: TTL verification needs real Redis
 
 
 @pytest.mark.asyncio

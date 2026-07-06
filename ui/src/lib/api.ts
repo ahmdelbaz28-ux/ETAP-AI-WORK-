@@ -134,7 +134,7 @@ export async function runStudy(
         buses: [
           { bus_id: 1, bus_type: 'slack', voltage_magnitude: 1.05 },
           { bus_id: 2, bus_type: 'pv', voltage_magnitude: 1.0 },
-          { bus_id: 3, bus_type: 'pq', load_power_real: 1.0, load_power_reactive: 0.3 },
+          { bus_id: 3, bus_type: 'pq', load_power_real: 1, load_power_reactive: 0.3 },
         ],
         lines: [
           { line_id: 1, from_bus_id: 1, to_bus_id: 2, r1: 0.01, x1: 0.05 },

@@ -57,7 +57,7 @@ done
 # ---------------------------------------------------------------------------
 # Validate
 # ---------------------------------------------------------------------------
-command -v docker >/dev/null 2>&1 || { echo "Error: docker is not installed"; exit 1; }
+command -v docker >/dev/null 2>&1 || { echo "Error: docker is not installed" >&2; exit 1; }
 
 if [[ ! -f "${ENV_FILE}" ]]; then
   echo "Error: Environment file not found: ${ENV_FILE}" >&2
