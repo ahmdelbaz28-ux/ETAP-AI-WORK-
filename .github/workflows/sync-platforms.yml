@@ -73,13 +73,39 @@ jobs:
         with:
           python-version: ${{ env.PYTHON_VERSION }}
 
-      # ── 1a. Build the Vite UI to validate it compiles before notifying Vercel ─
-      - name: 🔨 Build UI (smoke test)
+      # ── 1a. Build the Vite UI once and stage ui-dist/ for HF sync ─────────────
+      # Previously this ran two separate builds:
+      #   1. `build:vercel` (= `vite build` only)  — output discarded
+      #   2. `build`        (= `tsc -b && vite build`) — output copied to ui-dist/
+      # The weaker smoke test gave a false sense of safety (no TS check) while
+      # the strict build only ran second, after `npm install` had already run
+      # twice. This single step:
+      #   - installs once with `npm ci` (reproducible from package-lock.json)
+      #   - runs the strict `build` script (TypeScript + Vite)
+      #   - copies ui/dist → ../ui-dist for the HF Space Docker build
+      #   - validates that index.html was actually emitted (catches silent
+      #     Vite failures where dist/ exists but is empty)
+      - name: 🔨 Build UI (TypeScript + Vite) and stage ui-dist/
         working-directory: ui
         run: |
-          npm install --no-audit --no-fund
-          npm run build:vercel
-          echo "✅ UI build successful — Vercel will deploy from this commit automatically"
+          set -e
+          npm ci --no-audit --no-fund
+          npm run build
+          # Vite outputs to ui/dist; the root Dockerfile expects ui-dist/ at
+          # repo root. Copy it there so the HF Space Docker build can find it.
+          rm -rf ../ui-dist
+          cp -r dist ../ui-dist
+          # Strict validation: a successful Vite build always emits index.html.
+          # `test -d ui-dist` alone passes on an empty dir, masking failures.
+          test -f ../ui-dist/index.html || {
+            echo "❌ ui-dist/index.html missing — Vite build produced no entry HTML"
+            echo "   ui-dist/ contents:"
+            find ../ui-dist -maxdepth 2 -type f -o -type d | head -20
+            exit 1
+          }
+          FILE_COUNT=$(find ../ui-dist -type f | wc -l)
+          echo "✅ UI built → ui-dist/ ($FILE_COUNT files, $(du -sh ../ui-dist | cut -f1) total)"
+          echo "   Vercel will deploy from this commit automatically via its GitHub integration"
 
       # ── 1b. Verify Vercel project reachability ───────────────────────────────
       # Vercel's GitHub integration auto-deploys on every push to main — no
@@ -114,18 +140,6 @@ jobs:
           fi
 
       # ── 1c. Sync to HuggingFace Space ───────────────────────────────────────
-      - name: 🔨 Build UI for HF Space (Vite → ui-dist/)
-        working-directory: ui
-        run: |
-          npm install --no-audit --no-fund
-          npm run build
-          # Vite outputs to ui/dist; the root Dockerfile expects ui-dist/ at
-          # repo root. Copy it there so the HF Space Docker build can find it.
-          cd ..
-          rm -rf ui-dist
-          cp -r ui/dist ui-dist
-          echo "✅ UI built → ui-dist/ ($(find ui-dist -type f | wc -l) files)"
-
       - name: 🤗 Sync to HuggingFace Space
         env:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
@@ -138,7 +152,7 @@ jobs:
           test -f Dockerfile || { echo "Dockerfile missing"; exit 1; }
           test -f hf-space/app.py || { echo "hf-space/app.py missing"; exit 1; }
           test -f README.hf.md || { echo "README.hf.md (HF YAML frontmatter) missing"; exit 1; }
-          test -d ui-dist || { echo "ui-dist/ missing — UI build step failed"; exit 1; }
+          test -f ui-dist/index.html || { echo "ui-dist/index.html missing — UI build step failed"; exit 1; }
 
           git clone https://user:$HF_TOKEN@huggingface.co/spaces/ahmdelbaz28/AhmedETAP-Platform hf-space-repo 2>&1 | tail -5
           cd hf-space-repo
