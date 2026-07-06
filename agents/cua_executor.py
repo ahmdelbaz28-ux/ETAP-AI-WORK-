@@ -314,7 +314,7 @@ class CUAExecutor:
         steps: list[CUAStepResult] = []
         # Reconstruct prior step results from checkpoint (simplified — audit-only)
         for ps in prior_steps:
-            try:
+            with contextlib.suppress(Exception):  # skip malformed prior steps
                 step = CUAStepResult(
                     step_number=ps.get("step", 0),
                     action=CUAAction(
@@ -332,8 +332,6 @@ class CUAExecutor:
                     error=ps.get("error"),
                 )
                 steps.append(step)
-            except Exception:  # noqa: BLE001
-                pass  # skip malformed prior steps
 
         current_context = context or prior_context or "Starting fresh"
         last_analysis: dict[str, Any] | None = None

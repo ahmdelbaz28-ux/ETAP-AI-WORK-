@@ -217,8 +217,9 @@ class LangfuseMiddleware(BaseHTTPMiddleware):
             return new_response
         except Exception as exc:
             elapsed = time.monotonic() - start
-            # Record exception on the trace
-            try:
+            # Record exception on the trace — best-effort, must not mask the
+            # original exception bubbling up to the caller.
+            with contextlib.suppress(Exception):
                 if hasattr(obs, "record_exception"):
                     obs.record_exception(exc)
                 obs.update(
@@ -229,8 +230,6 @@ class LangfuseMiddleware(BaseHTTPMiddleware):
                         "latency_seconds": elapsed,
                     },
                 )
-            except Exception:
-                pass
 
             # Alert on safety-critical 5xx
             if safety_critical:
@@ -245,8 +244,8 @@ class LangfuseMiddleware(BaseHTTPMiddleware):
         else:
             elapsed = time.monotonic() - start
 
-            # Capture output + status
-            try:
+            # Capture output + status — best-effort, must not break the response
+            with contextlib.suppress(Exception):
                 output_text = _truncate_body(response_body)
                 if output_text:
                     obs.update(output=output_text)
@@ -267,17 +266,13 @@ class LangfuseMiddleware(BaseHTTPMiddleware):
                         )
                 elif status_code >= 400:
                     obs.update(level="WARNING")
-            except Exception:
-                pass
 
-            # Try to get the trace URL for the response header
+            # Try to get the trace URL for the response header — best-effort
             trace_url = None
-            try:
+            with contextlib.suppress(Exception):
                 trace_id = str(getattr(obs, "id", ""))
                 if trace_id:
                     trace_url = get_trace_share_url(trace_id, make_public=False)
-            except Exception:
-                pass
 
             # End the observation
             with contextlib.suppress(Exception):
@@ -290,11 +285,10 @@ class LangfuseMiddleware(BaseHTTPMiddleware):
 
             return new_response
         finally:
-            try:
+            # End the observation even if earlier steps failed — best-effort
+            with contextlib.suppress(Exception):
                 if hasattr(obs, "end"):
                     obs.end()
-            except Exception:
-                pass
 
 
 def install_langfuse_middleware(app: ASGIApp) -> None:

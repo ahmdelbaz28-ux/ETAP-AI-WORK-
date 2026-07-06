@@ -10,6 +10,7 @@ Public API aligned to: tests/test_cache_service.py
 
 from __future__ import annotations
 
+import contextlib
 import json
 import logging
 import time
@@ -134,12 +135,10 @@ class StudyCache:
 
         # If stored non-dict, attempt to decode json string.
         if isinstance(value, str):
-            try:
+            with contextlib.suppress(Exception):
                 decoded = json.loads(value)
                 if isinstance(decoded, dict):
                     return decoded
-            except Exception:
-                pass
         return None
 
     async def set(
@@ -217,12 +216,10 @@ async def get_study_cache() -> StudyCache:  # NOSONAR — S7503: async function 
     default_ttl = 3600
 
     # Environment overrides (best-effort; tests don't require them).
-    try:
+    with contextlib.suppress(Exception):
         import os
 
         redis_url = os.getenv("REDIS_URL", redis_url)
         default_ttl = int(os.getenv("CACHE_TTL", str(default_ttl)))
-    except Exception:
-        pass
 
     return StudyCache(redis_url=redis_url, ttl=default_ttl)

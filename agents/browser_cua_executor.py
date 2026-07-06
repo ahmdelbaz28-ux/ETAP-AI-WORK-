@@ -119,7 +119,7 @@ def _check_chromium_installed() -> tuple[bool, str]:
                     return True, f"chromium at {chromium_dirs[0]}"
 
         # Last resort: try to query Playwright directly
-        try:
+        with contextlib.suppress(Exception):
             from playwright.sync_api import sync_playwright
 
             with sync_playwright() as p:
@@ -127,8 +127,6 @@ def _check_chromium_installed() -> tuple[bool, str]:
                 exec_path = p.chromium.executable_path
                 if exec_path and Path(exec_path).exists():
                     return True, f"chromium at {exec_path}"
-        except Exception:  # noqa: BLE001
-            pass
 
         return False, "chromium binary not found — run: playwright install chromium"
     except Exception as exc:  # noqa: BLE001
@@ -236,7 +234,7 @@ class BrowserCUAExecutor:
         steps: list[CUAStepResult] = []
         # Reconstruct prior steps from checkpoint
         for ps in prior_steps:
-            try:
+            with contextlib.suppress(Exception):
                 step = CUAStepResult(
                     step_number=ps.get("step", 0),
                     action=CUAAction(
@@ -254,8 +252,6 @@ class BrowserCUAExecutor:
                     error=ps.get("error"),
                 )
                 steps.append(step)
-            except Exception:  # noqa: BLE001
-                pass
 
         current_context = context or prior_context or "Starting browser CUA"
         last_analysis: dict[str, Any] | None = None

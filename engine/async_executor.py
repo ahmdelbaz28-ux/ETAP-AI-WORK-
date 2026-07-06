@@ -171,7 +171,7 @@ class AsyncExecutor:
         while not self._shutdown_event.is_set():
             try:
                 task = self._queue.get(timeout=0.5)
-            except Exception:
+            except Exception:  # nosec B112 — empty queue on timeout is expected; continue polling
                 continue
             if task is None:
                 continue

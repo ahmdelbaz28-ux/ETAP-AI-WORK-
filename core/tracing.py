@@ -22,6 +22,7 @@ Supported exporter types (``OTEL_EXPORTER_TYPE`` env var):
 
 from __future__ import annotations
 
+import contextlib
 import inspect
 import logging
 import os as _os
@@ -186,14 +187,12 @@ def setup_tracing(  # NOSONAR — S3776: cognitive complexity; scheduled for ref
             "at app startup to avoid this.",
             exc,
         )
-        try:
+        # If we cannot attach, the existing provider's exporter will
+        # be used. This is non-fatal.
+        with contextlib.suppress(Exception):
             existing_provider = trace.get_tracer_provider()
             if hasattr(existing_provider, "add_span_processor"):
                 existing_provider.add_span_processor(processor)
-        except Exception:
-            # If we cannot attach, the existing provider's exporter will
-            # be used. This is non-fatal.
-            pass
 
     _tracer = trace.get_tracer(service_name, service_version)
     set_global_textmap(_propagator)
