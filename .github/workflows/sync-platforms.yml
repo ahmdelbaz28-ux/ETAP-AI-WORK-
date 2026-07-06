@@ -114,6 +114,18 @@ jobs:
           fi
 
       # ── 1c. Sync to HuggingFace Space ───────────────────────────────────────
+      - name: 🔨 Build UI for HF Space (Vite → ui-dist/)
+        working-directory: ui
+        run: |
+          npm install --no-audit --no-fund
+          npm run build
+          # Vite outputs to ui/dist; the root Dockerfile expects ui-dist/ at
+          # repo root. Copy it there so the HF Space Docker build can find it.
+          cd ..
+          rm -rf ui-dist
+          cp -r ui/dist ui-dist
+          echo "✅ UI built → ui-dist/ ($(find ui-dist -type f | wc -l) files)"
+
       - name: 🤗 Sync to HuggingFace Space
         env:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
@@ -126,6 +138,7 @@ jobs:
           test -f Dockerfile || { echo "Dockerfile missing"; exit 1; }
           test -f hf-space/app.py || { echo "hf-space/app.py missing"; exit 1; }
           test -f README.hf.md || { echo "README.hf.md (HF YAML frontmatter) missing"; exit 1; }
+          test -d ui-dist || { echo "ui-dist/ missing — UI build step failed"; exit 1; }
 
           git clone https://user:$HF_TOKEN@huggingface.co/spaces/ahmdelbaz28/AhmedETAP-Platform hf-space-repo 2>&1 | tail -5
           cd hf-space-repo
@@ -141,6 +154,11 @@ jobs:
           cp -r ../load_flow ../fault_analysis ../coordination ../relays ./
           cp -r ../network_solver ../services ../api ../utils ../ai_context_engine ./
           cp -r ../integrations ../ml ./
+          # CRITICAL: copy the pre-built UI static files. The root Dockerfile
+          # does `COPY --chown=user:user ui-dist/ /app/ui-dist/` so without
+          # this directory the HF Space Docker build fails with:
+          #   "cache miss: COPY --chown=user:user ui-dist/ /app/ui-dist/"
+          cp -r ../ui-dist ./
 
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git config user.name "github-actions[bot]"
