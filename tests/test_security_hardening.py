@@ -457,6 +457,16 @@ class TestSIEM:
             retry_attempts=1,
             retry_delay_seconds=0.01,
         )
+        # Actually forward an auth event — the previous version of this test
+        # created the forwarder but never called forward_auth_event, so the
+        # stats were always 0 and the assertion always failed.
+        await forwarder.forward_auth_event(
+            user="test_user",
+            action="login",
+            success=True,
+            ip="127.0.0.1",
+            extra={"method": "password"},
+        )
         # This will attempt to forward but fail (no Loki running),
         # which is fine — we're testing the event structure
         # Result may be True or False depending on whether flush fails,
