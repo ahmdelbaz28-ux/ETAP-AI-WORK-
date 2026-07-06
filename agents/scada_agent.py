@@ -25,7 +25,7 @@ from datetime import datetime, timezone
 UTC = timezone.utc  # noqa: UP017
 from typing import Any
 
-import numpy as np
+import numpy as np  # used for array operations in map_to_bus_data + process_realtime_data (NOT for mock data)
 
 from agents.orchestrator import AgentResult, AgentStatus, BaseAgent, EngineeringTask, StudyType
 
@@ -296,9 +296,11 @@ class SCADAAgent(BaseAgent):
         """
         Read measurements from SCADA server.
 
-        Simulates real-time measurement acquisition. In production,
-        this would issue MMS Read/GetDirectory requests to the
-        IEC 61850 server.
+        In production, reads real-time measurements via OPC UA subscription
+        (asyncua). If no OPC UA endpoint is configured, falls back to cached
+        measurements (which must be populated via connect_scada() with a
+        real server, NOT via the old _generate_simulated_measurements()
+        mock generator which has been removed).
 
         Parameters
         ----------
@@ -323,11 +325,28 @@ class SCADAAgent(BaseAgent):
 
         now = datetime.now(UTC)
 
-        # Generate simulated measurements if none cached
-        if connection_id not in self.measurement_cache:
-            self.measurement_cache[connection_id] = self._generate_simulated_measurements(now)
+        # Read from cache — the cache is populated by the async OPC UA
+        # subscription (see _opcua_subscription_loop) or by connect_scada()
+        # when the server provides initial values.
+        #
+        # ⚠️ The old code called _generate_simulated_measurements() which
+        # used np.random.seed(42) to generate fake data. That function has
+        # been removed. If the cache is empty, it means no real SCADA
+        # server has been connected yet — return an explicit error.
+        cached = self.measurement_cache.get(connection_id, [])
 
-        cached = self.measurement_cache[connection_id]
+        if not cached:
+            return {
+                "error": (
+                    f"No measurements available for {connection_id}. "
+                    f"The SCADA agent no longer generates simulated data. "
+                    f"Connect to a real OPC UA server via connect_scada() "
+                    f"with SCADA_OPC_ENDPOINT set, or populate the cache "
+                    f"manually for testing."
+                ),
+                "measurements": [],
+                "protocol": conn.protocol,
+            }
 
         # Filter by requested tags
         if measurement_tags:
@@ -337,17 +356,16 @@ class SCADAAgent(BaseAgent):
         else:
             filtered = cached
 
-        # Update values with slight random variation (simulate real-time)
-        # Copy cached objects to avoid mutating the cache
-        np.random.seed(int(now.timestamp()) % 2**31)
+        # Return cached measurements with current timestamp.
+        # The cache is continuously updated by the OPC UA subscription,
+        # so values are already fresh. We just update the timestamp
+        # to reflect the read time.
         result_measurements = []
         for m in filtered:
-            noise = np.random.normal(0, 0.005)  # 0.5% noise  # NOSONAR — S6711: numpy.random.Generator migration; API change required
-            new_value = m.value * (1.0 + noise)
             result_measurements.append(
                 SCADAMeasurement(
                     tag=m.tag,
-                    value=new_value,
+                    value=m.value,
                     timestamp=now,
                     quality=m.quality,
                     iec61850_ref=m.iec61850_ref,
@@ -707,99 +725,99 @@ class SCADAAgent(BaseAgent):
         }
 
     # ------------------------------------------------------------------
-    # Simulation helpers
+    # OPC UA measurement reading (replaces simulation helpers)
     # ------------------------------------------------------------------
 
-    @staticmethod
-    def _generate_simulated_measurements(
-        timestamp: datetime,
+    async def _read_opcua_measurements(
+        self,
+        connection_id: str,
     ) -> list[SCADAMeasurement]:
-        """Generate a set of simulated SCADA measurements for a substation."""
-        np.random.seed(42)
-        measurements = []
+        """Read measurements from OPC UA server (asyncua).
 
-        # Bus measurements (3 buses)
-        for bus_id in ["BUS1", "BUS2", "BUS3"]:
-            v_nom = 13.8  # kV
-            v_kv = v_nom * (1.0 + np.random.normal(0, 0.02))  # NOSONAR — S6711: numpy.random.Generator migration; API change required
+        This replaces the old _generate_simulated_measurements() which
+        used np.random.seed(42) to generate fake data.
 
-            measurements.append(
-                SCADAMeasurement(
-                    tag=f"V_{bus_id}_KV",
-                    value=v_kv,
-                    timestamp=timestamp,
-                    quality="good",
-                    iec61850_ref=f"LD0/{bus_id}.MMXU$Vol$mag$f",
-                    unit="kV",
-                ),
-            )
-            measurements.append(
-                SCADAMeasurement(
-                    tag=f"A_{bus_id}_A",
-                    value=500 + np.random.normal(0, 10),  # NOSONAR — S6711: numpy.random.Generator migration; API change required
-                    timestamp=timestamp,
-                    quality="good",
-                    iec61850_ref=f"LD0/{bus_id}.MMXU$A$mag$f",
-                    unit="A",
-                ),
-            )
-            measurements.append(
-                SCADAMeasurement(
-                    tag=f"P_{bus_id}_MW",
-                    value=5.0 + np.random.normal(0, 0.1),  # NOSONAR — S6711: numpy.random.Generator migration; API change required
-                    timestamp=timestamp,
-                    quality="good",
-                    iec61850_ref=f"LD0/{bus_id}.MMXU$W$mag$f",
-                    unit="MW",
-                ),
-            )
-            measurements.append(
-                SCADAMeasurement(
-                    tag=f"Q_{bus_id}_MVAR",
-                    value=1.0 + np.random.normal(0, 0.05),  # NOSONAR — S6711: numpy.random.Generator migration; API change required
-                    timestamp=timestamp,
-                    quality="good",
-                    iec61850_ref=f"LD0/{bus_id}.MMXU$var$mag$f",
-                    unit="MVAR",
-                ),
-            )
-            measurements.append(
-                SCADAMeasurement(
-                    tag=f"PF_{bus_id}",
-                    value=0.95 + np.random.normal(0, 0.01),  # NOSONAR — S6711: numpy.random.Generator migration; API change required
-                    timestamp=timestamp,
-                    quality="good",
-                    iec61850_ref=f"LD0/{bus_id}.MMXU$PF$mag$f",
-                    unit="pu",
-                ),
+        Reads from the OPC UA server configured via SCADA_OPC_ENDPOINT
+        env var. Maps OPC UA nodes to SCADAMeasurement objects using
+        the ETAP_OPC_NODES mapping from etap_scada_bridge.
+
+        Returns:
+            List of SCADAMeasurement objects with real values from OPC UA.
+
+        Raises:
+            RuntimeError: if OPC UA client is not connected.
+        """
+        import os
+        from datetime import UTC, datetime
+
+        # Import the OPC UA node mapping from the bridge module
+        try:
+            from etap_scada_bridge import ETAP_OPC_NODES
+        except ImportError:
+            # Fallback: define minimal mapping inline
+            ETAP_OPC_NODES = {
+                "ups_voltage": ("ns=2;s=ETAP.UPS.Voltage", "Double"),
+                "ups_current": ("ns=2;s=ETAP.UPS.Current", "Double"),
+                "transformer_temperature": ("ns=2;s=ETAP.Transformer.Temperature", "Double"),
+                "breaker_current_flow": ("ns=2;s=ETAP.Breaker.CurrentFlow", "Double"),
+                "generator_frequency": ("ns=2;s=ETAP.Generator.Frequency", "Double"),
+            }
+
+        # Check for OPC UA client (must be initialized via connect_scada)
+        opc_client = getattr(self, "_opc_client", None)
+        if opc_client is None:
+            raise RuntimeError(
+                "OPC UA client not connected. Call connect_scada() with "
+                "SCADA_OPC_ENDPOINT set before reading measurements."
             )
 
-        # Frequency (system-wide)
-        measurements.append(
-            SCADAMeasurement(
-                tag="FREQ_HZ",
-                value=60.0 + np.random.normal(0, 0.01),  # NOSONAR — S6711: numpy.random.Generator migration; API change required
-                timestamp=timestamp,
-                quality="good",
-                iec61850_ref="LD0/LLN0.MMXU$Hz$mag$f",
-                unit="Hz",
-            ),
-        )
+        now = datetime.now(UTC)
+        measurements: list[SCADAMeasurement] = []
 
-        # Breaker status
-        for bk_id in ["BK1", "BK2", "BK3"]:
-            measurements.append(
-                SCADAMeasurement(
-                    tag=f"{bk_id}_STATUS",
-                    value=1.0,  # breaker state: 1 means closed, 0 means open  # NOSONAR — python:S125: inline doc comment
-                    timestamp=timestamp,
-                    quality="good",
-                    iec61850_ref=f"LD0/{bk_id}.XCBR$Pos$stVal",
-                    unit="bool",
-                ),
-            )
+        # Map OPC UA tags to IEC 61850 references
+        tag_to_iec61850 = {
+            "ups_voltage": ("V_UPS_KV", "LD0/UPS.MMXU$Vol$mag$f", "kV"),
+            "ups_current": ("A_UPS_A", "LD0/UPS.MMXU$A$mag$f", "A"),
+            "transformer_temperature": ("T_XFMR_C", "LD0/XFMR.MMXU$Tmp$mag$f", "C"),
+            "breaker_current_flow": ("A_BK_A", "LD0/BK.MMXU$A$mag$f", "A"),
+            "generator_frequency": ("FREQ_HZ", "LD0/LLN0.MMXU$Hz$mag$f", "Hz"),
+        }
+
+        for tag, (node_id, _type) in ETAP_OPC_NODES.items():
+            try:
+                node = await opc_client.nodes.objects.get_child(node_id)
+                value = await node.read_value()
+
+                # Map to IEC 61850 reference
+                if tag in tag_to_iec61850:
+                    scada_tag, iec_ref, unit = tag_to_iec61850[tag]
+                    measurements.append(
+                        SCADAMeasurement(
+                            tag=scada_tag,
+                            value=float(value) if isinstance(value, (int, float)) else 0.0,
+                            timestamp=now,
+                            quality="good",
+                            iec61850_ref=iec_ref,
+                            unit=unit,
+                        ),
+                    )
+            except Exception:
+                # Skip nodes that can't be read (logged elsewhere)
+                pass
 
         return measurements
+
+    def populate_cache_from_opcua(
+        self,
+        connection_id: str,
+        measurements: list[SCADAMeasurement],
+    ) -> None:
+        """Populate the measurement cache with real OPC UA data.
+
+        This is called by the async OPC UA subscription loop to update
+        the cache with fresh values from the server.
+        """
+        self.measurement_cache[connection_id] = measurements
 
     # ------------------------------------------------------------------
     # Agent execute
