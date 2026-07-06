@@ -82,9 +82,9 @@ describe('Login', () => {
     expect(screen.getByRole('button', { name: /Sign in/i })).toBeTruthy()
   })
 
-  it('renders the "Sign in to your engineering account" heading', () => {
+  it('renders the credentials heading', () => {
     renderLogin()
-    expect(screen.getByText(/Sign in to your engineering account/i)).toBeTruthy()
+    expect(screen.getByText('Enter your credentials to continue')).toBeTruthy()
   })
 
   it('does NOT render any Demo Mode banner', () => {
@@ -199,7 +199,7 @@ describe('Login', () => {
 
   it('has a link to the registration page', () => {
     renderLogin()
-    const signUpLink = screen.getByText('Sign up')
+    const signUpLink = screen.getByText('Create one')
     expect(signUpLink).toBeTruthy()
     expect(signUpLink.closest('a')?.getAttribute('href')).toBe('/register')
   })
