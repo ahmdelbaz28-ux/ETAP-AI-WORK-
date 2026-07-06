@@ -368,10 +368,7 @@ def main() -> int:
 
     # Generate cryptographic secrets
     jwt_secret = secrets.token_hex(32)
-    if _HAS_CRYPTO:
-        fernet_key = Fernet.generate_key().decode()
-    else:
-        fernet_key = secrets.token_urlsafe(44) + "="
+    fernet_key = Fernet.generate_key().decode() if _HAS_CRYPTO else secrets.token_urlsafe(44) + "="
 
     google_key = _get_optional("ETAP_GOOGLE_API_KEY", "")
     gemini_key = _get_optional("ETAP_GEMINI_API_KEY", google_key)
@@ -468,7 +465,7 @@ def main() -> int:
         else:
             print(f"    · {desc:25s}  not set (uses placeholder)")
 
-    print(f"\n  All 14 modules + 25 AI agents are flagged ACTIVE.")
+    print("\n  All 14 modules + 25 AI agents are flagged ACTIVE.")
     return 0
 
 

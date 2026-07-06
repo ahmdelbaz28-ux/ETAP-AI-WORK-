@@ -214,9 +214,9 @@ async def init_db() -> None:
     """
     # Import all ORM models so Base.metadata knows about their tables.
     # This MUST happen before create_all is called.
+    import api.assets  # noqa: F401  — registers Asset model
     import api.auth  # noqa: F401  — registers User model
     import api.projects  # noqa: F401  — registers Project & StudyResult models
-    import api.assets  # noqa: F401  — registers Asset model
 
     # StudyJob table for persistent task queue — optional import (core.models
     # may not be available in stripped-down deployments).

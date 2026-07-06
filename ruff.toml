@@ -15,6 +15,11 @@ extend-exclude = [
     "*.egg-info",
     "build",
     "dist",
+    # skills/ contains auto-generated scripts from the skill-creator toolchain.
+    # These scripts use print() for CLI output (T201) and have their own
+    # conventions that don't match the library code style. Excluding them
+    # from ruff avoids 1100+ false-positive errors that would block CI.
+    "skills",
 ]
 
 [lint]
