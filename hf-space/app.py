@@ -91,7 +91,7 @@ async def lifespan(app: FastAPI):
         from api.database import init_db
         await init_db()
     except Exception as e:
-        logger.error("Database init failed: %s", e)
+        logger.exception("Database init failed: %s")
 
     yield
     logger.info("AhmedETAP shutting down")
