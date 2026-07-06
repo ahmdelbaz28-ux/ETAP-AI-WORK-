@@ -32,6 +32,15 @@ export interface Env {
   MODAL_BASE_URL?: string;
   MODAL_MODEL?: string;
 
+  // Additional LLM providers (added 2026-07-08)
+  BYNARA_API_KEY?: string;
+  BYNARA_BASE_URL?: string;
+  BYNARA_MODEL?: string;
+  CLOUDFLARE_API_KEY?: string;
+  CLOUDFLARE_ACCOUNT_ID?: string;
+  CLOUDFLARE_BASE_URL?: string;
+  CLOUDFLARE_MODEL?: string;
+
   // Mastra backend
   MASTRA_API_URL?: string;
   MASTRA_API_KEY?: string;

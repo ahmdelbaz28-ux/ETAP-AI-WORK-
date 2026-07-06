@@ -49,6 +49,10 @@ export const CONFIG = {
  * OpenModel, Modal — all OpenAI-compatible chat/completions endpoints.
  * Each provider has a default base URL and model that can be overridden
  * via env vars (e.g. FIREWORKS_BASE_URL, FIREWORKS_MODEL).
+ *
+ * Providers added 2026-07-08: Bynara Router (mimo-v2.5-free),
+ * Cloudflare Workers AI (@cf/moonshotai/kimi-k2.6). NVIDIA key refreshed
+ * and minimax-m3 added.
  */
 export const BUILTIN_PROVIDERS = [
   'openai',
@@ -59,6 +63,8 @@ export const BUILTIN_PROVIDERS = [
   'openmodel',
   'render',
   'zenmux',
+  'bynara',
+  'cloudflare',
 ] as const;
 export type BuiltinProviderName = (typeof BUILTIN_PROVIDERS)[number];
 
@@ -75,6 +81,11 @@ export const BUILTIN_BASE_URLS: Readonly<Record<string, string>> = Object.freeze
   openmodel: 'https://api.openmodel.ai/v1',
   render: 'https://api.render.com/v1',
   zenmux: 'https://api.zenmux.ai/v1',
+  bynara: 'https://router.bynara.id/v1',
+  // Cloudflare Workers AI requires account ID in the URL path:
+  // https://api.cloudflare.com/client/v4/accounts/{ACCOUNT_ID}/ai/v1
+  // The runtime resolves the placeholder from CLOUDFLARE_ACCOUNT_ID env var.
+  cloudflare: 'https://api.cloudflare.com/client/v4/accounts/PLACEHOLDER/ai/v1',
 });
 
 /**
@@ -90,6 +101,8 @@ export const BUILTIN_MODELS: Readonly<Record<string, string>> = Object.freeze({
   openmodel: 'gpt-4o',
   render: 'gpt-4o-mini',
   zenmux: 'gpt-4o-mini',
+  bynara: 'mimo-v2.5-free',
+  cloudflare: '@cf/moonshotai/kimi-k2.6',
 });
 
 /**

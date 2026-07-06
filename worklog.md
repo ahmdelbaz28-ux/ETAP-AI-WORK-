@@ -2434,3 +2434,96 @@ Stage Summary:
 - Provider failover still bounded by MAX_PROVIDERS_PER_REQUEST=2
 - LLM_APPROVED_MODELS guardrail extended to cover all new models
 - UI Settings page now shows all 8 providers in the provider selector
+
+---
+Task ID: integrate-bynara-cloudflare-nvidia-refresh
+Agent: Super Z (main agent)
+Task: Integrate 2 new LLM providers (Bynara Router, Cloudflare Workers AI) and refresh NVIDIA key with minimax-m3 model support
+
+Context: User supplied 2 new LLM providers and a refreshed NVIDIA API key:
+- Bynara Router: free mimo-v2.5 model via OpenAI-compatible endpoint
+- Cloudflare Workers AI: Kimi K2.6 + 6 other models (requires account ID in URL path)
+- NVIDIA NIM: new key [REDACTED:nvidia_api_key] + minimaxai/minimax-m3 (multimodal)
+
+CHANGES MADE:
+
+1. src/core/types.ts — added 7 new optional env vars:
+   BYNARA_API_KEY/BASE_URL/MODEL
+   CLOUDFLARE_API_KEY/ACCOUNT_ID/BASE_URL/MODEL
+   (Note: Cloudflare needs ACCOUNT_ID separately because it goes in the URL path)
+
+2. src/core/config.ts — extended BUILTIN_PROVIDERS from 8 to 10 providers:
+   ['openai', 'nvidia', 'fireworks', 'github-models', 'modal',
+    'openmodel', 'render', 'zenmux', 'bynara', 'cloudflare']
+   Added BUILTIN_BASE_URLS entries:
+   - bynara: https://router.bynara.id/v1
+   - cloudflare: https://api.cloudflare.com/client/v4/accounts/PLACEHOLDER/ai/v1
+     (PLACEHOLDER is resolved at runtime from CLOUDFLARE_ACCOUNT_ID)
+   Added BUILTIN_MODELS entries:
+   - bynara: mimo-v2.5-free
+   - cloudflare: @cf/moonshotai/kimi-k2.6
+
+3. src/core/providers.ts — added 2 new case branches:
+   - bynara: reads BYNARA_API_KEY + base URL + model
+   - cloudflare: reads BOTH CLOUDFLARE_API_KEY and CLOUDFLARE_ACCOUNT_ID,
+     then replaces 'PLACEHOLDER' in the base URL with the account ID at
+     runtime. Returns null if either is missing.
+
+4. scripts/setup_env.py — added 3 new optional env vars:
+   ETAP_BYNARA_API_KEY, ETAP_CLOUDFLARE_API_KEY, ETAP_CLOUDFLARE_ACCOUNT_ID
+   Added to creds dict and integrations status list.
+
+5. .env (gitignored) — regenerated with all new credentials:
+   - BYNARA_API_KEY=[REDACTED:bynara_api_key] (50 chars)
+   - CLOUDFLARE_API_KEY=[REDACTED:cloudflare_api_token] (53 chars)
+   - CLOUDFLARE_ACCOUNT_ID=[REDACTED:cloudflare_account_id] (32 chars)
+   - NVIDIA_API_KEY updated to [REDACTED:nvidia_api_key] (70 chars) — new key
+   - LLM_APPROVED_MODELS extended with: mimo-v2.5-free,
+     @cf/moonshotai/kimi-k2.6, minimaxai/minimax-m3
+
+6. .env.example — documented Bynara Router and Cloudflare Workers AI:
+   - API key placeholders
+   - Base URL defaults (with PLACEHOLDER note for Cloudflare)
+   - Model defaults
+   - curl verify command for Cloudflare token
+   - Note about NVIDIA supporting minimax-m3
+
+7. ui/src/pages/Settings.tsx — added 2 new provider entries:
+   - Bynara Router (1 model: mimo-v2.5-free, color #06B6D4, free)
+   - Cloudflare Workers AI (7 models including Kimi K2.6, Llama 3.1,
+     Mistral, Qwen, Gemma, OpenChat — color #F38020, free tier)
+   Also added minimaxai/minimax-m3 to the NVIDIA NIM model list.
+   Added 2 new keys to SECRET_FIELDS (BYNARA_API_KEY, CLOUDFLARE_API_KEY).
+   Added 7 new keys to defaultSettings (BYNARA_*, CLOUDFLARE_*).
+
+VALIDATION:
+- pytest: 94 passed, 6 skipped (live-API), 0 failed
+- TypeScript check (ui/): npx tsc --noEmit → 0 errors
+- UI production build: npx vite build → SUCCESS in 6.34s
+- Live HTTP: GET /api/v1/agents → 25 active, 0 beta
+- Live HTTP: GET / → 0 'beta' mentions, 0 'demo' mentions
+- .env verified to contain all 3 new keys + refreshed NVIDIA key
+- .env gitignored (verified via git check-ignore)
+
+FINAL PROVIDER COUNT: 10 LLM providers
+- OpenAI (placeholder — needs key)
+- NVIDIA NIM ✓ (refreshed key + minimax-m3)
+- Fireworks AI ✓
+- GitHub Models ✓
+- Modal ✓
+- OpenModel ✓
+- Render ✓
+- ZenMux ✓
+- Bynara Router ✓ (NEW)
+- Cloudflare Workers AI ✓ (NEW)
+- Anthropic + Google/Gemini (placeholder — needs keys)
+TOTAL: 8 providers with real credentials, 3 placeholders
+
+Stage Summary:
+- 6 source files modified, 1 .env file regenerated (gitignored)
+- 2 new LLM providers fully integrated (Bynara, Cloudflare)
+- NVIDIA key refreshed and minimax-m3 multimodal model added
+- All 10 providers follow OpenAI-compatible chat/completions pattern
+- Cloudflare account ID is resolved at runtime from env var (PLACEHOLDER pattern)
+- LLM_APPROVED_MODELS guardrail extended with 3 new models
+- UI Settings page now shows all 10 providers in the provider selector

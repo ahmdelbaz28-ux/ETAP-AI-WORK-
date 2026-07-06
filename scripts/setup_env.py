@@ -93,6 +93,10 @@ OPTIONAL_VARS = [
     "ETAP_GITHUB_MODELS_API_KEY",
     "ETAP_OPENMODEL_API_KEY",
     "ETAP_MODAL_API_KEY",
+    # Additional LLM providers (added 2026-07-08)
+    "ETAP_BYNARA_API_KEY",
+    "ETAP_CLOUDFLARE_API_KEY",
+    "ETAP_CLOUDFLARE_ACCOUNT_ID",
 ]
 
 
@@ -247,6 +251,7 @@ ZENMUX_BASE_URL=https://api.zenmux.ai/v1
 ZENMUX_MODEL=gpt-4o-mini
 
 # NVIDIA NIM (https://build.nvidia.com)
+# Note: NVIDIA supports many models including minimaxai/minimax-m3 (multimodal)
 NVIDIA_API_KEY={c.get('nvidia', '')}
 NVIDIA_BASE_URL=https://integrate.api.nvidia.com/v1
 NVIDIA_MODEL=meta/llama-3.1-8b-instruct
@@ -271,11 +276,23 @@ MODAL_API_KEY={c.get('modal', '')}
 MODAL_BASE_URL=https://api.us-west-2.modal.direct/v1
 MODAL_MODEL=zai-org/GLM-5.1-FP8
 
+# Bynara Router (https://bynara.id) — free mimo-v2.5 model
+BYNARA_API_KEY={c.get('bynara', '')}
+BYNARA_BASE_URL=https://router.bynara.id/v1
+BYNARA_MODEL=mimo-v2.5-free
+
+# Cloudflare Workers AI (https://developers.cloudflare.com/workers-ai/)
+# Requires BOTH API token and account ID. Account ID goes in the URL path.
+CLOUDFLARE_API_KEY={c.get('cloudflare_api', '')}
+CLOUDFLARE_ACCOUNT_ID={c.get('cloudflare_account', '')}
+CLOUDFLARE_BASE_URL=https://api.cloudflare.com/client/v4/accounts/PLACEHOLDER/ai/v1
+CLOUDFLARE_MODEL=@cf/moonshotai/kimi-k2.6
+
 # Safety-critical LLM guardrails
 LLM_MAX_INPUT_CHARS=50000
 LLM_ALLOW_UNKNOWN_MODELS=false
 LLM_REQUIRE_AGENT_TAG=true
-LLM_APPROVED_MODELS=gpt-4o,gpt-4o-mini,gpt-4-turbo,gpt-4.1,gpt-4.1-mini,claude-3-5-sonnet-20241022,claude-3-5-haiku-20241022,claude-3-opus-20240229,gemini-2.0-flash-exp,gemini-1.5-pro,meta/llama-3.1-8b-instruct,abacusai/dracarys-llama-3.1-70b-instruct,accounts/fireworks/models/kimi-k2p7-code,zai-org/GLM-5.1-FP8
+LLM_APPROVED_MODELS=gpt-4o,gpt-4o-mini,gpt-4-turbo,gpt-4.1,gpt-4.1-mini,claude-3-5-sonnet-20241022,claude-3-5-haiku-20241022,claude-3-opus-20240229,gemini-2.0-flash-exp,gemini-1.5-pro,meta/llama-3.1-8b-instruct,abacusai/dracarys-llama-3.1-70b-instruct,accounts/fireworks/models/kimi-k2p7-code,zai-org/GLM-5.1-FP8,mimo-v2.5-free,@cf/moonshotai/kimi-k2.6,minimaxai/minimax-m3
 
 # =============================================================================
 # ALL 14 ENGINEERING MODULES — FULLY ACTIVE (no beta, no demo)
@@ -403,6 +420,10 @@ def main() -> int:
         "github_models": _get_optional("ETAP_GITHUB_MODELS_API_KEY", ""),
         "openmodel": _get_optional("ETAP_OPENMODEL_API_KEY", ""),
         "modal": _get_optional("ETAP_MODAL_API_KEY", ""),
+        # Additional LLM providers (added 2026-07-08)
+        "bynara": _get_optional("ETAP_BYNARA_API_KEY", ""),
+        "cloudflare_api": _get_optional("ETAP_CLOUDFLARE_API_KEY", ""),
+        "cloudflare_account": _get_optional("ETAP_CLOUDFLARE_ACCOUNT_ID", ""),
     }
 
     env_file = Path("/home/z/my-project/.env")
@@ -457,6 +478,10 @@ def main() -> int:
         ("GITHUB_MODELS",    creds["github_models"],   "GitHub Models"),
         ("OPENMODEL",        creds["openmodel"],       "OpenModel"),
         ("MODAL",            creds["modal"],           "Modal (GLM-5.1)"),
+        # Additional LLM providers (added 2026-07-08)
+        ("BYNARA",           creds["bynara"],          "Bynara Router"),
+        ("CLOUDFLARE_API",   creds["cloudflare_api"],  "Cloudflare Workers AI"),
+        ("CLOUDFLARE_ACCT",  creds["cloudflare_account"], "Cloudflare Account ID"),
     ]
     print("\n  Integration status:")
     for var, val, desc in integrations:

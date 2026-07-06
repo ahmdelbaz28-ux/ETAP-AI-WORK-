@@ -144,6 +144,30 @@ function _getProviderConfig(env: Env, name: string): ProviderConfig | null {
         model: env.ZENMUX_MODEL || BUILTIN_MODELS.zenmux,
       };
     }
+    case 'bynara': {
+      const apiKey = env.BYNARA_API_KEY;
+      if (!apiKey) return null;
+      return {
+        name: 'bynara',
+        apiKey,
+        baseURL: env.BYNARA_BASE_URL || BUILTIN_BASE_URLS.bynara,
+        model: env.BYNARA_MODEL || BUILTIN_MODELS.bynara,
+      };
+    }
+    case 'cloudflare': {
+      const apiKey = env.CLOUDFLARE_API_KEY;
+      const accountId = env.CLOUDFLARE_ACCOUNT_ID;
+      if (!apiKey || !accountId) return null;
+      // Resolve the account ID placeholder in the base URL at runtime
+      const baseURL = (env.CLOUDFLARE_BASE_URL || BUILTIN_BASE_URLS.cloudflare)
+        .replace('PLACEHOLDER', accountId);
+      return {
+        name: 'cloudflare',
+        apiKey,
+        baseURL,
+        model: env.CLOUDFLARE_MODEL || BUILTIN_MODELS.cloudflare,
+      };
+    }
     default:
       return null;
   }

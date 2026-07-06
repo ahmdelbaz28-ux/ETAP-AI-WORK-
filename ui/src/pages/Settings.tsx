@@ -86,6 +86,8 @@ const SECRET_FIELDS = new Set([
   // Additional LLM providers (added 2026-07-07)
   'RENDER_API_KEY', 'ZENMUX_API_KEY', 'FIREWORKS_API_KEY',
   'GITHUB_MODELS_API_KEY', 'OPENMODEL_API_KEY', 'MODAL_API_KEY',
+  // Additional LLM providers (added 2026-07-08)
+  'BYNARA_API_KEY', 'CLOUDFLARE_API_KEY',
 ])
 
 const SETTINGS_SCHEMA = {
@@ -225,6 +227,7 @@ export const POPULAR_PROVIDERS = [
       { id: 'microsoft/phi-3-medium-4k-instruct', name: 'Phi-3 Medium', isFree: false },
       { id: 'google/gemma-2-9b-it', name: 'Gemma 2 9B (free)', isFree: true },
       { id: 'qwen/qwen2.5-coder-32b-instruct', name: 'Qwen 2.5 Coder 32B', isFree: false },
+      { id: 'minimaxai/minimax-m3', name: 'MiniMax-M3 (multimodal)', isFree: false },
     ],
     defaultModel: 'meta/llama-3.1-8b-instruct',
     defaultBaseUrl: 'https://integrate.api.nvidia.com/v1',
@@ -442,6 +445,43 @@ export const POPULAR_PROVIDERS = [
     isFree: true,
     apiType: 'openai' as const,
   },
+  // ─── Bynara Router (verified: https://router.bynara.id/v1) ────────
+  // Free mimo-v2.5 model — OpenAI-compatible router
+  {
+    id: 'bynara',
+    name: 'Bynara Router',
+    models: [
+      { id: 'mimo-v2.5-free', name: 'MiMo v2.5 (free)', isFree: true },
+    ],
+    defaultModel: 'mimo-v2.5-free',
+    defaultBaseUrl: 'https://router.bynara.id/v1',
+    color: '#06B6D4',
+    apiKeyUrl: 'https://bynara.id',
+    isFree: true,
+    apiType: 'openai' as const,
+  },
+  // ─── Cloudflare Workers AI (https://developers.cloudflare.com/workers-ai/) ─
+  // Requires BOTH API token and account ID. The account ID goes in the URL path:
+  // https://api.cloudflare.com/client/v4/accounts/{ACCOUNT_ID}/ai/v1
+  {
+    id: 'cloudflare',
+    name: 'Cloudflare Workers AI',
+    models: [
+      { id: '@cf/moonshotai/kimi-k2.6', name: 'Kimi K2.6 (Moonshot)', isFree: false },
+      { id: '@cf/meta/llama-3.1-8b-instruct', name: 'Llama 3.1 8B (free)', isFree: true },
+      { id: '@cf/meta/llama-3.1-70b-instruct', name: 'Llama 3.1 70B', isFree: false },
+      { id: '@cf/mistral/mistral-7b-instruct-v0.2', name: 'Mistral 7B (free)', isFree: true },
+      { id: '@cf/qwen/qwen1.5-14b-chat-awq', name: 'Qwen 1.5 14B (free)', isFree: true },
+      { id: '@cf/google/gemma-2-9b-it', name: 'Gemma 2 9B (free)', isFree: true },
+      { id: '@cf/openchat/openchat-3.5-0106', name: 'OpenChat 3.5 (free)', isFree: true },
+    ],
+    defaultModel: '@cf/moonshotai/kimi-k2.6',
+    defaultBaseUrl: 'https://api.cloudflare.com/client/v4/accounts/PLACEHOLDER/ai/v1',
+    color: '#F38020',
+    apiKeyUrl: 'https://dash.cloudflare.com/profile/api-tokens',
+    isFree: true,
+    apiType: 'openai' as const,
+  },
 ]
 
 function parseCurlCommand(curl: string): { baseUrl: string; apiKey: string; modelId: string } | null {
@@ -505,6 +545,14 @@ function getDefaults(): Record<string, string> {
     MODAL_API_KEY: '',
     MODAL_MODEL: 'zai-org/GLM-5.1-FP8',
     MODAL_BASE_URL: 'https://api.us-west-2.modal.direct/v1',
+    // Additional LLM providers (added 2026-07-08)
+    BYNARA_API_KEY: '',
+    BYNARA_MODEL: 'mimo-v2.5-free',
+    BYNARA_BASE_URL: 'https://router.bynara.id/v1',
+    CLOUDFLARE_API_KEY: '',
+    CLOUDFLARE_ACCOUNT_ID: '',
+    CLOUDFLARE_MODEL: '@cf/moonshotai/kimi-k2.6',
+    CLOUDFLARE_BASE_URL: 'https://api.cloudflare.com/client/v4/accounts/PLACEHOLDER/ai/v1',
     QWEN_API_KEY: '',
     QWEN_BASE_URL: '',
     GLM_API_KEY: '',
