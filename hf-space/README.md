@@ -63,13 +63,13 @@ Enterprise-grade autonomous AI engineering platform for power system analysis, E
 
 ```bash
 # Health check
-curl https://ahmdelbaz28-ahmedetap-platform.hf.space/healthz
+curl https://ahmdelbaz28-ahmedetap.hf.space/healthz
 
 # List all agents
-curl https://ahmdelbaz28-ahmedetap-platform.hf.space/api/v1/agents
+curl https://ahmdelbaz28-ahmedetap.hf.space/api/v1/agents
 
 # Run a load flow study
-curl -X POST https://ahmdelbaz28-ahmedetap-platform.hf.space/api/v1/studies/run \
+curl -X POST https://ahmdelbaz28-ahmedetap.hf.space/api/v1/studies/run \
   -H "Content-Type: application/json" \
   -d '{
     "study_type": "load_flow",
@@ -104,5 +104,5 @@ curl -X POST https://ahmdelbaz28-ahmedetap-platform.hf.space/api/v1/studies/run 
 ## 🔗 Links
 
 - [GitHub Repository](https://github.com/ahmdelbaz28-ux/ETAP-AI-WORK-)
-- [API Documentation](https://ahmdelbaz28-ahmedetap-platform.hf.space/docs)
+- [API Documentation](https://ahmdelbaz28-ahmedetap.hf.space/docs)
 - [Author Email](mailto:ahmdelbaz28@gmail.com)
