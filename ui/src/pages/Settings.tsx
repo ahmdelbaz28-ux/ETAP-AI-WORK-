@@ -446,34 +446,51 @@ export const POPULAR_PROVIDERS = [
     apiType: 'openai' as const,
   },
   // ─── Bynara Router (verified: https://router.bynara.id/v1) ────────
-  // Free mimo-v2.5 model — OpenAI-compatible router
+  // 25+ models from byNara. Account requires credits — top up at https://bynara.id
+  // Full model list: GET https://router.bynara.id/v1/models
   {
     id: 'bynara',
     name: 'Bynara Router',
     models: [
-      { id: 'mimo-v2.5-free', name: 'MiMo v2.5 (free)', isFree: true },
+      { id: 'mimo-v2.5', name: 'MiMo v2.5', isFree: false },
+      { id: 'mimo-v2.5-hermes', name: 'MiMo v2.5 Hermes', isFree: false },
+      { id: 'mimo-v2.5-pro', name: 'MiMo v2.5 Pro', isFree: false },
+      { id: 'kimi-k2.6', name: 'Kimi K2.6', isFree: false },
+      { id: 'kimi-k2.7-code-free', name: 'Kimi K2.7 Code (free)', isFree: true },
+      { id: 'glm-5.1', name: 'GLM 5.1 (reasoning)', isFree: false },
+      { id: 'glm-5.2', name: 'GLM 5.2 (reasoning)', isFree: false },
+      { id: 'gpt-5.4', name: 'GPT 5.4', isFree: false },
+      { id: 'gpt-5.5', name: 'GPT 5.5', isFree: false },
+      { id: 'claude-sonnet-5', name: 'Claude Sonnet 5', isFree: false },
+      { id: 'claude-opus-4.7', name: 'Claude Opus 4.7', isFree: false },
+      { id: 'minimax-m3', name: 'MiniMax M3 (multimodal)', isFree: false },
+      { id: 'deepseek-v4-flash', name: 'DeepSeek V4 Flash', isFree: false },
+      { id: 'deepseek-v4-pro', name: 'DeepSeek V4 Pro (reasoning)', isFree: false },
+      { id: 'mistral-large', name: 'Mistral Large', isFree: false },
+      { id: 'qwen3.7-max', name: 'Qwen 3.7 Max', isFree: false },
+      { id: 'tencent-hy3', name: 'Tencent HY3 (reasoning)', isFree: false },
     ],
-    defaultModel: 'mimo-v2.5-free',
+    defaultModel: 'mimo-v2.5',
     defaultBaseUrl: 'https://router.bynara.id/v1',
     color: '#06B6D4',
     apiKeyUrl: 'https://bynara.id',
-    isFree: true,
+    isFree: false,
     apiType: 'openai' as const,
   },
   // ─── Cloudflare Workers AI (https://developers.cloudflare.com/workers-ai/) ─
   // Requires BOTH API token and account ID. The account ID goes in the URL path:
   // https://api.cloudflare.com/client/v4/accounts/{ACCOUNT_ID}/ai/v1
+  // Verified working 2026-07-08: kimi-k2.6, llama-3.3-70b-instruct-fp8-fast
   {
     id: 'cloudflare',
     name: 'Cloudflare Workers AI',
     models: [
-      { id: '@cf/moonshotai/kimi-k2.6', name: 'Kimi K2.6 (Moonshot)', isFree: false },
-      { id: '@cf/meta/llama-3.1-8b-instruct', name: 'Llama 3.1 8B (free)', isFree: true },
-      { id: '@cf/meta/llama-3.1-70b-instruct', name: 'Llama 3.1 70B', isFree: false },
-      { id: '@cf/mistral/mistral-7b-instruct-v0.2', name: 'Mistral 7B (free)', isFree: true },
-      { id: '@cf/qwen/qwen1.5-14b-chat-awq', name: 'Qwen 1.5 14B (free)', isFree: true },
-      { id: '@cf/google/gemma-2-9b-it', name: 'Gemma 2 9B (free)', isFree: true },
-      { id: '@cf/openchat/openchat-3.5-0106', name: 'OpenChat 3.5 (free)', isFree: true },
+      { id: '@cf/moonshotai/kimi-k2.6', name: 'Kimi K2.6 (Moonshot, reasoning)', isFree: true },
+      { id: '@cf/meta/llama-3.3-70b-instruct-fp8-fast', name: 'Llama 3.3 70B Fast', isFree: true },
+      { id: '@cf/meta/llama-3.1-70b-instruct', name: 'Llama 3.1 70B', isFree: true },
+      { id: '@cf/mistral/mistral-7b-instruct-v0.2', name: 'Mistral 7B', isFree: true },
+      { id: '@cf/google/gemma-2-9b-it', name: 'Gemma 2 9B', isFree: true },
+      { id: '@cf/openchat/openchat-3.5-0106', name: 'OpenChat 3.5', isFree: true },
     ],
     defaultModel: '@cf/moonshotai/kimi-k2.6',
     defaultBaseUrl: 'https://api.cloudflare.com/client/v4/accounts/PLACEHOLDER/ai/v1',

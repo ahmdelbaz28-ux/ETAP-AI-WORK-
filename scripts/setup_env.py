@@ -251,7 +251,7 @@ ZENMUX_BASE_URL=https://api.zenmux.ai/v1
 ZENMUX_MODEL=gpt-4o-mini
 
 # NVIDIA NIM (https://build.nvidia.com)
-# Note: NVIDIA supports many models including minimaxai/minimax-m3 (multimodal)
+# Note: NVIDIA supports many models including minimaxai/minimax-m3,@cf/meta/llama-3.3-70b-instruct-fp8-fast (multimodal)
 NVIDIA_API_KEY={c.get('nvidia', '')}
 NVIDIA_BASE_URL=https://integrate.api.nvidia.com/v1
 NVIDIA_MODEL=meta/llama-3.1-8b-instruct
@@ -276,10 +276,13 @@ MODAL_API_KEY={c.get('modal', '')}
 MODAL_BASE_URL=https://api.us-west-2.modal.direct/v1
 MODAL_MODEL=zai-org/GLM-5.1-FP8
 
-# Bynara Router (https://bynara.id) — free mimo-v2.5 model
+# Bynara Router (https://bynara.id)
+# Note: Bynara offers 25+ models including mimo-v2.5, kimi-k2.7-code-free,
+# glm-5.2, gpt-5.4, claude-sonnet-5, mistral-large, deepseek-v4, qwen3.7-max.
+# Account requires credits — top up at https://bynara.id
 BYNARA_API_KEY={c.get('bynara', '')}
 BYNARA_BASE_URL=https://router.bynara.id/v1
-BYNARA_MODEL=mimo-v2.5-free
+BYNARA_MODEL=mimo-v2.5
 
 # Cloudflare Workers AI (https://developers.cloudflare.com/workers-ai/)
 # Requires BOTH API token and account ID. Account ID goes in the URL path.
@@ -292,7 +295,7 @@ CLOUDFLARE_MODEL=@cf/moonshotai/kimi-k2.6
 LLM_MAX_INPUT_CHARS=50000
 LLM_ALLOW_UNKNOWN_MODELS=false
 LLM_REQUIRE_AGENT_TAG=true
-LLM_APPROVED_MODELS=gpt-4o,gpt-4o-mini,gpt-4-turbo,gpt-4.1,gpt-4.1-mini,claude-3-5-sonnet-20241022,claude-3-5-haiku-20241022,claude-3-opus-20240229,gemini-2.0-flash-exp,gemini-1.5-pro,meta/llama-3.1-8b-instruct,abacusai/dracarys-llama-3.1-70b-instruct,accounts/fireworks/models/kimi-k2p7-code,zai-org/GLM-5.1-FP8,mimo-v2.5-free,@cf/moonshotai/kimi-k2.6,minimaxai/minimax-m3
+LLM_APPROVED_MODELS=gpt-4o,gpt-4o-mini,gpt-4-turbo,gpt-4.1,gpt-4.1-mini,claude-3-5-sonnet-20241022,claude-3-5-haiku-20241022,claude-3-opus-20240229,gemini-2.0-flash-exp,gemini-1.5-pro,meta/llama-3.1-8b-instruct,abacusai/dracarys-llama-3.1-70b-instruct,accounts/fireworks/models/kimi-k2p7-code,zai-org/GLM-5.1-FP8,mimo-v2.5,@cf/moonshotai/kimi-k2.6,minimaxai/minimax-m3,@cf/meta/llama-3.3-70b-instruct-fp8-fast
 
 # =============================================================================
 # ALL 14 ENGINEERING MODULES — FULLY ACTIVE (no beta, no demo)

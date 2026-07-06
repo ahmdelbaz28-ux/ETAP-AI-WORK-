@@ -101,7 +101,7 @@ export const BUILTIN_MODELS: Readonly<Record<string, string>> = Object.freeze({
   openmodel: 'gpt-4o',
   render: 'gpt-4o-mini',
   zenmux: 'gpt-4o-mini',
-  bynara: 'mimo-v2.5-free',
+  bynara: 'mimo-v2.5',
   cloudflare: '@cf/moonshotai/kimi-k2.6',
 });
 
