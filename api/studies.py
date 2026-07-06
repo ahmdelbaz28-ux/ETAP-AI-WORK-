@@ -19,6 +19,11 @@ from api.dependencies import get_api_key
 from core.metrics import count_executions, track_skill_operation
 from engine.caching import StudyCache
 
+# SonarCloud S4144 / duplicated_lines_density: GeneratorSpec and LoadSpec are
+# identical to the definitions in services/study_service.py. Import them from
+# there instead of redefining (~43 lines of duplication eliminated).
+from services.study_service import GeneratorSpec, LoadSpec
+
 router = APIRouter(prefix="/api/v1/studies", tags=["studies"])
 
 # Import from core models
@@ -165,51 +170,9 @@ class TransformerSpec(BaseModel):
         return v
 
 
-class GeneratorSpec(BaseModel):
-    model_config = ConfigDict(extra="ignore")
-
-    generator_id: int
-    bus_id: int
-    r1: float = 0.0
-    x1: float = Field(default=0.2, validation_alias=AliasChoices("x1", "xd_pu", "xdash"))
-    r2: float | None = None
-    x2: float | None = None
-    r0: float | None = None
-    x0: float | None = None
-    internal_voltage_mag: float = Field(
-        default=1.05,
-        validation_alias=AliasChoices("internal_voltage_mag", "voltage_setpoint", "v_setpoint"),
-    )
-    internal_voltage_ang_deg: float = Field(
-        default=0.0, validation_alias=AliasChoices("internal_voltage_ang_deg", "voltage_angle"),
-    )
-    power_real: float | None = Field(
-        default=None, validation_alias=AliasChoices("power_real", "pg"),
-    )
-    power_reactive: float | None = Field(
-        default=None, validation_alias=AliasChoices("power_reactive", "qg"),
-    )
-    max_power_reactive: float | None = Field(
-        default=None, validation_alias=AliasChoices("max_power_reactive", "q_max"),
-    )
-    min_power_reactive: float | None = Field(
-        default=None, validation_alias=AliasChoices("min_power_reactive", "q_min"),
-    )
-
-
-class LoadSpec(BaseModel):
-    model_config = ConfigDict(extra="ignore")
-
-    load_id: int
-    bus_id: int
-    p_mw: float = Field(
-        default=0.0, validation_alias=AliasChoices("p_mw", "power_real", "load_power_real"),
-    )
-    q_mvar: float = Field(
-        default=0.0,
-        validation_alias=AliasChoices("q_mvar", "power_reactive", "load_power_reactive"),
-    )
-    constant_impedance: bool = False
+# NOTE: GeneratorSpec and LoadSpec are imported from services.study_service
+# at the top of this file to avoid duplicating ~43 lines of identical Pydantic
+# model definitions (SonarCloud duplicated_lines_density).
 
 
 class SystemSpec(BaseModel):

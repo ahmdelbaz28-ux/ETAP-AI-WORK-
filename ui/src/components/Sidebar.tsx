@@ -281,8 +281,12 @@ export function Sidebar() {  // NOSONAR — S3776: cognitive complexity; schedul
               <div className="flex items-center gap-1.5 mt-0.5">
                 <span className={cn(
                   'w-1.5 h-1.5 rounded-full',
-                  healthStatus === 'online' ? 'bg-green-400 animate-pulse' :
-                  healthStatus === 'checking' ? 'bg-amber-400' : 'bg-red-400'
+                  // SonarCloud typescript:S3358: extract nested ternary.
+                  (() => {
+                    if (healthStatus === 'online') return 'bg-green-400 animate-pulse';
+                    if (healthStatus === 'checking') return 'bg-amber-400';
+                    return 'bg-red-400';
+                  })()
                 )} />
                 <span className="text-[10px] text-[var(--text-muted)] capitalize">{t(`dashboard.${healthStatus}`)}</span>
               </div>
