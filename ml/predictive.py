@@ -25,6 +25,7 @@ informative errors when unavailable.
 
 from __future__ import annotations
 
+import contextlib
 import logging
 from datetime import datetime, timedelta
 from typing import Any
@@ -230,7 +231,8 @@ class LoadForecaster:
             # Shrink window to max(1, n // 2) and force linear method.
             effective_window = max(1, len(historical_data) // 2)
             method = "linear"
-            try:
+            # Logging must never break training — best-effort info log
+            with contextlib.suppress(Exception):
                 import logging as _logging
                 _logging.getLogger(__name__).info(
                     "LoadForecaster.train: short sample (%d points) — "
@@ -238,8 +240,6 @@ class LoadForecaster:
                     len(historical_data),
                     effective_window,
                 )
-            except Exception:  # noqa: BLE001 — logging must never break training
-                pass
 
         # Persist the trained window so predict() / _create_sequences() use it.
         self._trained_window_size = effective_window
@@ -713,14 +713,13 @@ class FaultPredictor:
             feature_contributions[f"feature_{i}"] = float(sv[i])
 
         base_val = 0.0
-        try:
+        # SHAP expected_value extraction is best-effort — fall back to 0.0
+        with contextlib.suppress(Exception):
             ev = self._explainer.expected_value
             if isinstance(ev, (list, np.ndarray)):
                 base_val = float(np.array(ev).flatten()[0])
             else:
                 base_val = float(ev)
-        except Exception:
-            pass
 
         return {
             "shap_values": {k: round(v, 6) for k, v in feature_contributions.items()},

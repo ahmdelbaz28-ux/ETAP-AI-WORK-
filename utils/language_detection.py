@@ -6,6 +6,7 @@ Utility for detecting input language and converting keyboard layouts.
 Supports Arabic-to-English keyboard layout conversion for non-English input.
 """
 
+import contextlib
 import os
 from typing import TYPE_CHECKING
 
@@ -187,7 +188,8 @@ def detect_language(text: str) -> str:  # NOSONAR — S3776: cognitive complexit
         Detected language ('arabic', 'english', or 'mixed')
     """
     if HAS_LANGDETECT:
-        try:
+        # Fall back to simple character-based detection on any failure
+        with contextlib.suppress(Exception):
             lang = detect(text)
             if lang == "ar":
                 return "arabic"
@@ -195,9 +197,6 @@ def detect_language(text: str) -> str:  # NOSONAR — S3776: cognitive complexit
                 return "english"
             else:
                 return lang
-        except Exception:
-            # Fall back to simple character-based detection
-            pass
 
     arabic_chars = 0
     english_chars = 0

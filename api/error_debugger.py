@@ -21,6 +21,7 @@ Integration with the engineering service::
 
 from __future__ import annotations
 
+import contextlib
 import json
 import logging
 import os
@@ -945,12 +946,11 @@ class ErrorReportGenerator:
 
         # Build extra context from the request
         if request is not None:
-            try:
+            # Context building must not mask the original error
+            with contextlib.suppress(Exception):
                 builder = ErrorContextBuilder(request=request)
                 request_ctx = await builder.build()
                 context["debug"] = request_ctx
-            except Exception:
-                pass  # Context building must not mask the original error
 
         # Look up recovery suggestions
         suggestions = get_recovery_suggestions(error_code.code)

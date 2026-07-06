@@ -476,7 +476,9 @@ class CoverageAnalyzer:
         test_normalized: set[str] = set()
 
         for test_file in self._test_files:
-            try:
+            with contextlib.suppress(SyntaxError, Exception):
+                # Skip files that can't be parsed (SyntaxError) or have other
+                # issues (Exception) — coverage report is best-effort.
                 with open(test_file, encoding="utf-8", errors="replace") as fh:  # NOSONAR — S7493: sync file I/O in async function; compatibility with sync lib
                     source = fh.read()
                 tree = ast.parse(source, filename=test_file)
@@ -486,11 +488,6 @@ class CoverageAnalyzer:
                         if node.name.startswith("test_") or node.name.endswith("_test"):
                             test_names.add(node.name)
                             test_normalized.add(_normalize_name(node.name))
-            except SyntaxError:
-                # Skip files that can't be parsed
-                pass
-            except Exception:
-                pass
 
         self._test_names = test_names
         self._test_normalized = test_normalized
@@ -511,7 +508,8 @@ class CoverageAnalyzer:
             if rel_path.endswith("__init__.py"):
                 continue
 
-            try:
+            with contextlib.suppress(SyntaxError, Exception):
+                # Skip files that can't be parsed — function extraction is best-effort.
                 with open(src_file, encoding="utf-8", errors="replace") as fh:  # NOSONAR — S7493: sync file I/O in async function; compatibility with sync lib
                     source = fh.read()
                 tree = ast.parse(source, filename=src_file)
@@ -519,10 +517,6 @@ class CoverageAnalyzer:
                 extractor = _FunctionExtractor(module_name, src_file)
                 extractor.visit(tree)
                 all_functions.extend(extractor.functions)
-            except SyntaxError:
-                pass
-            except Exception:
-                pass
 
         return all_functions
 

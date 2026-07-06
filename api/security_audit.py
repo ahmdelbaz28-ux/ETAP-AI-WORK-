@@ -718,7 +718,7 @@ class SecurityAuditor:
                 ):
                     continue
 
-                try:
+                with contextlib.suppress(Exception):
                     with open(file_path, encoding="utf-8", errors="replace") as fh:  # NOSONAR — S7493: sync file I/O in async function; compatibility with sync lib
                         lines = fh.readlines()
 
@@ -769,8 +769,6 @@ class SecurityAuditor:
                                     cwe_id="CWE-798",
                                 )
                                 break  # Only report once per line
-                except Exception:
-                    pass
 
     # ------------------------------------------------------------------
     # Check 6: Insecure dependencies
@@ -810,7 +808,7 @@ class SecurityAuditor:
                 ):
                     continue
 
-                try:
+                with contextlib.suppress(Exception):
                     with open(file_path, encoding="utf-8", errors="replace") as fh:  # NOSONAR — S7493: sync file I/O in async function; compatibility with sync lib
                         lines = fh.readlines()
 
@@ -837,13 +835,11 @@ class SecurityAuditor:
                                     ),
                                     cwe_id="CWE-94",
                                 )
-                except Exception:
-                    pass
 
         # Check requirements.txt for known vulnerable packages
         req_file = os.path.join(self.project_root, "requirements.txt")
         if os.path.exists(req_file):
-            try:
+            with contextlib.suppress(Exception):
                 with open(req_file, encoding="utf-8", errors="replace") as fh:  # NOSONAR — S7493: sync file I/O in async function; compatibility with sync lib
                     requirements = fh.readlines()
 
@@ -867,8 +863,6 @@ class SecurityAuditor:
                                 "alternatives if processing untrusted input."
                             ),
                         )
-            except Exception:
-                pass
 
     # ------------------------------------------------------------------
     # Check 7: Dead code
