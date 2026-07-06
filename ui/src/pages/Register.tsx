@@ -180,7 +180,7 @@ export default function Register() {
 
         <div className="mt-6 pt-4 border-t border-[var(--border-primary)] text-center">
           <p className="text-[10px] text-[var(--text-muted)] font-mono">
-            AhmedETAP v2.1.0 · Demo Build · 2026
+            AhmedETAP v2.1.0 · 2026
           </p>
         </div>
       </motion.div>

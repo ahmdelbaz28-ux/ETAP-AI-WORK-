@@ -750,7 +750,7 @@ iframe[src*="vercel.com"] {
   animation: etap-gradient-flow 6s ease infinite;
 }
 
-/* Shine sweep over the demo banner and submit button */
+/* Shine sweep over the submit button */
 @keyframes etap-shine {
   0% { left: -100%; }
   100% { left: 100%; }
