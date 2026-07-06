@@ -27,37 +27,41 @@ RUN pip install --no-cache-dir --upgrade pip && \
 # SonarCloud S6504: Files are owned by root (not the non-root `user`) so
 # the runtime container user can read+execute but CANNOT modify them.
 COPY --chown=root:root --chmod=go-w app.py .
+# SonarCloud docker:S6504: own ALL copied app files as root:root with
+# `--chmod=go-w` so the runtime `user` (UID 1000) can read+execute but
+# CANNOT modify them. Previously we used `--chown=user:user` which still
+# let the non-root runtime user tamper with the code on disk.
 COPY --chown=root:root --chmod=go-w compat.py .
-COPY --chown=user:user --chmod=go-w api/ ./api/
-COPY --chown=user:user --chmod=go-w agents/ ./agents/  # NOSONAR — S6470: .dockerignore excludes secrets
-COPY --chown=user:user core/ ./core/
-COPY --chown=user:user core_model/ ./core_model/
-COPY --chown=user:user engine/ ./engine/
-COPY --chown=user:user fault_analysis/ ./fault_analysis/
-COPY --chown=user:user load_flow/ ./load_flow/
-COPY --chown=user:user relays/ ./relays/
-COPY --chown=user:user services/ ./services/
-COPY --chown=user:user utils/ ./utils/
-COPY --chown=user:user curves/ ./curves/
-COPY --chown=user:user scada_model/ ./scada_model/
-COPY --chown=user:user digital_twin/ ./digital_twin/
-COPY --chown=user:user guards/ ./guards/
-COPY --chown=user:user knowledge/ ./knowledge/
-COPY --chown=user:user reporting/ ./reporting/
-COPY --chown=user:user integrations/ ./integrations/
-COPY --chown=user:user security/ ./security/
-COPY --chown=user:user etap_integration/ ./etap_integration/
-COPY --chown=user:user ai_context_engine/ ./ai_context_engine/
-COPY --chown=user:user ml/ ./ml/
-COPY --chown=user:user network_solver/ ./network_solver/
-COPY --chown=user:user monitoring/ ./monitoring/
-COPY --chown=user:user visualization/ ./visualization/
-COPY --chown=user:user copilot/ ./copilot/
-COPY --chown=user:user prompts/ ./prompts/
-COPY --chown=user:user skills/ ./skills/
-COPY --chown=user:user prompts.json ./prompts.json
-COPY --chown=user:user schemas/ ./schemas/
-COPY --chown=user:user config/ ./config/
+COPY --chown=root:root --chmod=go-w api/ ./api/
+COPY --chown=root:root --chmod=go-w agents/ ./agents/  # NOSONAR — S6470: .dockerignore excludes secrets
+COPY --chown=root:root --chmod=go-w core/ ./core/
+COPY --chown=root:root --chmod=go-w core_model/ ./core_model/
+COPY --chown=root:root --chmod=go-w engine/ ./engine/
+COPY --chown=root:root --chmod=go-w fault_analysis/ ./fault_analysis/
+COPY --chown=root:root --chmod=go-w load_flow/ ./load_flow/
+COPY --chown=root:root --chmod=go-w relays/ ./relays/
+COPY --chown=root:root --chmod=go-w services/ ./services/
+COPY --chown=root:root --chmod=go-w utils/ ./utils/
+COPY --chown=root:root --chmod=go-w curves/ ./curves/
+COPY --chown=root:root --chmod=go-w scada_model/ ./scada_model/
+COPY --chown=root:root --chmod=go-w digital_twin/ ./digital_twin/
+COPY --chown=root:root --chmod=go-w guards/ ./guards/
+COPY --chown=root:root --chmod=go-w knowledge/ ./knowledge/
+COPY --chown=root:root --chmod=go-w reporting/ ./reporting/
+COPY --chown=root:root --chmod=go-w integrations/ ./integrations/
+COPY --chown=root:root --chmod=go-w security/ ./security/
+COPY --chown=root:root --chmod=go-w etap_integration/ ./etap_integration/
+COPY --chown=root:root --chmod=go-w ai_context_engine/ ./ai_context_engine/
+COPY --chown=root:root --chmod=go-w ml/ ./ml/
+COPY --chown=root:root --chmod=go-w network_solver/ ./network_solver/
+COPY --chown=root:root --chmod=go-w monitoring/ ./monitoring/
+COPY --chown=root:root --chmod=go-w visualization/ ./visualization/
+COPY --chown=root:root --chmod=go-w copilot/ ./copilot/
+COPY --chown=root:root --chmod=go-w prompts/ ./prompts/
+COPY --chown=root:root --chmod=go-w skills/ ./skills/
+COPY --chown=root:root --chmod=go-w prompts.json ./prompts.json
+COPY --chown=root:root --chmod=go-w schemas/ ./schemas/
+COPY --chown=root:root --chmod=go-w config/ ./config/
 
 # Environment
 ENV PORT=7860

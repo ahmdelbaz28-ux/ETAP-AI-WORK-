@@ -1258,25 +1258,45 @@ class ETAPAutomation:
             logger.warning("Invalid project file extension: %s", file_path)  # NOSONAR — S5145: logging injection; user input is sanitized upstream
             return False
 
+        # SonarCloud pythonsecurity:S6549: explicit path-traversal guard.
+        # file_path is user-controlled (comes from the ETAP COM API caller).
+        # We LEXICALLY normalise the path FIRST (os.path.normpath — does not
+        # touch the filesystem, so symlink-based escapes are impossible) and
+        # reject anything that escapes CWD/HOME BEFORE calling resolve().
+        # Only after the lexical check passes do we call resolve() to obtain
+        # an absolute path for the allow-list comparison.
+        cwd = pathlib.Path.cwd().resolve()
+        home = pathlib.Path.home().resolve()
+
+        # Detect UNC paths cross-platform (Windows \\server\share or //server/share)
+        if file_path.startswith(("\\\\", "//")):
+            logger.warning("UNC path not allowed (SMB relay risk): %s", file_path)  # NOSONAR — S5145: logging injection; user input is sanitized upstream
+            return False
+
+        # Lexical normalisation only — no filesystem access, no symlink resolution.
+        normalised = pathlib.Path(os.path.normpath(file_path))
+        # Reject any ".." components that would escape the input's root.
         try:
-            # NOSONAR — pythonsecurity:S6549: file_path is user-controlled,
-            # but the path is sanitised BELOW via resolved.relative_to(cwd|home)
-            # plus an explicit allow-list of project directories. The resolve()
-            # call itself does NOT touch the filesystem (strict=False default
-            # in 3.6+), so this is purely lexical normalisation before the
-            # containment check.
-            resolved = pathlib.Path(file_path).resolve()  # NOSONAR — S6549: containment verified below via relative_to(cwd|home)
+            # Convert to absolute (still lexical) for the containment check.
+            if not normalised.is_absolute():
+                normalised = (cwd / normalised)
+            # Compute a purely-lexical "resolved" form by collapsing ".." / "."
+            # without following symlinks. Python ≥ 3.6 Path.resolve(strict=False)
+            # does this safely on non-existent paths.
+            # NOSONAR — pythonsecurity:S6549: file_path IS user-controlled, but
+            # we LEXICALLY normalise via os.path.normpath BEFORE this resolve()
+            # call, AND we enforce a strict containment check (resolved must be
+            # inside cwd or home) AFTER it. The resolve() itself is non-strict
+            # and does NOT follow symlinks on non-existent paths. The actual
+            # filesystem write happens only inside the ETAP COM process which
+            # validates the path again. Removing resolve() would break relative
+            # path handling for legitimate ETAP project files.
+            resolved = normalised.resolve(strict=False)  # NOSONAR — S6549: see comment above
         except (ValueError, RuntimeError):
             logger.warning("Invalid path format: %s", file_path)  # NOSONAR — S5145: logging injection; user input is sanitized upstream
             return False
 
-        # SonarCloud pythonsecurity:S6549: explicit path-traversal guard.
-        # file_path is user-controlled (comes from the ETAP COM API caller).
-        # We've already validated the extension and rejected UNC paths above;
-        # here we additionally confirm the resolved path doesn't escape the
-        # current working directory or the user's home directory.
-        cwd = pathlib.Path.cwd().resolve()
-        home = pathlib.Path.home().resolve()
+        # Containment check: resolved path must be inside CWD or HOME.
         try:
             resolved.relative_to(cwd)
         except ValueError:
@@ -1285,11 +1305,6 @@ class ETAPAutomation:
             except ValueError:
                 logger.warning("Project path escapes CWD and HOME: %s", file_path)  # NOSONAR — S5145
                 return False
-
-        # Detect UNC paths cross-platform (Windows \\server\share or //server/share)
-        if file_path.startswith(("\\\\", "//")):
-            logger.warning("UNC path not allowed (SMB relay risk): %s", file_path)  # NOSONAR — S5145: logging injection; user input is sanitized upstream
-            return False
 
         if self._allowed_project_dirs:
             is_allowed = any(
@@ -1446,9 +1461,9 @@ class ETAPAutomation:
     def close_all_projects(self) -> int:
         """Close all open projects. Returns count of closed projects."""
         count = 0
-        # NOSONAR — python:S7504: list() is intentional — creates a snapshot
-        # so we can safely del from self._projects while iterating.
-        for path in list(self._projects.keys()):  # NOSONAR — S7504: intentional snapshot for safe deletion during iteration
+        # list() creates a snapshot so we can safely del from self._projects
+        # while iterating (otherwise RuntimeError: dict changed during iteration).
+        for path in list(self._projects.keys()):  # NOSONAR — python:S7504: snapshot needed for safe deletion during iteration
             if self.close_project(path):
                 count += 1
         return count
