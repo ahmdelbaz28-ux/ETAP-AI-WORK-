@@ -52,7 +52,12 @@ export function buildSafeSpawnEnv(): Record<string, string> {
   // (typescript:S1854) lints.
   const env: Record<string, string> = { ...process.env } as Record<string, string>;
   delete env.PATH;
-  env.PATH = SAFE_SYSTEM_PATH;
+  // NOSONAR — typescript:S4036: SAFE_SYSTEM_PATH is a compile-time constant
+  // containing only vetted system directories (/usr/local/bin, /usr/bin, /bin,
+  // /usr/local/sbin, /usr/sbin, /sbin). None of these are writable by non-root
+  // users. We explicitly DELETE the parent PATH above and replace it with this
+  // vetted list so a poisoned parent PATH cannot leak into the child process.
+  env.PATH = SAFE_SYSTEM_PATH;  // NOSONAR — S4036: vetted system dirs only
   env.PYTHONDONTWRITEBYTECODE = '1';
   env.PYTHONUNBUFFERED = '1';
   return env;
@@ -69,7 +74,11 @@ export function spawnPythonSecure(
   scriptPath: string,
   opts: { timeoutMs: number },
 ): ChildProcess {
-  return spawn('python', [scriptPath], {
+  // NOSONAR — typescript:S4036: the env passed to spawn is built by
+  // buildSafeSpawnEnv() which replaces PATH with SAFE_SYSTEM_PATH (a
+  // fixed list of root-owned system directories). See the comment on
+  // `env.PATH = SAFE_SYSTEM_PATH` above for the full security rationale.
+  return spawn('python', [scriptPath], {  // NOSONAR — S4036: env uses vetted SAFE_SYSTEM_PATH
     env: buildSafeSpawnEnv(),
     stdio: ['pipe', 'pipe', 'pipe'],
     timeout: opts.timeoutMs,
