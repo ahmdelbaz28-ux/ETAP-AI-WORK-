@@ -467,9 +467,19 @@ jobs:
           vercel --prod --token "$VERCEL_TOKEN" --yes
           echo "✅ Vercel deployment complete"
 
-  # ── 8. DEPLOY TO HUGGING FACE (Auto on push to main) ────────────────────────
+  # ── 8. SYNC HF SPACE SECRETS (Auto on push to main) ─────────────────────────
+  # NOTE: Code sync to HF Space is handled by .github/workflows/sync-platforms.yml
+  # (it builds the Vite UI → ui-dist/, then git-pushes to the HF Space repo).
+  # This job previously ALSO synced code via huggingface_hub.upload_folder with
+  # delete_patterns=["*"], which RACES with sync-platforms.yml:
+  #   1. sync-platforms.yml pushes ui-dist/ to HF Space
+  #   2. this job's upload_folder runs with ui/** excluded and ui-dist/ gitignored
+  #      → delete_patterns=["*"] wipes ui-dist/ from HF Space
+  #   3. HF Space Docker build fails: COPY ui-dist/ /app/ui-dist/ → no such dir
+  # This job is now scoped to ONLY update HF Space secrets (LANGWATCH, SMITHERY,
+  # JWT, LANGFUSE, SUPABASE, NEO4J) — sync-platforms.yml does not do that.
   deploy-hf:
-    name: 🤗 Deploy to HuggingFace Space (Auto)
+    name: 🤗 Sync HF Space Secrets (Auto)
     runs-on: ubuntu-latest
     needs: [python-tests, security-scan]
     if: github.ref == 'refs/heads/main'
@@ -490,75 +500,6 @@ jobs:
 
       - name: Install huggingface_hub
         run: pip install huggingface_hub
-
-      - name: Sync to Hugging Face Space
-        env:
-          HF_TOKEN: ${{ secrets.HF_TOKEN }}
-        run: |
-          if [ -z "$HF_TOKEN" ]; then
-            echo "⚠️  HF_TOKEN secret not set — skipping HF sync"
-            exit 0
-          fi
-
-          # IMPORTANT: We previously used 'git push --force' to sync GitHub → HF.
-          # This fails when the GitHub repo contains LFS files (PNG/JPG screenshots)
-          # because HF rejects LFS pointer files. Use huggingface_hub's upload_folder
-          # instead, which uploads the actual file contents (not LFS pointers).
-          #
-          # We also exclude docs/ and screenshots (not needed on HF Space — the
-          # Space only needs the app code, not the GitHub README screenshots).
-
-          # README.hf.md has the HF YAML frontmatter — copy it to README.md so
-          # HF reads the Space metadata (title, emoji, sdk: docker, app_port).
-          cp README.hf.md README.md
-
-          python3 << 'PYEOF'
-          import os
-          from huggingface_hub import HfApi
-
-          api = HfApi(token=os.environ["HF_TOKEN"])
-
-          # Files/dirs to exclude from HF Space sync (not needed for runtime).
-          # Note: README.md is NOT excluded (HF needs it for Space metadata).
-          ignore_patterns = [
-              "docs/**",
-              "doc/**",
-              "README.hf.md",   # the source — README.md (copy) is uploaded instead
-              "CHANGELOG.md",
-              "CONTRIBUTING.md",
-              "SECURITY.md",
-              "SUPPORT.md",
-              "CODE_OF_CONDUCT.md",
-              "RELEASE.md",
-              "TODO*.md",
-              "tests/**",
-              "test_*.py",
-              "testsprite_tests/**",
-              ".github/**",
-              "helm/**",
-              "terraform/**",
-              "node_modules/**",
-              ".venv/**",
-              "ui/**",          # UI is deployed to Vercel, not HF Space
-              "PROJECT_INDEX.*",
-              ".agents/**",
-              ".testsprite/**",
-          ]
-
-          print("🚀 Uploading to HF Space: ahmdelbaz28/AhmedETAP-Platform")
-          # NOTE: huggingface_hub renamed `folder_id` → `repo_id` in v0.12+
-          # (the old name was deprecated and removed in newer versions).
-          # Using `repo_id` is forward-compatible with all current releases.
-          result = api.upload_folder(
-              repo_id="ahmdelbaz28/AhmedETAP-Platform",
-              folder_path=".",
-              repo_type="space",
-              ignore_patterns=ignore_patterns,
-              commit_message=f"Auto-sync from GitHub {os.environ.get('GITHUB_SHA', '?')[:12]}",
-              delete_patterns=["*"],  # remove files on HF that no longer exist on GitHub
-          )
-          print(f"✅ HF Sync complete: {result}")
-          PYEOF
 
       - name: Update HF Space Secrets
         env:
