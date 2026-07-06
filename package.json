@@ -32,7 +32,7 @@
   "type": "module",
   "dependencies": {
     "@ai-sdk/anthropic": "^1.0.7",
-    "@langwatch/scenario": "^0.4.11",
+    "@langwatch/scenario": "^0.5.0",
     "@mastra/core": "^1.37.1",
     "@mastra/duckdb": "^1.4.0",
     "@mastra/libsql": "^1.4.0",
@@ -40,7 +40,7 @@
     "@mastra/memory": "^1.0.0",
     "@mastra/observability": "^1.0.0",
     "ai": "^6.0.209",
-    "langwatch": "0.30.0",
+    "langwatch": "0.33.2",
     "mastra": "0.10.0",
     "pino": "9.6.0",
     "zod": "^4.4.3"
