@@ -92,7 +92,7 @@ async def platform_info(request: Request) -> dict:
     Provides a single endpoint for dashboards and monitoring tools to discover
     what this platform is and what it supports.
     """
-    from api.shared_handlers import AGENTS, AGENT_COUNT, SUPPORTED_STANDARDS
+    from api.shared_handlers import AGENT_COUNT, AGENTS, SUPPORTED_STANDARDS
 
     return {
         "version": "1.0.0",

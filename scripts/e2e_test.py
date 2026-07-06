@@ -18,11 +18,8 @@ Reports PASS/FAIL for each test with details.
 
 from __future__ import annotations
 
-import json
 import sys
 import time
-from pathlib import Path
-from typing import Any
 
 import httpx
 
