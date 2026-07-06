@@ -268,6 +268,7 @@ class TestPostGISProvider:
 
     def test_mocked_live_mode_upsert(self):
         """Test upsert_asset with mocked psycopg2 connection pool."""
+        from gis_integration.providers import postgis_provider
         from gis_integration.providers.postgis_provider import PostGISProvider, SpatialAsset
 
         provider = PostGISProvider.__new__(PostGISProvider)
@@ -284,15 +285,25 @@ class TestPostGISProvider:
         provider._pool = Mock()
         provider._pool.getconn.return_value = mock_conn
 
-        asset = SpatialAsset(
-            asset_id="LIVE01",
-            asset_type="bus",
-            geometry={"type": "Point", "coordinates": [31.0, 30.0]},
-        )
-        result = provider.upsert_asset(asset)
-        assert result is True
-        mock_cursor.execute.assert_called()
-        mock_conn.commit.assert_called()
+        # The upsert_asset code calls _psycopg2.sql.SQL(...) at module level.
+        # When psycopg2 is not installed, _psycopg2 is None and the code raises
+        # AttributeError. Mock the module-level _psycopg2 with a MagicMock that
+        # supports the .sql.SQL() / .sql.Identifier() chain.
+        mock_psycopg2 = MagicMock()
+        postgis_provider._psycopg2 = mock_psycopg2
+        try:
+            asset = SpatialAsset(
+                asset_id="LIVE01",
+                asset_type="bus",
+                geometry={"type": "Point", "coordinates": [31.0, 30.0]},
+            )
+            result = provider.upsert_asset(asset)
+            assert result is True
+            mock_cursor.execute.assert_called()
+            mock_conn.commit.assert_called()
+        finally:
+            # Restore the original (None if psycopg2 not installed)
+            postgis_provider._psycopg2 = None
 
 
 # ===========================================================================

@@ -20,11 +20,29 @@ from core.metrics import count_executions, track_skill_operation
 # SonarCloud duplicated_lines_density: ALL Spec/Request/Result classes are now
 # defined ONCE in core_model/specs.py and imported here. Previously ~210 lines
 # were duplicated between this file and services/study_service.py.
-from core_model.specs import (
+# Re-exported (not just imported) because tests like test_backward_compatibility
+# and test_security_fixes do `from api.studies import BusSpec` etc.
+from core_model.specs import (  # noqa: F401 — re-exported for backward compat
+    BusSpec,
+    GeneratorSpec,
+    LineSpec,
+    LoadSpec,
     StudyRequest,
     StudyResult,
     SystemSpec,
+    TransformerSpec,
 )
+
+__all__ = [
+    "BusSpec",
+    "GeneratorSpec",
+    "LineSpec",
+    "LoadSpec",
+    "StudyRequest",
+    "StudyResult",
+    "SystemSpec",
+    "TransformerSpec",
+]
 from engine.caching import StudyCache
 
 router = APIRouter(prefix="/api/v1/studies", tags=["studies"])
