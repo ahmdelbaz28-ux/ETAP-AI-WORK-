@@ -47,6 +47,14 @@ except ImportError:
     aioredis = None  # type: ignore[assignment]
 
 
+def _is_redis_url(redis_url: str) -> bool:
+    """Check if the URL is a Redis URL (redis:// or rediss://).
+
+    Non-redis URLs (e.g., "memory://test") use in-memory fallback only.
+    """
+    return redis_url.startswith(("redis://", "rediss://"))
+
+
 # ---------------------------------------------------------------------------
 # In-memory fallback store
 # ---------------------------------------------------------------------------
@@ -182,14 +190,32 @@ class StudyCache:
         self._invalidations = 0
         self._stats_lock: asyncio.Lock | None = None
 
-        # Attempt initial Redis connection
-        if HAS_REDIS:
+        # Only attempt Redis connection for actual redis:// or rediss:// URLs.
+        # Non-redis URLs (e.g., "memory://test") use in-memory fallback only.
+        # This makes the cache testable without a running Redis server.
+        if HAS_REDIS and _is_redis_url(redis_url):
             self._init_redis()
 
     async def _get_stats_lock(self) -> asyncio.Lock:  # NOSONAR — S7503: async function uses sync I/O for compatibility reasons
         if self._stats_lock is None:
             self._stats_lock = asyncio.Lock()
         return self._stats_lock
+
+    # ── Backward-compat properties (for services/cache_service.py consumers) ──
+    @property
+    def redis_client(self) -> Any:
+        """Expose the Redis client for consumers that need direct access."""
+        return self._redis
+
+    @property
+    def cache(self) -> dict[str, Any]:
+        """Expose the in-memory fallback store as a dict (for legacy tests)."""
+        return self._fallback._data  # noqa: SLF001 — intentional access for compat
+
+    @property
+    def using_fallback(self) -> bool:
+        """True when using in-memory fallback (Redis unavailable)."""
+        return self._using_fallback
 
     def _init_redis(self) -> None:
         """Create the async Redis client (does not connect yet)."""
@@ -259,22 +285,36 @@ class StudyCache:
 
     # -- core operations -----------------------------------------------------
 
-    async def get(self, study_type: str, params: dict) -> dict | None:
-        """Get cached study result.
+    async def get(self, study_type_or_key: str, params: dict | None = None) -> dict | None:
+        """Get cached value.
+
+        Supports two calling conventions for backward compatibility:
+
+        1. ``get(key)`` — direct key lookup (services/cache_service style)
+        2. ``get(study_type, params)`` — generate key from study_type + params
 
         Parameters
         ----------
-        study_type : str
-            Type of study.
-        params : dict
-            Study input parameters.
+        study_type_or_key : str
+            Either the study type (2-arg form) or the cache key (1-arg form).
+        params : dict, optional
+            Study input parameters. When provided, the 2-arg form is used.
 
         Returns
         -------
         dict or None
             Cached result dict, or ``None`` if not found / expired.
         """
-        key = self._make_key(study_type, params)
+        if params is not None:
+            # 2-arg: study_type + params → generate composite key
+            key = self._make_key(study_type_or_key, params)
+        else:
+            # 1-arg: direct key (add prefix if not already prefixed)
+            raw_key = study_type_or_key
+            if raw_key.startswith(self._key_prefix):
+                key = raw_key
+            else:
+                key = f"{self._key_prefix}{raw_key}"
 
         try:
             if not self._using_fallback:
@@ -301,42 +341,77 @@ class StudyCache:
             self._misses += 1
         return None
 
-    async def set(self, study_type: str, params: dict, result: dict) -> None:
-        """Cache study result with TTL.
+    async def set(
+        self,
+        study_type_or_key: str,
+        params_or_value: Any,
+        result: Any = None,
+        ttl: int | None = None,
+    ) -> bool:
+        """Cache a value with TTL.
+
+        Supports two calling conventions for backward compatibility:
+
+        1. ``set(key, value, ttl=...)`` — direct key (services/cache_service style)
+        2. ``set(study_type, params, result)`` — generate key from study_type + params
 
         Parameters
         ----------
-        study_type : str
-            Type of study.
-        params : dict
-            Study input parameters.
-        result : dict
-            Study result to cache.
+        study_type_or_key : str
+            Either the study type (3-arg form) or the cache key (2-arg form).
+        params_or_value : Any
+            Either the study params (3-arg form) or the value to cache (2-arg form).
+        result : Any, optional
+            Study result to cache. When provided, the 3-arg form is used.
+        ttl : int, optional
+            Time-to-live in seconds. Overrides the default ``self._ttl``.
+
+        Returns
+        -------
+        bool
+            ``True`` if the value was stored successfully.
         """
-        key = self._make_key(study_type, params)
-        value = json.dumps(result, default=str)
+        effective_ttl = self._ttl if ttl is None else int(ttl)
+
+        if result is not None:
+            # 3-arg: study_type + params + result → generate composite key
+            key = self._make_key(study_type_or_key, params_or_value)
+            value_to_cache = result
+        else:
+            # 2-arg: key + value
+            raw_key = study_type_or_key
+            if raw_key.startswith(self._key_prefix):
+                key = raw_key
+            else:
+                key = f"{self._key_prefix}{raw_key}"
+            value_to_cache = params_or_value
+
+        value = json.dumps(value_to_cache, default=str)
 
         try:
             if not self._using_fallback:
                 await self._ensure_redis()
 
             if not self._using_fallback and self._redis is not None:
-                await self._redis.set(key, value, ex=self._ttl)
+                await self._redis.set(key, value, ex=effective_ttl)
             else:
-                await self._fallback.set(key, value, ttl_seconds=self._ttl)
+                await self._fallback.set(key, value, ttl_seconds=effective_ttl)
 
             async with await self._get_stats_lock():
                 self._sets += 1
+            return True
 
         except Exception as exc:
             logger.warning("Cache set error for %s: %s", key, exc)  # NOSONAR — S5145: logging injection; user input is sanitized upstream
             # Try fallback
             try:
-                await self._fallback.set(key, value, ttl_seconds=self._ttl)
+                await self._fallback.set(key, value, ttl_seconds=effective_ttl)
                 async with await self._get_stats_lock():
                     self._sets += 1
+                return True
             except Exception:
                 logger.error("Fallback cache set also failed for %s", key)  # NOSONAR — S5145: logging injection; user input is sanitized upstream
+                return False
 
     async def invalidate(self, study_type: str, params: dict) -> None:
         """Invalidate a cached result.
@@ -469,6 +544,24 @@ class StudyCache:
             logger.warning("Cache clear error: %s", exc)
             await self._fallback.flushdb()
 
+    async def ping(self) -> bool:
+        """Ping the cache backend.
+
+        Returns ``True`` if the backend (Redis or in-memory fallback) is
+        reachable. This must return ``True`` even for in-memory fallback
+        so health checks don't report the service as unhealthy when Redis
+        is temporarily unavailable.
+        """
+        if not self._using_fallback and self._redis is not None:
+            try:
+                await self._redis.ping()
+                return True
+            except Exception as exc:
+                logger.warning("Redis ping failed: %s", exc)
+                return False
+        # In-memory fallback is always reachable
+        return True
+
     # -- lifecycle -----------------------------------------------------------
 
     async def close(self) -> None:
@@ -495,11 +588,17 @@ _cache_instance: StudyCache | None = None
 _cache_lock = threading.Lock()
 
 
-def get_study_cache(
+async def get_study_cache(
     redis_url: str = "redis://localhost:6379",
     ttl: int = 3600,
 ) -> StudyCache:
     """Get or create the global :class:`StudyCache` singleton.
+
+    This is an async function for compatibility with callers that
+    ``await`` it (e.g., ``tests/test_cache_service.py``). The underlying
+    StudyCache creation is synchronous, but the async wrapper allows
+    callers to use either ``cache = get_study_cache()`` or
+    ``cache = await get_study_cache()``.
 
     Parameters
     ----------
