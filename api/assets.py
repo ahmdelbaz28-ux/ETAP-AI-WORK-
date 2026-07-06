@@ -22,7 +22,7 @@ import uuid
 from datetime import UTC, datetime
 from typing import Any
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
 from pydantic import BaseModel, ConfigDict, Field
 from sqlalchemy import DateTime, ForeignKey, String, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -277,16 +277,24 @@ async def update_asset(
 @router.delete(
     "/{asset_id}",
     status_code=status.HTTP_204_NO_CONTENT,
+    response_class=Response,
     summary="Delete an asset",
     dependencies=[Depends(get_api_key)],
 )
 async def delete_asset(
     asset_id: str,
     db: AsyncSession = Depends(get_db),  # noqa: B008
-) -> None:
-    """Permanently delete an asset."""
+) -> Response:
+    """Permanently delete an asset.
+
+    Returns 204 No Content on success (per RFC 9110 §15.3.5). Uses
+    `response_class=Response` to opt out of FastAPI's default response-model
+    validation, which would otherwise reject the 204 + body combination
+    (FastAPI 0.115+ enforces this at route registration time).
+    """
     result = await db.execute(select(Asset).where(Asset.id == asset_id))
     asset = result.scalar_one_or_none()
     if asset is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Asset '{asset_id}' not found")
     await db.delete(asset)
+    return Response(status_code=status.HTTP_204_NO_CONTENT)

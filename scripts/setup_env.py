@@ -189,7 +189,7 @@ NEO4J_PASSWORD={c.get('neo4j_password', 'your-strong-neo4j-password-here')}
 # =============================================================================
 # SUPABASE — Managed PostgreSQL + Storage + Auth  (production credentials)
 # =============================================================================
-SUPABASE_URL={supabase_url or 'https://your-project.supabase.co'}
+SUPABASE_URL={c.get('supabase_url') or 'https://your-project.supabase.co'}
 SUPABASE_ANON_KEY={c.get('supabase_anon', '')}
 SUPABASE_SERVICE_ROLE_KEY={c.get('supabase_service', '')}
 SUPABASE_AUTH_ENABLED=true
