@@ -150,7 +150,13 @@ jobs:
           # exceed the HF Space disk limit and cause build failures.
           cp -r ../Dockerfile ../.dockerignore ../VERSION ../prompts.json ../compat.py ./
           cp -r ../hf-space ./
-          cp -r ../agents ../skills ../prompts ../core_model ../core ../engine ./
+          # NOTE: skills/ is intentionally NOT copied to HF Space.
+          # The skills/ directory contains large HTML templates and generated
+          # scripts that exceed HF's file size limit, causing push rejection:
+          #   ! [remote rejected] main -> main (pre-receive hook declined)
+          # The HF Space does not need skills/ at runtime — skills are loaded
+          # from the GitHub repo via the AI agent, not from the HF filesystem.
+          cp -r ../agents ../prompts ../core_model ../core ../engine ./
           cp -r ../load_flow ../fault_analysis ../coordination ../relays ./
           cp -r ../network_solver ../services ../api ../utils ../ai_context_engine ./
           cp -r ../integrations ../ml ./
@@ -167,7 +173,12 @@ jobs:
             echo "ℹ️ No changes — HF Space already in sync"
             exit 0
           }
-          git push https://user:$HF_TOKEN@huggingface.co/spaces/ahmdelbaz28/AhmedETAP-Platform main 2>&1 | tail -5
+          git push https://user:$HF_TOKEN@huggingface.co/spaces/ahmdelbaz28/AhmedETAP-Platform main 2>&1 | tee /tmp/hf-push.log
+          # Check if push actually succeeded (the pipe to tail was masking failures)
+          if grep -q "remote rejected\|error: failed to push\|!\[remote rejected\]" /tmp/hf-push.log; then
+            echo "❌ HF Space push FAILED — see errors above"
+            exit 1
+          fi
           echo "✅ HF Space synced"
 
       # ── 1d. Notify LangWatch of new deployment version ──────────────────────
