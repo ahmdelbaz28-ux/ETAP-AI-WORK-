@@ -11,6 +11,27 @@ export interface Env {
   NVIDIA_BASE_URL?: string;
   NVIDIA_MODEL?: string;
 
+  // Additional LLM providers (added 2026-07-07)
+  // All providers are OpenAI-compatible (chat/completions endpoint)
+  RENDER_API_KEY?: string;
+  RENDER_BASE_URL?: string;
+  RENDER_MODEL?: string;
+  ZENMUX_API_KEY?: string;
+  ZENMUX_BASE_URL?: string;
+  ZENMUX_MODEL?: string;
+  FIREWORKS_API_KEY?: string;
+  FIREWORKS_BASE_URL?: string;
+  FIREWORKS_MODEL?: string;
+  GITHUB_MODELS_API_KEY?: string;
+  GITHUB_MODELS_BASE_URL?: string;
+  GITHUB_MODELS_MODEL?: string;
+  OPENMODEL_API_KEY?: string;
+  OPENMODEL_BASE_URL?: string;
+  OPENMODEL_MODEL?: string;
+  MODAL_API_KEY?: string;
+  MODAL_BASE_URL?: string;
+  MODAL_MODEL?: string;
+
   // Mastra backend
   MASTRA_API_URL?: string;
   MASTRA_API_KEY?: string;

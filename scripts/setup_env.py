@@ -85,6 +85,14 @@ OPTIONAL_VARS = [
     "ETAP_ANTHROPIC_API_KEY",
     "ETAP_GOOGLE_API_KEY",
     "ETAP_GEMINI_API_KEY",
+    # Additional LLM providers (added 2026-07-07)
+    "ETAP_RENDER_API_KEY",
+    "ETAP_ZENMUX_API_KEY",
+    "ETAP_NVIDIA_API_KEY",
+    "ETAP_FIREWORKS_API_KEY",
+    "ETAP_GITHUB_MODELS_API_KEY",
+    "ETAP_OPENMODEL_API_KEY",
+    "ETAP_MODAL_API_KEY",
 ]
 
 
@@ -215,7 +223,7 @@ SMITHERY_API_KEY={c.get('smithery_key', '')}
 SMITHERY_BASE_URL=https://api.smithery.ai
 
 # =============================================================================
-# LLM PROVIDERS
+# LLM PROVIDERS  (8 providers — OpenAI-compatible chat/completions API)
 # =============================================================================
 OPENAI_API_KEY={c.get('openai', 'your-openai-api-key-here')}
 ANTHROPIC_API_KEY={c.get('anthropic', 'your-anthropic-api-key-here')}
@@ -228,11 +236,46 @@ ANTHROPIC_VISION_MODEL=claude-3-5-sonnet-20241022
 ANTHROPIC_TIMEOUT=30
 ANTHROPIC_MAX_RETRIES=3
 
+# Render API (https://render.com)
+RENDER_API_KEY={c.get('render', '')}
+RENDER_BASE_URL=https://api.render.com/v1
+RENDER_MODEL=gpt-4o-mini
+
+# ZenMux (https://zenmux.ai)
+ZENMUX_API_KEY={c.get('zenmux', '')}
+ZENMUX_BASE_URL=https://api.zenmux.ai/v1
+ZENMUX_MODEL=gpt-4o-mini
+
+# NVIDIA NIM (https://build.nvidia.com)
+NVIDIA_API_KEY={c.get('nvidia', '')}
+NVIDIA_BASE_URL=https://integrate.api.nvidia.com/v1
+NVIDIA_MODEL=meta/llama-3.1-8b-instruct
+
+# Fireworks AI (https://fireworks.ai)
+FIREWORKS_API_KEY={c.get('fireworks', '')}
+FIREWORKS_BASE_URL=https://api.fireworks.ai/inference/v1
+FIREWORKS_MODEL=accounts/fireworks/models/kimi-k2p7-code
+
+# GitHub Models (https://github.com/marketplace/models)
+GITHUB_MODELS_API_KEY={c.get('github_models', '')}
+GITHUB_MODELS_BASE_URL=https://models.inference.ai.azure.com/v1
+GITHUB_MODELS_MODEL=gpt-4o
+
+# OpenModel (https://openmodel.ai)
+OPENMODEL_API_KEY={c.get('openmodel', '')}
+OPENMODEL_BASE_URL=https://api.openmodel.ai/v1
+OPENMODEL_MODEL=gpt-4o
+
+# Modal (https://modal.com)
+MODAL_API_KEY={c.get('modal', '')}
+MODAL_BASE_URL=https://api.us-west-2.modal.direct/v1
+MODAL_MODEL=zai-org/GLM-5.1-FP8
+
 # Safety-critical LLM guardrails
 LLM_MAX_INPUT_CHARS=50000
 LLM_ALLOW_UNKNOWN_MODELS=false
 LLM_REQUIRE_AGENT_TAG=true
-LLM_APPROVED_MODELS=gpt-4o,gpt-4o-mini,gpt-4-turbo,gpt-4.1,gpt-4.1-mini,claude-3-5-sonnet-20241022,claude-3-5-haiku-20241022,claude-3-opus-20240229,gemini-2.0-flash-exp,gemini-1.5-pro
+LLM_APPROVED_MODELS=gpt-4o,gpt-4o-mini,gpt-4-turbo,gpt-4.1,gpt-4.1-mini,claude-3-5-sonnet-20241022,claude-3-5-haiku-20241022,claude-3-opus-20240229,gemini-2.0-flash-exp,gemini-1.5-pro,meta/llama-3.1-8b-instruct,abacusai/dracarys-llama-3.1-70b-instruct,accounts/fireworks/models/kimi-k2p7-code,zai-org/GLM-5.1-FP8
 
 # =============================================================================
 # ALL 14 ENGINEERING MODULES — FULLY ACTIVE (no beta, no demo)
@@ -355,6 +398,14 @@ def main() -> int:
         "anthropic": _get_optional("ETAP_ANTHROPIC_API_KEY", "your-anthropic-api-key-here"),
         "google": google_key or "your-google-api-key-here",
         "gemini": gemini_key or "your-gemini-api-key-here",
+        # Additional LLM providers (added 2026-07-07)
+        "render": _get_optional("ETAP_RENDER_API_KEY", ""),
+        "zenmux": _get_optional("ETAP_ZENMUX_API_KEY", ""),
+        "nvidia": _get_optional("ETAP_NVIDIA_API_KEY", ""),
+        "fireworks": _get_optional("ETAP_FIREWORKS_API_KEY", ""),
+        "github_models": _get_optional("ETAP_GITHUB_MODELS_API_KEY", ""),
+        "openmodel": _get_optional("ETAP_OPENMODEL_API_KEY", ""),
+        "modal": _get_optional("ETAP_MODAL_API_KEY", ""),
     }
 
     env_file = Path("/home/z/my-project/.env")
@@ -401,6 +452,14 @@ def main() -> int:
         ("OPENAI",           creds["openai"],          "OpenAI"),
         ("ANTHROPIC",        creds["anthropic"],       "Anthropic"),
         ("GOOGLE",           creds["google"],          "Google/Gemini"),
+        # Additional LLM providers (added 2026-07-07)
+        ("RENDER",           creds["render"],          "Render API"),
+        ("ZENMUX",           creds["zenmux"],          "ZenMux"),
+        ("NVIDIA",           creds["nvidia"],          "NVIDIA NIM"),
+        ("FIREWORKS",        creds["fireworks"],       "Fireworks AI"),
+        ("GITHUB_MODELS",    creds["github_models"],   "GitHub Models"),
+        ("OPENMODEL",        creds["openmodel"],       "OpenModel"),
+        ("MODAL",            creds["modal"],           "Modal (GLM-5.1)"),
     ]
     print("\n  Integration status:")
     for var, val, desc in integrations:

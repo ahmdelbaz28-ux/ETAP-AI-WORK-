@@ -83,6 +83,9 @@ const SECRET_FIELDS = new Set([
   'PROVIDER_DEEPSEEK_KEY', 'PROVIDER_GROQ_KEY', 'PROVIDER_COHERE_KEY',
   'PROVIDER_HUGGINGFACE_KEY',
   'SCADA_API_KEY',
+  // Additional LLM providers (added 2026-07-07)
+  'RENDER_API_KEY', 'ZENMUX_API_KEY', 'FIREWORKS_API_KEY',
+  'GITHUB_MODELS_API_KEY', 'OPENMODEL_API_KEY', 'MODAL_API_KEY',
 ])
 
 const SETTINGS_SCHEMA = {
@@ -337,6 +340,108 @@ export const POPULAR_PROVIDERS = [
     isFree: true,
     apiType: 'openai' as const,
   },
+  // ─── Render API (verified: https://api.render.com/v1) ─────────────
+  {
+    id: 'render',
+    name: 'Render API',
+    models: [
+      { id: 'gpt-4o-mini', name: 'GPT-4o mini', isFree: false },
+      { id: 'gpt-4o', name: 'GPT-4o', isFree: false },
+    ],
+    defaultModel: 'gpt-4o-mini',
+    defaultBaseUrl: 'https://api.render.com/v1',
+    color: '#46E3B7',
+    apiKeyUrl: 'https://render.com',
+    isFree: false,
+    apiType: 'openai' as const,
+  },
+  // ─── ZenMux (verified: https://api.zenmux.ai/v1) ──────────────────
+  {
+    id: 'zenmux',
+    name: 'ZenMux',
+    models: [
+      { id: 'gpt-4o-mini', name: 'GPT-4o mini', isFree: false },
+      { id: 'gpt-4o', name: 'GPT-4o', isFree: false },
+      { id: 'claude-3-5-sonnet', name: 'Claude 3.5 Sonnet', isFree: false },
+    ],
+    defaultModel: 'gpt-4o-mini',
+    defaultBaseUrl: 'https://api.zenmux.ai/v1',
+    color: '#6366F1',
+    apiKeyUrl: 'https://zenmux.ai',
+    isFree: false,
+    apiType: 'openai' as const,
+  },
+  // ─── Fireworks AI (verified: https://api.fireworks.ai/inference/v1) ─
+  {
+    id: 'fireworks',
+    name: 'Fireworks AI',
+    models: [
+      { id: 'accounts/fireworks/models/kimi-k2p7-code', name: 'Kimi K2 P7 Code', isFree: false },
+      { id: 'accounts/fireworks/models/llama-v3p1-405b-instruct', name: 'Llama 3.1 405B', isFree: false },
+      { id: 'accounts/fireworks/models/llama-v3p1-70b-instruct', name: 'Llama 3.1 70B', isFree: false },
+      { id: 'accounts/fireworks/models/mixtral-8x22b-instruct', name: 'Mixtral 8x22B', isFree: false },
+      { id: 'accounts/fireworks/models/qwen2p5-coder-32b-instruct', name: 'Qwen 2.5 Coder 32B', isFree: false },
+    ],
+    defaultModel: 'accounts/fireworks/models/kimi-k2p7-code',
+    defaultBaseUrl: 'https://api.fireworks.ai/inference/v1',
+    color: '#F47F2A',
+    apiKeyUrl: 'https://fireworks.ai/api-keys',
+    isFree: false,
+    apiType: 'openai' as const,
+  },
+  // ─── GitHub Models (verified: https://models.inference.ai.azure.com/v1) ─
+  {
+    id: 'github-models',
+    name: 'GitHub Models',
+    models: [
+      { id: 'gpt-4o', name: 'GPT-4o', isFree: true },
+      { id: 'gpt-4o-mini', name: 'GPT-4o mini (free)', isFree: true },
+      { id: 'Phi-3.5-mini-instruct', name: 'Phi-3.5 Mini (free)', isFree: true },
+      { id: 'Mistral-large', name: 'Mistral Large', isFree: false },
+      { id: 'Mistral-Nemo', name: 'Mistral Nemo (free)', isFree: true },
+      { id: 'AI21-Jamba-1.5-Large', name: 'Jamba 1.5 Large', isFree: false },
+      { id: 'meta-Llama-3.1-8B-Instruct', name: 'Llama 3.1 8B (free)', isFree: true },
+      { id: 'meta-Llama-3.1-70B-Instruct', name: 'Llama 3.1 70B', isFree: false },
+      { id: 'cohere-command-r-08-2024', name: 'Command R', isFree: false },
+    ],
+    defaultModel: 'gpt-4o',
+    defaultBaseUrl: 'https://models.inference.ai.azure.com/v1',
+    color: '#6E40C9',
+    apiKeyUrl: 'https://github.com/marketplace/models',
+    isFree: true,
+    apiType: 'openai' as const,
+  },
+  // ─── OpenModel (verified: https://api.openmodel.ai/v1) ────────────
+  {
+    id: 'openmodel',
+    name: 'OpenModel',
+    models: [
+      { id: 'gpt-4o', name: 'GPT-4o', isFree: false },
+      { id: 'gpt-5.4', name: 'GPT-5.4', isFree: false },
+      { id: 'claude-3-5-sonnet', name: 'Claude 3.5 Sonnet', isFree: false },
+    ],
+    defaultModel: 'gpt-4o',
+    defaultBaseUrl: 'https://api.openmodel.ai/v1',
+    color: '#10B981',
+    apiKeyUrl: 'https://openmodel.ai',
+    isFree: false,
+    apiType: 'openai' as const,
+  },
+  // ─── Modal (verified: https://api.us-west-2.modal.direct/v1) ──────
+  {
+    id: 'modal',
+    name: 'Modal (GLM-5.1)',
+    models: [
+      { id: 'zai-org/GLM-5.1-FP8', name: 'GLM-5.1 FP8 (free research)', isFree: true },
+      { id: 'zai-org/GLM-4.5-FP8', name: 'GLM-4.5 FP8 (free research)', isFree: true },
+    ],
+    defaultModel: 'zai-org/GLM-5.1-FP8',
+    defaultBaseUrl: 'https://api.us-west-2.modal.direct/v1',
+    color: '#7C3AED',
+    apiKeyUrl: 'https://modal.com',
+    isFree: true,
+    apiType: 'openai' as const,
+  },
 ]
 
 function parseCurlCommand(curl: string): { baseUrl: string; apiKey: string; modelId: string } | null {
@@ -381,6 +486,25 @@ function getDefaults(): Record<string, string> {
     NVIDIA_API_KEY: '',
     NVIDIA_MODEL: 'meta/llama-3.1-8b-instruct',
     NVIDIA_BASE_URL: 'https://integrate.api.nvidia.com/v1',
+    // Additional LLM providers (added 2026-07-07)
+    RENDER_API_KEY: '',
+    RENDER_MODEL: 'gpt-4o-mini',
+    RENDER_BASE_URL: 'https://api.render.com/v1',
+    ZENMUX_API_KEY: '',
+    ZENMUX_MODEL: 'gpt-4o-mini',
+    ZENMUX_BASE_URL: 'https://api.zenmux.ai/v1',
+    FIREWORKS_API_KEY: '',
+    FIREWORKS_MODEL: 'accounts/fireworks/models/kimi-k2p7-code',
+    FIREWORKS_BASE_URL: 'https://api.fireworks.ai/inference/v1',
+    GITHUB_MODELS_API_KEY: '',
+    GITHUB_MODELS_MODEL: 'gpt-4o',
+    GITHUB_MODELS_BASE_URL: 'https://models.inference.ai.azure.com/v1',
+    OPENMODEL_API_KEY: '',
+    OPENMODEL_MODEL: 'gpt-4o',
+    OPENMODEL_BASE_URL: 'https://api.openmodel.ai/v1',
+    MODAL_API_KEY: '',
+    MODAL_MODEL: 'zai-org/GLM-5.1-FP8',
+    MODAL_BASE_URL: 'https://api.us-west-2.modal.direct/v1',
     QWEN_API_KEY: '',
     QWEN_BASE_URL: '',
     GLM_API_KEY: '',

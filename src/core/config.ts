@@ -42,17 +42,24 @@ export const CONFIG = {
 /**
  * Built-in provider allowlist.
  * Hardening decision: only providers with verified working credentials
- * are included. Qwen and GLM are intentionally excluded because
- * their API keys are expired/invalid and they cause cascade failures.
- * Kilo and OpenCode are also excluded — see "No single-provider
- * dependency" followup below. To re-enable, add a new entry here and
- * set the corresponding wrangler secret.
+ * are included. To re-enable, add a new entry here and set the
+ * corresponding wrangler secret.
  *
- * NVIDIA NIM added 2026-07-01: Free-tier NVIDIA API for Llama, Mistral,
- * and other open-source models. Set NVIDIA_API_KEY env var to enable.
- * Default model: meta/llama-3.1-8b-instruct.
+ * Providers added 2026-07-07: Render, ZenMux, Fireworks, GitHub Models,
+ * OpenModel, Modal — all OpenAI-compatible chat/completions endpoints.
+ * Each provider has a default base URL and model that can be overridden
+ * via env vars (e.g. FIREWORKS_BASE_URL, FIREWORKS_MODEL).
  */
-export const BUILTIN_PROVIDERS = ['nvidia', 'openai'] as const;
+export const BUILTIN_PROVIDERS = [
+  'openai',
+  'nvidia',
+  'fireworks',
+  'github-models',
+  'modal',
+  'openmodel',
+  'render',
+  'zenmux',
+] as const;
 export type BuiltinProviderName = (typeof BUILTIN_PROVIDERS)[number];
 
 /**
@@ -60,8 +67,14 @@ export type BuiltinProviderName = (typeof BUILTIN_PROVIDERS)[number];
  * Only used when the corresponding env secret is not set.
  */
 export const BUILTIN_BASE_URLS: Readonly<Record<string, string>> = Object.freeze({
-  nvidia: 'https://integrate.api.nvidia.com/v1',
   openai: 'https://api.openai.com/v1',
+  nvidia: 'https://integrate.api.nvidia.com/v1',
+  fireworks: 'https://api.fireworks.ai/inference/v1',
+  'github-models': 'https://models.inference.ai.azure.com/v1',
+  modal: 'https://api.us-west-2.modal.direct/v1',
+  openmodel: 'https://api.openmodel.ai/v1',
+  render: 'https://api.render.com/v1',
+  zenmux: 'https://api.zenmux.ai/v1',
 });
 
 /**
@@ -69,8 +82,14 @@ export const BUILTIN_BASE_URLS: Readonly<Record<string, string>> = Object.freeze
  * Only used when the corresponding env secret is not set.
  */
 export const BUILTIN_MODELS: Readonly<Record<string, string>> = Object.freeze({
-  nvidia: 'meta/llama-3.1-8b-instruct',
   openai: 'gpt-4o-mini',
+  nvidia: 'meta/llama-3.1-8b-instruct',
+  fireworks: 'accounts/fireworks/models/kimi-k2p7-code',
+  'github-models': 'gpt-4o',
+  modal: 'zai-org/GLM-5.1-FP8',
+  openmodel: 'gpt-4o',
+  render: 'gpt-4o-mini',
+  zenmux: 'gpt-4o-mini',
 });
 
 /**

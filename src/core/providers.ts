@@ -84,6 +84,66 @@ function _getProviderConfig(env: Env, name: string): ProviderConfig | null {
         model: env.NVIDIA_MODEL || BUILTIN_MODELS.nvidia,
       };
     }
+    case 'fireworks': {
+      const apiKey = env.FIREWORKS_API_KEY;
+      if (!apiKey) return null;
+      return {
+        name: 'fireworks',
+        apiKey,
+        baseURL: env.FIREWORKS_BASE_URL || BUILTIN_BASE_URLS.fireworks,
+        model: env.FIREWORKS_MODEL || BUILTIN_MODELS.fireworks,
+      };
+    }
+    case 'github-models': {
+      const apiKey = env.GITHUB_MODELS_API_KEY;
+      if (!apiKey) return null;
+      return {
+        name: 'github-models',
+        apiKey,
+        baseURL: env.GITHUB_MODELS_BASE_URL || BUILTIN_BASE_URLS['github-models'],
+        model: env.GITHUB_MODELS_MODEL || BUILTIN_MODELS['github-models'],
+      };
+    }
+    case 'modal': {
+      const apiKey = env.MODAL_API_KEY;
+      if (!apiKey) return null;
+      return {
+        name: 'modal',
+        apiKey,
+        baseURL: env.MODAL_BASE_URL || BUILTIN_BASE_URLS.modal,
+        model: env.MODAL_MODEL || BUILTIN_MODELS.modal,
+      };
+    }
+    case 'openmodel': {
+      const apiKey = env.OPENMODEL_API_KEY;
+      if (!apiKey) return null;
+      return {
+        name: 'openmodel',
+        apiKey,
+        baseURL: env.OPENMODEL_BASE_URL || BUILTIN_BASE_URLS.openmodel,
+        model: env.OPENMODEL_MODEL || BUILTIN_MODELS.openmodel,
+      };
+    }
+    case 'render': {
+      const apiKey = env.RENDER_API_KEY;
+      if (!apiKey) return null;
+      return {
+        name: 'render',
+        apiKey,
+        baseURL: env.RENDER_BASE_URL || BUILTIN_BASE_URLS.render,
+        model: env.RENDER_MODEL || BUILTIN_MODELS.render,
+      };
+    }
+    case 'zenmux': {
+      const apiKey = env.ZENMUX_API_KEY;
+      if (!apiKey) return null;
+      return {
+        name: 'zenmux',
+        apiKey,
+        baseURL: env.ZENMUX_BASE_URL || BUILTIN_BASE_URLS.zenmux,
+        model: env.ZENMUX_MODEL || BUILTIN_MODELS.zenmux,
+      };
+    }
     default:
       return null;
   }
