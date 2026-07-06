@@ -206,7 +206,7 @@ class UniversalDataModel:
                 revit_element_id=row.get("revit_element_id"),
             )
         except Exception:
-            logger.error.exception("Error converting row to element: ")
+            logger.exception("Error converting row to element")
             return None
 
     def _row_to_conflict(self, row: dict[str, Any]) -> Conflict | None:
@@ -227,7 +227,7 @@ class UniversalDataModel:
                 resolved=bool(row.get("resolved", 0)),
             )
         except Exception:
-            logger.error.exception("Error converting row to conflict: ")
+            logger.exception("Error converting row to conflict")
             return None
 
     def add_element(self, element: UniversalElement) -> bool:
@@ -279,7 +279,7 @@ class UniversalDataModel:
                 self.elements[element.element_id] = element
                 return True
             except Exception:
-                logger.error.exception("Error adding element: ")
+                logger.exception("Error adding element")
                 return False
 
     def get_element(self, element_id: str) -> UniversalElement | None:
@@ -382,7 +382,7 @@ class UniversalDataModel:
                 conn.commit()
                 return True
             except Exception:
-                logger.error.exception("Error updating element: ")
+                logger.exception("Error updating element")
                 return False
 
     def delete_element(self, element_id: str, source: ChangeSource = ChangeSource.MANUAL) -> bool:
@@ -427,7 +427,7 @@ class UniversalDataModel:
                 conn.commit()
                 return True
             except Exception:
-                logger.error.exception("Error resolving conflict: ")
+                logger.exception("Error resolving conflict")
                 return False
 
     def get_statistics(self) -> dict[str, Any]:
