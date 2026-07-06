@@ -46,18 +46,29 @@ MIN_ETAP_VERSION = "12.0.0"
 REQUIRED_PACKAGES = ["pywin32", "psutil", "pyyaml", "numpy"]
 OPTIONAL_PACKAGES = ["requests", "pydantic"]
 
+# ETAP 2021 COM module names.
+# Note: ETAP 2021 uses "Harmonic" (not "HarmonicAnalysis") and
+# "MotorStarting" (not "MotorAcceleration"). The older names are kept
+# as fallbacks for pre-2021 ETAP versions.
 COM_MODULES = [
     "LoadFlow",
     "ShortCircuit",
     "ArcFlash",
-    "MotorAcceleration",
+    "MotorStarting",  # ETAP 2021+ (was "MotorAcceleration" in older versions)
     "TransientStability",
-    "HarmonicAnalysis",
+    "Harmonic",  # ETAP 2021+ (was "HarmonicAnalysis" in older versions)
     "OptimalPowerFlow",
     "ProtectionCoordination",
     "CableAmpacity",
     "GroundGrid",
     "Reliability",
+]
+
+# Legacy module names (pre-ETAP 2021) for backward compatibility.
+# These are checked as fallbacks if the 2021 names are not found.
+COM_MODULES_LEGACY = [
+    "MotorAcceleration",  # pre-2021 alias for MotorStarting
+    "HarmonicAnalysis",   # pre-2021 alias for Harmonic
 ]
 
 
