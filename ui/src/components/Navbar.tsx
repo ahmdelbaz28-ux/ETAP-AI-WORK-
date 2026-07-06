@@ -20,13 +20,6 @@ interface NotificationItem {
   read: boolean
 }
 
-const DEMO_NOTIFICATIONS: NotificationItem[] = [
-  { id: '1', type: 'info', title: 'Welcome to AhmedETAP', message: 'Demo mode is active — explore all features without a backend.', time: '2m ago', read: false },
-  { id: '2', type: 'success', title: 'Load Flow Completed', message: 'Industrial Plant study finished in 245ms', time: '1h ago', read: false },
-  { id: '3', type: 'warning', title: 'ETAP Worker Offline', message: 'Connect to ETAP worker to enable live studies', time: '3h ago', read: true },
-  { id: '4', type: 'info', title: 'New Agent Available', message: 'Harmonic Analysis Agent v2.0 deployed', time: '5h ago', read: true },
-]
-
 const notifIcon = {
   success: CheckCircle2,
   error: AlertCircle,
@@ -90,7 +83,7 @@ export function Navbar() {
   const [isFullscreen, setIsFullscreen] = useState(false)
   const [showUserMenu, setShowUserMenu] = useState(false)
   const [showNotifications, setShowNotifications] = useState(false)
-  const [notifications, setNotifications] = useState<NotificationItem[]>(DEMO_NOTIFICATIONS)
+  const [notifications, setNotifications] = useState<NotificationItem[]>([])
 
   const userMenuRef = useRef<HTMLDivElement>(null)
   const notifRef = useRef<HTMLDivElement>(null)
