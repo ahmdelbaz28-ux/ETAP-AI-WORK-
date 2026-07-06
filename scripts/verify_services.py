@@ -248,7 +248,7 @@ except Exception as e:
 # Live URL
 try:
     r = httpx.get(
-        "https://ahmdelbaz28-ahmedetap.hf.space/health", timeout=15, follow_redirects=True,
+        "https://ahmdelbaz28-ahmedetap-platform.hf.space/health", timeout=15, follow_redirects=True,
     )
     if r.status_code == 200:
         try:
@@ -266,7 +266,7 @@ except Exception as e:
 # Agents endpoint
 try:
     r = httpx.get(
-        "https://ahmdelbaz28-ahmedetap.hf.space/api/v1/agents", timeout=15, follow_redirects=True,
+        "https://ahmdelbaz28-ahmedetap-platform.hf.space/api/v1/agents", timeout=15, follow_redirects=True,
     )
     if r.status_code == 200:
         data = r.json()
