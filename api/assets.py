@@ -19,12 +19,12 @@ All endpoints require a valid JWT (or X-API-Key when API_KEY is configured).
 from __future__ import annotations
 
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from pydantic import BaseModel, ConfigDict, Field
-from sqlalchemy import DateTime, Float, ForeignKey, String, func, select
+from sqlalchemy import DateTime, ForeignKey, String, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -33,13 +33,12 @@ from api.dependencies import (
     CurrentUser,
     PaginationParams,
     get_api_key,
-    get_current_user,
     get_current_user_from_header,
     pagination_params,
 )
 from compat import StrEnum
 
-UTC = timezone.utc
+UTC = UTC
 
 router = APIRouter(prefix="/api/v1/assets", tags=["Asset Management"])
 
