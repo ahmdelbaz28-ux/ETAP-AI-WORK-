@@ -3,7 +3,7 @@
 **Date**: 2026-06-13
 **Author**: Super Z (AI Lead Engineer)
 **Repository**: `ahmdelbaz28-ux/ETAP-AI-WORK-`
-**Deployment**: `https://ahmdelbaz28-ahmedetap.hf.space`
+**Deployment**: `https://ahmdelbaz28-ahmedetap-platform.hf.space`
 
 ---
 
@@ -212,7 +212,7 @@ test_etap_execution_scenario.py   (6 tests)
 
 | Component | Status | URL/Proof |
 |-----------|--------|-----------|
-| HF Spaces | ✅ Live | `https://ahmdelbaz28-ahmedetap.hf.space` |
+| HF Spaces | ✅ Live | `https://ahmdelbaz28-ahmedetap-platform.hf.space` |
 | GitHub | ✅ Pushed | `ahmdelbaz28-ux/ETAP-AI-WORK-` |
 | UptimeRobot | ✅ 5 monitors | All UP |
 | LangWatch | ✅ Integrated | API key configured |

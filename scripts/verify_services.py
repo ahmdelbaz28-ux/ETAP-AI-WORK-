@@ -223,7 +223,7 @@ hf_token = os.environ.get("HF_TOKEN", "")
 
 # Space page
 try:
-    r = httpx.get("https://huggingface.co/spaces/ahmdelbaz28/AHMEDETAP", timeout=10)
+    r = httpx.get("https://huggingface.co/spaces/ahmdelbaz28/AhmedETAP-Platform", timeout=10)
     print(f"  Space page: {r.status_code}")
 except Exception as e:
     fail(f"Space page failed: {e}")
@@ -231,7 +231,7 @@ except Exception as e:
 # Space runtime (via API)
 try:
     r = httpx.get(
-        "https://huggingface.co/api/spaces/ahmdelbaz28/AHMEDETAP",
+        "https://huggingface.co/api/spaces/ahmdelbaz28/AhmedETAP-Platform",
         headers={"Authorization": f"Bearer {hf_token}"} if hf_token else {},
         timeout=10,
     )
@@ -248,7 +248,7 @@ except Exception as e:
 # Live URL
 try:
     r = httpx.get(
-        "https://ahmdelbaz28-ahmedetap.hf.space/health", timeout=15, follow_redirects=True,
+        "https://ahmdelbaz28-ahmedetap-platform.hf.space/health", timeout=15, follow_redirects=True,
     )
     if r.status_code == 200:
         try:
@@ -266,7 +266,7 @@ except Exception as e:
 # Agents endpoint
 try:
     r = httpx.get(
-        "https://ahmdelbaz28-ahmedetap.hf.space/api/v1/agents", timeout=15, follow_redirects=True,
+        "https://ahmdelbaz28-ahmedetap-platform.hf.space/api/v1/agents", timeout=15, follow_redirects=True,
     )
     if r.status_code == 200:
         data = r.json()

@@ -151,7 +151,7 @@ def test_hf_sync_workflow_exists():
     content = wf_path.read_text(encoding="utf-8")
     assert "branches: [main]" in content
     assert "HF_TOKEN" in content
-    assert "huggingface.co/spaces/ahmdelbaz28/AHMEDETAP" in content
+    assert "huggingface.co/spaces/ahmdelbaz28/AhmedETAP-Platform" in content
 
 
 # ---------------------------------------------------------------------------

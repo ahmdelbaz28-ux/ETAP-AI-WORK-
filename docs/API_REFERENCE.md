@@ -10,7 +10,7 @@ The AhmedETAP exposes a comprehensive RESTful API and WebSocket interface for po
 |-------------|-----|
 | Development | `http://localhost:8000` |
 | Production | `https://etap.yourdomain.com` |
-| Hugging Face Demo | `https://ahmdelbaz28-ahmedetap.hf.space` |
+| Hugging Face Demo | `https://ahmdelbaz28-ahmedetap-platform.hf.space` |
 
 ### API Versioning
 

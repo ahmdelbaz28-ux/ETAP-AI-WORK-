@@ -46,7 +46,7 @@ env:
   NODE_VERSION: '22'
   PYTHON_VERSION: '3.12'
   VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
-  HF_SPACE_REPO: https://huggingface.co/spaces/ahmdelbaz28/AHMEDETAP
+  HF_SPACE_REPO: https://huggingface.co/spaces/ahmdelbaz28/AhmedETAP-Platform
 
 jobs:
   # ── 1. FORWARD SYNC: GitHub → all downstream platforms ─────────────────────
@@ -127,7 +127,7 @@ jobs:
           test -f hf-space/app.py || { echo "hf-space/app.py missing"; exit 1; }
           test -f README.hf.md || { echo "README.hf.md (HF YAML frontmatter) missing"; exit 1; }
 
-          git clone https://user:$HF_TOKEN@huggingface.co/spaces/ahmdelbaz28/AHMEDETAP hf-space-repo 2>&1 | tail -5
+          git clone https://user:$HF_TOKEN@huggingface.co/spaces/ahmdelbaz28/AhmedETAP-Platform hf-space-repo 2>&1 | tail -5
           cd hf-space-repo
           find . -mindepth 1 -maxdepth 1 -not -name '.git' -not -name '.gitattributes' -exec rm -rf {} +
           # README.hf.md is the HF frontmatter README; rename to README.md on the Space
@@ -149,7 +149,7 @@ jobs:
             echo "ℹ️ No changes — HF Space already in sync"
             exit 0
           }
-          git push https://user:$HF_TOKEN@huggingface.co/spaces/ahmdelbaz28/AHMEDETAP main 2>&1 | tail -5
+          git push https://user:$HF_TOKEN@huggingface.co/spaces/ahmdelbaz28/AhmedETAP-Platform main 2>&1 | tail -5
           echo "✅ HF Space synced"
 
       # ── 1d. Notify LangWatch of new deployment version ──────────────────────
@@ -231,7 +231,7 @@ jobs:
           echo "| Platform | Status |" >> $GITHUB_STEP_SUMMARY
           echo "|----------|--------|" >> $GITHUB_STEP_SUMMARY
           echo "| Vercel   | ✅ Auto-deploy triggered by GitHub integration |" >> $GITHUB_STEP_SUMMARY
-          echo "| HF Space | ✅ Pushed to ahmdelbaz28/AHMEDETAP |" >> $GITHUB_STEP_SUMMARY
+          echo "| HF Space | ✅ Pushed to ahmdelbaz28/AhmedETAP-Platform |" >> $GITHUB_STEP_SUMMARY
           echo "| LangWatch | ✅ Deployment marker registered |" >> $GITHUB_STEP_SUMMARY
           echo "| Smithery  | ✅ Registry reachable |" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
@@ -258,7 +258,7 @@ jobs:
             exit 0
           fi
           # Clone HF Space into a temp dir
-          git clone --depth 1 https://user:$HF_TOKEN@huggingface.co/spaces/ahmdelbaz28/AHMEDETAP /tmp/hf-space 2>&1 | tail -3
+          git clone --depth 1 https://user:$HF_TOKEN@huggingface.co/spaces/ahmdelbaz28/AhmedETAP-Platform /tmp/hf-space 2>&1 | tail -3
           # Compare the README frontmatter (the part editable from HF UI)
           if ! diff -q README.hf.md /tmp/hf-space/README.md > /dev/null 2>&1; then
             echo "⚠️ Drift detected on HF Space README"
