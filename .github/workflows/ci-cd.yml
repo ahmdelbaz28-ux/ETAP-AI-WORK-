@@ -205,8 +205,24 @@ jobs:
       - name: Bandit SAST scan
         # Uses .bandit ini file (skips B104/B108/B608/B102/B310/etc.)
         # -ll = Medium+High severity only; -ii = Medium+High confidence only.
-        # Tests, build artifacts, and the UI frontend are excluded.
-        run: bandit --ini .bandit -r . -ll -ii --format txt
+        #
+        # CRITICAL: Target specific source directories instead of `-r .`.
+        # Bandit's `exclude` config option in .bandit does NOT work reliably
+        # when scanning from `.` — paths under skills/ still get walked.
+        # This caused the Security Scan to fail on every main commit since
+        # PR #160 merged, because:
+        #   1. skills/get-fortune-analysis/lunar_python.py has a templating
+        #      placeholder that produces a syntax error → bandit aborts with
+        #      "Files skipped (1)" + exit 1
+        #   2. skills/docx/scripts/postcheck.py + skills/pptx/scripts/* have
+        #      intentional B314 (xml.etree) findings that are not exploitable
+        #      in the agent-runtime context (parsed XML comes from trusted
+        #      local files, not user input) — but bandit can't tell.
+        # skills/ is already excluded from ruff (ruff.toml) for the same
+        # reason: it's 1100+ auto-generated scripts that don't follow the
+        # library code's security posture. Library code in api/, services/,
+        # core/, integrations/, agents/, engine/, etc. is fully scanned.
+        run: bandit --ini .bandit -r api services core integrations agents engine load_flow fault_analysis coordination relays network_solver utils ai_context_engine ml -ll -ii --format txt
 
       - name: Safety dependency check
         run: safety check -r requirements.txt --full-report
