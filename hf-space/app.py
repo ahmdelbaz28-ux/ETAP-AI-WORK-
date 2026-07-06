@@ -107,6 +107,12 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
+# Register the auth router so /api/v1/auth/register, /login, /refresh, /me
+# are available on the HF Space. Without this, users cannot register or
+# log in — the endpoints returned 404.
+from api.auth import router as auth_router  # noqa: E402
+app.include_router(auth_router)
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[

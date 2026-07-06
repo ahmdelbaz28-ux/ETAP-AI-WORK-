@@ -75,7 +75,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ email, password }),
+      // Backend LoginRequest expects `username` (which accepts email or
+      // username) + `password`. Send email as username since that's what
+      // the UI collects.
+      body: JSON.stringify({ username: email, password }),
     });
 
     if (!response.ok) {
@@ -105,7 +108,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ email, password, name }),
+      // Backend RegisterRequest expects `username`, `email`, `password`.
+      // Derive a username from the email prefix (before @) since the UI
+      // collects name + email but not a separate username.
+      body: JSON.stringify({
+        username: name.toLowerCase().replace(/[^a-z0-9_-]/g, '-').substring(0, 64) || email.split('@')[0],
+        email,
+        password,
+      }),
     });
 
     if (!response.ok) {
