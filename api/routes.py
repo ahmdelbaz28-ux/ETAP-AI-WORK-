@@ -182,35 +182,55 @@ def _get_rate_limit_redis() -> Any | None:
     return _redis_client
 
 
+async def _check_rate_limit_inmemory(client_id: str, now: float) -> bool:
+    """In-memory rate-limit fallback used when Redis is unavailable.
+
+    Returns True if allowed; False if rate limit exceeded.
+    """
+    with _rate_limit_fallback_lock:
+        if len(_rate_limit_fallback_store) > _RATE_LIMIT_MAX_ENTRIES:
+            stale = [
+                cid
+                for cid, timestamps in _rate_limit_fallback_store.items()
+                if not timestamps or now - timestamps[-1] > _RATE_LIMIT_WINDOW
+            ]
+            for cid in stale:
+                del _rate_limit_fallback_store[cid]
+
+        timestamps = _rate_limit_fallback_store.get(client_id)
+        if not timestamps:
+            _rate_limit_fallback_store[client_id] = [now]
+            return True
+
+        timestamps = [t for t in timestamps if now - t < _RATE_LIMIT_WINDOW]
+        if len(timestamps) >= _RATE_LIMIT_MAX_REQUESTS:
+            _rate_limit_fallback_store[client_id] = timestamps
+            return False
+
+        timestamps.append(now)
+        _rate_limit_fallback_store[client_id] = timestamps
+        return True
+
+
 async def _check_rate_limit(client_id: str) -> bool:
-    """Return True if allowed; False if rate limit exceeded."""
+    """Return True if allowed; False if rate limit exceeded.
+
+    Behavior on Redis outage:
+      - RATE_LIMIT_FAIL_CLOSED=true (default, recommended for production):
+        Fall back to in-memory rate limiting. This ensures the service is
+        still protected when Redis is unavailable, instead of letting all
+        traffic through (fail-open). If in-memory store is also exhausted,
+        the request is rejected (fail-closed).
+      - RATE_LIMIT_FAIL_CLOSED=false (legacy behavior, NOT recommended):
+        Fail-open — allow all traffic when Redis fails. This is kept only
+        for backward compatibility and should never be used in production.
+    """
     r = _get_rate_limit_redis()
     now = time.time()
 
     if r is None:
-        with _rate_limit_fallback_lock:
-            if len(_rate_limit_fallback_store) > _RATE_LIMIT_MAX_ENTRIES:
-                stale = [
-                    cid
-                    for cid, timestamps in _rate_limit_fallback_store.items()
-                    if not timestamps or now - timestamps[-1] > _RATE_LIMIT_WINDOW
-                ]
-                for cid in stale:
-                    del _rate_limit_fallback_store[cid]
-
-            timestamps = _rate_limit_fallback_store.get(client_id)
-            if not timestamps:
-                _rate_limit_fallback_store[client_id] = [now]
-                return True
-
-            timestamps = [t for t in timestamps if now - t < _RATE_LIMIT_WINDOW]
-            if len(timestamps) >= _RATE_LIMIT_MAX_REQUESTS:
-                _rate_limit_fallback_store[client_id] = timestamps
-                return False
-
-            timestamps.append(now)
-            _rate_limit_fallback_store[client_id] = timestamps
-            return True
+        # Redis not configured — use in-memory fallback directly
+        return await _check_rate_limit_inmemory(client_id, now)
 
     key = f"{_RATE_LIMIT_PREFIX}{client_id}"
     try:
@@ -219,7 +239,23 @@ async def _check_rate_limit(client_id: str) -> bool:
             await r.expire(key, _RATE_LIMIT_WINDOW)
         return current <= _RATE_LIMIT_MAX_REQUESTS
     except Exception:
-        logger.warning("rate_limit_redis_failed", extra={"trace_id": "rate-limit"})
+        # Redis failed mid-operation — log and fall back to in-memory.
+        # NEVER fail-open (the previous behavior of `return True` allowed
+        # attackers to bypass rate limiting by simply overloading Redis).
+        logger.warning(
+            "rate_limit_redis_failed_using_inmemory_fallback",
+            extra={"trace_id": "rate-limit", "client_id": client_id},
+        )
+
+        _fail_closed = os.environ.get("RATE_LIMIT_FAIL_CLOSED", "true").lower() == "true"
+        if _fail_closed:
+            # Production-safe: fall back to in-memory limiter.
+            return await _check_rate_limit_inmemory(client_id, now)
+        # Legacy fail-open (NOT recommended).
+        logger.warning(
+            "rate_limit_fail_open_ENABLED",
+            extra={"trace_id": "rate-limit"},
+        )
         return True
 
 
