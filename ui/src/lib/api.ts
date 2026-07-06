@@ -298,12 +298,4 @@ export async function testVisionKey(provider: string): Promise<{ success: boolea
   })
 }
 
-// ============ Backwards-compat stubs (removed) ============
-//
-// The following functions were demo-mode helpers and have been REMOVED:
-//   - isDemoMode()  → always returns false now; components should not gate
-//                     behavior on demo mode because there is no demo mode.
-//   - setDemoMode() → no-op removed; there is no demo mode to set.
-//
-// Any component that imported these must be updated to handle real API
-// errors directly (try/catch + show error to user).
+// ============ End of API client ============
