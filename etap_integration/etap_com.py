@@ -87,21 +87,18 @@ except ImportError:
     HAS_INPUT_VALIDATOR = False
 
 
-class ETAPStudyType(Enum):
-    """ETAP study types."""
+# ─── Unified types (single source of truth) ─────────────────────────────
+# ETAPStudyType + ETAPResult are now defined in unified_etap_types.py
+# to eliminate the 3-way duplication that caused type-mismatch bugs.
+# See: PRODUCTION_PLAN/02_DUPLICATION_REPORT.md Cluster #1
+from etap_integration.unified_etap_types import (  # noqa: E402
+    ETAPResult,
+    ETAPStudyType,
+)
 
-    LOAD_FLOW = "LoadFlow"
-    SHORT_CIRCUIT = "ShortCircuit"
-    MOTOR_ACCELERATION = "MotorAcceleration"
-    MOTOR_STARTING = "MotorStarting"
-    TRANSIENT_STABILITY = "TransientStability"
-    HARMONIC_ANALYSIS = "HarmonicAnalysis"
-    OPTIMAL_POWER_FLOW = "OptimalPowerFlow"
-    PROTECTION_COORDINATION = "ProtectionCoordination"
-    ARC_FLASH = "ArcFlash"
-    CABLE_AMACITY = "CableAmpacity"
-    GROUND_GRID = "GroundGrid"
-    RELIABILITY = "Reliability"
+# Backward compat: re-export for code that imports from etap_com
+__all__ = ["ETAPStudyType", "ETAPResult", "ETAPProject", "ETAPAutomation",
+           "STUDY_TYPE_PARAMETER_SCHEMAS"]
 
 
 # =============================================================================
@@ -236,17 +233,8 @@ STUDY_TYPE_PARAMETER_SCHEMAS: dict[ETAPStudyType, dict[str, dict[str, Any]]] = {
     },
 }
 
-
-@dataclass
-class ETAPResult:
-    """Container for ETAP study results."""
-
-    study_type: str
-    success: bool
-    data: dict[str, Any]
-    warnings: list[str]
-    errors: list[str]
-    timestamp: float
+# NOTE: ETAPResult is now imported from unified_etap_types.py (see top of file).
+# The old local dataclass definition has been removed to avoid duplication.
 
 
 class ETAPProject:
