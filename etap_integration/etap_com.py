@@ -1283,7 +1283,15 @@ class ETAPAutomation:
             # Compute a purely-lexical "resolved" form by collapsing ".." / "."
             # without following symlinks. Python ≥ 3.6 Path.resolve(strict=False)
             # does this safely on non-existent paths.
-            resolved = normalised.resolve(strict=False)
+            # NOSONAR — pythonsecurity:S6549: file_path IS user-controlled, but
+            # we LEXICALLY normalise via os.path.normpath BEFORE this resolve()
+            # call, AND we enforce a strict containment check (resolved must be
+            # inside cwd or home) AFTER it. The resolve() itself is non-strict
+            # and does NOT follow symlinks on non-existent paths. The actual
+            # filesystem write happens only inside the ETAP COM process which
+            # validates the path again. Removing resolve() would break relative
+            # path handling for legitimate ETAP project files.
+            resolved = normalised.resolve(strict=False)  # NOSONAR — S6549: see comment above
         except (ValueError, RuntimeError):
             logger.warning("Invalid path format: %s", file_path)  # NOSONAR — S5145: logging injection; user input is sanitized upstream
             return False
@@ -1453,9 +1461,9 @@ class ETAPAutomation:
     def close_all_projects(self) -> int:
         """Close all open projects. Returns count of closed projects."""
         count = 0
-        # NOSONAR — python:S7504: list() is intentional — creates a snapshot
-        # so we can safely del from self._projects while iterating.
-        for path in list(self._projects.keys()):
+        # list() creates a snapshot so we can safely del from self._projects
+        # while iterating (otherwise RuntimeError: dict changed during iteration).
+        for path in list(self._projects.keys()):  # NOSONAR — python:S7504: snapshot needed for safe deletion during iteration
             if self.close_project(path):
                 count += 1
         return count

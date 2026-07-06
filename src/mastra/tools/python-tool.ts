@@ -1,6 +1,6 @@
 import { createTool } from '@mastra/core/tools';
-import { spawn } from 'node:child_process';
 import { z } from 'zod';
+import { spawnPythonSecure } from './_spawn-helpers';
 
 const PYTHON_TIMEOUT_MS = 30000; // 30 second timeout
 const MAX_OUTPUT_LENGTH = 10000; // Maximum output length in characters
@@ -15,30 +15,12 @@ export const run_python = createTool({
     return new Promise<string>((resolve, reject) => {
       const secureExecutorPath = 'security/secure_executor.py';
 
-      // Use spawn instead of execFile to pass code via stdin (prevents shell injection).
-      // SonarCloud tssecurity:S4036: PATH is hardcoded to a fixed list of
-      // vetted system directories — we explicitly EXCLUDE process.env.PATH
-      // from the spawned env so a poisoned parent PATH cannot leak in.
-      const SAFE_PATH = [
-        '/usr/local/bin',
-        '/usr/bin',
-        '/bin',
-        '/usr/local/sbin',
-        '/usr/sbin',
-        '/sbin',
-      ].join(':');
-      // Build a clean env WITHOUT PATH first, then set our vetted PATH.
-      const { PATH: _drop, ...cleanEnv } = process.env;
-      void _drop;
-      const child = spawn('python', [secureExecutorPath], {
-        env: {
-          ...cleanEnv,
-          PATH: SAFE_PATH,
-          PYTHONDONTWRITEBYTECODE: '1',
-          PYTHONUNBUFFERED: '1',
-        },
-        stdio: ['pipe', 'pipe', 'pipe'],
-        timeout: PYTHON_TIMEOUT_MS,
+      // Spawn a Python helper that runs the user code under a security
+      // policy (sandboxed subprocess with no network access). All hardening
+      // (PATH override, no .pyc, stdin-only input, hard timeout) lives in
+      // `spawnPythonSecure` — see `_spawn-helpers.ts` for the rationale.
+      const child = spawnPythonSecure(secureExecutorPath, {
+        timeoutMs: PYTHON_TIMEOUT_MS,
       });
 
       let stdout = '';

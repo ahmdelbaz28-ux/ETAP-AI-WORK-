@@ -43,7 +43,9 @@ function _safeRandomSuffix(): string {
   // Deterministic fallback using performance time + counter (still no
   // Math.random) — only used in exotic runtimes without WebCrypto.
   // These IDs are React list keys / UI labels, NOT security-sensitive.
-  const ts = (typeof performance !== 'undefined' ? performance.now() : Date.now()).toString(36)
+  // SonarCloud typescript:S7735: avoid negated condition — flip so the
+  // "expected" branch comes second.
+  const ts = (typeof performance === 'undefined' ? Date.now() : performance.now()).toString(36)
   const counter = (_safeRandomSuffixCounter++).toString(36)
   return (ts + counter).slice(-8).padStart(8, '0')
 }
@@ -51,8 +53,10 @@ let _safeRandomSuffixCounter = 0
 
 export default function AIAssistant() {
   // setAgents is used but the agents value is never read — we only need the
-  // setter to trigger re-renders after fetchAgents() resolves.
-  const [, setAgents] = useState<AgentMeta[]>([])
+  // setter to trigger re-renders after fetchAgents() resolves. SonarCloud
+  // typescript:S6754 wants both value+setter destructured; we skip the value
+  // intentionally. NOSONAR inline marks this as a deliberate choice.
+  const [, setAgents] = useState<AgentMeta[]>([])  // NOSONAR — S6754: value intentionally unused, only setter is needed
   const [messages, setMessages] = useState<Message[]>([])
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
