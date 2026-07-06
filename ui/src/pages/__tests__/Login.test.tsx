@@ -1,14 +1,11 @@
 /**
  * @vitest-environment jsdom
  *
- * Tests for the Login page component.
+ * Tests for the Login page component (Arabic UI version).
  *
- * Auth behavior (post demo-mode removal):
- *   - Login.tsx calls useAuth().login(email, password) which hits the real
- *     backend at POST /api/v1/auth/login.
- *   - On success → navigate to /dashboard.
- *   - On failure (network OR auth error) → show the error in a red banner.
- *     NO demo fallback, NO fake token, NO silent navigation.
+ * The login page now renders in Arabic (RTL). Test selectors updated to
+ * match Arabic text: "البريد الإلكتروني" (Email), "كلمة المرور" (Password),
+ * "تسجيل الدخول" (Sign in heading), "دخول" (Sign in button), etc.
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, waitFor } from '@testing-library/react'
@@ -17,8 +14,7 @@ import { MemoryRouter } from 'react-router-dom'
 import Login from '../Login'
 import { AuthProvider } from '../../hooks/useAuth'
 
-// ── Mocks ──────────────────────────────────────────────────────────────────────
-
+// ── Mocks ──
 const mockLogin = vi.fn()
 
 vi.mock('../../hooks/useAuth', async () => {
@@ -37,7 +33,6 @@ vi.mock('../../hooks/useAuth', async () => {
   }
 })
 
-// Capture navigation
 const mockNavigate = vi.fn()
 vi.mock('react-router-dom', async () => {
   const actual = await vi.importActual<typeof import('react-router-dom')>('react-router-dom')
@@ -47,11 +42,10 @@ vi.mock('react-router-dom', async () => {
   }
 })
 
-// Mock fetch for AuthProvider (returns 401 so it doesn't crash on mount)
 const mockFetch = vi.fn()
 vi.stubGlobal('fetch', mockFetch)
 
-// ── Helpers ────────────────────────────────────────────────────────────────────
+// ── Helpers ──
 
 function renderLogin() {
   return render(
@@ -63,7 +57,7 @@ function renderLogin() {
   )
 }
 
-// ── Tests ──────────────────────────────────────────────────────────────────────
+// ── Tests ──
 
 describe('Login', () => {
   beforeEach(() => {
@@ -77,22 +71,23 @@ describe('Login', () => {
 
   it('renders the login form with email and password fields', () => {
     renderLogin()
-    expect(screen.getByLabelText(/Email/i)).toBeTruthy()
+    // Arabic label: البريد الإلكتروني = Email
+    expect(screen.getByText(/البريد الإلكتروني/i)).toBeTruthy()
     expect(screen.getByPlaceholderText(/^•+$/)).toBeTruthy()
-    expect(screen.getByRole('button', { name: /Sign in/i })).toBeTruthy()
+    expect(screen.getByRole('button', { name: /دخول/i })).toBeTruthy()
   })
 
   it('renders the credentials heading', () => {
     renderLogin()
-    expect(screen.getByText('Enter your credentials to continue')).toBeTruthy()
+    // Arabic: أدخل بياناتك للمتابعة
+    expect(screen.getByText(/أدخل بياناتك للمتابعة/i)).toBeTruthy()
   })
 
   it('does NOT render any Demo Mode banner', () => {
     renderLogin()
-    // The old demo banner said "Demo Mode Active" — it must be gone.
     expect(screen.queryByText(/Demo Mode Active/i)).toBeNull()
-    // The pre-filled credentials must also be gone (fields start empty).
-    const emailInput = screen.getByLabelText(/Email/i) as HTMLInputElement
+    expect(screen.queryByText(/Demo Build/i)).toBeNull()
+    const emailInput = screen.getByRole('textbox') as HTMLInputElement
     const passwordInput = screen.getByPlaceholderText(/^•+$/) as HTMLInputElement
     expect(emailInput.value).toBe('')
     expect(passwordInput.value).toBe('')
@@ -101,29 +96,39 @@ describe('Login', () => {
   it('shows validation error when submitting empty required fields', async () => {
     const user = userEvent.setup()
     renderLogin()
-
-    const submitBtn = screen.getByRole('button', { name: /Sign in/i })
+    const submitBtn = screen.getByRole('button', { name: /دخول/i })
     await user.click(submitBtn)
-
-    // The component's own guard should have prevented the login call.
     expect(mockLogin).not.toHaveBeenCalled()
   })
 
   it('calls useAuth().login and navigates on successful backend auth', async () => {
-    mockLogin.mockResolvedValue(undefined)
+    // First call: POST /login returns tokens
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: () => Promise.resolve({
+        access_token: 'test-access-token',
+        refresh_token: 'test-refresh-token',
+      }),
+    })
+    // Second call: GET /me returns user profile
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: () => Promise.resolve({ id: '1', email: 'engineer@etap.com', name: 'Engineer', role: 'admin' }),
+    })
+
     const user = userEvent.setup()
     renderLogin()
 
-    const emailInput = screen.getByLabelText(/Email/i) as HTMLInputElement
+    const emailInput = screen.getByRole('textbox') as HTMLInputElement
     const passwordInput = screen.getByPlaceholderText(/^•+$/) as HTMLInputElement
     await user.type(emailInput, 'engineer@etap.com')
-    await user.type(passwordInput, 'securePassword123')
+    await user.type(passwordInput, 'password123')
 
-    const submitBtn = screen.getByRole('button', { name: /Sign in/i })
+    const submitBtn = screen.getByRole('button', { name: /دخول/i })
     await user.click(submitBtn)
 
     await waitFor(() => {
-      expect(mockLogin).toHaveBeenCalledWith('engineer@etap.com', 'securePassword123')
+      expect(mockLogin).toHaveBeenCalledWith('engineer@etap.com', 'password123')
     })
     await waitFor(() => {
       expect(mockNavigate).toHaveBeenCalledWith('/dashboard', { replace: true })
@@ -135,78 +140,70 @@ describe('Login', () => {
     const user = userEvent.setup()
     renderLogin()
 
-    const emailInput = screen.getByLabelText(/Email/i) as HTMLInputElement
+    const emailInput = screen.getByRole('textbox') as HTMLInputElement
     const passwordInput = screen.getByPlaceholderText(/^•+$/) as HTMLInputElement
     await user.type(emailInput, 'bad@example.com')
     await user.type(passwordInput, 'wrongpassword')
 
-    const submitBtn = screen.getByRole('button', { name: /Sign in/i })
+    const submitBtn = screen.getByRole('button', { name: /دخول/i })
     await user.click(submitBtn)
 
     await waitFor(() => {
       expect(screen.getByText('Invalid credentials')).toBeTruthy()
     })
-
-    // Should NOT have navigated
     expect(mockNavigate).not.toHaveBeenCalled()
   })
 
   it('shows error message when backend is unreachable (network error) — NO demo fallback', async () => {
-    // Network error path: login rejects with "Failed to fetch".
-    // Login should show the error and NOT fall back to demo mode.
     mockLogin.mockRejectedValue(new Error('Failed to fetch'))
     const user = userEvent.setup()
     renderLogin()
 
-    const emailInput = screen.getByLabelText(/Email/i) as HTMLInputElement
+    const emailInput = screen.getByRole('textbox') as HTMLInputElement
     const passwordInput = screen.getByPlaceholderText(/^•+$/) as HTMLInputElement
     await user.type(emailInput, 'test@example.com')
     await user.type(passwordInput, 'password123')
 
-    const submitBtn = screen.getByRole('button', { name: /Sign in/i })
+    const submitBtn = screen.getByRole('button', { name: /دخول/i })
     await user.click(submitBtn)
 
-    // The network error message should be visible in the alert banner
     await waitFor(() => {
       expect(screen.getByText('Failed to fetch')).toBeTruthy()
     })
-
-    // NO demo token should have been written to localStorage
     expect(localStorage.getItem('authToken')).toBeNull()
-
-    // Should NOT have navigated
     expect(mockNavigate).not.toHaveBeenCalled()
   })
 
   it('shows loading state during login submission', async () => {
-    // Make login hang so we can observe the loading state
     mockLogin.mockReturnValue(new Promise(() => {}))
     const user = userEvent.setup()
     renderLogin()
 
-    const emailInput = screen.getByLabelText(/Email/i) as HTMLInputElement
+    const emailInput = screen.getByRole('textbox') as HTMLInputElement
     const passwordInput = screen.getByPlaceholderText(/^•+$/) as HTMLInputElement
     await user.type(emailInput, 'test@etap.com')
     await user.type(passwordInput, 'password123')
 
-    const submitBtn = screen.getByRole('button', { name: /Sign in/i })
+    const submitBtn = screen.getByRole('button', { name: /دخول/i })
     await user.click(submitBtn)
 
     await waitFor(() => {
-      expect(screen.getByText('Signing in...')).toBeTruthy()
+      // Arabic: جارٍ تسجيل الدخول... = Signing in...
+      expect(screen.getByText(/جارٍ تسجيل الدخول/i)).toBeTruthy()
     })
   })
 
   it('has a link to the registration page', () => {
     renderLogin()
-    const signUpLink = screen.getByText('Create one')
+    // Arabic: أنشئ واحداً = Create one
+    const signUpLink = screen.getByText('أنشئ واحداً')
     expect(signUpLink).toBeTruthy()
     expect(signUpLink.closest('a')?.getAttribute('href')).toBe('/register')
   })
 
   it('has proper input types for email and password', () => {
     renderLogin()
-    const emailInput = screen.getByLabelText(/Email/i) as HTMLInputElement
+    const emailInput = screen.getByRole('textbox') as HTMLInputElement
     const passwordInput = screen.getByPlaceholderText(/^•+$/) as HTMLInputElement
     expect(emailInput.type).toBe('email')
     expect(passwordInput.type).toBe('password')
