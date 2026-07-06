@@ -9,62 +9,21 @@ import logging
 import os
 import sys
 import time
-from abc import ABC, abstractmethod
-from enum import Enum
 from typing import Any
 
 import requests
 
+# ─── Unified types (single source of truth) ─────────────────────────────
+# ETAPStudyType + ETAPResult + IEtapProvider are now defined in
+# unified_etap_types.py to eliminate the 3-way duplication.
+# See: PRODUCTION_PLAN/02_DUPLICATION_REPORT.md Cluster #1
+from etap_integration.unified_etap_types import (  # noqa: E402
+    ETAPResult,
+    ETAPStudyType,
+    IEtapProvider,
+)
+
 logger = logging.getLogger(__name__)
-
-
-class ETAPStudyType(Enum):
-    LOAD_FLOW = "LOAD_FLOW"
-    SHORT_CIRCUIT = "SHORT_CIRCUIT"
-    ARC_FLASH = "ARC_FLASH"
-    HARMONIC_ANALYSIS = "HARMONIC_ANALYSIS"
-    OPTIMAL_POWER_FLOW = "OPTIMAL_POWER_FLOW"
-    MOTOR_STARTING = "MOTOR_STARTING"
-    PROTECTION_COORDINATION = "PROTECTION_COORDINATION"
-
-
-class ETAPResult:
-    def __init__(
-        self,
-        success: bool,
-        data: dict[str, Any],
-        warnings: list[str],
-        errors: list[str],
-        execution_time: float = 0.0,
-    ):
-        self.success = success
-        self.data = data
-        self.warnings = warnings
-        self.errors = errors
-        self.execution_time = execution_time
-
-
-class IEtapProvider(ABC):
-    @abstractmethod
-    def execute_study(
-        self, project_path: str, study_type: ETAPStudyType, visible: bool = False,
-    ) -> ETAPResult:
-        """
-        Execute a study on the configured ETAP backend.
-
-        Concrete providers (Local, Remote, Mock, Null) must override.
-        """
-        ...
-
-    def is_available(self) -> bool:
-        """
-        Return True if the underlying ETAP backend is reachable.
-
-        Default returns False (no backend wired up).  Concrete providers
-        override to probe their backend (COM Dispatch, /health endpoint,
-        etc.).
-        """
-        return False
 
 
 class LocalEtapProvider(IEtapProvider):
@@ -100,11 +59,9 @@ class LocalEtapProvider(IEtapProvider):
         import time
 
         from etap_integration.etap_com import ETAPAutomation
-        from etap_integration.etap_com import ETAPStudyType as ComStudyType
 
-        # Map provider enum to COM enum
-        com_study_type = ComStudyType[study_type.name]
-
+        # ETAPStudyType is now unified — no need to map between provider
+        # and COM enums (they are the same class now).
         start_time = time.time()
         try:
             with ETAPAutomation(visible=visible) as etap:
@@ -118,7 +75,7 @@ class LocalEtapProvider(IEtapProvider):
                         time.time() - start_time,
                     )
 
-                result = project.run_study(com_study_type)
+                result = project.run_study(study_type)
                 return ETAPResult(
                     result.success,
                     result.data,
