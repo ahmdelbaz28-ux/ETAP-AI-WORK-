@@ -322,7 +322,7 @@ class LocalSecretsManager:
             encrypted = path.read_bytes()
             return self._cipher.decrypt(encrypted).decode()
         except InvalidToken:
-            logger.error("Decryption failed for %s; key may have been rotated", service_name)
+            logger.exception("Decryption failed for %s; key may have been rotated", service_name)
             return None
         except Exception as exc:
             logger.exception("Failed to retrieve API key for %s: %s", service_name, exc)

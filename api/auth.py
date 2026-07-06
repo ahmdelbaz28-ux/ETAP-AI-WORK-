@@ -192,6 +192,10 @@ _COMMON_PASSWORDS: set[str] = {
 # SQLAlchemy ORM model
 # ---------------------------------------------------------------------------
 
+# Type aliases for FastAPI dependencies (SonarCloud S8410: use Annotated)
+DbDep = Annotated[AsyncSession, Depends(get_db)]
+CurrentUserDep = Annotated[CurrentUser, Depends(get_current_user_from_header)]
+
 
 class User(Base):
     """Persisted user account."""
@@ -252,9 +256,8 @@ class RegisterRequest(BaseModel):
         if v.lower() in _COMMON_PASSWORDS:
             raise ValueError("Password is too common — choose a stronger one")  # NOSONAR — S1192: intentional repetition (audit constant)
         # Check if password contains the username (if available in validation context)
-        if info.data and "username" in info.data:
-            if info.data["username"].lower() in v.lower():
-                raise ValueError("Password must not contain the username")
+        if info.data and "username" in info.data and info.data["username"].lower() in v.lower():
+            raise ValueError("Password must not contain the username")
         return v
 
 
@@ -485,7 +488,7 @@ def _record_failed_attempt(username: str) -> None:
 )
 async def register(
     body: RegisterRequest,
-    db: AsyncSession = Depends(get_db),  # noqa: B008  # NOSONAR — S8410: Annotated[T, Depends(...)] migration will be done in API refactoring sprint
+    db: DbDep,
 ) -> Any:
     """Create a new user account.
 
@@ -539,7 +542,7 @@ async def register(
 )
 async def login(
     body: LoginRequest,
-    db: AsyncSession = Depends(get_db),  # noqa: B008  # NOSONAR — S8410: Annotated[T, Depends(...)] migration will be done in API refactoring sprint
+    db: DbDep,
 ) -> Any:
     """Authenticate with username + password.
 
@@ -586,7 +589,7 @@ async def login(
 )
 async def refresh(
     body: RefreshRequest,
-    db: AsyncSession = Depends(get_db),  # noqa: B008  # NOSONAR — S8410: Annotated[T, Depends(...)] migration will be done in API refactoring sprint
+    db: DbDep,
 ) -> Any:
     """Exchange a valid refresh token for a new access + refresh pair."""
     try:
@@ -649,8 +652,8 @@ async def refresh(
     summary="Revoke session",
 )
 async def logout(
-    body: RefreshRequest | None = Body(None),  # NOSONAR — S8410: Annotated[T, Depends(...)] migration will be done in API refactoring sprint
-    user: CurrentUser = Depends(get_current_user_from_header),  # noqa: B008  # NOSONAR — S8410: Annotated[T, Depends(...)] migration will be done in API refactoring sprint
+    user: CurrentUserDep,
+    body: RefreshRequest | None = Body(None),  # NOSONAR — S8410
 ) -> Response:
     """Log the current user out by blacklisting the provided refresh token.
 
@@ -687,8 +690,8 @@ async def logout(
     summary="Get current user profile",
 )
 async def get_me(
-    user: CurrentUser = Depends(get_current_user_from_header),  # noqa: B008  # NOSONAR — S8410: Annotated[T, Depends(...)] migration will be done in API refactoring sprint
-    db: AsyncSession = Depends(get_db),  # noqa: B008  # NOSONAR — S8410: Annotated[T, Depends(...)] migration will be done in API refactoring sprint
+    user: CurrentUserDep,
+    db: DbDep,
 ) -> Any:
     """Return the authenticated user's full profile."""
     result = await db.execute(select(User).where(User.id == user.user_id))
@@ -720,8 +723,8 @@ async def get_me(
 )
 async def update_me(
     body: UpdateProfileRequest,
-    user: CurrentUser = Depends(get_current_user_from_header),  # noqa: B008  # NOSONAR — S8410: Annotated[T, Depends(...)] migration will be done in API refactoring sprint
-    db: AsyncSession = Depends(get_db),  # noqa: B008  # NOSONAR — S8410: Annotated[T, Depends(...)] migration will be done in API refactoring sprint
+    user: CurrentUserDep,
+    db: DbDep,
 ) -> Any:
     """Update the authenticated user's email and/or MFA preference."""
     result = await db.execute(select(User).where(User.id == user.user_id))
@@ -773,8 +776,8 @@ async def update_me(
 )
 async def change_password(
     body: ChangePasswordRequest,
-    user: CurrentUser = Depends(get_current_user_from_header),  # noqa: B008  # NOSONAR — S8410: Annotated[T, Depends(...)] migration will be done in API refactoring sprint
-    db: AsyncSession = Depends(get_db),  # noqa: B008  # NOSONAR — S8410: Annotated[T, Depends(...)] migration will be done in API refactoring sprint
+    user: CurrentUserDep,
+    db: DbDep,
 ) -> Any:
     """Change the authenticated user's password.
 
@@ -836,7 +839,7 @@ async def change_password(
 )
 async def forgot_password(
     body: ForgotPasswordRequest,
-    db: AsyncSession = Depends(get_db),  # noqa: B008  # NOSONAR — S8410: Annotated[T, Depends(...)] migration will be done in API refactoring sprint
+    db: DbDep,
 ) -> dict[str, str]:
     """Generate a password-reset token for the given email.
 
@@ -873,7 +876,7 @@ async def forgot_password(
 )
 async def reset_password(
     body: ResetPasswordRequest,
-    db: AsyncSession = Depends(get_db),  # noqa: B008  # NOSONAR — S8410: Annotated[T, Depends(...)] migration will be done in API refactoring sprint
+    db: DbDep,
 ) -> dict[str, str]:
     """Set a new password using a valid reset token."""
     token_hash = hashlib.sha256(body.token.encode()).hexdigest()
@@ -917,9 +920,9 @@ async def reset_password(
     summary="List all users (admin only)",
 )
 async def list_users(
-    user: CurrentUser = Depends(require_role("admin")),  # noqa: B008  # NOSONAR — S8410: Annotated[T, Depends(...)] migration will be done in API refactoring sprint
-    db: AsyncSession = Depends(get_db),  # noqa: B008  # NOSONAR — S8410: Annotated[T, Depends(...)] migration will be done in API refactoring sprint
-    pagination=Depends(pagination_params),  # noqa: B008  # NOSONAR — S8410: Annotated[T, Depends(...)] migration will be done in API refactoring sprint
+    db: DbDep,
+    user: CurrentUser = Depends(require_role("admin")),  # noqa: B008  # NOSONAR — S8410
+    pagination=Depends(pagination_params),  # noqa: B008  # NOSONAR — S8410
 ) -> Any:
     """Return a paginated list of all users. Requires the ``admin`` role."""
     # Total count
@@ -963,8 +966,8 @@ async def list_users(
 )
 async def delete_user(
     user_id: str,
-    user: CurrentUser = Depends(require_role("admin")),  # noqa: B008  # NOSONAR — S8410: Annotated[T, Depends(...)] migration will be done in API refactoring sprint
-    db: AsyncSession = Depends(get_db),  # noqa: B008  # NOSONAR — S8410: Annotated[T, Depends(...)] migration will be done in API refactoring sprint
+    db: DbDep,
+    user: CurrentUser = Depends(require_role("admin")),  # noqa: B008  # NOSONAR — S8410
 ) -> dict[str, str]:
     """Soft-delete a user by setting ``is_active = False``.
 
