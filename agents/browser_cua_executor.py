@@ -148,7 +148,7 @@ class BrowserCUAExecutor:
         executor = BrowserCUAExecutor(audit_dir="/tmp/cua_audit")
         result = executor.execute_loop(
             objective="Open the dashboard and check the latest study status",
-            start_url="https://ahmdelbaz28-ahmedetap.hf.space/dashboard",
+            start_url="https://ahmdelbaz28-ahmedetap-platform.hf.space/dashboard",
             max_steps=15,
         )
     """

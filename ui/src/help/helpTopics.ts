@@ -1899,7 +1899,7 @@ docker compose logs api
 \`\`\`
 
 **6. For HF Space deployment:**
-- Check the Space status at https://huggingface.co/spaces/ahmdelbaz28/AHMEDETAP
+- Check the Space status at https://huggingface.co/spaces/ahmdelbaz28/AhmedETAP-Platform
 - The Space may be sleeping (free tier sleeps after 48h of inactivity)
 - Visit the Space URL to wake it up`,
       ar: `**الأعراض:**
@@ -1940,7 +1940,7 @@ docker compose logs api
 \`\`\`
 
 **6. لنشر HF Space:**
-- تحقق من حالة المساحة على https://huggingface.co/spaces/ahmdelbaz28/AHMEDETAP
+- تحقق من حالة المساحة على https://huggingface.co/spaces/ahmdelbaz28/AhmedETAP-Platform
 - قد تكون المساحة نائمة (الطبقة المجانية تنام بعد 48 ساعة من عدم النشاط)
 - قم بزيارة رابط المساحة لإيقاظها`,
     },

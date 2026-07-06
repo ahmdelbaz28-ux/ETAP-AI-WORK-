@@ -17992,13 +17992,13 @@
       "HF_SPACE_NAME": {
         "name": "HF_SPACE_NAME",
         "section": "=",
-        "default_hint": "ahmdelbaz28/AHMEDETAP",
+        "default_hint": "ahmdelbaz28/AhmedETAP-Platform",
         "used_in_files": []
       },
       "HF_REPO_URL": {
         "name": "HF_REPO_URL",
         "section": "=",
-        "default_hint": "https://huggingface.co/spaces/ahmdelbaz28/AHMEDETAP",
+        "default_hint": "https://huggingface.co/spaces/ahmdelbaz28/AhmedETAP-Platform",
         "used_in_files": []
       },
       "LANGWATCH_API_KEY": {
