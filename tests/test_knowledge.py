@@ -38,31 +38,39 @@ pytestmark = pytest.mark.skipif(
 
 
 @pytest.fixture(autouse=True)
-def _reset_knowledge_base_singleton():
-    """Reset the knowledge base singleton + clean chroma state before each test.
+def _reset_knowledge_base_singleton(tmp_path, monkeypatch):
+    """Reset the knowledge base singleton + isolate chroma state per test.
 
-    Without this, the EngineeringKnowledgeBase singleton + the underlying
-    PersistentClient (at ./knowledge_db) leak state between tests — earlier
-    test ingests pollute the chroma collection, causing later tests to
-    retrieve stale documents instead of the default engineering standards.
+    Two isolation strategies combined:
+
+    1. Per-test tmp_path for the chroma PersistentClient — prevents the
+       shared `./knowledge_db` directory from being corrupted when
+       pytest-xdist runs 4 worker processes in parallel (each opens its
+       own PersistentClient on the same path, causing RustBindingsAPI
+       'object has no attribute bindings' crashes during system stop).
+
+    2. Reset the EngineeringKnowledgeBase module-level singleton —
+       ensures each test gets a fresh KB that picks up the new (isolated)
+       chroma path via VectorDatabase's default.
+
+    The monkeypatch is scoped to the test function, so the original
+    default path is restored after the test — production code is
+    unaffected.
     """
     if _HAS_KNOWLEDGE_DEPS:
         # Reset the singleton so each test gets a fresh EngineeringKnowledgeBase
         import knowledge.rag_engine as _rag
 
         _rag._knowledge_base = None
-        # Clean any persistent chroma collection so the next instantiation
-        # starts with only the default engineering standards (not leftovers
-        # from previous test ingests like 'test_doc_1' / 'custom_test').
-        with contextlib.suppress(Exception):
-            import chromadb
-
-            client = chromadb.PersistentClient(path="./knowledge_db")
-            for col_name in ["engineering_knowledge", "code_context"]:
-                try:
-                    client.delete_collection(col_name)
-                except Exception:
-                    pass
+        # Override the default chroma path with a per-test tmp_path.
+        # VectorDatabase.__init__ has db_path default "./knowledge_db" —
+        # patching the default in VectorDatabase is the cleanest way to
+        # redirect ALL instantiations (EngineeringKnowledgeBase uses
+        # vector_db or VectorDatabase() with no args).
+        monkeypatch.setattr(
+            "knowledge.rag_engine.VectorDatabase.__init__.__defaults__",
+            ("chroma", str(tmp_path / "knowledge_db")),
+        )
     yield
 
 
