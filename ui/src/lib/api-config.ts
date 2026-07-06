@@ -28,13 +28,14 @@ function resolveApiBaseUrl(): string {
 
   // 2. On the HF Space, the UI is served from the same origin as the API.
   //    Detect this by checking if we're on *.hf.space.
-  if (typeof globalThis !== 'undefined' && globalThis.location?.hostname?.endsWith('.hf.space')) {
+  //    Use typeof window check to avoid ReferenceError during Vite build (Node.js).
+  if (typeof window !== 'undefined' && typeof window.location !== 'undefined' && window.location.hostname.endsWith('.hf.space')) {
     return ''  // same-origin — empty prefix so fetch('/api/v1/...') works
   }
 
   // 3. Last-resort default: the HF Space production API.
   //    Change this URL if the Space moves to a different name or host.
-  return 'https://ahmdelbaz28-ahmedetap.hf.space'
+  return 'https://ahmdelbaz28-ahmedetap-platform.hf.space'
 }
 
 export const API_BASE_URL = resolveApiBaseUrl()
