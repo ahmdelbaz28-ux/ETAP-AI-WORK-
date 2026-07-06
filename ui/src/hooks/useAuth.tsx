@@ -92,8 +92,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     localStorage.setItem('authToken', data.access_token);
     localStorage.setItem('refreshToken', data.refresh_token);
 
-    // Set user
-    setUser(data.user);
+    // Fetch the user profile from /me (TokenResponse does not include user)
+    try {
+      const meResponse = await fetch(`${API_BASE_URL}/api/v1/auth/me`, {
+        headers: { 'Authorization': `Bearer ${data.access_token}` },
+      });
+      if (meResponse.ok) {
+        const userData = await meResponse.json();
+        setUser(userData);
+      } else {
+        // If /me fails, construct a minimal user from the username we sent
+        setUser({ id: '', email: email, name: email, role: 'engineer' });
+      }
+    } catch {
+      setUser({ id: '', email: email, name: email, role: 'engineer' });
+    }
   };
 
   const logout = () => {
@@ -123,14 +136,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       throw new Error(errorData.detail || 'Registration failed');
     }
 
-    const data = await response.json();
-
-    // Save tokens
-    localStorage.setItem('authToken', data.access_token);
-    localStorage.setItem('refreshToken', data.refresh_token);
-
-    // Set user
-    setUser(data.user);
+    // Register returns UserResponse (no tokens). Auto-login to get tokens.
+    await login(email, password);
   };
 
   const refreshToken = async () => {

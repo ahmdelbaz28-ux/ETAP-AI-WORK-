@@ -52,13 +52,18 @@ describe('useAuth', () => {
 
   it('performs login and sets user with tokens', async () => {
     const mockUser = { id: '1', email: 'engineer@etap.com', name: 'Engineer', role: 'admin' }
+    // First call: POST /login returns tokens
     mockFetch.mockResolvedValueOnce({
       ok: true,
       json: () => Promise.resolve({
         access_token: 'test-access-token',
         refresh_token: 'test-refresh-token',
-        user: mockUser,
       }),
+    })
+    // Second call: GET /me returns the user profile
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: () => Promise.resolve(mockUser),
     })
 
     const { result } = renderHook(() => useAuth(), { wrapper: createWrapper() })
