@@ -84,6 +84,15 @@ async def lifespan(app: FastAPI):
         "Knowledge base: %d ETAP manuals + %d Zenon guides", ETAP_MANUAL_COUNT, ZENON_GUIDE_COUNT,
     )
     logger.info("Active agents: %d", AGENT_COUNT)
+
+    # Create database tables on startup. Without this, /api/v1/auth/register
+    # and /login fail with 500 because the `users` table doesn't exist.
+    try:
+        from api.database import init_db
+        await init_db()
+    except Exception as e:
+        logger.error("Database init failed: %s", e)
+
     yield
     logger.info("AhmedETAP shutting down")
 

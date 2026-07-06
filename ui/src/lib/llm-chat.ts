@@ -16,7 +16,7 @@
 
 import { POPULAR_PROVIDERS } from '../pages/Settings'
 
-// ─── Types ────────────────────────────────────────────────────────
+// --- section ---
 export interface ChatMessage {
   role: 'user' | 'assistant' | 'system'
   content: string
@@ -37,7 +37,7 @@ export interface ProviderConfig {
   apiType: 'openai' | 'anthropic' | 'gemini' | 'cloudflare' | 'zhipu' | 'cohere'
 }
 
-// ─── Proxy helper ────────────────────────────────────────────────
+// --- section ---
 // Routes the request through our Vercel serverless function to bypass CORS.
 async function proxyFetch(
   endpoint: string,
@@ -62,7 +62,7 @@ async function proxyFetch(
   return res
 }
 
-// ─── Settings helpers ────────────────────────────────────────────
+// --- section ---
 function getSettings(): Record<string, string> {
   try {
     const stored = localStorage.getItem('etap-settings')
@@ -119,7 +119,7 @@ export function getConfiguredProviders(): { id: string; name: string; model: str
   })
 }
 
-// ─── LLM API calls (all through proxy) ───────────────────────────
+// --- section ---
 
 export async function chatWithLLM(
   messages: ChatMessage[],
@@ -153,7 +153,7 @@ export async function chatWithLLM(
   }
 }
 
-// ─── OpenAI-compatible (uses proxy for CORS) ────────────────────
+// --- section ---
 async function callOpenAICompatible(
   messages: ChatMessage[],
   provider: ProviderConfig
@@ -176,7 +176,7 @@ async function callOpenAICompatible(
   return { content, provider: provider.name, model: provider.model }
 }
 
-// ─── Anthropic (uses proxy for CORS) ─────────────────────────────
+// --- section ---
 async function callAnthropic(
   messages: ChatMessage[],
   provider: ProviderConfig
@@ -205,7 +205,7 @@ async function callAnthropic(
   return { content, provider: provider.name, model: provider.model }
 }
 
-// ─── Google Gemini (uses proxy for CORS) ────────────────────────
+// --- section ---
 async function callGemini(
   messages: ChatMessage[],
   provider: ProviderConfig
@@ -251,7 +251,7 @@ async function callGemini(
   return { content, provider: provider.name, model: provider.model }
 }
 
-// ─── Cloudflare Workers AI (uses proxy for CORS) ────────────────
+// --- section ---
 async function callCloudflare(
   messages: ChatMessage[],
   provider: ProviderConfig
@@ -275,7 +275,7 @@ async function callCloudflare(
   return { content, provider: provider.name, model: provider.model }
 }
 
-// ─── Zhipu AI (uses proxy for CORS) ─────────────────────────────
+// --- section ---
 // Zhipu uses the same OpenAI-compatible /chat/completions API shape.
 async function callZhipu(
   messages: ChatMessage[],
@@ -284,7 +284,7 @@ async function callZhipu(
   return callOpenAICompatible(messages, provider)
 }
 
-// ─── Cohere (uses proxy for CORS) ───────────────────────────────
+// --- section ---
 async function callCohere(
   messages: ChatMessage[],
   provider: ProviderConfig
@@ -305,7 +305,7 @@ async function callCohere(
   return { content, provider: provider.name, model: provider.model }
 }
 
-// ─── Provider Connection Test (uses proxy for CORS) ─────────────
+// --- section ---
 
 export interface TestResult {
   success: boolean
@@ -563,7 +563,7 @@ async function diagnoseHttpError(
   }
 }
 
-// ─── Streaming support ───────────────────────────────────────────
+// --- section ---
 // Streams the response token-by-token for a typewriter effect.
 //
 // The main `chatWithLLMStream` is a thin dispatcher that picks the right

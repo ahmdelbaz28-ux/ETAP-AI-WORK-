@@ -320,6 +320,7 @@ PUBLIC_PATHS: frozenset[str] = frozenset(
         "/api/v1/auth/register",
         "/api/v1/auth/login",
         "/api/v1/auth/refresh",
+        "/api/v1/auth/me",  # JWT-protected (not API-key-protected)
     },
 )
 
