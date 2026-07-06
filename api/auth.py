@@ -33,7 +33,7 @@ import uuid
 from datetime import datetime, timedelta, timezone
 
 UTC = timezone.utc  # noqa: UP017
-from typing import Any
+from typing import Annotated, Any
 
 import bcrypt
 import jwt
