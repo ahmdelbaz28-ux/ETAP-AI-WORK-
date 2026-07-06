@@ -21,11 +21,12 @@ if TYPE_CHECKING:
     # the function body to avoid module-load cycle on HF Space cold start.
     from services.api_key_store import APIKeyConfig
 
+from pathlib import Path
+
 import uvicorn
 from fastapi import FastAPI, HTTPException, Request, WebSocket
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import HTMLResponse, JSONResponse, FileResponse
-from pathlib import Path
+from fastapi.responses import FileResponse, HTMLResponse, JSONResponse
 
 # -- Shared handlers (single source of truth) ---------------------------------
 from api.shared_handlers import (
