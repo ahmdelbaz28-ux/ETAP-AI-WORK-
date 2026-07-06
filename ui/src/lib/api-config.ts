@@ -35,7 +35,7 @@ function resolveApiBaseUrl(): string {
 
   // 3. Last-resort default: the HF Space production API.
   //    Change this URL if the Space moves to a different name or host.
-  return 'https://ahmdelbaz28-ahmedetap.hf.space'
+  return 'https://ahmdelbaz28-ahmedetap-platform.hf.space'
 }
 
 export const API_BASE_URL = resolveApiBaseUrl()
