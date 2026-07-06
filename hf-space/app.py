@@ -1199,6 +1199,34 @@ async def detect_anomalies(request: Request):
     return result
 
 
+# -- UI catch-all route (MUST be BEFORE if __name__ == "__main__") -------------
+# Serves the Vite-built React app. Static files (JS/CSS/assets/icons) are
+# served directly; all other paths fall back to index.html for React Router.
+# IMPORTANT: This MUST be defined BEFORE the `if __name__ == "__main__"` block
+# because uvicorn.run() is a blocking call — any code after it never executes.
+_UI_DIST = Path(__file__).parent / "ui-dist"
+_UI_INDEX = _UI_DIST / "index.html"
+
+
+@app.get("/{full_path:path}", response_class=HTMLResponse, include_in_schema=False)
+async def ui_catch_all(full_path: str):
+    """Serve static UI files with SPA fallback to index.html."""
+    # Skip API paths — they should have been handled by routes above
+    if full_path.startswith("api/"):
+        raise HTTPException(status_code=404, detail="Not Found")
+
+    # Try to serve the actual file first (assets, favicon, etc.)
+    file_path = _UI_DIST / full_path
+    if full_path and file_path.is_file():
+        return FileResponse(str(file_path))
+
+    # SPA fallback — return index.html for any non-file path
+    if _UI_INDEX.is_file():
+        return HTMLResponse(content=_UI_INDEX.read_text(encoding="utf-8"))
+
+    return HTMLResponse(content="<h1>UI not built</h1>", status_code=503)
+
+
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 7860))
     host = os.environ.get("HOST", "0.0.0.0")
