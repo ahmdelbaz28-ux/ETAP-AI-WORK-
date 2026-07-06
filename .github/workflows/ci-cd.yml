@@ -215,7 +215,12 @@ jobs:
         run: python scripts/security_scan.py
 
       - name: Trivy filesystem scan
-        uses: aquasecurity/trivy-action@master  # NOSONAR — S7637: GitHub Action pinning; SHA pinning in CI sprint
+        # Pinned to specific minor tag (0.24.0) instead of mutable @master ref.
+        # @master is a mutable ref — any commit to the upstream repo changes
+        # the action's behavior, which is a supply-chain risk (an attacker
+        # who compromises the upstream repo can run arbitrary code in our CI
+        # with our secrets). TODO: SHA-pin to commit hash for full protection.
+        uses: aquasecurity/trivy-action@0.24.0  # v0.24.0 (2024-09)
         with:
           scan-type: 'fs'
           scan-ref: '.'
@@ -377,7 +382,9 @@ jobs:
           echo "image_tag=$TAG" >> "$GITHUB_OUTPUT"
 
       - name: Trivy container vulnerability scan
-        uses: aquasecurity/trivy-action@master  # NOSONAR — S7637: GitHub Action pinning; SHA pinning in CI sprint
+        # Pinned to specific minor tag (0.24.0) instead of mutable @master ref.
+        # See filesystem-scan step above for the supply-chain risk rationale.
+        uses: aquasecurity/trivy-action@0.24.0  # v0.24.0 (2024-09)
         with:
           image-ref: ${{ env.REGISTRY }}/${{ steps.sanitize.outputs.image_name }}:${{ steps.sanitize.outputs.image_tag }}
           format: 'sarif'
@@ -397,7 +404,8 @@ jobs:
           sarif_file: 'trivy-results.sarif'
 
       - name: Generate SBOM (CycloneDX)
-        uses: aquasecurity/trivy-action@master  # NOSONAR — S7637: GitHub Action pinning; SHA pinning in CI sprint
+        # Pinned to specific minor tag (0.24.0) instead of mutable @master ref.
+        uses: aquasecurity/trivy-action@0.24.0  # v0.24.0 (2024-09)
         with:
           image-ref: ${{ env.REGISTRY }}/${{ steps.sanitize.outputs.image_name }}:${{ steps.sanitize.outputs.image_tag }}
           format: 'cyclonedx'
