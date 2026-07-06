@@ -80,6 +80,9 @@ COPY --chown=user:user integrations/ /app/integrations/
 COPY --chown=user:user ml/ /app/ml/
 COPY --chown=user:user VERSION /app/VERSION
 
+# UI static files (Vite-built React app, served at root / by app.py)
+COPY --chown=user:user ui-dist/ /app/ui-dist/
+
 # Environment
 ENV PORT=7860
 ENV HOST=0.0.0.0
