@@ -388,10 +388,18 @@ class ETAPProject:
                 for bus in self._com_project.Buses:
                     bus_id = getattr(bus, "ID", "")
                     ETAPAutomation._validate_bus_id(bus_id)
+                    # ETAP 2021 COM property names for short-circuit currents:
+                    # - I3PhaseKA: three-phase fault current (kA)
+                    # - ILGKA: line-to-ground fault current (kA)
+                    # - ILLKA: line-to-line fault current (kA)  ← was "IllKA" (typo)
+                    # - IDLGKA: double-line-to-ground fault current (kA)
+                    # The previous "IllKA" was a casing typo that silently returned
+                    # 0.0 via getattr() fallback, making all line-to-line fault
+                    # currents appear as zero.
                     faults[bus_id] = {
                         "three_phase_ka": getattr(bus, "I3PhaseKA", 0.0),
                         "line_to_ground_ka": getattr(bus, "ILGKA", 0.0),
-                        "line_to_line_ka": getattr(bus, "IllKA", 0.0),
+                        "line_to_line_ka": getattr(bus, "ILLKA", 0.0),  # fixed: was "IllKA"
                         "double_line_to_ground_ka": getattr(bus, "IDLGKA", 0.0),
                     }
 
@@ -448,12 +456,24 @@ class ETAPProject:
         """Run harmonic analysis study via ETAP COM.
 
         Raises RuntimeError if COM module is unavailable or returns no data.
+
+        Note: ETAP 2021 uses "Harmonic" as the COM module name (not
+        "HarmonicAnalysis"). We try "Harmonic" first, then fall back to
+        "HarmonicAnalysis" for older ETAP versions (pre-2021).
         """
         buses = {}
         try:
-            harm_module = getattr(self._com_project, "HarmonicAnalysis", None)
+            # ETAP 2021+ uses "Harmonic"; older versions use "HarmonicAnalysis"
+            harm_module = getattr(self._com_project, "Harmonic", None)
+            if harm_module is None:
+                # Fallback for older ETAP versions
+                harm_module = getattr(self._com_project, "HarmonicAnalysis", None)
             if harm_module is None or not hasattr(harm_module, "Calculate"):
-                raise RuntimeError("HarmonicAnalysis module not available in ETAP project")
+                raise RuntimeError(
+                    "Harmonic module not available in ETAP project "
+                    "(tried both 'Harmonic' for ETAP 2021+ and "
+                    "'HarmonicAnalysis' for older versions)"
+                )
             harm_module.Calculate()
             for bus in self._com_project.Buses:
                 bus_id = str(getattr(bus, "ID", ""))
@@ -600,15 +620,25 @@ class ETAPProject:
                 gen_id = str(getattr(gen, "ID", ""))
                 if not gen_id:
                     continue
-                # Read trajectories from COM module
+                # Read trajectories from COM module.
+                # ETAP 2021 COM property names for transient stability:
+                # - RotorAngle (scalar, final value) — most reliable
+                # - RotorAngleTrajectory (array, time series) — may not exist
+                #   in all ETAP versions; was observed missing in ETAP 2021
+                # - Speed (scalar, final value)
+                # - TimeTrajectory (array, time series)
+                # We try the trajectory form first, then fall back to scalar.
                 raw_angles = getattr(gen, "RotorAngleTrajectory", None)
                 raw_times = getattr(gen, "TimeTrajectory", None)
                 if raw_angles and raw_times:
                     angles = [float(a) for a in raw_angles[:max_points]]
                     times = [float(t) for t in raw_times[:max_points]]
                 else:
-                    angles = []
-                    times = []
+                    # Fallback: use scalar RotorAngle (final value) + single
+                    # time point at the simulation duration
+                    final_angle = float(getattr(gen, "RotorAngle", 0.0))
+                    angles = [final_angle]
+                    times = [duration]
                 generators[gen_id] = {
                     "rotor_angle_deg": angles,
                     "time_sec": times,
