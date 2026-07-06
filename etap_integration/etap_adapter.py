@@ -85,7 +85,7 @@ class ETAPProviderAdapter(ETAPAdapter):
                 logger.warning(f"ETAP provider not available: {e}")
                 self._available = False
             except Exception as e:
-                logger.exception("Error initializing ETAP provider: ")
+                logger.exception("Error initializing ETAP provider: %s", e)
                 self._available = False
         else:
             logger.info("ETAP functionality disabled via USE_ETAP environment variable")
