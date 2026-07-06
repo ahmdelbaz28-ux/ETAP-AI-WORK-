@@ -14,7 +14,7 @@ set -euo pipefail
 
 PORT="${PORT:-8000}"
 
-command -v docker >/dev/null 2>&1 || { echo "ERROR: docker is not installed"; exit 1; }
+command -v docker >/dev/null 2>&1 || { echo "ERROR: docker is not installed" >&2; exit 1; }
 command -v cloudflared >/dev/null 2>&1 || {
   echo "cloudflared not found. Install:"
   echo "  Windows: winget install Cloudflare.cloudflared"

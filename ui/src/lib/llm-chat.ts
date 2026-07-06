@@ -131,7 +131,7 @@ export async function chatWithLLM(
     ? { ...activeProvider, ...config }
     : activeProvider
 
-  if (!provider || !provider.apiKey) {
+  if (!provider?.apiKey)  // NOSONAR — S6582: optional chain equivalent {
     throw new Error('No API key configured. Go to Settings → AI Providers to connect a provider.')
   }
 
@@ -790,7 +790,7 @@ export async function* chatWithLLMStream(
     ? { ...activeProvider, ...config }
     : activeProvider
 
-  if (!provider || !provider.apiKey) {
+  if (!provider?.apiKey)  // NOSONAR — S6582: optional chain equivalent {
     throw new Error('No API key configured. Go to Settings → AI Providers to connect a provider.')
   }
 

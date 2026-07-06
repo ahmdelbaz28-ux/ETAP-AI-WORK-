@@ -27,7 +27,7 @@ export const run_python = createTool({
         '/usr/sbin',
         '/sbin',
       ].join(':');
-      const child = spawn('python', [secureExecutorPath], {
+      const child = spawn('python', [secureExecutorPath], {  // NOSONAR — S4036: PATH is hardcoded SAFE_PATH above
         env: {
           ...process.env,
           PATH: SAFE_PATH,

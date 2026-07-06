@@ -29,7 +29,7 @@ export const run_powershell = createTool({
         '/usr/sbin',
         '/sbin',
       ].join(':');
-      const child = spawn('python', [secureExecutorPath], {
+      const child = spawn('python', [secureExecutorPath], {  // NOSONAR — S4036: PATH is hardcoded SAFE_PATH above
         env: {
           ...process.env,
           // Override PATH with only vetted system directories

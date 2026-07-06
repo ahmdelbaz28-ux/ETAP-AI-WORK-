@@ -54,7 +54,7 @@ export interface KVNamespace {
   // NOSONAR — typescript:S6571: `unknown | null` is technically simplified
   // to `unknown`, but kept for parity with the official @cloudflare/workers-types
   // KVNamespace signature so callers can copy-paste between local + prod.
-  get(key: string, options?: { type?: 'text' | 'json' | 'arrayBuffer' | 'stream' }): Promise<unknown | null>;
+  get(key: string, options?: { type?: 'text' | 'json' | 'arrayBuffer' | 'stream' }): Promise<unknown | null>;  // NOSONAR — S6571: parity with @cloudflare/workers-types KVNamespace
   put(
     key: string,
     value: string | ArrayBuffer | ReadableStream,

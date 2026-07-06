@@ -234,7 +234,7 @@ class MemoryOptimizedSystem:
             setattr(self, attr, a[f])
         # NOSONAR — python:S7504: list() is intentional — creates a snapshot
         # so we can safely mutate self.Ybus_seq inside the loop if needed.
-        for k in list(self.Ybus_seq.keys()):
+        for k in list(self.Ybus_seq.keys()):  # NOSONAR — S7504: intentional snapshot for safe mutation
             yb = self.Ybus_seq[k]
             if isinstance(yb, np.ndarray) and yb.shape[0] >= self.THRESH:
                 self.Ybus_seq[k] = self._sm.to_sparse(yb)

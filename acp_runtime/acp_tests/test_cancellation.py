@@ -59,7 +59,7 @@ async def test_cancellation_via_external_cancel_scope():
             handler_observed_cancel = True
             raise
 
-    async with anyio.create_task_group() as tg:
+    async with anyio.create_task_group() as tg:  # NOSONAR — S7513: TaskGroup needed for cancellation semantics
         tg.start_soon(handler)
         await anyio.sleep(0.05)
         tg.cancel_scope.cancel()
@@ -122,7 +122,7 @@ async def test_cancellable_with_deadline_fires():
 async def test_cancellable_without_deadline_requires_external_cancel():
     # NOSONAR — python:S7513: TaskGroup with one task is intentional —
     # we need the task group to test cancellation propagation semantics.
-    async with anyio.create_task_group() as tg:
+    async with anyio.create_task_group() as tg:  # NOSONAR — S7513: TaskGroup needed for cancellation semantics
         runner_scope = None
 
         async def runner():
