@@ -583,7 +583,12 @@ jobs:
               "SUPABASE_URL":          os.environ.get("SUPABASE_URL", ""),
               "SUPABASE_ANON_KEY":     os.environ.get("SUPABASE_ANON_KEY", ""),
               "SUPABASE_SERVICE_ROLE_KEY": os.environ.get("SUPABASE_SERVICE_ROLE_KEY", ""),
-              "DATABASE_URL":          os.environ.get("DATABASE_URL", ""),
+              # NOTE: DATABASE_URL is intentionally NOT synced to HF Space.
+              # The HF Space Dockerfile sets DATABASE_URL=sqlite+aiosqlite:////tmp/data/etap_platform.db
+              # which is a local SQLite file that works without external dependencies.
+              # Syncing the Supabase PostgreSQL URL caused init_db() to fail
+              # because the connection was unreachable, resulting in 500 errors
+              # on /register and /login.
               "NEO4J_URI":             os.environ.get("NEO4J_URI", ""),
               "NEO4J_USER":            os.environ.get("NEO4J_USER", ""),
               "NEO4J_PASSWORD":        os.environ.get("NEO4J_PASSWORD", ""),
