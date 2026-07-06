@@ -158,7 +158,15 @@ jobs:
         #   - tests/regression — requires full ETAP desktop app.
         # pytest-timeout kills any individual test that exceeds 60s.
         # pytest-xdist runs tests in parallel (4 workers) to speed up CI.
+        #
+        # CRITICAL: `set -o pipefail` makes the pipeline exit with pytest's
+        # exit code, not tail's. Without it, `pytest ... | tail -120` always
+        # exits 0 (tail succeeds), so test failures were silently masked
+        # and the job reported success even when tests failed.
+        # Same class of bug as PR #161 fixed for `git push ... | tail` in
+        # sync-platforms.yml.
         run: |
+          set -o pipefail
           pytest tests/ \
             --ignore=tests/scenarios \
             --ignore=tests/load \
