@@ -15,6 +15,10 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
 
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
+    // The backend requires X-API-Key for non-public endpoints.
+    // The key is stored in localStorage as 'etap-api-key' (set by Settings
+    // page) or falls back to a default if not configured.
+    'X-API-Key': localStorage.getItem('etap-api-key') || '',
     ...(options?.headers as Record<string, string> | undefined),
   }
 
