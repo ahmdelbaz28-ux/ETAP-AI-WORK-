@@ -84,6 +84,15 @@ async def lifespan(app: FastAPI):
         "Knowledge base: %d ETAP manuals + %d Zenon guides", ETAP_MANUAL_COUNT, ZENON_GUIDE_COUNT,
     )
     logger.info("Active agents: %d", AGENT_COUNT)
+
+    # Create database tables on startup. Without this, /api/v1/auth/register
+    # and /login fail with 500 because the `users` table doesn't exist.
+    try:
+        from api.database import init_db
+        await init_db()
+    except Exception as e:
+        logger.error("Database init failed: %s", e)
+
     yield
     logger.info("AhmedETAP shutting down")
 
@@ -106,6 +115,13 @@ app = FastAPI(
     openapi_url="/openapi.json",
     lifespan=lifespan,
 )
+
+# Register the auth router so /api/v1/auth/register, /login, /refresh, /me
+# are available on the HF Space. Without this, users cannot register or
+# log in — the endpoints returned 404.
+from api.auth import router as auth_router  # noqa: E402
+
+app.include_router(auth_router)
 
 app.add_middleware(
     CORSMiddleware,
@@ -824,7 +840,7 @@ async def benchmark():
         size = 200
         # SonarCloud python:S6711: use numpy.random.Generator (modern API)
         # instead of the legacy np.random.rand function.
-        rng = np.random.default_rng()
+        rng = np.random.default_rng(seed=42)  # S6709: explicit seed for reproducibility
         t0 = time.perf_counter()
         a = rng.random((size, size))
         b = rng.random((size, size))

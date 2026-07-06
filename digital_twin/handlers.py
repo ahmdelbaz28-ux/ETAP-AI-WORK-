@@ -581,7 +581,7 @@ class DigitalTwinUpdateHandler(PropagationHandler):
             if ctx.dt_state.system is not None and ctx.load_flow_solver is not None:
                 # NOSONAR — python:S7504: list() is intentional — creates a
                 # snapshot so we can mutate snapshot.bus_states during iteration.
-                for bid_str in list(snapshot.bus_states.keys()):
+                for bid_str in list(snapshot.bus_states.keys()):  # NOSONAR — S7504: intentional snapshot for safe mutation during iteration
                     try:
                         bid_int = int(bid_str)
                     except (ValueError, TypeError):

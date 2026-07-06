@@ -52,13 +52,18 @@ describe('useAuth', () => {
 
   it('performs login and sets user with tokens', async () => {
     const mockUser = { id: '1', email: 'engineer@etap.com', name: 'Engineer', role: 'admin' }
+    // First call: POST /login returns tokens
     mockFetch.mockResolvedValueOnce({
       ok: true,
       json: () => Promise.resolve({
         access_token: 'test-access-token',
         refresh_token: 'test-refresh-token',
-        user: mockUser,
       }),
+    })
+    // Second call: GET /me returns the user profile
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: () => Promise.resolve(mockUser),
     })
 
     const { result } = renderHook(() => useAuth(), { wrapper: createWrapper() })
@@ -71,9 +76,9 @@ describe('useAuth', () => {
       await result.current.login('engineer@etap.com', 'password123')
     })
 
-    expect(mockFetch).toHaveBeenCalledWith('https://ahmdelbaz28-ahmedetap.hf.space/api/v1/auth/login', expect.objectContaining({
+    expect(mockFetch).toHaveBeenCalledWith('https://ahmdelbaz28-ahmedetap-platform.hf.space/api/v1/auth/login', expect.objectContaining({
       method: 'POST',
-      body: JSON.stringify({ email: 'engineer@etap.com', password: 'password123' }),
+      body: JSON.stringify({ username: 'engineer@etap.com', password: 'password123' }),
     }))
 
     expect(localStorage.getItem('authToken')).toBe('test-access-token')
@@ -151,7 +156,7 @@ describe('useAuth', () => {
       expect(result.current.isLoading).toBe(false)
     })
 
-    expect(mockFetch).toHaveBeenCalledWith('https://ahmdelbaz28-ahmedetap.hf.space/api/v1/auth/me', expect.objectContaining({
+    expect(mockFetch).toHaveBeenCalledWith('https://ahmdelbaz28-ahmedetap-platform.hf.space/api/v1/auth/me', expect.objectContaining({
       headers: expect.objectContaining({
         Authorization: 'Bearer existing-token',
       }),
@@ -196,7 +201,7 @@ describe('useAuth', () => {
       await result.current.refreshToken()
     })
 
-    expect(mockFetch).toHaveBeenCalledWith('https://ahmdelbaz28-ahmedetap.hf.space/api/v1/auth/refresh', expect.objectContaining({
+    expect(mockFetch).toHaveBeenCalledWith('https://ahmdelbaz28-ahmedetap-platform.hf.space/api/v1/auth/refresh', expect.objectContaining({
       method: 'POST',
       headers: expect.objectContaining({
         Authorization: 'Bearer old-refresh-token',

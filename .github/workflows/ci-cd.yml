@@ -19,7 +19,7 @@ concurrency:
 env:
   PYTHON_VERSION: '3.12'
   NODE_VERSION: '20'
-  HF_SPACE_URL: https://ahmdelbaz28-ahmedetap.hf.space
+  HF_SPACE_URL: https://ahmdelbaz28-ahmedetap-platform.hf.space
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
 

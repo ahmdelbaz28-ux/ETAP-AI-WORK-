@@ -164,7 +164,7 @@ export function OnboardingTour() {
     // intentionally for compatibility with our framer-motion overlay system.
     <div
       className="fixed inset-0 z-[200] flex items-center justify-center p-4"
-      role="dialog"
+      role="dialog"  // NOSONAR — S6819: framer-motion requires div, not <dialog>
       aria-modal="true"
       aria-labelledby="onboarding-title"
     >

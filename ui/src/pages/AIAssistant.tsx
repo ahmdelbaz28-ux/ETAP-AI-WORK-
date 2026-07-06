@@ -394,7 +394,7 @@ export default function AIAssistant() {
                         <ReactMarkdown
                           remarkPlugins={[remarkGfm]}
                           components={{
-                            code({ node, inline, className, children, ...props }: any) {
+                            code({ node, inline, className, children, ...props }: any) {  // NOSONAR — S6478: react-markdown requires inline renderer
                               const match = /language-(\w+)/.exec(className || '')
                               return !inline && match ? (
                                 <div className="rounded-xl overflow-hidden border border-gray-200 dark:border-gray-700 my-4 shadow-sm bg-[#1e1e1e]">

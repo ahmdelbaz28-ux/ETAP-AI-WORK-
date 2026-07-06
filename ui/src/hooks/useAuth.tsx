@@ -75,7 +75,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ email, password }),
+      // Backend LoginRequest expects `username` (which accepts email or
+      // username) + `password`. Send email as username since that's what
+      // the UI collects.
+      body: JSON.stringify({ username: email, password }),
     });
 
     if (!response.ok) {
@@ -89,8 +92,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     localStorage.setItem('authToken', data.access_token);
     localStorage.setItem('refreshToken', data.refresh_token);
 
-    // Set user
-    setUser(data.user);
+    // Fetch the user profile from /me (TokenResponse does not include user)
+    try {
+      const meResponse = await fetch(`${API_BASE_URL}/api/v1/auth/me`, {
+        headers: { 'Authorization': `Bearer ${data.access_token}` },
+      });
+      if (meResponse.ok) {
+        const userData = await meResponse.json();
+        setUser(userData);
+      } else {
+        // If /me fails, construct a minimal user from the username we sent
+        setUser({ id: '', email: email, name: email, role: 'engineer' });
+      }
+    } catch {
+      setUser({ id: '', email: email, name: email, role: 'engineer' });
+    }
   };
 
   const logout = () => {
@@ -105,7 +121,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ email, password, name }),
+      // Backend RegisterRequest expects `username`, `email`, `password`.
+      // Derive a username from the email prefix (before @) since the UI
+      // collects name + email but not a separate username.
+      body: JSON.stringify({
+        username: name.toLowerCase().replace(/[^a-z0-9_-]/g, '-').substring(0, 64) || email.split('@')[0],
+        email,
+        password,
+      }),
     });
 
     if (!response.ok) {
@@ -113,14 +136,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       throw new Error(errorData.detail || 'Registration failed');
     }
 
-    const data = await response.json();
-
-    // Save tokens
-    localStorage.setItem('authToken', data.access_token);
-    localStorage.setItem('refreshToken', data.refresh_token);
-
-    // Set user
-    setUser(data.user);
+    // Register returns UserResponse (no tokens). Auto-login to get tokens.
+    await login(email, password);
   };
 
   const refreshToken = async () => {

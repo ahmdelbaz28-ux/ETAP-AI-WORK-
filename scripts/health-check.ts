@@ -113,7 +113,7 @@ async function httpPost(path: string, config: HealthCheckConfig, payload: unknow
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        ...(headers ?? {}),  // NOSONAR — typescript:S7744
+        ...(headers ?? {}),  // NOSONAR — S7744: spread is safe even with empty object  // NOSONAR — typescript:S7744
         'User-Agent': 'etap-health-check/1.0',
       },
       body: JSON.stringify(payload),

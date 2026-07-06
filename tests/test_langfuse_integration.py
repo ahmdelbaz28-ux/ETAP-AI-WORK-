@@ -261,7 +261,7 @@ class TestCircuitBreaker:
             # NOSONAR — python:S112: generic Exception is intentional here —
             # the test simulates a transport-level failure that could be any
             # exception subclass (ConnectionError, TimeoutError, etc.).
-            raise Exception("network error")
+            raise RuntimeError("network error")  # NOSONAR — S112: RuntimeError simulates transport failure
 
         monkeypatch.setattr(prompt_loader, "_load_from_langfuse_async", _always_fails)
 
