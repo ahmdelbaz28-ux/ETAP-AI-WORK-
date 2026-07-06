@@ -47,7 +47,7 @@
     "zod": "^4.4.3"
   },
   "devDependencies": {
-    "@ai-sdk/openai": "1.0.5",
+    "@ai-sdk/openai": "4.0.8",
     "@modelcontextprotocol/server-filesystem": "^2026.1.14",
     "@testsprite/testsprite-mcp": "latest",
     "@types/node": "22.10.2",
