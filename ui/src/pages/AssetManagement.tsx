@@ -371,6 +371,13 @@ export default function AssetManagement() {
         <div
           className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4"
           onClick={() => !submitting && setShowCreateModal(false)}
+          onKeyDown={(e) => {
+            if (e.key === 'Escape' && !submitting) {
+              setShowCreateModal(false);
+            }
+          }}
+          tabIndex={0}
+          role="button"
         >
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}

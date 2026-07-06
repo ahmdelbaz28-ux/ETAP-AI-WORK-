@@ -20,7 +20,7 @@ from __future__ import annotations
 
 import uuid
 from datetime import UTC, datetime
-from typing import Any
+from typing import Annotated, Any
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
 from pydantic import BaseModel, ConfigDict, Field
@@ -161,11 +161,11 @@ class AssetListResponse(BaseModel):
     dependencies=[Depends(get_api_key)],
 )
 async def list_assets(
-    project_id: str | None = Query(None, description="Filter by project ID"),
-    type_filter: AssetType | None = Query(None, alias="type", description="Filter by asset type"),
-    status_filter: AssetStatus | None = Query(None, alias="status", description="Filter by status"),
-    pagination: PaginationParams = Depends(pagination_params),  # noqa: B008
-    db: AsyncSession = Depends(get_db),  # noqa: B008
+    pagination: Annotated[PaginationParams, Depends(pagination_params)],
+    db: Annotated[AsyncSession, Depends(get_db)],
+    project_id: Annotated[str | None, Query(description="Filter by project ID")] = None,
+    type_filter: Annotated[AssetType | None, Query(alias="type", description="Filter by asset type")] = None,
+    status_filter: Annotated[AssetStatus | None, Query(alias="status", description="Filter by status")] = None,
 ) -> Any:
     """Return a paginated, filterable list of electrical assets."""
     base_query = select(Asset)
@@ -204,7 +204,7 @@ async def list_assets(
 )
 async def get_asset(
     asset_id: str,
-    db: AsyncSession = Depends(get_db),  # noqa: B008
+    db: Annotated[AsyncSession, Depends(get_db)],
 ) -> Any:
     """Return a single asset by ID."""
     result = await db.execute(select(Asset).where(Asset.id == asset_id))
@@ -223,8 +223,8 @@ async def get_asset(
 )
 async def create_asset(
     body: AssetCreateRequest,
-    user: CurrentUser = Depends(get_current_user_from_header),  # noqa: B008
-    db: AsyncSession = Depends(get_db),  # noqa: B008
+    user: Annotated[CurrentUser, Depends(get_current_user_from_header)],
+    db: Annotated[AsyncSession, Depends(get_db)],
 ) -> Any:
     """Create a new electrical asset."""
     asset = Asset(
@@ -253,7 +253,7 @@ async def create_asset(
 async def update_asset(
     asset_id: str,
     body: AssetUpdateRequest,
-    db: AsyncSession = Depends(get_db),  # noqa: B008
+    db: Annotated[AsyncSession, Depends(get_db)],
 ) -> Any:
     """Update an existing asset. Only non-null fields are updated."""
     result = await db.execute(select(Asset).where(Asset.id == asset_id))
@@ -281,7 +281,7 @@ async def update_asset(
 )
 async def delete_asset(
     asset_id: str,
-    db: AsyncSession = Depends(get_db),  # noqa: B008
+    db: Annotated[AsyncSession, Depends(get_db)],
 ) -> Response:
     """Permanently delete an asset.
 

@@ -17,6 +17,8 @@ Standards:
 - IEC 60949: Calculation of thermally permissible short-circuit currents
 """
 
+from __future__ import annotations
+
 import logging
 from datetime import datetime, timezone
 

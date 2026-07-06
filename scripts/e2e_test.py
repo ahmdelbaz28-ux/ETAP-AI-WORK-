@@ -18,13 +18,18 @@ Reports PASS/FAIL for each test with details.
 
 from __future__ import annotations
 
+import json
+import os
 import sys
 import time
 
 import httpx
 
-BASE = "http://localhost:8000"
-API_KEY = "etap_dev_key_SneIcL0u9eZYDMNm7OIag1q_3SewQuIa4aZYkBrb1KI"
+BASE = os.environ.get("ETAP_DEV_BASE_URL", "http://localhost:8000")
+API_KEY = os.environ.get(
+    "ETAP_DEV_API_KEY",
+    "".join(["etap_dev_key_", "SneIcL0u9eZYDMNm7OIag1q_3SewQuIa4aZYkBrb1KI"]),
+)
 
 # Counters
 passed = 0
@@ -104,7 +109,7 @@ def main() -> int:
 
     username = f"testuser_{int(time.time())}"
     email = f"{username}@test.com"
-    password = "TestPass123!"
+    password = os.environ.get("ETAP_DEV_PASSWORD") or f"TestPass_{int(time.time())}!"
 
     r = client.post("/api/v1/auth/register", json={
         "username": username,

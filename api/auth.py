@@ -107,7 +107,7 @@ async def _blacklist_token(jti: str, ttl_seconds: int | None = None) -> None:
             await r.set(key, "1", ex=int(ttl_seconds))
         else:
             await r.set(key, "1")
-    except (ConnectionError, OSError, redis_async.RedisError):
+    except (OSError, redis_async.RedisError):
         # Redis unreachable — silently skip blacklisting (in-memory fallback
         # would not survive restarts, so we prefer to log and continue).
         pass
@@ -122,7 +122,7 @@ async def _is_token_blacklisted(jti: str) -> bool:
     try:
         val = await r.get(key)
         return val is not None
-    except (ConnectionError, OSError, redis_async.RedisError):
+    except (OSError, redis_async.RedisError):
         # Redis unreachable — assume not blacklisted so valid tokens still work.
         return False
 
@@ -461,7 +461,7 @@ async def _check_rate_limit(username: str) -> None:
                     detail="Too many login attempts. Please try again later.",
                 )
             return
-        except (ConnectionError, OSError, redis_async.RedisError):
+        except (OSError, redis_async.RedisError):
             # Redis is configured but unreachable — fall through to
             # in-memory rate limiting so login still works.
             pass

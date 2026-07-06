@@ -26,6 +26,7 @@ import io
 import json
 import re
 import uuid
+import xml.etree.ElementTree as ET
 from datetime import UTC, datetime
 from typing import Any
 
@@ -37,6 +38,8 @@ from api.dependencies import get_api_key, get_current_user_from_header
 UTC = UTC
 
 router = APIRouter(prefix="/api/v1/import", tags=["Data Import"])
+
+_DECODE_WARNING = "File was not valid UTF-8; decoded as Latin-1."
 
 
 # ---------------------------------------------------------------------------
@@ -170,7 +173,7 @@ def _detect_format(filename: str) -> SupportedFormat:
 # Parsers
 # ---------------------------------------------------------------------------
 
-def _parse_csv(content: bytes, filename: str) -> tuple[list[BusRecord], list[BranchRecord], dict[str, Any], list[str]]:
+def _parse_csv(content: bytes) -> tuple[list[BusRecord], list[BranchRecord], dict[str, Any], list[str]]:
     """Parse a CSV file. Expects either a bus table or a branch table.
 
     Bus CSV columns: id, name, voltage_kv, type
@@ -184,7 +187,7 @@ def _parse_csv(content: bytes, filename: str) -> tuple[list[BusRecord], list[Bra
         text = content.decode("utf-8-sig")  # strip BOM if present
     except UnicodeDecodeError:
         text = content.decode("latin-1")
-        warnings.append("File was not valid UTF-8; decoded as Latin-1.")
+        warnings.append(_DECODE_WARNING)
 
     reader = csv.DictReader(io.StringIO(text))
     if not reader.fieldnames:
@@ -228,14 +231,14 @@ def _parse_csv(content: bytes, filename: str) -> tuple[list[BusRecord], list[Bra
     return buses, branches, {"row_count": len(buses) + len(branches)}, warnings
 
 
-def _parse_json(content: bytes, filename: str) -> tuple[list[BusRecord], list[BranchRecord], dict[str, Any], list[str]]:
+def _parse_json(content: bytes) -> tuple[list[BusRecord], list[BranchRecord], dict[str, Any], list[str]]:
     """Parse a JSON file. Accepts either ETAP-style or generic {buses, branches} format."""
     warnings: list[str] = []
     try:
         data = json.loads(content.decode("utf-8-sig"))
     except UnicodeDecodeError:
         data = json.loads(content.decode("latin-1"))
-        warnings.append("File was not valid UTF-8; decoded as Latin-1.")
+        warnings.append(_DECODE_WARNING)
     except json.JSONDecodeError as e:
         raise ValueError(f"Invalid JSON: {e}") from e
 
@@ -273,7 +276,7 @@ def _parse_json(content: bytes, filename: str) -> tuple[list[BusRecord], list[Br
     return buses, branches, {"key_count": len(data)}, warnings
 
 
-def _parse_psse_raw(content: bytes, filename: str) -> tuple[list[BusRecord], list[BranchRecord], dict[str, Any], list[str]]:
+def _parse_psse_raw(content: bytes) -> tuple[list[BusRecord], list[BranchRecord], dict[str, Any], list[str]]:
     """Parse a PSS/E .raw file. Extracts bus data (first section) and branch data (third section)."""
     warnings: list[str] = []
     try:
@@ -335,7 +338,7 @@ def _parse_psse_raw(content: bytes, filename: str) -> tuple[list[BusRecord], lis
     return buses, branches, {"base_mva": base_mva, "bus_count": len(buses)}, warnings
 
 
-def _parse_matpower(content: bytes, filename: str) -> tuple[list[BusRecord], list[BranchRecord], dict[str, Any], list[str]]:
+def _parse_matpower(content: bytes) -> tuple[list[BusRecord], list[BranchRecord], dict[str, Any], list[str]]:
     """Parse a MATPOWER .m case file. Extracts mpc.bus and mpc.branch matrices."""
     warnings: list[str] = []
     try:
@@ -396,52 +399,58 @@ def _parse_matpower(content: bytes, filename: str) -> tuple[list[BusRecord], lis
     return buses, branches, {"base_mva": base_mva, "bus_count": len(buses), "branch_count": len(branches)}, warnings
 
 
-def _parse_cim_xml(content: bytes, filename: str) -> tuple[list[BusRecord], list[BranchRecord], dict[str, Any], list[str]]:
-    """Parse a CIM/XML file. Extracts cim:TopologicalNode and cim:ACLineSegment elements."""
+def _parse_cim_xml(content: bytes) -> tuple[list[BusRecord], list[BranchRecord], dict[str, Any], list[str]]:
+    """Parse a CIM/XML file. Extracts TopologicalNode and ACLineSegment elements."""
     warnings: list[str] = []
     try:
         text = content.decode("utf-8-sig")
     except UnicodeDecodeError:
         text = content.decode("latin-1")
-        warnings.append("File was not valid UTF-8; decoded as Latin-1.")
+        warnings.append(_DECODE_WARNING)
 
     buses: list[BusRecord] = []
     branches: list[BranchRecord] = []
 
-    # Lightweight regex extraction (avoids xml.etree namespace complexity for production)
-    # CIM/XML uses RDF/XML with elements like:
-    #   <cim:TopologicalNode rdf:ID="...">
-    #     <cim:IdentifiedObject.name>...</cim:IdentifiedObject.name>
-    #   </cim:TopologicalNode>
-
-    bus_pattern = re.compile(
-        r"<cim:TopologicalNode[^>]*rdf:ID=\"([^\"]+)\"[^>]*>(.*?)</cim:TopologicalNode>",
-        re.DOTALL,
-    )
-    for m in bus_pattern.finditer(text):
-        bus_id = m.group(1)
-        body = m.group(2)
-        name_match = re.search(r"<cim:IdentifiedObject\.name>([^<]+)</cim:IdentifiedObject\.name>", body)
-        name = name_match.group(1) if name_match else None
-        buses.append(BusRecord(id=bus_id, name=name))
-
-    line_pattern = re.compile(
-        r"<cim:ACLineSegment[^>]*rdf:ID=\"([^\"]+)\"[^>]*>(.*?)</cim:ACLineSegment>",
-        re.DOTALL,
-    )
-    for m in line_pattern.finditer(text):
-        line_id = m.group(1)
-        body = m.group(2)
-        name_match = re.search(r"<cim:IdentifiedObject\.name>([^<]+)</cim:IdentifiedObject\.name>", body)
-        name = name_match.group(1) if name_match else None
-        branches.append(BranchRecord(
-            id=line_id,
-            from_bus="",
-            to_bus="",
-            type="LINE",
-        ))
-        if name:
-            warnings.append(f"Line {line_id} ({name}): terminals not resolved (CIM Terminal references require full RDF parsing)")
+    try:
+        root = ET.fromstring(text)
+        for elem in root.iter():
+            tag_local = elem.tag.split("}")[-1]
+            if tag_local == "TopologicalNode":
+                rdf_id = None
+                for attr_key, attr_val in elem.attrib.items():
+                    if attr_key.split("}")[-1] == "ID":
+                        rdf_id = attr_val
+                        break
+                
+                name = None
+                for child in elem:
+                    if child.tag.split("}")[-1] == "IdentifiedObject.name":
+                        name = child.text
+                        break
+                buses.append(BusRecord(id=rdf_id or "", name=name))
+                
+            elif tag_local == "ACLineSegment":
+                line_id = None
+                for attr_key, attr_val in elem.attrib.items():
+                    if attr_key.split("}")[-1] == "ID":
+                        line_id = attr_val
+                        break
+                
+                name = None
+                for child in elem:
+                    if child.tag.split("}")[-1] == "IdentifiedObject.name":
+                        name = child.text
+                        break
+                branches.append(BranchRecord(
+                    id=line_id or "",
+                    from_bus="",
+                    to_bus="",
+                    type="LINE",
+                ))
+                if name:
+                    warnings.append(f"Line {line_id} ({name}): terminals not resolved (CIM Terminal references require full RDF parsing)")
+    except Exception as e:
+        raise ValueError(f"Failed to parse CIM XML: {e}") from e
 
     return buses, branches, {"cim_version": "IEC 61970"}, warnings
 
@@ -511,15 +520,15 @@ async def upload_file(
 
     try:
         if fmt.id == "csv":
-            buses, branches, metadata, warnings = _parse_csv(content, file.filename)
+            buses, branches, metadata, warnings = _parse_csv(content)
         elif fmt.id == "json" or fmt.id == "etap-project":
-            buses, branches, metadata, warnings = _parse_json(content, file.filename)
+            buses, branches, metadata, warnings = _parse_json(content)
         elif fmt.id == "psse-raw":
-            buses, branches, metadata, warnings = _parse_psse_raw(content, file.filename)
+            buses, branches, metadata, warnings = _parse_psse_raw(content)
         elif fmt.id == "matpower":
-            buses, branches, metadata, warnings = _parse_matpower(content, file.filename)
+            buses, branches, metadata, warnings = _parse_matpower(content)
         elif fmt.id == "cim-xml":
-            buses, branches, metadata, warnings = _parse_cim_xml(content, file.filename)
+            buses, branches, metadata, warnings = _parse_cim_xml(content)
         else:
             raise ValueError(f"Parser for format '{fmt.id}' is not implemented")
     except ValueError as e:
