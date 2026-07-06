@@ -17,8 +17,8 @@ export const run_python = createTool({
 
       // Use spawn instead of execFile to pass code via stdin (prevents shell injection).
       // SonarCloud tssecurity:S4036: PATH is hardcoded to a fixed list of
-      // vetted system directories — we do NOT derive it from process.env.PATH
-      // (which could be poisoned by a parent process).
+      // vetted system directories — we explicitly EXCLUDE process.env.PATH
+      // from the spawned env so a poisoned parent PATH cannot leak in.
       const SAFE_PATH = [
         '/usr/local/bin',
         '/usr/bin',
@@ -27,9 +27,12 @@ export const run_python = createTool({
         '/usr/sbin',
         '/sbin',
       ].join(':');
+      // Build a clean env WITHOUT PATH first, then set our vetted PATH.
+      const { PATH: _drop, ...cleanEnv } = process.env;
+      void _drop;
       const child = spawn('python', [secureExecutorPath], {
         env: {
-          ...process.env,
+          ...cleanEnv,
           PATH: SAFE_PATH,
           PYTHONDONTWRITEBYTECODE: '1',
           PYTHONUNBUFFERED: '1',

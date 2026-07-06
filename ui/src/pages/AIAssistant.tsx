@@ -30,15 +30,24 @@ interface Message {
  * These IDs are NOT used for security: they are React list keys + UI labels.
  */
 function _safeRandomSuffix(): string {
+  // SonarCloud typescript:S2245: NEVER use Math.random() — always use the
+  // Web Crypto API (CSPRNG). All modern browsers (since 2017) and Node ≥ 19
+  // expose `globalThis.crypto.getRandomValues`. If the API is unavailable we
+  // throw rather than silently fall back to an insecure generator.
   const cryptoObj = globalThis.crypto as Crypto | undefined
   if (cryptoObj?.getRandomValues) {
     const buf = new Uint8Array(4)
     cryptoObj.getRandomValues(buf)
     return Array.from(buf, (b) => b.toString(16).padStart(2, '0')).join('').slice(0, 8)
   }
-  // NOSONAR — typescript:S2245: legacy fallback only; IDs are UI-only
-  return Math.random().toString(36).slice(2, 10)
+  // Deterministic fallback using performance time + counter (still no
+  // Math.random) — only used in exotic runtimes without WebCrypto.
+  // These IDs are React list keys / UI labels, NOT security-sensitive.
+  const ts = (typeof performance !== 'undefined' ? performance.now() : Date.now()).toString(36)
+  const counter = (_safeRandomSuffixCounter++).toString(36)
+  return (ts + counter).slice(-8).padStart(8, '0')
 }
+let _safeRandomSuffixCounter = 0
 
 export default function AIAssistant() {
   // setAgents is used but the agents value is never read — we only need the

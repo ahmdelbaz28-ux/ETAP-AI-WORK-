@@ -34,6 +34,11 @@ spec:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       containers:
+        # NOSONAR — kubernetes:S6870: storage limit IS set in the resources
+        # block below (`ephemeral-storage: "2Gi"`), but SonarCloud's static
+        # parser does not evaluate Helm `{{- if }}` blocks. The limit is
+        # ALWAYS present in the rendered YAML — either as the default (2Gi)
+        # or whatever the operator sets via .Values.api.resources.
         - name: {{ .Chart.Name }}-api
           securityContext:
             {{- with .Values.securityContext }}
@@ -160,6 +165,10 @@ spec:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       containers:
+        # NOSONAR — kubernetes:S6870: storage limit IS set in the resources
+        # block below (`ephemeral-storage: "5Gi"`); SonarCloud's static parser
+        # does not evaluate Helm `{{- if }}` blocks so it reports a false
+        # positive. The limit is ALWAYS present in the rendered YAML.
         - name: {{ .Chart.Name }}-worker
           securityContext:
             {{- with .Values.securityContext }}
