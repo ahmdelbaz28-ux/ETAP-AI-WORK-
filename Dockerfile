@@ -61,7 +61,10 @@ RUN playwright install chromium 2>&1 || \
 COPY --chown=root:root --chmod=go-w hf-space/app.py /app/app.py
 COPY --chown=root:root --chmod=go-w compat.py /app/compat.py
 COPY --chown=user:user agents/ /app/agents/
-COPY --chown=user:user skills/ /app/skills/
+# NOTE: skills/ is NOT copied to the HF Space Docker image.
+# The skills/ directory contains large HTML templates that exceed HF's file
+# size limit (causing push rejection). The HF Space loads skills at runtime
+# from the GitHub repo via the AI agent — they are not needed in the image.
 COPY --chown=user:user prompts/ /app/prompts/
 COPY --chown=user:user prompts.json /app/prompts.json
 COPY --chown=user:user core_model/ /app/core_model/
