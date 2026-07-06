@@ -1,6 +1,6 @@
 """
 tests/test_hf_space_production.py — Production smoke tests against the
-live HF Space deployment at https://ahmdelbaz28-ahmedetap-platform.hf.space
+live HF Space deployment at https://ahmdelbaz28-ahmedetap.hf.space
 
 These tests verify the ETAP Expert skill is reachable and returns the
 correct Format A/B/C/D signatures in PRODUCTION — not just locally.
@@ -19,7 +19,7 @@ import urllib.request
 
 import pytest
 
-PRODUCTION_URL = "https://ahmdelbaz28-ahmedetap-platform.hf.space"
+PRODUCTION_URL = "https://ahmdelbaz28-ahmedetap.hf.space"
 SKIP_REASON = f"Set HF_SPACE_PRODUCTION_TESTS=true to run production tests against {PRODUCTION_URL}"
 
 

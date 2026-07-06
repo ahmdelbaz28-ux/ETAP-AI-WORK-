@@ -343,7 +343,7 @@ class TestDocsNoStaleCounts:
 
     def test_no_wrong_hf_url_in_readme(self):
         """README files must use the correct HF Space URL."""
-        correct_url = "ahmdelbaz28-ahmedetap-platform.hf.space"
+        correct_url = "ahmdelbaz28-ahmedetap.hf.space"
         wrong_url = "ahmdelbaz28-etap-ai-platform.hf.space"
 
         for filename in ["README.md", "README.hf.md", "hf-space/README.md"]:
