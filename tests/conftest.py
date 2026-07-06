@@ -581,6 +581,31 @@ def setup_test_environment():
     except (AttributeError, TypeError):
         pass
 
+    # ── Event loop diagnostics (gated behind DEBUG_EVENT_LOOP env var) ──────
+    # The CI-only 'RuntimeError: Event loop is closed' failures (PRs #165,
+    # #170) cannot be reproduced locally. This block prints diagnostic info
+    # before/after each test so we can see exactly when the event loop is
+    # closed and by whom. Enable by setting DEBUG_EVENT_LOOP=1 in CI.
+    debug_loop = os.environ.get("DEBUG_EVENT_LOOP") == "1"
+    if debug_loop:
+        import asyncio
+        import threading
+
+        worker = os.environ.get("PYTEST_XDIST_WORKER", "main")
+        print(f"\n[LOOP-DBG {worker}] BEFORE test setup — thread={threading.current_thread().name}")
+
+        def _loop_status(label: str) -> None:
+            try:
+                loop = asyncio.get_event_loop_policy().get_event_loop()
+                running = loop.is_running()
+                closed = loop.is_closed()
+                print(f"[LOOP-DBG {worker}] {label} — loop={id(loop)} running={running} closed={closed}")
+            except RuntimeError as exc:
+                # "There is no current event loop" — happens after loop.close()
+                print(f"[LOOP-DBG {worker}] {label} — RuntimeError: {exc}")
+
+        _loop_status("BEFORE test")
+
     yield
 
     # Clean up environment variables after tests
@@ -592,6 +617,9 @@ def setup_test_environment():
         "ENGINEERING_SERVICE_RATE_LIMIT_MAX",
     ):
         os.environ.pop(_key, None)
+
+    if debug_loop:
+        _loop_status("AFTER test")
 
 
 # ---------------------------------------------------------------------------
@@ -740,17 +768,44 @@ def client(app) -> Generator[TestClient, None, None]:
     pytest-xdist, where tests from different files may share a worker
     process and thus share the module-level _LOGIN_ATTEMPTS dict.
     """
+    import os as _os
+
     import api.auth as _auth_module
 
     _auth_module._LOGIN_ATTEMPTS.clear()
 
+    debug_loop = _os.environ.get("DEBUG_EVENT_LOOP") == "1"
+    if debug_loop:
+        import asyncio
+        import threading
+
+        worker = _os.environ.get("PYTEST_XDIST_WORKER", "main")
+        print(f"[LOOP-DBG {worker}] client fixture ENTER — thread={threading.current_thread().name}")
+        try:
+            loop = asyncio.get_event_loop_policy().get_event_loop()
+            print(f"[LOOP-DBG {worker}] client fixture BEFORE TestClient — loop={id(loop)} closed={loop.is_closed()}")
+        except RuntimeError as exc:
+            print(f"[LOOP-DBG {worker}] client fixture BEFORE TestClient — RuntimeError: {exc}")
+
     with TestClient(app) as c:
+        if debug_loop:
+            try:
+                loop = asyncio.get_event_loop_policy().get_event_loop()
+                print(f"[LOOP-DBG {worker}] client fixture AFTER TestClient enter — loop={id(loop)} closed={loop.is_closed()}")
+            except RuntimeError as exc:
+                print(f"[LOOP-DBG {worker}] client fixture AFTER TestClient enter — RuntimeError: {exc}")
         try:
             yield c
         finally:
             # Always clear after the test, even on failure, so the next
             # test starts from a clean rate-limit state.
             _auth_module._LOGIN_ATTEMPTS.clear()
+            if debug_loop:
+                try:
+                    loop = asyncio.get_event_loop_policy().get_event_loop()
+                    print(f"[LOOP-DBG {worker}] client fixture AFTER yield — loop={id(loop)} closed={loop.is_closed()}")
+                except RuntimeError as exc:
+                    print(f"[LOOP-DBG {worker}] client fixture AFTER yield — RuntimeError: {exc}")
 
 
 def _register_user(

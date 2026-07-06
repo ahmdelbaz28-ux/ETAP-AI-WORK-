@@ -1,0 +1,85 @@
+# =============================================================================
+# Diagnostic workflow for reproducing + debugging the 'Event loop is closed'
+# CI-only failures (PRs #165, #170).
+#
+# This workflow runs the same pytest command as ci-cd.yml's python-tests job,
+# but with DEBUG_EVENT_LOOP=1 so the autouse conftest fixture prints event
+# loop state before/after each test. The output tells us exactly when the
+# loop is closed and by whom.
+#
+# Trigger: manual only (workflow_dispatch). Does NOT run on push/PR.
+# =============================================================================
+
+name: Debug Event Loop (Diagnostic)
+
+on:
+  workflow_dispatch:
+    inputs:
+      test_files:
+        description: 'Space-separated test files to run (default: the failing combo)'
+        required: false
+        default: 'tests/test_persistence_layer.py tests/test_knowledge.py tests/test_ai_context_engine.py tests/test_security_e2e.py tests/test_auth_api.py tests/test_projects_api.py tests/test_regression_fixes.py'
+
+jobs:
+  debug-event-loop:
+    name: 🔍 Debug Event Loop
+    runs-on: ubuntu-latest
+
+    env:
+      ENVIRONMENT: testing
+      JWT_SECRET_KEY: ci-test-jwt-secret-key-for-github-actions-32-bytes-min
+      DATABASE_URL: sqlite+aiosqlite:///./test.db
+      REDIS_URL: redis://localhost:6379/0
+      SKIP_LIVE_SCENARIO_TESTS: 'true'
+      DEBUG_EVENT_LOOP: '1'
+
+    services:
+      redis:
+        image: redis:7-alpine
+        ports: [6379:6379]
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: |
+          pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pytest pytest-asyncio pytest-cov pytest-timeout pytest-xdist
+
+      - name: Smoke test — api.routes:app imports
+        run: |
+          python -c "from api.routes import app; assert app is not None; print('✅', len(app.routes), 'routes registered')"
+
+      - name: Run pytest with DEBUG_EVENT_LOOP=1
+        # Same flags as ci-cd.yml python-tests job, but WITHOUT the `| tail -120`
+        # so we see ALL diagnostic output. Removed --maxfail so we see ALL
+        # failures in one run. Removed -x so collection errors don't stop early.
+        run: |
+          pytest ${{ github.event.inputs.test_files }} \
+            --continue-on-collection-errors \
+            -v \
+            --timeout=60 \
+            -n 4 \
+            --tb=long \
+            -o addopts="" \
+            2>&1 | tee /tmp/pytest_debug.log
+
+      - name: Upload diagnostic log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: event-loop-debug-log
+          path: /tmp/pytest_debug.log
+          retention-days: 7
