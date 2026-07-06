@@ -11,7 +11,7 @@ Endpoints (under ``/api/v1/assets``):
 * ``GET /{asset_id}``        — Get a single asset
 * ``POST /``                 — Create a new asset
 * ``PUT /{asset_id}``        — Update an asset
-* ``DELETE /{asset_id}``     — Soft-delete an asset
+* ``DELETE /{asset_id}``     — Delete an asset (returns 204 No Content)
 
 All endpoints require a valid JWT (or X-API-Key when API_KEY is configured).
 """
@@ -37,8 +37,6 @@ from api.dependencies import (
     pagination_params,
 )
 from compat import StrEnum
-
-UTC = UTC
 
 router = APIRouter(prefix="/api/v1/assets", tags=["Asset Management"])
 
