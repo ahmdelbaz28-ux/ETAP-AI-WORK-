@@ -24,7 +24,8 @@ if TYPE_CHECKING:
 import uvicorn
 from fastapi import FastAPI, HTTPException, Request, WebSocket
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import HTMLResponse, JSONResponse
+from fastapi.responses import HTMLResponse, JSONResponse, FileResponse
+from pathlib import Path
 
 # -- Shared handlers (single source of truth) ---------------------------------
 from api.shared_handlers import (
@@ -177,6 +178,15 @@ async def add_security_headers(request: Request, call_next):
 # -- Auth + Rate-limit middleware ---------------------------------------------
 @app.middleware("http")
 async def auth_and_rate_limit(request: Request, call_next):
+    _path = request.url.path
+
+    # UI paths (non-API) are always public — they serve the React app.
+    # Only /api/* paths require authentication.
+    # This prevents the middleware from blocking /login, /register,
+    # /dashboard, /assets/*, etc.
+    if not _path.startswith("/api/"):
+        return await call_next(request)
+
     # API key check — prefer ENGINEERING_SERVICE_API_KEY (the canonical name
     # used everywhere else in the platform), fall back to HF_API_KEY for
     # backward compatibility with older Space secrets. If NEITHER is set,
@@ -185,14 +195,7 @@ async def auth_and_rate_limit(request: Request, call_next):
     _eng_key = os.environ.get("ENGINEERING_SERVICE_API_KEY", "")
     _hf_key = os.environ.get("HF_API_KEY", "")
     if _eng_key and not _hf_key:
-        # Alias the canonical key so verify_api_key (which reads HF_API_KEY
-        # by default) picks it up without needing a separate secret.
         os.environ["HF_API_KEY"] = _eng_key
-    # NOTE: verify_api_key() raises HTTPException(401) when auth fails.
-    # FastAPI's @app.middleware("http") does NOT automatically convert
-    # HTTPException into proper JSON responses — it lets the exception
-    # propagate to Starlette's error handler which returns HTTP 500.
-    # We must catch it here and return the correct JSONResponse ourselves.
     try:
         verify_api_key(request)
     except HTTPException as exc:
@@ -202,7 +205,7 @@ async def auth_and_rate_limit(request: Request, call_next):
             headers=getattr(exc, "headers", None),
         )
     # Rate limit (skip health/docs)
-    if request.url.path not in PUBLIC_PATHS:
+    if _path not in PUBLIC_PATHS:
         client_id = request.client.host if request.client else "unknown"
         if not rate_limiter.is_allowed(client_id):
             return JSONResponse(
@@ -1198,10 +1201,6 @@ async def detect_anomalies(request: Request):
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 7860))
-    # Bind to 0.0.0.0 — REQUIRED on Hugging Face Spaces (and most container
-    # platforms). The container's ingress proxy handles the public-facing
-    # interface; binding to 127.0.0.1 would prevent HF Spaces from reaching
-    # the app at all. SonarCloud S8392 flags this, but it's intentional.
     host = os.environ.get("HOST", "0.0.0.0")
     logger.info("Starting server on %s:%d", host, port)
     uvicorn.run(
@@ -1211,3 +1210,29 @@ if __name__ == "__main__":
         log_level="info",
         access_log=True,
     )
+
+
+# -- UI catch-all route (MUST be at the very end, after all API routes) --------
+# Serves the Vite-built React app. Static files (JS/CSS/assets/icons) are
+# served directly; all other paths fall back to index.html for React Router.
+_UI_DIST = Path(__file__).parent / "ui-dist"
+_UI_INDEX = _UI_DIST / "index.html"
+
+
+@app.get("/{full_path:path}", response_class=HTMLResponse, include_in_schema=False)
+async def ui_catch_all(full_path: str):
+    """Serve static UI files with SPA fallback to index.html."""
+    # Skip API paths — they should have been handled by routes above
+    if full_path.startswith("api/"):
+        raise HTTPException(status_code=404, detail="Not Found")
+
+    # Try to serve the actual file first (assets, favicon, etc.)
+    file_path = _UI_DIST / full_path
+    if full_path and file_path.is_file():
+        return FileResponse(str(file_path))
+
+    # SPA fallback — return index.html for any non-file path
+    if _UI_INDEX.is_file():
+        return HTMLResponse(content=_UI_INDEX.read_text(encoding="utf-8"))
+
+    return HTMLResponse(content="<h1>UI not built</h1>", status_code=503)
