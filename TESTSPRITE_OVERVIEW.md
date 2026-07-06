@@ -9,7 +9,7 @@
 - **Version:** 1.0.0
 - **Author:** Eng Ahmed Elbaz (ahmdelbaz28@gmail.com)
 - **Repository:** https://github.com/ahmdelbaz28-ux/ETAP-AI-WORK-
-- **Live Demo:** https://huggingface.co/spaces/ahmdelbaz28/etap-ai-platform
+- **Live Platform:** https://huggingface.co/spaces/ahmdelbaz28/AhmedETAP-Platform
 
 ## Architecture Overview
 

@@ -1,0 +1,983 @@
+     1→"""
+     2→Shared Handlers & Utilities for AhmedETAP
+     3→==========================================
+     4→
+     5→Lightweight, dependency-free implementations of common logic used by both
+     6→``api/routes.py`` (via its sub-routers) and ``hf-space/app.py``.
+     7→
+     8→Design principles
+     9→-----------------
+    10→* **No Redis, Celery, or PostgreSQL** — everything works with in-memory
+    11→  alternatives or falls back gracefully.
+    12→* **Lazy heavy imports** — numpy, engine, and agent modules are imported
+    13→  inside functions so that importing this module never pulls in unavailable
+    14→  packages on HF Space.
+    15→* **Single source of truth** — VERSION, STUDY_TYPES, AGENTS, and other
+    16→  constants live here once.
+    17→"""
+    18→
+    19→from __future__ import annotations
+    20→
+    21→import hmac
+    22→import logging
+    23→import os
+    24→import threading
+    25→import time
+    26→from datetime import UTC, datetime
+    27→
+    28→UTC = UTC
+    29→from typing import Any
+    30→
+    31→from fastapi import HTTPException, Request
+    32→from pydantic import BaseModel
+    33→
+    34→logger = logging.getLogger("etap-ai")
+    35→
+    36→# ---------------------------------------------------------------------------
+    37→# Constants — single source of truth
+    38→# ---------------------------------------------------------------------------
+    39→
+    40→VERSION = "2.1.0"
+    41→
+    42→# NOTE: AGENT_COUNT is computed from len(AGENTS) at the bottom of the AGENTS list
+    43→# (see "AGENT_COUNT = len(AGENTS)" below). Do NOT hardcode it here — the previous
+    44→# hardcoded value of 23 drifted out of sync with the actual list length.
+    45→ETAP_MANUAL_COUNT: int = 35
+    46→ZENON_GUIDE_COUNT: int = 4
+    47→
+    48→# Engineering standards supported by the platform — single source of truth.
+    49→# Used by build_platform_info() and by the homepage stat card. Adding a new
+    50→# standard here automatically updates both places.
+    51→#
+    52→# Each standard is defined as a module-level constant (SonarCloud S1192:
+    53→# string literals should not be duplicated) and aggregated into
+    54→# SUPPORTED_STANDARDS below. Importing code should reference these
+    55→# constants rather than re-typing the string.
+    56→STD_IEEE_3002_7 = "IEEE 3002.7"
+    57→STD_IEC_60909 = "IEC 60909"
+    58→STD_IEEE_1584 = "IEEE 1584"
+    59→STD_IEC_60255 = "IEC 60255"
+    60→STD_IEEE_519 = "IEEE 519"
+    61→STD_IEC_61850 = "IEC 61850"
+    62→STD_IEEE_80 = "IEEE 80"
+    63→STD_IEC_60364 = "IEC 60364"
+    64→STD_IEEE_399 = "IEEE 399"
+    65→STD_IEC_62933 = "IEC 62933"
+    66→
+    67→SUPPORTED_STANDARDS: list[str] = [
+    68→    STD_IEEE_3002_7,
+    69→    STD_IEC_60909,
+    70→    STD_IEEE_1584,
+    71→    STD_IEC_60255,
+    72→    STD_IEEE_519,
+    73→    STD_IEC_61850,
+    74→    STD_IEEE_80,
+    75→    STD_IEC_60364,
+    76→    STD_IEEE_399,
+    77→    STD_IEC_62933,
+    78→]
+    79→
+    80→START_TIME: float = time.time()
+    81→BUILD_TIME: str = datetime.now(UTC).isoformat()
+    82→
+    83→# ---------------------------------------------------------------------------
+    84→# Study types
+    85→# ---------------------------------------------------------------------------
+    86→
+    87→STUDY_TYPES: list[str] = [
+    88→    "load_flow",
+    89→    "short_circuit",
+    90→    "arc_flash",
+    91→    "protection_coordination",
+    92→    "motor_starting",
+    93→    "transient_stability",
+    94→    "harmonic_analysis",
+    95→    "optimal_power_flow",
+    96→    "cable_sizing",
+    97→    "earth_grid",
+    98→    "renewable_integration",
+    99→    "battery_storage",
+   100→    "scada",
+   101→    "etap_expert",  # ETAP Expert skill — 6-step workflow with Format A/B/C/D
+   102→    "etap_gui",  # ETAP GUI Agent — Computer Use Agent for desktop apps
+   103→]
+   104→
+   105→# ---------------------------------------------------------------------------
+   106→# Agents list
+   107→# ---------------------------------------------------------------------------
+   108→
+   109→AGENTS: list[dict[str, str]] = [
+   110→    {
+   111→        "id": "load-flow-agent",
+   112→        "name": "Load Flow Agent",
+   113→        "standard": STD_IEEE_3002_7,
+   114→        "status": "active",
+   115→    },
+   116→    {
+   117→        "id": "short-circuit-agent",
+   118→        "name": "Short Circuit Agent",
+   119→        "standard": STD_IEC_60909,
+   120→        "status": "active",
+   121→    },
+   122→    {
+   123→        "id": "arcflash-agent",
+   124→        "name": "Arc Flash Agent",
+   125→        "standard": STD_IEEE_1584,
+   126→        "status": "beta",
+   127→    },
+   128→    {
+   129→        "id": "protection-agent",
+   130→        "name": "Protection Agent",
+   131→        "standard": STD_IEC_60255,
+   132→        "status": "active",
+   133→    },
+   134→    {
+   135→        "id": "motorstarting-agent",
+   136→        "name": "Motor Starting Agent",
+   137→        "standard": STD_IEEE_399,
+   138→        "status": "beta",
+   139→    },
+   140→    {
+   141→        "id": "stability-agent",
+   142→        "name": "Stability Agent",
+   143→        "standard": STD_IEEE_399,
+   144→        "status": "beta",
+   145→    },
+   146→    {
+   147→        "id": "harmonic-agent",
+   148→        "name": "Harmonic Analysis Agent",
+   149→        "standard": STD_IEEE_519,
+   150→        "status": "active",
+   151→    },
+   152→    {
+   153→        "id": "cable-sizing-agent",
+   154→        "name": "Cable Sizing Agent",
+   155→        "standard": STD_IEC_60364,
+   156→        "status": "beta",
+   157→    },
+   158→    {
+   159→        "id": "earth-grid-agent",
+   160→        "name": "Earth Grid Agent",
+   161→        "standard": STD_IEEE_80,
+   162→        "status": "beta",
+   163→    },
+   164→    {
+   165→        "id": "opf-agent",
+   166→        "name": "Optimal Power Flow Agent",
+   167→        "standard": STD_IEEE_3002_7,
+   168→        "status": "active",
+   169→    },
+   170→    {
+   171→        "id": "renewable-agent",
+   172→        "name": "Renewable Energy Agent",
+   173→        "standard": "IEEE 1547",
+   174→        "status": "beta",
+   175→    },
+   176→    {
+   177→        "id": "battery-storage-agent",
+   178→        "name": "Battery Storage Agent",
+   179→        "standard": STD_IEC_62933,
+   180→        "status": "beta",
+   181→    },
+   182→    {"id": "scada-agent", "name": "SCADA Agent", "standard": STD_IEC_61850, "status": "beta"},
+   183→    {
+   184→        "id": "digital-twin-agent",
+   185→        "name": "Digital Twin Agent",
+   186→        "standard": "IEC 61970",
+   187→        "status": "beta",
+   188→    },
+   189→    {
+   190→        "id": "predictive-agent",
+   191→        "name": "Predictive Maintenance",
+   192→        "standard": "ISO 13381",
+   193→        "status": "beta",
+   194→    },
+   195→    {
+   196→        "id": "anomaly-agent",
+   197→        "name": "Anomaly Detection Agent",
+   198→        "standard": "IEEE 1159",
+   199→        "status": "beta",
+   200→    },
+   201→    {
+   202→        "id": "coordination-agent",
+   203→        "name": "Coordination Agent",
+   204→        "standard": STD_IEC_60255,
+   205→        "status": "beta",
+   206→    },
+   207→    {
+   208→        "id": "report-agent",
+   209→        "name": "Report Generation Agent",
+   210→        "standard": STD_IEEE_3002_7,
+   211→        "status": "active",
+   212→    },
+   213→    {
+   214→        "id": "validation-agent",
+   215→        "name": "Validation Agent",
+   216→        "standard": "IEC 60038",
+   217→        "status": "active",
+   218→    },
+   219→    {
+   220→        "id": "etap-engineer-agent",
+   221→        "name": "ETAP Engineer Agent",
+   222→        "standard": "ETAP Manual",
+   223→        "status": "active",
+   224→    },
+   225→    {
+   226→        "id": "goal-planner-agent",
+   227→        "name": "Goal Planner Agent",
+   228→        "standard": "Internal",
+   229→        "status": "beta",
+   230→    },
+   231→    {"id": "weather-agent", "name": "Weather Agent", "standard": "IEC 60721", "status": "beta"},
+   232→    {
+   233→        "id": "power-system-coordinator",
+   234→        "name": "Power System Coordinator",
+   235→        "standard": "All",
+   236→        "status": "active",
+   237→    },
+   238→    {
+   239→        "id": "etap-expert-agent",
+   240→        "name": "ETAP Expert Skill Agent",
+   241→        "standard": "IEEE/IEC/NEC/NFPA (all)",
+   242→        "status": "active",
+   243→        "description": "6-step workflow with Format A/B/C/D responses. Knowledge base: skills/etap-expert.md (4,400+ lines).",
+   244→    },
+   245→    {
+   246→        "id": "etap-gui-agent",
+   247→        "name": "ETAP GUI Agent (Computer Use Agent)",
+   248→        "standard": "Safety + Audit",
+   249→        "status": "active",
+   250→        "description": "Computer Use Agent for desktop apps (ETAP, Revit, AutoCAD, SCADA, QGIS, ArcGIS). 4 modes: Analyze/Monitor/Control/Solve. Falls back gracefully on headless servers.",
+   251→    },
+   252→]
+   253→
+   254→# Single source of truth for the agent count — derived from the list above so
+   255→# adding/removing an agent entry automatically updates /health, /api/v1/info,
+   256→# and the homepage stat card. Never hardcode this value.
+   257→AGENT_COUNT: int = len(AGENTS)
+   258→
+   259→# ---------------------------------------------------------------------------
+   260→# Pydantic request models (lightweight — no heavy deps)
+   261→# ---------------------------------------------------------------------------
+   262→
+   263→
+   264→class SharedStudyRequest(BaseModel):
+   265→    """Lightweight study request used by both HF Space and main API."""
+   266→
+   267→    study_type: str
+   268→    system: dict[str, Any] = {}
+   269→    options: dict[str, Any] = {}
+   270→    parameters: dict[str, Any] = {}
+   271→    use_etap: bool = False
+   272→
+   273→
+   274→class SharedETAPExpertChatRequest(BaseModel):
+   275→    """Request body for ETAP Expert chat."""
+   276→
+   277→    question: str
+   278→    context: dict[str, Any] = {}
+   279→
+   280→
+   281→class SharedETAPGUIChatRequest(BaseModel):
+   282→    """Request body for ETAP GUI Agent chat."""
+   283→
+   284→    question: str
+   285→    context: dict[str, Any] = {}
+   286→
+   287→
+   288→class SharedContextRetrieveRequest(BaseModel):
+   289→    """Request body for AI Context Engine retrieve endpoint."""
+   290→
+   291→    query: str
+   292→    top_k: int = 5
+   293→    max_tokens: int = 2000
+   294→
+   295→
+   296→class SharedImpactAnalysisRequest(BaseModel):
+   297→    """Request body for AI Context Engine impact endpoint."""
+   298→
+   299→    component: str
+   300→    max_depth: int = 2
+   301→
+   302→
+   303→# ---------------------------------------------------------------------------
+   304→# Paths that should skip authentication
+   305→# ---------------------------------------------------------------------------
+   306→
+   307→PUBLIC_PATHS: frozenset[str] = frozenset(
+   308→    {
+   309→        "/",
+   310→        "/healthz",
+   311→        "/readyz",
+   312→        "/health",
+   313→        "/ready",
+   314→        "/docs",
+   315→        "/redoc",
+   316→        "/openapi.json",
+   317→        "/metrics",
+   318→        # Auth endpoints must be public — they ARE the authentication.
+   319→        # If these required an API key, no user could ever register or log in.
+   320→        "/api/v1/auth/register",
+   321→        "/api/v1/auth/login",
+   322→        "/api/v1/auth/refresh",
+   323→        "/api/v1/auth/me",  # JWT-protected (not API-key-protected)
+   324→    },
+   325→)
+   326→
+   327→# ---------------------------------------------------------------------------
+   328→# API Key validation
+   329→# ---------------------------------------------------------------------------
+   330→
+   331→
+   332→def verify_api_key(
+   333→    request: Request,
+   334→    *,
+   335→    env_var: str = "HF_API_KEY",
+   336→    skip_paths: frozenset[str] | None = None,
+   337→) -> None:
+   338→    """Validate API key when configured.
+   339→
+   340→    Parameters
+   341→    ----------
+   342→    request : Request
+   343→        The incoming FastAPI request.
+   344→    env_var : str
+   345→        Environment variable name that holds the expected API key.
+   346→        Defaults to ``"HF_API_KEY"`` for HF Space compatibility.
+   347→    skip_paths : frozenset[str] | None
+   348→        Paths that should bypass auth. Defaults to :data:`PUBLIC_PATHS`.
+   349→
+   350→    Raises
+   351→    ------
+   352→    HTTPException
+   353→        401 if the key is configured but missing / incorrect.
+   354→    """
+   355→    expected_key = os.environ.get(env_var, "")
+   356→    if not expected_key:
+   357→        return  # No key configured → open access
+   358→
+   359→    _skip = skip_paths if skip_paths is not None else PUBLIC_PATHS
+   360→    if request.url.path in _skip:
+   361→        return
+   362→
+   363→    provided = request.headers.get("x-api-key") or ""
+   364→    if not hmac.compare_digest(provided, expected_key):
+   365→        raise HTTPException(status_code=401, detail="Invalid or missing API key")
+   366→
+   367→
+   368→# ---------------------------------------------------------------------------
+   369→# In-memory rate limiter (no Redis needed)
+   370→# ---------------------------------------------------------------------------
+   371→
+   372→
+   373→class InMemoryRateLimiter:
+   374→    """Thread-safe, per-client sliding-window rate limiter.
+   375→
+   376→    This is the lightweight alternative to the Redis-backed limiter in
+   377→    ``api/routes.py``.  It is suitable for single-process deployments like
+   378→    Hugging Face Spaces.
+   379→    """
+   380→
+   381→    def __init__(
+   382→        self,
+   383→        window_seconds: int | None = None,
+   384→        max_requests: int | None = None,
+   385→        max_entries: int = 10_000,
+   386→    ) -> None:
+   387→        self.window = window_seconds or int(os.environ.get("RATE_LIMIT_WINDOW", "60"))
+   388→        self.max_requests = max_requests or int(os.environ.get("RATE_LIMIT_MAX", "120"))
+   389→        self.max_entries = max_entries
+   390→        self._store: dict[str, list[float]] = {}
+   391→        self._lock = threading.Lock()
+   392→
+   393→    def is_allowed(self, client_id: str) -> bool:
+   394→        """Return ``True`` if the request is allowed, ``False`` if rate-limited."""
+   395→        now = time.time()
+   396→        with self._lock:
+   397→            # Evict stale entries if the store is too large
+   398→            if len(self._store) > self.max_entries:
+   399→                stale = [
+   400→                    cid
+   401→                    for cid, timestamps in self._store.items()
+   402→                    if not timestamps or now - timestamps[-1] > self.window
+   403→                ]
+   404→                for cid in stale:
+   405→                    del self._store[cid]
+   406→
+   407→            if client_id not in self._store:
+   408→                self._store[client_id] = [now]
+   409→                return True
+   410→
+   411→            # Prune timestamps outside the window
+   412→            self._store[client_id] = [t for t in self._store[client_id] if now - t < self.window]
+   413→            if len(self._store[client_id]) >= self.max_requests:
+   414→                return False
+   415→
+   416→            self._store[client_id].append(now)
+   417→            return True
+   418→
+   419→
+   420→# Module-level convenience instance
+   421→rate_limiter = InMemoryRateLimiter()
+   422→
+   423→# ---------------------------------------------------------------------------
+   424→# Health / readiness / metrics response builders
+   425→# ---------------------------------------------------------------------------
+   426→
+   427→
+   428→def build_health_response(platform: str = "huggingface-spaces") -> dict[str, Any]:
+   429→    """Return a health-status dictionary."""
+   430→    uptime = round(time.time() - START_TIME, 2)
+   431→    return {
+   432→        "status": "healthy",
+   433→        "uptime_seconds": uptime,
+   434→        "build_time": BUILD_TIME,
+   435→        "version": VERSION,
+   436→        "platform": platform,
+   437→        "agents": AGENT_COUNT,
+   438→        "etap_manuals": ETAP_MANUAL_COUNT,
+   439→        "zenon_guides": ZENON_GUIDE_COUNT,
+   440→    }
+   441→
+   442→
+   443→def build_ready_response() -> dict[str, Any]:
+   444→    """Return a readiness-status dictionary."""
+   445→    return {"status": "ready", "uptime": round(time.time() - START_TIME, 2)}
+   446→
+   447→
+   448→def build_metrics_response(platform: str = "huggingface-spaces") -> dict[str, Any]:
+   449→    """Return a metrics dictionary."""
+   450→    return {
+   451→        "uptime_seconds": round(time.time() - START_TIME, 2),
+   452→        "platform": platform,
+   453→        "version": VERSION,
+   454→    }
+   455→
+   456→
+   457→# ---------------------------------------------------------------------------
+   458→# Platform info & knowledge-base info builders
+   459→# ---------------------------------------------------------------------------
+   460→
+   461→
+   462→def build_platform_info() -> dict[str, Any]:
+   463→    """Return platform metadata."""
+   464→    return {
+   465→        "name": "AhmedETAP",
+   466→        "version": VERSION,
+   467→        "description": "Enterprise Engineering Intelligence Platform",
+   468→        "author": "Eng. Ahmed Elbaz",
+   469→        "standards": SUPPORTED_STANDARDS,
+   470→        "agents": AGENT_COUNT,
+   471→        "knowledge_base": {
+   472→            "etap_manuals": ETAP_MANUAL_COUNT,
+   473→            "zenon_guides": ZENON_GUIDE_COUNT,
+   474→            "total_chunks": "5000+",
+   475→        },
+   476→        "endpoints": {
+   477→            "docs": "/docs",
+   478→            "health": "/healthz",
+   479→            "studies": "/api/v1/studies/run",
+   480→            "agents": "/api/v1/agents",
+   481→        },
+   482→    }
+   483→
+   484→
+   485→def build_knowledge_info() -> dict[str, Any]:
+   486→    """Return knowledge-base metadata."""
+   487→    return {
+   488→        "etap": {
+   489→            "manuals": ETAP_MANUAL_COUNT,
+   490→            "topics": [
+   491→                "AC Networks",
+   492→                "Load Flow & Panel",
+   493→                "Transformer Sizing",
+   494→                "Unbalanced Load Flow",
+   495→                "Short Circuit ANSI",
+   496→                "Short Circuit IEC",
+   497→                "Arc Flash",
+   498→                "Motor Acceleration",
+   499→                "Parameter Estimation",
+   500→                "Transient Stability",
+   501→                "Parameter Tuning",
+   502→                "UDM",
+   503→                "Harmonics",
+   504→                "UGS",
+   505→                "Cable Pulling",
+   506→                "Optimal Power Flow",
+   507→                "OCP",
+   508→                "Ground Grid",
+   509→                "PDE/GIS",
+   510→                "DC Load Flow & Short Circuit",
+   511→                "BSD",
+   512→                "CSD",
+   513→                "Reliability Assessment",
+   514→                "WTG",
+   515→                "Arc Flash Advanced Topics",
+   516→                "ETAP ARTTS",
+   517→                "Controls",
+   518→                "Short Circuit Study",
+   519→                "Training (1164 slides)",
+   520→                "Renewable Energy",
+   521→                "ETAP Solutions Overview",
+   522→                "eTrax Rail",
+   523→            ],
+   524→            "standards": [STD_IEEE_3002_7, STD_IEC_60909, STD_IEEE_1584, STD_IEC_60255, STD_IEEE_519],
+   525→        },
+   526→        "zenon": {
+   527→            "guides": ZENON_GUIDE_COUNT,
+   528→            "topics": [
+   529→                "Zenon SCADA Fundamentals",
+   530→                "Zenon Energy Management",
+   531→                "Zenon IEC 61850 Module 1",
+   532→                "Zenon IEC 61850 Module 2",
+   533→            ],
+   534→            "standards": [STD_IEC_61850, "IEC 61968", "IEC 61970"],
+   535→        },
+   536→    }
+   537→
+   538→
+   539→# ---------------------------------------------------------------------------
+   540→# Numpy / engine-result sanitisation
+   541→# ---------------------------------------------------------------------------
+   542→
+   543→
+   544→def sanitize_result(obj: Any) -> Any:
+   545→    """Recursively convert numpy types to native Python for JSON serialisation.
+   546→
+   547→    Falls back gracefully if numpy is not installed.
+   548→    """
+   549→    try:
+   550→        import numpy as np  # type: ignore
+   551→
+   552→        if isinstance(obj, dict):
+   553→            return {str(k): sanitize_result(v) for k, v in obj.items()}
+   554→        if isinstance(obj, (list, tuple)):
+   555→            return [sanitize_result(x) for x in obj]
+   556→        if isinstance(obj, np.ndarray):
+   557→            # CRITICAL: .tolist() converts numpy scalars to Python scalars
+   558→            # (e.g. numpy.complex128 → complex), but does NOT recurse into
+   559→            # dicts-of-complex. We must call sanitize_result on each element
+   560→            # to convert complex → {real, imag} for JSON serialisation.
+   561→            # Bug #21 root cause: previously returned obj.tolist() directly,
+   562→            # leaving complex numbers un-serialised → HTTP 500 from FastAPI
+   563→            # jsonable_encoder when returning load_flow results.
+   564→            return [sanitize_result(x) for x in obj.tolist()]
+   565→        if isinstance(obj, (np.integer,)):
+   566→            return int(obj)
+   567→        if isinstance(obj, (np.floating,)):
+   568→            return float(obj)
+   569→        if isinstance(obj, (np.bool_,)):
+   570→            return bool(obj)
+   571→        if isinstance(obj, np.complexfloating):
+   572→            return {"real": float(obj.real), "imag": float(obj.imag)}
+   573→        if isinstance(obj, complex):
+   574→            return {"real": obj.real, "imag": obj.imag}
+   575→    except ImportError:
+   576→        pass  # NOSONAR — S3776: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
+   577→
+   578→    if isinstance(obj, dict):
+   579→        return {str(k): sanitize_result(v) for k, v in obj.items()}
+   580→    if isinstance(obj, (list, tuple)):
+   581→        return [sanitize_result(x) for x in obj]
+   582→    if isinstance(obj, complex):
+   583→        return {"real": obj.real, "imag": obj.imag}
+   584→    return obj
+   585→
+   586→
+   587→# ---------------------------------------------------------------------------
+   588→# Study execution (lightweight — no Redis / Celery / cache)
+   589→# ---------------------------------------------------------------------------
+   590→
+   591→
+   592→def run_study_lightweight(  # NOSONAR — S3776: cognitive complexity; refactoring sprint
+   593→    study_type: str, system: dict[str, Any], parameters: dict[str, Any],
+   594→) -> dict[str, Any]:
+   595→    """Execute an engineering study with **no** external service dependencies.
+   596→
+   597→    This is the lightweight counterpart of the full study runner in
+   598→    ``api/studies.py``.  It handles:
+   599→
+   600→    * ``etap_expert`` / ``etap_gui`` — agent-based, no numerical engine needed
+   601→    * ``load_flow`` — native engine if available, graceful fallback otherwise
+   602→    * All other types — queued response with a helpful note
+   603→
+   604→    Returns
+   605→    -------
+   606→    dict
+   607→        A response payload ready to be returned from a FastAPI endpoint.
+   608→    """
+   609→    # -- Validate study type ------------------------------------------------
+   610→    if study_type not in STUDY_TYPES:
+   611→        return {
+   612→            "error": f"Unknown study_type '{study_type}'",
+   613→            "valid_types": STUDY_TYPES,
+   614→            "_status": 400,
+   615→        }
+   616→
+   617→    # -- ETAP Expert skill --------------------------------------------------
+   618→    if study_type == "etap_expert":
+   619→        question = str(parameters.get("question", "")).strip()
+   620→        if not question:
+   621→            return {
+   622→                "error": "'question' field is required for study_type='etap_expert'",
+   623→                "_status": 400,
+   624→            }
+   625→        try:
+   626→            from agents.etap_expert_agent import ETAPExpertAgent  # type: ignore
+   627→
+   628→            agent = ETAPExpertAgent()
+   629→            result = agent.answer(question)
+   630→            return {
+   631→                "study_type": "etap_expert",
+   632→                "reference": f"ETAP-EXPERT-{int(time.time())}",
+   633→                "status": "completed",
+   634→                "success": True,
+   635→                "data": result,
+   636→            }
+   637→        except Exception as exc:
+   638→            logger.exception("etap_expert study failed")
+   639→            return {"error": f"ETAP Expert agent error: {exc}", "_status": 500}
+   640→
+   641→    # -- ETAP GUI Agent -----------------------------------------------------
+   642→    if study_type == "etap_gui":
+   643→        question = str(parameters.get("question", "")).strip()
+   644→        if not question:
+   645→            return {
+   646→                "error": "'question' field is required for study_type='etap_gui'",
+   647→                "_status": 400,
+   648→            }
+   649→        try:
+   650→            from agents.etap_gui_agent import ETAPGUIAgent  # type: ignore
+   651→
+   652→            agent = ETAPGUIAgent()
+   653→            result = agent.answer(question)
+   654→            return {
+   655→                "study_type": "etap_gui",
+   656→                "reference": f"ETAP-GUI-{int(time.time())}",
+   657→                "status": "completed",
+   658→                "success": True,
+   659→                "data": result,
+   660→            }
+   661→        except Exception as exc:
+   662→            logger.exception("etap_gui study failed")
+   663→            return {"error": f"ETAP GUI agent error: {exc}", "_status": 500}
+   664→
+   665→    # -- Load Flow (native engine) ------------------------------------------
+   666→    result_data: Any = None
+   667→    engine_error: str | None = None
+   668→
+   669→    if study_type == "load_flow" and system:
+   670→        try:
+   671→            from core_model.bus import Bus  # type: ignore
+   672→            from core_model.line import Line  # type: ignore
+   673→            from core_model.system import System  # type: ignore
+   674→
+   675→            sys_model = System(base_mva=system.get("base_mva", 100.0))
+   676→            bus_map: dict[int, Any] = {}
+   677→            for b in system.get("buses", []):
+   678→                bus = Bus(
+   679→                    bus_id=b["bus_id"],
+   680→                    voltage_magnitude=b.get("voltage_magnitude", 1.0),
+   681→                    voltage_angle=b.get("voltage_angle", 0.0),
+   682→                    bus_type=b.get("bus_type", "pq"),
+   683→                )
+   684→                bus.generation_power = complex(
+   685→                    b.get("generation_power_real", 0.0),
+   686→                    b.get("generation_power_imag", 0.0),
+   687→                )
+   688→                bus.load_power = complex(
+   689→                    b.get("load_power_real", 0.0),
+   690→                    b.get("load_power_imag", 0.0),
+   691→                )
+   692→                sys_model.add_bus(bus)
+   693→                bus_map[b["bus_id"]] = bus
+   694→
+   695→            for ln in system.get("lines", []):
+   696→                line = Line(
+   697→                    line_id=ln["line_id"],
+   698→                    from_bus=bus_map[ln["from_bus_id"]],
+   699→                    to_bus=bus_map[ln["to_bus_id"]],
+   700→                    z1=complex(ln.get("r1", 0.01), ln.get("x1", 0.05)),
+   701→                    z0=complex(
+   702→                        ln.get("r0", ln.get("r1", 0.01)),
+   703→                        ln.get("x0", ln.get("x1", 0.05)),
+   704→                    ),
+   705→                    yshunt1=complex(0, ln.get("bshunt1", 0.02)),
+   706→                    yshunt0=complex(0, ln.get("bshunt0", ln.get("bshunt1", 0.02))),
+   707→                )
+   708→                sys_model.add_line(line)
+   709→
+   710→            from engine.engine import PowerSystemEngine  # type: ignore
+   711→
+   712→            engine = PowerSystemEngine(sys_model)
+   713→            result_data = engine.run_load_flow()
+   714→            result_data = sanitize_result(result_data)
+   715→        except ImportError:
+   716→            engine_error = "Engine modules not available in HF Space deployment"
+   717→        except Exception as exc:
+   718→            engine_error = str(exc)
+   719→
+   720→    # -- Build response -----------------------------------------------------
+   721→    response: dict[str, Any] = {
+   722→        "study_type": study_type,
+   723→        "reference": f"STUDY-{int(time.time())}",
+   724→    }
+   725→    if result_data is not None:
+   726→        response["status"] = "completed"
+   727→        response["result"] = result_data
+   728→    else:
+   729→        response["status"] = "accepted"
+   730→        response["message"] = f"Study '{study_type}' queued for processing."
+   731→        if engine_error:
+   732→            response["engine_note"] = engine_error
+   733→        response["note"] = (
+   734→            "Full computation engine available in self-hosted deployment. See /docs for details."
+   735→        )
+   736→    return response
+   737→
+   738→
+   739→# ---------------------------------------------------------------------------
+   740→# Agent chat handlers
+   741→# ---------------------------------------------------------------------------
+   742→
+   743→
+   744→def handle_etap_expert_chat(question: str) -> dict[str, Any]:
+   745→    """Run the ETAP Expert agent and return a response dict.
+   746→
+   747→    Returns a dict with ``success`` / ``data`` or ``error`` / ``_status``.
+   748→    """
+   749→    question = question.strip()
+   750→    if not question:
+   751→        return {"error": "'question' field is required and must be non-empty", "_status": 400}
+   752→    try:
+   753→        from agents.etap_expert_agent import ETAPExpertAgent  # type: ignore
+   754→
+   755→        agent = ETAPExpertAgent()
+   756→        result = agent.answer(question)
+   757→        return {"success": True, "data": result}
+   758→    except Exception as exc:
+   759→        logger.exception("etap_expert chat failed")
+   760→        return {"error": f"ETAP Expert agent error: {exc}", "_status": 500}
+   761→
+   762→
+   763→def handle_etap_gui_chat(question: str) -> dict[str, Any]:
+   764→    """Run the ETAP GUI agent and return a response dict.
+   765→
+   766→    Returns a dict with ``success`` / ``data`` or ``error`` / ``_status``.
+   767→    """
+   768→    question = question.strip()
+   769→    if not question:
+   770→        return {"error": "'question' field is required and must be non-empty", "_status": 400}
+   771→    try:
+   772→        from agents.etap_gui_agent import ETAPGUIAgent  # type: ignore
+   773→
+   774→        agent = ETAPGUIAgent()
+   775→        result = agent.answer(question)
+   776→        return {"success": True, "data": result}
+   777→    except Exception as exc:
+   778→        logger.exception("etap_gui chat failed")
+   779→        return {"error": f"ETAP GUI agent error: {exc}", "_status": 500}
+   780→
+   781→
+   782→# ---------------------------------------------------------------------------
+   783→# ML / Predictive handlers (lazy-import numpy + ml.predictive)
+   784→# ---------------------------------------------------------------------------
+   785→
+   786→
+   787→def handle_ml_capabilities() -> dict[str, Any]:
+   788→    """Discover available ML/AI capabilities and their status."""
+   789→    try:
+   790→        from ml.predictive import get_ml_capabilities  # type: ignore
+   791→
+   792→        caps = get_ml_capabilities()
+   793→        return {"success": True, "data": caps}
+   794→    except ImportError as e:
+   795→        # Distinguish "ml/ directory missing" from "numpy not installed"
+   796→        msg = str(e)
+   797→        if "No module named 'ml'" in msg:
+   798→            hint = (
+   799→                "The ml/ package is not present in this deployment. "
+   800→                "If you are on Hugging Face Spaces, this is a known issue — "
+   801→                "the Dockerfile must COPY ml/ into the container. "
+   802→                "On self-hosted deployments, ensure the ml/ directory is on PYTHONPATH."
+   803→            )
+   804→        else:
+   805→            hint = (
+   806→                "ml.predictive failed to import. Install ML dependencies: "
+   807→                "pip install numpy scipy pandas scikit-learn. "
+   808→                f"Detail: {msg}"
+   809→            )
+   810→        return {
+   811→            "success": False,
+   812→            "errors": [hint],
+   813→            "deployment_note": (
+   814→                "ML endpoints (load forecasting, anomaly detection) require "
+   815→                "numpy + scikit-learn. On HF Space cpu-basic hardware these are "
+   816→                "intentionally omitted to keep the image small. Run the "
+   817→                "self-hosted Docker Compose deployment for full ML support."
+   818→            ),
+   819→            "_status": 503,
+   820→        }
+   821→    except Exception as e:
+   822→        return {"success": False, "errors": [str(e)], "_status": 500}
+   823→
+   824→
+   825→def handle_predict_load(body: dict[str, Any]) -> dict[str, Any]:
+   826→    """Predict future load using Prophet/LSTM/Linear LoadForecaster."""
+   827→    # CRITICAL #5 fix (AhmedETAP_Error_Report_AR.pdf):
+   828→    # ValueError / TypeError / KeyError are CLIENT errors (bad input) and MUST
+   829→    # return HTTP 400, not 500. Only genuine server-side surprises (ImportError,
+   830→    # AttributeError, RuntimeError from the ML backend) should be 500.
+   831→    try:
+   832→        import numpy as np  # type: ignore
+   833→
+   834→        from ml.predictive import LoadForecaster  # type: ignore
+   835→
+   836→        historical = body.get("historical_data", [])
+   837→        # Accept both `horizon_hours` (canonical) and `horizon` (alias used
+   838→        # by the Newman/Postman smoke-test collection and several SDK clients).
+   839→        # If both are present, `horizon_hours` wins.
+   840→        horizon = body.get("horizon_hours")
+   841→        if horizon is None:
+   842→            horizon = body.get("horizon", 24)
+   843→        method = body.get("method", "auto")
+   844→
+   845→        if not historical:
+   846→            return {"error": "historical_data is required", "_status": 400}
+   847→
+   848→        # Validate types before passing to ML backend so we control the
+   849→        # status code (the ML backend raises ValueError on bad input, but
+   850→        # we want a clearer message + 400 here, not a 500).
+   851→        if not isinstance(historical, list) or not all(
+   852→            isinstance(x, (int, float)) for x in historical
+   853→        ):
+   854→            return {
+   855→                "error": "historical_data must be a list of numbers",
+   856→                "_status": 400,
+   857→            }
+   858→        if not isinstance(horizon, int) or horizon <= 0:
+   859→            return {
+   860→                "error": "horizon_hours must be a positive integer",
+   861→                "_status": 400,
+   862→            }
+   863→        if not isinstance(method, str) or method not in ("auto", "prophet", "lstm", "linear"):
+   864→            return {
+   865→                "error": "method must be one of: auto, prophet, lstm, linear",
+   866→                "_status": 400,
+   867→            }
+   868→
+   869→        lf = LoadForecaster(method=method)
+   870→        data = np.array(historical, dtype=float)
+   871→        train_result = lf.train(data)
+   872→        predictions = lf.predict(horizon_hours=horizon)
+   873→
+   874→        return {
+   875→            "success": True,
+   876→            "data": {
+   877→                "predictions": predictions.tolist()
+   878→                if hasattr(predictions, "tolist")
+   879→                else list(predictions),
+   880→                "horizon_hours": horizon,
+   881→                "method": train_result.get("method", method),
+   882→            },
+   883→        }
+   884→    except (ValueError, TypeError, KeyError) as e:
+   885→        # Client-side input problem — return 400 Bad Request.
+   886→        return {"success": False, "errors": [str(e)], "_status": 400}
+   887→    except Exception as e:
+   888→        # Genuine server-side failure (ImportError, ML backend crash, etc.).
+   889→        return {"success": False, "errors": [str(e)], "_status": 500}
+   890→
+   891→
+   892→def handle_detect_anomalies(body: dict[str, Any]) -> dict[str, Any]:
+   893→    """Detect anomalies using Isolation Forest / PyOD."""
+   894→    try:
+   895→        import numpy as np  # type: ignore
+   896→
+   897→        from ml.predictive import AnomalyDetector  # type: ignore
+   898→
+   899→        data = body.get("data", [])
+   900→        method = body.get("method", "iforest")
+   901→        contamination = body.get("contamination", 0.05)
+   902→
+   903→        if not data:
+   904→            return {"error": "data is required", "_status": 400}
+   905→
+   906→        ad = AnomalyDetector(contamination=contamination, method=method)
+   907→        X = np.array(data, dtype=float)
+   908→        if X.ndim == 1:
+   909→            X = X.reshape(-1, 1)
+   910→        ad.train(X)
+   911→        result = ad.detect(X)
+   912→
+   913→        return {"success": True, "data": result}
+   914→    except Exception as e:
+   915→        return {"success": False, "errors": [str(e)], "_status": 500}
+   916→
+   917→
+   918→def handle_context_retrieval(query: str, top_k: int = 5, max_tokens: int = 2000) -> dict[str, Any]:
+   919→    """Retrieve and compress relevant code chunks based on semantic search."""
+   920→    try:
+   921→        from ai_context_engine.retriever import CHROMA_AVAILABLE, CodeRetriever
+   922→
+   923→        # Determine path to Chroma DB (default to ./index/)
+   924→        index_dir = os.environ.get("CODE_CONTEXT_INDEX_DIR", "./index")
+   925→
+   926→        retriever = CodeRetriever(index_dir=index_dir)
+   927→        compressed = retriever.retrieve_and_compress(query, top_k=top_k, max_tokens=max_tokens)
+   928→
+   929→        response: dict[str, Any] = {
+   930→            "success": True,
+   931→            "query": query,
+   932→            "count": len(compressed),
+   933→            "chunks": compressed,
+   934→        }
+   935→        # When 0 chunks are returned, explain WHY so the caller can distinguish
+   936→        # "no results matched" from "RAG backend not configured".
+   937→        if len(compressed) == 0:
+   938→            if not CHROMA_AVAILABLE:
+   939→                response["note"] = (
+   940→                    "ChromaDB is not installed in this deployment — semantic "
+   941→                    "retrieval is disabled. Run the self-hosted Docker Compose "
+   942→                    "deployment or pip install chromadb to enable RAG."
+   943→                )
+   944→            elif not retriever.collection:
+   945→                response["note"] = (
+   946→                    f"No ChromaDB collection found at '{index_dir}'. The code "
+   947→                    "index has not been built yet — run "
+   948→                    "`python -m ai_context_engine.indexer <repo_path>` to build it."
+   949→                )
+   950→            else:
+   951→                response["note"] = (
+   952→                    "No code chunks matched the query. Try different keywords or "
+   953→                    "rebuild the index with `python -m ai_context_engine.indexer .`"
+   954→                )
+   955→        return response
+   956→    except Exception as e:
+   957→        return {"success": False, "errors": [str(e)], "_status": 500}
+   958→
+   959→
+   960→def handle_impact_analysis(component: str, max_depth: int = 2) -> dict[str, Any]:
+   961→    """Perform impact analysis on a component using the Code Property Graph."""
+   962→    try:
+   963→        from ai_context_engine.knowledge_graph import KnowledgeGraph
+   964→
+   965→        # Build graph on the fly (very fast for local files)
+   966→        kg = KnowledgeGraph()
+   967→        # Scan current workspace directory
+   968→        kg.scan_repo(".")
+   969→
+   970→        subgraph = kg.generate_impact_subgraph(component, max_depth=max_depth)
+   971→
+   972→        return {
+   973→            "success": True,
+   974→            "component": component,
+   975→            "max_depth": max_depth,
+   976→            "nodes_count": len(subgraph["nodes"]),
+   977→            "edges_count": len(subgraph["edges"]),
+   978→            "impact": subgraph,
+   979→        }
+   980→    except Exception as e:
+   981→        logger.exception("Failed to run impact analysis")
+   982→        return {"success": False, "errors": [str(e)], "_status": 500}
+   983→

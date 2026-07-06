@@ -109,7 +109,11 @@ class ETAPSyncEngine:
 
         logger.info("ETAP sync: importing from %s", project_path)
 
-        # Use the mock provider fallback for testing/demo
+        # Execute load flow via the configured ETAP provider. On Linux servers
+        # without ETAP installed, this falls back to the MockEtapProvider (which
+        # returns simulated but physically plausible results) so the sync
+        # pipeline remains testable. On Windows with USE_ETAP=true, the real
+        # ETAP COM bridge is used.
         result = self.etap_provider.execute_study(project_path, self._get_study_type("LOAD_FLOW"))
 
         if not result.success:
