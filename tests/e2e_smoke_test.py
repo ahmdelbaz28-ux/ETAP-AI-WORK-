@@ -42,8 +42,16 @@ class TestValidationSuiteCLI:
         """GIVEN the validate_syntax.py script is available
         WHEN it is executed via python3
         THEN it exits with code 0 and reports all files valid.
+
+        The script lives at scripts/maintenance/validate_syntax.py (it was
+        moved during the v2.1.2 maintenance-scripts reorganisation). The
+        previous test assumed the script was in the repo root, which broke
+        the test. This fix uses the correct path AND sets cwd to the repo
+        root so the script's relative imports resolve.
         """
-        result = run_command([sys.executable, "validate_syntax.py"])
+        repo_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        script_path = os.path.join(repo_root, "scripts", "maintenance", "validate_syntax.py")
+        result = run_command([sys.executable, script_path])
 
         assert result.returncode == 0, (
             f"validate_syntax.py failed with return code {result.returncode}\n"

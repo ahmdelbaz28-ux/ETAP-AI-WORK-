@@ -8,6 +8,10 @@ import os
 import time
 import uuid
 
+from celery import (
+    current_task,  # noqa: F401 — re-exported for tests that patch worker.tasks.current_task
+)
+
 # Import the study execution logic from the services
 from services.study_service import StudyRequest, execute_study_logic
 from worker.celery_app import app
