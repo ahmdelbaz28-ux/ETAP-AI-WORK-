@@ -276,16 +276,21 @@ class VectorDatabase:
 
         # Add to vector index
         if self.db_type == "chroma" and hasattr(self, "collection"):
+            # ChromaDB 1.5+ rejects None values in metadatas (TypeError:
+            # Cannot convert Python object to MetadataValue). Build the
+            # metadata dict conditionally — only include keys whose values
+            # are not None. This matches the behavior of older chromadb
+            # versions which silently accepted None.
+            metadata: dict[str, str] = {
+                "title": doc.title,
+                "source": doc.source,
+            }
+            if doc.standard_number is not None:
+                metadata["standard_number"] = doc.standard_number
             self.collection.add(
                 ids=[doc_id],
                 embeddings=[embedding.tolist()],
-                metadatas=[
-                    {
-                        "title": doc.title,
-                        "source": doc.source,
-                        "standard_number": doc.standard_number,
-                    },
-                ],
+                metadatas=[metadata],
                 documents=[doc.content],
             )
         elif self.db_type == "faiss" and self.index is not None:

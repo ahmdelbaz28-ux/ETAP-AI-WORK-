@@ -731,13 +731,26 @@ def app(db_engine: AsyncEngine):
 
 @pytest.fixture(scope="function")
 def client(app) -> Generator[TestClient, None, None]:
-    """Provide a TestClient wired to the test application."""
+    """Provide a TestClient wired to the test application.
+
+    Clears the in-memory rate-limit counter before AND after each test to
+    prevent state leakage between tests (e.g. one test exhausting the
+    login attempt budget causing 429 in subsequent unrelated tests).
+    The post-test clear is critical when running tests in parallel with
+    pytest-xdist, where tests from different files may share a worker
+    process and thus share the module-level _LOGIN_ATTEMPTS dict.
+    """
     import api.auth as _auth_module
 
     _auth_module._LOGIN_ATTEMPTS.clear()
 
     with TestClient(app) as c:
-        yield c
+        try:
+            yield c
+        finally:
+            # Always clear after the test, even on failure, so the next
+            # test starts from a clean rate-limit state.
+            _auth_module._LOGIN_ATTEMPTS.clear()
 
 
 def _register_user(

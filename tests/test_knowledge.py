@@ -6,6 +6,7 @@ which needs an embedding provider. Without sentence-transformers installed,
 set RAG_ALLOW_HASH_FALLBACK=1 to use deterministic SHA-256 fallback.
 """
 
+import contextlib
 import os
 
 import numpy as np
@@ -34,6 +35,35 @@ pytestmark = pytest.mark.skipif(
     not _HAS_KNOWLEDGE_DEPS,
     reason="Chroma requires sqlite3 >= 3.35.0 and chromadb package",
 )
+
+
+@pytest.fixture(autouse=True)
+def _reset_knowledge_base_singleton():
+    """Reset the knowledge base singleton + clean chroma state before each test.
+
+    Without this, the EngineeringKnowledgeBase singleton + the underlying
+    PersistentClient (at ./knowledge_db) leak state between tests — earlier
+    test ingests pollute the chroma collection, causing later tests to
+    retrieve stale documents instead of the default engineering standards.
+    """
+    if _HAS_KNOWLEDGE_DEPS:
+        # Reset the singleton so each test gets a fresh EngineeringKnowledgeBase
+        import knowledge.rag_engine as _rag
+
+        _rag._knowledge_base = None
+        # Clean any persistent chroma collection so the next instantiation
+        # starts with only the default engineering standards (not leftovers
+        # from previous test ingests like 'test_doc_1' / 'custom_test').
+        with contextlib.suppress(Exception):
+            import chromadb
+
+            client = chromadb.PersistentClient(path="./knowledge_db")
+            for col_name in ["engineering_knowledge", "code_context"]:
+                try:
+                    client.delete_collection(col_name)
+                except Exception:
+                    pass
+    yield
 
 
 class TestEngineeringKnowledgeBase:

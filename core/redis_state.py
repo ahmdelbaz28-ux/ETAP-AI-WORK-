@@ -58,16 +58,32 @@ except ImportError:
 
 _client: Any | None = None
 
+# Sentinel for the ``client`` parameter on save/load/delete_workflow_state.
+# Distinct from None because explicit ``client=None`` should mean "no Redis"
+# (skip I/O), while the default "use the shared singleton" must be a
+# different value. Using a module-level object keeps the existing
+# ``Any | None`` type annotation working without a breaking API change.
+_UNSET: Any = object()
+
 
 async def get_redis_state_client() -> Any | None:
-    """Return the shared async Redis client, or None if Redis is unavailable."""
+    """Return the shared async Redis client, or None if Redis is unavailable.
+
+    Reads REDIS_URL at call time (not import time) so that tests using
+    ``patch.dict(os.environ, ...)`` can override the URL. The module-level
+    ``_REDIS_URL`` is kept only as a backwards-compatible default for code
+    that imported it before this was made dynamic.
+    """
     global _client
-    if not REDIS_AVAILABLE or not _REDIS_URL:
+    # Read REDIS_URL dynamically so tests (and runtime config changes)
+    # take effect without requiring a module reload.
+    redis_url = os.getenv("REDIS_URL", "").strip()
+    if not REDIS_AVAILABLE or not redis_url:
         return None
     if _client is None:
         try:
             _client = aioredis.from_url(
-                _REDIS_URL,
+                redis_url,
                 decode_responses=True,
                 socket_timeout=5,
                 socket_connect_timeout=5,
@@ -75,7 +91,7 @@ async def get_redis_state_client() -> Any | None:
             )
             # Ping to confirm connection
             await _client.ping()
-            logger.info("Redis state client connected: %s", _REDIS_URL.split("@")[-1])
+            logger.info("Redis state client connected: %s", redis_url.split("@")[-1])
         except Exception as exc:
             logger.warning("Redis unavailable — state will be in-memory only: %s", exc)
             _client = None
@@ -258,7 +274,7 @@ _WF_TTL = 24 * 3600  # 24 hours
 async def save_workflow_state(
     task_id: str,
     state: dict,
-    client: Any | None = None,
+    client: Any | None = _UNSET,
     ttl: int = _WF_TTL,
 ) -> None:
     """Persist agent workflow state to Redis.
@@ -270,11 +286,16 @@ async def save_workflow_state(
     state : dict
         JSON-serialisable workflow state snapshot.
     client : optional
-        Redis client. Defaults to the shared singleton.
+        Redis client. Defaults to the shared singleton. Pass ``None``
+        explicitly to skip Redis (treat as a no-op) — this is what tests
+        do to verify the no-Redis code path.
     ttl : int
         TTL in seconds (default 24 hours).
     """
-    r = client or await get_redis_state_client()
+    if client is _UNSET:
+        r = await get_redis_state_client()
+    else:
+        r = client
     if r is None:
         return
     key = f"{_WF_PREFIX}{task_id}"
@@ -286,13 +307,17 @@ async def save_workflow_state(
 
 async def load_workflow_state(
     task_id: str,
-    client: Any | None = None,
+    client: Any | None = _UNSET,
 ) -> dict | None:
     """Load agent workflow state from Redis.
 
-    Returns the state dict or None if no state was saved.
+    Returns the state dict or None if no state was saved (or if a None
+    client was passed explicitly to skip Redis).
     """
-    r = client or await get_redis_state_client()
+    if client is _UNSET:
+        r = await get_redis_state_client()
+    else:
+        r = client
     if r is None:
         return None
     key = f"{_WF_PREFIX}{task_id}"
@@ -307,10 +332,13 @@ async def load_workflow_state(
 
 async def delete_workflow_state(
     task_id: str,
-    client: Any | None = None,
+    client: Any | None = _UNSET,
 ) -> None:
     """Remove a workflow state entry from Redis."""
-    r = client or await get_redis_state_client()
+    if client is _UNSET:
+        r = await get_redis_state_client()
+    else:
+        r = client
     if r is None:
         return
     key = f"{_WF_PREFIX}{task_id}"
