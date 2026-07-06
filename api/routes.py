@@ -537,6 +537,25 @@ else:
 # BodySizeLimit added AFTER CORS so CORS is outermost (last added = first executed)
 app.add_middleware(_BodySizeLimitMiddleware)  # NOSONAR — S8414: CORSMiddleware is added above (last-but-one) which makes it outermost
 
+# ─── Security middleware: RASP + ABAC ─────────────────────────────
+# These were previously written (security/rasp.py 288 LOC, security/abac.py
+# 823 LOC) but NEVER registered on the FastAPI app — making them dead code.
+# Now registered via security/wiring.py.
+# See: PRODUCTION_PLAN/01_SELF_CRITICISM.md §3.6 #23-24
+try:
+    from security.wiring import install_security_middleware
+
+    install_security_middleware(app)
+except ImportError:
+    logger.warning(
+        "security.wiring not available — RASP + ABAC middleware not registered. "
+        "Install security/ module for production."
+    )
+except Exception as _sec_exc:
+    logger.error("Failed to install security middleware: %s", _sec_exc)
+    if os.environ.get("ENVIRONMENT") == "production":
+        raise
+
 
 # Global exception handler to prevent raw exception exposure
 @app.exception_handler(Exception)
