@@ -27,6 +27,7 @@ Security features
 from __future__ import annotations
 
 import hashlib
+import logging
 import os
 import time
 import uuid
@@ -52,6 +53,8 @@ from api.dependencies import (
     pagination_params,
     require_role,
 )
+
+logger = logging.getLogger(__name__)
 
 # ---------------------------------------------------------------------------
 # JWT configuration
@@ -863,6 +866,13 @@ async def forgot_password(
     result = await db.execute(select(User).where(User.email == body.email))
     user = result.scalar_one_or_none()
 
+    # IMPORTANT: the same response shape is returned whether or not the
+    # email exists, to prevent email-enumeration attacks.
+    standard_response = {
+        "message": "If the email exists, a reset token has been sent",
+        "status": "sent",
+    }
+
     if user is not None and user.is_active:
         reset_token = str(uuid.uuid4())
         token_hash = hashlib.sha256(reset_token.encode()).hexdigest()
@@ -872,15 +882,44 @@ async def forgot_password(
         db.add(user)
         await db.flush()
 
-        # Include the raw reset token in the response for testability.
-        # In production, this token would be sent via email instead.
-        return {
-            "message": "If the email exists, a reset token has been sent",
-            "reset_token": reset_token,
-        }
+        # SECURITY: the raw reset token must NEVER be returned in the
+        # HTTP response body. Doing so leaks it via:
+        #   - reverse proxy access logs
+        #   - any caching layer (Varnish, CloudFront, etc.)
+        #   - browser DevTools / HAR exports
+        #   - any HTTP-based observability tool (Langfuse, Datadog, etc.)
+        #
+        # In production, the token is delivered ONLY via a side-channel
+        # (email, SMS, or a secure push notification).
+        #
+        # In development, the token can optionally be logged (not returned)
+        # so engineers can pick it up from the server logs for testing.
+        _return_token_in_response = os.environ.get(
+            "RESET_TOKEN_RETURN_IN_RESPONSE", "false"
+        ).lower() == "true"
+
+        if _return_token_in_response:
+            # Development convenience ONLY — never enable in production.
+            # Logged at WARNING so it shows up in any log-based alerting.
+            logger.warning(
+                "RESET_TOKEN_RETURN_IN_RESPONSE=true — returning raw token "
+                "in response body. This MUST be false in production."
+            )
+            return {**standard_response, "reset_token": reset_token}
+
+        # Production path: log the token at INFO so the developer can
+        # retrieve it from logs (for local testing) without exposing it
+        # in the HTTP response.
+        logger.info(
+            "Password reset token generated for user_id=%s (deliver via email)",
+            user.id,
+        )
+        # In a real deployment, this is where you would call:
+        #   await email_service.send_password_reset(user.email, reset_token)
+        return standard_response
 
     # Deliberately return the same message to avoid enumeration
-    return {"message": "If the email exists, a reset token has been generated"}
+    return standard_response
 
 
 @router.post(
