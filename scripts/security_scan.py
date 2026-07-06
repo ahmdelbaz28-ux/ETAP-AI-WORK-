@@ -28,7 +28,7 @@ SECRET_PATTERNS = [
     (r"admin123|password123|123456", "Weak default password"),
 ]
 
-EXCLUDED_DIRS = {".git", "__pycache__", "node_modules", ".venv", "venv", "output", "dist"}
+EXCLUDED_DIRS = {".git", "__pycache__", "node_modules", ".venv", "venv", "output", "dist", "skills"}
 EXCLUDED_FILES = {".env.example", "security_scan.py", "README.md", "SECURITY.md"}
 
 # Files where weak passwords / test secrets are intentional and audited.
@@ -58,6 +58,9 @@ EXCLUDED_PATHS = {
     "locustfile.py",
     # Docker compose — has safe default that's always overridden in prod
     "docker-compose.yml",
+    # E2E smoke test — uses a clearly-marked dev API key + test password
+    # to exercise the auth flow against a local server. Not a real secret.
+    "scripts/e2e_test.py",
 }
 
 # Inline annotations that mark a line as intentionally containing a test secret
