@@ -133,12 +133,11 @@ export function ContextPanel({  // NOSONAR — S6759: React props read-only; req
           <div className="px-4 pb-3 space-y-1">
             <div className="text-[10px] font-semibold text-[var(--text-muted)] uppercase tracking-wider mb-2">Actions</div>
             {actions.map((action) => {
-              const actionClass =
-                action.variant === 'primary'
-                  ? 'bg-[var(--accent-primary)]/10 text-[var(--accent-primary)] hover:bg-[var(--accent-primary)]/20'
-                  : action.variant === 'ghost'
-                    ? 'text-[var(--text-secondary)] hover:bg-[var(--bg-elevated)]'
-                    : 'bg-[var(--bg-elevated)] text-[var(--text-secondary)] hover:bg-[var(--border-primary)]'
+              const actionClass = (() => {
+                if (action.variant === 'primary') return 'bg-[var(--accent-primary)]/10 text-[var(--accent-primary)] hover:bg-[var(--accent-primary)]/20';
+                if (action.variant === 'ghost') return 'text-[var(--text-secondary)] hover:bg-[var(--bg-elevated)]';
+                return 'bg-[var(--bg-elevated)] text-[var(--text-secondary)] hover:bg-[var(--border-primary)]';
+              })()
               return (
               <button
                 key={action.label}

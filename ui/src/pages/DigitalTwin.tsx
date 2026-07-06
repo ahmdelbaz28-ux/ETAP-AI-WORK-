@@ -286,7 +286,7 @@ export default function DigitalTwin() {
                         </div>
                       </div>
                       <Badge variant={config.variant} dot size="sm">
-                        {source.status === 'online' ? 'Online' : source.status === 'offline' ? 'Offline' : 'Warning'}
+                        {(() => { if (source.status === 'online') return 'Online'; if (source.status === 'offline') return 'Offline'; return 'Warning'; })()}
                       </Badge>
                     </div>
                   )

@@ -899,22 +899,20 @@ function AISettingsPanel({ settings, setSettings, notify }: AISettingsPanelProps
             className={cn(
               'flex items-center gap-1.5 px-5 py-2 rounded-lg text-xs font-semibold transition-all shrink-0',
               'disabled:bg-[var(--bg-primary)] disabled:text-[var(--text-muted)] disabled:cursor-not-allowed disabled:border disabled:border-[var(--border-primary)]',
-              providerStatus.custom_openai === 'ok'
-                ? 'bg-green-600 hover:bg-green-500 text-white'
-                : providerStatus.custom_openai === 'fail'
-                  ? 'bg-red-600 hover:bg-red-500 text-white'
-                  : 'bg-purple-600 hover:bg-purple-500 text-white'
+              (() => {
+                const s = providerStatus.custom_openai;
+                if (s === 'ok') return 'bg-green-600 hover:bg-green-500 text-white';
+                if (s === 'fail') return 'bg-red-600 hover:bg-red-500 text-white';
+                return 'bg-purple-600 hover:bg-purple-500 text-white';
+              })()
             )}
           >
-            {testingProvider === 'custom_openai' ? (
-              <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Testing...</>
-            ) : providerStatus.custom_openai === 'ok' ? (
-              <><CheckCircle2 className="w-3.5 h-3.5" /> Valid ✓</>
-            ) : providerStatus.custom_openai === 'fail' ? (
-              <><XCircle className="w-3.5 h-3.5" /> Failed — Retry</>
-            ) : (
-              <><Zap className="w-3.5 h-3.5" /> Test Connection</>
-            )}
+            {(() => {
+              if (testingProvider === 'custom_openai') return <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Testing...</>;
+              if (providerStatus.custom_openai === 'ok') return <><CheckCircle2 className="w-3.5 h-3.5" /> Valid ✓</>;
+              if (providerStatus.custom_openai === 'fail') return <><XCircle className="w-3.5 h-3.5" /> Failed — Retry</>;
+              return <><Zap className="w-3.5 h-3.5" /> Test Connection</>;
+            })()}
           </button>
 
           {/* Test result display */}
