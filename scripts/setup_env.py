@@ -406,7 +406,7 @@ def main() -> int:
         else:
             print(f"    · {desc:25s}  not set (uses placeholder)")
 
-    print(f"\n  All 14 modules + 25 AI agents are flagged ACTIVE.")
+    print("\n  All 14 modules + 25 AI agents are flagged ACTIVE.")
     return 0
 
 
