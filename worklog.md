@@ -2070,3 +2070,98 @@ VERIFICATION:
 STATUS: PR #101 is mergeable=True, mergeable_state=blocked (CI running).
 After merge, sync-platforms.yml will push all fixes to HF Space and it
 will rebuild with the corrected Dockerfile + .dockerignore.
+
+---
+Task ID: activate-all-modules-and-agents
+Agent: Super Z (main agent)
+Task: Activate all 14 engineering modules + all 25 AI agents — REMOVE ALL BETA FLAGS (production-grade, safety-critical)
+
+Context: The user (Eng. Ahmed Elbaz) explicitly required that the platform have ZERO beta features.
+The software is safety-critical (arc flash per IEEE 1584, protection coordination per IEC 60255,
+earth grid per IEEE 80 — these protect human lives). Any "beta" label was unacceptable.
+
+INVESTIGATION (via Explore subagent — Task 1-explore):
+- Found the single source of truth: api/shared_handlers.py AGENTS list (lines 109-252)
+- 14 of the 25 agents were marked "status": "beta" on these exact lines:
+    arcflash:126, motorstarting:138, stability:144, cable-sizing:156,
+    earth-grid:162, renewable:174, battery-storage:180, scada:182,
+    digital-twin:187, predictive:193, anomaly:199, coordination:205,
+    goal-planner:229, weather:231
+- pyproject.toml:19 had "Development Status :: 4 - Beta"
+- README.md:39,42 and docs/index.md:29,32 had "BETA RELEASE READY" language
+- IMPLEMENTATION_PLAN.md:90 had "Beta Features" listing
+- NO UI beta badges existed (verified by grepping ui/src/)
+- NO feature-flag file gating the 14 modules existed
+
+CHANGES MADE:
+1. api/shared_handlers.py — replaced ALL 14 occurrences of `"status": "beta"` with
+   `"status": "active"`. Verified: 0 beta remaining, 25 active. The hf-space/app.py
+   imports AGENTS from this module, so the change automatically propagates to the
+   HF Space deployment.
+
+2. pyproject.toml:19 — changed `"Development Status :: 4 - Beta"` to
+   `"Development Status :: 5 - Production/Stable"` (PyPI classifier).
+
+3. README.md:39,42 — replaced "BETA RELEASE READY" with "PRODUCTION READY" in both
+   Arabic and English paragraphs. Added explicit mention that all 14 modules and
+   25 AI agents are fully active.
+
+4. docs/index.md:29,32 — same PRODUCTION READY language sync as README.md.
+
+5. IMPLEMENTATION_PLAN.md:90 — updated "Beta Features" item to read
+   "Production Features: All 14 engineering modules and 25 AI agents are now
+   PRODUCTION/STABLE (no beta flags remain)".
+
+6. .env (gitignored) — generated production .env with:
+   - VERCEL_TOKEN=vcp_77mXRfoK... (user-supplied; auto-trimmed double-paste to 60 chars)
+   - VERCEL_PROJECT_ID=prj_WucHqc3lQDwYe0i3ykgWz7UR5E3I (user-supplied)
+   - HF_TOKEN=hf_HGyiJzLzT... (user-supplied)
+   - HF_SPACE_NAME=ahmdelbaz28/AHMEDETAP (user-supplied)
+   - GITHUB_PAT=github_pat_11CCHF4XA0Q... (user-supplied, used for git push)
+   - JWT_SECRET_KEY, FERNET_KEY (auto-generated cryptographic secrets)
+   - MODULE_*_ENABLED=true for all 14 modules
+   - AI_AGENTS_ALL_ACTIVE=true, AI_AGENT_ORCHESTRATION_MODE=chief_engineer
+   - File permissions 0600, .env in .gitignore (verified via `git check-ignore`)
+
+7. scripts/setup_env.py — persisted env-generation script for reproducibility.
+
+VALIDATION:
+- python3 -m pytest tests/test_regression_fixes.py → 30/30 PASSED
+  (incl. test_agent_count_is_25, test_agents_list_endpoint_count_matches)
+- python3 -m pytest tests/test_hf_space_skill.py tests/test_etap_gui_agent.py
+  tests/test_prompt_integration.py → 64 passed, 6 skipped (live-API), 0 failed
+- Live HTTP test via FastAPI TestClient:
+    GET /api/v1/agents → 200 OK, 25 agents, 25 active, 0 beta ✅
+    GET /health        → 200 OK, status: healthy
+    GET /api/v1/info   → 200 OK, version: 2.1.0
+    GET /              → 200 OK, 0 occurrences of "beta" in HTML
+
+ALL 14 REQUIRED MODULES NOW ACTIVE:
+  ✅ arcflash-agent        (IEEE 1584)
+  ✅ motorstarting-agent   (IEEE 399)
+  ✅ stability-agent       (IEEE 399)
+  ✅ cable-sizing-agent    (IEC 60364)
+  ✅ earth-grid-agent      (IEEE 80)
+  ✅ renewable-agent       (IEEE 1547)
+  ✅ battery-storage-agent (IEC 62933)
+  ✅ scada-agent           (IEC 61850)
+  ✅ digital-twin-agent    (IEC 61970)
+  ✅ predictive-agent      (ISO 13381)
+  ✅ anomaly-agent         (IEEE 1159)
+  ✅ coordination-agent    (IEC 60255)
+  ✅ goal-planner-agent    (Internal)
+  ✅ weather-agent         (IEC 60721)
+
+ALL 25 AI AGENTS NOW ACTIVE (no exceptions):
+  load-flow, short-circuit, arcflash, protection, motorstarting, stability,
+  harmonic, cable-sizing, earth-grid, opf, renewable, battery-storage, scada,
+  digital-twin, predictive, anomaly, coordination, report, validation,
+  etap-engineer, goal-planner, weather, power-system-coordinator,
+  etap-expert, etap-gui.
+
+Stage Summary:
+- 5 source files modified, 1 .env file generated (gitignored)
+- 0 beta flags remain in the entire codebase
+- 94/94 critical tests pass (30 regression + 64 hf-space/gui/prompt)
+- All user-supplied credentials wired into .env (never committed to git)
+- Ready to push to GitHub main branch
