@@ -72,12 +72,21 @@ class TestCodeIndexer:
         """Create an indexer with a temporary output directory."""
         dummy_emb = None
         if CHROMA_AVAILABLE:
+            # ChromaDB 1.5+ requires the embedding_function to be a callable
+            # OBJECT with a `.name()` method (not a plain function), otherwise
+            # collection operations raise AttributeError: 'function' object has
+            # no attribute 'name'. Wrap the dummy in a class to satisfy the API.
+            class DummyEmbeddingFunction:
+                """Minimal embedding function matching chromadb 1.5+ API."""
 
-            def dummy_embedding(input):
-                # ChromaDB expects a list of embeddings for list of documents
-                return [[0.1] * 384 for _ in input]
+                def __call__(self, input):
+                    # ChromaDB expects a list of embeddings for list of documents
+                    return [[0.1] * 384 for _ in input]
 
-            dummy_emb = dummy_embedding
+                def name(self) -> str:
+                    return "dummy_test_embedding"
+
+            dummy_emb = DummyEmbeddingFunction()
         return CodeIndexer(output_dir=str(tmp_path / "index"), embedding_function=dummy_emb)
 
     def test_hash_code_is_deterministic(self, mock_indexer):
