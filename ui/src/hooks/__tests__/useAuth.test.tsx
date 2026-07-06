@@ -73,7 +73,7 @@ describe('useAuth', () => {
 
     expect(mockFetch).toHaveBeenCalledWith('https://ahmdelbaz28-ahmedetap.hf.space/api/v1/auth/login', expect.objectContaining({
       method: 'POST',
-      body: JSON.stringify({ email: 'engineer@etap.com', password: 'password123' }),
+      body: JSON.stringify({ username: 'engineer@etap.com', password: 'password123' }),
     }))
 
     expect(localStorage.getItem('authToken')).toBe('test-access-token')

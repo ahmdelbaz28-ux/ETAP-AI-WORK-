@@ -315,6 +315,11 @@ PUBLIC_PATHS: frozenset[str] = frozenset(
         "/redoc",
         "/openapi.json",
         "/metrics",
+        # Auth endpoints must be public — they ARE the authentication.
+        # If these required an API key, no user could ever register or log in.
+        "/api/v1/auth/register",
+        "/api/v1/auth/login",
+        "/api/v1/auth/refresh",
     },
 )
 
