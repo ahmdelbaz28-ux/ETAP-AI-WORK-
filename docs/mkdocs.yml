@@ -8,6 +8,11 @@ site_description: Enterprise AI-Powered Power Systems Engineering Platform
 site_author: AhmedETAP Team
 repo_url: https://github.com/ahmdelbaz28-ux/ETAP-AI-WORK-
 docs_dir: .
+# site_dir MUST be outside docs_dir (otherwise MkDocs refuses to build).
+# Since docs_dir is '.' (relative to this config file at docs/mkdocs.yml),
+# the default 'site/' would land inside docs/. Use ../site to put it at
+# repo-root/site/ instead.
+site_dir: ../site
 
 # Exclude files / subdirectories that:
 #   - reference paths outside docs/ (e.g. ../PROJECT_INDEX.md, ../../SECURITY.md)
