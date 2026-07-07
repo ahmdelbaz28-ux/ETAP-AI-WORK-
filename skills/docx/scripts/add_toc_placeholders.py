@@ -75,7 +75,14 @@ def _safe_write_text(path: Path, content: str, encoding: str = 'utf-8', base_dir
         ValueError: If path escapes base_dir.
     """
     safe = _assert_safe_path(path, base_dir)
-    safe.write_text(content, encoding=encoding)
+    # Use os.path.realpath to resolve any symlink traversal before writing
+    real_path = os.path.realpath(safe)
+    if base_dir is not None:
+        base_real = os.path.realpath(base_dir)
+        if not real_path.startswith(base_real):
+            raise ValueError(f"Path traversal detected: {real_path} is outside {base_real}")
+    with open(real_path, 'w', encoding=encoding) as f:
+        f.write(content)
 
 
 def _extract_headings_from_docx(docx_path: str, max_level: int = 3) -> list:
@@ -90,7 +97,11 @@ def _extract_headings_from_docx(docx_path: str, max_level: int = 3) -> list:
     """
     from docx import Document
 
-    doc = Document(docx_path)
+    # Resolve and validate path before opening
+    p = Path(docx_path).resolve()
+    if not p.is_file():
+        raise FileNotFoundError(f"DOCX file not found: {docx_path}")
+    doc = Document(str(p))
     entries = []
     page_estimate = 1
 
@@ -130,6 +141,10 @@ def add_toc_placeholders(docx_path: str, entries: list = None) -> None:
                  with 'level' (1-3), 'text', and 'page' keys.
     """
     docx_path = Path(docx_path)
+    # Validate the input path to prevent path traversal (S2083)
+    docx_resolved = docx_path.resolve()
+    if not docx_resolved.is_file():
+        raise FileNotFoundError(f"DOCX file not found: {docx_path}")
 
     # Create temp directory for extraction
     with tempfile.TemporaryDirectory() as temp_dir:
@@ -137,8 +152,12 @@ def add_toc_placeholders(docx_path: str, entries: list = None) -> None:
         extracted_dir = temp_path / "extracted"
         temp_output = temp_path / "output.docx"
 
-        # Extract DOCX
-        with zipfile.ZipFile(docx_path, 'r') as zip_ref:
+        # Extract DOCX safely — validate each member path against zip-slip
+        with zipfile.ZipFile(str(docx_resolved), 'r') as zip_ref:
+            for member in zip_ref.infolist():
+                member_path = (extracted_dir / member.filename).resolve()
+                if not str(member_path).startswith(str(extracted_dir.resolve())):
+                    raise ValueError(f"Zip-slip detected: {member.filename}")
             zip_ref.extractall(extracted_dir)
 
         # Ensure TOC styles exist in styles.xml
