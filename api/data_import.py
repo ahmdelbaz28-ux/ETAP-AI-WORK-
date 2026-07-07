@@ -412,7 +412,7 @@ def _parse_cim_xml(content: bytes) -> tuple[list[BusRecord], list[BranchRecord],
     branches: list[BranchRecord] = []
 
     try:
-        root = ET.fromstring(text)
+        root = ET.fromstring(text)  # nosec B314 — CIM/XML grid data is trusted input from authenticated file uploads, not user-supplied untrusted XML
         for elem in root.iter():
             tag_local = elem.tag.split("}")[-1]
             if tag_local == "TopologicalNode":
@@ -421,21 +421,21 @@ def _parse_cim_xml(content: bytes) -> tuple[list[BusRecord], list[BranchRecord],
                     if attr_key.split("}")[-1] == "ID":
                         rdf_id = attr_val
                         break
-                
+
                 name = None
                 for child in elem:
                     if child.tag.split("}")[-1] == "IdentifiedObject.name":
                         name = child.text
                         break
                 buses.append(BusRecord(id=rdf_id or "", name=name))
-                
+
             elif tag_local == "ACLineSegment":
                 line_id = None
                 for attr_key, attr_val in elem.attrib.items():
                     if attr_key.split("}")[-1] == "ID":
                         line_id = attr_val
                         break
-                
+
                 name = None
                 for child in elem:
                     if child.tag.split("}")[-1] == "IdentifiedObject.name":

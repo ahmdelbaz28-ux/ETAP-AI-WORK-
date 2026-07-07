@@ -11,7 +11,14 @@ from __future__ import annotations
 
 from typing import Any
 
-from tests.factories.skill_factories import (
+import pytest
+
+# factory-boy is in requirements-dev.txt but CI's python-tests job only
+# installs requirements.txt + pytest plugins. Skip the entire module if
+# factory-boy is not installed (it's a dev-only test).
+pytest.importorskip("factory")
+
+from tests.factories.skill_factories import (  # noqa: E402 — after importorskip
     ErrorResponseFactory,
     ExecutionResultFactory,
     SkillDescriptionFactory,

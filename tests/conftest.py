@@ -3,6 +3,7 @@ Test configuration and fixtures for the Engineering Service.
 Contains shared test utilities, mocks, and test network configurations.
 """
 
+import contextlib
 import os
 import tempfile
 from typing import AsyncGenerator, Generator
@@ -575,6 +576,13 @@ def setup_test_environment():
     # 429s. Allow 10,000 req/60s in tests.
     os.environ["ENGINEERING_SERVICE_RATE_LIMIT_MAX"] = "10000"
 
+    # Clear API key env vars so verify_api_key() returns early (open access).
+    # Without this, tests that use hf_app_client (which calls verify_api_key)
+    # get 401 because HF_API_KEY may be set in CI secrets. The HF Space app
+    # copies ENGINEERING_SERVICE_API_KEY → HF_API_KEY if the former is set.
+    _api_key_vars = ("HF_API_KEY", "ENGINEERING_SERVICE_API_KEY")
+    _saved_keys = {k: os.environ.pop(k, None) for k in _api_key_vars}
+
     # Set logging to debug level for tests
     try:
         logger.setLevel("DEBUG")
@@ -617,6 +625,12 @@ def setup_test_environment():
         "ENGINEERING_SERVICE_RATE_LIMIT_MAX",
     ):
         os.environ.pop(_key, None)
+
+    # Restore API key env vars (so other tests/code that depend on them
+    # still work). If the saved value was None, the var was never set.
+    for _k, _v in _saved_keys.items():
+        if _v is not None:
+            os.environ[_k] = _v
 
     if debug_loop:
         _loop_status("AFTER test")
@@ -767,6 +781,11 @@ def client(app) -> Generator[TestClient, None, None]:
     The post-test clear is critical when running tests in parallel with
     pytest-xdist, where tests from different files may share a worker
     process and thus share the module-level _LOGIN_ATTEMPTS dict.
+
+    Also clears Redis rate-limit keys (auth:ratelimit:*) when Redis is
+    available — the rate limiter uses Redis with key
+    ``auth:ratelimit:{username}`` and the counter persists across tests
+    unless explicitly cleared.
     """
     import os as _os
 
@@ -809,6 +828,28 @@ def client(app) -> Generator[TestClient, None, None]:
             # Always clear after the test, even on failure, so the next
             # test starts from a clean rate-limit state.
             _auth_module._LOGIN_ATTEMPTS.clear()
+            # Clear Redis rate-limit keys. The rate limiter uses
+            # ``auth:ratelimit:{username}`` keys that persist across tests
+            # when Redis is available (CI runs Redis as a service container).
+            # Without this clear, test_login_rate_limiting fills the counter
+            # for username "ratelimituser", and subsequent tests that register
+            # users with the same name hit 429.
+            with contextlib.suppress(Exception):
+                r = _auth_module._get_redis_client()
+                if r is not None:
+                    # Clear Redis rate-limit keys. The rate limiter uses
+                    # ``auth:ratelimit:{username}`` keys that persist across
+                    # tests when Redis is available.
+                    import asyncio as _asyncio
+
+                    loop = _asyncio.get_event_loop_policy().get_event_loop()
+                    if not loop.is_closed():
+
+                        async def _clear_rate_limit_keys() -> None:
+                            async for k in r.scan_iter(match="auth:ratelimit:*", count=100):
+                                await r.delete(k)
+
+                        loop.run_until_complete(_clear_rate_limit_keys())
             if debug_loop:
                 try:
                     loop = asyncio.get_event_loop_policy().get_event_loop()
