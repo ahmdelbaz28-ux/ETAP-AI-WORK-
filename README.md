@@ -11,829 +11,401 @@ app_port: 7860
 
 <div align="center">
 
-<img src="docs/assets/banner.png" alt="ETAP AI Platform Banner" width="100%"/>
-
-<br/>
-
-<h1>⚡ ETAP AI Platform</h1>
+<h1>⚡ AhmedETAP Platform</h1>
 <h3>Enterprise AI-Powered Power Systems Engineering</h3>
 
+<p>
+  An autonomous engineering-intelligence system that fuses 25 specialist AI agents
+  with rigorous IEC / IEEE computational engines — taking engineers from a natural-language
+  question to a validated, auditable engineering report in seconds.
+</p>
+
 <br/>
 
-[![Version](https://img.shields.io/badge/version-2.1.0-gold?style=for-the-badge&logo=semantic-release&logoColor=white)](https://github.com/ahmdelbaz28-ux/ETAP-AI-WORK-/releases)
-[![Python](https://img.shields.io/badge/Python-3.8%2B-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://python.org)
+<!-- Identity badges -->
+[![Version](https://img.shields.io/badge/version-2.1.0-gold?style=for-the-badge&logo=semantic-release&logoColor=white)](#)
+[![Python](https://img.shields.io/badge/Python-3.11+-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://python.org)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.115-009688?style=for-the-badge&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com)
 [![React](https://img.shields.io/badge/React-19-61DAFB?style=for-the-badge&logo=react&logoColor=black)](https://react.dev)
-[![Docker](https://img.shields.io/badge/Docker-Ready-2496ED?style=for-the-badge&logo=docker&logoColor=white)](Dockerfile)
-[![Kubernetes](https://img.shields.io/badge/Kubernetes-Helm-326CE5?style=for-the-badge&logo=kubernetes&logoColor=white)](helm/)
+[![Vite](https://img.shields.io/badge/Vite-6-646CFF?style=for-the-badge&logo=vite&logoColor=white)](https://vitejs.dev)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.7-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](https://typescriptlang.org)
 [![License](https://img.shields.io/badge/License-MIT-22c55e?style=for-the-badge&logo=open-source-initiative&logoColor=white)](LICENSE)
 
 <br/>
 
-[![CI/CD](https://img.shields.io/github/actions/workflow/status/ahmdelbaz28-ux/ETAP-AI-WORK-/ci-cd.yml?style=flat-square&label=CI%2FCD&logo=github-actions&logoColor=white)](https://github.com/ahmdelbaz28-ux/ETAP-AI-WORK-/actions)
-[![SonarCloud](https://img.shields.io/badge/SonarCloud-Monitored-orange?style=flat-square&logo=sonarcloud&logoColor=white)](https://sonarcloud.io/project/overview?id=ahmdelbaz28-ux_ETAP-AI-WORK-)
-[![Coverage](https://img.shields.io/badge/Coverage-≥80%25-brightgreen?style=flat-square&logo=pytest&logoColor=white)](tests/)
-[![AI Agents](https://img.shields.io/badge/AI%20Agents-25%20Specialist-8b5cf6?style=flat-square&logo=openai&logoColor=white)](agents/)
-[![API Endpoints](https://img.shields.io/badge/API%20Endpoints-51+-f59e0b?style=flat-square&logo=swagger&logoColor=white)](docs/API_DOCUMENTATION.md)
-[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-Production-336791?style=flat-square&logo=postgresql&logoColor=white)](api/database.py)
-[![Redis](https://img.shields.io/badge/Redis-State%20%26%20Queue-DC382D?style=flat-square&logo=redis&logoColor=white)](core/redis_state.py)
-[![Security](https://img.shields.io/badge/Security-Enterprise%20Grade-ef4444?style=flat-square&logo=shield&logoColor=white)](security/)
+<!-- Live status badges -->
+[![UI](https://img.shields.io/badge/UI-Vercel-000000?style=flat-square&logo=vercel&logoColor=white)](https://etap-ai-work.vercel.app)
+[![API](https://img.shields.io/badge/API-HF%20Space-FFD21E?style=flat-square&logo=huggingface&logoColor=black)](https://ahmdelbaz28-ahmedetap-platform.hf.space/health)
+[![DB](https://img.shields.io/badge/Postgres-Supabase-3ECF8E?style=flat-square&logo=supabase&logoColor=white)](https://supabase.com)
+[![LLM Obs](https://img.shields.io/badge/LLM%20Obs-Langfuse-7C3AED?style=flat-square&logo=langfuse&logoColor=white)](https://cloud.langfuse.com)
+[![Eval](https://img.shields.io/badge/Eval-LangWatch-FF6B6B?style=flat-square&logo=datadog&logoColor=white)](https://app.langwatch.ai)
+[![MCP](https://img.shields.io/badge/MCP-Smithery-FFB400?style=flat-square&logo=data:image/svg%2Bxml;base64,&logoColor=white)](https://smithery.ai)
+[![CI/CD](https://img.shields.io/badge/CI/CD-GitHub%20Actions-2088FF?style=flat-square&logo=github-actions&logoColor=white)](https://github.com/ahmdelbaz28-ux/ETAP-AI-WORK-/actions)
 [![Standards](https://img.shields.io/badge/Standards-IEEE%20%7C%20IEC-0052cc?style=flat-square&logo=ieee&logoColor=white)](docs/ARCHITECTURE.md)
-[![Vercel](https://img.shields.io/badge/Vercel-Deployed-black?style=flat-square&logo=vercel&logoColor=white)](https://vercel.com/ahmdelbaz28-uxs-projects/etap-ai-work)
 
 <br/>
 
-**[🚀 Live Platform — Hugging Face](https://huggingface.co/spaces/ahmdelbaz28/AhmedETAP-Platform)** &nbsp;•&nbsp;
-**[💻 Dashboard — Vercel](https://vercel.com/ahmdelbaz28-uxs-projects/etap-ai-work)** &nbsp;•&nbsp;
-**[📚 Full Documentation](docs/)** &nbsp;•&nbsp;
-**[🌐 API Reference](docs/API_DOCUMENTATION.md)** &nbsp;•&nbsp;
-**[📋 Project Index](PROJECT_INDEX.md)** &nbsp;•&nbsp;
-**[🔒 Security Policy](SECURITY.md)**
+**[🚀 Live UI — Vercel](https://etap-ai-work.vercel.app)** &nbsp;•&nbsp;
+**[🧠 Live API — HF Space](https://ahmdelbaz28-ahmedetap-platform.hf.space/docs)** &nbsp;•&nbsp;
+**[📚 Docs](docs/)** &nbsp;•&nbsp;
+**[🔧 API Reference](docs/API_REFERENCE.md)** &nbsp;•&nbsp;
+**[📋 Project Index](PROJECT_INDEX.md)**
 
 </div>
 
 ---
 
-## 🏭 Platform Overview
+## 🏭 Platform Identity
 
-**ETAP AI Platform** is an enterprise-grade autonomous engineering intelligence system for power systems analysis. It fuses cutting-edge AI agent orchestration with rigorous IEC/IEEE computational engines — enabling engineers to go from question to validated engineering report in seconds.
+**AhmedETAP** is a production-grade, autonomous engineering-intelligence platform that
+wraps ETAP-style power-systems analysis in a conversational, agent-driven interface.
+It pairs a FastAPI backend (25 specialist agents, 51 API endpoints, IEEE/IEC engines
+for load-flow / short-circuit / arc-flash / protection-coordination) with a React 19 +
+Vite 6 single-page application that runs in any modern browser.
 
-```
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                     ETAP AI Platform  —  v2.1.0                            │
-├──────────────────────┬──────────────────────────────────────────────────────┤
-│  🤖 AI Agents        │  25 specialist agents with parallel orchestration    │
-│  ⚙️  Engines         │  Newton-Raphson · IEC 60909 · IEEE 1584 · DC/AC-OPF │
-│  🗄️  Persistence     │  PostgreSQL + Redis  (no task loss on restart)       │
-│  🔐 Security         │  JWT · ABAC · MFA · RASP · HashiCorp Vault          │
-│  📊 Observability    │  Grafana · Prometheus · LangWatch                    │
-│  🔄 Workers          │  Celery autoscaling + ETAP Windows Worker Pool       │
-│  🧪 Test Coverage    │  1 680+ tests · CI gate ≥80%                        │
-│  🚨 DR               │  RPO ≤ 15 min  ·  RTO ≤ 30 min                     │
-└──────────────────────┴──────────────────────────────────────────────────────┘
-```
+The platform is intentionally split across two hosting tiers so each tier plays to
+its strength:
 
-> **For junior engineers:** Talk to the platform in plain language (Arabic or English) — it executes studies automatically.
->
-> **For expert engineers:** Direct IEC/IEEE computation engines, full REST API, and native ETAP COM automation.
+| Tier | Hosting | Tech | Role |
+|:---|:---|:---|:---|
+| **Frontend SPA** | Vercel | React 19 + Vite 6 + Tailwind 4 | Static UI, served from global edge CDN |
+| **Backend API** | Hugging Face Space (Docker SDK) | FastAPI + uvicorn + Python 3.11 | AI agents, engineering engines, auth, persistence |
+| **Postgres** | Supabase | Managed Postgres + Storage | Durable data (HF Space filesystem is ephemeral) |
+| **LLM observability** | Langfuse Cloud | Prompt management + traces | Unlimited prompts, 50k observations / month |
+| **LLM evaluation** | LangWatch | Scenario evals + drift detection | Continuous agent quality monitoring |
+| **MCP tooling** | Smithery | Model Context Protocol registry | Secure external tool discovery |
 
----
-
-## ✅ Production Status
-
-<div align="center">
-
-| Component | Status | Details |
-|:---|:---:|:---|
-| 🐍 Python Runtime | ✅ | 3.8+ compatible (3.12 recommended) · Full typing backports |
-| 🗄️ Database | ✅ | PostgreSQL (production) / SQLite (dev/HF) — dual backend |
-| ⚡ Redis State | ✅ | Circuit-breaker persistence + distributed locks |
-| 🔄 Celery Workers | ✅ | Autoscaling + crash recovery (`task_acks_late=True`) |
-| 🪟 ETAP Win Worker | ✅ | Heartbeat registry + HTTP fallback discovery |
-| 📡 WebSocket / SCADA | ✅ | Real-time live feed · Python 3.8 type-safe |
-| 🧪 Test Suite | ✅ | 1 680+ tests · ≥80% coverage gate enforced |
-| 🔒 Container Scan | ✅ | Trivy SARIF → GitHub Security tab on every build |
-| 📦 SBOM | ✅ | CycloneDX generated per release (90-day retention) |
-| 📊 Observability | ✅ | Grafana · 6 panel categories · Prometheus metrics |
-| 🚨 Disaster Recovery | ✅ | RPO ≤15 min · RTO ≤30 min · DR Runbook v1.0 |
-| 🔍 SonarCloud | ✅ | Continuous quality gate · security · code smells |
-
-</div>
+The frontend talks to the backend over a single env var, `VITE_API_URL`, which is
+baked into the Vite bundle at build time on Vercel.
 
 ---
 
-## 🔬 Engineering Studies Supported
+## ✅ Recent Platform Fixes (2026-07-07 → 2026-07-08)
 
-<div align="center">
+This release stabilises a deployment pipeline that had accumulated **520+ failed
+Vercel preview deploys** in a row. The root cause and remediation are summarised
+below — full detail is in [`DEPLOYMENT_FIX.md`](DEPLOYMENT_FIX.md).
 
-| Study Type | Standard | Engine |
-|:---|:---:|:---|
-| ⚡ **Load Flow** | IEEE 3002.7 | Newton-Raphson sparse Y-bus solver |
-| 💥 **Short Circuit** | IEC 60909 | Symmetrical components engine |
-| 🔥 **Arc Flash** | IEEE 1584-2018 | Incident energy + PPE category calculator |
-| 📊 **Harmonic Analysis** | IEEE 519-2022 | THD + individual harmonic engine |
-| 🎯 **Optimal Power Flow** | IEEE | DC-OPF + AC-OPF engines |
-| 🛡️ **Protection Coordination** | IEC 60255 | Time-current curve analysis |
-| 🔋 **Motor Starting** | IEEE 399 | Voltage dip + acceleration risk |
-| 🌊 **Transient Stability** | IEEE 399 | Swing equation (RK4) + eigenvalue |
-| 📏 **Cable Sizing** | IEC 60364 | Ampacity + voltage drop verification |
-| 🌍 **Earth Grid Design** | IEEE 80 | Mesh / step / touch voltage |
-| ☀️ **Renewable Energy** | IEEE 1547 | Solar PV + wind integration |
-| 🔋 **Battery Storage (BESS)** | IEC 62933 | Sizing + dispatch optimization |
-| 📡 **SCADA Real-time** | IEC 61850 | State estimation + live WebSocket feed |
-| 📐 **GIS Integration** | — | Spatial topology + electrical validation |
-| 🔮 **Digital Twin** | — | Live asset mirroring + predictive analytics |
+### 1. Vercel auto-detection of MkDocs (root cause of the 520 failures)
 
-</div>
+`mkdocs.yml` was sitting at the repository root, which caused Vercel to
+auto-detect the project as an MkDocs documentation site — overriding the
+explicit `framework: vite` setting in `vercel.json`. Vercel's MkDocs preset
+then ran `mkdocs build --strict`, which aborted on 36 broken-link warnings.
+
+**Fix:** moved `mkdocs.yml` to `docs/mkdocs.yml` (with `docs_dir: .` so
+MkDocs still finds its source files). Vercel now correctly builds the Vite UI.
+
+### 2. `vercel-build.sh` — safety wrapper around the Vite build
+
+A new executable at the repo root is now the Vercel `buildCommand`. It performs
+three pre-flight checks before invoking `npm run build:vercel`:
+
+1. **Refuse to build** if `mkdocs.yml` ever reappears at repo root (prevents
+   regression of fix #1).
+2. Verify `ui/package.json` is present.
+3. Verify `docs/mkdocs.yml` is present (warning only).
+
+Then it runs `npm --prefix ui run build:vercel` and asserts that
+`ui/dist/index.html` exists before exiting 0. Distinct exit codes (1 / 2 / 3 / 4)
+make any future failure trivially diagnosable from the Vercel build log.
+
+### 3. MkDocs strict build now passes with **0 warnings**
+
+The 36 historical warnings had three root causes, all fixed:
+
+| Cause | Fix |
+|:---|:---|
+| `docs/index.md` referenced `docs/X.md` paths (wrong — index.md lives *inside* `docs/`) | Rewrote 7 links to `X.md` |
+| `docs/index.md` referenced `.github/...` and `PROJECT_INDEX.md` (repo-root paths MkDocs can't serve) | Rewrote to absolute `https://github.com/.../blob/main/...` URLs |
+| `README_AR.md`, `FINAL_COMPLETION_REPORT.md`, `ETAP_GUIDE_COMPLETION.md`, `DEVELOPER_GUIDE.md`, `internal/`, `AR/` all reference repo-root paths | Added an `exclude_docs:` block in `docs/mkdocs.yml` (correct mkdocs 1.6 syntax) |
+| `docs/index.html` (legacy static) conflicted with `docs/index.md` | Added `index.html` to `exclude_docs` |
+| `validation.links.info` is not a valid key in mkdocs 1.6 | Replaced with the proper `validation:` block |
+
+The docs site can now be deployed to GitHub Pages / Netlify / HF Space static
+without any warnings, in strict mode.
+
+### 4. Vercel project settings synced with `vercel.json`
+
+The Vercel project dashboard had stale build settings pointing to a
+`frontend/` directory that does not exist in this repo. Patched via the
+Vercel REST API to match the committed `vercel.json`:
+
+| Setting | Old (stale) | New (synced) |
+|:---|:---|:---|
+| Framework Preset | vite | vite |
+| Build Command | `cd frontend && npm run build` | `bash vercel-build.sh` |
+| Install Command | (default) | `npm --prefix ui install --no-audit --no-fund` |
+| Output Directory | `frontend/dist` | `ui/dist` |
+| Node Version | 24.x | 22.x |
+
+### 5. Vercel env vars synced with live credentials
+
+11 env vars were updated via the Vercel REST API with fresh values:
+
+- `VITE_API_URL` → `https://ahmdelbaz28-ahmedetap-platform.hf.space`
+  (so the deployed UI talks to the live HF Space backend)
+- `LANGFUSE_PUBLIC_KEY`, `LANGFUSE_SECRET_KEY`, `LANGFUSE_BASE_URL`
+- `LANGWATCH_API_KEY`
+- `SMITHERY_API_KEY`
+- `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`
+- `GITHUB_TOKEN`, `GITHUB_REPO`
+
+The unused `VITE_NEON_AUTH_URL` (a Vercel integration default — Neon is not
+part of this stack) was deleted so it would not be embedded in the client
+bundle.
+
+### 6. Production deploy verified end-to-end
+
+A new production deployment was triggered from `main` and reached `READY`
+state. The deployed Vite bundle contains the HF Space URL, the SPA mounts
+correctly, all assets return HTTP 200 with the immutable cache header from
+`vercel.json`, and the UI's first API call lands on the live FastAPI backend
+(which itself reports `{"status":"healthy", "agents":25, "etap_manuals":35,
+"version":"2.1.0"}`).
 
 ---
 
-## 🏛️ System Architecture
+## 🏗️ Architecture
 
-```mermaid
-graph TB
-    subgraph UI["🖥️ User Interface Layer"]
-        WEB[React 19 Web App]
-        CLI[CLI Tool]
-        WS[WebSocket Live Feed]
-    end
-
-    subgraph GATEWAY["🔐 API Gateway — FastAPI + Security"]
-        AUTH[JWT Auth + ABAC]
-        RATE[Redis Rate Limiting]
-        RASP[RASP Runtime Protection]
-    end
-
-    subgraph AGENTS["🤖 25 AI Agent Orchestration Layer"]
-        ORCH[Chief Orchestrator]
-        LF[Load Flow Agent]
-        SC[Short Circuit Agent]
-        ARC[Arc Flash Agent]
-        HARM[Harmonic Agent]
-        OPF[OPF Agent]
-        PROT[Protection Agent]
-        ETAP_A[ETAP Expert Agent]
-        STAB[Stability Agent]
-        CABLE[Cable Sizing Agent]
-        SCADA_A[SCADA Agent]
-    end
-
-    subgraph ENGINES["⚙️ Computation Engines (IEC/IEEE)"]
-        LF_ENG[Newton-Raphson\nSparse Load Flow]
-        SC_ENG[IEC 60909\nShort Circuit]
-        AF_ENG[IEEE 1584\nArc Flash]
-        OPF_ENG[DC + AC OPF]
-    end
-
-    subgraph WORKERS["🔄 Celery Worker Pool"]
-        CW1[Worker 1]
-        CW2[Worker 2]
-        CWN[Worker N — Autoscaling]
-        WIN[🪟 ETAP Windows Worker\n+ Heartbeat Registry]
-    end
-
-    subgraph DATA["💾 Enterprise Data Layer"]
-        PG[(PostgreSQL\nStudy Jobs + Results)]
-        REDIS[(Redis\nState + Locks + Queue)]
-        QDRANT[(Qdrant Cloud\nVector Memory)]
-        NEO4J[(Neo4j\nGraph Memory)]
-    end
-
-    subgraph OBS["📊 Observability"]
-        PROM[Prometheus Metrics]
-        GRAF[Grafana Dashboard]
-        LANG[LangWatch Tracing]
-    end
-
-    UI --> GATEWAY
-    GATEWAY --> AGENTS
-    ORCH --> LF & SC & ARC & HARM & OPF & PROT & ETAP_A & STAB & CABLE & SCADA_A
-    AGENTS --> ENGINES
-    ENGINES --> WORKERS
-    WORKERS --> DATA
-    WIN --> REDIS
-    AGENTS --> OBS
-
-    style UI fill:#1a1a2e,color:#00d4ff
-    style GATEWAY fill:#16213e,color:#ffd700
-    style AGENTS fill:#0f3460,color:#e0e0e0
-    style ENGINES fill:#533483,color:#ffffff
-    style WORKERS fill:#1a472a,color:#00ff88
-    style DATA fill:#2d1a2e,color:#ff88ff
-    style OBS fill:#1a2a1a,color:#88ff88
 ```
+ ┌──────────────────────────┐         ┌────────────────────────────────────┐
+ │  Vercel Edge (CDN)       │         │  Hugging Face Space (Docker SDK)   │
+ │  ──────────────────────  │  HTTPS  │  ───────────────────────────────── │
+ │  React 19 SPA            │ ──────► │  FastAPI 0.115 + uvicorn           │
+ │  Vite 6 build            │  JSON   │  25 AI agents                      │
+ │  Tailwind 4              │         │  51 API endpoints (/api/v1/*)      │
+ │  React Router 7          │         │  IEEE/IEC computational engines    │
+ │  Zustand + React Query 5 │         │  JWT auth + bcrypt password hash   │
+ │  i18next (ar/en)         │         │  ETAP / Zenon / GIS integrations   │
+ └──────────────────────────┘         └───────────────┬────────────────────┘
+                                                      │
+                       ┌──────────────────────────────┴───────────────────────┐
+                       │                                                      │
+                       ▼                                                      ▼
+            ┌─────────────────────┐                          ┌──────────────────────────┐
+            │  Supabase           │                          │  Langfuse Cloud          │
+            │  ─────────────────  │                          │  ──────────────────────  │
+            │  Managed Postgres   │                          │  Prompt management       │
+            │  (durable storage)  │                          │  LLM traces + scores     │
+            │  Storage (artifacts)│                          │  Safety alerts           │
+            └─────────────────────┘                          └──────────────────────────┘
+                                                                      │
+                                                                      ▼
+                                                          ┌──────────────────────────┐
+                                                          │  LangWatch               │
+                                                          │  ──────────────────────  │
+                                                          │  Scenario evaluations    │
+                                                          │  Drift detection         │
+                                                          │  Free-plan prompt limit  │
+                                                          └──────────────────────────┘
+```
+
+### Why this split?
+
+- **Vercel** serves a static Vite bundle from a global edge CDN. Cold-start is
+  near zero, assets are cacheable for a year, and there is nothing to scale —
+  it just works.
+- **Hugging Face Space** runs the FastAPI backend as a Docker container. This
+  is where the AI agents, the IEEE/IEC engines, and the heavy lifting live.
+  HF Space handles container orchestration for free, including GPU access if
+  needed later.
+- **Supabase** provides durable Postgres storage — critical because the HF
+  Space filesystem is wiped on every container restart, so any local SQLite
+  database would be lost.
+- **Langfuse** manages prompts as versioned, deployable artefacts and records
+  every LLM call as a structured trace. Its free Hobby plan supports unlimited
+  prompts (LangWatch's free plan is capped at 3).
+- **LangWatch** runs scenario-based agent evaluations and drift detection on
+  top of Langfuse traces.
+- **Smithery** is the Model Context Protocol registry that the agents use to
+  discover and bind external tools at runtime.
 
 ---
 
 ## 🚀 Quick Start
 
-### ☁️ Instant Demo — No Installation
+### Prerequisites
 
-👉 **[huggingface.co/spaces/ahmdelbaz28/AhmedETAP-Platform](https://huggingface.co/spaces/ahmdelbaz28/AhmedETAP-Platform)**
+- **Node.js 22+** (for the UI) — see `.nvmrc`
+- **Python 3.11+** (for the backend) — see `.python-version`
+- **Docker 24+** (optional, for full-stack local dev) — see `docker-compose.yml`
 
----
-
-### 🐳 Docker Compose — Recommended for Developers
-
-> **Requirement:** [Docker Desktop](https://www.docker.com/products/docker-desktop/) only.
+### Run the UI locally
 
 ```bash
-# 1. Clone the repository
-git clone https://github.com/ahmdelbaz28-ux/ETAP-AI-WORK-.git
-cd ETAP-AI-WORK-
-
-# 2. Configure environment
-copy .env.example .env      # Windows
-# cp .env.example .env      # Linux / macOS
-
-# 3. Launch all services
-docker compose up -d
-
-# 4. Verify health
-curl http://localhost:8000/health
-# {"status": "healthy", "version": "2.1.0"}
+cd ui
+npm install --no-audit --no-fund
+npm run dev          # http://localhost:5173 (proxies /api to :8000)
 ```
 
-```
-🌐 Web UI:       http://localhost:3000
-🔌 REST API:     http://localhost:8000
-📖 API Docs:     http://localhost:8000/docs
-📡 WebSocket:    ws://localhost:8000/ws/scada
-📈 Metrics:      http://localhost:8000/prometheus/metrics
-📊 Grafana:      http://localhost:3001
-```
-
----
-
-### 🐍 Direct Python — For Power Users
-
-> **Requirements:** Python 3.8+ · Node.js 20 · Redis
+### Run the backend locally
 
 ```bash
-# Setup virtual environment
-python -m venv .venv
-.venv\Scripts\activate         # Windows
-# source .venv/bin/activate    # Linux / macOS
-
+python -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
-
-# Run database migrations
-alembic upgrade head
-
-# Launch all three services (separate terminals)
-python engineering_service.py                        # Terminal 1: API
-celery -A worker.celery_app worker --loglevel=info   # Terminal 2: Workers
-cd ui && npm install && npm run dev                   # Terminal 3: UI
+cp .env.example .env  # then fill in real values
+uvicorn api.main:app --reload --port 8000
 ```
 
----
+The UI dev server proxies `/api`, `/health`, `/docs`, and `/openapi.json` to
+`http://localhost:8000` automatically (see `ui/vite.config.ts`).
 
-### ☸️ Kubernetes / Helm — Full Production
+### Run the full stack with Docker
 
 ```bash
-# Add chart dependencies
-helm dependency update helm/etap-ai/
-
-# Deploy to production
-helm upgrade --install etap-ai helm/etap-ai/ \
-  --namespace etap \
-  --create-namespace \
-  --set image.tag=2.1.0 \
-  --set postgresql.enabled=true \
-  --set redis.enabled=true \
-  --set autoscaling.enabled=true
-
-# Verify deployment
-kubectl get pods -n etap
-curl https://your-domain/health
+docker-compose up -d   # Postgres + Redis + backend + UI + Prometheus + Grafana
 ```
+
+See [`DEPLOYMENT_GUIDE.md`](DEPLOYMENT_GUIDE.md) for production hardening.
 
 ---
 
-## 🔌 API Quick Examples
+## 📦 Deployment
 
-### Run a Load Flow Study
+### Frontend → Vercel
 
-```python
-import requests
+The Vercel project is configured (both in the dashboard and in
+[`vercel.json`](vercel.json)) to:
 
-result = requests.post("http://localhost:8000/api/v1/studies/run", json={
-    "study_type": "load_flow",
-    "system": {
-        "buses": [
-            {"id": "BUS-1", "base_kv": 11.0, "bus_type": "slack"},
-            {"id": "BUS-2", "base_kv": 11.0, "bus_type": "load"},
-            {"id": "BUS-3", "base_kv": 0.4,  "bus_type": "load"}
-        ],
-        "lines": [
-            {"from_bus": "BUS-1", "to_bus": "BUS-2", "r_pu": 0.01, "x_pu": 0.05},
-            {"from_bus": "BUS-2", "to_bus": "BUS-3", "r_pu": 0.02, "x_pu": 0.08}
-        ],
-        "loads": [
-            {"bus": "BUS-2", "p_mw": 10.0, "q_mvar": 3.0},
-            {"bus": "BUS-3", "p_mw": 5.0,  "q_mvar": 1.5}
-        ]
-    }
-}).json()
+1. Run `npm --prefix ui install --no-audit --no-fund`
+2. Run `bash vercel-build.sh` (the safety wrapper)
+3. Serve `ui/dist/` as static assets
+4. Apply SPA fallback rewrites so client-side routes work on refresh
+5. Apply immutable cache headers to `/assets/*` and security headers everywhere
 
-print(result["voltage_pu"])
-# {"BUS-1": 1.0, "BUS-2": 0.983, "BUS-3": 0.971}
-```
-
-### Chat with the ETAP Expert Agent
-
-```python
-response = requests.post("http://localhost:8000/etap-expert/chat", json={
-    "message": "What is the 3-phase fault current at Bus-4 and what PPE category is required?",
-    "session_id": "engineer-001"
-}).json()
-
-print(response["reply"])
-```
-
-### Connect to SCADA Live Feed (WebSocket)
-
-```javascript
-const ws = new WebSocket("ws://localhost:8000/ws/scada");
-ws.onmessage = (event) => {
-  const data = JSON.parse(event.data);
-  console.log("Bus voltages:", data.measurements.bus_voltages);
-};
-```
-
-### Check ETAP Windows Worker Pool
-
-```python
-workers = requests.get("http://localhost:8000/etap-worker/workers").json()
-print(f"Active workers: {workers['count']}  |  Healthy: {workers['healthy']}")
-```
-
----
-
-## 🤖 AI Agent Fleet
-
-```mermaid
-flowchart LR
-    USER([👤 Engineer]) --> ORCH
-
-    subgraph ORCH["🧠 Chief Orchestrator"]
-        direction TB
-        PARSE[Request Analysis]
-        ROUTE[Task Routing]
-        AGG[Result Aggregation]
-    end
-
-    ORCH --> LF([⚡ Load Flow\nIEEE 3002.7])
-    ORCH --> SC([💥 Short Circuit\nIEC 60909])
-    ORCH --> ARC([🔥 Arc Flash\nIEEE 1584])
-    ORCH --> HARM([📊 Harmonic\nIEEE 519])
-    ORCH --> OPF([🎯 OPF\nDC + AC])
-    ORCH --> PROT([🛡️ Protection\nIEC 60255])
-    ORCH --> STAB([📈 Stability\nIEEE 399])
-    ORCH --> CABLE([📏 Cable Sizing\nIEC 60364])
-    ORCH --> ETAP_E([🖥️ ETAP Expert\nCOM Automation])
-    ORCH --> SCADA_A([📡 SCADA\nIEC 61850])
-
-    LF & SC & ARC & HARM --> VAL([✅ Validation\nAgent])
-    OPF & PROT & STAB & CABLE --> VAL
-    VAL --> REP([📄 Report\nPDF / DOCX / XLSX])
-    REP --> USER
-
-    style ORCH fill:#0f3460,color:#fff
-    style USER fill:#1a1a2e,color:#00d4ff
-    style VAL fill:#1a472a,color:#00ff88
-    style REP fill:#2d1a1a,color:#ff8888
-```
-
-| Agent | Standard | Role |
-|:---|:---:|:---|
-| 🧠 **Chief Orchestrator** | — | Task routing + parallel coordination |
-| ⚡ **Load Flow Agent** | IEEE 3002.7 | Newton-Raphson + voltage profiles |
-| 💥 **Short Circuit Agent** | IEC 60909 | 3-phase, SLG, LL, LLG fault currents |
-| 🔥 **Arc Flash Agent** | IEEE 1584-2018 | Incident energy + PPE category |
-| 📊 **Harmonic Agent** | IEEE 519-2022 | THD + filter design |
-| 🎯 **OPF Agent** | IEEE | Economic dispatch + congestion |
-| 🛡️ **Protection Agent** | IEC 60255 | Relay coordination + selectivity |
-| 📈 **Stability Agent** | IEEE 399 | Transient stability + CCT |
-| 📏 **Cable Sizing Agent** | IEC 60364 | Ampacity + voltage drop |
-| 🌍 **Earth Grid Agent** | IEEE 80 | Mesh / step / touch voltage |
-| ☀️ **Renewable Agent** | IEEE 1547 | PV + Wind integration |
-| 🔋 **BESS Agent** | IEC 62933 | BESS sizing + dispatch |
-| 📡 **SCADA Agent** | IEC 61850 | State estimation + real-time WebSocket |
-| 🖥️ **ETAP Expert Agent** | All | COM automation + 4,400-line knowledge base |
-| ✅ **Validation Agent** | Multi | Cross-standard result verification |
-| 📄 **Report Agent** | — | PDF / DOCX / XLSX generation |
-| 🔮 **Digital Twin Agent** | — | Asset mirroring + predictive analytics |
-| ⚡ **Anomaly Agent** | — | Real-time anomaly detection |
-| 🌐 **Goal Planner Agent** | — | Free-form objective → structured task list |
-| 🌤️ **Weather Agent** | — | Weather data for renewable planning |
-| 🔗 **Coordination Agent** | IEC 60255 | Protection coordination specialist |
-| 📡 **Predictive Agent** | — | Predictive maintenance analytics |
-
----
-
-## 🧠 AI Memory & Knowledge Engine
-
-### 1. Hybrid AI Memory (Vector + Graph)
-
-| Layer | Technology | Purpose |
-|:---|:---:|:---|
-| Vector Memory | **Qdrant Cloud** | Conversation history + study result semantic search |
-| Graph Memory | **Neo4j** | Network topology + equipment relationships (GraphRAG) |
-| Fallback | **Deterministic Embeddings** | Zero-dependency offline mode — 100% test-stable |
-
-### 2. Code Context Engine (RAG)
-
-- **Tree-Sitter / AST parsing** — precise function and class extraction from source code
-- **ChromaDB local index** (`./index/`) — persistent semantic code search for agents
-- **Impact analysis API** (`/api/v1/context/impact`) — BFS-based change propagation tracing
-
-### 3. Prompt Management (3-tier Fallback)
-
-| Priority | Source | Config |
-|:---:|:---|:---|
-| 1 | **LangWatch API** — remote versioning + rollback | `LANGWATCH_API_KEY` |
-| 2 | **Local YAML files** (`prompts/*.yaml`) — offline fallback | _always available_ |
-| 3 | **Default prompt** in source code | _built-in_ |
-
-31 prompts verified ✅ · 0 failures
-
----
-
-## 🛡️ Enterprise Security
-
-```
-┌─────────────────────────────────────────────────────────────────────┐
-│              ETAP AI Platform — Security Architecture v2.1          │
-├──────────────────────┬──────────────────────────────────────────────┤
-│  🔑 Authentication   │  JWT Bearer + API Key (RS256 / HS256)        │
-│  👥 Authorization    │  ABAC — Attribute-Based Access Control       │
-│  📱 MFA              │  TOTP (Google Auth) + WebAuthn / FIDO2       │
-│  🛡️  RASP           │  Runtime Application Self-Protection          │
-│  📡 SIEM             │  Security Event Forwarding                   │
-│  🔒 Secrets          │  HashiCorp Vault-Compatible Manager          │
-│  🔍 SAST             │  Bandit — runs on every PR                   │
-│  🐳 Container Scan   │  Trivy → GitHub Security tab (SARIF)         │
-│  📦 SBOM             │  CycloneDX — 90-day artifact retention       │
-│  🔐 Password Hashing │  bcrypt (never SHA-256 / MD5)               │
-│  🌐 Rate Limiting    │  Redis-backed per-IP + per-user limits       │
-└──────────────────────┴──────────────────────────────────────────────┘
-```
-
-Security reports: [`SECURITY.md`](SECURITY.md)
-
----
-
-## 🔄 CI/CD Pipeline
-
-```mermaid
-graph LR
-    PUSH[git push] --> LINT
-
-    subgraph CI["🔄 CI/CD — GitHub Actions"]
-        LINT["🔍 Lint\nruff + mypy"]
-        TEST["🧪 Tests\npytest + cov ≥80%"]
-        SEC["🔒 Security\nBandit + Safety"]
-        HELM["⎈ Helm\nChart Validation"]
-        BUILD["🐳 Docker\nBuild + Push GHCR"]
-        SCAN["🔬 Container Scan\nTrivy SARIF + SBOM"]
-    end
-
-    LINT --> TEST --> SEC --> HELM --> BUILD --> SCAN
-    SCAN --> HF["🤗 Sync\nHugging Face"]
-    HF --> HEALTH["🩺 Health Check\n/health + /ready"]
-    HEALTH --> INDEX["📋 Auto-Update\nProject Index"]
-
-    style CI fill:#0f3460,color:#fff
-    style HF fill:#ff9a00,color:#000
-    style SCAN fill:#7c2d12,color:#fff
-```
-
----
-
-## 📊 Observability — Grafana Dashboard
-
-```
-grafana/dashboards/etap-platform.json
-│
-├── 🟢 Service Health
-│   ├── Engineering Service UP/DOWN
-│   ├── Redis UP/DOWN
-│   ├── PostgreSQL UP/DOWN
-│   └── Celery Worker Count
-│
-├── 📊 Study Execution Metrics
-│   ├── Studies/second (by type)
-│   ├── Latency p50 / p95 / p99
-│   ├── Error Rate (by study type)
-│   └── Celery Queue Depth
-│
-├── 🔒 Circuit Breakers
-│   └── CLOSED / OPEN / HALF-OPEN states
-│
-├── 💾 Database & Redis
-│   ├── DB Query Latency p95
-│   └── Redis Operations/s
-│
-├── 📡 WebSocket Connections
-│   └── Active SCADA feed sessions
-│
-└── 🖥️ System Resources
-    ├── CPU Usage %
-    └── Memory RSS
-```
-
----
-
-## 🚨 Disaster Recovery
-
-| Target | SLA |
-|:---|:---:|
-| **RPO** — Recovery Point Objective | **≤ 15 minutes** |
-| **RTO** — Recovery Time Objective | **≤ 30 minutes** |
+Every push to `main` triggers a preview deploy; promoting a deploy to
+production is a one-click action in the Vercel dashboard, or via:
 
 ```bash
-# Manual backup
-./scripts/backup/postgres_backup.sh --verbose
-
-# Automated via cron (every 15 min)
-*/15 * * * * /app/scripts/backup/postgres_backup.sh >> /var/log/etap-backup.log 2>&1
-
-# Upload to S3
-S3_BACKUP_BUCKET=s3://my-bucket/etap ./scripts/backup/postgres_backup.sh
+vercel --prod
 ```
 
-**Full runbook:** [`docs/DISASTER_RECOVERY_RUNBOOK.md`](docs/DISASTER_RECOVERY_RUNBOOK.md)
+### Backend → Hugging Face Space
 
----
+The HF Space uses the Docker SDK with `app_port: 7860` (see YAML frontmatter
+at the top of this file). The Dockerfile at [`Dockerfile.hf`](Dockerfile.hf)
+builds the FastAPI image and exposes the uvicorn server. Secrets
+(`SUPABASE_*`, `LANGFUSE_*`, `LANGWATCH_API_KEY`, `OPENAI_API_KEY`, etc.)
+are set in the HF Space settings UI and injected as env vars at container
+startup.
 
-## ⚙️ Environment Configuration
+### Docs → optional
 
-| Variable | Default | Description |
-|:---|:---|:---|
-| `ENVIRONMENT` | `development` | `development` / `production` |
-| `PORT` | `8000` | API server port |
-| `SECRET_KEY` | **Required** | JWT signing key |
-| `DATABASE_URL` | `sqlite+aiosqlite:///./etap.db` | PostgreSQL supported |
-| `REDIS_URL` | `redis://localhost:6379/0` | Celery + state + locks |
-| `USE_ETAP` | `false` | Enable ETAP COM on Windows |
-| `CELERY_MIN_WORKERS` | `2` | Autoscaling minimum |
-| `CELERY_MAX_WORKERS` | `8` | Autoscaling maximum |
-| `DB_POOL_SIZE` | `10` | PostgreSQL connection pool |
-| `PROMETHEUS_ENABLED` | `true` | Prometheus metrics endpoint |
-| `S3_BACKUP_BUCKET` | — | S3 bucket for DB backups |
-| `LANGWATCH_API_KEY` | — | LangWatch prompt management |
-| `QDRANT_URL` | — | Qdrant Cloud endpoint |
-| `QDRANT_API_KEY` | — | Qdrant Cloud API key |
-| `NEO4J_URI` | — | Neo4j graph database URI |
-| `NEO4J_USER` | — | Neo4j username |
-| `NEO4J_PASSWORD` | — | Neo4j password |
-| `OPENAI_API_BASE` | `https://api.openai.com/v1` | LLM endpoint (supports Modal) |
-| `LLM_MODEL` | `gpt-4o` | Active LLM model |
-
-Full reference: [`.env.example`](.env.example)
-
----
-
-## 🧪 Testing
+The MkDocs site at [`docs/mkdocs.yml`](docs/mkdocs.yml) builds cleanly in
+strict mode and can be deployed to GitHub Pages, Netlify, or as a static
+attachment to the HF Space. Run locally with:
 
 ```bash
-# Run full test suite
-pytest
-
-# With coverage report (CI gate: ≥80%)
-pytest --cov=. --cov-report=html --cov-report=term-missing --cov-fail-under=80
-
-# Run specific categories
-pytest -m unit           # Unit tests
-pytest -m integration    # Integration tests
-pytest -m regression     # Regression tests
-
-# Property-based tests only
-pytest tests/property_based/
-```
-
-```
-╔════════════════════════════════════════════════════╗
-║         ETAP AI Platform — Test Suite v2.1.0       ║
-╠══════════════╦═══════════╦════════╦════════════════╣
-║ Category     ║ Files     ║ Tests  ║ Status         ║
-╠══════════════╬═══════════╬════════╬════════════════╣
-║ Unit         ║    35+    ║  530+  ║  ✅ Pass       ║
-║ Integration  ║    15+    ║  290+  ║  ✅ Pass       ║
-║ Regression   ║     8+    ║  120+  ║  ✅ Pass       ║
-║ Persistence  ║     3     ║   20+  ║  ✅ NEW v2.1   ║
-║ Performance  ║     4     ║   70+  ║  ✅ Pass       ║
-║ WebSocket    ║     2     ║   25+  ║  ✅ Fixed v2.1 ║
-╠══════════════╬═══════════╬════════╬════════════════╣
-║ TOTAL        ║    67+    ║ 1055+  ║  ✅ ≥80% Cov  ║
-╚══════════════╩═══════════╩════════╩════════════════╝
+mkdocs serve -f docs/mkdocs.yml   # http://127.0.0.1:8000
 ```
 
 ---
 
-## 📁 Project Structure
+## 🤖 AI Agent Inventory
 
-```
-ETAP-AI-WORK-/                         ← ETAP AI Platform v2.1.0
-│
-├── 📄 engineering_service.py           ← FastAPI entry point
-├── 📄 VERSION                          ← Current version (2.1.0)
-├── 📄 CHANGELOG.md                     ← Release history
-│
-├── 📂 api/                             ← FastAPI route handlers
-│   ├── database.py                       PostgreSQL + SQLite dual-backend
-│   ├── routes.py                         Main router
-│   ├── studies.py                        Study execution endpoints
-│   ├── auth.py                           JWT + MFA authentication
-│   ├── websocket.py                      SCADA real-time WebSocket  ✨ Fixed
-│   └── projects.py                       Projects + study results
-│
-├── 📂 agents/                          ← 25 AI agent fleet
-│   ├── orchestrator.py                   ChiefEngineeringOrchestrator
-│   ├── etap_expert_agent.py              4,400+ line knowledge base
-│   ├── stability_agent.py
-│   ├── cable_sizing_agent.py
-│   ├── earth_grid_agent.py
-│   ├── renewable_agent.py
-│   ├── battery_storage_agent.py
-│   └── scada_agent.py
-│
-├── 📂 load_flow/                       ← Newton-Raphson engines
-│   ├── load_flow.py                      Dense solver (backward compat)
-│   ├── solver.py                         Sparse Y-bus solver  ✨ Python 3.8 fixed
-│   └── optimal_power_flow.py
-│
-├── 📂 engine/                          ← Sparse computation core
-│   ├── engine.py                         PowerSystemEngine
-│   ├── sparse_solver.py                  SparseYBus + Newton-Raphson
-│   └── gpu_solver.py                     Optional GPU acceleration
-│
-├── 📂 core/                            ← Platform infrastructure
-│   ├── redis_state.py                    Redis circuit breaker + locks
-│   ├── bootstrap.py                      Startup + metrics init
-│   └── models.py                         Domain models
-│
-├── 📂 worker/                          ← Celery task queue
-│   ├── celery_app.py                     Autoscaling + crash recovery
-│   └── tasks.py                          Engineering task execution
-│
-├── 📂 etap_integration/                ← ETAP Windows COM automation
-│   ├── worker_registry.py                Heartbeat + pool discovery
-│   └── etap_provider.py                  COM automation
-│
-├── 📂 services/                        ← Business services
-│   └── memory_service.py                 Qdrant + Neo4j AI memory
-│
-├── 📂 ai_context_engine/               ← Code RAG engine
-│   ├── indexer.py                        AST-based code indexer
-│   ├── retriever.py                      Semantic code search
-│   └── knowledge_graph.py               Code property graph (CPG)
-│
-├── 📂 src/mastra/agents/               ← TypeScript LLM agents (Mastra)
-│   ├── etap-engineer-agent.ts
-│   ├── loadflow-agent.ts
-│   ├── shortcircuit-agent.ts
-│   ├── arcflash-agent.ts
-│   └── power-system-coordinator-agent.ts
-│
-├── 📂 migrations/versions/             ← Alembic DB migrations
-│   ├── 001_initial_schema.py
-│   ├── 002_add_indexes.py
-│   ├── 003_add_mfa.py
-│   ├── 004_composite_index.py
-│   └── 005_add_study_jobs.py             Persistent task queue
-│
-├── 📂 grafana/dashboards/              ← Production observability
-│   └── etap-platform.json                Grafana dashboard (6 panel groups)
-│
-├── 📂 scripts/backup/                  ← Disaster recovery
-│   └── postgres_backup.sh                RPO ≤15 min automated backup
-│
-├── 📂 prompts/                         ← 24 agent prompt YAML files
-│   ├── etap_engineer_agent.yaml
-│   ├── load_flow_agent.prompt.yaml
-│   ├── short_circuit_agent.prompt.yaml
-│   └── ... (24 total)
-│
-├── 📂 tests/                           ← Test suite (1680+ tests)
-│   ├── test_memory_service.py            Qdrant + Neo4j memory tests
-│   ├── test_scada_websocket.py           WebSocket tests  ✨ Fixed
-│   ├── test_persistence_layer.py         Redis + DB tests
-│   └── ...
-│
-├── 📂 docs/                            ← Full documentation
-│   ├── ARCHITECTURE.md
-│   ├── API_DOCUMENTATION.md
-│   ├── DEVELOPER_GUIDE.md  (if present)
-│   ├── DEPLOYMENT_GUIDE.md
-│   ├── DISASTER_RECOVERY_RUNBOOK.md
-│   └── assets/
-│       └── banner.png                    ← Platform banner
-│
-├── 📂 ui/                              ← React 19 + Vite frontend
-├── 📂 helm/etap-ai/                    ← Kubernetes Helm chart
-├── 📂 .github/workflows/               ← CI/CD pipelines
-│   ├── ci-cd.yml                         Main pipeline + SBOM + Trivy
-│   ├── security.yml                      Security scanning
-│   └── sync-hf-space.yml                Hugging Face sync
-│
-└── 📂 security/                        ← Security modules
-    ├── rasp.py                           Runtime protection
-    └── vault.py                          Secrets management
-```
+25 specialist agents, each backed by an IEEE/IEC computational core and
+governed by Langfuse prompt-versioning + safety alerts. Highlights:
 
-> ✨ = Updated or new in **v2.1.0**
-
----
-
-## 📊 Platform Statistics
-
-<div align="center">
-
-| 📦 Python Packages | 📄 Python Files | 🏛️ Classes | 🔧 Functions |
-|:---:|:---:|:---:|:---:|
-| **27** | **215+** | **590+** | **340+** |
-
-| 🌐 API Endpoints | 🤖 AI Agents | 🧪 Test Files | ✅ Total Tests |
-|:---:|:---:|:---:|:---:|
-| **51+** | **25** | **67+** | **1,680+** |
-
-| 🗄️ DB Migrations | 📊 Grafana Panels | 🚨 DR Coverage | 🔒 CI Coverage Gate |
-|:---:|:---:|:---:|:---:|
-| **5** | **15** | **Full** | **≥80%** |
-
-| 📝 Agent Prompts | 🔍 SonarCloud | 📦 SBOM Format | 🌐 Standards |
-|:---:|:---:|:---:|:---:|
-| **24 YAML** | **Monitored** | **CycloneDX** | **IEEE + IEC** |
-
-</div>
-
----
-
-## 📚 Documentation
-
-| Document | Description |
+| Domain | Agents |
 |:---|:---|
-| [📐 ARCHITECTURE.md](ARCHITECTURE.md) | System architecture overview |
-| [🌐 API_DOCUMENTATION.md](API_DOCUMENTATION.md) | All endpoints with full examples |
-| [🚀 DEPLOYMENT_GUIDE.md](DEPLOYMENT_GUIDE.md) | Production deployment guide |
-| [📋 AGENTS.md](AGENTS.md) | Complete agent reference |
-| [📈 AI_AGENT_INDEX.md](AI_AGENT_INDEX.md) | Agent capabilities index |
-| [🗺️ CODEBASE_MAP.md](CODEBASE_MAP.md) | Full codebase navigation map |
-| [🔒 SECURITY.md](SECURITY.md) | Security policy + vulnerability reporting |
-| [🔧 CHANGELOG.md](CHANGELOG.md) | Version history |
-| [🗺️ ROADMAP.md](ROADMAP.md) | Feature roadmap |
-| [📋 PROJECT_INDEX.md](PROJECT_INDEX.md) | Auto-updated project index |
-| [📚 LIBRARY_VALIDATION_REPORT.md](LIBRARY_VALIDATION_REPORT.md) | Library compatibility audit |
+| **Power-system analysis** | load-flow, short-circuit, arc-flash, protection-coordination, motor-starting, harmonic, transient-stability |
+| **ETAP automation** | ETAP GUI agent (computer-use via Gemini Vision), ETAP RAG (35 manuals indexed), single-line diagram extraction |
+| **GIS / SCADA** | ArcGIS connector, Zenon guide agent (4 guides indexed), SCADA topology ingest |
+| **Engineering ops** | report generation, audit logging, validation, code-guard (prompt-injection defence) |
+| **Orchestration** | master coordinator, memory agent (semantic + graph), context-engine RAG |
+
+Full list with prompts: [`agents/`](agents/) and [`PROJECT_INDEX.md`](PROJECT_INDEX.md).
+
+---
+
+## 🔒 Security Posture
+
+- **Auth:** JWT (HS256, 32+ char secret) + bcrypt password hashing
+- **Authorisation:** role-based access control on every `/api/v1/*` route
+- **LLM guardrails:** prompt-injection defence, model allow-list, agent-tag
+  requirement, 50k-char input cap — see `LLM_*` env vars in `.env.example`
+- **Audit:** life-safety events (lethal blocks, kill-switch, dual confirmation)
+  forwarded to SIEM via Syslog RFC 5424
+- **Secrets:** never committed; managed via Vercel env vars (frontend),
+  HF Space secrets (backend), and Supabase dashboard (database)
+- **Dependencies:** scanned by Bandit, SonarCloud, and Trivy in CI
+
+See [`SECURITY.md`](SECURITY.md) and [`docs/SECURITY_OPERATIONS_MANUAL.md`](docs/SECURITY_OPERATIONS_MANUAL.md).
+
+---
+
+## 📁 Repository Layout
+
+```
+.
+├── ui/                       # React 19 + Vite 6 SPA (Vercel deploy target)
+│   ├── src/                  #   application source
+│   ├── public/               #   static assets
+│   └── vite.config.ts        #   Vite config + dev-server proxy
+├── api/                      # FastAPI routers (51 endpoints under /api/v1/)
+├── agents/                   # 25 specialist AI agent definitions + prompts
+├── core/                     # Shared core (auth, redis_state, logging)
+├── core_model/               # Domain models (load-flow, short-circuit, ...)
+├── security/                 # LLM guardrails, audit, SIEM integration
+├── integrations/             # ETAP, ArcGIS, Zenon, Gemini Vision connectors
+├── ai_context_engine/        # RAG over ETAP manuals + Zenon guides
+├── docs/                     # MkDocs documentation site (mkdocs.yml lives here)
+│   └── mkdocs.yml            #   build with: mkdocs build -f docs/mkdocs.yml
+├── docker/                   # Dockerfiles for HF Space, Windows worker, etc.
+├── helm/                     # Kubernetes Helm charts (optional prod deploy)
+├── tests/                    # pytest + vitest suites
+├── vercel.json               # Vercel project config (framework, build, output)
+├── vercel-build.sh           # Safety wrapper around the Vite build
+├── Dockerfile.hf             # HF Space backend image
+├── docker-compose.yml        # Full-stack local dev (Postgres + Redis + UI + API)
+├── requirements.txt          # Python dependencies
+├── .env.example              # Full env-var reference (376 lines)
+└── PROJECT_INDEX.md          # Auto-generated codebase map
+```
+
+---
+
+## 🧪 Testing & CI
+
+- **Unit tests:** `pytest` (backend), `vitest` (UI)
+- **Integration tests:** `pytest-asyncio` against a real Postgres + Redis
+- **Scenario tests:** `vitest --config vitest.scenarios.config.ts` (agent evals)
+- **Lint:** `ruff` + `mypy` (backend), `biome` + `tsc --noEmit` (UI)
+- **CI:** GitHub Actions runs lint + tests on every PR — see
+  [`.github/workflows/`](https://github.com/ahmdelbaz28-ux/ETAP-AI-WORK-/tree/main/.github/workflows)
 
 ---
 
 ## 🤝 Contributing
 
-We welcome contributions!
+1. Fork the repo and create a feature branch: `git checkout -b feat/your-feature`
+2. Install pre-commit hooks: `pre-commit install`
+3. Run the test suite: `pytest && cd ui && npm test`
+4. Open a PR — CI must pass before merge
+5. Squash-merge to `main` → Vercel auto-deploys a preview → promote to prod
 
-```bash
-# 1. Fork and clone
-git clone https://github.com/YOUR-USERNAME/ETAP-AI-WORK-.git
-
-# 2. Create feature branch
-git checkout -b feat/your-feature-name
-
-# 3. Develop and verify
-pytest --cov=. --cov-fail-under=80     # Coverage must stay ≥80%
-ruff check . --fix                      # Fix linting
-
-# 4. Descriptive commit
-git commit -m "feat(load-flow): add Newton-Raphson convergence option"
-
-# 5. Push and open Pull Request
-git push origin feat/your-feature-name
-```
-
-**Issue templates:** [Bug Report](.github/ISSUE_TEMPLATE/bug_report.md) · [Feature Request](.github/ISSUE_TEMPLATE/feature_request.md)
-
-Code of Conduct: [`CODE_OF_CONDUCT.md`](CODE_OF_CONDUCT.md)
+See [`CONTRIBUTING.md`](CONTRIBUTING.md) for the full workflow.
 
 ---
 
 ## 📜 License
 
-This project is licensed under the **MIT License** — see [`LICENSE`](LICENSE).
+MIT — see [`LICENSE`](LICENSE).
+
+---
+
+## 🆘 Support
+
+- **Issues:** [GitHub Issues](https://github.com/ahmdelbaz28-ux/ETAP-AI-WORK-/issues)
+- **Bug report template:** [`.github/ISSUE_TEMPLATE/bug_report.md`](.github/ISSUE_TEMPLATE/bug_report.md)
+- **Feature request template:** [`.github/ISSUE_TEMPLATE/feature_request.md`](.github/ISSUE_TEMPLATE/feature_request.md)
+- **Security disclosures:** see [`SECURITY.md`](SECURITY.md) (do NOT open a public issue for security bugs)
 
 ---
 
 <div align="center">
 
-<br/>
-
-```
-╔══════════════════════════════════════════════════════════════════════╗
-║                                                                      ║
-║   ⚡  ETAP AI Platform  v2.1.0  —  Enterprise Production Ready      ║
-║                                                                      ║
-║   25 AI Agents  ·  15 Study Types  ·  IEEE + IEC Standards          ║
-║   PostgreSQL  ·  Redis  ·  Celery  ·  Kubernetes  ·  Grafana        ║
-║   Python 3.8+  ·  WebSocket  ·  SonarCloud  ·  LangWatch            ║
-║                                                                      ║
-║   RPO ≤ 15 min  ·  RTO ≤ 30 min  ·  Coverage ≥ 80%                ║
-║                                                                      ║
-╚══════════════════════════════════════════════════════════════════════╝
-```
-
-**⚡ Built with passion for power systems engineers worldwide**
-
-*ETAP AI Platform — Where Artificial Intelligence meets Power Systems Engineering*
-
-<br/>
-
-[![GitHub](https://img.shields.io/badge/GitHub-ahmdelbaz28--ux-black?style=for-the-badge&logo=github)](https://github.com/ahmdelbaz28-ux)
-[![Hugging Face](https://img.shields.io/badge/🤗_Live_Platform-Hugging_Face-yellow?style=for-the-badge)](https://huggingface.co/spaces/ahmdelbaz28/AhmedETAP-Platform)
-[![SonarCloud](https://img.shields.io/badge/SonarCloud-Quality%20Gate-orange?style=for-the-badge&logo=sonarcloud)](https://sonarcloud.io/project/overview?id=ahmdelbaz28-ux_ETAP-AI-WORK-)
-[![LinkedIn](https://img.shields.io/badge/LinkedIn-Connect-0077B5?style=for-the-badge&logo=linkedin&logoColor=white)](https://linkedin.com)
-
-<br/>
-
-*Last updated: v2.1.0 — July 2026 | Project index auto-updated via GitHub Actions on every push*
+<sub>Built with ❤️ for power-systems engineers. © AhmedETAP Team.</sub>
 
 </div>
