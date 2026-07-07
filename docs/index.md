@@ -48,7 +48,7 @@ app_port: 7860
 [![CI/CD](https://img.shields.io/github/actions/workflow/status/ahmdelbaz28-ux/ETAP-AI-WORK-/ci-cd.yml?style=flat-square&label=CI%2FCD&logo=github-actions&logoColor=white)](https://github.com/ahmdelbaz28-ux/ETAP-AI-WORK-/actions)
 [![Coverage](https://img.shields.io/badge/Coverage-≥80%25-brightgreen?style=flat-square&logo=pytest&logoColor=white)](tests/)
 [![AI Agents](https://img.shields.io/badge/AI%20Agents-24%20Specialist-8b5cf6?style=flat-square&logo=openai&logoColor=white)](agents/)
-[![API Endpoints](https://img.shields.io/badge/API%20Endpoints-51+-f59e0b?style=flat-square&logo=swagger&logoColor=white)](docs/API_REFERENCE.md)
+[![API Endpoints](https://img.shields.io/badge/API%20Endpoints-51+-f59e0b?style=flat-square&logo=swagger&logoColor=white)](API_REFERENCE.md)
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-Production-336791?style=flat-square&logo=postgresql&logoColor=white)](api/database.py)
 [![Redis](https://img.shields.io/badge/Redis-State%20%26%20Queue-DC382D?style=flat-square&logo=redis&logoColor=white)](core/redis_state.py)
 [![Security](https://img.shields.io/badge/Security-Enterprise%20Grade-ef4444?style=flat-square&logo=shield&logoColor=white)](security/)
@@ -58,9 +58,9 @@ app_port: 7860
 **[🚀 Live Platform على Hugging Face](https://huggingface.co/spaces/ahmdelbaz28/AhmedETAP-Platform)** &nbsp;•&nbsp;
 **[💻 لوحة التحكم على Vercel](https://vercel.com/ahmdelbaz28-uxs-projects/etap-ai-work)** &nbsp;•&nbsp;
 **[📚 التوثيق الكامل](docs/)** &nbsp;•&nbsp;
-**[🌐 API Reference](docs/API_REFERENCE.md)** &nbsp;•&nbsp;
-**[📋 Project Index](PROJECT_INDEX.md)** &nbsp;•&nbsp;
-**[🚨 DR Runbook](docs/DISASTER_RECOVERY_RUNBOOK.md)**
+**[🌐 API Reference](API_REFERENCE.md)** &nbsp;•&nbsp;
+**[📋 Project Index](https://github.com/ahmdelbaz28-ux/ETAP-AI-WORK-/blob/main/PROJECT_INDEX.md)** &nbsp;•&nbsp;
+**[🚨 DR Runbook](DISASTER_RECOVERY_RUNBOOK.md)**
 
 <br/><br/>
 
@@ -425,7 +425,7 @@ flowchart LR
 └──────────────────────┴──────────────────────────────────────────────┘
 ```
 
-**الإبلاغ عن ثغرات:** راجع [`SECURITY.md`](.github/SECURITY.md)
+**الإبلاغ عن ثغرات:** راجع [`SECURITY.md`](https://github.com/ahmdelbaz28-ux/ETAP-AI-WORK-/blob/main/.github/SECURITY.md)
 
 ---
 
@@ -507,7 +507,7 @@ grafana/dashboards/etap-platform.json
 S3_BACKUP_BUCKET=s3://my-bucket/etap ./scripts/backup/postgres_backup.sh
 ```
 
-**📖 الدليل الكامل:** [`docs/DISASTER_RECOVERY_RUNBOOK.md`](docs/DISASTER_RECOVERY_RUNBOOK.md)
+**📖 الدليل الكامل:** [`DISASTER_RECOVERY_RUNBOOK.md`](DISASTER_RECOVERY_RUNBOOK.md)
 
 ---
 
@@ -715,14 +715,14 @@ etap-ai-work/                          ← AhmedETAP v2.1.0
 
 | الملف | الوصف |
 |:---|:---|
-| [📐 ARCHITECTURE.md](docs/ARCHITECTURE.md) | المعمارية الكاملة للنظام |
-| [🌐 API_REFERENCE.md](docs/API_REFERENCE.md) | كل الـ endpoints مع أمثلة كاملة |
-| [🛠️ DEVELOPER_GUIDE.md](docs/DEVELOPER_GUIDE.md) | دليل المطورين العملي |
-| [🚀 OPERATIONS_RUNBOOK.md](docs/OPERATIONS_RUNBOOK.md) | تشغيل الإنتاج |
-| [🚨 DISASTER_RECOVERY_RUNBOOK.md](docs/DISASTER_RECOVERY_RUNBOOK.md) | **جديد** — استرداد الكوارث |
-| [🔧 TROUBLESHOOTING_GUIDE.md](docs/TROUBLESHOOTING_GUIDE.md) | حل المشكلات |
-| [🔒 SECURITY_OPERATIONS_MANUAL.md](docs/SECURITY_OPERATIONS_MANUAL.md) | دليل الأمان |
-| [📋 PROJECT_INDEX.md](PROJECT_INDEX.md) | فهرس المشروع (يُحدَّث تلقائياً) |
+| [📐 ARCHITECTURE.md](ARCHITECTURE.md) | المعمارية الكاملة للنظام |
+| [🌐 API_REFERENCE.md](API_REFERENCE.md) | كل الـ endpoints مع أمثلة كاملة |
+| [🛠️ DEVELOPER_GUIDE.md](https://github.com/ahmdelbaz28-ux/ETAP-AI-WORK-/blob/main/DEVELOPER_GUIDE.md) | دليل المطورين العملي |
+| [🚀 OPERATIONS_RUNBOOK.md](OPERATIONS_RUNBOOK.md) | تشغيل الإنتاج |
+| [🚨 DISASTER_RECOVERY_RUNBOOK.md](DISASTER_RECOVERY_RUNBOOK.md) | **جديد** — استرداد الكوارث |
+| [🔧 TROUBLESHOOTING_GUIDE.md](TROUBLESHOOTING_GUIDE.md) | حل المشكلات |
+| [🔒 SECURITY_OPERATIONS_MANUAL.md](SECURITY_OPERATIONS_MANUAL.md) | دليل الأمان |
+| [📋 PROJECT_INDEX.md](https://github.com/ahmdelbaz28-ux/ETAP-AI-WORK-/blob/main/PROJECT_INDEX.md) | فهرس المشروع (يُحدَّث تلقائياً) |
 
 ---
 
@@ -748,7 +748,7 @@ git commit -m "feat(load-flow): add Newton-Raphson convergence option"
 git push origin feat/your-feature-name
 ```
 
-**قوالب المشاكل:** [Bug Report](.github/ISSUE_TEMPLATE/bug_report.md) · [Feature Request](.github/ISSUE_TEMPLATE/feature_request.md)
+**قوالب المشاكل:** [Bug Report](https://github.com/ahmdelbaz28-ux/ETAP-AI-WORK-/blob/main/.github/ISSUE_TEMPLATE/bug_report.md) · [Feature Request](https://github.com/ahmdelbaz28-ux/ETAP-AI-WORK-/blob/main/.github/ISSUE_TEMPLATE/feature_request.md)
 
 ---
 

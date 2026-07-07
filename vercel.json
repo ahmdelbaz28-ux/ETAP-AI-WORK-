@@ -2,7 +2,7 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "framework": "vite",
   "installCommand": "npm --prefix ui install --no-audit --no-fund",
-  "buildCommand": "npm --prefix ui run build:vercel",
+  "buildCommand": "bash vercel-build.sh",
   "outputDirectory": "ui/dist",
   "devCommand": "npm --prefix ui run dev",
   "rewrites": [
