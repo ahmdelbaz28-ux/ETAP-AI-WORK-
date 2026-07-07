@@ -58,20 +58,63 @@ async def run_scenario(
     gis_project_id: str,
     output_dir: str,
     gis_output: str = "both",  # "qgis", "arcgis", or "both"
+    skip_verification: bool = False,
 ) -> dict[str, Any]:
     """تنفيذ السيناريو 1 الكامل: ETAP → GIS.
+
+    ⚠️ SAFETY NOTE: This scenario reads engineering values from ETAP.
+    Results may be SILENTLY WRONG if ETAP COM property names are incorrect.
+    Always run verify_etap_2021.py first, or set skip_verification=True
+    only if you have already verified compatibility.
 
     Args:
         etap_project_path: Path to ETAP .edb project file
         gis_project_id: GIS project ID in PostGIS
         output_dir: Directory for generated files
         gis_output: "qgis", "arcgis", or "both"
+        skip_verification: Skip ETAP 2021 verification gate (NOT recommended)
 
     Returns:
         dict with execution summary + output paths
     """
     start_time = time.time()
     trace_id = f"scen1-{int(start_time)}"
+
+    # ─── SAFETY GATE: Verify ETAP 2021 compatibility ─────────────
+    if not skip_verification and os.environ.get("SKIP_ETAP_VERIFICATION") != "true":
+        logger.warning("⚠️  SAFETY GATE: Verifying ETAP 2021 COM compatibility...")
+        logger.warning("   This is required because wrong COM property names can")
+        logger.warning("   produce SILENTLY WRONG engineering results.")
+        logger.warning("   To skip, set SKIP_ETAP_VERIFICATION=true (NOT recommended)")
+
+        try:
+            verify_script = PROJECT_ROOT / "scripts" / "verify_etap_2021.py"
+            if verify_script.exists():
+                import subprocess
+                result = subprocess.run(
+                    ["python", str(verify_script), "--etap-project", etap_project_path],
+                    capture_output=True, text=True, timeout=60,
+                    cwd=str(PROJECT_ROOT),
+                )
+                if result.returncode != 0:
+                    logger.error("❌ ETAP 2021 verification FAILED — results may be wrong!")
+                    logger.error("   DO NOT use these results for engineering decisions.")
+                    logger.error("   Run verify_etap_2021.py manually to diagnose.")
+                    return {
+                        "scenario": "etap_to_gis",
+                        "trace_id": trace_id,
+                        "status": "failed",
+                        "error": "ETAP 2021 verification failed — safety gate blocked execution",
+                        "verify_output": result.stdout[:500] + result.stderr[:500],
+                    }
+                else:
+                    logger.info("✅ ETAP 2021 verification passed — proceeding with scenario")
+            else:
+                logger.warning("⚠️  verify_etap_2021.py not found — skipping verification")
+                logger.warning("   RESULTS MAY BE WRONG. Verify manually before use.")
+        except Exception as exc:
+            logger.warning("⚠️  Verification gate error (non-blocking): %s", exc)
+            logger.warning("   Proceeding WITHOUT verification — results may be wrong.")
     logger.info("🚀 Scenario 1 started — trace_id=%s", trace_id)
     logger.info("   ETAP project: %s", etap_project_path)
     logger.info("   GIS project ID: %s", gis_project_id)
