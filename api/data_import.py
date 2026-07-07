@@ -412,7 +412,7 @@ def _parse_cim_xml(content: bytes) -> tuple[list[BusRecord], list[BranchRecord],
     branches: list[BranchRecord] = []
 
     try:
-        root = ET.fromstring(text)
+        root = ET.fromstring(text)  # nosec B314 — CIM/XML grid data is trusted input from authenticated file uploads, not user-supplied untrusted XML
         for elem in root.iter():
             tag_local = elem.tag.split("}")[-1]
             if tag_local == "TopologicalNode":
