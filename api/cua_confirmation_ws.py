@@ -47,8 +47,10 @@ import json
 import logging
 import uuid
 from dataclasses import dataclass, field
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 from typing import Any
+
+UTC = timezone.utc
 
 from fastapi import WebSocket, WebSocketDisconnect
 

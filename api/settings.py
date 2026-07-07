@@ -39,7 +39,12 @@ Usage:
 from __future__ import annotations
 
 import logging
-from typing import Annotated, Any
+from typing import Any
+
+try:
+    from typing import Annotated
+except ImportError:
+    from typing_extensions import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import JSONResponse
@@ -90,9 +95,7 @@ class ActivateKeyRequest(BaseModel):
 
     is_active: bool = Field(..., description="True to enable, False to disable")
 
-
 # ─── Endpoints ─────────────────────────────────────────────────────────────
-
 
 @router.get("/keys")
 async def list_keys(_: ApiKeyDep) -> JSONResponse:  # NOSONAR — S8410: Annotated[T, Depends(...)] migration will be done in API refactoring sprint
@@ -112,7 +115,6 @@ async def list_keys(_: ApiKeyDep) -> JSONResponse:  # NOSONAR — S8410: Annotat
             status_code=500,
             content={"success": False, "error": "list_failed", "message": str(exc)},
         )
-
 
 @router.get("/keys/{provider}")
 async def get_key(provider: str, _: ApiKeyDep) -> JSONResponse:  # NOSONAR — S8410: Annotated[T, Depends(...)] migration will be done in API refactoring sprint
@@ -135,7 +137,6 @@ async def get_key(provider: str, _: ApiKeyDep) -> JSONResponse:  # NOSONAR — S
         )
 
     return JSONResponse(content={"success": True, "data": config.to_masked_dict()})
-
 
 @router.post("/keys/{provider}")
 async def save_key(
@@ -178,7 +179,6 @@ async def save_key(
             content={"success": False, "error": "save_failed", "message": str(exc)},
         )
 
-
 @router.delete("/keys/{provider}")
 async def delete_key(provider: str, _: ApiKeyDep) -> JSONResponse:  # NOSONAR — S8410: Annotated[T, Depends(...)] migration will be done in API refactoring sprint
     """Delete an API key permanently."""
@@ -198,7 +198,6 @@ async def delete_key(provider: str, _: ApiKeyDep) -> JSONResponse:  # NOSONAR �
             else f"No key found for provider '{provider}'",
         },
     )
-
 
 @router.post("/keys/{provider}/activate")
 async def activate_key(
@@ -221,7 +220,6 @@ async def activate_key(
             "message": f"Key for '{provider}' {'activated' if request.is_active else 'deactivated'}",
         },
     )
-
 
 @router.post("/keys/{provider}/test")
 async def test_key(provider: str, _: ApiKeyDep) -> JSONResponse:  # NOSONAR — S8410: Annotated[T, Depends(...)] migration will be done in API refactoring sprint
@@ -268,15 +266,12 @@ async def test_key(provider: str, _: ApiKeyDep) -> JSONResponse:  # NOSONAR — 
             content={"success": False, "error": "test_failed", "message": str(exc)},
         )
 
-
 @router.get("/health")
 async def settings_health(_: ApiKeyDep) -> JSONResponse:  # NOSONAR — S8410: Annotated[T, Depends(...)] migration will be done in API refactoring sprint
     """Get the API key storage health status."""
     return JSONResponse(content={"success": True, "data": api_key_store.health_check()})
 
-
 # ─── Internal: key testing functions ───────────────────────────────────────
-
 
 def _test_openai_key(config) -> dict[str, Any]:
     """Test an OpenAI-compatible API key by listing models."""
@@ -306,7 +301,6 @@ def _test_openai_key(config) -> dict[str, Any]:
             "base_url": base_url,
         }
 
-
 def _test_gemini_key(config) -> dict[str, Any]:
     """Test a Gemini API key by listing models."""
     import httpx
@@ -331,7 +325,6 @@ def _test_gemini_key(config) -> dict[str, Any]:
             "success": False,
             "message": f"Gemini API returned HTTP {resp.status_code}: {resp.text[:200]}",
         }
-
 
 def _test_anthropic_key(config) -> dict[str, Any]:
     """Test an Anthropic API key by making a minimal messages call."""
@@ -363,6 +356,5 @@ def _test_anthropic_key(config) -> dict[str, Any]:
             "success": False,
             "message": f"Anthropic API returned HTTP {resp.status_code}: {resp.text[:200]}",
         }
-
 
 __all__ = ["router"]

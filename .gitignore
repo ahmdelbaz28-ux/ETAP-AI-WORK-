@@ -354,3 +354,14 @@ helm/**/charts/
 ui-dist/
 
 testsprite_tests\tmp\config.json
+
+# Temp scripts from QA session
+fix_secrets*.py
+check_supabase.py
+final_fix.py
+fix_db_url.py
+api/agents_fixed.py
+api/data_import_fixed.py
+api/projects_fixed.py
+api/settings_fixed.py
+

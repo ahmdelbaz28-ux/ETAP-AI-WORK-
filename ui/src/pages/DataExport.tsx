@@ -6,6 +6,7 @@ import { Card, CardHeader, Button } from '../components/ui'
 import { cn } from '../utils/helpers'
 import { API_BASE_URL } from '../lib/api-config'
 import { ContextHelpButton } from '../components/help/ContextHelpButton'
+
 const exportFormats = [
   {
     id: 'pdf',
@@ -54,8 +55,14 @@ export default function DataExport() {
         if (!r.ok) throw new Error(`API ${r.status}: ${r.statusText}`)
         return r.json()
       })
-      .then((data: RecentExport[]) => setRecentExports(data))
-      .catch(err => setError(err.message))
+      .then((data: RecentExport[]) => {
+        setRecentExports(data)
+        setError(null) // Clear any previous error on successful fetch
+      })
+      .catch(err => {
+        console.error('Failed to load exports:', err)
+        setError(err.message)
+      })
       .finally(() => setLoading(false))
   }, [])
 

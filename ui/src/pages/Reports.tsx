@@ -5,6 +5,7 @@ import { useNotify } from '../context/NotificationContext'
 import { Card, Badge, Button } from '../components/ui'
 import { API_BASE_URL } from '../lib/api-config'
 import { ContextHelpButton } from '../components/help/ContextHelpButton'
+
 interface Report {
   name: string
   type: string
@@ -31,11 +32,19 @@ export default function Reports() {
       headers: token ? { Authorization: `Bearer ${token}` } : {},
     })
       .then(r => {
-        if (!r.ok) throw new Error(`API ${r.status}: ${r.statusText}`)
+        if (!r.ok) {
+          throw new Error(`API ${r.status}: ${r.statusText}`)
+        }
         return r.json()
       })
-      .then((data: Report[]) => setReports(data))
-      .catch(err => setError(err.message))
+      .then((data: Report[]) => {
+        setReports(data)
+        setError(null) // Clear any previous error on successful fetch
+      })
+      .catch(err => {
+        console.error('Failed to load reports:', err)
+        setError(err.message)
+      })
       .finally(() => setLoading(false))
   }, [])
 

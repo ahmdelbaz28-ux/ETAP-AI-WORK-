@@ -69,7 +69,8 @@ function getSettings(): Record<string, string> {
     if (!stored) return {}
     // Parse directly — settings are stored as raw JSON
     return JSON.parse(stored)
-  } catch {
+  } catch (error) {
+    console.error('Failed to parse settings from localStorage:', error)
     return {}
   }
 }
@@ -86,10 +87,13 @@ export function getActiveProvider(): ProviderConfig | null {
 
   if (providersWithKeys.length === 0) return null
 
-  const selected = activeId
-    ? providersWithKeys.find(p => p.id === activeId)
-    : null
-  const provider = selected || providersWithKeys[0]
+  let provider: typeof providersWithKeys[0]
+  if (activeId) {
+    const selected = providersWithKeys.find(p => p.id === activeId)
+    provider = selected || providersWithKeys[0]  // Fallback to first provider if selected is not found
+  } else {
+    provider = providersWithKeys[0]
+  }
 
   const keyName = `PROVIDER_${provider.id.toUpperCase()}_KEY`
   const model = settings[`PROVIDER_${provider.id.toUpperCase()}_MODEL`] || provider.defaultModel
@@ -167,7 +171,10 @@ async function callOpenAICompatible(
   })
 
   if (!res.ok) {
-    const text = await res.text().catch(() => 'Unknown error')
+    const text = await res.text().catch((error) => {
+      console.warn('Failed to read response text:', error)
+      return 'Unknown error'
+    })
     throw new Error(`${provider.name} API error ${res.status}: ${text.slice(0, 200)}`)
   }
 
@@ -196,7 +203,10 @@ async function callAnthropic(
   })
 
   if (!res.ok) {
-    const text = await res.text().catch(() => 'Unknown error')
+    const text = await res.text().catch((error) => {
+      console.warn('Failed to read Anthropic response text:', error)
+      return 'Unknown error'
+    })
     throw new Error(`${provider.name} API error ${res.status}: ${text.slice(0, 200)}`)
   }
 
@@ -242,7 +252,10 @@ async function callGemini(
   })
 
   if (!res.ok) {
-    const text = await res.text().catch(() => 'Unknown error')
+    const text = await res.text().catch((error) => {
+      console.warn('Failed to read Gemini response text:', error)
+      return 'Unknown error'
+    })
     throw new Error(`${provider.name} API error ${res.status}: ${text.slice(0, 200)}`)
   }
 
@@ -266,7 +279,10 @@ async function callCloudflare(
   const res = await proxyFetch(url, provider.apiKey, { messages })
 
   if (!res.ok) {
-    const text = await res.text().catch(() => 'Unknown error')
+    const text = await res.text().catch((error) => {
+      console.warn('Failed to read Cloudflare response text:', error)
+      return 'Unknown error'
+    })
     throw new Error(`${provider.name} API error ${res.status}: ${text.slice(0, 200)}`)
   }
 
@@ -296,7 +312,10 @@ async function callCohere(
   })
 
   if (!res.ok) {
-    const text = await res.text().catch(() => 'Unknown error')
+    const text = await res.text().catch((error) => {
+      console.warn('Failed to read Cohere response text:', error)
+      return 'Unknown error'
+    })
     throw new Error(`${provider.name} API error ${res.status}: ${text.slice(0, 200)}`)
   }
 
@@ -466,7 +485,7 @@ async function diagnoseHttpError(
   try {
     errorBody = await res.text()
   } catch (error) {
-    // Ignore errors in reading response body
+    console.warn('Failed to read response body during error diagnosis:', error)
     errorBody = ''
   }
 
@@ -474,7 +493,7 @@ async function diagnoseHttpError(
   try {
     errorData = JSON.parse(errorBody)
   } catch (error) {
-    // Ignore errors in parsing JSON
+    console.warn('Failed to parse error response as JSON:', error)
     errorData = {}
   }
 
@@ -607,7 +626,10 @@ async function* streamFromAnthropic(
   })
 
   if (!res.ok) {
-    const text = await res.text().catch(() => 'Unknown error')
+    const text = await res.text().catch((error) => {
+      console.warn('Failed to read Anthropic stream response text:', error)
+      return 'Unknown error'
+    })
     throw new Error(`${provider.name} API error ${res.status}: ${text.slice(0, 200)}`)
   }
 
@@ -644,7 +666,8 @@ function yieldFromAnthropicLine(line: string): string | undefined {
     if (parsed.error) {
       throw new Error(parsed.message || parsed.error.message || 'Stream error')
     }
-  } catch {
+  } catch (error) {
+    console.warn('Failed to parse Anthropic stream line:', error, 'Line:', line)
     // Skip non-JSON lines
   }
   return undefined
@@ -707,7 +730,10 @@ async function* streamFromOpenAICompatible(
   })
 
   if (!res.ok) {
-    const text = await res.text().catch(() => 'Unknown error')
+    const text = await res.text().catch((error) => {
+      console.warn('Failed to read OpenAI-compatible stream response text:', error)
+      return 'Unknown error'
+    })
     throw buildOpenAIError(provider, res.status, text)
   }
 
@@ -778,9 +804,10 @@ function consumeOpenAILine(line: string): ConsumeResult {
     }
     // reasoning_content with content:null — skip, content will come later.
     return undefined
-  } catch (e) {
-    if (e instanceof Error && (e.message.includes('not supported') || e.message.includes('payment method'))) {
-      throw e
+  } catch (error) {
+    console.warn('Failed to parse OpenAI stream line:', error, 'Line:', line)
+    if (error instanceof Error && (error.message.includes('not supported') || error.message.includes('payment method'))) {
+      throw error
     }
     return undefined
   }

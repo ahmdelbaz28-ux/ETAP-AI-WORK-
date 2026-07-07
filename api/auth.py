@@ -31,9 +31,14 @@ import os
 import time
 import uuid
 from datetime import datetime, timedelta, timezone
+from typing import Any, Optional
 
 UTC = timezone.utc  # noqa: UP017
-from typing import Annotated, Any
+
+try:
+    from typing import Annotated
+except ImportError:
+    from typing_extensions import Annotated
 
 import bcrypt
 import jwt
@@ -247,10 +252,10 @@ class User(Base):
         default=lambda: datetime.now(UTC),
         onupdate=lambda: datetime.now(UTC),
     )
-    last_login: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    last_login: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
-    reset_token: Mapped[str | None] = mapped_column(String(128), nullable=True)
-    reset_token_expires: Mapped[datetime | None] = mapped_column(
+    reset_token: Mapped[Optional[str]] = mapped_column(String(128), nullable=True)
+    reset_token_expires: Mapped[Optional[datetime]] = mapped_column(
         DateTime(timezone=True), nullable=True,
     )
 

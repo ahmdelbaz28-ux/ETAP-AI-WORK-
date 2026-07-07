@@ -20,9 +20,14 @@ from __future__ import annotations
 
 import uuid
 from datetime import datetime, timezone
+from typing import Any, Optional
+
+try:
+    from typing import Annotated
+except ImportError:
+    from typing_extensions import Annotated
 
 UTC = timezone.utc
-from typing import Annotated, Any
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
 from pydantic import BaseModel, ConfigDict, Field
@@ -83,18 +88,18 @@ class Asset(Base):
     id: Mapped[str] = mapped_column(String(36), primary_key=True)
     name: Mapped[str] = mapped_column(String(255), nullable=False)
     type: Mapped[str] = mapped_column(String(50), nullable=False)  # AssetType
-    rating: Mapped[str | None] = mapped_column(String(100), nullable=True)  # e.g., "10 MVA"
-    voltage: Mapped[str | None] = mapped_column(String(100), nullable=True)  # e.g., "13.8 kV"
+    rating: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)  # e.g., "10 MVA"
+    voltage: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)  # e.g., "13.8 kV"
     status: Mapped[str] = mapped_column(String(20), nullable=False, default=AssetStatus.ACTIVE.value)
-    project_id: Mapped[str | None] = mapped_column(String(36), ForeignKey("projects.id"), nullable=True)
-    created_by: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    project_id: Mapped[Optional[str]] = mapped_column(String(36), ForeignKey("projects.id"), nullable=True)
+    created_by: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(UTC))
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         default=lambda: datetime.now(UTC),
         onupdate=lambda: datetime.now(UTC),
     )
-    notes: Mapped[str | None] = mapped_column(String(1000), nullable=True)
+    notes: Mapped[Optional[str]] = mapped_column(String(1000), nullable=True)
 
 
 # ---------------------------------------------------------------------------
@@ -116,13 +121,13 @@ class AssetCreateRequest(BaseModel):
 class AssetUpdateRequest(BaseModel):
     """Request body for updating an asset."""
 
-    name: str | None = Field(None, min_length=1, max_length=255)
-    type: AssetType | None = None
-    rating: str | None = Field(None, max_length=100)
-    voltage: str | None = Field(None, max_length=100)
-    status: AssetStatus | None = None
-    project_id: str | None = Field(None)
-    notes: str | None = Field(None, max_length=1000)
+    name: Optional[str] = Field(None, min_length=1, max_length=255)
+    type: Optional[AssetType] = None
+    rating: Optional[str] = Field(None, max_length=100)
+    voltage: Optional[str] = Field(None, max_length=100)
+    status: Optional[AssetStatus] = None
+    project_id: Optional[str] = Field(None)
+    notes: Optional[str] = Field(None, max_length=1000)
 
 
 class AssetResponse(BaseModel):

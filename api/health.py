@@ -6,6 +6,7 @@ Separated from main engineering service for better modularity.
 """
 
 import time
+from typing import Dict
 
 from fastapi import APIRouter, Request
 from fastapi.responses import Response
@@ -53,21 +54,21 @@ class MetricsResponse(BaseModel):
 
 @router.head("/")
 @router.get("/")
-async def root() -> dict[str, str]:
+async def root() -> Dict[str, str]:
     """Root endpoint — also handles HEAD / for HF Spaces health checks."""
     return {"message": "Ahmed etap Engineering Platform", "version": "1.0.0"}
 
 
 @router.head("/healthz")
 @router.get("/healthz")
-async def healthz() -> dict[str, str]:
+async def healthz() -> Dict[str, str]:
     """Lightweight liveness probe (no heavy initialization)."""
     return {"status": "alive"}
 
 
 @router.head("/readyz")
 @router.get("/readyz")
-async def readyz() -> dict[str, bool | dict[str, bool]]:
+async def readyz() -> Dict[str, object]:
     """Readiness probe — checks critical dependencies."""
     checks = {"python": True, "imports": True}
     all_ready = all(checks.values())
@@ -86,7 +87,7 @@ async def health_check(request: Request) -> HealthResponse:
 
 
 @router.get("/info")
-async def platform_info(request: Request) -> dict:
+async def platform_info(request: Request) -> Dict[str, object]:
     """Platform information endpoint — returns version, agent count, and module list.
 
     Provides a single endpoint for dashboards and monitoring tools to discover
