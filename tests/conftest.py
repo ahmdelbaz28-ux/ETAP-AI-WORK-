@@ -834,22 +834,27 @@ def client(app) -> Generator[TestClient, None, None]:
             # Without this clear, test_login_rate_limiting fills the counter
             # for username "ratelimituser", and subsequent tests that register
             # users with the same name hit 429.
+            # Use a *synchronous* Redis client for the cleanup. The app's
+            # rate limiter uses ``redis.asyncio``, whose connection pool binds
+            # to the TestClient's background-thread event loop. Running that
+            # async client's ``scan_iter``/``delete`` from this synchronous
+            # ``finally`` block (via ``loop.run_until_complete`` on the main
+            # thread's loop) fails with a cross-loop connection error that
+            # ``contextlib.suppress`` would silently swallow — leaving keys
+            # uncleared. A sync client has no event-loop binding and works
+            # reliably here. It reads ``REDIS_URL`` at call time, matching
+            # ``_auth_module._get_redis_client()``.
             with contextlib.suppress(Exception):
-                r = _auth_module._get_redis_client()
-                if r is not None:
-                    # Clear Redis rate-limit keys. The rate limiter uses
-                    # ``auth:ratelimit:{username}`` keys that persist across
-                    # tests when Redis is available.
-                    import asyncio as _asyncio
+                _redis_url = _os.getenv("REDIS_URL", "").strip()
+                if _redis_url:
+                    import redis as _redis_sync
 
-                    loop = _asyncio.get_event_loop_policy().get_event_loop()
-                    if not loop.is_closed():
-
-                        async def _clear_rate_limit_keys() -> None:
-                            async for k in r.scan_iter(match="auth:ratelimit:*", count=100):
-                                await r.delete(k)
-
-                        loop.run_until_complete(_clear_rate_limit_keys())
+                    _sync_client = _redis_sync.from_url(_redis_url, decode_responses=True)
+                    try:
+                        for _k in _sync_client.scan_iter(match="auth:ratelimit:*", count=100):
+                            _sync_client.delete(_k)
+                    finally:
+                        _sync_client.close()
             if debug_loop:
                 try:
                     loop = asyncio.get_event_loop_policy().get_event_loop()
