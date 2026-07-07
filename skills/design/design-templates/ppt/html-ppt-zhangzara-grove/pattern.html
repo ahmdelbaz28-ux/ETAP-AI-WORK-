@@ -1557,14 +1557,14 @@
           prev.classList.remove("is-active");
           // Force a reflow so removing then re-adding is-active (on same slide)
           // actually re-triggers the keyframe animations
-          prev.offsetWidth; // force reflow
+          prev.getBoundingClientRect(); // force reflow
 
           // Translate the deck
           if (instant) {
             // Remove transition temporarily for the initial load snap
             deck.style.transition = "none";
             deck.style.transform = "translateX(-" + index + "00vw)";
-            deck.offsetWidth; // force reflow
+            deck.getBoundingClientRect(); // force reflow
             deck.style.transition = "";
           } else {
             deck.style.transform = "translateX(-" + index + "00vw)";

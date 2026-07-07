@@ -318,6 +318,12 @@ def main():
 
     if args.output:
         output_path = os.path.realpath(args.output)
+        # Validate output path stays within the parent directory
+        cwd = os.path.realpath(os.getcwd())
+        dirname = os.path.dirname(output_path)
+        if not dirname.startswith(cwd + os.sep) and dirname != cwd:
+            print(f"Error: output path {output_path} is outside current directory", file=sys.stderr)
+            sys.exit(1)
         with open(output_path, "w", encoding="utf-8") as f:
             f.write(html_output)
         print(f"Report written to {args.output}", file=sys.stderr)

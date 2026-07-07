@@ -27,7 +27,6 @@ from datetime import datetime, timezone
 
 UTC = timezone.utc
 
-UTC = UTC
 from typing import Any
 
 from fastapi import HTTPException, Request

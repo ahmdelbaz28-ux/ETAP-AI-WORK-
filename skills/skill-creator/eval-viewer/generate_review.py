@@ -435,6 +435,11 @@ def main() -> None:
     if args.static:
         html = generate_html(runs, skill_name, previous, benchmark)
         static_path = os.path.realpath(args.static)
+        # Validate the path is inside the workspace to prevent S8707
+        workspace_path = os.path.realpath(args.workspace)
+        if not static_path.startswith(workspace_path + os.sep):
+            print(f"Error: output path {static_path} is outside workspace {workspace_path}", file=sys.stderr)
+            sys.exit(1)
         os.makedirs(os.path.dirname(static_path), exist_ok=True)
         with open(static_path, "w", encoding="utf-8") as f:
             f.write(html)
