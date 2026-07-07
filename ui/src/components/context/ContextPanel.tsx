@@ -173,7 +173,7 @@ export function ContextPanel({  // NOSONAR — S6759: React props read-only; req
                   href={helpTopic.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1 mt-2 text-xs text-[var(--accent-primary)] hover:underline"
+                  className="inline-flex items-center gap-1.5 mt-2 text-xs text-[var(--accent-primary)] hover:underline"
                 >
                   Open documentation <ExternalLink className="w-3 h-3" />
                 </a>
