@@ -1,26 +1,29 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, Link, useSearchParams } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { Mail, Lock, ArrowRight, Eye, EyeOff, AlertCircle, ShieldCheck } from 'lucide-react'
+import { Mail, Lock, ArrowRight, Eye, EyeOff, AlertCircle, ShieldCheck, Globe } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { useNotify } from '../context/NotificationContext'
 import { useAuth } from '../hooks/useAuth'
 import { BrandLogo } from '../components/BrandLogo'
 import { API_BASE_URL } from '../lib/api-config'
 
 /**
- * Login — AhmedETAP professional sign-in page (Arabic + animated).
+ * Login — AhmedETAP professional sign-in page.
  *
  * Features:
- * - Arabic UI (RTL)
- * - Animated power-grid background (SVG one-line diagram with flowing energy pulses)
- * - Forgot password is REAL (POST /api/v1/auth/forgot-password)
- * - No demo, no fake data
+ * - Full i18n support (dynamic Arabic and English layouts)
+ * - Professional EN/AR selector at the top-right
+ * - Elite CAD-style power grid background animation (vector flow simulation)
+ * - Safe validation and token-based redirection
  */
 export default function Login() {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const { notify } = useNotify()
   const { login } = useAuth()
+  const { t, i18n } = useTranslation()
+
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
@@ -31,33 +34,29 @@ export default function Login() {
   const [forgotLoading, setForgotLoading] = useState(false)
   const [forgotSent, setForgotSent] = useState(false)
 
-  // Set RTL + Arabic on mount
+  // Sync html dir and lang attribute on language switch
   useEffect(() => {
-    document.documentElement.dir = 'rtl'
-    document.documentElement.lang = 'ar'
-    return () => {
-      document.documentElement.dir = 'ltr'
-      document.documentElement.lang = 'en'
-    }
-  }, [])
+    document.documentElement.dir = i18n.language === 'ar' ? 'rtl' : 'ltr'
+    document.documentElement.lang = i18n.language
+  }, [i18n.language])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!email || !password) {
-      notify('error', 'يرجى إدخال البريد الإلكتروني وكلمة المرور')
+      notify('error', t('auth.errorMissingFields'))
       return
     }
     setLoading(true)
     setAuthError(null)
     try {
       await login(email, password)
-      notify('success', 'مرحباً بعودتك!')
+      notify('success', i18n.language === 'ar' ? 'أهلاً بك مجدداً!' : 'Welcome back!')
       const from = searchParams.get('from') || '/dashboard'
       navigate(from, { replace: true })
     } catch (err) {
-      const message = err instanceof Error ? err.message : 'خطأ غير معروف'
+      const message = err instanceof Error ? err.message : 'Unknown error'
       setAuthError(message)
-      notify('error', `فشل تسجيل الدخول: ${message}`)
+      notify('error', `${i18n.language === 'ar' ? 'فشل تسجيل الدخول' : 'Login failed'}: ${message}`)
     } finally {
       setLoading(false)
     }
@@ -75,32 +74,50 @@ export default function Login() {
       })
       if (response.ok) {
         setForgotSent(true)
-        notify('success', 'إذا كان البريد موجوداً، تم إرسال رمز إعادة التعيين')
+        notify('success', i18n.language === 'ar' ? 'تم إرسال تعليمات إعادة التعيين إن كان البريد مسجلاً' : 'Instructions sent if email is registered')
       } else {
         throw new Error('Request failed')
       }
     } catch {
       setForgotSent(true)
-      notify('info', 'إذا كان البريد موجوداً، تم إرسال رمز إعادة التعيين')
+      notify('info', i18n.language === 'ar' ? 'تم إرسال تعليمات إعادة التعيين إن كان البريد مسجلاً' : 'Instructions sent if email is registered')
     } finally {
       setForgotLoading(false)
     }
   }
 
+  const toggleLanguage = () => {
+    const nextLang = i18n.language === 'ar' ? 'en' : 'ar'
+    i18n.changeLanguage(nextLang)
+  }
+
+  const isRtl = i18n.language === 'ar'
+
   return (
-    <div className="min-h-screen flex bg-[#070b14] relative overflow-hidden">
-      {/* ============ ANIMATED BACKGROUND ============ */}
-      <div className="absolute inset-0 pointer-events-none">
-        {/* Subtle grid */}
+    <div className="min-h-screen flex bg-[#070b14] relative overflow-hidden" dir={isRtl ? 'rtl' : 'ltr'}>
+      {/* ============ LANG SELECTOR ============ */}
+      <div className={`absolute top-6 ${isRtl ? 'left-6' : 'right-6'} z-50`}>
+        <button
+          onClick={toggleLanguage}
+          className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-slate-700/50 bg-slate-900/80 hover:bg-slate-800 text-slate-300 hover:text-white transition-all text-xs font-semibold"
+        >
+          <Globe className="w-3.5 h-3.5" />
+          <span>{isRtl ? 'English' : 'العربية'}</span>
+        </button>
+      </div>
+
+      {/* ============ ELITE CAD BACKGROUND (POWER DIAGRAM ANIMATION) ============ */}
+      <div className="absolute inset-0 pointer-events-none z-0">
+        {/* Fine grid */}
         <div
-          className="absolute inset-0 opacity-[0.025]"
+          className="absolute inset-0 opacity-[0.02]"
           style={{
             backgroundImage: `linear-gradient(#3b82f6 1px, transparent 1px), linear-gradient(90deg, #3b82f6 1px, transparent 1px)`,
-            backgroundSize: '50px 50px',
+            backgroundSize: '40px 40px',
           }}
         />
 
-        {/* Animated power-line SVG — one-line diagram with flowing pulses */}
+        {/* Dynamic single-line schematic flow simulation */}
         <svg
           className="absolute inset-0 w-full h-full"
           viewBox="0 0 1440 900"
@@ -108,132 +125,125 @@ export default function Login() {
           aria-hidden="true"
         >
           <defs>
-            <linearGradient id="line-grad" x1="0%" y1="0%" x2="100%" y2="0%">
-              <stop offset="0%" stopColor="#1e3a5f" stopOpacity="0.3" />
-              <stop offset="50%" stopColor="#3b82f6" stopOpacity="0.5" />
-              <stop offset="100%" stopColor="#1e3a5f" stopOpacity="0.3" />
+            <linearGradient id="bus-grad" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" stopColor="#1e293b" stopOpacity="0.2" />
+              <stop offset="50%" stopColor="#3b82f6" stopOpacity="0.6" />
+              <stop offset="100%" stopColor="#1e293b" stopOpacity="0.2" />
             </linearGradient>
           </defs>
 
-          {/* Horizontal bus lines */}
-          <line x1="0" y1="200" x2="1440" y2="200" stroke="url(#line-grad)" strokeWidth="1" />
-          <line x1="0" y1="450" x2="1440" y2="450" stroke="url(#line-grad)" strokeWidth="1.5" />
-          <line x1="0" y1="700" x2="1440" y2="700" stroke="url(#line-grad)" strokeWidth="1" />
+          {/* High voltage main bus bar */}
+          <path d="M100,180 L1340,180" stroke="url(#bus-grad)" strokeWidth="3" strokeLinecap="round" />
+          <path d="M100,180 L1340,180" stroke="#00d4ff" strokeWidth="1" strokeLinecap="round" className="animate-pulse" opacity="0.8" />
 
-          {/* Vertical connector lines */}
-          <line x1="200" y1="200" x2="200" y2="450" stroke="#1e3a5f" strokeWidth="0.8" opacity="0.4" />
-          <line x1="500" y1="200" x2="500" y2="450" stroke="#1e3a5f" strokeWidth="0.8" opacity="0.4" />
-          <line x1="800" y1="200" x2="800" y2="450" stroke="#1e3a5f" strokeWidth="0.8" opacity="0.4" />
-          <line x1="1100" y1="200" x2="1100" y2="450" stroke="#1e3a5f" strokeWidth="0.8" opacity="0.4" />
-          <line x1="300" y1="450" x2="300" y2="700" stroke="#1e3a5f" strokeWidth="0.8" opacity="0.4" />
-          <line x1="700" y1="450" x2="700" y2="700" stroke="#1e3a5f" strokeWidth="0.8" opacity="0.4" />
-          <line x1="1050" y1="450" x2="1050" y2="700" stroke="#1e3a5f" strokeWidth="0.8" opacity="0.4" />
+          {/* Transformer circuit branch */}
+          <path d="M400,180 L400,450" stroke="#1e293b" strokeWidth="2" opacity="0.4" />
+          <path d="M400,180 L400,450" stroke="#00d4ff" strokeWidth="1.5" strokeDasharray="8 12" strokeDashoffset="0" style={{ animation: 'gridFlow 12s linear infinite' }} />
 
-          {/* Bus junction nodes (pulsing) */}
-          {[
-            { cx: 200, cy: 200, delay: 0 },
-            { cx: 500, cy: 200, delay: 0.5 },
-            { cx: 800, cy: 200, delay: 1 },
-            { cx: 1100, cy: 200, delay: 1.5 },
-            { cx: 300, cy: 450, delay: 0.3 },
-            { cx: 700, cy: 450, delay: 0.8 },
-            { cx: 1050, cy: 450, delay: 1.3 },
-            { cx: 300, cy: 700, delay: 0.6 },
-            { cx: 700, cy: 700, delay: 1.1 },
-            { cx: 1050, cy: 700, delay: 1.6 },
-          ].map((n, i) => (
-            <motion.circle
-              key={i}
-              cx={n.cx}
-              cy={n.cy}
-              r="3"
-              fill="#3b82f6"
-              initial={{ opacity: 0.2 }}
-              animate={{ opacity: [0.2, 0.8, 0.2] }}
-              transition={{ duration: 3, repeat: Infinity, delay: n.delay, ease: 'easeInOut' }}
-            />
-          ))}
+          {/* Transformer windings symbol */}
+          <circle cx="400" cy="280" r="14" fill="none" stroke="#00d4ff" strokeWidth="1.5" />
+          <circle cx="400" cy="302" r="14" fill="none" stroke="#3b82f6" strokeWidth="1.5" />
 
-          {/* Energy pulses traveling along bus lines */}
-          <motion.circle
-            r="2"
-            fill="#60a5fa"
-            initial={{ cx: 0, cy: 200 }}
-            animate={{ cx: [0, 1440] }}
-            transition={{ duration: 8, repeat: Infinity, ease: 'linear' }}
-          />
-          <motion.circle
-            r="2.5"
-            fill="#3b82f6"
-            initial={{ cx: 0, cy: 450 }}
-            animate={{ cx: [0, 1440] }}
-            transition={{ duration: 6, repeat: Infinity, ease: 'linear', delay: 2 }}
-          />
-          <motion.circle
-            r="2"
-            fill="#60a5fa"
-            initial={{ cx: 1440, cy: 700 }}
-            animate={{ cx: [1440, 0] }}
-            transition={{ duration: 7, repeat: Infinity, ease: 'linear', delay: 1 }}
-          />
+          {/* Lower distribution bus bar */}
+          <path d="M250,450 L1190,450" stroke="url(#bus-grad)" strokeWidth="2.5" strokeLinecap="round" />
+          <path d="M250,450 L1190,450" stroke="#60a5fa" strokeWidth="1" strokeLinecap="round" className="animate-pulse" opacity="0.6" />
+
+          {/* Generator branch */}
+          <path d="M800,180 L800,90" stroke="#1e293b" strokeWidth="2" opacity="0.4" />
+          <path d="M800,180 L800,90" stroke="#22c55e" strokeWidth="1.5" strokeDasharray="10 10" strokeDashoffset="0" style={{ animation: 'gridFlowRev 10s linear infinite' }} />
+          <circle cx="800" cy="70" r="18" fill="#070b14" stroke="#22c55e" strokeWidth="1.5" />
+          <text x="800" y="75" textAnchor="middle" fill="#22c55e" fontSize="14" fontWeight="bold" fontFamily="monospace">G</text>
+
+          {/* Feeder load circuit */}
+          <path d="M600,450 L600,580" stroke="#1e293b" strokeWidth="2" opacity="0.4" />
+          <path d="M600,450 L600,580" stroke="#fbbf24" strokeWidth="1.5" strokeDasharray="8 10" strokeDashoffset="0" style={{ animation: 'gridFlow 8s linear infinite' }} />
+          <polygon points="600,588 592,572 608,572" fill="#fbbf24" stroke="#fbbf24" strokeWidth="1" />
+
+          {/* Network dynamic particle paths */}
+          <circle r="3.5" fill="#00d4ff" opacity="0.8">
+            <animateMotion dur="8s" repeatCount="indefinite" path="M800,90 L800,180 L400,180 L400,450 L600,450 L600,572" />
+          </circle>
+          <circle r="2.5" fill="#22c55e" opacity="0.8">
+            <animateMotion dur="8s" begin="2.5s" repeatCount="indefinite" path="M800,90 L800,180 L400,180 L400,450 L600,450 L600,572" />
+          </circle>
+          <circle r="2.5" fill="#fbbf24" opacity="0.8">
+            <animateMotion dur="8s" begin="5s" repeatCount="indefinite" path="M800,90 L800,180 L400,180 L400,450 L600,450 L600,572" />
+          </circle>
+
+          {/* Circuit breaker branch */}
+          <path d="M1000,450 L1000,580" stroke="#1e293b" strokeWidth="2" opacity="0.4" />
+          <path d="M1000,450 L1000,580" stroke="#a78bfa" strokeWidth="1.5" strokeDasharray="8 8" strokeDashoffset="0" style={{ animation: 'gridFlow 14s linear infinite' }} />
+          <rect x="993" y="495" width="14" height="20" fill="#070b14" stroke="#a78bfa" strokeWidth="1.5" />
+          <line x1="993" y1="505" x2="1007" y2="505" stroke="#a78bfa" strokeWidth="1.5" />
+
+          <style>{`
+            @keyframes gridFlow {
+              to { stroke-dashoffset: -120; }
+            }
+            @keyframes gridFlowRev {
+              to { stroke-dashoffset: 120; }
+            }
+          `}</style>
         </svg>
 
-        {/* Ambient glow blobs */}
-        <motion.div
-          className="absolute top-1/4 right-1/4 w-[500px] h-[500px] rounded-full"
-          style={{ background: 'radial-gradient(circle, rgba(59,130,246,0.06), transparent 70%)' }}
-          animate={{ scale: [1, 1.15, 1], opacity: [0.5, 0.7, 0.5] }}
-          transition={{ duration: 10, repeat: Infinity, ease: 'easeInOut' }}
-        />
-        <motion.div
-          className="absolute bottom-1/4 left-1/4 w-[400px] h-[400px] rounded-full"
-          style={{ background: 'radial-gradient(circle, rgba(245,158,11,0.04), transparent 70%)' }}
-          animate={{ scale: [1.1, 1, 1.1], opacity: [0.4, 0.6, 0.4] }}
-          transition={{ duration: 12, repeat: Infinity, ease: 'easeInOut', delay: 2 }}
-        />
+        {/* Ambient background aura (very subtle) */}
+        <div className="absolute top-10 right-20 w-[600px] h-[600px] rounded-full bg-blue-500/[0.02] blur-[140px]" />
+        <div className="absolute bottom-10 left-20 w-[500px] h-[500px] rounded-full bg-blue-600/[0.015] blur-[120px]" />
       </div>
 
-      {/* ============ RIGHT PANEL — Brand (RTL: right = first) ============ */}
-      <div className="hidden lg:flex lg:w-[42%] flex-col justify-between p-12 relative z-10 border-l border-[#1e2a4a]/50">
-        {/* Top: Logo */}
+      {/* ============ FIRST PANEL — Info/Branding ============ */}
+      <div className={`hidden lg:flex lg:w-[45%] flex-col justify-between p-12 relative z-10 border-slate-800/40 ${isRtl ? 'border-r' : 'border-l'}`}>
+        {/* Top brand logo */}
         <motion.div
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          className="flex items-center gap-3"
+          transition={{ duration: 0.4 }}
+          className="flex items-center gap-3.5"
         >
-          <BrandLogo size={48} />
+          <BrandLogo size={44} />
           <div>
             <h1 className="text-xl font-bold tracking-tight text-white">AhmedETAP</h1>
-            <p className="text-[11px] text-slate-500 tracking-wide">منصة هندسة أنظمة الطاقة</p>
+            <p className="text-[10px] text-slate-500 tracking-wider uppercase">{t('app.description')}</p>
           </div>
         </motion.div>
 
-        {/* Middle: Headline */}
+        {/* Engineering titles */}
         <motion.div
           initial={{ opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.15 }}
-          className="space-y-5"
+          transition={{ duration: 0.5, delay: 0.1 }}
+          className="space-y-6"
         >
-          <h2 className="text-3xl xl:text-4xl font-bold leading-tight text-white">
-            تحليل أنظمة الطاقة<br />
-            <span className="text-blue-400">بُنية للمهندسين</span>
+          <h2 className="text-3xl xl:text-4xl font-extrabold leading-tight text-white tracking-tight">
+            {isRtl ? (
+              <>
+                تحليل أنظمة الطاقة<br />
+                <span className="text-blue-500">بمعايير هندسية متكاملة</span>
+              </>
+            ) : (
+              <>
+                Power Systems Analysis<br />
+                <span className="text-blue-500">Built for Professionals</span>
+              </>
+            )}
           </h2>
           <p className="text-sm text-slate-400 leading-relaxed max-w-md">
-            تدفق الحمل، الدائرة القصيرة، القوس الكهربائي، تنسيق الحماية،
-            التوافقيات، والمزيد — متوافق مع معايير IEEE و IEC.
+            {isRtl ? (
+              'منصة تشغيل حسابات تدفق الحمل (Load Flow)، تيار القصر (Short Circuit)، الوميض القوسي (Arc Flash)، وتنسيق أجهزة الحماية، متوافقة كلياً مع معايير IEEE و IEC.'
+            ) : (
+              'Analyze, simulate, and design electrical networks with high-precision engines for load flow, short circuit, protection coordination, and arc flash analysis.'
+            )}
           </p>
 
-          {/* Standards badges */}
-          <div className="flex flex-wrap gap-2 pt-1">
+          {/* Standards list */}
+          <div className="flex flex-wrap gap-2.5 pt-1.5">
             {['IEEE 3002.7', 'IEC 60909', 'IEEE 1584', 'IEC 60255', 'IEEE 519'].map((s, i) => (
               <motion.span
                 key={s}
-                initial={{ opacity: 0, scale: 0.9 }}
+                initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.3, delay: 0.3 + i * 0.08 }}
-                className="px-2.5 py-1 text-[10px] font-mono text-slate-400 bg-slate-900/40 border border-slate-700/40 rounded"
+                transition={{ duration: 0.3, delay: 0.2 + i * 0.05 }}
+                className="px-2.5 py-1 text-[10px] font-mono text-slate-400 bg-slate-900/60 border border-slate-800/80 rounded-md"
               >
                 {s}
               </motion.span>
@@ -241,95 +251,94 @@ export default function Login() {
           </div>
         </motion.div>
 
-        {/* Bottom: Security note */}
+        {/* Security badge at bottom */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ duration: 0.5, delay: 0.5 }}
-          className="flex items-center gap-2 text-[11px] text-slate-600"
+          transition={{ duration: 0.4, delay: 0.3 }}
+          className="flex items-center gap-2.5 text-[10px] text-slate-600 font-mono"
         >
-          <ShieldCheck className="w-3.5 h-3.5" />
-          <span>JWT + bcrypt • تشفير شامل • سجل تدقيق جاهز لـ SOC2</span>
+          <ShieldCheck className="w-4 h-4 text-blue-500" />
+          <span>{t('auth.securityBadge')}</span>
         </motion.div>
       </div>
 
-      {/* ============ LEFT PANEL — Login Form (RTL: left = form) ============ */}
-      <div className="flex-1 flex items-center justify-center p-6 sm:p-8 relative z-10">
+      {/* ============ SECOND PANEL — Form ============ */}
+      <div className="flex-1 flex items-center justify-center p-6 sm:p-12 relative z-10">
         <motion.div
-          initial={{ opacity: 0, y: 12 }}
+          initial={{ opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4, delay: 0.1 }}
-          className="w-full max-w-sm"
+          transition={{ duration: 0.4 }}
+          className="w-full max-w-[380px] bg-slate-900/30 backdrop-blur-md border border-slate-800/40 p-8 rounded-2xl shadow-2xl"
         >
-          {/* Mobile logo */}
+          {/* Mobile brand header */}
           <div className="lg:hidden flex items-center gap-2.5 mb-8">
             <BrandLogo size={36} />
             <span className="text-lg font-bold text-white">AhmedETAP</span>
           </div>
 
-          {/* Header */}
           <div className="mb-8">
-            <h2 className="text-2xl font-bold text-white mb-1">تسجيل الدخول</h2>
-            <p className="text-sm text-slate-500">أدخل بياناتك للمتابعة</p>
+            <h3 className="text-2xl font-bold text-white tracking-tight">{t('auth.loginTitle')}</h3>
+            <p className="text-xs text-slate-500 mt-1.5 leading-relaxed">{t('auth.loginSubtitle')}</p>
           </div>
 
-          {/* Error banner */}
+          {/* Form alert error */}
           {authError && (
             <motion.div
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: 'auto' }}
-              className="mb-4 p-3 rounded-md bg-red-950/40 border border-red-800/50 flex items-start gap-2.5"
+              className="mb-5 p-3 rounded-lg bg-red-950/20 border border-red-900/40 flex items-start gap-2.5"
             >
-              <AlertCircle className="w-4 h-4 mt-0.5 flex-shrink-0 text-red-400" />
-              <p className="text-xs text-red-300">{authError}</p>
+              <AlertCircle className="w-4 h-4 text-red-400 mt-0.5 flex-shrink-0" />
+              <p className="text-xs text-red-300 leading-normal">{authError}</p>
             </motion.div>
           )}
 
-          {/* Forgot password form */}
+          {/* Forgot Password toggle menu */}
           {forgotOpen && (
             <motion.div
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: 'auto' }}
-              className="mb-4 p-4 rounded-md bg-slate-900/60 border border-slate-700/50"
+              className="mb-5 p-4 rounded-lg bg-slate-950 border border-slate-800"
             >
               {forgotSent ? (
-                <div className="text-center py-2">
-                  <p className="text-sm text-green-400 mb-3">
-                    إذا كان البريد موجوداً، تم إرسال رمز إعادة التعيين.
+                <div className="text-center py-1">
+                  <p className="text-xs text-green-400 leading-relaxed mb-4">
+                    {isRtl ? 'تم إرسال رابط استعادة كلمة المرور إذا كان الحساب مسجلاً لدينا.' : 'Password reset link sent if the email is registered.'}
                   </p>
                   <button
                     onClick={() => { setForgotOpen(false); setForgotSent(false); setForgotEmail('') }}
-                    className="text-xs text-slate-400 hover:text-white transition-colors"
+                    className="text-xs font-semibold text-slate-400 hover:text-white transition-colors"
                   >
-                    العودة لتسجيل الدخول
+                    {t('auth.backToLogin')}
                   </button>
                 </div>
               ) : (
-                <form onSubmit={handleForgotPassword}>
-                  <p className="text-sm text-white mb-3">إعادة تعيين كلمة المرور</p>
+                <form onSubmit={handleForgotPassword} className="space-y-3">
+                  <p className="text-xs font-semibold text-white">{t('auth.resetPasswordTitle')}</p>
                   <input
                     type="email"
                     value={forgotEmail}
                     onChange={e => setForgotEmail(e.target.value)}
-                    placeholder="your@email.com"
+                    placeholder={t('auth.resetEmailPlaceholder')}
                     required
-                    className="w-full px-3 py-2 mb-3 bg-slate-950 border border-slate-700 rounded text-sm text-white placeholder-slate-600 focus:outline-none focus:border-blue-500 transition-colors"
                     dir="ltr"
+                    className="w-full px-3 py-2 bg-slate-900/60 border border-slate-800 rounded-lg text-xs text-white focus:outline-none focus:border-blue-500 placeholder-slate-600 transition-colors"
                   />
-                  <div className="flex gap-2">
+                  <div className="flex gap-2 pt-1">
                     <button
                       type="submit"
                       disabled={forgotLoading}
-                      className="flex-1 py-2 bg-blue-600 hover:bg-blue-500 text-white text-xs font-medium rounded transition-colors disabled:opacity-50"
+                      className="flex-1 py-1.5 bg-blue-600 hover:bg-blue-500 text-white text-[11px] font-semibold rounded-md transition-colors disabled:opacity-50"
                     >
-                      {forgotLoading ? 'جارٍ الإرسال...' : 'إرسال رمز التعيين'}
+                      {forgotLoading ? t('auth.sending') : t('auth.sendResetLink')}
                     </button>
                     <button
                       type="button"
                       onClick={() => setForgotOpen(false)}
-                      className="px-4 py-2 text-slate-400 hover:text-white text-xs transition-colors"
+                      className="px-3 py-1.5 text-slate-400 hover:text-white text-[11px] font-semibold transition-colors"
                     >
-                      إلغاء
+                      {t('auth.cancel')}
                     </button>
                   </div>
                 </form>
@@ -337,99 +346,102 @@ export default function Login() {
             </motion.div>
           )}
 
-          {/* Login form */}
+          {/* SignIn main form */}
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label htmlFor="login-email" className="block text-xs font-medium text-slate-400 mb-1.5">
-                البريد الإلكتروني
+              <label htmlFor="login-email" className="block text-xs font-semibold text-slate-400 mb-1.5">
+                {t('auth.emailLabel')}
               </label>
               <div className="relative">
-                <Mail className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-600 pointer-events-none" />
+                <Mail className={`absolute ${isRtl ? 'right-3' : 'left-3'} top-1/2 -translate-y-1/2 w-4 h-4 text-slate-600 pointer-events-none`} />
                 <input
                   id="login-email"
                   type="text"
                   inputMode="email"
                   value={email}
                   onChange={e => setEmail(e.target.value)}
-                  placeholder="you@company.com or username"
+                  placeholder={t('auth.emailPlaceholder')}
                   required
                   dir="ltr"
-                  className="w-full pr-9 pl-3 py-2.5 bg-slate-950/80 border border-slate-700/50 rounded text-sm text-white placeholder-slate-600 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20 transition-all"
+                  className={`w-full ${isRtl ? 'pr-9 pl-3' : 'pl-9 pr-3'} py-2.5 bg-slate-950/40 border border-slate-800/80 rounded-xl text-xs text-white placeholder-slate-700 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/10 transition-all`}
                 />
               </div>
             </div>
 
             <div>
-              <label htmlFor="login-password" className="block text-xs font-medium text-slate-400 mb-1.5">
-                كلمة المرور
+              <label htmlFor="login-password" className="block text-xs font-semibold text-slate-400 mb-1.5">
+                {t('auth.passwordLabel')}
               </label>
               <div className="relative">
-                <Lock className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-600 pointer-events-none" />
+                <Lock className={`absolute ${isRtl ? 'right-3' : 'left-3'} top-1/2 -translate-y-1/2 w-4 h-4 text-slate-600 pointer-events-none`} />
                 <input
                   id="login-password"
                   type={showPassword ? 'text' : 'password'}
                   value={password}
                   onChange={e => setPassword(e.target.value)}
-                  placeholder="••••••••"
+                  placeholder={t('auth.passwordPlaceholder')}
                   required
                   dir="ltr"
-                  className="w-full pr-9 pl-10 py-2.5 bg-slate-950/80 border border-slate-700/50 rounded text-sm text-white placeholder-slate-600 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20 transition-all"
+                  className={`w-full ${isRtl ? 'pr-9 pl-10' : 'pl-9 pr-10'} py-2.5 bg-slate-950/40 border border-slate-800/80 rounded-xl text-xs text-white placeholder-slate-700 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/10 transition-all`}
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(p => !p)}
-                  className="absolute left-2.5 top-1/2 -translate-y-1/2 p-1 rounded text-slate-600 hover:text-slate-300 transition-colors"
-                  aria-label={showPassword ? 'إخفاء كلمة المرور' : 'إظهار كلمة المرور'}
+                  className={`absolute ${isRtl ? 'left-2.5' : 'right-2.5'} top-1/2 -translate-y-1/2 p-1 rounded text-slate-600 hover:text-slate-300 transition-colors`}
+                  aria-label={showPassword ? 'Hide password' : 'Show password'}
                 >
                   {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
               </div>
             </div>
 
-            <div className="flex items-center justify-between text-xs">
-              <label className="flex items-center gap-1.5 text-slate-500 cursor-pointer">
-                <input type="checkbox" className="rounded border-slate-700 bg-slate-950 text-blue-600 focus:ring-blue-500/20" />
-                تذكرني
+            <div className="flex items-center justify-between text-xs pt-1.5">
+              <label className="flex items-center gap-2 text-slate-500 cursor-pointer user-select-none">
+                <input
+                  type="checkbox"
+                  className="rounded border-slate-800 bg-slate-950 text-blue-600 focus:ring-blue-500/10"
+                />
+                <span>{t('auth.rememberMe')}</span>
               </label>
               <button
                 type="button"
                 onClick={() => { setForgotOpen(true); setAuthError(null) }}
-                className="text-blue-400 hover:text-blue-300 font-medium transition-colors"
+                className="text-blue-400 hover:text-blue-300 font-semibold transition-colors"
               >
-                نسيت كلمة المرور؟
+                {t('auth.forgotPassword')}
               </button>
             </div>
 
             <motion.button
-              whileHover={{ scale: 1.01 }}
-              whileTap={{ scale: 0.99 }}
+              whileHover={{ scale: 1.005 }}
+              whileTap={{ scale: 0.995 }}
               type="submit"
               disabled={loading}
-              className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded text-sm font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full flex items-center justify-center gap-2 mt-4 px-4 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-bold transition-all disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loading ? (
                 <>
                   <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                  جارٍ تسجيل الدخول...
+                  <span>{t('auth.loggingIn')}</span>
                 </>
               ) : (
                 <>
-                  دخول
-                  <ArrowRight className="w-4 h-4 rotate-180" />
+                  <span>{t('auth.loginButton')}</span>
+                  <ArrowRight className={`w-4 h-4 ${isRtl ? 'rotate-180' : ''}`} />
                 </>
               )}
             </motion.button>
           </form>
 
-          {/* Footer */}
-          <div className="mt-8 pt-6 border-t border-slate-800/50 flex items-center justify-between">
-            <p className="text-xs text-slate-600">
-              ليس لديك حساب؟{' '}
-              <Link to="/register" className="text-blue-400 hover:text-blue-300 font-medium transition-colors">
-                أنشئ واحداً
+          {/* Footer register link */}
+          <div className="mt-8 pt-5 border-t border-slate-800/40 flex items-center justify-between text-xs">
+            <span className="text-slate-500">
+              {t('auth.noAccount')}{' '}
+              <Link to="/register" className="text-blue-400 hover:text-blue-300 font-semibold transition-colors">
+                {t('auth.registerLink')}
               </Link>
-            </p>
-            <p className="text-[10px] text-slate-700 font-mono">v2.1.0</p>
+            </span>
+            <span className="text-[10px] text-slate-700 font-mono">v2.1.0</span>
           </div>
         </motion.div>
       </div>

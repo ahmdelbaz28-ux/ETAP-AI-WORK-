@@ -1,167 +1,73 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512" role="img" aria-label="ETAP AI Platform Logo">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512" role="img" aria-label="AhmedETAP Logo">
   <defs>
-    <!-- Background gradient: deep navy -->
-    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#0d1421"/>
-      <stop offset="100%" stop-color="#0a0e1a"/>
+    <!-- Premium Gradients -->
+    <linearGradient id="pubLeftGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1e3a8a" />
+      <stop offset="100%" stop-color="#3b82f6" />
     </linearGradient>
-    <!-- Cyan energy gradient -->
-    <linearGradient id="cyanGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#00d4ff"/>
-      <stop offset="100%" stop-color="#06b6d4"/>
+    <linearGradient id="pubRightGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0f766e" />
+      <stop offset="100%" stop-color="#0d9488" />
     </linearGradient>
-    <!-- Gold gradient -->
-    <linearGradient id="goldGrad" x1="0%" y1="0%" x2="0%" y2="100%">
-      <stop offset="0%" stop-color="#fbbf24"/>
-      <stop offset="100%" stop-color="#d97706"/>
+    <linearGradient id="pubTopGrad" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#1d4ed8" />
+      <stop offset="100%" stop-color="#00d4ff" />
     </linearGradient>
-    <!-- Hex border gradient -->
-    <linearGradient id="hexGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#00d4ff" stop-opacity="0.9"/>
-      <stop offset="50%" stop-color="#3b82f6" stop-opacity="0.7"/>
-      <stop offset="100%" stop-color="#00d4ff" stop-opacity="0.5"/>
+    <linearGradient id="pubGlowGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#00d4ff" stop-opacity="0.18" />
+      <stop offset="100%" stop-color="#3b82f6" stop-opacity="0" />
     </linearGradient>
-    <!-- Glow filter (strong) -->
-    <filter id="glow" x="-40%" y="-40%" width="180%" height="180%">
-      <feGaussianBlur stdDeviation="5" result="blur"/>
-      <feMerge>
-        <feMergeNode in="blur"/>
-        <feMergeNode in="SourceGraphic"/>
-      </feMerge>
-    </filter>
-    <!-- Glow filter (medium) -->
-    <filter id="glowMed" x="-30%" y="-30%" width="160%" height="160%">
-      <feGaussianBlur stdDeviation="3" result="blur"/>
-      <feMerge>
-        <feMergeNode in="blur"/>
-        <feMergeNode in="SourceGraphic"/>
-      </feMerge>
-    </filter>
-    <!-- Outer hex shadow -->
-    <filter id="hexShadow" x="-10%" y="-10%" width="120%" height="120%">
-      <feDropShadow dx="0" dy="0" stdDeviation="12" flood-color="#00d4ff" flood-opacity="0.35"/>
-    </filter>
-    <!-- Inner clip -->
-    <clipPath id="hexClip">
-      <polygon points="256,52 430,154 430,358 256,460 82,358 82,154"/>
-    </clipPath>
   </defs>
 
-  <!-- ── OUTER HEXAGON FRAME ── -->
-  <!-- Glow halo -->
-  <polygon points="256,52 430,154 430,358 256,460 82,358 82,154"
-           fill="none" stroke="#00d4ff" stroke-width="6"
-           opacity="0.25" filter="url(#hexShadow)"/>
-  <!-- Main background fill -->
-  <polygon points="256,52 430,154 430,358 256,460 82,358 82,154"
-           fill="url(#bgGrad)"/>
-  <!-- Crisp border -->
-  <polygon points="256,52 430,154 430,358 256,460 82,358 82,154"
-           fill="none" stroke="url(#hexGrad)" stroke-width="3.5"/>
-  <!-- Inner ring (subtle) -->
-  <polygon points="256,72 410,164 410,348 256,440 102,348 102,164"
-           fill="none" stroke="#00d4ff" stroke-width="0.8" opacity="0.15"/>
+  <!-- Ambient Glow Background -->
+  <circle cx="256" cy="256" r="220" fill="url(#pubGlowGrad)" />
 
-  <!-- ── BACKGROUND CIRCUIT TEXTURE ── -->
-  <g clip-path="url(#hexClip)" opacity="0.04" stroke="#00d4ff" stroke-width="0.8" fill="none">
-    <line x1="82" y1="180" x2="430" y2="180"/>
-    <line x1="82" y1="256" x2="430" y2="256"/>
-    <line x1="82" y1="332" x2="430" y2="332"/>
-    <line x1="168" y1="52" x2="168" y2="460"/>
-    <line x1="256" y1="52" x2="256" y2="460"/>
-    <line x1="344" y1="52" x2="344" y2="460"/>
-  </g>
+  <!-- Isometric 3D Hexagonal Node Base -->
+  <!-- Left Side: Indigo to Blue (representing generation / inputs) -->
+  <path
+    d="M256,70 L256,256 L90,352 L90,166 Z"
+    fill="url(#pubLeftGrad)"
+    stroke="#070b14"
+    stroke-width="6"
+    stroke-linejoin="round"
+  />
 
-  <!-- ══════════════════════════════════════
-       THE "E" — Built as an electrical
-       single-line diagram (SLD)
-  ══════════════════════════════════════ -->
+  <!-- Right Side: Dark Teal to Emerald (representing output / distribution) -->
+  <path
+    d="M256,256 L422,352 L422,166 L256,70 Z"
+    fill="url(#pubRightGrad)"
+    stroke="#070b14"
+    stroke-width="6"
+    stroke-linejoin="round"
+  />
 
-  <!-- VERTICAL SPINE (left leg of E) -->
-  <line x1="178" y1="162" x2="178" y2="350"
-        stroke="url(#cyanGrad)" stroke-width="14" stroke-linecap="round"
-        filter="url(#glow)"/>
+  <!-- Top/Base Plane: Blue to Cyan (representing system matrix & grounding) -->
+  <path
+    d="M90,352 L256,256 L422,352 L256,448 Z"
+    fill="url(#pubTopGrad)"
+    stroke="#070b14"
+    stroke-width="6"
+    stroke-linejoin="round"
+  />
 
-  <!-- TOP HORIZONTAL BUS -->
-  <line x1="178" y1="162" x2="330" y2="162"
-        stroke="url(#cyanGrad)" stroke-width="14" stroke-linecap="round"
-        filter="url(#glow)"/>
+  {/* High-Precision Schematic Overlay (futuristic HUD wireframe) */}
+  <line x1="90" y1="352" x2="256" y2="256" stroke="#ffffff" stroke-width="3" opacity="0.35" />
+  <line x1="422" y1="352" x2="256" y2="256" stroke="#ffffff" stroke-width="3" opacity="0.35" />
+  <line x1="256" y1="70" x2="256" y2="256" stroke="#ffffff" stroke-width="3" opacity="0.35" />
 
-  <!-- MIDDLE HORIZONTAL BUS (shorter — classic E proportion) -->
-  <line x1="178" y1="256" x2="308" y2="256"
-        stroke="url(#cyanGrad)" stroke-width="14" stroke-linecap="round"
-        filter="url(#glow)"/>
+  {/* Left plane node track */}
+  <path d="M150,210 L256,256" stroke="#ffffff" stroke-width="4" stroke-linecap="round" opacity="0.9" />
+  <circle cx="150" cy="210" r="12" fill="#00d4ff" stroke="#ffffff" stroke-width="3" />
 
-  <!-- BOTTOM HORIZONTAL BUS -->
-  <line x1="178" y1="350" x2="330" y2="350"
-        stroke="url(#cyanGrad)" stroke-width="14" stroke-linecap="round"
-        filter="url(#glow)"/>
+  {/* Right plane node track */}
+  <path d="M362,210 L256,256" stroke="#ffffff" stroke-width="4" stroke-linecap="round" opacity="0.9" />
+  <circle cx="362" cy="210" r="12" fill="#0d9488" stroke="#ffffff" stroke-width="3" />
 
-  <!-- ── BUS NODE DOTS (electrical junction points) ── -->
-  <!-- Top bus: left node, mid node, right node -->
-  <circle cx="178" cy="162" r="10" fill="#00d4ff" filter="url(#glowMed)"/>
-  <circle cx="178" cy="162" r="4"  fill="#ffffff" opacity="0.95"/>
+  {/* Ground node track */}
+  <path d="M256,370 L256,256" stroke="#ffffff" stroke-width="4" stroke-linecap="round" opacity="0.9" />
+  <circle cx="256" cy="370" r="12" fill="#00d4ff" stroke="#ffffff" stroke-width="3" />
 
-  <circle cx="254" cy="162" r="7"  fill="#00d4ff" filter="url(#glowMed)"/>
-  <circle cx="254" cy="162" r="3"  fill="#ffffff" opacity="0.9"/>
-
-  <circle cx="330" cy="162" r="10" fill="#00d4ff" filter="url(#glowMed)"/>
-  <circle cx="330" cy="162" r="4"  fill="#ffffff" opacity="0.95"/>
-
-  <!-- Middle bus nodes -->
-  <circle cx="178" cy="256" r="8"  fill="#06b6d4" filter="url(#glowMed)"/>
-  <circle cx="178" cy="256" r="3"  fill="#ffffff" opacity="0.9"/>
-
-  <circle cx="243" cy="256" r="6"  fill="#06b6d4" filter="url(#glowMed)"/>
-  <circle cx="308" cy="256" r="10" fill="#06b6d4" filter="url(#glowMed)"/>
-  <circle cx="308" cy="256" r="4"  fill="#ffffff" opacity="0.95"/>
-
-  <!-- Bottom bus nodes -->
-  <circle cx="178" cy="350" r="10" fill="#00d4ff" filter="url(#glowMed)"/>
-  <circle cx="178" cy="350" r="4"  fill="#ffffff" opacity="0.95"/>
-
-  <circle cx="254" cy="350" r="7"  fill="#00d4ff" filter="url(#glowMed)"/>
-  <circle cx="254" cy="350" r="3"  fill="#ffffff" opacity="0.9"/>
-
-  <circle cx="330" cy="350" r="10" fill="#00d4ff" filter="url(#glowMed)"/>
-  <circle cx="330" cy="350" r="4"  fill="#ffffff" opacity="0.95"/>
-
-  <!-- ── LIGHTNING BOLT (power/energy symbol — top right) ── -->
-  <g filter="url(#glow)" transform="translate(340, 128)">
-    <polygon points="18,0 6,22 16,22 4,46 26,16 14,16 24,0"
-             fill="url(#goldGrad)" opacity="0.95"/>
-  </g>
-
-  <!-- ── "AI" LABEL (bottom center of hex, small technical indicator) ── -->
-  <g filter="url(#glowMed)">
-    <rect x="214" y="390" width="84" height="26" rx="4"
-          fill="none" stroke="#00d4ff" stroke-width="1.2" opacity="0.7"/>
-    <text x="256" y="408"
-          font-family="'Courier New', Courier, monospace"
-          font-size="15" font-weight="700"
-          fill="#00d4ff" text-anchor="middle" letter-spacing="3"
-          opacity="0.9">AI</text>
-  </g>
-
-  <!-- ── CORNER MICRO-ACCENTS (engineering precision marks) ── -->
-  <!-- Top-left -->
-  <g opacity="0.3" stroke="#00d4ff" stroke-width="1" fill="none">
-    <line x1="102" y1="200" x2="118" y2="200"/>
-    <line x1="102" y1="200" x2="102" y2="216"/>
-  </g>
-  <!-- Top-right -->
-  <g opacity="0.3" stroke="#00d4ff" stroke-width="1" fill="none">
-    <line x1="410" y1="200" x2="394" y2="200"/>
-    <line x1="410" y1="200" x2="410" y2="216"/>
-  </g>
-  <!-- Bottom-left -->
-  <g opacity="0.3" stroke="#00d4ff" stroke-width="1" fill="none">
-    <line x1="102" y1="312" x2="118" y2="312"/>
-    <line x1="102" y1="312" x2="102" y2="296"/>
-  </g>
-  <!-- Bottom-right -->
-  <g opacity="0.3" stroke="#00d4ff" stroke-width="1" fill="none">
-    <line x1="410" y1="312" x2="394" y2="312"/>
-    <line x1="410" y1="312" x2="410" y2="296"/>
-  </g>
+  {/* Central hub connection */}
+  <circle cx="256" cy="256" r="16" fill="#ffffff" stroke="#00d4ff" stroke-width="6" />
+  <circle cx="256" cy="256" r="6" fill="#070b14" />
 </svg>

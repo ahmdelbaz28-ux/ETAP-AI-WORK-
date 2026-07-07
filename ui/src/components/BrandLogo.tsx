@@ -1,30 +1,14 @@
 /**
- * BrandLogo — AhmedETAP professional logo v2.
+ * BrandLogo — AhmedETAP premium, minimal, enterprise-grade logo.
  *
- * Design: "Power Grid Node" — a simplified one-line diagram (single-line
- * diagram notation used in power systems engineering) forming the
- * visual identity. It depicts a 3-bus system with a generator, a
- * transformer, and a load — the most fundamental power system topology.
- *
- * Visual elements:
- * - Top node (generator): amber circle with "G" — represents generation
- * - Middle bus: horizontal bar with 3 junctions — the main busbar
- * - Bottom nodes: blue circles — represent loads/feeders
- * - Connecting lines: thin, precise — like schematic drawings
- *
- * Colors are drawn from the application's CSS variable system:
- * - Background: #0f172a (--bg-primary, deep navy)
- * - Bus/lines: #3b82f6 (brand blue)
- * - Junctions: #60a5fa (light blue)
- * - Generator: #f59e0b (amber — represents active energy)
- *
- * No glow filters, no animations, no gradients on shapes — just clean
- * geometric lines like ETAP's actual schematic notation.
+ * Design Concept: "Isometric Power Node Cube"
+ * It depicts a 3D isometric network hub. The three visible planes represent the
+ * three phases of AC power (A, B, C) and a centralized system matrix.
+ * Clean, high-contrast, schematic vector overlay representing generation, distribution, and grounding.
  */
 interface BrandLogoProps {
   size?: number
   withWordmark?: boolean
-  animated?: boolean
   className?: string
 }
 
@@ -38,65 +22,83 @@ export function BrandLogo({
       <svg
         width={size}
         height={size}
-        viewBox="0 0 120 120"
+        viewBox="0 0 512 512"
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
         role="img"
         aria-label="AhmedETAP"
       >
-        {/* Background — deep navy rounded square */}
-        <rect width="120" height="120" rx="26" fill="#0f172a" />
-        {/* Subtle top-edge highlight (like ETAP's dark UI panels) */}
-        <rect x="1" y="1" width="118" height="118" rx="25" stroke="#1e3a5f" strokeWidth="1" />
+        <defs>
+          {/* Premium Gradients */}
+          <linearGradient id="brandLeftGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#1e3a8a" />
+            <stop offset="100%" stopColor="#3b82f6" />
+          </linearGradient>
+          <linearGradient id="brandRightGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#0f766e" />
+            <stop offset="100%" stopColor="#0d9488" />
+          </linearGradient>
+          <linearGradient id="brandTopGrad" x1="0%" y1="100%" x2="100%" y2="0%">
+            <stop offset="0%" stopColor="#1d4ed8" />
+            <stop offset="100%" stopColor="#00d4ff" />
+          </linearGradient>
+          <linearGradient id="brandGlowGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#00d4ff" stopOpacity="0.15" />
+            <stop offset="100%" stopColor="#3b82f6" stopOpacity="0" />
+          </linearGradient>
+        </defs>
 
-        {/* === One-line diagram (schematic) === */}
+        {/* Ambient Glow Background */}
+        <circle cx="256" cy="256" r="220" fill="url(#brandGlowGrad)" />
 
-        {/* Top: Generator node (amber) */}
-        <circle cx="60" cy="22" r="9" fill="#f59e0b" />
-        <text
-          x="60" y="26"
-          textAnchor="middle"
-          fontFamily="system-ui, -apple-system, sans-serif"
-          fontSize="9"
-          fontWeight="700"
-          fill="#0f172a"
-        >
-          G
-        </text>
+        {/* Isometric 3D Hexagonal Node Base */}
+        {/* Left Side: Indigo to Blue (representing generation / inputs) */}
+        <path
+          d="M256,70 L256,256 L90,352 L90,166 Z"
+          fill="url(#brandLeftGrad)"
+          stroke="#070b14"
+          strokeWidth="6"
+          strokeLinejoin="round"
+        />
 
-        {/* Line from generator to bus */}
-        <line x1="60" y1="31" x2="60" y2="50" stroke="#3b82f6" strokeWidth="2.5" />
+        {/* Right Side: Dark Teal to Emerald (representing output / distribution) */}
+        <path
+          d="M256,256 L422,352 L422,166 L256,70 Z"
+          fill="url(#brandRightGrad)"
+          stroke="#070b14"
+          strokeWidth="6"
+          strokeLinejoin="round"
+        />
 
-        {/* Transformer symbol (two overlapping circles) between gen and bus */}
-        <circle cx="60" cy="40" r="6" fill="none" stroke="#3b82f6" strokeWidth="2" />
-        <circle cx="60" cy="46" r="6" fill="none" stroke="#3b82f6" strokeWidth="2" />
+        {/* Top/Base Plane: Blue to Cyan (representing system matrix & grounding) */}
+        <path
+          d="M90,352 L256,256 L422,352 L256,448 Z"
+          fill="url(#brandTopGrad)"
+          stroke="#070b14"
+          strokeWidth="6"
+          strokeLinejoin="round"
+        />
 
-        {/* Main busbar — horizontal line with 3 junction nodes */}
-        <line x1="28" y1="62" x2="92" y2="62" stroke="#3b82f6" strokeWidth="3" strokeLinecap="round" />
+        {/* High-Precision Schematic Overlay (futuristic HUD wireframe) */}
+        <line x1="90" y1="352" x2="256" y2="256" stroke="#ffffff" strokeWidth="3" opacity="0.3" />
+        <line x1="422" y1="352" x2="256" y2="256" stroke="#ffffff" strokeWidth="3" opacity="0.3" />
+        <line x1="256" y1="70" x2="256" y2="256" stroke="#ffffff" strokeWidth="3" opacity="0.3" />
 
-        {/* Bus junction nodes */}
-        <circle cx="28" cy="62" r="4" fill="#60a5fa" />
-        <circle cx="60" cy="62" r="5" fill="#60a5fa" />
-        <circle cx="92" cy="62" r="4" fill="#60a5fa" />
+        {/* Left plane node track */}
+        <path d="M150,210 L256,256" stroke="#ffffff" strokeWidth="4" strokeLinecap="round" opacity="0.85" />
+        <circle cx="150" cy="210" r="12" fill="#00d4ff" stroke="#ffffff" strokeWidth="3" />
 
-        {/* Feeder lines going down from each bus junction */}
-        <line x1="28" y1="66" x2="28" y2="86" stroke="#3b82f6" strokeWidth="2" />
-        <line x1="60" y1="67" x2="60" y2="86" stroke="#3b82f6" strokeWidth="2" />
-        <line x1="92" y1="66" x2="92" y2="86" stroke="#3b82f6" strokeWidth="2" />
+        {/* Right plane node track */}
+        <path d="M362,210 L256,256" stroke="#ffffff" strokeWidth="4" strokeLinecap="round" opacity="0.85" />
+        <circle cx="362" cy="210" r="12" fill="#0d9488" stroke="#ffffff" strokeWidth="3" />
 
-        {/* Load nodes (bottom) */}
-        {/* Left: Motor load */}
-        <circle cx="28" cy="92" r="6" fill="none" stroke="#60a5fa" strokeWidth="2" />
-        <text x="28" y="95" textAnchor="middle" fontFamily="system-ui" fontSize="7" fontWeight="600" fill="#60a5fa">M</text>
+        {/* Ground node track */}
+        <path d="M256,370 L256,256" stroke="#ffffff" strokeWidth="4" strokeLinecap="round" opacity="0.85" />
+        <circle cx="256" cy="370" r="12" fill="#00d4ff" stroke="#ffffff" strokeWidth="3" />
 
-        {/* Center: Load arrow */}
-        <path d="M 55 86 L 60 96 L 65 86 Z" fill="#60a5fa" />
-
-        {/* Right: Capacitor load */}
-        <line x1="88" y1="86" x2="96" y2="86" stroke="#60a5fa" strokeWidth="2" />
-        <line x1="88" y1="90" x2="96" y2="90" stroke="#60a5fa" strokeWidth="2" />
-        <line x1="92" y1="84" x2="92" y2="86" stroke="#60a5fa" strokeWidth="2" />
-        <line x1="92" y1="90" x2="92" y2="92" stroke="#60a5fa" strokeWidth="2" />
+        {/* Central hub connection */}
+        <circle cx="256" cy="256" r="16" fill="#ffffff" stroke="#00d4ff" strokeWidth="6" />
+        <circle cx="256" cy="256" r="6" fill="#070b14" />
       </svg>
 
       {withWordmark && (
