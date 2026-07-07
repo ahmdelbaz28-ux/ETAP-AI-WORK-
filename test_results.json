@@ -1,0 +1,154 @@
+{
+  "syntax_checks": {
+    "core/metrics.py": {
+      "status": "pass"
+    },
+    "worker/celery_app.py": {
+      "status": "pass"
+    },
+    "core/database.py": {
+      "status": "pass"
+    },
+    "api/websocket.py": {
+      "status": "pass"
+    },
+    "agents/code_guard_agent.py": {
+      "status": "pass"
+    },
+    "api/auth.py": {
+      "status": "pass"
+    },
+    "api/routes.py": {
+      "status": "pass"
+    },
+    ".github/workflows/ci-cd.yml": {
+      "status": "pass"
+    },
+    ".github/workflows/security.yml": {
+      "status": "pass"
+    },
+    "etap_integration/unified_etap_types.py": {
+      "status": "pass"
+    },
+    "etap_integration/etap_com.py": {
+      "status": "pass"
+    },
+    "etap_integration/etap_provider.py": {
+      "status": "pass"
+    },
+    "etap_integration/etap_adapter.py": {
+      "status": "pass"
+    },
+    "engine/caching.py": {
+      "status": "pass"
+    },
+    "services/cache_service.py": {
+      "status": "pass"
+    },
+    ".github/workflows/no-mock-in-prod.yml": {
+      "status": "pass"
+    },
+    "gis_integration/providers/qgis_provider.py": {
+      "status": "pass"
+    },
+    "gis_integration/providers/arcgis_provider.py": {
+      "status": "pass"
+    },
+    "gis_integration/base.py": {
+      "status": "pass"
+    },
+    "gis_integration/utils.py": {
+      "status": "pass"
+    },
+    "etap_integration/etap_compatibility.py": {
+      "status": "pass"
+    },
+    "etap_scada_bridge.py": {
+      "status": "pass"
+    },
+    "agents/scada_agent.py": {
+      "status": "pass"
+    },
+    "agents/cua_executor.py": {
+      "status": "pass"
+    },
+    "security/wiring.py": {
+      "status": "pass"
+    },
+    "scripts/scenarios/run_scenario_1.py": {
+      "status": "pass"
+    },
+    "scripts/scenarios/run_scenario_2.py": {
+      "status": "pass"
+    },
+    "scripts/scenarios/run_scenario_3.py": {
+      "status": "pass"
+    },
+    "scripts/scenarios/run_scenario_4.py": {
+      "status": "pass"
+    }
+  },
+  "import_checks": {
+    "etap_integration.unified_etap_types": {
+      "status": "pass"
+    },
+    "gis_integration.utils": {
+      "status": "pass"
+    },
+    "gis_integration.base": {
+      "status": "pass"
+    },
+    "gis_integration.models": {
+      "status": "pass"
+    },
+    "gis_integration.exceptions": {
+      "status": "pass"
+    },
+    "engine.caching": {
+      "status": "pass"
+    },
+    "services.cache_service": {
+      "status": "pass"
+    },
+    "security.wiring": {
+      "status": "pass"
+    }
+  },
+  "unit_tests": {
+    "etap_study_type": {
+      "status": "pass"
+    },
+    "etap_result": {
+      "status": "pass"
+    },
+    "esri_to_geojson": {
+      "status": "pass"
+    },
+    "study_cache": {
+      "status": "pass"
+    },
+    "no_mock_check": {
+      "status": "warn",
+      "note": "patterns found (may be in comments)"
+    },
+    "scenario_scripts": {
+      "status": "pass"
+    }
+  },
+  "scenario_dry_runs": {
+    "scenario_2_help": {
+      "status": "pass"
+    },
+    "scenario_1_help": {
+      "status": "pass"
+    },
+    "scenario_3_help": {
+      "status": "pass"
+    },
+    "scenario_4_help": {
+      "status": "pass"
+    }
+  },
+  "errors_found": [],
+  "fixes_applied": []
+}
