@@ -18,6 +18,7 @@ Standards:
 from __future__ import annotations
 
 import logging
+import os
 from datetime import datetime, timezone
 
 UTC = timezone.utc  # noqa: UP017
@@ -319,9 +320,12 @@ class BatteryStorageAgent(BaseAgent):
                 soc_history[t] = soc[t]
 
         elif strategy == "frequency_regulation":
-            # Simulate AGC-like signal using random walk
-            np.random.seed(42)
-            agc_signal = np.cumsum(np.random.randn(n_periods) * 0.1)  # NOSONAR — S6711: numpy.random.Generator migration; API change required
+            # Simulate AGC-like signal using deterministic random walk.
+            # Uses numpy.random.Generator (modern API) with configurable seed.
+            # In production, this would be replaced by real AGC signals from SCADA.
+            _agc_seed = int(os.environ.get("BESS_AGC_SIM_SEED", "42"))
+            _rng = np.random.default_rng(_agc_seed)
+            agc_signal = np.cumsum(_rng.standard_normal(n_periods) * 0.1)
             agc_signal = np.clip(agc_signal, -1.0, 1.0)  # Normalized
 
             for t in range(n_periods):
@@ -899,9 +903,11 @@ class BatteryStorageAgent(BaseAgent):
         seasonal = 1.0 + 0.15 * np.sin(2 * np.pi * (day_of_year - 180) / 365)
         load = load * seasonal
 
-        # Add noise
-        np.random.seed(42)
-        load += np.random.normal(0, 20, hours)  # NOSONAR — S6711: numpy.random.Generator migration; API change required
+        # Add noise using modern numpy.random.Generator (not legacy np.random.seed).
+        # Seed is configurable via env var for reproducibility in tests.
+        _load_seed = int(os.environ.get("BESS_LOAD_SIM_SEED", "42"))
+        _rng = np.random.default_rng(_load_seed)
+        load += _rng.normal(0, 20, hours)
         return np.maximum(load, 50.0)
 
     @staticmethod

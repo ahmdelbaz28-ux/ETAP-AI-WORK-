@@ -18,6 +18,7 @@ Standards:
 """
 
 import logging
+import os
 from datetime import datetime, timezone
 
 UTC = timezone.utc  # noqa: UP017
@@ -485,11 +486,12 @@ class StabilityAgent(BaseAgent):
                 if Y_data is not None:
                     Ybus_red = np.array(Y_data, dtype=complex)  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
                 else:
-                    # Default 3-machine test system
-                    np.random.seed(42)
-                    G = np.random.uniform(2.0, 8.0, (n_gen, n_gen))  # NOSONAR — S6711: numpy.random.Generator migration; API change required
+                    # Default 3-machine test system using modern Generator API.
+                    _stab_seed = int(os.environ.get("STABILITY_SIM_SEED", "42"))
+                    _rng = np.random.default_rng(_stab_seed)
+                    G = _rng.uniform(2.0, 8.0, (n_gen, n_gen))
                     G = (G + G.T) / 2.0
-                    B = np.random.uniform(-12.0, -3.0, (n_gen, n_gen))  # NOSONAR — S6711: numpy.random.Generator migration; API change required
+                    B = _rng.uniform(-12.0, -3.0, (n_gen, n_gen))
                     B = (B + B.T) / 2.0
                     np.fill_diagonal(G, np.sum(G, axis=1) - np.diag(G) + 1.0)
                     np.fill_diagonal(B, -np.sum(np.abs(B), axis=1))
@@ -544,10 +546,11 @@ class StabilityAgent(BaseAgent):
                 if Y_data is not None:
                     Ybus_red = np.array(Y_data, dtype=complex)
                 else:
-                    np.random.seed(42)
-                    G = np.random.uniform(2.0, 8.0, (n_gen, n_gen))  # NOSONAR — S6711: numpy.random.Generator migration; API change required
+                    _stab_seed2 = int(os.environ.get("STABILITY_SIM_SEED", "42"))
+                    _rng2 = np.random.default_rng(_stab_seed2)
+                    G = _rng2.uniform(2.0, 8.0, (n_gen, n_gen))
                     G = (G + G.T) / 2.0
-                    B = np.random.uniform(-12.0, -3.0, (n_gen, n_gen))  # NOSONAR — S6711: numpy.random.Generator migration; API change required
+                    B = _rng2.uniform(-12.0, -3.0, (n_gen, n_gen))
                     B = (B + B.T) / 2.0
                     np.fill_diagonal(G, np.sum(G, axis=1) - np.diag(G) + 1.0)
                     np.fill_diagonal(B, -np.sum(np.abs(B), axis=1))
