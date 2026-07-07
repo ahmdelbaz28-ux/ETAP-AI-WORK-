@@ -1949,9 +1949,10 @@ def convert_blueprint(argv: list):
         print("   \u2139\ufe0f  Auto-removed U+FFFD characters from blueprint.")
 
     # 2. Save clean JSON blueprint and temp HTML path
-    blueprint_path = src.parent / f"{src.stem}_pure_blueprint.json"
-    html_path = src.parent / f"{src.stem}_rendered.html"
-    blueprint_path.write_text(json_str, encoding="utf-8")
+    blueprint_path = os.path.realpath(src.parent / f"{src.stem}_pure_blueprint.json")
+    html_path = os.path.realpath(src.parent / f"{src.stem}_rendered.html")
+    with open(blueprint_path, "w", encoding="utf-8") as f:
+        f.write(json_str)
 
     # 3. Call design_engine.py to compile HTML
     engine_script = _SCRIPT_DIR / "design_engine.py"

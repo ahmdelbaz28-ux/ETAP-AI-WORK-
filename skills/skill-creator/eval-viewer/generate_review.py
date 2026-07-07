@@ -344,6 +344,7 @@ class ReviewHandler(BaseHTTPRequestHandler):
             self.send_response(200)
             self.send_header("Content-Type", "text/html; charset=utf-8")
             self.send_header("Content-Length", str(len(content)))
+            self.send_header("Content-Security-Policy", "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'")
             self.end_headers()
             self.wfile.write(content)
         elif self.path == "/api/feedback":
@@ -366,6 +367,7 @@ class ReviewHandler(BaseHTTPRequestHandler):
                 data = json.loads(body)
                 if not isinstance(data, dict) or "reviews" not in data:
                     raise ValueError("Expected JSON object with 'reviews' key")
+                self.feedback_path = self.feedback_path.resolve()
                 self.feedback_path.write_text(json.dumps(data, indent=2) + "\n")
                 resp = b'{"ok":true}'
                 self.send_response(200)
@@ -430,6 +432,7 @@ def main() -> None:
 
     if args.static:
         html = generate_html(runs, skill_name, previous, benchmark)
+        args.static = args.static.resolve()
         args.static.parent.mkdir(parents=True, exist_ok=True)
         args.static.write_text(html)
         print(f"\n  Static viewer written to: {args.static}\n")

@@ -316,7 +316,8 @@ def main():
     html_output = generate_html(data, skill_name=args.skill_name)
 
     if args.output:
-        Path(args.output).write_text(html_output)
+        output_path = Path(args.output).resolve()
+        output_path.write_text(html_output)
         print(f"Report written to {args.output}", file=sys.stderr)
     else:
         print(html_output)
