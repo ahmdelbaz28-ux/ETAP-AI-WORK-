@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import os
 from pathlib import Path
 from typing import Any
 
@@ -23,9 +24,10 @@ class JsonRepository:
         return json.loads(path.read_text(encoding="utf-8"))
 
     def save_json(self, path: Path, data: Any) -> None:
-        path = path.resolve()
-        path.parent.mkdir(parents=True, exist_ok=True)
-        path.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
+        real_path = os.path.realpath(path)
+        os.makedirs(os.path.dirname(real_path), exist_ok=True)
+        with open(real_path, "w", encoding="utf-8") as f:
+            f.write(json.dumps(data, ensure_ascii=False, indent=2))
 
     def knowledge_points_path(self, document_id: str) -> Path:
         return self.kp_dir / f"{document_id}.json"

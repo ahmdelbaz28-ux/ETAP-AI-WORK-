@@ -153,9 +153,10 @@ def embed_file(path: Path) -> dict:
 
     if ext in TEXT_EXTENSIONS:
         try:
-            content = path.read_text(errors="replace")
+            raw_content = path.read_text(errors="replace")
         except OSError:
-            content = "(Error reading file)"
+            raw_content = "(Error reading file)"
+        content = html.escape(raw_content)
         return {
             "name": path.name,
             "type": "text",
@@ -367,8 +368,9 @@ class ReviewHandler(BaseHTTPRequestHandler):
                 data = json.loads(body)
                 if not isinstance(data, dict) or "reviews" not in data:
                     raise ValueError("Expected JSON object with 'reviews' key")
-                self.feedback_path = self.feedback_path.resolve()
-                self.feedback_path.write_text(json.dumps(data, indent=2) + "\n")
+                self.feedback_path = os.path.realpath(self.feedback_path)
+                with open(self.feedback_path, "w", encoding="utf-8") as f:
+                    f.write(json.dumps(data, indent=2) + "\n")
                 resp = b'{"ok":true}'
                 self.send_response(200)
             except (json.JSONDecodeError, OSError, ValueError) as e:
@@ -432,9 +434,10 @@ def main() -> None:
 
     if args.static:
         html = generate_html(runs, skill_name, previous, benchmark)
-        args.static = args.static.resolve()
-        args.static.parent.mkdir(parents=True, exist_ok=True)
-        args.static.write_text(html)
+        static_path = os.path.realpath(args.static)
+        os.makedirs(os.path.dirname(static_path), exist_ok=True)
+        with open(static_path, "w", encoding="utf-8") as f:
+            f.write(html)
         print(f"\n  Static viewer written to: {args.static}\n")
         sys.exit(0)
 

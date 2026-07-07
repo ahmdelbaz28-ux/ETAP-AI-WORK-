@@ -9,6 +9,7 @@ Distinguishes between train and test queries.
 import argparse
 import html
 import json
+import os
 import sys
 from pathlib import Path
 
@@ -316,8 +317,9 @@ def main():
     html_output = generate_html(data, skill_name=args.skill_name)
 
     if args.output:
-        output_path = Path(args.output).resolve()
-        output_path.write_text(html_output)
+        output_path = os.path.realpath(args.output)
+        with open(output_path, "w", encoding="utf-8") as f:
+            f.write(html_output)
         print(f"Report written to {args.output}", file=sys.stderr)
     else:
         print(html_output)
