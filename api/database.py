@@ -74,6 +74,14 @@ _IS_SQLITE = DATABASE_URL.startswith("sqlite")
 if _IS_SQLITE:
     _sqlite_prefix = "sqlite+aiosqlite:///"
     _db_path = DATABASE_URL[len(_sqlite_prefix) :]
+    logger.warning(
+        "Using SQLite database (%s). "
+        "This is suitable for local development but NOT for production. "
+        "On HF Space with multiple replicas, each replica has its own "
+        "SQLite file — data created on one replica is invisible to others. "
+        "Set DATABASE_URL to a shared PostgreSQL instance in production.",
+        _db_path,
+    )
     _db_dir = os.path.dirname(_db_path)
     if _db_dir:
         os.makedirs(_db_dir, exist_ok=True)

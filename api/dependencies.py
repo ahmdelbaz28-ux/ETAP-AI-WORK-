@@ -38,12 +38,21 @@ if not _jwt_key:
             "Refusing to start with a default secret.",
         )
     import logging as _logging
-    import secrets as _secrets
+    import hashlib as _hashlib
 
-    _jwt_key = _secrets.token_hex(32)
-    _logging.getLogger(__name__).warning(
-        "JWT_SECRET_KEY not set; using random key. "
-        "Tokens will NOT survive restarts. Set JWT_SECRET_KEY in production.",
+    _logger = _logging.getLogger(__name__)
+    _hostname = os.getenv("HOSTNAME", os.getenv("COMPUTERNAME", "unknown"))
+    _seed = f"etap-dev-{_hostname}"
+    _jwt_key = _hashlib.sha256(_seed.encode()).hexdigest()
+    _logger.warning(
+        "JWT_SECRET_KEY not set; using deterministic fallback (hostname=%s). "
+        "Tokens survive restarts on same host but are NOT cryptographically "
+        "secure. Set JWT_SECRET_KEY in production.", _hostname,
+    )
+    _logger.warning(
+        "On HF Space with multiple replicas, each replica MUST have the "
+        "same JWT_SECRET_KEY env var set — otherwise tokens are rejected "
+        "with 'Invalid token' across replicas.",
     )
 JWT_SECRET_KEY: str = _jwt_key
 JWT_ALGORITHM: str = "HS256"

@@ -1,8 +1,9 @@
+import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
-import { FileText, Table, Download, Calendar } from 'lucide-react'
+import { FileText, Table, Download, Calendar, AlertCircle } from 'lucide-react'
 import { useNotify } from '../context/NotificationContext'
 import { Card, Badge, Button } from '../components/ui'
-
+import { API_BASE_URL } from '../lib/api-config'
 import { ContextHelpButton } from '../components/help/ContextHelpButton'
 interface Report {
   name: string
@@ -12,13 +13,6 @@ interface Report {
   status: string
 }
 
-const reports: Report[] = [
-  { name: 'Load Flow Report - Industrial Plant', type: 'Load Flow', format: 'PDF', date: '2026-06-10', status: 'generated' },
-  { name: 'Short Circuit Report - Substation B', type: 'Short Circuit', format: 'XLSX', date: '2026-06-09', status: 'generated' },
-  { name: 'Arc Flash Study - MCC Panel', type: 'Arc Flash', format: 'PDF', date: '2026-06-08', status: 'generated' },
-  { name: 'Harmonic Analysis - Solar Farm', type: 'Harmonic', format: 'PDF', date: '2026-06-07', status: 'pending' },
-]
-
 const formatIcons: Record<string, React.ReactNode> = {
   PDF: <FileText className="w-4 h-4 text-red-400" />,
   XLSX: <Table className="w-4 h-4 text-green-400" />,
@@ -27,6 +21,23 @@ const formatIcons: Record<string, React.ReactNode> = {
 
 export default function Reports() {
   const { notify } = useNotify()
+  const [reports, setReports] = useState<Report[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    const token = localStorage.getItem('authToken')
+    fetch(`${API_BASE_URL}/api/v1/reports`, {
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+    })
+      .then(r => {
+        if (!r.ok) throw new Error(`API ${r.status}: ${r.statusText}`)
+        return r.json()
+      })
+      .then((data: Report[]) => setReports(data))
+      .catch(err => setError(err.message))
+      .finally(() => setLoading(false))
+  }, [])
 
   const generatedCount = reports.filter(r => r.status === 'generated').length
   const pendingCount = reports.filter(r => r.status === 'pending').length
@@ -50,6 +61,26 @@ export default function Reports() {
 
       {/* Reports Table */}
       <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
+        {loading ? (
+          <div className="flex items-center justify-center h-32">
+            <div className="w-6 h-6 border-2 border-[var(--accent-primary)] border-t-transparent rounded-full animate-spin" />
+          </div>
+        ) : error ? (
+          <Card>
+            <div className="flex items-center gap-3 p-4 text-sm text-[var(--text-tertiary)]">
+              <AlertCircle className="w-5 h-5 text-red-400" />
+              <span>Failed to load reports: {error}</span>
+            </div>
+          </Card>
+        ) : reports.length === 0 ? (
+          <Card>
+            <div className="flex flex-col items-center gap-2 py-8 text-sm text-[var(--text-tertiary)]">
+              <FileText className="w-8 h-8 text-[var(--text-muted)]" />
+              <p>No reports generated yet.</p>
+              <p className="text-xs text-[var(--text-muted)]">Run a study to generate a report.</p>
+            </div>
+          </Card>
+        ) : (
         <Card padding="none">
           {/* Table Header */}
           <div className="grid grid-cols-12 gap-4 px-5 py-3 border-b border-[var(--border-primary)] bg-[var(--bg-elevated)]">
@@ -105,6 +136,7 @@ export default function Reports() {
             </motion.div>
           ))}
         </Card>
+        )}
       </motion.div>
     </div>
   )

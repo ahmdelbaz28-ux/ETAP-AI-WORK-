@@ -465,12 +465,18 @@ async function diagnoseHttpError(
   let errorBody = ''
   try {
     errorBody = await res.text()
-  } catch {}
+  } catch (error) {
+    // Ignore errors in reading response body
+    errorBody = ''
+  }
 
   let errorData: { error?: { message?: string; type?: string } } = {}
   try {
     errorData = JSON.parse(errorBody)
-  } catch {}
+  } catch (error) {
+    // Ignore errors in parsing JSON
+    errorData = {}
+  }
 
   const status = res.status
   const errMsg = errorData.error?.message || errorBody.slice(0, 200)

@@ -23,7 +23,9 @@ import logging
 import os
 import threading
 import time
-from datetime import UTC, datetime
+from datetime import datetime, timezone
+
+UTC = timezone.utc
 
 UTC = UTC
 from typing import Any

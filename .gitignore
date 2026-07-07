@@ -352,3 +352,5 @@ security/_tmp_secure_executor_test_runner.py
 helm/**/charts/
 .venv312/
 ui-dist/
+
+testsprite_tests\tmp\config.json

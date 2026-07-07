@@ -8,7 +8,7 @@ import { cn } from '../utils/helpers'
 
 import { ContextHelpButton } from '../components/help/ContextHelpButton'
 export default function Administration() {
-  const [metrics, setMetrics] = useState<any>(null)
+  const [metrics, setMetrics] = useState<unknown>(null)
   const [agents, setAgents] = useState<AgentMeta[]>([])
   const [loading, setLoading] = useState(true)
   const { notify } = useNotify()

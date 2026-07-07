@@ -1,9 +1,10 @@
+import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
-import { Download, FileText, FileSpreadsheet, FileJson, Clock, HardDrive } from 'lucide-react'
+import { Download, FileText, FileSpreadsheet, FileJson, Clock, HardDrive, AlertCircle } from 'lucide-react'
 import { useNotify } from '../context/NotificationContext'
 import { Card, CardHeader, Button } from '../components/ui'
 import { cn } from '../utils/helpers'
-
+import { API_BASE_URL } from '../lib/api-config'
 import { ContextHelpButton } from '../components/help/ContextHelpButton'
 const exportFormats = [
   {
@@ -32,14 +33,31 @@ const exportFormats = [
   },
 ]
 
-const recentExports = [
-  { name: 'load_flow_results.pdf', size: '2.4 MB', date: '2026-06-10' },
-  { name: 'short_circuit_analysis.xlsx', size: '1.1 MB', date: '2026-06-09' },
-  { name: 'system_model.json', size: '456 KB', date: '2026-06-08' },
-]
+interface RecentExport {
+  name: string
+  size: string
+  date: string
+}
 
 export default function DataExport() {
   const { notify } = useNotify()
+  const [recentExports, setRecentExports] = useState<RecentExport[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    const token = localStorage.getItem('authToken')
+    fetch(`${API_BASE_URL}/api/v1/exports`, {
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+    })
+      .then(r => {
+        if (!r.ok) throw new Error(`API ${r.status}: ${r.statusText}`)
+        return r.json()
+      })
+      .then((data: RecentExport[]) => setRecentExports(data))
+      .catch(err => setError(err.message))
+      .finally(() => setLoading(false))
+  }, [])
 
   return (
     <div className="space-y-6">
@@ -91,6 +109,22 @@ export default function DataExport() {
             subtitle="Previously exported files"
             icon={<Clock className="w-4 h-4" />}
           />
+          {loading ? (
+            <div className="flex items-center justify-center h-20">
+              <div className="w-5 h-5 border-2 border-[var(--accent-primary)] border-t-transparent rounded-full animate-spin" />
+            </div>
+          ) : error ? (
+            <div className="flex items-center gap-2 p-3 text-sm text-[var(--text-tertiary)]">
+              <AlertCircle className="w-4 h-4 text-red-400" />
+              <span>Failed to load exports: {error}</span>
+            </div>
+          ) : recentExports.length === 0 ? (
+            <div className="flex flex-col items-center gap-2 py-6 text-sm text-[var(--text-tertiary)]">
+              <HardDrive className="w-6 h-6 text-[var(--text-muted)]" />
+              <p>No exports yet.</p>
+              <p className="text-xs text-[var(--text-muted)]">Export a study to see it here.</p>
+            </div>
+          ) : (
           <div className="space-y-3">
             {recentExports.map((file) => (
               <div key={file.name} className="flex items-center justify-between p-3 bg-[var(--bg-primary)] rounded-lg border border-[var(--border-primary)]">
@@ -117,6 +151,7 @@ export default function DataExport() {
               </div>
             ))}
           </div>
+          )}
         </Card>
       </motion.div>
     </div>

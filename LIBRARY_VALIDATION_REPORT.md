@@ -81,35 +81,41 @@ This report validates the libraries used in the ETAP AI platform and identifies 
 - **Status**: Validated
 - **Notes**: No specific deprecated API information found in current documentation
 
-### Matplotlib (v3.9.0)
+### Cryptography (v42.0.8)
 - **Status**: Validated
 - **Deprecated APIs**:
-  - Various internal deprecation utilities available via `matplotlib._api.deprecation`
-  - `MatplotlibDeprecationWarning` class for deprecated features
-- **Migration Path**: Use the deprecation decorators and utilities to manage API transitions
+  - Support for `verifier` and `signer` methods deprecated (since v2.0)
+  - Use `sign` and `verify` methods instead for asymmetric key operations
+  - Various cryptographic primitives moved to `/hazmat/decrepit/index` module
+  - Algorithms like CAST5, SEED, IDEA, Blowfish, TripleDES, and ARC4 have been moved to deprecated module
+- **Migration Path**: Migrate from `verifier`/`signer` to `sign`/`verify` methods
 
 ### SciPy (v1.13.1)
 - **Status**: Validated
 - **Deprecated APIs**:
-  - `scipy.linalg.interpolative.rand` and `scipy.linalg.interpolative.seed` (to be removed in SciPy 1.17.0)
-  - Complex inputs to `scipy.spatial.cosine` and `scipy.spatial.correlation` (will raise error in 1.17.0)
-  - `scipy.stats.find_repeats` (deprecated in 1.15.0, to be removed in 1.17.0)
-  - `scipy.linalg.kron` (deprecated in favor of `numpy.kron`)
-  - Various other functions deprecated for SciPy 1.18.0 and later
-- **Migration Path**: 
-  - Use `numpy.unique`/`numpy.unique_counts` instead of `scipy.stats.find_repeats`
-  - Use `numpy.kron` instead of `scipy.linalg.kron`
-  - Avoid passing complex inputs to spatial distance functions
+  - `scipy.linalg.interpolative.rand` and `scipy.linalg.interpolative.seed` (scheduled for removal in v1.17.0)
+  - Complex inputs to `scipy.spatial.cosine` and `scipy.spatial.correlation` (will raise error in v1.17.0)
+  - `scipy.stats.find_repeats` deprecated (use `numpy.unique`/`numpy.unique_counts` instead)
+  - `scipy.linalg.kron` deprecated in favor of `numpy.kron`
+  - Multiple deprecated features scheduled for removal in v1.17.0 and beyond
+- **Migration Path**: Replace deprecated functions with recommended alternatives
+
+### Matplotlib (v3.9.0)
+- **Status**: Validated
+- **Deprecated APIs**:
+  - Standardized deprecation warning system using `warn_deprecated` function
+  - Parameter deprecation handled with `delete_parameter` decorator
+  - Various API elements subject to deprecation following standard procedure
+- **Migration Path**: Monitor deprecation warnings and update code accordingly
 
 ### Requests (v2.32.4)
 - **Status**: Validated
 - **Deprecated APIs**:
-  - `get_connection` method was deprecated and renamed to `_get_connection` in 2.32.2
-  - Functions in `requests.utils` deprecated for removal in version 3.0
-- **Behavioral Changes**:
-  - Sessions used by the functional API are now always closed
-  - Requests restricted to HTTP/1.1 and HTTP/1.0 (no longer accepts HTTP/0.9)
-- **Migration Path**: Update custom HTTPAdapters to use the new `get_connection_with_tls_context` method
+  - `get_connection` method deprecated and renamed to `_get_connection` to `get_connection_with_tls_context` (v2.32.2)
+  - Functions in `requests.utils` marked for removal in version 3.0
+  - Sessions used by functional API are now always closed
+  - Restricted to HTTP/1.1 and HTTP/1.0 (no longer accepts HTTP/0.9)
+- **Migration Path**: Update custom HTTPAdapters to use new connection methods
 
 ## JavaScript/Node.js Libraries
 
@@ -129,7 +135,7 @@ Based on the pyproject.toml file, the project already addresses several security
 - Requests: Updated to address CVE-2024-35195, CVE-2024-47081
 - Cryptography: Updated to address 9 CVEs (CVE-2023-50782, CVE-2024-0727, GHSA-537c-gmf6-5ccf)
 - PyPDF2 replaced with pypdf to address 30 CVEs
-- NLTK updated to address 13 CVEs (PYSEC-2024-167 RCE, CVE-2026-33230/33231)
+- NLTK updated to address 13 CVEs (PYSEC-2024-167 RCE, CVE-2026-33231/33232)
 - lxml updated to address PYSEC-2026-87 (XXE)
 - Starlette updated to address CVE-2024-47874 (DoS), CVE-2025-54121 (memory leak)
 
@@ -139,19 +145,19 @@ Based on the pyproject.toml file, the project already addresses several security
    - Audit codebase for Pydantic v1 usage and migrate to v2
    - Update SQLAlchemy calls to 2.0 patterns
    - Replace deprecated Pandas APIs
-   - Review and update any SciPy functions that are deprecated
+   - Update cryptography usage from `verifier`/`signer` to `sign`/`verify` methods
 
 2. **Medium-term Actions**:
    - Plan migration to newer NumPy versions (2.x series)
    - Evaluate LangChain migration to LangGraph for complex applications
    - Update FastAPI to newer versions to align with Pydantic v2-only support
-   - Monitor Requests library for updates to HTTP adapter patterns
+   - Replace deprecated SciPy functions with recommended alternatives
 
 3. **Long-term Actions**:
    - Monitor library support timelines (NumPy 1.26 support ends ~Sep 2025)
    - Plan regular library updates to maintain security and compatibility
-   - Prepare for SciPy 1.17.0+ breaking changes (removal of interpolative functions, etc.)
+   - Prepare for Requests 3.0 transition (monitor `requests.utils` deprecations)
 
 ## Conclusion
 
-The ETAP AI platform uses well-maintained libraries with active development. While several deprecated APIs exist, they follow standard deprecation policies with clear migration paths. The project maintains good security practices with regular updates addressing known vulnerabilities. The most critical areas requiring attention include Pydantic v1 to v2 migration, SQLAlchemy 1.x to 2.0 pattern updates, and potential LangChain to LangGraph migration for complex applications.
+The ETAP AI platform uses well-maintained libraries with active development. While several deprecated APIs exist, they follow standard deprecation policies with clear migration paths. The project maintains good security practices with regular updates addressing known vulnerabilities. Regular monitoring of deprecation warnings and scheduled library updates will ensure continued compatibility and security.

@@ -7,8 +7,10 @@ Separated from main engineering service for better modularity.
 
 import json
 import os
-from datetime import UTC, datetime
-from typing import Any
+from datetime import datetime, timezone
+from typing import Any, List, Optional
+
+UTC = timezone.utc
 
 from fastapi import APIRouter, Depends, Request
 from fastapi.responses import JSONResponse
@@ -18,15 +20,13 @@ from api.dependencies import get_api_key
 
 router = APIRouter(prefix="/api/v1/agents", tags=["agents"])
 
-
 class AgentMetaResponse(BaseModel):
     id: str
     name: str
     description: str = ""
-    capabilities: list[str] = []
+    capabilities: List[str] = []
     model: str = ""
     provider: str = ""
-
 
 @router.get("")
 async def get_agents_list(request: Request):
@@ -93,7 +93,6 @@ async def get_agents_list(request: Request):
             content={"success": False, "agents": [], "trace_id": trace_id}, status_code=500,
         )
 
-
 @router.get("/info")
 async def get_agents_info(request: Request):
     """Return metadata for all agents including prompt integration status.
@@ -134,11 +133,9 @@ async def get_agents_info(request: Request):
             content={"success": False, "errors": [str(e)], "trace_id": trace_id},
         )
 
-
 # ---------------------------------------------------------------------------
 # ETAP Expert Skill chat endpoint
 # ---------------------------------------------------------------------------
-
 
 class ETAPExpertChatRequest(BaseModel):
     """Request body for the ETAP Expert chat endpoint."""
@@ -149,10 +146,9 @@ class ETAPExpertChatRequest(BaseModel):
         max_length=4000,
         description="The ETAP-related question to ask the expert agent",
     )
-    context: dict[str, Any] | None = Field(
+    context: Any = Field(
         default=None, description="Optional additional context (voltages, currents, etc.)",
     )
-
 
 @router.post("/etap-expert/chat")
 async def etap_expert_chat(
@@ -196,11 +192,9 @@ async def etap_expert_chat(
             content={"success": False, "errors": [str(e)], "trace_id": trace_id},
         )
 
-
 # ---------------------------------------------------------------------------
 # ETAP GUI Agent chat endpoint
 # ---------------------------------------------------------------------------
-
 
 class ETAPGUIChatRequest(BaseModel):
     """Request body for the ETAP GUI Agent chat endpoint."""
@@ -211,10 +205,9 @@ class ETAPGUIChatRequest(BaseModel):
         max_length=4000,
         description="The GUI automation question to ask the agent",
     )
-    context: dict[str, Any] | None = Field(
+    context: Any = Field(
         default=None, description="Optional additional context (app name, etc.)",
     )
-
 
 @router.post("/etap-gui/chat")
 async def etap_gui_chat(
@@ -259,7 +252,6 @@ async def etap_gui_chat(
             content={"success": False, "errors": [str(e)], "trace_id": trace_id},
         )
 
-
 class ETAPGUIExecuteRequest(BaseModel):
     """Request body for the ETAP GUI Agent REAL CUA execution endpoint."""
 
@@ -279,11 +271,11 @@ class ETAPGUIExecuteRequest(BaseModel):
         default=True,
         description="If True, CONTROL/SOLVE actions pause for human approval",
     )
-    audit_dir: str | None = Field(
+    audit_dir: Optional[str] = Field(
         default=None,
         description="Directory for before/after screenshots (default: /tmp/cua_audit)",
     )
-    start_url: str | None = Field(
+    start_url: Optional[str] = Field(
         default=None,
         description=(
             "URL to navigate to before starting the CUA loop (Browser CUA only). "
@@ -292,7 +284,6 @@ class ETAPGUIExecuteRequest(BaseModel):
             "controls the web page. Example: 'https://your-app.com/dashboard'"
         ),
     )
-
 
 @router.post("/etap-gui/execute")
 async def etap_gui_execute(
@@ -360,7 +351,6 @@ async def etap_gui_execute(
             content={"success": False, "errors": [str(e)], "trace_id": trace_id},
         )
 
-
 @router.get("/etap-gui/health")
 async def etap_gui_health(
     _: str = Depends(get_api_key),  # NOSONAR — S8410: Annotated[T, Depends(...)] migration will be done in API refactoring sprint
@@ -395,18 +385,15 @@ async def etap_gui_health(
         },
     )
 
-
 # ─── Life Safety endpoints ──────────────────────────────────────────────────
 # These endpoints expose the EMERGENCY STOP (kill switch) and the safety
 # audit trail. They are critical for life-safety compliance.
-
 
 def _get_life_safety_status() -> dict:
     """Get the current life safety system status."""
     from agents.life_safety import life_safety_guard
 
     return life_safety_guard.health_check()
-
 
 @router.post("/etap-gui/kill-switch/activate", tags=["Agents", "Safety"])
 async def etap_gui_activate_kill_switch(
@@ -444,7 +431,6 @@ async def etap_gui_activate_kill_switch(
         },
     )
 
-
 @router.post("/etap-gui/kill-switch/deactivate", tags=["Agents", "Safety"])
 async def etap_gui_deactivate_kill_switch(
     _: str = Depends(get_api_key),  # NOSONAR — S8410: Annotated[T, Depends(...)] migration will be done in API refactoring sprint
@@ -470,7 +456,6 @@ async def etap_gui_deactivate_kill_switch(
         },
     )
 
-
 @router.get("/etap-gui/safety/health", tags=["Agents", "Safety"])
 async def etap_gui_safety_health(
     _: str = Depends(get_api_key),  # NOSONAR — S8410: Annotated[T, Depends(...)] migration will be done in API refactoring sprint
@@ -487,7 +472,6 @@ async def etap_gui_safety_health(
       - degraded_vision_sources: which vision backends are read-only
     """
     return JSONResponse(content={"success": True, "data": _get_life_safety_status()})
-
 
 @router.get("/etap-gui/safety/audit/verify", tags=["Agents", "Safety"])
 async def etap_gui_safety_audit_verify(
@@ -519,9 +503,7 @@ async def etap_gui_safety_audit_verify(
         },
     )
 
-
 # ─── SIEM endpoints ─────────────────────────────────────────────────────────
-
 
 @router.get("/etap-gui/siem/health", tags=["Agents", "Safety"])
 async def etap_gui_siem_health(
@@ -535,7 +517,6 @@ async def etap_gui_siem_health(
     from integrations.siem_syslog import siem_forwarder
 
     return JSONResponse(content={"success": True, "data": siem_forwarder.health_check()})
-
 
 @router.get("/etap-gui/siem/events", tags=["Agents", "Safety"])
 async def etap_gui_siem_events(
