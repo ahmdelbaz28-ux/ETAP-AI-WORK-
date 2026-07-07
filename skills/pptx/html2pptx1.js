@@ -53,6 +53,7 @@
 
 const { chromium } = require('playwright');
 const path = require('path');
+const os = require('os');
 const sharp = require('sharp');
 const fs = require('fs');
 const http = require('http');
@@ -546,10 +547,11 @@ function parseCssObjectPosition(value) {
 }
 
 function decodeDataUrlToBuffer(dataUrl) {
-  const match = String(dataUrl).match(/^data:([^;,]+)?((?:;[^,]+)*),(.*)$/);
-  if (!match) throw new Error('invalid data URL');
-  const meta = match[2] || '';
-  const payload = match[3] || '';
+  // Split on comma to get base64 or uri-encoded payload; no regex backtracking.
+  const commaIdx = String(dataUrl).indexOf(',');
+  if (commaIdx === -1) throw new Error('invalid data URL');
+  const meta = dataUrl.slice(5, commaIdx);  // strip 'data:'
+  const payload = dataUrl.slice(commaIdx + 1);
   if (meta.includes(';base64')) return Buffer.from(payload, 'base64');
   return Buffer.from(decodeURIComponent(payload), 'utf8');
 }
@@ -4415,7 +4417,7 @@ async function extractSlideData(page, slideDims) {
 
 async function html2pptx(htmlFile, pres, options = {}) {
   const {
-    tmpDir = process.env.TMPDIR || '/tmp',
+    tmpDir = process.env.TMPDIR || path.join(os.tmpdir(), 'html2pptx1'),
     slide = null,
     fontConfig = null  // { cjk, latin, emphasis, display, symbol }
   } = options;

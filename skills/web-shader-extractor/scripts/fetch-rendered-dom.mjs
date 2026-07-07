@@ -19,10 +19,10 @@
 import { execSync } from 'child_process';
 import { existsSync, writeFileSync, mkdirSync } from 'fs';
 import { join } from 'path';
-import { homedir } from 'os';
+import { homedir, tmpdir } from 'os';
 
 const url = process.argv[2];
-const outDir = process.argv[3] || '/tmp/rendered';
+const outDir = process.argv[3] || join(tmpdir(), 'rendered-dom');
 
 if (!url) {
   console.error('Usage: node fetch-rendered-dom.mjs <URL> [outDir]');

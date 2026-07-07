@@ -116,12 +116,11 @@
   /* ===================== grid ===================== */
   .stage{
     position: fixed; inset: 0;
-    padding-top: 44px;
     display: grid;
     grid-template-columns: 280px 1fr 280px;
     grid-template-rows: 64px 1fr 64px;
     gap: 22px;
-    padding: 44px 26px 22px;
+    padding: 44px 26px 22px;  /* padding-top via shorthand */
     z-index: 5;
   }
   .g1c1{ grid-column:1; grid-row:1; }
