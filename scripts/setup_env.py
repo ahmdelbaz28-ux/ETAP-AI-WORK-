@@ -367,30 +367,25 @@ QDRANT_PORT=6333
 """
 
 
-def main() -> int:
-    """Read env vars, generate .env file."""
-    # Validate required inputs
+def _gather_credentials() -> dict[str, str]:
+    """Read all required and optional env vars, return credential dict."""
     for v in REQUIRED_VARS:
         _get_or_die(v)
 
     vercel_token = _get_or_die("ETAP_VERCEL_TOKEN")
-    # Auto-trim double-pasted Vercel token
     if vercel_token.count("vcp_") > 1:
         second = vercel_token.find("vcp_", 4)
         if second > 0:
             vercel_token = vercel_token[:second]
-            sys.stderr.write(
-                f"  Detected double-pasted Vercel token. Trimmed to {len(vercel_token)} chars.\n"
-            )
+            sys.stderr.write(f"  Detected double-pasted Vercel token. Trimmed to {len(vercel_token)} chars.\n")
 
-    # Generate cryptographic secrets
     jwt_secret = secrets.token_hex(32)
     fernet_key = Fernet.generate_key().decode() if _HAS_CRYPTO else secrets.token_urlsafe(44) + "="
 
     google_key = _get_optional("ETAP_GOOGLE_API_KEY", "")
     gemini_key = _get_optional("ETAP_GEMINI_API_KEY", google_key)
 
-    creds = {
+    return {
         "jwt": jwt_secret,
         "fernet": fernet_key,
         "vercel_token": vercel_token,
@@ -398,7 +393,6 @@ def main() -> int:
         "hf_token": _get_or_die("ETAP_HF_TOKEN"),
         "hf_space": _get_or_die("ETAP_HF_SPACE_NAME"),
         "github_pat": _get_or_die("ETAP_GITHUB_PAT"),
-        # Optional integrations
         "neo4j_password": _get_optional("ETAP_NEO4J_PASSWORD", ""),
         "supabase_url": _get_optional("ETAP_SUPABASE_URL", ""),
         "supabase_anon": _get_optional("ETAP_SUPABASE_ANON_KEY", ""),
@@ -412,7 +406,6 @@ def main() -> int:
         "anthropic": _get_optional("ETAP_ANTHROPIC_API_KEY", "your-anthropic-api-key-here"),
         "google": google_key or "your-google-api-key-here",
         "gemini": gemini_key or "your-gemini-api-key-here",
-        # Additional LLM providers (added 2026-07-07)
         "render": _get_optional("ETAP_RENDER_API_KEY", ""),
         "zenmux": _get_optional("ETAP_ZENMUX_API_KEY", ""),
         "nvidia": _get_optional("ETAP_NVIDIA_API_KEY", ""),
@@ -420,11 +413,15 @@ def main() -> int:
         "github_models": _get_optional("ETAP_GITHUB_MODELS_API_KEY", ""),
         "openmodel": _get_optional("ETAP_OPENMODEL_API_KEY", ""),
         "modal": _get_optional("ETAP_MODAL_API_KEY", ""),
-        # Additional LLM providers (added 2026-07-08)
         "bynara": _get_optional("ETAP_BYNARA_API_KEY", ""),
         "cloudflare_api": _get_optional("ETAP_CLOUDFLARE_API_KEY", ""),
         "cloudflare_account": _get_optional("ETAP_CLOUDFLARE_ACCOUNT_ID", ""),
     }
+
+
+def main() -> int:
+    """Read env vars, generate .env file."""
+    creds = _gather_credentials()
 
     env_file = Path("/home/z/my-project/.env")
     if env_file.exists():

@@ -1509,7 +1509,7 @@
       const pb = view.querySelector('.pulse-bar');
       if (pb) {
         pb.classList.remove('run');
-        void pb.offsetWidth;
+        pb.offsetWidth;  // force reflow
         pb.classList.add('run');
       }
 

@@ -29,12 +29,53 @@ Example:
 import argparse
 import html
 import json
+import os
 import re
 import shutil
 import sys
 import tempfile
 import zipfile
 from pathlib import Path
+
+
+def _assert_safe_path(path: Path, base_dir: Path | None = None) -> Path:
+    """Resolve a path and verify it does not escape the expected base directory.
+
+    Prevents path-traversal (S2083) when writing files to paths derived
+    from extracted archives or user-controlled directory names.
+
+    Args:
+        path: The file path to validate.
+        base_dir: Expected parent directory. If None, only resolves the path.
+
+    Returns:
+        The resolved absolute Path.
+
+    Raises:
+        ValueError: If the resolved path escapes ``base_dir``.
+    """
+    resolved = path.resolve()
+    if base_dir is not None:
+        base_resolved = base_dir.resolve()
+        if not str(resolved).startswith(str(base_resolved)):
+            raise ValueError(f"Path traversal detected: {resolved} is outside {base_resolved}")
+    return resolved
+
+
+def _safe_write_text(path: Path, content: str, encoding: str = 'utf-8', base_dir: Path | None = None) -> None:
+    """Write text to a file after validating the path is safe.
+
+    Args:
+        path: Target file path.
+        content: Text content to write.
+        encoding: File encoding (default utf-8).
+        base_dir: Expected parent directory for path-traversal guard.
+
+    Raises:
+        ValueError: If path escapes base_dir.
+    """
+    safe = _assert_safe_path(path, base_dir)
+    safe.write_text(content, encoding=encoding)
 
 
 def _extract_headings_from_docx(docx_path: str, max_level: int = 3) -> list:
@@ -102,15 +143,15 @@ def add_toc_placeholders(docx_path: str, entries: list = None) -> None:
 
         # Ensure TOC styles exist in styles.xml
         styles_xml_path = extracted_dir / "word" / "styles.xml"
-        toc_style_mapping = _ensure_toc_styles(styles_xml_path)
+        toc_style_mapping = _ensure_toc_styles(styles_xml_path, base_dir=extracted_dir)
         print(f"TOC style mapping: {toc_style_mapping}")
 
         # Fix settings.xml: ensure updateFields has val="true"
         settings_xml_path = extracted_dir / "word" / "settings.xml"
-        _fix_update_fields(settings_xml_path)
+        _fix_update_fields(settings_xml_path, base_dir=extracted_dir)
 
         # Fix Heading styles: ensure outlineLvl is set (required for TOC field update)
-        _fix_heading_outline_levels(styles_xml_path)
+        _fix_heading_outline_levels(styles_xml_path, base_dir=extracted_dir)
 
         # Process document.xml
         document_xml = extracted_dir / "word" / "document.xml"
@@ -127,7 +168,7 @@ def add_toc_placeholders(docx_path: str, entries: list = None) -> None:
         modified_content = _insert_toc_placeholders(content, entries, toc_style_mapping)
 
         # Write back
-        document_xml.write_text(modified_content, encoding='utf-8')
+        _safe_write_text(document_xml, modified_content, base_dir=extracted_dir)
 
         # Repack DOCX to temp file
         with zipfile.ZipFile(temp_output, 'w', zipfile.ZIP_DEFLATED) as zipf:
@@ -141,7 +182,7 @@ def add_toc_placeholders(docx_path: str, entries: list = None) -> None:
         shutil.move(str(temp_output), str(docx_path))
 
 
-def _fix_update_fields(settings_xml_path: Path) -> None:
+def _fix_update_fields(settings_xml_path: Path, base_dir: Path | None = None) -> None:
     """Fix settings.xml to ensure <w:updateFields w:val="true"/> is present.
 
     The docx npm library generates <w:updateFields/> without val="true",
@@ -173,10 +214,10 @@ def _fix_update_fields(settings_xml_path: Path) -> None:
         print('Fixed: added <w:updateFields w:val="true"/> to settings.xml')
 
     if content != original:
-        settings_xml_path.write_text(content, encoding='utf-8')
+        _safe_write_text(settings_xml_path, content, base_dir=base_dir)
 
 
-def _fix_heading_outline_levels(styles_xml_path: Path) -> None:
+def _fix_heading_outline_levels(styles_xml_path: Path, base_dir: Path | None = None) -> None:
     """Fix Heading styles to include outlineLvl in pPr.
 
     The docx npm library creates Heading styles but sometimes doesn't set outlineLvl
@@ -235,7 +276,7 @@ def _fix_heading_outline_levels(styles_xml_path: Path) -> None:
         print(f'Fixed: added outlineLvl={outline_val} to {style_id} style')
 
     if content != original:
-        styles_xml_path.write_text(content, encoding='utf-8')
+        _safe_write_text(styles_xml_path, content, base_dir=base_dir)
 
 
 def _fix_fld_char_structure(xml_content: str) -> str:
@@ -321,7 +362,7 @@ def _detect_toc_styles(styles_xml_path: Path) -> dict:
     return result
 
 
-def _ensure_toc_styles(styles_xml_path: Path) -> dict:
+def _ensure_toc_styles(styles_xml_path: Path, base_dir: Path | None = None) -> dict:
     """Ensure TOC styles exist in styles.xml, adding them if necessary.
 
     Returns:
@@ -397,7 +438,7 @@ def _ensure_toc_styles(styles_xml_path: Path) -> dict:
             modified = True
 
     if modified:
-        styles_xml_path.write_text(content, encoding='utf-8')
+        _safe_write_text(styles_xml_path, content, base_dir=base_dir)
 
     # Ensure Hyperlink style exists
     _ensure_hyperlink_style(styles_xml_path)
@@ -405,7 +446,7 @@ def _ensure_toc_styles(styles_xml_path: Path) -> dict:
     return result
 
 
-def _ensure_hyperlink_style(styles_xml_path: Path) -> None:
+def _ensure_hyperlink_style(styles_xml_path: Path, base_dir: Path | None = None) -> None:
     """Ensure Hyperlink character style exists in styles.xml."""
     if not styles_xml_path.exists():
         return
@@ -427,7 +468,7 @@ def _ensure_hyperlink_style(styles_xml_path: Path) -> None:
     insert_point = content.rfind('</w:styles>')
     if insert_point != -1:
         content = content[:insert_point] + hyperlink_style + '\n' + content[insert_point:]
-        styles_xml_path.write_text(content, encoding='utf-8')
+        _safe_write_text(styles_xml_path, content, base_dir=base_dir)
         print("Added Hyperlink character style")
 
 

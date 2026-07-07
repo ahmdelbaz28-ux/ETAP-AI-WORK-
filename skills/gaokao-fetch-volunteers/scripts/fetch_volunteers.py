@@ -560,7 +560,12 @@ def main() -> int:
     if batch_resolution:
         parsed["batch_resolution"] = batch_resolution
     args.output.parent.mkdir(parents=True, exist_ok=True)
-    args.output.write_text(json.dumps(parsed, ensure_ascii=False, indent=2), encoding="utf-8")
+    # Validate output path to prevent path traversal (S2083)
+    output_resolved = args.output.resolve()
+    # Ensure the path doesn't escape via symlinks or '..' components
+    if ".." in str(args.output) or output_resolved.parent != args.output.parent.resolve():
+        raise ValueError(f"Invalid output path: {args.output}")
+    output_resolved.write_text(json.dumps(parsed, ensure_ascii=False, indent=2), encoding="utf-8")
     print(f"已保存解析结果: {args.output}（共 {parsed['stats']['total']} 所院校）")
     return 0
 

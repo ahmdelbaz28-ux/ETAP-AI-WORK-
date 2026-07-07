@@ -10,7 +10,7 @@ import json
 import math
 import time
 import uuid
-from typing import Any
+from typing import Any, Dict, Mapping, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Request
 
@@ -103,7 +103,7 @@ def _to_jsonable(obj: Any) -> Any:  # NOSONAR — S3776: cognitive complexity; s
 def _build_system_from_spec(spec: SystemSpec) -> Any:  # NOSONAR — S3776: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
     """Build a Python System object from a SystemSpec."""
     system = System(base_mva=spec.base_mva)
-    bus_map: dict[int, Any] = {}
+    bus_map: Mapping[int, Any] = {}
 
     for b in spec.buses:
         bus = Bus(
@@ -195,8 +195,8 @@ _STUDIES_REQUIRING_SYSTEM = {
 
 
 def _run_native_study(  # NOSONAR — S3776: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
-    study_type: str, system: Any | None, parameters: dict[str, Any],
-) -> dict[str, Any]:
+    study_type: str, system: Optional[Any], parameters: Dict[str, Any],
+) -> Dict[str, Any]:
     """Execute a study using the native PowerSystemEngine."""
     if study_type in _STUDIES_REQUIRING_SYSTEM and system is None:
         raise ValueError(f"study_type '{study_type}' requires a 'system' to be provided")

@@ -771,6 +771,36 @@ def app(db_engine: AsyncEngine):
     real_app.dependency_overrides.clear()
 
 
+def _debug_loop_msg(stage: str, worker: str) -> None:
+    """Print debug info about the current event loop state."""
+    import asyncio
+
+    try:
+        loop = asyncio.get_event_loop_policy().get_event_loop()
+        print(f"[LOOP-DBG {worker}] {stage} — loop={id(loop)} closed={loop.is_closed()}")
+    except RuntimeError as exc:
+        print(f"[LOOP-DBG {worker}] {stage} — RuntimeError: {exc}")
+
+
+def _clear_redis_rate_limits() -> None:
+    """Clear Redis rate-limit keys if Redis is available."""
+    import api.auth as _auth_module
+
+    with contextlib.suppress(Exception):
+        r = _auth_module._get_redis_client()
+        if r is not None:
+            import asyncio as _asyncio
+
+            loop = _asyncio.get_event_loop_policy().get_event_loop()
+            if not loop.is_closed():
+
+                async def _clear_keys() -> None:
+                    async for k in r.scan_iter(match="auth:ratelimit:*", count=100):
+                        await r.delete(k)
+
+                loop.run_until_complete(_clear_keys())
+
+
 @pytest.fixture(scope="function")
 def client(app) -> Generator[TestClient, None, None]:
     """Provide a TestClient wired to the test application.
@@ -793,69 +823,28 @@ def client(app) -> Generator[TestClient, None, None]:
 
     _auth_module._LOGIN_ATTEMPTS.clear()
 
-    # Reset the Redis async client singleton. The client binds to the event
-    # loop current at creation time — when TestClient closes after a test,
-    # that loop closes, leaving _redis_client stale. The next test gets a
-    # new event loop (via new TestClient) but the stale client raises
-    # 'RuntimeError: Event loop is closed' on any Redis operation.
-    # Resetting here forces _get_redis_client() to create a fresh client
-    # bound to the new test's event loop.
+    # Reset the Redis async client singleton to avoid stale event loop.
     _auth_module._redis_client = None
 
     debug_loop = _os.environ.get("DEBUG_EVENT_LOOP") == "1"
+    worker = _os.environ.get("PYTEST_XDIST_WORKER", "main")
+
     if debug_loop:
-        import asyncio
         import threading
 
-        worker = _os.environ.get("PYTEST_XDIST_WORKER", "main")
         print(f"[LOOP-DBG {worker}] client fixture ENTER — thread={threading.current_thread().name}")
-        try:
-            loop = asyncio.get_event_loop_policy().get_event_loop()
-            print(f"[LOOP-DBG {worker}] client fixture BEFORE TestClient — loop={id(loop)} closed={loop.is_closed()}")
-        except RuntimeError as exc:
-            print(f"[LOOP-DBG {worker}] client fixture BEFORE TestClient — RuntimeError: {exc}")
+        _debug_loop_msg("client fixture BEFORE TestClient", worker)
 
     with TestClient(app) as c:
         if debug_loop:
-            try:
-                loop = asyncio.get_event_loop_policy().get_event_loop()
-                print(f"[LOOP-DBG {worker}] client fixture AFTER TestClient enter — loop={id(loop)} closed={loop.is_closed()}")
-            except RuntimeError as exc:
-                print(f"[LOOP-DBG {worker}] client fixture AFTER TestClient enter — RuntimeError: {exc}")
+            _debug_loop_msg("client fixture AFTER TestClient enter", worker)
         try:
             yield c
         finally:
-            # Always clear after the test, even on failure, so the next
-            # test starts from a clean rate-limit state.
             _auth_module._LOGIN_ATTEMPTS.clear()
-            # Clear Redis rate-limit keys. The rate limiter uses
-            # ``auth:ratelimit:{username}`` keys that persist across tests
-            # when Redis is available (CI runs Redis as a service container).
-            # Without this clear, test_login_rate_limiting fills the counter
-            # for username "ratelimituser", and subsequent tests that register
-            # users with the same name hit 429.
-            with contextlib.suppress(Exception):
-                r = _auth_module._get_redis_client()
-                if r is not None:
-                    # Clear Redis rate-limit keys. The rate limiter uses
-                    # ``auth:ratelimit:{username}`` keys that persist across
-                    # tests when Redis is available.
-                    import asyncio as _asyncio
-
-                    loop = _asyncio.get_event_loop_policy().get_event_loop()
-                    if not loop.is_closed():
-
-                        async def _clear_rate_limit_keys() -> None:
-                            async for k in r.scan_iter(match="auth:ratelimit:*", count=100):
-                                await r.delete(k)
-
-                        loop.run_until_complete(_clear_rate_limit_keys())
+            _clear_redis_rate_limits()
             if debug_loop:
-                try:
-                    loop = asyncio.get_event_loop_policy().get_event_loop()
-                    print(f"[LOOP-DBG {worker}] client fixture AFTER yield — loop={id(loop)} closed={loop.is_closed()}")
-                except RuntimeError as exc:
-                    print(f"[LOOP-DBG {worker}] client fixture AFTER yield — RuntimeError: {exc}")
+                _debug_loop_msg("client fixture AFTER yield", worker)
 
 
 def _register_user(

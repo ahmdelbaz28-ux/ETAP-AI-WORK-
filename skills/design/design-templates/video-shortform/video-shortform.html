@@ -599,7 +599,7 @@
     videoWrap.classList.toggle('fisheye', f.id === 'fisheye');
 
     stage.classList.remove('flash');
-    void stage.offsetWidth;
+    stage.offsetWidth;
     stage.classList.add('flash');
 
     [...list.children].forEach((el, i) => {
@@ -620,7 +620,7 @@
     $('filterLabel').textContent = f.label;
 
     reticle.classList.remove('focus');
-    void reticle.offsetWidth;
+    reticle.offsetWidth;
     reticle.classList.add('focus');
   }
 
@@ -674,7 +674,7 @@
     reticle.style.top = y + 'px';
     reticle.style.left = x + 'px';
     reticle.classList.remove('focus');
-    void reticle.offsetWidth;
+    reticle.offsetWidth;
     reticle.style.transition = '';
     reticle.classList.add('focus');
     setTimeout(() => {

@@ -489,7 +489,7 @@
 
       if (broadcast) {
         // (1) Legacy: host-window postMessage for speaker-notes renderers.
-        try { window.postMessage({ slideIndexChanged: curr }, '*'); } catch (e) {}
+        try { window.postMessage({ slideIndexChanged: curr }, window.location.origin); } catch (e) {}
 
         // (2) In-page CustomEvent on the <deck-stage> element itself.
         //     Bubbles and composes out of shadow DOM so slide code can listen:

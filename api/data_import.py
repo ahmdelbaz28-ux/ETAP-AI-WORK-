@@ -170,6 +170,104 @@ def _detect_format(filename: str) -> SupportedFormat:
 
 
 # ---------------------------------------------------------------------------
+# Shared helpers
+# ---------------------------------------------------------------------------
+
+def _decode_text(content: bytes) -> tuple[str, list[str]]:
+    """Decode bytes to str, trying UTF-8 BOM first, falling back to Latin-1."""
+    warnings: list[str] = []
+    try:
+        text = content.decode("utf-8-sig")
+    except UnicodeDecodeError:
+        text = content.decode("latin-1")
+        warnings.append(_DECODE_WARNING)
+    return text, warnings
+
+
+def _make_bus_record(row: dict[str, str]) -> BusRecord:
+    """Build a BusRecord from a CSV DictReader row."""
+    return BusRecord(
+        id=str(row.get("id", "")).strip(),
+        name=(row.get("name") or "").strip() or None,
+        voltage_kv=float(row["voltage_kv"]) if row.get("voltage_kv") else None,
+        type=(row.get("type") or "").strip() or None,
+    )
+
+
+def _make_branch_record(row: dict[str, str]) -> BranchRecord:
+    """Build a BranchRecord from a CSV DictReader row."""
+    return BranchRecord(
+        id=str(row.get("id", uuid.uuid4().hex[:8])).strip(),
+        from_bus=(row.get("from_bus") or row.get("from") or "").strip(),
+        to_bus=(row.get("to_bus") or row.get("to") or "").strip(),
+        type=(row.get("type") or "").strip() or None,
+        r_pu=float(row["r_pu"]) if row.get("r_pu") else None,
+        x_pu=float(row["x_pu"]) if row.get("x_pu") else None,
+        rating_mva=float(row["rating_mva"]) if row.get("rating_mva") else None,
+    )
+
+
+def _json_bus_record(b: dict[str, Any]) -> BusRecord:
+    """Build a BusRecord from a JSON dict."""
+    return BusRecord(
+        id=str(b.get("id") or b.get("name") or uuid.uuid4().hex[:8]),
+        name=b.get("name"),
+        voltage_kv=float(b["voltage_kv"]) if b.get("voltage_kv") is not None else None,
+        type=b.get("type"),
+    )
+
+
+def _json_branch_record(br: dict[str, Any]) -> BranchRecord:
+    """Build a BranchRecord from a JSON dict."""
+    return BranchRecord(
+        id=str(br.get("id") or uuid.uuid4().hex[:8]),
+        from_bus=str(br.get("from_bus") or br.get("from") or br.get("source") or ""),
+        to_bus=str(br.get("to_bus") or br.get("to") or br.get("target") or ""),
+        type=br.get("type"),
+        r_pu=float(br["r_pu"]) if br.get("r_pu") is not None else None,
+        x_pu=float(br["x_pu"]) if br.get("x_pu") is not None else None,
+        rating_mva=float(br["rating_mva"]) if br.get("rating_mva") is not None else None,
+    )
+
+
+_BUS_TYPE_MAP: dict[int, str] = {1: "PQ", 2: "PV", 3: "SLACK", 4: "ISOLATED"}
+
+
+def _psse_bus_record(parts: list[str], line_num: int, warnings: list[str]) -> BusRecord | None:
+    """Parse a single PSS/E bus line into a BusRecord, or None on failure."""
+    if len(parts) < 3:
+        return None
+    try:
+        bus_id = parts[0].strip().strip("'\"")
+        name = parts[1].strip().strip("'\"")
+        voltage = float(parts[2]) if parts[2] else None
+        type_code = int(parts[3]) if len(parts) > 3 and parts[3] else 1
+        return BusRecord(
+            id=bus_id, name=name or None, voltage_kv=voltage,
+            type=_BUS_TYPE_MAP.get(type_code, "PQ"),
+        )
+    except (ValueError, IndexError):
+        warnings.append(f"Bus line {line_num}: skipped (parse error)")
+        return None
+
+
+def _extract_rdf_id(elem: Any) -> str | None:
+    """Extract the RDF ID attribute from an XML element."""
+    for attr_key, attr_val in elem.attrib.items():
+        if attr_key.split("}")[-1] == "ID":
+            return attr_val
+    return None
+
+
+def _extract_child_text(elem: Any, local_tag: str) -> str | None:
+    """Extract text of a child element matching a local tag name."""
+    for child in elem:
+        if child.tag.split("}")[-1] == local_tag:
+            return child.text
+    return None
+
+
+# ---------------------------------------------------------------------------
 # Parsers
 # ---------------------------------------------------------------------------
 
@@ -179,15 +277,7 @@ def _parse_csv(content: bytes) -> tuple[list[BusRecord], list[BranchRecord], dic
     Bus CSV columns: id, name, voltage_kv, type
     Branch CSV columns: id, from_bus, to_bus, type, r_pu, x_pu, rating_mva
     """
-    warnings: list[str] = []
-    buses: list[BusRecord] = []
-    branches: list[BranchRecord] = []
-
-    try:
-        text = content.decode("utf-8-sig")  # strip BOM if present
-    except UnicodeDecodeError:
-        text = content.decode("latin-1")
-        warnings.append(_DECODE_WARNING)
+    text, warnings = _decode_text(content)
 
     reader = csv.DictReader(io.StringIO(text))
     if not reader.fieldnames:
@@ -198,30 +288,9 @@ def _parse_csv(content: bytes) -> tuple[list[BusRecord], list[BranchRecord], dic
     is_branch = {"from_bus", "to_bus"} <= fields or {"from", "to"} <= fields
 
     if is_bus:
-        for row in reader:
-            try:
-                buses.append(BusRecord(
-                    id=str(row.get("id", "")).strip(),
-                    name=(row.get("name") or "").strip() or None,
-                    voltage_kv=float(row["voltage_kv"]) if row.get("voltage_kv") else None,
-                    type=(row.get("type") or "").strip() or None,
-                ))
-            except (ValueError, KeyError) as e:
-                warnings.append(f"Row {reader.line_num}: skipped ({e})")
+        buses, branches = _parse_csv_buses(reader, warnings), []
     elif is_branch:
-        for row in reader:
-            try:
-                branches.append(BranchRecord(
-                    id=str(row.get("id", uuid.uuid4().hex[:8])).strip(),
-                    from_bus=(row.get("from_bus") or row.get("from") or "").strip(),
-                    to_bus=(row.get("to_bus") or row.get("to") or "").strip(),
-                    type=(row.get("type") or "").strip() or None,
-                    r_pu=float(row["r_pu"]) if row.get("r_pu") else None,
-                    x_pu=float(row["x_pu"]) if row.get("x_pu") else None,
-                    rating_mva=float(row["rating_mva"]) if row.get("rating_mva") else None,
-                ))
-            except (ValueError, KeyError) as e:
-                warnings.append(f"Row {reader.line_num}: skipped ({e})")
+        buses, branches = [], _parse_csv_branches(reader, warnings)
     else:
         raise ValueError(
             "CSV must have either bus columns (id, name, voltage_kv, type) "
@@ -231,14 +300,33 @@ def _parse_csv(content: bytes) -> tuple[list[BusRecord], list[BranchRecord], dic
     return buses, branches, {"row_count": len(buses) + len(branches)}, warnings
 
 
+def _parse_csv_buses(reader: csv.DictReader, warnings: list[str]) -> list[BusRecord]:
+    """Parse bus rows from a CSV reader."""
+    buses: list[BusRecord] = []
+    for row in reader:
+        try:
+            buses.append(_make_bus_record(row))
+        except (ValueError, KeyError) as e:
+            warnings.append(f"Row {reader.line_num}: skipped ({e})")
+    return buses
+
+
+def _parse_csv_branches(reader: csv.DictReader, warnings: list[str]) -> list[BranchRecord]:
+    """Parse branch rows from a CSV reader."""
+    branches: list[BranchRecord] = []
+    for row in reader:
+        try:
+            branches.append(_make_branch_record(row))
+        except (ValueError, KeyError) as e:
+            warnings.append(f"Row {reader.line_num}: skipped ({e})")
+    return branches
+
+
 def _parse_json(content: bytes) -> tuple[list[BusRecord], list[BranchRecord], dict[str, Any], list[str]]:
     """Parse a JSON file. Accepts either ETAP-style or generic {buses, branches} format."""
-    warnings: list[str] = []
+    text, warnings = _decode_text(content)
     try:
-        data = json.loads(content.decode("utf-8-sig"))
-    except UnicodeDecodeError:
-        data = json.loads(content.decode("latin-1"))
-        warnings.append(_DECODE_WARNING)
+        data = json.loads(text)
     except json.JSONDecodeError as e:
         raise ValueError(f"Invalid JSON: {e}") from e
 
@@ -248,211 +336,165 @@ def _parse_json(content: bytes) -> tuple[list[BusRecord], list[BranchRecord], di
     buses_raw = data.get("buses") or data.get("nodes") or data.get("bus_list") or []
     branches_raw = data.get("branches") or data.get("lines") or data.get("branch_list") or []
 
-    buses: list[BusRecord] = []
-    for b in buses_raw:
-        if not isinstance(b, dict):
-            continue
-        buses.append(BusRecord(
-            id=str(b.get("id") or b.get("name") or uuid.uuid4().hex[:8]),
-            name=b.get("name"),
-            voltage_kv=float(b["voltage_kv"]) if b.get("voltage_kv") is not None else None,
-            type=b.get("type"),
-        ))
-
-    branches: list[BranchRecord] = []
-    for br in branches_raw:
-        if not isinstance(br, dict):
-            continue
-        branches.append(BranchRecord(
-            id=str(br.get("id") or uuid.uuid4().hex[:8]),
-            from_bus=str(br.get("from_bus") or br.get("from") or br.get("source") or ""),
-            to_bus=str(br.get("to_bus") or br.get("to") or br.get("target") or ""),
-            type=br.get("type"),
-            r_pu=float(br["r_pu"]) if br.get("r_pu") is not None else None,
-            x_pu=float(br["x_pu"]) if br.get("x_pu") is not None else None,
-            rating_mva=float(br["rating_mva"]) if br.get("rating_mva") is not None else None,
-        ))
+    buses = [_json_bus_record(b) for b in buses_raw if isinstance(b, dict)]
+    branches = [_json_branch_record(br) for br in branches_raw if isinstance(br, dict)]
 
     return buses, branches, {"key_count": len(data)}, warnings
 
 
 def _parse_psse_raw(content: bytes) -> tuple[list[BusRecord], list[BranchRecord], dict[str, Any], list[str]]:
     """Parse a PSS/E .raw file. Extracts bus data (first section) and branch data (third section)."""
-    warnings: list[str] = []
-    try:
-        text = content.decode("utf-8-sig")
-    except UnicodeDecodeError:
-        text = content.decode("latin-1")
-
+    text, warnings = _decode_text(content)
     lines = text.splitlines()
     if len(lines) < 3:
         raise ValueError("PSS/E RAW file too short — needs at least header + bus data")
 
-    # Header: / END OF DATA, SYSTEM DATA, etc. The first non-blank line is the case ID.
-    # Skip until we find the bus data section (after the header lines).
+    base_mva = _parse_psse_header(lines)
+    buses = _parse_psse_buses(lines, warnings)
+    return buses, [], {"base_mva": base_mva, "bus_count": len(buses)}, warnings
+
+
+def _parse_psse_header(lines: list[str]) -> float:
+    """Extract base MVA from the PSS/E header (second line)."""
+    if len(lines) < 2:
+        return 100.0
+    parts = lines[1].strip().split(",")
+    if len(parts) >= 2:
+        try:
+            return float(parts[1].strip())
+        except ValueError:
+            pass
+    return 100.0
+
+
+def _parse_psse_buses(lines: list[str], warnings: list[str]) -> list[BusRecord]:
+    """Extract bus records from PSS/E lines after the header."""
     buses: list[BusRecord] = []
-    branches: list[BranchRecord] = []
-
-    # Find section markers: 0 = bus, 1 = load, 2 = generator, 3 = branch, ...
-    # PSS/E RAW format:
-    # Line 1: case ID, / ending with comment
-    # Line 2: system data (freq, base MVA)
-    # Then buses until '0 /  END OF BUS DATA'
-    # Then loads, generators, etc.
-
-    section = "header"
-    base_mva = 100.0
+    in_bus_section = False
     for i, line in enumerate(lines):
         stripped = line.strip()
         if not stripped:
             continue
-        if section == "header":
-            if "END OF" in stripped.upper() and "BUS" in stripped.upper():
-                section = "bus"
-                continue
-            # Try to extract base MVA from second line
-            if i == 1:
-                parts = stripped.split(",")
-                if len(parts) >= 2:
-                    try:
-                        base_mva = float(parts[1].strip())
-                    except ValueError:
-                        pass
+        upper = stripped.upper()
+        if "END OF" in upper and "BUS" in upper:
+            in_bus_section = True
             continue
-        if section == "bus":
-            if "END OF" in stripped.upper():
-                section = "load"
-                continue
-            # Bus format: BUS_I, NAME, BASKV, IDE
-            parts = [p.strip() for p in line.split(",")]
-            if len(parts) >= 3:
-                try:
-                    bus_id = parts[0].strip().strip("'\"")
-                    name = parts[1].strip().strip("'\"")
-                    voltage = float(parts[2]) if parts[2] else None
-                    bus_type = {1: "PQ", 2: "PV", 3: "SLACK", 4: "ISOLATED"}.get(int(parts[3]) if len(parts) > 3 and parts[3] else 1, "PQ")
-                    buses.append(BusRecord(id=bus_id, name=name or None, voltage_kv=voltage, type=bus_type))
-                except (ValueError, IndexError):
-                    warnings.append(f"Bus line {i+1}: skipped (parse error)")
-
-    return buses, branches, {"base_mva": base_mva, "bus_count": len(buses)}, warnings
+        if not in_bus_section:
+            continue
+        if "END OF" in upper:
+            break
+        parts = [p.strip() for p in line.split(",")]
+        record = _psse_bus_record(parts, i + 1, warnings)
+        if record is not None:
+            buses.append(record)
+    return buses
 
 
 def _parse_matpower(content: bytes) -> tuple[list[BusRecord], list[BranchRecord], dict[str, Any], list[str]]:
     """Parse a MATPOWER .m case file. Extracts mpc.bus and mpc.branch matrices."""
-    warnings: list[str] = []
-    try:
-        text = content.decode("utf-8-sig")
-    except UnicodeDecodeError:
-        text = content.decode("latin-1")
+    text, warnings = _decode_text(content)
 
-    buses: list[BusRecord] = []
-    branches: list[BranchRecord] = []
-    base_mva = 100.0
-
-    # Match mpc.baseMVA = 100;
-    m = re.search(r"mpc\.baseMVA\s*=\s*([\d.]+)\s*;", text)
-    if m:
-        try:
-            base_mva = float(m.group(1))
-        except ValueError:
-            pass
-
-    # Match mpc.bus = [...]; — extract the matrix contents
-    bus_match = re.search(r"mpc\.bus\s*=\s*\[(.*?)\]\s*;", text, re.DOTALL)
-    if bus_match:
-        matrix_text = bus_match.group(1)
-        for line in matrix_text.splitlines():
-            line = line.strip().rstrip(";").strip()
-            if not line or line.startswith("%"):
-                continue
-            parts = re.split(r"\s+", line)
-            if len(parts) >= 3:
-                try:
-                    bus_id = parts[0]
-                    bus_type = {1: "PQ", 2: "PV", 3: "SLACK", 4: "ISOLATED"}.get(int(parts[1]), "PQ")
-                    voltage = float(parts[2]) if parts[2] else None
-                    buses.append(BusRecord(id=bus_id, type=bus_type, voltage_kv=voltage))
-                except (ValueError, IndexError):
-                    continue
-
-    branch_match = re.search(r"mpc\.branch\s*=\s*\[(.*?)\]\s*;", text, re.DOTALL)
-    if branch_match:
-        matrix_text = branch_match.group(1)
-        for line in matrix_text.splitlines():
-            line = line.strip().rstrip(";").strip()
-            if not line or line.startswith("%"):
-                continue
-            parts = re.split(r"\s+", line)
-            if len(parts) >= 4:
-                try:
-                    branches.append(BranchRecord(
-                        id=str(uuid.uuid4().hex[:8]),
-                        from_bus=parts[0],
-                        to_bus=parts[1],
-                        r_pu=float(parts[2]),
-                        x_pu=float(parts[3]),
-                    ))
-                except (ValueError, IndexError):
-                    continue
+    base_mva = _parse_matpower_base_mva(text)
+    buses = _parse_matpower_buses(text)
+    branches = _parse_matpower_branches(text)
 
     return buses, branches, {"base_mva": base_mva, "bus_count": len(buses), "branch_count": len(branches)}, warnings
 
 
+def _parse_matpower_base_mva(text: str) -> float:
+    """Extract base MVA from a MATPOWER case file."""
+    m = re.search(r"mpc\.baseMVA\s*=\s*([\d.]+)\s*;", text)
+    if m:
+        try:
+            return float(m.group(1))
+        except ValueError:
+            pass
+    return 100.0
+
+
+def _parse_matpower_buses(text: str) -> list[BusRecord]:
+    """Extract bus records from a MATPOWER case file."""
+    buses: list[BusRecord] = []
+    bus_match = re.search(r"mpc\.bus\s*=\s*\[(.*?)\]\s*;", text, re.DOTALL)
+    if not bus_match:
+        return buses
+    for line in bus_match.group(1).splitlines():
+        line = line.strip().rstrip(";").strip()
+        if not line or line.startswith("%"):
+            continue
+        parts = re.split(r"\s+", line)
+        try:
+            if len(parts) >= 3:
+                buses.append(BusRecord(
+                    id=parts[0],
+                    type=_BUS_TYPE_MAP.get(int(parts[1]), "PQ"),
+                    voltage_kv=float(parts[2]) if parts[2] else None,
+                ))
+        except (ValueError, IndexError):
+            continue
+    return buses
+
+
+def _parse_matpower_branches(text: str) -> list[BranchRecord]:
+    """Extract branch records from a MATPOWER case file."""
+    branches: list[BranchRecord] = []
+    branch_match = re.search(r"mpc\.branch\s*=\s*\[(.*?)\]\s*;", text, re.DOTALL)
+    if not branch_match:
+        return branches
+    for line in branch_match.group(1).splitlines():
+        line = line.strip().rstrip(";").strip()
+        if not line or line.startswith("%"):
+            continue
+        parts = re.split(r"\s+", line)
+        try:
+            if len(parts) >= 4:
+                branches.append(BranchRecord(
+                    id=str(uuid.uuid4().hex[:8]),
+                    from_bus=parts[0],
+                    to_bus=parts[1],
+                    r_pu=float(parts[2]),
+                    x_pu=float(parts[3]),
+                ))
+        except (ValueError, IndexError):
+            continue
+    return branches
+
+
 def _parse_cim_xml(content: bytes) -> tuple[list[BusRecord], list[BranchRecord], dict[str, Any], list[str]]:
     """Parse a CIM/XML file. Extracts TopologicalNode and ACLineSegment elements."""
-    warnings: list[str] = []
-    try:
-        text = content.decode("utf-8-sig")
-    except UnicodeDecodeError:
-        text = content.decode("latin-1")
-        warnings.append(_DECODE_WARNING)
+    text, warnings = _decode_text(content)
 
     buses: list[BusRecord] = []
     branches: list[BranchRecord] = []
 
     try:
-        root = ET.fromstring(text)  # nosec B314 — CIM/XML grid data is trusted input from authenticated file uploads, not user-supplied untrusted XML
+        root = ET.fromstring(text)  # nosec B314 — CIM/XML grid data is trusted input from authenticated file uploads
         for elem in root.iter():
             tag_local = elem.tag.split("}")[-1]
             if tag_local == "TopologicalNode":
-                rdf_id = None
-                for attr_key, attr_val in elem.attrib.items():
-                    if attr_key.split("}")[-1] == "ID":
-                        rdf_id = attr_val
-                        break
-
-                name = None
-                for child in elem:
-                    if child.tag.split("}")[-1] == "IdentifiedObject.name":
-                        name = child.text
-                        break
-                buses.append(BusRecord(id=rdf_id or "", name=name))
-
+                _cim_add_bus(elem, buses)
             elif tag_local == "ACLineSegment":
-                line_id = None
-                for attr_key, attr_val in elem.attrib.items():
-                    if attr_key.split("}")[-1] == "ID":
-                        line_id = attr_val
-                        break
-
-                name = None
-                for child in elem:
-                    if child.tag.split("}")[-1] == "IdentifiedObject.name":
-                        name = child.text
-                        break
-                branches.append(BranchRecord(
-                    id=line_id or "",
-                    from_bus="",
-                    to_bus="",
-                    type="LINE",
-                ))
-                if name:
-                    warnings.append(f"Line {line_id} ({name}): terminals not resolved (CIM Terminal references require full RDF parsing)")
+                _cim_add_branch(elem, branches, warnings)
     except Exception as e:
         raise ValueError(f"Failed to parse CIM XML: {e}") from e
 
     return buses, branches, {"cim_version": "IEC 61970"}, warnings
+
+
+def _cim_add_bus(elem: Any, buses: list[BusRecord]) -> None:
+    """Extract a CIM TopologicalNode element and append a BusRecord."""
+    rdf_id = _extract_rdf_id(elem)
+    name = _extract_child_text(elem, "IdentifiedObject.name")
+    buses.append(BusRecord(id=rdf_id or "", name=name))
+
+
+def _cim_add_branch(elem: Any, branches: list[BranchRecord], warnings: list[str]) -> None:
+    """Extract a CIM ACLineSegment element and append a BranchRecord."""
+    line_id = _extract_rdf_id(elem)
+    name = _extract_child_text(elem, "IdentifiedObject.name")
+    branches.append(BranchRecord(id=line_id or "", from_bus="", to_bus="", type="LINE"))
+    if name:
+        warnings.append(f"Line {line_id} ({name}): terminals not resolved (CIM Terminal references require full RDF parsing)")
 
 
 # ---------------------------------------------------------------------------

@@ -62,115 +62,63 @@ export function getProviderLatency(): Record<string, { avgMs: number; failureRat
   return out;
 }
 
+/** Provider descriptor for config lookup. */
+interface ProviderDescriptor {
+  envKey: string;
+  baseUrlKey: string;
+  modelKey: string;
+  /** For providers that need extra env vars (e.g. account ID). */
+  extraKeys?: string[];
+  /** Transform base URL at runtime (e.g. placeholder substitution). */
+  transformBaseUrl?: (url: string, env: Env) => string;
+}
+
+/** Registry of all built-in providers and how to read their env vars. */
+const PROVIDER_REGISTRY: Record<string, ProviderDescriptor> = {
+  openai:       { envKey: 'OPENAI_API_KEY',       baseUrlKey: 'OPENAI_BASE_URL',       modelKey: 'OPENAI_MODEL' },
+  nvidia:       { envKey: 'NVIDIA_API_KEY',        baseUrlKey: 'NVIDIA_BASE_URL',       modelKey: 'NVIDIA_MODEL' },
+  fireworks:    { envKey: 'FIREWORKS_API_KEY',     baseUrlKey: 'FIREWORKS_BASE_URL',    modelKey: 'FIREWORKS_MODEL' },
+  'github-models': { envKey: 'GITHUB_MODELS_API_KEY', baseUrlKey: 'GITHUB_MODELS_BASE_URL', modelKey: 'GITHUB_MODELS_MODEL' },
+  modal:        { envKey: 'MODAL_API_KEY',         baseUrlKey: 'MODAL_BASE_URL',        modelKey: 'MODAL_MODEL' },
+  openmodel:    { envKey: 'OPENMODEL_API_KEY',     baseUrlKey: 'OPENMODEL_BASE_URL',    modelKey: 'OPENMODEL_MODEL' },
+  render:       { envKey: 'RENDER_API_KEY',        baseUrlKey: 'RENDER_BASE_URL',       modelKey: 'RENDER_MODEL' },
+  zenmux:       { envKey: 'ZENMUX_API_KEY',        baseUrlKey: 'ZENMUX_BASE_URL',       modelKey: 'ZENMUX_MODEL' },
+  bynara:       { envKey: 'BYNARA_API_KEY',        baseUrlKey: 'BYNARA_BASE_URL',       modelKey: 'BYNARA_MODEL' },
+  cloudflare:   {
+    envKey: 'CLOUDFLARE_API_KEY',
+    baseUrlKey: 'CLOUDFLARE_BASE_URL',
+    modelKey: 'CLOUDFLARE_MODEL',
+    extraKeys: ['CLOUDFLARE_ACCOUNT_ID'],
+    transformBaseUrl: (url, env) => url.replace('PLACEHOLDER', env.CLOUDFLARE_ACCOUNT_ID || ''),
+  },
+};
+
 function _getProviderConfig(env: Env, name: string): ProviderConfig | null {
-  switch (name) {
-    case 'openai': {
-      const apiKey = env.OPENAI_API_KEY;
-      if (!apiKey) return null;
-      return {
-        name: 'openai',
-        apiKey,
-        baseURL: env.OPENAI_BASE_URL || BUILTIN_BASE_URLS.openai,
-        model: env.OPENAI_MODEL || BUILTIN_MODELS.openai,
-      };
+  const desc = PROVIDER_REGISTRY[name];
+  if (!desc) return null;
+
+  const e = env as Record<string, string | undefined>;
+  const apiKey = e[desc.envKey];
+  if (!apiKey) return null;
+
+  // Check any extra required keys
+  if (desc.extraKeys) {
+    for (const k of desc.extraKeys) {
+      if (!e[k]) return null;
     }
-    case 'nvidia': {
-      const apiKey = env.NVIDIA_API_KEY;
-      if (!apiKey) return null;
-      return {
-        name: 'nvidia',
-        apiKey,
-        baseURL: env.NVIDIA_BASE_URL || BUILTIN_BASE_URLS.nvidia,
-        model: env.NVIDIA_MODEL || BUILTIN_MODELS.nvidia,
-      };
-    }
-    case 'fireworks': {
-      const apiKey = env.FIREWORKS_API_KEY;
-      if (!apiKey) return null;
-      return {
-        name: 'fireworks',
-        apiKey,
-        baseURL: env.FIREWORKS_BASE_URL || BUILTIN_BASE_URLS.fireworks,
-        model: env.FIREWORKS_MODEL || BUILTIN_MODELS.fireworks,
-      };
-    }
-    case 'github-models': {
-      const apiKey = env.GITHUB_MODELS_API_KEY;
-      if (!apiKey) return null;
-      return {
-        name: 'github-models',
-        apiKey,
-        baseURL: env.GITHUB_MODELS_BASE_URL || BUILTIN_BASE_URLS['github-models'],
-        model: env.GITHUB_MODELS_MODEL || BUILTIN_MODELS['github-models'],
-      };
-    }
-    case 'modal': {
-      const apiKey = env.MODAL_API_KEY;
-      if (!apiKey) return null;
-      return {
-        name: 'modal',
-        apiKey,
-        baseURL: env.MODAL_BASE_URL || BUILTIN_BASE_URLS.modal,
-        model: env.MODAL_MODEL || BUILTIN_MODELS.modal,
-      };
-    }
-    case 'openmodel': {
-      const apiKey = env.OPENMODEL_API_KEY;
-      if (!apiKey) return null;
-      return {
-        name: 'openmodel',
-        apiKey,
-        baseURL: env.OPENMODEL_BASE_URL || BUILTIN_BASE_URLS.openmodel,
-        model: env.OPENMODEL_MODEL || BUILTIN_MODELS.openmodel,
-      };
-    }
-    case 'render': {
-      const apiKey = env.RENDER_API_KEY;
-      if (!apiKey) return null;
-      return {
-        name: 'render',
-        apiKey,
-        baseURL: env.RENDER_BASE_URL || BUILTIN_BASE_URLS.render,
-        model: env.RENDER_MODEL || BUILTIN_MODELS.render,
-      };
-    }
-    case 'zenmux': {
-      const apiKey = env.ZENMUX_API_KEY;
-      if (!apiKey) return null;
-      return {
-        name: 'zenmux',
-        apiKey,
-        baseURL: env.ZENMUX_BASE_URL || BUILTIN_BASE_URLS.zenmux,
-        model: env.ZENMUX_MODEL || BUILTIN_MODELS.zenmux,
-      };
-    }
-    case 'bynara': {
-      const apiKey = env.BYNARA_API_KEY;
-      if (!apiKey) return null;
-      return {
-        name: 'bynara',
-        apiKey,
-        baseURL: env.BYNARA_BASE_URL || BUILTIN_BASE_URLS.bynara,
-        model: env.BYNARA_MODEL || BUILTIN_MODELS.bynara,
-      };
-    }
-    case 'cloudflare': {
-      const apiKey = env.CLOUDFLARE_API_KEY;
-      const accountId = env.CLOUDFLARE_ACCOUNT_ID;
-      if (!apiKey || !accountId) return null;
-      // Resolve the account ID placeholder in the base URL at runtime
-      const baseURL = (env.CLOUDFLARE_BASE_URL || BUILTIN_BASE_URLS.cloudflare)
-        .replace('PLACEHOLDER', accountId);
-      return {
-        name: 'cloudflare',
-        apiKey,
-        baseURL,
-        model: env.CLOUDFLARE_MODEL || BUILTIN_MODELS.cloudflare,
-      };
-    }
-    default:
-      return null;
   }
+
+  let baseURL = e[desc.baseUrlKey] || BUILTIN_BASE_URLS[name as keyof typeof BUILTIN_BASE_URLS];
+  if (desc.transformBaseUrl) {
+    baseURL = desc.transformBaseUrl(baseURL!, env);
+  }
+
+  return {
+    name,
+    apiKey,
+    baseURL: baseURL!,
+    model: e[desc.modelKey] || BUILTIN_MODELS[name as keyof typeof BUILTIN_MODELS],
+  };
 }
 
 function _listConfiguredProviders(env: Env): ProviderConfig[] {
