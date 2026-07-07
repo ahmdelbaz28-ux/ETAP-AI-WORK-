@@ -1,7 +1,13 @@
+# NOTE: This file lives at docs/mkdocs.yml (NOT at repo root) so that Vercel
+# does NOT auto-detect MkDocs as the deployment framework. The Vercel project
+# is configured (via /vercel.json) to build the Vite/React UI in ui/ instead.
+# To serve docs locally, run:  mkdocs serve -f docs/mkdocs.yml
+# To build docs locally,  run:  mkdocs build -f docs/mkdocs.yml
 site_name: AhmedETAP Documentation
 site_description: Enterprise AI-Powered Power Systems Engineering Platform
 site_author: AhmedETAP Team
 repo_url: https://github.com/ahmdelbaz28-ux/ETAP-AI-WORK-
+docs_dir: .
 
 theme:
   name: material
