@@ -3,6 +3,8 @@ AI Context Engine - Code Indexer
 Implements Phase 1: Indexing with Tree-Sitter (or AST fallback) and ChromaDB.
 """
 
+from __future__ import annotations
+
 import argparse
 import ast
 import hashlib

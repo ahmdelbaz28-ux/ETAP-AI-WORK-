@@ -16,6 +16,8 @@ Standards:
 - IEEE 1547.1-2020: Conformance Test Procedures
 """
 
+from __future__ import annotations
+
 import logging
 from datetime import datetime, timezone
 

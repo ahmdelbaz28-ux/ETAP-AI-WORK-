@@ -3,6 +3,8 @@ AI Context Engine - Knowledge Graph
 Implements Phase 3: Explicit code relationships and dependency mapping (Code Property Graph).
 """
 
+from __future__ import annotations
+
 import ast
 import json
 import logging

@@ -14,6 +14,8 @@ Standards:
 - IEEE 81: Guide for Measuring Earth Resistivity
 """
 
+from __future__ import annotations
+
 import logging
 from datetime import datetime, timezone
 

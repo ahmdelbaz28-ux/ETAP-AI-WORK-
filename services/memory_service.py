@@ -8,7 +8,7 @@ graph-based relationship retrieval (Neo4j GraphRAG).
 import hashlib
 import logging
 import os
-from typing import Any
+from typing import Any, List, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -77,13 +77,13 @@ class DeterministicFallbackEmbeddings(Embeddings):
     def __init__(self, dimension: int = 1536):
         self.dimension = dimension
 
-    def embed_documents(self, texts: list[str]) -> list[list[float]]:
+    def embed_documents(self, texts: List[str]) -> List[List[float]]:
         return [self._embed(text) for text in texts]
 
-    def embed_query(self, text: str) -> list[float]:
+    def embed_query(self, text: str) -> List[float]:
         return self._embed(text)
 
-    def _embed(self, text: str) -> list[float]:
+    def _embed(self, text: str) -> List[float]:
         h = hashlib.sha256(text.encode("utf-8")).digest()
         vector = []
         for i in range(self.dimension):
@@ -204,7 +204,7 @@ class AIMemoryService:
             model=self.llm_model, base_url=self.openai_base_url, api_key=api_key, temperature=0,
         )
 
-    def add_knowledge_to_graph(self, text: str, allowed_nodes: list[str] | None = None) -> bool:
+    def add_knowledge_to_graph(self, text: str, allowed_nodes: Optional[List[str]] = None) -> bool:
         """Parse text, extract entities and relationships, and save them to Neo4j graph."""
         if not self._initialized_neo4j and not self.initialize_neo4j():
             logger.error("Neo4j not initialized.")

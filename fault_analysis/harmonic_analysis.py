@@ -15,6 +15,8 @@ Supports:
 Reference: IEEE 519-2022 "IEEE Standard for Harmonic Control in Electric Power Systems"
 """
 
+from __future__ import annotations
+
 import logging
 from dataclasses import dataclass
 from enum import Enum

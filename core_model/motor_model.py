@@ -12,6 +12,8 @@ Reference: IEEE Std 399 "IEEE Recommended Practice for Industrial and
 Commercial Power Systems Analysis" (Brown Book)
 """
 
+from __future__ import annotations
+
 from dataclasses import dataclass
 from typing import Optional
 

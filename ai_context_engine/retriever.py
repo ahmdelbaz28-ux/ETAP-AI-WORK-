@@ -3,6 +3,8 @@ AI Context Engine - Code Retriever and Compressor
 Implements Phase 2: Semantic retrieval from ChromaDB + Lexical & Semantic Compression (Pruning).
 """
 
+from __future__ import annotations
+
 import logging
 from pathlib import Path
 

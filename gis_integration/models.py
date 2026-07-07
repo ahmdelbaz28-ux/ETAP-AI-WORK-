@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Any
+from typing import Any, Dict
 
 from compat import StrEnum
 
@@ -9,7 +9,7 @@ from compat import StrEnum
 # Geometry & Feature Model
 # -----------------------------
 
-GeoJSONGeometry = dict[str, Any]
+GeoJSONGeometry = Dict[str, Any]
 
 
 @dataclass(frozen=True)

@@ -17,6 +17,8 @@ Standards:
 - IEEE 1584-2018: Guide for Performing Arc-Flash Hazard Calculations
 """
 
+from __future__ import annotations
+
 import logging
 from datetime import datetime, timezone
 

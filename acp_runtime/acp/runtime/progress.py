@@ -10,8 +10,8 @@ from __future__ import annotations
 
 import contextlib
 import time
-from collections.abc import Awaitable, Callable
 from dataclasses import dataclass, field
+from typing import Awaitable, Callable
 
 __all__ = ["ProgressEmitter", "ProgressEvent"]
 

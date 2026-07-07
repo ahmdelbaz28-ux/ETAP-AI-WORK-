@@ -14,7 +14,7 @@ solve_load_flow_sparse(buses, branches, options)
 from __future__ import annotations
 
 import logging
-from typing import Any, Union
+from typing import Any, Dict, Union
 
 import numpy as np
 
@@ -30,11 +30,11 @@ logger = logging.getLogger(__name__)
 
 # A bus can be provided as a BusData object, a core_model.Bus object,
 # or a plain dict with the required keys.
-BusInput = Union[dict[str, Any], Any]
+BusInput = Union[Dict[str, Any], Any]
 
 # A branch can be provided as a BranchData object, a core_model.Line /
 # Transformer object, or a plain dict.
-BranchInput = Union[dict[str, Any], Any]
+BranchInput = Union[Dict[str, Any], Any]
 
 
 # ---------------------------------------------------------------------------
