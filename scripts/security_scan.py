@@ -24,12 +24,20 @@ SECRET_PATTERNS = [
     (r'secret\s*=\s*["\'][^"\']+["\']', "Hardcoded secret"),
     (r'api[_-]?key\s*=\s*["\'][^"\']{16,}["\']', "Hardcoded API key"),
     (r"sk-[a-zA-Z0-9]{20,}", "OpenAI-style key"),
-    (r"ghp_[a-zA-Z0-9]{30,}", "GitHub PAT"),
+    (r"ghp_[a-zA-Z0-9]{30,}", "GitHub PAT (classic)"),
+    (r"github_pat_[A-Za-z0-9_]{50,}", "GitHub PAT (fine-grained v2)"),
+    (r"hf_[A-Za-z0-9]{30,}", "HuggingFace token"),
+    (r"vcp_[A-Za-z0-9]{40,}", "Vercel token"),
+    (r"sb_secret_[A-Za-z0-9_-]{30,}", "Supabase secret key"),
+    (r"sb_publishable_[A-Za-z0-9_-]{30,}", "Supabase publishable key"),
+    (r"sk-lf-[a-f0-9-]{30,}", "Langfuse secret key"),
+    (r"pk-lf-[a-f0-9-]{30,}", "Langfuse public key"),
+    (r"sk-lw-[A-Za-z0-9]{30,}", "LangWatch API key"),
     (r"admin123|password123|123456", "Weak default password"),
 ]
 
 EXCLUDED_DIRS = {".git", "__pycache__", "node_modules", ".venv", "venv", "output", "dist", "skills"}
-EXCLUDED_FILES = {".env.example", "security_scan.py", "README.md", "SECURITY.md"}
+EXCLUDED_FILES = {".env.example", "security_scan.py", "README.md", "SECURITY.md", "worklog.md", ".gitleaks.toml"}
 
 # Files where weak passwords / test secrets are intentional and audited.
 # Each entry is a path relative to repo root.

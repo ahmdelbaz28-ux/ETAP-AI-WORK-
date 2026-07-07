@@ -365,3 +365,7 @@ api/data_import_fixed.py
 api/projects_fixed.py
 api/settings_fixed.py
 
+
+# ─── Agent work logs (never commit — may contain operational secrets) ───
+worklog.md
+worklog*.md
