@@ -579,7 +579,14 @@ async def login(
     """
     await _check_rate_limit(body.username)
 
-    result = await db.execute(select(User).where(User.username == body.username))
+    # Accept either username or email as the login identifier. The frontend
+    # login form collects an "email" field and sends it as `username`, so the
+    # backend MUST match on email too — otherwise email-based logins always 401.
+    result = await db.execute(
+        select(User).where(
+            (User.username == body.username) | (User.email == body.username)
+        )
+    )
     user = result.scalar_one_or_none()
 
     if user is None or not _verify_password(body.password, user.password_hash):
