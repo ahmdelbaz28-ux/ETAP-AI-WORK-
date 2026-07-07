@@ -46,4 +46,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          mkdocs gh-deploy --force
+          # mkdocs.yml lives at docs/mkdocs.yml (NOT at repo root) so Vercel
+          # doesn't auto-detect MkDocs and override the Vite framework build.
+          # See DEPLOYMENT_FIX.md and SECURITY_INCIDENT_2026-07-08.md for context.
+          mkdocs gh-deploy --force -f docs/mkdocs.yml
