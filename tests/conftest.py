@@ -774,6 +774,15 @@ def client(app) -> Generator[TestClient, None, None]:
 
     _auth_module._LOGIN_ATTEMPTS.clear()
 
+    # Reset the Redis async client singleton. The client binds to the event
+    # loop current at creation time — when TestClient closes after a test,
+    # that loop closes, leaving _redis_client stale. The next test gets a
+    # new event loop (via new TestClient) but the stale client raises
+    # 'RuntimeError: Event loop is closed' on any Redis operation.
+    # Resetting here forces _get_redis_client() to create a fresh client
+    # bound to the new test's event loop.
+    _auth_module._redis_client = None
+
     debug_loop = _os.environ.get("DEBUG_EVENT_LOOP") == "1"
     if debug_loop:
         import asyncio

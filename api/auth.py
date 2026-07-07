@@ -84,15 +84,29 @@ except ImportError:
 _REDIS_URL = os.getenv("REDIS_URL", "").strip()
 _TOKEN_BLACKLIST_PREFIX = os.getenv("TOKEN_BLACKLIST_PREFIX", "auth:blacklist:")
 
-_redis_client = None
+# Redis async client singleton. NOTE: this client binds to the event loop
+# that is current when first created. In tests with TestClient, each test
+# gets a new event loop — so the singleton from a previous test becomes
+# stale and raises 'RuntimeError: Event loop is closed' on the next use.
+# The client fixture in tests/conftest.py resets this to None before each
+# test to force a fresh client on the new event loop.
+_redis_client: redis_async.Redis | None = None
 
 
 def _get_redis_client() -> redis_async.Redis | None:
+    """Return the shared async Redis client, or None if Redis is unavailable.
+
+    Reads REDIS_URL at call time (not import time) so tests using
+    ``patch.dict(os.environ, ...)`` can override the URL. This matches
+    the fix applied to ``core/redis_state.get_redis_state_client()`` in
+    PR #168.
+    """
     global _redis_client
-    if not _REDIS_URL or not REDIS_AVAILABLE:
+    redis_url = os.getenv("REDIS_URL", "").strip()
+    if not redis_url or not REDIS_AVAILABLE:
         return None
     if _redis_client is None:
-        _redis_client = redis_async.from_url(_REDIS_URL, decode_responses=True)
+        _redis_client = redis_async.from_url(redis_url, decode_responses=True)
     return _redis_client
 
 
