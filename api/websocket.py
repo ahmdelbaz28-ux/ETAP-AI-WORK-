@@ -7,6 +7,7 @@ import asyncio
 import json
 import logging
 from datetime import datetime, timezone
+from typing import List
 
 UTC = timezone.utc  # noqa: UP017
 
@@ -16,14 +17,14 @@ from starlette.websockets import WebSocketState
 logger = logging.getLogger(__name__)
 
 # Global list to store active WebSocket connections
-active_connections: list[WebSocket] = []
+active_connections: List[WebSocket] = []
 
 
 class SCADALiveFeed:
     """Manages real-time SCADA data broadcasting to WebSocket clients."""
 
     def __init__(self):
-        self.active_connections: list[WebSocket] = []
+        self.active_connections: List[WebSocket] = []
         self.is_broadcasting = False
         self.broadcast_task = None
 
