@@ -238,9 +238,12 @@ export default function DataImport() {
                 <div className="bg-amber-500/5 border border-amber-500/20 rounded-lg p-3">
                   <p className="text-xs font-medium text-amber-400 mb-1">Warnings ({result.warnings.length})</p>
                   <ul className="text-xs text-[var(--text-secondary)] space-y-0.5 max-h-32 overflow-y-auto">
-                    {result.warnings.slice(0, 10).map((w, i) => (
-                      <li key={i} className="font-mono">{w}</li>
-                    ))}
+{result.warnings.slice(0, 10).map((w, i) => {
+                       const warningKey = `warning-${i}-${w.substring(0, 20).replace(/\s/g, '_')}`
+                       return (
+                         <li key={warningKey} className="font-mono">{w}</li>
+                       )
+                     })}
                     {result.warnings.length > 10 && (
                       <li className="text-[var(--text-muted)] italic">... and {result.warnings.length - 10} more</li>
                     )}
@@ -252,9 +255,12 @@ export default function DataImport() {
                 <div className="bg-red-500/5 border border-red-500/20 rounded-lg p-3">
                   <p className="text-xs font-medium text-red-400 mb-1">Errors</p>
                   <ul className="text-xs text-[var(--text-secondary)] space-y-0.5">
-                    {result.errors.map((e, i) => (
-                      <li key={i} className="font-mono">{e}</li>
-                    ))}
+{result.errors.map((e, i) => {
+                       const errorKey = `error-${i}-${e.substring(0, 20).replace(/\s/g, '_')}`
+                       return (
+                         <li key={errorKey} className="font-mono">{e}</li>
+                       )
+                     })}
                   </ul>
                 </div>
               )}
@@ -275,14 +281,17 @@ export default function DataImport() {
                         </tr>
                       </thead>
                       <tbody>
-                        {result.buses.slice(0, 100).map((b, i) => (
-                          <tr key={i} className="border-t border-[var(--border-primary)]">
-                            <td className="p-2 font-mono text-[var(--text-primary)]">{b.id}</td>
-                            <td className="p-2 text-[var(--text-secondary)]">{b.name || '—'}</td>
-                            <td className="p-2 mono-engineering text-[var(--text-primary)]">{b.voltage_kv ?? '—'}</td>
-                            <td className="p-2 text-[var(--text-secondary)]">{b.type || '—'}</td>
-                          </tr>
-                        ))}
+{result.buses.slice(0, 100).map((b, i) => {
+                           const busKey = `bus-${b.id}-${i}`
+                           return (
+                             <tr key={busKey} className="border-t border-[var(--border-primary)]">
+                               <td className="p-2 font-mono text-[var(--text-primary)]">{b.id}</td>
+                               <td className="p-2 text-[var(--text-secondary)]">{b.name || '—'}</td>
+                               <td className="p-2 mono-engineering text-[var(--text-primary)]">{b.voltage_kv ?? '—'}</td>
+                               <td className="p-2 text-[var(--text-secondary)]">{b.type || '—'}</td>
+                             </tr>
+                           )
+                         })}
                       </tbody>
                     </table>
                   </div>

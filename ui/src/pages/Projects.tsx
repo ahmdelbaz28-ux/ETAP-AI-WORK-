@@ -258,6 +258,7 @@ export default function Projects() {
                 <h3 className="text-lg font-semibold text-[var(--text-primary)]">Create New Project</h3>
               </div>
               <button
+                type="button"
                 onClick={() => !submitting && setShowCreateModal(false)}
                 disabled={submitting}
                 className="p-1 rounded text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-primary)] disabled:opacity-50 transition-colors"
@@ -269,10 +270,11 @@ export default function Projects() {
 
             <div className="space-y-4">
               <div>
-                <label className="block text-xs font-medium text-[var(--text-secondary)] mb-1.5">
+                <label htmlFor="project-name" className="block text-xs font-medium text-[var(--text-secondary)] mb-1.5">
                   Project Name <span className="text-red-400">*</span>
                 </label>
                 <input
+                  id="project-name"
                   type="text"
                   value={form.name}
                   onChange={(e) => setForm(f => ({ ...f, name: e.target.value }))}
@@ -286,10 +288,11 @@ export default function Projects() {
                 />
               </div>
               <div>
-                <label className="block text-xs font-medium text-[var(--text-secondary)] mb-1.5">
+                <label htmlFor="project-description" className="block text-xs font-medium text-[var(--text-secondary)] mb-1.5">
                   Description
                 </label>
                 <textarea
+                  id="project-description"
                   value={form.description}
                   onChange={(e) => setForm(f => ({ ...f, description: e.target.value }))}
                   placeholder="e.g., Main industrial facility power system with 5 motors and 2 transformers"

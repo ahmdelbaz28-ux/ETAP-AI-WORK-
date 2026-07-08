@@ -20,6 +20,7 @@ URL="${1:-}"
 API_KEY="${2:-}"
 WORKER_NAME="${WORKER_NAME:-ahmed-etap}"
 STAGING_NAME="${STAGING_NAME:-ahmed-etap-staging}"
+DIVIDER='=========================================='
 
 if [[ -z "${URL}" ]]; then
   read -rp "Engineering Service public URL (e.g. https://eng-svc.example.com): " URL
@@ -37,14 +38,14 @@ if [[ -z "${API_KEY}" ]]; then
   echo
 fi
 
-echo "=========================================="
+echo "${DIVIDER}"
 echo " Wiring Engineering Service into Worker"
-echo "=========================================="
+echo "${DIVIDER}"
 echo "URL:         ${URL}"
 echo "API key:     ${API_KEY:+***set***}${API_KEY:-<not set>}"
 echo "Production:  ${WORKER_NAME}"
 echo "Staging:     ${STAGING_NAME}"
-echo "=========================================="
+echo "${DIVIDER}"
 
 # Make sure wrangler is available
 command -v npx >/dev/null 2>&1 || { echo "ERROR: npx not found" >&2; exit 1; }
@@ -108,6 +109,6 @@ let s=''; process.stdin.on('data',d=>s+=d); process.stdin.on('end',()=>{
 }
 
 echo
-echo "=========================================="
+echo "${DIVIDER}"
 echo " DONE — Worker is now wired to Engineering Service"
-echo "=========================================="
+echo "${DIVIDER}"

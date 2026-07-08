@@ -116,22 +116,25 @@ export default function DataExport() {
             subtitle="Previously exported files"
             icon={<Clock className="w-4 h-4" />}
           />
-          {loading ? (
+          {loading && (
             <div className="flex items-center justify-center h-20">
               <div className="w-5 h-5 border-2 border-[var(--accent-primary)] border-t-transparent rounded-full animate-spin" />
             </div>
-          ) : error ? (
+          )}
+          {error && !loading && (
             <div className="flex items-center gap-2 p-3 text-sm text-[var(--text-tertiary)]">
               <AlertCircle className="w-4 h-4 text-red-400" />
               <span>Failed to load exports: {error}</span>
             </div>
-          ) : recentExports.length === 0 ? (
+          )}
+          {!loading && !error && recentExports.length === 0 && (
             <div className="flex flex-col items-center gap-2 py-6 text-sm text-[var(--text-tertiary)]">
               <HardDrive className="w-6 h-6 text-[var(--text-muted)]" />
               <p>No exports yet.</p>
               <p className="text-xs text-[var(--text-muted)]">Export a study to see it here.</p>
             </div>
-          ) : (
+          )}
+          {!loading && !error && recentExports.length > 0 && (
           <div className="space-y-3">
             {recentExports.map((file) => (
               <div key={file.name} className="flex items-center justify-between p-3 bg-[var(--bg-primary)] rounded-lg border border-[var(--border-primary)]">

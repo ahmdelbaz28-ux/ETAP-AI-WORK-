@@ -209,15 +209,15 @@ export default function AssetManagement() {
 
       {/* Summary Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        {summaryCards.map((card, i) => (
+{summaryCards.map((card, i) => {
+          const iconColor = card.variant === 'success' ? 'text-green-400' :
+                          card.variant === 'warning' ? 'text-amber-400' :
+                          card.variant === 'danger' ? 'text-red-400' : 'text-[var(--text-tertiary)]'
+          return (
           <motion.div key={card.label} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 * i }}>
             <Card padding="md" className="text-center">
               <div className="flex items-center justify-center gap-2 mb-2">
-                <span className={cn(
-                  card.variant === 'success' ? 'text-green-400' :
-                  card.variant === 'warning' ? 'text-amber-400' :
-                  card.variant === 'danger' ? 'text-red-400' : 'text-[var(--text-tertiary)]'
-                )}>
+                <span className={cn(iconColor)}>
                   {card.icon}
                 </span>
                 <span className="text-xs text-[var(--text-muted)]">{card.label}</span>
@@ -225,7 +225,8 @@ export default function AssetManagement() {
               <p className="text-3xl font-bold text-[var(--text-primary)] mono-engineering">{card.count}</p>
             </Card>
           </motion.div>
-        ))}
+          )
+        })}
       </div>
 
       {/* Search/Filter Bar */}
@@ -347,9 +348,7 @@ export default function AssetManagement() {
             icon={<Cpu className="w-12 h-12" />}
             title={assets.length === 0 ? "No assets yet" : "No assets found"}
             description={
-              assets.length === 0
-                ? "Add your first electrical asset (transformer, generator, breaker, motor, line, or relay) to start tracking your power system inventory."
-                : search ? `No results for "${search}"` : 'No assets match the current filter'
+              search ? `No results for "${search}"` : 'No assets match the current filter'
             }
             action={
               assets.length === 0 ? (
@@ -404,10 +403,11 @@ export default function AssetManagement() {
 
             <div className="space-y-4">
               <div>
-                <label className="block text-xs font-medium text-[var(--text-secondary)] mb-1.5">
+                <label htmlFor="asset-name" className="block text-xs font-medium text-[var(--text-secondary)] mb-1.5">
                   Asset Name <span className="text-red-400">*</span>
                 </label>
                 <input
+                  id="asset-name"
                   type="text"
                   value={form.name}
                   onChange={(e) => setForm(f => ({ ...f, name: e.target.value }))}
@@ -419,8 +419,9 @@ export default function AssetManagement() {
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-medium text-[var(--text-secondary)] mb-1.5">Type</label>
+                  <label htmlFor="asset-type" className="block text-xs font-medium text-[var(--text-secondary)] mb-1.5">Type</label>
                   <select
+                    id="asset-type"
                     value={form.type}
                     onChange={(e) => setForm(f => ({ ...f, type: e.target.value }))}
                     disabled={submitting}
@@ -430,8 +431,9 @@ export default function AssetManagement() {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-[var(--text-secondary)] mb-1.5">Status</label>
+                  <label htmlFor="asset-status" className="block text-xs font-medium text-[var(--text-secondary)] mb-1.5">Status</label>
                   <select
+                    id="asset-status"
                     value={form.status}
                     onChange={(e) => setForm(f => ({ ...f, status: e.target.value }))}
                     disabled={submitting}
@@ -443,8 +445,9 @@ export default function AssetManagement() {
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-medium text-[var(--text-secondary)] mb-1.5">Rating</label>
+                  <label htmlFor="asset-rating" className="block text-xs font-medium text-[var(--text-secondary)] mb-1.5">Rating</label>
                   <input
+                    id="asset-rating"
                     type="text"
                     value={form.rating}
                     onChange={(e) => setForm(f => ({ ...f, rating: e.target.value }))}
@@ -454,8 +457,9 @@ export default function AssetManagement() {
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-[var(--text-secondary)] mb-1.5">Voltage</label>
+                  <label htmlFor="asset-voltage" className="block text-xs font-medium text-[var(--text-secondary)] mb-1.5">Voltage</label>
                   <input
+                    id="asset-voltage"
                     type="text"
                     value={form.voltage}
                     onChange={(e) => setForm(f => ({ ...f, voltage: e.target.value }))}
@@ -466,8 +470,9 @@ export default function AssetManagement() {
                 </div>
               </div>
               <div>
-                <label className="block text-xs font-medium text-[var(--text-secondary)] mb-1.5">Notes</label>
+                <label htmlFor="asset-notes" className="block text-xs font-medium text-[var(--text-secondary)] mb-1.5">Notes</label>
                 <textarea
+                  id="asset-notes"
                   value={form.notes}
                   onChange={(e) => setForm(f => ({ ...f, notes: e.target.value }))}
                   placeholder="Optional notes about this asset"

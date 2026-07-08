@@ -59,6 +59,16 @@ const fs = require('fs');
 const http = require('http');
 const https = require('https');
 
+// Secure random helper for unique filenames
+const crypto = require('crypto');
+function getRandomSuffix() {
+  return crypto.randomBytes(4).toString('hex').slice(0, 6);
+}
+
+// ── Constants for duplicated string literals ──
+const TRANSPARENT_RGBA = 'rgba(0, 0, 0, 0)';
+const TRANSPARENT_KEYWORD = 'transparent';
+
 const PT_PER_PX = 0.75;
 const PX_PER_IN = 96;
 const EMU_PER_IN = 914400;
@@ -308,7 +318,14 @@ function calculateWidthCompensation(el, slideWidthIn) {
     return 0;
   }
 
-  let f = isH ? COMPENSATION.HEADING_WIDTH : (el.position.w < slideWidthIn/3 && txt.length < 14 ? COMPENSATION.SINGLE_LINE_NARROW : COMPENSATION.SINGLE_LINE_NORMAL);
+  let f;
+  if (isH) {
+    f = COMPENSATION.HEADING_WIDTH;
+  } else if (el.position.w < slideWidthIn/3 && txt.length < 14) {
+    f = COMPENSATION.SINGLE_LINE_NARROW;
+  } else {
+    f = COMPENSATION.SINGLE_LINE_NORMAL;
+  }
   if (txt.length>0 && txt.length<10) f += COMPENSATION.SHORT_TEXT_EXTRA;
   // Extra punch for 1–5 char labels — these are the worst offenders for
   // wrapping when PPT swaps to a wider font (e.g. Inter→Carlito on "Apply"
@@ -390,7 +407,12 @@ function shouldUseNumericEmphasisText(text = "") {
 }
 
 function applyEmphasisFont(slideData, fontConfig = DEFAULT_FONT_CONFIG) {
-  const cfg = typeof fontConfig === "string" ? { ...DEFAULT_FONT_CONFIG, emphasis: fontConfig } : { ...DEFAULT_FONT_CONFIG, ...(fontConfig || {}) };
+  let cfg;
+  if (typeof fontConfig === "string") {
+    cfg = { ...DEFAULT_FONT_CONFIG, emphasis: fontConfig };
+  } else {
+    cfg = { ...DEFAULT_FONT_CONFIG, ...(fontConfig || {}) };
+  }
   for (const el of slideData.elements) {
     if (!["p","h1","h2","h3","h4","h5","h6"].includes(el.type)) continue;
     if (typeof el.text === "string") {
@@ -423,7 +445,9 @@ function applyEmphasisFont(slideData, fontConfig = DEFAULT_FONT_CONFIG) {
 // Helper: Fix image path if file extension doesn't match actual format
 function fixImageExtension(imagePath, tmpDir) {
   try {
-    const fd = fs.openSync(imagePath, 'r');
+    const resolvedPath = path.resolve(imagePath);
+    if (!fs.existsSync(resolvedPath)) return imagePath;
+    const fd = fs.openSync(resolvedPath, 'r');
     const buf = Buffer.alloc(12);
     fs.readSync(fd, buf, 0, 12, 0);
     fs.closeSync(fd);
@@ -441,9 +465,9 @@ function fixImageExtension(imagePath, tmpDir) {
       return imagePath;
     }
 
-    // Extension mismatch: copy with correct extension
-    const fixedPath = path.join(tmpDir, path.basename(imagePath, currentExt) + actualExt);
-    fs.copyFileSync(imagePath, fixedPath);
+    const safeBaseName = path.basename(imagePath, currentExt).replace(/[^a-zA-Z0-9._-]/g, '_');
+    const fixedPath = path.join(validateTmpDir(tmpDir), safeBaseName + actualExt);
+    fs.copyFileSync(resolvedPath, fixedPath);
     return fixedPath;
   } catch (e) {
     return imagePath;
@@ -478,7 +502,7 @@ async function rasterizeSvgImages(slideData, tmpDir) {
         // Target raster size: 2× the placed inch size at 96 DPI = 192 DPI
         const widthPx = Math.max(1, Math.round((el.position?.w || 1) * 192));
         const heightPx = Math.max(1, Math.round((el.position?.h || 1) * 192));
-        const filename = `h2p-svg-${Date.now()}-${Math.random().toString(36).slice(2, 8)}.png`;
+        const filename = `h2p-svg-${Date.now()}-${getRandomSuffix()}.png`;
         const outPath = path.join(tmpDir, filename);
         await sharp(svgBuffer, { density: 192 })
           .resize(widthPx, heightPx, { fit: 'fill' })
@@ -615,7 +639,7 @@ async function materializeObjectFitImages(slideData, tmpDir) {
       if (!meta.width || !meta.height) return;
 
       const pos = parseCssObjectPosition(el.objectPosition);
-      const filename = `h2p-fit-${Date.now()}-${Math.random().toString(36).slice(2, 8)}.png`;
+      const filename = `h2p-fit-${Date.now()}-${getRandomSuffix()}.png`;
       const outPath = path.join(tmpDir, filename);
 
       if (el.objectFit === 'cover') {
@@ -778,7 +802,12 @@ function addElements(slideData, targetSlide, pres, tmpDir) {
         if (el._skipReason) console.warn(`[html2pptx] image skipped — ${el._skipReason}`);
         continue;
       }
-      let imagePath = el.src && el.src.startsWith('file://') ? el.src.replace('file://', '') : el.src;
+      let imagePath;
+      if (el.src && el.src.startsWith('file://')) {
+        imagePath = el.src.replace('file://', '');
+      } else {
+        imagePath = el.src;
+      }
       if (!imagePath) continue;
       // Defensive: if for any reason an SVG data URL slipped past the rasterizer,
       // skip it instead of letting pptxgenjs throw "Unable to read media".
@@ -1062,7 +1091,13 @@ function addElements(slideData, targetSlide, pres, tmpDir) {
 // Helper: Extract slide data from HTML page
 async function extractSlideData(page, slideDims) {
   return await page.evaluate((slideDims) => {
-    const PT_PER_PX = 0.75;
+// Secure random helper for unique filenames
+const crypto = require('crypto');
+function getRandomSuffix() {
+  return crypto.randomBytes(4).toString('hex').slice(0, 6);
+}
+
+const PT_PER_PX = 0.75;
     const PX_PER_IN = 96;
 
     // Switch every element to border-box BEFORE measuring body size. Without this,
@@ -1725,9 +1760,17 @@ async function extractSlideData(page, slideDims) {
         const cm = p.match(/^(rgba?\([^)]*\)|hsla?\([^)]*\)|#[0-9a-fA-F]{3,8}|transparent|[a-zA-Z]+)\s*(.*)$/i);
         if (!cm) return null;
         const posM = cm[2].match(/(-?[\d.]+)%/);
+        let pos;
+        if (posM) {
+          pos = Math.max(0, Math.min(1, parseFloat(posM[1]) / 100));
+        } else if (stopParts.length === 1) {
+          pos = 0;
+        } else {
+          pos = idx / (stopParts.length - 1);
+        }
         return {
           color: cm[1],
-          pos: posM ? Math.max(0, Math.min(1, parseFloat(posM[1]) / 100)) : (stopParts.length === 1 ? 0 : idx / (stopParts.length - 1))
+          pos: pos
         };
       }).filter(Boolean);
       return stops.length >= 2 ? { angle, stops } : null;
@@ -3335,8 +3378,14 @@ async function extractSlideData(page, slideDims) {
             const rowOut = cells.map(cell => {
               const cellComputed = window.getComputedStyle(cell);
               const isHeader = cell.tagName === 'TH';
-              const cellAlign = cellComputed.textAlign === 'start' ? 'left'
-                : cellComputed.textAlign === 'end' ? 'right' : cellComputed.textAlign;
+              let cellAlign;
+              if (cellComputed.textAlign === 'start') {
+                cellAlign = 'left';
+              } else if (cellComputed.textAlign === 'end') {
+                cellAlign = 'right';
+              } else {
+                cellAlign = cellComputed.textAlign;
+              }
               const valignMap = { top: 'top', middle: 'middle', bottom: 'bottom' };
               const cellOpts = {
                 bold: isHeader || cellComputed.fontWeight === 'bold' || parseInt(cellComputed.fontWeight) >= 700,
@@ -3601,7 +3650,11 @@ async function extractSlideData(page, slideDims) {
           const h = pos.h;
 
           // Helper: map border-style to PPT dash type
-          const styleToDash = (s) => s === 'dashed' ? 'dash' : s === 'dotted' ? 'dot' : 'solid';
+          const styleToDash = (s) => {
+            if (s === 'dashed') return 'dash';
+            if (s === 'dotted') return 'dot';
+            return 'solid';
+          };
 
           // Collect lines to add after shape (inset by half the line width to center on edge)
           if (parseFloat(borderTop) > 0) {
@@ -4018,10 +4071,16 @@ async function extractSlideData(page, slideDims) {
 
         const computed = window.getComputedStyle(liElements[0] || el);
         const taLi = computed.textAlign;
-        const alignList = taLi === 'start' ? 'left'
-          : taLi === 'end' ? 'right'
-          : (taLi === 'left' || taLi === 'right' || taLi === 'center' || taLi === 'justify') ? taLi
-          : 'left';
+        let alignList;
+        if (taLi === 'start') {
+          alignList = 'left';
+        } else if (taLi === 'end') {
+          alignList = 'right';
+        } else if (taLi === 'left' || taLi === 'right' || taLi === 'center' || taLi === 'justify') {
+          alignList = taLi;
+        } else {
+          alignList = 'left';
+        }
         const listTextPaint = resolveTextPaintStyle(computed, liElements[0] || el);
 
         elements.push({
@@ -4416,11 +4475,12 @@ async function extractSlideData(page, slideDims) {
 }
 
 async function html2pptx(htmlFile, pres, options = {}) {
-  const {
+  let {
     tmpDir = process.env.TMPDIR || path.join(os.tmpdir(), 'html2pptx1'),
     slide = null,
     fontConfig = null  // { cjk, latin, emphasis, display, symbol }
   } = options;
+  tmpDir = validateTmpDir(tmpDir);
   const effectiveFontConfig = { ...DEFAULT_FONT_CONFIG, ...(fontConfig || {}) };
 
   try {

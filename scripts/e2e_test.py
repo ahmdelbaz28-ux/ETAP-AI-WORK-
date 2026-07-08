@@ -309,9 +309,7 @@ def main() -> int:
     _study_run(client, auth_headers)
     _homepage_check(client)
 
-    # ─────────────────────────────────────────────────────────────────────
     # Summary
-    # ─────────────────────────────────────────────────────────────────────
     print("\n" + "=" * 70)
     print(f"SUMMARY: {passed} passed, {failed} failed")
     print("=" * 70)

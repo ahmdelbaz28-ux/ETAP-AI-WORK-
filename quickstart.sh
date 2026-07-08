@@ -16,15 +16,18 @@ RED='\033[0;31m'
 NC='\033[0m' # No Color
 
 print_success() {
-    echo -e "${GREEN}✓ $1${NC}"  # NOSONAR — S7679: function params assigned to locals; readability
+    local param="$1"
+    echo -e "${GREEN}✓ ${param}${NC}"
 }
 
 print_info() {
-    echo -e "${BLUE}ℹ $1${NC}"  # NOSONAR — S7679: function params assigned to locals; readability
+    local param="$1"
+    echo -e "${BLUE}ℹ ${param}${NC}"
 }
 
 print_error() {
-    echo -e "${RED}✗ $1${NC}"  # NOSONAR — S7679: function params assigned to locals; readability
+    local param="$1"
+    echo -e "${RED}✗ ${param}${NC}"
 }
 
 # Check if Docker is installed
