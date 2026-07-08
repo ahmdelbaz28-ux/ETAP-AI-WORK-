@@ -241,8 +241,6 @@ export default function Projects() {
               setShowCreateModal(false);
             }
           }}
-          tabIndex={0}
-          role="button"
         >
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}

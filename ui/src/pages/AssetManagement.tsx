@@ -207,24 +207,24 @@ export default function AssetManagement() {
         </div>
       </motion.div>
 
-      {/* Summary Stats */}
+{/* Summary Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-{summaryCards.map((card, i) => {
+        {summaryCards.map((card, i) => {
           const iconColor = card.variant === 'success' ? 'text-green-400' :
-                          card.variant === 'warning' ? 'text-amber-400' :
-                          card.variant === 'danger' ? 'text-red-400' : 'text-[var(--text-tertiary)]'
+                            card.variant === 'warning' ? 'text-amber-400' :
+                            card.variant === 'danger' ? 'text-red-400' : 'text-[var(--text-tertiary)]'
           return (
-          <motion.div key={card.label} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 * i }}>
-            <Card padding="md" className="text-center">
-              <div className="flex items-center justify-center gap-2 mb-2">
-                <span className={cn(iconColor)}>
-                  {card.icon}
-                </span>
-                <span className="text-xs text-[var(--text-muted)]">{card.label}</span>
-              </div>
-              <p className="text-3xl font-bold text-[var(--text-primary)] mono-engineering">{card.count}</p>
-            </Card>
-          </motion.div>
+            <motion.div key={card.label} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 * i }}>
+              <Card padding="md" className="text-center">
+                <div className="flex items-center justify-center gap-2 mb-2">
+                  <span className={cn(iconColor)}>
+                    {card.icon}
+                  </span>
+                  <span className="text-xs text-[var(--text-muted)]">{card.label}</span>
+                </div>
+                <p className="text-3xl font-bold text-[var(--text-primary)] mono-engineering">{card.count}</p>
+              </Card>
+            </motion.div>
           )
         })}
       </div>
@@ -375,8 +375,6 @@ export default function AssetManagement() {
               setShowCreateModal(false);
             }
           }}
-          tabIndex={0}
-          role="button"
         >
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
