@@ -23,10 +23,7 @@ import logging
 import os
 import threading
 import time
-from datetime import datetime, timezone
-
-UTC = timezone.utc
-
+from datetime import UTC, datetime
 from typing import Any
 
 from fastapi import HTTPException, Request

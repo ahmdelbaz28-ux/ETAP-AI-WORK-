@@ -7,10 +7,8 @@ Separated from main engineering service for better modularity.
 
 import json
 import os
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any, List, Optional
-
-UTC = timezone.utc
 
 from fastapi import APIRouter, Depends, Request
 from fastapi.responses import JSONResponse

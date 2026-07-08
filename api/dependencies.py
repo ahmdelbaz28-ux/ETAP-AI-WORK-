@@ -37,8 +37,8 @@ if not _jwt_key:
             "JWT_SECRET_KEY must be set in production/staging. "
             "Refusing to start with a default secret.",
         )
-    import logging as _logging
     import hashlib as _hashlib
+    import logging as _logging
 
     _logger = _logging.getLogger(__name__)
     _hostname = os.getenv("HOSTNAME", os.getenv("COMPUTERNAME", "unknown"))

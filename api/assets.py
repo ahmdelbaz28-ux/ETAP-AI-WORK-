@@ -19,7 +19,7 @@ All endpoints require a valid JWT (or X-API-Key when API_KEY is configured).
 from __future__ import annotations
 
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any, Optional
 
 try:
@@ -27,7 +27,6 @@ try:
 except ImportError:
     from typing_extensions import Annotated
 
-UTC = timezone.utc
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
 from pydantic import BaseModel, ConfigDict, Field

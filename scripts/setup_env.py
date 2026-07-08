@@ -445,9 +445,9 @@ def main() -> int:
             sys.stderr.write("  Added .env to .gitignore\n")
 
     print(f"\n  ✓ Wrote {env_file} ({len(content)} bytes)")
-    print(f"  ✓ JWT_SECRET_KEY:     {jwt_secret[:16]}... (truncated)")
-    print(f"  ✓ FERNET_KEY:         {fernet_key[:16]}... (truncated)")
-    print(f"  ✓ VERCEL_TOKEN:       {vercel_token[:12]}... ({len(vercel_token)} chars)")
+    print(f"  ✓ JWT_SECRET_KEY:     {creds['jwt'][:16]}... (truncated)")
+    print(f"  ✓ FERNET_KEY:         {creds['fernet'][:16]}... (truncated)")
+    print(f"  ✓ VERCEL_TOKEN:       {creds['vercel_token'][:12]}... ({len(creds['vercel_token'])} chars)")
     print(f"  ✓ VERCEL_PROJECT_ID:  {creds['vercel_project_id']}")
     print(f"  ✓ HF_TOKEN:           {creds['hf_token'][:12]}... (truncated)")
     print(f"  ✓ HF_SPACE_NAME:      {creds['hf_space']}")

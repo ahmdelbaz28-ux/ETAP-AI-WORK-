@@ -1,14 +1,29 @@
 import { useState, useEffect, useCallback } from 'react'
 import { motion } from 'framer-motion'
 import { Shield, Users, Key, Activity, Clock, RefreshCw, Zap, TrendingUp } from 'lucide-react'
-import { fetchMetrics, fetchAgents, type AgentMeta } from '../lib/api'  // QUALITY v2.1.1: removed unused MetricsResponse type
+import { fetchMetrics, fetchAgents, type AgentMeta, type MetricsResponse } from '../lib/api'
+
+// Legacy backend metrics format (pre-v2). Kept here so the Administration page
+// can render both the old and new /metrics response shapes without breaking.
+type LegacyMetrics = {
+  requests_total?: number
+  requests_success?: number
+  requests_failed?: number
+  avg_execution_time_ms?: number
+  api?: Record<string, number>
+  perKey?: Record<string, number>
+  providers?: Record<string, { count: number; avgMs: number; failureRate: number }>
+}
+
+type AdminMetrics = MetricsResponse | LegacyMetrics
+
 import { useNotify } from '../context/NotificationContext'
 import { Card, CardHeader, Badge, Button } from '../components/ui'
 import { cn } from '../utils/helpers'
 
 import { ContextHelpButton } from '../components/help/ContextHelpButton'
 export default function Administration() {
-  const [metrics, setMetrics] = useState<unknown>(null)
+  const [metrics, setMetrics] = useState<AdminMetrics | null>(null)
   const [agents, setAgents] = useState<AgentMeta[]>([])
   const [loading, setLoading] = useState(true)
   const { notify } = useNotify()
@@ -33,10 +48,13 @@ export default function Administration() {
     load()
   }, [load])
 
-  // Handle both backend metrics formats gracefully
-  const totalCalls = metrics?.requests_total ?? (metrics ? Object.values((metrics.api as Record<string, number>) || {}).reduce((a: number, b: number) => a + b, 0) : 0)
-  const activeKeys = metrics?.requests_success ?? (metrics ? Object.keys(metrics.perKey || {}).length : 0)
-  const errors = metrics?.requests_failed ?? ((metrics?.api as Record<string, number>)?.errors ?? 0)
+  // Handle both backend metrics formats gracefully.
+  // Cast to LegacyMetrics for the legacy field accesses (api, perKey,
+  // requests_success, requests_failed) — these only exist on the old format.
+  const legacy = metrics as LegacyMetrics | null
+  const totalCalls = metrics?.requests_total ?? (legacy ? Object.values(legacy.api || {}).reduce((a: number, b: number) => a + b, 0) : 0)
+  const activeKeys = legacy?.requests_success ?? (legacy ? Object.keys(legacy.perKey || {}).length : 0)
+  const errors = legacy?.requests_failed ?? 0
 
   const statCards = [
     {
@@ -125,8 +143,8 @@ export default function Administration() {
               />
               <div className="grid grid-cols-2 gap-3">
                 {/* Render metrics depending on which format we get */}
-                {metrics.requests_total === undefined ? (
-                  Object.entries((metrics.api as Record<string, number>) || {}).map(([k, v]) => (
+                {metrics?.requests_total === undefined ? (
+                  Object.entries((legacy?.api as Record<string, number>) || {}).map(([k, v]) => (
                     <div key={k} className="p-3 bg-[var(--bg-primary)] rounded-lg border border-[var(--border-primary)]">
                       <p className="text-xs text-[var(--text-muted)] capitalize">{k.replace(/([A-Z])/g, ' $1').trim()}</p>
                       <p className="text-lg font-bold text-[var(--text-primary)] mono-engineering mt-1">{v}</p>
@@ -140,15 +158,15 @@ export default function Administration() {
                     </div>
                     <div className="p-3 bg-[var(--bg-primary)] rounded-lg border border-[var(--border-primary)]">
                       <p className="text-xs text-[var(--text-muted)]">Success</p>
-                      <p className="text-lg font-bold text-[var(--text-primary)] mono-engineering mt-1">{metrics.requests_success}</p>
+                      <p className="text-lg font-bold text-[var(--text-primary)] mono-engineering mt-1">{legacy?.requests_success}</p>
                     </div>
                     <div className="p-3 bg-[var(--bg-primary)] rounded-lg border border-[var(--border-primary)]">
                       <p className="text-xs text-[var(--text-muted)]">Failed</p>
-                      <p className="text-lg font-bold text-[var(--text-primary)] mono-engineering mt-1">{metrics.requests_failed}</p>
+                      <p className="text-lg font-bold text-[var(--text-primary)] mono-engineering mt-1">{legacy?.requests_failed}</p>
                     </div>
                     <div className="p-3 bg-[var(--bg-primary)] rounded-lg border border-[var(--border-primary)]">
                       <p className="text-xs text-[var(--text-muted)]">Avg Execution</p>
-                      <p className="text-lg font-bold text-[var(--text-primary)] mono-engineering mt-1">{metrics.avg_execution_time_ms}ms</p>
+                      <p className="text-lg font-bold text-[var(--text-primary)] mono-engineering mt-1">{legacy?.avg_execution_time_ms}ms</p>
                     </div>
                   </>
                 )}

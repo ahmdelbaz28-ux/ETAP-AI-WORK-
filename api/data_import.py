@@ -27,15 +27,13 @@ import json
 import re
 import uuid
 import xml.etree.ElementTree as ET
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
 from pydantic import BaseModel, Field
 
 from api.dependencies import get_api_key, get_current_user_from_header
-
-UTC = timezone.utc
 
 router = APIRouter(prefix="/api/v1/import", tags=["Data Import"])
 

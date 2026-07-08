@@ -17,28 +17,18 @@ accept either a JWT or a valid ``X-API-Key`` header.
 
 from __future__ import annotations
 
-import json
 import uuid
 from datetime import datetime, timezone
 from typing import Any, Optional
 
 UTC = timezone.utc  # noqa: UP017
 
-from fastapi import APIRouter, Depends, Header, HTTPException, status
+from fastapi import APIRouter
 from pydantic import BaseModel, ConfigDict, Field, field_validator
-from sqlalchemy import JSON, DateTime, String, func, select
-from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import JSON, DateTime, String
 from sqlalchemy.orm import Mapped, mapped_column
 
-from api.database import Base, get_db
-from api.dependencies import (
-    CurrentUser,
-    PaginationParams,
-    get_api_key,
-    get_current_user,
-    get_current_user_from_header,
-    pagination_params,
-)
+from api.database import Base
 from compat import StrEnum
 
 router = APIRouter(prefix="/api/v1/projects", tags=["Projects"])
