@@ -1,6 +1,7 @@
 import { useState, useCallback, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
-import { helpTopics, helpCategories } from '../help/helpTopics'
+import { helpTopics } from '../help/helpTopics'
+import { helpCategories } from '../help/helpCategories'
 import { resolveContext } from '../help/contextRegistry'
 import type { HelpTopic, HelpCategory } from '../help/types'
 

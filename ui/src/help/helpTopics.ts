@@ -783,47 +783,6 @@ Designs a substation grounding grid that limits touch and step voltages to safe 
     relatedTopics: ['studies.short-circuit', 'studies.overview'],
   },
   {
-    id: 'studies.stability',
-    category: 'engineering',
-    title: { en: 'Transient Stability', ar: 'الاستقرار العابر' },
-    description: { en: 'Power system transient stability analysis', ar: 'تحليل الاستقرار العابر لنظام القدرة' },
-    content: {
-      en: `**What it does:**
-Simulates the dynamic response of generators and loads to large disturbances (3-phase faults, line trips, generator outages) to verify the system remains stable.
-
-**Required Inputs:**
-- Generator dynamic models (H constant, Xd, Xd', Td0', etc.)
-- AVR and governor models
-- Load model (constant power, constant current, constant impedance)
-- Disturbance specification (fault location, duration, clearing)
-
-**Results:**
-- Rotor angle vs time plot
-- Frequency vs time plot
-- Critical Clearing Time (CCT)
-- Stability margin
-- Recommendation for corrective actions if unstable`,
-      ar: `**ما يفعله:**
-يحاكي الاستجابة الديناميكية للمولدات والأحمال للاضطرابات الكبيرة (أعطال ثلاثية الطور، قطع الخطوط، خروج المولدات) للتحقق من بقاء النظام مستقراً.
-
-**المدخلات المطلوبة:**
-- نماذج ديناميكية للمولدات (ثابت H، Xd، Xd'، Td0'، إلخ)
-- نماذج AVR والحاكم
-- نموذج الحمل (قدرة ثابتة، تيار ثابت، مقاومة ثابتة)
-- مواصفات الاضطراب (موقع العطل، المدة، التطهير)
-
-**النتائج:**
-- رسم زاوية الدوار مقابل الزمن
-- رسم التردد مقابل الزمن
-- وقت التطهير الحرج (CCT)
-- هامش الاستقرار
-- التوصية للإجراءات التصحيحية إذا كان غير مستقر`,
-    },
-    tags: ['stability', 'transient', 'rotor', 'angle', 'استقرار', 'عابر'],
-    navigateTo: '/studies/stability',
-    relatedTopics: ['studies.overview', 'studies.load-flow'],
-  },
-  {
     id: 'studies.opf',
     category: 'engineering',
     title: { en: 'Optimal Power Flow (OPF)', ar: 'تدفق القدرة الأمثل' },
@@ -876,8 +835,47 @@ Finds the optimal generation dispatch that minimizes total generation cost while
     navigateTo: '/studies/opf',
     relatedTopics: ['studies.overview', 'studies.load-flow'],
   },
+  {
+    id: 'studies.stability',
+    category: 'engineering',
+    title: { en: 'Transient Stability', ar: 'الاستقرار العابر' },
+    description: { en: 'Power system transient stability analysis', ar: 'تحليل الاستقرار العابر لنظام القدرة' },
+    content: {
+      en: `**What it does:**
+Simulates the dynamic response of generators and loads to large disturbances (3-phase faults, line trips, generator outages) to verify the system remains stable.
 
-  // ─── AI Assistant ─────────────────────────────────────────────────
+**Required Inputs:**
+- Generator dynamic models (H constant, Xd, Xd', Td0', etc.)
+- AVR and governor models
+- Load model (constant power, constant current, constant impedance)
+- Disturbance specification (fault location, duration, clearing)
+
+**Results:**
+- Rotor angle vs time plot
+- Frequency vs time plot
+- Critical Clearing Time (CCT)
+- Stability margin
+- Recommendation for corrective actions if unstable`,
+      ar: `**ما يفعله:**
+يحاكي الاستجابة الديناميكية للمولدات والأحمال للاضطرابات الكبيرة (أعطال ثلاثية الطور، قطع الخطوط، خروج المولدات) للتحقق من بقاء النظام مستقراً.
+
+**المدخلات المطلوبة:**
+- نماذج ديناميكية للمولدات (ثابت H، Xd، Xd'، Td0'، إلخ)
+- نماذج AVR والحاكم
+- نموذج الحمل (قدرة ثابتة، تيار ثابت، مقاومة ثابتة)
+- مواصفات الاضطراب (موقع العطل، المدة، التطهير)
+
+**النتائج:**
+- رسم زاوية الدوار مقابل الزمن
+- رسم التردد مقابل الزمن
+- وقت التطهير الحرج (CCT)
+- هامش الاستقرار
+- التوصية للإجراءات التصحيحية إذا كان غير مستقر`,
+    },
+    tags: ['stability', 'transient', 'rotor', 'angle', 'استقرار', 'عابر'],
+    navigateTo: '/studies/stability',
+    relatedTopics: ['studies.overview', 'studies.load-flow'],
+  },
   {
     id: 'ai-assistant.overview',
     category: 'getting-started',
@@ -1392,18 +1390,31 @@ A digital twin is a real-time virtual replica of your physical power system. It 
     id: 'settings.ai-providers',
     category: 'settings',
     title: { en: 'AI Providers Configuration', ar: 'تكوين مزودي الذكاء الاصطناعي' },
-    description: { en: 'Connect to OpenAI, Anthropic, Gemini, DeepSeek, Groq, Cohere, Hugging Face', ar: 'اتصل بـ OpenAI، Anthropic، Gemini، DeepSeek، Groq، Cohere، Hugging Face' },
+    description: { en: 'Connect to OpenAI, Anthropic, Gemini, DeepSeek, Groq, Cohere, Hugging Face, OpenRouter, etc.', ar: 'اتصل بـ OpenAI و Anthropic و Gemini و DeepSeek و Groq و Cohere و Hugging Face و OpenRouter' },
     content: {
-      en: `**The AI Providers tab lets you connect to 7 popular LLM providers:**
+      en: `**The AI Providers tab lets you connect to 17+ popular LLM providers:**
 
-**Supported Providers:**
-1. **OpenAI** — GPT-4o, GPT-4o-mini, o1-mini, o1-preview
-2. **Anthropic** — Claude 3.5 Sonnet, Claude 3 Opus, Claude 3.5 Haiku
-3. **Google Gemini** — Gemini 1.5 Pro/Flash, Gemini 2.0 Flash
-4. **DeepSeek** — DeepSeek Chat, DeepSeek Coder
-5. **Groq** — Llama 3.3 70B, Mixtral 8x7B, Gemma 2 9B
-6. **Cohere** — Command R+, Command R
-7. **Hugging Face** — Llama 3.3 70B, Mixtral 8x7B
+**Built-in Providers (one-click):**
+- **OpenAI** — GPT-4o, GPT-4o-mini, o1-mini, o1-preview
+- **Anthropic** — Claude 3.5 Sonnet, Claude 3 Opus, Claude 3.5 Haiku
+- **Google Gemini** — Gemini 1.5 Pro/Flash, Gemini 2.0 Flash
+- **DeepSeek** — DeepSeek Chat, DeepSeek Coder, DeepSeek Reasoner
+- **Groq** — Llama 3.3 70B, Mixtral 8x7B, Gemma 2 9B (free tier)
+- **Cohere** — Command R+, Command R
+- **Hugging Face** — Llama 3.3 70B, Mixtral 8x7B (free tier)
+- **NVIDIA NIM** — Llama 3.1 8B/70B/405B (free tier)
+- **OpenRouter** — 340+ models including GPT-OSS, Llama, Claude (26 free)
+- **Fireworks AI** — Llama, Mixtral, Qwen Coder
+- **Cloudflare Workers AI** — Llama, Mistral, Gemma (free tier)
+- **Zhipu AI (GLM)** — GLM-4 Flash/Plus (free tier)
+- **GitHub Models** — GPT-4o, Phi-3.5, Llama 3.1 (free tier)
+- **OpenModel** — GPT-4o, GPT-5.4, Claude 3.5 Sonnet
+- **Modal** — GLM-5.1, GLM-4.5 (free research)
+- **Bynara Router** — Kimi K2.6, GPT-5.4, Claude Sonnet 5
+- **KiloCode** — KiloCode Coder (free), Standard
+- **OpenCode Zen** — DeepSeek V4 Flash (free), GPT-5.4, Claude Sonnet 5
+- **OpenClaude** — Claude 3.5 Sonnet (free, proxy)
+- **Claude Code** — Anthropic direct API
 
 **How to Connect:**
 1. Click the provider card you want to configure
@@ -1418,19 +1429,33 @@ A digital twin is a real-time virtual replica of your physical power system. It 
 - Examples: Ollama (http://localhost:11434/v1), LM Studio (http://localhost:1234/v1)
 
 **Tips:**
-- API keys are stored in localStorage (obfuscated)
+- API keys are stored in localStorage (obfuscated with XOR + base64)
 - You can configure multiple providers simultaneously
-- The AI Assistant page lets you select which provider to use per chat`,
-      ar: `**تبويب مزودي الذكاء الاصطناعي يتيح لك الاتصال بـ 7 مزودين LLM شائعين:**
+- The AI Assistant page lets you select which provider to use per chat
+- Free tier providers are marked with "(free)" in the model list`,
+      ar: `**تبويب مزودي الذكاء الاصطناعي يتيح لك الاتصال بـ 17+ مزودين LLM شائعين:**
 
-**المزودون المدعومون:**
-1. **OpenAI** — GPT-4o، GPT-4o-mini، o1-mini، o1-preview
-2. **Anthropic** — Claude 3.5 Sonnet، Claude 3 Opus، Claude 3.5 Haiku
-3. **Google Gemini** — Gemini 1.5 Pro/Flash، Gemini 2.0 Flash
-4. **DeepSeek** — DeepSeek Chat، DeepSeek Coder
-5. **Groq** — Llama 3.3 70B، Mixtral 8x7B، Gemma 2 9B
-6. **Cohere** — Command R+، Command R
-7. **Hugging Face** — Llama 3.3 70B، Mixtral 8x7B
+**المزودون المدمجون (بنقرة واحدة):**
+- **OpenAI** — GPT-4o، GPT-4o-mini، o1-mini، o1-preview
+- **Anthropic** — Claude 3.5 Sonnet، Claude 3 Opus، Claude 3.5 Haiku
+- **Google Gemini** — Gemini 1.5 Pro/Flash، Gemini 2.0 Flash
+- **DeepSeek** — DeepSeek Chat، DeepSeek Coder، DeepSeek Reasoner
+- **Groq** — Llama 3.3 70B، Mixtral 8x7B، Gemma 2 9B (مجاني)
+- **Cohere** — Command R+، Command R
+- **Hugging Face** — Llama 3.3 70B، Mixtral 8x7B (مجاني)
+- **NVIDIA NIM** — Llama 3.1 8B/70B/405B (مجاني)
+- **OpenRouter** — 340+ نموذج包括 GPT-OSS و Llama و Claude (26 مجاني)
+- **Fireworks AI** — Llama، Mixtral، Qwen Coder
+- **Cloudflare Workers AI** — Llama، Mistral، Gemma (مجاني)
+- **Zhipu AI (GLM)** — GLM-4 Flash/Plus (مجاني)
+- **GitHub Models** — GPT-4o، Phi-3.5، Llama 3.1 (مجاني)
+- **OpenModel** — GPT-4o، GPT-5.4، Claude 3.5 Sonnet
+- **Modal** — GLM-5.1، GLM-4.5 (بحث مجاني)
+- **Bynara Router** — Kimi K2.6، GPT-5.4، Claude Sonnet 5
+- **KiloCode** — KiloCode Coder (مجاني)، Standard
+- **OpenCode Zen** — DeepSeek V4 Flash (مجاني)، GPT-5.4، Claude Sonnet 5
+- **OpenClaude** — Claude 3.5 Sonnet (مجاني، بروكسي)
+- **Claude Code** — Anthropic API مباشر
 
 **كيفية الاتصال:**
 1. انقر على بطاقة المزود الذي تريد تكوينه
@@ -1445,13 +1470,487 @@ A digital twin is a real-time virtual replica of your physical power system. It 
 - أمثلة: Ollama (http://localhost:11434/v1)، LM Studio (http://localhost:1234/v1)
 
 **نصائح:**
-- مفاتيح API محفوظة في localStorage (مشوّهة)
+- مفاتيح API محفوظة في localStorage (مشوّهة بـ XOR + base64)
 - يمكنك تكوين مزودين متعددين في نفس الوقت
-- تتيح لك صفحة المساعد الذكي اختيار المزود المستخدم لكل دردشة`,
+- تتيح لك صفحة المساعد الذكي اختيار المزود المستخدم لكل دردشة
+- المزودون المجانين مميزون بـ "(مجاني)" في قائمة النماذج`,
     },
-    tags: ['ai', 'provider', 'openai', 'anthropic', 'gemini', 'deepseek', 'groq', 'cohere', 'مزود', 'ذكاء'],
+    tags: ['ai', 'provider', 'openai', 'anthropic', 'gemini', 'deepseek', 'groq', 'cohere', 'huggingface', 'openrouter', 'مزود', 'ذكاء'],
     navigateTo: '/settings',
     relatedTopics: ['ai-assistant.overview', 'settings.backend'],
+  },
+  {
+    id: 'settings.mcp',
+    category: 'settings',
+    title: { en: 'MCP Servers', ar: 'خوادم MCP' },
+    description: { en: 'Model Context Protocol server configuration and exposed tools', ar: 'تكوين خوادم بروتوكول السياق النموذجي والأدوات المعروضة' },
+    content: {
+      en: `**What it does:**
+The MCP Servers tab shows which Model Context Protocol (MCP) servers are running and what tools they expose to AI agents.
+
+**Built-in MCP Servers:**
+1. **Weather MCP Server** — Real-time weather and temperature for renewable energy planning
+   - Tool: \`weatherTool\`
+   - Status: Active
+
+2. **QGIS Map Service MCP Server** — Bridges GIS data (coordinates, lines, substations)
+   - Tools: \`load_gis_features\`, \`sync_gis_telemetry\`
+   - Status: Active
+
+3. **SCADA zenon Telemetry MCP Server** — Subscribes to SCADA alerts and live telemetry (I, V, P, Q)
+   - Tools: \`fetch_live_telemetry\`, \`trigger_zenon_alarm\`
+   - Status: Active
+
+4. **ETAP COM Automation MCP Server** — Executes COM automation scripts for Newton-Raphson studies
+   - Tools: \`run_etap_study\`, \`export_etap_one_line\`
+   - Status: Standby (requires Windows + ETAP installed)
+
+5. **AI Code Guard MCP Server** — Validates generated code for safety and compliance
+   - Tool: \`validate_code\`
+   - Status: Active
+
+**How It Works:**
+- MCP servers expose local files, databases, and APIs as secure tools
+- AI agents (in AI Assistant) can call these tools with user consent
+- Each server has a status: Active, Standby, or Offline
+
+**Tips:**
+- MCP is automatically configured — no user action needed
+- To add a custom MCP server, restart the backend with the server config in .env
+- Tool calls are logged for audit purposes`,
+      ar: `**ما يفعله:**
+تبويب خوادم MCP يُظهر خوادم بروتوكول السياق النموذجي (MCP) النشطة والأدوات التي تعرضها لوكلاء الذكاء الاصطناعي.
+
+**خوادم MCP المدمجة:**
+1. **خادم MCP للطقس** — طقس ودرجة حرارة في الوقت الفعلي لتخطيط الطاقة المتجددة
+   - الأداة: \`weatherTool\`
+   - الحالة: نشط
+
+2. **خادم MCP لخدمة الخرائط QGIS** — يربط بيانات GIS (إحداثيات، خطوط، محطات)
+   - الأدوات: \`load_gis_features\`، \`sync_gis_telemetry\`
+   - الحالة: نشط
+
+3. **خادم MCP لبث الإسكادا زينون** — يشترك في إنذارات الإسكادا والبيانات القياسية الحية (I, V, P, Q)
+   - الأدوات: \`fetch_live_telemetry\`، \`trigger_zenon_alarm\`
+   - الحالة: نشط
+
+4. **خادم MCP لأتمتة ETAP COM** — ينفذ سكريبتات أتمتة COM لدراسات نيوتن-رافسون
+   - الأدوات: \`run_etap_study\`، \`export_etap_one_line\`
+   - الحالة: standby (يتطلب Windows + ETAP مثبت)
+
+5. **خادم MCP لحارس الكود AI** — يتحقق من الكود المولد للسلامة والامتثال
+   - الأداة: \`validate_code\`
+   - الحالة: نشط
+
+**كيف يعمل:**
+- خوادم MCP تعرض الملفات المحلية وقواعد البيانات وAPIs كأدوات آمنة
+- وكلاء الذكاء الاصطناعي (في المساعد الذكي) يمكنهم استدعاء هذه الأدوات بموافقة المستخدم
+- كل خادم له حالة: نشط، standby، أو غير متصل
+
+**نصائح:**
+- MCP مُكوّن تلقائياً — لا يحتاج إجراء من المستخدم
+- لإضافة خادم MCP مخصص، أعد تشغيل الخادم مع تكوين الخادم في .env
+- استدعاءات الأدوات مسجلة لأغراض التدقيق`,
+    },
+    tags: ['mcp', 'server', 'protocol', 'context', 'tool', 'خادم', 'بروتوكول'],
+    navigateTo: '/settings',
+    relatedTopics: ['settings.ai-providers', 'ai-assistant.overview'],
+  },
+  {
+    id: 'settings.coding-agents',
+    category: 'settings',
+    title: { en: 'Coding Agents (OpenHands, OpenCode, KiloCode)', ar: 'وكلاء البرمجة (OpenHands, OpenCode, KiloCode)' },
+    description: { en: 'Configure autonomous coding agent integrations', ar: 'تكوين تكاملات وكلاء البرمجة المستقلين' },
+    content: {
+      en: `**What it does:**
+The Coding Agents tab configures integrations with autonomous coding agents that can write, review, and execute engineering code.
+
+**Supported Agents:**
+1. **OpenHands** (formerly OpenDevin) — Full autonomous software engineering agent
+   - URL: http://localhost:3000 (default)
+   - Enable: Set \`OPENHANDS_ENABLED=true\`
+   - Workspace: Directory for agent files
+
+2. **OpenCode** — CLI coding agent with zen-powered models
+   - URL: http://localhost:8080 (default)
+   - Enable: Set \`OPENCODE_ENABLED=true\`
+   - Supports DeepSeek V4 Flash (free) via OpenCode Zen
+
+3. **KiloCode** — Code generation agent
+   - URL: http://localhost:8090 (default)
+   - Enable: Set \`KILOCODE_ENABLED=true\`
+   - Model: KiloCode Coder (free) or Standard
+
+**How to Use:**
+1. Enable the agent by setting the \`*_ENABLED\` flag to \`true\`
+2. Set the URL where the agent runtime is running
+3. Optionally configure a workspace directory
+4. Save settings
+5. Use the agent from the AI Assistant page by selecting it from the agent dropdown
+
+**Security Notes:**
+- Agents run in isolated sandboxes
+- All code execution is logged
+- Users must approve code before it runs on their system`,
+      ar: `**ما يفعله:**
+تبويب وكلاء البرمجة يكوّن تكاملات مع وكلاء برمجة مستقلين يمكنهم كتابة ومراجعة وتنفيذ كود هندسي.
+
+**الوكلاء المدعومون:**
+1. **OpenHands** (سابقاً OpenDevin) — وكيل برمجة مستقل كامل
+   - الرابط: http://localhost:3000 (افتراضي)
+   - التفعيل: تعيين \`OPENHANDS_ENABLED=true\`
+   - مساحة العمل: مجلد ملفات الوكيل
+
+2. **OpenCode** — وكيل برمجة CLI مع نماذج مدعومة بـ zen
+   - الرابط: http://localhost:8080 (افتراضي)
+   - التفعيل: تعيين \`OPENCODE_ENABLED=true\`
+   - يدعم DeepSeek V4 Flash (مجاني) عبر OpenCode Zen
+
+3. **KiloCode** — وكيل توليد كود
+   - الرابط: http://localhost:8090 (افتراضي)
+   - التفعيل: تعيين \`KILOCODE_ENABLED=true\`
+   - النموذج: KiloCode Coder (مجاني) أو Standard
+
+**كيفية الاستخدام:**
+1. فعّل الوكيل بتعيين العلم \`*_ENABLED\` إلى \`true\`
+2. عيّن الرابط حيث يعمل الوكيل
+3. اخترياً عيّن مجلد مساحة العمل
+4. احفظ الإعدادات
+5. استخدم الوكيل من صفحة المساعد الذكي باختياره من القائمة المنسدلة
+
+**ملاحظات الأمان:**
+- الوكلاء يعملون في حاويات معزولة
+- كل تنفيذ كود مسجل
+- المستخدمون يجب他们 بالموافقة على الكود قبل تشغيله`,
+    },
+    tags: ['coding', 'agent', 'openhands', 'opencode', 'kilocode', 'وكيل', 'برمجة'],
+    navigateTo: '/settings',
+    relatedTopics: ['settings.ai-providers', 'code-guard.overview'],
+  },
+  {
+    id: 'settings.database',
+    category: 'settings',
+    title: { en: 'Database & Cache Configuration', ar: 'تكوين قاعدة البيانات والذاكرة المؤقتة' },
+    description: { en: 'Configure database connection and cache settings', ar: 'تكوين اتصال قاعدة البيانات وإعدادات الذاكرة المؤقتة' },
+    content: {
+      en: `**What it does:**
+The Database & Cache tab configures the PostgreSQL database connection and Redis cache for the engineering service.
+
+**Database Settings:**
+- **MASTRA_DB_URL** — SQLite database for workflow state (default: file:./mastra.db)
+- **DATABASE_URL** — PostgreSQL connection string (e.g. postgresql://user:pass@host:5432/etap)
+- **REDIS_URL** — Redis connection string (e.g. redis://localhost:6379/0)
+
+**Cache Settings:**
+- **CACHE_SIZE_MB** — Maximum cache size in MB (default: 512)
+- **CACHE_DEFAULT_TTL** — Time-to-live for cached items in seconds (default: 3600 = 1 hour)
+- **MAX_WORKERS** — Number of parallel worker processes (default: 4)
+
+**How to Configure:**
+1. Enter your PostgreSQL connection string (if using Postgres instead of SQLite)
+2. Enter your Redis URL (if using Redis for caching)
+3. Adjust cache size and TTL based on your workload
+4. Set MAX_WORKERS based on your CPU cores (2-8 recommended)
+5. Click **Save**
+
+**Recommendations:**
+- Use PostgreSQL for production (better concurrency)
+- Use Redis for caching study results (faster repeat runs)
+- Set CACHE_TTL to 3600 for normal use, 86400 for rarely-changing data
+- MAX_WORKERS = CPU cores - 1 (leave one core for OS)`,
+      ar: `**ما يفعله:**
+تبويب قاعدة البيانات والذاكرة المؤقتة يكوّن اتصال قاعدة بيانات PostgreSQL والذاكرة المؤقتة Redis للخدمة الهندسية.
+
+**إعدادات قاعدة البيانات:**
+- **MASTRA_DB_URL** — رابط قاعدة بيانات SQLite لحالة سير العمل (افتراضي: file:./mastra.db)
+- **DATABASE_URL** — سلسلة اتصال PostgreSQL (مثل postgresql://user:pass@host:5432/etap)
+- **REDIS_URL** — سلسلة اتصال Redis (مثل redis://localhost:6379/0)
+
+**إعدادات الذاكرة المؤقتة:**
+- **CACHE_SIZE_MB** — الحد الأقصى لحجم الذاكرة المؤقتة بالميجابايت (افتراضي: 512)
+- **CACHE_DEFAULT_TTL** — مدة البقاء للعناصر المخزنة مؤقتاً بالثواني (افتراضي: 3600 = ساعة واحدة)
+- **MAX_WORKERS** — عدد عمليات العامل المتوازية (افتراضي: 4)
+
+**كيفية التكوين:**
+1. أدخل سلسلة اتصال PostgreSQL (إذا كنت تستخدم Postgres بدلاً من SQLite)
+2. أدخل رابط Redis (إذا كنت تستخدم Redis للذاكرة المؤقتة)
+3. اضبط حجم الذاكرة المؤقتة و TTL بناءً على عبء العمل
+4. عيّن MAX_WORKERS بناءً على أنوية CPU (2-8 موصى به)
+5. انقر **حفظ**
+
+**التوصيات:**
+- استخدم PostgreSQL للإنتاج (تزامن أفضل)
+- استخدم Redis للذاكرة المؤقتة لنتائج الدراسات (تشغيل متكرر أسرع)
+- عيّن CACHE_TTL إلى 3600 للاستخدام العادي، 86400 للبيانات نادرة التغيير
+- MAX_WORKERS = أنوية CPU - 1 (اترك نواة للنظام)`,
+    },
+    tags: ['database', 'postgres', 'redis', 'cache', 'قاعدة بيانات', 'ذاكرة مؤقتة'],
+    navigateTo: '/settings',
+    relatedTopics: ['settings.backend', 'diagnostics.overview'],
+  },
+  {
+    id: 'settings.security',
+    category: 'settings',
+    title: { en: 'Security & Secrets Management', ar: 'الأمان وإدارة الأسرار' },
+    description: { en: 'Configure authentication keys, JWT secrets, and Vault integration', ar: 'تكوين مفاتيح المصادقة وأسرار JWT وتكامل Vault' },
+    content: {
+      en: `**What it does:**
+The Security tab configures authentication keys, JWT secrets, and optional HashiCorp Vault integration for secrets management.
+
+**Authentication Settings:**
+- **API_KEY_SECRET** — Secret key for validating API requests (X-API-Key header)
+- **JWT_SECRET_KEY** — Secret key for signing/verifying JWT tokens
+
+**Vault Integration (Optional):**
+- **VAULT_ADDR** — HashiCorp Vault server URL (e.g. https://vault.example.com)
+- **VAULT_TOKEN** — Vault authentication token
+
+**How to Configure:**
+1. Generate strong random secrets (use a password manager or \`openssl rand -hex 32\`)
+2. Enter the API_KEY_SECRET (used by the frontend to authenticate to the backend)
+3. Enter the JWT_SECRET_KEY (used for login sessions)
+4. Optionally configure Vault for centralized secrets management
+5. Click **Save**
+
+**Security Best Practices:**
+- Use secrets that are at least 32 characters long
+- Rotate secrets every 90 days
+- Never commit secrets to git
+- Use Vault in production for automatic secret rotation
+- Enable MFA for all admin accounts
+
+**Vault Benefits:**
+- Centralized secrets management
+- Automatic secret rotation
+- Audit logging of secret access
+- Dynamic secrets (database credentials that expire)`,
+      ar: `**ما يفعله:**
+تبويب الأمان يكوّن مفاتيح المصادقة وأسرار JWT وتكامل HashiCorp Vault الاختياري لإدارة الأسرار.
+
+**إعدادات المصادقة:**
+- **API_KEY_SECRET** — المفتاح السري للتحقق من طلبات API (ترويسة X-API-Key)
+- **JWT_SECRET_KEY** — المفتاح السري لتوقيع/التحقق من رموز JWT
+
+**تكامل Vault (اختياري):**
+- **VAULT_ADDR** — رابط خادم HashiCorp Vault (مثل https://vault.example.com)
+- **VAULT_TOKEN** — رمز مصادقة Vault
+
+**كيفية التكوين:**
+1. توليد أسرار عشوائية قوية (استخدم مدير كلمات مرور أو \`openssl rand -hex 32\`)
+2. أدخل API_KEY_SECRET (تستخدمه الواجهة للمصادقة على الخادم)
+3. أدخل JWT_SECRET_KEY (تستخدم لجلسات تسجيل الدخول)
+4. اخترياً عيّن Vault لإدارة الأسرار المركزية
+5. انقر **حفظ**
+
+**أفضل ممارسات الأمان:**
+- استخدم أسرار بطول 32 حرف على الأقل
+- دور الأسرار كل 90 يوماً
+- لا ترفع الأسرار إلى git أبداً
+- استخدم Vault في الإنتاج للتدوير التلقائي للأسرار
+- فعّل MFA لجميع حسابات المسؤولين
+
+**فوائد Vault:**
+- إدارة أسرار مركزية
+- تدوير أسرار تلقائي
+- سجل تدقيق للوصول للأسرار
+- أسرار ديناميكية (بيانات اعتماد قاعدة البيانات تنتهي)`,
+    },
+    tags: ['security', 'vault', 'jwt', 'api-key', 'secret', 'أمان', 'أسرار'],
+    navigateTo: '/settings',
+    relatedTopics: ['settings.backend', 'troubleshooting.auth'],
+  },
+  {
+    id: 'settings.integration',
+    category: 'settings',
+    title: { en: 'System Integration (ETAP, SCADA, Email)', ar: 'تكامل النظام (ETAP, SCADA, البريد)' },
+    description: { en: 'Configure ETAP desktop, SCADA zenon, and email alert integrations', ar: 'تكوين تكاملات ETAP المكتبي و SCADA zenon وتنبيهات البريد' },
+    content: {
+      en: `**What it does:**
+The Integration tab configures connections to external engineering systems: ETAP desktop, SCADA zenon, and email alerts.
+
+**ETAP Integration:**
+- **ETAP_LICENSE_PATH** — Path to the ETAP license file on the Windows worker
+- **ETAP_WORKER_URL** — URL of the ETAP Worker Service (e.g. http://192.168.1.100:8080)
+- Requires: ETAP licensed and installed on Windows, ETAP Worker Service running
+
+**SCADA Integration (Copa-Data zenon):**
+- **SCADA_SYSTEM_TYPE** — Type of SCADA system (default: Copa-Data zenon SCADA)
+- **SCADA_SERVER_URL** — HTTP endpoint of the zenon REST API (e.g. http://localhost:8080/zenon)
+- **SCADA_PROJECT_NAME** — Active zenon project name (default: ETAP_Zenon_Sync)
+- **SCADA_SYNC_INTERVAL_SEC** — Polling interval in seconds (default: 10)
+- **SCADA_API_KEY** — Authorization token for secure SCADA data transfer
+
+**Email Alerts:**
+- **SMTP_SERVER** — SMTP server hostname (e.g. smtp.gmail.com)
+- **SMTP_PORT** — SMTP port (587 for TLS, 465 for SSL)
+- **SMTP_USERNAME** — Email account username
+- **ALERT_EMAIL_TO** — Recipient email for system alerts
+
+**Tips:**
+- Test each integration with its respective "Test Connection" button before saving
+- For SCADA, use a low sync interval (5-10s) for near-real-time monitoring
+- For email, use an app-specific password if your provider supports it`,
+      ar: `**ما يفعله:**
+تبويب التكامل يكوّن الاتصالات بأنظمة هندسية خارجية: ETAP المكتبي و SCADA zenon وتنبيهات البريد.
+
+**تكامل ETAP:**
+- **ETAP_LICENSE_PATH** — مسار ملف ترخيص ETAP على عامل Windows
+- **ETAP_WORKER_URL** — رابط خدمة ETAP العاملة (مثل http://192.168.1.100:8080)
+- متطلبات: ETAP مرخص ومثبت على Windows، خدمة ETAP العاملة تعمل
+
+**تكامل SCADA (Copa-Data zenon):**
+- **SCADA_SYSTEM_TYPE** — نوع نظام الإسكادا (افتراضي: Copa-Data zenon SCADA)
+- **SCADA_SERVER_URL** — رابط نقطة نهاية zenon REST API (مثل http://localhost:8080/zenon)
+- **SCADA_PROJECT_NAME** — اسم مشروع zenon النشط (افتراضي: ETAP_Zenon_Sync)
+- **SCADA_SYNC_INTERVAL_SEC** — فترة الاقتراع بالثواني (افتراضي: 10)
+- **SCADA_API_KEY** — رمز تفويض لنقل بيانات SCADA الآمن
+
+**تنبيهات البريد:**
+- **SMTP_SERVER** — خادم SMTP (مثل smtp.gmail.com)
+- **SMTP_PORT** — منفذ SMTP (587 لـ TLS، 465 لـ SSL)
+- **SMTP_USERNAME** — اسم مستخدم البريد
+- **ALERT_EMAIL_TO** — بريد المستلم لتنبيهات النظام
+
+**نصائح:**
+- اختبر كل تكامل بزر "اختبار الاتصال" قبل الحفظ
+- لـ SCADA، استخدم فترة مزامنة منخفضة (5-10 ثواني) لمراقبة شبه مباشرة
+- للبريد، استخدم كلمة مرور خاصة بالتطبيق إذا كان مزودك يدعمها`,
+    },
+    tags: ['integration', 'etap', 'scada', 'zenon', 'email', 'smtp', 'تكامل', 'إسكادا'],
+    navigateTo: '/settings',
+    relatedTopics: ['etap-integration.overview', 'scada-integration.overview'],
+  },
+  {
+    id: 'settings.performance',
+    category: 'settings',
+    title: { en: 'Performance & Observability', ar: 'الأداء والمراقبة' },
+    description: { en: 'Configure rate limiting, circuit breaker, caching, and Prometheus metrics', ar: 'تكوين تقييد المعدل وقاطع الدائرة والذاكرة المؤقتة ومقاييس Prometheus' },
+    content: {
+      en: `**What it does:**
+The Performance tab configures observability, rate limiting, circuit breaker, and feature flags for the engineering service.
+
+**Observability:**
+- **HEALTH_CHECK_API_URL** — External health check endpoint (leave empty to skip)
+- **PROMETHEUS_ENABLED** — Enable Prometheus metrics export (true/false)
+- **PROMETHEUS_PORT** — Port for Prometheus metrics server (default: 9090)
+
+**Rate Limiting & Circuit Breaker:**
+- **RATE_LIMIT_REQUESTS_PER_MINUTE** — Max API requests per minute per user (default: 60)
+- **CIRCUIT_BREAKER_FAILURE_THRESHOLD** — Failures before circuit opens (default: 3)
+- **MAX_BODY_SIZE** — Max request body size in bytes (default: 100000)
+
+**Feature Flags:**
+- **ENABLE_ASYNC_EXECUTION** — Run studies asynchronously (true/false, default: true)
+- **ENABLE_CACHING** — Cache study results (true/false, default: true)
+- **ENABLE_OBSERVABILITY** — Log metrics and traces (true/false, default: true)
+
+**How to Configure:**
+1. Set RATE_LIMIT to prevent abuse (60 req/min is typical)
+2. Set CIRCUIT_BREAKER to 3-5 for resilience
+3. Enable Prometheus for production monitoring
+4. Toggle feature flags based on your needs
+5. Click **Save**
+
+**Tips:**
+- Disable caching during development for fresh results
+- Enable async execution for long-running studies
+- Prometheus metrics are available at /metrics endpoint`,
+      ar: `**ما يفعله:**
+تبويب الأداء يكوّن المراقبة وتقييد المعدل وقاطع الدائرة وأعلام الميزات للخدمة الهندسية.
+
+**المراقبة:**
+- **HEALTH_CHECK_API_URL** — رابط نقطة نهاية فحص الصحة الخارجية (اترك فارغاً للتخطي)
+- **PROMETHEUS_ENABLED** — تفعيل تصدير مقاييس Prometheus (true/false)
+- **PROMETHEUS_PORT** — منفذ خادم مقاييس Prometheus (افتراضي: 9090)
+
+**تقييد المعدل وقاطع الدائرة:**
+- **RATE_LIMIT_REQUESTS_PER_MINUTE** — أقصى طلبات API في الدقيقة لكل مستخدم (افتراضي: 60)
+- **CIRCUIT_BREAKER_FAILURE_THRESHOLD** — حالات فشل قبل فتح الدائرة (افتراضي: 3)
+- **MAX_BODY_SIZE** — الحد الأقصى لحجم جسم الطلب بالبايت (افتراضي: 100000)
+
+**أعلام الميزات:**
+- **ENABLE_ASYNC_EXECUTION** — تشغيل الدراسات بشكل غير متزامن (true/false، افتراضي: true)
+- **ENABLE_CACHING** — تخزين نتائج الدراسات مؤقتاً (true/false، افتراضي: true)
+- **ENABLE_OBSERVABILITY** — تسجيل المقاييس والتتبع (true/false، افتراضي: true)
+
+**كيفية التكوين:**
+1. عيّن RATE_LIMIT لمنع الاستغلال (60 req/min نموذجي)
+2. عيّن CIRCUIT_BREAKER إلى 3-5 للصلابة
+3. فعّل Prometheus لمراقبة الإنتاج
+4. بدّل أعلام الميزات بناءً على احتياجاتك
+5. انقر **حفظ**
+
+**نصائح:**
+- عطّل التخزين المؤقت أثناء التطوير لنتائج جديدة
+- فعّل التنفيذ غير المتزامن للدراسات طويلة التشغيل
+- مقاييس Prometheus متاحة عند نقطة نهاية /metrics`,
+    },
+    tags: ['performance', 'prometheus', 'rate-limit', 'circuit-breaker', 'cache', 'أداء', 'مراقبة'],
+    navigateTo: '/settings',
+    relatedTopics: ['diagnostics.overview', 'settings.backend'],
+  },
+  {
+    id: 'settings.vision',
+    category: 'settings',
+    title: { en: 'Vision API Keys', ar: 'مفاتيح API الرؤية' },
+    description: { en: 'Configure vision-capable LLM provider API keys', ar: 'تكوين مفاتيح مزودي LLM القادرون على الرؤية' },
+    content: {
+      en: `**What it does:**
+The Vision API Keys tab configures API keys for LLM providers that support image/multimodal inputs. These are used by features like "snap-to-analyze" in the Grid Editor and asset photo recognition.
+
+**Supported Vision Providers:**
+- **OpenAI** — GPT-4o, GPT-4o-mini (vision enabled by default)
+- **Anthropic** — Claude 3.5 Sonnet, Claude 3 Opus (vision enabled)
+- **Google Gemini** — Gemini 1.5 Pro/Flash (vision enabled)
+- **Groq** — Llama 3.3 70B (vision via Groq)
+- **OpenRouter** — Models with vision capabilities
+
+**Configuration:**
+1. Navigate to the Vision API Keys tab in Settings
+2. Select a vision provider from the list
+3. Enter your API key
+4. Click **Save Vision Key**
+5. The key is validated and stored (obfuscated)
+
+**How to Use:**
+- In Grid Editor: Click the camera icon on any component to analyze its image
+- In Asset Management: Upload a photo of equipment for AI-powered identification
+- The vision model returns: equipment type, likely model, and maintenance notes
+
+**Privacy:**
+- Images are sent to the vision provider's API for analysis
+- Images are not stored on our servers
+- Review your provider's privacy policy`,
+      ar: `**ما يفعله:**
+تبويب مفاتيح API الرؤية يكوّن مفاتيح API لمزودي LLM الذين يدعمون المدخلات متعددة الوسائط (صور). تُستخدم هذه الميزات مثل "التقاط للتحليل" في محرر الشبكة والتعرف على صور الأصول.
+
+**مزودو الرؤية المدعومون:**
+- **OpenAI** — GPT-4o، GPT-4o-mini (الرؤية مفعلة افتراضياً)
+- **Anthropic** — Claude 3.5 Sonnet، Claude 3 Opus (الرؤية مفعلة)
+- **Google Gemini** — Gemini 1.5 Pro/Flash (الرؤية مفعلة)
+- **Groq** — Llama 3.3 70B (رؤية عبر Groq)
+- **OpenRouter** — النماذج ذات قدرات الرؤية
+
+**التكوين:**
+1. انتقل إلى تبويب مفاتيح API الرؤية في الإعدادات
+2. اختر مزود رؤية من القائمة
+3. أدخل مفتاح API
+4. انقر **حفظ مفتاح الرؤية**
+5. يتم التحقق من المفتاح وحفظه (مشوّه)
+
+**كيفية الاستخدام:**
+- في محرر الشبكة: انقر على أيقونة الكاميرا على أي مكون لتحليل صورته
+- في إدارة الأصول: ارفع صورة المعدة untuk التعرف عليها بالذكاء الاصطناعي
+- نموذج الرؤية يُرجع: نوع المعدة، الموديل المحتمل، وملاحظات الصيانة
+
+**الخصوصية:**
+- الصور مرسلة إلى API مزود الرؤية للتحليل
+- الصور لا تُخزن على خوادمنا
+- راجع سياسة الخصوصية لمزودك`,
+    },
+    tags: ['vision', 'image', 'multimodal', 'gpt-4o', 'claude', 'gemini', 'رؤية', 'صورة'],
+    navigateTo: '/settings',
+    relatedTopics: ['settings.ai-providers', 'grid-editor.overview'],
   },
 
   // ─── Code Guard ───────────────────────────────────────────────────
@@ -1854,323 +2353,137 @@ The Logs page shows a real-time stream of application logs with powerful filteri
     relatedTopics: ['diagnostics.overview', 'troubleshooting.backend'],
   },
 
-  // ─── Troubleshooting ──────────────────────────────────────────────
+  // ─── SCADA Integration ─────────────────────────────────────────────
   {
-    id: 'troubleshooting.backend',
-    category: 'troubleshooting',
-    title: { en: 'Backend Unavailable', ar: 'الخادم غير متاح' },
-    description: { en: 'The engineering service is not responding', ar: 'خدمة الخدمة الهندسية لا تستجيب' },
+    id: 'scada-integration.overview',
+    category: 'digital-twin',
+    title: { en: 'SCADA Integration (zenon)', ar: 'تكامل الإسكادا (زينون)' },
+    description: { en: 'Connect and sync with Copa-Data zenon SCADA system', ar: 'الاتصال والمزامنة مع نظام إسكادا زينون من كوبا-داتا' },
     content: {
-      en: `**Symptoms:**
-- "Backend Unavailable" error in the UI
-- Studies fail to execute
-- Status indicator shows red
+      en: `**What it does:**
+The SCADA Integration page connects AhmedETAP with a Copa-Data zenon SCADA server to stream real-time telemetry (voltages, currents, frequencies) and receive alarms/events.
 
-**Solutions:**
+**Required Configuration:**
+- **Zenon Server URL** — e.g. \`http://localhost:8080/zenon\`
+- **API Key / Token** — authentication token for the SCADA API
+- **Project Name** — zenon project identifier (default: \`ETAP_Zenon_Sync\`)
+- **Sync Rate (sec)** — polling interval in seconds (default: 2)
 
-**1. Check if the backend is running:**
-\`\`\`bash
-curl http://localhost:8000/healthz
-\`\`\`
-Should return \`{"status": "alive"}\`
+**Features:**
+1. **Live Telemetry Sync** — WebSocket or HTTP fallback polling
+2. **Alarm Stream** — real-time alarm ingestion with severity levels
+3. **Connection Trace Logs** — debug logs for connection lifecycle
+4. **Offline Simulation** — local simulated feed when zenon is unreachable
 
-**2. Start the backend:**
-\`\`\`bash
-# Modular service (recommended)
-python -m api.refactored_service
+**How to Use:**
+1. Enter your zenon server URL and API token
+2. Click **Save SCADA Configuration** to persist to localStorage
+3. Click **Ping Server** to verify connectivity and measure latency
+4. Click **Start Live** to begin streaming data
+5. Monitor telemetry table, alarm stream, and connection logs
 
-# Or legacy monolith
-python engineering_service.py --port 8000
-\`\`\`
+**Simulation Mode:**
+Enable the **Offline Simulation Mode** checkbox to test without a real zenon runtime. The system generates fluctuating values and random alarms for demonstration.
 
-**3. Check the URL in Settings:**
-- Navigate to Settings → Engineering Service
-- Verify the URL matches your backend (e.g. http://localhost:8000)
-- Verify the API key matches your ENGINEERING_SERVICE_API_KEY env var
+**Troubleshooting:**
+- "Connection failed" — ensure zenon runtime is running and CORS is configured
+- WebSocket fails — falls back automatically to HTTP polling
+- No telemetry data — check API key permissions and project name`,
+      ar: `**ما يفعله:**
+تتصل صفحة تكامل الإسكادا بخادم إسكادا زينون من كوبا-داتا لبث البيانات القياسية الحية (جهود، تيارات، ترددات) واستقبال الإنذارات/الأحداث.
 
-**4. Check firewall:**
-- Port 8000 should be open for both inbound and outbound
-- On Windows: \`netsh advfirewall firewall add rule name="ETAP" dir=in action=allow protocol=TCP localport=8000\`
+**التكوين المطلوب:**
+- **رابط خادم زينون** — مثل \`http://localhost:8080/zenon\`
+- **مفتاح API / رمز** — رمز مصادقة لـ API الإسكادا
+- **اسم المشروع** — معرف مشروع زينون (افتراضي: \`ETAP_Zenon_Sync\`)
+- **معدل التحديث (ثانية)** — فترة الاقتراع بالثواني (افتراضي: 2)
 
-**5. Check Docker (if using containers):**
-\`\`\`bash
-docker compose ps
-docker compose logs api
-\`\`\`
+**الميزات:**
+1. **مزامنة البيانات الحية** — WebSocket أو اقتراع HTTP احتياطي
+2. **بث الإنذارات** — استهلاك إنذارات فورية بمستويات خطورة
+3. **سجلات تتبع الاتصال** — سجلات تشخيص لدورة حياة الاتصال
+4. **محاكاة غير متصلة** — تغذية محلية محاكاة عند عدم توفر زينون
 
-**6. For HF Space deployment:**
-- Check the Space status at https://huggingface.co/spaces/ahmdelbaz28/AhmedETAP-Platform
-- The Space may be sleeping (free tier sleeps after 48h of inactivity)
-- Visit the Space URL to wake it up`,
-      ar: `**الأعراض:**
-- خطأ "الخادم غير متاح" في واجهة المستخدم
-- فشل تنفيذ الدراسات
-- مؤشر الحالة يظهر بالأحمر
+**كيفية الاستخدام:**
+1. أدخل رابط خادم زينون ورمز API
+2. انقر **حفظ إعدادات الربط** للتخزين المحلي
+3. انقر **فحص الاتصال** للتحقق من الاتصال وقياس زمن الاستجابة
+4. انقر **تشغيل البث** لبدء تدفق البيانات
+5. راقب جدول البيانات القياسية وبث الإنذارات وسجلات الاتصال
 
-**الحلول:**
+**وضع المحاكاة:**
+فعّل خانة **تفعيل بيئة المحاكاة المحلية** للاختبار بدون تشغيل زينون فعلي. يولد النظام قيمًا متقلبة وإنذارات عشوائية للعرض.
 
-**1. تحقق من تشغيل الخادم:**
-\`\`\`bash
-curl http://localhost:8000/healthz
-\`\`\`
-يجب أن يُرجع \`{"status": "alive"}\`
-
-**2. تشغيل الخادم:**
-\`\`\`bash
-# الخدمة المعيارية (موصى بها)
-python -m api.refactored_service
-
-# أو الأحادي القديم
-python engineering_service.py --port 8000
-\`\`\`
-
-**3. تحقق من الرابط في الإعدادات:**
-- انتقل إلى الإعدادات → الخدمة الهندسية
-- تحقق من أن الرابط يطابق خادمك (مثل http://localhost:8000)
-- تحقق من أن مفتاح API يطابق متغير البيئة ENGINEERING_SERVICE_API_KEY
-
-**4. تحقق من جدار الحماية:**
-- يجب أن يكون المنفذ 8000 مفتوحاً للداخل والخارج
-- على Windows: \`netsh advfirewall firewall add rule name="ETAP" dir=in action=allow protocol=TCP localport=8000\`
-
-**5. تحقق من Docker (إذا كنت تستخدم الحاويات):**
-\`\`\`bash
-docker compose ps
-docker compose logs api
-\`\`\`
-
-**6. لنشر HF Space:**
-- تحقق من حالة المساحة على https://huggingface.co/spaces/ahmdelbaz28/AhmedETAP-Platform
-- قد تكون المساحة نائمة (الطبقة المجانية تنام بعد 48 ساعة من عدم النشاط)
-- قم بزيارة رابط المساحة لإيقاظها`,
+**استكشاف الأخطاء:**
+- "فشل الاتصال" — تأكد من تشغيل zenon وتكوين CORS
+- WebSocket يفشل — يحول تلقائيًا لاقتراع HTTP
+- لا توجد بيانات — تحقق من صلاحيات مفتاح API واسم المشروع`,
     },
-    tags: ['backend', 'unavailable', 'error', 'connection', 'خادم', 'غير متاح', 'خطأ'],
-    navigateTo: '/diagnostics',
-    relatedTopics: ['settings.backend', 'troubleshooting.api'],
+    tags: ['scada', 'zenon', 'copa-data', 'telemetry', 'websocket', 'alarm', 'إسكادا', 'زينون', 'هاتف'],
+    navigateTo: '/scada',
+    relatedTopics: ['digital-twin.overview', 'integration.scada'],
   },
   {
-    id: 'troubleshooting.api',
-    category: 'troubleshooting',
-    title: { en: 'API Errors', ar: 'أخطاء API' },
-    description: { en: 'Common API error codes and their solutions', ar: 'أكواد أخطاء API الشائعة وحلولها' },
+    id: 'grid-editor.overview',
+    category: 'engineering',
+    title: { en: 'Grid Editor', ar: 'محرر الشبكة' },
+    description: { en: 'Interactive power system diagram editor for buses, lines, and transformers', ar: 'محرر رسومي تفاعلي لنظام القدرة: باصات، خطوط، محولات' },
     content: {
-      en: `**Common Error Codes:**
+      en: `**What it does:**
+The Grid Editor provides a visual canvas for building and editing single-line diagrams (SLDs) of power systems. Drag components from the palette, connect them with lines, and configure electrical parameters.
 
-**400 Bad Request** — Invalid input data
-- Check required fields are present
-- Verify data types match expected format
-- Look at the error detail for the specific field
+**Component Palette:**
+- **Buses** — Slack, PV, PQ bus types with voltage/power setpoints
+- **Lines** — Transmission/distribution lines with R, X, B parameters
+- **Transformers** — Two-winding and three-winding with tap ratios
+- **Generators** — Synchronous machines with P/Q/V setpoints
+- **Loads** — Constant power/current/impedance models
+- **Capacitors/Reactors** — Shunt compensation devices
 
-**401 Unauthorized** — Authentication failed
-- Verify API key is correct (Settings → Engineering Service)
-- Check if JWT token has expired (login again)
-- For HF Space: verify HF_API_KEY is set as a Space secret
+**How to Use:**
+1. Select a component from the left palette
+2. Click on the canvas to place it
+3. Drag from a component's port to another to connect
+4. Click a placed component to edit its properties in the right panel
+5. Use the toolbar actions: Save, Undo/Redo, Zoom, Export
 
-**403 Forbidden** — Insufficient permissions
-- Your role may not have access (admin only?)
-- Contact administrator for role elevation
-
-**404 Not Found** — Resource doesn't exist
-- Check the resource ID in the URL
-- Verify the endpoint path is correct
-- The project/study may have been deleted
-
-**422 Unprocessable Entity** — Pydantic validation failed
-- Check the response body for the validation error details
-- Each error tells you which field failed and why
-
-**429 Too Many Requests** — Rate limited
-- Wait before retrying (Retry-After header tells you how long)
-- Default limit: 100 requests per minute
-- For higher limits, contact admin
-
-**500 Internal Server Error** — Server-side issue
-- Check backend logs at /logs
-- Look at the trace_id in the response to find the specific log entry
-- Restart the service if persistent
-
-**503 Service Unavailable** — Backend starting up
-- Wait a few seconds and retry
-- The service may be initializing or restarting`,
-      ar: `**أكواد الأخطاء الشائعة:**
-
-**400 طلب سيئ** — بيانات إدخال غير صالحة
-- تحقق من وجود الحقول المطلوبة
-- تأكد من تطابق أنواع البيانات
-- انظر إلى تفاصيل الخطأ للحقل المحدد
-
-**401 غير مصرح** — فشل المصادقة
-- تحقق من صحة مفتاح API (الإعدادات → الخدمة الهندسية)
-- تحقق من انتهاء صلاحية رمز JWT (سجل الدخول مرة أخرى)
-- لـ HF Space: تحقق من تعيين HF_API_KEY كسر للمساحة
-
-**403 محظور** — صلاحيات غير كافية
-- قد لا يكون لدورك وصول (للمسؤولين فقط؟)
-- تواصل مع المسؤول لرفع الدور
-
-**404 غير موجود** — المورد غير موجود
-- تحقق من معرّف المورد في URL
-- تحقق من صحة مسار النقطة
-- قد يكون المشروع/الدراسة قد حُذف
-
-**422 كيان غير قابل للمعالجة** — فشل التحقق من Pydantic
-- تحقق من جسم الاستجابة لتفاصيل خطأ التحقق
-- يخبرك كل خطأ بأي حقل فشل ولماذا
-
-**429 طلبات كثيرة جداً** — تم تقييد المعدل
-- انتظر قبل إعادة المحاولة (ترويسة Retry-After تخبرك بالمدة)
-- الحد الافتراضي: 100 طلب في الدقيقة
-- للحدود الأعلى، تواصل مع المسؤول
-
-**500 خطأ داخلي في الخادم** — مشكلة في الخادم
-- تحقق من سجلات الخادم في /logs
-- ابحث عن trace_id في الاستجابة للعثور على إدخال السجل المحدد
-- أعد تشغيل الخدمة إذا استمر
-
-**503 الخدمة غير متاحة** — الخادم يبدأ
-- انتظر بضع ثوانٍ وأعد المحاولة
-- قد تكون الخدمة قيد التهيئة أو إعادة التشغيل`,
-    },
-    tags: ['api', 'error', '400', '401', '403', '404', '429', '500', 'api', 'خطأ'],
-    relatedTopics: ['troubleshooting.backend', 'troubleshooting.auth'],
-  },
-  {
-    id: 'troubleshooting.auth',
-    category: 'troubleshooting',
-    title: { en: 'Authentication Issues', ar: 'مشاكل المصادقة' },
-    description: { en: 'Login failures and token problems', ar: 'فشل تسجيل الدخول ومشاكل الرمز' },
-    content: {
-      en: `**Common Issues:**
-
-**Login fails immediately:**
-- Verify username and password (case-sensitive)
-- Check for account lockout (5 failed attempts in 15 minutes → locked for 15 min)
-- Ensure backend is running (login requires backend connectivity)
-
-**"Account is deactivated":**
-- An admin has deactivated your account
-- Contact admin to reactivate
-
-**Token expired:**
-- Access tokens expire after 30 minutes
-- Refresh tokens expire after 7 days
-- The app auto-refreshes; if it fails, you'll be redirected to login
-
-**JWT validation error:**
-- Token may be malformed
-- Secret key may have changed (admin rotated keys)
-- Clear browser localStorage and re-login:
-  - Open DevTools (F12) → Application → Local Storage → Clear
-
-**MFA issues:**
-- TOTP codes are time-sensitive (30-second window)
-- Verify your authenticator app's time is synced
-- Use a backup code if you've lost your device
-- Contact admin to reset MFA if all else fails
-
-**Password reset:**
-- Click "Forgot password?" on the login page
-- Enter your email — a reset token is generated
-- Use the reset token to set a new password (token expires in 30 minutes)`,
-      ar: `**المشكلات الشائعة:**
-
-**فشل تسجيل الدخول فوراً:**
-- تحقق من اسم المستخدم وكلمة المرور (حساس للحالة)
-- تحقق من حظر الحساب (5 محاولات فاشلة في 15 دقيقة → محظور لـ 15 دقيقة)
-- تأكد من تشغيل الخادم (تسجيل الدخول يتطلب اتصال الخادم)
-
-**"الحساب معطل":**
-- قام مسؤول بتعطيل حسابك
-- تواصل مع المسؤول لإعادة التفعيل
-
-**انتهت صلاحية الرمز:**
-- تنتهي صلاحية رموز الوصول بعد 30 دقيقة
-- تنتهي صلاحية رموز التحديث بعد 7 أيام
-- التطبيق يحدّث تلقائياً؛ إذا فشل، سيتم توجيهك لتسجيل الدخول
-
-**خطأ في التحقق من JWT:**
-- قد يكون الرمز مشوّهاً
-- قد يكون المفتاح السري قد تغير (قام المسؤول بتدوير المفاتيح)
-- امسح localStorage في المتصفح وأعد تسجيل الدخول:
-  - افتح DevTools (F12) → Application → Local Storage → Clear
-
-**مشاكل MFA:**
-- رموز TOTP حساسة للوقت (نافذة 30 ثانية)
-- تحقق من أن وقت تطبيق المصادقة متزامن
-- استخدم رمز النسخ الاحتياطي إذا فقدت جهازك
-- تواصل مع المسؤول لإعادة تعيين MFA إذا فشل كل شيء آخر
-
-**إعادة تعيين كلمة المرور:**
-- انقر على "نسيت كلمة المرور؟" في صفحة تسجيل الدخول
-- أدخل بريدك الإلكتروني — يتم إنشاء رمز إعادة التعيين
-- استخدم رمز إعادة التعيين لتعيين كلمة مرور جديدة (ينتهي الرمز في 30 دقيقة)`,
-    },
-    tags: ['auth', 'login', 'token', 'jwt', 'mfa', 'مصادقة', 'دخول', 'رمز'],
-    navigateTo: '/settings',
-    relatedTopics: ['settings.backend', 'troubleshooting.api', 'administration.overview'],
-  },
-  {
-    id: 'integration.scada',
-    category: 'settings',
-    title: { en: 'SCADA System Integration (zenon)', ar: 'ربط نظام الإسكادا (زينون)' },
-    description: { en: 'Configure and monitor Copa-Data zenon SCADA system connection', ar: 'تكوين ومراقبة اتصال نظام إسكادا زينون (zenon)' },
-    content: {
-      en: `**zenon SCADA Connectivity:**
-Copa-Data zenon SCADA is integrated directly with the AhmedETAP platform via the SCADA Agent, facilitating real-time status monitoring, state estimation, and IEC 61850 data model mapping.
-
-**Configuration Parameters (Settings → Integration):**
-- **SCADA System Type** — Copa-Data zenon SCADA (default)
-- **SCADA Server URL** — HTTP endpoint of the zenon REST API/Web Server
-- **Project Name** — Name of the active zenon project to synchronize variables from
-- **Sync Interval** — Interval in seconds for pulling real-time variables (default: 10s)
-- **SCADA API Key** — Authorization secret token for secure data transfer
-
-**Common Operations:**
-1. **Tag Mapping** — Map zenon tags to ETAP nodes (buses, breakers, generators)
-2. **Real-time Alarm Monitoring** — Stream alarms from zenon to AhmedETAP
-3. **Single-Line Diagram Animation** — Animate breaker states based on live data
-4. **State Estimation** — Use SCADA measurements to estimate unobserved states
-
-**IEC 61850 Logical Nodes:**
-- MMXU — Voltage, current, power measurements
-- MSQI — Sequence components & imbalance
-- XCBR — Circuit breaker positions
-- XSWI — Switch/disconnector positions
+**Keyboard Shortcuts:**
+- \`Delete\` — remove selected component
+- \`Ctrl+Z\` — undo
+- \`Ctrl+Shift+Z\` — redo
+- \`Ctrl+S\` — save diagram
+- \`Ctrl+A\` — select all
 
 **Tips:**
-- Test connectivity with the "Test Connection" button before saving
-- Use a low sync interval (5-10s) for near-real-time monitoring
-- Higher intervals (30-60s) reduce server load but may miss transient events`,
-      ar: `**ربط نظام إسكادا زينون (zenon SCADA):**
-يتكامل نظام Copa-Data zenon SCADA مباشرة مع منصة AhmedETAP عبر وكيل الإسكادا، مما يسهل مراقبة الحالة الحية وتقدير حالة النظام ومطابقة نموذج بيانات المعيار IEC 61850.
+- Snap-to-grid keeps diagram tidy
+- Ports highlight when dragging a connection near them
+- The properties panel shows context-sensitive fields based on component type`,
+      ar: `**ما يفعله:**
+يوفر محرر الشبكة لوحة رسم مرئية لبناء وتعديل المخططات أحادية الخط (SLD) لأنظمة القدرة. اسحب المكونات من اللوحة، اربطها بالخطوط، وقم بتكوين المعلمات الكهربية.
 
-**محددات التكوين (الإعدادات → التكامل):**
-- **نوع نظام الإسكادا** — Copa-Data zenon SCADA (افتراضي)
-- **رابط الخادم** — الرابط الشبكي لخدمة zenon REST API/Web Server
-- **اسم المشروع** — اسم مشروع zenon النشط لمزامنة المتغيرات منه
-- **معدل المزامنة** — الوقت بالثواني لجلب قيم المتغيرات في الوقت الفعلي (افتراضي: 10 ثوانٍ)
-- **مفتاح API** — رمز التفويض السري لنقل البيانات الآمن
+**لوحة المكونات:**
+- **الباصات** — أنواع slack و PV و PQ مع تحديد الجهد/القدرة
+- **الخطوط** — خطوط نقل/توزيع بمعاملات R و X و B
+- **المحولات** — ثنائي وثلاثي اللفات مع نسب التحويل
+- **المولدات** — آلات تزامنية مع تحديد P/Q/V
+- **الأحمال** — نماذج قدرة/تيار/مقاومة ثابتة
+- **مكثفات/مفاعلات** — أجهزة تعويض موازٍ
 
-**العمليات الشائعة:**
-1. **تعيين الوسوم** — مطابقة وسوم (tags) زينون مع عقد شبكة إيتاب
-2. **مراقبة الإنذارات في الوقت الفعلي** — بث الإنذارات من زينون إلى AhmedETAP
-3. **تحريك مخطط الخط الواحد** — تحريك حالات القواطع بناءً على البيانات الحية
-4. **تقدير الحالة** — استخدام قياسات SCADA لتقدير الحالات غير المرصودة
-
-**العقد المنطقية IEC 61850:**
-- MMXU — قياسات الجهد، التيار، القدرة
-- MSQI — مركبات التسلسل وعدم الاتزان
-- XCBR — مواقع القواطع الكهربية
-- XSWI — مواقع المفاتيح/المفاصل
+**كيفية الاستخدام:**
+1. اختر مكونًا من اللوحة اليسرى
+2. انقر على اللوحة لوضعه
+3. اسحب من منفذ المكون إلى آخر للاتصال
+4. انقر على المكون الموجود لتعديل خصائصه في اللوحة اليمنى
+5. استخدم أزرار شريط الأدوات: حفظ، تراجع/إعادة، تكبير، تصدير
 
 **نصائح:**
-- اختبر الاتصال بزر "اختبار الاتصال" قبل الحفظ
-- استخدم معدل مزامنة منخفض (5-10 ثوانٍ) للمراقبة شبه المباشرة
-- المعدلات الأعلى (30-60 ثانية) تقلل حمل الخادم لكن قد تفوت الأحداث العابرة`,
+- المحاذاة للشبكة تحافظ على ترتيب الرسم
+- تظهر المنافذ عند السحب قربها
+- تعرض لوحة الخصائص حقول حساسة لنوع المكون`,
     },
-    tags: ['scada', 'zenon', 'integration', 'iec61850', 'إسكادا', 'زينون', 'ربط'],
-    navigateTo: '/settings',
-    relatedTopics: ['digital-twin.overview', 'settings.backend'],
+    tags: ['grid', 'editor', 'sld', 'diagram', 'canvas', 'محرر', 'شبكة', 'رسم'],
+    navigateTo: '/grid-editor',
+    relatedTopics: ['studies.load-flow', 'asset-management.overview'],
   },
 ]
 
