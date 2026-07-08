@@ -5,9 +5,9 @@ Thin wrappers over ``anyio.CancelScope``. Most uses are covered by
 this module provides a slightly higher-level surface for callers that
 need an explicit, externally-cancellable scope.
 """
-from typing import Optional, Union
-
 from __future__ import annotations
+
+from typing import Optional, Union
 
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager

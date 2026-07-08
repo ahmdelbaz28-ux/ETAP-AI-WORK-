@@ -12,10 +12,10 @@ Features:
 - Audit logging
 - Secrets management
 """
+from __future__ import annotations
 from typing import Optional, Union
 
 # bcrypt is a hard dependency — add to requirements.txt: bcrypt>=4.0.0
-from __future__ import annotations
 
 import ast
 import json
@@ -555,7 +555,7 @@ class InputValidator:
             "WebClient",
             "DownloadString",
             "IEX",
-            Union[", ",]
+            "Union",
             ";",
             "-Enc",
             "-EncodedCommand",

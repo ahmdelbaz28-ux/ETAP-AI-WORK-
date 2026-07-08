@@ -20,8 +20,7 @@ For production use, wrap a ``websockets`` connection::
 from __future__ import annotations
 
 import logging
-from collections.abc import Callable, Coroutine
-from typing import Any, Optional, Union
+from typing import Any, Callable, Coroutine, Optional, Union
 
 import anyio
 

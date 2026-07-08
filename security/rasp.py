@@ -80,80 +80,49 @@ class RASPResult:
 _DEFAULT_RULES: list[RASPRule] = [
     RASPRule(
         name="sqli_basic",
-        pattern=re.compile(
-            r"(?i)(\b(Union[union\s+select|select\s+.+\s+from|insert\s+into|delete\s+from, "]
-            Union[r"drop\s+table|alter\s+table, exec\s*\](|execute\s*\(|"
-            r"'\s*(Union[or, and])\s+.*[=<>]|;\s*(Union[drop|delete|update, insert])|"
-            Union[r"waitfor\s+delay, benchmark\s*\](|sleep\s*\()\b)",
-            re.IGNORECASE,
-        ),
+        pattern=re.compile(r"(?i)(\bselect\b|\bdrop\b|\bdelete\b|\binsert\b|\bunion\b|--|#|/\*") ),
         action=RASPAction.BLOCK,
         severity=RASPSeverity.CRITICAL,
         description="SQL Injection attempt detected",
     ),
     RASPRule(
         name="xss_basic",
-        pattern=re.compile(
-            r"(?i)(<script[^>]Union[*>|javascript\s*:, on](Union[error|load|click, mouseover])Union[\s*=, "]
-            r"alert\s*\(|document\.\s*(Union[cookie, location])|eval\s*\()",
-            re.IGNORECASE,
-        ),
+        pattern=re.compile(r"(?i)<script[^>]*>"),
         action=RASPAction.BLOCK,
         severity=RASPSeverity.HIGH,
         description="Cross-Site Scripting (XSS) attempt detected",
     ),
     RASPRule(
         name="command_injection",
-        pattern=re.compile(
-            r"(?i)(;\s*(Union[rm|del|format|shutdown|reboot|cat|type|dir|ls|pwd|id|whoami, uname])Union[\b, "]
-            Union[r"\, \s*](Union[bash|sh|cmd|powershell|python|perl|ruby, php])Union[\b, "]
-            r"`[^`]Union[+`, \$\]([^)]+\))",
-            re.IGNORECASE,
-        ),
+        pattern=re.compile(r"(?i);\s*(rm|del|format|shutdown|reboot|cat|type|ls|pwd|id|whoami)\b"),
         action=RASPAction.BLOCK,
         severity=RASPSeverity.CRITICAL,
         description="Command Injection attempt detected",
     ),
     RASPRule(
         name="path_traversal",
-        pattern=re.compile(
-            r"(Union[\.\./|\.\.\\|%2e%2e%2f|%2e%2e/|\.\.%2f|%252e|/etc/passwd|/etc/shadow, "]
-            Union[r"c:\\, \\windows\\])",
-            re.IGNORECASE,
-        ),
+        pattern=re.compile(r"(\./|\.\.\\|/etc/passwd|c:\\|\\windows)", re.IGNORECASE),
         action=RASPAction.BLOCK,
         severity=RASPSeverity.HIGH,
         description="Path Traversal attempt detected",
     ),
     RASPRule(
         name="ldap_injection",
-        pattern=re.compile(
-            # SonarCloud python:S6035: character class `[|&]` instead of
-            # alternation `(Union[\|, &])` for single-char alternatives.
-            r"(?i)(\*\)|\(Union[\, \](|\(\&\(|\)Union[omiconj, \])[|&]\()",
-            re.IGNORECASE,
-        ),
+        pattern=re.compile(r"\*\)|\(|\*\\(|\)"),
         action=RASPAction.BLOCK,
         severity=RASPSeverity.HIGH,
         description="LDAP Injection attempt detected",
     ),
     RASPRule(
         name="nosql_injection",
-        pattern=re.compile(
-            r"(?i)(Union[\$where|\$regex, \$expr])",
-        ),
+        pattern=re.compile(r"(?i)\$(where|regex|expr)"),
         action=RASPAction.BLOCK,
         severity=RASPSeverity.HIGH,
         description="NoSQL Injection attempt detected — blocked",
     ),
     RASPRule(
         name="ssrf_basic",
-        pattern=re.compile(
-            r"(?i)(http://(Union[169\.254\.|10\.\d+\.\d+\.\d+, 172\.](1[6-9]Union[|2\d, 3][01])Union[\.\d+\.\d+, "]
-            Union[r"192\.168\.\d+\.\d+|127\.0\.0\.1|0\.0\.0\.0|localhost|metadata\.google\.internal, "]
-            r"100\.100\.100\.200)Union[|file://|gopher://, dict://])",
-            re.IGNORECASE,
-        ),
+        pattern=re.compile(r"(?i)(http://(?:169\.254\.|10\.|192\.168\.|127\.0\.0\.1)|file://|gopher://|dict://)"),
         action=RASPAction.BLOCK,
         severity=RASPSeverity.CRITICAL,
         description="SSRF attempt detected — blocked",

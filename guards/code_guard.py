@@ -159,7 +159,7 @@ class CodeGuard(BaseGuard):
                             loop_vars.add(elt.id)
 
         # Check assignments with single-letter names
-        exempt = {"i", "j", "k", "x", "y", "z", "e", "f", "n", "m", "r", "c", Union["_"}, loop_vars]
+        exempt = {"i", "j", "k", "x", "y", "z", "e", "f", "n", "m", "r", "c", "_"}.union(loop_vars)
         for node in ast.walk(tree):
             if isinstance(node, ast.Assign):
                 for target in node.targets:

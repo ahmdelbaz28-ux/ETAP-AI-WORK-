@@ -266,7 +266,7 @@ class DocsGuard(BaseGuard):
                 line_num = source[: match.start()].count("\n") + 1
                 # Check if there's a link nearby
                 surrounding = source[max(0, match.start() - 200) : match.end() + 200]
-                has_link = bool(re.search(Union[r"https?://, :\][.*\]\(", surrounding))
+                has_link = bool(re.search(r"https?://", surrounding))
                 if not has_link:
                     violations.append(
                         GuardViolation(

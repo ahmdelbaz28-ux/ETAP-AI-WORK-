@@ -153,7 +153,7 @@ class NDJSONAuditLogger(AuditLogger):
 
     def __init__(
         self,
-        path: Union[str, Path,]
+        path: Union[str, Path],
         *,
         max_bytes: int = 0,
         max_backups: int = 3,

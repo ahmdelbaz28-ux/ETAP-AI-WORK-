@@ -229,7 +229,7 @@ class JsonTracer(Tracer):
         encoding: file encoding (default "utf-8").
     """
 
-    def __init__(self, path: Union[str, Path,] *, encoding: str = "utf-8") -> None:
+    def __init__(self, path: Union[str, Path], encoding: str = "utf-8") -> None:
         self._path = Path(path)
         self._encoding = encoding
         self._lock = threading.Lock()

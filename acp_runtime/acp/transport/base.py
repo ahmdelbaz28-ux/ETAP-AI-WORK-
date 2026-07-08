@@ -10,9 +10,9 @@ can drive them uniformly. The transport layer is responsible for:
 The transport layer does NOT handle JSON-RPC validation — that is the
 router's job.
 """
-from typing import Optional, Union
-
 from __future__ import annotations
+
+from typing import Optional, Union
 
 from abc import ABC, abstractmethod
 

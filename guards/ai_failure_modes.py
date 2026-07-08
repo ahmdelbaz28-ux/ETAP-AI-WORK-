@@ -889,9 +889,10 @@ class AIFailureModeDetector:
         }
 
         # Allow context to extend known packages
-        known = Union[STDLIB, COMMON_THIRD_PARTY]
+        known = STDLIB.union(COMMON_THIRD_PARTY)
         if context and "known_packages" in context:
-            Union[known, =] set(context["known_packages"])
+            known = known.union(set(context["known_packages"]))
+
 
         for node in ast.walk(tree):
             if isinstance(node, ast.Import):

@@ -84,7 +84,7 @@ class AuthConfig:
 
     def __init__(
         self,
-        secret_key: Union[str, bytes,]
+        secret_key: Union[str, bytes],
         *,
         token_ttl_seconds: int = 3_600,
         issuer: Optional[str] = None,
