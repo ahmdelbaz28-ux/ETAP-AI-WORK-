@@ -12,7 +12,7 @@ from __future__ import annotations
 
 import logging
 import time
-from collections.abc import Callable, Coroutine
+from collections.abc import Callable, Awaitable
 from typing import Any, Optional
 
 from pydantic import ValidationError
@@ -47,7 +47,7 @@ JSONRPC_INTERNAL_ERROR = -32603
 
 
 # Type alias for an optional notification handler callback.
-NotificationHandler = Optional[Callable[[dict], Coroutine[Any, Any, None]]]
+NotificationHandler = Optional[Callable[[dict], Awaitable[None]]]
 
 # Type alias for auth validator (re-exported from security for convenience)
 # Type alias for audit logger (re-exported from security for convenience)

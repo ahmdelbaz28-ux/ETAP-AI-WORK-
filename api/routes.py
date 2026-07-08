@@ -27,6 +27,12 @@ from starlette.middleware.base import BaseHTTPMiddleware
 from api.agents import router as agents_router
 from api.ai_ml import router as ai_ml_router
 from api.assets import router as assets_router
+from api.rbac import router as rbac_router
+from api.equipment import router as equipment_router
+from api.notifications import router as notifications_router, notification_websocket_endpoint
+from api.study_versions import router as study_versions_router
+from api.templates import router as templates_router
+from api.export import router as export_router
 from api.auth import router as auth_router
 from api.context_engine import router as context_engine_router
 from api.data_import import router as data_import_router
@@ -235,9 +241,13 @@ async def trace_middleware(request: Request, call_next: Any) -> Any:  # NOSONAR 
     trace_id = request.headers.get("x-trace-id") or str(uuid.uuid4())
     # SECURITY: Sanitize trace_id to prevent log injection (CRLF, newlines)
     trace_id = "".join(c for c in trace_id if c.isalnum() or c in "-_.")
-    if not trace_id:
-        trace_id = str(uuid.uuid4())
     request.state.trace_id = trace_id
+
+    # Extract dynamic active provider credentials
+    request.state.active_provider = request.headers.get("x-active-provider")
+    request.state.active_key = request.headers.get("x-active-key")
+    request.state.active_url = request.headers.get("x-active-url")
+    request.state.active_model = request.headers.get("x-active-model")
 
     tracer = get_tracer()
     with tracer.start_as_current_span(
@@ -488,7 +498,7 @@ if not _cors_origin_list or _CORS_ORIGINS == "":
         allow_origins=_cors_origin_list,
         allow_credentials=False,
         allow_methods=["GET", "POST", "PUT", "DELETE", "HEAD", "OPTIONS"],
-        allow_headers=["x-api-key", "x-trace-id", "content-type", "authorization"],
+        allow_headers=["x-api-key", "x-trace-id", "content-type", "authorization", "x-active-provider", "x-active-key", "x-active-url", "x-active-model"],
         expose_headers=["x-trace-id"],
     )
 else:
@@ -498,7 +508,7 @@ else:
         allow_origins=_cors_origin_list,
         allow_credentials=True,
         allow_methods=["GET", "POST", "PUT", "DELETE", "HEAD", "OPTIONS"],
-        allow_headers=["x-api-key", "x-trace-id", "content-type", "authorization"],
+        allow_headers=["x-api-key", "x-trace-id", "content-type", "authorization", "x-active-provider", "x-active-key", "x-active-url", "x-active-model"],
         expose_headers=["x-trace-id"],
     )
 
@@ -546,6 +556,58 @@ app.include_router(projects_router)
 app.include_router(context_engine_router)
 app.include_router(data_import_router)
 app.include_router(assets_router)
+app.include_router(rbac_router)
+app.include_router(equipment_router)
+app.include_router(notifications_router)
+app.include_router(study_versions_router)
+app.include_router(templates_router)
+app.include_router(export_router)
+
+# WebSocket endpoint for real-time notifications
+@app.websocket("/ws/notifications")
+async def websocket_notifications_handler(websocket: WebSocket) -> None:
+    """WebSocket endpoint for real-time notifications."""
+    from api.dependencies import get_current_user_from_header, JWT_SECRET_KEY, JWT_ALGORITHM
+    from api.database import get_db
+    import jwt
+
+    # Authenticate via token in query params (since WebSocket headers are limited)
+    token = websocket.query_params.get("token", "")
+    if not token:
+        await websocket.close(code=1008, reason="Missing authentication token")
+        return
+
+    try:
+        payload = jwt.decode(token, JWT_SECRET_KEY, algorithms=[JWT_ALGORITHM])
+        user_id = payload.get("sub")
+        if not user_id:
+            await websocket.close(code=1008, reason="Invalid token")
+            return
+    except Exception:
+        await websocket.close(code=1008, reason="Invalid token")
+        return
+
+    # Get user from database
+    async with get_db() as db:
+        from api.auth import User
+        from sqlalchemy import select
+
+        result = await db.execute(select(User).where(User.id == user_id))
+        user = result.scalar_one_or_none()
+        if user is None or not user.is_active:
+            await websocket.close(code=1008, reason="User not found or inactive")
+            return
+
+        from api.dependencies import CurrentUser
+        current_user = CurrentUser(
+            user_id=str(user.id),
+            username=user.username,
+            email=user.email,
+            role=user.role,
+            is_active=user.is_active,
+        )
+
+        await notification_websocket_endpoint(websocket, db, current_user)
 
 
 # ============================================================================

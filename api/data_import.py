@@ -27,7 +27,7 @@ import json
 import re
 import uuid
 import xml.etree.ElementTree as ET
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 from typing import Any
 
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
@@ -578,7 +578,7 @@ async def upload_file(
             format=fmt.id,
             filename=file.filename,
             file_size_bytes=len(content),
-            parsed_at=datetime.now(UTC).isoformat(),
+            parsed_at=datetime.now(timezone.utc).isoformat(),
             buses=[],
             branches=[],
             metadata={},
@@ -591,7 +591,7 @@ async def upload_file(
         format=fmt.id,
         filename=file.filename,
         file_size_bytes=len(content),
-        parsed_at=datetime.now(UTC).isoformat(),
+        parsed_at=datetime.now(timezone.utc).isoformat(),
         buses=buses,
         branches=branches,
         metadata=metadata,

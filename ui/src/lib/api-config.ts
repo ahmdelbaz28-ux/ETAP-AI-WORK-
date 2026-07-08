@@ -48,3 +48,50 @@ export const API_BASE_URL = resolveApiBaseUrl()
 export function apiUrl(path: string): string {
   return `${API_BASE_URL}${path}`
 }
+
+const SECRET_FIELDS = new Set([
+  'API_KEY_SECRET', 'JWT_SECRET_KEY', 'OPENAI_API_KEY', 'NVIDIA_API_KEY',
+  'QWEN_API_KEY', 'GLM_API_KEY', 'ENGINEERING_SERVICE_API_KEY',
+  'LANGWATCH_API_KEY', 'SMITHERY_API_KEY', 'HF_TOKEN', 'GITHUB_TOKEN',
+  'VERCEL_ACCESS_TOKEN', 'VERCEL_PROJECT_ID',
+  'REDIS_URL', 'DATABASE_URL', 'VAULT_TOKEN',
+  'SMTP_USERNAME', 'ETAP_LICENSE_PATH',
+  'CUSTOM_API_KEY', 'CUSTOM_OPENAI_API_KEY',
+  'PROVIDER_OPENAI_KEY', 'PROVIDER_ANTHROPIC_KEY', 'PROVIDER_GEMINI_KEY',
+  'PROVIDER_DEEPSEEK_KEY', 'PROVIDER_GROQ_KEY', 'PROVIDER_COHERE_KEY',
+  'PROVIDER_HUGGINGFACE_KEY',
+  'SCADA_API_KEY',
+])
+
+const OBFUSCATION_KEY = 'ETAP-SEC-2024-OBFUSCATION'
+
+export function deobfuscate(value: string): string {
+  if (!value) return ''
+  try {
+    const decoded = atob(value)
+    let result = ''
+    for (let i = 0; i < decoded.length; i++) {
+      result += String.fromCodePoint(decoded.codePointAt(i)! ^ OBFUSCATION_KEY.codePointAt(i % OBFUSCATION_KEY.length)!)
+    }
+    return result
+  } catch {
+    return value
+  }
+}
+
+export function getDeobfuscatedSettings(): Record<string, string> {
+  if (typeof window === 'undefined' || !window.localStorage) return {}
+  try {
+    const stored = localStorage.getItem('etap-settings')
+    if (!stored) return {}
+    const parsed = JSON.parse(stored)
+    const deobfuscated: Record<string, string> = {}
+    for (const [k, v] of Object.entries(parsed)) {
+      deobfuscated[k] = SECRET_FIELDS.has(k) ? deobfuscate(v as string) : (v as string)
+    }
+    return deobfuscated
+  } catch (error) {
+    console.error('Failed to parse settings from localStorage:', error)
+    return {}
+  }
+}

@@ -7,7 +7,7 @@
  * See that file for configuration options (VITE_API_URL env var).
  */
 
-import { API_BASE_URL } from './api-config'
+import { API_BASE_URL, getDeobfuscatedSettings } from './api-config'
 
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
   const url = `${API_BASE_URL}${path}`
@@ -20,6 +20,32 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
 
   if (token) {
     headers['Authorization'] = `Bearer ${token}`
+  }
+
+  // Forward user's active provider key/model to backend dynamically
+  const settings = getDeobfuscatedSettings()
+  const activeProviderId = settings.PROVIDER_ACTIVE_PROVIDER_ID || 'openai'
+  headers['x-active-provider'] = activeProviderId
+
+  if (activeProviderId === 'custom_openai') {
+    if (settings.CUSTOM_OPENAI_API_KEY) {
+      headers['x-active-key'] = settings.CUSTOM_OPENAI_API_KEY
+    }
+    if (settings.CUSTOM_OPENAI_BASE_URL) {
+      headers['x-active-url'] = settings.CUSTOM_OPENAI_BASE_URL
+    }
+    if (settings.CUSTOM_OPENAI_MODEL_ID) {
+      headers['x-active-model'] = settings.CUSTOM_OPENAI_MODEL_ID
+    }
+  } else {
+    const keyName = `PROVIDER_${activeProviderId.toUpperCase()}_KEY`
+    const modelName = `PROVIDER_${activeProviderId.toUpperCase()}_MODEL`
+    if (settings[keyName]) {
+      headers['x-active-key'] = settings[keyName]
+    }
+    if (settings[modelName]) {
+      headers['x-active-model'] = settings[modelName]
+    }
   }
 
   const response = await fetch(url, {

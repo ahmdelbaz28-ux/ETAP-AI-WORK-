@@ -23,7 +23,7 @@ import logging
 import os
 import threading
 import time
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 from typing import Any
 
 from fastapi import HTTPException, Request
@@ -76,7 +76,7 @@ SUPPORTED_STANDARDS: list[str] = [
 ]
 
 START_TIME: float = time.time()
-BUILD_TIME: str = datetime.now(UTC).isoformat()
+BUILD_TIME: str = datetime.now(timezone.utc).isoformat()
 
 # ---------------------------------------------------------------------------
 # Study types
