@@ -38,11 +38,11 @@ def load_real_gis_project(
 
     if qgis_project_path:
         try:
-            from gis_integration.providers.qgis_provider import QGISProvider  # lazy import
+            from gis_integration.providers import get_gis_provider  # lazy import
         except Exception as exc:
             raise GISRuntimeError(f"QGIS provider unavailable: {exc}") from exc
 
-        provider = QGISProvider()
+        provider = get_gis_provider("qgis")
         try:
             provider.load_project(qgis_project_path)
         except (GISProviderUnavailableError, GISDataExtractionError) as exc:

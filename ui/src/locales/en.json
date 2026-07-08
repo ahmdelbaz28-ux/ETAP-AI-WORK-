@@ -8,6 +8,7 @@
   "sidebar": {
     "dashboard": "Dashboard",
     "studies": "Studies",
+    "gridEditor": "Grid Editor",
     "assistant": "AI Assistant",
     "projects": "Projects",
     "results": "Results",

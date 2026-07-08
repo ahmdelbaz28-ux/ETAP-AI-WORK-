@@ -736,6 +736,55 @@ vault kv put secret/etap-platform jwt_secret_key=...
    pytest tests/
    ```
 
+## GIS & ETAP COM SDK Configuration
+
+### 1. Remote ETAP Windows Worker
+Since the ETAP COM automation API requires a Windows host with a licensed installation of ETAP, remote Linux servers (such as Docker, Fly.io, or Hugging Face Spaces) route study computations to a remote Windows worker host running the FastAPI service `etap_worker_service.py`.
+
+#### Setup Windows Worker:
+1. Ensure ETAP is installed and licensed on the Windows machine.
+2. Set environment variables:
+   ```cmd
+   set ETAP_INSTALL_PATH=C:\Program Files\ETAP
+   set ETAP_VERSION=19.0
+   set ETAP_WORKER_PORT=8081
+   set ETAP_WORKER_API_KEY=your-secure-shared-key
+   ```
+3. Run the Windows Worker:
+   ```bash
+   python etap_integration/etap_worker_service.py
+   ```
+
+#### Connect Linux Platform to Windows Worker:
+Configure the following env vars in the main Linux service (Docker / Hugging Face):
+```env
+USE_ETAP=true
+ETAP_WORKER_URL=http://<windows-host-ip>:8081
+ETAP_WORKER_API_KEY=your-secure-shared-key
+```
+
+---
+
+### 2. GIS Integration & QGIS Setup
+The GIS Integration module supports loading QGIS project files (`.qgs`) and ArcGIS layers using native Python bindings.
+
+#### Production Linux Setup (Native QGIS Python SDK):
+To use the real QGIS Provider inside a Linux production container:
+```bash
+sudo apt-get update
+sudo apt-get install -y qgis python3-qgis xvfb
+```
+
+#### Cross-Platform Sandbox Fallback (Mock GIS):
+If running in a Docker container or HF Space without local QGIS binaries installed, configure the system to fall back to the simulated high-fidelity provider:
+```env
+USE_MOCK_GIS=true
+GIS_PROVIDER=mock
+```
+This enables `MockGISProvider` to generate high-fidelity simulated power grids, feeders, and GIS layers located in Cairo, Egypt, without throwing execution errors.
+
+---
+
 ## Compliance & Certification
 
 ### Industry Standards

@@ -8,7 +8,7 @@ import {
   LayoutDashboard, FlaskConical, Bot, FolderKanban, Settings,
   ShieldCheck, Bug, Map, FileText, Upload, Download, ScrollText,
   ChevronLeft, ChevronRight, Sun, Moon, Plug, Layers, Network,
-  Cpu, Wrench, Shield, X
+  Cpu, Wrench, Shield, X, Grid
 } from 'lucide-react'
 import { cn } from '../utils/helpers'
 import { BrandLogo } from './BrandLogo'
@@ -26,6 +26,7 @@ const navItems: NavItem[] = [
   { to: '/studies', icon: FlaskConical, labelKey: 'sidebar.studies' },
   { to: '/assistant', icon: Bot, labelKey: 'sidebar.assistant' },
   { to: '/projects', icon: FolderKanban, labelKey: 'sidebar.projects', section: 'engineering' },
+  { to: '/grid-editor', icon: Grid, labelKey: 'sidebar.gridEditor', section: 'engineering' },
   { to: '/asset-management', icon: Network, labelKey: 'sidebar.assetManagement', section: 'engineering' },
   { to: '/etap', icon: Plug, labelKey: 'sidebar.etapIntegration', section: 'integration' },
   { to: '/gis', icon: Map, labelKey: 'sidebar.gisIntegration', section: 'integration' },

@@ -32,6 +32,7 @@ const LazyPage = ({ children }: { children: ReactNode }) => (
 
 const DashboardPage = lazy(() => import('./pages/Dashboard'))
 const StudiesPage = lazy(() => import('./pages/Studies'))
+const GridEditorPage = lazy(() => import('./pages/GridEditor'))
 const StudyRunPage = lazy(() => import('./pages/StudyRun'))
 const AssetManagementPage = lazy(() => import('./pages/AssetManagement'))
 const AIAssistantPage = lazy(() => import('./pages/AIAssistant'))
@@ -165,6 +166,7 @@ export default function App() {
               <Route path="/" element={<Navigate to="/dashboard" replace />} />
               <Route path="/dashboard" element={<LazyPage><DashboardPage /></LazyPage>} />
               <Route path="/studies" element={<LazyPage><StudiesPage /></LazyPage>} />
+              <Route path="/grid-editor" element={<LazyPage><GridEditorPage /></LazyPage>} />
               <Route path="/studies/:studyType" element={<LazyPage><StudyRunPage /></LazyPage>} />
               <Route path="/asset-management" element={<LazyPage><AssetManagementPage /></LazyPage>} />
               <Route path="/assistant" element={<LazyPage><AIAssistantPage /></LazyPage>} />
