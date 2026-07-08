@@ -211,29 +211,41 @@ class AuthenticatedUser(HttpUser):
                 catch_response=True,
             )
             if reg_resp.status_code in (200, 201):
-                # Now try logging in again
-                login_resp = self.client.post(
-                    "/api/v1/auth/login",
-                    json={
-                        "username": self._TEST_USERNAME,
-                        "password": self._TEST_PASSWORD,
-                    },
-                    name="/api/v1/auth/login",
-                    catch_response=True,
-                )
-                if login_resp.status_code == 200:
-                    try:
-                        body = login_resp.json()
-                        self.token = body.get("access_token") or body.get("token")
-                        if self.token:
-                            self.auth_headers = {
-                                "Content-Type": "application/json",
-                                "Authorization": f"Bearer {self.token}",
-                            }
-                    except json.JSONDecodeError:
-                        pass
-                login_resp.success()
+                # Registration succeeded — now log in to get a JWT.
+                self._do_login()
+            elif reg_resp.status_code == 409:
+                # 409 Conflict = username already registered (race condition
+                # when 100 concurrent locust users all try to register the
+                # same test user at start). This is expected — just log in.
+                self._do_login()
             reg_resp.success()
+        except Exception:
+            pass
+
+    def _do_login(self):
+        """Log in as the test user and store the JWT token."""
+        try:
+            login_resp = self.client.post(
+                "/api/v1/auth/login",
+                json={
+                    "username": self._TEST_USERNAME,
+                    "password": self._TEST_PASSWORD,
+                },
+                name="/api/v1/auth/login",
+                catch_response=True,
+            )
+            if login_resp.status_code == 200:
+                try:
+                    body = login_resp.json()
+                    self.token = body.get("access_token") or body.get("token")
+                    if self.token:
+                        self.auth_headers = {
+                            "Content-Type": "application/json",
+                            "Authorization": f"Bearer {self.token}",
+                        }
+                except json.JSONDecodeError:
+                    pass
+            login_resp.success()
         except Exception:
             pass
 

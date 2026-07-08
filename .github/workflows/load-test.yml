@@ -300,6 +300,16 @@ jobs:
           LOCUST_SPAWN_RATE: ${{ github.event.inputs.locust_spawn_rate || '10' }}
           LOCUST_DURATION: ${{ github.event.inputs.locust_duration || '2m' }}
           LOCUST_HOST: ${{ env.BASE_URL }}
+          # Test user credentials for the locustfile auth flow.
+          # The locustfile registers this user via /api/v1/auth/register on
+          # first run, then logs in to obtain a JWT. Without these env vars,
+          # the locustfile defaults to an empty password, registration fails,
+          # and 30% of requests (protected endpoints) return 401 — causing
+          # the error-rate threshold (>1%) to fail the test.
+          # These are throwaway credentials only used in CI; ENGINEERING_SERVICE_AUTH_DISABLED=true
+          # is also set so the API-key middleware is bypassed.
+          LOCUST_TEST_USERNAME: loadtest_user
+          LOCUST_TEST_PASSWORD: LoadTest-Str0ng-Passw0rd!2026
         run: |
           mkdir -p load-test-results/locust
 
