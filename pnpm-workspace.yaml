@@ -2,8 +2,9 @@ packages:
   - "ui"
 
 allowBuilds:
-  '@tailwindcss/oxide': set this to true or false
+  '@biomejs/biome': true
+  '@tailwindcss/oxide': true
   electron: set this to true or false
-  electron-winstaller: set this to true or false
+  electron-winstaller: true
   esbuild: true
   protobufjs: true
