@@ -378,7 +378,7 @@ async def get_task_status(task_id: str, request: Request) -> dict[str, Any]:
 
     try:
         # Using the retrieved AsyncResult class to create an instance
-        task_result = CeleryAsyncResult(str(task_id), app=celery_app)
+        task_result = CeleryAsyncResult(task_id, app=celery_app)
 
         response = {"task_id": task_id, "status": task_result.status, "result": None}
 
@@ -645,7 +645,7 @@ async def benchmark():
     _ = _json.dumps(payload)
     json_ms = (_time.perf_counter() - t0) * 1000.0
 
-    result = {
+    result: dict[str, Any] = {
         "success": True,
         "data": {
             "timestamp": _utc_now_iso(),
@@ -655,5 +655,5 @@ async def benchmark():
         },
     }
     if not numpy_ok:
-        result["data"]["numpy_error"] = numpy_err
+        result["data"]["numpy_error"] = str(numpy_err) if numpy_err is not None else None
     return result

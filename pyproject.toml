@@ -216,3 +216,7 @@ exclude_lines = [
 [tool.pyright]
 include = ["."]
 extraPaths = ["."]
+
+[tool.pyrefly]
+include = ["."]
+extraPaths = ["."]
