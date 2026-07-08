@@ -139,7 +139,14 @@ class AuthenticatedUser(HttpUser):
 
     Attempts to log in on start and stores the JWT token for subsequent requests.
     Falls back to unauthenticated mode if auth is disabled or login fails.
+
+    abstract = True marks this class as a base class only — Locust will NOT
+    instantiate it directly. Without this, Locust tries to spawn AuthenticatedUser
+    instances and crashes with "No tasks defined" because the base class has no
+    @task decorators. Only subclasses (EngineeringServiceUser) should be spawned.
     """
+
+    abstract = True
 
     # Wait between 1 and 3 seconds between tasks (realistic user behavior)
     wait_time = between(1, 3)
