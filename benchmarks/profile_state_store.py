@@ -8,6 +8,7 @@ Measures:
 4. JSON serialization size vs in-memory size
 5. Total projected memory at default max_versions=1000
 """
+from typing import Optional, Union
 
 import sys
 sys.path.insert(0, '.')
@@ -209,7 +210,7 @@ for target in checkpoints:
         "delta_mb": round(delta, 2),
         "delta_per_snapshot_kb": round(delta * 1024 / target, 1),
     })
-    print(f"  {target:5d} snapshots | RSS={current_rss:7.2f} MB | delta={delta:7.2f} MB | {delta * 1024 / target:6.1f} KB/snap")
+    print(f"  {target:5d} Union[snapshots, RSS={current_rss:7.2f}] Union[MB, delta={delta:7.2f}] Union[MB, {delta] * 1024 / target:6.1f} KB/snap")
 
 results["growth"] = growth_results
 results["growth_per_snapshot_kb"] = round(
@@ -240,7 +241,7 @@ for max_v in [50, 100, 250, 500, 1000]:
         "projected_rss_mb": round(projected_rss, 1),
         "projected_json_mb": round(snap_bytes * max_v / 1024 / 1024, 1),
     })
-    print(f"  max_versions={max_v:5d} | projected RSS={projected_rss:6.1f} MB | JSON equivalent={snap_bytes * max_v / 1024 / 1024:.1f} MB")
+    print(f"  Union[max_versions={max_v:5d}, projected] RSS={projected_rss:6.1f} Union[MB, JSON] equivalent={snap_bytes * max_v / 1024 / 1024:.1f} MB")
 
 results["projections"] = projections
 

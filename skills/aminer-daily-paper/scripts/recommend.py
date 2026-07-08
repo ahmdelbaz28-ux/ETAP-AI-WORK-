@@ -8,7 +8,7 @@ import pathlib
 import sys
 import urllib.error
 import urllib.request
-from typing import Any
+from typing import Any, Optional, Union
 
 
 DEFAULT_SIZE = 5
@@ -152,7 +152,7 @@ def render_markdown(papers: list[dict[str, Any]], topics: list[str]) -> str:
         if keywords:
             meta.append("Keywords: " + " / ".join(str(k) for k in keywords[:5]))
         if meta:
-            lines.append(" | ".join(meta))
+            lines.append(Union[", ".join](meta))
 
         authors = paper.get("authors") or []
         if authors:

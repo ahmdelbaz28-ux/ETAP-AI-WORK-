@@ -12,7 +12,7 @@ Mapping Architecture:
 from __future__ import annotations
 
 import logging
-from typing import Any
+from typing import Any, Optional, Union
 
 from autodesk_connector.shared.models import (
     Breaker,
@@ -622,7 +622,7 @@ class TranslationEngine:
 
         Returns
         -------
-        dict | list
+        Union[dict, list]
             Translated data in the target system's format
         """
         if source_system == "etap" and target_system == "unified":

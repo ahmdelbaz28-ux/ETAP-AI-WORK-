@@ -25,7 +25,7 @@ import logging
 from datetime import datetime, timezone
 
 UTC = timezone.utc  # noqa: UP017
-from typing import Any
+from typing import Any, Optional, Union
 
 import numpy as np
 
@@ -88,7 +88,7 @@ class DigitalTwinAgent(BaseAgent):
         self,
         predicted: np.ndarray,
         measured: np.ndarray,
-        covariance: np.ndarray | None = None,
+        covariance: Optional[np.ndarray] = None,
     ) -> dict[str, Any]:
         """
         Compute Model Deviation Index (MDI) between predicted and

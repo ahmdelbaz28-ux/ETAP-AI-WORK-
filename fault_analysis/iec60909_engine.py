@@ -20,7 +20,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any
+from typing import Any, Optional, Union
 
 import numpy as np
 import numpy.typing as npt
@@ -51,7 +51,7 @@ class ShortCircuitResult:
     fault_type: str
     fault_bus_index: int
     Ik_initial: complex  # Initial symmetrical current (kA)  # NOSONAR — S116: standard IEEE/IEC engineering notation (Ybus/Zbus/sequence components); renaming would harm domain readability
-    Ik_initial_magnitude: float  # |Ik"| (kA)  # NOSONAR — S116: standard IEEE/IEC engineering notation (Ybus/Zbus/sequence components); renaming would harm domain readability
+    Ik_initial_magnitude: float  # magnitude of initial symmetrical current (kA)  # NOSONAR — S116: standard IEEE/IEC engineering notation (Ybus/Zbus/sequence components); renaming would harm domain readability
     ip_peak: float  # Peak current (kA)
     Ib_breaking: float  # Breaking current (kA)  # NOSONAR — S116: standard IEEE/IEC engineering notation (Ybus/Zbus/sequence components); renaming would harm domain readability
     Ik_steady: float  # Steady-state current (kA)  # NOSONAR — S116: standard IEEE/IEC engineering notation (Ybus/Zbus/sequence components); renaming would harm domain readability
@@ -246,7 +246,7 @@ class IEC60909Engine:
     def calculate_three_phase_fault(
         self,
         bus_index: int,
-        c_factor: float | None = None,
+        c_factor: Optional[float] = None,
         bus_kv: float = 115.0,
         maximum: bool = True,
         t_min: float = 0.02,
@@ -323,7 +323,7 @@ class IEC60909Engine:
     def calculate_line_to_ground_fault(
         self,
         bus_index: int,
-        c_factor: float | None = None,
+        c_factor: Optional[float] = None,
         bus_kv: float = 115.0,
         maximum: bool = True,
         t_min: float = 0.02,
@@ -404,7 +404,7 @@ class IEC60909Engine:
     def calculate_line_to_line_fault(
         self,
         bus_index: int,
-        c_factor: float | None = None,
+        c_factor: Optional[float] = None,
         bus_kv: float = 115.0,
         maximum: bool = True,
         t_min: float = 0.02,
@@ -486,7 +486,7 @@ class IEC60909Engine:
     def calculate_double_line_to_ground_fault(
         self,
         bus_index: int,
-        c_factor: float | None = None,
+        c_factor: Optional[float] = None,
         bus_kv: float = 115.0,
         maximum: bool = True,
         t_min: float = 0.02,
@@ -566,7 +566,7 @@ class IEC60909Engine:
         )
 
     def calculate(
-        self, fault_type: str | FaultType, bus_index: int, **kwargs: Any,
+        self, fault_type: Union[str, FaultType], bus_index: int, **kwargs: Any
     ) -> ShortCircuitResult:
         """
         Calculate short-circuit current for a given fault type.

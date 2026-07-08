@@ -8,8 +8,8 @@ Provides reusable dependency callables for:
 * API-key validation (``get_api_key``)
 * Pagination parameter parsing (``PaginationParams``)
 """
-
 from __future__ import annotations
+from typing import Optional, Union
 
 import hmac
 import logging
@@ -126,7 +126,7 @@ class CurrentUser(BaseModel):
 
 async def get_current_user(
     db: AsyncSession = Depends(get_db),  # noqa: B008
-    authorization: str | None = None,  # injected by FastAPI header param
+    authorization: Optional[str] = None,  # injected by FastAPI header param
 ) -> CurrentUser:
     """Validate the JWT from the ``Authorization: Bearer <token>`` header.
 
@@ -167,8 +167,8 @@ async def get_current_user(
             detail="Invalid token",
         ) from err
 
-    user_id: str | None = payload.get("sub")
-    token_type: str | None = payload.get("type")
+    user_id: Optional[str] = payload.get("sub")
+    token_type: Optional[str] = payload.get("type")
 
     if user_id is None or token_type != "access":
         raise HTTPException(

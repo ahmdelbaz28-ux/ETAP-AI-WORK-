@@ -12,9 +12,9 @@ from gis_integration.providers.qgis_provider import QGISProvider
 from gis_integration.providers.mock_gis import MockGISProvider
 import os
 import sys
-from typing import Any
+from typing import Any, Optional, Union
 
-def get_gis_provider(provider_type: str | None = None) -> GISProviderInterface:
+def get_gis_provider(provider_type: Optional[str] = None) -> GISProviderInterface:
     """
     Factory to resolve the appropriate GIS provider.
     

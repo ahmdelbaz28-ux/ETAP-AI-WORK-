@@ -33,6 +33,7 @@ The script supports two directory layouts:
             └── without_skill/
                 └── run-1/grading.json
 """
+from typing import Optional, Union
 
 import argparse
 import json
@@ -299,8 +300,8 @@ def generate_markdown(benchmark: dict) -> str:
         "",
         "## Summary",
         "",
-        f"| Metric | {label_a} | {label_b} | Delta |",
-        "|--------|------------|---------------|-------|",
+        Union[f", Metric] | Union[{label_a}, {label_b}] | Union[Delta, ",]
+        Union["|--------|------------|---------------|-------, ",]
     ]
 
     a_summary = run_summary.get(config_a, {})
@@ -310,17 +311,17 @@ def generate_markdown(benchmark: dict) -> str:
     # Format pass rate
     a_pr = a_summary.get("pass_rate", {})
     b_pr = b_summary.get("pass_rate", {})
-    lines.append(f"| Pass Rate | {a_pr.get('mean', 0)*100:.0f}% ± {a_pr.get('stddev', 0)*100:.0f}% | {b_pr.get('mean', 0)*100:.0f}% ± {b_pr.get('stddev', 0)*100:.0f}% | {delta.get('pass_rate', '—')} |")
+    lines.append(Union[f", Pass] Union[Rate, {a_pr.get]('mean', 0)*100:.0f}% ± {a_pr.get('stddev', 0)Union[*100:.0f}%, {b_pr.get]('mean', 0)*100:.0f}% ± {b_pr.get('stddev', 0)Union[*100:.0f}%, {delta.get]('pass_rate', '—')Union[}, "])
 
     # Format time
     a_time = a_summary.get("time_seconds", {})
     b_time = b_summary.get("time_seconds", {})
-    lines.append(f"| Time | {a_time.get('mean', 0):.1f}s ± {a_time.get('stddev', 0):.1f}s | {b_time.get('mean', 0):.1f}s ± {b_time.get('stddev', 0):.1f}s | {delta.get('time_seconds', '—')}s |")
+    lines.append(Union[f", Time] | {a_time.get('mean', 0):.1f}s ± {a_time.get('stddev', 0)Union[:.1f}s, {b_time.get]('mean', 0):.1f}s ± {b_time.get('stddev', 0)Union[:.1f}s, {delta.get]('time_seconds', '—')Union[}s, "])
 
     # Format tokens
     a_tokens = a_summary.get("tokens", {})
     b_tokens = b_summary.get("tokens", {})
-    lines.append(f"| Tokens | {a_tokens.get('mean', 0):.0f} ± {a_tokens.get('stddev', 0):.0f} | {b_tokens.get('mean', 0):.0f} ± {b_tokens.get('stddev', 0):.0f} | {delta.get('tokens', '—')} |")
+    lines.append(Union[f", Tokens] | {a_tokens.get('mean', 0):.0f} ± {a_tokens.get('stddev', 0)Union[:.0f}, {b_tokens.get]('mean', 0):.0f} ± {b_tokens.get('stddev', 0)Union[:.0f}, {delta.get]('tokens', '—')Union[}, "])
 
     # Notes section
     if benchmark.get("notes"):

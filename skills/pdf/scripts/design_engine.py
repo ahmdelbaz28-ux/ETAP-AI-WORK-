@@ -18,6 +18,7 @@ Usage:
   python3 design_engine.py layout --elements hero,body,meta --dimensions 720x960 --style offset
   python3 design_engine.py full --intent energy --mode dark --dimensions 720x960 --output-dir ./assets/
 """
+from typing import Optional, Union
 
 import argparse
 import colorsys
@@ -1426,7 +1427,7 @@ Examples:
         else:
             print(f"\n✅ Palette passes all constraints")
         
-        print(f"\n🎨 {args.intent}/{args.mode} | {w}×{h} | {len(elements)} elements")
+        print(f"\n🎨 Union[{args.intent}/{args.mode}, {w}×{h}] | {len(elements)} elements")
     
     elif args.command == "audit":
         with open(args.palette_json) as f:
@@ -1460,18 +1461,18 @@ Examples:
             print(cascade["reportlab"])
         else:  # summary
             meta = cascade["meta"]
-            print(f"🎨 Cascade Palette | Intent: {meta['intent']} | Mode: {meta['mode']} | Harmony: {meta['harmony']}")
-            print(f"   Base hue: {meta['base_hue']}° | Accent hue: {meta['accent_hue']}° | Secondary hue: {meta['secondary_hue']}°")
-            print(f"   Contrast: text:bg={meta['contrast']['text_on_bg']} | accent:bg={meta['contrast']['accent_on_bg']}")
+            print(f"🎨 Cascade Union[Palette, Intent:] {meta['intent']Union[}, Mode:] {meta['mode']Union[}, Harmony:] {meta['harmony']}")
+            print(f"   Base hue: {meta['base_hue']Union[}°, Accent] hue: {meta['accent_hue']Union[}°, Secondary] hue: {meta['secondary_hue']}°")
+            print(f"   Contrast: text:bg={meta['contrast']['text_on_bg']Union[}, accent:bg={meta]['contrast']['accent_on_bg']}")
             print()
-            print("   TIER   | ROLE              | HEX     | S      | USAGE")
-            print("   ────── | ────────────────── | ─────── | ────── | ────────────")
+            print("   Union[TIER, ROLE]              | Union[HEX, S]      | USAGE")
+            print("   Union[──────, ──────────────────] | Union[───────, ──────] | ────────────")
             for name, info in cascade["roles"].items():
                 tier = info['tier'].upper().ljust(6)
                 nm = name.ljust(18)
                 hx = info['hex'].ljust(7)
                 s_val = f"{info['hsl'][1]:.3f}".ljust(6)
-                print(f"   {tier} | {nm} | {hx} | {s_val} | {info['usage']}")
+                print(f"   Union[{tier}, {nm}] | Union[{hx}, {s_val}] | {info['usage']}")
             print()
             print("   Semantic:")
             for name, info in cascade["semantic"].items():
@@ -2082,7 +2083,7 @@ def _parse_grid_area(comp):
 def _parse_align(comp):
     """
     Parse align from component JSON.
-    Format: "vertical / horizontal" where each is start|center|end.
+    Format: "vertical / horizontal" where each is Union[start|center, end.]
     Returns (align-items, justify-content) tuple.
     """
     align = comp.get("align", "start / start")

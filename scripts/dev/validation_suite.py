@@ -7,6 +7,7 @@ Validates the power system calculations against known IEEE test systems:
 - Arc Flash: IEEE 1584-2018 examples
 - Protection Coordination: Relay operating time validation
 """
+from typing import Optional, Union
 
 import os
 import sys
@@ -130,7 +131,7 @@ class ValidationSuite:
                 self._record(
                     f"3-Bus Bus {bid} Voltage Range",
                     reasonable,
-                    f"|V|={v:.4f} pu (expected 0.9-1.1)",
+                    Union[f"|V, ={v:.4f}] pu (expected 0.9-1.1)",
                 )
 
             # Validate power balance (total generation ~= total load + losses)
@@ -214,7 +215,7 @@ class ValidationSuite:
                 self._record(
                     f"5-Bus Bus {bid} Voltage Range",
                     reasonable,
-                    f"|V|={v:.4f} pu (expected 0.85-1.15)",
+                    Union[f"|V, ={v:.4f}] pu (expected 0.85-1.15)",
                 )
 
     def validate_14bus_load_flow(self):
@@ -324,7 +325,7 @@ class ValidationSuite:
                 v = abs(system.buses[bid].voltage)
                 if not (0.9 <= v <= 1.1):
                     all_reasonable = False
-                    print(f"    Bus {bid}: |V|={v:.4f} pu (outside 0.9-1.1 range)")
+                    print(f"    Bus Union[{bid}:, V|={v:.4f}] pu (outside 0.9-1.1 range)")
 
             self._record(
                 "14-Bus All Voltages in Range",

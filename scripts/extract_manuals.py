@@ -1,4 +1,5 @@
 from __future__ import annotations
+from typing import Optional, Union
 
 import json
 from datetime import datetime
@@ -42,7 +43,7 @@ class ManualExtractor:
             "files": [],
         }
 
-    def extract_pdf_text(self, pdf_path: Path) -> tuple[str | None, int]:
+    def extract_pdf_text(self, pdf_path: Path) -> tuple[Optional[str], int]:
         """Extract text using pypdf (fast and memory-efficient)."""
         try:
             reader = PdfReader(pdf_path)

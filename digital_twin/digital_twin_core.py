@@ -29,7 +29,7 @@ import hashlib
 import logging
 import time
 from collections.abc import Callable
-from typing import Any
+from typing import Any, Optional, Union
 
 import numpy as np
 
@@ -198,7 +198,7 @@ class DigitalTwinState:
             adms_engine=self._adms_engine,
         )
 
-    def get_current_snapshot(self) -> StateSnapshot | None:
+    def get_current_snapshot(self) -> Optional[StateSnapshot]:
         """Get the latest committed snapshot."""
         return self.state_store.get_current()
 

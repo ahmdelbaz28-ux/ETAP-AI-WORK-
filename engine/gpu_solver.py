@@ -17,8 +17,8 @@ Mathematical background
 -----------------------
 Newton-Raphson update (same formulation as the sparse solver)::
 
-    [ΔP/|V|]   [J1  J2] [Δθ        ]
-    [ΔQ/|V|] = [J3  J4] [Δ|V|/|V|  ]
+    [Union[ΔP/, V|]]   [J1  J2] [Δθ        ]
+    [Union[ΔQ/, V|]] = [J3  J4] [Union[Δ|V|/, V|]  ]
 
 The Jacobian is constructed in sparse form (CSR).  The linear system
 is solved via ``cupy.sparse.linalg.spsolve`` on GPU or
@@ -30,7 +30,7 @@ from __future__ import annotations
 import logging
 import math
 import time
-from typing import Any
+from typing import Any, Optional, Union
 
 import numpy as np
 from scipy.sparse import csr_matrix, lil_matrix
@@ -145,7 +145,7 @@ class GPUSolver:
   # NOSONAR — S3776: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
     def newton_raphson_gpu(  # NOSONAR — S3776: cognitive complexity; refactoring sprint
         self,
-        ybus: np.ndarray | csr_matrix | Any,
+        ybus: Union[np.ndarray, csr_matrix] | Any,
         bus_data: list[BusData],
         max_iter: int = 50,
         tol: float = 1e-8,
@@ -358,7 +358,7 @@ class GPUSolver:
 
         # Row groups: [PV+PQ P-mismatch rows, PQ Q-mismatch rows]
         theta_cols = pv_idx + pq_idx  # column indices for θ unknowns
-        v_cols = pq_idx  # column indices for |V| unknowns
+        v_cols = pq_idx  # column indices Union[for, V|] unknowns
 
         for row_k, i in enumerate(pv_idx + pq_idx):
             # H: ∂P_i/∂θ_j
@@ -400,7 +400,7 @@ class GPUSolver:
                     if not math.isclose(val, 0.0):
                         J[row_k, col_k] = val
 
-            # N: ∂P_i/∂|V|_j  (PQ |V| unknowns only)
+            # N: Union[∂P_i/∂|V, _j]  (Union[PQ, V|] unknowns only)
             for col_k, j in enumerate(v_cols):
                 col = n_pv + n_pq + col_k
                 if i == j:
@@ -481,7 +481,7 @@ class GPUSolver:
                     if not math.isclose(val, 0.0):
                         J[row, col_k] = val
 
-            # L: ∂Q_i/∂|V|_j
+            # L: Union[∂Q_i/∂|V, _j]
             for col_k, j in enumerate(v_cols):
                 col = n_pv + n_pq + col_k
                 if i == j:

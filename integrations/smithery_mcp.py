@@ -12,7 +12,7 @@ from __future__ import annotations
 
 import logging
 import os
-from typing import Any
+from typing import Any, Optional, Union
 
 import httpx
 
@@ -47,7 +47,7 @@ class SmitheryClient:
             "User-Agent": "AhmedETAP/1.0.0",
         }
 
-    async def list_servers(self, query: str | None = None) -> list[dict]:
+    async def list_servers(self, query: Optional[str] = None) -> list[dict]:
         """List available MCP servers from Smithery registry."""
         if not self.enabled:
             return []

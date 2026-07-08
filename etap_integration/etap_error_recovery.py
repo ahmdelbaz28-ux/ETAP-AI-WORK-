@@ -6,6 +6,7 @@ for COM automation failures, study execution errors, and project I/O issues.
 Integrates with engine.resilience for RetryHandler and CircuitBreaker
 when available, with standalone fallback implementations.
 """
+from typing import Optional, Union
 
 from __future__ import annotations
 
@@ -72,7 +73,7 @@ class RecoveryAttempt:
     success: bool
     action: str
     duration: float
-    error: str | None = None
+    error: Optional[str] = None
 
 
 class ETAPErrorRecovery:

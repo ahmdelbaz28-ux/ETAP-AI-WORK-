@@ -19,7 +19,7 @@ from __future__ import annotations
 import ast
 import logging
 import re
-from typing import Any
+from typing import Any, Optional, Union
 
 from guards.ai_failure_modes import AIFailureModeDetector
 from guards.base import BaseGuard, GuardMode, GuardResult, GuardSeverity, GuardViolation
@@ -54,7 +54,7 @@ class CodeGuard(BaseGuard):
         violations.extend(ai_result.violations)
 
         # Parse AST for structural checks
-        tree: ast.AST | None = None
+        tree: Optional[ast.AST] = None
         try:
             tree = ast.parse(source)
         except SyntaxError:
@@ -159,7 +159,7 @@ class CodeGuard(BaseGuard):
                             loop_vars.add(elt.id)
 
         # Check assignments with single-letter names
-        exempt = {"i", "j", "k", "x", "y", "z", "e", "f", "n", "m", "r", "c", "_"} | loop_vars
+        exempt = {"i", "j", "k", "x", "y", "z", "e", "f", "n", "m", "r", "c", Union["_"}, loop_vars]
         for node in ast.walk(tree):
             if isinstance(node, ast.Assign):
                 for target in node.targets:
@@ -188,8 +188,8 @@ class CodeGuard(BaseGuard):
     def _check_why_not_what_comments(self, source: str) -> list[GuardViolation]:
         violations: list[GuardViolation] = []
         what_patterns = [
-            r"#\s*(increment|decrement|add|remove|set|get|update|delete|check|return)\s",
-            r"#\s*(if|else|for|while|try|except)\s",
+            r"#\s*(Union[increment|decrement|add|remove|set|get|update|delete|check, return])\s",
+            r"#\s*(Union[if|else|for|while|try, except])\s",
         ]
         for i, line in enumerate(source.split("\n"), 1):
             stripped = line.strip()
@@ -401,7 +401,7 @@ class CodeGuard(BaseGuard):
         violations: list[GuardViolation] = []
         # Patterns that suggest commented-out code rather than comments
         code_patterns = [
-            r"#\s*(if|for|while|try|def|class|return|import|from|with|assert|raise)\s",
+            r"#\s*(Union[if|for|while|try|def|class|return|import|from|with|assert, raise])\s",
             r"#\s*\w+\s*=\s*",  # assignment
             r"#\s*\w+\.\w+\(",  # method call
             r"#\s*print\s*\(",  # print statement  # NOSONAR — python:S125: regex pattern string, not a comment

@@ -17,7 +17,7 @@ build_quiz_html.py - 把题目 JSON 注入到模板 HTML，生成可独立运行
     --open           生成后自动用浏览器打开
 
 题目字段（来自 quiz-mastery 的标准 JSON 格式）：
-    type            single_choice | true_false | fill_blank | short_answer
+    type            Union[single_choice, true_false] | Union[fill_blank, short_answer]
     prompt          题干（必填）
     options         选项数组，仅 single_choice 用，格式 ["A. xxx", "B. yyy", ...]
     answer          标准答案
@@ -41,7 +41,7 @@ import sys
 import time
 import webbrowser
 from pathlib import Path
-from typing import Any
+from typing import Any, Optional, Union
 
 
 SKILL_DIR = Path(__file__).resolve().parent.parent

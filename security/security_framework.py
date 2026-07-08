@@ -12,6 +12,7 @@ Features:
 - Audit logging
 - Secrets management
 """
+from typing import Optional, Union
 
 # bcrypt is a hard dependency — add to requirements.txt: bcrypt>=4.0.0
 from __future__ import annotations
@@ -139,10 +140,10 @@ class User:
     role: UserRole
     password_hash: str
     created_at: datetime = field(default_factory=lambda: datetime.now(UTC))
-    last_login: datetime | None = None
+    last_login: Optional[datetime] = None
     is_active: bool = True
     failed_login_attempts: int = 0
-    locked_until: datetime | None = None
+    locked_until: Optional[datetime] = None
 
 
 @dataclass
@@ -170,7 +171,7 @@ class AuthenticationManager:
 
     def __init__(
         self,
-        secret_key: str | None = None,
+        secret_key: Optional[str] = None,
         token_expiry_hours: int = 8,
         max_failed_attempts: int = 5,
         lockout_duration_minutes: int = 30,
@@ -240,7 +241,7 @@ class AuthenticationManager:
 
     def create_user(
         self, username: str, email: str, password: str, role: UserRole = UserRole.VIEWER,
-    ) -> User | None:
+    ) -> Optional[User]:
         """Create a new user (returns User on success, None on duplicate username)."""
         if username in self.username_to_id:
             logger.warning("Username '%s' already exists", username)
@@ -269,7 +270,7 @@ class AuthenticationManager:
         logger.info("User created: %s (role=%s)", username, role.value)
         return user
 
-    def authenticate(self, username: str, password: str) -> str | None:
+    def authenticate(self, username: str, password: str) -> Optional[str]:
         """Authenticate a user and return a token (or None on failure)."""
         user_id = self.username_to_id.get(username)
         if not user_id:
@@ -324,7 +325,7 @@ class AuthenticationManager:
             token = token.decode("utf-8")
         return token
 
-    def validate_token(self, token: str) -> User | None:
+    def validate_token(self, token: str) -> Optional[User]:
         """Validate a session token and return the User (or None if invalid)."""
         if isinstance(token, bytes):
             token = token.decode("utf-8")
@@ -554,7 +555,7 @@ class InputValidator:
             "WebClient",
             "DownloadString",
             "IEX",
-            "|",
+            Union[", ",]
             ";",
             "-Enc",
             "-EncodedCommand",

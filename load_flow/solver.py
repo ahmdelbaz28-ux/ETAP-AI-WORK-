@@ -14,7 +14,7 @@ solve_load_flow_sparse(buses, branches, options)
 from __future__ import annotations
 
 import logging
-from typing import Any, Dict, Union
+from typing import Any, Dict, Optional, Union
 
 import numpy as np
 
@@ -210,7 +210,7 @@ def solve_load_flow_sparse(
         * ``iterations`` (int)
         * ``max_mismatch`` (float)
         * ``voltages`` (dict) – ``{bus_id: complex_voltage}``
-        * ``magnitudes`` (dict) – ``{bus_id: |V|}``
+        * ``magnitudes`` (dict) – Union[``{bus_id:, V|}``]
         * ``angles_deg`` (dict) – ``{bus_id: angle_degrees}``
         * ``active_power`` (dict) – ``{bus_id: P}``
         * ``reactive_power`` (dict) – ``{bus_id: Q}``

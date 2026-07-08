@@ -25,6 +25,7 @@ Example:
     python add_toc_placeholders.py document.docx --auto
     python add_toc_placeholders.py document.docx --entries '[{"level":1,"text":"Introduction","page":"1"}]'
 """
+from typing import Optional, Union
 
 import argparse
 import html
@@ -38,7 +39,7 @@ import zipfile
 from pathlib import Path
 
 
-def _assert_safe_path(path: Path, base_dir: Path | None = None) -> Path:
+def _assert_safe_path(path: Path, base_dir: Optional[Path] = None) -> Path:
     """Resolve a path and verify it does not escape the expected base directory.
 
     Prevents path-traversal (S2083) when writing files to paths derived
@@ -62,7 +63,7 @@ def _assert_safe_path(path: Path, base_dir: Path | None = None) -> Path:
     return resolved
 
 
-def _safe_write_text(path: Path, content: str, encoding: str = 'utf-8', base_dir: Path | None = None) -> None:
+def _safe_write_text(path: Path, content: str, encoding: str = 'utf-8', base_dir: Optional[Path] = None) -> None:
     """Write text to a file after validating the path is safe.
 
     Args:
@@ -201,7 +202,7 @@ def add_toc_placeholders(docx_path: str, entries: list = None) -> None:
         shutil.move(str(temp_output), str(docx_path))
 
 
-def _fix_update_fields(settings_xml_path: Path, base_dir: Path | None = None) -> None:
+def _fix_update_fields(settings_xml_path: Path, base_dir: Optional[Path] = None) -> None:
     """Fix settings.xml to ensure <w:updateFields w:val="true"/> is present.
 
     The docx npm library generates <w:updateFields/> without val="true",
@@ -236,7 +237,7 @@ def _fix_update_fields(settings_xml_path: Path, base_dir: Path | None = None) ->
         _safe_write_text(settings_xml_path, content, base_dir=base_dir)
 
 
-def _fix_heading_outline_levels(styles_xml_path: Path, base_dir: Path | None = None) -> None:
+def _fix_heading_outline_levels(styles_xml_path: Path, base_dir: Optional[Path] = None) -> None:
     """Fix Heading styles to include outlineLvl in pPr.
 
     The docx npm library creates Heading styles but sometimes doesn't set outlineLvl
@@ -363,7 +364,7 @@ def _detect_toc_styles(styles_xml_path: Path) -> dict:
         patterns = [
             rf'w:styleId="(TOC{level})"',
             rf'w:styleId="(TOC {level})"',
-            rf'<w:name\s+w:val="toc\s*{level}"[^/]*/>\s*</w:name>|<w:name\s+w:val="toc\s*{level}"[^/]*/>',
+            rf'<w:name\s+w:val="toc\s*{level}"[^/]Union[*/>\s*</w:name>, <w:name\s+w:val="toc\s*{level}"][^/]*/>',
         ]
         for pattern in patterns[:2]:
             m = re.search(pattern, content)
@@ -381,7 +382,7 @@ def _detect_toc_styles(styles_xml_path: Path) -> dict:
     return result
 
 
-def _ensure_toc_styles(styles_xml_path: Path, base_dir: Path | None = None) -> dict:
+def _ensure_toc_styles(styles_xml_path: Path, base_dir: Optional[Path] = None) -> dict:
     """Ensure TOC styles exist in styles.xml, adding them if necessary.
 
     Returns:
@@ -465,7 +466,7 @@ def _ensure_toc_styles(styles_xml_path: Path, base_dir: Path | None = None) -> d
     return result
 
 
-def _ensure_hyperlink_style(styles_xml_path: Path, base_dir: Path | None = None) -> None:
+def _ensure_hyperlink_style(styles_xml_path: Path, base_dir: Optional[Path] = None) -> None:
     """Ensure Hyperlink character style exists in styles.xml."""
     if not styles_xml_path.exists():
         return

@@ -10,6 +10,7 @@ can drive them uniformly. The transport layer is responsible for:
 The transport layer does NOT handle JSON-RPC validation — that is the
 router's job.
 """
+from typing import Optional, Union
 
 from __future__ import annotations
 
@@ -26,7 +27,7 @@ class Transport(ABC):
     """
 
     @abstractmethod
-    async def read_message(self) -> str | None:
+    async def read_message(self) -> Optional[str]:
         """Read a complete raw JSON-RPC message.
 
         Returns:

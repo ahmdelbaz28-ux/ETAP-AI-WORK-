@@ -1,0 +1,41 @@
+/* ==== Global reset ==== */
+*{margin:0;padding:0;box-sizing:border-box;}
+html,body{height:100%;font-family:'Inter',sans-serif;overflow:hidden;}
+body{background:#0a0f1a;}
+
+/* ==== Canvas grid ==== */
+#grid-canvas{
+  position:fixed;top:0;left:0;width:100%;height:100%;
+  z-index:-1;
+}
+
+/* ==== Login card ==== */
+.login-card{
+  max-width:440px;
+  margin:8vh auto;
+  padding:2rem 1.5rem;
+  background:rgba(10,15,26,.88);
+  backdrop-filter:blur(12px);
+  border-radius:12px;
+  text-align:center;
+  color:#fff;
+  box-shadow:0 4px 30px rgba(0,0,0,.5);
+}
+
+.logo{width:96px;height:auto;margin-bottom:0.8rem;}
+
+h1{font-size:1.9rem;font-weight:600;margin-bottom:1.4rem;letter-spacing:.5px;}
+
+.login-form{display:flex;flex-direction:column;gap:.9rem;}
+.login-form input{padding:.7rem 1rem;border:none;border-radius:6px;background:#111720;color:#fff;font-size:1rem;}
+.login-form input::placeholder{color:#777;}
+.login-form button{padding:.75rem;border:none;border-radius:6px;background:#1e90ff;color:#fff;font-weight:600;cursor:pointer;transition:background .2s;}
+.login-form button:hover{background:#3aa0ff;}
+
+/* ==== Hand / Arm ==== */
+.hand-touch{margin-top:2rem;position:relative;height:200px;}
+.hand{position:absolute;bottom:0;width:150px;height:auto;animation:float 4s ease-in-out infinite;}
+.human{left:calc(50% - 170px);}   /* shift left */
+.robot{right:calc(50% - 170px);}  /* shift right */
+
+@keyframes float{0%,100%{transform:translateY(0);}50%{transform:translateY(-8px);}}

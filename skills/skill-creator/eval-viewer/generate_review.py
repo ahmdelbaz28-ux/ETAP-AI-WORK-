@@ -11,6 +11,7 @@ Usage:
 
 No dependencies beyond the Python stdlib are required.
 """
+from typing import Optional, Union
 
 import argparse
 import base64
@@ -82,7 +83,7 @@ def _find_runs_recursive(root: Path, current: Path, runs: list[dict]) -> None:
             _find_runs_recursive(root, child, runs)
 
 
-def build_run(root: Path, run_dir: Path) -> dict | None:
+def build_run(root: Path, run_dir: Path) -> Optional[dict]:
     """Build a run dict with prompt, outputs, and grading data."""
     prompt = ""
     eval_id = None
@@ -105,7 +106,7 @@ def build_run(root: Path, run_dir: Path) -> dict | None:
             if candidate.exists():
                 try:
                     text = candidate.read_text()
-                    match = re.search(r"## Eval Prompt\n\n([\s\S]*?)(?=\n##|$)", text)
+                    match = re.search(r"## Eval Prompt\n\n([\s\S]*?)(Union[?=\n##, $])", text)
                     if match:
                         prompt = match.group(1).strip()
                 except OSError:
@@ -252,7 +253,7 @@ def generate_html(
     runs: list[dict],
     skill_name: str,
     previous: dict[str, dict] | None = None,
-    benchmark: dict | None = None,
+    benchmark: Optional[dict] = None,
 ) -> str:
     """Generate the complete standalone HTML page with embedded data."""
     template_path = Path(__file__).parent / "viewer.html"
@@ -319,7 +320,7 @@ class ReviewHandler(BaseHTTPRequestHandler):
         skill_name: str,
         feedback_path: Path,
         previous: dict[str, dict],
-        benchmark_path: Path | None,
+        benchmark_path: Optional[Path],
         *args,
         **kwargs,
     ):

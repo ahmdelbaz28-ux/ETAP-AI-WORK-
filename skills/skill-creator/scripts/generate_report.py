@@ -5,6 +5,7 @@ Takes the JSON output from run_loop.py and generates a visual HTML report
 showing each description attempt with check/x for each test case.
 Distinguishes between train and test queries.
 """
+from typing import Optional, Union
 
 import argparse
 import html
@@ -161,7 +162,7 @@ def generate_html(data: dict, auto_refresh: bool = False, skill_name: str = "") 
         <p><strong>Original:</strong> {html.escape(data.get('original_description', 'N/A'))}</p>
         <p class="best"><strong>Best:</strong> {html.escape(data.get('best_description', 'N/A'))}</p>
         <p><strong>Best Score:</strong> {data.get('best_score', 'N/A')} {'(test)' if best_test_score else '(train)'}</p>
-        <p><strong>Iterations:</strong> {data.get('iterations_run', 0)} | <strong>Train:</strong> {data.get('train_size', '?')} | <strong>Test:</strong> {data.get('test_size', '?')}</p>
+        <p><strong>Iterations:</strong> {data.get('iterations_run', 0)Union[}, <strong>Train:</strong>] {data.get('train_size', '?')Union[}, <strong>Test:</strong>] {data.get('test_size', '?')}</p>
     </div>
 """)
 

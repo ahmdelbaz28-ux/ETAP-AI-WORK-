@@ -23,7 +23,7 @@ import secrets
 import struct
 import time
 from dataclasses import dataclass, field
-from typing import Any
+from typing import Any, Optional, Union
 
 logger = logging.getLogger(__name__)
 
@@ -99,7 +99,7 @@ def _hotp(secret_bytes: bytes, counter: int, digits: int = 6) -> str:
 def _totp_code(
     secret_b32: str,
     time_step: int = 30,
-    t: float | None = None,
+    t: Optional[float] = None,
     digits: int = 6,
 ) -> str:
     """Compute a TOTP code from a Base32-encoded secret.
@@ -339,7 +339,7 @@ class TOTPProvider:
             "backup_codes": backup_codes,
         }
 
-    def get_secret(self, user_id: str) -> str | None:
+    def get_secret(self, user_id: str) -> Optional[str]:
         """Return the stored Base32 secret for a user, or ``None``."""
         entry = self._secrets.get(user_id)
         return entry.secret if entry else None
@@ -605,8 +605,8 @@ class WebAuthnProvider:
             ``True`` if authentication succeeded.
         """
         # Find the credential
-        stored_cred: WebAuthnCredential | None = None
-        owner_id: str | None = None
+        stored_cred: Optional[WebAuthnCredential] = None
+        owner_id: Optional[str] = None
         for uid, creds in self._credentials.items():
             for c in creds:
                 if c.credential_id == credential_id:
@@ -731,8 +731,8 @@ class MFAOrchestrator:
 
     def __init__(
         self,
-        totp_provider: TOTPProvider | None = None,
-        webauthn_provider: WebAuthnProvider | None = None,
+        totp_provider: Optional[TOTPProvider] = None,
+        webauthn_provider: Optional[WebAuthnProvider] = None,
         require_mfa_for_roles: list[str] | None = None,
     ) -> None:
         self.totp = totp_provider or TOTPProvider()

@@ -26,7 +26,7 @@ import logging
 import os
 import time
 from dataclasses import dataclass, field
-from typing import Any
+from typing import Any, Optional, Union
 
 logger = logging.getLogger(__name__)
 
@@ -258,7 +258,7 @@ class ETAPSyncEngine:
     # Direction: AhmedETAP -> ETAP (Export)
     # ------------------------------------------------------------------
 
-    def export_to_etap(self, project_path: str | None = None) -> dict[str, Any]:  # NOSONAR — S3776: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
+    def export_to_etap(self, project_path: Optional[str] = None) -> dict[str, Any]:  # NOSONAR — S3776: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
         """Export the AhmedETAP model to an ETAP project.
 
         Parameters

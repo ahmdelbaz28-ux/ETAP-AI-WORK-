@@ -23,6 +23,7 @@ Architecture:
 - Retrieval Pipeline
 - Citation System
 """
+from typing import Optional, Union
 
 from __future__ import annotations
 
@@ -46,10 +47,10 @@ class EngineeringDocument:
     doc_id: str
     title: str
     source: str  # IEEE, IEC, NFPA, etc.
-    standard_number: str | None = None
+    standard_number: Optional[str] = None
     content: str = ""
     metadata: dict = field(default_factory=dict)
-    embedding: np.ndarray | None = None
+    embedding: Optional[np.ndarray] = None
     created_at: datetime = field(default_factory=lambda: datetime.now(UTC))
 
 
@@ -60,7 +61,7 @@ class RetrievalResult:
     document: EngineeringDocument
     relevance_score: float
     excerpt: str
-    page_reference: str | None = None
+    page_reference: Optional[str] = None
 
 
 class EmbeddingModel:
@@ -403,8 +404,8 @@ class EngineeringKnowledgeBase:
 
     def __init__(
         self,
-        embedding_model: EmbeddingModel | None = None,
-        vector_db: VectorDatabase | None = None,
+        embedding_model: Optional[EmbeddingModel] = None,
+        vector_db: Optional[VectorDatabase] = None,
     ):
         """
         Initialize knowledge base.

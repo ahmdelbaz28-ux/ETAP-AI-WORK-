@@ -21,10 +21,10 @@ from __future__ import annotations
 import uuid
 from datetime import datetime, timezone
 UTC = timezone.utc
-from typing import Any, Optional
+from typing import Any, Optional, Union
 
 try:
-    from typing import Annotated
+    from typing import Annotated, Optional, Union
 except ImportError:
     from typing_extensions import Annotated
 
@@ -111,11 +111,11 @@ class AssetCreateRequest(BaseModel):
 
     name: str = Field(..., min_length=1, max_length=255, description="Asset name")
     type: AssetType = Field(..., description="Asset type")
-    rating: str | None = Field(None, max_length=100, description="Asset rating, e.g., '10 MVA'")
-    voltage: str | None = Field(None, max_length=100, description="Operating voltage, e.g., '13.8 kV'")
+    rating: Optional[str] = Field(None, max_length=100, description="Asset rating, e.g., '10 MVA'")
+    voltage: Optional[str] = Field(None, max_length=100, description="Operating voltage, e.g., '13.8 kV'")
     status: AssetStatus = Field(AssetStatus.ACTIVE, description="Initial status")
-    project_id: str | None = Field(None, description="Optional project ID to link this asset to")
-    notes: str | None = Field(None, max_length=1000, description="Free-form notes")
+    project_id: Optional[str] = Field(None, description="Optional project ID to link this asset to")
+    notes: Optional[str] = Field(None, max_length=1000, description="Free-form notes")
 
 
 class AssetUpdateRequest(BaseModel):
@@ -138,14 +138,14 @@ class AssetResponse(BaseModel):
     id: str
     name: str
     type: str
-    rating: str | None = None
-    voltage: str | None = None
+    rating: Optional[str] = None
+    voltage: Optional[str] = None
     status: str
-    project_id: str | None = None
-    created_by: str | None = None
+    project_id: Optional[str] = None
+    created_by: Optional[str] = None
     created_at: datetime
     updated_at: datetime
-    notes: str | None = None
+    notes: Optional[str] = None
 
 
 class AssetListResponse(BaseModel):
@@ -170,9 +170,9 @@ class AssetListResponse(BaseModel):
 async def list_assets(
     pagination: Annotated[PaginationParams, Depends(pagination_params)],
     db: Annotated[AsyncSession, Depends(get_db)],
-    project_id: Annotated[str | None, Query(description="Filter by project ID")] = None,
-    type_filter: Annotated[AssetType | None, Query(alias="type", description="Filter by asset type")] = None,
-    status_filter: Annotated[AssetStatus | None, Query(alias="status", description="Filter by status")] = None,
+    project_id: Annotated[Optional[str], Query(description="Filter by project ID")] = None,
+    type_filter: Annotated[Optional[AssetType], Query(alias="type", description="Filter by asset type")] = None,
+    status_filter: Annotated[Optional[AssetStatus], Query(alias="status", description="Filter by status")] = None,
 ) -> Any:
     """Return a paginated, filterable list of electrical assets."""
     base_query = select(Asset)

@@ -21,7 +21,7 @@ from __future__ import annotations
 
 import logging
 import re
-from typing import Any
+from typing import Any, Optional, Union
 
 from guards.base import BaseGuard, GuardResult, GuardSeverity, GuardViolation
 
@@ -108,7 +108,7 @@ class DocsGuard(BaseGuard):
 
         # Find Python-style symbol references in docs
         # Pattern: ``ClassName``, `function_name`, ::ClassName, etc.
-        ref_pattern = r"(?:``|`|::)([A-Za-z_]\w*)"
+        ref_pattern = r"(Union[?:``|`, ::])([A-Za-z_]\w*)"
         for match in re.finditer(ref_pattern, docs):
             symbol = match.group(1)
             if symbol.startswith("_") or symbol in ("True", "False", "None", "self", "cls"):
@@ -137,15 +137,15 @@ class DocsGuard(BaseGuard):
         violations: list[GuardViolation] = []
         unverifiable_patterns = [
             (
-                r"(?i)(?:it\s+is\s+)?(?:well\s*-?known|obvious|clearly|everyone\s+knows|undoubtedly)\s+that",
+                r"(?i)(?:it\s+is\s+)?(Union[?:well\s*-?known|obvious|clearly|everyone\s+knows, undoubtedly])\s+that",
                 "unverifiable claim",
             ),
             (
-                r"(?i)(?:the\s+)?(?:best|worst|fastest|slowest|most\s+efficient|only\s+way)\s+(?:way|method|approach|solution)",
+                r"(?i)(?:the\s+)?(Union[?:best|worst|fastest|slowest|most\s+efficient, only\s+way])\s+(Union[?:way|method|approach, solution])",
                 "superlative without evidence",
             ),
             (
-                r"(?i)(?:always|never|all|none|every)\s+(?:works|fails|returns|produces)",
+                r"(?i)(Union[?:always|never|all|none, every])\s+(Union[?:works|fails|returns, produces])",
                 "absolute claim without qualification",
             ),
         ]
@@ -175,7 +175,7 @@ class DocsGuard(BaseGuard):
         violations: list[GuardViolation] = []
         # Pattern: "latest", "current version", "new" without a specific version number
         vague_version_patterns = [
-            r"(?i)(?:the\s+)?(?:latest|current|new|recent|stable)\s+(?:version|release)\s+(?:of\s+)?",
+            r"(?i)(?:the\s+)?(Union[?:latest|current|new|recent, stable])\s+(Union[?:version, release])\s+(?:of\s+)?",
         ]
         for pat in vague_version_patterns:
             for match in re.finditer(pat, source):
@@ -201,10 +201,10 @@ class DocsGuard(BaseGuard):
         """Heuristic: paragraphs that add no information."""
         violations: list[GuardViolation] = []
         filler_phrases = [
-            r"(?i)in\s+(?:this\s+)?(?:section|chapter|document),\s+we\s+will\s+(?:discuss|cover|explore|look\s+at)",
+            r"(?i)in\s+(?:this\s+)?(Union[?:section|chapter, document]),\s+we\s+will\s+(Union[?:discuss|cover|explore, look\s+at])",
             r"(?i)it\s+is\s+important\s+to\s+note\s+that",
-            r"(?i)as\s+(?:mentioned|noted|stated)\s+(?:above|earlier|before)",
-            r"(?i)please\s+(?:note|be\s+aware|keep\s+in\s+mind)",
+            r"(?i)as\s+(Union[?:mentioned|noted, stated])\s+(Union[?:above|earlier, before])",
+            r"(?i)please\s+(Union[?:note|be\s+aware, keep\s+in\s+mind])",
         ]
         for pat in filler_phrases:
             for match in re.finditer(pat, source):
@@ -258,15 +258,15 @@ class DocsGuard(BaseGuard):
         """Heuristic: patterns that suggest paraphrasing official docs."""
         violations: list[GuardViolation] = []
         paraphrase_patterns = [
-            r"(?i)according\s+to\s+the\s+(?:official\s+)?(?:documentation|docs|spec|standard|RFC)",
-            r"(?i)the\s+(?:official\s+)?(?:documentation|docs|spec)\s+(?:says|states|recommends)",
+            r"(?i)according\s+to\s+the\s+(?:official\s+)?(Union[?:documentation|docs|spec|standard, RFC])",
+            r"(?i)the\s+(?:official\s+)?(Union[?:documentation|docs, spec])\s+(Union[?:says|states, recommends])",
         ]
         for pat in paraphrase_patterns:
             for match in re.finditer(pat, source):
                 line_num = source[: match.start()].count("\n") + 1
                 # Check if there's a link nearby
                 surrounding = source[max(0, match.start() - 200) : match.end() + 200]
-                has_link = bool(re.search(r"https?://|:\[.*\]\(", surrounding))
+                has_link = bool(re.search(Union[r"https?://, :\][.*\]\(", surrounding))
                 if not has_link:
                     violations.append(
                         GuardViolation(
@@ -321,11 +321,11 @@ class DocsGuard(BaseGuard):
         violations: list[GuardViolation] = []
         intended_patterns = [
             (
-                r"(?i)(?:should|will|is\s+going\s+to|supposed\s+to)\s+(?:return|compute|calculate|generate|produce)",
+                r"(?i)(Union[?:should|will|is\s+going\s+to, supposed\s+to])\s+(Union[?:return|compute|calculate|generate, produce])",
                 "documents intended behavior, not actual",
             ),
             (
-                r"(?i)this\s+(?:function|method|class|module)\s+(?:should|will)\s+",
+                r"(?i)this\s+(Union[?:function|method|class, module])\s+(Union[?:should, will])\s+",
                 "describes future intent, not current behavior",
             ),
         ]

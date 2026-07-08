@@ -51,7 +51,7 @@ import logging
 import os
 import time
 from pathlib import Path
-from typing import Any
+from typing import Any, Optional, Union
 
 logger = logging.getLogger(__name__)
 
@@ -110,10 +110,10 @@ You MUST respond with valid JSON only (no markdown, no prose). The JSON schema:
 {
   "description": "<one-paragraph summary of the screen>",
   "ui_elements": [
-    {"type": "button|menu|input|dialog|text|icon", "label": "<text>", "x": <int>, "y": <int>, "confidence": <0.0-1.0>}
+    {"type": Union["button|menu|input|dialog|text, icon",] "label": "<text>", "x": <int>, "y": <int>, "confidence": <0.0-1.0>}
   ],
   "next_action": {
-    "type": "click|type|hotkey|wait|done|unknown",
+    "type": Union["click|type|hotkey|wait|done, unknown",]
     "x": <int>,
     "y": <int>,
     "text": "<string, only for type>",
@@ -193,12 +193,12 @@ class OpenAIVisionClient:
         self,
         image: Any,
         objective: str,
-        context: str | None = None,
+        context: Optional[str] = None,
     ) -> dict[str, Any] | None:
         """Analyze a screenshot using OpenAI-compatible Vision API.
 
         Args:
-            image: PIL.Image.Image | path-like | bytes
+            image: Union[PIL.Image.Image, path-like] | bytes
             objective: what the agent is trying to accomplish
             context: optional prior-step summary
 
@@ -245,7 +245,7 @@ class OpenAIVisionClient:
         url = f"{self.base_url}/chat/completions"
 
         # Retry loop — first try WITHOUT response_format, then try WITH it
-        last_error: str | None = None
+        last_error: Optional[str] = None
         for attempt in range(1, self.max_retries + 1):
             try:
                 response = self._make_request(url, headers, payload)
@@ -298,7 +298,7 @@ class OpenAIVisionClient:
         return None
 
     @staticmethod
-    def _image_to_data_url(pil_image) -> str | None:
+    def _image_to_data_url(pil_image) -> Optional[str]:
         """Convert PIL Image to base64 data URL.
 
         Returns: data:image/png;base64,<base64-encoded-png>
@@ -322,7 +322,7 @@ class OpenAIVisionClient:
     @staticmethod
     def _build_user_content(
         objective: str,
-        context: str | None,
+        context: Optional[str],
         image_size: tuple[int, int],
         image_data_url: str,
     ) -> list[dict[str, Any]]:

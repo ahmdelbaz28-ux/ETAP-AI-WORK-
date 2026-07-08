@@ -13,7 +13,7 @@ Patterns drawn from pydantic/pydantic (v2):
 from __future__ import annotations
 
 import re
-from typing import Any, Generic, TypeVar
+from typing import Any, Generic, Optional, TypeVar, Union
 
 from pydantic import BaseModel, Field, field_validator, model_validator
 
@@ -38,7 +38,7 @@ class SkillResponse(BaseModel, Generic[T]):  # noqa: UP046
 
     data: T
     status: str = "ok"
-    message: str | None = None
+    message: Optional[str] = None
 
     def to_dict(self) -> dict[str, Any]:
         return self.model_dump(mode="json")

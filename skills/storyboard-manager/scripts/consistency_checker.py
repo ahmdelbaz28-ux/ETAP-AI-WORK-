@@ -11,7 +11,7 @@ import re
 import sys
 import json
 from pathlib import Path
-from typing import List, Dict, Set, Tuple, Optional
+from typing import Dict, List, Optional, Set, Tuple, Union
 from collections import defaultdict
 
 
@@ -63,12 +63,12 @@ class ConsistencyChecker:
 
     # Patterns to extract character attributes
     ATTRIBUTE_PATTERNS = {
-        'age': r'\*\*Age:\*\*\s*(.+?)(?:\n|$)',
-        'appearance': r'\*\*Appearance:\*\*\s*(.+?)(?:\n|$)',
-        'hair': r'(?:hair|Hair)[\s:]+([^,\n]+)',
-        'eyes': r'(?:eyes|Eyes)[\s:]+([^,\n]+)',
-        'height': r'\*\*Height:\*\*\s*(.+?)(?:\n|$)',
-        'role': r'\*\*Role:\*\*\s*(.+?)(?:\n|$)',
+        'age': r'\*\*Age:\*\*\s*(.+?)(Union[?:\n, $])',
+        'appearance': r'\*\*Appearance:\*\*\s*(.+?)(Union[?:\n, $])',
+        'hair': r'(Union[?:hair, Hair])[\s:]+([^,\n]+)',
+        'eyes': r'(Union[?:eyes, Eyes])[\s:]+([^,\n]+)',
+        'height': r'\*\*Height:\*\*\s*(.+?)(Union[?:\n, $])',
+        'role': r'\*\*Role:\*\*\s*(.+?)(Union[?:\n, $])',
     }
 
     def __init__(self, project_root: str):
@@ -112,7 +112,7 @@ class ConsistencyChecker:
 
             # Extract aliases/nicknames
             alias_match = re.search(
-                r'\*\*(?:Nicknames?|Aliases?):\*\*\s*(.+?)(?:\n|$)',
+                r'\*\*(Union[?:Nicknames?, Aliases?]):\*\*\s*(.+?)(Union[?:\n, $])',
                 content, re.IGNORECASE
             )
             if alias_match:
@@ -154,7 +154,7 @@ class ConsistencyChecker:
                     # Look for contradicting descriptions
                     if attr_name == 'age':
                         age_mentions = re.finditer(
-                            r'\b' + re.escape(char_name) + r'\b[^.!?]*\b(\d+)[\s-](?:year|yr)',
+                            r'\b' + re.escape(char_name) + r'\b[^.!?]*\b(\d+)[\s-](Union[?:year, yr])',
                             content, re.IGNORECASE
                         )
                         for match in age_mentions:
@@ -183,7 +183,7 @@ class ConsistencyChecker:
                             profile_value_lower = attr_value.lower()
                             if profile_value_lower not in context:
                                 # Extract the contradicting description
-                                color_pattern = r'\b(black|brown|blonde|red|auburn|white|gray|grey|blue|green|hazel)\b'
+                                color_pattern = r'\b(Union[black|brown|blonde|red|auburn|white|gray|grey|blue|green, hazel])\b'
                                 colors = re.findall(color_pattern, context, re.IGNORECASE)
                                 if colors:
                                     self.issues.append(ConsistencyIssue(
@@ -225,7 +225,7 @@ class ConsistencyChecker:
             # This is a simplified version - would need more sophisticated pattern matching
 
             # Example: Check for location descriptions
-            location_pattern = r'\*\*Location:\*\*\s*(.+?)(?:\n|$)'
+            location_pattern = r'\*\*Location:\*\*\s*(.+?)(Union[?:\n, $])'
             for match in re.finditer(location_pattern, content, re.IGNORECASE):
                 loc_name = match.group(1).strip()
 
@@ -335,7 +335,7 @@ def main():
     """Main entry point for consistency checker"""
 
     if len(sys.argv) < 2:
-        print("Usage: consistency_checker.py <project_directory> [--output json|markdown]")
+        print("Usage: consistency_checker.py <project_directory> [--output Union[json, markdown]]")
         sys.exit(1)
 
     project_dir = sys.argv[1]

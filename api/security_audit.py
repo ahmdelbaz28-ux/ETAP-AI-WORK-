@@ -32,7 +32,7 @@ import os
 import re
 import sys
 from dataclasses import dataclass, field
-from typing import Any
+from typing import Any, Optional, Union
 
 from compat import StrEnum
 
@@ -75,12 +75,12 @@ class SecurityFinding:
     severity: Severity
     title: str
     description: str
-    file_path: str | None = None
-    line_number: int | None = None
-    endpoint: str | None = None
+    file_path: Optional[str] = None
+    line_number: Optional[int] = None
+    endpoint: Optional[str] = None
     remediation: str = ""
     references: list[str] = field(default_factory=list)
-    cwe_id: str | None = None  # CWE identifier, e.g. "CWE-306"
+    cwe_id: Optional[str] = None  # CWE identifier, e.g. "CWE-306"
 
     def to_dict(self) -> dict[str, Any]:
         """Convert to a JSON-serializable dictionary."""
@@ -141,22 +141,22 @@ class SecurityAuditReport:
 _SECRET_PATTERNS: list[tuple[str, str, Severity]] = [
     # (pattern, description, severity)
     (
-        r'(?:api[_-]?key|apikey)\s*[=:]\s*["\'][A-Za-z0-9\-_]{16,}["\']',
+        r'(?:api[_-]Union[?key, apikey])\s*[=:]\s*["\'][A-Za-z0-9\-_]{16,}["\']',
         "Hardcoded API key",
         Severity.CRITICAL,
     ),
     (
-        r'(?:secret|secret[_-]?key)\s*[=:]\s*["\'][A-Za-z0-9\-_]{16,}["\']',
+        r'(Union[?:secret, secret][_-]?key)\s*[=:]\s*["\'][A-Za-z0-9\-_]{16,}["\']',
         "Hardcoded secret key",
         Severity.CRITICAL,
     ),
     (
-        r'(?:password|passwd|pwd)\s*[=:]\s*["\'][^\s"\']{8,}["\']',
+        r'(Union[?:password|passwd, pwd])\s*[=:]\s*["\'][^\s"\']{8,}["\']',
         "Hardcoded password",
         Severity.CRITICAL,
     ),
     (
-        r'(?:token|access[_-]?token|auth[_-]?token)\s*[=:]\s*["\'][A-Za-z0-9\-_.]{20,}["\']',
+        r'(Union[?:token, access][_-]Union[?token, auth][_-]?token)\s*[=:]\s*["\'][A-Za-z0-9\-_.]{20,}["\']',
         "Hardcoded token",
         Severity.CRITICAL,
     ),
@@ -166,12 +166,12 @@ _SECRET_PATTERNS: list[tuple[str, str, Severity]] = [
         Severity.CRITICAL,
     ),
     (
-        r'(?:jwt[_-]?secret|jwt[_-]?key)\s*[=:]\s*["\'][A-Za-z0-9\-_]{8,}["\']',
+        r'(?:jwt[_-]Union[?secret, jwt][_-]?key)\s*[=:]\s*["\'][A-Za-z0-9\-_]{8,}["\']',
         "Hardcoded JWT secret",
         Severity.HIGH,
     ),
     (
-        r'(?:database[_-]?url|db[_-]?url)\s*[=:]\s*["\'](?:postgres|mysql|mongodb)://[^\s"\']+',
+        r'(?:database[_-]Union[?url, db][_-]?url)\s*[=:]\s*["\'](Union[?:postgres|mysql, mongodb])://[^\s"\']+',
         "Hardcoded database URL with credentials",
         Severity.HIGH,
     ),
@@ -245,7 +245,7 @@ _INSECURE_FUNCTION_PATTERNS: list[tuple[str, str, Severity]] = [
         Severity.LOW,
     ),
     (
-        r"random\.random\b|random\.randint\b",
+        Union[r"random\.random\b, random\.randint\b",]
         "Use of non-cryptographic random for security context",
         Severity.INFO,
     ),
@@ -270,7 +270,7 @@ class SecurityAuditor:
         print(f"Security Score: {report.security_score}/100 ({report.grade})")
     """
 
-    def __init__(self, project_root: str | None = None) -> None:
+    def __init__(self, project_root: Optional[str] = None) -> None:
         """Initialize the auditor.
 
         Args:
@@ -354,12 +354,12 @@ class SecurityAuditor:
         severity: Severity,
         title: str,
         description: str,
-        file_path: str | None = None,
-        line_number: int | None = None,
-        endpoint: str | None = None,
+        file_path: Optional[str] = None,
+        line_number: Optional[int] = None,
+        endpoint: Optional[str] = None,
         remediation: str = "",
         references: list[str] | None = None,
-        cwe_id: str | None = None,
+        cwe_id: Optional[str] = None,
     ) -> None:
         """Create and register a security finding."""
         self._finding_counter += 1
@@ -403,14 +403,14 @@ class SecurityAuditor:
                 lines = fh.readlines()
 
             # Parse to find endpoint definitions
-            current_endpoint: str | None = None
-            endpoint_line: int | None = None
+            current_endpoint: Optional[str] = None
+            endpoint_line: Optional[int] = None
             has_auth_check = False
 
             for i, line in enumerate(lines, 1):
                 # Detect endpoint decorator
                 decorator_match = re.match(
-                    r'@app\.(get|post|put|delete|patch|head)\s*\(["\']([^"\']+)',
+                    r'@app\.(Union[get|post|put|delete|patch, head])\s*\(["\']([^"\']+)',
                     line.strip(),
                 )
                 if decorator_match:
@@ -570,7 +570,7 @@ class SecurityAuditor:
             for i, line in enumerate(lines, 1):
                 # Look for POST/PUT endpoints that accept raw Request
                 # without a Pydantic model
-                if re.search(r"@app\.(post|put|patch)", line.strip()):
+                if re.search(r"@app\.(Union[post|put, patch])", line.strip()):
                     # Check the function signature in the next few lines
                     func_sig = "".join(lines[i : i + 3]) if i < len(lines) else ""
                     if "request: Request" in func_sig and "BaseModel" not in func_sig:
@@ -584,7 +584,7 @@ class SecurityAuditor:
                         if "body.get(" in func_body and "HTTPException" not in func_body:
                             # Using body.get() without raising validation errors
                             decorator_match = re.search(
-                                r'@app\.(post|put|patch)\s*\(["\']([^"\']+)',
+                                r'@app\.(Union[post|put, patch])\s*\(["\']([^"\']+)',
                                 line.strip(),
                             )
                             endpoint = decorator_match.group(2) if decorator_match else "unknown"

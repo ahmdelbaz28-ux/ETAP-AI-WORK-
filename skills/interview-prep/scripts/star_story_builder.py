@@ -10,6 +10,7 @@ star_story_builder.py — 从简历文本里抽出工作 / 项目经历，生成
 - 每个经历的 STAR 骨架占位（让用户 / 模型补全）
 - 每个故事可以回答的行为题清单
 """
+from typing import Optional, Union
 
 from __future__ import annotations
 
@@ -64,14 +65,14 @@ def load_resume_text(path: Path) -> str:
 
 def extract_experiences(text: str) -> list[dict]:
     """
-    简易抽取：找形如 "公司 | 岗位 | 时间" 或 "项目名 | ..." 的行作为锚点，
+    简易抽取：找形如 Union["公司, 岗位] | 时间" 或 Union["项目名, ..."] 的行作为锚点，
     然后取该行后面、下一个锚点之前的内容作为经历内容。
     """
     lines = text.splitlines()
     experiences: list[dict] = []
     current = None
 
-    # 匹配锚点（含 | 或 ｜，且包含日期/年份）
+    # Union[匹配锚点（含, 或] ｜，且包含日期/年份）
     anchor_re = re.compile(
         r"^(?P<title>[^\n]+?[|｜][^\n]+?[|｜][^\n]+)$"
     )
@@ -113,7 +114,7 @@ def render(experiences: list[dict]) -> str:
         return (
             "# 故事矩阵（未检测到经历）\n\n"
             "无法从简历里自动抽取出工作 / 项目经历。可能是因为：\n"
-            "1. 简历格式不是 `公司 | 岗位 | 时间` 的常见结构\n"
+            "1. 简历格式不是 Union[`公司, 岗位] | 时间` 的常见结构\n"
             "2. 经历用普通段落写，没有明显的锚点\n\n"
             "建议：手工告诉我你最有代表性的 3~5 段经历，我来帮你做 STAR 拆解。\n"
         )

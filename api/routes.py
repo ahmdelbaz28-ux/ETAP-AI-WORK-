@@ -11,7 +11,7 @@ import sys
 import threading as _threading
 import time
 import uuid
-from typing import Any
+from typing import Any, Optional, Union
 
 from fastapi import FastAPI, HTTPException, Request, WebSocket
 from fastapi.middleware.cors import CORSMiddleware
@@ -179,7 +179,7 @@ except Exception:  # pragma: no cover
 _redis_client = None
 
 
-def _get_rate_limit_redis() -> Any | None:
+def _get_rate_limit_redis() -> Optional[Any]:
     global _redis_client
     if not _REDIS_URL or redis_async is None:
         return None
@@ -318,7 +318,7 @@ class ReadyResponse(BaseModel):
 _celery_cache: tuple = ()  # empty tuple = not yet loaded
 
 
-def get_celery_components() -> tuple[Any | None, Any | None, Any | None]:
+def get_celery_components() -> tuple[Optional[Any], Optional[Any], Optional[Any]]:
     """Lazy loading of Celery components to avoid import errors during startup.
 
     Uses a module-level cache so that imports are performed only once;

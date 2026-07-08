@@ -72,7 +72,7 @@ import os
 import threading
 import time
 from pathlib import Path
-from typing import Any
+from typing import Any, Optional, Union
 
 import yaml
 
@@ -126,7 +126,7 @@ _CB_FAILURE_THRESHOLD = int(os.environ.get("PROMPT_CB_FAILURE_THRESHOLD", "5"))
 _CB_RESET_SECONDS = float(os.environ.get("PROMPT_CB_RESET_SECONDS", "60"))
 
 # Cache: handle -> (content, fetched_at, source)
-_prompt_cache: dict[str, tuple[str | None, float, str]] = {}
+_prompt_cache: dict[str, tuple[Optional[str], float, str]] = {}
 _cache_lock = threading.Lock()
 
 
@@ -148,7 +148,7 @@ class _CircuitBreaker:
         self.failure_threshold = failure_threshold
         self.reset_seconds = reset_seconds
         self._failures = 0
-        self._opened_at: float | None = None
+        self._opened_at: Optional[float] = None
         self._lock = threading.Lock()
 
     @property
@@ -200,7 +200,7 @@ def _hash_prompt(text: str) -> str:
 # ---------------------------------------------------------------------------
 
 
-def _extract_system_message(parsed: Any) -> str | None:
+def _extract_system_message(parsed: Any) -> Optional[str]:
     """Extract the system message from a parsed YAML prompt structure."""
     if not isinstance(parsed, dict):
         return None
@@ -220,7 +220,7 @@ def _extract_system_message(parsed: Any) -> str | None:
     return None
 
 
-def _load_from_yaml(handle: str) -> str | None:  # NOSONAR — S3776: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
+def _load_from_yaml(handle: str) -> Optional[str]:  # NOSONAR — S3776: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
     """Load a prompt from a local YAML file in the prompts/ directory.
 
     Tries several filename patterns to locate the file.
@@ -270,7 +270,7 @@ def _load_from_yaml(handle: str) -> str | None:  # NOSONAR — S3776: cognitive 
 # ---------------------------------------------------------------------------
 
 
-async def _load_from_langfuse_async(handle: str) -> str | None:
+async def _load_from_langfuse_async(handle: str) -> Optional[str]:
     """Asynchronously attempt to load a prompt from Langfuse.
 
     Returns ``None`` on any error, timeout, or when the circuit breaker
@@ -324,7 +324,7 @@ async def _load_from_langfuse_async(handle: str) -> str | None:
 # ---------------------------------------------------------------------------
 
 
-async def _load_from_langwatch_async(handle: str) -> str | None:
+async def _load_from_langwatch_async(handle: str) -> Optional[str]:
     """Asynchronously attempt to load a prompt from LangWatch (legacy)."""
     if not _LANGWATCH_API_KEY or not _LANGWATCH_OVERRIDE_MODE:
         return None

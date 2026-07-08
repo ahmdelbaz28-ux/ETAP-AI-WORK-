@@ -36,7 +36,7 @@ ARCHITECTURE:
       2. If start_url provided, navigate to it
       3. Loop:
          a. page.screenshot() → send to Gemini Vision
-         b. Gemini returns next_action {click(x,y) | type(text) | hotkey | done}
+         b. Gemini returns next_action {click(x,y) | type(text) | Union[hotkey, done}]
          c. page.mouse.click(x,y) / page.keyboard.type(text) / page.keyboard.press(key)
          d. Re-screenshot for verification
       4. Close browser, return CUAExecutionResult
@@ -56,7 +56,7 @@ import os
 import time
 import uuid
 from pathlib import Path
-from typing import Any
+from typing import Any, Optional, Union
 
 # Reuse the dataclasses from the desktop executor — same contract
 from agents.cua_executor import CUAAction, CUAExecutionResult, CUAStepResult
@@ -156,7 +156,7 @@ class BrowserCUAExecutor:
 
     def __init__(
         self,
-        audit_dir: str | None = None,
+        audit_dir: Optional[str] = None,
         viewport: dict[str, int] | None = None,
         headless: bool = True,
     ) -> None:
@@ -198,11 +198,11 @@ class BrowserCUAExecutor:
     def execute_loop(  # NOSONAR — S3776: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
         self,
         objective: str,
-        start_url: str | None = None,
+        start_url: Optional[str] = None,
         max_steps: int = 15,
         require_confirmation: bool = True,
         on_confirmation_request=None,
-        context: str | None = None,
+        context: Optional[str] = None,
         mode: str = "control",
     ) -> CUAExecutionResult:
         """Run the CUA Loop against a headless browser.
@@ -586,7 +586,7 @@ class BrowserCUAExecutor:
 
     # ─── Internal: screenshot capture ──────────────────────────────────────
 
-    def _capture_screenshot(self, page, step_num: int, phase: str) -> str | None:
+    def _capture_screenshot(self, page, step_num: int, phase: str) -> Optional[str]:
         """Capture a screenshot from the browser page. Returns path."""
         try:
             filename = f"browser_step{step_num:03d}_{phase}_{uuid.uuid4().hex[:8]}.png"
@@ -600,7 +600,7 @@ class BrowserCUAExecutor:
     # ─── Internal: browser action execution ────────────────────────────────
 
     @staticmethod
-    def _execute_browser_action(page, action: CUAAction) -> str | None:  # NOSONAR — S3776: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
+    def _execute_browser_action(page, action: CUAAction) -> Optional[str]:  # NOSONAR — S3776: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
         """Execute a single browser action. Returns error string or None."""
         try:
             if action.type == "click":
@@ -672,10 +672,10 @@ class BrowserCUAExecutor:
 
 async def execute_browser_cua_loop_async(
     objective: str,
-    start_url: str | None = None,
+    start_url: Optional[str] = None,
     max_steps: int = 15,
     require_confirmation: bool = True,
-    audit_dir: str | None = None,
+    audit_dir: Optional[str] = None,
 ) -> CUAExecutionResult:
     """Async wrapper — runs the browser CUA loop in a thread pool.
 

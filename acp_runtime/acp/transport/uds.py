@@ -16,7 +16,7 @@ from __future__ import annotations
 import contextlib
 import logging
 import os
-from typing import Any
+from typing import Any, Optional, Union
 
 import anyio
 from anyio.abc import ByteStream
@@ -65,7 +65,7 @@ class UDSTransport(Transport):
         self._closed = False
         self._log = logging.getLogger("acp.transport.uds")
 
-    async def read_message(self) -> str | None:
+    async def read_message(self) -> Optional[str]:
         if self._closed:
             return None
         try:

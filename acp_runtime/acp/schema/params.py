@@ -9,7 +9,7 @@ the Router layer validates before dispatching to the Runtime layer.
 
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, Optional, Union
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -44,4 +44,4 @@ class AcpResult(BaseModel):
 
     capability: str = Field(min_length=1, max_length=128)
     trace_id: str = Field(default="", max_length=128)
-    output: Any | None = None
+    output: Optional[Any] = None

@@ -13,7 +13,7 @@ import threading
 import time
 from collections.abc import Callable, Sequence
 from functools import wraps
-from typing import Any
+from typing import Any, Optional, Union
 
 import numpy as np
 
@@ -34,7 +34,7 @@ def register_circuit_breaker(cb: CircuitBreaker) -> None:
         _circuit_breaker_registry[cb.name] = cb
 
 
-def get_circuit_breaker(name: str) -> CircuitBreaker | None:
+def get_circuit_breaker(name: str) -> Optional[CircuitBreaker]:
     """Look up a registered circuit breaker by name."""
     with _registry_lock:
         return _circuit_breaker_registry.get(name)
@@ -139,7 +139,7 @@ class RetryHandler:
         Exception
             The last exception raised if all retries are exhausted.
         """
-        last_exc: BaseException | None = None
+        last_exc: Optional[BaseException] = None
 
         with self._lock:
             self._total_calls += 1
@@ -188,7 +188,7 @@ class RetryHandler:
         """
         import asyncio
 
-        last_exc: BaseException | None = None
+        last_exc: Optional[BaseException] = None
 
         with self._lock:
             self._total_calls += 1
@@ -346,7 +346,7 @@ class CircuitBreaker:
         self._failure_count = 0
         self._total_calls = 0
         self._failed_calls = 0
-        self._last_failure_time: float | None = None
+        self._last_failure_time: Optional[float] = None
         self._state_changes = 0
         self._half_open_calls = 0
         self._lock = threading.Lock()
@@ -364,7 +364,7 @@ class CircuitBreaker:
         return self._failed_calls
 
     @property
-    def last_failure_time(self) -> float | None:
+    def last_failure_time(self) -> Optional[float]:
         return self._last_failure_time
 
     @property
@@ -562,7 +562,7 @@ class RecoveryResult:
         level_used: int,
         actions_taken: list[str],
         duration: float,
-        error: BaseException | None = None,
+        error: Optional[BaseException] = None,
     ) -> None:
         self.success = success
         self.level_used = level_used
@@ -595,7 +595,7 @@ class MultiLevelRecovery:
 
     def __init__(self, name: str) -> None:
         self.name = name
-        self._strategies: dict[int, list[tuple[Callable, Callable | None]]] = {
+        self._strategies: dict[int, list[tuple[Callable, Optional[Callable]]]] = {
             1: [],
             2: [],
             3: [],
@@ -634,7 +634,7 @@ class MultiLevelRecovery:
             raise ValueError(f"Invalid recovery level: {level}. Use 1, 2, or 3.")
         self._strategies[level].append((fn, condition_fn))
 
-    def recover(self, error: BaseException, context: Any | None = None) -> RecoveryResult:  # NOSONAR — S3776: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
+    def recover(self, error: BaseException, context: Optional[Any] = None) -> RecoveryResult:  # NOSONAR — S3776: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
         """Execute recovery strategies from level 1 upward.
 
         Returns as soon as a level produces a result considered successful

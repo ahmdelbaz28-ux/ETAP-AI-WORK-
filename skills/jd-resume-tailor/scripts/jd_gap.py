@@ -7,6 +7,7 @@ jd_gap.py — 把 parse_jd.py 的 JSON 与简历文本做 gap 分析
 
 输出 markdown 报告：完美命中 / 隐性命中 / 真缺口 三类，附改写建议。
 """
+from typing import Optional, Union
 
 from __future__ import annotations
 
@@ -36,7 +37,7 @@ def load_resume_text(path: Path) -> str:
     sys.exit(1)
 
 
-def find_evidence(resume_text: str, keyword: str, window: int = 30) -> str | None:
+def find_evidence(resume_text: str, keyword: str, window: int = 30) -> Optional[str]:
     """在简历里找关键词，返回上下文片段；找不到返回 None。"""
     pattern = re.escape(keyword)
     m = re.search(pattern, resume_text, flags=re.IGNORECASE)
@@ -48,7 +49,7 @@ def find_evidence(resume_text: str, keyword: str, window: int = 30) -> str | Non
     return snippet
 
 
-def fuzzy_hit(resume_text: str, keyword: str) -> str | None:
+def fuzzy_hit(resume_text: str, keyword: str) -> Optional[str]:
     """模糊命中：取关键词的中文 / 英文核心，做包含匹配。"""
     # 拿前 2 个字 / 前 5 个字符
     candidates = []

@@ -53,6 +53,7 @@ Usage::
     # 5. Engineer shares the trace with their senior
     url = get_trace_share_url("trace_xxx")
 """
+from typing import Optional, Union
 
 from __future__ import annotations
 
@@ -94,8 +95,8 @@ class EngineeringSession:
         session_id: str,
         user_id: str,
         study_type: str,
-        project_id: str | None = None,
-        metadata: dict | None = None,
+        project_id: Optional[str] = None,
+        metadata: Optional[dict] = None,
     ):
         self.id = session_id
         self.user_id = user_id
@@ -129,9 +130,9 @@ def start_engineering_session(
     *,
     user_id: str,
     study_type: str,
-    project_id: str | None = None,
-    session_id: str | None = None,
-    metadata: dict | None = None,
+    project_id: Optional[str] = None,
+    session_id: Optional[str] = None,
+    metadata: Optional[dict] = None,
 ) -> EngineeringSession:
     """Start a new engineering session.
 
@@ -188,9 +189,9 @@ def end_engineering_session(session: EngineeringSession) -> None:
 def record_user_feedback(
     *,
     trace_id: str,
-    feedback: str,  # "positive" | "negative" | "neutral"
+    feedback: str,  # Union["positive", "negative"] | "neutral"
     comment: str = "",
-    user_id: str | None = None,
+    user_id: Optional[str] = None,
 ) -> bool:
     """Attach user feedback to a trace as a Langfuse score.
 
@@ -247,7 +248,7 @@ def record_user_feedback(
 # ─── Public trace URLs ────────────────────────────────────────────────────
 
 
-def get_trace_share_url(trace_id: str, make_public: bool = True) -> str | None:
+def get_trace_share_url(trace_id: str, make_public: bool = True) -> Optional[str]:
     """Return a shareable URL for a trace.
 
     Parameters
@@ -299,7 +300,7 @@ def alert_on_unsafe_trace(
     *,
     trace_id: str,
     reason: str,
-    user_id: str | None = None,
+    user_id: Optional[str] = None,
     severity: str = "high",
 ) -> bool:
     """Emit a safety alert for an unsafe trace.
@@ -386,7 +387,7 @@ def alert_on_unsafe_trace(
 def add_trace_comment(
     trace_id: str,
     comment: str,
-    author: str | None = None,
+    author: Optional[str] = None,
 ) -> bool:
     """Add a review comment to a trace (for senior-engineer review).
 

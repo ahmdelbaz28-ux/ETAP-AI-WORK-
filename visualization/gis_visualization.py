@@ -25,7 +25,7 @@ from __future__ import annotations
 import contextlib
 import logging
 import os
-from typing import Any
+from typing import Any, Optional, Union
 
 logger = logging.getLogger(__name__)
 
@@ -211,7 +211,7 @@ class GISVisualizer:
         lines: list[dict[str, Any]] | None = None,
         bus_coords: dict[str, tuple[float, float]] | None = None,
         title: str = "Load Flow Results",
-        output_path: str | None = None,
+        output_path: Optional[str] = None,
     ) -> Any:
         """Visualize load flow results on a geographic map.
 
@@ -311,7 +311,7 @@ class GISVisualizer:
         buses: dict[str, dict[str, Any]],
         bus_coords: dict[str, tuple[float, float]] | None = None,
         title: str = "Voltage Profile Map",
-        output_path: str | None = None,
+        output_path: Optional[str] = None,
     ) -> Any:
         """Visualize voltage profile with color-coded buses and contour overlay."""
         m = self._create_base_map()
@@ -378,7 +378,7 @@ class GISVisualizer:
         bus_coords: dict[str, tuple[float, float]] | None = None,
         fault_type: str = "Three Phase",
         title: str = "Fault Analysis Results",
-        output_path: str | None = None,
+        output_path: Optional[str] = None,
     ) -> Any:
         """Visualize fault current magnitudes at each bus.
 
@@ -443,7 +443,7 @@ class GISVisualizer:
         arc_flash_results: dict[str, dict[str, Any]],
         bus_coords: dict[str, tuple[float, float]] | None = None,
         title: str = "Arc Flash Risk Assessment",
-        output_path: str | None = None,
+        output_path: Optional[str] = None,
     ) -> Any:
         """Visualize arc flash incident energy at each bus.
 
@@ -534,7 +534,7 @@ class GISVisualizer:
         relay_data: dict[str, dict[str, Any]],
         bus_coords: dict[str, tuple[float, float]] | None = None,
         title: str = "Protection Coordination View",
-        output_path: str | None = None,
+        output_path: Optional[str] = None,
     ) -> Any:
         """Visualize protection relay coverage and coordination status."""
         m = self._create_base_map()
@@ -582,7 +582,7 @@ class GISVisualizer:
         self,
         network_geojson: dict[str, Any],
         title: str = "Electrical Network Map",
-        output_path: str | None = None,
+        output_path: Optional[str] = None,
     ) -> Any:
         """Visualize the complete electrical network from a GeoJSON FeatureCollection."""
         m = self._create_base_map()
@@ -649,13 +649,13 @@ class GISVisualizer:
 
     def create_dashboard_map(  # NOSONAR — S3776: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
         self,
-        load_flow_buses: dict | None = None,
-        fault_currents: dict | None = None,
-        arc_flash_results: dict | None = None,
-        network_geojson: dict | None = None,
+        load_flow_buses: Optional[dict] = None,
+        fault_currents: Optional[dict] = None,
+        arc_flash_results: Optional[dict] = None,
+        network_geojson: Optional[dict] = None,
         bus_coords: dict[str, tuple[float, float]] | None = None,
         title: str = "AhmedETAP Engineering Dashboard",
-        output_path: str | None = None,
+        output_path: Optional[str] = None,
     ) -> Any:
         """Create a combined dashboard with multiple data layers.
 
@@ -902,7 +902,7 @@ class GISVisualizer:
     # Output
     # ------------------------------------------------------------------
 
-    def _save_or_return(self, m: Any, output_path: str | None = None) -> Any:
+    def _save_or_return(self, m: Any, output_path: Optional[str] = None) -> Any:
         """Save map to HTML or return the map object."""
         if output_path:
             os.makedirs(os.path.dirname(output_path) or ".", exist_ok=True)

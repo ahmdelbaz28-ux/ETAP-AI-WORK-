@@ -69,7 +69,7 @@ import time
 from dataclasses import asdict, dataclass, field
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any
+from typing import Any, Optional, Union
 
 logger = logging.getLogger("agent.life_safety")
 
@@ -205,7 +205,7 @@ def _write_secure_file(path: Path, content: str) -> None:
     """
     path.parent.mkdir(parents=True, exist_ok=True)
     # Write via a temp file then rename — atomic + we can chmod before expose.
-    fd = os.open(str(path), os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
+    fd = os.open(str(path), Union[os.O_WRONLY, os.O_CREAT] | os.O_TRUNC, 0o600)
     try:
         with os.fdopen(fd, "w", encoding="utf-8") as f:
             f.write(content)
@@ -284,11 +284,11 @@ class SafetyCheckResult:
     blocked: bool
     reason: str = ""
     requires_dual_confirmation: bool = False
-    matched_pattern: str | None = None
-    safety_level: str = "ok"  # ok | blocked | dual_confirmation | degraded
-    annotated_screenshot: str | None = None
-    state_snapshot_id: str | None = None
-    audit_entry_hash: str | None = None  # tamper-evident chain
+    matched_pattern: Optional[str] = None
+    safety_level: str = "ok"  # Union[ok, blocked] | Union[dual_confirmation, degraded]
+    annotated_screenshot: Optional[str] = None
+    state_snapshot_id: Optional[str] = None
+    audit_entry_hash: Optional[str] = None  # tamper-evident chain
     timestamp: str = field(default_factory=lambda: datetime.now(UTC).isoformat())
 
     def to_dict(self) -> dict[str, Any]:
@@ -310,7 +310,7 @@ class TamperEvidentAuditLog:
 
     GENESIS_HASH = "0" * 64
 
-    def __init__(self, log_path: str | None = None) -> None:
+    def __init__(self, log_path: Optional[str] = None) -> None:
         # Default to the per-user cache directory (NOT /tmp) to avoid
         # SonarCloud S5443 (publicly writable directories).
         if log_path is None:
@@ -449,8 +449,8 @@ class LifeSafetyGuard:
 
     def __init__(
         self,
-        audit_dir: str | None = None,
-        safety_log_path: str | None = None,
+        audit_dir: Optional[str] = None,
+        safety_log_path: Optional[str] = None,
     ) -> None:
         # Default audit_dir to the per-user cache (NOT /tmp) to avoid
         # SonarCloud S5443 (publicly writable directories).
@@ -466,14 +466,14 @@ class LifeSafetyGuard:
             log_path=safety_log_path or str(self.audit_dir / "safety_chain.jsonl"),
         )
         self._last_control_action_time: float = 0.0
-        self._last_safety_check: SafetyCheckResult | None = None
+        self._last_safety_check: Optional[SafetyCheckResult] = None
 
     # ─── Pre-action check — called before EVERY action ─────────────────────
 
     def pre_action_check(  # NOSONAR — S3776: cognitive complexity; refactoring sprint
         self,
         action,  # CUAAction
-        screenshot_before: str | None,
+        screenshot_before: Optional[str],
         gemini_analysis: dict[str, Any] | None,
         vision_source: str = "gemini",
         mode: str = "analyze",
@@ -487,8 +487,8 @@ class LifeSafetyGuard:
             action: the CUAAction to be executed
             screenshot_before: path to the pre-action screenshot
             gemini_analysis: the full Gemini/OpenCV analysis dict
-            vision_source: 'gemini' | 'opencv' | 'hybrid'
-            mode: 'analyze' | 'monitor' | 'control' | 'solve'
+            vision_source: Union['gemini', 'opencv'] | 'hybrid'
+            mode: Union['analyze', 'monitor'] | Union['control', 'solve']
 
         Returns:
             SafetyCheckResult with blocked=True if the action must not execute
@@ -537,7 +537,7 @@ class LifeSafetyGuard:
 
         # ── LAYER 3: Dual confirmation for protection settings ───────────
         requires_dual = False
-        matched_dual_pattern: str | None = None
+        matched_dual_pattern: Optional[str] = None
         for pattern in DUAL_CONFIRMATION_PATTERNS:
             if pattern in target_text or pattern in action_text:
                 requires_dual = True
@@ -568,7 +568,7 @@ class LifeSafetyGuard:
             return result
 
         # ── LAYER 5: Pre-action screenshot annotation ────────────────────
-        annotated_path: str | None = None
+        annotated_path: Optional[str] = None
         if screenshot_before and action.type in ("click", "double_click", "right_click"):
             annotated_path = self._annotate_screenshot(
                 screenshot_before,
@@ -613,9 +613,9 @@ class LifeSafetyGuard:
     def post_action_record(
         self,
         action,
-        screenshot_after: str | None,
+        screenshot_after: Optional[str],
         pre_check: SafetyCheckResult,
-        exec_error: str | None = None,
+        exec_error: Optional[str] = None,
     ) -> None:
         """Record the post-action state for rollback and audit."""
         self._last_control_action_time = time.monotonic()
@@ -642,7 +642,7 @@ class LifeSafetyGuard:
         screenshot_path: str,
         action,
         gemini_analysis: dict[str, Any] | None,  # NOSONAR — S1172: unused param kept for API compatibility
-    ) -> str | None:
+    ) -> Optional[str]:
         """Draw a red crosshair on the screenshot at the click location.
 
         This creates a VISUAL RECORD of intent — investigators can see

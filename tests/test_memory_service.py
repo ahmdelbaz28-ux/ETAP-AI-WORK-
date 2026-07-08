@@ -10,7 +10,7 @@ from __future__ import annotations
 
 import importlib
 import sys
-from typing import List
+from typing import List, Optional, Union
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -81,11 +81,11 @@ class TestFallbackEmbeddings:
         assert vec_a != vec_b
 
     def test_unit_normalization(self):
-        """Vectors must be L2-normalized (||v|| ≈ 1.0) for cosine search."""
+        """Vectors must be L2-normalized (Union[||v|, ≈] 1.0) for cosine search."""
         fallback = DeterministicFallbackEmbeddings(dimension=1536)
         vec = fallback.embed_query("arc flash incident energy calculation")
         norm = sum(x * x for x in vec) ** 0.5
-        assert abs(norm - 1.0) < 1e-5, f"Vector not unit-normalized, ||v|| = {norm}"
+        assert abs(norm - 1.0) < 1e-5, f"Vector not Union[unit-normalized,, |v||] = {norm}"
 
     def test_small_dimension(self):
         """Works for any arbitrary dimension."""

@@ -7,7 +7,7 @@ import argparse
 import json
 import sys
 from pathlib import Path
-from typing import Any
+from typing import Any, Optional, Union
 
 # 意向城市 → API provinces（省份意向）
 CITY_TO_PROVINCE: dict[str, str] = {
@@ -63,7 +63,7 @@ DEFAULT_API_OPTIONS: dict[str, Any] = {
 }
 
 
-def _join_csv(values: list[str] | None) -> str | None:
+def _join_csv(values: list[str] | None) -> Optional[str]:
     if not values:
         return None
     cleaned = [str(v).strip() for v in values if str(v).strip()]

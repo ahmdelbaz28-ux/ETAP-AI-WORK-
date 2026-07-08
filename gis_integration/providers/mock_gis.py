@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from collections.abc import Iterator
 import logging
-from typing import Any
+from typing import Any, Optional, Union
 
 from gis_integration.base import GISProviderInterface
 from gis_integration.models import GeoCRSInfo, GISFeature
@@ -21,7 +21,7 @@ class MockGISProvider(GISProviderInterface):
 
     def __init__(self) -> None:
         self._loaded = False
-        self._project_path: str | None = None
+        self._project_path: Optional[str] = None
         self._crs = GeoCRSInfo(crs="EPSG:4326", normalized=True)
         self._layers = ["substations", "lines", "switches"]
 
@@ -123,7 +123,7 @@ class MockGISProvider(GISProviderInterface):
             "crs": self._crs.crs,
         }
 
-    def get_crs(self, layer_id: str | None = None) -> GeoCRSInfo:
+    def get_crs(self, layer_id: Optional[str] = None) -> GeoCRSInfo:
         return self._crs
 
     def health_check(self) -> bool:

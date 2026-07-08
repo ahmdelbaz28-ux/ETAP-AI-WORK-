@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Any
+from typing import Any, Optional, Union
 
 from gis_integration.models import ADMSAsset, ADMSAssetType
 
@@ -9,7 +9,7 @@ from gis_integration.models import ADMSAsset, ADMSAssetType
 @dataclass(frozen=True)
 class ElectricalNode:
     node_id: str  # typically substation asset_id
-    voltage_level_kv: float | None = None
+    voltage_level_kv: Optional[float] = None
     metadata: dict[str, Any] = field(default_factory=dict)
 
 

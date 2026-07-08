@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import os
 import sys
-from typing import Any
+from typing import Any, Optional, Union
 
 import uvicorn
 from fastapi import Depends, FastAPI, HTTPException, Security
@@ -35,7 +35,7 @@ API_KEY_NAME = "X-ETAP-Worker-Key"
 api_key_header = APIKeyHeader(name=API_KEY_NAME, auto_error=False)
 
 
-def _reject_legacy_api_key(api_key: str | None) -> None:
+def _reject_legacy_api_key(api_key: Optional[str]) -> None:
     if api_key:
         raise HTTPException(
             status_code=401, detail="Legacy API key auth is not supported. Use JWT Bearer token.",
@@ -43,7 +43,7 @@ def _reject_legacy_api_key(api_key: str | None) -> None:
 
 
 async def _require_auth(  # NOSONAR — S7503: async function uses sync I/O for compatibility reasons
-    legacy_api_key: str | None = Security(api_key_header),
+    legacy_api_key: Optional[str] = Security(api_key_header),
     creds: HTTPAuthorizationCredentials = Security(bearer_scheme),  # noqa: B008
 ) -> str:
     """

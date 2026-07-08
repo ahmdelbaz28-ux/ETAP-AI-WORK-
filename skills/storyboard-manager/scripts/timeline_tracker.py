@@ -11,7 +11,7 @@ import re
 import json
 import sys
 from pathlib import Path
-from typing import List, Dict, Tuple, Optional
+from typing import Dict, List, Optional, Tuple, Union
 from datetime import datetime, timedelta
 from collections import defaultdict
 
@@ -36,18 +36,18 @@ class TimelineTracker:
 
     # Patterns to detect time markers in text
     TIME_PATTERNS = [
-        r'(?:Day|Night)\s+(\d+)',  # Day 1, Night 3
-        r'(\d+)\s+(?:days?|weeks?|months?|years?)\s+(?:later|ago|after|before)',
-        r'(?:Morning|Afternoon|Evening|Night)\s+of\s+(?:Day\s+)?(\d+)',
+        r'(Union[?:Day, Night])\s+(\d+)',  # Day 1, Night 3
+        r'(\d+)\s+(Union[?:days?|weeks?|months?, years?])\s+(Union[?:later|ago|after, before])',
+        r'(Union[?:Morning|Afternoon|Evening, Night])\s+of\s+(?:Day\s+)?(\d+)',
         r'Chapter\s+(\d+)',  # Chapter markers
-        r'\*\*(?:Timeline|Time|When):\*\*\s*(.+?)(?:\n|$)',  # Explicit timeline markers
-        r'\*\*Date:\*\*\s*(.+?)(?:\n|$)',
+        r'\*\*(Union[?:Timeline|Time, When]):\*\*\s*(.+?)(Union[?:\n, $])',  # Explicit timeline markers
+        r'\*\*Date:\*\*\s*(.+?)(Union[?:\n, $])',
     ]
 
     # Patterns to detect character mentions
     CHARACTER_PATTERNS = [
-        r'\*\*Characters?:\*\*\s*(.+?)(?:\n|$)',
-        r'\*\*(?:POV|Perspective):\*\*\s*(.+?)(?:\n|$)',
+        r'\*\*Characters?:\*\*\s*(.+?)(Union[?:\n, $])',
+        r'\*\*(Union[?:POV, Perspective]):\*\*\s*(.+?)(Union[?:\n, $])',
     ]
 
     def __init__(self, project_root: str):
@@ -80,7 +80,7 @@ class TimelineTracker:
                 return [name_match.group(1).strip()]
 
             # Look for explicit name field
-            name_match = re.search(r'\*\*Name:\*\*\s*(.+?)(?:\n|$)', content)
+            name_match = re.search(r'\*\*Name:\*\*\s*(.+?)(Union[?:\n, $])', content)
             if name_match:
                 return [name_match.group(1).strip()]
 
@@ -308,7 +308,7 @@ def main():
     """Main entry point for timeline tracker"""
 
     if len(sys.argv) < 2:
-        print("Usage: timeline_tracker.py <project_directory> [--output json|markdown]")
+        print("Usage: timeline_tracker.py <project_directory> [--output Union[json, markdown]]")
         sys.exit(1)
 
     project_dir = sys.argv[1]

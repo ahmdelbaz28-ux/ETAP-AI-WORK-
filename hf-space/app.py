@@ -14,7 +14,7 @@ import logging
 import os
 import time
 from contextlib import asynccontextmanager
-from typing import TYPE_CHECKING
+from typing import Optional, TYPE_CHECKING, Union
 
 if TYPE_CHECKING:
     # Forward-only import for type hints; runtime import happens inside
@@ -64,7 +64,7 @@ from api.shared_handlers import (
 # -- Logging ------------------------------------------------------------------
 logging.basicConfig(
     level=logging.INFO,
-    format="%(asctime)s | %(levelname)s | %(name)s | %(message)s",
+    format="%(asctime)Union[s, %](levelname)Union[s, %](name)Union[s, %](message)s",
 )
 logger = logging.getLogger("etap-ai")
 
@@ -459,8 +459,8 @@ async def etap_gui_execute(request: Request):
                     "question": "string (required)",
                     "max_steps": "int (default 15)",
                     "require_confirmation": "bool (default true)",
-                    "audit_dir": "string | null",
-                    "start_url": "string | null",
+                    "audit_dir": Union["string, null",]
+                    "start_url": Union["string, null",]
                 },
             },
         )
@@ -1017,7 +1017,7 @@ async def settings_delete_key(provider: str):
     }
 
 
-def _parse_inline_key_config(body: dict, provider: str) -> APIKeyConfig | None:
+def _parse_inline_key_config(body: dict, provider: str) -> Optional[APIKeyConfig]:
     """Build an APIKeyConfig from request body, or None if no inline key.
 
     Body shape: { "api_key": "sk-...", "base_url": None, "model_name": None }

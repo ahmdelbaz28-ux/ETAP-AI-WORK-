@@ -24,13 +24,13 @@ Usage:
 """
 
 from __future__ import annotations
-from typing import Dict, Optional, Tuple
+from typing import Dict, Optional, Tuple, Union
 
 # ============================================================
 # §1  Palette Data Structure
 # ============================================================
 
-_Palette = Dict[str, str | list]
+_Palette = Dict[str, Union[str, list]]
 
 
 def _make_palette(

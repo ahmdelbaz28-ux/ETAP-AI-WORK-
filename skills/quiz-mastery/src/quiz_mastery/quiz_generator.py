@@ -1,4 +1,5 @@
 from __future__ import annotations
+from typing import Optional, Union
 
 import json
 from .models import KnowledgePoint
@@ -26,7 +27,7 @@ class QuizGenerator:
         self,
         knowledge_points: list[KnowledgePoint],
         level: int = 1,
-        num_questions: int | None = None,
+        num_questions: Optional[int] = None,
     ) -> dict:
         """Build prompts for quiz generation.
 

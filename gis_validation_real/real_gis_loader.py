@@ -1,4 +1,5 @@
 from __future__ import annotations
+from typing import Optional, Union
 
 from dataclasses import dataclass
 
@@ -22,8 +23,8 @@ class RealGISProject:
 
 def load_real_gis_project(
     *,
-    qgis_project_path: str | None = None,
-    arcgis_project_path: str | None = None,
+    qgis_project_path: Optional[str] = None,
+    arcgis_project_path: Optional[str] = None,
 ) -> list[RealGISProject]:
     """
     Real GIS loader with lazy provider imports.

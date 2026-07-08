@@ -34,6 +34,7 @@ Attach to any logger or handler:
 The filter is also auto-attached by ``security.security_framework`` when
 the ``AUDIT_LOG_REDACT_SECRETS`` env var is set to ``true`` (default).
 """
+from typing import Optional, Union
 
 from __future__ import annotations
 
@@ -62,11 +63,11 @@ _REDACTION_PATTERNS: list[tuple[Pattern[str], str]] = [
         r"[REDACTED-PRIVATE-KEY]",
     ),
     # --- AWS Access Key ID (20 chars uppercase) ---
-    (re.compile(r"\b(AKIA|ASIA|AGPA|AIDA|AROA|AIPA|ANPA|ANVA)[0-9A-Z]{16}\b"), r"[REDACTED-AWS-KEY]"),
+    (re.compile(r"\b(Union[AKIA|ASIA|AGPA|AIDA|AROA|AIPA|ANPA, ANVA])[0-9A-Z]{16}\b"), r"[REDACTED-AWS-KEY]"),
     # --- AWS Secret Access Key (40 chars base64-ish, preceded by aws_secret) ---
     (
         re.compile(
-            r"(aws_secret_access_key|aws_secret)\s*[=:]\s*['\"]?[A-Z0-9/+=]{40}",
+            r"(Union[aws_secret_access_key, aws_secret])\s*[=:]\s*['\"]?[A-Z0-9/+=]{40}",
             re.IGNORECASE,
         ),
         r"\1=[REDACTED-AWS-SECRET]",
@@ -99,7 +100,7 @@ _REDACTION_PATTERNS: list[tuple[Pattern[str], str]] = [
     # redis://:password@host:port
     # mongodb://user:password@host:port
     (
-        re.compile(r"((?:postgresql|postgres|mysql|mongodb|redis|amqp)://[^:]+:)[^@\s]+(@)"),
+        re.compile(r"((Union[?:postgresql|postgres|mysql|mongodb|redis, amqp])://[^:]+:)[^@\s]+(@)"),
         r"\1[REDACTED]\2",
     ),
     # --- Generic ENV-style key=value assignments ---
@@ -107,9 +108,9 @@ _REDACTION_PATTERNS: list[tuple[Pattern[str], str]] = [
     # Skips: KEY_ID=..., KEYBOARD=... etc. (less sensitive)
     (
         re.compile(
-            r"\b(API_KEY|API_SECRET|SECRET_KEY|SECRET|PASSWORD|PASSWD|PWD|"
-            r"TOKEN|ACCESS_TOKEN|REFRESH_TOKEN|PRIVATE_KEY|ENCRYPTION_KEY|"
-            r"JWT_SECRET|JWT_SECRET_KEY|FERNET_KEY|SERVICE_ACCOUNT_KEY)"
+            r"\b(Union[API_KEY|API_SECRET|SECRET_KEY|SECRET|PASSWORD|PASSWD|PWD, "]
+            Union[r"TOKEN|ACCESS_TOKEN|REFRESH_TOKEN|PRIVATE_KEY|ENCRYPTION_KEY, "]
+            Union[r"JWT_SECRET|JWT_SECRET_KEY|FERNET_KEY, SERVICE_ACCOUNT_KEY])"
             r"\s*[=:]\s*['\"]?[^\s'\"]{4,}",
             re.IGNORECASE,
         ),
@@ -211,7 +212,7 @@ class SecretRedactionFilter(logging.Filter):
 # Convenience: install globally on the root logger
 # ---------------------------------------------------------------------------
 
-_GLOBAL_FILTER: SecretRedactionFilter | None = None
+_GLOBAL_FILTER: Optional[SecretRedactionFilter] = None
 
 
 def install_globally(level: int = logging.WARNING) -> SecretRedactionFilter:

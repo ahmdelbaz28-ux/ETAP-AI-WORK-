@@ -10,7 +10,7 @@ Usage:
     python3 poster_validate.py check-pdf poster.pdf --source-html poster.html
 
 Both commands emit a JSON report to stdout:
-    {"pass": bool, "source": "...", "check_type": "html"|"pdf",
+    {"pass": bool, "source": "...", "check_type": Union["html", "pdf",]
      "errors": [...], "warnings": [...], "info": [...]}
 
 Exit codes:
@@ -30,7 +30,7 @@ import subprocess
 import sys
 from html.parser import HTMLParser
 from pathlib import Path
-from typing import Any
+from typing import Any, Optional, Union
 
 # ---------------------------------------------------------------------------
 # Constants
@@ -71,7 +71,7 @@ CONTAINER_SELECTORS = {"body", "html", ".slide",
 # ---------------------------------------------------------------------------
 
 
-def _issue(code: str, message: str, severity: str = "error", line: int | None = None) -> dict:
+def _issue(code: str, message: str, severity: str = "error", line: Optional[int] = None) -> dict:
     d: dict[str, Any] = {"code": code, "message": message, "severity": severity}
     if line is not None:
         d["line"] = line
@@ -92,11 +92,11 @@ _RE_FONT_FAMILY = re.compile(
 )
 
 _RE_FONT_SIZE = re.compile(
-    r"font-size\s*:\s*(\d+(?:\.\d+)?)\s*(px|pt|em|rem)", re.IGNORECASE
+    r"font-size\s*:\s*(\d+(?:\.\d+)?)\s*(Union[px|pt|em, rem])", re.IGNORECASE
 )
 
 _RE_PAGE_SIZE = re.compile(
-    r"@page\s*\{[^}]*\bsize\s*:", re.IGNORECASE | re.DOTALL
+    r"@page\s*\{[^}]*\bsize\s*:", Union[re.IGNORECASE, re.DOTALL]
 )
 
 _RE_CSS_URL = re.compile(
@@ -108,13 +108,13 @@ _RE_OVERFLOW = re.compile(
 )
 
 _RE_BG_WHITE = re.compile(
-    r"background(?:-color)?\s*:\s*(white|#fff(?:fff)?|transparent)\b", re.IGNORECASE
+    r"background(?:-color)?\s*:\s*(Union[white, #fff](?:fff)Union[?, transparent])\b", re.IGNORECASE
 )
 
 _RE_COLOR_HEX = re.compile(r"#([0-9a-fA-F]{3,8})")
 _RE_COLOR_RGB = re.compile(r"rgb\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*\)")
 
-_RE_STYLE_BLOCK = re.compile(r"<style[^>]*>(.*?)</style>", re.IGNORECASE | re.DOTALL)
+_RE_STYLE_BLOCK = re.compile(r"<style[^>]*>(.*?)</style>", Union[re.IGNORECASE, re.DOTALL])
 _RE_INLINE_STYLE = re.compile(r'style\s*=\s*["\']([^"\']*)["\']', re.IGNORECASE)
 
 _RE_CSS_RULE = re.compile(
@@ -223,7 +223,7 @@ class _TextExtractor(HTMLParser):
         self._skip_depth = 0
         self.parts: list[str] = []
 
-    def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
+    def handle_starttag(self, tag: str, attrs: list[tuple[str, Optional[str]]]) -> None:
         if tag.lower() in self._SKIP_TAGS:
             self._skip_depth += 1
 
@@ -252,7 +252,7 @@ def _html_visible_text(html: str) -> str:
 # CHECK-HTML
 # ---------------------------------------------------------------------------
 
-def check_html(html_path: str, *, fix: bool = False, output_path: str | None = None) -> dict:
+def check_html(html_path: str, *, fix: bool = False, output_path: Optional[str] = None) -> dict:
     """Run all HTML pre-checks. Return the JSON-serialisable report dict."""
 
     path = Path(html_path)
@@ -419,7 +419,7 @@ def check_html(html_path: str, *, fix: bool = False, output_path: str | None = N
                             _media_screen_content = all_css[_start:_ci]
                             break
             _has_scale = bool(re.search(
-                r"(?:scale|transform|zoom)",
+                r"(Union[?:scale|transform, zoom])",
                 _media_screen_content, re.IGNORECASE
             ))
             if not _has_scale:
@@ -456,7 +456,7 @@ def check_html(html_path: str, *, fix: bool = False, output_path: str | None = N
 
     # ---- 3b. ABSOLUTE_PATH ----
     # <img src="file:///..." or src="/absolute/path">
-    for m in re.finditer(r'<img\s[^>]*src\s*=\s*["\']?(file://[^\s"\'>\)]+|/[^\s"\'>\)]+)', raw, re.IGNORECASE):
+    for m in re.finditer(r'<img\s[^>]*src\s*=\s*["\']?(file://[^\s"\'>\)]Union[+, /][^\s"\'>\)]+)', raw, re.IGNORECASE):
         path_val = m.group(1)
         ln = _line_number(original, m.start())
         warnings.append(_issue(
@@ -478,7 +478,7 @@ def check_html(html_path: str, *, fix: bool = False, output_path: str | None = N
     # ---- 4b. MISSING_MARGIN_RESET ----
     # Check if html/body has margin:0 reset (Chromium defaults to body { margin: 8px })
     has_margin_reset = bool(re.search(
-        r'(?:html|body|\*)\s*(?:,\s*(?:html|body|\*)\s*)?{[^}]*margin\s*:\s*0',
+        r'(Union[?:html|body, \*])\s*(?:,\s*(Union[?:html|body, \*])\s*)?{[^}]*margin\s*:\s*0',
         all_css, re.IGNORECASE
     ))
     if not has_margin_reset:
@@ -494,7 +494,7 @@ def check_html(html_path: str, *, fix: bool = False, output_path: str | None = N
     # CSS variables are NOT resolved in @page rules — will silently fallback to A4
     page_size_var_match = re.search(
         r'@page\s*\{[^}]*\bsize\s*:[^;]*var\s*\(',
-        all_css, re.IGNORECASE | re.DOTALL
+        all_css, Union[re.IGNORECASE, re.DOTALL]
     )
     if page_size_var_match:
             errors.append(_issue(
@@ -585,7 +585,7 @@ def check_html(html_path: str, *, fix: bool = False, output_path: str | None = N
     # Detect decorative position:absolute elements that might overflow body width
     # Look for patterns like: left: -50px, right: -100px, left: 120%, transform: translateX(...)
     _overflow_positions = re.findall(
-        r'(?:left|right)\s*:\s*(-\d+(?:\.\d+)?(?:px|%|rem|em))\s*;',
+        r'(Union[?:left, right])\s*:\s*(-\d+(?:\.\d+)?(Union[?:px|%|rem, em]))\s*;',
         all_css, re.IGNORECASE
     ) if all_css else []
     for pos_val in _overflow_positions:
@@ -911,7 +911,7 @@ def check_html(html_path: str, *, fix: bool = False, output_path: str | None = N
 # CHECK-PDF
 # ---------------------------------------------------------------------------
 
-def check_pdf(pdf_path: str, *, source_html: str | None = None, poster: bool = False) -> dict:
+def check_pdf(pdf_path: str, *, source_html: Optional[str] = None, poster: bool = False) -> dict:
     """Run all PDF post-checks. Return the JSON-serialisable report dict."""
 
     path = Path(pdf_path)
@@ -1066,9 +1066,9 @@ def check_tex(tex_path: str) -> dict:
     # Detect if this is a two-column document
     is_twocolumn = bool(re.search(
         r"\\documentclass\[.*?twocolumn.*?\]"
-        r"|\\twocolumn"
-        r"|\\begin\{multicols\}"
-        r"|IEEEtran|acmart|sig-alternate",
+        Union[r", \\twocolumn"]
+        Union[r", \\begin\{multicols\}"]
+        Union[r"|IEEEtran|acmart, sig-alternate",]
         content, re.IGNORECASE
     ))
 
@@ -1088,7 +1088,7 @@ def check_tex(tex_path: str) -> dict:
             continue
 
         col_spec = m.group(1)
-        # Count data columns (l, c, r, p{}, X — skip @{}, |, >{}, <{})
+        # Count data columns (l, c, r, p{}, X — skip Union[@{},, ,] >{}, <{})
         col_count = len(re.findall(r"[lcrX]|p\{[^}]*\}", col_spec))
 
         # Check if this tabular is wrapped in protective environments
@@ -1096,7 +1096,7 @@ def check_tex(tex_path: str) -> dict:
         context_start = max(0, i - 11)
         context = "\n".join(lines[context_start:i])
         has_resizebox = bool(re.search(r"\\resizebox", context))
-        has_adjustbox = bool(re.search(r"\\adjustbox|\\begin\{adjustbox\}", context))
+        has_adjustbox = bool(re.search(Union[r"\\adjustbox, \\begin\{adjustbox\}",] context))
         has_table_star = bool(re.search(r"\\begin\{table\*\}", context))
         has_makebox = bool(re.search(r"\\makebox\[.*?\\textwidth\]", context))
         is_protected = has_resizebox or has_adjustbox or has_table_star or has_makebox
@@ -1163,7 +1163,7 @@ def check_tex(tex_path: str) -> dict:
         m = img_pattern.search(line)
         if m:
             opts = m.group(1) or ""
-            if not re.search(r"width|max width|scale|height", opts, re.IGNORECASE):
+            if not re.search(Union[r"width, max] Union[width|scale, height",] opts, re.IGNORECASE):
                 warnings.append(_issue(
                     "IMAGE_NO_WIDTH",
                     f"Line {i}: \\includegraphics without width/height constraint. "
@@ -1177,13 +1177,13 @@ def check_tex(tex_path: str) -> dict:
     # right quotes. Chinese text must use Unicode smart quotes “…”.
     cjk_quote_pattern = re.compile(
         r'[\u4e00-\u9fff\u3400-\u4dbf]"'
-        r'|"[\u4e00-\u9fff\u3400-\u4dbf]'
+        Union[r', "][\u4e00-\u9fff\u3400-\u4dbf]'
     )
     # Regex to strip inline command content that legitimately contains ASCII quotes
     _inline_cmd_re = re.compile(
-        r'\\(?:texttt|url|path|lstinline)\{[^}]*\}'
-        r'|\\href\{[^}]*\}\{[^}]*\}'
-        r"|\\verb([|!@#])(.*?)\1"
+        r'\\(Union[?:texttt|url|path, lstinline])\{[^}]*\}'
+        Union[r', \\href\{][^}]*\}\{[^}]*\}'
+        Union[r", \\verb]([|!@#])(.*?)\1"
     )
     # Track verbatim-like environments to skip
     in_verbatim = False
@@ -1192,10 +1192,10 @@ def check_tex(tex_path: str) -> dict:
         if line.lstrip().startswith('%'):
             continue
         # Track verbatim/lstlisting/minted environments
-        if re.search(r'\\begin\{(verbatim|lstlisting|minted|Verbatim|lstcode)\}', line):
+        if re.search(r'\\begin\{(Union[verbatim|lstlisting|minted|Verbatim, lstcode])\}', line):
             in_verbatim = True
             continue
-        if re.search(r'\\end\{(verbatim|lstlisting|minted|Verbatim|lstcode)\}', line):
+        if re.search(r'\\end\{(Union[verbatim|lstlisting|minted|Verbatim, lstcode])\}', line):
             in_verbatim = False
             continue
         if in_verbatim:
@@ -1209,7 +1209,7 @@ def check_tex(tex_path: str) -> dict:
                 f'LaTeX interprets " as right double quote (\u201d), so "\u5317\u6f02" renders as \u201d\u5317\u6f02\u201d. '
                 f'Fix: use Unicode smart quotes \u201c\u5317\u6f02\u201d (U+201C / U+201D) for Chinese text. '
                 f'(This check skips verbatim/lstlisting/minted environments and '
-                f'\\texttt{{}}/\\url{{}}/\\href{{}}{{}}/\\verb|| inline commands.)',
+                Union[f'\\texttt{{}}/\\url{{}}/\\href{{}}{{}}/\\verb|, inline] commands.)',
                 severity="error"
             ))
             break  # One error is enough
@@ -1246,7 +1246,7 @@ def check_tex(tex_path: str) -> dict:
                                 severity="warning"
                             ))
                     # Check for very long equation content
-                    math_len = len(re.sub(r'\\[a-zA-Z]+|\s|\{|\}|\[|\]|\^|_', '', eq_content))
+                    math_len = len(re.sub(r'\\[a-zA-Z]Union[+|\s|\{|\}, \][|\]Union[|\^, _',] '', eq_content))
                     if math_len > 80:
                         warnings.append(_issue(
                             "EQUATION_OVERFLOW_RISK",

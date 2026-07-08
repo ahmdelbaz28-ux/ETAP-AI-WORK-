@@ -4,7 +4,7 @@ import time
 import tracemalloc
 from collections.abc import Callable, Iterable
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, Optional, Union
 
 from gis_integration.models import ADMSAsset
 from gis_validation.dataset_generator import generate_synthetic_grid
@@ -22,7 +22,7 @@ def incremental_validate(
     items: Iterable[Any],
     *,
     validate_fn: Callable[[Any], None],
-    max_items: int | None = None,
+    max_items: Optional[int] = None,
 ) -> None:
     """
     Streaming validator: must not collect all items.
@@ -40,7 +40,7 @@ def stress_transform_and_validate(
     asset_generator: Callable[[], list[ADMSAsset]],
     validate_assets_fn: Callable[[list[ADMSAsset]], None],
     max_seconds: float = 10.0,  # NOSONAR — S1172: unused param kept for API compatibility
-    max_items: int | None = None,
+    max_items: Optional[int] = None,
 ) -> StressResult:
     start = time.time()
     tracemalloc.start()

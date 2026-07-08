@@ -5,6 +5,7 @@ Thin wrappers over ``anyio.CancelScope``. Most uses are covered by
 this module provides a slightly higher-level surface for callers that
 need an explicit, externally-cancellable scope.
 """
+from typing import Optional, Union
 
 from __future__ import annotations
 
@@ -18,7 +19,7 @@ __all__ = ["cancellable", "is_cancelled_exception"]
 
 @asynccontextmanager
 async def cancellable(
-    deadline_ms: int | None = None,
+    deadline_ms: Optional[int] = None,
 ) -> AsyncIterator[anyio.CancelScope]:
     """A cancel scope with an optional deadline.
 

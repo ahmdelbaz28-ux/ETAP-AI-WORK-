@@ -6,6 +6,7 @@ and service restoration (FLISR) for ADMS.
 
 Reference: IEEE C37.118, IEC 61850, EPRI ADMS Guide
 """
+from typing import Optional, Union
 
 from __future__ import annotations
 
@@ -52,7 +53,7 @@ class SwitchingAction:
     timestamp: float = field(default_factory=time.time)
     status: ControlCommandStatus = ControlCommandStatus.PENDING
     reason: str = ""
-    rollback_action_id: str | None = None
+    rollback_action_id: Optional[str] = None
 
     def to_dict(self) -> dict:
         return {
@@ -93,11 +94,11 @@ class SwitchingSequence:
 class FLISRResult:
     """Result of FLISR operation."""
 
-    fault_section: str | None = None
+    fault_section: Optional[str] = None
     isolated_sections: list[str] = field(default_factory=list)
     restored_sections: list[str] = field(default_factory=list)
     unrestored_sections: list[str] = field(default_factory=list)
-    switching_sequence: SwitchingSequence | None = None
+    switching_sequence: Optional[SwitchingSequence] = None
     stage: FLISRStage = FLISRStage.FAULT_DETECTION
     customers_restored: int = 0
     customers_affected: int = 0
@@ -241,7 +242,7 @@ class ADMSControlEngine:
     def __init__(self, topology: TopologyProcessor = None):
         self.topology = topology or TopologyProcessor()
         self.switching_history: list[SwitchingSequence] = []
-        self.active_flisr: FLISRResult | None = None
+        self.active_flisr: Optional[FLISRResult] = None
         self.source_buses: set[str] = set()  # Buses with generation/source
         self.feeder_roots: dict[str, str] = {}  # feeder_id -> root_bus
         self.section_loads: dict[str, float] = {}  # section_id -> load MW
@@ -357,7 +358,7 @@ class ADMSControlEngine:
 
     def plan_load_transfer(
         self, from_feeder: str, to_feeder: str, section_id: str,
-    ) -> SwitchingSequence | None:
+    ) -> Optional[SwitchingSequence]:
         """
         Plan a load transfer from one feeder to another.
 
@@ -396,7 +397,7 @@ class ADMSControlEngine:
 
     # --- FLISR ---
 
-    def detect_fault_section(self, tripped_switch_ids: list[str]) -> str | None:
+    def detect_fault_section(self, tripped_switch_ids: list[str]) -> Optional[str]:
         """
         Identify the faulted section based on tripped switches.
 
@@ -420,7 +421,7 @@ class ADMSControlEngine:
                 return section_id
         return None
 
-    def isolate_fault(self, fault_section: str) -> SwitchingSequence | None:
+    def isolate_fault(self, fault_section: str) -> Optional[SwitchingSequence]:
         """
         Create switching sequence to isolate the faulted section.
 
@@ -450,7 +451,7 @@ class ADMSControlEngine:
 
     def plan_restoration(  # NOSONAR — S3776: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
         self, fault_section: str, de_energized_sections: list[str] = None,
-    ) -> SwitchingSequence | None:
+    ) -> Optional[SwitchingSequence]:
         """
         Plan service restoration for de-energized sections after fault isolation.
 

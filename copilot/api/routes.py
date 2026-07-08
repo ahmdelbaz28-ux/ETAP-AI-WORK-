@@ -18,6 +18,7 @@ Endpoints:
   GET    /copilot/statistics         — Usage statistics
   POST   /copilot/validate           — Run design validation
 """
+from typing import Optional, Union
 
 from __future__ import annotations
 
@@ -88,7 +89,7 @@ class SyncRequest(BaseModel):
 
 
 class ValidateRequest(BaseModel):
-    model_json: str | None = Field(None, description="Optional model JSON to validate")
+    model_json: Optional[str] = Field(None, description="Optional model JSON to validate")
     checks: list[str] = Field(default_factory=lambda: ["voltage", "overcurrent", "coordination"])
 
 

@@ -1,6 +1,7 @@
 """
 Tests for reporting module — ReportSection, ReportMetadata, ChartGenerator, TableGenerator.
 """
+from typing import Optional, Union
 
 import os
 import tempfile
@@ -304,7 +305,7 @@ class TestReportGenerationAgent:
 
     def test_convert_to_table_data(self):
         agent = ReportGenerationAgent()
-        text = "| A | B | C |\n| 1 | 2 | 3 |"
+        text = Union[", A] | Union[B, C] Union[|\n, 1] | Union[2, 3] |"
         rows = agent._convert_to_table_data(text)
         assert len(rows) >= 1
         assert "A" in rows[0]

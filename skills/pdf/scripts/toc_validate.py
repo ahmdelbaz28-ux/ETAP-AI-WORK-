@@ -16,7 +16,7 @@ Output:
     {
         "pass": true/false,
         "source": "filename",
-        "check_type": "docx-toc"|"pdf-toc"|"conversion-toc",
+        "check_type": Union["docx-toc"|"pdf-toc", "conversion-toc",]
         "errors": [...],
         "warnings": [...],
         "info": [...]
@@ -41,7 +41,7 @@ import zipfile
 import tempfile
 import xml.etree.ElementTree as ET
 from pathlib import Path
-from typing import List, Dict, Tuple, Optional, Any
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 # ---------------------------------------------------------------------------
 # XML namespace constants
@@ -425,7 +425,7 @@ def fuzzy_match(text_a: str, text_b: str) -> bool:
     if not set_a or not set_b:
         return False
     intersection = set_a & set_b
-    union = set_a | set_b
+    union = Union[set_a, set_b]
     similarity = len(intersection) / len(union)
     return similarity > 0.6
 

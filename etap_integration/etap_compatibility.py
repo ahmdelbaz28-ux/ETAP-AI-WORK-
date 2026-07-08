@@ -5,6 +5,7 @@ Verifies that the runtime environment meets ETAP software requirements,
 including ETAP version, Windows version, .NET Framework, and availability
 of required COM modules and Python dependencies.
 """
+from typing import Optional, Union
 
 from __future__ import annotations
 
@@ -71,7 +72,7 @@ class CheckResult:
 
 @dataclass
 class CompatibilityReport:
-    etap_version: str | None
+    etap_version: Optional[str]
     version_supported: bool
     windows_ok: bool
     dotnet_ok: bool
@@ -100,10 +101,10 @@ class ETAPCompatibilityChecker:
 
     def __init__(self, etap_prog_id: str = "ETAP.Application") -> None:
         self._etap_prog_id = etap_prog_id
-        self._cached_version: str | None = None
+        self._cached_version: Optional[str] = None
         self._cached_com_modules: dict[str, bool] | None = None
 
-    def check_version(self) -> str | None:
+    def check_version(self) -> Optional[str]:
         """Detect the installed ETAP version via COM."""
         if self._cached_version is not None:
             return self._cached_version
@@ -124,7 +125,7 @@ class ETAPCompatibilityChecker:
             logger.debug("Could not get ETAP version: %s", e)
             return None
 
-    def is_version_supported(self, version: str | None = None) -> bool:
+    def is_version_supported(self, version: Optional[str] = None) -> bool:
         """Check whether the given (or installed) version is supported."""
         if version is None:
             version = self.check_version()

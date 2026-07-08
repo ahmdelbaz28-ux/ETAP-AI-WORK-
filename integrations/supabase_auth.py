@@ -42,7 +42,7 @@ from __future__ import annotations
 import logging
 import os
 import secrets
-from typing import Any
+from typing import Any, Optional, Union
 
 import httpx
 
@@ -200,7 +200,7 @@ def send_magic_link(*, email: str, redirect_to: str) -> bool:
 def link_or_create_local_user(
     supabase_user: dict[str, Any],
     *,
-    local_user_creator: callable | None = None,
+    local_user_creator: Optional[callable] = None,
 ) -> dict[str, Any]:
     """Link a Supabase user to a local user, creating one if needed.
 

@@ -11,6 +11,7 @@ combine traditional WLS with graph-based predictions.
 Reference: A. Abur and A.G. Exposito, "Power System State Estimation",
 CRC Press, 2004.
 """
+from typing import Optional, Union
 
 from __future__ import annotations
 
@@ -48,8 +49,8 @@ class StateEstimationResult:
     max_residual: float = 0.0
     objective_value: float = 0.0
     bad_data_detected: list[int] = field(default_factory=list)
-    measurement_residuals: np.ndarray | None = None
-    covariance_matrix: np.ndarray | None = None
+    measurement_residuals: Optional[np.ndarray] = None
+    covariance_matrix: Optional[np.ndarray] = None
 
 
 class WLSEstimator:

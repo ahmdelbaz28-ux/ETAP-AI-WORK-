@@ -12,7 +12,7 @@ from datetime import datetime, timezone
 
 UTC = timezone.utc  # noqa: UP017
 
-from typing import Any
+from typing import Any, Optional, Union
 
 from pydantic import BaseModel, Field, field_validator
 
@@ -36,12 +36,12 @@ class PydanticGeometry(BaseModel):
 
     points: list[PydanticPoint3D] = Field(default_factory=list)
     polyline_closed: bool = False
-    area: float | None = None
-    perimeter: float | None = None
+    area: Optional[float] = None
+    perimeter: Optional[float] = None
 
     @field_validator("area")
     @classmethod
-    def area_must_be_positive(cls, v: float | None) -> float | None:
+    def area_must_be_positive(cls, v: Optional[float]) -> Optional[float]:
         if v is not None and v < 0:
             raise ValueError("area must be non-negative")
         return v
@@ -51,7 +51,7 @@ class PydanticSemanticProperties(BaseModel):
     """Pydantic equivalent of SemanticProperties with enum validation."""
 
     element_type: str
-    name: str | None = None
+    name: Optional[str] = None
 
     @field_validator("element_type")
     @classmethod
@@ -63,14 +63,14 @@ class PydanticSemanticProperties(BaseModel):
             )
         return v
 
-    description: str | None = None
-    material: str | None = None
-    fire_rating: str | None = None
-    height: float | None = None
-    width: float | None = None
-    load_bearing: bool | None = None
-    layer: str | None = None
-    revit_category: str | None = None
+    description: Optional[str] = None
+    material: Optional[str] = None
+    fire_rating: Optional[str] = None
+    height: Optional[float] = None
+    width: Optional[float] = None
+    load_bearing: Optional[bool] = None
+    layer: Optional[str] = None
+    revit_category: Optional[str] = None
 
 
 class PydanticUniversalElement(BaseModel):
@@ -84,13 +84,13 @@ class PydanticUniversalElement(BaseModel):
     """
 
     element_id: str
-    properties: PydanticSemanticProperties | None = None
-    geometry: PydanticGeometry | None = None
+    properties: Optional[PydanticSemanticProperties] = None
+    geometry: Optional[PydanticGeometry] = None
     relationships: list[dict[str, Any]] = Field(default_factory=list)
-    created_timestamp: datetime | None = None
-    last_modified_timestamp: datetime | None = None
-    last_modified_by: str | None = None
-    source_file: str | None = None
+    created_timestamp: Optional[datetime] = None
+    last_modified_timestamp: Optional[datetime] = None
+    last_modified_by: Optional[str] = None
+    source_file: Optional[str] = None
     version: int = 0
     is_deleted: bool = False
 
@@ -173,8 +173,8 @@ class Point3D:
 class Geometry:
     points: list[Point3D] = field(default_factory=list)
     polyline_closed: bool = False
-    area: float | None = None
-    perimeter: float | None = None
+    area: Optional[float] = None
+    perimeter: Optional[float] = None
 
     def calculate_area(self) -> float:
         """Calculate polygon area using shoelace formula."""
@@ -204,15 +204,15 @@ class Geometry:
 @dataclass
 class SemanticProperties:
     element_type: ElementType
-    name: str | None = None
-    description: str | None = None
-    material: str | None = None
-    fire_rating: str | None = None
-    height: float | None = None
-    width: float | None = None
-    load_bearing: bool | None = None
-    layer: str | None = None
-    revit_category: str | None = None
+    name: Optional[str] = None
+    description: Optional[str] = None
+    material: Optional[str] = None
+    fire_rating: Optional[str] = None
+    height: Optional[float] = None
+    width: Optional[float] = None
+    load_bearing: Optional[bool] = None
+    layer: Optional[str] = None
+    revit_category: Optional[str] = None
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -236,7 +236,7 @@ class Relationship:
     relationship_type: str
     is_parametric: bool = False
     metadata: dict[str, Any] | None = None
-    connection_id: str | None = None
+    connection_id: Optional[str] = None
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -252,17 +252,17 @@ class Relationship:
 @dataclass
 class UniversalElement:
     element_id: str
-    properties: SemanticProperties | None = None
-    geometry: Geometry | None = None
+    properties: Optional[SemanticProperties] = None
+    geometry: Optional[Geometry] = None
     relationships: list[Relationship] = field(default_factory=list)
-    created_timestamp: datetime | None = None
-    last_modified_timestamp: datetime | None = None
-    last_modified_by: str | None = None
-    source_file: str | None = None
+    created_timestamp: Optional[datetime] = None
+    last_modified_timestamp: Optional[datetime] = None
+    last_modified_by: Optional[str] = None
+    source_file: Optional[str] = None
     version: int = 0
     is_deleted: bool = False
-    autocad_handle: str | None = None
-    revit_element_id: str | None = None
+    autocad_handle: Optional[str] = None
+    revit_element_id: Optional[str] = None
 
     def __post_init__(self):
         if self.created_timestamp is None:
@@ -295,8 +295,8 @@ class UniversalElement:
 class Conflict:
     conflict_id: str
     conflict_type: ConflictType
-    element_id: str | None = None
-    timestamp: datetime | None = None
+    element_id: Optional[str] = None
+    timestamp: Optional[datetime] = None
     source_a: ChangeSource = ChangeSource.MANUAL
     source_b: ChangeSource = ChangeSource.MANUAL
     change_a: dict[str, Any] | None = None

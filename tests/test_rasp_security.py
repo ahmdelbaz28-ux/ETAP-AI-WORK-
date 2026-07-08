@@ -8,6 +8,7 @@ Verifies that all attack types are BLOCKED (not just logged).
 Run:
     pytest tests/test_rasp_security.py -v
 """
+from typing import Optional, Union
 
 import os
 import sys
@@ -96,7 +97,7 @@ class TestRASPAttackDetection:
 
     def test_command_injection_blocked(self):
         """Command Injection must be blocked."""
-        results = self.rasp.inspect({"body": "; rm -rf / | bash"})
+        results = self.rasp.inspect({"body": "; rm -rf Union[/, bash"}])
         blocked = [r for r in results if r.action == RASPAction.BLOCK]
         assert len(blocked) > 0, "Command Injection must be blocked"
         assert blocked[0].rule_name == "command_injection"
