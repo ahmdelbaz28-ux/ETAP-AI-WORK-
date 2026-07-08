@@ -28,7 +28,7 @@ import re
 import uuid
 import xml.etree.ElementTree as ET
 from datetime import datetime, timezone
-from typing import Any, Optional, Union
+from typing import Annotated, Any, Optional, Union
 
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
 from pydantic import BaseModel, Field
@@ -517,8 +517,8 @@ async def list_formats() -> Any:
     dependencies=[Depends(get_api_key)],
 )
 async def upload_file(
-    file: UploadFile = File(..., description="Power-system data file"),
-    user: Any = Depends(get_current_user_from_header),  # noqa: B008
+    file: Annotated[UploadFile, File(description="Power-system data file")],
+    user: Annotated[Any, Depends(get_current_user_from_header)],
 ) -> Any:
     """Upload a power-system data file and parse it into a structured model.
 
