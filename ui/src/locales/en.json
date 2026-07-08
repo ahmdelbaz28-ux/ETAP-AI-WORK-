@@ -18,6 +18,7 @@
     "diagnostics": "Diagnostics",
     "etapIntegration": "ETAP Integration",
     "gisIntegration": "GIS Integration",
+    "scadaIntegration": "SCADA Connection",
     "digitalTwin": "Digital Twin",
     "assetManagement": "Asset Management",
     "dataImport": "Data Import",
@@ -39,6 +40,15 @@
     "notifications": "Notifications",
     "noNotifications": "No new notifications",
     "markAllRead": "Mark all as read"
+  },
+  "voiceInput": {
+    "start": "Start voice input",
+    "stop": "Stop voice input",
+    "listening": "Listening...",
+    "speakNow": "Speak now",
+    "notSupported": "Speech recognition is not supported in this browser. Please use Chrome or Edge.",
+    "microphoneDenied": "Microphone access denied. Please allow microphone access to use voice typing.",
+    "recognitionFailed": "Voice recognition failed"
   },
   "dashboard": {
     "title": "Dashboard",

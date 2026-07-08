@@ -8,7 +8,7 @@ import {
   LayoutDashboard, FlaskConical, Bot, FolderKanban, Settings,
   ShieldCheck, Bug, Map, FileText, Upload, Download, ScrollText,
   ChevronLeft, ChevronRight, Sun, Moon, Plug, Layers, Network,
-  Cpu, Wrench, Shield, X, Grid
+  Cpu, Wrench, Shield, X, Grid, Activity
 } from 'lucide-react'
 import { cn } from '../utils/helpers'
 import { BrandLogo } from './BrandLogo'
@@ -30,6 +30,7 @@ const navItems: NavItem[] = [
   { to: '/asset-management', icon: Network, labelKey: 'sidebar.assetManagement', section: 'engineering' },
   { to: '/etap', icon: Plug, labelKey: 'sidebar.etapIntegration', section: 'integration' },
   { to: '/gis', icon: Map, labelKey: 'sidebar.gisIntegration', section: 'integration' },
+  { to: '/scada', icon: Activity, labelKey: 'sidebar.scadaIntegration', section: 'integration' },
   { to: '/digital-twin', icon: Layers, labelKey: 'sidebar.digitalTwin', section: 'integration' },
   { to: '/reports', icon: FileText, labelKey: 'sidebar.reports' },
   { to: '/data-import', icon: Upload, labelKey: 'sidebar.dataImport', section: 'system' },
