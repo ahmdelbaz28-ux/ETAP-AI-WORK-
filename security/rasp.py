@@ -80,7 +80,7 @@ class RASPResult:
 _DEFAULT_RULES: list[RASPRule] = [
     RASPRule(
         name="sqli_basic",
-        pattern=re.compile(r"(?i)(\bselect\b|\bdrop\b|\bdelete\b|\binsert\b|\bunion\b|--|#|/\*") ),
+        pattern=re.compile(r"(?i)(\bselect\b|\bdrop\b|\bdelete\b|\binsert\b|\bunion\b|--|#|/\*)"),
         action=RASPAction.BLOCK,
         severity=RASPSeverity.CRITICAL,
         description="SQL Injection attempt detected",
@@ -108,7 +108,7 @@ _DEFAULT_RULES: list[RASPRule] = [
     ),
     RASPRule(
         name="ldap_injection",
-        pattern=re.compile(r"\*\)|\(|\*\\(|\)"),
+        pattern=re.compile(r"[\*\(\)]"),
         action=RASPAction.BLOCK,
         severity=RASPSeverity.HIGH,
         description="LDAP Injection attempt detected",
