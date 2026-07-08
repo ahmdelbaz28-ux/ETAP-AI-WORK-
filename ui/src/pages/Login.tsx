@@ -280,8 +280,8 @@ export default function Login() {
           </p>
 
           <div className="flex flex-wrap gap-2.5 pt-1.5">
-            {['IEEE 3002.7', 'IEC 60909', 'IEEE 1584', 'IEC 60255', 'IEEE 519'].map((s) => (
-              <BadgeItem key={s} text={s} delay={0.05} />
+            {['IEEE 3002.7', 'IEC 60909', 'IEEE 1584', 'IEC 60255', 'IEEE 519'].map((s, i) => (
+              <BadgeItem key={s} text={s} delay={0.05 + i * 0.05} />
             ))}
           </div>
         </motion.div>
