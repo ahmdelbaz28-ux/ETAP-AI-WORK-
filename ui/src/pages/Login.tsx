@@ -1,7 +1,19 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useNavigate, Link, useSearchParams } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { Mail, Lock, ArrowRight, Eye, EyeOff, AlertCircle, ShieldCheck, Globe } from 'lucide-react'
+import {
+  Mail,
+  Lock,
+  ArrowRight,
+  Eye,
+  EyeOff,
+  AlertCircle,
+  ShieldCheck,
+  Server,
+  Cpu,
+  Database,
+  Terminal,
+} from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { useNotify } from '../context/NotificationContext'
 import { useAuth } from '../hooks/useAuth'
@@ -9,9 +21,6 @@ import { BrandLogo } from '../components/BrandLogo'
 import { LoginBackground } from '../components/LoginBackground'
 import { API_BASE_URL } from '../lib/api-config'
 
-/**
- * Login — AhmedETAP professional sign-in page.
- */
 export default function Login() {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
@@ -19,15 +28,81 @@ export default function Login() {
   const { login } = useAuth()
   const { t, i18n } = useTranslation()
 
+  // Form Fields
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
   const [authError, setAuthError] = useState<string | null>(null)
+
+  // Forgot Password Section
   const [forgotOpen, setForgotOpen] = useState(false)
   const [forgotEmail, setForgotEmail] = useState('')
   const [forgotLoading, setForgotLoading] = useState(false)
   const [forgotSent, setForgotSent] = useState(false)
+
+  // Interactive Simulation State
+  const [isBreakerOpen, setIsBreakerOpen] = useState(false)
+  const [terminalLogs, setTerminalLogs] = useState<string[]>([
+    '[SYS-INIT] Core Engineering engine loaded in memory.',
+    '[SYS-INIT] Connected to Supabase DB: active session pool ready.',
+    '[SYS-INIT] 25 Autonomous Specialist Agents loaded.',
+    '[SYS-INIT] Standby. Waiting for engineer authentication...',
+  ])
+
+  // Live Telemetry State
+  const [serverStatus, setServerStatus] = useState<'online' | 'offline' | 'checking'>('checking')
+  const [latency, setLatency] = useState<number | null>(null)
+  const [activeAgents, setActiveAgents] = useState<number>(25)
+  const [backendVersion, setBackendVersion] = useState<string>('2.1.0')
+
+  const appendLog = useCallback((msg: string) => {
+    const timestamp = new Date().toLocaleTimeString()
+    setTerminalLogs(prev => [...prev.slice(-8), `[${timestamp}] ${msg}`])
+  }, [])
+
+  // Health and Telemetry Polling
+  const checkHealth = useCallback(async () => {
+    const start = performance.now()
+    try {
+      const res = await fetch(`${API_BASE_URL}/health`, {
+        // Set short timeout to avoid long hangs
+        signal: AbortSignal.timeout(3000),
+      })
+      const end = performance.now()
+      if (res.ok) {
+        setServerStatus('online')
+        setLatency(Math.round(end - start))
+
+        // Lazy fetch platform details once online
+        try {
+          const infoRes = await fetch(`${API_BASE_URL}/info`, {
+            signal: AbortSignal.timeout(3000),
+          })
+          if (infoRes.ok) {
+            const data = await infoRes.json()
+            if (data.version) setBackendVersion(data.version)
+            if (data.agent_count) setActiveAgents(data.agent_count)
+          }
+        } catch {
+          // Keep default if info fails
+        }
+      } else {
+        setServerStatus('offline')
+        setLatency(null)
+      }
+    } catch {
+      setServerStatus('offline')
+      setLatency(null)
+    }
+  }, [])
+
+  // Poll health status
+  useEffect(() => {
+    checkHealth()
+    const timer = setInterval(checkHealth, 5000)
+    return () => clearInterval(timer)
+  }, [checkHealth])
 
   useEffect(() => {
     document.documentElement.dir = i18n.language === 'ar' ? 'rtl' : 'ltr'
@@ -42,24 +117,28 @@ export default function Login() {
     }
     setLoading(true)
     setAuthError(null)
+    appendLog(`SEC-AUTH: Initiating login request for user <${email}>...`)
     try {
       await login(email, password)
+      appendLog('SEC-AUTH: Credentials validated. JWT token signed successfully.')
       notify('success', i18n.language === 'ar' ? 'أهلاً بك مجدداً!' : 'Welcome back!')
       const from = searchParams.get('from') || '/dashboard'
       navigate(from, { replace: true })
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Unknown error'
       setAuthError(message)
+      appendLog(`SEC-AUTH: Authentication failed for <${email}>: ${message}`)
       notify('error', `${i18n.language === 'ar' ? 'فشل تسجيل الدخول' : 'Login failed'}: ${message}`)
     } finally {
       setLoading(false)
     }
-  }, [email, password, login, notify, t, i18n, searchParams, navigate])
+  }, [email, password, login, notify, t, i18n, searchParams, navigate, appendLog])
 
   const handleForgotPassword = useCallback(async (e: React.FormEvent) => {
     e.preventDefault()
     if (!forgotEmail) return
     setForgotLoading(true)
+    appendLog(`SEC-AUTH: Dispatching password reset link to <${forgotEmail}>...`)
     try {
       const response = await fetch(`${API_BASE_URL}/api/v1/auth/forgot-password`, {
         method: 'POST',
@@ -68,17 +147,19 @@ export default function Login() {
       })
       if (response.ok) {
         setForgotSent(true)
+        appendLog('SEC-AUTH: Password reset instructions dispatched successfully.')
         notify('success', i18n.language === 'ar' ? 'تم إرسال تعليمات إعادة التعيين إن كان البريد مسجلاً' : 'Instructions sent if email is registered')
       } else {
         throw new Error('Request failed')
       }
     } catch {
       setForgotSent(true)
+      appendLog('SEC-AUTH: Handled offline password reset dispatch.')
       notify('info', i18n.language === 'ar' ? 'تم إرسال تعليمات إعادة التعيين إن كان البريد مسجلاً' : 'Instructions sent if email is registered')
     } finally {
       setForgotLoading(false)
     }
-  }, [forgotEmail, notify, t, i18n])
+  }, [forgotEmail, notify, i18n, appendLog])
 
   const toggleLanguage = useCallback(() => {
     const nextLang = i18n.language === 'ar' ? 'en' : 'ar'
@@ -88,365 +169,382 @@ export default function Login() {
   const isRtl = i18n.language === 'ar'
 
   return (
-    <LoginView
-      isRtl={isRtl}
-      email={email}
-      password={password}
-      showPassword={showPassword}
-      loading={loading}
-      authError={authError}
-      forgotOpen={forgotOpen}
-      forgotEmail={forgotEmail}
-      forgotLoading={forgotLoading}
-      forgotSent={forgotSent}
-      onEmailChange={setEmail}
-      onPasswordChange={setPassword}
-      onTogglePassword={() => setShowPassword(p => !p)}
-      onSubmit={handleSubmit}
-      onForgotPassword={handleForgotPassword}
-      onToggleLanguage={toggleLanguage}
-      onForgotOpenChange={setForgotOpen}
-      onForgotEmailChange={setForgotEmail}
-      onForgotSentChange={setForgotSent}
-      navigate={navigate}
-    />
-  )
-}
-
-interface LoginViewProps {
-  isRtl: boolean
-  email: string
-  password: string
-  showPassword: boolean
-  loading: boolean
-  authError: string | null
-  forgotOpen: boolean
-  forgotEmail: string
-  forgotLoading: boolean
-  forgotSent: boolean
-  onEmailChange: (v: string) => void
-  onPasswordChange: (v: string) => void
-  onTogglePassword: () => void
-  onSubmit: (e: React.FormEvent) => void
-  onForgotPassword: (e: React.FormEvent) => void
-  onToggleLanguage: () => void
-  onForgotOpenChange: (v: boolean) => void
-  onForgotEmailChange: (v: string) => void
-  onForgotSentChange: (v: boolean) => void
-  navigate: (to: string, opts?: { replace: boolean }) => void
-}
-
-const RTL_CLASSES = {
-  fieldIcon: 'absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-600 pointer-events-none',
-  ltrFieldIcon: 'absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-600 pointer-events-none',
-  passwordToggle: 'absolute right-2.5 top-1/2 -translate-y-1/2 p-1 rounded text-slate-600 hover:text-slate-300 transition-colors',
-  ltrPasswordToggle: 'absolute left-2.5 top-1/2 -translate-y-1/2 p-1 rounded text-slate-600 hover:text-slate-300 transition-colors',
-} as const
-
-function LoginView({
-  isRtl,
-  email,
-  password,
-  showPassword,
-  loading,
-  authError,
-  forgotOpen,
-  forgotEmail,
-  forgotLoading,
-  forgotSent,
-  onEmailChange,
-  onPasswordChange,
-  onTogglePassword,
-  onSubmit,
-  onForgotPassword,
-  onToggleLanguage,
-  onForgotOpenChange,
-  onForgotEmailChange,
-  onForgotSentChange,
-}: LoginViewProps) {
-  const { t } = useTranslation()
-  const searchParams = useSearchParams()[0]
-
-  return (
     <div className="min-h-screen flex bg-[#070b14] relative overflow-hidden" dir={isRtl ? 'rtl' : 'ltr'}>
-      <LoginBackground isRtl={isRtl} onLanguageToggle={onToggleLanguage} />
+      {/* Interactive Background Schematic Simulation */}
+      <LoginBackground
+        isRtl={isRtl}
+        onLanguageToggle={toggleLanguage}
+        isBreakerOpen={isBreakerOpen}
+        setIsBreakerOpen={setIsBreakerOpen}
+        onTerminalLog={appendLog}
+      />
 
-      <div className={`hidden lg:flex lg:w-[45%] flex-col justify-between p-12 relative z-10 border-slate-800/40 ${isRtl ? 'border-r' : 'border-l'}`}>
-        <BrandLogoSection isRtl={isRtl} />
-        <EngineeringTitles isRtl={isRtl} />
-        <SecurityBadge />
+      {/* LEFT SIDE PANEL: Live Engineering Console (CAD HUD) */}
+      <div className={`hidden lg:flex lg:w-[48%] flex-col justify-between p-12 relative z-10 border-slate-800/40 backdrop-blur-[2px] bg-slate-950/20 ${isRtl ? 'border-r' : 'border-l'}`}>
+        {/* Brand Logo Header */}
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4 }}
+          className="flex items-center gap-4"
+        >
+          <BrandLogo size={48} />
+          <div>
+            <h1 className="text-2xl font-bold tracking-tight text-white font-sans">AhmedETAP</h1>
+            <p className="text-[10px] text-slate-500 tracking-wider uppercase font-semibold">
+              {t('app.description')}
+            </p>
+          </div>
+        </motion.div>
+
+        {/* Live Grid Metrics HUD Panel */}
+        <motion.div
+          initial={{ opacity: 0, y: 15 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.1 }}
+          className="space-y-6 max-w-lg"
+        >
+          {/* Engineering Title */}
+          <div className="space-y-3">
+            <h2 className="text-3xl xl:text-4xl font-extrabold leading-tight text-white tracking-tight">
+              {isRtl ? (
+                <>
+                  تحليل أنظمة الطاقة<br />
+                  <span className="text-blue-500">بمعايير هندسية متكاملة</span>
+                </>
+              ) : (
+                <>
+                  Power Systems Analysis<br />
+                  <span className="text-blue-500">Built for Professionals</span>
+                </>
+              )}
+            </h2>
+            <p className="text-xs xl:text-sm text-slate-400 leading-relaxed">
+              {isRtl
+                ? 'منصة تشغيل حسابات تدفق الحمل (Load Flow)، تيار القصر (Short Circuit)، الوميض القوسي (Arc Flash)، وتنسيق أجهزة الحماية، متوافقة كلياً مع معايير IEEE و IEC.'
+                : 'Analyze, simulate, and design electrical networks with high-precision engines for load flow, short circuit, protection coordination, and arc flash analysis.'}
+            </p>
+          </div>
+
+          {/* Standards Badges */}
+          <div className="flex flex-wrap gap-2 pt-1">
+            {['IEEE 3002.7', 'IEC 60909', 'IEEE 1584', 'IEC 60255', 'IEEE 519'].map((s, i) => (
+              <motion.span
+                key={s}
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.3, delay: 0.05 + i * 0.05 }}
+                className="px-2.5 py-1 text-[10px] font-mono text-slate-400 bg-slate-900/60 border border-slate-800 rounded-md"
+              >
+                {s}
+              </motion.span>
+            ))}
+          </div>
+
+          {/* Live FastAPI Telemetry Dashboard */}
+          <div className="bg-slate-900/40 border border-slate-800/80 rounded-xl p-5 space-y-4 backdrop-blur-md">
+            <div className="flex items-center justify-between border-b border-slate-800/60 pb-3">
+              <span className="text-[10px] font-mono font-bold tracking-wider text-slate-400 uppercase">
+                {isRtl ? 'حالة النظام المباشر' : 'Live System Diagnostics'}
+              </span>
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] text-slate-500 font-mono">
+                  {isRtl ? 'الشبكة الهندسية:' : 'API Core:'}
+                </span>
+                <span className="flex items-center gap-1.5 font-mono text-[10px] font-bold">
+                  {serverStatus === 'online' ? (
+                    <>
+                      <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+                      <span className="text-green-400">ONLINE</span>
+                    </>
+                  ) : serverStatus === 'offline' ? (
+                    <>
+                      <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
+                      <span className="text-red-400">OFFLINE</span>
+                    </>
+                  ) : (
+                    <>
+                      <span className="w-2 h-2 rounded-full bg-yellow-500 animate-spin" />
+                      <span className="text-yellow-400">CONNECTING...</span>
+                    </>
+                  )}
+                </span>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-3 gap-4">
+              <div className="space-y-1">
+                <div className="flex items-center gap-1.5 text-slate-500">
+                  <Server className="w-3.5 h-3.5" />
+                  <span className="text-[10px] font-sans font-semibold">Latency</span>
+                </div>
+                <div className="font-mono text-xs font-bold text-white">
+                  {latency !== null ? `${latency} ms` : '—'}
+                </div>
+              </div>
+              <div className="space-y-1">
+                <div className="flex items-center gap-1.5 text-slate-500">
+                  <Cpu className="w-3.5 h-3.5" />
+                  <span className="text-[10px] font-sans font-semibold">AI Agents</span>
+                </div>
+                <div className="font-mono text-xs font-bold text-white">
+                  {activeAgents} / 25 Units
+                </div>
+              </div>
+              <div className="space-y-1">
+                <div className="flex items-center gap-1.5 text-slate-500">
+                  <Database className="w-3.5 h-3.5" />
+                  <span className="text-[10px] font-sans font-semibold">Database</span>
+                </div>
+                <div className="font-mono text-xs font-bold text-blue-400">
+                  SUPABASE
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Live CAD Console System Terminal Log */}
+          <div className="space-y-2">
+            <div className="flex items-center gap-1.5 text-slate-500 font-mono text-[9px] font-bold tracking-wider uppercase">
+              <Terminal className="w-3.5 h-3.5 text-blue-500" />
+              <span>{isRtl ? 'سجل العمليات الكهربائي' : 'Real-time Electrical Operations Log'}</span>
+            </div>
+            <div className="w-full bg-slate-950/70 border border-slate-800/80 rounded-xl p-4 font-mono text-[10px] leading-relaxed text-slate-300 space-y-1 h-[140px] overflow-y-auto backdrop-blur-md">
+              {terminalLogs.map((log, i) => {
+                let colorClass = 'text-slate-400'
+                if (log.includes('WARNING') || log.includes('TRIP')) colorClass = 'text-red-400 font-semibold'
+                if (log.includes('SUCCESS') || log.includes('converged')) colorClass = 'text-green-400 font-semibold'
+                if (log.includes('SEC-AUTH')) colorClass = 'text-blue-400'
+                return (
+                  <div key={i} className={colorClass}>
+                    {log}
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+        </motion.div>
+
+        {/* Security Certificate Footer */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.4, delay: 0.3 }}
+          className="flex items-center gap-2.5 text-[9px] text-slate-600 font-mono"
+        >
+          <ShieldCheck className="w-4 h-4 text-blue-500" />
+          <span>{t('auth.securityBadge')}</span>
+        </motion.div>
       </div>
 
+      {/* RIGHT SIDE PANEL: Sign-in Glassmorphic Command Center */}
       <div className="flex-1 flex items-center justify-center p-6 sm:p-12 relative z-10">
         <motion.div
           initial={{ opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4 }}
-          className="w-full max-w-[380px] bg-slate-900/30 backdrop-blur-md border border-slate-800/40 p-8 rounded-2xl shadow-2xl"
+          className="w-full max-w-[390px] bg-slate-900/35 backdrop-blur-xl border border-white/[0.06] p-8 rounded-2xl shadow-2xl relative overflow-hidden"
         >
-          <MobileHeader />
-          <TitleSection />
-          {authError && <ErrorAlert message={authError} />}
-          {forgotOpen && (
-            <ForgotPasswordSection
-              forgotSent={forgotSent}
-              forgotEmail={forgotEmail}
-              forgotLoading={forgotLoading}
-              isRtl={isRtl}
-              onEmailChange={onForgotEmailChange}
-              onSubmit={onForgotPassword}
-              onClose={() => { onForgotOpenChange(false); onForgotSentChange(false); onForgotEmailChange('') }}
-            />
+          {/* Mobile Header (Hidden on Desktop) */}
+          <div className="lg:hidden flex items-center gap-3.5 mb-8">
+            <BrandLogo size={40} />
+            <div>
+              <span className="text-xl font-bold text-white tracking-tight">AhmedETAP</span>
+              <p className="text-[9px] text-slate-500 uppercase tracking-widest mt-0.5">{t('app.description')}</p>
+            </div>
+          </div>
+
+          {/* Form Header Title */}
+          <div className="mb-8">
+            <h3 className="text-2xl font-bold text-white tracking-tight">
+              {t('auth.loginTitle')}
+            </h3>
+            <p className="text-xs text-slate-500 mt-1.5 leading-relaxed">
+              {t('auth.loginSubtitle')}
+            </p>
+          </div>
+
+          {/* Authentication Failure Alerts */}
+          {authError && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              className="mb-5 p-3 rounded-lg bg-red-950/20 border border-red-900/40 flex items-start gap-2.5"
+            >
+              <AlertCircle className="w-4.5 h-4.5 text-red-400 mt-0.5 flex-shrink-0" />
+              <p className="text-xs text-red-300 leading-normal">{authError}</p>
+            </motion.div>
           )}
-          <form onSubmit={onSubmit} className="space-y-4">
-            <EmailField email={email} onChange={onEmailChange} isRtl={isRtl} />
-            <PasswordField password={password} onChange={onPasswordChange} onToggle={onTogglePassword} showPassword={showPassword} isRtl={isRtl} />
-            <ActionRow onForgot={() => { onForgotOpenChange(true) }} />
-            <SubmitButton loading={loading} isRtl={isRtl} loadingText={t('auth.loggingIn')} defaultText={t('auth.loginButton')} />
+
+          {/* Dynamic Forgot Password Form */}
+          {forgotOpen && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              className="mb-6 p-4 rounded-xl bg-slate-950/60 border border-slate-800"
+            >
+              {forgotSent ? (
+                <div className="text-center py-2">
+                  <p className="text-xs text-green-400 leading-relaxed mb-4">
+                    {isRtl
+                      ? 'تم إرسال رابط استعادة كلمة المرور إذا كان الحساب مسجلاً لدينا.'
+                      : 'Password reset link sent if the email is registered.'}
+                  </p>
+                  <button
+                    onClick={() => {
+                      setForgotOpen(false)
+                      setForgotSent(false)
+                      setForgotEmail('')
+                    }}
+                    className="text-xs font-semibold text-slate-400 hover:text-white transition-colors"
+                  >
+                    {t('auth.backToLogin')}
+                  </button>
+                </div>
+              ) : (
+                <form onSubmit={handleForgotPassword} className="space-y-3">
+                  <p className="text-xs font-semibold text-white">{t('auth.resetPasswordTitle')}</p>
+                  <input
+                    type="email"
+                    value={forgotEmail}
+                    onChange={(e) => setForgotEmail(e.target.value)}
+                    placeholder={t('auth.resetEmailPlaceholder')}
+                    required
+                    dir="ltr"
+                    className="w-full px-3 py-2.5 bg-slate-950/60 border border-slate-800 rounded-lg text-xs text-white focus:outline-none focus:border-blue-500 placeholder-slate-600 transition-colors"
+                  />
+                  <div className="flex gap-2 pt-1">
+                    <button
+                      type="submit"
+                      disabled={forgotLoading}
+                      className="flex-1 py-2 bg-blue-600 hover:bg-blue-500 text-white text-[11px] font-bold rounded-lg transition-colors disabled:opacity-50"
+                    >
+                      {forgotLoading ? t('auth.sending') : t('auth.sendResetLink')}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setForgotOpen(false)
+                        setForgotSent(false)
+                        setForgotEmail('')
+                      }}
+                      className="px-3 py-2 text-slate-400 hover:text-white text-[11px] font-semibold transition-colors"
+                    >
+                      {t('auth.cancel')}
+                    </button>
+                  </div>
+                </form>
+              )}
+            </motion.div>
+          )}
+
+          {/* Sign In Form */}
+          <form onSubmit={handleSubmit} className="space-y-5">
+            {/* Email / Username */}
+            <div className="space-y-1.5">
+              <label htmlFor="login-email" className="block text-xs font-semibold text-slate-400">
+                {t('auth.emailLabel')}
+              </label>
+              <div className="relative">
+                <Mail className={`absolute ${isRtl ? 'right-3' : 'left-3'} top-1/2 -translate-y-1/2 w-4 h-4 text-slate-600 pointer-events-none`} />
+                <input
+                  id="login-email"
+                  type="text"
+                  inputMode="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder={t('auth.emailPlaceholder')}
+                  required
+                  dir="ltr"
+                  className={`w-full ${
+                    isRtl ? 'pr-9 pl-3' : 'pl-9 pr-3'
+                  } py-2.5 bg-slate-950/50 border border-slate-800/80 rounded-xl text-xs text-white placeholder-slate-700 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/10 transition-all`}
+                />
+              </div>
+            </div>
+
+            {/* Password */}
+            <div className="space-y-1.5">
+              <label htmlFor="login-password" className="block text-xs font-semibold text-slate-400">
+                {t('auth.passwordLabel')}
+              </label>
+              <div className="relative">
+                <Lock className={`absolute ${isRtl ? 'right-3' : 'left-3'} top-1/2 -translate-y-1/2 w-4 h-4 text-slate-600 pointer-events-none`} />
+                <input
+                  id="login-password"
+                  type={showPassword ? 'text' : 'password'}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder={t('auth.passwordPlaceholder')}
+                  required
+                  dir="ltr"
+                  className={`w-full ${
+                    isRtl ? 'pr-9 pl-10' : 'pl-9 pr-10'
+                  } py-2.5 bg-slate-950/50 border border-slate-800/80 rounded-xl text-xs text-white placeholder-slate-700 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/10 transition-all`}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((p) => !p)}
+                  className={`absolute ${isRtl ? 'left-2.5' : 'right-2.5'} top-1/2 -translate-y-1/2 p-1 rounded text-slate-600 hover:text-slate-300 transition-colors`}
+                  aria-label={showPassword ? 'Hide password' : 'Show password'}
+                >
+                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
+              </div>
+            </div>
+
+            {/* Remember & Forgot Row */}
+            <div className="flex items-center justify-between text-xs pt-1">
+              <label className="flex items-center gap-2 text-slate-500 cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  className="rounded border-slate-800 bg-slate-950 text-blue-600 focus:ring-blue-500/10"
+                />
+                <span>{t('auth.rememberMe')}</span>
+              </label>
+              <button
+                type="button"
+                onClick={() => setForgotOpen(true)}
+                className="text-blue-400 hover:text-blue-300 font-semibold transition-colors"
+              >
+                {t('auth.forgotPassword')}
+              </button>
+            </div>
+
+            {/* Submit Button */}
+            <motion.button
+              whileHover={{ scale: 1.005 }}
+              whileTap={{ scale: 0.995 }}
+              type="submit"
+              disabled={loading}
+              className="w-full flex items-center justify-center gap-2 mt-4 px-4 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-bold transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {loading ? (
+                <>
+                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  <span>{t('auth.loggingIn')}</span>
+                </>
+              ) : (
+                <>
+                  <span>{t('auth.loginButton')}</span>
+                  <ArrowRight className={`w-4 h-4 ${isRtl ? 'rotate-180' : ''}`} />
+                </>
+              )}
+            </motion.button>
           </form>
-          <Footer />
+
+          {/* Footer Navigation */}
+          <div className="mt-8 pt-5 border-t border-slate-800/40 flex items-center justify-between text-xs">
+            <span className="text-slate-500 font-sans">
+              {t('auth.noAccount')}{' '}
+              <Link to="/register" className="text-blue-400 hover:text-blue-300 font-semibold transition-colors">
+                {t('auth.registerLink')}
+              </Link>
+            </span>
+            <span className="text-[9px] text-slate-700 font-mono">v{backendVersion}</span>
+          </div>
         </motion.div>
       </div>
     </div>
-  )
-}
-
-function EmailField({ email, onChange, isRtl }: { email: string; onChange: (v: string) => void; isRtl: boolean }) {
-  const { t } = useTranslation()
-  return (
-    <div>
-      <label htmlFor="login-email" className="block text-xs font-semibold text-slate-400 mb-1.5">{t('auth.emailLabel')}</label>
-      <div className="relative">
-        <Mail className={isRtl ? RTL_CLASSES.fieldIcon : RTL_CLASSES.ltrFieldIcon} />
-        <input
-          id="login-email"
-          type="text"
-          inputMode="email"
-          value={email}
-          onChange={e => onChange(e.target.value)}
-          placeholder={t('auth.emailPlaceholder')}
-          required
-          dir="ltr"
-          className={`w-full ${isRtl ? 'pr-9 pl-3' : 'pl-9 pr-3'} py-2.5 bg-slate-950/40 border border-slate-800/80 rounded-xl text-xs text-white placeholder-slate-700 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/10 transition-all`}
-        />
-      </div>
-    </div>
-  )
-}
-
-function PasswordField({ password, onChange, onToggle, showPassword, isRtl }: { password: string; onChange: (v: string) => void; onToggle: () => void; showPassword: boolean; isRtl: boolean }) {
-  const { t } = useTranslation()
-  return (
-    <div>
-      <label htmlFor="login-password" className="block text-xs font-semibold text-slate-400 mb-1.5">{t('auth.passwordLabel')}</label>
-      <div className="relative">
-        <Lock className={isRtl ? RTL_CLASSES.fieldIcon : RTL_CLASSES.ltrFieldIcon} />
-        <input
-          id="login-password"
-          type={showPassword ? 'text' : 'password'}
-          value={password}
-          onChange={e => onChange(e.target.value)}
-          placeholder={t('auth.passwordPlaceholder')}
-          required
-          dir="ltr"
-          className={`w-full ${isRtl ? 'pr-9 pl-10' : 'pl-9 pr-10'} py-2.5 bg-slate-950/40 border border-slate-800/80 rounded-xl text-xs text-white placeholder-slate-700 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/10 transition-all`}
-        />
-        <button type="button" onClick={onToggle} className={isRtl ? RTL_CLASSES.passwordToggle : RTL_CLASSES.ltrPasswordToggle} aria-label={showPassword ? 'Hide password' : 'Show password'}>
-          {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-        </button>
-      </div>
-    </div>
-  )
-}
-
-function ActionRow({ onForgot }: { onForgot: () => void }) {
-  const { t } = useTranslation()
-  return (
-    <div className="flex items-center justify-between text-xs pt-1.5">
-      <label className="flex items-center gap-2 text-slate-500 cursor-pointer user-select-none">
-        <input type="checkbox" className="rounded border-slate-800 bg-slate-950 text-blue-600 focus:ring-blue-500/10" />
-        <span>{t('auth.rememberMe')}</span>
-      </label>
-      <button type="button" onClick={onForgot} className="text-blue-400 hover:text-blue-300 font-semibold transition-colors">
-        {t('auth.forgotPassword')}
-      </button>
-    </div>
-  )
-}
-
-function SubmitButton({ loading, isRtl, loadingText, defaultText }: { loading: boolean; isRtl: boolean; loadingText: string; defaultText: string }) {
-  return (
-    <motion.button whileHover={{ scale: 1.005 }} whileTap={{ scale: 0.995 }} type="submit" disabled={loading}
-      className="w-full flex items-center justify-center gap-2 mt-4 px-4 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-bold transition-all disabled:opacity-50 disabled:cursor-not-allowed">
-      {loading ? (
-        <>
-          <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-          <span>{loadingText}</span>
-        </>
-      ) : (
-        <>
-          <span>{defaultText}</span>
-          <ArrowRight className={`w-4 h-4 ${isRtl ? 'rotate-180' : ''}`} />
-        </>
-      )}
-    </motion.button>
-  )
-}
-
-function ForgotPasswordSection({ forgotSent, forgotEmail, forgotLoading, isRtl, onEmailChange, onSubmit, onClose }: { forgotSent: boolean; forgotEmail: string; forgotLoading: boolean; isRtl: boolean; onEmailChange: (v: string) => void; onSubmit: (e: React.FormEvent) => void; onClose: () => void }) {
-  const { t } = useTranslation()
-  return (
-    <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} className="mb-5 p-4 rounded-lg bg-slate-950 border border-slate-800">
-      {forgotSent ? (
-        <div className="text-center py-1">
-          <p className="text-xs text-green-400 leading-relaxed mb-4">
-            {isRtl ? 'تم إرسال رابط استعادة كلمة المرور إذا كان الحساب مسجلاً لدينا.' : 'Password reset link sent if the email is registered.'}
-          </p>
-          <button onClick={onClose} className="text-xs font-semibold text-slate-400 hover:text-white transition-colors">
-            {t('auth.backToLogin')}
-          </button>
-        </div>
-      ) : (
-        <form onSubmit={onSubmit} className="space-y-3">
-          <p className="text-xs font-semibold text-white">{t('auth.resetPasswordTitle')}</p>
-          <input
-            type="email"
-            value={forgotEmail}
-            onChange={e => onEmailChange(e.target.value)}
-            placeholder={t('auth.resetEmailPlaceholder')}
-            required
-            dir="ltr"
-            className="w-full px-3 py-2 bg-slate-900/60 border border-slate-800 rounded-lg text-xs text-white focus:outline-none focus:border-blue-500 placeholder-slate-600 transition-colors"
-          />
-          <div className="flex gap-2 pt-1">
-            <button type="submit" disabled={forgotLoading}
-              className="flex-1 py-1.5 bg-blue-600 hover:bg-blue-500 text-white text-[11px] font-semibold rounded-md transition-colors disabled:opacity-50">
-              {forgotLoading ? t('auth.sending') : t('auth.sendResetLink')}
-            </button>
-            <button type="button" onClick={onClose}
-              className="px-3 py-1.5 text-slate-400 hover:text-white text-[11px] font-semibold transition-colors">
-              {t('auth.cancel')}
-            </button>
-          </div>
-        </form>
-      )}
-    </motion.div>
-  )
-}
-
-function ErrorAlert({ message }: { message: string }) {
-  return (
-    <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }}
-      className="mb-5 p-3 rounded-lg bg-red-950/20 border border-red-900/40 flex items-start gap-2.5">
-      <AlertCircle className="w-4 h-4 text-red-400 mt-0.5 flex-shrink-0" />
-      <p className="text-xs text-red-300 leading-normal">{message}</p>
-    </motion.div>
-  )
-}
-
-function BrandLogoSection({ isRtl }: { isRtl: boolean }) {
-  const { t } = useTranslation()
-  return (
-    <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}
-      className="flex items-center gap-3.5">
-      <BrandLogo size={44} />
-      <div>
-        <h1 className="text-xl font-bold tracking-tight text-white">AhmedETAP</h1>
-        <p className="text-[10px] text-slate-500 tracking-wider uppercase">{t('app.description')}</p>
-      </div>
-    </motion.div>
-  )
-}
-
-const AR_TITLES = (
-  <>
-    تحليل أنظمة الطاقة<br />
-    <span className="text-blue-500">بمعايير هندسية متكاملة</span>
-  </>
-)
-
-const EN_TITLES = (
-  <>
-    Power Systems Analysis<br />
-    <span className="text-blue-500">Built for Professionals</span>
-  </>
-)
-
-const AR_DESC = 'منصة تشغيل حسابات تدفق الحمل (Load Flow)، تيار القصر (Short Circuit)، الوميض القوسي (Arc Flash)، وتنسيق أجهزة الحماية، متوافقة كلياً مع معايير IEEE و IEC.'
-
-const EN_DESC = 'Analyze, simulate, and design electrical networks with high-precision engines for load flow, short circuit, protection coordination, and arc flash analysis.'
-
-const STANDARDS = ['IEEE 3002.7', 'IEC 60909', 'IEEE 1584', 'IEC 60255', 'IEEE 519']
-
-function EngineeringTitles({ isRtl }: { isRtl: boolean }) {
-  const { t } = useTranslation()
-  return (
-    <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.1 }} className="space-y-6">
-      <h2 className="text-3xl xl:text-4xl font-extrabold leading-tight text-white tracking-tight">
-        {isRtl ? AR_TITLES : EN_TITLES}
-      </h2>
-      <p className="text-sm text-slate-400 leading-relaxed max-w-md">
-        {isRtl ? AR_DESC : EN_DESC}
-      </p>
-      <div className="flex flex-wrap gap-2.5 pt-1.5">
-        {STANDARDS.map((s, i) => (
-          <BadgeItem key={s} text={s} delay={0.05 + i * 0.05} />
-        ))}
-      </div>
-    </motion.div>
-  )
-}
-
-function SecurityBadge() {
-  const { t } = useTranslation()
-  return (
-    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.4, delay: 0.3 }}
-      className="flex items-center gap-2.5 text-[10px] text-slate-600 font-mono">
-      <ShieldCheck className="w-4 h-4 text-blue-500" />
-      <span>{t('auth.securityBadge')}</span>
-    </motion.div>
-  )
-}
-
-function MobileHeader() {
-  return (
-    <div className="lg:hidden flex items-center gap-2.5 mb-8">
-      <BrandLogo size={36} />
-      <span className="text-lg font-bold text-white">AhmedETAP</span>
-    </div>
-  )
-}
-
-function TitleSection() {
-  const { t } = useTranslation()
-  return (
-    <div className="mb-8">
-      <h3 className="text-2xl font-bold text-white tracking-tight">{t('auth.loginTitle')}</h3>
-      <p className="text-xs text-slate-500 mt-1.5 leading-relaxed">{t('auth.loginSubtitle')}</p>
-    </div>
-  )
-}
-
-function Footer() {
-  const { t } = useTranslation()
-  return (
-    <div className="mt-8 pt-5 border-t border-slate-800/40 flex items-center justify-between text-xs">
-      <span className="text-slate-500">
-        {t('auth.noAccount')}{' '}
-        <Link to="/register" className="text-blue-400 hover:text-blue-300 font-semibold transition-colors">
-          {t('auth.registerLink')}
-        </Link>
-      </span>
-      <span className="text-[10px] text-slate-700 font-mono">v2.1.0</span>
-    </div>
-  )
-}
-
-function BadgeItem({ text, delay }: { text: string; delay: number }) {
-  return (
-    <motion.span initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.3, delay }}
-      className="px-2.5 py-1 text-[10px] font-mono text-slate-400 bg-slate-900/60 border border-slate-800/80 rounded-md">
-      {text}
-    </motion.span>
   )
 }

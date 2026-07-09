@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { User, Mail, Lock, ArrowRight, Eye, EyeOff, CheckCircle, AlertCircle, Globe, ShieldCheck } from 'lucide-react'
+import { User, Mail, Lock, ArrowRight, Eye, EyeOff, CheckCircle, AlertCircle, Globe } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { useNotify } from '../context/NotificationContext'
 import { useAuth } from '../hooks/useAuth'
@@ -115,7 +115,7 @@ function RegisterView({ isRtl, name, email, password, confirmPassword, showPassw
         </button>
       </div>
 
-      <RegisterBackground isRtl={isRtl} />
+      <RegisterBackground />
 
       <div className="flex-1 flex items-center justify-center p-6 sm:p-12 relative z-10">
         <motion.div
@@ -131,7 +131,7 @@ function RegisterView({ isRtl, name, email, password, confirmPassword, showPassw
             <NameField name={name} onChange={onNameChange} isRtl={isRtl} />
             <RegisterEmailField email={email} onChange={onEmailChange} isRtl={isRtl} />
             <RegisterPasswordField password={password} onChange={onPasswordChange} onToggle={onTogglePassword} showPassword={showPassword} isRtl={isRtl} />
-            <ConfirmPasswordField password={password} confirmPassword={confirmPassword} onChange={onConfirmPasswordChange} onToggle={onTogglePassword} showPassword={showPassword} isRtl={isRtl} />
+            <ConfirmPasswordField password={password} confirmPassword={confirmPassword} onChange={onConfirmPasswordChange} showPassword={showPassword} isRtl={isRtl} />
             <SubmitButton loading={loading} isRtl={isRtl} loadingText={t('auth.creatingAccount')} defaultText={t('auth.createAccountButton')} />
           </form>
           <Footer />
@@ -186,7 +186,7 @@ function RegisterPasswordField({ password, onChange, onToggle, showPassword, isR
   )
 }
 
-function ConfirmPasswordField({ password, confirmPassword, onChange, onToggle, showPassword, isRtl }: { password: string; confirmPassword: string; onChange: (v: string) => void; onToggle: () => void; showPassword: boolean; isRtl: boolean }) {
+function ConfirmPasswordField({ password, confirmPassword, onChange, showPassword, isRtl }: { password: string; confirmPassword: string; onChange: (v: string) => void; showPassword: boolean; isRtl: boolean }) {
   const { t } = useTranslation()
   return (
     <div>
@@ -269,7 +269,7 @@ function Footer() {
   )
 }
 
-function RegisterBackground({ isRtl }: { isRtl: boolean }) {
+function RegisterBackground() {
   return (
     <div className="absolute inset-0 pointer-events-none z-0">
       <div className="absolute inset-0 opacity-[0.02]"
