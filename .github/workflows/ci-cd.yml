@@ -129,7 +129,7 @@ jobs:
             -Dsonar.projectKey=ahmdelbaz28-ux_ETAP-AI-WORK-
             -Dsonar.organization=ahmdelbaz28-ux
             -Dsonar.sources=.
-            -Dsonar.exclusions=skills/**
+            -Dsonar.exclusions=skills/**,tests/**,acp_runtime/acp_tests/**
             -Dsonar.python.version=3.12,3.13
             -Dsonar.tests=tests,acp_runtime/acp_tests
 
