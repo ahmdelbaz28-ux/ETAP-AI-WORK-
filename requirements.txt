@@ -153,7 +153,7 @@ paho-mqtt~=1.6.1
 # shapely~=2.0.0
 
 # Retry and fault tolerance
-tenacity~=8.2.0
+tenacity>=8.2,<9.2
 
 # API & Database dependencies
 alembic~=1.13.0
