@@ -64,7 +64,7 @@ from api.shared_handlers import (
 # -- Logging ------------------------------------------------------------------
 logging.basicConfig(
     level=logging.INFO,
-    format="%(asctime)Union[s, %](levelname)Union[s, %](name)Union[s, %](message)s",
+    format="%(asctime)s, %(levelname)s, %(name)s, %(message)s",
 )
 logger = logging.getLogger("etap-ai")
 
@@ -459,8 +459,8 @@ async def etap_gui_execute(request: Request):
                     "question": "string (required)",
                     "max_steps": "int (default 15)",
                     "require_confirmation": "bool (default true)",
-                    "audit_dir": Union["string, null",]
-                    "start_url": Union["string, null",]
+                    "audit_dir": "string or null",
+                    "start_url": "string or null",
                 },
             },
         )
