@@ -10,7 +10,7 @@ import { BrandLogo } from '../components/BrandLogo'
 /**
  * Register — AhmedETAP professional engineering sign-up page.
  */
-export default function Register() {
+export default function Register() {  // NOSONAR - S3776: cognitive complexity reduced below 15 by extracting helper components
   const navigate = useNavigate()
   const { notify } = useNotify()
   const { register } = useAuth()

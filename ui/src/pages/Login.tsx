@@ -21,6 +21,38 @@ import { BrandLogo } from '../components/BrandLogo'
 import { LoginBackground } from '../components/LoginBackground'
 import { API_BASE_URL } from '../lib/api-config'
 
+function getServerStatusDisplay(status: 'online' | 'offline' | 'checking'): React.ReactNode {
+  if (status === 'online') {
+    return (
+      <>
+        <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+        <span className="text-green-400">ONLINE</span>
+      </>
+    )
+  }
+  if (status === 'offline') {
+    return (
+      <>
+        <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
+        <span className="text-red-400">OFFLINE</span>
+      </>
+    )
+  }
+  return (
+    <>
+      <span className="w-2 h-2 rounded-full bg-yellow-500 animate-spin" />
+      <span className="text-yellow-400">CONNECTING...</span>
+    </>
+  )
+}
+
+function getTerminalLogColor(log: string): string {
+  if (log.includes('WARNING') || log.includes('TRIP')) return 'text-red-400 font-semibold'
+  if (log.includes('SUCCESS') || log.includes('converged')) return 'text-green-400 font-semibold'
+  if (log.includes('SEC-AUTH')) return 'text-blue-400'
+  return 'text-slate-400'
+}
+
 export default function Login() {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
@@ -252,22 +284,7 @@ export default function Login() {
                   {isRtl ? 'الشبكة الهندسية:' : 'API Core:'}
                 </span>
                 <span className="flex items-center gap-1.5 font-mono text-[10px] font-bold">
-                  {serverStatus === 'online' ? (
-                    <>
-                      <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-                      <span className="text-green-400">ONLINE</span>
-                    </>
-                  ) : serverStatus === 'offline' ? (
-                    <>
-                      <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
-                      <span className="text-red-400">OFFLINE</span>
-                    </>
-                  ) : (
-                    <>
-                      <span className="w-2 h-2 rounded-full bg-yellow-500 animate-spin" />
-                      <span className="text-yellow-400">CONNECTING...</span>
-                    </>
-                  )}
+                  {getServerStatusDisplay(serverStatus)}
                 </span>
               </div>
             </div>
@@ -310,17 +327,11 @@ export default function Login() {
               <span>{isRtl ? 'سجل العمليات الكهربائي' : 'Real-time Electrical Operations Log'}</span>
             </div>
             <div className="w-full bg-slate-950/70 border border-slate-800/80 rounded-xl p-4 font-mono text-[10px] leading-relaxed text-slate-300 space-y-1 h-[140px] overflow-y-auto backdrop-blur-md">
-              {terminalLogs.map((log, i) => {
-                let colorClass = 'text-slate-400'
-                if (log.includes('WARNING') || log.includes('TRIP')) colorClass = 'text-red-400 font-semibold'
-                if (log.includes('SUCCESS') || log.includes('converged')) colorClass = 'text-green-400 font-semibold'
-                if (log.includes('SEC-AUTH')) colorClass = 'text-blue-400'
-                return (
-                  <div key={i} className={colorClass}>
+              {terminalLogs.map((log, i) => (
+                  <div key={i} className={getTerminalLogColor(log)}>
                     {log}
                   </div>
-                )
-              })}
+                ))}
             </div>
           </div>
         </motion.div>

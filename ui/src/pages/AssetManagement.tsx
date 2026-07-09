@@ -68,6 +68,13 @@ const EMPTY_FORM: AssetFormState = {
   notes: '',
 }
 
+function getVariantColor(variant: 'success' | 'warning' | 'danger' | 'default'): string {
+  if (variant === 'success') return 'text-green-400'
+  if (variant === 'warning') return 'text-amber-400'
+  if (variant === 'danger') return 'text-red-400'
+  return 'text-[var(--text-tertiary)]'
+}
+
 export default function AssetManagement() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -210,9 +217,7 @@ export default function AssetManagement() {
 {/* Summary Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {summaryCards.map((card, i) => {
-          const iconColor = card.variant === 'success' ? 'text-green-400' :
-                            card.variant === 'warning' ? 'text-amber-400' :
-                            card.variant === 'danger' ? 'text-red-400' : 'text-[var(--text-tertiary)]'
+          const iconColor = getVariantColor(card.variant)
           return (
             <motion.div key={card.label} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 * i }}>
               <Card padding="md" className="text-center">
@@ -369,6 +374,8 @@ export default function AssetManagement() {
       {showCreateModal && (
         <div
           className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+          role="dialog"
+          aria-modal="true"
           onClick={() => !submitting && setShowCreateModal(false)}
           onKeyDown={(e) => {
             if (e.key === 'Escape' && !submitting) {
@@ -407,6 +414,7 @@ export default function AssetManagement() {
                 <input
                   id="asset-name"
                   type="text"
+                  aria-label="Asset Name"
                   value={form.name}
                   onChange={(e) => setForm(f => ({ ...f, name: e.target.value }))}
                   placeholder="e.g., Main Transformer T1"
@@ -420,6 +428,7 @@ export default function AssetManagement() {
                   <label htmlFor="asset-type" className="block text-xs font-medium text-[var(--text-secondary)] mb-1.5">Type</label>
                   <select
                     id="asset-type"
+                    aria-label="Type"
                     value={form.type}
                     onChange={(e) => setForm(f => ({ ...f, type: e.target.value }))}
                     disabled={submitting}
@@ -432,6 +441,7 @@ export default function AssetManagement() {
                   <label htmlFor="asset-status" className="block text-xs font-medium text-[var(--text-secondary)] mb-1.5">Status</label>
                   <select
                     id="asset-status"
+                    aria-label="Status"
                     value={form.status}
                     onChange={(e) => setForm(f => ({ ...f, status: e.target.value }))}
                     disabled={submitting}
@@ -447,6 +457,7 @@ export default function AssetManagement() {
                   <input
                     id="asset-rating"
                     type="text"
+                    aria-label="Rating"
                     value={form.rating}
                     onChange={(e) => setForm(f => ({ ...f, rating: e.target.value }))}
                     placeholder="e.g., 10 MVA"
@@ -459,6 +470,7 @@ export default function AssetManagement() {
                   <input
                     id="asset-voltage"
                     type="text"
+                    aria-label="Voltage"
                     value={form.voltage}
                     onChange={(e) => setForm(f => ({ ...f, voltage: e.target.value }))}
                     placeholder="e.g., 13.8 kV"
@@ -471,6 +483,7 @@ export default function AssetManagement() {
                 <label htmlFor="asset-notes" className="block text-xs font-medium text-[var(--text-secondary)] mb-1.5">Notes</label>
                 <textarea
                   id="asset-notes"
+                  aria-label="Notes"
                   value={form.notes}
                   onChange={(e) => setForm(f => ({ ...f, notes: e.target.value }))}
                   placeholder="Optional notes about this asset"

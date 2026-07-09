@@ -516,7 +516,7 @@ async def list_formats() -> Any:
     summary="Upload and parse a power-system data file",
     dependencies=[Depends(get_api_key)],
 )
-async def upload_file(
+async def upload_file(  # NOSONAR - already uses Annotated type hints for FastAPI dependency injection
     file: Annotated[UploadFile, File(description="Power-system data file")],
     user: Annotated[Any, Depends(get_current_user_from_header)],
 ) -> Any:
