@@ -183,45 +183,6 @@ app.add_middleware(
 )
 
 
-# -- Akamai edge protection middleware ----------------------------------------
-#
-# When AKAMAI_ORIGIN_SECRET is set, this middleware verifies that every
-# /api/* request arrived through the Akamai edge (not directly to the
-# HF Space origin). It also enforces bot-score blocking, client-reputation
-# blocking, and origin-side rate limiting as defense-in-depth behind
-# Akamai's own WAF + Bot Manager + Rate Limiting.
-#
-# In dev mode (no secret), the middleware is a no-op — it still parses
-# Akamai metadata for audit logging but doesn't block anything.
-from api.akamai_protection import akamai_protection_middleware, is_akamai_enabled  # noqa: E402
-
-if is_akamai_enabled():
-    logger.info("Akamai origin protection ENABLED — direct origin access will be rejected")
-else:
-    logger.info("Akamai origin protection DISABLED (AKAMAI_ORIGIN_SECRET not set) — dev mode")
-
-app.middleware("http")(akamai_protection_middleware)
-
-
-# -- Cloudflare edge protection middleware ------------------------------------
-#
-# When CLOUDFLARE_ORIGIN_SECRET is set, this middleware verifies that every
-# /api/* request arrived through the Cloudflare edge (Worker or zone proxy).
-# It also enforces geo-blocking and origin-side rate limiting as
-# defense-in-depth behind Cloudflare's own WAF + Rate Limiting + Bot Fight Mode.
-#
-# This is mutually compatible with the Akamai middleware — if BOTH secrets
-# are set, requests must come through EITHER edge (whichever header is present).
-from api.cloudflare_protection import cloudflare_protection_middleware, is_cloudflare_enabled  # noqa: E402
-
-if is_cloudflare_enabled():
-    logger.info("Cloudflare origin protection ENABLED — direct origin access will be rejected")
-else:
-    logger.info("Cloudflare origin protection DISABLED (CLOUDFLARE_ORIGIN_SECRET not set) — dev mode")
-
-app.middleware("http")(cloudflare_protection_middleware)
-
-
 # -- Security headers middleware ----------------------------------------------
 #
 # Adds standard HTTP security headers to every response. The CSP is intentionally
@@ -298,6 +259,37 @@ async def auth_and_rate_limit(request: Request, call_next):
                 headers={"Retry-After": str(rate_limiter.window)},
             )
     return await call_next(request)
+
+
+# -- Akamai edge protection middleware ----------------------------------------
+#
+# IMPORTANT: This middleware is added AFTER auth_and_rate_limit so it runs
+# FIRST (outermost). This ensures origin verification happens before any
+# API key / JWT checks — direct origin access is blocked at the earliest
+# possible point.
+from api.akamai_protection import akamai_protection_middleware, is_akamai_enabled  # noqa: E402
+
+if is_akamai_enabled():
+    logger.info("Akamai origin protection ENABLED — direct origin access will be rejected")
+else:
+    logger.info("Akamai origin protection DISABLED (AKAMAI_ORIGIN_SECRET not set) — dev mode")
+
+app.middleware("http")(akamai_protection_middleware)
+
+
+# -- Cloudflare edge protection middleware ------------------------------------
+#
+# IMPORTANT: Added LAST so it runs FIRST (outermost middleware). This ensures
+# origin verification happens before any other middleware — direct origin
+# access is blocked at the earliest possible point.
+from api.cloudflare_protection import cloudflare_protection_middleware, is_cloudflare_enabled  # noqa: E402
+
+if is_cloudflare_enabled():
+    logger.info("Cloudflare origin protection ENABLED — direct origin access will be rejected")
+else:
+    logger.info("Cloudflare origin protection DISABLED (CLOUDFLARE_ORIGIN_SECRET not set) — dev mode")
+
+app.middleware("http")(cloudflare_protection_middleware)
 
 
 # -- Root ---------------------------------------------------------------------

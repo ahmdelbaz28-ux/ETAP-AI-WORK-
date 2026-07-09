@@ -1,7 +1,7 @@
 name = "ahmedetap-proxy"
 main = "worker.js"
 compatibility_date = "2024-09-01"
-account_id = ""  # ← سيتم ملؤه تلقائياً عند النشر
+account_id = "8ea12977423cb0079cf4d227a0195bb1"  # ← سيتم ملؤه تلقائياً عند النشر
 
 # النطاق المجاني على Cloudflare Workers
 # سيكون الرابط: https://ahmedetap-proxy.<your-subdomain>.workers.dev
@@ -14,9 +14,9 @@ ORIGIN_URL = "https://ahmdelbaz28-ahmedetap-platform.hf.space"
 # الأسرار (تُ set عبر: wrangler secret put ORIGIN_VERIFY_SECRET)
 # لا تضع الأسرار هنا — استخدم wrangler secret
 
-# حدود الموارد
-[limits]
-cpu_ms = 50  # الحد الأقصى لزمن المعالجة لكل طلب
+# حدود الموارد — غير مدعومة في الخطة المجانية
+# [limits]
+# cpu_ms = 50
 
 # مسارات OBSERVABILITY
 [observability]
