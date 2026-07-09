@@ -271,6 +271,13 @@ UserDep = Annotated[CurrentUserDep, Depends()]
     summary="List projects",
     dependencies=[Depends(get_api_key)],
 )
+@router.get(
+    "/",
+    response_model=ProjectListResponse,
+    summary="List projects (trailing slash)",
+    include_in_schema=False,
+    dependencies=[Depends(get_api_key)],
+)
 async def list_projects(
     pagination: Annotated[PaginationParams, Depends(pagination_params)],
     db: DbDep,
@@ -305,6 +312,13 @@ async def list_projects(
     response_model=ProjectResponse,
     status_code=status.HTTP_201_CREATED,
     summary="Create a new project",
+)
+@router.post(
+    "/",
+    response_model=ProjectResponse,
+    status_code=status.HTTP_201_CREATED,
+    summary="Create a new project (trailing slash)",
+    include_in_schema=False,
 )
 async def create_project(
     body: ProjectCreateRequest,
