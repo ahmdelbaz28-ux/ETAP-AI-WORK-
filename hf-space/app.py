@@ -10,6 +10,7 @@ are defined in one place and reused by both the HF Space and the main API.
 
 from __future__ import annotations
 
+import asyncio
 import logging
 import os
 import time
@@ -130,6 +131,43 @@ app.include_router(auth_router)
 app.include_router(projects_router)
 app.include_router(data_import_router)
 app.include_router(assets_router)
+
+
+# -- Global JSON exception handler --------------------------------------------
+#
+# FastAPI's default 500 response is a plain-text "Internal Server Error"
+# body, which the frontend cannot parse as JSON — resulting in the
+# unhelpful "Registration failed: Registration failed" message.
+#
+# This handler intercepts unhandled exceptions on /api/* routes and returns
+# a structured JSON response with the exception type and message so the
+# frontend can show something actionable to the user.
+@app.exception_handler(Exception)
+async def unhandled_exception_handler(request: Request, exc: Exception):
+    # Import here to avoid circular imports at module load.
+    import logging as _logging
+    _log = _logging.getLogger("etap-ai")
+    _log.exception("Unhandled exception on %s %s", request.method, request.url.path)
+
+    # Don't leak internal details in production, but DO return JSON.
+    # The frontend's existing error parsing expects { detail: string }.
+    safe_message = "Internal server error"
+    if isinstance(exc, (TimeoutError, asyncio.TimeoutError)):
+        safe_message = "Database connection timed out. The service is degraded — please retry in a moment."
+    elif isinstance(exc, OSError):
+        safe_message = "Network or database connection error. Please retry."
+
+    from fastapi.responses import JSONResponse
+    return JSONResponse(
+        status_code=500,
+        content={
+            "detail": safe_message,
+            "type": type(exc).__name__,
+            "path": request.url.path,
+        },
+        headers={"X-Error-Type": type(exc).__name__},
+    )
+
 
 app.add_middleware(
     CORSMiddleware,

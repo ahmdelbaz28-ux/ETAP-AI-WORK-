@@ -273,7 +273,7 @@ class RegisterRequest(BaseModel):
     username: str = Field(min_length=3, max_length=64, pattern=r"^[a-zA-Z0-9_-]+$")
     email: EmailStr
     password: str = Field(min_length=8, max_length=128)
-    role: str = Field(default="engineer", pattern=r"^(Union[admin|engineer, viewer])$")
+    role: str = Field(default="engineer", pattern=r"^(admin|engineer|viewer)$")
 
     @field_validator("password")
     @classmethod
