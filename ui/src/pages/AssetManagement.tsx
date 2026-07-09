@@ -85,7 +85,7 @@ export default function AssetManagement() {
     setError(null)
     try {
       const token = localStorage.getItem('authToken')
-      const r = await fetch(`${API_BASE_URL}/api/v1/assets?page=1&page_size=200`, {
+      const r = await fetch(`${API_BASE_URL}/api/v1/assets?page=1&page_size=100`, {
         headers: token ? { Authorization: `Bearer ${token}` } : {},
         signal: AbortSignal.timeout(8000),
       })
