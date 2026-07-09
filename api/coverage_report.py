@@ -255,7 +255,7 @@ class _FunctionExtractor(ast.NodeVisitor):
         self.generic_visit(node)
 
     def _add_function(
-        self, node: Union[ast.FunctionDef, ast.AsyncFunctionDef,] *, is_async: bool,
+        self, node: Union[ast.FunctionDef, ast.AsyncFunctionDef], *, is_async: bool,
     ) -> None:
         """Record a function/method from the AST."""
         # Skip dunder methods (they are typically infrastructure)

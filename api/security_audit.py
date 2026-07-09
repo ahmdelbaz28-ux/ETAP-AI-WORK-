@@ -245,7 +245,7 @@ _INSECURE_FUNCTION_PATTERNS: list[tuple[str, str, Severity]] = [
         Severity.LOW,
     ),
     (
-        Union[r"random\.random\b, random\.randint\b",]
+        [r"random\.random\b", r"random\.randint\b"],
         "Use of non-cryptographic random for security context",
         Severity.INFO,
     ),
