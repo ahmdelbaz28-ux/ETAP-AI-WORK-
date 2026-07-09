@@ -22,7 +22,8 @@ name: Cross-Platform Sync
 
 on:
   push:
-    branches: [main]
+    branches:
+      - main
     paths-ignore:
       - '**.md'
       - 'docs/**'
@@ -267,12 +268,29 @@ jobs:
             echo "⚠️ smithery.ai returned HTTP $STATUS — non-blocking (integration retries at runtime)"
           fi
 
+      - name: 🔍 Verify cross-platform sync (secrets + deployments)
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_PAT }}
+          GITHUB_REPO: ${{ github.repository }}
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+          HF_SPACE_ID: ahmdelbaz28/AhmedETAP-Platform
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+        run: |
+          python3 scripts/sync_check.py --check || {
+            echo "⚠️  Sync drift detected — see report above"
+            echo "   Run 'python3 scripts/sync_check.py --repair' locally to fix"
+            # Non-fatal: don't fail the workflow, just warn
+            exit 0
+          }
+
       - name: 📝 Sync summary
         run: |
           echo "### 🔄 Cross-Platform Sync Summary" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "| Platform | Status |" >> $GITHUB_STEP_SUMMARY
           echo "|----------|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| GitHub   | ✅ Commit pushed: \`$GITHUB_SHA\` |" >> $GITHUB_STEP_SUMMARY
           echo "| Vercel   | ✅ Auto-deploy triggered by GitHub integration |" >> $GITHUB_STEP_SUMMARY
           echo "| HF Space | ✅ Pushed to ahmdelbaz28/AhmedETAP-Platform |" >> $GITHUB_STEP_SUMMARY
           echo "| LangWatch | ✅ Deployment marker registered |" >> $GITHUB_STEP_SUMMARY
