@@ -183,6 +183,26 @@ app.add_middleware(
 )
 
 
+# -- Akamai edge protection middleware ----------------------------------------
+#
+# When AKAMAI_ORIGIN_SECRET is set, this middleware verifies that every
+# /api/* request arrived through the Akamai edge (not directly to the
+# HF Space origin). It also enforces bot-score blocking, client-reputation
+# blocking, and origin-side rate limiting as defense-in-depth behind
+# Akamai's own WAF + Bot Manager + Rate Limiting.
+#
+# In dev mode (no secret), the middleware is a no-op — it still parses
+# Akamai metadata for audit logging but doesn't block anything.
+from api.akamai_protection import akamai_protection_middleware, is_akamai_enabled  # noqa: E402
+
+if is_akamai_enabled():
+    logger.info("Akamai origin protection ENABLED — direct origin access will be rejected")
+else:
+    logger.info("Akamai origin protection DISABLED (AKAMAI_ORIGIN_SECRET not set) — dev mode")
+
+app.middleware("http")(akamai_protection_middleware)
+
+
 # -- Security headers middleware ----------------------------------------------
 #
 # Adds standard HTTP security headers to every response. The CSP is intentionally

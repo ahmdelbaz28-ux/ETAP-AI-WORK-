@@ -1,0 +1,163 @@
+{
+  "description": "Akamai API Protection configuration for AhmedETAP Platform REST API. Discovers API schema, validates requests against OpenAPI spec, and detects API abuse.",
+  "api_definition": {
+    "name": "AhmedETAP Platform API",
+    "version": "2.1.0",
+    "openapi_url": "https://ahmdelbaz28-ahmedetap-platform.hf.space/openapi.json",
+    "base_paths": ["/api/v1"],
+    "authentication": {
+      "type": "JWT_BEARER",
+      "header": "Authorization",
+      "prefix": "Bearer ",
+      "algorithm": "HS256",
+      "issuer_claim": "",
+      "audience_claim": "",
+      "jwks_uri": ""
+    }
+  },
+  "protection_rules": [
+    {
+      "id": "API-001",
+      "name": "Validate OpenAPI conformance",
+      "description": "Reject requests that don't match the OpenAPI 3.0 spec (wrong paths, methods, parameters, or body schemas). Catches API probing and fuzzing.",
+      "enabled": true,
+      "action": "deny",
+      "action_code": 400
+    },
+    {
+      "id": "API-002",
+      "name": "JWT validation at edge",
+      "description": "Validate JWT signature and expiration at the edge before forwarding to origin. Reduces origin load from invalid token attempts.",
+      "enabled": true,
+      "action": "deny",
+      "action_code": 401,
+      "excluded_paths": [
+        "/api/v1/auth/register",
+        "/api/v1/auth/login",
+        "/api/v1/auth/forgot-password",
+        "/api/v1/auth/reset-password",
+        "/api/v1/health",
+        "/healthz",
+        "/readyz"
+      ]
+    },
+    {
+      "id": "API-003",
+      "name": "Block API key in URL query",
+      "description": "Block requests that pass API keys or tokens as query parameters (e.g., ?api_key=...). Tokens must be in headers to avoid logging in URLs/proxy logs.",
+      "enabled": true,
+      "action": "deny",
+      "action_code": 400,
+      "conditions": [
+        {
+          "type": "query-parameter-exists",
+          "pattern": "(?i)(api_key|apikey|access_token|auth_token|secret)"
+        }
+      ]
+    },
+    {
+      "id": "API-004",
+      "name": "Enforce HTTPS only",
+      "description": "Block all HTTP requests. Akamai terminates TLS; the origin connection is also TLS.",
+      "enabled": true,
+      "action": "redirect",
+      "redirect_to": "https://{host}{path}{query}"
+    },
+    {
+      "id": "API-005",
+      "name": "Per-user API rate limiting",
+      "description": "Limit each authenticated user to 600 API requests per minute. Uses the JWT sub claim as the rate-limit key.",
+      "enabled": true,
+      "action": "deny",
+      "action_code": 429,
+      "conditions": [
+        {
+          "type": "jwt-claim-exists",
+          "claim": "sub"
+        }
+      ],
+      "rate_limit": {
+        "key": "jwt:sub",
+        "window": "60s",
+        "threshold": 600
+      }
+    },
+    {
+      "id": "API-006",
+      "name": "Block concurrent sessions per user",
+      "description": "Limit each user to 5 concurrent API requests. Prevents script abuse while allowing normal browser behavior.",
+      "enabled": true,
+      "action": "deny",
+      "action_code": 429,
+      "rate_limit": {
+        "key": "jwt:sub",
+        "type": "concurrent",
+        "threshold": 5
+      }
+    },
+    {
+      "id": "API-007",
+      "name": "Schema validation on auth endpoints",
+      "description": "Strict schema validation for /register and /login. Reject malformed payloads early.",
+      "enabled": true,
+      "action": "deny",
+      "action_code": 422,
+      "paths": ["/api/v1/auth/register", "/api/v1/auth/login"],
+      "validation": {
+        "register": {
+          "required_fields": ["username", "email", "password"],
+          "field_constraints": {
+            "username": {
+              "type": "string",
+              "min_length": 3,
+              "max_length": 64,
+              "pattern": "^[a-zA-Z0-9_-]+$"
+            },
+            "email": {
+              "type": "string",
+              "format": "email",
+              "max_length": 255
+            },
+            "password": {
+              "type": "string",
+              "min_length": 8,
+              "max_length": 128
+            }
+          }
+        },
+        "login": {
+          "required_fields": ["username", "password"],
+          "field_constraints": {
+            "username": {"type": "string", "max_length": 255},
+            "password": {"type": "string", "max_length": 128}
+          }
+        }
+      }
+    }
+  ],
+  "abuse_detection": {
+    "credential_stuffing": {
+      "enabled": true,
+      "detection_window": "300s",
+      "threshold": 10,
+      "failed_login_ratio": 0.7,
+      "action": "challenge",
+      "challenge_type": "CAPTCHA_V2"
+    },
+    "scraping_detection": {
+      "enabled": true,
+      "detection_window": "3600s",
+      "request_threshold": 5000,
+      "unique_path_ratio": 0.9,
+      "action": "rate_limit",
+      "rate_limit_per_minute": 60
+    },
+    "data_exfiltration": {
+      "enabled": true,
+      "detection_window": "300s",
+      "response_size_threshold_mb": 100,
+      "action": "alert",
+      "alert_webhook": "${ENV.SECURITY_ALERT_WEBHOOK}"
+    }
+  }
+}

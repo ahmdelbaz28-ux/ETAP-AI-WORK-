@@ -1,0 +1,432 @@
+{
+  "name": "ahmedetap-platform.akamai.net",
+  "description": "Akamai Property for AhmedETAP Platform — WAF + Bot Manager + Rate Limiting + CDN for ahmdelbaz28-ahmedetap-platform.hf.space origin",
+  "productId": "prd_SPM",
+  "ruleFormat": "v2023-09-05",
+  "hostnames": [
+    {
+      "cnameFrom": "etap.ahmdelbaz28.com",
+      "cnameTo": "ahmedetap-platform.akamai.net",
+      "cnameType": "EDGE_HOSTNAME"
+    }
+  ],
+  "rules": {
+    "name": "default",
+    "options": {
+      "origin": {
+        "hostname": "ahmdelbaz28-ahmedetap-platform.hf.space",
+        "port": 443,
+        "tls": {
+          "enable": true,
+          "sni": "ahmdelbaz28-ahmedetap-platform.hf.space"
+        }
+      },
+      "cacheKeySettings": {
+        "cacheKeyQueryParams": {
+          "behavior": "INCLUDE_ONLY_ALPHANUMERIC"
+        }
+      }
+    },
+    "children": [
+      {
+        "name": "Add Origin Verification Secret",
+        "description": "Inject a shared secret header so the origin can verify the request came through Akamai (prevents direct origin access). Set AKAMAI_ORIGIN_SECRET on the HF Space to the same value.",
+        "criteria": [
+          {
+            "name": "All requests",
+            "options": {
+              "matchOperator": "ALWAYS"
+            }
+          }
+        ],
+        "behaviors": [
+          {
+            "name": "Modify request header",
+            "options": {
+              "behavior": "SET",
+              "headerName": "X-Origin-Verify",
+              "headerValue": "${ENV.AKAMAI_ORIGIN_SECRET}"
+            }
+          }
+        ]
+      },
+      {
+        "name": "Security Headers",
+        "description": "Add standard HTTP security headers at the edge.",
+        "criteria": [
+          {
+            "name": "All requests",
+            "options": {
+              "matchOperator": "ALWAYS"
+            }
+          }
+        ],
+        "behaviors": [
+          {
+            "name": "Modify response header",
+            "options": {
+              "behavior": "SET",
+              "headerName": "Strict-Transport-Security",
+              "headerValue": "max-age=31536000; includeSubDomains; preload"
+            }
+          },
+          {
+            "name": "Modify response header",
+            "options": {
+              "behavior": "SET",
+              "headerName": "X-Content-Type-Options",
+              "headerValue": "nosniff"
+            }
+          },
+          {
+            "name": "Modify response header",
+            "options": {
+              "behavior": "SET",
+              "headerName": "X-Frame-Options",
+              "headerValue": "SAMEORIGIN"
+            }
+          },
+          {
+            "name": "Modify response header",
+            "options": {
+              "behavior": "SET",
+              "headerName": "Referrer-Policy",
+              "headerValue": "strict-origin-when-cross-origin"
+            }
+          },
+          {
+            "name": "Modify response header",
+            "options": {
+              "behavior": "SET",
+              "headerName": "Permissions-Policy",
+              "headerValue": "geolocation=(), microphone=(), camera=(), payment=()"
+            }
+          },
+          {
+            "name": "Modify response header",
+            "options": {
+              "behavior": "SET",
+              "headerName": "Content-Security-Policy",
+              "headerValue": "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; img-src 'self' data: https:; font-src 'self' data: https://cdn.jsdelivr.net; connect-src 'self'; frame-ancestors 'self'"
+            }
+          }
+        ]
+      },
+      {
+        "name": "Cache Static Assets",
+        "description": "Cache JS/CSS/images at the edge for 1 year (immutable). Vite emits content-hashed filenames so long cache is safe.",
+        "criteria": [
+          {
+            "name": "Path matches static assets",
+            "options": {
+              "matchOperator": "MATCHES_ONE_OF",
+              "matchCaseSensitive": false,
+              "paths": [
+                "/assets/*",
+                "/*.js",
+                "/*.css",
+                "/*.png",
+                "/*.jpg",
+                "/*.jpeg",
+                "/*.gif",
+                "/*.svg",
+                "/*.ico",
+                "/*.woff",
+                "/*.woff2",
+                "/*.ttf",
+                "/*.eot"
+              ]
+            }
+          }
+        ],
+        "behaviors": [
+          {
+            "name": "Caching",
+            "options": {
+              "behavior": "MAX_AGE",
+              "mustRevalidate": false,
+              "ttl": "31536000"
+            }
+          },
+          {
+            "name": "Modify response header",
+            "options": {
+              "behavior": "SET",
+              "headerName": "Cache-Control",
+              "headerValue": "public, max-age=31536000, immutable"
+            }
+          }
+        ]
+      },
+      {
+        "name": "No Cache for API",
+        "description": "Never cache API responses — they're dynamic and user-specific.",
+        "criteria": [
+          {
+            "name": "Path starts with /api/",
+            "options": {
+              "matchOperator": "MATCHES_ONE_OF",
+              "matchCaseSensitive": false,
+              "paths": [
+                "/api/*"
+              ]
+            }
+          }
+        ],
+        "behaviors": [
+          {
+            "name": "Caching",
+            "options": {
+              "behavior": "NO_STORE"
+            }
+          },
+          {
+            "name": "Modify response header",
+            "options": {
+              "behavior": "SET",
+              "headerName": "Cache-Control",
+              "headerValue": "no-store, no-cache, must-revalidate, proxy-revalidate"
+            }
+          }
+        ]
+      },
+      {
+        "name": "Rate Limiting — Auth Endpoints",
+        "description": "Strict rate limit on /api/v1/auth/* to prevent credential stuffing and brute force. 10 requests/minute per client IP.",
+        "criteria": [
+          {
+            "name": "Auth endpoints",
+            "options": {
+              "matchOperator": "MATCHES_ONE_OF",
+              "matchCaseSensitive": false,
+              "paths": [
+                "/api/v1/auth/login",
+                "/api/v1/auth/register",
+                "/api/v1/auth/forgot-password",
+                "/api/v1/auth/reset-password"
+              ]
+            }
+          }
+        ],
+        "behaviors": [
+          {
+            "name": "Cloudlets Edge Redirect",
+            "options": {
+              "behavior": "RATE_LIMIT",
+              "limit": 10,
+              "window": "60s",
+              "action": "DENY",
+              "responseCode": 429,
+              "responseMessage": "Too many authentication attempts. Please try again later."
+            }
+          }
+        ]
+      },
+      {
+        "name": "Rate Limiting — General API",
+        "description": "General API rate limit: 300 requests/minute per client IP. Protects against scraping and abuse.",
+        "criteria": [
+          {
+            "name": "All API paths",
+            "options": {
+              "matchOperator": "MATCHES_ONE_OF",
+              "matchCaseSensitive": false,
+              "paths": [
+                "/api/*"
+              ]
+            }
+          }
+        ],
+        "behaviors": [
+          {
+            "name": "Rate Limit",
+            "options": {
+              "behavior": "RATE_LIMIT",
+              "limit": 300,
+              "window": "60s",
+              "action": "DENY",
+              "responseCode": 429
+            }
+          }
+        ]
+      },
+      {
+        "name": "Bot Manager",
+        "description": "Enable Akamai Bot Manager: detect bots, assign bot scores, and block malicious bots. Bot scores are forwarded to the origin via X-Akamai-Bot-Score header.",
+        "criteria": [
+          {
+            "name": "All requests",
+            "options": {
+              "matchOperator": "ALWAYS"
+            }
+          }
+        ],
+        "behaviors": [
+          {
+            "name": "Bot Manager",
+            "options": {
+              "behavior": "DETECT_AND_BLOCK",
+              "blockMaliciousBots": true,
+              "challengeSuspiciousBots": true,
+              "forwardBotScore": true,
+              "forwardBotCategory": true
+            }
+          }
+        ]
+      },
+      {
+        "name": "WAF — SQL Injection Protection",
+        "description": "Block SQL injection attempts on all API endpoints.",
+        "criteria": [
+          {
+            "name": "API paths",
+            "options": {
+              "matchOperator": "MATCHES_ONE_OF",
+              "matchCaseSensitive": false,
+              "paths": ["/api/*"]
+            }
+          }
+        ],
+        "behaviors": [
+          {
+            "name": "Web Application Firewall",
+            "options": {
+              "behavior": "BLOCK",
+              "rules": ["SQL_INJECTION", "SQL_INJECTION_BLIND"]
+            }
+          }
+        ]
+      },
+      {
+        "name": "WAF — XSS Protection",
+        "description": "Block Cross-Site Scripting attempts.",
+        "criteria": [
+          {
+            "name": "All requests",
+            "options": {
+              "matchOperator": "ALWAYS"
+            }
+          }
+        ],
+        "behaviors": [
+          {
+            "name": "Web Application Firewall",
+            "options": {
+              "behavior": "BLOCK",
+              "rules": ["XSS", "XSS_REFLECTED", "XSS_STORED"]
+            }
+          }
+        ]
+      },
+      {
+        "name": "WAF — Path Traversal & LFI",
+        "description": "Block path traversal, local file inclusion, and remote file inclusion attacks.",
+        "criteria": [
+          {
+            "name": "All requests",
+            "options": {
+              "matchOperator": "ALWAYS"
+            }
+          }
+        ],
+        "behaviors": [
+          {
+            "name": "Web Application Firewall",
+            "options": {
+              "behavior": "BLOCK",
+              "rules": ["PATH_TRAVERSAL", "LFI", "RFI", "COMMAND_INJECTION"]
+            }
+          }
+        ]
+      },
+      {
+        "name": "Block Bad User Agents",
+        "description": "Block known malicious user agents (scanners, crawlers, attack tools).",
+        "criteria": [
+          {
+            "name": "User-Agent matches blacklist",
+            "options": {
+              "matchOperator": "MATCHES_ONE_OF",
+              "matchCaseSensitive": false,
+              "values": [
+                "*sqlmap*",
+                "*nikto*",
+                "*nmap*",
+                "*masscan*",
+                "*dirb*",
+                "*gobuster*",
+                "*wpscan*",
+                "*hydra*",
+                "*burp*",
+                "*zap*",
+                "*acunetix*",
+                "*nessus*"
+              ]
+            }
+          }
+        ],
+        "behaviors": [
+          {
+            "name": "Deny access",
+            "options": {
+              "behavior": "DENY",
+              "responseCode": 403,
+              "responseMessage": "Blocked: malicious user agent"
+            }
+          }
+        ]
+      },
+      {
+        "name": "Block Direct Origin Access",
+        "description": "Block requests that arrive with the HF Space hostname in the Host header (bypassing Akamai). Only requests with the custom domain Host header should be allowed.",
+        "criteria": [
+          {
+            "name": "Host header is the HF Space origin",
+            "options": {
+              "matchOperator": "MATCHES_ONE_OF",
+              "matchCaseSensitive": false,
+              "values": [
+                "ahmdelbaz28-ahmedetap-platform.hf.space"
+              ]
+            }
+          }
+        ],
+        "behaviors": [
+          {
+            "name": "Deny access",
+            "options": {
+              "behavior": "DENY",
+              "responseCode": 403,
+              "responseMessage": "Direct origin access blocked. Use the CDN."
+            }
+          }
+        ]
+      },
+      {
+        "name": "Geo Blocking (Optional)",
+        "description": "Optionally block requests from specific countries. Uncomment and customize the country list to enable. Uses Akamai EdgeScape geo data.",
+        "criteria": [
+          {
+            "name": "Country is in blocklist (disabled by default)",
+            "options": {
+              "matchOperator": "MATCHES_ONE_OF",
+              "matchCaseSensitive": false,
+              "values": []
+            }
+          }
+        ],
+        "behaviors": [
+          {
+            "name": "Deny access",
+            "options": {
+              "behavior": "DENY",
+              "responseCode": 451,
+              "responseMessage": "Unavailable in your region"
+            }
+          }
+        ],
+        "comment": "To enable: add ISO country codes to the values array, e.g. ['CN', 'RU', 'KP']. Uses X-Akamai-Edgescape geo data."
+      }
+    ]
+  }
+}
