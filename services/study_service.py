@@ -10,7 +10,7 @@ import json
 import os
 import time
 from collections.abc import Coroutine
-from typing import Any, Optional, TypeVar
+from typing import Any, Optional, TypeVar, Union
 
 from core.bootstrap import _get_etap_provider, _get_power_system_engine, _to_jsonable, logger
 from core.tracing import trace_operation

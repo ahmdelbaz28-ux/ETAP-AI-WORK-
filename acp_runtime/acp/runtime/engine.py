@@ -22,7 +22,7 @@ import time
 from collections import defaultdict
 from collections.abc import Iterable
 from functools import partial
-from typing import Any, Optional
+from typing import Any, Optional, Union
 
 import anyio
 

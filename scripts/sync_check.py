@@ -26,8 +26,10 @@ Required env vars:
 from __future__ import annotations
 
 import argparse
+import json
 import os
 import sys
+import time
 from dataclasses import dataclass
 from typing import Any, Optional
 
@@ -249,7 +251,7 @@ def print_sync_report(results: list[SyncStatus]) -> bool:
     for r in results:
         status = "✅ IN SYNC" if r.in_sync and not r.missing_secrets else "⚠️  DRIFT"
         if r.error:
-            status = "❌ ERROR"
+            status = f"❌ ERROR"
             all_in_sync = False
         elif r.missing_secrets:
             all_in_sync = False

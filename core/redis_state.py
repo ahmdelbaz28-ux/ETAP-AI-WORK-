@@ -36,7 +36,7 @@ import json
 import logging
 import os
 import time
-from typing import Any, Optional
+from typing import Any, Optional, Union
 
 logger = logging.getLogger(__name__)
 

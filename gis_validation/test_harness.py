@@ -3,7 +3,7 @@ from __future__ import annotations
 import importlib
 import time
 from dataclasses import dataclass
-from typing import Any, Optional
+from typing import Any, Optional, Union
 
 from gis_integration.models import ADMSAsset
 from gis_validation.crs_validator import validate_crs_consistency, validate_normalization_applied

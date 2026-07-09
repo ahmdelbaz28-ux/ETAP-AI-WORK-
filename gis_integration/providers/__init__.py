@@ -6,15 +6,13 @@ Provides provider implementations for ESRI ArcGIS and QGIS, implementing
 the GISProviderInterface for spatial data extraction and transformation.
 """
 
+from gis_integration.base import GISProviderInterface
+from gis_integration.providers.arcgis_provider import ArcGISProvider
+from gis_integration.providers.qgis_provider import QGISProvider
+from gis_integration.providers.mock_gis import MockGISProvider
 import os
 import sys
 from typing import Any, Optional, Union
-
-from gis_integration.base import GISProviderInterface
-from gis_integration.providers.arcgis_provider import ArcGISProvider
-from gis_integration.providers.mock_gis import MockGISProvider
-from gis_integration.providers.qgis_provider import QGISProvider
-
 
 def get_gis_provider(provider_type: Optional[str] = None) -> GISProviderInterface:
     """
@@ -25,13 +23,14 @@ def get_gis_provider(provider_type: Optional[str] = None) -> GISProviderInterfac
     2. qgis -> QGISProvider (with mock fallback if unavailable and fallback allowed)
     3. arcgis -> ArcGISProvider (with mock fallback if unavailable and fallback allowed)
     """
+    import os
     use_mock = os.getenv("USE_MOCK_GIS", "false").lower() == "true"
-
+    
     if use_mock or provider_type == "mock":
         return MockGISProvider()
-
+        
     p_type = (provider_type or os.getenv("GIS_PROVIDER", "qgis")).lower()
-
+    
     if p_type == "qgis":
         try:
             p = QGISProvider()
@@ -41,7 +40,7 @@ def get_gis_provider(provider_type: Optional[str] = None) -> GISProviderInterfac
             return p
         except Exception:
             return MockGISProvider()
-
+            
     elif p_type == "arcgis":
         try:
             p = ArcGISProvider()
@@ -50,7 +49,7 @@ def get_gis_provider(provider_type: Optional[str] = None) -> GISProviderInterfac
             return p
         except Exception:
             return MockGISProvider()
-
+            
     return MockGISProvider()
 
 __all__ = [

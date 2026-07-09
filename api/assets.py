@@ -19,9 +19,8 @@ All endpoints require a valid JWT (or X-API-Key when API_KEY is configured).
 from __future__ import annotations
 
 import uuid
-from datetime import UTC, datetime
-
-UTC = UTC
+from datetime import datetime, timezone
+UTC = timezone.utc
 from typing import Any, Optional, Union
 
 try:

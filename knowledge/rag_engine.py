@@ -23,13 +23,14 @@ Architecture:
 - Retrieval Pipeline
 - Citation System
 """
+from typing import Optional, Union
+
 from __future__ import annotations
 
 import logging
 import os
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
-from typing import Optional
 
 UTC = timezone.utc  # noqa: UP017
 

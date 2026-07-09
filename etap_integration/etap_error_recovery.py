@@ -6,6 +6,8 @@ for COM automation failures, study execution errors, and project I/O issues.
 Integrates with engine.resilience for RetryHandler and CircuitBreaker
 when available, with standalone fallback implementations.
 """
+from typing import Optional, Union
+
 from __future__ import annotations
 
 import logging
@@ -15,7 +17,6 @@ import sys
 import time
 from dataclasses import dataclass
 from enum import Enum
-from typing import Optional
 
 logger = logging.getLogger(__name__)
 

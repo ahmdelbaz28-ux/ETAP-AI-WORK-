@@ -18,7 +18,7 @@ by monitoring tools and load balancers without authentication.
 from __future__ import annotations
 
 import time
-from typing import Any, Optional
+from typing import Any, Optional, Union
 
 from acp import __version__
 from acp.runtime import capability

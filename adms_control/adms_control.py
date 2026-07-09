@@ -6,13 +6,14 @@ and service restoration (FLISR) for ADMS.
 
 Reference: IEEE C37.118, IEC 61850, EPRI ADMS Guide
 """
+from typing import Optional, Union
+
 from __future__ import annotations
 
 import time
 from collections import deque
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Optional
 
 # ============================================================
 # ADMS CONTROL TYPES

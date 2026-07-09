@@ -65,7 +65,7 @@ import os
 import platform
 import socket
 import time
-from typing import Any, Optional
+from typing import Any, Optional, Union
 
 from fastapi import APIRouter, HTTPException
 

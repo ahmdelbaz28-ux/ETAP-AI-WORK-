@@ -30,26 +30,16 @@ import csv
 import io
 import json
 import uuid
-from datetime import UTC, datetime
-from typing import Any, Dict, Optional
+from datetime import datetime, timezone
+from typing import Any, Optional, Dict
 
-UTC = UTC
+UTC = timezone.utc
 
-from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile, status
-from pydantic import BaseModel, ConfigDict, Field
+from fastapi import APIRouter, Depends, HTTPException, Query, UploadFile, File, status
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 from sqlalchemy import (
-    JSON,
-    Boolean,
-    DateTime,
-    Float,
-    ForeignKey,
-    Integer,
-    String,
-    Text,
-    and_,
-    func,
-    or_,
-    select,
+    JSON, Boolean, DateTime, Float, Integer, String, Text,
+    ForeignKey, select, func, or_, and_,
 )
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -57,10 +47,12 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from api.database import Base, get_db
 from api.dependencies import (
     CurrentUser,
-    PaginationParams,
+    get_current_user_from_header,
     pagination_params,
+    PaginationParams,
 )
 from api.rbac import require_permission
+from fastapi import Depends as _Depends
 
 # ---------------------------------------------------------------------------
 # SQLAlchemy ORM models

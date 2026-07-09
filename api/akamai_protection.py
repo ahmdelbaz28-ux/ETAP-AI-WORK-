@@ -29,13 +29,15 @@ True-Client-IP              — Real client IP (Akamai replaces X-Forwarded-For)
 """
 from __future__ import annotations
 
+import hashlib
 import hmac
+import ipaddress
 import logging
 import os
 import time
 from typing import Any, Optional
 
-from fastapi import Request, status
+from fastapi import HTTPException, Request, status
 from fastapi.responses import JSONResponse
 
 logger = logging.getLogger(__name__)

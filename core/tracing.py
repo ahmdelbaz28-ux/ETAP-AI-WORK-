@@ -28,7 +28,7 @@ import logging
 import os as _os
 from collections.abc import Callable
 from functools import wraps
-from typing import Any, Optional
+from typing import Any, Optional, Union
 
 from opentelemetry import trace
 from opentelemetry.context import Context

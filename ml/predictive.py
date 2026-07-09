@@ -28,7 +28,7 @@ from __future__ import annotations
 import contextlib
 import logging
 from datetime import datetime, timedelta
-from typing import Any, Optional
+from typing import Any, Optional, Union
 
 import numpy as np
 

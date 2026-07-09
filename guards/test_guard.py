@@ -25,7 +25,7 @@ from __future__ import annotations
 import ast
 import logging
 import re
-from typing import Any, Optional
+from typing import Any, Optional, Union
 
 from guards.ai_failure_modes import AIFailureModeDetector
 from guards.base import BaseGuard, GuardMode, GuardResult, GuardSeverity, GuardViolation

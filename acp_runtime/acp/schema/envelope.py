@@ -12,7 +12,7 @@ ACP extensions on top of vanilla JSON-RPC 2.0:
 
 from __future__ import annotations
 
-from typing import Any, Optional
+from typing import Any, Optional, Union
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 

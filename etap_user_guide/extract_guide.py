@@ -9,13 +9,14 @@ This module:
 3. Creates searchable text chunks
 4. Builds a knowledge base for the RAG engine
 """
+from typing import Optional, Union
+
 from __future__ import annotations
 
 import json
 import sys
 from datetime import datetime
 from pathlib import Path
-from typing import Optional
 
 # PDF processing libraries
 # SECURITY: migrated from deprecated PyPDF2 (30+ CVEs) to pypdf (maintained successor).

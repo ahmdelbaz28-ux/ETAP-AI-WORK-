@@ -18,29 +18,26 @@ from __future__ import annotations
 import io
 import json
 import uuid
-from datetime import UTC, datetime
-from typing import Optional
+from datetime import datetime, timezone
+from typing import Any, Optional
 
-UTC = UTC
+UTC = timezone.utc
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from fastapi.responses import StreamingResponse
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 from sqlalchemy import (
-    DateTime,
-    String,
-    desc,
-    func,
-    select,
+    String, Text, JSON, DateTime, select, func, desc,
 )
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
 
-from api.database import Base
+from api.database import Base, get_db
 from api.dependencies import (
     CurrentUser,
-    PaginationParams,
+    get_current_user_from_header,
     pagination_params,
+    PaginationParams,
 )
 from api.rbac import require_permission
 
@@ -97,15 +94,10 @@ def _generate_pdf(project_name: str, studies: list) -> bytes:
     try:
         from reportlab.lib import colors
         from reportlab.lib.pagesizes import A4
-        from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
+        from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
         from reportlab.lib.units import inch, mm
         from reportlab.platypus import (
-            PageBreak,
-            Paragraph,
-            SimpleDocTemplate,
-            Spacer,
-            Table,
-            TableStyle,
+            SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, PageBreak,
         )
     except ImportError:
         # Fallback: return a simple text-based PDF
@@ -159,10 +151,10 @@ def _generate_excel(project_name: str, studies: list) -> bytes:
     """Generate an Excel file using openpyxl."""
     try:
         from openpyxl import Workbook
-        from openpyxl.styles import Alignment, Font, PatternFill
+        from openpyxl.styles import Font, PatternFill, Alignment
     except ImportError:
         # Fallback: return CSV
-        content = "Study Type,Status,Created,Results\n"
+        content = f"Study Type,Status,Created,Results\n"
         for s in studies:
             results_str = json.dumps(s.results) if s.results else ""
             content += f"{s.study_type},{s.status},{s.created_at},{results_str}\n"

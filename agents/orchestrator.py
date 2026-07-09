@@ -26,7 +26,7 @@ from datetime import datetime, timezone
 
 UTC = timezone.utc  # noqa: UP017
 from enum import Enum
-from typing import Any, Optional
+from typing import Any, Optional, Union
 
 import numpy as np
 

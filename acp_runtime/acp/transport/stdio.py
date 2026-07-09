@@ -12,7 +12,7 @@ from __future__ import annotations
 
 import logging
 import sys
-from typing import Optional, TextIO
+from typing import Optional, TextIO, Union
 
 import anyio
 

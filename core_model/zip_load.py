@@ -16,6 +16,7 @@ Where:
 Reference: IEEE Task Force on Load Representation, "Load Representation for
 Dynamic Performance Analysis", IEEE Trans. Power Systems, 1993.
 """
+from typing import Optional, Union
 
 from dataclasses import dataclass
 

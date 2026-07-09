@@ -20,10 +20,11 @@ Reference: IEEE PES Test Cases, MATPOWER methodology
 """
 from __future__ import annotations
 
+from typing import Optional, Union
+
 import logging
 from dataclasses import dataclass
 from enum import Enum
-from typing import Optional
 
 import numpy as np
 from scipy.optimize import linprog, minimize

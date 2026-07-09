@@ -62,7 +62,7 @@ import socket
 import ssl
 import threading
 from datetime import UTC
-from typing import Any, Optional
+from typing import Any, Optional, Union
 
 logger = logging.getLogger(__name__)
 

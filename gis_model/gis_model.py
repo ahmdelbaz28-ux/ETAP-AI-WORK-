@@ -18,7 +18,7 @@ import json
 import math
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, Optional
+from typing import Any, Optional, Union
 
 # ============================================================
 # GEO-REFERENCING MODEL

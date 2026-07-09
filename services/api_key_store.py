@@ -40,6 +40,8 @@ Usage:
     else:
         # Fall back to env vars
 """
+from typing import Optional, Union
+
 from __future__ import annotations
 
 import base64
@@ -51,7 +53,6 @@ import threading
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import Optional
 
 logger = logging.getLogger(__name__)
 

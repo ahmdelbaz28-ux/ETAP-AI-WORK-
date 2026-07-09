@@ -11,11 +11,12 @@ combine traditional WLS with graph-based predictions.
 Reference: A. Abur and A.G. Exposito, "Power System State Estimation",
 CRC Press, 2004.
 """
+from typing import Optional, Union
+
 from __future__ import annotations
 
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Optional
 
 import numpy as np
 

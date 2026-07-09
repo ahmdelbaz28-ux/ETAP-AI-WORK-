@@ -12,7 +12,7 @@ from datetime import datetime, timezone
 
 UTC = timezone.utc  # noqa: UP017
 
-from typing import Any, Optional
+from typing import Any, Optional, Union
 
 from pydantic import BaseModel, Field, field_validator
 

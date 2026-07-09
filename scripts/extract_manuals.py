@@ -1,9 +1,9 @@
 from __future__ import annotations
+from typing import Optional, Union
 
 import json
 from datetime import datetime
 from pathlib import Path
-from typing import Optional
 
 # SECURITY: PyPDF2 is deprecated since 2022 and contains 30+ CVEs.
 # Migrated to pypdf (the maintained successor — same API, drop-in replacement).

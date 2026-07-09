@@ -13,7 +13,7 @@ import threading
 import time
 from collections.abc import Callable, Sequence
 from functools import wraps
-from typing import Any, Optional
+from typing import Any, Optional, Union
 
 import numpy as np
 

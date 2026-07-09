@@ -15,18 +15,18 @@ from __future__ import annotations
 import os
 import sys
 import uuid
-from datetime import UTC, datetime, timezone
+from datetime import datetime, timezone
 from typing import Any, AsyncGenerator
 
 import pytest
-from httpx import ASGITransport, AsyncClient
+from httpx import AsyncClient, ASGITransport
 from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
+from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
 
 # Add project root to path
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-UTC = UTC
+UTC = timezone.utc
 
 # ── Test database ────────────────────────────────────────────────────────────
 TEST_DB_URL = "sqlite+aiosqlite:///./data/test_rbac.db"
@@ -67,11 +67,11 @@ async def test_session_factory(test_engine):
 @pytest.fixture(autouse=True)
 async def setup_db(test_engine):
     """Create all tables before each test and drop after."""
-    from api.auth import User  # noqa: F401 — register User model
     from api.database import Base
 
     # Register RBAC models directly without importing other modules
-    from api.rbac import Permission, Role, UserRole, role_permissions  # noqa: F401
+    from api.rbac import Role, Permission, UserRole, role_permissions  # noqa: F401
+    from api.auth import User  # noqa: F401 — register User model
 
     async with test_engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
@@ -139,9 +139,8 @@ async def test_engineer_user(db_session: AsyncSession) -> dict[str, Any]:
 @pytest.fixture
 async def admin_token(test_user: dict[str, Any]) -> str:
     """Generate a JWT token for the test admin user."""
+    from api.dependencies import JWT_SECRET_KEY, JWT_ALGORITHM
     import jwt
-
-    from api.dependencies import JWT_ALGORITHM, JWT_SECRET_KEY
 
     payload = {
         "sub": test_user["id"],
@@ -156,9 +155,8 @@ async def admin_token(test_user: dict[str, Any]) -> str:
 @pytest.fixture
 async def engineer_token(test_engineer_user: dict[str, Any]) -> str:
     """Generate a JWT token for the test engineer user."""
+    from api.dependencies import JWT_SECRET_KEY, JWT_ALGORITHM
     import jwt
-
-    from api.dependencies import JWT_ALGORITHM, JWT_SECRET_KEY
 
     payload = {
         "sub": test_engineer_user["id"],
@@ -199,9 +197,8 @@ async def test_create_role(db_session: AsyncSession):
 @pytest.mark.asyncio
 async def test_create_duplicate_role(db_session: AsyncSession):
     """Test that duplicate role names are rejected."""
-    from sqlalchemy.exc import IntegrityError
-
     from api.rbac import Role
+    from sqlalchemy.exc import IntegrityError
 
     role1 = Role(
         id=str(uuid.uuid4()),
@@ -300,9 +297,8 @@ async def test_create_permission(db_session: AsyncSession):
 @pytest.mark.asyncio
 async def test_duplicate_permission_rejected(db_session: AsyncSession):
     """Test that duplicate resource+action pairs are rejected."""
-    from sqlalchemy.exc import IntegrityError
-
     from api.rbac import Permission
+    from sqlalchemy.exc import IntegrityError
 
     perm1 = Permission(
         id=str(uuid.uuid4()),
@@ -395,7 +391,7 @@ async def test_remove_role_from_user(db_session: AsyncSession, test_user: dict[s
 @pytest.mark.asyncio
 async def test_role_permission_assignment(db_session: AsyncSession):
     """Test assigning permissions to a role."""
-    from api.rbac import Permission, Role, role_permissions
+    from api.rbac import Role, Permission, role_permissions
 
     role = Role(id=str(uuid.uuid4()), name="perm_role", is_system=False)
     db_session.add(role)
@@ -477,8 +473,8 @@ async def test_list_roles_api(test_engine, test_session_factory, admin_token):
 @pytest.mark.asyncio
 async def test_list_permissions_api(test_engine, test_session_factory, admin_token):
     """Test the list permissions API endpoint."""
-    from api.database import get_db
     from api.routes import app
+    from api.database import get_db
 
     async def override_get_db():
         async with test_session_factory() as session:
@@ -575,9 +571,8 @@ async def test_seed_rbac_creates_permissions(db_session: AsyncSession):
 @pytest.mark.asyncio
 async def test_role_name_validation():
     """Test role name pattern validation."""
-    from pydantic import ValidationError
-
     from api.rbac import RoleCreateRequest
+    from pydantic import ValidationError
 
     # Valid names
     valid = RoleCreateRequest(name="valid_role", description="Test")

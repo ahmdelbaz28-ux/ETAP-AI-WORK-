@@ -7,7 +7,7 @@ Separated from main engineering service for better modularity.
 
 import json
 import os
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 from typing import Any, List, Optional
 
 from fastapi import APIRouter, Depends, Request
@@ -423,7 +423,7 @@ async def etap_gui_activate_kill_switch(
             "data": {
                 "kill_switch_active": True,
                 "reason": reason,
-                "activated_at": datetime.now(UTC).isoformat(),
+                "activated_at": datetime.now(timezone.utc).isoformat(),
                 "message": "CUA Loop will abort on next action. Call /deactivate to resume.",
             },
         },

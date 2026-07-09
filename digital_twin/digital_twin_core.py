@@ -29,7 +29,7 @@ import hashlib
 import logging
 import time
 from collections.abc import Callable
-from typing import Any, Optional
+from typing import Any, Optional, Union
 
 import numpy as np
 

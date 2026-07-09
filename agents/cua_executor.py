@@ -37,7 +37,7 @@ from datetime import UTC, datetime
 
 UTC = UTC
 from pathlib import Path
-from typing import Any, Literal, Optional
+from typing import Any, Literal, Optional, Union
 
 logger = logging.getLogger("agent.cua_executor")
 

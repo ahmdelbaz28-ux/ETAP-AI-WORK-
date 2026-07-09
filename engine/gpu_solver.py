@@ -30,7 +30,7 @@ from __future__ import annotations
 import logging
 import math
 import time
-from typing import Any, Union
+from typing import Any, Optional, Union
 
 import numpy as np
 from scipy.sparse import csr_matrix, lil_matrix

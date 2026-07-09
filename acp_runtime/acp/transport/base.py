@@ -12,8 +12,9 @@ router's job.
 """
 from __future__ import annotations
 
+from typing import Optional, Union
+
 from abc import ABC, abstractmethod
-from typing import Optional
 
 __all__ = ["Transport"]
 

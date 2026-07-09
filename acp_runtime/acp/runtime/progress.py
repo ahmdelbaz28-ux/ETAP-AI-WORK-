@@ -11,7 +11,7 @@ from __future__ import annotations
 import contextlib
 import time
 from dataclasses import dataclass, field
-from typing import Awaitable, Callable, Optional
+from typing import Awaitable, Callable, Optional, Union
 
 __all__ = ["ProgressEmitter", "ProgressEvent"]
 

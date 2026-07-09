@@ -48,7 +48,7 @@ import logging
 import uuid
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
-from typing import Any, Optional
+from typing import Any, Optional, Union
 
 from fastapi import WebSocket, WebSocketDisconnect
 

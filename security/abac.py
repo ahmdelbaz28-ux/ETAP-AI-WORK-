@@ -30,7 +30,7 @@ from dataclasses import dataclass, field
 from datetime import datetime, timezone
 
 UTC = timezone.utc  # noqa: UP017
-from typing import Any, Union
+from typing import Any, Optional, Union
 
 # Business-hours window (local time) used by ABAC policies.
 # Module-level so they can be tuned without code changes.

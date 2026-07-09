@@ -21,7 +21,7 @@ from __future__ import annotations
 
 import logging
 import re
-from typing import Any
+from typing import Any, Optional, Union
 
 from guards.base import BaseGuard, GuardResult, GuardSeverity, GuardViolation
 

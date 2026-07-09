@@ -23,8 +23,8 @@ import logging
 import os
 import threading
 import time
-from datetime import UTC, datetime
-from typing import Any, Optional
+from datetime import datetime, timezone
+from typing import Any, Optional, Union
 
 from fastapi import HTTPException, Request
 from pydantic import BaseModel
@@ -76,7 +76,7 @@ SUPPORTED_STANDARDS: list[str] = [
 ]
 
 START_TIME: float = time.time()
-BUILD_TIME: str = datetime.now(UTC).isoformat()
+BUILD_TIME: str = datetime.now(timezone.utc).isoformat()
 
 # ---------------------------------------------------------------------------
 # Study types
