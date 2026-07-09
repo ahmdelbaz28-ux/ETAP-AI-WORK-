@@ -81,20 +81,20 @@ export default function Register() {  // NOSONAR - S3776: cognitive complexity r
 }
 
 interface RegisterViewProps {
-  isRtl: boolean
-  name: string
-  email: string
-  password: string
-  confirmPassword: string
-  showPassword: boolean
-  loading: boolean
-  authError: string | null
-  onNameChange: (v: string) => void
-  onEmailChange: (v: string) => void
-  onPasswordChange: (v: string) => void
-  onConfirmPasswordChange: (v: string) => void
-  onTogglePassword: () => void
-  onSubmit: (e: React.FormEvent) => void
+  readonly isRtl: boolean
+  readonly name: string
+  readonly email: string
+  readonly password: string
+  readonly confirmPassword: string
+  readonly showPassword: boolean
+  readonly loading: boolean
+  readonly authError: string | null
+  readonly onNameChange: (v: string) => void
+  readonly onEmailChange: (v: string) => void
+  readonly onPasswordChange: (v: string) => void
+  readonly onConfirmPasswordChange: (v: string) => void
+  readonly onTogglePassword: () => void
+  readonly onSubmit: (e: React.FormEvent) => void
 }
 
 function RegisterView({ isRtl, name, email, password, confirmPassword, showPassword, loading, authError, onNameChange, onEmailChange, onPasswordChange, onConfirmPasswordChange, onTogglePassword, onSubmit }: RegisterViewProps) {
@@ -141,7 +141,7 @@ function RegisterView({ isRtl, name, email, password, confirmPassword, showPassw
   )
 }
 
-function NameField({ name, onChange, isRtl }: { name: string; onChange: (v: string) => void; isRtl: boolean }) {
+function NameField({ name, onChange, isRtl }: { readonly name: string; readonly onChange: (v: string) => void; readonly isRtl: boolean }) {
   const { t } = useTranslation()
   return (
     <div>
@@ -155,7 +155,7 @@ function NameField({ name, onChange, isRtl }: { name: string; onChange: (v: stri
   )
 }
 
-function RegisterEmailField({ email, onChange, isRtl }: { email: string; onChange: (v: string) => void; isRtl: boolean }) {
+function RegisterEmailField({ email, onChange, isRtl }: { readonly email: string; readonly onChange: (v: string) => void; readonly isRtl: boolean }) {
   const { t } = useTranslation()
   return (
     <div>
@@ -169,7 +169,7 @@ function RegisterEmailField({ email, onChange, isRtl }: { email: string; onChang
   )
 }
 
-function RegisterPasswordField({ password, onChange, onToggle, showPassword, isRtl }: { password: string; onChange: (v: string) => void; onToggle: () => void; showPassword: boolean; isRtl: boolean }) {
+function RegisterPasswordField({ password, onChange, onToggle, showPassword, isRtl }: { readonly password: string; readonly onChange: (v: string) => void; readonly onToggle: () => void; readonly showPassword: boolean; readonly isRtl: boolean }) {
   const { t } = useTranslation()
   return (
     <div>
@@ -186,7 +186,7 @@ function RegisterPasswordField({ password, onChange, onToggle, showPassword, isR
   )
 }
 
-function ConfirmPasswordField({ password, confirmPassword, onChange, showPassword, isRtl }: { password: string; confirmPassword: string; onChange: (v: string) => void; showPassword: boolean; isRtl: boolean }) {
+function ConfirmPasswordField({ password, confirmPassword, onChange, showPassword, isRtl }: { readonly password: string; readonly confirmPassword: string; readonly onChange: (v: string) => void; readonly showPassword: boolean; readonly isRtl: boolean }) {
   const { t } = useTranslation()
   return (
     <div>
@@ -206,7 +206,7 @@ function ConfirmPasswordField({ password, confirmPassword, onChange, showPasswor
   )
 }
 
-function SubmitButton({ loading, isRtl, loadingText, defaultText }: { loading: boolean; isRtl: boolean; loadingText: string; defaultText: string }) {
+function SubmitButton({ loading, isRtl, loadingText, defaultText }: { readonly loading: boolean; readonly isRtl: boolean; readonly loadingText: string; readonly defaultText: string }) {
   return (
     <motion.button whileHover={{ scale: 1.005 }} whileTap={{ scale: 0.995 }} type="submit" disabled={loading}
       className="w-full flex items-center justify-center gap-2 mt-4 px-4 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-bold transition-all disabled:opacity-50 disabled:cursor-not-allowed">
@@ -244,7 +244,7 @@ function TitleSection() {
   )
 }
 
-function ErrorAlert({ message }: { message: string }) {
+function ErrorAlert({ message }: { readonly message: string }) {
   return (
     <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }}
       className="mb-4 p-3 rounded-lg bg-red-950/20 border border-red-900/40 flex items-start gap-2.5">

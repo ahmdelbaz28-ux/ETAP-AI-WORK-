@@ -376,7 +376,7 @@ export default function AssetManagement() {
           className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4"
           role="dialog"
           aria-modal="true"
-          onClick={() => !submitting && setShowCreateModal(false)}
+          onClick={() => !submitting && setShowCreateModal(false)}  // NOSONAR — S6847: modal backdrop click-to-close is a standard UX pattern; role="dialog" + aria-modal + Escape key satisfy a11y
           onKeyDown={(e) => {
             if (e.key === 'Escape' && !submitting) {
               setShowCreateModal(false);

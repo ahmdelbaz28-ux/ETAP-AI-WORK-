@@ -327,8 +327,8 @@ export default function Login() {
               <span>{isRtl ? 'سجل العمليات الكهربائي' : 'Real-time Electrical Operations Log'}</span>
             </div>
             <div className="w-full bg-slate-950/70 border border-slate-800/80 rounded-xl p-4 font-mono text-[10px] leading-relaxed text-slate-300 space-y-1 h-[140px] overflow-y-auto backdrop-blur-md">
-              {terminalLogs.map((log, i) => (
-                  <div key={i} className={getTerminalLogColor(log)}>
+              {terminalLogs.map((log) => (
+                  <div key={`log-${log.substring(0, 40).replace(/\s/g, '_')}`} className={getTerminalLogColor(log)}>
                     {log}
                   </div>
                 ))}
