@@ -19,29 +19,35 @@ Exposes endpoints under the ``/api/v1/notifications`` prefix:
 
 from __future__ import annotations
 
-import json
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum
-from typing import Any, Optional, Dict
+from typing import Any, Dict, Optional
 
-UTC = timezone.utc
+UTC = UTC
 
-from fastapi import APIRouter, Depends, HTTPException, WebSocket, WebSocketDisconnect, Query, status
+from fastapi import APIRouter, Depends, HTTPException, Query, WebSocket, WebSocketDisconnect, status
 from pydantic import BaseModel, ConfigDict, Field
 from sqlalchemy import (
-    Boolean, DateTime, Integer, String, Text, JSON,
-    select, func, and_, desc,
+    JSON,
+    Boolean,
+    DateTime,
+    String,
+    Text,
+    and_,
+    desc,
+    func,
+    select,
 )
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
 
-from api.database import Base, get_db
+from api.database import Base
 from api.dependencies import (
     CurrentUser,
+    PaginationParams,
     get_current_user_from_header,
     pagination_params,
-    PaginationParams,
 )
 from api.rbac import require_permission
 

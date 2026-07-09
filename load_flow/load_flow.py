@@ -4,7 +4,6 @@ Newton-Raphson Load Flow Solver
 This is the canonical (consolidated) implementation. The previous
 load_flow_solver_fixed.py has been merged into this file.
 """
-from typing import Optional, Union
 
 import logging
 

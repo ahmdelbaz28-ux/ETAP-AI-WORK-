@@ -52,7 +52,7 @@ import io
 import logging
 import re
 from pathlib import Path
-from typing import Any, Optional, Union
+from typing import Any, Optional
 
 logger = logging.getLogger(__name__)
 

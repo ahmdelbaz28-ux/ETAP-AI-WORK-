@@ -12,7 +12,7 @@ Mapping Architecture:
 from __future__ import annotations
 
 import logging
-from typing import Any, Optional, Union
+from typing import Any
 
 from autodesk_connector.shared.models import (
     Breaker,

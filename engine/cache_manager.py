@@ -8,7 +8,7 @@ import time
 from collections.abc import Callable
 from enum import Enum
 from functools import wraps
-from typing import Any, Optional, Union
+from typing import Any, Optional
 
 try:
     from cachetools import LRUCache, TLRUCache

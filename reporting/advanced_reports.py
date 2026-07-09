@@ -28,14 +28,13 @@ Features:
 - Multi-language support
 - Digital signatures
 """
-from typing import Optional, Union
-
 from __future__ import annotations
 
 import logging
 import os
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
+from typing import Optional, Union
 
 UTC = timezone.utc  # noqa: UP017 — datetime.UTC requires Python 3.11+
 

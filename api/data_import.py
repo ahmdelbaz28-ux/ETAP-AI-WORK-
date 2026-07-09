@@ -27,8 +27,8 @@ import json
 import re
 import uuid
 import xml.etree.ElementTree as ET
-from datetime import datetime, timezone
-from typing import Annotated, Any, Optional, Union
+from datetime import UTC, datetime
+from typing import Annotated, Any, Optional
 
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
 from pydantic import BaseModel, Field
@@ -578,7 +578,7 @@ async def upload_file(  # NOSONAR - already uses Annotated type hints for FastAP
             format=fmt.id,
             filename=file.filename,
             file_size_bytes=len(content),
-            parsed_at=datetime.now(timezone.utc).isoformat(),
+            parsed_at=datetime.now(UTC).isoformat(),
             buses=[],
             branches=[],
             metadata={},
@@ -591,7 +591,7 @@ async def upload_file(  # NOSONAR - already uses Annotated type hints for FastAP
         format=fmt.id,
         filename=file.filename,
         file_size_bytes=len(content),
-        parsed_at=datetime.now(timezone.utc).isoformat(),
+        parsed_at=datetime.now(UTC).isoformat(),
         buses=buses,
         branches=branches,
         metadata=metadata,

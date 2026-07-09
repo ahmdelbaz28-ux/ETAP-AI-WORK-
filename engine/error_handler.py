@@ -22,7 +22,7 @@ from datetime import datetime, timedelta, timezone
 
 UTC = timezone.utc  # noqa: UP017
 from email.message import EmailMessage
-from typing import Any, Optional, Union
+from typing import Any, Optional
 from urllib.error import URLError
 from urllib.request import Request, urlopen
 

@@ -19,7 +19,7 @@ import argparse
 import base64
 import os
 import sys
-from typing import Any, Optional, Union
+from typing import Any
 
 import httpx
 

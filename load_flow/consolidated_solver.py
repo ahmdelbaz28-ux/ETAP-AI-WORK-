@@ -6,7 +6,6 @@ This module consolidates the load flow solver implementations to address the
 technical debt of having duplicate solvers. It combines the robust Newton-Raphson
 implementation from load_flow_solver_fixed.py while maintaining backward compatibility.
 """
-from typing import Optional, Union
 
 import logging
 

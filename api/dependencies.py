@@ -9,11 +9,11 @@ Provides reusable dependency callables for:
 * Pagination parameter parsing (``PaginationParams``)
 """
 from __future__ import annotations
-from typing import Optional, Union
 
 import hmac
 import logging
 import os
+from typing import Optional
 
 import jwt
 from fastapi import Depends, Header, HTTPException, Query, Request, status
