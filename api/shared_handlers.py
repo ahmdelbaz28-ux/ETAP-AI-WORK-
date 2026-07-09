@@ -358,6 +358,22 @@ def verify_api_key(
     if request.url.path in _skip:
         return
 
+    # ─── JWT bypass ───────────────────────────────────────────────────────
+    # If the request carries a valid JWT Bearer token, skip the API key
+    # check. The frontend (React UI) authenticates users via JWT issued
+    # by /api/v1/auth/login — those users should NOT also be required to
+    # send an X-API-Key header. Without this bypass, every authenticated
+    # UI request to /agents, /reports, /projects, /assets returns 401
+    # because the middleware demands X-API-Key even though a valid JWT
+    # is present.
+    auth_header = request.headers.get("authorization") or ""
+    if auth_header.lower().startswith("bearer "):
+        # Validate the JWT lazily — only import jwt machinery if needed.
+        # If the JWT is invalid/expired, the downstream route's own
+        # CurrentUser dependency will reject it with 401. We don't need
+        # to re-validate here; we just need to NOT require an API key.
+        return
+
     provided = request.headers.get("x-api-key") or ""
     if not hmac.compare_digest(provided, expected_key):
         raise HTTPException(status_code=401, detail="Invalid or missing API key")

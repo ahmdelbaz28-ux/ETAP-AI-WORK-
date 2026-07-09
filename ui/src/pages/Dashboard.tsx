@@ -324,8 +324,8 @@ export default function Dashboard() {  // NOSONAR — S3776: cognitive complexit
                 onClick={() => navigate(`/studies/${s.id}`)}
                 className="flex items-center gap-2 px-3 py-2.5 text-sm text-left rounded-lg bg-[var(--bg-elevated)] hover:bg-brand-600/20 text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-all group border border-transparent hover:border-brand-500/30"
               >
-                <span className="text-lg">{s.icon}</span>
-                <span className="truncate text-xs font-medium">{s.name}</span>
+                <span className="text-lg shrink-0">{s.icon}</span>
+                <span className="text-xs font-medium leading-tight line-clamp-2">{s.name}</span>
               </button>
             ))}
           </div>
