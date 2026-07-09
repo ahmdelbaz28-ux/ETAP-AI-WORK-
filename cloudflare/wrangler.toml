@@ -1,0 +1,29 @@
+name = "ahmedetap-proxy"
+main = "worker.js"
+compatibility_date = "2024-09-01"
+account_id = ""  # ← سيتم ملؤه تلقائياً عند النشر
+
+# النطاق المجاني على Cloudflare Workers
+# سيكون الرابط: https://ahmedetap-proxy.<your-subdomain>.workers.dev
+workers_dev = true
+
+# متغيرات البيئة (غير حساسة)
+[vars]
+ORIGIN_URL = "https://ahmdelbaz28-ahmedetap-platform.hf.space"
+
+# الأسرار (تُ set عبر: wrangler secret put ORIGIN_VERIFY_SECRET)
+# لا تضع الأسرار هنا — استخدم wrangler secret
+
+# حدود الموارد
+[limits]
+cpu_ms = 50  # الحد الأقصى لزمن المعالجة لكل طلب
+
+# مسارات OBSERVABILITY
+[observability]
+enabled = true
+head_sampling_rate = 1  # تسجيل 100% من الطلبات
+
+# قواعد التوجيه (اختياري — للنطاق المخصص)
+# routes = [
+#   { pattern = "etap.ahmdelbaz28.com/*", zone_name = "ahmdelbaz28.com" }
+# ]

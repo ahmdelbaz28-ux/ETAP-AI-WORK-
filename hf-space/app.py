@@ -203,6 +203,25 @@ else:
 app.middleware("http")(akamai_protection_middleware)
 
 
+# -- Cloudflare edge protection middleware ------------------------------------
+#
+# When CLOUDFLARE_ORIGIN_SECRET is set, this middleware verifies that every
+# /api/* request arrived through the Cloudflare edge (Worker or zone proxy).
+# It also enforces geo-blocking and origin-side rate limiting as
+# defense-in-depth behind Cloudflare's own WAF + Rate Limiting + Bot Fight Mode.
+#
+# This is mutually compatible with the Akamai middleware — if BOTH secrets
+# are set, requests must come through EITHER edge (whichever header is present).
+from api.cloudflare_protection import cloudflare_protection_middleware, is_cloudflare_enabled  # noqa: E402
+
+if is_cloudflare_enabled():
+    logger.info("Cloudflare origin protection ENABLED — direct origin access will be rejected")
+else:
+    logger.info("Cloudflare origin protection DISABLED (CLOUDFLARE_ORIGIN_SECRET not set) — dev mode")
+
+app.middleware("http")(cloudflare_protection_middleware)
+
+
 # -- Security headers middleware ----------------------------------------------
 #
 # Adds standard HTTP security headers to every response. The CSP is intentionally
