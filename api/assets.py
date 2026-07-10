@@ -20,10 +20,12 @@ from __future__ import annotations
 
 import uuid
 from datetime import UTC, datetime
+
+UTC = UTC
 from typing import Any, Optional
 
 try:
-    from typing import Annotated
+    from typing import Annotated, Optional
 except ImportError:
     from typing_extensions import Annotated
 

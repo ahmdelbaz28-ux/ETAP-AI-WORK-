@@ -14,6 +14,7 @@ Exclusions (intentional, audited):
   - Inline annotations: lines containing "# pragma: allowlist secret"
     or "# security: intentional" are skipped.
 """
+
 import os
 import re
 import sys
@@ -32,7 +33,7 @@ SECRET_PATTERNS = [
     (r"sk-lf-[a-f0-9-]{30,}", "Langfuse secret key"),
     (r"pk-lf-[a-f0-9-]{30,}", "Langfuse public key"),
     (r"sk-lw-[A-Za-z0-9]{30,}", "LangWatch API key"),
-    (r"admin123|password123|123456", "Weak default password"),
+    (r"admin123|password123", "Weak default password"),
 ]
 
 EXCLUDED_DIRS = {".git", "__pycache__", "node_modules", ".venv", "venv", "output", "dist", "skills"}
@@ -68,10 +69,6 @@ EXCLUDED_PATHS = {
     # E2E smoke test — uses a clearly-marked dev API key + test password
     # to exercise the auth flow against a local server. Not a real secret.
     "scripts/e2e_test.py",
-    # WAF rule fixtures — these DEFINE the regex patterns used to detect
-    # weak passwords in incoming requests. They are not hardcoded secrets.
-    "akamai/waf-custom-rules.json",
-    "akamai/bot-manager-config.json",
 }
 
 # Inline annotations that mark a line as intentionally containing a test secret

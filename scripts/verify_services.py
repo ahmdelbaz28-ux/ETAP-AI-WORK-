@@ -312,7 +312,7 @@ try:
         runs = r.json().get("workflow_runs", [])
         if runs:
             run = runs[0]
-            ok(f"Last CI: {run.get('name')} | {run.get('conclusion')}")
+            ok(f"Last CI: {run.get('name')}, {run.get('conclusion')}")
         else:
             warn("No CI runs found")
     else:
