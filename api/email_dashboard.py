@@ -49,24 +49,27 @@ _ADMIN_ROLES = {
 
 
 async def _require_admin(request: Request) -> dict:
-    """Require admin role. Returns user info dict."""
-    try:
-        # Try to use the JWT auth chain from api.dependencies
-        # We need to call it within a DB session context
-        import jwt as pyjwt
+    """Require admin role. Returns user info dict.
 
-        from api.dependencies import JWT_ALGORITHM, JWT_SECRET_KEY
+    Accepts either:
+    1. JWT Bearer token (Authorization: Bearer <token>) — for human users
+    2. X-API-Key header (service key) — for automation/CI/Postman tests
+    3. Dev mode (EMAIL_DASHBOARD_DEV_OPEN=true) — no auth required
+    """
+    # ─── Method 1: X-API-Key (service key for automation) ────────────────
+    api_key = request.headers.get("x-api-key", "")
+    expected_key = os.getenv("ENGINEERING_SERVICE_API_KEY", "")
+    if api_key and expected_key and api_key == expected_key:
+        return {"user_id": "service", "role": "admin", "auth_method": "api_key"}
 
-        auth_header = request.headers.get("authorization", "")
-        if not auth_header.startswith("Bearer "):
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Missing or invalid Authorization header. Expected 'Bearer <token>'",
-            )
-        token = auth_header[7:]
-
-        # Decode JWT to get user info
+    # ─── Method 2: JWT Bearer token ──────────────────────────────────────
+    auth_header = request.headers.get("authorization", "")
+    if auth_header.startswith("Bearer "):
         try:
+            import jwt as pyjwt
+            from api.dependencies import JWT_ALGORITHM, JWT_SECRET_KEY
+
+            token = auth_header[7:]
             payload = pyjwt.decode(
                 token,
                 JWT_SECRET_KEY,
@@ -74,28 +77,30 @@ async def _require_admin(request: Request) -> dict:
             )
             user_id = payload.get("sub") or payload.get("user_id")
             user_role = payload.get("role", "")
+
+            if user_role not in _ADMIN_ROLES:
+                raise HTTPException(
+                    status_code=status.HTTP_403_FORBIDDEN,
+                    detail=f"Admin role required (your role: {user_role})",
+                )
+            return {"user_id": user_id, "role": user_role, "auth_method": "jwt"}
+        except HTTPException:
+            raise
         except Exception as jwt_err:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail=f"Invalid JWT token: {jwt_err}",
             ) from jwt_err
 
-        if user_role not in _ADMIN_ROLES:
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail=f"Admin role required (your role: {user_role})",
-            )
-        return {"user_id": user_id, "role": user_role}
-    except HTTPException:
-        raise
-    except Exception as exc:
-        # In dev mode (EMAIL_DASHBOARD_DEV_OPEN=true), allow unauthenticated
-        if os.getenv("EMAIL_DASHBOARD_DEV_OPEN", "false").lower() == "true":
-            return {"user_id": "dev", "role": "dev"}
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail=f"Authentication required: {exc}",
-        ) from exc
+    # ─── Method 3: Dev mode (no auth) ────────────────────────────────────
+    if os.getenv("EMAIL_DASHBOARD_DEV_OPEN", "false").lower() == "true":
+        return {"user_id": "dev", "role": "dev", "auth_method": "dev"}
+
+    # ─── No valid auth ───────────────────────────────────────────────────
+    raise HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Authentication required. Send either 'X-API-Key' header or 'Authorization: Bearer <jwt>'",
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -485,14 +490,14 @@ _DASHBOARD_HTML = """<!doctype html>
 
 
 @router.get("/", response_class=HTMLResponse, summary="Email dashboard HTML page")
-async def dashboard_page(request: Request) -> str:
+async def dashboard_page(request: Request) -> HTMLResponse:
     """Serve the email monitoring dashboard HTML page.
 
-    Authentication is enforced on the API calls (the page itself loads
-    without auth, but the JS calls fail with 401 if not authenticated).
-    Set EMAIL_DASHBOARD_DEV_OPEN=true for unauthenticated dev access.
+    The HTML page itself is public (no sensitive data — just a shell).
+    Authentication is enforced on the JavaScript API calls that load data.
     """
-    return _DASHBOARD_HTML
+    # Public HTML page — auth enforced on JS API calls
+    return HTMLResponse(content=_DASHBOARD_HTML)
 
 
 __all__ = ["router"]
