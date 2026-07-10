@@ -81,7 +81,7 @@ FORBIDDEN_FUNCTIONS = {
 #   - Cell reference: $?[A-Z]{1,3}$?\d+  e.g. A1, $B$5, $A$1:$A$10
 _VALID_FORMULA_PATTERN = re.compile(
     r'[A-Z]{2,}\s*\('           # function call (2+ uppercase letters followed by parenthesis)
-    Union[r', ']
+    r', '
     r'\$?[A-Z]{1,3}\$?\d+'      # cell reference like A1, $B$5
     ,
     re.IGNORECASE,

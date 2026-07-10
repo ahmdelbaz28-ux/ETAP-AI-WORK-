@@ -23,6 +23,9 @@ from load_flow.load_flow import LoadFlowSolver
 from relays.relay import OvercurrentRelay
 
 
+from typing import Optional, Union
+
+
 class ValidationCampaign:
     """Full Engineering Validation Campaign."""
 
@@ -41,7 +44,7 @@ class ValidationCampaign:
         else:
             self.failed += 1
         self.results.append((category, test_name, status, detail))
-        print(f"  [{status}] {category} | {test_name}: {detail}")
+        print(f"  [{status}] {category}, {test_name}: {detail}")
 
     # =========================================================================
     # SECTION 1: LOAD FLOW VALIDATION

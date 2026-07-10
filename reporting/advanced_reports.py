@@ -34,7 +34,7 @@ import logging
 import os
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
-from typing import Optional
+from typing import Optional, Union
 
 UTC = timezone.utc  # noqa: UP017 — datetime.UTC requires Python 3.11+
 
@@ -872,7 +872,7 @@ class ReportGenerationAgent:
         rows = []
         for line in table_text.split("\n"):
             if line.strip() and not line.startswith("=") and not line.startswith("-"):
-                cells = [cell.strip() for cell in line.split(", ") if cell.strip()]
+                cells = [cell.strip() for cell in line.split(Union[", "]) if cell.strip()]
                 if cells:
                     rows.append(cells)
         return rows
