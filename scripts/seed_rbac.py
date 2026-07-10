@@ -20,9 +20,9 @@ import asyncio
 import os
 import sys
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC
 
-UTC = timezone.utc
+UTC = UTC
 
 # Add parent directory to path so we can import api modules
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -31,8 +31,8 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 async def seed_rbac() -> None:
     """Seed the database with default RBAC roles and permissions."""
     from sqlalchemy import select
-    from sqlalchemy.ext.asyncio import AsyncSession
 
+    from api.auth import User
     from api.database import async_session, init_db
     from api.rbac import (
         Permission,
@@ -40,7 +40,6 @@ async def seed_rbac() -> None:
         UserRole,
         role_permissions,
     )
-    from api.auth import User
 
     # Initialize tables
     await init_db()

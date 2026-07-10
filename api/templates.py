@@ -18,25 +18,33 @@ Exposes endpoints under ``/api/v1/templates``:
 from __future__ import annotations
 
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any, Optional
 
-UTC = timezone.utc
+UTC = UTC
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, ConfigDict, Field
 from sqlalchemy import (
-    String, Text, JSON, Boolean, DateTime, select, func, or_, and_,
+    JSON,
+    Boolean,
+    DateTime,
+    String,
+    Text,
+    and_,
+    func,
+    or_,
+    select,
 )
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
 
-from api.database import Base, get_db
+from api.database import Base
 from api.dependencies import (
     CurrentUser,
+    PaginationParams,
     get_current_user_from_header,
     pagination_params,
-    PaginationParams,
 )
 from api.rbac import require_permission
 

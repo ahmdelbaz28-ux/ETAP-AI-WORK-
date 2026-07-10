@@ -19,7 +19,7 @@ import argparse
 import base64
 import os
 import sys
-from typing import Any, Optional, Union
+from typing import Any
 
 import httpx
 
@@ -142,7 +142,7 @@ def cmd_promote(args: argparse.Namespace) -> None:
     Moves the label from any older version to the latest version.
     """
     name = args.name
-    label = args.label  # Union["production", "staging"] | "experimental"
+    label = args.label  # "production" | "staging" | "experimental"
 
     versions = _list_prompt_versions(name)
     if not versions:

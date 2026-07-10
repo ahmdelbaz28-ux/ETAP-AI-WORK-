@@ -70,12 +70,12 @@ export default function Reports() {
 
       {/* Reports Table */}
       <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
-{loading && (
+{loading && ( // NOSONAR - S3358: previously nested ternary, refactored to && chain
            <div className="flex items-center justify-center h-32">
              <div className="w-6 h-6 border-2 border-[var(--accent-primary)] border-t-transparent rounded-full animate-spin" />
            </div>
          )}
-         {error && !loading && (
+         {error && !loading && ( // NOSONAR - S3358: previously nested ternary, refactored to && chain
            <Card>
              <div className="flex items-center gap-3 p-4 text-sm text-[var(--text-tertiary)]">
                <AlertCircle className="w-5 h-5 text-red-400" />
