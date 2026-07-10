@@ -1,53 +1,74 @@
 """
 Vercel Serverless Function — Email Digest Cron Trigger
 ======================================================
-Triggered by Vercel Cron every hour to call the HF Space digest endpoint.
+Triggered by Vercel Cron daily at 08:00 UTC to call the HF Space digest endpoint.
 
-Vercel Cron only supports internal paths, so this function proxies
-the request to the HF Space API.
+Uses Vercel Python runtime with BaseHTTPRequestHandler interface.
 """
 
 import os
+import json
 import urllib.request
 import urllib.error
-import json
+from http.server import BaseHTTPRequestHandler
 
 
-def handler(request):
-    """Vercel serverless function handler."""
-    hf_space_url = os.getenv("HF_SPACE_URL", "https://ahmdelbaz28-ahmedetap-platform.hf.space")
-    api_key = os.getenv("ENGINEERING_SERVICE_API_KEY", "")
-    cf_secret = os.getenv("CLOUDFLARE_ORIGIN_SECRET", "")
+class handler(BaseHTTPRequestHandler):
+    """Vercel Python serverless function handler."""
 
-    endpoint = f"{hf_space_url}/api/v1/email-digest/schedule/run"
+    def do_POST(self):
+        """Handle POST request from Vercel Cron."""
+        self._process()
 
-    headers = {
-        "Content-Type": "application/json",
-        "User-Agent": "Vercel-Cron/1.0",
-    }
-    if api_key:
-        headers["X-API-Key"] = api_key
-    if cf_secret:
-        headers["X-Origin-Verify"] = cf_secret
+    def do_GET(self):
+        """Handle GET request (for manual testing)."""
+        self._process()
 
-    try:
-        req = urllib.request.Request(endpoint, method="POST", headers=headers, data=b"{}")
-        with urllib.request.urlopen(req, timeout=30) as resp:
-            body = resp.read().decode("utf-8")
-            return {
-                "statusCode": resp.status,
-                "body": body,
-                "headers": {"Content-Type": "application/json"},
-            }
-    except urllib.error.HTTPError as e:
-        return {
-            "statusCode": e.code,
-            "body": json.dumps({"error": str(e), "body": e.read().decode("utf-8", errors="replace")[:500]}),
-            "headers": {"Content-Type": "application/json"},
+    def _process(self):
+        """Call the HF Space digest endpoint."""
+        hf_space_url = os.getenv(
+            "HF_SPACE_URL",
+            "https://ahmdelbaz28-ahmedetap-platform.hf.space",
+        )
+        api_key = os.getenv("ENGINEERING_SERVICE_API_KEY", "")
+        cf_secret = os.getenv("CLOUDFLARE_ORIGIN_SECRET", "")
+
+        endpoint = f"{hf_space_url}/api/v1/email-digest/schedule/run"
+
+        headers = {
+            "Content-Type": "application/json",
+            "User-Agent": "Vercel-Cron/1.0",
         }
-    except Exception as e:
-        return {
-            "statusCode": 500,
-            "body": json.dumps({"error": str(e)}),
-            "headers": {"Content-Type": "application/json"},
-        }
+        if api_key:
+            headers["X-API-Key"] = api_key
+        if cf_secret:
+            headers["X-Origin-Verify"] = cf_secret
+
+        try:
+            req = urllib.request.Request(
+                endpoint,
+                method="POST",
+                headers=headers,
+                data=b"{}",
+            )
+            with urllib.request.urlopen(req, timeout=30) as resp:
+                body = resp.read().decode("utf-8")
+                self._send_json(resp.status, body)
+        except urllib.error.HTTPError as e:
+            error_body = e.read().decode("utf-8", errors="replace")[:500]
+            self._send_json(
+                e.code,
+                json.dumps({"error": str(e), "body": error_body}),
+            )
+        except Exception as e:
+            self._send_json(
+                500,
+                json.dumps({"error": str(e)}),
+            )
+
+    def _send_json(self, status, body):
+        """Send a JSON response."""
+        self.send_response(status)
+        self.send_header("Content-Type", "application/json")
+        self.end_headers()
+        self.wfile.write(body.encode("utf-8"))
