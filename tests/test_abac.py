@@ -190,13 +190,15 @@ class TestABACPolicyEngine:
 
     def test_evaluate_empty_engine(self):
         """GIVEN an engine with no policies
-        WHEN evaluate is called
-        THEN it returns deny (default-deny posture).
+        WHEN evaluate is called with subject, action, resource, environment
+        THEN it returns False (default-deny posture).
         """
         engine = ABACPolicyEngine()
-        context = {"role": "admin", "user_id": "u1"}
+        subject = {"role": "admin", "user_id": "u1"}
+        resource = {"type": "study", "id": "r1"}
+        environment = {"time": "12:00", "ip": "10.0.0.1"}
         # Default-deny: empty engine should deny
-        result = engine.evaluate(context, "read", "resource")
+        result = engine.evaluate(subject, "read", resource, environment)
         assert result in (False, "deny", None) or result is False
 
 
@@ -204,41 +206,42 @@ class TestPolicyFactories:
     """Tests for the make_*_policy() factory functions."""
 
     def test_make_role_policy(self):
-        """GIVEN a role name
+        """GIVEN a name and allowed_roles
         WHEN make_role_policy is called
-        THEN it returns an ABACPolicy with that role.
+        THEN it returns an ABACPolicy.
         """
-        policy = make_role_policy("admin", "test role policy")
+        policy = make_role_policy("test_role_policy", ["admin", "engineer"])
         assert policy is not None
         assert isinstance(policy, ABACPolicy)
 
     def test_make_business_hours_policy(self):
-        """GIVEN business hours
+        """GIVEN start_hour and end_hour
         WHEN make_business_hours_policy is called
-        THEN it returns an ABACPolicy.
+        THEN it returns a list of ABACPolicy.
         """
-        policy = make_business_hours_policy(
-            start_hour=9, end_hour=17, description="office hours"
+        policies = make_business_hours_policy(
+            name="office_hours", start_hour=9, end_hour=17
         )
-        assert policy is not None
-        assert isinstance(policy, ABACPolicy)
+        assert policies is not None
+        assert isinstance(policies, list)
+        assert all(isinstance(p, ABACPolicy) for p in policies)
 
     def test_make_ip_allowlist_policy(self):
-        """GIVEN a list of CIDR ranges
+        """GIVEN a name and allowed CIDRs
         WHEN make_ip_allowlist_policy is called
         THEN it returns an ABACPolicy.
         """
         policy = make_ip_allowlist_policy(
-            allowed_ranges=["10.0.0.0/8"], description="internal network"
+            name="internal_network", allowed_cidrs=["10.0.0.0/8"]
         )
         assert policy is not None
         assert isinstance(policy, ABACPolicy)
 
     def test_make_clearance_policy(self):
-        """GIVEN a clearance level
+        """GIVEN a name
         WHEN make_clearance_policy is called
         THEN it returns an ABACPolicy.
         """
-        policy = make_clearance_policy(min_level=5, description="level 5 required")
+        policy = make_clearance_policy(name="level_5_required")
         assert policy is not None
         assert isinstance(policy, ABACPolicy)
