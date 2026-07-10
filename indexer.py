@@ -159,6 +159,8 @@ HELP_TOPICS_FILE = "ui/src/help/helpTopics.ts"
 HELP_CONTEXT_FILE = "ui/src/help/contextRegistry.ts"
 
 
+_MARKDOWN_TABLE_SEP_3 = '|:---|:---|:---|'
+
 def file_hash(path: Path) -> str:
     """Fast content hash for change detection.
 
@@ -922,7 +924,7 @@ def generate_markdown(index: dict) -> str:  # NOSONAR — S3776: cognitive compl
         f"Total: **{index.get('context_registry', {}).get('total', 0)}** mappings",
         "",
         "| Context ID | Help Topic ID | Priority |",
-        "|:---|:---|:---|",
+        _MARKDOWN_TABLE_SEP_3,
     ]
     for m in index.get("context_registry", {}).get("mappings", []):
         lines.append(f"| `{m['contextId']}` | `{m['topicId']}` | {m.get('priority', 1)} |")
@@ -982,7 +984,7 @@ def generate_markdown(index: dict) -> str:  # NOSONAR — S3776: cognitive compl
         "## 🌐 All API Endpoints",
         "",
         "| Method | Path | File |",
-        "|:---|:---|:---|",
+        _MARKDOWN_TABLE_SEP_3,
     ]
     for route in index["api_routes"]:
         method = route["method"]
@@ -1030,7 +1032,7 @@ def generate_markdown(index: dict) -> str:  # NOSONAR — S3776: cognitive compl
         "## 🔀 Dependency Graph (Cross-Package Imports)",
         "",
         "| Package | Imports | Imported By |",
-        "|:---|:---|:---|",
+        _MARKDOWN_TABLE_SEP_3,
     ]
     for pkg, edges in sorted(index.get("dependency_graph", {}).items()):
         imports = ", ".join(f"`{p}`" for p in edges["imports"]) or "—"
