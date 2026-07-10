@@ -34,6 +34,8 @@ from datetime import datetime, timedelta, timezone
 from typing import Any, Optional
 
 UTC = timezone.utc  # noqa: UP017
+# Module-level constants
+_AUTH_LOGGER_NAME = "etap.auth"
 
 try:
     from typing import Annotated
@@ -576,7 +578,7 @@ async def register(
             )
         except Exception as exc:
             import logging as _logging
-            _logging.getLogger("etap.auth").warning(
+            _logging.getLogger(_AUTH_LOGGER_NAME).warning(
                 "welcome_email_failed email=%s err=%s", user.email, exc
             )
 
@@ -904,7 +906,7 @@ async def change_password(
         )
     except Exception as exc:
         import logging as _logging
-        _logging.getLogger("etap.auth").warning(
+        _logging.getLogger(_AUTH_LOGGER_NAME).warning(
             "password_change_email_failed email=%s err=%s", db_user.email, exc
         )
 
@@ -976,7 +978,7 @@ async def forgot_password(
         except Exception as exc:
             # Don't fail the request — token is in DB, user can retry.
             import logging as _logging
-            _logging.getLogger("etap.auth").warning(
+            _logging.getLogger(_AUTH_LOGGER_NAME).warning(
                 "password_reset_email_failed email=%s err=%s", user.email, exc
             )
 
