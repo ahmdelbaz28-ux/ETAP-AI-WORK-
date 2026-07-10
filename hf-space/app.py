@@ -127,10 +127,25 @@ from api.auth import router as auth_router  # noqa: E402
 from api.data_import import router as data_import_router  # noqa: E402
 from api.projects import router as projects_router  # noqa: E402
 
+# Email integration routers (Resend integration v2 — added 2026-07-10)
+from api.email_otp import router as email_otp_router  # noqa: E402
+from api.magic_links import router as magic_links_router  # noqa: E402
+from api.email_digest import router as email_digest_router  # noqa: E402
+from api.email_webhooks import router as email_webhooks_router  # noqa: E402
+from api.email_dashboard import router as email_dashboard_router  # noqa: E402
+from api.notifications import router as notifications_router  # noqa: E402
+
 app.include_router(auth_router)
 app.include_router(projects_router)
 app.include_router(data_import_router)
 app.include_router(assets_router)
+app.include_router(notifications_router)
+# Email integration routers
+app.include_router(email_otp_router)        # /api/v1/auth/email-otp/*
+app.include_router(magic_links_router)      # /api/v1/auth/magic-link/*
+app.include_router(email_digest_router)     # /api/v1/email-digest/*
+app.include_router(email_webhooks_router)   # /api/v1/email/webhooks/*
+app.include_router(email_dashboard_router)  # /api/v1/email-dashboard/*
 
 
 # -- Global JSON exception handler --------------------------------------------
