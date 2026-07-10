@@ -22,7 +22,7 @@ langfuse~=2.51.0
 
 # LLM SDKs (traced via langfuse.openai / langfuse.anthropic wrappers)
 openai~=1.50.0
-anthropic~=0.39.0
+anthropic~=0.116.0
 
 # Supabase (managed Postgres + Storage + Auth) — used by integrations/supabase_*.py
 # Required when deploying to HF Space (where the filesystem is wiped on restart)
