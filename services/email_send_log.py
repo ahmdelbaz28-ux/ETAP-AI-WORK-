@@ -137,8 +137,8 @@ def get_recent_sends(limit: int = 100, flow: Optional[str] = None) -> list[dict]
     return [asdict(r) for r in items]
 
 
-def get_send_stats(window_hours: int = 24) -> dict:
-    """Return aggregate stats over the last `window_hours`."""
+def _filter_in_window(window_hours: int) -> list:
+    """Filter records within the last `window_hours`."""
     cutoff = datetime.now(UTC).timestamp() - (window_hours * 3600)
     in_window = []
     for r in _buffer:
@@ -148,12 +148,11 @@ def get_send_stats(window_hours: int = 24) -> dict:
                 in_window.append(r)
         except (ValueError, TypeError):
             continue
+    return in_window
 
-    total = len(in_window)
-    succeeded = sum(1 for r in in_window if r.success)
-    failed = total - succeeded
 
-    # Per-flow breakdown
+def _compute_flow_breakdown(in_window: list) -> dict[str, dict[str, int]]:
+    """Compute per-flow success/failure counts."""
     by_flow: dict[str, dict[str, int]] = {}
     for r in in_window:
         flow_stats = by_flow.setdefault(r.flow, {"total": 0, "success": 0, "failed": 0})
@@ -162,24 +161,35 @@ def get_send_stats(window_hours: int = 24) -> dict:
             flow_stats["success"] += 1
         else:
             flow_stats["failed"] += 1
+    return by_flow
 
-    # Top errors
-    errors: dict[str, int] = {}
+
+def _compute_top_items(in_window: list, key_func, max_items: int = 10) -> list:
+    """Compute top items by frequency from failed records."""
+    counts: dict[str, int] = {}
     for r in in_window:
-        if not r.success and r.error:
-            errors[r.error[:100]] = errors.get(r.error[:100], 0) + 1
-    top_errors = sorted(errors.items(), key=lambda kv: -kv[1])[:10]
+        key = key_func(r)
+        if key:
+            counts[key] = counts.get(key, 0) + 1
+    return sorted(counts.items(), key=lambda kv: -kv[1])[:max_items]
 
-    # Top recipients (by volume)
-    recipients: dict[str, int] = {}
-    for r in in_window:
-        recipients[r.recipient] = recipients.get(r.recipient, 0) + 1
-    top_recipients = sorted(recipients.items(), key=lambda kv: -kv[1])[:10]
 
-    # Avg elapsed ms
+def get_send_stats(window_hours: int = 24) -> dict:
+    """Return aggregate stats over the last `window_hours`."""
+    in_window = _filter_in_window(window_hours)
+
+    total = len(in_window)
+    succeeded = sum(1 for r in in_window if r.success)
+    failed = total - succeeded
+    by_flow = _compute_flow_breakdown(in_window)
+
+    top_errors = _compute_top_items(
+        in_window, lambda r: r.error[:100] if not r.success and r.error else None
+    )
+    top_recipients = _compute_top_items(in_window, lambda r: r.recipient)
+
     elapsed_values = [r.elapsed_ms for r in in_window if r.elapsed_ms > 0]
     avg_elapsed = sum(elapsed_values) / len(elapsed_values) if elapsed_values else 0
-
     success_rate = (succeeded / total * 100) if total > 0 else 0.0
 
     return {
