@@ -109,7 +109,7 @@ uvicorn~=0.25.0
 #   CVE-2025-55197, CVE-2026-22690, CVE-2026-49461, CVE-2026-54531 (ReDoS / XML parsing)
 # Note: project switched from PyPDF2 → pypdf (PyPDF2 is deprecated since 2022).
 pypdf~=6.13.0
-pdfplumber~=0.10.0
+pdfplumber>=0.10,<0.12
 
 # Text processing and NLP
 # SECURITY: nltk upgraded from 3.8.0 → 3.9.4 to fix 13 CVEs including:
