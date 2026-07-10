@@ -1,4 +1,3 @@
-from typing import Optional, Union
 import numpy as np
 
 from curves.curves import IEC60255Curves

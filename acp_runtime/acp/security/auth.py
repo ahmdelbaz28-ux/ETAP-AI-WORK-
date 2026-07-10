@@ -21,7 +21,6 @@ import hmac
 import json
 import time
 from typing import Any, Callable, Coroutine, Optional, Union
-from typing import Any, Optional, Union
 
 from acp.errors import AuthenticationRequired
 from acp.schema.capability import is_valid_scope
@@ -98,7 +97,6 @@ class AuthConfig:
 
 # ------------------------------------------------------------------ AuthValidator
 
-from typing import Optional, Union
 AuthValidator = Callable[[str], Any]
 """Type alias for an authentication validator callable.
 

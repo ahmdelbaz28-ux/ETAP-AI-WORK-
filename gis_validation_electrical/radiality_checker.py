@@ -1,7 +1,7 @@
 from __future__ import annotations
-from typing import Optional, Union
 
 from dataclasses import dataclass
+from typing import Optional
 
 from gis_validation_electrical.electrical_model import ElectricalModel
 

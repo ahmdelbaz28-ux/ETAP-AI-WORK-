@@ -25,7 +25,7 @@ import importlib
 import json
 import os
 import traceback
-from typing import Any, Optional, Union
+from typing import Any, Optional
 
 
 def _parse_import_path(spec: str) -> tuple[str, str]:

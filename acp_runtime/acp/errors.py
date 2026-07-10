@@ -8,7 +8,8 @@ Layer rule: only these errors (plus stdlib exceptions) may leave a layer.
 """
 from __future__ import annotations
 
-from typing import Optional, Union
+from typing import Optional
+
 __all__ = [
     "AcpError",
     "DeadlineExceeded",

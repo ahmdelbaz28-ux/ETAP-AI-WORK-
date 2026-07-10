@@ -31,15 +31,12 @@ True-Client-IP           — Real client IP (alternative to CF-Connecting-IP)
 """
 from __future__ import annotations
 
-import hashlib
 import hmac
-import ipaddress
 import logging
 import os
-import time
-from typing import Any, Optional
+from typing import Any
 
-from fastapi import HTTPException, Request, status
+from fastapi import Request, status
 from fastapi.responses import JSONResponse
 
 logger = logging.getLogger(__name__)
@@ -71,6 +68,18 @@ _BLOCKED_COUNTRIES: frozenset[str] = frozenset(
 # In-memory rate limit store (per-worker; HF Space runs a single worker)
 _RATE_LIMIT_STORE: dict[str, list[float]] = {}
 _RATE_LIMIT_WINDOW_SEC: int = 60
+
+# Shared rate limiter instance (extracted to api._rate_limit to eliminate
+# duplication with api/akamai_protection.py).
+from api._rate_limit import RateLimiter  # noqa: E402
+
+_rate_limiter: RateLimiter = RateLimiter(
+    max_requests=_ORIGIN_RATE_LIMIT_PER_MIN,
+    window_seconds=_RATE_LIMIT_WINDOW_SEC,
+)
+# Keep _RATE_LIMIT_STORE as an alias for backward compatibility (tests,
+# debug endpoints may inspect it directly).
+_RATE_LIMIT_STORE = _rate_limiter._store  # type: ignore[attr-defined]
 
 
 # ---------------------------------------------------------------------------
@@ -254,21 +263,14 @@ def _parse_visitor_scheme(cf_visitor: str) -> str:
 
 
 def _rate_limit_check(client_ip: str) -> bool:
-    """Sliding-window rate limit per client IP. Returns True if allowed."""
-    now = time.monotonic()
-    window_start = now - _RATE_LIMIT_WINDOW_SEC
+    """Sliding-window rate limit per client IP. Returns True if allowed.
 
-    # Prune old entries
-    entries = _RATE_LIMIT_STORE.get(client_ip, [])
-    entries = [t for t in entries if t > window_start]
-
-    if len(entries) >= _ORIGIN_RATE_LIMIT_PER_MIN:
-        _RATE_LIMIT_STORE[client_ip] = entries
-        return False
-
-    entries.append(now)
-    _RATE_LIMIT_STORE[client_ip] = entries
-    return True
+    Delegates to the shared RateLimiter instance `_rate_limiter` (initialized
+    at module load from _ORIGIN_RATE_LIMIT_PER_MIN and _RATE_LIMIT_WINDOW_SEC).
+    Kept as a module-level function for backward compatibility with existing
+    callers that import `_rate_limit_check` directly.
+    """
+    return _rate_limiter.is_allowed(client_ip)
 
 
 # ---------------------------------------------------------------------------

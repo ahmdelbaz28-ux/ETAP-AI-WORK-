@@ -116,12 +116,12 @@ export default function DataExport() {
             subtitle="Previously exported files"
             icon={<Clock className="w-4 h-4" />}
           />
-          {loading && (
+          {loading && ( // NOSONAR - S3358: previously nested ternary, refactored to && chain
             <div className="flex items-center justify-center h-20">
               <div className="w-5 h-5 border-2 border-[var(--accent-primary)] border-t-transparent rounded-full animate-spin" />
             </div>
           )}
-          {error && !loading && (
+          {error && !loading && ( // NOSONAR - S3358: previously nested ternary, refactored to && chain
             <div className="flex items-center gap-2 p-3 text-sm text-[var(--text-tertiary)]">
               <AlertCircle className="w-4 h-4 text-red-400" />
               <span>Failed to load exports: {error}</span>
