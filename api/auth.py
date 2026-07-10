@@ -37,6 +37,15 @@ UTC = timezone.utc  # noqa: UP017
 # Module-level constants
 _AUTH_LOGGER_NAME = "etap.auth"
 
+
+def _validate_password_strength(v: str) -> str:
+    """Validate password meets strength requirements (8+ chars, not common)."""
+    if len(v) < 8:
+        raise ValueError("Password must be at least 8 characters")
+    if v.lower() in _COMMON_PASSWORDS:
+        raise ValueError("Password is too common — choose a stronger one")
+    return v
+
 try:
     from typing import Annotated
 except ImportError:
@@ -330,13 +339,8 @@ class ChangePasswordRequest(BaseModel):
     @field_validator("new_password")
     @classmethod
     def validate_new_password(cls, v: str) -> str:
-        """Validate password meets strength requirements (8+ chars, not common)."""
-        """Enforce password policy on the new password."""
-        if len(v) < 8:
-            raise ValueError("Password must be at least 8 characters")
-        if v.lower() in _COMMON_PASSWORDS:
-            raise ValueError("Password is too common — choose a stronger one")
-        return v
+        """Validate password meets strength requirements."""
+        return _validate_password_strength(v)
 
 
 class ForgotPasswordRequest(BaseModel):
@@ -358,12 +362,8 @@ class ResetPasswordRequest(BaseModel):
     @field_validator("new_password")
     @classmethod
     def validate_new_password(cls, v: str) -> str:
-        """Validate the new password meets strength requirements (8+ chars)."""
-        if len(v) < 8:
-            raise ValueError("Password must be at least 8 characters")
-        if v.lower() in _COMMON_PASSWORDS:
-            raise ValueError("Password is too common — choose a stronger one")
-        return v
+        """Validate the new password meets strength requirements."""
+        return _validate_password_strength(v)
 
 
 class UpdateProfileRequest(BaseModel):
