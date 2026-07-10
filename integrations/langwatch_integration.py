@@ -9,12 +9,11 @@ Usage:
     async def my_agent_function(prompt: str) -> str:
         ...
 """
-from typing import Optional, Union
-
 import functools
 import logging
 import os
 from collections.abc import Callable
+from typing import Optional
 
 logger = logging.getLogger(__name__)
 

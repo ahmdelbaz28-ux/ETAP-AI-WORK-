@@ -22,13 +22,12 @@ Coverage matrix:
 """
 from __future__ import annotations
 
-from typing import Optional, Union
-
 import json
 import math
 import os
 import sys
 from pathlib import Path
+from typing import Optional, Union
 
 import pytest
 

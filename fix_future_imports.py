@@ -1,4 +1,7 @@
-import pathlib, re, sys
+import pathlib
+import re
+import sys
+
 
 def fix_file(path):
     text = path.read_text(encoding='utf-8')
