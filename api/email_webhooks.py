@@ -274,46 +274,57 @@ async def _record_event(message_id: str, event_type: str, data: dict) -> None:
 # ---------------------------------------------------------------------------
 
 
+def _should_forward(ep: WebhookEndpoint, event_type: str) -> bool:
+    """Check if an endpoint should receive this event type."""
+    if not ep.is_active:
+        return False
+    if ep.events and event_type not in ep.events:
+        return False
+    return True
+
+
+def _sign_payload(secret: str, body: bytes) -> str:
+    """Sign outbound webhook payload with HMAC-SHA256."""
+    if not secret:
+        return ""
+    return hmac.new(secret.encode(), body, hashlib.sha256).hexdigest()
+
+
+def _deliver_to_endpoint(ep: WebhookEndpoint, body: bytes, sig: str, event_type: str) -> int:
+    """Synchronously deliver to one endpoint. Returns HTTP status code."""
+    import urllib.error
+    import urllib.request
+
+    req = urllib.request.Request(
+        ep.url, data=body, method="POST",
+        headers={
+            "Content-Type": "application/json",
+            "X-AhmedETAP-Event": event_type,
+            "X-AhmedETAP-Signature": f"sha256={sig}",
+            "X-AhmedETAP-Delivery": str(uuid.uuid4()),
+        },
+    )
+    try:
+        with urllib.request.urlopen(req, timeout=10) as r:
+            return r.status
+    except urllib.error.HTTPError as e:
+        return e.code
+
+
 async def _forward_to_endpoints(event_type: str, payload: dict) -> int:
     """Forward an event to all matching endpoints. Returns count delivered."""
     delivered = 0
     body = json.dumps(payload).encode("utf-8")
 
     for ep in list(_endpoints.values()):
-        if not ep.is_active:
-            continue
-        if ep.events and event_type not in ep.events:
+        if not _should_forward(ep, event_type):
             continue
 
-        # Sign outbound delivery
         secret = ep.secret or os.getenv("EMAIL_WEBHOOK_SECRET", "")
-        sig = ""
-        if secret:
-            sig = hmac.new(secret.encode(), body, hashlib.sha256).hexdigest()
+        sig = _sign_payload(secret, body)
 
         try:
-            import urllib.error
-            import urllib.request
-
-            def _deliver(_ep=ep, _sig=sig) -> int:
-                req = urllib.request.Request(
-                    _ep.url,
-                    data=body,
-                    method="POST",
-                    headers={
-                        "Content-Type": "application/json",
-                        "X-AhmedETAP-Event": event_type,
-                        "X-AhmedETAP-Signature": f"sha256={_sig}",
-                        "X-AhmedETAP-Delivery": str(uuid.uuid4()),
-                    },
-                )
-                try:
-                    with urllib.request.urlopen(req, timeout=10) as r:
-                        return r.status
-                except urllib.error.HTTPError as e:
-                    return e.code
-
-            status_code = await asyncio.to_thread(_deliver)
+            status_code = await asyncio.to_thread(_deliver_to_endpoint, ep, body, sig, event_type)
             ep.last_triggered = datetime.now(UTC).isoformat()
             ep.last_status = status_code
             ep.trigger_count += 1
@@ -321,15 +332,10 @@ async def _forward_to_endpoints(event_type: str, payload: dict) -> int:
                 delivered += 1
             else:
                 ep.failure_count += 1
-                logger.warning(
-                    "webhook_deliver_failed endpoint=%s url=%s status=%s",
-                    ep.id, ep.url, status_code,
-                )
+                logger.warning("webhook_deliver_failed endpoint=%s url=%s status=%s", ep.id, ep.url, status_code)
         except Exception as exc:
             ep.failure_count += 1
-            logger.warning(
-                "webhook_deliver_exception endpoint=%s err=%s", ep.id, exc
-            )
+            logger.warning("webhook_deliver_exception endpoint=%s err=%s", ep.id, exc)
 
     return delivered
 
