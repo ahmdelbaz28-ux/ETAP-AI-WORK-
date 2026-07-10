@@ -52,15 +52,15 @@ async def _require_admin(request: Request) -> dict:
     """Require admin role. Returns user info dict.
 
     Accepts either:
-    1. JWT Bearer token (Authorization: Bearer <token>) — for human users
-    2. X-API-Key header (service key) — for automation/CI/Postman tests
+    1. X-API-Key header (service key) — for automation/CI/Postman tests
+    2. JWT Bearer token (Authorization: Bearer <token>) — for human users
     3. Dev mode (EMAIL_DASHBOARD_DEV_OPEN=true) — no auth required
     """
     # ─── Method 1: X-API-Key (service key for automation) ────────────────
-    api_key = request.headers.get("x-api-key", "")
-    expected_key = os.getenv("ENGINEERING_SERVICE_API_KEY", "")
-    if api_key and expected_key and api_key == expected_key:
-        return {"user_id": "service", "role": "admin", "auth_method": "api_key"}
+    from api._test_mode import get_api_key_auth
+    api_key_auth = get_api_key_auth(request)
+    if api_key_auth:
+        return api_key_auth
 
     # ─── Method 2: JWT Bearer token ──────────────────────────────────────
     auth_header = request.headers.get("authorization", "")
