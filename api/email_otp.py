@@ -31,21 +31,16 @@ from __future__ import annotations
 import logging
 from typing import Optional
 
-try:
-    from typing import Annotated
-except ImportError:
-    from typing_extensions import Annotated
-
-from fastapi import APIRouter, Depends, HTTPException, Request, status
+from fastapi import APIRouter, Request, status
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, EmailStr, Field, field_validator
 
 from services.email_service import send_email_otp
 from services.otp_store import (
     OTP_TTL_SECONDS,
+    invalidate_otp,
     issue_otp,
     verify_otp,
-    invalidate_otp,
 )
 
 logger = logging.getLogger("etap.api.email_otp")

@@ -9,9 +9,9 @@ Comprehensive test for new features:
 """
 
 import asyncio
+import json
 import os
 import sys
-import json
 
 sys.path.insert(0, '/home/z/my-project/etap-local-clone')
 
@@ -27,7 +27,7 @@ os.environ['EMAIL_BRAND_TAGLINE'] = 'Enterprise AI-Powered Power Systems Enginee
 async def test_1_otp():
     """Test OTP send + verify."""
     print("\n=== TEST 1: OTP send + verify ===")
-    from services.otp_store import issue_otp, verify_otp, invalidate_otp
+    from services.otp_store import invalidate_otp, issue_otp, verify_otp
 
     email = "test1@example.com"
     purpose = "login"
@@ -40,7 +40,7 @@ async def test_1_otp():
     # Verify
     v = await verify_otp(email, purpose, r.code)
     assert v.success, f"Verify failed: {v.error}"
-    print(f"  ✅ Verified OTP")
+    print("  ✅ Verified OTP")
 
     # Re-verify should fail (one-shot)
     v2 = await verify_otp(email, purpose, r.code)
@@ -86,8 +86,12 @@ async def test_3_email_send_log():
     """Test email send log + stats."""
     print("\n=== TEST 3: Email send log + stats ===")
     from services.email_send_log import (
-        log_email_send, get_recent_sends, get_send_stats, get_send_count_by_day,
-        get_record_by_id, clear_old_records
+        clear_old_records,
+        get_recent_sends,
+        get_record_by_id,
+        get_send_count_by_day,
+        get_send_stats,
+        log_email_send,
     )
 
     # Log several sends
@@ -128,7 +132,7 @@ async def test_3_email_send_log():
     rec = get_record_by_id(ids[0])
     assert rec is not None
     assert rec["id"] == ids[0]
-    print(f"  ✅ get_record_by_id found record")
+    print("  ✅ get_record_by_id found record")
 
 
 async def test_4_dashboard():
@@ -136,9 +140,11 @@ async def test_4_dashboard():
     print("\n=== TEST 4: Dashboard endpoints ===")
     os.environ['EMAIL_DASHBOARD_DEV_OPEN'] = 'true'
 
-    from api.email_dashboard import get_stats, get_recent, get_by_day, get_config
-    from fastapi import Request
     from types import SimpleNamespace
+
+    from fastapi import Request
+
+    from api.email_dashboard import get_by_day, get_config, get_recent, get_stats
 
     # Build a mock request
     mock_request = SimpleNamespace(
@@ -178,8 +184,10 @@ async def test_5_webhooks():
     """Test webhook endpoint registration."""
     print("\n=== TEST 5: Webhook endpoints ===")
     from api.email_webhooks import (
-        register_endpoint, list_endpoints, delete_endpoint,
         RegisterEndpointRequest,
+        delete_endpoint,
+        list_endpoints,
+        register_endpoint,
     )
 
     # Register
@@ -244,7 +252,7 @@ async def test_6_digest():
 async def test_7_live_send_with_brand():
     """Test live send to verify branded templates work."""
     print("\n=== TEST 7: Live send with AhmedETAP brand ===")
-    from services.email_service import send_email_otp, send_welcome, send_notification_email
+    from services.email_service import send_email_otp, send_notification_email, send_welcome
 
     RECIPIENT = "a7medbaz16@gmail.com"
 

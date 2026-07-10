@@ -558,15 +558,15 @@ async def register(
     # Send welcome email via Resend (additive, best-effort, toggleable)
     if os.getenv("RESEND_WELCOME_EMAIL_ENABLED", "true").lower() == "true":
         try:
-            from services.email_service import send_welcome
             from services.email_send_log import log_email_send
+            from services.email_service import send_welcome
             result = await send_welcome(
                 email=user.email,
                 user_name=getattr(user, "full_name", None) or user.username,
             )
             await log_email_send(
                 recipient=user.email,
-                subject=f"Welcome to AhmedETAP!",
+                subject="Welcome to AhmedETAP!",
                 flow="welcome",
                 success=result.success,
                 message_id=result.message_id,
@@ -886,8 +886,8 @@ async def change_password(
 
     # Send password-change confirmation email via Resend
     try:
-        from services.email_service import send_password_change_email
         from services.email_send_log import log_email_send
+        from services.email_service import send_password_change_email
         result = await send_password_change_email(
             email=db_user.email,
             user_name=getattr(db_user, "full_name", None) or db_user.username,
@@ -949,9 +949,10 @@ async def forgot_password(
 
         # Send password-reset email via Resend (additive, best-effort)
         try:
-            from services.email_service import send_password_reset
-            from services.email_send_log import log_email_send
             import os as _os
+
+            from services.email_send_log import log_email_send
+            from services.email_service import send_password_reset
             reset_link = (
                 f"{_os.getenv('EMAIL_APP_URL', 'http://localhost:3000')}"
                 f"/reset-password?token={reset_token}"

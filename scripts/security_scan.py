@@ -69,6 +69,8 @@ EXCLUDED_PATHS = {
     # E2E smoke test — uses a clearly-marked dev API key + test password
     # to exercise the auth flow against a local server. Not a real secret.
     "scripts/e2e_test.py",
+    # New feature tests — use test secrets for webhook registration testing
+    "tests/test_new_features.py",
 }
 
 # Inline annotations that mark a line as intentionally containing a test secret

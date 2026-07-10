@@ -32,14 +32,10 @@ import os
 import secrets
 import time
 from dataclasses import dataclass
+from datetime import UTC
 from typing import Optional
 
-try:
-    from typing import Annotated
-except ImportError:
-    from typing_extensions import Annotated
-
-from fastapi import APIRouter, HTTPException, Request, status
+from fastapi import APIRouter, Request, status
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, EmailStr, Field
 
@@ -154,9 +150,10 @@ async def request_magic_link(
     user_id: Optional[str] = None
     user_name: Optional[str] = None
     try:
+        from sqlalchemy import select
+
         from api.auth import User
         from api.database import async_session_factory
-        from sqlalchemy import select
 
         async with async_session_factory() as db:
             result = await db.execute(select(User).where(User.email == body.email))
@@ -185,8 +182,8 @@ async def request_magic_link(
     # Send email only if user exists (otherwise silent no-op to prevent enumeration)
     if user_id is not None:
         try:
-            from services.email_service import _load_template, _render, _common_context, _BRAND_NAME
             from integrations.resend_email import EmailParams, resend_client
+            from services.email_service import _BRAND_NAME, _common_context, _load_template, _render
 
             magic_link_url = (
                 f"{os.getenv('EMAIL_APP_URL', 'http://localhost:3000')}"
@@ -260,9 +257,10 @@ async def verify_magic_link(
 
     # Look up the user by email (must exist for login)
     try:
+        from sqlalchemy import select
+
         from api.auth import User, _create_access_token, _create_refresh_token
         from api.database import async_session_factory
-        from sqlalchemy import select
 
         async with async_session_factory() as db:
             result = await db.execute(select(User).where(User.email == rec.email))
@@ -287,8 +285,8 @@ async def verify_magic_link(
                 )
 
             # Update last_login
-            from datetime import datetime, timezone
-            user.last_login = datetime.now(timezone.utc)
+            from datetime import datetime
+            user.last_login = datetime.now(UTC)
             await db.commit()
 
             # Issue JWT tokens

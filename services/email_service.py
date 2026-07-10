@@ -40,10 +40,9 @@ from __future__ import annotations
 
 import logging
 import os
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any, Optional
-from urllib.parse import quote
 
 from integrations.resend_email import EmailParams, EmailResult, resend_client
 
@@ -104,7 +103,7 @@ def _common_context(**extra: Any) -> dict[str, Any]:
         "brand_tagline": _BRAND_TAGLINE,
         "support_email": _SUPPORT_EMAIL,
         "app_url": _APP_URL,
-        "year": datetime.now(timezone.utc).year,
+        "year": datetime.now(UTC).year,
     }
     ctx.update(extra)
     return ctx
@@ -154,7 +153,7 @@ async def send_email_otp(
         purpose=purpose,
         purpose_label=purpose_labels.get(purpose, "Verification"),
         ttl_minutes=ttl_minutes,
-        current_year=datetime.now(timezone.utc).year,
+        current_year=datetime.now(UTC).year,
     )
     html = _render(template, **ctx) if template else _fallback_otp_html(code, purpose, ttl_minutes)
     text = (
@@ -186,7 +185,7 @@ async def send_password_reset(
         recipient_name=user_name or email.split("@")[0],
         reset_link=reset_link,
         ttl_minutes=ttl_minutes,
-        current_year=datetime.now(timezone.utc).year,
+        current_year=datetime.now(UTC).year,
     )
     html = _render(template, **ctx) if template else _fallback_reset_html(reset_link, ttl_minutes)
     text = (
@@ -212,7 +211,7 @@ async def send_welcome(email: str, user_name: Optional[str] = None) -> EmailResu
         recipient_name=user_name or email.split("@")[0],
         login_url=_APP_URL + "/login",
         docs_url=_APP_URL + "/docs",
-        current_year=datetime.now(timezone.utc).year,
+        current_year=datetime.now(UTC).year,
     )
     html = _render(template, **ctx) if template else _fallback_welcome_html(user_name or email)
     text = (
@@ -240,7 +239,7 @@ async def send_email_verification(
     ctx = _common_context(
         recipient_name=user_name or email.split("@")[0],
         verify_link=verify_link,
-        current_year=datetime.now(timezone.utc).year,
+        current_year=datetime.now(UTC).year,
     )
     html = _render(template, **ctx) if template else _fallback_verify_html(verify_link)
     text = (
@@ -266,7 +265,7 @@ async def send_login_alert(
     location: Optional[str] = None,
 ) -> EmailResult:
     """Send a 'new login' security alert."""
-    ts = timestamp or datetime.now(timezone.utc)
+    ts = timestamp or datetime.now(UTC)
     subject = f"{_BRAND_NAME} — New Login to Your Account"
     template = _load_template("login_alert.html")
     ctx = _common_context(
@@ -276,7 +275,7 @@ async def send_login_alert(
         login_time=ts.strftime("%Y-%m-%d %H:%M:%S UTC"),
         location=location or "Unknown",
         security_url=_APP_URL + "/settings/security",
-        current_year=datetime.now(timezone.utc).year,
+        current_year=datetime.now(UTC).year,
     )
     html = _render(template, **ctx) if template else _fallback_login_alert_html(ip, user_agent, ts)
     text = (
@@ -308,7 +307,7 @@ async def send_account_lockout(
         recipient_name=user_name or email.split("@")[0],
         unlock_time=unlock_at.strftime("%Y-%m-%d %H:%M:%S UTC"),
         support_email=_SUPPORT_EMAIL,
-        current_year=datetime.now(timezone.utc).year,
+        current_year=datetime.now(UTC).year,
     )
     html = _render(template, **ctx) if template else _fallback_lockout_html(unlock_at)
     text = (
@@ -350,7 +349,7 @@ async def send_notification_email(
         priority=priority.upper(),
         action_url=action_url or _APP_URL,
         action_label=action_label or "Open Dashboard",
-        current_year=datetime.now(timezone.utc).year,
+        current_year=datetime.now(UTC).year,
     )
     html = _render(template, **ctx) if template else _fallback_notification_html(title, message)
     text = f"{title}\n\n{message}\n\nOpen: {action_url or _APP_URL}\n"
@@ -382,8 +381,8 @@ async def send_study_complete_email(
         study_name=study_name,
         study_url=study_url,
         duration=duration_str,
-        completed_at=datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC"),
-        current_year=datetime.now(timezone.utc).year,
+        completed_at=datetime.now(UTC).strftime("%Y-%m-%d %H:%M:%S UTC"),
+        current_year=datetime.now(UTC).year,
     )
     html = _render(template, **ctx) if template else _fallback_study_html(study_name, study_url, completed=True)
     text = (
@@ -413,9 +412,9 @@ async def send_study_failed_email(
         recipient_name=user_name or email.split("@")[0],
         study_name=study_name,
         error_message=error_message[:500],
-        failed_at=datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC"),
+        failed_at=datetime.now(UTC).strftime("%Y-%m-%d %H:%M:%S UTC"),
         support_email=_SUPPORT_EMAIL,
-        current_year=datetime.now(timezone.utc).year,
+        current_year=datetime.now(UTC).year,
     )
     html = _render(template, **ctx) if template else _fallback_study_html(study_name, "", completed=False, err=error_message)
     text = (
@@ -445,8 +444,8 @@ async def send_role_change_email(
         recipient_name=user_name or email.split("@")[0],
         new_role=new_role,
         changed_by=changed_by,
-        changed_at=datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC"),
-        current_year=datetime.now(timezone.utc).year,
+        changed_at=datetime.now(UTC).strftime("%Y-%m-%d %H:%M:%S UTC"),
+        current_year=datetime.now(UTC).year,
     )
     html = _render(template, **ctx) if template else _fallback_role_html(new_role, changed_by)
     text = (
@@ -473,16 +472,16 @@ async def send_password_change_email(
     template = _load_template("password_change.html")
     ctx = _common_context(
         recipient_name=user_name or email.split("@")[0],
-        changed_at=datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC"),
+        changed_at=datetime.now(UTC).strftime("%Y-%m-%d %H:%M:%S UTC"),
         ip_address=ip or "unknown",
         security_url=_APP_URL + "/settings/security",
         support_email=_SUPPORT_EMAIL,
-        current_year=datetime.now(timezone.utc).year,
+        current_year=datetime.now(UTC).year,
     )
     html = _render(template, **ctx) if template else _fallback_pwd_change_html(ip)
     text = (
         f"Your {_BRAND_NAME} password was changed at "
-        f"{datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S UTC')}.\n"
+        f"{datetime.now(UTC).strftime('%Y-%m-%d %H:%M:%S UTC')}.\n"
         f"If this was not you, contact {_SUPPORT_EMAIL} immediately.\n"
     )
     return await resend_client.send(EmailParams(
@@ -513,15 +512,15 @@ async def send_critical_alert(
         alert_title=title,
         alert_body=body,
         dashboard_url=dashboard_url or _APP_URL + "/admin",
-        triggered_at=datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC"),
-        current_year=datetime.now(timezone.utc).year,
+        triggered_at=datetime.now(UTC).strftime("%Y-%m-%d %H:%M:%S UTC"),
+        current_year=datetime.now(UTC).year,
     )
     html = _render(template, **ctx) if template else _fallback_critical_html(title, body)
     text = (
         f"CRITICAL ALERT\n\n"
         f"Title: {title}\n"
         f"Body: {body}\n"
-        f"Time: {datetime.now(timezone.utc).isoformat()}\n"
+        f"Time: {datetime.now(UTC).isoformat()}\n"
     )
     return await resend_client.send(EmailParams(
         to=email,

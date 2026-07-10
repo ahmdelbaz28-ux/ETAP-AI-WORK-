@@ -38,16 +38,11 @@ import logging
 import os
 import time
 import uuid
-from dataclasses import asdict, dataclass, field
-from datetime import datetime, timezone
+from dataclasses import dataclass
+from datetime import UTC, datetime
 from typing import Any, Optional
 
-try:
-    from typing import Annotated
-except ImportError:
-    from typing_extensions import Annotated
-
-from fastapi import APIRouter, Depends, Header, HTTPException, Request, status
+from fastapi import APIRouter, Header, HTTPException, Request, status
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field, HttpUrl
 
@@ -161,7 +156,6 @@ def _verify_resend_signature(
     return any(hmac.compare_digest(expected_b64, sig) for sig in signatures)
 
 
-import base64  # noqa: E402
 
 
 # ---------------------------------------------------------------------------
@@ -237,7 +231,6 @@ async def resend_webhook(
     message_id = data.get("email_id") or data.get("id")
     if message_id:
         try:
-            from services.email_send_log import get_record_by_id
             # We don't have a message_id index — store as an event log
             await _record_event(message_id, event_type, data)
         except Exception as exc:
@@ -270,7 +263,7 @@ async def _record_event(message_id: str, event_type: str, data: dict) -> None:
         "message_id": message_id,
         "event_type": event_type,
         "data": data,
-        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "timestamp": datetime.now(UTC).isoformat(),
     })
     if len(_events) > _EVENTS_MAX:
         del _events[: len(_events) - _EVENTS_MAX]
@@ -299,18 +292,18 @@ async def _forward_to_endpoints(event_type: str, payload: dict) -> int:
             sig = hmac.new(secret.encode(), body, hashlib.sha256).hexdigest()
 
         try:
-            import urllib.request
             import urllib.error
+            import urllib.request
 
-            def _deliver() -> int:
+            def _deliver(_ep=ep, _sig=sig) -> int:
                 req = urllib.request.Request(
-                    ep.url,
+                    _ep.url,
                     data=body,
                     method="POST",
                     headers={
                         "Content-Type": "application/json",
                         "X-AhmedETAP-Event": event_type,
-                        "X-AhmedETAP-Signature": f"sha256={sig}",
+                        "X-AhmedETAP-Signature": f"sha256={_sig}",
                         "X-AhmedETAP-Delivery": str(uuid.uuid4()),
                     },
                 )
@@ -321,7 +314,7 @@ async def _forward_to_endpoints(event_type: str, payload: dict) -> int:
                     return e.code
 
             status_code = await asyncio.to_thread(_deliver)
-            ep.last_triggered = datetime.now(timezone.utc).isoformat()
+            ep.last_triggered = datetime.now(UTC).isoformat()
             ep.last_status = status_code
             ep.trigger_count += 1
             if 200 <= status_code < 300:
@@ -360,7 +353,7 @@ async def register_endpoint(body: RegisterEndpointRequest) -> JSONResponse:
         url=str(body.url),
         events=body.events,
         secret=body.secret or os.getenv("EMAIL_WEBHOOK_SECRET", ""),
-        created_at=datetime.now(timezone.utc).isoformat(),
+        created_at=datetime.now(UTC).isoformat(),
     )
     _endpoints[ep_id] = ep
     return JSONResponse(
@@ -426,7 +419,7 @@ async def test_endpoint(endpoint_id: str) -> JSONResponse:
         "type": "email.test",
         "data": {
             "endpoint_id": endpoint_id,
-            "test_time": datetime.now(timezone.utc).isoformat(),
+            "test_time": datetime.now(UTC).isoformat(),
             "message": "Test delivery from AhmedETAP email webhooks",
         },
     }

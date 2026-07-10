@@ -19,12 +19,11 @@ Exposes endpoints under the ``/api/v1/notifications`` prefix:
 
 from __future__ import annotations
 
+import os
 import uuid
 from datetime import UTC, datetime
 from enum import Enum
 from typing import Any, Dict, Optional
-
-UTC = UTC
 
 from fastapi import APIRouter, Depends, HTTPException, Query, WebSocket, WebSocketDisconnect, status
 from pydantic import BaseModel, ConfigDict, Field
@@ -267,8 +266,8 @@ async def create_notification(
     # Send via email if flagged AND Resend is configured (additive, best-effort)
     if requires_email and os.getenv("RESEND_NOTIFICATION_EMAILS_ENABLED", "true").lower() == "true":
         try:
-            from services.email_service import send_notification_email
             from services.email_send_log import log_email_send
+            from services.email_service import send_notification_email
 
             # Look up user's email — try a couple of common import paths
             user_email = None
