@@ -56,7 +56,7 @@ jobs:
         run: ruff format . --check 2>&1 || echo "::warning::Ruff format check failed (pre-existing formatting debt). Run 'ruff format .' locally to fix."
 
       - name: Set up Node.js ${{ env.NODE_VERSION }}
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
@@ -110,7 +110,7 @@ jobs:
           cache: 'pip'
 
       - name: Set up Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: '20'
           cache: 'npm'
@@ -387,7 +387,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Set up Node.js ${{ env.NODE_VERSION }}
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
@@ -469,7 +469,7 @@ jobs:
 
       - name: Extract Docker metadata
         id: meta
-        uses: docker/metadata-action@v5  # NOSONAR — S7637: GitHub Action pinning; SHA pinning in CI sprint
+        uses: docker/metadata-action@v6  # NOSONAR — S7637: GitHub Action pinning; SHA pinning in CI sprint
         with:
           images: ${{ env.REGISTRY }}/${{ steps.sanitize.outputs.image_name }}
           tags: |
@@ -478,7 +478,7 @@ jobs:
             type=semver,pattern={{version}}
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3  # NOSONAR — S7637: GitHub Action pinning; SHA pinning in CI sprint
+        uses: docker/setup-buildx-action@v4  # NOSONAR — S7637: GitHub Action pinning; SHA pinning in CI sprint
         # Required for GHA cache backend — the default 'docker' driver
         # does not support cache export (--cache-to type=gha).
 
@@ -573,7 +573,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Set up Node.js ${{ env.NODE_VERSION }}
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: ${{ env.NODE_VERSION }}
 
