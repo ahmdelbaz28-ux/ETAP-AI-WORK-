@@ -98,3 +98,8 @@ neo4j>=5.25.0,<7
 
 # ─── Supabase (managed Postgres + Storage) ────────────────────────────────
 supabase>=2.31.0
+
+# ─── LLM SDKs (required by langfuse wrapper) ───────────────────────────────
+# Added 2026-07-10 — langfuse needs these to wrap LLM calls
+openai>=1.50.0
+anthropic>=0.39.0
