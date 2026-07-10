@@ -94,6 +94,7 @@ _BRAND_NAME = os.getenv("EMAIL_BRAND_NAME", "AhmedETAP")
 _BRAND_TAGLINE = os.getenv("EMAIL_BRAND_TAGLINE", "Enterprise Engineering Intelligence Platform")
 _SUPPORT_EMAIL = os.getenv("EMAIL_SUPPORT_ADDRESS", "support@etap-ai-work.vercel.app")
 _APP_URL = os.getenv("EMAIL_APP_URL", "https://etap-ai-work.vercel.app")
+_TIMESTAMP_FMT = "%Y-%m-%d %H:%M:%S UTC"
 
 
 def _common_context(**extra: Any) -> dict[str, Any]:
@@ -272,7 +273,7 @@ async def send_login_alert(
         recipient_name=user_name or email.split("@")[0],
         ip_address=ip,
         user_agent=user_agent[:200],  # truncate very long UAs
-        login_time=ts.strftime("%Y-%m-%d %H:%M:%S UTC"),
+        login_time=ts.strftime(_TIMESTAMP_FMT),
         location=location or "Unknown",
         security_url=_APP_URL + "/settings/security",
         current_year=datetime.now(UTC).year,
@@ -280,7 +281,7 @@ async def send_login_alert(
     html = _render(template, **ctx) if template else _fallback_login_alert_html(ip, user_agent, ts)
     text = (
         f"New login to your {_BRAND_NAME} account:\n\n"
-        f"Time: {ts.strftime('%Y-%m-%d %H:%M:%S UTC')}\n"
+        f"Time: {ts.strftime(_TIMESTAMP_FMT)}\n"
         f"IP: {ip}\n"
         f"Device: {user_agent[:200]}\n\n"
         f"If this was you, no action is needed.\n"
@@ -305,7 +306,7 @@ async def send_account_lockout(
     template = _load_template("lockout.html")
     ctx = _common_context(
         recipient_name=user_name or email.split("@")[0],
-        unlock_time=unlock_at.strftime("%Y-%m-%d %H:%M:%S UTC"),
+        unlock_time=unlock_at.strftime(_TIMESTAMP_FMT),
         support_email=_SUPPORT_EMAIL,
         current_year=datetime.now(UTC).year,
     )
@@ -313,7 +314,7 @@ async def send_account_lockout(
     text = (
         f"Your {_BRAND_NAME} account has been temporarily locked due to "
         f"multiple failed login attempts.\n\n"
-        f"It will automatically unlock at: {unlock_at.strftime('%Y-%m-%d %H:%M:%S UTC')}\n"
+        f"It will automatically unlock at: {unlock_at.strftime(_TIMESTAMP_FMT)}\n"
         f"If this was not you, contact {_SUPPORT_EMAIL} immediately.\n"
     )
     return await resend_client.send(EmailParams(
@@ -381,7 +382,7 @@ async def send_study_complete_email(
         study_name=study_name,
         study_url=study_url,
         duration=duration_str,
-        completed_at=datetime.now(UTC).strftime("%Y-%m-%d %H:%M:%S UTC"),
+        completed_at=datetime.now(UTC).strftime(_TIMESTAMP_FMT),
         current_year=datetime.now(UTC).year,
     )
     html = _render(template, **ctx) if template else _fallback_study_html(study_name, study_url, completed=True)
@@ -412,7 +413,7 @@ async def send_study_failed_email(
         recipient_name=user_name or email.split("@")[0],
         study_name=study_name,
         error_message=error_message[:500],
-        failed_at=datetime.now(UTC).strftime("%Y-%m-%d %H:%M:%S UTC"),
+        failed_at=datetime.now(UTC).strftime(_TIMESTAMP_FMT),
         support_email=_SUPPORT_EMAIL,
         current_year=datetime.now(UTC).year,
     )
@@ -444,7 +445,7 @@ async def send_role_change_email(
         recipient_name=user_name or email.split("@")[0],
         new_role=new_role,
         changed_by=changed_by,
-        changed_at=datetime.now(UTC).strftime("%Y-%m-%d %H:%M:%S UTC"),
+        changed_at=datetime.now(UTC).strftime(_TIMESTAMP_FMT),
         current_year=datetime.now(UTC).year,
     )
     html = _render(template, **ctx) if template else _fallback_role_html(new_role, changed_by)
@@ -472,7 +473,7 @@ async def send_password_change_email(
     template = _load_template("password_change.html")
     ctx = _common_context(
         recipient_name=user_name or email.split("@")[0],
-        changed_at=datetime.now(UTC).strftime("%Y-%m-%d %H:%M:%S UTC"),
+        changed_at=datetime.now(UTC).strftime(_TIMESTAMP_FMT),
         ip_address=ip or "unknown",
         security_url=_APP_URL + "/settings/security",
         support_email=_SUPPORT_EMAIL,
@@ -481,7 +482,7 @@ async def send_password_change_email(
     html = _render(template, **ctx) if template else _fallback_pwd_change_html(ip)
     text = (
         f"Your {_BRAND_NAME} password was changed at "
-        f"{datetime.now(UTC).strftime('%Y-%m-%d %H:%M:%S UTC')}.\n"
+        f"{datetime.now(UTC).strftime(_TIMESTAMP_FMT)}.\n"
         f"If this was not you, contact {_SUPPORT_EMAIL} immediately.\n"
     )
     return await resend_client.send(EmailParams(
@@ -512,7 +513,7 @@ async def send_critical_alert(
         alert_title=title,
         alert_body=body,
         dashboard_url=dashboard_url or _APP_URL + "/admin",
-        triggered_at=datetime.now(UTC).strftime("%Y-%m-%d %H:%M:%S UTC"),
+        triggered_at=datetime.now(UTC).strftime(_TIMESTAMP_FMT),
         current_year=datetime.now(UTC).year,
     )
     html = _render(template, **ctx) if template else _fallback_critical_html(title, body)
@@ -576,7 +577,7 @@ def _fallback_verify_html(link: str) -> str:
 def _fallback_login_alert_html(ip: str, ua: str, ts: datetime) -> str:
     return f"""<!doctype html><html><body style="font-family:Arial,sans-serif;max-width:560px;margin:0 auto;padding:24px;">
 <h2 style="color:#dc2626;">New Login to {_BRAND_NAME}</h2>
-<p>Time: {ts.strftime('%Y-%m-%d %H:%M:%S UTC')}</p>
+<p>Time: {ts.strftime(_TIMESTAMP_FMT)}</p>
 <p>IP: {ip}</p>
 <p>Device: {ua[:200]}</p>
 <p>If this was not you, change your password immediately.</p>
@@ -587,7 +588,7 @@ def _fallback_lockout_html(unlock_at: datetime) -> str:
     return f"""<!doctype html><html><body style="font-family:Arial,sans-serif;max-width:560px;margin:0 auto;padding:24px;">
 <h2 style="color:#dc2626;">Account Locked</h2>
 <p>Your {_BRAND_NAME} account has been temporarily locked due to multiple failed login attempts.</p>
-<p>It will automatically unlock at: <strong>{unlock_at.strftime('%Y-%m-%d %H:%M:%S UTC')}</strong></p>
+<p>It will automatically unlock at: <strong>{unlock_at.strftime(_TIMESTAMP_FMT)}</strong></p>
 </body></html>"""
 
 
