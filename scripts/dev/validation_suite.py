@@ -7,10 +7,9 @@ Validates the power system calculations against known IEEE test systems:
 - Arc Flash: IEEE 1584-2018 examples
 - Protection Coordination: Relay operating time validation
 """
-from typing import Optional, Union
-
 import os
 import sys
+from typing import Optional, Union
 
 import numpy as np
 

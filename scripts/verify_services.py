@@ -9,7 +9,6 @@ Updated version (2026-07):
   - Uses authenticated GitHub API
   - Color-coded output
 """
-from typing import Optional, Union
 
 from __future__ import annotations
 

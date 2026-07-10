@@ -14,7 +14,6 @@ Exclusions (intentional, audited):
   - Inline annotations: lines containing "# pragma: allowlist secret"
     or "# security: intentional" are skipped.
 """
-from typing import Optional
 
 import os
 import re

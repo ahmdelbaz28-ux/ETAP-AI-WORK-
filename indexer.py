@@ -20,7 +20,6 @@ v2.0.0 — Added scanners for:
   - UI search index (for command palette + help drawer)
   - Dependency graph (cross-module imports)
 """
-from typing import Optional, Union
 
 import ast
 import datetime

@@ -1,11 +1,10 @@
 """
 Tests for reporting module — ReportSection, ReportMetadata, ChartGenerator, TableGenerator.
 """
-from typing import Optional, Union
-
 import os
 import tempfile
 from datetime import datetime, timezone
+from typing import Optional, Union
 
 import pytest
 

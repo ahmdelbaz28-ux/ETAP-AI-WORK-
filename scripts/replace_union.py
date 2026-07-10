@@ -1,4 +1,5 @@
-import pathlib, re, sys
+import pathlib
+import re
 
 root = pathlib.Path(r"C:/Users/EWS-01/Desktop/ETAP-WORK")
 

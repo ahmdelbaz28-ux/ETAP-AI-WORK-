@@ -10,6 +10,8 @@ current_dir = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.abspath(os.path.join(current_dir, "..", "..")))
 sys.path.insert(0, current_dir)
 
+from typing import Optional, Union
+
 from coordination.coordination import CoordinationEngine
 from core_model.bus import Bus
 from core_model.generator import Generator
@@ -21,9 +23,6 @@ from fault_analysis.arc_flash_engine import ArcFlashEngine, ElectrodeConfig, Enc
 from fault_analysis.fault import FaultAnalyzer
 from load_flow.load_flow import LoadFlowSolver
 from relays.relay import OvercurrentRelay
-
-
-from typing import Optional, Union
 
 
 class ValidationCampaign:

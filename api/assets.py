@@ -22,10 +22,10 @@ import uuid
 from datetime import UTC, datetime
 
 UTC = UTC
-from typing import Any, Optional, Union
+from typing import Any, Optional
 
 try:
-    from typing import Annotated, Optional, Union
+    from typing import Annotated, Optional
 except ImportError:
     from typing_extensions import Annotated
 
