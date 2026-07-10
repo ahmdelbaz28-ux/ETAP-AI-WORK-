@@ -3,7 +3,7 @@
 
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, Optional, Union
 
 # 仅京沪津批次接口与志愿接口需要 gradeType
 PROVINCES_REQUIRING_GRADE_TYPE = frozenset({"北京", "上海", "天津"})
@@ -33,7 +33,7 @@ MODE_LABELS: dict[str, str] = {
 
 SUBJECTS_312_ELECTIVES = frozenset({"化学", "生物", "政治", "地理"})
 SUBJECTS_33_POOL = frozenset({"物理", "历史", "化学", "生物", "政治", "地理"})
-SUBJECTS_33_ZHEJIANG = SUBJECTS_33_POOL | frozenset({"技术"})
+SUBJECTS_33_ZHEJIANG = Union[SUBJECTS_33_POOL, frozenset]({"技术"})
 
 
 def parse_subjects_list(subjects: Any) -> list[str]:
@@ -42,7 +42,7 @@ def parse_subjects_list(subjects: Any) -> list[str]:
     return [s.strip() for s in str(subjects).split(",") if s.strip()]
 
 
-def get_province_mode(province: str | None) -> str:
+def get_province_mode(province: Optional[str]) -> str:
     if not province:
         return "unknown"
     if province in UNSUPPORTED_PROVINCES:
@@ -56,7 +56,7 @@ def get_province_mode(province: str | None) -> str:
     return "unknown"
 
 
-def validate_classify(province: str, classify: str | None) -> None:
+def validate_classify(province: str, classify: Optional[str]) -> None:
     """校验 classify 是否与省份选科模式匹配。"""
     mode = get_province_mode(province)
     if mode == "unsupported":
@@ -80,11 +80,11 @@ def validate_classify(province: str, classify: str | None) -> None:
 
 
 def infer_grade_type(
-    province: str | None,
-    score: int | None,
-    explicit: str | None = None,
-    batch_pref: str | None = None,
-) -> str | None:
+    province: Optional[str],
+    score: Optional[int],
+    explicit: Optional[str] = None,
+    batch_pref: Optional[str] = None,
+) -> Optional[str]:
     """京沪津推断本科/专科；其他省份返回 None。"""
     if province not in PROVINCES_REQUIRING_GRADE_TYPE:
         return None

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from typing import Optional
 
 from gis_validation_electrical.electrical_model import ElectricalModel
 
@@ -51,8 +52,8 @@ def _has_undirected_loop(adj: dict[str, set[str]]) -> tuple[bool, list[str]]:  #
     Deterministic and bounded: uses DFS with parent tracking.
     """
     visited: set[str] = set()
-    parent: dict[str, str | None] = {}
-    stack: list[tuple[str, str | None]] = []
+    parent: dict[str, Optional[str]] = {}
+    stack: list[tuple[str, Optional[str]]] = []
 
     for root in adj:
         if root in visited:

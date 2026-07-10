@@ -3,11 +3,11 @@ from __future__ import annotations
 import json
 import os
 from pathlib import Path
-from typing import Any
+from typing import Any, Optional, Union
 
 
 class JsonRepository:
-    def __init__(self, base_dir: str | Path):
+    def __init__(self, base_dir: Union[str, Path]):
         self.base_dir = Path(base_dir)
         self.kp_dir = self.base_dir / "knowledge_points"
         self.progress_dir = self.base_dir / "user_progress"

@@ -33,7 +33,7 @@ from dataclasses import dataclass, field
 from datetime import datetime, timezone
 
 UTC = timezone.utc  # noqa: UP017
-from typing import Any
+from typing import Any, Optional
 
 from compat import StrEnum
 
@@ -311,7 +311,7 @@ _ERROR_CODE_REGISTRY: dict[str, ErrorCode] = {
 }
 
 
-def lookup_error_code(code: str) -> ErrorCode | None:
+def lookup_error_code(code: str) -> Optional[ErrorCode]:
     """Look up an :class:`ErrorCode` by its string code.
 
     Args:
@@ -339,8 +339,8 @@ class ETAPPlatformError(Exception):
         message: str,
         error_code: ErrorCode = ERR_SYSTEM_001,
         context: dict[str, Any] | None = None,
-        trace_id: str | None = None,
-        cause: Exception | None = None,
+        trace_id: Optional[str] = None,
+        cause: Optional[Exception] = None,
     ) -> None:
         super().__init__(message)
         self.message = message
@@ -377,11 +377,11 @@ class StudyExecutionError(ETAPPlatformError):
     def __init__(
         self,
         message: str,
-        study_type: str | None = None,
+        study_type: Optional[str] = None,
         error_code: ErrorCode = ERR_STUDY_001,
         context: dict[str, Any] | None = None,
-        trace_id: str | None = None,
-        cause: Exception | None = None,
+        trace_id: Optional[str] = None,
+        cause: Optional[Exception] = None,
     ) -> None:
         ctx = context or {}
         if study_type:
@@ -410,8 +410,8 @@ class SystemValidationError(ETAPPlatformError):
         validation_errors: list[str] | None = None,
         error_code: ErrorCode = ERR_VALIDATION_001,
         context: dict[str, Any] | None = None,
-        trace_id: str | None = None,
-        cause: Exception | None = None,
+        trace_id: Optional[str] = None,
+        cause: Optional[Exception] = None,
     ) -> None:
         ctx = context or {}
         if validation_errors:
@@ -438,8 +438,8 @@ class AuthenticationError(ETAPPlatformError):
         message: str,
         error_code: ErrorCode = ERR_AUTH_001,
         context: dict[str, Any] | None = None,
-        trace_id: str | None = None,
-        cause: Exception | None = None,
+        trace_id: Optional[str] = None,
+        cause: Optional[Exception] = None,
     ) -> None:
         super().__init__(
             message=message,
@@ -462,8 +462,8 @@ class RateLimitError(ETAPPlatformError):
         retry_after_sec: int = 60,
         error_code: ErrorCode = ERR_RATE_LIMIT_001,
         context: dict[str, Any] | None = None,
-        trace_id: str | None = None,
-        cause: Exception | None = None,
+        trace_id: Optional[str] = None,
+        cause: Optional[Exception] = None,
     ) -> None:
         ctx = context or {}
         ctx["retry_after_sec"] = retry_after_sec
@@ -488,8 +488,8 @@ class DatabaseError(ETAPPlatformError):
         message: str,
         error_code: ErrorCode = ERR_DATABASE_001,
         context: dict[str, Any] | None = None,
-        trace_id: str | None = None,
-        cause: Exception | None = None,
+        trace_id: Optional[str] = None,
+        cause: Optional[Exception] = None,
     ) -> None:
         super().__init__(
             message=message,
@@ -874,8 +874,8 @@ class ErrorReport:
     timestamp: str
     context: dict[str, Any] = field(default_factory=dict)
     recovery_suggestions: list[dict[str, str]] = field(default_factory=list)
-    request_id: str | None = None
-    documentation_url: str | None = None
+    request_id: Optional[str] = None
+    documentation_url: Optional[str] = None
 
     def to_dict(self) -> dict[str, Any]:
         """Convert to a JSON-serializable dictionary."""
@@ -921,7 +921,7 @@ class ErrorReportGenerator:
         self,
         exc: Exception,
         request: Any = None,
-        trace_id: str | None = None,
+        trace_id: Optional[str] = None,
     ) -> ErrorReport:
         """Build an error report from an exception.
 
@@ -974,9 +974,9 @@ class ErrorReportGenerator:
     def from_error_code(
         self,
         error_code: ErrorCode,
-        message: str | None = None,
+        message: Optional[str] = None,
         context: dict[str, Any] | None = None,
-        trace_id: str | None = None,
+        trace_id: Optional[str] = None,
     ) -> ErrorReport:
         """Build an error report from an error code.
 

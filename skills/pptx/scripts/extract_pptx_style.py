@@ -15,6 +15,7 @@ The script imitates the pptx's palette / typography so downstream slide
 generation can stay faithful to the reference deck. No external deps —
 uses zipfile + xml.etree only.
 """
+from typing import Optional, Union
 from __future__ import annotations
 
 import argparse
@@ -40,7 +41,7 @@ PRESET_COLORS = {
 }
 
 
-def _hex_from_node(node: ET.Element | None) -> str | None:
+def _hex_from_node(node: Optional[ET.Element]) -> Optional[str]:
     if node is None:
         return None
     srgb = node.find("a:srgbClr", NS)
@@ -120,7 +121,7 @@ def sample_slide_usage(slide_xml: bytes) -> dict:
     }
 
 
-def synthesize_design(theme: dict, slide: dict | None) -> dict:
+def synthesize_design(theme: dict, slide: Optional[dict]) -> dict:
     p = theme["palette"]
     bg = p.get("lt1") or p.get("lt2") or "#FFFFFF"
     primary = p.get("dk1") or p.get("dk2") or "#1C1917"

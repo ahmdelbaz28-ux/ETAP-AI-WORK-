@@ -8,6 +8,7 @@
   "sidebar": {
     "dashboard": "لوحة التحكم",
     "studies": "الدراسات",
+    "gridEditor": "محرر الشبكة",
     "assistant": "مساعد الذكاء الاصطناعي",
     "projects": "المشاريع",
     "results": "النتائج",
@@ -17,6 +18,7 @@
     "diagnostics": "التشخيصات",
     "etapIntegration": "تكامل ETAP",
     "gisIntegration": "تكامل GIS",
+    "scadaIntegration": "اتصال إسكادا (زينون)",
     "digitalTwin": "التوأم الرقمي",
     "assetManagement": "إدارة الأصول",
     "dataImport": "استيراد البيانات",
@@ -38,6 +40,15 @@
     "notifications": "الإشعارات",
     "noNotifications": "لا توجد إشعارات جديدة",
     "markAllRead": "تحديد الكل كمقروء"
+  },
+  "voiceInput": {
+    "start": "بدء الإدخال الصوتي",
+    "stop": "إيقاف الإدخال الصوتي",
+    "listening": "جاري الاستماع...",
+    "speakNow": "تحدث الآن",
+    "notSupported": "التعرف على الصوت غير مدعوم في هذا المتصفح. يرجى استخدام Chrome أو Edge.",
+    "microphoneDenied": "تم رفض الوصول إلى الميكروفون. يرجى السماح بالوصول لاستخدام الكتابة بالصوت.",
+    "recognitionFailed": "فشل التعرف على الصوت"
   },
   "dashboard": {
     "title": "لوحة التحكم",

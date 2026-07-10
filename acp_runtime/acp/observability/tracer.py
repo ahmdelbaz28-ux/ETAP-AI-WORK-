@@ -18,7 +18,7 @@ import threading
 import time
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any
+from typing import Any, Optional, Union
 
 __all__ = [
     "TraceContext",
@@ -133,7 +133,7 @@ class Tracer:
     Subclasses must implement ``start_span``, ``finish_span``, and ``record_span``.
     """
 
-    def start_span(self, _name: str, context: TraceContext | None = None) -> TraceContext:
+    def start_span(self, _name: str, context: Optional[TraceContext] = None) -> TraceContext:
         """Start a new span and return its context.
 
         The default implementation generates a span_id, creates a child
@@ -229,7 +229,7 @@ class JsonTracer(Tracer):
         encoding: file encoding (default "utf-8").
     """
 
-    def __init__(self, path: str | Path, *, encoding: str = "utf-8") -> None:
+    def __init__(self, path: Union[str, Path], encoding: str = "utf-8") -> None:
         self._path = Path(path)
         self._encoding = encoding
         self._lock = threading.Lock()

@@ -847,20 +847,20 @@ def generate_markdown(index: dict) -> str:  # NOSONAR — S3776: cognitive compl
         "",
         "| Metric | Count |",
         "|:---|---:|",
-        f"| Python Packages | {stats['python_packages']} |",
-        f"| Python Files | {stats['python_files']} |",
-        f"| Python Classes | {stats['python_classes']} |",
-        f"| Python Functions | {stats['python_functions']} |",
-        f"| UI Files (TSX/TS) | {stats['ui_files']} |",
-        f"| Test Files | {stats['test_files']} |",
-        f"| Total Tests | {stats['total_tests']} |",
-        f"| Help Topics | {stats.get('help_topics', 0)} |",
-        f"| Context Mappings | {stats.get('context_mappings', 0)} |",
-        f"| Environment Variables | {stats.get('env_variables', 0)} |",
-        f"| Scripts | {stats.get('scripts', 0)} |",
-        f"| AI Agents | {stats.get('ai_agents', 0)} |",
-        f"| Integrations | {stats.get('integrations', 0)} |",
-        f"| UI Search Index Entries | {stats.get('ui_search_index_entries', 0)} |",
+        f"| Python | Packages | {stats['python_packages']} |",
+        f"| Python | Files | {stats['python_files']} |",
+        f"| Python | Classes | {stats['python_classes']} |",
+        f"| Python | Functions | {stats['python_functions']} |",
+        f"| UI | Files (TSX/TS) | {stats['ui_files']} |",
+        f"| Test | Files | {stats['test_files']} |",
+        f"| Total | Tests | {stats['total_tests']} |",
+        f"| Help | Topics | {stats.get('help_topics', 0)} |",
+        f"| Context | Mappings | {stats.get('context_mappings', 0)} |",
+        f"| Environment | Variables | {stats.get('env_variables', 0)} |",
+        f"| Scripts | | {stats.get('scripts', 0)} |",
+        f"| AI | Agents | {stats.get('ai_agents', 0)} |",
+        f"| Integrations | | {stats.get('integrations', 0)} |",
+        f"| UI | Search Index Entries | {stats.get('ui_search_index_entries', 0)} |",
         "",
         "---",
         "",
@@ -872,7 +872,7 @@ def generate_markdown(index: dict) -> str:  # NOSONAR — S3776: cognitive compl
     agents = index.get("ai_agents", {}).get("agents", {})
     for fname, a in sorted(agents.items()):
         stds = ", ".join(a.get("standards_referenced", [])) or "—"
-        desc = a.get("description", "").replace("|", "\\|").replace("\n", " ")[:60]
+        desc = a.get("description", "").replace(", ", "\\, ").replace("\n", " ")[:60]
         lines.append(f"| **{a['name']}** | `{fname}` | {stds} | {desc} |")
 
     lines += [
@@ -904,8 +904,8 @@ def generate_markdown(index: dict) -> str:  # NOSONAR — S3776: cognitive compl
         "",
         f"Total: **{index.get('help_topics', {}).get('total', 0)}** topics across {len(index.get('help_topics', {}).get('categories', []))} categories",
         "",
-        "| Topic ID | Category | Title (EN) | Title (AR) | Tags |",
-        "|:---|:---|:---|:---|:---|",
+        "| Topic | ID | Category | Title (EN) | Title (AR) | Tags |",
+        "|:---|:---|:---|:---|:---|:---|",
     ]
     for t in index.get("help_topics", {}).get("topics", []):
         tags = ", ".join(f"`{tag}`" for tag in t.get("tags", [])[:5])
@@ -922,7 +922,7 @@ def generate_markdown(index: dict) -> str:  # NOSONAR — S3776: cognitive compl
         f"Total: **{index.get('context_registry', {}).get('total', 0)}** mappings",
         "",
         "| Context ID | Help Topic ID | Priority |",
-        "|:---|:---|---:|",
+        "|:---|:---|:---|",
     ]
     for m in index.get("context_registry", {}).get("mappings", []):
         lines.append(f"| `{m['contextId']}` | `{m['topicId']}` | {m.get('priority', 1)} |")
@@ -994,7 +994,7 @@ def generate_markdown(index: dict) -> str:  # NOSONAR — S3776: cognitive compl
             "PATCH": "🟠",
             "WS": "🟣",
         }.get(method, "⚪")
-        lines.append(f"| {badge} `{method}` | `{route['path']}` | `{route['file']}` |")
+        lines.append(f"| {badge} | `{method}` | `{route['path']}` | `{route['file']}` |")
 
     lines += [
         "",
@@ -1049,7 +1049,7 @@ def generate_markdown(index: dict) -> str:  # NOSONAR — S3776: cognitive compl
     for path, t in index["tests"].items():
         fname = path.split("/")[-1]
         lines.append(
-            f"| `{fname}` | {len(t['test_functions'])} | {len(t['test_classes'])} | **{t['total_tests']}** |",
+            f"| `{fname}` | {len(t['test_functions'])} | {len(t['test_classes'])} | **{t['total_tests']}** |"
         )
 
     lines += [
@@ -1058,11 +1058,11 @@ def generate_markdown(index: dict) -> str:  # NOSONAR — S3776: cognitive compl
         "",
         "## 🛠️ Scripts",
         "",
-        "| Script | Type | Size | Description |",
-        "|:---|:---|---:|:---|",
+        "| Script | Type | Size (KB) | Description |",
+        "|:---|:---|:---:|:---|",
     ]
     for rel, s in sorted(index.get("scripts", {}).get("files", {}).items()):
-        desc = s.get("description", "").replace("|", "\\|")[:60]
+        desc = s.get("description", "").replace(", ", "\\, ")[:60]
         lines.append(f"| `{rel}` | {s['type']} | {s['size_kb']} KB | {desc} |")
 
     lines += [
@@ -1071,7 +1071,7 @@ def generate_markdown(index: dict) -> str:  # NOSONAR — S3776: cognitive compl
         "",
         "## 🏗️ Infrastructure Files",
         "",
-        "| File | Size | Hash |",
+        "| File | Size (KB) | Hash |",
         "|:---|---:|:---|",
     ]
     for rel_path, idata in index["infrastructure"].items():

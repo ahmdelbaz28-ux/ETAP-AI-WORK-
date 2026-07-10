@@ -10,7 +10,7 @@ import json
 import os
 import time
 from collections.abc import Coroutine
-from typing import Any, TypeVar
+from typing import Any, Optional, TypeVar
 
 from core.bootstrap import _get_etap_provider, _get_power_system_engine, _to_jsonable, logger
 from core.tracing import trace_operation
@@ -223,7 +223,7 @@ def _run_async(coro: Coroutine[Any, Any, T]) -> T:
 
 @trace_operation("_run_native_study", attributes={"component": "engineering_service"})
 def _run_native_study(  # NOSONAR — S3776: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
-    study_type: str, system: Any | None, parameters: dict[str, Any],
+    study_type: str, system: Optional[Any], parameters: dict[str, Any],
 ) -> dict[str, Any]:
     """Execute a study using the native PowerSystemEngine."""
     if study_type in _STUDIES_REQUIRING_SYSTEM and system is None:

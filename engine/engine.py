@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, Optional
 
 from coordination.coordination import CoordinationEngine
 from core_model.system import System
@@ -42,12 +42,12 @@ class PowerSystemEngine:
 
     def __init__(
         self,
-        system: System | None = None,
+        system: Optional[System] = None,
         *,
-        load_flow_solver: LoadFlowSolverProtocol | None = None,
-        arc_flash_engine: ArcFlashEngineProtocol | None = None,
-        coordination_engine: CoordinationEngineProtocol | None = None,
-        visualizer: VisualizerProtocol | None = None,
+        load_flow_solver: Optional[LoadFlowSolverProtocol] = None,
+        arc_flash_engine: Optional[ArcFlashEngineProtocol] = None,
+        coordination_engine: Optional[CoordinationEngineProtocol] = None,
+        visualizer: Optional[VisualizerProtocol] = None,
     ) -> None:
         self.system = system
 

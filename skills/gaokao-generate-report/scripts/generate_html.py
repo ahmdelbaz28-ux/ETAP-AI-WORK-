@@ -9,7 +9,7 @@ import re
 import sys
 from datetime import datetime
 from pathlib import Path
-from typing import Any
+from typing import Any, Optional, Union
 
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 
@@ -40,14 +40,14 @@ SECTION_TITLE_CLASS = {
 }
 
 
-def format_subjects(subjects: str | None) -> str:
+def format_subjects(subjects: Optional[str]) -> str:
     if not subjects:
         return "—"
     parts = [p.strip() for p in re.split(r"[,，]", subjects) if p.strip()]
     return "·".join(parts) if parts else subjects
 
 
-def split_tags(tags: str | None, limit: int = 8) -> list[str]:
+def split_tags(tags: Optional[str], limit: int = 8) -> list[str]:
     if not tags:
         return []
     items = [t.strip() for t in re.split(r"[,，]", tags) if t.strip()]
@@ -74,7 +74,7 @@ def build_school_tags(school: dict[str, Any]) -> list[str]:
     return tags
 
 
-def enrich_major(major: dict, rec_id: str | None = None) -> dict:
+def enrich_major(major: dict, rec_id: Optional[str] = None) -> dict:
     major = dict(major)
     cost = major.get("study_cost")
     if cost and not str(cost).endswith("元"):
@@ -110,7 +110,7 @@ def collect_probabilities(schools: list[dict]) -> list[int]:
     return probs
 
 
-def format_prob_range(probs: list[int]) -> tuple[int | None, int | None, str | None]:
+def format_prob_range(probs: list[int]) -> tuple[Optional[int], Optional[int], Optional[str]]:
     if not probs:
         return None, None, None
     low, high = min(probs), max(probs)
@@ -170,7 +170,7 @@ def flatten_majors(groups: list[dict]) -> list[dict]:
     return sort_majors_by_rec(majors)
 
 
-def build_rec_maps(analysis: dict | None) -> tuple[dict[tuple, str], dict[tuple, str], dict[str, dict]]:
+def build_rec_maps(analysis: Optional[dict]) -> tuple[dict[tuple, str], dict[tuple, str], dict[str, dict]]:
     """返回 (school_rec_map, major_rec_map, rec_modals)。"""
     if not analysis:
         return {}, {}, {}
@@ -298,7 +298,7 @@ def compute_stat_pcts(stats: dict[str, Any]) -> dict[str, int]:
     }
 
 
-def enrich_context(data: dict, analysis: dict | None = None) -> dict:
+def enrich_context(data: dict, analysis: Optional[dict] = None) -> dict:
     profile = data.get("profile") or {}
     stats = data.get("stats") or {}
     schools_by_type = data.get("schools_by_type") or {}
@@ -337,7 +337,7 @@ def render_report(
     data: dict,
     template_path: Path,
     output_path: Path,
-    analysis: dict | None = None,
+    analysis: Optional[dict] = None,
 ) -> None:
     if not template_path.is_file():
         raise FileNotFoundError(f"模板不存在: {template_path}")

@@ -30,7 +30,7 @@ from dataclasses import dataclass, field
 from datetime import datetime, timezone
 
 UTC = timezone.utc  # noqa: UP017
-from typing import Any
+from typing import Any, Union
 
 # Business-hours window (local time) used by ABAC policies.
 # Module-level so they can be tuned without code changes.
@@ -171,7 +171,7 @@ class ABACPolicyEngine:
 
     # -- policy management ---------------------------------------------------
 
-    def add_policy(self, policy: ABACPolicy | list[ABACPolicy]) -> None:
+    def add_policy(self, policy: Union[ABACPolicy, list][ABACPolicy]) -> None:
         """Add one or more policies to the engine.
 
         If a list is passed (e.g. the return value of

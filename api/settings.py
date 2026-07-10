@@ -39,7 +39,7 @@ Usage:
 from __future__ import annotations
 
 import logging
-from typing import Any
+from typing import Any, Optional
 
 try:
     from typing import Annotated
@@ -74,12 +74,12 @@ class SaveKeyRequest(BaseModel):
         max_length=500,
         description="The API key (will be encrypted before storage)",
     )
-    base_url: str | None = Field(
+    base_url: Optional[str] = Field(
         default=None,
         max_length=500,
         description="Custom endpoint URL (e.g., https://api.openai.com/v1)",
     )
-    model_name: str | None = Field(
+    model_name: Optional[str] = Field(
         default=None,
         max_length=100,
         description="Model name override (e.g., gpt-4o)",

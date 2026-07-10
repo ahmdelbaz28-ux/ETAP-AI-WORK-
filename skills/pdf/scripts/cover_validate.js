@@ -151,15 +151,23 @@ const DECORATIVE_LINE_DETECTION = `
     );
     const isBorderLine = hasOnlyBorder && (rect.height <= 8 || rect.width <= 8);
     
-    if (isHR || isThinH || isThinV || isWideRatio || isTallRatio || isBorderLine) {
-      lineElements.push({
-        tag: tag,
-        class: el.className || '',
-        rect: { x: rect.x, y: rect.y, width: rect.width, height: rect.height },
-        type: isThinH || isWideRatio ? 'horizontal' : (isThinV || isTallRatio ? 'vertical' : (rect.width >= rect.height ? 'horizontal' : 'vertical')),
-      });
-      continue;
-    }
+if (isHR || isThinH || isThinV || isWideRatio || isTallRatio || isBorderLine) {
+       let lineType;
+       if (isThinH || isWideRatio) {
+         lineType = 'horizontal';
+       } else if (isThinV || isTallRatio) {
+         lineType = 'vertical';
+       } else {
+         lineType = rect.width >= rect.height ? 'horizontal' : 'vertical';
+       }
+       lineElements.push({
+         tag: tag,
+         class: el.className || '',
+         rect: { x: rect.x, y: rect.y, width: rect.width, height: rect.height },
+         type: lineType,
+       });
+       continue;
+     }
     
     // Detect text elements (has direct text content or is a heading/paragraph)
     const textTags = ['h1','h2','h3','h4','h5','h6','p','span','a','li','td','th','label','summary'];

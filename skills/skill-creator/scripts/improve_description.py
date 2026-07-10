@@ -4,6 +4,7 @@
 Takes eval results (from run_eval.py) and generates an improved description
 by calling `z-ai chat -p` as a subprocess.
 """
+from typing import Optional, Union
 
 import argparse
 import json
@@ -43,9 +44,9 @@ def improve_description(
     eval_results: dict,
     history: list[dict],
     model: str,
-    test_results: dict | None = None,
-    log_dir: Path | None = None,
-    iteration: int | None = None,
+    test_results: Optional[dict] = None,
+    log_dir: Optional[Path] = None,
+    iteration: Optional[int] = None,
 ) -> str:
     """Call z-ai to improve the description based on eval results."""
     failed_triggers = [

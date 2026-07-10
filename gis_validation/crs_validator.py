@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, Optional
 
 from gis_integration.models import ADMSAsset
 
@@ -13,7 +13,7 @@ class CRSIssue:
     details: dict[str, Any]
 
 
-def _asset_source_crs(asset: ADMSAsset) -> str | None:
+def _asset_source_crs(asset: ADMSAsset) -> Optional[str]:
     # Deterministic: transformer stores source_crs in metadata.
     try:
         return asset.metadata.get("source_crs")
@@ -21,7 +21,7 @@ def _asset_source_crs(asset: ADMSAsset) -> str | None:
         return None
 
 
-def _normalize_epsg(crs: str | None) -> str | None:
+def _normalize_epsg(crs: Optional[str]) -> Optional[str]:
     if not crs or not isinstance(crs, str):
         return None
     s = crs.strip().upper()

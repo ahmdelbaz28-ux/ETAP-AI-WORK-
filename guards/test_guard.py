@@ -25,7 +25,7 @@ from __future__ import annotations
 import ast
 import logging
 import re
-from typing import Any
+from typing import Any, Optional
 
 from guards.ai_failure_modes import AIFailureModeDetector
 from guards.base import BaseGuard, GuardMode, GuardResult, GuardSeverity, GuardViolation
@@ -59,7 +59,7 @@ class TestGuard(BaseGuard):
         violations: list[GuardViolation] = []
         context = context or {}
 
-        tree: ast.AST | None = None
+        tree: Optional[ast.AST] = None
         try:
             tree = ast.parse(source)
         except SyntaxError:
@@ -151,8 +151,8 @@ class TestGuard(BaseGuard):
         violations: list[GuardViolation] = []
         # Patterns suggesting internal patching
         internal_patch_patterns = [
-            r'patch\(["\'](?!\b(requests|httpx|aiohttp|boto|redis|psycopg|sqlalchemy|subprocess)\b)',
-            r'mock\.patch\(["\'](?!\b(requests|httpx|aiohttp|boto|redis|psycopg|sqlalchemy|subprocess)\b)',
+            r'patch\(["\'](?!\b(Union[requests|httpx|aiohttp|boto|redis|psycopg|sqlalchemy, subprocess])\b)',
+            r'mock\.patch\(["\'](?!\b(Union[requests|httpx|aiohttp|boto|redis|psycopg|sqlalchemy, subprocess])\b)',
         ]
         for pat in internal_patch_patterns:
             for match in re.finditer(pat, source):
@@ -257,7 +257,7 @@ class TestGuard(BaseGuard):
         """Heuristic: test that only verifies Python built-in behavior."""
         violations: list[GuardViolation] = []
         framework_assert_patterns = [
-            (r"assert\s+(type|isinstance|len|str|int|float|dict|list)\s*\(", "type/builtin check"),
+            (r"assert\s+(Union[type|isinstance|len|str|int|float|dict, list])\s*\(", "type/builtin check"),
         ]
         for pat, _desc in framework_assert_patterns:
             for match in re.finditer(pat, source):
@@ -356,8 +356,8 @@ class TestGuard(BaseGuard):
         violations: list[GuardViolation] = []
         # Heuristic: @skip or @xfail decorators on tests that reference
         # bug/issue/regression in their name
-        skip_pattern = r"@(skip|xfail)\b"
-        regression_name_pattern = r"test_.*(regression|bug|issue|fix|crash|error)_"
+        skip_pattern = r"@(Union[skip, xfail])\b"
+        regression_name_pattern = r"test_.*(Union[regression|bug|issue|fix|crash, error])_"
         for match in re.finditer(skip_pattern, source):
             line_num = source[: match.start()].count("\n") + 1
             # Check if nearby test name mentions regression
@@ -388,7 +388,7 @@ class TestGuard(BaseGuard):
         violations: list[GuardViolation] = []
         # Only flag if the test file looks like an integration test
         is_integration = bool(
-            re.search(r"(integration|e2e|end.to.end|system)", source, re.IGNORECASE),
+            re.search(r"(Union[integration|e2e|end.to.end, system])", source, re.IGNORECASE),
         )
         if not is_integration:
             return violations
@@ -396,11 +396,11 @@ class TestGuard(BaseGuard):
         # Flag mocking of databases and message queues in integration tests
         infra_mock_patterns = [
             (
-                r'patch\(["\'].*(?:database|db|redis|kafka|rabbitmq|celery)',
+                r'patch\(["\'].*((?:database|db|redis|kafka|rabbitmq|celery))',
                 "database/messaging mock in integration test",
             ),
             (
-                r"MagicMock.*(?:Database|Repository|Queue|Broker)",
+                r"MagicMock.*(Union[?:Database|Repository|Queue, Broker])",
                 "infrastructure mock in integration test",
             ),
         ]
@@ -432,7 +432,7 @@ class TestGuard(BaseGuard):
         # T-L1: Test prompt contracts not content
         # Heuristic: exact string match on LLM output.
         # NOSONAR — python:S8786: .* is bounded by single-line source code
-        pattern = r'assert\s+.*(?:response|output|result|completion).*==\s*["\']'
+        pattern = r'assert\s+.*(Union[?:response|output|result, completion]).*==\s*["\']'
         for match in re.finditer(pattern, source):
             line_num = source[: match.start()].count("\n") + 1
             violations.append(
@@ -464,7 +464,7 @@ class TestGuard(BaseGuard):
         """
         violations: list[GuardViolation] = []
         # Pattern: test creates an LLM agent/call but doesn't check observability
-        llm_call_pattern = r"(?:agent|llm|completion|chat|prompt|openai|claude)\s*\("
+        llm_call_pattern = r"(Union[?:agent|llm|completion|chat|prompt|openai, claude])\s*\("
         has_llm_call = bool(re.search(llm_call_pattern, source, re.IGNORECASE))
 
         if has_llm_call:
@@ -513,7 +513,7 @@ class TestGuard(BaseGuard):
         """
         violations: list[GuardViolation] = []
         # Pattern: test that uses agent workflow but only checks final result
-        agent_flow_pattern = r"(?:workflow|pipeline|chain|agent_run|run_agent|execute_agent)"
+        agent_flow_pattern = r"(Union[?:workflow|pipeline|chain|agent_run|run_agent, execute_agent])"
         has_agent_flow = bool(re.search(agent_flow_pattern, source, re.IGNORECASE))
 
         if has_agent_flow:

@@ -32,12 +32,14 @@ const LazyPage = ({ children }: { children: ReactNode }) => (
 
 const DashboardPage = lazy(() => import('./pages/Dashboard'))
 const StudiesPage = lazy(() => import('./pages/Studies'))
+const GridEditorPage = lazy(() => import('./pages/GridEditor'))
 const StudyRunPage = lazy(() => import('./pages/StudyRun'))
 const AssetManagementPage = lazy(() => import('./pages/AssetManagement'))
 const AIAssistantPage = lazy(() => import('./pages/AIAssistant'))
 const ProjectsPage = lazy(() => import('./pages/Projects'))
 const EtapIntegrationPage = lazy(() => import('./pages/EtapIntegration'))
 const GisIntegrationPage = lazy(() => import('./pages/GisIntegration'))
+const ScadaIntegrationPage = lazy(() => import('./pages/ScadaIntegration'))
 const ReportsPage = lazy(() => import('./pages/Reports'))
 const SettingsPage = lazy(() => import('./pages/Settings'))
 const AdministrationPage = lazy(() => import('./pages/Administration'))
@@ -165,12 +167,14 @@ export default function App() {
               <Route path="/" element={<Navigate to="/dashboard" replace />} />
               <Route path="/dashboard" element={<LazyPage><DashboardPage /></LazyPage>} />
               <Route path="/studies" element={<LazyPage><StudiesPage /></LazyPage>} />
+              <Route path="/grid-editor" element={<LazyPage><GridEditorPage /></LazyPage>} />
               <Route path="/studies/:studyType" element={<LazyPage><StudyRunPage /></LazyPage>} />
               <Route path="/asset-management" element={<LazyPage><AssetManagementPage /></LazyPage>} />
               <Route path="/assistant" element={<LazyPage><AIAssistantPage /></LazyPage>} />
               <Route path="/projects" element={<LazyPage><ProjectsPage /></LazyPage>} />
               <Route path="/etap" element={<LazyPage><EtapIntegrationPage /></LazyPage>} />
               <Route path="/gis" element={<LazyPage><GisIntegrationPage /></LazyPage>} />
+              <Route path="/scada" element={<LazyPage><ScadaIntegrationPage /></LazyPage>} />
               <Route path="/reports" element={<LazyPage><ReportsPage /></LazyPage>} />
               <Route path="/settings" element={<LazyPage><SettingsPage /></LazyPage>} />
               <Route path="/admin" element={<LazyPage><AdministrationPage /></LazyPage>} />

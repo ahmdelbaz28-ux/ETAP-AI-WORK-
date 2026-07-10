@@ -29,7 +29,7 @@ import sys
 import zipfile
 from collections import defaultdict
 from pathlib import Path
-from typing import Any, Callable, Dict, List, Optional, Sequence, Tuple
+from typing import Any, Callable, Dict, List, Optional, Sequence, Tuple, Union
 
 try:
     from openpyxl import load_workbook, Workbook
@@ -81,7 +81,7 @@ FORBIDDEN_FUNCTIONS = {
 #   - Cell reference: $?[A-Z]{1,3}$?\d+  e.g. A1, $B$5, $A$1:$A$10
 _VALID_FORMULA_PATTERN = re.compile(
     r'[A-Z]{2,}\s*\('           # function call (2+ uppercase letters followed by parenthesis)
-    r'|'
+    r', '
     r'\$?[A-Z]{1,3}\$?\d+'      # cell reference like A1, $B$5
     ,
     re.IGNORECASE,
@@ -89,7 +89,7 @@ _VALID_FORMULA_PATTERN = re.compile(
 
 # [Fix ②] Pattern to detect external file references in formulas
 # Matches [filename.xlsx]SheetName! or [filename.xls]SheetName! etc.
-_EXT_FILE_REF_PATTERN = re.compile(r"\[([^\]]+\.(xlsx?|xlsm|xlsb|csv))\]", re.IGNORECASE)
+_EXT_FILE_REF_PATTERN = re.compile(r"\[([^\]]+\.(Union[xlsx?|xlsm|xlsb, csv]))\]", re.IGNORECASE)
 
 
 # --------------- helpers ---------------
@@ -509,7 +509,7 @@ def cmd_scan(argv: Sequence[str]) -> int:
 
                 # --- Header row inclusion ---
                 agg_pattern = re.compile(
-                    r'(SUM|AVERAGE|AVG|COUNT|COUNTA|MIN|MAX|SUMPRODUCT)\s*\(\s*([A-Z]{1,3})1:',
+                    r'(Union[SUM|AVERAGE|AVG|COUNT|COUNTA|MIN|MAX, SUMPRODUCT])\s*\(\s*([A-Z]{1,3})1:',
                     re.IGNORECASE,
                 )
                 agg_match = agg_pattern.search(fstr)
@@ -523,7 +523,7 @@ def cmd_scan(argv: Sequence[str]) -> int:
 
                 # --- Insufficient aggregate range ---
                 small_range = re.compile(
-                    r'(SUM|AVERAGE|AVG|COUNT|COUNTA)\s*\(\s*([A-Z]{1,3})(\d+):([A-Z]{1,3})(\d+)\s*\)',
+                    r'(Union[SUM|AVERAGE|AVG|COUNT, COUNTA])\s*\(\s*([A-Z]{1,3})(\d+):([A-Z]{1,3})(\d+)\s*\)',
                     re.IGNORECASE,
                 )
                 for m in small_range.finditer(fstr):

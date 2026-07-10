@@ -24,7 +24,7 @@ import re
 import stat
 import threading
 from datetime import datetime, timezone
-from typing import Any, Optional
+from typing import Any, Optional, Union
 
 UTC = timezone.utc  # noqa: UP017
 from pathlib import Path
@@ -52,7 +52,7 @@ def _ensure_dir(path: Path) -> Path:
     return path
 
 
-def _get_cipher(key: bytes | None = None) -> tuple[Fernet, bytes]:
+def _get_cipher(key: Optional[bytes] = None) -> tuple[Fernet, bytes]:
     if key:
         return Fernet(key), key
     key = Fernet.generate_key()
@@ -92,7 +92,7 @@ class VaultSecretsManager:
 
         # Disk-backed fallback (no in-memory secret loss on restart).
         # We reuse LocalSecretsManager (Fernet-encrypted files under SECRETS_DIR).
-        self._fallback_store: LocalSecretsManager | None = None
+        self._fallback_store: Optional[LocalSecretsManager] = None
 
         self._init_vault_client()
 
@@ -147,7 +147,7 @@ class VaultSecretsManager:
         raw = f"{self.mount_path}__{path}__{key}"
         return re.sub(r"[^a-zA-Z0-9_-]", "_", raw)  # NOSONAR — S1192: intentional repetition (audit constant)
 
-    def get_secret(self, path: str, key: str) -> str | None:
+    def get_secret(self, path: str, key: str) -> Optional[str]:
         """Retrieve a secret from Vault or local fallback."""
         if self._connected and self._client:
             try:
@@ -258,7 +258,7 @@ class LocalSecretsManager:
     but maintains its own independent key for isolation.
     """
 
-    def __init__(self, encryption_key: bytes | None = None):
+    def __init__(self, encryption_key: Optional[bytes] = None):
         _ensure_dir(SECRETS_DIR)
         self._key: bytes
         self._cipher: Fernet
@@ -293,7 +293,7 @@ class LocalSecretsManager:
 
         # Cross-platform: os.chmod with Unix permission bits is ineffective on Windows.
         if os.name != "nt":
-            os.chmod(str(ENCRYPTION_KEY_FILE), stat.S_IRUSR | stat.S_IWUSR)
+            os.chmod(str(ENCRYPTION_KEY_FILE), Union[stat.S_IRUSR, stat.S_IWUSR])
         logger.info("Generated new encryption key at %s", ENCRYPTION_KEY_FILE)
         return key
 
@@ -312,7 +312,7 @@ class LocalSecretsManager:
             logger.exception("Failed to store API key for %s: %s", service_name, exc)
             return False
 
-    def get_api_key(self, service_name: str) -> str | None:
+    def get_api_key(self, service_name: str) -> Optional[str]:
         """Retrieve a stored API key for *service_name*."""
         path = self._service_file(service_name)
         if not path.exists():
@@ -347,7 +347,7 @@ class LocalSecretsManager:
             ENCRYPTION_KEY_FILE.write_bytes(new_key)
 
             if os.name != "nt":
-                os.chmod(str(ENCRYPTION_KEY_FILE), stat.S_IRUSR | stat.S_IWUSR)
+                os.chmod(str(ENCRYPTION_KEY_FILE), Union[stat.S_IRUSR, stat.S_IWUSR])
 
             self._key = new_key
             self._cipher = new_cipher
@@ -396,7 +396,7 @@ class KeyAccessAuditor:
     def __init__(self, audit_logger: Optional[Any] = None):
         _ensure_dir(AUDIT_DIR)
         self._log_file = AUDIT_DIR / "key_access.log"
-        self._log_handler: logging.Handler | None = None
+        self._log_handler: Optional[logging.Handler] = None
         self._setup_logger()
         if audit_logger is None:
             try:
@@ -431,7 +431,7 @@ class KeyAccessAuditor:
         key_name: str,
         action: str,
         success: bool,
-        details: dict | None = None,
+        details: Optional[dict] = None,
     ) -> None:
         """Log a key access event to the audit log."""
         entry = {
@@ -456,10 +456,10 @@ class KeyAccessAuditor:
 
     def get_access_logs(  # NOSONAR — S3776: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
         self,
-        key_name: str | None = None,
-        user_id: str | None = None,
-        start_time: datetime | None = None,
-        end_time: datetime | None = None,
+        key_name: Optional[str] = None,
+        user_id: Optional[str] = None,
+        start_time: Optional[datetime] = None,
+        end_time: Optional[datetime] = None,
     ) -> list[dict]:
         """Return filtered key access log entries."""
         if not self._log_file.exists():
@@ -510,7 +510,7 @@ class EnvironmentValidator:
     """
 
     def __init__(
-        self, env_path: Path | None = None, required_secrets: list[str] | None = None,
+        self, env_path: Optional[Path] = None, required_secrets: list[str] | None = None,
     ):
         self.env_path = env_path or Path.cwd() / ".env"
         self.required_secrets = required_secrets or REQUIRED_SECRETS
@@ -538,8 +538,8 @@ class EnvironmentValidator:
         try:
             st_mode = env_path.stat().st_mode
             if os.name != "nt":
-                owner_only = stat.S_IRUSR | stat.S_IWUSR
-                group_other = stat.S_IRGRP | stat.S_IWGRP | stat.S_IROTH | stat.S_IWOTH
+                owner_only = Union[stat.S_IRUSR, stat.S_IWUSR]
+                group_other = Union[stat.S_IRGRP, stat.S_IWGRP] | Union[stat.S_IROTH, stat.S_IWOTH]
                 if st_mode & group_other:
                     logger.warning(
                         ".env has overly permissive permissions (mode %o); "
@@ -619,7 +619,7 @@ class EnvironmentValidator:
             logger.info("No hardcoded secrets detected")
         return findings
 
-    def generate_env_template(self, output_path: Path | None = None) -> str:
+    def generate_env_template(self, output_path: Optional[Path] = None) -> str:
         """Generate a .env.example template listing all required environment variables."""
         out = output_path or Path.cwd() / ".env.example"
         lines = [

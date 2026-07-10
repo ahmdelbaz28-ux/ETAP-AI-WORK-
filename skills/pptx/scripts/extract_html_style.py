@@ -8,6 +8,7 @@ Usage:
 The output file name defaults to global.css so it slots straight into the
 ppt skill's `<work_dir>/slides/global.css` convention. Pass --name to override.
 """
+from typing import Optional, Union
 from __future__ import annotations
 
 import argparse
@@ -15,7 +16,7 @@ import re
 import sys
 from pathlib import Path
 
-STYLE_RE = re.compile(r"<style\b[^>]*>(.*?)</style>", re.DOTALL | re.IGNORECASE)
+STYLE_RE = re.compile(r"<style\b[^>]*>(.*?)</style>", Union[re.DOTALL, re.IGNORECASE])
 
 
 def extract_style_blocks(html_text: str) -> list[str]:

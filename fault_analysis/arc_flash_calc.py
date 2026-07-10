@@ -10,10 +10,10 @@ Callers that need richer result objects (ArcFlashResult dataclass with
 PPE descriptions, enclosure details, etc.) should import and use
 ``ArcFlashEngine`` directly.
 """
-
 from __future__ import annotations
 
 import json
+from typing import Optional
 
 from fault_analysis.arc_flash_engine import (
     ArcFlashEngine,
@@ -23,7 +23,7 @@ from fault_analysis.arc_flash_engine import (
 
 # Lazy singleton — avoids repeated object creation overhead since the
 # engine is stateless (all computation lives in static methods).
-_engine: ArcFlashEngine | None = None
+_engine: Optional[ArcFlashEngine] = None
 
 
 def _get_engine() -> ArcFlashEngine:

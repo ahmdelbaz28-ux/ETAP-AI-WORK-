@@ -34,13 +34,13 @@ Attach to any logger or handler:
 The filter is also auto-attached by ``security.security_framework`` when
 the ``AUDIT_LOG_REDACT_SECRETS`` env var is set to ``true`` (default).
 """
-
 from __future__ import annotations
 
 import contextlib
 import logging
 import re
 from re import Pattern
+from typing import Optional
 
 __all__ = ["SecretRedactionFilter", "redact_text", "install_globally"]
 
@@ -106,13 +106,7 @@ _REDACTION_PATTERNS: list[tuple[Pattern[str], str]] = [
     # Catches: API_KEY=..., SECRET=..., PASSWORD=..., TOKEN=..., PRIVATE_KEY=...
     # Skips: KEY_ID=..., KEYBOARD=... etc. (less sensitive)
     (
-        re.compile(
-            r"\b(API_KEY|API_SECRET|SECRET_KEY|SECRET|PASSWORD|PASSWD|PWD|"
-            r"TOKEN|ACCESS_TOKEN|REFRESH_TOKEN|PRIVATE_KEY|ENCRYPTION_KEY|"
-            r"JWT_SECRET|JWT_SECRET_KEY|FERNET_KEY|SERVICE_ACCOUNT_KEY)"
-            r"\s*[=:]\s*['\"]?[^\s'\"]{4,}",
-            re.IGNORECASE,
-        ),
+        re.compile(r'\b(API_KEY|API_SECRET|SECRET_KEY|SECRET|PASSWORD|PASSWD|PWD|TOKEN|ACCESS_TOKEN|REFRESH_TOKEN|PRIVATE_KEY|ENCRYPTION_KEY|JWT_SECRET|JWT_SECRET_KEY|FERNET_KEY|SERVICE_ACCOUNT_KEY)\s*[=:]\s*[\'\"]?[^\s\'\"]{4,}', re.IGNORECASE),
         r"\1=[REDACTED]",
     ),
     # --- TOTP secrets (base32, 16+ chars) when prefixed with "totp_secret" ---
@@ -211,7 +205,7 @@ class SecretRedactionFilter(logging.Filter):
 # Convenience: install globally on the root logger
 # ---------------------------------------------------------------------------
 
-_GLOBAL_FILTER: SecretRedactionFilter | None = None
+_GLOBAL_FILTER: Optional[SecretRedactionFilter] = None
 
 
 def install_globally(level: int = logging.WARNING) -> SecretRedactionFilter:

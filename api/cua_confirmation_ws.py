@@ -48,7 +48,7 @@ import logging
 import uuid
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
-from typing import Any
+from typing import Any, Optional
 
 from fastapi import WebSocket, WebSocketDisconnect
 
@@ -65,9 +65,9 @@ class ConfirmationRequest:
     request_id: str
     action_type: str
     action_target: str
-    action_x: int | None = None
-    action_y: int | None = None
-    action_text: str | None = None
+    action_x: Optional[int] = None
+    action_y: Optional[int] = None
+    action_text: Optional[str] = None
     action_keys: list = field(default_factory=list)
     requires_dual_confirmation: bool = True
     timestamp: str = field(default_factory=lambda: datetime.now(UTC).isoformat())
@@ -76,7 +76,7 @@ class ConfirmationRequest:
     rejections: list = field(default_factory=list)
     # Internal
     _event: asyncio.Event = field(default_factory=asyncio.Event, repr=False)
-    _result: bool | None = None
+    _result: Optional[bool] = None
 
     def to_dict(self) -> dict[str, Any]:
         """Serialize the confirmation request to a JSON-encodable dict."""
@@ -214,7 +214,7 @@ class ConfirmationBroker:
                     # Workaround: use a thread to wait for the event.
                     import threading
 
-                    result_holder: dict[str, bool | None] = {"result": None}
+                    result_holder: dict[str, Optional[bool]] = {"result": None}
 
                     def wait_in_thread():
                         try:

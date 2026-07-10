@@ -9,11 +9,11 @@ Usage:
     async def my_agent_function(prompt: str) -> str:
         ...
 """
-
 import functools
 import logging
 import os
 from collections.abc import Callable
+from typing import Optional
 
 logger = logging.getLogger(__name__)
 
@@ -52,11 +52,11 @@ class LangWatchTracker:
     def track(
         self,
         name: str,
-        input_text: str | None = None,
-        output_text: str | None = None,
-        metadata: dict | None = None,
-        model: str | None = None,
-        agent: str | None = None,
+        input_text: Optional[str] = None,
+        output_text: Optional[str] = None,
+        metadata: Optional[dict] = None,
+        model: Optional[str] = None,
+        agent: Optional[str] = None,
     ) -> None:
         """Manually log a single LLM interaction."""
         if not self.enabled:
@@ -126,8 +126,8 @@ langwatch_tracker = LangWatchTracker()
 
 def track_llm_call(
     name: str,
-    agent: str | None = None,
-    model: str | None = None,
+    agent: Optional[str] = None,
+    model: Optional[str] = None,
     capture_input: bool = True,
     capture_output: bool = True,
 ) -> Callable:

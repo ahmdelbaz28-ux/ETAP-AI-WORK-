@@ -100,9 +100,10 @@ _ECHO = os.getenv("DB_ECHO", "false").lower() == "true"
 # Async engine
 # ---------------------------------------------------------------------------
 
-if _IS_POSTGRES:
-    engine = create_async_engine(
-        DATABASE_URL,
+def _build_postgres_engine(url: str):
+    """Create an async PostgreSQL engine with sensible pool defaults."""
+    return create_async_engine(
+        url,
         echo=_ECHO,
         future=True,
         pool_size=_POOL_SIZE,
@@ -112,32 +113,76 @@ if _IS_POSTGRES:
         pool_pre_ping=True,  # detect stale connections
         connect_args={
             "server_settings": {"application_name": "etap-engineering-service"},
+            # Hard timeout for the initial TCP+TLS+auth handshake.
+            # Without this, a dead/paused Supabase project causes the
+            # register/login endpoints to hang for the default 60s before
+            # returning 500 — far too long for a usable UX.
+            "timeout": int(os.getenv("DB_CONNECT_TIMEOUT", "10")),
         },
     )
+
+
+def _build_sqlite_engine(url: str):
+    """Create an async SQLite engine (no connection pool)."""
+    return create_async_engine(
+        url,
+        echo=_ECHO,
+        future=True,
+        connect_args={"check_same_thread": False},
+    )
+
+
+# Fallback SQLite URL used when the primary Postgres instance is unreachable.
+# Lives under /tmp so it is writable on HF Spaces and other container runtimes.
+_FALLBACK_SQLITE_URL = "sqlite+aiosqlite:////tmp/data/etap_platform_fallback.db"
+
+# Whether we have permanently fallen back to SQLite during this process.
+# Mutated by init_db() if the primary engine cannot reach its database.
+_FELL_BACK_TO_SQLITE: bool = False
+
+
+if _IS_POSTGRES:
+    engine = _build_postgres_engine(DATABASE_URL)
     logger.info(
         "PostgreSQL engine created (pool_size=%d, max_overflow=%d)",
         _POOL_SIZE,
         _MAX_OVERFLOW,
     )
 else:
-    # SQLite — lightweight, no connection pool
-    engine = create_async_engine(
-        DATABASE_URL,
-        echo=_ECHO,
-        future=True,
-        connect_args={"check_same_thread": False},
-    )
+    engine = _build_sqlite_engine(DATABASE_URL)
     logger.info("SQLite engine created at %s", DATABASE_URL)
 
 # ---------------------------------------------------------------------------
 # Async session factory
 # ---------------------------------------------------------------------------
 
-async_session = async_sessionmaker(
+# NOTE: async_session binds to the *current* engine at call time via the
+# global below. When init_db() falls back from Postgres to SQLite, we
+# re-bind async_session so subsequent requests use the working engine.
+# This indirection is required because async_sessionmaker captures the
+# engine reference at construction time.
+
+async_session: async_sessionmaker[AsyncSession] = async_sessionmaker(
     engine,
     class_=AsyncSession,
     expire_on_commit=False,
 )
+
+
+def _rebind_session(new_engine) -> None:
+    """Re-create the async_session factory bound to *new_engine*.
+
+    Called when init_db() falls back from Postgres to SQLite so that
+    subsequent get_db() calls use the working engine.
+    """
+    global async_session, engine, _FELL_BACK_TO_SQLITE
+    engine = new_engine
+    async_session = async_sessionmaker(
+        new_engine,
+        class_=AsyncSession,
+        expire_on_commit=False,
+    )
+    _FELL_BACK_TO_SQLITE = True
 
 
 # ---------------------------------------------------------------------------
@@ -190,7 +235,12 @@ async def check_db_health() -> dict:
             # branch on _IS_POSTGRES. (SonarCloud S3923 flagged the
             # identical-branches if/else as redundant.)
             await session.execute(text("SELECT 1"))
-        return {"status": "healthy", "backend": "postgresql" if _IS_POSTGRES else "sqlite"}
+        backend = "sqlite-fallback" if _FELL_BACK_TO_SQLITE else ("postgresql" if _IS_POSTGRES else "sqlite")
+        return {
+            "status": "healthy" if not _FELL_BACK_TO_SQLITE else "degraded",
+            "backend": backend,
+            "fallback_active": _FELL_BACK_TO_SQLITE,
+        }
     except Exception as exc:
         logger.exception("Database health check failed: %s", exc)
         return {"status": "unhealthy", "error": "Database connection failed"}
@@ -211,6 +261,13 @@ async def init_db() -> None:
     ``Base.metadata`` is aware of every mapped table before
     ``create_all`` is called.
 
+    If the primary engine targets PostgreSQL but the database is
+    unreachable (e.g. Supabase project paused, network partition, wrong
+    credentials), this function automatically falls back to a local
+    SQLite file under ``/tmp/data/etap_platform_fallback.db`` so the
+    platform stays operational in a degraded mode. A loud warning is
+    logged so operators know to fix the Postgres connection.
+
     Example::
 
         @asynccontextmanager
@@ -225,13 +282,41 @@ async def init_db() -> None:
     import api.assets  # noqa: F401  — registers Asset model
     import api.auth  # noqa: F401  — registers User model
     import api.projects  # noqa: F401  — registers Project & StudyResult models
+    import api.rbac  # noqa: F401  — registers Role, Permission, UserRole models
 
     # StudyJob table for persistent task queue — optional import (core.models
     # may not be available in stripped-down deployments).
     with contextlib.suppress(ImportError):
         from core import models as _models  # noqa: F401
 
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
+    try:
+        async with engine.begin() as conn:
+            await conn.run_sync(Base.metadata.create_all)
+        logger.info("Database tables created/verified successfully")
+        return
+    except Exception as exc:
+        if not _IS_POSTGRES:
+            # SQLite has no fallback — re-raise so callers know.
+            raise
+        logger.error(
+            "Primary PostgreSQL database unreachable: %s. "
+            "Falling back to local SQLite at %s. The platform will run "
+            "in DEGRADED MODE: data will NOT persist across container "
+            "restarts. Fix DATABASE_URL (e.g. resume the Supabase project) "
+            "and restart the Space to restore production-grade storage.",
+            exc,
+            _FALLBACK_SQLITE_URL,
+        )
 
-    logger.info("Database tables created/verified successfully")
+    # Fall back to SQLite — make sure /tmp/data exists, then rebind.
+    _fallback_dir = os.path.dirname(_FALLBACK_SQLITE_URL.replace("sqlite+aiosqlite:///", ""))
+    if _fallback_dir:
+        os.makedirs(_fallback_dir, exist_ok=True)
+    fallback_engine = _build_sqlite_engine(_FALLBACK_SQLITE_URL)
+    _rebind_session(fallback_engine)
+    async with fallback_engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+    logger.warning(
+        "Fallback SQLite engine bound. Subsequent DB operations will use %s",
+        _FALLBACK_SQLITE_URL,
+    )

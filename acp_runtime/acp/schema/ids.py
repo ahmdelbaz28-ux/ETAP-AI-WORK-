@@ -4,7 +4,7 @@ These are validated identifiers used as ``id`` (request) and ``trace_id``
 (progress / audit correlation). Using ``Annotated`` so pydantic can
 apply the constraint automatically.
 
-JSON-RPC 2.0 spec allows ``id`` to be ``string | number | null``.
+JSON-RPC 2.0 spec allows ``id`` to be Union[``string, number] | null``.
 The ``RequestId`` type accepts both ``str`` and ``int``; the null case
 is handled by making the field ``Optional[RequestId]``.
 """
@@ -12,9 +12,9 @@ is handled by making the field ``Optional[RequestId]``.
 from __future__ import annotations
 
 try:
-    from typing import Annotated
+    from typing import Annotated, Union
 except ImportError:
-    from typing import Annotated
+    from typing_extensions import Annotated
 
 from pydantic import StringConstraints
 

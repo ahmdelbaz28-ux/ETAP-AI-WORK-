@@ -15,12 +15,12 @@ Tests every critical user flow:
 
 Reports PASS/FAIL for each test with details.
 """
-
 from __future__ import annotations
 
 import os
 import sys
 import time
+from typing import Optional
 
 import httpx
 
@@ -97,7 +97,7 @@ def _agents_check(client: httpx.Client) -> None:
         report("  25 active agents", len(actives) == 25, f"active={len(actives)}")
 
 
-def _auth_flow(client: httpx.Client) -> dict | None:
+def _auth_flow(client: httpx.Client) -> Optional[dict]:
     """Test registration and login. Returns auth headers dict or None."""
     print("\n" + "=" * 70)
     print("3. AUTH: REGISTER + LOGIN")
@@ -132,7 +132,7 @@ def _auth_flow(client: httpx.Client) -> dict | None:
     } if token else {"X-API-Key": API_KEY}
 
 
-def _projects_crud(client: httpx.Client, auth_headers: dict) -> str | None:
+def _projects_crud(client: httpx.Client, auth_headers: dict) -> Optional[str]:
     """Test project CRUD operations. Returns the created project ID or None."""
     print("\n" + "=" * 70)
     print("4. PROJECTS CRUD")
@@ -179,7 +179,7 @@ def _projects_crud(client: httpx.Client, auth_headers: dict) -> str | None:
     return project_id
 
 
-def _assets_crud(client: httpx.Client, auth_headers: dict) -> str | None:
+def _assets_crud(client: httpx.Client, auth_headers: dict) -> Optional[str]:
     """Test asset CRUD operations. Returns the created asset ID or None."""
     print("\n" + "=" * 70)
     print("5. ASSETS CRUD")
@@ -308,9 +308,7 @@ def main() -> int:
     _study_run(client, auth_headers)
     _homepage_check(client)
 
-    # ─────────────────────────────────────────────────────────────────────
     # Summary
-    # ─────────────────────────────────────────────────────────────────────
     print("\n" + "=" * 70)
     print(f"SUMMARY: {passed} passed, {failed} failed")
     print("=" * 70)

@@ -21,6 +21,7 @@ ENV_FILE="${PROJECT_DIR}/.env"
 PROFILES="production"
 ROLLBACK="false"
 STACK_NAME="etap-platform"
+DIVIDER='=========================================='
 
 # ---------------------------------------------------------------------------
 # Parse arguments
@@ -65,14 +66,14 @@ if [[ ! -f "${ENV_FILE}" ]]; then
   exit 1
 fi
 
-echo "=========================================="
+echo "${DIVIDER}"
 echo " ETAP AI Platform - Deploy"
-echo "=========================================="
+echo "${DIVIDER}"
 echo "Stack:          ${STACK_NAME}"
 echo "Profiles:       ${PROFILES}"
 echo "Environment:    ${ENV_FILE}"
 echo "Rollback:       ${ROLLBACK}"
-echo "=========================================="
+echo "${DIVIDER}"
 
 # ---------------------------------------------------------------------------
 # Pull latest images
@@ -151,9 +152,9 @@ fi
 # Post-deploy verification
 # ---------------------------------------------------------------------------
 echo ""
-echo "=========================================="
+echo "${DIVIDER}"
 echo " Post-Deploy Verification"
-echo "=========================================="
+echo "${DIVIDER}"
 
 # Wait for services to be healthy
 echo "Waiting for services to become healthy..."
@@ -176,8 +177,8 @@ for service in $(docker compose \
 done
 
 echo ""
-echo "=========================================="
+echo "${DIVIDER}"
 echo " Deploy Complete"
-echo "=========================================="
+echo "${DIVIDER}"
 echo "Run 'docker compose logs -f' to tail logs."
-echo "=========================================="
+echo "${DIVIDER}"

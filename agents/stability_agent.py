@@ -323,7 +323,7 @@ class StabilityAgent(BaseAgent):
 
         participation_factors = []
         for i in range(2 * n_gen):
-            # Participation factor for mode i: P_ki = |left_i[k] * right_k[i]|
+            # Participation factor for mode i: P_ki Union[=, left_i][k] * right_k[i]|
             # left_vecs[i, :] is the i-th left eigenvector (row)
             # right_vecs[:, i] is the i-th right eigenvector (column)
             p = np.abs(left_vecs[i, :] * right_vecs[:, i])

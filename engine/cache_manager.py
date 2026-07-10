@@ -8,7 +8,7 @@ import time
 from collections.abc import Callable
 from enum import Enum
 from functools import wraps
-from typing import Any
+from typing import Any, Optional
 
 try:
     from cachetools import LRUCache, TLRUCache
@@ -47,7 +47,7 @@ class _CacheEntry:
     )
 
     def __init__(
-        self, value: Any, expires_at: float | None = None, tags: list[str] | None = None,
+        self, value: Any, expires_at: Optional[float] = None, tags: list[str] | None = None,
     ):
         self.value = value
         self.expires_at = expires_at
@@ -92,11 +92,11 @@ class CalculationCache:
                 )  # type: ignore
             else:
                 self._cachetools_cache = LRUCache(maxsize=maxsize)
-            self._cachetools_data: dict[str, tuple[Any, float | None, list[str]]] = {}
+            self._cachetools_data: dict[str, tuple[Any, Optional[float], list[str]]] = {}
         else:
             self._cachetools_cache = None
 
-    def get(self, cache_key: str) -> Any | None:
+    def get(self, cache_key: str) -> Optional[Any]:
         with self._lock:
             entry = self._entries.get(cache_key)
             if entry is None:
@@ -124,7 +124,7 @@ class CalculationCache:
         self,
         cache_key: str,
         value: Any,
-        ttl_seconds: int | None = None,
+        ttl_seconds: Optional[int] = None,
         tags: list[str] | None = None,
     ) -> None:
         ttl = ttl_seconds if ttl_seconds is not None else self._default_ttl
@@ -208,7 +208,7 @@ class CalculationCache:
                 "strategy": self._strategy.value,
             }
 
-    def get_cache_keys(self, pattern: str | None = None) -> list[str]:
+    def get_cache_keys(self, pattern: Optional[str] = None) -> list[str]:
         with self._lock:
             if pattern is None:
                 return list(self._entries.keys())
@@ -258,7 +258,7 @@ class CalculationCache:
                 victim = next(iter(self._entries))
                 self._remove_entry(victim)
 
-    def _get_lfu_victim(self) -> str | None:
+    def _get_lfu_victim(self) -> Optional[str]:
         if not self._entries:
             return None
         min_count = float("inf")
@@ -343,7 +343,7 @@ class SmartCacheStrategy:
         self,
         component: str,
         params: dict[str, Any],
-        frequency_estimate: float | None = None,
+        frequency_estimate: Optional[float] = None,
     ) -> bool:
         if frequency_estimate is not None and frequency_estimate < 0.01:
             return False
@@ -359,7 +359,7 @@ class SmartCacheStrategy:
         size_estimate = _estimate_size(params)
         return size_estimate <= 1024 * 100
 
-    def get_cache_ttl(self, component: str, _result_type: str | None = None) -> int:
+    def get_cache_ttl(self, component: str, _result_type: Optional[str] = None) -> int:
         mapped = component
         if "load_flow" in component or "loadflow" in component:
             mapped = "load_flow"
@@ -532,9 +532,9 @@ class MemoryManager:
 
 
 _singleton_lock = threading.Lock()
-_calculation_cache_instance: CalculationCache | None = None
-_smart_strategy_instance: SmartCacheStrategy | None = None
-_memory_manager_instance: MemoryManager | None = None
+_calculation_cache_instance: Optional[CalculationCache] = None
+_smart_strategy_instance: Optional[SmartCacheStrategy] = None
+_memory_manager_instance: Optional[MemoryManager] = None
 
 
 def get_calculation_cache(
@@ -577,7 +577,7 @@ def get_memory_manager(max_memory_percent: float = 80.0) -> MemoryManager:
 
 def cached(
     component: str,
-    ttl_seconds: int | None = None,
+    ttl_seconds: Optional[int] = None,
     tags: list[str] | None = None,
 ) -> Callable[[Callable[..., Any]], Callable[..., Any]]:
     def decorator(func: Callable[..., Any]) -> Callable[..., Any]:

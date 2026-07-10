@@ -223,3 +223,187 @@ class StudyListResponse(BaseModel):
 # ---------------------------------------------------------------------------
 
 router = APIRouter(prefix="/api/v1/projects", tags=["Projects"])
+
+
+# ---------------------------------------------------------------------------
+# Endpoints
+# ---------------------------------------------------------------------------
+#
+# These endpoints were previously declared in the module docstring but never
+# implemented — the router was created with no routes, causing the frontend
+# to receive 404 on every /api/v1/projects call. The implementation below
+# provides the minimal CRUD surface the React UI needs.
+#
+# Auth model:
+#   - Listing and reading endpoints accept EITHER a JWT Bearer token OR an
+#     X-API-Key header. The get_api_key dependency handles this bypass
+#     (see api/dependencies.py).
+#   - Mutating endpoints (POST/PUT/DELETE) require a valid JWT via the
+#     CurrentUser dependency.
+
+
+try:
+    from typing import Annotated
+except ImportError:
+    from typing_extensions import Annotated
+
+from fastapi import Depends, HTTPException, Query, status  # noqa: E402
+from sqlalchemy import func, select  # noqa: E402
+from sqlalchemy.ext.asyncio import AsyncSession  # noqa: E402
+
+from api.auth import CurrentUserDep  # noqa: E402
+from api.database import get_db  # noqa: E402
+from api.dependencies import (  # noqa: E402
+    PaginationParams,
+    get_api_key,
+    pagination_params,
+)
+
+DbDep = Annotated[AsyncSession, Depends(get_db)]
+ApiKeyDep = Annotated[str, Depends(get_api_key)]
+UserDep = Annotated[CurrentUserDep, Depends()]
+
+
+@router.get(
+    "",
+    response_model=ProjectListResponse,
+    summary="List projects",
+    dependencies=[Depends(get_api_key)],
+)
+@router.get(
+    "/",
+    response_model=ProjectListResponse,
+    summary="List projects (trailing slash)",
+    include_in_schema=False,
+    dependencies=[Depends(get_api_key)],
+)
+async def list_projects(
+    pagination: Annotated[PaginationParams, Depends(pagination_params)],
+    db: DbDep,
+    status_filter: Annotated[Optional[ProjectStatus], Query(alias="status", description="Filter by status")] = None,
+) -> Any:
+    """Return a paginated, filterable list of power-system projects."""
+    base_query = select(Project).where(Project.status != ProjectStatus.DELETED)
+    if status_filter is not None:
+        base_query = base_query.where(Project.status == status_filter.value)
+
+    count_query = select(func.count()).select_from(base_query.subquery())
+    count_result = await db.execute(count_query)
+    total = count_result.scalar_one()
+
+    result = await db.execute(
+        base_query.order_by(Project.updated_at.desc())
+        .offset(pagination.offset)
+        .limit(pagination.page_size),
+    )
+    projects = result.scalars().all()
+
+    return ProjectListResponse(
+        projects=[ProjectResponse.model_validate(p) for p in projects],
+        total=total,
+        page=pagination.page,
+        page_size=pagination.page_size,
+    )
+
+
+@router.post(
+    "",
+    response_model=ProjectResponse,
+    status_code=status.HTTP_201_CREATED,
+    summary="Create a new project",
+)
+@router.post(
+    "/",
+    response_model=ProjectResponse,
+    status_code=status.HTTP_201_CREATED,
+    summary="Create a new project (trailing slash)",
+    include_in_schema=False,
+)
+async def create_project(
+    body: ProjectCreateRequest,
+    db: DbDep,
+    user: UserDep,
+) -> Any:
+    """Create a new power-system project."""
+    project = Project(
+        id=str(uuid.uuid4()),
+        name=body.name,
+        description=body.description,
+        system_config=body.system_config,
+        status=ProjectStatus.ACTIVE.value,
+        created_by=str(user.id),
+    )
+    db.add(project)
+    await db.flush()
+    await db.refresh(project)
+    return ProjectResponse.model_validate(project)
+
+
+@router.get(
+    "/{project_id}",
+    response_model=ProjectResponse,
+    summary="Get a single project",
+    dependencies=[Depends(get_api_key)],
+)
+async def get_project(
+    project_id: str,
+    db: DbDep,
+) -> Any:
+    """Return a single project by ID."""
+    result = await db.execute(select(Project).where(Project.id == project_id))
+    project = result.scalar_one_or_none()
+    if project is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Project not found")
+    return ProjectResponse.model_validate(project)
+
+
+@router.put(
+    "/{project_id}",
+    response_model=ProjectResponse,
+    summary="Update a project",
+)
+async def update_project(
+    project_id: str,
+    body: ProjectUpdateRequest,
+    db: DbDep,
+    user: UserDep,
+) -> Any:
+    """Update a project's name, description, or system config."""
+    result = await db.execute(select(Project).where(Project.id == project_id))
+    project = result.scalar_one_or_none()
+    if project is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Project not found")
+
+    if body.name is not None:
+        project.name = body.name
+    if body.description is not None:
+        project.description = body.description
+    if body.system_config is not None:
+        project.system_config = body.system_config
+    project.updated_at = datetime.now(UTC)
+    db.add(project)
+    await db.flush()
+    await db.refresh(project)
+    return ProjectResponse.model_validate(project)
+
+
+@router.delete(
+    "/{project_id}",
+    status_code=status.HTTP_200_OK,
+    summary="Soft-delete a project",
+)
+async def delete_project(
+    project_id: str,
+    db: DbDep,
+    user: UserDep,
+) -> dict:
+    """Soft-delete a project by setting status to 'deleted'."""
+    result = await db.execute(select(Project).where(Project.id == project_id))
+    project = result.scalar_one_or_none()
+    if project is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Project not found")
+    project.status = ProjectStatus.DELETED.value
+    project.updated_at = datetime.now(UTC)
+    db.add(project)
+    await db.flush()
+    return {"status": "deleted", "project_id": project_id}

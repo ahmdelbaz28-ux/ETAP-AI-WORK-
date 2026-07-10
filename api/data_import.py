@@ -28,7 +28,7 @@ import re
 import uuid
 import xml.etree.ElementTree as ET
 from datetime import UTC, datetime
-from typing import Any
+from typing import Annotated, Any, Optional
 
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
 from pydantic import BaseModel, Field
@@ -66,9 +66,9 @@ class BusRecord(BaseModel):
     """A single bus/node in the imported power-system model."""
 
     id: str
-    name: str | None = None
-    voltage_kv: float | None = None
-    type: str | None = None  # PQ, PV, SLACK, etc.
+    name: Optional[str] = None
+    voltage_kv: Optional[float] = None
+    type: Optional[str] = None  # PQ, PV, SLACK, etc.
 
 
 class BranchRecord(BaseModel):
@@ -77,10 +77,10 @@ class BranchRecord(BaseModel):
     id: str
     from_bus: str
     to_bus: str
-    type: str | None = None  # LINE, TRANSFORMER, etc.
-    r_pu: float | None = None
-    x_pu: float | None = None
-    rating_mva: float | None = None
+    type: Optional[str] = None  # LINE, TRANSFORMER, etc.
+    r_pu: Optional[float] = None
+    x_pu: Optional[float] = None
+    rating_mva: Optional[float] = None
 
 
 class ImportResult(BaseModel):
@@ -231,7 +231,7 @@ def _json_branch_record(br: dict[str, Any]) -> BranchRecord:
 _BUS_TYPE_MAP: dict[int, str] = {1: "PQ", 2: "PV", 3: "SLACK", 4: "ISOLATED"}
 
 
-def _psse_bus_record(parts: list[str], line_num: int, warnings: list[str]) -> BusRecord | None:
+def _psse_bus_record(parts: list[str], line_num: int, warnings: list[str]) -> Optional[BusRecord]:
     """Parse a single PSS/E bus line into a BusRecord, or None on failure."""
     if len(parts) < 3:
         return None
@@ -249,7 +249,7 @@ def _psse_bus_record(parts: list[str], line_num: int, warnings: list[str]) -> Bu
         return None
 
 
-def _extract_rdf_id(elem: Any) -> str | None:
+def _extract_rdf_id(elem: Any) -> Optional[str]:
     """Extract the RDF ID attribute from an XML element."""
     for attr_key, attr_val in elem.attrib.items():
         if attr_key.split("}")[-1] == "ID":
@@ -257,7 +257,7 @@ def _extract_rdf_id(elem: Any) -> str | None:
     return None
 
 
-def _extract_child_text(elem: Any, local_tag: str) -> str | None:
+def _extract_child_text(elem: Any, local_tag: str) -> Optional[str]:
     """Extract text of a child element matching a local tag name."""
     for child in elem:
         if child.tag.split("}")[-1] == local_tag:
@@ -516,9 +516,9 @@ async def list_formats() -> Any:
     summary="Upload and parse a power-system data file",
     dependencies=[Depends(get_api_key)],
 )
-async def upload_file(
-    file: UploadFile = File(..., description="Power-system data file"),
-    user: Any = Depends(get_current_user_from_header),  # noqa: B008
+async def upload_file(  # NOSONAR - already uses Annotated type hints for FastAPI dependency injection
+    file: Annotated[UploadFile, File(description="Power-system data file")],
+    user: Annotated[Any, Depends(get_current_user_from_header)],
 ) -> Any:
     """Upload a power-system data file and parse it into a structured model.
 

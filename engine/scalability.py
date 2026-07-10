@@ -16,7 +16,7 @@ import uuid
 from collections import defaultdict
 from collections.abc import Callable
 from dataclasses import dataclass, field
-from typing import Any
+from typing import Any, Optional
 
 from compat import StrEnum
 
@@ -64,7 +64,7 @@ class LoadBalancer:
         with self._lock:
             self._workers.pop(worker_id, None)
 
-    def get_next_worker(self, _task_size: float | None = None) -> str | None:
+    def get_next_worker(self, _task_size: Optional[float] = None) -> Optional[str]:
         with self._lock:
             healthy = {wid: w for wid, w in self._workers.items() if w.healthy}
             if not healthy:
@@ -159,7 +159,7 @@ class TaskItem:
     task_id: str = field(compare=False)
     task_data: Any = field(compare=False)
     status: str = field(default="queued", compare=False)
-    assigned_worker: str | None = field(default=None, compare=False)
+    assigned_worker: Optional[str] = field(default=None, compare=False)
     retries: int = field(default=0, compare=False)
 
 
@@ -400,7 +400,7 @@ class HorizontalScaler:
         self._scale_down_cbs: list[Callable[[int], None]] = []
         self._lock = threading.Lock()
 
-    def evaluate_scaling(self, current_load: float) -> str | None:
+    def evaluate_scaling(self, current_load: float) -> Optional[str]:
         if current_load >= self.scale_up_threshold and self._current_nodes < self.max_nodes:
             return "scale_up"
         if current_load <= self.scale_down_threshold and self._current_nodes > self.min_nodes:
@@ -663,8 +663,8 @@ class Execution:
     status: ExecutionStatus
     plan: ExecutionPlan
     started_at: float = field(default_factory=time.time)
-    completed_at: float | None = None
-    error: str | None = None
+    completed_at: Optional[float] = None
+    error: Optional[str] = None
     partial_results: dict[str, Any] = field(default_factory=dict)
 
 

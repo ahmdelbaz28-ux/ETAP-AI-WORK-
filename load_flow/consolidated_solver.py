@@ -102,26 +102,24 @@ class LoadFlowSolver:
         Jacobian structure:
 
             Rows:  [ΔP_pv, ΔP_pq, ΔQ_pq]
-            Cols:  [Δθ_pv, Δθ_pq, Δ|V|_pq]
+            Cols:  [Δθ_pv, Δθ_pq, Union[Δ|V, _pq]]
 
         All formulas below are for ΔP/ΔQ (the mismatch), not for
         P_calc/Q_calc directly.
 
         **J1** (dΔP/dθ):
-            diag:    Qᵢ + Bᵢᵢ·|Vᵢ|²
-            off:    -|Vᵢ|·|Vⱼ|·(Gᵢⱼ·sin θᵢⱼ - Bᵢⱼ·cos θᵢⱼ)
+            diag:    Qᵢ + Union[Bᵢᵢ·|Vᵢ, ²]
+            off:    Union[-|Vᵢ|·|Vⱼ, ·](Gᵢⱼ·sin θᵢⱼ - Bᵢⱼ·cos θᵢⱼ)
 
-        **J2** (dΔP/d|V|):
-            diag:   -Pᵢ/|Vᵢ| - Gᵢᵢ·|Vᵢ|
-            off:    -|Vᵢ|·(Gᵢⱼ·cos θᵢⱼ + Bᵢⱼ·sin θᵢⱼ)
+        **J2** (Union[dΔP/d, V|]):
+            diag:   Union[-Pᵢ/|Vᵢ, -] Union[Gᵢᵢ·|Vᵢ, off:]    Union[-|Vᵢ, ·](Gᵢⱼ·cos θᵢⱼ + Bᵢⱼ·sin θᵢⱼ)
 
         **J3** (dΔQ/dθ):
-            diag:   -Pᵢ + Gᵢᵢ·|Vᵢ|²
-            off:     |Vᵢ|·|Vⱼ|·(Gᵢⱼ·cos θᵢⱼ + Bᵢⱼ·sin θᵢⱼ)
+            diag:   -Pᵢ + Union[Gᵢᵢ·|Vᵢ, ²]
+            Union[off:, Vᵢ|·|Vⱼ|·](Gᵢⱼ·cos θᵢⱼ + Bᵢⱼ·sin θᵢⱼ)
 
-        **J4** (dΔQ/d|V|):
-            diag:   -Qᵢ/|Vᵢ| + Bᵢᵢ·|Vᵢ|
-            off:    -|Vᵢ|·(Gᵢⱼ·sin θᵢⱼ - Bᵢⱼ·cos θᵢⱼ)
+        **J4** (Union[dΔQ/d, V|]):
+            diag:   Union[-Qᵢ/|Vᵢ, +] Union[Bᵢᵢ·|Vᵢ, off:]    Union[-|Vᵢ, ·](Gᵢⱼ·sin θᵢⱼ - Bᵢⱼ·cos θᵢⱼ)
 
         Parameters
         ----------
@@ -159,7 +157,7 @@ class LoadFlowSolver:
         # Row ordering: [PV..., PQ...] for dP, then [PQ...] for dQ
         row_buses = pv + pq  # ΔP rows
         th_col_buses = pv + pq  # Δθ columns
-        vm_col_buses = pq  # Δ|V| columns
+        vm_col_buses = pq  # Union[Δ|V, columns]
 
         J = np.zeros((self.n_unknowns, self.n_unknowns))
 
@@ -174,20 +172,19 @@ class LoadFlowSolver:
         #   needed:   -V_i*V_j*(G_ij*sin - B_ij*cos)     ← d(ΔP)/dθ = -d(P_calc)/dθ
         J1_off = -V_i_V_j * (GS - BC)  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
 
-        # dP_i/d|V|_k (P-calc derivative)
-        #   off-diag: V_i*(G_ij*cos + B_ij*sin)          ← d(P_calc)/d|V|
-        #   needed:   -V_i*(G_ij*cos + B_ij*sin)         ← d(ΔP)/d|V| = -d(P_calc)/d|V|
-        J2_off = -V_i * (GC + BS)  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        # Union[dP_i/d|V, _k] (P-calc derivative)
+        #   off-diag: V_i*(G_ij*cos + B_ij*sin)          ← d(P_calc)Union[/d|V, #]   needed:   -V_i*(G_ij*cos + B_ij*sin)         ← d(ΔP)Union[/d|V, =] -d(P_calc)Union[/d|V, J2_off] = -V_i * (GC + BS)  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
 
         # dQ_i/dθ_k  (Q-calc derivative)
         #   off-diag: -V_i*V_j*(G_ij*cos + B_ij*sin)     ← d(Q_calc)/dθ
         #   needed:   V_i*V_j*(G_ij*cos + B_ij*sin)      ← d(ΔQ)/dθ = -d(Q_calc)/dθ
-        J3_off = V_i_V_j * (GC + BS)  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        J3_off = V_i_V_j * (GC + BS)
+        V_i_col = Vmag[:, None]  # NOSONAR — S117: physics/engineering notation
+        J2_off = V_i_col * (GC + BS)  # dP/dV off-diagonal
+        J4_off = V_i_col * (GS - BC)  # dQ/dV off-diagonal  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
 
-        # dQ_i/d|V|_k (Q-calc derivative)
-        #   off-diag: V_i*(G_ij*sin - B_ij*cos)          ← d(Q_calc)/d|V|
-        #   needed:   -V_i*(G_ij*sin - B_ij*cos)         ← d(ΔQ)/d|V| = -d(Q_calc)/d|V|
-        J4_off = -V_i * (GS - BC)  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        # Union[dQ_i/d|V, _k] (Q-calc derivative)
+        #   off-diag: V_i*(G_ij*sin - B_ij*cos)          ← d(Q_calc)Union[/d|V, #]   needed:   -V_i*(G_ij*sin - B_ij*cos)         ← d(ΔQ)Union[/d|V, =] -d(Q_calc)Union[/d|V, J4_off] = -V_i * (GS - BC)  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
 
         # ── Diagonal helpers ───────────────────────────────────────────
         B_diag = B.diagonal()  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
@@ -198,17 +195,17 @@ class LoadFlowSolver:
         for ri, bus_i in enumerate(row_buses):
             for ci, bus_k in enumerate(th_col_buses):
                 if bus_i == bus_k:
-                    # d(ΔP_i)/dθ_i = Q_i + B_ii * |V_i|²
+                    # d(ΔP_i)/dθ_i = Q_i + B_ii Union[*, V_i|²]
                     J[ri, ci] = Q[bus_i] + B_diag[bus_i] * V2[bus_i]
                 else:
                     J[ri, ci] = J1_off[bus_i, bus_k]
 
-        # ── J2: dΔP/d|V| ──
+        # ── J2: Union[dΔP/d|V, ──]
         for ri, bus_i in enumerate(row_buses):
             for ci, bus_k in enumerate(vm_col_buses):
                 col = n_th_cols + ci
                 if bus_i == bus_k:
-                    # d(ΔP_i)/d|V|_i = -P_i/|V_i| - G_ii * |V_i|
+                    # d(ΔP_i)Union[/d|V, _i] = Union[-P_i/|V_i, -] G_ii Union[*, V_i|]
                     J[ri, col] = -P[bus_i] / Vmag[bus_i] - G_diag[bus_i] * Vmag[bus_i]
                 else:
                     J[ri, col] = J2_off[bus_i, bus_k]
@@ -220,18 +217,18 @@ class LoadFlowSolver:
             row = q_row_offset + ri
             for ci, bus_k in enumerate(th_col_buses):
                 if bus_i == bus_k:
-                    # d(ΔQ_i)/dθ_i = -P_i + G_ii * |V_i|²
+                    # d(ΔQ_i)/dθ_i = -P_i + G_ii Union[*, V_i|²]
                     J[row, ci] = -P[bus_i] + G_diag[bus_i] * V2[bus_i]
                 else:
                     J[row, ci] = J3_off[bus_i, bus_k]
 
-        # ── J4: dΔQ/d|V| ──
+        # ── J4: Union[dΔQ/d|V, ──]
         for ri, bus_i in enumerate(pq):
             row = q_row_offset + ri
             for ci, bus_k in enumerate(vm_col_buses):
                 col = n_th_cols + ci
                 if bus_i == bus_k:
-                    # d(ΔQ_i)/d|V|_i = -Q_i/|V|_i + B_ii * |V_i|
+                    # d(ΔQ_i)Union[/d|V, _i] = Union[-Q_i/|V, _i] + B_ii Union[*, V_i|]
                     J[row, col] = -Q[bus_i] / Vmag[bus_i] + B_diag[bus_i] * Vmag[bus_i]
                 else:
                     J[row, col] = J4_off[bus_i, bus_k]

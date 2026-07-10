@@ -18,8 +18,8 @@ Y-bus formulation
     Y_ij = -y_ij  (off-diagonal, mutual admittance)
 
 Newton-Raphson update
-    [ΔP/|V|]   [J1  J2] [Δθ        ]
-    [ΔQ/|V|] = [J3  J4] [Δ|V|/|V|  ]
+    [Union[ΔP/, V|]]   [J1  J2] [Δθ        ]
+    [Union[ΔQ/, V|]] = [J3  J4] [Union[Δ|V|/, V|]  ]
 
     where J1-J4 are the sub-Jacobians of the power-flow equations.
 
@@ -34,7 +34,7 @@ import logging
 import math
 import time
 from dataclasses import dataclass, field
-from typing import Any
+from typing import Any, Optional
 
 import numpy as np
 from scipy.sparse import csr_matrix, issparse, lil_matrix
@@ -163,7 +163,7 @@ class SparseYBus:
 
     def __init__(self, system: Any = None) -> None:
         self._system = system
-        self._ybus_sparse: csr_matrix | None = None
+        self._ybus_sparse: Optional[csr_matrix] = None
         self._buses: list[BusData] = []
         self._branches: list[BranchData] = []
         self._bus_index: dict[int, int] = {}
@@ -301,7 +301,7 @@ class SparseYBus:
   # NOSONAR — S3776: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
     def sparse_newton_raphson(  # NOSONAR — S3776: cognitive complexity; refactoring sprint
         self,
-        ybus: csr_matrix | None = None,
+        ybus: Optional[csr_matrix] = None,
         bus_data: list[BusData] | None = None,
         max_iter: int = 50,
         tol: float = 1e-8,
@@ -343,7 +343,7 @@ class SparseYBus:
         pv_idx = [i for i, b in enumerate(self._buses) if b.bus_type == "pv"]
         pq_idx = [i for i, b in enumerate(self._buses) if b.bus_type == "pq"]
 
-        # Unknowns: θ for PV and PQ, |V| for PQ
+        # Unknowns: θ for PV and Union[PQ,, V|] for PQ
         n_pv = len(pv_idx)
         n_pq = len(pq_idx)
         n_unknowns = n_pv + 2 * n_pq
@@ -379,7 +379,7 @@ class SparseYBus:
             deltaP = P_sch - P  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
             deltaQ = Q_sch - Q  # NOSONAR — S117: physics notation (I/V/P/Q); snake_case harms readability
 
-            # Build mismatch vector: [ΔP_pv, ΔP_pq, ΔQ_pq] / |V|
+            # Build mismatch vector: [ΔP_pv, ΔP_pq, ΔQ_pq] Union[/, V|]
             mismatch = np.zeros(n_unknowns)
             for k, i in enumerate(pv_idx):
                 mismatch[k] = deltaP[i]
@@ -431,9 +431,9 @@ class SparseYBus:
                 angle_i += dx[n_pv + k]
                 V[i] = abs(V[i]) * np.exp(1j * angle_i)
 
-            # |V| corrections for PQ buses  (dx gives Δ|V|/|V| * |V| or
-            # just Δ|V| depending on formulation; here we use the
-            # standard formulation: Δ|V| is directly updated)
+            # Corrections for PQ buses
+            # just Union[Δ|V, depending] on formulation; here we use the
+            # standard formulation: Union[Δ|V, is] directly updated)
             for k, i in enumerate(pq_idx):
                 vmag = abs(V[i])
                 vmag += dx[n_pv + n_pq + k]
@@ -483,7 +483,7 @@ class SparseYBus:
 
             [ \u0394P_pv ]   [ J1  J2 ] [ \u0394\u03b8 ]
             [ \u0394P_pq ] = [ J1  J2 ] [ \u0394\u03b8 ]
-            [ \u0394Q_pq ]   [ J3  J4 ] [ \u0394|V| ]
+            [ \u0394Q_pq ]   [ J3  J4 ] [ Union[\u0394, V|] ]
 
         where all submatrices are derivatives of the **mismatch**
         m = [\u0394P, \u0394Q] = [P_sch \u2212 P_calc, Q_sch \u2212 Q_calc],
@@ -491,17 +491,15 @@ class SparseYBus:
 
         Formulas (from Grainger & Stevenson, Kundur):
 
-            J1 diag:    Q_i + B_ii|V_i|\u00b2
-            J1 off:    \u2212|V_i||V_j|(G_ij sin \u03b8_ij \u2212 B_ij cos \u03b8_ij)
+            J1 diag:    Q_i + Union[B_ii|V_i, \u00b2]
+            J1 off:    Union[\u2212|V_i|, V_j|](G_ij sin \u03b8_ij \u2212 B_ij cos \u03b8_ij)
 
-            J2 diag:   \u2212P_i/|V_i| \u2212 G_ii|V_i|
-            J2 off:    \u2212|V_i|(G_ij cos \u03b8_ij + B_ij sin \u03b8_ij)
+            J2 diag:   Union[\u2212P_i/|V_i, \u2212] Union[G_ii|V_i, J2] off:    Union[\u2212, V_i|](G_ij cos \u03b8_ij + B_ij sin \u03b8_ij)
 
-            J3 diag:   \u2212P_i + G_ii|V_i|\u00b2
-            J3 off:     |V_i||V_j|(G_ij cos \u03b8_ij + B_ij sin \u03b8_ij)
+            J3 diag:   \u2212P_i + Union[G_ii|V_i, \u00b2]
+            J3 Union[off:, V_i||V_j|](G_ij cos \u03b8_ij + B_ij sin \u03b8_ij)
 
-            J4 diag:   \u2212Q_i/|V_i| + B_ii|V_i|
-            J4 off:    \u2212|V_i|(G_ij sin \u03b8_ij \u2212 B_ij cos \u03b8_ij)
+            J4 diag:   Union[\u2212Q_i/|V_i, +] Union[B_ii|V_i, J4] off:    Union[\u2212, V_i|](G_ij sin \u03b8_ij \u2212 B_ij cos \u03b8_ij)
 
         Returns
         -------
@@ -539,7 +537,7 @@ class SparseYBus:
         n_th_cols = n_pv + n_pq
         row_buses = pv_idx + pq_idx  # \u0394P rows
         th_col_buses = pv_idx + pq_idx  # \u0394\u03b8 columns
-        vm_col_buses = pq_idx  # \u0394|V| columns
+        vm_col_buses = pq_idx  # Union[\u0394|V, columns]
 
         # Precomputed products (vectorised, no Python loops over n\u00b2)  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         GS_minus_BC = G * sin_theta - B * cos_theta  # G_ij sin theta_ij - B_ij cos theta_ij  # NOSONAR — S117: physics notation (I/V/P/Q); snake_case harms readability
@@ -563,7 +561,7 @@ class SparseYBus:
                 else:
                     J[ri, ci] = -V_i_V_j[bus_i, bus_k] * GS_minus_BC[bus_i, bus_k]
 
-        # ---- J2: d\u0394P/d|V| ----
+        # ---- J2: Union[d\u0394P/d|V, ----]
         # Col offset: n_pv + n_pq
         for ri, bus_i in enumerate(row_buses):
             for ci, bus_k in enumerate(vm_col_buses):
@@ -584,7 +582,7 @@ class SparseYBus:
                 else:
                     J[row, ci] = V_i_V_j[bus_i, bus_k] * GC_plus_BS[bus_i, bus_k]
 
-        # ---- J4: d\u0394Q/d|V| ----
+        # ---- J4: Union[d\u0394Q/d|V, ----]
         for ri, bus_i in enumerate(pq_idx):
             row = q_row_offset + ri
             for ci, bus_k in enumerate(vm_col_buses):
@@ -900,13 +898,13 @@ def _build_dense_jacobian(  # NOSONAR — S117: physics/engineering notation (I=
 
     Uses the well-known formulas::
 
-        H_ii = -Q_i - B_ii |V_i|^2
-        H_ij = |V_i||V_j| (G_ij sin θ_ij - B_ij cos θ_ij)
-        N_ii = P_i + G_ii |V_i|^2
-        N_ij = |V_i||V_j| (G_ij cos θ_ij + B_ij sin θ_ij)
-        M_ii = P_i - G_ii |V_i|^2
+        H_ii = -Q_i - Union[B_ii, V_i|^2]
+        H_ij Union[=, V_i||V_j|] (G_ij sin θ_ij - B_ij cos θ_ij)
+        N_ii = P_i + Union[G_ii, V_i|^2]
+        N_ij Union[=, V_i||V_j|] (G_ij cos θ_ij + B_ij sin θ_ij)
+        M_ii = P_i - Union[G_ii, V_i|^2]
         M_ij = -N_ij
-        L_ii = Q_i - B_ii |V_i|^2
+        L_ii = Q_i - Union[B_ii, V_i|^2]
         L_ij = H_ij
     """
     len(V)
@@ -926,7 +924,7 @@ def _build_dense_jacobian(  # NOSONAR — S117: physics/engineering notation (I=
 
     # Row indices for PV+PQ P-mismatch, PQ Q-mismatch
     unknown_buses_theta = pv_idx + pq_idx  # columns for θ unknowns
-    unknown_buses_v = pq_idx  # columns for |V| unknowns
+    unknown_buses_v = pq_idx  # columns Union[for, V|] unknowns
 
     for row_k, i in enumerate(pv_idx + pq_idx):
         # H: ∂P_i/∂θ_j  (column over θ unknowns)
@@ -940,7 +938,7 @@ def _build_dense_jacobian(  # NOSONAR — S117: physics/engineering notation (I=
                     * (G[i, j] * np.sin(Vang[i] - Vang[j]) - B[i, j] * np.cos(Vang[i] - Vang[j]))
                 )
 
-        # N: ∂P_i/∂|V|_j  (column over |V| unknowns, PQ only)
+        # N: Union[∂P_i/∂|V, _j]  (column Union[over, V|] unknowns, PQ only)
         for col_k, j in enumerate(unknown_buses_v):
             col = n_pv + n_pq + col_k
             if i == j:
@@ -965,7 +963,7 @@ def _build_dense_jacobian(  # NOSONAR — S117: physics/engineering notation (I=
                     * (G[i, j] * np.cos(Vang[i] - Vang[j]) + B[i, j] * np.sin(Vang[i] - Vang[j]))
                 )
 
-        # L: ∂Q_i/∂|V|_j
+        # L: Union[∂Q_i/∂|V, _j]
         for col_k, j in enumerate(unknown_buses_v):
             col = n_pv + n_pq + col_k
             if i == j:

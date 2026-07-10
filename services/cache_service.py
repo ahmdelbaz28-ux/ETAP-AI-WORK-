@@ -14,7 +14,7 @@ import contextlib
 import json
 import logging
 import time
-from typing import Any
+from typing import Any, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -145,7 +145,7 @@ class StudyCache:
         self,
         key: str,
         value: Any,
-        ttl: int | None = None,
+        ttl: Optional[int] = None,
         *args: Any,
         **kwargs: Any,
     ) -> bool:

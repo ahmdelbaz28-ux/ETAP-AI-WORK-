@@ -5,6 +5,7 @@ Combines run_eval.py and improve_description.py in a loop, tracking history
 and returning the best description found. Supports train/test split to prevent
 overfitting.
 """
+from typing import Optional, Union
 
 import argparse
 import json
@@ -47,7 +48,7 @@ def split_eval_set(eval_set: list[dict], holdout: float, seed: int = 42) -> tupl
 def run_loop(
     eval_set: list[dict],
     skill_path: Path,
-    description_override: str | None,
+    description_override: Optional[str],
     num_workers: int,
     timeout: int,
     max_iterations: int,
@@ -56,8 +57,8 @@ def run_loop(
     holdout: float,
     model: str,
     verbose: bool,
-    live_report_path: Path | None = None,
-    log_dir: Path | None = None,
+    live_report_path: Optional[Path] = None,
+    log_dir: Optional[Path] = None,
 ) -> dict:
     """Run the eval + improvement loop."""
     project_root = find_project_root()

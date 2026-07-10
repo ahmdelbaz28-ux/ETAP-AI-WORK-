@@ -36,7 +36,7 @@ import json
 import logging
 import os
 import time
-from typing import Any
+from typing import Any, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -56,17 +56,17 @@ except ImportError:
 # Singleton client
 # ---------------------------------------------------------------------------
 
-_client: Any | None = None
+_client: Optional[Any] = None
 
 # Sentinel for the ``client`` parameter on save/load/delete_workflow_state.
 # Distinct from None because explicit ``client=None`` should mean "no Redis"
 # (skip I/O), while the default "use the shared singleton" must be a
 # different value. Using a module-level object keeps the existing
-# ``Any | None`` type annotation working without a breaking API change.
+# Optional[``Any]`` type annotation working without a breaking API change.
 _UNSET: Any = object()
 
 
-async def get_redis_state_client() -> Any | None:
+async def get_redis_state_client() -> Optional[Any]:
     """Return the shared async Redis client, or None if Redis is unavailable.
 
     Reads REDIS_URL at call time (not import time) so that tests using
@@ -207,7 +207,7 @@ class RedisDistributedLock:
         self._client = client
         self._key = f"{_LOCK_PREFIX}{resource}"
         self._ttl_ms = ttl_seconds * 1000
-        self._token: str | None = None
+        self._token: Optional[str] = None
 
     async def acquire(self, timeout_ms: int = 0) -> bool:
         """Attempt to acquire the lock.
@@ -274,7 +274,7 @@ _WF_TTL = 24 * 3600  # 24 hours
 async def save_workflow_state(
     task_id: str,
     state: dict,
-    client: Any | None = _UNSET,
+    client: Optional[Any] = _UNSET,
     ttl: int = _WF_TTL,
 ) -> None:
     """Persist agent workflow state to Redis.
@@ -307,8 +307,8 @@ async def save_workflow_state(
 
 async def load_workflow_state(
     task_id: str,
-    client: Any | None = _UNSET,
-) -> dict | None:
+    client: Optional[Any] = _UNSET,
+) -> Optional[dict]:
     """Load agent workflow state from Redis.
 
     Returns the state dict or None if no state was saved (or if a None
@@ -332,7 +332,7 @@ async def load_workflow_state(
 
 async def delete_workflow_state(
     task_id: str,
-    client: Any | None = _UNSET,
+    client: Optional[Any] = _UNSET,
 ) -> None:
     """Remove a workflow state entry from Redis."""
     if client is _UNSET:

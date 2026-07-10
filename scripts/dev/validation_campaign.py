@@ -10,6 +10,8 @@ current_dir = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.abspath(os.path.join(current_dir, "..", "..")))
 sys.path.insert(0, current_dir)
 
+from typing import Optional, Union
+
 from coordination.coordination import CoordinationEngine
 from core_model.bus import Bus
 from core_model.generator import Generator
@@ -41,7 +43,7 @@ class ValidationCampaign:
         else:
             self.failed += 1
         self.results.append((category, test_name, status, detail))
-        print(f"  [{status}] {category} | {test_name}: {detail}")
+        print(f"  [{status}] {category}, {test_name}: {detail}")
 
     # =========================================================================
     # SECTION 1: LOAD FLOW VALIDATION
@@ -295,7 +297,7 @@ class ValidationCampaign:
                 v = abs(system.buses[bid].voltage)
                 if not (0.9 <= v <= 1.1):
                     all_ok = False
-                    print(f"    Bus {bid}: |V|={v:.4f} pu OUT OF RANGE")
+                    print(f"    Bus {bid}: V|={v:.4f} pu OUT OF RANGE")
             self._record(
                 "14-Bus LF",
                 "All Voltages in Range",

@@ -9,13 +9,13 @@ This module:
 3. Creates searchable text chunks
 4. Builds a knowledge base for the RAG engine
 """
-
 from __future__ import annotations
 
 import json
 import sys
 from datetime import datetime
 from pathlib import Path
+from typing import Optional
 
 # PDF processing libraries
 # SECURITY: migrated from deprecated PyPDF2 (30+ CVEs) to pypdf (maintained successor).
@@ -67,7 +67,7 @@ class ETAPGuideExtractor:
             "files": [],
         }
 
-    def extract_text_from_pdf(self, pdf_path: Path) -> tuple[str | None, int]:
+    def extract_text_from_pdf(self, pdf_path: Path) -> tuple[Optional[str], int]:
         """
         Extract text from a single PDF file.
 

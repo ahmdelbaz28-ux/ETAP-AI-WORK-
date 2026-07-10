@@ -13,20 +13,23 @@ NC='\033[0m' # No Color
 BOLD='\033[1m'
 
 pause() {
-  sleep "$1"  # NOSONAR — S7679: function params assigned to locals; readability
+  local param="$1"
+  sleep "${param}"
 }
 
 header() {
+  local text="$1"
   echo -e "\n${BOLD}${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-  echo -e "${BOLD}${CYAN}  $1${NC}"  # NOSONAR — S7679: function params assigned to locals; readability
+  echo -e "${BOLD}${CYAN}  ${text}${NC}"
   echo -e "${BOLD}${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}\n"
   pause 1
 }
 
 cmd() {
-  echo -e "${YELLOW}\$ $1${NC}"  # NOSONAR — S7679: function params assigned to locals; readability
+  local text="$1"
+  echo -e "${YELLOW}\$ ${text}${NC}"
   pause 0.5
-  eval "$1"  # NOSONAR — S7679: function params assigned to locals; readability
+  eval "${text}"
   echo ""
   pause 1
 }

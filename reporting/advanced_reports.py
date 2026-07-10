@@ -28,13 +28,13 @@ Features:
 - Multi-language support
 - Digital signatures
 """
-
 from __future__ import annotations
 
 import logging
 import os
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
+from typing import Optional
 
 UTC = timezone.utc  # noqa: UP017 — datetime.UTC requires Python 3.11+
 
@@ -60,8 +60,8 @@ class ReportMetadata:
     report_id: str
     title: str
     prepared_by: str
-    reviewed_by: str | None = None
-    approved_by: str | None = None
+    reviewed_by: Optional[str] = None
+    approved_by: Optional[str] = None
     company_name: str = "Engineering Consulting Firm"
     project_name: str = ""
     client_name: str = ""
@@ -216,7 +216,7 @@ class TableGenerator:
         lines.append("=" * 100)
         lines.append("")
         lines.append(
-            f"{'Bus ID':<10} {'|V| (pu)':<12} {'Angle (deg)':<12} {'P (MW)':<12} {'Q (MVAR)':<12} {'Status':<10}",
+            f"{'Bus ID':<10} Union[{', V|] (pu)':<12} {'Angle (deg)':<12} {'P (MW)':<12} {'Q (MVAR)':<12} {'Status':<10}",
         )
         lines.append("-" * 100)
 
@@ -648,7 +648,7 @@ class ReportGenerationAgent:
     async def generate_complete_report(  # NOSONAR — S7503: async function uses sync I/O for compatibility reasons
         self,
         analysis_results: dict,
-        metadata: ReportMetadata | None = None,
+        metadata: Optional[ReportMetadata] = None,
         formats: list[str] = None,
         output_path: str = "./reports",
     ) -> dict[str, str]:
@@ -872,7 +872,7 @@ class ReportGenerationAgent:
         rows = []
         for line in table_text.split("\n"):
             if line.strip() and not line.startswith("=") and not line.startswith("-"):
-                cells = [cell.strip() for cell in line.split("|") if cell.strip()]
+                cells = [cell.strip() for cell in line.split(", ") if cell.strip()]
                 if cells:
                     rows.append(cells)
         return rows

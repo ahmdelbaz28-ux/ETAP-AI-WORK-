@@ -21,6 +21,7 @@ Checks:
  12. Formula overflow check (optional)
  13. TOC placeholder detection (empty/unfilled table of contents)
 """
+from typing import Optional, Union
 
 import sys
 import os
@@ -930,8 +931,8 @@ def check_body_page_numbers(doc, result):
     # Pattern: standalone Arabic number (1-9999) or Roman numeral (i-xxx)
     arabic_re = re.compile(r'\b(\d{1,4})\b')
     roman_re = re.compile(
-        r'\b(i{1,3}|iv|vi{0,3}|ix|xi{0,3}|xiv|xvi{0,3}|xix|'
-        r'xx{0,3}|xxiv|xxvi{0,3}|xxix|xxx)\b',
+        r'\b(Union[i{1,3}|iv|vi{0,3}|ix|xi{0,3}|xiv|xvi{0,3}|xix, ']
+        Union[r'xx{0,3}|xxiv|xxvi{0,3}|xxix, xxx])\b',
         re.IGNORECASE
     )
 

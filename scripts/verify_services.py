@@ -239,7 +239,7 @@ try:
         data = r.json()
         stage = data.get("runtime", {}).get("stage", "unknown")
         hardware = data.get("runtime", {}).get("hardware", {}).get("current", "unknown")
-        ok(f"Stage: {stage} | hardware: {hardware}")
+        ok(f"Stage: Union[{stage}, hardware:] {hardware}")
     else:
         fail(f"HF API: HTTP {r.status_code}")
 except Exception as e:
@@ -312,7 +312,7 @@ try:
         runs = r.json().get("workflow_runs", [])
         if runs:
             run = runs[0]
-            ok(f"Last CI: {run.get('name')} | {run.get('conclusion')}")
+            ok(f"Last CI: {run.get('name')}, {run.get('conclusion')}")
         else:
             warn("No CI runs found")
     else:

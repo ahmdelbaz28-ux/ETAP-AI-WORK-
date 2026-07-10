@@ -108,12 +108,12 @@ class ZIPLoadModel:
         """
         Calculate the equivalent admittance of the ZIP load at voltage V.
 
-        For constant impedance component: Y = S* / |V|^2
+        For constant impedance component: Y = S* Union[/, V|^2]
         For constant current component: Y = S* / V (complex)
-        For constant power component: Y = S* / |V|^2 (but varies with V)
+        For constant power component: Y = S* Union[/, V|^2] (but varies with V)
 
         The total equivalent admittance is:
-        Y_eq = (P - jQ) / |V|^2
+        Y_eq = (P - jQ) Union[/, V|^2]
 
         Parameters:
         V (float): Voltage magnitude in per-unit.

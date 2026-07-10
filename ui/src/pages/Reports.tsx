@@ -70,27 +70,30 @@ export default function Reports() {
 
       {/* Reports Table */}
       <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
-        {loading ? (
-          <div className="flex items-center justify-center h-32">
-            <div className="w-6 h-6 border-2 border-[var(--accent-primary)] border-t-transparent rounded-full animate-spin" />
-          </div>
-        ) : error ? (
-          <Card>
-            <div className="flex items-center gap-3 p-4 text-sm text-[var(--text-tertiary)]">
-              <AlertCircle className="w-5 h-5 text-red-400" />
-              <span>Failed to load reports: {error}</span>
-            </div>
-          </Card>
-        ) : reports.length === 0 ? (
-          <Card>
-            <div className="flex flex-col items-center gap-2 py-8 text-sm text-[var(--text-tertiary)]">
-              <FileText className="w-8 h-8 text-[var(--text-muted)]" />
-              <p>No reports generated yet.</p>
-              <p className="text-xs text-[var(--text-muted)]">Run a study to generate a report.</p>
-            </div>
-          </Card>
-        ) : (
-        <Card padding="none">
+{loading && ( // NOSONAR - S3358: previously nested ternary, refactored to && chain
+           <div className="flex items-center justify-center h-32">
+             <div className="w-6 h-6 border-2 border-[var(--accent-primary)] border-t-transparent rounded-full animate-spin" />
+           </div>
+         )}
+         {error && !loading && ( // NOSONAR - S3358: previously nested ternary, refactored to && chain
+           <Card>
+             <div className="flex items-center gap-3 p-4 text-sm text-[var(--text-tertiary)]">
+               <AlertCircle className="w-5 h-5 text-red-400" />
+               <span>Failed to load reports: {error}</span>
+             </div>
+           </Card>
+         )}
+         {!loading && !error && reports.length === 0 && (
+           <Card>
+             <div className="flex flex-col items-center gap-2 py-8 text-sm text-[var(--text-tertiary)]">
+               <FileText className="w-8 h-8 text-[var(--text-muted)]" />
+               <p>No reports generated yet.</p>
+               <p className="text-xs text-[var(--text-muted)]">Run a study to generate a report.</p>
+             </div>
+           </Card>
+         )}
+         {!loading && !error && reports.length > 0 && (
+         <Card padding="none">
           {/* Table Header */}
           <div className="grid grid-cols-12 gap-4 px-5 py-3 border-b border-[var(--border-primary)] bg-[var(--bg-elevated)]">
             <div className="col-span-4 text-xs font-medium text-[var(--text-muted)] uppercase tracking-wider">Report</div>

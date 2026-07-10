@@ -2,6 +2,8 @@ import { useState, useEffect, useCallback } from 'react'
 import { motion } from 'framer-motion'
 import { Cpu, Zap, Cable, Settings2, Activity, Wrench, Search, Filter, Plus, X, Loader2, AlertCircle, Trash2 } from 'lucide-react'
 import { Card, CardSection, Badge, Button, EmptyState } from '../components/ui'
+import ModalBackdrop from '../components/ModalBackdrop'
+import ModalHeader from '../components/ModalHeader'
 import { cn } from '../utils/helpers'
 import { API_BASE_URL } from '../lib/api-config'
 import { useNotify } from '../context/NotificationContext'
@@ -68,6 +70,13 @@ const EMPTY_FORM: AssetFormState = {
   notes: '',
 }
 
+function getVariantColor(variant: 'success' | 'warning' | 'danger' | 'default'): string {
+  if (variant === 'success') return 'text-green-400'
+  if (variant === 'warning') return 'text-amber-400'
+  if (variant === 'danger') return 'text-red-400'
+  return 'text-[var(--text-tertiary)]'
+}
+
 export default function AssetManagement() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -85,7 +94,7 @@ export default function AssetManagement() {
     setError(null)
     try {
       const token = localStorage.getItem('authToken')
-      const r = await fetch(`${API_BASE_URL}/api/v1/assets?page=1&page_size=200`, {
+      const r = await fetch(`${API_BASE_URL}/api/v1/assets?page=1&page_size=100`, {
         headers: token ? { Authorization: `Bearer ${token}` } : {},
         signal: AbortSignal.timeout(8000),
       })
@@ -207,25 +216,24 @@ export default function AssetManagement() {
         </div>
       </motion.div>
 
-      {/* Summary Stats */}
+{/* Summary Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        {summaryCards.map((card, i) => (
-          <motion.div key={card.label} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 * i }}>
-            <Card padding="md" className="text-center">
-              <div className="flex items-center justify-center gap-2 mb-2">
-                <span className={cn(
-                  card.variant === 'success' ? 'text-green-400' :
-                  card.variant === 'warning' ? 'text-amber-400' :
-                  card.variant === 'danger' ? 'text-red-400' : 'text-[var(--text-tertiary)]'
-                )}>
-                  {card.icon}
-                </span>
-                <span className="text-xs text-[var(--text-muted)]">{card.label}</span>
-              </div>
-              <p className="text-3xl font-bold text-[var(--text-primary)] mono-engineering">{card.count}</p>
-            </Card>
-          </motion.div>
-        ))}
+        {summaryCards.map((card, i) => {
+          const iconColor = getVariantColor(card.variant)
+          return (
+            <motion.div key={card.label} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 * i }}>
+              <Card padding="md" className="text-center">
+                <div className="flex items-center justify-center gap-2 mb-2">
+                  <span className={cn(iconColor)}>
+                    {card.icon}
+                  </span>
+                  <span className="text-xs text-[var(--text-muted)]">{card.label}</span>
+                </div>
+                <p className="text-3xl font-bold text-[var(--text-primary)] mono-engineering">{card.count}</p>
+              </Card>
+            </motion.div>
+          )
+        })}
       </div>
 
       {/* Search/Filter Bar */}
@@ -347,9 +355,7 @@ export default function AssetManagement() {
             icon={<Cpu className="w-12 h-12" />}
             title={assets.length === 0 ? "No assets yet" : "No assets found"}
             description={
-              assets.length === 0
-                ? "Add your first electrical asset (transformer, generator, breaker, motor, line, or relay) to start tracking your power system inventory."
-                : search ? `No results for "${search}"` : 'No assets match the current filter'
+              search ? `No results for "${search}"` : 'No assets match the current filter'
             }
             action={
               assets.length === 0 ? (
@@ -368,47 +374,29 @@ export default function AssetManagement() {
 
       {/* Create Asset Modal */}
       {showCreateModal && (
-        <div
-          className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4"
-          onClick={() => !submitting && setShowCreateModal(false)}
-          onKeyDown={(e) => {
-            if (e.key === 'Escape' && !submitting) {
-              setShowCreateModal(false);
-            }
-          }}
-          tabIndex={0}
-          role="button"
-        >
+        <ModalBackdrop onClose={() => setShowCreateModal(false)} disabled={submitting}>
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             onClick={(e) => e.stopPropagation()}
             className="bg-[var(--bg-elevated)] border border-[var(--border-primary)] rounded-xl w-full max-w-md p-6 shadow-2xl"
           >
-            <div className="flex items-start justify-between mb-4">
-              <div className="flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-brand-500/10">
-                  <Plus className="w-5 h-5 text-brand-400" />
-                </div>
-                <h3 className="text-lg font-semibold text-[var(--text-primary)]">Add New Asset</h3>
-              </div>
-              <button
-                onClick={() => !submitting && setShowCreateModal(false)}
-                disabled={submitting}
-                className="p-1 rounded text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-primary)] disabled:opacity-50 transition-colors"
-                aria-label="Close"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
+            <ModalHeader
+              title="Add New Asset"
+              onClose={() => setShowCreateModal(false)}
+              disabled={submitting}
+              icon={Plus}
+            />
 
             <div className="space-y-4">
               <div>
-                <label className="block text-xs font-medium text-[var(--text-secondary)] mb-1.5">
+                <label htmlFor="asset-name" className="block text-xs font-medium text-[var(--text-secondary)] mb-1.5">
                   Asset Name <span className="text-red-400">*</span>
                 </label>
                 <input
+                  id="asset-name"
                   type="text"
+                  aria-label="Asset Name"
                   value={form.name}
                   onChange={(e) => setForm(f => ({ ...f, name: e.target.value }))}
                   placeholder="e.g., Main Transformer T1"
@@ -419,8 +407,10 @@ export default function AssetManagement() {
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-medium text-[var(--text-secondary)] mb-1.5">Type</label>
+                  <label htmlFor="asset-type" className="block text-xs font-medium text-[var(--text-secondary)] mb-1.5">Type</label>
                   <select
+                    id="asset-type"
+                    aria-label="Type"
                     value={form.type}
                     onChange={(e) => setForm(f => ({ ...f, type: e.target.value }))}
                     disabled={submitting}
@@ -430,8 +420,10 @@ export default function AssetManagement() {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-[var(--text-secondary)] mb-1.5">Status</label>
+                  <label htmlFor="asset-status" className="block text-xs font-medium text-[var(--text-secondary)] mb-1.5">Status</label>
                   <select
+                    id="asset-status"
+                    aria-label="Status"
                     value={form.status}
                     onChange={(e) => setForm(f => ({ ...f, status: e.target.value }))}
                     disabled={submitting}
@@ -443,9 +435,11 @@ export default function AssetManagement() {
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-medium text-[var(--text-secondary)] mb-1.5">Rating</label>
+                  <label htmlFor="asset-rating" className="block text-xs font-medium text-[var(--text-secondary)] mb-1.5">Rating</label>
                   <input
+                    id="asset-rating"
                     type="text"
+                    aria-label="Rating"
                     value={form.rating}
                     onChange={(e) => setForm(f => ({ ...f, rating: e.target.value }))}
                     placeholder="e.g., 10 MVA"
@@ -454,9 +448,11 @@ export default function AssetManagement() {
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-[var(--text-secondary)] mb-1.5">Voltage</label>
+                  <label htmlFor="asset-voltage" className="block text-xs font-medium text-[var(--text-secondary)] mb-1.5">Voltage</label>
                   <input
+                    id="asset-voltage"
                     type="text"
+                    aria-label="Voltage"
                     value={form.voltage}
                     onChange={(e) => setForm(f => ({ ...f, voltage: e.target.value }))}
                     placeholder="e.g., 13.8 kV"
@@ -466,8 +462,10 @@ export default function AssetManagement() {
                 </div>
               </div>
               <div>
-                <label className="block text-xs font-medium text-[var(--text-secondary)] mb-1.5">Notes</label>
+                <label htmlFor="asset-notes" className="block text-xs font-medium text-[var(--text-secondary)] mb-1.5">Notes</label>
                 <textarea
+                  id="asset-notes"
+                  aria-label="Notes"
                   value={form.notes}
                   onChange={(e) => setForm(f => ({ ...f, notes: e.target.value }))}
                   placeholder="Optional notes about this asset"
@@ -494,7 +492,7 @@ export default function AssetManagement() {
               </Button>
             </div>
           </motion.div>
-        </div>
+        </ModalBackdrop>
       )}
     </div>
   )

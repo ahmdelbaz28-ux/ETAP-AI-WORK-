@@ -622,7 +622,7 @@ class TranslationEngine:
 
         Returns
         -------
-        dict | list
+        Union[dict, list]
             Translated data in the target system's format
         """
         if source_system == "etap" and target_system == "unified":

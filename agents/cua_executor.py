@@ -37,7 +37,7 @@ from datetime import UTC, datetime
 
 UTC = UTC
 from pathlib import Path
-from typing import Any, Literal
+from typing import Any, Literal, Optional
 
 logger = logging.getLogger("agent.cua_executor")
 
@@ -82,14 +82,14 @@ class CUAAction:
     """A single action decided by Gemini Vision and executed by the CUA."""
 
     type: ActionType
-    x: int | None = None
-    y: int | None = None
-    text: str | None = None
+    x: Optional[int] = None
+    y: Optional[int] = None
+    text: Optional[str] = None
     keys: list[str] = field(default_factory=list)
-    target: str | None = None
-    seconds: float | None = None
-    summary: str | None = None
-    reason: str | None = None
+    target: Optional[str] = None
+    seconds: Optional[float] = None
+    summary: Optional[str] = None
+    reason: Optional[str] = None
 
     @classmethod
     def from_gemini(cls, action_dict: dict[str, Any]) -> CUAAction:
@@ -146,11 +146,11 @@ class CUAStepResult:
     step_number: int
     action: CUAAction
     success: bool
-    screenshot_before: str | None = None  # path
-    screenshot_after: str | None = None  # path
+    screenshot_before: Optional[str] = None  # path
+    screenshot_after: Optional[str] = None  # path
     gemini_analysis: dict[str, Any] | None = None
     duration_ms: int = 0
-    error: str | None = None
+    error: Optional[str] = None
 
     def to_audit_dict(self) -> dict[str, Any]:
         return {
@@ -180,11 +180,11 @@ class CUAExecutionResult:
     steps: list[CUAStepResult] = field(default_factory=list)
     final_summary: str = ""
     objective_complete: bool = False
-    aborted_reason: str | None = None
+    aborted_reason: Optional[str] = None
     total_duration_ms: int = 0
-    execution_id: str | None = None
+    execution_id: Optional[str] = None
     resumed_from_step: int = 0
-    vision_source: str | None = None  # "gemini" | "opencv" | "hybrid"
+    vision_source: Optional[str] = None  # "gemini" | "opencv" | "hybrid"
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -224,7 +224,7 @@ class CUAExecutor:
 
     def __init__(
         self,
-        audit_dir: str | None = None,
+        audit_dir: Optional[str] = None,
         action_timeout: int = DEFAULT_ACTION_TIMEOUT,
     ) -> None:
         self.action_timeout = action_timeout
@@ -282,7 +282,7 @@ class CUAExecutor:
         max_steps: int = DEFAULT_MAX_STEPS,
         require_confirmation: bool = True,
         on_confirmation_request=None,
-        context: str | None = None,
+        context: Optional[str] = None,
         mode: str = "control",
     ) -> CUAExecutionResult:
         """Run the CUA loop until objective is complete or max_steps reached.
@@ -624,7 +624,7 @@ class CUAExecutor:
 
     # ─── Internal: screenshot capture ──────────────────────────────────────
 
-    def _capture_screenshot(self, step_num: int, phase: str) -> str | None:
+    def _capture_screenshot(self, step_num: int, phase: str) -> Optional[str]:
         """Capture a screenshot and save it to the audit dir. Returns path."""
         if not self._pyautogui:
             return None
@@ -672,7 +672,7 @@ class CUAExecutor:
 
     # ─── Internal: action execution ────────────────────────────────────────
 
-    def _execute_action(self, action: CUAAction) -> str | None:  # NOSONAR — S3776: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
+    def _execute_action(self, action: CUAAction) -> Optional[str]:  # NOSONAR — S3776: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
         """Execute a single pyautogui action. Returns error string or None."""
         if not self._pyautogui:
             return "pyautogui not available"

@@ -26,7 +26,7 @@ from datetime import datetime, timezone
 
 UTC = timezone.utc  # noqa: UP017
 from enum import Enum
-from typing import Any
+from typing import Any, Optional
 
 import numpy as np
 
@@ -113,7 +113,7 @@ class BaseAgent:
             self.prompt_handle = self._derive_prompt_handle()
 
         # Load prompt-driven metadata (description, standards, guidance)
-        self._system_prompt: str | None = None
+        self._system_prompt: Optional[str] = None
         self._prompt_metadata: dict[str, Any] = {}
         self._load_prompt()
 
@@ -1406,7 +1406,7 @@ class ChiefEngineeringOrchestrator:
         self.logger = logging.getLogger("orchestrator")
 
         # Load orchestrator's own prompt for coordination guidance
-        self._system_prompt: str | None = None
+        self._system_prompt: Optional[str] = None
         self._load_prompt()
 
     def _load_prompt(self) -> None:
@@ -1443,7 +1443,7 @@ class ChiefEngineeringOrchestrator:
 
     @trace_operation("execute_autonomous_workflow", attributes={"component": "orchestrator"})
     async def execute_autonomous_workflow(
-        self, user_goal: str, system_data: Any, parameters: dict | None = None,
+        self, user_goal: str, system_data: Any, parameters: Optional[dict] = None,
     ) -> dict[str, Any]:
         """
         Execute complete autonomous engineering workflow based on user goal.
@@ -1630,7 +1630,7 @@ class ChiefEngineeringOrchestrator:
 
         return sorted(study_types, key=lambda x: priority_order.get(x, 99))
 
-    def _get_agent_for_study(self, study_type: StudyType) -> BaseAgent | None:
+    def _get_agent_for_study(self, study_type: StudyType) -> Optional[BaseAgent]:
         """Get appropriate agent for study type."""
         agent_mapping = {
             StudyType.LOAD_FLOW: "load_flow",
@@ -1892,7 +1892,7 @@ class ChiefEngineeringOrchestrator:
 
         return result
 
-    async def get_task_status(self, task_id: str) -> EngineeringTask | None:  # NOSONAR — S7503: async function uses sync I/O for compatibility reasons
+    async def get_task_status(self, task_id: str) -> Optional[EngineeringTask]:  # NOSONAR — S7503: async function uses sync I/O for compatibility reasons
         """Get status of a task."""
         return self.completed_tasks.get(task_id)
 

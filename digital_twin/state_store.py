@@ -19,7 +19,7 @@ import threading
 import time
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any
+from typing import Any, Optional
 
 import numpy as np
 
@@ -264,7 +264,7 @@ class StateStore:
 
             return self._current_version
 
-    def get_current(self) -> StateSnapshot | None:
+    def get_current(self) -> Optional[StateSnapshot]:
         """Get the current (latest) state snapshot."""
         with self._lock:
             if not self._snapshots:
@@ -272,7 +272,7 @@ class StateStore:
             ref = self._snapshots[-1]
         return copy.deepcopy(ref)
 
-    def get_version(self, version: int) -> StateSnapshot | None:
+    def get_version(self, version: int) -> Optional[StateSnapshot]:
         """Get a specific version of the state."""
         with self._lock:
             for s in self._snapshots:
@@ -288,7 +288,7 @@ class StateStore:
         with self._lock:
             return self._current_version
 
-    def rollback(self, version: int) -> StateSnapshot | None:
+    def rollback(self, version: int) -> Optional[StateSnapshot]:
         """
         Rollback state to a specific version.
         Removes all snapshots after the target version.
@@ -434,7 +434,7 @@ class StateStore:
             self._snapshots.clear()
             self._current_version = 0
 
-    def _get_version_unlocked(self, version: int) -> StateSnapshot | None:
+    def _get_version_unlocked(self, version: int) -> Optional[StateSnapshot]:
         """Get a specific version without acquiring lock (caller must hold lock)."""
         for s in self._snapshots:
             if s.version == version:

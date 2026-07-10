@@ -1,4 +1,5 @@
 from __future__ import annotations
+from typing import Optional, Union
 
 from dataclasses import asdict
 from pathlib import Path
@@ -14,7 +15,7 @@ from .planner import Planner
 
 
 class QuizMasteryService:
-    def __init__(self, base_dir: str | Path):
+    def __init__(self, base_dir: Union[str, Path]):
         self.repo = JsonRepository(base_dir)
         self.generator = QuizGenerator()
         self.evaluator = Evaluator()
@@ -112,8 +113,8 @@ class QuizMasteryService:
         user_id: str,
         document_id: str,
         knowledge_point_ids: list[str] | None = None,
-        level: int | None = None,
-        num_questions: int | None = None,
+        level: Optional[int] = None,
+        num_questions: Optional[int] = None,
     ) -> dict:
         """Generate quiz prompts for given knowledge points.
 
@@ -275,7 +276,7 @@ class QuizMasteryService:
     # ── Review Candidates ─────────────────────────────────────────
 
     def get_review_candidates(
-        self, user_id: str, document_id: str, today_str: str | None = None
+        self, user_id: str, document_id: str, today_str: Optional[str] = None
     ) -> list[dict]:
         """Get review recommendations for a user.
 

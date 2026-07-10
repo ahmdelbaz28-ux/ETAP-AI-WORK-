@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from collections.abc import Iterator
+from typing import Optional
 
 from gis_integration.base import GISProviderInterface
 from gis_integration.exceptions import GISDataExtractionError, GISProviderUnavailableError
@@ -125,7 +126,7 @@ class ArcGISProvider(GISProviderInterface):
                     {
                         "type": "Feature",
                         "geometry": f.geometry,
-                        "properties": f.properties | {"id": f.id, "layer": f.layer_name},
+                        "properties": {**f.properties, "id": f.id, "layer": f.layer_name},
                     }
                     for f in features
                 ],
@@ -134,7 +135,7 @@ class ArcGISProvider(GISProviderInterface):
         except Exception as exc:
             raise GISDataExtractionError(f"Failed to export GeoJSON from ArcGIS: {exc}") from exc
 
-    def get_crs(self, layer_id: str | None = None) -> GeoCRSInfo:
+    def get_crs(self, layer_id: Optional[str] = None) -> GeoCRSInfo:
         return self._crs
 
     def health_check(self) -> bool:

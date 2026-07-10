@@ -5,7 +5,7 @@ from __future__ import annotations
 import logging
 from collections.abc import Callable, Sequence
 from enum import Enum
-from typing import Any
+from typing import Any, Optional, Union
 
 import numpy as np
 from numpy.linalg import LinAlgError, cholesky, cond, inv, lstsq, matrix_rank, norm, solve
@@ -77,12 +77,12 @@ class NumericalGuard:
     """
 
     def __init__(
-        self, warn_on_clamp: bool = True, logger_instance: logging.Logger | None = None,
+        self, warn_on_clamp: bool = True, logger_instance: Optional[logging.Logger] = None,
     ):
         self.warn_on_clamp = warn_on_clamp
         self.log = logger_instance or logger
 
-    def check_inf_nan(self, value: float | np.ndarray, name: str = "value") -> np.ndarray:
+    def check_inf_nan(self, value: Union[float, np.ndarray], name: str = "value") -> np.ndarray:
         """Detect and replace NaN (→0.0) and Inf (→±1e300) values."""
         arr = np.asarray(value, dtype=float)
         if np.any(np.isnan(arr)):
@@ -101,20 +101,20 @@ class NumericalGuard:
         diffs = np.abs(np.diff(arr))
         return bool(np.any(diffs > threshold) or np.any(np.abs(arr[-3:]) > threshold))
 
-    def safe_log(self, value: float | np.ndarray, epsilon: float = 1e-300) -> np.ndarray:
+    def safe_log(self, value: Union[float, np.ndarray], epsilon: float = 1e-300) -> np.ndarray:
         """Safe natural logarithm: clips value to epsilon before taking log."""
         arr = np.asarray(value, dtype=float)
         return np.log(np.maximum(arr, epsilon))
 
-    def safe_sqrt(self, value: float | np.ndarray, epsilon: float = 0.0) -> np.ndarray:
+    def safe_sqrt(self, value: Union[float, np.ndarray], epsilon: float = 0.0) -> np.ndarray:
         """Safe square root: clips value to epsilon before taking sqrt."""
         arr = np.asarray(value, dtype=float)
         return np.sqrt(np.maximum(arr, epsilon))
 
     def safe_division(
         self,
-        numerator: float | np.ndarray,
-        denominator: float | np.ndarray,
+        numerator: Union[float, np.ndarray],
+        denominator: Union[float, np.ndarray],
         default: float = 0.0,
         epsilon: float = 1e-300,
     ) -> np.ndarray:
@@ -129,7 +129,7 @@ class NumericalGuard:
         safe_den = np.where(mask, np.inf, den)
         return np.divide(num, safe_den, out=np.full_like(num, default, dtype=float), where=~mask)
 
-    def safe_angle(self, complex_val: complex | np.ndarray) -> np.ndarray:
+    def safe_angle(self, complex_val: Union[complex, np.ndarray]) -> np.ndarray:
         """Compute phase angle safely: zero-magnitude values return 0.0 radians."""
         arr = np.asarray(complex_val, dtype=complex)
         mask = np.abs(arr) < 1e-300
@@ -139,7 +139,7 @@ class NumericalGuard:
 
     def clamp_to_bounds(
         self,
-        value: float | np.ndarray,
+        value: Union[float, np.ndarray],
         min_val: float,
         max_val: float,
         name: str = "value",
@@ -159,9 +159,7 @@ class NumericalGuard:
             )
         return np.clip(arr, min_val, max_val)
 
-    def is_within_bounds(
-        self, value: float | np.ndarray, min_val: float, max_val: float,
-    ) -> bool:
+    def is_within_bounds(self, value: Union[float, np.ndarray], min_val: float, max_val: float, name: str = "value") -> bool:
         """Check whether all elements lie within [min_val, max_val]."""
         arr = np.asarray(value, dtype=float)
         return bool(np.all((arr >= min_val) & (arr <= max_val)))
@@ -223,13 +221,13 @@ class ConvergenceMonitor:
         self._history: list[float] = []
         self._iterations: int = 0
 
-    def add_iteration(self, value: float, iteration: int | None = None) -> None:
+    def add_iteration(self, value: float, iteration: Optional[int] = None) -> None:
         """Record an iteration mismatch value."""
         self._history.append(float(value))
         self._iterations = iteration if iteration is not None else len(self._history)
 
     def is_converged(self, current_value: float) -> bool:
-        """Check whether |current_value| <= tolerance."""
+        """Check Union[whether, current_value|] <= tolerance."""
         return bool(abs(current_value) <= self.tolerance)
 
     def is_diverging(self, current_value: float) -> bool:
@@ -256,7 +254,7 @@ class ConvergenceMonitor:
         return absolute_exceeded or step_exceeded
 
     def get_convergence_rate(self, window: int = 5) -> float:
-        """Mean ratio |x_k / x_{k-1}| over last *window* iterations (<1 = converging)."""
+        """Mean Union[ratio, x_k] / Union[x_{k-1}, over] last *window* iterations (<1 = converging)."""
         if len(self._history) < 2:
             return 0.0
         recent = np.array(self._history[-window:], dtype=float)
@@ -292,7 +290,7 @@ class ConsistencyCheck:
     Each check appends a result dict to an internal log.
     """
 
-    def __init__(self, logger_instance: logging.Logger | None = None):
+    def __init__(self, logger_instance: Optional[logging.Logger] = None):
         self.log = logger_instance or logger
         self._results: list[dict[str, Any]] = []
 
@@ -302,9 +300,9 @@ class ConsistencyCheck:
 
     def check_power_balance(
         self,
-        total_gen: float | np.ndarray,
-        total_load: float | np.ndarray,
-        total_losses: float | np.ndarray,
+        total_gen: Union[float, np.ndarray],
+        total_load: Union[float, np.ndarray],
+        total_losses: Union[float, np.ndarray],
         tolerance_mw: float = 1.0,
     ) -> dict[str, Any]:
         """Verify that generation = load + losses within tolerance_mw."""
@@ -387,9 +385,9 @@ class ConsistencyCheck:
 
     def check_energy_conservation(
         self,
-        energy_in: float | np.ndarray,
-        energy_out: float | np.ndarray,
-        losses: float | np.ndarray,
+        energy_in: Union[float, np.ndarray],
+        energy_out: Union[float, np.ndarray],
+        losses: Union[float, np.ndarray],
         tolerance: float = 0.01,
     ) -> dict[str, Any]:
         """Verify energy_in = energy_out + losses within tolerance."""
@@ -470,8 +468,8 @@ class MatrixStabilizer:
             self.log.warning("Linear solve failed — falling back to least-squares")
             return lstsq(A_arr, b_arr, rcond=self.default_tolerance)[0]
 
-    def is_symmetric(self, matrix: np.ndarray, tolerance: float | None = None) -> bool:
-        """Check if matrix is square and ||A - A^T||_inf <= tolerance."""
+    def is_symmetric(self, matrix: np.ndarray, tolerance: Optional[float] = None) -> bool:
+        """Check if matrix is square Union[and, |A] - Union[A^T|, _inf] <= tolerance."""
         mat = np.asarray(matrix, dtype=float)
         tol = tolerance if tolerance is not None else self.default_tolerance
         if mat.ndim != 2 or mat.shape[0] != mat.shape[1]:
@@ -487,7 +485,7 @@ class MatrixStabilizer:
         except LinAlgError:
             return False
 
-    def estimate_rank(self, matrix: np.ndarray, tolerance: float | None = None) -> int:
+    def estimate_rank(self, matrix: np.ndarray, tolerance: Optional[float] = None) -> int:
         """Estimate numerical rank using SVD."""
         mat = np.asarray(matrix, dtype=float)
         tol = tolerance if tolerance is not None else self.default_tolerance

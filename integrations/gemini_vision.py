@@ -35,7 +35,7 @@ import logging
 import os
 import time
 from pathlib import Path
-from typing import Any
+from typing import Any, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -97,7 +97,7 @@ You MUST respond with valid JSON only (no markdown, no prose). The JSON schema:
     {"type": "button|menu|input|dialog|text|icon", "label": "<text>", "x": <int>, "y": <int>, "confidence": <0.0-1.0>}
   ],
   "next_action": {
-    "type": "click|type|hotkey|wait|done|unknown",
+    "type": Union["click|type|hotkey|wait|done, unknown",]
     "x": <int>,
     "y": <int>,
     "text": "<string, only for type>",
@@ -180,12 +180,12 @@ class GeminiVisionClient:
         self,
         image: Any,
         objective: str,
-        context: str | None = None,
+        context: Optional[str] = None,
     ) -> dict[str, Any] | None:
         """Analyze a screenshot and return structured UI description + next action.
 
         Args:
-            image: PIL.Image.Image | path-like | bytes
+            image: Union[PIL.Image.Image, path-like] | bytes
             objective: what the agent is trying to accomplish
             context: optional prior-step summary (e.g., "Just clicked Run, waiting for results")
 
@@ -202,7 +202,7 @@ class GeminiVisionClient:
 
         prompt = self._build_prompt(objective, context, pil_image.size)
 
-        last_error: str | None = None
+        last_error: Optional[str] = None
         for attempt in range(1, self.max_retries + 1):
             try:
                 response = self.model.generate_content(
@@ -259,7 +259,7 @@ class GeminiVisionClient:
         return None
 
     @staticmethod
-    def _build_prompt(objective: str, context: str | None, image_size: tuple[int, int]) -> str:
+    def _build_prompt(objective: str, context: Optional[str], image_size: tuple[int, int]) -> str:
         width, height = image_size
         parts = [
             f"OBJECTIVE: {objective}",

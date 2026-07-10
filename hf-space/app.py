@@ -10,11 +10,12 @@ are defined in one place and reused by both the HF Space and the main API.
 
 from __future__ import annotations
 
+import asyncio
 import logging
 import os
 import time
 from contextlib import asynccontextmanager
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Optional
 
 if TYPE_CHECKING:
     # Forward-only import for type hints; runtime import happens inside
@@ -64,7 +65,7 @@ from api.shared_handlers import (
 # -- Logging ------------------------------------------------------------------
 logging.basicConfig(
     level=logging.INFO,
-    format="%(asctime)s | %(levelname)s | %(name)s | %(message)s",
+    format="%(asctime)s, %(levelname)s, %(name)s, %(message)s",
 )
 logger = logging.getLogger("etap-ai")
 
@@ -130,6 +131,43 @@ app.include_router(auth_router)
 app.include_router(projects_router)
 app.include_router(data_import_router)
 app.include_router(assets_router)
+
+
+# -- Global JSON exception handler --------------------------------------------
+#
+# FastAPI's default 500 response is a plain-text "Internal Server Error"
+# body, which the frontend cannot parse as JSON — resulting in the
+# unhelpful "Registration failed: Registration failed" message.
+#
+# This handler intercepts unhandled exceptions on /api/* routes and returns
+# a structured JSON response with the exception type and message so the
+# frontend can show something actionable to the user.
+@app.exception_handler(Exception)
+async def unhandled_exception_handler(request: Request, exc: Exception):
+    # Import here to avoid circular imports at module load.
+    import logging as _logging
+    _log = _logging.getLogger("etap-ai")
+    _log.exception("Unhandled exception on %s %s", request.method, request.url.path)
+
+    # Don't leak internal details in production, but DO return JSON.
+    # The frontend's existing error parsing expects { detail: string }.
+    safe_message = "Internal server error"
+    if isinstance(exc, (TimeoutError, asyncio.TimeoutError)):
+        safe_message = "Database connection timed out. The service is degraded — please retry in a moment."
+    elif isinstance(exc, OSError):
+        safe_message = "Network or database connection error. Please retry."
+
+    from fastapi.responses import JSONResponse
+    return JSONResponse(
+        status_code=500,
+        content={
+            "detail": safe_message,
+            "type": type(exc).__name__,
+            "path": request.url.path,
+        },
+        headers={"X-Error-Type": type(exc).__name__},
+    )
+
 
 app.add_middleware(
     CORSMiddleware,
@@ -221,6 +259,40 @@ async def auth_and_rate_limit(request: Request, call_next):
                 headers={"Retry-After": str(rate_limiter.window)},
             )
     return await call_next(request)
+
+
+# -- Akamai edge protection middleware ----------------------------------------
+#
+# IMPORTANT: This middleware is added AFTER auth_and_rate_limit so it runs
+# FIRST (outermost). This ensures origin verification happens before any
+# API key / JWT checks — direct origin access is blocked at the earliest
+# possible point.
+from api.akamai_protection import akamai_protection_middleware, is_akamai_enabled  # noqa: E402
+
+if is_akamai_enabled():
+    logger.info("Akamai origin protection ENABLED — direct origin access will be rejected")
+else:
+    logger.info("Akamai origin protection DISABLED (AKAMAI_ORIGIN_SECRET not set) — dev mode")
+
+app.middleware("http")(akamai_protection_middleware)
+
+
+# -- Cloudflare edge protection middleware ------------------------------------
+#
+# IMPORTANT: Added LAST so it runs FIRST (outermost middleware). This ensures
+# origin verification happens before any other middleware — direct origin
+# access is blocked at the earliest possible point.
+from api.cloudflare_protection import (  # noqa: E402
+    cloudflare_protection_middleware,
+    is_cloudflare_enabled,
+)
+
+if is_cloudflare_enabled():
+    logger.info("Cloudflare origin protection ENABLED — direct origin access will be rejected")
+else:
+    logger.info("Cloudflare origin protection DISABLED (CLOUDFLARE_ORIGIN_SECRET not set) — dev mode")
+
+app.middleware("http")(cloudflare_protection_middleware)
 
 
 # -- Root ---------------------------------------------------------------------
@@ -459,8 +531,8 @@ async def etap_gui_execute(request: Request):
                     "question": "string (required)",
                     "max_steps": "int (default 15)",
                     "require_confirmation": "bool (default true)",
-                    "audit_dir": "string | null",
-                    "start_url": "string | null",
+                    "audit_dir": "string or null",
+                    "start_url": "string or null",
                 },
             },
         )
@@ -1017,7 +1089,7 @@ async def settings_delete_key(provider: str):
     }
 
 
-def _parse_inline_key_config(body: dict, provider: str) -> APIKeyConfig | None:
+def _parse_inline_key_config(body: dict, provider: str) -> Optional[APIKeyConfig]:
     """Build an APIKeyConfig from request body, or None if no inline key.
 
     Body shape: { "api_key": "sk-...", "base_url": None, "model_name": None }

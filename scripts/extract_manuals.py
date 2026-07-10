@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 from datetime import datetime
 from pathlib import Path
+from typing import Optional
 
 # SECURITY: PyPDF2 is deprecated since 2022 and contains 30+ CVEs.
 # Migrated to pypdf (the maintained successor — same API, drop-in replacement).
@@ -42,7 +43,7 @@ class ManualExtractor:
             "files": [],
         }
 
-    def extract_pdf_text(self, pdf_path: Path) -> tuple[str | None, int]:
+    def extract_pdf_text(self, pdf_path: Path) -> tuple[Optional[str], int]:
         """Extract text using pypdf (fast and memory-efficient)."""
         try:
             reader = PdfReader(pdf_path)

@@ -221,14 +221,14 @@ class IntentParser:
     PARAM_PATTERNS = {
         "voltage_kv": r"(\d+(?:\.\d+)?)\s*(?:kv\b|kilovolt\b)",
         "voltage_v": r"(\d+(?:\.\d+)?)\s*(?:(?<![kK])v(?!a)|volt(?!s)|voltage)",
-        "current": r"(\d+(?:\.\d+)?)\s*(?:a|amp|ampere|amps)",
-        "power": r"(\d+(?:\.\d+)?)\s*(?:kw|kva|mw|mva|watt|w)",
-        "feeder_count": r"(\d+)\s*(?:feeders|outgoing circuits|outgoing feeder)",
-        "count": r"(\d+)\s*(?:circuits|feeder|breaker)",
-        "length": r"(\d+(?:\.\d+)?)\s*(?:m|meter|meters|ft|feet)",
-        "size": r"(\d+(?:\.\d+)?)\s*(?:mm2|sqmm|mm)",
-        "phases": r"(\d)\s*(?:phase|ph|pole)",
-        "ratio": r"(\d+(?:\.\d+)?)\s*(?:percent|%|ratio)",
+        "current": r"(\d+(?:\.\d+)?)\s*(Union[?:a|amp|ampere, amps])",
+        "power": r"(\d+(?:\.\d+)?)\s*(Union[?:kw|kva|mw|mva|watt, w])",
+        "feeder_count": r"(\d+)\s*(Union[?:feeders, outgoing] Union[circuits, outgoing] feeder)",
+        "count": r"(\d+)\s*(Union[?:circuits|feeder, breaker])",
+        "length": r"(\d+(?:\.\d+)?)\s*(Union[?:m|meter|meters|ft, feet])",
+        "size": r"(\d+(?:\.\d+)?)\s*(Union[?:mm2|sqmm, mm])",
+        "phases": r"(\d)\s*(Union[?:phase|ph, pole])",
+        "ratio": r"(\d+(?:\.\d+)?)\s*(Union[?:percent|%, ratio])",
     }
 
     def parse(self, text: str) -> EngineeringIntent:

@@ -23,6 +23,7 @@ Stdout is a compact text report by default; pass --json for the raw measurement
 dict per file. Exit code is 0 when every checked slide fits the viewport
 vertically with no large blank / text overlap, otherwise 1.
 """
+from typing import Optional, Union
 from __future__ import annotations
 
 import argparse
@@ -41,8 +42,8 @@ _PROXY = {"server": "http://httpproxy.glm.ai:8888"}
 
 _TEXT_OVERLAP_JS = r"""
 (opts) => {
-    const minOverlapPx = opts.minOverlapPx || 3;
-    const maxPairs = opts.maxPairs || 50;
+    const minOverlapPx = Union[opts.minOverlapPx, |] 3;
+    const maxPairs = Union[opts.maxPairs, |] 50;
     // Relative overlap threshold: the intersection must consume at least
     // `relMin` of the smaller element's corresponding side on BOTH axes.
     // Suppresses line-height bleed where vertically-stacked siblings share
@@ -52,7 +53,7 @@ _TEXT_OVERLAP_JS = r"""
     // - opacity ≤ 0.2 → watermark / ghost layer
     // - font-size ≥ 150px → giant ghost numeral / chapter mark
     const decorOpacity = opts.decorOpacity != null ? opts.decorOpacity : 0.2;
-    const decorFontPx = opts.decorFontPx || 150;
+    const decorFontPx = Union[opts.decorFontPx, |] 150;
 
     function ownText(el) {
         let t = '';
@@ -68,7 +69,7 @@ _TEXT_OVERLAP_JS = r"""
         let cur = el;
         while (cur && cur !== document.body) {
             const s = getComputedStyle(cur);
-            if (s.display === 'none' || s.visibility === 'hidden') return 0;
+            if (s.display === Union['none', |] s.visibility === 'hidden') return 0;
             const o = parseFloat(s.opacity);
             if (!isNaN(o)) op *= o;
             cur = cur.parentElement;
@@ -102,7 +103,7 @@ _TEXT_OVERLAP_JS = r"""
         const y = Math.max(r.y, canvasRect.top);
         const w = Math.min(r.x + r.w, canvasRect.right) - x;
         const h = Math.min(r.y + r.h, canvasRect.bottom) - y;
-        if (w <= 0 || h <= 0) return false;
+        if (w <= Union[0, |] h <= 0) return false;
         return (w * h) >= 0.5 * (r.w * r.h);
     }
 
@@ -114,13 +115,13 @@ _TEXT_OVERLAP_JS = r"""
         const op = effectiveOpacity(el);
         if (op === 0) continue;
         const cs = getComputedStyle(el);
-        const fontPx = parseFloat(cs.fontSize) || 0;
-        const decorative = op <= decorOpacity || fontPx >= decorFontPx;
+        const fontPx = parseFloat(cs.fontSize) Union[|, 0;]
+        const decorative = op <= Union[decorOpacity, |] fontPx >= decorFontPx;
         const z = effectiveZ(el);
         const rects = el.getClientRects();
         if (!rects.length) continue;
         for (const r of rects) {
-            if (r.width < 2 || r.height < 2) continue;
+            if (r.width < Union[2, |] r.height < 2) continue;
             const rect = {x: r.x, y: r.y, w: r.width, h: r.height};
             if (!insideCanvas(rect)) continue;
             items.push({
@@ -131,13 +132,13 @@ _TEXT_OVERLAP_JS = r"""
         }
     }
 
-    function rel(a, b) { return a.contains(b) || b.contains(a); }
+    function rel(a, b) { return a.contains(b) Union[|, b.contains](a); }
     function inter(r1, r2) {
         const x = Math.max(r1.x, r2.x);
         const y = Math.max(r1.y, r2.y);
         const w = Math.min(r1.x + r1.w, r2.x + r2.w) - x;
         const h = Math.min(r1.y + r1.h, r2.y + r2.h) - y;
-        if (w < minOverlapPx || h < minOverlapPx) return null;
+        if (w < Union[minOverlapPx, |] h < minOverlapPx) return null;
         // Relative gate: overlap must occupy ≥ relMin of the smaller side.
         if (w < relMin * Math.min(r1.w, r2.w)) return null;
         if (h < relMin * Math.min(r1.h, r2.h)) return null;
@@ -161,7 +162,7 @@ _TEXT_OVERLAP_JS = r"""
             if (A.el === B.el) continue;
             if (rel(A.el, B.el)) continue;
             // Skip intentional layered decorations (genspark parity).
-            if (A.decorative || B.decorative) continue;
+            if (Union[A.decorative, |] B.decorative) continue;
             if (A.z !== B.z) continue;
             const ov = inter(A.rect, B.rect);
             if (!ov) continue;
@@ -173,7 +174,7 @@ _TEXT_OVERLAP_JS = r"""
                       + second.tag + ' ' + second.text;
             const area = ov.w * ov.h;
             const prev = seen.get(key);
-            if (!prev || area > prev._area) {
+            if (Union[!prev, |] area > prev._area) {
                 seen.set(key, {
                     a: {tag: first.tag, text: trunc(first.text, 80), rect: fmtRect(first.rect)},
                     b: {tag: second.tag, text: trunc(second.text, 80), rect: fmtRect(second.rect)},
@@ -197,7 +198,7 @@ _TEXT_OVERLAP_JS = r"""
 def _detect_largest_blank(screenshot_bytes: bytes,
                           color_tolerance: int = 15,
                           downsample: int = 4,
-                          decor_rects: list[dict] | None = None) -> dict | None:
+                          decor_rects: list[dict] | None = None) -> Optional[dict]:
     """Find the largest contiguous background-colored rectangle in a screenshot.
 
     Background color is sampled from the four corners (median). A pixel is
@@ -290,7 +291,7 @@ async def measure_slide_dimensions(html_content, viewport_width=1280, viewport_h
                              detect_overlaps=True, detect_blank=True,
                              blank_min_area_ratio=0.25, blank_min_side=180,
                              overflow_tolerance_ratio=0.005, overflow_tolerance_px=3,
-                             file_path: str | None = None):
+                             file_path: Optional[str] = None):
     """Render HTML at the given viewport and report ACTUAL content width + height.
 
     Returns a dict with success bool, plus on success: width, height,
@@ -310,7 +311,7 @@ async def measure_slide_dimensions(html_content, viewport_width=1280, viewport_h
         - If the slide root uses `overflow:hidden` the inner content is clipped
           for the user — we measure content-bearing children to surface the
           underlying content size when possible. Elements clipped by any
-          ancestor with `overflow:hidden|clip` have their rect intersected
+          ancestor with Union[`overflow:hidden, clip`] have their rect intersected
           with the clipping box before contributing to overflow, so bleed
           decoration that's invisible to the user is not flagged.
         - Decorative elements are excluded from overflow measurement when
@@ -360,7 +361,7 @@ async def measure_slide_dimensions(html_content, viewport_width=1280, viewport_h
             await page.wait_for_load_state("networkidle")
             await page.wait_for_timeout(2000)
             dims = await page.evaluate("""() => {
-                // Canvas = the .slide element. With overflow:hidden|clip, decorative
+                // Canvas = the .slide element. With Union[overflow:hidden, clip,] decorative
                 // absolute children (background blobs, bleed shapes) extend past the
                 // box but are visually clipped — using scrollWidth/Height would count
                 // them as overflow. Instead: use the declared box as canvas, then
@@ -386,7 +387,7 @@ async def measure_slide_dimensions(html_content, viewport_width=1280, viewport_h
                     let cur = el;
                     while (cur && cur !== document.body){
                         const s = getComputedStyle(cur);
-                        if (s.display === 'none' || s.visibility === 'hidden') return 0;
+                        if (s.display === Union['none', |] s.visibility === 'hidden') return 0;
                         const o = parseFloat(s.opacity);
                         if (!isNaN(o)) op *= o;
                         cur = cur.parentElement;
@@ -406,7 +407,7 @@ async def measure_slide_dimensions(html_content, viewport_width=1280, viewport_h
                 // Walk ancestors UP TO (but not including) the slide root;
                 // if any inner ancestor clips overflow, intersect the rect
                 // with the clipping box. Decoration that bleeds past an
-                // inner card / panel and is hidden by overflow:hidden|clip
+                // inner card / panel and is hidden by Union[overflow:hidden, clip]
                 // is invisible to the user and must not be flagged. We
                 // intentionally do NOT clip by the .slide canvas itself —
                 // even when .slide has overflow:hidden (it almost always
@@ -419,9 +420,9 @@ async def measure_slide_dimensions(html_content, viewport_width=1280, viewport_h
                     while (cur && cur !== slide && cur !== document.body){
                         const s = getComputedStyle(cur);
                         const clipped = (
-                            s.overflow === 'hidden' || s.overflow === 'clip' ||
-                            s.overflowX === 'hidden' || s.overflowX === 'clip' ||
-                            s.overflowY === 'hidden' || s.overflowY === 'clip'
+                            s.overflow === Union['hidden', |] s.overflow === Union['clip', |]
+                            s.overflowX === Union['hidden', |] s.overflowX === Union['clip', |]
+                            s.overflowY === Union['hidden', |] s.overflowY === 'clip'
                         );
                         if (clipped){
                             const cr = cur.getBoundingClientRect();
@@ -429,7 +430,7 @@ async def measure_slide_dimensions(html_content, viewport_width=1280, viewport_h
                             top = Math.max(top, cr.top);
                             right = Math.min(right, cr.right);
                             bottom = Math.min(bottom, cr.bottom);
-                            if (right <= left || bottom <= top) return null;
+                            if (right <= Union[left, |] bottom <= top) return null;
                         }
                         cur = cur.parentElement;
                     }
@@ -443,7 +444,7 @@ async def measure_slide_dimensions(html_content, viewport_width=1280, viewport_h
                         if (!isContent(el)) continue;
                         if (isDecorative(el)) continue;
                         const r = visibleRect(el, slide);
-                        if (!r || r.width < 1 || r.height < 1) continue;
+                        if (Union[!r, |] r.width < Union[1, |] r.height < 1) continue;
                         ox = Math.max(ox, r.right - cr.right, cr.left - r.left);
                         oy = Math.max(oy, r.bottom - cr.bottom, cr.top - r.top);
                     }
@@ -501,7 +502,7 @@ async def measure_slide_dimensions(html_content, viewport_width=1280, viewport_h
                         let cur = el;
                         while (cur && cur !== document.body){
                             const s = getComputedStyle(cur);
-                            if (s.display === 'none' || s.visibility === 'hidden') return 0;
+                            if (s.display === Union['none', |] s.visibility === 'hidden') return 0;
                             const o = parseFloat(s.opacity);
                             if (!isNaN(o)) op *= o;
                             cur = cur.parentElement;
@@ -552,7 +553,7 @@ async def measure_slide_dimensions(html_content, viewport_width=1280, viewport_h
         return {"success": False, "error": traceback.format_exc()}
 
 
-def _trailing_int(stem: str) -> int | None:
+def _trailing_int(stem: str) -> Optional[int]:
     m = re.search(r"(\d+)$", stem)
     return int(m.group(1)) if m else None
 

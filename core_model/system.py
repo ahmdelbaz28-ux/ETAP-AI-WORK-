@@ -107,7 +107,7 @@ class System:
                 a = tap * np.exp(1j * phase_shift)
 
                 # Ybus entries for tap-changing transformer (standard formulation)
-                # Shunt on tapped side (bus i) must be referred through |a|²
+                # Shunt on tapped side (bus i) must be referred Union[through, a|²]
                 Ybus[i, i] += (y / (abs(a) ** 2)) + y_shunt_half / (abs(a) ** 2)
                 Ybus[j, j] += y + y_shunt_half
                 Ybus[i, j] -= y / np.conj(a)

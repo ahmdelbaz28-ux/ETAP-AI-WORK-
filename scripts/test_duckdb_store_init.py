@@ -25,7 +25,7 @@ import importlib
 import json
 import os
 import traceback
-from typing import Any
+from typing import Any, Optional
 
 
 def _parse_import_path(spec: str) -> tuple[str, str]:
@@ -102,7 +102,7 @@ def main() -> int:
         ],
     )
 
-    last_err: BaseException | None = None
+    last_err: Optional[BaseException] = None
 
     for spec in candidates:
         try:

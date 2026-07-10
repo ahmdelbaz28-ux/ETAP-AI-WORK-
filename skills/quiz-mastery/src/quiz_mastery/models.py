@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field, asdict
-from typing import Any, Literal
+from typing import Any, Literal, Optional, Union
 
 
 QuestionType = Literal["single_choice", "true_false", "fill_blank", "short_answer"]
@@ -11,8 +11,8 @@ QuestionType = Literal["single_choice", "true_false", "fill_blank", "short_answe
 class KnowledgeSource:
     document_id: str
     section_title: str = ""
-    page_start: int | None = None
-    page_end: int | None = None
+    page_start: Optional[int] = None
+    page_end: Optional[int] = None
     snippets: list[str] = field(default_factory=list)
 
 
@@ -23,7 +23,7 @@ class KnowledgePoint:
     description: str
     definition: str = ""
     tags: list[str] = field(default_factory=list)
-    source: KnowledgeSource | None = None
+    source: Optional[KnowledgeSource] = None
 
 
 @dataclass
@@ -54,8 +54,8 @@ class QuizSession:
 class AnswerResult:
     question_id: str
     user_answer: Any
-    is_correct: bool | None  # None for short_answer needing review
-    score: float | None  # None for short_answer needing review
+    is_correct: Optional[bool]  # None for short_answer needing review
+    score: Optional[float]  # None for short_answer needing review
     feedback: str = ""
     error_type: str = "unknown"
     needs_review: bool = False
@@ -68,10 +68,10 @@ class MasteryRecord:
     attempts: int = 0
     last_accuracy: float = 0.0
     best_accuracy: float = 0.0
-    last_reviewed_at: str | None = None
+    last_reviewed_at: Optional[str] = None
     is_weak: bool = False
     accuracy_history: list[float] = field(default_factory=list)
-    next_review_at: str | None = None  # ISO date string YYYY-MM-DD
+    next_review_at: Optional[str] = None  # ISO date string YYYY-MM-DD
     review_stage: int = 0  # 0-4, maps to [1, 2, 4, 7, 15] days
 
 

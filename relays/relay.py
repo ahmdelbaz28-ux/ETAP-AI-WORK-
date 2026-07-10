@@ -21,7 +21,7 @@ class Relay:
 
         Parameters
         ----------
-        value : float | complex
+        value : Union[float, complex]
             Measured quantity (current, voltage, impedance, etc.).
             The base class does not interpret ``value``; subclasses
             document the expected quantity.

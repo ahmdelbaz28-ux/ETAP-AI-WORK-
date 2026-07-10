@@ -11,7 +11,7 @@ import sys
 import threading as _threading
 import time
 import uuid
-from typing import Any
+from typing import Any, Optional
 
 from fastapi import FastAPI, HTTPException, Request, WebSocket
 from fastapi.middleware.cors import CORSMiddleware
@@ -30,9 +30,16 @@ from api.assets import router as assets_router
 from api.auth import router as auth_router
 from api.context_engine import router as context_engine_router
 from api.data_import import router as data_import_router
+from api.equipment import router as equipment_router
+from api.export import router as export_router
 from api.health import router as health_router
+from api.notifications import notification_websocket_endpoint
+from api.notifications import router as notifications_router
 from api.projects import router as projects_router
+from api.rbac import router as rbac_router
 from api.studies import router as studies_router
+from api.study_versions import router as study_versions_router
+from api.templates import router as templates_router
 from api.validation import router as validation_router
 from api.websocket import scada_websocket_endpoint
 from core.bootstrap import lifespan, logger
@@ -173,7 +180,7 @@ except Exception:  # pragma: no cover
 _redis_client = None
 
 
-def _get_rate_limit_redis() -> Any | None:
+def _get_rate_limit_redis() -> Optional[Any]:
     global _redis_client
     if not _REDIS_URL or redis_async is None:
         return None
@@ -235,9 +242,13 @@ async def trace_middleware(request: Request, call_next: Any) -> Any:  # NOSONAR 
     trace_id = request.headers.get("x-trace-id") or str(uuid.uuid4())
     # SECURITY: Sanitize trace_id to prevent log injection (CRLF, newlines)
     trace_id = "".join(c for c in trace_id if c.isalnum() or c in "-_.")
-    if not trace_id:
-        trace_id = str(uuid.uuid4())
     request.state.trace_id = trace_id
+
+    # Extract dynamic active provider credentials
+    request.state.active_provider = request.headers.get("x-active-provider")
+    request.state.active_key = request.headers.get("x-active-key")
+    request.state.active_url = request.headers.get("x-active-url")
+    request.state.active_model = request.headers.get("x-active-model")
 
     tracer = get_tracer()
     with tracer.start_as_current_span(
@@ -308,7 +319,7 @@ class ReadyResponse(BaseModel):
 _celery_cache: tuple = ()  # empty tuple = not yet loaded
 
 
-def get_celery_components() -> tuple[Any | None, Any | None, Any | None]:
+def get_celery_components() -> tuple[Optional[Any], Optional[Any], Optional[Any]]:
     """Lazy loading of Celery components to avoid import errors during startup.
 
     Uses a module-level cache so that imports are performed only once;
@@ -488,7 +499,7 @@ if not _cors_origin_list or _CORS_ORIGINS == "":
         allow_origins=_cors_origin_list,
         allow_credentials=False,
         allow_methods=["GET", "POST", "PUT", "DELETE", "HEAD", "OPTIONS"],
-        allow_headers=["x-api-key", "x-trace-id", "content-type", "authorization"],
+        allow_headers=["x-api-key", "x-trace-id", "content-type", "authorization", "x-active-provider", "x-active-key", "x-active-url", "x-active-model"],
         expose_headers=["x-trace-id"],
     )
 else:
@@ -498,7 +509,7 @@ else:
         allow_origins=_cors_origin_list,
         allow_credentials=True,
         allow_methods=["GET", "POST", "PUT", "DELETE", "HEAD", "OPTIONS"],
-        allow_headers=["x-api-key", "x-trace-id", "content-type", "authorization"],
+        allow_headers=["x-api-key", "x-trace-id", "content-type", "authorization", "x-active-provider", "x-active-key", "x-active-url", "x-active-model"],
         expose_headers=["x-trace-id"],
     )
 
@@ -546,6 +557,60 @@ app.include_router(projects_router)
 app.include_router(context_engine_router)
 app.include_router(data_import_router)
 app.include_router(assets_router)
+app.include_router(rbac_router)
+app.include_router(equipment_router)
+app.include_router(notifications_router)
+app.include_router(study_versions_router)
+app.include_router(templates_router)
+app.include_router(export_router)
+
+# WebSocket endpoint for real-time notifications
+@app.websocket("/ws/notifications")
+async def websocket_notifications_handler(websocket: WebSocket) -> None:
+    """WebSocket endpoint for real-time notifications."""
+    import jwt
+
+    from api.database import get_db
+    from api.dependencies import JWT_ALGORITHM, JWT_SECRET_KEY
+
+    # Authenticate via token in query params (since WebSocket headers are limited)
+    token = websocket.query_params.get("token", "")
+    if not token:
+        await websocket.close(code=1008, reason="Missing authentication token")
+        return
+
+    try:
+        payload = jwt.decode(token, JWT_SECRET_KEY, algorithms=[JWT_ALGORITHM])
+        user_id = payload.get("sub")
+        if not user_id:
+            await websocket.close(code=1008, reason="Invalid token")
+            return
+    except Exception:
+        await websocket.close(code=1008, reason="Invalid token")
+        return
+
+    # Get user from database
+    async with get_db() as db:
+        from sqlalchemy import select
+
+        from api.auth import User
+
+        result = await db.execute(select(User).where(User.id == user_id))
+        user = result.scalar_one_or_none()
+        if user is None or not user.is_active:
+            await websocket.close(code=1008, reason="User not found or inactive")
+            return
+
+        from api.dependencies import CurrentUser
+        current_user = CurrentUser(
+            user_id=str(user.id),
+            username=user.username,
+            email=user.email,
+            role=user.role,
+            is_active=user.is_active,
+        )
+
+        await notification_websocket_endpoint(websocket, db, current_user)
 
 
 # ============================================================================

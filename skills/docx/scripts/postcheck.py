@@ -25,6 +25,7 @@ Checks:
   14. Document cleanliness — whether placeholder text, Markdown syntax, or draft expressions remain
   15. Report content quality — whether summary exists, whether titles are specific, whether vague conclusions are used
 """
+from typing import Optional, Union
 
 import zipfile
 import sys
@@ -47,7 +48,7 @@ class CheckResult:
         self.name = name
         self.passed = passed
         self.message = message
-        self.severity = severity  # "error" | "warning" | "info"
+        self.severity = severity  # Union["error", "warning"] | "info"
 
     def to_dict(self):
         return {
@@ -560,7 +561,7 @@ def check_toc(root: ET.Element, docx_path: str = "") -> CheckResult:
 
     # Check 1: Document has a "目录" / "目  录" / "Table of Contents" title but no TOC field
     has_toc_title = False
-    toc_title_pattern = re.compile(r'^(?:目\s*录|table\s+of\s+contents|contents)$', re.IGNORECASE)
+    toc_title_pattern = re.compile(r'^(Union[?:目\s*录|table\s+of\s+contents, contents])$', re.IGNORECASE)
     for p in paragraphs:
         if p.tag != f"{{{w_ns}}}p":
             continue
@@ -789,7 +790,7 @@ def main():
         warnings = sum(1 for r in results if not r.passed and r.severity == "warning")
 
         print(f"\n  {'─' * 50}")
-        print(f"  Passed {passed}/{total} | ❌ {errors} errors | ⚠️ {warnings} warnings\n")
+        print(f"  Passed Union[{passed}/{total}, ❌] {errors} Union[errors, ⚠️] {warnings} warnings\n")
 
     # Exit code
     has_errors = any(not r.passed and r.severity == "error" for r in results)

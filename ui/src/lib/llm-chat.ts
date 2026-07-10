@@ -15,6 +15,7 @@
  */
 
 import { POPULAR_PROVIDERS } from '../pages/Settings'
+import { getDeobfuscatedSettings } from './api-config'
 
 // --- section ---
 export interface ChatMessage {
@@ -64,33 +65,49 @@ async function proxyFetch(
 
 // --- section ---
 function getSettings(): Record<string, string> {
-  try {
-    const stored = localStorage.getItem('etap-settings')
-    if (!stored) return {}
-    // Parse directly — settings are stored as raw JSON
-    return JSON.parse(stored)
-  } catch (error) {
-    console.error('Failed to parse settings from localStorage:', error)
-    return {}
-  }
+  return getDeobfuscatedSettings()
 }
 
 export function getActiveProvider(): ProviderConfig | null {
   const settings = getSettings()
-
   const activeId = settings.PROVIDER_ACTIVE_PROVIDER_ID || ''
+
+  const hasCustom = !!settings.CUSTOM_OPENAI_API_KEY && !!settings.CUSTOM_OPENAI_BASE_URL && !!settings.CUSTOM_OPENAI_MODEL_ID
+
+  if (activeId === 'custom_openai' && hasCustom) {
+    return {
+      id: 'custom_openai',
+      name: 'Custom (OpenAI-compatible)',
+      apiKey: settings.CUSTOM_OPENAI_API_KEY || '',
+      baseUrl: (settings.CUSTOM_OPENAI_BASE_URL || '').replace(/\/$/, ''),
+      model: settings.CUSTOM_OPENAI_MODEL_ID || '',
+      apiType: 'openai',
+    }
+  }
 
   const providersWithKeys = POPULAR_PROVIDERS.filter(p => {
     const keyName = `PROVIDER_${p.id.toUpperCase()}_KEY`
     return !!settings[keyName]
   })
 
-  if (providersWithKeys.length === 0) return null
+  if (providersWithKeys.length === 0) {
+    if (hasCustom) {
+      return {
+        id: 'custom_openai',
+        name: 'Custom (OpenAI-compatible)',
+        apiKey: settings.CUSTOM_OPENAI_API_KEY || '',
+        baseUrl: (settings.CUSTOM_OPENAI_BASE_URL || '').replace(/\/$/, ''),
+        model: settings.CUSTOM_OPENAI_MODEL_ID || '',
+        apiType: 'openai',
+      }
+    }
+    return null
+  }
 
   let provider: typeof providersWithKeys[0]
   if (activeId) {
     const selected = providersWithKeys.find(p => p.id === activeId)
-    provider = selected || providersWithKeys[0]  // Fallback to first provider if selected is not found
+    provider = selected || providersWithKeys[0]
   } else {
     provider = providersWithKeys[0]
   }
@@ -111,7 +128,7 @@ export function getActiveProvider(): ProviderConfig | null {
 
 export function getConfiguredProviders(): { id: string; name: string; model: string }[] {
   const settings = getSettings()
-  return POPULAR_PROVIDERS.filter(p => {
+  const configured = POPULAR_PROVIDERS.filter(p => {
     const keyName = `PROVIDER_${p.id.toUpperCase()}_KEY`
     return !!settings[keyName]
   }).map(p => {
@@ -121,6 +138,16 @@ export function getConfiguredProviders(): { id: string; name: string; model: str
       model: settings[`PROVIDER_${p.id.toUpperCase()}_MODEL`] || p.defaultModel,
     }
   })
+
+  if (settings.CUSTOM_OPENAI_API_KEY && settings.CUSTOM_OPENAI_BASE_URL && settings.CUSTOM_OPENAI_MODEL_ID) {
+    configured.push({
+      id: 'custom_openai',
+      name: 'Custom (OpenAI-compatible)',
+      model: settings.CUSTOM_OPENAI_MODEL_ID,
+    })
+  }
+
+  return configured
 }
 
 // --- section ---

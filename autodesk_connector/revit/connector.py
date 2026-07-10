@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import logging
 import time
-from typing import Any
+from typing import Any, Optional
 
 import requests
 
@@ -91,7 +91,7 @@ class RevitPluginClient:
         except requests.RequestException:
             return False
 
-    def _call(self, endpoint: str, payload: dict | None = None) -> dict:
+    def _call(self, endpoint: str, payload: Optional[dict] = None) -> dict:
         """Make an API call to the Revit plugin."""
         url = f"{self.base_url}/api{endpoint}"
         resp = self.session.post(url, json=payload or {}, timeout=self.timeout)
@@ -101,7 +101,7 @@ class RevitPluginClient:
     def open_model(self, file_path: str) -> dict:
         return self._call("/model/open", {"file_path": file_path})
 
-    def save_model(self, file_path: str | None = None) -> dict:
+    def save_model(self, file_path: Optional[str] = None) -> dict:
         return self._call("/model/save", {"file_path": file_path or ""})
 
     def create_model(self, file_path: str, template: str = "") -> dict:
@@ -175,7 +175,7 @@ class RevitPluginClient:
     def list_levels(self) -> dict:
         return self._call("/level/list", {})
 
-    def create_room(self, name: str, level_id: str, bounding_box: dict | None = None) -> dict:
+    def create_room(self, name: str, level_id: str, bounding_box: Optional[dict] = None) -> dict:
         return self._call(
             "/room/create",
             {
@@ -199,7 +199,7 @@ class RevitPluginClient:
         return self._call("/mep/data", {})
 
     def create_circuit(
-        self, panel_id: str, device_ids: list[str], circuit_number: int | None = None,
+        self, panel_id: str, device_ids: list[str], circuit_number: Optional[int] = None,
     ) -> dict:
         return self._call(
             "/mep/create_circuit",
@@ -241,7 +241,7 @@ class RevitConnector:
 
     def __init__(self, plugin_url: str = "http://localhost:4830", api_key: str = ""):
         self.plugin = RevitPluginClient(plugin_url, api_key=api_key)
-        self._current_model_path: str | None = None
+        self._current_model_path: Optional[str] = None
         self._operation_log: list[dict] = []
 
     @property
@@ -455,7 +455,7 @@ class RevitConnector:
     # ------------------------------------------------------------------
 
     def _log_operation(
-        self, operation: str, target: str, success: bool, details: dict | None = None,
+        self, operation: str, target: str, success: bool, details: Optional[dict] = None,
     ) -> None:
         self._operation_log.append(
             {

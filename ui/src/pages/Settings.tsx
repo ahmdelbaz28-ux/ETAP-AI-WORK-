@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { motion } from 'framer-motion'
-import { Save, Download, Upload, Trash2, Bot, Wrench, Database, Shield, Link2, Gauge, Sparkles, Info, Code, CheckCircle2, XCircle, Loader2, ExternalLink, Eye, Key, Zap } from 'lucide-react'  // QUALITY v2.1.1: removed unused Terminal
+import { Save, Download, Upload, Trash2, Bot, Wrench, Database, Shield, Link2, Gauge, Info, Code, CheckCircle2, XCircle, Loader2, ExternalLink, Eye, Key, Zap, ChevronRight } from 'lucide-react'  // QUALITY v2.1.1: removed unused Terminal
 import { useNotify } from '../context/NotificationContext'
 import { Card, CardHeader, Button, Tabs, TabPanels, useTabState, Toggle } from '../components/ui'
 import { cn } from '../utils/helpers'
@@ -129,6 +129,51 @@ export const POPULAR_PROVIDERS = [
     defaultBaseUrl: 'https://opencode.ai/zen/v1',
     color: '#7c3aed',
     apiKeyUrl: 'https://opencode.ai/auth',
+    isFree: true,
+    apiType: 'openai' as const,
+  },
+  // ─── KiloCode (verified endpoint: https://api.kilocode.ai/v1) ──────
+  {
+    id: 'kilocode',
+    name: 'KiloCode',
+    models: [
+      { id: 'kilocode-coder-v1', name: 'KiloCode Coder (free)', isFree: true },
+      { id: 'kilocode-standard', name: 'KiloCode Standard', isFree: false }
+    ],
+    defaultModel: 'kilocode-coder-v1',
+    defaultBaseUrl: 'https://api.kilocode.ai/v1',
+    color: '#EC4899',
+    apiKeyUrl: 'https://kilocode.ai/keys',
+    isFree: true,
+    apiType: 'openai' as const,
+  },
+  // ─── Claude Code (verified endpoint: https://api.anthropic.com/v1) ─
+  {
+    id: 'claudecode',
+    name: 'Claude Code',
+    models: [
+      { id: 'claude-3-5-sonnet-latest', name: 'Claude 3.5 Sonnet', isFree: false },
+      { id: 'claude-3-5-haiku-latest', name: 'Claude 3.5 Haiku', isFree: false }
+    ],
+    defaultModel: 'claude-3-5-sonnet-latest',
+    defaultBaseUrl: 'https://api.anthropic.com/v1',
+    color: '#D97757',
+    apiKeyUrl: 'https://console.anthropic.com/settings/keys',
+    isFree: false,
+    apiType: 'anthropic' as const,
+  },
+  // ─── OpenClaude (verified endpoint: https://api.openclaude.com/v1) ─
+  {
+    id: 'openclaude',
+    name: 'OpenClaude (Proxy)',
+    models: [
+      { id: 'claude-3-5-sonnet', name: 'Claude 3.5 Sonnet (compatible)', isFree: true },
+      { id: 'claude-3-5-haiku', name: 'Claude 3.5 Haiku (compatible)', isFree: true }
+    ],
+    defaultModel: 'claude-3-5-sonnet',
+    defaultBaseUrl: 'https://api.openclaude.com/v1',
+    color: '#4f46e5',
+    apiKeyUrl: 'https://github.com/openclaude',
     isFree: true,
     apiType: 'openai' as const,
   },
@@ -501,37 +546,6 @@ export const POPULAR_PROVIDERS = [
   },
 ]
 
-function parseCurlCommand(curl: string): { baseUrl: string; apiKey: string; modelId: string } | null {
-  try {
-    const urlMatch = curl.match(/https?:\/\/[^\s'"\\]+/)  // NOSONAR — S6594: RegExp.exec vs match; performance neutral
-    let baseUrl = 'https://api.openai.com/v1'
-    if (urlMatch) {
-      let fullUrl = urlMatch[0]
-      fullUrl = fullUrl.replace(/\/chat\/completions\/?$/, '').replace(/\/completions\/?$/, '')
-      baseUrl = fullUrl
-    }
-
-    const authMatch = curl.match(/Bearer\s+([a-zA-Z0-9_\-]+)/i) || curl.match(/Authorization:\s*Bearer\s+([a-zA-Z0-9_\-]+)/i)  // NOSONAR — S6594: RegExp.exec vs match; performance neutral
-    let apiKey = ''
-    if (authMatch) {
-      apiKey = authMatch[1]
-    } else {
-      const genericKey = curl.match(/api-key:\s*([a-zA-Z0-9_\-]+)/i) || curl.match(/x-api-key:\s*([a-zA-Z0-9_\-]+)/i)  // NOSONAR — S6594: RegExp.exec vs match; performance neutral
-      if (genericKey) apiKey = genericKey[1]
-    }
-
-    const modelMatch = curl.match(/"model"\s*:\s*"([^"]+)"/) || curl.match(/'model'\s*:\s*'([^']+)'/)  // NOSONAR — S6594: RegExp.exec vs match; performance neutral
-    let modelId = 'custom-model'
-    if (modelMatch) {
-      modelId = modelMatch[1]
-    }
-
-    return { baseUrl, apiKey, modelId }
-  } catch (err) {
-    console.error('Error parsing curl:', err)
-    return null
-  }
-}
 
 function getDefaults(): Record<string, string> {
   return {
@@ -685,6 +699,11 @@ const TAB_SECTIONS: Record<string, { label: string; icon: React.ReactNode; secti
     icon: <Bot className="w-4 h-4" />,
     sections: [], // Custom-rendered panel
   },
+  mcp: {
+    label: 'MCP Servers',
+    icon: <Database className="w-4 h-4" />,
+    sections: [], // Custom-rendered panel
+  },
   agents: {
     label: 'Coding Agents',
     icon: <Code className="w-4 h-4" />,
@@ -753,6 +772,117 @@ const TAB_SECTIONS: Record<string, { label: string; icon: React.ReactNode; secti
   },
 }
 
+interface MCPConfig {
+  id: string
+  name: string
+  status: 'connected' | 'standby' | 'disabled'
+  type: string
+  urlOrPath: string
+  description: string
+  tools: string[]
+}
+
+const MCP_SERVERS: MCPConfig[] = [
+  {
+    id: 'weather',
+    name: 'Weather MCP Server',
+    status: 'connected',
+    type: 'Local/Service',
+    urlOrPath: 'src/mastra/agents/weather-agent.ts',
+    description: 'Retrieves real-time weather and temperature details for renewable energy capacity planning.',
+    tools: ['weatherTool'],
+  },
+  {
+    id: 'gis',
+    name: 'QGIS Map Service MCP Server',
+    status: 'connected',
+    type: 'Local/GIS Provider',
+    urlOrPath: 'gis_integration/providers/',
+    description: 'Bridges and extracts coordinates, lines, and substations from active QGIS layers or shapefiles.',
+    tools: ['load_gis_features', 'sync_gis_telemetry'],
+  },
+  {
+    id: 'scada',
+    name: 'SCADA zenon Telemetry MCP Server',
+    status: 'connected',
+    type: 'WebSocket/SCADA API',
+    urlOrPath: 'api/scada.py',
+    description: 'Subscribes and queries active Copa-Data zenon alerts and live telemetry registers (I, V, P, Q).',
+    tools: ['fetch_live_telemetry', 'trigger_zenon_alarm'],
+  },
+  {
+    id: 'etap_com',
+    name: 'ETAP COM Automation MCP Server',
+    status: 'standby',
+    type: 'COM/Windows Service',
+    urlOrPath: 'etap_integration/etap_com.py',
+    description: 'Executes direct COM automation scripts to run Newton-Raphson studies in Windows-only desktop clients.',
+    tools: ['run_etap_study', 'export_etap_one_line'],
+  },
+  {
+    id: 'guard',
+    name: 'AI Code Guard MCP Server',
+    status: 'connected',
+    type: 'Local/Validation',
+    urlOrPath: 'guards/code_guard_agent.py',
+    description: 'Enforces safety boundaries, double-confirmation checks, and SIEM logging rules on generated code.',
+    tools: ['validate_code'],
+  },
+]
+
+function MCPSettingsPanel() {
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case 'connected':
+        return <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-green-500/10 text-green-400 border border-green-500/20">● Active</span>
+      case 'standby':
+        return <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-yellow-500/10 text-yellow-400 border border-yellow-500/20">● Standby</span>
+      default:
+        return <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-red-500/10 text-red-400 border border-red-500/20">● Offline</span>
+    }
+  }
+
+  return (
+    <div className="space-y-6 col-span-2">
+      <Card padding="md">
+        <div className="flex items-start gap-3 mb-5 pb-4 border-b border-[var(--border-primary)]">
+          <div className="w-10 h-10 rounded-xl bg-brand-500/15 flex items-center justify-center shrink-0">
+            <Database className="w-5 h-5 text-brand-400" />
+          </div>
+          <div>
+            <h3 className="text-base font-semibold text-[var(--text-primary)]">Model Context Protocol (MCP) Servers</h3>
+            <p className="text-xs text-[var(--text-secondary)] mt-0.5">
+              The platform utilizes MCP to expose local files, databases, SCADA bridges, and engineering scripts to AI specialist agents as secure tools.
+            </p>
+          </div>
+        </div>
+
+        <div className="space-y-4">
+          {MCP_SERVERS.map(srv => (
+            <div key={srv.id} className="p-4 bg-[var(--bg-elevated)] border border-[var(--border-primary)] rounded-xl hover:border-brand-500/30 transition-all">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3">
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-semibold text-[var(--text-primary)]">{srv.name}</span>
+                  <span className="text-[10px] px-2 py-0.5 rounded bg-[var(--bg-primary)] border border-[var(--border-primary)] text-[var(--text-muted)] font-mono">{srv.type}</span>
+                </div>
+                {getStatusBadge(srv.status)}
+              </div>
+              <p className="text-xs text-[var(--text-secondary)] mb-3 leading-relaxed">{srv.description}</p>
+              
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="text-[10px] text-[var(--text-muted)] font-semibold uppercase tracking-wider">Exposed Tools:</span>
+                {srv.tools.map(tool => (
+                  <span key={tool} className="text-[10px] font-mono px-2 py-0.5 rounded bg-brand-500/5 text-brand-400 border border-brand-500/10">{tool}</span>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      </Card>
+    </div>
+  )
+}
+
 type NotifyType = 'success' | 'error' | 'info' | 'warning'
 
 interface AISettingsPanelProps {
@@ -762,36 +892,9 @@ interface AISettingsPanelProps {
 }
 
 function AISettingsPanel({ settings, setSettings, notify }: AISettingsPanelProps) {  // NOSONAR — S6759: React props read-only; requires `readonly` refactor across component tree
-  const [customScope, setCustomScope] = useState<'local' | 'global'>('local')
-  const [customTab, setCustomTab] = useState<'json' | 'curl' | 'openai'>('json')
-  const [curlContent, setCurlContent] = useState('')
   // Quick Setup: which provider is being tested + status
   const [testingProvider, setTestingProvider] = useState<string | null>(null)
   const [providerStatus, setProviderStatus] = useState<Record<string, 'ok' | 'fail' | null>>({})
-
-  const handleParseCurl = () => {
-    if (!curlContent.trim()) {
-      notify('error', 'Please paste a valid curl command')
-      return
-    }
-    const result = parseCurlCommand(curlContent)
-    if (result) {
-      setSettings(prev => ({
-        ...prev,
-        CUSTOM_BASE_URL: result.baseUrl,
-        CUSTOM_API_KEY: result.apiKey,
-        CUSTOM_MODEL_ID: result.modelId,
-      }))
-      notify('success', 'Successfully parsed curl and loaded configuration!')
-      setCurlContent('')
-    } else {
-      notify('error', 'Failed to parse curl command. Ensure it has a URL and Authorization header.')
-    }
-  }
-
-  const handleConnectCustom = () => {
-    notify('success', `Custom provider connected successfully using ${customTab.toUpperCase()} Config (${customScope} scope)!`)
-  }
 
   // Quick Setup: test a provider API key by making a REAL chat completion
   // request to the provider's endpoint. Returns detailed error info.
@@ -860,560 +963,371 @@ function AISettingsPanel({ settings, setSettings, notify }: AISettingsPanelProps
   const connectedCount = POPULAR_PROVIDERS.filter(p => !!settings[`PROVIDER_${p.id.toUpperCase()}_KEY`]).length +
     (settings.CUSTOM_OPENAI_API_KEY ? 1 : 0)
 
+  const activeProviderId = settings.PROVIDER_ACTIVE_PROVIDER_ID || 'openai'
+  const activeProvider = POPULAR_PROVIDERS.find(p => p.id === activeProviderId)
+
+  // Custom OpenAI compatible presets
+  const customPresets = [
+    { name: 'Ollama (Local)', url: 'http://localhost:11434/v1', model: 'llama3.2', key: 'ollama' },
+    { name: 'LM Studio (Local)', url: 'http://localhost:1234/v1', model: 'loaded-model-name', key: 'lm-studio' },
+    { name: 'OpenRouter (Proxy)', url: 'https://openrouter.ai/api/v1', model: 'openai/gpt-4o-mini', key: '' },
+    { name: 'OpenClaude (Proxy)', url: 'https://api.openclaude.com/v1', model: 'claude-3-5-sonnet', key: '' },
+  ]
+
+  const applyCustomPreset = (preset: { name: string, url: string, model: string, key: string }) => {
+    setSettings(prev => ({
+      ...prev,
+      CUSTOM_OPENAI_BASE_URL: preset.url,
+      CUSTOM_OPENAI_MODEL_ID: preset.model,
+      CUSTOM_OPENAI_API_KEY: preset.key,
+      PROVIDER_ACTIVE_PROVIDER_ID: 'custom_openai'
+    }))
+    notify('info', `Applied preset for ${preset.name}`)
+  }
+
   return (
     <div className="space-y-6 col-span-2">
-      {/* ─── Quick Setup Hero — First thing the user sees ──────────── */}
+      {/* ─── Active AI Provider Card ────────────────────────────────── */}
       <Card padding="md" className="border-2 border-brand-500/30 shadow-lg shadow-brand-500/5 bg-gradient-to-br from-brand-500/[0.03] to-transparent">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5 pb-4 border-b border-[var(--border-primary)]">
           <div className="flex items-start gap-3">
             <div className="w-10 h-10 rounded-xl bg-brand-500/15 flex items-center justify-center shrink-0">
-              <Zap className="w-5 h-5 text-brand-400" />
+              <Bot className="w-5 h-5 text-brand-400" />
             </div>
             <div>
-              <h3 className="text-base font-semibold text-[var(--text-primary)]">Quick Setup — Connect your AI</h3>
+              <h3 className="text-base font-semibold text-[var(--text-primary)]">Active AI Engine / حدد المحرك النشط</h3>
               <p className="text-xs text-[var(--text-secondary)] mt-0.5">
-                Paste your API key from any provider below and click <span className="font-semibold text-brand-400">Test &amp; Save</span>.
-                Your key is stored locally in your browser (not sent anywhere unless you test it).
+                Select your default AI Provider and model. All engineering chat pages will route through this provider.
               </p>
             </div>
           </div>
           <div className="shrink-0 px-3 py-1.5 rounded-lg bg-[var(--bg-elevated)] border border-[var(--border-primary)] text-center">
-            <div className="text-[10px] uppercase tracking-wider text-[var(--text-muted)]">Connected</div>
-            <div className="text-lg font-bold text-brand-400">{connectedCount}<span className="text-[var(--text-muted)] text-sm font-normal">/{POPULAR_PROVIDERS.length}</span></div>
+            <div className="text-[10px] uppercase tracking-wider text-[var(--text-muted)] font-semibold">Connected</div>
+            <div className="text-lg font-bold text-brand-400">{connectedCount}</div>
           </div>
         </div>
 
-        {/* Provider cards — simplified, big, clear */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-          {POPULAR_PROVIDERS.map(p => {
-            const keyName = `PROVIDER_${p.id.toUpperCase()}_KEY`
-            const hasKey = !!settings[keyName]
-            const status = providerStatus[p.id]
-            const isTesting = testingProvider === p.id
-            const cardClass = providerCardClass(hasKey, p.isFree)
-            const buttonClass = providerButtonClass(!!settings[keyName], isTesting, status)
-            const buttonContent = providerButtonContent(isTesting, status)
-            return (
-              <div key={p.id} className={cardClass}>
-                {/* "FREE" badge for free providers */}
-                {p.isFree && !hasKey && (
-                  <span className="absolute -top-2 -right-2 px-2 py-0.5 rounded-full bg-green-500 text-white text-[9px] font-bold uppercase tracking-wide shadow-md z-10">
-                    Free
-                  </span>
-                )}
-                {/* Header: real brand logo + name + status badge */}
-                <div className="flex items-center justify-between mb-3">
-                  <div className="flex items-center gap-2.5">
-                    {/* Real provider brand logo (SVG) */}
-                    <ProviderLogo providerId={p.id} size={40} />
-                    <div>
-                      <div className="text-sm font-semibold text-[var(--text-primary)]">{p.name}</div>
-                      <div className="text-[10px] text-[var(--text-muted)]">{p.defaultModel}</div>
-                    </div>
-                  </div>
-                  {hasKey && (
-                    <span className="inline-flex items-center gap-1 text-[10px] font-medium px-2 py-0.5 rounded-full bg-green-500/15 text-green-400 border border-green-500/25">
-                      <CheckCircle2 className="w-3 h-3" />
-                      Saved
-                    </span>
-                  )}
-                </div>
+        {/* Dropdown for Active Provider */}
+        <div className="mb-6 max-w-md">
+          <label className="block text-xs font-semibold text-[var(--text-secondary)] mb-2" htmlFor="active-provider-select">
+            Active Provider
+          </label>
+          <select
+            id="active-provider-select"
+            value={activeProviderId}
+            onChange={e => setSettings(prev => ({ ...prev, PROVIDER_ACTIVE_PROVIDER_ID: e.target.value }))}
+            className="w-full px-3 py-2 bg-[var(--bg-primary)] border border-[var(--border-primary)] rounded-lg text-xs text-[var(--text-primary)] focus:border-brand-500 outline-none transition-colors cursor-pointer font-medium"
+          >
+            {POPULAR_PROVIDERS.map(p => (
+              <option key={p.id} value={p.id} className="dark:bg-gray-800">
+                {p.name} {p.isFree ? '(Free Tier Available)' : ''}
+              </option>
+            ))}
+            <option value="custom_openai" className="dark:bg-gray-800">Custom (OpenAI-compatible) ...</option>
+          </select>
+        </div>
 
-                {/* API key input */}
-                <div className="relative mb-2">
+        {/* Dynamic configuration inputs based on selection */}
+        {activeProviderId === 'custom_openai' ? (
+          <div className="space-y-4 pt-2 border-t border-[var(--border-primary)]">
+            <div className="flex items-center gap-2">
+              <span className="text-[10px] text-[var(--text-muted)] font-semibold uppercase tracking-wider">Custom Presets:</span>
+              <div className="flex flex-wrap gap-1.5">
+                {customPresets.map(preset => (
+                  <button
+                    key={preset.name}
+                    type="button"
+                    onClick={() => applyCustomPreset(preset)}
+                    className="px-2.5 py-1 text-[10px] font-medium rounded bg-[var(--bg-primary)] hover:bg-brand-500/10 border border-[var(--border-primary)] hover:border-brand-500/30 text-[var(--text-secondary)] hover:text-brand-400 transition-colors"
+                  >
+                    {preset.name}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div>
+                <label htmlFor="custom-openai-url" className="block text-xs font-semibold text-[var(--text-secondary)] mb-1.5">
+                  Endpoint URL
+                </label>
+                <input
+                  id="custom-openai-url"
+                  type="url"
+                  placeholder="https://api.example.com/v1"
+                  value={settings.CUSTOM_OPENAI_BASE_URL || ''}
+                  onChange={e => setSettings(prev => ({ ...prev, CUSTOM_OPENAI_BASE_URL: e.target.value }))}
+                  className="w-full px-3 py-2 bg-[var(--bg-primary)] border border-[var(--border-primary)] rounded-lg text-xs text-[var(--text-primary)] placeholder-[var(--text-muted)] focus:border-brand-500 outline-none transition-colors font-mono"
+                />
+              </div>
+
+              <div>
+                <label htmlFor="custom-openai-key" className="block text-xs font-semibold text-[var(--text-secondary)] mb-1.5">
+                  API Key
+                </label>
+                <div className="relative">
                   <input
+                    id="custom-openai-key"
                     type="password"
-                    placeholder={`Paste ${p.name} API key...`}
-                    value={settings[keyName] || ''}
-                    onChange={e => {
-                      setSettings(prev => ({ ...prev, [keyName]: e.target.value }))
-                      // Reset status when key changes
-                      if (providerStatus[p.id]) {
-                        setProviderStatus(prev => ({ ...prev, [p.id]: null }))
-                      }
-                    }}
+                    placeholder="sk-... or dummy-key"
+                    value={settings.CUSTOM_OPENAI_API_KEY || ''}
+                    onChange={e => setSettings(prev => ({ ...prev, CUSTOM_OPENAI_API_KEY: e.target.value }))}
                     className="w-full px-3 py-2 pr-9 bg-[var(--bg-primary)] border border-[var(--border-primary)] rounded-lg text-xs text-[var(--text-primary)] placeholder-[var(--text-muted)] focus:border-brand-500 outline-none transition-colors font-mono"
                   />
                   <Key className="absolute right-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[var(--text-muted)] pointer-events-none" />
                 </div>
-
-                {/* Model selector dropdown with FREE badges */}
-                <div className="mb-2">
-                  <label className="block text-[9px] text-[var(--text-tertiary)] mb-1 font-medium uppercase tracking-wide" htmlFor={`model-${p.id}`}>
-                    Model
-                  </label>
-                  <select
-                    id={`model-${p.id}`}
-                    value={settings[`PROVIDER_${p.id.toUpperCase()}_MODEL`] || p.defaultModel}
-                    onChange={e => setSettings(prev => ({ ...prev, [`PROVIDER_${p.id.toUpperCase()}_MODEL`]: e.target.value }))}
-                    className="w-full px-2 py-1.5 bg-[var(--bg-primary)] border border-[var(--border-primary)] rounded-lg text-[11px] text-[var(--text-primary)] focus:border-brand-500 outline-none transition-colors cursor-pointer"
-                  >
-                    {p.models.map((m: { id: string; name: string; isFree: boolean }) => (
-                      <option key={m.id} value={m.id} className="dark:bg-gray-800">
-                        {m.isFree ? '🆓 ' : ''}{m.name} ({m.id})
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                {/* Test & Save button + status */}
-                <button
-                  onClick={() => handleTestProvider(p.id)}
-                  disabled={!settings[keyName] || isTesting}
-                  className={buttonClass}
-                >
-                  {buttonContent}
-                </button>
-
-                {/* Get key link — uses apiKeyUrl from provider config */}
-                <a
-                  href={p.apiKeyUrl || '#'}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className={cn(
-                    'mt-2 flex items-center justify-center gap-1 text-[10px] transition-colors',
-                    p.isFree
-                      ? 'text-green-500 hover:text-green-400 font-medium'
-                      : 'text-[var(--text-muted)] hover:text-brand-400'
-                  )}
-                >
-                  {p.isFree && <span className="inline-block w-1.5 h-1.5 rounded-full bg-green-500" />}
-                  Get API key from {p.name}
-                  {p.isFree && <span className="text-[9px] uppercase tracking-wide">(free)</span>}
-                  <ExternalLink className="w-2.5 h-2.5" />
-                </a>
               </div>
-            )
-          })}
-        </div>
 
-        {/* Help banner */}
-        <div className="mt-4 flex items-start gap-2 p-3 rounded-lg bg-[var(--bg-primary)] border border-[var(--border-primary)]">
-          <Info className="w-4 h-4 text-brand-400 shrink-0 mt-0.5" />
-          <p className="text-[11px] text-[var(--text-secondary)] leading-relaxed">
-            <span className="font-semibold">How it works:</span> Your API key is stored locally in your browser and used to call the AI provider directly.
-            Once you've connected at least one provider, the <span className="font-semibold text-brand-400">AI Assistant</span> page will use it automatically.
-            No key is ever sent to our servers unless you explicitly test it.
-          </p>
-        </div>
-      </Card>
-
-      {/* ─── Custom OpenAI-Compatible Provider ──────────────────────── */}
-      <Card padding="md" className="border-2 border-purple-500/30 shadow-lg shadow-purple-500/5 bg-gradient-to-br from-purple-500/[0.03] to-transparent">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5 pb-4 border-b border-[var(--border-primary)]">
-          <div className="flex items-start gap-3">
-            <div className="w-10 h-10 rounded-xl bg-purple-500/15 flex items-center justify-center shrink-0">
-              <Code className="w-5 h-5 text-purple-400" />
+              <div>
+                <label htmlFor="custom-openai-model" className="block text-xs font-semibold text-[var(--text-secondary)] mb-1.5">
+                  Model ID
+                </label>
+                <input
+                  id="custom-openai-model"
+                  type="text"
+                  placeholder="llama3.2 / loaded-model-name"
+                  value={settings.CUSTOM_OPENAI_MODEL_ID || ''}
+                  onChange={e => setSettings(prev => ({ ...prev, CUSTOM_OPENAI_MODEL_ID: e.target.value }))}
+                  className="w-full px-3 py-2 bg-[var(--bg-primary)] border border-[var(--border-primary)] rounded-lg text-xs text-[var(--text-primary)] placeholder-[var(--text-muted)] focus:border-brand-500 outline-none transition-colors font-mono"
+                />
+              </div>
             </div>
-            <div>
-              <h3 className="text-base font-semibold text-[var(--text-primary)]">Custom OpenAI-Compatible Provider</h3>
-              <p className="text-xs text-[var(--text-secondary)] mt-0.5">
-                Connect any provider that uses the OpenAI API format (e.g., Ollama, vLLM, LocalAI, Together AI, OpenRouter).
-                Enter your endpoint URL, API key, and model ID below.
-              </p>
-            </div>
-          </div>
-          {settings.CUSTOM_OPENAI_API_KEY && (
-            <div className="shrink-0 px-3 py-1.5 rounded-lg bg-green-500/15 border border-green-500/25 text-green-400 text-xs font-medium">
-              ✓ Configured
-            </div>
-          )}
-        </div>
 
-        {/* 3-column grid for the 3 required fields */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {/* Endpoint URL */}
-          <div>
-            <label htmlFor="custom-openai-url" className="block text-xs font-semibold text-[var(--text-secondary)] mb-1.5">
-              Endpoint URL
-            </label>
-            <input
-              id="custom-openai-url"
-              type="url"
-              placeholder="https://api.example.com/v1"
-              value={settings.CUSTOM_OPENAI_BASE_URL || ''}
-              onChange={e => setSettings(prev => ({ ...prev, CUSTOM_OPENAI_BASE_URL: e.target.value }))}
-              className="w-full px-3 py-2 bg-[var(--bg-primary)] border border-[var(--border-primary)] rounded-lg text-xs text-[var(--text-primary)] placeholder-[var(--text-muted)] focus:border-purple-500 outline-none transition-colors font-mono"
-            />
-            <p className="text-[10px] text-[var(--text-muted)] mt-1">
-              Base URL without /chat/completions
-            </p>
-          </div>
+            <div className="mt-4 flex flex-col sm:flex-row items-start sm:items-center gap-3">
+              <button
+                type="button"
+                onClick={() => handleTestProvider('custom_openai')}
+                disabled={testingProvider === 'custom_openai' || !settings.CUSTOM_OPENAI_API_KEY || !settings.CUSTOM_OPENAI_BASE_URL || !settings.CUSTOM_OPENAI_MODEL_ID}
+                className={cn(
+                  'flex items-center gap-1.5 px-5 py-2 rounded-lg text-xs font-semibold transition-all shrink-0',
+                  'disabled:bg-[var(--bg-primary)] disabled:text-[var(--text-muted)] disabled:cursor-not-allowed disabled:border disabled:border-[var(--border-primary)]',
+                  (() => {
+                    const s = providerStatus.custom_openai;
+                    if (s === 'ok') return 'bg-green-600 hover:bg-green-500 text-white';
+                    if (s === 'fail') return 'bg-red-600 hover:bg-red-500 text-white';
+                    return 'bg-purple-600 hover:bg-purple-500 text-white';
+                  })()
+                )}
+              >
+                {(() => {
+                  if (testingProvider === 'custom_openai') return <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Testing...</>;
+                  if (providerStatus.custom_openai === 'ok') return <><CheckCircle2 className="w-3.5 h-3.5" /> Valid ✓</>;
+                  if (providerStatus.custom_openai === 'fail') return <><XCircle className="w-3.5 h-3.5" /> Failed — Retry</>;
+                  return <><Zap className="w-3.5 h-3.5" /> Test Connection</>;
+                })()}
+              </button>
 
-          {/* API Key */}
-          <div>
-            <label htmlFor="custom-openai-key" className="block text-xs font-semibold text-[var(--text-secondary)] mb-1.5">
-              API Key
-            </label>
-            <div className="relative">
-              <input
-                id="custom-openai-key"
-                type="password"
-                placeholder="sk-..."
-                value={settings.CUSTOM_OPENAI_API_KEY || ''}
-                onChange={e => setSettings(prev => ({ ...prev, CUSTOM_OPENAI_API_KEY: e.target.value }))}
-                className="w-full px-3 py-2 pr-9 bg-[var(--bg-primary)] border border-[var(--border-primary)] rounded-lg text-xs text-[var(--text-primary)] placeholder-[var(--text-muted)] focus:border-purple-500 outline-none transition-colors font-mono"
-              />
-              <Key className="absolute right-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[var(--text-muted)] pointer-events-none" />
-            </div>
-            <p className="text-[10px] text-[var(--text-muted)] mt-1">
-              Your API key from the provider
-            </p>
-          </div>
-
-          {/* Model ID */}
-          <div>
-            <label htmlFor="custom-openai-model" className="block text-xs font-semibold text-[var(--text-secondary)] mb-1.5">
-              Model ID
-            </label>
-            <input
-              id="custom-openai-model"
-              type="text"
-              placeholder="gpt-4o-mini / llama-3.1-8b / custom-model"
-              value={settings.CUSTOM_OPENAI_MODEL_ID || ''}
-              onChange={e => setSettings(prev => ({ ...prev, CUSTOM_OPENAI_MODEL_ID: e.target.value }))}
-              className="w-full px-3 py-2 bg-[var(--bg-primary)] border border-[var(--border-primary)] rounded-lg text-xs text-[var(--text-primary)] placeholder-[var(--text-muted)] focus:border-purple-500 outline-none transition-colors font-mono"
-            />
-            <p className="text-[10px] text-[var(--text-muted)] mt-1">
-              Exact model name from provider's docs
-            </p>
-          </div>
-        </div>
-
-        {/* Test button + result display */}
-        <div className="mt-4 flex flex-col sm:flex-row items-start sm:items-center gap-3">
-          <button
-            onClick={() => handleTestProvider('custom_openai')}
-            disabled={testingProvider === 'custom_openai' || !settings.CUSTOM_OPENAI_API_KEY || !settings.CUSTOM_OPENAI_BASE_URL || !settings.CUSTOM_OPENAI_MODEL_ID}
-            className={cn(
-              'flex items-center gap-1.5 px-5 py-2 rounded-lg text-xs font-semibold transition-all shrink-0',
-              'disabled:bg-[var(--bg-primary)] disabled:text-[var(--text-muted)] disabled:cursor-not-allowed disabled:border disabled:border-[var(--border-primary)]',
-              (() => {
-                const s = providerStatus.custom_openai;
-                if (s === 'ok') return 'bg-green-600 hover:bg-green-500 text-white';
-                if (s === 'fail') return 'bg-red-600 hover:bg-red-500 text-white';
-                return 'bg-purple-600 hover:bg-purple-500 text-white';
-              })()
-            )}
-          >
-            {(() => {
-              if (testingProvider === 'custom_openai') return <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Testing...</>;
-              if (providerStatus.custom_openai === 'ok') return <><CheckCircle2 className="w-3.5 h-3.5" /> Valid ✓</>;
-              if (providerStatus.custom_openai === 'fail') return <><XCircle className="w-3.5 h-3.5" /> Failed — Retry</>;
-              return <><Zap className="w-3.5 h-3.5" /> Test Connection</>;
-            })()}
-          </button>
-
-          {/* Test result display */}
-          {testResults.custom_openai && (
-            <div className={cn(
-              'flex-1 min-w-0 p-3 rounded-lg border text-xs',
-              providerStatus.custom_openai === 'ok'
-                ? 'bg-green-500/10 border-green-500/30 text-green-400'
-                : 'bg-red-500/10 border-red-500/30 text-red-400'
-            )}>
-              <div className="font-semibold mb-1">{testResults.custom_openai.message}</div>
-              {testResults.custom_openai.latencyMs && (
-                <div className="text-[10px] opacity-80 mb-1">Latency: {testResults.custom_openai.latencyMs}ms</div>
-              )}
-              {testResults.custom_openai.suggestion && (
-                <div className="text-[10px] opacity-80 mt-1.5 p-2 bg-black/20 rounded">
-                  💡 {testResults.custom_openai.suggestion}
+              {testResults.custom_openai && (
+                <div className={cn(
+                  'flex-1 min-w-0 p-3 rounded-lg border text-xs',
+                  providerStatus.custom_openai === 'ok'
+                    ? 'bg-green-500/10 border-green-500/30 text-green-400'
+                    : 'bg-red-500/10 border-red-500/30 text-red-400'
+                )}>
+                  <div className="font-semibold mb-1">{testResults.custom_openai.message}</div>
+                  {testResults.custom_openai.latencyMs && (
+                    <div className="text-[10px] opacity-80 mb-1">Latency: {testResults.custom_openai.latencyMs}ms</div>
+                  )}
+                  {testResults.custom_openai.suggestion && (
+                    <div className="text-[10px] opacity-80 mt-1.5 p-2 bg-black/20 rounded">
+                      💡 {testResults.custom_openai.suggestion}
+                    </div>
+                  )}
                 </div>
               )}
-              {testResults.custom_openai.details && (
-                <details className="mt-1.5">
-                  <summary className="text-[10px] opacity-60 cursor-pointer hover:opacity-100">Show technical details</summary>
-                  <pre className="text-[9px] opacity-60 mt-1 whitespace-pre-wrap break-all">{testResults.custom_openai.details}</pre>
-                </details>
+            </div>
+          </div>
+        ) : activeProvider ? (
+          <div className="space-y-4 pt-2 border-t border-[var(--border-primary)]">
+            <div className="flex items-center gap-3">
+              <ProviderLogo providerId={activeProvider.id} size={48} />
+              <div>
+                <h4 className="text-sm font-semibold text-[var(--text-primary)]">{activeProvider.name} Config</h4>
+                <p className="text-xs text-[var(--text-muted)]">Configure authentication and default models for {activeProvider.name}.</p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-2xl">
+              <div>
+                <label htmlFor={`prov-active-key`} className="block text-xs font-semibold text-[var(--text-secondary)] mb-1.5">
+                  API Key
+                </label>
+                <div className="relative">
+                  <input
+                    id={`prov-active-key`}
+                    type="password"
+                    placeholder={`Paste ${activeProvider.name} API key...`}
+                    value={settings[`PROVIDER_${activeProvider.id.toUpperCase()}_KEY`] || ''}
+                    onChange={e => setSettings(prev => ({ ...prev, [`PROVIDER_${activeProvider.id.toUpperCase()}_KEY`]: e.target.value }))}
+                    className="w-full px-3 py-2 pr-9 bg-[var(--bg-primary)] border border-[var(--border-primary)] rounded-lg text-xs text-[var(--text-primary)] placeholder-[var(--text-muted)] focus:border-brand-500 outline-none transition-colors font-mono"
+                  />
+                  <Key className="absolute right-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[var(--text-muted)] pointer-events-none" />
+                </div>
+              </div>
+
+              <div>
+                <label htmlFor={`prov-active-model`} className="block text-xs font-semibold text-[var(--text-secondary)] mb-1.5">
+                  Select Model
+                </label>
+                <select
+                  id={`prov-active-model`}
+                  value={settings[`PROVIDER_${activeProvider.id.toUpperCase()}_MODEL`] || activeProvider.defaultModel}
+                  onChange={e => setSettings(prev => ({ ...prev, [`PROVIDER_${activeProvider.id.toUpperCase()}_MODEL`]: e.target.value }))}
+                  className="w-full px-3 py-2 bg-[var(--bg-primary)] border border-[var(--border-primary)] rounded-lg text-xs text-[var(--text-primary)] focus:border-brand-500 outline-none transition-colors cursor-pointer"
+                >
+                  {activeProvider.models.map(m => (
+                    <option key={m.id} value={m.id} className="dark:bg-gray-800">
+                      {m.isFree ? 'Freelimit ' : ''}{m.name} ({m.id})
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            <div className="mt-4 flex flex-col sm:flex-row items-start sm:items-center gap-3">
+              <button
+                type="button"
+                onClick={() => handleTestProvider(activeProvider.id)}
+                disabled={testingProvider === activeProvider.id || !settings[`PROVIDER_${activeProvider.id.toUpperCase()}_KEY`]}
+                className={cn(
+                  'flex items-center gap-1.5 px-5 py-2 rounded-lg text-xs font-semibold transition-all shrink-0',
+                  'disabled:bg-[var(--bg-primary)] disabled:text-[var(--text-muted)] disabled:cursor-not-allowed disabled:border disabled:border-[var(--border-primary)]',
+                  (() => {
+                    const s = providerStatus[activeProvider.id];
+                    if (s === 'ok') return 'bg-green-600 hover:bg-green-500 text-white';
+                    if (s === 'fail') return 'bg-red-600 hover:bg-red-500 text-white';
+                    return 'bg-brand-600 hover:bg-brand-500 text-white';
+                  })()
+                )}
+              >
+                {providerButtonContent(testingProvider === activeProvider.id, providerStatus[activeProvider.id])}
+              </button>
+
+              {testResults[activeProvider.id] && (
+                <div className={cn(
+                  'flex-1 min-w-0 p-3 rounded-lg border text-xs',
+                  providerStatus[activeProvider.id] === 'ok'
+                    ? 'bg-green-500/10 border-green-500/30 text-green-400'
+                    : 'bg-red-500/10 border-red-500/30 text-red-400'
+                )}>
+                  <div className="font-semibold mb-1">{testResults[activeProvider.id]?.message}</div>
+                  {testResults[activeProvider.id]?.latencyMs && (
+                    <div className="text-[10px] opacity-80 mb-1">Latency: {testResults[activeProvider.id]?.latencyMs}ms</div>
+                  )}
+                  {testResults[activeProvider.id]?.suggestion && (
+                    <div className="text-[10px] opacity-80 mt-1.5 p-2 bg-black/20 rounded">
+                      💡 {testResults[activeProvider.id]?.suggestion}
+                    </div>
+                  )}
+                </div>
               )}
             </div>
-          )}
-        </div>
 
-        {/* Example providers help */}
-        <details className="mt-3">
-          <summary className="text-[10px] text-[var(--text-muted)] hover:text-purple-400 cursor-pointer transition-colors">
-            📋 Example endpoints for popular self-hosted / OpenAI-compatible services
-          </summary>
-          <div className="mt-2 p-3 rounded-lg bg-[var(--bg-primary)] border border-[var(--border-primary)] text-[10px] space-y-1.5 font-mono">
-            <div><span className="text-purple-400">Ollama (local):</span> http://localhost:11434/v1 · model: llama3.2</div>
-            <div><span className="text-purple-400">vLLM (local):</span> http://localhost:8000/v1 · model: meta-llama/Llama-3.1-8B-Instruct</div>
-            <div><span className="text-purple-400">Together AI:</span> https://api.together.xyz/v1 · model: meta-llama/Llama-3.3-70B-Instruct-Turbo</div>
-            <div><span className="text-purple-400">OpenRouter:</span> https://openrouter.ai/api/v1 · model: openai/gpt-4o-mini</div>
-            <div><span className="text-purple-400">Groq:</span> https://api.groq.com/openai/v1 · model: llama-3.3-70b-versatile</div>
-            <div><span className="text-purple-400">LM Studio (local):</span> http://localhost:1234/v1 · model: loaded-model-name</div>
+            <a
+              href={activeProvider.apiKeyUrl || '#'}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={cn(
+                'mt-2 inline-flex items-center gap-1 text-[10px] transition-colors',
+                activeProvider.isFree
+                  ? 'text-green-500 hover:text-green-400 font-medium'
+                  : 'text-[var(--text-muted)] hover:text-brand-400'
+              )}
+            >
+              {activeProvider.isFree && <span className="inline-block w-1.5 h-1.5 rounded-full bg-green-500" />}
+              Get API key from {activeProvider.name}
+              {activeProvider.isFree && <span className="text-[9px] uppercase tracking-wide ml-1">(free tier available)</span>}
+              <ExternalLink className="w-2.5 h-2.5 ml-1" />
+            </a>
           </div>
-        </details>
+        ) : null}
       </Card>
 
-      {/* ─── Advanced: Popular Models (Fast Connect) — kept for power users ─── */}
-      <details className="group">
-        <summary className="flex items-center gap-2 cursor-pointer p-3 rounded-lg bg-[var(--bg-elevated)] border border-[var(--border-primary)] hover:border-brand-500/30 transition-colors list-none">
-          <Code className="w-4 h-4 text-[var(--text-muted)] group-open:rotate-90 transition-transform" />
-          <span className="text-sm font-medium text-[var(--text-secondary)]">Advanced Options (Custom Models, curl import, JSON config)</span>
+      {/* ─── Collapsible Configure Other Providers Card ────────────────── */}
+      <details className="group border border-[var(--border-primary)] rounded-lg bg-[var(--bg-elevated)]">
+        <summary className="flex items-center gap-2 cursor-pointer p-4 text-sm font-semibold text-[var(--text-secondary)] list-none hover:text-[var(--text-primary)] transition-colors select-none">
+          <ChevronRight className="w-4 h-4 text-[var(--text-muted)] group-open:rotate-90 transition-transform" />
+          <span>Configure Other Providers / تهيئة موفري الخدمة الآخرين ({POPULAR_PROVIDERS.length} Available)</span>
         </summary>
-        <div className="mt-3 space-y-6">
-      <Card padding="md" className="border border-[var(--border-primary)] shadow-sm">
-        <div className="flex items-center gap-2 mb-4 border-b border-[var(--border-primary)] pb-3">
-          <Sparkles className="w-5 h-5 text-brand-400" />
-          <div>
-            <h3 className="text-sm font-semibold text-[var(--text-primary)]">Popular Models (Fast Connect)</h3>
-            <p className="text-[10px] text-[var(--text-muted)]">Quickly connect to leading AI providers with your API key.</p>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-          {POPULAR_PROVIDERS.map(p => {
-            const keyName = `PROVIDER_${p.id.toUpperCase()}_KEY`
-            // model key computed inline to avoid minifier bug with bracket notation
-            const hasKey = !!settings[keyName]
-
-            return (
-              <div key={p.id} className="p-3 bg-[var(--bg-elevated)] border border-[var(--border-primary)] hover:border-brand-500/30 rounded-xl transition-all flex flex-col justify-between space-y-3">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <span className="w-2 h-2 rounded-full" style={{ backgroundColor: p.color }} />
-                    <span className="text-[11px] font-semibold text-[var(--text-primary)]">{p.name}</span>
+        <div className="p-4 border-t border-[var(--border-primary)] bg-[var(--bg-primary)] space-y-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            {POPULAR_PROVIDERS.map(p => {
+              const keyName = `PROVIDER_${p.id.toUpperCase()}_KEY`
+              const hasKey = !!settings[keyName]
+              const status = providerStatus[p.id]
+              const isTesting = testingProvider === p.id
+              const cardClass = providerCardClass(hasKey, p.isFree)
+              const buttonClass = providerButtonClass(!!settings[keyName], isTesting, status)
+              const buttonContent = providerButtonContent(isTesting, status)
+              return (
+                <div key={p.id} className={cardClass}>
+                  {p.isFree && !hasKey && (
+                    <span className="absolute -top-2 -right-2 px-2 py-0.5 rounded-full bg-green-500 text-white text-[9px] font-bold uppercase tracking-wide shadow-md z-10">
+                      Free
+                    </span>
+                  )}
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-2.5">
+                      <ProviderLogo providerId={p.id} size={40} />
+                      <div>
+                        <div className="text-sm font-semibold text-[var(--text-primary)]">{p.name}</div>
+                        <div className="text-[10px] text-[var(--text-muted)]">{p.defaultModel}</div>
+                      </div>
+                    </div>
+                    {hasKey && (
+                      <span className="inline-flex items-center gap-1 text-[10px] font-medium px-2 py-0.5 rounded-full bg-green-500/15 text-green-400 border border-green-500/25">
+                        <CheckCircle2 className="w-3 h-3" />
+                        Saved
+                      </span>
+                    )}
                   </div>
-                  <span className={`text-[9px] px-1.5 py-0.5 rounded-full font-medium ${
-                    hasKey ? 'bg-green-500/10 text-green-400 border border-green-500/20' : 'bg-[var(--bg-primary)] text-[var(--text-muted)] border border-[var(--border-primary)]'
-                  }`}>
-                    {hasKey ? 'Connected' : 'Disconnected'}
-                  </span>
-                </div>
 
-                <div className="space-y-2">
-                  <div>
-                    <label htmlFor={`prov-${p.id}-key`} className="block text-[9px] text-[var(--text-tertiary)] mb-1">API Key</label>
+                  <div className="relative mb-2">
                     <input
-                      id={`prov-${p.id}-key`}
                       type="password"
-                      placeholder="Paste API Key"
+                      placeholder={`Paste ${p.name} API key...`}
                       value={settings[keyName] || ''}
-                      onChange={e => setSettings(prev => ({ ...prev, [keyName]: e.target.value }))}
-                      className="w-full px-2 py-1 bg-[var(--bg-primary)] border border-[var(--border-primary)] rounded-lg text-[11px] text-[var(--text-primary)] focus:border-brand-500 outline-none transition-colors font-mono"
+                      onChange={e => {
+                        setSettings(prev => ({ ...prev, [keyName]: e.target.value }))
+                        if (providerStatus[p.id]) {
+                          setProviderStatus(prev => ({ ...prev, [p.id]: null }))
+                        }
+                      }}
+                      className="w-full px-3 py-2 pr-9 bg-[var(--bg-primary)] border border-[var(--border-primary)] rounded-lg text-xs text-[var(--text-primary)] placeholder-[var(--text-muted)] focus:border-brand-500 outline-none transition-colors font-mono"
                     />
+                    <Key className="absolute right-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[var(--text-muted)] pointer-events-none" />
                   </div>
 
-                  <div>
-                    <label htmlFor={`prov-${p.id}-model`} className="block text-[9px] text-[var(--text-tertiary)] mb-1">Select Model</label>
+                  <div className="mb-2">
+                    <label className="block text-[9px] text-[var(--text-tertiary)] mb-1 font-medium uppercase tracking-wide" htmlFor={`model-collapsible-${p.id}`}>
+                      Model
+                    </label>
                     <select
-                      id={`prov-${p.id}-model`}
+                      id={`model-collapsible-${p.id}`}
                       value={settings[`PROVIDER_${p.id.toUpperCase()}_MODEL`] || p.defaultModel}
                       onChange={e => setSettings(prev => ({ ...prev, [`PROVIDER_${p.id.toUpperCase()}_MODEL`]: e.target.value }))}
-                      className="w-full px-2 py-1 bg-[var(--bg-primary)] border border-[var(--border-primary)] rounded-lg text-[11px] text-[var(--text-primary)] focus:border-brand-500 outline-none transition-colors"
+                      className="w-full px-2 py-1.5 bg-[var(--bg-primary)] border border-[var(--border-primary)] rounded-lg text-[11px] text-[var(--text-primary)] focus:border-brand-500 outline-none transition-colors cursor-pointer"
                     >
-                      {p.models.map((m: { id: string; name: string; isFree: boolean }) => (
+                      {p.models.map(m => (
                         <option key={m.id} value={m.id} className="dark:bg-gray-800">
-                          {m.isFree ? '🆓 ' : ''}{m.name} ({m.id})
+                          {m.isFree ? 'Freelimit ' : ''}{m.name} ({m.id})
                         </option>
                       ))}
                     </select>
                   </div>
-                </div>
-              </div>
-            )
-          })}
-        </div>
-      </Card>
 
-      {/* 2. Advanced / Custom Model Integration */}
-      <Card padding="md" className="border border-[var(--border-primary)] shadow-sm">
-        {/* Custom Section Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[var(--border-primary)] pb-3 mb-4">
-          <div className="flex items-start gap-2">
-            <Bot className="w-5 h-5 text-brand-400 mt-0.5" />
-            <div>
-              <div className="flex items-center flex-wrap gap-2">
-                <h3 className="text-sm font-semibold text-[var(--text-primary)]">Advanced / Custom Model Integration</h3>
-                <span className="inline-flex items-center gap-1 text-[9px] px-2 py-0.5 rounded bg-brand-500/10 text-brand-400 border border-brand-500/20 font-medium">
-                  <Info className="w-3 h-3" />
-                  Compatible with Cline/Continue config
-                </span>
-              </div>
-              <p className="text-[10px] text-[var(--text-muted)] mt-0.5">
-                Configure custom endpoints, local models (Ollama, LM Studio), or fine-tune connection parameters.
-              </p>
-            </div>
+                  <button
+                    type="button"
+                    onClick={() => handleTestProvider(p.id)}
+                    disabled={!settings[keyName] || isTesting}
+                    className={buttonClass}
+                  >
+                    {buttonContent}
+                  </button>
+                </div>
+              )
+            })}
           </div>
-
-          {/* Local vs Global Scope Selector */}
-          <div className="flex items-center bg-[var(--bg-primary)] p-1 rounded-lg border border-[var(--border-primary)] shrink-0 self-end sm:self-auto">
-            <button
-              onClick={() => setCustomScope('local')}
-              className={`px-3 py-1 text-xs rounded-md transition-all ${
-                customScope === 'local'
-                  ? 'bg-brand-600 text-white font-medium shadow-sm'
-                  : 'text-[var(--text-muted)] hover:text-[var(--text-primary)]'
-              }`}
-            >
-              📁 Local Config
-            </button>
-            <button
-              onClick={() => setCustomScope('global')}
-              className={`px-3 py-1 text-xs rounded-md transition-all ${
-                customScope === 'global'
-                  ? 'bg-brand-600 text-white font-medium shadow-sm'
-                  : 'text-[var(--text-muted)] hover:text-[var(--text-primary)]'
-              }`}
-            >
-              🌐 Global Config
-            </button>
-          </div>
-        </div>
-
-        {/* Sub Tabs Selector */}
-        <div className="flex border-b border-[var(--border-primary)] mb-4">
-          {(['json', 'curl', 'openai'] as const).map(tab => {
-            const tabLabel = tab === 'json' ? 'JSON Config' : tab === 'curl' ? 'CURL Command' : 'OpenAI-Compatible Endpoint'
-            return (
-            <button
-              key={tab}
-              onClick={() => setCustomTab(tab)}
-              className={`px-4 py-2 text-xs font-semibold border-b-2 transition-all capitalize ${
-                customTab === tab
-                  ? 'border-brand-500 text-brand-400'
-                  : 'border-transparent text-[var(--text-muted)] hover:text-[var(--text-primary)]'
-              }`}
-            >
-              {tabLabel}
-            </button>
-            )
-          })}
-        </div>
-
-        {/* Sub Tabs Contents */}
-        <div className="space-y-4">
-          {customTab === 'json' && (
-            <div className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label htmlFor="custom-base-url" className="block text-xs font-medium text-[var(--text-tertiary)] mb-1.5">Base URL</label>
-                  <input
-                    id="custom-base-url"
-                    type="text"
-                    placeholder="https://api.yourproxy.com/v1"
-                    value={settings.CUSTOM_BASE_URL || ''}
-                    onChange={e => setSettings(prev => ({ ...prev, CUSTOM_BASE_URL: e.target.value }))}
-                    className="w-full px-3 py-2 bg-[var(--bg-input)] border border-[var(--border-primary)] rounded-lg text-[var(--text-primary)] text-sm focus:border-brand-500 outline-none transition-colors"
-                  />
-                </div>
-                <div>
-                  <label htmlFor="custom-model-id" className="block text-xs font-medium text-[var(--text-tertiary)] mb-1.5">Model ID</label>
-                  <input
-                    id="custom-model-id"
-                    type="text"
-                    placeholder="e.g., deepseek-coder"
-                    value={settings.CUSTOM_MODEL_ID || ''}
-                    onChange={e => setSettings(prev => ({ ...prev, CUSTOM_MODEL_ID: e.target.value }))}
-                    className="w-full px-3 py-2 bg-[var(--bg-input)] border border-[var(--border-primary)] rounded-lg text-[var(--text-primary)] text-sm focus:border-brand-500 outline-none transition-colors font-mono"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-end">
-                <div>
-                  <label htmlFor="custom-api-key" className="block text-xs font-medium text-[var(--text-tertiary)] mb-1.5">API Key</label>
-                  <input
-                    id="custom-api-key"
-                    type="password"
-                    placeholder="Enter your API key"
-                    value={settings.CUSTOM_API_KEY || ''}
-                    onChange={e => setSettings(prev => ({ ...prev, CUSTOM_API_KEY: e.target.value }))}
-                    className="w-full px-3 py-2 bg-[var(--bg-input)] border border-[var(--border-primary)] rounded-lg text-[var(--text-primary)] text-sm focus:border-brand-500 outline-none transition-colors"
-                  />
-                </div>
-
-                <Button
-                  variant="primary"
-                  className="w-full flex items-center justify-center gap-2 bg-brand-600 hover:bg-brand-700 text-white"
-                  onClick={handleConnectCustom}
-                >
-                  🔌 Connect Custom Provider
-                </Button>
-              </div>
-            </div>
-          )}
-
-          {customTab === 'curl' && (
-            <div className="space-y-4">
-              <div>
-                <label htmlFor="custom-curl" className="block text-xs font-medium text-[var(--text-tertiary)] mb-1.5">Paste Curl Command</label>
-                <textarea
-                  id="custom-curl"
-                  placeholder="Paste raw curl command here, e.g. curl https://api.deepseek.com/v1/chat/completions -H 'Authorization: Bearer sk-...' -d '{'model': 'deepseek-coder'}'"
-                  value={curlContent}
-                  onChange={e => setCurlContent(e.target.value)}
-                  rows={4}
-                  className="w-full px-3 py-2 bg-[var(--bg-input)] border border-[var(--border-primary)] rounded-lg text-[var(--text-primary)] text-xs focus:border-brand-500 outline-none transition-colors font-mono"
-                />
-              </div>
-
-              <Button
-                variant="primary"
-                className="w-full flex items-center justify-center gap-2 bg-brand-600 hover:bg-brand-700 text-white"
-                onClick={handleParseCurl}
-              >
-                ⚡ Parse & Connect Curl
-              </Button>
-            </div>
-          )}
-
-          {customTab === 'openai' && (
-            <div className="space-y-4">
-              <div className="bg-[var(--bg-primary)] p-3 rounded-lg border border-[var(--border-primary)] text-xs text-[var(--text-muted)] leading-relaxed">
-                ℹ️ Use this configuration to connect standard local developer platforms like <strong>Ollama</strong> or <strong>LM Studio</strong>. 
-                For Ollama, use default base URL <code>http://localhost:11434/v1</code>. For LM Studio, use <code>http://localhost:1234/v1</code>.
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div>
-                  <label htmlFor="openai-base-url" className="block text-xs font-medium text-[var(--text-tertiary)] mb-1.5">Base URL</label>
-                  <input
-                    id="openai-base-url"
-                    type="text"
-                    placeholder="http://localhost:11434/v1"
-                    value={settings.CUSTOM_BASE_URL || ''}
-                    onChange={e => setSettings(prev => ({ ...prev, CUSTOM_BASE_URL: e.target.value }))}
-                    className="w-full px-3 py-2 bg-[var(--bg-input)] border border-[var(--border-primary)] rounded-lg text-[var(--text-primary)] text-sm focus:border-brand-500 outline-none transition-colors"
-                  />
-                </div>
-                <div>
-                  <label htmlFor="openai-model-id" className="block text-xs font-medium text-[var(--text-tertiary)] mb-1.5">Model ID</label>
-                  <input
-                    id="openai-model-id"
-                    type="text"
-                    placeholder="e.g., llama3.2"
-                    value={settings.CUSTOM_MODEL_ID || ''}
-                    onChange={e => setSettings(prev => ({ ...prev, CUSTOM_MODEL_ID: e.target.value }))}
-                    className="w-full px-3 py-2 bg-[var(--bg-input)] border border-[var(--border-primary)] rounded-lg text-[var(--text-primary)] text-sm focus:border-brand-500 outline-none transition-colors font-mono"
-                  />
-                </div>
-                <div>
-                  <label htmlFor="openai-api-key" className="block text-xs font-medium text-[var(--text-tertiary)] mb-1.5">API Key (Optional)</label>
-                  <input
-                    id="openai-api-key"
-                    type="password"
-                    placeholder="None / Optional"
-                    value={settings.CUSTOM_API_KEY || ''}
-                    onChange={e => setSettings(prev => ({ ...prev, CUSTOM_API_KEY: e.target.value }))}
-                    className="w-full px-3 py-2 bg-[var(--bg-input)] border border-[var(--border-primary)] rounded-lg text-[var(--text-primary)] text-sm focus:border-brand-500 outline-none transition-colors"
-                  />
-                </div>
-              </div>
-
-              <Button
-                variant="primary"
-                className="w-full flex items-center justify-center gap-2 bg-brand-600 hover:bg-brand-700 text-white"
-                onClick={handleConnectCustom}
-              >
-                🔌 Connect Endpoint
-              </Button>
-            </div>
-          )}
-        </div>
-      </Card>
         </div>
       </details>
     </div>
@@ -2316,6 +2230,8 @@ export default function Settings() {
         >
           {activeTab === 'ai' ? (
             <AISettingsPanel settings={settings} setSettings={setSettings} notify={notify} />
+          ) : activeTab === 'mcp' ? (
+            <MCPSettingsPanel />
           ) : activeTab === 'external' ? (
             <ExternalServicesPanel settings={settings} setSettings={setSettings} notify={notify} />
           ) : activeTab === 'vision' ? (

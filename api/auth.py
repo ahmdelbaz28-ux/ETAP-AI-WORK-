@@ -95,10 +95,10 @@ _TOKEN_BLACKLIST_PREFIX = os.getenv("TOKEN_BLACKLIST_PREFIX", "auth:blacklist:")
 # stale and raises 'RuntimeError: Event loop is closed' on the next use.
 # The client fixture in tests/conftest.py resets this to None before each
 # test to force a fresh client on the new event loop.
-_redis_client: redis_async.Redis | None = None
+_redis_client: Optional[redis_async.Redis] = None
 
 
-def _get_redis_client() -> redis_async.Redis | None:
+def _get_redis_client() -> Optional[redis_async.Redis]:
     """Return the shared async Redis client, or None if Redis is unavailable.
 
     Reads REDIS_URL at call time (not import time) so tests using
@@ -115,7 +115,7 @@ def _get_redis_client() -> redis_async.Redis | None:
     return _redis_client
 
 
-async def _blacklist_token(jti: str, ttl_seconds: int | None = None) -> None:
+async def _blacklist_token(jti: str, ttl_seconds: Optional[int] = None) -> None:
     """Blacklist a refresh token JTI using Redis (with TTL)."""
     r = _get_redis_client()
     if r is None:
@@ -369,8 +369,8 @@ class UpdateProfileRequest(BaseModel):
 
     model_config = ConfigDict(strict=False)
 
-    email: EmailStr | None = None
-    mfa_enabled: bool | None = None
+    email: Optional[EmailStr] = None
+    mfa_enabled: Optional[bool] = None
 
 
 class UserResponse(BaseModel):
@@ -384,9 +384,9 @@ class UserResponse(BaseModel):
     role: str
     mfa_enabled: bool
     is_active: bool
-    created_at: datetime | None = None
-    updated_at: datetime | None = None
-    last_login: datetime | None = None
+    created_at: Optional[datetime] = None
+    updated_at: Optional[datetime] = None
+    last_login: Optional[datetime] = None
 
 
 class UserListResponse(BaseModel):
@@ -659,7 +659,7 @@ async def refresh(
             detail="Refresh token has been revoked",
         )
 
-    user_id: str | None = payload.get("sub")
+    user_id: Optional[str] = payload.get("sub")
     if user_id is None:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -693,7 +693,7 @@ async def refresh(
 )
 async def logout(
     user: CurrentUserDep,
-    body: RefreshRequest | None = Body(None),  # NOSONAR — S8410
+    body: Optional[RefreshRequest] = Body(None),  # NOSONAR — S8410
 ) -> Response:
     """Log the current user out by blacklisting the provided refresh token.
 
@@ -711,7 +711,7 @@ async def logout(
             )
             jti = payload.get("jti")
             exp = payload.get("exp")  # epoch seconds
-            ttl_seconds: int | None = None
+            ttl_seconds: Optional[int] = None
             if isinstance(exp, (int, float)):
                 now_epoch = datetime.now(tz=UTC).timestamp()
                 ttl_seconds = int(exp - now_epoch)

@@ -4,12 +4,12 @@ AutoCAD Connector — Python Service Layer
 Orchestrates AutoCAD operations via the C# AutoCAD Plugin.
 Provides high-level APIs for the Engineering Copilot.
 """
-
 from __future__ import annotations
 
 import logging
 import time
 import uuid
+from typing import Optional
 
 import requests
 
@@ -101,7 +101,7 @@ class AutoCADPluginClient:
                 "X-API-Key": api_key,
             },
         )
-        self._available: bool | None = None
+        self._available: Optional[bool] = None
 
     def is_available(self) -> bool:
         """Check if the AutoCAD plugin is reachable."""
@@ -125,7 +125,7 @@ class AutoCADPluginClient:
         """Open a DWG file in AutoCAD."""
         return self.send_command("open_drawing", {"file_path": file_path})
 
-    def save_drawing(self, file_path: str | None = None) -> dict:
+    def save_drawing(self, file_path: Optional[str] = None) -> dict:
         """Save the current drawing."""
         return self.send_command("save_drawing", {"file_path": file_path or ""})
 
@@ -344,7 +344,7 @@ class AutoCADPluginClient:
         insertion_point: list[float],
         scale: float = 1.0,
         rotation: float = 0.0,
-        attributes: dict | None = None,
+        attributes: Optional[dict] = None,
     ) -> dict:
         """Draw an electrical component symbol."""
         return self.send_command(
@@ -359,7 +359,7 @@ class AutoCADPluginClient:
         )
 
     def draw_single_line_diagram(
-        self, buses: list[dict], branches: list[dict], options: dict | None = None,
+        self, buses: list[dict], branches: list[dict], options: Optional[dict] = None,
     ) -> dict:
         """Generate a single-line diagram from bus/branch data."""
         return self.send_command(
@@ -386,7 +386,7 @@ class AutoCADConnector:
 
     def __init__(self, plugin_url: str = "http://localhost:4820", api_key: str = ""):
         self.plugin = AutoCADPluginClient(plugin_url, api_key=api_key)
-        self._current_drawing: AutoCADDrawingContext | None = None
+        self._current_drawing: Optional[AutoCADDrawingContext] = None
         self._operation_log: list[dict] = []
 
     @property
@@ -405,7 +405,7 @@ class AutoCADConnector:
             self._log_operation("open_drawing", file_path, True)
         return result
 
-    def save_drawing(self, file_path: str | None = None) -> dict:
+    def save_drawing(self, file_path: Optional[str] = None) -> dict:
         result = self.plugin.save_drawing(file_path)
         if result.get("success") and self._current_drawing:
             self._current_drawing.modified = False
@@ -602,7 +602,7 @@ class AutoCADConnector:
         breakers: list[Breaker],
         loads: list[Load],
         output_path: str,
-        options: dict | None = None,
+        options: Optional[dict] = None,
     ) -> dict:
         """Generate a complete single-line diagram from the unified model.
 
@@ -665,9 +665,9 @@ class AutoCADConnector:
             id=str(uuid.uuid4()),
             name="Legend",
             annotation_type="label",
-            text=f"Generated: {time.strftime('%Y-%m-%d %H:%M')} | "
-            f"Base: {opts.get('base_mva', 100)} MVA | "
-            f"System: {opts.get('frequency', 60)} Hz",
+            text=(f"Generated: {time.strftime('%Y-%m-%d %H:%M')}, "
+                f"Base: {opts.get('base_mva', 100)} MVA, "
+                f"System: {opts.get('frequency', 60)} Hz"),
             font_size=2.5,
             coordinates=Coordinates(x=start_x, y=start_y - bus_spacing_y),
         )
@@ -710,7 +710,7 @@ class AutoCADConnector:
     # ------------------------------------------------------------------
 
     def _log_operation(
-        self, operation: str, target: str, success: bool, details: dict | None = None,
+        self, operation: str, target: str, success: bool, details: Optional[dict] = None,
     ) -> None:
         self._operation_log.append(
             {

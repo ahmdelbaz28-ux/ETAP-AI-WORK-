@@ -18,7 +18,7 @@ import json
 import time
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
-from typing import Any
+from typing import Any, Union
 
 import anyio
 
@@ -33,7 +33,7 @@ __all__ = [
 # ------------------------------------------------------------------ AuditEntry
 
 
-@dataclass(frozen=True, slots=True)
+@dataclass(frozen=True)
 class AuditEntry:
     """A single audit log entry.
 
@@ -153,7 +153,7 @@ class NDJSONAuditLogger(AuditLogger):
 
     def __init__(
         self,
-        path: str | Path,
+        path: Union[str, Path],
         *,
         max_bytes: int = 0,
         max_backups: int = 3,

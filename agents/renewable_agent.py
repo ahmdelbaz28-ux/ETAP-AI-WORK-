@@ -22,7 +22,7 @@ import logging
 from datetime import datetime, timezone
 
 UTC = timezone.utc  # noqa: UP017
-from typing import Any
+from typing import Any, Optional
 
 import numpy as np
 
@@ -65,8 +65,8 @@ class RenewableAgent(BaseAgent):
         self,
         dc_capacity_kw: float,
         ac_capacity_kw: float,
-        irradiance_kw_m2: np.ndarray | None = None,
-        temperature_C: np.ndarray | None = None,  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        irradiance_kw_m2: Optional[np.ndarray] = None,
+        temperature_C: Optional[np.ndarray] = None,  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         noct_C: float = 45.0,  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         temp_coeff_power_pctK: float = -0.40,  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         soiling_loss_pct: float = 2.0,

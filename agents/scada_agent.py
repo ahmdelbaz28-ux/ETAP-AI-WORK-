@@ -23,7 +23,7 @@ import logging
 from datetime import datetime, timezone
 
 UTC = timezone.utc  # noqa: UP017
-from typing import Any
+from typing import Any, Optional
 
 import numpy as np
 
@@ -173,7 +173,7 @@ class SCADAConnection:
         self.port = port
         self.protocol = protocol
         self.connected = False
-        self.last_poll_time: datetime | None = None
+        self.last_poll_time: Optional[datetime] = None
 
     def connect(self) -> bool:
         """Simulate establishing a SCADA connection.

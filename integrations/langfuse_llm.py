@@ -63,7 +63,7 @@ from __future__ import annotations
 import logging
 import os
 import time
-from typing import Any
+from typing import Any, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -101,7 +101,7 @@ class SafetyValidationError(ValueError):
     """Raised when an LLM call violates a safety guardrail."""
 
 
-def _validate_input(messages: list[dict], metadata: dict | None) -> None:  # NOSONAR — S3776: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
+def _validate_input(messages: list[dict], metadata: Optional[dict]) -> None:  # NOSONAR — S3776: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
     """Run safety guardrails before the LLM call is made.
 
     Raises ``SafetyValidationError`` on violation.
@@ -219,9 +219,9 @@ def safe_openai_chat(
     *,
     model: str,
     messages: list[dict],
-    metadata: dict | None = None,
-    user: str | None = None,
-    session_id: str | None = None,
+    metadata: Optional[dict] = None,
+    user: Optional[str] = None,
+    session_id: Optional[str] = None,
     **kwargs: Any,
 ):
     """Call ``openai.chat.completions.create`` with safety guardrails + tracing.
@@ -316,9 +316,9 @@ def safe_anthropic_message(
     model: str,
     messages: list[dict],
     max_tokens: int = 4096,
-    metadata: dict | None = None,
-    user: str | None = None,  # NOSONAR — S1172: unused param kept for API compatibility
-    session_id: str | None = None,
+    metadata: Optional[dict] = None,
+    user: Optional[str] = None,  # NOSONAR — S1172: unused param kept for API compatibility
+    session_id: Optional[str] = None,
     **kwargs: Any,
 ):
     """Call ``anthropic.messages.create`` with safety guardrails + tracing.
@@ -389,7 +389,7 @@ _PRICING_USD_PER_1K = {
 }
 
 
-def estimate_cost_usd(model: str, input_tokens: int, output_tokens: int) -> float | None:
+def estimate_cost_usd(model: str, input_tokens: int, output_tokens: int) -> Optional[float]:
     """Estimate the USD cost of an LLM call.
 
     Returns ``None`` if the model is not in the pricing table.

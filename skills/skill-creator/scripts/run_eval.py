@@ -4,6 +4,7 @@
 Tests whether a skill's description causes GLM to trigger (read the skill)
 for a set of queries. Outputs results as JSON.
 """
+from typing import Optional, Union
 
 import argparse
 import json
@@ -38,7 +39,7 @@ def run_single_query(
     skill_description: str,
     timeout: int,
     project_root: str,
-    model: str | None = None,
+    model: Optional[str] = None,
 ) -> bool:
     """Run a single query and return whether the skill was triggered.
 
@@ -59,7 +60,7 @@ def run_single_query(
         indented_desc = "\n  ".join(skill_description.split("\n"))
         command_content = (
             f"---\n"
-            f"description: |\n"
+            f"description:, \n"
             f"  {indented_desc}\n"
             f"---\n\n"
             f"# {skill_name}\n\n"
@@ -190,7 +191,7 @@ def run_eval(
     project_root: Path,
     runs_per_query: int = 1,
     trigger_threshold: float = 0.5,
-    model: str | None = None,
+    model: Optional[str] = None,
 ) -> dict:
     """Run the full eval set and return results."""
     results = []

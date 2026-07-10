@@ -8,7 +8,7 @@ import json
 import os
 import sys
 from pathlib import Path
-from typing import Any
+from typing import Any, Optional, Union
 from urllib.error import HTTPError, URLError
 from urllib.parse import urlencode
 from urllib.request import Request, urlopen
@@ -47,7 +47,7 @@ PROVINCE_BATCH_FALLBACK: dict[str, str] = {
 }
 
 
-def resolve_batch_fallback(province: str | None, batch: str | None) -> str | None:
+def resolve_batch_fallback(province: Optional[str], batch: Optional[str]) -> Optional[str]:
     """批次 API 失败时的省份静态兜底。"""
     if not province:
         return batch
@@ -63,7 +63,7 @@ def resolve_batch_fallback(province: str | None, batch: str | None) -> str | Non
 
 def batch_list_url(
     params: dict[str, Any],
-    base_url: str | None = None,
+    base_url: Optional[str] = None,
 ) -> str:
     root = (base_url or BASE_URL).rstrip("/")
     path = BATCH_LIST_PATH if BATCH_LIST_PATH.startswith("/") else f"/{BATCH_LIST_PATH}"
@@ -73,7 +73,7 @@ def batch_list_url(
 
 def call_batch_list_api(
     params: dict[str, Any],
-    base_url: str | None = None,
+    base_url: Optional[str] = None,
     timeout: int = 60,
 ) -> list[dict[str, Any]]:
     """GET 批次列表，返回 result 数组。"""
@@ -112,8 +112,8 @@ def call_batch_list_api(
 def select_batch_from_list(
     items: list[dict[str, Any]],
     user_score: int,
-    preferred_batch: str | None = None,
-    grade_type: str | None = None,
+    preferred_batch: Optional[str] = None,
+    grade_type: Optional[str] = None,
 ) -> dict[str, Any]:
     """从批次列表中选取与分数、层次最匹配的一项。"""
     if not items:
@@ -163,7 +163,7 @@ def apply_batch_item_to_payload(payload: dict[str, Any], batch_item: dict[str, A
 
 def resolve_batch_via_api(
     payload: dict[str, Any],
-    base_url: str | None = None,
+    base_url: Optional[str] = None,
 ) -> tuple[str, dict[str, Any], list[dict[str, Any]]]:
     """调用批次接口并选定 batch，返回 (batch名, 选中项, 全部项)。"""
     params = batch_list_query_params(payload)
@@ -397,7 +397,7 @@ def build_request_payload(args: argparse.Namespace) -> dict[str, Any]:
     return payload
 
 
-def api_url(base_url: str | None = None) -> str:
+def api_url(base_url: Optional[str] = None) -> str:
     root = (base_url or BASE_URL).rstrip("/")
     path = API_PATH if API_PATH.startswith("/") else f"/{API_PATH}"
     return root + path
@@ -405,7 +405,7 @@ def api_url(base_url: str | None = None) -> str:
 
 def call_api(
     payload: dict[str, Any],
-    base_url: str | None = None,
+    base_url: Optional[str] = None,
     timeout: int = 60,
 ) -> dict[str, Any]:
     url = api_url(base_url)

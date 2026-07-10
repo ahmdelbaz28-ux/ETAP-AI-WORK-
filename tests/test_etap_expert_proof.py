@@ -20,7 +20,6 @@ Coverage matrix:
   9. Skill knowledge base — skills/etap-expert.md loaded with >= 4000 lines
  10. Classifier accuracy — >= 90% on 20-question dataset
 """
-
 from __future__ import annotations
 
 import json
@@ -28,6 +27,7 @@ import math
 import os
 import sys
 from pathlib import Path
+from typing import Optional, Union
 
 import pytest
 
@@ -634,9 +634,9 @@ def test_no_skip_markers_in_skill_tests():
     import re
 
     forbidden_regexes = [
-        re.compile(r"^\s*@pytest\.mark\.(skip|xfail|skipif)", re.MULTILINE),
+        re.compile(r"^\s*@pytest\.mark\.(Union[skip|xfail, skipif])", re.MULTILINE),
         re.compile(r"^\s*pytest\.skip\(", re.MULTILINE),
-        re.compile(r"^\s*pytest\.mark\.(skip|xfail|skipif)\(", re.MULTILINE),
+        re.compile(r"^\s*pytest\.mark\.(Union[skip|xfail, skipif])\(", re.MULTILINE),
     ]
     violations = []
     for tf in [

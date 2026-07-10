@@ -25,9 +25,9 @@ CONFIGURATION (env vars):
     SIEM_ENABLED=true                    — enable forwarding (default: false)
     SIEM_HOST=10.0.0.100                 — SIEM server hostname/IP
     SIEM_PORT=514                        — SIEM port (default: 514)
-    SIEM_PROTOCOL=udp                    — udp | tcp | tls
+    SIEM_PROTOCOL=udp                    — Union[udp, tcp] | tls
     SIEM_FACILITY=local0                 — syslog facility (default: local0)
-    SIEM_SEVERITY=warning                — emergency|alert|critical|warning|info|debug
+    SIEM_SEVERITY=warning                — Union[emergency|alert|critical|warning|info, debug]
     SIEM_APP_NAME=AhmedETAP-CUA          — app name in syslog header
     SIEM_TLS_CA_CERT=/path/to/ca.pem     — for TLS only
 
@@ -62,7 +62,7 @@ import socket
 import ssl
 import threading
 from datetime import UTC
-from typing import Any
+from typing import Any, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -169,7 +169,7 @@ class SIEMSyslogForwarder:
         self._facility_code = SYSLOG_FACILITY[self.facility_name]
 
         # TLS context (lazy init)
-        self._tls_context: ssl.SSLContext | None = None
+        self._tls_context: Optional[ssl.SSLContext] = None
 
         # Ensure log file directory exists (for logging-only mode)
         if self.logging_only and self.log_file:

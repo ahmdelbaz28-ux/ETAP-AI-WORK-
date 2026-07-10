@@ -21,7 +21,7 @@ import logging
 from datetime import datetime, timezone
 
 UTC = timezone.utc  # noqa: UP017
-from typing import Any
+from typing import Any, Optional
 
 import numpy as np
 
@@ -70,7 +70,7 @@ class BatteryStorageAgent(BaseAgent):
     def size_bess(
         self,
         load_profile_kw: np.ndarray,
-        target_peak_kw: float | None = None,
+        target_peak_kw: Optional[float] = None,
         max_power_kw: float = 1000.0,
         usable_soc_range: tuple[float, float] = (0.10, 0.90),
         round_trip_efficiency: float = 0.87,
@@ -534,7 +534,7 @@ class BatteryStorageAgent(BaseAgent):
     @staticmethod
     def _compute_irr(
         cash_flows: np.ndarray, max_iter: int = 100, tol: float = 1e-8,
-    ) -> float | None:
+    ) -> Optional[float]:
         """Compute IRR using Newton-Raphson method."""
         x = 0.10  # Initial guess: 10%
         for _ in range(max_iter):

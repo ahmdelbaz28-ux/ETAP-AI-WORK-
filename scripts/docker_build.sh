@@ -55,6 +55,7 @@ SERVICE=""              # empty = all services
 GIT_SHA="$(git -C "${PROJECT_DIR}" rev-parse --short HEAD 2>/dev/null || echo 'unknown')"
 BUILD_DATE="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 GHCR_REPOSITORY=""
+DIVIDER='=========================================='
 
 # ---------------------------------------------------------------------------
 # Parse arguments
@@ -183,7 +184,8 @@ SERVICES=(
 
 should_build() {
   if [[ -z "${SERVICE}" ]]; then return 0; fi
-  [[ "${SERVICE}" = "$1" ]] && return 0 || return 1  # NOSONAR — S7679: function params assigned to locals; readability
+  local service_name="$1"
+  [[ "${SERVICE}" = "${service_name}" ]] && return 0 || return 1
 }
 
 # ---------------------------------------------------------------------------
@@ -270,9 +272,9 @@ build_service() {
 # ---------------------------------------------------------------------------
 # Header
 # ---------------------------------------------------------------------------
-echo "=========================================="
+echo "${DIVIDER}"
 echo " ETAP AI Platform - Docker Build"
-echo "=========================================="
+echo "${DIVIDER}"
 echo "Registry:    ${REGISTRY:-<none — local>}"
 echo "Tag:         ${TAG}"
 echo "Platform:    ${PLATFORM}"
@@ -280,7 +282,7 @@ echo "Multi-arch:  ${MULTIARCH}"
 echo "Service:     ${SERVICE:-<all>}"
 echo "No cache:    ${NO_CACHE:-false}"
 echo "Push:        ${PUSH}"
-echo "=========================================="
+echo "${DIVIDER}"
 
 # ---------------------------------------------------------------------------
 # Login if pushing to GHCR
@@ -302,13 +304,13 @@ done
 # Summary
 # ---------------------------------------------------------------------------
 echo ""
-echo "=========================================="
+echo "${DIVIDER}"
 echo " Build Complete"
-echo "=========================================="
+echo "${DIVIDER}"
 for entry in "${SERVICES[@]}"; do
   IFS='|' read -r name dockerfile default_platform <<< "${entry}"
   if should_build "${name}"; then
     echo "  ${REGISTRY}${name}:${TAG}"
   fi
 done
-echo "=========================================="
+echo "${DIVIDER}"

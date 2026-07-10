@@ -3,6 +3,8 @@ import { motion } from 'framer-motion'
 import { FolderOpen, Plus, FlaskConical, Calendar, X, Loader2, AlertCircle, Archive, Trash2 } from 'lucide-react'
 import { useNotify } from '../context/NotificationContext'
 import { Card, CardSection, Badge, Button, EmptyState } from '../components/ui'
+import ModalBackdrop from '../components/ModalBackdrop'
+import ModalHeader from '../components/ModalHeader'
 import { ContextHelpButton } from '../components/help/ContextHelpButton'
 import {
   listProjects,
@@ -233,47 +235,29 @@ export default function Projects() {
 
       {/* Create Project Modal */}
       {showCreateModal && (
-        <div
-          className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4"
-          onClick={() => !submitting && setShowCreateModal(false)}
-          onKeyDown={(e) => {
-            if (e.key === 'Escape' && !submitting) {
-              setShowCreateModal(false);
-            }
-          }}
-          tabIndex={0}
-          role="button"
-        >
+        <ModalBackdrop onClose={() => setShowCreateModal(false)} disabled={submitting}>
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             onClick={(e) => e.stopPropagation()}
             className="bg-[var(--bg-elevated)] border border-[var(--border-primary)] rounded-xl w-full max-w-md p-6 shadow-2xl"
           >
-            <div className="flex items-start justify-between mb-4">
-              <div className="flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-brand-500/10">
-                  <Plus className="w-5 h-5 text-brand-400" />
-                </div>
-                <h3 className="text-lg font-semibold text-[var(--text-primary)]">Create New Project</h3>
-              </div>
-              <button
-                onClick={() => !submitting && setShowCreateModal(false)}
-                disabled={submitting}
-                className="p-1 rounded text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-primary)] disabled:opacity-50 transition-colors"
-                aria-label="Close"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
+            <ModalHeader
+              title="Create New Project"
+              onClose={() => setShowCreateModal(false)}
+              disabled={submitting}
+              icon={Plus}
+            />
 
             <div className="space-y-4">
               <div>
-                <label className="block text-xs font-medium text-[var(--text-secondary)] mb-1.5">
+                <label htmlFor="project-name" className="block text-xs font-medium text-[var(--text-secondary)] mb-1.5">
                   Project Name <span className="text-red-400">*</span>
                 </label>
                 <input
+                  id="project-name"
                   type="text"
+                  aria-label="Project Name"
                   value={form.name}
                   onChange={(e) => setForm(f => ({ ...f, name: e.target.value }))}
                   placeholder="e.g., Industrial Plant - 13.8kV"
@@ -286,10 +270,12 @@ export default function Projects() {
                 />
               </div>
               <div>
-                <label className="block text-xs font-medium text-[var(--text-secondary)] mb-1.5">
+                <label htmlFor="project-description" className="block text-xs font-medium text-[var(--text-secondary)] mb-1.5">
                   Description
                 </label>
                 <textarea
+                  id="project-description"
+                  aria-label="Description"
                   value={form.description}
                   onChange={(e) => setForm(f => ({ ...f, description: e.target.value }))}
                   placeholder="e.g., Main industrial facility power system with 5 motors and 2 transformers"
@@ -321,7 +307,7 @@ export default function Projects() {
               </Button>
             </div>
           </motion.div>
-        </div>
+        </ModalBackdrop>
       )}
     </div>
   )
