@@ -443,6 +443,7 @@ def build_health_response(platform: str = "huggingface-spaces") -> dict[str, Any
     """Return a health-status dictionary."""
     uptime = round(time.time() - START_TIME, 2)
     return {
+        "success": True,
         "status": "healthy",
         "uptime_seconds": uptime,
         "build_time": BUILD_TIME,
