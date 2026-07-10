@@ -18,7 +18,7 @@ import json
 import sys
 import time
 from dataclasses import dataclass, field
-from typing import Any, Optional, Union
+from typing import Any, Optional
 
 import anyio
 

@@ -15,13 +15,12 @@ Tests every critical user flow:
 
 Reports PASS/FAIL for each test with details.
 """
-from typing import Optional, Union
-
 from __future__ import annotations
 
 import os
 import sys
 import time
+from typing import Optional
 
 import httpx
 

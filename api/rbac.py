@@ -23,16 +23,23 @@ Exposes endpoints under the ``/api/v1/auth`` prefix:
 from __future__ import annotations
 
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any, Optional
 
-UTC = timezone.utc
+UTC = UTC
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel, ConfigDict, Field
 from sqlalchemy import (
-    Boolean, Column, DateTime, ForeignKey, String, Table,
-    Text, UniqueConstraint, select, func,
+    Boolean,
+    Column,
+    DateTime,
+    ForeignKey,
+    String,
+    Table,
+    UniqueConstraint,
+    func,
+    select,
 )
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -40,9 +47,9 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from api.database import Base, get_db
 from api.dependencies import (
     CurrentUser,
+    PaginationParams,
     get_current_user_from_header,
     pagination_params,
-    PaginationParams,
 )
 
 # ---------------------------------------------------------------------------

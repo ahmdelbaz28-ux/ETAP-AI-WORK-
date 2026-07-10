@@ -35,13 +35,12 @@ The filter is also auto-attached by ``security.security_framework`` when
 the ``AUDIT_LOG_REDACT_SECRETS`` env var is set to ``true`` (default).
 """
 from __future__ import annotations
-from typing import Optional, Union
-
 
 import contextlib
 import logging
 import re
 from re import Pattern
+from typing import Optional
 
 __all__ = ["SecretRedactionFilter", "redact_text", "install_globally"]
 
