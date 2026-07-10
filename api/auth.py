@@ -31,12 +31,12 @@ import os
 import time
 import uuid
 from datetime import datetime, timedelta, timezone
-from typing import Any, Optional, Union
+from typing import Any, Optional
 
 UTC = timezone.utc  # noqa: UP017
 
 try:
-    from typing import Annotated, Optional, Union
+    from typing import Annotated
 except ImportError:
     from typing_extensions import Annotated
 

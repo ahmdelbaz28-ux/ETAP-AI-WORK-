@@ -25,7 +25,7 @@ from __future__ import annotations
 import ast
 import logging
 import re
-from typing import Any, Optional, Union
+from typing import Any, Optional
 
 from guards.ai_failure_modes import AIFailureModeDetector
 from guards.base import BaseGuard, GuardMode, GuardResult, GuardSeverity, GuardViolation
@@ -396,7 +396,7 @@ class TestGuard(BaseGuard):
         # Flag mocking of databases and message queues in integration tests
         infra_mock_patterns = [
             (
-                r'patch\(["\'].*(Union[?:database|db|redis|kafka|rabbitmq, celery])',
+                r'patch\(["\'].*((?:database|db|redis|kafka|rabbitmq|celery))',
                 "database/messaging mock in integration test",
             ),
             (

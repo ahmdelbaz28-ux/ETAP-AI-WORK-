@@ -1,4 +1,5 @@
-import pathlib, re, sys
+import pathlib
+import re
 
 root = pathlib.Path(r"C:/Users/EWS-01/Desktop/ETAP-WORK")
 
@@ -38,8 +39,8 @@ def ensure_typing_import(content):
 def replace_unions_in_file(path):
     text = path.read_text(encoding='utf-8')
     original = text
-    # Replace Optional["X]" with Optional[X]
-    text = re.sub(r'([^\s\[\]\(\)]+)Union[\s*\, \s*None',] r'Optional[\1]', text)
+    # Replace Optional["X"] with Optional[X]
+    text = re.sub(r'Optional\["([^"]+)"\]', r'Optional[\1]', text)
     # Replace simple Union["A, B"] with Union[A, B] (avoid already handled Optional)
     # This simple pattern may also replace inside generics, but acceptable for our case
     text = re.sub(r'([^\s\[\]\(\)]+)Union[\s*\, \s*]([^\s\[\]\(\)]+)', r'Union[\1, \2]', text)

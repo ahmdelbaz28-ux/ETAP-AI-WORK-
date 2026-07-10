@@ -964,7 +964,7 @@ class ETAPAutomation:
         min_val: Optional[float] = None,
         max_val: Optional[float] = None,
         max_length: Optional[int] = None,
-    ) -> Union[int, float] | Union[str, bool:]
+    ) -> Union[int, float, str, bool]:
         """
         Generic input validator.
 
