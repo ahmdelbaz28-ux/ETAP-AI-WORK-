@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { motion } from 'framer-motion'
 import { Cpu, Zap, Cable, Settings2, Activity, Wrench, Search, Filter, Plus, X, Loader2, AlertCircle, Trash2 } from 'lucide-react'
 import { Card, CardSection, Badge, Button, EmptyState } from '../components/ui'
+import ModalBackdrop from '../components/ModalBackdrop'
 import { cn } from '../utils/helpers'
 import { API_BASE_URL } from '../lib/api-config'
 import { useNotify } from '../context/NotificationContext'
@@ -372,17 +373,7 @@ export default function AssetManagement() {
 
       {/* Create Asset Modal */}
       {showCreateModal && (
-        <div  // NOSONAR — S6847: modal backdrop click-to-close is a standard UX pattern; role="dialog" + aria-modal + Escape key satisfy a11y
-          className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4"
-          role="dialog"
-          aria-modal="true"
-          onClick={() => !submitting && setShowCreateModal(false)}
-          onKeyDown={(e) => {
-            if (e.key === 'Escape' && !submitting) {
-              setShowCreateModal(false);
-            }
-          }}
-        >
+        <ModalBackdrop onClose={() => setShowCreateModal(false)} disabled={submitting}>
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
@@ -510,7 +501,7 @@ export default function AssetManagement() {
               </Button>
             </div>
           </motion.div>
-        </div>
+        </ModalBackdrop>
       )}
     </div>
   )
