@@ -241,7 +241,7 @@ class LangfuseMiddleware(BaseHTTPMiddleware):
                         severity="critical",
                     )
             raise
-        else:
+        else:  # noqa: Vulture — else after raise IS reachable (runs when no exception)
             elapsed = time.monotonic() - start
 
             # Capture output + status — best-effort, must not break the response

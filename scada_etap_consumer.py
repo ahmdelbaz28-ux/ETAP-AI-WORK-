@@ -43,7 +43,7 @@ class SCADAETAPConsumer:
         conn.close()
         print(f"Database {self.db_path} initialized")
 
-    def on_message(self, client, userdata, msg):
+    def on_message(self, client, _userdata, msg):
         """
         Handle incoming MQTT messages from ETAP
         """
