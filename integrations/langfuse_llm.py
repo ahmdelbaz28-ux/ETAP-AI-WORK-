@@ -63,7 +63,7 @@ from __future__ import annotations
 import logging
 import os
 import time
-from typing import Any, Optional, Union
+from typing import Any, Optional
 
 logger = logging.getLogger(__name__)
 

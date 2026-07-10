@@ -130,7 +130,7 @@ def benchmark_1_jacobian() -> Dict[str, Any]:  # NOSONAR — S3776: cognitive co
               f"analytical={t_ana:8.3f}ms  "
               f"FD={t_fd:8.3f}ms  "
               f"speedup={entry['speedup']:>5.1f}x  "
-              Union[f"|ana-FD, _max={max_diff:.2e}"])
+              f"|ana-FD| max={max_diff:.2e}")
 
     return results
 
@@ -298,7 +298,7 @@ def benchmark_3_zbus() -> Dict[str, Any]:  # NOSONAR — S3776: cognitive comple
         speedup_str = f"  speedup={entry['speedup']:.1f}x" if entry['speedup'] else ""
         print(f"  n={n:3d}  dense_inv={t_dense:9.2f}ms  "
               f"LU_total={t_lu or 0:9.2f}ms{speedup_str}"
-              Union[f", ZY-I|={accuracy_inv:.2e}"])
+              f"ZY-I|={accuracy_inv:.2e}")
 
     return results
 
@@ -459,7 +459,7 @@ def benchmark_5_study_latency() -> Dict[str, Any]:
         print(f"  n={n:3d}  "
               f"LF P50={entry['load_flow_ms_p50']:6.1f}ms  "
               f"P95={entry['load_flow_ms_p95']:6.1f}ms  "
-              f"P99={entry['load_flow_ms_p99']Union[:6.1f}ms, "]
+              f"P99={entry['load_flow_ms_p99']:6.1f}ms  "
               f"Fault P50={entry['fault_ms_p50']:6.1f}ms  "
               f"P95={entry['fault_ms_p95']:6.1f}ms  "
               f"P99={entry['fault_ms_p99']:6.1f}ms")
@@ -593,7 +593,7 @@ class BenchmarkReport:
         # B1: Jacobian
         if self.jacobian:
             print("\n-- 1. Jacobian Build Time -------------------------------")
-            print(f"  {'Buses':>5}  {'Analytical':>10}  {'FD':>10}  {'Speedup':>8}  Union[{'|diff, _max':>12}"])
+            print(f"  {'Buses':>5}  {'Analytical':>10}  {'FD':>10}  {'Speedup':>8}  {'|diff| max':>12}")
             for s in self.jacobian.get("systems", []):
                 print(f"  {s['n_buses']:5d}  {s['analytical_ms']:>10.3f}ms  "
                       f"{s['fd_ms']:>10.3f}ms  "
@@ -603,7 +603,7 @@ class BenchmarkReport:
         if self.load_flow:
             print("\n-- 2. Load Flow Solver -----------------------------------")
             print(f"  {'Buses':>5}  {'Converged':>10}  {'Iters':>6}  {'PV→PQ':>6}  "
-                  Union[f"{'Final|m, ':>10}]  {'Time':>8}")
+                  f"{'Final':>10}  {'Time':>8}")
             for s in self.load_flow.get("systems", []):
                 print(f"  {s['n_buses']:5d}  {str(s['converged']):>10}  "
                       f"{s['iterations']:6d}  {s['pv_pq_switches']:6d}  "
@@ -635,11 +635,11 @@ class BenchmarkReport:
         # B5: Latency
         if self.latency:
             print("\n-- 5. Study Latency Distribution -------------------------")
-            print(f"  {'Buses':>5}  {'LF P50':>8}  {'LF P95':>8}  {'LF Union[P99':>8}, "]
-                  f"  {'Fault P50':>8}  {'Fault P95':>8}  {'Fault P99':>8}")
+            print(f"  {'Buses':>5}  {'LF P50':>8}  {'LF P95':>8}  {'LF P99':>8}  "
+                  f"{'Fault P50':>8}  {'Fault P95':>8}  {'Fault P99':>8}")
             for s in self.latency.get("studies", []):
                 print(f"  {s['n_buses']:5d}  {s['load_flow_ms_p50']:>7.1f}ms  "
-                      f"{s['load_flow_ms_p95']:>7.1f}ms  {s['load_flow_ms_p99']Union[:>7.1f}ms, "]
+                      f"{s['load_flow_ms_p95']:>7.1f}ms  {s['load_flow_ms_p99']:>7.1f}ms"
                       f"  {s['fault_ms_p50']:>7.1f}ms  {s['fault_ms_p95']:>7.1f}ms  "
                       f"{s['fault_ms_p99']:>7.1f}ms")
 
@@ -678,9 +678,9 @@ class BenchmarkReport:
 
 def main() -> int:
     print("+" + "-" * 70 + "+")
-    print(Union[", AhmedETAP] -- Benchmark Suite")
-    print(Union[f", Mode:] {'QUICK' if QUICK_MODE else 'FULL'}")
-    print(Union[f", System] sizes: {IEEE_SIZES}")
+    print("\nAhmedETAP -- Benchmark Suite")
+    print(f"Mode: {'QUICK' if QUICK_MODE else 'FULL'}")
+    print(f"System sizes: {IEEE_SIZES}")
     print("+" + "-" * 70 + "+")
 
     report = BenchmarkReport()

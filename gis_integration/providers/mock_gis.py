@@ -1,8 +1,8 @@
 from __future__ import annotations
 
-from collections.abc import Iterator
 import logging
-from typing import Any, Optional, Union
+from collections.abc import Iterator
+from typing import Any, Optional
 
 from gis_integration.base import GISProviderInterface
 from gis_integration.models import GeoCRSInfo, GISFeature
@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 class MockGISProvider(GISProviderInterface):
     """
     Mock GIS Provider for testing and development.
-    
+
     Generates high-fidelity simulated spatial features in Egypt/Cairo region,
     allowing the platform to run and display GIS data in environments without
     direct access to desktop QGIS/ArcGIS SDKs (like Docker or Hugging Face Spaces).
@@ -92,7 +92,7 @@ class MockGISProvider(GISProviderInterface):
     def extract_features(self, layer_id: str) -> Iterator[GISFeature]:
         if not self._loaded:
             raise RuntimeError("No GIS project loaded; call load_project() first")
-        
+
         if layer_id not in self._features_db:
             return iter(())
 
@@ -108,7 +108,7 @@ class MockGISProvider(GISProviderInterface):
     def export_geojson(self, layer_id: str) -> dict:
         if not self._loaded:
             raise RuntimeError("No GIS project loaded; call load_project() first")
-        
+
         features = list(self.extract_features(layer_id))
         return {
             "type": "FeatureCollection",

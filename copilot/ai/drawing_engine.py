@@ -25,7 +25,7 @@ import math
 import time
 import uuid
 from dataclasses import dataclass, field
-from typing import Any, Optional, Union
+from typing import Any
 
 from autodesk_connector.shared.models import (
     BreakerDef,
@@ -219,7 +219,7 @@ class IntentParser:
     # Parameter extraction patterns
     # kV and V are separate patterns to avoid unit confusion (e.g. "415V" should not be scaled by 1000)
     PARAM_PATTERNS = {
-        "voltage_kv": r"(\d+(?:\.\d+)?)\s*(Union[?:kv\b, kilovolt\b])",
+        "voltage_kv": r"(\d+(?:\.\d+)?)\s*(?:kv\b|kilovolt\b)",
         "voltage_v": r"(\d+(?:\.\d+)?)\s*(?:(?<![kK])v(?!a)|volt(?!s)|voltage)",
         "current": r"(\d+(?:\.\d+)?)\s*(Union[?:a|amp|ampere, amps])",
         "power": r"(\d+(?:\.\d+)?)\s*(Union[?:kw|kva|mw|mva|watt, w])",

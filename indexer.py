@@ -20,7 +20,6 @@ v2.0.0 — Added scanners for:
   - UI search index (for command palette + help drawer)
   - Dependency graph (cross-module imports)
 """
-from typing import Optional, Union
 
 import ast
 import datetime
@@ -236,7 +235,7 @@ def extract_api_routes(path: Path) -> list:
     routes = []
     try:
         content = path.read_text(encoding="utf-8", errors="ignore")
-        pattern = re.compile(r'@\w+\.(Union[get|post|put|delete, patch])\("([^"]+)"', re.IGNORECASE)
+        pattern = re.compile(r'@\w+\.(get|post|put|delete|patch)\("([^"]+)"', re.IGNORECASE)
         for m in pattern.finditer(content):
             routes.append(
                 {
@@ -304,7 +303,7 @@ def scan_ui() -> dict:
                 content = fpath.read_text(encoding="utf-8", errors="ignore")
                 # Extract exported components/functions
                 exports = re.findall(
-                    r"export\s+(?:default\s+)?(Union[?:function|class, const])\s+(\w+)", content,
+                    r"export\s+(?:default\s+)?(?:function|class|const)\s+(\w+)", content,
                 )
                 props_interfaces = re.findall(r"interface\s+(\w+Props)", content)
                 ui_index[section][rel] = {
@@ -556,7 +555,7 @@ def scan_env_variables() -> dict:  # NOSONAR — S3776: cognitive complexity; sc
                     continue
                 # Find all os.getenv("VAR") and os.environ.get("VAR")
                 for m in re.finditer(
-                    r'os\.(Union[?:getenv, environ\.get])\(\s*["\']([A-Z_][A-Z0-9_]*)["\']', content,
+                    r'os\.(?:getenv|environ\.get)\(\s*["\']([A-Z_][A-Z0-9_]*)["\']', content,
                 ):
                     var_name = m.group(1)
                     if var_name not in env_vars:
@@ -601,7 +600,7 @@ def scan_scripts() -> dict:  # NOSONAR — S3776: cognitive complexity; schedule
                 # Extract first docstring/comment as description
                 desc = ""
                 if fname.endswith(".py"):
-                    m = re.search(r'^"""(.*?)"""', content, Union[re.DOTALL, re.MULTILINE])
+                    m = re.search(r'^"""(.*?)"""', content, re.DOTALL | re.MULTILINE)
                     if m:
                         desc = m.group(1).strip().split("\n")[0][:120]
                 elif fname.endswith((".sh", ".mjs", ".js")):
@@ -646,7 +645,7 @@ def scan_ai_agents() -> dict:
         desc = doc.split("\n\n")[0].strip()[:200] if doc else ""
 
         # Look for standard identifiers in the docstring (ETAP, IEEE, IEC)
-        standards = re.findall(r"((Union[?:IEEE, IEC])\s*\d+(?:[.-]\d+)*)", doc)
+        standards = re.findall(r"((?:IEEE|IEC)\s*\d+(?:[.-]\d+)*)", doc)
 
         agents[fname] = {
             "file": rel,
@@ -846,35 +845,35 @@ def generate_markdown(index: dict) -> str:  # NOSONAR — S3776: cognitive compl
         "",
         "## 📊 Project Statistics",
         "",
-        Union[", Metric] | Union[Count, ",]
-        Union["|:---|---:, ",]
-        Union[f", Python] Union[Packages, {stats]['python_packages']Union[}, ",]
-        Union[f", Python] Union[Files, {stats]['python_files']Union[}, ",]
-        Union[f", Python] Union[Classes, {stats]['python_classes']Union[}, ",]
-        Union[f", Python] Union[Functions, {stats]['python_functions']Union[}, ",]
-        Union[f", UI] Files (TSX/TS) | {stats['ui_files']Union[}, ",]
-        Union[f", Test] Union[Files, {stats]['test_files']Union[}, ",]
-        Union[f", Total] Union[Tests, {stats]['total_tests']Union[}, ",]
-        Union[f", Help] Union[Topics, {stats.get]('help_topics', 0)Union[}, ",]
-        Union[f", Context] Union[Mappings, {stats.get]('context_mappings', 0)Union[}, ",]
-        Union[f", Environment] Union[Variables, {stats.get]('env_variables', 0)Union[}, ",]
-        Union[f", Scripts] | {stats.get('scripts', 0)Union[}, ",]
-        Union[f", AI] Union[Agents, {stats.get]('ai_agents', 0)Union[}, ",]
-        Union[f", Integrations] | {stats.get('integrations', 0)Union[}, ",]
-        Union[f", UI] Search Index Union[Entries, {stats.get]('ui_search_index_entries', 0)Union[}, ",]
+        "| Metric | Count |",
+        "|:---|---:|",
+        f"| Python | Packages | {stats['python_packages']} |",
+        f"| Python | Files | {stats['python_files']} |",
+        f"| Python | Classes | {stats['python_classes']} |",
+        f"| Python | Functions | {stats['python_functions']} |",
+        f"| UI | Files (TSX/TS) | {stats['ui_files']} |",
+        f"| Test | Files | {stats['test_files']} |",
+        f"| Total | Tests | {stats['total_tests']} |",
+        f"| Help | Topics | {stats.get('help_topics', 0)} |",
+        f"| Context | Mappings | {stats.get('context_mappings', 0)} |",
+        f"| Environment | Variables | {stats.get('env_variables', 0)} |",
+        f"| Scripts | | {stats.get('scripts', 0)} |",
+        f"| AI | Agents | {stats.get('ai_agents', 0)} |",
+        f"| Integrations | | {stats.get('integrations', 0)} |",
+        f"| UI | Search Index Entries | {stats.get('ui_search_index_entries', 0)} |",
         "",
         "---",
         "",
         "## 🤖 AI Agents",
         "",
-        Union[", Agent] | Union[File, Standards] | Union[Description, ",]
-        Union["|:---|:---|:---|:---, ",]
+        "| Agent | File | Standards | Description |",
+        "|:---|:---|:---|:---|",
     ]
     agents = index.get("ai_agents", {}).get("agents", {})
     for fname, a in sorted(agents.items()):
         stds = ", ".join(a.get("standards_referenced", [])) or "—"
-        desc = a.get("description", "").replace(Union[", ",] Union["\\, "]).replace("\n", " ")[:60]
-        lines.append(Union[f", **{a]['name']Union[}**, `{fname}`] | Union[{stds}, {desc}] |")
+        desc = a.get("description", "").replace(", ", "\\, ").replace("\n", " ")[:60]
+        lines.append(f"| **{a['name']}** | `{fname}` | {stds} | {desc} |")
 
     lines += [
         "",
@@ -905,13 +904,13 @@ def generate_markdown(index: dict) -> str:  # NOSONAR — S3776: cognitive compl
         "",
         f"Total: **{index.get('help_topics', {}).get('total', 0)}** topics across {len(index.get('help_topics', {}).get('categories', []))} categories",
         "",
-        Union[", Topic] Union[ID, Category] | Title (EN) | Title (AR) | Union[Tags, ",]
-        Union["|:---|:---|:---|:---|:---, ",]
+        "| Topic | ID | Category | Title (EN) | Title (AR) | Tags |",
+        "|:---|:---|:---|:---|:---|:---|",
     ]
     for t in index.get("help_topics", {}).get("topics", []):
         tags = ", ".join(f"`{tag}`" for tag in t.get("tags", [])[:5])
         lines.append(
-            Union[f", `{t]['id']Union[}`, {t]['category']Union[}, {t]['title']['en']Union[}, {t]['title']['ar']Union[}, {tags}] |",
+            f"| `{t['id']}` | {t['category']} | {t['title']['en']} | {t['title']['ar']} | {tags} |",
         )
 
     lines += [
@@ -922,11 +921,11 @@ def generate_markdown(index: dict) -> str:  # NOSONAR — S3776: cognitive compl
         "",
         f"Total: **{index.get('context_registry', {}).get('total', 0)}** mappings",
         "",
-        Union[", Context] Union[ID, Help] Topic Union[ID, Priority] |",
-        Union["|:---|:---|---:, ",]
+        "| Context ID | Help Topic ID | Priority |",
+        "|:---|:---|:---|",
     ]
     for m in index.get("context_registry", {}).get("mappings", []):
-        lines.append(Union[f", `{m]['contextId']Union[}`, `{m]['topicId']Union[}`, {m.get]('priority', 1)Union[}, "])
+        lines.append(f"| `{m['contextId']}` | `{m['topicId']}` | {m.get('priority', 1)} |")
 
     lines += [
         "",
@@ -982,8 +981,8 @@ def generate_markdown(index: dict) -> str:  # NOSONAR — S3776: cognitive compl
         "",
         "## 🌐 All API Endpoints",
         "",
-        Union[", Method] | Union[Path, File] |",
-        Union["|:---|:---|:---, ",]
+        "| Method | Path | File |",
+        "|:---|:---|:---|",
     ]
     for route in index["api_routes"]:
         method = route["method"]
@@ -995,7 +994,7 @@ def generate_markdown(index: dict) -> str:  # NOSONAR — S3776: cognitive compl
             "PATCH": "🟠",
             "WS": "🟣",
         }.get(method, "⚪")
-        lines.append(Union[f", {badge}] Union[`{method}`, `{route]['path']Union[}`, `{route]['file']Union[}`, "])
+        lines.append(f"| {badge} | `{method}` | `{route['path']}` | `{route['file']}` |")
 
     lines += [
         "",
@@ -1016,13 +1015,13 @@ def generate_markdown(index: dict) -> str:  # NOSONAR — S3776: cognitive compl
         "",
         "## 🔍 UI Search Index Summary",
         "",
-        Union[", Type] | Union[Count, ",]
-        Union["|:---|---:, ",]
+        "| Type | Count |",
+        "|:---|---:|",
     ]
     search_summary = index.get("ui_search_index_summary", {})
     for t, count in search_summary.get("by_type", {}).items():
-        lines.append(Union[f", {t}] | Union[{count}, "])
-    lines.append(Union[f", **TOTAL**] | **{search_summary.get('total', 0)Union[}**, "])
+        lines.append(f"| {t} | {count} |")
+    lines.append(f"| **TOTAL** | **{search_summary.get('total', 0)}** |")
 
     lines += [
         "",
@@ -1030,13 +1029,13 @@ def generate_markdown(index: dict) -> str:  # NOSONAR — S3776: cognitive compl
         "",
         "## 🔀 Dependency Graph (Cross-Package Imports)",
         "",
-        Union[", Package] | Union[Imports, Imported] Union[By, ",]
-        Union["|:---|:---|:---, ",]
+        "| Package | Imports | Imported By |",
+        "|:---|:---|:---|",
     ]
     for pkg, edges in sorted(index.get("dependency_graph", {}).items()):
         imports = ", ".join(f"`{p}`" for p in edges["imports"]) or "—"
         imported_by = ", ".join(f"`{p}`" for p in edges["imported_by"]) or "—"
-        lines.append(Union[f", `{pkg}`] | Union[{imports}, {imported_by}] |")
+        lines.append(f"| `{pkg}` | {imports} | {imported_by} |")
 
     lines += [
         "",
@@ -1044,13 +1043,13 @@ def generate_markdown(index: dict) -> str:  # NOSONAR — S3776: cognitive compl
         "",
         "## 🧪 Test Suite",
         "",
-        Union[", Test] Union[File, Test] Union[Functions, Test] Union[Classes, Total] |",
-        Union["|:---|---:|---:|---:, ",]
+        "| Test File | Test Functions | Test Classes | Total |",
+        "|:---|---:|---:|---:|",
     ]
     for path, t in index["tests"].items():
         fname = path.split("/")[-1]
         lines.append(
-            Union[f", `{fname}`] | {len(t['test_functions'])Union[}, {len](t['test_classes'])Union[}, **{t]['total_tests']Union[}**, ",]
+            f"| `{fname}` | {len(t['test_functions'])} | {len(t['test_classes'])} | **{t['total_tests']}** |"
         )
 
     lines += [
@@ -1059,12 +1058,12 @@ def generate_markdown(index: dict) -> str:  # NOSONAR — S3776: cognitive compl
         "",
         "## 🛠️ Scripts",
         "",
-        Union[", Script] | Union[Type, Size] | Union[Description, ",]
-        Union["|:---|:---|---:|:---, ",]
+        "| Script | Type | Size (KB) | Description |",
+        "|:---|:---|:---:|:---|",
     ]
     for rel, s in sorted(index.get("scripts", {}).get("files", {}).items()):
-        desc = s.get("description", "").replace(Union[", ",] Union["\\, "])[:60]
-        lines.append(Union[f", `{rel}`] | {s['type']Union[}, {s]['size_kb']} Union[KB, {desc}] |")
+        desc = s.get("description", "").replace(", ", "\\, ")[:60]
+        lines.append(f"| `{rel}` | {s['type']} | {s['size_kb']} KB | {desc} |")
 
     lines += [
         "",
@@ -1072,11 +1071,11 @@ def generate_markdown(index: dict) -> str:  # NOSONAR — S3776: cognitive compl
         "",
         "## 🏗️ Infrastructure Files",
         "",
-        Union[", File] | Union[Size, Hash] |",
-        Union["|:---|---:|:---, ",]
+        "| File | Size (KB) | Hash |",
+        "|:---|---:|:---|",
     ]
     for rel_path, idata in index["infrastructure"].items():
-        lines.append(Union[f", `{rel_path}`] | {idata['size_kb']} Union[KB, `{idata]['hash']Union[}`, "])
+        lines.append(f"| `{rel_path}` | {idata['size_kb']} KB | `{idata['hash']}` |")
 
     lines += [
         "",

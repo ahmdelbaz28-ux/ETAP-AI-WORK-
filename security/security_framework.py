@@ -13,10 +13,8 @@ Features:
 - Secrets management
 """
 from __future__ import annotations
-from typing import Optional, Union
 
 # bcrypt is a hard dependency — add to requirements.txt: bcrypt>=4.0.0
-
 import ast
 import json
 import logging
@@ -26,6 +24,7 @@ import threading
 import time
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta, timezone
+from typing import Optional
 
 UTC = timezone.utc  # noqa: UP017
 from enum import Enum

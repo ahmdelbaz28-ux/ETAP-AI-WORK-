@@ -56,7 +56,7 @@ import os
 import time
 import uuid
 from pathlib import Path
-from typing import Any, Optional, Union
+from typing import Any, Optional
 
 # Reuse the dataclasses from the desktop executor — same contract
 from agents.cua_executor import CUAAction, CUAExecutionResult, CUAStepResult

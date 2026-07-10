@@ -1,10 +1,11 @@
 import os
 import sys
+
 import pytest
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 
-from gis_integration.providers import get_gis_provider, MockGISProvider
+from gis_integration.providers import MockGISProvider, get_gis_provider
 
 
 class TestGISMockScenario:
@@ -25,14 +26,14 @@ class TestGISMockScenario:
     def test_mock_provider_lifecycle(self):
         """Test the lifecycle methods load_project, list_layers, and get_crs."""
         provider = MockGISProvider()
-        
+
         # Must raise error if project not loaded
         with pytest.raises(RuntimeError, match="No GIS project loaded"):
             provider.list_layers()
 
         # Load project
         provider.load_project("c:/cairo_grid.qgs")
-        
+
         # Verify layers
         layers = provider.list_layers()
         assert "substations" in layers

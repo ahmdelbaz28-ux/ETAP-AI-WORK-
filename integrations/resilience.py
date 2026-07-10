@@ -47,7 +47,7 @@ import uuid
 from collections.abc import Callable
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any, Optional, Union
+from typing import Any, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -292,7 +292,7 @@ class HybridVisionRouter:
         """Analyze a screenshot, trying each backend in the chain.
 
         Returns the analysis dict, with a "source" field indicating which
-        backend was used (Union["gemini", "openai"] | Union["anthropic", "opencv"]).
+        backend was used ("gemini" | "openai" | "anthropic" | "opencv").
         """
         if not self.chain:
             return {

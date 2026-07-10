@@ -20,7 +20,7 @@ from __future__ import annotations
 
 import json
 import logging
-from typing import Any, Optional, Union
+from typing import Any, Optional
 
 from acp.transport.base import Transport
 
