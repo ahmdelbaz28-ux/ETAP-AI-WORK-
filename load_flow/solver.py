@@ -14,7 +14,7 @@ solve_load_flow_sparse(buses, branches, options)
 from __future__ import annotations
 
 import logging
-from typing import Any, Dict, Optional, Union
+from typing import Any, Dict, Union
 
 import numpy as np
 

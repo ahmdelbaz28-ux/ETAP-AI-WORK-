@@ -30,7 +30,7 @@ import logging
 import threading
 import time
 from collections import OrderedDict
-from typing import Any, Optional, Union
+from typing import Any, Optional
 
 logger = logging.getLogger(__name__)
 

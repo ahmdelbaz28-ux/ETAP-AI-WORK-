@@ -3,6 +3,7 @@ import { motion } from 'framer-motion'
 import { FolderOpen, Plus, FlaskConical, Calendar, X, Loader2, AlertCircle, Archive, Trash2 } from 'lucide-react'
 import { useNotify } from '../context/NotificationContext'
 import { Card, CardSection, Badge, Button, EmptyState } from '../components/ui'
+import ModalBackdrop from '../components/ModalBackdrop'
 import { ContextHelpButton } from '../components/help/ContextHelpButton'
 import {
   listProjects,
@@ -233,15 +234,7 @@ export default function Projects() {
 
       {/* Create Project Modal */}
       {showCreateModal && (
-        <div
-          className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4"
-          onClick={() => !submitting && setShowCreateModal(false)}
-          onKeyDown={(e) => {
-            if (e.key === 'Escape' && !submitting) {
-              setShowCreateModal(false);
-            }
-          }}
-        >
+        <ModalBackdrop onClose={() => setShowCreateModal(false)} disabled={submitting}>
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
@@ -274,6 +267,7 @@ export default function Projects() {
                 <input
                   id="project-name"
                   type="text"
+                  aria-label="Project Name"
                   value={form.name}
                   onChange={(e) => setForm(f => ({ ...f, name: e.target.value }))}
                   placeholder="e.g., Industrial Plant - 13.8kV"
@@ -291,6 +285,7 @@ export default function Projects() {
                 </label>
                 <textarea
                   id="project-description"
+                  aria-label="Description"
                   value={form.description}
                   onChange={(e) => setForm(f => ({ ...f, description: e.target.value }))}
                   placeholder="e.g., Main industrial facility power system with 5 motors and 2 transformers"
@@ -322,7 +317,7 @@ export default function Projects() {
               </Button>
             </div>
           </motion.div>
-        </div>
+        </ModalBackdrop>
       )}
     </div>
   )

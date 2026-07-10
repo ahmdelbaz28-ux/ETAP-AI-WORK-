@@ -9,7 +9,7 @@ the Router layer validates before dispatching to the Runtime layer.
 
 from __future__ import annotations
 
-from typing import Any, Optional, Union
+from typing import Any, Optional
 
 from pydantic import BaseModel, ConfigDict, Field
 

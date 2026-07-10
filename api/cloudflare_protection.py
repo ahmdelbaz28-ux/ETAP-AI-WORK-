@@ -31,15 +31,13 @@ True-Client-IP           — Real client IP (alternative to CF-Connecting-IP)
 """
 from __future__ import annotations
 
-import hashlib
 import hmac
-import ipaddress
 import logging
 import os
 import time
-from typing import Any, Optional
+from typing import Any
 
-from fastapi import HTTPException, Request, status
+from fastapi import Request, status
 from fastapi.responses import JSONResponse
 
 logger = logging.getLogger(__name__)

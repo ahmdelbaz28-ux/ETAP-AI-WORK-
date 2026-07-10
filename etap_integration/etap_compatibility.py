@@ -5,14 +5,13 @@ Verifies that the runtime environment meets ETAP software requirements,
 including ETAP version, Windows version, .NET Framework, and availability
 of required COM modules and Python dependencies.
 """
-from typing import Optional, Union
-
 from __future__ import annotations
 
 import logging
 import platform
 import sys
 from dataclasses import dataclass, field
+from typing import Optional
 
 logger = logging.getLogger(__name__)
 
