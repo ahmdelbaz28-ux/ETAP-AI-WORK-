@@ -31,7 +31,7 @@ import argparse
 import importlib
 import os
 import sys
-from typing import Any, Optional, Union
+from typing import Any, Optional
 
 import anyio
 

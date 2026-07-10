@@ -15,7 +15,7 @@ import logging
 import os
 import time
 from contextlib import asynccontextmanager
-from typing import Optional, TYPE_CHECKING, Union
+from typing import TYPE_CHECKING, Optional
 
 if TYPE_CHECKING:
     # Forward-only import for type hints; runtime import happens inside
@@ -282,7 +282,10 @@ app.middleware("http")(akamai_protection_middleware)
 # IMPORTANT: Added LAST so it runs FIRST (outermost middleware). This ensures
 # origin verification happens before any other middleware — direct origin
 # access is blocked at the earliest possible point.
-from api.cloudflare_protection import cloudflare_protection_middleware, is_cloudflare_enabled  # noqa: E402
+from api.cloudflare_protection import (  # noqa: E402
+    cloudflare_protection_middleware,
+    is_cloudflare_enabled,
+)
 
 if is_cloudflare_enabled():
     logger.info("Cloudflare origin protection ENABLED — direct origin access will be rejected")

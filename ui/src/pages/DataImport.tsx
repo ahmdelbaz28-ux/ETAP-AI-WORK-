@@ -239,7 +239,7 @@ export default function DataImport() {
                   <p className="text-xs font-medium text-amber-400 mb-1">Warnings ({result.warnings.length})</p>
                   <ul className="text-xs text-[var(--text-secondary)] space-y-0.5 max-h-32 overflow-y-auto">
 {result.warnings.slice(0, 10).map((w, i) => {
-                       const warningKey = `warning-${i}-${w.substring(0, 20).replace(/\s/g, '_')}`
+                       const warningKey = `warning-${w.substring(0, 50).replace(/\s/g, '_')}`
                        return (
                          <li key={warningKey} className="font-mono">{w}</li>
                        )
@@ -256,7 +256,7 @@ export default function DataImport() {
                   <p className="text-xs font-medium text-red-400 mb-1">Errors</p>
                   <ul className="text-xs text-[var(--text-secondary)] space-y-0.5">
 {result.errors.map((e, i) => {
-                       const errorKey = `error-${i}-${e.substring(0, 20).replace(/\s/g, '_')}`
+                       const errorKey = `error-${e.substring(0, 50).replace(/\s/g, '_')}`
                        return (
                          <li key={errorKey} className="font-mono">{e}</li>
                        )
@@ -282,7 +282,7 @@ export default function DataImport() {
                       </thead>
                       <tbody>
 {result.buses.slice(0, 100).map((b, i) => {
-                           const busKey = `bus-${b.id}-${i}`
+                           const busKey = `bus-${b.id}`
                            return (
                              <tr key={busKey} className="border-t border-[var(--border-primary)]">
                                <td className="p-2 font-mono text-[var(--text-primary)]">{b.id}</td>

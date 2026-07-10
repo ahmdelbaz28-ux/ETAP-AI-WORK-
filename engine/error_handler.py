@@ -22,7 +22,7 @@ from datetime import datetime, timedelta, timezone
 
 UTC = timezone.utc  # noqa: UP017
 from email.message import EmailMessage
-from typing import Any, Optional, Union
+from typing import Any, Optional
 from urllib.error import URLError
 from urllib.request import Request, urlopen
 
@@ -524,12 +524,11 @@ class ErrorHandler:
             level = getattr(logging, error.severity.value, logging.ERROR)
             self._audit_logger.log(
                 level,
-                "[%s] [%s] Union[%s, error_id=%s]" % (
-                    error.severity.value,
-                    error.component,
-                    error.message,
-                    error.error_id,
-                ),
+                "[%s] [%s] %s (error_id=%s)",
+                error.severity.value,
+                error.component,
+                error.message,
+                error.error_id,
             )
         except Exception:
             logging.getLogger(__name__).debug(
