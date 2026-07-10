@@ -252,18 +252,25 @@ async def auth_and_rate_limit(request: Request, call_next):
     # backward compatibility with older Space secrets. If NEITHER is set,
     # verify_api_key() returns early and auth is DISABLED — which is
     # acceptable only in development, NOT in production.
+    #
+    # EXCEPTION: The email dashboard HTML page (/api/v1/email-dashboard/)
+    # is public — it's just an HTML shell with no sensitive data.
+    # Auth is enforced on the JavaScript API calls, not the HTML page.
+    _is_dashboard_html = _path == "/api/v1/email-dashboard" or _path == "/api/v1/email-dashboard/"
+
     _eng_key = os.environ.get("ENGINEERING_SERVICE_API_KEY", "")
     _hf_key = os.environ.get("HF_API_KEY", "")
     if _eng_key and not _hf_key:
         os.environ["HF_API_KEY"] = _eng_key
-    try:
-        verify_api_key(request)
-    except HTTPException as exc:
-        return JSONResponse(
-            status_code=exc.status_code,
-            content={"detail": exc.detail},
-            headers=getattr(exc, "headers", None),
-        )
+    if not _is_dashboard_html:
+        try:
+            verify_api_key(request)
+        except HTTPException as exc:
+            return JSONResponse(
+                status_code=exc.status_code,
+                content={"detail": exc.detail},
+                headers=getattr(exc, "headers", None),
+            )
     # Rate limit (skip health/docs)
     if _path not in PUBLIC_PATHS:
         client_id = request.client.host if request.client else "unknown"
