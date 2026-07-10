@@ -1,3 +1,4 @@
+from __future__ import annotations
 """
 Langfuse Sessions, User Feedback, and Alerting for AhmedETAP
 =============================================================
@@ -53,7 +54,6 @@ Usage::
     # 5. Engineer shares the trace with their senior
     url = get_trace_share_url("trace_xxx")
 """
-from __future__ import annotations
 
 import json
 import logging
