@@ -51,17 +51,41 @@ _ADMIN_ROLES = {
 async def _require_admin(request: Request) -> dict:
     """Require admin role. Returns user info dict."""
     try:
-        from api.dependencies import get_current_user_from_header
-        user = await get_current_user_from_header(
-            authorization=request.headers.get("authorization", "")
-        )
-        user_role = getattr(user, "role", "") or ""
+        # Try to use the JWT auth chain from api.dependencies
+        # We need to call it within a DB session context
+        from api.database import async_session_factory
+        from api.dependencies import get_current_user_from_header, JWT_SECRET_KEY, JWT_ALGORITHM
+        import jwt as pyjwt
+
+        auth_header = request.headers.get("authorization", "")
+        if not auth_header.startswith("Bearer "):
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Missing or invalid Authorization header. Expected 'Bearer <token>'",
+            )
+        token = auth_header[7:]
+
+        # Decode JWT to get user info
+        try:
+            payload = pyjwt.decode(
+                token,
+                JWT_SECRET_KEY,
+                algorithms=[JWT_ALGORITHM],
+            )
+            user_id = payload.get("sub") or payload.get("user_id")
+            user_role = payload.get("role", "")
+        except Exception as jwt_err:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail=f"Invalid JWT token: {jwt_err}",
+            ) from jwt_err
+
         if user_role not in _ADMIN_ROLES:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail=f"Admin role required (your role: {user_role})",
             )
-        return {"user_id": user.user_id, "role": user_role}
+        return {"user_id": user_id, "role": user_role}
     except HTTPException:
         raise
     except Exception as exc:
