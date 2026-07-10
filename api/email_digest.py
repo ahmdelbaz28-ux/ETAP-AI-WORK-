@@ -43,7 +43,6 @@ from services.email_send_log import get_recent_sends
 logger = logging.getLogger("etap.api.email_digest")
 
 router = APIRouter(prefix="/api/v1/email-digest", tags=["email", "digest"])
-_DIGEST_TEMPLATE = "digest.html"
 
 
 # ---------------------------------------------------------------------------
@@ -183,7 +182,7 @@ async def generate_digest(
         from integrations.resend_email import EmailParams, resend_client
         from services.email_service import _load_template, _render
 
-        template = _load_template(_DIGEST_TEMPLATE)
+        template = _load_template("digest.html")
         html = _render(template, **ctx) if template else (
             f"<h2>{ctx['period_label']} Digest</h2>"
             f"<p>{ctx['total_count']} emails sent to you in the last period.</p>"
@@ -218,38 +217,55 @@ async def preview_digest(email: str, period: str = "daily") -> str:
     """Render the digest HTML without sending it (admin/debug)."""
     ctx = await _build_digest_context(email, period)
     from services.email_service import _load_template, _render
-    template = _load_template(_DIGEST_TEMPLATE)
+    template = _load_template("digest.html")
     if not template:
         return "<h2>Digest template not found</h2>"
     return _render(template, **ctx)
 
 
-@router.post("/schedule/run", summary="Process scheduled digests (cron call)")
-async def run_scheduled_digests(request: Request) -> JSONResponse:
-    """Cron entry point — sends digests to all users with recent activity.
-
-    In a production setup, this endpoint is called by:
-    * HF Space's internal scheduler (every hour, checks if it's 08:00 UTC)
-    * Vercel Cron (configured in vercel.json)
-    * GitHub Actions scheduled workflow
-    * External cron (curl this endpoint at the scheduled time)
-
-    The endpoint requires ENGINEERING_SERVICE_API_KEY auth (handled by middleware).
-    """
-    trace_id = getattr(request.state, "trace_id", "unknown")
-    now = datetime.now(UTC)
-
-    # Determine which digest type to run
-    cfg = _config()
-    daily_hour, daily_minute = cfg["daily_schedule"].split(":")
-    daily_hour, daily_minute = int(daily_hour), int(daily_minute)
-
-    is_daily_run = now.hour == daily_hour and now.minute < 5
-    is_weekly_run = (
+def _is_scheduled_time(now: datetime, daily_hour: int, daily_minute: int) -> tuple[bool, bool]:
+    """Check if now is a daily or weekly digest trigger time."""
+    is_daily = now.hour == daily_hour and now.minute < 5
+    is_weekly = (
         now.weekday() == 0  # Monday
         and now.hour == daily_hour
         and now.minute < 5
     )
+    return is_daily, is_weekly
+
+
+async def _send_digest_to_recipient(email: str, period: str) -> bool:
+    """Send a digest to one recipient. Returns True on success."""
+    try:
+        ctx = await _build_digest_context(email, period)
+        if ctx["total_count"] == 0:
+            return True  # skip — no activity
+        from integrations.resend_email import EmailParams, resend_client
+        from services.email_service import _load_template, _render
+        template = _load_template(_DIGEST_TEMPLATE)
+        html = _render(template, **ctx) if template else ""
+        subject = f"{ctx['brand_name']} — {ctx['period_label']} Digest"
+        result = await resend_client.send(EmailParams(
+            to=email, subject=subject, html=html,
+            tags=[{"name": "flow", "value": f"digest_{period}"}],
+        ))
+        return result.success
+    except Exception as exc:
+        logger.warning("digest_send_failed email=%s err=%s", email, exc)
+        return False
+
+
+@router.post("/schedule/run", summary="Process scheduled digests (cron call)")
+async def run_scheduled_digests(request: Request) -> JSONResponse:
+    """Cron entry point — sends digests to all users with recent activity."""
+    trace_id = getattr(request.state, "trace_id", "unknown")
+    now = datetime.now(UTC)
+
+    cfg = _config()
+    daily_hour, daily_minute = cfg["daily_schedule"].split(":")
+    daily_hour, daily_minute = int(daily_hour), int(daily_minute)
+
+    is_daily_run, is_weekly_run = _is_scheduled_time(now, daily_hour, daily_minute)
 
     if not (is_daily_run or is_weekly_run):
         return JSONResponse(content={
@@ -260,41 +276,19 @@ async def run_scheduled_digests(request: Request) -> JSONResponse:
             "trace_id": trace_id,
         })
 
-    # Find unique recipients from the last 24h (or 7d for weekly)
+    # Find unique recipients
     window_hours = 24 * 7 if is_weekly_run else 24
     period = "weekly" if is_weekly_run else "daily"
-
     recent = get_recent_sends(limit=2000)
     cutoff = now - timedelta(hours=window_hours)
-    recipients: set[str] = set()
-    for r in recent:
-        ts = _parse_iso(r.get("timestamp", ""))
-        if ts >= cutoff and r.get("recipient"):
-            recipients.add(r["recipient"])
+    recipients = {
+        r["recipient"] for r in recent
+        if r.get("recipient") and _parse_iso(r.get("timestamp", "")) >= cutoff
+    }
 
-    sent = 0
-    failed = 0
-    for email in recipients:
-        try:
-            ctx = await _build_digest_context(email, period)
-            if ctx["total_count"] == 0:
-                continue
-            from integrations.resend_email import EmailParams, resend_client
-            from services.email_service import _load_template, _render
-            template = _load_template(_DIGEST_TEMPLATE)
-            html = _render(template, **ctx) if template else ""
-            subject = f"{ctx['brand_name']} — {ctx['period_label']} Digest"
-            result = await resend_client.send(EmailParams(
-                to=email, subject=subject, html=html,
-                tags=[{"name": "flow", "value": f"digest_{period}"}],
-            ))
-            if result.success:
-                sent += 1
-            else:
-                failed += 1
-        except Exception as exc:
-            logger.warning("digest_send_failed email=%s err=%s", email, exc)
-            failed += 1
+    # Send digests
+    sent = sum(1 for email in recipients if await _send_digest_to_recipient(email, period))
+    failed = len(recipients) - sent
 
     return JSONResponse(content={
         "success": True,
