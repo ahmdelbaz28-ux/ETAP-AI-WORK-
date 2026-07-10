@@ -51,9 +51,11 @@ _ADMIN_ROLES = {
 async def _require_admin(request: Request) -> dict:
     """Require admin role. Returns user info dict."""
     try:
-        # Decode JWT directly — no DB session needed for role check
-        from api.dependencies import JWT_SECRET_KEY, JWT_ALGORITHM
+        # Try to use the JWT auth chain from api.dependencies
+        # We need to call it within a DB session context
         import jwt as pyjwt
+
+        from api.dependencies import JWT_ALGORITHM, JWT_SECRET_KEY
 
         auth_header = request.headers.get("authorization", "")
         if not auth_header.startswith("Bearer "):

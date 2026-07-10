@@ -6,10 +6,10 @@ Triggered by Vercel Cron daily at 08:00 UTC to call the HF Space digest endpoint
 Uses Vercel Python runtime with BaseHTTPRequestHandler interface.
 """
 
-import os
 import json
-import urllib.request
+import os
 import urllib.error
+import urllib.request
 from http.server import BaseHTTPRequestHandler
 
 

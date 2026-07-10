@@ -515,7 +515,7 @@ class _TimeoutContext:
     def __enter__(self) -> _TimeoutContext:
         return self
 
-    def __exit__(self, exc_type: Any, exc_val: Any, exc_tb: Any) -> Optional[bool]:
+    def __exit__(self, exc_type: Any, _exc_val: Any, _exc_tb: Any) -> Optional[bool]:
         if exc_type is not None:
             return False
         if time.monotonic() > self._deadline:
@@ -540,7 +540,7 @@ class _RetryContext:
     def __enter__(self) -> _RetryContext:
         return self
 
-    def __exit__(self, exc_type: Any, exc_val: Any, exc_tb: Any) -> Optional[bool]:
+    def __exit__(self, exc_type: Any, exc_val: Any, _exc_tb: Any) -> Optional[bool]:
         if exc_type is None:
             return None
         self._attempt += 1

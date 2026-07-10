@@ -63,7 +63,7 @@ def on_test_stop(environment, **kwargs):
 
 
 @events.request.add_listener
-def on_request(request_type, name, response_time, response_length, exception, **kwargs):
+def on_request(_request_type, name, response_time, _response_length, exception, **kwargs):
     """Track study-specific metrics on each request."""
     global _study_success_count, _study_failure_count
     if exception is None:

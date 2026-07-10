@@ -3,15 +3,10 @@ from __future__ import annotations
 import hashlib
 import json
 import logging
+import re
 from datetime import datetime
 from typing import Any, Optional
 from urllib.parse import urlparse
-
-try:
-    from bs4 import BeautifulSoup  # type: ignore
-except ImportError:  # pragma: no cover
-    BeautifulSoup = None  # type: ignore
-import re
 
 try:
     from sentence_transformers import SentenceTransformer  # type: ignore

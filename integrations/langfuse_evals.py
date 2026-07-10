@@ -314,7 +314,7 @@ def eval_helpfulness(output: str, expected_output: Optional[str] = None) -> dict
 
 def run_safety_eval(
     dataset_name: str,
-    prompt_name: str,  # NOSONAR — S1172: unused param kept for API compatibility
+    _prompt_name: str,  # NOSONAR — S1172: unused param kept for API compatibility
     label: str = "production",  # NOSONAR — S1172: unused param kept for API compatibility
     evaluators: Optional[list] = None,
 ) -> dict[str, Any]:
