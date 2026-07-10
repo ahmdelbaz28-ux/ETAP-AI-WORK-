@@ -152,11 +152,14 @@ async def send_otp_endpoint(
     if not result.success:
         # Rollback the OTP — don't leave dangling codes
         await invalidate_otp(body.email, body.purpose)
-        # Mask email in logs (SonarCloud: don't log user-controlled data verbatim)
-        _masked_email = body.email[:2] + "***" + body.email.split("@")[-1] if "@" in body.email else "***"
+        # SonarCloud python:S5145: don't log user-controlled data verbatim.
+        # Hash the email and purpose to avoid log injection attacks.
+        import hashlib as _hashlib
+        _email_hash = _hashlib.sha256(body.email.encode()).hexdigest()[:16]
+        _purpose_hash = _hashlib.sha256(body.purpose.encode()).hexdigest()[:16]
         logger.error(
-            "otp_send_failed email=%s purpose=%s err=%s trace=%s",
-            _masked_email, body.purpose, result.error, trace_id,
+            "otp_send_failed email_hash=%s purpose_hash=%s err=%s trace=%s",
+            _email_hash, _purpose_hash, result.error, trace_id,
         )
         return JSONResponse(
             status_code=status.HTTP_502_BAD_GATEWAY,
