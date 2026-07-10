@@ -85,3 +85,16 @@ httpx>=0.27.0
 # cryptography — AES-256 encryption for user-supplied API keys
 # Used by services/api_key_store.py to encrypt keys in SQLite
 cryptography>=42.0.0
+
+# ─── Email Integration (Resend) ────────────────────────────────────────────
+# Added 2026-07-10 for Resend email integration v2
+# Uses stdlib HTTP client — no resend SDK needed
+
+# ─── LLM Observability (Langfuse) ──────────────────────────────────────────
+langfuse>=2.51.0
+
+# ─── Graph Database (Neo4j) ────────────────────────────────────────────────
+neo4j>=5.25.0,<7
+
+# ─── Supabase (managed Postgres + Storage) ────────────────────────────────
+supabase>=2.31.0
