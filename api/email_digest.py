@@ -43,6 +43,7 @@ from services.email_send_log import get_recent_sends
 logger = logging.getLogger("etap.api.email_digest")
 
 router = APIRouter(prefix="/api/v1/email-digest", tags=["email", "digest"])
+_DIGEST_TEMPLATE = "digest.html"
 
 
 # ---------------------------------------------------------------------------
@@ -182,7 +183,7 @@ async def generate_digest(
         from integrations.resend_email import EmailParams, resend_client
         from services.email_service import _load_template, _render
 
-        template = _load_template("digest.html")
+        template = _load_template(_DIGEST_TEMPLATE)
         html = _render(template, **ctx) if template else (
             f"<h2>{ctx['period_label']} Digest</h2>"
             f"<p>{ctx['total_count']} emails sent to you in the last period.</p>"
@@ -217,7 +218,7 @@ async def preview_digest(email: str, period: str = "daily") -> str:
     """Render the digest HTML without sending it (admin/debug)."""
     ctx = await _build_digest_context(email, period)
     from services.email_service import _load_template, _render
-    template = _load_template("digest.html")
+    template = _load_template(_DIGEST_TEMPLATE)
     if not template:
         return "<h2>Digest template not found</h2>"
     return _render(template, **ctx)
@@ -280,7 +281,7 @@ async def run_scheduled_digests(request: Request) -> JSONResponse:
                 continue
             from integrations.resend_email import EmailParams, resend_client
             from services.email_service import _load_template, _render
-            template = _load_template("digest.html")
+            template = _load_template(_DIGEST_TEMPLATE)
             html = _render(template, **ctx) if template else ""
             subject = f"{ctx['brand_name']} — {ctx['period_label']} Digest"
             result = await resend_client.send(EmailParams(
