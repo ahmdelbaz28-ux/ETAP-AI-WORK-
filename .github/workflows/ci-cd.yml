@@ -469,7 +469,7 @@ jobs:
 
       - name: Extract Docker metadata
         id: meta
-        uses: docker/metadata-action@v5  # NOSONAR — S7637: GitHub Action pinning; SHA pinning in CI sprint
+        uses: docker/metadata-action@v6  # NOSONAR — S7637: GitHub Action pinning; SHA pinning in CI sprint
         with:
           images: ${{ env.REGISTRY }}/${{ steps.sanitize.outputs.image_name }}
           tags: |
