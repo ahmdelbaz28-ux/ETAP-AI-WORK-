@@ -146,8 +146,8 @@ async def _http_post_json(
                 body = {"_raw": resp.text}
             return resp.status_code, body
     # Fallback: use urllib in a thread (asyncio.to_thread)
-    import urllib.request
     import urllib.error
+    import urllib.request
 
     def _sync_post() -> tuple[int, dict[str, Any]]:
         data = json.dumps(payload).encode("utf-8")
@@ -362,6 +362,7 @@ class ResendEmailClient:
                     # Auto-log to email send log (best-effort, never fails the send)
                     try:
                         import asyncio
+
                         from services.email_send_log import log_email_send
                         flow = "unknown"
                         if params.tags:
@@ -405,6 +406,7 @@ class ResendEmailClient:
                     # Auto-log failure
                     try:
                         import asyncio
+
                         from services.email_send_log import log_email_send
                         flow = "unknown"
                         if params.tags:

@@ -26,7 +26,7 @@ from __future__ import annotations
 
 import logging
 import os
-from typing import Any, Optional
+from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 from fastapi.responses import HTMLResponse, JSONResponse
@@ -36,11 +36,11 @@ logger = logging.getLogger("etap.api.email_dashboard")
 router = APIRouter(prefix="/api/v1/email-dashboard", tags=["email", "dashboard"])
 
 # Admin roles allowed to view dashboard
-_ADMIN_ROLES = set(
+_ADMIN_ROLES = {
     r.strip() for r in os.getenv(
         "EMAIL_DASHBOARD_ADMIN_ROLES", "admin,super_admin"
     ).split(",") if r.strip()
-)
+}
 
 
 # ---------------------------------------------------------------------------
@@ -71,7 +71,7 @@ async def _require_admin(request: Request) -> dict:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail=f"Authentication required: {exc}",
-        )
+        ) from exc
 
 
 # ---------------------------------------------------------------------------

@@ -31,19 +31,14 @@ from __future__ import annotations
 
 import logging
 import os
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from typing import Any, Optional
 
-try:
-    from typing import Annotated
-except ImportError:
-    from typing_extensions import Annotated
-
-from fastapi import APIRouter, Depends, HTTPException, Request, status
+from fastapi import APIRouter, Request, status
 from fastapi.responses import HTMLResponse, JSONResponse
 from pydantic import BaseModel, EmailStr, Field
 
-from services.email_send_log import get_send_stats, get_recent_sends
+from services.email_send_log import get_recent_sends
 
 logger = logging.getLogger("etap.api.email_digest")
 
@@ -86,7 +81,7 @@ async def _build_digest_context(
     user_name: Optional[str] = None,
 ) -> dict[str, Any]:
     """Build the template context for a user's digest."""
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     if period == "weekly":
         window_hours = 24 * 7
         period_label = "Weekly"
@@ -140,7 +135,7 @@ def _parse_iso(s: str) -> datetime:
     try:
         return datetime.fromisoformat(s)
     except (ValueError, TypeError):
-        return datetime.now(timezone.utc)
+        return datetime.now(UTC)
 
 
 # ---------------------------------------------------------------------------
@@ -184,8 +179,8 @@ async def generate_digest(
 
     # Render + send
     try:
-        from services.email_service import _load_template, _render
         from integrations.resend_email import EmailParams, resend_client
+        from services.email_service import _load_template, _render
 
         template = _load_template("digest.html")
         html = _render(template, **ctx) if template else (
@@ -241,7 +236,7 @@ async def run_scheduled_digests(request: Request) -> JSONResponse:
     The endpoint requires ENGINEERING_SERVICE_API_KEY auth (handled by middleware).
     """
     trace_id = getattr(request.state, "trace_id", "unknown")
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
 
     # Determine which digest type to run
     cfg = _config()
@@ -283,8 +278,8 @@ async def run_scheduled_digests(request: Request) -> JSONResponse:
             ctx = await _build_digest_context(email, period)
             if ctx["total_count"] == 0:
                 continue
-            from services.email_service import _load_template, _render
             from integrations.resend_email import EmailParams, resend_client
+            from services.email_service import _load_template, _render
             template = _load_template("digest.html")
             html = _render(template, **ctx) if template else ""
             subject = f"{ctx['brand_name']} — {ctx['period_label']} Digest"

@@ -24,10 +24,9 @@ from __future__ import annotations
 import asyncio
 import logging
 import os
-import time
 from collections import deque
 from dataclasses import asdict, dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Optional
 
 logger = logging.getLogger("etap.email_send_log")
@@ -99,7 +98,7 @@ async def log_email_send(
 
     record = EmailSendRecord(
         id=str(uuid.uuid4()),
-        timestamp=datetime.now(timezone.utc).isoformat(),
+        timestamp=datetime.now(UTC).isoformat(),
         recipient=recipient,
         subject=subject[:500],  # truncate very long subjects
         flow=flow,
@@ -140,7 +139,7 @@ def get_recent_sends(limit: int = 100, flow: Optional[str] = None) -> list[dict]
 
 def get_send_stats(window_hours: int = 24) -> dict:
     """Return aggregate stats over the last `window_hours`."""
-    cutoff = datetime.now(timezone.utc).timestamp() - (window_hours * 3600)
+    cutoff = datetime.now(UTC).timestamp() - (window_hours * 3600)
     in_window = []
     for r in _buffer:
         try:
@@ -200,7 +199,7 @@ def get_send_stats(window_hours: int = 24) -> dict:
 
 def get_send_count_by_day(days: int = 7) -> list[dict]:
     """Return per-day send counts for the last `days` days."""
-    today = datetime.now(timezone.utc).date()
+    today = datetime.now(UTC).date()
     buckets: dict[str, dict[str, int]] = {}
     for d in range(days):
         day = today - __import__("datetime").timedelta(days=d)
@@ -231,7 +230,7 @@ def get_record_by_id(record_id: str) -> Optional[dict]:
 
 def clear_old_records(max_age_hours: int = 720) -> int:
     """Remove records older than max_age_hours (default 30 days). Returns count removed."""
-    cutoff = datetime.now(timezone.utc).timestamp() - (max_age_hours * 3600)
+    cutoff = datetime.now(UTC).timestamp() - (max_age_hours * 3600)
     kept = deque(maxlen=_BUFFER_MAX)
     removed = 0
     for r in _buffer:
