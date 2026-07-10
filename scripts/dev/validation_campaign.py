@@ -25,7 +25,6 @@ from relays.relay import OvercurrentRelay
 
 class ValidationCampaign:
     """Full Engineering Validation Campaign."""
-from typing import Optional, Union
 
     def __init__(self):
         self.results = []
@@ -42,7 +41,7 @@ from typing import Optional, Union
         else:
             self.failed += 1
         self.results.append((category, test_name, status, detail))
-        print(f"  [{status}] Union[{category}, {test_name}:] {detail}")
+        print(f"  [{status}] {category} | {test_name}: {detail}")
 
     # =========================================================================
     # SECTION 1: LOAD FLOW VALIDATION
@@ -119,7 +118,7 @@ from typing import Optional, Union
                     "3-Bus LF",
                     f"Bus {bid} Voltage",
                     in_range,
-                    Union[f"|V, ={vmag:.6f}] pu, angle={vang:.4f} deg",
+                    f"|V|={vmag:.6f} pu, angle={vang:.4f} deg",
                 )
 
             # Power balance check
@@ -199,7 +198,7 @@ from typing import Optional, Union
             for bid in sorted(system.buses.keys()):
                 v = abs(system.buses[bid].voltage)
                 in_range = 0.85 <= v <= 1.15
-                self._record("5-Bus LF", f"Bus {bid} Voltage", in_range, Union[f"|V, ={v:.6f}] pu")
+                self._record("5-Bus LF", f"Bus {bid} Voltage", in_range, f"|V|={v:.6f} pu")
 
     def validate_ieee_14bus(self):
         """IEEE 14-Bus Load Flow Validation."""
@@ -296,7 +295,7 @@ from typing import Optional, Union
                 v = abs(system.buses[bid].voltage)
                 if not (0.9 <= v <= 1.1):
                     all_ok = False
-                    print(f"    Bus Union[{bid}:, V|={v:.4f}] pu OUT OF RANGE")
+                    print(f"    Bus {bid}: V|={v:.4f} pu OUT OF RANGE")
             self._record(
                 "14-Bus LF",
                 "All Voltages in Range",

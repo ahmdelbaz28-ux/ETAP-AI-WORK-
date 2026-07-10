@@ -96,7 +96,7 @@ jobs:
   sonarcloud:
     name: 🔐 SonarCloud Analysis
     runs-on: ubuntu-latest
-    needs: lint
+    needs: [lint, python-tests]
     if: ${{ !cancelled() }}
     steps:
       - uses: actions/checkout@v4
@@ -119,6 +119,48 @@ jobs:
       - name: Install Python dependencies
         run: pip install -r requirements-minimal.txt || true
 
+      - name: Generate coverage report (lightweight — no DB required)
+        # Run a subset of tests that don't need external services, purely to
+        # generate coverage.xml for SonarCloud. The full test suite runs in
+        # the python-tests job; this is just for coverage metrics.
+        run: |
+          pip install pytest pytest-cov pytest-asyncio 2>/dev/null || true
+          pytest tests/ \
+            --ignore=tests/scenarios \
+            --ignore=tests/load \
+            --ignore=tests/stress \
+            --ignore=tests/chaos \
+            --ignore=tests/property_based \
+            --ignore=tests/regression \
+            --ignore=tests/test_security_e2e.py \
+            --ignore=tests/test_hf_space_production.py \
+            --ignore=tests/test_app_startup.py \
+            --ignore=tests/test_auth_api.py \
+            --ignore=tests/test_projects_api.py \
+            --ignore=tests/test_rbac.py \
+            --ignore=tests/test_celery_tasks.py \
+            --ignore=tests/test_worker_tasks.py \
+            --ignore=tests/test_scada_websocket.py \
+            --ignore=tests/test_supabase_integration.py \
+            --ignore=tests/test_langfuse_integration.py \
+            --ignore=tests/test_langfuse_full_integration.py \
+            --ignore=tests/test_core_database.py \
+            --ignore=tests/test_persistence_layer.py \
+            --ignore=tests/test_digital_twin_sync.py \
+            --ignore=tests/test_integration_tracing.py \
+            --ignore=tests/test_integration_factories.py \
+            --ignore=tests/test_integration_metrics.py \
+            --ignore=tests/test_temp_vercel.py \
+            --cov=. \
+            --cov-report=xml \
+            --cov-report=term-missing \
+            --timeout=30 \
+            --maxfail=5 \
+            --tb=short \
+            -q \
+            2>&1 | tail -30 || true
+          # Continue even if tests fail — we still want SonarCloud analysis
+
       - name: SonarCloud Scan
         uses: SonarSource/sonarcloud-github-action@master
         env:
@@ -132,12 +174,15 @@ jobs:
             -Dsonar.exclusions=skills/**,tests/**,acp_runtime/acp_tests/**
             -Dsonar.python.version=3.12,3.13
             -Dsonar.tests=tests,acp_runtime/acp_tests
+            -Dsonar.python.coverage.reportPaths=coverage.xml
+            -Dsonar.coverage.exclusions=tests/**,skills/**,acp_runtime/acp_tests/**,benchmarks/**,scripts/**
 
   # ── 2. PYTHON TESTS ─────────────────────────────────────────────────────────
   python-tests:
     name: 🧪 Python Test Suite
     runs-on: ubuntu-latest
     needs: lint
+    if: ${{ !cancelled() }}
     env:
       ENVIRONMENT: testing
       # HIGH #11 (AhmedETAP_Error_Report_AR.pdf): use a 32+ byte test key

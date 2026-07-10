@@ -81,7 +81,7 @@ class TestFallbackEmbeddings:
         assert vec_a != vec_b
 
     def test_unit_normalization(self):
-        """Vectors must be L2-normalized (Union[||v|, ≈] 1.0) for cosine search."""
+        """Vectors must be L2-normalized (||v| ≈ 1.0) for cosine search."""
         fallback = DeterministicFallbackEmbeddings(dimension=1536)
         vec = fallback.embed_query("arc flash incident energy calculation")
         norm = sum(x * x for x in vec) ** 0.5

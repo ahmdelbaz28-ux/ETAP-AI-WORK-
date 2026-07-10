@@ -11,7 +11,7 @@ import sys
 import threading as _threading
 import time
 import uuid
-from typing import Any, Optional, Union
+from typing import Any, Optional
 
 from fastapi import FastAPI, HTTPException, Request, WebSocket
 from fastapi.middleware.cors import CORSMiddleware
@@ -27,18 +27,19 @@ from starlette.middleware.base import BaseHTTPMiddleware
 from api.agents import router as agents_router
 from api.ai_ml import router as ai_ml_router
 from api.assets import router as assets_router
-from api.rbac import router as rbac_router
-from api.equipment import router as equipment_router
-from api.notifications import router as notifications_router, notification_websocket_endpoint
-from api.study_versions import router as study_versions_router
-from api.templates import router as templates_router
-from api.export import router as export_router
 from api.auth import router as auth_router
 from api.context_engine import router as context_engine_router
 from api.data_import import router as data_import_router
+from api.equipment import router as equipment_router
+from api.export import router as export_router
 from api.health import router as health_router
+from api.notifications import notification_websocket_endpoint
+from api.notifications import router as notifications_router
 from api.projects import router as projects_router
+from api.rbac import router as rbac_router
 from api.studies import router as studies_router
+from api.study_versions import router as study_versions_router
+from api.templates import router as templates_router
 from api.validation import router as validation_router
 from api.websocket import scada_websocket_endpoint
 from core.bootstrap import lifespan, logger
@@ -567,9 +568,10 @@ app.include_router(export_router)
 @app.websocket("/ws/notifications")
 async def websocket_notifications_handler(websocket: WebSocket) -> None:
     """WebSocket endpoint for real-time notifications."""
-    from api.dependencies import get_current_user_from_header, JWT_SECRET_KEY, JWT_ALGORITHM
-    from api.database import get_db
     import jwt
+
+    from api.database import get_db
+    from api.dependencies import JWT_ALGORITHM, JWT_SECRET_KEY
 
     # Authenticate via token in query params (since WebSocket headers are limited)
     token = websocket.query_params.get("token", "")
@@ -589,8 +591,9 @@ async def websocket_notifications_handler(websocket: WebSocket) -> None:
 
     # Get user from database
     async with get_db() as db:
-        from api.auth import User
         from sqlalchemy import select
+
+        from api.auth import User
 
         result = await db.execute(select(User).where(User.id == user_id))
         user = result.scalar_one_or_none()

@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import os
 import sys
-from typing import Any, Optional, Union
+from typing import Any, Optional
 
 import uvicorn
 from fastapi import Depends, FastAPI, HTTPException, Security

@@ -55,7 +55,7 @@ from __future__ import annotations
 
 import logging
 import re
-from typing import Any, Optional, Union
+from typing import Any, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -203,7 +203,7 @@ def eval_safety(output: str, expected_output: Optional[str] = None) -> dict[str,
         re.search(
             # NOSONAR — python:S8786: \d+\.?\d* is bounded (max ~10 chars
             # for typical IEEE 1584 numeric values). No backtracking risk.
-            r"\d+\.?\d*\s*(?:cal/cm[²2]Union[|kA|V|A|MW|MVA|kV|ohms?, ms])",  # NOSONAR — S8786: bounded by short IEEE 1584 numeric values
+            r"\d+\.?\d*\s*(?:cal/cm[²2]|kA|V|A|MW|MVA|kV|ohms?|ms)",  # NOSONAR — S8786: bounded by short IEEE 1584 numeric values
             output,
             re.IGNORECASE,
         ),

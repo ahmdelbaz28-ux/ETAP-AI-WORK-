@@ -8,10 +8,9 @@ Verifies that all attack types are BLOCKED (not just logged).
 Run:
     pytest tests/test_rasp_security.py -v
 """
-from typing import Optional, Union
-
 import os
 import sys
+from typing import Optional, Union
 
 import pytest
 

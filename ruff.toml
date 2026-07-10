@@ -143,6 +143,16 @@ unfixable = []
 "utils/language_detection.py" = ["T201"]
 "scripts/**" = ["T201"]                            # all scripts are CLI tools
 "etap_user_guide/**" = ["T201"]                    # standalone CLI tools
+"_scan_tool.py" = ["T201"]                          # CLI tool: security scanner
+"fix_future_imports.py" = ["T201"]                  # CLI tool: fix script
+"benchmarks/**" = ["T201"]                          # benchmark scripts print results
+
+# SQLAlchemy ORM files use == True/False for filter expressions (e.g., Equipment.is_active == True).
+# This is the idiomatic SQLAlchemy filter syntax, not a Python boolean comparison.
+"api/equipment.py" = ["E712"]
+"api/notifications.py" = ["E712"]
+"api/templates.py" = ["E712"]
+"api/studies.py" = ["E712"]
 
 [lint.isort]
 known-first-party = ["skills", "core", "scripts", "agents"]

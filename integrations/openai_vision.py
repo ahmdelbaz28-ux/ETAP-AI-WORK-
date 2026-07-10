@@ -51,7 +51,7 @@ import logging
 import os
 import time
 from pathlib import Path
-from typing import Any, Optional, Union
+from typing import Any, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -110,7 +110,7 @@ You MUST respond with valid JSON only (no markdown, no prose). The JSON schema:
 {
   "description": "<one-paragraph summary of the screen>",
   "ui_elements": [
-    {"type": Union["button|menu|input|dialog|text, icon",] "label": "<text>", "x": <int>, "y": <int>, "confidence": <0.0-1.0>}
+    {"type": "button|menu|input|dialog|text|icon", "label": "<text>", "x": <int>, "y": <int>, "confidence": <0.0-1.0>}
   ],
   "next_action": {
     "type": Union["click|type|hotkey|wait|done, unknown",]

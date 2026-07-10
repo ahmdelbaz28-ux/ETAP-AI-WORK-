@@ -358,7 +358,7 @@ def upload_bytes(
 def upload_file(
     *,
     bucket: str,
-    file_path: Union[str, Path,]
+    file_path: Union[str, Path],
     content_type: str,
     user_id: Optional[str] = None,
     metadata: Optional[dict] = None,

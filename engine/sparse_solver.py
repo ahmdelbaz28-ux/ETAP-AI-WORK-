@@ -34,7 +34,7 @@ import logging
 import math
 import time
 from dataclasses import dataclass, field
-from typing import Any, Optional, Union
+from typing import Any, Optional
 
 import numpy as np
 from scipy.sparse import csr_matrix, issparse, lil_matrix

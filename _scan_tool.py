@@ -1,4 +1,5 @@
-import ast, os, sys
+import ast
+import os
 
 bugs = []
 count = 0
@@ -10,7 +11,7 @@ for root, dirs, files in os.walk('api'):
         count += 1
         path = os.path.join(root, f)
         try:
-            with open(path, 'r', encoding='utf-8') as fh:
+            with open(path, encoding='utf-8') as fh:
                 content = fh.read()
             ast.parse(content)
         except SyntaxError as e:
@@ -30,7 +31,7 @@ for root, dirs, files in os.walk('api'):
             if '=' in s:
                 var_part = s.split('=')[0].strip()
                 val_part = s.split('=', 1)[1].strip()
-                is_secret_var = any(k in var_part.lower() for k in 
+                is_secret_var = any(k in var_part.lower() for k in
                     ['password', 'secret', 'api_key', 'api_secret'])
                 is_secret_val = ('"' in val_part or "'" in val_part) and len(val_part) > 20
                 if is_secret_var and is_secret_val:
