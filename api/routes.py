@@ -378,7 +378,7 @@ async def run_study_async(study_request: StudyRequest, request: Request) -> dict
             "submitted_at": str(time.time()),
         }
     except Exception as e:
-        logger.error("Error submitting async study: %s", e, exc_info=True)
+        logger.exception("Error submitting async study: %s", e, exc_info=True)
         raise HTTPException(status_code=500, detail=str(e)) from e  # NOSONAR — S8415: HTTPException responses will be documented in API refactoring sprint
 
 
@@ -410,7 +410,7 @@ async def get_task_status(task_id: str, request: Request) -> dict[str, Any]:
 
         return response
     except Exception as e:
-        logger.error("Error getting task status: %s", e, exc_info=True)
+        logger.exception("Error getting task status: %s", e, exc_info=True)
         raise HTTPException(status_code=500, detail=str(e)) from e  # NOSONAR — S8415: HTTPException responses will be documented in API refactoring sprint
 
 
@@ -529,7 +529,7 @@ async def global_exception_handler(request: Request, exc: Exception) -> JSONResp
     import traceback
 
     # Log the full exception details server-side
-    logger.error(
+    logger.exception(
         f"Unhandled exception in {request.method} {request.url.path}: {str(exc)}",
         extra={
             "trace_id": getattr(request.state, "trace_id", "unknown"),
