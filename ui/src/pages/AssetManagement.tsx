@@ -3,6 +3,7 @@ import { motion } from 'framer-motion'
 import { Cpu, Zap, Cable, Settings2, Activity, Wrench, Search, Filter, Plus, X, Loader2, AlertCircle, Trash2 } from 'lucide-react'
 import { Card, CardSection, Badge, Button, EmptyState } from '../components/ui'
 import ModalBackdrop from '../components/ModalBackdrop'
+import ModalHeader from '../components/ModalHeader'
 import { cn } from '../utils/helpers'
 import { API_BASE_URL } from '../lib/api-config'
 import { useNotify } from '../context/NotificationContext'
@@ -380,22 +381,12 @@ export default function AssetManagement() {
             onClick={(e) => e.stopPropagation()}
             className="bg-[var(--bg-elevated)] border border-[var(--border-primary)] rounded-xl w-full max-w-md p-6 shadow-2xl"
           >
-            <div className="flex items-start justify-between mb-4">
-              <div className="flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-brand-500/10">
-                  <Plus className="w-5 h-5 text-brand-400" />
-                </div>
-                <h3 className="text-lg font-semibold text-[var(--text-primary)]">Add New Asset</h3>
-              </div>
-              <button
-                onClick={() => !submitting && setShowCreateModal(false)}
-                disabled={submitting}
-                className="p-1 rounded text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-primary)] disabled:opacity-50 transition-colors"
-                aria-label="Close"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
+            <ModalHeader
+              title="Add New Asset"
+              onClose={() => setShowCreateModal(false)}
+              disabled={submitting}
+              icon={Plus}
+            />
 
             <div className="space-y-4">
               <div>

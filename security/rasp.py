@@ -108,7 +108,7 @@ _DEFAULT_RULES: list[RASPRule] = [
     ),
     RASPRule(
         name="ldap_injection",
-        pattern=re.compile(r"\*\)|\(|\*\\(|\)"),
+        pattern=re.compile(r"[\*\(\)]"),
         action=RASPAction.BLOCK,
         severity=RASPSeverity.HIGH,
         description="LDAP Injection attempt detected",

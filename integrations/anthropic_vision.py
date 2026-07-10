@@ -39,14 +39,12 @@ References:
 
 from __future__ import annotations
 
-import base64
-import io
 import json
 import logging
 import os
-import time
-from pathlib import Path
 from typing import Any, Optional
+
+from integrations import _vision_base
 
 logger = logging.getLogger(__name__)
 
@@ -60,7 +58,8 @@ except ImportError:
     HTTPX_AVAILABLE = False
 
 try:
-    from PIL import Image
+    import PIL  # noqa: F401 — used to check PIL.Image.Image type
+    from PIL import Image  # noqa: F401 — kept for isinstance() checks in callers
 
     PIL_AVAILABLE = True
 except ImportError:
@@ -241,27 +240,15 @@ class AnthropicVisionClient:
 
         url = f"{self.base_url}/v1/messages"
 
-        # Retry loop
-        last_error: Optional[str] = None
-        for attempt in range(1, self.max_retries + 1):
-            try:
-                response = self._make_request(url, headers, payload)
-                return self._parse_response(response)
-            except Exception as exc:  # noqa: BLE001
-                last_error = f"{type(exc).__name__}: {exc}"
-                logger.warning(
-                    "Anthropic Vision attempt %d/%d failed: %s",
-                    attempt,
-                    self.max_retries,
-                    last_error,
-                )
-                if attempt < self.max_retries:
-                    time.sleep(RETRY_BACKOFF_SECONDS * (2 ** (attempt - 1)))
-
-        return {
-            "error": "api_error",
-            "message": f"All {self.max_retries} attempts failed. Last: {last_error}",
-        }
+        # Retry loop — delegate to the shared helper (eliminates duplication
+        # with integrations/openai_vision.py — SonarCloud S4144).
+        return _vision_base.retry_with_backoff(
+            make_request=lambda: self._make_request(url, headers, payload),
+            parse_response=self._parse_response,
+            max_retries=self.max_retries,
+            backoff_seconds=RETRY_BACKOFF_SECONDS,
+            provider_name="Anthropic Vision",
+        )
 
     def health_check(self) -> dict[str, Any]:
         """Return client status for /health endpoints."""
@@ -280,37 +267,21 @@ class AnthropicVisionClient:
 
     @staticmethod
     def _to_pil_image(image: Any):
-        """Coerce various image inputs into a PIL.Image.Image."""
-        if not PIL_AVAILABLE:
-            return None
-        try:
-            if isinstance(image, Image.Image):
-                return image
-            if isinstance(image, (bytes, bytearray)):
-                return Image.open(io.BytesIO(image))
-            if isinstance(image, (str, Path)):
-                return Image.open(image)
-        except Exception as exc:  # noqa: BLE001
-            logger.warning("Failed to convert image: %s", exc)
-        return None
+        """Coerce various image inputs into a PIL.Image.Image.
+
+        Delegates to integrations._vision_base.to_pil_image (shared helper,
+        eliminates duplication with openai_vision.py).
+        """
+        return _vision_base.to_pil_image(image, PIL_AVAILABLE)
 
     @staticmethod
     def _image_to_base64(pil_image) -> Optional[str]:
-        """Convert PIL Image to base64 string (no data URL prefix)."""
-        try:
-            buffer = io.BytesIO()
-            # Resize if too large
-            max_dim = 1568
-            if pil_image.width > max_dim or pil_image.height > max_dim:
-                ratio = max_dim / max(pil_image.width, pil_image.height)
-                new_size = (int(pil_image.width * ratio), int(pil_image.height * ratio))
-                pil_image = pil_image.resize(new_size, Image.Resampling.LANCZOS)
+        """Convert PIL Image to base64 string (no data URL prefix).
 
-            pil_image.save(buffer, format="PNG")
-            return base64.b64encode(buffer.getvalue()).decode("ascii")
-        except Exception as exc:  # noqa: BLE001
-            logger.warning("Image encoding failed: %s", exc)
-            return None
+        Delegates to integrations._vision_base.image_to_base64_png (shared
+        helper, eliminates duplication with openai_vision.py).
+        """
+        return _vision_base.image_to_base64_png(pil_image)
 
     def _make_request(
         self, url: str, headers: dict[str, str], payload: dict[str, Any],

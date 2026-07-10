@@ -304,7 +304,7 @@ class TestReportGenerationAgent:
 
     def test_convert_to_table_data(self):
         agent = ReportGenerationAgent()
-        text = "| A | B | C |\n| 1 | 2 | 3 |"
+        text = '" | A, B, C, |\n, 1 | 2, 3 |"'
         rows = agent._convert_to_table_data(text)
         assert len(rows) >= 1
         assert "A" in rows[0]
