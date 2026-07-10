@@ -478,7 +478,7 @@ jobs:
             type=semver,pattern={{version}}
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3  # NOSONAR — S7637: GitHub Action pinning; SHA pinning in CI sprint
+        uses: docker/setup-buildx-action@v4  # NOSONAR — S7637: GitHub Action pinning; SHA pinning in CI sprint
         # Required for GHA cache backend — the default 'docker' driver
         # does not support cache export (--cache-to type=gha).
 
