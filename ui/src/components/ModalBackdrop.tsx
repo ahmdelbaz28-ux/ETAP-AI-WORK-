@@ -17,7 +17,12 @@ interface ModalBackdropProps {
 
 export default function ModalBackdrop({ onClose, disabled = false, children, className = '' }: ModalBackdropProps) {
   return (
-    <div
+    // Using <div role="dialog"> instead of native <dialog> because the native
+    // element has inconsistent browser support for ::backdrop styling and
+    // requires imperative showModal()/close() API that doesn't fit React's
+    // declarative model. role="dialog" + aria-modal + Escape handler satisfy
+    // WCAG 2.1 AA accessibility requirements.
+    <div  // NOSONAR — S6847, S6819: see comment above
       className={`fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 ${className}`}
       role="dialog"
       aria-modal="true"
