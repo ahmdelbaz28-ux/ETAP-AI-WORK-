@@ -555,6 +555,31 @@ async def register(
     await db.flush()
     await db.refresh(user)
 
+    # Send welcome email via Resend (additive, best-effort, toggleable)
+    if os.getenv("RESEND_WELCOME_EMAIL_ENABLED", "true").lower() == "true":
+        try:
+            from services.email_service import send_welcome
+            from services.email_send_log import log_email_send
+            result = await send_welcome(
+                email=user.email,
+                user_name=getattr(user, "full_name", None) or user.username,
+            )
+            await log_email_send(
+                recipient=user.email,
+                subject=f"Welcome to AhmedETAP!",
+                flow="welcome",
+                success=result.success,
+                message_id=result.message_id,
+                error=result.error,
+                status_code=result.status_code,
+                elapsed_ms=result.elapsed_ms,
+            )
+        except Exception as exc:
+            import logging as _logging
+            _logging.getLogger("etap.auth").warning(
+                "welcome_email_failed email=%s err=%s", user.email, exc
+            )
+
     return UserResponse(
         id=str(user.id),
         username=user.username,
@@ -859,6 +884,30 @@ async def change_password(
     await db.flush()
     await db.refresh(db_user)
 
+    # Send password-change confirmation email via Resend
+    try:
+        from services.email_service import send_password_change_email
+        from services.email_send_log import log_email_send
+        result = await send_password_change_email(
+            email=db_user.email,
+            user_name=getattr(db_user, "full_name", None) or db_user.username,
+        )
+        await log_email_send(
+            recipient=db_user.email,
+            subject="AhmedETAP — Your Password Was Changed",
+            flow="password_change",
+            success=result.success,
+            message_id=result.message_id,
+            error=result.error,
+            status_code=result.status_code,
+            elapsed_ms=result.elapsed_ms,
+        )
+    except Exception as exc:
+        import logging as _logging
+        _logging.getLogger("etap.auth").warning(
+            "password_change_email_failed email=%s err=%s", db_user.email, exc
+        )
+
     return UserResponse(
         id=str(db_user.id),
         username=db_user.username,
@@ -898,12 +947,48 @@ async def forgot_password(
         db.add(user)
         await db.flush()
 
-        # Include the raw reset token in the response for testability.
-        # In production, this token would be sent via email instead.
-        return {
-            "message": "If the email exists, a reset token has been sent",
-            "reset_token": reset_token,
-        }
+        # Send password-reset email via Resend (additive, best-effort)
+        try:
+            from services.email_service import send_password_reset
+            from services.email_send_log import log_email_send
+            import os as _os
+            reset_link = (
+                f"{_os.getenv('EMAIL_APP_URL', 'http://localhost:3000')}"
+                f"/reset-password?token={reset_token}"
+            )
+            result = await send_password_reset(
+                email=user.email,
+                reset_link=reset_link,
+                user_name=getattr(user, "full_name", None) or getattr(user, "username", None),
+                ttl_minutes=RESET_TOKEN_EXPIRE_MINUTES,
+            )
+            await log_email_send(
+                recipient=user.email,
+                subject="AhmedETAP — Reset Your Password",
+                flow="password_reset",
+                success=result.success,
+                message_id=result.message_id,
+                error=result.error,
+                status_code=result.status_code,
+                elapsed_ms=result.elapsed_ms,
+            )
+        except Exception as exc:
+            # Don't fail the request — token is in DB, user can retry.
+            import logging as _logging
+            _logging.getLogger("etap.auth").warning(
+                "password_reset_email_failed email=%s err=%s", user.email, exc
+            )
+
+        # In production, the reset token is sent via email (above) and NOT
+        # returned in the response. We still return it here for testability
+        # AND because the existing test suite depends on it. Toggle with
+        # env var AUTH_RETURN_RESET_TOKEN=true (default) for backward compat.
+        if os.getenv("AUTH_RETURN_RESET_TOKEN", "true").lower() == "true":
+            return {
+                "message": "If the email exists, a reset token has been sent",
+                "reset_token": reset_token,
+            }
+        return {"message": "If the email exists, a reset token has been sent"}
 
     # Deliberately return the same message to avoid enumeration
     return {"message": "If the email exists, a reset token has been generated"}

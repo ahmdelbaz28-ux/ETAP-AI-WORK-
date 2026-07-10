@@ -30,9 +30,14 @@ from api.assets import router as assets_router
 from api.auth import router as auth_router
 from api.context_engine import router as context_engine_router
 from api.data_import import router as data_import_router
+from api.email_otp import router as email_otp_router
 from api.equipment import router as equipment_router
 from api.export import router as export_router
 from api.health import router as health_router
+from api.magic_links import router as magic_links_router
+from api.email_digest import router as email_digest_router
+from api.email_webhooks import router as email_webhooks_router
+from api.email_dashboard import router as email_dashboard_router
 from api.notifications import notification_websocket_endpoint
 from api.notifications import router as notifications_router
 from api.projects import router as projects_router
@@ -563,6 +568,12 @@ app.include_router(notifications_router)
 app.include_router(study_versions_router)
 app.include_router(templates_router)
 app.include_router(export_router)
+# ─── Resend email integration routers ─────────────────────────────────────
+app.include_router(email_otp_router)        # /api/v1/auth/email-otp/*
+app.include_router(magic_links_router)      # /api/v1/auth/magic-link/*
+app.include_router(email_digest_router)     # /api/v1/email-digest/*
+app.include_router(email_webhooks_router)   # /api/v1/email/webhooks/*
+app.include_router(email_dashboard_router)  # /api/v1/email-dashboard/*
 
 # WebSocket endpoint for real-time notifications
 @app.websocket("/ws/notifications")

@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{ brand_name }} — {{ period_label }} Digest</title>
+</head>
+<body style="margin:0;padding:0;background-color:#f3f4f6;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
+  <div style="display:none;max-height:0;overflow:hidden;opacity:0;color:transparent;">
+    Your {{ period_label }} AhmedETAP digest: {{ total_count }} updates waiting for you.
+  </div>
+
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#f3f4f6;padding:24px 0;">
+    <tr>
+      <td align="center">
+        <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="background-color:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.08);max-width:600px;">
+          <tr>
+            <td style="background:linear-gradient(135deg,#facc15 0%,#ef4444 100%);padding:24px 32px;text-align:center;">
+              <div style="font-size:32px;margin-bottom:4px;">⚡</div>
+              <h1 style="margin:0;color:#1f2937;font-size:22px;font-weight:700;">{{ brand_name }}</h1>
+              <p style="margin:4px 0 0;color:#1f2937;font-size:12px;font-weight:500;">{{ period_label }} Digest — {{ period_dates }}</p>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:32px;">
+              <p style="margin:0 0 16px;color:#374151;font-size:15px;line-height:1.6;">
+                Hi {{ recipient_name }},
+              </p>
+              <p style="margin:0 0 24px;color:#374151;font-size:15px;line-height:1.6;">
+                Here's your <strong>{{ period_label }}</strong> summary from {{ brand_name }}.
+                You had <strong>{{ total_count }}</strong> email notification{{ '' if total_count == 1 else 's' }} in this period.
+              </p>
+
+              <!-- Stats block -->
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;margin:0 0 24px;">
+                <tr>
+                  <td style="padding:16px 20px;">
+                    <p style="margin:0 0 12px;color:#6b7280;font-size:11px;text-transform:uppercase;letter-spacing:0.5px;font-weight:600;">Breakdown by type</p>
+                    {% for flow, count in by_flow.items() %}
+                    <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+                      <tr>
+                        <td style="padding:6px 0;color:#374151;font-size:13px;">{{ flow }}</td>
+                        <td align="right" style="padding:6px 0;color:#111827;font-size:13px;font-weight:600;">{{ count }}</td>
+                      </tr>
+                    {% endfor %}
+                    {% if not by_flow %}
+                    <p style="margin:0;color:#9ca3af;font-size:13px;font-style:italic;">No activity in this period.</p>
+                    {% endif %}
+                  </td>
+                </tr>
+              </table>
+
+              <!-- Recent items list -->
+              {% if items %}
+              <h3 style="margin:0 0 12px;color:#111827;font-size:16px;font-weight:600;">Recent notifications</h3>
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 24px;">
+                {% for item in items %}
+                <tr>
+                  <td style="padding:12px 0;border-bottom:1px solid #e5e7eb;">
+                    <p style="margin:0 0 4px;color:#111827;font-size:14px;font-weight:500;">{{ item.title }}</p>
+                    <p style="margin:0;color:#6b7280;font-size:12px;">
+                      {{ item.flow }} · {{ item.timestamp[:16] if item.timestamp else '' }}
+                      {% if not item.success %} · <span style="color:#dc2626;">failed</span>{% endif %}
+                    </p>
+                  </td>
+                </tr>
+                {% endfor %}
+              </table>
+              {% endif %}
+
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 24px;">
+                <tr>
+                  <td align="center">
+                    <a href="{{ app_url }}" target="_blank" rel="noopener"
+                       style="display:inline-block;background:linear-gradient(135deg,#facc15 0%,#ef4444 100%);color:#1f2937;font-size:15px;font-weight:700;text-decoration:none;padding:14px 32px;border-radius:6px;">
+                      View all activity
+                    </a>
+                  </td>
+                </tr>
+              </table>
+
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#eff6ff;border-radius:6px;margin:0 0 24px;">
+                <tr>
+                  <td style="padding:12px 16px;">
+                    <p style="margin:0;color:#1e40af;font-size:12px;line-height:1.5;">
+                      <strong>Digest preferences:</strong> Manage your email preferences at
+                      <a href="{{ app_url }}/settings/notifications" style="color:#1e40af;text-decoration:none;">Settings → Notifications</a>.
+                      Unsubscribe from digests by replying with "unsubscribe digest".
+                    </p>
+                  </td>
+                </tr>
+              </table>
+
+              <p style="margin:0;color:#6b7280;font-size:13px;line-height:1.5;">
+                For questions, contact
+                <a href="mailto:{{ support_email }}" style="color:#ef4444;text-decoration:none;">{{ support_email }}</a>.
+              </p>
+            </td>
+          </tr>
+          <tr>
+            <td style="background-color:#f9fafb;padding:24px 32px;border-top:1px solid #e5e7eb;">
+              <p style="margin:0;color:#9ca3af;font-size:11px;line-height:1.5;">
+                © {{ current_year }} {{ brand_name }}. All rights reserved.<br>
+                <a href="{{ app_url }}" style="color:#9ca3af;text-decoration:none;">{{ app_url }}</a>
+              </p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>

@@ -24,5 +24,11 @@
         { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" }
       ]
     }
+  ],
+  "crons": [
+    {
+      "path": "https://ahmdelbaz28-ahmedetap-platform.hf.space/api/v1/email-digest/schedule/run",
+      "schedule": "0 * * * *"
+    }
   ]
 }

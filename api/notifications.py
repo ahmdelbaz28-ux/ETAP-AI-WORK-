@@ -264,6 +264,56 @@ async def create_notification(
     }
     await notification_manager.send_notification(user_id, notification_data)
 
+    # Send via email if flagged AND Resend is configured (additive, best-effort)
+    if requires_email and os.getenv("RESEND_NOTIFICATION_EMAILS_ENABLED", "true").lower() == "true":
+        try:
+            from services.email_service import send_notification_email
+            from services.email_send_log import log_email_send
+
+            # Look up user's email — try a couple of common import paths
+            user_email = None
+            user_name = None
+            try:
+                # api/auth.py defines User ORM model
+                from api.auth import User
+                result = await db.execute(
+                    select(User).where(User.id == user_id)
+                )
+                user_obj = result.scalar_one_or_none()
+                if user_obj is not None:
+                    user_email = getattr(user_obj, "email", None)
+                    user_name = getattr(user_obj, "full_name", None) or getattr(user_obj, "username", None)
+            except Exception:
+                pass  # User model lookup is best-effort
+
+            if user_email:
+                result_email = await send_notification_email(
+                    email=user_email,
+                    title=title,
+                    message=message,
+                    priority=priority,
+                    user_name=user_name,
+                )
+                # Update notification + log to dashboard
+                notification.email_sent = result_email.success
+                await db.flush()
+                await log_email_send(
+                    recipient=user_email,
+                    subject=f"[AhmedETAP] {title}",
+                    flow="notification",
+                    success=result_email.success,
+                    message_id=result_email.message_id,
+                    error=result_email.error,
+                    status_code=result_email.status_code,
+                    elapsed_ms=result_email.elapsed_ms,
+                )
+        except Exception as exc:
+            # Notification itself is still delivered via WebSocket; email is best-effort
+            import logging
+            logging.getLogger("etap.notifications").warning(
+                "notification_email_failed user=%s err=%s", user_id, exc
+            )
+
     return notification
 
 
