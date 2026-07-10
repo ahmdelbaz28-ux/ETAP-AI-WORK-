@@ -370,7 +370,8 @@ class ResendEmailClient:
                                 if isinstance(tag, dict) and tag.get("name") == "flow":
                                     flow = tag.get("value", "unknown")
                                     break
-                        asyncio.create_task(log_email_send(
+                        # Save task reference to prevent premature GC (SonarCloud python:S4142)
+                        _log_task = asyncio.create_task(log_email_send(
                             recipient=recipients[0],
                             subject=params.subject,
                             flow=flow,
@@ -380,6 +381,10 @@ class ResendEmailClient:
                             elapsed_ms=elapsed,
                             tags=params.tags,
                         ))
+                        # Add done callback to clean up and log errors
+                        _log_task.add_done_callback(
+                            lambda t: t.exception() if not t.cancelled() and t.exception() else None
+                        )
                     except Exception:
                         pass  # logging is best-effort
                     return result
@@ -414,7 +419,8 @@ class ResendEmailClient:
                                 if isinstance(tag, dict) and tag.get("name") == "flow":
                                     flow = tag.get("value", "unknown")
                                     break
-                        asyncio.create_task(log_email_send(
+                        # Save task reference to prevent premature GC (SonarCloud python:S4142)
+                        _log_task = asyncio.create_task(log_email_send(
                             recipient=recipients[0],
                             subject=params.subject,
                             flow=flow,
@@ -424,6 +430,9 @@ class ResendEmailClient:
                             elapsed_ms=elapsed_fail,
                             tags=params.tags,
                         ))
+                        _log_task.add_done_callback(
+                            lambda t: t.exception() if not t.cancelled() and t.exception() else None
+                        )
                     except Exception:
                         pass
                     return fail_result
