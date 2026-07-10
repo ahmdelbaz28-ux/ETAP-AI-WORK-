@@ -19,26 +19,30 @@ from __future__ import annotations
 
 import json
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any, Optional
 
-UTC = timezone.utc
+UTC = UTC
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, ConfigDict, Field
 from sqlalchemy import (
-    DateTime, Integer, String, Text, JSON,
-    select, func, desc,
+    JSON,
+    DateTime,
+    Integer,
+    String,
+    Text,
+    desc,
+    func,
+    select,
 )
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
 
-from api.database import Base, get_db
+from api.database import Base
 from api.dependencies import (
     CurrentUser,
     get_current_user_from_header,
-    pagination_params,
-    PaginationParams,
 )
 from api.rbac import require_permission
 
@@ -117,7 +121,7 @@ async def _get_study_result(project_id: str, study_id: str, db: AsyncSession) ->
 
 @router.get("/{project_id}/studies/{study_id}/versions", response_model=VersionListResponse)
 async def list_versions(
-    project_id: str, study_id: str, db, 
+    project_id: str, study_id: str, db,
     user: CurrentUser = Depends(get_current_user_from_header),
 ):
     """List all versions for a study."""
@@ -195,7 +199,6 @@ async def rollback_version(
     user: CurrentUser = Depends(require_permission("studies", "update")),
 ):
     """Rollback a study to a specific version."""
-    from api.projects import StudyResult
 
     result = await db.execute(
         select(StudyVersion).where(

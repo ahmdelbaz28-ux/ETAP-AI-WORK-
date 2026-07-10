@@ -21,7 +21,7 @@ from __future__ import annotations
 
 import logging
 import re
-from typing import Any, Optional, Union
+from typing import Any
 
 from guards.base import BaseGuard, GuardResult, GuardSeverity, GuardViolation
 
@@ -108,7 +108,7 @@ class DocsGuard(BaseGuard):
 
         # Find Python-style symbol references in docs
         # Pattern: ``ClassName``, `function_name`, ::ClassName, etc.
-        ref_pattern = r"(Union[?:``|`, ::])([A-Za-z_]\w*)"
+        ref_pattern = r"(``|`|::)([A-Za-z_]\w*)"
         for match in re.finditer(ref_pattern, docs):
             symbol = match.group(1)
             if symbol.startswith("_") or symbol in ("True", "False", "None", "self", "cls"):

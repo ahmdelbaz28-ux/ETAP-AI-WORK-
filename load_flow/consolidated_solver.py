@@ -6,7 +6,6 @@ This module consolidates the load flow solver implementations to address the
 technical debt of having duplicate solvers. It combines the robust Newton-Raphson
 implementation from load_flow_solver_fixed.py while maintaining backward compatibility.
 """
-from typing import Optional, Union
 
 import logging
 
@@ -179,7 +178,10 @@ class LoadFlowSolver:
         # dQ_i/dθ_k  (Q-calc derivative)
         #   off-diag: -V_i*V_j*(G_ij*cos + B_ij*sin)     ← d(Q_calc)/dθ
         #   needed:   V_i*V_j*(G_ij*cos + B_ij*sin)      ← d(ΔQ)/dθ = -d(Q_calc)/dθ
-        J3_off = V_i_V_j * (GC + BS)  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        J3_off = V_i_V_j * (GC + BS)
+        V_i_col = Vmag[:, None]  # NOSONAR — S117: physics/engineering notation
+        J2_off = V_i_col * (GC + BS)  # dP/dV off-diagonal
+        J4_off = V_i_col * (GS - BC)  # dQ/dV off-diagonal  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
 
         # Union[dQ_i/d|V, _k] (Q-calc derivative)
         #   off-diag: V_i*(G_ij*sin - B_ij*cos)          ← d(Q_calc)Union[/d|V, #]   needed:   -V_i*(G_ij*sin - B_ij*cos)         ← d(ΔQ)Union[/d|V, =] -d(Q_calc)Union[/d|V, J4_off] = -V_i * (GS - BC)  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability

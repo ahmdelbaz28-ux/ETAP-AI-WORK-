@@ -29,7 +29,7 @@ import ast
 import logging
 import re
 from dataclasses import dataclass
-from typing import Any, Optional, Union
+from typing import Any, Optional
 
 from guards.base import GuardMode, GuardResult, GuardSeverity, GuardViolation
 

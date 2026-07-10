@@ -39,10 +39,10 @@ Usage:
 from __future__ import annotations
 
 import logging
-from typing import Any, Optional, Union
+from typing import Any, Optional
 
 try:
-    from typing import Annotated, Optional, Union
+    from typing import Annotated
 except ImportError:
     from typing_extensions import Annotated
 
