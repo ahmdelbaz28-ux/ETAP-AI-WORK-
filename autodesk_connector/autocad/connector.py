@@ -5,13 +5,11 @@ Orchestrates AutoCAD operations via the C# AutoCAD Plugin.
 Provides high-level APIs for the Engineering Copilot.
 """
 from __future__ import annotations
-from typing import Optional, Union
-
-
 
 import logging
 import time
 import uuid
+from typing import Optional
 
 import requests
 

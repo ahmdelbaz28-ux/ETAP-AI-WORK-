@@ -37,7 +37,7 @@ from datetime import UTC, datetime
 
 UTC = UTC
 from pathlib import Path
-from typing import Any, Literal, Optional, Union
+from typing import Any, Literal, Optional
 
 logger = logging.getLogger("agent.cua_executor")
 
@@ -184,7 +184,7 @@ class CUAExecutionResult:
     total_duration_ms: int = 0
     execution_id: Optional[str] = None
     resumed_from_step: int = 0
-    vision_source: Optional[str] = None  # Union["gemini", "opencv"] | "hybrid"
+    vision_source: Optional[str] = None  # "gemini" | "opencv" | "hybrid"
 
     def to_dict(self) -> dict[str, Any]:
         return {

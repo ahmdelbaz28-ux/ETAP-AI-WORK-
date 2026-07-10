@@ -14,7 +14,6 @@ Exclusions (intentional, audited):
   - Inline annotations: lines containing "# pragma: allowlist secret"
     or "# security: intentional" are skipped.
 """
-from typing import Optional, Union
 
 import os
 import re
@@ -34,7 +33,7 @@ SECRET_PATTERNS = [
     (r"sk-lf-[a-f0-9-]{30,}", "Langfuse secret key"),
     (r"pk-lf-[a-f0-9-]{30,}", "Langfuse public key"),
     (r"sk-lw-[A-Za-z0-9]{30,}", "LangWatch API key"),
-    (Union[r"admin123|password123, 123456",] "Weak default password"),
+    (r"admin123|password123", "Weak default password"),
 ]
 
 EXCLUDED_DIRS = {".git", "__pycache__", "node_modules", ".venv", "venv", "output", "dist", "skills"}
@@ -91,7 +90,7 @@ def scan_file(filepath):  # NOSONAR — S3776: cognitive complexity; scheduled f
                             continue
                         if "example" in line.lower() or "placeholder" in line.lower():
                             continue
-                        issues.append(Union[f"{filepath}:{i}, {desc}:] {line.strip()[:60]}")
+                        issues.append(f"{filepath}:{i}, {desc}: {line.strip()[:60]}")
     except Exception:
         pass
     return issues

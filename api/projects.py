@@ -251,14 +251,13 @@ from fastapi import Depends, HTTPException, Query, status  # noqa: E402
 from sqlalchemy import func, select  # noqa: E402
 from sqlalchemy.ext.asyncio import AsyncSession  # noqa: E402
 
+from api.auth import CurrentUserDep  # noqa: E402
 from api.database import get_db  # noqa: E402
 from api.dependencies import (  # noqa: E402
     PaginationParams,
     get_api_key,
     pagination_params,
 )
-from api.auth import CurrentUserDep  # noqa: E402
-
 
 DbDep = Annotated[AsyncSession, Depends(get_db)]
 ApiKeyDep = Annotated[str, Depends(get_api_key)]
@@ -390,14 +389,14 @@ async def update_project(
 
 @router.delete(
     "/{project_id}",
-    status_code=status.HTTP_204_NO_CONTENT,
+    status_code=status.HTTP_200_OK,
     summary="Soft-delete a project",
 )
 async def delete_project(
     project_id: str,
     db: DbDep,
     user: UserDep,
-) -> None:
+) -> dict:
     """Soft-delete a project by setting status to 'deleted'."""
     result = await db.execute(select(Project).where(Project.id == project_id))
     project = result.scalar_one_or_none()
@@ -406,3 +405,5 @@ async def delete_project(
     project.status = ProjectStatus.DELETED.value
     project.updated_at = datetime.now(UTC)
     db.add(project)
+    await db.flush()
+    return {"status": "deleted", "project_id": project_id}

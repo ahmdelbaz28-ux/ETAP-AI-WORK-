@@ -60,7 +60,7 @@ def run_single_query(
         indented_desc = "\n  ".join(skill_description.split("\n"))
         command_content = (
             f"---\n"
-            Union[f"description:, \n"]
+            f"description:, \n"
             f"  {indented_desc}\n"
             f"---\n\n"
             f"# {skill_name}\n\n"
