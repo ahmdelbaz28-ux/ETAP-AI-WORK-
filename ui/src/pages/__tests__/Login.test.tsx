@@ -45,6 +45,36 @@ vi.mock('react-router-dom', async () => {
 const mockFetch = vi.fn()
 vi.stubGlobal('fetch', mockFetch)
 
+const mockChangeLanguage = vi.fn()
+const mockT = vi.fn((key: string) => {
+  const map: Record<string, string> = {
+    'auth.emailLabel': 'البريد الإلكتروني',
+    'auth.emailPlaceholder': 'name@company.com',
+    'auth.passwordLabel': 'كلمة المرور',
+    'auth.passwordPlaceholder': '••••••••',
+    'auth.loginTitle': 'تسجيل الدخول',
+    'auth.loginSubtitle': 'أدخل بياناتك للمتابعة',
+    'auth.loginButton': 'دخول',
+    'auth.loggingIn': 'جارٍ تسجيل الدخول',
+    'auth.registerLink': 'أنشئ واحداً',
+    'auth.welcomeBack': 'مرحباً بعودتك!',
+    'auth.loginFailed': 'فشل تسجيل الدخول',
+    'auth.instructionsSent': 'تم إرسال التعليمات',
+    'auth.cancel': 'إلغاء'
+  }
+  return map[key] || key
+})
+
+vi.mock('react-i18next', () => ({
+  useTranslation: () => ({
+    t: mockT,
+    i18n: {
+      language: 'ar',
+      changeLanguage: mockChangeLanguage,
+    }
+  })
+}))
+
 // ── Helpers ──
 
 function renderLogin() {
@@ -207,5 +237,21 @@ describe('Login', () => {
     const passwordInput = screen.getByPlaceholderText(/^•+$/) as HTMLInputElement
     expect(emailInput.type).toBe('email')
     expect(passwordInput.type).toBe('password')
+  })
+
+  it('toggles language when clicking the language switcher button', async () => {
+    const user = userEvent.setup()
+    renderLogin()
+    
+    // Find the language toggle button. Since our mock sets language to 'ar',
+    // the button should show 'English' to allow switching back.
+    const langBtn = screen.getByRole('button', { name: /English/i })
+    expect(langBtn).toBeTruthy()
+    
+    // Click the button
+    await user.click(langBtn)
+    
+    // Verify that changeLanguage was called to switch language
+    expect(mockChangeLanguage).toHaveBeenCalledWith('en')
   })
 })

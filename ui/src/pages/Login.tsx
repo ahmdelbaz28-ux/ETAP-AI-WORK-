@@ -460,7 +460,7 @@ export default function Login() {
                 <Mail className={`absolute ${isRtl ? 'right-3' : 'left-3'} top-1/2 -translate-y-1/2 w-4 h-4 text-slate-600 pointer-events-none`} />
                 <input
                   id="login-email"
-                  type="text"
+                  type="email"
                   inputMode="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
