@@ -11,9 +11,13 @@ are defined in one place and reused by both the HF Space and the main API.
 from __future__ import annotations
 
 # datetime.UTC is available in Python 3.11+. The project requires Python 3.12+
-# (pyproject.toml), so the legacy polyfill branch (datetime.UTC = datetime.timezone.utc)
-# was removed. It was left over from earlier Python 3.9/3.10 support and was
-# flagged by ruff UP017.
+# (pyproject.toml) in production, but local testing may run on Python <3.11.
+# The polyfill is restored with a noqa comment to suppress Ruff UP017 checks.
+import datetime
+
+if not hasattr(datetime, "UTC"):
+    datetime.UTC = datetime.timezone.utc  # type: ignore  # noqa: UP017
+
 import asyncio
 import logging
 import os

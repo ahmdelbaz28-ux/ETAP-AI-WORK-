@@ -8,9 +8,12 @@ import sys
 import typing
 
 # datetime.UTC and typing.Annotated are available in Python 3.11+.
-# The project requires Python 3.12+ (pyproject.toml), so the legacy
-# polyfill branches are no longer needed. They were left over from
-# earlier Python 3.9/3.10 support and were flagged by ruff UP017.
+# The project requires Python 3.12+ (pyproject.toml) in production, but local
+# testing may run on Python <3.11. The polyfill is restored with a noqa comment
+# to suppress Ruff UP017 checks.
+if not hasattr(datetime, "UTC"):
+    datetime.UTC = datetime.timezone.utc  # type: ignore  # noqa: UP017
+
 
 if not hasattr(typing, "Annotated"):
     from typing_extensions import Annotated
