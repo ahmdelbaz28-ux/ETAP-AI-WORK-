@@ -39,7 +39,7 @@ from fastapi import APIRouter, Request, status
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, EmailStr, Field, field_validator
 
-from api._test_mode import is_test_mode, normalize_template_var
+from api._test_mode import is_test_mode
 
 logger = logging.getLogger("etap.api.magic_links")
 
@@ -229,11 +229,15 @@ async def request_magic_link(
                 ttl_minutes=MAGIC_LINK_TTL_SECONDS // 60,
                 current_year=time.gmtime().tm_year,
             )
-            html = _render(template, **ctx) if template else (
-                f'<html><body><h2>Click to log in</h2>'
-                f'<p><a href="{magic_link_url}">{magic_link_url}</a></p>'
-                f'<p>Expires in {MAGIC_LINK_TTL_SECONDS // 60} minutes.</p>'
-                f'</body></html>'
+            html = (
+                _render(template, **ctx)
+                if template
+                else (
+                    f"<html><body><h2>Click to log in</h2>"
+                    f'<p><a href="{magic_link_url}">{magic_link_url}</a></p>'
+                    f"<p>Expires in {MAGIC_LINK_TTL_SECONDS // 60} minutes.</p>"
+                    f"</body></html>"
+                )
             )
             text = (
                 f"Log in to {_BRAND_NAME} by visiting this link:\n\n"
@@ -242,13 +246,15 @@ async def request_magic_link(
                 f"and can only be used once.\n"
             )
 
-            await resend_client.send(EmailParams(
-                to=body.email,
-                subject=subject,
-                html=html,
-                text=text,
-                tags=[{"name": "flow", "value": "magic_link"}],
-            ))
+            await resend_client.send(
+                EmailParams(
+                    to=body.email,
+                    subject=subject,
+                    html=html,
+                    text=text,
+                    tags=[{"name": "flow", "value": "magic_link"}],
+                )
+            )
         except Exception as exc:
             logger.error("magic_link_email_failed email=%s err=%s", body.email, exc)
 
@@ -349,6 +355,7 @@ async def verify_magic_link(
 
             # Update last_login
             from datetime import datetime
+
             user.last_login = datetime.now(UTC)
             await db.commit()
 

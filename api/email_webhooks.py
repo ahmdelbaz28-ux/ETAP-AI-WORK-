@@ -42,7 +42,7 @@ from dataclasses import dataclass
 from datetime import UTC, datetime
 from typing import Any, Optional
 
-from fastapi import APIRouter, Header, HTTPException, Request, status
+from fastapi import APIRouter, Header, Request, status
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field, HttpUrl
 
@@ -146,6 +146,7 @@ def _verify_resend_signature(
         secret_str = "whsec_" + secret_str
     try:
         import base64
+
         secret_bytes = base64.b64decode(secret_str[7:])
     except Exception:
         secret_bytes = secret_str.encode()
@@ -154,8 +155,6 @@ def _verify_resend_signature(
     expected_b64 = "v1," + base64.b64encode(expected).decode()
 
     return any(hmac.compare_digest(expected_b64, sig) for sig in signatures)
-
-
 
 
 # ---------------------------------------------------------------------------
@@ -239,13 +238,15 @@ async def resend_webhook(
     # Forward to registered outbound endpoints
     forwarded = await _forward_to_endpoints(event_type, payload)
 
-    return JSONResponse(content={
-        "success": True,
-        "event_type": event_type,
-        "message_id": message_id,
-        "forwarded": forwarded,
-        "trace_id": trace_id,
-    })
+    return JSONResponse(
+        content={
+            "success": True,
+            "event_type": event_type,
+            "message_id": message_id,
+            "forwarded": forwarded,
+            "trace_id": trace_id,
+        }
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -258,13 +259,15 @@ _EVENTS_MAX = 1000
 
 
 async def _record_event(message_id: str, event_type: str, data: dict) -> None:
-    _events.append({
-        "id": str(uuid.uuid4()),
-        "message_id": message_id,
-        "event_type": event_type,
-        "data": data,
-        "timestamp": datetime.now(UTC).isoformat(),
-    })
+    _events.append(
+        {
+            "id": str(uuid.uuid4()),
+            "message_id": message_id,
+            "event_type": event_type,
+            "data": data,
+            "timestamp": datetime.now(UTC).isoformat(),
+        }
+    )
     if len(_events) > _EVENTS_MAX:
         del _events[: len(_events) - _EVENTS_MAX]
 
@@ -275,12 +278,15 @@ async def _record_event(message_id: str, event_type: str, data: dict) -> None:
 
 
 def _should_forward(ep: WebhookEndpoint, event_type: str) -> bool:
-    """Check if an endpoint should receive this event type."""
+    """Check if an endpoint should receive this event type.
+
+    Returns True when the endpoint is active AND either no event filter is
+    set (ep.events is empty — accept all) or the event_type is in the
+    endpoint's allowed set.
+    """
     if not ep.is_active:
         return False
-    if ep.events and event_type not in ep.events:
-        return False
-    return True
+    return not (ep.events and event_type not in ep.events)
 
 
 def _sign_payload(secret: str, body: bytes) -> str:
@@ -296,7 +302,9 @@ def _deliver_to_endpoint(ep: WebhookEndpoint, body: bytes, sig: str, event_type:
     import urllib.request
 
     req = urllib.request.Request(
-        ep.url, data=body, method="POST",
+        ep.url,
+        data=body,
+        method="POST",
         headers={
             "Content-Type": "application/json",
             "X-AhmedETAP-Event": event_type,
@@ -332,7 +340,12 @@ async def _forward_to_endpoints(event_type: str, payload: dict) -> int:
                 delivered += 1
             else:
                 ep.failure_count += 1
-                logger.warning("webhook_deliver_failed endpoint=%s url=%s status=%s", ep.id, ep.url, status_code)
+                logger.warning(
+                    "webhook_deliver_failed endpoint=%s url=%s status=%s",
+                    ep.id,
+                    ep.url,
+                    status_code,
+                )
         except Exception as exc:
             ep.failure_count += 1
             logger.warning("webhook_deliver_exception endpoint=%s err=%s", ep.id, exc)
@@ -383,23 +396,25 @@ async def register_endpoint(body: RegisterEndpointRequest) -> JSONResponse:
     summary="List registered outbound webhook endpoints",
 )
 async def list_endpoints() -> JSONResponse:
-    return JSONResponse(content={
-        "success": True,
-        "endpoints": [
-            {
-                "id": ep.id,
-                "url": ep.url,
-                "events": ep.events,
-                "is_active": ep.is_active,
-                "created_at": ep.created_at,
-                "last_triggered": ep.last_triggered,
-                "last_status": ep.last_status,
-                "trigger_count": ep.trigger_count,
-                "failure_count": ep.failure_count,
-            }
-            for ep in _endpoints.values()
-        ],
-    })
+    return JSONResponse(
+        content={
+            "success": True,
+            "endpoints": [
+                {
+                    "id": ep.id,
+                    "url": ep.url,
+                    "events": ep.events,
+                    "is_active": ep.is_active,
+                    "created_at": ep.created_at,
+                    "last_triggered": ep.last_triggered,
+                    "last_status": ep.last_status,
+                    "trigger_count": ep.trigger_count,
+                    "failure_count": ep.failure_count,
+                }
+                for ep in _endpoints.values()
+            ],
+        }
+    )
 
 
 @router.delete(
@@ -410,17 +425,21 @@ async def delete_endpoint(endpoint_id: str) -> JSONResponse:
     """Delete a webhook endpoint. Returns success even if not found (idempotent)."""
     if endpoint_id and endpoint_id in _endpoints:
         del _endpoints[endpoint_id]
-        return JSONResponse(content={
-            "success": True,
-            "deleted": endpoint_id,
-            "message": "Endpoint deleted",
-        })
+        return JSONResponse(
+            content={
+                "success": True,
+                "deleted": endpoint_id,
+                "message": "Endpoint deleted",
+            }
+        )
     # Idempotent: return success even if not found (for test reliability)
-    return JSONResponse(content={
-        "success": True,
-        "deleted": None,
-        "message": "Endpoint not found (idempotent success)",
-    })
+    return JSONResponse(
+        content={
+            "success": True,
+            "deleted": None,
+            "message": "Endpoint not found (idempotent success)",
+        }
+    )
 
 
 @router.post(
@@ -435,12 +454,14 @@ async def test_endpoint(endpoint_id: str) -> JSONResponse:
     """
     if not endpoint_id or endpoint_id not in _endpoints:
         # Return success for test reliability (endpoint may have been cleaned up)
-        return JSONResponse(content={
-            "success": True,
-            "delivered": 0,
-            "message": "Endpoint not found — simulated test success",
-            "simulated": True,
-        })
+        return JSONResponse(
+            content={
+                "success": True,
+                "delivered": 0,
+                "message": "Endpoint not found — simulated test success",
+                "simulated": True,
+            }
+        )
     ep = _endpoints[endpoint_id]
     test_payload = {
         "type": "email.test",
@@ -451,11 +472,13 @@ async def test_endpoint(endpoint_id: str) -> JSONResponse:
         },
     }
     delivered = await _forward_to_endpoints("email.test", test_payload)
-    return JSONResponse(content={
-        "success": True,
-        "delivered": delivered,
-        "endpoint_url": ep.url,
-    })
+    return JSONResponse(
+        content={
+            "success": True,
+            "delivered": delivered,
+            "endpoint_url": ep.url,
+        }
+    )
 
 
 @router.get(
@@ -463,11 +486,13 @@ async def test_endpoint(endpoint_id: str) -> JSONResponse:
     summary="List recent inbound webhook events (debug)",
 )
 async def list_events(limit: int = 50) -> JSONResponse:
-    return JSONResponse(content={
-        "success": True,
-        "events": list(reversed(_events))[:limit],
-        "total": len(_events),
-    })
+    return JSONResponse(
+        content={
+            "success": True,
+            "events": list(reversed(_events))[:limit],
+            "total": len(_events),
+        }
+    )
 
 
 __all__ = ["router"]

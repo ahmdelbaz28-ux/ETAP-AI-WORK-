@@ -37,9 +37,9 @@ router = APIRouter(prefix="/api/v1/email-dashboard", tags=["email", "dashboard"]
 
 # Admin roles allowed to view dashboard
 _ADMIN_ROLES = {
-    r.strip() for r in os.getenv(
-        "EMAIL_DASHBOARD_ADMIN_ROLES", "admin,super_admin"
-    ).split(",") if r.strip()
+    r.strip()
+    for r in os.getenv("EMAIL_DASHBOARD_ADMIN_ROLES", "admin,super_admin").split(",")
+    if r.strip()
 }
 
 
@@ -58,6 +58,7 @@ async def _require_admin(request: Request) -> dict:
     """
     # ─── Method 1: X-API-Key (service key for automation) ────────────────
     from api._test_mode import get_api_key_auth
+
     api_key_auth = get_api_key_auth(request)
     if api_key_auth:
         return api_key_auth
@@ -67,6 +68,7 @@ async def _require_admin(request: Request) -> dict:
     if auth_header.startswith("Bearer "):
         try:
             import jwt as pyjwt
+
             from api.dependencies import JWT_ALGORITHM, JWT_SECRET_KEY
 
             token = auth_header[7:]
@@ -116,10 +118,13 @@ async def get_stats(
 ) -> JSONResponse:
     """Aggregate stats for the last `window_hours`."""
     from services.email_send_log import get_send_stats
-    return JSONResponse(content={
-        "success": True,
-        "stats": get_send_stats(window_hours=window_hours),
-    })
+
+    return JSONResponse(
+        content={
+            "success": True,
+            "stats": get_send_stats(window_hours=window_hours),
+        }
+    )
 
 
 @router.get("/api/recent", summary="Recent email sends")
@@ -131,10 +136,13 @@ async def get_recent(
 ) -> JSONResponse:
     """Recent send records (newest first)."""
     from services.email_send_log import get_recent_sends
-    return JSONResponse(content={
-        "success": True,
-        "records": get_recent_sends(limit=limit, flow=flow),
-    })
+
+    return JSONResponse(
+        content={
+            "success": True,
+            "records": get_recent_sends(limit=limit, flow=flow),
+        }
+    )
 
 
 @router.get("/api/by-day", summary="Daily send counts for the last N days")
@@ -144,10 +152,13 @@ async def get_by_day(
     _: dict = Depends(_require_admin),
 ) -> JSONResponse:
     from services.email_send_log import get_send_count_by_day
-    return JSONResponse(content={
-        "success": True,
-        "days": get_send_count_by_day(days=days),
-    })
+
+    return JSONResponse(
+        content={
+            "success": True,
+            "days": get_send_count_by_day(days=days),
+        }
+    )
 
 
 @router.get("/api/record/{record_id}", summary="Single record detail")
@@ -157,6 +168,7 @@ async def get_record(
     _: dict = Depends(_require_admin),
 ) -> JSONResponse:
     from services.email_send_log import get_record_by_id
+
     record = get_record_by_id(record_id)
     if not record:
         raise HTTPException(status_code=404, detail="Record not found")
@@ -170,12 +182,15 @@ async def clear_old(
     _: dict = Depends(_require_admin),
 ) -> JSONResponse:
     from services.email_send_log import clear_old_records
+
     removed = clear_old_records(max_age_hours=max_age_hours)
-    return JSONResponse(content={
-        "success": True,
-        "removed": removed,
-        "max_age_hours": max_age_hours,
-    })
+    return JSONResponse(
+        content={
+            "success": True,
+            "removed": removed,
+            "max_age_hours": max_age_hours,
+        }
+    )
 
 
 @router.get("/api/config", summary="Current Resend config (no secrets)")
@@ -184,31 +199,35 @@ async def get_config(
     _: dict = Depends(_require_admin),
 ) -> JSONResponse:
     """Return non-secret Resend configuration for diagnostic purposes."""
-    return JSONResponse(content={
-        "success": True,
-        "config": {
-            "RESEND_ENABLED": os.getenv("RESEND_ENABLED", "true"),
-            "RESEND_FROM_EMAIL": os.getenv("RESEND_FROM_EMAIL", "onboarding@resend.dev"),
-            "RESEND_FROM_NAME": os.getenv("RESEND_FROM_NAME", "AhmedETAP"),
-            "RESEND_REPLY_TO": os.getenv("RESEND_REPLY_TO", ""),
-            "RESEND_TIMEOUT_SECONDS": os.getenv("RESEND_TIMEOUT_SECONDS", "15"),
-            "RESEND_MAX_RETRIES": os.getenv("RESEND_MAX_RETRIES", "3"),
-            "RESEND_RATE_LIMIT_MAX": os.getenv("RESEND_RATE_LIMIT_MAX", "10"),
-            "RESEND_RATE_LIMIT_WINDOW": os.getenv("RESEND_RATE_LIMIT_WINDOW", "60"),
-            "RESEND_LOGIN_ALERTS_ENABLED": os.getenv("RESEND_LOGIN_ALERTS_ENABLED", "false"),
-            "RESEND_LOCKOUT_ALERTS_ENABLED": os.getenv("RESEND_LOCKOUT_ALERTS_ENABLED", "true"),
-            "RESEND_WELCOME_EMAIL_ENABLED": os.getenv("RESEND_WELCOME_EMAIL_ENABLED", "true"),
-            "RESEND_NOTIFICATION_EMAILS_ENABLED": os.getenv("RESEND_NOTIFICATION_EMAILS_ENABLED", "true"),
-            "OTP_TTL_SECONDS": os.getenv("OTP_TTL_SECONDS", "600"),
-            "MAGIC_LINK_TTL_SECONDS": os.getenv("MAGIC_LINK_TTL_SECONDS", "900"),
-            "EMAIL_DIGEST_ENABLED": os.getenv("EMAIL_DIGEST_ENABLED", "true"),
-            "EMAIL_DIGEST_SCHEDULE_DAILY": os.getenv("EMAIL_DIGEST_SCHEDULE_DAILY", "08:00"),
-            "EMAIL_BRAND_NAME": os.getenv("EMAIL_BRAND_NAME", "AhmedETAP"),
-            "EMAIL_APP_URL": os.getenv("EMAIL_APP_URL", "https://etap-ai-work.vercel.app"),
-            # API key is masked
-            "RESEND_API_KEY_SET": "yes" if os.getenv("RESEND_API_KEY") else "no",
-        },
-    })
+    return JSONResponse(
+        content={
+            "success": True,
+            "config": {
+                "RESEND_ENABLED": os.getenv("RESEND_ENABLED", "true"),
+                "RESEND_FROM_EMAIL": os.getenv("RESEND_FROM_EMAIL", "onboarding@resend.dev"),
+                "RESEND_FROM_NAME": os.getenv("RESEND_FROM_NAME", "AhmedETAP"),
+                "RESEND_REPLY_TO": os.getenv("RESEND_REPLY_TO", ""),
+                "RESEND_TIMEOUT_SECONDS": os.getenv("RESEND_TIMEOUT_SECONDS", "15"),
+                "RESEND_MAX_RETRIES": os.getenv("RESEND_MAX_RETRIES", "3"),
+                "RESEND_RATE_LIMIT_MAX": os.getenv("RESEND_RATE_LIMIT_MAX", "10"),
+                "RESEND_RATE_LIMIT_WINDOW": os.getenv("RESEND_RATE_LIMIT_WINDOW", "60"),
+                "RESEND_LOGIN_ALERTS_ENABLED": os.getenv("RESEND_LOGIN_ALERTS_ENABLED", "false"),
+                "RESEND_LOCKOUT_ALERTS_ENABLED": os.getenv("RESEND_LOCKOUT_ALERTS_ENABLED", "true"),
+                "RESEND_WELCOME_EMAIL_ENABLED": os.getenv("RESEND_WELCOME_EMAIL_ENABLED", "true"),
+                "RESEND_NOTIFICATION_EMAILS_ENABLED": os.getenv(
+                    "RESEND_NOTIFICATION_EMAILS_ENABLED", "true"
+                ),
+                "OTP_TTL_SECONDS": os.getenv("OTP_TTL_SECONDS", "600"),
+                "MAGIC_LINK_TTL_SECONDS": os.getenv("MAGIC_LINK_TTL_SECONDS", "900"),
+                "EMAIL_DIGEST_ENABLED": os.getenv("EMAIL_DIGEST_ENABLED", "true"),
+                "EMAIL_DIGEST_SCHEDULE_DAILY": os.getenv("EMAIL_DIGEST_SCHEDULE_DAILY", "08:00"),
+                "EMAIL_BRAND_NAME": os.getenv("EMAIL_BRAND_NAME", "AhmedETAP"),
+                "EMAIL_APP_URL": os.getenv("EMAIL_APP_URL", "https://etap-ai-work.vercel.app"),
+                # API key is masked
+                "RESEND_API_KEY_SET": "yes" if os.getenv("RESEND_API_KEY") else "no",
+            },
+        }
+    )
 
 
 # ---------------------------------------------------------------------------
