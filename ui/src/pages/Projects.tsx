@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { motion } from 'framer-motion'
-import { FolderOpen, Plus, FlaskConical, Calendar, X, Loader2, AlertCircle, Archive, Trash2 } from 'lucide-react'
+import { FolderOpen, Plus, FlaskConical, Calendar, Loader2, AlertCircle, Archive, Trash2 } from 'lucide-react'
 import { useNotify } from '../context/NotificationContext'
 import { Card, CardSection, Badge, Button, EmptyState } from '../components/ui'
 import ModalBackdrop from '../components/ModalBackdrop'
