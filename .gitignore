@@ -369,3 +369,15 @@ api/settings_fixed.py
 # ─── Agent work logs (never commit — may contain operational secrets) ───
 worklog.md
 worklog*.md
+
+# ─── Dev container local state (never commit) ───────────────────────────────
+.env.local
+.env.*.local
+.devcontainer/.env
+secrets/
+*.token
+*.pat
+
+# ─── Daytona AI agent sandbox local cache ───────────────────────────────────
+.daytona/
+daytona.log

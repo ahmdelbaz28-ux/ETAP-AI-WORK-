@@ -1,0 +1,142 @@
+{
+  "$schema": "https://raw.githubusercontent.com/devcontainers/spec/main/schemas/devContainer.schema.json",
+  "name": "AhmedETAP Platform",
+  "description": "Unified dev environment for AhmedETAP — works identically on GitHub Codespaces, CodeSandbox Devboxes, Daytona, and local VS Code Dev Containers. Pinned to match production: Python 3.12, Node 22, React 19, Vite 6, FastAPI.",
+  "image": "mcr.microsoft.com/devcontainers/python:3.12",
+
+  "features": {
+    "ghcr.io/devcontainers/features/node:1": {
+      "version": "22",
+      "nodeGypDependencies": true
+    },
+    "ghcr.io/devcontainers/features/docker-outside-of-docker:1": {
+      "version": "latest",
+      "moby": false
+    },
+    "ghcr.io/devcontainers/features/common-utils:2": {
+      "installZsh": true,
+      "configureZshAsDefaultShell": false,
+      "username": "vscode",
+      "upgradePackages": false
+    },
+    "ghcr.io/devcontainers/features/git:1": {
+      "version": "latest",
+      "ppa": false
+    },
+    "ghcr.io/devcontainers-contrib/features/playwright:1": {
+      "version": "latest",
+      "browsers": "chromium"
+    },
+    "ghcr.io/devcontainers/features/github-cli:1": {
+      "version": "latest"
+    }
+  },
+
+  "forwardPorts": [
+    5173,
+    8000,
+    5432,
+    6379,
+    7860
+  ],
+  "portsAttributes": {
+    "5173": { "label": "Vite Dev (UI)", "onAutoForward": "openBrowser" },
+    "8000": { "label": "FastAPI (Backend)", "onAutoForward": "notify" },
+    "5432": { "label": "PostgreSQL", "onAutoForward": "silent" },
+    "6379": { "label": "Redis", "onAutoForward": "silent" },
+    "7860": { "label": "HF Space local port", "onAutoForward": "silent" }
+  },
+  "otherPortsAttributes": { "onAutoForward": "silent" },
+
+  "mounts": [
+    "source=etap-bashhistory,target=/home/vscode/.bash_history,type=volume",
+    "source=etap-pip-cache,target=/home/vscode/.cache/pip,type=volume",
+    "source=etap-npm-cache,target=/home/vscode/.npm,type=volume"
+  ],
+
+  "containerEnv": {
+    "ENVIRONMENT": "development",
+    "PYTHONUNBUFFERED": "1",
+    "PYTHONDONTWRITEBYTECODE": "1",
+    "NODE_ENV": "development",
+    "VITE_API_URL": "http://localhost:8000",
+    "DATABASE_URL": "sqlite+aiosqlite:///./etap.db",
+    "REDIS_URL": "redis://localhost:6379/0",
+    "USE_ETAP": "false",
+    "PRIVACY_MODE": "false"
+  },
+
+  "remoteEnv": {
+    "DAYTONA_API_KEY": "${localEnv:DAYTONA_API_KEY}",
+    "DAYTONA_API_URL": "${localEnv:DAYTONA_API_URL}",
+    "DAYTONA_TARGET": "${localEnv:DAYTONA_TARGET}",
+    "HF_TOKEN": "${localEnv:HF_TOKEN}",
+    "LANGFUSE_SECRET_KEY": "${localEnv:LANGFUSE_SECRET_KEY}",
+    "LANGFUSE_PUBLIC_KEY": "${localEnv:LANGFUSE_PUBLIC_KEY}",
+    "LANGFUSE_BASE_URL": "${localEnv:LANGFUSE_BASE_URL}",
+    "LANGWATCH_API_KEY": "${localEnv:LANGWATCH_API_KEY}",
+    "SUPABASE_URL": "${localEnv:SUPABASE_URL}",
+    "SUPABASE_ANON_KEY": "${localEnv:SUPABASE_ANON_KEY}",
+    "SUPABASE_SERVICE_ROLE_KEY": "${localEnv:SUPABASE_SERVICE_ROLE_KEY}",
+    "VERCEL_TOKEN": "${localEnv:VERCEL_TOKEN}",
+    "SMITHERY_API_KEY": "${localEnv:SMITHERY_API_KEY}",
+    "RESEND_API_KEY": "${localEnv:RESEND_API_KEY}"
+  },
+
+  "postCreateCommand": "bash .devcontainer/post-create.sh",
+  "postStartCommand": "bash .devcontainer/post-start.sh",
+
+  "customizations": {
+    "vscode": {
+      "settings": {
+        "python.defaultInterpreterPath": "/usr/local/python/current/bin/python",
+        "python.analysis.typeCheckingMode": "basic",
+        "python.terminal.activateEnvironment": true,
+        "editor.formatOnSave": true,
+        "editor.codeActionsOnSave": {
+          "source.fixAll.ruff": "explicit",
+          "source.organizeImports.ruff": "explicit"
+        },
+        "[python]": {
+          "editor.defaultFormatter": "charliermarsh.ruff"
+        },
+        "[typescript]": {
+          "editor.defaultFormatter": "esbenp.prettier-vscode"
+        },
+        "[typescriptreact]": {
+          "editor.defaultFormatter": "esbenp.prettier-vscode"
+        },
+        "files.exclude": {
+          "**/__pycache__": true,
+          "**/.pytest_cache": true,
+          "**/.ruff_cache": true,
+          "**/node_modules": true,
+          "**/.venv": true
+        },
+        "search.exclude": {
+          "**/pnpm-lock.yaml": true,
+          "**/package-lock.json": true,
+          "**/uv.lock": true
+        }
+      },
+      "extensions": [
+        "ms-python.python",
+        "charliermarsh.ruff",
+        "ms-python.mypy-type-checker",
+        "dbaeumer.vscode-eslint",
+        "esbenp.prettier-vscode",
+        "bradlc.vscode-tailwindcss",
+        "ms-azuretools.vscode-docker",
+        "redhat.vscode-yaml",
+        "tamasfe.even-better-toml",
+        "ms-playwright.playwright",
+        "GitHub.copilot",
+        "GitHub.copilot-chat",
+        "ms-vscode.vscode-json",
+        "EditorConfig.EditorConfig"
+      ]
+    }
+  },
+
+  "remoteUser": "vscode"
+}
