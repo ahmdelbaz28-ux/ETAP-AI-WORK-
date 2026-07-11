@@ -35,7 +35,6 @@ import traceback
 from dataclasses import dataclass, field
 from typing import Any
 
-
 # ─────────────────────────────────────────────────────────────────────────────
 # Configuration
 # ─────────────────────────────────────────────────────────────────────────────
@@ -111,9 +110,12 @@ class StepResult:
 
 def _fmt_cmd(cmd: str) -> str:
     """Substitute PR_* env vars into a command string."""
-    return cmd.format(**{k: os.environ[k] for k in (
-        "PR_HEAD_REPO", "PR_HEAD_REF", "PR_BASE_SHA", "PR_HEAD_SHA", "PR_NUMBER"
-    )})
+    return cmd.format(
+        **{
+            k: os.environ[k]
+            for k in ("PR_HEAD_REPO", "PR_HEAD_REF", "PR_BASE_SHA", "PR_HEAD_SHA", "PR_NUMBER")
+        }
+    )
 
 
 def run_step_in_sandbox(sandbox: Any, name: str, cmd: str, timeout: int) -> StepResult:
@@ -151,7 +153,9 @@ def collect_artifacts(sandbox: Any) -> dict[str, str]:
     ]:
         try:
             content = sandbox.read_file(path)
-            artifacts[key] = content if isinstance(content, str) else content.decode("utf-8", errors="replace")
+            artifacts[key] = (
+                content if isinstance(content, str) else content.decode("utf-8", errors="replace")
+            )
         except Exception:
             artifacts[key] = ""
     return artifacts
@@ -201,9 +205,9 @@ def post_review(results: list[StepResult], artifacts: dict[str, str]) -> None:
                 for issue in issues[:20]:
                     loc = issue.get("location", {})
                     lines.append(
-                        f"| `{loc.get('path','?')}:{loc.get('row','?')}` "
-                        f"| `{issue.get('code','?')}` "
-                        f"| {issue.get('message','')[:120]} |"
+                        f"| `{loc.get('path', '?')}:{loc.get('row', '?')}` "
+                        f"| `{issue.get('code', '?')}` "
+                        f"| {issue.get('message', '')[:120]} |"
                     )
                 if len(issues) > 20:
                     lines.append(f"| _…{len(issues) - 20} more truncated_ | | |")
@@ -248,8 +252,15 @@ def post_review(results: list[StepResult], artifacts: dict[str, str]) -> None:
 
 def main() -> int:
     # Validate env
-    required = ["DAYTONA_API_KEY", "GITHUB_TOKEN", "PR_NUMBER",
-                "PR_HEAD_SHA", "PR_BASE_SHA", "PR_HEAD_REPO", "PR_HEAD_REF"]
+    required = [
+        "DAYTONA_API_KEY",
+        "GITHUB_TOKEN",
+        "PR_NUMBER",
+        "PR_HEAD_SHA",
+        "PR_BASE_SHA",
+        "PR_HEAD_REPO",
+        "PR_HEAD_REF",
+    ]
     missing = [k for k in required if not os.environ.get(k)]
     if missing:
         print(f"!! Missing env vars: {missing}", file=sys.stderr)
