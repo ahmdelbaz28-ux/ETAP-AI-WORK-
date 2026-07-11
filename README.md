@@ -36,7 +36,7 @@ app_port: 7860
 <!-- Live status badges -->
 [![UI](https://img.shields.io/badge/UI-Vercel-000000?style=flat-square&logo=vercel&logoColor=white)](https://etap-ai-work.vercel.app)
 [![API](https://img.shields.io/badge/API-HF%20Space-FFD21E?style=flat-square&logo=huggingface&logoColor=black)](https://ahmdelbaz28-ahmedetap-platform.hf.space/health)
-[![DB](https://img.shields.io/badge/Postgres-Supabase-3ECF8E?style=flat-square&logo=supabase&logoColor=white)](https://supabase.com)
+[![DB](https://img.shields.io/badge/Postgres-Neon-00e599?style=flat-square&logo=neon&logoColor=black)](https://neon.tech)
 [![LLM Obs](https://img.shields.io/badge/LLM%20Obs-Langfuse-7C3AED?style=flat-square&logo=langfuse&logoColor=white)](https://cloud.langfuse.com)
 [![Eval](https://img.shields.io/badge/Eval-LangWatch-FF6B6B?style=flat-square&logo=datadog&logoColor=white)](https://app.langwatch.ai)
 [![MCP](https://img.shields.io/badge/MCP-Smithery-FFB400?style=flat-square&logo=data:image/svg%2Bxml;base64,&logoColor=white)](https://smithery.ai)
@@ -70,13 +70,23 @@ its strength:
 |:---|:---|:---|:---|
 | **Frontend SPA** | Vercel | React 19 + Vite 6 + Tailwind 4 | Static UI, served from global edge CDN |
 | **Backend API** | Hugging Face Space (Docker SDK) | FastAPI + uvicorn + Python 3.11 | AI agents, engineering engines, auth, persistence |
-| **Postgres** | Supabase | Managed Postgres + Storage | Durable data (HF Space filesystem is ephemeral) |
+| **Postgres** | Neon PostgreSQL | Serverless Managed Postgres | Durable data (HF Space filesystem is ephemeral) |
 | **LLM observability** | Langfuse Cloud | Prompt management + traces | Unlimited prompts, 50k observations / month |
 | **LLM evaluation** | LangWatch | Scenario evals + drift detection | Continuous agent quality monitoring |
 | **MCP tooling** | Smithery | Model Context Protocol registry | Secure external tool discovery |
 
 The frontend talks to the backend over a single env var, `VITE_API_URL`, which is
 baked into the Vite bundle at build time on Vercel.
+
+---
+
+## 🖼️ User Interface & Dashboard Previews
+
+The platform features a modern, professional, dark-themed user interface designed for electrical power engineers:
+
+| **Engineering AI Chat HUD** | **System Overview Dashboard** |
+|:---:|:---:|
+| ![Engineering AI Chat HUD](docs/assets/screenshot_ai_chat.png) | ![System Overview Dashboard](docs/assets/screenshot_dashboard.png) |
 
 ---
 
