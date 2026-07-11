@@ -174,21 +174,9 @@ all engineering calculations live in Python.
 
 ### Local development
 
-```bash
-# Install isolated-vm (requires build tools + python3 for node-gyp)
-npm install isolated-vm
-```
-
-On Linux:
-```bash
-sudo apt-get install -y build-essential python3
-npm install isolated-vm
-```
-
-### HF Space deployment
-
-`isolated-vm` is a native module (C++ binding to V8). On HF Spaces
-`cpu-basic` hardware, native module builds can fail. The executor
+`isolated-vm` is NOT in `package.json` dependencies because it's a native
+module (C++ binding to V8) and requires build tools that may not be
+available on all environments (CI runners, HF Spaces, etc.). The sandbox
 degrades gracefully — if `isolated-vm` is missing, it returns a clear
 error message instead of crashing:
 
@@ -200,21 +188,43 @@ error message instead of crashing:
 }
 ```
 
-The `Dockerfile` already installs `build-essential` and `python3` as
-part of the Playwright Chromium setup, so `isolated-vm` should build
-on HF Spaces without additional setup.
-
-### Dev container
-
-The `.devcontainer/devcontainer.json` already installs Node 22 LTS. To
-add `isolated-vm` to the dev container:
+To enable the Node sandbox locally:
 
 ```bash
-# Inside the dev container
+# Install build tools (Linux)
+sudo apt-get install -y build-essential python3
+
+# Install isolated-vm
 npm install isolated-vm
 ```
 
-This will be added to `package.json` dependencies on the next commit.
+### Compatibility
+
+| isolated-vm version | Node.js version | Status |
+|:---:|:---:|:---|
+| 5.0.x | Node 18, 20 | ✅ works on CI (Node 20) |
+| 6.x | Node 22+ | ✅ |
+| 7.0.x | Node 22+ | ✅ works locally (Node 22/24); ❌ fails on Node 20 (CI) |
+
+If you're on Node 22+, use `isolated-vm@7.0.0`. If you're on Node 18-20,
+use `isolated-vm@5.0.1`.
+
+### HF Space deployment
+
+The HF Space runs Python-only FastAPI. The Node sandbox is **not needed**
+on HF Space — it's only used by Mastra agents in the dev environment.
+
+### Dev container
+
+The `.devcontainer/devcontainer.json` installs Node 22 LTS. To enable
+the Node sandbox inside the dev container:
+
+```bash
+npm install isolated-vm@7.0.0
+```
+
+This requires `build-essential` and `python3` (for `node-gyp`), both
+already installed in the devcontainer.
 
 ---
 

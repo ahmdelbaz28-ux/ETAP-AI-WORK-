@@ -180,16 +180,20 @@ class TestCodeValidation:
 # ---------------------------------------------------------------------------
 
 
-# Detect whether isolated-vm is installed by checking if a simple script runs.
-# If isolated-vm is missing, the executor exits with code 6 and a clear error.
+# Detect whether isolated-vm is installed by running a simple script.
+# If isolated-vm is missing, the executor returns error_type=dependency_missing.
+# We test with console.log (which requires the isolate to actually run) so
+# that a successful result proves isolated-vm is installed and working.
 def _isolated_vm_available() -> bool:
-    """Check if isolated-vm is installed by running a no-op script."""
-    result = run_sandbox("1+1")
+    """Check if isolated-vm is installed by running a script that requires
+    the V8 isolate to actually execute (not just validate)."""
+    result = run_sandbox("console.log('test')")
+    # Only return True if the script actually executed and produced output.
+    # A dependency_missing error or empty success means isolated-vm is not
+    # actually working.
     if result.get("error_type") == "dependency_missing":
         return False
-    # If validation passed but execution succeeded or failed at runtime,
-    # isolated-vm is installed.
-    return result.get("error_type") != "dependency_missing"
+    return bool(result.get("success") and "test" in result.get("output", ""))
 
 
 ISOLATED_VM_AVAILABLE = _isolated_vm_available()
