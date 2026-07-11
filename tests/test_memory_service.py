@@ -85,7 +85,7 @@ class TestFallbackEmbeddings:
         fallback = DeterministicFallbackEmbeddings(dimension=1536)
         vec = fallback.embed_query("arc flash incident energy calculation")
         norm = sum(x * x for x in vec) ** 0.5
-        assert abs(norm - 1.0) < 1e-5, f"Vector not Union[unit-normalized,, |v||] = {norm}"
+        assert abs(norm - 1.0) < 1e-5, f"Vector not unit-normalized, ||v|| = {norm}"
 
     def test_small_dimension(self):
         """Works for any arbitrary dimension."""

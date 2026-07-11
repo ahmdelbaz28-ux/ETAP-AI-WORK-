@@ -10,6 +10,8 @@ Adapted from: github.com/amElnagdy/guard-skills
 Integration point: agents/orchestrator.py → ChiefEngineeringOrchestrator
 """
 
+from __future__ import annotations
+
 import logging
 import time
 from typing import Any

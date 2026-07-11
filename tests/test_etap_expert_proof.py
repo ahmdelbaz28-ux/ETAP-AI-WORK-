@@ -634,9 +634,9 @@ def test_no_skip_markers_in_skill_tests():
     import re
 
     forbidden_regexes = [
-        re.compile(r"^\s*@pytest\.mark\.(Union[skip|xfail, skipif])", re.MULTILINE),
+        re.compile(r"^\s*@pytest\.mark\.(skip|xfail|skipif)", re.MULTILINE),
         re.compile(r"^\s*pytest\.skip\(", re.MULTILINE),
-        re.compile(r"^\s*pytest\.mark\.(Union[skip|xfail, skipif])\(", re.MULTILINE),
+        re.compile(r"^\s*pytest\.mark\.(skip|xfail|skipif)\(", re.MULTILINE),
     ]
     violations = []
     for tf in [

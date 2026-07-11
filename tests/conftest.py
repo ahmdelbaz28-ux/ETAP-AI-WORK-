@@ -3,6 +3,18 @@ Test configuration and fixtures for the Engineering Service.
 Contains shared test utilities, mocks, and test network configurations.
 """
 
+import datetime
+import sys
+import typing
+
+if not hasattr(datetime, "UTC"):
+    datetime.UTC = datetime.timezone.utc
+
+if not hasattr(typing, "Annotated"):
+    from typing_extensions import Annotated
+    typing.Annotated = Annotated
+    sys.modules['typing'].Annotated = Annotated
+
 import contextlib
 import os
 import tempfile
