@@ -238,7 +238,7 @@ export default function DataImport() {
                 <div className="bg-amber-500/5 border border-amber-500/20 rounded-lg p-3">
                   <p className="text-xs font-medium text-amber-400 mb-1">Warnings ({result.warnings.length})</p>
                   <ul className="text-xs text-[var(--text-secondary)] space-y-0.5 max-h-32 overflow-y-auto">
-{result.warnings.slice(0, 10).map((w, i) => {
+{result.warnings.slice(0, 10).map((w) => {
                        const warningKey = `warning-${w.substring(0, 50).replace(/\s/g, '_')}`
                        return (
                          <li key={warningKey} className="font-mono">{w}</li>
@@ -255,7 +255,7 @@ export default function DataImport() {
                 <div className="bg-red-500/5 border border-red-500/20 rounded-lg p-3">
                   <p className="text-xs font-medium text-red-400 mb-1">Errors</p>
                   <ul className="text-xs text-[var(--text-secondary)] space-y-0.5">
-{result.errors.map((e, i) => {
+{result.errors.map((e) => {
                        const errorKey = `error-${e.substring(0, 50).replace(/\s/g, '_')}`
                        return (
                          <li key={errorKey} className="font-mono">{e}</li>
@@ -281,7 +281,7 @@ export default function DataImport() {
                         </tr>
                       </thead>
                       <tbody>
-{result.buses.slice(0, 100).map((b, i) => {
+{result.buses.slice(0, 100).map((b) => {
                            const busKey = `bus-${b.id}`
                            return (
                              <tr key={busKey} className="border-t border-[var(--border-primary)]">
