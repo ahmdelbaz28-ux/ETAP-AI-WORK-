@@ -10,11 +10,10 @@ are defined in one place and reused by both the HF Space and the main API.
 
 from __future__ import annotations
 
-import datetime
-if not hasattr(datetime, "UTC"):
-    datetime.UTC = datetime.timezone.utc
-
-
+# datetime.UTC is available in Python 3.11+. The project requires Python 3.12+
+# (pyproject.toml), so the legacy polyfill branch (datetime.UTC = datetime.timezone.utc)
+# was removed. It was left over from earlier Python 3.9/3.10 support and was
+# flagged by ruff UP017.
 import asyncio
 import logging
 import os
