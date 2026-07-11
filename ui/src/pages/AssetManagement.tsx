@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { motion } from 'framer-motion'
-import { Cpu, Zap, Cable, Settings2, Activity, Wrench, Search, Filter, Plus, X, Loader2, AlertCircle, Trash2 } from 'lucide-react'
+import { Cpu, Zap, Cable, Settings2, Activity, Wrench, Search, Filter, Plus, Loader2, AlertCircle, Trash2 } from 'lucide-react'
 import { Card, CardSection, Badge, Button, EmptyState } from '../components/ui'
 import ModalBackdrop from '../components/ModalBackdrop'
 import ModalHeader from '../components/ModalHeader'
