@@ -41,6 +41,7 @@
     "@mastra/observability": "^1.0.0",
     "@opentelemetry/auto-instrumentations-node": "^0.78.0",
     "ai": "^6.0.209",
+    "isolated-vm": "^7.0.0",
     "langwatch": "0.30.0",
     "mastra": "0.10.0",
     "pino": "9.6.0",
