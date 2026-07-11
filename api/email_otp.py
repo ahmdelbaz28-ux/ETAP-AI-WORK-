@@ -30,7 +30,6 @@ from __future__ import annotations
 
 import hashlib
 import logging
-import os
 from typing import Optional
 
 from fastapi import APIRouter, Request, status
@@ -166,9 +165,11 @@ async def send_otp_endpoint(
         )
     elif not issue_result.success and test_mode:
         # In test mode, force a new OTP even if rate-limited
-        from services.otp_store import _mem_store, _OtpRecord, _hash_code, _key
         import secrets as _secrets
         import time as _time
+
+        from services.otp_store import _hash_code, _key, _mem_store, _OtpRecord
+
         key = _key(body.email, body.purpose)
         now = _time.time()
         fresh_code = f"{_secrets.randbelow(1_000_000):06d}"
@@ -198,7 +199,10 @@ async def send_otp_endpoint(
         _purpose_hash = hashlib.sha256(body.purpose.encode()).hexdigest()[:16]
         logger.error(
             "otp_send_failed email_hash=%s purpose_hash=%s err=%s trace=%s",
-            _email_hash, _purpose_hash, result.error, trace_id,
+            _email_hash,
+            _purpose_hash,
+            result.error,
+            trace_id,
         )
         return JSONResponse(
             status_code=status.HTTP_502_BAD_GATEWAY,
