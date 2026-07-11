@@ -265,6 +265,10 @@ jobs:
         #   - tests/regression — requires full ETAP desktop app.
         # pytest-timeout kills any individual test that exceeds 60s.
         # pytest-xdist runs tests in parallel (4 workers) to speed up CI.
+        # --maxfail=0 disables early-stop so coverage data is collected even
+        # when pre-existing test failures on main would otherwise abort the
+        # run before newly-added tests (e.g. tests/test_email_webhooks.py)
+        # have a chance to execute. See PR #183 for context.
         run: |
           pytest tests/ \
             --ignore=tests/scenarios \
@@ -279,10 +283,10 @@ jobs:
             --cov-report=xml \
             --cov-fail-under=80 \
             --timeout=60 \
-            --maxfail=10 \
+            --maxfail=0 \
             -n 4 \
             --tb=short \
-            2>&1 | tail -120
+            2>&1 | tail -200
 
       - name: Upload coverage report to Codecov
         uses: codecov/codecov-action@v4  # NOSONAR — S7637: GitHub Action pinning; SHA pinning in CI sprint
