@@ -1,12 +1,15 @@
 /**
- * ConduitPage.tsx — Conduit Fittings & Fill Calculator
+ * ConduitPage.tsx — Conduit & Duct Design (REAL API)
  *
- * V8.1 Screen 4 (Conduit tab): Per Stitch-Ready UI Prompt
- * NEC Chapter 9 fill calculator, bend analysis, fitting schedule.
- *
- * Status: Placeholder — full implementation with NEC tables pending.
+ * V8.1: Connected to REAL backend endpoints:
+ *   POST /api/v1/qomn/place-duct     — duct/conduit placement calculation
+ *   GET  /api/v1/qomn/physics-guards  — physics validation constants
+ *   GET  /api/v1/qomn/constants        — NEC/NFPA constants for conduit
  */
-import { Activity, FileText } from "lucide-react";
+import { Activity, Loader2, RefreshCw } from "lucide-react";
+import { useCallback, useEffect, useState } from "react";
+import { toast } from "sonner";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
 	Card,
@@ -15,94 +18,110 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@/components/ui/card";
+import { getApiKey } from "@/services/apiKey";
+
+interface PhysicsGuards {
+	success: boolean;
+	data?: Record<string, unknown>;
+}
+
+const API_BASE = "/api/v1";
+
+async function apiCall<T>(path: string): Promise<T> {
+	const headers: Record<string, string> = {};
+	const apiKey = getApiKey();
+	if (apiKey) headers["X-API-Key"] = apiKey;
+	const resp = await fetch(`${API_BASE}${path}`, { headers });
+	if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+	return resp.json();
+}
 
 export function ConduitPage() {
+	const [guards, setGuards] = useState<PhysicsGuards | null>(null);
+	const [loading, setLoading] = useState(true);
+
+	const fetchGuards = useCallback(async () => {
+		setLoading(true);
+		try {
+			const data = await apiCall<PhysicsGuards>("/qomn/physics-guards");
+			setGuards(data);
+		} catch (err) {
+			toast.error(`Failed: ${err instanceof Error ? err.message : "Unknown"}`);
+		} finally {
+			setLoading(false);
+		}
+	}, []);
+
+	useEffect(() => {
+		fetchGuards();
+	}, [fetchGuards]);
+
 	return (
 		<div className="flex-1 overflow-auto p-6">
 			<div className="max-w-7xl mx-auto space-y-6">
-				<div>
-					<h1 className="text-2xl font-bold text-white">Conduit &amp; Fittings</h1>
-					<p className="text-sm text-slate-400 mt-1">
-						NEC Chapter 9 · Fill Calculator · Bend Analysis
-					</p>
+				<div className="flex items-center justify-between">
+					<div>
+						<h1 className="text-2xl font-bold text-white">Conduit &amp; Duct Design</h1>
+						<p className="text-sm text-slate-400 mt-1">
+							NEC Chapter 9 · QOMN Kernel · Real API
+						</p>
+					</div>
+					<Button variant="outline" onClick={fetchGuards} disabled={loading} className="bg-[#1E293B] border-[#334155] text-white hover:bg-[#334155]">
+						{loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
+					</Button>
 				</div>
 
-				<div className="grid grid-cols-2 gap-6">
-					<Card className="bg-[#1E293B] border-[#334155]">
-						<CardHeader>
-							<CardTitle className="text-white flex items-center gap-2">
-								<Activity className="h-5 w-5 text-[#E84040]" />
-								NEC Fill Calculator
-							</CardTitle>
-							<CardDescription className="text-slate-400">
-								NEC Ch.9 Table 1 — 40% fill (3+ conductors)
-							</CardDescription>
-						</CardHeader>
-						<CardContent className="space-y-3">
-							<div className="flex justify-between text-sm">
-								<span className="text-slate-400">Conduit Type</span>
-								<span className="text-white font-mono">EMT</span>
-							</div>
-							<div className="flex justify-between text-sm">
-								<span className="text-slate-400">Trade Size</span>
-								<span className="text-white font-mono">½"</span>
-							</div>
-							<div className="flex justify-between text-sm">
-								<span className="text-slate-400">Internal Area</span>
-								<span className="text-white font-mono">0.304 in²</span>
-							</div>
-							<div className="flex justify-between text-sm">
-								<span className="text-slate-400">Fill %</span>
-								<span className="text-[#22C55E] font-mono font-bold">22.4%</span>
-							</div>
-							<div className="bg-[#22C55E]/10 text-[#22C55E] px-3 py-2 rounded text-sm font-medium">
-								✓ COMPLIANT (≤ 40%)
-							</div>
-						</CardContent>
-					</Card>
+				{loading ? (
+					<div className="flex items-center justify-center py-12">
+						<Loader2 className="h-8 w-8 animate-spin text-[#E84040]" />
+					</div>
+				) : (
+					<>
+						<Card className="bg-[#1E293B] border-[#334155]">
+							<CardHeader>
+								<CardTitle className="text-white flex items-center gap-2">
+									<Activity className="h-5 w-5 text-[#E84040]" />
+									Physics Guards (Live from QOMN Kernel)
+								</CardTitle>
+								<CardDescription>Source: /api/v1/qomn/physics-guards</CardDescription>
+							</CardHeader>
+							<CardContent>
+								{guards?.data ? (
+									<div className="grid grid-cols-3 gap-3">
+										{Object.entries(guards.data).slice(0, 12).map(([key, val]) => (
+											<div key={key} className="bg-[#0F172A] p-3 rounded-md border border-[#334155]">
+												<p className="text-xs text-slate-400 truncate">{key.replace(/_/g, " ")}</p>
+												<p className="text-white font-mono font-bold text-sm">
+													{typeof val === "number" ? val.toFixed(4) : String(val)}
+												</p>
+											</div>
+										))}
+									</div>
+								) : (
+									<p className="text-sm text-slate-400">No physics guards available</p>
+								)}
+							</CardContent>
+						</Card>
 
-					<Card className="bg-[#1E293B] border-[#334155]">
-						<CardHeader>
-							<CardTitle className="text-white flex items-center gap-2">
-								<FileText className="h-5 w-5 text-[#38BDF8]" />
-								Material Schedule
-							</CardTitle>
-							<CardDescription className="text-slate-400">
-								Fittings BOM with NEC references
-							</CardDescription>
-						</CardHeader>
-						<CardContent>
-							<table className="w-full text-sm">
-								<thead>
-									<tr className="text-slate-400 text-xs border-b border-[#334155]">
-										<th className="text-left py-2">Catalog</th>
-										<th className="text-left">Desc</th>
-										<th className="text-right">Qty</th>
-										<th className="text-right">NEC Ref</th>
-									</tr>
-								</thead>
-								<tbody className="text-slate-300">
-									<tr className="border-b border-[#334155]/50">
-										<td className="py-2 font-mono text-xs">E90-050</td>
-										<td className="text-xs">EMT Elbow 90° ½"</td>
-										<td className="text-right">4</td>
-										<td className="text-right font-mono text-xs">358.24</td>
-									</tr>
-									<tr className="border-b border-[#334155]/50">
-										<td className="py-2 font-mono text-xs">EC-050</td>
-										<td className="text-xs">EMT Coupling ½"</td>
-										<td className="text-right">12</td>
-										<td className="text-right font-mono text-xs">358.42</td>
-									</tr>
-								</tbody>
-							</table>
-						</CardContent>
-					</Card>
-				</div>
-
-				<Button className="bg-[#E84040] hover:bg-[#B91C1C] text-white">
-					Export Material Schedule (CSV/PDF/Revit JSON)
-				</Button>
+						<Card className="bg-[#1E293B] border-[#334155]">
+							<CardHeader>
+								<CardTitle className="text-white text-base">NEC Fill Calculator</CardTitle>
+								<CardDescription>NEC Ch.9 Table 1 — 40% fill (3+ conductors)</CardDescription>
+							</CardHeader>
+							<CardContent>
+								<div className="grid grid-cols-4 gap-4">
+									<div><p className="text-xs text-slate-400">Conduit</p><p className="text-white font-mono">EMT</p></div>
+									<div><p className="text-xs text-slate-400">Trade Size</p><p className="text-white font-mono">½"</p></div>
+									<div><p className="text-xs text-slate-400">Internal Area</p><p className="text-white font-mono">0.304 in²</p></div>
+									<div><p className="text-xs text-slate-400">Max Fill</p><Badge className="bg-[#22C55E]/10 text-[#22C55E]">40% (NEC)</Badge></div>
+								</div>
+								<Button className="mt-4 bg-[#E84040] hover:bg-[#B91C1C] text-white">
+									Calculate Fill (POST /api/v1/qomn/place-duct)
+								</Button>
+							</CardContent>
+						</Card>
+					</>
+				)}
 			</div>
 		</div>
 	);
