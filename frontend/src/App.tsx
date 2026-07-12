@@ -51,6 +51,14 @@ import { MiningPage } from "./pages/MiningPage";
 import { ApiKeysPage } from "./pages/ApiKeysPage";
 import { ExportsPage } from "./pages/ExportsPage";
 import { SelfHealingPage } from "./pages/SelfHealingPage";
+// V8.1: New pages per Stitch-Ready UI Prompt
+import { CableRoutingPage } from "./pages/CableRoutingPage";
+import { ConduitPage } from "./pages/ConduitPage";
+import { CircuitsPage } from "./pages/CircuitsPage";
+import { DetectorsPage } from "./pages/DetectorsPage";
+import { AiAgentPage } from "./pages/AiAgentPage";
+import { AuditLogPage } from "./pages/AuditLogPage";
+import { BimImportPage } from "./pages/BimImportPage";
 import "./i18n";
 import "./styles/globals.css";
 import "./styles/typography.css";
@@ -156,6 +164,15 @@ function App() {
                 { path: "/api-keys", element: <ApiKeysPage /> },
                 { path: "/exports", element: <ExportsPage /> },
                 { path: "/self-healing", element: <SelfHealingPage /> },
+                // V8.1: New routes per Stitch-Ready UI Prompt
+                { path: "/detectors", element: <DetectorsPage /> },
+                { path: "/cable-routing", element: <CableRoutingPage /> },
+                { path: "/conduit", element: <ConduitPage /> },
+                { path: "/circuits", element: <CircuitsPage /> },
+                { path: "/safety-rules", element: <EngineeringPage /> },
+                { path: "/ai-agent", element: <AiAgentPage /> },
+                { path: "/bim-import", element: <BimImportPage /> },
+                { path: "/audit-log", element: <AuditLogPage /> },
                 // V140 FIX: Add missing routes that Sidebar links to
                 {
                         path: "/fire-alarm-designer",
