@@ -11,7 +11,7 @@ import urllib.error
 
 DIST_DIR = "/home/z/my-project/frontend/dist"
 BACKEND_URL = "http://127.0.0.1:8000"
-PORT = 5360
+PORT = 5370
 
 
 class SPAHandler(http.server.SimpleHTTPRequestHandler):

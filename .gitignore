@@ -443,3 +443,10 @@ revit_data/RevitAPI*.json
 # Coverage reports (regenerated on each test run)
 reports/coverage.json
 uploads/
+
+# Security — never commit credentials
+.git-credentials
+*.token
+*.key
+secrets.json
+credentials.json
