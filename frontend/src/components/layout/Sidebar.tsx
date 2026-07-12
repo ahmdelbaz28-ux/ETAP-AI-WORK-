@@ -28,7 +28,6 @@ import {
         Pickaxe,
         Key,
         Download,
-        Shield,
 } from "lucide-react";
 import type React from "react";
 import { useState } from "react";
@@ -179,7 +178,7 @@ const navItems: NavItem[] = [
         {
                 labelKey: "nav.selfHealing",
                 defaultLabel: "Self-Healing",
-                icon: Shield,
+                icon: ShieldCheck,
                 path: "/self-healing",
                 dataOnboarding: "nav-self-healing",
         },

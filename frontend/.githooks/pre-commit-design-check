@@ -1,6 +1,9 @@
 #!/bin/bash
 # Pre-commit hook: Prevent accidental UI design regressions
 # Based on DESIGN_SYSTEM.md — verifies V223 engineering palette is intact
+# Runs EVERY check on EVERY commit (not just changed files) to catch
+# violations that might have been introduced by merge conflicts or
+# partial restores.
 
 set -e
 
@@ -9,7 +12,7 @@ echo "🔍 Checking UI design integrity (DESIGN_SYSTEM.md)..."
 ERRORS=0
 
 # 1. Check globals.css — background must be slate-900, NOT deep navy
-if git diff --cached --name-only | grep -q "frontend/src/styles/globals.css"; then
+if [ -f "frontend/src/styles/globals.css" ]; then
     if grep -q "background: 7 11 18" frontend/src/styles/globals.css 2>/dev/null; then
         echo "❌ ERROR: globals.css uses --background: 7 11 18 (deep navy #070b12)"
         echo "   DESIGN_SYSTEM.md requires --background: 15 23 42 (slate-900 #0f172a)"
@@ -24,7 +27,7 @@ if git diff --cached --name-only | grep -q "frontend/src/styles/globals.css"; th
 fi
 
 # 2. Check index.css
-if git diff --cached --name-only | grep -q "frontend/src/index.css"; then
+if [ -f "frontend/src/index.css" ]; then
     if grep -q "color-background: #070b12" frontend/src/index.css 2>/dev/null; then
         echo "❌ ERROR: index.css uses --color-background: #070b12 (deep navy)"
         echo "   DESIGN_SYSTEM.md requires --color-background: #0f172a (slate-900)"
@@ -44,7 +47,7 @@ if git diff --cached --name-only | grep -q "frontend/src/index.css"; then
 fi
 
 # 3. Check button.tsx — no hover:scale, no shadow
-if git diff --cached --name-only | grep -q "frontend/src/components/ui/button.tsx"; then
+if [ -f "frontend/src/components/ui/button.tsx" ]; then
     if grep -q "hover:scale" frontend/src/components/ui/button.tsx 2>/dev/null; then
         echo "❌ ERROR: button.tsx contains hover:scale-* — forbidden by DESIGN_SYSTEM.md"
         ERRORS=$((ERRORS + 1))
@@ -56,7 +59,7 @@ if git diff --cached --name-only | grep -q "frontend/src/components/ui/button.ts
 fi
 
 # 4. Check Sidebar.tsx — no glass class
-if git diff --cached --name-only | grep -q "frontend/src/components/layout/Sidebar.tsx"; then
+if [ -f "frontend/src/components/layout/Sidebar.tsx" ]; then
     if grep -q 'className=.*glass' frontend/src/components/layout/Sidebar.tsx 2>/dev/null; then
         echo "❌ ERROR: Sidebar.tsx uses 'glass' class — forbidden by DESIGN_SYSTEM.md"
         echo "   Use 'bg-card backdrop-blur-sm' instead."
@@ -65,12 +68,33 @@ if git diff --cached --name-only | grep -q "frontend/src/components/layout/Sideb
 fi
 
 # 5. Check AskAiButton.tsx — no glass/blob classes
-if git diff --cached --name-only | grep -q "frontend/src/components/ai/AskAiButton.tsx"; then
+if [ -f "frontend/src/components/ai/AskAiButton.tsx" ]; then
     if grep -q "ask-ai-button\|ask-ai-blob\|glass" frontend/src/components/ai/AskAiButton.tsx 2>/dev/null; then
         echo "❌ ERROR: AskAiButton.tsx uses forbidden classes (ask-ai-button, ask-ai-blob, glass)"
         echo "   Use standard Button component with bg-primary."
         ERRORS=$((ERRORS + 1))
     fi
+fi
+
+# 6. Check App.tsx — no SmoothScroll/MagneticCursor (Awwwards leftover)
+if [ -f "frontend/src/App.tsx" ]; then
+    if grep -q "SmoothScroll\|MagneticCursor" frontend/src/App.tsx 2>/dev/null; then
+        echo "❌ ERROR: App.tsx imports SmoothScroll or MagneticCursor"
+        echo "   These were Awwwards additions, NOT in V223 design. Remove them."
+        ERRORS=$((ERRORS + 1))
+    fi
+    if grep -q 'Toaster position="top-right"' frontend/src/App.tsx 2>/dev/null; then
+        echo "❌ ERROR: App.tsx uses Toaster position='top-right'"
+        echo "   V223 uses position='bottom-right'."
+        ERRORS=$((ERRORS + 1))
+    fi
+fi
+
+# 7. Check for dead interaction components
+if [ -f "frontend/src/components/interaction/MagneticCursor.tsx" ] || [ -f "frontend/src/components/interaction/SmoothScroll.tsx" ]; then
+    echo "❌ ERROR: Dead interaction components exist (MagneticCursor/SmoothScroll)"
+    echo "   These were Awwwards additions and should be deleted."
+    ERRORS=$((ERRORS + 1))
 fi
 
 if [ $ERRORS -gt 0 ]; then

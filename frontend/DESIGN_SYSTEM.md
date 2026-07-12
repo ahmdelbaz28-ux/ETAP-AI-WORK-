@@ -130,6 +130,10 @@ no flashy effects, no glassmorphism, no neon colors.
 10. ❌ **DO NOT change line-height to 1.75** — keep it at 1.5
 11. ❌ **DO NOT use Inter font** — use IBM Plex Sans (AutoCAD style)
 12. ❌ **DO NOT use `Zap` icon for logo** — use `ShieldCheck`
+13. ❌ **DO NOT import `SmoothScroll` or `MagneticCursor`** — these were Awwwards additions, NOT in V223
+14. ❌ **DO NOT use `Toaster position="top-right"`** — V223 uses `bottom-right`
+15. ❌ **DO NOT add kbd hint chips** to the Ask AI button — V223 didn't have them
+16. ❌ **DO NOT create `frontend/src/components/interaction/` directory** — dead code from Awwwards
 
 ## Git History Reference
 

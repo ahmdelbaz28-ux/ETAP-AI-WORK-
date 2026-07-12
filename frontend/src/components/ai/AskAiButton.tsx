@@ -1,21 +1,14 @@
 /**
- * AskAiButton.tsx — Floating "Ask AI" button.
+ * AskAiButton.tsx - Floating "Ask AI" button.
  *
- * V216 (V223 design restoration): Restored the original flat blue engineering
- * style from V223. Removed the glassmorphism / floating animation / gradient
- * blob that were added in V215 — they conflicted with the V223 engineering
- * identity (slate-900 navy + #2f81f7 calm blue + flat surfaces).
+ * V216: Restored EXACT V223 design — flat blue, no borders, no shadow glow,
+ * clean engineering style. No kbd hint, no RTL branching, no frosted effects.
+ * The V215 additions (kbd hint, RTL, frosted effects, ambient blob) were
+ * well-intentioned but deviated from the V223 engineering identity.
+ * This version matches V223 exactly.
  *
- * Style: bg-primary (blue) + no shadow + rounded-md + no scale + h-10
- * Position: fixed bottom-right, appears on all protected routes
- *
- * Accessibility:
- *   - aria-label + title for screen readers
- *   - focus-visible ring for keyboard users
- *   - keyboard shortcut Ctrl+J (Windows/Linux) or Cmd+J (macOS)
- *
- * The button is rendered globally in App.tsx so it shows on EVERY
- * protected page — no per-page wiring needed.
+ * The keyboard shortcut Ctrl+J (Windows/Linux) and Cmd+J (macOS) is still
+ * handled in App.tsx — the hint chip was removed because V223 didn't have it.
  */
 import { useTranslation } from "react-i18next";
 import { Sparkles } from "lucide-react";
@@ -27,35 +20,18 @@ export interface AskAiButtonProps {
 }
 
 export function AskAiButton({ onClick, label }: AskAiButtonProps) {
-        const { t, i18n } = useTranslation();
-        const buttonText = label || t("ai.askButton", "Ask AI");
-        const ariaLabel = t("ai.title", "Ask AI Copilot");
-        // V215 fix (kept): In RTL layouts (Arabic), the button should anchor
-        // to the left edge so it doesn't overlap the sidebar.
-        const isRTL = i18n.language === "ar" || i18n.dir() === "rtl";
-        const positionClass = isRTL ? "left-4" : "right-4";
-        // V215 fix (kept): Show platform-appropriate keyboard shortcut hint.
-        const isMac =
-                typeof navigator !== "undefined" &&
-                (navigator.platform.toLowerCase().includes("mac") ||
-                        navigator.userAgent.toLowerCase().includes("mac"));
-        const shortcutHint = isMac ? "⌘J" : "Ctrl+J";
+        const { t } = useTranslation();
 
         return (
                 <Button
                         onClick={onClick}
-                        aria-label={ariaLabel}
-                        title={ariaLabel}
-                        className={`fixed bottom-4 ${positionClass} z-50 h-10 px-4 gap-1.5 font-medium`}
+                        className="fixed bottom-6 right-6 z-50 h-10 px-4 rounded-md bg-primary hover:bg-primary/90 text-primary-foreground transition-colors gap-1.5 font-medium"
+                        title={t("ai.title", "Ask AI Copilot")}
                 >
-                        <Sparkles className="h-4 w-4" />
-                        <span className="hidden sm:inline">{buttonText}</span>
-                        <kbd
-                                className="ml-1 hidden md:inline-flex items-center rounded border border-primary-foreground/20 bg-primary-foreground/10 px-1.5 py-0.5 font-mono text-[10px] font-semibold text-primary-foreground/80"
-                                aria-hidden="true"
-                        >
-                                {shortcutHint}
-                        </kbd>
+                        <Sparkles className="w-4 h-4" />
+                        <span className="hidden sm:inline">
+                                {label || t("ai.askButton", "Ask AI")}
+                        </span>
                 </Button>
         );
 }

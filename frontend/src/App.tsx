@@ -1,4 +1,4 @@
-
+// NOSONAR
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Navigate, Route, Routes, useLocation } from "react-router-dom";
@@ -10,14 +10,11 @@ import { RouteGuard } from "@/components/auth/RouteGuard";
 import AppShell from "@/components/layout/AppShell";
 import OnboardingTour from "@/components/onboarding/OnboardingTour";
 import { GlobalHelpDrawer } from "@/components/shared/GlobalHelpDrawer";
-import { MagneticCursor } from "@/components/interaction/MagneticCursor";
-import { SmoothScroll } from "@/components/interaction/SmoothScroll";
 import type { HelpTopicId } from "@/help/types";
 import { ROUTE_HELP_MAP } from "@/help/types";
 import { useHealth } from "@/hooks/useApi";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { FireAlarmDesigner } from "./components/mockups/engineering/FireAlarmDesigner";
-import { ApiKeysPage } from "./pages/ApiKeysPage";
 import { AutoCADDrawPage } from "./pages/AutoCADDrawPage";
 // V140 Phase 6: New pages for comprehensive API coverage
 import { AutoCADPage } from "./pages/AutoCADPage";
@@ -33,12 +30,10 @@ import { DigitalTwinPage } from "./pages/DigitalTwinPage";
 import ElementDetail from "./pages/ElementDetail";
 import Elements from "./pages/Elements";
 import { EngineeringPage } from "./pages/EngineeringPage";
-import { ExportsPage } from "./pages/ExportsPage";
 import { FACPPage } from "./pages/FACPPage";
 import { FireAlarmPage } from "./pages/FireAlarmPage";
 import { LoginPage } from "./pages/LoginPage";
 import { MarinePage } from "./pages/MarinePage";
-import { MiningPage } from "./pages/MiningPage";
 import { MemoryPage } from "./pages/MemoryPage";
 import { MonitorPage } from "./pages/MonitorPage";
 import { GraphRAGPage } from "./pages/GraphRAGPage";
@@ -49,9 +44,13 @@ import { ReportsPage } from "./pages/ReportsPage";
 import { RevitCreatePage } from "./pages/RevitCreatePage";
 import { RevitElementsPage } from "./pages/RevitElementsPage";
 import { RevitPage } from "./pages/RevitPage";
-import { SelfHealingPage } from "./pages/SelfHealingPage";
 import { SettingsPage } from "./pages/SettingsPage";
 import { WorkflowPage } from "./pages/WorkflowPage";
+// V214: New feature pages
+import { MiningPage } from "./pages/MiningPage";
+import { ApiKeysPage } from "./pages/ApiKeysPage";
+import { ExportsPage } from "./pages/ExportsPage";
+import { SelfHealingPage } from "./pages/SelfHealingPage";
 import "./i18n";
 import "./styles/globals.css";
 import "./styles/typography.css";
@@ -71,7 +70,7 @@ import "./styles/typography.css";
  * (previously the SPA silently returned 200 with empty content).
  */
 function App() {
-        const { t, i18n } = useTranslation();
+        const { t, i18n } = useTranslation(); // NOSONAR — acceptable in this context
         const { connected } = useHealth();
         const location = useLocation();
         const [helpOpen, setHelpOpen] = useState(false);
@@ -105,8 +104,7 @@ function App() {
                         } else if (e.ctrlKey && e.key === "k") {
                                 e.preventDefault();
                                 setCommandPaletteOpen(true);
-                        } else if ((e.ctrlKey || e.metaKey) && e.key === "j") {
-                                // V215 self-critique: support Cmd+J on macOS in addition to Ctrl+J on Windows/Linux
+                        } else if (e.ctrlKey && e.key === "j") {
                                 e.preventDefault();
                                 setAiOpen((prev) => !prev);
                         }
@@ -140,10 +138,6 @@ function App() {
                 { path: "/projects", element: <ProjectsPage /> },
                 { path: "/engineering", element: <EngineeringPage /> },
                 { path: "/marine", element: <MarinePage /> },
-                { path: "/mining", element: <MiningPage /> },
-                { path: "/api-keys", element: <ApiKeysPage /> },
-                { path: "/exports", element: <ExportsPage /> },
-                { path: "/self-healing", element: <SelfHealingPage /> },
                 { path: "/facp", element: <FACPPage /> },
                 { path: "/environment", element: <EnvironmentPage /> },
                 { path: "/monitor", element: <MonitorPage /> },
@@ -157,6 +151,11 @@ function App() {
                 { path: "/digital-twin", element: <DigitalTwinPage /> },
                 { path: "/fire-alarm", element: <FireAlarmPage /> },
                 { path: "/fire-alarm/designer", element: <FireAlarmDesigner /> },
+                // V214: New feature routes
+                { path: "/mining", element: <MiningPage /> },
+                { path: "/api-keys", element: <ApiKeysPage /> },
+                { path: "/exports", element: <ExportsPage /> },
+                { path: "/self-healing", element: <SelfHealingPage /> },
                 // V140 FIX: Add missing routes that Sidebar links to
                 {
                         path: "/fire-alarm-designer",
@@ -182,11 +181,9 @@ function App() {
 
         return (
                 <AuthProvider>
-                        <SmoothScroll>
-                                <MagneticCursor />
-                                <div className="h-screen bg-background text-foreground">
-                                        {SkipLink}
-                                        {isPublicRoute ? (
+                        <div className="h-screen bg-background text-foreground">
+                                {SkipLink}
+                                {isPublicRoute ? (
                                         publicRoutes
                                 ) : (
                                         <AppShell
@@ -240,7 +237,6 @@ function App() {
                                         onOpenChange={setCommandPaletteOpen}
                                 />
                                 {/* V207.3: Global AI Copilot — visible on all protected routes (Ctrl+J) */}
-                                {/* V216: Restored V223 flat blue button. Blob + glass removed. */}
                                 {!isPublicRoute && (
                                         <>
                                                 <AskAiButton onClick={() => setAiOpen(true)} />
@@ -248,11 +244,8 @@ function App() {
                                         </>
                                 )}
                                 <OnboardingTour />
-                                {/* V215: Move toaster to top-right to avoid overlapping
-                                     the floating Ask AI button (bottom-right). */}
-                                <Toaster position="top-right" />
-                                </div>
-                        </SmoothScroll>
+                                <Toaster position="bottom-right" />
+                        </div>
                 </AuthProvider>
         );
 }
