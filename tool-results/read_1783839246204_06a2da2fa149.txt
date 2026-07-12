@@ -1,0 +1,1087 @@
+     1→
+     2→═══════════════════════════════════════════════════════════════════
+     3→BAZSPARK v8.1 — STITCH-READY UI PROMPT
+     4→Production-Grade Engineering Interface · Consolidated & Optimized
+     5→═══════════════════════════════════════════════════════════════════
+     6→
+     7→[CRITICAL IMPROVEMENTS APPLIED FROM EVALUATION]
+     8→1. Viewport: min-width 1440px · Collapsible panels (⌘B / ⌘I)
+     9→2. Context Isolation: Marine tab removed in Building Mode
+    10→3. Canvas: Ctrl+Wheel zoom · Middle-Click pan · CAD muscle memory
+    11→4. AI: Background-first suggestions · Purple glow indicator only
+    12→═══════════════════════════════════════════════════════════════════
+    13→
+    14→SYSTEM IDENTITY & BRAND
+    15→═══════════════════════════════════════════════════════════════════
+    16→
+    17→Application: BAZspark — Intelligent Fire Safety Engineering Platform
+    18→Tagline: NFPA 72 · NEC 2022 · SOLAS · IMO · AI-Powered Engineering
+    19→Parent Brand: FireAI Technology
+    20→
+    21→Color System:
+    22→  Primary:     #E84040  (Fire Red)
+    23→  Primary Dark:#B91C1C
+    24→  Secondary:   #1E293B  (Slate 800)
+    25→  Surface:     #0F172A  (Slate 950 — main background)
+    26→  Surface-2:   #1E293B  (Slate 800 — card background)
+    27→  Surface-3:   #334155  (Slate 700 — elevated surface)
+    28→  Accent:      #38BDF8  (Sky Blue — interactive/data)
+    29→  Ocean:       #0EA5E9  (Ocean Blue — marine module)
+    30→  Purple:      #A78BFA  (AI agent)
+    31→  Success:     #22C55E
+    32→  Warning:     #F59E0B
+    33→  Danger:      #EF4444
+    34→  Text-1:      #F8FAFC
+    35→  Text-2:      #CBD5E1
+    36→  Text-3:      #64748B
+    37→  Border:      #334155
+    38→  Border-2:    #475569
+    39→
+    40→Typography:
+    41→  Font Family: "Inter", "JetBrains Mono" (code/numbers)
+    42→  Heading-1: 28px / 700 / -0.02em
+    43→  Heading-2: 22px / 600 / -0.01em
+    44→  Heading-3: 16px / 600
+    45→  Body:       14px / 400 / 1.6 lineHeight
+    46→  Caption:    12px / 500 / uppercase / 0.05em
+    47→  Code/Data:  13px / JetBrains Mono / 500
+    48→
+    49→Spacing Grid: 4px base (4, 8, 12, 16, 24, 32, 48, 64)
+    50→Border Radius: sm=4px, md=8px, lg=12px, xl=16px, 2xl=24px, full=9999px
+    51→
+    52→Shadow System:
+    53→  sm:  0 1px 3px rgba(0,0,0,0.3)
+    54→  md:  0 4px 16px rgba(0,0,0,0.4)
+    55→  lg:  0 8px 32px rgba(0,0,0,0.5)
+    56→  glow-red:   0 0 20px rgba(232,64,64,0.3)
+    57→  glow-blue:  0 0 20px rgba(56,189,248,0.3)
+    58→  glow-green: 0 0 20px rgba(34,197,94,0.2)
+    59→  glow-purple: 0 0 20px rgba(167,139,250,0.3)
+    60→  glow-ocean:  0 0 20px rgba(14,165,233,0.3)
+    61→
+    62→Icons: Lucide React — stroke-width=1.5, size=16|20|24
+    63→Animations: 150ms cubic-bezier(0.4,0,0.2,1)
+    64→
+    65→═══════════════════════════════════════════════════════════════════
+    66→VIEWPORT & RESPONSIVE CONSTRAINTS [P1 IMPROVEMENT]
+    67→═══════════════════════════════════════════════════════════════════
+    68→
+    69→Min-width: 1440px (desktop engineering tool, NOT mobile-first)
+    70→Max-width: 100% of viewport
+    71→
+    72→Panel System (Collapsible):
+    73→  ┌─────────────────────────────────────────────────────────────┐
+    74→  │  Sidebar (260px) │  Main Content Area  │  Right Panel     │
+    75→  │  [fixed]         │  [flex:1]           │  (300px, fixed)  │
+    76→  │                  │                     │                  │
+    77→  │  Toggle: ⌘B      │  Canvas expands     │  Toggle: ⌘I      │
+    78→  │  (or click ←→)   │  when panels hidden │  (or click ←→)   │
+    79→  └─────────────────────────────────────────────────────────────┘
+    80→
+    81→Panel States:
+    82→  - Both open:   Sidebar 260px + Canvas flex + Right 300px
+    83→  - Left hidden: Canvas expands + Right 300px
+    84→  - Right hidden: Sidebar 260px + Canvas expands
+    85→  - Both hidden:  Canvas = 100% width (full focus mode)
+    86→
+    87→Panel Toggle Buttons:
+    88→  - Floating pill buttons at panel edges
+    89→  - Icon: ChevronLeft/ChevronRight (16px)
+    90→  - Hover: bg=Surface-3, radius=md
+    91→  - Keyboard: ⌘B (left), ⌘I (right), ⌘Shift+F (full focus)
+    92→
+    93→═══════════════════════════════════════════════════════════════════
+    94→SCREEN 1: AUTHENTICATION / LOGIN
+    95→═══════════════════════════════════════════════════════════════════
+    96→
+    97→Layout: Full-screen split — Left 45% brand panel, Right 55% form panel
+    98→Background: Surface (#0F172A)
+    99→
+   100→LEFT PANEL (brand):
+   101→  Background: linear-gradient(135deg, #0F172A 0%, #1a0a0a 50%, #0F172A 100%)
+   102→  Animated circuit/flame pattern SVG (subtle, 5% opacity, animated drift)
+   103→  Top: BAZspark logo — flame icon (Lucide Flame, #E84040, 32px) + "BAZspark" text 28px 700
+   104→  Center:
+   105→    Large fire alarm icon (48px, #E84040, glow-red shadow)
+   106→    Heading: "Intelligent Fire Safety Engineering" — 22px 700 Text-1
+   107→    Sub: "NFPA 72-2022 · NEC 2022 · SOLAS · IMO · AI-Powered" — 12px Caption #38BDF8
+   108→    Divider line with small flame dots
+   109→    Feature list (3 items with check icons #22C55E, 14px):
+   110→      ✓ AI-Powered Detector Placement (NFPA 72 / SOLAS)
+   111→      ✓ Real-Time Multi-Standard Compliance
+   112→      ✓ Automated Cable, Conduit & BOQ Design
+   113→  Bottom: Version badge "v8.1 Production" — Surface-3, Caption
+   114→
+   115→RIGHT PANEL (form):
+   116→  Background: Surface-2 (#1E293B)
+   117→  Top: "Welcome back" — Heading-2 Text-1
+   118→  Sub: "Sign in to your engineering workspace" — Body Text-3
+   119→  Form (max-width 380px, centered):
+   120→    Email field:
+   121→      Label: "Email" Caption Text-3
+   122→      Input: h=44px, bg=Surface, border=Border, radius=md
+   123→      Left icon: Mail (16px, Text-3)
+   124→      Focus: border=#38BDF8, glow-blue shadow
+   125→      Placeholder: "engineer@company.com" Text-3
+   126→    Password field:
+   127→      Label: "Password" Caption Text-3
+   128→      Input: same style as email
+   129→      Left icon: Lock, Right icon: Eye/EyeOff toggle
+   130→    Row: "Remember me" checkbox + "Forgot password?" link (#38BDF8)
+   131→    Submit button (full-width, h=44px, bg=#E84040, radius=md):
+   132→      Text: "Sign In" — 14px 600 white
+   133→      Hover: bg=#B91C1C, transform translateY(-1px), glow-red
+   134→      Loading state: spinner left side + "Authenticating..."
+   135→      Active: scale(0.98)
+   136→  Error state: red banner top of form, AlertCircle icon
+   137→  Bottom: "Don't have an account? Contact admin" — Body Text-3
+   138→
+   139→═══════════════════════════════════════════════════════════════════
+   140→SCREEN 2: MAIN DASHBOARD
+   141→═══════════════════════════════════════════════════════════════════
+   142→
+   143→Layout: Fixed sidebar (260px) + Top header (64px) + Main content area
+   144→
+   145→SIDEBAR:
+   146→  Background: Surface-2 (#1E293B)
+   147→  Border-right: 1px solid Border
+   148→  Width: 260px, full height, fixed position
+   149→  Collapsible: ⌘B toggle, floating pill at edge
+   150→
+   151→  LOGO SECTION (h=64px, border-bottom):
+   152→    Flame icon (20px #E84040) + "BAZspark" (18px 700 Text-1) + "v8.1" badge (Caption #38BDF8 bg-blue/10 px-2 rounded-full)
+   153→
+   154→  NAV SECTION (padding 12px):
+   155→    Group label: "WORKSPACE" Caption Text-3 uppercase, mb-8
+   156→    Nav items (h=40px each, px-12, radius=md, gap-10):
+   157→      🏠 Dashboard      (LayoutDashboard icon) — ⌘1
+   158→      📁 Projects       (FolderOpen icon) — ⌘2
+   159→      🔴 Detectors      (Radio icon) — ⌘3
+   160→      〰  Cable Routing  (Cable icon)
+   161→      ⬡  Conduit        (Layers icon)
+   162→      ⚡  Circuits       (Zap icon)
+   163→      🛡  Safety Rules   (ShieldCheck icon) — NFPA 72 badge
+   164→      📊 BOQ & Reports   (BarChart3 icon)
+   165→
+   166→    Separator 8px gap
+   167→    Group label: "MARINE ⚓" Caption Text-3 uppercase #0EA5E9
+   168→      ⚓ Vessel Overview  (Anchor icon)
+   169→      🗺  Zone Mapping     (Map icon)
+   170→      🔴 Detector Grid    (Radio icon)
+   171→      📡 Gas / UGLD       (Radio2 icon)
+   172→      🔊 PA / Alarm Zones (Volume2 icon)
+   173→      📋 Class Compliance  (ClipboardCheck icon)
+   174→
+   175→    Separator 8px gap
+   176→    Group label: "AI & SYSTEM" Caption Text-3 uppercase
+   177→      🧠 AI Agent        (BrainCircuit icon) — purple accent
+   178→      🔄 Digital Twin     (RotateCcw icon)
+   179→      📤 BIM Import       (Upload icon)
+   180→      ⚙  Settings        (Settings icon) — ⌘,
+   181→      📋 Audit Log        (FileText icon)
+   182→      💊 Self-Healing     (Activity icon) — status dot
+   183→
+   184→    Active state: bg=red/10, text=#E84040, icon=#E84040, left border 2px #E84040
+   185→    Marine active: bg=ocean/10, text=#0EA5E9, icon=#0EA5E9, left border 2px #0EA5E9
+   186→    AI active: bg=purple/10, text=#A78BFA, icon=#A78BFA, left border 2px #A78BFA
+   187→    Hover: bg=Surface-3, text=Text-1, transition 150ms
+   188→
+   189→  BOTTOM SECTION (border-top, padding 12px):
+   190→    User avatar (32px circle, initials, bg=#E84040)
+   191→    Name: 14px 600 Text-1
+   192→    Role: 12px Text-3 "Fire Protection Engineer"
+   193→    Settings gear icon right side
+   194→
+   195→TOP HEADER (64px):
+   196→  Background: Surface (#0F172A) with border-bottom
+   197→  Left: Current page breadcrumb (Home > Projects > Room Design)
+   198→  Center: Global search bar (max-width 400px):
+   199→    bg=Surface-2, border=Border, radius=full, h=36px
+   200→    Search icon left, "Search rooms, projects, standards..." placeholder
+   201→    Keyboard shortcut badge "⌘K" right side
+   202→  Right (gap-8):
+   203→    AI Agent button (BrainCircuit icon, purple glow if suggestions pending)
+   204→    Notifications bell — badge with count (red, animated pulse if >0)
+   205→    System health indicator (green dot + "System Online" 12px)
+   206→    User avatar dropdown
+   207→
+   208→MAIN CONTENT (padding 24px):
+   209→
+   210→  PAGE HEADER:
+   211→    "Dashboard" Heading-1 Text-1
+   212→    "BAZspark Engineering Workspace · NFPA 72-2022 / SOLAS / IMO" Body Text-3
+   213→    Right: "New Project" button (bg=#E84040, 14px 600, Plus icon, h=40px, radius=md)
+   214→
+   215→  STATS ROW (4 cards, gap-16):
+   216→    Each card: bg=Surface-2, border=Border, radius=lg, padding=20px
+   217→
+   218→    Card 1 — Active Projects:
+   219→      Icon container: 40x40 bg=blue/10 radius=md, Folder icon #38BDF8
+   220→      Value: 12 — 28px 700 Text-1 (countUp animation)
+   221→      Label: "Active Projects" Caption Text-3
+   222→      Trend: +2 this week, green arrow up, 12px #22C55E
+   223→
+   224→    Card 2 — Rooms/Zones Designed:
+   225→      Icon: bg=green/10, Radio icon #22C55E
+   226→      Value: 847
+   227→      Label: "Rooms/Zones Designed"
+   228→      Trend: +34 today
+   229→
+   230→    Card 3 — Compliance Rate:
+   231→      Icon: bg=red/10, ShieldCheck icon #E84040
+   232→      Value: 98.7% — animated progress ring (SVG circle, stroke #E84040)
+   233→      Label: "NFPA 72 / SOLAS Compliance"
+   234→      Sub: "2 violations active" — #F59E0B, AlertTriangle icon 12px
+   235→
+   236→    Card 4 — System Health:
+   237→      Icon: bg=purple/10, Activity icon #A78BFA
+   238→      Value: "Healthy" — #22C55E
+   239→      Label: "Pipeline Status"
+   240→      Sub: "8 stages · 0 failures" — Body Text-3
+   241→
+   242→  MAIN GRID (2 columns, gap-16, mt-24):
+   243→
+   244→    LEFT COLUMN (flex:1.6):
+   245→
+   246→      RECENT PROJECTS TABLE:
+   247→        Header: "Recent Projects" Heading-3 + "View All" link #38BDF8
+   248→        Table (full-width):
+   249→          Columns: Project | Type | Rooms/Zones | Status | Compliance | Modified | Actions
+   250→          Row height: 52px, border-bottom Border
+   251→          Status badges:
+   252→            "Active" bg=green/10 text=#22C55E radius=full px-8 py-2 Caption
+   253→            "Draft" bg=yellow/10 text=#F59E0B
+   254→            "Complete" bg=blue/10 text=#38BDF8
+   255→            "Marine" bg=ocean/10 text=#0EA5E9
+   256→          Compliance: progress bar (4px height, bg=Surface-3, fill=#22C55E or #E84040)
+   257→          Actions: Edit (pencil), View (eye), Delete (trash) icons — hover show
+   258→          Hover row: bg=Surface-3, transition 150ms
+   259→        Pagination: prev/next, page numbers, "Showing 1-8 of 24"
+   260→
+   261→      PIPELINE STATUS CARD (mt-16):
+   262→        Header: "Pipeline Health" Heading-3 + live indicator (green pulse dot)
+   263→        8 stages grid (2x4):
+   264→          Each stage: bg=Surface-3, radius=md, padding 12px
+   265→          Icon left (colored), stage name 13px 600, status right
+   266→          Status icons: CheckCircle (#22C55E), XCircle (#E84040), Clock (#F59E0B), Minus (Text-3)
+   267→          Stages:
+   268→            Stage 0 — Input Contract    ✓ PASS  (FileCheck icon)
+   269→            Stage 1 — NFPA Spacing      ✓ PASS  (Ruler icon)
+   270→            Stage 2 — Coverage Verify   ✓ PASS  (Eye icon)
+   271→            Stage 3 — Safety Classify   ✓ PASS  (Shield icon)
+   272→            Stage 4 — Release Gates     ⚠ 1 WARN (Gate icon → Lock icon)
+   273→            Stage 5 — Evidence Package  ✓ PASS  (Package icon)
+   274→            Stage 6 — Rules Engine      ✓ PASS  (Brain icon)
+   275→            Stage 7 — Cable Routing     ✓ PASS  (Cable icon)
+   276→          Bottom: "Last run 2 min ago · 847ms total" Caption Text-3
+   277→
+   278→    RIGHT COLUMN (flex:1):
+   279→
+   280→      LIVE COMPLIANCE FEED:
+   281→        Header: "Live Safety Events" Heading-3 + "Pause" toggle
+   282→        Feed (max-height 280px, overflow-y scroll, custom scrollbar):
+   283→          Each item: left colored dot, timestamp Caption Text-3, message Body Text-2
+   284→          Types:
+   285→            🟢 PASS: #22C55E dot
+   286→            🔴 FAIL: #E84040 dot + bg=red/5
+   287→            🟡 WARN: #F59E0B dot
+   288→          Example items with real NFPA/SOLAS refs:
+   289→            "R-101 spacing verified NFPA §17.7.3.2.1" — 2s ago
+   290→            "CRITICAL: R-205 wall violation §17.6.3.1.1" — #E84040 highlighted
+   291→            "Battery sized 26Ah §10.6.7.1.1" — 15s ago
+   292→            "SOLAS VFZ-03: accommodation coverage verified §9.2.2.2.1" — 30s ago
+   293→        Empty state: "No active events" with shield icon
+   294→
+   295→      NFPA/SOLAS GATE STATUS (mt-16):
+   296→        Header: "Release Gates (G1-G8)" Heading-3
+   297→        Gates list (gap-8):
+   298→          Each gate: h=36px, flex row
+   299→          Left: gate ID badge "G1" (bg=Surface-3, 11px 600, 24x24 rounded-sm)
+   300→          Middle: gate name 13px Text-2
+   301→          Right: status pill (PASS/FAIL/SKIP) — colored badges
+   302→          Gates: G1 Input Validation, G2 NFPA Spacing, G3 Coverage,
+   303→                 G4 Wall Distance, G5 Battery, G6 Voltage Drop,
+   304→                 G7 Fault Isolation, G8 Safety Tier
+   305→        Overall: "RELEASE: GREEN ✓" — full-width pill bg=#22C55E/10 text=#22C55E border border-green/20 mt-12
+   306→
+   307→      AI AGENT SUGGESTIONS (mt-16) [P1 IMPROVEMENT — Background-First]:
+   308→        Header: "AI Proactive Suggestions" Heading-3 + BrainCircuit icon purple
+   309→        State: Collapsed by default. Purple glow indicator only.
+   310→        Expand: On "Run Analysis" (⌘+Enter) or explicit click.
+   311→        3 suggestion cards (scrollable):
+   312→          [CRITICAL — red border-left]:
+   313→            "Pump room detection non-compliant"
+   314→            "SOLAS §11.6.3.2 requires flame detectors in all pump rooms."
+   315→            [Fix Automatically] [Show Me]
+   316→          [WARNING — amber border-left]:
+   317→            "Battery calculation may be incorrect"
+   318→            "Room R-205 shows 18Ah but load analysis indicates 22Ah required."
+   319→            [Recalculate] [Explain]
+   320→          [INFO — blue border-left]:
+   321→            "Optimization available"
+   322→            "Cable routing in Zone VFZ-03 can be reduced by 34m (18%)."
+   323→            [Apply Optimization] [Preview]
+   324→
+   325→      SYSTEM RESOURCES (mt-16):
+   326→        "Memory Service" row: Brain icon + status + provider name
+   327→        "Audit Chain" row: Link icon + "847 entries" + "SHA-256 verified"
+   328→        "AI Engine" row: Cpu icon + "QOMN-FIRE v2.0" + health dot
+   329→
+   330→═══════════════════════════════════════════════════════════════════
+   331→SCREEN 3: PROJECT DETAIL — ROOM DESIGN (Building Mode)
+   332→═══════════════════════════════════════════════════════════════════
+   333→
+   334→Layout: Same sidebar/header + full-width content
+   335→Panel System: Sidebar 260px (collapsible ⌘B) + Canvas (flex) + Right Panel 300px (collapsible ⌘I)
+   336→
+   337→PAGE HEADER:
+   338→  Breadcrumb: Dashboard > Projects > "Office Complex B-12"
+   339→  Title: "Office Complex B-12" Heading-1 + edit icon inline
+   340→  Meta row: "Last modified 3h ago · 24 rooms · NFPA 72-2022 · Engineer: Ahmed"
+   341→  Right buttons:
+   342→    "Run Analysis" — bg=#E84040, PlayCircle icon, 14px 600 (⌘+Enter)
+   343→    "Export Report" — bg=Surface-3, Download icon, 14px (⌘+E)
+   344→    "Share" — bg=Surface-3, Share2 icon
+   345→
+   346→BUILDING HIERARCHY (collapsible tree, top of content):
+   347→  🏢 Building B-12 [98.7% compliant]
+   348→    📶 Floor 4 — Roof [8 rooms, 100%]
+   349→    📶 Floor 3 — Offices [24 rooms, 99.2%]
+   350→    📶 Floor 2 — Labs [18 rooms, 96.5%] ⚠ 1 UNSAFE
+   351→    📶 Floor 1 — Lobby [12 rooms, 100%]
+   352→    📶 Floor G — Parking [16 rooms, 100%]
+   353→
+   354→  Blocking Logic: ANY floor with UNSAFE room blocks entire building submission
+   355→  "safe_to_submit": false if any floor UNSAFE
+   356→  Visual: Red banner "safe_to_submit = FALSE (Floor 2 has UNSAFE room)"
+   357→
+   358→MAIN GRID (3 columns with collapsible panels):
+   359→
+   360→  LEFT PANEL (240px, collapsible ⌘B):
+   361→    "Rooms" header + search input + "Add Room" button (Plus icon, #38BDF8 text)
+   362→    Room list (scrollable):
+   363→      Each room item: h=48px, padding 12px, border-bottom
+   364→      Name: 14px 600 Text-1
+   365→      Sub: "42.0m² · Smoke" Caption Text-3
+   366→      Right: compliance badge (green check or red X)
+   367→      Active: bg=red/10, left border 2px #E84040
+   368→      Hover: bg=Surface-3
+   369→
+   370→  CENTER PANEL (flex:1 — EXPANDS when side panels hidden):
+   371→    ROOM CANVAS (bg=Surface-3, radius=lg, overflow hidden):
+   372→      h=460px (expands to fill available height when panels hidden)
+   373→      Canvas controls top-right: Zoom+ (+), Zoom- (-), Fit (F), Grid toggle (G) — 4 buttons, Surface-2 bg
+   374→
+   375→      [P1 IMPROVEMENT — CAD-First Interaction]:
+   376→        Mouse:
+   377→          Ctrl + Wheel = Zoom in/out (Revit/AutoCAD muscle memory)
+   378→          Middle Click + Drag = Pan canvas
+   379→          Double Middle Click = Fit to view
+   380→          Left Click = Select object
+   381→          Right Click = Context menu ("Analyze with AI", "Properties", "Delete")
+   382→        Keyboard:
+   383→          + / − = Zoom In / Out
+   384→          F = Fit Canvas
+   385→          G = Toggle Grid
+   386→          ⌘Z / CtrlZ = Undo
+   387→          ⌘⇧Z / Ctrl⇧Z = Redo
+   388→          Del = Delete Selected
+   389→          ⌘Enter = Run Analysis
+   390→          Space = Pan Canvas (hold)
+   391→          Arrow Keys = Nudge Selected Object
+   392→
+   393→      SVG canvas:
+   394→        Room outline: stroke=#334155 2px
+   395→        Detectors: circles (r=12px, fill=#E84040/20, stroke=#E84040 2px)
+   396→          Center dot: r=4px fill=#E84040
+   397→          Coverage radius: dashed circle, stroke=#38BDF8/30
+   398→          Hover: tooltip showing detector ID, type, coverage, NFPA ref
+   399→          Selected: stroke=#E84040 3px, glow-red shadow
+   400→        Dead zones: red hatch pattern areas
+   401→        Walls: thick strokes #475569
+   402→        Doors: thin arcs
+   403→        Grid: 1px #334155/30 lines (toggleable)
+   404→        Scale indicator bottom-left: "1 unit = 1.0m" Caption Text-3
+   405→        Status bar bottom: Real-time cursor coordinates (X,Y) — JetBrains Mono 12px
+   406→      Bottom bar: room dimensions, area, detector count, coverage %
+   407→
+   408→    ANALYSIS RESULTS (mt-16, 3 columns gap-12):
+   409→      Card "Coverage": large % number #22C55E + progress ring
+   410→      Card "Detectors": count + type breakdown
+   411→      Card "Status": NFPA COMPLIANT badge (green, ShieldCheck, animated checkmark)
+   412→
+   413→    FLOOR COMPLIANCE SUMMARY (mt-16):
+   414→      "Floor 3 — Offices: 24 rooms, 98.7% compliant, 1 violation (R-205)"
+   415→      "Building Status: safe_to_submit = FALSE (Floor 2 has UNSAFE room)"
+   416→
+   417→  RIGHT PANEL (300px, collapsible ⌘I):
+   418→    ROOM PROPERTIES FORM:
+   419→      Section header: "Room Configuration" Heading-3 + collapse chevron
+   420→
+   421→      Tabs: "Basic" | "NFPA Settings" | "Advanced"
+   422→      [P1 IMPROVEMENT — Context Isolation]:
+   423→        "Marine" tab is COMPLETELY REMOVED from DOM in Building Mode.
+   424→        "NFPA Settings" tab is COMPLETELY REMOVED in Marine Mode.
+   425→        Project type is set at creation and cannot be switched without confirmation dialog.
+   426→
+   427→      TAB: Basic
+   428→        Room ID: input (read-only with copy icon)
+   429→        Room Name: text input
+   430→        Detector Type:
+   431→          Select dropdown (custom styled):
+   432→            Options with icons: 🔴 Smoke Detector | 🌡 Heat Detector | 🔥 Flame Detector | 💨 CO Detector | 🔊 Beam Detector
+   433→            bg=Surface, border, radius=md, ChevronDown icon
+   434→        Ceiling Height (m): number input with ▲▼ buttons, unit badge "m"
+   435→        Room Use: select (Office/Corridor/Storage/Hazardous/Machinery/Accommodation/...)
+   436→
+   437→      TAB: NFPA Settings
+   438→        Section "Spacing (NFPA 72 §17.7.3.2.1)":
+   439→          Listed Spacing S: number + "m" unit + help icon with tooltip
+   440→          Coverage Radius R: auto-calculated, locked field (= 0.7 × S)
+   441→          Wall Distance Max: auto-calculated (= S/2)
+   442→          Ceiling Type: select (Flat/Sloped/Peaked/Beam)
+   443→          HVAC Influence: toggle switch
+   444→        Section "Battery (NFPA 72 §10.6.7.1)":
+   445→          Standby Hours: 24h (readonly, code requirement)
+   446→          Alarm Duration: 5 min (readonly)
+   447→          Calculated Ah: live-computed value, #38BDF8
+   448→        Section "Voltage Drop (NFPA 72 §10.6.4)":
+   449→          Wire Gauge: select (AWG 14/12/10)
+   450→          Circuit Length: number input "m"
+   451→          Drop %: live-computed, color-coded (green <5%, yellow 5-8%, red >10%)
+   452→          Max Allowed: "10.0%" readonly
+   453→        Section "Fault Isolation (NFPA 72 §12.3.1)":
+   454→          Devices per segment: live count
+   455→          Max allowed: "32" readonly badge
+   456→          Isolators required: computed, badge
+   457→
+   458→      TAB: Advanced
+   459→        SLC Class: A or B — radio buttons with icons
+   460→        NAC Class: A or B
+   461→        FACP Zones: number
+   462→        Hazardous Area: toggle → shows IEC 60079 / ATEX classification dropdown
+   463→        Export Format: IFC | DXF | JSON | Revit JSON checkboxes
+   464→        Marine Mode: toggle (if enabled, shows SOLAS tab — requires project type change confirmation)
+   465→
+   466→      ACTIONS (bottom, border-top, padding-top 16px):
+   467→        "Apply Changes" full-width bg=#E84040
+   468→        "Reset to Defaults" text button, Text-3
+   469→        "Undo" (⌘Z) / "Redo" (⌘⇧Z) ghost buttons
+   470→
+   471→═══════════════════════════════════════════════════════════════════
+   472→SCREEN 4: CABLE ROUTING & CONDUIT
+   473→═══════════════════════════════════════════════════════════════════
+   474→
+   475→Layout: Full-width engineering view
+   476→Panel System: Both side panels hidden by default (full focus mode)
+   477→
+   478→PAGE HEADER:
+   479→  "Cable Routing & Conduit Design" Heading-1
+   480→  "NEC 2022 · NFPA 72 §12.2 · Class A/B Circuits"
+   481→  Tabs: "Cable Routing" | "Conduit Fittings" | "Fill Calculator" | "Schedules" | "BOQ"
+   482→
+   483→TAB: Cable Routing
+   484→  SPLIT VIEW (left 340px, right flex):
+   485→
+   486→    LEFT PANEL "Circuit Configuration":
+   487→      Circuit Type section:
+   488→        SLC (Signaling Line Circuit):
+   489→          Radio + label + badge "Class A" / "Class B"
+   490→          NFPA ref: §12.2.2
+   491→        NAC (Notification Appliance Circuit):
+   492→          Same pattern
+   493→
+   494→      Wire Gauge:
+   495→        Visual gauge selector (4 buttons in row):
+   496→          AWG 18 | AWG 16 | AWG 14 | AWG 12
+   497→          Each: border card, centered text, resistance below in Caption
+   498→          Selected: border=#E84040, bg=red/10, text=#E84040
+   499→        Active gauge data:
+   500→          Resistance: "10.07 Ω/km @ 75°C" — JetBrains Mono 13px #38BDF8
+   501→          NEC ref: "NEC Ch.9 Table 8" Caption Text-3
+   502→          Ampacity: "15A @ 60°C" Caption Text-3
+   503→
+   504→      Cable Length:
+   505→        Input with "m" unit, max length computed and shown below in Caption
+   506→
+   507→      Voltage Drop Calculator:
+   508→        Live calculation card (bg=Surface-3, rounded, padding 12px):
+   509→          Formula display: "V = I × 2 × R × L" JetBrains Mono 12px Text-3
+   510→          Inputs visible: I=0.150A, R=10.07Ω/km, L=0.250km
+   511→          Result: "V_drop = 0.756V (3.15%)" — large, color-coded
+   512→          Status: COMPLIANT ✓ or VIOLATION ✗ with NFPA §10.6.4 ref
+   513→          Progress bar showing % of 10% limit
+   514→
+   515→      Devices Section:
+   516→        Add Device button + list (name, type, current draw, position)
+   517→
+   518→      Run Route button: full-width #E84040 large
+   519→
+   520→    RIGHT PANEL "Route Visualization":
+   521→      3D/2D view toggle (top right)
+   522→      SVG canvas (h=500px, bg=Surface-3):
+   523→        Panel/FACP position: square with thunderbolt icon
+   524→        Device positions: colored circles per type
+   525→        Route path: animated dashed line (stroke-dashoffset animation 1s linear infinite)
+   526→          Class A: two separate colored paths (outgoing blue, return orange)
+   527→          Class B: single path
+   528→        Obstacles: gray rectangles (walls, beams)
+   529→        Bends: arc indicators with degree labels
+   530→        Pull boxes: diamond shapes with "PB" label
+   531→        Hover segments: show length, bend angle tooltip
+   532→      Bottom stats bar: Total length, Bends, Compliance status
+   533→
+   534→TAB: Conduit Fittings
+   535→  SPLIT (left 360px, right flex):
+   536→    LEFT "Conduit Configuration":
+   537→      Conduit Type (4 cards):
+   538→        EMT | UPVC Sch40 | UPVC Sch80 | RGD
+   539→        Each: icon, name, NEC article ref, select on click
+   540→      Trade Size (6 buttons): ½" | ¾" | 1" | 1¼" | 1½" | 2"
+   541→
+   542→      NEC Fill Calculator live:
+   543→        Conductors list (add/remove rows):
+   544→          Wire gauge select | Diameter (auto-fill from NEC Table 5) | Count
+   545→        Result card:
+   546→          Internal area: "0.304 in²" — from NEC Table 4
+   547→          Conductor area: "0.029 in²" JetBrains Mono
+   548→          Fill %: large number, color-coded (≤40% green, >40% red)
+   549→          Max allowed: "40% (3+ conductors, NEC Ch.9 Table 1)"
+   550→          Recommend larger size if violation: yellow banner
+   551→
+   552→      Bend Analysis:
+   553→        Add bend (angle, radius) inputs
+   554→        Cumulative total: progress ring 0-360°
+   555→        Warning at >360: "PULL BOX REQUIRED — NEC 358.26" red banner
+   556→
+   557→    RIGHT "Fitting Schedule & BOM":
+   558→      Table header: "Material Schedule"
+   559→      Export: CSV, PDF, Revit JSON buttons
+   560→      Table:
+   561→        Catalog No | Description | Qty | Unit | NEC Ref | Weight | Unit Price | Total
+   562→        E90-050 | EMT Elbow 90° ½" | 4 | EA | 358.24 | 0.18kg | $2.50 | $10.00
+   563→        EC-050  | EMT Coupling ½"  | 12 | EA | 358.42 | 0.28kg | $1.20 | $14.40
+   564→        PB-GEN  | Pull Box        | 1  | EA | 358.26 | 0.50kg | $15.00 | $15.00
+   565→        Rows sorted by catalog number
+   566→
+   567→      Summary footer:
+   568→        Total fittings: count | Total weight: kg | Total conduit: m | Total cost: $
+   569→        "Revit JSON ready" badge with SHA-256 hash display (12px mono)
+   570→
+   571→TAB: Fill Calculator (standalone)
+   572→  Full-width centered card (max-width 680px):
+   573→    Header: "NEC Chapter 9 — Conduit Fill Calculator"
+   574→    Conduit selector + trade size selector (same as above)
+   575→    Internal area result card (prominent, bg=Surface-3, large number #38BDF8)
+   576→    Conductors table (add rows dynamically):
+   577→      Select: AWG 18/16/14/12/10 | Area auto-fills | diameter auto-fills | Qty
+   578→    Results:
+   579→      Donut chart (SVG, animated): filled portion vs available
+   580→      Center: "22.4%" large
+   581→      Legend: Used / Available / Limit
+   582→    Compliance: large COMPLIANT/VIOLATION banner
+   583→    Recommend: next size up if violation, with one-click upgrade
+   584→
+   585→TAB: Schedules
+   586→  3 sub-tabs: Conduit Schedule | Fitting Schedule | Cable Schedule
+   587→  Each: full-width table, filter bar, export buttons (CSV/PDF/Excel)
+   588→
+   589→TAB: BOQ (Bill of Quantities)
+   590→  BOQ Dashboard integration (see Screen 11)
+   591→
+   592→═══════════════════════════════════════════════════════════════════
+   593→SCREEN 5: SAFETY RULES ENGINE
+   594→═══════════════════════════════════════════════════════════════════
+   595→
+   596→NFPA 72 Rules Dashboard:
+   597→  Header: "Safety Rules Engine — NFPA 72-2022 Truth Maintenance System"
+   598→
+   599→  TOP METRICS ROW (5 cards):
+   600→    Rules Active | Rules Fired | Violations | Safety Score | Confidence Level
+   601→
+   602→  RULE CHAIN VISUALIZATION:
+   603→    Horizontal flow diagram (SVG):
+   604→      Nodes: Room Facts → Spacing Rules → Coverage → Detector Requirements → Compliance
+   605→      Animated flow particles on connecting arrows
+   606→      Node colors: green (fired+pass), red (fired+fail), gray (not fired)
+   607→      Click node: show rule details panel
+   608→
+   609→  RULES TABLE:
+   610→    Filters: All | Fired | Not Fired | Violations | By NFPA Section | By SOLAS Section
+   611→    Columns: Rule ID | Standard Ref | Status | Priority | Fired At | Reason
+   612→    Each row expandable to show full rule details + matched facts
+   613→    Priority badges: SAFETY_CRITICAL (red), HIGH (orange), MEDIUM (yellow), INFO (blue)
+   614→
+   615→  AUDIT LOG PANEL (bottom):
+   616→    Live scrolling audit entries
+   617→    Each: timestamp | rule_id | event_type | room_id | hash (12 chars mono)
+   618→    "Export Audit Chain" button (with SHA-256 integrity seal)
+   619→
+   620→═══════════════════════════════════════════════════════════════════
+   621→SCREEN 6: BOQ & PROCUREMENT — BILL OF QUANTITIES
+   622→═══════════════════════════════════════════════════════════════════
+   623→
+   624→PAGE HEADER:
+   625→  "Bill of Quantities" Heading-1
+   626→  "Office Complex B-12 · NFPA 72-2022 · Auto-generated from design"
+   627→  Right:
+   628→    "Import Price List" button (bg=Surface-3, Upload icon)
+   629→    "Export BOQ" button (bg=#E84040, Download icon)
+   630→
+   631→STATS ROW (4 cards):
+   632→  "Total Line Items" — 1,247 — auto-generated from design
+   633→  "Total Project Cost" — $284,650 — +3.2% vs estimate
+   634→  "Supplier Quotes" — 18 — 12 approved, 6 pending
+   635→  "Lead Time" — 14d — Critical: 3 items
+   636→
+   637→COST BREAKDOWN CHART:
+   638→  Bar chart (SVG, no external library):
+   639→    Detectors 32% $92,450 (red)
+   640→    Panels 23% $64,200 (blue)
+   641→    Cables 25% $71,380 (green)
+   642→    Conduit 10% $28,450 (yellow)
+   643→    Fittings 6% $18,200 (purple)
+   644→    NAC 12% $34,800 (orange)
+   645→    Power 7% $18,650 (gray)
+   646→    Labor 4% $9,970 (gray)
+   647→
+   648→PROCUREMENT TIMELINE:
+   649→  BOQ Generated → Quotes Requested → Comparison → PO → Delivery
+   650→  Each step: date, status, responsible party
+   651→
+   652→BOQ CATEGORIES (8 cards, 4x2 grid):
+   653→  Fire Detectors | Control Panels | Cables & Wires | Conduit & Raceway
+   654→  Fittings & Accessories | Notification Appliances | Power Supplies | Installation Labor
+   655→  Each: icon, count, total cost, click to expand detailed table
+   656→
+   657→DETAILED BOQ TABLE:
+   658→  Columns: Item No | Description | Spec/NFPA Ref | Qty | Unit | Unit Price | Total | Supplier | Rating | Status
+   659→  Rows: expandable, show variants, alternatives, supplier comparison
+   660→  Actions: Edit price, Change supplier, Mark approved, Add alternative
+   661→
+   662→SUPPLIER COMPARISON:
+   663→  Side-by-side table: Supplier | Unit Price | Lead Time | Rating | Certifications | Best Value
+   664→  Highlight: "Best Price" green, "Best Lead Time" blue, "Best Value" purple
+   665→
+   666→COST ALERTS:
+   667→  Info: "3 items above estimate by >10%"
+   668→  Warning: "2 items have no supplier quote yet"
+   669→  Critical: "1 item (Beam Detectors) lead time exceeds project deadline"
+   670→
+   671→APPROVAL WORKFLOW:
+   672→  Engineer Review → PM Approval → Client Approval → PO Issued
+   673→  Each step: status, date, approver name, digital signature hash
+   674→
+   675→═══════════════════════════════════════════════════════════════════
+   676→SCREEN 7: MARINE MODULE — SOLAS / IMO / MED
+   677→═══════════════════════════════════════════════════════════════════
+   678→
+   679→Module Identity: BAZspark Marine — Naval & Offshore Fire Detection Design
+   680→Color accent: #0EA5E9 (Ocean Blue) layered on base design system
+   681→
+   682→[CONTEXT ISOLATION]: Marine module is ONLY accessible when project_type == "marine".
+   683→In Building Mode: Marine nav group is grayed out with tooltip "Switch to Marine project".
+   684→
+   685→SIDEBAR INTEGRATION:
+   686→  Group label: "MARINE ⚓" Caption Text-3 uppercase #0EA5E9
+   687→  Nav items (all with ocean-blue active state):
+   688→    ⚓ Vessel Overview     (Anchor icon)
+   689→    🗺  Zone Mapping       (Map icon)
+   690→    🔴 Detector Grid      (Radio icon)
+   691→    📡 Gas / UGLD          (Radio2 icon)
+   692→    🔊 PA / Alarm Zones    (Volume2 icon)
+   693→    📋 Class Compliance    (ClipboardCheck icon)
+   694→    🌊 Offshore Platform   (Building2 icon)
+   695→
+   696→7.1 VESSEL OVERVIEW:
+   697→  Vessel Type Selector (6 cards, 2x3 grid):
+   698→    Cargo Vessel | Passenger Ship | Tanker (Oil/Gas/Chemical)
+   699→    Offshore/FPSO | Ro-Ro/Ferry | Naval/Yacht
+   700→  Each: icon, SOLAS ref, key requirement, alert badge if applicable
+   701→
+   702→  Vessel Profile Form (2-column):
+   703→    Vessel Name, IMO Number (7 digits validated), Flag State (ISO + emoji)
+   704→    Classification Society: multi-select pills (Lloyd's | DNV GL | BV | ABS | Class NK | RINA | CCS)
+   705→    Gross Tonnage, Ship Type, Year Built, Call Sign
+   706→    LOA, Beam, Depth, Freeboard Deck, Voyage Type
+   707→    Fire Zone Count, Accommodation Decks, Cargo Hold Count
+   708→
+   709→  Import Plans: Dropzone for DXF/PDF/IFC — auto-parses fire zones
+   710→  Detected layers: FA_ZONES, FA_DETECTORS, FIRE_DOORS, FIRE_ZONES
+   711→
+   712→7.2 ZONE MAPPING:
+   713→  Left: Zone List (VFZ / HFZ / Machinery Spaces)
+   714→    Each zone: ID badge, name, frames, area, detector count, compliance
+   715→  Right: Canvas — Ship plan view with zone boundaries
+   716→    VFZ: colored vertical bands | HFZ: horizontal lines per deck
+   717→    Fire doors: colored rectangles | Escape routes: dashed green
+   718→    Deck selector: Poop / Upper / Main / Lower / Tank Top
+   719→
+   720→7.3 DETECTOR GRID:
+   721→  Standard tabs: SOLAS/IMO FSS | EN 54-5/7 | NFPA 72 §29 | ISO 7240
+   722→  Left: Detection Rules by SOLAS space category
+   723→    Accommodation Spaces (§9.2.2.2.1): Smoke mandatory, spacing ≤11m/≤22m
+   724→    Service Spaces (§9.2.2.2.2): Smoke or heat
+   725→    Control Stations (§9.2.2.2.3): Smoke, 2min response
+   726→    Machinery Spaces Cat A (§9.2.2.2.4): Smoke+Heat+Flame, 2 detectors/500m³
+   727→    Pump Room (Tankers): Flame ONLY — smoke PROHIBITED (red banner)
+   728→    Cargo Holds: by cargo type (smoke/CO/heat)
+   729→    Open Deck: MCP only, max 20m spacing
+   730→  Right: Canvas with detector symbols per IEC 60849 / IMO
+   731→    Smoke: circle S #0EA5E9 | Heat: circle H #F59E0B | Flame: circle F #E84040
+   732→    CO: circle CO #A78BFA | MCP: square hand #22C55E | UGLD: hexagon wave #38BDF8
+   733→
+   734→7.4 GAS / UGLD:
+   735→  ATEX Zone Classification: Zone 0 (continuous) / Zone 1 (occasional) / Zone 2 (unlikely)
+   736→  Gas Type Matrix: LNG/LPG/Crude/H₂/CO/H₂S with LEL/UEL/Set Point/Detector Type
+   737→  UGLD Configuration: threshold dB slider, wind speed limit, coverage radius
+   738→  Canvas: ATEX zones overlay, gas detector positions, wind rose
+   739→
+   740→7.5 PA / ALARM ZONES (SOLAS §6):
+   741→  General Emergency Alarm: 7 short + 1 long blast visual animation
+   742→  PA Zone: SPL calculator, speaker placement, muster list integration
+   743→  Coverage map: SPL heatmap (green=75dBA+, yellow=65-75, red<65)
+   744→
+   745→7.6 FIXED SUPPRESSION INTERFACES:
+   746→  Table: Suppression System vs Detection Interlock per Space
+   747→  CO₂ Total Flood | Watermist | FM-200 | Deluge
+   748→  Each: SOLAS ref + detection requirements + interlock signal spec
+   749→
+   750→7.7 CLASS COMPLIANCE REPORT:
+   751→  Checklist by society: IMO/SOLAS | Lloyd's | DNV GL | BV | ABS
+   752→  Each: expandable checklist with ☑/☐ items
+   753→  Certification Status: "READY FOR CLASS SURVEY ✓" or "ACTION REQUIRED — 3 items"
+   754→  Generate Submission Package: PDF + detector schedule + DXF + BOQ
+   755→
+   756→7.8 OFFSHORE PLATFORM (conditional):
+   757→  Platform type: Fixed | Semi-sub | Jack-up | FPSO | FLNG
+   758→  SIL requirements: IEC 61511 mandatory, SIL 2 badge
+   759→  F&G Architecture diagram: Detectors → F&G Controller → DCS → Shutdown
+   760→  Open path IR, UV/IR flame, UGLD arrays, weatherproof MCPs
+   761→
+   762→═══════════════════════════════════════════════════════════════════
+   763→SCREEN 8: AI ENGINEERING AGENT [P1 IMPROVEMENT — Background-First]
+   764→═══════════════════════════════════════════════════════════════════
+   765→
+   766→Agent Identity: BAZspark AI — Conversational Fire Safety Engineering
+   767→Color accent: #A78BFA (Purple)
+   768→
+   769→[BACKGROUND-FIRST BEHAVIOR]:
+   770→  - AI runs analysis continuously in background
+   771→  - UI shows ONLY: Purple glow indicator (subtle, top header)
+   772→  - CRITICAL violations: instant toast notification (red, dismissible)
+   773→  - ALL other suggestions: batched until explicit trigger
+   774→
+   775→ENTRY POINTS:
+   776→  1. Sidebar nav item: "🧠 AI Engineering Agent" with "Ask BAZspark" badge
+   777→  2. Floating button: bottom-right 52px circle, bg=#A78BFA, BrainCircuit icon
+   778→     Badge: count of proactive suggestions (red pulse — CRITICAL only)
+   779→  3. Inline "Ask BAZspark" next to every NFPA/SOLAS reference
+   780→  4. Right-click on canvas: "Analyze with AI"
+   781→  5. Violation cards: "Fix with AI →" button
+   782→  6. Run Analysis (⌘+Enter): triggers full AI scan + suggestion panel
+   783→
+   784→MAIN INTERFACE (3-column):
+   785→
+   786→LEFT COLUMN (280px) — Context & Suggestions:
+   787→  "Current Context" card: project, vessel type, standard, active room
+   788→  "Proactive Suggestions" (auto-generated, COLLAPSED by default):
+   789→    Expand: Click purple glow indicator OR Run Analysis (⌘+Enter)
+   790→    [CRITICAL — red]: "Pump room detection non-compliant" — [Fix] [Show]
+   791→    [WARNING — amber]: "Battery calculation may be incorrect" — [Recalculate] [Explain]
+   792→    [INFO — blue]: "Cable routing optimization available" — [Apply] [Preview]
+   793→    [LEARNING — purple]: "Pattern recognized from similar projects" — [Apply] [View]
+   794→  "NFPA/SOLAS Quick Reference": searchable, recently used sections
+   795→
+   796→CENTER COLUMN (flex:1) — CHAT INTERFACE:
+   797→  Conversation area (scrollable, max-height fills screen):
+   798→    User message: right-aligned, bg=purple/10, border-right purple, avatar initials
+   799→    Agent message: left-aligned, bg=Surface-2, border Border, avatar BrainCircuit icon
+   800→
+   801→    Content types:
+   802→      1. Plain text: 14px Text-1, 1.7 line-height, markdown
+   803→      2. Code block: bg=Surface, JetBrains Mono 13px, copy button, language label
+   804→      3. Compliance result: green/red card with ShieldCheck/AlertTriangle
+   805→      4. Comparison table: full-width styled HTML table
+   806→      5. Action buttons: "Apply Fix" | "View in Canvas" | "Export" (inline)
+   807→      6. File attachment: icon + name + size + "Analyzed" badge
+   808→      7. Think-out-loud: collapsible "Reasoning" section, 12px Text-3 italic
+   809→      8. Typing indicator: three pulsing purple dots
+   810→
+   811→  Pre-seeded example conversation:
+   812→    User: "Check if my vessel's accommodation detection meets SOLAS"
+   813→    Agent: [Analyzing...] → Full compliance check with fix buttons
+   814→    User: "Fix the paint locker issue"
+   815→    Agent: Replacing smoke → heat, with undo/view options
+   816→
+   817→  INPUT AREA (fixed bottom):
+   818→    Attachment bar: drag & drop files (DXF, PDF, IFC, JSON, images), max 5 files, 50MB
+   819→    Quick action chips: "Check NFPA" | "Calculate battery" | "Optimize routing" | "SOLAS review" | "Generate report" | "Find violations" | "Explain §17.7.3.2.1" | "Compare vessels"
+   820→    Input row: Paperclip icon | Auto-expanding textarea (Shift+Enter newline, Enter send) | Microphone toggle (voice input) | Send button (purple circle, ArrowUp)
+   821→    Bottom disclaimer: "BAZspark AI may make mistakes. Always verify with licensed FPE." Caption Text-3 italic
+   822→
+   823→RIGHT COLUMN (260px) — Tools & History:
+   824→  "Active Tools": toggles for NFPA Calculator, Project Scanner, Coverage Verifier, Report Generator, Cable Router, Marine Validator, Memory Search
+   825→  "Session History": last 10 sessions with message count, click to restore
+   826→  "Saved Responses": user-bookmarked agent responses
+   827→
+   828→AGENT CONFIGURATION (Settings sub-tab):
+   829→  LLM Provider: OpenAI / Anthropic / Gemini / Local (Ollama)
+   830→  Model: dropdown per provider
+   831→  API Key: masked + test button
+   832→  Temperature: slider 0–1 (default 0.1 for engineering precision)
+   833→  Max tokens: number (default 4000)
+   834→  System prompt: textarea (pre-filled with NFPA/SOLAS context)
+   835→  Memory: toggle (uses mem0 / project memory)
+   836→  Proactive suggestions: toggle + frequency (realtime / hourly / manual)
+   837→  Voice input: toggle + language select (Arabic / English)
+   838→
+   839→═══════════════════════════════════════════════════════════════════
+   840→SCREEN 9: DIGITAL TWIN & BIM
+   841→═══════════════════════════════════════════════════════════════════
+   842→
+   843→9.1 DIGITAL TWIN:
+   844→  PAGE HEADER: "Digital Twin" — Building/Vessel B-12 · Real-time Sensor Status
+   845→
+   846→  SPLIT VIEW (left 280px, right flex):
+   847→    Left: Building/Vessel Hierarchy tree
+   848→      Building → Floors → Rooms → Devices
+   849→      Each: online/offline status dot, detector count, last reading
+   850→
+   851→    Right: 3D View (CSS 3D transform, mouse-draggable)
+   852→      Building floors as stacked rectangles
+   853→      Click floor: zoom to floor plan
+   854→      Device status: green (normal), yellow (warning), red (alarm), gray (offline)
+   855→      Hover device: tooltip with ID, type, last reading, status
+   856→      Legend: Normal / Warning / Alarm / Offline / Maintenance
+   857→
+   858→    Live Sensor Feed (below hierarchy):
+   859→      Real-time readings: D-01 Lobby OK 4.2% | D-15 Corridor MAINT 12.1%
+   860→      Color-coded: green <5%, yellow 5-15%, red >15%
+   861→
+   862→9.2 BIM IMPORT:
+   863→  Dropzone: "Drop BIM file here" — .rvt, .ifc, .dwg, .dxf, .json, max 500MB
+   864→  Geometry Preview: SVG plan view with room outlines
+   865→  Element Mapping: Revit Category → BAZspark Type (auto-mapped, editable)
+   866→    Rooms → Room | Walls → Obstacle | Doors → Opening | Windows → Opening
+   867→    Floors → Level | MEP Equipment → Device
+   868→  Import & Analyze button
+   869→
+   870→═══════════════════════════════════════════════════════════════════
+   871→SCREEN 10: FACP DESIGN
+   872→═══════════════════════════════════════════════════════════════════
+   873→
+   874→PAGE HEADER: "FACP Design" — Panel Configuration · Circuit Routing · Capacity Audit
+   875→
+   876→SPLIT VIEW (left 1fr, right 1fr):
+   877→  Left: Panel Configuration
+   878→    Panel Model: Notifier NFS2-3030 / Simplex 4100ES / Siemens FC922
+   879→    SLC Capacity: 4 loops (readonly)
+   880→    Max Devices per Loop: 318 (readonly)
+   881→    NAC Circuits: 8 (readonly)
+   882→    Loop utilization: progress bars (SLC-1: 31/318, SLC-2: 142/318)
+   883→
+   884→  Right: Circuit Diagram (SVG)
+   885→    FACP box with thunderbolt icon
+   886→    SLC loops: Class A (blue outgoing, orange return) or Class B (single path)
+   887→    Device nodes: circles with ID labels
+   888→    Isolator positions: ISO-1, ISO-2 diamonds
+   889→    Segment counts, isolator counts, capacity status
+   890→
+   891→═══════════════════════════════════════════════════════════════════
+   892→SCREEN 11: REPORTS
+   893→═══════════════════════════════════════════════════════════════════
+   894→
+   895→Report Types (3x3 grid cards):
+   896→  Building Reports: NFPA 72 Compliance | Cable Schedule | Battery Calculation | As-Built
+   897→  Marine Reports: SOLAS Compliance Certificate | Class Survey Submission | MED Equipment Schedule | Fire Control Plan | Gas Detection Report | Muster List Cross-Reference
+   898→  General: Full Project Report | Executive Summary | Client Presentation
+   899→
+   900→Report Preview (full-width):
+   901→  Header: project name, date, engineer, digital signature area
+   902→  Sections: Executive Summary | Detector Placement | Cable Routing | Compliance Status
+   903→  Tables: styled with NFPA/SOLAS references
+   904→  Footer: SHA-256 hash, "Digitally signed by [Engineer]", page numbers
+   905→  Export: PDF (with digital signature) | DXF | Excel | Revit JSON
+   906→
+   907→═══════════════════════════════════════════════════════════════════
+   908→SCREEN 12: SETTINGS — ALL BACKEND SETTINGS SURFACED
+   909→═══════════════════════════════════════════════════════════════════
+   910→
+   911→Layout: Left settings nav (200px) + right content
+   912→
+   913→SETTINGS NAV (categories):
+   914→  General | NFPA Configuration | NEC Standards | Marine Standards | AI & Memory |
+   915→  Pipeline | Security | Notifications | Export | About | RBAC
+   916→
+   917→TAB: NFPA Configuration
+   918→  Detection Coverage (§17.7): Spacing S, R=0.7×S, wall distance S/2, dead air space
+   919→  Battery (§10.6.7): 24h standby, 5min alarm, safety factor 1.25×
+   920→  Voltage Drop (§10.6.4): Max 10%, ref temp 75°C, wire resistance table
+   921→  Fault Isolation (§12.3.1): Max 32 devices, SLC/NAC Class default
+   922→
+   923→TAB: Marine Standards
+   924→  Flag state default | Classification society default
+   925→  Battery standby: "12h" readonly (SOLAS vs NFPA 72's 24h) with explanation
+   926→  MED type approval database: sync button
+   927→  ATEX zone defaults: Zone 1 default detector type
+   928→  Pyrotechnic signal: reminder toggle (SOLAS Chapter III)
+   929→
+   930→TAB: AI & Memory
+   931→  LLM Provider: OpenAI/Gemini/Local + API key + model selector
+   932→  Temperature: 0.1 slider | Max tokens: 4000
+   933→  Proactive suggestions: toggle + frequency (realtime / hourly / manual)
+   934→  Voice input: toggle + Arabic/English
+   935→  Memory: toggle (mem0 / project memory)
+   936→
+   937→TAB: Security
+   938→  AUDIT_HMAC_KEY: masked + generate + strength indicator
+   939→  Session timeout | Rate limiting | Environment badge (Development/Production)
+   940→  RBAC: User roles (Admin/Engineer/Viewer), permissions matrix
+   941→
+   942→TAB: Export
+   943→  Default format: IFC | DXF | JSON | PDF | Revit JSON
+   944→  Revit integration: endpoint URL + test connection
+   945→  AutoCAD: DXF version (R2018/R2021)
+   946→  Schedule formats: checkboxes
+   947→
+   948→TAB: Pipeline
+   949→  8 stage toggles (enable/disable each)
+   950→  Stage timeout settings (seconds)
+   951→  "Run Full Pipeline Test" button → live progress display
+   952→
+   953→═══════════════════════════════════════════════════════════════════
+   954→SCREEN 13: AUDIT LOG & SELF-HEALING
+   955→═══════════════════════════════════════════════════════════════════
+   956→
+   957→AUDIT LOG:
+   958→  SHA-256 Chain verification status (green check / red X)
+   959→  Table: Timestamp | Event | Rule | Room/Zone | Severity | Hash (12 chars)
+   960→  Export Audit Chain button with SHA-256 integrity seal
+   961→  Filter: All | Fired | Violations | By NFPA | By SOLAS
+   962→
+   963→SELF-HEALING:
+   964→  Circuit Breaker state: CLOSED/OPEN/HALF-OPEN — animated state diagram
+   965→  Metrics: Success rate%, Failure count, Last failure time, Latency
+   966→  Recent events: scrollable log with colored dots
+   967→  Manual controls: "Reset Circuit", "Force Check" buttons
+   968→  AI Memory status: provider, entries, search
+   969→
+   970→═══════════════════════════════════════════════════════════════════
+   971→KEYBOARD SHORTCUTS — GLOBAL
+   972→═══════════════════════════════════════════════════════════════════
+   973→
+   974→Navigation:
+   975→  ⌘1 / Ctrl1     → Dashboard
+   976→  ⌘2 / Ctrl2     → Projects
+   977→  ⌘3 / Ctrl3     → Detectors
+   978→  ⌘, / Ctrl,     → Settings
+   979→  ⌘B / CtrlB     → Toggle Left Panel (collapse/expand)
+   980→  ⌘I / CtrlI     → Toggle Right Panel (collapse/expand)
+   981→  ⌘Shift+F       → Full Focus Mode (hide both panels)
+   982→  ⌘K / CtrlK     → Global Search
+   983→  ?              → Show Shortcuts Help
+   984→  Esc            → Close Modal / Cancel
+   985→
+   986→Room Design / Canvas:
+   987→  Ctrl + Wheel   → Zoom In / Out (CAD muscle memory)
+   988→  Middle Click   → Pan Canvas (hold and drag)
+   989→  Double Middle  → Fit to View
+   990→  + / −          → Zoom In / Out (keyboard)
+   991→  F              → Fit Canvas
+   992→  G              → Toggle Grid
+   993→  ⌘Z / CtrlZ     → Undo
+   994→  ⌘⇧Z / Ctrl⇧Z   → Redo
+   995→  Del            → Delete Selected
+   996→  ⌘Enter         → Run Analysis
+   997→  Space          → Pan Canvas (hold)
+   998→  Arrow Keys     → Nudge Selected Object
+   999→
+  1000→General:
+  1001→  ⌘S / CtrlS     → Save
+  1002→  ⌘E / CtrlE     → Export
+  1003→  ⌘N / CtrlN     → New Project
+  1004→  ⌘P / CtrlP     → Print / Preview
+  1005→
+  1006→AI Agent:
+  1007→  ⌘ShiftA        → Open AI Agent Panel
+  1008→  ⌘ShiftF        → Send File to AI
+  1009→  /              → Focus AI Input (when panel open)
+  1010→
+  1011→═══════════════════════════════════════════════════════════════════
+  1012→TECHNICAL NOTES FOR STITCH / DEVELOPER
+  1013→═══════════════════════════════════════════════════════════════════
+  1014→
+  1015→Framework: React 18 + TypeScript + Tailwind CSS
+  1016→State: Zustand (recommended for this scale) or Redux Toolkit
+  1017→No mock data — all values from real API hooks:
+  1018→  useHealth, useProjects, useDevices, useMarine, useAIAgent, useBOQ
+  1019→
+  1020→API Endpoints (30+ routers):
+  1021→  GET /api/health → system status
+  1022→  GET /api/projects → project list
+  1023→  GET /api/projects/:id/devices → device list
+  1024→  POST /api/projects/:id/analyze → run analysis
+  1025→  GET /api/marine/vessel/:id → vessel data
+  1026→  GET /api/marine/zones → zone list
+  1027→  GET /api/ai/status → AI provider status
+  1028→  POST /api/ai/chat → send message to agent
+  1029→  GET /api/boq/:projectId → bill of quantities
+  1030→  WebSocket /ws → live event feed
+  1031→  WebSocket /ws/marine → marine sensor feed
+  1032→
+  1033→All NFPA/SOLAS values computed, not hardcoded:
+  1034→  Coverage radius = 0.7 × S (from backend DensityOptimizer V7.3)
+  1035→  Voltage drop = I × 2 × R × L (live in component)
+  1036→  Battery Ah = (standby_current × 24h) + (alarm_current × 5min/60) × 1.25
+  1037→  SOLAS battery: 12h standby (vs NFPA 72's 24h)
+  1038→  Marine spacing: ≤11m from bulkhead, ≤22m between detectors (SOLAS §9.2.2.2.1)
+  1039→
+  1040→Validation:
+  1041→  room_id: non-empty, max 256 chars
+  1042→  area_m2: >0, finite, <1,000,000
+  1043→  ceiling_height_m: 0.1–30m
+  1044→  polygon coordinates: finite, within ±1,000,000m
+  1045→  wire gauges: AWG 6-18 only
+  1046→  ps_voltage: >0, finite
+  1047→  IMO number: 7 digits, validated format
+  1048→
+  1049→Error Boundaries: Every major section (not full-page crash)
+  1050→Accessibility: ARIA labels, keyboard navigation, focus management
+  1051→Dark mode only (no light mode — engineering tool)
+  1052→Responsive: min-width 1440px (P1 improvement from 1280px)
+  1053→Performance: Virtualized lists for 1000+ items, debounced search, lazy-loaded 3D
+  1054→
+  1055→═══════════════════════════════════════════════════════════════════
+  1056→P1 IMPROVEMENTS SUMMARY (FROM EVALUATION)
+  1057→═══════════════════════════════════════════════════════════════════
+  1058→
+  1059→1. VIEWPORT & PANELS:
+  1060→   - min-width: 1440px (was 1280px)
+  1061→   - Left panel collapsible: ⌘B
+  1062→   - Right panel collapsible: ⌘I
+  1063→   - Full focus mode: ⌘Shift+F
+  1064→   - Canvas expands to 100% when panels hidden
+  1065→
+  1066→2. CONTEXT ISOLATION:
+  1067→   - Marine tab REMOVED from DOM in Building Mode
+  1068→   - NFPA tab REMOVED from DOM in Marine Mode
+  1069→   - Project type set at creation, switch requires confirmation
+  1070→
+  1071→3. CANVAS CAD INTERACTION:
+  1072→   - Ctrl + Wheel = Zoom
+  1073→   - Middle Click + Drag = Pan
+  1074→   - Double Middle = Fit
+  1075→   - Right Click = Context menu ("Analyze with AI")
+  1076→   - Status bar: real-time cursor coordinates
+  1077→
+  1078→4. AI BACKGROUND-FIRST:
+  1079→   - Only CRITICAL violations show instantly (toast)
+  1080→   - All other suggestions batched until Run Analysis (⌘+Enter)
+  1081→   - Purple glow indicator replaces sidebar noise
+  1082→   - AI panel expands on demand, not automatically
+  1083→
+  1084→═══════════════════════════════════════════════════════════════════
+  1085→END OF STITCH-READY PROMPT v8.1
+  1086→═══════════════════════════════════════════════════════════════════
+  1087→
