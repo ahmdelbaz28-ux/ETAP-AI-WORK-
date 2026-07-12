@@ -240,19 +240,16 @@ function App() {
                                         onOpenChange={setCommandPaletteOpen}
                                 />
                                 {/* V207.3: Global AI Copilot — visible on all protected routes (Ctrl+J) */}
-                                {/* V215 v3: Ambient gradient blob behind the floating button — gives the
-                                    glass surface something colorful to blur and adds depth to the
-                                    bottom-right corner of every protected page. */}
+                                {/* V216: Restored V223 flat blue button. Blob + glass removed. */}
                                 {!isPublicRoute && (
                                         <>
-                                                <div className="ask-ai-blob" aria-hidden="true" />
                                                 <AskAiButton onClick={() => setAiOpen(true)} />
                                                 <AskAiSheet open={aiOpen} onOpenChange={setAiOpen} />
                                         </>
                                 )}
                                 <OnboardingTour />
                                 {/* V215: Move toaster to top-right to avoid overlapping
-                                     the new floating Ask AI button (bottom-right). */}
+                                     the floating Ask AI button (bottom-right). */}
                                 <Toaster position="top-right" />
                                 </div>
                         </SmoothScroll>

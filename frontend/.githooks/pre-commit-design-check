@@ -1,0 +1,85 @@
+#!/bin/bash
+# Pre-commit hook: Prevent accidental UI design regressions
+# Based on DESIGN_SYSTEM.md — verifies V223 engineering palette is intact
+
+set -e
+
+echo "🔍 Checking UI design integrity (DESIGN_SYSTEM.md)..."
+
+ERRORS=0
+
+# 1. Check globals.css — background must be slate-900, NOT deep navy
+if git diff --cached --name-only | grep -q "frontend/src/styles/globals.css"; then
+    if grep -q "background: 7 11 18" frontend/src/styles/globals.css 2>/dev/null; then
+        echo "❌ ERROR: globals.css uses --background: 7 11 18 (deep navy #070b12)"
+        echo "   DESIGN_SYSTEM.md requires --background: 15 23 42 (slate-900 #0f172a)"
+        echo "   This was the Awwwards redesign mistake (commit 1ddad377)."
+        ERRORS=$((ERRORS + 1))
+    fi
+    if grep -q "primary: 34 211 238" frontend/src/styles/globals.css 2>/dev/null; then
+        echo "❌ ERROR: globals.css uses --primary: 34 211 238 (neon cyan #22d3ee)"
+        echo "   DESIGN_SYSTEM.md requires --primary: 47 129 247 (calm blue #2f81f7)"
+        ERRORS=$((ERRORS + 1))
+    fi
+fi
+
+# 2. Check index.css
+if git diff --cached --name-only | grep -q "frontend/src/index.css"; then
+    if grep -q "color-background: #070b12" frontend/src/index.css 2>/dev/null; then
+        echo "❌ ERROR: index.css uses --color-background: #070b12 (deep navy)"
+        echo "   DESIGN_SYSTEM.md requires --color-background: #0f172a (slate-900)"
+        ERRORS=$((ERRORS + 1))
+    fi
+    if grep -q "color-primary: #22d3ee" frontend/src/index.css 2>/dev/null; then
+        echo "❌ ERROR: index.css uses --color-primary: #22d3ee (neon cyan)"
+        echo "   DESIGN_SYSTEM.md requires --color-primary: #2f81f7 (calm blue)"
+        ERRORS=$((ERRORS + 1))
+    fi
+    # Check for forbidden glass/blob classes
+    if grep -q "ask-ai-blob\|ask-ai-button\|ask-ai-float\|ask-ai-glow" frontend/src/index.css 2>/dev/null; then
+        echo "❌ ERROR: index.css contains forbidden ask-ai-* CSS classes"
+        echo "   These were removed in V216. Ask AI button uses standard Button component."
+        ERRORS=$((ERRORS + 1))
+    fi
+fi
+
+# 3. Check button.tsx — no hover:scale, no shadow
+if git diff --cached --name-only | grep -q "frontend/src/components/ui/button.tsx"; then
+    if grep -q "hover:scale" frontend/src/components/ui/button.tsx 2>/dev/null; then
+        echo "❌ ERROR: button.tsx contains hover:scale-* — forbidden by DESIGN_SYSTEM.md"
+        ERRORS=$((ERRORS + 1))
+    fi
+    if grep -q "shadow-cyan\|shadow-md" frontend/src/components/ui/button.tsx 2>/dev/null; then
+        echo "❌ ERROR: button.tsx contains shadow-* — forbidden by DESIGN_SYSTEM.md"
+        ERRORS=$((ERRORS + 1))
+    fi
+fi
+
+# 4. Check Sidebar.tsx — no glass class
+if git diff --cached --name-only | grep -q "frontend/src/components/layout/Sidebar.tsx"; then
+    if grep -q 'className=.*glass' frontend/src/components/layout/Sidebar.tsx 2>/dev/null; then
+        echo "❌ ERROR: Sidebar.tsx uses 'glass' class — forbidden by DESIGN_SYSTEM.md"
+        echo "   Use 'bg-card backdrop-blur-sm' instead."
+        ERRORS=$((ERRORS + 1))
+    fi
+fi
+
+# 5. Check AskAiButton.tsx — no glass/blob classes
+if git diff --cached --name-only | grep -q "frontend/src/components/ai/AskAiButton.tsx"; then
+    if grep -q "ask-ai-button\|ask-ai-blob\|glass" frontend/src/components/ai/AskAiButton.tsx 2>/dev/null; then
+        echo "❌ ERROR: AskAiButton.tsx uses forbidden classes (ask-ai-button, ask-ai-blob, glass)"
+        echo "   Use standard Button component with bg-primary."
+        ERRORS=$((ERRORS + 1))
+    fi
+fi
+
+if [ $ERRORS -gt 0 ]; then
+    echo ""
+    echo "🚫 COMMIT REJECTED: $ERRORS design violation(s) found."
+    echo "   See frontend/DESIGN_SYSTEM.md for the correct design spec."
+    echo "   To bypass (NOT RECOMMENDED): git commit --no-verify"
+    exit 1
+fi
+
+echo "✅ Design integrity verified — commit allowed."
+exit 0
