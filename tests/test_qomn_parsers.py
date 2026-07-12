@@ -541,7 +541,8 @@ class TestDwgConverter(unittest.TestCase):
         """V213: When dwg2dxf IS on PATH (mocked), the real subprocess
         path must be taken — not the mock fallback.
         """
-        from unittest.mock import patch, MagicMock
+        from unittest.mock import MagicMock, patch
+
         from qomn_fire.parsers.dwg_converter import DwgConverter
 
         dwg_path = os.path.join(self.tmpdir, "real_test.dwg")
@@ -574,7 +575,8 @@ class TestDwgConverter(unittest.TestCase):
         """V213: When dwg2dxf is NOT available but ODAFileConverter IS,
         the ODA path must be used.
         """
-        from unittest.mock import patch, MagicMock
+        from unittest.mock import MagicMock, patch
+
         from qomn_fire.parsers.dwg_converter import DwgConverter
 
         dwg_path = os.path.join(self.tmpdir, "oda_test.dwg")
@@ -592,7 +594,7 @@ class TestDwgConverter(unittest.TestCase):
             if len(cmd) >= 5 and cmd[0] == "ODAFileConverter":
                 # Simulate ODA writing output.dxf in the output dir
                 output_dir = cmd[2]
-                input_basename = os.path.splitext(os.path.basename(cmd[1] + "/" + os.path.basename(dwg_path)))[0]
+                _ = os.path.splitext(os.path.basename(cmd[1] + "/" + os.path.basename(dwg_path)))[0]
                 # Actually ODA keeps the basename: oda_test.dxf
                 oda_out = os.path.join(output_dir, "oda_test.dxf")
                 with open(oda_out, "w", encoding="utf-8") as f:

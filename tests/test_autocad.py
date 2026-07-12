@@ -846,7 +846,7 @@ class TestV214NoHardcodedReadDwgEntities:
         # These may appear in docstrings (as quotes) but not as actual dict literals.
         # We look for the pattern inside a return dict: {"handle": "H1"
         hardcoded_pattern = re.compile(r'"\s*handle\s*"\s*:\s*"H[12]"')
-        matches = hardcoded_pattern.findall(content)
+        _ = hardcoded_pattern.findall(content)
         # Filter out matches that are inside docstrings (lines starting with # or """)
         # by checking if the line is a comment or docstring
         lines_with_matches = []

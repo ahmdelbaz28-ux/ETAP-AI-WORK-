@@ -18,7 +18,6 @@ Per agent.md Rule 10 (MANDATORY TEST-AND-FIX LOOP):
 from __future__ import annotations
 
 import os
-import json
 from pathlib import Path
 
 import pytest
@@ -87,9 +86,12 @@ class TestHealthAndSystem:
                 assert len(schema["paths"]) > 100  # 230+ endpoints expected
 
         def test_cache_stats(self, client, auth_headers):
-                """GET /api/v1/cache/stats — cache statistics."""
+                """GET /api/v1/cache/stats — cache statistics must return 200."""
                 resp = client.get("/api/v1/cache/stats", headers=auth_headers)
-                assert resp.status_code in (200, 401, 403)
+                assert resp.status_code == 200
+                data = resp.json()
+                # Must have cache stats structure
+                assert isinstance(data, dict)
 
 
 # ===========================================================================
@@ -244,8 +246,10 @@ class TestMonitor:
         def test_monitor_metrics(self, client, auth_headers):
                 """GET /api/v1/monitor/metrics — Prometheus metrics format."""
                 resp = client.get("/api/v1/monitor/metrics", headers=auth_headers)
-                # Metrics may return 200 (text/plain) or 401
-                assert resp.status_code in (200, 401, 403)
+                assert resp.status_code == 200
+                # Prometheus format starts with # HELP or # TYPE
+                text = resp.text
+                assert "# HELP" in text or "# TYPE" in text or "fireai" in text
 
 
 # ===========================================================================
@@ -523,13 +527,20 @@ class TestCADIntegration:
         def test_revit_levels(self, client, auth_headers):
                 """GET /api/v1/revit/levels — levels in active document."""
                 resp = client.get("/api/v1/revit/levels", headers=auth_headers)
-                # 503 = Revit not connected (expected in test env)
-                assert resp.status_code in (200, 400, 500, 503)
+                # 503 = Revit not connected (expected in test env without Revit)
+                # Must NOT be 404 (route not registered) or 500 (unhandled crash)
+                assert resp.status_code in (200, 503)
+                if resp.status_code == 200:
+                        data = resp.json()
+                        assert isinstance(data, dict)
 
         def test_revit_views(self, client, auth_headers):
                 """GET /api/v1/revit/views — views in active document."""
                 resp = client.get("/api/v1/revit/views", headers=auth_headers)
-                assert resp.status_code in (200, 400, 500, 503)
+                assert resp.status_code in (200, 503)
+                if resp.status_code == 200:
+                        data = resp.json()
+                        assert isinstance(data, dict)
 
 
 # ===========================================================================
@@ -539,7 +550,7 @@ class TestAnalyze:
         """Test engineering analysis endpoints."""
 
         def test_analyze_battery(self, client, auth_headers):
-                """POST /api/v1/analyze/battery — battery analysis."""
+                """POST /api/v1/analyze/battery — battery analysis with real values."""
                 resp = client.post(
                         "/api/v1/analyze/battery",
                         json={
@@ -551,10 +562,23 @@ class TestAnalyze:
                         },
                         headers=auth_headers,
                 )
-                assert resp.status_code in (200, 422)
+                assert resp.status_code == 200
+                data = resp.json()
+                # Must have battery capacity result
+                if isinstance(data, dict):
+                        # Look for capacity in various possible field names
+                        capacity = (
+                                data.get("required_ah")
+                                or data.get("battery_capacity_ah")
+                                or data.get("capacity_ah")
+                                or (data.get("data", {}) or {}).get("required_ah")
+                        )
+                        if capacity is not None:
+                                # Battery must be positive (2.5A × 24h × 1.25 = 75Ah minimum)
+                                assert capacity > 0, f"Battery capacity must be positive, got {capacity}"
 
         def test_analyze_voltage(self, client, auth_headers):
-                """POST /api/v1/analyze/voltage — voltage analysis."""
+                """POST /api/v1/analyze/voltage — voltage analysis with real values."""
                 resp = client.post(
                         "/api/v1/analyze/voltage",
                         json={
@@ -564,8 +588,12 @@ class TestAnalyze:
                         },
                         headers=auth_headers,
                 )
-                # May return 200 or 422 if schema differs
+                # Accept 200 (success) or 422 (schema mismatch — still a valid response)
                 assert resp.status_code in (200, 422)
+                if resp.status_code == 200:
+                        data = resp.json()
+                        if isinstance(data, dict) and "voltage_drop_v" in data:
+                                assert data["voltage_drop_v"] > 0
 
 
 # ===========================================================================
@@ -575,14 +603,22 @@ class TestExports:
         """Test data export endpoints."""
 
         def test_excel_export(self, client, auth_headers):
-                """POST /api/v1/exports — Excel export."""
+                """POST /api/v1/exports — Excel export must return file or valid error."""
                 resp = client.post(
                         "/api/v1/exports",
                         json={"exportType": "excel"},
                         headers=auth_headers,
                 )
-                # May return 200 (file), 400 (no project), 422 (schema), 503 (service)
-                assert resp.status_code in (200, 400, 422, 503)
+                # 200 = file returned, 404 = no projects (valid error), 422 = schema
+                # 503 = service unavailable (openpyxl not installed in test env)
+                assert resp.status_code in (200, 404, 422, 503)
+                if resp.status_code == 200:
+                        # Excel files start with PK zip magic bytes
+                        if resp.headers.get("content-type", "").startswith("application/"):
+                                body = resp.content
+                                # Either Excel (PK) or JSON manifest
+                                assert body[:2] == b"PK" or body[:1] == b"{", \
+                                        "Response must be Excel (PK) or JSON manifest"
 
 
 # ===========================================================================
@@ -595,6 +631,12 @@ class TestProjects:
                 """GET /api/v1/projects — list all projects."""
                 resp = client.get("/api/v1/projects", headers=auth_headers)
                 assert resp.status_code == 200
+                data = resp.json()
+                # Must return a list or dict with projects key
+                if isinstance(data, list):
+                        assert isinstance(data, list)
+                elif isinstance(data, dict):
+                        assert "projects" in data or "data" in data or "success" in data
 
         def test_create_project(self, client, auth_headers):
                 """POST /api/v1/projects — create new project."""
@@ -607,7 +649,11 @@ class TestProjects:
                         },
                         headers=auth_headers,
                 )
+                # 200/201 = created, 422 = schema validation
                 assert resp.status_code in (200, 201, 422)
+                if resp.status_code in (200, 201):
+                        data = resp.json()
+                        assert isinstance(data, dict)
 
 
 # ===========================================================================
@@ -656,7 +702,7 @@ class TestFrontendBackendPathMatch:
                 Pages that legitimately don't need API calls:
                 - NotFoundPage.tsx (static 404)
                 - LoginPage.tsx (form submit only)
-                - AutoCADDrawPage.tsx (canvas drawing tool, uses AutoCADPage API)
+                - AutoCADDrawPage.tsx (canvas drawing tool, uses autocadService import)
                 """
                 pages_dir = self.FRONTEND_DIR / "pages"
                 if not pages_dir.exists():
@@ -677,6 +723,7 @@ class TestFrontendBackendPathMatch:
                                 or "apiCall" in content
                                 or "miningApi" in content
                                 or "selfHealingApi" in content
+                                or "autocadService" in content
                                 or "/api/v1" in content
                                 or "/api/v2" in content
                         )
@@ -686,6 +733,73 @@ class TestFrontendBackendPathMatch:
                 # All pages should have API calls (no mockups allowed)
                 assert len(mockup_pages) == 0, (
                         f"These pages have NO API calls (still mockups): {mockup_pages}"
+                )
+
+        def test_frontend_api_paths_exist_in_backend(self, client, openapi_paths):
+                """Every /api/v1/* path in frontend code must exist in backend OpenAPI.
+
+                This catches path mismatches — the most dangerous bug class
+                (per agent.md Rule 17: ROOT-CAUSE ANALYSIS).
+                """
+                import re
+
+                pages_dir = self.FRONTEND_DIR / "pages"
+                services_dir = self.FRONTEND_DIR / "services"
+
+                # Collect all /api/v1/* and /api/v2/* paths from frontend
+                frontend_paths = set()
+                for search_dir in [pages_dir, services_dir]:
+                        if not search_dir.exists():
+                                continue
+                        for file_path in search_dir.rglob("*.tsx"):
+                                content = file_path.read_text()
+                                # Find /api/v1/... or /api/v2/... patterns
+                                matches = re.findall(r'["\'](/api/v[12]/[^"\']+)', content)
+                                for match in matches:
+                                        # Normalize: remove query params, replace path params with {}
+                                        path = match.split("?")[0]
+                                        # Replace UUID/ID segments with {id}
+                                        segments = path.split("/")
+                                        normalized = []
+                                        for seg in segments:
+                                                if re.match(r'^[0-9a-f-]{8,}$', seg) or seg.isdigit():
+                                                        normalized.append("{id}")
+                                                else:
+                                                        normalized.append(seg)
+                                        frontend_paths.add("/".join(normalized))
+
+                # Get all backend paths from OpenAPI
+                backend_paths = set(openapi_paths.keys())
+
+                # Check that frontend paths exist in backend (ignoring path params)
+                missing = []
+                for fpath in frontend_paths:
+                        # Skip paths with {id} — they're templates
+                        if "{id}" in fpath:
+                                # Check if any backend path matches the pattern
+                                pattern = fpath.replace("{id}", "[^/]+")
+                                found = any(re.match(pattern, bpath) for bpath in backend_paths)
+                                if not found:
+                                        # Try with original segment names
+                                        found = any(fpath.replace("{id}", "").rstrip("/") in bpath for bpath in backend_paths)
+                        else:
+                                found = fpath in backend_paths
+
+                        if not found:
+                                # Check if it's a sub-path of a registered route
+                                found = any(fpath.startswith(bp + "/") for bp in backend_paths)
+
+                        if not found:
+                                missing.append(fpath)
+
+                # Allow some known service-level paths that are constructed dynamically
+                known_dynamic = {
+                        "/api/v1/admin/keys",  # constructed via template literal
+                }
+                missing = [p for p in missing if p not in known_dynamic]
+
+                assert len(missing) == 0, (
+                        f"These frontend API paths don't exist in backend OpenAPI: {missing}"
                 )
 
 

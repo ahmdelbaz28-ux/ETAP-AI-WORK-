@@ -14,11 +14,7 @@ Verifies that:
 
 from __future__ import annotations
 
-import os
 from pathlib import Path
-
-import pytest
-
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 ADDIN_DIR = REPO_ROOT / "templates" / "revit_addin"

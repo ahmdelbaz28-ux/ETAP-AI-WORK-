@@ -35,7 +35,6 @@ from __future__ import annotations
 import json
 import os
 import threading
-from pathlib import Path
 
 import numpy as np
 import pytest
@@ -46,14 +45,13 @@ import pytest
 os.environ.setdefault("FIREAI_HMAC_SECRET_KEY", "kernel_test_hmac_secret_v30")
 
 from fireai.core.fireai_kernel_v30 import (  # noqa: E402
+    NFPA72,
     AdapterBridge,
     AtomicRoomStore,
     BuildingResult,
     ConcurrentSolver,
     CoverageResult,
-    KernelCore,
     LedgerEntry,
-    NFPA72,
     RoomRecord,
     SafetyLedger,
     SolverProblem,
@@ -62,7 +60,6 @@ from fireai.core.fireai_kernel_v30 import (  # noqa: E402
     VectorEngine,
     WireRouterV2,
 )
-
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # 1. NFPA72 CONSTANTS — guards against silent regression of safety-critical values
@@ -499,7 +496,7 @@ class TestSafetyLedger:
 
 def _build_solver_problem(side: float = 10.0, radius: float = 6.37) -> SolverProblem:
     """Build a simple square-room solver problem."""
-    poly = np.array([(0, 0), (side, 0), (side, side), (0, side)], dtype=np.float64)  # NOSONAR
+    poly = np.array([(0, 0), (side, 0), (side, side), (0, side)], dtype=np.float64)  # noqa: F841
     # Candidate positions on a grid
     step = radius * 0.8
     xs = np.arange(radius, side - radius + 0.001, step)

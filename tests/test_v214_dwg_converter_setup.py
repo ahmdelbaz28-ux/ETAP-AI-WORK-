@@ -9,12 +9,7 @@ Verifies that:
   4. dwg_converter.py still supports the 3 binaries (V213)
 """
 
-import os
-import re
 from pathlib import Path
-
-import pytest
-
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 

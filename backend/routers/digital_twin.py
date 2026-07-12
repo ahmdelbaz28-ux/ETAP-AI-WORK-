@@ -25,7 +25,7 @@ import os
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, status
+from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
 from fastapi.responses import FileResponse
 from pydantic import BaseModel, Field
 
@@ -293,9 +293,6 @@ async def upload_and_convert(
         file: The uploaded file (IFC, DXF, or DWG)
         target_format: Target format — "ifc" (default) or "dxf"
     """
-    import tempfile
-    import shutil as file_shutil
-
     start_time = datetime.now()
 
     try:
