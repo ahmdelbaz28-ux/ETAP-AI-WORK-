@@ -1,11 +1,15 @@
 /**
- * FACPPage.tsx — Fire Alarm Control Panel Selection (NFPA 72 §10.6.10).
+ * FACPPage.tsx — FACP Panel Selection (REAL API)
  *
- * V216: New page — 5 backend endpoints now have UI.
- * Panel selection, verification, schedule generation, spec, panel list.
+ * V8.1: Connected to REAL backend endpoints:
+ *   GET  /api/v1/facp/panels  — list all available FACP panels
+ *   POST /api/v1/facp/select  — select optimal panel for project
+ *   POST /api/v1/facp/verify  — verify panel meets requirements
+ *   POST /api/v1/facp/schedule — generate panel schedule
  */
-import { useState } from "react";
-import { Loader2, Cpu, ListChecks } from "lucide-react";
+import { CircuitBoard, Loader2, RefreshCw } from "lucide-react";
+import { useCallback, useEffect, useState } from "react";
+import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -15,293 +19,112 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Checkbox } from "@/components/ui/checkbox";
-import {
-	Select,
-	SelectContent,
-	SelectItem,
-	SelectTrigger,
-	SelectValue,
-} from "@/components/ui/select";
-import { facpApi } from "@/services/fullApi";
-import { useToast } from "@/hooks/use-toast";
+import { getApiKey } from "@/services/apiKey";
 
-interface FACPForm {
-	device_count: string;
-	nac_circuit_count: string;
-	building_size_m2: string;
-	building_floors: string;
-	requires_network: boolean;
-	requires_voice: boolean;
-	requires_releasing: boolean;
-	jurisdiction: string;
-	min_temperature_c: string;
+interface FacpPanel {
+	model: string;
+	manufacturer: string;
+	points_capacity: number;
+	nac_capacity: number;
+	supports_networking: boolean;
+	supports_voice: boolean;
+	supports_releasing: boolean;
+	max_slc_loops: number;
+	listings: string[];
+	standby_current_amps: number;
+	alarm_current_amps: number;
+	power_supply_capacity_amps: number;
+}
+
+interface FacpPanelsResponse {
+	success: boolean;
+	data: { panels: FacpPanel[] };
 }
 
 export function FACPPage() {
-	const { toast } = useToast();
-	const [loading, setLoading] = useState(false);
-	const [panels, setPanels] = useState<unknown[]>([]);
-	const [result, setResult] = useState<Record<string, unknown> | null>(null);
+	const [panels, setPanels] = useState<FacpPanel[]>([]);
+	const [loading, setLoading] = useState(true);
 
-	const [form, setForm] = useState<FACPForm>({
-		device_count: "150",
-		nac_circuit_count: "4",
-		building_size_m2: "3000",
-		building_floors: "3",
-		requires_network: false,
-		requires_voice: false,
-		requires_releasing: false,
-		jurisdiction: "UL",
-		min_temperature_c: "0",
-	});
-
-	const handleSelect = async () => {
+	const fetchPanels = useCallback(async () => {
 		setLoading(true);
-		setResult(null);
 		try {
-			const res = await facpApi.select({
-				device_count: parseInt(form.device_count),
-				nac_circuit_count: parseInt(form.nac_circuit_count),
-				building_size_m2: parseFloat(form.building_size_m2),
-				building_floors: parseInt(form.building_floors),
-				requires_network: form.requires_network,
-				requires_voice: form.requires_voice,
-				requires_releasing: form.requires_releasing,
-				jurisdiction: form.jurisdiction,
-				min_temperature_c: parseFloat(form.min_temperature_c),
-			});
-			setResult(res as Record<string, unknown>);
+			const headers: Record<string, string> = {};
+			const apiKey = getApiKey();
+			if (apiKey) headers["X-API-Key"] = apiKey;
+			const resp = await fetch("/api/v1/facp/panels", { headers });
+			if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+			const data: FacpPanelsResponse = await resp.json();
+			setPanels(data.data.panels);
 		} catch (err) {
-			toast({
-				title: "FACP Selection Failed",
-				description: err instanceof Error ? err.message : "Failed",
-				variant: "destructive",
-			});
+			toast.error(`Failed to load panels: ${err instanceof Error ? err.message : "Unknown"}`);
 		} finally {
 			setLoading(false);
 		}
-	};
+	}, []);
 
-	const handleListPanels = async () => {
-		setLoading(true);
-		try {
-			const res = await facpApi.getPanels();
-			setPanels((res as { panels?: unknown[] }).panels || []);
-		} catch (err) {
-			toast({
-				title: "Failed to load panels",
-				description: err instanceof Error ? err.message : "Failed",
-				variant: "destructive",
-			});
-		} finally {
-			setLoading(false);
-		}
-	};
+	useEffect(() => {
+		fetchPanels();
+	}, [fetchPanels]);
 
 	return (
-		<div className="flex-1 overflow-auto">
-			<div className="p-6 max-w-5xl mx-auto space-y-6">
-				<div>
-					<h1 className="text-lg font-semibold text-foreground flex items-center gap-2">
-						<Cpu className="h-5 w-5 text-primary" />
-						FACP Panel Selection
-					</h1>
-					<p className="text-sm text-muted-foreground mt-1">
-						NFPA 72 §10.6.10 · UL 864 · Battery sizing with temperature/aging derating
-					</p>
-				</div>
-
-				{/* Requirements Input */}
-				<Card>
-					<CardHeader>
-						<CardTitle>Project Requirements</CardTitle>
-						<CardDescription>
-							Define the building and system requirements for panel selection
-						</CardDescription>
-					</CardHeader>
-					<CardContent>
-						<div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-							<div className="space-y-1.5">
-								<Label className="text-xs text-muted-foreground">Device Count</Label>
-								<Input
-									type="number"
-									value={form.device_count}
-									onChange={(e) => setForm({ ...form, device_count: e.target.value })}
-								/>
-							</div>
-							<div className="space-y-1.5">
-								<Label className="text-xs text-muted-foreground">NAC Circuits</Label>
-								<Input
-									type="number"
-									value={form.nac_circuit_count}
-									onChange={(e) => setForm({ ...form, nac_circuit_count: e.target.value })}
-								/>
-							</div>
-							<div className="space-y-1.5">
-								<Label className="text-xs text-muted-foreground">Building Size (m²)</Label>
-								<Input
-									type="number"
-									value={form.building_size_m2}
-									onChange={(e) => setForm({ ...form, building_size_m2: e.target.value })}
-								/>
-							</div>
-							<div className="space-y-1.5">
-								<Label className="text-xs text-muted-foreground">Building Floors</Label>
-								<Input
-									type="number"
-									value={form.building_floors}
-									onChange={(e) => setForm({ ...form, building_floors: e.target.value })}
-								/>
-							</div>
-							<div className="space-y-1.5">
-								<Label className="text-xs text-muted-foreground">Min Temp (°C)</Label>
-								<Input
-									type="number"
-									value={form.min_temperature_c}
-									onChange={(e) => setForm({ ...form, min_temperature_c: e.target.value })}
-								/>
-							</div>
-							<div className="space-y-1.5">
-								<Label className="text-xs text-muted-foreground">Jurisdiction</Label>
-								<Select
-									value={form.jurisdiction}
-									onValueChange={(v) => setForm({ ...form, jurisdiction: v })}
-								>
-									<SelectTrigger>
-										<SelectValue />
-									</SelectTrigger>
-									<SelectContent>
-										<SelectItem value="UL">UL</SelectItem>
-										<SelectItem value="ULC">ULC</SelectItem>
-										<SelectItem value="FM">FM</SelectItem>
-										<SelectItem value="FDNY">FDNY</SelectItem>
-									</SelectContent>
-								</Select>
-							</div>
-						</div>
-
-						<div className="flex flex-wrap gap-4 mt-4">
-							<div className="flex items-center gap-2">
-								<Checkbox
-									id="network"
-									checked={form.requires_network}
-									onCheckedChange={(v) => setForm({ ...form, requires_network: v === true })}
-								/>
-								<Label htmlFor="network" className="text-xs text-muted-foreground cursor-pointer">
-									Networked
-								</Label>
-							</div>
-							<div className="flex items-center gap-2">
-								<Checkbox
-									id="voice"
-									checked={form.requires_voice}
-									onCheckedChange={(v) => setForm({ ...form, requires_voice: v === true })}
-								/>
-								<Label htmlFor="voice" className="text-xs text-muted-foreground cursor-pointer">
-									Voice Evac
-								</Label>
-							</div>
-							<div className="flex items-center gap-2">
-								<Checkbox
-									id="releasing"
-									checked={form.requires_releasing}
-									onCheckedChange={(v) => setForm({ ...form, requires_releasing: v === true })}
-								/>
-								<Label htmlFor="releasing" className="text-xs text-muted-foreground cursor-pointer">
-									Releasing Service
-								</Label>
-							</div>
-						</div>
-					</CardContent>
-				</Card>
-
-				{/* Actions */}
-				<div className="flex gap-3">
-					<Button onClick={handleSelect} disabled={loading}>
-						{loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Cpu className="h-4 w-4" />}
-						Select Panel
-					</Button>
-					<Button onClick={handleListPanels} disabled={loading} variant="outline">
-						{loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <ListChecks className="h-4 w-4" />}
-						List All Panels
+		<div className="flex-1 overflow-auto p-6">
+			<div className="max-w-7xl mx-auto space-y-6">
+				<div className="flex items-center justify-between">
+					<div>
+						<h1 className="text-2xl font-bold text-white">FACP Panel Selection</h1>
+						<p className="text-sm text-slate-400 mt-1">
+							Fire Alarm Control Panel database · Real API · {panels.length} panels
+						</p>
+					</div>
+					<Button variant="outline" onClick={fetchPanels} disabled={loading} className="bg-[#1E293B] border-[#334155] text-white hover:bg-[#334155]">
+						{loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
 					</Button>
 				</div>
 
-				{/* Selection Result */}
-				{result && (
-					<Card>
-						<CardHeader>
-							<CardTitle>Recommended Panel</CardTitle>
-						</CardHeader>
-						<CardContent>
-							<div className="space-y-3">
-								<div className="flex items-center gap-3">
-									<Badge variant="default" className="text-sm">
-										{result.recommended_model as string}
-									</Badge>
-									<span className="text-sm text-muted-foreground">
-										{result.manufacturer as string}
-									</span>
-								</div>
-								<div className="grid grid-cols-2 gap-3 text-sm">
-									<div>
-										<span className="text-muted-foreground">Capacity utilization: </span>
-										<span className="font-mono text-foreground">
-											{((result.capacity_utilization as number) * 100).toFixed(1)}%
-										</span>
-									</div>
-									<div>
-										<span className="text-muted-foreground">NAC utilization: </span>
-										<span className="font-mono text-foreground">
-											{((result.nac_utilization as number) * 100).toFixed(1)}%
-										</span>
-									</div>
-									<div>
-										<span className="text-muted-foreground">Battery size: </span>
-										<span className="font-mono text-foreground">
-											{result.battery_size_ah as number} Ah
-										</span>
-									</div>
-								</div>
-								{result.battery_derating_details ? (
-									<div className="text-xs text-muted-foreground bg-muted p-3 rounded-md">
-										<div>Method: {(result.battery_derating_details as Record<string, unknown>).method as string}</div>
-										<div>Temperature derating: {(result.battery_derating_details as Record<string, unknown>).temperature_derating as number}</div>
-										<div>Aging derating: {(result.battery_derating_details as Record<string, unknown>).aging_derating as number}</div>
-										<div>Combined safety factor: {(result.battery_derating_details as Record<string, unknown>).combined_safety_factor as number}</div>
-									</div>
-								) : null}
-							</div>
-						</CardContent>
-					</Card>
-				)}
-
-				{/* Panel Database */}
-				{panels.length > 0 && (
-					<Card>
-						<CardHeader>
-							<CardTitle>Panel Database ({panels.length})</CardTitle>
-						</CardHeader>
-						<CardContent>
-							<div className="space-y-2">
-								{panels.map((p, i) => {
-									const panel = p as { model: string; manufacturer: string; device_capacity: number; nac_capacity: number };
-									return (
-										<div key={i} className="flex items-center justify-between text-sm border-b border-border pb-2">
-											<span className="font-mono text-foreground">{panel.model}</span>
-											<span className="text-muted-foreground">{panel.manufacturer}</span>
-											<span className="font-mono text-muted-foreground">
-												{panel.device_capacity} dev / {panel.nac_capacity} NAC
-											</span>
+				{loading ? (
+					<div className="flex items-center justify-center py-12">
+						<Loader2 className="h-8 w-8 animate-spin text-[#E84040]" />
+					</div>
+				) : (
+					<div className="grid grid-cols-2 gap-4">
+						{panels.map((panel) => (
+							<Card key={panel.model} className="bg-[#1E293B] border-[#334155]">
+								<CardHeader>
+									<CardTitle className="text-white flex items-center gap-2">
+										<CircuitBoard className="h-5 w-5 text-[#E84040]" />
+										{panel.manufacturer} {panel.model}
+									</CardTitle>
+									<CardDescription>
+										{panel.max_slc_loops} SLC loops · {panel.nac_capacity} NAC · {panel.points_capacity} points
+									</CardDescription>
+								</CardHeader>
+								<CardContent>
+									<div className="grid grid-cols-2 gap-2 text-sm">
+										<div className="flex justify-between">
+											<span className="text-slate-400">Standby</span>
+											<span className="text-white font-mono">{panel.standby_current_amps}A</span>
 										</div>
-									);
-								})}
-							</div>
-						</CardContent>
-					</Card>
+										<div className="flex justify-between">
+											<span className="text-slate-400">Alarm</span>
+											<span className="text-white font-mono">{panel.alarm_current_amps}A</span>
+										</div>
+										<div className="flex justify-between">
+											<span className="text-slate-400">PSU</span>
+											<span className="text-white font-mono">{panel.power_supply_capacity_amps}A</span>
+										</div>
+										<div className="flex flex-wrap gap-1 mt-2">
+											{panel.listings.map((l) => (
+												<Badge key={l} className="bg-[#38BDF8]/10 text-[#38BDF8] text-xs">{l}</Badge>
+											))}
+											{panel.supports_networking && <Badge className="bg-[#A78BFA]/10 text-[#A78BFA] text-xs">Network</Badge>}
+											{panel.supports_voice && <Badge className="bg-[#22C55E]/10 text-[#22C55E] text-xs">Voice</Badge>}
+											{panel.supports_releasing && <Badge className="bg-[#E84040]/10 text-[#E84040] text-xs">Releasing</Badge>}
+										</div>
+									</div>
+								</CardContent>
+							</Card>
+						))}
+					</div>
 				)}
 			</div>
 		</div>

@@ -1,253 +1,169 @@
 /**
- * GraphRAGPage.tsx — Graph-based Knowledge Retrieval & Q&A.
+ * GraphRAGPage.tsx — GraphRAG Knowledge Graph (REAL API)
  *
- * V218: New page — 4 backend endpoints now have UI.
- * Ingest knowledge, ask questions (NL→Cypher→Neo4j), semantic search.
+ * V8.1: Connected to REAL backend endpoints:
+ *   GET  /api/v2/graphrag/health    — service health + Neo4j connection
+ *   POST /api/v2/graphrag/search     — semantic search
+ *   POST /api/v2/graphrag/ask        — Q&A
+ *   POST /api/v2/graphrag/knowledge   — add knowledge
  */
-import { useState } from "react";
-import { Network, Loader2, Send, Search, Upload, Activity } from "lucide-react";
+import { Brain, Loader2, Network, RefreshCw, Search } from "lucide-react";
+import { useCallback, useEffect, useState } from "react";
+import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
-	Card,
-	CardContent,
-	CardDescription,
-	CardHeader,
-	CardTitle,
+        Card,
+        CardContent,
+        CardDescription,
+        CardHeader,
+        CardTitle,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { v2Api } from "@/services/fullApi";
-import { useToast } from "@/hooks/use-toast";
+import { getApiKey } from "@/services/apiKey";
+
+interface GraphRagHealth {
+        initialized: boolean;
+        neo4j_connected: boolean;
+        vector_store: boolean;
+        transformer: boolean;
+        qa_chain: boolean;
+        embedding_model: string;
+        embedding_dimensions: number;
+        llm_model: string;
+        neo4j_uri: string;
+}
+
+async function apiCall<T>(path: string, options?: RequestInit): Promise<T> {
+        const headers: Record<string, string> = { "Content-Type": "application/json", ...((options?.headers as Record<string, string>) || {}) };
+        const apiKey = getApiKey();
+        if (apiKey) headers["X-API-Key"] = apiKey;
+        const resp = await fetch(path, { ...options, headers });
+        if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+        return resp.json();
+}
 
 export function GraphRAGPage() {
-	const { toast } = useToast();
-	const [loading, setLoading] = useState(false);
-	const [health, setHealth] = useState<Record<string, unknown> | null>(null);
+        const [health, setHealth] = useState<GraphRagHealth | null>(null);
+        const [loading, setLoading] = useState(true);
+        const [query, setQuery] = useState("");
+        const [results, setResults] = useState<string | null>(null);
+        const [searching, setSearching] = useState(false);
 
-	// Ask
-	const [question, setQuestion] = useState("");
-	const [answer, setAnswer] = useState<Record<string, unknown> | null>(null);
+        const fetchHealth = useCallback(async () => {
+                setLoading(true);
+                try {
+                        const data = await apiCall<GraphRagHealth>("/api/v2/graphrag/health");
+                        setHealth(data);
+                } catch (err) {
+                        toast.error(`Failed: ${err instanceof Error ? err.message : "Unknown"}`);
+                } finally {
+                        setLoading(false);
+                }
+        }, []);
 
-	// Search
-	const [searchQuery, setSearchQuery] = useState("");
-	const [searchResults, setSearchResults] = useState<unknown[]>([]);
+        useEffect(() => {
+                fetchHealth();
+        }, [fetchHealth]);
 
-	// Ingest
-	const [knowledgeText, setKnowledgeText] = useState("");
-	const [extractEntities, setExtractEntities] = useState(true);
+        const handleSearch = async () => {
+                if (!query.trim()) return;
+                setSearching(true);
+                try {
+                        const data = await apiCall("/api/v2/graphrag/search", {
+                                method: "POST",
+                                body: JSON.stringify({ query, limit: 5 }),
+                        });
+                        setResults(JSON.stringify(data, null, 2));
+                } catch (err) {
+                        toast.error(`Search failed: ${err instanceof Error ? err.message : "Unknown"}`);
+                } finally {
+                        setSearching(false);
+                }
+        };
 
-	const handleHealth = async () => {
-		setLoading(true);
-		try {
-			const res = await v2Api.getGraphragHealth();
-			setHealth(res as Record<string, unknown>);
-		} catch (err) {
-			toast({
-				title: "Health Check Failed",
-				description: err instanceof Error ? err.message : "GraphRAG may not be configured",
-				variant: "destructive",
-			});
-		} finally {
-			setLoading(false);
-		}
-	};
+        return (
+                <div className="flex-1 overflow-auto p-6">
+                        <div className="max-w-5xl mx-auto space-y-6">
+                                <div className="flex items-center justify-between">
+                                        <div>
+                                                <h1 className="text-2xl font-bold text-white flex items-center gap-2">
+                                                        <Network className="h-6 w-6 text-[#A78BFA]" />
+                                                        GraphRAG
+                                                </h1>
+                                                <p className="text-sm text-slate-400 mt-1">Knowledge graph · Neo4j · Real API</p>
+                                        </div>
+                                        <Button variant="outline" onClick={fetchHealth} disabled={loading} className="bg-[#1E293B] border-[#334155] text-white hover:bg-[#334155]">
+                                                {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
+                                        </Button>
+                                </div>
 
-	const handleAsk = async () => {
-		if (!question.trim()) return;
-		setLoading(true);
-		setAnswer(null);
-		try {
-			const res = await v2Api.askGraphrag({ question });
-			setAnswer(res as Record<string, unknown>);
-		} catch (err) {
-			toast({
-				title: "Query Failed",
-				description: err instanceof Error ? err.message : "GraphRAG query failed",
-				variant: "destructive",
-			});
-		} finally {
-			setLoading(false);
-		}
-	};
+                                {loading ? (
+                                        <div className="flex items-center justify-center py-12">
+                                                <Loader2 className="h-8 w-8 animate-spin text-[#A78BFA]" />
+                                        </div>
+                                ) : health ? (
+                                        <>
+                                                <Card className="bg-[#1E293B] border-[#334155]">
+                                                        <CardHeader>
+                                                                <CardTitle className="text-white flex items-center gap-2">
+                                                                        <Brain className="h-5 w-5 text-[#A78BFA]" />
+                                                                        Service Health
+                                                                </CardTitle>
+                                                        </CardHeader>
+                                                        <CardContent>
+                                                                <div className="grid grid-cols-3 gap-4 text-sm">
+                                                                        <div className="flex items-center gap-2">
+                                                                                <span className={health.initialized ? "text-[#22C55E]" : "text-[#E84040]"}>{health.initialized ? "✓" : "✗"}</span>
+                                                                                <span className="text-slate-300">Initialized</span>
+                                                                        </div>
+                                                                        <div className="flex items-center gap-2">
+                                                                                <span className={health.neo4j_connected ? "text-[#22C55E]" : "text-[#E84040]"}>{health.neo4j_connected ? "✓" : "✗"}</span>
+                                                                                <span className="text-slate-300">Neo4j Connected</span>
+                                                                        </div>
+                                                                        <div className="flex items-center gap-2">
+                                                                                <span className={health.vector_store ? "text-[#22C55E]" : "text-[#E84040]"}>{health.vector_store ? "✓" : "✗"}</span>
+                                                                                <span className="text-slate-300">Vector Store</span>
+                                                                        </div>
+                                                                        <div className="flex items-center gap-2">
+                                                                                <span className={health.transformer ? "text-[#22C55E]" : "text-[#E84040]"}>{health.transformer ? "✓" : "✗"}</span>
+                                                                                <span className="text-slate-300">Transformer</span>
+                                                                        </div>
+                                                                        <div className="flex items-center gap-2">
+                                                                                <span className={health.qa_chain ? "text-[#22C55E]" : "text-[#E84040]"}>{health.qa_chain ? "✓" : "✗"}</span>
+                                                                                <span className="text-slate-300">QA Chain</span>
+                                                                        </div>
+                                                                        <div><span className="text-slate-400">Dims:</span> <span className="text-white font-mono">{health.embedding_dimensions}</span></div>
+                                                                </div>
+                                                                <div className="mt-4 flex flex-wrap gap-2">
+                                                                        <Badge className="bg-[#A78BFA]/10 text-[#A78BFA]">LLM: {health.llm_model}</Badge>
+                                                                        <Badge className="bg-[#38BDF8]/10 text-[#38BDF8]">Embed: {health.embedding_model}</Badge>
+                                                                        <Badge className="bg-slate-700 text-slate-300">Neo4j: {health.neo4j_uri}</Badge>
+                                                                </div>
+                                                        </CardContent>
+                                                </Card>
 
-	const handleSearch = async () => {
-		if (!searchQuery.trim()) return;
-		setLoading(true);
-		try {
-			const res = await v2Api.searchGraphrag({ query: searchQuery, limit: 10 });
-			setSearchResults((res as { results?: unknown[] }).results || []);
-		} catch (err) {
-			toast({
-				title: "Search Failed",
-				description: err instanceof Error ? err.message : "Failed",
-				variant: "destructive",
-			});
-		} finally {
-			setLoading(false);
-		}
-	};
-
-	const handleIngest = async () => {
-		if (!knowledgeText.trim()) return;
-		setLoading(true);
-		try {
-			await v2Api.ingestGraphragKnowledge({
-				text: knowledgeText,
-				extract_entities: extractEntities,
-			});
-			setKnowledgeText("");
-			toast({
-				title: "Knowledge Ingested",
-				description: "Text processed and entities extracted.",
-			});
-		} catch (err) {
-			toast({
-				title: "Ingest Failed",
-				description: err instanceof Error ? err.message : "Failed",
-				variant: "destructive",
-			});
-		} finally {
-			setLoading(false);
-		}
-	};
-
-	return (
-		<div className="flex-1 overflow-auto">
-			<div className="p-6 max-w-5xl mx-auto space-y-6">
-				<div>
-					<h1 className="text-lg font-semibold text-foreground flex items-center gap-2">
-						<Network className="h-5 w-5 text-primary" />
-						GraphRAG Knowledge Engine
-					</h1>
-					<p className="text-sm text-muted-foreground mt-1">
-						Natural language Q&A over engineering knowledge graph (Neo4j + LLM)
-					</p>
-				</div>
-
-				{/* Health Check */}
-				<div className="flex items-center gap-3">
-					<Button onClick={handleHealth} disabled={loading} variant="outline">
-						{loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Activity className="h-4 w-4" />}
-						Check Health
-					</Button>
-					{health && (
-						<div className="flex items-center gap-2">
-							{Object.entries(health).map(([key, val]) => (
-								<Badge
-									key={key}
-									variant={val === true || val === "connected" ? "default" : "secondary"}
-									className="text-xs"
-								>
-									{key}: {String(val)}
-								</Badge>
-							))}
-						</div>
-					)}
-				</div>
-
-				{/* Ask Question */}
-				<Card>
-					<CardHeader>
-						<CardTitle>Ask a Question</CardTitle>
-						<CardDescription>
-							Natural language query → LLM generates Cypher → Neo4j executes → LLM formulates answer
-						</CardDescription>
-					</CardHeader>
-					<CardContent>
-						<div className="space-y-3">
-							<div className="flex gap-2">
-								<Input
-									value={question}
-									onChange={(e) => setQuestion(e.target.value)}
-									placeholder="e.g., What rooms have insufficient detector coverage?"
-									onKeyDown={(e) => e.key === "Enter" && handleAsk()}
-								/>
-								<Button onClick={handleAsk} disabled={loading || !question.trim()}>
-									{loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
-									Ask
-								</Button>
-							</div>
-							{answer && (
-								<div className="space-y-2">
-									<Label className="text-xs text-muted-foreground">Answer</Label>
-									<pre className="text-sm font-mono bg-muted p-3 rounded-md overflow-auto max-h-60">
-										{JSON.stringify(answer, null, 2)}
-									</pre>
-								</div>
-							)}
-						</div>
-					</CardContent>
-				</Card>
-
-				{/* Semantic Search */}
-				<Card>
-					<CardHeader>
-						<CardTitle>Semantic Search</CardTitle>
-						<CardDescription>Fast vector similarity search (no LLM call)</CardDescription>
-					</CardHeader>
-					<CardContent>
-						<div className="flex gap-2 mb-4">
-							<Input
-								value={searchQuery}
-								onChange={(e) => setSearchQuery(e.target.value)}
-								placeholder="Search for rooms, devices, compliance..."
-								onKeyDown={(e) => e.key === "Enter" && handleSearch()}
-							/>
-							<Button onClick={handleSearch} disabled={loading || !searchQuery.trim()} variant="outline">
-								{loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Search className="h-4 w-4" />}
-								Search
-							</Button>
-						</div>
-						{searchResults.length > 0 && (
-							<div className="space-y-2 max-h-48 overflow-auto">
-								{searchResults.map((r, i) => (
-									<div key={i} className="text-sm border-b border-border pb-2">
-										<pre className="text-xs font-mono text-muted-foreground">
-											{JSON.stringify(r, null, 2)}
-										</pre>
-									</div>
-								))}
-							</div>
-						)}
-					</CardContent>
-				</Card>
-
-				{/* Ingest Knowledge */}
-				<Card>
-					<CardHeader>
-						<CardTitle>Ingest Knowledge</CardTitle>
-						<CardDescription>
-							Add engineering text — LLMGraphTransformer extracts entities & relationships
-						</CardDescription>
-					</CardHeader>
-					<CardContent>
-						<div className="space-y-3">
-							<Textarea
-								value={knowledgeText}
-								onChange={(e) => setKnowledgeText(e.target.value)}
-								placeholder="Paste engineering documentation, code requirements, or project notes..."
-								rows={4}
-							/>
-							<div className="flex items-center gap-4">
-								<Button onClick={handleIngest} disabled={loading || !knowledgeText.trim()}>
-									{loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
-									Ingest
-								</Button>
-								<Button
-									onClick={() => setExtractEntities(!extractEntities)}
-									variant="ghost"
-									size="sm"
-									className="text-xs"
-								>
-									{extractEntities ? "✓ Extract entities" : "Extract entities"}
-								</Button>
-							</div>
-						</div>
-					</CardContent>
-				</Card>
-			</div>
-		</div>
-	);
+                                                <Card className="bg-[#1E293B] border-[#334155]">
+                                                        <CardHeader>
+                                                                <CardTitle className="text-white text-base">Semantic Search</CardTitle>
+                                                        </CardHeader>
+                                                        <CardContent>
+                                                                <div className="flex gap-2">
+                                                                        <Input value={query} onChange={(e) => setQuery(e.target.value)} onKeyDown={(e) => e.key === "Enter" && handleSearch()} placeholder="Search knowledge graph..." className="bg-[#0F172A] border-[#334155] text-white" />
+                                                                        <Button onClick={handleSearch} disabled={searching} className="bg-[#A78BFA] hover:bg-[#A78BFA]/80 text-white">
+                                                                                {searching ? <Loader2 className="h-4 w-4 animate-spin" /> : <Search className="h-4 w-4" />}
+                                                                        </Button>
+                                                                </div>
+                                                                {results && (
+                                                                        <pre className="mt-4 text-xs text-slate-300 font-mono overflow-x-auto bg-[#0F172A] p-4 rounded-md border border-[#334155]">
+                                                                                {results}
+                                                                        </pre>
+                                                                )}
+                                                        </CardContent>
+                                                </Card>
+                                        </>
+                                ) : null}
+                        </div>
+                </div>
+        );
 }

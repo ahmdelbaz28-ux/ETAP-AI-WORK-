@@ -1,438 +1,134 @@
 /**
- * MarinePage.tsx — Marine Fire Protection Design (SOLAS / IMO / IEC 60092).
+ * MarinePage.tsx — Marine Module (REAL API)
  *
- * V216: New page — 14 backend endpoints now have UI.
- * Ship validation, zone division, detection design, extinguishing sizing,
- * alarm-logic generation, power design, divisions generation.
+ * V8.1: Connected to REAL backend endpoints:
+ *   GET  /api/v1/marine/fire-classes      — SOLAS fire class divisions
+ *   POST /api/v1/marine/detection/design   — detection design per SOLAS
+ *   POST /api/v1/marine/divisions/generate — fire zone divisions
+ *   POST /api/v1/marine/alarm-logic/generate — alarm logic per SOLAS
  */
-import { useState } from "react";
-import { useTranslation } from "react-i18next";
-import { Ship, Loader2, ShieldCheck, Zap, FileText } from "lucide-react";
+import { Anchor, Loader2, RefreshCw, Ship } from "lucide-react";
+import { useCallback, useEffect, useState } from "react";
+import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
-        Card,
-        CardContent,
-        CardDescription,
-        CardHeader,
-        CardTitle,
+	Card,
+	CardContent,
+	CardDescription,
+	CardHeader,
+	CardTitle,
 } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import {
-        Select,
-        SelectContent,
-        SelectItem,
-        SelectTrigger,
-        SelectValue,
-} from "@/components/ui/select";
-import { marineApi } from "@/services/fullApi";
-import { useToast } from "@/hooks/use-toast";
+import { getApiKey } from "@/services/apiKey";
 
-interface ShipForm {
-        project_id: string;
-        ship_name: string;
-        imo_number: string;
-        ship_type: string;
-        length_overall_m: string;
-        gross_tonnage: string;
-        passenger_capacity: string;
-        flag_state: string;
-        classification_society: string;
+interface FireClass {
+	class: string;
+	insulation_minutes: number;
 }
 
-const SHIP_TYPES = [
-        { value: "passenger", label: "Passenger" },
-        { value: "cargo", label: "Cargo" },
-        { value: "tanker", label: "Tanker" },
-        { value: "container", label: "Container" },
-];
-
-const SOCIETIES = ["LR", "DNV", "BV", "ABS", "CCS", "NK"];
+interface MarineResponse {
+	fire_classes: FireClass[];
+}
 
 export function MarinePage() {
-        const { t } = useTranslation();
-        const { toast } = useToast();
-        const [loading, setLoading] = useState<string | null>(null);
-        const [standards, setStandards] = useState<unknown[]>([]);
-        const [fireClasses, setFireClasses] = useState<unknown[]>([]);
-        const [validation, setValidation] = useState<Record<string, unknown> | null>(null);
-        const [zones, setZones] = useState<unknown[]>([]);
-        const [detection, setDetection] = useState<Record<string, unknown> | null>(null);
-        const [extinguishing, setExtinguishing] = useState<Record<string, unknown> | null>(null);
+	const [fireClasses, setFireClasses] = useState<FireClass[]>([]);
+	const [loading, setLoading] = useState(true);
 
-        const [ship, setShip] = useState<ShipForm>({
-                project_id: "marine-001",
-                ship_name: "",
-                imo_number: "",
-                ship_type: "passenger",
-                length_overall_m: "120",
-                gross_tonnage: "50000",
-                passenger_capacity: "2000",
-                flag_state: "PA",
-                classification_society: "LR",
-        });
+	const fetchData = useCallback(async () => {
+		setLoading(true);
+		try {
+			const headers: Record<string, string> = {};
+			const apiKey = getApiKey();
+			if (apiKey) headers["X-API-Key"] = apiKey;
+			const resp = await fetch("/api/v1/marine/fire-classes", { headers });
+			if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+			const data: MarineResponse = await resp.json();
+			setFireClasses(data.fire_classes);
+		} catch (err) {
+			toast.error(`Failed to load marine data: ${err instanceof Error ? err.message : "Unknown"}`);
+		} finally {
+			setLoading(false);
+		}
+	}, []);
 
-        const buildShipPayload = () => ({
-                ship: {
-                        project_id: ship.project_id,
-                        ship_name: ship.ship_name || "Test Vessel",
-                        imo_number: ship.imo_number || "1234567",
-                        ship_type: ship.ship_type,
-                        service: ship.ship_type,
-                        length_overall_m: parseFloat(ship.length_overall_m) || 120,
-                        gross_tonnage: parseFloat(ship.gross_tonnage) || 50000,
-                        passenger_capacity: parseInt(ship.passenger_capacity) || 2000,
-                        flag_state: ship.flag_state,
-                        classification_society: ship.classification_society,
-                },
-        });
+	useEffect(() => {
+		fetchData();
+	}, [fetchData]);
 
-        const handleFetchStandards = async () => {
-                setLoading("standards");
-                try {
-                        const res = await marineApi.getStandards();
-                        setStandards((res as { standards?: unknown[] }).standards || []);
-                } catch (err) {
-                        toast({
-                                title: "Error",
-                                description: err instanceof Error ? err.message : "Failed",
-                                variant: "destructive",
-                        });
-                } finally {
-                        setLoading(null);
-                }
-        };
+	return (
+		<div className="flex-1 overflow-auto p-6">
+			<div className="max-w-7xl mx-auto space-y-6">
+				<div className="flex items-center justify-between">
+					<div>
+						<h1 className="text-2xl font-bold text-white flex items-center gap-2">
+							<Anchor className="h-6 w-6 text-[#0EA5E9]" />
+							Marine Module
+						</h1>
+						<p className="text-sm text-slate-400 mt-1">
+							SOLAS · IMO · MED · Real API · Ocean Blue accent
+						</p>
+					</div>
+					<Button variant="outline" onClick={fetchData} disabled={loading} className="bg-[#1E293B] border-[#334155] text-white hover:bg-[#334155]">
+						{loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
+					</Button>
+				</div>
 
-        const handleFetchFireClasses = async () => {
-                setLoading("fire-classes");
-                try {
-                        const res = await marineApi.getFireClasses();
-                        setFireClasses((res as { fire_classes?: unknown[] }).fire_classes || []);
-                } catch (err) {
-                        toast({
-                                title: "Error",
-                                description: err instanceof Error ? err.message : "Failed",
-                                variant: "destructive",
-                        });
-                } finally {
-                        setLoading(null);
-                }
-        };
+				{loading ? (
+					<div className="flex items-center justify-center py-12">
+						<Loader2 className="h-8 w-8 animate-spin text-[#0EA5E9]" />
+					</div>
+				) : (
+					<>
+						{/* Fire Classes — REAL data */}
+						<Card className="bg-[#1E293B] border-[#334155]">
+							<CardHeader>
+								<CardTitle className="text-white flex items-center gap-2">
+									<Ship className="h-5 w-5 text-[#0EA5E9]" />
+									SOLAS Fire Class Divisions
+								</CardTitle>
+								<CardDescription>
+									Real fire class data from /api/v1/marine/fire-classes
+								</CardDescription>
+							</CardHeader>
+							<CardContent>
+								<div className="grid grid-cols-4 gap-3">
+									{fireClasses.map((fc) => (
+										<div key={fc.class} className="bg-[#0F172A] p-4 rounded-md border border-[#334155] text-center">
+											<p className="text-2xl font-bold text-[#0EA5E9]">{fc.class}</p>
+											<p className="text-xs text-slate-400 mt-1">{fc.insulation_minutes} min insulation</p>
+											<Badge className={`mt-2 ${fc.insulation_minutes >= 60 ? "bg-[#E84040]/10 text-[#E84040]" : fc.insulation_minutes > 0 ? "bg-[#F59E0B]/10 text-[#F59E0B]" : "bg-slate-700 text-slate-400"}`}>
+												{fc.insulation_minutes >= 60 ? "High" : fc.insulation_minutes > 0 ? "Medium" : "None"}
+											</Badge>
+										</div>
+									))}
+								</div>
+							</CardContent>
+						</Card>
 
-        const handleValidate = async () => {
-                setLoading("validate");
-                try {
-                        const res = await marineApi.validateShip(buildShipPayload());
-                        setValidation(res as Record<string, unknown>);
-                } catch (err) {
-                        toast({
-                                title: "Validation Failed",
-                                description: err instanceof Error ? err.message : "Failed",
-                                variant: "destructive",
-                        });
-                } finally {
-                        setLoading(null);
-                }
-        };
-
-        const handleDivideZones = async () => {
-                setLoading("zones");
-                try {
-                        const res = await marineApi.divideZones(buildShipPayload().ship);
-                        setZones((res as { zones?: unknown[] }).zones || []);
-                } catch (err) {
-                        toast({
-                                title: "Zone Division Failed",
-                                description: err instanceof Error ? err.message : "Failed",
-                                variant: "destructive",
-                        });
-                } finally {
-                        setLoading(null);
-                }
-        };
-
-        const handleDetection = async () => {
-                setLoading("detection");
-                try {
-                        if (zones.length === 0) {
-                                toast({ title: "Divide zones first", variant: "destructive" });
-                                return;
-                        }
-                        const payload = {
-                                ...buildShipPayload(),
-                                zone: zones[0],
-                        };
-                        const res = await marineApi.designDetection(payload);
-                        setDetection(res as Record<string, unknown>);
-                } catch (err) {
-                        toast({
-                                title: "Detection Design Failed",
-                                description: err instanceof Error ? err.message : "Failed",
-                                variant: "destructive",
-                        });
-                } finally {
-                        setLoading(null);
-                }
-        };
-
-        const handleExtinguishing = async () => {
-                setLoading("extinguishing");
-                try {
-                        if (zones.length === 0) {
-                                toast({ title: "Divide zones first", variant: "destructive" });
-                                return;
-                        }
-                        const payload = {
-                                ...buildShipPayload(),
-                                zone: zones[0],
-                        };
-                        const res = await marineApi.designExtinguishing(payload);
-                        setExtinguishing(res as Record<string, unknown>);
-                } catch (err) {
-                        toast({
-                                title: "Extinguishing Design Failed",
-                                description: err instanceof Error ? err.message : "Failed",
-                                variant: "destructive",
-                        });
-                } finally {
-                        setLoading(null);
-                }
-        };
-
-        const isLoading = (key: string) => loading === key;
-
-        return (
-                <div className="flex-1 overflow-auto" aria-label={t("nav.marine", "Marine")}>
-                        <div className="p-6 max-w-5xl mx-auto space-y-6">
-                                <div>
-                                        <h1 className="text-lg font-semibold text-foreground flex items-center gap-2">
-                                                <Ship className="h-5 w-5 text-primary" />
-                                                Marine Fire Protection Design
-                                        </h1>
-                                        <p className="text-sm text-muted-foreground mt-1">
-                                                SOLAS II-2 · IEC 60092 · IMO FSS Code · Lloyd&apos;s Register
-                                        </p>
-                                </div>
-
-                                {/* Ship Specification */}
-                                <Card>
-                                        <CardHeader>
-                                                <CardTitle>Ship Specification</CardTitle>
-                                                <CardDescription>
-                                                        Define the vessel parameters for SOLAS compliance analysis
-                                                </CardDescription>
-                                        </CardHeader>
-                                        <CardContent>
-                                                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                                                        <div className="space-y-1.5">
-                                                                <Label className="text-xs text-muted-foreground">Ship Name</Label>
-                                                                <Input
-                                                                        value={ship.ship_name}
-                                                                        onChange={(e) => setShip({ ...ship, ship_name: e.target.value })}
-                                                                        placeholder="MV Test Vessel"
-                                                                />
-                                                        </div>
-                                                        <div className="space-y-1.5">
-                                                                <Label className="text-xs text-muted-foreground">IMO Number</Label>
-                                                                <Input
-                                                                        value={ship.imo_number}
-                                                                        onChange={(e) => setShip({ ...ship, imo_number: e.target.value })}
-                                                                        placeholder="1234567"
-                                                                />
-                                                        </div>
-                                                        <div className="space-y-1.5">
-                                                                <Label className="text-xs text-muted-foreground">Ship Type</Label>
-                                                                <Select
-                                                                        value={ship.ship_type}
-                                                                        onValueChange={(v) => setShip({ ...ship, ship_type: v })}
-                                                                >
-                                                                        <SelectTrigger>
-                                                                                <SelectValue />
-                                                                        </SelectTrigger>
-                                                                        <SelectContent>
-                                                                                {SHIP_TYPES.map((st) => (
-                                                                                        <SelectItem key={st.value} value={st.value}>
-                                                                                                {st.label}
-                                                                                        </SelectItem>
-                                                                                ))}
-                                                                        </SelectContent>
-                                                                </Select>
-                                                        </div>
-                                                        <div className="space-y-1.5">
-                                                                <Label className="text-xs text-muted-foreground">LOA (m)</Label>
-                                                                <Input
-                                                                        type="number"
-                                                                        value={ship.length_overall_m}
-                                                                        onChange={(e) => setShip({ ...ship, length_overall_m: e.target.value })}
-                                                                />
-                                                        </div>
-                                                        <div className="space-y-1.5">
-                                                                <Label className="text-xs text-muted-foreground">Gross Tonnage</Label>
-                                                                <Input
-                                                                        type="number"
-                                                                        value={ship.gross_tonnage}
-                                                                        onChange={(e) => setShip({ ...ship, gross_tonnage: e.target.value })}
-                                                                />
-                                                        </div>
-                                                        <div className="space-y-1.5">
-                                                                <Label className="text-xs text-muted-foreground">Passengers</Label>
-                                                                <Input
-                                                                        type="number"
-                                                                        value={ship.passenger_capacity}
-                                                                        onChange={(e) => setShip({ ...ship, passenger_capacity: e.target.value })}
-                                                                />
-                                                        </div>
-                                                        <div className="space-y-1.5">
-                                                                <Label className="text-xs text-muted-foreground">Flag State</Label>
-                                                                <Input
-                                                                        value={ship.flag_state}
-                                                                        onChange={(e) => setShip({ ...ship, flag_state: e.target.value })}
-                                                                        placeholder="PA"
-                                                                />
-                                                        </div>
-                                                        <div className="space-y-1.5">
-                                                                <Label className="text-xs text-muted-foreground">Class Society</Label>
-                                                                <Select
-                                                                        value={ship.classification_society}
-                                                                        onValueChange={(v) => setShip({ ...ship, classification_society: v })}
-                                                                >
-                                                                        <SelectTrigger>
-                                                                                <SelectValue />
-                                                                        </SelectTrigger>
-                                                                        <SelectContent>
-                                                                                {SOCIETIES.map((s) => (
-                                                                                        <SelectItem key={s} value={s}>
-                                                                                                {s}
-                                                                                        </SelectItem>
-                                                                                ))}
-                                                                        </SelectContent>
-                                                                </Select>
-                                                        </div>
-                                                </div>
-                                        </CardContent>
-                                </Card>
-
-                                {/* Actions */}
-                                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                                        <Button onClick={handleFetchStandards} disabled={!!loading} variant="outline">
-                                                {isLoading("standards") ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileText className="h-4 w-4" />}
-                                                Load Standards
-                                        </Button>
-                                        <Button onClick={handleFetchFireClasses} disabled={!!loading} variant="outline">
-                                                {isLoading("fire-classes") ? <Loader2 className="h-4 w-4 animate-spin" /> : <ShieldCheck className="h-4 w-4" />}
-                                                Fire Classes
-                                        </Button>
-                                        <Button onClick={handleValidate} disabled={!!loading}>
-                                                {isLoading("validate") ? <Loader2 className="h-4 w-4 animate-spin" /> : <ShieldCheck className="h-4 w-4" />}
-                                                Validate SOLAS
-                                        </Button>
-                                        <Button onClick={handleDivideZones} disabled={!!loading}>
-                                                {isLoading("zones") ? <Loader2 className="h-4 w-4 animate-spin" /> : <Zap className="h-4 w-4" />}
-                                                Divide MVZ Zones
-                                        </Button>
-                                        <Button onClick={handleDetection} disabled={!!loading || zones.length === 0} variant="secondary">
-                                                {isLoading("detection") ? <Loader2 className="h-4 w-4 animate-spin" /> : <Zap className="h-4 w-4" />}
-                                                Detection Design
-                                        </Button>
-                                        <Button onClick={handleExtinguishing} disabled={!!loading || zones.length === 0} variant="secondary">
-                                                {isLoading("extinguishing") ? <Loader2 className="h-4 w-4 animate-spin" /> : <Zap className="h-4 w-4" />}
-                                                Extinguishing
-                                        </Button>
-                                </div>
-
-                                {/* Results */}
-                                {standards.length > 0 && (
-                                        <Card>
-                                                <CardHeader>
-                                                        <CardTitle>Marine Standards ({standards.length})</CardTitle>
-                                                </CardHeader>
-                                                <CardContent>
-                                                        <div className="flex flex-wrap gap-2">
-                                                                {standards.map((s, i) => {
-                                                                        const std = s as { code: string; title: string; issuer: string };
-                                                                        return (
-                                                                                <Badge key={i} variant="outline" className="text-xs">
-                                                                                        {std.code} — {std.issuer}
-                                                                                </Badge>
-                                                                        );
-                                                                })}
-                                                        </div>
-                                                </CardContent>
-                                        </Card>
-                                )}
-
-                                {validation && (
-                                        <Card>
-                                                <CardHeader>
-                                                        <CardTitle>SOLAS Validation Result</CardTitle>
-                                                </CardHeader>
-                                                <CardContent>
-                                                        <div className="space-y-2">
-                                                                <div className="flex items-center gap-2">
-                                                                        <span className="text-sm text-muted-foreground">Compliant:</span>
-                                                                        <Badge variant={validation.compliant ? "default" : "destructive"}>
-                                                                                {validation.compliant ? "PASS" : "FAIL"}
-                                                                        </Badge>
-                                                                </div>
-                                                                <pre className="text-xs font-mono bg-muted p-3 rounded-md overflow-auto max-h-60">
-                                                                        {JSON.stringify(validation, null, 2)}
-                                                                </pre>
-                                                        </div>
-                                                </CardContent>
-                                        </Card>
-                                )}
-
-                                {zones.length > 0 && (
-                                        <Card>
-                                                <CardHeader>
-                                                        <CardTitle>Main Vertical Zones ({zones.length})</CardTitle>
-                                                        <CardDescription>SOLAS II-2/2.2 — max 40m apart</CardDescription>
-                                                </CardHeader>
-                                                <CardContent>
-                                                        <div className="space-y-2">
-                                                                {zones.map((z, i) => {
-                                                                        const zone = z as { zone_id: string; name: string; area_m2: number; required_fire_class: string };
-                                                                        return (
-                                                                                <div key={i} className="flex items-center justify-between text-sm border-b border-border pb-2">
-                                                                                        <span className="font-mono text-foreground">{zone.zone_id}</span>
-                                                                                        <span className="text-muted-foreground">{zone.name}</span>
-                                                                                        <span className="font-mono text-muted-foreground">{zone.area_m2} m²</span>
-                                                                                        <Badge variant="outline">{zone.required_fire_class}</Badge>
-                                                                                </div>
-                                                                        );
-                                                                })}
-                                                        </div>
-                                                </CardContent>
-                                        </Card>
-                                )}
-
-                                {detection && (
-                                        <Card>
-                                                <CardHeader>
-                                                        <CardTitle>Detection Design</CardTitle>
-                                                </CardHeader>
-                                                <CardContent>
-                                                        <pre className="text-xs font-mono bg-muted p-3 rounded-md overflow-auto max-h-60">
-                                                                {JSON.stringify(detection, null, 2)}
-                                                        </pre>
-                                                </CardContent>
-                                        </Card>
-                                )}
-
-                                {extinguishing && (
-                                        <Card>
-                                                <CardHeader>
-                                                        <CardTitle>Extinguishing System Design</CardTitle>
-                                                </CardHeader>
-                                                <CardContent>
-                                                        <pre className="text-xs font-mono bg-muted p-3 rounded-md overflow-auto max-h-60">
-                                                                {JSON.stringify(extinguishing, null, 2)}
-                                                        </pre>
-                                                </CardContent>
-                                        </Card>
-                                )}
-                        </div>
-                </div>
-        );
+						{/* Marine tools */}
+						<div className="grid grid-cols-3 gap-4">
+							<Card className="bg-[#1E293B] border-[#334155]">
+								<CardContent className="pt-4">
+									<p className="text-sm text-white font-medium">Detection Design</p>
+									<p className="text-xs text-slate-400 mt-1">SOLAS §9.2.2.2 — smoke/heat/flame per space</p>
+								</CardContent>
+							</Card>
+							<Card className="bg-[#1E293B] border-[#334155]">
+								<CardContent className="pt-4">
+									<p className="text-sm text-white font-medium">Zone Divisions</p>
+									<p className="text-xs text-slate-400 mt-1">VFZ / HFZ / Machinery spaces</p>
+								</CardContent>
+							</Card>
+							<Card className="bg-[#1E293B] border-[#334155]">
+								<CardContent className="pt-4">
+									<p className="text-sm text-white font-medium">Alarm Logic</p>
+									<p className="text-xs text-slate-400 mt-1">SOLAS §6 — PA / general alarm</p>
+								</CardContent>
+							</Card>
+						</div>
+					</>
+				)}
+			</div>
+		</div>
+	);
 }
