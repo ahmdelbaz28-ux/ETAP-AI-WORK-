@@ -1,11 +1,18 @@
 /**
- * MemoryPage.tsx — Engineering Memory Explorer.
+ * MemoryPage.tsx — AI Memory Service (REAL API)
  *
- * V218: New page — 6 backend endpoints now have UI.
- * Store/search/retrieve engineering decisions, preferences, and learned patterns.
+ * V8.1: Connected to REAL backend endpoints:
+ *   GET  /api/v1/memory/status  — service initialization + provider info
+ *   GET  /api/v1/memory/all     — all stored memories
+ *   POST /api/v1/memory/search  — semantic search
+ *   POST /api/v1/memory/add     — add new memory
+ *   DELETE /api/v1/memory/{id}  — delete memory
+ *
+ * No hardcoded data — all values from live API responses.
  */
-import { useState } from "react";
-import { Brain, Loader2, Plus, Search, Trash2 } from "lucide-react";
+import { Brain, Loader2, Plus, RefreshCw, Search, Trash2 } from "lucide-react";
+import { useCallback, useEffect, useState } from "react";
+import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -17,247 +24,285 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { memoryApi } from "@/services/fullApi";
-import { useToast } from "@/hooks/use-toast";
+import { getApiKey } from "@/services/apiKey";
 
-interface MemoryItem {
-	id: string;
-	content: string;
-	metadata?: Record<string, unknown>;
-	created_at?: string;
+interface MemoryStatus {
+	success: boolean;
+	status: {
+		initialized: boolean;
+		provider: string;
+		vector_store: string;
+		llm_provider: string;
+		embedder_provider: string;
+		embedding_dims: number;
+		error: string | null;
+	};
+	disclaimer: string;
+}
+
+interface MemoryAll {
+	success: boolean;
+	error: string | null;
+	results: Array<{
+		id: string;
+		content: string;
+		metadata: Record<string, unknown>;
+		score?: number;
+	}>;
+	source: string;
+	disclaimer: string;
+}
+
+const API_BASE = "/api/v1";
+
+async function apiCall<T>(path: string, options?: RequestInit): Promise<T> {
+	const headers: Record<string, string> = {
+		"Content-Type": "application/json",
+		...((options?.headers as Record<string, string>) || {}),
+	};
+	const apiKey = getApiKey();
+	if (apiKey) headers["X-API-Key"] = apiKey;
+	const resp = await fetch(`${API_BASE}${path}`, { ...options, headers });
+	if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+	return resp.json();
 }
 
 export function MemoryPage() {
-	const { toast } = useToast();
-	const [loading, setLoading] = useState(false);
-	const [status, setStatus] = useState<Record<string, unknown> | null>(null);
-	const [memories, setMemories] = useState<MemoryItem[]>([]);
+	const [status, setStatus] = useState<MemoryStatus | null>(null);
+	const [memories, setMemories] = useState<MemoryAll | null>(null);
+	const [loading, setLoading] = useState(true);
 	const [searchQuery, setSearchQuery] = useState("");
-	const [searchResults, setSearchResults] = useState<MemoryItem[]>([]);
-	const [newContent, setNewContent] = useState("");
+	const [searchResults, setSearchResults] = useState<MemoryAll | null>(null);
+	const [newMemory, setNewMemory] = useState("");
 
-	const handleStatus = async () => {
+	const fetchAll = useCallback(async () => {
 		setLoading(true);
 		try {
-			const res = await memoryApi.getStatus();
-			setStatus(res as Record<string, unknown>);
+			const [s, m] = await Promise.all([
+				apiCall<MemoryStatus>("/memory/status"),
+				apiCall<MemoryAll>("/memory/all"),
+			]);
+			setStatus(s);
+			setMemories(m);
 		} catch (err) {
-			toast({
-				title: "Failed",
-				description: err instanceof Error ? err.message : "Failed",
-				variant: "destructive",
-			});
+			toast.error(`Failed to load memory data: ${err instanceof Error ? err.message : "Unknown"}`);
 		} finally {
 			setLoading(false);
 		}
-	};
+	}, []);
 
-	const handleGetAll = async () => {
-		setLoading(true);
-		try {
-			const res = await memoryApi.getAll();
-			setMemories((res as MemoryItem[]) || []);
-		} catch (err) {
-			toast({
-				title: "Failed",
-				description: err instanceof Error ? err.message : "Failed",
-				variant: "destructive",
-			});
-		} finally {
-			setLoading(false);
-		}
-	};
+	useEffect(() => {
+		fetchAll();
+	}, [fetchAll]);
 
 	const handleSearch = async () => {
 		if (!searchQuery.trim()) return;
-		setLoading(true);
 		try {
-			const res = await memoryApi.search({ query: searchQuery, limit: 10 });
-			setSearchResults((res as { results?: MemoryItem[] }).results || []);
-		} catch (err) {
-			toast({
-				title: "Search Failed",
-				description: err instanceof Error ? err.message : "Failed",
-				variant: "destructive",
+			const results = await apiCall<MemoryAll>("/memory/search", {
+				method: "POST",
+				body: JSON.stringify({ query: searchQuery, limit: 10 }),
 			});
-		} finally {
-			setLoading(false);
+			setSearchResults(results);
+		} catch (err) {
+			toast.error(`Search failed: ${err instanceof Error ? err.message : "Unknown"}`);
 		}
 	};
 
 	const handleAdd = async () => {
-		if (!newContent.trim()) return;
-		setLoading(true);
+		if (!newMemory.trim()) return;
 		try {
-			await memoryApi.add({ content: newContent });
-			setNewContent("");
-			toast({ title: "Memory added", description: "Engineering note stored." });
-			handleGetAll();
-		} catch (err) {
-			toast({
-				title: "Add Failed",
-				description: err instanceof Error ? err.message : "Failed",
-				variant: "destructive",
+			await apiCall("/memory/add", {
+				method: "POST",
+				body: JSON.stringify({ content: newMemory, metadata: { source: "ui" } }),
 			});
-		} finally {
-			setLoading(false);
+			toast.success("Memory added");
+			setNewMemory("");
+			fetchAll();
+		} catch (err) {
+			toast.error(`Add failed: ${err instanceof Error ? err.message : "Unknown"}`);
 		}
 	};
 
 	const handleDelete = async (id: string) => {
-		setLoading(true);
 		try {
-			await memoryApi.delete(id);
-			setMemories((prev) => prev.filter((m) => m.id !== id));
-			toast({ title: "Deleted", description: "Memory removed." });
+			await apiCall(`/memory/${id}`, { method: "DELETE" });
+			toast.success("Memory deleted");
+			fetchAll();
 		} catch (err) {
-			toast({
-				title: "Delete Failed",
-				description: err instanceof Error ? err.message : "Failed",
-				variant: "destructive",
-			});
-		} finally {
-			setLoading(false);
+			toast.error(`Delete failed: ${err instanceof Error ? err.message : "Unknown"}`);
 		}
 	};
 
+	const displayMemories = searchResults?.results ?? memories?.results ?? [];
+
 	return (
-		<div className="flex-1 overflow-auto">
-			<div className="p-6 max-w-5xl mx-auto space-y-6">
-				<div>
-					<h1 className="text-lg font-semibold text-foreground flex items-center gap-2">
-						<Brain className="h-5 w-5 text-primary" />
-						Engineering Memory
-					</h1>
-					<p className="text-sm text-muted-foreground mt-1">
-						Store and retrieve engineering decisions, preferences, and learned patterns
-					</p>
-				</div>
-
-				{/* Status + Actions */}
-				<div className="flex gap-3">
-					<Button onClick={handleStatus} disabled={loading} variant="outline">
-						{loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Brain className="h-4 w-4" />}
-						Status
-					</Button>
-					<Button onClick={handleGetAll} disabled={loading} variant="outline">
-						{loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Brain className="h-4 w-4" />}
-						Load All
+		<div className="flex-1 overflow-auto p-6">
+			<div className="max-w-5xl mx-auto space-y-6">
+				<div className="flex items-center justify-between">
+					<div>
+						<h1 className="text-2xl font-bold text-white">AI Memory Service</h1>
+						<p className="text-sm text-slate-400 mt-1">
+							Semantic memory · Real API · Advisory context only
+						</p>
+					</div>
+					<Button
+						variant="outline"
+						onClick={fetchAll}
+						disabled={loading}
+						className="bg-[#1E293B] border-[#334155] text-white hover:bg-[#334155]"
+					>
+						{loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
 					</Button>
 				</div>
 
-				{status && (
-					<Card>
-						<CardHeader>
-							<CardTitle>Memory Service Status</CardTitle>
-						</CardHeader>
-						<CardContent>
-							<div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-								{Object.entries(status).map(([key, val]) => (
-									<div key={key} className="space-y-1">
-										<span className="text-xs text-muted-foreground uppercase tracking-wider">
-											{key}
-										</span>
-										<div className="text-sm font-mono text-foreground">
-											{typeof val === "boolean" ? (
-												<Badge variant={val ? "default" : "destructive"}>
-													{val ? "OK" : "OFF"}
-												</Badge>
-											) : (
-												String(val)
-											)}
-										</div>
+				{loading ? (
+					<div className="flex items-center justify-center py-12">
+						<Loader2 className="h-8 w-8 animate-spin text-[#A78BFA]" />
+					</div>
+				) : (
+					<>
+						{/* Service status — REAL data */}
+						<Card className="bg-[#1E293B] border-[#334155]">
+							<CardHeader>
+								<CardTitle className="text-white flex items-center gap-2">
+									<Brain className="h-5 w-5 text-[#A78BFA]" />
+									Service Status
+								</CardTitle>
+							</CardHeader>
+							<CardContent>
+								<div className="grid grid-cols-3 gap-4 text-sm">
+									<div>
+										<p className="text-slate-400 text-xs">Initialized</p>
+										<p className={status?.status.initialized ? "text-[#22C55E]" : "text-[#F59E0B]"}>
+											{status?.status.initialized ? "✓ Yes" : "⚠ No"}
+										</p>
 									</div>
-								))}
-							</div>
-						</CardContent>
-					</Card>
-				)}
-
-				{/* Add New Memory */}
-				<Card>
-					<CardHeader>
-						<CardTitle>Add Engineering Note</CardTitle>
-						<CardDescription>Store a decision, preference, or learned pattern</CardDescription>
-					</CardHeader>
-					<CardContent>
-						<div className="space-y-3">
-							<Textarea
-								value={newContent}
-								onChange={(e) => setNewContent(e.target.value)}
-								placeholder="e.g., Office building corridor spacing should use 12.5m per NFPA 72 §17.7.3.2.3..."
-								rows={3}
-							/>
-							<Button onClick={handleAdd} disabled={loading || !newContent.trim()}>
-								<Plus className="h-4 w-4" />
-								Add Memory
-							</Button>
-						</div>
-					</CardContent>
-				</Card>
-
-				{/* Search */}
-				<Card>
-					<CardHeader>
-						<CardTitle>Search Memories</CardTitle>
-					</CardHeader>
-					<CardContent>
-						<div className="flex gap-2 mb-4">
-							<Input
-								value={searchQuery}
-								onChange={(e) => setSearchQuery(e.target.value)}
-								placeholder="Search engineering notes..."
-								onKeyDown={(e) => e.key === "Enter" && handleSearch()}
-							/>
-							<Button onClick={handleSearch} disabled={loading || !searchQuery.trim()}>
-								{loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Search className="h-4 w-4" />}
-								Search
-							</Button>
-						</div>
-						{searchResults.length > 0 && (
-							<div className="space-y-2">
-								{searchResults.map((m) => (
-									<div key={m.id} className="text-sm border-b border-border pb-2">
-										<p className="text-foreground">{m.content}</p>
-										<span className="text-xs text-muted-foreground font-mono">{m.id}</span>
+									<div>
+										<p className="text-slate-400 text-xs">Provider</p>
+										<p className="text-white font-mono">{status?.status.provider ?? "—"}</p>
 									</div>
-								))}
-							</div>
-						)}
-					</CardContent>
-				</Card>
-
-				{/* All Memories */}
-				{memories.length > 0 && (
-					<Card>
-						<CardHeader>
-							<CardTitle>All Memories ({memories.length})</CardTitle>
-						</CardHeader>
-						<CardContent>
-							<div className="space-y-2 max-h-96 overflow-auto">
-								{memories.map((m) => (
-									<div
-										key={m.id}
-										className="flex items-start justify-between gap-3 text-sm border-b border-border pb-2"
-									>
-										<div className="flex-1 min-w-0">
-											<p className="text-foreground truncate">{m.content}</p>
-											<span className="text-xs text-muted-foreground font-mono">{m.id}</span>
-										</div>
-										<Button
-											onClick={() => handleDelete(m.id)}
-											disabled={loading}
-											variant="ghost"
-											size="icon"
-										>
-											<Trash2 className="h-3.5 w-3.5 text-muted-foreground" />
-										</Button>
+									<div>
+										<p className="text-slate-400 text-xs">Vector Store</p>
+										<p className="text-white font-mono">{status?.status.vector_store ?? "—"}</p>
 									</div>
-								))}
-							</div>
-						</CardContent>
-					</Card>
+									<div>
+										<p className="text-slate-400 text-xs">LLM Provider</p>
+										<p className="text-white font-mono">{status?.status.llm_provider ?? "—"}</p>
+									</div>
+									<div>
+										<p className="text-slate-400 text-xs">Embedder</p>
+										<p className="text-white font-mono">{status?.status.embedder_provider ?? "—"}</p>
+									</div>
+									<div>
+										<p className="text-slate-400 text-xs">Embedding Dims</p>
+										<p className="text-white font-mono">{status?.status.embedding_dims ?? 0}</p>
+									</div>
+								</div>
+								{status?.status.error && (
+									<div className="mt-4 p-3 bg-[#F59E0B]/10 border border-[#F59E0B]/30 rounded-md">
+										<p className="text-xs text-[#F59E0B]">
+											⚠ {status.status.error}
+										</p>
+									</div>
+								)}
+								{status?.disclaimer && (
+									<p className="mt-4 text-[10px] text-slate-500 italic">
+										{status.disclaimer}
+									</p>
+								)}
+							</CardContent>
+						</Card>
+
+						{/* Add memory */}
+						<Card className="bg-[#1E293B] border-[#334155]">
+							<CardHeader>
+								<CardTitle className="text-white text-base">Add Memory</CardTitle>
+							</CardHeader>
+							<CardContent>
+								<div className="flex gap-2">
+									<Input
+										value={newMemory}
+										onChange={(e) => setNewMemory(e.target.value)}
+										placeholder="Enter engineering knowledge, code reference, or design pattern..."
+										className="bg-[#0F172A] border-[#334155] text-white"
+									/>
+									<Button onClick={handleAdd} className="bg-[#A78BFA] hover:bg-[#A78BFA]/80 text-white">
+										<Plus className="h-4 w-4" />
+									</Button>
+								</div>
+							</CardContent>
+						</Card>
+
+						{/* Search */}
+						<Card className="bg-[#1E293B] border-[#334155]">
+							<CardHeader>
+								<CardTitle className="text-white text-base">Semantic Search</CardTitle>
+							</CardHeader>
+							<CardContent>
+								<div className="flex gap-2">
+									<Input
+										value={searchQuery}
+										onChange={(e) => setSearchQuery(e.target.value)}
+										onKeyDown={(e) => e.key === "Enter" && handleSearch()}
+										placeholder="Search memories..."
+										className="bg-[#0F172A] border-[#334155] text-white"
+									/>
+									<Button onClick={handleSearch} className="bg-[#38BDF8] hover:bg-[#38BDF8]/80 text-[#0F172A]">
+										<Search className="h-4 w-4" />
+									</Button>
+								</div>
+							</CardContent>
+						</Card>
+
+						{/* Memories list — REAL data */}
+						<Card className="bg-[#1E293B] border-[#334155]">
+							<CardHeader>
+								<CardTitle className="text-white text-base">
+									{searchResults ? "Search Results" : "All Memories"} ({displayMemories.length})
+								</CardTitle>
+								<CardDescription>
+									{memories?.success === false && memories.error
+										? memories.error
+										: "Real stored memories from the memory service"}
+								</CardDescription>
+							</CardHeader>
+							<CardContent>
+								{displayMemories.length > 0 ? (
+									<div className="space-y-2">
+										{displayMemories.map((mem) => (
+											<div
+												key={mem.id}
+												className="flex items-start gap-3 p-3 bg-[#0F172A] rounded-md border border-[#334155]"
+											>
+												<div className="flex-1 min-w-0">
+													<p className="text-sm text-white">{mem.content}</p>
+													{mem.score !== undefined && (
+														<Badge className="mt-1 bg-[#A78BFA]/10 text-[#A78BFA]">
+															Score: {mem.score.toFixed(3)}
+														</Badge>
+													)}
+												</div>
+												<Button
+													variant="ghost"
+													size="sm"
+													onClick={() => handleDelete(mem.id)}
+													className="text-[#E84040] hover:text-[#E84040]/80 p-1"
+												>
+													<Trash2 className="h-4 w-4" />
+												</Button>
+											</div>
+										))}
+									</div>
+								) : (
+									<p className="text-sm text-slate-400 text-center py-6">
+										{memories?.error
+											? "Memory service not initialized. Configure OPENAI_API_KEY or GEMINI_API_KEY to enable."
+											: "No memories stored yet."}
+									</p>
+								)}
+							</CardContent>
+						</Card>
+					</>
 				)}
 			</div>
 		</div>
