@@ -17,6 +17,8 @@ Reference: IEEE Task Force on Load Representation, "Load Representation for
 Dynamic Performance Analysis", IEEE Trans. Power Systems, 1993.
 """
 
+from __future__ import annotations
+
 from dataclasses import dataclass
 
 import numpy as np

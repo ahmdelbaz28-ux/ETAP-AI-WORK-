@@ -20,6 +20,8 @@ Standards:
 - NFPA 70: National Electrical Code (Article 240, 430)
 """
 
+from __future__ import annotations
+
 import logging
 from datetime import datetime, timezone
 
@@ -534,6 +536,9 @@ class CoordinationAgent(BaseAgent):
         - Coordination intervals meet minimum (0.2s)
         - TCC data has consistent lengths
         """
+        if result is None:
+            return False
+
         errors: list[str] = []
 
         rt_data = result.data.get("relay_operating_time")

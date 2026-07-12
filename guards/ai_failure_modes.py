@@ -355,7 +355,7 @@ class AIFailureModeDetector:
             var_name = match.group(1)
             line_num = source[: match.start()].count("\n") + 1
             # Check if this variable was assigned from a dict/list literal in same scope
-            assign_pattern = rf"{var_name}\s*=\s*(Union[\{{, \][)"
+            assign_pattern = rf"{var_name}\s*=\s*(?:\{{|\[)"
             if re.search(assign_pattern, source):
                 violations.append(
                     GuardViolation(
@@ -1077,7 +1077,7 @@ class AIFailureModeDetector:
                     import_line = source_lines[line - 1]
                     has_side_effect_comment = bool(
                         re.search(
-                            r"#\s*(Union[side.effect|register|patch|monkey|inject|auto, init])",
+                            r"#\s*(?:side[-_ ]?effect|register|patch|monkey|inject|auto|init)",
                             import_line,
                             re.IGNORECASE,
                         ),

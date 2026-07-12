@@ -59,8 +59,8 @@ describe('Settings', () => {
     const user = userEvent.setup()
     renderSettings()
 
-    // Default tab is AI Providers - should show Popular Models section header
-    expect(screen.getByText('Popular Models', { exact: false })).toBeTruthy()
+    // Default tab is AI Providers - should show Active AI Engine section header
+    expect(screen.getByText('Active AI Engine', { exact: false })).toBeTruthy()
 
     // Switch to Security tab
     await user.click(screen.getByText('Security'))

@@ -160,7 +160,7 @@ _INCOMPLETE_PATTERNS: list[tuple[str, str, str]] = [
         "What is the primary and secondary voltage? What is the load power factor and type (continuous/intermittent)?",
     ),
     (
-        r"set\s+relay.*motor, relay.*for\s*motor",
+        r"set\s+relay.*?motor|relay.*?for\s+motor",
         "Motor HP, starting method, CT ratio, full-load current",
         "What is the motor HP, rated voltage, and CT ratio? What starting method is used (DOL, star-delta, VFD)?",
     ),

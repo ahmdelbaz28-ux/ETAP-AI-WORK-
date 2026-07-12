@@ -35,7 +35,7 @@ class TestDetectFormat:
         THEN it returns the CSV SupportedFormat.
         """
         fmt = _detect_format("buses.csv")
-        assert fmt.value == "csv"
+        assert fmt.id == "csv"
 
     def test_detects_json_extension(self):
         """GIVEN a .json filename
@@ -43,7 +43,7 @@ class TestDetectFormat:
         THEN it returns the JSON SupportedFormat.
         """
         fmt = _detect_format("system.json")
-        assert fmt.value == "json"
+        assert fmt.id in ("json", "etap-project")
 
     def test_detects_xml_extension(self):
         """GIVEN a .xml filename
@@ -51,7 +51,7 @@ class TestDetectFormat:
         THEN it returns the CIM/XML format.
         """
         fmt = _detect_format("cim.xml")
-        assert fmt.value in ("cim", "xml", "cim_xml")
+        assert fmt.id == "cim-xml"
 
     def test_detects_psse_raw_extension(self):
         """GIVEN a .raw filename
@@ -59,17 +59,17 @@ class TestDetectFormat:
         THEN it returns the PSS/E RAW format.
         """
         fmt = _detect_format("system.raw")
-        assert fmt.value in ("psse", "psse_raw", "raw")
+        assert fmt.id == "psse-raw"
 
     def test_unknown_extension_raises(self):
         """GIVEN a .txt filename
         WHEN _detect_format is called
-        THEN it raises HTTPException with 400.
+        THEN it raises HTTPException with 422.
         """
         from fastapi import HTTPException
         with pytest.raises(HTTPException) as exc_info:
             _detect_format("unknown.txt")
-        assert exc_info.value.status_code == 400
+        assert exc_info.value.status_code == 422
 
 
 class TestDecodeText:
@@ -199,7 +199,7 @@ BUS2,Secondary,138.0,PV
         assert len(buses) == 2
         assert buses[0].id == "BUS1"
         assert buses[1].id == "BUS2"
-        assert metadata["format"] == "csv" or "csv" in str(metadata)
+        assert metadata.get("row_count") == 2
 
     def test_handles_empty_csv(self):
         """GIVEN an empty CSV (just headers)
@@ -212,16 +212,15 @@ BUS2,Secondary,138.0,PV
         assert len(branches) == 0
 
     def test_handles_malformed_csv_gracefully(self):
-        """GIVEN malformed CSV content
+        """GIVEN CSV content with valid headers but a malformed row
         WHEN _parse_csv is called
-        THEN it does not crash (returns partial results or warnings).
+        THEN it skips the bad row and logs a warning.
         """
-        csv_content = b"this,is,not,valid\n,,,\n"
-        # Should not raise
+        csv_content = b"id,name,voltage_kv,type\nBUS1,Good Bus,13.8,PQ\nBUS2,Bad Bus,invalid-voltage,PV\n"
         buses, branches, metadata, warnings = _parse_csv(csv_content)
-        # May be empty but should not crash
-        assert isinstance(buses, list)
-        assert isinstance(branches, list)
+        assert len(buses) == 1
+        assert buses[0].id == "BUS1"
+        assert len(warnings) == 1
 
 
 class TestParseJson:
@@ -247,7 +246,7 @@ class TestParseJson:
         buses, branches, metadata, warnings = _parse_json(content)
         assert len(buses) == 2
         assert len(branches) == 1
-        assert metadata.get("base_mva") == 100 or "base_mva" in metadata
+        assert metadata.get("key_count") == 4
 
     def test_handles_json_without_branches(self):
         """GIVEN JSON with only buses

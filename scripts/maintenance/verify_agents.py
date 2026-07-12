@@ -1,3 +1,5 @@
+
+from __future__ import annotations
 #!/usr/bin/env python3
 """
 Verification script to check that agents have proper structure and implementations.

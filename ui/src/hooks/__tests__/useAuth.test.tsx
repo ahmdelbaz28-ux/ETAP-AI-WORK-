@@ -13,6 +13,16 @@ vi.stubGlobal('fetch', mockFetch)
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
 
+function mockResponse({ ok, status = 200, data = {} }: { ok: boolean; status?: number; data?: any }) {
+  const bodyText = typeof data === 'string' ? data : JSON.stringify(data);
+  return {
+    ok,
+    status,
+    json: () => Promise.resolve(data),
+    text: () => Promise.resolve(bodyText),
+  };
+}
+
 function createWrapper() {
   return ({ children }: { children: React.ReactNode }) =>
     createElement(AuthProvider, null, children)
@@ -25,10 +35,11 @@ describe('useAuth', () => {
     vi.clearAllMocks()
     localStorage.clear()
     // Default: no token, so no validate call needed
-    mockFetch.mockResolvedValue({
+    mockFetch.mockResolvedValue(mockResponse({
       ok: false,
-      json: () => Promise.resolve({ detail: 'Not authenticated' }),
-    })
+      status: 401,
+      data: { detail: 'Not authenticated' }
+    }))
   })
 
   it('throws error when useAuth is used outside AuthProvider', () => {
@@ -53,18 +64,18 @@ describe('useAuth', () => {
   it('performs login and sets user with tokens', async () => {
     const mockUser = { id: '1', email: 'engineer@etap.com', name: 'Engineer', role: 'admin' }
     // First call: POST /login returns tokens
-    mockFetch.mockResolvedValueOnce({
+    mockFetch.mockResolvedValueOnce(mockResponse({
       ok: true,
-      json: () => Promise.resolve({
+      data: {
         access_token: 'test-access-token',
         refresh_token: 'test-refresh-token',
-      }),
-    })
+      }
+    }))
     // Second call: GET /me returns the user profile
-    mockFetch.mockResolvedValueOnce({
+    mockFetch.mockResolvedValueOnce(mockResponse({
       ok: true,
-      json: () => Promise.resolve(mockUser),
-    })
+      data: mockUser
+    }))
 
     const { result } = renderHook(() => useAuth(), { wrapper: createWrapper() })
 
@@ -88,10 +99,11 @@ describe('useAuth', () => {
   })
 
   it('throws error on failed login', async () => {
-    mockFetch.mockResolvedValueOnce({
+    mockFetch.mockResolvedValueOnce(mockResponse({
       ok: false,
-      json: () => Promise.resolve({ detail: 'Invalid credentials' }),
-    })
+      status: 400,
+      data: { detail: 'Invalid credentials' }
+    }))
 
     const { result } = renderHook(() => useAuth(), { wrapper: createWrapper() })
 
@@ -111,14 +123,14 @@ describe('useAuth', () => {
 
   it('clears user and tokens on logout', async () => {
     const mockUser = { id: '1', email: 'engineer@etap.com', name: 'Engineer', role: 'admin' }
-    mockFetch.mockResolvedValueOnce({
+    mockFetch.mockResolvedValueOnce(mockResponse({
       ok: true,
-      json: () => Promise.resolve({
+      data: {
         access_token: 'test-access-token',
         refresh_token: 'test-refresh-token',
         user: mockUser,
-      }),
-    })
+      }
+    }))
 
     const { result } = renderHook(() => useAuth(), { wrapper: createWrapper() })
 
@@ -145,10 +157,10 @@ describe('useAuth', () => {
   it('validates existing token on mount and sets user', async () => {
     localStorage.setItem('authToken', 'existing-token')
     const mockUser = { id: '2', email: 'existing@etap.com', name: 'Existing User', role: 'user' }
-    mockFetch.mockResolvedValueOnce({
+    mockFetch.mockResolvedValueOnce(mockResponse({
       ok: true,
-      json: () => Promise.resolve(mockUser),
-    })
+      data: mockUser
+    }))
 
     const { result } = renderHook(() => useAuth(), { wrapper: createWrapper() })
 
@@ -168,10 +180,11 @@ describe('useAuth', () => {
 
   it('removes invalid token on mount', async () => {
     localStorage.setItem('authToken', 'invalid-token')
-    mockFetch.mockResolvedValueOnce({
+    mockFetch.mockResolvedValueOnce(mockResponse({
       ok: false,
-      json: () => Promise.resolve({ detail: 'Token expired' }),
-    })
+      status: 401,
+      data: { detail: 'Token expired' }
+    }))
 
     const { result } = renderHook(() => useAuth(), { wrapper: createWrapper() })
 
@@ -192,10 +205,10 @@ describe('useAuth', () => {
       expect(result.current.isLoading).toBe(false)
     })
 
-    mockFetch.mockResolvedValueOnce({
+    mockFetch.mockResolvedValueOnce(mockResponse({
       ok: true,
-      json: () => Promise.resolve({ access_token: 'new-access-token' }),
-    })
+      data: { access_token: 'new-access-token' }
+    }))
 
     await act(async () => {
       await result.current.refreshToken()
@@ -216,10 +229,10 @@ describe('useAuth', () => {
     localStorage.setItem('refreshToken', 'expired-refresh-token')
 
     // Mount validation succeeds
-    mockFetch.mockResolvedValueOnce({
+    mockFetch.mockResolvedValueOnce(mockResponse({
       ok: true,
-      json: () => Promise.resolve({ id: '1', email: 'user@etap.com', name: 'User', role: 'user' }),
-    })
+      data: { id: '1', email: 'user@etap.com', name: 'User', role: 'user' }
+    }))
 
     const { result } = renderHook(() => useAuth(), { wrapper: createWrapper() })
 
@@ -228,14 +241,13 @@ describe('useAuth', () => {
     })
 
     // Refresh fails - mock non-ok response
-    mockFetch.mockResolvedValueOnce({
+    mockFetch.mockResolvedValueOnce(mockResponse({
       ok: false,
-      json: () => Promise.resolve({}),
-    })
+      status: 401,
+      data: {}
+    }))
 
     // Call refreshToken and catch the error
-    // QUALITY v2.1.1: typed refreshError as Error | undefined and used non-null
-    // assertion in expect() to satisfy strict mode's control-flow narrowing.
     let refreshError: Error | undefined
     await act(async () => {
       try {

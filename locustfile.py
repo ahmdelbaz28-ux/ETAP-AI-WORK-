@@ -1,3 +1,5 @@
+
+from __future__ import annotations
 # =============================================================================
 # AhmedETAP — Locust Stress Test Suite
 # Comprehensive stress testing with study execution, AI assistant, auth flows,

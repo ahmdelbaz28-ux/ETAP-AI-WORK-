@@ -46,13 +46,13 @@ class TestCalculateRelayOperatingTime:
         agent = CoordinationAgent()
         # IEC Standard Inverse: TMS=0.1, pickup=100A, fault=1000A (10x pickup)
         result = agent.calculate_relay_operating_time(
-            fault_current=1000.0,
-            pickup_current=100.0,
-            tms=0.1,
-            curve_type="SI",  # Standard Inverse
+            fault_current_a=1000.0,
+            pickup_current_a=100.0,
+            time_multiplier=0.1,
+            curve_type="standard_inverse",
         )
-        assert isinstance(result, (int, float))
-        assert result > 0, "Operating time must be positive"
+        assert isinstance(result, dict)
+        assert result["operating_time_s"] > 0, "Operating time must be positive"
 
     def test_higher_tms_gives_longer_time(self):
         """GIVEN two TMS values (0.1 and 0.5)
@@ -61,18 +61,18 @@ class TestCalculateRelayOperatingTime:
         """
         agent = CoordinationAgent()
         fast = agent.calculate_relay_operating_time(
-            fault_current=1000.0,
-            pickup_current=100.0,
-            tms=0.1,
-            curve_type="SI",
+            fault_current_a=1000.0,
+            pickup_current_a=100.0,
+            time_multiplier=0.1,
+            curve_type="standard_inverse",
         )
         slow = agent.calculate_relay_operating_time(
-            fault_current=1000.0,
-            pickup_current=100.0,
-            tms=0.5,
-            curve_type="SI",
+            fault_current_a=1000.0,
+            pickup_current_a=100.0,
+            time_multiplier=0.5,
+            curve_type="standard_inverse",
         )
-        assert slow > fast, "Higher TMS should yield longer operating time"
+        assert slow["operating_time_s"] > fast["operating_time_s"], "Higher TMS should yield longer operating time"
 
     def test_fault_below_pickup_returns_inf_or_large(self):
         """GIVEN a fault current below pickup
@@ -81,43 +81,63 @@ class TestCalculateRelayOperatingTime:
         """
         agent = CoordinationAgent()
         result = agent.calculate_relay_operating_time(
-            fault_current=50.0,  # Below pickup of 100A
-            pickup_current=100.0,
-            tms=0.1,
-            curve_type="SI",
+            fault_current_a=50.0,  # Below pickup of 100A
+            pickup_current_a=100.0,
+            time_multiplier=0.1,
+            curve_type="standard_inverse",
         )
         # Relay should not operate — result should be inf or very large
-        assert result == float("inf") or result > 1000, f"Below-pickup fault should not trip, got {result}"
+        assert result["operating_time_s"] == float("inf") or result["operating_time_s"] > 1000, f"Below-pickup fault should not trip, got {result}"
 
 
 class TestVerifyCoordination:
     """Tests for CoordinationAgent.verify_coordination()."""
 
     def test_well_coordinated_relays_pass(self):
-        """GIVEN upstream relay operating at 1.0s and downstream at 0.5s
-        WHEN verify_coordination is called with 0.3s CTI
-        THEN it returns True (coordinated, 0.5s margin > 0.3s CTI).
+        """GIVEN upstream and downstream relays with coordinated settings
+        WHEN verify_coordination is called
+        THEN it returns coordinated=True.
         """
         agent = CoordinationAgent()
+        upstream_relay = {
+            "pickup_current_a": 100.0,
+            "time_multiplier": 0.5,
+            "curve_type": "standard_inverse",
+        }
+        downstream_relay = {
+            "pickup_current_a": 100.0,
+            "time_multiplier": 0.1,
+            "curve_type": "standard_inverse",
+        }
         result = agent.verify_coordination(
-            upstream_time=1.0,
-            downstream_time=0.5,
-            cti=0.3,  # Coordination Time Interval
+            upstream_relay=upstream_relay,
+            downstream_relay=downstream_relay,
+            fault_current_a=1000.0,
         )
-        assert result is True or result.get("coordinated") is True
+        assert result.get("coordinated") is True
 
     def test_tight_coordination_fails(self):
-        """GIVEN upstream at 0.6s and downstream at 0.5s (only 0.1s margin)
-        WHEN verify_coordination is called with 0.3s CTI
-        THEN it returns False (insufficient margin).
+        """GIVEN upstream and downstream relays with close settings
+        WHEN verify_coordination is called
+        THEN it returns coordinated=False (insufficient margin).
         """
         agent = CoordinationAgent()
+        upstream_relay = {
+            "pickup_current_a": 100.0,
+            "time_multiplier": 0.1,
+            "curve_type": "standard_inverse",
+        }
+        downstream_relay = {
+            "pickup_current_a": 100.0,
+            "time_multiplier": 0.1,
+            "curve_type": "standard_inverse",
+        }
         result = agent.verify_coordination(
-            upstream_time=0.6,
-            downstream_time=0.5,
-            cti=0.3,
+            upstream_relay=upstream_relay,
+            downstream_relay=downstream_relay,
+            fault_current_a=1000.0,
         )
-        assert result is False or result.get("coordinated") is False
+        assert result.get("coordinated") is False
 
 
 class TestGenerateTccData:
@@ -126,24 +146,22 @@ class TestGenerateTccData:
     def test_generates_points_across_current_range(self):
         """GIVEN relay parameters
         WHEN generate_tcc_data is called
-        THEN it returns a list of (current, time) points.
+        THEN it returns a dict with TCC points.
         """
         agent = CoordinationAgent()
         result = agent.generate_tcc_data(
-            pickup_current=100.0,
-            tms=0.1,
-            curve_type="SI",
-            min_current=100.0,
-            max_current=10000.0,
+            pickup_current_a=100.0,
+            time_multiplier=0.1,
+            curve_type="standard_inverse",
+            min_multiplier=1.5,
+            max_multiplier=40.0,
             num_points=20,
         )
-        # Result should be a list of points or a dict with points
-        if isinstance(result, list):
-            assert len(result) > 0
-        elif isinstance(result, dict):
-            assert "points" in result or "currents" in result
-        else:
-            pytest.fail(f"Unexpected result type: {type(result)}")
+        assert isinstance(result, dict)
+        assert "current_a" in result
+        assert "time_s" in result
+        assert len(result["current_a"]) == 20
+        assert len(result["time_s"]) == 20
 
     def test_tcc_times_decrease_with_higher_current(self):
         """GIVEN a TCC curve
@@ -152,38 +170,35 @@ class TestGenerateTccData:
         """
         agent = CoordinationAgent()
         result = agent.generate_tcc_data(
-            pickup_current=100.0,
-            tms=0.1,
-            curve_type="SI",
-            min_current=200.0,
-            max_current=5000.0,
+            pickup_current_a=100.0,
+            time_multiplier=0.1,
+            curve_type="standard_inverse",
+            min_multiplier=1.5,
+            max_multiplier=40.0,
             num_points=10,
         )
-        # Extract points depending on return format
-        if isinstance(result, list) and len(result) >= 2:
-            # Assume list of (current, time) tuples
-            if isinstance(result[0], (list, tuple)) and len(result[0]) == 2:
-                low_current_time = result[0][1]
-                high_current_time = result[-1][1]
-                assert high_current_time < low_current_time, "Inverse curve: higher current → shorter time"
+        assert isinstance(result, dict)
+        low_current_time = result["time_s"][0]
+        high_current_time = result["time_s"][-1]
+        assert high_current_time < low_current_time, "Inverse curve: higher current → shorter time"
 
 
 class TestAnalyzeSelectivity:
     """Tests for CoordinationAgent.analyze_selectivity()."""
 
     def test_returns_result_dict(self):
-        """GIVEN a list of relay-fault pairs
+        """GIVEN a relay chain and fault currents
         WHEN analyze_selectivity is called
         THEN it returns a dict with selectivity analysis.
         """
         agent = CoordinationAgent()
-        # Minimal input — may need adjustment based on actual signature
+        relay_chain = [
+            {"name": "R1", "pickup_current_a": 100.0, "time_multiplier": 0.1, "curve_type": "standard_inverse"},
+            {"name": "R2", "pickup_current_a": 200.0, "time_multiplier": 0.2, "curve_type": "standard_inverse"},
+        ]
         result = agent.analyze_selectivity(
-            relays=[
-                {"name": "R1", "pickup": 100, "tms": 0.1, "curve": "SI"},
-                {"name": "R2", "pickup": 200, "tms": 0.2, "curve": "SI"},
-            ],
-            fault_currents=[500.0, 1000.0, 2000.0],
+            relay_chain=relay_chain,
+            fault_currents_a=[500.0, 1000.0, 2000.0],
         )
         assert result is not None
         assert isinstance(result, dict)

@@ -135,13 +135,13 @@ class TestABACRule:
         THEN it has the expected attributes.
         """
         rule = ABACRule(
-            rule_type=RuleType.ALLOW,
-            attribute="role",
+            rule_type=RuleType.ROLE,
+            field_path="role",
             operator="eq",
             value="admin",
         )
-        assert rule.rule_type == RuleType.ALLOW
-        assert rule.attribute == "role"
+        assert rule.rule_type == RuleType.ROLE
+        assert rule.field_path == "role"
         assert rule.value == "admin"
 
 
@@ -156,25 +156,20 @@ class TestABACPolicy:
         policy = ABACPolicy(name="test", description="test policy")
         assert policy.name == "test"
 
-    def test_add_allow_rule(self):
+    def test_add_rule(self):
         """GIVEN an ABACPolicy
-        WHEN an allow rule is added
-        THEN the policy has 1 allow rule.
+        WHEN a rule is added
+        THEN the policy has 1 rule in the rules list.
         """
         policy = ABACPolicy(name="test", description="test")
         rule = ABACRule(
-            rule_type=RuleType.ALLOW,
-            attribute="role",
+            rule_type=RuleType.ROLE,
+            field_path="role",
             operator="eq",
             value="admin",
         )
-        # Add rule (method may vary; test the pattern)
-        if hasattr(policy, "add_rule"):
-            policy.add_rule(rule)
-        elif hasattr(policy, "allow_rules"):
-            policy.allow_rules.append(rule)
-        # Verify rule was added
-        assert len(policy.allow_rules) == 1 if hasattr(policy, "allow_rules") else True
+        policy.rules.append(rule)
+        assert len(policy.rules) == 1
 
 
 class TestABACPolicyEngine:

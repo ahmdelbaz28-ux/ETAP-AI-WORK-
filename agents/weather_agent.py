@@ -17,6 +17,8 @@ Standards:
 - NERC TPL standards: Transmission planning during extreme weather
 """
 
+from __future__ import annotations
+
 import logging
 from datetime import datetime, timezone
 

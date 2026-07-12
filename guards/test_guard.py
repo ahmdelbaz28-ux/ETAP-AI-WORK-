@@ -432,7 +432,7 @@ class TestGuard(BaseGuard):
         # T-L1: Test prompt contracts not content
         # Heuristic: exact string match on LLM output.
         # NOSONAR — python:S8786: .* is bounded by single-line source code
-        pattern = r'assert\s+.*(Union[?:response|output|result, completion]).*==\s*["\']'
+        pattern = r'assert\s+.*(?:response|output|result|completion).*==\s*["\']'
         for match in re.finditer(pattern, source):
             line_num = source[: match.start()].count("\n") + 1
             violations.append(
@@ -464,7 +464,7 @@ class TestGuard(BaseGuard):
         """
         violations: list[GuardViolation] = []
         # Pattern: test creates an LLM agent/call but doesn't check observability
-        llm_call_pattern = r"(Union[?:agent|llm|completion|chat|prompt|openai, claude])\s*\("
+        llm_call_pattern = r"(?:agent|llm|completion|chat|prompt|openai|claude)\s*\("
         has_llm_call = bool(re.search(llm_call_pattern, source, re.IGNORECASE))
 
         if has_llm_call:
@@ -513,7 +513,7 @@ class TestGuard(BaseGuard):
         """
         violations: list[GuardViolation] = []
         # Pattern: test that uses agent workflow but only checks final result
-        agent_flow_pattern = r"(Union[?:workflow|pipeline|chain|agent_run|run_agent, execute_agent])"
+        agent_flow_pattern = r"(?:workflow|pipeline|chain|agent_run|run_agent|execute_agent)"
         has_agent_flow = bool(re.search(agent_flow_pattern, source, re.IGNORECASE))
 
         if has_agent_flow:

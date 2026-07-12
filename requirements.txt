@@ -53,6 +53,9 @@ psutil~=5.9.0
 # verification bypass) and CVE-2024-47081.
 requests~=2.33.0
 
+# CAD file processing
+ezdxf~=1.3.0
+
 # Language detection
 langdetect~=1.0.9
 
